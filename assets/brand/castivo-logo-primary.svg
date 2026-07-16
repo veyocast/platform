@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 96" role="img" aria-labelledby="title desc">
+  <title id="title">Castivo placeholder logo</title>
+  <desc id="desc">Temporary placeholder logo for development only.</desc>
+  <rect width="460" height="96" fill="none"/>
+  <g transform="translate(10 18)">
+    <path d="M48 0h34v14H50c-19 0-34 15-34 34s15 34 34 34h32v14H48C21 96 0 75 0 48S21 0 48 0Z" fill="#0A0A0A"/>
+    <path d="M45 30l30 18-30 18V30Z" fill="#FF5C20"/>
+  </g>
+  <text x="118" y="61" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="800" letter-spacing="-1.4" fill="#0A0A0A">CASTIVO</text>
+  <text x="118" y="82" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#6C6C67">PLACEHOLDER · REPLACE WITH LOCKED OFFICIAL ASSET</text>
+</svg>

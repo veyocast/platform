@@ -1,0 +1,41 @@
+:root, [data-theme="light"] {
+  --cv-background: #FAFAF7;
+  --cv-surface: #FFFFFF;
+  --cv-surfaceMuted: #F4F4F0;
+  --cv-surfaceStrong: #E8E8E3;
+  --cv-text: #0A0A0A;
+  --cv-textMuted: #4D4D49;
+  --cv-textSubtle: #6C6C67;
+  --cv-border: #D7D7D1;
+  --cv-borderStrong: #B9B9B2;
+  --cv-focus: #315CFF;
+  --cv-action: #FF5C20;
+  --cv-onAction: #0A0A0A;
+  --cv-brand-ink-black: #0A0A0A;
+  --cv-brand-paper-white: #FAFAF7;
+  --cv-brand-electric-orange: #FF5C20;
+  --cv-brand-signal-blue: #315CFF;
+  --cv-brand-soft-grey: #E8E8E3;
+}
+[data-theme="dark"] {
+  --cv-background: #0A0A0A;
+  --cv-surface: #111111;
+  --cv-surfaceMuted: #171717;
+  --cv-surfaceStrong: #1F1F1E;
+  --cv-text: #FAFAF7;
+  --cv-textMuted: #C9C9C4;
+  --cv-textSubtle: #92928B;
+  --cv-border: #2A2A28;
+  --cv-borderStrong: #3D3D39;
+  --cv-focus: #6681FF;
+  --cv-action: #FF5C20;
+  --cv-onAction: #0A0A0A;
+}
+
+:root {
+  --cv-font-display: "Inter Tight", "Inter", system-ui, sans-serif;
+  --cv-font-ui: "Inter", system-ui, sans-serif;
+  --cv-font-mono: "Geist Mono", ui-monospace, monospace;
+  --cv-focus-ring-width: 2px;
+  --cv-focus-ring-offset: 2px;
+}

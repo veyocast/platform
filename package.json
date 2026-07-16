@@ -1,0 +1,41 @@
+{
+  "name": "castivo-platform",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.5.2",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test tests/a11y",
+    "test:player": "playwright test tests/player",
+    "test:player:offline": "playwright test tests/player-offline",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "test:rls": "supabase test db",
+    "tokens:build": "tsx packages/tokens/scripts/build.ts",
+    "storybook": "pnpm --filter @castivo/ui storybook"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "@next/eslint-plugin-next": "^15.4.1",
+    "@playwright/test": "^1.54.2",
+    "@types/node": "^24.0.14",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "eslint": "^9.31.0",
+    "turbo": "^2.5.5",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.37.0",
+    "tsx": "^4.20.3",
+    "vitest": "^3.2.4"
+  }
+}

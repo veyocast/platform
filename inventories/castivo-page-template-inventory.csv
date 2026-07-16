@@ -1,0 +1,22 @@
+route,app,template,access,primary_states,sprint
+/,marketing,WebsiteHome,public,"Hero, use cases, reliability, sponsor, pricing preview",S10
+/product,marketing,ProductPage,public,Control + Player explanation,later
+/oplossingen/clubtv-kantine,marketing,SolutionPage,public,ClubTV in canteen,later
+/integraties,marketing,IntegrationsPage,public,"Provider statuses, no false claims",later
+/kennisbank,marketing,KnowledgeIndex,public,Search and categories,later
+/login,control,LoginPage,public/auth,Supabase auth,S03
+/accept-invite,control,InviteAcceptance,auth,Accept tenant invite,S03
+/platform,control,PlatformOverview,platform,"Tenants, screens, status",S03
+/platform/tenants,control,TenantManagement,platform,Tenant CRUD,S03
+/dashboard,control,TenantOverview,tenant,"Metrics, screen fleet, publish panel",S03
+/dashboard/media,control,MediaLibrary,tenant,Upload and inspect media,S04
+/dashboard/playlists,control,PlaylistList,tenant,Playlist cards/table,S05
+/dashboard/playlists/[id],control,PlaylistEditor,tenant,"Three-panel desktop, mobile flow",S05
+/dashboard/screens,control,ScreensPage,tenant,Screen fleet and pairing,S06
+/dashboard/screens/[id],control,ScreenDetail,tenant,Overview diagnostics releases events settings,S06
+/dashboard/team,control,TeamPage,tenant,Roles and invites,S03
+/dashboard/auditlog,control,AuditLogPage,tenant/platform,Append-only audit,S03
+/dashboard/settings,control,SettingsPage,tenant,Club/profile/storage/security,S03
+/,player,PlayerEntry,device,Startup or playback,S07
+/pair,player,UnpairedScreen,device,Pairing code and QR,S06
+/diagnostics,player,Diagnostics,device,Conscious diagnostics only,S08

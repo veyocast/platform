@@ -1,0 +1,19 @@
+[project]
+name = "castivo"
+default_branch = "main"
+package_manager = "pnpm"
+
+[approval]
+mode = "ask"
+require_approval_for = ["destructive", "network", "secrets", "docker-prune", "database-reset"]
+
+[commands]
+install = "pnpm install"
+lint = "pnpm lint"
+typecheck = "pnpm typecheck"
+test = "pnpm test"
+db_reset = "pnpm db:reset"
+
+[worktrees]
+base_dir = "../castivo-worktrees"
+branch_prefix = "castivo/"

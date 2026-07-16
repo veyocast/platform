@@ -1,0 +1,72 @@
+component,domain,category,variants,status,notes
+Box,primitive,layout,default,ready,Basic layout primitive
+Stack,primitive,layout,vertical/horizontal,ready,Spacing primitive
+Grid,primitive,layout,responsive,ready,Grid primitive
+Container,primitive,layout,reading/content/wide,ready,Canonical widths
+Divider,primitive,display,horizontal/vertical,ready,1px borders
+AspectRatio,primitive,media,16:9/9:16,ready,Player previews
+VisuallyHidden,primitive,a11y,default,ready,Screenreader utility
+Button,action,control,primary/secondary/ghost/destructive/inverse,ready,Primary orange uses ink text
+IconButton,action,control,default/destructive,ready,Accessible name required
+SplitButton,action,control,default,planned,
+ButtonGroup,action,control,default,planned,
+Link,action,nav,inline/nav/external,ready,
+FAB,action,control,mobile,planned,Use sparingly
+Field,form,input,default/error/readonly/disabled,ready,Placeholder is not label
+Textarea,form,input,default,ready,
+SearchField,form,input,clearable,ready,
+Select,form,input,single,ready,
+Combobox,form,input,grouped/mobile-sheet,planned,
+Checkbox,form,input,default,ready,
+RadioGroup,form,input,default,ready,
+Switch,form,input,immediate,ready,Not for saved-later settings
+FileUploader,form,media,dropzone/queue,planned,
+TopNavigation,navigation,website,desktop/mobile-sheet,ready,
+Sidebar,navigation,dashboard,expanded/collapsed/mobile-sheet,ready,
+Breadcrumbs,navigation,dashboard,default,ready,
+Tabs,navigation,control,default,ready,
+CommandPalette,navigation,control,default,planned,No dangerous actions without confirm
+Badge,feedback,status,success/warning/critical/info/neutral,ready,Text required
+StatusDot,feedback,status,default,ready,Not alone for critical meaning
+Alert,feedback,message,info/warning/critical/success,ready,
+Banner,feedback,message,global,planned,
+Toast,feedback,message,success/error,planned,
+ProgressBar,feedback,progress,determinate/indeterminate,ready,Publish shows phase + counts
+Skeleton,feedback,loading,default,ready,No layout shift
+EmptyState,feedback,state,default,ready,"Title, explanation, action"
+ErrorState,feedback,state,recoverable/fatal,ready,"Cause, consequence, action"
+Card,data-display,surface,default/interactive/selected,ready,
+MetricCard,data-display,dashboard,default,ready,No decorative chart
+MediaCard,data-display,media,image/video/processing/error,planned,
+PlaylistCard,data-display,playlist,draft/published/updating/error,planned,
+ScreenCard,data-display,screen,online/offline/syncing,planned,Mobile alternative to table
+Table,data-display,grid,standard/dense,ready,Mobile transforms
+DataGrid,data-display,grid,large,planned,
+Timeline,data-display,history,release/audit,planned,
+AppShell,dashboard-pattern,layout,platform/tenant,planned,
+PageHeader,dashboard-pattern,layout,default/resource,planned,
+TenantSwitcher,dashboard-pattern,context,default,planned,
+ScreenFleetTable,dashboard-pattern,screen,desktop,planned,
+PairingFlow,dashboard-pattern,screen,dialog/sheet,planned,
+MediaLibrary,dashboard-pattern,media,grid/list,planned,
+MediaInspector,dashboard-pattern,media,sheet,planned,
+UploadQueue,dashboard-pattern,media,global,planned,
+PlaylistEditor,dashboard-pattern,playlist,desktop/mobile-flow,planned,
+PublishPanel,dashboard-pattern,release,active/pending/error,planned,
+ReleaseDiff,dashboard-pattern,release,default,planned,
+AuditLog,dashboard-pattern,ops,default,planned,
+PlayerStage,player-pattern,player,fullscreen,planned,
+StartupScreen,player-pattern,setup,light/dark,planned,
+UnpairedScreen,player-pattern,setup,16:9/9:16,planned,
+PairingCode,player-pattern,setup,default,planned,
+PlayerDiagnostics,player-pattern,diagnostics,summary/detail,planned,
+OfflineState,player-pattern,diagnostics,default,planned,
+SyncState,player-pattern,diagnostics,downloading/verifying,planned,
+MatchdayTemplate,player-template,content,16:9/9:16,planned,
+FixturesTemplate,player-template,content,16:9/9:16,planned,
+ResultsTemplate,player-template,content,16:9/9:16,planned,
+SponsorTemplate,player-template,content,16:9/9:16,planned,
+AnnouncementTemplate,player-template,content,16:9/9:16,planned,
+CanteenTemplate,player-template,content,16:9/9:16,planned,
+QRBlock,player-template,content,default,planned,
+SafeZoneOverlay,player-template,debug,16:9/9:16,planned,
