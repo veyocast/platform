@@ -35,6 +35,15 @@ test("playlists route exposes publish review labels and status", async ({
   await expect(page.getByRole("status")).toContainText("Sponsor slide");
 });
 
+test("screens route exposes pairing labels and status", async ({ page }) => {
+  await page.goto("/dashboard/screens");
+
+  await expect(page.getByRole("heading", { exact: true, name: "Schermen" })).toBeVisible();
+  await expect(page.getByLabel("Schermnaam")).toBeVisible();
+  await expect(page.getByLabel("Pairingcode")).toContainText("CTV 482");
+  await expect(page.getByRole("status")).toContainText("claim_pairing_session");
+});
+
 test("public auth routes have clear headings and forms", async ({ page }) => {
   await page.goto("/login");
 

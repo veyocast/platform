@@ -71,6 +71,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "ready"
   },
   {
+    description: "Schermen, pairing en player devices",
+    href: "/dashboard/screens",
+    label: "Schermen",
+    requiredRole: "tenant_viewer",
+    scope: "tenant",
+    status: "ready"
+  },
+  {
     description: "Gebruikers, rollen en invites",
     href: "/dashboard/team",
     label: "Team",

@@ -12,6 +12,7 @@ create type public.media_variant_type as enum ('original','thumbnail','player_10
 create type public.media_processing_job_status as enum ('queued','processing','completed','failed');
 create type public.screen_status as enum ('active','maintenance','disabled');
 create type public.player_device_status as enum ('paired','revoked','disabled');
+create type public.pairing_session_status as enum ('pending','claimed','expired','cancelled');
 create type public.playlist_status as enum ('draft','published','archived');
 
 create table public.profiles (
@@ -224,20 +225,22 @@ create table public.screens (
   status public.screen_status not null default 'active',
   assigned_playlist_id uuid,
   assigned_release_id uuid,
+  created_by uuid references public.profiles(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  foreign key (tenant_id, assigned_playlist_id) references public.playlists(tenant_id, id),
-  foreign key (tenant_id, assigned_release_id) references public.playlist_releases(tenant_id, id)
+  foreign key (tenant_id, assigned_playlist_id) references public.playlists(tenant_id, id) on delete restrict,
+  foreign key (tenant_id, assigned_playlist_id, assigned_release_id)
+    references public.playlist_releases(tenant_id, playlist_id, id) on delete restrict
 );
 create unique index screens_tenant_id_id_uq on public.screens(tenant_id, id);
-create index screens_tenant_id_idx on public.screens(tenant_id);
+create index screens_tenant_status_idx on public.screens(tenant_id, status);
 
 create table public.player_devices (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null,
   screen_id uuid not null,
   device_name text,
-  token_hash text not null,
+  token_hash text not null check (token_hash ~ '^[a-f0-9]{64}$'),
   status public.player_device_status not null default 'paired',
   app_version text,
   platform text,
@@ -250,22 +253,34 @@ create table public.player_devices (
   last_seen_at timestamptz,
   paired_at timestamptz not null default now(),
   revoked_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
   foreign key (tenant_id, screen_id) references public.screens(tenant_id, id) on delete cascade,
-  foreign key (tenant_id, active_release_id) references public.playlist_releases(tenant_id, id),
-  foreign key (tenant_id, desired_release_id) references public.playlist_releases(tenant_id, id)
+  foreign key (tenant_id, active_release_id) references public.playlist_releases(tenant_id, id) on delete restrict,
+  foreign key (tenant_id, desired_release_id) references public.playlist_releases(tenant_id, id) on delete restrict
 );
+create unique index player_devices_token_hash_uq on public.player_devices(token_hash);
+create unique index player_devices_one_paired_per_screen_uq on public.player_devices(tenant_id, screen_id) where status = 'paired';
 create index player_devices_tenant_screen_idx on public.player_devices(tenant_id, screen_id);
 
 create table public.pairing_sessions (
   id uuid primary key default gen_random_uuid(),
-  code_hash text not null,
+  code_hash text not null unique check (code_hash ~ '^[a-f0-9]{64}$'),
+  device_fingerprint_hash text check (device_fingerprint_hash is null or device_fingerprint_hash ~ '^[a-f0-9]{64}$'),
+  status public.pairing_session_status not null default 'pending',
   expires_at timestamptz not null,
   claimed_by uuid references public.profiles(id),
-  claimed_screen_id uuid,
   claimed_tenant_id uuid,
-  paired_device_id uuid references public.player_devices(id),
-  created_at timestamptz not null default now()
+  claimed_screen_id uuid,
+  paired_device_id uuid,
+  claimed_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  foreign key (claimed_tenant_id, claimed_screen_id) references public.screens(tenant_id, id) on delete set null,
+  foreign key (claimed_tenant_id, paired_device_id) references public.player_devices(tenant_id, id) on delete set null
 );
+create index pairing_sessions_status_expires_at_idx on public.pairing_sessions(status, expires_at);
 
 create table public.audit_events (
   id uuid primary key default gen_random_uuid(),

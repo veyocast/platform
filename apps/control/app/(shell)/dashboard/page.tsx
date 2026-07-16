@@ -41,6 +41,9 @@ export default function DashboardPage() {
             <Link className="button-link button-link--primary" href="/dashboard/playlists">
               Playlist review
             </Link>
+            <Link className="button-link button-link--secondary" href="/dashboard/screens">
+              Schermen koppelen
+            </Link>
           </>
         }
         description="Tenantoperators krijgen een compact overzicht van schermstatus, releasewerk en open acties. De cijfers zijn foundationfixtures totdat de domeindata landt."
@@ -70,7 +73,7 @@ export default function DashboardPage() {
                 Vooruitblik op contentpublicaties
               </p>
             </div>
-            <StatusPill label="S05 domein" tone="neutral" />
+            <StatusPill label="S06 domein" tone="neutral" />
           </div>
           <ul className="task-list">
             {releaseTasks.map(([title, description, due]) => (
@@ -96,7 +99,7 @@ export default function DashboardPage() {
           <p className="page-description">
             Media-import is nu voorbereid met upload- en verwerkingstatussen.
             Playlistdrafts hebben nu een publish-review en immutable releases.
-            Pairing krijgt een eigen workflow in de volgende sprint.
+            Schermen en pairing hebben nu een eigen tenantworkflow.
           </p>
         </article>
       </section>

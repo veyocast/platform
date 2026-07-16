@@ -37,3 +37,12 @@ immutable releases. The test proves tenant editors can publish only valid ready
 media, tenant viewers cannot publish or mutate, cross-tenant playlist spoofing
 fails, direct release writes are denied, and release rows reject mutation after
 publication.
+
+## S06 coverage
+
+S06 implements and tests screens, player devices and pairing sessions for item
+11. The test proves tenant admins can manage their own screens, viewers stay
+read-only, anonymous players can only create hashed pairing sessions, direct
+device writes are denied, tenant B cannot claim or read tenant A pairing state,
+and player bootstrap returns only the screen assigned to the matching device
+token.

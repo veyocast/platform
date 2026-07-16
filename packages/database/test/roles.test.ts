@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  formatPairingCode,
   invitationStatuses,
   getMediaKindForMimeType,
   getPlaylistReleaseLabel,
@@ -16,8 +17,12 @@ import {
   playlistItemDurationSeconds,
   playlistItemFitModes,
   playlistStatuses,
+  pairingSessionStatuses,
+  playerDeviceStatuses,
   platformRoles,
   platformTenantMutationRoles,
+  screenOrientations,
+  screenStatuses,
   tenantAdministrationRoles,
   tenantRoles,
   tenantStatuses,
@@ -90,6 +95,19 @@ describe("@castivo/database role constants", () => {
         version: 3
       })
     ).toBe("Zomerroute v3");
+  });
+
+  it("keeps screen, device and pairing contracts explicit", () => {
+    expect(screenStatuses).toEqual(["active", "maintenance", "disabled"]);
+    expect(playerDeviceStatuses).toEqual(["paired", "revoked", "disabled"]);
+    expect(pairingSessionStatuses).toEqual([
+      "pending",
+      "claimed",
+      "expired",
+      "cancelled"
+    ]);
+    expect(screenOrientations).toEqual(["landscape", "portrait"]);
+    expect(formatPairingCode("ab-12c3")).toBe("AB1 2C3");
   });
 
   it("maps allowed media MIME types to the database asset kind", () => {

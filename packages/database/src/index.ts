@@ -52,6 +52,19 @@ export const playlistItemDurationSeconds = {
   minimum: 5
 } as const;
 
+export const screenStatuses = ["active", "maintenance", "disabled"] as const;
+
+export const playerDeviceStatuses = ["paired", "revoked", "disabled"] as const;
+
+export const pairingSessionStatuses = [
+  "pending",
+  "claimed",
+  "expired",
+  "cancelled"
+] as const;
+
+export const screenOrientations = ["landscape", "portrait"] as const;
+
 export const mediaImageMimeTypes = ["image/jpeg", "image/png", "image/webp"] as const;
 export const mediaVideoMimeTypes = ["video/mp4"] as const;
 export const mediaAllowedMimeTypes = [
@@ -74,6 +87,10 @@ export type MediaProcessingJobStatus = (typeof mediaProcessingJobStatuses)[numbe
 export type MediaAllowedMimeType = (typeof mediaAllowedMimeTypes)[number];
 export type PlaylistStatus = (typeof playlistStatuses)[number];
 export type PlaylistItemFitMode = (typeof playlistItemFitModes)[number];
+export type ScreenStatus = (typeof screenStatuses)[number];
+export type PlayerDeviceStatus = (typeof playerDeviceStatuses)[number];
+export type PairingSessionStatus = (typeof pairingSessionStatuses)[number];
+export type ScreenOrientation = (typeof screenOrientations)[number];
 
 export const platformTenantMutationRoles = ["platform_owner", "platform_admin"] as const satisfies readonly PlatformRole[];
 export const tenantAdministrationRoles = ["tenant_owner", "tenant_admin"] as const satisfies readonly TenantRole[];
@@ -121,6 +138,16 @@ export function getPlaylistReleaseLabel({
   version: number;
 }) {
   return `${playlistName.trim()} v${version}`;
+}
+
+export function formatPairingCode(code: string) {
+  const normalizedCode = code.replace(/[^a-zA-Z0-9]+/g, "").toUpperCase();
+
+  if (normalizedCode.length <= 3) {
+    return normalizedCode;
+  }
+
+  return `${normalizedCode.slice(0, 3)} ${normalizedCode.slice(3, 6)}`;
 }
 
 function sanitizeMediaFileName(fileName: string) {
