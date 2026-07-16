@@ -40,6 +40,8 @@ pnpm build
 pnpm dev
 ```
 
+CI runs the same foundation gates on GitHub Actions. See `docs/ci.md`.
+
 Local ports:
 
 ```text
