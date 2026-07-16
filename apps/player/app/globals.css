@@ -48,3 +48,41 @@ body {
   font-size: 16px;
   line-height: 1.6;
 }
+
+.player-pairing-code {
+  align-items: center;
+  border: 1px solid color-mix(in oklab, CanvasText 24%, transparent);
+  border-radius: 8px;
+  display: flex;
+  font-size: clamp(40px, 10vw, 88px);
+  font-weight: 800;
+  justify-content: center;
+  letter-spacing: 0;
+  margin-top: 32px;
+  min-height: 144px;
+  text-align: center;
+}
+
+.player-diagnostics {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  margin: 24px 0 0;
+}
+
+.player-diagnostics div {
+  border-top: 1px solid color-mix(in oklab, CanvasText 16%, transparent);
+  display: grid;
+  gap: 6px;
+  padding-top: 12px;
+}
+
+.player-diagnostics dt {
+  color: color-mix(in oklab, CanvasText 62%, transparent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.player-diagnostics dd {
+  margin: 0;
+}

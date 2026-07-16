@@ -12,6 +12,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("link", { name: /Platform/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Schermen/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
 
   await nav.getByRole("link", { name: /Media/ }).click();
@@ -23,6 +24,11 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page).toHaveURL(/\/dashboard\/playlists$/);
   await expect(page.getByRole("heading", { exact: true, name: "Playlists" })).toBeVisible();
   await expect(page.getByText("Publish review actief")).toBeVisible();
+
+  await nav.getByRole("link", { name: /Schermen/ }).click();
+  await expect(page).toHaveURL(/\/dashboard\/screens$/);
+  await expect(page.getByRole("heading", { exact: true, name: "Schermen" })).toBeVisible();
+  await expect(page.getByText("Player is device")).toBeVisible();
 
   await nav.getByRole("link", { name: /Tenants/ }).click();
   await expect(page).toHaveURL(/\/platform\/tenants$/);

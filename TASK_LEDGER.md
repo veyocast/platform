@@ -12,7 +12,7 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 | S03-A | review | castivo/s03-control-shell | control-agent | app shell | apps/control | e2e smoke | Control shell, auth callback routes and smoke/a11y tests complete; local gates green. |
 | S04-A | review | castivo/s04-media-domain | media-agent | upload/storage | apps/control, worker, DB | rls + unit/e2e/a11y | Media upload schema, storage RLS, worker planning and control intake complete; local gates green. |
 | S05-A | review | castivo/s05-playlists | playlist-agent | drafts/releases | DB, control | unit/rls/e2e/a11y | Playlist draft, publish review and immutable release model complete; local gates green. |
-| S06-A | todo | castivo/s06-pairing | device-agent | screens/player devices | DB, control, player | e2e | |
+| S06-A | review | castivo/s06-pairing | device-agent | screens/player devices | DB, control, player | db reset + rls/e2e/a11y/player | Screens, player devices and pairing flow complete; local gates green. |
 | S07-A | todo | castivo/s07-online-player | player-agent | online loop | apps/player | player tests | |
 | S08-A | todo | castivo/s08-offline-player | offline-agent | cache/atomic updates | apps/player | offline tests | |
 | S09-A | todo | castivo/s09-polish | ux-agent | dashboard polish | control/ui | a11y/e2e | |
