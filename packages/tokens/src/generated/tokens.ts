@@ -1,0 +1,175 @@
+import type { CastivoDesignTokens } from "../schema";
+
+export const castivoTokens = {
+  "$schema": "https://castivo.local/design-tokens.schema.json",
+  "meta": {
+    "name": "Castivo Bold Design Tokens",
+    "version": "1.0.0",
+    "status": "placeholder-build-pack"
+  },
+  "color": {
+    "brand": {
+      "inkBlack": "#0A0A0A",
+      "paperWhite": "#FAFAF7",
+      "electricOrange": "#FF5C20",
+      "signalBlue": "#315CFF",
+      "softGrey": "#E8E8E3"
+    },
+    "neutral": {
+      "0": "#FFFFFF",
+      "25": "#FAFAF7",
+      "50": "#F4F4F0",
+      "100": "#E8E8E3",
+      "200": "#D7D7D1",
+      "300": "#B9B9B2",
+      "400": "#92928B",
+      "500": "#6C6C67",
+      "600": "#4D4D49",
+      "700": "#333331",
+      "800": "#1F1F1E",
+      "850": "#171717",
+      "900": "#111111",
+      "950": "#0A0A0A",
+      "1000": "#050505"
+    },
+    "semantic": {
+      "success": {
+        "solid": "#18794E",
+        "surface": "#E8F7EF",
+        "text": "#0E5A38",
+        "dark": "#46D18C"
+      },
+      "warning": {
+        "solid": "#B95C00",
+        "surface": "#FFF0E2",
+        "text": "#763A00",
+        "dark": "#FFAD66"
+      },
+      "critical": {
+        "solid": "#C7322B",
+        "surface": "#FDEDEC",
+        "text": "#861E1A",
+        "dark": "#FF716B"
+      },
+      "info": {
+        "solid": "#315CFF",
+        "surface": "#EEF1FF",
+        "text": "#1E39B5",
+        "dark": "#8FA4FF"
+      }
+    },
+    "theme": {
+      "light": {
+        "background": "#FAFAF7",
+        "surface": "#FFFFFF",
+        "surfaceMuted": "#F4F4F0",
+        "surfaceStrong": "#E8E8E3",
+        "text": "#0A0A0A",
+        "textMuted": "#4D4D49",
+        "textSubtle": "#6C6C67",
+        "border": "#D7D7D1",
+        "borderStrong": "#B9B9B2",
+        "focus": "#315CFF",
+        "action": "#FF5C20",
+        "onAction": "#0A0A0A"
+      },
+      "dark": {
+        "background": "#0A0A0A",
+        "surface": "#111111",
+        "surfaceMuted": "#171717",
+        "surfaceStrong": "#1F1F1E",
+        "text": "#FAFAF7",
+        "textMuted": "#C9C9C4",
+        "textSubtle": "#92928B",
+        "border": "#2A2A28",
+        "borderStrong": "#3D3D39",
+        "focus": "#6681FF",
+        "action": "#FF5C20",
+        "onAction": "#0A0A0A"
+      }
+    }
+  },
+  "font": {
+    "display": "Inter Tight",
+    "ui": "Inter",
+    "mono": "Geist Mono"
+  },
+  "spacingPx": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    48,
+    56,
+    64,
+    72,
+    80,
+    96,
+    112,
+    128,
+    160,
+    192
+  ],
+  "radiiPx": {
+    "none": 0,
+    "xs": 2,
+    "sm": 4,
+    "md": 6,
+    "lg": 8,
+    "xl": 12,
+    "2xl": 16,
+    "full": 9999
+  },
+  "motionMs": {
+    "instant": 80,
+    "fast": 140,
+    "standard": 220,
+    "slow": 320,
+    "scene": 480
+  },
+  "breakpointsPx": {
+    "xs": 360,
+    "sm": 480,
+    "md": 768,
+    "lg": 1024,
+    "xl": 1280,
+    "2xl": 1440,
+    "3xl": 1600
+  },
+  "zIndex": {
+    "base": 0,
+    "sticky": 100,
+    "dropdown": 300,
+    "overlay": 500,
+    "modal": 700,
+    "toast": 900,
+    "critical": 1000
+  },
+  "componentHeightPx": {
+    "button": {
+      "compact": "32-36",
+      "standard": 40,
+      "touch": "44-48"
+    },
+    "input": {
+      "compact": 36,
+      "standard": 40,
+      "touch": 44
+    },
+    "topbar": 64,
+    "sidebarExpanded": 248,
+    "sidebarCollapsed": 72
+  }
+} as const satisfies CastivoDesignTokens;
+
+export default castivoTokens;

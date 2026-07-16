@@ -1,0 +1,23 @@
+{
+  "name": "@castivo/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./tailwind": {
+      "types": "./dist/generated/tailwind-preset.d.ts",
+      "default": "./src/generated/tailwind-preset.ts"
+    }
+  },
+  "scripts": {
+    "build": "pnpm tokens:generate && tsc -p tsconfig.build.json",
+    "lint": "eslint . --max-warnings=0",
+    "tokens:generate": "tsx scripts/build.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  }
+}

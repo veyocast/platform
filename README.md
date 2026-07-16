@@ -41,6 +41,8 @@ pnpm dev
 ```
 
 CI runs the same foundation gates on GitHub Actions. See `docs/ci.md`.
+Design tokens are generated from the canonical JSON source. See
+`docs/design-tokens.md`.
 
 Local ports:
 
