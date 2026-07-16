@@ -157,9 +157,9 @@ export const castivoTokens = {
   },
   "componentHeightPx": {
     "button": {
-      "compact": "32-36",
+      "compact": 36,
       "standard": 40,
-      "touch": "44-48"
+      "touch": 48
     },
     "input": {
       "compact": 36,

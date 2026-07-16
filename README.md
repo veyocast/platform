@@ -14,6 +14,8 @@ apps/
   media-worker/   TypeScript worker skeleton
 packages/
   config/         Shared local runtime constants
+  tokens/         Design token build pipeline and generated presets
+  ui/             Shared React primitives and Storybook skeleton
   testkit/        Shared test helpers
 supabase/         Local Supabase config and later migrations/tests
 docs/             Product, architecture, security and execution canon
@@ -42,7 +44,8 @@ pnpm dev
 
 CI runs the same foundation gates on GitHub Actions. See `docs/ci.md`.
 Design tokens are generated from the canonical JSON source. See
-`docs/design-tokens.md`.
+`docs/design-tokens.md`. UI primitives live in `@castivo/ui`; see
+`docs/ui-primitives.md`.
 
 Local ports:
 

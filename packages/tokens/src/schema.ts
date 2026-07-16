@@ -39,5 +39,5 @@ export type CastivoDesignTokens = {
   motionMs: Record<string, number>;
   breakpointsPx: Record<string, number>;
   zIndex: Record<string, number>;
-  componentHeightPx: Record<string, Record<string, number | string> | number>;
+  componentHeightPx: Record<string, Record<string, number> | number>;
 };
