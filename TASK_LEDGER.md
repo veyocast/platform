@@ -6,7 +6,7 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 |---|---|---|---|---|---|---|---|
 | S00-A | review | castivo/s00-foundation | repo-agent | monorepo + scripts | root, docs, .codex | lint/typecheck/test/build | Initial monorepo foundation complete; gates green locally. |
 | S00-B | review | castivo/s00-ci | ci-agent | CI baseline | .github, package scripts | PR gates | GitHub Actions baseline and PR template complete; local gates green. |
-| S01-A | todo | castivo/s01-tokens | design-system-agent | tokens/tailwind/css | packages/tokens, tokens | storybook/build | |
+| S01-A | review | castivo/s01-tokens | design-system-agent | tokens/tailwind/css | packages/tokens, tokens | tokens:build/lint/typecheck/test/build | Token package, generator and docs complete; local gates green. |
 | S01-B | todo | castivo/s01-ui-primitives | ui-agent | primitives/controls | packages/ui | a11y/unit | |
 | S02-A | todo | castivo/s02-db-rls | db-agent | tenancy/RLS | supabase, packages/database | db reset + rls | |
 | S03-A | todo | castivo/s03-control-shell | control-agent | app shell | apps/control | e2e smoke | |
