@@ -13,6 +13,17 @@ test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 });
 
+test("media route exposes upload intake labels and status landmarks", async ({
+  page
+}) => {
+  await page.goto("/dashboard/media");
+
+  await expect(page.getByRole("heading", { exact: true, name: "Media" })).toBeVisible();
+  await expect(page.getByLabel("Bestand")).toBeVisible();
+  await expect(page.getByLabel("Titel")).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("echte Supabase sessies");
+});
+
 test("public auth routes have clear headings and forms", async ({ page }) => {
   await page.goto("/login");
 

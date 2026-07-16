@@ -14,6 +14,7 @@ describe("control navigation", () => {
 
     expect(links).toStrictEqual([
       "/dashboard",
+      "/dashboard/media",
       "/dashboard/team",
       "/dashboard/auditlog",
       "/dashboard/settings"
@@ -31,7 +32,8 @@ describe("control navigation", () => {
       "tenant"
     ]);
     expect(groups.at(1)?.items.map((item) => item.href)).toStrictEqual([
-      "/dashboard"
+      "/dashboard",
+      "/dashboard/media"
     ]);
   });
 

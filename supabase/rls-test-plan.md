@@ -21,3 +21,11 @@ S02 implements and tests the identity, tenancy, membership, invitation and audit
 event boundary for items 1, 2, 3, 7, 8, 9 and 10. Media/upload, player-device
 and storage path policies are intentionally deferred to their domain migrations
 so their tables and storage buckets exist before policies are written.
+
+## S04 coverage
+
+S04 implements and tests media assets, upload sessions, processing jobs and the
+private `tenant-media` storage bucket for items 4, 5, 6 and 12. The test proves
+tenant viewers stay read-only, tenant editors can create upload work for their
+own tenant, cross-tenant storage path spoofing fails, and platform viewers do
+not gain media mutation rights.

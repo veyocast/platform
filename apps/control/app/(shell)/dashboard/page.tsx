@@ -34,8 +34,8 @@ export default function DashboardPage() {
     <>
       <PageHeader
         actions={
-          <Link className="button-link button-link--primary" href="/dashboard/team">
-            Team bekijken
+          <Link className="button-link button-link--primary" href="/dashboard/media">
+            Media beheren
           </Link>
         }
         description="Tenantoperators krijgen een compact overzicht van schermstatus, releasewerk en open acties. De cijfers zijn foundationfixtures totdat de domeindata landt."
@@ -89,9 +89,9 @@ export default function DashboardPage() {
             <StatusPill label="3 acties" tone="warning" />
           </div>
           <p className="page-description">
-            Pairing, media-import en playlisteditor krijgen eigen workflows in
-            de volgende sprints. Deze shell reserveert de operationele plek en
-            statuspatronen alvast.
+            Media-import is nu voorbereid met upload- en verwerkingstatussen.
+            Playlisteditor en pairing krijgen eigen workflows in de volgende
+            sprints.
           </p>
         </article>
       </section>

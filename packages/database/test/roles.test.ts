@@ -2,6 +2,16 @@ import { describe, expect, it } from "vitest";
 
 import {
   invitationStatuses,
+  getMediaKindForMimeType,
+  getTenantMediaOriginalPath,
+  isAllowedMediaMimeType,
+  mediaAllowedMimeTypes,
+  mediaAssetStatuses,
+  mediaMaxVideoBytes,
+  mediaMaxVideoDurationSeconds,
+  mediaProcessingJobStatuses,
+  mediaUploadSessionStatuses,
+  mediaVariantTypes,
   platformRoles,
   platformTenantMutationRoles,
   tenantAdministrationRoles,
@@ -35,5 +45,56 @@ describe("@castivo/database role constants", () => {
     expect(platformTenantMutationRoles).toEqual(["platform_owner", "platform_admin"]);
     expect(tenantStatuses).toEqual(["active", "paused", "archived"]);
     expect(invitationStatuses).toEqual(["pending", "accepted", "revoked", "expired"]);
+  });
+
+  it("keeps canonical media statuses and processing limits explicit", () => {
+    expect(mediaAssetStatuses).toEqual([
+      "uploading",
+      "processing",
+      "ready",
+      "validation_failed",
+      "deleted"
+    ]);
+    expect(mediaUploadSessionStatuses).toEqual([
+      "pending",
+      "uploaded",
+      "expired",
+      "cancelled"
+    ]);
+    expect(mediaVariantTypes).toEqual(["original", "thumbnail", "player_1080p"]);
+    expect(mediaProcessingJobStatuses).toEqual([
+      "queued",
+      "processing",
+      "completed",
+      "failed"
+    ]);
+    expect(mediaMaxVideoBytes).toBe(524_288_000);
+    expect(mediaMaxVideoDurationSeconds).toBe(300);
+  });
+
+  it("maps allowed media MIME types to the database asset kind", () => {
+    expect(mediaAllowedMimeTypes).toEqual([
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "video/mp4"
+    ]);
+    expect(getMediaKindForMimeType("image/webp")).toBe("image");
+    expect(getMediaKindForMimeType("video/mp4")).toBe("video");
+    expect(getMediaKindForMimeType("image/svg+xml")).toBeNull();
+    expect(isAllowedMediaMimeType("image/png")).toBe(true);
+    expect(isAllowedMediaMimeType("application/x-msdownload")).toBe(false);
+  });
+
+  it("builds tenant-scoped media storage paths", () => {
+    expect(
+      getTenantMediaOriginalPath({
+        assetId: "20000000-0000-4000-8000-000000000003",
+        fileName: "Poster final WEBP.webp",
+        tenantId: "10000000-0000-4000-8000-000000000001"
+      })
+    ).toBe(
+      "tenants/10000000-0000-4000-8000-000000000001/assets/20000000-0000-4000-8000-000000000003/original/poster-final-webp.webp"
+    );
   });
 });

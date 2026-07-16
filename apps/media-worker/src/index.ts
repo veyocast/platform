@@ -1,5 +1,19 @@
 import { CASTIVO_APPS, getLocalUrl } from "@castivo/config";
 
+export {
+  createMediaProcessingPlan,
+  maxUploadBytes,
+  maxVideoDurationSeconds,
+  validateMediaCandidate
+} from "./media-processing";
+export type {
+  MediaCandidate,
+  MediaKind,
+  MediaProcessingPlan,
+  MediaRejection,
+  ProcessingVariant
+} from "./media-processing";
+
 export type WorkerHealth = {
   service: string;
   status: "ok";
