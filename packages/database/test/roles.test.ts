@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   invitationStatuses,
   getMediaKindForMimeType,
+  getPlaylistReleaseLabel,
   getTenantMediaOriginalPath,
   isAllowedMediaMimeType,
   mediaAllowedMimeTypes,
@@ -12,6 +13,9 @@ import {
   mediaProcessingJobStatuses,
   mediaUploadSessionStatuses,
   mediaVariantTypes,
+  playlistItemDurationSeconds,
+  playlistItemFitModes,
+  playlistStatuses,
   platformRoles,
   platformTenantMutationRoles,
   tenantAdministrationRoles,
@@ -70,6 +74,22 @@ describe("@castivo/database role constants", () => {
     ]);
     expect(mediaMaxVideoBytes).toBe(524_288_000);
     expect(mediaMaxVideoDurationSeconds).toBe(300);
+  });
+
+  it("keeps playlist release contracts explicit", () => {
+    expect(playlistStatuses).toEqual(["draft", "published", "archived"]);
+    expect(playlistItemFitModes).toEqual(["contain", "cover"]);
+    expect(playlistItemDurationSeconds).toEqual({
+      default: 10,
+      maximum: 3600,
+      minimum: 5
+    });
+    expect(
+      getPlaylistReleaseLabel({
+        playlistName: " Zomerroute ",
+        version: 3
+      })
+    ).toBe("Zomerroute v3");
   });
 
   it("maps allowed media MIME types to the database asset kind", () => {

@@ -29,3 +29,11 @@ private `tenant-media` storage bucket for items 4, 5, 6 and 12. The test proves
 tenant viewers stay read-only, tenant editors can create upload work for their
 own tenant, cross-tenant storage path spoofing fails, and platform viewers do
 not gain media mutation rights.
+
+## S05 coverage
+
+S05 implements and tests playlist drafts, playlist items, publish review and
+immutable releases. The test proves tenant editors can publish only valid ready
+media, tenant viewers cannot publish or mutate, cross-tenant playlist spoofing
+fails, direct release writes are denied, and release rows reject mutation after
+publication.

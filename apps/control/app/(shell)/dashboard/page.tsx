@@ -16,7 +16,7 @@ const tenantMetrics = [
     value: "18"
   },
   {
-    detail: "Nieuwe media klaar voor tagging in S05.",
+    detail: "Nieuwe media klaar voor playlistdrafts.",
     label: "Media-items",
     tone: "info",
     value: "642"
@@ -34,9 +34,14 @@ export default function DashboardPage() {
     <>
       <PageHeader
         actions={
-          <Link className="button-link button-link--primary" href="/dashboard/media">
-            Media beheren
-          </Link>
+          <>
+            <Link className="button-link button-link--secondary" href="/dashboard/media">
+              Media beheren
+            </Link>
+            <Link className="button-link button-link--primary" href="/dashboard/playlists">
+              Playlist review
+            </Link>
+          </>
         }
         description="Tenantoperators krijgen een compact overzicht van schermstatus, releasewerk en open acties. De cijfers zijn foundationfixtures totdat de domeindata landt."
         eyebrow="Tenant"
@@ -65,7 +70,7 @@ export default function DashboardPage() {
                 Vooruitblik op contentpublicaties
               </p>
             </div>
-            <StatusPill label="S04/S05 domein" tone="neutral" />
+            <StatusPill label="S05 domein" tone="neutral" />
           </div>
           <ul className="task-list">
             {releaseTasks.map(([title, description, due]) => (
@@ -90,8 +95,8 @@ export default function DashboardPage() {
           </div>
           <p className="page-description">
             Media-import is nu voorbereid met upload- en verwerkingstatussen.
-            Playlisteditor en pairing krijgen eigen workflows in de volgende
-            sprints.
+            Playlistdrafts hebben nu een publish-review en immutable releases.
+            Pairing krijgt een eigen workflow in de volgende sprint.
           </p>
         </article>
       </section>

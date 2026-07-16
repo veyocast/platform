@@ -118,6 +118,10 @@ export function ControlShell({
 }
 
 function isActive(pathname: string, item: ControlNavigationItem) {
+  if (item.href === "/dashboard" || item.href === "/platform") {
+    return pathname === item.href;
+  }
+
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
