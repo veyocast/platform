@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Castivo Control",
-  description: "Castivo control plane"
+  description: "Beheeromgeving voor Castivo platform- en tenantrollen"
 };
 
 export default function RootLayout({
