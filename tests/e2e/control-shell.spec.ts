@@ -10,7 +10,13 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
 
   const nav = page.getByRole("navigation", { name: "Hoofdnavigatie" });
   await expect(nav.getByRole("link", { name: /Platform/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
+
+  await nav.getByRole("link", { name: /Media/ }).click();
+  await expect(page).toHaveURL(/\/dashboard\/media$/);
+  await expect(page.getByRole("heading", { exact: true, name: "Media" })).toBeVisible();
+  await expect(page.getByText("Private bucket: tenant-media")).toBeVisible();
 
   await nav.getByRole("link", { name: /Tenants/ }).click();
   await expect(page).toHaveURL(/\/platform\/tenants$/);

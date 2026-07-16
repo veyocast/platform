@@ -55,6 +55,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "ready"
   },
   {
+    description: "Uploads, verwerking en playerassets",
+    href: "/dashboard/media",
+    label: "Media",
+    requiredRole: "tenant_viewer",
+    scope: "tenant",
+    status: "ready"
+  },
+  {
     description: "Gebruikers, rollen en invites",
     href: "/dashboard/team",
     label: "Team",

@@ -5,7 +5,11 @@ create schema if not exists private;
 create type public.platform_role as enum ('platform_owner','platform_admin','platform_support','platform_viewer');
 create type public.tenant_role as enum ('tenant_owner','tenant_admin','tenant_editor','tenant_viewer');
 create type public.tenant_status as enum ('active','paused','archived');
-create type public.media_status as enum ('uploading','processing','ready','failed','deleted');
+create type public.media_asset_kind as enum ('image','video');
+create type public.media_asset_status as enum ('uploading','processing','ready','validation_failed','deleted');
+create type public.media_upload_session_status as enum ('pending','uploaded','expired','cancelled');
+create type public.media_variant_type as enum ('original','thumbnail','player_1080p');
+create type public.media_processing_job_status as enum ('queued','processing','completed','failed');
 create type public.screen_status as enum ('active','maintenance','disabled');
 create type public.player_device_status as enum ('paired','revoked','disabled');
 create type public.playlist_status as enum ('draft','published','archived');
@@ -66,7 +70,7 @@ create table public.media_assets (
   title text not null,
   original_filename text not null,
   mime_type text not null,
-  status public.media_status not null default 'uploading',
+  status public.media_asset_status not null default 'uploading',
   storage_path text not null,
   byte_size bigint not null default 0,
   checksum_sha256 text,
@@ -78,11 +82,26 @@ create table public.media_assets (
 );
 create index media_assets_tenant_id_idx on public.media_assets(tenant_id);
 
+create table public.media_upload_sessions (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null,
+  media_asset_id uuid not null,
+  status public.media_upload_session_status not null default 'pending',
+  storage_path text not null,
+  expected_mime_type text not null,
+  expected_size_bytes bigint not null,
+  expires_at timestamptz not null,
+  completed_at timestamptz,
+  created_by uuid references public.profiles(id),
+  created_at timestamptz not null default now(),
+  foreign key (tenant_id, media_asset_id) references public.media_assets(tenant_id, id) on delete cascade
+);
+
 create table public.media_variants (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null,
   media_asset_id uuid not null,
-  variant_type text not null,
+  variant_type public.media_variant_type not null,
   storage_path text not null,
   mime_type text not null,
   byte_size bigint not null,
@@ -95,6 +114,23 @@ create table public.media_variants (
 );
 create unique index media_assets_tenant_id_id_uq on public.media_assets(tenant_id, id);
 create index media_variants_tenant_id_idx on public.media_variants(tenant_id);
+
+create table public.media_processing_jobs (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null,
+  media_asset_id uuid not null,
+  status public.media_processing_job_status not null default 'queued',
+  attempt_count integer not null default 0,
+  requested_by uuid references public.profiles(id),
+  locked_at timestamptz,
+  started_at timestamptz,
+  finished_at timestamptz,
+  error_code text,
+  error_message text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  foreign key (tenant_id, media_asset_id) references public.media_assets(tenant_id, id) on delete cascade
+);
 
 create table public.playlists (
   id uuid primary key default gen_random_uuid(),
@@ -213,7 +249,9 @@ alter table public.platform_memberships enable row level security;
 alter table public.tenant_memberships enable row level security;
 alter table public.tenant_invitations enable row level security;
 alter table public.media_assets enable row level security;
+alter table public.media_upload_sessions enable row level security;
 alter table public.media_variants enable row level security;
+alter table public.media_processing_jobs enable row level security;
 alter table public.playlists enable row level security;
 alter table public.playlist_items enable row level security;
 alter table public.playlist_releases enable row level security;
