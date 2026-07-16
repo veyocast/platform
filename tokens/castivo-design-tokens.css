@@ -119,9 +119,9 @@
   --cv-z-modal: 700;
   --cv-z-toast: 900;
   --cv-z-critical: 1000;
-  --cv-component-height-button-compact: 32-36;
+  --cv-component-height-button-compact: 36px;
   --cv-component-height-button-standard: 40px;
-  --cv-component-height-button-touch: 44-48;
+  --cv-component-height-button-touch: 48px;
   --cv-component-height-input-compact: 36px;
   --cv-component-height-input-standard: 40px;
   --cv-component-height-input-touch: 44px;

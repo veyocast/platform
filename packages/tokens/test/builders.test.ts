@@ -27,6 +27,10 @@ describe("Castivo token builders", () => {
     expect(css).toContain("--cv-action: #FF5C20;");
     expect(css).toContain("--cv-brand-electric-orange: #FF5C20;");
     expect(css).toContain("--cv-semantic-success-solid: #18794E;");
+    expect(css).toContain("--cv-component-height-button-compact: 36px;");
+    expect(css).toContain("--cv-component-height-button-touch: 48px;");
+    expect(css).not.toContain("32-36");
+    expect(css).not.toContain("44-48");
     expect(css).not.toContain("--cv-space-44");
   });
 
