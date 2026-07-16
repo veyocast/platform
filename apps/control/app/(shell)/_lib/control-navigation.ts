@@ -63,6 +63,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "ready"
   },
   {
+    description: "Drafts, publish review en releases",
+    href: "/dashboard/playlists",
+    label: "Playlists",
+    requiredRole: "tenant_viewer",
+    scope: "tenant",
+    status: "ready"
+  },
+  {
     description: "Gebruikers, rollen en invites",
     href: "/dashboard/team",
     label: "Team",

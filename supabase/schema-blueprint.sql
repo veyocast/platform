@@ -136,24 +136,28 @@ create table public.playlists (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   name text not null,
+  description text,
   status public.playlist_status not null default 'draft',
   created_by uuid references public.profiles(id),
+  archived_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 create unique index playlists_tenant_id_id_uq on public.playlists(tenant_id, id);
-create index playlists_tenant_id_idx on public.playlists(tenant_id);
+create index playlists_tenant_id_status_idx on public.playlists(tenant_id, status);
 
 create table public.playlist_items (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null,
   playlist_id uuid not null,
   media_asset_id uuid not null,
-  sort_order integer not null,
-  duration_seconds integer not null default 10 check (duration_seconds >= 5),
+  sort_order integer not null check (sort_order >= 0),
+  duration_seconds integer not null default 10 check (duration_seconds >= 5 and duration_seconds <= 3600),
   fit_mode text not null default 'contain' check (fit_mode in ('contain','cover')),
   muted boolean not null default true,
+  created_by uuid references public.profiles(id),
   created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   foreign key (tenant_id, playlist_id) references public.playlists(tenant_id, id) on delete cascade,
   foreign key (tenant_id, media_asset_id) references public.media_assets(tenant_id, id)
 );
@@ -163,16 +167,51 @@ create table public.playlist_releases (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null,
   playlist_id uuid not null,
-  version integer not null,
-  manifest_hash text not null,
+  version integer not null check (version > 0),
+  release_notes text,
+  manifest_hash text not null check (manifest_hash ~ '^[a-f0-9]{64}$'),
   manifest_json jsonb not null,
+  item_count integer not null check (item_count > 0),
+  total_duration_seconds integer not null check (total_duration_seconds > 0),
   total_bytes bigint not null default 0,
   published_by uuid references public.profiles(id),
   published_at timestamptz not null default now(),
-  foreign key (tenant_id, playlist_id) references public.playlists(tenant_id, id),
+  foreign key (tenant_id, playlist_id) references public.playlists(tenant_id, id) on delete restrict,
+  unique (tenant_id, id),
   unique (tenant_id, playlist_id, version)
 );
 create unique index playlist_releases_tenant_id_id_uq on public.playlist_releases(tenant_id, id);
+
+create table public.playlist_release_items (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null,
+  playlist_id uuid not null,
+  release_id uuid not null,
+  source_item_id uuid,
+  media_asset_id uuid not null,
+  media_variant_id uuid not null,
+  sort_order integer not null,
+  duration_seconds integer not null,
+  fit_mode text not null,
+  muted boolean not null,
+  asset_kind public.media_asset_kind not null,
+  asset_title text not null,
+  storage_bucket text not null default 'tenant-media',
+  storage_path text not null,
+  mime_type text not null,
+  file_size_bytes bigint not null,
+  checksum_sha256 text not null,
+  width integer,
+  height integer,
+  asset_duration_seconds numeric(10, 3),
+  created_at timestamptz not null default now(),
+  foreign key (tenant_id, release_id) references public.playlist_releases(tenant_id, id) on delete restrict,
+  foreign key (tenant_id, playlist_id) references public.playlists(tenant_id, id) on delete restrict,
+  foreign key (tenant_id, media_asset_id) references public.media_assets(tenant_id, id),
+  foreign key (tenant_id, media_variant_id) references public.media_variants(tenant_id, id),
+  unique (tenant_id, release_id, sort_order)
+);
+create index playlist_release_items_tenant_release_idx on public.playlist_release_items(tenant_id, release_id, sort_order);
 
 create table public.screens (
   id uuid primary key default gen_random_uuid(),
@@ -255,6 +294,7 @@ alter table public.media_processing_jobs enable row level security;
 alter table public.playlists enable row level security;
 alter table public.playlist_items enable row level security;
 alter table public.playlist_releases enable row level security;
+alter table public.playlist_release_items enable row level security;
 alter table public.screens enable row level security;
 alter table public.player_devices enable row level security;
 alter table public.pairing_sessions enable row level security;

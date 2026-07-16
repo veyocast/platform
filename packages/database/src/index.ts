@@ -42,6 +42,16 @@ export const mediaProcessingJobStatuses = [
   "failed"
 ] as const;
 
+export const playlistStatuses = ["draft", "published", "archived"] as const;
+
+export const playlistItemFitModes = ["contain", "cover"] as const;
+
+export const playlistItemDurationSeconds = {
+  default: 10,
+  maximum: 3600,
+  minimum: 5
+} as const;
+
 export const mediaImageMimeTypes = ["image/jpeg", "image/png", "image/webp"] as const;
 export const mediaVideoMimeTypes = ["video/mp4"] as const;
 export const mediaAllowedMimeTypes = [
@@ -62,6 +72,8 @@ export type MediaUploadSessionStatus = (typeof mediaUploadSessionStatuses)[numbe
 export type MediaVariantType = (typeof mediaVariantTypes)[number];
 export type MediaProcessingJobStatus = (typeof mediaProcessingJobStatuses)[number];
 export type MediaAllowedMimeType = (typeof mediaAllowedMimeTypes)[number];
+export type PlaylistStatus = (typeof playlistStatuses)[number];
+export type PlaylistItemFitMode = (typeof playlistItemFitModes)[number];
 
 export const platformTenantMutationRoles = ["platform_owner", "platform_admin"] as const satisfies readonly PlatformRole[];
 export const tenantAdministrationRoles = ["tenant_owner", "tenant_admin"] as const satisfies readonly TenantRole[];
@@ -99,6 +111,16 @@ export function getTenantMediaOriginalPath({
   tenantId: string;
 }) {
   return `${getTenantMediaStoragePrefix(tenantId, assetId)}/original/${sanitizeMediaFileName(fileName)}`;
+}
+
+export function getPlaylistReleaseLabel({
+  playlistName,
+  version
+}: {
+  playlistName: string;
+  version: number;
+}) {
+  return `${playlistName.trim()} v${version}`;
 }
 
 function sanitizeMediaFileName(fileName: string) {

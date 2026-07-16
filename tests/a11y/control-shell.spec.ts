@@ -24,6 +24,17 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(page.getByRole("status")).toContainText("echte Supabase sessies");
 });
 
+test("playlists route exposes publish review labels and status", async ({
+  page
+}) => {
+  await page.goto("/dashboard/playlists");
+
+  await expect(page.getByRole("heading", { exact: true, name: "Playlists" })).toBeVisible();
+  await expect(page.getByLabel("Playlistnaam")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Publish review" })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("Sponsor slide");
+});
+
 test("public auth routes have clear headings and forms", async ({ page }) => {
   await page.goto("/login");
 
