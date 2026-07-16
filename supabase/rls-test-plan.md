@@ -14,3 +14,10 @@ Use pgTAP/Supabase DB tests to prove:
 10. Platform viewer cannot mutate tenants.
 11. Player device can fetch only assigned screen release.
 12. Storage object path outside own tenant is denied.
+
+## S02 coverage
+
+S02 implements and tests the identity, tenancy, membership, invitation and audit
+event boundary for items 1, 2, 3, 7, 8, 9 and 10. Media/upload, player-device
+and storage path policies are intentionally deferred to their domain migrations
+so their tables and storage buckets exist before policies are written.

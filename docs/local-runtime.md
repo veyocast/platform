@@ -10,12 +10,13 @@ Validated on 2026-07-16:
 | Node.js | 24.18.0 |
 | pnpm | 11.5.2 |
 | Docker | 29.6.1 |
-| Supabase CLI | 2.95.4 |
+| Supabase CLI | 2.109.1 via workspace devDependency |
 | WSL | 2.7.10.0 |
 | FFmpeg | not found on PATH |
 
-Supabase CLI reported that a newer version is available. This is not a current
-S00 blocker, but DB/RLS work should re-check CLI compatibility before S02.
+The workspace pins the Supabase CLI so database scripts do not depend on a
+globally installed CLI version. A global Scoop CLI 2.95.4 was observed during
+S02 and was not used for the final DB/RLS gates.
 FFmpeg is required before media-processing work starts in S04.
 
 ## Ports

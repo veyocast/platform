@@ -11,6 +11,8 @@ coverage/
 .DS_Store
 *.log
 .supabase/
+supabase/.branches/
+supabase/.temp/
 playwright-report/
 test-results/
 .cache/

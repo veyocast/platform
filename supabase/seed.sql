@@ -1,0 +1,1 @@
+-- Intentionally empty until domain seed data is introduced.
