@@ -9,7 +9,7 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 | S01-A | review | castivo/s01-tokens | design-system-agent | tokens/tailwind/css | packages/tokens, tokens | tokens:build/lint/typecheck/test/build | Token package, generator and docs complete; local gates green. |
 | S01-B | review | castivo/s01-ui-primitives | ui-agent | primitives/controls | packages/ui | lint/typecheck/test/build/storybook | UI primitives, Storybook skeleton and unit checks complete. |
 | S02-A | review | castivo/s02-db-rls | db-agent | tenancy/RLS | supabase, packages/database | db reset + rls | Identity, tenancy, invitation and audit RLS complete; local gates green. |
-| S03-A | todo | castivo/s03-control-shell | control-agent | app shell | apps/control | e2e smoke | |
+| S03-A | review | castivo/s03-control-shell | control-agent | app shell | apps/control | e2e smoke | Control shell, auth callback routes and smoke/a11y tests complete; local gates green. |
 | S04-A | todo | castivo/s04-media-domain | media-agent | upload/storage | apps/control, worker, DB | rls + unit | |
 | S05-A | todo | castivo/s05-playlists | playlist-agent | drafts/releases | DB, control | unit/e2e | |
 | S06-A | todo | castivo/s06-pairing | device-agent | screens/player devices | DB, control, player | e2e | |
