@@ -6,20 +6,43 @@ import { CASTIVO_APPS } from "@castivo/config";
 import { useEffect, useState } from "react";
 
 import {
+  activateRelease,
+  hydrateCachedRelease,
+  preparePendingRelease,
+  readActiveRelease,
+  revokeHydratedRelease,
+  type HydratedPlayerRelease,
+  type PlayerCachePhase
+} from "../_lib/player-cache";
+import {
   getPlaybackDurationMs,
   localStorageDeviceTokenKey,
   type PlayerManifestEnvelope,
   type PlayerManifestItem,
-  type PlayerManifestProblem
+  type PlayerManifestProblem,
+  type PlayerRuntimeState
 } from "../_lib/player-manifest";
 
 const pairingCode = "CTV 482";
+
+type PlaybackRuntimeState = Extract<
+  PlayerRuntimeState,
+  "PLAYING" | "DOWNLOADING" | "VERIFYING" | "SWITCH_PENDING" | "OFFLINE_PLAYING"
+>;
+
+type PlaybackRuntime = {
+  activeIndex: number;
+  pendingRelease?: HydratedPlayerRelease;
+  release: HydratedPlayerRelease;
+  state: PlaybackRuntimeState;
+  syncMessage: string;
+};
 
 type RuntimeView =
   | { state: "BOOTING" }
   | { state: "UNPAIRED" }
   | { state: "SYNCING"; deviceToken: string }
-  | { state: "PLAYING"; activeIndex: number; envelope: PlayerManifestEnvelope }
+  | PlaybackRuntime
   | { state: "ERROR_RECOVERABLE" | "DISABLED"; error: PlayerManifestProblem["error"] };
 
 export function PlayerRuntime() {
@@ -37,19 +60,50 @@ export function PlayerRuntime() {
 
     if (!deviceToken) {
       setRuntime({ state: "UNPAIRED" });
-      return;
+      return undefined;
     }
 
     const activeDeviceToken = deviceToken;
+    const hydratedReleases: HydratedPlayerRelease[] = [];
+    let cancelled = false;
 
     if (queryToken) {
       writeStoredDeviceToken(queryToken);
     }
 
-    let cancelled = false;
     setRuntime({ state: "SYNCING", deviceToken: activeDeviceToken });
 
-    async function fetchManifest() {
+    async function restoreLastKnownGood() {
+      const cachedRelease = await readActiveRelease(activeDeviceToken);
+
+      if (!cachedRelease || cancelled) {
+        return false;
+      }
+
+      const offlineRelease = await hydrateCachedRelease({
+        ...cachedRelease,
+        envelope: withSyncDiagnostics(
+          cachedRelease.envelope,
+          "offline",
+          "last-known-good release actief"
+        )
+      });
+
+      hydratedReleases.push(offlineRelease);
+
+      if (!cancelled) {
+        setRuntime({
+          activeIndex: 0,
+          release: offlineRelease,
+          state: "OFFLINE_PLAYING",
+          syncMessage: "Last-known-good release actief terwijl online sync start."
+        });
+      }
+
+      return true;
+    }
+
+    async function syncOnlineManifest() {
       try {
         const response = await fetch(
           `/api/player/manifest?deviceToken=${encodeURIComponent(activeDeviceToken)}`,
@@ -68,48 +122,163 @@ export function PlayerRuntime() {
           return;
         }
 
-        if (response.ok && "manifest" in body) {
-          setRuntime({ state: "PLAYING", activeIndex: 0, envelope: body });
+        if (!response.ok || !("manifest" in body)) {
+          handleManifestProblem(body as PlayerManifestProblem);
           return;
         }
 
-        const problem = body as PlayerManifestProblem;
-        if (problem.state === "UNPAIRED") {
-          setRuntime({ state: "UNPAIRED" });
-          return;
-        }
-
-        setRuntime({
-          state: problem.state,
-          error: problem.error
+        const preparedRelease = await preparePendingRelease({
+          envelope: body,
+          onPhase: (phase) => {
+            updatePlaybackPhase(phase);
+          }
         });
-      } catch {
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!preparedRelease.ok) {
+          keepCachedPlaybackOrShowProblem(
+            "Pending release is verworpen: asset verificatie faalde.",
+            preparedRelease.error
+          );
+          return;
+        }
+
+        const activatedRelease = await activateRelease({
+          assets: preparedRelease.assets,
+          deviceToken: activeDeviceToken,
+          envelope: withSyncDiagnostics(body, "online", "release verified")
+        });
+        const hydratedRelease = await hydrateCachedRelease(activatedRelease);
+        hydratedReleases.push(hydratedRelease);
+
+        if (cancelled) {
+          return;
+        }
+
+        setRuntime((currentRuntime) => {
+          if (
+            isPlaybackRuntime(currentRuntime)
+            && currentRuntime.release.envelope.manifest.releaseId
+              !== hydratedRelease.envelope.manifest.releaseId
+          ) {
+            return {
+              ...currentRuntime,
+              pendingRelease: hydratedRelease,
+              state: "SWITCH_PENDING",
+              syncMessage: "Nieuwe release geverifieerd; switch op loopgrens."
+            };
+          }
+
+          return {
+            activeIndex: 0,
+            release: hydratedRelease,
+            state: "PLAYING",
+            syncMessage: "Release online geverifieerd en actief."
+          };
+        });
+      } catch (error) {
         if (!cancelled) {
-          setRuntime({
-            state: "ERROR_RECOVERABLE",
-            error: {
-              cause: "Het manifest kon niet online worden opgehaald.",
-              effect: "Zonder last-known-good release blijft de player in herstelstatus.",
-              recovery: "Controleer netwerk en probeer opnieuw; S08 voegt lokale fallback toe."
-            }
-          });
+          keepCachedPlaybackOrShowProblem(
+            "Online sync faalde; cached playback blijft actief.",
+            error instanceof Error ? error.message : "manifest fetch failed"
+          );
         }
       }
     }
 
-    void fetchManifest();
+    function updatePlaybackPhase(phase: PlayerCachePhase) {
+      setRuntime((currentRuntime) => {
+        if (!isPlaybackRuntime(currentRuntime)) {
+          return currentRuntime;
+        }
+
+        return {
+          ...currentRuntime,
+          state: phase,
+          syncMessage:
+            phase === "DOWNLOADING"
+              ? "Pending release wordt gedownload."
+              : "Pending release wordt geverifieerd."
+        };
+      });
+    }
+
+    function handleManifestProblem(problem: PlayerManifestProblem) {
+      if (problem.state === "UNPAIRED") {
+        setRuntime({ state: "UNPAIRED" });
+        return;
+      }
+
+      keepCachedPlaybackOrShowProblem(
+        "Online manifest gaf geen speelbare release terug.",
+        problem.error.cause,
+        problem
+      );
+    }
+
+    function keepCachedPlaybackOrShowProblem(
+      syncMessage: string,
+      cause: string,
+      problem?: PlayerManifestProblem
+    ) {
+      setRuntime((currentRuntime) => {
+        if (isPlaybackRuntime(currentRuntime)) {
+          return {
+            ...currentRuntime,
+            release: {
+              ...currentRuntime.release,
+              envelope: withSyncDiagnostics(
+                currentRuntime.release.envelope,
+                "offline",
+                cause
+              )
+            },
+            state: "OFFLINE_PLAYING",
+            syncMessage
+          };
+        }
+
+        if (problem) {
+          return {
+            state: problem.state,
+            error: problem.error
+          };
+        }
+
+        return {
+          state: "ERROR_RECOVERABLE",
+          error: {
+            cause,
+            effect: "Zonder last-known-good release blijft de player in herstelstatus.",
+            recovery: "Herstel netwerk of koppel het scherm opnieuw."
+          }
+        };
+      });
+    }
+
+    void restoreLastKnownGood()
+      .catch(() => false)
+      .then(() => {
+        if (!cancelled) {
+          void syncOnlineManifest();
+        }
+      });
 
     return () => {
       cancelled = true;
+      hydratedReleases.forEach(revokeHydratedRelease);
     };
   }, []);
 
   useEffect(() => {
-    if (runtime.state !== "PLAYING") {
+    if (!isPlaybackRuntime(runtime)) {
       return;
     }
 
-    const activeItem = runtime.envelope.manifest.items[runtime.activeIndex];
+    const activeItem = runtime.release.envelope.manifest.items[runtime.activeIndex];
 
     if (!activeItem) {
       return;
@@ -117,14 +286,29 @@ export function PlayerRuntime() {
 
     const timer = window.setTimeout(() => {
       setRuntime((currentRuntime) => {
-        if (currentRuntime.state !== "PLAYING") {
+        if (!isPlaybackRuntime(currentRuntime)) {
           return currentRuntime;
         }
 
-        const itemCount = currentRuntime.envelope.manifest.items.length;
+        const itemCount = currentRuntime.release.envelope.manifest.items.length;
+        const nextIndex = (currentRuntime.activeIndex + 1) % itemCount;
+
+        if (
+          currentRuntime.state === "SWITCH_PENDING"
+          && nextIndex === 0
+          && currentRuntime.pendingRelease
+        ) {
+          return {
+            activeIndex: 0,
+            release: currentRuntime.pendingRelease,
+            state: "PLAYING",
+            syncMessage: "Nieuwe release is op loopgrens actief gemaakt."
+          };
+        }
+
         return {
           ...currentRuntime,
-          activeIndex: (currentRuntime.activeIndex + 1) % itemCount
+          activeIndex: nextIndex
         };
       });
     }, getPlaybackDurationMs(activeItem, durationOverrideMs));
@@ -134,8 +318,8 @@ export function PlayerRuntime() {
     };
   }, [durationOverrideMs, runtime]);
 
-  if (runtime.state === "PLAYING") {
-    return <PlaybackView activeIndex={runtime.activeIndex} envelope={runtime.envelope} />;
+  if (isPlaybackRuntime(runtime)) {
+    return <PlaybackView runtime={runtime} />;
   }
 
   if (runtime.state === "SYNCING") {
@@ -149,15 +333,9 @@ export function PlayerRuntime() {
   return <PairingPanel />;
 }
 
-function PlaybackView({
-  activeIndex,
-  envelope
-}: {
-  activeIndex: number;
-  envelope: PlayerManifestEnvelope;
-}) {
-  const manifest = envelope.manifest;
-  const activeItem = manifest.items[activeIndex] ?? manifest.items[0];
+function PlaybackView({ runtime }: { runtime: PlaybackRuntime }) {
+  const manifest = runtime.release.envelope.manifest;
+  const activeItem = manifest.items[runtime.activeIndex] ?? manifest.items[0];
 
   if (!activeItem) {
     return (
@@ -180,18 +358,19 @@ function PlaybackView({
         <PlaybackMedia item={activeItem} />
         <div className="playback-scrim" aria-hidden="true" />
         <div className="playback-now">
-          <p>{envelope.device.screenName}</p>
+          <p>{runtime.release.envelope.device.screenName}</p>
           <h1>{activeItem.title}</h1>
           <span>{manifest.label}</span>
         </div>
       </section>
       <aside className="player-status-panel" aria-label="Player diagnostics">
         <span className="player-state" aria-live="polite">
-          PLAYING
+          {runtime.state}
         </span>
         <span>{manifest.label}</span>
-        <span>Item {activeIndex + 1} van {manifest.items.length}</span>
-        <span>{envelope.diagnostics.syncStatus}</span>
+        <span>Item {runtime.activeIndex + 1} van {manifest.items.length}</span>
+        <span>{runtime.release.envelope.diagnostics.syncStatus}</span>
+        <span>{runtime.syncMessage}</span>
       </aside>
     </main>
   );
@@ -303,6 +482,31 @@ function ProblemPanel({
       </section>
     </main>
   );
+}
+
+function isPlaybackRuntime(runtime: RuntimeView): runtime is PlaybackRuntime {
+  return [
+    "PLAYING",
+    "DOWNLOADING",
+    "VERIFYING",
+    "SWITCH_PENDING",
+    "OFFLINE_PLAYING"
+  ].includes(runtime.state);
+}
+
+function withSyncDiagnostics(
+  envelope: PlayerManifestEnvelope,
+  syncStatus: PlayerManifestEnvelope["diagnostics"]["syncStatus"],
+  nextSyncReason: string
+): PlayerManifestEnvelope {
+  return {
+    ...envelope,
+    diagnostics: {
+      ...envelope.diagnostics,
+      syncStatus,
+      nextSyncReason
+    }
+  };
 }
 
 function readStoredDeviceToken() {

@@ -14,7 +14,7 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 | S05-A | review | castivo/s05-playlists | playlist-agent | drafts/releases | DB, control | unit/rls/e2e/a11y | Playlist draft, publish review and immutable release model complete; local gates green. |
 | S06-A | review | castivo/s06-pairing | device-agent | screens/player devices | DB, control, player | db reset + rls/e2e/a11y/player | Screens, player devices and pairing flow complete; local gates green. |
 | S07-A | review | castivo/s07-online-player | player-agent | online loop | apps/player | lint/typecheck/test/build/e2e/a11y/player/offline | Online manifest fetch and playback loop complete; local gates green. |
-| S08-A | todo | castivo/s08-offline-player | offline-agent | cache/atomic updates | apps/player | offline tests | |
+| S08-A | review | castivo/s08-offline-player | offline-agent | cache/atomic updates | apps/player | lint/typecheck/test/build/e2e/a11y/player/offline | IndexedDB, Cache Storage, verified pending releases and last-known-good playback complete; local gates green. |
 | S09-A | todo | castivo/s09-polish | ux-agent | dashboard polish | control/ui | a11y/e2e | |
 | S10-A | todo | castivo/s10-marketing | marketing-agent | homepage | apps/marketing | lighthouse | |
 | S11-A | todo | castivo/s11-hardening | review-agents | security/a11y/reliability | all touched | full gates | |
