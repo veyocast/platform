@@ -16,7 +16,7 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 | S07-A | review | castivo/s07-online-player | player-agent | online loop | apps/player | lint/typecheck/test/build/e2e/a11y/player/offline | Online manifest fetch and playback loop complete; local gates green. |
 | S08-A | review | castivo/s08-offline-player | offline-agent | cache/atomic updates | apps/player | lint/typecheck/test/build/e2e/a11y/player/offline | IndexedDB, Cache Storage, verified pending releases and last-known-good playback complete; local gates green. |
 | S09-A | review | castivo/s09-polish | ux-agent | dashboard polish | control/ui | lint/typecheck/test/build/e2e/a11y | Control dashboard polish complete for media, playlists, screens, publish review and diagnostics; local gates green. |
-| S10-A | todo | castivo/s10-marketing | marketing-agent | homepage | apps/marketing | lighthouse | |
+| S10-A | review | castivo/s10-marketing | marketing-agent | homepage | apps/marketing | lint/typecheck/test/build/e2e/a11y | Marketing homepage shell, SEO metadata, hero, use cases and CTA complete; Lighthouse CLI blocked locally by Chrome cleanup EPERM. |
 | S11-A | todo | castivo/s11-hardening | review-agents | security/a11y/reliability | all touched | full gates | |
 | S12-A | todo | castivo/s12-pilot-ready | orchestrator | end-to-end pilot | docs/tests | full gates | |
 

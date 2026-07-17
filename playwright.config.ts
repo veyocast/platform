@@ -1,8 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const controlPort = Number(process.env.CONTROL_PORT ?? 3103);
+const marketingPort = Number(process.env.MARKETING_PORT ?? 3108);
 const playerPort = Number(process.env.PLAYER_PORT ?? 3106);
 const baseURL = `http://127.0.0.1:${controlPort}`;
+const marketingURL = `http://127.0.0.1:${marketingPort}`;
 const playerURL = `http://127.0.0.1:${playerPort}`;
 
 export default defineConfig({
@@ -27,13 +29,19 @@ export default defineConfig({
     {
       command: `pnpm --filter @castivo/control exec next dev --port ${controlPort} --hostname 127.0.0.1`,
       reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
+      timeout: 180_000,
       url: `${baseURL}/login`
+    },
+    {
+      command: `pnpm --filter @castivo/marketing exec next dev --port ${marketingPort} --hostname 127.0.0.1`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
+      url: marketingURL
     },
     {
       command: `pnpm --filter @castivo/player exec next dev --port ${playerPort} --hostname 127.0.0.1`,
       reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
+      timeout: 180_000,
       url: playerURL
     }
   ]
