@@ -1,4 +1,10 @@
-import { MetricCard, PageHeader, StatusPill } from "../../_components/shell-primitives";
+import {
+  HealthList,
+  MetricCard,
+  PageHeader,
+  StatusPill,
+  Timeline
+} from "../../_components/shell-primitives";
 
 const mediaMetrics = [
   {
@@ -52,9 +58,66 @@ const mediaAssets = [
 ] as const;
 
 const queueRows = [
-  ["Nieuw posterbeeld", "queued", "thumbnail + original"],
-  ["Welkom loop", "processing", "thumbnail + 1080p"],
-  ["Sponsorlogo", "failed", "unsupported_mime_type"]
+  {
+    asset: "Nieuw posterbeeld",
+    output: "thumbnail + original",
+    status: "queued",
+    tone: "info"
+  },
+  {
+    asset: "Welkom loop",
+    output: "thumbnail + 1080p",
+    status: "processing",
+    tone: "warning"
+  },
+  {
+    asset: "Sponsorlogo",
+    output: "unsupported_mime_type",
+    status: "failed",
+    tone: "critical"
+  }
+] as const;
+
+const pipelineSteps = [
+  {
+    detail: "Browser krijgt pas een signed URL na tenantrol en limietcheck.",
+    label: "Upload sessie",
+    meta: "server",
+    tone: "info"
+  },
+  {
+    detail: "Worker valideert MIME, duur, metadata en veilige extensie.",
+    label: "Validatie",
+    meta: "actief",
+    tone: "warning"
+  },
+  {
+    detail: "Ready assets krijgen checksum, thumbnail en player-variant.",
+    label: "Player variant",
+    meta: "gereed",
+    tone: "success"
+  }
+] as const;
+
+const mediaRisks = [
+  {
+    detail: "SVG blijft uitgeschakeld tenzij sanitizing expliciet wordt toegevoegd.",
+    label: "Bestandstype",
+    status: "MVP-regel",
+    tone: "critical"
+  },
+  {
+    detail: "MP4/H.264/AAC maximaal 500 MB en vijf minuten.",
+    label: "Videolimiet",
+    status: "bewaakt",
+    tone: "info"
+  },
+  {
+    detail: "Gepubliceerde assets worden niet stilzwijgend vervangen.",
+    label: "Release-impact",
+    status: "immutable",
+    tone: "success"
+  }
 ] as const;
 
 export default function MediaPage() {
@@ -130,22 +193,51 @@ export default function MediaPage() {
             </div>
             <StatusPill label="RLS actief" tone="success" />
           </div>
-          <ul className="settings-list">
-            <li className="settings-item">
-              <span className="settings-item__copy">
-                <span className="settings-item__title">Tenantviewer</span>
-                <span className="work-panel__meta">Kan eigen tenantmedia lezen</span>
-              </span>
-              <StatusPill label="Read-only" tone="neutral" />
-            </li>
-            <li className="settings-item">
-              <span className="settings-item__copy">
-                <span className="settings-item__title">Tenanteditor</span>
-                <span className="work-panel__meta">Kan assets en uploads aanmaken</span>
-              </span>
-              <StatusPill label="Upload" tone="success" />
-            </li>
-          </ul>
+          <HealthList
+            ariaLabel="Media permissiestatus"
+            items={[
+              {
+                detail: "Kan eigen tenantmedia lezen en queue-statussen volgen.",
+                label: "Tenantviewer",
+                status: "read-only",
+                tone: "neutral"
+              },
+              {
+                detail: "Kan assets en upload sessies aanmaken na server-check.",
+                label: "Tenanteditor",
+                status: "upload",
+                tone: "success"
+              }
+            ]}
+          />
+        </article>
+      </section>
+
+      <section className="work-grid">
+        <article className="work-panel" aria-labelledby="pipeline-title">
+          <div className="work-panel__header">
+            <div>
+              <h2 className="work-panel__title" id="pipeline-title">
+                Pipeline voortgang
+              </h2>
+              <p className="work-panel__meta">Van upload sessie naar player variant</p>
+            </div>
+            <StatusPill label="Canon" tone="info" />
+          </div>
+          <Timeline ariaLabel="Media pipeline stappen" items={pipelineSteps} />
+        </article>
+
+        <article className="work-panel" aria-labelledby="media-risk-title">
+          <div className="work-panel__header">
+            <div>
+              <h2 className="work-panel__title" id="media-risk-title">
+                Validatierisico's
+              </h2>
+              <p className="work-panel__meta">Wat publish readiness blokkeert</p>
+            </div>
+            <StatusPill label="3 regels" tone="warning" />
+          </div>
+          <HealthList ariaLabel="Media validatierisico's" items={mediaRisks} />
         </article>
       </section>
 
@@ -202,11 +294,13 @@ export default function MediaPage() {
               </tr>
             </thead>
             <tbody>
-              {queueRows.map(([asset, status, output]) => (
-                <tr key={asset}>
-                  <td>{asset}</td>
-                  <td>{status}</td>
-                  <td>{output}</td>
+              {queueRows.map((row) => (
+                <tr key={row.asset}>
+                  <td>{row.asset}</td>
+                  <td>
+                    <StatusPill label={row.status} tone={row.tone} />
+                  </td>
+                  <td>{row.output}</td>
                 </tr>
               ))}
             </tbody>

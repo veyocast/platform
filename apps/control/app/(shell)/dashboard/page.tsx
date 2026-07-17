@@ -1,6 +1,12 @@
 import Link from "next/link";
 
-import { MetricCard, PageHeader, StatusPill } from "../_components/shell-primitives";
+import {
+  HealthList,
+  MetricCard,
+  PageHeader,
+  StatusPill,
+  Timeline
+} from "../_components/shell-primitives";
 
 const tenantMetrics = [
   {
@@ -27,6 +33,48 @@ const releaseTasks = [
   ["Zomerroute playlist", "Wacht op goedkeuring", "Vandaag 16:00"],
   ["Entree schermen", "Planning compleet", "Morgen 09:00"],
   ["Noodbericht template", "Controleer fallbackcopy", "Open"]
+] as const;
+
+const operationTimeline = [
+  {
+    detail: "Nieuwe poster is gereed en mag in concepten landen.",
+    label: "Media verwerkt",
+    meta: "gereed",
+    tone: "success"
+  },
+  {
+    detail: "Sponsor slide blokkeert publish tot de worker klaar is.",
+    label: "Publish review",
+    meta: "1 blokkade",
+    tone: "warning"
+  },
+  {
+    detail: "Entree player heeft release v3 actief en offline cache warm.",
+    label: "Player sync",
+    meta: "online",
+    tone: "success"
+  }
+] as const;
+
+const openSignals = [
+  {
+    detail: "Controleer of de ontbrekende player-variant klaar is voor publish.",
+    label: "Releaseblokkade",
+    status: "actie",
+    tone: "warning"
+  },
+  {
+    detail: "Drie schermen hebben langer dan vijf minuten geen heartbeat.",
+    label: "Schermdiagnostics",
+    status: "let op",
+    tone: "warning"
+  },
+  {
+    detail: "RLS fixture toont tenantviewer als read-only op media en releases.",
+    label: "Permission state",
+    status: "bevestigd",
+    tone: "success"
+  }
 ] as const;
 
 export default function DashboardPage() {
@@ -73,7 +121,7 @@ export default function DashboardPage() {
                 Vooruitblik op contentpublicaties
               </p>
             </div>
-            <StatusPill label="S06 domein" tone="neutral" />
+            <StatusPill label="Vandaag" tone="info" />
           </div>
           <ul className="task-list">
             {releaseTasks.map(([title, description, due]) => (
@@ -92,16 +140,27 @@ export default function DashboardPage() {
           <div className="work-panel__header">
             <div>
               <h2 className="work-panel__title">Open acties</h2>
-              <p className="work-panel__meta">Snel scannen, niet decoratief</p>
+              <p className="work-panel__meta">Snel scannen, met herstelrichting</p>
             </div>
             <StatusPill label="3 acties" tone="warning" />
           </div>
-          <p className="page-description">
-            Media-import is nu voorbereid met upload- en verwerkingstatussen.
-            Playlistdrafts hebben nu een publish-review en immutable releases.
-            Schermen en pairing hebben nu een eigen tenantworkflow.
-          </p>
+          <HealthList ariaLabel="Open dashboardacties" items={openSignals} />
         </article>
+      </section>
+
+      <section className="work-panel" aria-labelledby="operation-timeline-title">
+        <div className="work-panel__header">
+          <div>
+            <h2 className="work-panel__title" id="operation-timeline-title">
+              Operationele lijn
+            </h2>
+            <p className="work-panel__meta">
+              Media, publish en playerdiagnostics in een tenantflow.
+            </p>
+          </div>
+          <StatusPill label="MVP-flow" tone="success" />
+        </div>
+        <Timeline ariaLabel="Operationele tenantflow" items={operationTimeline} />
       </section>
     </>
   );

@@ -1,6 +1,12 @@
 import Link from "next/link";
 
-import { MetricCard, PageHeader, StatusPill } from "../../_components/shell-primitives";
+import {
+  HealthList,
+  MetricCard,
+  PageHeader,
+  StatusPill,
+  Timeline
+} from "../../_components/shell-primitives";
 
 const playlistMetrics = [
   {
@@ -30,10 +36,57 @@ const draftItems = [
 ] as const;
 
 const reviewChecks = [
-  ["Minimaal 1 item", "3 items", "success"],
-  ["Alle media gereed", "1 blokkade", "warning"],
-  ["Player-variant beschikbaar", "Video gereed", "success"],
-  ["Immutable release", "Snapshot bij publish", "success"]
+  {
+    detail: "Draft bevat voldoende afspeelbare items.",
+    label: "Minimaal 1 item",
+    status: "3 items",
+    tone: "success"
+  },
+  {
+    detail: "Sponsor slide wacht nog op media processing.",
+    label: "Alle media gereed",
+    status: "1 blokkade",
+    tone: "warning"
+  },
+  {
+    detail: "Video heeft een 1080p player-variant.",
+    label: "Player-variant beschikbaar",
+    status: "gereed",
+    tone: "success"
+  },
+  {
+    detail: "Publiceren maakt een vaste snapshot met manifest-hash.",
+    label: "Immutable release",
+    status: "snapshot",
+    tone: "success"
+  }
+] as const;
+
+const publishTimeline = [
+  {
+    detail: "Operator past volgorde en duur aan in het concept.",
+    label: "Draft bewerken",
+    meta: "open",
+    tone: "info"
+  },
+  {
+    detail: "Review controleert ready media, varianten en permissie.",
+    label: "Publish review",
+    meta: "blokkeert",
+    tone: "warning"
+  },
+  {
+    detail: "Release v4 krijgt vaste item-snapshots en manifest-hash.",
+    label: "Release maken",
+    meta: "wacht",
+    tone: "neutral"
+  },
+  {
+    detail: "Player downloadt pending release en switcht na verificatie.",
+    label: "Player update",
+    meta: "atomair",
+    tone: "success"
+  }
 ] as const;
 
 const releases = [
@@ -147,23 +200,28 @@ export default function PlaylistsPage() {
             </div>
             <StatusPill label="Niet klaar" tone="warning" />
           </div>
-          <ul className="settings-list">
-            {reviewChecks.map(([label, value, tone]) => (
-              <li className="settings-item" key={label}>
-                <span className="settings-item__copy">
-                  <span className="settings-item__title">{label}</span>
-                  <span className="work-panel__meta">{value}</span>
-                </span>
-                <StatusPill label={value} tone={tone} />
-              </li>
-            ))}
-          </ul>
+          <HealthList ariaLabel="Publish review checks" items={reviewChecks} />
           <div className="notice" role="status">
             Oorzaak: Sponsor slide is nog niet ready. Effect: publish blijft
             geblokkeerd. Herstel: wacht op media processing of verwijder het
             item uit de draft.
           </div>
         </article>
+      </section>
+
+      <section className="work-panel" aria-labelledby="publish-timeline-title">
+        <div className="work-panel__header">
+          <div>
+            <h2 className="work-panel__title" id="publish-timeline-title">
+              Publish tijdlijn
+            </h2>
+            <p className="work-panel__meta">
+              Van bewerkbare draft naar atomair geverifieerde player update.
+            </p>
+          </div>
+          <StatusPill label="Immutable" tone="success" />
+        </div>
+        <Timeline ariaLabel="Playlist publish tijdlijn" items={publishTimeline} />
       </section>
 
       <section className="work-panel" aria-labelledby="release-history-title">

@@ -11,6 +11,9 @@ test("control shell exposes keyboard and landmark basics", async ({ page }) => {
     page.getByRole("navigation", { name: "Hoofdnavigatie" })
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByLabel("Open dashboardacties")).toContainText(
+    "Releaseblokkade"
+  );
 });
 
 test("media route exposes upload intake labels and status landmarks", async ({
@@ -21,6 +24,9 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(page.getByRole("heading", { exact: true, name: "Media" })).toBeVisible();
   await expect(page.getByLabel("Bestand")).toBeVisible();
   await expect(page.getByLabel("Titel")).toBeVisible();
+  await expect(page.getByLabel("Media pipeline stappen")).toContainText(
+    "Player variant"
+  );
   await expect(page.getByRole("status")).toContainText("echte Supabase sessies");
 });
 
@@ -32,6 +38,9 @@ test("playlists route exposes publish review labels and status", async ({
   await expect(page.getByRole("heading", { exact: true, name: "Playlists" })).toBeVisible();
   await expect(page.getByLabel("Playlistnaam")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Publish review" })).toBeVisible();
+  await expect(page.getByLabel("Playlist publish tijdlijn")).toContainText(
+    "Player update"
+  );
   await expect(page.getByRole("status")).toContainText("Sponsor slide");
 });
 
@@ -41,6 +50,9 @@ test("screens route exposes pairing labels and status", async ({ page }) => {
   await expect(page.getByRole("heading", { exact: true, name: "Schermen" })).toBeVisible();
   await expect(page.getByLabel("Schermnaam")).toBeVisible();
   await expect(page.getByLabel("Pairingcode")).toContainText("CTV 482");
+  await expect(page.getByLabel("Player sync diagnostics")).toContainText(
+    "Lokale cache"
+  );
   await expect(page.getByRole("status")).toContainText("claim_pairing_session");
 });
 

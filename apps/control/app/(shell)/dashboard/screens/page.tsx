@@ -1,6 +1,12 @@
 import Link from "next/link";
 
-import { MetricCard, PageHeader, StatusPill } from "../../_components/shell-primitives";
+import {
+  HealthList,
+  MetricCard,
+  PageHeader,
+  StatusPill,
+  Timeline
+} from "../../_components/shell-primitives";
 
 const screenMetrics = [
   {
@@ -24,9 +30,30 @@ const screenMetrics = [
 ] as const;
 
 const screenRows = [
-  ["Entree links", "Clubhuis entree", "landscape", "Zomerroute v3", "paired", "success"],
-  ["Kantine portrait", "Barwand", "portrait", "Entree v2", "pending", "warning"],
-  ["Bestuurskamer", "Vergaderruimte", "landscape", "Geen release", "disabled", "critical"]
+  {
+    location: "Clubhuis entree",
+    orientation: "landscape",
+    release: "Zomerroute v3",
+    screen: "Entree links",
+    status: "paired",
+    tone: "success"
+  },
+  {
+    location: "Barwand",
+    orientation: "portrait",
+    release: "Entree v2",
+    screen: "Kantine portrait",
+    status: "pending",
+    tone: "warning"
+  },
+  {
+    location: "Vergaderruimte",
+    orientation: "landscape",
+    release: "Geen release",
+    screen: "Bestuurskamer",
+    status: "disabled",
+    tone: "critical"
+  }
 ] as const;
 
 const pairingChecks = [
@@ -39,18 +66,64 @@ const pairingChecks = [
 const deviceCards = [
   {
     app: "Player PWA 0.1.0",
+    cache: "last-known-good warm",
     lastSeen: "2 minuten geleden",
     name: "Entree player",
+    release: "Zomerroute v3",
     screen: "Entree links",
     status: "paired",
     tone: "success"
   },
   {
     app: "Wacht op eerste boot",
+    cache: "geen release",
     lastSeen: "Nog niet gezien",
     name: "Kantine player",
+    release: "Entree v2 gewenst",
     screen: "Kantine portrait",
     status: "pending",
+    tone: "warning"
+  }
+] as const;
+
+const syncDiagnostics = [
+  {
+    detail: "Entree player meldt heartbeat en actieve release binnen SLA.",
+    label: "Heartbeat",
+    status: "2 min",
+    tone: "success"
+  },
+  {
+    detail: "Offline fallback is gevuld met de laatst geverifieerde release.",
+    label: "Lokale cache",
+    status: "warm",
+    tone: "success"
+  },
+  {
+    detail: "Kantine player heeft nog geen device token opgehaald.",
+    label: "Pending device",
+    status: "actie",
+    tone: "warning"
+  }
+] as const;
+
+const deviceLifecycle = [
+  {
+    detail: "Player toont korte code; database bewaart alleen de hash.",
+    label: "Pairingcode",
+    meta: "10 min",
+    tone: "info"
+  },
+  {
+    detail: "Tenantadmin claimt het scherm en krijgt een revocable device session.",
+    label: "Claim",
+    meta: "admin",
+    tone: "success"
+  },
+  {
+    detail: "Player ontvangt de toegewezen release en vult offline cache.",
+    label: "Eerste sync",
+    meta: "pending",
     tone: "warning"
   }
 ] as const;
@@ -121,14 +194,14 @@ export default function ScreensPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {screenRows.map(([screen, location, orientation, release, status, tone]) => (
-                    <tr key={screen}>
-                      <td>{screen}</td>
-                      <td>{location}</td>
-                      <td>{orientation}</td>
-                      <td>{release}</td>
+                  {screenRows.map((row) => (
+                    <tr key={row.screen}>
+                      <td>{row.screen}</td>
+                      <td>{row.location}</td>
+                      <td>{row.orientation}</td>
+                      <td>{row.release}</td>
                       <td>
-                        <StatusPill label={status} tone={tone} />
+                        <StatusPill label={row.status} tone={row.tone} />
                       </td>
                     </tr>
                   ))}
@@ -170,6 +243,36 @@ export default function ScreensPage() {
         </article>
       </section>
 
+      <section className="work-grid">
+        <article className="work-panel" aria-labelledby="sync-diagnostics-title">
+          <div className="work-panel__header">
+            <div>
+              <h2 className="work-panel__title" id="sync-diagnostics-title">
+                Player diagnostics
+              </h2>
+              <p className="work-panel__meta">
+                Heartbeat, cache en device session per scherm.
+              </p>
+            </div>
+            <StatusPill label="S08-aware" tone="success" />
+          </div>
+          <HealthList ariaLabel="Player sync diagnostics" items={syncDiagnostics} />
+        </article>
+
+        <article className="work-panel" aria-labelledby="device-lifecycle-title">
+          <div className="work-panel__header">
+            <div>
+              <h2 className="work-panel__title" id="device-lifecycle-title">
+                Device lifecycle
+              </h2>
+              <p className="work-panel__meta">Van pairingcode naar eerste sync</p>
+            </div>
+            <StatusPill label="Revocable" tone="info" />
+          </div>
+          <Timeline ariaLabel="Device lifecycle stappen" items={deviceLifecycle} />
+        </article>
+      </section>
+
       <section className="work-panel" aria-labelledby="devices-title">
         <div className="work-panel__header">
           <div>
@@ -198,6 +301,14 @@ export default function ScreensPage() {
                 <div>
                   <dt>Laatste heartbeat</dt>
                   <dd>{device.lastSeen}</dd>
+                </div>
+                <div>
+                  <dt>Release</dt>
+                  <dd>{device.release}</dd>
+                </div>
+                <div>
+                  <dt>Cache</dt>
+                  <dd>{device.cache}</dd>
                 </div>
               </dl>
             </article>
