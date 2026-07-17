@@ -401,7 +401,7 @@ function PlaybackMedia({ item }: { item: PlayerManifestItem }) {
 
 function PairingPanel() {
   return (
-    <main className="runtime-shell">
+    <main className="runtime-shell" aria-label="Castivo player setup">
       <section className="runtime-panel" aria-labelledby="player-title">
         <p className="runtime-kicker">Device boot shell</p>
         <h1 className="runtime-title" id="player-title">
@@ -441,7 +441,7 @@ function SetupPanel({
   title: string;
 }) {
   return (
-    <main className="runtime-shell">
+    <main className="runtime-shell" aria-label="Castivo player sync">
       <section className="runtime-panel" aria-labelledby="player-title">
         <p className="runtime-kicker">{stateLabel}</p>
         <h1 className="runtime-title" id="player-title">
@@ -462,7 +462,7 @@ function ProblemPanel({
   problem: Extract<RuntimeView, { state: "ERROR_RECOVERABLE" | "DISABLED" }>;
 }) {
   return (
-    <main className="runtime-shell">
+    <main className="runtime-shell" aria-label="Castivo player status">
       <section className="runtime-panel" aria-labelledby="player-title">
         <p className="runtime-kicker">{problem.state}</p>
         <h1 className="runtime-title" id="player-title">

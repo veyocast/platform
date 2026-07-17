@@ -1,0 +1,29 @@
+import { expect, test } from "@playwright/test";
+
+const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
+
+test("player setup and playback expose accessible landmarks and diagnostics", async ({
+  page
+}) => {
+  await page.goto(playerURL);
+
+  await expect(
+    page.getByRole("main", { name: "Castivo player setup" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Castivo Player pairing" })
+  ).toBeVisible();
+  await expect(page.getByLabel("Pairingcode")).toContainText("CTV 482");
+  await expect(page.getByLabel("Device setupstatus")).toContainText(
+    "Geen Supabase Auth-user"
+  );
+
+  await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=750`);
+
+  await expect(page.getByLabel("Release playback")).toBeVisible({
+    timeout: 15_000
+  });
+  await expect(page.getByRole("main", { name: "Castivo player" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Clubhuis entree" })).toBeVisible();
+  await expect(page.getByLabel("Player diagnostics")).toContainText("PLAYING");
+});
