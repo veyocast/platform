@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Wedstrijdvoorbeschouwing</title>
+  <desc id="desc">Poster frame for a demo video item in the player loop.</desc>
+  <rect width="1600" height="900" fill="#101827" />
+  <circle cx="800" cy="450" r="310" fill="#1e293b" />
+  <circle cx="800" cy="450" r="204" fill="#0f172a" stroke="#f8fafc" stroke-width="10" />
+  <path d="M734 330 L734 570 L944 450 Z" fill="#f97316" />
+  <rect x="110" y="116" width="690" height="116" rx="16" fill="#f8fafc" />
+  <text x="146" y="190" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="900">Vandaag op het veld</text>
+</svg>

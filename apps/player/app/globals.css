@@ -37,7 +37,7 @@ body {
 
 .runtime-title {
   margin: 0;
-  font-size: clamp(28px, 4vw, 42px);
+  font-size: 42px;
   line-height: 1.1;
 }
 
@@ -54,7 +54,7 @@ body {
   border: 1px solid color-mix(in oklab, CanvasText 24%, transparent);
   border-radius: 8px;
   display: flex;
-  font-size: clamp(40px, 10vw, 88px);
+  font-size: 88px;
   font-weight: 800;
   justify-content: center;
   letter-spacing: 0;
@@ -85,4 +85,139 @@ body {
 
 .player-diagnostics dd {
   margin: 0;
+}
+
+.runtime-problem {
+  border: 1px solid color-mix(in oklab, CanvasText 24%, transparent);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 16px;
+}
+
+.runtime-problem p {
+  color: color-mix(in oklab, CanvasText 74%, transparent);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.playback-shell {
+  background: Canvas;
+  color: CanvasText;
+  cursor: none;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.playback-stage {
+  background: color-mix(in oklab, CanvasText 6%, Canvas);
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.playback-media {
+  display: block;
+  height: 100vh;
+  width: 100vw;
+}
+
+.playback-media--cover {
+  object-fit: cover;
+}
+
+.playback-media--contain {
+  background: Canvas;
+  object-fit: contain;
+}
+
+.playback-scrim {
+  background: linear-gradient(
+    to top,
+    color-mix(in oklab, Canvas 64%, transparent),
+    transparent 42%
+  );
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.playback-now {
+  bottom: 56px;
+  display: grid;
+  gap: 8px;
+  left: 56px;
+  max-width: min(680px, calc(100vw - 112px));
+  position: absolute;
+}
+
+.playback-now p,
+.playback-now h1,
+.playback-now span {
+  margin: 0;
+}
+
+.playback-now p,
+.playback-now span {
+  color: color-mix(in oklab, CanvasText 76%, transparent);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.playback-now h1 {
+  font-size: 56px;
+  line-height: 1.05;
+}
+
+.player-status-panel {
+  align-items: center;
+  background: color-mix(in oklab, Canvas 70%, transparent);
+  border: 1px solid color-mix(in oklab, CanvasText 18%, transparent);
+  border-radius: 8px;
+  bottom: 16px;
+  color: color-mix(in oklab, CanvasText 82%, transparent);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13px;
+  gap: 12px;
+  left: 64px;
+  max-width: calc(100vw - 80px);
+  padding: 10px 12px;
+  position: fixed;
+}
+
+.player-state {
+  color: CanvasText;
+  font-weight: 800;
+}
+
+@media (max-width: 680px) {
+  .runtime-shell {
+    padding: 16px;
+  }
+
+  .runtime-panel {
+    padding: 24px;
+  }
+
+  .runtime-title {
+    font-size: 32px;
+  }
+
+  .player-pairing-code {
+    font-size: 48px;
+    min-height: 112px;
+  }
+
+  .playback-now {
+    bottom: 96px;
+    left: 24px;
+    max-width: calc(100vw - 48px);
+  }
+
+  .playback-now h1 {
+    font-size: 34px;
+  }
 }
