@@ -86,12 +86,23 @@ export async function preparePendingRelease({
   }
 
   const cache = await caches.open(playerAssetCacheName);
-  const preparedKeys: string[] = [];
+  const newPreparedKeys = new Set<string>();
 
   try {
     onPhase?.("DOWNLOADING");
 
     for (const asset of assets) {
+      const existingResponse = await cache.match(asset.cacheKey);
+
+      if (existingResponse) {
+        try {
+          await verifyAssetBytes(asset, await existingResponse.clone().arrayBuffer());
+          continue;
+        } catch {
+          // The checksum-keyed entry exists but is not trustworthy; refresh it.
+        }
+      }
+
       const response = await fetch(asset.url, { cache: "no-store" });
 
       if (!response.ok) {
@@ -112,7 +123,10 @@ export async function preparePendingRelease({
           }
         })
       );
-      preparedKeys.push(asset.cacheKey);
+
+      if (!existingResponse) {
+        newPreparedKeys.add(asset.cacheKey);
+      }
     }
 
     return {
@@ -120,7 +134,7 @@ export async function preparePendingRelease({
       assets
     };
   } catch (error) {
-    await Promise.all(preparedKeys.map((key) => cache.delete(key)));
+    await Promise.all([...newPreparedKeys].map((key) => cache.delete(key)));
 
     return {
       ok: false,
