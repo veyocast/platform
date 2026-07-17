@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Clubhuis entree</title>
+  <desc id="desc">Demo narrowcasting slide for the clubhouse entrance screen.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#e8f5ff" />
+      <stop offset="1" stop-color="#f7fff2" />
+    </linearGradient>
+    <linearGradient id="field" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#166534" />
+      <stop offset="1" stop-color="#65a30d" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)" />
+  <rect y="610" width="1600" height="290" fill="url(#field)" />
+  <path d="M160 620 L360 420 L760 420 L960 620 Z" fill="#f5f5f4" stroke="#292524" stroke-width="12" />
+  <rect x="252" y="514" width="140" height="106" fill="#fed7aa" stroke="#292524" stroke-width="8" />
+  <rect x="490" y="490" width="210" height="130" fill="#bae6fd" stroke="#292524" stroke-width="8" />
+  <path d="M120 430 L440 260 L810 430 Z" fill="#ea580c" stroke="#292524" stroke-width="12" />
+  <rect x="1020" y="186" width="360" height="360" rx="180" fill="#f97316" opacity="0.92" />
+  <text x="108" y="132" fill="#111827" font-family="Inter, Arial, sans-serif" font-size="56" font-weight="800">Welkom bij het clubhuis</text>
+  <text x="108" y="212" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="34">Trainingen starten om 19:00</text>
+  <text x="1040" y="355" fill="#111827" font-family="Inter, Arial, sans-serif" font-size="74" font-weight="900">Entree</text>
+  <text x="1044" y="422" fill="#111827" font-family="Inter, Arial, sans-serif" font-size="34">Scherm online</text>
+</svg>
