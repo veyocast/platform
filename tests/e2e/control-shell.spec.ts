@@ -3,14 +3,14 @@ import { expect, test } from "@playwright/test";
 test("renders the control shell with role-aware navigation", async ({ page }) => {
   await page.goto("/dashboard");
 
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Goedemorgen, Daan" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Operationele lijn" })).toBeVisible();
   await expect(page.getByLabel("Operationele tenantflow")).toContainText(
-    "Player sync"
+    "Player synchroniseert"
   );
-  const roles = page.getByLabel("Actieve rollen");
-  await expect(roles.getByText("Tenantadmin")).toBeVisible();
-  await expect(roles.getByText("Platformadmin")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Actieve vereniging Museumkwartier" })
+  ).toBeVisible();
 
   const nav = page.getByRole("navigation", { name: "Hoofdnavigatie" });
   await expect(nav.getByRole("link", { name: /Platform/ })).toBeVisible();
@@ -21,28 +21,34 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
 
   await nav.getByRole("link", { name: /Media/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/media$/);
-  await expect(page.getByRole("heading", { exact: true, name: "Media" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Media" })
+  ).toBeVisible();
   await expect(page.getByText("Private bucket: tenant-media")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Pipeline voortgang" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Playlists/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/playlists$/);
-  await expect(page.getByRole("heading", { exact: true, name: "Playlists" })).toBeVisible();
-  await expect(page.getByText("Publish review actief")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Publish tijdlijn" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
+  ).toBeVisible();
+  await expect(page.getByText("Publicatiereview actief")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Publicatietijdlijn" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Schermen/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/screens$/);
-  await expect(page.getByRole("heading", { exact: true, name: "Schermen" })).toBeVisible();
-  await expect(page.getByText("Player is device")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Player diagnostics" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
+  ).toBeVisible();
+  await expect(page.getByText("Player is een apart apparaat")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Playerdiagnostiek" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Tenants/ }).click();
   await expect(page).toHaveURL(/\/platform\/tenants$/);
   await expect(
-    page.getByRole("heading", { exact: true, name: "Tenantbeheer" })
+    page.getByRole("heading", { exact: true, level: 1, name: "Tenantbeheer" })
   ).toBeVisible();
-  await expect(page.getByText("Platformadmin vereist")).toBeVisible();
+  await expect(page.getByText("Platformbeheerder vereist")).toBeVisible();
 
   await nav.getByRole("link", { name: /Auditlog/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/auditlog$/);
@@ -66,4 +72,27 @@ test("supports the public login and auth callback routes", async ({ page }) => {
 
   await page.getByRole("link", { name: "Naar dashboard" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
+});
+
+test("supports command navigation and the compact mobile navigation flow", async ({
+  page
+}) => {
+  await page.goto("/dashboard");
+
+  await page.getByRole("button", { name: "Zoeken in Control" }).click();
+  const commandPalette = page.getByRole("dialog", { name: "Zoeken in Control" });
+  await expect(commandPalette).toBeVisible();
+  await commandPalette
+    .getByPlaceholder("Zoek schermen, playlists, media of instellingen")
+    .fill("Schermen");
+  await commandPalette.getByRole("link", { name: /Schermen/ }).click();
+  await expect(page).toHaveURL(/\/dashboard\/screens$/);
+
+  await page.setViewportSize({ height: 844, width: 390 });
+  await page.getByRole("button", { name: "Navigatie openen" }).click();
+
+  const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
+  await expect(navigation).toBeVisible();
+  await navigation.getByRole("link", { name: /Media/ }).click();
+  await expect(page).toHaveURL(/\/dashboard\/media$/);
 });

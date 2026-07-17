@@ -1,0 +1,27 @@
+domain,template,route_or_state,primary_components,purpose
+Website,Home,/,"MarketingHeader, Hero, ProductStage, UseCaseGrid, HowItWorks, ReliabilityPanel, SponsorShowcase, FeatureMatrix, ProofStrip, PricingPreview, FinalCTA, Footer",Conversion and product comprehension
+Website,Product overview,/product,"Hero, feature narrative, product screenshots, reliability, CTA",Explain control + playback plane without jargon
+Website,Solutions for clubs,/voor-verenigingen,"Use cases, club rhythm, sponsor value, operations, CTA",Sports-club relevance
+Website,Integrations,/integraties,"Adapter concept, available/planned status, data snapshot explanation",No unsupported availability claims
+Website,Pricing,/prijzen,"Tier comparison, FAQ, access request",No fabricated prices until approved
+Website,Knowledge base,/kennisbank,"Search, categories, featured articles, article list",Self-service support
+Website,Article,/kennisbank/[slug],"ArticleHeader, ArticleBody, related content",Readable documentation
+Website,Demo request,/demo,"DemoForm, expectation, privacy note",Lead capture
+Website,Login,/inloggen,"Locked logo, auth form, support links","Clear, secure entry"
+Dashboard,Tenant overview,/overview,"DashboardOverview, ScreenFleetTable, PublishPanel",Operational snapshot
+Dashboard,Media,/media,"MediaLibrary, UploadQueue, MediaInspector",Ingest and manage assets
+Dashboard,Playlists,/playlists,"PlaylistList, filters, creation action",Manage drafts and releases
+Dashboard,Playlist editor,/playlists/[id],"PlaylistEditor, PlayerPreview, PublishPanel",Create and publish atomically
+Dashboard,Screens,/screens,"ScreenFleetTable, pairing action",Fleet management
+Dashboard,Screen detail,/screens/[id],"ScreenDetail, ReleaseStatus, diagnostics, events",Device operations
+Dashboard,Integrations,/integrations,"IntegrationCard, sync history",Connection management
+Dashboard,Team,/team,"TeamTable, invites, RolePicker",Membership and roles
+Dashboard,Audit log,/audit,"AuditLog, filters",Accountability
+Dashboard,Settings,/settings,SettingsLayout,"Club, branding, limits, security"
+Dashboard,Platform tenants,/platform/tenants,"Tenant table, status, limits",Platform administration
+Dashboard,Platform system,/platform/system,"Device health, processing jobs, incidents",System oversight
+Player,Startup,player://startup,StartupScreen,"Fast, branded boot"
+Player,Unpaired,player://unpaired,"UnpairedScreen, PairingCode, QRBlock",Secure pairing
+Player,Playback,player://playing,"PlayerStage, template, transition","Invisible, reliable playback"
+Player,Offline,player://offline,PlayerStage + hidden/secondary OfflineState,Continue last-known-good release
+Player,Diagnostics,player://diagnostics,"PlayerDiagnostics, SyncState",Setup and support only

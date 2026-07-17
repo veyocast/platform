@@ -3,9 +3,9 @@ import type { CastivoDesignTokens } from "../schema";
 export const castivoTokens = {
   "$schema": "https://castivo.local/design-tokens.schema.json",
   "meta": {
-    "name": "Castivo Bold Design Tokens",
+    "name": "Castivo Bold Runtime Tokens",
     "version": "1.0.0",
-    "status": "placeholder-build-pack"
+    "status": "canonical-runtime-projection"
   },
   "color": {
     "brand": {

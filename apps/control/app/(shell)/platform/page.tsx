@@ -3,105 +3,55 @@ import Link from "next/link";
 import { MetricCard, PageHeader, StatusPill } from "../_components/shell-primitives";
 
 const platformMetrics = [
-  {
-    detail: "Alle tenants reageren binnen de afgesproken health window.",
-    label: "Tenantstatus",
-    tone: "success",
-    value: "12/12"
-  },
-  {
-    detail: "Laatste foutloze publicatie: 11 minuten geleden.",
-    label: "Release pipeline",
-    tone: "success",
-    value: "Groen"
-  },
-  {
-    detail: "Twee tenants naderen hun opslaglimiet.",
-    label: "Capaciteit",
-    tone: "warning",
-    value: "84%"
-  }
+  { detail: "Alle tenants reageren binnen de health window.", label: "Tenants op orde", tone: "success", value: "12/12" },
+  { detail: "Laatste foutloze publicatie: 11 minuten geleden.", label: "Release pipeline", tone: "success", value: "Op orde" },
+  { detail: "Twee tenants naderen hun opslaglimiet.", label: "Capaciteit", tone: "warning", value: "84%" }
 ] as const;
 
 const serviceChecks = [
-  ["Auth claims", "RLS-helperclaims worden server-side verwacht", "Voorbereid"],
-  ["Media worker", "Queuecontract volgt in S05", "Placeholder"],
-  ["Player sync", "Offline manifestcontract volgt in S06", "Placeholder"]
+  ["Identiteit en rechten", "Server-side claims worden afgedwongen", "Op orde", "success"],
+  ["Mediaverwerking", "Vier jobs wachten op verwerking", "Aandacht", "warning"],
+  ["Players", "Alle actieve devices rapporteren een release", "Op orde", "success"]
 ] as const;
 
 export default function PlatformPage() {
   return (
     <>
       <PageHeader
-        actions={
-          <Link className="button-link button-link--primary" href="/platform/tenants">
-            Tenants beheren
-          </Link>
-        }
-        description="Platformrollen zien tenantstatus, servicechecks en foundation-waarschuwingen zonder tenantdata buiten RLS-context te mengen."
+        actions={<Link className="button-link button-link--primary" href="/platform/tenants">Tenants beheren</Link>}
+        description="Platformbeheer geeft een apart overzicht van tenantgezondheid, capaciteit en systeemafhankelijkheden zonder tenantinhoud te mengen."
         eyebrow="Platform"
-        status={{ label: "Platformadmin vereist", tone: "info" }}
+        status={{ label: "Platformcontext actief", tone: "info" }}
         title="Platformoverzicht"
       />
 
-      <section className="metric-grid" aria-label="Platformmetingen">
-        {platformMetrics.map((metric) => (
-          <MetricCard
-            detail={metric.detail}
-            key={metric.label}
-            label={metric.label}
-            tone={metric.tone}
-            value={metric.value}
-          />
-        ))}
+      <section className="metric-grid" aria-label="Platformoverzicht">
+        {platformMetrics.map((metric) => <MetricCard {...metric} key={metric.label} />)}
       </section>
 
-      <section className="work-grid">
-        <article className="work-panel">
-          <div className="work-panel__header">
-            <div>
-              <h2 className="work-panel__title">Servicechecks</h2>
-              <p className="work-panel__meta">Platformbrede afhankelijkheden</p>
-            </div>
-            <StatusPill label="S03 placeholder" tone="neutral" />
+      <section className="workspace-section" aria-labelledby="service-checks-title">
+        <div className="workspace-section__header">
+          <div>
+            <h2 className="workspace-section__title" id="service-checks-title">Systeemstatus</h2>
+            <p className="work-panel__meta">Operationele signalen over alle verenigingen.</p>
           </div>
-          <div className="data-table-frame">
-            <table className="data-table">
-              <caption>Foundation checks voor de Control-shell.</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Check</th>
-                  <th scope="col">Context</th>
-                  <th scope="col">Status</th>
+          <StatusPill label="3 controles" tone="neutral" />
+        </div>
+        <div className="data-table-frame">
+          <table className="data-table data-table--responsive">
+            <caption>Platformbrede servicecontroles.</caption>
+            <thead><tr><th scope="col">Controle</th><th scope="col">Context</th><th scope="col">Status</th></tr></thead>
+            <tbody>
+              {serviceChecks.map(([check, context, status, tone]) => (
+                <tr key={check}>
+                  <td data-label="Naam"><span className="table-primary">{check}</span></td>
+                  <td data-label="Context">{context}</td>
+                  <td data-label="Status"><StatusPill label={status} tone={tone} /></td>
                 </tr>
-              </thead>
-              <tbody>
-                {serviceChecks.map(([check, context, status]) => (
-                  <tr key={check}>
-                    <td>{check}</td>
-                    <td>{context}</td>
-                    <td>{status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </article>
-
-        <article className="work-panel">
-          <div className="work-panel__header">
-            <div>
-              <h2 className="work-panel__title">Rolgrens</h2>
-              <p className="work-panel__meta">Platform versus tenant</p>
-            </div>
-            <StatusPill label="RLS-first" tone="success" />
-          </div>
-          <p className="page-description">
-            Platformnavigatie is gescheiden van tenantbeheer. De shell toont
-            beide ontwikkelrollen, maar de echte sessieadapter moet per request
-            server-side autorisatie bepalen.
-          </p>
-        </article>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
     </>
   );

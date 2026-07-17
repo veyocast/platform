@@ -43,6 +43,7 @@ De MVP is pilot-ready wanneer:
 | S09 | Control dashboard polish | Media/playlist/screen UX volgens canon |
 | S10 | Marketing shell en landingpage | Castivo homepage en SEO-basics |
 | S11 | Security, accessibility en reliability gates | RLS, axe, Playwright, player reliability |
+| S11-B | Enterprise Control UX | Canon v1.0.0, operational app shell, resource workflows and responsive Control QA |
 | S12 | Pilot-ready local MVP | End-to-end local pilot, docs, release checklist |
 
 ## Parallelle waves

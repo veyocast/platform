@@ -10,9 +10,9 @@ test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   await expect(
     page.getByRole("navigation", { name: "Hoofdnavigatie" })
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Goedemorgen, Daan" })).toBeVisible();
   await expect(page.getByLabel("Open dashboardacties")).toContainText(
-    "Releaseblokkade"
+    "Publicatie geblokkeerd"
   );
 });
 
@@ -25,9 +25,9 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(page.getByLabel("Bestand")).toBeVisible();
   await expect(page.getByLabel("Titel")).toBeVisible();
   await expect(page.getByLabel("Media pipeline stappen")).toContainText(
-    "Player variant"
+    "Player-variant"
   );
-  await expect(page.getByRole("status")).toContainText("echte Supabase sessies");
+  await expect(page.getByRole("status")).toContainText("Uploaden is nog niet beschikbaar");
 });
 
 test("playlists route exposes publish review labels and status", async ({
@@ -35,11 +35,13 @@ test("playlists route exposes publish review labels and status", async ({
 }) => {
   await page.goto("/dashboard/playlists");
 
-  await expect(page.getByRole("heading", { exact: true, name: "Playlists" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
+  ).toBeVisible();
   await expect(page.getByLabel("Playlistnaam")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Publish review" })).toBeVisible();
-  await expect(page.getByLabel("Playlist publish tijdlijn")).toContainText(
-    "Player update"
+  await expect(page.getByRole("heading", { name: "Publicatiereview" })).toBeVisible();
+  await expect(page.getByLabel("Playlist publicatietijdlijn")).toContainText(
+    "Player bijwerken"
   );
   await expect(page.getByRole("status")).toContainText("Sponsor slide");
 });
@@ -47,13 +49,15 @@ test("playlists route exposes publish review labels and status", async ({
 test("screens route exposes pairing labels and status", async ({ page }) => {
   await page.goto("/dashboard/screens");
 
-  await expect(page.getByRole("heading", { exact: true, name: "Schermen" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
+  ).toBeVisible();
   await expect(page.getByLabel("Schermnaam")).toBeVisible();
   await expect(page.getByLabel("Pairingcode")).toContainText("CTV 482");
   await expect(page.getByLabel("Player sync diagnostics")).toContainText(
     "Lokale cache"
   );
-  await expect(page.getByRole("status")).toContainText("claim_pairing_session");
+  await expect(page.getByRole("status")).toContainText("Pairing is in deze demo read-only");
 });
 
 test("public auth routes have clear headings and forms", async ({ page }) => {

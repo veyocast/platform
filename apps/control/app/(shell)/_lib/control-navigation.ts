@@ -31,7 +31,7 @@ export type ControlSession = {
 
 const controlNavigation: readonly ControlNavigationItem[] = [
   {
-    description: "Platformgezondheid en tenantstatus",
+    description: "Systeemstatus en tenantgezondheid",
     href: "/platform",
     label: "Platform",
     requiredRole: "platform_admin",
@@ -39,7 +39,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "placeholder"
   },
   {
-    description: "Tenantaanmaak, status en limieten",
+    description: "Verenigingen, status en limieten",
     href: "/platform/tenants",
     label: "Tenants",
     requiredRole: "platform_admin",
@@ -47,7 +47,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "placeholder"
   },
   {
-    description: "Dagelijkse tenantoperatie",
+    description: "Dagelijkse operatie en aandachtspunten",
     href: "/dashboard",
     label: "Dashboard",
     requiredRole: "tenant_viewer",
@@ -55,7 +55,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "ready"
   },
   {
-    description: "Uploads, verwerking en playerassets",
+    description: "Bibliotheek, verwerking en gebruik",
     href: "/dashboard/media",
     label: "Media",
     requiredRole: "tenant_viewer",
@@ -63,7 +63,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "ready"
   },
   {
-    description: "Drafts, publish review en releases",
+    description: "Concepten, publicaties en releases",
     href: "/dashboard/playlists",
     label: "Playlists",
     requiredRole: "tenant_viewer",
@@ -71,7 +71,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "ready"
   },
   {
-    description: "Schermen, pairing en player devices",
+    description: "Vloot, koppeling en diagnose",
     href: "/dashboard/screens",
     label: "Schermen",
     requiredRole: "tenant_viewer",
@@ -79,7 +79,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "ready"
   },
   {
-    description: "Gebruikers, rollen en invites",
+    description: "Mensen, rollen en uitnodigingen",
     href: "/dashboard/team",
     label: "Team",
     requiredRole: "tenant_admin",
@@ -87,7 +87,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "placeholder"
   },
   {
-    description: "Wijzigingen en beveiligingsspoor",
+    description: "Gebeurtenissen en beveiligingsspoor",
     href: "/dashboard/auditlog",
     label: "Auditlog",
     requiredRole: "tenant_admin",
@@ -95,7 +95,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "placeholder"
   },
   {
-    description: "Tenantprofiel en controlerechten",
+    description: "Profiel, limieten en beveiliging",
     href: "/dashboard/settings",
     label: "Instellingen",
     requiredRole: "tenant_admin",

@@ -105,13 +105,19 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <header className="page-header">
-      <div className="page-header__copy">
-        <p className="page-kicker">{eyebrow}</p>
-        <h1 className="page-title">{title}</h1>
-        <p className="page-description">{description}</p>
-        {status ? <StatusPill label={status.label} tone={status.tone} /> : null}
+      <nav aria-label="Broodkruimel" className="breadcrumbs">
+        <span>Control</span>
+        <span aria-hidden="true">/</span>
+        <span>{eyebrow}</span>
+      </nav>
+      <div className="page-header__main">
+        <div className="page-header__copy">
+          <h1 className="page-title">{title}</h1>
+          <p className="page-description">{description}</p>
+          {status ? <StatusPill label={status.label} tone={status.tone} /> : null}
+        </div>
+        {actions ? <div className="page-actions">{actions}</div> : null}
       </div>
-      {actions ? <div className="page-actions">{actions}</div> : null}
     </header>
   );
 }
@@ -135,9 +141,9 @@ export function MetricCard({
 }
 
 const toneLabel: Record<StatusTone, string> = {
-  critical: "Actie",
-  info: "Info",
-  neutral: "Rustig",
-  success: "Goed",
-  warning: "Let op"
+  critical: "Actie nodig",
+  info: "Informatie",
+  neutral: "Overzicht",
+  success: "Op orde",
+  warning: "Aandacht"
 };

@@ -10,69 +10,114 @@ import {
 
 const tenantMetrics = [
   {
-    detail: "Drie schermen missen een recente heartbeat.",
+    detail: "5 online, 1 synchroniseert.",
     label: "Actieve schermen",
-    tone: "warning",
-    value: "128"
-  },
-  {
-    detail: "Volgende publicatie wacht op eindcontrole.",
-    label: "Playlists live",
     tone: "success",
-    value: "18"
+    value: "6"
   },
   {
-    detail: "Nieuwe media klaar voor playlistdrafts.",
-    label: "Media-items",
+    detail: "Bestuurskamer is 18 minuten niet gezien.",
+    label: "Schermen offline",
+    tone: "warning",
+    value: "1"
+  },
+  {
+    detail: "2 concepten hebben wijzigingen.",
+    label: "Playlists",
+    tone: "neutral",
+    value: "12"
+  },
+  {
+    detail: "4 items wachten op verwerking.",
+    label: "Media",
     tone: "info",
-    value: "642"
+    value: "84"
+  },
+  {
+    detail: "Huidige release blijft veilig actief.",
+    label: "Publicaties",
+    tone: "warning",
+    value: "2"
+  },
+  {
+    detail: "Van 50 GB beschikbaar voor de vereniging.",
+    label: "Opslag gebruikt",
+    tone: "neutral",
+    value: "18,4 GB"
   }
 ] as const;
 
-const releaseTasks = [
-  ["Zomerroute playlist", "Wacht op goedkeuring", "Vandaag 16:00"],
-  ["Entree schermen", "Planning compleet", "Morgen 09:00"],
-  ["Noodbericht template", "Controleer fallbackcopy", "Open"]
+const screenRows = [
+  {
+    connection: "Stabiel",
+    lastSeen: "Nu",
+    playlist: "Zomerroute",
+    release: "v3 actief",
+    screen: "Entree links",
+    status: "Online",
+    storage: "11,2 GB / 32 GB",
+    tone: "success"
+  },
+  {
+    connection: "Downloadt",
+    lastSeen: "2 min geleden",
+    playlist: "Kantineprogramma",
+    release: "v12 naar v13",
+    screen: "Kantine hoofdscherm",
+    status: "Synchroniseren",
+    storage: "8,7 GB / 32 GB",
+    tone: "info"
+  },
+  {
+    connection: "Onbekend",
+    lastSeen: "18 min geleden",
+    playlist: "Geen",
+    release: "v1 actief",
+    screen: "Bestuurskamer",
+    status: "Offline",
+    storage: "2,1 GB / 32 GB",
+    tone: "warning"
+  }
 ] as const;
 
 const operationTimeline = [
   {
-    detail: "Nieuwe poster is gereed en mag in concepten landen.",
+    detail: "Nieuwe poster is gereed en kan aan een concept worden toegevoegd.",
     label: "Media verwerkt",
-    meta: "gereed",
+    meta: "Gereed",
     tone: "success"
   },
   {
-    detail: "Sponsor slide blokkeert publish tot de worker klaar is.",
-    label: "Publish review",
+    detail: "Een sponsorafbeelding wacht nog op verwerking voordat je kunt publiceren.",
+    label: "Publicatiereview",
     meta: "1 blokkade",
     tone: "warning"
   },
   {
-    detail: "Entree player heeft release v3 actief en offline cache warm.",
-    label: "Player sync",
-    meta: "online",
-    tone: "success"
+    detail: "Kantine hoofdscherm downloadt de gewenste release en houdt versie 12 actief.",
+    label: "Player synchroniseert",
+    meta: "Veilig",
+    tone: "info"
   }
 ] as const;
 
 const openSignals = [
   {
-    detail: "Controleer of de ontbrekende player-variant klaar is voor publish.",
-    label: "Releaseblokkade",
-    status: "actie",
+    detail: "Sponsor slide heeft nog geen player-variant. Wacht op verwerking of vervang het item.",
+    label: "Publicatie geblokkeerd",
+    status: "Actie nodig",
     tone: "warning"
   },
   {
-    detail: "Drie schermen hebben langer dan vijf minuten geen heartbeat.",
-    label: "Schermdiagnostics",
-    status: "let op",
+    detail: "Bestuurskamer heeft geen recente heartbeat. Controleer de verbinding of markeer onderhoud.",
+    label: "Scherm offline",
+    status: "18 min",
     tone: "warning"
   },
   {
-    detail: "RLS fixture toont tenantviewer als read-only op media en releases.",
-    label: "Permission state",
-    status: "bevestigd",
+    detail: "Tenantviewer heeft alleen leesrechten op media en releases.",
+    label: "Rechten gecontroleerd",
+    status: "Op orde",
     tone: "success"
   }
 ] as const;
@@ -83,24 +128,21 @@ export default function DashboardPage() {
       <PageHeader
         actions={
           <>
-            <Link className="button-link button-link--secondary" href="/dashboard/media">
-              Media beheren
+            <Link className="button-link button-link--secondary" href="/dashboard/screens">
+              Scherm koppelen
             </Link>
             <Link className="button-link button-link--primary" href="/dashboard/playlists">
-              Playlist review
-            </Link>
-            <Link className="button-link button-link--secondary" href="/dashboard/screens">
-              Schermen koppelen
+              Nieuwe playlist
             </Link>
           </>
         }
-        description="Tenantoperators krijgen een compact overzicht van schermstatus, releasewerk en open acties. De cijfers zijn foundationfixtures totdat de domeindata landt."
-        eyebrow="Tenant"
+        description="Dit is de actuele status van jouw Castivo-omgeving. Schermen en publicaties staan vooraan, zodat je direct ziet wat aandacht vraagt."
+        eyebrow="Museumkwartier"
         status={{ label: "Tenantcontext actief", tone: "success" }}
-        title="Dashboard"
+        title="Goedemorgen, Daan"
       />
 
-      <section className="metric-grid" aria-label="Tenantmetingen">
+      <section className="metric-grid" aria-label="Operationeel overzicht">
         {tenantMetrics.map((metric) => (
           <MetricCard
             detail={metric.detail}
@@ -112,40 +154,110 @@ export default function DashboardPage() {
         ))}
       </section>
 
-      <section className="work-grid">
-        <article className="work-panel">
-          <div className="work-panel__header">
+      <section className="dashboard-layout">
+        <section className="workspace-section" aria-labelledby="screen-fleet-title">
+          <div className="workspace-section__header">
             <div>
-              <h2 className="work-panel__title">Releasewerk</h2>
+              <h2 className="workspace-section__title" id="screen-fleet-title">
+                Schermen
+              </h2>
               <p className="work-panel__meta">
-                Vooruitblik op contentpublicaties
+                De schermen die nu actief zijn of aandacht vragen.
               </p>
             </div>
-            <StatusPill label="Vandaag" tone="info" />
+            <Link className="table-action" href="/dashboard/screens">
+              Alle schermen bekijken
+            </Link>
           </div>
-          <ul className="task-list">
-            {releaseTasks.map(([title, description, due]) => (
-              <li className="task-item" key={title}>
-                <span className="task-item__copy">
-                  <span className="task-item__title">{title}</span>
-                  <span className="work-panel__meta">{description}</span>
-                </span>
-                <StatusPill label={due} tone={due === "Open" ? "warning" : "info"} />
-              </li>
-            ))}
-          </ul>
-        </article>
+          <div className="data-table-frame">
+            <table className="data-table data-table--responsive">
+              <caption>Actuele status van de schermvloot.</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Scherm</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Playlist</th>
+                  <th scope="col">Release</th>
+                  <th scope="col">Laatst gezien</th>
+                  <th scope="col">Opslag</th>
+                  <th scope="col">Verbinding</th>
+                  <th scope="col">Actie</th>
+                </tr>
+              </thead>
+              <tbody>
+                {screenRows.map((screen) => (
+                  <tr key={screen.screen}>
+                    <td data-label="Scherm">
+                      <span className="table-primary">{screen.screen}</span>
+                      <span className="table-secondary">Museumkwartier</span>
+                    </td>
+                    <td data-label="Status">
+                      <StatusPill label={screen.status} tone={screen.tone} />
+                    </td>
+                    <td data-label="Playlist">{screen.playlist}</td>
+                    <td data-label="Release">{screen.release}</td>
+                    <td data-label="Laatst gezien">{screen.lastSeen}</td>
+                    <td data-label="Opslag">{screen.storage}</td>
+                    <td data-label="Verbinding">{screen.connection}</td>
+                    <td data-label="Actie">
+                      <Link className="table-action" href="/dashboard/screens">
+                        Details
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-        <article className="work-panel">
-          <div className="work-panel__header">
-            <div>
-              <h2 className="work-panel__title">Open acties</h2>
-              <p className="work-panel__meta">Snel scannen, met herstelrichting</p>
+        <aside className="dashboard-aside" aria-label="Publicatie en aandachtspunten">
+          <section className="status-panel" aria-labelledby="publication-title">
+            <div className="work-panel__header">
+              <div>
+                <h2 className="work-panel__title" id="publication-title">
+                  Actieve publicatie
+                </h2>
+                <p className="work-panel__meta">Kantineprogramma</p>
+              </div>
+              <StatusPill label="Synchroniseren" tone="info" />
             </div>
-            <StatusPill label="3 acties" tone="warning" />
-          </div>
-          <HealthList ariaLabel="Open dashboardacties" items={openSignals} />
-        </article>
+            <dl className="meta-list">
+              <div>
+                <dt>Actieve release</dt>
+                <dd>Versie 12</dd>
+              </div>
+              <div>
+                <dt>Gewenste release</dt>
+                <dd>Versie 13</dd>
+              </div>
+              <div>
+                <dt>Schermen gereed</dt>
+                <dd>5 van 6</dd>
+              </div>
+            </dl>
+            <div className="progress-bar" aria-label="83 procent gedownload">
+              <span style={{ width: "83%" }} />
+            </div>
+            <p className="notice" role="status">
+              Versie 12 blijft spelen tot versie 13 op ieder scherm volledig is
+              gedownload en geverifieerd.
+            </p>
+          </section>
+
+          <section className="status-panel" aria-labelledby="open-actions-title">
+            <div className="work-panel__header">
+              <div>
+                <h2 className="work-panel__title" id="open-actions-title">
+                  Aandachtspunten
+                </h2>
+                <p className="work-panel__meta">Drie zaken vragen opvolging.</p>
+              </div>
+              <StatusPill label="3 open" tone="warning" />
+            </div>
+            <HealthList ariaLabel="Open dashboardacties" items={openSignals} />
+          </section>
+        </aside>
       </section>
 
       <section className="work-panel" aria-labelledby="operation-timeline-title">
@@ -155,10 +267,10 @@ export default function DashboardPage() {
               Operationele lijn
             </h2>
             <p className="work-panel__meta">
-              Media, publish en playerdiagnostics in een tenantflow.
+              Media, publicatie en playerstatus in de volgorde waarin ze je werk raken.
             </p>
           </div>
-          <StatusPill label="MVP-flow" tone="success" />
+          <StatusPill label="Vandaag" tone="neutral" />
         </div>
         <Timeline ariaLabel="Operationele tenantflow" items={operationTimeline} />
       </section>

@@ -9,9 +9,10 @@ Voor elke taak moet de agent eerst lezen:
 3. `TASK_LEDGER.md`
 4. `docs/technical-canon.md`
 5. `docs/design-implementation-canon.md`
-6. `docs/security-rls-canon.md`
-7. `docs/player-offline-canon.md`
-8. het relevante sprintpromptbestand in `prompts/sprints/`
+6. `docs/design-canon/v1/CASTIVO_DESIGN_CANON_v1.0.md` wanneer aanwezig
+7. `docs/security-rls-canon.md`
+8. `docs/player-offline-canon.md`
+9. het relevante sprintpromptbestand in `prompts/sprints/`
 
 Wanneer het echte designcanonbestand in de repo staat, is dat leidend boven samenvattingen in dit pakket.
 

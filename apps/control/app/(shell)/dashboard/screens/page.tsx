@@ -10,121 +10,121 @@ import {
 
 const screenMetrics = [
   {
-    detail: "Actieve schermen met een toegewezen player device.",
-    label: "Gekoppeld",
+    detail: "Schermen met een actieve device-sessie.",
+    label: "Online",
     tone: "success",
     value: "14"
   },
   {
-    detail: "Pairingcode is aangemaakt maar nog niet geclaimd.",
-    label: "Wacht op pairing",
-    tone: "warning",
+    detail: "Nieuwe content wordt veilig voorbereid.",
+    label: "Synchroniseren",
+    tone: "info",
     value: "2"
   },
   {
-    detail: "Device is uitgeschakeld of sessie is ingetrokken.",
-    label: "Aandacht",
-    tone: "critical",
+    detail: "Koppeling of verbinding vraagt aandacht.",
+    label: "Aandacht nodig",
+    tone: "warning",
     value: "1"
   }
 ] as const;
 
 const screenRows = [
   {
+    connection: "Stabiel",
+    lastSeen: "Nu",
     location: "Clubhuis entree",
-    orientation: "landscape",
-    release: "Zomerroute v3",
+    playlist: "Zomerroute",
+    release: "v3 actief",
     screen: "Entree links",
-    status: "paired",
+    status: "Online",
+    storage: "11,2 GB / 32 GB",
     tone: "success"
   },
   {
+    connection: "Downloadt",
+    lastSeen: "2 min geleden",
     location: "Barwand",
-    orientation: "portrait",
-    release: "Entree v2",
-    screen: "Kantine portrait",
-    status: "pending",
-    tone: "warning"
+    playlist: "Kantineprogramma",
+    release: "v12 naar v13",
+    screen: "Kantine hoofdscherm",
+    status: "Synchroniseren",
+    storage: "8,7 GB / 32 GB",
+    tone: "info"
   },
   {
+    connection: "Onbekend",
+    lastSeen: "18 min geleden",
     location: "Vergaderruimte",
-    orientation: "landscape",
-    release: "Geen release",
+    playlist: "Geen",
+    release: "v1 actief",
     screen: "Bestuurskamer",
-    status: "disabled",
-    tone: "critical"
+    status: "Offline",
+    storage: "2,1 GB / 32 GB",
+    tone: "warning"
   }
 ] as const;
 
 const pairingChecks = [
-  ["Code-hash", "SHA-256 opgeslagen", "success"],
-  ["TTL", "10 minuten geldig", "info"],
-  ["Claimrecht", "Tenantadmin vereist", "success"],
-  ["Device token", "Alleen hash in database", "success"]
-] as const;
-
-const deviceCards = [
   {
-    app: "Player PWA 0.1.0",
-    cache: "last-known-good warm",
-    lastSeen: "2 minuten geleden",
-    name: "Entree player",
-    release: "Zomerroute v3",
-    screen: "Entree links",
-    status: "paired",
+    detail: "De code verloopt na tien minuten en wordt alleen als hash bewaard.",
+    label: "Pairingcode",
+    status: "Actief",
+    tone: "info"
+  },
+  {
+    detail: "Alleen een beheerder van deze vereniging kan de player claimen.",
+    label: "Bevestiging",
+    status: "Vereist",
     tone: "success"
   },
   {
-    app: "Wacht op eerste boot",
-    cache: "geen release",
-    lastSeen: "Nog niet gezien",
-    name: "Kantine player",
-    release: "Entree v2 gewenst",
-    screen: "Kantine portrait",
-    status: "pending",
-    tone: "warning"
+    detail: "Na koppeling downloadt de player eerst een volledige release.",
+    label: "Eerste synchronisatie",
+    status: "Veilig",
+    tone: "success"
   }
 ] as const;
 
 const syncDiagnostics = [
   {
-    detail: "Entree player meldt heartbeat en actieve release binnen SLA.",
+    detail: "Entree links meldt een heartbeat en actieve release binnen de gezonde drempel.",
     label: "Heartbeat",
     status: "2 min",
     tone: "success"
   },
   {
-    detail: "Offline fallback is gevuld met de laatst geverifieerde release.",
+    detail: "De laatst geverifieerde release is lokaal beschikbaar wanneer internet wegvalt.",
     label: "Lokale cache",
-    status: "warm",
+    status: "Warm",
     tone: "success"
   },
   {
-    detail: "Kantine player heeft nog geen device token opgehaald.",
-    label: "Pending device",
-    status: "actie",
-    tone: "warning"
+    detail: "Kantine hoofdscherm downloadt release 13 en wisselt pas na verificatie.",
+    label: "Gewenste release",
+    status: "83%",
+    tone: "info"
   }
 ] as const;
 
 const deviceLifecycle = [
   {
-    detail: "Player toont korte code; database bewaart alleen de hash.",
-    label: "Pairingcode",
+    detail: "De player toont een leesbare code op het startscherm.",
+    label: "Code tonen",
     meta: "10 min",
     tone: "info"
   },
   {
-    detail: "Tenantadmin claimt het scherm en krijgt een revocable device session.",
-    label: "Claim",
-    meta: "admin",
+    detail: "Een beheerder kiest het scherm en bevestigt het juiste apparaat.",
+    label: "Scherm koppelen",
+    meta: "Bewust",
     tone: "success"
   },
   {
-    detail: "Player ontvangt de toegewezen release en vult offline cache.",
-    label: "Eerste sync",
-    meta: "pending",
-    tone: "warning"
+    detail: "De player bewaart een geverifieerde release voordat hij content toont.",
+    label: "Release voorbereiden",
+    meta: "Atomair",
+    tone: "success"
   }
 ] as const;
 
@@ -138,17 +138,17 @@ export default function ScreensPage() {
               Releases bekijken
             </Link>
             <button className="button-link button-link--primary" disabled type="button">
-              Pairing starten
+              Scherm koppelen
             </button>
           </>
         }
-        description="Schermen bepalen welke immutable release een player mag ophalen. Pairing maakt een revocable device session, zonder Supabase Auth-user voor de player."
-        eyebrow="Tenantdevices"
-        status={{ label: "Player is device", tone: "success" }}
+        description="Beheer de schermvloot, bekijk de actieve en gewenste release en koppel nieuwe players met een tijdelijke code."
+        eyebrow="Museumkwartier"
+        status={{ label: "Player is een apart apparaat", tone: "success" }}
         title="Schermen"
       />
 
-      <section className="metric-grid" aria-label="Schermmetingen">
+      <section className="metric-grid" aria-label="Schermoverzicht">
         {screenMetrics.map((metric) => (
           <MetricCard
             detail={metric.detail}
@@ -160,160 +160,120 @@ export default function ScreensPage() {
         ))}
       </section>
 
-      <section className="work-grid">
-        <article className="work-panel">
-          <div className="work-panel__header">
+      <section className="screens-workspace">
+        <section className="workspace-section" aria-labelledby="screen-fleet-title">
+          <div className="workspace-section__header">
             <div>
-              <h2 className="work-panel__title">Schermbeheer</h2>
-              <p className="work-panel__meta">Tenant-scoped screens</p>
-            </div>
-            <StatusPill label="RLS actief" tone="success" />
-          </div>
-          <form className="playlist-form">
-            <div className="field">
-              <label htmlFor="screen-name">Schermnaam</label>
-              <input
-                id="screen-name"
-                name="screen-name"
-                placeholder="Bijvoorbeeld entree links"
-                readOnly
-                type="text"
-              />
-              <p>Tenantadmins maken schermen aan; viewers blijven read-only.</p>
-            </div>
-            <div className="data-table-frame">
-              <table className="data-table">
-                <caption>Schermen en device status.</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Scherm</th>
-                    <th scope="col">Locatie</th>
-                    <th scope="col">Orientatie</th>
-                    <th scope="col">Release</th>
-                    <th scope="col">Device</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {screenRows.map((row) => (
-                    <tr key={row.screen}>
-                      <td>{row.screen}</td>
-                      <td>{row.location}</td>
-                      <td>{row.orientation}</td>
-                      <td>{row.release}</td>
-                      <td>
-                        <StatusPill label={row.status} tone={row.tone} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </form>
-        </article>
-
-        <article className="work-panel" aria-labelledby="pairing-title">
-          <div className="work-panel__header">
-            <div>
-              <h2 className="work-panel__title" id="pairing-title">
-                Pairing
+              <h2 className="workspace-section__title" id="screen-fleet-title">
+                Schermvloot
               </h2>
-              <p className="work-panel__meta">Code vanaf player startscherm</p>
+              <p className="work-panel__meta">Status, release en verbinding per scherm.</p>
             </div>
-            <StatusPill label="10 min" tone="info" />
+            <StatusPill label="17 totaal" tone="neutral" />
           </div>
-          <div className="pairing-code" aria-label="Pairingcode">
-            CTV 482
+          <div className="data-table-frame">
+            <table className="data-table data-table--responsive">
+              <caption>Operationele schermstatus binnen de actieve vereniging.</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Scherm</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Playlist</th>
+                  <th scope="col">Release</th>
+                  <th scope="col">Laatst gezien</th>
+                  <th scope="col">Opslag</th>
+                  <th scope="col">Verbinding</th>
+                  <th scope="col">Actie</th>
+                </tr>
+              </thead>
+              <tbody>
+                {screenRows.map((row) => (
+                  <tr key={row.screen}>
+                    <td data-label="Scherm">
+                      <span className="table-primary">{row.screen}</span>
+                      <span className="table-secondary">{row.location}</span>
+                    </td>
+                    <td data-label="Status">
+                      <StatusPill label={row.status} tone={row.tone} />
+                    </td>
+                    <td data-label="Playlist">{row.playlist}</td>
+                    <td data-label="Release">{row.release}</td>
+                    <td data-label="Laatst gezien">{row.lastSeen}</td>
+                    <td data-label="Opslag">{row.storage}</td>
+                    <td data-label="Verbinding">{row.connection}</td>
+                    <td data-label="Actie">
+                      <button className="table-action" type="button">
+                        Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <ul className="settings-list">
-            {pairingChecks.map(([label, value, tone]) => (
-              <li className="settings-item" key={label}>
-                <span className="settings-item__copy">
-                  <span className="settings-item__title">{label}</span>
-                  <span className="work-panel__meta">{value}</span>
-                </span>
-                <StatusPill label={value} tone={tone} />
-              </li>
-            ))}
-          </ul>
-          <div className="notice" role="status">
-            Oorzaak: echte player-tokenuitgifte volgt in de serverintegratie.
-            Effect: pairingknop blijft read-only. Herstel: koppel deze UI aan
-            `claim_pairing_session` zodra server actions landen.
-          </div>
-        </article>
+        </section>
+
+        <aside className="workspace-aside" aria-label="Scherm koppelen">
+          <section className="inspector-panel" aria-labelledby="pairing-title">
+            <div className="work-panel__header">
+              <div>
+                <h2 className="work-panel__title" id="pairing-title">
+                  Scherm koppelen
+                </h2>
+                <p className="work-panel__meta">Voer de code van het player-startscherm in.</p>
+              </div>
+              <StatusPill label="10 min" tone="info" />
+            </div>
+            <form className="playlist-form">
+              <div className="field">
+                <label htmlFor="screen-name">Schermnaam</label>
+                <input
+                  id="screen-name"
+                  name="screen-name"
+                  placeholder="Bijvoorbeeld entree links"
+                  readOnly
+                  type="text"
+                />
+              </div>
+              <div className="pairing-code" aria-label="Pairingcode">
+                CTV 482
+              </div>
+            </form>
+            <HealthList ariaLabel="Pairingcontroles" items={pairingChecks} />
+            <p className="notice" role="status">
+              Pairing is in deze demo read-only. In productie bevestig je eerst het
+              scherm en apparaat voordat de eerste release wordt voorbereid.
+            </p>
+          </section>
+        </aside>
       </section>
 
       <section className="work-grid">
-        <article className="work-panel" aria-labelledby="sync-diagnostics-title">
+        <section className="data-surface" aria-labelledby="sync-diagnostics-title">
           <div className="work-panel__header">
             <div>
               <h2 className="work-panel__title" id="sync-diagnostics-title">
-                Player diagnostics
+                Playerdiagnostiek
               </h2>
-              <p className="work-panel__meta">
-                Heartbeat, cache en device session per scherm.
-              </p>
+              <p className="work-panel__meta">Heartbeats, cache en release-status zonder gevoelige gegevens.</p>
             </div>
-            <StatusPill label="S08-aware" tone="success" />
+            <StatusPill label="Op orde" tone="success" />
           </div>
           <HealthList ariaLabel="Player sync diagnostics" items={syncDiagnostics} />
-        </article>
+        </section>
 
-        <article className="work-panel" aria-labelledby="device-lifecycle-title">
+        <section className="data-surface" aria-labelledby="device-lifecycle-title">
           <div className="work-panel__header">
             <div>
               <h2 className="work-panel__title" id="device-lifecycle-title">
-                Device lifecycle
+                Koppelproces
               </h2>
-              <p className="work-panel__meta">Van pairingcode naar eerste sync</p>
+              <p className="work-panel__meta">Van pairingcode naar een veilige eerste synchronisatie.</p>
             </div>
-            <StatusPill label="Revocable" tone="info" />
+            <StatusPill label="Controleerbaar" tone="info" />
           </div>
           <Timeline ariaLabel="Device lifecycle stappen" items={deviceLifecycle} />
-        </article>
-      </section>
-
-      <section className="work-panel" aria-labelledby="devices-title">
-        <div className="work-panel__header">
-          <div>
-            <h2 className="work-panel__title" id="devices-title">
-              Player devices
-            </h2>
-            <p className="work-panel__meta">Revocable sessions per scherm</p>
-          </div>
-          <StatusPill label="Geen Auth-users" tone="success" />
-        </div>
-        <div className="release-card-grid">
-          {deviceCards.map((device) => (
-            <article className="release-card" key={device.name}>
-              <div className="work-panel__header">
-                <div>
-                  <h3 className="release-card__title">{device.name}</h3>
-                  <p className="work-panel__meta">{device.screen}</p>
-                </div>
-                <StatusPill label={device.status} tone={device.tone} />
-              </div>
-              <dl className="release-card__meta">
-                <div>
-                  <dt>App</dt>
-                  <dd>{device.app}</dd>
-                </div>
-                <div>
-                  <dt>Laatste heartbeat</dt>
-                  <dd>{device.lastSeen}</dd>
-                </div>
-                <div>
-                  <dt>Release</dt>
-                  <dd>{device.release}</dd>
-                </div>
-                <div>
-                  <dt>Cache</dt>
-                  <dd>{device.cache}</dd>
-                </div>
-              </dl>
-            </article>
-          ))}
-        </div>
+        </section>
       </section>
     </>
   );
