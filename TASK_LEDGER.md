@@ -19,7 +19,7 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 | S10-A | review | castivo/s10-marketing | marketing-agent | homepage | apps/marketing | lint/typecheck/test/build/e2e/a11y | Marketing homepage shell, SEO metadata, hero, use cases and CTA complete; Lighthouse CLI blocked locally by Chrome cleanup EPERM. |
 | S11-A | review | castivo/s11-hardening | review-agents | security/a11y/reliability | player/config/tests | lint/typecheck/test/build/e2e/a11y/player/offline/rls | Player cache cleanup, service-role boundary test and player a11y hardening complete; local gates green. |
 | S11-B | review | castivo/s11b-enterprise-control-ux | ux-agent | enterprise Control UX | apps/control, docs/design-canon, docs, tests | lint/typecheck/test/build/e2e/a11y + headless visual QA | Canon v1.0.0 package and official icon hash verified; Control rebuilt as an operational SaaS shell with resource workflows, responsive states and green repo-wide gates. |
-| S12-A | todo | castivo/s12-pilot-ready | orchestrator | end-to-end pilot | docs/tests | full gates | |
+| S12-A | review | castivo/s12-pilot-ready | orchestrator | end-to-end pilot | docs/tests | full gates | pilot runbook, launch checklist, evidence and cross-app smoke test complete; local Supabase/RLS gate remains pending Docker recovery |
 
 ## Statuswaarden
 
