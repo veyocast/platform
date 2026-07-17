@@ -6,6 +6,10 @@ export type PlayerRuntimeState =
   | "SYNCING"
   | "READY"
   | "PLAYING"
+  | "DOWNLOADING"
+  | "VERIFYING"
+  | "SWITCH_PENDING"
+  | "OFFLINE_PLAYING"
   | "ERROR_RECOVERABLE"
   | "DISABLED";
 
@@ -22,6 +26,8 @@ export type PlayerManifestItem = {
   source: {
     url: string;
     posterUrl?: string;
+    posterBytes?: number;
+    posterChecksumSha256?: string;
     mimeType: string;
     bytes: number;
     checksumSha256: string;
@@ -54,7 +60,7 @@ export type PlayerManifestEnvelope = {
   };
   manifest: PlayerReleaseManifest;
   diagnostics: {
-    syncStatus: "online";
+    syncStatus: "online" | "offline";
     lastSuccessfulSyncAt: string;
     nextSyncReason: string;
   };
@@ -86,7 +92,9 @@ const demoPlaylistId = "22222222-2222-4222-8222-222222222222";
 const demoReleaseId = "33333333-3333-4333-8333-333333333333";
 const demoScreenId = "44444444-4444-4444-8444-444444444444";
 const demoDeviceId = "55555555-5555-4555-8555-555555555555";
-const demoChecksum = "a".repeat(64);
+const demoEntreeChecksum = "67ca5eafb9902da217ba9ae461d851f94c916a46db3ffddc824dc674f12f425c";
+const demoPosterChecksum = "8a0614c748e10941deaed166fe9b9318f54c8d362152286091eb9e0b3ed43b7d";
+const demoCanteenChecksum = "b65be753a723dd4398f37bded1c5b8239be1b96e00b490647db1e5a3ea80190a";
 
 export function normalizeDeviceToken(token: string | null | undefined) {
   return token?.trim() ?? "";
@@ -166,7 +174,7 @@ export function getPlayerManifestForToken(
         manifestHash: "b".repeat(64),
         publishedAt: "2026-07-17T09:00:00.000Z",
         totalDurationSeconds: 15,
-        totalBytes: 486_400,
+        totalBytes: 3_760,
         items: [
           {
             id: "screen-entree",
@@ -178,8 +186,8 @@ export function getPlayerManifestForToken(
             source: {
               url: "/player-demo/clubhuis-entree.svg",
               mimeType: "image/svg+xml",
-              bytes: 142_000,
-              checksumSha256: demoChecksum
+              bytes: 1_729,
+              checksumSha256: demoEntreeChecksum
             }
           },
           {
@@ -192,9 +200,11 @@ export function getPlayerManifestForToken(
             source: {
               url: "",
               posterUrl: "/player-demo/wedstrijd-poster.svg",
+              posterBytes: 711,
+              posterChecksumSha256: demoPosterChecksum,
               mimeType: "video/mp4",
-              bytes: 204_800,
-              checksumSha256: demoChecksum
+              bytes: 0,
+              checksumSha256: "0".repeat(64)
             }
           },
           {
@@ -207,8 +217,8 @@ export function getPlayerManifestForToken(
             source: {
               url: "/player-demo/kantine-nieuws.svg",
               mimeType: "image/svg+xml",
-              bytes: 139_600,
-              checksumSha256: demoChecksum
+              bytes: 1_320,
+              checksumSha256: demoCanteenChecksum
             }
           }
         ]
