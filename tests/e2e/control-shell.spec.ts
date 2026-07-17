@@ -4,6 +4,10 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await page.goto("/dashboard");
 
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Operationele lijn" })).toBeVisible();
+  await expect(page.getByLabel("Operationele tenantflow")).toContainText(
+    "Player sync"
+  );
   const roles = page.getByLabel("Actieve rollen");
   await expect(roles.getByText("Tenantadmin")).toBeVisible();
   await expect(roles.getByText("Platformadmin")).toBeVisible();
@@ -19,16 +23,19 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page).toHaveURL(/\/dashboard\/media$/);
   await expect(page.getByRole("heading", { exact: true, name: "Media" })).toBeVisible();
   await expect(page.getByText("Private bucket: tenant-media")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pipeline voortgang" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Playlists/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/playlists$/);
   await expect(page.getByRole("heading", { exact: true, name: "Playlists" })).toBeVisible();
   await expect(page.getByText("Publish review actief")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Publish tijdlijn" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Schermen/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/screens$/);
   await expect(page.getByRole("heading", { exact: true, name: "Schermen" })).toBeVisible();
   await expect(page.getByText("Player is device")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Player diagnostics" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Tenants/ }).click();
   await expect(page).toHaveURL(/\/platform\/tenants$/);

@@ -308,7 +308,9 @@ a {
 }
 
 .task-list,
-.settings-list {
+.settings-list,
+.health-list,
+.timeline-list {
   display: grid;
   gap: var(--cv-space-10);
   list-style: none;
@@ -317,7 +319,9 @@ a {
 }
 
 .task-item,
-.settings-item {
+.settings-item,
+.health-item,
+.timeline-item {
   align-items: center;
   border-top: 1px solid var(--cv-border);
   display: flex;
@@ -328,20 +332,70 @@ a {
 }
 
 .task-item:first-child,
-.settings-item:first-child {
+.settings-item:first-child,
+.health-item:first-child,
+.timeline-item:first-child {
   border-top: 0;
   padding-top: 0;
 }
 
 .task-item__copy,
-.settings-item__copy {
+.settings-item__copy,
+.health-item__copy,
+.timeline-item__copy {
   display: grid;
   gap: var(--cv-space-4);
+  min-width: 0;
 }
 
 .task-item__title,
-.settings-item__title {
+.settings-item__title,
+.health-item__title,
+.timeline-item__title {
   font-weight: 700;
+}
+
+.health-item {
+  min-height: 60px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  min-height: 64px;
+}
+
+.timeline-item__marker {
+  align-items: center;
+  align-self: flex-start;
+  border: 1px solid currentColor;
+  border-radius: var(--cv-radius-full);
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 800;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.timeline-item__marker--neutral {
+  color: var(--cv-text-muted);
+}
+
+.timeline-item__marker--success {
+  color: var(--cv-semantic-success-text);
+}
+
+.timeline-item__marker--warning {
+  color: var(--cv-semantic-warning-text);
+}
+
+.timeline-item__marker--critical {
+  color: var(--cv-semantic-critical-text);
+}
+
+.timeline-item__marker--info {
+  color: var(--cv-semantic-info-text);
 }
 
 .data-table-frame {
@@ -731,9 +785,18 @@ a {
   .page-header,
   .work-panel__header,
   .task-item,
-  .settings-item {
+  .settings-item,
+  .health-item {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .timeline-item {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .timeline-item .status-pill {
+    grid-column: 2;
   }
 
   .page-title,
