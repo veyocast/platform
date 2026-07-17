@@ -89,7 +89,41 @@ test("supports command navigation and the compact mobile navigation flow", async
   await expect(page).toHaveURL(/\/dashboard\/screens$/);
 
   await page.setViewportSize({ height: 844, width: 390 });
-  await page.getByRole("button", { name: "Navigatie openen" }).click();
+  const topbar = page.getByLabel("Control status");
+  const menuButton = page.getByRole("button", { name: "Navigatie openen" });
+  const searchButton = page.getByRole("button", { name: "Zoeken in Control" });
+  const notificationsButton = page.getByRole("button", { name: "Open actiepunten" });
+  const createPlaylist = page.getByRole("link", { name: "Nieuwe playlist" }).first();
+
+  await expect(topbar).toHaveCSS("min-height", "64px");
+  await Promise.all([
+    expect(menuButton).toBeVisible(),
+    expect(searchButton).toBeVisible(),
+    expect(notificationsButton).toBeVisible(),
+    expect(createPlaylist).toBeVisible()
+  ]);
+
+  const [menuBox, searchBox, notificationsBox, createBox, topbarBox] = await Promise.all([
+    menuButton.boundingBox(),
+    searchButton.boundingBox(),
+    notificationsButton.boundingBox(),
+    createPlaylist.boundingBox(),
+    topbar.boundingBox()
+  ]);
+
+  expect(menuBox).not.toBeNull();
+  expect(searchBox).not.toBeNull();
+  expect(notificationsBox).not.toBeNull();
+  expect(createBox).not.toBeNull();
+  expect(topbarBox).not.toBeNull();
+  expect(menuBox!.x).toBeLessThan(searchBox!.x);
+  expect(searchBox!.x).toBeLessThan(notificationsBox!.x);
+  expect(notificationsBox!.x).toBeLessThan(createBox!.x);
+  expect(createBox!.y + createBox!.height).toBeLessThanOrEqual(
+    topbarBox!.y + topbarBox!.height
+  );
+
+  await menuButton.click();
 
   const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
   await expect(navigation).toBeVisible();

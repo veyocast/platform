@@ -15,6 +15,7 @@ import {
   MonitorSmartphone,
   PanelLeftClose,
   PanelLeftOpen,
+  Plus,
   Search,
   Settings2,
   ShieldCheck,
@@ -240,6 +241,7 @@ export function ControlShell({
           </div>
           <div className="topbar-actions">
             <button
+              aria-label="Zoeken in Control"
               aria-haspopup="dialog"
               aria-keyshortcuts="Control+K Meta+K"
               className="command-search"
@@ -281,8 +283,14 @@ export function ControlShell({
             >
               <CircleHelp aria-hidden="true" />
             </button>
-            <Link className="button-link button-link--primary topbar-primary-action" href="/dashboard/playlists">
-              Nieuwe playlist
+            <Link
+              aria-label="Nieuwe playlist"
+              className="button-link button-link--primary topbar-primary-action"
+              href="/dashboard/playlists"
+              title="Nieuwe playlist"
+            >
+              <Plus aria-hidden="true" />
+              <span>Nieuwe playlist</span>
             </Link>
           </div>
         </header>

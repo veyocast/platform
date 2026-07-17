@@ -21,6 +21,10 @@ Status: review
 - Headless Playwright screenshots were reviewed at 1280px desktop for
   `/dashboard` and 390px mobile for `/dashboard/screens`. They confirm readable
   data tables, no overlap and the expected priority-based mobile resource rows.
+- A follow-up responsive pass keeps the Control topbar to one 64px row at 390px
+  and 320px: context remains on the left, while search, action points and the
+  create action remain visible as right-aligned icon controls. Mobile table
+  actions now use full-width 44px touch targets.
 - The Codex in-app browser was deliberately not opened after the reported crash;
   visual evidence was captured headlessly instead.
 
@@ -34,6 +38,7 @@ Status: review
 | `pnpm build` | passed; Control, Marketing and Player production artifacts generated |
 | `pnpm test:a11y -- --project=chromium --workers=1` | passed, 7 tests |
 | `pnpm test:e2e -- --project=chromium --workers=1 tests/e2e/control-shell.spec.ts` | passed, 3 tests |
+| `PLAYWRIGHT_CONTROL_ONLY=1 pnpm exec playwright test tests/a11y/control-shell.spec.ts --project=chromium --workers=1` | passed, 5 Control tests |
 
 ## Review artefacts
 
@@ -41,3 +46,5 @@ Headless screenshots are intentionally kept outside the repository:
 
 - `D:\Codex\castivo\artifacts\s11b-enterprise-control-ux\control-dashboard-desktop.png`
 - `D:\Codex\castivo\artifacts\s11b-enterprise-control-ux\control-screens-mobile.png`
+- `D:\Codex\castivo\artifacts\s11b-enterprise-control-ux\control-screens-mobile-refined-390.png`
+- `D:\Codex\castivo\artifacts\s11b-enterprise-control-ux\control-screens-mobile-refined-320.png`
