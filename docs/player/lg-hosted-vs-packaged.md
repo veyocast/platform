@@ -359,7 +359,7 @@ Ondersteunt het doelmodel officieel Play via URL?
 - een te hoge bitrate of framerate;
 - een foutieve CORS-, TLS-, MIME- of Range-configuratie;
 - slechte transitionlogica in de Castivo-playercore;
-- een ontbrekende atomic release- of watchdogimplementatie.
+- fouten in atomic release- of watchdoglogica; packaging vervangt deze playercoregaranties niet.
 
 ## Aanbevolen architectuurpad
 

@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- Player media URLs come from release manifests and must render directly. */
 
 import { CASTIVO_APPS } from "@castivo/config";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   activateRelease,
@@ -24,10 +24,31 @@ import {
   type PlayerManifestProblem,
   type PlayerRuntimeState
 } from "../_lib/player-manifest";
+import {
+  planPlayerRecovery,
+  playerReloadCooldownMs,
+  type PlayerRecoveryAction
+} from "../_lib/player-recovery";
 
 const demoPairingCode = "CTV 482";
 const localStoragePairingCodeKey = "castivo.player.pairingCode";
 const localStoragePairingExpiryKey = "castivo.player.pairingExpiresAt";
+const localStorageReloadTimestampsKey = "castivo.player.reloadTimestamps";
+const defaultWatchdogTimeoutMs = 12_000;
+
+type PlaybackFailureCode =
+  | "IMAGE_ERROR"
+  | "VIDEO_ERROR"
+  | "VIDEO_PROGRESS_TIMEOUT"
+  | "VIDEO_STALLED_TIMEOUT"
+  | "VIDEO_START_TIMEOUT";
+
+type PlaybackErrorReport = {
+  action: PlayerRecoveryAction;
+  code: PlaybackFailureCode;
+  itemId: string;
+  occurredAt: string;
+};
 
 type PlaybackRuntimeState = Extract<
   PlayerRuntimeState,
@@ -52,15 +73,241 @@ type RuntimeView =
 export function PlayerRuntime() {
   const [runtime, setRuntime] = useState<RuntimeView>({ state: "BOOTING" });
   const [durationOverrideMs, setDurationOverrideMs] = useState<number | null>(null);
+  const [playbackAttempt, setPlaybackAttempt] = useState(0);
+  const [watchdogTimeoutMs, setWatchdogTimeoutMs] = useState(defaultWatchdogTimeoutMs);
   const runtimeRef = useRef<RuntimeView>(runtime);
+  const advancingRef = useRef(false);
+  const consecutiveFailuresRef = useRef(0);
+  const hydratedReleasesRef = useRef<HydratedPlayerRelease[]>([]);
+  const lastPlaybackErrorRef = useRef<PlaybackErrorReport | null>(null);
+  const playbackReadyRef = useRef(false);
   runtimeRef.current = runtime;
+
+  const advancePlayback = useCallback(async (itemId: string, recoveryMessage?: string) => {
+    if (advancingRef.current) return;
+    const snapshot = runtimeRef.current;
+    if (!isPlaybackRuntime(snapshot)) return;
+    const activeItem = snapshot.release.envelope.manifest.items[snapshot.activeIndex];
+    if (!activeItem || activeItem.id !== itemId) return;
+
+    advancingRef.current = true;
+    try {
+      const itemCount = snapshot.release.envelope.manifest.items.length;
+      const nextIndex = (snapshot.activeIndex + 1) % itemCount;
+      const deviceToken = readStoredDeviceToken();
+
+      if (
+        snapshot.state === "SWITCH_PENDING" &&
+        snapshot.pendingRelease &&
+        deviceToken &&
+        nextIndex === 0
+      ) {
+        try {
+          await activateRelease({
+            assets: snapshot.pendingRelease.assets,
+            deviceToken,
+            envelope: snapshot.pendingRelease.envelope
+          });
+        } catch {
+          setRuntime((currentRuntime) =>
+            isPlaybackRuntime(currentRuntime)
+              ? {
+                  ...currentRuntime,
+                  pendingRelease: undefined,
+                  state: "OFFLINE_PLAYING",
+                  syncMessage: "Nieuwe release kon niet atomair worden geactiveerd; last-known-good blijft actief."
+                }
+              : currentRuntime
+          );
+          return;
+        }
+      }
+
+      setPlaybackAttempt(0);
+      playbackReadyRef.current = false;
+      setRuntime((currentRuntime) => {
+        if (!isPlaybackRuntime(currentRuntime)) return currentRuntime;
+        const currentItem =
+          currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
+        if (!currentItem || currentItem.id !== itemId) return currentRuntime;
+
+        const currentNextIndex =
+          (currentRuntime.activeIndex + 1) %
+          currentRuntime.release.envelope.manifest.items.length;
+        if (
+          currentRuntime.state === "SWITCH_PENDING" &&
+          currentRuntime.pendingRelease &&
+          currentNextIndex === 0
+        ) {
+          return {
+            activeIndex: 0,
+            release: currentRuntime.pendingRelease,
+            state: "PLAYING",
+            syncMessage: "Nieuwe release is op loopgrens actief gemaakt."
+          };
+        }
+
+        return {
+          ...currentRuntime,
+          activeIndex: currentNextIndex,
+          syncMessage: recoveryMessage ?? currentRuntime.syncMessage
+        };
+      });
+    } finally {
+      advancingRef.current = false;
+    }
+  }, []);
+
+  const restorePersistedLastKnownGood = useCallback(async () => {
+    const deviceToken = readStoredDeviceToken();
+    if (!deviceToken) return false;
+    const cachedRelease = await readActiveRelease(deviceToken);
+    if (!cachedRelease) return false;
+
+    try {
+      const hydratedRelease = await hydrateCachedRelease({
+        ...cachedRelease,
+        envelope: withSyncDiagnostics(
+          cachedRelease.envelope,
+          "offline",
+          "watchdog herstelde last-known-good release"
+        )
+      });
+      hydratedReleasesRef.current.push(hydratedRelease);
+      playbackReadyRef.current = false;
+      setPlaybackAttempt((attempt) => attempt + 1);
+      setRuntime({
+        activeIndex: 0,
+        release: hydratedRelease,
+        state: "OFFLINE_PLAYING",
+        syncMessage: "Playbackfout: last-known-good release is opnieuw geladen."
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const enterReloadCooldown = useCallback((message: string) => {
+    setRuntime((currentRuntime) =>
+      isPlaybackRuntime(currentRuntime)
+        ? { ...currentRuntime, state: "OFFLINE_PLAYING", syncMessage: message }
+        : currentRuntime
+    );
+  }, []);
+
+  const performControlledReload = useCallback(() => {
+    const now = Date.now();
+    const timestamps = readReloadTimestamps(now);
+    const action = planPlayerRecovery({
+      consecutiveFailures: 5,
+      now,
+      reloadTimestamps: timestamps
+    });
+
+    if (action !== "CONTROLLED_RELOAD") {
+      enterReloadCooldown("Playbackherstel is afgekoeld om een oneindige reloadloop te voorkomen.");
+      return;
+    }
+
+    writeReloadTimestamps([...timestamps, now]);
+    window.location.reload();
+  }, [enterReloadCooldown]);
+
+  const handlePlaybackReady = useCallback((itemId: string) => {
+    const currentRuntime = runtimeRef.current;
+    if (!isPlaybackRuntime(currentRuntime)) return;
+    const activeItem =
+      currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
+    if (activeItem?.id !== itemId) return;
+    playbackReadyRef.current = true;
+    consecutiveFailuresRef.current = 0;
+  }, []);
+
+  const handlePlaybackFailure = useCallback(async (
+    itemId: string,
+    code: PlaybackFailureCode
+  ) => {
+    const currentRuntime = runtimeRef.current;
+    if (!isPlaybackRuntime(currentRuntime)) return;
+    const activeItem =
+      currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
+    if (activeItem?.id !== itemId) return;
+
+    const now = Date.now();
+    const action = planPlayerRecovery({
+      consecutiveFailures: consecutiveFailuresRef.current,
+      now,
+      reloadTimestamps: readReloadTimestamps(now)
+    });
+    consecutiveFailuresRef.current += 1;
+    lastPlaybackErrorRef.current = {
+      action,
+      code,
+      itemId,
+      occurredAt: new Date(now).toISOString()
+    };
+
+    if (action === "RETRY_ITEM") {
+      playbackReadyRef.current = false;
+      setPlaybackAttempt((attempt) => attempt + 1);
+      setRuntime((value) =>
+        isPlaybackRuntime(value)
+          ? { ...value, syncMessage: `Playbackfout ${code}: huidig item wordt één keer opnieuw geprobeerd.` }
+          : value
+      );
+      return;
+    }
+    if (action === "SKIP_ITEM") {
+      setPlaybackAttempt((attempt) => attempt + 1);
+      await advancePlayback(itemId, `Playbackfout ${code}: niet-speelbaar item is overgeslagen.`);
+      return;
+    }
+    if (action === "RESTART_LOOP" || action === "REINITIALIZE_PLAYER") {
+      playbackReadyRef.current = false;
+      setPlaybackAttempt((attempt) => attempt + 1);
+      setRuntime((value) =>
+        isPlaybackRuntime(value)
+          ? {
+              ...value,
+              activeIndex: 0,
+              syncMessage:
+                action === "RESTART_LOOP"
+                  ? "Playbackherstel: playlistloop is opnieuw gestart."
+                  : "Playbackherstel: media-renderer is opnieuw geïnitialiseerd."
+            }
+          : value
+      );
+      return;
+    }
+    if (action === "RESTORE_LAST_KNOWN_GOOD") {
+      if (!(await restorePersistedLastKnownGood())) performControlledReload();
+      return;
+    }
+    if (action === "CONTROLLED_RELOAD") {
+      performControlledReload();
+      return;
+    }
+    enterReloadCooldown("Playbackherstel is afgekoeld; de fout blijft via heartbeat zichtbaar.");
+  }, [advancePlayback, enterReloadCooldown, performControlledReload, restorePersistedLastKnownGood]);
+
+  const handlePlaybackEnded = useCallback((itemId: string) => {
+    consecutiveFailuresRef.current = 0;
+    void advancePlayback(itemId);
+  }, [advancePlayback]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const queryToken = searchParams.get("deviceToken");
     const queryDurationMs = Number(searchParams.get("durationMs"));
+    const queryWatchdogMs = Number(searchParams.get("watchdogMs"));
 
     setDurationOverrideMs(Number.isFinite(queryDurationMs) ? queryDurationMs : null);
+    setWatchdogTimeoutMs(
+      Number.isFinite(queryWatchdogMs)
+        ? Math.max(250, Math.min(queryWatchdogMs, 60_000))
+        : defaultWatchdogTimeoutMs
+    );
 
     const deviceToken = queryToken ?? readStoredDeviceToken();
 
@@ -183,7 +430,6 @@ export function PlayerRuntime() {
     }
 
     const activeDeviceToken = deviceToken;
-    const hydratedReleases: HydratedPlayerRelease[] = [];
     let cancelled = false;
 
     if (queryToken) {
@@ -230,7 +476,7 @@ export function PlayerRuntime() {
         });
       }
 
-      hydratedReleases.push(offlineRelease);
+      hydratedReleasesRef.current.push(offlineRelease);
 
       if (!cancelled) {
         setRuntime({
@@ -293,7 +539,7 @@ export function PlayerRuntime() {
           assets: preparedRelease.assets,
           envelope: preparedEnvelope
         });
-        hydratedReleases.push(hydratedRelease);
+        hydratedReleasesRef.current.push(hydratedRelease);
 
         if (cancelled) {
           return;
@@ -425,7 +671,7 @@ export function PlayerRuntime() {
 
     return () => {
       cancelled = true;
-      hydratedReleases.forEach(revokeHydratedRelease);
+      hydratedReleasesRef.current.splice(0).forEach(revokeHydratedRelease);
     };
   }, []);
 
@@ -440,67 +686,24 @@ export function PlayerRuntime() {
       return;
     }
 
-    const timer = window.setTimeout(async () => {
-      const deviceToken = readStoredDeviceToken();
-      if (
-        runtime.state === "SWITCH_PENDING" &&
-        runtime.pendingRelease &&
-        deviceToken &&
-        (runtime.activeIndex + 1) % runtime.release.envelope.manifest.items.length === 0
-      ) {
-        try {
-          await activateRelease({
-            assets: runtime.pendingRelease.assets,
-            deviceToken,
-            envelope: runtime.pendingRelease.envelope
-          });
-        } catch {
-          setRuntime((currentRuntime) =>
-            isPlaybackRuntime(currentRuntime)
-              ? {
-                  ...currentRuntime,
-                  pendingRelease: undefined,
-                  state: "OFFLINE_PLAYING",
-                  syncMessage: "Nieuwe release kon niet atomair worden geactiveerd; last-known-good blijft actief."
-                }
-              : currentRuntime
-          );
-          return;
-        }
+    const timer = window.setTimeout(() => {
+      if (activeItem.kind === "video" && !playbackReadyRef.current) {
+        void handlePlaybackFailure(activeItem.id, "VIDEO_START_TIMEOUT");
+        return;
       }
-
-      setRuntime((currentRuntime) => {
-        if (!isPlaybackRuntime(currentRuntime)) {
-          return currentRuntime;
-        }
-
-        const itemCount = currentRuntime.release.envelope.manifest.items.length;
-        const nextIndex = (currentRuntime.activeIndex + 1) % itemCount;
-
-        if (
-          currentRuntime.state === "SWITCH_PENDING"
-          && nextIndex === 0
-          && currentRuntime.pendingRelease
-        ) {
-          return {
-            activeIndex: 0,
-            release: currentRuntime.pendingRelease,
-            state: "PLAYING",
-            syncMessage: "Nieuwe release is op loopgrens actief gemaakt."
-          };
-        }
-
-        return {
-          ...currentRuntime,
-          activeIndex: nextIndex
-        };
-      });
+      void advancePlayback(activeItem.id);
     }, getPlaybackDurationMs(activeItem, durationOverrideMs));
 
     return () => {
       window.clearTimeout(timer);
     };
-  }, [durationOverrideMs, runtime]);
+  }, [
+    advancePlayback,
+    durationOverrideMs,
+    handlePlaybackFailure,
+    playbackAttempt,
+    runtime
+  ]);
 
   useEffect(() => {
     async function sendHeartbeat() {
@@ -524,6 +727,7 @@ export function PlayerRuntime() {
         body: JSON.stringify({
           activeReleaseId: currentRuntime.release.envelope.manifest.releaseId,
           currentItemId: activeItem?.id ?? null,
+          lastPlaybackError: lastPlaybackErrorRef.current,
           networkState: navigator.onLine ? "online" : "offline",
           runtimeState: currentRuntime.state,
           storageQuotaBytes: storage.quota,
@@ -538,18 +742,30 @@ export function PlayerRuntime() {
       }).catch(() => undefined);
     }
 
-    void sendHeartbeat();
+    const initialHeartbeatTimer = window.setTimeout(() => {
+      void sendHeartbeat();
+    }, 1_000);
     const heartbeatTimer = window.setInterval(() => {
       void sendHeartbeat();
     }, 30_000);
 
     return () => {
+      window.clearTimeout(initialHeartbeatTimer);
       window.clearInterval(heartbeatTimer);
     };
   }, []);
 
   if (isPlaybackRuntime(runtime)) {
-    return <PlaybackView runtime={runtime} />;
+    return (
+      <PlaybackView
+        onEnded={handlePlaybackEnded}
+        onFailure={handlePlaybackFailure}
+        onReady={handlePlaybackReady}
+        playbackAttempt={playbackAttempt}
+        runtime={runtime}
+        watchdogTimeoutMs={watchdogTimeoutMs}
+      />
+    );
   }
 
   if (runtime.state === "SYNCING") {
@@ -572,7 +788,21 @@ export function PlayerRuntime() {
   );
 }
 
-function PlaybackView({ runtime }: { runtime: PlaybackRuntime }) {
+function PlaybackView({
+  onEnded,
+  onFailure,
+  onReady,
+  playbackAttempt,
+  runtime,
+  watchdogTimeoutMs
+}: {
+  onEnded: (itemId: string) => void;
+  onFailure: (itemId: string, code: PlaybackFailureCode) => void;
+  onReady: (itemId: string) => void;
+  playbackAttempt: number;
+  runtime: PlaybackRuntime;
+  watchdogTimeoutMs: number;
+}) {
   const manifest = runtime.release.envelope.manifest;
   const activeItem = manifest.items[runtime.activeIndex] ?? manifest.items[0];
 
@@ -594,7 +824,14 @@ function PlaybackView({ runtime }: { runtime: PlaybackRuntime }) {
   return (
     <main className="playback-shell" aria-label="Castivo player">
       <section className="playback-stage" aria-label="Release playback">
-        <PlaybackMedia item={activeItem} />
+        <PlaybackMedia
+          key={`${activeItem.id}:${playbackAttempt}`}
+          item={activeItem}
+          onEnded={onEnded}
+          onFailure={onFailure}
+          onReady={onReady}
+          watchdogTimeoutMs={watchdogTimeoutMs}
+        />
         <div className="playback-scrim" aria-hidden="true" />
         <div className="playback-now">
           <p>{runtime.release.envelope.device.screenName}</p>
@@ -615,8 +852,49 @@ function PlaybackView({ runtime }: { runtime: PlaybackRuntime }) {
   );
 }
 
-function PlaybackMedia({ item }: { item: PlayerManifestItem }) {
+function PlaybackMedia({
+  item,
+  onEnded,
+  onFailure,
+  onReady,
+  watchdogTimeoutMs
+}: {
+  item: PlayerManifestItem;
+  onEnded: (itemId: string) => void;
+  onFailure: (itemId: string, code: PlaybackFailureCode) => void;
+  onReady: (itemId: string) => void;
+  watchdogTimeoutMs: number;
+}) {
   const className = `playback-media playback-media--${item.fitMode}`;
+  const failureReportedRef = useRef(false);
+  const hasStartedRef = useRef(false);
+  const lastCurrentTimeRef = useRef(0);
+  const lastProgressAtRef = useRef(Date.now());
+  const lastSignalRef = useRef<"stalled" | "waiting" | null>(null);
+
+  const reportFailure = useCallback((code: PlaybackFailureCode) => {
+    if (failureReportedRef.current) return;
+    failureReportedRef.current = true;
+    onFailure(item.id, code);
+  }, [item.id, onFailure]);
+
+  useEffect(() => {
+    if (item.kind !== "video") return;
+    const startedAt = Date.now();
+    const interval = window.setInterval(() => {
+      const now = Date.now();
+      if (!hasStartedRef.current && now - startedAt >= watchdogTimeoutMs) {
+        reportFailure("VIDEO_START_TIMEOUT");
+        return;
+      }
+      if (hasStartedRef.current && now - lastProgressAtRef.current >= watchdogTimeoutMs) {
+        reportFailure(
+          lastSignalRef.current ? "VIDEO_STALLED_TIMEOUT" : "VIDEO_PROGRESS_TIMEOUT"
+        );
+      }
+    }, Math.min(1_000, Math.max(125, Math.floor(watchdogTimeoutMs / 2))));
+    return () => window.clearInterval(interval);
+  }, [item.kind, reportFailure, watchdogTimeoutMs]);
 
   if (item.kind === "video") {
     return (
@@ -626,16 +904,48 @@ function PlaybackMedia({ item }: { item: PlayerManifestItem }) {
         className={className}
         data-testid="player-video"
         muted={item.muted}
+        onEnded={() => onEnded(item.id)}
+        onError={() => reportFailure("VIDEO_ERROR")}
+        onPlaying={() => {
+          hasStartedRef.current = true;
+          lastProgressAtRef.current = Date.now();
+          lastSignalRef.current = null;
+          onReady(item.id);
+        }}
+        onStalled={() => {
+          lastSignalRef.current = "stalled";
+        }}
+        onTimeUpdate={(event) => {
+          const currentTime = event.currentTarget.currentTime;
+          if (currentTime > lastCurrentTimeRef.current + 0.01) {
+            lastCurrentTimeRef.current = currentTime;
+            lastProgressAtRef.current = Date.now();
+            lastSignalRef.current = null;
+          }
+        }}
+        onWaiting={() => {
+          lastSignalRef.current = "waiting";
+        }}
         playsInline
         poster={item.source.posterUrl}
         preload="metadata"
       >
-        {item.source.url ? <source src={item.source.url} type={item.source.mimeType} /> : null}
+        {item.source.url ? (
+          <source key={item.source.url} src={item.source.url} type={item.source.mimeType} />
+        ) : null}
       </video>
     );
   }
 
-  return <img alt={item.title} className={className} src={item.source.url} />;
+  return (
+    <img
+      alt={item.title}
+      className={className}
+      onError={() => reportFailure("IMAGE_ERROR")}
+      onLoad={() => onReady(item.id)}
+      src={item.source.url}
+    />
+  );
 }
 
 function PairingPanel({
@@ -825,6 +1135,34 @@ function clearStoredPlayerIdentity() {
     clearStoredPairing();
   } catch {
     // Storage can be unavailable in locked-down kiosk contexts.
+  }
+}
+
+function readReloadTimestamps(now: number) {
+  try {
+    const parsed = JSON.parse(
+      window.localStorage.getItem(localStorageReloadTimestampsKey) ?? "[]"
+    ) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (value): value is number =>
+        Number.isFinite(value) &&
+        value > now - playerReloadCooldownMs &&
+        value <= now
+    );
+  } catch {
+    return [];
+  }
+}
+
+function writeReloadTimestamps(timestamps: number[]) {
+  try {
+    window.localStorage.setItem(
+      localStorageReloadTimestampsKey,
+      JSON.stringify(timestamps)
+    );
+  } catch {
+    // Recovery still degrades safely when kiosk storage is unavailable.
   }
 }
 

@@ -36,8 +36,8 @@ De grootste baselinefout — de nieuwe release al in IndexedDB als actief opslaa
 
 Toch is een hosted URL nog niet zonder beperkingen inzetbaar:
 
-- de productie-playbackengine blijft timer- in plaats van media-eventgedreven;
-- watchdog, begrensde retry, item-skip en decodeherstel ontbreken;
+- playlistduur blijft de geplande bovengrens, maar productie reageert nu ook op image/video ready, error, ended, stalled en timeupdate;
+- watchdog, retry, item-skip, last-known-goodherstel en reloadcooldown zijn door code en Desktop Chromium bewezen, maar nog niet op LG;
 - het manifest wordt na startup niet periodiek opnieuw opgehaald;
 - de echte MP4/H.264/AAC-verwerkingsworker is nog een skeleton;
 - Service Worker-, Cache Storage- en IndexedDB-behoud na appafsluiting/reboot is firmware- en launchmodusspecifiek;
@@ -122,11 +122,11 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 
 ### Playback
 
-- Huidige productiecomponent voor image/video: `apps/player/app/_components/player-runtime.tsx:618-639`.
-- Video gebruikt één element, `autoPlay`, manifest-`muted`, `playsInline` en `preload="metadata"`: `apps/player/app/_components/player-runtime.tsx:621-634`.
-- De productie-itemloop en releasegrens blijven timergebaseerd: `apps/player/app/_components/player-runtime.tsx:432-503`.
-- Er zijn in productie nog geen media-eventhandlers of watchdog.
-- De beoogde begrensde herstelvolgorde is als pure, unitgeteste policy vastgelegd, maar nog niet aan productie-events gekoppeld: `apps/player/app/_lib/player-recovery.ts`, `apps/player/app/_lib/player-recovery.test.ts`.
+- De productiecomponent remount media expliciet per item/retrypoging en gebruikt `autoPlay`, manifest-`muted`, `playsInline` en `preload="metadata"`: `apps/player/app/_components/player-runtime.tsx`.
+- Playlistduur blijft de geplande itemgrens; een echt `ended`-event kan eerder veilig doorzetten.
+- `error`, ontbrekende start, ontbrekende `currentTime`-voortgang en aanhoudende `waiting`/`stalled` worden gedetecteerd.
+- De begrensde herstelvolgorde is aan productie gekoppeld: retry, skip, looprestart, renderer-reinit, persisted last-known-good, maximaal twee gecontroleerde reloads per 15 minuten en daarna cooldown.
+- De foutcode, herstelactie, item-ID en timestamp worden geredigeerd via heartbeat opgeslagen: `apps/player/app/api/player/heartbeat/route.ts`.
 
 ### Pairing en device session
 
@@ -196,7 +196,7 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 | portrait | `CONDITIONAL` | `CONDITIONAL` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Media schaalt, maar aparte portrait Playercompositie ontbreekt. |
 | landscape | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Huidige renderer en manifest zijn landscape-first. |
 | 4K-input | `CONDITIONAL` | `CONDITIONAL` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Geen image resize/dimensielimiet; decodegeheugen en canvasresolutie zijn modelafhankelijk. |
-| Foutieve afbeelding | `NOT_IMPLEMENTED` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Pending hash/size wordt afgewezen; productie-`img` heeft nog geen onError retry/skip. |
+| Foutieve afbeelding | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Pending hash/size plus productie-`onError` met retry/skip. |
 | Verdwenen asset | `CONDITIONAL` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Pending fetch faalt veilig; bij actieve hydratatiefout is previous fallback toegevoegd. |
 
 ### Video
@@ -245,10 +245,10 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 | image → image | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Productie + Transition Lab. |
 | image → video | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Lab meet canplay/eerste frame. |
 | video → image | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Lab meet overgang. |
-| video → video | `CONDITIONAL` | `CONDITIONAL` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Productie mist expliciete `load()`/key; Lab vergelijkt twee strategieën. |
+| video → video | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Productie remount expliciet per item; Lab vergelijkt één element met double-buffering. |
 | Gapless overgang | `NOT_IMPLEMENTED` | `CONDITIONAL` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Labmeting is indicatief; geen productiegarantie. |
 | Zwart-frame-detectie | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `NEEDS_PHYSICAL_LG_TEST` | Geen pixel/framewatcher. |
-| Recovery na decodefout | `NOT_IMPLEMENTED` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Lab test corrupt+fallback; productie mist retry/skip/watchdog. |
+| Recovery na decodefout | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Chromium bewijst decodefout → één retry → skip → geldige fallback + heartbeat. |
 
 ### Offline en storage
 
@@ -288,10 +288,10 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 | Storage usage | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Heartbeat en Lab. |
 | Storage quota | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Heartbeat en Lab. |
 | Current item | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | In geredigeerde sync_detail. |
-| Last playback error | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Lab bewaart errors; productieheartbeat niet. |
+| Last playback error | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Heartbeat bewaart alleen foutcode, actie, item-ID en ISO-timestamp. |
 | Network state | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | `navigator.onLine`; geen connection-qualitymodel. |
-| Watchdog | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `NEEDS_PHYSICAL_LG_TEST` | Geen currentTime/stall/decode watchdog in productie. |
-| Gecontroleerde reload | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `NEEDS_PHYSICAL_LG_TEST` | Alleen pairing gebruikt reload; geen retrybudget/cooldown. |
+| Watchdog | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Start-, currentTime-, stalled-, waiting- en decodebewaking; Chromiumtests dekken decode en stall. |
+| Gecontroleerde reload | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Maximaal twee reloads per persistent 15-minutenvenster, daarna foutstatus/cooldown. |
 | Revoked device | `CONDITIONAL` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Server weigert token; live UX onderscheidt revoked niet van unpaired. |
 | Disabled screen | `CONDITIONAL` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Bootstrap filtert disabled; expliciete beheerboodschap ontbreekt. |
 | 24-uurs soaktest | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `NOT_IMPLEMENTED` | `NEEDS_PHYSICAL_LG_TEST` | Lab-protocol/resultaatveld aanwezig; nog niet uitgevoerd. |
@@ -329,8 +329,7 @@ Het Lab degradeert veilig wanneer deze API's ontbreken. De productieplayer degra
 ### P0 — productieblokkerend
 
 1. **Geen fysiek LG-bewijs.** Geen codec, autoplay-, storage-, reboot-, transition-, autostart- of soakresultaat mag als LG-ondersteuning worden gepubliceerd.
-2. **Productieplayback heeft geen watchdog of media-eventgedreven herstel.** De timer wisselt ook wanneer een video nooit start, stalt of een decodefout geeft: `apps/player/app/_components/player-runtime.tsx:432-503,618-639`.
-3. **MP4-processing is geen echte worker.** `apps/media-worker/src/index.ts:3-35` exporteert alleen planning/health; er is geen FFmpeg-probe/transcode/queueworker. Daardoor is de productieclaim MP4/H.264/AAC nog niet hard.
+2. **MP4-processing is geen echte worker.** `apps/media-worker/src/index.ts:3-35` exporteert alleen planning/health; er is geen FFmpeg-probe/transcode/queueworker. Daardoor is de productieclaim MP4/H.264/AAC nog niet hard.
 
 ### P1 — oplossen vóór pilot op LG
 
@@ -343,8 +342,7 @@ Het Lab degradeert veilig wanneer deze API's ontbreken. De productieplayer degra
 7. **Blobfallback materialiseert het hele bestand.** Zonder actieve SW-controller gebruikt de adapter `response.blob()`: `apps/player/app/_lib/player-media-store.ts:34-40`.
 8. **App-shellprecache is minimaal.** Install cached alleen `/`; Next chunks komen pas runtime cache-first binnen: `apps/player/public/sw.js:7-9,125-131`. Offline direct na eerste load of na deploymentwisseling moet apart worden getest.
 9. **Manifesthash wordt niet client-side geverifieerd.** Assets worden geverifieerd, maar de API-envelope wordt gereconstrueerd en niet tegen `manifestHash` gehasht.
-10. **Productie video→video is browserafhankelijk.** Hetzelfde React-`video`-element kan een gewijzigd `source` krijgen zonder expliciete `key` of `load()`: `apps/player/app/_components/player-runtime.tsx:621-634`.
-11. **Storagepreflight is te grof.** De volledige releasebytes worden met vrije quota vergeleken, ook als assets al bestaan; er is geen reserve en ontbrekende StorageManager wordt als doorgaan behandeld: `apps/player/app/_lib/player-cache.ts:325-343`.
+10. **Storagepreflight is te grof.** De volledige releasebytes worden met vrije quota vergeleken, ook als assets al bestaan; er is geen reserve en ontbrekende StorageManager wordt als doorgaan behandeld: `apps/player/app/_lib/player-cache.ts:325-343`.
 
 ### P2 — kwaliteit en operations
 
@@ -373,7 +371,8 @@ Het Lab degradeert veilig wanneer deze API's ontbreken. De productieplayer degra
 - Active/previous release-stores toegevoegd.
 - Persistente releaseactivatie verplaatst naar de veilige loopgrens.
 - Previous-releasefallback bij corrupte/missende active release toegevoegd.
-- Begrensde herstelvolgorde als beslismodel met unitdekking toegevoegd; productie-integratie blijft P0.
+- Begrensde herstelvolgorde aan productie-events gekoppeld met een origin-persistent reloadbudget en cooldown.
+- Chromiumtests bewijzen decodefout → retry → skip → fallback → heartbeat, stalled zonder tijdvoortgang → retry en `ended` → directe itemwissel.
 - Device-token wordt in live mode alleen als bearer aanvaard en uit de zichtbare runtime-URL verwijderd.
 - Heartbeatinterval ontkoppeld van itemwissels.
 - Heartbeat uitgebreid met appversie, deployment-SHA, storage, netwerk en huidig item.
@@ -416,6 +415,7 @@ In de onderzochte worktree zijn voor deze audit de volgende implementatiebestand
 - `supabase/migrations/20260718180000_player_device_lab_runs.sql`
 - `supabase/tests/rls_player_device_lab_runs.sql`
 - `tests/player/device-lab.spec.ts`
+- `tests/player/watchdog-recovery.spec.ts`
 - `tests/player-offline/range-service-worker.spec.ts`
 - `docs/player/lg-webos-capability-audit.md`
 - `docs/player/lg-hosted-vs-packaged.md`
@@ -497,7 +497,7 @@ SCAP, IDCAP en JS Services zijn LG-specifiek en zijn vanuit een gewone hosted pa
 
 **Hosted webplayer met beperkingen.**
 
-De huidige architectuur is geschikt om een gecontroleerde fysieke LG-pilot te starten, niet om al algemene LG webOS Signage-ondersteuning te claimen. Eerst moeten de P0/P1-codepunten worden opgelost en moet het Device Lab op de werkelijk beoogde schermmodellen en firmwares draaien.
+De huidige architectuur is geschikt om een gecontroleerde fysieke LG-pilot te starten, niet om al algemene LG webOS Signage-ondersteuning te claimen. Die pilot moet het ontbrekende fysieke P0-bewijs leveren; vóór productie moeten daarnaast de resterende code- en operationele P0/P1-punten worden gesloten.
 
 De go/no-go-regel voor hosted productie is:
 

@@ -25,6 +25,12 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
     activeReleaseId?: string | null;
     currentItemId?: string | null;
+    lastPlaybackError?: {
+      action?: string;
+      code?: string;
+      itemId?: string;
+      occurredAt?: string;
+    } | null;
     networkState?: string | null;
     runtimeState?: string;
     storageQuotaBytes?: number | null;
@@ -53,6 +59,7 @@ export async function POST(request: Request) {
         process.env.VERCEL_GIT_COMMIT_SHA?.trim().slice(0, 120) ||
         process.env.DEPLOYMENT_SHA?.trim().slice(0, 120) ||
         "local",
+      lastPlaybackError: sanitizePlaybackError(body.lastPlaybackError),
       networkState: body.networkState === "offline" ? "offline" : "online"
     },
     p_sync_phase: body.syncPhase ?? null,
@@ -95,4 +102,30 @@ function safeIdentifier(value: string | null | undefined) {
 
 function safeNonNegativeInteger(value: number | null | undefined) {
   return Number.isSafeInteger(value) && Number(value) >= 0 ? Number(value) : null;
+}
+
+function sanitizePlaybackError(
+  value:
+    | {
+        action?: string;
+        code?: string;
+        itemId?: string;
+        occurredAt?: string;
+      }
+    | null
+    | undefined
+) {
+  if (!value) return null;
+  return {
+    action: safeIdentifier(value.action),
+    code: safeIdentifier(value.code),
+    itemId: safeIdentifier(value.itemId),
+    occurredAt: safeIsoTimestamp(value.occurredAt)
+  };
+}
+
+function safeIsoTimestamp(value: string | null | undefined) {
+  if (!value || value.length > 40) return null;
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
 }
