@@ -25,9 +25,12 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(page.getByLabel("Bestand")).toBeVisible();
   await expect(page.getByLabel("Titel")).toBeVisible();
   await expect(page.getByLabel("Media pipeline stappen")).toContainText(
-    "Player-variant"
+    "Veilig activeren"
   );
-  await expect(page.getByRole("status")).toContainText("Uploaden is nog niet beschikbaar");
+  await expect(page.getByRole("status")).toContainText(
+    "Uploaden is niet beschikbaar in de demomodus"
+  );
+  await expect(page.getByRole("button", { name: "Uploaden en verifiëren" })).toBeDisabled();
 });
 
 test("playlists route exposes publish review labels and status", async ({

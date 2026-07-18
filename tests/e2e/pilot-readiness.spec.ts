@@ -26,7 +26,10 @@ test("keeps the documented local demo pilot traceable across product planes", as
 
   await page.goto("/dashboard/media");
   await expect(page.getByText("Private bucket: tenant-media")).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("Uploaden is nog niet beschikbaar");
+  await expect(page.getByRole("status")).toContainText(
+    "Uploaden is niet beschikbaar in de demomodus"
+  );
+  await expect(page.getByRole("button", { name: "Uploaden en verifiëren" })).toBeDisabled();
 
   await page.goto("/dashboard/playlists");
   await expect(page.getByText("Publicatiereview actief")).toBeVisible();

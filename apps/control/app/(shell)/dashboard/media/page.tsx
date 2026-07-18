@@ -1,5 +1,7 @@
 import { FileWarning, Image as ImageIcon, Video } from "lucide-react";
 
+import { requireControlSession } from "../../../../lib/control-session";
+import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import {
   HealthList,
   MetricCard,
@@ -7,170 +9,188 @@ import {
   StatusPill,
   Timeline
 } from "../../_components/shell-primitives";
+import { uploadMediaImage } from "./actions";
 
-const mediaMetrics = [
-  {
-    detail: "Beschikbaar voor playlists.",
-    label: "Gereed",
-    tone: "success",
-    value: "38"
-  },
-  {
-    detail: "Thumbnail of player-variant wordt gemaakt.",
-    label: "In verwerking",
-    tone: "warning",
-    value: "4"
-  },
-  {
-    detail: "Type, grootte of duur buiten de limiet.",
-    label: "Validatie mislukt",
-    tone: "critical",
-    value: "2"
-  }
-] as const;
+type MediaPageProps = {
+  searchParams: Promise<{ fout?: string; succes?: string }>;
+};
 
-const mediaAssets = [
+type MediaAsset = {
+  checksumSha256: string | null;
+  createdAt: string;
+  fileName: string;
+  fileSizeBytes: number;
+  id: string;
+  kind: "image" | "video";
+  mimeType: string;
+  status: string;
+  storagePath: string;
+  title: string;
+  usageCount: number;
+  validationError: string | null;
+};
+
+const demoAssets: MediaAsset[] = [
   {
-    detail: "1920 x 1080 · 420 KB",
+    checksumSha256: "8c40de5d3f6ca3d66317b1e6bf15bcd29acf2c93eef20482ac6a0f780677e304",
+    createdAt: "2026-07-16T12:00:00.000Z",
     fileName: "zomerroute.webp",
-    kind: "Afbeelding",
-    path: "tenants/.../assets/.../original/zomerroute.webp",
-    status: "Gereed",
+    fileSizeBytes: 430080,
+    id: "demo-ready",
+    kind: "image",
+    mimeType: "image/webp",
+    status: "ready",
+    storagePath: "tenants/.../assets/.../original/zomerroute.webp",
     title: "Zomerroute poster",
-    tone: "success",
-    usedIn: "2 playlists"
+    usageCount: 2,
+    validationError: null
   },
   {
-    detail: "MP4 · 1:48 · 62 MB",
+    checksumSha256: null,
+    createdAt: "2026-07-16T11:00:00.000Z",
     fileName: "welkom-loop.mp4",
-    kind: "Video",
-    path: "tenants/.../assets/.../original/welkom-loop.mp4",
-    status: "Verwerken",
+    fileSizeBytes: 65011712,
+    id: "demo-processing",
+    kind: "video",
+    mimeType: "video/mp4",
+    status: "processing",
+    storagePath: "tenants/.../assets/.../original/welkom-loop.mp4",
     title: "Welkom loop",
-    tone: "warning",
-    usedIn: "Nog niet gebruikt"
+    usageCount: 0,
+    validationError: null
   },
   {
-    detail: "SVG niet toegestaan in de MVP",
+    checksumSha256: null,
+    createdAt: "2026-07-16T10:00:00.000Z",
     fileName: "sponsor-logo.svg",
-    kind: "Afgewezen",
-    path: "Geen opslagobject aangemaakt",
-    status: "Validatie mislukt",
+    fileSizeBytes: 18342,
+    id: "demo-failed",
+    kind: "image",
+    mimeType: "image/svg+xml",
+    status: "validation_failed",
+    storagePath: "Geen opslagobject aangemaakt",
     title: "Sponsorlogo",
-    tone: "critical",
-    usedIn: "Niet beschikbaar"
+    usageCount: 0,
+    validationError: "unsupported_media_type"
   }
-] as const;
-
-const queueRows = [
-  {
-    asset: "Nieuw posterbeeld",
-    output: "Thumbnail maken",
-    status: "In wachtrij",
-    tone: "info"
-  },
-  {
-    asset: "Welkom loop",
-    output: "Video normaliseren",
-    status: "Verwerken",
-    tone: "warning"
-  },
-  {
-    asset: "Sponsorlogo",
-    output: "Bestandstype afwijzen",
-    status: "Mislukt",
-    tone: "critical"
-  }
-] as const;
+];
 
 const pipelineSteps = [
   {
-    detail: "Na een rechten- en limietcontrole krijg je een tijdelijke uploadsessie.",
+    detail: "Sessie, tenantrol, titel, grootte en gedeclareerd MIME-type worden server-side gecontroleerd.",
     label: "Upload voorbereiden",
     meta: "Server",
     tone: "info"
   },
   {
-    detail: "Castivo controleert type, duur, metadata en een veilige extensie.",
-    label: "Controleren",
-    meta: "Actief",
+    detail: "Magic bytes moeten overeenkomen met JPEG, PNG of WebP voordat private opslag wordt gebruikt.",
+    label: "Inhoud valideren",
+    meta: "Verplicht",
     tone: "warning"
   },
   {
-    detail: "Gereede media krijgt een checksum, thumbnail en player-variant.",
-    label: "Player-variant",
-    meta: "Gereed",
+    detail: "Pas na opslag, SHA-256 en variantregistratie krijgt de media status Gereed.",
+    label: "Veilig activeren",
+    meta: "Geverifieerd",
     tone: "success"
   }
 ] as const;
 
-const mediaRisks = [
+const mediaRules = [
   {
-    detail: "SVG blijft uitgeschakeld totdat sanitizing bewust is toegevoegd.",
+    detail: "SVG blijft uitgeschakeld totdat sanitizing bewust en aantoonbaar veilig is toegevoegd.",
     label: "Bestandstype",
     status: "Beleid",
     tone: "critical"
   },
   {
-    detail: "MP4/H.264/AAC maximaal 500 MB en vijf minuten.",
-    label: "Videolimiet",
+    detail: "Deze live route accepteert JPEG, PNG en WebP tot maximaal 20 MB.",
+    label: "Afbeeldingslimiet",
     status: "Bewaakt",
     tone: "info"
   },
   {
-    detail: "Gepubliceerde assets worden nooit stilzwijgend vervangen.",
-    label: "Release-impact",
-    status: "Immutable",
-    tone: "success"
+    detail: "MP4-validatie en transcodering zijn nog geen onderdeel van deze synchrone uploadroute.",
+    label: "Video",
+    status: "Nog nodig",
+    tone: "warning"
   }
 ] as const;
 
-export default function MediaPage() {
-  const selectedAsset = mediaAssets[0];
+export default async function MediaPage({ searchParams }: MediaPageProps) {
+  const session = await requireControlSession();
+  const { fout, succes } = await searchParams;
+  const { assets, loadError } = await loadMediaData(session.tenantId, session.isLive);
+  const canUpload =
+    session.isLive &&
+    session.roles.some((role) =>
+      ["tenant_owner", "tenant_admin", "tenant_editor"].includes(role)
+    );
+  const readyCount = assets.filter((asset) => asset.status === "ready").length;
+  const processingAssets = assets.filter((asset) =>
+    ["uploading", "uploaded", "processing"].includes(asset.status)
+  );
+  const failedCount = assets.filter((asset) => asset.status === "validation_failed").length;
+  const selectedAsset = assets[0] ?? null;
 
   return (
     <>
       <PageHeader
         actions={
-          <button className="button-link button-link--primary" disabled type="button">
+          <a className="button-link button-link--primary" href="#upload">
             Media uploaden
-          </button>
+          </a>
         }
-        description="Beheer afbeeldingen en video’s voordat ze in een playlist kunnen worden gebruikt. Uploads blijven tenantgebonden en worden eerst verwerkt."
-        eyebrow="Museumkwartier"
-        status={{ label: "Alleen editor kan uploaden", tone: "info" }}
+        description="Upload gevalideerde afbeeldingen en beheer tenantgebonden media voordat die in een playlist beschikbaar komt."
+        eyebrow={session.tenant}
+        status={{
+          label: session.isLive ? "Live tenantdata" : "Demomodus",
+          tone: session.isLive ? "success" : "warning"
+        }}
         title="Media"
       />
 
-      <section className="metric-grid" aria-label="Mediastatussen">
-        {mediaMetrics.map((metric) => (
-          <MetricCard
-            detail={metric.detail}
-            key={metric.label}
-            label={metric.label}
-            tone={metric.tone}
-            value={metric.value}
-          />
-        ))}
-      </section>
+      {fout ? (
+        <p className="notice notice--critical" role="alert">
+          <strong>Upload mislukt.</strong> {fout}
+        </p>
+      ) : null}
+      {succes ? (
+        <p className="notice notice--success" role="status">
+          {succes}
+        </p>
+      ) : null}
+      {loadError ? (
+        <p className="notice notice--critical" role="alert">
+          <strong>Bibliotheek niet geladen.</strong> {loadError}
+        </p>
+      ) : null}
+      {!session.isLive ? (
+        <p className="notice notice--warning" role="status">
+          Uploaden is niet beschikbaar in de demomodus. Start lokale Supabase en log in om
+          echte tenantmedia te beheren.
+        </p>
+      ) : null}
 
-      <section className="resource-toolbar" aria-label="Mediabibliotheek bedienen">
-        <div className="resource-toolbar__group">
-          <input
-            aria-label="Zoeken in media"
-            className="toolbar-search"
-            name="media-search"
-            placeholder="Zoeken op titel of bestandsnaam"
-            type="search"
-          />
-          <select aria-label="Filter media op status" className="toolbar-select" defaultValue="all">
-            <option value="all">Alle statussen</option>
-            <option value="ready">Gereed</option>
-            <option value="processing">In verwerking</option>
-            <option value="failed">Validatie mislukt</option>
-          </select>
-        </div>
-        <p className="resource-toolbar__summary">44 media-items · sortering: laatst gewijzigd</p>
+      <section className="metric-grid" aria-label="Mediastatussen">
+        <MetricCard
+          detail="Geverifieerd en beschikbaar voor playlists."
+          label="Gereed"
+          tone="success"
+          value={String(readyCount)}
+        />
+        <MetricCard
+          detail="Nog niet beschikbaar voor publicatie."
+          label="In verwerking"
+          tone="warning"
+          value={String(processingAssets.length)}
+        />
+        <MetricCard
+          detail="Afgewezen; herstelactie is nodig."
+          label="Validatie mislukt"
+          tone="critical"
+          value={String(failedCount)}
+        />
       </section>
 
       <section className="resource-workspace">
@@ -182,46 +202,50 @@ export default function MediaPage() {
               </h2>
               <p className="work-panel__meta">Private bucket: tenant-media</p>
             </div>
-            <StatusPill label="44 items" tone="neutral" />
+            <StatusPill label={`${assets.length} items`} tone="neutral" />
           </div>
-          <div className="data-table-frame">
-            <table className="data-table data-table--responsive">
-              <caption>Media binnen de actieve vereniging.</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Type</th>
-                  <th scope="col">Media</th>
-                  <th scope="col">Details</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Gebruik</th>
-                  <th scope="col">Actie</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mediaAssets.map((asset) => (
-                  <tr key={asset.fileName}>
-                    <td data-label="Type">
-                      <MediaType kind={asset.kind} />
-                    </td>
-                    <td data-label="Media">
-                      <span className="table-primary">{asset.title}</span>
-                      <span className="table-secondary">{asset.fileName}</span>
-                    </td>
-                    <td data-label="Details">{asset.detail}</td>
-                    <td data-label="Status">
-                      <StatusPill label={asset.status} tone={asset.tone} />
-                    </td>
-                    <td data-label="Gebruik">{asset.usedIn}</td>
-                    <td data-label="Actie">
-                      <button className="table-action" type="button">
-                        Inspecteren
-                      </button>
-                    </td>
+          {assets.length > 0 ? (
+            <div className="data-table-frame">
+              <table className="data-table data-table--responsive">
+                <caption>Media binnen de actieve vereniging.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Type</th>
+                    <th scope="col">Media</th>
+                    <th scope="col">Details</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Gebruik</th>
+                    <th scope="col">Toegevoegd</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {assets.map((asset) => (
+                    <tr key={asset.id}>
+                      <td data-label="Type">
+                        <MediaType kind={asset.kind} status={asset.status} />
+                      </td>
+                      <td data-label="Media">
+                        <span className="table-primary">{asset.title}</span>
+                        <span className="table-secondary">{asset.fileName}</span>
+                      </td>
+                      <td data-label="Details">{mediaDetails(asset)}</td>
+                      <td data-label="Status">
+                        <MediaStatus status={asset.status} />
+                      </td>
+                      <td data-label="Gebruik">
+                        {asset.usageCount === 1 ? "1 playlistitem" : `${asset.usageCount} playlistitems`}
+                      </td>
+                      <td data-label="Toegevoegd">{formatDate(asset.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="notice" role="status">
+              Er staat nog geen media in deze tenant. Upload een afbeelding om de bibliotheek te vullen.
+            </p>
+          )}
         </section>
 
         <aside className="workspace-aside" aria-label="Media-inspector en uploadqueue">
@@ -231,31 +255,26 @@ export default function MediaPage() {
                 <h2 className="work-panel__title" id="media-inspector-title">
                   Media-inspector
                 </h2>
-                <p className="work-panel__meta">Geselecteerd item</p>
+                <p className="work-panel__meta">Meest recent toegevoegd</p>
               </div>
-              <StatusPill label={selectedAsset.status} tone={selectedAsset.tone} />
+              {selectedAsset ? <MediaStatus status={selectedAsset.status} /> : null}
             </div>
-            <div className="media-card__preview" data-kind={selectedAsset.kind}>
-              {selectedAsset.kind}
-            </div>
-            <dl className="meta-list">
-              <div>
-                <dt>Titel</dt>
-                <dd>{selectedAsset.title}</dd>
-              </div>
-              <div>
-                <dt>Bestand</dt>
-                <dd>{selectedAsset.fileName}</dd>
-              </div>
-              <div>
-                <dt>Gebruik</dt>
-                <dd>{selectedAsset.usedIn}</dd>
-              </div>
-              <div>
-                <dt>Opslagpad</dt>
-                <dd>{selectedAsset.path}</dd>
-              </div>
-            </dl>
+            {selectedAsset ? (
+              <>
+                <div className="media-card__preview" data-kind={selectedAsset.kind}>
+                  {selectedAsset.kind === "video" ? "Video" : "Afbeelding"}
+                </div>
+                <dl className="meta-list">
+                  <div><dt>Titel</dt><dd>{selectedAsset.title}</dd></div>
+                  <div><dt>Bestand</dt><dd>{selectedAsset.fileName}</dd></div>
+                  <div><dt>Checksum</dt><dd>{shortChecksum(selectedAsset.checksumSha256)}</dd></div>
+                  <div><dt>Validatie</dt><dd>{validationSummary(selectedAsset.validationError)}</dd></div>
+                  <div><dt>Opslagpad</dt><dd>{selectedAsset.storagePath}</dd></div>
+                </dl>
+              </>
+            ) : (
+              <p className="notice">Na de eerste upload toont Castivo hier de controleerbare metadata.</p>
+            )}
           </section>
 
           <section className="data-surface" aria-labelledby="upload-queue-title">
@@ -264,19 +283,23 @@ export default function MediaPage() {
                 <h2 className="work-panel__title" id="upload-queue-title">
                   Uploadqueue
                 </h2>
-                <p className="work-panel__meta">Voortgang blijft zichtbaar tijdens verwerking.</p>
+                <p className="work-panel__meta">Media wordt pas na volledige verificatie gereed.</p>
               </div>
-              <StatusPill label="3 items" tone="info" />
+              <StatusPill label={`${processingAssets.length} items`} tone="info" />
             </div>
-            <HealthList
-              ariaLabel="Uploadqueue"
-              items={queueRows.map((row) => ({
-                detail: row.output,
-                label: row.asset,
-                status: row.status,
-                tone: row.tone
-              }))}
-            />
+            {processingAssets.length > 0 ? (
+              <HealthList
+                ariaLabel="Uploadqueue"
+                items={processingAssets.map((asset) => ({
+                  detail: asset.fileName,
+                  label: asset.title,
+                  status: statusLabel(asset.status),
+                  tone: "warning" as const
+                }))}
+              />
+            ) : (
+              <p className="notice" role="status">Geen uploads in verwerking.</p>
+            )}
           </section>
         </aside>
       </section>
@@ -285,45 +308,57 @@ export default function MediaPage() {
         <section className="data-surface" aria-labelledby="pipeline-title">
           <div className="work-panel__header">
             <div>
-              <h2 className="work-panel__title" id="pipeline-title">
-                Pipeline voortgang
-              </h2>
-              <p className="work-panel__meta">Van upload naar veilige player-variant.</p>
+              <h2 className="work-panel__title" id="pipeline-title">Pipeline voortgang</h2>
+              <p className="work-panel__meta">Van gebruikersbestand naar geverifieerde variant.</p>
             </div>
-            <StatusPill label="Controleerbaar" tone="info" />
+            <StatusPill label="Server-side" tone="success" />
           </div>
           <Timeline ariaLabel="Media pipeline stappen" items={pipelineSteps} />
         </section>
 
-        <section className="data-surface" aria-labelledby="upload-intake-title">
+        <section className="data-surface" id="upload" aria-labelledby="upload-intake-title">
           <div className="work-panel__header">
             <div>
-              <h2 className="work-panel__title" id="upload-intake-title">
-                Upload voorbereiden
-              </h2>
-              <p className="work-panel__meta">JPEG, PNG, WebP of MP4.</p>
+              <h2 className="work-panel__title" id="upload-intake-title">Afbeelding uploaden</h2>
+              <p className="work-panel__meta">JPEG, PNG of WebP · maximaal 20 MB.</p>
             </div>
-            <StatusPill label="Read-only" tone="neutral" />
+            <StatusPill
+              label={canUpload ? "Editor actief" : session.isLive ? "Alleen bekijken" : "Demo"}
+              tone={canUpload ? "success" : "warning"}
+            />
           </div>
-          <form className="upload-form">
+          <form action={uploadMediaImage} className="upload-form">
             <div className="field">
-              <label htmlFor="media-file">Bestand</label>
+              <label htmlFor="media-title">Titel</label>
               <input
-                id="media-file"
-                name="media-file"
-                placeholder="Nog geen bestand gekozen"
-                readOnly
+                disabled={!canUpload}
+                id="media-title"
+                minLength={2}
+                name="title"
+                placeholder="Bijvoorbeeld zomerroute poster"
+                required
                 type="text"
               />
             </div>
             <div className="field">
-              <label htmlFor="media-title">Titel</label>
-              <input id="media-title" name="media-title" placeholder="Bijvoorbeeld zomerroute poster" type="text" />
+              <label htmlFor="media-file">Bestand</label>
+              <input
+                accept="image/jpeg,image/png,image/webp"
+                disabled={!canUpload}
+                id="media-file"
+                name="media"
+                required
+                type="file"
+              />
             </div>
-            <p className="notice" role="status">
-              Uploaden is nog niet beschikbaar in deze demo. Zodra een editor is
-              aangemeld, vraagt Castivo een server-side uploadsessie aan.
-            </p>
+            <button className="button-link button-link--primary" disabled={!canUpload} type="submit">
+              Uploaden en verifiëren
+            </button>
+            {!canUpload && session.isLive ? (
+              <p className="notice notice--warning" role="status">
+                Uploaden vereist editor- of beheerrechten. Vraag een tenantbeheerder om toegang.
+              </p>
+            ) : null}
           </form>
         </section>
       </section>
@@ -331,39 +366,128 @@ export default function MediaPage() {
       <section className="work-panel" aria-labelledby="media-risk-title">
         <div className="work-panel__header">
           <div>
-            <h2 className="work-panel__title" id="media-risk-title">
-              Verwerkingsregels
-            </h2>
-            <p className="work-panel__meta">Wat de publicatiereview kan blokkeren.</p>
+            <h2 className="work-panel__title" id="media-risk-title">Verwerkingsregels</h2>
+            <p className="work-panel__meta">Grenzen van de huidige veilige uploadroute.</p>
           </div>
           <StatusPill label="3 regels" tone="warning" />
         </div>
-        <HealthList ariaLabel="Media validatierisico's" items={mediaRisks} />
+        <HealthList ariaLabel="Media validatierisico's" items={mediaRules} />
       </section>
     </>
   );
 }
 
-function MediaType({ kind }: { kind: (typeof mediaAssets)[number]["kind"] }) {
-  if (kind === "Video") {
-    return (
-      <span className="media-type media-type--video" aria-label="Video">
-        <Video aria-hidden="true" />
-      </span>
-    );
+async function loadMediaData(tenantId: string | null, isLive: boolean) {
+  if (!isLive) {
+    return { assets: demoAssets, loadError: null };
   }
 
-  if (kind === "Afgewezen") {
-    return (
-      <span className="media-type media-type--failed" aria-label="Afgewezen media">
-        <FileWarning aria-hidden="true" />
-      </span>
-    );
+  if (!tenantId) {
+    return {
+      assets: [],
+      loadError: "Er is geen actieve tenant. Kies een tenant en laad de pagina opnieuw."
+    };
   }
 
-  return (
-    <span className="media-type" aria-label="Afbeelding">
-      <ImageIcon aria-hidden="true" />
-    </span>
-  );
+  const supabase = await createControlSupabaseClient();
+  if (!supabase) {
+    return {
+      assets: [],
+      loadError: "De beveiligde datasessie ontbreekt. Log opnieuw in en probeer het daarna nogmaals."
+    };
+  }
+
+  const [assetResult, usageResult] = await Promise.all([
+    supabase
+      .from("media_assets")
+      .select("id, title, original_file_name, kind, mime_type, status, storage_path, file_size_bytes, checksum_sha256, validation_error, created_at")
+      .eq("tenant_id", tenantId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false }),
+    supabase.from("playlist_items").select("media_asset_id").eq("tenant_id", tenantId)
+  ]);
+
+  if (assetResult.error || usageResult.error) {
+    console.error("Mediabibliotheek laden mislukt", assetResult.error ?? usageResult.error);
+    return {
+      assets: [],
+      loadError: "Tenantmedia kon niet worden gelezen. Er is niets gewijzigd; vernieuw de pagina of log opnieuw in."
+    };
+  }
+
+  const usageCounts = new Map<string, number>();
+  for (const item of usageResult.data ?? []) {
+    usageCounts.set(item.media_asset_id, (usageCounts.get(item.media_asset_id) ?? 0) + 1);
+  }
+
+  const assets: MediaAsset[] = (assetResult.data ?? []).map((asset) => ({
+    checksumSha256: asset.checksum_sha256,
+    createdAt: asset.created_at,
+    fileName: asset.original_file_name,
+    fileSizeBytes: Number(asset.file_size_bytes),
+    id: asset.id,
+    kind: asset.kind as MediaAsset["kind"],
+    mimeType: asset.mime_type,
+    status: asset.status,
+    storagePath: asset.storage_path,
+    title: asset.title,
+    usageCount: usageCounts.get(asset.id) ?? 0,
+    validationError: asset.validation_error
+  }));
+
+  return { assets, loadError: null };
+}
+
+function MediaType({ kind, status }: Pick<MediaAsset, "kind" | "status">) {
+  if (status === "validation_failed") {
+    return <span className="media-type media-type--failed" aria-label="Afgewezen media"><FileWarning aria-hidden="true" /></span>;
+  }
+  if (kind === "video") {
+    return <span className="media-type media-type--video" aria-label="Video"><Video aria-hidden="true" /></span>;
+  }
+  return <span className="media-type" aria-label="Afbeelding"><ImageIcon aria-hidden="true" /></span>;
+}
+
+function MediaStatus({ status }: { status: string }) {
+  const tone = status === "ready" ? "success" : status === "validation_failed" ? "critical" : "warning";
+  return <StatusPill label={statusLabel(status)} tone={tone} />;
+}
+
+function statusLabel(status: string) {
+  return {
+    processing: "Verwerken",
+    ready: "Gereed",
+    uploaded: "Geüpload",
+    uploading: "Uploaden",
+    validation_failed: "Validatie mislukt"
+  }[status] ?? status;
+}
+
+function mediaDetails(asset: MediaAsset) {
+  return `${asset.mimeType.replace("image/", "").toUpperCase()} · ${formatBytes(asset.fileSizeBytes)}`;
+}
+
+function formatBytes(value: number) {
+  if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(value / 1024))} KB`;
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("nl-NL", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
+}
+
+function shortChecksum(value: string | null) {
+  return value ? `${value.slice(0, 12)}…` : "Nog niet beschikbaar";
+}
+
+function validationSummary(value: string | null) {
+  if (!value) return "Geslaagd of nog in verwerking";
+
+  return {
+    ready_transition_failed: "Veilige afronding mislukt",
+    server_upload_unavailable: "Uploadservice niet beschikbaar",
+    storage_upload_failed: "Private opslag mislukt",
+    unsupported_media_type: "Bestandstype niet toegestaan",
+    variant_registration_failed: "Variantregistratie mislukt"
+  }[value] ?? "Validatie mislukt";
 }

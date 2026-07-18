@@ -5,6 +5,8 @@ import { expect, test } from "@playwright/test";
 const livePilotEnabled = process.env.CASTIVO_LIVE_PILOT === "1";
 const playerUrl = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
+test.setTimeout(90_000);
+
 test.describe("live pilot vertical slice", () => {
   test.skip(!livePilotEnabled, "requires local Supabase and explicit live pilot environment");
 
@@ -18,19 +20,35 @@ test.describe("live pilot vertical slice", () => {
     await page.getByRole("button", { name: "Doorgaan" }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
 
-    await page.goto("/dashboard/pilot");
-    await expect(page.getByRole("heading", { name: "Pilotflow" })).toBeVisible();
-    await expect(page.getByText("Live Supabase")).toBeVisible();
+    await page.goto("/dashboard/media");
+    await expect(
+      page.getByRole("heading", { exact: true, name: "Media" })
+    ).toBeVisible();
+    await expect(page.getByText("Live tenantdata")).toBeVisible();
+
+    await page.getByLabel("Titel").fill("Ongeldig logo");
+    await page.getByLabel("Bestand").setInputFiles(
+      path.join(process.cwd(), "assets/brand/castivo-logo-primary.svg")
+    );
+    await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
+    await expect(page.locator("p.notice[role='alert']")).toContainText(
+      "bestandstype is niet toegestaan"
+    );
 
     await page.getByLabel("Titel").fill("Live pilotbeeld");
-    await page.getByLabel("Afbeelding").setInputFiles(
+    await page.getByLabel("Bestand").setInputFiles(
       path.join(
         process.cwd(),
         "apps/control/public/brand/castivo-official-icon.png"
       )
     );
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
-    await expect(page.getByText("Afbeelding is geverifieerd")).toBeVisible();
+    await expect(page.getByText("Live pilotbeeld is gecontroleerd")).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Live pilotbeeld" })).toBeVisible();
+
+    await page.goto("/dashboard/pilot");
+    await expect(page.getByRole("heading", { name: "Pilotflow" })).toBeVisible();
+    await expect(page.getByText("Live Supabase")).toBeVisible();
 
     await page.getByLabel("Playlistnaam").fill("Live pilotplaylist");
     await page.getByLabel("Gereedstaande media").selectOption({ label: "Live pilotbeeld" });

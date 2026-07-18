@@ -1,127 +1,28 @@
 "use server";
 
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireControlSession } from "../../../../lib/control-session";
-import { createControlAdminClient } from "../../../../lib/supabase/admin";
+import {
+  MediaUploadError,
+  uploadValidatedImage
+} from "../../../../lib/media/validated-image-upload";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
-const allowedImageMimeTypes = ["image/jpeg", "image/png", "image/webp"] as const;
-const maxPilotImageBytes = 20 * 1024 * 1024;
-
 export async function ingestPilotImage(formData: FormData) {
-  const { session, supabase } = await requireLivePilotContext();
-  const candidate = formData.get("media");
-  const title = String(formData.get("title") ?? "").trim();
+  try {
+    await uploadValidatedImage(formData);
+    complete("Afbeelding is geverifieerd en gereed voor een playlist.");
+  } catch (error) {
+    if (error instanceof MediaUploadError) {
+      fail(error.message);
+    }
 
-  if (!(candidate instanceof File) || candidate.size === 0) {
-    fail("Kies een JPEG-, PNG- of WebP-afbeelding met inhoud.");
+    throw error;
   }
-
-  if (!title || title.length < 2) {
-    fail("Geef de media een titel van minimaal twee tekens.");
-  }
-
-  if (candidate.size > maxPilotImageBytes) {
-    fail("De afbeelding is groter dan de pilotlimiet van 20 MB.");
-  }
-
-  if (!allowedImageMimeTypes.includes(candidate.type as typeof allowedImageMimeTypes[number])) {
-    fail("Dit bestandstype wordt niet ondersteund. Gebruik JPEG, PNG of WebP.");
-  }
-
-  const bytes = Buffer.from(await candidate.arrayBuffer());
-  const detectedMimeType = detectImageMime(bytes);
-
-  if (!detectedMimeType || detectedMimeType !== candidate.type) {
-    fail("Bestandsinhoud en MIME-type komen niet overeen. Kies een geldige afbeelding.");
-  }
-
-  const assetId = randomUUID();
-  const safeFileName = sanitizeFileName(candidate.name, detectedMimeType);
-  const storagePath =
-    `tenants/${session.tenantId}/assets/${assetId}/original/${safeFileName}`;
-  const checksumSha256 = createHash("sha256").update(bytes).digest("hex");
-
-  const { error: assetError } = await supabase.from("media_assets").insert({
-    created_by: session.userId,
-    file_size_bytes: bytes.byteLength,
-    id: assetId,
-    kind: "image",
-    mime_type: detectedMimeType,
-    original_file_name: safeFileName,
-    status: "uploading",
-    storage_bucket: "tenant-media",
-    storage_path: storagePath,
-    tenant_id: session.tenantId,
-    title
-  });
-
-  if (assetError) {
-    fail(`De mediaregistratie is mislukt: ${assetError.message}`);
-  }
-
-  const admin = createControlAdminClient();
-  const { error: storageError } = await admin.storage
-    .from("tenant-media")
-    .upload(storagePath, bytes, {
-      cacheControl: "31536000",
-      contentType: detectedMimeType,
-      upsert: false
-    });
-
-  if (storageError) {
-    await admin
-      .from("media_assets")
-      .update({
-        status: "validation_failed",
-        validation_error: "storage_upload_failed"
-      })
-      .eq("id", assetId);
-    fail(`Uploaden is mislukt: ${storageError.message}`);
-  }
-
-  const { error: variantError } = await admin.from("media_variants").insert({
-    asset_id: assetId,
-    checksum_sha256: checksumSha256,
-    file_size_bytes: bytes.byteLength,
-    mime_type: detectedMimeType,
-    storage_bucket: "tenant-media",
-    storage_path: storagePath,
-    tenant_id: session.tenantId,
-    variant_type: "original"
-  });
-
-  if (variantError) {
-    await admin.storage.from("tenant-media").remove([storagePath]);
-    await admin
-      .from("media_assets")
-      .update({
-        status: "validation_failed",
-        validation_error: "variant_registration_failed"
-      })
-      .eq("id", assetId);
-    fail(`De player-variant kon niet worden geregistreerd: ${variantError.message}`);
-  }
-
-  const { error: readyError } = await admin
-    .from("media_assets")
-    .update({
-      checksum_sha256: checksumSha256,
-      processed_at: new Date().toISOString(),
-      status: "ready",
-      validation_error: null
-    })
-    .eq("id", assetId);
-
-  if (readyError) {
-    fail(`De media kon niet gereed worden gemeld: ${readyError.message}`);
-  }
-
-  complete("Afbeelding is geverifieerd en gereed voor een playlist.");
 }
 
 export async function createPilotPlaylist(formData: FormData) {
@@ -246,47 +147,6 @@ async function requireLivePilotContext() {
 
 function normalizePairingCode(value: string) {
   return value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-}
-
-function detectImageMime(bytes: Buffer) {
-  if (
-    bytes.length >= 8 &&
-    bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
-  ) {
-    return "image/png";
-  }
-
-  if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) {
-    return "image/jpeg";
-  }
-
-  if (
-    bytes.length >= 12 &&
-    bytes.subarray(0, 4).toString("ascii") === "RIFF" &&
-    bytes.subarray(8, 12).toString("ascii") === "WEBP"
-  ) {
-    return "image/webp";
-  }
-
-  return null;
-}
-
-function sanitizeFileName(fileName: string, mimeType: string) {
-  const extension = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp"
-  }[mimeType];
-  const baseName =
-    fileName
-      .replace(/\.[^.]+$/, "")
-      .normalize("NFKD")
-      .replace(/[^a-zA-Z0-9-_]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .toLowerCase()
-      .slice(0, 80) || "pilot-media";
-
-  return `${baseName}.${extension}`;
 }
 
 function fail(message: string): never {
