@@ -13,7 +13,12 @@ test("fetches an online release manifest and starts playback", async ({
   const manifestBody = (await manifestResponse.json()) as { state: string };
   expect(manifestBody.state).toBe("PLAYING");
 
-  await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=750`);
+  const playerResponse = await page.goto(
+    `${playerURL}/?deviceToken=demo-online&durationMs=750`
+  );
+  expect(playerResponse?.headers()["content-security-policy"]).toContain(
+    "http://127.0.0.1:54321"
+  );
 
   await expect(page.getByLabel("Release playback")).toBeVisible();
   await expect(page.getByRole("img", { name: "Clubhuis entree" })).toBeVisible();

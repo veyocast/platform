@@ -45,6 +45,8 @@ De MVP is pilot-ready wanneer:
 | S11 | Security, accessibility en reliability gates | RLS, axe, Playwright, player reliability |
 | S11-B | Enterprise Control UX | Canon v1.0.0, operational app shell, resource workflows and responsive Control QA |
 | S12 | Pilot-ready local MVP | End-to-end local pilot, docs, release checklist |
+| S13 | LG webOS capability hardening | Device Lab, watchdog en fysiek testprotocol |
+| S14 | Playback- en mediareadiness | Periodieke sync, veilige cache-GC en uitvoerbare MP4-workerqueue |
 
 ## Parallelle waves
 

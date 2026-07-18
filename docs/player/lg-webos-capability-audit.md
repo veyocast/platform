@@ -39,7 +39,7 @@ Toch is een hosted URL nog niet zonder beperkingen inzetbaar:
 - playlistduur blijft de geplande bovengrens, maar productie reageert nu ook op image/video ready, error, ended, stalled en timeupdate;
 - watchdog, retry, item-skip, last-known-goodherstel en reloadcooldown zijn door code en Desktop Chromium bewezen, maar nog niet op LG;
 - manifesten worden periodiek met deduplicatie en begrensde backoff opgehaald;
-- de MP4/H.264/AAC-verwerkingscore bestaat, maar queueclaiming, private Storage-I/O en een echte FFmpeg-run ontbreken nog;
+- de MP4/H.264/AAC-worker claimt en streamt jobs end-to-end, maar een echte FFmpeg-outputrun ontbreekt nog;
 - Service Worker-, Cache Storage- en IndexedDB-behoud na appafsluiting/reboot is firmware- en launchmodusspecifiek;
 - de huidige Range-store leest voor een late range nog steeds eerdere cachechunks en de blobfallback materialiseert het hele bestand;
 - media-GC behoudt active/previous en shell-GC verwijdert oude versies;
@@ -203,7 +203,7 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 
 | Capability | Baseline | Huidige code | Desktop Chromium-bewijs | Fysiek LG | Bewijs en beperking |
 |---|---|---|---|---|---|
-| MP4-container | `CONDITIONAL` | `CONDITIONAL` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Renderer/Lab ondersteunen MP4; productie-transcoding ontbreekt. |
+| MP4-container | `CONDITIONAL` | `CONDITIONAL` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Upload/queue/worker zijn aangesloten; echte FFmpeg-output en fysieke playback ontbreken. |
 | H.264 Baseline | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | 720p25 generator + echte Lab-playbacktest. |
 | H.264 Main | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | 1080p30 generator + Lab. |
 | H.264 High | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | 1080p50/60 generator + Lab. |
@@ -329,7 +329,7 @@ Het Lab degradeert veilig wanneer deze API's ontbreken. De productieplayer degra
 ### P0 — productieblokkerend
 
 1. **Geen fysiek LG-bewijs.** Geen codec, autoplay-, storage-, reboot-, transition-, autostart- of soakresultaat mag als LG-ondersteuning worden gepubliceerd.
-2. **MP4-processing is nog niet end-to-end.** De shell-vrije FFprobe/FFmpeg-core valideert input, normaliseert naar 1080p30 H.264/AAC en verifieert output met fixtures, maar queueclaiming, private Storage-I/O, database-updates en een echte run met geïnstalleerde binaries ontbreken. Daardoor is de productieclaim nog niet hard.
+2. **MP4-output is nog niet met echte binaries bewezen.** Signed upload, queueclaiming, private Storage-I/O, checksums, database-updates en retry/failuretransities zijn aangesloten en lokaal geïntegreerd. FFmpeg/ffprobe ontbraken echter in de uitvoeringsomgeving, waardoor nog geen echte `player_1080p`-variant is gegenereerd. Daardoor is de productieclaim nog niet hard.
 
 ### P1 — oplossen vóór pilot op LG
 

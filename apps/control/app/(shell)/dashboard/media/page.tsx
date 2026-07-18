@@ -1,6 +1,7 @@
 import { FileWarning, Image as ImageIcon, Video } from "lucide-react";
 
 import { requireControlSession } from "../../../../lib/control-session";
+import { getSupabasePublicConfig } from "../../../../lib/supabase/config";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import {
   HealthList,
@@ -10,6 +11,7 @@ import {
   Timeline
 } from "../../_components/shell-primitives";
 import { uploadMediaImage } from "./actions";
+import { VideoUploadForm } from "./video-upload-form";
 
 type MediaPageProps = {
   searchParams: Promise<{ fout?: string; succes?: string }>;
@@ -83,7 +85,7 @@ const pipelineSteps = [
     tone: "info"
   },
   {
-    detail: "Magic bytes moeten overeenkomen met JPEG, PNG of WebP voordat private opslag wordt gebruikt.",
+    detail: "Afbeeldingen krijgen magic-bytecontrole; video gaat met een tijdelijke signed upload rechtstreeks naar private tenantopslag.",
     label: "Inhoud valideren",
     meta: "Verplicht",
     tone: "warning"
@@ -110,15 +112,16 @@ const mediaRules = [
     tone: "info"
   },
   {
-    detail: "MP4-validatie en transcodering zijn nog geen onderdeel van deze synchrone uploadroute.",
+    detail: "MP4 tot 500 MB wordt asynchroon geprobed en genormaliseerd naar maximaal 1080p30 H.264 met optionele AAC-audio; maximaal vijf minuten.",
     label: "Video",
-    status: "Nog nodig",
-    tone: "warning"
+    status: "Workerqueue",
+    tone: "success"
   }
 ] as const;
 
 export default async function MediaPage({ searchParams }: MediaPageProps) {
   const session = await requireControlSession();
+  const publicConfig = getSupabasePublicConfig();
   const { fout, succes } = await searchParams;
   const { assets, loadError } = await loadMediaData(session.tenantId, session.isLive);
   const canUpload =
@@ -141,7 +144,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             Media uploaden
           </a>
         }
-        description="Upload gevalideerde afbeeldingen en beheer tenantgebonden media voordat die in een playlist beschikbaar komt."
+        description="Upload gevalideerde afbeeldingen en video's en beheer tenantgebonden media voordat die in een playlist beschikbaar komt."
         eyebrow={session.tenant}
         status={{
           label: session.isLive ? "Live tenantdata" : "Demomodus",
@@ -243,7 +246,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             </div>
           ) : (
             <p className="notice" role="status">
-              Er staat nog geen media in deze tenant. Upload een afbeelding om de bibliotheek te vullen.
+              Er staat nog geen media in deze tenant. Upload een afbeelding of video om de bibliotheek te vullen.
             </p>
           )}
         </section>
@@ -361,13 +364,31 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             ) : null}
           </form>
         </section>
+
+        <section className="data-surface" aria-labelledby="video-upload-title">
+          <div className="work-panel__header">
+            <div>
+              <h2 className="work-panel__title" id="video-upload-title">Video uploaden</h2>
+              <p className="work-panel__meta">MP4 · maximaal 500 MB en vijf minuten na inhoudscontrole.</p>
+            </div>
+            <StatusPill
+              label={canUpload ? "Direct naar opslag" : session.isLive ? "Alleen bekijken" : "Demo"}
+              tone={canUpload ? "success" : "warning"}
+            />
+          </div>
+          <VideoUploadForm
+            anonKey={publicConfig?.anonKey ?? ""}
+            canUpload={canUpload && publicConfig !== null}
+            supabaseUrl={publicConfig?.url ?? ""}
+          />
+        </section>
       </section>
 
       <section className="work-panel" aria-labelledby="media-risk-title">
         <div className="work-panel__header">
           <div>
             <h2 className="work-panel__title" id="media-risk-title">Verwerkingsregels</h2>
-            <p className="work-panel__meta">Grenzen van de huidige veilige uploadroute.</p>
+            <p className="work-panel__meta">Grenzen van de huidige veilige upload- en verwerkingsroutes.</p>
           </div>
           <StatusPill label="3 regels" tone="warning" />
         </div>

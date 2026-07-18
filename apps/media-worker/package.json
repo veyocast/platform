@@ -6,12 +6,15 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.build.json",
+    "worker:once": "tsx src/index.ts --once",
+    "worker:run": "tsx src/index.ts --loop",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@castivo/config": "workspace:*"
+    "@castivo/config": "workspace:*",
+    "@supabase/supabase-js": "^2.110.7"
   },
   "devDependencies": {
     "tsx": "^4.20.3"

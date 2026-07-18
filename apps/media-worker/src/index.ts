@@ -1,4 +1,11 @@
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+
 import { CASTIVO_APPS, getLocalUrl } from "@castivo/config";
+
+import { readMediaWorkerConfig } from "./worker-config";
+import { SupabaseMediaWorkerBackend } from "./worker-backend";
+import { runWorkerLoop, runWorkerOnce } from "./worker-runner";
 
 export {
   createMediaProcessingPlan,
@@ -29,6 +36,27 @@ export type {
   MediaRejection,
   ProcessingVariant
 } from "./media-processing";
+export {
+  readMediaWorkerConfig,
+  WorkerConfigurationError
+} from "./worker-config";
+export type { MediaWorkerConfig } from "./worker-config";
+export {
+  SupabaseMediaWorkerBackend,
+  WorkerBackendError
+} from "./worker-backend";
+export type {
+  ClaimedMediaJob,
+  CompleteMediaJobInput,
+  FailMediaJobInput,
+  MediaWorkerBackend
+} from "./worker-backend";
+export {
+  runWorkerLoop,
+  runWorkerOnce,
+  WorkerRunFatalError
+} from "./worker-runner";
+export type { WorkerRunResult } from "./worker-runner";
 
 export type WorkerHealth = {
   service: string;
@@ -46,6 +74,54 @@ export function getWorkerHealth(now = new Date()): WorkerHealth {
   };
 }
 
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"))) {
-  console.log(JSON.stringify(getWorkerHealth(), null, 2));
+async function main() {
+  const mode = process.argv[2];
+  if (mode !== "--once" && mode !== "--loop") {
+    console.log(JSON.stringify(getWorkerHealth(), null, 2));
+    return;
+  }
+
+  const config = readMediaWorkerConfig();
+  const backend = new SupabaseMediaWorkerBackend(
+    config.supabaseUrl,
+    config.serviceRoleKey
+  );
+  if (mode === "--once") {
+    const result = await runWorkerOnce({ backend, config });
+    console.log(JSON.stringify(result));
+    if (result.status === "failed") process.exitCode = 1;
+    return;
+  }
+
+  const controller = new AbortController();
+  const stop = () => controller.abort();
+  process.once("SIGINT", stop);
+  process.once("SIGTERM", stop);
+  try {
+    await runWorkerLoop({
+      backend,
+      config,
+      onResult: (result) => console.log(JSON.stringify(result)),
+      signal: controller.signal
+    });
+  } finally {
+    process.removeListener("SIGINT", stop);
+    process.removeListener("SIGTERM", stop);
+  }
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error: unknown) => {
+    const code =
+      error instanceof Error && "code" in error && typeof error.code === "string"
+        ? error.code
+        : "worker_unhandled_error";
+    console.error(JSON.stringify({
+      code,
+      message: error instanceof Error ? error.message : "Onbekende workerfout.",
+      service: CASTIVO_APPS["media-worker"].name,
+      status: "error"
+    }));
+    process.exitCode = 1;
+  });
 }

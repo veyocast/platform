@@ -38,7 +38,7 @@
 - Assets in published releases are immutable references.
 - Replacing media creates a new asset/variant and requires republish.
 
-## S14 processing core
+## S14 processing worker
 
 `apps/media-worker/src/video-normalization.ts` is the executable processing
 boundary for video jobs. It:
@@ -51,9 +51,23 @@ boundary for video jobs. It:
 - writes fast-start MP4 and probes the output again before accepting it;
 - bounds command duration and captured process output.
 
-The command adapter and output contract are fixture-tested without requiring
-production credentials. This is not yet the complete worker daemon: claiming
-`media_processing_jobs`, downloading and uploading private Storage objects,
-persisting variant metadata/checksums and retry/failure transitions still need
-to be connected. A real FFmpeg binary was not available in the S14 execution
-environment, so a generated-file transcode remains a launch gate.
+Control maakt voor MP4 een tenantgebonden asset en uploadsessie, waarna de
+browser met een tijdelijk signed token rechtstreeks naar private Storage
+uploadt. `finalize_media_video_upload` controleert authenticated tenantrechten,
+exact pad, MIME-type en bytegrootte en maakt idempotent één job.
+
+De daemon:
+
+- claimt met `FOR UPDATE SKIP LOCKED` en een stale-locktimeout;
+- is voor claim/complete/fail uitsluitend toegankelijk als `service_role`;
+- streamt bron en variant zonder een bestand van maximaal 500 MB in geheugen te laden;
+- controleert bron- en variant-SHA-256 en verwachte bronlengte;
+- schrijft original en `player_1080p` plus de ready-transitie in één transactie;
+- zet alleen tijdelijke fouten opnieuw klaar en stopt na een begrensd aantal pogingen;
+- verwijdert ieder eigen tijdelijk werkpad in een `finally`-pad.
+
+De RPC-contracten, tenantgrenzen, storage-adapter, runner en live signed-upload
+tot queue zijn getest zonder productiecredentials. FFmpeg/ffprobe waren niet
+geïnstalleerd in de S14-B-uitvoeringsomgeving; de echte daemon smoke bewees
+daarom claim/download/retry, maar nog geen gegenereerde playervariant. Een
+synthetische transcode met geïnstalleerde binaries blijft een launch gate.

@@ -22,15 +22,18 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await page.goto("/dashboard/media");
 
   await expect(page.getByRole("heading", { exact: true, name: "Media" })).toBeVisible();
-  await expect(page.getByLabel("Bestand")).toBeVisible();
-  await expect(page.getByLabel("Titel")).toBeVisible();
+  await expect(page.getByLabel("Bestand", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Titel", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Videobestand", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Videotitel", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Media pipeline stappen")).toContainText(
     "Veilig activeren"
   );
-  await expect(page.getByRole("status")).toContainText(
-    "Uploaden is niet beschikbaar in de demomodus"
-  );
+  await expect(page.getByRole("status").filter({
+    hasText: "Uploaden is niet beschikbaar in de demomodus"
+  })).toBeVisible();
   await expect(page.getByRole("button", { name: "Uploaden en verifiëren" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Video uploaden" })).toBeDisabled();
 });
 
 test("playlists route exposes publish review labels and status", async ({

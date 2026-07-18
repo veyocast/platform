@@ -26,8 +26,17 @@ test.describe("live pilot vertical slice", () => {
     ).toBeVisible();
     await expect(page.getByText("Live tenantdata")).toBeVisible();
 
-    await page.getByLabel("Titel").fill("Ongeldig logo");
-    await page.getByLabel("Bestand").setInputFiles(
+    await page.getByLabel("Videotitel", { exact: true }).fill("Live queuecontrole");
+    await page.getByLabel("Videobestand", { exact: true }).setInputFiles({
+      buffer: Buffer.from("castivo-invalid-video-fixture"),
+      mimeType: "video/mp4",
+      name: "queuecontrole.mp4"
+    });
+    await page.getByRole("button", { name: "Video uploaden" }).click();
+    await expect(page.getByText("De video staat veilig in de verwerkingsqueue")).toBeVisible();
+
+    await page.getByLabel("Titel", { exact: true }).fill("Ongeldig logo");
+    await page.getByLabel("Bestand", { exact: true }).setInputFiles(
       path.join(process.cwd(), "assets/brand/castivo-logo-primary.svg")
     );
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
@@ -35,8 +44,8 @@ test.describe("live pilot vertical slice", () => {
       "bestandstype is niet toegestaan"
     );
 
-    await page.getByLabel("Titel").fill("Live pilotbeeld");
-    await page.getByLabel("Bestand").setInputFiles(
+    await page.getByLabel("Titel", { exact: true }).fill("Live pilotbeeld");
+    await page.getByLabel("Bestand", { exact: true }).setInputFiles(
       path.join(
         process.cwd(),
         "apps/control/public/brand/castivo-official-icon.png"

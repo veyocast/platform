@@ -5,16 +5,17 @@
 Dit runbook valideert één echte lokale Castivo-keten:
 
 1. een tenantbeheerder meldt zich aan via Supabase Auth;
-2. Control verifieert en uploadt een PNG, JPEG of WebP naar private storage;
+2. Control verifieert afbeeldingen synchroon en uploadt MP4 via signed private storage;
 3. Control maakt een conceptplaylist en een immutable release;
 4. de Player maakt zelf een tijdelijk device-token en koppelcode;
 5. Control claimt alleen de code en wijst de Player aan een scherm toe;
 6. de Player haalt een signed manifest op, downloadt en verifieert alle assets;
 7. activering gebeurt atomair en de Player rapporteert heartbeatstatus.
 
-Dit is een lokale afbeeldingspilot. MP4-transcoding via de media-worker,
-productieprovisioning en de 24-uurs mixed-media soak zijn niet afgedekt. Gebruik
-geen klantmedia, persoonsgegevens of productiecredentials.
+De playbackpilot blijft afbeeldinggebaseerd. Signed MP4-upload en queueing zijn
+wel aangesloten; een echte FFmpeg-outputrun, productieprovisioning en de
+24-uurs mixed-media soak zijn niet afgedekt. Gebruik geen klantmedia,
+persoonsgegevens of productiecredentials.
 
 ## Doelomgeving
 
@@ -23,8 +24,9 @@ geen klantmedia, persoonsgegevens of productiecredentials.
 - Een eigen browserprofiel voor de Player.
 - Lokale poorten: Control 3000, Player 3001, Marketing 3002 en Supabase 54321.
 
-FFmpeg is niet nodig voor deze afbeelding-only route. Het blijft verplicht
-voordat MP4 als operationele workflow wordt getest.
+FFmpeg is niet nodig voor de afbeelding-playbackroute of een upload/queue-smoke.
+FFmpeg en ffprobe 6 of nieuwer zijn verplicht voordat MP4 als operationele
+workflow wordt getest. Zie `docs/media-worker-runbook.md`.
 
 ## Voorbereiden
 
@@ -61,6 +63,8 @@ geen policies of credentials als workaround aan.
 3. Open Pilotflow. De status moet Live Supabase tonen.
 4. Upload een PNG, JPEG of WebP van maximaal 20 MB. Control controleert magic
    bytes, MIME-type, tenantpad en SHA-256 voordat de media Gereed wordt.
+   Optioneel kan een MP4 van maximaal 500 MB via signed upload worden gequeued;
+   gebruik die pas in een playlist nadat een echte worker de status Gereed heeft gemaakt.
 5. Maak met de gereedstaande afbeelding een conceptplaylist.
 6. Publiceer het concept naar Pilot hoofdscherm. De release is immutable en
    wordt atomair als gewenste release toegewezen.
@@ -106,8 +110,8 @@ verified playback en zichtbare device-status.
 - Stop wanneer een pending release vóór volledige verificatie activeert.
 - Stop wanneer offline playback een geldige last-known-good release verliest.
 - Stop wanneer een service-role key in browsercode, logging of bewijs belandt.
-- Gebruik deze route niet voor MP4 voordat workertranscoding en de mixed-media
-  matrix groen zijn.
+- Gebruik MP4 niet in een pilotrelease voordat de echte FFmpeg-run en de
+  mixed-media matrix groen zijn.
 
 ## Bewijs vastleggen
 

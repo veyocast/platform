@@ -92,6 +92,9 @@ importers:
       '@castivo/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@supabase/supabase-js':
+        specifier: ^2.110.7
+        version: 2.110.7
     devDependencies:
       tsx:
         specifier: ^4.20.3
