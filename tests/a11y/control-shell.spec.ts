@@ -60,6 +60,20 @@ test("screens route exposes pairing labels and status", async ({ page }) => {
   await expect(page.getByRole("status")).toContainText("Pairing is in deze demo read-only");
 });
 
+test("pilot route exposes a sequential and fully labelled flow", async ({ page }) => {
+  await page.goto("/dashboard/pilot");
+
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Pilotflow" })
+  ).toBeVisible();
+  await expect(page.getByRole("region", { name: "Pilotstappen" })).toBeVisible();
+  await expect(page.getByLabel("Afbeelding")).toBeVisible();
+  await expect(page.getByLabel("Gereedstaande media")).toBeVisible();
+  await expect(page.getByLabel("Conceptplaylist")).toBeVisible();
+  await expect(page.getByLabel("Koppelcode")).toBeVisible();
+  await expect(page.getByText("Demomodus")).toBeVisible();
+});
+
 test("public auth routes have clear headings and forms", async ({ page }) => {
   await page.goto("/login");
 

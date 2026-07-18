@@ -1,52 +1,51 @@
-# Lokale Pilot Checklist
+# Lokale pilotchecklist
 
-Gebruik deze checklist per lokale demonstratie. Een open blokkade betekent dat
-de sessie niet als geslaagd of klantgeschikt wordt aangemerkt.
+Een open blokkade betekent dat de sessie niet als geslaagd of klantgeschikt
+wordt aangemerkt.
 
 ## Omgeving
 
 - [ ] Node 24 en pnpm 11 zijn actief.
-- [ ] Docker Desktop en WSL-integratie zijn beschikbaar.
-- [ ] De lokale Supabase-stack start met `pnpm db:start`.
-- [ ] Migrations en seed-reset slagen met `pnpm db:reset`.
-- [ ] `pnpm test:rls` slaagt.
-- [ ] FFmpeg staat op `PATH` wanneer media wordt verwerkt.
-- [ ] Alleen lokale testdata en lokale credentials zijn gebruikt.
-- [ ] Chrome of Edge PWA is de gekozen Player-target.
+- [ ] Docker en de lokale Supabase-stack zijn gezond.
+- [ ] Database-reset en RLS-tests slagen.
+- [ ] Alleen lokale keys zijn als procesvariabelen gezet.
+- [ ] De service-role key heeft geen NEXT_PUBLIC_-prefix.
+- [ ] Chrome of Edge met een schoon Player-profiel is beschikbaar.
 
 ## Quality gates
 
-- [ ] `pnpm lint` slaagt.
-- [ ] `pnpm typecheck` slaagt.
-- [ ] `pnpm test` slaagt.
-- [ ] `pnpm build` slaagt.
-- [ ] `pnpm test:e2e -- tests/e2e/pilot-readiness.spec.ts --project=chromium` slaagt.
-- [ ] `pnpm test:a11y` slaagt voor de gewijzigde UI-routes.
-- [ ] `pnpm test:player` en `pnpm test:player:offline` slagen.
+- [ ] pnpm lint slaagt.
+- [ ] pnpm typecheck slaagt.
+- [ ] pnpm test slaagt.
+- [ ] pnpm build slaagt.
+- [ ] pnpm test:a11y slaagt.
+- [ ] pnpm test:player slaagt, inclusief offline tests.
+- [ ] pnpm test:e2e -- --project=chromium slaagt.
+- [ ] De opt-in live-pilot Playwright-test slaagt met lokale Supabase.
 
-## Bedieningscontrole
+## Live bedieningscontrole
 
-- [ ] Marketing toont het Pilotpad met de vier productstappen.
-- [ ] Control login en callback blijven herkenbaar als placeholderauth.
-- [ ] Media toont de private tenantbucket en pipeline-inname.
-- [ ] Playlists toont de publicatiereview en diens blokkade.
-- [ ] Schermen toont playerdiagnostiek en een tijdelijke pairingcode.
-- [ ] De pairingmelding staat expliciet op read-only; er wordt geen live
-      koppeling geclaimd.
-- [ ] Player zonder token toont `UNPAIRED` zonder Auth-user.
-- [ ] Player met `demo-online` toont `PLAYING` en `Zomerroute v3`.
-- [ ] Een eerder geladen player herstelt als `OFFLINE_PLAYING` bij tijdelijk
-      netwerkverlies.
+- [ ] Login maakt een server-side Supabase-sessie en laadt tenantrollen.
+- [ ] Pilotflow toont Live Supabase, niet Demomodus.
+- [ ] Een geldig PNG/JPEG/WebP-bestand wordt geverifieerd en private opgeslagen.
+- [ ] Een concept met de gereedstaande media kan worden gemaakt.
+- [ ] Publiceren maakt een immutable release en wijst die aan het scherm toe.
+- [ ] De Player toont eerst Koppelcode maken en daarna een tijdelijke code.
+- [ ] Control claimt de code zonder het device-token te ontvangen.
+- [ ] De Player verifieert het volledige manifest vóór PLAYING.
+- [ ] Gewenste en actieve release zijn apart zichtbaar in Control.
+- [ ] Heartbeat werkt en Laatst gezien wordt bijgewerkt.
+- [ ] Last-known-good playback blijft zichtbaar bij tijdelijk netwerkverlies.
 
-## Blokkerend voor een echte klantpilot
+## Nog blokkerend voor bredere klantpilot
 
-- [ ] Auth is gekoppeld aan een echte server-side sessie en tenantclaims.
-- [ ] Upload, media-verwerking en publish maken een echte immutable release.
-- [ ] Control claimt een pairingcode en maakt een revocable device-sessie.
-- [ ] De Player haalt die live device-sessie en release op.
-- [ ] De volledige player reliability matrix is herhaald, inclusief de
-      24-uurs mixed-media soak uit `docs/testing-launch-gates.md`.
-- [ ] De eigenaar heeft alle hierboven vastgelegde afwijkingen beoordeeld.
+- [ ] MP4-upload en FFmpeg-transcoding zijn live end-to-end gevalideerd.
+- [ ] De volledige reliability matrix en 24-uurs mixed-media soak uit
+      docs/testing-launch-gates.md zijn groen.
+- [ ] Productie-auth, keybeheer, monitoring, backup en incidentproces zijn
+      ingericht en beoordeeld.
+- [ ] Pilotcontent, devicehardware en netwerkcondities zijn goedgekeurd.
+- [ ] Alle afwijkingen hebben een eigenaar en vervolgdatum.
 
 ## Aftekenen
 

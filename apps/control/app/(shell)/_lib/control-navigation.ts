@@ -1,4 +1,12 @@
-export type ControlRole = "platform_admin" | "tenant_admin" | "tenant_viewer";
+export type ControlRole =
+  | "platform_owner"
+  | "platform_admin"
+  | "platform_support"
+  | "platform_viewer"
+  | "tenant_owner"
+  | "tenant_admin"
+  | "tenant_editor"
+  | "tenant_viewer";
 
 export type ControlScope = "platform" | "tenant";
 
@@ -23,9 +31,12 @@ export type ControlNavigationGroup = {
 
 export type ControlSession = {
   email: string;
+  isLive: boolean;
   organization: string;
   roles: readonly ControlRole[];
   tenant: string;
+  tenantId: string | null;
+  userId: string;
   userName: string;
 };
 
@@ -51,6 +62,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard",
     label: "Dashboard",
     requiredRole: "tenant_viewer",
+    scope: "tenant",
+    status: "ready"
+  },
+  {
+    description: "Upload, publicatie en Player-koppeling",
+    href: "/dashboard/pilot",
+    label: "Pilotflow",
+    requiredRole: "tenant_editor",
     scope: "tenant",
     status: "ready"
   },
@@ -121,9 +140,12 @@ const navigationGroupMeta = [
 
 export const demoControlSession = {
   email: "operator@castivo.test",
+  isLive: false,
   organization: "Castivo platform",
   roles: ["platform_admin", "tenant_admin", "tenant_viewer"],
   tenant: "Museumkwartier",
+  tenantId: null,
+  userId: "demo-control-user",
   userName: "Daan Operator"
 } satisfies ControlSession;
 
@@ -131,11 +153,12 @@ export function hasControlRole(
   roles: readonly ControlRole[],
   requiredRole: ControlRole
 ) {
-  if (roles.includes(requiredRole)) {
-    return true;
-  }
-
-  return requiredRole === "tenant_viewer" && roles.includes("tenant_admin");
+  return roles.some(
+    (role) =>
+      role === requiredRole ||
+      (roleRank[role].scope === roleRank[requiredRole].scope &&
+        roleRank[role].rank >= roleRank[requiredRole].rank)
+  );
 }
 
 export function getNavigationForRoles(roles: readonly ControlRole[]) {
@@ -156,3 +179,14 @@ export function getNavigationGroupsForRoles(
     }))
     .filter((group) => group.items.length > 0);
 }
+
+const roleRank = {
+  platform_owner: { rank: 4, scope: "platform" },
+  platform_admin: { rank: 3, scope: "platform" },
+  platform_support: { rank: 2, scope: "platform" },
+  platform_viewer: { rank: 1, scope: "platform" },
+  tenant_owner: { rank: 4, scope: "tenant" },
+  tenant_admin: { rank: 3, scope: "tenant" },
+  tenant_editor: { rank: 2, scope: "tenant" },
+  tenant_viewer: { rank: 1, scope: "tenant" }
+} as const satisfies Record<ControlRole, { rank: number; scope: ControlScope }>;

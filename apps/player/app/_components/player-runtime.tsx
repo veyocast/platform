@@ -23,7 +23,9 @@ import {
   type PlayerRuntimeState
 } from "../_lib/player-manifest";
 
-const pairingCode = "CTV 482";
+const demoPairingCode = "CTV 482";
+const localStoragePairingCodeKey = "castivo.player.pairingCode";
+const localStoragePairingExpiryKey = "castivo.player.pairingExpiresAt";
 
 type PlaybackRuntimeState = Extract<
   PlayerRuntimeState,
@@ -40,7 +42,7 @@ type PlaybackRuntime = {
 
 type RuntimeView =
   | { state: "BOOTING" }
-  | { state: "UNPAIRED" }
+  | { state: "UNPAIRED"; pairingCode?: string; expiresAt?: string }
   | { state: "SYNCING"; deviceToken: string }
   | PlaybackRuntime
   | { state: "ERROR_RECOVERABLE" | "DISABLED"; error: PlayerManifestProblem["error"] };
@@ -59,8 +61,121 @@ export function PlayerRuntime() {
     const deviceToken = queryToken ?? readStoredDeviceToken();
 
     if (!deviceToken) {
-      setRuntime({ state: "UNPAIRED" });
-      return undefined;
+      let cancelled = false;
+      let pollTimer: number | undefined;
+
+      async function provisionPairing() {
+        try {
+          const response = await fetch("/api/player/pairing", {
+            cache: "no-store",
+            method: "POST"
+          });
+          const body = (await response.json()) as PairingResponse;
+
+          if (cancelled) {
+            return;
+          }
+
+          if (!response.ok) {
+            setRuntime({
+              state: "ERROR_RECOVERABLE",
+              error: {
+                cause: "Er kon geen veilige koppelcode worden gemaakt.",
+                effect: "De Player kan nog niet aan een scherm worden gekoppeld.",
+                recovery: "Controleer de verbinding en vernieuw daarna de Player."
+              }
+            });
+            return;
+          }
+
+          if (!body.live || !body.deviceToken) {
+            setRuntime({ pairingCode: demoPairingCode, state: "UNPAIRED" });
+            return;
+          }
+
+          writeStoredPairing(body);
+          setRuntime({
+            expiresAt: body.expiresAt,
+            pairingCode: body.pairingCode,
+            state: "UNPAIRED"
+          });
+
+          pollTimer = window.setInterval(() => {
+            void pollPairingClaim(body.deviceToken as string);
+          }, 2_000);
+        } catch {
+          setRuntime({
+            state: "ERROR_RECOVERABLE",
+            error: {
+              cause: "De koppelservice is niet bereikbaar.",
+              effect: "De Player kan nog niet aan een scherm worden gekoppeld.",
+              recovery: "Herstel de verbinding en vernieuw daarna de Player."
+            }
+          });
+        }
+      }
+
+      async function pollPairingClaim(pendingToken: string) {
+        const response = await fetch("/api/player/manifest", {
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${pendingToken}`
+          }
+        });
+
+        if (response.ok && !cancelled) {
+          clearStoredPairing();
+          window.location.reload();
+        }
+      }
+
+      void provisionPairing();
+
+      return () => {
+        cancelled = true;
+        if (pollTimer) {
+          window.clearInterval(pollTimer);
+        }
+      };
+    }
+
+    const pendingPairing = readStoredPairing();
+    if (pendingPairing) {
+      let cancelled = false;
+      const expiresAt = new Date(pendingPairing.expiresAt).getTime();
+
+      if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+        clearStoredPlayerIdentity();
+        window.location.reload();
+        return undefined;
+      }
+
+      setRuntime({
+        expiresAt: pendingPairing.expiresAt,
+        pairingCode: pendingPairing.pairingCode,
+        state: "UNPAIRED"
+      });
+
+      const pollTimer = window.setInterval(async () => {
+        const response = await fetch("/api/player/manifest", {
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${deviceToken}`
+          }
+        });
+
+        if (response.ok && !cancelled) {
+          clearStoredPairing();
+          window.location.reload();
+        }
+      }, 2_000);
+
+      return () => {
+        cancelled = true;
+        window.clearInterval(pollTimer);
+      };
     }
 
     const activeDeviceToken = deviceToken;
@@ -106,11 +221,12 @@ export function PlayerRuntime() {
     async function syncOnlineManifest() {
       try {
         const response = await fetch(
-          `/api/player/manifest?deviceToken=${encodeURIComponent(activeDeviceToken)}`,
+          "/api/player/manifest",
           {
             cache: "no-store",
             headers: {
-              Accept: "application/json"
+              Accept: "application/json",
+              Authorization: `Bearer ${activeDeviceToken}`
             }
           }
         );
@@ -208,6 +324,7 @@ export function PlayerRuntime() {
 
     function handleManifestProblem(problem: PlayerManifestProblem) {
       if (problem.state === "UNPAIRED") {
+        clearStoredPlayerIdentity();
         setRuntime({ state: "UNPAIRED" });
         return;
       }
@@ -318,6 +435,51 @@ export function PlayerRuntime() {
     };
   }, [durationOverrideMs, runtime]);
 
+  useEffect(() => {
+    if (!isPlaybackRuntime(runtime)) {
+      return;
+    }
+
+    const deviceToken = readStoredDeviceToken();
+    if (!deviceToken) {
+      return;
+    }
+
+    const activeReleaseId = runtime.release.envelope.manifest.releaseId;
+    const syncPhase =
+      runtime.state === "DOWNLOADING"
+        ? "downloading"
+        : runtime.state === "VERIFYING"
+          ? "verifying"
+          : runtime.state === "SWITCH_PENDING"
+            ? "switch_pending"
+            : "active";
+
+    async function sendHeartbeat() {
+      await fetch("/api/player/heartbeat", {
+        body: JSON.stringify({
+          activeReleaseId,
+          runtimeState: runtime.state,
+          syncPhase
+        }),
+        headers: {
+          Authorization: `Bearer ${deviceToken}`,
+          "Content-Type": "application/json"
+        },
+        method: "POST"
+      }).catch(() => undefined);
+    }
+
+    void sendHeartbeat();
+    const heartbeatTimer = window.setInterval(() => {
+      void sendHeartbeat();
+    }, 30_000);
+
+    return () => {
+      window.clearInterval(heartbeatTimer);
+    };
+  }, [runtime]);
+
   if (isPlaybackRuntime(runtime)) {
     return <PlaybackView runtime={runtime} />;
   }
@@ -326,11 +488,20 @@ export function PlayerRuntime() {
     return <SetupPanel stateLabel="SYNCING" title="Release ophalen" />;
   }
 
+  if (runtime.state === "BOOTING") {
+    return <SetupPanel stateLabel="BOOTING" title="Koppelcode maken" />;
+  }
+
   if (runtime.state === "ERROR_RECOVERABLE" || runtime.state === "DISABLED") {
     return <ProblemPanel problem={runtime} />;
   }
 
-  return <PairingPanel />;
+  return (
+    <PairingPanel
+      expiresAt={runtime.state === "UNPAIRED" ? runtime.expiresAt : undefined}
+      pairingCode={runtime.state === "UNPAIRED" ? runtime.pairingCode : undefined}
+    />
+  );
 }
 
 function PlaybackView({ runtime }: { runtime: PlaybackRuntime }) {
@@ -399,7 +570,13 @@ function PlaybackMedia({ item }: { item: PlayerManifestItem }) {
   return <img alt={item.title} className={className} src={item.source.url} />;
 }
 
-function PairingPanel() {
+function PairingPanel({
+  expiresAt,
+  pairingCode
+}: {
+  expiresAt?: string;
+  pairingCode?: string;
+}) {
   return (
     <main className="runtime-shell" aria-label="Castivo player setup">
       <section className="runtime-panel" aria-labelledby="player-title">
@@ -412,7 +589,7 @@ function PairingPanel() {
           Control in om een revocable device session aan dit scherm te koppelen.
         </p>
         <div className="player-pairing-code" aria-label="Pairingcode">
-          {pairingCode}
+          {pairingCode ?? demoPairingCode}
         </div>
         <dl className="player-diagnostics" aria-label="Device setupstatus">
           <div>
@@ -425,7 +602,14 @@ function PairingPanel() {
           </div>
           <div>
             <dt>Volgende stap</dt>
-            <dd>Wachten op `claim_pairing_session`</dd>
+            <dd>
+              {expiresAt
+                ? `Geldig tot ${new Intl.DateTimeFormat("nl-NL", {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  }).format(new Date(expiresAt))}`
+                : "Wachten op veilige live configuratie"}
+            </dd>
           </div>
         </dl>
       </section>
@@ -437,7 +621,7 @@ function SetupPanel({
   stateLabel,
   title
 }: {
-  stateLabel: "SYNCING";
+  stateLabel: "BOOTING" | "SYNCING";
   title: string;
 }) {
   return (
@@ -448,8 +632,9 @@ function SetupPanel({
           {title}
         </h1>
         <p className="runtime-copy">
-          De player haalt het toegewezen release manifest op. Playback start
-          zodra de online release compleet is gelezen.
+          {stateLabel === "BOOTING"
+            ? "De player vraagt een tijdelijke, veilige koppelcode aan. Het geheime device-token blijft op dit apparaat."
+            : "De player haalt het toegewezen release manifest op. Playback start zodra de online release compleet is gelezen."}
         </p>
       </section>
     </main>
@@ -520,6 +705,56 @@ function readStoredDeviceToken() {
 function writeStoredDeviceToken(deviceToken: string) {
   try {
     window.localStorage.setItem(localStorageDeviceTokenKey, deviceToken);
+  } catch {
+    // Storage can be unavailable in locked-down kiosk contexts.
+  }
+}
+
+type PairingResponse = {
+  deviceToken?: string;
+  expiresAt?: string;
+  live: boolean;
+  pairingCode: string;
+};
+
+function readStoredPairing() {
+  try {
+    const pairingCode = window.localStorage.getItem(localStoragePairingCodeKey);
+    const expiresAt = window.localStorage.getItem(localStoragePairingExpiryKey);
+
+    return pairingCode && expiresAt ? { expiresAt, pairingCode } : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredPairing(pairing: PairingResponse) {
+  if (!pairing.deviceToken || !pairing.expiresAt) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(localStorageDeviceTokenKey, pairing.deviceToken);
+    window.localStorage.setItem(localStoragePairingCodeKey, pairing.pairingCode);
+    window.localStorage.setItem(localStoragePairingExpiryKey, pairing.expiresAt);
+  } catch {
+    // Storage can be unavailable in locked-down kiosk contexts.
+  }
+}
+
+function clearStoredPairing() {
+  try {
+    window.localStorage.removeItem(localStoragePairingCodeKey);
+    window.localStorage.removeItem(localStoragePairingExpiryKey);
+  } catch {
+    // Storage can be unavailable in locked-down kiosk contexts.
+  }
+}
+
+function clearStoredPlayerIdentity() {
+  try {
+    window.localStorage.removeItem(localStorageDeviceTokenKey);
+    clearStoredPairing();
   } catch {
     // Storage can be unavailable in locked-down kiosk contexts.
   }

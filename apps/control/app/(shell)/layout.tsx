@@ -1,20 +1,19 @@
 import type { ReactNode } from "react";
 
+import { requireControlSession } from "../../lib/control-session";
 import { ControlShell } from "./_components/control-shell";
-import {
-  demoControlSession,
-  getNavigationGroupsForRoles
-} from "./_lib/control-navigation";
+import { getNavigationGroupsForRoles } from "./_lib/control-navigation";
 
-export default function ShellLayout({
+export default async function ShellLayout({
   children
 }: Readonly<{ children: ReactNode }>) {
-  const navigationGroups = getNavigationGroupsForRoles(demoControlSession.roles);
+  const session = await requireControlSession();
+  const navigationGroups = getNavigationGroupsForRoles(session.roles);
 
   return (
     <ControlShell
       navigationGroups={navigationGroups}
-      session={demoControlSession}
+      session={session}
     >
       {children}
     </ControlShell>

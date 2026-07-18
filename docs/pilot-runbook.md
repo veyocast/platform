@@ -1,107 +1,115 @@
-# Lokale Pilot Runbook
+# Lokale pilotrunbook
 
 ## Doel en grens
 
-Dit runbook valideert de huidige Castivo lokale MVP als controleerbare
-demonstratie: de publieke route, Control-workflow, player-startstatus en
-gecachete playback draaien naast elkaar op een lokale machine.
+Dit runbook valideert één echte lokale Castivo-keten:
 
-Het is nadrukkelijk geen procedure voor een productiepilot. De huidige Control
-routes gebruiken vaste demodata en placeholderrechten. Upload, publiceren en
-pairing zijn nog niet doorlopend gekoppeld aan de Player. Gebruik daarom geen
-echte persoonsgegevens, klantmedia of productiecredentials.
+1. een tenantbeheerder meldt zich aan via Supabase Auth;
+2. Control verifieert en uploadt een PNG, JPEG of WebP naar private storage;
+3. Control maakt een conceptplaylist en een immutable release;
+4. de Player maakt zelf een tijdelijk device-token en koppelcode;
+5. Control claimt alleen de code en wijst de Player aan een scherm toe;
+6. de Player haalt een signed manifest op, downloadt en verifieert alle assets;
+7. activering gebeurt atomair en de Player rapporteert heartbeatstatus.
+
+Dit is een lokale afbeeldingspilot. MP4-transcoding via de media-worker,
+productieprovisioning en de 24-uurs mixed-media soak zijn niet afgedekt. Gebruik
+geen klantmedia, persoonsgegevens of productiecredentials.
 
 ## Doelomgeving
 
-- Gecertificeerde playertarget: Chrome of Edge PWA op een Windows- of Linux
-  mini-pc.
-- Node 24 en pnpm 11.
-- Docker Desktop met WSL-integratie en de lokale Supabase CLI.
-- FFmpeg op `PATH` voordat een pilot echte media verwerkt.
-- Een eigen, lokaal browserprofiel voor de Player, zodat de device-token en
-  IndexedDB-cache niet met andere tests worden gedeeld.
+- Chrome of Edge op een Windows- of Linux mini-pc.
+- Node 24, pnpm 11, Docker en Supabase CLI.
+- Een eigen browserprofiel voor de Player.
+- Lokale poorten: Control 3000, Player 3001, Marketing 3002 en Supabase 54321.
 
-De actuele lokale poorten staan in `docs/local-runtime.md`: Control `3000`,
-Player `3001`, Marketing `3002` en lokale Supabase API `54321`.
+FFmpeg is niet nodig voor deze afbeelding-only route. Het blijft verplicht
+voordat MP4 als operationele workflow wordt getest.
 
 ## Voorbereiden
 
-Voer de volgende opdrachten vanuit de repository-root uit:
+Voer vanuit de repository-root uit:
 
-```powershell
-pnpm install --frozen-lockfile
-pnpm db:start
-pnpm db:reset
-pnpm test:rls
-```
+    pnpm install --frozen-lockfile
+    pnpm db:start
+    pnpm db:reset
+    pnpm test:rls
+    pnpm exec supabase status
 
-Open daarna drie PowerShell-vensters en start de applicaties afzonderlijk:
+Neem de lokale API URL, anon-key en service-role key uit de status over als
+procesvariabelen in ieder venster waarin Control of Player wordt gestart.
+Commit deze nooit. De service-role key mag nooit een NEXT_PUBLIC_-prefix hebben.
 
-```powershell
-pnpm --filter @castivo/control exec next dev --port 3000 --hostname 127.0.0.1
-pnpm --filter @castivo/player exec next dev --port 3001 --hostname 127.0.0.1
-pnpm --filter @castivo/marketing exec next dev --port 3002 --hostname 127.0.0.1
-```
+    $env:NEXT_PUBLIC_SUPABASE_URL = "http://127.0.0.1:54321"
+    $env:NEXT_PUBLIC_SUPABASE_ANON_KEY = "<lokale anon-key>"
+    $env:SUPABASE_SERVICE_ROLE_KEY = "<lokale service-role key>"
 
-Gebruik uitsluitend lokale `.env`-waarden. De meegeleverde `.env.example` bevat
-bewust placeholders en mag niet met echte sleutels worden aangevuld voor deze
-demo.
+Start daarna de applicaties in aparte vensters:
 
-## Pilotroute
+    pnpm --filter @castivo/control exec next dev --port 3000 --hostname 127.0.0.1
+    pnpm --filter @castivo/player exec next dev --port 3001 --hostname 127.0.0.1
+    pnpm --filter @castivo/marketing exec next dev --port 3002 --hostname 127.0.0.1
 
-1. Open `http://127.0.0.1:3002`. De marketingpagina moet het Pilotpad en de
-   vier productstappen tonen.
-2. Open `http://127.0.0.1:3000/login`. Vul een test-e-mailadres in en kies
-   **Doorgaan**. De callback meldt dat de sessiecontrole is voorbereid; kies
-   vervolgens **Naar dashboard**.
-3. Controleer in Control achtereenvolgens **Media**, **Playlists** en
-   **Schermen**. Verwachte demo-signalen zijn `Private bucket: tenant-media`,
-   `Publicatiereview actief` en de playerdiagnostiek met lokale cache.
-4. Controleer op **Schermen** de pairingcode `CTV 482`. Dit bevestigt alleen
-   de getoonde demo-flow. De melding `Pairing is in deze demo read-only`
-   betekent dat geen Control-actie aan een echte device-sessie is gekoppeld.
-5. Open in een schoon Player-profiel
-   `http://127.0.0.1:3001/?deviceToken=demo-online`. De player moet
-   `Zomerroute v3` en de diagnostische status `PLAYING` tonen.
-6. Open de Player zonder `deviceToken`. De setup toont `UNPAIRED`, de code
-   `CTV 482` en geen Supabase Auth-user. Dit valideert de ongekoppelde
-   startstatus, niet het feitelijke claimen van een apparaat.
-7. Laat de online player eerst volledig laden. Schakel daarna tijdelijk netwerk
-   uit en vernieuw de pagina. Bij een aanwezige last-known-good release moet de
-   player `OFFLINE_PLAYING` kunnen tonen. Herstel netwerk na de controle.
+Wanneer Auth direct na een lokale reset tijdelijk via Kong een 502 geeft, wacht
+eerst op gezonde containers. Herstart zo nodig alleen de lokale gateway; pas
+geen policies of credentials als workaround aan.
 
-## Geautomatiseerde rooktest
+## Live pilotroute
 
-De onderstaande test start geisoleerde devservers op de Playwright-poorten en
-doorloopt dezelfde traceerbare demostappen. Sluit lokale devservers op die
-poorten eerst af.
+1. Open http://127.0.0.1:3000/login.
+2. Meld lokaal aan met pilot-admin@castivo.test en wachtwoord castivo-local.
+3. Open Pilotflow. De status moet Live Supabase tonen.
+4. Upload een PNG, JPEG of WebP van maximaal 20 MB. Control controleert magic
+   bytes, MIME-type, tenantpad en SHA-256 voordat de media Gereed wordt.
+5. Maak met de gereedstaande afbeelding een conceptplaylist.
+6. Publiceer het concept naar Pilot hoofdscherm. De release is immutable en
+   wordt atomair als gewenste release toegewezen.
+7. Open http://127.0.0.1:3001 in een schoon Player-profiel. Wacht tijdens
+   Koppelcode maken op de tijdelijke code.
+8. Neem de zes tekens over in Control en koppel aan Pilot hoofdscherm. Het
+   geheime token blijft alleen in Player-localStorage.
+9. De Player haalt signed private-storage-URLs op en controleert bytes en
+   checksum. Pas daarna verschijnt PLAYING.
+10. Herlaad Pilotflow. De Player toont Gekoppeld, gewenste en actieve release
+    en een bijgewerkte laatst-gezienwaarde.
+11. Schakel netwerk tijdelijk uit en vernieuw de Player. Een geldige lokale
+    release blijft als OFFLINE_PLAYING zichtbaar.
 
-```powershell
-$env:CI = "1"
-pnpm test:e2e -- tests/e2e/pilot-readiness.spec.ts --project=chromium
-Remove-Item Env:CI
-```
+De bestaande demopaden blijven beschikbaar zonder Supabasevariabelen.
+demo-online en CTV 482 zijn dan uitsluitend testfixtures.
 
-De test valideert bewust de zichtbare demo-grens bij Control pairing. Een groen
-resultaat bewijst dus niet dat Control live een Player kan koppelen, media kan
-verwerken of een release naar een apparaat kan publiceren.
+## Geautomatiseerde bewijslast
 
-## Herstel en stopcriteria
+Reguliere gates:
 
-- Stopt een app tijdens de demo, herstel alleen de betreffende lokale
-  devserver; wis Player-opslag uitsluitend wanneer een schone pairingtest nodig
-  is.
-- Faalt een database- of RLS-gate, stop de pilot. Voer geen handmatige
-  beleidswijziging in Studio door als workaround.
-- Ontbreekt FFmpeg, toon of verwerk geen nieuwe media. De media-worker is dan
-  geen pilotwaardige verwerkingsroute.
-- Faalt offline playback, houd het apparaat uit de demonstratie totdat de
-  last-known-good cache en hersteltest opnieuw slagen.
-- Zolang auth, upload, publish en pairing read-only/statisch zijn, blijft dit
-  een lokale MVP-demonstratie en geen klantpilot met operationele content.
+    pnpm lint
+    pnpm typecheck
+    pnpm test
+    pnpm build
+    pnpm test:rls
+    pnpm test:a11y
+    pnpm test:player
+    pnpm test:e2e -- --project=chromium
+
+De echte browserketen is opt-in en gebruikt de lokale procesvariabelen:
+
+    $env:CASTIVO_LIVE_PILOT = "1"
+    pnpm exec playwright test tests/e2e/live-pilot.spec.ts --project=chromium
+    Remove-Item Env:CASTIVO_LIVE_PILOT
+
+Deze test doorloopt login, upload, concept, publicatie, pairing, signed manifest,
+verified playback en zichtbare device-status.
+
+## Stopcriteria
+
+- Stop wanneer database-reset of RLS-tests falen.
+- Stop wanneer een pending release vóór volledige verificatie activeert.
+- Stop wanneer offline playback een geldige last-known-good release verliest.
+- Stop wanneer een service-role key in browsercode, logging of bewijs belandt.
+- Gebruik deze route niet voor MP4 voordat workertranscoding en de mixed-media
+  matrix groen zijn.
 
 ## Bewijs vastleggen
 
-Noteer voor elke uitvoering datum, commit, gebruikte browserversie, gebruikte
-Player-target, uitkomst van de quality gates en eventuele afwijking. Leg geen
-device-tokens, credentials of klantmedia in het bewijs vast.
+Noteer datum, commit, browserversie, Player-target, gate-uitkomsten en
+afwijkingen. Leg nooit device-tokens, credentials, signed URLs of klantmedia vast.
