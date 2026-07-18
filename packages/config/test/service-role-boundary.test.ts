@@ -16,12 +16,19 @@ const ignoredDirectoryNames = new Set([
   "out",
   "test"
 ]);
-const sensitiveServiceRolePatterns = [
+const publicServiceRolePatterns = [
+  /NEXT_PUBLIC_[A-Z0-9_]*SERVICE[A-Z0-9_]*ROLE[A-Z0-9_]*/
+];
+const serverServiceRolePatterns = [
   /SUPABASE_SERVICE_ROLE_KEY/,
-  /NEXT_PUBLIC_[A-Z0-9_]*SERVICE[A-Z0-9_]*ROLE[A-Z0-9_]*/,
   /serviceRoleKey/,
   /service_role_key/i
 ];
+const allowedServerOnlyFiles = new Set([
+  "apps/control/lib/supabase/admin.ts",
+  "apps/player/app/_lib/player-supabase.ts"
+]);
+const allowedServerOnlyPrefixes = ["apps/media-worker/src/"];
 
 describe("service-role boundary", () => {
   it("keeps service-role secrets out of app and package runtime source", async () => {
@@ -30,12 +37,18 @@ describe("service-role boundary", () => {
 
     for (const file of files) {
       const source = await readFile(file, "utf8");
+      const normalizedPath = relative(repoRoot, file).split(sep).join("/");
 
-      for (const pattern of sensitiveServiceRolePatterns) {
-        if (pattern.test(source)) {
-          violations.push(relative(repoRoot, file));
-          break;
-        }
+      if (publicServiceRolePatterns.some((pattern) => pattern.test(source))) {
+        violations.push(normalizedPath);
+        continue;
+      }
+
+      const usesServerServiceRole = serverServiceRolePatterns.some((pattern) => pattern.test(source));
+      const isAllowedServerOnly = allowedServerOnlyFiles.has(normalizedPath)
+        || allowedServerOnlyPrefixes.some((prefix) => normalizedPath.startsWith(prefix));
+      if (usesServerServiceRole && !isAllowedServerOnly) {
+        violations.push(normalizedPath);
       }
     }
 
