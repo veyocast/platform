@@ -3,10 +3,12 @@ import type {
   PlayerManifestItem,
   PlayerReleaseManifest
 } from "./player-manifest";
+import { createPlayerMediaStore, type PlayerMediaStore } from "./player-media-store";
 
 export const playerAssetCacheName = "castivo-player-assets-v1";
 export const playerDatabaseName = "castivo-player-cache-v1";
 export const playerActiveReleaseStoreName = "activeReleases";
+export const playerPreviousReleaseStoreName = "previousReleases";
 
 export type PlayerCachePhase = "DOWNLOADING" | "VERIFYING";
 
@@ -70,10 +72,12 @@ export function getCacheableAssets(
 
 export async function preparePendingRelease({
   envelope,
-  onPhase
+  onPhase,
+  store = createPlayerMediaStore(playerAssetCacheName)
 }: {
   envelope: PlayerManifestEnvelope;
   onPhase?: (phase: PlayerCachePhase) => void;
+  store?: PlayerMediaStore;
 }): Promise<PlayerCacheResult> {
   const assets = getCacheableAssets(envelope.manifest);
   const storageCheck = await hasEnoughStorage(envelope.manifest.totalBytes);
@@ -85,14 +89,13 @@ export async function preparePendingRelease({
     };
   }
 
-  const cache = await caches.open(playerAssetCacheName);
   const newPreparedKeys = new Set<string>();
 
   try {
     onPhase?.("DOWNLOADING");
 
     for (const asset of assets) {
-      const existingResponse = await cache.match(asset.cacheKey);
+      const existingResponse = await store.get(asset.cacheKey);
 
       if (existingResponse) {
         try {
@@ -114,10 +117,12 @@ export async function preparePendingRelease({
       onPhase?.("VERIFYING");
 
       await verifyAssetBytes(asset, bytes);
-      await cache.put(
+      await store.put(
         asset.cacheKey,
         new Response(bytes, {
           headers: {
+            "Accept-Ranges": "bytes",
+            "Content-Length": String(bytes.byteLength),
             "Content-Type":
               response.headers.get("Content-Type") ?? "application/octet-stream"
           }
@@ -134,7 +139,7 @@ export async function preparePendingRelease({
       assets
     };
   } catch (error) {
-    await Promise.all([...newPreparedKeys].map((key) => cache.delete(key)));
+    await Promise.all([...newPreparedKeys].map((key) => store.delete(key)));
 
     return {
       ok: false,
@@ -159,9 +164,17 @@ export async function activateRelease({
     envelope
   };
   const database = await openPlayerDatabase();
-  const transaction = database.transaction(playerActiveReleaseStoreName, "readwrite");
+  const transaction = database.transaction(
+    [playerActiveReleaseStoreName, playerPreviousReleaseStoreName],
+    "readwrite"
+  );
   const store = transaction.objectStore(playerActiveReleaseStoreName);
+  const previousStore = transaction.objectStore(playerPreviousReleaseStoreName);
+  const currentRelease = await requestToPromise<CachedPlayerRelease | undefined>(
+    store.get(deviceToken)
+  );
 
+  if (currentRelease) await requestToPromise(previousStore.put(currentRelease));
   await requestToPromise(store.put(cachedRelease));
   await transactionDone(transaction);
   database.close();
@@ -170,9 +183,17 @@ export async function activateRelease({
 }
 
 export async function readActiveRelease(deviceToken: string) {
+  return readReleaseFromStore(playerActiveReleaseStoreName, deviceToken);
+}
+
+export async function readPreviousRelease(deviceToken: string) {
+  return readReleaseFromStore(playerPreviousReleaseStoreName, deviceToken);
+}
+
+async function readReleaseFromStore(storeName: string, deviceToken: string) {
   const database = await openPlayerDatabase();
-  const transaction = database.transaction(playerActiveReleaseStoreName, "readonly");
-  const store = transaction.objectStore(playerActiveReleaseStoreName);
+  const transaction = database.transaction(storeName, "readonly");
+  const store = transaction.objectStore(storeName);
   const cachedRelease = await requestToPromise<CachedPlayerRelease | undefined>(
     store.get(deviceToken)
   );
@@ -183,25 +204,28 @@ export async function readActiveRelease(deviceToken: string) {
 }
 
 export async function hydrateCachedRelease(
-  cachedRelease: CachedPlayerRelease
+  cachedRelease: CachedPlayerRelease,
+  store = createPlayerMediaStore(playerAssetCacheName)
 ): Promise<HydratedPlayerRelease> {
-  const cache = await caches.open(playerAssetCacheName);
+  return hydratePreparedRelease(cachedRelease, store);
+}
+
+export async function hydratePreparedRelease(
+  preparedRelease: Pick<CachedPlayerRelease, "assets" | "envelope">,
+  store = createPlayerMediaStore(playerAssetCacheName)
+): Promise<HydratedPlayerRelease> {
   const objectUrls: Record<string, string> = {};
+  const playbackUrls: Record<string, string> = {};
 
-  for (const asset of cachedRelease.assets) {
-    const response = await cache.match(asset.cacheKey);
-
-    if (!response) {
-      throw new Error(`cached asset missing: ${asset.cacheKey}`);
-    }
-
-    const blob = await response.blob();
-    objectUrls[asset.cacheKey] = URL.createObjectURL(blob);
+  for (const asset of preparedRelease.assets) {
+    const resolved = await store.resolvePlaybackUrl(asset.cacheKey);
+    playbackUrls[asset.cacheKey] = resolved.url;
+    if (resolved.objectUrl) objectUrls[asset.cacheKey] = resolved.objectUrl;
   }
 
   return {
-    assets: cachedRelease.assets,
-    envelope: withCachedUrls(cachedRelease.envelope, objectUrls),
+    assets: preparedRelease.assets,
+    envelope: withCachedUrls(preparedRelease.envelope, playbackUrls),
     objectUrls
   };
 }
@@ -228,6 +252,9 @@ export async function verifyAssetBytes(
 }
 
 export async function sha256Hex(bytes: ArrayBuffer) {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error("Web Crypto API is unavailable");
+  }
   const digest = await crypto.subtle.digest("SHA-256", bytes);
 
   return [...new Uint8Array(digest)]
@@ -317,13 +344,22 @@ async function hasEnoughStorage(totalBytes: number) {
 
 function openPlayerDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(playerDatabaseName, 1);
+    if (typeof indexedDB === "undefined") {
+      reject(new Error("IndexedDB API is unavailable"));
+      return;
+    }
+    const request = indexedDB.open(playerDatabaseName, 2);
 
     request.onupgradeneeded = () => {
       const database = request.result;
 
       if (!database.objectStoreNames.contains(playerActiveReleaseStoreName)) {
         database.createObjectStore(playerActiveReleaseStoreName, {
+          keyPath: "deviceToken"
+        });
+      }
+      if (!database.objectStoreNames.contains(playerPreviousReleaseStoreName)) {
+        database.createObjectStore(playerPreviousReleaseStoreName, {
           keyPath: "deviceToken"
         });
       }

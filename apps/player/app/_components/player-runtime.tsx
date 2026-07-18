@@ -3,13 +3,15 @@
 /* eslint-disable @next/next/no-img-element -- Player media URLs come from release manifests and must render directly. */
 
 import { CASTIVO_APPS } from "@castivo/config";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   activateRelease,
   hydrateCachedRelease,
+  hydratePreparedRelease,
   preparePendingRelease,
   readActiveRelease,
+  readPreviousRelease,
   revokeHydratedRelease,
   type HydratedPlayerRelease,
   type PlayerCachePhase
@@ -50,6 +52,8 @@ type RuntimeView =
 export function PlayerRuntime() {
   const [runtime, setRuntime] = useState<RuntimeView>({ state: "BOOTING" });
   const [durationOverrideMs, setDurationOverrideMs] = useState<number | null>(null);
+  const runtimeRef = useRef<RuntimeView>(runtime);
+  runtimeRef.current = runtime;
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -184,25 +188,47 @@ export function PlayerRuntime() {
 
     if (queryToken) {
       writeStoredDeviceToken(queryToken);
+      searchParams.delete("deviceToken");
+      const cleanQuery = searchParams.toString();
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${window.location.hash}`
+      );
     }
 
     setRuntime({ state: "SYNCING", deviceToken: activeDeviceToken });
 
     async function restoreLastKnownGood() {
-      const cachedRelease = await readActiveRelease(activeDeviceToken);
+      let cachedRelease = await readActiveRelease(activeDeviceToken);
 
       if (!cachedRelease || cancelled) {
         return false;
       }
 
-      const offlineRelease = await hydrateCachedRelease({
-        ...cachedRelease,
-        envelope: withSyncDiagnostics(
-          cachedRelease.envelope,
-          "offline",
-          "last-known-good release actief"
-        )
-      });
+      let offlineRelease: HydratedPlayerRelease;
+      try {
+        offlineRelease = await hydrateCachedRelease({
+          ...cachedRelease,
+          envelope: withSyncDiagnostics(
+            cachedRelease.envelope,
+            "offline",
+            "last-known-good release actief"
+          )
+        });
+      } catch {
+        const previousRelease = await readPreviousRelease(activeDeviceToken);
+        if (!previousRelease) return false;
+        cachedRelease = previousRelease;
+        offlineRelease = await hydrateCachedRelease({
+          ...previousRelease,
+          envelope: withSyncDiagnostics(
+            previousRelease.envelope,
+            "offline",
+            "vorige geverifieerde release hersteld"
+          )
+        });
+      }
 
       hydratedReleases.push(offlineRelease);
 
@@ -262,23 +288,36 @@ export function PlayerRuntime() {
           return;
         }
 
-        const activatedRelease = await activateRelease({
+        const preparedEnvelope = withSyncDiagnostics(body, "online", "release verified");
+        const hydratedRelease = await hydratePreparedRelease({
           assets: preparedRelease.assets,
-          deviceToken: activeDeviceToken,
-          envelope: withSyncDiagnostics(body, "online", "release verified")
+          envelope: preparedEnvelope
         });
-        const hydratedRelease = await hydrateCachedRelease(activatedRelease);
         hydratedReleases.push(hydratedRelease);
 
         if (cancelled) {
           return;
         }
 
+        const persistedActive = await readActiveRelease(activeDeviceToken);
+        const requiresDeferredActivation = Boolean(
+          persistedActive &&
+          persistedActive.envelope.manifest.releaseId !==
+            hydratedRelease.envelope.manifest.releaseId
+        );
+
+        if (!requiresDeferredActivation) {
+          await activateRelease({
+            assets: preparedRelease.assets,
+            deviceToken: activeDeviceToken,
+            envelope: preparedEnvelope
+          });
+        }
+
         setRuntime((currentRuntime) => {
           if (
+            requiresDeferredActivation &&
             isPlaybackRuntime(currentRuntime)
-            && currentRuntime.release.envelope.manifest.releaseId
-              !== hydratedRelease.envelope.manifest.releaseId
           ) {
             return {
               ...currentRuntime,
@@ -401,7 +440,35 @@ export function PlayerRuntime() {
       return;
     }
 
-    const timer = window.setTimeout(() => {
+    const timer = window.setTimeout(async () => {
+      const deviceToken = readStoredDeviceToken();
+      if (
+        runtime.state === "SWITCH_PENDING" &&
+        runtime.pendingRelease &&
+        deviceToken &&
+        (runtime.activeIndex + 1) % runtime.release.envelope.manifest.items.length === 0
+      ) {
+        try {
+          await activateRelease({
+            assets: runtime.pendingRelease.assets,
+            deviceToken,
+            envelope: runtime.pendingRelease.envelope
+          });
+        } catch {
+          setRuntime((currentRuntime) =>
+            isPlaybackRuntime(currentRuntime)
+              ? {
+                  ...currentRuntime,
+                  pendingRelease: undefined,
+                  state: "OFFLINE_PLAYING",
+                  syncMessage: "Nieuwe release kon niet atomair worden geactiveerd; last-known-good blijft actief."
+                }
+              : currentRuntime
+          );
+          return;
+        }
+      }
+
       setRuntime((currentRuntime) => {
         if (!isPlaybackRuntime(currentRuntime)) {
           return currentRuntime;
@@ -436,30 +503,31 @@ export function PlayerRuntime() {
   }, [durationOverrideMs, runtime]);
 
   useEffect(() => {
-    if (!isPlaybackRuntime(runtime)) {
-      return;
-    }
-
-    const deviceToken = readStoredDeviceToken();
-    if (!deviceToken) {
-      return;
-    }
-
-    const activeReleaseId = runtime.release.envelope.manifest.releaseId;
-    const syncPhase =
-      runtime.state === "DOWNLOADING"
-        ? "downloading"
-        : runtime.state === "VERIFYING"
-          ? "verifying"
-          : runtime.state === "SWITCH_PENDING"
-            ? "switch_pending"
-            : "active";
-
     async function sendHeartbeat() {
+      const currentRuntime = runtimeRef.current;
+      const deviceToken = readStoredDeviceToken();
+      if (!deviceToken || !isPlaybackRuntime(currentRuntime)) return;
+
+      const storage = await readStorageEstimate();
+      const activeItem =
+        currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
+      const syncPhase =
+        currentRuntime.state === "DOWNLOADING"
+          ? "downloading"
+          : currentRuntime.state === "VERIFYING"
+            ? "verifying"
+            : currentRuntime.state === "SWITCH_PENDING"
+              ? "switch_pending"
+              : "active";
+
       await fetch("/api/player/heartbeat", {
         body: JSON.stringify({
-          activeReleaseId,
-          runtimeState: runtime.state,
+          activeReleaseId: currentRuntime.release.envelope.manifest.releaseId,
+          currentItemId: activeItem?.id ?? null,
+          networkState: navigator.onLine ? "online" : "offline",
+          runtimeState: currentRuntime.state,
+          storageQuotaBytes: storage.quota,
+          storageUsedBytes: storage.usage,
           syncPhase
         }),
         headers: {
@@ -478,7 +546,7 @@ export function PlayerRuntime() {
     return () => {
       window.clearInterval(heartbeatTimer);
     };
-  }, [runtime]);
+  }, []);
 
   if (isPlaybackRuntime(runtime)) {
     return <PlaybackView runtime={runtime} />;
@@ -757,5 +825,15 @@ function clearStoredPlayerIdentity() {
     clearStoredPairing();
   } catch {
     // Storage can be unavailable in locked-down kiosk contexts.
+  }
+}
+
+async function readStorageEstimate() {
+  try {
+    return navigator.storage?.estimate
+      ? await navigator.storage.estimate()
+      : { quota: undefined, usage: undefined };
+  } catch {
+    return { quota: undefined, usage: undefined };
   }
 }

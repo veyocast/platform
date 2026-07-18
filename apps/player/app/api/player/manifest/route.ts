@@ -26,13 +26,13 @@ function getBearerToken(request: Request) {
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
-  const token =
-    requestUrl.searchParams.get("deviceToken") ?? getBearerToken(request);
+  const bearerToken = getBearerToken(request);
 
   if (isLivePlayerConfigured()) {
-    return getLiveManifest(token);
+    return getLiveManifest(bearerToken);
   }
 
+  const token = bearerToken ?? requestUrl.searchParams.get("deviceToken");
   const lookup = getPlayerManifestForToken(token);
 
   return NextResponse.json(lookup.body, {

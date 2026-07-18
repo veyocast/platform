@@ -24,7 +24,11 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as {
     activeReleaseId?: string | null;
+    currentItemId?: string | null;
+    networkState?: string | null;
     runtimeState?: string;
+    storageQuotaBytes?: number | null;
+    storageUsedBytes?: number | null;
     syncPhase?: string | null;
   } | null;
 
@@ -39,11 +43,18 @@ export async function POST(request: Request) {
 
   const { error } = await supabase.rpc("record_player_heartbeat", {
     p_active_release_id: body.activeReleaseId ?? null,
-    p_app_version: "pilot-1",
+    p_app_version: process.env.NEXT_PUBLIC_APP_VERSION?.trim() || "development",
     p_runtime_state: body.runtimeState,
-    p_storage_quota_bytes: null,
-    p_storage_used_bytes: null,
-    p_sync_detail: {},
+    p_storage_quota_bytes: safeNonNegativeInteger(body.storageQuotaBytes),
+    p_storage_used_bytes: safeNonNegativeInteger(body.storageUsedBytes),
+    p_sync_detail: {
+      currentItemId: safeIdentifier(body.currentItemId),
+      deploymentSha:
+        process.env.VERCEL_GIT_COMMIT_SHA?.trim().slice(0, 120) ||
+        process.env.DEPLOYMENT_SHA?.trim().slice(0, 120) ||
+        "local",
+      networkState: body.networkState === "offline" ? "offline" : "online"
+    },
     p_sync_phase: body.syncPhase ?? null,
     p_token_hash: sha256(deviceToken)
   });
@@ -76,4 +87,12 @@ function getBearerToken(request: Request) {
 
 function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function safeIdentifier(value: string | null | undefined) {
+  return value?.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 100) || null;
+}
+
+function safeNonNegativeInteger(value: number | null | undefined) {
+  return Number.isSafeInteger(value) && Number(value) >= 0 ? Number(value) : null;
 }
