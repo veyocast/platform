@@ -1,7 +1,7 @@
 # Control Enterprise UX Checklist
 
 This checklist applies the normative Control sections of
-`docs/design-canon/v1/CASTIVO_DESIGN_CANON_v1.0.md` to implementation and PR
+`docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md` to implementation and PR
 review. It does not replace the full design canon.
 
 ## Shell and context

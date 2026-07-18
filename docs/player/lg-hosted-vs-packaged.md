@@ -3,16 +3,16 @@
 ## Documentstatus
 
 - **Onderzoeksdatum:** 18 juli 2026
-- **Doel:** bepalen wanneer Castivo kan volstaan met een gewone HTTPS-player en wanneer een geïnstalleerde hosted of packaged LG webOS Signage-app nuttig of noodzakelijk wordt.
+- **Doel:** bepalen wanneer VeyoCast kan volstaan met een gewone HTTPS-player en wanneer een geïnstalleerde hosted of packaged LG webOS Signage-app nuttig of noodzakelijk wordt.
 - **Voorlopige aanbeveling:** begin met de bestaande HTTPS-player op een expliciet ondersteund `Play via URL`-model. Voeg pas een LG-wrapper toe wanneer fysieke tests aantonen dat lifecycle, autostart, screensaver, opslag of device-integratie niet betrouwbaar genoeg zijn.
 
 Dit document maakt bewust onderscheid tussen drie deploymentvormen:
 
 1. een gewone HTTPS-URL, geopend via de browser of de Signage-functie `Play via URL`;
-2. een geïnstalleerde **hosted webOS-app**: een klein lokaal pakket met appmetadata en een redirect naar de extern gehoste Castivo-player;
+2. een geïnstalleerde **hosted webOS-app**: een klein lokaal pakket met appmetadata en een redirect naar de extern gehoste VeyoCast-player;
 3. een **packaged webOS Signage-app** waarvan de applicatieshell en eventueel aanvullende services lokaal als pakket worden geïnstalleerd.
 
-De voorlopige classificatie voor Castivo is **hosted webplayer met beperkingen**. Er is nog geen bewijs dat een volledig packaged app noodzakelijk is, maar evenmin voldoende bewijs om een gewone URL al als productiegeschikt te verklaren.
+De voorlopige classificatie voor VeyoCast is **hosted webplayer met beperkingen**. Er is nog geen bewijs dat een volledig packaged app noodzakelijk is, maar evenmin voldoende bewijs om een gewone URL al als productiegeschikt te verklaren.
 
 ## Belangrijke bewijsgrens
 
@@ -35,7 +35,7 @@ Alle uitspraken uit TV-documentatie worden hieronder daarom expliciet als vergel
 
 ### 1. Gewone HTTPS-URL of `Play via URL`
 
-De Castivo-player wordt rechtstreeks vanaf een HTTPS-origin geladen. Op specifieke LG Signage-modellen is `Play via URL` een officiële productfeature. Voorbeelden:
+De VeyoCast-player wordt rechtstreeks vanaf een HTTPS-origin geladen. Op specifieke LG Signage-modellen is `Play via URL` een officiële productfeature. Voorbeelden:
 
 - de [LG WP600](https://solutions.lg.com/us/digital-signage/lg-wp600) vermeldt webOS Signage 6.0, `Play via URL`, vier videotags, gapless playback, screen rotation, SI Server Setting en Wake on LAN;
 - de [LG 55UL3J-M](https://www.lg.com/ca_en/business/digital-signage/standard-digital-signage/55ul3j-m/) vermeldt webOS 6.0, `Play via URL`, vier videotags, gapless playback en Wake on LAN.
@@ -44,7 +44,7 @@ Dit bewijst dat de URL-route op die modellen als productfunctie bestaat. Het bew
 
 **Sterke punten**
 
-- geen eigen LG-pakketdistributie voor iedere Castivo-release;
+- geen eigen LG-pakketdistributie voor iedere VeyoCast-release;
 - centrale deployment en directe rollback van webcode;
 - één HTTPS-origin voor API, service worker, Cache Storage en IndexedDB;
 - dezelfde device- en releaseprotocollen als andere webplayers;
@@ -72,7 +72,7 @@ Een hosted wrapper is meer dan een web app manifest. `appinfo.json` is LG-appmet
 
 **Sterke punten**
 
-- behoudt centrale deployment van de Castivo-webcode;
+- behoudt centrale deployment van de VeyoCast-webcode;
 - geeft een geïnstalleerde appidentiteit en een LG-launchpoint;
 - kan de route openen zonder dat een beheerder handmatig een browser-URL invoert;
 - is een logische plaats voor toegestane `appinfo.json`-instellingen;
@@ -103,7 +103,7 @@ Bij een packaged app staan de lokale applicatieshell en statische resources in h
 
 - extra build-, signing-, distributie-, installatie- en updateproces;
 - versies kunnen per Signage-platform of model uiteenlopen;
-- lokaal packagebeleid en remote Castivo-releases moeten afzonderlijk worden beheerd;
+- lokaal packagebeleid en remote VeyoCast-releases moeten afzonderlijk worden beheerd;
 - een `file:`-shell kan niet zonder meer dezelfde normale HTTPS-service-workerregistratie gebruiken;
 - packaging verandert hardwaredecoder-, codec- of multi-video-limieten niet;
 - een packaged app is geen reden om de immutable release- of last-known-good-garanties te versoepelen.
@@ -112,14 +112,14 @@ Bij een packaged app staan de lokale applicatieshell en statische resources in h
 
 Legenda voor de kolom **LG-wrapperadvies**:
 
-- **Noodzakelijk** — Castivo kan de capability niet betrouwbaar leveren zonder geïnstalleerde LG-integratie, zodra de genoemde voorwaarde geldt.
+- **Noodzakelijk** — VeyoCast kan de capability niet betrouwbaar leveren zonder geïnstalleerde LG-integratie, zodra de genoemde voorwaarde geldt.
 - **Waarschijnlijk nuttig** — een wrapper geeft aantoonbare architecturale voordelen, maar noodzaak moet nog worden bewezen.
 - **Niet relevant** — packaging lost deze capability op zichzelf niet op.
 - **Nader onderzoeken** — officiële Signage-documentatie of een fysieke test ontbreekt.
 
 | Capability | Gewone HTTPS / Play via URL | Hosted webOS-app | Packaged Signage-app | LG-wrapperadvies |
 |---|---|---|---|---|
-| Centrale Castivo-deployment | Direct | Direct voor remote code | Package plus eventueel remote configuratie | Niet relevant |
+| Centrale VeyoCast-deployment | Direct | Direct voor remote code | Package plus eventueel remote configuratie | Niet relevant |
 | LG-appidentiteit | Niet gegarandeerd | Via lokaal app-pakket | Via lokaal app-pakket | Waarschijnlijk nuttig |
 | `appinfo.json` | Niet van toepassing op gewone pagina | Onderdeel van wrapper | Onderdeel van package | Waarschijnlijk nuttig voor launch/screensaver |
 | `Play via URL` | Modelspecifieke Signage-feature | Wrapper navigeert naar remote URL | Niet vereist voor lokale shell | Nader onderzoeken per model |
@@ -132,19 +132,19 @@ Legenda voor de kolom **LG-wrapperadvies**:
 | Fullscreen zonder browserchrome | Verwacht bij Signage-weergavemodus, niet algemeen bewezen | Appcontext is waarschijnlijk geschikter | Appcontext is waarschijnlijk geschikter | Waarschijnlijk nuttig |
 | Screensaverbeleid | Niet via LG-appmetadata te sturen | `appinfo.json` kan relevante instellingen dragen indien Signage ze ondersteunt | Idem | Waarschijnlijk nuttig; Signagegedrag onderzoeken |
 | Schermrotatie/oriëntatie | Web-layout plus modelspecifieke Signage-instelling | Kan appmetadata/platform-API combineren | Kan appmetadata/platform-API combineren | Waarschijnlijk nuttig |
-| Device identity | Castivo genereert eigen device-ID | Castivo-ID plus LG-appcontext | Castivo-ID plus LG-appcontext/platformdata | Niet noodzakelijk; LG-metadata nader onderzoeken |
+| Device identity | VeyoCast genereert eigen device-ID | VeyoCast-ID plus LG-appcontext | VeyoCast-ID plus LG-appcontext/platformdata | Niet noodzakelijk; LG-metadata nader onderzoeken |
 | Service Worker API | Theoretisch op HTTPS, fysiek testen | Remote HTTPS-origin kan theoretisch dezelfde worker gebruiken | Lokale `file:`-shell gebruikt niet automatisch dezelfde worker | Niet relevant voor packaging; fysieke test nodig |
 | Cache Storage | Origin-scoped webopslag, rebootbehoud onbekend | Zelfde remote origin; wrapper garandeert niets | Alternatieve lokale adapter mogelijk | Nader onderzoeken |
 | IndexedDB | Origin-scoped webopslag, rebootbehoud onbekend | Zelfde remote origin; wrapper garandeert niets | Alternatieve DB/platformopslag mogelijk | Nader onderzoeken |
 | Storage estimate/persist | Alleen bij aanwezige API; `persist()` mag weigeren | Zelfde web-APIbeperking | Platformadapter kan alternatief bieden | Nader onderzoeken |
-| Last-known-good release | Door Castivo-code en opslagadapter | Zelfde releaseprotocol | Zelfde protocol met mogelijke native store | Niet relevant: architectuur blijft verplicht |
-| Atomic release update | Door Castivo-playercore | Door Castivo-playercore | Door Castivo-playercore | Niet relevant |
+| Last-known-good release | Door VeyoCast-code en opslagadapter | Zelfde releaseprotocol | Zelfde protocol met mogelijke native store | Niet relevant: architectuur blijft verplicht |
+| Atomic release update | Door VeyoCast-playercore | Door VeyoCast-playercore | Door VeyoCast-playercore | Niet relevant |
 | Offline app shell | Service worker moet aantoonbaar werken | Remote shell blijft afhankelijk van service-workerinstallatie | Lokale package-shell beschikbaar | Noodzakelijk als service-workerboot faalt |
 | Offline media na reboot | Niet bewezen | Niet door wrapper gegarandeerd | Native/chunked store kan uitweg bieden | Noodzakelijk als browseropslag faalt |
 | MP4/H.264/AAC | Hardware-, firmware- en encodeafhankelijk | Dezelfde decoder | Dezelfde decoder | Niet relevant |
 | HEVC, VP8, VP9, HLS, DASH | Modelspecifieke capability | Dezelfde decoder/protocolstack | Dezelfde decoder/protocolstack | Niet relevant; nader fysiek testen |
 | Meerdere videotags | Productclaim op bepaalde Signage-modellen | Nog steeds decoder-/modelafhankelijk | Nog steeds decoder-/modelafhankelijk | Niet relevant |
-| Gapless video-overgang | Productclaim bewijst Castivo-DOM-overgang niet | Wrapper verandert timing niet automatisch | Native adapter kan later helpen | Nader onderzoeken |
+| Gapless video-overgang | Productclaim bewijst VeyoCast-DOM-overgang niet | Wrapper verandert timing niet automatisch | Native adapter kan later helpen | Nader onderzoeken |
 | Watchdog en gecontroleerde reload | Webcode kan begrensde recovery uitvoeren | Kan mogelijk app-lifecycle benutten | Kan platformservice/adapter benutten | Waarschijnlijk nuttig |
 | Achtergrondtaak/JS-service | Niet beschikbaar als gewone pagina | Alleen indien installeerbaar en toegestaan | Natuurlijk integratiepunt | Nader onderzoeken; niet gebruiken als permanente onbeperkte daemon |
 | Telemetry met model/firmware | Handmatig plus browserinformatie | Mogelijk meer platforminformatie | Mogelijk SCAP/IDCAP-data | Waarschijnlijk nuttig |
@@ -183,7 +183,7 @@ De officiële Signage-portal beschrijft:
 - **IDCAP** als unified API voor webOS Signage en commercial TV;
 - **JavaScript services** als manier om taken uit te voeren wanneer de UI-app niet actief is.
 
-Zonder partnerdocumentatie mogen geen concrete methoden, permissions of platformversies worden aangenomen. Voor Castivo moet eerst per doelmodel worden bepaald of deze APIs nodig zijn voor:
+Zonder partnerdocumentatie mogen geen concrete methoden, permissions of platformversies worden aangenomen. Voor VeyoCast moet eerst per doelmodel worden bepaald of deze APIs nodig zijn voor:
 
 - model- en firmware-identificatie;
 - power-, input- of schermstatus;
@@ -246,7 +246,7 @@ LG’s webOS TV-specificaties documenteren onder meer MP4 met H.264/AVC en AAC, 
 - [LG AV Format webOS TV 22](https://webostv.developer.lge.com/develop/specifications/video-audio-220)
 - [LG Streaming Protocol and DRM](https://webostv.developer.lge.com/develop/specifications/streaming-protocol-drm)
 
-Deze TV-tabellen bepalen alleen de fysieke testset; ze zijn geen Signage-goedkeuring. Voor Castivo blijft de voorlopige veilige aanlevervariant:
+Deze TV-tabellen bepalen alleen de fysieke testset; ze zijn geen Signage-goedkeuring. Voor VeyoCast blijft de voorlopige veilige aanlevervariant:
 
 - MP4-container;
 - H.264/AVC;
@@ -260,7 +260,7 @@ Deze TV-tabellen bepalen alleen de fysieke testset; ze zijn geen Signage-goedkeu
 
 Packaging verandert de hardwaredecoder niet. Als H.264 High, HEVC, een bepaalde bitrate of twee gelijktijdige 1080p-videotags niet werken via `Play via URL`, is er geen basis om aan te nemen dat hetzelfde bestand door een wrapper ineens wel betrouwbaar decodeert.
 
-Ook `Gapless Playback` en `Video Tag (4)` op een productspecificatie zijn geen bewijs voor Castivo’s twee-videostrategie. Werkelijke playback moet aantonen dat metadata laadt, `play()` slaagt, tijd voortloopt, frames verschijnen, events correct komen en de overgang geen zwart frame of decoderconflict veroorzaakt.
+Ook `Gapless Playback` en `Video Tag (4)` op een productspecificatie zijn geen bewijs voor VeyoCast’s twee-videostrategie. Werkelijke playback moet aantonen dat metadata laadt, `play()` slaagt, tijd voortloopt, frames verschijnen, events correct komen en de overgang geen zwart frame of decoderconflict veroorzaakt.
 
 ## Autoplay en fullscreen
 
@@ -274,11 +274,11 @@ Een installed wrapper is waarschijnlijk nuttig voor kiosk- en appcontext, maar n
 
 ## Autostart en herstel na power loss
 
-`Play via URL`, Wake on LAN, schedules, Power On Status en SI Server Setting zijn afzonderlijke Signage-features. Hun aanwezigheid bewijst niet dat een specifieke Castivo-URL na iedere koude start zonder beheerhandeling terugkeert.
+`Play via URL`, Wake on LAN, schedules, Power On Status en SI Server Setting zijn afzonderlijke Signage-features. Hun aanwezigheid bewijst niet dat een specifieke VeyoCast-URL na iedere koude start zonder beheerhandeling terugkeert.
 
 Test per model en firmware minimaal:
 
-1. Castivo als `Play via URL` configureren.
+1. VeyoCast als `Play via URL` configureren.
 2. Display softwarematig uitschakelen en weer inschakelen.
 3. Netspanning volledig onderbreken.
 4. Herstarten terwijl internet beschikbaar is.
@@ -310,7 +310,7 @@ Ondersteunt het doelmodel officieel Play via URL?
               +-- Web-API/playback slaagt
                     |
                     +-- offline reload en offline reboot slagen,
-                    |   opslag blijft behouden en power-on opent Castivo
+                    |   opslag blijft behouden en power-on opent VeyoCast
                     |     --> Gewone HTTPS / Play via URL is voldoende.
                     |
                     +-- power-on, kiosk of screensaver is onbetrouwbaar,
@@ -333,7 +333,7 @@ Ondersteunt het doelmodel officieel Play via URL?
 - offline app shell, manifest en media na reload en reboot beschikbaar blijven;
 - service worker, Cache Storage en IndexedDB betrouwbaar blijven;
 - last-known-good en atomic updates aantoonbaar werken;
-- power-on en stroomuitval automatisch naar Castivo terugkeren;
+- power-on en stroomuitval automatisch naar VeyoCast terugkeren;
 - een 24-uurs soaktest geen onbegrensde resourcegroei toont.
 
 ### Dunne hosted wrapper is waarschijnlijk nuttig wanneer
@@ -358,12 +358,12 @@ Ondersteunt het doelmodel officieel Play via URL?
 - onvoldoende hardwaredecoders;
 - een te hoge bitrate of framerate;
 - een foutieve CORS-, TLS-, MIME- of Range-configuratie;
-- slechte transitionlogica in de Castivo-playercore;
+- slechte transitionlogica in de VeyoCast-playercore;
 - fouten in atomic release- of watchdoglogica; packaging vervangt deze playercoregaranties niet.
 
 ## Aanbevolen architectuurpad
 
-1. **Nu:** behoud de webplatform-onafhankelijke Castivo-player en test hem via HTTPS/`Play via URL`.
+1. **Nu:** behoud de webplatform-onafhankelijke VeyoCast-player en test hem via HTTPS/`Play via URL`.
 2. **Na de eerste fysieke matrix:** leg per model en firmware vast welke web-API's en media daadwerkelijk werken.
 3. **Bij launch- of screensaverproblemen:** bouw een minimale installed hosted wrapper met uitsluitend gevalideerde `appinfo.json`-instellingen en een dunne LG-adapter.
 4. **Bij storageproblemen:** implementeer achter `PlayerMediaStore` een Signage-specifieke store; verander de playlistengine niet.
@@ -379,8 +379,8 @@ Ondersteunt het doelmodel officieel Play via URL?
 | Is PWA/service-workerondersteuning op het doelmodel bewezen? | Nee |
 | Is opslagbehoud na reboot bewezen? | Nee |
 | Is autostart na stroomuitval bewezen? | Nee |
-| Zijn H.264-profielen en meerdere videotags voor Castivo bewezen? | Nee |
+| Zijn H.264-profielen en meerdere videotags voor VeyoCast bewezen? | Nee |
 | Is een hosted wrapper nu al noodzakelijk? | Nog niet bewezen; waarschijnlijk nuttig bij lifecycleproblemen |
 | Is een volledig packaged app nu al noodzakelijk? | Nee; alleen na aangetoonde browser-/opslag-/launchbeperking |
 
-De productbeslissing blijft daarom: **eerst hosted fysiek bewijzen, daarna gericht wrappen**. Een package is een platformadapter en operationeel hulpmiddel, geen vervanging voor capabilitytests of voor Castivo’s offline- en releasegaranties.
+De productbeslissing blijft daarom: **eerst hosted fysiek bewijzen, daarna gericht wrappen**. Een package is een platformadapter en operationeel hulpmiddel, geen vervanging voor capabilitytests of voor VeyoCast’s offline- en releasegaranties.

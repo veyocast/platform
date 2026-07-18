@@ -18,6 +18,6 @@ Recommended root scripts:
   "db:reset": "supabase db reset",
   "test:rls": "supabase test db",
   "tokens:build": "tsx packages/tokens/scripts/build.ts",
-  "storybook": "pnpm --filter @castivo/ui storybook"
+  "storybook": "pnpm --filter @veyocast/ui storybook"
 }
 ```

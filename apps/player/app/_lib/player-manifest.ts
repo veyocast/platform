@@ -1,5 +1,5 @@
 export const demoOnlineDeviceToken = "demo-online";
-export const localStorageDeviceTokenKey = "castivo.player.deviceToken";
+export const localStorageDeviceTokenKey = "veyocast.player.deviceToken";
 
 export type PlayerRuntimeState =
   | "UNPAIRED"
@@ -115,7 +115,7 @@ export function getPlayerManifestForToken(
         error: {
           cause: "Er is nog geen device token aanwezig.",
           effect: "Deze player kan geen release manifest ophalen.",
-          recovery: "Koppel de player eerst via de pairingcode in Castivo Control."
+          recovery: "Koppel de player eerst via de pairingcode in VeyoCast Control."
         }
       }
     };

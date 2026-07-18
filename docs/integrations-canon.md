@@ -9,7 +9,7 @@ Sportlink and Twelve are prepared architecturally but not production-connected i
 Players never call external providers directly.
 
 ```text
-Provider -> Castivo integration adapter -> normalized data -> widget snapshot -> playlist release -> player cache
+Provider -> VeyoCast integration adapter -> normalized data -> widget snapshot -> playlist release -> player cache
 ```
 
 ## Adapter interface

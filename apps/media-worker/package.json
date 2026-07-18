@@ -1,5 +1,5 @@
 {
-  "name": "@castivo/media-worker",
+  "name": "@veyocast/media-worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@castivo/config": "workspace:*",
+    "@veyocast/config": "workspace:*",
     "@supabase/supabase-js": "^2.110.7"
   },
   "devDependencies": {

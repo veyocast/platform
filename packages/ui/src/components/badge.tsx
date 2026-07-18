@@ -17,8 +17,8 @@ export function Badge({
   ...props
 }: BadgeProps) {
   return (
-    <span className={cn("cv-badge", `cv-badge--${status}`, className)} {...props}>
-      {showDot ? <span aria-hidden="true" className="cv-badge__dot" /> : null}
+    <span className={cn("vc-badge", `vc-badge--${status}`, className)} {...props}>
+      {showDot ? <span aria-hidden="true" className="vc-badge__dot" /> : null}
       {children}
     </span>
   );
@@ -34,7 +34,7 @@ export function StatusDot({ className, label, status = "neutral", ...props }: St
     <span
       aria-hidden={label ? undefined : true}
       aria-label={label}
-      className={cn("cv-status-dot", `cv-status-dot--${status}`, className)}
+      className={cn("vc-status-dot", `vc-status-dot--${status}`, className)}
       role={label ? "img" : undefined}
       {...props}
     />

@@ -94,7 +94,7 @@ export async function uploadValidatedImage(formData: FormData) {
   if (assetError) {
     console.error("Mediaregistratie mislukt", assetError);
     throw new MediaUploadError(
-      "Castivo kon de mediaregistratie niet maken. Er is geen bestand opgeslagen; probeer opnieuw."
+      "VeyoCast kon de mediaregistratie niet maken. Er is geen bestand opgeslagen; probeer opnieuw."
     );
   }
 

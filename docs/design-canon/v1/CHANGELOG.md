@@ -1,8 +1,16 @@
 # Changelog
 
+## 2.0.0 — 19 juli 2026
+
+- Productnaam, packages, runtime-namespaces en documentatie overgezet naar VeyoCast.
+- Verouderde binaire merkassets en referentiebeelden verwijderd.
+- Definitieve logo- en iconmasters expliciet als openstaande launchvoorwaarde vastgelegd.
+- Tijdelijke VeyoCast-placeholderassets duidelijk als niet-definitief gemarkeerd.
+- Offline playeropslag en bestaande databasegegevens voorzien van een compatibele overgang.
+
 ## 1.0.0 — 14 juli 2026
 
-Eerste volledige canonieke release voor Castivo Bold.
+Eerste volledige canonieke release onder de voorgaande merkidentiteit.
 
 Bevat:
 

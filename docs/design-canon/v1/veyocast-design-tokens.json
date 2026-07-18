@@ -1,10 +1,10 @@
 {
   "$schema": "https://design-tokens.github.io/community-group/format/",
   "meta": {
-    "name": "Castivo Bold",
-    "version": "1.0.0",
+    "name": "VeyoCast Bold",
+    "version": "2.0.0",
     "status": "canonical",
-    "updated": "2026-07-14",
+    "updated": "2026-07-19",
     "baseUnitPx": 4,
     "defaultTheme": "dark"
   },

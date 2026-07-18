@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 96" role="img" aria-labelledby="title desc">
+  <title id="title">VeyoCast placeholder inverse logo</title>
+  <desc id="desc">Temporary placeholder inverse logo for development only.</desc>
+  <rect width="460" height="96" fill="none"/>
+  <path d="M10 14h21l24 62 24-62h21L67 86H43L10 14Z" fill="#FAFAF7"/>
+  <path d="M44 35l28 15-28 15V35Z" fill="#FAFAF7"/>
+  <text x="116" y="60" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="800" letter-spacing="-1.4" fill="#FAFAF7">VEYOCAST</text>
+  <text x="116" y="82" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#C9C9C4">TEMPORARY PLACEHOLDER · APPROVED MASTER REQUIRED</text>
+</svg>

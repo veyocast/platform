@@ -6,7 +6,7 @@ Accepted for MVP.
 
 ## Decision
 
-Castivo MVP is built locally with Codex in WSL2 and Git worktrees. GitHub remains source of truth and PR gates remain mandatory.
+VeyoCast MVP is built locally with Codex in WSL2 and Git worktrees. GitHub remains source of truth and PR gates remain mandatory.
 
 ## Consequences
 

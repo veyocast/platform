@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Castivo Control",
-  description: "Beheeromgeving voor Castivo platform- en tenantrollen"
+  title: "VeyoCast Control",
+  description: "Beheeromgeving voor VeyoCast platform- en tenantrollen"
 };
 
 export default function RootLayout({

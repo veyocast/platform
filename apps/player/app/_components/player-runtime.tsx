@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- Player media URLs come from release manifests and must render directly. */
 
-import { CASTIVO_APPS } from "@castivo/config";
+import { VEYOCAST_APPS } from "@veyocast/config";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
@@ -18,6 +18,11 @@ import {
   type PlayerCachePhase
 } from "../_lib/player-cache";
 import {
+  previousPlayerStorageKey,
+  readAndMigrateStorageValue,
+  removeCurrentAndPreviousStorageValues
+} from "../_lib/brand-transition";
+import {
   getPlaybackDurationMs,
   localStorageDeviceTokenKey,
   type PlayerManifestEnvelope,
@@ -31,10 +36,10 @@ import {
   type PlayerRecoveryAction
 } from "../_lib/player-recovery";
 
-const demoPairingCode = "CTV 482";
-const localStoragePairingCodeKey = "castivo.player.pairingCode";
-const localStoragePairingExpiryKey = "castivo.player.pairingExpiresAt";
-const localStorageReloadTimestampsKey = "castivo.player.reloadTimestamps";
+const demoPairingCode = "VYO 482";
+const localStoragePairingCodeKey = "veyocast.player.pairingCode";
+const localStoragePairingExpiryKey = "veyocast.player.pairingExpiresAt";
+const localStorageReloadTimestampsKey = "veyocast.player.reloadTimestamps";
 const defaultWatchdogTimeoutMs = 12_000;
 const defaultManifestSyncIntervalMs = 60_000;
 const maximumManifestSyncBackoffMs = 5 * 60_000;
@@ -938,7 +943,7 @@ function PlaybackView({
   }
 
   return (
-    <main className="playback-shell" aria-label="Castivo player">
+    <main className="playback-shell" aria-label="VeyoCast player">
       <section className="playback-stage" aria-label="Release playback">
         <PlaybackMedia
           key={`${activeItem.id}:${playbackAttempt}`}
@@ -1072,14 +1077,14 @@ function PairingPanel({
   pairingCode?: string;
 }) {
   return (
-    <main className="runtime-shell" aria-label="Castivo player setup">
+    <main className="runtime-shell" aria-label="VeyoCast player setup">
       <section className="runtime-panel" aria-labelledby="player-title">
         <p className="runtime-kicker">Device boot shell</p>
         <h1 className="runtime-title" id="player-title">
-          {CASTIVO_APPS.player.name} pairing
+          {VEYOCAST_APPS.player.name} pairing
         </h1>
         <p className="runtime-copy">
-          Deze player is nog niet gekoppeld. Voer de pairingcode in Castivo
+          Deze player is nog niet gekoppeld. Voer de pairingcode in VeyoCast
           Control in om een revocable device session aan dit scherm te koppelen.
         </p>
         <div className="player-pairing-code" aria-label="Pairingcode">
@@ -1119,7 +1124,7 @@ function SetupPanel({
   title: string;
 }) {
   return (
-    <main className="runtime-shell" aria-label="Castivo player sync">
+    <main className="runtime-shell" aria-label="VeyoCast player sync">
       <section className="runtime-panel" aria-labelledby="player-title">
         <p className="runtime-kicker">{stateLabel}</p>
         <h1 className="runtime-title" id="player-title">
@@ -1141,7 +1146,7 @@ function ProblemPanel({
   problem: Extract<RuntimeView, { state: "ERROR_RECOVERABLE" | "DISABLED" }>;
 }) {
   return (
-    <main className="runtime-shell" aria-label="Castivo player status">
+    <main className="runtime-shell" aria-label="VeyoCast player status">
       <section className="runtime-panel" aria-labelledby="player-title">
         <p className="runtime-kicker">{problem.state}</p>
         <h1 className="runtime-title" id="player-title">
@@ -1190,7 +1195,11 @@ function withSyncDiagnostics(
 
 function readStoredDeviceToken() {
   try {
-    return window.localStorage.getItem(localStorageDeviceTokenKey);
+    return readAndMigrateStorageValue(
+      window.localStorage,
+      localStorageDeviceTokenKey,
+      previousPlayerStorageKey("deviceToken")
+    );
   } catch {
     return null;
   }
@@ -1213,8 +1222,16 @@ type PairingResponse = {
 
 function readStoredPairing() {
   try {
-    const pairingCode = window.localStorage.getItem(localStoragePairingCodeKey);
-    const expiresAt = window.localStorage.getItem(localStoragePairingExpiryKey);
+    const pairingCode = readAndMigrateStorageValue(
+      window.localStorage,
+      localStoragePairingCodeKey,
+      previousPlayerStorageKey("pairingCode")
+    );
+    const expiresAt = readAndMigrateStorageValue(
+      window.localStorage,
+      localStoragePairingExpiryKey,
+      previousPlayerStorageKey("pairingExpiresAt")
+    );
 
     return pairingCode && expiresAt ? { expiresAt, pairingCode } : null;
   } catch {
@@ -1238,8 +1255,16 @@ function writeStoredPairing(pairing: PairingResponse) {
 
 function clearStoredPairing() {
   try {
-    window.localStorage.removeItem(localStoragePairingCodeKey);
-    window.localStorage.removeItem(localStoragePairingExpiryKey);
+    removeCurrentAndPreviousStorageValues(
+      window.localStorage,
+      localStoragePairingCodeKey,
+      previousPlayerStorageKey("pairingCode")
+    );
+    removeCurrentAndPreviousStorageValues(
+      window.localStorage,
+      localStoragePairingExpiryKey,
+      previousPlayerStorageKey("pairingExpiresAt")
+    );
   } catch {
     // Storage can be unavailable in locked-down kiosk contexts.
   }
@@ -1247,7 +1272,11 @@ function clearStoredPairing() {
 
 function clearStoredPlayerIdentity() {
   try {
-    window.localStorage.removeItem(localStorageDeviceTokenKey);
+    removeCurrentAndPreviousStorageValues(
+      window.localStorage,
+      localStorageDeviceTokenKey,
+      previousPlayerStorageKey("deviceToken")
+    );
     clearStoredPairing();
   } catch {
     // Storage can be unavailable in locked-down kiosk contexts.
@@ -1257,7 +1286,11 @@ function clearStoredPlayerIdentity() {
 function readReloadTimestamps(now: number) {
   try {
     const parsed = JSON.parse(
-      window.localStorage.getItem(localStorageReloadTimestampsKey) ?? "[]"
+      readAndMigrateStorageValue(
+        window.localStorage,
+        localStorageReloadTimestampsKey,
+        previousPlayerStorageKey("reloadTimestamps")
+      ) ?? "[]"
     ) as unknown;
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(

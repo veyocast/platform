@@ -8,7 +8,7 @@ Gebruik als root:
 
 Voorbeeld:
   sudo infra/vps/install-github-runner.sh staging \
-    https://github.com/organisatie/castivo TOKEN 2.327.1 VERWACHTE_SHA256
+    https://github.com/veyocast/platform TOKEN 2.327.1 VERWACHTE_SHA256
 
 Haal versie, download-URL, checksum en het kortlevende registratietoken uit:
 GitHub repository > Settings > Actions > Runners > New self-hosted runner.
@@ -25,13 +25,13 @@ if [[ $# -ne 5 ]]; then
   exit 1
 fi
 
-castivo_environment=$1
+veyocast_environment=$1
 repository_url=${2%/}
 registration_token=$3
 runner_version=$4
 expected_sha256=$5
 
-if [[ ${castivo_environment} != "staging" && ${castivo_environment} != "production" ]]; then
+if [[ ${veyocast_environment} != "staging" && ${veyocast_environment} != "production" ]]; then
   echo "Omgeving moet staging of production zijn." >&2
   exit 1
 fi
@@ -63,11 +63,11 @@ if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>
   exit 1
 fi
 
-runner_user="castivo-${castivo_environment}"
-runner_root="/opt/castivo-runners/${castivo_environment}"
-runner_archive="/tmp/actions-runner-${castivo_environment}-${runner_version}.tar.gz"
+runner_user="veyocast-${veyocast_environment}"
+runner_root="/opt/veyocast-runners/${veyocast_environment}"
+runner_archive="/tmp/actions-runner-${veyocast_environment}-${runner_version}.tar.gz"
 runner_url="https://github.com/actions/runner/releases/download/v${runner_version}/actions-runner-linux-x64-${runner_version}.tar.gz"
-runner_name="castivo-vps-${castivo_environment}"
+runner_name="veyocast-vps-${veyocast_environment}"
 
 if ! id "${runner_user}" >/dev/null 2>&1; then
   useradd --create-home --shell /bin/bash "${runner_user}"
@@ -76,7 +76,7 @@ usermod --append --groups docker "${runner_user}"
 
 install -d -o "${runner_user}" -g "${runner_user}" -m 0750 "${runner_root}"
 if [[ -e "${runner_root}/.runner" ]]; then
-  echo "Runner ${castivo_environment} is al geconfigureerd in ${runner_root}." >&2
+  echo "Runner ${veyocast_environment} is al geconfigureerd in ${runner_root}." >&2
   exit 1
 fi
 
@@ -92,11 +92,11 @@ runuser -u "${runner_user}" -- ./config.sh \
   --url "${repository_url}" \
   --token "${registration_token}" \
   --name "${runner_name}" \
-  --labels "castivo-vps,${castivo_environment}" \
+  --labels "veyocast-vps,${veyocast_environment}" \
   --work _work
 
 unset registration_token
 ./svc.sh install "${runner_user}"
 ./svc.sh start
 
-echo "Runner ${runner_name} is geïnstalleerd met labels castivo-vps en ${castivo_environment}."
+echo "Runner ${runner_name} is geïnstalleerd met labels veyocast-vps en ${veyocast_environment}."

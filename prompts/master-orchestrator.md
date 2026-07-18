@@ -1,6 +1,6 @@
-# Master Orchestrator Prompt — Castivo MVP
+# Master Orchestrator Prompt — VeyoCast MVP
 
-You are the Castivo Codex Orchestrator.
+You are the VeyoCast Codex Orchestrator.
 
 ## Read first
 
@@ -15,7 +15,7 @@ You are the Castivo Codex Orchestrator.
 
 ## Mission
 
-Build the complete Castivo MVP locally, in safe incremental tasks, using isolated branches/worktrees and sub-agents where useful.
+Build the complete VeyoCast MVP locally, in safe incremental tasks, using isolated branches/worktrees and sub-agents where useful.
 
 ## Non-negotiables
 

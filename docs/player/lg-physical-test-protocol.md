@@ -1,9 +1,9 @@
-# Fysiek testprotocol voor Castivo op LG webOS Signage
+# Fysiek testprotocol voor VeyoCast op LG webOS Signage
 
 ## 1. Doel en bewijsgrens
 
 Dit protocol bepaalt of een specifieke combinatie van LG Signage-model,
-firmware, browserengine en Castivo-deployment geschikt is voor een hosted
+firmware, browserengine en VeyoCast-deployment geschikt is voor een hosted
 HTTPS-player. De uitkomst geldt uitsluitend voor de exact vastgelegde
 combinatie. Een andere firmware of een ander model vereist minimaal een
 gerichte hertest.
@@ -56,7 +56,7 @@ bash scripts/generate-lg-test-media.sh
 Voor de optionele VP8-, VP9- en HEVC-probes:
 
 ```bash
-CASTIVO_OPTIONAL_CODECS=1 bash scripts/generate-lg-test-media.sh
+VEYOCAST_OPTIONAL_CODECS=1 bash scripts/generate-lg-test-media.sh
 ```
 
 Het script schrijft synthetische, reproduceerbare assets naar
@@ -110,7 +110,7 @@ centrale runopslag wordt verwacht. Bouw en deploy pas nadat de testmedia zijn
 gegenereerd:
 
 ```bash
-pnpm --filter @castivo/player build
+pnpm --filter @veyocast/player build
 ```
 
 ### 3.3 Deployment-smoke vóór het LG-scherm
@@ -147,7 +147,7 @@ Leg vóór wijziging of reset vast:
 | Browser-/Signage-appversie indien zichtbaar | |
 | Netwerkverbinding en VLAN | |
 | Autostart-/URL-launchconfiguratie | |
-| Castivo appversie | |
+| VeyoCast appversie | |
 | Deployment-SHA | |
 | Testtenant en screennaam | |
 | Release 1-ID/versie | |
@@ -300,7 +300,7 @@ Voer in de console uit:
 
 ```javascript
 (async () => {
-  const cache = await caches.open("castivo-player-assets-v1");
+  const cache = await caches.open("veyocast-player-assets-v1");
   const requests = await cache.keys();
   let videoRequest;
   let stored;
@@ -451,9 +451,9 @@ bewijs.
 
 ### Test G — Onvoldoende opslag
 
-Vul nooit de Castivo-assetcache zelf. Gebruik, wanneer remote debugging
+Vul nooit de VeyoCast-assetcache zelf. Gebruik, wanneer remote debugging
 beschikbaar is, een afzonderlijke tijdelijke cache zoals
-`castivo-lg-quota-fill-v1`, of gebruik een gecontroleerde oversized testrelease.
+`veyocast-lg-quota-fill-v1`, of gebruik een gecontroleerde oversized testrelease.
 Leg eerst Release 1 en de opslagmeting vast.
 
 1. Vul de aparte cache stapsgewijs tot beschikbare ruimte kleiner is dan

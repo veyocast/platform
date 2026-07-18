@@ -9,7 +9,7 @@ It runs on:
 
 - pull requests;
 - pushes to `main`;
-- pushes to `castivo/**` task branches.
+- pushes to `veyocast/**` task branches.
 
 ## Foundation Gates
 

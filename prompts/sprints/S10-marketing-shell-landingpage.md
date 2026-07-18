@@ -2,7 +2,7 @@
 
 ## Goal
 
-Implement Castivo homepage shell, SEO metadata, header, hero, use cases and CTA without fake claims.
+Implement VeyoCast homepage shell, SEO metadata, header, hero, use cases and CTA without fake claims.
 
 ## Required reading
 

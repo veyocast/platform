@@ -4,10 +4,10 @@ Status: review
 
 ## Canon integrity
 
-- All 16 files listed in `docs/design-canon/v1/SHA256SUMS.txt` were verified
+- All files listed in `docs/design-canon/v1/SHA256SUMS.txt` were verified
   against their published SHA-256 values.
-- `apps/control/public/brand/castivo-official-icon.png` matches the locked
-  canonical asset byte-for-byte.
+- The current VeyoCast icon is an explicitly temporary development placeholder;
+  an approved master remains a public-release requirement.
 - `packages/tokens/test/canonical-parity.test.ts` verifies the semantic token
   families and dimensions shared by the W3C canon and the runtime projection.
 
@@ -17,7 +17,7 @@ Status: review
   command search, action-oriented notifications, desktop collapse and a mobile
   navigation sheet.
 - Dashboard, Media, Playlists, Screens, Team, Auditlog, Settings, Platform and
-  Tenants use the operational resource patterns defined in Canon v1.0.0.
+  Tenants use the operational resource patterns defined in the design canon.
 - Headless Playwright screenshots were reviewed at 1280px desktop for
   `/dashboard` and 390px mobile for `/dashboard/screens`. They confirm readable
   data tables, no overlap and the expected priority-based mobile resource rows.
@@ -44,7 +44,7 @@ Status: review
 
 Headless screenshots are intentionally kept outside the repository:
 
-- `D:\Codex\castivo\artifacts\s11b-enterprise-control-ux\control-dashboard-desktop.png`
-- `D:\Codex\castivo\artifacts\s11b-enterprise-control-ux\control-screens-mobile.png`
-- `D:\Codex\castivo\artifacts\s11b-enterprise-control-ux\control-screens-mobile-refined-390.png`
-- `D:\Codex\castivo\artifacts\s11b-enterprise-control-ux\control-screens-mobile-refined-320.png`
+- `D:\Codex\veyocast\artifacts\s11b-enterprise-control-ux\control-dashboard-desktop.png`
+- `D:\Codex\veyocast\artifacts\s11b-enterprise-control-ux\control-screens-mobile.png`
+- `D:\Codex\veyocast\artifacts\s11b-enterprise-control-ux\control-screens-mobile-refined-390.png`
+- `D:\Codex\veyocast\artifacts\s11b-enterprise-control-ux\control-screens-mobile-refined-320.png`

@@ -22,7 +22,7 @@ pas na uitvoering van `docs/player/lg-physical-test-protocol.md` worden gemaakt.
 - poorten 80 en 443 publiek bereikbaar;
 - twee DNS-records naar de VPS, bijvoorbeeld `control.example.nl` en
   `player.example.nl`;
-- een gemigreerd Supabase-project met de Castivo-migraties en minimaal één
+- een gemigreerd Supabase-project met de VeyoCast-migraties en minimaal één
   tenantbeheerder;
 - een Supabase anon-key en een server-only service-role key;
 - minimaal 2 GB vrij geheugen plus voldoende schijf voor imagebuilds en
@@ -62,9 +62,9 @@ docker compose \
 
 De images worden lokaal getagd als:
 
-- `castivo-control:<DEPLOYMENT_SHA>`;
-- `castivo-player:<DEPLOYMENT_SHA>`;
-- `castivo-media-worker:<DEPLOYMENT_SHA>`.
+- `veyocast-control:<DEPLOYMENT_SHA>`;
+- `veyocast-player:<DEPLOYMENT_SHA>`;
+- `veyocast-media-worker:<DEPLOYMENT_SHA>`.
 
 De webimages gebruiken Next.js standalone-output. De workerimage bevat FFmpeg en
 start de begrensde, idempotente queue-runner. Caddy vraagt automatisch TLS aan en

@@ -1,5 +1,5 @@
 {
-  "name": "@castivo/control",
+  "name": "@veyocast/control",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@castivo/config": "workspace:*",
+    "@veyocast/config": "workspace:*",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
     "lucide-react": "^1.24.0",

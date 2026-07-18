@@ -10,4 +10,4 @@
 *.zip binary
 
 # This verified canonical source uses Markdown hard line breaks intentionally.
-docs/design-canon/v1/CASTIVO_DESIGN_CANON_v1.0.md whitespace=-trailing-space
+docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md whitespace=-trailing-space

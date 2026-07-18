@@ -1,8 +1,8 @@
 {
-  "$schema": "https://castivo.local/design-tokens.schema.json",
+  "$schema": "https://veyocast.local/design-tokens.schema.json",
   "meta": {
-    "name": "Castivo Bold Runtime Tokens",
-    "version": "1.0.0",
+    "name": "VeyoCast Bold Runtime Tokens",
+    "version": "2.0.0",
     "status": "canonical-runtime-projection"
   },
   "color": {

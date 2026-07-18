@@ -101,7 +101,7 @@ test("public auth routes have clear headings and forms", async ({ page }) => {
   await page.goto("/login");
 
   await expect(
-    page.getByRole("heading", { name: "Inloggen bij Castivo Control" })
+    page.getByRole("heading", { name: "Inloggen bij VeyoCast Control" })
   ).toBeVisible();
   await expect(page.getByLabel("E-mailadres")).toBeVisible();
   await expect(page.getByLabel("Tenant")).toBeVisible();

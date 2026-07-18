@@ -1,4 +1,4 @@
-export type CastivoThemeTokens = {
+export type VeyoCastThemeTokens = {
   background: string;
   surface: string;
   surfaceMuted: string;
@@ -13,7 +13,7 @@ export type CastivoThemeTokens = {
   onAction: string;
 };
 
-export type CastivoDesignTokens = {
+export type VeyoCastDesignTokens = {
   $schema?: string;
   meta: {
     name: string;
@@ -25,8 +25,8 @@ export type CastivoDesignTokens = {
     neutral: Record<string, string>;
     semantic: Record<string, Record<string, string>>;
     theme: {
-      light: CastivoThemeTokens;
-      dark: CastivoThemeTokens;
+      light: VeyoCastThemeTokens;
+      dark: VeyoCastThemeTokens;
     };
   };
   font: {

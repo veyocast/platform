@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   if (!isLivePlayerConfigured()) {
     return noStore({
       live: false,
-      pairingCode: "CTV 482"
+      pairingCode: "VYO 482"
     });
   }
 

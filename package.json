@@ -1,5 +1,5 @@
 {
-  "name": "castivo-platform",
+  "name": "veyocast-platform",
   "version": "0.0.0",
   "private": true,
   "packageManager": "pnpm@11.5.2",
@@ -22,7 +22,7 @@
     "db:reset": "supabase db reset",
     "test:rls": "supabase test db",
     "tokens:build": "tsx packages/tokens/scripts/build.ts",
-    "storybook": "pnpm --filter @castivo/ui storybook"
+    "storybook": "pnpm --filter @veyocast/ui storybook"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",

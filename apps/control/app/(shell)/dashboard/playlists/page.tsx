@@ -28,7 +28,7 @@ type ScreenRow = { assigned_playlist_id: string | null; id: string; name: string
 
 const publishTimeline = [
   { detail: "Wijzig naam, volgorde, duur, uitsnede en audio zonder de actieve release te veranderen.", label: "Concept bewerken", meta: "Veilig", tone: "info" },
-  { detail: "Castivo controleert ieder item, de player-variant, totale bytes en doelschermen.", label: "Publicatiereview", meta: "Blokkeert", tone: "warning" },
+  { detail: "VeyoCast controleert ieder item, de player-variant, totale bytes en doelschermen.", label: "Publicatiereview", meta: "Blokkeert", tone: "warning" },
   { detail: "Een vaste snapshot krijgt een versienummer, manifest en SHA-256-hash.", label: "Release maken", meta: "Immutable", tone: "success" },
   { detail: "De huidige release blijft spelen totdat de Player de nieuwe release volledig heeft geverifieerd.", label: "Player bijwerken", meta: "Atomair", tone: "success" }
 ] as const;

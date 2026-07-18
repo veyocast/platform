@@ -10,7 +10,7 @@ export function ServiceWorkerRegistration() {
 
     function handleMessage(event: MessageEvent) {
       const data = event.data as { cacheVersion?: string; type?: string } | null;
-      if (data?.type === "CASTIVO_SW_ACTIVATED") {
+      if (data?.type === "VEYOCAST_SW_ACTIVATED") {
         setUpdateStatus(`Player-shell ${data.cacheVersion ?? "actief"} is bijgewerkt.`);
       }
     }

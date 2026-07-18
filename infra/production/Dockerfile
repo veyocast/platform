@@ -27,7 +27,7 @@ RUN --mount=type=secret,id=next_server_actions_encryption_key \
   if [ -f /run/secrets/next_server_actions_encryption_key ]; then \
     export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="$(cat /run/secrets/next_server_actions_encryption_key)"; \
   fi; \
-  pnpm --filter @castivo/control build && pnpm --filter @castivo/player build
+  pnpm --filter @veyocast/control build && pnpm --filter @veyocast/player build
 
 FROM node:24-trixie-slim AS control
 ENV NODE_ENV=production
@@ -59,4 +59,4 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 COPY --chown=node:node --from=dependencies /app /app
 USER node
-CMD ["pnpm", "--filter", "@castivo/media-worker", "worker:run"]
+CMD ["pnpm", "--filter", "@veyocast/media-worker", "worker:run"]

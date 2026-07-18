@@ -1,6 +1,6 @@
 # S12 lokale pilotevidence
 
-Uitgevoerd op 2026-07-18 vanuit castivo/s12-live-vertical-slice.
+Uitgevoerd op 2026-07-18 vanuit veyocast/s12-live-vertical-slice.
 
 ## Aantoonbaar werkende keten
 
@@ -34,7 +34,7 @@ tijdens live provisioning niet langer kort een ongeldige democode.
 - pnpm test:a11y — 8 tests
 - pnpm test:player — 7 online/pairing/offline tests
 - pnpm test:e2e -- --project=chromium — 20 geslaagd en 1 opt-in test overgeslagen
-- CASTIVO_LIVE_PILOT=1 met de live-pilot Playwright-test — 1 complete live keten
+- VEYOCAST_LIVE_PILOT=1 met de live-pilot Playwright-test — 1 complete live keten
 
 ## Bewuste grens
 

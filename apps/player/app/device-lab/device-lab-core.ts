@@ -145,7 +145,7 @@ export async function readStorageSnapshot(): Promise<StorageSnapshot> {
 
 export function reportToMarkdown(report: DeviceLabReport) {
   const rows = [
-    `# Castivo Device Capability Lab — ${report.runId}`,
+    `# VeyoCast Device Capability Lab — ${report.runId}`,
     "",
     `- Vastgelegd: ${report.capturedAt}`,
     `- Appversie: ${report.appVersion}`,

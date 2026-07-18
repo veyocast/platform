@@ -1,5 +1,5 @@
 self-hosted-runner:
   labels:
-    - castivo-vps
+    - veyocast-vps
     - staging
     - production

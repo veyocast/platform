@@ -1,8 +1,8 @@
-# Castivo MVP Plan
+# VeyoCast MVP Plan
 
 ## Werkmodus
 
-Castivo wordt lokaal gebouwd met Codex in geïsoleerde Git-worktrees. GitHub blijft de bron van waarheid. Elke taak krijgt:
+VeyoCast wordt lokaal gebouwd met Codex in geïsoleerde Git-worktrees. GitHub blijft de bron van waarheid. Elke taak krijgt:
 
 - één branch;
 - één primaire writer-agent;
@@ -41,15 +41,16 @@ De MVP is pilot-ready wanneer:
 | S07 | Online player playback | Manifest fetch, image/video loop |
 | S08 | Offline cache en atomic updates | Cache, IndexedDB, verification, fallback |
 | S09 | Control dashboard polish | Media/playlist/screen UX volgens canon |
-| S10 | Marketing shell en landingpage | Castivo homepage en SEO-basics |
+| S10 | Marketing shell en landingpage | VeyoCast homepage en SEO-basics |
 | S11 | Security, accessibility en reliability gates | RLS, axe, Playwright, player reliability |
-| S11-B | Enterprise Control UX | Canon v1.0.0, operational app shell, resource workflows and responsive Control QA |
+| S11-B | Enterprise Control UX | Operational app shell, resource workflows and responsive Control QA |
 | S12 | Pilot-ready local MVP | End-to-end local pilot, docs, release checklist |
 | S13 | LG webOS capability hardening | Device Lab, watchdog en fysiek testprotocol |
 | S14 | Playback- en mediareadiness | Periodieke sync, veilige cache-GC en uitvoerbare MP4-workerqueue |
 | S15 | LG-koppelklaar hosted product | Echte schermvloot/pairing en reproduceerbare Docker/Caddy-deployment |
 | S16 | Control authoring MVP | Live media, playlists, instellingen en mixed-media publicatie |
 | S17 | VPS staging en production | Gescheiden Compose-stacks, self-hosted runners en Supabase-migratiedeployment |
+| S18 | VeyoCast-rebrand | Productnaam, namespaces, assets, bestaande data en canon veilig overzetten |
 
 ## Parallelle waves
 

@@ -12,9 +12,9 @@ test("serves cached media as 200, 206 and 416 through the service worker", async
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
 
   const result = await page.evaluate(async () => {
-    const cacheKey = "/__castivo-player-cache/range-integration";
+    const cacheKey = "/__veyocast-player-cache/range-integration";
     const payload = new TextEncoder().encode("0123456789");
-    const cache = await caches.open("castivo-player-assets-v1");
+    const cache = await caches.open("veyocast-player-assets-v1");
     await cache.put(cacheKey, new Response(payload, {
       headers: {
         "Accept-Ranges": "bytes",
@@ -63,7 +63,7 @@ test("reloads the cached player shell without a network connection", async ({ co
   }
 });
 
-test("migrates a legacy cached response before serving a Range request", async ({ page }) => {
+test("normalizes a cached response before serving a Range request", async ({ page }) => {
   await page.goto(playerURL);
   await page.evaluate(async () => navigator.serviceWorker.ready);
   if (!(await page.evaluate(() => Boolean(navigator.serviceWorker.controller)))) {
@@ -72,8 +72,8 @@ test("migrates a legacy cached response before serving a Range request", async (
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
 
   const result = await page.evaluate(async () => {
-    const cacheKey = "/__castivo-player-cache/legacy-range-integration";
-    const cache = await caches.open("castivo-player-assets-v1");
+    const cacheKey = "/__veyocast-player-cache/legacy-range-integration";
+    const cache = await caches.open("veyocast-player-assets-v1");
     await cache.put(
       cacheKey,
       new Response(new TextEncoder().encode("abcdefghij"), {
@@ -103,7 +103,7 @@ test("removes obsolete player shell caches on service-worker activation", async 
   await page.goto(playerURL);
   await page.evaluate(async () => navigator.serviceWorker.ready);
   await page.evaluate(async () => {
-    const oldCache = await caches.open("castivo-player-shell-v1");
+    const oldCache = await caches.open("veyocast-player-shell-v1");
     await oldCache.put("/legacy-shell", new Response("legacy"));
     const registrations = await navigator.serviceWorker.getRegistrations();
     await Promise.all(registrations.map((registration) => registration.unregister()));
@@ -113,10 +113,10 @@ test("removes obsolete player shell caches on service-worker activation", async 
   await page.evaluate(async () => navigator.serviceWorker.ready);
   await page.waitForFunction(async () => {
     const names = await caches.keys();
-    return !names.includes("castivo-player-shell-v1") && names.includes("castivo-player-shell-v2");
+    return !names.includes("veyocast-player-shell-v1") && names.includes("veyocast-player-shell-v2");
   });
 
   await expect.poll(() => page.evaluate(() => caches.keys())).not.toContain(
-    "castivo-player-shell-v1"
+    "veyocast-player-shell-v1"
   );
 });

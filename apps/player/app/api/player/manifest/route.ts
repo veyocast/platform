@@ -84,7 +84,7 @@ async function getLiveManifest(token: string | null) {
     return manifestProblem(401, "UNPAIRED", {
       cause: "Er is nog geen device-token aanwezig.",
       effect: "De Player kan geen toegewezen release ophalen.",
-      recovery: "Maak een koppelcode en koppel de Player in Castivo Control."
+      recovery: "Maak een koppelcode en koppel de Player in VeyoCast Control."
     });
   }
 
@@ -114,7 +114,7 @@ async function getLiveManifest(token: string | null) {
     return manifestProblem(401, "UNPAIRED", {
       cause: "De koppelcode is nog niet geclaimd of het device is ingetrokken.",
       effect: "Er is nog geen scherm- en releasecontext beschikbaar.",
-      recovery: "Voer de zichtbare koppelcode in Castivo Control in."
+      recovery: "Voer de zichtbare koppelcode in VeyoCast Control in."
     });
   }
 

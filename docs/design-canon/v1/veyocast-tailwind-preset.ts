@@ -1,30 +1,30 @@
 import type { Config } from "tailwindcss";
 
-export const castivoPreset: Partial<Config> = {
+export const veyocastPreset: Partial<Config> = {
   darkMode: ["class", '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
-        castivo: {
+        veyocast: {
           ink: "#0A0A0A",
           paper: "#FAFAF7",
           orange: "#FF5C20",
           blue: "#315CFF",
           grey: "#E8E8E3",
         },
-        background: "var(--cv-bg)",
-        surface: "var(--cv-surface)",
-        muted: "var(--cv-surface-muted)",
-        foreground: "var(--cv-text)",
-        border: "var(--cv-border)",
+        background: "var(--vc-bg)",
+        surface: "var(--vc-surface)",
+        muted: "var(--vc-surface-muted)",
+        foreground: "var(--vc-text)",
+        border: "var(--vc-border)",
         action: {
-          DEFAULT: "var(--cv-action)",
-          foreground: "var(--cv-on-action)",
+          DEFAULT: "var(--vc-action)",
+          foreground: "var(--vc-on-action)",
         },
-        success: "var(--cv-success)",
-        warning: "var(--cv-warning)",
-        critical: "var(--cv-critical)",
-        info: "var(--cv-info)",
+        success: "var(--vc-success)",
+        warning: "var(--vc-warning)",
+        critical: "var(--vc-critical)",
+        info: "var(--vc-info)",
       },
       fontFamily: {
         display: ["Inter Tight", "Inter", "Arial", "sans-serif"],
@@ -39,9 +39,9 @@ export const castivoPreset: Partial<Config> = {
         xl: "12px",
       },
       boxShadow: {
-        cvSm: "var(--cv-shadow-sm)",
-        cvMd: "var(--cv-shadow-md)",
-        cvLg: "var(--cv-shadow-lg)",
+        cvSm: "var(--vc-shadow-sm)",
+        cvMd: "var(--vc-shadow-md)",
+        cvLg: "var(--vc-shadow-lg)",
       },
       maxWidth: {
         reading: "720px",
@@ -54,7 +54,7 @@ export const castivoPreset: Partial<Config> = {
         slow: "320ms",
       },
       transitionTimingFunction: {
-        cv: "cubic-bezier(.2,0,0,1)",
+        vc: "cubic-bezier(.2,0,0,1)",
         cvEnter: "cubic-bezier(0,0,.2,1)",
         cvExit: "cubic-bezier(.4,0,1,1)",
       },
@@ -70,4 +70,4 @@ export const castivoPreset: Partial<Config> = {
   },
 };
 
-export default castivoPreset;
+export default veyocastPreset;

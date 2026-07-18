@@ -13,7 +13,7 @@ values (
   '00000000-0000-4000-8000-000000000102',
   'authenticated',
   'authenticated',
-  'slice-tenant-b@castivo.test',
+  'slice-tenant-b@veyocast.test',
   'test',
   now(), now(), now(), '{}'::jsonb, '{}'::jsonb
 );

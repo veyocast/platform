@@ -4,7 +4,7 @@ set -Eeuo pipefail
 actionlint_version=1.7.12
 archive_name="actionlint_${actionlint_version}_linux_amd64.tar.gz"
 expected_sha256=8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
-validation_root="${RUNNER_TEMP:-/tmp}/castivo-actionlint-${actionlint_version}-${UID}"
+validation_root="${RUNNER_TEMP:-/tmp}/veyocast-actionlint-${actionlint_version}-${UID}"
 archive_path="${validation_root}/${archive_name}"
 
 install -d -m 0755 "${validation_root}"

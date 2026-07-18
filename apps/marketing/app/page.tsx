@@ -41,14 +41,14 @@ const statusRows = [
 export default function MarketingPage() {
   return (
     <main>
-      <header className="site-header" aria-label="Castivo marketing navigatie">
-        <a className="brand-link" href="#top" aria-label="Castivo homepage">
+      <header className="site-header" aria-label="VeyoCast marketing navigatie">
+        <a className="brand-link" href="#top" aria-label="VeyoCast homepage">
           <Image
             alt=""
             aria-hidden="true"
             className="brand-link__logo"
             height="32"
-            src="/brand/castivo-logo-inverse.svg"
+            src="/brand/veyocast-logo-inverse.svg"
             width="126"
           />
         </a>
@@ -94,7 +94,7 @@ export default function MarketingPage() {
 
         <div className="hero-copy">
           <p className="eyebrow">Narrowcasting voor sportverenigingen en beheerde schermen</p>
-          <h1 id="hero-title">Castivo</h1>
+          <h1 id="hero-title">VeyoCast</h1>
           <p className="hero-lede">
             Een local-first platform voor ClubTV: beheer media, publiceer vaste
             releases en laat players fullscreen doorspelen, ook wanneer het
@@ -142,7 +142,7 @@ export default function MarketingPage() {
           <p className="eyebrow">Platform</p>
           <h2 id="platform-title">Een vaste route van upload naar scherm.</h2>
           <p>
-            Castivo splitst het publieke verhaal, de beheeromgeving, de player en
+            VeyoCast splitst het publieke verhaal, de beheeromgeving, de player en
             de media worker. Daardoor blijft elke release controleerbaar.
           </p>
         </div>

@@ -5,14 +5,14 @@
 De bestaande ontwikkelomgeving blijft op de huidige VPS en valt volledig buiten
 deze workflow. Een tweede VPS host:
 
-- `castivo-staging`: Control, Player en mediaworker;
-- `castivo-production`: Control, Player en mediaworker;
+- `veyocast-staging`: Control, Player en mediaworker;
+- `veyocast-production`: Control, Player en mediaworker;
 - `duindorpteneu`: eigen Compose-project, configuratie en deploymentflow;
 - één reeds aanwezige, gedeelde reverse proxy voor publiek HTTPS-verkeer.
 
-Castivo claimt op deze gedeelde VPS nooit zelf poort 80 of 443. De webcontainers
+VeyoCast claimt op deze gedeelde VPS nooit zelf poort 80 of 443. De webcontainers
 binden uitsluitend aan unieke localhostpoorten en zijn daarnaast bereikbaar via
-unieke aliases op het externe Docker-netwerk `castivo-proxy`. Daardoor kan een
+unieke aliases op het externe Docker-netwerk `veyocast-proxy`. Daardoor kan een
 reverse proxy op de host de localhostpoorten gebruiken, of een containerproxy de
 netwerkaliases. De interne worker- en backendnetwerken blijven per omgeving
 gescheiden.
@@ -55,8 +55,8 @@ Actions → Runners → New self-hosted runner**. Het script verifieert de downl
 maakt afzonderlijke Linux-users en installeert beide runners als service. De
 labels worden:
 
-- `self-hosted`, `linux`, `x64`, `castivo-vps`, `staging`;
-- `self-hosted`, `linux`, `x64`, `castivo-vps`, `production`.
+- `self-hosted`, `linux`, `x64`, `veyocast-vps`, `staging`;
+- `self-hosted`, `linux`, `x64`, `veyocast-vps`, `production`.
 
 De runners krijgen Docker-toegang. Op één gedeelde Docker-host is dat geen harde
 securitygrens: een gecompromitteerde repository of runner kan in beginsel ook
@@ -72,10 +72,10 @@ standaard is:
 
 | Omgeving | Service | Publieke host | Localhostpoort | Docker-alias |
 |---|---|---|---:|---|
-| staging | Control | `staging-control.example.nl` | `13000` | `castivo-staging-control:3000` |
-| staging | Player | `staging-player.example.nl` | `13001` | `castivo-staging-player:3001` |
-| production | Control | `control.example.nl` | `23000` | `castivo-production-control:3000` |
-| production | Player | `player.example.nl` | `23001` | `castivo-production-player:3001` |
+| staging | Control | `staging-control.example.nl` | `13000` | `veyocast-staging-control:3000` |
+| staging | Player | `staging-player.example.nl` | `13001` | `veyocast-staging-player:3001` |
+| production | Control | `control.example.nl` | `23000` | `veyocast-production-control:3000` |
+| production | Player | `player.example.nl` | `23001` | `veyocast-production-player:3001` |
 
 Voor Caddy op de host is de minimale configuratie:
 
@@ -97,7 +97,7 @@ player.example.nl {
 }
 ```
 
-Een containerized proxy moet op het externe netwerk `castivo-proxy` zitten en
+Een containerized proxy moet op het externe netwerk `veyocast-proxy` zitten en
 kan de Docker-aliases uit de tabel gebruiken. Houd de proxyconfiguratie voor
 `duindorpteneu` buiten deze repository. Laat DNS eerst naar de nieuwe VPS wijzen
 en controleer certificaatuitgifte vóór de eerste deployment; de workflow eist na
@@ -131,7 +131,7 @@ voor hosts moeten worden vervangen door de echte DNS-namen.
 | `PLAYER_HOST` | `staging-player.example.nl` | `player.example.nl` | Publieke Player-host zonder protocol |
 | `CONTROL_BIND_PORT` | `13000` | `23000` | Unieke localhostpoort op de gedeelde VPS |
 | `PLAYER_BIND_PORT` | `13001` | `23001` | Unieke localhostpoort op de gedeelde VPS |
-| `REVERSE_PROXY_NETWORK` | `castivo-proxy` | `castivo-proxy` | Extern Docker-netwerk voor de gedeelde proxy |
+| `REVERSE_PROXY_NETWORK` | `veyocast-proxy` | `veyocast-proxy` | Extern Docker-netwerk voor de gedeelde proxy |
 | `SUPABASE_PROJECT_REF` | staging project-ref | productie project-ref | Guard tegen migratie naar het verkeerde project |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://<staging-ref>.supabase.co` | `https://<productie-ref>.supabase.co` | Publieke Supabase API-URL |
 
@@ -188,7 +188,7 @@ containers tijdens de migratiestap blijven spelen en bedienen.
    secrets uit de tabellen.
 2. Configureer DNS en de gedeelde reverse proxy.
 3. Maak het Docker-netwerk eenmalig of laat de workflow dit doen:
-   `docker network create castivo-proxy`.
+   `docker network create veyocast-proxy`.
 4. Installeer beide repository-runners op de nieuwe VPS.
 5. Maak en beveilig de GitHub Environments.
 6. Start handmatig een stagingdeployment vanaf `main`.

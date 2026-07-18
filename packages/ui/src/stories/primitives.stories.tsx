@@ -43,9 +43,9 @@ function SearchIcon() {
 
 export const Gallery: Story = {
   render: () => (
-    <Container style={{ paddingBlock: "var(--cv-space-32)" }}>
-      <Stack gap="var(--cv-space-24)">
-        <Stack direction="horizontal" gap="var(--cv-space-12)">
+    <Container style={{ paddingBlock: "var(--vc-space-32)" }}>
+      <Stack gap="var(--vc-space-24)">
+        <Stack direction="horizontal" gap="var(--vc-space-12)">
           <Button>Publish</Button>
           <Button variant="secondary">Save draft</Button>
           <Button variant="ghost">Preview</Button>
@@ -62,7 +62,7 @@ export const Gallery: Story = {
               <CardDescription>Operational components for repeated dashboard work.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Stack direction="horizontal" gap="var(--cv-space-8)">
+              <Stack direction="horizontal" gap="var(--vc-space-8)">
                 <Badge status="success">Online</Badge>
                 <Badge status="warning">Syncing</Badge>
                 <StatusDot label="Critical issue" status="critical" />
@@ -78,8 +78,8 @@ export const Gallery: Story = {
             <CardContent>
               <AspectRatio
                 style={{
-                  background: "var(--cv-surface-muted)",
-                  borderRadius: "var(--cv-radius-md)"
+                  background: "var(--vc-surface-muted)",
+                  borderRadius: "var(--vc-radius-md)"
                 }}
               />
             </CardContent>
@@ -121,8 +121,8 @@ export const LightAndDark: Story = {
   render: () => (
     <Grid columns={2} gap="0">
       {(["light", "dark"] as const).map((theme) => (
-        <div data-theme={theme} key={theme} style={{ background: "var(--cv-background)" }}>
-          <Container style={{ paddingBlock: "var(--cv-space-32)" }}>
+        <div data-theme={theme} key={theme} style={{ background: "var(--vc-background)" }}>
+          <Container style={{ paddingBlock: "var(--vc-space-32)" }}>
             <Stack>
               <Badge status="info">{theme}</Badge>
               <Button>Primary action</Button>

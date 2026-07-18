@@ -9,5 +9,5 @@ test("unpaired player startup is visible without a network-backed release", asyn
 
   await expect(page.getByText("UNPAIRED")).toBeVisible();
   await expect(page.getByLabel("Pairingcode")).toBeVisible();
-  await expect(page.getByRole("main")).toContainText("Castivo Player pairing");
+  await expect(page.getByRole("main")).toContainText("VeyoCast Player pairing");
 });

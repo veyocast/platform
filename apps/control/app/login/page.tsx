@@ -1,4 +1,4 @@
-import { CASTIVO_APPS, getLocalUrl } from "@castivo/config";
+import { VEYOCAST_APPS, getLocalUrl } from "@veyocast/config";
 import Link from "next/link";
 
 import { isLiveSupabaseConfigured } from "../../lib/supabase/config";
@@ -18,12 +18,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div>
           <p className="auth-kicker">{getLocalUrl("control")}</p>
           <h1 className="auth-title" id="login-title">
-            Inloggen bij {CASTIVO_APPS.control.name}
+            Inloggen bij {VEYOCAST_APPS.control.name}
           </h1>
         </div>
         <p className="auth-copy">
           {live
-            ? "Log in met je Castivo-account. Je tenant- en platformrollen worden na het inloggen server-side geladen."
+            ? "Log in met je VeyoCast-account. Je tenant- en platformrollen worden na het inloggen server-side geladen."
             : "De demo draait zonder lokale Supabase-configuratie. Start de database en vul de lokale omgevingswaarden in om de live pilotflow te gebruiken."}
         </p>
         {fout ? <div className="notice notice--warning" role="alert">{fout}</div> : null}

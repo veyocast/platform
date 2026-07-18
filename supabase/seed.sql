@@ -9,8 +9,8 @@ values (
   '00000000-0000-4000-8000-000000000101',
   'authenticated',
   'authenticated',
-  'pilot-admin@castivo.test',
-  extensions.crypt('castivo-local', extensions.gen_salt('bf')),
+  'pilot-admin@veyocast.test',
+  extensions.crypt('veyocast-local', extensions.gen_salt('bf')),
   now(),
   '', '', '', '',
   now(), now(),
@@ -39,7 +39,7 @@ values (
   '00000000-0000-4000-8000-000000000101',
   jsonb_build_object(
     'sub', '00000000-0000-4000-8000-000000000101',
-    'email', 'pilot-admin@castivo.test'
+    'email', 'pilot-admin@veyocast.test'
   ),
   'email', now(), now(), now()
 )
@@ -53,8 +53,8 @@ on conflict (id) do update set display_name = excluded.display_name;
 insert into public.tenants (id, name, slug, status, screen_limit)
 values (
   '10000000-0000-4000-8000-000000000101',
-  'Castivo pilotvereniging',
-  'castivo-pilot',
+  'VeyoCast pilotvereniging',
+  'veyocast-pilot',
   'active',
   4
 )

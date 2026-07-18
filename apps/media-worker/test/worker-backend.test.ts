@@ -149,7 +149,7 @@ function createBackend(
 }
 
 async function temporaryDirectory() {
-  const path = await mkdtemp(join(tmpdir(), "castivo-backend-test-"));
+  const path = await mkdtemp(join(tmpdir(), "veyocast-backend-test-"));
   directories.push(path);
   return path;
 }

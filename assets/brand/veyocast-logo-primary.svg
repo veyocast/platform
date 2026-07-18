@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 96" role="img" aria-labelledby="title desc">
+  <title id="title">VeyoCast placeholder logo</title>
+  <desc id="desc">Temporary placeholder logo for development only.</desc>
+  <rect width="460" height="96" fill="none"/>
+  <path d="M10 14h21l24 62 24-62h21L67 86H43L10 14Z" fill="#0A0A0A"/>
+  <path d="M44 35l28 15-28 15V35Z" fill="#FF5C20"/>
+  <text x="116" y="60" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="800" letter-spacing="-1.4" fill="#0A0A0A">VEYOCAST</text>
+  <text x="116" y="82" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#6C6C67">TEMPORARY PLACEHOLDER · APPROVED MASTER REQUIRED</text>
+</svg>

@@ -139,9 +139,9 @@ const navigationGroupMeta = [
 ] satisfies readonly Omit<ControlNavigationGroup, "items">[];
 
 export const demoControlSession = {
-  email: "operator@castivo.test",
+  email: "operator@veyocast.test",
   isLive: false,
-  organization: "Castivo platform",
+  organization: "VeyoCast platform",
   roles: ["platform_admin", "tenant_admin", "tenant_viewer"],
   tenant: "Museumkwartier",
   tenantId: null,

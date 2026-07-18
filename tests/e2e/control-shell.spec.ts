@@ -61,10 +61,10 @@ test("supports the public login and auth callback routes", async ({ page }) => {
   await page.goto("/login");
 
   await expect(
-    page.getByRole("heading", { name: "Inloggen bij Castivo Control" })
+    page.getByRole("heading", { name: "Inloggen bij VeyoCast Control" })
   ).toBeVisible();
 
-  await page.getByLabel("E-mailadres").fill("operator@castivo.test");
+  await page.getByLabel("E-mailadres").fill("operator@veyocast.test");
   await page.getByRole("button", { name: "Doorgaan" }).click();
 
   await expect(page).toHaveURL(/\/auth\/callback/);

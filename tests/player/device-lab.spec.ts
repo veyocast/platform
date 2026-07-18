@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
-const accessToken = process.env.DEVICE_LAB_ACCESS_TOKEN ?? "castivo-device-lab-test-token-2026";
+const accessToken = process.env.DEVICE_LAB_ACCESS_TOKEN ?? "veyocast-device-lab-test-token-2026";
 
 test("keeps the Device Lab hidden without a diagnostic session", async ({ page }) => {
   const response = await page.goto(`${playerURL}/device-lab`);

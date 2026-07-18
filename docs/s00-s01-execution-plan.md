@@ -2,16 +2,16 @@
 
 ## Current State
 
-- Repository root: `D:\Codex\castivo\platform`
-- Remote: `https://github.com/castivo/platform.git`
-- Current branch: `castivo/s00-foundation`
+- Repository root: `D:\Codex\veyocast\platform`
+- Remote: `https://github.com/veyocast/platform.git`
+- Current branch: `veyocast/s00-foundation`
 - Remote repository is empty, so this branch creates the initial root commit.
 
 ## S00-A Foundation
 
 Owner: `repo-agent`
 
-Branch: `castivo/s00-foundation`
+Branch: `veyocast/s00-foundation`
 
 Path ownership:
 
@@ -45,7 +45,7 @@ pnpm test
 
 Owner: `ci-agent`
 
-Branch: `castivo/s00-ci`
+Branch: `veyocast/s00-ci`
 
 Start after S00-A is reviewed, because root scripts and lockfile are high-conflict
 paths.
@@ -64,7 +64,7 @@ Gates:
 
 Owner: `design-system-agent`
 
-Branch: `castivo/s01-tokens`
+Branch: `veyocast/s01-tokens`
 
 Start after S00-A. May run before S00-B if it does not touch CI paths.
 
@@ -84,14 +84,14 @@ Gates:
 
 Owner: `ui-agent`
 
-Branch: `castivo/s01-ui-primitives`
+Branch: `veyocast/s01-ui-primitives`
 
 Start after S01-A exposes usable tokens.
 
 Path ownership:
 
 - `packages/ui/**`;
-- Storybook config for `@castivo/ui`;
+- Storybook config for `@veyocast/ui`;
 - app imports only if needed for smoke usage.
 
 Gates:

@@ -39,13 +39,13 @@ ongeldige URL's en onbegrensde getallen.
 Eén job of idle-check:
 
 ```bash
-pnpm --filter @castivo/media-worker worker:once
+pnpm --filter @veyocast/media-worker worker:once
 ```
 
 Continue daemon met `SIGINT`/`SIGTERM`-afhandeling:
 
 ```bash
-pnpm --filter @castivo/media-worker worker:run
+pnpm --filter @veyocast/media-worker worker:run
 ```
 
 Zonder argumenten print het entrypoint alleen de stateless healthpayload. De
@@ -70,9 +70,9 @@ gequeued. Ongeldige MIME, inhoud, metadata of bronlengte faalt definitief.
 ```bash
 pnpm db:reset
 pnpm test:rls
-pnpm --filter @castivo/media-worker test
-pnpm --filter @castivo/media-worker typecheck
-pnpm --filter @castivo/media-worker lint
+pnpm --filter @veyocast/media-worker test
+pnpm --filter @veyocast/media-worker typecheck
+pnpm --filter @veyocast/media-worker lint
 ```
 
 Voer vóór een pilot daarnaast met synthetische media één volledige echte

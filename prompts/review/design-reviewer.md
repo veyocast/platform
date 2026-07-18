@@ -1,6 +1,6 @@
 # Design Reviewer Prompt
 
-Review the current diff against the Castivo Bold design canon.
+Review the current diff against the VeyoCast Bold design canon.
 
 Check:
 

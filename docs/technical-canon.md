@@ -1,8 +1,8 @@
-# Castivo Technical Canon v1
+# VeyoCast Technical Canon v1
 
 ## 1. Productdefinitie
 
-Castivo is een multi-tenant narrowcasting- en ClubTV-platform voor sportverenigingen en organisaties met beheerde schermen. De MVP bestaat uit drie planes:
+VeyoCast is een multi-tenant narrowcasting- en ClubTV-platform voor sportverenigingen en organisaties met beheerde schermen. De MVP bestaat uit drie planes:
 
 1. **Marketing** — publieke website en conversie.
 2. **Control** — platform- en tenantbeheer.

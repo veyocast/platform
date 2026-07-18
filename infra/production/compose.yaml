@@ -1,4 +1,4 @@
-name: castivo-production
+name: veyocast-production
 
 services:
   control:
@@ -15,7 +15,7 @@ services:
         NEXT_PUBLIC_PLAYER_URL: https://${PLAYER_HOST:?PLAYER_HOST ontbreekt}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?NEXT_PUBLIC_SUPABASE_ANON_KEY ontbreekt}
         NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL ontbreekt}
-    image: castivo-control:${DEPLOYMENT_SHA}
+    image: veyocast-control:${DEPLOYMENT_SHA}
     environment:
       DEPLOYMENT_SHA: ${DEPLOYMENT_SHA}
       NEXT_PUBLIC_APP_URL: https://${CONTROL_HOST}
@@ -48,7 +48,7 @@ services:
         NEXT_PUBLIC_PLAYER_URL: https://${PLAYER_HOST:?PLAYER_HOST ontbreekt}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?NEXT_PUBLIC_SUPABASE_ANON_KEY ontbreekt}
         NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL ontbreekt}
-    image: castivo-player:${DEPLOYMENT_SHA}
+    image: veyocast-player:${DEPLOYMENT_SHA}
     environment:
       DEPLOYMENT_SHA: ${DEPLOYMENT_SHA}
       DEVICE_LAB_ACCESS_TOKEN: ${DEVICE_LAB_ACCESS_TOKEN:?DEVICE_LAB_ACCESS_TOKEN ontbreekt}
@@ -71,7 +71,7 @@ services:
       context: ../..
       dockerfile: infra/production/Dockerfile
       target: media-worker
-    image: castivo-media-worker:${DEPLOYMENT_SHA}
+    image: veyocast-media-worker:${DEPLOYMENT_SHA}
     environment:
       MEDIA_WORKER_ID: ${MEDIA_WORKER_ID:-media-worker:production:1}
       MEDIA_WORKER_LOCK_TIMEOUT_SECONDS: ${MEDIA_WORKER_LOCK_TIMEOUT_SECONDS:-900}

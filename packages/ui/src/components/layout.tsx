@@ -20,11 +20,11 @@ export function Stack({
   style,
   ...props
 }: StackProps) {
-  const stackStyle: CssVars = { ...style, "--cv-stack-gap": gap };
+  const stackStyle: CssVars = { ...style, "--vc-stack-gap": gap };
 
   return (
     <div
-      className={cn("cv-stack", `cv-stack--${direction}`, className)}
+      className={cn("vc-stack", `vc-stack--${direction}`, className)}
       style={stackStyle}
       {...props}
     />
@@ -41,12 +41,12 @@ export function Grid({ className, columns, gap, minItemWidth, style, ...props }:
   const gridColumns = typeof columns === "number" ? `repeat(${columns}, minmax(0, 1fr))` : columns;
   const gridStyle: CssVars = {
     ...style,
-    "--cv-grid-columns": gridColumns,
-    "--cv-grid-gap": gap,
-    "--cv-grid-min": minItemWidth
+    "--vc-grid-columns": gridColumns,
+    "--vc-grid-gap": gap,
+    "--vc-grid-min": minItemWidth
   };
 
-  return <div className={cn("cv-grid", className)} style={gridStyle} {...props} />;
+  return <div className={cn("vc-grid", className)} style={gridStyle} {...props} />;
 }
 
 export type ContainerProps = ComponentPropsWithoutRef<"div"> & {
@@ -54,7 +54,7 @@ export type ContainerProps = ComponentPropsWithoutRef<"div"> & {
 };
 
 export function Container({ className, size = "content", ...props }: ContainerProps) {
-  return <div className={cn("cv-container", `cv-container--${size}`, className)} {...props} />;
+  return <div className={cn("vc-container", `vc-container--${size}`, className)} {...props} />;
 }
 
 export type AspectRatioProps = ComponentPropsWithoutRef<"div"> & {
@@ -63,9 +63,9 @@ export type AspectRatioProps = ComponentPropsWithoutRef<"div"> & {
 
 export function AspectRatio({ className, ratio = "16:9", style, ...props }: AspectRatioProps) {
   const ratioValue = typeof ratio === "number" ? String(ratio) : ratio.replace(":", " / ");
-  const aspectStyle: CssVars = { ...style, "--cv-aspect-ratio": ratioValue };
+  const aspectStyle: CssVars = { ...style, "--vc-aspect-ratio": ratioValue };
 
-  return <div className={cn("cv-aspect-ratio", className)} style={aspectStyle} {...props} />;
+  return <div className={cn("vc-aspect-ratio", className)} style={aspectStyle} {...props} />;
 }
 
 export type DividerProps = ComponentPropsWithoutRef<"div"> & {
@@ -76,7 +76,7 @@ export function Divider({ className, orientation = "horizontal", ...props }: Div
   return (
     <div
       aria-orientation={orientation}
-      className={cn("cv-divider", `cv-divider--${orientation}`, className)}
+      className={cn("vc-divider", `vc-divider--${orientation}`, className)}
       role="separator"
       {...props}
     />
@@ -84,5 +84,5 @@ export function Divider({ className, orientation = "horizontal", ...props }: Div
 }
 
 export function VisuallyHidden({ className, ...props }: ComponentPropsWithoutRef<"span">) {
-  return <span className={cn("cv-visually-hidden", className)} {...props} />;
+  return <span className={cn("vc-visually-hidden", className)} {...props} />;
 }

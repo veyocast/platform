@@ -1,4 +1,4 @@
-# AGENTS.md — Castivo Codex Operating Rules
+# AGENTS.md — VeyoCast Codex Operating Rules
 
 ## 1. Leesvolgorde voor iedere agent
 
@@ -9,7 +9,7 @@ Voor elke taak moet de agent eerst lezen:
 3. `TASK_LEDGER.md`
 4. `docs/technical-canon.md`
 5. `docs/design-implementation-canon.md`
-6. `docs/design-canon/v1/CASTIVO_DESIGN_CANON_v1.0.md` wanneer aanwezig
+6. `docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md` wanneer aanwezig
 7. `docs/security-rls-canon.md`
 8. `docs/player-offline-canon.md`
 9. het relevante sprintpromptbestand in `prompts/sprints/`
@@ -28,8 +28,8 @@ Wanneer het echte designcanonbestand in de repo staat, is dat leidend boven same
 - Playlists worden gepubliceerd als immutable releases.
 - De player activeert nooit een incomplete release.
 - De player toont geen zwart scherm bij tijdelijk offline zolang er een geldige lokale release bestaat.
-- Normale playback bevat geen permanente Castivo-watermark.
-- Logo-assets zijn locked. Placeholder-assets mogen tijdelijk, maar mogen niet als definitief worden behandeld.
+- Normale playback bevat geen permanente VeyoCast-watermark.
+- Goedgekeurde logo-assets zijn locked. Placeholder-assets mogen tijdelijk, maar mogen niet als definitief worden behandeld.
 - Hardcoded brandkleuren zijn verboden waar tokens beschikbaar zijn.
 - Mobile UI is herontwerp, geen mini-desktop.
 - Geen fake klanten, testimonials, integratieclaims of prijzen.
@@ -57,7 +57,7 @@ Deze paths mogen niet door meerdere agents tegelijk gewijzigd worden:
 ## 4. Branchregels
 
 - Eén taak = één branch = één worktree = één PR.
-- Branchnaam: `castivo/sXX-korte-taaknaam`.
+- Branchnaam: `veyocast/sXX-korte-taaknaam`.
 - Geen force-push behalve na expliciete toestemming.
 - Geen amend/rebase op gedeelde branches zonder toestemming.
 - Elke commit moet een toetsbare eenheid zijn.

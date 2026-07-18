@@ -1,6 +1,6 @@
 # Auth, Tenancy and RLS
 
-S02 creates the first multi-tenant database boundary for Castivo.
+S02 creates the first multi-tenant database boundary for VeyoCast.
 
 ## Tables
 

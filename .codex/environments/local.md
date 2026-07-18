@@ -3,7 +3,7 @@
 Run Codex in WSL2/Ubuntu. Keep the repository inside the Linux filesystem, for example:
 
 ```bash
-~/code/castivo
+~/code/veyocast
 ```
 
 Required tools:

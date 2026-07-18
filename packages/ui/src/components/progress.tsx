@@ -16,7 +16,7 @@ export function Progress({ className, label, max = 100, value, style, ...props }
   const safeValue = hasValue ? Math.min(Math.max(value, 0), safeMax) : undefined;
   const progressStyle: CssVars = {
     ...style,
-    "--cv-progress-value": hasValue ? `${((safeValue ?? 0) / safeMax) * 100}%` : undefined
+    "--vc-progress-value": hasValue ? `${((safeValue ?? 0) / safeMax) * 100}%` : undefined
   };
 
   return (
@@ -25,12 +25,12 @@ export function Progress({ className, label, max = 100, value, style, ...props }
       aria-valuemax={safeMax}
       aria-valuemin={0}
       aria-valuenow={safeValue}
-      className={cn("cv-progress", !hasValue && "cv-progress--indeterminate", className)}
+      className={cn("vc-progress", !hasValue && "vc-progress--indeterminate", className)}
       role="progressbar"
       style={progressStyle}
       {...props}
     >
-      <div className="cv-progress__bar" />
+      <div className="vc-progress__bar" />
     </div>
   );
 }

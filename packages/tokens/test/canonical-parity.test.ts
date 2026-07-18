@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import type { CastivoDesignTokens } from "../src/schema";
+import type { VeyoCastDesignTokens } from "../src/schema";
 
 type CanonicalValue<T = string | number> = {
   value: T;
@@ -61,11 +61,11 @@ async function readJson<T>(path: string) {
   return JSON.parse(await readFile(resolve(repoRoot, path), "utf8")) as T;
 }
 
-describe("Castivo canonical design token projection", () => {
-  it("keeps runtime semantic values aligned with canon v1.0.0", async () => {
+describe("VeyoCast canonical design token projection", () => {
+  it("keeps runtime semantic values aligned with canon v2.0.0", async () => {
     const [runtime, canonical] = await Promise.all([
-      readJson<CastivoDesignTokens>("tokens/castivo-design-tokens.json"),
-      readJson<CanonicalTokens>("docs/design-canon/v1/castivo-design-tokens.json")
+      readJson<VeyoCastDesignTokens>("tokens/veyocast-design-tokens.json"),
+      readJson<CanonicalTokens>("docs/design-canon/v1/veyocast-design-tokens.json")
     ]);
 
     expect(runtime.meta.status).toBe("canonical-runtime-projection");

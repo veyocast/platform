@@ -8,12 +8,12 @@ test("player setup and playback expose accessible landmarks and diagnostics", as
   await page.goto(playerURL);
 
   await expect(
-    page.getByRole("main", { name: "Castivo player setup" })
+    page.getByRole("main", { name: "VeyoCast player setup" })
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Castivo Player pairing" })
+    page.getByRole("heading", { name: "VeyoCast Player pairing" })
   ).toBeVisible();
-  await expect(page.getByLabel("Pairingcode")).toContainText("CTV 482");
+  await expect(page.getByLabel("Pairingcode")).toContainText("VYO 482");
   await expect(page.getByLabel("Device setupstatus")).toContainText(
     "Geen Supabase Auth-user"
   );
@@ -23,7 +23,7 @@ test("player setup and playback expose accessible landmarks and diagnostics", as
   await expect(page.getByLabel("Release playback")).toBeVisible({
     timeout: 15_000
   });
-  await expect(page.getByRole("main", { name: "Castivo player" })).toBeVisible();
+  await expect(page.getByRole("main", { name: "VeyoCast player" })).toBeVisible();
   await expect(page.getByRole("img", { name: "Clubhuis entree" })).toBeVisible();
   await expect(page.getByLabel("Player diagnostics")).toContainText("PLAYING");
 });

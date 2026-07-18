@@ -1,4 +1,4 @@
-name: castivo-${CASTIVO_ENVIRONMENT:?CASTIVO_ENVIRONMENT ontbreekt}
+name: veyocast-${VEYOCAST_ENVIRONMENT:?VEYOCAST_ENVIRONMENT ontbreekt}
 
 services:
   control:
@@ -15,7 +15,7 @@ services:
         NEXT_PUBLIC_PLAYER_URL: https://${PLAYER_HOST:?PLAYER_HOST ontbreekt}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?NEXT_PUBLIC_SUPABASE_ANON_KEY ontbreekt}
         NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL ontbreekt}
-    image: castivo-control:${CASTIVO_ENVIRONMENT}-${DEPLOYMENT_SHA}
+    image: veyocast-control:${VEYOCAST_ENVIRONMENT}-${DEPLOYMENT_SHA}
     ports:
       - "127.0.0.1:${CONTROL_BIND_PORT:?CONTROL_BIND_PORT ontbreekt}:3000"
     environment:
@@ -43,7 +43,7 @@ services:
       backend:
       proxy:
         aliases:
-          - castivo-${CASTIVO_ENVIRONMENT}-control
+          - veyocast-${VEYOCAST_ENVIRONMENT}-control
 
   player:
     build:
@@ -59,7 +59,7 @@ services:
         NEXT_PUBLIC_PLAYER_URL: https://${PLAYER_HOST:?PLAYER_HOST ontbreekt}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?NEXT_PUBLIC_SUPABASE_ANON_KEY ontbreekt}
         NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL ontbreekt}
-    image: castivo-player:${CASTIVO_ENVIRONMENT}-${DEPLOYMENT_SHA}
+    image: veyocast-player:${VEYOCAST_ENVIRONMENT}-${DEPLOYMENT_SHA}
     ports:
       - "127.0.0.1:${PLAYER_BIND_PORT:?PLAYER_BIND_PORT ontbreekt}:3001"
     environment:
@@ -86,16 +86,16 @@ services:
       backend:
       proxy:
         aliases:
-          - castivo-${CASTIVO_ENVIRONMENT}-player
+          - veyocast-${VEYOCAST_ENVIRONMENT}-player
 
   media-worker:
     build:
       context: ../..
       dockerfile: infra/production/Dockerfile
       target: media-worker
-    image: castivo-media-worker:${CASTIVO_ENVIRONMENT}-${DEPLOYMENT_SHA}
+    image: veyocast-media-worker:${VEYOCAST_ENVIRONMENT}-${DEPLOYMENT_SHA}
     environment:
-      MEDIA_WORKER_ID: ${MEDIA_WORKER_ID:-media-worker:${CASTIVO_ENVIRONMENT}:1}
+      MEDIA_WORKER_ID: ${MEDIA_WORKER_ID:-media-worker:${VEYOCAST_ENVIRONMENT}:1}
       MEDIA_WORKER_LOCK_TIMEOUT_SECONDS: ${MEDIA_WORKER_LOCK_TIMEOUT_SECONDS:-900}
       MEDIA_WORKER_MAX_ATTEMPTS: ${MEDIA_WORKER_MAX_ATTEMPTS:-3}
       MEDIA_WORKER_POLL_INTERVAL_MS: ${MEDIA_WORKER_POLL_INTERVAL_MS:-2000}
@@ -112,10 +112,10 @@ services:
 
 networks:
   backend:
-    name: castivo-${CASTIVO_ENVIRONMENT}-backend
+    name: veyocast-${VEYOCAST_ENVIRONMENT}-backend
     internal: true
   proxy:
-    name: ${REVERSE_PROXY_NETWORK:-castivo-proxy}
+    name: ${REVERSE_PROXY_NETWORK:-veyocast-proxy}
     external: true
 
 secrets:

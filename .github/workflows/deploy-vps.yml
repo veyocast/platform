@@ -24,7 +24,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: castivo-vps-${{ github.event_name == 'workflow_run' && 'staging' || inputs.environment }}
+  group: veyocast-vps-${{ github.event_name == 'workflow_run' && 'staging' || inputs.environment }}
   cancel-in-progress: false
 
 jobs:
@@ -35,7 +35,7 @@ jobs:
       - self-hosted
       - linux
       - x64
-      - castivo-vps
+      - veyocast-vps
       - ${{ github.event_name == 'workflow_run' && 'staging' || inputs.environment }}
     environment:
       name: ${{ github.event_name == 'workflow_run' && 'staging' || inputs.environment }}
@@ -164,7 +164,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           umask 077
-          app_env_file="${RUNNER_TEMP}/castivo-app-${TARGET_ENVIRONMENT}-${GITHUB_RUN_ID}.env"
+          app_env_file="${RUNNER_TEMP}/veyocast-app-${TARGET_ENVIRONMENT}-${GITHUB_RUN_ID}.env"
 
           write_env() {
             local destination=$1
@@ -177,7 +177,7 @@ jobs:
             printf '%s=%s\n' "${name}" "${value}" >> "${destination}"
           }
 
-          write_env "${app_env_file}" CASTIVO_ENVIRONMENT "${TARGET_ENVIRONMENT}"
+          write_env "${app_env_file}" VEYOCAST_ENVIRONMENT "${TARGET_ENVIRONMENT}"
           write_env "${app_env_file}" CONTROL_BIND_PORT "${CONTROL_BIND_PORT}"
           write_env "${app_env_file}" CONTROL_HOST "${CONTROL_HOST}"
           write_env "${app_env_file}" DEPLOYMENT_SHA "${DEPLOYMENT_SHA}"
@@ -257,7 +257,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          if [[ -n ${APP_ENV_FILE:-} && ${APP_ENV_FILE} == "${RUNNER_TEMP}/castivo-app-"* ]]; then
+          if [[ -n ${APP_ENV_FILE:-} && ${APP_ENV_FILE} == "${RUNNER_TEMP}/veyocast-app-"* ]]; then
             rm -f -- "${APP_ENV_FILE}"
           fi
           rm -f -- \

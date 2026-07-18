@@ -7,7 +7,7 @@ export {
   isValidDeviceLabSession
 } from "./device-lab-session";
 
-export const deviceLabCookieName = "castivo_device_lab_session";
+export const deviceLabCookieName = "veyocast_device_lab_session";
 
 export function isValidDeviceLabAccessToken(candidate: string | null) {
   const expected = process.env.DEVICE_LAB_ACCESS_TOKEN?.trim();

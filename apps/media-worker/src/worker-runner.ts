@@ -51,7 +51,7 @@ export async function runWorkerOnce({
   let workingDirectory: string | null = null;
   try {
     assertSupportedJob(job);
-    workingDirectory = await mkdtemp(join(tmpdir(), "castivo-media-"));
+    workingDirectory = await mkdtemp(join(tmpdir(), "veyocast-media-"));
     const inputPath = join(workingDirectory, "source.mp4");
     const outputPath = join(workingDirectory, "player-1080p.mp4");
 
