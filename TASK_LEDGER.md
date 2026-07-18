@@ -20,6 +20,7 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 | S11-A | review | castivo/s11-hardening | review-agents | security/a11y/reliability | player/config/tests | lint/typecheck/test/build/e2e/a11y/player/offline/rls | Player cache cleanup, service-role boundary test and player a11y hardening complete; local gates green. |
 | S11-B | review | castivo/s11b-enterprise-control-ux | ux-agent | enterprise Control UX | apps/control, docs/design-canon, docs, tests | lint/typecheck/test/build/e2e/a11y + headless visual QA | Canon v1.0.0 package and official icon hash verified; Control rebuilt as an operational SaaS shell with resource workflows, responsive states and green repo-wide gates. |
 | S12-A | review | castivo/s12-pilot-ready | orchestrator | end-to-end pilot | docs/tests | full gates | pilot runbook, launch checklist, evidence and cross-app smoke test complete; local Supabase/RLS gate remains pending Docker recovery |
+| S12-B | review | castivo/s12-live-vertical-slice | repo-agent | live pilot vertical slice | Control, Player, Supabase, docs, tests | db reset + rls + lint/typecheck/test/build/e2e/a11y/player/live e2e | Real auth, verified PNG upload, immutable publish, Player-owned pairing token, signed manifest, atomic offline activation and heartbeat work end to end; MP4 processing and 24-hour reliability validation remain outside this slice. |
 
 ## Statuswaarden
 

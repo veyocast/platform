@@ -14,6 +14,7 @@ describe("control navigation", () => {
 
     expect(links).toStrictEqual([
       "/dashboard",
+      "/dashboard/pilot",
       "/dashboard/media",
       "/dashboard/playlists",
       "/dashboard/screens",

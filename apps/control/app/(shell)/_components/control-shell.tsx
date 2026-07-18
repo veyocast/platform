@@ -16,6 +16,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
+  Rocket,
   Search,
   Settings2,
   ShieldCheck,
@@ -44,6 +45,7 @@ const navigationIcons: Record<string, LucideIcon> = {
   Instellingen: Settings2,
   Media: FileImage,
   Platform: MonitorSmartphone,
+  Pilotflow: Rocket,
   Playlists: ListVideo,
   Schermen: MonitorSmartphone,
   Team: Users,
@@ -371,7 +373,12 @@ function initials(name: string) {
 }
 
 const roleLabel = {
+  platform_owner: "Platformeigenaar",
   platform_admin: "Platformbeheerder",
+  platform_support: "Platformsupport",
+  platform_viewer: "Platformkijker",
+  tenant_owner: "Eigenaar",
   tenant_admin: "Beheerder",
+  tenant_editor: "Editor",
   tenant_viewer: "Kijker"
 } satisfies Record<ControlSession["roles"][number], string>;

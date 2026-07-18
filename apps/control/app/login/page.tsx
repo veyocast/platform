@@ -1,7 +1,17 @@
 import { CASTIVO_APPS, getLocalUrl } from "@castivo/config";
 import Link from "next/link";
 
-export default function LoginPage() {
+import { isLiveSupabaseConfigured } from "../../lib/supabase/config";
+import { signIn } from "./actions";
+
+type LoginPageProps = {
+  searchParams: Promise<{ fout?: string; reden?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const live = isLiveSupabaseConfigured();
+  const { fout, reden } = await searchParams;
+
   return (
     <main className="auth-shell">
       <section className="auth-panel" aria-labelledby="login-title">
@@ -12,10 +22,21 @@ export default function LoginPage() {
           </h1>
         </div>
         <p className="auth-copy">
-          Deze route staat klaar voor Supabase Auth. S03 levert de shell en
-          callback, S04/S05 koppelen de sessie aan tenantdata en domeinrechten.
+          {live
+            ? "Log in met je Castivo-account. Je tenant- en platformrollen worden na het inloggen server-side geladen."
+            : "De demo draait zonder lokale Supabase-configuratie. Start de database en vul de lokale omgevingswaarden in om de live pilotflow te gebruiken."}
         </p>
-        <form className="auth-form" action="/auth/callback" method="get">
+        {fout ? <div className="notice notice--warning" role="alert">{fout}</div> : null}
+        {reden ? (
+          <div className="notice" role="status">
+            Je sessie ontbreekt of is verlopen. Log opnieuw in.
+          </div>
+        ) : null}
+        <form
+          className="auth-form"
+          action={live ? signIn : "/auth/callback"}
+          method={live ? undefined : "get"}
+        >
           <div className="field">
             <label htmlFor="email">E-mailadres</label>
             <input
@@ -27,7 +48,18 @@ export default function LoginPage() {
               type="email"
             />
           </div>
-          <div className="field">
+          {live ? (
+            <div className="field">
+              <label htmlFor="password">Wachtwoord</label>
+              <input
+                autoComplete="current-password"
+                id="password"
+                name="password"
+                required
+                type="password"
+              />
+            </div>
+          ) : <div className="field">
             <label htmlFor="tenant">Tenant</label>
             <input
               autoComplete="organization"
@@ -37,7 +69,7 @@ export default function LoginPage() {
               type="text"
             />
             <p>Laat leeg voor platformrollen.</p>
-          </div>
+          </div>}
           <button className="auth-button" type="submit">
             Doorgaan
           </button>
