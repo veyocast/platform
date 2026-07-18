@@ -14,4 +14,4 @@ Gebruik `prompts/master-orchestrator.md`.
 
 ## Eerst alle UI/UX bouwen?
 
-Nee. Bouw eerst het designsysteemfundament en daarna verticale flows. De belangrijkste UX van Castivo ontstaat uit echte domeinstatus: actieve release, gewenste release, syncstatus, storage, pairing, media processing, RLS-permissions en offline-playergedrag.
+Nee. Bouw eerst het designsysteemfundament en daarna verticale flows. De belangrijkste UX van VeyoCast ontstaat uit echte domeinstatus: actieve release, gewenste release, syncstatus, storage, pairing, media processing, RLS-permissions en offline-playergedrag.

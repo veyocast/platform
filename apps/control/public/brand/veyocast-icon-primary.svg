@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">VeyoCast placeholder icon</title>
+  <desc id="desc">Temporary VeyoCast V icon placeholder for development.</desc>
+  <rect width="512" height="512" rx="96" fill="#FAFAF7"/>
+  <path d="M88 88h96l72 242 72-242h96L304 424h-96L88 88Z" fill="#0A0A0A"/>
+  <path d="M226 194l96 62-96 62V194Z" fill="#FF5C20"/>
+</svg>

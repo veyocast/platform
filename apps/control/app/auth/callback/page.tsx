@@ -24,7 +24,7 @@ export default async function AuthCallbackPage() {
         </div>
         <p className="auth-copy">
           {live
-            ? `Je bent aangemeld als ${session?.email ?? "Castivo-gebruiker"}. Rollen en tenantcontext worden op de server gecontroleerd.`
+            ? `Je bent aangemeld als ${session?.email ?? "VeyoCast-gebruiker"}. Rollen en tenantcontext worden op de server gecontroleerd.`
             : "De callback-route is beschikbaar voor Supabase Auth. Zonder lokale configuratie gebruikt Control expliciete demorechten."}
         </p>
         {!live ? (

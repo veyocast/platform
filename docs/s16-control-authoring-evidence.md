@@ -34,7 +34,7 @@ van 1280×720, 60 fps en AAC-audio:
    afbeelding en daarna de video muted af en rapporteerde een online heartbeat.
 
 De opt-in Playwright-test in `tests/e2e/live-pilot.spec.ts` voert dezelfde keten
-uit wanneer `CASTIVO_VIDEO_FIXTURE` is gezet.
+uit wanneer `VEYOCAST_VIDEO_FIXTURE` is gezet.
 
 ## Groene gates
 

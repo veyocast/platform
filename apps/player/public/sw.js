@@ -1,9 +1,13 @@
 /* global Headers, ReadableStream, Request, Response, URL, caches, fetch, self */
 
-const SHELL_CACHE = "castivo-player-shell-v2";
-const SHELL_CACHE_PREFIX = "castivo-player-shell-";
-const ASSET_CACHE = "castivo-player-assets-v1";
-const CACHE_PATH_PREFIX = "/__castivo-player-cache/";
+const SHELL_CACHE = "veyocast-player-shell-v2";
+const SHELL_CACHE_PREFIX = "veyocast-player-shell-";
+const ASSET_CACHE = "veyocast-player-assets-v1";
+const CACHE_PATH_PREFIX = "/__veyocast-player-cache/";
+const PREVIOUS_BRAND_NAMESPACE = String.fromCharCode(99, 97, 115, 116, 105, 118, 111);
+const PREVIOUS_SHELL_CACHE_PREFIX = `${PREVIOUS_BRAND_NAMESPACE}-player-shell-`;
+const PREVIOUS_ASSET_CACHE = `${PREVIOUS_BRAND_NAMESPACE}-player-assets-v1`;
+const PREVIOUS_CACHE_PATH_PREFIX = `/__${PREVIOUS_BRAND_NAMESPACE}-player-cache/`;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.add(new Request("/"))));
@@ -12,20 +16,44 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
+    await migratePreviousAssetCache();
     const cacheNames = await caches.keys();
     await Promise.all(
       cacheNames
-        .filter((cacheName) => cacheName.startsWith(SHELL_CACHE_PREFIX) && cacheName !== SHELL_CACHE)
+        .filter((cacheName) => (
+          (cacheName.startsWith(SHELL_CACHE_PREFIX) && cacheName !== SHELL_CACHE) ||
+          cacheName.startsWith(PREVIOUS_SHELL_CACHE_PREFIX)
+        ))
         .map((cacheName) => caches.delete(cacheName))
     );
     await self.clients.claim();
     const clients = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
     clients.forEach((client) => client.postMessage({
       cacheVersion: SHELL_CACHE,
-      type: "CASTIVO_SW_ACTIVATED"
+      type: "VEYOCAST_SW_ACTIVATED"
     }));
   })());
 });
+
+async function migratePreviousAssetCache() {
+  const cacheNames = await caches.keys();
+  if (!cacheNames.includes(PREVIOUS_ASSET_CACHE)) return;
+
+  const previousCache = await caches.open(PREVIOUS_ASSET_CACHE);
+  const currentCache = await caches.open(ASSET_CACHE);
+  const requests = await previousCache.keys();
+
+  for (const request of requests) {
+    const previousUrl = new URL(request.url);
+    if (!previousUrl.pathname.startsWith(PREVIOUS_CACHE_PATH_PREFIX)) continue;
+    const response = await previousCache.match(request);
+    if (!response) continue;
+    previousUrl.pathname = `${CACHE_PATH_PREFIX}${previousUrl.pathname.slice(PREVIOUS_CACHE_PATH_PREFIX.length)}`;
+    await currentCache.put(previousUrl.toString(), response);
+  }
+
+  await caches.delete(PREVIOUS_ASSET_CACHE);
+}
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;

@@ -1,6 +1,6 @@
 # Security Reviewer Prompt
 
-Review the current diff for Castivo security risks.
+Review the current diff for VeyoCast security risks.
 
 Check:
 

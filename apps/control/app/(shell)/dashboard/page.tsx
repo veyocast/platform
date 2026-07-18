@@ -136,7 +136,7 @@ export default function DashboardPage() {
             </Link>
           </>
         }
-        description="Dit is de actuele status van jouw Castivo-omgeving. Schermen en publicaties staan vooraan, zodat je direct ziet wat aandacht vraagt."
+        description="Dit is de actuele status van jouw VeyoCast-omgeving. Schermen en publicaties staan vooraan, zodat je direct ziet wat aandacht vraagt."
         eyebrow="Museumkwartier"
         status={{ label: "Tenantcontext actief", tone: "success" }}
         title="Goedemorgen, Daan"

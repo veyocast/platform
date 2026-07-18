@@ -319,7 +319,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                 </form>
               </>
             ) : (
-              <p className="notice">Na de eerste upload toont Castivo hier de controleerbare metadata.</p>
+              <p className="notice">Na de eerste upload toont VeyoCast hier de controleerbare metadata.</p>
             )}
           </section>
 

@@ -1,4 +1,4 @@
-project_id = "castivo-platform"
+project_id = "veyocast-platform"
 
 [api]
 enabled = true

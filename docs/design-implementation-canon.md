@@ -2,16 +2,16 @@
 
 ## Source order
 
-1. Official logo/icon assets in `docs/design-canon/v1/assets/`.
-2. `docs/design-canon/v1/CASTIVO_DESIGN_CANON_v1.0.md`.
-3. `docs/design-canon/v1/castivo-design-tokens.json`.
+1. Approved logo/icon master assets, once supplied.
+2. `docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md`.
+3. `docs/design-canon/v1/veyocast-design-tokens.json`.
 4. Shared component library.
 5. Product-specific implementation.
 
-The complete Castivo Bold Design & Product Canon v1.0.0 is versioned in
-`docs/design-canon/v1/`. Its PDF, DOCX, Markdown source, W3C-format tokens,
-Tailwind preset, component inventory, page-template inventory, reference
-images and asset checksums are one governed package. The root `tokens/` files
+The VeyoCast Bold Design & Product Canon v2.0.0 is versioned in
+`docs/design-canon/v1/`. Its Markdown source, W3C-format tokens, Tailwind
+preset, component inventory, page-template inventory and asset checksums are
+one governed package. The root `tokens/` files
 are the existing runtime-compatible projection of that source: its semantic
 values are contract-tested against the canonical package while preserving the
 variable names and spacing API already used by the applications.
@@ -20,7 +20,7 @@ variable names and spacing API already used by the applications.
 
 - Marketing: expressive, dark editorial, conversion-oriented.
 - Control: calm, operational, information-rich.
-- Player: clubcontent-first, Castivo visible only in setup/startup/diagnostics.
+- Player: clubcontent-first, VeyoCast visible only in setup/startup/diagnostics.
 
 Control is an operational SaaS application. It uses a 248 px desktop sidebar,
 64 px topbar, 32 px desktop gutter, visible tenant or platform context, a
@@ -30,10 +30,11 @@ charts or technical implementation copy as primary interface content.
 
 ## Placeholder assets
 
-The official compact C-icon in `docs/design-canon/v1/assets/` is a locked
-asset. It is copied unchanged to the Control public brand map for application
-use. No logo or icon is redrawn, recoloured, cropped or reconstructed. The
-horizontal lock-ups still require separately approved masters before use.
+Approved VeyoCast logo and icon masters have not yet been supplied. Current
+SVGs are temporary development placeholders and must never be presented as
+official assets. Public release remains blocked until separately approved
+masters replace them. Once supplied, masters are copied unchanged into app
+public brand maps; they are never redrawn, recoloured, cropped or reconstructed.
 
 ## Tokens
 

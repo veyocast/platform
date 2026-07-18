@@ -43,18 +43,18 @@ export function Field({
   };
 
   return (
-    <div className={cn("cv-field", className)} {...props}>
-      <label className="cv-field__label" htmlFor={controlId}>
+    <div className={cn("vc-field", className)} {...props}>
+      <label className="vc-field__label" htmlFor={controlId}>
         {label}
       </label>
       {description ? (
-        <div className="cv-field__description" id={descriptionId}>
+        <div className="vc-field__description" id={descriptionId}>
           {description}
         </div>
       ) : null}
       {typeof children === "function" ? children({ controlProps, id: controlId }) : children}
       {error ? (
-        <div className="cv-field__error" id={errorId}>
+        <div className="vc-field__error" id={errorId}>
           {error}
         </div>
       ) : null}
@@ -63,25 +63,25 @@ export function Field({
 }
 
 export function TextInput({ className, type = "text", ...props }: ComponentPropsWithoutRef<"input">) {
-  return <input className={cn("cv-field-control", className)} type={type} {...props} />;
+  return <input className={cn("vc-field-control", className)} type={type} {...props} />;
 }
 
 export function Textarea({ className, ...props }: ComponentPropsWithoutRef<"textarea">) {
-  return <textarea className={cn("cv-field-control", "cv-textarea", className)} {...props} />;
+  return <textarea className={cn("vc-field-control", "vc-textarea", className)} {...props} />;
 }
 
 export function Select({ className, ...props }: ComponentPropsWithoutRef<"select">) {
-  return <select className={cn("cv-field-control", className)} {...props} />;
+  return <select className={cn("vc-field-control", className)} {...props} />;
 }
 
 export type CheckboxProps = Omit<ComponentPropsWithoutRef<"input">, "type">;
 
 export function Checkbox({ className, ...props }: CheckboxProps) {
-  return <input className={cn("cv-checkbox", className)} type="checkbox" {...props} />;
+  return <input className={cn("vc-checkbox", className)} type="checkbox" {...props} />;
 }
 
 export type SwitchProps = Omit<ComponentPropsWithoutRef<"input">, "role" | "type">;
 
 export function Switch({ className, ...props }: SwitchProps) {
-  return <input className={cn("cv-switch", className)} role="switch" type="checkbox" {...props} />;
+  return <input className={cn("vc-switch", className)} role="switch" type="checkbox" {...props} />;
 }

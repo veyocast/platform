@@ -51,7 +51,7 @@ ffmpeg -hide_banner -loglevel error -y \
   -b:v 6500k -maxrate 6500k -bufsize 13000k -g 120 -keyint_min 60 -sc_threshold 0 \
   -an -movflags +faststart "${output_dir}/h264-high-1080p60-silent.mp4"
 
-if [[ "${CASTIVO_OPTIONAL_CODECS:-0}" == "1" ]]; then
+if [[ "${VEYOCAST_OPTIONAL_CODECS:-0}" == "1" ]]; then
   ffmpeg -hide_banner -loglevel error -y -f lavfi -i "testsrc2=size=1280x720:rate=30" -t 4 \
     -c:v libvpx -b:v 1800k -an "${output_dir}/vp8-720p30.webm"
   ffmpeg -hide_banner -loglevel error -y -f lavfi -i "testsrc2=size=1920x1080:rate=30" -t 4 \
@@ -61,7 +61,7 @@ if [[ "${CASTIVO_OPTIONAL_CODECS:-0}" == "1" ]]; then
     "${output_dir}/hevc-1080p30.mp4"
 fi
 
-printf 'CASTIVO_INTENTIONALLY_CORRUPT_MEDIA\n' > "${output_dir}/corrupt.mp4"
+printf 'VEYOCAST_INTENTIONALLY_CORRUPT_MEDIA\n' > "${output_dir}/corrupt.mp4"
 
 (
   cd "${output_dir}"
@@ -69,10 +69,10 @@ printf 'CASTIVO_INTENTIONALLY_CORRUPT_MEDIA\n' > "${output_dir}/corrupt.mp4"
 )
 
 cat > "${output_dir}/README.txt" <<'EOF'
-Generated, synthetic Castivo Device Capability Lab media.
+Generated, synthetic VeyoCast Device Capability Lab media.
 Source: FFmpeg lavfi testsrc2/color/sine; no third-party visual or audio content.
 Regenerate with: scripts/generate-lg-test-media.sh
-Optional VP8/VP9/HEVC: CASTIVO_OPTIONAL_CODECS=1 scripts/generate-lg-test-media.sh
+Optional VP8/VP9/HEVC: VEYOCAST_OPTIONAL_CODECS=1 scripts/generate-lg-test-media.sh
 EOF
 
 echo "Testmedia gegenereerd in ${output_dir}"

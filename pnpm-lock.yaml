@@ -50,7 +50,7 @@ importers:
 
   apps/control:
     dependencies:
-      '@castivo/config':
+      '@veyocast/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@supabase/ssr':
@@ -74,7 +74,7 @@ importers:
 
   apps/marketing:
     dependencies:
-      '@castivo/config':
+      '@veyocast/config':
         specifier: workspace:*
         version: link:../../packages/config
       next:
@@ -89,7 +89,7 @@ importers:
 
   apps/media-worker:
     dependencies:
-      '@castivo/config':
+      '@veyocast/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@supabase/supabase-js':
@@ -102,7 +102,7 @@ importers:
 
   apps/player:
     dependencies:
-      '@castivo/config':
+      '@veyocast/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@supabase/supabase-js':
@@ -128,7 +128,7 @@ importers:
 
   packages/ui:
     dependencies:
-      '@castivo/tokens':
+      '@veyocast/tokens':
         specifier: workspace:*
         version: link:../tokens
       '@radix-ui/react-slot':

@@ -12,11 +12,11 @@ insert into auth.users (
 values
   (
     '00000000-0000-4000-8000-000000000921', 'authenticated', 'authenticated',
-    'video-editor@castivo.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb
+    'video-editor@veyocast.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb
   ),
   (
     '00000000-0000-4000-8000-000000000922', 'authenticated', 'authenticated',
-    'video-viewer@castivo.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb
+    'video-viewer@veyocast.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb
   );
 
 insert into public.profiles (id, display_name)

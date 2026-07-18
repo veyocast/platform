@@ -4,8 +4,8 @@ import { createStableTestId, expectDefined } from "../src/index";
 
 describe("testkit helpers", () => {
   it("normalizes stable test ids", () => {
-    expect(createStableTestId("tenant", "  FC Castivo 2026  ")).toBe(
-      "tenant-fc-castivo-2026"
+    expect(createStableTestId("tenant", "  FC VeyoCast 2026  ")).toBe(
+      "tenant-fc-veyocast-2026"
     );
   });
 

@@ -2,7 +2,7 @@
 
 ## Doel en grens
 
-Dit runbook valideert één echte lokale Castivo-keten:
+Dit runbook valideert één echte lokale VeyoCast-keten:
 
 1. een tenantbeheerder meldt zich aan via Supabase Auth;
 2. Control verifieert afbeeldingen synchroon en uploadt MP4 via signed private storage;
@@ -48,9 +48,9 @@ Commit deze nooit. De service-role key mag nooit een NEXT_PUBLIC_-prefix hebben.
 
 Start daarna de applicaties in aparte vensters:
 
-    pnpm --filter @castivo/control exec next dev --port 3000 --hostname 127.0.0.1
-    pnpm --filter @castivo/player exec next dev --port 3001 --hostname 127.0.0.1
-    pnpm --filter @castivo/marketing exec next dev --port 3002 --hostname 127.0.0.1
+    pnpm --filter @veyocast/control exec next dev --port 3000 --hostname 127.0.0.1
+    pnpm --filter @veyocast/player exec next dev --port 3001 --hostname 127.0.0.1
+    pnpm --filter @veyocast/marketing exec next dev --port 3002 --hostname 127.0.0.1
 
 Wanneer Auth direct na een lokale reset tijdelijk via Kong een 502 geeft, wacht
 eerst op gezonde containers. Herstart zo nodig alleen de lokale gateway; pas
@@ -59,7 +59,7 @@ geen policies of credentials als workaround aan.
 ## Live pilotroute
 
 1. Open http://127.0.0.1:3000/login.
-2. Meld lokaal aan met pilot-admin@castivo.test en wachtwoord castivo-local.
+2. Meld lokaal aan met pilot-admin@veyocast.test en wachtwoord veyocast-local.
 3. Open Pilotflow. De status moet Live Supabase tonen.
 4. Upload een PNG, JPEG of WebP van maximaal 20 MB. Control controleert magic
    bytes, MIME-type, tenantpad en SHA-256 voordat de media Gereed wordt.
@@ -80,7 +80,7 @@ geen policies of credentials als workaround aan.
     release blijft als OFFLINE_PLAYING zichtbaar.
 
 De bestaande demopaden blijven beschikbaar zonder Supabasevariabelen.
-demo-online en CTV 482 zijn dan uitsluitend testfixtures.
+demo-online en VYO 482 zijn dan uitsluitend testfixtures.
 
 ## Geautomatiseerde bewijslast
 
@@ -97,9 +97,9 @@ Reguliere gates:
 
 De echte browserketen is opt-in en gebruikt de lokale procesvariabelen:
 
-    $env:CASTIVO_LIVE_PILOT = "1"
+    $env:VEYOCAST_LIVE_PILOT = "1"
     pnpm exec playwright test tests/e2e/live-pilot.spec.ts --project=chromium
-    Remove-Item Env:CASTIVO_LIVE_PILOT
+    Remove-Item Env:VEYOCAST_LIVE_PILOT
 
 Deze test doorloopt login, upload, concept, publicatie, pairing, signed manifest,
 verified playback en zichtbare device-status.

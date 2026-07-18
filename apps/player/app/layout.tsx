@@ -5,8 +5,8 @@ import "./globals.css";
 import { ServiceWorkerRegistration } from "./_components/service-worker-registration";
 
 export const metadata: Metadata = {
-  title: "Castivo Player",
-  description: "Castivo player plane"
+  title: "VeyoCast Player",
+  description: "VeyoCast player plane"
 };
 
 export default function RootLayout({

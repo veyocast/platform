@@ -64,7 +64,7 @@ export async function getControlSession(): Promise<ControlSession | null> {
   return {
     email: user.email ?? "",
     isLive: true,
-    organization: "Castivo platform",
+    organization: "VeyoCast platform",
     roles,
     tenant: tenantRecord?.name ?? "Geen actieve vereniging",
     tenantId: activeMembership?.tenant_id ?? null,
@@ -73,7 +73,7 @@ export async function getControlSession(): Promise<ControlSession | null> {
       profileResult.data?.display_name ??
       (user.user_metadata.display_name as string | undefined) ??
       user.email ??
-      "Castivo gebruiker"
+      "VeyoCast gebruiker"
   };
 }
 

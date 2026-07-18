@@ -1,12 +1,10 @@
 ---
-title: "Castivo Bold - Design & Product Canon"
+title: "VeyoCast Bold - Design & Product Canon"
 subtitle: "Normatieve merk-, website-, dashboard- en playerstandaard"
-author: "Castivo"
+author: "VeyoCast"
 date: "14 juli 2026"
 lang: nl-NL
 ---
-
-![Castivo Bold dark marketing reference](references/dark-marketing-showcase.png){width=100%}
 
 # Inhoud
 
@@ -37,13 +35,13 @@ lang: nl-NL
 
 # Documentstatus
 
-**Document:** Castivo Bold - Design & Product Canon  
-**Versie:** 1.0.0  
-**Status:** Canoniek / normatief  
-**Datum:** 14 juli 2026  
+**Document:** VeyoCast Bold - Design & Product Canon  
+**Versie:** 2.0.0  
+**Status:** Canoniek / normatief; definitieve merkmasters openstaand  
+**Datum:** 19 juli 2026  
 **Reikwijdte:** merkidentiteit, marketingwebsite, control dashboard, mobiele PWA, player setup, fullscreen playback, ClubTV-templates, design tokens, componentbibliotheek, contentstijl, toegankelijkheid en governance.
 
-Dit document is de bron van waarheid voor alle zichtbare Castivo-ervaringen. Het doel is niet alleen om een stijl te beschrijven, maar om beslissingen vast te leggen die ontwerpers, developers, marketeers, supportmedewerkers en externe partners consequent moeten toepassen.
+Dit document is de bron van waarheid voor alle zichtbare VeyoCast-ervaringen. Het doel is niet alleen om een stijl te beschrijven, maar om beslissingen vast te leggen die ontwerpers, developers, marketeers, supportmedewerkers en externe partners consequent moeten toepassen.
 
 ## 0.1 Normatieve taal
 
@@ -58,7 +56,7 @@ In dit canon worden drie niveaus gebruikt:
 Bij tegenstrijdigheid geldt deze volgorde:
 
 1. Het exact aangeleverde, goedgekeurde logo- of iconbestand.
-2. De tokens in `castivo-design-tokens.json`.
+2. De tokens in `veyocast-design-tokens.json`.
 3. Dit canon.
 4. De gedeelde componentbibliotheek en Storybook-documentatie.
 5. Product- of campagnespecifieke ontwerpen.
@@ -68,11 +66,11 @@ Mock-ups illustreren de richting, maar veranderen geen logo-assets, kleurwaarden
 
 ## 0.3 Productgrenzen
 
-Castivo bestaat visueel uit drie samenhangende maar verschillende omgevingen:
+VeyoCast bestaat visueel uit drie samenhangende maar verschillende omgevingen:
 
 1. **Brand & Marketing** - overtuigend, editorial, expressief en conversiegericht.
 2. **Control** - operationeel, rustig, informatierijk en zeer bruikbaar.
-3. **Player** - tijdens normale weergave vrijwel onzichtbaar als software; setup en diagnostiek zijn merkbaar Castivo, de clubcontent staat centraal.
+3. **Player** - tijdens normale weergave vrijwel onzichtbaar als software; setup en diagnostiek zijn merkbaar VeyoCast, de clubcontent staat centraal.
 
 De systemen delen dezelfde merkcodes, maar hebben verschillende dichtheid, typografische schaal en interactielogica.
 
@@ -82,13 +80,13 @@ De systemen delen dezelfde merkcodes, maar hebben verschillende dichtheid, typog
 
 ## 1.1 Kernbelofte
 
-**Castivo zet clubschermen aan.**
+**VeyoCast zet clubschermen aan.**
 
-Castivo maakt communicatie zichtbaar, actueel en onmogelijk om te missen. Het product verbindt media, playlists, publicaties, schermen, clubinformatie en sponsorcontent in één betrouwbare omgeving.
+VeyoCast maakt communicatie zichtbaar, actueel en onmogelijk om te missen. Het product verbindt media, playlists, publicaties, schermen, clubinformatie en sponsorcontent in één betrouwbare omgeving.
 
 ## 1.2 Positionering
 
-Castivo is een modern narrowcasting- en ClubTV-platform voor sportverenigingen en organisaties die één of meerdere schermen professioneel willen beheren. Het merk combineert:
+VeyoCast is een modern narrowcasting- en ClubTV-platform voor sportverenigingen en organisaties die één of meerdere schermen professioneel willen beheren. Het merk combineert:
 
 - de directheid van sportcommunicatie;
 - de discipline van een operationeel softwareplatform;
@@ -98,7 +96,7 @@ Castivo is een modern narrowcasting- en ClubTV-platform voor sportverenigingen e
 
 ## 1.3 Merkpersoonlijkheid
 
-| As | Castivo staat voor | Castivo vermijdt |
+| As | VeyoCast staat voor | VeyoCast vermijdt |
 |---|---|---|
 | Visueel | krachtig, grafisch, precies | zacht, pastelkleurig, generiek |
 | Tone of voice | direct, helder, volwassen | hype, jargon, kinderlijkheid |
@@ -123,7 +121,7 @@ Offline status, releaseversies, synchronisatie, opslag en laatste verbinding wor
 
 ### 4. Clubcontent is de held
 
-In de player domineert de club, niet Castivo. Het merk verschijnt bij setup, pairing, startup en diagnostiek; normale playback blijft vrij van permanente softwarebranding.
+In de player domineert de club, niet VeyoCast. Het merk verschijnt bij setup, pairing, startup en diagnostiek; normale playback blijft vrij van permanente softwarebranding.
 
 ### 5. Eén systeem, verschillende intensiteiten
 
@@ -164,7 +162,7 @@ Gebruik overal dezelfde producttaal:
 
 ## 1.7 Tone of voice
 
-Castivo schrijft in helder Nederlands, met actieve werkwoorden en korte zinnen. De gebruiker wordt aangesproken met **je**. Technische details worden vertaald naar gevolgen.
+VeyoCast schrijft in helder Nederlands, met actieve werkwoorden en korte zinnen. De gebruiker wordt aangesproken met **je**. Technische details worden vertaald naar gevolgen.
 
 **Goed:** `Release 13 wordt gedownload. Release 12 blijft spelen tot alle bestanden gereed zijn.`  
 **Niet goed:** `Atomic deployment in progress.`
@@ -189,11 +187,11 @@ Castivo schrijft in helder Nederlands, met actieve werkwoorden en korte zinnen. 
 
 # 2. Logo- en iconsysteem
 
-![Goedgekeurd Castivo C-icoon](assets/castivo-official-icon.png){width=22%}
-
 ## 2.1 Status van het merkasset
 
-Het aangeleverde Castivo-logo en het aangeleverde C-icoon zijn **locked assets**. Ze worden als beeldbestand of goedgekeurde vector geplaatst; ze worden niet opnieuw getekend, getraceerd, nagemaakt met een lettertype of automatisch gereconstrueerd.
+De productnaam VeyoCast is vastgesteld. Definitieve VeyoCast-logo- en iconmasterbestanden zijn nog niet aangeleverd. De huidige SVG's zijn uitsluitend tijdelijke ontwikkelplaceholders en zijn geen officiële merkassets. Een publieke release blijft geblokkeerd totdat juridisch en visueel goedgekeurde masters beschikbaar zijn.
+
+Zodra goedgekeurde masters zijn aangeleverd, gelden ze als **locked assets**. Ze worden als beeldbestand of goedgekeurde vector geplaatst; ze worden niet opnieuw getekend, getraceerd, nagemaakt met een lettertype of automatisch gereconstrueerd.
 
 Het logo MOET:
 
@@ -212,12 +210,12 @@ Het logo MAG NIET:
 - als tekst worden nagetypt om het asset te vervangen;
 - per scherm of tenant van kleur veranderen.
 
-## 2.2 Officiële varianten
+## 2.2 Vereiste officiële varianten
 
 Alleen werkelijk aangeleverde varianten zijn officieel. De assetset HOORT uiteindelijk minimaal te bevatten:
 
 - primaire horizontale lock-up;
-- officieel C-icoon;
+- goedgekeurd compact icoon;
 - expliciet goedgekeurde inverse lock-up voor donkere ondergronden;
 - monochrome lock-up, indien juridisch en visueel goedgekeurd;
 - faviconbestanden;
@@ -239,9 +237,9 @@ Dit canon legt plaatsingsmaten vast, geen geometrische reconstructie van het log
 | Player startup 1080p | 80-120 px | gecentreerd, niet dominant |
 | Pairing-/diagnostiekscherm 1080p | 64-96 px | boven of links van instructie |
 | Presentatiecover | afhankelijk van formaat | klein ten opzichte van headline |
-| Favicon | officieel iconasset | nooit de volledige lock-up verkleinen |
+| Favicon | goedgekeurd compact iconasset | nooit de volledige lock-up verkleinen |
 
-Bij kleine breedtes wordt niet automatisch alleen de C uit de volledige lock-up geknipt. Het losse C-icoon wordt alleen gebruikt als het officiële, afzonderlijke asset.
+Bij kleine breedtes wordt niet automatisch een letter uit de volledige lock-up geknipt. Een compact icoon wordt alleen gebruikt wanneer het als afzonderlijk masterasset is goedgekeurd. Tot die tijd mag een expliciet gemarkeerde placeholder uitsluitend in ontwikkeling worden gebruikt.
 
 ## 2.4 Vrije ruimte
 
@@ -270,9 +268,9 @@ Er wordt geen vermeende constructiemaat uit het raster afgeleid zolang geen mast
 - gradients die door de lettervormen heen lopen;
 - willekeurige clubkleuren als logovariant.
 
-## 2.6 C-icoon
+## 2.6 Compact icoon
 
-Het C-icoon bevat de play-referentie en is het primaire compacte merkteken. Het wordt gebruikt voor:
+Het toekomstige goedgekeurde compacte icoon is het primaire compacte merkteken. Het kan worden gebruikt voor:
 
 - favicon;
 - PWA-icon;
@@ -281,13 +279,13 @@ Het C-icoon bevat de play-referentie en is het primaire compacte merkteken. Het 
 - klein app-symbool wanneer de volledige lock-up niet past;
 - goedgekeurde hoekbranding in setup- of diagnostiekcontext.
 
-Het icoon wordt exact als asset gebruikt. De play-driehoek, opening, hoeken, materiaalstructuur en verhoudingen worden niet aangepast.
+Het icoon wordt na goedkeuring exact als asset gebruikt. Geometrie, hoeken, materiaalstructuur en verhoudingen worden niet aangepast. De tijdelijke V-placeholder legt geen definitieve logogeometrie vast.
 
 ## 2.7 Maskable PWA-icon
 
 Voor een maskable icon geldt:
 
-- het volledige officiële icoon blijft binnen de centrale veilige zone;
+  - het volledige goedgekeurde icoon blijft binnen de centrale veilige zone;
 - cruciale delen bevinden zich niet in de buitenste 20% van het canvas;
 - de achtergrondkleur is een expliciet onderdeel van het goedgekeurde iconbestand;
 - er wordt geen extra afgerond vierkant, ring of schaduw door het platformontwerp toegevoegd;
@@ -300,14 +298,14 @@ Aanbevolen exports: 192, 256, 384, 512 en 1024 px. De 512 px-versie is minimaal 
 Gebruik vaste, betekenisvolle namen:
 
 ```text
-castivo-logo-primary.svg
-castivo-logo-inverse.svg
-castivo-logo-monochrome-black.svg
-castivo-logo-monochrome-white.svg
-castivo-icon-primary.svg
-castivo-icon-maskable-512.png
-castivo-favicon-32.png
-castivo-social-avatar-1024.png
+veyocast-logo-primary.svg
+veyocast-logo-inverse.svg
+veyocast-logo-monochrome-black.svg
+veyocast-logo-monochrome-white.svg
+veyocast-icon-primary.svg
+veyocast-icon-maskable-512.png
+veyocast-favicon-32.png
+veyocast-social-avatar-1024.png
 ```
 
 `final-logo-2-new.png` en vergelijkbare namen zijn verboden in de canonieke assetmap.
@@ -361,7 +359,7 @@ Het palet is bewust klein. Een pagina of scherm HOORT niet alle vijf kleuren met
 **Playercontent:**
 
 - templates mogen clubkleuren gebruiken als contentthema;
-- Castivo Orange en Blue functioneren als templateaccent, niet als verplichte clubkleur;
+- VeyoCast Orange en Blue functioneren als templateaccent, niet als verplichte clubkleur;
 - tekstcontrast en afstandsleesbaarheid gaan voor merkdosering.
 
 ## 3.3 Contrastmatrix
@@ -667,7 +665,7 @@ Een full-bleed achtergrond mag viewportbreed zijn, maar tekst en bediening blijv
 
 ## 6.1 Vormtaal
 
-Castivo is strak, technisch en editorial. Geometrie ondersteunt precisie:
+VeyoCast is strak, technisch en editorial. Geometrie ondersteunt precisie:
 
 - rechte lijnen en duidelijke uitlijning;
 - beperkte afronding;
@@ -763,7 +761,7 @@ Vaste betekenissen:
 
 ## 7.3 Productillustraties
 
-Castivo gebruikt geen cartoonillustraties als primaire visuele taal. Toegestaan zijn:
+VeyoCast gebruikt geen cartoonillustraties als primaire visuele taal. Toegestaan zijn:
 
 - technische schema's;
 - eenvoudige lijnillustraties voor onboarding;
@@ -816,7 +814,7 @@ UI-tekst in visuals wordt niet met pseudo-Latijn of onleesbare willekeurige teks
 
 ## 7.7 Club- en sponsorassets
 
-Clublogo's, sponsorlogo's en foto's worden als tenantcontent behandeld. Castivo verandert hun verhouding niet. In player-templates worden sponsorlogo's geplaatst op een contrasterend vlak met voldoende ademruimte.
+Clublogo's, sponsorlogo's en foto's worden als tenantcontent behandeld. VeyoCast verandert hun verhouding niet. In player-templates worden sponsorlogo's geplaatst op een contrasterend vlak met voldoende ademruimte.
 
 ## 7.8 QR-codes
 
@@ -833,7 +831,7 @@ Clublogo's, sponsorlogo's en foto's worden als tenantcontent behandeld. Castivo 
 
 ## 8.1 Bewegingsprincipes
 
-Beweging legt verandering uit, bevestigt oorzaak en gevolg en bewaart oriëntatie. Castivo beweegt niet om speels te lijken.
+Beweging legt verandering uit, bevestigt oorzaak en gevolg en bewaart oriëntatie. VeyoCast beweegt niet om speels te lijken.
 
 ## 8.2 Duurtokens
 
@@ -1189,8 +1187,6 @@ PlayerTemplate / Matchday / Landscape
 
 # 11. Marketingwebsitecanon
 
-![Donkere Castivo marketingrichting](references/dark-marketing-showcase.png){width=100%}
-
 ## 11.1 Visuele hoofdmodus
 
 De canonieke marketingexpressie is **dark editorial**: Ink Black als dominante achtergrond, Paper White typografie, Electric Orange voor primaire actie en headline-accent, Signal Blue voor systeem- en sponsorsecties. Lichte Paper White-secties worden doelbewust afgewisseld om ritme en leesbaarheid te creëren.
@@ -1220,7 +1216,7 @@ De website heeft een `skip to content`-link, één `main`-landmark, één H1 en 
 2. primaire navigatie;
 3. optionele dropdownindicatoren;
 4. `Inloggen` als rustige actie;
-5. primaire CTA `Start met Castivo`.
+5. primaire CTA `Start met VeyoCast`.
 
 Canonical navigatie:
 
@@ -1257,7 +1253,7 @@ Canonical copy:
 
 **H1:** `Zet je clubschermen aan.`  
 **Lead:** `Beheer content, playlists en schermen vanuit één krachtig platform. Voor clubnieuws, wedstrijden, sponsoren en alles wat binnen jouw vereniging speelt.`  
-**Primary:** `Bekijk Castivo`  
+**Primary:** `Bekijk VeyoCast`  
 **Secondary:** `Plan een demonstratie`
 
 ### Layout
@@ -1455,7 +1451,7 @@ Canonical headline:
 
 **`Klaar om je club aan te zetten?`**
 
-Primary: `Start met Castivo`  
+Primary: `Start met VeyoCast`  
 Secondary: `Bekijk de productdemo`
 
 De CTA krijgt een ruime dark of Blue section met weinig afleiding. Geen extra formulieren als een eenvoudige route volstaat.
@@ -1508,7 +1504,7 @@ Gebruik cases, niet alleen features. Mogelijke pagina's:
 - Verenigingscommunicatie;
 - Grotere organisaties/netwerken.
 
-Elke pagina heeft probleem, gewenste situatie, Castivo-flow, voorbeeldschermen, relevante features en CTA.
+Elke pagina heeft probleem, gewenste situatie, VeyoCast-flow, voorbeeldschermen, relevante features en CTA.
 
 ## 11.18 Integratiepagina
 
@@ -1563,7 +1559,7 @@ Elke route bevat:
 - unieke title;
 - unieke meta description;
 - canonical URL;
-- Open Graph-image in Castivo-stijl;
+- Open Graph-image in VeyoCast-stijl;
 - correcte headingstructuur;
 - structured data waar passend;
 - menselijke URL's;
@@ -1618,8 +1614,6 @@ OG-beelden gebruiken exact logoasset, grote headline, Ink/Paper/Orange en voldoe
 
 # 12. Control dashboardcanon
 
-![Castivo product showcase - light reference](references/light-marketing-showcase.png){width=100%}
-
 ## 12.1 Rol van Control
 
 Control is het beheeroppervlak voor platformadmins, tenantadmins, editors en viewers. Het dashboard voelt professioneel en krachtig, maar blijft bruikbaar voor vrijwilligers die niet dagelijks met software werken.
@@ -1657,7 +1651,7 @@ Sticky action/footer    context dependent
 
 ### Sidebar anatomy
 
-1. exact Castivo-logo;
+1. exact VeyoCast-logo;
 2. tenant switcher of platformcontext;
 3. primaire navigatie;
 4. eventueel gescheiden platformsectie;
@@ -1690,7 +1684,7 @@ Actieve item gebruikt surface, duidelijke tekst en eventueel Orange of Blue acce
 ### Collapsed sidebar
 
 - alleen officiële iconen of functionele navigatie-iconen;
-- logo wordt niet zelf ingekort; gebruik officieel C-icoon wanneer beschikbaar;
+- logo wordt niet zelf ingekort; gebruik alleen een afzonderlijk goedgekeurd compact icoon;
 - tooltips tonen labels;
 - actieve item blijft visueel herkenbaar;
 - collapsekeuze wordt lokaal onthouden.
@@ -1728,7 +1722,7 @@ Canonical anatomy:
 Voorbeeld:
 
 **Goedemorgen, Danny**  
-`Dit is de actuele status van jouw Castivo-omgeving.`
+`Dit is de actuele status van jouw VeyoCast-omgeving.`
 
 Bij resourcepagina's:
 
@@ -2256,8 +2250,6 @@ Sidebar als sheet; cards en tabs; editor sequentieel; filters in sheet.
 
 # 13. Player- en ClubTV-canon
 
-![Castivo Player in een moderne sportclubomgeving](references/player-showcase.png){width=100%}
-
 ## 13.1 Rol van de Player
 
 De Player is geen tweede dashboard. Hij is een zelfstandig geregistreerd device dat:
@@ -2271,7 +2263,7 @@ De Player is geen tweede dashboard. Hij is een zelfstandig geregistreerd device 
 - na crash of stroomuitval herstelt;
 - systeemstatus terugrapporteert.
 
-Tijdens normale playback staat de clubcontent centraal. Castivo is zichtbaar bij setup, startup, pairing en diagnostiek, niet als permanente overlay.
+Tijdens normale playback staat de clubcontent centraal. VeyoCast is zichtbaar bij setup, startup, pairing en diagnostiek, niet als permanente overlay.
 
 ## 13.2 Player state model
 
@@ -2317,7 +2309,7 @@ Snel vertrouwen geven terwijl de player last-known-good content controleert. Sta
 
 - Ink Black of Paper White achtergrond;
 - exact logoasset met passend contrast of logoplaat;
-- tekst `Castivo wordt gestart`;
+- tekst `VeyoCast wordt gestart`;
 - minimale progressindicator;
 - optioneel subtiele appversie in diagnostische hoek;
 - geen clubcontent totdat cachevalidatie veilig is.
@@ -2335,14 +2327,14 @@ Snel vertrouwen geven terwijl de player last-known-good content controleert. Sta
 
 Canonical headline:
 
-**`Koppel dit scherm aan Castivo`**
+**`Koppel dit scherm aan VeyoCast`**
 
 Inhoud:
 
 - exact logoasset;
 - zeskaraktercode;
 - QR-code;
-- instructie `Open Castivo en voeg een scherm toe`;
+- instructie `Open VeyoCast en voeg een scherm toe`;
 - device status;
 - internet status;
 - appversie;
@@ -2445,7 +2437,7 @@ Playback toont:
 - geen taskbar;
 - geen tabs;
 - geen permanente setupoverlay;
-- geen Castivo-watermark tenzij expliciet als goedgekeurde, zeer discrete system mark in een specifieke context.
+- geen VeyoCast-watermark tenzij expliciet als goedgekeurde, zeer discrete system mark in een specifieke context.
 
 De Player bewaakt aspect ratio en gebruikt `fit`, `fill` of template-native layout volgens assetinstelling. Fotografie wordt niet vervormd.
 
@@ -2502,7 +2494,7 @@ Canonical headline:
 - time, pitch en kit metadata;
 - actiebeeld rechts of full bleed met donkere overlay;
 - sponsorstrip onderaan;
-- geen Castivo-logo in clubcontent.
+- geen VeyoCast-logo in clubcontent.
 
 ### Portrait anatomy
 
@@ -2653,7 +2645,7 @@ Tenant kan niet configureren:
 - onleesbare minimale fontgroottes;
 - safe zones buiten grenzen;
 - willekeurige animaties;
-- permanente Castivo-logoaanpassing;
+- permanente VeyoCast-logoaanpassing;
 - externe HTML/iframe in kern-MVP.
 
 ## 13.18 Sponsor strip
@@ -2742,7 +2734,7 @@ Templates worden getest met:
 
 ## 13.25 Player anti-patterns
 
-- permanente Castivo-watermark over clubcontent;
+- permanente VeyoCast-watermark over clubcontent;
 - browser URL bar of cursor;
 - mini-dashboard tijdens normale playback;
 - zwarte foutpagina bij tijdelijk internetverlies;
@@ -2753,7 +2745,7 @@ Templates worden getest met:
 - bouncing/spinning transitions;
 - actuele release vervangen vóór volledige download/verificatie;
 - technische foutcode als hoofdboodschap;
-- elk template verplicht in Castivo Orange/Blue terwijl clubkleuren logisch zijn.
+- elk template verplicht in VeyoCast Orange/Blue terwijl clubkleuren logisch zijn.
 
 
 \newpage
@@ -2788,7 +2780,7 @@ Marketing gebruikt `clamp()` binnen vastgestelde minima en maxima. Dashboardtypo
 Voorbeeld:
 
 ```css
-.cv-hero-title {
+.vc-hero-title {
   font-size: clamp(2.5rem, 6vw, 6rem);
   line-height: .92;
   letter-spacing: -.05em;
@@ -2988,7 +2980,7 @@ De gedeelde UI-package bevat primitives en componenten. Productpatterns mogen in
 
 ## 16.2 Tokenbron
 
-`castivo-design-tokens.json` is de machine-readable bron. CSS variables en Tailwindpreset worden daaruit gegenereerd of synchroon beheerd. Hardcoded `#FF5C20` in willekeurige componentbestanden is niet toegestaan als `var(--cv-action)` of theme token volstaat.
+`veyocast-design-tokens.json` is de machine-readable bron. CSS variables en Tailwindpreset worden daaruit gegenereerd of synchroon beheerd. Hardcoded `#FF5C20` in willekeurige componentbestanden is niet toegestaan als `var(--vc-action)` of theme token volstaat.
 
 ## 16.3 CSS-architectuur
 
@@ -3257,7 +3249,7 @@ Tenantbranding mag:
 Tenantbranding mag niet:
 
 - Control onleesbaar maken;
-- Castivo-logo veranderen;
+- VeyoCast-logo veranderen;
 - semantische statuskleuren vervangen;
 - minimale fontgroottes verlagen;
 - veilige zones uitschakelen;
@@ -3281,7 +3273,7 @@ Tenantbranding mag niet:
 - [ ] Exact goedgekeurd logoasset gebruikt.
 - [ ] Geen retyping, tracing, recolour of effect.
 - [ ] Logo volledig zichtbaar en niet vervormd.
-- [ ] Officieel C-icoon gebruikt waar compact asset nodig is.
+- [ ] Goedgekeurd compact icoon gebruikt waar een compact asset nodig is.
 - [ ] Voldoende contrast of Paper White-logoplaat.
 - [ ] Orange, Blue en neutralen komen uit tokens.
 - [ ] Geen generieke gradient of nieuwe monogramvariant.
@@ -3326,7 +3318,7 @@ Tenantbranding mag niet:
 
 - [ ] Startup gebruikt exact logoasset.
 - [ ] Normale playback heeft geen browserchrome/cursor.
-- [ ] Geen permanente Castivo-watermark.
+- [ ] Geen permanente VeyoCast-watermark.
 - [ ] Player start met cached release zonder netwerk.
 - [ ] Pending release wordt volledig gedownload en geverifieerd.
 - [ ] Switch gebeurt op veilige item/loopgrens.
@@ -3528,7 +3520,7 @@ Diagnostics state:
 
 # 20. Volledige componentinventaris - samenvatting
 
-De companion `castivo-component-inventory.csv` bevat 128 componenten en patterns met varianten, maten, states, anatomy, responsive gedrag en accessibilityregels. De onderstaande domeinindeling is verplicht.
+De companion `veyocast-component-inventory.csv` bevat 128 componenten en patterns met varianten, maten, states, anatomy, responsive gedrag en accessibilityregels. De onderstaande domeinindeling is verplicht.
 
 ## 20.1 Shared primitives
 
@@ -3772,7 +3764,7 @@ scene    480 ms
 - logo over druk beeld zonder plaat;
 - generiek nieuw appicon;
 - Orange/Blue als gradientlogo;
-- clubkleur op Castivo-logo.
+- clubkleur op VeyoCast-logo.
 
 ## 22.2 Website
 
@@ -3818,13 +3810,12 @@ scene    480 ms
 
 Dit canon wordt geleverd met:
 
-- `castivo-design-tokens.json` - machine-readable tokens;
-- `castivo-design-tokens.css` - light/dark CSS variables;
-- `castivo-tailwind-preset.ts` - Tailwind mapping;
-- `castivo-component-inventory.csv` - volledige componentcatalogus;
-- `castivo-page-template-inventory.csv` - route- en stateinventaris;
-- `assets/castivo-official-icon.png` - aangeleverd compact merkasset;
-- `references/*.png` - visuele richting, niet de bron voor logo-opbouw.
+- `veyocast-design-tokens.json` - machine-readable tokens;
+- `veyocast-design-tokens.css` - light/dark CSS variables;
+- `veyocast-tailwind-preset.ts` - Tailwind mapping;
+- `veyocast-component-inventory.csv` - volledige componentcatalogus;
+- `veyocast-page-template-inventory.csv` - route- en stateinventaris;
+- tijdelijke VeyoCast-placeholder-SVG's in de centrale brandmap, uitsluitend voor ontwikkeling.
 
 ## 23.1 Gebruik
 
@@ -3853,4 +3844,4 @@ Het canon is pas volledig geïmplementeerd wanneer:
 
 # Einde
 
-**Castivo Bold** is krachtig zonder lawaai, premium zonder opsmuk en technisch zonder afstandelijk te worden. Marketing maakt de belofte zichtbaar, Control maakt de werking begrijpelijk en de Player maakt zichzelf tijdens playback onzichtbaar. Dat drieluik is de kern van het canon.
+**VeyoCast Bold** is krachtig zonder lawaai, premium zonder opsmuk en technisch zonder afstandelijk te worden. Marketing maakt de belofte zichtbaar, Control maakt de werking begrijpelijk en de Player maakt zichzelf tijdens playback onzichtbaar. Dat drieluik is de kern van het canon.

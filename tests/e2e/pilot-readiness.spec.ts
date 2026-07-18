@@ -10,13 +10,13 @@ test("keeps the documented local demo pilot traceable across product planes", as
 }) => {
   await page.goto(marketingURL);
 
-  await expect(page.getByRole("heading", { exact: true, name: "Castivo" })).toBeVisible();
+  await expect(page.getByRole("heading", { exact: true, name: "VeyoCast" })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Van organisatie naar spelend scherm." })
   ).toBeVisible();
 
   await page.goto("/login");
-  await page.getByLabel("E-mailadres").fill("pilot@castivo.test");
+  await page.getByLabel("E-mailadres").fill("pilot@veyocast.test");
   await page.getByRole("button", { name: "Doorgaan" }).click();
   await expect(page).toHaveURL(/\/auth\/callback/);
   await expect(

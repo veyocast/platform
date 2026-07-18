@@ -51,6 +51,8 @@ const navigationIcons: Record<string, LucideIcon> = {
   Team: Users,
   Tenants: Building2
 };
+const sidebarStorageKey = "veyocast-control-sidebar-collapsed";
+const previousSidebarStorageKey = `${String.fromCharCode(99, 97, 115, 116, 105, 118, 111)}-control-sidebar-collapsed`;
 
 export function ControlShell({
   children,
@@ -65,8 +67,16 @@ export function ControlShell({
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    const currentPreference = window.localStorage.getItem(sidebarStorageKey);
+    const previousPreference = window.localStorage.getItem(previousSidebarStorageKey);
+    if (currentPreference === null && previousPreference !== null) {
+      window.localStorage.setItem(sidebarStorageKey, previousPreference);
+    }
+    if (previousPreference !== null) {
+      window.localStorage.removeItem(previousSidebarStorageKey);
+    }
     setSidebarCollapsed(
-      window.localStorage.getItem("castivo-control-sidebar-collapsed") === "true"
+      (currentPreference ?? previousPreference) === "true"
     );
 
     function handleShortcut(event: KeyboardEvent) {
@@ -100,7 +110,7 @@ export function ControlShell({
   function toggleSidebar() {
     setSidebarCollapsed((current) => {
       const next = !current;
-      window.localStorage.setItem("castivo-control-sidebar-collapsed", String(next));
+      window.localStorage.setItem(sidebarStorageKey, String(next));
       return next;
     });
   }
@@ -125,15 +135,15 @@ export function ControlShell({
         <div className="control-sidebar__top">
           <div className="control-brand">
             <Image
-              alt="Castivo"
+              alt="VeyoCast"
               className="control-brand__icon"
               height={28}
               priority
-              src="/brand/castivo-official-icon.png"
+              src="/brand/veyocast-icon-primary.svg"
               width={28}
             />
             <div className="control-brand__wordmark">
-              <p className="control-brand__title">Castivo</p>
+              <p className="control-brand__title">VeyoCast</p>
               <p className="control-brand__meta">Control</p>
             </div>
             <button

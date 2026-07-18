@@ -3,10 +3,14 @@ import { execFileSync } from "node:child_process";
 
 import { expect, test } from "@playwright/test";
 
-const livePilotEnabled = process.env.CASTIVO_LIVE_PILOT === "1";
+const livePilotEnabled = process.env.VEYOCAST_LIVE_PILOT === "1";
 const playerUrl = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
-const videoFixture = process.env.CASTIVO_VIDEO_FIXTURE;
-const workerImage = process.env.CASTIVO_MEDIA_WORKER_IMAGE ?? "castivo-media-worker:replace-with-full-git-sha";
+const videoFixture = process.env.VEYOCAST_VIDEO_FIXTURE;
+const workerImage = process.env.VEYOCAST_MEDIA_WORKER_IMAGE ?? "veyocast-media-worker:replace-with-full-git-sha";
+const validPngFixture = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+  "base64"
+);
 
 test.setTimeout(90_000);
 
@@ -18,8 +22,8 @@ test.describe("live pilot vertical slice", () => {
     page
   }) => {
     await page.goto("/login");
-    await page.getByLabel("E-mailadres").fill("pilot-admin@castivo.test");
-    await page.getByLabel("Wachtwoord").fill("castivo-local");
+    await page.getByLabel("E-mailadres").fill("pilot-admin@veyocast.test");
+    await page.getByLabel("Wachtwoord").fill("veyocast-local");
     await page.getByRole("button", { name: "Doorgaan" }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
 
@@ -38,7 +42,7 @@ test.describe("live pilot vertical slice", () => {
 
     await page.getByLabel("Videotitel", { exact: true }).fill("Live queuecontrole");
     await page.getByLabel("Videobestand", { exact: true }).setInputFiles(videoFixture ?? {
-      buffer: Buffer.from("castivo-invalid-video-fixture"),
+      buffer: Buffer.from("veyocast-invalid-video-fixture"),
       mimeType: "video/mp4",
       name: "queuecontrole.mp4"
     });
@@ -52,7 +56,7 @@ test.describe("live pilot vertical slice", () => {
         "-e", "SUPABASE_SERVICE_ROLE_KEY",
         "-e", "MEDIA_WORKER_ID=live-pilot-ffmpeg",
         workerImage,
-        "pnpm", "--filter", "@castivo/media-worker", "worker:once"
+        "pnpm", "--filter", "@veyocast/media-worker", "worker:once"
       ], { env: process.env, stdio: "pipe" });
       await page.reload();
       const videoRow = page.getByRole("row", { name: /Live queuecontrole/ });
@@ -61,7 +65,7 @@ test.describe("live pilot vertical slice", () => {
 
     await page.getByLabel("Titel", { exact: true }).fill("Ongeldig logo");
     await page.getByLabel("Bestand", { exact: true }).setInputFiles(
-      path.join(process.cwd(), "assets/brand/castivo-logo-primary.svg")
+      path.join(process.cwd(), "assets/brand/veyocast-logo-primary.svg")
     );
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
     await expect(page.locator("p.notice[role='alert']")).toContainText(
@@ -69,18 +73,17 @@ test.describe("live pilot vertical slice", () => {
     );
 
     await page.getByLabel("Titel", { exact: true }).fill("Live pilotbeeld");
-    await page.getByLabel("Bestand", { exact: true }).setInputFiles(
-      path.join(
-        process.cwd(),
-        "apps/control/public/brand/castivo-official-icon.png"
-      )
-    );
+    await page.getByLabel("Bestand", { exact: true }).setInputFiles({
+      buffer: validPngFixture,
+      mimeType: "image/png",
+      name: "veyocast-live-pilot.png"
+    });
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
     await expect(page.getByText("Live pilotbeeld is gecontroleerd")).toBeVisible();
     await expect(page.getByRole("cell", { name: "Live pilotbeeld" })).toBeVisible();
 
     await page.goto("/dashboard/settings");
-    await page.getByLabel("Verenigingsnaam").fill("Castivo live pilot");
+    await page.getByLabel("Verenigingsnaam").fill("VeyoCast live pilot");
     await page.getByLabel("Afbeeldingsduur in seconden").fill("12");
     await page.getByLabel("Standaard weergave").selectOption("cover");
     await page.getByRole("button", { name: "Instellingen opslaan" }).click();
@@ -119,6 +122,11 @@ test.describe("live pilot vertical slice", () => {
 
     const playerContext = await browser.newContext();
     const playerPage = await playerContext.newPage();
+    const firstHeartbeat = playerPage.waitForResponse(
+      (response) =>
+        response.url().endsWith("/api/player/heartbeat") && response.status() === 200,
+      { timeout: 20_000 }
+    );
     await playerPage.goto(playerUrl);
     const pairingCode = (
       await playerPage.getByLabel("Pairingcode").textContent()
@@ -137,6 +145,7 @@ test.describe("live pilot vertical slice", () => {
       timeout: 20_000
     });
     await expect(playerPage.getByText("PLAYING", { exact: true })).toBeVisible();
+    await firstHeartbeat;
     if (videoFixture) {
       const playingVideo = playerPage.locator("video");
       await expect(playingVideo).toBeVisible({ timeout: 20_000 });

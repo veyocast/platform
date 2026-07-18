@@ -36,7 +36,7 @@ Achtergrondverwerking voor thumbnails, checksums, video metadata en later transc
 ## Package responsibilities
 
 - `packages/tokens`: design tokens, CSS variables, Tailwind preset.
-- `packages/ui`: shadcn/ui primitives en Castivo components.
+- `packages/ui`: shadcn/ui primitives en VeyoCast components.
 - `packages/icons`: locked brand assets en icon wrappers.
 - `packages/content-templates`: player templates voor 16:9 en 9:16.
 - `packages/contracts`: Zod schemas, typed domain contracts.

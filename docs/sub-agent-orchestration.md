@@ -49,7 +49,7 @@ Service-worker and cache-version files are single-owner files.
 ## Agent prompt template
 
 ```text
-You are the {role} for Castivo.
+You are the {role} for VeyoCast.
 Read AGENTS.md, PLANS.md, TASK_LEDGER.md and relevant canon docs first.
 Work only on {paths}.
 Implement {scope}.

@@ -1,7 +1,7 @@
-# Castivo Platform
+# VeyoCast Platform
 
-Castivo is a local-first MVP for a multi-tenant narrowcasting and ClubTV
-platform. This repository starts from the Castivo Codex Build Pack and follows
+VeyoCast is a local-first MVP for a multi-tenant narrowcasting and ClubTV
+platform. This repository starts from the VeyoCast Codex Build Pack and follows
 the canon in `AGENTS.md`, `PLANS.md`, `TASK_LEDGER.md` and `docs/`.
 
 ## Workspace
@@ -45,7 +45,7 @@ pnpm dev
 
 CI runs the same foundation gates on GitHub Actions. See `docs/ci.md`.
 Design tokens are generated from the canonical JSON source. See
-`docs/design-tokens.md`. UI primitives live in `@castivo/ui`; see
+`docs/design-tokens.md`. UI primitives live in `@veyocast/ui`; see
 `docs/ui-primitives.md`. Auth, tenancy and RLS notes live in
 `docs/auth-rls.md`.
 
@@ -63,12 +63,18 @@ studio:       54323
 
 ## Current Sprint
 
-S17 provides the deployment route for the completed Control authoring MVP.
-Development stays on the existing VPS. Staging and production deploy as separate
-Compose projects on a second, shared VPS using dedicated self-hosted runner
-labels, distinct localhost ports and separate Supabase projects. A green `main`
-automatically migrates and deploys staging; production is a manual, protected
-GitHub Environment promotion. See `docs/vps-environments-runbook.md`.
+S18 moves the complete product, workspace packages, runtime namespaces,
+deployment infrastructure, database defaults and design canon to VeyoCast.
+Existing player identity and last-known-good storage are migrated in place so a
+rebrand does not require re-pairing or discard offline playback. Existing seeded
+database records receive the same forward migration. The GitHub organization
+name remains unchanged.
+
+The S17 deployment route remains active: development stays on the existing VPS,
+while staging and production use separate Compose projects and Supabase projects
+on the shared production VPS. See `docs/vps-environments-runbook.md`.
 
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
+Approved VeyoCast logo and icon masters are also required before public launch;
+the current SVGs are explicitly temporary development placeholders.

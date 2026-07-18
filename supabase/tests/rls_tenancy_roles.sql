@@ -22,7 +22,7 @@ values
     '00000000-0000-4000-8000-000000000001',
     'authenticated',
     'authenticated',
-    'platform-admin@castivo.test',
+    'platform-admin@veyocast.test',
     'test',
     now(),
     now(),
@@ -34,7 +34,7 @@ values
     '00000000-0000-4000-8000-000000000002',
     'authenticated',
     'authenticated',
-    'platform-viewer@castivo.test',
+    'platform-viewer@veyocast.test',
     'test',
     now(),
     now(),
@@ -46,7 +46,7 @@ values
     '00000000-0000-4000-8000-000000000003',
     'authenticated',
     'authenticated',
-    'tenant-a-admin@castivo.test',
+    'tenant-a-admin@veyocast.test',
     'test',
     now(),
     now(),
@@ -58,7 +58,7 @@ values
     '00000000-0000-4000-8000-000000000004',
     'authenticated',
     'authenticated',
-    'tenant-a-editor@castivo.test',
+    'tenant-a-editor@veyocast.test',
     'test',
     now(),
     now(),
@@ -70,7 +70,7 @@ values
     '00000000-0000-4000-8000-000000000005',
     'authenticated',
     'authenticated',
-    'tenant-a-viewer@castivo.test',
+    'tenant-a-viewer@veyocast.test',
     'test',
     now(),
     now(),
@@ -82,7 +82,7 @@ values
     '00000000-0000-4000-8000-000000000006',
     'authenticated',
     'authenticated',
-    'tenant-b-admin@castivo.test',
+    'tenant-b-admin@veyocast.test',
     'test',
     now(),
     now(),
@@ -178,7 +178,7 @@ insert into public.tenant_invitations (
 )
 values (
   '10000000-0000-4000-8000-000000000001',
-  'new-editor@castivo.test',
+  'new-editor@veyocast.test',
   'tenant_editor',
   'tenant-a-admin-invite',
   now() + interval '7 days',
@@ -189,7 +189,7 @@ select is(
     select count(*)
     from public.tenant_invitations
     where tenant_id = '10000000-0000-4000-8000-000000000001'
-      and email = 'new-editor@castivo.test'
+      and email = 'new-editor@veyocast.test'
   ),
   1::bigint,
   'tenant admin can invite a member'
@@ -207,7 +207,7 @@ select throws_ok(
     )
     values (
       '10000000-0000-4000-8000-000000000002',
-      'spoofed@castivo.test',
+      'spoofed@veyocast.test',
       'tenant_editor',
       'tenant-a-admin-spoofed-tenant-b',
       now() + interval '7 days',
@@ -234,7 +234,7 @@ select throws_ok(
     )
     values (
       '10000000-0000-4000-8000-000000000001',
-      'editor-invite@castivo.test',
+      'editor-invite@veyocast.test',
       'tenant_viewer',
       'tenant-a-editor-invite',
       now() + interval '7 days',
@@ -261,7 +261,7 @@ select throws_ok(
     )
     values (
       '10000000-0000-4000-8000-000000000001',
-      'viewer-invite@castivo.test',
+      'viewer-invite@veyocast.test',
       'tenant_viewer',
       'tenant-a-viewer-invite',
       now() + interval '7 days',

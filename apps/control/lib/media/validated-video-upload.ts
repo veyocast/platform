@@ -64,7 +64,7 @@ export async function prepareValidatedVideoUpload(
   if (assetError) {
     console.error("Videoregistratie mislukt", assetError);
     throw new MediaUploadError(
-      "Castivo kon de videoregistratie niet maken. Er is geen bestand opgeslagen; probeer opnieuw."
+      "VeyoCast kon de videoregistratie niet maken. Er is geen bestand opgeslagen; probeer opnieuw."
     );
   }
 

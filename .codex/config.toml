@@ -1,5 +1,5 @@
 [project]
-name = "castivo"
+name = "veyocast"
 default_branch = "main"
 package_manager = "pnpm"
 
@@ -15,5 +15,5 @@ test = "pnpm test"
 db_reset = "pnpm db:reset"
 
 [worktrees]
-base_dir = "../castivo-worktrees"
-branch_prefix = "castivo/"
+base_dir = "../veyocast-worktrees"
+branch_prefix = "veyocast/"

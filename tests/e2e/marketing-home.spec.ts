@@ -5,8 +5,8 @@ const marketingURL = `http://127.0.0.1:${process.env.MARKETING_PORT ?? 3108}`;
 test("renders the marketing homepage with canon-safe messaging", async ({ page }) => {
   await page.goto(marketingURL);
 
-  await expect(page).toHaveTitle(/Castivo .* ClubTV/);
-  await expect(page.getByRole("heading", { exact: true, name: "Castivo" })).toBeVisible();
+  await expect(page).toHaveTitle(/VeyoCast .* ClubTV/);
+  await expect(page.getByRole("heading", { exact: true, name: "VeyoCast" })).toBeVisible();
   await expect(page.getByText("local-first platform voor ClubTV")).toBeVisible();
   await expect(page.getByRole("link", { name: "Bekijk pilotpad" })).toBeVisible();
 

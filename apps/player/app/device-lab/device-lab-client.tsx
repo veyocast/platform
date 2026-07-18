@@ -122,7 +122,7 @@ export function DeviceLabClient({ appVersion, deploymentSha }: { appVersion: str
   }
 
   if (!report) {
-    return <main className={styles.shell}><h1>Castivo Device Capability Lab</h1><p>{busy ?? "Diagnose kon niet starten."}</p></main>;
+    return <main className={styles.shell}><h1>VeyoCast Device Capability Lab</h1><p>{busy ?? "Diagnose kon niet starten."}</p></main>;
   }
 
   return (
@@ -383,7 +383,7 @@ function ungenerated(media: TestMedia): PlaybackResult {
 async function saveReportLocally(report: DeviceLabReport) {
   if (!("indexedDB" in window)) return;
   await new Promise<void>((resolve, reject) => {
-    const request = indexedDB.open("castivo-device-lab-v1", 1);
+    const request = indexedDB.open("veyocast-device-lab-v1", 1);
     request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains("runs")) request.result.createObjectStore("runs", { keyPath: "runId" }); };
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {

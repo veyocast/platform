@@ -4,16 +4,16 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Castivo | ClubTV en narrowcasting voor beheerde schermen",
+  title: "VeyoCast | ClubTV en narrowcasting voor beheerde schermen",
   description:
-    "Castivo is een local-first MVP voor ClubTV, tenantbeheer, immutable releases en offline-first player playback.",
-  metadataBase: new URL("https://castivo.local"),
+    "VeyoCast is een local-first MVP voor ClubTV, tenantbeheer, immutable releases en offline-first player playback.",
+  metadataBase: new URL("https://veyocast.local"),
   openGraph: {
     description:
       "Beheer media, publiceer vaste releases en laat schermen fullscreen doorspelen met offline fallback.",
     locale: "nl_NL",
-    siteName: "Castivo",
-    title: "Castivo | ClubTV en narrowcasting",
+    siteName: "VeyoCast",
+    title: "VeyoCast | ClubTV en narrowcasting",
     type: "website"
   }
 };

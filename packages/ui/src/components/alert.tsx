@@ -20,12 +20,12 @@ export function Alert({
 }: AlertProps) {
   return (
     <div
-      className={cn("cv-alert", `cv-alert--${status}`, className)}
+      className={cn("vc-alert", `vc-alert--${status}`, className)}
       role={status === "critical" ? "alert" : "status"}
       {...props}
     >
-      <div className="cv-alert__title">{title}</div>
-      {children ? <div className="cv-alert__description">{children}</div> : null}
+      <div className="vc-alert__title">{title}</div>
+      {children ? <div className="vc-alert__description">{children}</div> : null}
       {action}
     </div>
   );

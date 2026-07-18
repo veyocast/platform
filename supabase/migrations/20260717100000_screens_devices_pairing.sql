@@ -305,7 +305,7 @@ begin
   values (
     p_tenant_id,
     p_screen_id,
-    coalesce(nullif(btrim(p_device_name), ''), 'Castivo player'),
+    coalesce(nullif(btrim(p_device_name), ''), 'VeyoCast player'),
     normalized_token_hash,
     screen_record.assigned_release_id
   )

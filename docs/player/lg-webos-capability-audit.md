@@ -1,4 +1,4 @@
-# Castivo Webplayer en LG webOS Signage capability-audit
+# VeyoCast Webplayer en LG webOS Signage capability-audit
 
 ## Documentstatus
 
@@ -30,7 +30,7 @@ Er staat bewust nergens `VERIFIED_ON_LG`: er is in deze taak geen fysiek LG Sign
 
 ## Managementsamenvatting
 
-De Castivo Player heeft na deze taak een serieuze hosted-webbasis: een PWA-manifest, Service Worker, app-shellcache, checksum-keyed mediacache, IndexedDB voor actieve en vorige releases, byte-range-responses, een abstraheerbare media-store, uitgestelde persistente releaseactivatie, verbeterde heartbeat en een afgeschermd Device Capability Lab. Pairing, tenantbinding, immutable releases, signed media-URL's en assetverificatie bestonden al.
+De VeyoCast Player heeft na deze taak een serieuze hosted-webbasis: een PWA-manifest, Service Worker, app-shellcache, checksum-keyed mediacache, IndexedDB voor actieve en vorige releases, byte-range-responses, een abstraheerbare media-store, uitgestelde persistente releaseactivatie, verbeterde heartbeat en een afgeschermd Device Capability Lab. Pairing, tenantbinding, immutable releases, signed media-URL's en assetverificatie bestonden al.
 
 De grootste baselinefout — de nieuwe release al in IndexedDB als actief opslaan vóór de veilige loopgrens — is opgelost. Bij een nieuwe release worden de assets nu eerst voorbereid en gehydrateerd; pas op de loopgrens worden `active` en `previous` atomisch bijgewerkt. Een corrupte actieve release kan bij startup terugvallen op de vorige geverifieerde release.
 
@@ -75,7 +75,7 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 - [LG Web API and Web Engine](https://webostv.developer.lge.com/develop/specifications/web-api-and-web-engine) toont voor webOS TV dat de engine per platformjaar sterk verschilt en waarschuwt dat generieke Chromecompatibiliteit niet altijd overeenkomt met platformfuncties. Deze bron is richtinggevend voor het risico, niet een Signage-certificaat.
 - [LG AV Format on webOS TV 5.0](https://webostv.developer.lge.com/develop/specifications/video-audio-50) documenteert onder andere H.264-profielen, AAC en resolutie-/bitratelimieten voor die specifieke TV-generatie. Dit mag niet naar elk Signage-model worden gegeneraliseerd.
 - [LG Streaming Protocol and DRM](https://webostv.developer.lge.com/develop/specifications/streaming-protocol-drm) documenteert HTTP/HTTPS, HLS en seek voor webOS TV, maar ook dit blijft generatie- en productlijnspecifiek.
-- [LG App Resources](https://webostv.developer.lge.com/develop/getting-started/app-resources) adviseert kernresources lokaal te houden en video op resolutie/bitrate voor te verwerken. Dat ondersteunt Castivo's offline- en normalisatiestrategie.
+- [LG App Resources](https://webostv.developer.lge.com/develop/getting-started/app-resources) adviseert kernresources lokaal te houden en video op resolutie/bitrate voor te verwerken. Dat ondersteunt VeyoCast's offline- en normalisatiestrategie.
 - [LG Supported App Resolution](https://webostv.developer.lge.com/develop/specifications/app-resolution) maakt onderscheid tussen graphics- en videoplaybackresolutie. Een 4K-ingangsbestand betekent dus niet automatisch een 4K-appcanvas.
 
 ## Volledige code-inventaris
@@ -189,7 +189,7 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 | PNG | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Ingest ondersteunt PNG; echte LG-decode vereist. |
 | Transparante PNG | `SUPPORTED_BY_WEB_API` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Specifieke synthetische alpha-PNG in generator/Lab. |
 | WebP | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Oudere engines/modelseries kunnen afwijken. |
-| GIF, alleen beoordeling | `NOT_SUPPORTED` | `NOT_SUPPORTED` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Browser kan GIF mogelijk decoderen, maar Castivo-ingest accepteert het niet. |
+| GIF, alleen beoordeling | `NOT_SUPPORTED` | `NOT_SUPPORTED` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Browser kan GIF mogelijk decoderen, maar VeyoCast-ingest accepteert het niet. |
 | SVG | `NOT_SUPPORTED` | `NOT_SUPPORTED` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Alleen demo-SVG; terecht niet toegestaan in MVP zonder sanitization. |
 | cover | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | `object-fit: cover`. |
 | contain | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | `object-fit: contain`. |
@@ -430,7 +430,7 @@ Voor een echte Lab-deployment:
 3. Voor de optionele codecs:
 
    ```bash
-   CASTIVO_OPTIONAL_CODECS=1 scripts/generate-lg-test-media.sh
+   VEYOCAST_OPTIONAL_CODECS=1 scripts/generate-lg-test-media.sh
    ```
 
 4. Controleer `apps/player/public/device-lab-media/SHA256SUMS.txt`.
@@ -501,4 +501,4 @@ De go/no-go-regel voor hosted productie is:
 - **Hybride adapter nodig** wanneer Cache Storage/Range of lifecycle per engine sterk verschilt maar standaard webcode nog bruikbaar blijft.
 - **Packaged LG-app nodig** wanneer autostart, storagepersistentie, screensaver/power recovery, device APIs of decodercontrole niet via de hosted browser haalbaar blijken.
 
-Totdat de fysieke resultaten zijn opgeslagen, blijven alle LG-cellen in dit rapport `NEEDS_PHYSICAL_LG_TEST` en mag Castivo niet communiceren dat LG Signage algemeen ondersteund is.
+Totdat de fysieke resultaten zijn opgeslagen, blijven alle LG-cellen in dit rapport `NEEDS_PHYSICAL_LG_TEST` en mag VeyoCast niet communiceren dat LG Signage algemeen ondersteund is.

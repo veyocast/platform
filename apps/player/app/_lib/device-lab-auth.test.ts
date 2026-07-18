@@ -26,7 +26,7 @@ describe("Device Lab-sessies", () => {
   });
 
   it("maakt met een sterk geheim een tijdelijke valide sessie", () => {
-    process.env.DEVICE_LAB_SESSION_SECRET = "castivo-device-lab-session-secret-for-tests-2026";
+    process.env.DEVICE_LAB_SESSION_SECRET = "veyocast-device-lab-session-secret-for-tests-2026";
     const now = 1_700_000_000_000;
     const session = createDeviceLabSession(now);
 

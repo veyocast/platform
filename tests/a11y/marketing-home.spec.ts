@@ -10,7 +10,7 @@ test("marketing homepage exposes navigation, sections and CTA landmarks", async 
   await expect(
     page.getByRole("navigation", { name: "Pagina" })
   ).toBeVisible();
-  await expect(page.getByRole("heading", { exact: true, name: "Castivo" })).toBeVisible();
+  await expect(page.getByRole("heading", { exact: true, name: "VeyoCast" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Gebouwd rond echte schermoperatie." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Een vaste route van upload naar scherm." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Eerst lokaal betrouwbaar, daarna pas opschalen." })).toBeVisible();

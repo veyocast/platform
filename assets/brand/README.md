@@ -1,6 +1,6 @@
 # Placeholder Brand Assets
 
-Deze bestanden zijn tijdelijke placeholders voor lokale ontwikkeling. Vervang ze vóór publieke release door de officiële locked Castivo assets.
+Deze bestanden zijn tijdelijke placeholders voor lokale ontwikkeling. Vervang ze vóór publieke release door de officiële locked VeyoCast assets.
 
 Regels blijven gelden:
 

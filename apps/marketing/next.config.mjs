@@ -3,7 +3,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
-  transpilePackages: ["@castivo/config"]
+  transpilePackages: ["@veyocast/config"]
 };
 
 export default nextConfig;

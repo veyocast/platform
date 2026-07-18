@@ -9,7 +9,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
-  transpilePackages: ["@castivo/config"],
+  transpilePackages: ["@veyocast/config"],
   async headers() {
     const securityHeaders = [
       {

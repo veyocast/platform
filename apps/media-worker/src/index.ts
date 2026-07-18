@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-import { CASTIVO_APPS, getLocalUrl } from "@castivo/config";
+import { VEYOCAST_APPS, getLocalUrl } from "@veyocast/config";
 
 import { readMediaWorkerConfig } from "./worker-config";
 import { SupabaseMediaWorkerBackend } from "./worker-backend";
@@ -67,7 +67,7 @@ export type WorkerHealth = {
 
 export function getWorkerHealth(now = new Date()): WorkerHealth {
   return {
-    service: CASTIVO_APPS["media-worker"].name,
+    service: VEYOCAST_APPS["media-worker"].name,
     status: "ok",
     checkedAt: now.toISOString(),
     controlUrl: getLocalUrl("control")
@@ -119,7 +119,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     console.error(JSON.stringify({
       code,
       message: error instanceof Error ? error.message : "Onbekende workerfout.",
-      service: CASTIVO_APPS["media-worker"].name,
+      service: VEYOCAST_APPS["media-worker"].name,
       status: "error"
     }));
     process.exitCode = 1;

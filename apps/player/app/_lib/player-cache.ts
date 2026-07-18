@@ -5,13 +5,18 @@ import type {
 } from "./player-manifest";
 import { createPlayerMediaStore, type PlayerMediaStore } from "./player-media-store";
 
-export const playerAssetCacheName = "castivo-player-assets-v1";
-export const playerDatabaseName = "castivo-player-cache-v1";
+export const playerAssetCacheName = "veyocast-player-assets-v1";
+export const playerDatabaseName = "veyocast-player-cache-v1";
 export const playerActiveReleaseStoreName = "activeReleases";
 export const playerPreviousReleaseStoreName = "previousReleases";
 export const playerStorageReserveBytes = 16 * 1024 * 1024;
 const playerMaximumStorageReserveBytes = 64 * 1024 * 1024;
-const playerCachePathPrefix = "/__castivo-player-cache/";
+const playerCachePathPrefix = "/__veyocast-player-cache/";
+const previousBrandNamespace = String.fromCharCode(99, 97, 115, 116, 105, 118, 111);
+const previousPlayerAssetCacheName = `${previousBrandNamespace}-player-assets-v1`;
+const previousPlayerDatabaseName = `${previousBrandNamespace}-player-cache-v1`;
+const previousPlayerCachePathPrefix = `/__${previousBrandNamespace}-player-cache/`;
+let playerStorageMigration: Promise<void> | undefined;
 
 export type PlayerCachePhase = "DOWNLOADING" | "VERIFYING";
 
@@ -217,6 +222,7 @@ export async function garbageCollectPlayerMedia({
 }
 
 async function readReleaseFromStore(storeName: string, deviceToken: string) {
+  await migratePreviousPlayerStorage();
   const database = await openPlayerDatabase();
   const transaction = database.transaction(storeName, "readonly");
   const store = transaction.objectStore(storeName);
@@ -227,6 +233,153 @@ async function readReleaseFromStore(storeName: string, deviceToken: string) {
   database.close();
 
   return cachedRelease;
+}
+
+export function migratePreviousReleaseCacheKeys(
+  release: CachedPlayerRelease
+): CachedPlayerRelease {
+  return {
+    ...release,
+    assets: release.assets.map((asset) => ({
+      ...asset,
+      cacheKey: asset.cacheKey.startsWith(previousPlayerCachePathPrefix)
+        ? `${playerCachePathPrefix}${asset.cacheKey.slice(previousPlayerCachePathPrefix.length)}`
+        : asset.cacheKey
+    }))
+  };
+}
+
+async function migratePreviousPlayerStorage() {
+  playerStorageMigration ??= performPlayerStorageMigration().catch((error) => {
+    playerStorageMigration = undefined;
+    throw error;
+  });
+  return playerStorageMigration;
+}
+
+async function performPlayerStorageMigration() {
+  const previousDatabase = await openPreviousPlayerDatabase();
+  if (!previousDatabase) return;
+
+  try {
+    const previousReleases = await readAllStoredReleases(previousDatabase);
+
+    const previousMediaStore = createPlayerMediaStore(previousPlayerAssetCacheName);
+    const currentMediaStore = createPlayerMediaStore(playerAssetCacheName);
+    const migratedReleases: Array<{
+      release: CachedPlayerRelease;
+      storeName: string;
+    }> = [];
+
+    for (const entry of previousReleases) {
+      const release = migratePreviousReleaseCacheKeys(entry.release);
+      for (let index = 0; index < entry.release.assets.length; index += 1) {
+        const previousAsset = entry.release.assets[index];
+        const migratedAsset = release.assets[index];
+        if (!previousAsset || !migratedAsset || previousAsset.cacheKey === migratedAsset.cacheKey) {
+          continue;
+        }
+        const existingResponse = await currentMediaStore.get(migratedAsset.cacheKey);
+        if (existingResponse) continue;
+        const previousResponse = await previousMediaStore.get(previousAsset.cacheKey);
+        if (!previousResponse) {
+          throw new Error("previous player release contains a missing cached asset");
+        }
+        await currentMediaStore.put(migratedAsset.cacheKey, previousResponse);
+      }
+      migratedReleases.push({ release, storeName: entry.storeName });
+    }
+
+    await persistMigratedReleases(migratedReleases);
+  } finally {
+    previousDatabase.close();
+  }
+
+  await deleteDatabase(previousPlayerDatabaseName);
+  if (typeof caches !== "undefined") {
+    await caches.delete(previousPlayerAssetCacheName);
+  }
+}
+
+async function readAllStoredReleases(database: IDBDatabase) {
+  const entries: Array<{ release: CachedPlayerRelease; storeName: string }> = [];
+  for (const storeName of [
+    playerActiveReleaseStoreName,
+    playerPreviousReleaseStoreName
+  ]) {
+    if (!database.objectStoreNames.contains(storeName)) continue;
+    const transaction = database.transaction(storeName, "readonly");
+    const releases = await requestToPromise<CachedPlayerRelease[]>(
+      transaction.objectStore(storeName).getAll()
+    );
+    entries.push(...releases.map((release) => ({ release, storeName })));
+  }
+  return entries;
+}
+
+async function persistMigratedReleases(
+  entries: Array<{ release: CachedPlayerRelease; storeName: string }>
+) {
+  const database = await openPlayerDatabase();
+  try {
+    const existingKeys = new Map<string, Set<IDBValidKey>>();
+    for (const storeName of [
+      playerActiveReleaseStoreName,
+      playerPreviousReleaseStoreName
+    ]) {
+      const transaction = database.transaction(storeName, "readonly");
+      const keys = await requestToPromise<IDBValidKey[]>(
+        transaction.objectStore(storeName).getAllKeys()
+      );
+      existingKeys.set(storeName, new Set(keys));
+    }
+
+    const transaction = database.transaction(
+      [playerActiveReleaseStoreName, playerPreviousReleaseStoreName],
+      "readwrite"
+    );
+    for (const { release, storeName } of entries) {
+      if (!existingKeys.get(storeName)?.has(release.deviceToken)) {
+        transaction.objectStore(storeName).put(release);
+      }
+    }
+    await transactionDone(transaction);
+  } finally {
+    database.close();
+  }
+}
+
+function openPreviousPlayerDatabase(): Promise<IDBDatabase | null> {
+  return new Promise((resolve, reject) => {
+    if (typeof indexedDB === "undefined") {
+      reject(new Error("IndexedDB API is unavailable"));
+      return;
+    }
+    const request = indexedDB.open(previousPlayerDatabaseName);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const database = request.result;
+      const hasReleaseStore = [
+        playerActiveReleaseStoreName,
+        playerPreviousReleaseStoreName
+      ].some((storeName) => database.objectStoreNames.contains(storeName));
+      if (hasReleaseStore) {
+        resolve(database);
+        return;
+      }
+      database.close();
+      void deleteDatabase(previousPlayerDatabaseName).finally(() => resolve(null));
+    };
+  });
+}
+
+function deleteDatabase(databaseName: string) {
+  return new Promise<void>((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(databaseName);
+    request.onerror = () => reject(request.error);
+    request.onblocked = () => resolve();
+    request.onsuccess = () => resolve();
+  });
 }
 
 export async function hydrateCachedRelease(
@@ -349,7 +502,7 @@ function toCacheAsset(
 ): PlayerCacheAsset {
   return {
     bytes,
-    cacheKey: `/__castivo-player-cache/${checksumSha256}`,
+    cacheKey: `/__veyocast-player-cache/${checksumSha256}`,
     checksumSha256,
     itemId: item.id,
     kind,

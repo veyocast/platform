@@ -1,4 +1,4 @@
--- Castivo schema blueprint. Convert into timestamped migrations.
+-- VeyoCast schema blueprint. Convert into timestamped migrations.
 
 create schema if not exists private;
 

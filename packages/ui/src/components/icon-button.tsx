@@ -4,11 +4,11 @@ import type { ComponentPropsWithoutRef } from "react";
 
 import { cn } from "../utils";
 
-export const iconButtonVariants = cva("cv-icon-button", {
+export const iconButtonVariants = cva("vc-icon-button", {
   variants: {
     variant: {
       default: "",
-      destructive: "cv-icon-button--destructive"
+      destructive: "vc-icon-button--destructive"
     }
   },
   defaultVariants: {

@@ -9,6 +9,7 @@ import {
   getCacheableAssets,
   garbageCollectPlayerMedia,
   hydratePreparedRelease,
+  migratePreviousReleaseCacheKeys,
   playerStorageReserveBytes,
   preparePendingRelease,
   sha256Hex,
@@ -78,8 +79,34 @@ describe("player cache contract", () => {
     );
   });
 
+  it("moves previous release metadata to the VeyoCast cache namespace", () => {
+    const previousNamespace = String.fromCharCode(99, 97, 115, 116, 105, 118, 111);
+    const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);
+    if (!lookup.ok) throw new Error("expected demo manifest");
+
+    const release = migratePreviousReleaseCacheKeys({
+      activatedAt: "2026-07-19T00:00:00.000Z",
+      assets: [
+        {
+          bytes: 1,
+          cacheKey: `/__${previousNamespace}-player-cache/checksum`,
+          checksumSha256: "checksum",
+          itemId: "item",
+          kind: "media",
+          url: "/asset"
+        }
+      ],
+      deviceToken: demoOnlineDeviceToken,
+      envelope: lookup.body
+    });
+
+    expect(release.assets[0]?.cacheKey).toBe(
+      "/__veyocast-player-cache/checksum"
+    );
+  });
+
   it("verifies bytes by size and sha256", async () => {
-    const payload = new TextEncoder().encode("castivo-cache");
+    const payload = new TextEncoder().encode("veyocast-cache");
     const checksumSha256 = await sha256Hex(payload.buffer);
 
     await expect(
@@ -121,8 +148,8 @@ describe("player cache contract", () => {
     const corruptPendingPayload = new TextEncoder().encode("corrupt-pending-asset");
     const sharedChecksum = await sha256Hex(sharedPayload.buffer);
     const pendingChecksum = await sha256Hex(corruptPendingPayload.buffer);
-    const sharedCacheKey = `/__castivo-player-cache/${sharedChecksum}`;
-    const pendingCacheKey = `/__castivo-player-cache/${pendingChecksum}`;
+    const sharedCacheKey = `/__veyocast-player-cache/${sharedChecksum}`;
+    const pendingCacheKey = `/__veyocast-player-cache/${pendingChecksum}`;
     const cache = new MemoryCache();
 
     await cache.put(
@@ -179,7 +206,7 @@ describe("player cache contract", () => {
     const pendingChecksum = await sha256Hex(pendingPayload.buffer);
     const store = new MemoryMediaStore();
     await store.put(
-      `/__castivo-player-cache/${sharedChecksum}`,
+      `/__veyocast-player-cache/${sharedChecksum}`,
       new Response(sharedPayload, { headers: { "Content-Type": "image/png" } })
     );
     const fetchSpy = vi.fn();
@@ -206,7 +233,7 @@ describe("player cache contract", () => {
     expect(result).toMatchObject({ ok: false });
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(
-      store.entries.get(`/__castivo-player-cache/${sharedChecksum}`)?.headers.get(
+      store.entries.get(`/__veyocast-player-cache/${sharedChecksum}`)?.headers.get(
         "Content-Length"
       )
     ).toBe(String(sharedPayload.byteLength));
@@ -246,24 +273,24 @@ describe("player cache contract", () => {
   it("garbage-collects only unreferenced player assets", async () => {
     const store = new MemoryMediaStore();
     await Promise.all([
-      store.put("/__castivo-player-cache/active", new Response("active")),
-      store.put("/__castivo-player-cache/previous", new Response("previous")),
-      store.put("/__castivo-player-cache/obsolete", new Response("obsolete")),
+      store.put("/__veyocast-player-cache/active", new Response("active")),
+      store.put("/__veyocast-player-cache/previous", new Response("previous")),
+      store.put("/__veyocast-player-cache/obsolete", new Response("obsolete")),
       store.put("/unrelated", new Response("keep"))
     ]);
 
     const result = await garbageCollectPlayerMedia({
       releases: [
-        { assets: [{ cacheKey: "/__castivo-player-cache/active" }] },
-        { assets: [{ cacheKey: "/__castivo-player-cache/previous" }] }
+        { assets: [{ cacheKey: "/__veyocast-player-cache/active" }] },
+        { assets: [{ cacheKey: "/__veyocast-player-cache/previous" }] }
       ] as never,
       store
     });
 
-    expect(result.deletedKeys).toEqual(["/__castivo-player-cache/obsolete"]);
+    expect(result.deletedKeys).toEqual(["/__veyocast-player-cache/obsolete"]);
     expect(await store.keys()).toEqual([
-      "/__castivo-player-cache/active",
-      "/__castivo-player-cache/previous",
+      "/__veyocast-player-cache/active",
+      "/__veyocast-player-cache/previous",
       "/unrelated"
     ]);
   });

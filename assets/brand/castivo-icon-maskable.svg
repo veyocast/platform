@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">Castivo placeholder icon</title>
-  <desc id="desc">Temporary Castivo C icon placeholder.</desc>
-  <rect width="512" height="512" rx="96" fill="#FAFAF7"/>
-  <path d="M270 96h142v76H276c-58 0-100 38-100 84s42 84 100 84h136v76H270c-104 0-184-70-184-160S166 96 270 96Z" fill="#0A0A0A"/>
-  <path d="M258 190l112 66-112 66V190Z" fill="#FF5C20"/>
-</svg>

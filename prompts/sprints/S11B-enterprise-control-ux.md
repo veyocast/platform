@@ -2,7 +2,7 @@
 
 ## Goal
 
-Bring Castivo Control to the normative enterprise SaaS standard in Castivo Bold
+Bring VeyoCast Control to the normative enterprise SaaS standard in VeyoCast Bold
 Design & Product Canon v1.0.0. This is a corrective product-quality sprint
 before S12-A, not a cosmetic pass.
 
@@ -14,10 +14,10 @@ before S12-A, not a cosmetic pass.
 - `docs/technical-canon.md`
 - `docs/design-implementation-canon.md`
 - `docs/control-enterprise-ux-checklist.md`
-- `docs/design-canon/v1/CASTIVO_DESIGN_CANON_v1.0.md`
-- `docs/design-canon/v1/castivo-design-tokens.json`
-- `docs/design-canon/v1/castivo-component-inventory.csv`
-- `docs/design-canon/v1/castivo-page-template-inventory.csv`
+- `docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md`
+- `docs/design-canon/v1/veyocast-design-tokens.json`
+- `docs/design-canon/v1/veyocast-component-inventory.csv`
+- `docs/design-canon/v1/veyocast-page-template-inventory.csv`
 
 ## Scope
 

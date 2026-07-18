@@ -7,10 +7,10 @@ select plan(15);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
 values
-  ('00000000-0000-4000-8000-000000000105', 'authenticated', 'authenticated', 'author-admin@castivo.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-  ('00000000-0000-4000-8000-000000000102', 'authenticated', 'authenticated', 'author-editor@castivo.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-  ('00000000-0000-4000-8000-000000000103', 'authenticated', 'authenticated', 'author-viewer@castivo.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-  ('00000000-0000-4000-8000-000000000104', 'authenticated', 'authenticated', 'other-admin@castivo.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
+  ('00000000-0000-4000-8000-000000000105', 'authenticated', 'authenticated', 'author-admin@veyocast.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
+  ('00000000-0000-4000-8000-000000000102', 'authenticated', 'authenticated', 'author-editor@veyocast.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
+  ('00000000-0000-4000-8000-000000000103', 'authenticated', 'authenticated', 'author-viewer@veyocast.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
+  ('00000000-0000-4000-8000-000000000104', 'authenticated', 'authenticated', 'other-admin@veyocast.test', 'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
 
 insert into public.profiles (id, display_name)
 values

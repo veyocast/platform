@@ -62,7 +62,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
             Player openen
           </Link>
         }
-        description="Doorloop de kleinste echte Castivo-keten: upload een afbeelding, maak een concept, publiceer een immutable release en koppel een Player zonder het device-token in Control te tonen."
+        description="Doorloop de kleinste echte VeyoCast-keten: upload een afbeelding, maak een concept, publiceer een immutable release en koppel een Player zonder het device-token in Control te tonen."
         eyebrow={session.tenant}
         status={{
           label: session.isLive ? "Live Supabase" : "Demomodus",
@@ -84,7 +84,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
       {!session.isLive ? (
         <p className="notice notice--warning" role="status">
           Deze pagina doet bewust geen schijnmutaties. Start de lokale Supabase-stack en log in
-          als <strong>pilot-admin@castivo.test</strong> om de keten echt uit te voeren.
+          als <strong>pilot-admin@veyocast.test</strong> om de keten echt uit te voeren.
         </p>
       ) : null}
 
@@ -276,7 +276,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
                 {data.devices.map((device) => (
                   <tr key={device.id}>
                     <td data-label="Player">
-                      <span className="table-primary">{device.device_name ?? "Castivo Player"}</span>
+                      <span className="table-primary">{device.device_name ?? "VeyoCast Player"}</span>
                       <span className="table-secondary">{screenName(data.screens, device.screen_id)}</span>
                     </td>
                     <td data-label="Status">

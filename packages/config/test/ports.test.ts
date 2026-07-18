@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { CASTIVO_APPS, CASTIVO_PORTS, getLocalUrl } from "../src/index";
+import { VEYOCAST_APPS, VEYOCAST_PORTS, getLocalUrl } from "../src/index";
 
-describe("Castivo local runtime config", () => {
+describe("VeyoCast local runtime config", () => {
   it("keeps the documented app ports stable", () => {
-    expect(CASTIVO_PORTS).toEqual({
+    expect(VEYOCAST_PORTS).toEqual({
       control: 3000,
       player: 3001,
       marketing: 3002,
@@ -19,7 +19,7 @@ describe("Castivo local runtime config", () => {
   });
 
   it("keeps every app config keyed by its own id", () => {
-    for (const [appId, appConfig] of Object.entries(CASTIVO_APPS)) {
+    for (const [appId, appConfig] of Object.entries(VEYOCAST_APPS)) {
       expect(appConfig.id).toBe(appId);
     }
   });

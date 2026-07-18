@@ -50,7 +50,7 @@ export function VideoUploadForm({
 
     setIsBusy(true);
     setNotice({
-      message: "Castivo maakt een afgeschermde uploadsessie aan.",
+      message: "VeyoCast maakt een afgeschermde uploadsessie aan.",
       tone: "warning"
     });
     const preparation = await prepareMediaVideoUpload({
@@ -86,7 +86,7 @@ export function VideoUploadForm({
           ? "De overdracht naar private opslag is mislukt. Het item is geblokkeerd en opgeruimd; controleer je verbinding en probeer opnieuw."
           : cancellation.blocked
             ? "De overdracht is mislukt en het item is geblokkeerd. Opslagopruiming kon niet worden bevestigd; een beheerder kan het weesbestand verwijderen."
-            : "De overdracht is mislukt en Castivo kon blokkering niet bevestigen. Vernieuw de mediabibliotheek en neem contact op met een beheerder voordat je opnieuw uploadt.",
+            : "De overdracht is mislukt en VeyoCast kon blokkering niet bevestigen. Vernieuw de mediabibliotheek en neem contact op met een beheerder voordat je opnieuw uploadt.",
         tone: "critical"
       });
       return;
@@ -99,7 +99,7 @@ export function VideoUploadForm({
   async function finalize(uploadSessionId: string) {
     setIsBusy(true);
     setNotice({
-      message: "Castivo vergelijkt opslagmetadata en zet daarna één verwerkingsjob klaar.",
+      message: "VeyoCast vergelijkt opslagmetadata en zet daarna één verwerkingsjob klaar.",
       tone: "warning"
     });
     const result = await finalizeMediaVideoUpload(uploadSessionId);

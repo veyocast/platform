@@ -3,12 +3,12 @@ import type { ComponentPropsWithoutRef } from "react";
 
 import { cn } from "../utils";
 
-export const linkVariants = cva("cv-link", {
+export const linkVariants = cva("vc-link", {
   variants: {
     variant: {
       default: "",
-      muted: "cv-link--muted",
-      nav: "cv-link--nav"
+      muted: "vc-link--muted",
+      nav: "vc-link--nav"
     }
   },
   defaultVariants: {

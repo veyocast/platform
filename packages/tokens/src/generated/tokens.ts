@@ -1,10 +1,10 @@
-import type { CastivoDesignTokens } from "../schema";
+import type { VeyoCastDesignTokens } from "../schema";
 
-export const castivoTokens = {
-  "$schema": "https://castivo.local/design-tokens.schema.json",
+export const veyocastTokens = {
+  "$schema": "https://veyocast.local/design-tokens.schema.json",
   "meta": {
-    "name": "Castivo Bold Runtime Tokens",
-    "version": "1.0.0",
+    "name": "VeyoCast Bold Runtime Tokens",
+    "version": "2.0.0",
     "status": "canonical-runtime-projection"
   },
   "color": {
@@ -170,6 +170,6 @@ export const castivoTokens = {
     "sidebarExpanded": 248,
     "sidebarCollapsed": 72
   }
-} as const satisfies CastivoDesignTokens;
+} as const satisfies VeyoCastDesignTokens;
 
-export default castivoTokens;
+export default veyocastTokens;

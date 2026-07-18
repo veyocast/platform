@@ -29,7 +29,7 @@ import {
   tenantWriteRoles
 } from "../src";
 
-describe("@castivo/database role constants", () => {
+describe("@veyocast/database role constants", () => {
   it("keeps canonical platform roles in database order", () => {
     expect(platformRoles).toEqual([
       "platform_owner",

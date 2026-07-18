@@ -10,7 +10,7 @@ export function Skeleton({ className, shape = "block", ...props }: SkeletonProps
   return (
     <div
       aria-hidden="true"
-      className={cn("cv-skeleton", shape === "circle" && "cv-skeleton--circle", className)}
+      className={cn("vc-skeleton", shape === "circle" && "vc-skeleton--circle", className)}
       {...props}
     />
   );
@@ -23,9 +23,9 @@ export type EmptyStateProps = ComponentPropsWithoutRef<"div"> & {
 
 export function EmptyState({ action, children, className, title, ...props }: EmptyStateProps) {
   return (
-    <div className={cn("cv-empty-state", className)} {...props}>
-      <div className="cv-empty-state__title">{title}</div>
-      {children ? <div className="cv-empty-state__description">{children}</div> : null}
+    <div className={cn("vc-empty-state", className)} {...props}>
+      <div className="vc-empty-state__title">{title}</div>
+      {children ? <div className="vc-empty-state__description">{children}</div> : null}
       {action}
     </div>
   );
@@ -38,9 +38,9 @@ export type ErrorStateProps = ComponentPropsWithoutRef<"div"> & {
 
 export function ErrorState({ action, children, className, title, ...props }: ErrorStateProps) {
   return (
-    <div className={cn("cv-error-state", className)} role="alert" {...props}>
-      <div className="cv-error-state__title">{title}</div>
-      {children ? <div className="cv-error-state__description">{children}</div> : null}
+    <div className={cn("vc-error-state", className)} role="alert" {...props}>
+      <div className="vc-error-state__title">{title}</div>
+      {children ? <div className="vc-error-state__description">{children}</div> : null}
       {action}
     </div>
   );

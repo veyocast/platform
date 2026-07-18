@@ -12,12 +12,12 @@ import {
   TextInput
 } from "../src";
 
-describe("@castivo/ui primitives", () => {
+describe("@veyocast/ui primitives", () => {
   it("renders semantic button variants with stable classes", () => {
     const html = renderToStaticMarkup(<Button variant="primary">Publish</Button>);
 
-    expect(html).toContain("cv-button");
-    expect(html).toContain("cv-button--primary");
+    expect(html).toContain("vc-button");
+    expect(html).toContain("vc-button--primary");
     expect(html).toContain('type="button"');
   });
 
@@ -35,7 +35,7 @@ describe("@castivo/ui primitives", () => {
 
     expect(html).toContain("Online");
     expect(html).toContain('aria-hidden="true"');
-    expect(html).toContain("cv-badge--success");
+    expect(html).toContain("vc-badge--success");
   });
 
   it("wires field descriptions and errors to the control", () => {
@@ -56,13 +56,13 @@ describe("@castivo/ui primitives", () => {
     expect(html).toContain('role="progressbar"');
     expect(html).toContain('aria-label="Upload progress"');
     expect(html).toContain('aria-valuenow="25"');
-    expect(html).toContain("--cv-progress-value:25%");
+    expect(html).toContain("--vc-progress-value:25%");
   });
 
   it("uses css variables instead of hardcoded hex colors in component styles", async () => {
     const styles = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
 
     expect(styles).not.toMatch(/#[0-9a-f]{3,8}/i);
-    expect(styles).toContain("../../../tokens/castivo-design-tokens.css");
+    expect(styles).toContain("../../../tokens/veyocast-design-tokens.css");
   });
 });
