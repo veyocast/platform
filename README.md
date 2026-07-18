@@ -63,15 +63,12 @@ studio:       54323
 
 ## Current Sprint
 
-S16 completes the normal Control authoring flow. Media now supports private
-previews, search/filter, rename, safe archive and video retry. Playlists use live
-tenant data for create/edit/reorder, item duration/fit/audio, a timed 16:9
-preview, publish review, multi-screen immutable publication and release history.
-Tenant admins can persist club, playback and screen defaults through an audited
-server-side RPC. The opt-in live test now proves image and MP4 upload, real
-FFmpeg H.264/AAC normalization, normal playlist publication, pairing and muted
-mixed-media playback. See `docs/s16-control-authoring-evidence.md`.
+S17 provides the deployment route for the completed Control authoring MVP.
+Development stays on the existing VPS. Staging and production deploy as separate
+Compose projects on a second, shared VPS using dedicated self-hosted runner
+labels, distinct localhost ports and separate Supabase projects. A green `main`
+automatically migrates and deploys staging; production is a manual, protected
+GitHub Environment promotion. See `docs/vps-environments-runbook.md`.
 
-The deployment kit from S15 remains the production route. Physical
-model/firmware validation, production secrets/infrastructure and the 24-hour
-soak remain required before an LG support claim.
+Physical model/firmware validation and the 24-hour mixed-media soak remain
+required before an LG support claim.

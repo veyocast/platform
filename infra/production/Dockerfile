@@ -23,7 +23,11 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_PLAYER_URL=$NEXT_PUBLIC_PLAYER_URL
 ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION
 ENV DEPLOYMENT_SHA=$DEPLOYMENT_SHA
-RUN pnpm --filter @castivo/control build && pnpm --filter @castivo/player build
+RUN --mount=type=secret,id=next_server_actions_encryption_key \
+  if [ -f /run/secrets/next_server_actions_encryption_key ]; then \
+    export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="$(cat /run/secrets/next_server_actions_encryption_key)"; \
+  fi; \
+  pnpm --filter @castivo/control build && pnpm --filter @castivo/player build
 
 FROM node:24-trixie-slim AS control
 ENV NODE_ENV=production

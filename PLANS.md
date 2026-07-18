@@ -48,6 +48,8 @@ De MVP is pilot-ready wanneer:
 | S13 | LG webOS capability hardening | Device Lab, watchdog en fysiek testprotocol |
 | S14 | Playback- en mediareadiness | Periodieke sync, veilige cache-GC en uitvoerbare MP4-workerqueue |
 | S15 | LG-koppelklaar hosted product | Echte schermvloot/pairing en reproduceerbare Docker/Caddy-deployment |
+| S16 | Control authoring MVP | Live media, playlists, instellingen en mixed-media publicatie |
+| S17 | VPS staging en production | Gescheiden Compose-stacks, self-hosted runners en Supabase-migratiedeployment |
 
 ## Parallelle waves
 

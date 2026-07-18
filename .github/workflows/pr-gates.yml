@@ -50,3 +50,46 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Validate GitHub Actions workflows
+        run: bash scripts/validate-github-actions.sh
+
+      - name: Validate VPS deployment definitions
+        run: bash scripts/validate-vps-deployment.sh
+
+  database:
+    name: Database and RLS gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Start local Supabase
+        run: pnpm db:start
+
+      - name: Reset database from migrations
+        run: pnpm db:reset
+
+      - name: Prove RLS isolation
+        run: pnpm test:rls
+
+      - name: Stop local Supabase
+        if: always()
+        run: pnpm db:stop

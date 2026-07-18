@@ -35,5 +35,8 @@ The repository now provides `infra/production/compose.yaml` with:
 - secret-free healthchecks and fail-closed required environment variables.
 
 Use `docs/lg-pairing-deployment-runbook.md`. GitHub Actions gates and a
-least-privilege deployment runner still have to publish/promote the green images.
+least-privilege deployment runner publish/promote the green images volgens
+`docs/vps-environments-runbook.md`. Dev blijft op de bestaande VPS; staging en
+production zijn geïsoleerde Compose-projecten op de gedeelde deployment-VPS en
+gebruiken afzonderlijke Supabase-projecten.
 Never use production `git pull && npm install && npm run build` on the VPS.

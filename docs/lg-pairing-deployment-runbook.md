@@ -1,5 +1,10 @@
 # LG-koppelklaar deploymentrunbook
 
+> Dit bestand beschrijft de oorspronkelijke single-environment deploymentkit.
+> Voor de aparte staging- en productieomgevingen op de gedeelde deployment-VPS,
+> self-hosted runners en Supabase-migraties is
+> `docs/vps-environments-runbook.md` leidend.
+
 ## Doel en grens
 
 Deze deployment levert één HTTPS Control-host, één HTTPS Player-host en een
@@ -124,7 +129,8 @@ actieve last-known-good release of gecachte assets op de Player niet verwijderen
 
 ## Bekende grenzen
 
-- Supabase zelf wordt niet door deze Compose-stack gehost of gemigreerd.
+- Supabase zelf wordt niet door deze legacy Compose-stack gehost of gemigreerd;
+  de VPS-workflow migreert de externe staging- en productieprojecten wel.
 - DNS, VPS, certificaatuitgifte en productiecredentials vereisen externe
   infrastructuur en zijn niet vanuit de repository te bewijzen.
 - Device Lab-testmedia moeten vóór de fysieke run met
