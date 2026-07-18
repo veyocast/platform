@@ -63,10 +63,15 @@ studio:       54323
 
 ## Current Sprint
 
-S15 makes the hosted product ready for the first physical LG pairing sprint.
-The normal Screens route now reads and mutates real tenant data, lets authorized
-admins create screens and claim Player-owned temporary codes, and shows actual
-device, heartbeat, storage and release state. Production deployment uses
-Git-SHA-tagged standalone Control and Player images, an FFmpeg worker and Caddy
-TLS. See `docs/lg-pairing-deployment-runbook.md`. Physical model/firmware
-validation and the 24-hour soak remain required before an LG support claim.
+S16 completes the normal Control authoring flow. Media now supports private
+previews, search/filter, rename, safe archive and video retry. Playlists use live
+tenant data for create/edit/reorder, item duration/fit/audio, a timed 16:9
+preview, publish review, multi-screen immutable publication and release history.
+Tenant admins can persist club, playback and screen defaults through an audited
+server-side RPC. The opt-in live test now proves image and MP4 upload, real
+FFmpeg H.264/AAC normalization, normal playlist publication, pairing and muted
+mixed-media playback. See `docs/s16-control-authoring-evidence.md`.
+
+The deployment kit from S15 remains the production route. Physical
+model/firmware validation, production secrets/infrastructure and the 24-hour
+soak remain required before an LG support claim.

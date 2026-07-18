@@ -32,7 +32,8 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
   ).toBeVisible();
-  await expect(page.getByText("Publicatiereview actief")).toBeVisible();
+  await expect(page.getByText("Demomodus zonder mutaties")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Nieuwe playlist" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Publicatietijdlijn" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Schermen/ }).click();

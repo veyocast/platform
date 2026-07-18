@@ -215,10 +215,14 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
               </div>
               <div className="field">
                 <label htmlFor="screen-orientation">Oriëntatie</label>
-                <select disabled={!session.isLive || !canManage} id="screen-orientation" name="orientation">
+                <select defaultValue={data.settings.orientation} disabled={!session.isLive || !canManage} id="screen-orientation" name="orientation">
                   <option value="landscape">Liggend</option>
                   <option value="portrait">Staand</option>
                 </select>
+              </div>
+              <div className="form-grid">
+                <div className="field"><label htmlFor="screen-resolution-width">Breedte</label><input defaultValue={data.settings.width} disabled={!session.isLive || !canManage} id="screen-resolution-width" max={7680} min={320} name="resolutionWidth" required type="number" /></div>
+                <div className="field"><label htmlFor="screen-resolution-height">Hoogte</label><input defaultValue={data.settings.height} disabled={!session.isLive || !canManage} id="screen-resolution-height" max={4320} min={240} name="resolutionHeight" required type="number" /></div>
               </div>
               <button className="button-link button-link--secondary" disabled={!session.isLive || !canManage} type="submit">Scherm opslaan</button>
             </form>
@@ -270,21 +274,28 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
 }
 
 async function loadScreens(tenantId: string | null, isLive: boolean) {
-  if (!tenantId || !isLive) return { devices: [] as DeviceRow[], error: false, playlists: [] as PlaylistRow[], screens: [] as ScreenRow[] };
+  const defaultSettings = { height: 1080, orientation: "landscape", width: 1920 };
+  if (!tenantId || !isLive) return { devices: [] as DeviceRow[], error: false, playlists: [] as PlaylistRow[], screens: [] as ScreenRow[], settings: defaultSettings };
   const supabase = await createControlSupabaseClient();
-  if (!supabase) return { devices: [] as DeviceRow[], error: true, playlists: [] as PlaylistRow[], screens: [] as ScreenRow[] };
+  if (!supabase) return { devices: [] as DeviceRow[], error: true, playlists: [] as PlaylistRow[], screens: [] as ScreenRow[], settings: defaultSettings };
 
-  const [screens, devices, playlists] = await Promise.all([
+  const [screens, devices, playlists, settings] = await Promise.all([
     supabase.from("screens").select("id, name, location, orientation, status, assigned_playlist_id, assigned_release_id").eq("tenant_id", tenantId).order("created_at", { ascending: true }),
     supabase.from("player_devices").select("id, screen_id, device_name, active_release_id, desired_release_id, last_seen_at, storage_quota_bytes, storage_used_bytes").eq("tenant_id", tenantId).eq("status", "paired").order("paired_at", { ascending: false }),
-    supabase.from("playlists").select("id, name").eq("tenant_id", tenantId)
+    supabase.from("playlists").select("id, name").eq("tenant_id", tenantId),
+    supabase.from("tenant_settings").select("default_screen_orientation, default_resolution_width, default_resolution_height").eq("tenant_id", tenantId).maybeSingle()
   ]);
-  const error = Boolean(screens.error || devices.error || playlists.error);
+  const error = Boolean(screens.error || devices.error || playlists.error || settings.error);
   return {
     devices: error ? [] : (devices.data ?? []) as DeviceRow[],
     error,
     playlists: error ? [] : (playlists.data ?? []) as PlaylistRow[],
-    screens: error ? [] : (screens.data ?? []) as ScreenRow[]
+    screens: error ? [] : (screens.data ?? []) as ScreenRow[],
+    settings: settings.data ? {
+      height: settings.data.default_resolution_height,
+      orientation: settings.data.default_screen_orientation,
+      width: settings.data.default_resolution_width
+    } : defaultSettings
   };
 }
 

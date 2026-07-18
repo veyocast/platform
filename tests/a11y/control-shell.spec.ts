@@ -49,7 +49,20 @@ test("playlists route exposes publish review labels and status", async ({
   await expect(page.getByLabel("Playlist publicatietijdlijn")).toContainText(
     "Player bijwerken"
   );
-  await expect(page.getByRole("status")).toContainText("Sponsor slide");
+  await expect(page.getByRole("status").filter({ hasText: "Configureer Supabase" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Concept maken" })).toBeDisabled();
+});
+
+test("settings route exposes real defaults with safe permission state", async ({ page }) => {
+  await page.goto("/dashboard/settings");
+
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Instellingen" })).toBeVisible();
+  await expect(page.getByLabel("Verenigingsnaam")).toBeVisible();
+  await expect(page.getByLabel("Afbeeldingsduur in seconden")).toBeVisible();
+  await expect(page.getByLabel("Video standaard zonder geluid")).toBeVisible();
+  await expect(page.getByLabel("Oriëntatie")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toBeDisabled();
+  await expect(page.getByRole("status")).toContainText("Configureer Supabase");
 });
 
 test("screens route exposes pairing labels and status", async ({ page }) => {

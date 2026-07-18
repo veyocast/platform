@@ -33,8 +33,9 @@ test("keeps the documented local demo pilot traceable across product planes", as
   await expect(page.getByRole("button", { name: "Video uploaden" })).toBeDisabled();
 
   await page.goto("/dashboard/playlists");
-  await expect(page.getByText("Publicatiereview actief")).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("Sponsor slide");
+  await expect(page.getByText("Demomodus zonder mutaties")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Publicatiereview" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Concept maken" })).toBeDisabled();
 
   await page.goto("/dashboard/screens");
   await expect(page.getByLabel("Koppelcode")).toBeVisible();

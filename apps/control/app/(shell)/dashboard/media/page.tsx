@@ -1,4 +1,6 @@
+/* eslint-disable @next/next/no-img-element */
 import { FileWarning, Image as ImageIcon, Video } from "lucide-react";
+import Link from "next/link";
 
 import { requireControlSession } from "../../../../lib/control-session";
 import { getSupabasePublicConfig } from "../../../../lib/supabase/config";
@@ -10,11 +12,16 @@ import {
   StatusPill,
   Timeline
 } from "../../_components/shell-primitives";
-import { uploadMediaImage } from "./actions";
+import {
+  archiveMediaAsset,
+  renameMediaAsset,
+  retryMediaProcessing,
+  uploadMediaImage
+} from "./actions";
 import { VideoUploadForm } from "./video-upload-form";
 
 type MediaPageProps = {
-  searchParams: Promise<{ fout?: string; succes?: string }>;
+  searchParams: Promise<{ asset?: string; fout?: string; q?: string; status?: string; succes?: string; type?: string }>;
 };
 
 type MediaAsset = {
@@ -25,6 +32,7 @@ type MediaAsset = {
   id: string;
   kind: "image" | "video";
   mimeType: string;
+  previewUrl: string | null;
   status: string;
   storagePath: string;
   title: string;
@@ -41,6 +49,7 @@ const demoAssets: MediaAsset[] = [
     id: "demo-ready",
     kind: "image",
     mimeType: "image/webp",
+    previewUrl: null,
     status: "ready",
     storagePath: "tenants/.../assets/.../original/zomerroute.webp",
     title: "Zomerroute poster",
@@ -55,6 +64,7 @@ const demoAssets: MediaAsset[] = [
     id: "demo-processing",
     kind: "video",
     mimeType: "video/mp4",
+    previewUrl: null,
     status: "processing",
     storagePath: "tenants/.../assets/.../original/welkom-loop.mp4",
     title: "Welkom loop",
@@ -69,6 +79,7 @@ const demoAssets: MediaAsset[] = [
     id: "demo-failed",
     kind: "image",
     mimeType: "image/svg+xml",
+    previewUrl: null,
     status: "validation_failed",
     storagePath: "Geen opslagobject aangemaakt",
     title: "Sponsorlogo",
@@ -122,19 +133,26 @@ const mediaRules = [
 export default async function MediaPage({ searchParams }: MediaPageProps) {
   const session = await requireControlSession();
   const publicConfig = getSupabasePublicConfig();
-  const { fout, succes } = await searchParams;
+  const params = await searchParams;
+  const { fout, succes } = params;
   const { assets, loadError } = await loadMediaData(session.tenantId, session.isLive);
   const canUpload =
     session.isLive &&
     session.roles.some((role) =>
       ["tenant_owner", "tenant_admin", "tenant_editor"].includes(role)
     );
+  const query = (params.q ?? "").trim().toLocaleLowerCase("nl-NL");
+  const visibleAssets = assets.filter((asset) =>
+    (!query || `${asset.title} ${asset.fileName}`.toLocaleLowerCase("nl-NL").includes(query))
+    && (!params.type || params.type === "all" || asset.kind === params.type)
+    && (!params.status || params.status === "all" || asset.status === params.status)
+  );
   const readyCount = assets.filter((asset) => asset.status === "ready").length;
   const processingAssets = assets.filter((asset) =>
     ["uploading", "uploaded", "processing"].includes(asset.status)
   );
   const failedCount = assets.filter((asset) => asset.status === "validation_failed").length;
-  const selectedAsset = assets[0] ?? null;
+  const selectedAsset = assets.find((asset) => asset.id === params.asset) ?? visibleAssets[0] ?? null;
 
   return (
     <>
@@ -196,6 +214,20 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
         />
       </section>
 
+      <form className="resource-toolbar" method="get" role="search">
+        <div className="resource-toolbar__group">
+          <input aria-label="Zoeken in media" className="toolbar-search" defaultValue={params.q} name="q" placeholder="Zoeken op titel of bestandsnaam" type="search" />
+          <select aria-label="Filter media op type" className="toolbar-select" defaultValue={params.type ?? "all"} name="type">
+            <option value="all">Alle typen</option><option value="image">Afbeeldingen</option><option value="video">Video's</option>
+          </select>
+          <select aria-label="Filter media op status" className="toolbar-select" defaultValue={params.status ?? "all"} name="status">
+            <option value="all">Alle statussen</option><option value="ready">Gereed</option><option value="processing">Verwerken</option><option value="validation_failed">Validatie mislukt</option>
+          </select>
+          <button className="button-link button-link--secondary" type="submit">Filteren</button>
+        </div>
+        <p className="resource-toolbar__summary">{visibleAssets.length} van {assets.length} zichtbaar</p>
+      </form>
+
       <section className="resource-workspace">
         <section className="workspace-section" aria-labelledby="media-library-title">
           <div className="workspace-section__header">
@@ -207,7 +239,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             </div>
             <StatusPill label={`${assets.length} items`} tone="neutral" />
           </div>
-          {assets.length > 0 ? (
+          {visibleAssets.length > 0 ? (
             <div className="data-table-frame">
               <table className="data-table data-table--responsive">
                 <caption>Media binnen de actieve vereniging.</caption>
@@ -219,10 +251,11 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                     <th scope="col">Status</th>
                     <th scope="col">Gebruik</th>
                     <th scope="col">Toegevoegd</th>
+                    <th scope="col">Actie</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {assets.map((asset) => (
+                  {visibleAssets.map((asset) => (
                     <tr key={asset.id}>
                       <td data-label="Type">
                         <MediaType kind={asset.kind} status={asset.status} />
@@ -239,6 +272,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                         {asset.usageCount === 1 ? "1 playlistitem" : `${asset.usageCount} playlistitems`}
                       </td>
                       <td data-label="Toegevoegd">{formatDate(asset.createdAt)}</td>
+                      <td data-label="Actie"><Link className="table-action" href={`/dashboard/media?asset=${asset.id}`}>Openen</Link></td>
                     </tr>
                   ))}
                 </tbody>
@@ -264,9 +298,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             </div>
             {selectedAsset ? (
               <>
-                <div className="media-card__preview" data-kind={selectedAsset.kind}>
-                  {selectedAsset.kind === "video" ? "Video" : "Afbeelding"}
-                </div>
+                <MediaPreview asset={selectedAsset} />
                 <dl className="meta-list">
                   <div><dt>Titel</dt><dd>{selectedAsset.title}</dd></div>
                   <div><dt>Bestand</dt><dd>{selectedAsset.fileName}</dd></div>
@@ -274,6 +306,17 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                   <div><dt>Validatie</dt><dd>{validationSummary(selectedAsset.validationError)}</dd></div>
                   <div><dt>Opslagpad</dt><dd>{selectedAsset.storagePath}</dd></div>
                 </dl>
+                <form action={renameMediaAsset} className="playlist-form">
+                  <input name="assetId" type="hidden" value={selectedAsset.id} />
+                  <div className="field"><label htmlFor="media-rename-title">Mediatitel</label><input defaultValue={selectedAsset.title} disabled={!canUpload} id="media-rename-title" maxLength={120} minLength={2} name="title" required type="text" /></div>
+                  <button className="button-link button-link--secondary" disabled={!canUpload} type="submit">Titel opslaan</button>
+                </form>
+                {selectedAsset.kind === "video" && selectedAsset.status === "validation_failed" ? <form action={retryMediaProcessing}><input name="assetId" type="hidden" value={selectedAsset.id} /><button className="button-link button-link--secondary" disabled={!canUpload} type="submit">Verwerking opnieuw proberen</button></form> : null}
+                <form action={archiveMediaAsset}>
+                  <input name="assetId" type="hidden" value={selectedAsset.id} />
+                  <button className="button-link button-link--secondary" disabled={!canUpload || selectedAsset.usageCount > 0} type="submit">Media archiveren</button>
+                  {selectedAsset.usageCount > 0 ? <p className="work-panel__meta">Verwijder deze media eerst uit alle conceptplaylists. Gepubliceerde releases blijven altijd intact.</p> : null}
+                </form>
               </>
             ) : (
               <p className="notice">Na de eerste upload toont Castivo hier de controleerbare metadata.</p>
@@ -418,18 +461,19 @@ async function loadMediaData(tenantId: string | null, isLive: boolean) {
     };
   }
 
-  const [assetResult, usageResult] = await Promise.all([
+  const [assetResult, usageResult, variantResult] = await Promise.all([
     supabase
       .from("media_assets")
       .select("id, title, original_file_name, kind, mime_type, status, storage_path, file_size_bytes, checksum_sha256, validation_error, created_at")
       .eq("tenant_id", tenantId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
-    supabase.from("playlist_items").select("media_asset_id").eq("tenant_id", tenantId)
+    supabase.from("playlist_items").select("media_asset_id").eq("tenant_id", tenantId),
+    supabase.from("media_variants").select("asset_id, variant_type, storage_path").eq("tenant_id", tenantId)
   ]);
 
-  if (assetResult.error || usageResult.error) {
-    console.error("Mediabibliotheek laden mislukt", assetResult.error ?? usageResult.error);
+  if (assetResult.error || usageResult.error || variantResult.error) {
+    console.error("Mediabibliotheek laden mislukt", assetResult.error ?? usageResult.error ?? variantResult.error);
     return {
       assets: [],
       loadError: "Tenantmedia kon niet worden gelezen. Er is niets gewijzigd; vernieuw de pagina of log opnieuw in."
@@ -441,6 +485,19 @@ async function loadMediaData(tenantId: string | null, isLive: boolean) {
     usageCounts.set(item.media_asset_id, (usageCounts.get(item.media_asset_id) ?? 0) + 1);
   }
 
+  const previewPaths = new Map<string, string>();
+  for (const variant of variantResult.data ?? []) {
+    const asset = (assetResult.data ?? []).find((candidate) => candidate.id === variant.asset_id);
+    const preferredType = asset?.kind === "video" ? "player_1080p" : "original";
+    if (variant.variant_type === preferredType) previewPaths.set(variant.asset_id, variant.storage_path);
+  }
+
+  const signedPreviews = new Map<string, string>();
+  await Promise.all([...previewPaths.entries()].map(async ([assetId, path]) => {
+    const { data, error } = await supabase.storage.from("tenant-media").createSignedUrl(path, 600);
+    if (!error && data?.signedUrl) signedPreviews.set(assetId, data.signedUrl);
+  }));
+
   const assets: MediaAsset[] = (assetResult.data ?? []).map((asset) => ({
     checksumSha256: asset.checksum_sha256,
     createdAt: asset.created_at,
@@ -449,6 +506,7 @@ async function loadMediaData(tenantId: string | null, isLive: boolean) {
     id: asset.id,
     kind: asset.kind as MediaAsset["kind"],
     mimeType: asset.mime_type,
+    previewUrl: signedPreviews.get(asset.id) ?? null,
     status: asset.status,
     storagePath: asset.storage_path,
     title: asset.title,
@@ -467,6 +525,16 @@ function MediaType({ kind, status }: Pick<MediaAsset, "kind" | "status">) {
     return <span className="media-type media-type--video" aria-label="Video"><Video aria-hidden="true" /></span>;
   }
   return <span className="media-type" aria-label="Afbeelding"><ImageIcon aria-hidden="true" /></span>;
+}
+
+function MediaPreview({ asset }: { asset: MediaAsset }) {
+  if (!asset.previewUrl) {
+    return <div className="media-card__preview" data-kind={asset.kind}>{asset.status === "ready" ? "Voorbeeld niet beschikbaar" : statusLabel(asset.status)}</div>;
+  }
+  if (asset.kind === "video") {
+    return <video className="media-inspector-preview" controls muted preload="metadata" src={asset.previewUrl}><track kind="captions" /></video>;
+  }
+  return <img alt={`Voorbeeld van ${asset.title}`} className="media-inspector-preview" src={asset.previewUrl} />;
 }
 
 function MediaStatus({ status }: { status: string }) {

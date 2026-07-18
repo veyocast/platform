@@ -1,9 +1,12 @@
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 
 import { expect, test } from "@playwright/test";
 
 const livePilotEnabled = process.env.CASTIVO_LIVE_PILOT === "1";
 const playerUrl = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
+const videoFixture = process.env.CASTIVO_VIDEO_FIXTURE;
+const workerImage = process.env.CASTIVO_MEDIA_WORKER_IMAGE ?? "castivo-media-worker:replace-with-full-git-sha";
 
 test.setTimeout(90_000);
 
@@ -34,13 +37,27 @@ test.describe("live pilot vertical slice", () => {
     await expect(page.getByText("Live tenantdata")).toBeVisible();
 
     await page.getByLabel("Videotitel", { exact: true }).fill("Live queuecontrole");
-    await page.getByLabel("Videobestand", { exact: true }).setInputFiles({
+    await page.getByLabel("Videobestand", { exact: true }).setInputFiles(videoFixture ?? {
       buffer: Buffer.from("castivo-invalid-video-fixture"),
       mimeType: "video/mp4",
       name: "queuecontrole.mp4"
     });
     await page.getByRole("button", { name: "Video uploaden" }).click();
     await expect(page.getByText("De video staat veilig in de verwerkingsqueue")).toBeVisible();
+
+    if (videoFixture) {
+      execFileSync("docker", [
+        "run", "--rm", "--network", "host",
+        "-e", `SUPABASE_URL=${process.env.NEXT_PUBLIC_SUPABASE_URL}`,
+        "-e", "SUPABASE_SERVICE_ROLE_KEY",
+        "-e", "MEDIA_WORKER_ID=live-pilot-ffmpeg",
+        workerImage,
+        "pnpm", "--filter", "@castivo/media-worker", "worker:once"
+      ], { env: process.env, stdio: "pipe" });
+      await page.reload();
+      const videoRow = page.getByRole("row", { name: /Live queuecontrole/ });
+      await expect(videoRow).toContainText("Gereed");
+    }
 
     await page.getByLabel("Titel", { exact: true }).fill("Ongeldig logo");
     await page.getByLabel("Bestand", { exact: true }).setInputFiles(
@@ -62,19 +79,43 @@ test.describe("live pilot vertical slice", () => {
     await expect(page.getByText("Live pilotbeeld is gecontroleerd")).toBeVisible();
     await expect(page.getByRole("cell", { name: "Live pilotbeeld" })).toBeVisible();
 
-    await page.goto("/dashboard/pilot");
-    await expect(page.getByRole("heading", { name: "Pilotflow" })).toBeVisible();
-    await expect(page.getByText("Live Supabase")).toBeVisible();
+    await page.goto("/dashboard/settings");
+    await page.getByLabel("Verenigingsnaam").fill("Castivo live pilot");
+    await page.getByLabel("Afbeeldingsduur in seconden").fill("12");
+    await page.getByLabel("Standaard weergave").selectOption("cover");
+    await page.getByRole("button", { name: "Instellingen opslaan" }).click();
+    await expect(page.getByText("zijn opgeslagen")).toBeVisible();
 
-    await page.getByLabel("Playlistnaam").fill("Live pilotplaylist");
-    await page.getByLabel("Gereedstaande media").selectOption({ label: "Live pilotbeeld" });
+    await page.goto("/dashboard/playlists");
+    await expect(page.getByText("Live tenantdata")).toBeVisible();
+    await page.getByLabel("Playlistnaam").first().fill("Live pilotplaylist");
     await page.getByRole("button", { name: "Concept maken" }).click();
-    await expect(page.getByText("Conceptplaylist is gemaakt")).toBeVisible();
+    await expect(page.getByText("De conceptplaylist is gemaakt")).toBeVisible();
 
-    await page.getByLabel("Conceptplaylist").selectOption({ label: "Live pilotplaylist" });
-    await page.getByLabel("Doelscherm").first().selectOption({ label: "LG sprint scherm" });
+    await page.getByLabel("Gereedstaande media").selectOption({ label: "Live pilotbeeld · Afbeelding" });
+    await page.getByRole("button", { name: "Aan playlist toevoegen" }).click();
+    await expect(page.getByText("Het media-item is aan het concept toegevoegd")).toBeVisible();
+    await expect(page.getByLabel("Duur in seconden")).toHaveValue("12");
+    await expect(page.getByLabel("Weergave")).toHaveValue("cover");
+
+    await page.getByLabel("Duur in seconden").fill(videoFixture ? "5" : "14");
+    await page.getByLabel("Weergave").selectOption("contain");
+    await page.getByRole("button", { name: "Iteminstellingen opslaan" }).click();
+    await expect(page.getByText("De iteminstellingen zijn opgeslagen")).toBeVisible();
+
+    if (videoFixture) {
+      await page.getByLabel("Gereedstaande media").selectOption({ label: "Live queuecontrole · Video" });
+      await page.getByRole("button", { name: "Aan playlist toevoegen" }).click();
+      await expect(page.getByText("Het media-item is aan het concept toegevoegd")).toBeVisible();
+      await page.getByRole("button", { name: "Volgende" }).click();
+      const previewVideo = page.getByLabel("Voorbeeldvideo Live queuecontrole");
+      await expect(previewVideo).toBeVisible();
+      await expect(previewVideo).toHaveJSProperty("muted", true);
+    }
+
+    await page.getByLabel("LG sprint scherm").check();
     await page.getByRole("button", { name: "Release publiceren" }).click();
-    await expect(page.getByText("Immutable release is gemaakt")).toBeVisible();
+    await expect(page.getByText("De immutable release is gemaakt")).toBeVisible();
 
     const playerContext = await browser.newContext();
     const playerPage = await playerContext.newPage();
@@ -96,10 +137,15 @@ test.describe("live pilot vertical slice", () => {
       timeout: 20_000
     });
     await expect(playerPage.getByText("PLAYING", { exact: true })).toBeVisible();
+    if (videoFixture) {
+      const playingVideo = playerPage.locator("video");
+      await expect(playingVideo).toBeVisible({ timeout: 20_000 });
+      await expect(playingVideo).toHaveJSProperty("muted", true);
+    }
 
     await page.reload();
     await expect(page.getByRole("cell", { name: "LG webOS Signage" })).toBeVisible();
-    await expect(page.getByText("Online", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Schermvloot").getByText("Online", { exact: true })).toBeVisible();
 
     await playerContext.close();
   });

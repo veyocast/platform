@@ -20,6 +20,8 @@ export async function createScreen(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const location = String(formData.get("location") ?? "").trim();
   const orientation = String(formData.get("orientation") ?? "landscape");
+  const resolutionWidth = Number.parseInt(String(formData.get("resolutionWidth") ?? "1920"), 10);
+  const resolutionHeight = Number.parseInt(String(formData.get("resolutionHeight") ?? "1080"), 10);
 
   if (name.length < 2 || name.length > 120) {
     fail("Geef het scherm een naam van 2 tot en met 120 tekens.");
@@ -30,12 +32,17 @@ export async function createScreen(formData: FormData) {
   if (orientation !== "landscape" && orientation !== "portrait") {
     fail("Kies liggende of staande oriëntatie.");
   }
+  if (!Number.isInteger(resolutionWidth) || resolutionWidth < 320 || resolutionWidth > 7680 || !Number.isInteger(resolutionHeight) || resolutionHeight < 240 || resolutionHeight > 4320) {
+    fail("De schermresolutie valt buiten het ondersteunde bereik.");
+  }
 
   const { error } = await supabase.from("screens").insert({
     created_by: session.userId,
     location: location || null,
     name,
     orientation,
+    resolution_height: resolutionHeight,
+    resolution_width: resolutionWidth,
     tenant_id: session.tenantId
   });
 

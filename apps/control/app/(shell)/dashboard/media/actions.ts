@@ -13,6 +13,16 @@ import {
   prepareValidatedVideoUpload,
   type VideoUploadCandidate
 } from "../../../../lib/media/validated-video-upload";
+import { requireControlSession } from "../../../../lib/control-session";
+import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+
+const writerRoles = new Set([
+  "platform_owner",
+  "platform_admin",
+  "tenant_owner",
+  "tenant_admin",
+  "tenant_editor"
+]);
 
 export async function uploadMediaImage(formData: FormData) {
   let message: string;
@@ -86,4 +96,63 @@ export async function cancelMediaVideoUpload(uploadSessionId: string) {
     console.error("Mislukte video-upload opruimen mislukt", error);
     return { blocked: false, removed: false };
   }
+}
+
+export async function renameMediaAsset(formData: FormData) {
+  const { session, supabase } = await requireMediaWriter();
+  const assetId = mediaId(formData);
+  const title = String(formData.get("title") ?? "").trim();
+  if (title.length < 2 || title.length > 120) {
+    fail(assetId, "Gebruik een mediatitel van 2 tot en met 120 tekens.");
+  }
+
+  const { error } = await supabase.from("media_assets").update({ title }).eq("id", assetId).eq("tenant_id", session.tenantId).is("deleted_at", null);
+  if (error) fail(assetId, "De mediatitel kon niet worden opgeslagen. Het bestand en de huidige titel blijven ongewijzigd.");
+  completeAsset(assetId, "De mediatitel is opgeslagen.");
+}
+
+export async function archiveMediaAsset(formData: FormData) {
+  const { session, supabase } = await requireMediaWriter();
+  const assetId = mediaId(formData);
+  const { count, error: usageError } = await supabase.from("playlist_items").select("id", { count: "exact", head: true }).eq("tenant_id", session.tenantId).eq("media_asset_id", assetId);
+  if (usageError) fail(assetId, "Het gebruik van deze media kon niet worden gecontroleerd. Er is niets gearchiveerd.");
+  if ((count ?? 0) > 0) fail(assetId, "Deze media staat nog in een playlist. Verwijder het item daar eerst; bestaande releases blijven altijd intact.");
+
+  const { error } = await supabase.from("media_assets").update({ deleted_at: new Date().toISOString() }).eq("id", assetId).eq("tenant_id", session.tenantId).is("deleted_at", null);
+  if (error) fail(assetId, "De media kon niet veilig worden gearchiveerd. Het opslagobject blijft beschikbaar en er is niets gewijzigd.");
+  revalidatePath("/dashboard/media");
+  redirect("/dashboard/media?succes=De+media+is+gearchiveerd.+Bestaande+immutable+releases+blijven+ongewijzigd.");
+}
+
+export async function retryMediaProcessing(formData: FormData) {
+  const { supabase } = await requireMediaWriter();
+  const assetId = mediaId(formData);
+  const { error } = await supabase.rpc("retry_media_processing", { p_asset_id: assetId });
+  if (error) fail(assetId, "Alleen een actieve video met mislukte verwerking en een bestaande job kan opnieuw worden gestart. Upload de video opnieuw als deze fout blijft staan.");
+  completeAsset(assetId, "De video staat opnieuw in de verwerkingsqueue. De huidige releases blijven ongewijzigd.");
+}
+
+async function requireMediaWriter() {
+  const session = await requireControlSession();
+  const supabase = await createControlSupabaseClient();
+  if (!session.isLive || !session.tenantId || !supabase) fail(null, "Live Supabase is niet beschikbaar. Er is niets gewijzigd; herstel de configuratie en log opnieuw in.");
+  if (!session.roles.some((role) => writerRoles.has(role))) fail(null, "Je hebt editor- of beheerrechten nodig om media te wijzigen.");
+  return { session, supabase };
+}
+
+function mediaId(formData: FormData) {
+  const assetId = String(formData.get("assetId") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(assetId)) fail(null, "De gekozen media is ongeldig. Er is niets gewijzigd; laad de pagina opnieuw.");
+  return assetId;
+}
+
+function fail(assetId: string | null, message: string): never {
+  const selected = assetId ? `asset=${encodeURIComponent(assetId)}&` : "";
+  redirect(`/dashboard/media?${selected}fout=${encodeURIComponent(message)}`);
+}
+
+function completeAsset(assetId: string, message: string): never {
+  revalidatePath("/dashboard/media");
+  revalidatePath("/dashboard/playlists");
+  redirect(`/dashboard/media?asset=${assetId}&succes=${encodeURIComponent(message)}`);
 }

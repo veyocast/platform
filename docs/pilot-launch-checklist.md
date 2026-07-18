@@ -39,9 +39,10 @@ wordt aangemerkt.
 
 ## Nog blokkerend voor bredere klantpilot
 
-- [ ] De media-worker claimt jobs, verwerkt private Storage-objecten en schrijft
+- [x] De media-worker claimt jobs, verwerkt private Storage-objecten en schrijft
       status, metadata en checksums atomisch terug.
-- [ ] MP4-upload en FFmpeg-transcoding zijn live end-to-end gevalideerd.
+- [x] MP4-upload en FFmpeg-transcoding zijn lokaal live end-to-end gevalideerd;
+      zie `docs/s16-control-authoring-evidence.md`.
 - [ ] De volledige reliability matrix en 24-uurs mixed-media soak uit
       docs/testing-launch-gates.md zijn groen.
 - [ ] Productie-auth, keybeheer, monitoring, backup en incidentproces zijn
