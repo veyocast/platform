@@ -25,6 +25,7 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
     activeReleaseId?: string | null;
     currentItemId?: string | null;
+    desiredReleaseId?: string | null;
     lastPlaybackError?: {
       action?: string;
       code?: string;
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
         process.env.DEPLOYMENT_SHA?.trim().slice(0, 120) ||
         "local",
       lastPlaybackError: sanitizePlaybackError(body.lastPlaybackError),
+      desiredReleaseId: safeIdentifier(body.desiredReleaseId),
       networkState: body.networkState === "offline" ? "offline" : "online"
     },
     p_sync_phase: body.syncPhase ?? null,

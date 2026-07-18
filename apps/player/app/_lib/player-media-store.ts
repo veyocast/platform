@@ -6,6 +6,7 @@ export type StoredMediaUrl = {
 export interface PlayerMediaStore {
   delete(cacheKey: string): Promise<boolean>;
   get(cacheKey: string): Promise<Response | undefined>;
+  keys(): Promise<string[]>;
   put(cacheKey: string, response: Response): Promise<void>;
   resolvePlaybackUrl(cacheKey: string): Promise<StoredMediaUrl>;
 }
@@ -19,6 +20,14 @@ export class CacheStorageMediaStore implements PlayerMediaStore {
 
   async get(cacheKey: string) {
     return (await this.open()).match(cacheKey).then((response) => response ?? undefined);
+  }
+
+  async keys() {
+    const requests = await (await this.open()).keys();
+    return requests.map((request) => {
+      const url = new URL(request.url);
+      return `${url.pathname}${url.search}`;
+    });
   }
 
   async put(cacheKey: string, response: Response) {

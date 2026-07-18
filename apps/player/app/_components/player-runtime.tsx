@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   activateRelease,
+  garbageCollectPersistedPlayerMedia,
   hydrateCachedRelease,
   hydratePreparedRelease,
   preparePendingRelease,
@@ -35,6 +36,8 @@ const localStoragePairingCodeKey = "castivo.player.pairingCode";
 const localStoragePairingExpiryKey = "castivo.player.pairingExpiresAt";
 const localStorageReloadTimestampsKey = "castivo.player.reloadTimestamps";
 const defaultWatchdogTimeoutMs = 12_000;
+const defaultManifestSyncIntervalMs = 60_000;
+const maximumManifestSyncBackoffMs = 5 * 60_000;
 
 type PlaybackFailureCode =
   | "IMAGE_ERROR"
@@ -78,6 +81,7 @@ export function PlayerRuntime() {
   const runtimeRef = useRef<RuntimeView>(runtime);
   const advancingRef = useRef(false);
   const consecutiveFailuresRef = useRef(0);
+  const desiredReleaseIdRef = useRef<string | null>(null);
   const hydratedReleasesRef = useRef<HydratedPlayerRelease[]>([]);
   const lastPlaybackErrorRef = useRef<PlaybackErrorReport | null>(null);
   const playbackReadyRef = useRef(false);
@@ -100,7 +104,9 @@ export function PlayerRuntime() {
         snapshot.state === "SWITCH_PENDING" &&
         snapshot.pendingRelease &&
         deviceToken &&
-        nextIndex === 0
+        nextIndex === 0 &&
+        desiredReleaseIdRef.current ===
+          snapshot.pendingRelease.envelope.manifest.releaseId
       ) {
         try {
           await activateRelease({
@@ -108,6 +114,7 @@ export function PlayerRuntime() {
             deviceToken,
             envelope: snapshot.pendingRelease.envelope
           });
+          await garbageCollectPersistedPlayerMedia(deviceToken).catch(() => undefined);
         } catch {
           setRuntime((currentRuntime) =>
             isPlaybackRuntime(currentRuntime)
@@ -301,6 +308,11 @@ export function PlayerRuntime() {
     const queryToken = searchParams.get("deviceToken");
     const queryDurationMs = Number(searchParams.get("durationMs"));
     const queryWatchdogMs = Number(searchParams.get("watchdogMs"));
+    const querySyncMs = Number(searchParams.get("syncMs"));
+    const manifestSyncIntervalMs =
+      searchParams.has("syncMs") && Number.isFinite(querySyncMs)
+        ? Math.max(250, Math.min(querySyncMs, defaultManifestSyncIntervalMs))
+        : defaultManifestSyncIntervalMs;
 
     setDurationOverrideMs(Number.isFinite(queryDurationMs) ? queryDurationMs : null);
     setWatchdogTimeoutMs(
@@ -431,6 +443,9 @@ export function PlayerRuntime() {
 
     const activeDeviceToken = deviceToken;
     let cancelled = false;
+    let consecutiveSyncFailures = 0;
+    let syncInFlight = false;
+    let syncTimer: number | undefined;
 
     if (queryToken) {
       writeStoredDeviceToken(queryToken);
@@ -477,6 +492,7 @@ export function PlayerRuntime() {
       }
 
       hydratedReleasesRef.current.push(offlineRelease);
+      void garbageCollectPersistedPlayerMedia(activeDeviceToken).catch(() => undefined);
 
       if (!cancelled) {
         setRuntime({
@@ -491,6 +507,10 @@ export function PlayerRuntime() {
     }
 
     async function syncOnlineManifest() {
+      if (cancelled || syncInFlight) return;
+      syncInFlight = true;
+      let syncSucceeded = false;
+
       try {
         const response = await fetch(
           "/api/player/manifest",
@@ -513,6 +533,68 @@ export function PlayerRuntime() {
         if (!response.ok || !("manifest" in body)) {
           handleManifestProblem(body as PlayerManifestProblem);
           return;
+        }
+
+        const currentRuntime = runtimeRef.current;
+        const releaseId = body.manifest.releaseId;
+        desiredReleaseIdRef.current = releaseId;
+        if (
+          isPlaybackRuntime(currentRuntime) &&
+          currentRuntime.release.envelope.manifest.releaseId === releaseId
+        ) {
+          if (currentRuntime.pendingRelease) {
+            releaseHydratedReference(currentRuntime.pendingRelease);
+          }
+          setRuntime((value) =>
+            isPlaybackRuntime(value)
+              ? {
+                  ...value,
+                  pendingRelease: undefined,
+                  release: {
+                    ...value.release,
+                    envelope: withSyncDiagnostics(
+                      {
+                        ...value.release.envelope,
+                        device: body.device,
+                        fetchedAt: body.fetchedAt
+                      },
+                      "online",
+                      "release unchanged"
+                    )
+                  },
+                  state:
+                    value.state === "OFFLINE_PLAYING" ||
+                    value.state === "SWITCH_PENDING"
+                      ? "PLAYING"
+                      : value.state,
+                  syncMessage: "Manifest gecontroleerd; actieve release is ongewijzigd."
+                }
+              : value
+          );
+          syncSucceeded = true;
+          return;
+        }
+        if (
+          isPlaybackRuntime(currentRuntime) &&
+          currentRuntime.pendingRelease?.envelope.manifest.releaseId === releaseId
+        ) {
+          syncSucceeded = true;
+          return;
+        }
+
+        if (isPlaybackRuntime(currentRuntime) && currentRuntime.pendingRelease) {
+          const obsoletePendingRelease = currentRuntime.pendingRelease;
+          releaseHydratedReference(obsoletePendingRelease);
+          setRuntime((value) =>
+            isPlaybackRuntime(value) && value.pendingRelease === obsoletePendingRelease
+              ? {
+                  ...value,
+                  pendingRelease: undefined,
+                  state: "PLAYING",
+                  syncMessage: "Eerdere pending release is ingetrokken; nieuwe sync start."
+                }
+              : value
+          );
         }
 
         const preparedRelease = await preparePendingRelease({
@@ -558,6 +640,9 @@ export function PlayerRuntime() {
             deviceToken: activeDeviceToken,
             envelope: preparedEnvelope
           });
+          await garbageCollectPersistedPlayerMedia(activeDeviceToken).catch(
+            () => undefined
+          );
         }
 
         setRuntime((currentRuntime) => {
@@ -580,6 +665,7 @@ export function PlayerRuntime() {
             syncMessage: "Release online geverifieerd en actief."
           };
         });
+        syncSucceeded = true;
       } catch (error) {
         if (!cancelled) {
           keepCachedPlaybackOrShowProblem(
@@ -587,7 +673,32 @@ export function PlayerRuntime() {
             error instanceof Error ? error.message : "manifest fetch failed"
           );
         }
+      } finally {
+        syncInFlight = false;
+        consecutiveSyncFailures = syncSucceeded
+          ? 0
+          : Math.min(consecutiveSyncFailures + 1, 8);
+        scheduleNextSync();
       }
+    }
+
+    function scheduleNextSync() {
+      if (cancelled) return;
+      if (syncTimer) window.clearTimeout(syncTimer);
+      const delay = Math.min(
+        maximumManifestSyncBackoffMs,
+        manifestSyncIntervalMs * 2 ** consecutiveSyncFailures
+      );
+      syncTimer = window.setTimeout(() => {
+        void syncOnlineManifest();
+      }, delay);
+    }
+
+    function releaseHydratedReference(release: HydratedPlayerRelease) {
+      revokeHydratedRelease(release);
+      hydratedReleasesRef.current = hydratedReleasesRef.current.filter(
+        (candidate) => candidate !== release
+      );
     }
 
     function updatePlaybackPhase(phase: PlayerCachePhase) {
@@ -671,6 +782,7 @@ export function PlayerRuntime() {
 
     return () => {
       cancelled = true;
+      if (syncTimer) window.clearTimeout(syncTimer);
       hydratedReleasesRef.current.splice(0).forEach(revokeHydratedRelease);
     };
   }, []);
@@ -727,6 +839,10 @@ export function PlayerRuntime() {
         body: JSON.stringify({
           activeReleaseId: currentRuntime.release.envelope.manifest.releaseId,
           currentItemId: activeItem?.id ?? null,
+          desiredReleaseId:
+            currentRuntime.pendingRelease?.envelope.manifest.releaseId ??
+            currentRuntime.release.envelope.device.desiredReleaseId ??
+            currentRuntime.release.envelope.manifest.releaseId,
           lastPlaybackError: lastPlaybackErrorRef.current,
           networkState: navigator.onLine ? "online" : "offline",
           runtimeState: currentRuntime.state,

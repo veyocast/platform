@@ -9,6 +9,9 @@ export const playerAssetCacheName = "castivo-player-assets-v1";
 export const playerDatabaseName = "castivo-player-cache-v1";
 export const playerActiveReleaseStoreName = "activeReleases";
 export const playerPreviousReleaseStoreName = "previousReleases";
+export const playerStorageReserveBytes = 16 * 1024 * 1024;
+const playerMaximumStorageReserveBytes = 64 * 1024 * 1024;
+const playerCachePathPrefix = "/__castivo-player-cache/";
 
 export type PlayerCachePhase = "DOWNLOADING" | "VERIFYING";
 
@@ -80,7 +83,8 @@ export async function preparePendingRelease({
   store?: PlayerMediaStore;
 }): Promise<PlayerCacheResult> {
   const assets = getCacheableAssets(envelope.manifest);
-  const storageCheck = await hasEnoughStorage(envelope.manifest.totalBytes);
+  const cachedAssets = await inspectCachedAssets(assets, store);
+  const storageCheck = await hasEnoughStorage(cachedAssets.missingBytes);
 
   if (!storageCheck.ok) {
     return {
@@ -95,16 +99,7 @@ export async function preparePendingRelease({
     onPhase?.("DOWNLOADING");
 
     for (const asset of assets) {
-      const existingResponse = await store.get(asset.cacheKey);
-
-      if (existingResponse) {
-        try {
-          await verifyAssetBytes(asset, await existingResponse.clone().arrayBuffer());
-          continue;
-        } catch {
-          // The checksum-keyed entry exists but is not trustworthy; refresh it.
-        }
-      }
+      if (cachedAssets.validKeys.has(asset.cacheKey)) continue;
 
       const response = await fetch(asset.url, { cache: "no-store" });
 
@@ -129,9 +124,8 @@ export async function preparePendingRelease({
         })
       );
 
-      if (!existingResponse) {
-        newPreparedKeys.add(asset.cacheKey);
-      }
+      newPreparedKeys.add(asset.cacheKey);
+      cachedAssets.validKeys.add(asset.cacheKey);
     }
 
     return {
@@ -190,6 +184,38 @@ export async function readPreviousRelease(deviceToken: string) {
   return readReleaseFromStore(playerPreviousReleaseStoreName, deviceToken);
 }
 
+export async function garbageCollectPersistedPlayerMedia(
+  deviceToken: string,
+  store = createPlayerMediaStore(playerAssetCacheName)
+) {
+  const [activeRelease, previousRelease] = await Promise.all([
+    readActiveRelease(deviceToken),
+    readPreviousRelease(deviceToken)
+  ]);
+  return garbageCollectPlayerMedia({
+    releases: [activeRelease, previousRelease],
+    store
+  });
+}
+
+export async function garbageCollectPlayerMedia({
+  releases,
+  store
+}: {
+  releases: Array<Pick<CachedPlayerRelease, "assets"> | null | undefined>;
+  store: PlayerMediaStore;
+}) {
+  const retainedKeys = new Set(
+    releases.flatMap((release) => release?.assets.map((asset) => asset.cacheKey) ?? [])
+  );
+  const storedKeys = await store.keys();
+  const obsoleteKeys = storedKeys.filter(
+    (key) => key.startsWith(playerCachePathPrefix) && !retainedKeys.has(key)
+  );
+  await Promise.all(obsoleteKeys.map((key) => store.delete(key)));
+  return { deletedKeys: obsoleteKeys, retainedKeys: [...retainedKeys] };
+}
+
 async function readReleaseFromStore(storeName: string, deviceToken: string) {
   const database = await openPlayerDatabase();
   const transaction = database.transaction(storeName, "readonly");
@@ -216,6 +242,15 @@ export async function hydratePreparedRelease(
 ): Promise<HydratedPlayerRelease> {
   const objectUrls: Record<string, string> = {};
   const playbackUrls: Record<string, string> = {};
+  const cachedAssets = await inspectCachedAssets(preparedRelease.assets, store);
+
+  if (
+    preparedRelease.assets.some(
+      (asset) => !cachedAssets.validKeys.has(asset.cacheKey)
+    )
+  ) {
+    throw new Error("cached release contains missing or corrupt assets");
+  }
 
   for (const asset of preparedRelease.assets) {
     const resolved = await store.resolvePlaybackUrl(asset.cacheKey);
@@ -322,7 +357,54 @@ function toCacheAsset(
   };
 }
 
-async function hasEnoughStorage(totalBytes: number) {
+async function inspectCachedAssets(
+  assets: PlayerCacheAsset[],
+  store: PlayerMediaStore
+) {
+  const validKeys = new Set<string>();
+  const inspectedKeys = new Set<string>();
+  let missingBytes = 0;
+
+  for (const asset of assets) {
+    if (inspectedKeys.has(asset.cacheKey)) continue;
+    inspectedKeys.add(asset.cacheKey);
+    const response = await store.get(asset.cacheKey);
+    if (!response) {
+      missingBytes += asset.bytes;
+      continue;
+    }
+
+    try {
+      const bytes = await response.clone().arrayBuffer();
+      await verifyAssetBytes(asset, bytes);
+      validKeys.add(asset.cacheKey);
+
+      if (
+        response.headers.get("Accept-Ranges") !== "bytes" ||
+        response.headers.get("Content-Length") !== String(bytes.byteLength)
+      ) {
+        await store.put(
+          asset.cacheKey,
+          new Response(bytes, {
+            headers: {
+              "Accept-Ranges": "bytes",
+              "Content-Length": String(bytes.byteLength),
+              "Content-Type":
+                response.headers.get("Content-Type") ?? "application/octet-stream"
+            }
+          })
+        );
+      }
+    } catch {
+      missingBytes += asset.bytes;
+    }
+  }
+
+  return { missingBytes, validKeys };
+}
+
+export async function hasEnoughStorage(missingBytes: number) {
+  if (missingBytes <= 0) return { ok: true as const };
   if (!navigator.storage?.estimate) {
     return { ok: true as const };
   }
@@ -331,11 +413,16 @@ async function hasEnoughStorage(totalBytes: number) {
   const quota = estimate.quota ?? 0;
   const usage = estimate.usage ?? 0;
   const availableBytes = quota - usage;
+  const reserveBytes = Math.min(
+    playerMaximumStorageReserveBytes,
+    Math.max(playerStorageReserveBytes, Math.ceil(missingBytes * 0.1))
+  );
+  const requiredBytes = missingBytes + reserveBytes;
 
-  if (quota > 0 && availableBytes < totalBytes) {
+  if (quota > 0 && availableBytes < requiredBytes) {
     return {
       ok: false as const,
-      error: "not enough storage for pending release"
+      error: `not enough storage for pending release: ${missingBytes} bytes missing plus ${reserveBytes} bytes reserve`
     };
   }
 

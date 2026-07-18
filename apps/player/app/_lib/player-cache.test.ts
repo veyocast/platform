@@ -7,10 +7,14 @@ import {
 } from "./player-manifest";
 import {
   getCacheableAssets,
+  garbageCollectPlayerMedia,
+  hydratePreparedRelease,
+  playerStorageReserveBytes,
   preparePendingRelease,
   sha256Hex,
   verifyAssetBytes
 } from "./player-cache";
+import type { PlayerMediaStore } from "./player-media-store";
 
 class MemoryCache {
   readonly entries = new Map<string, Response>();
@@ -25,6 +29,27 @@ class MemoryCache {
 
   async put(key: string, response: Response) {
     this.entries.set(key, response.clone());
+  }
+}
+
+class MemoryMediaStore implements PlayerMediaStore {
+  readonly entries = new Map<string, Response>();
+
+  async delete(key: string) {
+    return this.entries.delete(key);
+  }
+  async get(key: string) {
+    return this.entries.get(key)?.clone();
+  }
+  async keys() {
+    return [...this.entries.keys()];
+  }
+  async put(key: string, response: Response) {
+    this.entries.set(key, response.clone());
+  }
+  async resolvePlaybackUrl(key: string) {
+    if (!this.entries.has(key)) throw new Error(`missing ${key}`);
+    return { url: key };
   }
 }
 
@@ -112,7 +137,7 @@ describe("player cache contract", () => {
     });
     vi.stubGlobal("navigator", {
       storage: {
-        estimate: vi.fn().mockResolvedValue({ quota: 1_000_000, usage: 0 })
+        estimate: vi.fn().mockResolvedValue({ quota: 100_000_000, usage: 0 })
       }
     });
     vi.stubGlobal(
@@ -145,6 +170,133 @@ describe("player cache contract", () => {
     });
     await expect(cache.match(sharedCacheKey)).resolves.toBeDefined();
     await expect(cache.match(pendingCacheKey)).resolves.toBeUndefined();
+  });
+
+  it("checks only missing bytes plus reserve and does not download when quota is unsafe", async () => {
+    const sharedPayload = new TextEncoder().encode("shared-active-asset");
+    const pendingPayload = new TextEncoder().encode("pending-asset");
+    const sharedChecksum = await sha256Hex(sharedPayload.buffer);
+    const pendingChecksum = await sha256Hex(pendingPayload.buffer);
+    const store = new MemoryMediaStore();
+    await store.put(
+      `/__castivo-player-cache/${sharedChecksum}`,
+      new Response(sharedPayload, { headers: { "Content-Type": "image/png" } })
+    );
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.stubGlobal("navigator", {
+      storage: {
+        estimate: vi.fn().mockResolvedValue({
+          quota: playerStorageReserveBytes + pendingPayload.byteLength - 1,
+          usage: 0
+        })
+      }
+    });
+
+    const result = await preparePendingRelease({
+      envelope: createPendingEnvelope({
+        pendingBytes: pendingPayload.byteLength,
+        pendingChecksum,
+        sharedBytes: sharedPayload.byteLength,
+        sharedChecksum
+      }),
+      store
+    });
+
+    expect(result).toMatchObject({ ok: false });
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(
+      store.entries.get(`/__castivo-player-cache/${sharedChecksum}`)?.headers.get(
+        "Content-Length"
+      )
+    ).toBe(String(sharedPayload.byteLength));
+  });
+
+  it("hydrates legacy cache entries with Range headers and rejects corrupt stored releases", async () => {
+    const payload = new TextEncoder().encode("legacy-asset");
+    const checksum = await sha256Hex(payload.buffer);
+    const envelope = createPendingEnvelope({
+      pendingBytes: payload.byteLength,
+      pendingChecksum: checksum,
+      sharedBytes: payload.byteLength,
+      sharedChecksum: checksum
+    });
+    const assets = getCacheableAssets(envelope.manifest);
+    const asset = assets[0];
+    if (!asset) throw new Error("expected cacheable asset");
+    const store = new MemoryMediaStore();
+    await store.put(
+      asset.cacheKey,
+      new Response(payload, { headers: { "Content-Type": "image/png" } })
+    );
+
+    await expect(hydratePreparedRelease({ assets, envelope }, store)).resolves.toMatchObject({
+      envelope: { manifest: { releaseId: envelope.manifest.releaseId } }
+    });
+    expect(store.entries.get(asset.cacheKey)?.headers.get("Accept-Ranges")).toBe(
+      "bytes"
+    );
+
+    await store.put(asset.cacheKey, new Response("corrupt"));
+    await expect(hydratePreparedRelease({ assets, envelope }, store)).rejects.toThrow(
+      "missing or corrupt"
+    );
+  });
+
+  it("garbage-collects only unreferenced player assets", async () => {
+    const store = new MemoryMediaStore();
+    await Promise.all([
+      store.put("/__castivo-player-cache/active", new Response("active")),
+      store.put("/__castivo-player-cache/previous", new Response("previous")),
+      store.put("/__castivo-player-cache/obsolete", new Response("obsolete")),
+      store.put("/unrelated", new Response("keep"))
+    ]);
+
+    const result = await garbageCollectPlayerMedia({
+      releases: [
+        { assets: [{ cacheKey: "/__castivo-player-cache/active" }] },
+        { assets: [{ cacheKey: "/__castivo-player-cache/previous" }] }
+      ] as never,
+      store
+    });
+
+    expect(result.deletedKeys).toEqual(["/__castivo-player-cache/obsolete"]);
+    expect(await store.keys()).toEqual([
+      "/__castivo-player-cache/active",
+      "/__castivo-player-cache/previous",
+      "/unrelated"
+    ]);
+  });
+
+  it("counts and downloads duplicate checksum assets only once", async () => {
+    const payload = new TextEncoder().encode("shared-checksum");
+    const checksum = await sha256Hex(payload.buffer);
+    const store = new MemoryMediaStore();
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(payload, {
+        headers: { "Content-Type": "image/png" },
+        status: 200
+      })
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.stubGlobal("navigator", {
+      storage: {
+        estimate: vi.fn().mockResolvedValue({ quota: 100_000_000, usage: 0 })
+      }
+    });
+
+    const result = await preparePendingRelease({
+      envelope: createPendingEnvelope({
+        pendingBytes: payload.byteLength,
+        pendingChecksum: checksum,
+        sharedBytes: payload.byteLength,
+        sharedChecksum: checksum
+      }),
+      store
+    });
+
+    expect(result).toMatchObject({ ok: true });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });
 

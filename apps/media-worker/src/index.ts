@@ -6,6 +6,22 @@ export {
   maxVideoDurationSeconds,
   validateMediaCandidate
 } from "./media-processing";
+export {
+  buildNormalizationArguments,
+  normalizePlayerVideo,
+  parseVideoProbe,
+  probeVideoFile,
+  runCommand,
+  validateInputProbe,
+  validatePlayerVariant,
+  VideoProcessingError
+} from "./video-normalization";
+export type {
+  CommandResult,
+  CommandRunner,
+  VideoNormalizationResult,
+  VideoProbe
+} from "./video-normalization";
 export type {
   MediaCandidate,
   MediaKind,

@@ -62,3 +62,61 @@ test("reloads the cached player shell without a network connection", async ({ co
     await context.setOffline(false);
   }
 });
+
+test("migrates a legacy cached response before serving a Range request", async ({ page }) => {
+  await page.goto(playerURL);
+  await page.evaluate(async () => navigator.serviceWorker.ready);
+  if (!(await page.evaluate(() => Boolean(navigator.serviceWorker.controller)))) {
+    await page.reload();
+  }
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+
+  const result = await page.evaluate(async () => {
+    const cacheKey = "/__castivo-player-cache/legacy-range-integration";
+    const cache = await caches.open("castivo-player-assets-v1");
+    await cache.put(
+      cacheKey,
+      new Response(new TextEncoder().encode("abcdefghij"), {
+        headers: { "Content-Type": "video/mp4" }
+      })
+    );
+
+    const partial = await fetch(cacheKey, { headers: { Range: "bytes=2-5" } });
+    const migrated = await cache.match(cacheKey);
+    return {
+      body: await partial.text(),
+      cachedLength: migrated?.headers.get("Content-Length"),
+      contentRange: partial.headers.get("Content-Range"),
+      status: partial.status
+    };
+  });
+
+  expect(result).toEqual({
+    body: "cdef",
+    cachedLength: "10",
+    contentRange: "bytes 2-5/10",
+    status: 206
+  });
+});
+
+test("removes obsolete player shell caches on service-worker activation", async ({ page }) => {
+  await page.goto(playerURL);
+  await page.evaluate(async () => navigator.serviceWorker.ready);
+  await page.evaluate(async () => {
+    const oldCache = await caches.open("castivo-player-shell-v1");
+    await oldCache.put("/legacy-shell", new Response("legacy"));
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+  });
+
+  await page.reload();
+  await page.evaluate(async () => navigator.serviceWorker.ready);
+  await page.waitForFunction(async () => {
+    const names = await caches.keys();
+    return !names.includes("castivo-player-shell-v1") && names.includes("castivo-player-shell-v2");
+  });
+
+  await expect.poll(() => page.evaluate(() => caches.keys())).not.toContain(
+    "castivo-player-shell-v1"
+  );
+});

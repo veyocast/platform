@@ -11,7 +11,7 @@ apps/
   control/        Next.js App Router control plane
   player/         Next.js App Router player plane
   marketing/      Next.js App Router public site
-  media-worker/   TypeScript worker skeleton
+  media-worker/   TypeScript media validation and FFmpeg processing core
 packages/
   config/         Shared local runtime constants
   database/       Shared database role/status contracts
@@ -63,6 +63,9 @@ studio:       54323
 
 ## Current Sprint
 
-S00 creates the monorepo, scripts and local runtime foundation. Product features,
-RLS migrations, player pairing and offline playback begin in later scoped
-branches and must keep the non-negotiables in `AGENTS.md`.
+S14 hardens playback production readiness: the Player polls and deduplicates
+manifests, activates verified releases at a loop boundary, retains active and
+previous media during garbage collection, migrates legacy Range metadata and
+cleans obsolete shell caches. The media worker has a shell-free FFprobe/FFmpeg
+normalization core; queue claiming, Storage I/O and a live FFmpeg run remain
+required before MP4 processing is production-ready.

@@ -39,6 +39,8 @@ wordt aangemerkt.
 
 ## Nog blokkerend voor bredere klantpilot
 
+- [ ] De media-worker claimt jobs, verwerkt private Storage-objecten en schrijft
+      status, metadata en checksums atomisch terug.
 - [ ] MP4-upload en FFmpeg-transcoding zijn live end-to-end gevalideerd.
 - [ ] De volledige reliability matrix en 24-uurs mixed-media soak uit
       docs/testing-launch-gates.md zijn groen.

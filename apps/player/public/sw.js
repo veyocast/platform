@@ -1,6 +1,7 @@
 /* global Headers, ReadableStream, Request, Response, URL, caches, fetch, self */
 
-const SHELL_CACHE = "castivo-player-shell-v1";
+const SHELL_CACHE = "castivo-player-shell-v2";
+const SHELL_CACHE_PREFIX = "castivo-player-shell-";
 const ASSET_CACHE = "castivo-player-assets-v1";
 const CACHE_PATH_PREFIX = "/__castivo-player-cache/";
 
@@ -10,7 +11,20 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil((async () => {
+    const cacheNames = await caches.keys();
+    await Promise.all(
+      cacheNames
+        .filter((cacheName) => cacheName.startsWith(SHELL_CACHE_PREFIX) && cacheName !== SHELL_CACHE)
+        .map((cacheName) => caches.delete(cacheName))
+    );
+    await self.clients.claim();
+    const clients = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
+    clients.forEach((client) => client.postMessage({
+      cacheVersion: SHELL_CACHE,
+      type: "CASTIVO_SW_ACTIVATED"
+    }));
+  })());
 });
 
 self.addEventListener("fetch", (event) => {
@@ -37,7 +51,11 @@ self.addEventListener("fetch", (event) => {
 });
 
 async function serveCachedMedia(request) {
-  const response = await (await caches.open(ASSET_CACHE)).match(request.url);
+  const cache = await caches.open(ASSET_CACHE);
+  const cachedResponse = await cache.match(request.url);
+  const response = cachedResponse
+    ? await ensureRangeHeaders(cache, request.url, cachedResponse)
+    : null;
   if (!response) return new Response("Cached asset missing", { status: 404 });
 
   const rangeHeader = request.headers.get("Range");
@@ -61,6 +79,21 @@ async function serveCachedMedia(request) {
     headers,
     status: 206
   });
+}
+
+async function ensureRangeHeaders(cache, cacheKey, response) {
+  const contentLength = Number(response.headers.get("Content-Length"));
+  if (Number.isSafeInteger(contentLength) && contentLength > 0) {
+    return response;
+  }
+
+  const bytes = await response.arrayBuffer();
+  const headers = new Headers(response.headers);
+  headers.set("Accept-Ranges", "bytes");
+  headers.set("Content-Length", String(bytes.byteLength));
+  const normalized = new Response(bytes, { headers, status: response.status });
+  await cache.put(cacheKey, normalized.clone());
+  return normalized;
 }
 
 function parseRange(header, totalBytes) {

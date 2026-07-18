@@ -45,6 +45,14 @@ export default defineConfig({
         },
         {
           command: `pnpm --filter @castivo/player exec next dev --port ${playerPort} --hostname 127.0.0.1`,
+          env: {
+            DEVICE_LAB_ACCESS_TOKEN:
+              process.env.DEVICE_LAB_ACCESS_TOKEN ??
+              "castivo-device-lab-test-token-2026",
+            DEVICE_LAB_SESSION_SECRET:
+              process.env.DEVICE_LAB_SESSION_SECRET ??
+              "castivo-device-lab-session-secret-for-tests-2026"
+          },
           reuseExistingServer: !process.env.CI,
           timeout: 180_000,
           url: playerURL

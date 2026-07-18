@@ -38,11 +38,11 @@ Toch is een hosted URL nog niet zonder beperkingen inzetbaar:
 
 - playlistduur blijft de geplande bovengrens, maar productie reageert nu ook op image/video ready, error, ended, stalled en timeupdate;
 - watchdog, retry, item-skip, last-known-goodherstel en reloadcooldown zijn door code en Desktop Chromium bewezen, maar nog niet op LG;
-- het manifest wordt na startup niet periodiek opnieuw opgehaald;
-- de echte MP4/H.264/AAC-verwerkingsworker is nog een skeleton;
+- manifesten worden periodiek met deduplicatie en begrensde backoff opgehaald;
+- de MP4/H.264/AAC-verwerkingscore bestaat, maar queueclaiming, private Storage-I/O en een echte FFmpeg-run ontbreken nog;
 - Service Worker-, Cache Storage- en IndexedDB-behoud na appafsluiting/reboot is firmware- en launchmodusspecifiek;
 - de huidige Range-store leest voor een late range nog steeds eerdere cachechunks en de blobfallback materialiseert het hele bestand;
-- cache garbage collection ontbreekt;
+- media-GC behoudt active/previous en shell-GC verwijdert oude versies;
 - fullscreen browserchrome, autostart, screensavercontrole en power recovery zijn niet gegarandeerd door standaard webcode;
 - moderne Next.js/React-output en CSS moeten tegen de Chromiumversie van het doelmodel worden getest;
 - er is nog geen fysiek LG-bewijs voor codecs, autoplay, meerdere videotags, transitions, storagepersistentie of 24-uursstabiliteit.
@@ -173,7 +173,7 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 | HTTPS hosted web app | `CONDITIONAL` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Next.js kan hosted draaien; productie-HTTPS/DNS/proxy en LG URL-launch zijn niet in repo bewezen. |
 | PWA-manifest | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | `app/manifest.ts`; iconset ontbreekt en manifestinstallatie op Signage is onbekend. |
 | Service-workerregistratie | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Feature-detected registratie van `/sw.js`. |
-| Service-workerupdate | `NOT_IMPLEMENTED` | `CONDITIONAL` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Browser updatecheck + `skipWaiting`; geen version messaging, migratie-UI of oude-cachecleanup. |
+| Service-workerupdate | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Expliciete updatecheck, activatiebericht en cleanup van oude shellcaches zijn in Chromium bewezen. |
 | Reload recovery | `CONDITIONAL` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Offline reload van de gecachete Next-shell is in Desktop Chromium bewezen; afsluiten/reboot en firmware-retentie blijven fysiek. |
 | Fullscreenpresentatie | `CONDITIONAL` | `CONDITIONAL` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | CSS fullscreen + manifest `display: fullscreen`; gewone browserchrome/kiosk niet gegarandeerd. |
 | Schermoriëntatie | `NOT_IMPLEMENTED` | `CONDITIONAL` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Manifest forceert landscape; geen runtime orientation lock of portraitcompositie. |
@@ -231,12 +231,12 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 | Loop | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Playlistindex loopt terug naar nul; niet video-`loop`. |
 | Seek | `NOT_IMPLEMENTED` | `CONDITIONAL` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Rangebasis aanwezig, productieengine stuurt seek niet. |
 | Preload | `CONDITIONAL` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Productie metadata-only; Lab gebruikt auto/canplay. |
-| video ended-event | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Lab registreert ended; productie gebruikt het niet. |
-| video error-event | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Lab registreert error; productie heeft geen handler. |
-| stalled-event | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Alleen Lab-telemetrie. |
-| waiting-event | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Alleen Lab-telemetrie. |
-| canplay-event | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Alleen Lab/preloadtest. |
-| timeupdate | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Lab logt; productie niet. |
+| video ended-event | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Productie gaat direct door naar het volgende item; Chromiumtest bewijst de overgang. |
+| video error-event | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Productie koppelt decodefouten aan begrensd retry/skip-herstel. |
+| stalled-event | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Productiewatchdog registreert stalled en grijpt na timeout in. |
+| waiting-event | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Productiewatchdog registreert waiting en blijft tijdvoortgang bewaken. |
+| canplay-event | `NOT_IMPLEMENTED` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Productie gebruikt playing als readinesssignaal; Lab gebruikt canplay. |
+| timeupdate | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Productie bewaakt echte currentTime-voortgang. |
 | Playback quality | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Device Lab detecteert `getVideoPlaybackQuality`. |
 | Dropped frames | `NOT_IMPLEMENTED` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Transition Lab leest dropped frames indien API aanwezig. |
 | Eén video-element | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Productie en Lab-strategie A. |
@@ -274,8 +274,8 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 | Last-known-good release | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Active eerst, previous fallback bij corrupt/missing. |
 | Atomic release update | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `CONDITIONAL` | `NEEDS_PHYSICAL_LG_TEST` | Persistente write nu pas op loopgrens. |
 | Fallback na corrupte update | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Hash/size + active/previous. |
-| Cache cleanup | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `NOT_IMPLEMENTED` | `NEEDS_PHYSICAL_LG_TEST` | Assets en oude shellcaches worden niet veilig gegarbage-collected. |
-| Onvoldoende opslag | `CONDITIONAL` | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Preflight bestaat, maar rekent totale release en geen reserveringsmarge. |
+| Cache cleanup | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Media-GC behoudt active/previous; Chromium bewijst shellcachecleanup. |
+| Onvoldoende opslag | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Preflight rekent alleen ontbrekende geverifieerde bytes plus 16–64 MiB reserve. |
 
 ### Operations
 
@@ -284,7 +284,7 @@ De officiële LG Signage-site noemt onder andere gapless playback, meerdere vide
 | Heartbeat | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Stabiele 30 s interval. |
 | App version | `CONDITIONAL` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Env-versie, niet meer hardcoded pilot-1. |
 | Active release | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Heartbeat + DB. |
-| Desired release | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Manifest/bootstrap; heartbeat meldt hem niet apart. |
+| Desired release | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | Manifest/bootstrap en geredigeerde heartbeat-syncdetail melden de gewenste release. |
 | Storage usage | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Heartbeat en Lab. |
 | Storage quota | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_WEB_API` | `NEEDS_PHYSICAL_LG_TEST` | Heartbeat en Lab. |
 | Current item | `NOT_IMPLEMENTED` | `SUPPORTED_BY_CODE` | `SUPPORTED_BY_CODE` | `NEEDS_PHYSICAL_LG_TEST` | In geredigeerde sync_detail. |
@@ -329,20 +329,15 @@ Het Lab degradeert veilig wanneer deze API's ontbreken. De productieplayer degra
 ### P0 — productieblokkerend
 
 1. **Geen fysiek LG-bewijs.** Geen codec, autoplay-, storage-, reboot-, transition-, autostart- of soakresultaat mag als LG-ondersteuning worden gepubliceerd.
-2. **MP4-processing is geen echte worker.** `apps/media-worker/src/index.ts:3-35` exporteert alleen planning/health; er is geen FFmpeg-probe/transcode/queueworker. Daardoor is de productieclaim MP4/H.264/AAC nog niet hard.
+2. **MP4-processing is nog niet end-to-end.** De shell-vrije FFprobe/FFmpeg-core valideert input, normaliseert naar 1080p30 H.264/AAC en verifieert output met fixtures, maar queueclaiming, private Storage-I/O, database-updates en een echte run met geïnstalleerde binaries ontbreken. Daardoor is de productieclaim nog niet hard.
 
 ### P1 — oplossen vóór pilot op LG
 
-1. **Geen periodieke manifestsync.** `syncOnlineManifest()` wordt één keer na startup aangeroepen: `apps/player/app/_components/player-runtime.tsx:247-345,418-424`.
-2. **Geen cache garbage collection.** Active/previous metadata bestaat, maar oude media- en shellcachekeys blijven onbeperkt staan.
-3. **Service Worker-upgradepad is incompleet.** Vaste cacheversies, geen activate-cleanup en geen update-status naar de UI: `apps/player/public/sw.js:3-14`.
-4. **Bestaande v1-media zonder `Content-Length` kan Range falen.** De cachenaam bleef `castivo-player-assets-v1`, terwijl nieuwe Rangecode op die header rekent: `apps/player/public/sw.js:39-52`, `apps/player/app/_lib/player-cache.ts:120-129`.
-5. **De unitgeteste Range-implementatie is niet dezelfde code als `public/sw.js`.** Logica is gedupliceerd; regressie in de werkelijke Service Worker kan aan de TS-tests ontsnappen.
-6. **Range is streamend maar niet random-access.** Voor een late range leest/verwerpt de Cache Storage-stream eerst voorafgaande chunks: `apps/player/public/sw.js:85-109`. Veel seeks kunnen traag zijn op zwakke SoC's.
-7. **Blobfallback materialiseert het hele bestand.** Zonder actieve SW-controller gebruikt de adapter `response.blob()`: `apps/player/app/_lib/player-media-store.ts:34-40`.
-8. **App-shellprecache is minimaal.** Install cached alleen `/`; Next chunks komen pas runtime cache-first binnen: `apps/player/public/sw.js:7-9,125-131`. Offline direct na eerste load of na deploymentwisseling moet apart worden getest.
-9. **Manifesthash wordt niet client-side geverifieerd.** Assets worden geverifieerd, maar de API-envelope wordt gereconstrueerd en niet tegen `manifestHash` gehasht.
-10. **Storagepreflight is te grof.** De volledige releasebytes worden met vrije quota vergeleken, ook als assets al bestaan; er is geen reserve en ontbrekende StorageManager wordt als doorgaan behandeld: `apps/player/app/_lib/player-cache.ts:325-343`.
+1. **Range is streamend maar niet random-access.** Voor een late range leest/verwerpt de Cache Storage-stream eerst voorafgaande chunks. Veel seeks kunnen traag zijn op zwakke SoC's.
+2. **Blobfallback materialiseert het hele bestand.** Zonder actieve SW-controller gebruikt de adapter `response.blob()`.
+3. **App-shellprecache is minimaal.** Install cached alleen `/`; Next chunks komen pas runtime cache-first binnen. Offline direct na eerste load of na deploymentwisseling moet apart worden getest.
+4. **Manifesthash wordt niet client-side geverifieerd.** De databasehash dekt het gepubliceerde JSON-document, terwijl de Player-API release-item-ID's en tijdelijke signed URL's reconstrueert. Dit contract moet eerst canoniek gelijkgetrokken worden; blind hashen aan de client zou geldige releases blokkeren.
+5. **StorageManager is niet universeel.** Wanneer `navigator.storage.estimate` ontbreekt, gaat de Player door om oudere LG-engines niet categorisch van updates uit te sluiten; fysieke quotatests blijven nodig.
 
 ### P2 — kwaliteit en operations
 
