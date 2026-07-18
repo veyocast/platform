@@ -3,7 +3,7 @@
 ## Current State
 
 - Repository root: `D:\Codex\veyocast\platform`
-- Remote: `https://github.com/castivo/platform.git`
+- Remote: `https://github.com/veyocast/platform.git`
 - Current branch: `veyocast/s00-foundation`
 - Remote repository is empty, so this branch creates the initial root commit.
 

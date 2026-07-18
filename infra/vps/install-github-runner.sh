@@ -8,7 +8,7 @@ Gebruik als root:
 
 Voorbeeld:
   sudo infra/vps/install-github-runner.sh staging \
-    https://github.com/castivo/platform TOKEN 2.327.1 VERWACHTE_SHA256
+    https://github.com/veyocast/platform TOKEN 2.327.1 VERWACHTE_SHA256
 
 Haal versie, download-URL, checksum en het kortlevende registratietoken uit:
 GitHub repository > Settings > Actions > Runners > New self-hosted runner.
