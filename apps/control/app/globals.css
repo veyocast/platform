@@ -1057,6 +1057,18 @@ kbd {
   color: var(--cv-semantic-warning-text);
 }
 
+.notice--critical {
+  background: var(--cv-semantic-critical-surface);
+  border-color: var(--cv-semantic-critical-solid);
+  color: var(--cv-semantic-critical-text);
+}
+
+.notice--success {
+  background: var(--cv-semantic-success-surface);
+  border-color: var(--cv-semantic-success-solid);
+  color: var(--cv-semantic-success-text);
+}
+
 .upload-form,
 .playlist-form,
 .auth-form {

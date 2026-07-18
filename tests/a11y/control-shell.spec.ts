@@ -59,11 +59,15 @@ test("screens route exposes pairing labels and status", async ({ page }) => {
     page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
   ).toBeVisible();
   await expect(page.getByLabel("Schermnaam")).toBeVisible();
-  await expect(page.getByLabel("Pairingcode")).toContainText("CTV 482");
-  await expect(page.getByLabel("Player sync diagnostics")).toContainText(
-    "Lokale cache"
+  await expect(page.getByLabel("Koppelcode")).toBeVisible();
+  await expect(page.getByLabel("Doelscherm")).toBeVisible();
+  await expect(page.getByLabel("Pairingcontroles")).toContainText("Server-side");
+  await expect(page.getByLabel("Device lifecycle stappen")).toContainText(
+    "Last-known-good"
   );
-  await expect(page.getByRole("status")).toContainText("Pairing is in deze demo read-only");
+  await expect(page.getByRole("status").filter({ hasText: "geen fictieve schermen" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Scherm opslaan" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Player veilig koppelen" })).toBeDisabled();
 });
 
 test("pilot route exposes a sequential and fully labelled flow", async ({ page }) => {

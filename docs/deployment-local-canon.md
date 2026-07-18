@@ -25,14 +25,15 @@ postgres:  54322
 studio:    54323
 ```
 
-## Later deployment
+## Production deployment
 
-Production later uses:
+The repository now provides `infra/production/compose.yaml` with:
 
-- Docker images tagged by Git SHA.
-- Caddy reverse proxy.
-- Separate app/player hostnames.
-- GitHub Actions gates.
-- Self-hosted deployment runner with minimal privileges.
+- standalone Control and Player images tagged by Git SHA;
+- an FFmpeg-enabled mediaworker;
+- a Caddy reverse proxy with separate HTTPS app/player hostnames;
+- secret-free healthchecks and fail-closed required environment variables.
 
-No production `git pull && npm install && npm run build` on the VPS.
+Use `docs/lg-pairing-deployment-runbook.md`. GitHub Actions gates and a
+least-privilege deployment runner still have to publish/promote the green images.
+Never use production `git pull && npm install && npm run build` on the VPS.

@@ -20,6 +20,13 @@ test.describe("live pilot vertical slice", () => {
     await page.getByRole("button", { name: "Doorgaan" }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
 
+    await page.goto("/dashboard/screens");
+    await page.getByLabel("Schermnaam").fill("LG sprint scherm");
+    await page.getByLabel("Locatie").fill("Fysieke testruimte");
+    await page.getByRole("button", { name: "Scherm opslaan" }).click();
+    await expect(page.getByText("Het scherm is aangemaakt")).toBeVisible();
+    await expect(page.getByRole("cell", { name: "LG sprint scherm" })).toBeVisible();
+
     await page.goto("/dashboard/media");
     await expect(
       page.getByRole("heading", { exact: true, name: "Media" })
@@ -65,7 +72,7 @@ test.describe("live pilot vertical slice", () => {
     await expect(page.getByText("Conceptplaylist is gemaakt")).toBeVisible();
 
     await page.getByLabel("Conceptplaylist").selectOption({ label: "Live pilotplaylist" });
-    await page.getByLabel("Doelscherm").first().selectOption({ label: "Pilot hoofdscherm" });
+    await page.getByLabel("Doelscherm").first().selectOption({ label: "LG sprint scherm" });
     await page.getByRole("button", { name: "Release publiceren" }).click();
     await expect(page.getByText("Immutable release is gemaakt")).toBeVisible();
 
@@ -78,10 +85,12 @@ test.describe("live pilot vertical slice", () => {
 
     expect(pairingCode).toMatch(/^[A-Z2-9]{3} [A-Z2-9]{3}$/);
 
+    await page.goto("/dashboard/screens");
+    await expect(page.getByText("Live tenantdata")).toBeVisible();
+    await page.getByLabel("Doelscherm").selectOption({ label: "LG sprint scherm" });
     await page.getByLabel("Koppelcode").fill(pairingCode ?? "");
-    await page.getByLabel("Doelscherm").last().selectOption({ label: "Pilot hoofdscherm" });
-    await page.getByRole("button", { name: "Player koppelen" }).click();
-    await expect(page.getByText("Player is gekoppeld")).toBeVisible();
+    await page.getByRole("button", { name: "Player veilig koppelen" }).click();
+    await expect(page.getByText("De Player is gekoppeld")).toBeVisible();
 
     await expect(playerPage.getByAltText("Live pilotbeeld")).toBeVisible({
       timeout: 20_000
@@ -89,9 +98,8 @@ test.describe("live pilot vertical slice", () => {
     await expect(playerPage.getByText("PLAYING", { exact: true })).toBeVisible();
 
     await page.reload();
-    await expect(page.getByText("Live smoke Player")).toHaveCount(0);
-    await expect(page.getByText("Chrome pilotplayer")).toBeVisible();
-    await expect(page.getByText("Gekoppeld", { exact: true })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "LG webOS Signage" })).toBeVisible();
+    await expect(page.getByText("Online", { exact: true })).toBeVisible();
 
     await playerContext.close();
   });

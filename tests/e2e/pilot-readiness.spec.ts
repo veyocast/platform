@@ -37,8 +37,11 @@ test("keeps the documented local demo pilot traceable across product planes", as
   await expect(page.getByRole("status")).toContainText("Sponsor slide");
 
   await page.goto("/dashboard/screens");
-  await expect(page.getByLabel("Pairingcode")).toContainText("CTV 482");
-  await expect(page.getByRole("status")).toContainText("Pairing is in deze demo read-only");
+  await expect(page.getByLabel("Koppelcode")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Player veilig koppelen" })).toBeDisabled();
+  await expect(
+    page.getByRole("status").filter({ hasText: "geen fictieve schermen" })
+  ).toBeVisible();
 
   const manifestResponse = await page.request.get(
     `${playerURL}/api/player/manifest?deviceToken=demo-online`

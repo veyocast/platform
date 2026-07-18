@@ -63,12 +63,10 @@ studio:       54323
 
 ## Current Sprint
 
-S14 hardens playback production readiness: the Player polls and deduplicates
-manifests, activates verified releases at a loop boundary, retains active and
-previous media during garbage collection, migrates legacy Range metadata and
-cleans obsolete shell caches. Control uploads MP4 directly through a temporary
-signed upload, verifies Storage metadata transactionally and queues one job.
-The service-role-only worker claims jobs atomically, streams source and player
-variant, verifies SHA-256 and metadata and applies bounded retry/failure
-transitions. A generated-file run with installed FFmpeg, physical LG validation
-and the 24-hour soak remain required before MP4 is production-ready.
+S15 makes the hosted product ready for the first physical LG pairing sprint.
+The normal Screens route now reads and mutates real tenant data, lets authorized
+admins create screens and claim Player-owned temporary codes, and shows actual
+device, heartbeat, storage and release state. Production deployment uses
+Git-SHA-tagged standalone Control and Player images, an FFmpeg worker and Caddy
+TLS. See `docs/lg-pairing-deployment-runbook.md`. Physical model/firmware
+validation and the 24-hour soak remain required before an LG support claim.
