@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
+import { readPlayerAppVersion } from "../../../_lib/runtime-health";
+
 import { createPlayerAnonClient } from "../../../_lib/player-supabase";
 
 const runtimeStates = new Set([
@@ -50,7 +52,7 @@ export async function POST(request: Request) {
 
   const { error } = await supabase.rpc("record_player_heartbeat", {
     p_active_release_id: body.activeReleaseId ?? null,
-    p_app_version: process.env.NEXT_PUBLIC_APP_VERSION?.trim() || "development",
+    p_app_version: readPlayerAppVersion(),
     p_runtime_state: body.runtimeState,
     p_storage_quota_bytes: safeNonNegativeInteger(body.storageQuotaBytes),
     p_storage_used_bytes: safeNonNegativeInteger(body.storageUsedBytes),

@@ -51,6 +51,7 @@ De MVP is pilot-ready wanneer:
 | S16 | Control authoring MVP | Live media, playlists, instellingen en mixed-media publicatie |
 | S17 | VPS staging en production | Gescheiden Compose-stacks, self-hosted runners en Supabase-migratiedeployment |
 | S18 | VeyoCast-rebrand | Productnaam, namespaces, assets, bestaande data en canon veilig overzetten |
+| S19 | VPS deployment finalization | Immutable main → staging → approval → production met host-Caddy, rootless Docker en veilige rollback |
 
 ## Parallelle waves
 

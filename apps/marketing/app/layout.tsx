@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "VeyoCast | ClubTV en narrowcasting voor beheerde schermen",
   description:
     "VeyoCast is een local-first MVP voor ClubTV, tenantbeheer, immutable releases en offline-first player playback.",
-  metadataBase: new URL("https://veyocast.local"),
+  metadataBase: new URL("https://veyocast.nl"),
   openGraph: {
     description:
       "Beheer media, publiceer vaste releases en laat schermen fullscreen doorspelen met offline fallback.",

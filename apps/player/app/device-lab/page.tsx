@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { deviceLabCookieName, isValidDeviceLabSession } from "../_lib/device-lab-auth";
 import { DeviceLabClient } from "./device-lab-client";
+import { readPlayerAppVersion } from "../_lib/runtime-health";
 
 type DeviceLabPageProps = { searchParams: Promise<{ token?: string }> };
 
@@ -15,7 +16,7 @@ export default async function DeviceLabPage({ searchParams }: DeviceLabPageProps
 
   return (
     <DeviceLabClient
-      appVersion={process.env.NEXT_PUBLIC_APP_VERSION?.trim() || "development"}
+      appVersion={readPlayerAppVersion()}
       deploymentSha={process.env.VERCEL_GIT_COMMIT_SHA?.trim() || process.env.DEPLOYMENT_SHA?.trim() || "local"}
     />
   );

@@ -2,6 +2,10 @@ import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
 
+export type RuntimeEnvironment = Readonly<
+  Record<string, string | undefined>
+>;
+
 export function isLivePlayerConfigured() {
   return Boolean(getSupabaseConfig());
 }
@@ -37,9 +41,17 @@ export function createPlayerAdminClient() {
   });
 }
 
-function getSupabaseConfig() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+export function getSupabaseConfig(
+  environment: RuntimeEnvironment = process.env
+) {
+  const url = readPlayerRuntimeValue(
+    "NEXT_PUBLIC_SUPABASE_URL",
+    environment
+  );
+  const anonKey = readPlayerRuntimeValue(
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    environment
+  );
 
   if (
     !url ||
@@ -51,4 +63,11 @@ function getSupabaseConfig() {
   }
 
   return { anonKey, url };
+}
+
+export function readPlayerRuntimeValue(
+  name: string,
+  environment: RuntimeEnvironment = process.env
+) {
+  return environment[name]?.trim();
 }

@@ -4,6 +4,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getSupabasePublicConfig } from "./lib/supabase/config";
 
 export async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname === "/api/health") {
+    return NextResponse.next({ request });
+  }
+
   const config = getSupabasePublicConfig();
 
   if (!config) {

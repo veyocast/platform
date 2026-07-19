@@ -1,0 +1,336 @@
+name: Deploy VeyoCast
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Normale release of gecontroleerde rollback
+        required: true
+        default: release
+        type: choice
+        options:
+          - release
+          - rollback
+      release_sha:
+        description: Volledige bestaande SHA; leeg gebruikt de huidige main-SHA
+        required: false
+        type: string
+      rollback_confirmation:
+        description: Typ ROLLBACK wanneer mode rollback is
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-veyocast-main
+  cancel-in-progress: false
+
+env:
+  DEPLOYMENT_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'release' }}
+  REQUESTED_RELEASE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.release_sha || github.sha }}
+
+jobs:
+  preflight:
+    name: Preflight
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - veyocast
+      - staging
+    environment:
+      name: staging
+      url: https://staging-control.veyocast.nl
+    timeout-minutes: 20
+    outputs:
+      release_sha: ${{ steps.revision.outputs.release_sha }}
+    steps:
+      - name: Checkout trusted main workflow
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          clean: true
+          fetch-depth: 0
+          persist-credentials: false
+          ref: main
+
+      - name: Remove stale workspace files
+        shell: bash
+        run: git clean -ffdx
+
+      - name: Resolve and authorize release
+        id: revision
+        shell: bash
+        env:
+          DISPATCH_RELEASE_SHA: ${{ inputs.release_sha }}
+          ROLLBACK_CONFIRMATION: ${{ inputs.rollback_confirmation }}
+        run: |
+          set -Eeuo pipefail
+          git fetch --force --no-tags origin main
+          release_sha="${REQUESTED_RELEASE_SHA}"
+          if [[ ! ${release_sha} =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Een volledige release-SHA is verplicht." >&2
+            exit 1
+          fi
+          git cat-file -e "${release_sha}^{commit}"
+          if ! git merge-base --is-ancestor "${release_sha}" origin/main; then
+            echo "Alleen releases uit main zijn toegestaan." >&2
+            exit 1
+          fi
+          if [[ ${DEPLOYMENT_MODE} == release && $(git rev-parse origin/main) != "${release_sha}" ]]; then
+            echo "Een normale release moet de actuele main-SHA zijn." >&2
+            exit 1
+          fi
+          if [[ ${DEPLOYMENT_MODE} == rollback && ${ROLLBACK_CONFIRMATION} != ROLLBACK ]]; then
+            echo "Een rollback vereist de expliciete bevestiging ROLLBACK." >&2
+            exit 1
+          fi
+          if [[ ${DEPLOYMENT_MODE} == rollback && ( -z ${DISPATCH_RELEASE_SHA} || ${release_sha} == "$(git rev-parse origin/main)" ) ]]; then
+            echo "Een rollback vereist expliciet een oudere volledige release-SHA." >&2
+            exit 1
+          fi
+          echo "release_sha=${release_sha}" >> "${GITHUB_OUTPUT}"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Validate staging configuration and rootless daemon
+        shell: bash
+        env:
+          CONTROL_BIND_PORT: ${{ vars.CONTROL_BIND_PORT }}
+          CONTROL_HOST: ${{ vars.CONTROL_HOST }}
+          DEVICE_LAB_ACCESS_TOKEN: ${{ secrets.DEVICE_LAB_ACCESS_TOKEN }}
+          DEVICE_LAB_SESSION_SECRET: ${{ secrets.DEVICE_LAB_SESSION_SECRET }}
+          RELEASE_SHA: ${{ steps.revision.outputs.release_sha }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
+          PLAYER_BIND_PORT: ${{ vars.PLAYER_BIND_PORT }}
+          PLAYER_HOST: ${{ vars.PLAYER_HOST }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: bash scripts/deploy-vps.sh staging preflight
+
+  build-release:
+    name: Build immutable release
+    needs: preflight
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - veyocast
+      - staging
+    environment:
+      name: staging
+      url: https://staging-control.veyocast.nl
+    timeout-minutes: 90
+    outputs:
+      control_digest: ${{ steps.release.outputs.control_digest }}
+      marketing_digest: ${{ steps.release.outputs.marketing_digest }}
+      player_digest: ${{ steps.release.outputs.player_digest }}
+      release_sha: ${{ steps.release.outputs.release_sha }}
+    steps:
+      - name: Checkout authorized release
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          clean: true
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ needs.preflight.outputs.release_sha }}
+
+      - name: Remove stale workspace files
+        shell: bash
+        run: git clean -ffdx
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Build, test and record SHA images
+        id: release
+        shell: bash
+        env:
+          CONTROL_BIND_PORT: ${{ vars.CONTROL_BIND_PORT }}
+          CONTROL_HOST: ${{ vars.CONTROL_HOST }}
+          DEVICE_LAB_ACCESS_TOKEN: ${{ secrets.DEVICE_LAB_ACCESS_TOKEN }}
+          DEVICE_LAB_SESSION_SECRET: ${{ secrets.DEVICE_LAB_SESSION_SECRET }}
+          RELEASE_SHA: ${{ needs.preflight.outputs.release_sha }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
+          PLAYER_BIND_PORT: ${{ vars.PLAYER_BIND_PORT }}
+          PLAYER_HOST: ${{ vars.PLAYER_HOST }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: bash scripts/deploy-vps.sh staging build-release
+
+  deploy-staging:
+    name: Deploy and verify staging
+    needs:
+      - preflight
+      - build-release
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - veyocast
+      - staging
+    environment:
+      name: staging
+      url: https://staging-control.veyocast.nl
+    timeout-minutes: 45
+    outputs:
+      control_digest: ${{ needs.build-release.outputs.control_digest }}
+      marketing_digest: ${{ needs.build-release.outputs.marketing_digest }}
+      player_digest: ${{ needs.build-release.outputs.player_digest }}
+      release_sha: ${{ needs.build-release.outputs.release_sha }}
+    steps:
+      - name: Checkout authorized release
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          clean: true
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ needs.build-release.outputs.release_sha }}
+
+      - name: Remove stale workspace files
+        shell: bash
+        run: git clean -ffdx
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install pinned migration tooling
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy exact release to staging
+        shell: bash
+        env:
+          CONTROL_BIND_PORT: ${{ vars.CONTROL_BIND_PORT }}
+          CONTROL_HOST: ${{ vars.CONTROL_HOST }}
+          DEVICE_LAB_ACCESS_TOKEN: ${{ secrets.DEVICE_LAB_ACCESS_TOKEN }}
+          DEVICE_LAB_SESSION_SECRET: ${{ secrets.DEVICE_LAB_SESSION_SECRET }}
+          RELEASE_SHA: ${{ needs.build-release.outputs.release_sha }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
+          PLAYER_BIND_PORT: ${{ vars.PLAYER_BIND_PORT }}
+          PLAYER_HOST: ${{ vars.PLAYER_HOST }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: bash scripts/deploy-vps.sh staging deploy
+
+  deploy-production:
+    name: Approve and deploy production
+    needs: deploy-staging
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - veyocast
+      - production
+    environment:
+      name: production
+      url: https://control.veyocast.nl
+    timeout-minutes: 45
+    steps:
+      - name: Checkout authorized release
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          clean: true
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ needs.deploy-staging.outputs.release_sha }}
+
+      - name: Remove stale workspace files
+        shell: bash
+        run: git clean -ffdx
+
+      - name: Refuse a stale production release
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ needs.deploy-staging.outputs.release_sha }}
+        run: |
+          set -Eeuo pipefail
+          git fetch --force --no-tags origin main
+          if [[ ${DEPLOYMENT_MODE} == release && $(git rev-parse origin/main) != "${RELEASE_SHA}" ]]; then
+            echo "Main is verder gegaan; deze production approval is verouderd." >&2
+            exit 1
+          fi
+          if [[ ${DEPLOYMENT_MODE} == rollback ]] && ! git merge-base --is-ancestor "${RELEASE_SHA}" origin/main; then
+            echo "De rollbackrelease hoort niet meer aantoonbaar bij main." >&2
+            exit 1
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install pinned migration tooling
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify and deploy exact staging release
+        shell: bash
+        env:
+          CONTROL_BIND_PORT: ${{ vars.CONTROL_BIND_PORT }}
+          CONTROL_HOST: ${{ vars.CONTROL_HOST }}
+          DEVICE_LAB_ACCESS_TOKEN: ${{ secrets.DEVICE_LAB_ACCESS_TOKEN }}
+          DEVICE_LAB_SESSION_SECRET: ${{ secrets.DEVICE_LAB_SESSION_SECRET }}
+          RELEASE_SHA: ${{ needs.deploy-staging.outputs.release_sha }}
+          MARKETING_BIND_PORT: ${{ vars.MARKETING_BIND_PORT }}
+          MARKETING_HOST: ${{ vars.MARKETING_HOST }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
+          PLAYER_BIND_PORT: ${{ vars.PLAYER_BIND_PORT }}
+          PLAYER_HOST: ${{ vars.PLAYER_HOST }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -Eeuo pipefail
+          [[ $(docker image inspect --format '{{.Id}}' "veyocast-control:${RELEASE_SHA}") == '${{ needs.deploy-staging.outputs.control_digest }}' ]]
+          [[ $(docker image inspect --format '{{.Id}}' "veyocast-player:${RELEASE_SHA}") == '${{ needs.deploy-staging.outputs.player_digest }}' ]]
+          [[ $(docker image inspect --format '{{.Id}}' "veyocast-marketing:${RELEASE_SHA}") == '${{ needs.deploy-staging.outputs.marketing_digest }}' ]]
+          bash scripts/deploy-vps.sh production deploy

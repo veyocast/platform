@@ -3,6 +3,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
+  output: "standalone",
   transpilePackages: ["@veyocast/config"]
 };
 
