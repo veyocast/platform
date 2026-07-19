@@ -32,6 +32,8 @@ const allowedServerOnlyFiles = new Set([
   "packages/config/src/server.ts"
 ]);
 const protectedNextModules = new Set([
+  "apps/control/lib/control-overview.ts",
+  "apps/control/lib/control-session.ts",
   "apps/control/lib/runtime-health.ts",
   "apps/control/lib/supabase/admin.ts",
   "apps/player/app/_lib/player-supabase.ts",

@@ -9,6 +9,8 @@ export type SupabasePublicConfig = {
   url: string;
 };
 
+export type ControlRuntimeMode = "demo" | "live" | "unavailable";
+
 export function getSupabasePublicConfig(
   environment: RuntimeEnvironment = process.env
 ): SupabasePublicConfig | null {
@@ -34,6 +36,24 @@ export function isLiveSupabaseConfigured(
   environment: RuntimeEnvironment = process.env
 ) {
   return getSupabasePublicConfig(environment) !== null;
+}
+
+export function getControlRuntimeMode(
+  environment: RuntimeEnvironment = process.env
+): ControlRuntimeMode {
+  if (isLiveSupabaseConfigured(environment)) {
+    return "live";
+  }
+
+  const nodeEnvironment = readEnvironmentValue(environment, "NODE_ENV");
+  const deploymentEnvironment = readEnvironmentValue(
+    environment,
+    "VEYOCAST_ENVIRONMENT"
+  );
+
+  return nodeEnvironment === "development" && !deploymentEnvironment
+    ? "demo"
+    : "unavailable";
 }
 
 export function readEnvironmentValue(

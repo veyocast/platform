@@ -2,12 +2,22 @@
 
 import { redirect } from "next/navigation";
 
-import { isLiveSupabaseConfigured } from "../../lib/supabase/config";
+import {
+  getControlLandingPath,
+  getControlSession
+} from "../../lib/control-session";
+import { getControlRuntimeMode } from "../../lib/supabase/config";
 import { createControlSupabaseClient } from "../../lib/supabase/server";
 
 export async function signIn(formData: FormData) {
-  if (!isLiveSupabaseConfigured()) {
+  const runtimeMode = getControlRuntimeMode();
+
+  if (runtimeMode === "demo") {
     redirect("/auth/callback");
+  }
+
+  if (runtimeMode !== "live") {
+    redirect("/login");
   }
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -15,20 +25,23 @@ export async function signIn(formData: FormData) {
   const supabase = await createControlSupabaseClient();
 
   if (!supabase || !email || !password) {
-    redirect("/login?fout=Vul+je+e-mailadres+en+wachtwoord+in.");
+    redirect("/login?fout=gegevens");
   }
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    redirect(
-      `/login?fout=${encodeURIComponent(
-        "Inloggen is mislukt. Controleer je gegevens en probeer opnieuw."
-      )}`
-    );
+    redirect("/login?fout=inloggen");
   }
 
-  redirect("/dashboard");
+  const session = await getControlSession();
+
+  if (!session || session.roles.length === 0) {
+    await supabase.auth.signOut();
+    redirect("/login?reden=geen-toegang");
+  }
+
+  redirect(getControlLandingPath(session));
 }
 
 export async function signOut() {

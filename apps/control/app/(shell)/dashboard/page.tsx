@@ -1,5 +1,10 @@
 import Link from "next/link";
 
+import { requireTenantControlSession } from "../../../lib/control-session";
+import {
+  loadTenantOverview,
+  type TenantOverview
+} from "../../../lib/control-overview";
 import {
   HealthList,
   MetricCard,
@@ -122,7 +127,111 @@ const openSignals = [
   }
 ] as const;
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await requireTenantControlSession();
+
+  if (!session.isLive) {
+    return <DemoDashboardPage />;
+  }
+
+  const data = await loadTenantOverview(session.tenantId!);
+  return <LiveDashboard data={data} tenant={session.tenant} userName={session.userName} />;
+}
+
+function LiveDashboard({
+  data,
+  tenant,
+  userName
+}: {
+  data: TenantOverview;
+  tenant: string;
+  userName: string;
+}) {
+  const devices = new Map(data.devices.map((device) => [device.screen_id, device]));
+  const onlineScreens = data.screens.filter((screen) => isRecentlyOnline(devices.get(screen.id)?.last_seen_at)).length;
+  const offlineScreens = data.screens.filter((screen) => {
+    const device = devices.get(screen.id);
+    return !device || !isRecentlyOnline(device.last_seen_at);
+  }).length;
+  const pendingMedia = data.media.filter((asset) => asset.status !== "ready").length;
+  const mediaBytes = data.media.reduce((total, asset) => total + Number(asset.file_size_bytes), 0);
+
+  return (
+    <>
+      <PageHeader
+        actions={
+          <>
+            <Link className="button-link button-link--secondary" href="/dashboard/screens">
+              Scherm koppelen
+            </Link>
+            <Link className="button-link button-link--primary" href="/dashboard/playlists">
+              Nieuwe playlist
+            </Link>
+          </>
+        }
+        description="Dit overzicht wordt rechtstreeks uit de actieve, tenantgebonden sessie geladen."
+        eyebrow={tenant}
+        status={{ label: "Live tenantdata", tone: "success" }}
+        title={`Welkom, ${userName}`}
+      />
+
+      {data.error ? (
+        <p className="notice notice--critical" role="alert">
+          <strong>Overzicht niet beschikbaar.</strong> De actuele gegevens konden niet veilig worden geladen. Vernieuw de pagina of log opnieuw in.
+        </p>
+      ) : null}
+
+      <section className="metric-grid" aria-label="Operationeel overzicht">
+        <MetricCard detail={`${onlineScreens} met een recente heartbeat.`} label="Actieve schermen" tone="success" value={String(data.screens.length)} />
+        <MetricCard detail="Niet gekoppeld of zonder recente heartbeat." label="Schermen met aandacht" tone={offlineScreens ? "warning" : "success"} value={String(offlineScreens)} />
+        <MetricCard detail="Bewerkbare playlists binnen deze vereniging." label="Playlists" value={String(data.playlistCount)} />
+        <MetricCard detail={`${pendingMedia} nog niet gereed.`} label="Media" tone={pendingMedia ? "warning" : "info"} value={String(data.media.length)} />
+        <MetricCard detail="Onveranderlijke gepubliceerde versies." label="Releases" value={String(data.releaseCount)} />
+        <MetricCard detail="Som van de geregistreerde bronbestanden." label="Mediaopslag" value={formatBytes(mediaBytes)} />
+      </section>
+
+      <section className="workspace-section" aria-labelledby="live-screen-fleet-title">
+        <div className="workspace-section__header">
+          <div>
+            <h2 className="workspace-section__title" id="live-screen-fleet-title">Schermen</h2>
+            <p className="work-panel__meta">Actuele scherm- en verbindingstoestand.</p>
+          </div>
+          <Link className="table-action" href="/dashboard/screens">Alle schermen bekijken</Link>
+        </div>
+        {data.screens.length ? (
+          <div className="data-table-frame">
+            <table className="data-table data-table--responsive">
+              <caption>Actuele schermstatus binnen de actieve vereniging.</caption>
+              <thead><tr><th scope="col">Scherm</th><th scope="col">Status</th><th scope="col">Locatie</th><th scope="col">Release</th></tr></thead>
+              <tbody>{data.screens.map((screen) => {
+                const device = devices.get(screen.id);
+                const online = isRecentlyOnline(device?.last_seen_at);
+                return <tr key={screen.id}>
+                  <td data-label="Scherm"><span className="table-primary">{screen.name}</span></td>
+                  <td data-label="Status"><StatusPill label={online ? "Online" : device ? "Offline" : "Niet gekoppeld"} tone={online ? "success" : "warning"} /></td>
+                  <td data-label="Locatie">{screen.location || "Niet ingesteld"}</td>
+                  <td data-label="Release">{device?.active_release_id ? shortId(device.active_release_id) : "Geen actieve release"}</td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="notice" role="status">Nog geen schermen. Maak een scherm aan en koppel daarna een Player.</p>
+        )}
+      </section>
+
+      <section className="workspace-section" aria-labelledby="recent-events-title">
+        <div className="workspace-section__header">
+          <div><h2 className="workspace-section__title" id="recent-events-title">Recente gebeurtenissen</h2><p className="work-panel__meta">Server-side auditgebeurtenissen, nieuwste eerst.</p></div>
+          <StatusPill label={`${data.auditEvents.length} getoond`} tone="neutral" />
+        </div>
+        {data.auditEvents.length ? <ul className="health-list" aria-label="Recente auditgebeurtenissen">{data.auditEvents.map((event) => <li className="health-item" key={event.id}><span className="health-item__copy"><span className="health-item__title">{humanize(event.action)}</span><span className="work-panel__meta">{event.target_type} · {formatDate(event.created_at)}</span></span><StatusPill label={event.result === "success" ? "Geslaagd" : "Mislukt"} tone={event.result === "success" ? "success" : "critical"} /></li>)}</ul> : <p className="notice" role="status">Nog geen auditgebeurtenissen voor deze vereniging.</p>}
+      </section>
+    </>
+  );
+}
+
+function DemoDashboardPage() {
   return (
     <>
       <PageHeader
@@ -276,4 +385,29 @@ export default function DashboardPage() {
       </section>
     </>
   );
+}
+
+function isRecentlyOnline(value: string | null | undefined) {
+  return Boolean(value && Date.now() - new Date(value).getTime() < 5 * 60_000);
+}
+
+function formatBytes(value: number) {
+  if (value < 1_000_000) return `${Math.round(value / 1_000)} kB`;
+  if (value < 1_000_000_000) return `${(value / 1_000_000).toFixed(1)} MB`;
+  return `${(value / 1_000_000_000).toFixed(1)} GB`;
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("nl-NL", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(new Date(value));
+}
+
+function humanize(value: string) {
+  return value.replaceAll(".", " ").replaceAll("_", " ");
+}
+
+function shortId(value: string) {
+  return value.slice(0, 8);
 }

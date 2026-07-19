@@ -25,7 +25,12 @@ De centrale bestanden zijn:
 - `infra/vps/compose.yaml`.
 
 Zie ook [GitHub environments](./github-environments.md),
-[rollback](./rollback.md) en het [deploymentaudit](./deployment-audit.md).
+[rollback](./rollback.md), het [deploymentaudit](./deployment-audit.md) en
+[stagingtoegang voor Control](./staging-control-access.md).
+
+De deployment maakt bewust geen Control-accounts aan en gebruikt daarvoor geen
+runtime-secret. Account- en rolprovisioning blijft een afzonderlijke,
+controleerbare beheerhandeling in het staging-Supabase-project.
 
 ## Vaste omgevingstopologie
 

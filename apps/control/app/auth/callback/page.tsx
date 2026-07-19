@@ -1,10 +1,16 @@
 import Link from "next/link";
 
-import { getControlSession } from "../../../lib/control-session";
-import { isLiveSupabaseConfigured } from "../../../lib/supabase/config";
+import {
+  getControlLandingPath,
+  getControlSession
+} from "../../../lib/control-session";
+import { getControlRuntimeMode } from "../../../lib/supabase/config";
+
+export const dynamic = "force-dynamic";
 
 export default async function AuthCallbackPage() {
-  const live = isLiveSupabaseConfigured();
+  const runtimeMode = getControlRuntimeMode();
+  const live = runtimeMode === "live";
   const session = live ? await getControlSession() : null;
 
   return (
@@ -19,15 +25,17 @@ export default async function AuthCallbackPage() {
         <div>
           <p className="auth-kicker">Authenticatie</p>
           <h1 className="auth-title" id="callback-title">
-            {live ? "Sessie gecontroleerd" : "Sessiecontrole voorbereid"}
+            {live ? "Sessie gecontroleerd" : runtimeMode === "demo" ? "Sessiecontrole voorbereid" : "Sessie niet beschikbaar"}
           </h1>
         </div>
         <p className="auth-copy">
           {live
             ? `Je bent aangemeld als ${session?.email ?? "VeyoCast-gebruiker"}. Rollen en tenantcontext worden op de server gecontroleerd.`
-            : "De callback-route is beschikbaar voor Supabase Auth. Zonder lokale configuratie gebruikt Control expliciete demorechten."}
+            : runtimeMode === "demo"
+              ? "De callback-route is beschikbaar voor Supabase Auth. Deze ontwikkelserver gebruikt expliciete demorechten."
+              : "De serverconfiguratie ontbreekt. Er is geen demosessie aangemaakt."}
         </p>
-        {!live ? (
+        {runtimeMode === "demo" ? (
           <div className="notice" role="status">
             Oorzaak: authprovider is nog niet aangesloten. Effect: de shell draait
             met vaste ontwikkelrollen. Herstel: configureer de lokale Supabase-URL
@@ -35,7 +43,7 @@ export default async function AuthCallbackPage() {
           </div>
         ) : null}
         <div className="page-actions">
-          <Link className="button-link button-link--primary" href="/dashboard">
+          <Link className="button-link button-link--primary" href={session ? getControlLandingPath(session) : runtimeMode === "demo" ? "/dashboard" : "/login"}>
             Naar dashboard
           </Link>
           <Link className="button-link button-link--secondary" href="/login">

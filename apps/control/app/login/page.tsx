@@ -1,7 +1,7 @@
-import { VEYOCAST_APPS, getLocalUrl } from "@veyocast/config";
+import { VEYOCAST_APPS } from "@veyocast/config";
 import Link from "next/link";
 
-import { isLiveSupabaseConfigured } from "../../lib/supabase/config";
+import { getControlRuntimeMode } from "../../lib/supabase/config";
 import { signIn } from "./actions";
 
 type LoginPageProps = {
@@ -9,14 +9,18 @@ type LoginPageProps = {
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const live = isLiveSupabaseConfigured();
+  const runtimeMode = getControlRuntimeMode();
+  const live = runtimeMode === "live";
+  const demo = runtimeMode === "demo";
   const { fout, reden } = await searchParams;
 
   return (
     <main className="auth-shell">
       <section className="auth-panel" aria-labelledby="login-title">
         <div>
-          <p className="auth-kicker">{getLocalUrl("control")}</p>
+          <p className="auth-kicker">
+            {demo ? "Lokale demoomgeving" : "Beveiligde beheeromgeving"}
+          </p>
           <h1 className="auth-title" id="login-title">
             Inloggen bij {VEYOCAST_APPS.control.name}
           </h1>
@@ -24,15 +28,19 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <p className="auth-copy">
           {live
             ? "Log in met je VeyoCast-account. Je tenant- en platformrollen worden na het inloggen server-side geladen."
-            : "De demo draait zonder lokale Supabase-configuratie. Start de database en vul de lokale omgevingswaarden in om de live pilotflow te gebruiken."}
+            : demo
+              ? "De lokale demo draait zonder Supabase-account. Configureer Supabase om de live pilotflow te gebruiken."
+              : "Inloggen is tijdelijk niet beschikbaar. De beheerconfiguratie kon niet veilig worden geladen."}
         </p>
-        {fout ? <div className="notice notice--warning" role="alert">{fout}</div> : null}
+        {fout && loginErrors[fout] ? (
+          <div className="notice notice--warning" role="alert">{loginErrors[fout]}</div>
+        ) : null}
         {reden ? (
           <div className="notice" role="status">
-            Je sessie ontbreekt of is verlopen. Log opnieuw in.
+            {loginReasons[reden] ?? loginReasons.sessie}
           </div>
         ) : null}
-        <form
+        {runtimeMode !== "unavailable" ? <form
           className="auth-form"
           action={live ? signIn : "/auth/callback"}
           method={live ? undefined : "get"}
@@ -73,14 +81,29 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <button className="auth-button" type="submit">
             Doorgaan
           </button>
-        </form>
-        <p className="auth-footnote">
+        </form> : (
+          <div className="notice notice--critical" role="alert">
+            De dienst weigert toegang totdat de serverconfiguratie is hersteld. Probeer later opnieuw.
+          </div>
+        )}
+        {live ? <p className="auth-footnote">
           Uitgenodigd?{" "}
           <Link className="button-link button-link--secondary" href="/accept-invite">
             Invite accepteren
           </Link>
-        </p>
+        </p> : null}
       </section>
     </main>
   );
 }
+
+const loginErrors: Record<string, string> = {
+  gegevens: "Vul je e-mailadres en wachtwoord in.",
+  inloggen: "Inloggen is mislukt. Controleer je gegevens en probeer opnieuw."
+};
+
+const loginReasons: Record<string, string> = {
+  "geen-toegang": "Dit account heeft nog geen toegang tot VeyoCast Control. Vraag een beheerder om een rol toe te wijzen.",
+  sessie: "Je sessie ontbreekt of is verlopen. Log opnieuw in.",
+  uitgenodigd: "Je account is ingesteld. Log in met je nieuwe wachtwoord."
+};

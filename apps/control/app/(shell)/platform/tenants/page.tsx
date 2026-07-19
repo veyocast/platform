@@ -1,58 +1,34 @@
+import { requireControlRole } from "../../../../lib/control-session";
+import { loadPlatformOverview } from "../../../../lib/control-overview";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 
-const tenants = [
-  ["Museumkwartier", "Actief", "128 schermen", "18,4 GB / 50 GB", "Daan Operator"],
-  ["Stadstheater", "Actief", "42 schermen", "9,1 GB / 25 GB", "Uitnodiging open"],
-  ["Campus Oost", "Aandacht", "76 schermen", "45,5 GB / 50 GB", "Opslaglimiet 91%"]
-] as const;
+export default async function PlatformTenantsPage() {
+  const session = await requireControlRole("platform_admin");
+  const data = session.isLive ? await loadPlatformOverview() : null;
 
-export default function PlatformTenantsPage() {
   return (
     <>
       <PageHeader
-        description="Beheer verenigingen, limieten en de operationele context vanuit de platformrol. Tenantinhoud blijft buiten dit overzicht."
+        description={session.isLive ? "Live verenigingen en schermlimieten uit de platformcontext." : "Lokale ontwikkelpreview; de getoonde vereniging is geen stagingdata."}
         eyebrow="Platform"
-        status={{ label: "Platformbeheerder vereist", tone: "info" }}
+        status={{ label: session.isLive ? "Live platformdata" : "Demodata", tone: session.isLive ? "success" : "warning" }}
         title="Tenantbeheer"
       />
-
-      <section className="resource-toolbar" aria-label="Tenants bedienen">
-        <div className="resource-toolbar__group">
-          <input aria-label="Zoeken in tenants" className="toolbar-search" name="tenant-search" placeholder="Zoeken op vereniging" type="search" />
-          <select aria-label="Filter tenants op status" className="toolbar-select" defaultValue="all">
-            <option value="all">Alle statussen</option><option value="active">Actief</option><option value="attention">Aandacht</option>
-          </select>
-        </div>
-        <p className="resource-toolbar__summary">12 verenigingen · sortering: status</p>
-      </section>
-
+      {!session.isLive ? <p className="notice notice--warning" role="status">Demo-organisaties zijn uitsluitend zichtbaar op een lokale ontwikkelserver.</p> : null}
+      {data?.error ? <p className="notice notice--critical" role="alert"><strong>Verenigingen niet beschikbaar.</strong> De lijst kon niet veilig worden geladen.</p> : null}
       <section className="workspace-section" aria-labelledby="tenant-table-title">
-        <div className="workspace-section__header">
-          <div>
-            <h2 className="workspace-section__title" id="tenant-table-title">Verenigingen</h2>
-            <p className="work-panel__meta">Status en limieten die actie vanuit de platformrol vragen.</p>
-          </div>
-          <StatusPill label="12 totaal" tone="neutral" />
-        </div>
-        <div className="data-table-frame">
-          <table className="data-table data-table--responsive">
-            <caption>Tenantstatus en platformlimieten.</caption>
-            <thead><tr><th scope="col">Vereniging</th><th scope="col">Status</th><th scope="col">Schermen</th><th scope="col">Opslag</th><th scope="col">Contact</th><th scope="col">Actie</th></tr></thead>
-            <tbody>
-              {tenants.map(([tenant, status, screens, storage, contact]) => (
-                <tr key={tenant}>
-                  <td data-label="Vereniging"><span className="table-primary">{tenant}</span></td>
-                  <td data-label="Status"><StatusPill label={status} tone={status === "Aandacht" ? "warning" : "success"} /></td>
-                  <td data-label="Schermen">{screens}</td>
-                  <td data-label="Opslag">{storage}</td>
-                  <td data-label="Contact">{contact}</td>
-                  <td data-label="Actie"><button className="table-action" type="button">Beheren</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="tenant-table-title">Verenigingen</h2><p className="work-panel__meta">Status en schermlimiet per organisatie.</p></div><StatusPill label={`${data?.tenants.length ?? 1} totaal`} tone="neutral" /></div>
+        {(data?.tenants.length ?? 0) > 0 || !session.isLive ? <div className="data-table-frame"><table className="data-table data-table--responsive"><caption>Verenigingen binnen het platform.</caption><thead><tr><th scope="col">Vereniging</th><th scope="col">Status</th><th scope="col">Schermen</th><th scope="col">Limiet</th></tr></thead><tbody>{session.isLive ? data!.tenants.map((tenant) => {
+          const screenCount = data!.screens.filter((screen) => screen.tenant_id === tenant.id).length;
+          return <tr key={tenant.id}><td data-label="Vereniging"><span className="table-primary">{tenant.name}</span><span className="table-secondary">{tenant.slug}</span></td><td data-label="Status"><StatusPill label={statusLabel(tenant.status)} tone={tenant.status === "active" ? "success" : "warning"} /></td><td data-label="Schermen">{screenCount}</td><td data-label="Limiet">{tenant.screen_limit}</td></tr>;
+        }) : <tr><td data-label="Vereniging"><span className="table-primary">Lokale demovereniging</span></td><td data-label="Status"><StatusPill label="Demo" tone="warning" /></td><td data-label="Schermen">0</td><td data-label="Limiet">4</td></tr>}</tbody></table></div> : <p className="notice" role="status">Nog geen verenigingen aangemaakt.</p>}
       </section>
     </>
   );
+}
+
+function statusLabel(value: string) {
+  if (value === "active") return "Actief";
+  if (value === "paused") return "Gepauzeerd";
+  return "Gearchiveerd";
 }

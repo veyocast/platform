@@ -1,11 +1,14 @@
+import "server-only";
+
 import { redirect } from "next/navigation";
 
 import {
-  demoControlSession,
+  getControlSessionRoles,
   type ControlRole,
   type ControlSession
 } from "../app/(shell)/_lib/control-navigation";
-import { isLiveSupabaseConfigured } from "./supabase/config";
+import { hasControlRole } from "../app/(shell)/_lib/control-navigation";
+import { getControlRuntimeMode } from "./supabase/config";
 import { createControlSupabaseClient } from "./supabase/server";
 
 type TenantMembershipRow = {
@@ -14,9 +17,26 @@ type TenantMembershipRow = {
   tenants: { name: string } | { name: string }[] | null;
 };
 
+const demoControlSession = {
+  email: "operator@veyocast.test",
+  isLive: false,
+  organization: "VeyoCast platform",
+  roles: ["platform_admin", "tenant_admin", "tenant_viewer"],
+  tenant: "Museumkwartier",
+  tenantId: null,
+  userId: "demo-control-user",
+  userName: "Daan Operator"
+} satisfies ControlSession;
+
 export async function getControlSession(): Promise<ControlSession | null> {
-  if (!isLiveSupabaseConfigured()) {
+  const runtimeMode = getControlRuntimeMode();
+
+  if (runtimeMode === "demo") {
     return demoControlSession;
+  }
+
+  if (runtimeMode === "unavailable") {
+    return null;
   }
 
   const supabase = await createControlSupabaseClient();
@@ -56,10 +76,12 @@ export async function getControlSession(): Promise<ControlSession | null> {
   const tenantRecord = Array.isArray(activeMembership?.tenants)
     ? activeMembership.tenants[0]
     : activeMembership?.tenants;
-  const roles = uniqueRoles([
-    ...(platformResult.data ?? []).map((membership) => membership.role as ControlRole),
-    ...memberships.map((membership) => membership.role)
-  ]);
+  const roles = getControlSessionRoles(
+    (platformResult.data ?? []).map(
+      (membership) => membership.role as ControlRole
+    ),
+    activeMembership?.role
+  );
 
   return {
     email: user.email ?? "",
@@ -84,9 +106,43 @@ export async function requireControlSession() {
     redirect("/login?reden=sessie");
   }
 
+  if (session.roles.length === 0) {
+    redirect("/login?reden=geen-toegang");
+  }
+
   return session;
 }
 
-function uniqueRoles(roles: ControlRole[]) {
-  return [...new Set(roles)];
+export async function requireControlRole(requiredRole: ControlRole) {
+  const session = await requireControlSession();
+
+  if (!hasControlRole(session.roles, requiredRole)) {
+    redirect(getControlLandingPath(session));
+  }
+
+  return session;
+}
+
+export async function requireTenantControlSession(
+  requiredRole: ControlRole = "tenant_viewer"
+) {
+  const session = await requireControlRole(requiredRole);
+
+  if (session.isLive && !session.tenantId) {
+    redirect(getControlLandingPath(session));
+  }
+
+  return session;
+}
+
+export function getControlLandingPath(session: ControlSession) {
+  if (hasControlRole(session.roles, "tenant_viewer") && (session.tenantId || !session.isLive)) {
+    return "/dashboard";
+  }
+
+  if (hasControlRole(session.roles, "platform_admin")) {
+    return "/platform";
+  }
+
+  return "/login?reden=geen-toegang";
 }
