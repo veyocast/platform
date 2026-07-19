@@ -26,9 +26,11 @@ const serverServiceRolePatterns = [
   /service_role_key/i
 ];
 const allowedServerOnlyFiles = new Set([
+  "apps/media-worker/src/index.ts",
+  "apps/media-worker/src/worker-backend.ts",
+  "apps/media-worker/src/worker-config.ts",
   "packages/config/src/server.ts"
 ]);
-const allowedServerOnlyPrefixes = ["apps/media-worker/src/"];
 const protectedNextModules = new Set([
   "apps/control/lib/runtime-health.ts",
   "apps/control/lib/supabase/admin.ts",
@@ -55,8 +57,7 @@ describe("service-role boundary", () => {
       }
 
       const usesServerServiceRole = serverServiceRolePatterns.some((pattern) => pattern.test(source));
-      const isAllowedServerOnly = allowedServerOnlyFiles.has(normalizedPath)
-        || allowedServerOnlyPrefixes.some((prefix) => normalizedPath.startsWith(prefix));
+      const isAllowedServerOnly = allowedServerOnlyFiles.has(normalizedPath);
       if (usesServerServiceRole && !isAllowedServerOnly) {
         violations.push(normalizedPath);
       }
