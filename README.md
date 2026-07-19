@@ -61,7 +61,7 @@ postgres:     54322
 studio:       54323
 ```
 
-## Current Sprint
+## Current baseline en vervolgprogramma
 
 S19 finaliseert de VPS-releaseketen. Elke actuele `main`-SHA wordt eenmaal als
 immutable Control-, Player- en Marketingimage gebouwd, eerst naar staging
@@ -76,3 +76,9 @@ Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
 Approved VeyoCast logo and icon masters are also required before public launch;
 the current SVGs are explicitly temporary development placeholders.
+
+De uitgewerkte vervolgroadmap S20-S37 staat in
+[`docs/canon-alignment-product-roadmap.md`](docs/canon-alignment-product-roadmap.md).
+S20-S30 maken de bestaande kern veilig, samenhangend en pilotwaardig; S31-S37
+plannen productiviteit, scheduling, integraties, commercialisatie en begrensde
+research zonder deze launchbasis te omzeilen.
