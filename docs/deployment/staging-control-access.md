@@ -74,9 +74,22 @@ andere platformmemberships mag beheren. Volgende dagelijkse beheerders krijgen
 De gebruiker opent de persoonlijke link, kiest een uniek wachtwoord van
 minimaal 12 tekens en logt in. Deel of log het wachtwoord nooit.
 
+## Eerste vereniging aanmaken
+
+Een `platform_owner` of `platform_admin` kan na het inloggen via
+Platform → Tenants → Vereniging toevoegen de eerste vereniging aanmaken. Vul
+een zichtbare naam, unieke technische slug en schermlimiet in.
+
+Control maakt in één database-transactie de actieve tenant,
+standaardafspeelinstellingen, een `tenant_owner`-membership voor de maker en een
+audit-event aan. Bij een fout blijft geen gedeeltelijke of eigenaarloze tenant
+achter. Gebruik hiervoor niet handmatig losse inserts in de SQL Editor.
+
 ## Tenanttoegang toevoegen
 
-Een platformrol geeft niet automatisch toegang tot tenantinhoud:
+Een platformrol geeft niet automatisch toegang tot bestaande tenantinhoud. De
+maker van een nieuwe tenant wordt door bovenstaande flow wel veilig de eerste
+tenant-eigenaar. Voeg andere gebruikers waar nodig expliciet toe:
 
 ```sql
 insert into public.tenant_memberships (tenant_id, user_id, role, created_by)

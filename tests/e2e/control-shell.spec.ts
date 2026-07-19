@@ -51,6 +51,15 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
     page.getByRole("heading", { exact: true, level: 1, name: "Tenantbeheer" })
   ).toBeVisible();
   await expect(page.getByText("Demodata", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Nieuwe vereniging" })
+  ).toBeVisible();
+  await expect(page.getByLabel("Verenigingsnaam")).toBeVisible();
+  await expect(page.getByLabel("Technische slug")).toBeVisible();
+  await expect(page.getByLabel("Schermlimiet")).toHaveValue("4");
+  await expect(
+    page.getByRole("button", { name: "Vereniging aanmaken" })
+  ).toBeDisabled();
 
   await nav.getByRole("link", { name: /Auditlog/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/auditlog$/);
