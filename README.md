@@ -13,6 +13,9 @@ apps/
   marketing/      Next.js App Router public site
   media-worker/   TypeScript media queue, Storage and FFmpeg worker
 packages/
+  contracts/      Zod transport contracts and safe command/error shapes
+  domain/         Framework-free identity and product rules
+  auth/           Pure role-to-capability decisions
   config/         Shared local runtime constants
   database/       Shared database role/status contracts
   tokens/         Design token build pipeline and generated presets

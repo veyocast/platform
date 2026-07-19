@@ -2,7 +2,7 @@
 
 ## 1. Productdefinitie
 
-VeyoCast is een multi-tenant narrowcasting- en ClubTV-platform voor sportverenigingen en organisaties met beheerde schermen. De MVP bestaat uit drie planes:
+VeyoCast is een multi-tenant narrowcasting- en ClubTV-platform voor sportverenigingen en organisaties met beheerde schermen. De MVP bestaat uit vier planes:
 
 1. **Marketing** — publieke website en conversie.
 2. **Control** — platform- en tenantbeheer.
@@ -37,6 +37,7 @@ packages/
   icons/
   content-templates/
   contracts/
+  domain/
   auth/
   database/
   integrations/
@@ -56,6 +57,11 @@ docs/
 prompts/
 ```
 
+De package-structuur is een doelarchitectuur en wordt incrementeel ingevuld.
+`contracts`, `domain` en `auth` vormen vanaf S20 de frameworkvrije kern. Nieuwe
+code gebruikt deze boundaries; bestaande werkende flows worden alleen bij
+inhoudelijke wijziging gemigreerd. Zie ADR 0006.
+
 ## 4. Control plane
 
 Control bevat:
@@ -71,6 +77,14 @@ Control bevat:
 - diagnostics;
 - auditlog;
 - integratieconfiguratie later.
+
+Control gebruikt expliciete tenantcontext en capability-autorisatie. Een
+tenant slug of zichtbare UI-state is nooit voldoende bewijs; iedere serveractie
+valideert context, capability, tenantstatus en resource ownership opnieuw.
+
+Publieke errors bevatten alleen een allowlisted code, begrijpelijk gevolg,
+herstelactie en optionele request-ID. Raw database- of stackdetails zijn
+verboden.
 
 ## 5. Playback plane
 
