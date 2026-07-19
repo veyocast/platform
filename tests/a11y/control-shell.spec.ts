@@ -65,6 +65,25 @@ test("settings route exposes real defaults with safe permission state", async ({
   await expect(page.getByRole("status")).toContainText("Configureer Supabase");
 });
 
+test("tenant management exposes a labelled and safely disabled creation flow", async ({
+  page
+}) => {
+  await page.goto("/platform/tenants");
+
+  await expect(
+    page.getByRole("heading", { exact: true, name: "Tenantbeheer" })
+  ).toBeVisible();
+  await expect(page.getByLabel("Verenigingsnaam")).toBeVisible();
+  await expect(page.getByLabel("Technische slug")).toBeVisible();
+  await expect(page.getByLabel("Schermlimiet")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Vereniging aanmaken" })
+  ).toBeDisabled();
+  await expect(page.getByRole("status")).toContainText(
+    "Aanmaken is hier uitgeschakeld"
+  );
+});
+
 test("screens route exposes pairing labels and status", async ({ page }) => {
   await page.goto("/dashboard/screens");
 
