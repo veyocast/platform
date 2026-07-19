@@ -1,0 +1,78 @@
+name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME ontbreekt}
+
+services:
+  control:
+    image: veyocast-control:${DEPLOYMENT_SHA:?DEPLOYMENT_SHA ontbreekt}
+    ports:
+      - "127.0.0.1:${CONTROL_BIND_PORT:?CONTROL_BIND_PORT ontbreekt}:3000"
+    environment:
+      DEPLOYMENT_SHA: ${DEPLOYMENT_SHA}
+      NEXT_PUBLIC_APP_URL: https://${CONTROL_HOST:?CONTROL_HOST ontbreekt}
+      NEXT_PUBLIC_APP_VERSION: ${DEPLOYMENT_SHA}
+      NEXT_PUBLIC_PLAYER_URL: https://${PLAYER_HOST:?PLAYER_HOST ontbreekt}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?NEXT_PUBLIC_SUPABASE_ANON_KEY ontbreekt}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL ontbreekt}
+      NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:?NEXT_SERVER_ACTIONS_ENCRYPTION_KEY ontbreekt}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?SUPABASE_SERVICE_ROLE_KEY ontbreekt}
+      VEYOCAST_ENVIRONMENT: ${VEYOCAST_ENVIRONMENT:?VEYOCAST_ENVIRONMENT ontbreekt}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    logging: &logging
+      driver: json-file
+      options:
+        max-file: "5"
+        max-size: 10m
+    restart: unless-stopped
+    networks: [app]
+
+  player:
+    image: veyocast-player:${DEPLOYMENT_SHA:?DEPLOYMENT_SHA ontbreekt}
+    ports:
+      - "127.0.0.1:${PLAYER_BIND_PORT:?PLAYER_BIND_PORT ontbreekt}:3001"
+    environment:
+      DEPLOYMENT_SHA: ${DEPLOYMENT_SHA}
+      DEVICE_LAB_ACCESS_TOKEN: ${DEVICE_LAB_ACCESS_TOKEN:?DEVICE_LAB_ACCESS_TOKEN ontbreekt}
+      DEVICE_LAB_SESSION_SECRET: ${DEVICE_LAB_SESSION_SECRET:?DEVICE_LAB_SESSION_SECRET ontbreekt}
+      NEXT_PUBLIC_APP_VERSION: ${DEPLOYMENT_SHA}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?NEXT_PUBLIC_SUPABASE_ANON_KEY ontbreekt}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL ontbreekt}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?SUPABASE_SERVICE_ROLE_KEY ontbreekt}
+      VEYOCAST_ENVIRONMENT: ${VEYOCAST_ENVIRONMENT:?VEYOCAST_ENVIRONMENT ontbreekt}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    logging: *logging
+    restart: unless-stopped
+    networks: [app]
+
+  marketing:
+    profiles: [production]
+    image: veyocast-marketing:${DEPLOYMENT_SHA:?DEPLOYMENT_SHA ontbreekt}
+    ports:
+      - "127.0.0.1:${MARKETING_BIND_PORT:-23002}:3002"
+    environment:
+      DEPLOYMENT_SHA: ${DEPLOYMENT_SHA}
+      NEXT_PUBLIC_APP_URL: https://${MARKETING_HOST:-veyocast.nl}
+      NEXT_PUBLIC_CONTROL_URL: https://${CONTROL_HOST:?CONTROL_HOST ontbreekt}
+      NEXT_PUBLIC_PLAYER_URL: https://${PLAYER_HOST:?PLAYER_HOST ontbreekt}
+      VEYOCAST_ENVIRONMENT: ${VEYOCAST_ENVIRONMENT:?VEYOCAST_ENVIRONMENT ontbreekt}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    logging: *logging
+    restart: unless-stopped
+    networks: [app]
+
+networks:
+  app:
+    driver: bridge

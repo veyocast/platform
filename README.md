@@ -63,16 +63,14 @@ studio:       54323
 
 ## Current Sprint
 
-S18 moves the complete product, workspace packages, runtime namespaces,
-deployment infrastructure, database defaults and design canon to VeyoCast.
-Existing player identity and last-known-good storage are migrated in place so a
-rebrand does not require re-pairing or discard offline playback. Existing seeded
-database records receive the same forward migration. The GitHub organization
-name remains unchanged.
+S19 finaliseert de VPS-releaseketen. Elke actuele `main`-SHA wordt eenmaal als
+immutable Control-, Player- en Marketingimage gebouwd, eerst naar staging
+uitgerold en pas na groene healthchecks en GitHub Environment-approval met exact
+dezelfde image-digests naar production gepromoveerd. Caddy blijft op de host;
+containers binden alleen op `127.0.0.1`. Zie `docs/deployment/`.
 
-The S17 deployment route remains active: development stays on the existing VPS,
-while staging and production use separate Compose projects and Supabase projects
-on the shared production VPS. See `docs/vps-environments-runbook.md`.
+Development blijft op de bestaande dev-VPS. Staging en production hebben op de
+andere VPS eigen Compose-projecten, runtimebestanden en Supabase-projecten.
 
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.

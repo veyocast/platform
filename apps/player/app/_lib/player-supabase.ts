@@ -1,6 +1,11 @@
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
+import { readSupabaseAdminSecret } from "@veyocast/config/server";
+
+export type RuntimeEnvironment = Readonly<
+  Record<string, string | undefined>
+>;
 
 export function isLivePlayerConfigured() {
   return Boolean(getSupabaseConfig());
@@ -23,13 +28,13 @@ export function createPlayerAnonClient() {
 
 export function createPlayerAdminClient() {
   const config = getSupabaseConfig();
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const adminSecret = readSupabaseAdminSecret();
 
-  if (!config || !serviceRoleKey || serviceRoleKey.includes("replace")) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY ontbreekt voor de live Player API.");
+  if (!config || !adminSecret) {
+    throw new Error("De Player-beheerconfiguratie is niet beschikbaar.");
   }
 
-  return createClient(config.url, serviceRoleKey, {
+  return createClient(config.url, adminSecret, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
@@ -37,9 +42,17 @@ export function createPlayerAdminClient() {
   });
 }
 
-function getSupabaseConfig() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+export function getSupabaseConfig(
+  environment: RuntimeEnvironment = process.env
+) {
+  const url = readPlayerRuntimeValue(
+    "NEXT_PUBLIC_SUPABASE_URL",
+    environment
+  );
+  const anonKey = readPlayerRuntimeValue(
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    environment
+  );
 
   if (
     !url ||
@@ -51,4 +64,11 @@ function getSupabaseConfig() {
   }
 
   return { anonKey, url };
+}
+
+export function readPlayerRuntimeValue(
+  name: string,
+  environment: RuntimeEnvironment = process.env
+) {
+  return environment[name]?.trim();
 }

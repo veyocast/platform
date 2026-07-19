@@ -11,23 +11,16 @@ COPY . .
 RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS web-builder
-ARG NEXT_PUBLIC_SUPABASE_URL
-ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
-ARG NEXT_PUBLIC_APP_URL
-ARG NEXT_PUBLIC_PLAYER_URL
-ARG NEXT_PUBLIC_APP_VERSION
 ARG DEPLOYMENT_SHA
-ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
-ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
-ENV NEXT_PUBLIC_PLAYER_URL=$NEXT_PUBLIC_PLAYER_URL
-ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION
+ARG SERVER_ACTIONS_KEY_FINGERPRINT
 ENV DEPLOYMENT_SHA=$DEPLOYMENT_SHA
 RUN --mount=type=secret,id=next_server_actions_encryption_key \
-  if [ -f /run/secrets/next_server_actions_encryption_key ]; then \
-    export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="$(cat /run/secrets/next_server_actions_encryption_key)"; \
-  fi; \
-  pnpm --filter @veyocast/control build && pnpm --filter @veyocast/player build
+  test -n "$SERVER_ACTIONS_KEY_FINGERPRINT"; \
+  test -s /run/secrets/next_server_actions_encryption_key; \
+  export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="$(cat /run/secrets/next_server_actions_encryption_key)"; \
+  pnpm --filter @veyocast/control build \
+    && pnpm --filter @veyocast/player build \
+    && pnpm --filter @veyocast/marketing build
 
 FROM node:24-trixie-slim AS control
 ENV NODE_ENV=production
@@ -52,6 +45,18 @@ COPY --chown=node:node --from=web-builder /app/apps/player/public ./apps/player/
 USER node
 EXPOSE 3001
 CMD ["node", "apps/player/server.js"]
+
+FROM node:24-trixie-slim AS marketing
+ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3002
+WORKDIR /app
+COPY --chown=node:node --from=web-builder /app/apps/marketing/.next/standalone ./
+COPY --chown=node:node --from=web-builder /app/apps/marketing/.next/static ./apps/marketing/.next/static
+COPY --chown=node:node --from=web-builder /app/apps/marketing/public ./apps/marketing/public
+USER node
+EXPOSE 3002
+CMD ["node", "apps/marketing/server.js"]
 
 FROM base AS media-worker
 RUN apt-get update \

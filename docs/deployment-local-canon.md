@@ -25,18 +25,12 @@ postgres:  54322
 studio:    54323
 ```
 
-## Production deployment
+## Hosted deployment
 
-The repository now provides `infra/production/compose.yaml` with:
+De definitieve route staat in `docs/deployment/vps-deployment.md`. GitHub Actions
+bouwt één immutable SHA-release, valideert staging en promoveert daarna dezelfde
+image-IDs naar production. Host-Caddy routeert naar expliciete localhostbindings;
+de repository start geen publieke reverse proxy. Dev blijft op de bestaande VPS
+en staging/production gebruiken afzonderlijke Compose- en Supabase-projecten.
 
-- standalone Control and Player images tagged by Git SHA;
-- an FFmpeg-enabled mediaworker;
-- a Caddy reverse proxy with separate HTTPS app/player hostnames;
-- secret-free healthchecks and fail-closed required environment variables.
-
-Use `docs/lg-pairing-deployment-runbook.md`. GitHub Actions gates and a
-least-privilege deployment runner publish/promote the green images volgens
-`docs/vps-environments-runbook.md`. Dev blijft op de bestaande VPS; staging en
-production zijn geïsoleerde Compose-projecten op de gedeelde deployment-VPS en
-gebruiken afzonderlijke Supabase-projecten.
-Never use production `git pull && npm install && npm run build` on the VPS.
+Gebruik nooit `git pull && npm install && npm run build` als productie-uitrol.

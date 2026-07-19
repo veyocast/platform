@@ -1,13 +1,22 @@
 const placeholderMarker = "replace-local";
 
+export type RuntimeEnvironment = Readonly<
+  Record<string, string | undefined>
+>;
+
 export type SupabasePublicConfig = {
   anonKey: string;
   url: string;
 };
 
-export function getSupabasePublicConfig(): SupabasePublicConfig | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+export function getSupabasePublicConfig(
+  environment: RuntimeEnvironment = process.env
+): SupabasePublicConfig | null {
+  const url = readEnvironmentValue(environment, "NEXT_PUBLIC_SUPABASE_URL");
+  const anonKey = readEnvironmentValue(
+    environment,
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  );
 
   if (
     !url ||
@@ -21,6 +30,15 @@ export function getSupabasePublicConfig(): SupabasePublicConfig | null {
   return { anonKey, url };
 }
 
-export function isLiveSupabaseConfigured() {
-  return getSupabasePublicConfig() !== null;
+export function isLiveSupabaseConfigured(
+  environment: RuntimeEnvironment = process.env
+) {
+  return getSupabasePublicConfig(environment) !== null;
+}
+
+export function readEnvironmentValue(
+  environment: RuntimeEnvironment,
+  name: string
+) {
+  return environment[name]?.trim();
 }

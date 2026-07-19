@@ -43,13 +43,11 @@ Do not mark those gates as optional once their feature surface exists.
 
 ## VPS deployments
 
-`.github/workflows/deploy-vps.yml` deployt uitsluitend naar de GitHub
-Environments `staging` en `production` op de aparte deployment-VPS. Een groene
-`main`-run activeert staging automatisch; production is handmatig en hoort door
-required reviewers beschermd te zijn. De job bouwt eerst alle images, voert een
-Supabase migration dry-run en forward migration uit, activeert daarna de gekozen
-Compose-stack en verifieert de publieke healthroutes op de exacte Git-SHA.
+`.github/workflows/deploy.yml` deployt uitsluitend na een push naar `main` of een
+gecontroleerde handmatige dispatch. De workflow bouwt de actuele SHA-images één
+keer, activeert staging na migration guards en lokale/publieke healthchecks en
+laat production vervolgens op Environment-approval wachten. Production bouwt
+niet opnieuw en verifieert de exacte staging image-IDs vóór activatie.
 
 De bestaande dev-VPS is geen target van deze workflow. Configuratie, secrets,
-runnerlabels en reverse-proxypoorten staan in
-`docs/vps-environments-runbook.md`.
+runnerlabels, poorten en runbooks staan in `docs/deployment/`.
