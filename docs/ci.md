@@ -49,5 +49,10 @@ keer, activeert staging na migration guards en lokale/publieke healthchecks en
 laat production vervolgens op Environment-approval wachten. Production bouwt
 niet opnieuw en verifieert de exacte staging image-IDs vóór activatie.
 
+`scripts/validate-github-actions.sh` voert naast actionlint een statische
+deploymentsecuritycontrole uit. Die bewaakt `contents: read`, de afwezigheid van
+pull-requestdeployments, `persist-credentials: false`, expliciete jobtokenauth
+voor iedere remote Git-opdracht en de main-/rollback-/stale-releaseguards.
+
 De bestaande dev-VPS is geen target van deze workflow. Configuratie, secrets,
 runnerlabels, poorten en runbooks staan in `docs/deployment/`.

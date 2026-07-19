@@ -13,4 +13,5 @@ curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 \
   "https://github.com/rhysd/actionlint/releases/download/v${actionlint_version}/${archive_name}"
 printf '%s  %s\n' "${expected_sha256}" "${archive_path}" | sha256sum --check --status
 tar --extract --gzip --file "${archive_path}" --directory "${validation_root}" actionlint
-"${validation_root}/actionlint" -color
+"${validation_root}/actionlint" -color -shellcheck "$(command -v shellcheck)"
+node scripts/validate-deploy-workflow-security.mjs

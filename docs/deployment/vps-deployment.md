@@ -89,6 +89,15 @@ Een push of merge naar `main` start `.github/workflows/deploy.yml`. De workflow
 heeft globale concurrency `deploy-veyocast-main` met
 `cancel-in-progress: false`, zodat releases elkaar niet kunnen passeren.
 
+Alle checkouts gebruiken volledige historie met `persist-credentials: false`.
+De checkoutactie gebruikt het automatisch gegenereerde jobtoken alleen tijdens
+de checkout en laat geen credentialhelper of extraheader achter. De twee latere
+remote `main`-controles authenticeren uitsluitend hun eigen `git fetch` met
+`${{ github.token }}` en een tijdelijke command-scoped HTTP-extraheader. De
+header wordt niet opgeslagen of gelogd en direct na de fetch uit de shell
+gewist. De runners vereisen dus geen `gh auth login`, PAT, deploy key,
+machinebrede Gitconfig of interactieve credentialinvoer.
+
 1. `preflight` controleert de main-SHA, environmentconfiguratie, secretvormen en
    de Rootless Docker-daemon.
 2. `build-release` installeert de frozen lockfile, voert lint, typecheck, tests
@@ -270,6 +279,15 @@ een tweede reviewer worden toegevoegd.
 `main` is na staging verder gegaan. Keur de oude job niet alsnog goed. Laat de
 nieuwste main-run staging opnieuw doorlopen. Gebruik alleen de expliciete
 rollbackmodus voor een bewust gekozen oudere release.
+
+### Releaseautorisatie kan `origin/main` niet ophalen
+
+Controleer dat de workflow nog `permissions: contents: read` heeft en dat de
+betreffende fetchstap `GH_TOKEN: ${{ github.token }}` uitsluitend omzet naar een
+command-scoped `http.https://github.com/.extraheader`. Voeg geen PAT,
+repositorysecret, deploy key of machinebrede `gh`-login toe. De checkout hoort
+`persist-credentials: false` te behouden; de statische workflowguard weigert
+remote Git-commando's zonder expliciete jobtokenauthenticatie.
 
 ### Image-ID of Server Actions-key wijkt af
 

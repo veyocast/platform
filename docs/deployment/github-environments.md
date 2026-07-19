@@ -13,6 +13,9 @@ De repository gebruikt exact twee deployment-Environments: `staging` en
   repositorysecrets voor Supabase- of Device Lab-credentials.
 - De workflow heeft uitsluitend `contents: read` en deployt nooit vanuit
   `pull_request`.
+- GitHub levert per job automatisch `${{ github.token }}`. Alleen de twee
+  remote `main`-fetches gebruiken dit token via een tijdelijke command-scoped
+  HTTP-header; het is geen repositorysecret en wordt niet opgeslagen.
 
 De GitHub API-audit van 19 juli 2026 bevestigde voor beide Environments een
 custom branch policy voor exact `main`. Daarna is `TIXOCEO` als concrete
