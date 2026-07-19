@@ -97,6 +97,51 @@ test("supports the public login and auth callback routes", async ({ page }) => {
   );
 });
 
+test("collapses to an icon rail and always exposes the desktop restore control", async ({
+  page
+}) => {
+  await page.setViewportSize({ height: 900, width: 1280 });
+  await page.goto("/dashboard");
+  await page.evaluate(() => {
+    window.localStorage.setItem("veyocast-control-sidebar-collapsed", "true");
+  });
+  await page.reload();
+
+  const sidebar = page.getByLabel("Control navigatie");
+  const expandButton = page.getByRole("button", {
+    name: "Navigatie uitklappen"
+  });
+  await expect(expandButton).toBeVisible();
+  await expect(expandButton).toHaveAttribute("aria-expanded", "false");
+  await expect(sidebar).toHaveCSS("width", "72px");
+  await expect(
+    sidebar.getByRole("link", { exact: true, name: "Dashboard" })
+  ).toBeVisible();
+  await expect(sidebar.getByText("Dagelijkse operatie en aandachtspunten")).toBeHidden();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth
+    )
+  ).toBe(true);
+
+  await expandButton.click();
+  const collapseButton = page.getByRole("button", {
+    name: "Navigatie inklappen"
+  });
+  await expect(collapseButton).toBeVisible();
+  await expect(collapseButton).toHaveAttribute("aria-expanded", "true");
+  await expect(sidebar).toHaveCSS("width", "248px");
+  await expect(
+    sidebar.getByText("Dagelijkse operatie en aandachtspunten")
+  ).toBeVisible();
+
+  await collapseButton.click();
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Navigatie uitklappen" })
+  ).toBeVisible();
+});
+
 test("supports command navigation and the compact mobile navigation flow", async ({
   page
 }) => {
