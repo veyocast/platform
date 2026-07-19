@@ -27,6 +27,18 @@ test.describe("live pilot vertical slice", () => {
     await page.getByRole("button", { name: "Doorgaan" }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
 
+    await page.goto("/platform/tenants");
+    await page.getByLabel("Verenigingsnaam").fill("Live aangemaakte vereniging");
+    await page.getByLabel("Technische slug").fill("live-aangemaakte-vereniging");
+    await page.getByLabel("Schermlimiet").fill("8");
+    await page.getByRole("button", { name: "Vereniging aanmaken" }).click();
+    await expect(
+      page.getByText("standaardinstellingen en jouw tenant-eigenaarschap")
+    ).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: "Live aangemaakte vereniging" })
+    ).toBeVisible();
+
     await page.goto("/dashboard/screens");
     await page.getByLabel("Schermnaam").fill("LG sprint scherm");
     await page.getByLabel("Locatie").fill("Fysieke testruimte");

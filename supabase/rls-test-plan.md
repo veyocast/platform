@@ -46,3 +46,11 @@ read-only, anonymous players can only create hashed pairing sessions, direct
 device writes are denied, tenant B cannot claim or read tenant A pairing state,
 and player bootstrap returns only the screen assigned to the matching device
 token.
+
+## S19 coverage
+
+S19 voegt transactionele tenant-onboarding toe. De test bewijst dat alleen een
+platformeigenaar of platformbeheerder de beveiligde functie kan bereiken, dat
+de tenant samen met standaardinstellingen, eerste eigenaar en audit-event wordt
+aangemaakt, en dat ongeldige invoer, dubbele slugs, platformviewers, gewone
+tenantbeheerders en anonieme gebruikers worden geweigerd.
