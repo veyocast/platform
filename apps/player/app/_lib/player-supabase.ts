@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
+import { readSupabaseAdminSecret } from "@veyocast/config/server";
 
 export type RuntimeEnvironment = Readonly<
   Record<string, string | undefined>
@@ -27,13 +28,13 @@ export function createPlayerAnonClient() {
 
 export function createPlayerAdminClient() {
   const config = getSupabaseConfig();
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const adminSecret = readSupabaseAdminSecret();
 
-  if (!config || !serviceRoleKey || serviceRoleKey.includes("replace")) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY ontbreekt voor de live Player API.");
+  if (!config || !adminSecret) {
+    throw new Error("De Player-beheerconfiguratie is niet beschikbaar.");
   }
 
-  return createClient(config.url, serviceRoleKey, {
+  return createClient(config.url, adminSecret, {
     auth: {
       autoRefreshToken: false,
       persistSession: false

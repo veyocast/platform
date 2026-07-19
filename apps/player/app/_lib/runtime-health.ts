@@ -1,3 +1,6 @@
+import "server-only";
+
+import { validateSupabaseAdminSecret } from "@veyocast/config/server";
 import { NextResponse } from "next/server";
 
 const service = "player" as const;
@@ -57,10 +60,7 @@ function readPlayerRuntime(environment: RuntimeEnvironment) {
     environment
   );
   const publicConfig = getRuntimeSupabaseConfig(environment);
-  const serviceRoleKey = readPlayerRuntimeValue(
-    "SUPABASE_SERVICE_ROLE_KEY",
-    environment
-  );
+  const adminSecret = validateSupabaseAdminSecret(environment);
   const deviceLabAccessToken = readPlayerRuntimeValue(
     "DEVICE_LAB_ACCESS_TOKEN",
     environment
@@ -78,7 +78,7 @@ function readPlayerRuntime(environment: RuntimeEnvironment) {
     !publicConfig ||
     !isHostedSupabaseUrl(publicConfig.url) ||
     !isAnonKey(publicConfig.anonKey) ||
-    !isServiceRoleKey(serviceRoleKey) ||
+    !adminSecret.valid ||
     !deviceLabAccessToken ||
     deviceLabAccessToken.length < 24 ||
     !deviceLabSessionSecret ||
@@ -133,14 +133,6 @@ function isAnonKey(value: string) {
   return (
     (value.startsWith("sb_publishable_") && value.length >= 32) ||
     getJwtRole(value) === "anon"
-  );
-}
-
-function isServiceRoleKey(value: string | undefined) {
-  if (!value) return false;
-  return (
-    (value.startsWith("sb_secret_") && value.length >= 32) ||
-    getJwtRole(value) === "service_role"
   );
 }
 

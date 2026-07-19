@@ -92,6 +92,29 @@ twintig pogingen met drie seconden interval en korte timeouts. De verifier
 accepteert uitsluitend de vier veilige velden en weigert een verkeerde service,
 environment of SHA.
 
+### Server-secretgrens voor healthchecks
+
+Control en Player lezen de Supabase-beheercredential niet meer in hun
+healthmodules. De canonieke Next-serverentry `@veyocast/config/server` is de
+enige Next-module die de betreffende environmentvariabele leest en valideert.
+Deze entry, beide healthmodules en de twee adminclientmodules zijn expliciet
+gemarkeerd met `import "server-only"`.
+
+Healthmodules consumeren uitsluitend `{ valid: boolean }` en retourneren alleen
+`status`, `service`, `environment` en `revision`. Een ongeldige kritieke
+configuratie geeft een generieke 503 zonder logging van waarden, URL's,
+keyfragmenten of fingerprints. De source-boundarytest staat alleen de centrale
+serverentry en de afzonderlijke Node-runtime van de media-worker toe als
+service-role-referentielocaties. Een importgraaftest weigert clientpaden naar de
+beschermde Next-modules; een build-time scanner weigert environmentnamen,
+ingebedde credentials en herkenbaar credentialmateriaal in `.next/static`.
+
+De browser gebruikt op de media-uploadpagina wel de publieke Supabase-SDK voor
+een signed upload. Daardoor kunnen SDK-documentatieteksten zoals
+`service_role` of een losse `sb_secret_`-prefix in gegenereerde chunks staan.
+Die teksten zijn geen credential. De scanner weigert daarom concrete
+credentialvormen en de geconfigureerde waarde, zonder de waarde zelf te loggen.
+
 ## Bekende beperking: media-worker
 
 De oude deployment startte `media-worker`, omdat echte MP4-upload na opslag een

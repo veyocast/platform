@@ -1,3 +1,6 @@
+import "server-only";
+
+import { validateSupabaseAdminSecret } from "@veyocast/config/server";
 import { NextResponse } from "next/server";
 
 import {
@@ -48,10 +51,7 @@ function readControlRuntime(environment: RuntimeEnvironment) {
   const deploymentEnvironment = readDeploymentEnvironment(environment);
   const revision = readEnvironmentValue(environment, "DEPLOYMENT_SHA");
   const publicConfig = getSupabasePublicConfig(environment);
-  const serviceRoleKey = readEnvironmentValue(
-    environment,
-    "SUPABASE_SERVICE_ROLE_KEY"
-  );
+  const adminSecret = validateSupabaseAdminSecret(environment);
   const actionsEncryptionKey = readEnvironmentValue(
     environment,
     "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY"
@@ -64,7 +64,7 @@ function readControlRuntime(environment: RuntimeEnvironment) {
     !publicConfig ||
     !isHostedSupabaseUrl(publicConfig.url) ||
     !isAnonKey(publicConfig.anonKey) ||
-    !isServiceRoleKey(serviceRoleKey) ||
+    !adminSecret.valid ||
     !actionsEncryptionKey ||
     actionsEncryptionKey.length < 32
   ) {
@@ -101,14 +101,6 @@ function isAnonKey(value: string) {
   return (
     (value.startsWith("sb_publishable_") && value.length >= 32) ||
     getJwtRole(value) === "anon"
-  );
-}
-
-function isServiceRoleKey(value: string | undefined) {
-  if (!value) return false;
-  return (
-    (value.startsWith("sb_secret_") && value.length >= 32) ||
-    getJwtRole(value) === "service_role"
   );
 }
 

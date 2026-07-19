@@ -1,24 +1,21 @@
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
+import { readSupabaseAdminSecret } from "@veyocast/config/server";
 
 import { getSupabasePublicConfig } from "./config";
 
 export function createControlAdminClient() {
   const config = getSupabasePublicConfig();
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const adminSecret = readSupabaseAdminSecret();
 
-  if (
-    !config ||
-    !serviceRoleKey ||
-    serviceRoleKey.includes("replace-local")
-  ) {
+  if (!config || !adminSecret) {
     throw new Error(
-      "Lokale Supabase-configuratie mist een server-only service-role key."
+      "Lokale Supabase-beheerconfiguratie is niet beschikbaar."
     );
   }
 
-  return createClient(config.url, serviceRoleKey, {
+  return createClient(config.url, adminSecret, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
