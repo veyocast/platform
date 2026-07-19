@@ -86,10 +86,64 @@ a {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 100vh;
+  overflow-x: hidden;
   padding: var(--vc-space-16) var(--vc-space-12) var(--vc-space-12);
   position: sticky;
   top: 0;
   width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .icon-button.control-sidebar__collapse {
+    display: inline-flex;
+  }
+
+  .control-shell--collapsed .control-brand {
+    gap: var(--vc-space-4);
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    padding: 0;
+  }
+
+  .control-shell--collapsed .control-brand__wordmark,
+  .control-shell--collapsed .tenant-switcher__copy,
+  .control-shell--collapsed .tenant-switcher__chevron,
+  .control-shell--collapsed .control-nav__heading,
+  .control-shell--collapsed .control-nav__copy,
+  .control-shell--collapsed .control-user__copy,
+  .control-shell--collapsed .control-user > .icon-button {
+    display: none;
+  }
+
+  .control-shell--collapsed .control-sidebar__collapse {
+    grid-column: 1;
+  }
+
+  .control-shell--collapsed .tenant-switcher,
+  .control-shell--collapsed .control-nav__link,
+  .control-shell--collapsed .control-user {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
+  .control-shell--collapsed .tenant-switcher {
+    min-height: 44px;
+    padding: var(--vc-space-8);
+  }
+
+  .control-shell--collapsed .control-nav {
+    gap: var(--vc-space-16);
+  }
+
+  .control-shell--collapsed .control-nav__link {
+    margin-inline: auto;
+    padding: var(--vc-space-8);
+    width: 44px;
+  }
+
+  .control-shell--collapsed .control-user {
+    padding-inline: 0;
+  }
 }
 
 .control-sidebar__top {

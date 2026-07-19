@@ -132,6 +132,7 @@ export function ControlShell({
       <aside
         aria-label="Control navigatie"
         className={`control-sidebar${isMobileNavOpen ? " control-sidebar--open" : ""}`}
+        id="control-sidebar-navigation"
       >
         <div className="control-sidebar__top">
           <div className="control-brand">
@@ -148,6 +149,8 @@ export function ControlShell({
               <p className="control-brand__meta">Control</p>
             </div>
             <button
+              aria-controls="control-sidebar-navigation"
+              aria-expanded={!isSidebarCollapsed}
               aria-label={isSidebarCollapsed ? "Navigatie uitklappen" : "Navigatie inklappen"}
               className="icon-button control-sidebar__collapse"
               onClick={toggleSidebar}
@@ -167,7 +170,12 @@ export function ControlShell({
             </button>
           </div>
 
-          <button className="tenant-switcher" type="button">
+          <button
+            aria-label={isSidebarCollapsed ? `Actieve context: ${session.tenant}` : undefined}
+            className="tenant-switcher"
+            title={isSidebarCollapsed ? session.tenant : undefined}
+            type="button"
+          >
             <span className="tenant-switcher__mark" aria-hidden="true">
               {session.tenant.slice(0, 1)}
             </span>
@@ -194,6 +202,7 @@ export function ControlShell({
                     <li key={item.href}>
                       <Link
                         aria-current={active ? "page" : undefined}
+                        aria-label={isSidebarCollapsed ? item.label : undefined}
                         className="control-nav__link"
                         href={item.href}
                         onClick={() => setMobileNavOpen(false)}

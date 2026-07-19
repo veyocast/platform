@@ -16,6 +16,29 @@ test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   );
 });
 
+test("collapsed desktop navigation remains keyboard restorable", async ({ page }) => {
+  await page.setViewportSize({ height: 900, width: 1280 });
+  await page.goto("/dashboard");
+  await page.evaluate(() => {
+    window.localStorage.setItem("veyocast-control-sidebar-collapsed", "true");
+  });
+  await page.reload();
+
+  const expandButton = page.getByRole("button", {
+    name: "Navigatie uitklappen"
+  });
+  await expect(expandButton).toBeVisible();
+  await expandButton.focus();
+  await expect(expandButton).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Navigatie inklappen" })
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Control navigatie").getByText("Dagelijkse operatie en aandachtspunten")
+  ).toBeVisible();
+});
+
 test("media route exposes upload intake labels and status landmarks", async ({
   page
 }) => {
