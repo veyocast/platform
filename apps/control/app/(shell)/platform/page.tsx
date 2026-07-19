@@ -1,58 +1,51 @@
 import Link from "next/link";
 
+import { requireControlRole } from "../../../lib/control-session";
+import { loadPlatformOverview } from "../../../lib/control-overview";
 import { MetricCard, PageHeader, StatusPill } from "../_components/shell-primitives";
 
-const platformMetrics = [
-  { detail: "Alle tenants reageren binnen de health window.", label: "Tenants op orde", tone: "success", value: "12/12" },
-  { detail: "Laatste foutloze publicatie: 11 minuten geleden.", label: "Release pipeline", tone: "success", value: "Op orde" },
-  { detail: "Twee tenants naderen hun opslaglimiet.", label: "Capaciteit", tone: "warning", value: "84%" }
-] as const;
+export default async function PlatformPage() {
+  const session = await requireControlRole("platform_admin");
 
-const serviceChecks = [
-  ["Identiteit en rechten", "Server-side claims worden afgedwongen", "Op orde", "success"],
-  ["Mediaverwerking", "Vier jobs wachten op verwerking", "Aandacht", "warning"],
-  ["Players", "Alle actieve devices rapporteren een release", "Op orde", "success"]
-] as const;
+  if (!session.isLive) return <DemoPlatformPage />;
 
-export default function PlatformPage() {
+  const data = await loadPlatformOverview();
+  const activeTenants = data.tenants.filter((tenant) => tenant.status === "active").length;
+  const onlineDevices = data.devices.filter((device) => isRecentlyOnline(device.last_seen_at)).length;
+  const offlineDevices = data.devices.length - onlineDevices;
+
   return (
     <>
       <PageHeader
-        actions={<Link className="button-link button-link--primary" href="/platform/tenants">Tenants beheren</Link>}
-        description="Platformbeheer geeft een apart overzicht van tenantgezondheid, capaciteit en systeemafhankelijkheden zonder tenantinhoud te mengen."
+        actions={<Link className="button-link button-link--primary" href="/platform/tenants">Verenigingen bekijken</Link>}
+        description="Platformstatus uit de stagingdatabase, zonder fictieve tenants of operationele claims."
         eyebrow="Platform"
-        status={{ label: "Platformcontext actief", tone: "info" }}
+        status={{ label: "Live platformdata", tone: "success" }}
         title="Platformoverzicht"
       />
-
+      {data.error ? <p className="notice notice--critical" role="alert"><strong>Platformoverzicht niet beschikbaar.</strong> De gegevens konden niet veilig worden geladen. Vernieuw de pagina of log opnieuw in.</p> : null}
       <section className="metric-grid" aria-label="Platformoverzicht">
-        {platformMetrics.map((metric) => <MetricCard {...metric} key={metric.label} />)}
+        <MetricCard detail={`${activeTenants} actief.`} label="Verenigingen" tone="success" value={String(data.tenants.length)} />
+        <MetricCard detail="Geregistreerde schermbestemmingen." label="Schermen" value={String(data.screens.length)} />
+        <MetricCard detail={`${onlineDevices} recent online.`} label="Gekoppelde Players" tone={offlineDevices ? "warning" : "success"} value={String(data.devices.length)} />
+        <MetricCard detail="Zonder recente heartbeat." label="Players met aandacht" tone={offlineDevices ? "warning" : "success"} value={String(offlineDevices)} />
       </section>
-
-      <section className="workspace-section" aria-labelledby="service-checks-title">
-        <div className="workspace-section__header">
-          <div>
-            <h2 className="workspace-section__title" id="service-checks-title">Systeemstatus</h2>
-            <p className="work-panel__meta">Operationele signalen over alle verenigingen.</p>
-          </div>
-          <StatusPill label="3 controles" tone="neutral" />
-        </div>
-        <div className="data-table-frame">
-          <table className="data-table data-table--responsive">
-            <caption>Platformbrede servicecontroles.</caption>
-            <thead><tr><th scope="col">Controle</th><th scope="col">Context</th><th scope="col">Status</th></tr></thead>
-            <tbody>
-              {serviceChecks.map(([check, context, status, tone]) => (
-                <tr key={check}>
-                  <td data-label="Naam"><span className="table-primary">{check}</span></td>
-                  <td data-label="Context">{context}</td>
-                  <td data-label="Status"><StatusPill label={status} tone={tone} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <section className="workspace-section" aria-labelledby="platform-status-title">
+        <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="platform-status-title">Operationele context</h2><p className="work-panel__meta">Alle waarden op deze pagina komen uit de live, RLS-beveiligde sessie.</p></div><StatusPill label="Server-side gecontroleerd" tone="success" /></div>
+        {!data.tenants.length && !data.error ? <p className="notice" role="status">Nog geen verenigingen. Bootstrap eerst een platformeigenaar en maak daarna de eerste vereniging aan via een gecontroleerde beheeractie.</p> : null}
       </section>
     </>
   );
+}
+
+function DemoPlatformPage() {
+  return <>
+    <PageHeader description="Lokale ontwikkelpreview van de platformnavigatie." eyebrow="Platform" status={{ label: "Demodata", tone: "warning" }} title="Platformoverzicht" />
+    <p className="notice notice--warning" role="status">Deze gegevens zijn uitsluitend een lokale ontwikkelfixture en worden niet in staging of productie gebruikt.</p>
+    <section className="metric-grid" aria-label="Demo platformoverzicht"><MetricCard detail="Lokale fixture." label="Verenigingen" value="12" /><MetricCard detail="Lokale fixture." label="Schermen" value="246" /></section>
+  </>;
+}
+
+function isRecentlyOnline(value: string | null) {
+  return Boolean(value && Date.now() - new Date(value).getTime() < 5 * 60_000);
 }

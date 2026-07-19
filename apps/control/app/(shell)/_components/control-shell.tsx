@@ -32,6 +32,7 @@ import type {
   ControlNavigationItem,
   ControlSession
 } from "../_lib/control-navigation";
+import { hasControlRole } from "../_lib/control-navigation";
 
 type ControlShellProps = {
   children: ReactNode;
@@ -171,7 +172,9 @@ export function ControlShell({
               {session.tenant.slice(0, 1)}
             </span>
             <span className="tenant-switcher__copy">
-              <span className="tenant-switcher__label">Actieve vereniging</span>
+              <span className="tenant-switcher__label">
+                {session.tenantId || !session.isLive ? "Actieve vereniging" : "Platformcontext"}
+              </span>
               <span className="tenant-switcher__value">{session.tenant}</span>
             </span>
             <ChevronDown aria-hidden="true" className="tenant-switcher__chevron" />
@@ -247,7 +250,7 @@ export function ControlShell({
               <p className="topbar-context__label">{session.organization}</p>
               <p className="topbar-context__status">
                 <span className="status-dot status-dot--success" aria-hidden="true" />
-                Alle systemen operationeel
+                {session.isLive ? "Beveiligde sessie actief" : "Lokale demomodus"}
               </p>
             </div>
           </div>
@@ -264,7 +267,7 @@ export function ControlShell({
               <span>Zoeken in Control</span>
               <kbd>Ctrl K</kbd>
             </button>
-            <div className="notification-control">
+            {!session.isLive ? <div className="notification-control">
               <button
                 aria-expanded={isNotificationsOpen}
                 aria-label="Open actiepunten"
@@ -286,7 +289,7 @@ export function ControlShell({
                   </ul>
                 </section>
               ) : null}
-            </div>
+            </div> : null}
             <button
               aria-label="Hulp openen"
               className="icon-button topbar-help"
@@ -295,7 +298,7 @@ export function ControlShell({
             >
               <CircleHelp aria-hidden="true" />
             </button>
-            <Link
+            {hasControlRole(session.roles, "tenant_editor") && (session.tenantId || !session.isLive) ? <Link
               aria-label="Nieuwe playlist"
               className="button-link button-link--primary topbar-primary-action"
               href="/dashboard/playlists"
@@ -303,7 +306,7 @@ export function ControlShell({
             >
               <Plus aria-hidden="true" />
               <span>Nieuwe playlist</span>
-            </Link>
+            </Link> : null}
           </div>
         </header>
         <div className="control-content" id="control-content" tabIndex={-1}>

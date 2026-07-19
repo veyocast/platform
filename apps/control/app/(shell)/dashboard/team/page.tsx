@@ -1,87 +1,43 @@
-import Link from "next/link";
-
+import { requireTenantControlSession } from "../../../../lib/control-session";
+import { loadTenantMembers } from "../../../../lib/control-overview";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 
-const teamMembers = [
-  ["Mira Vos", "mira@example.test", "Beheerder", "Actief", "Vandaag 10:24"],
-  ["Omar Smits", "omar@example.test", "Editor", "Actief", "Vandaag 09:12"],
-  ["Lena Park", "lena@example.test", "Kijker", "Uitnodiging verzonden", "Nog niet actief"]
-] as const;
+export default async function TeamPage() {
+  const session = await requireTenantControlSession("tenant_admin");
+  const data = session.isLive
+    ? await loadTenantMembers(session.tenantId!)
+    : { error: false, members: demoMembers };
 
-export default function TeamPage() {
   return (
     <>
       <PageHeader
-        actions={
-          <Link className="button-link button-link--primary" href="/accept-invite">
-            Iemand uitnodigen
-          </Link>
-        }
-        description="Beheer wie toegang heeft tot de vereniging. Rollen leggen begrijpelijk vast wie mensen, schermen en publicaties mag beheren."
-        eyebrow="Museumkwartier"
-        status={{ label: "Beheerder vereist", tone: "info" }}
+        description="Rollen binnen de actieve vereniging. Nieuwe uitnodigingen worden via het beveiligde Supabase-beheerpad verstuurd."
+        eyebrow={session.tenant}
+        status={{ label: session.isLive ? "Live tenantdata" : "Demodata", tone: session.isLive ? "success" : "warning" }}
         title="Team"
       />
-
-      <section className="resource-toolbar" aria-label="Team bedienen">
-        <div className="resource-toolbar__group">
-          <input
-            aria-label="Zoeken in team"
-            className="toolbar-search"
-            name="team-search"
-            placeholder="Zoeken op naam of e-mail"
-            type="search"
-          />
-          <select aria-label="Filter team op rol" className="toolbar-select" defaultValue="all">
-            <option value="all">Alle rollen</option>
-            <option value="admin">Beheerder</option>
-            <option value="editor">Editor</option>
-            <option value="viewer">Kijker</option>
-          </select>
-        </div>
-        <p className="resource-toolbar__summary">3 personen · 1 uitnodiging open</p>
-      </section>
-
+      {!session.isLive ? <p className="notice notice--warning" role="status">Deze personen zijn uitsluitend lokale fixtures.</p> : null}
+      {data.error ? <p className="notice notice--critical" role="alert"><strong>Team niet beschikbaar.</strong> De rollen konden niet veilig worden geladen.</p> : null}
       <section className="workspace-section" aria-labelledby="team-table-title">
-        <div className="workspace-section__header">
-          <div>
-            <h2 className="workspace-section__title" id="team-table-title">
-              Gebruikers en rollen
-            </h2>
-            <p className="work-panel__meta">De laatste beheerder kan pas worden verwijderd nadat de rol is overgedragen.</p>
-          </div>
-          <StatusPill label="3 personen" tone="neutral" />
-        </div>
-        <div className="data-table-frame">
-          <table className="data-table data-table--responsive">
-            <caption>Toegang binnen de actieve vereniging.</caption>
-            <thead>
-              <tr>
-                <th scope="col">Naam</th>
-                <th scope="col">E-mail</th>
-                <th scope="col">Rol</th>
-                <th scope="col">Status</th>
-                <th scope="col">Laatste activiteit</th>
-                <th scope="col">Actie</th>
-              </tr>
-            </thead>
-            <tbody>
-              {teamMembers.map(([name, email, role, status, activity]) => (
-                <tr key={email}>
-                  <td data-label="Naam"><span className="table-primary">{name}</span></td>
-                  <td data-label="E-mail">{email}</td>
-                  <td data-label="Rol">{role}</td>
-                  <td data-label="Status">
-                    <StatusPill label={status} tone={status === "Actief" ? "success" : "warning"} />
-                  </td>
-                  <td data-label="Laatste activiteit">{activity}</td>
-                  <td data-label="Actie"><button className="table-action" type="button">Beheren</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="team-table-title">Gebruikers en rollen</h2><p className="work-panel__meta">Toegang wordt server-side vanuit memberships bepaald.</p></div><StatusPill label={`${data.members.length} personen`} tone="neutral" /></div>
+        {data.members.length ? <div className="data-table-frame"><table className="data-table data-table--responsive"><caption>Toegang binnen de actieve vereniging.</caption><thead><tr><th scope="col">Gebruiker</th><th scope="col">Rol</th><th scope="col">Toegevoegd</th></tr></thead><tbody>{data.members.map((member) => <tr key={member.user_id}><td data-label="Gebruiker"><span className="table-primary">{member.display_name || `Gebruiker ${member.user_id.slice(0, 8)}`}</span></td><td data-label="Rol">{roleLabel(member.role)}</td><td data-label="Toegevoegd">{formatDate(member.created_at)}</td></tr>)}</tbody></table></div> : <p className="notice" role="status">Nog geen teamleden binnen deze vereniging.</p>}
       </section>
     </>
   );
+}
+
+const demoMembers = [
+  { created_at: "2026-07-19T08:24:00.000Z", display_name: "Lokale beheerder", role: "tenant_admin", user_id: "demo-admin" },
+  { created_at: "2026-07-19T08:12:00.000Z", display_name: "Lokale editor", role: "tenant_editor", user_id: "demo-editor" }
+];
+
+function roleLabel(value: string) {
+  if (value === "tenant_owner") return "Eigenaar";
+  if (value === "tenant_admin") return "Beheerder";
+  if (value === "tenant_editor") return "Editor";
+  return "Kijker";
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium" }).format(new Date(value));
 }

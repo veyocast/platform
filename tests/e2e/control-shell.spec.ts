@@ -50,7 +50,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Tenantbeheer" })
   ).toBeVisible();
-  await expect(page.getByText("Platformbeheerder vereist")).toBeVisible();
+  await expect(page.getByText("Demodata", { exact: true })).toBeVisible();
 
   await nav.getByRole("link", { name: /Auditlog/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/auditlog$/);
@@ -63,6 +63,8 @@ test("supports the public login and auth callback routes", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Inloggen bij VeyoCast Control" })
   ).toBeVisible();
+  await expect(page.getByText("Lokale demoomgeving")).toBeVisible();
+  await expect(page.getByText("http://localhost:3000")).toHaveCount(0);
 
   await page.getByLabel("E-mailadres").fill("operator@veyocast.test");
   await page.getByRole("button", { name: "Doorgaan" }).click();
@@ -74,6 +76,16 @@ test("supports the public login and auth callback routes", async ({ page }) => {
 
   await page.getByRole("link", { name: "Naar dashboard" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
+
+  const invalidConfirmation = await page.request.get(
+    "/auth/confirm?next=https://example.invalid",
+    { maxRedirects: 0 }
+  );
+  expect(invalidConfirmation.status()).toBe(307);
+  const confirmationRedirect = new URL(invalidConfirmation.headers().location);
+  expect(`${confirmationRedirect.pathname}${confirmationRedirect.search}`).toBe(
+    "/login?fout=inloggen"
+  );
 });
 
 test("supports command navigation and the compact mobile navigation flow", async ({

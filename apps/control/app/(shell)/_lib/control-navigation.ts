@@ -138,17 +138,6 @@ const navigationGroupMeta = [
   }
 ] satisfies readonly Omit<ControlNavigationGroup, "items">[];
 
-export const demoControlSession = {
-  email: "operator@veyocast.test",
-  isLive: false,
-  organization: "VeyoCast platform",
-  roles: ["platform_admin", "tenant_admin", "tenant_viewer"],
-  tenant: "Museumkwartier",
-  tenantId: null,
-  userId: "demo-control-user",
-  userName: "Daan Operator"
-} satisfies ControlSession;
-
 export function hasControlRole(
   roles: readonly ControlRole[],
   requiredRole: ControlRole
@@ -178,6 +167,18 @@ export function getNavigationGroupsForRoles(
       items: permittedItems.filter((item) => item.scope === group.scope)
     }))
     .filter((group) => group.items.length > 0);
+}
+
+export function getControlSessionRoles(
+  platformRoles: readonly ControlRole[],
+  activeTenantRole?: ControlRole
+) {
+  return [
+    ...new Set([
+      ...platformRoles,
+      ...(activeTenantRole ? [activeTenantRole] : [])
+    ])
+  ];
 }
 
 const roleRank = {

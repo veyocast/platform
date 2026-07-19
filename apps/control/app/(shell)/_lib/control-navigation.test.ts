@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getControlSessionRoles,
   getNavigationForRoles,
   getNavigationGroupsForRoles,
   hasControlRole
@@ -45,5 +46,14 @@ describe("control navigation", () => {
   it("allows tenant admins to satisfy tenant viewer routes", () => {
     expect(hasControlRole(["tenant_admin"], "tenant_viewer")).toBe(true);
     expect(hasControlRole(["tenant_viewer"], "tenant_admin")).toBe(false);
+  });
+
+  it("combines platform roles with only the active tenant role", () => {
+    expect(
+      getControlSessionRoles(
+        ["platform_admin", "platform_admin"],
+        "tenant_viewer"
+      )
+    ).toStrictEqual(["platform_admin", "tenant_viewer"]);
   });
 });

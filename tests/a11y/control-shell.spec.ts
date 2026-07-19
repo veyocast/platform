@@ -94,7 +94,7 @@ test("pilot route exposes a sequential and fully labelled flow", async ({ page }
   await expect(page.getByLabel("Gereedstaande media")).toBeVisible();
   await expect(page.getByLabel("Conceptplaylist")).toBeVisible();
   await expect(page.getByLabel("Koppelcode")).toBeVisible();
-  await expect(page.getByText("Demomodus")).toBeVisible();
+  await expect(page.getByText("Demomodus", { exact: true })).toBeVisible();
 });
 
 test("public auth routes have clear headings and forms", async ({ page }) => {
@@ -107,6 +107,7 @@ test("public auth routes have clear headings and forms", async ({ page }) => {
   await expect(page.getByLabel("Tenant")).toBeVisible();
 
   await page.goto("/accept-invite");
-  await expect(page.getByRole("heading", { name: "Invite accepteren" })).toBeVisible();
-  await expect(page.getByLabel("Invitecode")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Uitnodiging afronden" })).toBeVisible();
+  await expect(page.getByText("geen geldige uitnodigingssessie")).toBeVisible();
+  await expect(page.getByLabel("Nieuw wachtwoord")).toHaveCount(0);
 });
