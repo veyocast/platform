@@ -1,20 +1,17 @@
-export const platformRoles = [
-  "platform_owner",
-  "platform_admin",
-  "platform_support",
-  "platform_viewer"
-] as const;
+import type { PlatformRole, TenantRole } from "@veyocast/domain";
 
-export const tenantRoles = [
-  "tenant_owner",
-  "tenant_admin",
-  "tenant_editor",
-  "tenant_viewer"
-] as const;
-
-export const tenantStatuses = ["active", "paused", "archived"] as const;
-
-export const invitationStatuses = ["pending", "accepted", "revoked", "expired"] as const;
+export {
+  invitationStatuses,
+  platformRoles,
+  tenantRoles,
+  tenantStatuses
+} from "@veyocast/domain";
+export type {
+  InvitationStatus,
+  PlatformRole,
+  TenantRole,
+  TenantStatus
+} from "@veyocast/domain";
 
 export const mediaAssetKinds = ["image", "video"] as const;
 
@@ -75,10 +72,6 @@ export const mediaAllowedMimeTypes = [
 export const mediaMaxVideoBytes = 524_288_000;
 export const mediaMaxVideoDurationSeconds = 300;
 
-export type PlatformRole = (typeof platformRoles)[number];
-export type TenantRole = (typeof tenantRoles)[number];
-export type TenantStatus = (typeof tenantStatuses)[number];
-export type InvitationStatus = (typeof invitationStatuses)[number];
 export type MediaAssetKind = (typeof mediaAssetKinds)[number];
 export type MediaAssetStatus = (typeof mediaAssetStatuses)[number];
 export type MediaUploadSessionStatus = (typeof mediaUploadSessionStatuses)[number];

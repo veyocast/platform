@@ -46,9 +46,39 @@ Achtergrondverwerking voor thumbnails, checksums, video metadata en later transc
 - `packages/config`: env parsing.
 - `packages/testkit`: fixtures en test helpers.
 
+De huidige incrementele foundation gebruikt daarnaast expliciet:
+
+- `packages/contracts`: frameworkvrije Zod transportcontracts, veilige errors
+  en commandmetadata;
+- `packages/domain`: canonieke identitytypes en pure businessregels;
+- `packages/auth`: pure rol-naar-capabilitybeslissingen zonder sessie- of I/O-
+  afhankelijkheid.
+
+## Dependency direction
+
+```text
+contracts <- domain <- auth
+     ^          ^
+     +---- database
+
+apps -> services -> repositories/adapters
+apps -> contracts/domain/auth
+```
+
+- Contracts en domain importeren geen React, Next, Supabase of environment.
+- Auth beslist capabilities maar maakt geen sessie of databaseclient.
+- Pages, server actions en route handlers vertalen transport naar services.
+- Services orkestreren capabilities, domainregels en transacties.
+- Repositories/adapters bezitten Supabase, Storage, queue en provider-I/O.
+- Nieuwe code volgt dit model; bestaande flows migreren bij inhoudelijke
+  wijziging, niet via een big-bang rewrite.
+- Zie ADR 0006 en de geautomatiseerde packageboundarytest.
+
 ## Boundaries
 
 - Player never imports dashboard code.
 - Control never renders public playback code directly; preview uses safe template renderer.
 - Service role never imports into client bundles.
 - Design tokens are imported, not duplicated.
+- Client modules importeren geen expliciete serverentries.
+- Publieke errors volgen de allowlisted contracts uit ADR 0007.

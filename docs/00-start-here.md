@@ -1,5 +1,12 @@
 # Start hier
 
+## Actuele uitvoeringsroadmap
+
+De canon alignment, Control-herontwerp, productiongates en post-pilot
+productontwikkeling zijn per sprint uitgewerkt in
+`docs/canon-alignment-product-roadmap.md`. De paste-ready startprompts voor
+S20-S37 staan in `prompts/sprints/`.
+
 Begin niet met bouwen van features. Start met:
 
 1. lokale runtime valideren;
