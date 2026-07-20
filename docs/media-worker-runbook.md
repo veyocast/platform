@@ -88,5 +88,11 @@ verwachte checksums/metadata krijgen. Gebruik geen klantmedia voor deze smoke.
 - `worker_state_update_failed`: stop rollout en herstel databasebereikbaarheid;
 - groeiende queued jobleeftijd: schaal workers of onderzoek vastlopende jobs.
 
+Niet-retrybare inhoudsfouten zoals `invalid_probe`, `unsupported_input`,
+`unsupported_mime_type` en `source_size_mismatch` zetten het asset in
+`quarantined`. Plan die job niet opnieuw in: archiveer het item en laat de bron
+als nieuw asset via de volledige uploadintent lopen. Alleen tijdelijke
+`validation_failed`-fouten zijn via Control opnieuw in te plannen.
+
 Maak een asset pas opnieuw beschikbaar via een nieuwe upload/job; muteer geen
 variantreferentie die al in een immutable release staat.

@@ -27,6 +27,7 @@
 - Verwerken
 - Gereed
 - Validatie mislukt
+- In quarantaine
 - Verwijderd
 
 ## Rules
@@ -51,10 +52,17 @@ boundary for video jobs. It:
 - writes fast-start MP4 and probes the output again before accepting it;
 - bounds command duration and captured process output.
 
-Control maakt voor MP4 een tenantgebonden asset en uploadsessie, waarna de
-browser met een tijdelijk signed token rechtstreeks naar private Storage
-uploadt. `finalize_media_video_upload` controleert authenticated tenantrechten,
-exact pad, MIME-type en bytegrootte en maakt idempotent één job.
+Control maakt voor MP4 transactioneel een tenantgebonden asset en TUS-intent,
+na capability-, tenantstatus-, bestands- en quotacontrole onder lock. De browser
+uploadt in vaste delen rechtstreeks naar private Storage met zijn kortlevende
+authenticated sessie. Storage RLS accepteert alleen het exacte pad van de
+actieve intent. `finalize_media_video_upload_v2` controleert opnieuw tenantrecht,
+exact pad, MIME-type en bytegrootte en retourneert bij replay dezelfde job.
+
+De browser bewaart voor reloadherstel alleen niet-geheime bestandsmetadata, een
+idempotency-ID en uploadsession-ID. TUS bewaart zijn hervatlocator; access tokens,
+signed URLs en signed uploadtokens worden niet in VeyoCast-state of Postgres
+opgeslagen. Zie [`media-upload-threat-model.md`](media-upload-threat-model.md).
 
 De daemon:
 

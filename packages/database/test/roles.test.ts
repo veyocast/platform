@@ -62,6 +62,7 @@ describe("@veyocast/database role constants", () => {
       "processing",
       "ready",
       "validation_failed",
+      "quarantined",
       "deleted"
     ]);
     expect(mediaUploadSessionStatuses).toEqual([

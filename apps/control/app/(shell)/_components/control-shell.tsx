@@ -140,7 +140,14 @@ export function ControlShell({
               width={28}
             />
             <div className="control-brand__wordmark">
-              <p className="control-brand__title">VeyoCast</p>
+              <Image
+                alt="VeyoCast"
+                className="control-brand__logo"
+                height={28}
+                priority
+                src="/brand/veyocast-logo-primary.svg"
+                width={120}
+              />
               <p className="control-brand__meta">Control</p>
             </div>
             <button

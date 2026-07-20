@@ -113,6 +113,8 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(page.getByLabel("Titel", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Videobestand", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Videotitel", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Filter media op gebruik")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Raster" })).toBeVisible();
   await expect(page.getByLabel("Media pipeline stappen")).toContainText(
     "Veilig activeren"
   );
@@ -121,6 +123,17 @@ test("media route exposes upload intake labels and status landmarks", async ({
   })).toBeVisible();
   await expect(page.getByRole("button", { name: "Uploaden en verifiëren" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Video uploaden" })).toBeDisabled();
+
+  await page.getByRole("link", { name: "Raster" }).click();
+  await expect(page.locator(".media-library-grid")).toBeVisible();
+  await expect(page.getByText("2 concepten · 1 release · 1 scherm").first()).toBeVisible();
+
+  await page.setViewportSize({ height: 844, width: 390 });
+  await page.reload();
+  const fromDate = page.getByLabel("Vanaf");
+  const fromDateBox = await fromDate.boundingBox();
+  expect(fromDateBox?.height).toBeGreaterThanOrEqual(44);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
 test("playlists route exposes publish review labels and status", async ({

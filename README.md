@@ -84,6 +84,13 @@ uitnodigingen gebruiken een eenmalige, e-mail- en tenantgebonden acceptatieflow.
 Zie [`docs/auth-rls.md`](docs/auth-rls.md) en
 [`docs/s22-platform-lifecycle-team-evidence.md`](docs/s22-platform-lifecycle-team-evidence.md).
 
+S23 levert de capability-gestuurde Control-shell en gedeelde resourcepatronen.
+S24 past die toe op Media: server-side pagination en filters, een toegankelijke
+inspector met gebruiksimpact, en hervatbare 6 MiB TUS-video-overdracht met
+idempotente intent/finalize, tenantquota, exacte Storage RLS en quarantaine.
+Zie [`docs/media-pipeline-canon.md`](docs/media-pipeline-canon.md) en
+[`docs/media-upload-threat-model.md`](docs/media-upload-threat-model.md).
+
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
 De officiële VeyoCast-merkassetset v1.0 is vastgelegd in `assets/brand/` met

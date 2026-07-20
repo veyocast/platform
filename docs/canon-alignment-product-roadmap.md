@@ -485,6 +485,12 @@ kleine én grote batches.
 - gebruiker begrijpt verwerking en kan toegestane fouten herstellen;
 - gebruik van een asset is zichtbaar vóór archiveren.
 
+Implementatiestatus S24: gerealiseerd op
+`veyocast/s24-media-workspace-resumable-upload`. De browser kan bevestigde TUS-
+chunks na navigatie of reload hervatten zodra de gebruiker hetzelfde lokale
+bestand opnieuw selecteert; browsers geven een eerder gekozen `File` bewust
+niet zonder nieuwe toestemming terug.
+
 ## S25 - Playlist Studio, concurrency en publicatiegereedheid
 
 ### Doel
