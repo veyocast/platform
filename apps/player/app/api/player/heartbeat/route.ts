@@ -50,9 +50,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error } = await supabase.rpc("record_player_heartbeat", {
+  const { error } = await supabase.rpc("record_player_heartbeat_v2", {
     p_active_release_id: body.activeReleaseId ?? null,
     p_app_version: readPlayerAppVersion(),
+    p_capabilities: {
+      manifestSchemaVersions: [1],
+      releaseHashAlgorithms: ["sha256"]
+    },
+    p_desired_release_id: body.desiredReleaseId ?? null,
+    p_platform: playerPlatform(request),
     p_runtime_state: body.runtimeState,
     p_storage_quota_bytes: safeNonNegativeInteger(body.storageQuotaBytes),
     p_storage_used_bytes: safeNonNegativeInteger(body.storageUsedBytes),
@@ -87,6 +93,14 @@ export async function POST(request: Request) {
       }
     }
   );
+}
+
+function playerPlatform(request: Request) {
+  const clientPlatform = request.headers.get("sec-ch-ua-platform")?.replace(/["\\]/g, "").trim();
+  if (clientPlatform) return clientPlatform.slice(0, 80);
+  const userAgent = request.headers.get("user-agent") ?? "";
+  if (/web0s|webos/i.test(userAgent)) return "LG webOS";
+  return "browser";
 }
 
 function getBearerToken(request: Request) {

@@ -153,6 +153,16 @@ test("playlists route exposes searchable resource filters and safe creation", as
   await expect(page.getByRole("button", { name: "Concept maken" })).toBeDisabled();
 });
 
+test("Release Center keeps immutable history semantics readable on mobile", async ({ page }) => {
+  await page.setViewportSize({ height: 844, width: 390 });
+  await page.goto("/dashboard/releases");
+
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Release Center" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Immutable historie" })).toBeVisible();
+  await expect(page.getByText(/rollback is altijd een nieuwe toewijzing/i)).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
 test("settings route exposes real defaults with safe permission state", async ({ page }) => {
   await page.goto("/dashboard/settings");
 

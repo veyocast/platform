@@ -11,8 +11,9 @@ test.setTimeout(90_000);
 test.describe("live Playlist Studio", () => {
   test.skip(!livePilotEnabled, "requires local Supabase and explicit live pilot environment");
 
-  test("prevents lost updates and publishes the previewed Player contract", async ({ browser, page }) => {
+  test("prevents lost updates and completes a multi-screen guided publish", async ({ browser, page }) => {
     const assetTitle = `S25 previewbeeld ${Date.now()}`;
+    const secondScreen = `S26 tweede scherm ${Date.now()}`;
     await page.goto("/login");
     await page.getByLabel("E-mailadres").fill("pilot-admin@veyocast.test");
     await page.getByLabel("Wachtwoord").fill("veyocast-local");
@@ -75,19 +76,33 @@ test.describe("live Playlist Studio", () => {
     await page.getByRole("button", { name: "Iteminstellingen opslaan" }).click();
     await expect(page.getByText("De iteminstellingen zijn opgeslagen")).toBeVisible();
 
-    await page.getByLabel("Pilot hoofdscherm").check();
-    await page.getByRole("button", { name: "Release publiceren" }).click();
-    await expect(page.getByText("De immutable release is gemaakt")).toBeVisible();
-    await expect(page.getByText("Gepubliceerd").first()).toBeVisible();
+    const studioUrl = page.url();
+    await page.goto("/dashboard/screens");
+    await page.getByLabel("Schermnaam").fill(secondScreen);
+    await page.getByLabel("Locatie").fill("Bestuurskamer");
+    await page.getByRole("button", { name: "Scherm opslaan" }).click();
+    await expect(page.getByText("Het scherm is aangemaakt")).toBeVisible();
+
+    await page.goto(studioUrl);
+    await page.getByRole("link", { name: "Begeleide publicatie starten" }).click();
+    await expect(page).toHaveURL(/\/dashboard\/playlists\/.+\/publish$/);
+    await page.getByLabel(/Pilot hoofdscherm/).check();
+    await page.getByLabel(new RegExp(secondScreen)).check();
+    await page.getByRole("button", { name: "Preflight voor selectie berekenen" }).click();
+    await expect(page.getByRole("heading", { name: "4. Preflight per scherm" })).toBeVisible();
+    await expect(page.getByRole("row").filter({ hasText: "Onbekend" })).toHaveCount(2);
+    await page.getByLabel("Releasenotitie").fill("S26 multi-screen publicatie");
+    await page.getByLabel(/waarschuwingen en onbekende telemetry/i).check();
+    await page.getByLabel("Maak een nieuwe immutable release").check();
+    await page.getByRole("button", { name: "Release publiceren en uitrol volgen" }).click();
+    await expect(page).toHaveURL(/\/dashboard\/releases\/[0-9a-f-]+/);
+    await expect(page.getByText("De immutable release is gepubliceerd")).toBeVisible();
+    await expect(page.getByText("Huidig gewenst", { exact: true })).toHaveCount(2);
+    await expect(page.getByRole("heading", { name: "Impactketen" })).toBeVisible();
 
     await page.setViewportSize({ height: 844, width: 390 });
     await page.reload();
-    await expect(page.getByText("Gereed voor Player").first()).toBeVisible();
-    const itemHeading = await page.getByRole("heading", { name: "Playlistitems" }).boundingBox();
-    const mediaHeading = await page.getByRole("heading", { name: "Media toevoegen" }).boundingBox();
-    expect(itemHeading).not.toBeNull();
-    expect(mediaHeading).not.toBeNull();
-    expect(itemHeading!.y).toBeLessThan(mediaHeading!.y);
+    await expect(page.getByRole("heading", { name: "Uitrol per scherm" })).toBeVisible();
     const horizontalLayout = await page.evaluate(() => ({ innerWidth: window.innerWidth, scrollWidth: document.documentElement.scrollWidth }));
     expect(horizontalLayout.scrollWidth <= horizontalLayout.innerWidth).toBe(true);
   });

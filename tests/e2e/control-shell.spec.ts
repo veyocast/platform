@@ -16,6 +16,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("link", { name: /Platform/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Releases/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Schermen/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
   await expect(nav.getByRole("heading", { name: "Overzicht" }).first()).toBeVisible();
@@ -40,6 +41,12 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page.getByText("Demomodus zonder mutaties")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Nieuwe playlist" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Playlistlijst" })).toBeVisible();
+
+  await nav.getByRole("link", { name: /Releases/ }).click();
+  await expect(page).toHaveURL(/\/dashboard\/releases$/);
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Release Center" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Immutable historie" })).toBeVisible();
+  await expect(page.getByText("Nog geen releases")).toBeVisible();
 
   await nav.getByRole("link", { name: /Schermen/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/screens$/);

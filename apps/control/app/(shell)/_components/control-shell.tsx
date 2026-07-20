@@ -12,6 +12,7 @@ import {
   ListVideo,
   Menu,
   MonitorSmartphone,
+  PackageCheck,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
@@ -45,6 +46,7 @@ const navigationIcons: Record<string, LucideIcon> = {
   Platform: MonitorSmartphone,
   Platformgebruikers: Users,
   Playlists: ListVideo,
+  Releases: PackageCheck,
   Schermen: MonitorSmartphone,
   Team: Users,
   Tenants: Building2

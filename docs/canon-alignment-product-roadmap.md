@@ -552,6 +552,12 @@ verliezen en iedere blokkade vóór publicatie begrijpelijk is.
 
 ## S26 - Release Center, impactanalyse en schermpreflight
 
+Implementatiestatus: review op `veyocast/s26-release-center-preflight`.
+Release Center, golden releasediff, append-only reassignment, per-screen
+preflight, guided publish en uitrolfasen zijn gerealiseerd. Zie
+`docs/s26-release-center-preflight-evidence.md` voor bewijs en de bewust
+conservatieve telemetrygrenzen.
+
 ### Doel
 
 Publicatie, historie en uitrol als afzonderlijk operationeel domein zichtbaar
