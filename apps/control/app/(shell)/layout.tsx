@@ -11,10 +11,14 @@ export default async function ShellLayout({
   children
 }: Readonly<{ children: ReactNode }>) {
   const session = await requireControlSession();
-  const navigationGroups = getNavigationGroupsForRoles(session.roles);
+  const navigationGroups = getNavigationGroupsForRoles(
+    session.roles,
+    Boolean(session.tenantId) || !session.isLive
+  );
 
   return (
     <ControlShell
+      key={session.tenantId ?? "platform"}
       navigationGroups={navigationGroups}
       session={session}
     >

@@ -12,7 +12,7 @@ try {
   process.exit(1);
 }
 
-const protectedPrefixes = ["/dashboard", "/platform"];
+const protectedPrefixes = ["/auth/mfa", "/context", "/dashboard", "/platform"];
 const prerenderedRoutes = Object.keys(manifest.routes ?? {});
 const violations = prerenderedRoutes.filter((route) =>
   protectedPrefixes.some(

@@ -75,6 +75,11 @@ containers binden alleen op `127.0.0.1`. Zie `docs/deployment/`.
 Development blijft op de bestaande dev-VPS. Staging en production hebben op de
 andere VPS eigen Compose-projecten, runtimebestanden en Supabase-projecten.
 
+S20 heeft de frameworkvrije application boundaries vastgelegd. S21 bouwt daarop
+voort met centrale role-to-capabilitybesluiten, een expliciete en server-side
+gevalideerde tenantcontext, Supabase TOTP MFA/AAL2 en databaseguards voor
+paused/archived tenants. Zie [`docs/auth-rls.md`](docs/auth-rls.md).
+
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
 Approved VeyoCast logo and icon masters are also required before public launch;

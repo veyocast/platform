@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { hasCapability } from "@veyocast/auth";
+
 import { requireControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import { HealthList, MetricCard, PageHeader, StatusPill, Timeline } from "../../_components/shell-primitives";
@@ -37,8 +39,10 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
   const session = await requireControlSession();
   const params = await searchParams;
   const data = await loadPlaylistData(session.tenantId, session.isLive, params.playlist);
-  const canWrite = session.isLive && session.roles.some((role) => ["platform_owner", "platform_admin", "tenant_owner", "tenant_admin", "tenant_editor"].includes(role));
-  const canManage = session.isLive && session.roles.some((role) => ["platform_owner", "platform_admin", "tenant_owner", "tenant_admin"].includes(role));
+  const tenantIsMutable = session.isLive && session.tenantStatus === "active";
+  const canWrite = tenantIsMutable && hasCapability(session.roles, "tenant.playlist.write");
+  const canManage = tenantIsMutable && hasCapability(session.roles, "tenant.playlist.archive");
+  const canPublish = tenantIsMutable && hasCapability(session.roles, "tenant.playlist.publish");
   const query = (params.q ?? "").trim().toLocaleLowerCase("nl-NL");
   const visiblePlaylists = query ? data.playlists.filter((playlist) => playlist.name.toLocaleLowerCase("nl-NL").includes(query)) : data.playlists;
   const selected = data.playlists.find((playlist) => playlist.id === params.playlist) ?? visiblePlaylists[0] ?? null;
@@ -61,7 +65,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
   return (
     <>
       <PageHeader
-        actions={<a className="button-link button-link--primary" href="#new-playlist">Nieuwe playlist</a>}
+        actions={canWrite ? <a className="button-link button-link--primary" href="#new-playlist">Nieuwe playlist</a> : null}
         description="Bouw echte concepten met gereedstaande media en publiceer alleen een volledige, onveranderlijke release naar gekozen schermen."
         eyebrow={session.tenant}
         status={{ label: session.isLive ? "Live tenantdata" : "Demomodus zonder mutaties", tone: session.isLive ? "success" : "warning" }}
@@ -179,7 +183,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
               { detail: "Publiceren maakt nieuwe, onveranderlijke release-items en een manifest-hash.", label: "Immutable release", status: "Bevestigd", tone: "success" }
             ]} />
             <dl className="meta-list"><div><dt>Totale duur</dt><dd>{formatDuration(totalDuration)}</dd></div><div><dt>Downloadgrootte</dt><dd>{formatBytes(review.totalBytes)}</dd></div><div><dt>Nieuwe versie</dt><dd>v{(selectedReleases[0]?.version ?? 0) + 1}</dd></div></dl>
-            <form action={publishPlaylist} className="playlist-form"><input name="playlistId" type="hidden" value={selected.id} /><fieldset className="checkbox-fieldset"><legend>Doelschermen</legend>{data.screens.length ? data.screens.map((screen) => <label className="check-row" key={screen.id}><input disabled={!canWrite} name="screenIds" type="checkbox" value={screen.id} /><span><strong>{screen.name}</strong><span className="work-panel__meta">{screen.assigned_playlist_id === selected.id ? "Deze playlist is hier al toegewezen" : "Nieuwe toewijzing"}</span></span></label>) : <p className="notice notice--warning">Maak eerst een actief scherm aan voordat je publiceert.</p>}</fieldset><div className="field"><label htmlFor="release-notes">Releasenotitie</label><textarea disabled={!canWrite} id="release-notes" maxLength={500} name="releaseNotes" placeholder="Wat verandert er in deze release?" rows={3} /></div><p className="notice" role="status">De huidige release blijft spelen totdat ieder bestand van deze nieuwe release lokaal is gedownload en geverifieerd.</p><button className="button-link button-link--primary" disabled={!canWrite || !selectedItems.length || Boolean(review.blocked) || !data.screens.length} type="submit">Release publiceren</button></form>
+            <form action={publishPlaylist} className="playlist-form"><input name="playlistId" type="hidden" value={selected.id} /><fieldset className="checkbox-fieldset"><legend>Doelschermen</legend>{data.screens.length ? data.screens.map((screen) => <label className="check-row" key={screen.id}><input disabled={!canPublish} name="screenIds" type="checkbox" value={screen.id} /><span><strong>{screen.name}</strong><span className="work-panel__meta">{screen.assigned_playlist_id === selected.id ? "Deze playlist is hier al toegewezen" : "Nieuwe toewijzing"}</span></span></label>) : <p className="notice notice--warning">Maak eerst een actief scherm aan voordat je publiceert.</p>}</fieldset><div className="field"><label htmlFor="release-notes">Releasenotitie</label><textarea disabled={!canPublish} id="release-notes" maxLength={500} name="releaseNotes" placeholder="Wat verandert er in deze release?" rows={3} /></div><p className="notice" role="status">De huidige release blijft spelen totdat ieder bestand van deze nieuwe release lokaal is gedownload en geverifieerd.</p><button className="button-link button-link--primary" disabled={!canPublish || !selectedItems.length || Boolean(review.blocked) || !data.screens.length} type="submit">Release publiceren</button></form>
           </> : <p className="notice" role="status">Maak of open eerst een playlist om de publicatiereview uit te voeren.</p>}
         </section>
 

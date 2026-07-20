@@ -4,8 +4,12 @@ import {
   capabilities,
   decideCapability,
   getCapabilitiesForRoles,
-  hasCapability
+  hasCapability,
+  MissingCapabilityError,
+  requireCapability,
+  roleCapabilityMatrix
 } from "../src";
+import { platformRoles, tenantRoles } from "@veyocast/domain";
 
 describe("capability decisions", () => {
   it("keeps platform owner exhaustive", () => {
@@ -36,5 +40,45 @@ describe("capability decisions", () => {
   it("unions capabilities without duplicate entries", () => {
     const result = getCapabilitiesForRoles(["tenant_admin", "tenant_editor"]);
     expect(new Set(result).size).toBe(result.length);
+  });
+
+  it("defines every role exactly once and only with canonical capabilities", () => {
+    expect(Object.keys(roleCapabilityMatrix).sort()).toEqual(
+      [...platformRoles, ...tenantRoles].sort()
+    );
+
+    for (const role of [...platformRoles, ...tenantRoles]) {
+      expect(new Set(roleCapabilityMatrix[role]).size).toBe(
+        roleCapabilityMatrix[role].length
+      );
+      expect(
+        roleCapabilityMatrix[role].every((capability) =>
+          capabilities.includes(capability)
+        )
+      ).toBe(true);
+    }
+  });
+
+  it("decides every role and capability combination from the canonical matrix", () => {
+    for (const role of [...platformRoles, ...tenantRoles]) {
+      for (const capability of capabilities) {
+        const expected = roleCapabilityMatrix[role].includes(capability);
+        expect(hasCapability([role], capability)).toBe(expected);
+        expect(decideCapability([role], capability)).toEqual({
+          allowed: expected,
+          capability,
+          reason: expected ? "allowed" : "missing_capability"
+        });
+      }
+    }
+  });
+
+  it("fails closed through the central requireCapability boundary", () => {
+    expect(() =>
+      requireCapability(["tenant_viewer"], "tenant.media.write")
+    ).toThrowError(MissingCapabilityError);
+    expect(() =>
+      requireCapability(["tenant_editor"], "tenant.media.write")
+    ).not.toThrow();
   });
 });

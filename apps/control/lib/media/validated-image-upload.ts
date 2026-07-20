@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHash, randomUUID } from "node:crypto";
 
-import { requireControlSession } from "../control-session";
+import { requireTenantCapability } from "../control-session";
 import { createControlAdminClient } from "../supabase/admin";
 import { createControlSupabaseClient } from "../supabase/server";
 
@@ -17,7 +17,7 @@ export class MediaUploadError extends Error {
 }
 
 export async function uploadValidatedImage(formData: FormData) {
-  const session = await requireControlSession();
+  const session = await requireTenantCapability("tenant.media.write");
   const supabase = await createControlSupabaseClient();
   const candidate = formData.get("media");
   const title = String(formData.get("title") ?? "").trim();
@@ -25,16 +25,6 @@ export async function uploadValidatedImage(formData: FormData) {
   if (!session.isLive || !session.tenantId || !supabase) {
     throw new MediaUploadError(
       "Uploaden is alleen beschikbaar met een actieve Supabase-sessie. Log opnieuw in en probeer het daarna nogmaals."
-    );
-  }
-
-  const canWrite = session.roles.some((role) =>
-    ["tenant_owner", "tenant_admin", "tenant_editor"].includes(role)
-  );
-
-  if (!canWrite) {
-    throw new MediaUploadError(
-      "Je account heeft geen editor- of beheerrechten. De upload is niet gestart; vraag een beheerder om de juiste rol."
     );
   }
 

@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(13);
+select plan(15);
 
 insert into auth.users (
   id,
@@ -86,6 +86,22 @@ select set_config(
   '00000000-0000-4000-8000-000000000201',
   true
 );
+
+select set_config('request.jwt.claim.aal', 'aal1', true);
+select throws_ok(
+  $$select public.create_platform_tenant('AAL1 vereniging', 'aal1-vereniging', 12)$$,
+  '42501',
+  'sensitive platform mutations require aal2',
+  'AAL1 cannot create a tenant'
+);
+
+select is(
+  (select count(*) from public.tenants where slug = 'aal1-vereniging'),
+  0::bigint,
+  'AAL1 tenant creation rolls back completely'
+);
+
+select set_config('request.jwt.claim.aal', 'aal2', true);
 
 select lives_ok(
   $$select public.create_platform_tenant('Nieuwe vereniging', 'nieuwe-vereniging', 24)$$,

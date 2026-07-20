@@ -3,22 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireControlSession } from "../../../../lib/control-session";
+import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
-
-const writerRoles = new Set([
-  "platform_owner",
-  "platform_admin",
-  "tenant_owner",
-  "tenant_admin",
-  "tenant_editor"
-]);
-const managerRoles = new Set([
-  "platform_owner",
-  "platform_admin",
-  "tenant_owner",
-  "tenant_admin"
-]);
 
 export async function createPlaylist(formData: FormData) {
   const { session, supabase } = await requirePlaylistWriter();
@@ -143,7 +129,9 @@ export async function removePlaylistItem(formData: FormData) {
 }
 
 export async function archivePlaylist(formData: FormData) {
-  const { session, supabase } = await requirePlaylistWriter(true);
+  const { session, supabase } = await requirePlaylistWriter(
+    "tenant.playlist.archive"
+  );
   const playlistId = idValue(formData, "playlistId");
   const { count, error: assignmentError } = await supabase.from("screens").select("id", { count: "exact", head: true }).eq("tenant_id", session.tenantId).eq("assigned_playlist_id", playlistId).neq("status", "disabled");
   if (assignmentError) fail(playlistId, "De schermtoewijzingen konden niet worden gecontroleerd. Er is niets gearchiveerd.");
@@ -159,7 +147,10 @@ export async function archivePlaylist(formData: FormData) {
 }
 
 export async function publishPlaylist(formData: FormData) {
-  const { supabase } = await requirePlaylistWriter();
+  const { supabase } = await requirePlaylistWriter(
+    "tenant.playlist.publish",
+    "publish"
+  );
   const playlistId = idValue(formData, "playlistId");
   const screenIds = formData.getAll("screenIds").map(String).filter(Boolean);
   const releaseNotes = String(formData.get("releaseNotes") ?? "").trim();
@@ -181,13 +172,17 @@ export async function publishPlaylist(formData: FormData) {
   redirect(`/dashboard/playlists?playlist=${playlistId}&succes=${encodeURIComponent("De immutable release is gemaakt en als gewenste release aan de gekozen schermen toegewezen.")}`);
 }
 
-async function requirePlaylistWriter(managementOnly = false) {
-  const session = await requireControlSession();
+async function requirePlaylistWriter(
+  capability:
+    | "tenant.playlist.archive"
+    | "tenant.playlist.publish"
+    | "tenant.playlist.write" = "tenant.playlist.write",
+  operation: "mutate" | "publish" = "mutate"
+) {
+  const session = await requireTenantCapability(capability, operation);
   const supabase = await createControlSupabaseClient();
   const tenantId = session.tenantId;
   if (!session.isLive || !tenantId || !supabase) fail(null, "Live Supabase is niet beschikbaar. Er is niets gewijzigd; herstel de configuratie en log opnieuw in.");
-  const allowed = managementOnly ? managerRoles : writerRoles;
-  if (!session.roles.some((role) => allowed.has(role))) fail(null, managementOnly ? "Je hebt beheerrechten nodig om een playlist te archiveren." : "Je hebt editor- of beheerrechten nodig om playlists te wijzigen.");
   return { session, supabase, tenantId };
 }
 

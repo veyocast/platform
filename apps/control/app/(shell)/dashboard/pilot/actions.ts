@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireControlSession } from "../../../../lib/control-session";
+import { requireTenantCapability } from "../../../../lib/control-session";
 import {
   MediaUploadError,
   uploadValidatedImage
@@ -13,6 +13,7 @@ import {
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
 export async function ingestPilotImage(formData: FormData) {
+  await requireTenantCapability("tenant.media.write");
   try {
     await uploadValidatedImage(formData);
     complete("Afbeelding is geverifieerd en gereed voor een playlist.");
@@ -26,7 +27,9 @@ export async function ingestPilotImage(formData: FormData) {
 }
 
 export async function createPilotPlaylist(formData: FormData) {
-  const { session, supabase } = await requireLivePilotContext();
+  const { session, supabase } = await requireLivePilotContext(
+    "tenant.playlist.write"
+  );
   const mediaAssetId = String(formData.get("mediaAssetId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
 
@@ -81,7 +84,10 @@ export async function createPilotPlaylist(formData: FormData) {
 }
 
 export async function publishPilotPlaylist(formData: FormData) {
-  const { supabase } = await requireLivePilotContext();
+  const { supabase } = await requireLivePilotContext(
+    "tenant.playlist.publish",
+    "publish"
+  );
   const playlistId = String(formData.get("playlistId") ?? "");
   const screenId = String(formData.get("screenId") ?? "");
 
@@ -103,7 +109,10 @@ export async function publishPilotPlaylist(formData: FormData) {
 }
 
 export async function claimPilotPairing(formData: FormData) {
-  const { session, supabase } = await requireLivePilotContext();
+  const { session, supabase } = await requireLivePilotContext(
+    "tenant.screen.manage",
+    "pair"
+  );
   const screenId = String(formData.get("screenId") ?? "");
   const pairingCode = normalizePairingCode(String(formData.get("pairingCode") ?? ""));
 
@@ -126,20 +135,18 @@ export async function claimPilotPairing(formData: FormData) {
   complete("Player is gekoppeld. Het device-token is alleen op de Player bewaard.");
 }
 
-async function requireLivePilotContext() {
-  const session = await requireControlSession();
+async function requireLivePilotContext(
+  capability:
+    | "tenant.playlist.publish"
+    | "tenant.playlist.write"
+    | "tenant.screen.manage",
+  operation: "mutate" | "pair" | "publish" = "mutate"
+) {
+  const session = await requireTenantCapability(capability, operation);
   const supabase = await createControlSupabaseClient();
 
   if (!session.isLive || !session.tenantId || !supabase) {
     fail("Start lokale Supabase en log in om de live pilotflow te gebruiken.");
-  }
-
-  const canWrite = session.roles.some((role) =>
-    ["tenant_owner", "tenant_admin", "tenant_editor"].includes(role)
-  );
-
-  if (!canWrite) {
-    fail("Voor deze stap zijn editor- of beheerrechten nodig.");
   }
 
   return { session, supabase };

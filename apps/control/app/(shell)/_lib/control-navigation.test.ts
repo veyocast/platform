@@ -3,8 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getControlSessionRoles,
   getNavigationForRoles,
-  getNavigationGroupsForRoles,
-  hasControlRole
+  getNavigationGroupsForRoles
 } from "./control-navigation";
 
 describe("control navigation", () => {
@@ -37,15 +36,14 @@ describe("control navigation", () => {
     ]);
     expect(groups.at(1)?.items.map((item) => item.href)).toStrictEqual([
       "/dashboard",
+      "/dashboard/pilot",
       "/dashboard/media",
       "/dashboard/playlists",
-      "/dashboard/screens"
+      "/dashboard/screens",
+      "/dashboard/team",
+      "/dashboard/auditlog",
+      "/dashboard/settings"
     ]);
-  });
-
-  it("allows tenant admins to satisfy tenant viewer routes", () => {
-    expect(hasControlRole(["tenant_admin"], "tenant_viewer")).toBe(true);
-    expect(hasControlRole(["tenant_viewer"], "tenant_admin")).toBe(false);
   });
 
   it("combines platform roles with only the active tenant role", () => {

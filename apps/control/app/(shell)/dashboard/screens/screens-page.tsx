@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { hasCapability } from "@veyocast/auth";
+
 import { requireControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import {
@@ -83,9 +85,10 @@ const deviceLifecycle = [
 export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const session = await requireControlSession();
   const { fout, succes } = await searchParams;
-  const canManage = session.roles.some((role) =>
-    ["platform_owner", "platform_admin", "tenant_owner", "tenant_admin"].includes(role)
-  );
+  const canManage =
+    session.isLive &&
+    session.tenantStatus === "active" &&
+    hasCapability(session.roles, "tenant.screen.manage");
   const data = await loadScreens(session.tenantId, session.isLive);
   const devicesByScreen = new Map(data.devices.map((device) => [device.screen_id, device]));
   const playlistNames = new Map(data.playlists.map((playlist) => [playlist.id, playlist.name]));

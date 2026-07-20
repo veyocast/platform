@@ -56,9 +56,15 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.110.7
         version: 2.110.7
+      '@veyocast/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@veyocast/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@veyocast/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       lucide-react:
         specifier: ^1.24.0
         version: 1.24.0(react@19.2.7)

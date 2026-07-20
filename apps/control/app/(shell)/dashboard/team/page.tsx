@@ -3,7 +3,7 @@ import { loadTenantMembers } from "../../../../lib/control-overview";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 
 export default async function TeamPage() {
-  const session = await requireTenantControlSession("tenant_admin");
+  const session = await requireTenantControlSession("tenant.team.read");
   const data = session.isLive
     ? await loadTenantMembers(session.tenantId!)
     : { error: false, members: demoMembers };

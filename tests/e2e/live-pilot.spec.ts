@@ -1,5 +1,6 @@
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { createHmac } from "node:crypto";
 
 import { expect, test } from "@playwright/test";
 
@@ -25,6 +26,20 @@ test.describe("live pilot vertical slice", () => {
     await page.getByLabel("E-mailadres").fill("pilot-admin@veyocast.test");
     await page.getByLabel("Wachtwoord").fill("veyocast-local");
     await page.getByRole("button", { name: "Doorgaan" }).click();
+    await expect(page).toHaveURL(/\/context/);
+    await page.getByRole("button", { name: "Open vereniging" }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
+
+    await page.goto("/auth/mfa");
+    await page.getByLabel("Naam van authenticator").fill("Playwright live pilot");
+    await page.getByRole("button", { name: "Nieuwe authenticator toevoegen" }).click();
+    const manualSecret = page.getByText("Handmatige sleutel tonen");
+    await expect(manualSecret).toBeVisible();
+    await manualSecret.click();
+    const mfaSecret = (await page.locator(".mfa-secret").textContent())?.trim();
+    expect(mfaSecret).toBeTruthy();
+    await page.getByLabel("Zescijferige code").fill(generateTotp(mfaSecret ?? ""));
+    await page.getByRole("button", { name: "Authenticator verifiëren" }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
 
     await page.goto("/platform/tenants");
@@ -171,3 +186,31 @@ test.describe("live pilot vertical slice", () => {
     await playerContext.close();
   });
 });
+
+function generateTotp(secret: string, now = Date.now()) {
+  const key = decodeBase32(secret);
+  const counter = Math.floor(now / 30_000);
+  const message = Buffer.alloc(8);
+  message.writeBigUInt64BE(BigInt(counter));
+  const digest = createHmac("sha1", key).update(message).digest();
+  const offset = digest[digest.length - 1]! & 0x0f;
+  const binary = (
+    ((digest[offset]! & 0x7f) << 24) |
+    ((digest[offset + 1]! & 0xff) << 16) |
+    ((digest[offset + 2]! & 0xff) << 8) |
+    (digest[offset + 3]! & 0xff)
+  ) >>> 0;
+  return String(binary % 1_000_000).padStart(6, "0");
+}
+
+function decodeBase32(value: string) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let bits = "";
+  for (const character of value.replace(/=|\s/g, "").toUpperCase()) {
+    const index = alphabet.indexOf(character);
+    if (index < 0) throw new Error("Invalid base32 MFA secret");
+    bits += index.toString(2).padStart(5, "0");
+  }
+  const bytes = bits.match(/.{8}/g)?.map((byte) => Number.parseInt(byte, 2)) ?? [];
+  return Buffer.from(bytes);
+}
