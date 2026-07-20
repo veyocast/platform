@@ -3,15 +3,8 @@ import "server-only";
 import { hasCapability } from "@veyocast/auth";
 
 import type { ControlSession } from "../app/(shell)/_lib/control-navigation";
+import type { ControlSearchResult } from "../app/(shell)/_lib/control-search-contract";
 import { createControlSupabaseClient } from "./supabase/server";
-
-export type ControlSearchResult = {
-  description: string;
-  href: string;
-  id: string;
-  kind: "media" | "playlist" | "release" | "screen" | "tenant";
-  label: string;
-};
 
 export async function searchControlResources(
   session: ControlSession,

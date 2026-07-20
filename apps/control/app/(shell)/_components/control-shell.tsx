@@ -31,7 +31,7 @@ import type {
   ControlNavigationItem,
   ControlSession
 } from "../_lib/control-navigation";
-import type { ControlSearchResult } from "../../../lib/control-search";
+import type { ControlSearchResult } from "../_lib/control-search-contract";
 import { switchTenantContext } from "../context/actions";
 
 type ControlShellProps = {
