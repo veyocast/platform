@@ -10,10 +10,9 @@ test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   await expect(
     page.getByRole("navigation", { name: "Hoofdnavigatie" })
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Goedemorgen, Daan" })).toBeVisible();
-  await expect(page.getByLabel("Open dashboardacties")).toContainText(
-    "Publicatie geblokkeerd"
-  );
+  await expect(page.getByRole("heading", { name: "Welkom, Daan Operator" })).toBeVisible();
+  await expect(page.getByText("Veilige lege staat")).toBeVisible();
+  await expect(page.getByText("Deze route simuleert daarom geen klant")).toBeVisible();
 });
 
 test("collapsed desktop navigation remains keyboard restorable", async ({ page }) => {
