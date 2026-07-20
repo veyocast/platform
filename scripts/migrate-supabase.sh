@@ -29,7 +29,7 @@ if [[ ! ${GITHUB_SHA} =~ ^[0-9a-f]{40}$ ]]; then
   exit 1
 fi
 
-bash scripts/check-migration-safety.sh supabase/migrations
+node scripts/check-migration-safety.mjs supabase/migrations
 
 # De CLI vergelijkt lokale en remote migration history. Zonder --include-all
 # stopt hij bij remote-only en out-of-order versies in plaats van ze te forceren.

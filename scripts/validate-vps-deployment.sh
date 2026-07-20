@@ -78,19 +78,19 @@ if grep --line-number --extended-regexp '(^|[[:space:]])build:' infra/vps/compos
   exit 1
 fi
 
-bash -n scripts/check-migration-safety.sh scripts/deploy-vps.sh scripts/migrate-supabase.sh scripts/validate-vps-deployment.sh
+bash -n scripts/deploy-vps.sh scripts/migrate-supabase.sh scripts/validate-vps-deployment.sh
 
-bash scripts/check-migration-safety.sh supabase/migrations
+node scripts/check-migration-safety.mjs supabase/migrations
 
 printf '%s\n' \
   'create function public.remove_one() returns void language sql as $$' \
   '  delete from public.memberships where user_id = auth.uid();' \
   '$$;' > "${bounded_migration_root}/20260720000000_bounded_delete.sql"
-bash scripts/check-migration-safety.sh "${bounded_migration_root}"
+node scripts/check-migration-safety.mjs "${bounded_migration_root}"
 
 printf '%s\n' \
   'delete from public.memberships;' > "${unbounded_migration_root}/20260720000000_unbounded_delete.sql"
-if bash scripts/check-migration-safety.sh "${unbounded_migration_root}" >/dev/null 2>&1; then
+if node scripts/check-migration-safety.mjs "${unbounded_migration_root}" >/dev/null 2>&1; then
   echo "De migratieguard accepteert ten onrechte een onbegrensde DELETE." >&2
   exit 1
 fi
