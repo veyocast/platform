@@ -225,8 +225,8 @@ select is(
 );
 select is(
   (select status::text from public.media_assets where id = '20000000-0000-4000-8000-000000000902'),
-  'validation_failed',
-  'final failure makes the asset unavailable to playlists'
+  'quarantined',
+  'non-retryable content failure quarantines the asset outside playlists'
 );
 
 delete from claimed_worker_job;

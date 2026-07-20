@@ -20,6 +20,7 @@ export const mediaAssetStatuses = [
   "processing",
   "ready",
   "validation_failed",
+  "quarantined",
   "deleted"
 ] as const;
 

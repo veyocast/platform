@@ -84,9 +84,16 @@ uitnodigingen gebruiken een eenmalige, e-mail- en tenantgebonden acceptatieflow.
 Zie [`docs/auth-rls.md`](docs/auth-rls.md) en
 [`docs/s22-platform-lifecycle-team-evidence.md`](docs/s22-platform-lifecycle-team-evidence.md).
 
-S23 levert de capability-gestuurde Control-fundering. S25 bouwt daarop de
-gescheiden playlistlijst en Playlist Studio met revision-guards, een gedeeld
-publicatiegereedheidscontract en een responsieve editor. Zie
+S23 levert de capability-gestuurde Control-shell en gedeelde resourcepatronen.
+S24 past die toe op Media: server-side pagination en filters, een toegankelijke
+inspector met gebruiksimpact, en hervatbare 6 MiB TUS-video-overdracht met
+idempotente intent/finalize, tenantquota, exacte Storage RLS en quarantaine.
+Zie [`docs/media-pipeline-canon.md`](docs/media-pipeline-canon.md) en
+[`docs/media-upload-threat-model.md`](docs/media-upload-threat-model.md).
+
+S25 bouwt daarop de gescheiden playlistlijst en Playlist Studio met
+revision-guards, een gedeeld publicatiegereedheidscontract en een responsieve
+editor. Zie
 [`docs/s23-control-ux-evidence.md`](docs/s23-control-ux-evidence.md) en
 [`docs/s25-playlist-studio-readiness-evidence.md`](docs/s25-playlist-studio-readiness-evidence.md).
 

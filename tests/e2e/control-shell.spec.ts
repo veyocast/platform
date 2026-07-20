@@ -147,6 +147,38 @@ test("collapses to an icon rail and always exposes the desktop restore control",
   ).toBeVisible();
 });
 
+test("keeps the sidebar logo fixed while navigation and content scroll independently", async ({
+  page
+}) => {
+  await page.setViewportSize({ height: 480, width: 1280 });
+  await page.goto("/dashboard/media");
+
+  const sidebar = page.getByLabel("Control navigatie");
+  const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
+  const main = page.getByRole("main");
+  const brand = sidebar.locator(".control-brand");
+  const brandBefore = await brand.boundingBox();
+
+  await expect(sidebar).toHaveCSS("overflow", "hidden");
+  await expect(navigation).toHaveCSS("overflow-y", "auto");
+  await expect(main).toHaveCSS("overflow-y", "auto");
+
+  await main.evaluate((element) => element.scrollTo({ top: 900 }));
+  expect(await main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  const brandAfterMainScroll = await brand.boundingBox();
+  expect(brandAfterMainScroll?.y).toBe(brandBefore?.y);
+
+  const navCanScroll = await navigation.evaluate(
+    (element) => element.scrollHeight > element.clientHeight
+  );
+  expect(navCanScroll).toBe(true);
+  await navigation.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
+  expect(await navigation.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  const brandAfterNavScroll = await brand.boundingBox();
+  expect(brandAfterNavScroll?.y).toBe(brandBefore?.y);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+});
+
 test("supports command navigation and the compact mobile navigation flow", async ({
   page
 }) => {

@@ -98,12 +98,12 @@ is dan de viewport. Visuele controle is uitgevoerd op 1440 × 1000 en 390 × 844
 | Gate | Resultaat |
 | --- | --- |
 | `pnpm db:reset` | geslaagd; alle migraties vanaf nul toegepast |
-| `pnpm test:rls` | geslaagd; 13 bestanden, 208 tests |
+| `pnpm test:rls` | geslaagd na integratie met S24; 14 bestanden, 228 tests |
 | Supabase DB lint | geslaagd; geen schemafouten |
 | `pnpm lint`, `pnpm typecheck`, `pnpm test` | geslaagd; 18 Turbo-taken per gate |
 | `pnpm build` | geslaagd; 12 workspace-projecten, Studio-route dynamisch |
 | `pnpm test:a11y` | geslaagd; 17 tests |
-| volledige Chromium E2E | geslaagd; 45 tests, 2 expliciete live skips |
+| volledige Chromium E2E | geslaagd na integratie met S24; 46 tests, 2 expliciete live skips |
 | live S25 E2E | geslaagd; echte upload, twee contexts, conflict, dirty state, preview, mobiele reflow en immutable publish |
 | Player en offline | geslaagd; 19 Player- en 7 offline-tests |
 | `git diff --check` | geslaagd |

@@ -1,7 +1,5 @@
 import "server-only";
 
-import { randomUUID } from "node:crypto";
-
 import { requireTenantCapability } from "../control-session";
 import { createControlAdminClient } from "../supabase/admin";
 import { createControlSupabaseClient } from "../supabase/server";
@@ -12,15 +10,17 @@ const maxVideoBytes = 500 * 1024 * 1024;
 export type VideoUploadCandidate = {
   fileName: string;
   fileSizeBytes: number;
+  idempotencyKey: string;
   mimeType: string;
   title: string;
 };
 
 export type PreparedVideoUpload = {
   bucket: "tenant-media";
+  expiresAt: string;
   path: string;
+  resumed: boolean;
   title: string;
-  token: string;
   uploadSessionId: string;
 };
 
@@ -30,80 +30,37 @@ export async function prepareValidatedVideoUpload(
   const { session, supabase } = await requireWritableMediaSession();
   validateCandidate(candidate);
 
-  let admin;
-  try {
-    admin = createControlAdminClient();
-  } catch (error) {
-    console.error("Video-upload mist serverconfiguratie", error);
-    throw new MediaUploadError(
-      "De beveiligde uploadservice is niet beschikbaar. Er is niets aangemaakt; neem contact op met een beheerder."
-    );
-  }
-
-  const assetId = randomUUID();
-  const uploadSessionId = randomUUID();
   const safeFileName = sanitizeVideoFileName(candidate.fileName);
-  const storagePath =
-    `tenants/${session.tenantId}/assets/${assetId}/original/${safeFileName}`;
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1_000).toISOString();
-
-  const { error: assetError } = await supabase.from("media_assets").insert({
-    created_by: session.userId,
-    file_size_bytes: candidate.fileSizeBytes,
-    id: assetId,
-    kind: "video",
-    mime_type: "video/mp4",
-    original_file_name: safeFileName,
-    status: "uploading",
-    storage_bucket: "tenant-media",
-    storage_path: storagePath,
-    tenant_id: session.tenantId,
-    title: candidate.title.trim()
+  const { data, error } = await supabase.rpc("create_media_video_upload_intent", {
+    p_expected_mime_type: candidate.mimeType,
+    p_expected_size_bytes: candidate.fileSizeBytes,
+    p_idempotency_key: candidate.idempotencyKey,
+    p_original_file_name: safeFileName,
+    p_tenant_id: session.tenantId,
+    p_title: candidate.title.trim()
   });
-  if (assetError) {
-    console.error("Videoregistratie mislukt", assetError);
+  const intent = Array.isArray(data) ? data[0] : null;
+  if (
+    error || !intent || typeof intent.upload_session_id !== "string"
+    || typeof intent.storage_path !== "string" || typeof intent.expires_at !== "string"
+  ) {
+    console.error("Video-uploadintent maken mislukt", error);
     throw new MediaUploadError(
-      "VeyoCast kon de videoregistratie niet maken. Er is geen bestand opgeslagen; probeer opnieuw."
-    );
-  }
-
-  const { error: sessionError } = await supabase.from("media_upload_sessions").insert({
-    asset_id: assetId,
-    created_by: session.userId,
-    expected_mime_type: "video/mp4",
-    expected_size_bytes: candidate.fileSizeBytes,
-    expires_at: expiresAt,
-    id: uploadSessionId,
-    status: "pending",
-    storage_bucket: "tenant-media",
-    storage_path: storagePath,
-    tenant_id: session.tenantId
-  });
-  if (sessionError) {
-    console.error("Video-uploadsessie maken mislukt", sessionError);
-    await admin.from("media_assets").delete().eq("id", assetId);
-    throw new MediaUploadError(
-      "De beveiligde uploadsessie kon niet worden gemaakt. Er is niets opgeslagen; probeer opnieuw."
-    );
-  }
-
-  const { data, error: signedUrlError } = await admin.storage
-    .from("tenant-media")
-    .createSignedUploadUrl(storagePath, { upsert: false });
-  if (signedUrlError || !data?.token) {
-    console.error("Signed video-upload voorbereiden mislukt", signedUrlError);
-    await admin.from("media_assets").delete().eq("id", assetId);
-    throw new MediaUploadError(
-      "De tijdelijke uploadtoegang kon niet worden gemaakt. Er is niets opgeslagen; probeer opnieuw."
+      error?.code === "53100"
+        ? "De opslaglimiet van deze vereniging is bereikt. Archiveer ongebruikte media of verhoog de limiet voordat je opnieuw uploadt."
+        : error?.code === "54000"
+          ? "Er staan al vijf video-uploads open. Hervat of annuleer een bestaande upload voordat je een nieuwe start."
+        : "De beveiligde uploadsessie kon niet worden gemaakt. Er is niets opgeslagen; probeer opnieuw."
     );
   }
 
   return {
     bucket: "tenant-media",
-    path: storagePath,
+    expiresAt: intent.expires_at,
+    path: intent.storage_path,
+    resumed: intent.resumed === true,
     title: candidate.title.trim(),
-    token: data.token,
-    uploadSessionId
+    uploadSessionId: intent.upload_session_id
   };
 }
 
@@ -115,11 +72,24 @@ export async function finalizeValidatedVideoUpload(uploadSessionId: string) {
     );
   }
 
-  const { data, error } = await supabase.rpc("finalize_media_video_upload", {
+  const { data, error } = await supabase.rpc("finalize_media_video_upload_v2", {
     p_upload_session_id: uploadSessionId
   });
   if (error || !Array.isArray(data) || data.length !== 1) {
     console.error("Video-upload finaliseren mislukt", error);
+    if (error?.code === "22023") {
+      const { error: quarantineError } = await supabase.rpc(
+        "quarantine_media_video_upload",
+        {
+          p_reason: "storage_metadata_mismatch",
+          p_upload_session_id: uploadSessionId
+        }
+      );
+      if (quarantineError) console.error("Afwijkende video quarantaine mislukt", quarantineError);
+      throw new MediaUploadError(
+        "De opgeslagen video wijkt af van de vooraf gecontroleerde grootte of het MIME-type en is in quarantaine geplaatst. Lever het bronbestand opnieuw aan."
+      );
+    }
     throw new MediaUploadError(
       "De opgeslagen video kon nog niet veilig worden geverifieerd en staat niet in de verwerkingsqueue. Probeer de afronding opnieuw."
     );
@@ -145,20 +115,12 @@ export async function cancelValidatedVideoUpload(uploadSessionId: string) {
   const { error: removalError } = await admin.storage
     .from(data.storage_bucket)
     .remove([data.storage_path]);
-  const { error: sessionUpdateError } = await admin
-    .from("media_upload_sessions")
-    .update({ status: "cancelled" })
-    .eq("id", uploadSessionId);
-  const { error: assetUpdateError } = await admin
-    .from("media_assets")
-    .update({
-      status: "validation_failed",
-      validation_error: "client_upload_failed"
-    })
-    .eq("tenant_id", session.tenantId)
-    .eq("id", data.asset_id);
+  const { data: cancelled, error: cancellationError } = await supabase.rpc(
+    "cancel_media_video_upload",
+    { p_upload_session_id: uploadSessionId }
+  );
   return {
-    blocked: !sessionUpdateError && !assetUpdateError,
+    blocked: !cancellationError && cancelled === true,
     removed: !removalError
   };
 }
@@ -182,6 +144,7 @@ function validateCandidate(candidate: VideoUploadCandidate) {
     );
   }
   if (
+    !isUuid(candidate.idempotencyKey) ||
     typeof candidate.fileName !== "string" ||
     candidate.fileName.length > 255 ||
     !/\.mp4$/i.test(candidate.fileName)

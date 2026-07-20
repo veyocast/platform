@@ -65,7 +65,7 @@ tests en exitcriteria staan in
 | S21 | Identity, tenantcontext, capabilities en MFA | Expliciete tenantselectie, centrale capabilities, AAL2 en statusafdwinging |
 | S22 | Platform lifecycle en teambeheer | Complete tenantprovisioning, lifecycle, limieten, invitations en rollen |
 | S23 | Control UX-fundering | Nieuwe informatiearchitectuur, shared UI, responsive shell en resourcepatronen |
-| S24 | Media workspace | Detailroutes, resumable uploads, processingherstel en usage foundation |
+| S24 | Media workspace | Gepagineerde lijst/raster en inspector, veilige TUS-resume, processingherstel en asset→draft→release→scherm-gebruik |
 | S25 | Playlist Studio | Gescheiden editor, optimistic concurrency en centrale publicatiegereedheid |
 | S26 | Release Center | Releasehistorie, vergelijking, impactanalyse, schermpreflight en guided publish |
 | S27 | Schermvloot en onboarding | Transactionele screen lifecycle, pairingjourney, detail en devicebeheer |
