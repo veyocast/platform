@@ -39,6 +39,55 @@ test("collapsed desktop navigation remains keyboard restorable", async ({ page }
   ).toBeVisible();
 });
 
+test("control shell reflows across canonical viewport widths", async ({ page }) => {
+  for (const width of [320, 390, 768, 1280]) {
+    await page.setViewportSize({ height: 900, width });
+    await page.goto("/dashboard");
+
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
+      )
+    ).toBe(true);
+
+    if (width < 1024) {
+      const menuButton = page.getByRole("button", { name: "Navigatie openen" });
+      const quickNavigation = page.getByRole("button", {
+        name: "Snel naar een onderdeel"
+      });
+
+      for (const control of [menuButton, quickNavigation]) {
+        const box = await control.boundingBox();
+        expect(box?.height).toBeGreaterThanOrEqual(44);
+        expect(box?.width).toBeGreaterThanOrEqual(44);
+      }
+
+      await menuButton.click();
+      const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
+      await expect(navigation.getByText("Verenigingscontext", { exact: true })).toBeVisible();
+      await expect(navigation.getByRole("heading", { name: "Content" })).toBeVisible();
+      await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
+    } else {
+      await expect(page.getByRole("navigation", { name: "Hoofdnavigatie" })).toBeVisible();
+    }
+  }
+});
+
+test("shared audit table becomes labelled mobile rows", async ({ page }) => {
+  await page.setViewportSize({ height: 844, width: 320 });
+  await page.goto("/dashboard/auditlog");
+
+  await expect(
+    page.getByRole("table", { name: "Gebeurtenissen binnen de actieve vereniging." })
+  ).toBeVisible();
+  await expect(page.locator(".vc-data-table td[data-label='Tijd']")).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
+    )
+  ).toBe(true);
+});
+
 test("tenant context selection is explicit and keyboard reachable", async ({ page }) => {
   await page.goto("/dashboard");
 

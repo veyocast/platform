@@ -11,6 +11,7 @@ export default [
       "**/next-env.d.ts",
       "**/node_modules/**",
       "**/playwright-report/**",
+      "**/storybook-static/**",
       "**/test-results/**"
     ]
   },

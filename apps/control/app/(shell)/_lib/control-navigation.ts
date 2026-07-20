@@ -7,21 +7,27 @@ export type ControlRole = HumanRole;
 
 export type ControlScope = "platform" | "tenant";
 
-export type NavigationStatus = "ready" | "placeholder";
+export type ControlNavigationSection =
+  | "overview"
+  | "content"
+  | "distribution"
+  | "organization";
 
 export type ControlNavigationItem = {
   description: string;
   href: string;
   label: string;
   requiredCapability: Capability;
+  section: ControlNavigationSection;
   scope: ControlScope;
-  status: NavigationStatus;
 };
 
 export type ControlNavigationGroup = {
+  contextLabel: string;
   description: string;
+  id: string;
   items: ControlNavigationItem[];
-  roleLabel: string;
+  section: ControlNavigationSection;
   scope: ControlScope;
   title: string;
 };
@@ -55,105 +61,100 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/platform",
     label: "Platform",
     requiredCapability: "platform.system.read",
-    scope: "platform",
-    status: "placeholder"
+    section: "overview",
+    scope: "platform"
   },
   {
     description: "Verenigingen, status en limieten",
     href: "/platform/tenants",
     label: "Tenants",
     requiredCapability: "platform.tenant.read",
-    scope: "platform",
-    status: "placeholder"
+    section: "organization",
+    scope: "platform"
   },
   {
     description: "Platformrollen en MFA-status",
     href: "/platform/users",
     label: "Platformgebruikers",
     requiredCapability: "platform.user.manage",
-    scope: "platform",
-    status: "ready"
+    section: "organization",
+    scope: "platform"
   },
   {
     description: "Dagelijkse operatie en aandachtspunten",
     href: "/dashboard",
     label: "Dashboard",
     requiredCapability: "tenant.overview.read",
-    scope: "tenant",
-    status: "ready"
-  },
-  {
-    description: "Upload, publicatie en Player-koppeling",
-    href: "/dashboard/pilot",
-    label: "Pilotflow",
-    requiredCapability: "tenant.playlist.write",
-    scope: "tenant",
-    status: "ready"
+    section: "overview",
+    scope: "tenant"
   },
   {
     description: "Bibliotheek, verwerking en gebruik",
     href: "/dashboard/media",
     label: "Media",
     requiredCapability: "tenant.media.read",
-    scope: "tenant",
-    status: "ready"
+    section: "content",
+    scope: "tenant"
   },
   {
     description: "Concepten, publicaties en releases",
     href: "/dashboard/playlists",
     label: "Playlists",
     requiredCapability: "tenant.playlist.read",
-    scope: "tenant",
-    status: "ready"
+    section: "content",
+    scope: "tenant"
   },
   {
     description: "Vloot, koppeling en diagnose",
     href: "/dashboard/screens",
     label: "Schermen",
     requiredCapability: "tenant.screen.read",
-    scope: "tenant",
-    status: "ready"
+    section: "distribution",
+    scope: "tenant"
   },
   {
     description: "Mensen, rollen en uitnodigingen",
     href: "/dashboard/team",
     label: "Team",
     requiredCapability: "tenant.team.read",
-    scope: "tenant",
-    status: "placeholder"
+    section: "organization",
+    scope: "tenant"
   },
   {
     description: "Gebeurtenissen en beveiligingsspoor",
     href: "/dashboard/auditlog",
     label: "Auditlog",
     requiredCapability: "tenant.audit.read",
-    scope: "tenant",
-    status: "placeholder"
+    section: "organization",
+    scope: "tenant"
   },
   {
     description: "Profiel, limieten en beveiliging",
     href: "/dashboard/settings",
     label: "Instellingen",
     requiredCapability: "tenant.settings.read",
-    scope: "tenant",
-    status: "placeholder"
+    section: "organization",
+    scope: "tenant"
   }
 ];
 
-const navigationGroupMeta = [
-  {
-    description: "Alleen zichtbaar voor platformrollen.",
-    roleLabel: "Platformadmin",
-    scope: "platform",
-    title: "Platform"
+const navigationScopeMeta = {
+  platform: {
+    contextLabel: "Platformcontext",
+    description: "Platformbreed beheer"
   },
-  {
-    description: "Zichtbaar binnen de actieve tenantcontext.",
-    roleLabel: "Tenantbeheer",
-    scope: "tenant",
-    title: "Tenant"
+  tenant: {
+    contextLabel: "Verenigingscontext",
+    description: "Binnen de actieve vereniging"
   }
-] satisfies readonly Omit<ControlNavigationGroup, "items">[];
+} satisfies Record<ControlScope, Readonly<{ contextLabel: string; description: string }>>;
+
+const navigationSectionMeta = [
+  { section: "overview", title: "Overzicht" },
+  { section: "content", title: "Content" },
+  { section: "distribution", title: "Distributie" },
+  { section: "organization", title: "Organisatie" }
+] satisfies readonly Readonly<{ section: ControlNavigationSection; title: string }>[];
 
 export function getNavigationForRoles(
   roles: readonly ControlRole[],
@@ -171,12 +172,26 @@ export function getNavigationGroupsForRoles(
 ): ControlNavigationGroup[] {
   const permittedItems = getNavigationForRoles(roles, includeTenantScope);
 
-  return navigationGroupMeta
-    .map((group) => ({
-      ...group,
-      items: permittedItems.filter((item) => item.scope === group.scope)
-    }))
-    .filter((group) => group.items.length > 0);
+  return (["platform", "tenant"] as const).flatMap((scope) =>
+    navigationSectionMeta.flatMap(({ section, title }) => {
+      const items = permittedItems.filter(
+        (item) => item.scope === scope && item.section === section
+      );
+
+      return items.length
+        ? [
+            {
+              ...navigationScopeMeta[scope],
+              id: `${scope}-${section}`,
+              items,
+              scope,
+              section,
+              title
+            }
+          ]
+        : [];
+    })
+  );
 }
 
 export function getControlSessionRoles(

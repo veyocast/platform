@@ -1,17 +1,6 @@
-import type { ReactNode } from "react";
+import { StatusPill, type StatusTone } from "@veyocast/ui";
 
-type StatusTone = "critical" | "info" | "neutral" | "success" | "warning";
-
-type PageHeaderProps = {
-  actions?: ReactNode;
-  description: string;
-  eyebrow: string;
-  status?: {
-    label: string;
-    tone: StatusTone;
-  };
-  title: string;
-};
+export { PageHeader, StatusPill } from "@veyocast/ui";
 
 type MetricCardProps = {
   detail: string;
@@ -33,21 +22,6 @@ type TimelineItem = {
   meta: string;
   tone: StatusTone;
 };
-
-export function StatusPill({
-  label,
-  tone = "neutral"
-}: {
-  label: string;
-  tone?: StatusTone;
-}) {
-  return (
-    <span className={`status-pill status-pill--${tone}`}>
-      <span className="status-pill__dot" aria-hidden="true" />
-      {label}
-    </span>
-  );
-}
 
 export function HealthList({
   ariaLabel,
@@ -93,32 +67,6 @@ export function Timeline({
         </li>
       ))}
     </ol>
-  );
-}
-
-export function PageHeader({
-  actions,
-  description,
-  eyebrow,
-  status,
-  title
-}: PageHeaderProps) {
-  return (
-    <header className="page-header">
-      <nav aria-label="Broodkruimel" className="breadcrumbs">
-        <span>Control</span>
-        <span aria-hidden="true">/</span>
-        <span>{eyebrow}</span>
-      </nav>
-      <div className="page-header__main">
-        <div className="page-header__copy">
-          <h1 className="page-title">{title}</h1>
-          <p className="page-description">{description}</p>
-          {status ? <StatusPill label={status.label} tone={status.tone} /> : null}
-        </div>
-        {actions ? <div className="page-actions">{actions}</div> : null}
-      </div>
-    </header>
   );
 }
 

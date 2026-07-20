@@ -7,5 +7,6 @@ export * from "./components/icon-button";
 export * from "./components/layout";
 export * from "./components/link";
 export * from "./components/progress";
+export * from "./components/resource";
 export * from "./components/states";
 export * from "./utils";

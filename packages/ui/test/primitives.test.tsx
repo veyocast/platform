@@ -6,10 +6,15 @@ import { describe, expect, it } from "vitest";
 import {
   Badge,
   Button,
+  DataTable,
   Field,
   IconButton,
+  Inspector,
+  PageHeader,
   Progress,
-  TextInput
+  ResourceState,
+  TextInput,
+  Toolbar
 } from "../src";
 
 describe("@veyocast/ui primitives", () => {
@@ -57,6 +62,56 @@ describe("@veyocast/ui primitives", () => {
     expect(html).toContain('aria-label="Upload progress"');
     expect(html).toContain('aria-valuenow="25"');
     expect(html).toContain("--vc-progress-value:25%");
+  });
+
+  it("renders the shared resource page contract", () => {
+    const html = renderToStaticMarkup(
+      <>
+        <PageHeader
+          actions={<Button>Media uploaden</Button>}
+          breadcrumbs={[{ href: "/dashboard", label: "Overzicht" }, { label: "Media" }]}
+          description="Beheer media binnen de actieve vereniging."
+          status={{ label: "Live tenantdata", tone: "success" }}
+          title="Media"
+        />
+        <Toolbar summary="1 van 84 media-items">
+          <TextInput aria-label="Media zoeken" type="search" />
+        </Toolbar>
+        <DataTable caption="Media binnen de actieve vereniging.">
+          <thead><tr><th scope="col">Naam</th></tr></thead>
+          <tbody><tr><td data-label="Naam">Welkomstscherm</td></tr></tbody>
+        </DataTable>
+        <Inspector description="Welkomstscherm" title="Mediadetail">
+          <p>Gereed voor gebruik.</p>
+        </Inspector>
+      </>
+    );
+
+    expect(html).toContain('aria-label="Broodkruimel"');
+    expect(html).toContain("vc-page-header__actions");
+    expect(html).toContain("vc-toolbar__summary");
+    expect(html).toContain("vc-data-table--responsive");
+    expect(html).toContain("vc-inspector");
+  });
+
+  it("exposes explicit loading, forbidden and stale states", () => {
+    const loading = renderToStaticMarkup(
+      <ResourceState kind="loading" title="Media laden" />
+    );
+    const forbidden = renderToStaticMarkup(
+      <ResourceState kind="forbidden" title="Geen toegang">
+        Vraag een beheerder om toegang.
+      </ResourceState>
+    );
+    const stale = renderToStaticMarkup(
+      <ResourceState kind="stale" title="Gegevens zijn verouderd">
+        Vernieuw de pagina om de actuele status te laden.
+      </ResourceState>
+    );
+
+    expect(loading).toContain('aria-busy="true"');
+    expect(forbidden).toContain("vc-resource-state--forbidden");
+    expect(stale).toContain("vc-alert--warning");
   });
 
   it("uses css variables instead of hardcoded hex colors in component styles", async () => {

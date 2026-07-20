@@ -11,19 +11,24 @@ import {
   CardHeader,
   CardTitle,
   Container,
+  DataTable,
   EmptyState,
   ErrorState,
   Field,
   Grid,
   IconButton,
+  Inspector,
   Link,
+  PageHeader,
   Progress,
+  ResourceState,
   Skeleton,
   Stack,
   StatusDot,
   Switch,
   TextInput,
-  Textarea
+  Textarea,
+  Toolbar
 } from "../index";
 
 const meta = {
@@ -137,5 +142,39 @@ export const LightAndDark: Story = {
         </div>
       ))}
     </Grid>
+  )
+};
+
+export const ResourcePageContract: Story = {
+  render: () => (
+    <Container size="wide" style={{ paddingBlock: "var(--vc-space-32)" }}>
+      <Stack gap="var(--vc-space-24)">
+        <PageHeader
+          actions={<Button>Media uploaden</Button>}
+          breadcrumbs={[{ href: "#", label: "Content" }, { label: "Media" }]}
+          description="Beheer, controleer en hergebruik media binnen de actieve vereniging."
+          status={{ label: "Live tenantdata", tone: "success" }}
+          title="Media"
+        />
+        <Toolbar summary="1 van 84 media-items">
+          <TextInput aria-label="Media zoeken" placeholder="Zoek op naam" type="search" />
+          <Button variant="secondary">Filters</Button>
+        </Toolbar>
+        <DataTable caption="Media binnen de actieve vereniging.">
+          <thead><tr><th scope="col">Naam</th><th scope="col">Status</th><th scope="col">Gebruik</th></tr></thead>
+          <tbody><tr><td data-label="Naam">Welkomstscherm</td><td data-label="Status"><Badge status="success">Gereed</Badge></td><td data-label="Gebruik" data-priority="secondary">2 playlists</td></tr></tbody>
+        </DataTable>
+        <Grid minItemWidth="18rem">
+          <Inspector description="Welkomstscherm.png" status={{ label: "Gereed", tone: "success" }} title="Mediadetail">
+            <p>Dit bestand wordt gebruikt in twee playlistconcepten.</p>
+          </Inspector>
+          <Stack>
+            <ResourceState kind="empty" title="Geen media gevonden">Pas de filters aan of upload een nieuw bestand.</ResourceState>
+            <ResourceState kind="forbidden" title="Geen toegang">Vraag een beheerder om de capability voor mediabeheer.</ResourceState>
+            <ResourceState kind="stale" title="Status mogelijk verouderd">Vernieuw om de laatste verwerkingsstatus te laden.</ResourceState>
+          </Stack>
+        </Grid>
+      </Stack>
+    </Container>
   )
 };
