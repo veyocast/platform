@@ -17,6 +17,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Search,
+  ServerCog,
   Settings2,
   ShieldCheck,
   Users,
@@ -50,6 +51,7 @@ const navigationIcons: Record<string, LucideIcon> = {
   Playlists: ListVideo,
   Releases: PackageCheck,
   Schermen: MonitorSmartphone,
+  Systeem: ServerCog,
   Team: Users,
   Tenants: Building2
 };

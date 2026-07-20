@@ -21,7 +21,8 @@ export const capabilities = [
   "tenant.team.manage",
   "tenant.settings.read",
   "tenant.settings.manage",
-  "tenant.audit.read"
+  "tenant.audit.read",
+  "tenant.support.export"
 ] as const;
 
 export type Capability = (typeof capabilities)[number];
@@ -47,7 +48,8 @@ const tenantManageCapabilities = [
   "tenant.screen.manage",
   "tenant.team.manage",
   "tenant.settings.manage",
-  "tenant.audit.read"
+  "tenant.audit.read",
+  "tenant.support.export"
 ] as const satisfies readonly Capability[];
 
 export const roleCapabilityMatrix: Readonly<
@@ -60,7 +62,8 @@ export const roleCapabilityMatrix: Readonly<
     "platform.audit.read",
     "platform.system.read",
     ...tenantReadCapabilities,
-    "tenant.audit.read"
+    "tenant.audit.read",
+    "tenant.support.export"
   ],
   platform_viewer: ["platform.tenant.read", "platform.system.read"],
   tenant_owner: [

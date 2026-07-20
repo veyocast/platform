@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { FilterBar } from "@veyocast/ui";
+
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { MetricCard, PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { loadScreenFleet, type FleetDevice, type FleetScreen } from "./data";
@@ -56,13 +58,16 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       <MetricCard detail="De database blokkeert iedere create boven deze grens." label="Schermlimiet" tone={data.screens.length >= data.limit && data.limit > 0 ? "warning" : "neutral"} value={`${data.screens.length}/${data.limit || "—"}`} />
     </section>
 
-    <form className="resource-toolbar" method="get">
-      <div className="resource-toolbar__group">
+    <form method="get" role="search">
+      <FilterBar
+        activeCount={Number(Boolean(normalizedQuery)) + Number(statusFilter !== "all")}
+        clearHref="/dashboard/screens"
+        results={`${filteredScreens.length} van ${data.screens.length} schermen`}
+      >
         <label className="toolbar-field"><span>Zoeken</span><input className="toolbar-search" defaultValue={query.q ?? ""} name="q" placeholder="Scherm, locatie of Player" type="search" /></label>
         <label className="toolbar-field"><span>Status</span><select className="toolbar-select" defaultValue={statusFilter} name="status"><option value="all">Alle statussen</option><option value="online">Online</option><option value="offline">Offline</option><option value="syncing">Synchroniseren</option><option value="unpaired">Niet gekoppeld</option><option value="maintenance">Onderhoud</option><option value="disabled">Uitgeschakeld</option></select></label>
         <button className="button-link button-link--secondary" type="submit">Vloot filteren</button>
-      </div>
-      <p className="resource-toolbar__summary">{filteredScreens.length} van {data.screens.length} schermen</p>
+      </FilterBar>
     </form>
 
     <section className="workspace-section" aria-labelledby="screen-fleet-title">

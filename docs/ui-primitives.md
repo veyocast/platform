@@ -14,7 +14,7 @@ Control, Marketing and Player setup states.
   `EmptyState`, `ErrorState`.
 - Surfaces: `Card`, `CardHeader`, `CardTitle`, `CardDescription`,
   `CardContent`.
-- Resource pages: `PageHeader`, `Toolbar`, `DataTable`, `Inspector`,
+- Resource pages: `PageHeader`, `Toolbar`, `FilterBar`, `DataTable`, `Inspector`,
   `ResourceState` and the compatibility `StatusPill`.
 
 ## Usage
@@ -48,6 +48,10 @@ because color and dots must never be the only status signal.
   and the page actions. A resource page exposes at most one primary action.
 - `Toolbar` groups search, filters, sorting and view controls. Query-backed
   controls use URL state so filtered views remain linkable and recoverable.
+- `FilterBar` is the canonical dense resource filter. It keeps the result count
+  visible, reports active filters, offers a URL reset and collapses to one
+  Radix-backed sequential control on mobile. Media, Playlists and Screens use
+  this same contract.
 - `DataTable` requires a meaningful caption. Responsive rows require a
   `data-label` on every cell; secondary cells can use
   `data-priority="secondary"` when hiding them below 480 px does not remove the

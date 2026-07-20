@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 import { VEYOCAST_APPS, getLocalUrl } from "@veyocast/config";
+import { createStructuredLogger } from "@veyocast/observability";
 
 import { readMediaWorkerConfig } from "./worker-config";
 import { SupabaseMediaWorkerBackend } from "./worker-backend";
@@ -87,13 +88,18 @@ async function main() {
   }
 
   const config = readMediaWorkerConfig();
+  const logger = createStructuredLogger({
+    environment: process.env.VEYOCAST_ENVIRONMENT ?? "development",
+    revision: process.env.DEPLOYMENT_SHA ?? "development",
+    service: "media-worker"
+  });
   const backend = new SupabaseMediaWorkerBackend(
     config.supabaseUrl,
     config.serviceRoleKey
   );
   if (mode === "--once") {
     const result = await runWorkerOnce({ backend, config });
-    console.log(JSON.stringify(result));
+    logWorkerResult(logger, result);
     if (result.status === "failed") process.exitCode = 1;
     return;
   }
@@ -103,18 +109,21 @@ async function main() {
   const healthServer = await runtimeHealth.startServer();
   const stop = () => {
     runtimeHealth.markDraining();
+    logger.info("media.worker.draining");
     controller.abort();
   };
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
   try {
+    logger.info("media.worker.started", { workerId: config.workerId });
     await runWorkerLoop({
       backend,
       config,
       onQueuePoll: runtimeHealth.markPoll,
       onResult: (result) => {
         runtimeHealth.markPoll();
-        console.log(JSON.stringify(result));
+        runtimeHealth.markResult(result.status);
+        logWorkerResult(logger, result);
       },
       signal: controller.signal
     });
@@ -122,6 +131,30 @@ async function main() {
     process.removeListener("SIGINT", stop);
     process.removeListener("SIGTERM", stop);
     await closeServer(healthServer);
+    logger.info("media.worker.stopped");
+  }
+}
+
+function logWorkerResult(
+  logger: ReturnType<typeof createStructuredLogger>,
+  result: Awaited<ReturnType<typeof runWorkerOnce>>
+) {
+  const eventLogger = result.status === "idle" ? logger : logger.withCorrelation(result.jobId);
+  if (result.status === "idle") {
+    eventLogger.debug("media.queue.polled", { outcome: "idle" });
+  } else if (result.status === "completed") {
+    eventLogger.info("media.job.completed", {
+      assetId: result.assetId,
+      jobId: result.jobId,
+      outcome: result.status
+    });
+  } else {
+    eventLogger.error("media.job.failed", {
+      assetId: result.assetId,
+      errorCode: result.errorCode,
+      jobId: result.jobId,
+      outcome: result.status
+    });
   }
 }
 
@@ -131,12 +164,15 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       error instanceof Error && "code" in error && typeof error.code === "string"
         ? error.code
         : "worker_unhandled_error";
-    console.error(JSON.stringify({
-      code,
-      message: error instanceof Error ? error.message : "Onbekende workerfout.",
-      service: VEYOCAST_APPS["media-worker"].name,
-      status: "error"
-    }));
+    createStructuredLogger({
+      environment: process.env.VEYOCAST_ENVIRONMENT ?? "development",
+      revision: process.env.DEPLOYMENT_SHA ?? "development",
+      service: "media-worker"
+    }, (line) => process.stderr.write(`${line}\n`)).error("media.job.failed", {
+      errorCode: code,
+      errorName: error instanceof Error ? error.name : "unknown",
+      outcome: "worker_unhandled_error"
+    });
     process.exitCode = 1;
   });
 }

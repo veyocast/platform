@@ -44,6 +44,8 @@ Achtergrondverwerking voor thumbnails, checksums, video metadata en later transc
 - `packages/database`: Supabase clients, typed queries, generated types.
 - `packages/integrations`: provider adapter interface.
 - `packages/config`: env parsing.
+- `packages/observability`: frameworkvrije eventcatalogus, redactie,
+  correlation IDs, SLO/alert- en allowlisted supportbundlecontracts.
 - `packages/testkit`: fixtures en test helpers.
 
 De huidige incrementele foundation gebruikt daarnaast expliciet:
@@ -53,6 +55,9 @@ De huidige incrementele foundation gebruikt daarnaast expliciet:
 - `packages/domain`: canonieke identitytypes en pure businessregels;
 - `packages/auth`: pure rol-naar-capabilitybeslissingen zonder sessie- of I/O-
   afhankelijkheid.
+- `packages/observability`: schrijft geen transport of storage voor en bevat
+  geen environmentcredentials; apps kiezen writer, telemetryadapter en
+  capabilityboundary.
 
 ## Dependency direction
 

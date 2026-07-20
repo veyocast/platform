@@ -35,6 +35,8 @@ describe("capability decisions", () => {
       capability: "tenant.media.write",
       reason: "missing_capability"
     });
+    expect(hasCapability(["tenant_viewer"], "tenant.support.export")).toBe(false);
+    expect(hasCapability(["tenant_admin"], "tenant.support.export")).toBe(true);
   });
 
   it("unions capabilities without duplicate entries", () => {

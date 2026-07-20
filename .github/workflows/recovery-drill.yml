@@ -1,0 +1,52 @@
+name: VeyoCast staging recovery drill
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Typ RESTORE_STAGING om het disposable restoredoel te overschrijven
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: veyocast-staging-recovery
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    name: Restore staging backup in disposable database
+    if: inputs.confirmation == 'RESTORE_STAGING'
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - veyocast
+      - staging
+    environment:
+      name: staging
+    timeout-minutes: 45
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          clean: true
+          persist-credentials: false
+          ref: main
+
+      - name: Remove stale workspace files
+        shell: bash
+        run: git clean -ffdx
+
+      - name: Restore and verify disposable staging database
+        shell: bash
+        env:
+          DEPLOYMENT_SHA: ${{ github.sha }}
+          RECOVERY_DRILL_CONFIRM: ${{ inputs.confirmation }}
+          RESTORE_DATABASE_URL: ${{ secrets.SUPABASE_RESTORE_DRILL_DB_URL }}
+          SOURCE_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SOURCE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+          VEYOCAST_ENVIRONMENT: staging
+        run: bash scripts/recovery-drill.sh

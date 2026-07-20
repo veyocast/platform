@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { hasCapability } from "@veyocast/auth";
+import { FilterBar } from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../lib/control-session";
 import { MetricCard, PageHeader, StatusPill } from "../../_components/shell-primitives";
@@ -53,15 +54,18 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
         <MetricCard detail="Playlists die op minimaal één actief scherm zijn toegewezen." label="Toegewezen" tone="neutral" value={String(assignedCount)} />
       </section>
 
-      <form className="resource-toolbar" method="get" role="search">
-        <div className="resource-toolbar__group">
+      <form method="get" role="search">
+        <FilterBar
+          activeCount={playlistFilterCount(filter)}
+          clearHref="/dashboard/playlists"
+          results={`${data.total} ${data.total === 1 ? "playlist" : "playlists"}`}
+        >
           <input aria-label="Zoeken in playlists" className="toolbar-search" defaultValue={filter.query} name="q" placeholder="Zoeken op playlistnaam" type="search" />
           <label className="toolbar-field"><span>Status</span><select defaultValue={filter.status} name="status"><option value="all">Alle statussen</option><option value="draft">Concept</option><option value="published">Gepubliceerd</option><option value="archived">Gearchiveerd</option></select></label>
           <label className="toolbar-field"><span>Schermgebruik</span><select defaultValue={filter.assignment} name="assignment"><option value="all">Alle toewijzingen</option><option value="assigned">Toegewezen</option><option value="unassigned">Niet toegewezen</option></select></label>
           <label className="toolbar-field"><span>Sorteren</span><select defaultValue={filter.sort} name="sort"><option value="updated">Laatst gewijzigd</option><option value="name">Naam</option></select></label>
           <button className="button-link button-link--secondary" type="submit">Filters toepassen</button>
-        </div>
-        <p className="resource-toolbar__summary">{data.total} {data.total === 1 ? "playlist" : "playlists"}</p>
+        </FilterBar>
       </form>
 
       <section className="resource-workspace">
@@ -114,6 +118,15 @@ function parseFilter(params: Awaited<PlaylistsPageProps["searchParams"]>): Playl
     sort: params.sort === "name" ? "name" : "updated",
     status: params.status === "draft" || params.status === "published" || params.status === "archived" ? params.status : "all"
   };
+}
+
+function playlistFilterCount(filter: PlaylistListFilter) {
+  return [
+    Boolean(filter.query),
+    filter.status !== "all",
+    filter.assignment !== "all",
+    filter.sort !== "updated"
+  ].filter(Boolean).length;
 }
 
 function playlistStatus(status: string, lastPublishedVersion: number | null) {
