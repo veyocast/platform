@@ -106,7 +106,8 @@ machinebrede Gitconfig of interactieve credentialinvoer.
 1. `preflight` controleert de main-SHA, environmentconfiguratie, secretvormen en
    de Rootless Docker-daemon.
 2. `build-release` installeert de frozen lockfile, voert lint, typecheck, tests
-   en build uit en bouwt eenmaal drie images:
+   en build uit met maximaal twee gelijktijdige Turbo-taken op de begrensde
+   self-hosted runner, en bouwt eenmaal drie images:
    - `veyocast-control:${GITHUB_SHA}`;
    - `veyocast-player:${GITHUB_SHA}`;
    - `veyocast-marketing:${GITHUB_SHA}`.

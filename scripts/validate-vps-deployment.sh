@@ -66,14 +66,21 @@ SUPABASE_DB_URL="postgresql://postgres.${production_ref}:password@aws-0-eu-centr
 GITHUB_SHA="${DEPLOYMENT_SHA}" \
   node scripts/preflight-deployment.mjs production >/dev/null
 
-if rg --line-number '(0\.0\.0\.0:|REVERSE_PROXY_NETWORK|caddy:)' infra/vps .github/workflows/deploy.yml; then
+if grep --recursive --line-number --extended-regexp '(0\.0\.0\.0:|REVERSE_PROXY_NETWORK|caddy:)' infra/vps .github/workflows/deploy.yml; then
   echo "Verboden publieke bind of reverse-proxypad gevonden." >&2
   exit 1
 fi
 
-if rg --line-number '(^|[[:space:]])build:' infra/vps/compose.yaml; then
+if grep --line-number --extended-regexp '(^|[[:space:]])build:' infra/vps/compose.yaml; then
   echo "De deployment-Compose mag geen buildinstructies bevatten." >&2
   exit 1
 fi
 
 bash -n scripts/deploy-vps.sh scripts/migrate-supabase.sh scripts/validate-vps-deployment.sh
+
+for gate in lint typecheck test build; do
+  if ! grep --fixed-strings --quiet -- "pnpm ${gate} --concurrency=\"\${release_gate_concurrency}\"" scripts/deploy-vps.sh; then
+    echo "Releasegate ${gate} mist de begrensde self-hosted-runnerconcurrency." >&2
+    exit 1
+  fi
+done

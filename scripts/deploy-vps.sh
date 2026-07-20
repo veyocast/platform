@@ -319,6 +319,12 @@ wait_for_marketing_image() {
 }
 
 build_release() {
+  # De stagingrunner deelt zijn beperkte CPU/geheugenbudget met Rootless Docker.
+  # Turbo's standaardparallelisme kan daardoor meerdere TypeScript-processen
+  # tegelijk verliezen voordat de eigenlijke imagebuild begint. Alle gates
+  # blijven verplicht; alleen hun gelijktijdigheid wordt hier begrensd.
+  local -r release_gate_concurrency=2
+
   run_preflight
   if [[ ${environment} != staging ]]; then
     echo "Immutable releases worden uitsluitend eenmaal op de staging-runner gebouwd." >&2
@@ -348,10 +354,10 @@ build_release() {
 
   cd "${repository_root}"
   pnpm install --frozen-lockfile
-  pnpm lint
-  pnpm typecheck
-  pnpm test
-  pnpm build
+  pnpm lint --concurrency="${release_gate_concurrency}"
+  pnpm typecheck --concurrency="${release_gate_concurrency}"
+  pnpm test --concurrency="${release_gate_concurrency}"
+  pnpm build --concurrency="${release_gate_concurrency}"
 
   install -d -m 0700 "${release_root}" "${release_directory}"
   local key_fingerprint
