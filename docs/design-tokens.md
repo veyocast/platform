@@ -19,5 +19,6 @@ The Tailwind preset intentionally references CSS variables instead of raw brand
 hex values. Product code should consume `vc.*` Tailwind tokens or `--vc-*` CSS
 variables, not hardcoded VeyoCast colors.
 
-The current logo assets are build-pack placeholders and remain temporary until
-official locked assets replace them.
+De officiële locked merkassets staan in `assets/brand/`. Hun intern vastgelegde
+kleuren blijven byte-ongewijzigd en zijn geen vervanging voor de semantische
+UI-kleurtokens in dit pakket.

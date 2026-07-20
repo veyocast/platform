@@ -1,7 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">VeyoCast placeholder icon</title>
-  <desc id="desc">Temporary VeyoCast V icon placeholder for development.</desc>
-  <rect width="512" height="512" rx="96" fill="#FAFAF7"/>
-  <path d="M88 88h96l72 242 72-242h96L304 424h-96L88 88Z" fill="#0A0A0A"/>
-  <path d="M226 194l96 62-96 62V194Z" fill="#FF5C20"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.1.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Laag_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#EC622C;}
+</style>
+<g>
+	<path class="st0" d="M44.55,76.7l148.05,0.05c46.09,80.88,91.56,166.15,136.45,248.11c-9.27,18.46-31.32,53.07-42.49,71.41
+		c-5.15,8.88-21.37,38.23-27.62,43.98C251.29,435.75,65,111.89,44.55,76.7z"/>
+	<path class="st0" d="M303,76.65c53.16,1.07,109.66,0.1,163.1,0.11c-12.76,20.67-24.57,43.21-36.63,64.45
+		c-25.33,44.65-49.84,90.15-75.6,134.52c-4.94,8.78-9.57,16.96-14.93,25.49c-12.66-18.71-32.03-53.72-43.07-73.96
+		c9.44-19.75,26.51-48,37.81-67.63c-25.13,0.72-55.52-1.01-79.03,0.61C270.77,133.28,286.27,102.8,303,76.65z"/>
+</g>
 </svg>

@@ -9,5 +9,11 @@
 *.pdf binary
 *.zip binary
 
+# Locked and generated brand SVGs are byte-stable release assets.
+assets/brand/*.svg binary
+apps/control/public/brand/*.svg binary
+apps/marketing/public/brand/*.svg binary
+apps/player/public/brand/*.svg binary
+
 # This verified canonical source uses Markdown hard line breaks intentionally.
 docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md whitespace=-trailing-space
