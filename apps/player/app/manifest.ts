@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    background_color: "#080808",
+    background_color: "#0A0A0A",
     description: "Offline-first VeyoCast signage player",
     display: "fullscreen",
     icons: [
@@ -31,11 +31,12 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png"
       }
     ],
+    id: "/",
     name: "VeyoCast Player",
     orientation: "landscape",
     scope: "/",
     short_name: "VeyoCast",
     start_url: "/",
-    theme_color: "#080808"
+    theme_color: "#0A0A0A"
   };
 }
