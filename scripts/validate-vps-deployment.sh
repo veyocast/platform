@@ -77,3 +77,10 @@ if rg --line-number '(^|[[:space:]])build:' infra/vps/compose.yaml; then
 fi
 
 bash -n scripts/deploy-vps.sh scripts/migrate-supabase.sh scripts/validate-vps-deployment.sh
+
+for gate in lint typecheck test build; do
+  if ! rg --fixed-strings "pnpm ${gate} --concurrency=\"\${release_gate_concurrency}\"" scripts/deploy-vps.sh >/dev/null; then
+    echo "Releasegate ${gate} mist de begrensde self-hosted-runnerconcurrency." >&2
+    exit 1
+  fi
+done
