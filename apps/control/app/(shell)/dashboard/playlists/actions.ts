@@ -10,6 +10,7 @@ import {
 
 import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { loadDraftPreflight } from "../releases/data";
 import { loadPlaylistStudio } from "./data";
 import { getReadinessCopy } from "./readiness-copy";
 
@@ -91,25 +92,36 @@ export async function archivePlaylist(formData: FormData) {
   redirect(`/dashboard/playlists?succes=${encodeURIComponent("De playlist is gearchiveerd. Bestaande releases blijven onveranderlijk.")}`);
 }
 
-export async function publishPlaylist(formData: FormData) {
+export async function publishPlaylistGuided(formData: FormData) {
   const { session, supabase } = await requirePlaylistWriter("tenant.playlist.publish", "publish");
   const playlistId = idValue(formData, "playlistId");
   const revision = expectedRevision(formData);
-  const screenIds = formData.getAll("screenIds").map(String).filter(Boolean);
+  const screenIds = [...new Set(formData.getAll("screenIds").map(String).filter(Boolean))];
   const releaseNotes = String(formData.get("releaseNotes") ?? "").trim();
-  if (screenIds.length === 0) fail(playlistId, "Kies minimaal één doelscherm. Er is geen release gemaakt.");
-  if (releaseNotes.length > 500) fail(playlistId, "De releasenotitie mag maximaal 500 tekens bevatten.");
+  if (!screenIds.length) failPublish(playlistId, "Kies minimaal één doelscherm. Er is geen release gemaakt.");
+  if (releaseNotes.length > 500) failPublish(playlistId, "De releasenotitie mag maximaal 500 tekens bevatten.");
+  if (formData.get("confirmPublish") !== "on") failPublish(playlistId, "Bevestig expliciet dat je een nieuwe immutable release maakt.");
 
   const studio = await loadPlaylistStudio(session.tenantId, playlistId, false);
-  if (!studio.playlist || !studio.readiness) fail(playlistId, "Het concept kon niet opnieuw worden gecontroleerd. Er is geen release gemaakt.");
+  if (!studio.playlist || !studio.readiness) failPublish(playlistId, "Het concept kon niet opnieuw worden gecontroleerd. Er is geen release gemaakt.");
   if (studio.playlist.revision !== revision) conflict(playlistId, revision, studio.playlist.revision, "publish");
   if (!studio.readiness.canPublish) {
     const blocker = studio.readiness.reasons[0];
     const message = blocker ? getReadinessCopy(blocker) : null;
-    fail(playlistId, message ? `${message.label}. ${message.detail} ${message.recovery}` : "De playlist is nog niet klaar voor publicatie.");
+    failPublish(playlistId, message ? `${message.label}. ${message.detail} ${message.recovery}` : "De playlist is nog niet klaar voor publicatie.");
   }
-  if (screenIds.some((screenId) => !studio.screens.some((screen) => screen.id === screenId))) {
-    fail(playlistId, "Een of meer gekozen schermen zijn niet beschikbaar binnen deze vereniging. Er is geen release gemaakt.");
+  const targetItems = studio.items.flatMap((item) => item.asset?.variant
+    ? [{ checksumSha256: item.asset.variant.checksumSha256, fileSizeBytes: item.asset.variant.fileSizeBytes }]
+    : []);
+  const preflight = await loadDraftPreflight(session.tenantId, targetItems);
+  if (preflight.error) failPublish(playlistId, `${preflight.error} Er is geen release gemaakt.`);
+  const targets = preflight.screenStates.filter((state) => screenIds.includes(state.screen.id));
+  if (targets.length !== screenIds.length) failPublish(playlistId, "Een of meer doelschermen zijn niet beschikbaar binnen deze vereniging.");
+  if (targets.some((state) => state.preflight.status === "blocked")) {
+    failPublish(playlistId, "Publiceren is geblokkeerd: minimaal één doelscherm is uitgeschakeld, incompatibel of heeft aantoonbaar onvoldoende opslag.");
+  }
+  if (targets.some((state) => state.preflight.status === "warning" || state.preflight.status === "unknown") && formData.get("confirmRisk") !== "on") {
+    failPublish(playlistId, "Bevestig bewust de waarschuwingen en onbekende telemetry voordat je publiceert.");
   }
 
   const { data, error } = await supabase.rpc("publish_playlist_to_screens_v2", {
@@ -119,17 +131,19 @@ export async function publishPlaylist(formData: FormData) {
     p_screen_ids: screenIds
   });
   if (error) {
-    console.error("Playlist publiceren mislukt", error);
-    fail(playlistId, publishFailureMessage(error.code));
+    console.error("Begeleide playlistpublicatie mislukt", error);
+    failPublish(playlistId, publishFailureMessage(error.code));
   }
   const result = (data?.[0] ?? null) as PublishRow | null;
-  if (!result) fail(playlistId, "De publicatie gaf geen bevestiging. De huidige release blijft spelen; probeer opnieuw.");
+  if (!result) failPublish(playlistId, "De publicatie gaf geen bevestiging. De huidige release blijft spelen; probeer opnieuw.");
   if (result.outcome === "conflict") conflict(playlistId, revision, Number(result.actual_revision), "publish");
+  if (!result.release_id) failPublish(playlistId, "De release-ID ontbreekt in de publicatiebevestiging. Controleer Release Center voordat je opnieuw probeert.");
 
   revalidatePlaylistPaths(playlistId);
+  revalidatePath("/dashboard/releases");
+  revalidatePath(`/dashboard/releases/${result.release_id}`);
   revalidatePath("/dashboard/screens");
-  revalidatePath("/dashboard/pilot");
-  redirect(`/dashboard/playlists/${playlistId}?succes=${encodeURIComponent("De immutable release is gemaakt en als gewenste release aan de gekozen schermen toegewezen.")}`);
+  redirect(`/dashboard/releases/${result.release_id}?succes=${encodeURIComponent("De immutable release is gepubliceerd. Volg hieronder desired, download, verificatie en activatie per scherm.")}`);
 }
 
 async function mutate(
@@ -227,6 +241,10 @@ function revalidatePlaylistPaths(playlistId: string) {
 
 function fail(playlistId: string, message: string): never {
   redirect(`/dashboard/playlists/${playlistId}?fout=${encodeURIComponent(message)}`);
+}
+
+function failPublish(playlistId: string, message: string): never {
+  redirect(`/dashboard/playlists/${playlistId}/publish?fout=${encodeURIComponent(message)}`);
 }
 
 function failList(message: string): never {

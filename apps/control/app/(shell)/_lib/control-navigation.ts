@@ -105,6 +105,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "tenant"
   },
   {
+    description: "Immutable historie, uitrol en preflight",
+    href: "/dashboard/releases",
+    label: "Releases",
+    requiredCapability: "tenant.release.read",
+    section: "content",
+    scope: "tenant"
+  },
+  {
     description: "Vloot, koppeling en diagnose",
     href: "/dashboard/screens",
     label: "Schermen",

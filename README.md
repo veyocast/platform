@@ -97,6 +97,13 @@ editor. Zie
 [`docs/s23-control-ux-evidence.md`](docs/s23-control-ux-evidence.md) en
 [`docs/s25-playlist-studio-readiness-evidence.md`](docs/s25-playlist-studio-readiness-evidence.md).
 
+S26 maakt publicatie een zelfstandig operationeel domein. Release Center toont
+immutable historie, versieverschillen, asset→playlist→release→screen-impact en
+desired/download/verify/active-voortgang. De begeleide `/publish`-flow voert per
+scherm een deterministische readiness-, compatibility- en opslagpreflight uit;
+verouderde telemetry blijft expliciet onbekend. Zie
+[`docs/s26-release-center-preflight-evidence.md`](docs/s26-release-center-preflight-evidence.md).
+
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
 De officiële VeyoCast-merkassetset v1.0 is vastgelegd in `assets/brand/` met
