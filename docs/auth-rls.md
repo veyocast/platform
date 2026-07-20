@@ -37,6 +37,12 @@ S21 voegt hieraan toe:
 - service- en playerverkeer zonder Auth-user blijft buiten die menselijke
   statusguard, zodat last-known-good playback niet wordt onderbroken.
 
+S22 voegt transactionele commandfuncties toe voor tenantprovisioning,
+lifecycle, schermlimieten, tenantuitnodigingen en platform-/tenantrollen.
+Rechtstreekse `authenticated` DML op memberships en invitations is ingetrokken;
+mutaties lopen via nauw verleende RPC's met capability-, AAL2-, hierarchy-,
+laatste-owner- en self-lockoutcontroles.
+
 ## Role Boundaries
 
 - Platform owners/admins can create and update tenants.
@@ -45,6 +51,25 @@ S21 voegt hieraan toe:
 - Tenant editors/viewers cannot invite users.
 - Tenant members can only read their own tenant data.
 - Audit events are append-only.
+
+## Provisioning en uitnodigingen
+
+Tenantprovisioning schrijft tenant, veilige defaults, owner invitation en
+audit-event in één transactie. Een idempotency key met payloadhash voorkomt
+dubbele of afwijkende replay. Platformtoegang geeft niet automatisch
+tenanttoegang; operationeel mede-eigenaarschap moet expliciet worden gekozen.
+
+Tenantinvites slaan uitsluitend een SHA-256-tokenhash op. Acceptatie bindt de
+persoonlijke link opnieuw aan invitation-ID, tenant-ID, ingelogd e-mailadres,
+expiry en pendingstatus. Resend maakt een nieuwe invitation met een nieuw token
+en trekt de oude link in. Wrong-email, wrong-tenant, expiry en replay falen
+server-side. Platformaccounts gebruiken dezelfde Supabase Auth OTP-callback,
+maar krijgen hun platformrol afzonderlijk en nooit een tenantmembership.
+
+De Auth invite-template in `supabase/templates/invite.html` stuurt `TokenHash`
+naar de server-side `/auth/confirm`-route. Hosted staging en production moeten
+dezelfde template, Control-redirect en SMTP-config gebruiken; de standaard
+implicit-flow is niet geschikt voor deze SSR-acceptatie.
 
 ## Expliciete context en capabilities
 
@@ -76,6 +101,11 @@ Tenantstatusbeleid:
   publicatie en pairing worden geblokkeerd;
 - `archived`: geen normale Control-context of tenantmutaties; bestaande lokale
   playback blijft beschikbaar en herstel loopt via een bevoegde platformactie.
+
+Een database-trigger serialiseert schermaanmaak per tenant en weigert nieuwe
+schermen zodra `screen_limit` is bereikt. De trigger controleert pas inhoudelijk
+voor bevoegde actors, zodat onbevoegde inserts geen tenantbestaan of limiet via
+een afwijkende fout kunnen afleiden.
 
 Media, storage path policies, player-device access and release scoping land in
 later domain migrations.

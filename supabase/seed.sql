@@ -74,10 +74,13 @@ values (
 )
 on conflict (tenant_id, user_id) do update set role = excluded.role;
 
+delete from public.platform_memberships
+where user_id = '00000000-0000-4000-8000-000000000101';
+
 insert into public.platform_memberships (user_id, role, created_by)
 values (
   '00000000-0000-4000-8000-000000000101',
-  'platform_admin',
+  'platform_owner',
   '00000000-0000-4000-8000-000000000101'
 )
 on conflict (user_id, role) do nothing;

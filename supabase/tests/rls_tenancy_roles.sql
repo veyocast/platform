@@ -168,21 +168,11 @@ select cmp_ok(
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000003', true);
-insert into public.tenant_invitations (
-  tenant_id,
-  email,
-  role,
-  token_hash,
-  expires_at,
-  created_by
-)
-values (
+select public.create_tenant_invitation(
   '10000000-0000-4000-8000-000000000001',
   'new-editor@veyocast.test',
   'tenant_editor',
-  'tenant-a-admin-invite',
-  now() + interval '7 days',
-  '00000000-0000-4000-8000-000000000003'
+  repeat('a', 64)
 );
 select is(
   (
@@ -196,26 +186,9 @@ select is(
 );
 
 select throws_ok(
-  $$
-    insert into public.tenant_invitations (
-      tenant_id,
-      email,
-      role,
-      token_hash,
-      expires_at,
-      created_by
-    )
-    values (
-      '10000000-0000-4000-8000-000000000002',
-      'spoofed@veyocast.test',
-      'tenant_editor',
-      'tenant-a-admin-spoofed-tenant-b',
-      now() + interval '7 days',
-      '00000000-0000-4000-8000-000000000003'
-    )
-  $$,
+  $$select public.create_tenant_invitation('10000000-0000-4000-8000-000000000002', 'spoofed@veyocast.test', 'tenant_editor', repeat('b', 64))$$,
   '42501',
-  'new row violates row-level security policy for table "tenant_invitations"',
+  'tenant team capability required',
   'tenant A admin cannot write tenant B invitation by spoofing tenant_id'
 );
 
@@ -223,26 +196,9 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000004', true);
 select throws_ok(
-  $$
-    insert into public.tenant_invitations (
-      tenant_id,
-      email,
-      role,
-      token_hash,
-      expires_at,
-      created_by
-    )
-    values (
-      '10000000-0000-4000-8000-000000000001',
-      'editor-invite@veyocast.test',
-      'tenant_viewer',
-      'tenant-a-editor-invite',
-      now() + interval '7 days',
-      '00000000-0000-4000-8000-000000000004'
-    )
-  $$,
+  $$select public.create_tenant_invitation('10000000-0000-4000-8000-000000000001', 'editor-invite@veyocast.test', 'tenant_viewer', repeat('c', 64))$$,
   '42501',
-  'new row violates row-level security policy for table "tenant_invitations"',
+  'tenant team capability required',
   'tenant editor cannot invite users'
 );
 
@@ -250,26 +206,9 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000005', true);
 select throws_ok(
-  $$
-    insert into public.tenant_invitations (
-      tenant_id,
-      email,
-      role,
-      token_hash,
-      expires_at,
-      created_by
-    )
-    values (
-      '10000000-0000-4000-8000-000000000001',
-      'viewer-invite@veyocast.test',
-      'tenant_viewer',
-      'tenant-a-viewer-invite',
-      now() + interval '7 days',
-      '00000000-0000-4000-8000-000000000005'
-    )
-  $$,
+  $$select public.create_tenant_invitation('10000000-0000-4000-8000-000000000001', 'viewer-invite@veyocast.test', 'tenant_viewer', repeat('d', 64))$$,
   '42501',
-  'new row violates row-level security policy for table "tenant_invitations"',
+  'tenant team capability required',
   'tenant viewer cannot invite users'
 );
 
@@ -296,7 +235,7 @@ select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000003
 select ok(
   private.audit_event(
     '10000000-0000-4000-8000-000000000001',
-    'tenant.invitation.created',
+    'tenant.invitation.test_created',
     'tenant_invitations',
     null,
     'success',
@@ -310,7 +249,7 @@ select is(
     select count(*)
     from public.audit_events
     where tenant_id = '10000000-0000-4000-8000-000000000001'
-      and action = 'tenant.invitation.created'
+      and action = 'tenant.invitation.test_created'
   ),
   1::bigint,
   'tenant member can read own tenant audit event'
@@ -324,7 +263,7 @@ select is(
     select count(*)
     from public.audit_events
     where tenant_id = '10000000-0000-4000-8000-000000000001'
-      and action = 'tenant.invitation.created'
+      and action = 'tenant.invitation.test_created'
   ),
   0::bigint,
   'tenant B cannot read tenant A audit event'

@@ -78,7 +78,11 @@ andere VPS eigen Compose-projecten, runtimebestanden en Supabase-projecten.
 S20 heeft de frameworkvrije application boundaries vastgelegd. S21 bouwt daarop
 voort met centrale role-to-capabilitybesluiten, een expliciete en server-side
 gevalideerde tenantcontext, Supabase TOTP MFA/AAL2 en databaseguards voor
-paused/archived tenants. Zie [`docs/auth-rls.md`](docs/auth-rls.md).
+paused/archived tenants. S22 maakt provisioning, tenantlifecycle, schermlimieten,
+tenantteams en gescheiden platformgebruikers volledig bedienbaar. Persoonlijke
+uitnodigingen gebruiken een eenmalige, e-mail- en tenantgebonden acceptatieflow.
+Zie [`docs/auth-rls.md`](docs/auth-rls.md) en
+[`docs/s22-platform-lifecycle-team-evidence.md`](docs/s22-platform-lifecycle-team-evidence.md).
 
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.

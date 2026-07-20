@@ -1,11 +1,17 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 
+import {
+  accountInvitationCookieName,
+  invitationContextCookieName,
+  parseInvitationContext
+} from "../../lib/invitations";
 import { getControlRuntimeMode } from "../../lib/supabase/config";
 import { createControlSupabaseClient } from "../../lib/supabase/server";
 import { completeInvitation } from "./actions";
 
 type AcceptInvitePageProps = {
-  searchParams: Promise<{ fout?: string }>;
+  searchParams: Promise<{ fout?: string; type?: string }>;
 };
 
 export const dynamic = "force-dynamic";
@@ -13,12 +19,27 @@ export const dynamic = "force-dynamic";
 export default async function AcceptInvitePage({
   searchParams
 }: AcceptInvitePageProps) {
-  const { fout } = await searchParams;
+  const { fout, type } = await searchParams;
   const runtimeMode = getControlRuntimeMode();
   const supabase = runtimeMode === "live" ? await createControlSupabaseClient() : null;
   const { data } = supabase
     ? await supabase.auth.getUser()
     : { data: { user: null } };
+  const cookieStore = await cookies();
+  const invitationContext = parseInvitationContext(
+    cookieStore.get(invitationContextCookieName)?.value
+  );
+  const isAccountInvitation =
+    type === "account" &&
+    cookieStore.get(accountInvitationCookieName)?.value === "platform";
+  const invitation = data.user && invitationContext && supabase
+    ? await supabase.rpc("get_tenant_invitation_preview", {
+        p_invitation_id: invitationContext.invitationId,
+        p_invitation_token: invitationContext.token,
+        p_tenant_id: invitationContext.tenantId
+      })
+    : { data: null, error: null };
+  const invitationPreview = invitation.data?.[0] ?? null;
 
   return (
     <main className="auth-shell">
@@ -29,10 +50,14 @@ export default async function AcceptInvitePage({
             Uitnodiging afronden
           </h1>
         </div>
-        {data.user ? (
+        {data.user && (invitationPreview || isAccountInvitation) ? (
           <>
             <p className="auth-copy">
-              Kies een uniek wachtwoord. Je toegang wordt daarna uitsluitend uit de server-side toegewezen rollen geladen.
+              {invitationPreview ? (
+                <>Je accepteert toegang tot <strong>{invitationPreview.tenant_name}</strong> als {roleLabel(invitationPreview.invitation_role)}. Kies een uniek wachtwoord; de rol wordt daarna één keer server-side toegewezen.</>
+              ) : (
+                <>Je rondt een persoonlijk VeyoCast-platformaccount af. De vooraf toegewezen platformrol wordt na het inloggen opnieuw server-side gecontroleerd.</>
+              )}
             </p>
             {fout && invitationErrors[fout] ? (
               <div className="notice notice--warning" role="alert">
@@ -103,6 +128,16 @@ export default async function AcceptInvitePage({
 
 const invitationErrors: Record<string, string> = {
   account: "Het account kon niet veilig worden ingesteld. Vraag een beheerder om een nieuwe uitnodiging.",
+  gebruikt: "Deze uitnodiging is al gebruikt of ingetrokken. Vraag een beheerder om een nieuwe uitnodiging.",
   naam: "Vul een naam van minimaal 2 tekens in.",
+  uitnodiging: "De uitnodiging hoort niet bij dit account of is ongeldig. Er is geen toegang toegewezen.",
+  verlopen: "Deze uitnodiging is verlopen. Vraag een beheerder om een nieuwe link.",
   wachtwoord: "Gebruik tweemaal hetzelfde wachtwoord van minimaal 12 tekens."
 };
+
+function roleLabel(role: string) {
+  if (role === "tenant_owner") return "eigenaar";
+  if (role === "tenant_admin") return "beheerder";
+  if (role === "tenant_editor") return "editor";
+  return "kijker";
+}

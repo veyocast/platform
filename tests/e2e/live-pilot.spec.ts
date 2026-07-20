@@ -13,7 +13,7 @@ const validPngFixture = Buffer.from(
   "base64"
 );
 
-test.setTimeout(90_000);
+test.setTimeout(120_000);
 
 test.describe("live pilot vertical slice", () => {
   test.skip(!livePilotEnabled, "requires local Supabase and explicit live pilot environment");
@@ -22,6 +22,9 @@ test.describe("live pilot vertical slice", () => {
     browser,
     page
   }) => {
+    const invitedOwnerEmail = `live-owner-${Date.now()}@veyocast.test`;
+    const invitedPlatformEmail = `live-platform-${Date.now()}@veyocast.test`;
+
     await page.goto("/login");
     await page.getByLabel("E-mailadres").fill("pilot-admin@veyocast.test");
     await page.getByLabel("Wachtwoord").fill("veyocast-local");
@@ -42,17 +45,61 @@ test.describe("live pilot vertical slice", () => {
     await page.getByRole("button", { name: "Authenticator verifiëren" }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
 
+    await page.goto("/platform/users");
+    await page.getByLabel("E-mailadres").fill(invitedPlatformEmail);
+    await page.getByLabel("Platformrol").selectOption("platform_viewer");
+    await page.getByRole("button", { name: "Platformrol instellen" }).click();
+    await expect(page.getByText("Het platformaccount is uitgenodigd en de rol is veilig toegewezen.")).toBeVisible();
+    await expect(page.getByRole("cell", { name: new RegExp(invitedPlatformEmail) })).toBeVisible();
+
+    const platformInvitationLink = await waitForInvitationLink(invitedPlatformEmail);
+    const invitedPlatformContext = await browser.newContext();
+    const invitedPlatformPage = await invitedPlatformContext.newPage();
+    await invitedPlatformPage.goto(platformInvitationLink);
+    await expect(invitedPlatformPage).toHaveURL(/\/accept-invite\?type=account$/);
+    await expect(invitedPlatformPage.getByText("persoonlijk VeyoCast-platformaccount")).toBeVisible();
+    await invitedPlatformPage.getByLabel("Naam").fill("Live platformkijker");
+    await invitedPlatformPage.getByLabel("Nieuw wachtwoord").fill("veyocast-live-platform-2026");
+    await invitedPlatformPage.getByLabel("Herhaal wachtwoord").fill("veyocast-live-platform-2026");
+    await invitedPlatformPage.getByRole("button", { name: "Account instellen" }).click();
+    await expect(invitedPlatformPage).toHaveURL(/\/login\?reden=uitgenodigd/);
+    await invitedPlatformPage.getByLabel("E-mailadres").fill(invitedPlatformEmail);
+    await invitedPlatformPage.getByLabel("Wachtwoord").fill("veyocast-live-platform-2026");
+    await invitedPlatformPage.getByRole("button", { name: "Doorgaan" }).click();
+    await expect(invitedPlatformPage).toHaveURL(/\/platform$/);
+    await invitedPlatformContext.close();
+
     await page.goto("/platform/tenants");
     await page.getByLabel("Verenigingsnaam").fill("Live aangemaakte vereniging");
     await page.getByLabel("Technische slug").fill("live-aangemaakte-vereniging");
+    await page.getByLabel("E-mailadres eerste eigenaar").fill(invitedOwnerEmail);
     await page.getByLabel("Schermlimiet").fill("8");
     await page.getByRole("button", { name: "Vereniging aanmaken" }).click();
+    await expect(page).toHaveURL(/\/platform\/tenants\/[0-9a-f-]+\?succes=aangemaakt/);
+    await expect(page.getByRole("heading", { name: "Live aangemaakte vereniging" })).toBeVisible();
+    await expect(page.getByText("De vereniging en eigenaaruitnodiging zijn veilig aangemaakt.")).toBeVisible();
+    await expect(page.getByRole("cell", { name: invitedOwnerEmail })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Verstuurd" })).toBeVisible();
+
+    const invitationLink = await waitForInvitationLink(invitedOwnerEmail);
+    const invitedOwnerContext = await browser.newContext();
+    const invitedOwnerPage = await invitedOwnerContext.newPage();
+    await invitedOwnerPage.goto(invitationLink);
+    await expect(invitedOwnerPage).toHaveURL(/\/accept-invite$/);
+    await expect(invitedOwnerPage.getByText("Live aangemaakte vereniging")).toBeVisible();
+    await invitedOwnerPage.getByLabel("Naam").fill("Live eigenaar");
+    await invitedOwnerPage.getByLabel("Nieuw wachtwoord").fill("veyocast-live-owner-2026");
+    await invitedOwnerPage.getByLabel("Herhaal wachtwoord").fill("veyocast-live-owner-2026");
+    await invitedOwnerPage.getByRole("button", { name: "Account instellen" }).click();
+    await expect(invitedOwnerPage).toHaveURL(/\/login\?reden=uitgenodigd/);
+    await invitedOwnerPage.getByLabel("E-mailadres").fill(invitedOwnerEmail);
+    await invitedOwnerPage.getByLabel("Wachtwoord").fill("veyocast-live-owner-2026");
+    await invitedOwnerPage.getByRole("button", { name: "Doorgaan" }).click();
+    await expect(invitedOwnerPage).toHaveURL(/\/context/);
     await expect(
-      page.getByText("standaardinstellingen en jouw tenant-eigenaarschap")
+      invitedOwnerPage.getByLabel("Jouw toegang").getByText("Live aangemaakte vereniging")
     ).toBeVisible();
-    await expect(
-      page.getByRole("cell", { name: "Live aangemaakte vereniging" })
-    ).toBeVisible();
+    await invitedOwnerContext.close();
 
     await page.goto("/dashboard/screens");
     await page.getByLabel("Schermnaam").fill("LG sprint scherm");
@@ -213,4 +260,35 @@ function decodeBase32(value: string) {
   }
   const bytes = bits.match(/.{8}/g)?.map((byte) => Number.parseInt(byte, 2)) ?? [];
   return Buffer.from(bytes);
+}
+
+async function waitForInvitationLink(email: string) {
+  const mailpitUrl = process.env.MAILPIT_URL;
+  if (!mailpitUrl) throw new Error("MAILPIT_URL is required for the live invitation flow");
+
+  let invitationLink: string | null = null;
+  await expect.poll(async () => {
+    invitationLink = await findInvitationLink(mailpitUrl, email);
+    return invitationLink;
+  }, { timeout: 10_000 }).not.toBeNull();
+
+  if (!invitationLink) throw new Error(`No invitation link found for ${email}`);
+  return invitationLink;
+}
+
+async function findInvitationLink(mailpitUrl: string, email: string) {
+  const messagesResponse = await fetch(`${mailpitUrl}/api/v1/messages`);
+  if (!messagesResponse.ok) return null;
+  const inbox = await messagesResponse.json() as {
+    messages?: Array<{ ID: string; To?: Array<{ Address?: string }> }>;
+  };
+  const message = inbox.messages?.find((item) =>
+    item.To?.some((recipient) => recipient.Address?.toLowerCase() === email.toLowerCase())
+  );
+  if (!message) return null;
+
+  const messageResponse = await fetch(`${mailpitUrl}/api/v1/message/${message.ID}`);
+  if (!messageResponse.ok) return null;
+  const body = await messageResponse.json() as { Text?: string };
+  return body.Text?.match(/https?:\/\/[^\s)]+/)?.[0] ?? null;
 }

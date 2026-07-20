@@ -46,6 +46,7 @@ const navigationIcons: Record<string, LucideIcon> = {
   Instellingen: Settings2,
   Media: FileImage,
   Platform: MonitorSmartphone,
+  Platformgebruikers: Users,
   Pilotflow: Rocket,
   Playlists: ListVideo,
   Schermen: MonitorSmartphone,

@@ -33,10 +33,15 @@ site_url = "http://localhost:3000"
 additional_redirect_urls = [
   "http://localhost:3000",
   "http://localhost:3001",
-  "http://localhost:3002"
+  "http://localhost:3002",
+  "http://127.0.0.1:3103/auth/confirm"
 ]
 jwt_expiry = 3600
 enable_signup = false
+
+[auth.email.template.invite]
+subject = "Je bent uitgenodigd voor VeyoCast"
+content_path = "./supabase/templates/invite.html"
 
 [auth.mfa]
 max_enrolled_factors = 10

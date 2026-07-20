@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   commandMetadataSchema,
   createSafeActionError,
-  safeActionErrorSchema
+  safeActionErrorSchema,
+  tenantProvisioningCommandSchema
 } from "../src";
 
 describe("safe action error contracts", () => {
@@ -30,6 +31,44 @@ describe("safe action error contracts", () => {
         message: "De actie is niet voltooid.",
         recovery: "Probeer later opnieuw.",
         stack: "sensitive stack"
+      })
+    ).toThrow();
+  });
+});
+
+describe("identity command contracts", () => {
+  it("normalizes a complete tenant provisioning command", () => {
+    expect(
+      tenantProvisioningCommandSchema.parse({
+        actorBecomesOwner: false,
+        locale: "nl-NL",
+        metadata: {
+          idempotencyKey: "tenant:018f7aaa-1234",
+          requestId: "request-12345678"
+        },
+        name: "Voorbeeldvereniging",
+        ownerEmail: "Owner@Example.test",
+        screenLimit: 4,
+        slug: "voorbeeldvereniging",
+        timezone: "Europe/Amsterdam"
+      })
+    ).toMatchObject({ ownerEmail: "owner@example.test" });
+  });
+
+  it("rejects unsupported locales and invalid provisioning limits", () => {
+    expect(() =>
+      tenantProvisioningCommandSchema.parse({
+        actorBecomesOwner: false,
+        locale: "nl-BE",
+        metadata: {
+          idempotencyKey: "tenant:018f7aaa-1234",
+          requestId: "request-12345678"
+        },
+        name: "Voorbeeldvereniging",
+        ownerEmail: "owner@example.test",
+        screenLimit: 0,
+        slug: "voorbeeldvereniging",
+        timezone: "Europe/Amsterdam"
       })
     ).toThrow();
   });

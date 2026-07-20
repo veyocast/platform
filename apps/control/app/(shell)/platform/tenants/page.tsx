@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { hasCapability } from "@veyocast/auth";
 import Link from "next/link";
 
@@ -7,7 +9,7 @@ import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { createTenant } from "./actions";
 
 type PlatformTenantsPageProps = {
-  searchParams: Promise<{ fout?: string; succes?: string }>;
+  searchParams: Promise<{ fout?: string }>;
 };
 
 export default async function PlatformTenantsPage({
@@ -15,21 +17,21 @@ export default async function PlatformTenantsPage({
 }: PlatformTenantsPageProps) {
   const session = await requireControlCapability("platform.tenant.read");
   const data = session.isLive ? await loadPlatformOverview() : null;
-  const { fout, succes } = await searchParams;
+  const { fout } = await searchParams;
   const hasCreateCapability = hasCapability(session.roles, "platform.tenant.create");
   const canCreate = session.isLive && hasCreateCapability && session.assuranceLevel === "aal2";
 
   return (
     <>
       <PageHeader
-        actions={
+        actions={canCreate ? (
           <a
             className="button-link button-link--primary"
             href="#nieuwe-tenant"
           >
             Vereniging toevoegen
           </a>
-        }
+        ) : null}
         description={
           session.isLive
             ? "Maak verenigingen aan en bekijk hun status en schermlimieten vanuit de platformcontext."
@@ -71,13 +73,6 @@ export default async function PlatformTenantsPage({
           <strong>Aanmaken mislukt.</strong> {tenantErrors[fout]}
         </p>
       ) : null}
-      {succes === "aangemaakt" ? (
-        <p className="notice notice--success" role="status">
-          De vereniging, standaardinstellingen en jouw tenant-eigenaarschap
-          zijn aangemaakt.
-        </p>
-      ) : null}
-
       <form
         action={createTenant}
         className="data-surface"
@@ -87,12 +82,14 @@ export default async function PlatformTenantsPage({
           <div>
             <h2 className="work-panel__title">Nieuwe vereniging</h2>
             <p className="work-panel__meta">
-              De vereniging wordt actief aangemaakt met veilige
-              afspeelstandaarden. Jij wordt de eerste tenant-eigenaar.
+              De vereniging, veilige standaarden en uitnodiging voor de eerste
+              eigenaar worden atomair voorbereid. Platformtoegang maakt je niet
+              automatisch eigenaar.
             </p>
           </div>
           <StatusPill label="Platformadmin" tone="info" />
         </div>
+        <input name="idempotencyKey" type="hidden" value={`tenant:${randomUUID()}`} />
         <div className="form-grid">
           <div className="field">
             <label htmlFor="tenant-name">Verenigingsnaam</label>
@@ -127,6 +124,19 @@ export default async function PlatformTenantsPage({
             </p>
           </div>
           <div className="field">
+            <label htmlFor="tenant-owner-email">E-mailadres eerste eigenaar</label>
+            <input
+              autoComplete="email"
+              disabled={!canCreate}
+              id="tenant-owner-email"
+              maxLength={320}
+              name="ownerEmail"
+              placeholder="beheerder@vereniging.nl"
+              required
+              type="email"
+            />
+          </div>
+          <div className="field">
             <label htmlFor="tenant-screen-limit">Schermlimiet</label>
             <input
               defaultValue={4}
@@ -139,7 +149,29 @@ export default async function PlatformTenantsPage({
               type="number"
             />
           </div>
+          <div className="field">
+            <label htmlFor="tenant-locale">Taal en notatie</label>
+            <select defaultValue="nl-NL" disabled={!canCreate} id="tenant-locale" name="locale">
+              <option value="nl-NL">Nederlands (Nederland)</option>
+              <option value="en-GB">Engels (Verenigd Koninkrijk)</option>
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="tenant-timezone">Tijdzone</label>
+            <select defaultValue="Europe/Amsterdam" disabled={!canCreate} id="tenant-timezone" name="timezone">
+              <option value="Europe/Amsterdam">Europa/Amsterdam</option>
+              <option value="Europe/Brussels">Europa/Brussel</option>
+              <option value="UTC">UTC</option>
+            </select>
+          </div>
         </div>
+        <label className="check-row" htmlFor="tenant-actor-owner">
+          <input disabled={!canCreate} id="tenant-actor-owner" name="actorBecomesOwner" type="checkbox" />
+          <span>
+            <strong>Geef mij ook tenanttoegang</strong>
+            <span className="work-panel__meta">Alleen gebruiken wanneer je operationeel mede-eigenaar moet zijn; deze keuze wordt geaudit.</span>
+          </span>
+        </label>
         <div className="sticky-form-actions">
           <p className="work-panel__meta">
             De volledige onboarding wordt atomair uitgevoerd en in het
@@ -180,6 +212,7 @@ export default async function PlatformTenantsPage({
                   <th scope="col">Status</th>
                   <th scope="col">Schermen</th>
                   <th scope="col">Limiet</th>
+                  <th scope="col">Actie</th>
                 </tr>
               </thead>
               <tbody>
@@ -202,6 +235,7 @@ export default async function PlatformTenantsPage({
                         </td>
                         <td data-label="Schermen">{screenCount}</td>
                         <td data-label="Limiet">{tenant.screen_limit}</td>
+                        <td data-label="Actie"><Link className="table-action" href={`/platform/tenants/${tenant.id}`}>Open details</Link></td>
                       </tr>
                     );
                   })
@@ -217,6 +251,7 @@ export default async function PlatformTenantsPage({
                     </td>
                     <td data-label="Schermen">0</td>
                     <td data-label="Limiet">4</td>
+                    <td data-label="Actie">Niet beschikbaar</td>
                   </tr>
                 )}
               </tbody>
@@ -242,13 +277,11 @@ function statusLabel(value: string) {
 const tenantErrors: Record<string, string> = {
   configuratie:
     "De live datasessie ontbreekt. Er is niets aangemaakt; herstel de configuratie en log opnieuw in.",
-  naam: "Gebruik een verenigingsnaam van 2 tot en met 120 tekens.",
+  conflict: "Deze slug of eigenaaruitnodiging bestaat al. Controleer de bestaande vereniging voordat je opnieuw probeert.",
+  idempotency: "Deze formulieropdracht is met andere gegevens herhaald. Vernieuw de pagina en controleer de invoer.",
+  invoer: "Controleer naam, slug, eigenaar, taal, tijdzone en schermlimiet. Er is niets gedeeltelijk opgeslagen.",
   onverwacht:
     "De vereniging kon niet veilig worden aangemaakt. Er is niets gedeeltelijk opgeslagen; probeer opnieuw.",
   rechten:
     "Je hebt platformbeheerrechten nodig. Er is niets aangemaakt; log opnieuw in met een bevoegd account.",
-  schermlimiet: "Kies een schermlimiet tussen 1 en 10.000.",
-  slug: "Gebruik een unieke slug van 3–64 kleine letters, cijfers en koppeltekens.",
-  "slug-bestaat":
-    "Deze slug is al in gebruik. Er is niets aangemaakt; kies een andere technische slug."
 };

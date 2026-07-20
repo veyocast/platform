@@ -763,6 +763,11 @@ kbd {
   margin: 0;
 }
 
+.metric-card__value--text {
+  font-size: 20px;
+  line-height: 28px;
+}
+
 .work-grid,
 .dashboard-layout,
 .resource-workspace,
@@ -1028,6 +1033,38 @@ kbd {
 .table-action:hover {
   color: var(--vc-text);
   text-decoration: underline;
+}
+
+.table-actions {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-12);
+}
+
+.table-actions details,
+.work-panel > details {
+  display: grid;
+  gap: var(--vc-space-12);
+}
+
+.table-actions summary,
+.work-panel > details > summary {
+  color: var(--vc-semantic-info-text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 20px;
+}
+
+.table-actions details[open],
+.work-panel > details[open] {
+  min-width: min(100%, 320px);
+}
+
+.table-actions details[open] > summary,
+.work-panel > details[open] > summary {
+  margin-bottom: var(--vc-space-12);
 }
 
 .media-type {
