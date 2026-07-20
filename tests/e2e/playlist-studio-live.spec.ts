@@ -77,11 +77,11 @@ test.describe("live Playlist Studio", () => {
     await expect(page.getByText("De iteminstellingen zijn opgeslagen")).toBeVisible();
 
     const studioUrl = page.url();
-    await page.goto("/dashboard/screens");
+    await page.goto("/dashboard/screens/new");
     await page.getByLabel("Schermnaam").fill(secondScreen);
     await page.getByLabel("Locatie").fill("Bestuurskamer");
-    await page.getByRole("button", { name: "Scherm opslaan" }).click();
-    await expect(page.getByText("Het scherm is aangemaakt")).toBeVisible();
+    await page.getByRole("button", { name: "Scherm maken en doorgaan" }).click();
+    await expect(page.getByText("Schermdetails zijn opgeslagen")).toBeVisible();
 
     await page.goto(studioUrl);
     await page.getByRole("link", { name: "Begeleide publicatie starten" }).click();

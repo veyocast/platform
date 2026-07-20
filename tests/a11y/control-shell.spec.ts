@@ -207,22 +207,18 @@ test("tenant management exposes a labelled and safely disabled creation flow", a
   );
 });
 
-test("screens route exposes pairing labels and status", async ({ page }) => {
+test("screens onboarding exposes labelled lifecycle and safely disabled creation", async ({ page }) => {
   await page.goto("/dashboard/screens");
 
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
   ).toBeVisible();
-  await expect(page.getByLabel("Schermnaam")).toBeVisible();
-  await expect(page.getByLabel("Koppelcode")).toBeVisible();
-  await expect(page.getByLabel("Doelscherm")).toBeVisible();
-  await expect(page.getByLabel("Pairingcontroles")).toContainText("Server-side");
-  await expect(page.getByLabel("Device lifecycle stappen")).toContainText(
-    "Last-known-good"
-  );
   await expect(page.getByRole("status").filter({ hasText: "geen fictieve schermen" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Scherm opslaan" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Player veilig koppelen" })).toBeDisabled();
+  await page.getByRole("link", { name: "Scherm toevoegen" }).click();
+  await expect(page.getByLabel("Onboardingstappen")).toContainText("Player koppelen");
+  await expect(page.getByLabel("Schermnaam")).toBeVisible();
+  await expect(page.getByLabel("Eerste content (optioneel)")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Scherm maken en doorgaan" })).toBeDisabled();
 });
 
 test("pilot route exposes a sequential and fully labelled flow", async ({ page }) => {

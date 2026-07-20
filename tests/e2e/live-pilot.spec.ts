@@ -13,7 +13,7 @@ const validPngFixture = Buffer.from(
   "base64"
 );
 
-test.setTimeout(120_000);
+test.setTimeout(240_000);
 
 test.describe("live pilot vertical slice", () => {
   test.skip(!livePilotEnabled, "requires local Supabase and explicit live pilot environment");
@@ -101,12 +101,13 @@ test.describe("live pilot vertical slice", () => {
     ).toBeVisible();
     await invitedOwnerContext.close();
 
-    await page.goto("/dashboard/screens");
+    await page.goto("/dashboard/screens/new");
     await page.getByLabel("Schermnaam").fill("LG sprint scherm");
     await page.getByLabel("Locatie").fill("Fysieke testruimte");
-    await page.getByRole("button", { name: "Scherm opslaan" }).click();
-    await expect(page.getByText("Het scherm is aangemaakt")).toBeVisible();
-    await expect(page.getByRole("cell", { name: "LG sprint scherm" })).toBeVisible();
+    await page.getByRole("button", { name: "Scherm maken en doorgaan" }).click();
+    await expect(page.getByText("Schermdetails zijn opgeslagen")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Player koppelen en eerste heartbeat" })).toBeVisible();
+    const screenOnboardingUrl = page.url();
 
     await page.goto("/dashboard/media");
     await expect(
@@ -209,9 +210,14 @@ test.describe("live pilot vertical slice", () => {
       await expect(previewVideo).toHaveJSProperty("muted", true);
     }
 
-    await page.getByLabel("LG sprint scherm").check();
-    await page.getByRole("button", { name: "Release publiceren" }).click();
-    await expect(page.getByText("De immutable release is gemaakt")).toBeVisible();
+    await page.getByRole("link", { name: "Begeleide publicatie starten" }).click();
+    await expect(page).toHaveURL(/\/dashboard\/playlists\/.+\/publish$/);
+    await page.getByLabel(/LG sprint scherm/).check();
+    await page.getByRole("button", { name: "Preflight voor selectie berekenen" }).click();
+    await page.getByLabel(/waarschuwingen en onbekende telemetry/i).check();
+    await page.getByLabel("Maak een nieuwe immutable release").check();
+    await page.getByRole("button", { name: "Release publiceren en uitrol volgen" }).click();
+    await expect(page.getByText("De immutable release is gepubliceerd")).toBeVisible();
 
     const playerContext = await browser.newContext();
     const playerPage = await playerContext.newPage();
@@ -227,9 +233,8 @@ test.describe("live pilot vertical slice", () => {
 
     expect(pairingCode).toMatch(/^[A-Z2-9]{3} [A-Z2-9]{3}$/);
 
-    await page.goto("/dashboard/screens");
-    await expect(page.getByText("Live tenantdata")).toBeVisible();
-    await page.getByLabel("Doelscherm").selectOption({ label: "LG sprint scherm" });
+    await page.goto(screenOnboardingUrl);
+    await expect(page.getByRole("heading", { name: "Player koppelen en eerste heartbeat" })).toBeVisible();
     await page.getByLabel("Koppelcode").fill(pairingCode ?? "");
     await page.getByRole("button", { name: "Player veilig koppelen" }).click();
     await expect(page.getByText("De Player is gekoppeld")).toBeVisible();
@@ -245,9 +250,21 @@ test.describe("live pilot vertical slice", () => {
       await expect(playingVideo).toHaveJSProperty("muted", true);
     }
 
-    await page.reload();
+    await page.goto("/dashboard/screens");
     await expect(page.getByRole("cell", { name: "LG webOS Signage" })).toBeVisible();
-    await expect(page.getByLabel("Schermvloot").getByText("Online", { exact: true })).toBeVisible();
+    const screenRow = page.getByRole("row").filter({ hasText: "LG sprint scherm" });
+    await expect(screenRow.getByText("Online", { exact: true })).toBeVisible();
+    await screenRow.getByRole("link", { name: "Bekijk scherm" }).click();
+    await expect(page.getByRole("heading", { exact: true, level: 1, name: "LG sprint scherm" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Schermdetails" })).toContainText("Gebeurtenissen");
+    await page.getByRole("link", { name: "Player", exact: true }).press("Enter");
+    await expect(page.getByRole("heading", { name: "Actieve Player" })).toBeVisible();
+    await expect(page.getByText("LG webOS Signage", { exact: true }).first()).toBeVisible();
+    await page.getByRole("link", { name: "Synchronisatie", exact: true }).press("Enter");
+    await expect(page.getByText("Actieve release", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Synchronisatietijdlijn" })).toBeVisible();
+    await page.getByRole("link", { name: "Gebeurtenissen", exact: true }).press("Enter");
+    await expect(page.getByText("Player gekoppeld", { exact: true })).toBeVisible();
 
     await playerContext.close();
   });
@@ -309,5 +326,19 @@ async function findInvitationLink(mailpitUrl: string, email: string) {
   const messageResponse = await fetch(`${mailpitUrl}/api/v1/message/${message.ID}`);
   if (!messageResponse.ok) return null;
   const body = await messageResponse.json() as { Text?: string };
-  return body.Text?.match(/https?:\/\/[^\s)]+/)?.[0] ?? null;
+  const rawLink = body.Text?.match(/https?:\/\/[^\s)]+/)?.[0];
+  if (!rawLink) return null;
+
+  const invitationUrl = new URL(rawLink.replaceAll("&amp;", "&"));
+  if (invitationUrl.pathname !== "/auth/v1/verify") return invitationUrl.toString();
+
+  const redirectTo = invitationUrl.searchParams.get("redirect_to");
+  const tokenHash = invitationUrl.searchParams.get("token");
+  const type = invitationUrl.searchParams.get("type");
+  if (!redirectTo || !tokenHash || type !== "invite") return null;
+
+  const appInvitationUrl = new URL(redirectTo);
+  appInvitationUrl.searchParams.set("token_hash", tokenHash);
+  appInvitationUrl.searchParams.set("type", type);
+  return appInvitationUrl.toString();
 }

@@ -38,11 +38,11 @@ test("keeps the documented local demo pilot traceable across product planes", as
   await expect(page.getByRole("button", { name: "Concept maken" })).toBeDisabled();
 
   await page.goto("/dashboard/screens");
-  await expect(page.getByLabel("Koppelcode")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Player veilig koppelen" })).toBeDisabled();
   await expect(
     page.getByRole("status").filter({ hasText: "geen fictieve schermen" })
   ).toBeVisible();
+  await page.getByRole("link", { name: "Scherm toevoegen" }).click();
+  await expect(page.getByRole("button", { name: "Scherm maken en doorgaan" })).toBeDisabled();
 
   const manifestResponse = await page.request.get(
     `${playerURL}/api/player/manifest?deviceToken=demo-online`

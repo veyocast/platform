@@ -1,27 +1,27 @@
 import { expect, test } from "@playwright/test";
 
-test("screens management becomes a sequential mobile flow without horizontal overflow", async ({
+test("screen onboarding becomes a sequential mobile flow without horizontal overflow", async ({
   page
 }) => {
   await page.setViewportSize({ height: 844, width: 390 });
-  await page.goto("/dashboard/screens");
+  await page.goto("/dashboard/screens/new");
 
-  const createScreen = page.getByRole("heading", { name: "Scherm aanmaken" });
-  const pairPlayer = page.getByRole("heading", { name: "Player koppelen" });
-  await expect(createScreen).toBeVisible();
-  await expect(pairPlayer).toBeVisible();
+  const onboarding = page.getByRole("heading", { name: "Schermdetails en eerste content" });
+  const steps = page.getByLabel("Onboardingstappen");
+  await expect(onboarding).toBeVisible();
+  await expect(steps).toContainText("Player koppelen");
 
-  const [createBox, pairBox, hasHorizontalOverflow] = await Promise.all([
-    createScreen.boundingBox(),
-    pairPlayer.boundingBox(),
+  const [onboardingBox, stepsBox, hasHorizontalOverflow] = await Promise.all([
+    onboarding.boundingBox(),
+    steps.boundingBox(),
     page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
     )
   ]);
 
-  expect(createBox).not.toBeNull();
-  expect(pairBox).not.toBeNull();
-  expect(pairBox?.y).toBeGreaterThan((createBox?.y ?? 0) + (createBox?.height ?? 0));
+  expect(onboardingBox).not.toBeNull();
+  expect(stepsBox).not.toBeNull();
+  expect(onboardingBox?.y).toBeGreaterThan((stepsBox?.y ?? 0) + (stepsBox?.height ?? 0));
   expect(hasHorizontalOverflow).toBe(false);
 });
 

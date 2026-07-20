@@ -54,8 +54,13 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
     page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
   ).toBeVisible();
   await expect(page.getByText("Demomodus zonder mutaties")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Scherm aanmaken" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Player koppelen" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Schermvloot" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Scherm toevoegen" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/screens\/new$/);
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Scherm toevoegen" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Schermdetails en eerste content" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Tenants/ }).click();
   await expect(page).toHaveURL(/\/platform\/tenants$/);
