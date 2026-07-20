@@ -77,7 +77,8 @@ export async function finalizeMediaVideoUpload(uploadSessionId: string) {
       message: error instanceof MediaUploadError
         ? error.message
         : "De upload kon onverwacht niet worden afgerond. De video is niet beschikbaar gemaakt; probeer de afronding opnieuw.",
-      ok: false as const
+      ok: false as const,
+      retryable: !(error instanceof MediaUploadError && error.message.includes("quarantaine"))
     };
   }
 }
