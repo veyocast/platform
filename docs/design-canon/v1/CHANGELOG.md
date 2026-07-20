@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0 — 20 juli 2026
+
+- De door Danny Goldenbelt ontworpen primaire, inverse en compacte SVG-masters als locked VeyoCast-merkassets v1.0 vastgelegd.
+- De goedgekeurde monochrome, favicon-, PWA-, Apple touch- en social-afgeleiden gepubliceerd.
+- Placeholder- en publieke-launchblokkade voor merkassets opgeheven; nieuwe varianten blijven goedkeuringsplichtig.
+
 ## 2.0.0 — 19 juli 2026
 
 - Productnaam, packages, runtime-namespaces en documentatie overgezet naar VeyoCast.

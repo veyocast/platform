@@ -1,4 +1,4 @@
-# VeyoCast Bold — Design & Product Canon v2.0.0
+# VeyoCast Bold — Design & Product Canon v2.1.0
 
 Dit pakket is de normatieve bron voor de visuele en interactionele uitwerking van VeyoCast: merk, marketingwebsite, Control-dashboard, responsive PWA en fullscreen Player/ClubTV.
 
@@ -29,9 +29,7 @@ Bij tegenstrijdigheid geldt deze volgorde:
 
 ## Merkassetstatus
 
-De naam VeyoCast is doorgevoerd, maar definitieve logo- en iconmasterbestanden zijn nog niet aangeleverd. De SVG-bestanden in de centrale brandmap zijn expliciet tijdelijke ontwikkelplaceholders. Ze mogen niet als definitief of officieel merkasset worden behandeld. Een publieke release blijft geblokkeerd totdat goedgekeurde masters beschikbaar en centraal als immutable assets vastgelegd zijn.
-
-De voormalige PDF-, DOCX-, screenshot- en iconbestanden zijn verwijderd omdat zij de voorgaande merkidentiteit bevatten. Nieuwe exports worden pas gepubliceerd nadat de VeyoCast-masterassets en de bijgewerkte canon visueel zijn goedgekeurd.
+De officiële VeyoCast-merkassetset v1.0 is op 20 juli 2026 goedgekeurd door ontwerper en merkeigenaar Danny Goldenbelt. De primaire, inverse en compacte SVG-masters staan byte-ongewijzigd en immutable in `assets/brand/`. Alleen de daar beschreven monochrome, favicon-, PWA-, Apple touch- en social-afgeleiden zijn eveneens officieel; iedere andere variant vereist nieuwe expliciete goedkeuring.
 
 ## Implementatievolgorde
 
@@ -51,4 +49,4 @@ Gebruik semantische versies:
 - minor — nieuwe backwards-compatible componenten of patronen;
 - major — fundamentele merk-, token-, component- of productwijziging.
 
-De actuele versie is `2.0.0`.
+De actuele versie is `2.1.0`.

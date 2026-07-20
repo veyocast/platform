@@ -36,9 +36,9 @@ lang: nl-NL
 # Documentstatus
 
 **Document:** VeyoCast Bold - Design & Product Canon  
-**Versie:** 2.0.0  
-**Status:** Canoniek / normatief; definitieve merkmasters openstaand  
-**Datum:** 19 juli 2026  
+**Versie:** 2.1.0  
+**Status:** Canoniek / normatief; merkassetset v1.0 goedgekeurd  
+**Datum:** 20 juli 2026  
 **Reikwijdte:** merkidentiteit, marketingwebsite, control dashboard, mobiele PWA, player setup, fullscreen playback, ClubTV-templates, design tokens, componentbibliotheek, contentstijl, toegankelijkheid en governance.
 
 Dit document is de bron van waarheid voor alle zichtbare VeyoCast-ervaringen. Het doel is niet alleen om een stijl te beschrijven, maar om beslissingen vast te leggen die ontwerpers, developers, marketeers, supportmedewerkers en externe partners consequent moeten toepassen.
@@ -189,9 +189,9 @@ VeyoCast schrijft in helder Nederlands, met actieve werkwoorden en korte zinnen.
 
 ## 2.1 Status van het merkasset
 
-De productnaam VeyoCast is vastgesteld. Definitieve VeyoCast-logo- en iconmasterbestanden zijn nog niet aangeleverd. De huidige SVG's zijn uitsluitend tijdelijke ontwikkelplaceholders en zijn geen officiële merkassets. Een publieke release blijft geblokkeerd totdat juridisch en visueel goedgekeurde masters beschikbaar zijn.
+De officiële VeyoCast-merkassetset v1.0 is op 20 juli 2026 goedgekeurd door ontwerper en merkeigenaar Danny Goldenbelt. De aangeleverde primaire, inverse en compacte SVG-masters zijn byte-ongewijzigde **locked assets** in `assets/brand/`. Alleen de daar gedocumenteerde monochrome, favicon-, PWA-, Apple touch- en social-afgeleiden zijn eveneens officieel. Iedere andere variant vereist nieuwe expliciete goedkeuring.
 
-Zodra goedgekeurde masters zijn aangeleverd, gelden ze als **locked assets**. Ze worden als beeldbestand of goedgekeurde vector geplaatst; ze worden niet opnieuw getekend, getraceerd, nagemaakt met een lettertype of automatisch gereconstrueerd.
+Locked masters worden als goedgekeurde vector geplaatst; ze worden niet opnieuw getekend, getraceerd, nagemaakt met een lettertype of automatisch gereconstrueerd.
 
 Het logo MOET:
 
@@ -212,17 +212,17 @@ Het logo MAG NIET:
 
 ## 2.2 Vereiste officiële varianten
 
-Alleen werkelijk aangeleverde varianten zijn officieel. De assetset HOORT uiteindelijk minimaal te bevatten:
+Alleen de locked masters en expliciet goedgekeurde technische afgeleiden zijn officieel. De v1.0-assetset bevat:
 
 - primaire horizontale lock-up;
 - goedgekeurd compact icoon;
 - expliciet goedgekeurde inverse lock-up voor donkere ondergronden;
-- monochrome lock-up, indien juridisch en visueel goedgekeurd;
+- goedgekeurde monochrome zwarte en witte lock-up;
 - faviconbestanden;
 - maskable PWA-iconen;
 - social avatar-export.
 
-Zolang een inverse of monochrome versie niet als officieel asset bestaat, wordt het primaire logo **niet gerecolourerd**. Op een donkere of drukke achtergrond wordt een vlakke Paper White-logoplaat gebruikt.
+Andere kleuren, geometrieën, uitsneden of lock-ups zijn niet officieel. Op een donkere of drukke achtergrond wordt de goedgekeurde inverse asset of een vlakke Paper White-logoplaat gebruikt.
 
 ## 2.3 Operationele plaatsing
 
@@ -239,11 +239,11 @@ Dit canon legt plaatsingsmaten vast, geen geometrische reconstructie van het log
 | Presentatiecover | afhankelijk van formaat | klein ten opzichte van headline |
 | Favicon | goedgekeurd compact iconasset | nooit de volledige lock-up verkleinen |
 
-Bij kleine breedtes wordt niet automatisch een letter uit de volledige lock-up geknipt. Een compact icoon wordt alleen gebruikt wanneer het als afzonderlijk masterasset is goedgekeurd. Tot die tijd mag een expliciet gemarkeerde placeholder uitsluitend in ontwikkeling worden gebruikt.
+Bij kleine breedtes wordt niet automatisch een letter uit de volledige lock-up geknipt. Gebruik daarvoor uitsluitend het afzonderlijk goedgekeurde compacte VeyoCast-icoon.
 
 ## 2.4 Vrije ruimte
 
-Er wordt geen vermeende constructiemaat uit het raster afgeleid zolang geen master-vector met formele bouwtekening is vastgesteld. De operationele regel is:
+Bij de master-vector is geen afzonderlijke formele clearspace-bouwtekening aangeleverd. Daarom wordt geen vermeende constructiemaat uit het raster afgeleid en geldt deze operationele regel:
 
 - rond het logo MOET zichtbaar meer ruimte zitten dan tussen naburige interface-elementen;
 - het logo raakt nooit een rand, foto, regel, badge of CTA;
@@ -270,7 +270,7 @@ Er wordt geen vermeende constructiemaat uit het raster afgeleid zolang geen mast
 
 ## 2.6 Compact icoon
 
-Het toekomstige goedgekeurde compacte icoon is het primaire compacte merkteken. Het kan worden gebruikt voor:
+Het goedgekeurde compacte icoon is het primaire compacte merkteken. Het kan worden gebruikt voor:
 
 - favicon;
 - PWA-icon;
@@ -279,7 +279,7 @@ Het toekomstige goedgekeurde compacte icoon is het primaire compacte merkteken. 
 - klein app-symbool wanneer de volledige lock-up niet past;
 - goedgekeurde hoekbranding in setup- of diagnostiekcontext.
 
-Het icoon wordt na goedkeuring exact als asset gebruikt. Geometrie, hoeken, materiaalstructuur en verhoudingen worden niet aangepast. De tijdelijke V-placeholder legt geen definitieve logogeometrie vast.
+Het icoon wordt exact als asset gebruikt. Geometrie, hoeken, materiaalstructuur en verhoudingen worden niet aangepast.
 
 ## 2.7 Maskable PWA-icon
 
@@ -3815,7 +3815,7 @@ Dit canon wordt geleverd met:
 - `veyocast-tailwind-preset.ts` - Tailwind mapping;
 - `veyocast-component-inventory.csv` - volledige componentcatalogus;
 - `veyocast-page-template-inventory.csv` - route- en stateinventaris;
-- tijdelijke VeyoCast-placeholder-SVG's in de centrale brandmap, uitsluitend voor ontwikkeling.
+- officiële locked VeyoCast SVG-masters en goedgekeurde technische afgeleiden in de centrale brandmap.
 
 ## 23.1 Gebruik
 

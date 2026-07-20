@@ -33,7 +33,7 @@
 ## Design gates
 
 - tokens used;
-- logo placeholder only from assetmap;
+- uitsluitend officiële logo- en iconvarianten uit de centrale assetmap;
 - no hardcoded brand colors;
 - no white text on orange primary button;
 - mobile is not mini-desktop;

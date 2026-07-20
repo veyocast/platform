@@ -8,7 +8,7 @@
 4. Shared component library.
 5. Product-specific implementation.
 
-The VeyoCast Bold Design & Product Canon v2.0.0 is versioned in
+The VeyoCast Bold Design & Product Canon v2.1.0 is versioned in
 `docs/design-canon/v1/`. Its Markdown source, W3C-format tokens, Tailwind
 preset, component inventory, page-template inventory and asset checksums are
 one governed package. The root `tokens/` files
@@ -28,13 +28,14 @@ single clear primary action per page and resource-oriented tables. It does not
 use marketing-style hero sections, soft dashboard card mosaics, decorative
 charts or technical implementation copy as primary interface content.
 
-## Placeholder assets
+## Officiële merkassets
 
-Approved VeyoCast logo and icon masters have not yet been supplied. Current
-SVGs are temporary development placeholders and must never be presented as
-official assets. Public release remains blocked until separately approved
-masters replace them. Once supplied, masters are copied unchanged into app
-public brand maps; they are never redrawn, recoloured, cropped or reconstructed.
+De door Danny Goldenbelt ontworpen en goedgekeurde VeyoCast SVG-masters staan
+byte-ongewijzigd in `assets/brand/`. De v1.0-set bevat uitsluitend de masters en
+technische afgeleiden die daar in `README.md` zijn beschreven. Masters worden
+ongewijzigd naar app-publicmappen gekopieerd; ze worden nooit opnieuw getekend,
+gerecolourd, uitgesneden of gereconstrueerd. Nieuwe varianten vereisen expliciete
+goedkeuring van de merkeigenaar.
 
 ## Tokens
 

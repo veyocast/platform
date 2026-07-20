@@ -86,8 +86,8 @@ Zie [`docs/auth-rls.md`](docs/auth-rls.md) en
 
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
-Approved VeyoCast logo and icon masters are also required before public launch;
-the current SVGs are explicitly temporary development placeholders.
+De officiële VeyoCast-merkassetset v1.0 is vastgelegd in `assets/brand/` met
+locked SVG-masters, goedgekeurde technische afgeleiden en SHA-256-controle.
 
 De uitgewerkte vervolgroadmap S20-S37 staat in
 [`docs/canon-alignment-product-roadmap.md`](docs/canon-alignment-product-roadmap.md).
