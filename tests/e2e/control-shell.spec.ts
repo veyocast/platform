@@ -3,11 +3,10 @@ import { expect, test } from "@playwright/test";
 test("renders the control shell with role-aware navigation", async ({ page }) => {
   await page.goto("/dashboard");
 
-  await expect(page.getByRole("heading", { name: "Goedemorgen, Daan" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Operationele lijn" })).toBeVisible();
-  await expect(page.getByLabel("Operationele tenantflow")).toContainText(
-    "Player synchroniseert"
-  );
+  await expect(page.getByRole("heading", { name: "Welkom, Daan Operator" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Verbind een live omgeving voor operationeel inzicht" })).toBeVisible();
+  await expect(page.getByText("Veilige lege staat")).toBeVisible();
+  await expect(page.getByText("Bestuurskamer")).toHaveCount(0);
   await expect(
     page.locator("summary").filter({ hasText: "Museumkwartier" })
   ).toBeVisible();
@@ -200,7 +199,7 @@ test("supports command navigation and the compact mobile navigation flow", async
   const commandPalette = page.getByRole("dialog", { name: "Snel naar een onderdeel" });
   await expect(commandPalette).toBeVisible();
   await commandPalette
-    .getByPlaceholder("Typ een onderdeel, bijvoorbeeld Media")
+    .getByPlaceholder("Zoek schermen, media, playlists of releases")
     .fill("Schermen");
   await commandPalette.getByRole("link", { name: /Schermen/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/screens$/);

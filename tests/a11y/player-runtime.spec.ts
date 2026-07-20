@@ -11,7 +11,7 @@ test("player setup and playback expose accessible landmarks and diagnostics", as
     page.getByRole("main", { name: "VeyoCast player setup" })
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "VeyoCast Player pairing" })
+    page.getByRole("heading", { name: "Koppel dit scherm aan VeyoCast" })
   ).toBeVisible();
   await expect(page.getByLabel("Pairingcode")).toContainText("VYO 482");
   await expect(page.getByLabel("Device setupstatus")).toContainText(

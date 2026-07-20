@@ -8,49 +8,80 @@ export async function loadTenantOverview(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return tenantOverviewFailure();
 
-  const [screens, devices, playlists, media, releases, audit] = await Promise.all([
+  const [screens, devices, playlists, playlistItems, media, releases, audit, invitations, members, tenant, heartbeats] = await Promise.all([
     supabase
       .from("screens")
-      .select("id, name, location, status, assigned_playlist_id, assigned_release_id")
+      .select("id, name, location, status, assigned_playlist_id, assigned_release_id, created_at")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: true }),
     supabase
       .from("player_devices")
-      .select("screen_id, status, active_release_id, desired_release_id, last_seen_at, storage_used_bytes, storage_quota_bytes")
+      .select("id, screen_id, status, active_release_id, desired_release_id, last_seen_at, storage_used_bytes, storage_quota_bytes, last_error_code, last_error_at")
       .eq("tenant_id", tenantId)
       .neq("status", "revoked"),
     supabase
       .from("playlists")
-      .select("id", { count: "exact", head: true })
+      .select("id, name, status, updated_at")
       .eq("tenant_id", tenantId)
       .neq("status", "archived"),
     supabase
+      .from("playlist_items")
+      .select("playlist_id, media_asset_id")
+      .eq("tenant_id", tenantId),
+    supabase
       .from("media_assets")
-      .select("file_size_bytes, status")
+      .select("id, title, file_size_bytes, status, validation_error, created_at")
       .eq("tenant_id", tenantId)
       .is("deleted_at", null),
     supabase
       .from("playlist_releases")
-      .select("id", { count: "exact", head: true })
-      .eq("tenant_id", tenantId),
+      .select("id, playlist_id, version, published_at")
+      .eq("tenant_id", tenantId)
+      .order("published_at", { ascending: false })
+      .limit(20),
     supabase
       .from("audit_events")
       .select("id, action, target_type, result, created_at")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
-      .limit(5)
+      .limit(8),
+    supabase
+      .from("tenant_invitations")
+      .select("id, email, status, expires_at")
+      .eq("tenant_id", tenantId)
+      .eq("status", "pending"),
+    supabase
+      .from("tenant_memberships")
+      .select("user_id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId),
+    supabase
+      .from("tenants")
+      .select("screen_limit")
+      .eq("id", tenantId)
+      .maybeSingle(),
+    supabase
+      .from("player_heartbeats")
+      .select("screen_id, active_release_id, runtime_state, created_at")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(250)
   ]);
 
-  if ([screens.error, devices.error, playlists.error, media.error, releases.error, audit.error].some(Boolean)) {
+  if ([screens.error, devices.error, playlists.error, playlistItems.error, media.error, releases.error, audit.error, invitations.error, members.error, tenant.error, heartbeats.error].some(Boolean)) {
     return tenantOverviewFailure();
   }
 
   return {
     auditEvents: audit.data ?? [],
+    heartbeats: heartbeats.data ?? [],
+    invitations: invitations.data ?? [],
+    memberCount: members.count ?? 0,
     error: false,
     media: media.data ?? [],
-    playlistCount: playlists.count ?? 0,
-    releaseCount: releases.count ?? 0,
+    playlistItems: playlistItems.data ?? [],
+    playlists: playlists.data ?? [],
+    releases: releases.data ?? [],
+    screenLimit: tenant.data?.screen_limit ?? 0,
     devices: devices.data ?? [],
     screens: screens.data ?? []
   };
@@ -161,9 +192,14 @@ function tenantOverviewFailure() {
     auditEvents: [],
     devices: [],
     error: true,
+    heartbeats: [],
+    invitations: [],
     media: [],
-    playlistCount: 0,
-    releaseCount: 0,
+    memberCount: 0,
+    playlistItems: [],
+    playlists: [],
+    releases: [],
+    screenLimit: 0,
     screens: []
   };
 }

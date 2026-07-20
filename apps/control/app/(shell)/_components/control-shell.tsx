@@ -10,6 +10,7 @@ import {
   FileImage,
   LayoutDashboard,
   ListVideo,
+  LoaderCircle,
   Menu,
   MonitorSmartphone,
   PackageCheck,
@@ -30,6 +31,7 @@ import type {
   ControlNavigationItem,
   ControlSession
 } from "../_lib/control-navigation";
+import type { ControlSearchResult } from "../../../lib/control-search";
 import { switchTenantContext } from "../context/actions";
 
 type ControlShellProps = {
@@ -64,6 +66,8 @@ export function ControlShell({
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [resourceResults, setResourceResults] = useState<ControlSearchResult[]>([]);
+  const [isResourceSearchPending, setResourceSearchPending] = useState(false);
 
   useEffect(() => {
     const currentPreference = window.localStorage.getItem(sidebarStorageKey);
@@ -93,6 +97,38 @@ export function ControlShell({
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
   }, []);
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!isSearchOpen || !session.isLive || query.length < 2) {
+      setResourceResults([]);
+      setResourceSearchPending(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setResourceResults([]);
+    const timeout = window.setTimeout(async () => {
+      setResourceSearchPending(true);
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, {
+          cache: "no-store",
+          signal: controller.signal
+        });
+        const body = (await response.json()) as { results?: ControlSearchResult[] };
+        setResourceResults(response.ok && Array.isArray(body.results) ? body.results : []);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) setResourceResults([]);
+      } finally {
+        if (!controller.signal.aborted) setResourceSearchPending(false);
+      }
+    }, 180);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [isSearchOpen, searchQuery, session.isLive]);
 
   const searchResults = useMemo(() => {
     const query = searchQuery.trim().toLocaleLowerCase("nl-NL");
@@ -356,8 +392,9 @@ export function ControlShell({
               <Search aria-hidden="true" />
               <input
                 autoFocus
+                aria-label="Zoek navigatie en resources"
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Typ een onderdeel, bijvoorbeeld Media"
+                placeholder="Zoek schermen, media, playlists of releases"
                 type="search"
                 value={searchQuery}
               />
@@ -372,8 +409,8 @@ export function ControlShell({
               </button>
             </div>
             <div className="command-palette__results">
-              {searchResults.length > 0 ? (
-                searchResults.map((item) => {
+              <p className="command-palette__group-label">Navigatie</p>
+              {searchResults.length > 0 ? searchResults.map((item) => {
                   const Icon = navigationIcons[item.label] ?? LayoutDashboard;
                   return (
                     <Link
@@ -392,10 +429,28 @@ export function ControlShell({
                       </span>
                     </Link>
                   );
-                })
-              ) : (
-                <p className="command-palette__empty">Geen resultaten gevonden.</p>
-              )}
+                }) : <p className="command-palette__empty">Geen passend onderdeel.</p>}
+              {searchQuery.trim().length >= 2 && session.isLive ? (
+                <>
+                  <p className="command-palette__group-label">Resources in {session.tenantId ? session.tenant : "het platform"}</p>
+                  {isResourceSearchPending ? (
+                    <p className="command-palette__loading" role="status"><LoaderCircle aria-hidden="true" /> Zoeken…</p>
+                  ) : resourceResults.length ? resourceResults.map((result) => (
+                    <Link
+                      className="command-result"
+                      href={result.href}
+                      key={result.id}
+                      onClick={() => {
+                        setSearchOpen(false);
+                        setSearchQuery("");
+                      }}
+                    >
+                      <Search aria-hidden="true" />
+                      <span><strong>{result.label}</strong><small>{resourceKindLabel[result.kind]} · {result.description}</small></span>
+                    </Link>
+                  )) : <p className="command-palette__empty">Geen toegankelijke resources gevonden.</p>}
+                </>
+              ) : null}
             </div>
           </section>
         </div>
@@ -436,3 +491,11 @@ const tenantStatusLabel = {
   archived: "Gearchiveerd",
   paused: "Gepauzeerd · alleen lezen"
 } as const;
+
+const resourceKindLabel: Record<ControlSearchResult["kind"], string> = {
+  media: "Media",
+  playlist: "Playlist",
+  release: "Release",
+  screen: "Scherm",
+  tenant: "Vereniging"
+};

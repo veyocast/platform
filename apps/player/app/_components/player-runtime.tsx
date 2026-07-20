@@ -1076,41 +1076,53 @@ function PairingPanel({
   expiresAt?: string;
   pairingCode?: string;
 }) {
+  const [connectionLabel, setConnectionLabel] = useState("Internet controleren…");
+  const [deviceLabel, setDeviceLabel] = useState("Web Player");
+
+  useEffect(() => {
+    const updateConnection = () => setConnectionLabel(navigator.onLine ? "Verbonden" : "Geen internetverbinding");
+    setDeviceLabel(detectDeviceLabel(navigator.userAgent));
+    updateConnection();
+    window.addEventListener("online", updateConnection);
+    window.addEventListener("offline", updateConnection);
+    return () => {
+      window.removeEventListener("online", updateConnection);
+      window.removeEventListener("offline", updateConnection);
+    };
+  }, []);
+
   return (
-    <main className="runtime-shell" aria-label="VeyoCast player setup">
-      <section className="runtime-panel" aria-labelledby="player-title">
-        <p className="runtime-kicker">Device boot shell</p>
-        <h1 className="runtime-title" id="player-title">
-          {VEYOCAST_APPS.player.name} pairing
-        </h1>
-        <p className="runtime-copy">
-          Deze player is nog niet gekoppeld. Voer de pairingcode in VeyoCast
-          Control in om een revocable device session aan dit scherm te koppelen.
-        </p>
-        <div className="player-pairing-code" aria-label="Pairingcode">
-          {pairingCode ?? demoPairingCode}
+    <main className="runtime-shell runtime-shell--pairing" aria-label="VeyoCast player setup">
+      <SetupBackdrop />
+      <section className="pairing-stage" aria-labelledby="player-title">
+        <div className="pairing-stage__primary">
+          <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
+          <div className="pairing-heading">
+            <p className="runtime-kicker"><span className="pairing-live-dot" aria-hidden="true" /> Klaar om te koppelen</p>
+            <h1 className="runtime-title" id="player-title">Koppel dit scherm aan VeyoCast</h1>
+            <p className="runtime-copy">Open <strong>Schermen</strong> in VeyoCast Control, kies <strong>Scherm koppelen</strong> en voer deze code in.</p>
+          </div>
+          <div className="pairing-code-group">
+            <span className="pairing-code-label">Koppelcode</span>
+            <div className="player-pairing-code" aria-label="Pairingcode">{pairingCode ?? demoPairingCode}</div>
+            <p>De code is tijdelijk en alleen bruikbaar voor dit scherm.</p>
+          </div>
         </div>
-        <dl className="player-diagnostics" aria-label="Device setupstatus">
+        <aside className="pairing-stage__status" aria-label="Device setupstatus">
+          <div className="pairing-signal" aria-hidden="true"><span /><span /><span /><i /></div>
           <div>
-            <dt>State</dt>
-            <dd>UNPAIRED</dd>
+            <p className="pairing-status-eyebrow">Schermstatus</p>
+            <h2>Wachten op VeyoCast Control</h2>
+            <p>Zodra de code is bevestigd, haalt dit scherm veilig de toegewezen release op.</p>
           </div>
-          <div>
-            <dt>Sessie</dt>
-            <dd>Geen Supabase Auth-user</dd>
-          </div>
-          <div>
-            <dt>Volgende stap</dt>
-            <dd>
-              {expiresAt
-                ? `Geldig tot ${new Intl.DateTimeFormat("nl-NL", {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  }).format(new Date(expiresAt))}`
-                : "Wachten op veilige live configuratie"}
-            </dd>
-          </div>
-        </dl>
+          <dl className="player-diagnostics">
+            <div><dt>Apparaat</dt><dd>{deviceLabel}</dd></div>
+            <div><dt>Internet</dt><dd><span className="pairing-live-dot" aria-hidden="true" /> {connectionLabel}</dd></div>
+            <div><dt>Player</dt><dd>{VEYOCAST_APPS.player.name} · versie 1.0</dd></div>
+            <div><dt>Code geldig</dt><dd>{expiresAt ? `Tot ${new Intl.DateTimeFormat("nl-NL", { hour: "2-digit", minute: "2-digit" }).format(new Date(expiresAt))}` : "Veilige democode"}</dd></div>
+            <div><dt>Beveiliging</dt><dd>Geen Supabase Auth-user</dd></div>
+          </dl>
+        </aside>
       </section>
     </main>
   );
@@ -1124,8 +1136,10 @@ function SetupPanel({
   title: string;
 }) {
   return (
-    <main className="runtime-shell" aria-label="VeyoCast player sync">
-      <section className="runtime-panel" aria-labelledby="player-title">
+    <main className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player sync">
+      <SetupBackdrop />
+      <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
+        <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
         <p className="runtime-kicker">{stateLabel}</p>
         <h1 className="runtime-title" id="player-title">
           {title}
@@ -1146,8 +1160,10 @@ function ProblemPanel({
   problem: Extract<RuntimeView, { state: "ERROR_RECOVERABLE" | "DISABLED" }>;
 }) {
   return (
-    <main className="runtime-shell" aria-label="VeyoCast player status">
-      <section className="runtime-panel" aria-labelledby="player-title">
+    <main className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player status">
+      <SetupBackdrop />
+      <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
+        <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
         <p className="runtime-kicker">{problem.state}</p>
         <h1 className="runtime-title" id="player-title">
           Playback wacht
@@ -1166,6 +1182,23 @@ function ProblemPanel({
       </section>
     </main>
   );
+}
+
+function SetupBackdrop() {
+  return (
+    <div className="setup-backdrop" aria-hidden="true">
+      <span className="setup-orbit setup-orbit--one" />
+      <span className="setup-orbit setup-orbit--two" />
+      <span className="setup-orbit setup-orbit--three" />
+    </div>
+  );
+}
+
+function detectDeviceLabel(userAgent: string) {
+  if (/Web0S|WebOS/i.test(userAgent)) return "LG webOS signage";
+  if (/Tizen/i.test(userAgent)) return "Tizen signage";
+  if (/Android/i.test(userAgent)) return "Android signage";
+  return "Web Player";
 }
 
 function isPlaybackRuntime(runtime: RuntimeView): runtime is PlaybackRuntime {

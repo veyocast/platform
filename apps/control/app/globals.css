@@ -2869,6 +2869,134 @@ kbd {
   }
 }
 
+/* S28 operational dashboard and scoped resource search. */
+.metric-grid--operational {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.action-inbox { border-top-color: var(--vc-border-strong); }
+
+.operational-signal-list {
+  display: grid;
+  gap: var(--vc-space-12);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operational-signal {
+  background: var(--vc-surface);
+  border: 1px solid var(--vc-border);
+  border-left: 4px solid var(--vc-semantic-info-solid);
+  border-radius: var(--vc-radius-lg);
+  display: grid;
+  gap: var(--vc-space-16);
+  min-width: 0;
+  padding: var(--vc-space-16);
+}
+
+.operational-signal[data-severity="warning"] { border-left-color: var(--vc-semantic-warning-solid); }
+.operational-signal[data-severity="critical"] { border-left-color: var(--vc-semantic-critical-solid); }
+
+.operational-signal__header {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--vc-space-12);
+  justify-content: space-between;
+}
+
+.operational-signal__header > span {
+  display: grid;
+  gap: var(--vc-space-4);
+  min-width: 0;
+}
+
+.operational-signal__header strong { font-size: 16px; line-height: 22px; }
+.operational-signal__header small { color: var(--vc-text-muted); font-size: 12px; line-height: 16px; }
+
+.operational-help { display: grid; gap: var(--vc-space-8); margin: 0; }
+.operational-help > div { display: grid; gap: var(--vc-space-4); grid-template-columns: 56px minmax(0, 1fr); }
+.operational-help dt { color: var(--vc-text-subtle); font-size: 11px; font-weight: 700; letter-spacing: .04em; line-height: 18px; text-transform: uppercase; }
+.operational-help dd { color: var(--vc-text-muted); font-size: 13px; line-height: 18px; margin: 0; }
+.operational-signal .button-link { justify-self: start; }
+.dashboard-layout--operations { align-items: start; }
+
+.operational-checklist,
+.compact-resource-list { display: grid; gap: var(--vc-space-6); list-style: none; margin: 0; padding: 0; }
+
+.operational-checklist li {
+  align-items: center;
+  border-bottom: 1px solid var(--vc-border);
+  color: var(--vc-text-muted);
+  display: grid;
+  gap: var(--vc-space-8);
+  grid-template-columns: 20px minmax(0, 1fr);
+  min-height: 36px;
+  padding: var(--vc-space-4) 0;
+}
+
+.operational-checklist li[data-complete="true"] { color: var(--vc-semantic-success-text); }
+.operational-checklist a, .compact-resource-list a { font-weight: 650; text-decoration: none; }
+.operational-checklist a:hover, .compact-resource-list a:hover { text-decoration: underline; }
+
+.compact-resource-list li {
+  align-items: center;
+  border-bottom: 1px solid var(--vc-border);
+  display: flex;
+  gap: var(--vc-space-8);
+  justify-content: space-between;
+  min-height: 38px;
+}
+
+.compact-resource-list span { color: var(--vc-text-muted); font-size: 12px; text-align: right; }
+
+.empty-dashboard {
+  background: var(--vc-surface);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-xl);
+  display: grid;
+  gap: var(--vc-space-16);
+  justify-items: start;
+  max-width: 760px;
+  padding: clamp(var(--vc-space-24), 5vw, var(--vc-space-48));
+}
+
+.empty-dashboard h2, .empty-dashboard p { margin: 0; }
+.empty-dashboard h2 { font-size: 24px; line-height: 32px; }
+.empty-dashboard p { color: var(--vc-text-muted); line-height: 22px; max-width: 62ch; }
+
+.command-palette__group-label {
+  color: var(--vc-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  margin: var(--vc-space-8) var(--vc-space-10) var(--vc-space-4);
+  text-transform: uppercase;
+}
+
+.command-palette__loading {
+  align-items: center;
+  color: var(--vc-text-muted);
+  display: flex;
+  font-size: 13px;
+  gap: var(--vc-space-8);
+  margin: var(--vc-space-12);
+}
+
+.command-palette__loading svg { animation: command-loading 900ms linear infinite; height: 16px; width: 16px; }
+@keyframes command-loading { to { transform: rotate(1turn); } }
+
+@media (max-width: 1023px) {
+  .metric-grid--operational,
+  .operational-signal-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 767px) {
+  .operational-signal-list { grid-template-columns: minmax(0, 1fr); }
+  .operational-help > div { grid-template-columns: minmax(0, 1fr); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -2876,4 +3004,6 @@ kbd {
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;
   }
+
+  .command-palette__loading svg { animation: none; }
 }
