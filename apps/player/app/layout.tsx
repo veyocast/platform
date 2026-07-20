@@ -1,10 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import "./globals.css";
+import { PlayerPwaControls } from "./_components/player-pwa-controls";
 import { ServiceWorkerRegistration } from "./_components/service-worker-registration";
 
 export const metadata: Metadata = {
+  applicationName: "VeyoCast Player",
   title: "VeyoCast Player",
   description: "VeyoCast player plane",
   icons: {
@@ -13,7 +15,16 @@ export const metadata: Metadata = {
       { sizes: "any", type: "image/svg+xml", url: "/brand/veyocast-favicon.svg" },
       { sizes: "32x32", type: "image/png", url: "/brand/veyocast-favicon-32.png" }
     ]
+  },
+  other: {
+    "mobile-web-app-capable": "yes"
   }
+};
+
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: "#0A0A0A",
+  viewportFit: "cover"
 };
 
 export default function RootLayout({
@@ -24,6 +35,7 @@ export default function RootLayout({
       <body>
         <ServiceWorkerRegistration />
         {children}
+        <PlayerPwaControls />
       </body>
     </html>
   );

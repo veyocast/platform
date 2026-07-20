@@ -7,6 +7,11 @@
 - A pending release is not active until every required asset is downloaded and verified.
 - A corrupt pending release is discarded or retried without interrupting active playback.
 - The player never shows a black screen for temporary connectivity loss.
+- Netwerkverlies schakelt bestaande playback direct naar `OFFLINE_PLAYING`
+  zonder de actieve release of het actieve item te vervangen.
+- Alleen tijdens aantoonbaar netwerkverlies staat rechtsonder een compacte
+  tekstchip `Geen internetverbinding`; normale playback heeft geen permanent
+  diagnosepaneel of softwarewatermark.
 
 ## State model
 
@@ -26,6 +31,9 @@ DISABLED
 ## Local storage
 
 - App shell: Cache Storage.
+- De service worker precachet vóór activatie de root, manifestmetadata,
+  officiële setup-assets en alle door de eerste HTML-render gerefereerde
+  Next.js shellbestanden.
 - Manifests and sync metadata: IndexedDB.
 - Media assets: Cache Storage MVP; adapter abstraction for later OPFS/chunking.
 - Asset keys: checksum-based.

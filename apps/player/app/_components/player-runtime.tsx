@@ -36,6 +36,7 @@ import {
   playerReloadCooldownMs,
   type PlayerRecoveryAction
 } from "../_lib/player-recovery";
+import { reportPlayerConnectivity } from "../_lib/player-connectivity";
 
 const demoPairingCode = "VYO 482";
 const localStoragePairingCodeKey = "veyocast.player.pairingCode";
@@ -350,6 +351,7 @@ export function PlayerRuntime() {
             cache: "no-store",
             method: "POST"
           });
+          reportPlayerConnectivity(true);
           const body = (await response.json()) as PairingResponse;
 
           if (cancelled) {
@@ -387,6 +389,7 @@ export function PlayerRuntime() {
             void pollPairingClaim(pendingToken);
           }, pairingClaimPollIntervalMs);
         } catch {
+          reportPlayerConnectivity(false);
           setRuntime({
             state: "ERROR_RECOVERABLE",
             error: {
@@ -555,6 +558,7 @@ export function PlayerRuntime() {
             }
           }
         );
+        reportPlayerConnectivity(true);
         const body = (await response.json()) as
           | PlayerManifestEnvelope
           | PlayerManifestProblem
@@ -728,6 +732,7 @@ export function PlayerRuntime() {
         syncSucceeded = true;
       } catch (error) {
         if (!cancelled) {
+          reportPlayerConnectivity(false);
           keepCachedPlaybackOrShowProblem(
             "Online sync faalde; cached playback blijft actief.",
             error instanceof Error ? error.message : "manifest fetch failed"
@@ -832,6 +837,27 @@ export function PlayerRuntime() {
       });
     }
 
+    function handleNetworkOffline() {
+      setRuntime((currentRuntime) =>
+        isPlaybackRuntime(currentRuntime)
+          ? {
+              ...currentRuntime,
+              state: "OFFLINE_PLAYING",
+              syncMessage: "Geen internetverbinding; last-known-good blijft lokaal spelen."
+            }
+          : currentRuntime
+      );
+    }
+
+    function handleNetworkOnline() {
+      consecutiveSyncFailures = 0;
+      if (syncTimer) window.clearTimeout(syncTimer);
+      void syncOnlineManifest();
+    }
+
+    window.addEventListener("offline", handleNetworkOffline);
+    window.addEventListener("online", handleNetworkOnline);
+
     void restoreLastKnownGood()
       .catch(() => false)
       .then(() => {
@@ -843,6 +869,8 @@ export function PlayerRuntime() {
     return () => {
       cancelled = true;
       if (syncTimer) window.clearTimeout(syncTimer);
+      window.removeEventListener("offline", handleNetworkOffline);
+      window.removeEventListener("online", handleNetworkOnline);
       hydratedReleasesRef.current.splice(0).forEach(revokeHydratedRelease);
     };
   }, []);
@@ -903,28 +931,33 @@ export function PlayerRuntime() {
               ? "switch_pending"
               : "active";
 
-      await fetch("/api/player/heartbeat", {
-        body: JSON.stringify({
-          activeReleaseId: playbackRuntime?.release.envelope.manifest.releaseId ?? null,
-          currentItemId: activeItem?.id ?? null,
-          desiredReleaseId: playbackRuntime
-            ? playbackRuntime.pendingRelease?.envelope.manifest.releaseId ??
-              playbackRuntime.release.envelope.device.desiredReleaseId ??
-              playbackRuntime.release.envelope.manifest.releaseId
-            : null,
-          lastPlaybackError: lastPlaybackErrorRef.current,
-          networkState: navigator.onLine ? "online" : "offline",
-          runtimeState: playbackRuntime?.state ?? "READY",
-          storageQuotaBytes: storage.quota,
-          storageUsedBytes: storage.usage,
-          syncPhase
-        }),
-        headers: {
-          Authorization: `Bearer ${deviceToken}`,
-          "Content-Type": "application/json"
-        },
-        method: "POST"
-      }).catch(() => undefined);
+      try {
+        await fetch("/api/player/heartbeat", {
+          body: JSON.stringify({
+            activeReleaseId: playbackRuntime?.release.envelope.manifest.releaseId ?? null,
+            currentItemId: activeItem?.id ?? null,
+            desiredReleaseId: playbackRuntime
+              ? playbackRuntime.pendingRelease?.envelope.manifest.releaseId ??
+                playbackRuntime.release.envelope.device.desiredReleaseId ??
+                playbackRuntime.release.envelope.manifest.releaseId
+              : null,
+            lastPlaybackError: lastPlaybackErrorRef.current,
+            networkState: navigator.onLine ? "online" : "offline",
+            runtimeState: playbackRuntime?.state ?? "READY",
+            storageQuotaBytes: storage.quota,
+            storageUsedBytes: storage.usage,
+            syncPhase
+          }),
+          headers: {
+            Authorization: `Bearer ${deviceToken}`,
+            "Content-Type": "application/json"
+          },
+          method: "POST"
+        });
+        reportPlayerConnectivity(true);
+      } catch {
+        reportPlayerConnectivity(false);
+      }
     }
 
     const initialHeartbeatTimer = window.setTimeout(() => {
@@ -1027,10 +1060,8 @@ function PlaybackView({
           <span>{manifest.label}</span>
         </div>
       </section>
-      <aside className="player-status-panel" aria-label="Player diagnostics">
-        <span className="player-state" aria-live="polite">
-          {runtime.state}
-        </span>
+      <aside hidden aria-label="Player diagnostics">
+        <span>{runtime.state}</span>
         <span>{manifest.label}</span>
         <span>Item {runtime.activeIndex + 1} van {manifest.items.length}</span>
         <span>{runtime.release.envelope.diagnostics.syncStatus}</span>
@@ -1442,8 +1473,10 @@ async function confirmPairingClaim(deviceToken: string) {
       },
       method: "POST"
     });
+    reportPlayerConnectivity(true);
     return response.ok;
   } catch {
+    reportPlayerConnectivity(false);
     return false;
   }
 }

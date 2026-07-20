@@ -8,7 +8,7 @@
 4. Shared component library.
 5. Product-specific implementation.
 
-The VeyoCast Bold Design & Product Canon v2.1.0 is versioned in
+The VeyoCast Bold Design & Product Canon v2.1.1 is versioned in
 `docs/design-canon/v1/`. Its Markdown source, W3C-format tokens, Tailwind
 preset, component inventory, page-template inventory and asset checksums are
 one governed package. The root `tokens/` files

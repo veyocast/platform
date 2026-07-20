@@ -42,10 +42,27 @@ test("serves cached media as 200, 206 and 416 through the service worker", async
   expect(result.invalid).toEqual({ contentRange: "bytes */10", status: 416 });
 });
 
-test("reloads the cached player shell without a network connection", async ({ context, page }) => {
+test("pre-caches and reloads the complete player shell without a network connection", async ({ context, page }) => {
   await page.goto(playerURL);
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
+  });
+
+  const cachedShell = await page.evaluate(async () => {
+    const cache = await caches.open("veyocast-player-shell-v3");
+    const paths = (await cache.keys()).map((request) => new URL(request.url).pathname);
+    return {
+      hasIcon: paths.includes("/brand/veyocast-icon-maskable-512.png"),
+      hasManifest: paths.includes("/manifest.webmanifest"),
+      hasNextAssets: paths.some((path) => path.startsWith("/_next/static/")),
+      hasRoot: paths.includes("/")
+    };
+  });
+  expect(cachedShell).toEqual({
+    hasIcon: true,
+    hasManifest: true,
+    hasNextAssets: true,
+    hasRoot: true
   });
 
   if (!(await page.evaluate(() => Boolean(navigator.serviceWorker.controller)))) {
@@ -53,11 +70,11 @@ test("reloads the cached player shell without a network connection", async ({ co
   }
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
 
-  await context.setOffline(true);
+    await context.setOffline(true);
   try {
     await page.reload();
     await expect(page.getByRole("main")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Koppelcode maken" })).toBeVisible();
+    await expect(page.getByText("Geen internetverbinding", { exact: true })).toBeVisible();
   } finally {
     await context.setOffline(false);
   }
@@ -113,7 +130,7 @@ test("removes obsolete player shell caches on service-worker activation", async 
   await page.evaluate(async () => navigator.serviceWorker.ready);
   await page.waitForFunction(async () => {
     const names = await caches.keys();
-    return !names.includes("veyocast-player-shell-v1") && names.includes("veyocast-player-shell-v2");
+    return !names.includes("veyocast-player-shell-v1") && names.includes("veyocast-player-shell-v3");
   });
 
   await expect.poll(() => page.evaluate(() => caches.keys())).not.toContain(
