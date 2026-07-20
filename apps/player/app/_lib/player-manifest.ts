@@ -62,6 +62,23 @@ export type PlayerManifestEnvelope = {
   };
 };
 
+export type PlayerWaitingContentEnvelope = {
+  state: "READY";
+  fetchedAt: string;
+  device: {
+    id: string;
+    screenId: string;
+    screenName: string;
+    activeReleaseId: string | null;
+    desiredReleaseId: null;
+  };
+  diagnostics: {
+    syncStatus: "online";
+    lastSuccessfulSyncAt: string;
+    nextSyncReason: "waiting for first release";
+  };
+};
+
 export type PlayerManifestProblem = {
   state: "UNPAIRED" | "DISABLED" | "ERROR_RECOVERABLE";
   error: {

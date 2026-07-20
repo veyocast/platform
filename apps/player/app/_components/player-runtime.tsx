@@ -28,7 +28,8 @@ import {
   type PlayerManifestEnvelope,
   type PlayerManifestItem,
   type PlayerManifestProblem,
-  type PlayerRuntimeState
+  type PlayerRuntimeState,
+  type PlayerWaitingContentEnvelope
 } from "../_lib/player-manifest";
 import {
   planPlayerRecovery,
@@ -42,7 +43,9 @@ const localStoragePairingExpiryKey = "veyocast.player.pairingExpiresAt";
 const localStorageReloadTimestampsKey = "veyocast.player.reloadTimestamps";
 const defaultWatchdogTimeoutMs = 12_000;
 const defaultManifestSyncIntervalMs = 60_000;
+const waitingContentSyncIntervalMs = 5_000;
 const maximumManifestSyncBackoffMs = 5 * 60_000;
+const pairingClaimPollIntervalMs = 2_000;
 
 type PlaybackFailureCode =
   | "IMAGE_ERROR"
@@ -71,10 +74,18 @@ type PlaybackRuntime = {
   syncMessage: string;
 };
 
+type WaitingContentRuntime = {
+  device: PlayerWaitingContentEnvelope["device"];
+  deviceToken: string;
+  state: "READY";
+  syncMessage: string;
+};
+
 type RuntimeView =
   | { state: "BOOTING" }
   | { state: "UNPAIRED"; pairingCode?: string; expiresAt?: string }
   | { state: "SYNCING"; deviceToken: string }
+  | WaitingContentRuntime
   | PlaybackRuntime
   | { state: "ERROR_RECOVERABLE" | "DISABLED"; error: PlayerManifestProblem["error"] };
 
@@ -330,6 +341,7 @@ export function PlayerRuntime() {
 
     if (!deviceToken) {
       let cancelled = false;
+      let expiryTimer: number | undefined;
       let pollTimer: number | undefined;
 
       async function provisionPairing() {
@@ -361,16 +373,19 @@ export function PlayerRuntime() {
             return;
           }
 
+          const pendingToken = body.deviceToken;
           writeStoredPairing(body);
           setRuntime({
             expiresAt: body.expiresAt,
             pairingCode: body.pairingCode,
             state: "UNPAIRED"
           });
+          schedulePairingExpiry(body.expiresAt);
 
+          void pollPairingClaim(pendingToken);
           pollTimer = window.setInterval(() => {
-            void pollPairingClaim(body.deviceToken as string);
-          }, 2_000);
+            void pollPairingClaim(pendingToken);
+          }, pairingClaimPollIntervalMs);
         } catch {
           setRuntime({
             state: "ERROR_RECOVERABLE",
@@ -384,18 +399,21 @@ export function PlayerRuntime() {
       }
 
       async function pollPairingClaim(pendingToken: string) {
-        const response = await fetch("/api/player/manifest", {
-          cache: "no-store",
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${pendingToken}`
-          }
-        });
-
-        if (response.ok && !cancelled) {
+        if (await confirmPairingClaim(pendingToken) && !cancelled) {
           clearStoredPairing();
           window.location.reload();
         }
+      }
+
+      function schedulePairingExpiry(expiresAt: string | undefined) {
+        const expiry = expiresAt ? new Date(expiresAt).getTime() : Number.NaN;
+        if (!Number.isFinite(expiry)) return;
+        if (expiryTimer) window.clearTimeout(expiryTimer);
+        expiryTimer = window.setTimeout(() => {
+          if (cancelled) return;
+          clearStoredPlayerIdentity();
+          window.location.reload();
+        }, Math.max(0, expiry - Date.now()));
       }
 
       void provisionPairing();
@@ -405,12 +423,16 @@ export function PlayerRuntime() {
         if (pollTimer) {
           window.clearInterval(pollTimer);
         }
+        if (expiryTimer) {
+          window.clearTimeout(expiryTimer);
+        }
       };
     }
 
     const pendingPairing = readStoredPairing();
     if (pendingPairing) {
       let cancelled = false;
+      const pendingToken = deviceToken;
       const expiresAt = new Date(pendingPairing.expiresAt).getTime();
 
       if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
@@ -425,24 +447,27 @@ export function PlayerRuntime() {
         state: "UNPAIRED"
       });
 
-      const pollTimer = window.setInterval(async () => {
-        const response = await fetch("/api/player/manifest", {
-          cache: "no-store",
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${deviceToken}`
-          }
-        });
-
-        if (response.ok && !cancelled) {
+      async function pollPairingClaim() {
+        if (await confirmPairingClaim(pendingToken) && !cancelled) {
           clearStoredPairing();
           window.location.reload();
         }
-      }, 2_000);
+      }
+
+      void pollPairingClaim();
+      const pollTimer = window.setInterval(() => {
+        void pollPairingClaim();
+      }, pairingClaimPollIntervalMs);
+      const expiryTimer = window.setTimeout(() => {
+        if (cancelled) return;
+        clearStoredPlayerIdentity();
+        window.location.reload();
+      }, Math.max(0, expiresAt - Date.now()));
 
       return () => {
         cancelled = true;
         window.clearInterval(pollTimer);
+        window.clearTimeout(expiryTimer);
       };
     }
 
@@ -515,6 +540,9 @@ export function PlayerRuntime() {
       if (cancelled || syncInFlight) return;
       syncInFlight = true;
       let syncSucceeded = false;
+      let nextSyncBaseDelayMs = isWaitingContentRuntime(runtimeRef.current)
+        ? waitingContentSyncIntervalMs
+        : manifestSyncIntervalMs;
 
       try {
         const response = await fetch(
@@ -529,9 +557,36 @@ export function PlayerRuntime() {
         );
         const body = (await response.json()) as
           | PlayerManifestEnvelope
-          | PlayerManifestProblem;
+          | PlayerManifestProblem
+          | PlayerWaitingContentEnvelope;
 
         if (cancelled) {
+          return;
+        }
+
+        if (response.ok && isWaitingContentEnvelope(body)) {
+          desiredReleaseIdRef.current = null;
+          nextSyncBaseDelayMs = waitingContentSyncIntervalMs;
+          setRuntime((currentRuntime) => {
+            if (isPlaybackRuntime(currentRuntime)) {
+              if (currentRuntime.pendingRelease) {
+                releaseHydratedReference(currentRuntime.pendingRelease);
+              }
+              return {
+                ...currentRuntime,
+                pendingRelease: undefined,
+                state: "PLAYING",
+                syncMessage: "Geen nieuwe release toegewezen; last-known-good blijft actief."
+              };
+            }
+            return {
+              device: body.device,
+              deviceToken: activeDeviceToken,
+              state: "READY",
+              syncMessage: "Player gekoppeld; wacht op de eerste publicatie."
+            };
+          });
+          syncSucceeded = true;
           return;
         }
 
@@ -683,16 +738,16 @@ export function PlayerRuntime() {
         consecutiveSyncFailures = syncSucceeded
           ? 0
           : Math.min(consecutiveSyncFailures + 1, 8);
-        scheduleNextSync();
+        scheduleNextSync(nextSyncBaseDelayMs);
       }
     }
 
-    function scheduleNextSync() {
+    function scheduleNextSync(baseDelayMs: number) {
       if (cancelled) return;
       if (syncTimer) window.clearTimeout(syncTimer);
       const delay = Math.min(
         maximumManifestSyncBackoffMs,
-        manifestSyncIntervalMs * 2 ** consecutiveSyncFailures
+        baseDelayMs * 2 ** consecutiveSyncFailures
       );
       syncTimer = window.setTimeout(() => {
         void syncOnlineManifest();
@@ -726,7 +781,7 @@ export function PlayerRuntime() {
     function handleManifestProblem(problem: PlayerManifestProblem) {
       if (problem.state === "UNPAIRED") {
         clearStoredPlayerIdentity();
-        setRuntime({ state: "UNPAIRED" });
+        window.location.reload();
         return;
       }
 
@@ -826,31 +881,40 @@ export function PlayerRuntime() {
     async function sendHeartbeat() {
       const currentRuntime = runtimeRef.current;
       const deviceToken = readStoredDeviceToken();
-      if (!deviceToken || !isPlaybackRuntime(currentRuntime)) return;
+      if (
+        !deviceToken ||
+        (!isPlaybackRuntime(currentRuntime) && !isWaitingContentRuntime(currentRuntime))
+      ) return;
 
       const storage = await readStorageEstimate();
-      const activeItem =
-        currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
-      const syncPhase =
-        currentRuntime.state === "DOWNLOADING"
+      const playbackRuntime = isPlaybackRuntime(currentRuntime)
+        ? currentRuntime
+        : null;
+      const activeItem = playbackRuntime
+        ? playbackRuntime.release.envelope.manifest.items[playbackRuntime.activeIndex]
+        : null;
+      const syncPhase = !playbackRuntime
+        ? null
+        : playbackRuntime.state === "DOWNLOADING"
           ? "downloading"
-          : currentRuntime.state === "VERIFYING"
+          : playbackRuntime.state === "VERIFYING"
             ? "verifying"
-            : currentRuntime.state === "SWITCH_PENDING"
+            : playbackRuntime.state === "SWITCH_PENDING"
               ? "switch_pending"
               : "active";
 
       await fetch("/api/player/heartbeat", {
         body: JSON.stringify({
-          activeReleaseId: currentRuntime.release.envelope.manifest.releaseId,
+          activeReleaseId: playbackRuntime?.release.envelope.manifest.releaseId ?? null,
           currentItemId: activeItem?.id ?? null,
-          desiredReleaseId:
-            currentRuntime.pendingRelease?.envelope.manifest.releaseId ??
-            currentRuntime.release.envelope.device.desiredReleaseId ??
-            currentRuntime.release.envelope.manifest.releaseId,
+          desiredReleaseId: playbackRuntime
+            ? playbackRuntime.pendingRelease?.envelope.manifest.releaseId ??
+              playbackRuntime.release.envelope.device.desiredReleaseId ??
+              playbackRuntime.release.envelope.manifest.releaseId
+            : null,
           lastPlaybackError: lastPlaybackErrorRef.current,
           networkState: navigator.onLine ? "online" : "offline",
-          runtimeState: currentRuntime.state,
+          runtimeState: playbackRuntime?.state ?? "READY",
           storageQuotaBytes: storage.quota,
           storageUsedBytes: storage.usage,
           syncPhase
@@ -895,6 +959,10 @@ export function PlayerRuntime() {
 
   if (runtime.state === "BOOTING") {
     return <SetupPanel stateLabel="BOOTING" title="Koppelcode maken" />;
+  }
+
+  if (runtime.state === "READY") {
+    return <WaitingContentPanel runtime={runtime} />;
   }
 
   if (runtime.state === "ERROR_RECOVERABLE" || runtime.state === "DISABLED") {
@@ -1180,6 +1248,26 @@ function ProblemPanel({
   );
 }
 
+function WaitingContentPanel({ runtime }: { runtime: WaitingContentRuntime }) {
+  return (
+    <main className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player gereed">
+      <SetupBackdrop />
+      <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
+        <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
+        <p className="runtime-kicker"><span className="pairing-live-dot" aria-hidden="true" /> Player gekoppeld</p>
+        <h1 className="runtime-title" id="player-title">Wachten op content</h1>
+        <p className="runtime-copy">
+          <strong>{runtime.device.screenName}</strong> is veilig gekoppeld. Publiceer een playlist vanuit VeyoCast Control; deze Player controleert automatisch op nieuwe content.
+        </p>
+        <div className="runtime-problem" role="status">
+          <p><strong>Status:</strong> online en gereed</p>
+          <p><strong>Synchronisatie:</strong> iedere vijf seconden totdat de eerste release beschikbaar is</p>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function PairingBrandScene() {
   return (
     <div className="pairing-brand-scene" aria-hidden="true">
@@ -1218,6 +1306,18 @@ function isPlaybackRuntime(runtime: RuntimeView): runtime is PlaybackRuntime {
     "SWITCH_PENDING",
     "OFFLINE_PLAYING"
   ].includes(runtime.state);
+}
+
+function isWaitingContentRuntime(
+  runtime: RuntimeView
+): runtime is WaitingContentRuntime {
+  return runtime.state === "READY";
+}
+
+function isWaitingContentEnvelope(
+  body: PlayerManifestEnvelope | PlayerManifestProblem | PlayerWaitingContentEnvelope
+): body is PlayerWaitingContentEnvelope {
+  return body.state === "READY" && !("manifest" in body) && "device" in body;
 }
 
 function withSyncDiagnostics(
@@ -1322,6 +1422,29 @@ function clearStoredPlayerIdentity() {
     clearStoredPairing();
   } catch {
     // Storage can be unavailable in locked-down kiosk contexts.
+  }
+}
+
+async function confirmPairingClaim(deviceToken: string) {
+  try {
+    const response = await fetch("/api/player/heartbeat", {
+      body: JSON.stringify({
+        activeReleaseId: null,
+        desiredReleaseId: null,
+        networkState: navigator.onLine ? "online" : "offline",
+        runtimeState: "READY",
+        syncPhase: null
+      }),
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${deviceToken}`,
+        "Content-Type": "application/json"
+      },
+      method: "POST"
+    });
+    return response.ok;
+  } catch {
+    return false;
   }
 }
 

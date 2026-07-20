@@ -21,11 +21,22 @@
   gehashte rate-limitfingerprint;
 - eerste heartbeat, runtime, appversie, platform, storage, active/desired
   release, veilige foutcode en synctijdlijn zijn zichtbaar zonder secrets.
+- Pairingbevestiging is niet afhankelijk van een reeds toegewezen release: een
+  gekoppelde Player zonder content rapporteert `READY`, blijft online en pollt
+  iedere vijf seconden op de eerste immutable release.
+- De pairingcode roteert automatisch bij expiry; een ingetrokken online device
+  wist zijn oude identiteit en maakt zonder handmatige reload een nieuwe veilige
+  pairingsessie.
+- Control vernieuwt de onboardingstatus iedere drie seconden totdat de eerste
+  heartbeat zichtbaar is.
 
 ## Security- en offlinegedrag
 
 - pairingtoken en device secret verschijnen niet in Control, redirects, URL's,
   auditmetadata of zichtbare fouten;
+- de Player bewijst een claim met het bestaande gehashte device-token via de
+  heartbeatboundary; Control ontvangt het token ook tijdens deze bevestiging
+  niet;
 - wrong-tenant en viewerclaims falen in de database;
 - revoked devices krijgen geen bootstrap of heartbeat meer;
 - Control legt uit dat een offline device pas bij de eerstvolgende verbinding
