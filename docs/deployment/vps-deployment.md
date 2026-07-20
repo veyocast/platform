@@ -116,6 +116,10 @@ machinebrede Gitconfig of interactieve credentialinvoer.
    bevonden.
 4. `deploy-staging` voert een migration dry-run en forward migration uit,
    activeert alleen Control en Player en controleert lokale en publieke health.
+   Deze job installeert uitsluitend de gepinde root-migratietooling; pnpm
+   materialiseert die met één build-child, beperkte netwerkconcurrency en
+   copy-imports zodat de begrensde runner niet opnieuw de hele monorepo of een
+   grote hardlink-workerpool hoeft op te bouwen.
 5. `deploy-production` heeft `needs: deploy-staging` en gebruikt GitHub
    Environment `production`. De job wacht op required reviewer `TIXOCEO`.
 6. Na approval controleert de job opnieuw dat `origin/main` nog exact dezelfde

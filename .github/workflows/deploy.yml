@@ -247,7 +247,7 @@ jobs:
           cache: pnpm
 
       - name: Install pinned migration tooling
-        run: pnpm install --frozen-lockfile
+        run: pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1 --network-concurrency=8 --package-import-method=copy
 
       - name: Deploy exact release to staging
         shell: bash
@@ -336,7 +336,7 @@ jobs:
           cache: pnpm
 
       - name: Install pinned migration tooling
-        run: pnpm install --frozen-lockfile
+        run: pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1 --network-concurrency=8 --package-import-method=copy
 
       - name: Verify and deploy exact staging release
         shell: bash
