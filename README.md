@@ -104,6 +104,13 @@ scherm een deterministische readiness-, compatibility- en opslagpreflight uit;
 verouderde telemetry blijft expliciet onbekend. Zie
 [`docs/s26-release-center-preflight-evidence.md`](docs/s26-release-center-preflight-evidence.md).
 
+S27 maakt schermbeheer één veilige journey. Transactionele lifecyclecommands,
+duurzaam begrensde pairing, guided onboarding, vijf detailtabs en gecontroleerde
+rename/revoke/re-pair/retry-acties verbinden eerste heartbeat, active/desired
+release, storage, runtime en events zonder device secrets in Control. Zie
+[`docs/s27-screen-fleet-onboarding-evidence.md`](docs/s27-screen-fleet-onboarding-evidence.md)
+en [`docs/player-device-threat-model.md`](docs/player-device-threat-model.md).
+
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
 De officiële VeyoCast-merkassetset v1.0 is vastgelegd in `assets/brand/` met
