@@ -62,6 +62,9 @@ importers:
       '@veyocast/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@veyocast/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@veyocast/domain':
         specifier: workspace:*
         version: link:../../packages/domain

@@ -1,7 +1,13 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
+import {
+  accountInvitationCookieName,
+  invitationContextCookieName,
+  parseInvitationContext
+} from "../../lib/invitations";
 import { createControlSupabaseClient } from "../../lib/supabase/server";
 
 export async function completeInvitation(formData: FormData) {
@@ -32,6 +38,16 @@ export async function completeInvitation(formData: FormData) {
     redirect("/accept-invite?fout=account");
   }
 
+  const cookieStore = await cookies();
+  const isAccountInvitation =
+    cookieStore.get(accountInvitationCookieName)?.value === "platform";
+  const invitationContext = parseInvitationContext(
+    cookieStore.get(invitationContextCookieName)?.value
+  );
+  if (!invitationContext && !isAccountInvitation) {
+    redirect("/accept-invite?fout=uitnodiging");
+  }
+
   const { error: updateError } = await supabase.auth.updateUser({
     data: { display_name: displayName },
     password
@@ -53,6 +69,27 @@ export async function completeInvitation(formData: FormData) {
     redirect("/accept-invite?fout=account");
   }
 
+  const { error: acceptanceError } = invitationContext
+    ? await supabase.rpc("accept_tenant_invitation", {
+        p_invitation_id: invitationContext.invitationId,
+        p_invitation_token: invitationContext.token,
+        p_tenant_id: invitationContext.tenantId
+      })
+    : { error: null };
+
+  if (acceptanceError) {
+    const reason = acceptanceError.code === "22023"
+      ? "verlopen"
+      : acceptanceError.code === "42501"
+        ? "uitnodiging"
+        : acceptanceError.code === "23514" || acceptanceError.code === "23505"
+          ? "gebruikt"
+          : "account";
+    redirect(`/accept-invite?fout=${reason}`);
+  }
+
+  cookieStore.delete(invitationContextCookieName);
+  cookieStore.delete(accountInvitationCookieName);
   await supabase.auth.signOut();
   redirect("/login?reden=uitgenodigd");
 }

@@ -67,6 +67,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     status: "placeholder"
   },
   {
+    description: "Platformrollen en MFA-status",
+    href: "/platform/users",
+    label: "Platformgebruikers",
+    requiredCapability: "platform.user.manage",
+    scope: "platform",
+    status: "ready"
+  },
+  {
     description: "Dagelijkse operatie en aandachtspunten",
     href: "/dashboard",
     label: "Dashboard",

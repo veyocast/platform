@@ -13,6 +13,7 @@
   "dependencies": {
     "@veyocast/auth": "workspace:*",
     "@veyocast/config": "workspace:*",
+    "@veyocast/contracts": "workspace:*",
     "@veyocast/domain": "workspace:*",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",

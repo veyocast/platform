@@ -16,16 +16,24 @@ membership. Een Auth-user zonder membership krijgt geen toegang tot de shell.
    geselecteerd. Vergelijk de project-ref met GitHub Environment `staging`.
 2. Stel de Authentication Site URL in op
    `https://staging-control.veyocast.nl`.
-3. Gebruik in de uitnodigingstemplate deze SSR-link:
+3. Kopieer `supabase/templates/invite.html` naar de hosted Supabase
+   uitnodigingstemplate. De kritieke SSR-link daarin is:
 
    ```html
-   <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite">
+   <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=invite">
      Uitnodiging accepteren
    </a>
    ```
 
-4. Ga naar Authentication → Users → Add user → Send invitation en gebruik het
-   persoonlijke zakelijke e-mailadres van de beheerder.
+   Voeg `https://staging-control.veyocast.nl/auth/confirm` toe aan de Auth
+   redirect-allowlist en configureer een echte SMTP-provider. Gebruik voor
+   production uitsluitend de production-Control-URL en production-SMTP-config.
+4. De allereerste platformeigenaar is een eenmalige trust-rootbootstrap. Nodig
+   die gebruiker via de Supabase Admin API uit met
+   `redirectTo=https://staging-control.veyocast.nl/auth/confirm?account=platform`.
+   Voer dit alleen vanaf een beveiligde beheerwerkplek uit en schrijf de
+   service-role key nooit naar shell history, broncode of logs. Alle volgende
+   platformgebruikers worden vanuit Platform → Platformgebruikers uitgenodigd.
 5. Voer daarna in de SQL Editor van hetzelfde stagingproject deze transactie
    uit. Vervang alleen het e-mailadres en de zichtbare naam.
 
@@ -78,31 +86,23 @@ minimaal 12 tekens en logt in. Deel of log het wachtwoord nooit.
 
 Een `platform_owner` of `platform_admin` kan na het inloggen via
 Platform → Tenants → Vereniging toevoegen de eerste vereniging aanmaken. Vul
-een zichtbare naam, unieke technische slug en schermlimiet in.
+een zichtbare naam, unieke technische slug, eerste eigenaar, schermlimiet,
+locale en tijdzone in.
 
 Control maakt in één database-transactie de actieve tenant,
-standaardafspeelinstellingen, een `tenant_owner`-membership voor de maker en een
-audit-event aan. Bij een fout blijft geen gedeeltelijke of eigenaarloze tenant
-achter. Gebruik hiervoor niet handmatig losse inserts in de SQL Editor.
+standaardafspeelinstellingen, owner invitation en audit-event aan. De
+platformbeheerder wordt alleen na een expliciete, geaudite keuze mede-eigenaar.
+Bij een e-mailfout blijft de tenant herstelbaar zichtbaar en kan een nieuwe link
+met geroteerd token worden verstuurd. Gebruik hiervoor niet handmatig losse
+inserts in de SQL Editor.
 
-## Tenanttoegang toevoegen
+## Tenant- en platformtoegang toevoegen
 
-Een platformrol geeft niet automatisch toegang tot bestaande tenantinhoud. De
-maker van een nieuwe tenant wordt door bovenstaande flow wel veilig de eerste
-tenant-eigenaar. Voeg andere gebruikers waar nodig expliciet toe:
-
-```sql
-insert into public.tenant_memberships (tenant_id, user_id, role, created_by)
-select
-  '<tenant-uuid>'::uuid,
-  id,
-  'tenant_admin'::public.tenant_role,
-  null
-from auth.users
-where lower(email) = lower('<persoonlijk e-mailadres>')
-on conflict (tenant_id, user_id) do update
-set role = excluded.role;
-```
+Een platformrol geeft niet automatisch toegang tot tenantinhoud. Tenant owners
+en admins beheren dagelijkse teamtoegang via Organisatie → Team. Alleen een
+tenant owner kan een andere owner uitnodigen of beheren. Platform owners
+beheren platformrollen afzonderlijk via Platform → Platformgebruikers; een
+nieuw e-mailadres ontvangt automatisch een persoonlijke accountuitnodiging.
 
 ## Verificatie
 
@@ -112,3 +112,6 @@ set role = excluded.role;
 - Een Auth-user zonder membership wordt uitgelogd en krijgt geen shell.
 - Staging toont live RLS-data of een eerlijke lege/fouttoestand. Fixtures zijn
   uitsluitend beschikbaar op een lokale Next.js developmentserver.
+- Een staging-smoke verstuurt zowel één platformaccount- als één
+  tenantuitnodiging via de echte SMTP-provider, accepteert beide links en
+  controleert dat de oude link na resend ongeldig is.

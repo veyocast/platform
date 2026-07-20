@@ -25,10 +25,10 @@ values (
 insert into public.profiles (id, display_name)
 values ('00000000-0000-4000-8000-000000000211', 'Status admin');
 
-insert into public.tenants (id, name, slug)
+insert into public.tenants (id, name, slug, screen_limit)
 values
-  ('10000000-0000-4000-8000-000000000211', 'Paused tenant', 'paused-tenant'),
-  ('10000000-0000-4000-8000-000000000212', 'Archived tenant', 'archived-tenant');
+  ('10000000-0000-4000-8000-000000000211', 'Paused tenant', 'paused-tenant', 2),
+  ('10000000-0000-4000-8000-000000000212', 'Archived tenant', 'archived-tenant', 1);
 
 insert into public.platform_memberships (user_id, role)
 values ('00000000-0000-4000-8000-000000000211', 'platform_admin');

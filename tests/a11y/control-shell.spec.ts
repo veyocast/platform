@@ -103,6 +103,18 @@ test("settings route exposes real defaults with safe permission state", async ({
   await expect(page.getByRole("status")).toContainText("Configureer Supabase");
 });
 
+test("team route exposes roles and a safely disabled invitation flow", async ({ page }) => {
+  await page.goto("/dashboard/team");
+
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Team" })).toBeVisible();
+  await expect(page.getByLabel("E-mailadres")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Uitnodiging versturen" })).toHaveCount(0);
+  await expect(
+    page.getByRole("status").filter({ hasText: "uitsluitend lokale fixtures" })
+  ).toBeVisible();
+  await expect(page.getByRole("table", { name: "Toegang binnen de actieve vereniging." })).toBeVisible();
+});
+
 test("tenant management exposes a labelled and safely disabled creation flow", async ({
   page
 }) => {
@@ -113,6 +125,7 @@ test("tenant management exposes a labelled and safely disabled creation flow", a
   ).toBeVisible();
   await expect(page.getByLabel("Verenigingsnaam")).toBeVisible();
   await expect(page.getByLabel("Technische slug")).toBeVisible();
+  await expect(page.getByLabel("E-mailadres eerste eigenaar")).toBeVisible();
   await expect(page.getByLabel("Schermlimiet")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Vereniging aanmaken" })

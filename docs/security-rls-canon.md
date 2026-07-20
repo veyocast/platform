@@ -20,6 +20,13 @@
     publicatie en pairing falen ook aan de databasegrens.
 14. Archived tenants zijn geen normale Control-context; last-known-good
     playerplayback wordt niet zwart gemaakt.
+15. Memberships en invitations worden niet rechtstreeks door browserrollen
+    gemuteerd; guarded command-RPC's bewaken hierarchy, laatste owner en
+    self-lockout.
+16. Invitation-tokens staan alleen gehasht in PostgreSQL, roteren bij resend en
+    zijn gebonden aan tenant, invitation, e-mail, expiry en pendingstatus.
+17. Schermlimietfouten worden alleen aan bevoegde actors onthuld; RLS blijft de
+    eerste zichtbare foutgrens voor onbevoegde of cross-tenant inserts.
 
 ## Helper functions
 
@@ -45,6 +52,11 @@ Any `SECURITY DEFINER` function must set `search_path = ''` and be narrowly gran
 - AAL1 cannot create tenants, change lifecycle state or mutate platform roles.
 - Paused/archived tenants cannot mutate or pair through SECURITY DEFINER RPCs.
 - Paused/archived player bootstrap remains available voor bestaande playback.
+- Provisioning is transactioneel en idempotent bij gelijke en afwijkende replay.
+- Invitation wrong-email, wrong-tenant, expiry en replay falen.
+- De laatste tenant/platform owner en de eigen toegang kunnen niet worden
+  verwijderd of gedegradeerd via normale beheerroutes.
+- Een scherm boven de tenantlimiet en een limiet onder actueel gebruik falen.
 - Player device cannot access another screen.
 - Storage path spoofing fails.
 - Service role is not used for normal user queries.

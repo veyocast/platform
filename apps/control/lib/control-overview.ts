@@ -116,6 +116,30 @@ export async function loadTenantMembers(tenantId: string) {
   };
 }
 
+export async function loadTenantTeam(tenantId: string) {
+  const supabase = await createControlSupabaseClient();
+  if (!supabase) return { error: true, invitations: [], members: [] };
+
+  const [memberResult, invitations] = await Promise.all([
+    loadTenantMembers(tenantId),
+    supabase
+      .from("tenant_invitations")
+      .select("id, email, role, status, delivery_status, send_attempt_count, expires_at, created_at")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+  ]);
+
+  if (memberResult.error || invitations.error) {
+    return { error: true, invitations: [], members: [] };
+  }
+
+  return {
+    error: false,
+    invitations: invitations.data ?? [],
+    members: memberResult.members
+  };
+}
+
 export async function loadTenantAuditEvents(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return { error: true, events: [] };
