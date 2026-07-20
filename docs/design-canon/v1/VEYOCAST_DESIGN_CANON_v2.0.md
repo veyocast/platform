@@ -36,7 +36,7 @@ lang: nl-NL
 # Documentstatus
 
 **Document:** VeyoCast Bold - Design & Product Canon  
-**Versie:** 2.1.0  
+**Versie:** 2.1.1  
 **Status:** Canoniek / normatief; merkassetset v1.0 goedgekeurd  
 **Datum:** 20 juli 2026  
 **Reikwijdte:** merkidentiteit, marketingwebsite, control dashboard, mobiele PWA, player setup, fullscreen playback, ClubTV-templates, design tokens, componentbibliotheek, contentstijl, toegankelijkheid en governance.
@@ -2349,6 +2349,26 @@ Snel vertrouwen geven terwijl de player last-known-good content controleert. Sta
 
 ## 13.4 Unpaired en pairing screen
 
+### Android PWA-installatie
+
+Wanneer de hosted Player in een Android-browser wordt geopend en nog niet als
+standalone PWA draait, toont de Player een compacte installatiekaart. Een
+zichtbare actie opent uitsluitend de native `beforeinstallprompt`; installatie
+gebeurt nooit zonder expliciete browserbevestiging van de gebruiker. Wanneer de
+browser deze API niet aanbiedt, geeft de kaart een eerlijke instructie voor
+`App installeren` of `Toevoegen aan startscherm` in het browsermenu. De kaart:
+
+- verschijnt niet in standalone/fullscreen PWA-modus;
+- verdwijnt na `appinstalled`, acceptatie of bewuste sluiting;
+- wordt niet getoond wanneer de Player offline is;
+- gebruikt het exacte goedgekeurde compacte VeyoCast-icoon;
+- belooft geen installatie wanneer browser- of devicebeleid dit blokkeert.
+
+De door Android gegenereerde launch-splash gebruikt Ink Black als
+`background_color` en `theme_color`, met het goedgekeurde maskable icoon. De
+Player-shell en alle bij eerste render benodigde Next-assets worden tijdens de
+service-workerinstallatie gecachet voordat die worker actief wordt.
+
 Canonical headline:
 
 **`Koppel dit scherm aan VeyoCast`**
@@ -2438,7 +2458,12 @@ Diagnostiek toont:
 - automatic reconnect;
 - local playback active.
 
-Het publieke scherm blijft normale content afspelen. Een klein offline-icoon of overlay is standaard niet zichtbaar voor publiek; clubs kunnen diagnostiek openen wanneer nodig.
+Het publieke scherm blijft normale content afspelen. Tijdens normale playback
+is geen technisch diagnosepaneel zichtbaar. Uitsluitend zolang de browser
+offline meldt of de Player-origin aantoonbaar onbereikbaar is, verschijnt
+rechtsonder een compacte chip met `Geen internetverbinding`. De chip verdwijnt
+automatisch na herstelde communicatie, bevat geen VeyoCast-watermark en
+vervangt of onderbreekt de last-known-good release nooit.
 
 ## 13.7 Disabled/revoked state
 

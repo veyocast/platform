@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
 test("player setup and playback expose accessible landmarks and diagnostics", async ({
+  context,
   page
 }) => {
   await page.goto(playerURL);
@@ -25,6 +26,14 @@ test("player setup and playback expose accessible landmarks and diagnostics", as
   await expect(page.getByRole("main", { name: "VeyoCast player" })).toBeVisible();
   await expect(page.getByRole("img", { name: "Clubhuis entree" })).toBeVisible();
   await expect(page.getByLabel("Player diagnostics")).toContainText("PLAYING");
+  await expect(page.getByLabel("Player diagnostics")).toHaveAttribute("hidden", "");
+
+  await context.setOffline(true);
+  try {
+    await expect(page.getByRole("status")).toHaveText("Geen internetverbinding");
+  } finally {
+    await context.setOffline(false);
+  }
 });
 
 test("paired player without content exposes a clear ready state", async ({

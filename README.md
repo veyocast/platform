@@ -113,6 +113,12 @@ en [`docs/player-device-threat-model.md`](docs/player-device-threat-model.md).
 De S28 pairing-runtimecorrectie bevestigt een device onafhankelijk van de
 aanwezigheid van content, rapporteert ook in `READY` een heartbeat en haalt de
 eerste release vanuit een veilige wachtstatus automatisch op.
+De aanvullende Android-PWA-shell biedt in een mobiele Android-browser de echte
+native installatieprompt aan, gebruikt het officiële maskable icoon op een
+Ink Black splash en precachet de volledige Player-shell. Tijdens playback is
+technische diagnostiek niet publiek zichtbaar; alleen bij aantoonbaar
+netwerkverlies verschijnt rechtsonder een compacte offline-chip terwijl de
+last-known-good release lokaal blijft spelen.
 
 S29-A activeert de mediaworker als afzonderlijke immutable, least-privilege
 staging/production-service. Veilige H.264/AAC-bronnen worden zonder

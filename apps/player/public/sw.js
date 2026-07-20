@@ -1,18 +1,61 @@
 /* global Headers, ReadableStream, Request, Response, URL, caches, fetch, self */
 
-const SHELL_CACHE = "veyocast-player-shell-v2";
+const SHELL_CACHE = "veyocast-player-shell-v3";
 const SHELL_CACHE_PREFIX = "veyocast-player-shell-";
 const ASSET_CACHE = "veyocast-player-assets-v1";
 const CACHE_PATH_PREFIX = "/__veyocast-player-cache/";
+const SHELL_ENTRYPOINTS = [
+  "/manifest.webmanifest",
+  "/brand/veyocast-icon-primary.svg",
+  "/brand/veyocast-icon-maskable-512.png",
+  "/brand/veyocast-logo-inverse.svg"
+];
 const PREVIOUS_BRAND_NAMESPACE = String.fromCharCode(99, 97, 115, 116, 105, 118, 111);
 const PREVIOUS_SHELL_CACHE_PREFIX = `${PREVIOUS_BRAND_NAMESPACE}-player-shell-`;
 const PREVIOUS_ASSET_CACHE = `${PREVIOUS_BRAND_NAMESPACE}-player-assets-v1`;
 const PREVIOUS_CACHE_PATH_PREFIX = `/__${PREVIOUS_BRAND_NAMESPACE}-player-cache/`;
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.add(new Request("/"))));
+  event.waitUntil(precachePlayerShell());
   self.skipWaiting();
 });
+
+async function precachePlayerShell() {
+  const cache = await caches.open(SHELL_CACHE);
+  const rootRequest = new Request("/", { cache: "reload" });
+  const rootResponse = await fetch(rootRequest);
+  if (!rootResponse.ok) throw new Error("Player shell could not be fetched");
+
+  await cache.put(new Request("/"), rootResponse.clone());
+  const shellAssets = discoverShellAssets(await rootResponse.text());
+  await Promise.all(
+    [...new Set([...SHELL_ENTRYPOINTS, ...shellAssets])].map(async (assetUrl) => {
+      const request = new Request(assetUrl, { cache: "reload" });
+      const response = await fetch(request);
+      if (!response.ok) throw new Error(`Player shell asset failed: ${assetUrl}`);
+      await cache.put(request, response);
+    })
+  );
+}
+
+function discoverShellAssets(html) {
+  const assets = [];
+  const attributePattern = /(?:src|href)=["']([^"']+)["']/g;
+  for (const match of html.matchAll(attributePattern)) {
+    try {
+      const url = new URL(match[1], self.location.origin);
+      if (
+        url.origin === self.location.origin &&
+        (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/brand/"))
+      ) {
+        assets.push(url.toString());
+      }
+    } catch {
+      // Ignore malformed optional document references.
+    }
+  }
+  return assets;
+}
 
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
