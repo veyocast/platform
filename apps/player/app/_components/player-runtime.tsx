@@ -903,7 +903,6 @@ export function PlayerRuntime() {
 
   return (
     <PairingPanel
-      expiresAt={runtime.state === "UNPAIRED" ? runtime.expiresAt : undefined}
       pairingCode={runtime.state === "UNPAIRED" ? runtime.pairingCode : undefined}
     />
   );
@@ -1070,10 +1069,8 @@ function PlaybackMedia({
 }
 
 function PairingPanel({
-  expiresAt,
   pairingCode
 }: {
-  expiresAt?: string;
   pairingCode?: string;
 }) {
   const [connectionLabel, setConnectionLabel] = useState("Internet controleren…");
@@ -1095,6 +1092,7 @@ function PairingPanel({
     <main className="runtime-shell runtime-shell--pairing" aria-label="VeyoCast player setup">
       <SetupBackdrop />
       <section className="pairing-stage" aria-labelledby="player-title">
+        <PairingBrandScene />
         <div className="pairing-stage__primary">
           <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
           <div className="pairing-heading">
@@ -1119,8 +1117,6 @@ function PairingPanel({
             <div><dt>Apparaat</dt><dd>{deviceLabel}</dd></div>
             <div><dt>Internet</dt><dd><span className="pairing-live-dot" aria-hidden="true" /> {connectionLabel}</dd></div>
             <div><dt>Player</dt><dd>{VEYOCAST_APPS.player.name} · versie 1.0</dd></div>
-            <div><dt>Code geldig</dt><dd>{expiresAt ? `Tot ${new Intl.DateTimeFormat("nl-NL", { hour: "2-digit", minute: "2-digit" }).format(new Date(expiresAt))}` : "Veilige democode"}</dd></div>
-            <div><dt>Beveiliging</dt><dd>Geen Supabase Auth-user</dd></div>
           </dl>
         </aside>
       </section>
@@ -1181,6 +1177,19 @@ function ProblemPanel({
         </div>
       </section>
     </main>
+  );
+}
+
+function PairingBrandScene() {
+  return (
+    <div className="pairing-brand-scene" aria-hidden="true">
+      <span className="pairing-brand-scene__track pairing-brand-scene__track--outer" />
+      <span className="pairing-brand-scene__track pairing-brand-scene__track--inner" />
+      <img alt="" src="/brand/veyocast-icon-primary.svg" />
+      <span className="pairing-brand-accent pairing-brand-accent--orange" />
+      <span className="pairing-brand-accent pairing-brand-accent--blue" />
+      <span className="pairing-brand-accent pairing-brand-accent--paper" />
+    </div>
   );
 }
 

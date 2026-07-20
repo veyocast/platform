@@ -14,9 +14,8 @@ test("player setup and playback expose accessible landmarks and diagnostics", as
     page.getByRole("heading", { name: "Koppel dit scherm aan VeyoCast" })
   ).toBeVisible();
   await expect(page.getByLabel("Pairingcode")).toContainText("VYO 482");
-  await expect(page.getByLabel("Device setupstatus")).toContainText(
-    "Geen Supabase Auth-user"
-  );
+  await expect(page.getByLabel("Device setupstatus")).toContainText("Internet");
+  await expect(page.getByLabel("Device setupstatus")).not.toContainText("Geen Supabase Auth-user");
 
   await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=750`);
 

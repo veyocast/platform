@@ -25,9 +25,16 @@
 - Pairing, boot, sync en herstel gebruiken het locked inverse VeyoCast-logo.
 - Het landschapsscherm volgt een split-layout; portret schakelt naar een
   gestapelde flow zonder horizontale overflow.
+- Het inverse woordmerk is vergroot tot een zichtbare hoogte van minimaal 64 px
+  op 1080p. Een tweede, ongewijzigd compact merkasset beweegt subtiel als
+  pairing-signaal op de achtergrond. Deze toepassing is op 20 juli 2026
+  expliciet goedgekeurd door de merkeigenaar. Een lichte rotatie, zachte glow en
+  tokengebonden Orange-, Signal Blue- en Paper-accenten geven de compositie meer
+  diepte; reduced motion blijft statisch.
 - De zesdelige code gebruikt een groot monospaced, hoog-contrast codevlak.
-- Apparaat, internetstatus, Player-versie, verloopstatus en het device-
-  sessiemodel staan als secundaire diagnostiek bij de pairingstap.
+- Apparaat, internetstatus en Player-versie blijven als nuttige secundaire
+  diagnostiek staan. De onderste implementatiedetails over codeverloop en het
+  device-sessiemodel zijn verwijderd uit het publieke pairingscherm.
 - De rustige signaalanimatie duidt wachten op Control aan en wordt uitgeschakeld
   via `prefers-reduced-motion`.
 - Normale playback is niet aangepast en bevat geen permanente branding.
@@ -64,12 +71,13 @@ pnpm test:player:offline
 - workspace gates: lint 18/18, typecheck 18/18, test 18/18 en build 12/12;
 - unit: Control 43 tests, inclusief 2 nieuwe operationele afleidingstests;
 - a11y: 18/18;
-- Chromium E2E: 47 geslaagd, 2 live-pilottests correct overgeslagen zonder
+- Chromium E2E: 48 geslaagd, 2 live-pilottests correct overgeslagen zonder
   externe pilotcredentials;
-- Player: 19/19;
+- Player: 20/20, inclusief een expliciete reduced-motion-regressietest;
 - Player offline: 7/7;
 - aanvullende gerichte Control browsercheck: 19/19;
-- aanvullende gerichte pairing/a11y/offline check: 3/3;
+- pairing: grotere zichtbare lock-up, afwezige implementatiedetails en het
+  officiële bewegende achtergrondasset zijn browsermatig afgedekt;
 - `git diff --check`: groen;
 - `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, migraties en
   service-workerbestanden: ongewijzigd.

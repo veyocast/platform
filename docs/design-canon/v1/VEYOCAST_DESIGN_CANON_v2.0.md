@@ -197,18 +197,40 @@ Het logo MOET:
 
 - volledig zichtbaar zijn;
 - dezelfde verhouding en interne afstand behouden;
-- zonder effecten worden geplaatst;
+- zonder effecten worden geplaatst, behalve de hieronder toegestane lichte
+  rotatie en subtiele glow;
 - optisch scherp worden gerenderd;
 - uit een goedgekeurd bronbestand komen.
 
 Het logo MAG NIET:
 
-- worden uitgerekt, afgesneden, geroteerd of scheefgetrokken;
+- worden uitgerekt, afgesneden of scheefgetrokken;
 - een andere letterspatiëring of woordmerktypografie krijgen;
-- een nieuwe rand, gloed, schaduw, bevel of gradient krijgen;
+- een harde rand, zware schaduw, bevel of gradient krijgen;
 - worden gecombineerd met een zelfgemaakt monogram;
 - als tekst worden nagetypt om het asset te vervangen;
 - per scherm of tenant van kleur veranderen.
+
+Een lichte rotatie en een subtiele, zachte glow zijn als plaatsingseffect altijd
+toegestaan. Ze vereisen geen aparte goedkeuring zolang het asset volledig
+zichtbaar en direct herkenbaar blijft, de glow de officiële kleur niet verandert
+en de rotatie niet groter is dan 4 graden.
+
+### Expliciet goedgekeurde logo-animatie
+
+Logo-animatie is alleen toegestaan nadat de merkeigenaar de concrete toepassing
+expliciet heeft goedgekeurd. Die toestemming geldt uitsluitend voor de genoemde
+toepassing en vormt geen algemene goedkeuring voor andere schermen of campagnes.
+
+Bij een goedgekeurde logo-animatie:
+
+- blijft het locked asset zelf byte-ongewijzigd;
+- beweegt alleen het volledige asset als één geheel;
+- blijven verhouding, kleur, clear space en herkenbaarheid intact;
+- mogen de algemeen toegestane lichte rotatie en subtiele glow worden gebruikt;
+- is er een statische variant voor `prefers-reduced-motion`;
+- zijn morphing, recolouring, uitsnijden en nieuw getekende tussenframes
+  verboden.
 
 ## 2.2 Vereiste officiële varianten
 
@@ -2316,8 +2338,10 @@ Snel vertrouwen geven terwijl de player last-known-good content controleert. Sta
 
 ### Regels
 
-- geen logo-animatie of morph;
-- geen glow;
+- logo-animatie alleen na expliciete goedkeuring van de merkeigenaar voor deze
+  specifieke startup-toepassing;
+- geen logo-morphing, recolouring of uitsnijden; lichte rotatie en een subtiele
+  glow volgen de algemene logoregels;
 - geen grote loading spinner die minutenlang draait;
 - bij herstel: `Lokale playlist wordt hersteld`;
 - na circa 10 seconden verschijnt begrijpelijke status in plaats van alleen spinner;
@@ -3760,7 +3784,7 @@ scene    480 ms
 
 - logo reconstrueren;
 - icoon aanpassen;
-- nieuwe logo-animatie;
+- logo-animatie zonder expliciete goedkeuring voor de concrete toepassing;
 - logo over druk beeld zonder plaat;
 - generiek nieuw appicon;
 - Orange/Blue als gradientlogo;
