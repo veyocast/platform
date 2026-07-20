@@ -1,0 +1,94 @@
+import { expect, test } from "@playwright/test";
+
+const livePilotEnabled = process.env.VEYOCAST_LIVE_PILOT === "1";
+const validPngFixture = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+  "base64"
+);
+
+test.setTimeout(90_000);
+
+test.describe("live Playlist Studio", () => {
+  test.skip(!livePilotEnabled, "requires local Supabase and explicit live pilot environment");
+
+  test("prevents lost updates and publishes the previewed Player contract", async ({ browser, page }) => {
+    const assetTitle = `S25 previewbeeld ${Date.now()}`;
+    await page.goto("/login");
+    await page.getByLabel("E-mailadres").fill("pilot-admin@veyocast.test");
+    await page.getByLabel("Wachtwoord").fill("veyocast-local");
+    await page.getByRole("button", { name: "Doorgaan" }).click();
+    await expect(page).toHaveURL(/\/context/);
+    await page.getByRole("button", { name: "Open vereniging" }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
+
+    await page.goto("/dashboard/media");
+    await page.getByLabel("Titel", { exact: true }).fill(assetTitle);
+    await page.getByLabel("Bestand", { exact: true }).setInputFiles({
+      buffer: validPngFixture,
+      mimeType: "image/png",
+      name: "s25-preview.png"
+    });
+    await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
+    await expect(page.getByText(`${assetTitle} is gecontroleerd`)).toBeVisible();
+
+    await page.goto("/dashboard/playlists");
+    await page.getByLabel("Playlistnaam").fill("S25 concurrentieplaylist");
+    await page.getByRole("button", { name: "Concept maken" }).click();
+    await expect(page.getByText("De conceptplaylist is gemaakt")).toBeVisible();
+    await expect(page.getByText("Revisie 0").first()).toBeVisible();
+
+    const staleContext = await browser.newContext({
+      storageState: await page.context().storageState()
+    });
+    const stalePage = await staleContext.newPage();
+    await stalePage.goto(page.url());
+    await expect(stalePage.getByText("Revisie 0").first()).toBeVisible();
+
+    await page
+      .getByRole("listitem")
+      .filter({ hasText: assetTitle })
+      .getByRole("button", { name: "Toevoegen" })
+      .click();
+    await expect(page.getByText("Het media-item is aan het concept toegevoegd")).toBeVisible();
+    await expect(page.getByText("Revisie 1").first()).toBeVisible();
+
+    await stalePage.getByLabel("Playlistnaam").fill("Stale naam mag niet winnen");
+    await stalePage.getByRole("button", { name: "Conceptgegevens opslaan" }).click();
+    await expect(stalePage.getByText("Dit concept is ondertussen gewijzigd.")).toBeVisible();
+    await expect(stalePage.getByText("Jouw actie is niet uitgevoerd.")).toBeVisible();
+    await stalePage.getByText("Revisies vergelijken", { exact: true }).click();
+    await expect(stalePage.getByText("Nieuwste revisie", { exact: true })).toBeVisible();
+    await staleContext.close();
+
+    await expect(page.getByAltText(`Voorbeeld van ${assetTitle}`)).toBeVisible();
+    await expect(page.getByLabel("Duur in seconden")).toHaveValue("10");
+    await expect(page.getByLabel("Weergave")).toHaveValue("contain");
+
+    await page.getByLabel("Duur in seconden").fill("14");
+    let leaveWarning = "";
+    page.once("dialog", async (dialog) => {
+      leaveWarning = dialog.message();
+      await dialog.dismiss();
+    });
+    await page.getByRole("link", { name: "Terug naar playlists" }).click();
+    expect(leaveWarning).toContain("niet-opgeslagen formulierwijzigingen");
+    await page.getByRole("button", { name: "Iteminstellingen opslaan" }).click();
+    await expect(page.getByText("De iteminstellingen zijn opgeslagen")).toBeVisible();
+
+    await page.getByLabel("Pilot hoofdscherm").check();
+    await page.getByRole("button", { name: "Release publiceren" }).click();
+    await expect(page.getByText("De immutable release is gemaakt")).toBeVisible();
+    await expect(page.getByText("Gepubliceerd").first()).toBeVisible();
+
+    await page.setViewportSize({ height: 844, width: 390 });
+    await page.reload();
+    await expect(page.getByText("Gereed voor Player").first()).toBeVisible();
+    const itemHeading = await page.getByRole("heading", { name: "Playlistitems" }).boundingBox();
+    const mediaHeading = await page.getByRole("heading", { name: "Media toevoegen" }).boundingBox();
+    expect(itemHeading).not.toBeNull();
+    expect(mediaHeading).not.toBeNull();
+    expect(itemHeading!.y).toBeLessThan(mediaHeading!.y);
+    const horizontalLayout = await page.evaluate(() => ({ innerWidth: window.innerWidth, scrollWidth: document.documentElement.scrollWidth }));
+    expect(horizontalLayout.scrollWidth <= horizontalLayout.innerWidth).toBe(true);
+  });
+});

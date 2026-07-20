@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   commandMetadataSchema,
   createSafeActionError,
+  playerPlaybackItemSchema,
+  playlistConflictSchema,
   safeActionErrorSchema,
   tenantProvisioningCommandSchema
 } from "../src";
@@ -103,5 +105,38 @@ describe("command metadata contracts", () => {
         requestId: "request-12345678"
       })
     ).toThrow();
+  });
+});
+
+describe("playlist contracts", () => {
+  it("accepts the exact playback fields shared by editor preview and Player", () => {
+    expect(
+      playerPlaybackItemSchema.parse({
+        durationSeconds: 10,
+        fitMode: "cover",
+        id: "30000000-0000-4000-8000-000000000001",
+        kind: "video",
+        muted: true,
+        title: "Wedstrijdintro"
+      })
+    ).toMatchObject({ kind: "video", muted: true });
+  });
+
+  it("keeps revision conflicts typed and free of database details", () => {
+    expect(
+      playlistConflictSchema.parse({
+        actualRevision: 8,
+        code: "PLAYLIST_REVISION_CONFLICT",
+        expectedRevision: 7,
+        playlistId: "40000000-0000-4000-8000-000000000001",
+        recovery: "compare"
+      })
+    ).toEqual({
+      actualRevision: 8,
+      code: "PLAYLIST_REVISION_CONFLICT",
+      expectedRevision: 7,
+      playlistId: "40000000-0000-4000-8000-000000000001",
+      recovery: "compare"
+    });
   });
 });

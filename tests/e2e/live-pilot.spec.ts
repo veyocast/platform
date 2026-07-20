@@ -169,20 +169,39 @@ test.describe("live pilot vertical slice", () => {
     await page.getByRole("button", { name: "Concept maken" }).click();
     await expect(page.getByText("De conceptplaylist is gemaakt")).toBeVisible();
 
-    await page.getByLabel("Gereedstaande media").selectOption({ label: "Live pilotbeeld · Afbeelding" });
-    await page.getByRole("button", { name: "Aan playlist toevoegen" }).click();
+    const staleEditorContext = await browser.newContext({
+      storageState: await page.context().storageState()
+    });
+    const staleEditorPage = await staleEditorContext.newPage();
+    await staleEditorPage.goto(page.url());
+    await expect(staleEditorPage.getByText("Revisie 0").first()).toBeVisible();
+
+    await page.getByRole("listitem").filter({ hasText: "Live pilotbeeld" }).getByRole("button", { name: "Toevoegen" }).click();
     await expect(page.getByText("Het media-item is aan het concept toegevoegd")).toBeVisible();
+    await staleEditorPage.getByLabel("Playlistnaam").fill("Stale browsernaam");
+    await staleEditorPage.getByRole("button", { name: "Conceptgegevens opslaan" }).click();
+    await expect(staleEditorPage.getByText("Dit concept is ondertussen gewijzigd.")).toBeVisible();
+    await expect(staleEditorPage.getByText("Jouw actie is niet uitgevoerd.")).toBeVisible();
+    await expect(staleEditorPage.getByRole("link", { name: "Nieuwste versie laden" })).toBeVisible();
+    await staleEditorContext.close();
     await expect(page.getByLabel("Duur in seconden")).toHaveValue("12");
     await expect(page.getByLabel("Weergave")).toHaveValue("cover");
 
     await page.getByLabel("Duur in seconden").fill(videoFixture ? "5" : "14");
     await page.getByLabel("Weergave").selectOption("contain");
+    let leaveWarning = "";
+    page.once("dialog", async (dialog) => {
+      leaveWarning = dialog.message();
+      await dialog.dismiss();
+    });
+    await page.getByRole("link", { name: "Terug naar playlists" }).click();
+    expect(leaveWarning).toContain("niet-opgeslagen formulierwijzigingen");
+    await expect(page).toHaveURL(/\/dashboard\/playlists\/[0-9a-f-]{36}/i);
     await page.getByRole("button", { name: "Iteminstellingen opslaan" }).click();
     await expect(page.getByText("De iteminstellingen zijn opgeslagen")).toBeVisible();
 
     if (videoFixture) {
-      await page.getByLabel("Gereedstaande media").selectOption({ label: "Live queuecontrole · Video" });
-      await page.getByRole("button", { name: "Aan playlist toevoegen" }).click();
+      await page.getByRole("listitem").filter({ hasText: "Live queuecontrole" }).getByRole("button", { name: "Toevoegen" }).click();
       await expect(page.getByText("Het media-item is aan het concept toegevoegd")).toBeVisible();
       await page.getByRole("button", { name: "Volgende" }).click();
       const previewVideo = page.getByLabel("Voorbeeldvideo Live queuecontrole");

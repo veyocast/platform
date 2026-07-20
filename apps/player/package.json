@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@veyocast/config": "workspace:*",
+    "@veyocast/contracts": "workspace:*",
     "@supabase/supabase-js": "^2.110.7",
     "next": "^15.4.1",
     "react": "^19.1.0",

@@ -2,18 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export type PlaylistPreviewItem = {
-  durationSeconds: number;
-  fitMode: "contain" | "cover";
-  id: string;
-  kind: "image" | "video";
-  muted: boolean;
-  title: string;
+import type { PlayerPlaybackItem } from "@veyocast/contracts";
+
+export type PlaylistPreviewItem = PlayerPlaybackItem & {
   url: string;
 };
 
 export function PlaylistPreview({ items }: { items: PlaylistPreviewItem[] }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [orientation, setOrientation] = useState<"landscape" | "portrait">("landscape");
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const activeItem = items[activeIndex] ?? null;
@@ -42,7 +39,12 @@ export function PlaylistPreview({ items }: { items: PlaylistPreviewItem[] }) {
 
   return (
     <div className="player-preview">
-      <div className="player-preview__stage" data-fit={activeItem.fitMode}>
+      <fieldset className="player-preview__orientation" data-ignore-dirty>
+        <legend>Previewformaat</legend>
+        <label><input checked={orientation === "landscape"} name="preview-orientation" onChange={() => setOrientation("landscape")} type="radio" /> 16:9 liggend</label>
+        <label><input checked={orientation === "portrait"} name="preview-orientation" onChange={() => setOrientation("portrait")} type="radio" /> 9:16 staand</label>
+      </fieldset>
+      <div className="player-preview__stage" data-fit={activeItem.fitMode} data-orientation={orientation}>
         {activeItem.kind === "video" ? (
           <video
             aria-label={`Voorbeeldvideo ${activeItem.title}`}

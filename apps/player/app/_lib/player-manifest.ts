@@ -1,3 +1,5 @@
+import type { PlayerPlaybackItem } from "@veyocast/contracts";
+
 export const demoOnlineDeviceToken = "demo-online";
 export const localStorageDeviceTokenKey = "veyocast.player.deviceToken";
 
@@ -16,13 +18,7 @@ export type PlayerRuntimeState =
 export type PlayerManifestItemKind = "image" | "video";
 export type PlayerManifestFitMode = "contain" | "cover";
 
-export type PlayerManifestItem = {
-  id: string;
-  kind: PlayerManifestItemKind;
-  title: string;
-  durationSeconds: number;
-  fitMode: PlayerManifestFitMode;
-  muted: boolean;
+export type PlayerManifestItem = PlayerPlaybackItem & {
   source: {
     url: string;
     posterUrl?: string;

@@ -487,6 +487,12 @@ kleine én grote batches.
 
 ## S25 - Playlist Studio, concurrency en publicatiegereedheid
 
+Implementatiestatus: review op `veyocast/s25-playlist-studio-readiness`. De
+gescheiden lijst/detailroutes, revision-aware commandgrens, centrale
+readinessberekening, Playercontract-preview en responsieve editor zijn geleverd.
+Zie `docs/s25-playlist-studio-readiness-evidence.md` voor bewijs en expliciete
+restscope.
+
 ### Doel
 
 Een duidelijke editor maken waarin meerdere gebruikers geen wijzigingen

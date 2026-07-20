@@ -84,6 +84,12 @@ uitnodigingen gebruiken een eenmalige, e-mail- en tenantgebonden acceptatieflow.
 Zie [`docs/auth-rls.md`](docs/auth-rls.md) en
 [`docs/s22-platform-lifecycle-team-evidence.md`](docs/s22-platform-lifecycle-team-evidence.md).
 
+S23 levert de capability-gestuurde Control-fundering. S25 bouwt daarop de
+gescheiden playlistlijst en Playlist Studio met revision-guards, een gedeeld
+publicatiegereedheidscontract en een responsieve editor. Zie
+[`docs/s23-control-ux-evidence.md`](docs/s23-control-ux-evidence.md) en
+[`docs/s25-playlist-studio-readiness-evidence.md`](docs/s25-playlist-studio-readiness-evidence.md).
+
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
 De officiële VeyoCast-merkassetset v1.0 is vastgelegd in `assets/brand/` met

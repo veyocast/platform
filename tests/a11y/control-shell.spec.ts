@@ -123,7 +123,7 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(page.getByRole("button", { name: "Video uploaden" })).toBeDisabled();
 });
 
-test("playlists route exposes publish review labels and status", async ({
+test("playlists route exposes searchable resource filters and safe creation", async ({
   page
 }) => {
   await page.goto("/dashboard/playlists");
@@ -132,10 +132,10 @@ test("playlists route exposes publish review labels and status", async ({
     page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
   ).toBeVisible();
   await expect(page.getByLabel("Playlistnaam")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Publicatiereview" })).toBeVisible();
-  await expect(page.getByLabel("Playlist publicatietijdlijn")).toContainText(
-    "Player bijwerken"
-  );
+  await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
+  await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
+  await expect(page.getByRole("combobox", { exact: true, name: "Schermgebruik" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Playlistlijst" })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Configureer Supabase" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Concept maken" })).toBeDisabled();
 });
