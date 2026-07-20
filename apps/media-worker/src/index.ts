@@ -5,6 +5,7 @@ import { VEYOCAST_APPS, getLocalUrl } from "@veyocast/config";
 
 import { readMediaWorkerConfig } from "./worker-config";
 import { SupabaseMediaWorkerBackend } from "./worker-backend";
+import { closeServer, createWorkerRuntimeHealth } from "./worker-health";
 import { runWorkerLoop, runWorkerOnce } from "./worker-runner";
 
 export {
@@ -15,6 +16,8 @@ export {
 } from "./media-processing";
 export {
   buildNormalizationArguments,
+  canRemuxWithoutTranscoding,
+  maximumNormalizationTimeMs,
   normalizePlayerVideo,
   parseVideoProbe,
   probeVideoFile,
@@ -57,6 +60,8 @@ export {
   WorkerRunFatalError
 } from "./worker-runner";
 export type { WorkerRunResult } from "./worker-runner";
+export { closeServer, createWorkerRuntimeHealth } from "./worker-health";
+export type { WorkerRuntimeHealth } from "./worker-health";
 
 export type WorkerHealth = {
   service: string;
@@ -94,19 +99,29 @@ async function main() {
   }
 
   const controller = new AbortController();
-  const stop = () => controller.abort();
+  const runtimeHealth = createWorkerRuntimeHealth();
+  const healthServer = await runtimeHealth.startServer();
+  const stop = () => {
+    runtimeHealth.markDraining();
+    controller.abort();
+  };
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
   try {
     await runWorkerLoop({
       backend,
       config,
-      onResult: (result) => console.log(JSON.stringify(result)),
+      onQueuePoll: runtimeHealth.markPoll,
+      onResult: (result) => {
+        runtimeHealth.markPoll();
+        console.log(JSON.stringify(result));
+      },
       signal: controller.signal
     });
   } finally {
     process.removeListener("SIGINT", stop);
     process.removeListener("SIGTERM", stop);
+    await closeServer(healthServer);
   }
 }
 

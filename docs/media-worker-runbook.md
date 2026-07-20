@@ -26,7 +26,7 @@ Optionele, begrensde variabelen:
 
 ```text
 MEDIA_WORKER_ID                       standaard hostnaam + proces-ID
-MEDIA_WORKER_POLL_INTERVAL_MS         standaard 2000, bereik 250–60000
+MEDIA_WORKER_POLL_INTERVAL_MS         standaard 2000; deployment 500, bereik 250–60000
 MEDIA_WORKER_MAX_ATTEMPTS             standaard 3, bereik 1–10
 MEDIA_WORKER_LOCK_TIMEOUT_SECONDS     standaard 900, bereik 60–3600
 ```
@@ -51,15 +51,32 @@ pnpm --filter @veyocast/media-worker worker:run
 Zonder argumenten print het entrypoint alleen de stateless healthpayload. De
 daemon logt per iteratie compacte JSON zonder stacktrace of credentials.
 
+In staging en production draait de worker als een afzonderlijk Compose-project
+zonder publieke poort. `/healthz` is liveness; `/readyz` wordt pas groen nadat
+de queue bereikbaar was en gaat tijdens drain of bij een stale poll terug naar
+503. De releaseworkflow wacht op readiness en promoot exact dezelfde
+worker-image-ID naar production.
+
 ## Verwerkingscontract
 
 1. Claim de oudste queued of stale processing job atomair.
 2. Stream het originele object naar een uniek tijdelijk pad.
 3. Vergelijk de bytegrootte en bereken SHA-256.
 4. Probe en normaliseer shell-vrij naar 1080p30 H.264/yuv420p en optionele AAC.
+   Een al conforme H.264/AAC-bron wordt veilig naar een nieuwe container
+   geremuxed; alleen afwijkende invoer wordt met preset `veryfast` getranscodeerd.
 5. Probe de output opnieuw en stream die naar het vaste variantpad.
 6. Registreer checksums, metadata, varianten en `ready` in één transactie.
 7. Verwijder het tijdelijke pad altijd.
+
+De FFmpeg-stap heeft een harde grens van 40 seconden; bron- en variantoverdracht
+hebben elk een grens van acht seconden. Daarmee eindigt een normale pilotjob
+binnen de operationele minuutdoelstelling als `ready` of met de expliciete fout
+`processing_timeout` of een concrete Storage-time-out; een time-out wordt niet drie keer achter elkaar opnieuw
+uitgevoerd. De minuut is een SLO voor ondersteunde pilotclips, geen claim dat
+iedere willekeurige vijf-minuten/500-MB-bron op ieder VPS-profiel kan worden
+getranscodeerd. Lever voor de snelste route H.264, yuv420p, maximaal 1080p30 en
+AAC aan.
 
 Een incomplete of corrupte variant wordt nooit `ready`. Tijdelijke command-,
 database-, netwerk- en 5xx/429-storagefouten worden tot het pogingbudget opnieuw

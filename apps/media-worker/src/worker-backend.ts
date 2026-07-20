@@ -73,6 +73,7 @@ export type WorkerRpcClient = {
   ): Promise<{ data: unknown; error: { code?: string } | null }>;
 };
 type FetchImplementation = typeof fetch;
+export const storageTransferTimeoutMs = 8_000;
 
 export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
   private readonly client: WorkerRpcClient;
@@ -84,13 +85,17 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
     dependencies: {
       client?: WorkerRpcClient;
       fetch?: FetchImplementation;
+      storageTimeoutMs?: number;
     } = {}
   ) {
     this.client = dependencies.client ?? createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     }) as unknown as WorkerRpcClient;
     this.fetchImplementation = dependencies.fetch ?? fetch;
+    this.storageTimeoutMs = dependencies.storageTimeoutMs ?? storageTransferTimeoutMs;
   }
+
+  private readonly storageTimeoutMs: number;
 
   async claimJob(
     workerId: string,
@@ -161,10 +166,16 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
   }
 
   async downloadOriginal(job: ClaimedMediaJob, destinationPath: string) {
-    const response = await this.fetchImplementation(
-      this.storageObjectUrl(job.storageBucket, job.storagePath),
-      { headers: this.storageHeaders() }
-    );
+    const signal = AbortSignal.timeout(this.storageTimeoutMs);
+    let response: Response;
+    try {
+      response = await this.fetchImplementation(
+        this.storageObjectUrl(job.storageBucket, job.storagePath),
+        { headers: this.storageHeaders(), signal }
+      );
+    } catch {
+      throw storageRequestError("source_download", signal.aborted);
+    }
     if (!response.ok || !response.body) {
       throw storageError("source_download_failed", response.status);
     }
@@ -174,6 +185,7 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
       );
       await pipeline(source, createWriteStream(destinationPath, { flags: "wx" }));
     } catch {
+      if (signal.aborted) throw storageRequestError("source_download", true);
       throw new WorkerBackendError(
         "source_download_failed",
         true,
@@ -187,6 +199,7 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
     sourcePath: string,
     storagePath: string
   ) {
+    const signal = AbortSignal.timeout(this.storageTimeoutMs);
     const request = {
       body: Readable.toWeb(createReadStream(sourcePath)) as unknown as BodyInit,
       duplex: "half",
@@ -196,12 +209,18 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
         "content-type": "video/mp4",
         "x-upsert": "true"
       },
-      method: "POST"
+      method: "POST",
+      signal
     } satisfies RequestInit & { duplex: "half" };
-    const response = await this.fetchImplementation(
-      this.storageObjectUrl(job.storageBucket, storagePath),
-      request
-    );
+    let response: Response;
+    try {
+      response = await this.fetchImplementation(
+        this.storageObjectUrl(job.storageBucket, storagePath),
+        request
+      );
+    } catch {
+      throw storageRequestError("player_upload", signal.aborted);
+    }
     if (!response.ok) {
       throw storageError("player_upload_failed", response.status);
     }
@@ -227,6 +246,19 @@ function storageError(code: string, status: number) {
     code,
     retryable,
     `Storageverzoek mislukte met status ${status}.`
+  );
+}
+
+function storageRequestError(
+  phase: "player_upload" | "source_download",
+  timedOut: boolean
+) {
+  return new WorkerBackendError(
+    `${phase}_${timedOut ? "timeout" : "network_failed"}`,
+    !timedOut,
+    timedOut
+      ? "Storageoverdracht overschreed de tijdslimiet."
+      : "Storage was tijdelijk niet bereikbaar."
   );
 }
 

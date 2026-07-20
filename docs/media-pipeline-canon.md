@@ -52,6 +52,12 @@ boundary for video jobs. It:
 - writes fast-start MP4 and probes the output again before accepting it;
 - bounds command duration and captured process output.
 
+De production worker gebruikt voor reeds conforme H.264/yuv420p/AAC-video een
+nieuwe, geverifieerde remux in plaats van een kwaliteitsverlagende volledige
+transcode. Afwijkende invoer gebruikt `veryfast`, een harde FFmpeg-grens van
+40 seconden en acht-secondenlimieten voor beide Storage-overdrachten. Queuepolling staat in de gedeployde stack op 500 ms; Control
+ververst zolang er actieve uploads zijn iedere twee seconden.
+
 Control maakt voor MP4 transactioneel een tenantgebonden asset en TUS-intent,
 na capability-, tenantstatus-, bestands- en quotacontrole onder lock. De browser
 uploadt in vaste delen rechtstreeks naar private Storage met zijn kortlevende

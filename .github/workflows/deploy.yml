@@ -156,6 +156,7 @@ jobs:
       control_digest: ${{ steps.release.outputs.control_digest }}
       marketing_digest: ${{ steps.release.outputs.marketing_digest }}
       player_digest: ${{ steps.release.outputs.player_digest }}
+      worker_digest: ${{ steps.release.outputs.worker_digest }}
       release_sha: ${{ steps.release.outputs.release_sha }}
     steps:
       - name: Checkout authorized release
@@ -220,6 +221,7 @@ jobs:
       control_digest: ${{ needs.build-release.outputs.control_digest }}
       marketing_digest: ${{ needs.build-release.outputs.marketing_digest }}
       player_digest: ${{ needs.build-release.outputs.player_digest }}
+      worker_digest: ${{ needs.build-release.outputs.worker_digest }}
       release_sha: ${{ needs.build-release.outputs.release_sha }}
     steps:
       - name: Checkout authorized release
@@ -361,4 +363,5 @@ jobs:
           [[ $(docker image inspect --format '{{.Id}}' "veyocast-control:${RELEASE_SHA}") == '${{ needs.deploy-staging.outputs.control_digest }}' ]]
           [[ $(docker image inspect --format '{{.Id}}' "veyocast-player:${RELEASE_SHA}") == '${{ needs.deploy-staging.outputs.player_digest }}' ]]
           [[ $(docker image inspect --format '{{.Id}}' "veyocast-marketing:${RELEASE_SHA}") == '${{ needs.deploy-staging.outputs.marketing_digest }}' ]]
+          [[ $(docker image inspect --format '{{.Id}}' "veyocast-media-worker:${RELEASE_SHA}") == '${{ needs.deploy-staging.outputs.worker_digest }}' ]]
           bash scripts/deploy-vps.sh production deploy

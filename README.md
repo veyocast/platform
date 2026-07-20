@@ -114,6 +114,13 @@ De S28 pairing-runtimecorrectie bevestigt een device onafhankelijk van de
 aanwezigheid van content, rapporteert ook in `READY` een heartbeat en haalt de
 eerste release vanuit een veilige wachtstatus automatisch op.
 
+S29-A activeert de mediaworker als afzonderlijke immutable, least-privilege
+staging/production-service. Veilige H.264/AAC-bronnen worden zonder
+kwaliteitsverlies geremuxed; afwijkende MP4's krijgen een begrensde snelle
+transcode. Queuepolling gebeurt iedere 500 ms en Control ververst actieve
+verwerking automatisch. Zie
+[`docs/s29-media-worker-deployment-evidence.md`](docs/s29-media-worker-deployment-evidence.md).
+
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
 De officiële VeyoCast-merkassetset v1.0 is vastgelegd in `assets/brand/` met

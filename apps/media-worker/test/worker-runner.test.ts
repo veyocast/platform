@@ -108,6 +108,21 @@ describe("media worker runner", () => {
       retryable: true
     }));
   });
+
+  it("fails a bounded processing timeout without another minute-long retry", async () => {
+    const backend = createBackend(job);
+    const normalize = vi.fn().mockRejectedValue(
+      new VideoProcessingError("processing_timeout", "FFmpeg overschreed 50 seconden.")
+    );
+
+    await expect(runWorkerOnce({ backend, config, normalize })).resolves.toMatchObject({
+      errorCode: "processing_timeout",
+      status: "failed"
+    });
+    expect(backend.failJob).toHaveBeenCalledWith(expect.objectContaining({
+      retryable: false
+    }));
+  });
 });
 
 function createBackend(

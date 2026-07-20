@@ -67,8 +67,8 @@ Management API-token nodig.
 
 | Onderdeel | Oude toestand | Definitief contract | Actie/status |
 |---|---|---|---|
-| Staging services | Control, Player en media-worker | exact Control en Player | nieuwe Compose profileert alleen production-Marketing; worker verwijderd uit actieve set |
-| Production services | Control, Player en media-worker; apart oud bestand met Caddy | exact Marketing, Control en Player | container-Caddy en oude Compose verwijderen |
+| Staging webservices | Control en Player | exact Control en Player | worker draait bewust in een afzonderlijk Compose-project |
+| Production webservices | Marketing, Control en Player | exact Marketing, Control en Player | worker draait bewust in een afzonderlijk Compose-project; Caddy blijft op de host |
 | Marketing | ontbrak in VPS-deploy | production-only; vóór approval tijdelijk gezond | toegevoegd aan SHA-release |
 | Hostbindings | actieve VPS-webservices gebruikten al localhost | alle bindings expliciet `127.0.0.1` | statisch bewijzen via gerenderde Compose-JSON |
 | Reverse proxy | extern Docker-netwerk plus oud container-Caddy | Caddy op host naar localhost | netwerkcode en variable verwijderen |
@@ -115,19 +115,15 @@ een signed upload. Daardoor kunnen SDK-documentatieteksten zoals
 Die teksten zijn geen credential. De scanner weigert daarom concrete
 credentialvormen en de geconfigureerde waarde, zonder de waarde zelf te loggen.
 
-## Bekende beperking: media-worker
+## Media-workerbesluit
 
-De oude deployment startte `media-worker`, omdat echte MP4-upload na opslag een
-asynchrone FFmpeg-normalisatie nodig heeft. Het vaste nieuwe servicecontract
-staat in staging exact Control/Player en in production exact
-Marketing/Control/Player toe. Daardoor is videoverwerking in deze twee stacks
-niet actief. Afbeeldingen, playlists, pairing en reeds gereed gemaakte video's
-blijven binnen hun bestaande applicatiecontract werken, maar nieuwe MP4's kunnen
-zonder apart workerdeployment blijven verwerken.
-
-Voor een videopilot is daarom een vervolg nodig: ontwerp en valideer een apart,
-tenantveilig workerdeploymentmodel zonder de exact gecontroleerde webservice-
-profielen stilzwijgend uit te breiden.
+De mediaworker draait vanaf S29-A als `veyocast-<environment>-worker`, los van
+de exact gehouden webserviceprofielen. De worker heeft geen gepubliceerde poort,
+geen websecrets of anon-key, een read-only rootfilesystem, afgeschermde tijdelijke
+opslag, resource-/procesgrenzen, een eigen bridgenetwerk en uitsluitend de reeds
+bestaande environmentgebonden Supabase-URL en service-role key. Readiness bewijst
+queuebereikbaarheid; deployment en rollback draineren de lopende job maximaal
+70 seconden.
 
 ## Open externe acties vóór production
 
@@ -137,5 +133,5 @@ profielen stilzwijgend uit te breiden.
    capaciteit bewust aan.
 3. Bevestig dat beide Environments dezelfde
    `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` hebben.
-4. Beslis en bouw het afzonderlijke productionmodel voor de media-worker vóór
-   echte MP4-processing als launchclaim wordt gedaan.
+4. Voer na merge de staging-smoke uit met synthetische MP4 en archiveer de
+   gemeten upload→ready-tijd; gebruik geen klantmedia.

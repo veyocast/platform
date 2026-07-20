@@ -20,6 +20,7 @@ import {
   retryMediaProcessing,
   uploadMediaImage
 } from "./actions";
+import { ProcessingStatusRefresh } from "./processing-status-refresh";
 import { VideoUploadForm } from "./video-upload-form";
 
 type MediaPageProps = {
@@ -258,6 +259,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
 
   return (
     <>
+      {session.isLive && processingCount > 0 ? <ProcessingStatusRefresh /> : null}
       <PageHeader
         actions={canUpload ? (
           <a className="button-link button-link--primary" href="#upload">
@@ -491,7 +493,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                 <h2 className="work-panel__title" id="upload-queue-title">
                   Uploadqueue
                 </h2>
-                <p className="work-panel__meta">Media wordt pas na volledige verificatie gereed.</p>
+                <p className="work-panel__meta">Automatische statusupdate · media wordt pas na volledige verificatie gereed.</p>
               </div>
               <StatusPill label={`${processingAssets.length} items`} tone="info" />
             </div>
@@ -917,8 +919,11 @@ function processingExplanation(processing: ProcessingSummary) {
   const cause = {
     command_failed: "De worker kon FFmpeg tijdelijk niet uitvoeren.",
     normalization_failed: "De video kon niet naar het playercontract worden genormaliseerd.",
+    processing_timeout: "De video kon niet binnen één minuut veilig worden verwerkt. Lever bij voorkeur H.264/AAC tot 1080p30 aan.",
     player_upload_failed: "De geverifieerde variant kon niet naar private opslag worden geschreven.",
-    source_download_failed: "De worker kon de bron tijdelijk niet ophalen."
+    player_upload_timeout: "Het opslaan van de playervariant duurde langer dan acht seconden.",
+    source_download_failed: "De worker kon de bron tijdelijk niet ophalen.",
+    source_download_timeout: "Het ophalen van de bron duurde langer dan acht seconden."
   }[processing.errorCode ?? ""] ?? "De verwerking is veilig gestopt voordat de media beschikbaar werd.";
   return `${cause} Probeer alleen een tijdelijke fout opnieuw; lever een item in quarantaine als nieuw bestand aan.`;
 }

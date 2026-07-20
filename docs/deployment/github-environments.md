@@ -71,7 +71,7 @@ Beide Environments vereisen exact deze namen:
 | Secret | Gebruik | Validatie zonder waarde te loggen |
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase-browserclient | JWT met rol `anon` en eigen project-ref |
-| `SUPABASE_SERVICE_ROLE_KEY` | server-only Control en Player-API | JWT met rol `service_role` en eigen project-ref |
+| `SUPABASE_SERVICE_ROLE_KEY` | server-only Control/Player-API en afzonderlijke mediaworker | JWT met rol `service_role` en eigen project-ref |
 | `SUPABASE_DB_URL` | migration dry-run en apply | `postgres://` of `postgresql://`, Supabase-host en eigen ref |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | eenmaal gebouwde Next.js-release | geldige base64-key van 16, 24 of bij voorkeur 32 bytes |
 | `DEVICE_LAB_ACCESS_TOKEN` | afgeschermde Device Lab-toegang | minimaal 24 tekens |
@@ -80,6 +80,7 @@ Beide Environments vereisen exact deze namen:
 Alle zes namen waren op 19 juli 2026 in zowel staging als production aanwezig.
 Er zijn daarom geen ontbrekende-secretcommando's. GitHub toont de waarden niet;
 de runtimepreflight valideert vorm en projectsamenhang zonder ze te printen.
+S29-A voegt voor de worker geen nieuw secret of nieuwe GitHub-variable toe.
 
 Omdat dezelfde immutable Next.js-image wordt gepromoveerd, moet
 `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` voor deze release in beide Environments
