@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Bell,
   Building2,
   ChevronDown,
   FileImage,
@@ -15,8 +14,6 @@ import {
   MonitorSmartphone,
   PanelLeftClose,
   PanelLeftOpen,
-  Plus,
-  Rocket,
   Search,
   Settings2,
   ShieldCheck,
@@ -47,7 +44,6 @@ const navigationIcons: Record<string, LucideIcon> = {
   Media: FileImage,
   Platform: MonitorSmartphone,
   Platformgebruikers: Users,
-  Pilotflow: Rocket,
   Playlists: ListVideo,
   Schermen: MonitorSmartphone,
   Team: Users,
@@ -65,7 +61,6 @@ export function ControlShell({
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
-  const [isNotificationsOpen, setNotificationsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -89,7 +84,6 @@ export function ControlShell({
 
       if (event.key === "Escape") {
         setMobileNavOpen(false);
-        setNotificationsOpen(false);
         setSearchOpen(false);
       }
     }
@@ -223,9 +217,22 @@ export function ControlShell({
         </div>
 
         <nav className="control-nav" aria-label="Hoofdnavigatie">
-          {navigationGroups.map((group) => (
-            <section className="control-nav__group" key={group.scope}>
-              <h2 className="control-nav__heading">{group.title}</h2>
+          {navigationGroups.map((group, index) => (
+            <section
+              aria-labelledby={`control-nav-${group.id}`}
+              className="control-nav__group"
+              data-scope={group.scope}
+              key={group.id}
+            >
+              {index === 0 || navigationGroups[index - 1]?.scope !== group.scope ? (
+                <div className="control-nav__context">
+                  <span>{group.contextLabel}</span>
+                  <small>{group.description}</small>
+                </div>
+              ) : null}
+              <h2 className="control-nav__heading" id={`control-nav-${group.id}`}>
+                {group.title}
+              </h2>
               <ul className="control-nav__list">
                 {group.items.map((item) => {
                   const Icon = navigationIcons[item.label] ?? LayoutDashboard;
@@ -289,7 +296,12 @@ export function ControlShell({
               <Menu aria-hidden="true" />
             </button>
             <div>
-              <p className="topbar-context__label">{session.organization}</p>
+              <p className="topbar-context__scope">
+                {session.tenantId || !session.isLive ? "Vereniging" : "Platform"}
+              </p>
+              <p className="topbar-context__label">
+                {session.tenantId || !session.isLive ? session.tenant : session.organization}
+              </p>
               <p className="topbar-context__status">
                 <span className="status-dot status-dot--success" aria-hidden="true" />
                 {session.isLive
@@ -302,7 +314,7 @@ export function ControlShell({
           </div>
           <div className="topbar-actions">
             <button
-              aria-label="Zoeken in Control"
+              aria-label="Snel naar een onderdeel"
               aria-haspopup="dialog"
               aria-keyshortcuts="Control+K Meta+K"
               className="command-search"
@@ -310,32 +322,9 @@ export function ControlShell({
               type="button"
             >
               <Search aria-hidden="true" />
-              <span>Zoeken in Control</span>
+              <span>Snel naar</span>
               <kbd>Ctrl K</kbd>
             </button>
-            {!session.isLive ? <div className="notification-control">
-              <button
-                aria-expanded={isNotificationsOpen}
-                aria-label="Open actiepunten"
-                className="icon-button icon-button--badge"
-                onClick={() => setNotificationsOpen((current) => !current)}
-                title="Open actiepunten"
-                type="button"
-              >
-                <Bell aria-hidden="true" />
-                <span className="icon-button__badge">3</span>
-              </button>
-              {isNotificationsOpen ? (
-                <section className="notification-popover" aria-label="Actiepunten">
-                  <p className="notification-popover__title">Actiepunten</p>
-                  <ul>
-                    <li>1 publicatie wacht op media.</li>
-                    <li>1 scherm heeft aandacht nodig.</li>
-                    <li>1 uitnodiging verloopt vandaag.</li>
-                  </ul>
-                </section>
-              ) : null}
-            </div> : null}
             {session.isLive ? <Link
               aria-label="Accountbeveiliging openen"
               className="icon-button topbar-help"
@@ -343,17 +332,6 @@ export function ControlShell({
               title="Accountbeveiliging"
             >
               <ShieldCheck aria-hidden="true" />
-            </Link> : null}
-            {hasCapability(session.roles, "tenant.playlist.write") &&
-            (session.tenantId || !session.isLive) &&
-            session.tenantStatus !== "paused" ? <Link
-              aria-label="Nieuwe playlist"
-              className="button-link button-link--primary topbar-primary-action"
-              href="/dashboard/playlists"
-              title="Nieuwe playlist"
-            >
-              <Plus aria-hidden="true" />
-              <span>Nieuwe playlist</span>
             </Link> : null}
           </div>
         </header>
@@ -364,21 +342,21 @@ export function ControlShell({
 
       {isSearchOpen ? (
         <div className="command-palette-backdrop" role="presentation">
-          <section aria-label="Zoeken in Control" aria-modal="true" className="command-palette" role="dialog">
+          <section aria-label="Snel naar een onderdeel" aria-modal="true" className="command-palette" role="dialog">
             <div className="command-palette__search">
               <Search aria-hidden="true" />
               <input
                 autoFocus
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Zoek schermen, playlists, media of instellingen"
+                placeholder="Typ een onderdeel, bijvoorbeeld Media"
                 type="search"
                 value={searchQuery}
               />
               <button
-                aria-label="Zoeken sluiten"
+                aria-label="Snel naar sluiten"
                 className="icon-button"
                 onClick={() => setSearchOpen(false)}
-                title="Zoeken sluiten"
+                title="Snel naar sluiten"
                 type="button"
               >
                 <X aria-hidden="true" />

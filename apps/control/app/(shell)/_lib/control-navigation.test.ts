@@ -14,7 +14,6 @@ describe("control navigation", () => {
 
     expect(links).toStrictEqual([
       "/dashboard",
-      "/dashboard/pilot",
       "/dashboard/media",
       "/dashboard/playlists",
       "/dashboard/screens",
@@ -30,13 +29,22 @@ describe("control navigation", () => {
       "tenant_viewer"
     ]);
 
-    expect(groups.map((group) => group.scope)).toStrictEqual([
-      "platform",
-      "tenant"
+    expect(groups.map((group) => group.id)).toStrictEqual([
+      "platform-overview",
+      "platform-organization",
+      "tenant-overview",
+      "tenant-content",
+      "tenant-distribution",
+      "tenant-organization"
     ]);
-    expect(groups.at(1)?.items.map((item) => item.href)).toStrictEqual([
+    expect(groups.filter((group) => group.scope === "tenant").map((group) => group.title)).toStrictEqual([
+      "Overzicht",
+      "Content",
+      "Distributie",
+      "Organisatie"
+    ]);
+    expect(groups.flatMap((group) => group.items).filter((item) => item.scope === "tenant").map((item) => item.href)).toStrictEqual([
       "/dashboard",
-      "/dashboard/pilot",
       "/dashboard/media",
       "/dashboard/playlists",
       "/dashboard/screens",
@@ -44,6 +52,7 @@ describe("control navigation", () => {
       "/dashboard/auditlog",
       "/dashboard/settings"
     ]);
+    expect(groups.flatMap((group) => group.items).some((item) => item.href === "/dashboard/pilot")).toBe(false);
   });
 
   it("combines platform roles with only the active tenant role", () => {
@@ -53,5 +62,26 @@ describe("control navigation", () => {
         "tenant_viewer"
       )
     ).toStrictEqual(["platform_admin", "tenant_viewer"]);
+  });
+
+  it.each([
+    {
+      expectedScopes: ["platform"],
+      role: "platform_admin" as const
+    },
+    {
+      expectedScopes: ["tenant"],
+      role: "tenant_admin" as const
+    },
+    {
+      expectedScopes: ["tenant"],
+      role: "tenant_editor" as const
+    }
+  ])("keeps the $role journey inside its permitted context", ({ expectedScopes, role }) => {
+    const groups = getNavigationGroupsForRoles([role], role !== "platform_admin");
+
+    expect([...new Set(groups.map((group) => group.scope))]).toStrictEqual(expectedScopes);
+    expect(groups.every((group) => group.items.length > 0)).toBe(true);
+    expect(groups.flatMap((group) => group.items).some((item) => item.href === "/dashboard/pilot")).toBe(false);
   });
 });

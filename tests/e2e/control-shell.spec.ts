@@ -18,6 +18,11 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Schermen/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
+  await expect(nav.getByRole("heading", { name: "Overzicht" }).first()).toBeVisible();
+  await expect(nav.getByRole("heading", { name: "Content" })).toBeVisible();
+  await expect(nav.getByRole("heading", { name: "Distributie" })).toBeVisible();
+  await expect(nav.getByRole("heading", { name: "Organisatie" }).first()).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
 
   await nav.getByRole("link", { name: /Media/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/media$/);
@@ -147,11 +152,11 @@ test("supports command navigation and the compact mobile navigation flow", async
 }) => {
   await page.goto("/dashboard");
 
-  await page.getByRole("button", { name: "Zoeken in Control" }).click();
-  const commandPalette = page.getByRole("dialog", { name: "Zoeken in Control" });
+  await page.getByRole("button", { name: "Snel naar een onderdeel" }).click();
+  const commandPalette = page.getByRole("dialog", { name: "Snel naar een onderdeel" });
   await expect(commandPalette).toBeVisible();
   await commandPalette
-    .getByPlaceholder("Zoek schermen, playlists, media of instellingen")
+    .getByPlaceholder("Typ een onderdeel, bijvoorbeeld Media")
     .fill("Schermen");
   await commandPalette.getByRole("link", { name: /Schermen/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/screens$/);
@@ -159,35 +164,27 @@ test("supports command navigation and the compact mobile navigation flow", async
   await page.setViewportSize({ height: 844, width: 390 });
   const topbar = page.getByLabel("Control status");
   const menuButton = page.getByRole("button", { name: "Navigatie openen" });
-  const searchButton = page.getByRole("button", { name: "Zoeken in Control" });
-  const notificationsButton = page.getByRole("button", { name: "Open actiepunten" });
-  const createPlaylist = page.getByRole("link", { name: "Nieuwe playlist" }).first();
+  const searchButton = page.getByRole("button", { name: "Snel naar een onderdeel" });
 
   await expect(topbar).toHaveCSS("min-height", "64px");
   await Promise.all([
     expect(menuButton).toBeVisible(),
     expect(searchButton).toBeVisible(),
-    expect(notificationsButton).toBeVisible(),
-    expect(createPlaylist).toBeVisible()
+    expect(page.getByRole("button", { name: "Open actiepunten" })).toHaveCount(0),
+    expect(page.getByRole("link", { name: "Nieuwe playlist" })).toHaveCount(0)
   ]);
 
-  const [menuBox, searchBox, notificationsBox, createBox, topbarBox] = await Promise.all([
+  const [menuBox, searchBox, topbarBox] = await Promise.all([
     menuButton.boundingBox(),
     searchButton.boundingBox(),
-    notificationsButton.boundingBox(),
-    createPlaylist.boundingBox(),
     topbar.boundingBox()
   ]);
 
   expect(menuBox).not.toBeNull();
   expect(searchBox).not.toBeNull();
-  expect(notificationsBox).not.toBeNull();
-  expect(createBox).not.toBeNull();
   expect(topbarBox).not.toBeNull();
   expect(menuBox!.x).toBeLessThan(searchBox!.x);
-  expect(searchBox!.x).toBeLessThan(notificationsBox!.x);
-  expect(notificationsBox!.x).toBeLessThan(createBox!.x);
-  expect(createBox!.y + createBox!.height).toBeLessThanOrEqual(
+  expect(searchBox!.y + searchBox!.height).toBeLessThanOrEqual(
     topbarBox!.y + topbarBox!.height
   );
 

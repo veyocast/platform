@@ -6,7 +6,7 @@ review. It does not replace the full design canon.
 
 ## Shell and context
 
-- [ ] Use the official C-icon asset without alteration where compact branding is needed.
+- [ ] Use the approved VeyoCast icon asset without alteration where compact branding is needed.
 - [ ] Keep tenant or platform context visible in the shell and page hierarchy.
 - [ ] Use the 248 px expanded sidebar, 64 px topbar and token-based gutters on desktop.
 - [ ] Provide a keyboard-accessible mobile navigation sheet below 1024 px.
@@ -46,3 +46,10 @@ review. It does not replace the full design canon.
 - [ ] Capture desktop and mobile screenshots of each changed primary route.
 - [ ] Run lint, typecheck, unit tests, build, a11y and Control e2e tests.
 - [ ] Record any incomplete server integration as a visible permission or read-only state.
+
+## S23 implementation evidence
+
+The implementation status and reproducible role, viewport and gate evidence is
+recorded in `docs/s23-control-ux-evidence.md`. Global resource search and a real
+action inbox intentionally remain unchecked here: those are S28 scope and are
+not represented by fake shell controls in S23.

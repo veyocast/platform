@@ -68,6 +68,9 @@ importers:
       '@veyocast/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@veyocast/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       lucide-react:
         specifier: ^1.24.0
         version: 1.24.0(react@19.2.7)
