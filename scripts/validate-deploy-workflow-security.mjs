@@ -86,6 +86,14 @@ for (const step of cleanupSteps) {
   );
 }
 
+const migrationToolingInstall =
+  "pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1 --network-concurrency=8 --package-import-method=copy";
+assertEqual(
+  steps.filter((step) => readRunScript(step) === migrationToolingInstall).length,
+  2,
+  "Staging en production moeten uitsluitend de gepinde root-migratietooling met begrensde pnpm-concurrency installeren."
+);
+
 const remoteGitSteps = steps.filter(
   (step) =>
     step.includes("run:") &&
