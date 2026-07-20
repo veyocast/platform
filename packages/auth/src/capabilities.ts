@@ -12,6 +12,7 @@ export const capabilities = [
   "tenant.media.write",
   "tenant.playlist.read",
   "tenant.playlist.write",
+  "tenant.playlist.archive",
   "tenant.playlist.publish",
   "tenant.release.read",
   "tenant.screen.read",
@@ -42,13 +43,16 @@ const tenantWriteCapabilities = [
 ] as const satisfies readonly Capability[];
 
 const tenantManageCapabilities = [
+  "tenant.playlist.archive",
   "tenant.screen.manage",
   "tenant.team.manage",
   "tenant.settings.manage",
   "tenant.audit.read"
 ] as const satisfies readonly Capability[];
 
-const roleCapabilities: Readonly<Record<HumanRole, readonly Capability[]>> = {
+export const roleCapabilityMatrix: Readonly<
+  Record<HumanRole, readonly Capability[]>
+> = {
   platform_owner: capabilities,
   platform_admin: capabilities.filter((capability) => capability !== "platform.user.manage"),
   platform_support: [
@@ -80,14 +84,14 @@ export type CapabilityDecision = Readonly<{
 }>;
 
 export function getCapabilitiesForRoles(roles: readonly HumanRole[]): Capability[] {
-  return [...new Set(roles.flatMap((role) => roleCapabilities[role]))];
+  return [...new Set(roles.flatMap((role) => roleCapabilityMatrix[role]))];
 }
 
 export function hasCapability(
   roles: readonly HumanRole[],
   capability: Capability
 ): boolean {
-  return roles.some((role) => roleCapabilities[role].includes(capability));
+  return roles.some((role) => roleCapabilityMatrix[role].includes(capability));
 }
 
 export function decideCapability(
@@ -97,4 +101,24 @@ export function decideCapability(
   return hasCapability(roles, capability)
     ? { allowed: true, capability, reason: "allowed" }
     : { allowed: false, capability, reason: "missing_capability" };
+}
+
+export class MissingCapabilityError extends Error {
+  readonly capability: Capability;
+  readonly code = "missing_capability" as const;
+
+  constructor(capability: Capability) {
+    super(`Missing required capability: ${capability}`);
+    this.name = "MissingCapabilityError";
+    this.capability = capability;
+  }
+}
+
+export function requireCapability(
+  roles: readonly HumanRole[],
+  capability: Capability
+): void {
+  if (!hasCapability(roles, capability)) {
+    throw new MissingCapabilityError(capability);
+  }
 }

@@ -1,3 +1,5 @@
+import { hasCapability } from "@veyocast/auth";
+
 import { requireControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
@@ -31,9 +33,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const session = await requireControlSession();
   const { fout, succes } = await searchParams;
   const { data, error } = await loadSettings(session.tenantId, session.isLive, session.tenant);
-  const canManage = session.isLive && session.roles.some((role) =>
-    ["platform_owner", "platform_admin", "tenant_owner", "tenant_admin"].includes(role)
-  );
+  const canManage =
+    session.isLive &&
+    session.tenantStatus === "active" &&
+    hasCapability(session.roles, "tenant.settings.manage");
 
   return (
     <>

@@ -39,6 +39,21 @@ test("collapsed desktop navigation remains keyboard restorable", async ({ page }
   ).toBeVisible();
 });
 
+test("tenant context selection is explicit and keyboard reachable", async ({ page }) => {
+  await page.goto("/dashboard");
+
+  const switcher = page.locator("summary").filter({ hasText: "Museumkwartier" });
+  await switcher.focus();
+  await expect(switcher).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("group", { name: "Werkcontext wisselen" })).toBeVisible();
+  await page.getByRole("link", { name: "Alle contexten beheren" }).click();
+
+  await expect(page).toHaveURL(/\/context$/);
+  await expect(page.getByRole("heading", { name: "Kies een vereniging" })).toBeVisible();
+  await expect(page.getByText("niet automatisch een willekeurige context gekozen")).toBeVisible();
+});
+
 test("media route exposes upload intake labels and status landmarks", async ({
   page
 }) => {

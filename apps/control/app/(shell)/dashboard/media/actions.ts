@@ -13,18 +13,11 @@ import {
   prepareValidatedVideoUpload,
   type VideoUploadCandidate
 } from "../../../../lib/media/validated-video-upload";
-import { requireControlSession } from "../../../../lib/control-session";
+import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
-const writerRoles = new Set([
-  "platform_owner",
-  "platform_admin",
-  "tenant_owner",
-  "tenant_admin",
-  "tenant_editor"
-]);
-
 export async function uploadMediaImage(formData: FormData) {
+  await requireTenantCapability("tenant.media.write");
   let message: string;
 
   try {
@@ -47,6 +40,7 @@ export async function uploadMediaImage(formData: FormData) {
 }
 
 export async function prepareMediaVideoUpload(candidate: VideoUploadCandidate) {
+  await requireTenantCapability("tenant.media.write");
   try {
     return {
       ok: true as const,
@@ -66,6 +60,7 @@ export async function prepareMediaVideoUpload(candidate: VideoUploadCandidate) {
 }
 
 export async function finalizeMediaVideoUpload(uploadSessionId: string) {
+  await requireTenantCapability("tenant.media.write");
   try {
     await finalizeValidatedVideoUpload(uploadSessionId);
     revalidatePath("/dashboard/media");
@@ -88,6 +83,7 @@ export async function finalizeMediaVideoUpload(uploadSessionId: string) {
 }
 
 export async function cancelMediaVideoUpload(uploadSessionId: string) {
+  await requireTenantCapability("tenant.media.write");
   try {
     const result = await cancelValidatedVideoUpload(uploadSessionId);
     revalidatePath("/dashboard/media");
@@ -133,10 +129,9 @@ export async function retryMediaProcessing(formData: FormData) {
 }
 
 async function requireMediaWriter() {
-  const session = await requireControlSession();
+  const session = await requireTenantCapability("tenant.media.write");
   const supabase = await createControlSupabaseClient();
   if (!session.isLive || !session.tenantId || !supabase) fail(null, "Live Supabase is niet beschikbaar. Er is niets gewijzigd; herstel de configuratie en log opnieuw in.");
-  if (!session.roles.some((role) => writerRoles.has(role))) fail(null, "Je hebt editor- of beheerrechten nodig om media te wijzigen.");
   return { session, supabase };
 }
 

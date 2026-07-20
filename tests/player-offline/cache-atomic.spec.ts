@@ -11,6 +11,11 @@ test("starts from last-known-good when manifest and media are unavailable", asyn
 
   await expect(page.getByLabel("Release playback")).toBeVisible();
   await expect(page.getByLabel("Player diagnostics")).toContainText("PLAYING");
+  await page.evaluate(async () => {
+    if ("serviceWorker" in navigator) {
+      await navigator.serviceWorker.ready;
+    }
+  });
 
   await page.evaluate(async () => {
     const previousBrand = String.fromCharCode(99, 97, 115, 116, 105, 118, 111);

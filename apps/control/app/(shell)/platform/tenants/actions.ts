@@ -3,11 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireControlRole } from "../../../../lib/control-session";
+import { requireControlCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
 export async function createTenant(formData: FormData) {
-  const session = await requireControlRole("platform_admin");
+  const session = await requireControlCapability("platform.tenant.create", {
+    aal2: true,
+    returnTo: "/platform/tenants#nieuwe-tenant"
+  });
   const supabase = await createControlSupabaseClient();
 
   if (!session.isLive || !supabase) {

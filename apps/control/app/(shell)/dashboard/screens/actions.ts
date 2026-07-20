@@ -5,18 +5,11 @@ import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireControlSession } from "../../../../lib/control-session";
+import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
-const managementRoles = new Set([
-  "platform_owner",
-  "platform_admin",
-  "tenant_owner",
-  "tenant_admin"
-]);
-
 export async function createScreen(formData: FormData) {
-  const { session, supabase } = await requireScreenManagement();
+  const { session, supabase } = await requireScreenManagement("mutate");
   const name = String(formData.get("name") ?? "").trim();
   const location = String(formData.get("location") ?? "").trim();
   const orientation = String(formData.get("orientation") ?? "landscape");
@@ -54,7 +47,7 @@ export async function createScreen(formData: FormData) {
 }
 
 export async function claimScreenPairing(formData: FormData) {
-  const { session, supabase } = await requireScreenManagement();
+  const { session, supabase } = await requireScreenManagement("pair");
   const screenId = String(formData.get("screenId") ?? "");
   const deviceName = String(formData.get("deviceName") ?? "").trim();
   const pairingCode = normalizePairingCode(String(formData.get("pairingCode") ?? ""));
@@ -80,17 +73,16 @@ export async function claimScreenPairing(formData: FormData) {
   complete("De Player is gekoppeld. Het geheime device-token is uitsluitend op de Player bewaard.");
 }
 
-async function requireScreenManagement() {
-  const session = await requireControlSession();
+async function requireScreenManagement(operation: "mutate" | "pair") {
+  const session = await requireTenantCapability(
+    "tenant.screen.manage",
+    operation
+  );
   const supabase = await createControlSupabaseClient();
 
   if (!session.isLive || !session.tenantId || !supabase) {
     fail("Live Supabase is niet beschikbaar. Er is niets gewijzigd; herstel de configuratie en log opnieuw in.");
   }
-  if (!session.roles.some((role) => managementRoles.has(role))) {
-    fail("Je hebt beheerrechten nodig. Er is niets gewijzigd; vraag een tenantbeheerder om deze actie uit te voeren.");
-  }
-
   return { session, supabase };
 }
 

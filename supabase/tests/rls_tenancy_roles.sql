@@ -349,6 +349,7 @@ select throws_ok(
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', true);
+select set_config('request.jwt.claim.aal', 'aal2', true);
 with updated_tenants as (
   update public.tenants
   set name = 'Tenant A renamed by platform admin'

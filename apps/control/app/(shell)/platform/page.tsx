@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-import { requireControlRole } from "../../../lib/control-session";
+import { requireControlCapability } from "../../../lib/control-session";
 import { loadPlatformOverview } from "../../../lib/control-overview";
 import { MetricCard, PageHeader, StatusPill } from "../_components/shell-primitives";
 
 export default async function PlatformPage() {
-  const session = await requireControlRole("platform_admin");
+  const session = await requireControlCapability("platform.system.read");
 
   if (!session.isLive) return <DemoPlatformPage />;
 

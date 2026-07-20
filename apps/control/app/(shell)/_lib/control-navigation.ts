@@ -1,12 +1,9 @@
-export type ControlRole =
-  | "platform_owner"
-  | "platform_admin"
-  | "platform_support"
-  | "platform_viewer"
-  | "tenant_owner"
-  | "tenant_admin"
-  | "tenant_editor"
-  | "tenant_viewer";
+import { hasCapability, type Capability } from "@veyocast/auth";
+import type { HumanRole, TenantStatus } from "@veyocast/domain";
+
+import type { TenantMembershipContext } from "../../../lib/tenant-context";
+
+export type ControlRole = HumanRole;
 
 export type ControlScope = "platform" | "tenant";
 
@@ -16,7 +13,7 @@ export type ControlNavigationItem = {
   description: string;
   href: string;
   label: string;
-  requiredRole: ControlRole;
+  requiredCapability: Capability;
   scope: ControlScope;
   status: NavigationStatus;
 };
@@ -30,12 +27,24 @@ export type ControlNavigationGroup = {
 };
 
 export type ControlSession = {
+  assuranceLevel: "aal1" | "aal2";
+  nextAssuranceLevel: "aal1" | "aal2";
   email: string;
   isLive: boolean;
   organization: string;
   roles: readonly ControlRole[];
   tenant: string;
+  tenantContextReason:
+    | "demo"
+    | "invalid_context"
+    | "membership_revoked"
+    | "needs_selection"
+    | "selected"
+    | "tenant_archived";
   tenantId: string | null;
+  tenantMemberships: readonly TenantMembershipContext[];
+  tenantSlug: string | null;
+  tenantStatus: TenantStatus | null;
   userId: string;
   userName: string;
 };
@@ -45,7 +54,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Systeemstatus en tenantgezondheid",
     href: "/platform",
     label: "Platform",
-    requiredRole: "platform_admin",
+    requiredCapability: "platform.system.read",
     scope: "platform",
     status: "placeholder"
   },
@@ -53,7 +62,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Verenigingen, status en limieten",
     href: "/platform/tenants",
     label: "Tenants",
-    requiredRole: "platform_admin",
+    requiredCapability: "platform.tenant.read",
     scope: "platform",
     status: "placeholder"
   },
@@ -61,7 +70,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Dagelijkse operatie en aandachtspunten",
     href: "/dashboard",
     label: "Dashboard",
-    requiredRole: "tenant_viewer",
+    requiredCapability: "tenant.overview.read",
     scope: "tenant",
     status: "ready"
   },
@@ -69,7 +78,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Upload, publicatie en Player-koppeling",
     href: "/dashboard/pilot",
     label: "Pilotflow",
-    requiredRole: "tenant_editor",
+    requiredCapability: "tenant.playlist.write",
     scope: "tenant",
     status: "ready"
   },
@@ -77,7 +86,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Bibliotheek, verwerking en gebruik",
     href: "/dashboard/media",
     label: "Media",
-    requiredRole: "tenant_viewer",
+    requiredCapability: "tenant.media.read",
     scope: "tenant",
     status: "ready"
   },
@@ -85,7 +94,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Concepten, publicaties en releases",
     href: "/dashboard/playlists",
     label: "Playlists",
-    requiredRole: "tenant_viewer",
+    requiredCapability: "tenant.playlist.read",
     scope: "tenant",
     status: "ready"
   },
@@ -93,7 +102,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Vloot, koppeling en diagnose",
     href: "/dashboard/screens",
     label: "Schermen",
-    requiredRole: "tenant_viewer",
+    requiredCapability: "tenant.screen.read",
     scope: "tenant",
     status: "ready"
   },
@@ -101,7 +110,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Mensen, rollen en uitnodigingen",
     href: "/dashboard/team",
     label: "Team",
-    requiredRole: "tenant_admin",
+    requiredCapability: "tenant.team.read",
     scope: "tenant",
     status: "placeholder"
   },
@@ -109,7 +118,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Gebeurtenissen en beveiligingsspoor",
     href: "/dashboard/auditlog",
     label: "Auditlog",
-    requiredRole: "tenant_admin",
+    requiredCapability: "tenant.audit.read",
     scope: "tenant",
     status: "placeholder"
   },
@@ -117,7 +126,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Profiel, limieten en beveiliging",
     href: "/dashboard/settings",
     label: "Instellingen",
-    requiredRole: "tenant_admin",
+    requiredCapability: "tenant.settings.read",
     scope: "tenant",
     status: "placeholder"
   }
@@ -138,28 +147,21 @@ const navigationGroupMeta = [
   }
 ] satisfies readonly Omit<ControlNavigationGroup, "items">[];
 
-export function hasControlRole(
+export function getNavigationForRoles(
   roles: readonly ControlRole[],
-  requiredRole: ControlRole
+  includeTenantScope = true
 ) {
-  return roles.some(
-    (role) =>
-      role === requiredRole ||
-      (roleRank[role].scope === roleRank[requiredRole].scope &&
-        roleRank[role].rank >= roleRank[requiredRole].rank)
-  );
-}
-
-export function getNavigationForRoles(roles: readonly ControlRole[]) {
   return controlNavigation.filter((item) =>
-    hasControlRole(roles, item.requiredRole)
+    hasCapability(roles, item.requiredCapability) &&
+    (includeTenantScope || item.scope !== "tenant")
   );
 }
 
 export function getNavigationGroupsForRoles(
-  roles: readonly ControlRole[]
+  roles: readonly ControlRole[],
+  includeTenantScope = true
 ): ControlNavigationGroup[] {
-  const permittedItems = getNavigationForRoles(roles);
+  const permittedItems = getNavigationForRoles(roles, includeTenantScope);
 
   return navigationGroupMeta
     .map((group) => ({
@@ -180,14 +182,3 @@ export function getControlSessionRoles(
     ])
   ];
 }
-
-const roleRank = {
-  platform_owner: { rank: 4, scope: "platform" },
-  platform_admin: { rank: 3, scope: "platform" },
-  platform_support: { rank: 2, scope: "platform" },
-  platform_viewer: { rank: 1, scope: "platform" },
-  tenant_owner: { rank: 4, scope: "tenant" },
-  tenant_admin: { rank: 3, scope: "tenant" },
-  tenant_editor: { rank: 2, scope: "tenant" },
-  tenant_viewer: { rank: 1, scope: "tenant" }
-} as const satisfies Record<ControlRole, { rank: number; scope: ControlScope }>;

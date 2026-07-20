@@ -2,13 +2,12 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
-import { requireControlSession } from "../control-session";
+import { requireTenantCapability } from "../control-session";
 import { createControlAdminClient } from "../supabase/admin";
 import { createControlSupabaseClient } from "../supabase/server";
 import { MediaUploadError } from "./validated-image-upload";
 
 const maxVideoBytes = 500 * 1024 * 1024;
-const writableRoles = ["tenant_owner", "tenant_admin", "tenant_editor"];
 
 export type VideoUploadCandidate = {
   fileName: string;
@@ -165,16 +164,11 @@ export async function cancelValidatedVideoUpload(uploadSessionId: string) {
 }
 
 async function requireWritableMediaSession() {
-  const session = await requireControlSession();
+  const session = await requireTenantCapability("tenant.media.write");
   const supabase = await createControlSupabaseClient();
   if (!session.isLive || !session.tenantId || !supabase) {
     throw new MediaUploadError(
       "Uploaden is alleen beschikbaar met een actieve Supabase-sessie. Log opnieuw in en probeer het daarna nogmaals."
-    );
-  }
-  if (!session.roles.some((role) => writableRoles.includes(role))) {
-    throw new MediaUploadError(
-      "Je account heeft geen editor- of beheerrechten. De upload is niet gestart; vraag een beheerder om de juiste rol."
     );
   }
   return { session: { ...session, tenantId: session.tenantId }, supabase };

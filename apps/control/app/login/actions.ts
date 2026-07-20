@@ -36,7 +36,10 @@ export async function signIn(formData: FormData) {
 
   const session = await getControlSession();
 
-  if (!session || session.roles.length === 0) {
+  if (
+    !session ||
+    (session.roles.length === 0 && session.tenantMemberships.length === 0)
+  ) {
     await supabase.auth.signOut();
     redirect("/login?reden=geen-toegang");
   }

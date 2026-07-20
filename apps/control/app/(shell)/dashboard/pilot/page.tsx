@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { hasCapability } from "@veyocast/auth";
+
 import { requireControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import {
@@ -52,7 +54,11 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
   const data = await loadPilotData(session.tenantId, session.isLive);
   const readyAssets = data.assets.filter((asset) => asset.status === "ready");
   const draftPlaylists = data.playlists.filter((playlist) => playlist.status === "draft");
-  const canPublish = readyAssets.length > 0 && draftPlaylists.length > 0 && data.screens.length > 0;
+  const canMutate = session.isLive && session.tenantStatus === "active";
+  const canUpload = canMutate && hasCapability(session.roles, "tenant.media.write");
+  const canEditPlaylist = canMutate && hasCapability(session.roles, "tenant.playlist.write");
+  const canPublish = canMutate && hasCapability(session.roles, "tenant.playlist.publish") && readyAssets.length > 0 && draftPlaylists.length > 0 && data.screens.length > 0;
+  const canPair = canMutate && hasCapability(session.roles, "tenant.screen.manage");
 
   return (
     <>
@@ -100,7 +106,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
             <div className="field">
               <label htmlFor="pilot-media-title">Titel</label>
               <input
-                disabled={!session.isLive}
+                disabled={!canUpload}
                 id="pilot-media-title"
                 name="title"
                 placeholder="Welkom bij de vereniging"
@@ -112,7 +118,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
               <label htmlFor="pilot-media-file">Afbeelding</label>
               <input
                 accept="image/jpeg,image/png,image/webp"
-                disabled={!session.isLive}
+                disabled={!canUpload}
                 id="pilot-media-file"
                 name="media"
                 required
@@ -121,7 +127,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
             </div>
             <button
               className="button-link button-link--primary"
-              disabled={!session.isLive}
+              disabled={!canUpload}
               type="submit"
             >
               Uploaden en verifiëren
@@ -140,7 +146,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
             <div className="field">
               <label htmlFor="pilot-playlist-name">Playlistnaam</label>
               <input
-                disabled={!session.isLive || readyAssets.length === 0}
+                disabled={!canEditPlaylist || readyAssets.length === 0}
                 id="pilot-playlist-name"
                 name="name"
                 placeholder="Pilot hoofdscherm"
@@ -151,7 +157,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
             <div className="field">
               <label htmlFor="pilot-media-asset">Gereedstaande media</label>
               <select
-                disabled={!session.isLive || readyAssets.length === 0}
+                disabled={!canEditPlaylist || readyAssets.length === 0}
                 id="pilot-media-asset"
                 name="mediaAssetId"
                 required
@@ -166,7 +172,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
             </div>
             <button
               className="button-link button-link--primary"
-              disabled={!session.isLive || readyAssets.length === 0}
+              disabled={!canEditPlaylist || readyAssets.length === 0}
               type="submit"
             >
               Concept maken
@@ -185,7 +191,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
             <div className="field">
               <label htmlFor="pilot-playlist">Conceptplaylist</label>
               <select
-                disabled={!session.isLive || draftPlaylists.length === 0}
+                disabled={!canPublish || draftPlaylists.length === 0}
                 id="pilot-playlist"
                 name="playlistId"
                 required
@@ -198,10 +204,10 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
                 ))}
               </select>
             </div>
-            <ScreenSelect disabled={!session.isLive} screens={data.screens} suffix="publish" />
+            <ScreenSelect disabled={!canPublish} screens={data.screens} suffix="publish" />
             <button
               className="button-link button-link--primary"
-              disabled={!session.isLive || !canPublish}
+              disabled={!canPublish}
               type="submit"
             >
               Release publiceren
@@ -222,7 +228,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
               <input
                 autoCapitalize="characters"
                 autoComplete="one-time-code"
-                disabled={!session.isLive}
+                disabled={!canPair}
                 id="pilot-pairing-code"
                 maxLength={7}
                 name="pairingCode"
@@ -232,10 +238,10 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
                 type="text"
               />
             </div>
-            <ScreenSelect disabled={!session.isLive} screens={data.screens} suffix="pairing" />
+            <ScreenSelect disabled={!canPair} screens={data.screens} suffix="pairing" />
             <button
               className="button-link button-link--primary"
-              disabled={!session.isLive || data.screens.length === 0}
+              disabled={!canPair || data.screens.length === 0}
               type="submit"
             >
               Player koppelen

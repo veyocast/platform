@@ -3,27 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireControlSession } from "../../../../lib/control-session";
+import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
-const managementRoles = new Set([
-  "platform_owner",
-  "platform_admin",
-  "tenant_owner",
-  "tenant_admin"
-]);
-
 export async function updateTenantSettings(formData: FormData) {
-  const session = await requireControlSession();
+  const session = await requireTenantCapability("tenant.settings.manage");
   const supabase = await createControlSupabaseClient();
 
   if (!session.isLive || !session.tenantId || !supabase) {
     fail("Live Supabase is niet beschikbaar. Er is niets opgeslagen; herstel de configuratie en log opnieuw in.");
   }
-  if (!session.roles.some((role) => managementRoles.has(role))) {
-    fail("Je hebt beheerrechten nodig. Er is niets opgeslagen; vraag een tenantbeheerder om deze wijziging uit te voeren.");
-  }
-
   const name = String(formData.get("name") ?? "").trim();
   const imageDuration = integerValue(formData, "defaultImageDuration");
   const fitMode = String(formData.get("defaultFitMode") ?? "");

@@ -1,4 +1,7 @@
-import { requireControlRole } from "../../../../lib/control-session";
+import { hasCapability } from "@veyocast/auth";
+import Link from "next/link";
+
+import { requireControlCapability } from "../../../../lib/control-session";
 import { loadPlatformOverview } from "../../../../lib/control-overview";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { createTenant } from "./actions";
@@ -10,9 +13,11 @@ type PlatformTenantsPageProps = {
 export default async function PlatformTenantsPage({
   searchParams
 }: PlatformTenantsPageProps) {
-  const session = await requireControlRole("platform_admin");
+  const session = await requireControlCapability("platform.tenant.read");
   const data = session.isLive ? await loadPlatformOverview() : null;
   const { fout, succes } = await searchParams;
+  const hasCreateCapability = hasCapability(session.roles, "platform.tenant.create");
+  const canCreate = session.isLive && hasCreateCapability && session.assuranceLevel === "aal2";
 
   return (
     <>
@@ -42,6 +47,16 @@ export default async function PlatformTenantsPage({
         <p className="notice notice--warning" role="status">
           Demo-organisaties zijn uitsluitend zichtbaar op een lokale
           ontwikkelserver. Aanmaken is hier uitgeschakeld.
+        </p>
+      ) : null}
+      {session.isLive && hasCreateCapability && session.assuranceLevel !== "aal2" ? (
+        <p className="notice notice--warning" role="status">
+          <strong>Extra verificatie nodig.</strong> Een vereniging aanmaken is een gevoelige platformwijziging en blijft geblokkeerd totdat je AAL2 bevestigt. <Link href="/auth/mfa?reden=aal2&terug=%2Fplatform%2Ftenants%23nieuwe-tenant">Open tweestapsverificatie</Link> en keer daarna terug naar dit formulier.
+        </p>
+      ) : null}
+      {session.isLive && !hasCreateCapability ? (
+        <p className="notice notice--warning" role="status">
+          Je kunt verenigingen bekijken, maar niet aanmaken. Vraag een platformeigenaar of platformbeheerder om deze wijziging uit te voeren.
         </p>
       ) : null}
       {data?.error ? (
@@ -82,7 +97,7 @@ export default async function PlatformTenantsPage({
           <div className="field">
             <label htmlFor="tenant-name">Verenigingsnaam</label>
             <input
-              disabled={!session.isLive}
+              disabled={!canCreate}
               id="tenant-name"
               maxLength={120}
               minLength={2}
@@ -96,7 +111,7 @@ export default async function PlatformTenantsPage({
             <label htmlFor="tenant-slug">Technische slug</label>
             <input
               aria-describedby="tenant-slug-help"
-              disabled={!session.isLive}
+              disabled={!canCreate}
               id="tenant-slug"
               maxLength={64}
               minLength={3}
@@ -115,7 +130,7 @@ export default async function PlatformTenantsPage({
             <label htmlFor="tenant-screen-limit">Schermlimiet</label>
             <input
               defaultValue={4}
-              disabled={!session.isLive}
+              disabled={!canCreate}
               id="tenant-screen-limit"
               max={10000}
               min={1}
@@ -132,7 +147,7 @@ export default async function PlatformTenantsPage({
           </p>
           <button
             className="button-link button-link--primary"
-            disabled={!session.isLive}
+            disabled={!canCreate}
             type="submit"
           >
             Vereniging aanmaken

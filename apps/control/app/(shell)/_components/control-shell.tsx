@@ -1,5 +1,6 @@
 "use client";
 
+import { hasCapability } from "@veyocast/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,7 +8,6 @@ import {
   Bell,
   Building2,
   ChevronDown,
-  CircleHelp,
   FileImage,
   LayoutDashboard,
   ListVideo,
@@ -32,7 +32,7 @@ import type {
   ControlNavigationItem,
   ControlSession
 } from "../_lib/control-navigation";
-import { hasControlRole } from "../_lib/control-navigation";
+import { switchTenantContext } from "../context/actions";
 
 type ControlShellProps = {
   children: ReactNode;
@@ -170,23 +170,55 @@ export function ControlShell({
             </button>
           </div>
 
-          <button
-            aria-label={isSidebarCollapsed ? `Actieve context: ${session.tenant}` : undefined}
-            className="tenant-switcher"
-            title={isSidebarCollapsed ? session.tenant : undefined}
-            type="button"
-          >
-            <span className="tenant-switcher__mark" aria-hidden="true">
-              {session.tenant.slice(0, 1)}
-            </span>
-            <span className="tenant-switcher__copy">
-              <span className="tenant-switcher__label">
-                {session.tenantId || !session.isLive ? "Actieve vereniging" : "Platformcontext"}
+          <details className="tenant-switcher">
+            <summary
+              aria-label={isSidebarCollapsed ? `Actieve context: ${session.tenant}` : undefined}
+              title={isSidebarCollapsed ? session.tenant : undefined}
+            >
+              <span className="tenant-switcher__mark" aria-hidden="true">
+                {session.tenant.slice(0, 1)}
               </span>
-              <span className="tenant-switcher__value">{session.tenant}</span>
-            </span>
-            <ChevronDown aria-hidden="true" className="tenant-switcher__chevron" />
-          </button>
+              <span className="tenant-switcher__copy">
+                <span className="tenant-switcher__label">
+                  {session.tenantId || !session.isLive ? "Actieve vereniging" : "Platformcontext"}
+                </span>
+                <span className="tenant-switcher__value">{session.tenant}</span>
+              </span>
+              <ChevronDown aria-hidden="true" className="tenant-switcher__chevron" />
+            </summary>
+            <div
+              aria-label="Werkcontext wisselen"
+              className="tenant-switcher__menu"
+              role="group"
+            >
+              {session.tenantMemberships.map((membership) => (
+                <form action={switchTenantContext} key={membership.id}>
+                  <input name="tenantSlug" type="hidden" value={membership.slug} />
+                  <input name="returnTo" type="hidden" value={pathname} />
+                  <button
+                    aria-current={membership.id === session.tenantId ? "true" : undefined}
+                    disabled={membership.status === "archived"}
+                    type="submit"
+                  >
+                    <span>{membership.name}</span>
+                    <small>{tenantStatusLabel[membership.status]}</small>
+                  </button>
+                </form>
+              ))}
+              {hasCapability(session.roles, "platform.system.read") ? (
+                <form action={switchTenantContext}>
+                  <input name="tenantSlug" type="hidden" value="" />
+                  <button type="submit">
+                    <span>VeyoCast platform</span>
+                    <small>Platformcontext</small>
+                  </button>
+                </form>
+              ) : null}
+              <Link href="/context" onClick={() => setMobileNavOpen(false)}>
+                Alle contexten beheren
+              </Link>
+            </div>
+          </details>
         </div>
 
         <nav className="control-nav" aria-label="Hoofdnavigatie">
@@ -259,7 +291,11 @@ export function ControlShell({
               <p className="topbar-context__label">{session.organization}</p>
               <p className="topbar-context__status">
                 <span className="status-dot status-dot--success" aria-hidden="true" />
-                {session.isLive ? "Beveiligde sessie actief" : "Lokale demomodus"}
+                {session.isLive
+                  ? session.tenantStatus === "paused"
+                    ? "Vereniging gepauzeerd · alleen lezen"
+                    : `Beveiligde sessie · ${session.assuranceLevel.toUpperCase()}`
+                  : "Lokale demomodus"}
               </p>
             </div>
           </div>
@@ -299,15 +335,17 @@ export function ControlShell({
                 </section>
               ) : null}
             </div> : null}
-            <button
-              aria-label="Hulp openen"
+            {session.isLive ? <Link
+              aria-label="Accountbeveiliging openen"
               className="icon-button topbar-help"
-              title="Hulp openen"
-              type="button"
+              href="/auth/mfa"
+              title="Accountbeveiliging"
             >
-              <CircleHelp aria-hidden="true" />
-            </button>
-            {hasControlRole(session.roles, "tenant_editor") && (session.tenantId || !session.isLive) ? <Link
+              <ShieldCheck aria-hidden="true" />
+            </Link> : null}
+            {hasCapability(session.roles, "tenant.playlist.write") &&
+            (session.tenantId || !session.isLive) &&
+            session.tenantStatus !== "paused" ? <Link
               aria-label="Nieuwe playlist"
               className="button-link button-link--primary topbar-primary-action"
               href="/dashboard/playlists"
@@ -404,3 +442,9 @@ const roleLabel = {
   tenant_editor: "Editor",
   tenant_viewer: "Kijker"
 } satisfies Record<ControlSession["roles"][number], string>;
+
+const tenantStatusLabel = {
+  active: "Actief",
+  archived: "Gearchiveerd",
+  paused: "Gepauzeerd · alleen lezen"
+} as const;

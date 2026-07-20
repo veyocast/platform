@@ -12,6 +12,14 @@
 8. Storage is private.
 9. Storage path format: `tenants/{tenant_id}/assets/{asset_id}/...`.
 10. Player devices only access their assigned release and assets.
+11. Een actieve tenantcontext wordt expliciet gekozen en bij iedere request
+    opnieuw tegen membership en status gevalideerd.
+12. Gevoelige platformmutaties vereisen Supabase Auth AAL2 in de applicatie én
+    database.
+13. Paused tenants blijven leesbaar en afspeelbaar, maar menselijke mutaties,
+    publicatie en pairing falen ook aan de databasegrens.
+14. Archived tenants zijn geen normale Control-context; last-known-good
+    playerplayback wordt niet zwart gemaakt.
 
 ## Helper functions
 
@@ -22,6 +30,7 @@ Use a private schema:
 - `private.is_tenant_member(tenant_id)`
 - `private.has_tenant_role(tenant_id, role[])`
 - `private.audit_event(...)`
+- `private.current_aal()`
 
 Any `SECURITY DEFINER` function must set `search_path = ''` and be narrowly granted.
 
@@ -33,6 +42,9 @@ Any `SECURITY DEFINER` function must set `search_path = ''` and be narrowly gran
 - Tenant editor cannot invite users.
 - Tenant viewer cannot upload/publish.
 - Platform viewer cannot mutate.
+- AAL1 cannot create tenants, change lifecycle state or mutate platform roles.
+- Paused/archived tenants cannot mutate or pair through SECURITY DEFINER RPCs.
+- Paused/archived player bootstrap remains available voor bestaande playback.
 - Player device cannot access another screen.
 - Storage path spoofing fails.
 - Service role is not used for normal user queries.

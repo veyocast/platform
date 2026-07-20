@@ -3,7 +3,7 @@ import { loadTenantAuditEvents } from "../../../../lib/control-overview";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 
 export default async function AuditLogPage() {
-  const session = await requireTenantControlSession("tenant_admin");
+  const session = await requireTenantControlSession("tenant.audit.read");
   const data = session.isLive
     ? await loadTenantAuditEvents(session.tenantId!)
     : { error: false, events: demoEvents };

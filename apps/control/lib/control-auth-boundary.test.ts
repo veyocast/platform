@@ -27,7 +27,7 @@ describe("generated Control auth boundary", () => {
     await expect(runScanner(appDirectory)).resolves.toBeUndefined();
   });
 
-  it.each(["/dashboard", "/dashboard/team", "/platform", "/platform/tenants"])(
+  it.each(["/auth/mfa", "/context", "/dashboard", "/dashboard/team", "/platform", "/platform/tenants"])(
     "rejects protected prerender route %s",
     async (route) => {
       const appDirectory = await createManifest({ [route]: {} });
@@ -40,7 +40,7 @@ describe("generated Control auth boundary", () => {
     const platformLayout = await readRepositoryFile("app/(shell)/platform/layout.tsx");
 
     expect(dashboardLayout).toContain("requireTenantControlSession");
-    expect(platformLayout).toContain('requireControlRole("platform_admin")');
+    expect(platformLayout).toContain('requireControlCapability("platform.system.read")');
   });
 
   it("does not render a localhost helper on the login page", async () => {

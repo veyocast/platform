@@ -9,7 +9,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
     "Player synchroniseert"
   );
   await expect(
-    page.getByRole("button", { name: "Actieve vereniging Museumkwartier" })
+    page.locator("summary").filter({ hasText: "Museumkwartier" })
   ).toBeVisible();
 
   const nav = page.getByRole("navigation", { name: "Hoofdnavigatie" });

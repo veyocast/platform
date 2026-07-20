@@ -2,6 +2,8 @@
 import { FileWarning, Image as ImageIcon, Video } from "lucide-react";
 import Link from "next/link";
 
+import { hasCapability } from "@veyocast/auth";
+
 import { requireControlSession } from "../../../../lib/control-session";
 import { getSupabasePublicConfig } from "../../../../lib/supabase/config";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
@@ -138,9 +140,8 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
   const { assets, loadError } = await loadMediaData(session.tenantId, session.isLive);
   const canUpload =
     session.isLive &&
-    session.roles.some((role) =>
-      ["tenant_owner", "tenant_admin", "tenant_editor"].includes(role)
-    );
+    session.tenantStatus === "active" &&
+    hasCapability(session.roles, "tenant.media.write");
   const query = (params.q ?? "").trim().toLocaleLowerCase("nl-NL");
   const visibleAssets = assets.filter((asset) =>
     (!query || `${asset.title} ${asset.fileName}`.toLocaleLowerCase("nl-NL").includes(query))
@@ -157,11 +158,11 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
   return (
     <>
       <PageHeader
-        actions={
+        actions={canUpload ? (
           <a className="button-link button-link--primary" href="#upload">
             Media uploaden
           </a>
-        }
+        ) : null}
         description="Upload gevalideerde afbeeldingen en video's en beheer tenantgebonden media voordat die in een playlist beschikbaar komt."
         eyebrow={session.tenant}
         status={{
