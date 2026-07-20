@@ -135,16 +135,35 @@ describe("Supabase media worker backend", () => {
       expect.objectContaining<Partial<WorkerBackendError>>({ retryable: true })
     );
   });
+
+  it("bounds a stalled storage transfer without scheduling another long retry", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation((_input, init) =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), {
+          once: true
+        });
+      })
+    );
+    const backend = createBackend({ rpc: vi.fn() }, fetchMock, 5);
+
+    await expect(backend.downloadOriginal(job, "/unused")).rejects.toEqual(
+      expect.objectContaining<Partial<WorkerBackendError>>({
+        code: "source_download_timeout",
+        retryable: false
+      })
+    );
+  });
 });
 
 function createBackend(
   client: WorkerRpcClient,
-  fetchImplementation: typeof fetch = vi.fn()
+  fetchImplementation: typeof fetch = vi.fn(),
+  storageTimeoutMs?: number
 ) {
   return new SupabaseMediaWorkerBackend(
     "https://project.supabase.co",
     "service-secret",
-    { client, fetch: fetchImplementation }
+    { client, fetch: fetchImplementation, storageTimeoutMs }
   );
 }
 

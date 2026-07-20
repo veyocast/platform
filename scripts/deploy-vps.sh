@@ -4,6 +4,7 @@ umask 077
 
 repository_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 compose_file="${repository_root}/infra/vps/compose.yaml"
+worker_compose_file="${repository_root}/infra/vps/worker.compose.yaml"
 environment=${1:-}
 action=${2:-deploy}
 deployment_mode=${DEPLOYMENT_MODE:-release}
@@ -12,6 +13,7 @@ candidate_env_file=""
 temporary_marketing_container=""
 previous_env_snapshot=""
 rendered_compose_file=""
+rendered_worker_compose_file=""
 
 case "${environment}" in
   staging)
@@ -53,6 +55,7 @@ if [[ ${action} == "rollback" ]]; then
 fi
 
 export COMPOSE_PROJECT_NAME=${compose_project}
+export WORKER_COMPOSE_PROJECT_NAME=${compose_project}-worker
 export DEPLOYMENT_SHA=${RELEASE_SHA:-${GITHUB_SHA:-}}
 export VEYOCAST_ENVIRONMENT=${environment}
 
@@ -73,6 +76,9 @@ cleanup() {
   fi
   if [[ -n ${rendered_compose_file} && -f ${rendered_compose_file} ]]; then
     rm -f -- "${rendered_compose_file}"
+  fi
+  if [[ -n ${rendered_worker_compose_file} && -f ${rendered_worker_compose_file} ]]; then
+    rm -f -- "${rendered_worker_compose_file}"
   fi
 }
 
@@ -106,6 +112,27 @@ show_sanitized_logs() {
       -e 's#(postgres(ql)?://)[^[:space:]]+#\1[REDACTED]#g' \
       -e 's#eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+#[REDACTED_JWT]#g' \
     || true
+
+  docker compose \
+    -p "${WORKER_COMPOSE_PROJECT_NAME}" \
+    --env-file "${env_file}" \
+    --file "${worker_compose_file}" \
+    logs --no-color --tail 100 2>&1 \
+    | node -e '
+        let output = "";
+        process.stdin.setEncoding("utf8");
+        process.stdin.on("data", (chunk) => { output += chunk; });
+        process.stdin.on("end", () => {
+          for (const name of ["SUPABASE_SERVICE_ROLE_KEY"]) {
+            const value = process.env[name];
+            if (value) output = output.replaceAll(value, "[REDACTED_" + name + "]");
+          }
+          process.stdout.write(output);
+        });
+      ' \
+    | sed -E \
+      -e 's#eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+#[REDACTED_JWT]#g' \
+    || true
 }
 
 restore_previous_release() {
@@ -133,7 +160,11 @@ restore_previous_release() {
   release_key_fingerprint="${release_directory}/SERVER_ACTIONS_KEY_FINGERPRINT"
   NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${previous_actions_key}
 
-  if ! validate_release_images; then
+  local restore_worker=true
+  if ! metadata_image_id media-worker >/dev/null 2>&1; then
+    restore_worker=false
+  fi
+  if ! validate_release_images "${restore_worker}"; then
     echo "Automatische applicatierollback faalde: vorige image-ID's zijn niet betrouwbaar." >&2
     DEPLOYMENT_SHA=${saved_sha}
     release_directory=${saved_directory}
@@ -144,10 +175,20 @@ restore_previous_release() {
   fi
 
   local -a args=(docker compose -p "${compose_project}" --env-file "${previous_env_snapshot}" --file "${compose_file}")
+  local -a worker_args=(docker compose -p "${WORKER_COMPOSE_PROJECT_NAME}" --env-file "${previous_env_snapshot}" --file "${worker_compose_file}")
   if [[ ${environment} == production ]]; then
     args+=(--profile production)
   fi
-  if ! "${args[@]}" up -d --no-build --remove-orphans >/dev/null 2>&1 || ! verify_health_matrix; then
+  if ! "${args[@]}" up -d --no-build --remove-orphans >/dev/null 2>&1; then
+    echo "Automatische applicatierollback faalde; handmatige incidentactie is vereist." >&2
+    return 1
+  fi
+  if [[ ${restore_worker} == true ]]; then
+    "${worker_args[@]}" up -d --no-build --remove-orphans >/dev/null 2>&1
+  else
+    "${worker_args[@]}" down --remove-orphans >/dev/null 2>&1 || true
+  fi
+  if ! verify_health_matrix "${restore_worker}"; then
     echo "Automatische applicatierollback faalde; handmatige incidentactie is vereist." >&2
     DEPLOYMENT_SHA=${saved_sha}
     release_directory=${saved_directory}
@@ -257,13 +298,21 @@ metadata_image_id() {
 }
 
 validate_release_images() {
+  local require_worker=${1:-true}
   [[ -s ${release_metadata} && -s ${release_key_fingerprint} ]] || {
     echo "Release ${DEPLOYMENT_SHA} is niet eerder immutable gebouwd." >&2
     return 1
   }
 
   local service tag actual expected
-  for service in control player marketing; do
+  for service in control player marketing media-worker; do
+    if [[ ${service} == media-worker ]] && ! metadata_image_id media-worker >/dev/null 2>&1; then
+      if [[ ${require_worker} == true ]]; then
+        echo "Release ${DEPLOYMENT_SHA} mist de media-workerimage." >&2
+        return 1
+      fi
+      continue
+    fi
     tag="veyocast-${service}:${DEPLOYMENT_SHA}"
     actual=$(image_id "${tag}")
     expected=$(metadata_image_id "${service}")
@@ -288,6 +337,7 @@ emit_release_outputs() {
     echo "control_digest=$(metadata_image_id control)"
     echo "marketing_digest=$(metadata_image_id marketing)"
     echo "player_digest=$(metadata_image_id player)"
+    echo "worker_digest=$(metadata_image_id media-worker)"
     echo "release_sha=${DEPLOYMENT_SHA}"
   } >> "${GITHUB_OUTPUT}"
 }
@@ -334,7 +384,7 @@ build_release() {
 
   local existing_artifact=false service
   [[ -e ${release_metadata} || -e ${release_key_fingerprint} ]] && existing_artifact=true
-  for service in control player marketing; do
+  for service in control player marketing media-worker; do
     if docker image inspect "veyocast-${service}:${DEPLOYMENT_SHA}" >/dev/null 2>&1; then
       existing_artifact=true
     fi
@@ -362,7 +412,7 @@ build_release() {
   install -d -m 0700 "${release_root}" "${release_directory}"
   local key_fingerprint
   key_fingerprint=$(printf '%s' "${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}" | sha256sum | awk '{print $1}')
-  for service in control player marketing; do
+  for service in control player marketing media-worker; do
     docker build \
       --file infra/production/Dockerfile \
       --target "${service}" \
@@ -375,10 +425,11 @@ build_release() {
 
   wait_for_marketing_image
 
-  local control_digest player_digest marketing_digest built_at metadata_tmp key_tmp
+  local control_digest player_digest marketing_digest worker_digest built_at metadata_tmp key_tmp
   control_digest=$(image_id "veyocast-control:${DEPLOYMENT_SHA}")
   player_digest=$(image_id "veyocast-player:${DEPLOYMENT_SHA}")
   marketing_digest=$(image_id "veyocast-marketing:${DEPLOYMENT_SHA}")
+  worker_digest=$(image_id "veyocast-media-worker:${DEPLOYMENT_SHA}")
   built_at=$(date --utc +'%Y-%m-%dT%H:%M:%SZ')
   metadata_tmp=$(mktemp "${release_directory}/.RELEASE_METADATA.XXXXXX")
   key_tmp=$(mktemp "${release_directory}/.SERVER_ACTIONS_KEY_FINGERPRINT.XXXXXX")
@@ -389,6 +440,7 @@ build_release() {
   CONTROL_DIGEST=${control_digest} \
   PLAYER_DIGEST=${player_digest} \
   MARKETING_DIGEST=${marketing_digest} \
+  WORKER_DIGEST=${worker_digest} \
     node -e '
       const fs = require("node:fs");
       const sha = process.env.RELEASE_SHA;
@@ -398,10 +450,11 @@ build_release() {
         images: {
           control: image("control", process.env.CONTROL_DIGEST),
           marketing: image("marketing", process.env.MARKETING_DIGEST),
-          player: image("player", process.env.PLAYER_DIGEST)
+          player: image("player", process.env.PLAYER_DIGEST),
+          "media-worker": image("media-worker", process.env.WORKER_DIGEST)
         },
         revision: sha,
-        serviceVersions: { control: sha, marketing: sha, player: sha }
+        serviceVersions: { control: sha, marketing: sha, player: sha, "media-worker": sha }
       }, null, 2) + "\n", { mode: 0o600 });
     '
   printf '%s\n' "${key_fingerprint}" > "${key_tmp}"
@@ -428,6 +481,7 @@ create_candidate_env() {
   chmod 0600 "${candidate_env_file}"
 
   write_env_value "${candidate_env_file}" COMPOSE_PROJECT_NAME "${compose_project}"
+  write_env_value "${candidate_env_file}" WORKER_COMPOSE_PROJECT_NAME "${WORKER_COMPOSE_PROJECT_NAME}"
   write_env_value "${candidate_env_file}" CONTROL_BIND_PORT "${CONTROL_BIND_PORT}"
   write_env_value "${candidate_env_file}" CONTROL_HOST "${CONTROL_HOST}"
   write_env_value "${candidate_env_file}" DEPLOYMENT_SHA "${DEPLOYMENT_SHA}"
@@ -448,6 +502,7 @@ create_candidate_env() {
 
 compose_arguments() {
   COMPOSE_ARGS=(docker compose -p "${compose_project}" --env-file "${candidate_env_file}" --file "${compose_file}")
+  WORKER_COMPOSE_ARGS=(docker compose -p "${WORKER_COMPOSE_PROJECT_NAME}" --env-file "${candidate_env_file}" --file "${worker_compose_file}")
   if [[ ${environment} == production ]]; then
     COMPOSE_ARGS+=(--profile production)
   fi
@@ -460,6 +515,13 @@ validate_compose() {
   node "${repository_root}/scripts/validate-compose-config.mjs" "${rendered_compose_file}" "${environment}" "${DEPLOYMENT_SHA}"
   rm -f -- "${rendered_compose_file}"
   rendered_compose_file=""
+
+  rendered_worker_compose_file=$(mktemp "${runtime_directory}/.worker-compose.XXXXXX.json")
+  "${WORKER_COMPOSE_ARGS[@]}" config --quiet
+  "${WORKER_COMPOSE_ARGS[@]}" config --format json > "${rendered_worker_compose_file}"
+  node "${repository_root}/scripts/validate-worker-compose-config.mjs" "${rendered_worker_compose_file}" "${environment}" "${DEPLOYMENT_SHA}"
+  rm -f -- "${rendered_worker_compose_file}"
+  rendered_worker_compose_file=""
 }
 
 check_health_url() {
@@ -490,6 +552,7 @@ check_health_url() {
 }
 
 verify_health_matrix() {
+  local require_worker=${1:-true}
   check_health_url control "http://127.0.0.1:${CONTROL_BIND_PORT}/api/health"
   check_health_url player "http://127.0.0.1:${PLAYER_BIND_PORT}/healthz"
   if [[ ${environment} == production ]]; then
@@ -501,6 +564,24 @@ verify_health_matrix() {
   if [[ ${environment} == production ]]; then
     check_health_url marketing "https://${MARKETING_HOST}/api/health"
   fi
+  if [[ ${require_worker} == true ]]; then
+    check_worker_readiness
+  fi
+}
+
+check_worker_readiness() {
+  local attempt
+  for attempt in $(seq 1 24); do
+    if "${WORKER_COMPOSE_ARGS[@]}" exec -T media-worker node -e \
+      "fetch('http://127.0.0.1:3100/readyz').then(async r=>{const b=await r.json();if(!r.ok||b.status!=='ready'||b.service!=='VeyoCast Media Worker'||b.environment!=='${environment}'||b.revision!=='${DEPLOYMENT_SHA}')process.exit(1)}).catch(()=>process.exit(1))"; then
+      return 0
+    fi
+    if (( attempt < 24 )); then
+      sleep 3
+    fi
+  done
+  echo "Readinesscheck mislukt: media-worker." >&2
+  return 1
 }
 
 write_state_file() {
@@ -559,7 +640,7 @@ validate_staging_promotion() {
     const staging = JSON.parse(fs.readFileSync(stagingPath, "utf8"));
     const release = JSON.parse(fs.readFileSync(releasePath, "utf8"));
     if (staging.environment !== "staging" || staging.revision !== sha) process.exit(1);
-    for (const service of ["control", "marketing", "player"]) {
+    for (const service of ["control", "marketing", "player", "media-worker"]) {
       if (staging.images?.[service]?.digest !== release.images?.[service]?.digest) process.exit(1);
     }
   ' "${staging_manifest}" "${release_metadata}" "${DEPLOYMENT_SHA}" || {
@@ -583,7 +664,7 @@ cleanup_old_images() {
   done
 
   while read -r repository tag; do
-    [[ ${repository} =~ ^veyocast-(control|marketing|player)$ && ${tag} =~ ^[0-9a-f]{40}$ ]] || continue
+    [[ ${repository} =~ ^veyocast-(control|marketing|player|media-worker)$ && ${tag} =~ ^[0-9a-f]{40}$ ]] || continue
     if [[ " ${preserved[*]} " != *" ${tag} "* ]]; then
       docker image rm "${repository}:${tag}" >/dev/null 2>&1 || true
     fi
@@ -619,6 +700,7 @@ deploy_release() {
   fi
 
   "${COMPOSE_ARGS[@]}" up -d --no-build --remove-orphans
+  "${WORKER_COMPOSE_ARGS[@]}" up -d --no-build --remove-orphans
   verify_health_matrix
   commit_release_state
   mutation_started=false
@@ -633,6 +715,7 @@ verify_active_release() {
   fi
   DEPLOYMENT_SHA=$(<"${runtime_directory}/REVISION")
   export DEPLOYMENT_SHA
+  WORKER_COMPOSE_ARGS=(docker compose -p "${WORKER_COMPOSE_PROJECT_NAME}" --env-file "${runtime_directory}/.env.runtime" --file "${worker_compose_file}")
   verify_health_matrix
 }
 

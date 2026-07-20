@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   buildNormalizationArguments,
+  canRemuxWithoutTranscoding,
   normalizePlayerVideo,
   parseVideoProbe,
   validatePlayerVariant,
@@ -42,6 +43,14 @@ describe("video normalization", () => {
     expect(args.at(-1)).toBe("/tmp/player.mp4");
   });
 
+  it("remuxes an already safe player input instead of transcoding it again", () => {
+    const probe = parseVideoProbe(normalizedProbe);
+    expect(canRemuxWithoutTranscoding(probe)).toBe(true);
+    const args = buildNormalizationArguments("/tmp/input.mp4", "/tmp/player.mp4", probe);
+    expect(args).toContain("copy");
+    expect(args).not.toContain("libx264");
+  });
+
   it("probes, normalizes and verifies the generated player variant", async () => {
     const runner = vi.fn<CommandRunner>()
       .mockResolvedValueOnce({ stderr: "", stdout: inputProbe })
@@ -54,7 +63,7 @@ describe("video normalization", () => {
     expect(runner).toHaveBeenNthCalledWith(
       2, "ffmpeg",
       expect.arrayContaining(["-nostdin", "libx264", "/jobs/player-1080p.mp4"]),
-      expect.objectContaining({ timeoutMs: 300_000 })
+      expect.objectContaining({ timeoutMs: 40_000 })
     );
   });
 

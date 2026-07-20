@@ -32,6 +32,7 @@ export class VideoProcessingError extends Error {
       | "command_failed"
       | "invalid_probe"
       | "normalization_failed"
+      | "processing_timeout"
       | "unsupported_input",
     message: string
   ) {
@@ -41,7 +42,7 @@ export class VideoProcessingError extends Error {
 }
 
 const maximumCapturedOutputBytes = 5 * 1024 * 1024;
-const defaultCommandTimeoutMs = 5 * 60 * 1_000;
+export const maximumNormalizationTimeMs = 40_000;
 
 export async function probeVideoFile(
   inputPath: string,
@@ -68,8 +69,8 @@ export async function normalizePlayerVideo({
   validateInputProbe(input);
 
   try {
-    await runner("ffmpeg", buildNormalizationArguments(inputPath, outputPath), {
-      timeoutMs: defaultCommandTimeoutMs
+    await runner("ffmpeg", buildNormalizationArguments(inputPath, outputPath, input), {
+      timeoutMs: maximumNormalizationTimeMs
     });
   } catch (error) {
     if (error instanceof VideoProcessingError) throw error;
@@ -84,17 +85,35 @@ export async function normalizePlayerVideo({
   return { input, output, outputPath };
 }
 
-export function buildNormalizationArguments(inputPath: string, outputPath: string) {
+export function buildNormalizationArguments(
+  inputPath: string,
+  outputPath: string,
+  input?: VideoProbe
+) {
+  const codecArguments = input && canRemuxWithoutTranscoding(input)
+    ? ["-c:v", "copy", "-c:a", "copy"]
+    : [
+      "-vf", "scale=w='min(1920,iw)':h='min(1080,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2,fps=30",
+      "-c:v", "libx264", "-profile:v", "main", "-level:v", "4.0",
+      "-pix_fmt", "yuv420p", "-preset", "veryfast", "-crf", "21",
+      "-maxrate", "6M", "-bufsize", "12M",
+      "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2"
+    ];
   return [
     "-hide_banner", "-nostdin", "-y", "-i", inputPath,
     "-map", "0:v:0", "-map", "0:a:0?",
-    "-vf", "scale=w='min(1920,iw)':h='min(1080,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2,fps=30",
-    "-c:v", "libx264", "-profile:v", "main", "-level:v", "4.0",
-    "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "21",
-    "-maxrate", "6M", "-bufsize", "12M",
-    "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2",
+    ...codecArguments,
     "-movflags", "+faststart", "-f", "mp4", outputPath
   ] as const;
+}
+
+export function canRemuxWithoutTranscoding(probe: VideoProbe) {
+  return probe.videoCodec === "h264"
+    && (probe.audioCodec === null || probe.audioCodec === "aac")
+    && probe.width <= 1920
+    && probe.height <= 1080
+    && probe.framesPerSecond <= 30.01
+    && probe.pixelFormat === "yuv420p";
 }
 
 export function parseVideoProbe(serializedProbe: string): VideoProbe {
@@ -182,8 +201,11 @@ export function runCommand(
     let settled = false;
     const timeout = setTimeout(() => {
       child.kill("SIGKILL");
-      finishReject(`Commando ${executable} overschreed de tijdslimiet.`);
-    }, options.timeoutMs ?? defaultCommandTimeoutMs);
+      finishReject(
+        `Commando ${executable} overschreed de tijdslimiet.`,
+        "processing_timeout"
+      );
+    }, options.timeoutMs ?? maximumNormalizationTimeMs);
 
     function append(current: string, chunk: Buffer) {
       const next = current + chunk.toString("utf8");
@@ -193,11 +215,14 @@ export function runCommand(
       }
       return next;
     }
-    function finishReject(message: string) {
+    function finishReject(
+      message: string,
+      code: "command_failed" | "processing_timeout" = "command_failed"
+    ) {
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
-      reject(new VideoProcessingError("command_failed", message));
+      reject(new VideoProcessingError(code, message));
     }
 
     child.stdout.on("data", (chunk: Buffer) => { stdout = append(stdout, chunk); });

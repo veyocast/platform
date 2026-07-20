@@ -20,13 +20,20 @@ export SUPABASE_SERVICE_ROLE_KEY=test-service-role-key
 
 staging_config=$(mktemp)
 production_config=$(mktemp)
+staging_worker_config=$(mktemp)
+production_worker_config=$(mktemp)
 bounded_migration_root=$(mktemp -d)
 unbounded_migration_root=$(mktemp -d)
-trap 'rm -f -- "${staging_config}" "${production_config}"; rm -rf -- "${bounded_migration_root}" "${unbounded_migration_root}"' EXIT
+trap 'rm -f -- "${staging_config}" "${production_config}" "${staging_worker_config}" "${production_worker_config}"; rm -rf -- "${bounded_migration_root}" "${unbounded_migration_root}"' EXIT
 
 docker compose -p veyocast-staging --file infra/vps/compose.yaml config --quiet
 docker compose -p veyocast-staging --file infra/vps/compose.yaml config --format json > "${staging_config}"
 node scripts/validate-compose-config.mjs "${staging_config}" staging "${DEPLOYMENT_SHA}"
+
+export WORKER_COMPOSE_PROJECT_NAME=veyocast-staging-worker
+docker compose -p veyocast-staging-worker --file infra/vps/worker.compose.yaml config --quiet
+docker compose -p veyocast-staging-worker --file infra/vps/worker.compose.yaml config --format json > "${staging_worker_config}"
+node scripts/validate-worker-compose-config.mjs "${staging_worker_config}" staging "${DEPLOYMENT_SHA}"
 
 make_test_jwt() {
   local role=$1 project_ref=$2
@@ -58,6 +65,11 @@ export PLAYER_HOST=player.veyocast.nl
 docker compose -p veyocast-production --profile production --file infra/vps/compose.yaml config --quiet
 docker compose -p veyocast-production --profile production --file infra/vps/compose.yaml config --format json > "${production_config}"
 node scripts/validate-compose-config.mjs "${production_config}" production "${DEPLOYMENT_SHA}"
+
+export WORKER_COMPOSE_PROJECT_NAME=veyocast-production-worker
+docker compose -p veyocast-production-worker --file infra/vps/worker.compose.yaml config --quiet
+docker compose -p veyocast-production-worker --file infra/vps/worker.compose.yaml config --format json > "${production_worker_config}"
+node scripts/validate-worker-compose-config.mjs "${production_worker_config}" production "${DEPLOYMENT_SHA}"
 
 production_ref=bcdefghijklmnopqrstu
 NEXT_PUBLIC_SUPABASE_URL="https://${production_ref}.supabase.co" \

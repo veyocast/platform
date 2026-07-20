@@ -318,7 +318,9 @@ Caddy niet vanuit de workflow.
 
 ### Video blijft verwerken
 
-De definitieve webstack start bewust geen `media-worker`. Daarmee is echte
-asynchrone MP4-normalisatie niet actief in staging of production. Richt vóór een
-video-pilot een afzonderlijk veilig workerdeploymentmodel in; voeg de worker
-niet stilzwijgend aan deze exact gevalideerde serviceprofielen toe.
+Controleer eerst het afzonderlijke project met
+`docker compose -p veyocast-<environment>-worker ps` en daarna de geredigeerde
+workerlogs. `/readyz` moet na een geslaagde queuepoll `ready` melden. Een groeiende
+queue met een gezonde worker wijst op Storage/Supabase-bereikbaarheid of invoer
+die de 40-secondenverwerkings- of acht-secondenoverdrachtsgrens overschrijdt; volg dan het
+mediaworker-runbook. De worker heeft bewust geen publieke healthpoort.

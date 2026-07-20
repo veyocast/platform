@@ -64,4 +64,4 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 COPY --chown=node:node --from=dependencies /app /app
 USER node
-CMD ["pnpm", "--filter", "@veyocast/media-worker", "worker:run"]
+CMD ["node", "--import", "tsx", "apps/media-worker/src/index.ts", "--loop"]

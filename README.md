@@ -120,6 +120,13 @@ technische diagnostiek niet publiek zichtbaar; alleen bij aantoonbaar
 netwerkverlies verschijnt rechtsonder een compacte offline-chip terwijl de
 last-known-good release lokaal blijft spelen.
 
+S29-A activeert de mediaworker als afzonderlijke immutable, least-privilege
+staging/production-service. Veilige H.264/AAC-bronnen worden zonder
+kwaliteitsverlies geremuxed; afwijkende MP4's krijgen een begrensde snelle
+transcode. Queuepolling gebeurt iedere 500 ms en Control ververst actieve
+verwerking automatisch. Zie
+[`docs/s29-media-worker-deployment-evidence.md`](docs/s29-media-worker-deployment-evidence.md).
+
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
 De officiële VeyoCast-merkassetset v1.0 is vastgelegd in `assets/brand/` met

@@ -35,17 +35,20 @@ export type WorkerRunResult =
 export async function runWorkerOnce({
   backend,
   config,
-  normalize = normalizePlayerVideo
+  normalize = normalizePlayerVideo,
+  onQueuePoll = () => undefined
 }: {
   backend: MediaWorkerBackend;
   config: MediaWorkerConfig;
   normalize?: Normalizer;
+  onQueuePoll?: () => void;
 }): Promise<WorkerRunResult> {
   const job = await backend.claimJob(
     config.workerId,
     config.lockTimeoutSeconds,
     config.maxAttempts
   );
+  onQueuePoll();
   if (!job) return { status: "idle" };
 
   let workingDirectory: string | null = null;
@@ -119,16 +122,18 @@ export async function runWorkerOnce({
 export async function runWorkerLoop({
   backend,
   config,
+  onQueuePoll = () => undefined,
   onResult = () => undefined,
   signal
 }: {
   backend: MediaWorkerBackend;
   config: MediaWorkerConfig;
+  onQueuePoll?: () => void;
   onResult?: (result: WorkerRunResult) => void;
   signal: AbortSignal;
 }) {
   while (!signal.aborted) {
-    const result = await runWorkerOnce({ backend, config });
+    const result = await runWorkerOnce({ backend, config, onQueuePoll });
     onResult(result);
     if (result.status === "idle") {
       await abortableDelay(config.pollIntervalMs, signal);
