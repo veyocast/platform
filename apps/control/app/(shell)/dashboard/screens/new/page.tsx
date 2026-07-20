@@ -6,6 +6,7 @@ import { requireTenantControlSession } from "../../../../../lib/control-session"
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import { claimScreenPairing, createScreenOnboarding } from "../actions";
 import { loadScreenDetail, loadScreenFleet } from "../data";
+import { OnboardingStatusRefresh } from "./onboarding-status-refresh";
 
 type NewScreenPageProps = {
   searchParams: Promise<{ fout?: string; screen?: string; succes?: string }>;
@@ -132,6 +133,7 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
             <button className="button-link button-link--primary" disabled={!canManage || selectedScreen.status !== "active"} type="submit">Player veilig koppelen</button>
           </form>
         </> : !firstHeartbeat ? <>
+          <OnboardingStatusRefresh />
           <p className="notice" role="status"><strong>Pairing is gereed; heartbeat wordt verwacht.</strong> Laat de Player online en open. De huidige lokale release blijft leidend totdat een nieuwe release volledig is geverifieerd.</p>
           <dl className="onboarding-summary">
             <SummaryItem label="Player" value={pairedDevice.deviceName || "VeyoCast Player"} />
@@ -139,7 +141,7 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
             <SummaryItem label="Appversie" value={pairedDevice.appVersion || "Nog niet gerapporteerd"} />
             <SummaryItem label="Opslag" value="Wordt bij de eerste heartbeat gemeten" />
           </dl>
-          <Link className="button-link button-link--secondary" href={`/dashboard/screens/new?screen=${selectedScreen.id}`}>Status vernieuwen</Link>
+          <p className="work-panel__meta">Deze status wordt automatisch vernieuwd.</p>
         </> : <>
           <p className="notice notice--success" role="status"><strong>Onboarding voltooid.</strong> De eerste heartbeat is ontvangen. Open het schermdetail voor content, Player, synchronisatie en gebeurtenissen.</p>
           <dl className="onboarding-summary">

@@ -35,7 +35,13 @@ byte-ongewijzigd in `assets/brand/`. De v1.0-set bevat uitsluitend de masters en
 technische afgeleiden die daar in `README.md` zijn beschreven. Masters worden
 ongewijzigd naar app-publicmappen gekopieerd; ze worden nooit opnieuw getekend,
 gerecolourd, uitgesneden of gereconstrueerd. Nieuwe varianten vereisen expliciete
-goedkeuring van de merkeigenaar.
+goedkeuring van de merkeigenaar. Logo-animatie vereist eveneens expliciete
+goedkeuring per concrete toepassing. Alleen het volledige, locked asset mag dan
+als één geheel bewegen; morphing, recolouring, uitsnijden en nieuw getekende
+tussenframes blijven verboden. Een lichte rotatie van maximaal 4 graden en een
+subtiele zachte glow zijn ook zonder afzonderlijke goedkeuring toegestaan,
+zolang kleur en herkenbaarheid intact blijven. `prefers-reduced-motion` toont
+een statische variant.
 
 ## Tokens
 

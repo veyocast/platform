@@ -110,6 +110,9 @@ rename/revoke/re-pair/retry-acties verbinden eerste heartbeat, active/desired
 release, storage, runtime en events zonder device secrets in Control. Zie
 [`docs/s27-screen-fleet-onboarding-evidence.md`](docs/s27-screen-fleet-onboarding-evidence.md)
 en [`docs/player-device-threat-model.md`](docs/player-device-threat-model.md).
+De S28 pairing-runtimecorrectie bevestigt een device onafhankelijk van de
+aanwezigheid van content, rapporteert ook in `READY` een heartbeat en haalt de
+eerste release vanuit een veilige wachtstatus automatisch op.
 
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.

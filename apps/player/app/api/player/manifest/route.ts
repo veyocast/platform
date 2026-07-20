@@ -6,7 +6,8 @@ import {
   getPlayerManifestForToken,
   type PlayerManifestEnvelope,
   type PlayerManifestItem,
-  type PlayerManifestProblem
+  type PlayerManifestProblem,
+  type PlayerWaitingContentEnvelope
 } from "../../../_lib/player-manifest";
 import {
   createPlayerAdminClient,
@@ -119,11 +120,30 @@ async function getLiveManifest(token: string | null) {
   }
 
   if (!bootstrap.desired_release_id) {
-    return manifestProblem(404, "ERROR_RECOVERABLE", {
-      cause: "Aan dit scherm is nog geen release toegewezen.",
-      effect: "De Player heeft nog geen content om te activeren.",
-      recovery: "Publiceer in Control een playlist naar dit scherm."
-    });
+    const fetchedAt = new Date().toISOString();
+    return NextResponse.json(
+      {
+        device: {
+          activeReleaseId: bootstrap.active_release_id,
+          desiredReleaseId: null,
+          id: bootstrap.device_id,
+          screenId: bootstrap.screen_id,
+          screenName: bootstrap.screen_name
+        },
+        diagnostics: {
+          lastSuccessfulSyncAt: fetchedAt,
+          nextSyncReason: "waiting for first release",
+          syncStatus: "online"
+        },
+        fetchedAt,
+        state: "READY"
+      } satisfies PlayerWaitingContentEnvelope,
+      {
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
+    );
   }
 
   try {
