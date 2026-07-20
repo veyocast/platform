@@ -29,32 +29,7 @@ if [[ ! ${GITHUB_SHA} =~ ^[0-9a-f]{40}$ ]]; then
   exit 1
 fi
 
-mapfile -t migrations < <(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' | LC_ALL=C sort)
-if (( ${#migrations[@]} == 0 )); then
-  echo "Geen Supabase-migraties gevonden." >&2
-  exit 1
-fi
-
-previous=""
-for migration in "${migrations[@]}"; do
-  if [[ ! ${migration} =~ ^([0-9]{14})_[a-z0-9_]+\.sql$ ]]; then
-    echo "Migratievolgorde is ongeldig: ${migration}." >&2
-    exit 1
-  fi
-  current=${BASH_REMATCH[1]}
-  if [[ -n ${previous} && ${current} -le ${previous} ]]; then
-    echo "Migratieversies moeten uniek en strikt oplopend zijn: ${migration}." >&2
-    exit 1
-  fi
-  previous=${current}
-done
-
-if rg --line-number --ignore-case \
-  --regexp='(^|[[:space:];])(drop[[:space:]]+(table|schema|type)|truncate[[:space:]]|delete[[:space:]]+from[[:space:]])' \
-  supabase/migrations; then
-  echo "Potentieel destructieve migratie gedetecteerd; handmatige review is verplicht." >&2
-  exit 1
-fi
+bash scripts/check-migration-safety.sh supabase/migrations
 
 # De CLI vergelijkt lokale en remote migration history. Zonder --include-all
 # stopt hij bij remote-only en out-of-order versies in plaats van ze te forceren.

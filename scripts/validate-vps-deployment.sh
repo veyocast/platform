@@ -20,7 +20,9 @@ export SUPABASE_SERVICE_ROLE_KEY=test-service-role-key
 
 staging_config=$(mktemp)
 production_config=$(mktemp)
-trap 'rm -f -- "${staging_config}" "${production_config}"' EXIT
+bounded_migration_root=$(mktemp -d)
+unbounded_migration_root=$(mktemp -d)
+trap 'rm -f -- "${staging_config}" "${production_config}"; rm -rf -- "${bounded_migration_root}" "${unbounded_migration_root}"' EXIT
 
 docker compose -p veyocast-staging --file infra/vps/compose.yaml config --quiet
 docker compose -p veyocast-staging --file infra/vps/compose.yaml config --format json > "${staging_config}"
@@ -76,7 +78,22 @@ if grep --line-number --extended-regexp '(^|[[:space:]])build:' infra/vps/compos
   exit 1
 fi
 
-bash -n scripts/deploy-vps.sh scripts/migrate-supabase.sh scripts/validate-vps-deployment.sh
+bash -n scripts/check-migration-safety.sh scripts/deploy-vps.sh scripts/migrate-supabase.sh scripts/validate-vps-deployment.sh
+
+bash scripts/check-migration-safety.sh supabase/migrations
+
+printf '%s\n' \
+  'create function public.remove_one() returns void language sql as $$' \
+  '  delete from public.memberships where user_id = auth.uid();' \
+  '$$;' > "${bounded_migration_root}/20260720000000_bounded_delete.sql"
+bash scripts/check-migration-safety.sh "${bounded_migration_root}"
+
+printf '%s\n' \
+  'delete from public.memberships;' > "${unbounded_migration_root}/20260720000000_unbounded_delete.sql"
+if bash scripts/check-migration-safety.sh "${unbounded_migration_root}" >/dev/null 2>&1; then
+  echo "De migratieguard accepteert ten onrechte een onbegrensde DELETE." >&2
+  exit 1
+fi
 
 for gate in lint typecheck test build; do
   if ! grep --fixed-strings --quiet -- "pnpm ${gate} --concurrency=\"\${release_gate_concurrency}\"" scripts/deploy-vps.sh; then

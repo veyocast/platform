@@ -219,6 +219,11 @@ De guard weigert:
 - herkenbare destructieve statements zoals `DROP TABLE`, `DROP SCHEMA`,
   `TRUNCATE` of onbegrensde `DELETE FROM`.
 
+Een `DELETE` met een expliciete `WHERE` blijft toegestaan. Dit is onder meer
+nodig voor gecontroleerde beheerfuncties die één tenant- of platformmembership
+verwijderen; de guard heeft hiervoor een regressietest en blijft een
+onbegrensde `DELETE` weigeren.
+
 Migrations blijven forward-only en moeten backward-compatible zijn met de
 vorige applicatierelease. Een applicatierollback voert geen database-down-
 migration uit. Zie [rollback](./rollback.md).
