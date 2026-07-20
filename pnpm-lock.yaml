@@ -123,6 +123,9 @@ importers:
       '@veyocast/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@veyocast/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       next:
         specifier: ^15.4.1
         version: 15.5.20(@playwright/test@1.61.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
