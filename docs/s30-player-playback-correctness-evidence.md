@@ -2,8 +2,10 @@
 
 ## Scope
 
-Deze correctie maakt de immutable itemduur leidend voor normale playback en
-verwijdert publieke playbackmetadata. De door merkeigenaar Danny Goldenbelt
+Deze correctie gebruikt de immutable itemduur als maximale slotduur en
+behandelt het natuurlijke einde van een video als geldige itemgrens. Daardoor
+blijft een afgelopen MP4 niet op zijn laatste frame wachten. Verder verwijdert
+zij publieke playbackmetadata. De door merkeigenaar Danny Goldenbelt
 expliciet goedgekeurde vaste system mark gebruikt de byte-ongewijzigde inverse
 VeyoCast-lock-up linksonder op exact 40% opacity.
 
@@ -12,9 +14,10 @@ VeyoCast-lock-up linksonder op exact 40% opacity.
 - De zichtbare schermnaam, mediatitel en playlistnaam kwamen uit de lokale
   `.playback-now`-overlay. Die overlay en de bijbehorende scrim zijn verwijderd;
   operationele waarden blijven uitsluitend in het verborgen diagnostieklandmark.
-- Een native video-`ended` activeerde direct het volgende item en kon daarmee de
-  gepubliceerde itemduur verkorten. Een vroeg `ended` houdt nu het laatste frame
-  vast; de release-timer wisselt pas op de immutable slotgrens.
+- Een native video-`ended` markeerde de video alleen als gereed. De Player hield
+  daardoor het laatste frame vast tot de gepubliceerde slottimer afliep. Een
+  natuurlijk einde schakelt nu direct naar het volgende item; de immutable
+  itemduur blijft de bovengrens wanneer een video langer duurt.
 - De release-timer was afhankelijk van het volledige runtimeobject. Heartbeat-
   en manifestsyncstate kunnen hem niet meer opnieuw starten; alleen release,
   item, duur of een begrensde herstelpoging plannen hem opnieuw.
@@ -35,8 +38,8 @@ VeyoCast-lock-up linksonder op exact 40% opacity.
 
 ## Regressiebewijs
 
-- Browsertest: drie video-items blijven in gepubliceerde volgorde en een vroeg
-  `ended` verkort het eerste of tweede slot niet.
+- Browsertest: drie natuurlijk eindigende video-items schakelen direct en in de
+  gepubliceerde volgorde door, ruim vóór een kunstmatig lange slottimer.
 - Watchdogtest: een werkelijk stalled of niet-decodeerbaar item behoudt de
   bestaande retry/skip-herstelroute.
 - Watchdogtest: een gezonde video blijft zonder testoverride minimaal 1,5 seconde
@@ -47,6 +50,9 @@ VeyoCast-lock-up linksonder op exact 40% opacity.
   de synctijdlijn behouden blijft.
 - UI-test: de metadata-overlay bestaat niet en de locked system mark is zichtbaar
   met computed opacity `0.4`.
+- Geautomatiseerde gate op 21 juli 2026: lint, typecheck, 47 Player-unittests en
+  productiebuild groen; 29 Player-, 7 offline- en 60 brede Chromiumscenario's
+  groen, met 2 live-pilotscenario's bewust overgeslagen zonder credentials.
 
 Fysieke LG-validatie en de 24-uurs mixed-media-soak blijven onderdeel van de
 S30 release-candidategate.

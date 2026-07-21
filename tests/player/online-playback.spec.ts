@@ -32,7 +32,7 @@ test("fetches an online release manifest and starts playback", async ({
   await expect(page.getByTestId("player-brand-mark")).toHaveCSS("opacity", "0.4");
 });
 
-test("keeps three video items in order for their published slot duration", async ({
+test("advances three naturally ended videos without freezing between items", async ({
   page
 }) => {
   const manifestResponse = await page.request.get(
@@ -67,22 +67,21 @@ test("keeps three video items in order for their published slot duration", async
   await page.route("**/api/player/manifest", (route) =>
     route.fulfill({ body: JSON.stringify(manifest), contentType: "application/json" })
   );
-  await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=400`);
+  await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=2000`);
 
   const firstVideo = page.getByLabel("Video een");
   await expect(firstVideo).toBeVisible();
   await firstVideo.dispatchEvent("playing");
   await firstVideo.dispatchEvent("ended");
-  await page.waitForTimeout(150);
-  await expect(firstVideo).toBeVisible();
 
   const secondVideo = page.getByLabel("Video twee");
-  await expect(secondVideo).toBeVisible({ timeout: 1_500 });
+  await expect(secondVideo).toBeVisible({ timeout: 500 });
+  await expect(firstVideo).toHaveCount(0);
   await secondVideo.dispatchEvent("playing");
   await secondVideo.dispatchEvent("ended");
 
   const thirdVideo = page.getByLabel("Video drie");
-  await expect(thirdVideo).toBeVisible({ timeout: 1_500 });
+  await expect(thirdVideo).toBeVisible({ timeout: 500 });
 });
 
 test("loops to the muted video slot without browser controls", async ({

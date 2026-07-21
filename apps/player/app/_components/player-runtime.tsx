@@ -258,6 +258,10 @@ export function PlayerRuntime() {
     }
   }, []);
 
+  const handlePlaybackEnded = useCallback((itemId: string) => {
+    void advancePlayback(itemId);
+  }, [advancePlayback]);
+
   const handlePlaybackFailure = useCallback(async (
     itemId: string,
     code: PlaybackFailureCode
@@ -1002,6 +1006,7 @@ export function PlayerRuntime() {
     return (
       <PlaybackView
         onFailure={handlePlaybackFailure}
+        onEnded={handlePlaybackEnded}
         onReady={handlePlaybackReady}
         playbackAttempt={playbackAttempt}
         runtime={runtime}
@@ -1035,12 +1040,14 @@ export function PlayerRuntime() {
 
 function PlaybackView({
   onFailure,
+  onEnded,
   onReady,
   playbackAttempt,
   runtime,
   watchdogTimeoutMs
 }: {
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
+  onEnded: (itemId: string) => void;
   onReady: (itemId: string) => void;
   playbackAttempt: number;
   runtime: PlaybackRuntime;
@@ -1070,6 +1077,7 @@ function PlaybackView({
         <PlaybackMedia
           key={`${activeItem.id}:${playbackAttempt}`}
           item={activeItem}
+          onEnded={onEnded}
           onFailure={onFailure}
           onReady={onReady}
           watchdogTimeoutMs={watchdogTimeoutMs}
@@ -1095,11 +1103,13 @@ function PlaybackView({
 
 function PlaybackMedia({
   item,
+  onEnded,
   onFailure,
   onReady,
   watchdogTimeoutMs
 }: {
   item: PlayerManifestItem;
+  onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onReady: (itemId: string) => void;
   watchdogTimeoutMs: number;
@@ -1149,6 +1159,7 @@ function PlaybackMedia({
           hasEndedRef.current = true;
           hasStartedRef.current = true;
           onReady(item.id);
+          onEnded(item.id);
         }}
         onError={() => reportFailure("VIDEO_ERROR")}
         onPlaying={() => {
