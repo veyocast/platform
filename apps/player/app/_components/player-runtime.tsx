@@ -36,7 +36,14 @@ import {
   playerReloadCooldownMs,
   type PlayerRecoveryAction
 } from "../_lib/player-recovery";
-import { reportPlayerConnectivity } from "../_lib/player-connectivity";
+import {
+  fetchPlayerOrigin,
+  playerConnectivityEventName,
+  readPlayerConnectivity,
+  reportPlayerConnectivity,
+  type PlayerConnectivityEvent
+} from "../_lib/player-connectivity";
+import { resolvePersistedPairingDelay } from "../_lib/player-pairing-recovery";
 import {
   defaultWatchdogTimeoutMs,
   resolvePlayerRuntimeTiming
@@ -376,7 +383,7 @@ export function PlayerRuntime() {
       async function provisionPairing() {
         writePairingProvisionAfter(Date.now() + pairingProvisionCooldownMs);
         try {
-          const response = await fetch("/api/player/pairing", {
+          const response = await fetchPlayerOrigin("/api/player/pairing", {
             cache: "no-store",
             headers: {
               "X-VeyoCast-Player-Instance": readOrCreatePlayerInstanceId()
@@ -384,7 +391,6 @@ export function PlayerRuntime() {
             keepalive: true,
             method: "POST"
           });
-          reportPlayerConnectivity(true);
           const body = (await response.json()) as PairingResponse;
 
           if (cancelled) {
@@ -433,7 +439,6 @@ export function PlayerRuntime() {
             void pollPairingClaim(pendingToken);
           }, pairingClaimPollIntervalMs);
         } catch {
-          reportPlayerConnectivity(false);
           const delayMs = transientPairingRetryDelayMs(retryAttempts);
           retryAttempts += 1;
           queuePairingProvision(
@@ -599,7 +604,7 @@ export function PlayerRuntime() {
         : manifestSyncIntervalMs;
 
       try {
-        const response = await fetch(
+        const response = await fetchPlayerOrigin(
           "/api/player/manifest",
           {
             cache: "no-store",
@@ -609,7 +614,6 @@ export function PlayerRuntime() {
             }
           }
         );
-        reportPlayerConnectivity(true);
         const body = (await response.json()) as
           | PlayerManifestEnvelope
           | PlayerManifestProblem
@@ -783,7 +787,6 @@ export function PlayerRuntime() {
         syncSucceeded = true;
       } catch (error) {
         if (!cancelled) {
-          reportPlayerConnectivity(false);
           keepCachedPlaybackOrShowProblem(
             "Online sync faalde; cached playback blijft actief.",
             error instanceof Error ? error.message : "manifest fetch failed"
@@ -997,7 +1000,7 @@ export function PlayerRuntime() {
               : "active";
 
       try {
-        const response = await fetch("/api/player/heartbeat", {
+        const response = await fetchPlayerOrigin("/api/player/heartbeat", {
           body: JSON.stringify({
             activeReleaseId: playbackRuntime?.release.envelope.manifest.releaseId ?? null,
             currentItemId: activeItem?.id ?? null,
@@ -1020,7 +1023,6 @@ export function PlayerRuntime() {
           method: "POST"
         });
         if (!response.ok) throw new Error("Heartbeat is geweigerd.");
-        reportPlayerConnectivity(true);
         if (
           reportedPlaybackError?.recoveredAt &&
           lastPlaybackErrorRef.current === reportedPlaybackError
@@ -1032,7 +1034,7 @@ export function PlayerRuntime() {
           }, 1_000);
         }
       } catch {
-        reportPlayerConnectivity(false);
+        // Transport failures are reported by fetchPlayerOrigin; heartbeat retries continue.
       }
     }
 
@@ -1271,14 +1273,24 @@ function PairingPanel({
   const [deviceLabel, setDeviceLabel] = useState("Web Player");
 
   useEffect(() => {
-    const updateConnection = () => setConnectionLabel(navigator.onLine ? "Verbonden" : "Geen internetverbinding");
+    const updateConnection = (online = readPlayerConnectivity()) =>
+      setConnectionLabel(online ? "Verbonden" : "Geen internetverbinding");
+    const updateBrowserConnection = () =>
+      reportPlayerConnectivity(navigator.onLine);
+    const updatePlayerConnection = (event: Event) =>
+      updateConnection((event as PlayerConnectivityEvent).detail.online);
     setDeviceLabel(detectDeviceLabel(navigator.userAgent));
     updateConnection();
-    window.addEventListener("online", updateConnection);
-    window.addEventListener("offline", updateConnection);
+    window.addEventListener("online", updateBrowserConnection);
+    window.addEventListener("offline", updateBrowserConnection);
+    window.addEventListener(playerConnectivityEventName, updatePlayerConnection);
     return () => {
-      window.removeEventListener("online", updateConnection);
-      window.removeEventListener("offline", updateConnection);
+      window.removeEventListener("online", updateBrowserConnection);
+      window.removeEventListener("offline", updateBrowserConnection);
+      window.removeEventListener(
+        playerConnectivityEventName,
+        updatePlayerConnection
+      );
     };
   }, []);
 
@@ -1534,9 +1546,7 @@ function readPairingProvisionDelay() {
     const stored = Number(
       window.localStorage.getItem(localStoragePairingProvisionAfterKey)
     );
-    return Number.isFinite(stored) && stored > Date.now()
-      ? stored - Date.now()
-      : 0;
+    return resolvePersistedPairingDelay(stored);
   } catch {
     return 0;
   }
@@ -1648,7 +1658,7 @@ function clearStoredPlayerIdentity() {
 
 async function confirmPairingClaim(deviceToken: string) {
   try {
-    const response = await fetch("/api/player/heartbeat", {
+    const response = await fetchPlayerOrigin("/api/player/heartbeat", {
       body: JSON.stringify({
         activeReleaseId: null,
         desiredReleaseId: null,
@@ -1663,10 +1673,8 @@ async function confirmPairingClaim(deviceToken: string) {
       },
       method: "POST"
     });
-    reportPlayerConnectivity(true);
     return response.ok;
   } catch {
-    reportPlayerConnectivity(false);
     return false;
   }
 }

@@ -85,6 +85,10 @@ test("recovers automatically when pairing creation is temporarily rate limited",
   await expect(page.getByLabel("Pairingcode")).toContainText("RTY 234", {
     timeout: 4_000
   });
+  await expect(
+    page.getByText("Geen internetverbinding", { exact: true })
+  ).toHaveCount(0);
+  await expect(page.getByLabel("Device setupstatus")).toContainText("Verbonden");
   expect(pairingRequests).toBe(2);
   expect(playerInstances[0]).toMatch(/^[a-f0-9-]{20,80}$/);
   expect(playerInstances[1]).toBe(playerInstances[0]);
@@ -130,6 +134,41 @@ test("coalesces rapid refreshes before requesting another pairing code", async (
   expect(pairingRequests).toBe(0);
   await expect(page.getByLabel("Pairingcode")).toContainText("RFS 234", {
     timeout: 7_000
+  });
+  expect(pairingRequests).toBe(1);
+});
+
+test("discards a stale pairing cooldown after the device clock changes", async ({
+  page
+}) => {
+  let pairingRequests = 0;
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "veyocast.player.pairingProvisionAfter",
+      String(Date.now() + 24 * 60 * 60_000)
+    );
+  });
+  await page.route("**/api/player/pairing", (route) => {
+    pairingRequests += 1;
+    return route.fulfill({
+      contentType: "application/json",
+      json: {
+        deviceToken: "clock-recovery-token",
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+        live: true,
+        pairingCode: "CLK 234"
+      }
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    contentType: "application/json",
+    json: { ok: false },
+    status: 403
+  }));
+
+  await page.goto(playerURL);
+  await expect(page.getByLabel("Pairingcode")).toContainText("CLK 234", {
+    timeout: 3_000
   });
   expect(pairingRequests).toBe(1);
 });

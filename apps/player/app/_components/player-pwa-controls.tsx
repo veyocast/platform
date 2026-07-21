@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 
 import {
   playerConnectivityEventName,
+  readPlayerConnectivity,
+  reportPlayerConnectivity,
   type PlayerConnectivityEvent
 } from "../_lib/player-connectivity";
 
@@ -146,14 +148,14 @@ function usePlayerOnlineStatus() {
 
   useEffect(() => {
     function updateBrowserConnection() {
-      setOnline(navigator.onLine);
+      reportPlayerConnectivity(navigator.onLine);
     }
 
     function updatePlayerConnection(event: Event) {
       setOnline((event as PlayerConnectivityEvent).detail.online);
     }
 
-    updateBrowserConnection();
+    setOnline(readPlayerConnectivity());
     window.addEventListener("online", updateBrowserConnection);
     window.addEventListener("offline", updateBrowserConnection);
     window.addEventListener(playerConnectivityEventName, updatePlayerConnection);
