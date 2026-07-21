@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.VeyoCast.Player" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">@color/vc_ink_black</item>
+        <item name="android:windowSplashScreenBackground">@color/vc_master_black</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/veyocast_launcher_icon</item>
+        <item name="android:windowSplashScreenAnimationDuration">0</item>
+        <item name="android:colorAccent">@color/vc_electric_orange</item>
+        <item name="android:navigationBarColor">@color/vc_ink_black</item>
+        <item name="android:statusBarColor">@color/vc_ink_black</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

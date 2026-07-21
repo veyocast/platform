@@ -100,6 +100,12 @@ De player:
 - activeert pas na verificatie;
 - rapporteert heartbeat en syncstatus.
 
+Platformshells mogen de hosted Player als enige bron van waarheid in een
+beperkte native host draaien. Zo'n shell mag lifecycle, fullscreen,
+afstandsbediening en platformherstel toevoegen, maar introduceert geen eigen
+pairing-, release-, cache-, planning- of playbackmodel. De Android TV-shell in
+`apps/android-tv/` volgt deze grens.
+
 ## 6. Media plane
 
 Media wordt nooit blind afgespeeld. Uploads worden:
@@ -147,7 +153,8 @@ Out of scope voor kern-MVP:
 - Mollie;
 - advertentienetwerk;
 - sponsorportaal;
-- native Android/iOS;
+- een tweede native Android/iOS-playerimplementatie; een dunne goedgekeurde
+  Android TV-hostshell rond de bestaande Player is wel toegestaan;
 - webOS/Tizen;
 - arbitrary HTML/iframe content;
 - full Sportlink/Twelve production integration;

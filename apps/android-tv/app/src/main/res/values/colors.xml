@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android projection of the canonical VeyoCast design tokens. -->
+    <color name="vc_ink_black">#0A0A0A</color>
+    <color name="vc_master_black">#121212</color>
+    <color name="vc_paper_white">#FAFAF7</color>
+    <color name="vc_electric_orange">#FF5C20</color>
+    <color name="vc_signal_blue">#315CFF</color>
+    <color name="vc_surface">#111111</color>
+    <color name="vc_surface_strong">#1F1F1E</color>
+    <color name="vc_border">#2A2A28</color>
+    <color name="vc_text_muted">#C9C9C4</color>
+    <color name="vc_transparent">#00000000</color>
+    <color name="vc_overlay">#F20A0A0A</color>
+</resources>

@@ -8,6 +8,7 @@ the canon in `AGENTS.md`, `PLANS.md`, `TASK_LEDGER.md` and `docs/`.
 
 ```text
 apps/
+  android-tv/     Kotlin Android TV/Google TV shell around the Player
   control/        Next.js App Router control plane
   player/         Next.js App Router player plane
   marketing/      Next.js App Router public site
@@ -125,6 +126,11 @@ Ink Black splash en precachet de volledige Player-shell. Tijdens playback is
 technische diagnostiek niet publiek zichtbaar; alleen bij aantoonbaar
 netwerkverlies verschijnt rechtsonder een compacte offline-chip terwijl de
 last-known-good release lokaal blijft spelen.
+De afzonderlijke `apps/android-tv/`-app verpakt exact dezelfde hosted Player in
+een minimale native Android TV-WebView-shell. Staging en production zijn
+compile-time gescheiden; de shell voegt TV-launcher, immersive fullscreen,
+D-padbeheer en begrensd netwerk-/rendererherstel toe zonder pairing, releases,
+cache of playbacklogica te dupliceren.
 
 S29-A activeert de mediaworker als afzonderlijke immutable, least-privilege
 staging/production-service. Veilige H.264/AAC-bronnen worden zonder

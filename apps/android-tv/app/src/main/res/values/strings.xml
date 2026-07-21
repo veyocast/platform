@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_error_title">Geen verbinding met VeyoCast</string>
+    <string name="connection_error_message">Er wordt automatisch opnieuw geprobeerd.</string>
+    <string name="secure_connection_error_title">Beveiligde verbinding geweigerd</string>
+    <string name="secure_connection_error_message">Het certificaat kon niet veilig worden gecontroleerd. Controleer de apparaatdatum en de netwerkverbinding.</string>
+    <string name="player_recovery_title">Player wordt hersteld</string>
+    <string name="player_recovery_message">De weergave is opnieuw gestart. Lokale VeyoCast-opslag en pairing blijven behouden.</string>
+    <string name="player_recovery_paused_title">Automatisch herstel gepauzeerd</string>
+    <string name="player_recovery_paused_message">De weergave stopte meerdere keren kort na elkaar. Kies Probeer opnieuw om nog één herstelpoging te starten.</string>
+    <string name="retry">Probeer opnieuw</string>
+    <string name="panel_title">Playerbeheer</string>
+    <string name="panel_hint">Druk op MENU of houd OK ingedrukt om dit paneel te sluiten.</string>
+    <string name="connection_status">Verbinding</string>
+    <string name="connection_checking">Controleren</string>
+    <string name="connection_online">Online</string>
+    <string name="connection_player_loaded">Player lokaal geladen</string>
+    <string name="connection_available">Netwerk beschikbaar</string>
+    <string name="connection_offline">Geen netwerk gedetecteerd</string>
+    <string name="refresh_player">Player vernieuwen</string>
+    <string name="refresh_player_summary">Vraag de webplayer om de actuele status en content opnieuw te laden.</string>
+    <string name="autostart">Autostart na herstart</string>
+    <string name="autostart_summary">Android probeert VeyoCast na een apparaatherstart te openen. Het apparaatbeleid kan dit blokkeren.</string>
+    <string name="keep_awake">Scherm wakker houden</string>
+    <string name="keep_awake_summary">Actief zolang de VeyoCast Player op de voorgrond staat.</string>
+    <string name="orientation">Oriëntatie</string>
+    <string name="orientation_landscape">Landschap</string>
+    <string name="environment">Omgeving</string>
+    <string name="version">Versie</string>
+    <string name="close_app">App afsluiten</string>
+    <string name="close_app_summary">Sluit de native shell. Gebruik de VeyoCast-scherminstellingen in Control om een apparaat veilig te ontkoppelen.</string>
+</resources>

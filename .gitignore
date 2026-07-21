@@ -17,3 +17,11 @@ playwright-report/
 test-results/
 .cache/
 storybook-static/
+
+# Android TV local tooling, generated output and signing material
+apps/android-tv/.gradle/
+apps/android-tv/**/build/
+local.properties
+keystore.properties
+*.jks
+*.keystore
