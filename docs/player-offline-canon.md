@@ -12,7 +12,7 @@
 - Alleen tijdens aantoonbaar netwerkverlies staat rechtsonder een compacte
   tekstchip `Geen internetverbinding`; normale playback heeft geen permanent
   diagnosepaneel. De enige vaste system mark is de locked VeyoCast-lock-up
-  linksonder op 60% opacity.
+  linksonder op 40% opacity.
 
 ## State model
 

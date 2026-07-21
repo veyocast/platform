@@ -37,13 +37,15 @@ import {
   type PlayerRecoveryAction
 } from "../_lib/player-recovery";
 import { reportPlayerConnectivity } from "../_lib/player-connectivity";
+import {
+  defaultWatchdogTimeoutMs,
+  resolvePlayerRuntimeTiming
+} from "../_lib/player-runtime-config";
 
 const demoPairingCode = "VYO 482";
 const localStoragePairingCodeKey = "veyocast.player.pairingCode";
 const localStoragePairingExpiryKey = "veyocast.player.pairingExpiresAt";
 const localStorageReloadTimestampsKey = "veyocast.player.reloadTimestamps";
-const defaultWatchdogTimeoutMs = 12_000;
-const defaultManifestSyncIntervalMs = 60_000;
 const waitingContentSyncIntervalMs = 5_000;
 const maximumManifestSyncBackoffMs = 5 * 60_000;
 const pairingClaimPollIntervalMs = 2_000;
@@ -318,24 +320,14 @@ export function PlayerRuntime() {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const queryToken = searchParams.get("deviceToken");
-    const queryDurationMs = Number(searchParams.get("durationMs"));
-    const queryWatchdogMs = Number(searchParams.get("watchdogMs"));
-    const querySyncMs = Number(searchParams.get("syncMs"));
-    const manifestSyncIntervalMs =
-      searchParams.has("syncMs") && Number.isFinite(querySyncMs)
-        ? Math.max(250, Math.min(querySyncMs, defaultManifestSyncIntervalMs))
-        : defaultManifestSyncIntervalMs;
+    const timing = resolvePlayerRuntimeTiming(
+      searchParams,
+      process.env.NODE_ENV !== "production"
+    );
+    const { manifestSyncIntervalMs } = timing;
 
-    setDurationOverrideMs(
-      process.env.NODE_ENV !== "production" && Number.isFinite(queryDurationMs)
-        ? queryDurationMs
-        : null
-    );
-    setWatchdogTimeoutMs(
-      Number.isFinite(queryWatchdogMs)
-        ? Math.max(250, Math.min(queryWatchdogMs, 60_000))
-        : defaultWatchdogTimeoutMs
-    );
+    setDurationOverrideMs(timing.durationOverrideMs);
+    setWatchdogTimeoutMs(timing.watchdogTimeoutMs);
 
     const deviceToken = queryToken ?? readStoredDeviceToken();
 

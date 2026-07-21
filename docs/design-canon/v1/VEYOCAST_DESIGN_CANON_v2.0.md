@@ -36,7 +36,7 @@ lang: nl-NL
 # Documentstatus
 
 **Document:** VeyoCast Bold - Design & Product Canon  
-**Versie:** 2.1.2  
+**Versie:** 2.1.3  
 **Status:** Canoniek / normatief; merkassetset v1.0 goedgekeurd  
 **Datum:** 21 juli 2026  
 **Reikwijdte:** merkidentiteit, marketingwebsite, control dashboard, mobiele PWA, player setup, fullscreen playback, ClubTV-templates, design tokens, componentbibliotheek, contentstijl, toegankelijkheid en governance.
@@ -123,7 +123,7 @@ Offline status, releaseversies, synchronisatie, opslag en laatste verbinding wor
 
 In de player domineert de club, niet VeyoCast. Setup, pairing, startup en
 diagnostiek zijn volledig merkbaar; tijdens normale playback blijft uitsluitend
-de locked VeyoCast-lock-up linksonder op exact 60% opacity zichtbaar. Deze
+de locked VeyoCast-lock-up linksonder op exact 40% opacity zichtbaar. Deze
 expliciet goedgekeurde system mark bevat geen metadata, status of bediening.
 
 ### 5. Eén systeem, verschillende intensiteiten
@@ -2290,7 +2290,7 @@ De Player is geen tweede dashboard. Hij is een zelfstandig geregistreerd device 
 
 Tijdens normale playback staat de clubcontent centraal. VeyoCast is zichtbaar
 bij setup, startup, pairing en diagnostiek; daarnaast staat uitsluitend de
-expliciet goedgekeurde locked VeyoCast-lock-up linksonder op 60% opacity als
+expliciet goedgekeurde locked VeyoCast-lock-up linksonder op 40% opacity als
 vaste system mark over de content.
 
 ## 13.2 Player state model
@@ -2494,7 +2494,7 @@ Playback toont:
 - geen tabs;
 - geen permanente setupoverlay;
 - geen schermnaam, mediatitel, playlistnaam of andere playbackmetadata;
-- uitsluitend de locked VeyoCast-lock-up linksonder op 60% opacity als
+- uitsluitend de locked VeyoCast-lock-up linksonder op 40% opacity als
   goedgekeurde vaste system mark; geen andere softwarewatermark.
 
 De Player bewaakt aspect ratio en gebruikt `fit`, `fill` of template-native layout volgens assetinstelling. Fotografie wordt niet vervormd.
@@ -2795,7 +2795,7 @@ Templates worden getest met:
 ## 13.25 Player anti-patterns
 
 - andere permanente VeyoCast-watermarks dan de goedgekeurde locked lock-up
-  linksonder op 60% opacity;
+  linksonder op 40% opacity;
 - browser URL bar of cursor;
 - mini-dashboard tijdens normale playback;
 - zwarte foutpagina bij tijdelijk internetverlies;
@@ -3379,7 +3379,7 @@ Tenantbranding mag niet:
 
 - [ ] Startup gebruikt exact logoasset.
 - [ ] Normale playback heeft geen browserchrome/cursor.
-- [ ] Alleen de locked VeyoCast-lock-up linksonder op exact 60% opacity; geen
+- [ ] Alleen de locked VeyoCast-lock-up linksonder op exact 40% opacity; geen
   schermnaam, mediatitel, playlistnaam of andere permanente overlay.
 - [ ] Player start met cached release zonder netwerk.
 - [ ] Pending release wordt volledig gedownload en geverifieerd.
@@ -3857,7 +3857,7 @@ scene    480 ms
 
 - browserchrome;
 - permanente softwarewatermark buiten de goedgekeurde locked VeyoCast-lock-up
-  linksonder op 60% opacity;
+  linksonder op 40% opacity;
 - zwart scherm bij offline;
 - incomplete release activeren;
 - portrait crop van landscape;

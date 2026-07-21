@@ -6,6 +6,56 @@ import type { PlayerManifestEnvelope } from "../../apps/player/app/_lib/player-m
 
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
+test("does not remount a healthy video when no watchdog override is present", async ({
+  page
+}) => {
+  const manifestResponse = await page.request.get(
+    `${playerURL}/api/player/manifest?deviceToken=demo-online`
+  );
+  const baseline = (await manifestResponse.json()) as PlayerManifestEnvelope;
+  const video = {
+    ...baseline.manifest.items[1],
+    durationSeconds: 30,
+    id: "stable-default-watchdog-video",
+    title: "Stabiele video"
+  };
+  const manifest: PlayerManifestEnvelope = {
+    ...baseline,
+    device: {
+      ...baseline.device,
+      activeReleaseId: "55555555-5555-4555-8555-555555555556",
+      desiredReleaseId: "55555555-5555-4555-8555-555555555556"
+    },
+    manifest: {
+      ...baseline.manifest,
+      items: [video],
+      manifestHash: "5".repeat(64),
+      releaseId: "55555555-5555-4555-8555-555555555556",
+      totalBytes: video.source.posterBytes ?? 0,
+      totalDurationSeconds: 30,
+      version: 5
+    }
+  };
+
+  await page.route("**/api/player/manifest", (route) =>
+    route.fulfill({ body: JSON.stringify(manifest), contentType: "application/json" })
+  );
+  await page.goto(`${playerURL}/?deviceToken=demo-online`);
+
+  const playerVideo = page.getByTestId("player-video");
+  await expect(playerVideo).toBeVisible();
+  await playerVideo.evaluate((element) => {
+    element.dataset.playbackInstance = "original";
+    element.dispatchEvent(new Event("playing", { bubbles: true }));
+  });
+  await page.waitForTimeout(1_500);
+
+  await expect(playerVideo).toHaveAttribute("data-playback-instance", "original");
+  await expect(page.getByLabel("Player diagnostics")).not.toContainText(
+    "Playbackfout"
+  );
+});
+
 test("retries a decode failure once, skips it and reports recovery in heartbeat", async ({
   page
 }) => {

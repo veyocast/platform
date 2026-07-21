@@ -29,7 +29,7 @@ Wanneer het echte designcanonbestand in de repo staat, is dat leidend boven same
 - De player activeert nooit een incomplete release.
 - De player toont geen zwart scherm bij tijdelijk offline zolang er een geldige lokale release bestaat.
 - Normale playback toont uitsluitend de goedgekeurde locked VeyoCast-lock-up
-  linksonder op 60% opacity; andere permanente softwarewatermarks zijn verboden.
+  linksonder op 40% opacity; andere permanente softwarewatermarks zijn verboden.
 - Goedgekeurde logo-assets zijn locked. Placeholder-assets mogen tijdelijk, maar mogen niet als definitief worden behandeld.
 - Hardcoded brandkleuren zijn verboden waar tokens beschikbaar zijn.
 - Mobile UI is herontwerp, geen mini-desktop.
