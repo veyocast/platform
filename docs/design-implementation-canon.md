@@ -21,7 +21,7 @@ variable names and spacing API already used by the applications.
 - Marketing: expressive, dark editorial, conversion-oriented.
 - Control: calm, operational, information-rich.
 - Player: clubcontent-first, met tijdens normale playback uitsluitend de locked
-  VeyoCast-lock-up linksonder op 60% opacity als goedgekeurde system mark.
+  VeyoCast-lock-up linksonder op 40% opacity als goedgekeurde system mark.
 
 Control is an operational SaaS application. It uses a 248 px desktop sidebar,
 64 px topbar, 32 px desktop gutter, visible tenant or platform context, a

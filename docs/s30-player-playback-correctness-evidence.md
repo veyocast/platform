@@ -5,7 +5,7 @@
 Deze correctie maakt de immutable itemduur leidend voor normale playback en
 verwijdert publieke playbackmetadata. De door merkeigenaar Danny Goldenbelt
 expliciet goedgekeurde vaste system mark gebruikt de byte-ongewijzigde inverse
-VeyoCast-lock-up linksonder op exact 60% opacity.
+VeyoCast-lock-up linksonder op exact 40% opacity.
 
 ## Oorzaak en herstel
 
@@ -20,6 +20,10 @@ VeyoCast-lock-up linksonder op exact 60% opacity.
   item, duur of een begrensde herstelpoging plannen hem opnieuw.
 - `durationMs` is voortaan development-only en kan staging- of
   productionplayback niet versnellen.
+- Een afwezige `watchdogMs` werd eerder door `Number(null)` als nul gelezen en
+  daarna naar 250 ms begrensd. De parser onderscheidt afwezig, leeg en ongeldig
+  nu expliciet, gebruikt standaard 12 seconden en negeert alle timingknoppen in
+  production.
 
 ## Regressiebewijs
 
@@ -27,8 +31,10 @@ VeyoCast-lock-up linksonder op exact 60% opacity.
   `ended` verkort het eerste of tweede slot niet.
 - Watchdogtest: een werkelijk stalled of niet-decodeerbaar item behoudt de
   bestaande retry/skip-herstelroute.
+- Watchdogtest: een gezonde video blijft zonder testoverride minimaal 1,5 seconde
+  hetzelfde DOM-mediaelement en krijgt geen foutstatus.
 - UI-test: de metadata-overlay bestaat niet en de locked system mark is zichtbaar
-  met computed opacity `0.6`.
+  met computed opacity `0.4`.
 
 Fysieke LG-validatie en de 24-uurs mixed-media-soak blijven onderdeel van de
 S30 release-candidategate.

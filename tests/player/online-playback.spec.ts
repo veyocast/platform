@@ -29,7 +29,7 @@ test("fetches an online release manifest and starts playback", async ({
   await expect(page.getByLabel("Pairingcode")).toHaveCount(0);
   await expect(page.locator(".playback-now")).toHaveCount(0);
   await expect(page.getByTestId("player-brand-mark")).toBeVisible();
-  await expect(page.getByTestId("player-brand-mark")).toHaveCSS("opacity", "0.6");
+  await expect(page.getByTestId("player-brand-mark")).toHaveCSS("opacity", "0.4");
 });
 
 test("keeps three video items in order for their published slot duration", async ({
