@@ -8,6 +8,7 @@ import {
   Button,
   DataTable,
   Field,
+  FilterBar,
   IconButton,
   Inspector,
   PageHeader,
@@ -92,6 +93,18 @@ describe("@veyocast/ui primitives", () => {
     expect(html).toContain("vc-toolbar__summary");
     expect(html).toContain("vc-data-table--responsive");
     expect(html).toContain("vc-inspector");
+  });
+
+  it("renders a responsive filter contract with results and reset action", () => {
+    const html = renderToStaticMarkup(
+      <FilterBar activeCount={2} clearHref="/dashboard/media" results="3 van 12 zichtbaar">
+        <TextInput aria-label="Media zoeken" type="search" />
+      </FilterBar>
+    );
+    expect(html).toContain("Filters (2)");
+    expect(html).toContain("3 van 12 zichtbaar");
+    expect(html).toContain("Filters wissen");
+    expect(html).toContain("vc-filter-bar__content");
   });
 
   it("exposes explicit loading, forbidden and stale states", () => {

@@ -31,6 +31,17 @@ describe("media worker runtime health", () => {
     await expect(get(address.port, "/readyz")).resolves.toMatchObject({ statusCode: 503 });
 
     health.markPoll();
+    health.markResult("retry_scheduled");
+    await expect(get(address.port, "/statusz")).resolves.toMatchObject({
+      body: {
+        indicators: [
+          { code: "recent_failures", state: "healthy", value: 0 },
+          { code: "recent_retries", state: "warning", value: 1 }
+        ],
+        status: "degraded"
+      },
+      statusCode: 200
+    });
     await expect(get(address.port, "/readyz")).resolves.toMatchObject({
       body: { environment: "staging", status: "ready" },
       statusCode: 200

@@ -66,7 +66,7 @@ gh variable delete REVERSE_PROXY_NETWORK --repo veyocast/platform --env producti
 
 ## Secrets
 
-Beide Environments vereisen exact deze namen:
+Beide Environments vereisen deze zes gedeelde namen:
 
 | Secret | Gebruik | Validatie zonder waarde te loggen |
 |---|---|---|
@@ -77,10 +77,18 @@ Beide Environments vereisen exact deze namen:
 | `DEVICE_LAB_ACCESS_TOKEN` | afgeschermde Device Lab-toegang | minimaal 24 tekens |
 | `DEVICE_LAB_SESSION_SECRET` | ondertekening Device Lab-sessie | minimaal 32 tekens |
 
+Alleen `staging` krijgt daarnaast:
+
+| Secret | Gebruik | Validatie zonder waarde te loggen |
+|---|---|---|
+| `SUPABASE_RESTORE_DRILL_DB_URL` | handmatige recoverydrill naar een disposable database | PostgreSQL-URL; databasenaam eindigt verplicht op `_restore_drill`, wijkt af van `SUPABASE_DB_URL` en bevat geen productionachtige host-/databasenaam |
+
 Alle zes namen waren op 19 juli 2026 in zowel staging als production aanwezig.
 Er zijn daarom geen ontbrekende-secretcommando's. GitHub toont de waarden niet;
 de runtimepreflight valideert vorm en projectsamenhang zonder ze te printen.
 S29-A voegt voor de worker geen nieuw secret of nieuwe GitHub-variable toe.
+S29-D voegt uitsluitend het stagingsecret `SUPABASE_RESTORE_DRILL_DB_URL` toe;
+production krijgt dit secret nadrukkelijk niet.
 
 Omdat dezelfde immutable Next.js-image wordt gepromoveerd, moet
 `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` voor deze release in beide Environments

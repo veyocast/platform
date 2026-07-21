@@ -129,6 +129,7 @@ test("media route exposes upload intake labels and status landmarks", async ({
 
   await page.setViewportSize({ height: 844, width: 390 });
   await page.reload();
+  await page.getByRole("button", { name: "Filters" }).click();
   const fromDate = page.getByLabel("Vanaf");
   const fromDateBox = await fromDate.boundingBox();
   expect(fromDateBox?.height).toBeGreaterThanOrEqual(44);

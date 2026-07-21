@@ -678,6 +678,17 @@ kbd {
   padding: 0;
 }
 
+.support-export__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-12);
+}
+
+.support-export__actions .work-panel__meta {
+  margin: 0;
+}
+
 .context-list__item {
   align-items: center;
   border-bottom: 1px solid var(--vc-border);
@@ -2796,6 +2807,16 @@ kbd {
 
   .command-palette {
     align-self: stretch;
+  }
+}
+
+@media (max-width: 479px) {
+  .metric-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .metric-card {
+    min-height: 0;
   }
 }
 

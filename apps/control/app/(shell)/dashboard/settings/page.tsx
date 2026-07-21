@@ -37,6 +37,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.roles, "tenant.settings.manage");
+  const canExportSupport =
+    session.isLive && hasCapability(session.roles, "tenant.support.export");
 
   return (
     <>
@@ -133,6 +135,33 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           <button className="button-link button-link--primary" disabled={!canManage} type="submit">Instellingen opslaan</button>
         </div>
       </form>
+
+      <section className="data-surface support-export" aria-labelledby="support-export-title">
+        <div className="work-panel__header">
+          <div>
+            <h2 className="work-panel__title" id="support-export-title">Veilige supportbundel</h2>
+            <p className="work-panel__meta">
+              Exporteert alleen servicestatus, versie, eventcodes, release-ID&apos;s en het tijdvenster van de laatste 24 uur.
+              Tokens, URL&apos;s, persoonsgegevens, credentialhashes, user agents en ruwe logs worden nooit opgenomen.
+            </p>
+          </div>
+          <StatusPill label="Allowlist" tone="success" />
+        </div>
+        <div className="support-export__actions">
+          {canExportSupport ? (
+            <form action="/api/support-bundle" method="post">
+              <button className="button-link button-link--secondary" type="submit">
+                Supportbundel downloaden
+              </button>
+            </form>
+          ) : (
+            <button className="button-link button-link--secondary" disabled type="button">
+              Geen exportrechten
+            </button>
+          )}
+          <p className="work-panel__meta">Elke geslaagde export wordt append-only geaudit.</p>
+        </div>
+      </section>
     </>
   );
 }

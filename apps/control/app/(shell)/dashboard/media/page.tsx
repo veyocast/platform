@@ -3,6 +3,7 @@ import { FileWarning, Image as ImageIcon, Video } from "lucide-react";
 import Link from "next/link";
 
 import { hasCapability } from "@veyocast/auth";
+import { FilterBar } from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../lib/control-session";
 import { getSupabasePublicConfig } from "../../../../lib/supabase/config";
@@ -318,8 +319,12 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
         />
       </section>
 
-      <form className="resource-toolbar" method="get" role="search">
-        <div className="resource-toolbar__group">
+      <form method="get" role="search">
+        <FilterBar
+          activeCount={mediaFilterCount(params)}
+          clearHref={`/dashboard/media?view=${params.view === "grid" ? "grid" : "list"}`}
+          results={`${visibleAssets.length} van ${totalCount} zichtbaar`}
+        >
           <input aria-label="Zoeken in media" className="toolbar-search" defaultValue={params.q} name="q" placeholder="Zoeken op titel of bestandsnaam" type="search" />
           <select aria-label="Filter media op type" className="toolbar-select" defaultValue={params.type ?? "all"} name="type">
             <option value="all">Alle typen</option><option value="image">Afbeeldingen</option><option value="video">Video's</option>
@@ -334,12 +339,9 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           <label className="toolbar-date"><span>Tot en met</span><input defaultValue={params.to} name="to" type="date" /></label>
           <input name="view" type="hidden" value={params.view === "grid" ? "grid" : "list"} />
           <button className="button-link button-link--secondary" type="submit">Filteren</button>
-        </div>
-        <div className="resource-toolbar__group">
           <Link aria-current={params.view !== "grid" ? "page" : undefined} className="button-link button-link--secondary" href={mediaHref(params, { page: "1", view: "list" })}>Lijst</Link>
           <Link aria-current={params.view === "grid" ? "page" : undefined} className="button-link button-link--secondary" href={mediaHref(params, { page: "1", view: "grid" })}>Raster</Link>
-          <p className="resource-toolbar__summary">{visibleAssets.length} van {totalCount} zichtbaar</p>
-        </div>
+        </FilterBar>
       </form>
 
       <section className="resource-workspace">
@@ -603,6 +605,17 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
       </section>
     </>
   );
+}
+
+function mediaFilterCount(params: Awaited<MediaPageProps["searchParams"]>) {
+  return [
+    Boolean(params.q?.trim()),
+    Boolean(params.type && params.type !== "all"),
+    Boolean(params.status && params.status !== "all"),
+    Boolean(params.usage && params.usage !== "all"),
+    Boolean(params.from),
+    Boolean(params.to)
+  ].filter(Boolean).length;
 }
 
 async function loadMediaData(

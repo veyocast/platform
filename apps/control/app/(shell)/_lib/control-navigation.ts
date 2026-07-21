@@ -65,6 +65,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "platform"
   },
   {
+    description: "SLO's, alerts en herstelroutes",
+    href: "/platform/system",
+    label: "Systeem",
+    requiredCapability: "platform.system.read",
+    section: "overview",
+    scope: "platform"
+  },
+  {
     description: "Verenigingen, status en limieten",
     href: "/platform/tenants",
     label: "Tenants",

@@ -18,6 +18,7 @@ packages/
   auth/           Pure role-to-capability decisions
   config/         Shared local runtime constants
   database/       Shared database role/status contracts
+  observability/  Structured events, redaction, SLO/alert and support contracts
   tokens/         Design token build pipeline and generated presets
   ui/             Shared React primitives and Storybook skeleton
   testkit/        Shared test helpers
@@ -126,6 +127,10 @@ kwaliteitsverlies geremuxed; afwijkende MP4's krijgen een begrensde snelle
 transcode. Queuepolling gebeurt iedere 500 ms en Control ververst actieve
 verwerking automatisch. Zie
 [`docs/s29-media-worker-deployment-evidence.md`](docs/s29-media-worker-deployment-evidence.md).
+S29-B–F voegt gestructureerde observability, uitvoerbare alert- en
+recoverycontracten, capabilitygebonden supportbundels en één rustige gedeelde
+filterervaring voor de belangrijkste Control-resources toe. Zie
+[`docs/s29-observability-recovery-evidence.md`](docs/s29-observability-recovery-evidence.md).
 
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.

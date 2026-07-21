@@ -49,13 +49,16 @@ pnpm --filter @veyocast/media-worker worker:run
 ```
 
 Zonder argumenten print het entrypoint alleen de stateless healthpayload. De
-daemon logt per iteratie compacte JSON zonder stacktrace of credentials.
+daemon logt per iteratie één event uit de vaste catalogus met een jobgebonden
+correlation ID. Tokens, URLs, databaseconnecties en persoonlijke velden worden
+recursief geredigeerd; stacktraces en credentials worden niet geschreven.
 
 In staging en production draait de worker als een afzonderlijk Compose-project
 zonder publieke poort. `/healthz` is liveness; `/readyz` wordt pas groen nadat
 de queue bereikbaar was en gaat tijdens drain of bij een stale poll terug naar
-503. De releaseworkflow wacht op readiness en promoot exact dezelfde
-worker-image-ID naar production.
+503. `/statusz` is nadrukkelijk businessstatus en rapporteert alleen bounded
+aantallen fouten/retries uit de laatste twintig resultaten. De releaseworkflow
+wacht op readiness en promoot exact dezelfde worker-image-ID naar production.
 
 ## Verwerkingscontract
 

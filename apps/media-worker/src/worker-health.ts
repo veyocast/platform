@@ -7,6 +7,7 @@ const readinessFreshnessMs = 75_000;
 export type WorkerRuntimeHealth = {
   markDraining: () => void;
   markPoll: () => void;
+  markResult: (status: "completed" | "failed" | "idle" | "retry_scheduled") => void;
   startServer: () => Promise<Server>;
 };
 
@@ -23,6 +24,7 @@ export function createWorkerRuntimeHealth({
 } = {}): WorkerRuntimeHealth {
   let draining = false;
   let lastPollAt: number | null = null;
+  const recentResults: Array<"completed" | "failed" | "idle" | "retry_scheduled"> = [];
 
   return {
     markDraining() {
@@ -30,6 +32,10 @@ export function createWorkerRuntimeHealth({
     },
     markPoll() {
       lastPollAt = now();
+    },
+    markResult(status) {
+      recentResults.push(status);
+      if (recentResults.length > 20) recentResults.shift();
     },
     startServer() {
       const server = createServer((request, response) => {
@@ -39,9 +45,32 @@ export function createWorkerRuntimeHealth({
           lastPollAt !== null &&
           checkedAt - lastPollAt <= readinessFreshnessMs;
         const isReadinessRequest = request.url === "/readyz";
+        const isBusinessStatusRequest = request.url === "/statusz";
 
-        if (request.method !== "GET" || (!isReadinessRequest && request.url !== "/healthz")) {
+        if (
+          request.method !== "GET" ||
+          (!isReadinessRequest && !isBusinessStatusRequest && request.url !== "/healthz")
+        ) {
           response.writeHead(404).end();
+          return;
+        }
+
+        if (isBusinessStatusRequest) {
+          const failed = recentResults.filter((status) => status === "failed").length;
+          const retries = recentResults.filter((status) => status === "retry_scheduled").length;
+          response.writeHead(200, {
+            "cache-control": "no-store",
+            "content-type": "application/json; charset=utf-8"
+          });
+          response.end(JSON.stringify({
+            checkedAt: new Date(checkedAt).toISOString(),
+            indicators: [
+              { code: "recent_failures", state: failed ? "critical" : "healthy", value: failed },
+              { code: "recent_retries", state: retries ? "warning" : "healthy", value: retries }
+            ],
+            service: VEYOCAST_APPS["media-worker"].name,
+            status: failed || retries ? "degraded" : "healthy"
+          }));
           return;
         }
 
