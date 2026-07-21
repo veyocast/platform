@@ -29,6 +29,10 @@
   uitkomsten en row-locking tegen double claim;
 - de Player-API retourneert geen raw databasefout meer en bewaart alleen een
   gehashte rate-limitfingerprint;
+- snelle browserrefreshes worden lokaal begrensd; iedere Player gebruikt een
+  stabiele niet-geheime instance-ID naast netwerk en user-agent. Een HTTP 429
+  wordt als automatische wachtroute afgehandeld en afgewezen retries verlengen
+  het databasevenster niet;
 - eerste heartbeat, runtime, appversie, platform, storage, active/desired
   release, veilige foutcode en synctijdlijn zijn zichtbaar zonder secrets.
 - Pairingbevestiging is niet afhankelijk van een reeds toegewezen release: een
@@ -98,6 +102,14 @@ rest-risico's.
 - vloot en onboarding zijn visueel gecontroleerd op 1440 px desktop en 390 px
   mobiel; de mobiele flow blijft sequentieel en de primaire actie blijft
   eenduidig.
+
+Aanvullende S30-D-regressie op 21 juli 2026: database-reset en schema-lint
+geslaagd; alle 313 RLS-assertions, 47 Player-unittests, 21 accessibilitytests,
+31 Player-browsertests en 7 offlinebrowsertests zijn groen. De brede
+Chromiumrun had 61 geslaagde scenario's en 2 bewust overgeslagen live-tests
+zonder credentials. De gerichte pairingtest bewijst daarnaast dat een tweede
+snelle refresh geen tweede creationrequest start en dat een 429 vanzelf naar
+een nieuwe code herstelt.
 
 ## Open launchgates
 

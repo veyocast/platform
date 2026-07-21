@@ -36,7 +36,7 @@ Player blijft een revocable device en is geen Supabase Auth-user.
 | Replay van gebruikte code | Tweede device-identiteit | Claim vergrendelt de pairingsessie; alleen `pending` kan atomair naar `claimed`. Replay levert `INVALID_OR_REPLAYED`. |
 | Gelijktijdige double claim | Twee actieve Players | Rijlock op pairingsessie plus unieke partial index voor één paired device per scherm. |
 | Cross-tenant claim | Device aan verkeerd scherm | Command valideert beheerrol voor `p_tenant_id` en zoekt het scherm uitsluitend binnen dezelfde actieve tenant. |
-| Pairingsessie-spam | Databasevervuiling/DoS | Duurzame per-fingerprint- en globale creationlimiet; vorige pending sessie voor dezelfde fingerprint wordt geannuleerd. Alleen hashes worden bewaard. |
+| Pairingsessie-spam | Databasevervuiling/DoS | Duurzame per-fingerprint- en globale creationlimiet; vorige pending sessie voor dezelfde fingerprint wordt geannuleerd. Alleen hashes worden bewaard. De fingerprint combineert het beheerde netwerk-/user-agentsignaal met een lokale, niet-geheime Player-instance-ID, zodat meerdere schermen achter dezelfde verbinding elkaar niet annuleren. |
 | Device secret in Control/log/URL | Overname van Player | Ruw token wordt alleen in de no-store Playerresponse geleverd. Control ontvangt alleen een code; actions, redirects, events en metadata bevatten geen token. Raw databasefouten worden niet naar UI/API geretourneerd. |
 | Directe schermlimiet-race | Meer schermen dan contract | Create-command en bestaande limiettrigger vergrendelen dezelfde tenantrij voordat aantal en insert worden uitgevoerd. |
 | Revoked device blijft online synchroniseren | Ongeautoriseerde nieuwe content | Bootstrap en heartbeat selecteren alleen `paired` devices op een actief scherm. Revoke faalt daarna gesloten. |
@@ -47,12 +47,17 @@ Player blijft een revocable device en is geen Supabase Auth-user.
 
 ## Rate-limitmodel
 
-- Player creation: maximaal vijf pogingen per gehashte netwerk-/user-agentfingerprint
-  per tien minuten en maximaal 300 globale pogingen per minuut.
+- Player creation: maximaal vijf pogingen per gehashte combinatie van netwerk,
+  user-agent en lokale Player-instance per tien minuten en maximaal 300 globale
+  pogingen per minuut.
 - Control claim: maximaal tien pogingen per geauthenticeerde actor per vijf
   minuten.
 - Rate-limitrijen staan in het private schema, zijn niet leesbaar voor browserrollen
   en worden na één dag opgeruimd.
+- Alleen werkelijk aangemaakte sessies tellen voor het creationvenster.
+  Afgewezen automatische retries blijven auditbaar, maar verlengen de blokkade
+  niet. De API retourneert de resterende wachttijd en de Player hervat daarna
+  automatisch zonder handmatige refresh.
 - De fingerprint is alleen een begrenzingssignaal en geen device-identiteit.
   Reverse-proxyheaders kunnen worden gespoofd buiten de beheerde VPS-route;
   daarom blijft ook de globale grens actief.

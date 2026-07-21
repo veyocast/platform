@@ -45,10 +45,12 @@ export async function POST(request: Request) {
     }
 
     if (!error && result.code === "RATE_LIMITED") {
+      const retryAfterSeconds = result.retryAfterSeconds ?? 600;
       return pairingFailure(
         "Er zijn te veel koppelcodes voor deze Player aangevraagd.",
         429,
-        "Wacht tien minuten en vernieuw daarna de Player."
+        "De Player vraagt automatisch een nieuwe code aan; vernieuwen is niet nodig.",
+        retryAfterSeconds
       );
     }
 
@@ -83,21 +85,44 @@ function pairingFingerprint(request: Request) {
     forwarded ||
     "unknown";
   const userAgent = request.headers.get("user-agent")?.trim() || "unknown";
-  return sha256(`${clientAddress.slice(0, 80)}:${userAgent.slice(0, 240)}`);
+  const playerInstance = normalizePlayerInstance(
+    request.headers.get("x-veyocast-player-instance")
+  );
+  return sha256(
+    `${clientAddress.slice(0, 80)}:${userAgent.slice(0, 240)}:${playerInstance}`
+  );
+}
+
+function normalizePlayerInstance(value: string | null) {
+  const normalized = value?.trim().toLowerCase();
+  return normalized && /^[a-f0-9-]{20,80}$/.test(normalized)
+    ? normalized
+    : "legacy-player";
 }
 
 function pairingResult(value: unknown) {
   if (!value || typeof value !== "object") {
-    return { code: null, expiresAt: null, ok: false };
+    return { code: null, expiresAt: null, ok: false, retryAfterSeconds: null };
   }
-  const result = value as { code?: unknown; expiresAt?: unknown; ok?: unknown };
+  const result = value as {
+    code?: unknown;
+    expiresAt?: unknown;
+    ok?: unknown;
+    retryAfterSeconds?: unknown;
+  };
+  const retryAfterSeconds =
+    typeof result.retryAfterSeconds === "number" &&
+    Number.isFinite(result.retryAfterSeconds)
+      ? Math.min(600, Math.max(1, Math.ceil(result.retryAfterSeconds)))
+      : null;
   return {
     code: typeof result.code === "string" ? result.code : null,
     expiresAt:
       typeof result.expiresAt === "string"
         ? result.expiresAt
         : new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    ok: result.ok === true
+    ok: result.ok === true,
+    retryAfterSeconds
   };
 }
 
@@ -112,7 +137,8 @@ function noStore(body: object) {
 function pairingFailure(
   cause: string,
   status: number,
-  recovery = "Controleer Supabase en vernieuw daarna de Player."
+  recovery = "Controleer Supabase en vernieuw daarna de Player.",
+  retryAfterSeconds?: number
 ) {
   return NextResponse.json(
     {
@@ -120,11 +146,15 @@ function pairingFailure(
         cause,
         effect: "De Player kan nu geen veilige tijdelijke koppelcode tonen.",
         recovery
-      }
+      },
+      ...(retryAfterSeconds ? { retryAfterSeconds } : {})
     },
     {
       headers: {
-        "Cache-Control": "no-store"
+        "Cache-Control": "no-store",
+        ...(retryAfterSeconds
+          ? { "Retry-After": String(retryAfterSeconds) }
+          : {})
       },
       status
     }

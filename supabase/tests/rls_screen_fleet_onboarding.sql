@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(33);
+select plan(35);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -227,6 +227,24 @@ select is(
   public.create_pairing_session_v3(repeat('1', 64), repeat('2', 64), repeat('9', 64)) ->> 'code',
   'RATE_LIMITED',
   'pairing creation is rate limited durably per device fingerprint'
+);
+select cmp_ok(
+  (public.create_pairing_session_v3(
+    repeat('1', 64), repeat('2', 64), repeat('9', 64)
+  ) ->> 'retryAfterSeconds')::integer,
+  '>', 0,
+  'pairing creation returns a bounded automatic retry delay'
+);
+
+reset role;
+insert into private.pairing_creation_attempts(fingerprint_hash, outcome)
+select repeat('8', 64), 'rate_limited' from generate_series(1, 5);
+set local role anon;
+select ok(
+  (public.create_pairing_session_v3(
+    repeat('6', 64), repeat('7', 64), repeat('8', 64)
+  ) ->> 'ok')::boolean,
+  'rate-limited refreshes do not extend the Player creation lockout'
 );
 
 reset role;

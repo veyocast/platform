@@ -45,10 +45,14 @@ import {
 const demoPairingCode = "VYO 482";
 const localStoragePairingCodeKey = "veyocast.player.pairingCode";
 const localStoragePairingExpiryKey = "veyocast.player.pairingExpiresAt";
+const localStoragePairingProvisionAfterKey = "veyocast.player.pairingProvisionAfter";
+const localStoragePlayerInstanceKey = "veyocast.player.instanceId";
 const localStorageReloadTimestampsKey = "veyocast.player.reloadTimestamps";
 const waitingContentSyncIntervalMs = 5_000;
 const maximumManifestSyncBackoffMs = 5 * 60_000;
 const pairingClaimPollIntervalMs = 2_000;
+const pairingProvisionCooldownMs = 5_000;
+let volatilePlayerInstanceId: string | null = null;
 
 type PlaybackFailureCode =
   | "IMAGE_ERROR"
@@ -87,6 +91,7 @@ type WaitingContentRuntime = {
 
 type RuntimeView =
   | { state: "BOOTING" }
+  | { state: "PAIRING_RETRY"; reason: string; retryAt: string }
   | { state: "UNPAIRED"; pairingCode?: string; expiresAt?: string }
   | { state: "SYNCING"; deviceToken: string }
   | WaitingContentRuntime
@@ -347,11 +352,36 @@ export function PlayerRuntime() {
       let cancelled = false;
       let expiryTimer: number | undefined;
       let pollTimer: number | undefined;
+      let provisionTimer: number | undefined;
+      let retryAttempts = 0;
+
+      function queuePairingProvision(delayMs: number, reason?: string) {
+        if (cancelled) return;
+        const boundedDelayMs = Math.max(0, delayMs);
+        if (provisionTimer) window.clearTimeout(provisionTimer);
+        if (boundedDelayMs > 0) {
+          const retryAt = Date.now() + boundedDelayMs;
+          writePairingProvisionAfter(retryAt);
+          setRuntime({
+            reason: reason ?? "Een eerdere aanvraag wordt nog veilig afgerond.",
+            retryAt: new Date(retryAt).toISOString(),
+            state: "PAIRING_RETRY"
+          });
+        }
+        provisionTimer = window.setTimeout(() => {
+          void provisionPairing();
+        }, boundedDelayMs);
+      }
 
       async function provisionPairing() {
+        writePairingProvisionAfter(Date.now() + pairingProvisionCooldownMs);
         try {
           const response = await fetch("/api/player/pairing", {
             cache: "no-store",
+            headers: {
+              "X-VeyoCast-Player-Instance": readOrCreatePlayerInstanceId()
+            },
+            keepalive: true,
             method: "POST"
           });
           reportPlayerConnectivity(true);
@@ -362,22 +392,33 @@ export function PlayerRuntime() {
           }
 
           if (!response.ok) {
-            setRuntime({
-              state: "ERROR_RECOVERABLE",
-              error: {
-                cause: "Er kon geen veilige koppelcode worden gemaakt.",
-                effect: "De Player kan nog niet aan een scherm worden gekoppeld.",
-                recovery: "Controleer de verbinding en vernieuw daarna de Player."
-              }
-            });
+            const delayMs = pairingRetryDelayMs(response, body, retryAttempts);
+            retryAttempts += 1;
+            queuePairingProvision(
+              delayMs,
+              body.error?.cause ?? "De koppelservice is tijdelijk niet beschikbaar."
+            );
             return;
           }
 
-          if (!body.live || !body.deviceToken) {
+          if (!body.live) {
+            clearPairingProvisionAfter();
             setRuntime({ pairingCode: demoPairingCode, state: "UNPAIRED" });
             return;
           }
 
+          if (!body.deviceToken || !body.expiresAt || !body.pairingCode) {
+            const delayMs = transientPairingRetryDelayMs(retryAttempts);
+            retryAttempts += 1;
+            queuePairingProvision(
+              delayMs,
+              "De koppelservice gaf nog geen volledige veilige code terug."
+            );
+            return;
+          }
+
+          retryAttempts = 0;
+          clearPairingProvisionAfter();
           const pendingToken = body.deviceToken;
           writeStoredPairing(body);
           setRuntime({
@@ -393,14 +434,12 @@ export function PlayerRuntime() {
           }, pairingClaimPollIntervalMs);
         } catch {
           reportPlayerConnectivity(false);
-          setRuntime({
-            state: "ERROR_RECOVERABLE",
-            error: {
-              cause: "De koppelservice is niet bereikbaar.",
-              effect: "De Player kan nog niet aan een scherm worden gekoppeld.",
-              recovery: "Herstel de verbinding en vernieuw daarna de Player."
-            }
-          });
+          const delayMs = transientPairingRetryDelayMs(retryAttempts);
+          retryAttempts += 1;
+          queuePairingProvision(
+            delayMs,
+            "De koppelservice is tijdelijk niet bereikbaar."
+          );
         }
       }
 
@@ -422,10 +461,19 @@ export function PlayerRuntime() {
         }, Math.max(0, expiry - Date.now()));
       }
 
-      void provisionPairing();
+      const initialProvisionDelayMs = readPairingProvisionDelay();
+      queuePairingProvision(
+        initialProvisionDelayMs,
+        initialProvisionDelayMs > 0
+          ? "Een eerdere aanvraag wordt nog veilig afgerond."
+          : undefined
+      );
 
       return () => {
         cancelled = true;
+        if (provisionTimer) {
+          window.clearTimeout(provisionTimer);
+        }
         if (pollTimer) {
           window.clearInterval(pollTimer);
         }
@@ -1023,6 +1071,16 @@ export function PlayerRuntime() {
     return <SetupPanel stateLabel="BOOTING" title="Koppelcode maken" />;
   }
 
+  if (runtime.state === "PAIRING_RETRY") {
+    return (
+      <SetupPanel
+        detail={`${runtime.reason} De Player probeert het automatisch opnieuw; vernieuwen is niet nodig.`}
+        stateLabel="PAIRING_RETRY"
+        title="Nieuwe koppelcode voorbereiden"
+      />
+    );
+  }
+
   if (runtime.state === "READY") {
     return <WaitingContentPanel runtime={runtime} />;
   }
@@ -1261,25 +1319,33 @@ function PairingPanel({
 }
 
 function SetupPanel({
+  detail,
   stateLabel,
   title
 }: {
-  stateLabel: "BOOTING" | "SYNCING";
+  detail?: string;
+  stateLabel: "BOOTING" | "PAIRING_RETRY" | "SYNCING";
   title: string;
 }) {
+  const visibleStateLabel = {
+    BOOTING: "Player starten",
+    PAIRING_RETRY: "Automatisch herstellen",
+    SYNCING: "Synchroniseren"
+  }[stateLabel];
+
   return (
     <main className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player sync">
       <SetupBackdrop />
       <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
         <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
-        <p className="runtime-kicker">{stateLabel}</p>
+        <p className="runtime-kicker">{visibleStateLabel}</p>
         <h1 className="runtime-title" id="player-title">
           {title}
         </h1>
         <p className="runtime-copy">
-          {stateLabel === "BOOTING"
+          {detail ?? (stateLabel === "BOOTING"
             ? "De player vraagt een tijdelijke, veilige koppelcode aan. Het geheime device-token blijft op dit apparaat."
-            : "De player haalt het toegewezen release manifest op. Playback start zodra de online release compleet is gelezen."}
+            : "De player haalt het toegewezen release manifest op. Playback start zodra de online release compleet is gelezen.")}
         </p>
       </section>
     </main>
@@ -1426,9 +1492,96 @@ function writeStoredDeviceToken(deviceToken: string) {
 type PairingResponse = {
   deviceToken?: string;
   expiresAt?: string;
-  live: boolean;
-  pairingCode: string;
+  error?: PlayerManifestProblem["error"];
+  live?: boolean;
+  pairingCode?: string;
+  retryAfterSeconds?: number;
 };
+
+function readOrCreatePlayerInstanceId() {
+  if (volatilePlayerInstanceId) return volatilePlayerInstanceId;
+  try {
+    const stored = window.localStorage.getItem(localStoragePlayerInstanceKey);
+    if (stored && /^[a-f0-9-]{20,80}$/i.test(stored)) {
+      volatilePlayerInstanceId = stored.toLowerCase();
+      return volatilePlayerInstanceId;
+    }
+  } catch {
+    // Continue with a volatile identifier in locked-down kiosk contexts.
+  }
+
+  const instanceId = createPlayerInstanceId();
+  volatilePlayerInstanceId = instanceId;
+  try {
+    window.localStorage.setItem(localStoragePlayerInstanceKey, instanceId);
+  } catch {
+    // The volatile identifier still prevents repeated requests in this page session.
+  }
+  return instanceId;
+}
+
+function createPlayerInstanceId() {
+  if (typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  window.crypto.getRandomValues(bytes);
+  return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+function readPairingProvisionDelay() {
+  try {
+    const stored = Number(
+      window.localStorage.getItem(localStoragePairingProvisionAfterKey)
+    );
+    return Number.isFinite(stored) && stored > Date.now()
+      ? stored - Date.now()
+      : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writePairingProvisionAfter(timestamp: number) {
+  try {
+    window.localStorage.setItem(
+      localStoragePairingProvisionAfterKey,
+      String(Math.ceil(timestamp))
+    );
+  } catch {
+    // Storage can be unavailable in locked-down kiosk contexts.
+  }
+}
+
+function clearPairingProvisionAfter() {
+  try {
+    window.localStorage.removeItem(localStoragePairingProvisionAfterKey);
+  } catch {
+    // Storage can be unavailable in locked-down kiosk contexts.
+  }
+}
+
+function pairingRetryDelayMs(
+  response: Response,
+  body: PairingResponse,
+  retryAttempt: number
+) {
+  if (response.status !== 429) {
+    return transientPairingRetryDelayMs(retryAttempt);
+  }
+  const headerSeconds = Number(response.headers.get("Retry-After"));
+  const bodySeconds = Number(body.retryAfterSeconds);
+  const seconds = Number.isFinite(headerSeconds) && headerSeconds > 0
+    ? headerSeconds
+    : Number.isFinite(bodySeconds) && bodySeconds > 0
+      ? bodySeconds
+      : 600;
+  return Math.min(600_000, Math.max(1_000, Math.ceil(seconds * 1_000)));
+}
+
+function transientPairingRetryDelayMs(retryAttempt: number) {
+  return Math.min(60_000, 5_000 * 2 ** Math.min(4, retryAttempt));
+}
 
 function readStoredPairing() {
   try {
@@ -1450,7 +1603,7 @@ function readStoredPairing() {
 }
 
 function writeStoredPairing(pairing: PairingResponse) {
-  if (!pairing.deviceToken || !pairing.expiresAt) {
+  if (!pairing.deviceToken || !pairing.expiresAt || !pairing.pairingCode) {
     return;
   }
 

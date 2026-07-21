@@ -36,6 +36,104 @@ test("player pairing becomes static when reduced motion is requested", async ({
   );
 });
 
+test("recovers automatically when pairing creation is temporarily rate limited", async ({
+  page
+}) => {
+  let pairingRequests = 0;
+  const playerInstances: string[] = [];
+  await page.route("**/api/player/pairing", (route) => {
+    pairingRequests += 1;
+    playerInstances.push(
+      route.request().headers()["x-veyocast-player-instance"] ?? ""
+    );
+    if (pairingRequests === 1) {
+      return route.fulfill({
+        contentType: "application/json",
+        headers: { "Retry-After": "1" },
+        json: {
+          error: {
+            cause: "Er zijn te veel koppelcodes voor deze Player aangevraagd.",
+            effect: "De Player kan nu geen veilige tijdelijke koppelcode tonen.",
+            recovery: "De Player probeert het automatisch opnieuw."
+          },
+          retryAfterSeconds: 1
+        },
+        status: 429
+      });
+    }
+    return route.fulfill({
+      contentType: "application/json",
+      json: {
+        deviceToken: "rate-limit-recovery-token",
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+        live: true,
+        pairingCode: "RTY 234"
+      }
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    contentType: "application/json",
+    json: { ok: false },
+    status: 403
+  }));
+
+  await page.goto(playerURL);
+  await expect(
+    page.getByRole("heading", { name: "Nieuwe koppelcode voorbereiden" })
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Playback wacht" })).toHaveCount(0);
+  await expect(page.getByLabel("Pairingcode")).toContainText("RTY 234", {
+    timeout: 4_000
+  });
+  expect(pairingRequests).toBe(2);
+  expect(playerInstances[0]).toMatch(/^[a-f0-9-]{20,80}$/);
+  expect(playerInstances[1]).toBe(playerInstances[0]);
+});
+
+test("coalesces rapid refreshes before requesting another pairing code", async ({
+  page
+}) => {
+  let pairingRequests = 0;
+  await page.addInitScript(() => {
+    if (!sessionStorage.getItem("pairing-cooldown-seeded")) {
+      localStorage.setItem(
+        "veyocast.player.pairingProvisionAfter",
+        String(Date.now() + 5_000)
+      );
+      sessionStorage.setItem("pairing-cooldown-seeded", "true");
+    }
+  });
+  await page.route("**/api/player/pairing", (route) => {
+    pairingRequests += 1;
+    return route.fulfill({
+      contentType: "application/json",
+      json: {
+        deviceToken: "refresh-coalescing-token",
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+        live: true,
+        pairingCode: "RFS 234"
+      }
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    contentType: "application/json",
+    json: { ok: false },
+    status: 403
+  }));
+
+  await page.goto(playerURL);
+  await expect(
+    page.getByRole("heading", { name: "Nieuwe koppelcode voorbereiden" })
+  ).toBeVisible();
+  await page.reload();
+  await page.waitForTimeout(500);
+  expect(pairingRequests).toBe(0);
+  await expect(page.getByLabel("Pairingcode")).toContainText("RFS 234", {
+    timeout: 7_000
+  });
+  expect(pairingRequests).toBe(1);
+});
+
 test("live pairing completes before content exists and keeps reporting readiness", async ({
   page
 }) => {
