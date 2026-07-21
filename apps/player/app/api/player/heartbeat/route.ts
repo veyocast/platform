@@ -5,6 +5,10 @@ import { NextResponse } from "next/server";
 import { readPlayerAppVersion } from "../../../_lib/runtime-health";
 
 import { createPlayerAnonClient } from "../../../_lib/player-supabase";
+import {
+  playbackErrorSyncDetail,
+  safePlayerIdentifier
+} from "../../../_lib/player-heartbeat";
 
 const runtimeStates = new Set([
   "READY",
@@ -33,6 +37,7 @@ export async function POST(request: Request) {
       code?: string;
       itemId?: string;
       occurredAt?: string;
+      recoveredAt?: string;
     } | null;
     networkState?: string | null;
     runtimeState?: string;
@@ -50,6 +55,8 @@ export async function POST(request: Request) {
     );
   }
 
+  const playbackErrorDetail = playbackErrorSyncDetail(body.lastPlaybackError);
+
   const { error } = await supabase.rpc("record_player_heartbeat_v2", {
     p_active_release_id: body.activeReleaseId ?? null,
     p_app_version: readPlayerAppVersion(),
@@ -63,13 +70,13 @@ export async function POST(request: Request) {
     p_storage_quota_bytes: safeNonNegativeInteger(body.storageQuotaBytes),
     p_storage_used_bytes: safeNonNegativeInteger(body.storageUsedBytes),
     p_sync_detail: {
-      currentItemId: safeIdentifier(body.currentItemId),
+      currentItemId: safePlayerIdentifier(body.currentItemId),
       deploymentSha:
         process.env.VERCEL_GIT_COMMIT_SHA?.trim().slice(0, 120) ||
         process.env.DEPLOYMENT_SHA?.trim().slice(0, 120) ||
         "local",
-      lastPlaybackError: sanitizePlaybackError(body.lastPlaybackError),
-      desiredReleaseId: safeIdentifier(body.desiredReleaseId),
+      ...playbackErrorDetail,
+      desiredReleaseId: safePlayerIdentifier(body.desiredReleaseId),
       networkState: body.networkState === "offline" ? "offline" : "online"
     },
     p_sync_phase: body.syncPhase ?? null,
@@ -114,36 +121,6 @@ function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
 
-function safeIdentifier(value: string | null | undefined) {
-  return value?.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 100) || null;
-}
-
 function safeNonNegativeInteger(value: number | null | undefined) {
   return Number.isSafeInteger(value) && Number(value) >= 0 ? Number(value) : null;
-}
-
-function sanitizePlaybackError(
-  value:
-    | {
-        action?: string;
-        code?: string;
-        itemId?: string;
-        occurredAt?: string;
-      }
-    | null
-    | undefined
-) {
-  if (!value) return null;
-  return {
-    action: safeIdentifier(value.action),
-    code: safeIdentifier(value.code),
-    itemId: safeIdentifier(value.itemId),
-    occurredAt: safeIsoTimestamp(value.occurredAt)
-  };
-}
-
-function safeIsoTimestamp(value: string | null | undefined) {
-  if (!value || value.length > 40) return null;
-  const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
 }

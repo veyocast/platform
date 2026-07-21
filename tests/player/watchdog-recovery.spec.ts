@@ -128,14 +128,24 @@ test("retries a decode failure once, skips it and reports recovery in heartbeat"
 
   const reportedErrors = heartbeatBodies
     .map((body) => body.lastPlaybackError)
-    .filter(Boolean) as Array<{ action?: string; code?: string; itemId?: string }>;
+    .filter(Boolean) as Array<{ action?: string; code?: string; itemId?: string; recoveredAt?: string }>;
   expect(reportedErrors).toContainEqual(
     expect.objectContaining({
       action: "SKIP_ITEM",
       code: expect.stringMatching(/^VIDEO_/),
-      itemId: "invalid-video"
+      itemId: "invalid-video",
+      recoveredAt: expect.any(String)
     })
   );
+  await expect.poll(() => {
+    const recoveredIndex = heartbeatBodies.findIndex((body) => {
+      const error = body.lastPlaybackError as { recoveredAt?: string } | null | undefined;
+      return Boolean(error?.recoveredAt);
+    });
+    return recoveredIndex >= 0 && heartbeatBodies
+      .slice(recoveredIndex + 1)
+      .some((body) => body.lastPlaybackError === null);
+  }, { timeout: 5_000 }).toBe(true);
 });
 
 test("detects a stalled video that stops making time progress", async ({ page }) => {

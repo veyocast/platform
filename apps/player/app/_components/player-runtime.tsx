@@ -62,6 +62,7 @@ type PlaybackErrorReport = {
   code: PlaybackFailureCode;
   itemId: string;
   occurredAt: string;
+  recoveredAt?: string;
 };
 
 type PlaybackRuntimeState = Extract<
@@ -248,6 +249,13 @@ export function PlayerRuntime() {
     if (activeItem?.id !== itemId) return;
     playbackReadyRef.current = true;
     consecutiveFailuresRef.current = 0;
+    const lastError = lastPlaybackErrorRef.current;
+    if (lastError && !lastError.recoveredAt) {
+      lastPlaybackErrorRef.current = {
+        ...lastError,
+        recoveredAt: new Date().toISOString()
+      };
+    }
   }, []);
 
   const handlePlaybackFailure = useCallback(async (
@@ -908,6 +916,8 @@ export function PlayerRuntime() {
   ]);
 
   useEffect(() => {
+    let recoveryHeartbeatTimer: number | undefined;
+
     async function sendHeartbeat() {
       const currentRuntime = runtimeRef.current;
       const deviceToken = readStoredDeviceToken();
@@ -923,6 +933,7 @@ export function PlayerRuntime() {
       const activeItem = playbackRuntime
         ? playbackRuntime.release.envelope.manifest.items[playbackRuntime.activeIndex]
         : null;
+      const reportedPlaybackError = lastPlaybackErrorRef.current;
       const syncPhase = !playbackRuntime
         ? null
         : playbackRuntime.state === "DOWNLOADING"
@@ -934,7 +945,7 @@ export function PlayerRuntime() {
               : "active";
 
       try {
-        await fetch("/api/player/heartbeat", {
+        const response = await fetch("/api/player/heartbeat", {
           body: JSON.stringify({
             activeReleaseId: playbackRuntime?.release.envelope.manifest.releaseId ?? null,
             currentItemId: activeItem?.id ?? null,
@@ -943,7 +954,7 @@ export function PlayerRuntime() {
                 playbackRuntime.release.envelope.device.desiredReleaseId ??
                 playbackRuntime.release.envelope.manifest.releaseId
               : null,
-            lastPlaybackError: lastPlaybackErrorRef.current,
+            lastPlaybackError: reportedPlaybackError,
             networkState: navigator.onLine ? "online" : "offline",
             runtimeState: playbackRuntime?.state ?? "READY",
             storageQuotaBytes: storage.quota,
@@ -956,7 +967,18 @@ export function PlayerRuntime() {
           },
           method: "POST"
         });
+        if (!response.ok) throw new Error("Heartbeat is geweigerd.");
         reportPlayerConnectivity(true);
+        if (
+          reportedPlaybackError?.recoveredAt &&
+          lastPlaybackErrorRef.current === reportedPlaybackError
+        ) {
+          lastPlaybackErrorRef.current = null;
+          if (recoveryHeartbeatTimer) window.clearTimeout(recoveryHeartbeatTimer);
+          recoveryHeartbeatTimer = window.setTimeout(() => {
+            void sendHeartbeat();
+          }, 1_000);
+        }
       } catch {
         reportPlayerConnectivity(false);
       }
@@ -972,6 +994,7 @@ export function PlayerRuntime() {
     return () => {
       window.clearTimeout(initialHeartbeatTimer);
       window.clearInterval(heartbeatTimer);
+      if (recoveryHeartbeatTimer) window.clearTimeout(recoveryHeartbeatTimer);
     };
   }, []);
 
