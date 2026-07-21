@@ -11,7 +11,8 @@
   zonder de actieve release of het actieve item te vervangen.
 - Alleen tijdens aantoonbaar netwerkverlies staat rechtsonder een compacte
   tekstchip `Geen internetverbinding`; normale playback heeft geen permanent
-  diagnosepaneel of softwarewatermark.
+  diagnosepaneel. De enige vaste system mark is de locked VeyoCast-lock-up
+  linksonder op 60% opacity.
 
 ## State model
 

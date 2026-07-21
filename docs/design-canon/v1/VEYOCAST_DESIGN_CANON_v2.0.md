@@ -36,9 +36,9 @@ lang: nl-NL
 # Documentstatus
 
 **Document:** VeyoCast Bold - Design & Product Canon  
-**Versie:** 2.1.1  
+**Versie:** 2.1.2  
 **Status:** Canoniek / normatief; merkassetset v1.0 goedgekeurd  
-**Datum:** 20 juli 2026  
+**Datum:** 21 juli 2026  
 **Reikwijdte:** merkidentiteit, marketingwebsite, control dashboard, mobiele PWA, player setup, fullscreen playback, ClubTV-templates, design tokens, componentbibliotheek, contentstijl, toegankelijkheid en governance.
 
 Dit document is de bron van waarheid voor alle zichtbare VeyoCast-ervaringen. Het doel is niet alleen om een stijl te beschrijven, maar om beslissingen vast te leggen die ontwerpers, developers, marketeers, supportmedewerkers en externe partners consequent moeten toepassen.
@@ -70,7 +70,7 @@ VeyoCast bestaat visueel uit drie samenhangende maar verschillende omgevingen:
 
 1. **Brand & Marketing** - overtuigend, editorial, expressief en conversiegericht.
 2. **Control** - operationeel, rustig, informatierijk en zeer bruikbaar.
-3. **Player** - tijdens normale weergave vrijwel onzichtbaar als software; setup en diagnostiek zijn merkbaar VeyoCast, de clubcontent staat centraal.
+3. **Player** - tijdens normale weergave terughoudend als software; setup en diagnostiek zijn merkbaar VeyoCast, de clubcontent staat centraal en alleen de goedgekeurde vaste system mark blijft zichtbaar.
 
 De systemen delen dezelfde merkcodes, maar hebben verschillende dichtheid, typografische schaal en interactielogica.
 
@@ -121,7 +121,10 @@ Offline status, releaseversies, synchronisatie, opslag en laatste verbinding wor
 
 ### 4. Clubcontent is de held
 
-In de player domineert de club, niet VeyoCast. Het merk verschijnt bij setup, pairing, startup en diagnostiek; normale playback blijft vrij van permanente softwarebranding.
+In de player domineert de club, niet VeyoCast. Setup, pairing, startup en
+diagnostiek zijn volledig merkbaar; tijdens normale playback blijft uitsluitend
+de locked VeyoCast-lock-up linksonder op exact 60% opacity zichtbaar. Deze
+expliciet goedgekeurde system mark bevat geen metadata, status of bediening.
 
 ### 5. Eén systeem, verschillende intensiteiten
 
@@ -2285,7 +2288,10 @@ De Player is geen tweede dashboard. Hij is een zelfstandig geregistreerd device 
 - na crash of stroomuitval herstelt;
 - systeemstatus terugrapporteert.
 
-Tijdens normale playback staat de clubcontent centraal. VeyoCast is zichtbaar bij setup, startup, pairing en diagnostiek, niet als permanente overlay.
+Tijdens normale playback staat de clubcontent centraal. VeyoCast is zichtbaar
+bij setup, startup, pairing en diagnostiek; daarnaast staat uitsluitend de
+expliciet goedgekeurde locked VeyoCast-lock-up linksonder op 60% opacity als
+vaste system mark over de content.
 
 ## 13.2 Player state model
 
@@ -2462,8 +2468,9 @@ Het publieke scherm blijft normale content afspelen. Tijdens normale playback
 is geen technisch diagnosepaneel zichtbaar. Uitsluitend zolang de browser
 offline meldt of de Player-origin aantoonbaar onbereikbaar is, verschijnt
 rechtsonder een compacte chip met `Geen internetverbinding`. De chip verdwijnt
-automatisch na herstelde communicatie, bevat geen VeyoCast-watermark en
-vervangt of onderbreekt de last-known-good release nooit.
+automatisch na herstelde communicatie, voegt geen extra VeyoCast-watermark toe
+en vervangt of onderbreekt de last-known-good release nooit. De goedgekeurde
+vaste system mark linksonder blijft ongewijzigd zichtbaar.
 
 ## 13.7 Disabled/revoked state
 
@@ -2486,7 +2493,9 @@ Playback toont:
 - geen taskbar;
 - geen tabs;
 - geen permanente setupoverlay;
-- geen VeyoCast-watermark tenzij expliciet als goedgekeurde, zeer discrete system mark in een specifieke context.
+- geen schermnaam, mediatitel, playlistnaam of andere playbackmetadata;
+- uitsluitend de locked VeyoCast-lock-up linksonder op 60% opacity als
+  goedgekeurde vaste system mark; geen andere softwarewatermark.
 
 De Player bewaakt aspect ratio en gebruikt `fit`, `fill` of template-native layout volgens assetinstelling. Fotografie wordt niet vervormd.
 
@@ -2727,7 +2736,9 @@ QR wordt niet in een hoek gepropt. Op een groot scherm wordt de fysieke scanbaar
 - programma/uitslagen: 10-16 s;
 - sponsor: 8-12 s;
 - QR-actieslide: 12-20 s;
-- video: natuurlijke duur, binnen ingestelde limieten;
+- video: de immutable gepubliceerde itemduur; de natuurlijke duur is de
+  authoringstandaard, maar een vroeg native `ended`-event verkort de
+  gepubliceerde slotduur niet;
 - zeer korte itemduur onder 5 s is niet toegestaan voor tekstslides.
 
 ### Leesberekening
@@ -2783,7 +2794,8 @@ Templates worden getest met:
 
 ## 13.25 Player anti-patterns
 
-- permanente VeyoCast-watermark over clubcontent;
+- andere permanente VeyoCast-watermarks dan de goedgekeurde locked lock-up
+  linksonder op 60% opacity;
 - browser URL bar of cursor;
 - mini-dashboard tijdens normale playback;
 - zwarte foutpagina bij tijdelijk internetverlies;
@@ -3367,7 +3379,8 @@ Tenantbranding mag niet:
 
 - [ ] Startup gebruikt exact logoasset.
 - [ ] Normale playback heeft geen browserchrome/cursor.
-- [ ] Geen permanente VeyoCast-watermark.
+- [ ] Alleen de locked VeyoCast-lock-up linksonder op exact 60% opacity; geen
+  schermnaam, mediatitel, playlistnaam of andere permanente overlay.
 - [ ] Player start met cached release zonder netwerk.
 - [ ] Pending release wordt volledig gedownload en geverifieerd.
 - [ ] Switch gebeurt op veilige item/loopgrens.
@@ -3843,7 +3856,8 @@ scene    480 ms
 ## 22.4 Player
 
 - browserchrome;
-- permanente softwarewatermark;
+- permanente softwarewatermark buiten de goedgekeurde locked VeyoCast-lock-up
+  linksonder op 60% opacity;
 - zwart scherm bij offline;
 - incomplete release activeren;
 - portrait crop van landscape;

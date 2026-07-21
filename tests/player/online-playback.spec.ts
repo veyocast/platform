@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import type { PlayerManifestEnvelope } from "../../apps/player/app/_lib/player-manifest";
+
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
 test("fetches an online release manifest and starts playback", async ({
@@ -25,6 +27,62 @@ test("fetches an online release manifest and starts playback", async ({
   await expect(page.getByLabel("Player diagnostics")).toContainText("PLAYING");
   await expect(page.getByLabel("Player diagnostics")).toContainText("Zomerroute v3");
   await expect(page.getByLabel("Pairingcode")).toHaveCount(0);
+  await expect(page.locator(".playback-now")).toHaveCount(0);
+  await expect(page.getByTestId("player-brand-mark")).toBeVisible();
+  await expect(page.getByTestId("player-brand-mark")).toHaveCSS("opacity", "0.6");
+});
+
+test("keeps three video items in order for their published slot duration", async ({
+  page
+}) => {
+  const manifestResponse = await page.request.get(
+    `${playerURL}/api/player/manifest?deviceToken=demo-online`
+  );
+  const baseline = (await manifestResponse.json()) as PlayerManifestEnvelope;
+  const videoTemplate = baseline.manifest.items[1]!;
+  const videos = ["Video een", "Video twee", "Video drie"].map((title, index) => ({
+    ...videoTemplate,
+    durationSeconds: 10,
+    id: `ordered-video-${index + 1}`,
+    title
+  }));
+  const manifest: PlayerManifestEnvelope = {
+    ...baseline,
+    device: {
+      ...baseline.device,
+      activeReleaseId: "66666666-6666-4666-8666-666666666666",
+      desiredReleaseId: "66666666-6666-4666-8666-666666666666"
+    },
+    manifest: {
+      ...baseline.manifest,
+      items: videos,
+      manifestHash: "6".repeat(64),
+      releaseId: "66666666-6666-4666-8666-666666666666",
+      totalBytes: (videoTemplate.source.posterBytes ?? 0) * videos.length,
+      totalDurationSeconds: 30,
+      version: 6
+    }
+  };
+
+  await page.route("**/api/player/manifest", (route) =>
+    route.fulfill({ body: JSON.stringify(manifest), contentType: "application/json" })
+  );
+  await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=400`);
+
+  const firstVideo = page.getByLabel("Video een");
+  await expect(firstVideo).toBeVisible();
+  await firstVideo.dispatchEvent("playing");
+  await firstVideo.dispatchEvent("ended");
+  await page.waitForTimeout(150);
+  await expect(firstVideo).toBeVisible();
+
+  const secondVideo = page.getByLabel("Video twee");
+  await expect(secondVideo).toBeVisible({ timeout: 1_500 });
+  await secondVideo.dispatchEvent("playing");
+  await secondVideo.dispatchEvent("ended");
+
+  const thirdVideo = page.getByLabel("Video drie");
+  await expect(thirdVideo).toBeVisible({ timeout: 1_500 });
 });
 
 test("loops to the muted video slot without browser controls", async ({
