@@ -185,11 +185,13 @@ test.describe("live pilot vertical slice", () => {
     await expect(staleEditorPage.getByText("Jouw actie is niet uitgevoerd.")).toBeVisible();
     await expect(staleEditorPage.getByRole("link", { name: "Nieuwste versie laden" })).toBeVisible();
     await staleEditorContext.close();
-    await expect(page.getByLabel("Duur in seconden")).toHaveValue("12");
+    await page.getByRole("button", { name: "Live pilotbeeld bewerken" }).click();
+    await expect(page.getByLabel("Afspeelduur in seconden")).toHaveValue("12");
     await expect(page.getByLabel("Weergave")).toHaveValue("cover");
 
-    await page.getByLabel("Duur in seconden").fill(videoFixture ? "5" : "14");
+    await page.getByLabel("Afspeelduur in seconden").fill(videoFixture ? "5" : "14");
     await page.getByLabel("Weergave").selectOption("contain");
+    await page.getByRole("button", { name: "Venster sluiten" }).click();
     let leaveWarning = "";
     page.once("dialog", async (dialog) => {
       leaveWarning = dialog.message();
@@ -198,12 +200,21 @@ test.describe("live pilot vertical slice", () => {
     await page.getByRole("link", { name: "Terug naar playlists" }).click();
     expect(leaveWarning).toContain("niet-opgeslagen formulierwijzigingen");
     await expect(page).toHaveURL(/\/dashboard\/playlists\/[0-9a-f-]{36}/i);
-    await page.getByRole("button", { name: "Iteminstellingen opslaan" }).click();
+    await page.getByRole("button", { name: "Live pilotbeeld bewerken" }).click();
+    await page.getByLabel("Afspeelduur in seconden").fill(videoFixture ? "5" : "14");
+    await page.getByLabel("Weergave").selectOption("contain");
+    await page.getByRole("button", { name: "Wijzigingen opslaan" }).click();
     await expect(page.getByText("De iteminstellingen zijn opgeslagen")).toBeVisible();
 
     if (videoFixture) {
       await page.getByRole("listitem").filter({ hasText: "Live queuecontrole" }).getByRole("button", { name: "Toevoegen" }).click();
       await expect(page.getByText("Het media-item is aan het concept toegevoegd")).toBeVisible();
+      const dragHandle = page.getByRole("button", { name: /Versleep Live queuecontrole/ });
+      await dragHandle.focus();
+      await page.keyboard.press("Space");
+      await page.keyboard.press("ArrowUp");
+      await page.keyboard.press("Space");
+      await expect(page.getByText("De nieuwe volgorde is opgeslagen")).toBeVisible();
       await page.getByRole("button", { name: "Volgende" }).click();
       const previewVideo = page.getByLabel("Voorbeeldvideo Live queuecontrole");
       await expect(previewVideo).toBeVisible();

@@ -56,26 +56,34 @@ export async function addPlaylistItem(formData: FormData) {
 export async function updatePlaylistItem(formData: FormData) {
   const playlistId = idValue(formData, "playlistId");
   const itemId = idValue(formData, "itemId");
+  const displayName = String(formData.get("displayName") ?? "").trim();
   const durationSeconds = Number.parseInt(String(formData.get("duration") ?? ""), 10);
   const fitMode = String(formData.get("fitMode") ?? "");
   const muted = formData.get("muted") === "on";
+  if (displayName.length < 2 || displayName.length > 120) fail(playlistId, "Gebruik een medianaam van 2 tot en met 120 tekens.");
   if (!Number.isInteger(durationSeconds) || durationSeconds < 5 || durationSeconds > 3600) fail(playlistId, "De itemduur moet tussen 5 en 3600 seconden liggen.");
   if (fitMode !== "contain" && fitMode !== "cover") fail(playlistId, "Kies Volledig in beeld of Schermvullend.");
-  await mutate(formData, playlistId, "update_item", { durationSeconds, fitMode, itemId, muted }, "De iteminstellingen zijn opgeslagen.");
+  await mutate(formData, playlistId, "update_item", { displayName, durationSeconds, fitMode, itemId, muted }, "De iteminstellingen zijn opgeslagen.");
 }
 
 export async function movePlaylistItem(formData: FormData) {
   const playlistId = idValue(formData, "playlistId");
   const itemId = idValue(formData, "itemId");
   const direction = String(formData.get("direction") ?? "");
-  if (!["up", "down", "start", "end"].includes(direction)) fail(playlistId, "De gekozen verplaatsing is ongeldig.");
+  const targetPositionValue = String(formData.get("targetPosition") ?? "");
+  const targetPosition = targetPositionValue ? Number.parseInt(targetPositionValue, 10) : null;
+  if (targetPosition === null && !["up", "down", "start", "end"].includes(direction)) fail(playlistId, "De gekozen verplaatsing is ongeldig.");
+  if (targetPosition !== null && (!Number.isInteger(targetPosition) || targetPosition < 0)) fail(playlistId, "De gekozen doelpositie is ongeldig.");
   const messages: Record<string, string> = {
     down: "Het item is omlaag verplaatst.",
     end: "Het item staat nu onderaan.",
     start: "Het item staat nu bovenaan.",
     up: "Het item is omhoog verplaatst."
   };
-  await mutate(formData, playlistId, "move_item", { direction, itemId }, messages[direction] ?? "De volgorde is gewijzigd.");
+  const payload: Record<string, boolean | number | string> = targetPosition === null
+    ? { direction, itemId }
+    : { itemId, targetPosition };
+  await mutate(formData, playlistId, "move_item", payload, messages[direction] ?? "De nieuwe volgorde is opgeslagen.");
 }
 
 export async function removePlaylistItem(formData: FormData) {

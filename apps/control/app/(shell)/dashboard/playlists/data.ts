@@ -53,6 +53,7 @@ export type PlaylistStudioAsset = {
 export type PlaylistStudioVariant = {
   assetId: string;
   checksumSha256: string;
+  durationSeconds: number | null;
   fileSizeBytes: number;
   height: number | null;
   mimeType: string;
@@ -192,7 +193,7 @@ export async function loadPlaylistStudio(
     supabase.from("playlists").select("id, tenant_id, name, description, status, revision, archived_at, updated_at, updated_by").eq("tenant_id", tenantId).eq("id", playlistId).maybeSingle(),
     supabase.from("playlist_items").select("id, media_asset_id, sort_order, duration_seconds, fit_mode, muted").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("sort_order"),
     supabase.from("media_assets").select("id, tenant_id, title, kind, mime_type, status, deleted_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
-    supabase.from("media_variants").select("asset_id, tenant_id, variant_type, storage_path, mime_type, file_size_bytes, checksum_sha256, width, height").eq("tenant_id", tenantId),
+    supabase.from("media_variants").select("asset_id, tenant_id, variant_type, storage_path, mime_type, file_size_bytes, checksum_sha256, width, height, duration_seconds").eq("tenant_id", tenantId),
     supabase.from("playlist_releases").select("id, version, item_count, total_duration_seconds, total_bytes, published_at, published_by").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("version", { ascending: false }),
     supabase.from("screens").select("id, name, orientation, assigned_playlist_id").eq("tenant_id", tenantId).eq("status", "active").order("name")
   ]);
@@ -219,8 +220,9 @@ export async function loadPlaylistStudio(
       previewUrl = signed.data?.signedUrl ?? null;
     }
     return {
-    assetId: variant.asset_id,
-    checksumSha256: variant.checksum_sha256,
+      assetId: variant.asset_id,
+      checksumSha256: variant.checksum_sha256,
+      durationSeconds: variant.duration_seconds === null ? null : Number(variant.duration_seconds),
       fileSizeBytes: Number(variant.file_size_bytes),
       height: variant.height,
       mimeType: variant.mime_type,

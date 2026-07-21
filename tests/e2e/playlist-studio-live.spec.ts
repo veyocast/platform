@@ -13,6 +13,7 @@ test.describe("live Playlist Studio", () => {
 
   test("prevents lost updates and completes a multi-screen guided publish", async ({ browser, page }) => {
     const assetTitle = `S25 previewbeeld ${Date.now()}`;
+    const secondAssetTitle = `S25 sleepbeeld ${Date.now()}`;
     const secondScreen = `S26 tweede scherm ${Date.now()}`;
     await page.goto("/login");
     await page.getByLabel("E-mailadres").fill("pilot-admin@veyocast.test");
@@ -31,6 +32,14 @@ test.describe("live Playlist Studio", () => {
     });
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
     await expect(page.getByText(`${assetTitle} is gecontroleerd`)).toBeVisible();
+    await page.getByLabel("Titel", { exact: true }).fill(secondAssetTitle);
+    await page.getByLabel("Bestand", { exact: true }).setInputFiles({
+      buffer: validPngFixture,
+      mimeType: "image/png",
+      name: "s25-drag.png"
+    });
+    await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
+    await expect(page.getByText(`${secondAssetTitle} is gecontroleerd`)).toBeVisible();
 
     await page.goto("/dashboard/playlists");
     await page.getByLabel("Playlistnaam").fill("S25 concurrentieplaylist");
@@ -62,10 +71,12 @@ test.describe("live Playlist Studio", () => {
     await staleContext.close();
 
     await expect(page.getByAltText(`Voorbeeld van ${assetTitle}`)).toBeVisible();
-    await expect(page.getByLabel("Duur in seconden")).toHaveValue("10");
+    await page.getByRole("button", { name: `${assetTitle} bewerken` }).click();
+    await expect(page.getByLabel("Afspeelduur in seconden")).toHaveValue("10");
     await expect(page.getByLabel("Weergave")).toHaveValue("contain");
 
-    await page.getByLabel("Duur in seconden").fill("14");
+    await page.getByLabel("Afspeelduur in seconden").fill("14");
+    await page.getByRole("button", { name: "Venster sluiten" }).click();
     let leaveWarning = "";
     page.once("dialog", async (dialog) => {
       leaveWarning = dialog.message();
@@ -73,8 +84,29 @@ test.describe("live Playlist Studio", () => {
     });
     await page.getByRole("link", { name: "Terug naar playlists" }).click();
     expect(leaveWarning).toContain("niet-opgeslagen formulierwijzigingen");
-    await page.getByRole("button", { name: "Iteminstellingen opslaan" }).click();
+    await page.getByRole("button", { name: `${assetTitle} bewerken` }).click();
+    await page.getByLabel("Afspeelduur in seconden").fill("14");
+    await page.getByRole("button", { name: "Wijzigingen opslaan" }).click();
     await expect(page.getByText("De iteminstellingen zijn opgeslagen")).toBeVisible();
+
+    await page
+      .getByRole("listitem")
+      .filter({ hasText: secondAssetTitle })
+      .getByRole("button", { name: "Toevoegen" })
+      .click();
+    await expect(page.getByText("Het media-item is aan het concept toegevoegd")).toBeVisible();
+    const dragHandle = page.getByRole("button", { name: new RegExp(`Versleep ${secondAssetTitle}`) });
+    await dragHandle.scrollIntoViewIfNeeded();
+    const sourceBox = await dragHandle.boundingBox();
+    const targetBox = await page.locator(".playlist-item-list > li").first().boundingBox();
+    if (!sourceBox || !targetBox) throw new Error("Drag-and-drop-posities zijn niet beschikbaar.");
+    await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2 - 8, { steps: 2 });
+    await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2, { steps: 12 });
+    await page.mouse.up();
+    await expect(page.getByText("De nieuwe volgorde is opgeslagen")).toBeVisible();
+    await expect(page.locator(".playlist-item-list > li").first()).toContainText(secondAssetTitle);
 
     const studioUrl = page.url();
     await page.goto("/dashboard/screens/new");

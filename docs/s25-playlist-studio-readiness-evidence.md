@@ -24,6 +24,21 @@ Status: implementation review
 - Niet-opgeslagen formuliervelden activeren een `beforeunload`-waarschuwing en
   blokkeren interne navigatie totdat de gebruiker bevestigt of het formulier
   opslaat.
+- De itemlijst gebruikt een toegankelijke sortable tijdlijn: pointer/touch kan
+  items naar iedere positie verplaatsen, terwijl zichtbare `Omhoog`- en
+  `Omlaag`-acties dezelfde reorder volledig met het toetsenbord bedienen.
+  Een reorder is één revision-aware databasecommand en kan dus niet half of
+  tegen een verouderde conceptrevisie worden opgeslagen.
+- Ieder item heeft een compacte bewerkactie die een focus-trapped Radix-dialog
+  opent voor medianaam, afspeelduur, fit en geluid. De medianaam is de
+  canonieke assetnaam en de dialoog vermeldt daarom expliciet dat een wijziging
+  ook zichtbaar wordt in de mediabibliotheek en andere concepten; bestaande
+  releases blijven onveranderlijk.
+- De mediaworker schrijft de door FFprobe gevalideerde MP4-duur al op de asset
+  en playervariant. `add_item` gebruikt die duur nu als standaard en rondt
+  uitsluitend naar boven af naar de integerduur van het releasecontract, zodat
+  het video-einde niet wordt afgekapt. Alleen legacy assets zonder duur vallen
+  veilig terug op 10 seconden.
 
 ## Eén readinessberekening
 
@@ -85,27 +100,35 @@ concurrencymetadata is geaccepteerd, de twee kolommen worden gedropt. De
 immutable releasegegevens en Player-toewijzingen hoeven voor deze rollback niet
 te worden aangepast.
 
+De aanvullende drag/duur-migratie vervangt alleen de body van
+`mutate_playlist_draft_v1`; signatuur, grants en opgeslagen rijen blijven
+gelijk. Forward gebruikt bestaande `media_assets.duration_seconds`-metadata.
+Rollback bestaat uit applicatierollback gevolgd door herstel van de vorige
+functiebody; er hoeven geen playlistitems of releases te worden herschreven.
+
 ## Responsieve en toegankelijke controle
 
 De Studio gebruikt gelabelde formulieren, tekst plus kleur voor statussen,
-toetsenbordacties voor `Naar begin`, `Omhoog`, `Omlaag` en `Naar einde`, en
-fouten met oorzaak, gevolg en herstel. De live browsertest valideert bij 390 px
-dat de itemflow vóór de mediakiezer staat en dat de documentbreedte niet groter
-is dan de viewport. Visuele controle is uitgevoerd op 1440 × 1000 en 390 × 844.
+een benoemde sleepgreep en zichtbare, toetsenbordbedienbare `Omhoog`- en
+`Omlaag`-acties. Reorderresultaten worden via een live region
+aangekondigd; de Radix-dialog houdt focus vast en zet die terug op het
+potloodicoon. De live browsertest valideert bij 390 px dat de itemflow vóór de
+mediakiezer staat en dat de documentbreedte niet groter is dan de viewport.
+Visuele controle is uitgevoerd op 1440 × 1000 en 390 × 844.
 
 ## Verificatie
 
 | Gate | Resultaat |
 | --- | --- |
 | `pnpm db:reset` | geslaagd; alle migraties vanaf nul toegepast |
-| `pnpm test:rls` | geslaagd na integratie met S24; 14 bestanden, 228 tests |
+| `pnpm test:rls` | geslaagd; 17 bestanden, 291 tests inclusief MP4-duur, atomaire drag reorder, stale conflict en viewer-deny |
 | Supabase DB lint | geslaagd; geen schemafouten |
-| `pnpm lint`, `pnpm typecheck`, `pnpm test` | geslaagd; 18 Turbo-taken per gate |
-| `pnpm build` | geslaagd; 12 workspace-projecten, Studio-route dynamisch |
-| `pnpm test:a11y` | geslaagd; 17 tests |
-| volledige Chromium E2E | geslaagd na integratie met S24; 46 tests, 2 expliciete live skips |
-| live S25 E2E | geslaagd; echte upload, twee contexts, conflict, dirty state, preview, mobiele reflow en immutable publish |
-| Player en offline | geslaagd; 19 Player- en 7 offline-tests |
+| `pnpm lint`, `pnpm typecheck`, `pnpm test` | geslaagd; alle 13 packages en afhankelijke buildtaken groen |
+| `pnpm build` | geslaagd; 13 workspace-projecten, Studio-route dynamisch |
+| `pnpm test:a11y` | geslaagd; 19 tests |
+| volledige Chromium E2E | geslaagd; 58 tests en 2 expliciete live skips |
+| live S25 E2E | geslaagd; echte uploads, twee contexts, conflict, dirty state, editdialog, drag-and-drop, mobiele reflow en immutable publish |
+| Player en offline | geslaagd als onderdeel van de volledige Chromium-suite |
 | `git diff --check` | geslaagd |
 
 ## Expliciete restscope

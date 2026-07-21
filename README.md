@@ -94,7 +94,9 @@ Zie [`docs/media-pipeline-canon.md`](docs/media-pipeline-canon.md) en
 
 S25 bouwt daarop de gescheiden playlistlijst en Playlist Studio met
 revision-guards, een gedeeld publicatiegereedheidscontract en een responsieve
-editor. Zie
+editor. De Studio gebruikt de gevalideerde MP4-bronduur als standaard,
+ondersteunt toegankelijke drag-and-drop plus pijlacties en bundelt
+iteminstellingen in een compacte bewerkdialoog. Zie
 [`docs/s23-control-ux-evidence.md`](docs/s23-control-ux-evidence.md) en
 [`docs/s25-playlist-studio-readiness-evidence.md`](docs/s25-playlist-studio-readiness-evidence.md).
 

@@ -9,15 +9,13 @@ import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import {
   addPlaylistItem,
   archivePlaylist,
-  movePlaylistItem,
-  removePlaylistItem,
-  updatePlaylistDetails,
-  updatePlaylistItem
+  updatePlaylistDetails
 } from "../actions";
 import { loadPlaylistStudio } from "../data";
 import { PlaylistPreview, type PlaylistPreviewItem } from "../playlist-preview";
 import { getReadinessCopy } from "../readiness-copy";
 import { DirtyStateGuard } from "./dirty-state-guard";
+import { PlaylistTimelineEditor } from "./playlist-timeline-editor";
 
 type PlaylistStudioPageProps = {
   params: Promise<{ playlistId: string }>;
@@ -118,23 +116,7 @@ export default async function PlaylistStudioPage({ params, searchParams }: Playl
 
           <section className="playlist-studio-timeline" id="playlist-items" aria-labelledby="playlist-items-title">
             <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="playlist-items-title">Playlistitems</h2><p className="work-panel__meta">Volgorde en Playerinstellingen van het concept.</p></div><StatusPill label={`${data.items.length} items · ${formatDuration(readiness?.totalDurationSeconds ?? 0)}`} tone="neutral" /></div>
-            {data.items.length ? <ol className="playlist-item-list">{data.items.map((item, index) => {
-              const asset = item.asset;
-              return <li className="playlist-item" id={index === 0 ? "item-settings" : undefined} key={item.id}>
-                <div className="playlist-item__preview" data-kind={asset?.kind ?? "unknown"}>{asset?.kind === "video" ? "Video" : "Afbeelding"}</div>
-                <div className="playlist-item__body">
-                  <div className="work-panel__header"><div><p className="playlist-item__position">Positie {index + 1}</p><h3 className="work-panel__title">{asset?.title ?? "Ontbrekende media"}</h3><p className="work-panel__meta">{asset?.mimeType ?? "Media niet beschikbaar"}</p></div><StatusPill label={asset?.status === "ready" && asset.variant ? "Gereed" : "Blokkade"} tone={asset?.status === "ready" && asset.variant ? "success" : "warning"} /></div>
-                  <form action={updatePlaylistItem} className="playlist-item__settings"><RevisionFields playlistId={playlist.id} revision={revision} /><input name="itemId" type="hidden" value={item.id} /><div className="field"><label htmlFor={`duration-${item.id}`}>Duur in seconden</label><input defaultValue={item.durationSeconds} disabled={!canWrite} id={`duration-${item.id}`} max={3600} min={5} name="duration" required type="number" /></div><div className="field"><label htmlFor={`fit-${item.id}`}>Weergave</label><select defaultValue={item.fitMode} disabled={!canWrite} id={`fit-${item.id}`} name="fitMode"><option value="contain">Volledig in beeld</option><option value="cover">Schermvullend</option></select></div><label className="compact-check"><input defaultChecked={item.muted} disabled={!canWrite || asset?.kind !== "video"} name="muted" type="checkbox" /> Zonder geluid</label><button className="button-link button-link--secondary" disabled={!canWrite} type="submit">Iteminstellingen opslaan</button></form>
-                  <div className="playlist-item__actions" aria-label={`Volgordeacties voor ${asset?.title ?? `item ${index + 1}`}`}>
-                    <MoveForm direction="start" disabled={!canWrite || index === 0} itemId={item.id} label="Naar begin" playlistId={playlist.id} revision={revision} />
-                    <MoveForm direction="up" disabled={!canWrite || index === 0} itemId={item.id} label="Omhoog" playlistId={playlist.id} revision={revision} />
-                    <MoveForm direction="down" disabled={!canWrite || index === data.items.length - 1} itemId={item.id} label="Omlaag" playlistId={playlist.id} revision={revision} />
-                    <MoveForm direction="end" disabled={!canWrite || index === data.items.length - 1} itemId={item.id} label="Naar einde" playlistId={playlist.id} revision={revision} />
-                    <form action={removePlaylistItem}><RevisionFields playlistId={playlist.id} revision={revision} /><input name="itemId" type="hidden" value={item.id} /><button className="table-action table-action--critical" disabled={!canWrite} type="submit">Verwijderen</button></form>
-                  </div>
-                </div>
-              </li>;
-            })}</ol> : <div className="empty-state" role="status"><h2>Deze playlist is leeg</h2><p>Voeg minimaal één gereedstaand media-item toe voordat je kunt publiceren.</p><a className="button-link button-link--primary" href="#add-media">Media kiezen</a></div>}
+            {data.items.length ? <PlaylistTimelineEditor canWrite={canWrite} items={data.items} playlistId={playlist.id} revision={revision} /> : <div className="empty-state" role="status"><h2>Deze playlist is leeg</h2><p>Voeg minimaal één gereedstaand media-item toe voordat je kunt publiceren.</p><a className="button-link button-link--primary" href="#add-media">Media kiezen</a></div>}
           </section>
 
           <aside className="playlist-studio-inspector" aria-label="Preview en publicatiegereedheid">
@@ -166,10 +148,6 @@ function RevisionFields({ playlistId, revision }: { playlistId: string; revision
   return <><input name="playlistId" type="hidden" value={playlistId} /><input name="expectedRevision" type="hidden" value={revision} /></>;
 }
 
-function MoveForm({ direction, disabled, itemId, label, playlistId, revision }: { direction: string; disabled: boolean; itemId: string; label: string; playlistId: string; revision: number }) {
-  return <form action={movePlaylistItem}><RevisionFields playlistId={playlistId} revision={revision} /><input name="itemId" type="hidden" value={itemId} /><input name="direction" type="hidden" value={direction} /><button className="table-action" disabled={disabled} type="submit">{label}</button></form>;
-}
-
 function ConflictPanel({ actual, expected, operation, playlistId, updatedBy }: { actual?: string; expected?: string; operation?: string; playlistId: string; updatedBy: string }) {
   return <section className="notice notice--warning playlist-conflict" id="playlist-conflict" role="alert"><div><strong>Dit concept is ondertussen gewijzigd.</strong><p>Jouw actie is niet uitgevoerd. De nieuwste revisie blijft intact, zodat er geen wijzigingen verloren gaan.</p></div><details><summary>Revisies vergelijken</summary><dl className="meta-list"><div><dt>Jouw revisie</dt><dd>{expected ?? "Onbekend"}</dd></div><div><dt>Nieuwste revisie</dt><dd>{actual ?? "Onbekend"}</dd></div><div><dt>Laatste bewerker</dt><dd>{updatedBy}</dd></div><div><dt>Niet uitgevoerde actie</dt><dd>{operationLabel(operation)}</dd></div></dl></details><div className="page-action-group"><Link className="button-link button-link--primary" href={`/dashboard/playlists/${playlistId}`}>Nieuwste versie laden</Link><a className="button-link button-link--secondary" href="#playlist-items">Wijziging opnieuw invoeren</a></div></section>;
 }
@@ -192,8 +170,9 @@ function formatDuration(seconds: number) {
   return hours ? `${hours}:${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}` : `${minutes}:${String(rest).padStart(2, "0")}`;
 }
 
-function formatVariantLabel(kind: "image" | "video", variant: { height: number | null; width: number | null } | null) {
+function formatVariantLabel(kind: "image" | "video", variant: { durationSeconds: number | null; height: number | null; width: number | null } | null) {
   if (!variant) return "Variant ontbreekt";
+  if (kind === "video" && variant.durationSeconds) return `MP4 · ${new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 1 }).format(variant.durationSeconds)} sec`;
   if (variant.width && variant.height) return `${variant.width} × ${variant.height}`;
   return kind === "video" ? "MP4-player variant" : "Gereed voor Player";
 }
