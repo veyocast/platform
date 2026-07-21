@@ -23,7 +23,7 @@ export async function loadPlatformTenantDetail(tenantId: string) {
       .select("id, email, role, status, delivery_status, send_attempt_count, expires_at, created_at")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false }),
-    supabase.from("screens").select("id, status").eq("tenant_id", tenantId),
+    supabase.from("screens").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
     supabase
       .from("media_assets")
       .select("file_size_bytes")

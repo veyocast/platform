@@ -71,6 +71,7 @@ export async function searchControlResources(
     jobs.push(supabase.from("screens")
       .select("id, name, location, status")
       .eq("tenant_id", tenantId)
+      .is("deleted_at", null)
       .ilike("name", escaped)
       .order("name")
       .limit(8)

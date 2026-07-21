@@ -12,6 +12,7 @@ import {
   updateScreen
 } from "../actions";
 import { loadScreenDetail, type FleetDevice, type FleetRelease } from "../data";
+import { ScreenLifecycleActions } from "./screen-lifecycle-actions";
 
 type ScreenDetailPageProps = {
   params: Promise<{ screenId: string }>;
@@ -118,16 +119,24 @@ function OverviewTab({
         </div>
         <div className="form-grid">
           <div className="field"><label htmlFor="detail-screen-orientation">Oriëntatie</label><select defaultValue={screen.orientation} disabled={!canManage} id="detail-screen-orientation" name="orientation"><option value="landscape">Liggend</option><option value="portrait">Staand</option></select></div>
-          <div className="field"><label htmlFor="detail-screen-status">Lifecycle</label><select defaultValue={screen.status} disabled={!canManage} id="detail-screen-status" name="status"><option value="active">Actief</option><option value="maintenance">Onderhoud</option><option value="disabled">Uitgeschakeld</option></select></div>
+          <div className="field"><label htmlFor="detail-screen-status">Lifecycle</label><select defaultValue={screen.status} disabled={!canManage} id="detail-screen-status" name="status"><option value="active">Actief</option><option value="maintenance">Onderhoud</option>{screen.status === "disabled" ? <option value="disabled">Uitgeschakeld</option> : null}</select></div>
         </div>
         <div className="form-grid">
           <div className="field"><label htmlFor="detail-screen-width">Breedte</label><input defaultValue={screen.resolutionWidth ?? 1920} disabled={!canManage} id="detail-screen-width" max={7680} min={320} name="resolutionWidth" required type="number" /></div>
           <div className="field"><label htmlFor="detail-screen-height">Hoogte</label><input defaultValue={screen.resolutionHeight ?? 1080} disabled={!canManage} id="detail-screen-height" max={4320} min={240} name="resolutionHeight" required type="number" /></div>
         </div>
-        <p className="notice notice--warning"><strong>Let op bij uitschakelen.</strong> De gekoppelde sessie wordt ingetrokken. Een Player die offline is, kan cached content blijven tonen tot de eerstvolgende serververbinding.</p>
+        {screen.status === "disabled"
+          ? <p className="notice"><strong>Heractiveren.</strong> Sla lifecycle ‘Actief’ op en koppel daarna bewust een nieuwe Player; een ingetrokken device-identiteit wordt nooit hergebruikt.</p>
+          : <p className="notice notice--warning"><strong>Deactiveren is een aparte beheeractie.</strong> Gebruik de beveiligde actie onderaan; daar wordt het offline gevolg expliciet bevestigd.</p>}
         <button className="button-link button-link--primary" disabled={!canManage} type="submit">Scherminstellingen opslaan</button>
       </form>
     </section>
+    <ScreenLifecycleActions
+      canManage={canManage}
+      screenId={screen.id}
+      screenName={screen.name}
+      status={screen.status}
+    />
   </>;
 }
 
@@ -201,4 +210,4 @@ function formatStorage(device: FleetDevice | null) { if (!device || device.stora
 function formatBytes(value: number) { if (value < 1024 ** 2) return `${Math.round(value / 1024)} kB`; if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(1)} MB`; return `${(value / 1024 ** 3).toFixed(1)} GB`; }
 function syncPhaseLabel(value: string) { return ({ manifest_received: "Manifest ontvangen", downloading: "Downloaden", verifying: "Verifiëren", switch_pending: "Wissel gereed", active: "Actief", failed: "Mislukt" } as Record<string, string>)[value] ?? "Onbekende fase"; }
 function syncPhaseIcon(value: string) { return value === "active" ? "✓" : value === "failed" ? "!" : "→"; }
-function eventLabel(value: string) { return ({ "screen.created": "Scherm aangemaakt", "screen.updated": "Scherm bijgewerkt", "player_device.paired": "Player gekoppeld", "player_device.renamed": "Player hernoemd", "player_device.revoked": "Player ingetrokken", "player_device.sync_retry_requested": "Synchronisatie opnieuw aangevraagd" } as Record<string, string>)[value] ?? "Beheeractie"; }
+function eventLabel(value: string) { return ({ "screen.created": "Scherm aangemaakt", "screen.updated": "Scherm bijgewerkt", "screen.deactivated": "Scherm gedeactiveerd", "screen.removed": "Scherm verwijderd", "player_device.paired": "Player gekoppeld", "player_device.renamed": "Player hernoemd", "player_device.revoked": "Player ingetrokken", "player_device.sync_retry_requested": "Synchronisatie opnieuw aangevraagd" } as Record<string, string>)[value] ?? "Beheeractie"; }

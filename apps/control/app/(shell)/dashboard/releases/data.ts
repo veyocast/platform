@@ -71,7 +71,7 @@ export async function loadReleaseCenter(tenantId: string): Promise<ReleaseCenter
     supabase.from("playlists").select("id, name").eq("tenant_id", tenantId),
     supabase.from("profiles").select("id, display_name"),
     supabase.from("release_screen_assignments").select("release_id, screen_id").eq("tenant_id", tenantId),
-    supabase.from("screens").select("id, assigned_release_id").eq("tenant_id", tenantId)
+    supabase.from("screens").select("id, assigned_release_id").eq("tenant_id", tenantId).is("deleted_at", null)
   ]);
   const error = [releaseResult.error, playlistResult.error, profileResult.error, assignmentResult.error, screenResult.error].find(Boolean);
   if (error) {
@@ -119,7 +119,7 @@ export async function loadReleaseDetail(
     releaseItemsQuery(supabase, tenantId),
     supabase.from("playlist_releases").select("id, version").eq("tenant_id", tenantId).eq("playlist_id", release.playlistId).order("version", { ascending: false }),
     supabase.from("release_screen_assignments").select("screen_id, assignment_kind, assigned_at").eq("tenant_id", tenantId).eq("release_id", releaseId).order("assigned_at", { ascending: false }),
-    supabase.from("screens").select("id, name, location, orientation, status, assigned_release_id").eq("tenant_id", tenantId).order("name"),
+    supabase.from("screens").select("id, name, location, orientation, status, assigned_release_id").eq("tenant_id", tenantId).is("deleted_at", null).order("name"),
     supabase.from("player_devices").select("id, screen_id, status, active_release_id, desired_release_id, capabilities").eq("tenant_id", tenantId).eq("status", "paired"),
     supabase.from("player_heartbeats").select("device_id, active_release_id, storage_used_bytes, storage_quota_bytes, created_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(1000),
     supabase.from("player_sync_events").select("screen_id, device_id, release_id, phase, created_at").eq("tenant_id", tenantId).eq("release_id", releaseId).order("created_at", { ascending: false }).limit(500)
@@ -200,7 +200,7 @@ export async function loadDraftPreflight(
   const supabase = await createControlSupabaseClient();
   if (!supabase) return { error: "De beveiligde datasessie ontbreekt.", screenStates: [] };
   const [screensResult, devicesResult, heartbeatsResult, allItemsResult] = await Promise.all([
-    supabase.from("screens").select("id, name, location, orientation, status, assigned_release_id").eq("tenant_id", tenantId).order("name"),
+    supabase.from("screens").select("id, name, location, orientation, status, assigned_release_id").eq("tenant_id", tenantId).is("deleted_at", null).order("name"),
     supabase.from("player_devices").select("id, screen_id, active_release_id, desired_release_id, capabilities").eq("tenant_id", tenantId).eq("status", "paired"),
     supabase.from("player_heartbeats").select("device_id, active_release_id, storage_used_bytes, storage_quota_bytes, created_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(1000),
     releaseItemsQuery(supabase, tenantId)

@@ -110,7 +110,10 @@ verouderde telemetry blijft expliciet onbekend. Zie
 S27 maakt schermbeheer één veilige journey. Transactionele lifecyclecommands,
 duurzaam begrensde pairing, guided onboarding, vijf detailtabs en gecontroleerde
 rename/revoke/re-pair/retry-acties verbinden eerste heartbeat, active/desired
-release, storage, runtime en events zonder device secrets in Control. Zie
+release, storage, runtime en events zonder device secrets in Control. Tenant-
+admins kunnen een scherm daarnaast expliciet deactiveren en daarna logisch
+verwijderen; de operationele slot komt vrij terwijl immutable releasehistorie
+en auditbewijs behouden blijven. Zie
 [`docs/s27-screen-fleet-onboarding-evidence.md`](docs/s27-screen-fleet-onboarding-evidence.md)
 en [`docs/player-device-threat-model.md`](docs/player-device-threat-model.md).
 De S28 pairing-runtimecorrectie bevestigt een device onafhankelijk van de

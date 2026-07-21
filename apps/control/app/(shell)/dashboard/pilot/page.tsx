@@ -440,6 +440,7 @@ async function loadPilotData(tenantId: string | null, isLive: boolean) {
       .from("screens")
       .select("id, name, assigned_release_id")
       .eq("tenant_id", tenantId)
+      .is("deleted_at", null)
       .eq("status", "active")
       .order("created_at", { ascending: true }),
     supabase

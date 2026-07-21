@@ -116,6 +116,7 @@ export async function loadPlaylistList(
       .from("screens")
       .select("assigned_playlist_id")
       .eq("tenant_id", tenantId)
+      .is("deleted_at", null)
       .neq("status", "disabled")
       .not("assigned_playlist_id", "is", null);
     if (assignedResult.error) return { ...empty, error: "De schermtoewijzingen konden niet worden geladen." };
@@ -150,7 +151,7 @@ export async function loadPlaylistList(
     ? await Promise.all([
         supabase.from("playlist_items").select("playlist_id, duration_seconds").eq("tenant_id", tenantId).in("playlist_id", ids),
         supabase.from("playlist_releases").select("playlist_id, version").eq("tenant_id", tenantId).in("playlist_id", ids).order("version", { ascending: false }),
-        supabase.from("screens").select("assigned_playlist_id").eq("tenant_id", tenantId).in("assigned_playlist_id", ids).neq("status", "disabled"),
+        supabase.from("screens").select("assigned_playlist_id").eq("tenant_id", tenantId).is("deleted_at", null).in("assigned_playlist_id", ids).neq("status", "disabled"),
         userIds.length ? supabase.from("profiles").select("id, display_name").in("id", userIds) : Promise.resolve({ data: [], error: null })
       ])
     : [{ data: [], error: null }, { data: [], error: null }, { data: [], error: null }, { data: [], error: null }];
@@ -195,7 +196,7 @@ export async function loadPlaylistStudio(
     supabase.from("media_assets").select("id, tenant_id, title, kind, mime_type, status, deleted_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
     supabase.from("media_variants").select("asset_id, tenant_id, variant_type, storage_path, mime_type, file_size_bytes, checksum_sha256, width, height, duration_seconds").eq("tenant_id", tenantId),
     supabase.from("playlist_releases").select("id, version, item_count, total_duration_seconds, total_bytes, published_at, published_by").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("version", { ascending: false }),
-    supabase.from("screens").select("id, name, orientation, assigned_playlist_id").eq("tenant_id", tenantId).eq("status", "active").order("name")
+    supabase.from("screens").select("id, name, orientation, assigned_playlist_id").eq("tenant_id", tenantId).is("deleted_at", null).eq("status", "active").order("name")
   ]);
   const error = [playlistResult.error, itemsResult.error, assetsResult.error, variantsResult.error, releasesResult.error, screensResult.error].find(Boolean);
   if (error) {

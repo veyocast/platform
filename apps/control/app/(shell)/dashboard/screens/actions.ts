@@ -91,6 +91,54 @@ export async function updateScreen(formData: FormData) {
   complete(`/dashboard/screens/${screenId}?tab=overview`, message, screenId);
 }
 
+export async function deactivateScreen(formData: FormData) {
+  const { session, supabase } = await requireScreenManagement("mutate");
+  const screenId = requiredUuid(formData, "screenId");
+  const returnPath = `/dashboard/screens/${screenId}?tab=overview`;
+  if (formData.get("confirmOffline") !== "yes") {
+    fail(returnPath, "Bevestig eerst dat een offline Player pas bij zijn volgende serververbinding stopt.");
+  }
+
+  const { error } = await supabase.rpc("deactivate_screen_v1", {
+    p_screen_id: screenId,
+    p_tenant_id: session.tenantId
+  });
+  if (error) fail(returnPath, screenMutationFailure(error.code));
+  complete(
+    returnPath,
+    "Het scherm is gedeactiveerd en de gekoppelde Player is ingetrokken. Een offline Player stopt zodra die opnieuw verbinding maakt.",
+    screenId
+  );
+}
+
+export async function removeScreen(formData: FormData) {
+  const { session, supabase } = await requireScreenManagement("mutate");
+  const screenId = requiredUuid(formData, "screenId");
+  const confirmationName = String(formData.get("confirmationName") ?? "").trim();
+  const returnPath = `/dashboard/screens/${screenId}?tab=overview`;
+  if (!confirmationName) {
+    fail(returnPath, "Vul de volledige schermnaam in om verwijdering te bevestigen.");
+  }
+
+  const { error } = await supabase.rpc("remove_screen_v1", {
+    p_confirmation_name: confirmationName,
+    p_screen_id: screenId,
+    p_tenant_id: session.tenantId
+  });
+  if (error?.code === "P0003") {
+    fail(returnPath, "Deactiveer het scherm eerst. Daarna kan het veilig uit het actieve beheer worden verwijderd.");
+  }
+  if (error?.code === "P0004") {
+    fail(returnPath, "De ingevoerde schermnaam komt niet exact overeen. Controleer de naam en probeer opnieuw.");
+  }
+  if (error) fail(returnPath, screenMutationFailure(error.code));
+  complete(
+    "/dashboard/screens",
+    "Het scherm is verwijderd uit het actieve beheer en het schermslot is vrijgegeven. Release- en auditgeschiedenis blijven bewaard.",
+    screenId
+  );
+}
+
 export async function renamePlayerDevice(formData: FormData) {
   const { session, supabase } = await requireScreenManagement("mutate");
   const screenId = requiredUuid(formData, "screenId");

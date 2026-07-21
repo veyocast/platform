@@ -103,7 +103,7 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
   if (!supabase) return { ...empty, error: "De beveiligde datasessie ontbreekt." };
 
   const [screens, devices, releases, playlists, tenant, settings] = await Promise.all([
-    supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, created_at").eq("tenant_id", tenantId).order("created_at"),
+    supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, created_at").eq("tenant_id", tenantId).is("deleted_at", null).order("created_at"),
     supabase.from("player_devices").select("id, screen_id, device_name, status, app_version, platform, capabilities, storage_quota_bytes, storage_used_bytes, active_release_id, desired_release_id, last_seen_at, paired_at, revoked_at, last_error_code, last_error_at, sync_retry_requested_at").eq("tenant_id", tenantId).order("paired_at", { ascending: false }),
     supabase.from("playlist_releases").select("id, playlist_id, version").eq("tenant_id", tenantId).order("published_at", { ascending: false }),
     supabase.from("playlists").select("id, name").eq("tenant_id", tenantId),

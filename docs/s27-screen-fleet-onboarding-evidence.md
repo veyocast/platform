@@ -13,6 +13,16 @@
   bestaande limiettrigger vergrendelen dezelfde tenantrij;
 - maintenance bewaart device-identiteit en last-known-good, disable trekt de
   gekoppelde Player atomair in;
+- tenant-admins en -owners krijgen afzonderlijke Radix-bevestigingsflows voor
+  deactiveren en verwijderen; deactiveren vereist expliciete bevestiging van
+  het offline gevolg en verwijderen vereist eerst status `disabled` plus de
+  exact overgetypte schermnaam;
+- verwijderen is bewust een onomkeerbare beheertombstone in plaats van een
+  fysieke delete: het scherm verdwijnt uit vloot, zoekresultaten, overzichten
+  en releasepreflight, de huidige contenttoewijzing wordt losgekoppeld en het
+  schermslot komt vrij en veranderlijke naam-, locatie- en resolutiemetadata
+  wordt geminimaliseerd, terwijl immutable release-, device- en auditgeschiedenis
+  referentieel intact blijven;
 - Player rename, revoke, re-pair en retry zijn capability- en tenantstatus-
   gecontroleerde commands met append-only audit;
 - pairing v3 kent duurzame creation- en claimrate limiting, expiry/replay-
@@ -38,6 +48,9 @@
   heartbeatboundary; Control ontvangt het token ook tijdens deze bevestiging
   niet;
 - wrong-tenant en viewerclaims falen in de database;
+- wrong-tenant en viewer-deactivatie/verwijdering falen eveneens in de
+  database; directe hard-delete en het schrijven van tombstonekolommen zijn
+  voor `authenticated` ingetrokken;
 - revoked devices krijgen geen bootstrap of heartbeat meer;
 - Control legt uit dat een offline device pas bij de eerstvolgende verbinding
   van de intrekking weet en cached last-known-good content tot dan kan blijven
@@ -57,6 +70,8 @@ rest-risico's.
 - onboarding is onder 768 px sequentieel en heeft geen horizontale overflow;
 - foutcopy noemt gevolg en herstel en toont geen raw stack/databasegegevens;
 - destructieve deviceactie benoemt het offline gevolg en vereist bevestiging;
+- destructief schermbeheer gebruikt een focus-trapped Radix-dialog, oorzaak-
+  gevolg-herstelcopy en een afzonderlijke naambevestiging voor verwijderen;
 - alle nieuwe kleuren, radii en spacing komen uit tokens;
 - de bestaande fixed sidebar en onafhankelijk scrollende main/sidebar blijven
   ongewijzigd.
@@ -64,9 +79,10 @@ rest-risico's.
 ## Verificatie
 
 - `pnpm db:reset`: geslaagd met alle migraties en seed;
-- `pnpm test:rls`: 16 pgTAP-bestanden, 279 assertions geslaagd, waaronder
-  33 specifieke S27-assertions voor limiet, tenantisolatie, replay,
-  rate limiting, lifecycle, revoke en heartbeat;
+- `pnpm test:rls`: 18 pgTAP-bestanden, 311 assertions geslaagd, waaronder
+  20 specifieke deactivatie-/verwijderassertions en de bestaande S27-dekking
+  voor limiet, tenantisolatie, replay, rate limiting, lifecycle, revoke en
+  heartbeat;
 - `pnpm exec supabase db lint --local`: geen schemafouten;
 - `pnpm lint`, `pnpm typecheck`, `pnpm test` en `pnpm build`: geslaagd;
 - `pnpm test:a11y -- --project=chromium`: 18 tests geslaagd, inclusief 390 px

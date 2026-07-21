@@ -13,6 +13,7 @@ export async function loadTenantOverview(tenantId: string) {
       .from("screens")
       .select("id, name, location, status, assigned_playlist_id, assigned_release_id, created_at")
       .eq("tenant_id", tenantId)
+      .is("deleted_at", null)
       .order("created_at", { ascending: true }),
     supabase
       .from("player_devices")
@@ -96,7 +97,7 @@ export async function loadPlatformOverview() {
       .from("tenants")
       .select("id, name, slug, status, screen_limit, created_at")
       .order("created_at", { ascending: true }),
-    supabase.from("screens").select("tenant_id, status"),
+    supabase.from("screens").select("tenant_id, status").is("deleted_at", null),
     supabase
       .from("player_devices")
       .select("tenant_id, status, last_seen_at")

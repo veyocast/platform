@@ -68,7 +68,7 @@ tests en exitcriteria staan in
 | S24 | Media workspace | Gepagineerde lijst/raster en inspector, veilige TUS-resume, processingherstel en asset→draft→release→scherm-gebruik |
 | S25 | Playlist Studio | Gescheiden editor, optimistic concurrency en centrale publicatiegereedheid |
 | S26 | Release Center | Releasehistorie, vergelijking, impactanalyse, schermpreflight en guided publish |
-| S27 | Schermvloot en onboarding | Transactionele screen lifecycle, pairingjourney, detail en devicebeheer |
+| S27 | Schermvloot en onboarding | Transactionele screen lifecycle inclusief veilige deactivatie/verwijdering, pairingjourney, detail en devicebeheer |
 | S28 | Operationeel dashboard | Actie-inbox, echte globale search, onboardingchecklist en contextuele help |
 | S29 | Production operations | Worker deployment, observability, SLO's, alerts, restore en veilige supportbundle |
 | S30 | Pilot RC gate | Live critical journey, 24-uurs soak, fysieke LG-, security-, a11y- en DR-gates |
