@@ -6,6 +6,11 @@ import {
 } from "@veyocast/domain";
 
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import type {
+  PlaylistStudioAsset,
+  PlaylistStudioItem,
+  PlaylistStudioVariant
+} from "./playlist-studio-contract";
 
 export type PlaylistListFilter = {
   assignment?: "all" | "assigned" | "unassigned";
@@ -27,41 +32,6 @@ export type PlaylistListRow = {
   totalDurationSeconds: number;
   updatedAt: string;
   updatedBy: string;
-};
-
-export type PlaylistStudioItem = {
-  asset: PlaylistStudioAsset | null;
-  durationSeconds: number;
-  fitMode: "contain" | "cover";
-  id: string;
-  mediaAssetId: string;
-  muted: boolean;
-  sortOrder: number;
-};
-
-export type PlaylistStudioAsset = {
-  deletedAt: string | null;
-  id: string;
-  kind: "image" | "video";
-  mimeType: string;
-  status: string;
-  tenantId: string;
-  title: string;
-  variant: PlaylistStudioVariant | null;
-};
-
-export type PlaylistStudioVariant = {
-  assetId: string;
-  checksumSha256: string;
-  durationSeconds: number | null;
-  fileSizeBytes: number;
-  height: number | null;
-  mimeType: string;
-  previewUrl: string | null;
-  storagePath: string;
-  tenantId: string;
-  variantType: string;
-  width: number | null;
 };
 
 export type PlaylistStudioData = {

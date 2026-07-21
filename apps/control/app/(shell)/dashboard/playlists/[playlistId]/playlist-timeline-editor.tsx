@@ -24,7 +24,7 @@ import { startTransition, useEffect, useId, useState, type ReactNode } from "rea
 import { Badge, IconButton } from "@veyocast/ui";
 
 import { movePlaylistItem, removePlaylistItem, updatePlaylistItem } from "../actions";
-import type { PlaylistStudioItem } from "../data";
+import type { PlaylistStudioItem } from "../playlist-studio-contract";
 
 type PlaylistTimelineEditorProps = {
   canWrite: boolean;
