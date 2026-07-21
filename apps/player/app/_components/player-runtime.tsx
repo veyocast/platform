@@ -315,11 +315,6 @@ export function PlayerRuntime() {
     enterReloadCooldown("Playbackherstel is afgekoeld; de fout blijft via heartbeat zichtbaar.");
   }, [advancePlayback, enterReloadCooldown, performControlledReload, restorePersistedLastKnownGood]);
 
-  const handlePlaybackEnded = useCallback((itemId: string) => {
-    consecutiveFailuresRef.current = 0;
-    void advancePlayback(itemId);
-  }, [advancePlayback]);
-
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const queryToken = searchParams.get("deviceToken");
@@ -331,7 +326,11 @@ export function PlayerRuntime() {
         ? Math.max(250, Math.min(querySyncMs, defaultManifestSyncIntervalMs))
         : defaultManifestSyncIntervalMs;
 
-    setDurationOverrideMs(Number.isFinite(queryDurationMs) ? queryDurationMs : null);
+    setDurationOverrideMs(
+      process.env.NODE_ENV !== "production" && Number.isFinite(queryDurationMs)
+        ? queryDurationMs
+        : null
+    );
     setWatchdogTimeoutMs(
       Number.isFinite(queryWatchdogMs)
         ? Math.max(250, Math.min(queryWatchdogMs, 60_000))
@@ -875,12 +874,23 @@ export function PlayerRuntime() {
     };
   }, []);
 
+  const playbackScheduleKey = isPlaybackRuntime(runtime)
+    ? [
+        runtime.release.envelope.manifest.releaseId,
+        runtime.activeIndex,
+        runtime.release.envelope.manifest.items[runtime.activeIndex]?.id ?? "missing",
+        runtime.release.envelope.manifest.items[runtime.activeIndex]?.durationSeconds ?? 0
+      ].join(":")
+    : null;
+
   useEffect(() => {
-    if (!isPlaybackRuntime(runtime)) {
+    const playbackRuntime = runtimeRef.current;
+    if (!isPlaybackRuntime(playbackRuntime)) {
       return;
     }
 
-    const activeItem = runtime.release.envelope.manifest.items[runtime.activeIndex];
+    const activeItem =
+      playbackRuntime.release.envelope.manifest.items[playbackRuntime.activeIndex];
 
     if (!activeItem) {
       return;
@@ -902,7 +912,7 @@ export function PlayerRuntime() {
     durationOverrideMs,
     handlePlaybackFailure,
     playbackAttempt,
-    runtime
+    playbackScheduleKey
   ]);
 
   useEffect(() => {
@@ -976,7 +986,6 @@ export function PlayerRuntime() {
   if (isPlaybackRuntime(runtime)) {
     return (
       <PlaybackView
-        onEnded={handlePlaybackEnded}
         onFailure={handlePlaybackFailure}
         onReady={handlePlaybackReady}
         playbackAttempt={playbackAttempt}
@@ -1010,14 +1019,12 @@ export function PlayerRuntime() {
 }
 
 function PlaybackView({
-  onEnded,
   onFailure,
   onReady,
   playbackAttempt,
   runtime,
   watchdogTimeoutMs
 }: {
-  onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onReady: (itemId: string) => void;
   playbackAttempt: number;
@@ -1048,17 +1055,17 @@ function PlaybackView({
         <PlaybackMedia
           key={`${activeItem.id}:${playbackAttempt}`}
           item={activeItem}
-          onEnded={onEnded}
           onFailure={onFailure}
           onReady={onReady}
           watchdogTimeoutMs={watchdogTimeoutMs}
         />
-        <div className="playback-scrim" aria-hidden="true" />
-        <div className="playback-now">
-          <p>{runtime.release.envelope.device.screenName}</p>
-          <h1>{activeItem.title}</h1>
-          <span>{manifest.label}</span>
-        </div>
+        <img
+          alt=""
+          aria-hidden="true"
+          className="playback-brand-mark"
+          data-testid="player-brand-mark"
+          src="/brand/veyocast-logo-inverse.svg"
+        />
       </section>
       <aside hidden aria-label="Player diagnostics">
         <span>{runtime.state}</span>
@@ -1073,19 +1080,18 @@ function PlaybackView({
 
 function PlaybackMedia({
   item,
-  onEnded,
   onFailure,
   onReady,
   watchdogTimeoutMs
 }: {
   item: PlayerManifestItem;
-  onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onReady: (itemId: string) => void;
   watchdogTimeoutMs: number;
 }) {
   const className = `playback-media playback-media--${item.fitMode}`;
   const failureReportedRef = useRef(false);
+  const hasEndedRef = useRef(false);
   const hasStartedRef = useRef(false);
   const lastCurrentTimeRef = useRef(0);
   const lastProgressAtRef = useRef(Date.now());
@@ -1102,6 +1108,7 @@ function PlaybackMedia({
     const startedAt = Date.now();
     const interval = window.setInterval(() => {
       const now = Date.now();
+      if (hasEndedRef.current) return;
       if (!hasStartedRef.current && now - startedAt >= watchdogTimeoutMs) {
         reportFailure("VIDEO_START_TIMEOUT");
         return;
@@ -1123,7 +1130,11 @@ function PlaybackMedia({
         className={className}
         data-testid="player-video"
         muted={item.muted}
-        onEnded={() => onEnded(item.id)}
+        onEnded={() => {
+          hasEndedRef.current = true;
+          hasStartedRef.current = true;
+          onReady(item.id);
+        }}
         onError={() => reportFailure("VIDEO_ERROR")}
         onPlaying={() => {
           hasStartedRef.current = true;

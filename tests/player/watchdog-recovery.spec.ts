@@ -139,7 +139,7 @@ test("detects a stalled video that stops making time progress", async ({ page })
   );
 });
 
-test("advances immediately when the active video emits ended", async ({ page }) => {
+test("keeps an ended video visible until its published slot boundary", async ({ page }) => {
   const manifestResponse = await page.request.get(
     `${playerURL}/api/player/manifest?deviceToken=demo-online`
   );
@@ -171,12 +171,16 @@ test("advances immediately when the active video emits ended", async ({ page }) 
   await page.route("**/api/player/manifest", (route) =>
     route.fulfill({ body: JSON.stringify(manifest), contentType: "application/json" })
   );
-  await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=10000`);
+  await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=600`);
 
   const video = page.getByTestId("player-video");
   await expect(video).toBeVisible();
+  await video.dispatchEvent("playing");
   await video.dispatchEvent("ended");
 
-  await expect(page.getByRole("img", { name: "Na ended" })).toBeVisible();
+  await page.waitForTimeout(200);
+  await expect(video).toBeVisible();
+  await expect(page.getByRole("img", { name: "Na ended" })).toHaveCount(0);
+  await expect(page.getByRole("img", { name: "Na ended" })).toBeVisible({ timeout: 1_500 });
   await expect(page.getByLabel("Player diagnostics")).toContainText("Item 2 van 2");
 });

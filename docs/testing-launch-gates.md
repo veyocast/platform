@@ -37,4 +37,5 @@
 - no hardcoded brand colors;
 - no white text on orange primary button;
 - mobile is not mini-desktop;
-- player normal playback has no watermark/browser chrome.
+- player normal playback has no browser chrome and only the approved locked
+  VeyoCast lock-up at 60% opacity in the lower-left corner.
