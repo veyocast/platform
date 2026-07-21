@@ -10,7 +10,7 @@
     <string name="player_recovery_paused_message">De weergave stopte meerdere keren kort na elkaar. Kies Probeer opnieuw om nog één herstelpoging te starten.</string>
     <string name="retry">Probeer opnieuw</string>
     <string name="panel_title">Playerbeheer</string>
-    <string name="panel_hint">Druk op MENU of houd OK ingedrukt om dit paneel te sluiten.</string>
+    <string name="panel_hint">Druk op MENU of houd OK ingedrukt om dit paneel te sluiten. Druk op BACK om terug te gaan naar Android TV.</string>
     <string name="connection_status">Verbinding</string>
     <string name="connection_checking">Controleren</string>
     <string name="connection_online">Online</string>
@@ -27,6 +27,6 @@
     <string name="orientation_landscape">Landschap</string>
     <string name="environment">Omgeving</string>
     <string name="version">Versie</string>
-    <string name="close_app">App afsluiten</string>
-    <string name="close_app_summary">Sluit de native shell. Gebruik de VeyoCast-scherminstellingen in Control om een apparaat veilig te ontkoppelen.</string>
+    <string name="return_home">Terug naar Android TV</string>
+    <string name="return_home_summary">Pauzeert de zichtbare media en brengt je veilig terug naar het Android TV-startscherm. Pairing en lokale content blijven behouden.</string>
 </resources>

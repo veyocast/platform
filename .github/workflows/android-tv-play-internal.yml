@@ -1,0 +1,153 @@
+name: Android TV Play internal
+
+run-name: Android TV internal test from ${{ github.ref_name }}
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: android-tv-play-internal
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish internal AAB
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: android-tv-internal
+
+    defaults:
+      run:
+        working-directory: apps/android-tv
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+
+      - name: Install pinned Android SDK components
+        run: sdkmanager "platform-tools" "platforms;android-37.1" "build-tools;36.0.0"
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c # v5
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+
+      - name: Validate protected release secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_TV_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEY_PASSWORD }}
+          WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          PLAY_SERVICE_ACCOUNT: ${{ vars.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+        run: |
+          missing=0
+          for variable in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [[ -z "${!variable:-}" ]]; then
+              echo "::error::GitHub Environment-secret ${variable} ontbreekt"
+              missing=1
+            fi
+          done
+          for variable in WORKLOAD_IDENTITY_PROVIDER PLAY_SERVICE_ACCOUNT; do
+            if [[ -z "${!variable:-}" ]]; then
+              echo "::error::GitHub Environment-variabele ${variable} ontbreekt"
+              missing=1
+            fi
+          done
+          if (( missing != 0 )); then
+            exit 1
+          fi
+          umask 077
+          printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/veyocast-upload.jks"
+          test -s "${RUNNER_TEMP}/veyocast-upload.jks"
+
+      - name: Authenticate to Google Cloud without a stored service-account key
+        id: google_auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+
+      - name: Derive monotonic Play version
+        run: |
+          epoch_hour=$(($(date -u +%s) / 3600))
+          release_slot=$(((GITHUB_RUN_NUMBER * 10 + GITHUB_RUN_ATTEMPT) % 100))
+          version_code=$((epoch_hour * 100 + release_slot))
+          if (( version_code < 1 || version_code > 2100000000 )); then
+            echo "::error::Afgeleide Android versionCode valt buiten het toegestane bereik"
+            exit 1
+          fi
+          echo "VEYCAST_VERSION_CODE=${version_code}" >> "${GITHUB_ENV}"
+          echo "VEYCAST_VERSION_NAME=1.0.0-internal.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" >> "${GITHUB_ENV}"
+
+      - name: Lint, test and build signed production bundle
+        env:
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/veyocast-upload.jks
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_TV_UPLOAD_KEY_ALIAS }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEY_PASSWORD }}
+        run: >-
+          ./gradlew
+          lintProductionRelease
+          testProductionDebugUnitTest
+          bundleProductionRelease
+          --no-daemon
+
+      - name: Verify signed bundle and native-library policy
+        run: |
+          bundle="app/build/outputs/bundle/productionRelease/app-production-release.aab"
+          test -s "${bundle}"
+          jarsigner -verify -verbose -certs "${bundle}" > "${RUNNER_TEMP}/jarsigner-report.txt"
+          if ! grep -Fq 'jar verified.' "${RUNNER_TEMP}/jarsigner-report.txt"; then
+            echo "::error::De Android App Bundle heeft geen verifieerbare uploadsignature"
+            exit 1
+          fi
+          if ! unzip -Z1 "${bundle}" | grep -Eq '^META-INF/.+\.(RSA|DSA|EC)$'; then
+            echo "::error::Signatureblock ontbreekt in de Android App Bundle"
+            exit 1
+          fi
+          if unzip -Z1 "${bundle}" | grep -Eq '^base/lib/.+\.so$'; then
+            echo "::error::Native libraries vereisen een afzonderlijke 32/64-bit- en 16-KB-page-sizevalidatie"
+            exit 1
+          fi
+
+      - name: Preserve signed internal-test artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: veyocast-android-tv-internal-${{ github.run_number }}
+          path: |
+            apps/android-tv/app/build/outputs/bundle/productionRelease/app-production-release.aab
+            apps/android-tv/app/build/outputs/mapping/productionRelease/mapping.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish to Google Play internal testing
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
+        with:
+          serviceAccountJson: ${{ steps.google_auth.outputs.credentials_file_path }}
+          packageName: nl.veyocast.player
+          releaseFiles: ${{ github.workspace }}/apps/android-tv/app/build/outputs/bundle/productionRelease/app-production-release.aab
+          tracks: internal
+          status: completed
+          releaseName: VeyoCast Player ${{ env.VEYCAST_VERSION_NAME }}
+          whatsNewDirectory: ${{ github.workspace }}/apps/android-tv/play/release-notes
+          mappingFile: ${{ github.workspace }}/apps/android-tv/app/build/outputs/mapping/productionRelease/mapping.txt
+
+      - name: Remove temporary signing material
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/veyocast-upload.jks"

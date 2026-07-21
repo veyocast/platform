@@ -1,7 +1,6 @@
 package nl.veyocast.player
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -20,13 +19,15 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Switch
 import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import java.net.URI
 
-class MainActivity : Activity(), VeyoCastWebViewClient.Events {
+class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private lateinit var root: FrameLayout
     private lateinit var webViewContainer: FrameLayout
     private lateinit var errorOverlay: View
@@ -35,7 +36,7 @@ class MainActivity : Activity(), VeyoCastWebViewClient.Events {
     private lateinit var retryButton: Button
     private lateinit var managementPanel: LinearLayout
     private lateinit var refreshButton: Button
-    private lateinit var closeAppButton: Button
+    private lateinit var returnHomeButton: Button
     private lateinit var autostartSwitch: Switch
     private lateinit var connectionValue: TextView
     private lateinit var environmentValue: TextView
@@ -84,6 +85,12 @@ class MainActivity : Activity(), VeyoCastWebViewClient.Events {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() = handleBack()
+            }
+        )
 
         bindViews()
         preferences = AppPreferences(this)
@@ -113,6 +120,7 @@ class MainActivity : Activity(), VeyoCastWebViewClient.Events {
         activityResumed = true
         applyImmersiveMode()
         webView?.onResume()
+        evaluatePlaybackScript(WebPlaybackScripts.RESUME_AFTER_BACKGROUND)
         if (rendererRecoveryPending) {
             rendererRecoveryPending = false
             recreateWebViewAfterRendererFailure()
@@ -125,6 +133,7 @@ class MainActivity : Activity(), VeyoCastWebViewClient.Events {
 
     override fun onPause() {
         activityResumed = false
+        evaluatePlaybackScript(WebPlaybackScripts.PAUSE_FOR_BACKGROUND)
         webView?.onPause()
         CookieManager.getInstance().flush()
         super.onPause()
@@ -143,9 +152,17 @@ class MainActivity : Activity(), VeyoCastWebViewClient.Events {
         super.onDestroy()
     }
 
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.keyCode == KeyEvent.KEYCODE_MENU && event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
-            toggleManagementPanel()
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean =
+        if (handleTvKey(event)) true else super.onKeyDown(keyCode, event)
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean =
+        if (handleTvKey(event)) true else super.onKeyUp(keyCode, event)
+
+    private fun handleTvKey(event: KeyEvent): Boolean {
+        if (event.keyCode == KeyEvent.KEYCODE_MENU) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                toggleManagementPanel()
+            }
             return true
         }
 
@@ -155,11 +172,15 @@ class MainActivity : Activity(), VeyoCastWebViewClient.Events {
             return handleCenterKeyForPanel(event)
         }
 
-        if (event.keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-            return handleBack()
+        val remoteCommand = TvRemotePolicy.commandFor(event.keyCode)
+        if (remoteCommand != null && !managementPanel.isVisible && !errorOverlay.isVisible) {
+            if (event.action == KeyEvent.ACTION_UP) {
+                executePlaybackCommand(remoteCommand, event.keyCode)
+            }
+            return true
         }
 
-        return super.dispatchKeyEvent(event)
+        return false
     }
 
     override fun onMainFrameLoadStarted() {
@@ -231,7 +252,7 @@ class MainActivity : Activity(), VeyoCastWebViewClient.Events {
         retryButton = findViewById(R.id.retry_button)
         managementPanel = findViewById(R.id.management_panel)
         refreshButton = findViewById(R.id.refresh_button)
-        closeAppButton = findViewById(R.id.close_app_button)
+        returnHomeButton = findViewById(R.id.return_home_button)
         autostartSwitch = findViewById(R.id.autostart_switch)
         connectionValue = findViewById(R.id.connection_value)
         environmentValue = findViewById(R.id.environment_value)
@@ -260,10 +281,7 @@ class MainActivity : Activity(), VeyoCastWebViewClient.Events {
             retryPolicy.reset()
             loadPlayer()
         }
-        closeAppButton.setOnClickListener {
-            closeManagementPanel()
-            finishAndRemoveTask()
-        }
+        returnHomeButton.setOnClickListener { returnToAndroidTv() }
     }
 
     private fun preferencesOrDefaultBootStart(): Boolean = if (::preferences.isInitialized) {
@@ -446,8 +464,9 @@ class MainActivity : Activity(), VeyoCastWebViewClient.Events {
                 mainHandler.removeCallbacks(openPanelRunnable)
                 centerKeyPressed = false
                 if (!panelOpenedByLongPress) {
-                    webView?.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, event.keyCode))
-                    webView?.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, event.keyCode))
+                    TvRemotePolicy.commandFor(event.keyCode)?.let {
+                        executePlaybackCommand(it, event.keyCode)
+                    }
                 }
                 panelOpenedByLongPress = false
                 return true
@@ -456,22 +475,45 @@ class MainActivity : Activity(), VeyoCastWebViewClient.Events {
         return true
     }
 
-    private fun handleBack(): Boolean {
-        if (customView != null) {
-            hideCustomView()
-            return true
-        }
-        if (managementPanel.isVisible) {
-            closeManagementPanel()
-            return true
-        }
+    private fun handleBack() {
         val view = webView
-        if (view != null && navigationPolicy.shouldNavigateBack(view.url, view.canGoBack())) {
-            view.goBack()
-            return true
+        val trustedWebHistoryAvailable = view != null &&
+            navigationPolicy.shouldNavigateBack(view.url, view.canGoBack())
+        when (
+            TvBackPolicy.decide(
+                customMediaVisible = customView != null,
+                managementVisible = managementPanel.isVisible,
+                trustedWebHistoryAvailable = trustedWebHistoryAvailable
+            )
+        ) {
+            TvBackAction.HIDE_FULLSCREEN_MEDIA -> hideCustomView()
+            TvBackAction.RETURN_TO_ANDROID_TV -> returnToAndroidTv()
+            TvBackAction.NAVIGATE_WEB_HISTORY -> view?.goBack()
+            TvBackAction.OPEN_MANAGEMENT -> openManagementPanel()
         }
-        openManagementPanel()
-        return true
+    }
+
+    private fun returnToAndroidTv() {
+        closeManagementPanel()
+        if (!moveTaskToBack(true)) finish()
+    }
+
+    private fun executePlaybackCommand(command: TvRemoteCommand, fallbackKeyCode: Int) {
+        val view = webView ?: return
+        view.evaluateJavascript(WebPlaybackScripts.command(command.playbackCommand)) { result ->
+            if (result != "true" && command.fallbackToWebContent && view === webView) {
+                dispatchKeyPairToWebView(view, fallbackKeyCode)
+            }
+        }
+    }
+
+    private fun evaluatePlaybackScript(script: String) {
+        webView?.evaluateJavascript(script, null)
+    }
+
+    private fun dispatchKeyPairToWebView(view: WebView, keyCode: Int) {
+        view.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+        view.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
     }
 
     private fun updateConnectionLabel() {

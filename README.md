@@ -130,7 +130,11 @@ De afzonderlijke `apps/android-tv/`-app verpakt exact dezelfde hosted Player in
 een minimale native Android TV-WebView-shell. Staging en production zijn
 compile-time gescheiden; de shell voegt TV-launcher, immersive fullscreen,
 D-padbeheer en begrensd netwerk-/rendererherstel toe zonder pairing, releases,
-cache of playbacklogica te dupliceren.
+cache of playbacklogica te dupliceren. Een handmatige, Environment-beveiligde
+workflow bouwt en signeert production als Android App Bundle en publiceert via
+kortlevende Google Workload Identity uitsluitend naar het Play internal-
+testkanaal; Play Console-bootstrap en fysieke TV-acceptatie blijven expliciete
+externe gates.
 
 S29-A activeert de mediaworker als afzonderlijke immutable, least-privilege
 staging/production-service. Veilige H.264/AAC-bronnen worden zonder

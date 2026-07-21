@@ -10,6 +10,7 @@ import {
   reportPlayerConnectivity,
   type PlayerConnectivityEvent
 } from "../_lib/player-connectivity";
+import { isAndroidPwaInstallEligible } from "../_lib/player-install-eligibility";
 
 type InstallChoice = {
   outcome: "accepted" | "dismissed";
@@ -43,7 +44,11 @@ function AndroidInstallPrompt() {
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       document.referrer.startsWith("android-app://");
-    const androidBrowser = /Android/i.test(navigator.userAgent);
+    const androidBrowser = isAndroidPwaInstallEligible({
+      referrer: document.referrer,
+      standalone,
+      userAgent: navigator.userAgent
+    });
 
     setDismissed(readInstallDismissal());
     setEligible(androidBrowser && !standalone);

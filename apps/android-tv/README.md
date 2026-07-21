@@ -36,6 +36,10 @@ hostlijst onderschept. Mixed content, file/content access, pop-ups, native
 JavaScriptinterfaces en certificaatbypasses zijn uitgeschakeld. Een SSL-fout
 wordt altijd geannuleerd.
 
+De herkenbare `VeyoCastAndroidTV/<versie>` user-agent voorkomt daarnaast dat de
+hosted Player binnen deze reeds geïnstalleerde native app opnieuw de Android
+PWA-installatiekaart aanbiedt.
+
 Bij een mislukte eerste paginalaadactie verschijnt native:
 
 > Geen verbinding met VeyoCast
@@ -109,6 +113,15 @@ Releasebuilds en een Android App Bundle:
 Zonder lokale signingconfiguratie is de release-APK unsigned. Debugbuilds zijn
 altijd lokaal debuggesigneerd en hebben geen CI-secret nodig.
 
+Versiemetadata kan voor een release expliciet worden gezet zonder het
+buildbestand te wijzigen:
+
+```bash
+./gradlew bundleProductionRelease \
+  -PveyocastVersionCode=2 \
+  -PveyocastVersionName=1.0.1
+```
+
 ## Installatie via ADB
 
 Schakel op Google TV eerst de ontwikkelaarsopties in. Open doorgaans
@@ -128,10 +141,19 @@ fysieke scherm en zet netwerkdebugging na de test weer uit.
 
 ## Afstandsbediening en beheerpaneel
 
-De webplayer ontvangt D-pad-, OK- en toetsenbordinvoer rechtstreeks. BACK gaat
+De webplayer ontvangt D-pad-, OK- en toetsenbordinvoer rechtstreeks. Tijdens
+video toggelt kort OK tussen afspelen en pauzeren; links en rechts springen tien
+seconden en hardwarematige play/pause-toetsen werken eveneens. Zonder actieve
+media blijft dezelfde invoer beschikbaar voor de pairinginterface. BACK gaat
 alleen terug binnen een vertrouwde Player-route en verlaat de root nooit naar
-een leeg scherm. Op de root opent BACK het native Playerbeheer. Het paneel opent
-ook met de MENU-toets of door OK circa 1,2 seconde ingedrukt te houden.
+een leeg scherm. Op de root opent de eerste BACK het native Playerbeheer; de
+tweede BACK brengt de gebruiker naar Android TV Home. Het paneel opent ook met
+de MENU-toets of door OK circa 1,2 seconde ingedrukt te houden.
+
+Wanneer de app naar de achtergrond gaat, pauzeert de shell actieve HTML-media.
+Alleen elementen die door deze lifecycleovergang zijn gepauzeerd worden bij
+terugkeer hervat; een bewust door de gebruiker gepauzeerd element blijft
+gepauzeerd.
 
 Playerbeheer bevat uitsluitend shellfuncties:
 
@@ -166,7 +188,7 @@ volledige signed media-URL's worden nooit gelogd.
 ## Signing
 
 Kopieer lokaal `keystore.properties.example` naar `keystore.properties` en vul
-alleen lokale of door CI aangeleverde waarden in:
+alleen lokale waarden in:
 
 ```properties
 storeFile=/absolute/path/to/veyocast-release.jks
@@ -177,7 +199,9 @@ keyPassword=...
 
 `keystore.properties`, `*.jks`, `*.keystore` en `local.properties` zijn
 genegeerd. Commit nooit signingmateriaal. Voor CI-release signing horen de
-waarden uit secrets tijdelijk buiten de repository te worden opgebouwd.
+vier waarden als `ANDROID_SIGNING_*` environmentvariabelen te worden aangeboden.
+De build weigert gedeeltelijke signingconfiguratie en de Play-workflow verwijdert
+het tijdelijke keystorebestand altijd.
 
 ## Branding
 
@@ -196,6 +220,14 @@ installeert SDK 37.1, voert lint en unit tests uit, bouwt beide debugvarianten e
 bewaart de APK's veertien dagen als GitHub Actions-artifact. Release signing is
 bewust geen vereiste voor deze buildcheck.
 
+`.github/workflows/android-tv-play-internal.yml` is een afzonderlijke handmatige
+releasegrens. Alleen `main` kan na goedkeuring van Environment
+`android-tv-internal` een gesigneerde production-AAB naar exact track `internal`
+publiceren. Google-authenticatie gebruikt kortlevende Workload Identity/OIDC-
+credentials; er staat geen serviceaccount-key in GitHub. Exacte bootstrap,
+secrets, variabelen en acceptatie staan in
+[`PLAY_STORE_INTERNAL_TEST.md`](PLAY_STORE_INTERNAL_TEST.md).
+
 ## Beperkingen
 
 - Bootstart en keep-on-top zijn niet gegarandeerd zonder managed kiosk/device owner.
@@ -211,8 +243,8 @@ bewust geen vereiste voor deze buildcheck.
 ## Mogelijke vervolgtaken
 
 1. fysieke acceptatietest op een exact Chromecast met Google TV-profiel;
-2. definitieve goedgekeurde TV-banner en Play Store-assets;
-3. release signing en intern Google Play-testkanaal;
+2. Play Console-bootstrap, upload key en internal testerlist activeren;
+3. echte onbewerkte TV-screenshot en definitieve store-assets vastleggen;
 4. bestaande VeyoCast-healthtelemetrie uitbreiden met native shellversie;
 5. managed kiosk/device-ownerprofiel voor zakelijke uitrol;
 6. hardwarematrix en 24-uurs mixed-media-soak automatiseren.

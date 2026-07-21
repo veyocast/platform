@@ -296,13 +296,13 @@
                 </LinearLayout>
 
                 <Button
-                    android:id="@+id/close_app_button"
+                    android:id="@+id/return_home_button"
                     android:layout_width="match_parent"
                     android:layout_height="60dp"
                     android:layout_marginTop="32dp"
                     android:background="@drawable/vc_button_secondary"
                     android:focusable="true"
-                    android:text="@string/close_app"
+                    android:text="@string/return_home"
                     android:textAllCaps="false"
                     android:textColor="@color/vc_paper_white"
                     android:textSize="18sp"
@@ -313,7 +313,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:lineSpacingExtra="2dp"
-                    android:text="@string/close_app_summary"
+                    android:text="@string/return_home_summary"
                     android:textColor="@color/vc_text_muted"
                     android:textSize="14sp" />
             </LinearLayout>
