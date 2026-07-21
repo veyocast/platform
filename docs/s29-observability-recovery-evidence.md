@@ -20,10 +20,19 @@
   immutable image en voert geen downmigration uit.
 - Media, Playlists en Screens gebruiken dezelfde Radix-backed `FilterBar` met
   URLstate, reset, resultaatcontext en een sequentiële mobiele disclosure.
+- De volledige Control-routekaart is aanvullend gecontroleerd op 320, 390, 768,
+  1024, 1100 en 1280 px. Tot en met 1439 px bundelt Control filters in één disclosure,
+  toont kerncijfers in twee scanbare kolommen en zet de Playlist Studio in de
+  volgorde tijdlijn, media en inspector. Brede inhoud centreert binnen een vaste
+  maximale werkbreedte; de vaste sidebar en het hoofdvlak blijven onafhankelijk
+  scrollen.
 
 ## Lokale verificatie
 
-De volledige gate-uitkomst wordt bij afronding in `TASK_LEDGER.md` vastgelegd.
+Lint, typecheck, unit tests en alle builds zijn groen. De accessibility-suite
+slaagde met 21 tests; de volledige Chromium-suite met 60 geslaagde tests en
+2 bewust overgeslagen live-Supabaseflows. De viewportmatrix controleert iedere
+Control-overzichtroute en platformroute zonder horizontale pagina-overflow.
 De statische recoverycontractcheck bewijst de fail-closed guards en
 application-only rollback. Een echte restore overschrijft data en wordt daarom
 uitsluitend handmatig in het beschermde GitHub Environment `staging` uitgevoerd.

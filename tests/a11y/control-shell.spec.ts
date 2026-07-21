@@ -39,7 +39,7 @@ test("collapsed desktop navigation remains keyboard restorable", async ({ page }
 });
 
 test("control shell reflows across canonical viewport widths", async ({ page }) => {
-  for (const width of [320, 390, 768, 1280]) {
+  for (const width of [320, 390, 768, 1024, 1100, 1280]) {
     await page.setViewportSize({ height: 900, width });
     await page.goto("/dashboard");
 
@@ -70,6 +70,60 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
       await expect(page.getByRole("navigation", { name: "Hoofdnavigatie" })).toBeVisible();
     }
   }
+});
+
+test("all Control overview routes remain inside the viewport", async ({ page }) => {
+  test.setTimeout(120_000);
+
+  const routes = [
+    "/dashboard",
+    "/dashboard/media",
+    "/dashboard/playlists",
+    "/dashboard/releases",
+    "/dashboard/screens",
+    "/dashboard/settings",
+    "/dashboard/team",
+    "/dashboard/auditlog",
+    "/platform",
+    "/platform/tenants",
+    "/platform/system"
+  ];
+
+  for (const width of [320, 390, 768, 1024, 1100, 1280]) {
+    await page.setViewportSize({ height: 900, width });
+
+    for (const route of routes) {
+      await page.goto(route);
+      expect.soft(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
+        ),
+        `${route} blijft binnen ${width}px`
+      ).toBe(true);
+    }
+  }
+});
+
+test("resource filters stay bundled through compact desktop", async ({ page }) => {
+  await page.setViewportSize({ height: 900, width: 1100 });
+  await page.goto("/dashboard/playlists");
+
+  const trigger = page.getByRole("button", { exact: true, name: "Filters" });
+  await expect(trigger).toBeVisible();
+  await expect(page.getByLabel("Zoeken in playlists")).not.toBeVisible();
+  await trigger.click();
+  await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
+
+  expect(
+    await page.locator(".metric-grid").first().evaluate((element) =>
+      getComputedStyle(element).gridTemplateColumns.split(" ").length
+    )
+  ).toBe(2);
+
+  await page.setViewportSize({ height: 900, width: 1440 });
+  await page.reload();
+  await expect(trigger).not.toBeVisible();
+  await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
 });
 
 test("shared audit table becomes labelled mobile rows", async ({ page }) => {
@@ -112,6 +166,7 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(page.getByLabel("Titel", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Videobestand", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Videotitel", { exact: true })).toBeVisible();
+  await page.getByRole("button", { exact: true, name: "Filters" }).click();
   await expect(page.getByLabel("Filter media op gebruik")).toBeVisible();
   await expect(page.getByRole("link", { name: "Raster" })).toBeVisible();
   await expect(page.getByLabel("Media pipeline stappen")).toContainText(
@@ -145,6 +200,7 @@ test("playlists route exposes searchable resource filters and safe creation", as
     page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
   ).toBeVisible();
   await expect(page.getByLabel("Playlistnaam")).toBeVisible();
+  await page.getByRole("button", { exact: true, name: "Filters" }).click();
   await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
   await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
   await expect(page.getByRole("combobox", { exact: true, name: "Schermgebruik" })).toBeVisible();

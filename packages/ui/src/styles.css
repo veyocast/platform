@@ -400,7 +400,13 @@
   white-space: nowrap;
 }
 
-@media (max-width: 767px) {
+/*
+ * Filters become a single disclosure before the shell reaches its mobile
+ * breakpoint. In Control the persistent desktop navigation already reduces
+ * the usable workspace at these widths; keeping every field expanded made
+ * compact desktop and landscape tablet views unnecessarily dense.
+ */
+@media (max-width: 1439px) {
   .vc-filter-bar__header {
     align-items: stretch;
   }
