@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(35);
+select plan(37);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -245,6 +245,30 @@ select ok(
     repeat('6', 64), repeat('7', 64), repeat('8', 64)
   ) ->> 'ok')::boolean,
   'rate-limited refreshes do not extend the Player creation lockout'
+);
+
+reset role;
+insert into public.pairing_sessions (
+  code_hash, pending_token_hash, device_fingerprint_hash, status,
+  created_at, expires_at
+) values (
+  repeat('0', 64), repeat('1', 64), repeat('2', 64),
+  'cancelled'::public.pairing_session_status,
+  now() - interval '20 minutes', now() - interval '10 minutes'
+);
+insert into private.pairing_creation_attempts(fingerprint_hash, outcome)
+values (repeat('2', 64), 'created');
+select is(
+  (select count(*) from public.pairing_sessions where code_hash = repeat('0', 64)),
+  0::bigint,
+  'an unclaimed pairing session is deleted after fifteen minutes'
+);
+select is(
+  (select count(*) from public.pairing_sessions
+   where code_hash = repeat('a', 64)
+     and status = 'claimed'::public.pairing_session_status),
+  1::bigint,
+  'claimed pairing evidence is retained by session cleanup'
 );
 
 reset role;

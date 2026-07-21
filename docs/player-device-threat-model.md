@@ -58,6 +58,9 @@ Player blijft een revocable device en is geen Supabase Auth-user.
   Afgewezen automatische retries blijven auditbaar, maar verlengen de blokkade
   niet. De API retourneert de resterende wachttijd en de Player hervat daarna
   automatisch zonder handmatige refresh.
+- Pending, verlopen en geannuleerde pairingsessies worden bij de eerstvolgende
+  pairingactie verwijderd zodra zij vijftien minuten oud zijn. Claimed sessies
+  blijven bestaan als referentie voor device- en auditbewijs.
 - De fingerprint is alleen een begrenzingssignaal en geen device-identiteit.
   Reverse-proxyheaders kunnen worden gespoofd buiten de beheerde VPS-route;
   daarom blijft ook de globale grens actief.

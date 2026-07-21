@@ -33,6 +33,9 @@
   stabiele niet-geheime instance-ID naast netwerk en user-agent. Een HTTP 429
   wordt als automatische wachtroute afgehandeld en afgewezen retries verlengen
   het databasevenster niet;
+- ongeclaimde pending, verlopen en geannuleerde pairingsessies ouder dan
+  vijftien minuten worden bij de eerstvolgende pairingactie fysiek verwijderd;
+  claimed device- en auditbewijs blijft behouden;
 - eerste heartbeat, runtime, appversie, platform, storage, active/desired
   release, veilige foutcode en synctijdlijn zijn zichtbaar zonder secrets.
 - Pairingbevestiging is niet afhankelijk van een reeds toegewezen release: een
