@@ -124,9 +124,22 @@ describe("application package boundaries", () => {
 
   it("prevents applications from importing each other", async () => {
     const appsRoot = join(repositoryRoot, "apps");
-    const appEntries = (await readdir(appsRoot, { withFileTypes: true }))
+    const appDirectories = (await readdir(appsRoot, { withFileTypes: true }))
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name);
+    const appEntries = (
+      await Promise.all(
+        appDirectories.map(async (app) => {
+          try {
+            await readFile(join(appsRoot, app, "package.json"), "utf8");
+            return app;
+          } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+            throw error;
+          }
+        })
+      )
+    ).filter((app): app is string => app !== null);
     const appPackageNames = new Set(appEntries.map((app) => `@veyocast/${app}`));
     const violations: string[] = [];
 
