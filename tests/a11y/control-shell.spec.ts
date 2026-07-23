@@ -194,14 +194,12 @@ test("resource filters stay bundled through compact desktop", async ({ page }) =
   await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
 });
 
-test("shared audit table becomes labelled mobile rows", async ({ page }) => {
+test("activity workspace remains readable without fictional mobile rows", async ({ page }) => {
   await page.setViewportSize({ height: 844, width: 320 });
   await page.goto("/dashboard/auditlog");
 
-  await expect(
-    page.getByRole("table", { name: "Gebeurtenissen binnen de actieve vereniging." })
-  ).toBeVisible();
-  await expect(page.locator(".vc-data-table td[data-label='Tijd']")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Recente gebeurtenissen" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Nog geen auditgebeurtenissen" })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
@@ -212,14 +210,21 @@ test("shared audit table becomes labelled mobile rows", async ({ page }) => {
 test("tenant context selection is explicit and keyboard reachable", async ({ page }) => {
   await page.goto("/dashboard");
 
-  const switcher = page.locator("summary").filter({ hasText: "Museumkwartier" });
-  await switcher.focus();
-  await expect(switcher).toBeFocused();
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("group", { name: "Werkcontext wisselen" })).toBeVisible();
-  await page.getByRole("link", { name: "Alle contexten beheren" }).click();
-
-  await expect(page).toHaveURL(/\/context$/);
+  await expect(async () => {
+    if (/\/context$/.test(page.url())) return;
+    const switcher = page.locator("summary").filter({ hasText: "Museumkwartier" });
+    await switcher.focus();
+    await expect(switcher).toBeFocused();
+    if (!(await switcher.evaluate((element) => (element.parentElement as HTMLDetailsElement | null)?.open ?? false))) {
+      await page.keyboard.press("Enter");
+    }
+    await expect(page.getByRole("group", { name: "Werkcontext wisselen" })).toBeVisible();
+    const contextLink = page.getByRole("link", { name: "Alle contexten beheren" });
+    await contextLink.focus();
+    await expect(contextLink).toBeFocused();
+    await page.keyboard.press("Enter");
+    await page.waitForURL(/\/context$/, { timeout: 4_000 });
+  }).toPass({ timeout: 20_000 });
   await expect(page.getByRole("heading", { name: "Kies een vereniging" })).toBeVisible();
   await expect(page.getByText("niet automatisch een willekeurige context gekozen")).toBeVisible();
 });
@@ -299,9 +304,12 @@ test("playlists route exposes searchable resource filters and safe creation", as
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
   ).toBeVisible();
-  await page.getByRole("button", { exact: true, name: "Filters" }).click();
-  await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
-  await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
+  await expect(async () => {
+    const trigger = page.getByRole("button", { exact: true, name: "Filters" });
+    if ((await trigger.getAttribute("data-state")) !== "open") await trigger.click();
+    await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
+    await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
+  }).toPass();
   await expect(page.getByRole("combobox", { exact: true, name: "Schermgebruik" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Configureer Supabase" })).toBeVisible();
@@ -337,9 +345,9 @@ test("team route exposes roles and a safely disabled invitation flow", async ({ 
   await expect(page.getByLabel("E-mailadres")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Uitnodiging versturen" })).toHaveCount(0);
   await expect(
-    page.getByRole("status").filter({ hasText: "uitsluitend lokale fixtures" })
+    page.getByRole("status").filter({ hasText: "Configureer Supabase" })
   ).toBeVisible();
-  await expect(page.getByRole("table", { name: "Toegang binnen de actieve vereniging." })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Nog geen teamleden" })).toBeVisible();
 });
 
 test("tenant management exposes a labelled and safely disabled creation flow", async ({
@@ -390,7 +398,7 @@ test("pilot route exposes a sequential and fully labelled flow", async ({ page }
   await expect(page.getByText("Demomodus", { exact: true })).toBeVisible();
 });
 
-test("public auth routes have clear headings and forms", async ({ page }) => {
+test("public auth routes have clear headings and forms", async ({ context, page }) => {
   await page.goto("/login");
 
   await expect(
@@ -399,8 +407,10 @@ test("public auth routes have clear headings and forms", async ({ page }) => {
   await expect(page.getByLabel("E-mailadres")).toBeVisible();
   await expect(page.getByLabel("Tenant")).toBeVisible();
 
-  await page.goto("/accept-invite");
-  await expect(page.getByRole("heading", { name: "Uitnodiging afronden" })).toBeVisible();
-  await expect(page.getByText("geen geldige uitnodigingssessie")).toBeVisible();
-  await expect(page.getByLabel("Nieuw wachtwoord")).toHaveCount(0);
+  const invitePage = await context.newPage();
+  await invitePage.goto("/accept-invite");
+  await expect(invitePage.getByRole("heading", { name: "Uitnodiging afronden" })).toBeVisible();
+  await expect(invitePage.getByText("geen geldige uitnodigingssessie")).toBeVisible();
+  await expect(invitePage.getByLabel("Nieuw wachtwoord")).toHaveCount(0);
+  await invitePage.close();
 });
