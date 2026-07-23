@@ -439,7 +439,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             <div className="media-library-grid">
               {visibleAssets.map((asset) => (
                 <article className="media-library-card" key={asset.id}>
-                  <MediaPreview asset={asset} />
+                  <MediaPreview asset={asset} compact />
                   <div className="media-library-card__body">
                     <div className="work-panel__header"><div><h3>{asset.title}</h3><p className="work-panel__meta">{asset.fileName}</p></div><MediaStatus status={asset.status} /></div>
                     <p className="work-panel__meta">{asset.isFavorite ? "Favoriet · " : ""}{mediaDetails(asset)} · {usageSummary(asset)}</p>
@@ -501,11 +501,15 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           {totalCount > 20 ? (
             <nav aria-label="Paginering mediabibliotheek" className="pagination">
               <Button asChild size="sm" variant="secondary">
-                <Link aria-disabled={page <= 1} href={mediaHref(params, { page: String(Math.max(1, page - 1)) })}>Vorige</Link>
+                {page <= 1
+                  ? <button disabled type="button">Vorige</button>
+                  : <Link href={mediaHref(params, { page: String(page - 1) })}>Vorige</Link>}
               </Button>
               <span>Pagina {Math.min(page, pageCount)} van {pageCount}</span>
               <Button asChild size="sm" variant="secondary">
-                <Link aria-disabled={page >= pageCount} href={mediaHref(params, { page: String(Math.min(pageCount, page + 1)) })}>Volgende</Link>
+                {page >= pageCount
+                  ? <button disabled type="button">Volgende</button>
+                  : <Link href={mediaHref(params, { page: String(page + 1) })}>Volgende</Link>}
               </Button>
             </nav>
           ) : null}
@@ -1047,11 +1051,14 @@ function MediaType({ kind, status }: Pick<MediaAsset, "kind" | "status">) {
   return <span className="media-type" aria-label="Afbeelding"><ImageIcon aria-hidden="true" /></span>;
 }
 
-function MediaPreview({ asset }: { asset: MediaAsset }) {
+function MediaPreview({ asset, compact = false }: { asset: MediaAsset; compact?: boolean }) {
   if (!asset.previewUrl) {
     return <div className="media-card__preview" data-kind={asset.kind}>{asset.status === "ready" ? "Voorbeeld niet beschikbaar" : statusLabel(asset.status)}</div>;
   }
   if (asset.kind === "video") {
+    if (compact) {
+      return <div className="media-card__preview" data-kind="video"><Video aria-hidden="true" /><span>Video</span></div>;
+    }
     return <video className="media-inspector-preview" controls muted preload="metadata" src={asset.previewUrl}><track kind="captions" /></video>;
   }
   return <img alt={`Voorbeeld van ${asset.title}`} className="media-inspector-preview" src={asset.previewUrl} />;

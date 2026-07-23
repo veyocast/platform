@@ -29,7 +29,7 @@ import { ScreenBulkForm } from "./screen-bulk-form";
 import styles from "./screens-overview.module.css";
 
 type ScreensPageProps = {
-  searchParams: Promise<{ fout?: string; q?: string; status?: string; succes?: string; view?: string }>;
+  searchParams: Promise<{ fout?: string; q?: string; status?: string; succes?: string; sync?: string; view?: string }>;
 };
 
 export default async function ScreensPage({ searchParams }: ScreensPageProps) {
@@ -44,8 +44,9 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const releaseById = new Map(data.releases.map((release) => [release.id, release]));
   const statuses = data.screens.map((screen) => screenStatus(screen, devicesByScreen.get(screen.id)));
   const normalizedQuery = query.q?.trim().toLocaleLowerCase("nl-NL") ?? "";
-  const statusFilter = new Set(["online", "offline", "syncing", "unpaired", "maintenance", "disabled"]).has(query.status ?? "")
-    ? query.status!
+  const requestedStatus = query.sync === "pending" ? "syncing" : query.status;
+  const statusFilter = new Set(["online", "offline", "syncing", "unpaired", "maintenance", "disabled"]).has(requestedStatus ?? "")
+    ? requestedStatus!
     : "all";
   const filteredScreens = data.screens
     .filter((screen) => {
@@ -147,8 +148,8 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
     >
     <div className={styles.viewBar}>
       <nav aria-label="Schermweergave" className={styles.viewTabs}>
-        <Link className={styles.viewTab} data-active={view === "cards"} href={screenViewHref(query, "cards")}><Grid3X3 aria-hidden="true" />Kaarten</Link>
-        <Link className={styles.viewTab} data-active={view === "list"} href={screenViewHref(query, "list")}><List aria-hidden="true" />Tabel</Link>
+        <Link aria-current={view === "cards" ? "page" : undefined} className={styles.viewTab} data-active={view === "cards"} href={screenViewHref(query, "cards")}><Grid3X3 aria-hidden="true" />Kaarten</Link>
+        <Link aria-current={view === "list" ? "page" : undefined} className={styles.viewTab} data-active={view === "list"} href={screenViewHref(query, "list")}><List aria-hidden="true" />Tabel</Link>
       </nav>
       <div className={styles.viewActions}>
         {eligibleCount ? (
@@ -204,7 +205,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
                   <dl className={styles.screenMeta}>
                     <div><dt>Content</dt><dd>{release?.playlistName ?? "Niet toegewezen"}</dd></div>
                     <div><dt>Versie</dt><dd>{release ? `Versie ${release.version}` : "—"}</dd></div>
-                    <div><dt>Bron</dt><dd>{screen.assignedPlaylistId ? "Standaardplaylist" : "Geen toewijzing"}</dd></div>
+                    <div><dt>Bron</dt><dd>{assignmentSourceLabel(screen, Boolean(release))}</dd></div>
                     <div><dt>Synchronisatie</dt><dd>{syncLabel(device)}</dd></div>
                     <div><dt>Scherm</dt><dd>{screen.resolutionWidth && screen.resolutionHeight ? `${screen.resolutionWidth} × ${screen.resolutionHeight}` : "Resolutie onbekend"} · {orientationLabel(screen.orientation)}</dd></div>
                     <div><dt>Laatste contact</dt><dd>{formatLastSeen(device?.lastSeenAt)}</dd></div>
@@ -283,4 +284,11 @@ function screenViewHref(
   if (view === "list") next.set("view", view);
   const suffix = next.toString();
   return suffix ? `/dashboard/screens?${suffix}` : "/dashboard/screens";
+}
+
+function assignmentSourceLabel(screen: FleetScreen, hasRelease: boolean) {
+  if (!hasRelease) return "Geen toewijzing";
+  if (screen.activeAssignmentSource === "override") return "Tijdelijke override";
+  if (screen.activeAssignmentSource === "schedule") return "Planning";
+  return "Standaardplaylist";
 }

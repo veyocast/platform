@@ -44,7 +44,9 @@ type ReleaseOption = {
 };
 
 export function ContentScheduleDialog({
+  defaultOpen = false,
   defaultStartAt,
+  defaultTarget = "",
   disabled,
   groups,
   releases,
@@ -52,7 +54,9 @@ export function ContentScheduleDialog({
   screens,
   timezoneName
 }: {
+  defaultOpen?: boolean;
   defaultStartAt: string;
+  defaultTarget?: string;
   disabled: boolean;
   groups: { id: string; memberCount: number; name: string }[];
   releases: ReleaseOption[];
@@ -140,7 +144,7 @@ export function ContentScheduleDialog({
   }
 
   return (
-    <Dialog>
+    <Dialog defaultOpen={defaultOpen}>
       <DialogTrigger asChild>
         <Button disabled={disabled || releases.length === 0 || targetOptions.every((target) => target.disabled)} size={isEditing ? "sm" : "md"} variant={isEditing ? "secondary" : "primary"}>
           {isEditing ? <Pencil aria-hidden="true" /> : <CalendarPlus aria-hidden="true" />}
@@ -201,7 +205,7 @@ export function ContentScheduleDialog({
             <div className="field">
               <label htmlFor={`schedule-target-${schedule?.id ?? "new"}`}>Doel</label>
               <select
-                defaultValue={schedule ? `${schedule.targetKind}:${schedule.targetId}` : ""}
+                defaultValue={schedule ? `${schedule.targetKind}:${schedule.targetId}` : defaultTarget}
                 id={`schedule-target-${schedule?.id ?? "new"}`}
                 name="target"
                 required

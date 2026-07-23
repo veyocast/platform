@@ -115,6 +115,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
       <div className={styles.viewBar}>
         <nav aria-label="Playlistweergave" className={styles.viewTabs}>
           <Link
+            aria-current={view === "cards" ? "page" : undefined}
             className={styles.viewTab}
             data-active={view === "cards"}
             href={viewHref(params, "cards")}
@@ -123,6 +124,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
             Kaarten
           </Link>
           <Link
+            aria-current={view === "list" ? "page" : undefined}
             className={styles.viewTab}
             data-active={view === "list"}
             href={viewHref(params, "list")}
@@ -138,7 +140,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
         <h2 className="sr-only" id="playlist-list-title">Playlistoverzicht</h2>
         {data.rows.length && view === "cards" ? (
           <div className={styles.playlistGrid}>
-            {data.rows.map((playlist) => (
+            {data.rows.map((playlist, playlistIndex) => (
               <article className={styles.playlistCard} key={playlist.id}>
                 <div className={styles.playlistCover} data-count={playlist.coverPreviewUrls.length}>
                   {playlist.coverPreviewUrls.length ? playlist.coverPreviewUrls.map((url, index) => (
@@ -146,7 +148,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
                       <Image
                         alt=""
                         fill
-                        priority={index === 0}
+                        priority={playlistIndex === 0 && index === 0}
                         sizes="(max-width: 680px) 100vw, (max-width: 1180px) 50vw, 33vw"
                         src={url}
                         unoptimized

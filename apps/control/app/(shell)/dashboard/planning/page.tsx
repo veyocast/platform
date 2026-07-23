@@ -33,6 +33,7 @@ type PlanningPageProps = {
   searchParams: Promise<{
     date?: string;
     fout?: string;
+    nieuw?: string;
     succes?: string;
     target?: string;
     view?: string;
@@ -69,7 +70,9 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
       <PageHeader
         actions={(
           <ContentScheduleDialog
+            defaultOpen={query.nieuw === "1"}
             defaultStartAt={defaultStartAt}
+            defaultTarget={selectedTarget}
             disabled={!canWrite}
             groups={data.groups}
             releases={data.releases}

@@ -228,7 +228,7 @@ function PlanningTab({
       </div>
       <p className="notice"><strong>Nu zichtbaar:</strong> {assignmentExplanation(screen, schedules)}</p>
       <div className="page-action-group">
-        <Link className="button-link button-link--primary" href={`/dashboard/planning?screen=${screen.id}`}>Planning beheren</Link>
+        <Link className="button-link button-link--primary" href={`/dashboard/planning?target=screen:${screen.id}`}>Planning beheren</Link>
         <Link className="button-link button-link--secondary" href="/dashboard/screen-groups">Schermgroepen bekijken</Link>
       </div>
     </section>
