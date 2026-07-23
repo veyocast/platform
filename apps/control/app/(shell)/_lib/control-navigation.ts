@@ -210,6 +210,21 @@ export function getNavigationGroupsForRoles(
   );
 }
 
+export function getNavigationGroupsForPathname(
+  groups: readonly ControlNavigationGroup[],
+  pathname: string,
+  fallbackScope: ControlScope
+) {
+  const activeScope =
+    pathname === "/platform" || pathname.startsWith("/platform/")
+      ? "platform"
+      : pathname === "/dashboard" || pathname.startsWith("/dashboard/")
+        ? "tenant"
+        : fallbackScope;
+
+  return groups.filter((group) => group.scope === activeScope);
+}
+
 export function getControlSessionRoles(
   platformRoles: readonly ControlRole[],
   activeTenantRole?: ControlRole

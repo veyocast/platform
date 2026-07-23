@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getControlSessionRoles,
+  getNavigationGroupsForPathname,
   getNavigationForRoles,
   getNavigationGroupsForRoles
 } from "./control-navigation";
@@ -64,6 +65,26 @@ describe("control navigation", () => {
         "tenant_viewer"
       )
     ).toStrictEqual(["platform_admin", "tenant_viewer"]);
+  });
+
+  it("shows only navigation for the route context while keeping all permitted groups available", () => {
+    const groups = getNavigationGroupsForRoles([
+      "platform_admin",
+      "tenant_viewer"
+    ]);
+
+    expect(
+      getNavigationGroupsForPathname(groups, "/platform/tenants", "tenant")
+        .map((group) => group.scope)
+    ).toStrictEqual(["platform", "platform"]);
+    expect(
+      getNavigationGroupsForPathname(groups, "/dashboard/media", "platform")
+        .map((group) => group.scope)
+    ).toStrictEqual(["tenant", "tenant", "tenant", "tenant"]);
+    expect(
+      getNavigationGroupsForPathname(groups, "/context", "tenant")
+        .every((group) => group.scope === "tenant")
+    ).toBe(true);
   });
 
   it.each([

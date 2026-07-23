@@ -1,6 +1,16 @@
 "use client";
 
 import { hasCapability } from "@veyocast/auth";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+  IconButton,
+  StatusDot
+} from "@veyocast/ui";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -32,8 +42,13 @@ import type {
   ControlNavigationItem,
   ControlSession
 } from "../_lib/control-navigation";
+import { getNavigationGroupsForPathname } from "../_lib/control-navigation";
 import type { ControlSearchResult } from "../_lib/control-search-contract";
 import { switchTenantContext } from "../context/actions";
+import {
+  ControlThemeBootstrap,
+  ControlThemeSwitcher
+} from "./control-theme-switcher";
 
 type ControlShellProps = {
   children: ReactNode;
@@ -70,6 +85,28 @@ export function ControlShell({
   const [searchQuery, setSearchQuery] = useState("");
   const [resourceResults, setResourceResults] = useState<ControlSearchResult[]>([]);
   const [isResourceSearchPending, setResourceSearchPending] = useState(false);
+  const visibleNavigationGroups = useMemo(
+    () =>
+      getNavigationGroupsForPathname(
+        navigationGroups,
+        pathname,
+        session.tenantId || !session.isLive ? "tenant" : "platform"
+    ),
+    [navigationGroups, pathname, session.isLive, session.tenantId]
+  );
+  const fallbackScope =
+    session.tenantId || !session.isLive ? "tenant" : "platform";
+  const activeNavigationScope =
+    visibleNavigationGroups[0]?.scope ?? fallbackScope;
+  const hasTenantNavigationContext = activeNavigationScope === "tenant";
+  const activeContextName = hasTenantNavigationContext
+    ? session.tenant
+    : session.organization;
+  const topbarStatusTone = !session.isLive
+    ? "info"
+    : hasTenantNavigationContext && session.tenantStatus === "paused"
+      ? "warning"
+      : "success";
 
   useEffect(() => {
     const currentPreference = window.localStorage.getItem(sidebarStorageKey);
@@ -93,6 +130,8 @@ export function ControlShell({
       if (event.key === "Escape") {
         setMobileNavOpen(false);
         setSearchOpen(false);
+        setSearchQuery("");
+        setResourceResults([]);
       }
     }
 
@@ -134,14 +173,14 @@ export function ControlShell({
 
   const searchResults = useMemo(() => {
     const query = searchQuery.trim().toLocaleLowerCase("nl-NL");
-    const items = navigationGroups.flatMap((group) => group.items);
+    const items = visibleNavigationGroups.flatMap((group) => group.items);
 
     return query.length === 0
       ? items
       : items.filter((item) =>
           `${item.label} ${item.description}`.toLocaleLowerCase("nl-NL").includes(query)
         );
-  }, [navigationGroups, searchQuery]);
+  }, [searchQuery, visibleNavigationGroups]);
 
   function toggleSidebar() {
     setSidebarCollapsed((current) => {
@@ -151,10 +190,20 @@ export function ControlShell({
     });
   }
 
+  function handleSearchOpenChange(nextOpen: boolean) {
+    setSearchOpen(nextOpen);
+    if (!nextOpen) {
+      setSearchQuery("");
+      setResourceResults([]);
+    }
+  }
+
   return (
-    <div
-      className={`control-shell${isSidebarCollapsed ? " control-shell--collapsed" : ""}`}
-    >
+    <Dialog onOpenChange={handleSearchOpenChange} open={isSearchOpen}>
+      <ControlThemeBootstrap />
+      <div
+        className={`control-shell control-shell--motion${isSidebarCollapsed ? " control-shell--collapsed" : ""}`}
+      >
       <a className="skip-link" href="#control-content">
         Naar inhoud
       </a>
@@ -182,49 +231,58 @@ export function ControlShell({
             <div className="control-brand__wordmark">
               <Image
                 alt="VeyoCast"
-                className="control-brand__logo"
+                className="control-brand__logo control-brand__logo--primary"
                 height={28}
                 priority
                 src="/brand/veyocast-logo-primary.svg"
                 width={120}
               />
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="control-brand__logo control-brand__logo--inverse"
+                height={28}
+                priority
+                src="/brand/veyocast-logo-inverse.svg"
+                width={120}
+              />
               <p className="control-brand__meta">Control</p>
             </div>
-            <button
+            <IconButton
               aria-controls="control-sidebar-navigation"
               aria-expanded={!isSidebarCollapsed}
               aria-label={isSidebarCollapsed ? "Navigatie uitklappen" : "Navigatie inklappen"}
-              className="icon-button control-sidebar__collapse"
+              className="control-sidebar__collapse"
               onClick={toggleSidebar}
               title={isSidebarCollapsed ? "Navigatie uitklappen" : "Navigatie inklappen"}
-              type="button"
             >
               {isSidebarCollapsed ? <PanelLeftOpen aria-hidden="true" /> : <PanelLeftClose aria-hidden="true" />}
-            </button>
-            <button
+            </IconButton>
+            <IconButton
               aria-label="Navigatie sluiten"
-              className="icon-button control-sidebar__close"
+              className="control-sidebar__close"
               onClick={() => setMobileNavOpen(false)}
               title="Navigatie sluiten"
-              type="button"
             >
               <X aria-hidden="true" />
-            </button>
+            </IconButton>
           </div>
 
           <details className="tenant-switcher">
             <summary
-              aria-label={isSidebarCollapsed ? `Actieve context: ${session.tenant}` : undefined}
-              title={isSidebarCollapsed ? session.tenant : undefined}
+              aria-label={isSidebarCollapsed ? `Actieve context: ${activeContextName}` : undefined}
+              title={isSidebarCollapsed ? activeContextName : undefined}
             >
               <span className="tenant-switcher__mark" aria-hidden="true">
-                {session.tenant.slice(0, 1)}
+                {activeContextName.slice(0, 1)}
               </span>
               <span className="tenant-switcher__copy">
                 <span className="tenant-switcher__label">
-                  {session.tenantId || !session.isLive ? "Actieve vereniging" : "Platformcontext"}
+                  {hasTenantNavigationContext
+                    ? "Actieve vereniging"
+                    : "Platformcontext"}
                 </span>
-                <span className="tenant-switcher__value">{session.tenant}</span>
+                <span className="tenant-switcher__value">{activeContextName}</span>
               </span>
               <ChevronDown aria-hidden="true" className="tenant-switcher__chevron" />
             </summary>
@@ -264,14 +322,14 @@ export function ControlShell({
         </div>
 
         <nav className="control-nav" aria-label="Hoofdnavigatie">
-          {navigationGroups.map((group, index) => (
+          {visibleNavigationGroups.map((group, index) => (
             <section
               aria-labelledby={`control-nav-${group.id}`}
               className="control-nav__group"
               data-scope={group.scope}
               key={group.id}
             >
-              {index === 0 || navigationGroups[index - 1]?.scope !== group.scope ? (
+              {index === 0 || visibleNavigationGroups[index - 1]?.scope !== group.scope ? (
                 <div className="control-nav__context">
                   <span>{group.contextLabel}</span>
                   <small>{group.description}</small>
@@ -319,40 +377,40 @@ export function ControlShell({
               {session.roles[0] ? roleLabel[session.roles[0]] : "Geen rol toegewezen"}
             </p>
           </div>
-          <Link
+          <IconButton
+            asChild
             aria-label="Sessie wisselen"
-            className="icon-button"
-            href="/login"
             title="Sessie wisselen"
           >
-            <ChevronDown aria-hidden="true" />
-          </Link>
+            <Link href="/login">
+              <ChevronDown aria-hidden="true" />
+            </Link>
+          </IconButton>
         </div>
       </aside>
 
       <main className="control-main">
         <header className="control-topbar" aria-label="Control status">
           <div className="topbar-context">
-            <button
+            <IconButton
               aria-label="Navigatie openen"
-              className="icon-button control-menu-trigger"
+              className="control-menu-trigger"
               onClick={() => setMobileNavOpen(true)}
               title="Navigatie openen"
-              type="button"
             >
               <Menu aria-hidden="true" />
-            </button>
+            </IconButton>
             <div>
               <p className="topbar-context__scope">
-                {session.tenantId || !session.isLive ? "Vereniging" : "Platform"}
+                {hasTenantNavigationContext ? "Vereniging" : "Platform"}
               </p>
               <p className="topbar-context__label">
-                {session.tenantId || !session.isLive ? session.tenant : session.organization}
+                {activeContextName}
               </p>
               <p className="topbar-context__status">
-                <span className="status-dot status-dot--success" aria-hidden="true" />
+                <StatusDot status={topbarStatusTone} />
                 {session.isLive
-                  ? session.tenantStatus === "paused"
+                  ? hasTenantNavigationContext && session.tenantStatus === "paused"
                     ? "Vereniging gepauzeerd · alleen lezen"
                     : `Beveiligde sessie · ${session.assuranceLevel.toUpperCase()}`
                   : "Lokale demomodus"}
@@ -360,26 +418,31 @@ export function ControlShell({
             </div>
           </div>
           <div className="topbar-actions">
-            <button
-              aria-label="Snel naar een onderdeel"
-              aria-haspopup="dialog"
-              aria-keyshortcuts="Control+K Meta+K"
-              className="command-search"
-              onClick={() => setSearchOpen(true)}
-              type="button"
-            >
-              <Search aria-hidden="true" />
-              <span>Snel naar</span>
-              <kbd>Ctrl K</kbd>
-            </button>
-            {session.isLive ? <Link
-              aria-label="Accountbeveiliging openen"
-              className="icon-button topbar-help"
-              href="/auth/mfa"
-              title="Accountbeveiliging"
-            >
-              <ShieldCheck aria-hidden="true" />
-            </Link> : null}
+            <DialogTrigger asChild>
+              <button
+                aria-label="Snel naar een onderdeel"
+                aria-keyshortcuts="Control+K Meta+K"
+                className="command-search"
+                type="button"
+              >
+                <Search aria-hidden="true" />
+                <span>Snel naar</span>
+                <kbd>Ctrl K</kbd>
+              </button>
+            </DialogTrigger>
+            <ControlThemeSwitcher />
+            {session.isLive ? (
+              <IconButton
+                asChild
+                aria-label="Accountbeveiliging openen"
+                className="topbar-help"
+                title="Accountbeveiliging"
+              >
+                <Link href="/auth/mfa">
+                  <ShieldCheck aria-hidden="true" />
+                </Link>
+              </IconButton>
+            ) : null}
           </div>
         </header>
         <div className="control-content" id="control-content" tabIndex={-1}>
@@ -387,9 +450,13 @@ export function ControlShell({
         </div>
       </main>
 
-      {isSearchOpen ? (
-        <div className="command-palette-backdrop" role="presentation">
-          <section aria-label="Snel naar een onderdeel" aria-modal="true" className="command-palette" role="dialog">
+        <DialogContent className="command-palette" showClose={false}>
+          <DialogTitle className="vc-visually-hidden">
+            Snel naar een onderdeel
+          </DialogTitle>
+          <DialogDescription className="vc-visually-hidden">
+            Zoek binnen toegankelijke navigatie en resources.
+          </DialogDescription>
             <div className="command-palette__search">
               <Search aria-hidden="true" />
               <input
@@ -400,15 +467,14 @@ export function ControlShell({
                 type="search"
                 value={searchQuery}
               />
-              <button
-                aria-label="Snel naar sluiten"
-                className="icon-button"
-                onClick={() => setSearchOpen(false)}
-                title="Snel naar sluiten"
-                type="button"
-              >
-                <X aria-hidden="true" />
-              </button>
+              <DialogClose asChild>
+                <IconButton
+                  aria-label="Snel naar sluiten"
+                  title="Snel naar sluiten"
+                >
+                  <X aria-hidden="true" />
+                </IconButton>
+              </DialogClose>
             </div>
             <div className="command-palette__results">
               <p className="command-palette__group-label">Navigatie</p>
@@ -454,10 +520,9 @@ export function ControlShell({
                 </>
               ) : null}
             </div>
-          </section>
-        </div>
-      ) : null}
-    </div>
+        </DialogContent>
+      </div>
+    </Dialog>
   );
 }
 

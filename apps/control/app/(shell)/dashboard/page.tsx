@@ -1,21 +1,22 @@
 import Link from "next/link";
 
 import { hasCapability } from "@veyocast/auth";
+import {
+  Alert,
+  Button,
+  DataTable,
+  PageHeader,
+  StatusPill,
+  SummaryStrip
+} from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../lib/control-session";
-import {
-  deriveOperationalDashboard,
-  type OperationalSignal
-} from "../../../lib/control-operations";
+import { deriveOperationalDashboard } from "../../../lib/control-operations";
 import {
   loadTenantOverview,
   type TenantOverview
 } from "../../../lib/control-overview";
-import {
-  MetricCard,
-  PageHeader,
-  StatusPill
-} from "../_components/shell-primitives";
+import { OperationalActionInbox } from "../_components/operational-action-inbox";
 
 export default async function DashboardPage() {
   const session = await requireTenantControlSession();
@@ -52,85 +53,75 @@ function LiveDashboard({
 }) {
   const devices = new Map(data.devices.map((device) => [device.screen_id, device]));
   const actionableSignals = operations.signals.filter((signal) => signal.severity !== "info");
+  const hasCriticalSignal = operations.signals.some(
+    (signal) => signal.severity === "critical"
+  );
   const onboardingComplete = operations.onboarding.filter((step) => step.complete).length;
 
   return (
     <>
       <PageHeader
         actions={
-          <>
-            {canManageScreens ? (
-              <Link className="button-link button-link--secondary" href="/dashboard/screens/new">
-                Scherm koppelen
-              </Link>
-            ) : null}
-            <Link className="button-link button-link--primary" href="/dashboard/playlists">
-              Naar playlists
+          <Button asChild>
+            <Link href="/dashboard/playlists">
+              Playlists beheren
             </Link>
-          </>
+          </Button>
         }
-        description="Actuele aandachtspunten, vlootgezondheid en voortgang uit de beveiligde verenigingscontext."
+        description="Wat vandaag aandacht vraagt en hoe je vloot ervoor staat."
         eyebrow={tenant}
-        status={{ label: "Live tenantdata", tone: "success" }}
         title={`Welkom, ${userName}`}
       />
 
       {data.error ? (
-        <p className="notice notice--critical" role="alert">
-          <strong>Overzicht niet beschikbaar.</strong> De actuele gegevens konden niet volledig worden geladen. Effect: signalen en aantallen kunnen ontbreken. Vernieuw de pagina of meld je opnieuw aan.
-        </p>
+        <Alert status="critical" title="Overzicht niet beschikbaar">
+          De actuele gegevens konden niet volledig worden geladen. Effect:
+          signalen en aantallen kunnen ontbreken. Herstel: vernieuw de pagina of
+          meld je opnieuw aan.
+        </Alert>
       ) : null}
 
-      <section className="metric-grid metric-grid--operational" aria-label="Operationele kerncijfers">
-        <MetricCard
-          detail="Kritieke en waarschuwende signalen met een concrete herstelroute."
-          label="Actie nodig"
-          tone={actionableSignals.length ? "critical" : "success"}
-          value={String(actionableSignals.length)}
-        />
-        <MetricCard
-          detail={`${operations.onlineScreenCount} van ${data.screens.length} schermen heeft een recente heartbeat.`}
-          label="Schermen online"
-          tone={operations.onlineScreenCount === data.screens.length ? "success" : "warning"}
-          value={`${operations.onlineScreenCount}/${data.screens.length}`}
-        />
-        <MetricCard
-          detail={`${operations.readyMediaCount} mediabestanden zijn gereed voor playlists.`}
-          label="Media in verwerking"
-          tone={operations.processingMediaCount ? "info" : "success"}
-          value={String(operations.processingMediaCount)}
-        />
-        <MetricCard
-          detail="Recente players met bevestigde READY-, PLAYING- of offline playbackstatus."
-          label="Playback bevestigd"
-          tone={operations.activePlaybackCount ? "success" : "neutral"}
-          value={String(operations.activePlaybackCount)}
-        />
-      </section>
+      <OperationalActionInbox
+        signals={operations.signals.slice(0, 5)}
+        totalCount={operations.signals.length}
+      />
 
-      <section className="workspace-section action-inbox" aria-labelledby="action-inbox-title">
-        <div className="workspace-section__header">
-          <div>
-            <h2 className="workspace-section__title" id="action-inbox-title">Actie nodig</h2>
-            <p className="work-panel__meta">Gesorteerd op ernst en leeftijd; elk signaal opent de relevante resourcecontext.</p>
-          </div>
-          <StatusPill
-            label={operations.signals.length ? `${operations.signals.length} open` : "Alles op orde"}
-            tone={operations.signals.length ? "warning" : "success"}
-          />
-        </div>
-        {operations.signals.length ? (
-          <ol className="operational-signal-list" aria-label="Open operationele signalen">
-            {operations.signals.slice(0, 12).map((signal) => (
-              <SignalCard key={signal.id} signal={signal} />
-            ))}
-          </ol>
-        ) : (
-          <p className="notice notice--success" role="status">
-            Er zijn geen actuele operationele signalen. VeyoCast blijft nieuwe heartbeats, verwerking en publicatiegereedheid controleren.
-          </p>
-        )}
-      </section>
+      <SummaryStrip
+        aria-label="Operationele samenvatting"
+        className="dashboard-operational-summary control-motion-enter"
+        items={[
+          {
+            label: "Actie nodig",
+            tone:
+              hasCriticalSignal
+                ? "critical"
+                : actionableSignals.length
+                  ? "warning"
+                  : operations.signals.length
+                    ? "info"
+                    : "success",
+            value: operations.signals.length
+          },
+          {
+            label: "Schermen online",
+            tone:
+              operations.onlineScreenCount === data.screens.length
+                ? "success"
+                : "warning",
+            value: `${operations.onlineScreenCount}/${data.screens.length}`
+          },
+          {
+            label: "Media in verwerking",
+            tone: operations.processingMediaCount ? "info" : "success",
+            value: operations.processingMediaCount
+          },
+          {
+            label: "Playback bevestigd",
+            tone: operations.activePlaybackCount ? "success" : "neutral",
+            value: operations.activePlaybackCount
+          }
+        ]}
+      />
 
       <section className="dashboard-layout dashboard-layout--operations">
         <section className="workspace-section" aria-labelledby="fleet-health-title">
@@ -139,12 +130,17 @@ function LiveDashboard({
               <h2 className="workspace-section__title" id="fleet-health-title">Vlootgezondheid</h2>
               <p className="work-panel__meta">Koppeling, verbinding en actieve release per scherm.</p>
             </div>
-            <Link className="table-action" href="/dashboard/screens">Alle schermen bekijken</Link>
+            <div className="workspace-section__actions">
+              {canManageScreens ? (
+                <Button asChild size="sm" variant="secondary">
+                  <Link href="/dashboard/screens/new">Scherm koppelen</Link>
+                </Button>
+              ) : null}
+              <Link className="table-action" href="/dashboard/screens">Alle schermen bekijken</Link>
+            </div>
           </div>
           {data.screens.length ? (
-            <div className="data-table-frame">
-              <table className="data-table data-table--responsive">
-                <caption>Actuele schermstatus binnen de actieve vereniging.</caption>
+            <DataTable caption="Actuele schermstatus binnen de actieve vereniging.">
                 <thead><tr><th scope="col">Scherm</th><th scope="col">Status</th><th scope="col">Locatie</th><th scope="col">Release</th><th scope="col">Actie</th></tr></thead>
                 <tbody>{data.screens.map((screen) => {
                   const device = devices.get(screen.id);
@@ -157,8 +153,7 @@ function LiveDashboard({
                     <td data-label="Actie"><Link className="table-action" href={`/dashboard/screens/${screen.id}`}>Diagnose</Link></td>
                   </tr>;
                 })}</tbody>
-              </table>
-            </div>
+            </DataTable>
           ) : (
             <p className="notice" role="status">Nog geen schermen. Maak een scherm aan en koppel daarna een Player.</p>
           )}
@@ -216,27 +211,6 @@ function LiveDashboard({
   );
 }
 
-function SignalCard({ signal }: { signal: OperationalSignal }) {
-  const tone = signal.severity === "critical" ? "critical" : signal.severity === "warning" ? "warning" : "info";
-  return (
-    <li className="operational-signal" data-severity={signal.severity}>
-      <div className="operational-signal__header">
-        <span>
-          <strong>{signal.label}</strong>
-          <small>{signal.resource} · {signal.ageLabel}</small>
-        </span>
-        <StatusPill label={signal.severity === "critical" ? "Kritiek" : signal.severity === "warning" ? "Aandacht" : "Binnenkort"} tone={tone} />
-      </div>
-      <dl className="operational-help">
-        <div><dt>Oorzaak</dt><dd>{signal.cause}</dd></div>
-        <div><dt>Effect</dt><dd>{signal.effect}</dd></div>
-        <div><dt>Herstel</dt><dd>{signal.recovery}</dd></div>
-      </dl>
-      <Link className="button-link button-link--secondary" href={signal.href}>Open herstelcontext</Link>
-    </li>
-  );
-}
-
 function DemoDashboardPage({ userName }: { userName: string }) {
   return (
     <>
@@ -251,8 +225,12 @@ function DemoDashboardPage({ userName }: { userName: string }) {
         <h2 id="demo-dashboard-title">Verbind een live omgeving voor operationeel inzicht</h2>
         <p>Acties, schermstatus, verwerking, onboarding en releases worden uitsluitend uit tenantgebonden serverdata afgeleid. Deze route simuleert daarom geen klant, schermen of publicaties.</p>
         <div className="page-actions">
-          <Link className="button-link button-link--primary" href="/dashboard/screens">Bekijk schermflow</Link>
-          <Link className="button-link button-link--secondary" href="/dashboard/media">Bekijk mediaflow</Link>
+          <Button asChild>
+            <Link href="/dashboard/screens">Bekijk schermflow</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/dashboard/media">Bekijk mediaflow</Link>
+          </Button>
         </div>
       </section>
     </>
