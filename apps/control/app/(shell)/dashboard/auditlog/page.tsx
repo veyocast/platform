@@ -14,10 +14,7 @@ export default async function AuditLogPage() {
       <PageHeader
         description="Het append-only beveiligingsspoor binnen de actieve vereniging."
         eyebrow={session.tenant}
-        status={{
-          label: session.isLive ? "Live tenantdata" : "Demodata",
-          tone: session.isLive ? "success" : "warning"
-        }}
+        status={!session.isLive ? { label: "Demodata", tone: "warning" } : undefined}
         title="Auditlog"
       />
       {!session.isLive ? (

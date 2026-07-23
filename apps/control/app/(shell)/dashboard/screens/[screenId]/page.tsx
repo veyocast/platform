@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
+import { SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
@@ -100,12 +101,20 @@ function OverviewTab({
   screen: NonNullable<Awaited<ReturnType<typeof loadScreenDetail>>["screen"]>;
 }) {
   return <>
-    <section className="metric-grid" aria-label="Schermstatus">
-      <Metric label="Lifecycle" value={screenStatusLabel(screen.status)} detail={lifecycleExplanation(screen.status)} />
-      <Metric label="Player" value={device?.deviceName || "Niet gekoppeld"} detail={device?.platform || "Start onboarding om een Player te koppelen."} />
-      <Metric label="Laatste heartbeat" value={latestHeartbeat ? relativeDate(latestHeartbeat.createdAt) : "Nog nooit"} detail={latestHeartbeat?.runtimeState || "Runtime nog onbekend."} />
-      <Metric label="Laatste veilige fout" value={device?.lastErrorCode || "Geen"} detail={device?.lastErrorAt ? formatDate(device.lastErrorAt) : "Er is geen actuele Playerfout gerapporteerd."} />
-    </section>
+    <SummaryStrip
+      aria-label="Schermstatus"
+      items={[
+        { detail: lifecycleExplanation(screen.status), label: "Lifecycle", value: screenStatusLabel(screen.status) },
+        { detail: device?.platform || "Nog niet gekoppeld", label: "Player", value: device?.deviceName || "Niet gekoppeld" },
+        { detail: latestHeartbeat?.runtimeState || "Runtime onbekend", label: "Heartbeat", value: latestHeartbeat ? relativeDate(latestHeartbeat.createdAt) : "Nog nooit" },
+        {
+          detail: device?.lastErrorAt ? formatDate(device.lastErrorAt) : "Geen actuele Playerfout",
+          label: "Laatste fout",
+          tone: device?.lastErrorCode ? "warning" : "success",
+          value: device?.lastErrorCode || "Geen"
+        }
+      ]}
+    />
     <section className="data-surface" aria-labelledby="screen-settings-title">
       <div className="workspace-section__header">
         <div><h2 className="workspace-section__title" id="screen-settings-title">Scherminstellingen en lifecycle</h2><p className="work-panel__meta">Onderhoud bewaart de lokale release. Uitschakelen trekt de Player in zodra die weer online komt.</p></div>
@@ -175,12 +184,19 @@ function PlayerTab({ canManage, devices, screenId }: { canManage: boolean; devic
 
 function SyncTab({ canManage, device, heartbeats, releases, screenId, syncEvents }: { canManage: boolean; device: FleetDevice | null; heartbeats: Array<{ createdAt: string; runtimeState: string }>; releases: FleetRelease[]; screenId: string; syncEvents: Array<{ createdAt: string; id: string; phase: string; releaseId: string | null }> }) {
   return <>
-    <section className="metric-grid" aria-label="Synchronisatiestatus">
-      <Metric label="Actieve release" value={releaseLabel(device?.activeReleaseId ?? null, releases)} detail="Deze release is door de Player als actief gerapporteerd." />
-      <Metric label="Gewenste release" value={releaseLabel(device?.desiredReleaseId ?? null, releases)} detail="Download en verificatie blokkeren de huidige playback niet." />
-      <Metric label="Opslag" value={formatStorage(device)} detail="Verouderde of ontbrekende telemetry blijft onbekend." />
-      <Metric label="Runtime" value={heartbeats[0]?.runtimeState || "Onbekend"} detail={device?.lastSeenAt ? `Laatst gezien ${relativeDate(device.lastSeenAt)}.` : "Nog geen heartbeat ontvangen."} />
-    </section>
+    <SummaryStrip
+      aria-label="Synchronisatiestatus"
+      items={[
+        { detail: "Door de Player actief gemeld", label: "Actieve release", value: releaseLabel(device?.activeReleaseId ?? null, releases) },
+        { detail: "Volgende volledig te verifiëren release", label: "Gewenste release", value: releaseLabel(device?.desiredReleaseId ?? null, releases) },
+        { detail: "Onbekende telemetry blijft onbekend", label: "Opslag", value: formatStorage(device) },
+        {
+          detail: device?.lastSeenAt ? `Laatst gezien ${relativeDate(device.lastSeenAt)}` : "Nog geen heartbeat",
+          label: "Runtime",
+          value: heartbeats[0]?.runtimeState || "Onbekend"
+        }
+      ]}
+    />
     <section className="data-surface" aria-labelledby="sync-actions-title">
       <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="sync-actions-title">Gecontroleerd opnieuw proberen</h2><p className="work-panel__meta">Het verzoek wordt traceerbaar vastgelegd en bij de eerstvolgende Playerverbinding bevestigd. De actieve release blijft spelen.</p></div><StatusPill label={device?.syncRetryRequestedAt ? "Retry aangevraagd" : "Geen open retry"} tone={device?.syncRetryRequestedAt ? "info" : "neutral"} /></div>
       <form action={requestScreenSyncRetry}><input name="screenId" type="hidden" value={screenId} /><button className="button-link button-link--primary" disabled={!canManage || !device} type="submit">Synchronisatie opnieuw proberen</button></form>
@@ -191,10 +207,6 @@ function SyncTab({ canManage, device, heartbeats, releases, screenId, syncEvents
 
 function EventsTab({ events }: { events: Array<{ action: string; createdAt: string; id: string; result: string; targetType: string }> }) {
   return <section className="workspace-section" aria-labelledby="screen-events-title"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="screen-events-title">Gebeurtenissen</h2><p className="work-panel__meta">Lifecycle-, pairing-, device- en retrycommands zijn append-only herleidbaar.</p></div><StatusPill label={`${events.length} gebeurtenissen`} tone="neutral" /></div>{events.length ? <div className="data-table-frame"><table className="data-table data-table--responsive"><caption>Auditgebeurtenissen voor dit scherm en zijn Players.</caption><thead><tr><th scope="col">Gebeurtenis</th><th scope="col">Resultaat</th><th scope="col">Resource</th><th scope="col">Tijd</th></tr></thead><tbody>{events.map((event) => <tr key={event.id}><td data-label="Gebeurtenis"><span className="table-primary">{eventLabel(event.action)}</span><span className="table-secondary">{event.action}</span></td><td data-label="Resultaat"><StatusPill label={event.result === "success" ? "Geslaagd" : "Mislukt"} tone={event.result === "success" ? "success" : "critical"} /></td><td data-label="Resource">{event.targetType}</td><td data-label="Tijd">{formatDate(event.createdAt)}</td></tr>)}</tbody></table></div> : <p className="notice" role="status">Nog geen beheeracties voor dit scherm.</p>}</section>;
-}
-
-function Metric({ detail, label, value }: { detail: string; label: string; value: string }) {
-  return <article className="metric-card"><p className="metric-card__label">{label}</p><p className="metric-card__value metric-card__value--text">{value}</p><p className="metric-card__detail">{detail}</p></article>;
 }
 
 function SummaryItem({ label, value }: { label: string; value: string }) { return <div><dt>{label}</dt><dd>{value}</dd></div>; }

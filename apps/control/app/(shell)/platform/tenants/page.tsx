@@ -38,10 +38,7 @@ export default async function PlatformTenantsPage({
             : "Lokale ontwikkelpreview; de getoonde vereniging is geen stagingdata."
         }
         eyebrow="Platform"
-        status={{
-          label: session.isLive ? "Live platformbeheer" : "Demodata",
-          tone: session.isLive ? "success" : "warning"
-        }}
+        status={!session.isLive ? { label: "Demodata", tone: "warning" } : undefined}
         title="Tenantbeheer"
       />
 

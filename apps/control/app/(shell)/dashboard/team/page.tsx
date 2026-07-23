@@ -36,7 +36,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
         actions={canManage ? <a className="button-link button-link--primary" href="#nieuw-teamlid">Teamlid uitnodigen</a> : null}
         description="Beheer leden en persoonlijke uitnodigingen. Iedere rolwijziging wordt server-side gevalideerd en geaudit."
         eyebrow={session.tenant}
-        status={{ label: session.isLive ? "Live tenantdata" : "Demodata", tone: session.isLive ? "success" : "warning" }}
+        status={!session.isLive ? { label: "Demodata", tone: "warning" } : undefined}
         title="Team"
       />
 

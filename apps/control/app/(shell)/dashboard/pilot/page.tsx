@@ -70,10 +70,7 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
         }
         description="Doorloop de kleinste echte VeyoCast-keten: upload een afbeelding, maak een concept, publiceer een immutable release en koppel een Player zonder het device-token in Control te tonen."
         eyebrow={session.tenant}
-        status={{
-          label: session.isLive ? "Live Supabase" : "Demomodus",
-          tone: session.isLive ? "success" : "warning"
-        }}
+        status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
         title="Pilotflow"
       />
 

@@ -11,10 +11,9 @@ export default async function PlatformSystemPage() {
       <PageHeader
         description="Canonieke doelwaarden, kritieke alertdrempels en directe herstelroutes voor staging en productie. Deze pagina toont configuratie, geen gesimuleerde live metingen."
         eyebrow="Platform"
-        status={{
-          label: session.isLive ? "Operationeel contract" : "Lokale contractpreview",
-          tone: session.isLive ? "success" : "warning"
-        }}
+        status={!session.isLive
+          ? { label: "Lokale contractpreview", tone: "warning" }
+          : undefined}
         title="Systeem en herstel"
       />
 

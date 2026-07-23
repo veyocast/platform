@@ -219,7 +219,11 @@ function ItemEditDialog({
           <Pencil aria-hidden="true" size={18} />
         </IconButton>
       </DialogTrigger>
-      <DialogContent aria-labelledby={dialogTitleId} className="playlist-edit-dialog__content">
+      <DialogContent
+        aria-labelledby={dialogTitleId}
+        className="playlist-edit-dialog__content"
+        closeLabel="Venster sluiten"
+      >
         <DialogHeader>
           <DialogTitle id={dialogTitleId}>Playlistitem bewerken</DialogTitle>
           <DialogDescription>Pas alleen de instellingen van het geselecteerde item aan.</DialogDescription>

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
 import { compareReleaseItems, type ReleasePreflightReasonCode } from "@veyocast/domain";
+import { SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
@@ -43,11 +44,14 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
     {data?.error ? <p className="notice notice--critical" role="alert"><strong>Releasedetails onvolledig.</strong> {data.error}</p> : null}
 
     {release && data ? <>
-      <section className="metric-grid" aria-label="Releasefeiten">
-        <ReleaseMetric label="Manifesthash" value={`${release.manifestHash.slice(0, 12)}…`} detail="SHA-256 is bij publicatie immutable vastgelegd." />
-        <ReleaseMetric label="Totale duur" value={formatDuration(release.totalDurationSeconds)} detail={`${release.itemCount} afspeelitems in vaste volgorde.`} />
-        <ReleaseMetric label="Uitrol" value={`${currentScreens.length}/${data.screenStates.length}`} detail="Huidig toegewezen versus alle geregistreerde schermen." />
-      </section>
+      <SummaryStrip
+        aria-label="Releasefeiten"
+        items={[
+          { detail: "Immutable SHA-256", label: "Manifesthash", value: `${release.manifestHash.slice(0, 12)}…` },
+          { detail: `${release.itemCount} items`, label: "Totale duur", value: formatDuration(release.totalDurationSeconds) },
+          { detail: "Huidig toegewezen / alle schermen", label: "Uitrol", value: `${currentScreens.length}/${data.screenStates.length}` }
+        ]}
+      />
 
       <section className="workspace-section" aria-labelledby="sync-title">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="sync-title">Uitrol per scherm</h2><p className="work-panel__meta">Desired, downloaden, verifiëren en actief worden afzonderlijk getoond. Onbekend blijft onbekend.</p></div><StatusPill label="Live telemetry" tone="info" /></div>
@@ -80,7 +84,6 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
   </>;
 }
 
-function ReleaseMetric({ detail, label, value }: { detail: string; label: string; value: string }) { return <article className="metric-card"><p className="metric-card__label">{label}</p><p className="metric-card__value">{value}</p><p className="metric-card__detail">{detail}</p></article>; }
 function DiffCard({ items, label }: { items: string[]; label: string }) { return <article className="work-panel"><h3>{label}</h3>{items.length ? <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Geen</p>}</article>; }
 function formatDate(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
 function formatDuration(seconds: number) { const minutes = Math.floor(Math.abs(seconds) / 60); return `${minutes} min ${Math.abs(seconds) % 60} sec`; }

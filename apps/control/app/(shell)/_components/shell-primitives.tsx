@@ -2,13 +2,6 @@ import { StatusPill, type StatusTone } from "@veyocast/ui";
 
 export { PageHeader, StatusPill } from "@veyocast/ui";
 
-type MetricCardProps = {
-  detail: string;
-  label: string;
-  tone?: StatusTone;
-  value: string;
-};
-
 type HealthListItem = {
   detail: string;
   label: string;
@@ -69,29 +62,3 @@ export function Timeline({
     </ol>
   );
 }
-
-export function MetricCard({
-  detail,
-  label,
-  tone = "neutral",
-  value
-}: MetricCardProps) {
-  return (
-    <article className="metric-card">
-      <div className="status-row">
-        <span className="metric-card__label">{label}</span>
-        <StatusPill label={toneLabel[tone]} tone={tone} />
-      </div>
-      <p className="metric-card__value">{value}</p>
-      <p className="metric-card__detail">{detail}</p>
-    </article>
-  );
-}
-
-const toneLabel: Record<StatusTone, string> = {
-  critical: "Actie nodig",
-  info: "Informatie",
-  neutral: "Overzicht",
-  success: "Op orde",
-  warning: "Aandacht"
-};

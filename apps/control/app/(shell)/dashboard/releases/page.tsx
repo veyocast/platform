@@ -1,7 +1,9 @@
 import Link from "next/link";
 
+import { Button, SummaryStrip } from "@veyocast/ui";
+
 import { requireTenantControlSession } from "../../../../lib/control-session";
-import { MetricCard, PageHeader, StatusPill } from "../../_components/shell-primitives";
+import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { loadReleaseCenter } from "./data";
 
 type ReleaseCenterPageProps = {
@@ -19,21 +21,29 @@ export default async function ReleaseCenterPage({ searchParams }: ReleaseCenterP
 
   return <>
     <PageHeader
-      actions={<Link className="button-link button-link--secondary" href="/dashboard/playlists">Naar playlists</Link>}
+      actions={<Button asChild variant="secondary"><Link href="/dashboard/playlists">Naar playlists</Link></Button>}
       description="Bekijk immutable publicatiehistorie, verschillen, impact en de actuele uitrol per scherm."
       eyebrow={`${session.tenant} · Distributie`}
-      status={{ label: session.isLive ? "Live releasehistorie" : "Demomodus", tone: session.isLive ? "success" : "warning" }}
+      status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
       title="Release Center"
     />
     {query.fout ? <p className="notice notice--critical" role="alert"><strong>Release Center niet geladen.</strong> {query.fout}</p> : null}
     {data.error ? <p className="notice notice--critical" role="alert"><strong>Releasehistorie niet beschikbaar.</strong> {data.error}</p> : null}
     {!session.isLive ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte releasehistorie en schermuitrol te bekijken.</p> : null}
 
-    <section className="metric-grid" aria-label="Releaseoverzicht">
-      <MetricCard detail="Nooit overschrijfbare releaseversies." label="Releases" value={String(data.releases.length)} />
-      <MetricCard detail="Releases die nu aan minimaal één scherm zijn toegewezen." label="Huidig toegewezen" tone={active ? "success" : "neutral"} value={String(active)} />
-      <MetricCard detail="Som van alle immutable releasebestanden; assets kunnen tussen versies gelijk zijn." label="Historische omvang" value={formatBytes(bytes)} />
-    </section>
+    <SummaryStrip
+      aria-label="Releaseoverzicht"
+      items={[
+        { detail: "Immutable versies", label: "Releases", value: data.releases.length },
+        {
+          detail: "Nu aan minimaal één scherm toegewezen",
+          label: "Huidig toegewezen",
+          tone: active ? "success" : "neutral",
+          value: active
+        },
+        { detail: "Historische releasebestanden", label: "Omvang", value: formatBytes(bytes) }
+      ]}
+    />
 
     <section className="workspace-section" aria-labelledby="release-list-title">
       <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="release-list-title">Immutable historie</h2><p className="work-panel__meta">Een rollback is altijd een nieuwe toewijzing van een bestaande release; historie wordt nooit gemuteerd.</p></div><StatusPill label={`${data.releases.length} versies`} tone="neutral" /></div>
@@ -48,7 +58,7 @@ export default async function ReleaseCenterPage({ searchParams }: ReleaseCenterP
           <td data-label="Doelschermen"><span className="table-primary">{release.currentScreenCount} huidig</span><span className="table-secondary">{release.deploymentTargetCount} historisch uniek</span></td>
           <td data-label="Actie"><Link className="table-action" href={`/dashboard/releases/${release.id}`}>Open release</Link></td>
         </tr>)}</tbody>
-      </table></div> : <div className="empty-state" role="status"><h2>Nog geen releases</h2><p>Publiceer eerst een gereed concept via de begeleide publicatieflow.</p><Link className="button-link button-link--primary" href="/dashboard/playlists">Playlist kiezen</Link></div>}
+      </table></div> : <div className="empty-state" role="status"><h2>Nog geen releases</h2><p>Publiceer eerst een gereed concept via de begeleide publicatieflow.</p><Button asChild><Link href="/dashboard/playlists">Playlist kiezen</Link></Button></div>}
     </section>
   </>;
 }

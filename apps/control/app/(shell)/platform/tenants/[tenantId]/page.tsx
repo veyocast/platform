@@ -1,4 +1,5 @@
 import { hasCapability } from "@veyocast/auth";
+import { SummaryStrip } from "@veyocast/ui";
 import Link from "next/link";
 
 import { requireControlCapability } from "../../../../../lib/control-session";
@@ -47,7 +48,9 @@ export default async function PlatformTenantDetailPage({
         actions={<Link className="button-link button-link--secondary" href="/platform/tenants">Alle verenigingen</Link>}
         description="Beheer lifecycle, capaciteit, eigenaarschap en provisioning vanuit één geauditeerde platformroute."
         eyebrow="Platform · Vereniging"
-        status={{ label: statusLabel(tenant.status), tone: tenant.status === "active" ? "success" : "warning" }}
+        status={tenant.status !== "active"
+          ? { label: statusLabel(tenant.status), tone: "warning" }
+          : undefined}
         title={tenant.name}
       />
 
@@ -58,12 +61,23 @@ export default async function PlatformTenantDetailPage({
       {query.waarschuwing === "uitnodiging" ? <p className="notice notice--warning" role="status"><strong>Vereniging veilig aangemaakt.</strong> De eigenaaruitnodiging kon nog niet worden bezorgd. De tenant blijft zichtbaar als ‘e-mailactie nodig’; verstuur hieronder een nieuwe link.</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{successMessage[query.succes] ?? "De wijziging is opgeslagen en geaudit."}</p> : null}
 
-      <section className="metric-grid" aria-label="Verenigingsoverzicht">
-        <article className="metric-card"><p className="metric-card__label">Schermen</p><p className="metric-card__value">{data.screenCount}/{tenant.screen_limit}</p><p className="metric-card__meta">Actueel gebruik en limiet</p></article>
-        <article className="metric-card"><p className="metric-card__label">Teamleden</p><p className="metric-card__value">{data.members.length}</p><p className="metric-card__meta">{data.members.filter((member) => member.role === "tenant_owner").length} eigenaar/eigenaren</p></article>
-        <article className="metric-card"><p className="metric-card__label">Mediaopslag</p><p className="metric-card__value">{formatBytes(data.storageBytes)}</p><p className="metric-card__meta">Actieve media-assets</p></article>
-        <article className="metric-card"><p className="metric-card__label">Provisioning</p><p className="metric-card__value metric-card__value--text">{provisioningLabel(tenant.provisioning_status)}</p><p className="metric-card__meta">{tenant.locale} · {tenant.timezone}</p></article>
-      </section>
+      <SummaryStrip
+        aria-label="Verenigingsoverzicht"
+        items={[
+          { detail: "Gebruik en limiet", label: "Schermen", value: `${data.screenCount}/${tenant.screen_limit}` },
+          {
+            detail: `${data.members.filter((member) => member.role === "tenant_owner").length} eigenaar/eigenaren`,
+            label: "Teamleden",
+            value: data.members.length
+          },
+          { detail: "Actieve media-assets", label: "Mediaopslag", value: formatBytes(data.storageBytes) },
+          {
+            detail: `${tenant.locale} · ${tenant.timezone}`,
+            label: "Provisioning",
+            value: provisioningLabel(tenant.provisioning_status)
+          }
+        ]}
+      />
 
       {membership && tenant.status !== "archived" ? (
         <form action={switchTenantContext}>
