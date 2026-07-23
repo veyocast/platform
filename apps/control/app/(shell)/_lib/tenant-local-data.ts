@@ -18,4 +18,3 @@ export function clearTenantScopedLocalData(
   }
   for (const key of keys) storage.removeItem(key);
 }
-

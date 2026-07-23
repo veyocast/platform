@@ -31,4 +31,3 @@ describe("tenantgebonden lokale data", () => {
     ]);
   });
 });
-
