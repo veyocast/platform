@@ -11,18 +11,24 @@ test("screen onboarding becomes a sequential mobile flow without horizontal over
   await expect(onboarding).toBeVisible();
   await expect(steps).toContainText("Player koppelen");
 
-  const [onboardingBox, stepsBox, hasHorizontalOverflow] = await Promise.all([
-    onboarding.boundingBox(),
-    steps.boundingBox(),
-    page.evaluate(
-      () => document.documentElement.scrollWidth > document.documentElement.clientWidth
-    )
-  ]);
+  await expect(async () => {
+    const [onboardingBox, stepsBox, hasHorizontalOverflow] = await Promise.all([
+      onboarding.boundingBox(),
+      steps.boundingBox(),
+      page.evaluate(
+        () =>
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth
+      )
+    ]);
 
-  expect(onboardingBox).not.toBeNull();
-  expect(stepsBox).not.toBeNull();
-  expect(onboardingBox?.y).toBeGreaterThan((stepsBox?.y ?? 0) + (stepsBox?.height ?? 0));
-  expect(hasHorizontalOverflow).toBe(false);
+    expect(onboardingBox).not.toBeNull();
+    expect(stepsBox).not.toBeNull();
+    expect(onboardingBox?.y).toBeGreaterThan(
+      (stepsBox?.y ?? 0) + (stepsBox?.height ?? 0)
+    );
+    expect(hasHorizontalOverflow).toBe(false);
+  }).toPass({ timeout: 15_000 });
 });
 
 test("playlist authoring and settings remain sequential on mobile", async ({ page }) => {
