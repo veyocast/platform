@@ -29,8 +29,10 @@ type PublisherDraftOperation =
   | "assign_item_section"
   | "create_section"
   | "delete_section"
+  | "duplicate_item"
   | "move_item"
   | "move_section"
+  | "replace_item"
   | "update_item_presentation"
   | "update_playlist_defaults"
   | "update_section";
@@ -264,6 +266,31 @@ export async function assignPlaylistItemSection(formData: FormData) {
     sectionId
       ? "Het item is aan de sectie gekoppeld."
       : "Het item staat nu zonder sectie."
+  );
+}
+
+export async function duplicatePlaylistItem(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const itemId = idValue(formData, "itemId");
+  await mutateGuarded(
+    formData,
+    playlistId,
+    "duplicate_item",
+    { itemId },
+    "Het playlistitem is direct na de bron gedupliceerd."
+  );
+}
+
+export async function replacePlaylistItem(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const itemId = idValue(formData, "itemId");
+  const mediaAssetId = idValue(formData, "mediaAssetId");
+  await mutateGuarded(
+    formData,
+    playlistId,
+    "replace_item",
+    { itemId, mediaAssetId },
+    "De media van deze plaatsing is vervangen. De iteminstellingen zijn behouden."
   );
 }
 

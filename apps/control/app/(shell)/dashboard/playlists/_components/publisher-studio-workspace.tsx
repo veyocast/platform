@@ -24,6 +24,7 @@ import {
   ArrowUp,
   Check,
   CloudUpload,
+  Copy,
   Eye,
   FileImage,
   Film,
@@ -33,6 +34,7 @@ import {
   MoreVertical,
   Plus,
   Redo2,
+  Replace,
   Search,
   Settings2,
   Trash2,
@@ -68,9 +70,11 @@ import {
   assignPlaylistItemSection,
   createPlaylistSection,
   deletePlaylistSection,
+  duplicatePlaylistItem,
   movePlaylistItem,
   movePlaylistSection,
   removePlaylistItem,
+  replacePlaylistItem,
   updatePlaylistDetails,
   updatePlaylistDefaults,
   updatePlaylistSection,
@@ -658,6 +662,7 @@ export function PublisherStudioWorkspace({
 
   const inspector = (
     <Inspector
+      assets={availableAssets}
       canManage={canManage}
       canWrite={canWrite}
       item={selectedItem}
@@ -1645,6 +1650,13 @@ function ItemMenu({
         >
           <ArrowDown aria-hidden="true" />
         </MoveForm>
+        <form action={duplicatePlaylistItem} data-online-required>
+          <RevisionFields playlistId={playlistId} revision={revision} />
+          <input name="itemId" type="hidden" value={item.id} />
+          <button disabled={!canWrite} type="submit">
+            <Copy aria-hidden="true" /> Dupliceren
+          </button>
+        </form>
         <form action={removePlaylistItem} data-online-required>
           <RevisionFields playlistId={playlistId} revision={revision} />
           <input name="itemId" type="hidden" value={item.id} />
@@ -1658,6 +1670,7 @@ function ItemMenu({
 }
 
 function Inspector({
+  assets,
   canManage,
   canWrite,
   item,
@@ -1666,6 +1679,7 @@ function Inspector({
   restoredIntent,
   sections
 }: {
+  assets: PlaylistStudioAsset[];
   canManage: boolean;
   canWrite: boolean;
   item: PlaylistStudioItem | null;
@@ -2097,6 +2111,65 @@ function Inspector({
           Sectie koppelen
         </Button>
       </form>
+      <div className={styles.inspectorActions}>
+        <form action={duplicatePlaylistItem} data-online-required>
+          <RevisionFields
+            playlistId={playlist.id}
+            revision={playlist.revision}
+          />
+          <input name="itemId" type="hidden" value={item.id} />
+          <Button
+            disabled={!canWrite}
+            size="sm"
+            type="submit"
+            variant="secondary"
+          >
+            <Copy aria-hidden="true" />
+            Dupliceren
+          </Button>
+        </form>
+        <form
+          action={replacePlaylistItem}
+          className={styles.replaceForm}
+          data-online-required
+        >
+          <RevisionFields
+            playlistId={playlist.id}
+            revision={playlist.revision}
+          />
+          <input name="itemId" type="hidden" value={item.id} />
+          <label>
+            <span>Media vervangen</span>
+            <select
+              defaultValue=""
+              disabled={!canWrite}
+              name="mediaAssetId"
+              required
+            >
+              <option disabled value="">
+                Kies gereedstaande media
+              </option>
+              {assets
+                .filter((asset) => asset.id !== item.mediaAssetId)
+                .map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.title} ·{" "}
+                    {asset.kind === "video" ? "Video" : "Afbeelding"}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <Button
+            disabled={!canWrite || assets.length < 2}
+            size="sm"
+            type="submit"
+            variant="secondary"
+          >
+            <Replace aria-hidden="true" />
+            Vervangen
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

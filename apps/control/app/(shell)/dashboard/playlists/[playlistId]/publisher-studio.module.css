@@ -813,6 +813,48 @@
   padding: var(--vc-space-8);
 }
 
+.inspectorActions {
+  border-top: 1px solid var(--vc-border);
+  display: grid;
+  gap: var(--vc-space-10);
+  padding-top: var(--vc-space-12);
+}
+
+.inspectorActions form {
+  margin: 0;
+}
+
+.inspectorActions button {
+  width: 100%;
+}
+
+.replaceForm {
+  display: grid;
+  gap: var(--vc-space-8);
+}
+
+.replaceForm label {
+  display: grid;
+  gap: var(--vc-space-4);
+}
+
+.replaceForm label > span {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 17px;
+}
+
+.replaceForm select {
+  background: var(--vc-surface);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-text);
+  font: inherit;
+  min-height: 42px;
+  padding: var(--vc-space-8) var(--vc-space-10);
+  width: 100%;
+}
+
 .sectionEmpty {
   margin: 0;
 }
