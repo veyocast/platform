@@ -15,14 +15,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   Building2,
+  CalendarDays,
   ChevronDown,
+  ChevronRight,
   FileImage,
+  FileStack,
+  FolderKanban,
+  Home,
   LayoutDashboard,
   ListVideo,
   LoaderCircle,
   Menu,
   MonitorSmartphone,
+  MoreHorizontal,
   PackageCheck,
   PanelLeftClose,
   PanelLeftOpen,
@@ -34,7 +41,7 @@ import {
   X
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import type {
@@ -62,17 +69,20 @@ type ControlShellProps = {
 };
 
 const navigationIcons: Record<string, LucideIcon> = {
-  Auditlog: ShieldCheck,
-  Dashboard: LayoutDashboard,
+  Activiteit: Activity,
   Instellingen: Settings2,
   Media: FileImage,
+  Overzicht: Home,
   Platform: MonitorSmartphone,
   Platformgebruikers: Users,
+  Planning: CalendarDays,
   Playlists: ListVideo,
   Releases: PackageCheck,
+  Schermgroepen: FolderKanban,
   Schermen: MonitorSmartphone,
   Systeem: ServerCog,
   Team: Users,
+  Templates: FileStack,
   Tenants: Building2
 };
 const sidebarStorageKey = "veyocast-control-sidebar-collapsed";
@@ -85,12 +95,15 @@ export function ControlShell({
   uploadQueue
 }: ControlShellProps) {
   const pathname = usePathname();
+  const [isInteractive, setInteractive] = useState(false);
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [resourceResults, setResourceResults] = useState<ControlSearchResult[]>([]);
   const [isResourceSearchPending, setResourceSearchPending] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const previousFocusedElementRef = useRef<HTMLElement | null>(null);
   const visibleNavigationGroups = useMemo(
     () =>
       getNavigationGroupsForPathname(
@@ -105,6 +118,14 @@ export function ControlShell({
   const activeNavigationScope =
     visibleNavigationGroups[0]?.scope ?? fallbackScope;
   const hasTenantNavigationContext = activeNavigationScope === "tenant";
+  const activeNavigationItem = useMemo(
+    () =>
+      visibleNavigationGroups
+        .flatMap((group) => group.items)
+        .filter((item) => isActive(pathname, item))
+        .sort((left, right) => right.href.length - left.href.length)[0],
+    [pathname, visibleNavigationGroups]
+  );
   const activeContextName = hasTenantNavigationContext
     ? session.tenant
     : session.organization;
@@ -126,6 +147,7 @@ export function ControlShell({
     setSidebarCollapsed(
       (currentPreference ?? previousPreference) === "true"
     );
+    setInteractive(true);
 
     function handleShortcut(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
@@ -134,7 +156,6 @@ export function ControlShell({
       }
 
       if (event.key === "Escape") {
-        setMobileNavOpen(false);
         setSearchOpen(false);
         setSearchQuery("");
         setResourceResults([]);
@@ -144,6 +165,50 @@ export function ControlShell({
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
   }, []);
+
+  useEffect(() => {
+    if (!isMobileNavOpen) return;
+
+    const sidebar = sidebarRef.current;
+    const firstFocusable = Array.from(
+      sidebar?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], summary, [tabindex]:not([tabindex="-1"])'
+      ) ?? []
+    ).find((element) => element.offsetParent !== null);
+    firstFocusable?.focus();
+
+    function handleDrawerKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMobileNavOpen(false);
+        window.requestAnimationFrame(() =>
+          previousFocusedElementRef.current?.focus()
+        );
+        return;
+      }
+
+      if (event.key !== "Tab" || !sidebar) return;
+      const focusable = Array.from(
+        sidebar.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], summary, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => element.offsetParent !== null);
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleDrawerKeyDown);
+    return () => document.removeEventListener("keydown", handleDrawerKeyDown);
+  }, [isMobileNavOpen]);
 
   useEffect(() => {
     const query = searchQuery.trim();
@@ -196,6 +261,22 @@ export function ControlShell({
     });
   }
 
+  function openMobileNavigation() {
+    if (!isInteractive) return;
+    previousFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    setMobileNavOpen(true);
+  }
+
+  function closeMobileNavigation(restoreFocus = true) {
+    setMobileNavOpen(false);
+    if (restoreFocus) {
+      window.requestAnimationFrame(() => previousFocusedElementRef.current?.focus());
+    }
+  }
+
   function handleSearchOpenChange(nextOpen: boolean) {
     setSearchOpen(nextOpen);
     if (!nextOpen) {
@@ -208,7 +289,8 @@ export function ControlShell({
     <Dialog onOpenChange={handleSearchOpenChange} open={isSearchOpen}>
       <ControlThemeBootstrap />
       <div
-        className={`control-shell control-shell--motion${isSidebarCollapsed ? " control-shell--collapsed" : ""}`}
+        className={`control-shell control-shell--motion${activeNavigationScope === "platform" && isSidebarCollapsed ? " control-shell--collapsed" : ""}`}
+        data-navigation-scope={activeNavigationScope}
       >
       <a className="skip-link" href="#control-content">
         Naar inhoud
@@ -216,13 +298,15 @@ export function ControlShell({
       <button
         aria-label="Navigatie sluiten"
         className={`control-nav-backdrop${isMobileNavOpen ? " control-nav-backdrop--visible" : ""}`}
-        onClick={() => setMobileNavOpen(false)}
+        onClick={() => closeMobileNavigation()}
         type="button"
       />
       <aside
         aria-label="Control navigatie"
         className={`control-sidebar${isMobileNavOpen ? " control-sidebar--open" : ""}`}
+        data-scope={activeNavigationScope}
         id="control-sidebar-navigation"
+        ref={sidebarRef}
       >
         <div className="control-sidebar__top">
           <div className="control-brand">
@@ -252,13 +336,16 @@ export function ControlShell({
                 src="/brand/veyocast-logo-inverse.svg"
                 width={120}
               />
-              <p className="control-brand__meta">Control</p>
+              <p className="control-brand__meta">
+                {hasTenantNavigationContext ? "Publisher" : "Control"}
+              </p>
             </div>
             <IconButton
               aria-controls="control-sidebar-navigation"
               aria-expanded={!isSidebarCollapsed}
               aria-label={isSidebarCollapsed ? "Navigatie uitklappen" : "Navigatie inklappen"}
               className="control-sidebar__collapse"
+              disabled={!isInteractive}
               onClick={toggleSidebar}
               title={isSidebarCollapsed ? "Navigatie uitklappen" : "Navigatie inklappen"}
             >
@@ -267,7 +354,8 @@ export function ControlShell({
             <IconButton
               aria-label="Navigatie sluiten"
               className="control-sidebar__close"
-              onClick={() => setMobileNavOpen(false)}
+              disabled={!isInteractive}
+              onClick={() => closeMobileNavigation()}
               title="Navigatie sluiten"
             >
               <X aria-hidden="true" />
@@ -356,7 +444,7 @@ export function ControlShell({
                         aria-label={isSidebarCollapsed ? item.label : undefined}
                         className="control-nav__link"
                         href={item.href}
-                        onClick={() => setMobileNavOpen(false)}
+                        onClick={() => closeMobileNavigation(false)}
                         title={isSidebarCollapsed ? item.label : undefined}
                       >
                         <Icon aria-hidden="true" className="control-nav__icon" />
@@ -401,26 +489,30 @@ export function ControlShell({
             <IconButton
               aria-label="Navigatie openen"
               className="control-menu-trigger"
-              onClick={() => setMobileNavOpen(true)}
+              disabled={!isInteractive}
+              onClick={openMobileNavigation}
               title="Navigatie openen"
             >
               <Menu aria-hidden="true" />
             </IconButton>
-            <div>
-              <p className="topbar-context__scope">
-                {hasTenantNavigationContext ? "Vereniging" : "Platform"}
+            <div className="topbar-context__copy">
+              <p className="topbar-context__breadcrumb">
+                <span>{activeContextName}</span>
+                <ChevronRight aria-hidden="true" />
+                <strong>
+                  {activeNavigationItem?.label ??
+                    (hasTenantNavigationContext ? "Publisher" : "Platform")}
+                </strong>
               </p>
-              <p className="topbar-context__label">
-                {activeContextName}
-              </p>
-              <p className="topbar-context__status">
-                <StatusDot status={topbarStatusTone} />
-                {session.isLive
-                  ? hasTenantNavigationContext && session.tenantStatus === "paused"
+              {!session.isLive ||
+              (hasTenantNavigationContext && session.tenantStatus === "paused") ? (
+                <p className="topbar-context__status">
+                  <StatusDot status={topbarStatusTone} />
+                  {session.isLive
                     ? "Vereniging gepauzeerd · alleen lezen"
-                    : `Beveiligde sessie · ${session.assuranceLevel.toUpperCase()}`
-                  : "Lokale demomodus"}
-              </p>
+                    : "Lokale demomodus"}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="topbar-actions">
@@ -429,6 +521,7 @@ export function ControlShell({
                 aria-label="Snel naar een onderdeel"
                 aria-keyshortcuts="Control+K Meta+K"
                 className="command-search"
+                disabled={!isInteractive}
                 type="button"
               >
                 <Search aria-hidden="true" />
@@ -457,6 +550,15 @@ export function ControlShell({
       </main>
       {hasTenantNavigationContext ? (
         <GlobalUploadTray items={uploadQueue} />
+      ) : null}
+      {hasTenantNavigationContext ? (
+        <MobileBottomNav
+          groups={visibleNavigationGroups}
+          isInteractive={isInteractive}
+          isMoreOpen={isMobileNavOpen}
+          onMore={openMobileNavigation}
+          pathname={pathname}
+        />
       ) : null}
 
         <DialogContent className="command-palette" showClose={false}>
@@ -532,6 +634,74 @@ export function ControlShell({
         </DialogContent>
       </div>
     </Dialog>
+  );
+}
+
+function MobileBottomNav({
+  groups,
+  isInteractive,
+  isMoreOpen,
+  onMore,
+  pathname
+}: {
+  groups: readonly ControlNavigationGroup[];
+  isInteractive: boolean;
+  isMoreOpen: boolean;
+  onMore: () => void;
+  pathname: string;
+}) {
+  const items = groups
+    .flatMap((group) => group.items)
+    .filter((item) =>
+      ["Overzicht", "Schermen", "Playlists", "Media"].includes(item.label)
+    )
+    .sort(
+      (left, right) =>
+        ["Overzicht", "Schermen", "Playlists", "Media"].indexOf(left.label) -
+        ["Overzicht", "Schermen", "Playlists", "Media"].indexOf(right.label)
+    );
+
+  return (
+    <nav
+      aria-label="Mobiele hoofdnavigatie"
+      className="control-mobile-nav"
+    >
+      <ul className="control-mobile-nav__list">
+        {items.map((item) => {
+          const Icon = item.label === "Overzicht"
+            ? Home
+            : navigationIcons[item.label] ?? LayoutDashboard;
+          const active = isActive(pathname, item);
+
+          return (
+            <li key={item.href}>
+              <Link
+                aria-current={active ? "page" : undefined}
+                className="control-mobile-nav__item"
+                href={item.href}
+              >
+                <Icon aria-hidden="true" />
+                <span>{item.label === "Overzicht" ? "Home" : item.label}</span>
+              </Link>
+            </li>
+          );
+        })}
+        <li>
+          <button
+            aria-controls="control-sidebar-navigation"
+            aria-expanded={isMoreOpen}
+            className="control-mobile-nav__item"
+            data-active={isMoreOpen ? "true" : undefined}
+            disabled={!isInteractive}
+            onClick={onMore}
+            type="button"
+          >
+            <MoreHorizontal aria-hidden="true" />
+            <span>Meer</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
   );
 }
 
