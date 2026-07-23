@@ -2,7 +2,7 @@
 
 **Branch:** `veyocast/s31b-configurable-templates-roles`
 **Basis:** `7e82b2c`
-**Datum:** 23 juli 2026
+**Datum:** 24 juli 2026
 
 ## Geleverde uitkomst
 
@@ -23,6 +23,13 @@
 - Control gebruikt compactere enterprise-oppervlakken, een vaste
   typehiërarchie en éénregelige resource-identiteiten waar de beschikbare
   ruimte dat toelaat.
+- Formulierrijen hebben nu één meetbaar raster: labels en controls starten
+  binnen 1 px gelijk, normale controls zijn 44 px hoog en vullen hun kolom.
+- Top-level werkvlakken gebruiken 20 px binnenruimte op desktop en 16 px op
+  mobiel. De scherm-onboarding volgt nu dezelfde geometrie.
+- Filtercontrols zijn 40 px op desktop en 44 px op mobiel. De
+  instellingencategorienavigatie is exact 50 px hoog en deelt dezelfde
+  linkerzijde en breedte als de instellingenkolom.
 
 ## Autorisatie- en datamodel
 
@@ -77,7 +84,11 @@ tenantrolpagina. De run maakt uitsluitend voor bewijs een
 - `docs/screenshots/s31b-team-roles-mobile.png` — 390 × 844;
 - `docs/screenshots/s31b-team-invite-mobile.png` — mobiel uitnodigingsformulier;
 - `docs/screenshots/s31b-templates-desktop.png` — 1440 × 1000;
-- `docs/screenshots/s31b-templates-mobile.png` — 390 × 844.
+- `docs/screenshots/s31b-templates-mobile.png` — 390 × 844;
+- `docs/screenshots/s31b-settings-desktop.png` — 1440 × 1000;
+- `docs/screenshots/s31b-settings-mobile.png` — 390 × 844;
+- `docs/screenshots/s31b-screen-onboarding-desktop.png` — 1440 × 1000;
+- `docs/screenshots/s31b-screen-onboarding-mobile.png` — 390 × 844.
 
 ## Verificatie
 
@@ -91,9 +102,10 @@ tenantrolpagina. De run maakt uitsluitend voor bewijs een
 | `pnpm typecheck` | groen; 20/20 taken |
 | `pnpm test` | groen; 20/20 taken |
 | `pnpm build` | groen; 13/13 workspacebuilds |
-| Control a11y serial | groen; 20/20 shell- en responsive tests |
+| Control a11y serial | groen; 21/21 shell-, responsive- en geometrische tests |
 | Control E2E serial | groen; 6/6 shelljourneys |
-| Tenantrol/template visual evidence | groen; desktop, mobiel en echte lokale tenantdata |
+| Control visual evidence | groen; Team, Templates, Instellingen en Scherm toevoegen op desktop en mobiel met echte lokale tenantdata |
+| Canonical dashboardgeometrie | groen; veldtop, controlhoogte, controlbreedte, panelpadding en instellingenbalk gemeten |
 | Control CSS-tokenaudit | groen; geen ongedefinieerde Control-tokens |
 
 ## Bewuste grenzen
