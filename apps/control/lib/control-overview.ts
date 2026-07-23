@@ -172,20 +172,80 @@ export async function loadTenantTeam(tenantId: string) {
   };
 }
 
-export async function loadTenantAuditEvents(tenantId: string) {
+export type TenantAuditFilter = {
+  action?: string;
+  from?: string;
+  page?: number;
+  result?: "all" | "failure" | "success";
+  target?: string;
+  to?: string;
+};
+
+export async function loadTenantAuditEvents(
+  tenantId: string,
+  filter: TenantAuditFilter = {}
+) {
   const supabase = await createControlSupabaseClient();
-  if (!supabase) return { error: true, events: [] };
+  if (!supabase) return { error: true, events: [], page: 1, pageCount: 1, total: 0 };
 
-  const events = await supabase
+  const page = Math.max(1, filter.page ?? 1);
+  const pageSize = 50;
+  let query = supabase
     .from("audit_events")
-    .select("id, actor_user_id, action, target_type, target_id, result, created_at")
+    .select("id, actor_user_id, action, target_type, target_id, result, created_at", {
+      count: "exact"
+    })
     .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false })
-    .limit(100);
+    .order("created_at", { ascending: false });
 
-  return events.error
-    ? { error: true, events: [] }
-    : { error: false, events: events.data ?? [] };
+  if (filter.action?.trim()) {
+    query = query.ilike("action", `%${escapeAuditLike(filter.action.trim())}%`);
+  }
+  if (filter.target?.trim()) {
+    query = query.ilike("target_type", `%${escapeAuditLike(filter.target.trim())}%`);
+  }
+  if (filter.result === "success" || filter.result === "failure") {
+    query = query.eq("result", filter.result);
+  }
+  const from = auditDateBoundary(filter.from, false);
+  const to = auditDateBoundary(filter.to, true);
+  if (from) query = query.gte("created_at", from);
+  if (to) query = query.lt("created_at", to);
+
+  const events = await query.range(
+    (page - 1) * pageSize,
+    page * pageSize - 1
+  );
+  if (events.error) {
+    return { error: true, events: [], page, pageCount: 1, total: 0 };
+  }
+
+  const actorIds = [
+    ...new Set((events.data ?? []).flatMap((event) =>
+      event.actor_user_id ? [event.actor_user_id] : []
+    ))
+  ];
+  const profiles = actorIds.length
+    ? await supabase.from("profiles").select("id, display_name").in("id", actorIds)
+    : { data: [], error: null };
+  const names = new Map((profiles.data ?? []).map((profile) => [
+    profile.id,
+    profile.display_name
+  ]));
+  const total = events.count ?? 0;
+
+  return {
+    error: Boolean(profiles.error),
+    events: (events.data ?? []).map((event) => ({
+      ...event,
+      actor_name: event.actor_user_id
+        ? names.get(event.actor_user_id) ?? "Onbekende gebruiker"
+        : "Systeem"
+    })),
+    page,
+    pageCount: Math.max(1, Math.ceil(total / pageSize)),
+    total
+  };
 }
 
 function tenantOverviewFailure() {
@@ -207,4 +267,16 @@ function tenantOverviewFailure() {
 
 function platformOverviewFailure() {
   return { devices: [], error: true, screens: [], tenants: [] };
+}
+
+function auditDateBoundary(value: string | undefined, nextDay: boolean) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return null;
+  if (nextDay) date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString();
+}
+
+function escapeAuditLike(value: string) {
+  return value.replace(/[%_]/g, "");
 }
