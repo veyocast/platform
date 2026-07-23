@@ -152,23 +152,28 @@ export async function loadPlaylistList(
   }
 
   const assets = new Map((assetsResult.data ?? []).map((asset) => [asset.id, asset]));
-  const previewPaths = new Map<string, string>();
+  const previewPaths = new Map<string, { path: string; priority: number }>();
+  const previewPriority: Record<string, number> = {
+    original: 1,
+    thumbnail: 3,
+    poster: 4
+  };
   for (const variant of variantsResult.data ?? []) {
     const current = previewPaths.get(variant.asset_id);
-    if (
-      !current ||
-      variant.variant_type === "thumbnail" ||
-      variant.variant_type === "poster"
-    ) {
-      previewPaths.set(variant.asset_id, variant.storage_path);
+    const priority = previewPriority[variant.variant_type] ?? 0;
+    if (!current || priority > current.priority) {
+      previewPaths.set(variant.asset_id, {
+        path: variant.storage_path,
+        priority
+      });
     }
   }
   const signedPreviews = new Map<string, string>();
   await Promise.all(
-    [...previewPaths.entries()].map(async ([assetId, storagePath]) => {
+    [...previewPaths.entries()].map(async ([assetId, preview]) => {
       const signed = await supabase.storage
         .from("tenant-media")
-        .createSignedUrl(storagePath, 600);
+        .createSignedUrl(preview.path, 600);
       if (signed.data?.signedUrl) signedPreviews.set(assetId, signed.data.signedUrl);
     })
   );
