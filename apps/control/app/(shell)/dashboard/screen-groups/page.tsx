@@ -1,28 +1,50 @@
 import Link from "next/link";
 import { MonitorCog, UsersRound } from "lucide-react";
 
+import { hasCapability } from "@veyocast/auth";
 import { Button, PageHeader, StatusPill, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import styles from "../publisher-resources.module.css";
 import { loadScreenGroups } from "./data";
+import groupStyles from "./screen-groups.module.css";
+import {
+  ArchiveScreenGroupDialog,
+  ScreenGroupDialog
+} from "./screen-group-dialogs";
 
-export default async function ScreenGroupsPage() {
+type ScreenGroupsPageProps = {
+  searchParams: Promise<{ fout?: string; succes?: string }>;
+};
+
+export default async function ScreenGroupsPage({ searchParams }: ScreenGroupsPageProps) {
   const session = await requireTenantControlSession("tenant.screen.read");
+  const query = await searchParams;
   const data = session.isLive && session.tenantId
     ? await loadScreenGroups(session.tenantId)
-    : { error: null, groups: [], screens: [] };
+    : { error: null, groups: [], releases: [], screens: [] };
   const activeGroups = data.groups.filter((group) => group.status === "active");
   const assignedScreens = new Set(activeGroups.flatMap((group) => group.memberNames));
+  const canManage = session.isLive && session.tenantStatus === "active" &&
+    hasCapability(session.roles, "tenant.screen.manage");
 
   return (
     <>
       <PageHeader
+        actions={(
+          <ScreenGroupDialog
+            disabled={!canManage}
+            releases={data.releases}
+            screens={data.screens}
+          />
+        )}
         description="Bundel schermen zonder hun individuele identiteit of status te verliezen."
         eyebrow={session.tenant}
         status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
         title="Schermgroepen"
       />
+      {query.fout ? <p className="notice notice--critical" role="alert"><strong>Schermgroep niet opgeslagen.</strong> {query.fout}</p> : null}
+      {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
       {data.error ? <p className="notice notice--critical" role="alert"><strong>Schermgroepen niet geladen.</strong> {data.error}</p> : null}
       {!session.isLive ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte schermgroepen te beheren.</p> : null}
 
@@ -57,7 +79,20 @@ export default async function ScreenGroupsPage() {
                   {group.memberNames.length > 6 ? <li>+{group.memberNames.length - 6}</li> : null}
                 </ul>
               ) : <p className={styles.resourceDescription}>Deze groep bevat nog geen schermen.</p>}
-              <div className={styles.resourceFooter}><span>Bijgewerkt {formatDate(group.updatedAt)}</span><span>Revisie {group.revision}</span></div>
+              <div className={styles.resourceFooter}>
+                <span>Bijgewerkt {formatDate(group.updatedAt)} · revisie {group.revision}</span>
+                {canManage && group.status === "active" ? (
+                  <span className={groupStyles.cardActions}>
+                    <ScreenGroupDialog
+                      disabled={false}
+                      group={group}
+                      releases={data.releases}
+                      screens={data.screens}
+                    />
+                    <ArchiveScreenGroupDialog group={group} />
+                  </span>
+                ) : null}
+              </div>
             </article>
           ))}
         </section>

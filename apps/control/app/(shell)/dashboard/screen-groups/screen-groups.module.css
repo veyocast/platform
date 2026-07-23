@@ -1,0 +1,94 @@
+.dialog {
+  width: min(680px, calc(100vw - 32px));
+}
+
+.form {
+  display: grid;
+  gap: var(--vc-space-16);
+}
+
+.screenPicker {
+  border: 0;
+  display: grid;
+  gap: var(--vc-space-8);
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.screenPicker legend {
+  color: var(--vc-text);
+  font-size: var(--vc-font-size-sm);
+  font-weight: 600;
+  padding: 0;
+}
+
+.screenPicker > p,
+.impact {
+  color: var(--vc-text-muted);
+  font-size: var(--vc-font-size-sm);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.screenOptions {
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  display: grid;
+  max-height: 264px;
+  overflow: auto;
+}
+
+.screenOptions label {
+  align-items: center;
+  cursor: pointer;
+  display: grid;
+  gap: var(--vc-space-12);
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 52px;
+  padding: var(--vc-space-8) var(--vc-space-12);
+}
+
+.screenOptions label + label {
+  border-top: 1px solid var(--vc-border);
+}
+
+.screenOptions label[data-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.screenOptions input {
+  height: 18px;
+  width: 18px;
+}
+
+.screenOptions span {
+  display: grid;
+}
+
+.screenOptions strong {
+  color: var(--vc-text);
+  font-size: var(--vc-font-size-sm);
+}
+
+.screenOptions small {
+  color: var(--vc-text-muted);
+  font-size: var(--vc-font-size-xs);
+}
+
+.cardActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-4);
+  justify-content: flex-end;
+}
+
+@media (max-width: 639px) {
+  .dialog {
+    inset: 0;
+    max-height: 100dvh;
+    width: 100vw;
+  }
+}
