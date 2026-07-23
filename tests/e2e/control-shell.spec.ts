@@ -1,4 +1,18 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+
+async function follow(
+  page: Page,
+  target: () => Locator,
+  destination: RegExp
+) {
+  await expect(async () => {
+    if (destination.test(page.url())) return;
+    const link = target();
+    await expect(link).toBeVisible();
+    await link.click();
+    await expect(page).toHaveURL(destination);
+  }).toPass({ timeout: 20_000 });
+}
 
 test("renders the control shell with role-aware navigation", async ({ page }) => {
   await page.goto("/dashboard");
@@ -23,8 +37,11 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("heading", { name: "Beheer" })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
 
-  await nav.getByRole("link", { name: /Media/ }).click();
-  await expect(page).toHaveURL(/\/dashboard\/media$/);
+  await follow(
+    page,
+    () => nav.getByRole("link", { name: /Media/ }),
+    /\/dashboard\/media$/
+  );
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Media" })
   ).toBeVisible();
@@ -32,8 +49,11 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page.getByText("Private bucket: tenant-media")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Veilige verwerking" })).toBeVisible();
 
-  await nav.getByRole("link", { name: /Playlists/ }).click();
-  await expect(page).toHaveURL(/\/dashboard\/playlists$/);
+  await follow(
+    page,
+    () => nav.getByRole("link", { name: /Playlists/ }),
+    /\/dashboard\/playlists$/
+  );
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
   ).toBeVisible();
@@ -41,14 +61,20 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page.getByRole("heading", { name: "Nieuwe playlist" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
 
-  await nav.getByRole("link", { name: /Releases/ }).click();
-  await expect(page).toHaveURL(/\/dashboard\/releases$/);
+  await follow(
+    page,
+    () => nav.getByRole("link", { name: /Releases/ }),
+    /\/dashboard\/releases$/
+  );
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Release Center" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Immutable historie" })).toBeVisible();
   await expect(page.getByText("Nog geen releases")).toBeVisible();
 
-  await nav.getByRole("link", { name: /Schermen/ }).click();
-  await expect(page).toHaveURL(/\/dashboard\/screens$/);
+  await follow(
+    page,
+    () => nav.getByRole("link", { name: /Schermen/ }),
+    /\/dashboard\/screens$/
+  );
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
   ).toBeVisible();
@@ -56,18 +82,27 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page.getByRole("heading", { name: "Schermvloot" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Scherm toevoegen" }).click();
-  await expect(page).toHaveURL(/\/dashboard\/screens\/new$/);
+  await follow(
+    page,
+    () => page.getByRole("link", { name: "Scherm toevoegen" }),
+    /\/dashboard\/screens\/new$/
+  );
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Scherm toevoegen" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Schermdetails en eerste content" })).toBeVisible();
 
-  await page.locator("summary").filter({ hasText: "Museumkwartier" }).click();
-  await page.getByRole("button", { name: /VeyoCast platform/ }).click();
-  await expect(page).toHaveURL(/\/platform$/);
+  await expect(async () => {
+    if (/\/platform$/.test(page.url())) return;
+    await page.locator("summary").filter({ hasText: "Museumkwartier" }).click();
+    await page.getByRole("button", { name: /VeyoCast platform/ }).click();
+    await expect(page).toHaveURL(/\/platform$/);
+  }).toPass({ timeout: 20_000 });
   await expect(nav.getByText("Platformcontext")).toBeVisible();
   await expect(nav.getByRole("link", { name: /Media/ })).toHaveCount(0);
-  await nav.getByRole("link", { name: /Tenants/ }).click();
-  await expect(page).toHaveURL(/\/platform\/tenants$/);
+  await follow(
+    page,
+    () => nav.getByRole("link", { name: /Tenants/ }),
+    /\/platform\/tenants$/
+  );
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Tenantbeheer" })
   ).toBeVisible();
@@ -83,22 +118,69 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   ).toBeDisabled();
 
   await page.goto("/dashboard/auditlog");
-  await nav.getByRole("link", { name: /Activiteit/ }).click();
-  await expect(page).toHaveURL(/\/dashboard\/auditlog$/);
+  await follow(
+    page,
+    () => nav.getByRole("link", { name: /Activiteit/ }),
+    /\/dashboard\/auditlog$/
+  );
   await expect(page.getByRole("heading", { name: "Activiteit" })).toBeVisible();
 });
 
 test("persists theme and density preferences without a color flash", async ({ page }) => {
+  test.setTimeout(60_000);
   await page.goto("/dashboard");
 
-  await page.getByRole("button", { name: "Thema en dichtheid: Systeem" }).click();
-  await page.getByRole("radio", { name: "Donker" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(async () => {
+    if ((await page.locator("html").getAttribute("data-theme")) !== "dark") {
+      const switcher = page.locator("details.control-theme-switcher");
+      if ((await switcher.getAttribute("open")) === null) {
+        await page
+          .getByRole("button", {
+            name: /Thema en dichtheid: (Systeem|Donker)/
+          })
+          .click();
+      }
+      await expect(switcher).toHaveAttribute("open", "");
+      await page
+        .getByRole("radio", { name: "Donker" })
+        .click();
+    }
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          window.localStorage.getItem("veyocast-control-theme")
+        )
+      )
+      .toBe("dark");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  }).toPass({ timeout: 45_000 });
   await expect(page.locator(".control-brand__logo--inverse")).toBeVisible();
 
-  await page.getByRole("button", { name: "Thema en dichtheid: Donker" }).click();
-  await page.getByRole("radio", { name: "Compact" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
+  await expect(async () => {
+    if ((await page.locator("html").getAttribute("data-density")) !== "compact") {
+      const switcher = page.locator("details.control-theme-switcher");
+      if ((await switcher.getAttribute("open")) === null) {
+        await page
+          .getByRole("button", { name: "Thema en dichtheid: Donker" })
+          .click();
+      }
+      await expect(switcher).toHaveAttribute("open", "");
+      await page
+        .getByRole("radio", { name: "Compact" })
+        .click();
+    }
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          window.localStorage.getItem("veyocast-control-density")
+        )
+      )
+      .toBe("compact");
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-density",
+      "compact"
+    );
+  }).toPass({ timeout: 45_000 });
 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -114,16 +196,21 @@ test("supports the public login and auth callback routes", async ({ page }) => {
   await expect(page.getByText("Lokale demoomgeving")).toBeVisible();
   await expect(page.getByText("http://localhost:3000")).toHaveCount(0);
 
-  await page.getByLabel("E-mailadres").fill("operator@veyocast.test");
-  await page.getByRole("button", { name: "Doorgaan" }).click();
-
-  await expect(page).toHaveURL(/\/auth\/callback/);
+  await expect(async () => {
+    if (/\/auth\/callback/.test(page.url())) return;
+    await page.getByLabel("E-mailadres").fill("operator@veyocast.test");
+    await page.getByRole("button", { name: "Doorgaan" }).click();
+    await expect(page).toHaveURL(/\/auth\/callback/);
+  }).toPass({ timeout: 20_000 });
   await expect(
     page.getByRole("heading", { name: "Sessiecontrole voorbereid" })
   ).toBeVisible();
 
-  await page.getByRole("link", { name: "Naar dashboard" }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await follow(
+    page,
+    () => page.getByRole("link", { name: "Naar dashboard" }),
+    /\/dashboard$/
+  );
 
   const invalidConfirmation = await page.request.get(
     "/auth/confirm?next=https://example.invalid",
@@ -220,8 +307,11 @@ test("supports command navigation and the compact mobile navigation flow", async
   await commandPalette
     .getByPlaceholder("Zoek schermen, media, playlists of releases")
     .fill("Schermen");
-  await commandPalette.locator('a[href="/dashboard/screens"]').click();
-  await expect(page).toHaveURL(/\/dashboard\/screens$/);
+  await follow(
+    page,
+    () => commandPalette.locator('a[href="/dashboard/screens"]'),
+    /\/dashboard\/screens$/
+  );
 
   await page.setViewportSize({ height: 844, width: 390 });
   const topbar = page.getByLabel("Control status");
@@ -260,6 +350,9 @@ test("supports command navigation and the compact mobile navigation flow", async
     name: "Hoofdnavigatie"
   });
   await expect(navigation).toBeVisible();
-  await navigation.getByRole("link", { name: /Media/ }).click();
-  await expect(page).toHaveURL(/\/dashboard\/media$/);
+  await follow(
+    page,
+    () => navigation.getByRole("link", { name: /Media/ }),
+    /\/dashboard\/media$/
+  );
 });

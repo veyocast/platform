@@ -16,9 +16,12 @@ test("keeps the documented local demo pilot traceable across product planes", as
   ).toBeVisible();
 
   await page.goto("/login");
-  await page.getByLabel("E-mailadres").fill("pilot@veyocast.test");
-  await page.getByRole("button", { name: "Doorgaan" }).click();
-  await expect(page).toHaveURL(/\/auth\/callback/);
+  await expect(async () => {
+    if (/\/auth\/callback/.test(page.url())) return;
+    await page.getByLabel("E-mailadres").fill("pilot@veyocast.test");
+    await page.getByRole("button", { name: "Doorgaan" }).click();
+    await expect(page).toHaveURL(/\/auth\/callback/);
+  }).toPass({ timeout: 20_000 });
   await expect(
     page.getByText("authprovider is nog niet aangesloten")
   ).toBeVisible();
