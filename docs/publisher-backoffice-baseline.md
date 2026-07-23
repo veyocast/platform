@@ -49,3 +49,57 @@ Nieuwe schema’s en RPC’s worden additief toegevoegd na migratie
 manifestvelden blijven tijdens de migratie beschikbaar. Nieuwe schedule- of
 sectionsemantiek wordt pas naar Players gestuurd na capability- en
 contracttests; last-known-good blijft altijd de fallback.
+
+## Eindstand van de canonuitvoering
+
+De nulmeting hierboven blijft het historische vertrekpunt. De branch heeft de
+volgende gaten aantoonbaar gesloten:
+
+- de 224px Publisher-sidebar is vast, donker en onafhankelijk scrollbaar;
+- tenant- en platformcontext tonen nooit gelijktijdig concurrerende navigatie;
+- dashboard, Media, Playlists, Studio, Schermen, Planning, Templates,
+  Activiteit en Instellingen gebruiken dezelfde rustige responsive patronen;
+- light/dark/system, informatiedichtheid en persoonlijke kolommen zijn lokaal
+  persistent zonder tenantdata in browseropslag te zetten;
+- Media heeft serverpaginering, raster/tabel, filters, inspector,
+  mappen/tags/favorieten, opgeslagen persoonlijke views, herstelbare
+  archivering, gebruiksimpact en een globale uploadtray;
+- Playlist Studio heeft drie panelen vanaf 1200px, mobiele sheets, DnD,
+  toetsenbordalternatieven, secties, item-/playlistinspectors, bronduurgrenzen,
+  preview per scherm, debounced serverbevestigde autosave, revisionconflicten,
+  lokaal herstel en echte Player-syncstatus;
+- playlist- en mediawijzigingen lopen via tenantgescheiden, idempotente,
+  server-geaudite guarded commands;
+- publicatie blijft immutable; herstel maakt altijd een nieuw concept;
+- Schermen ondersteunt kaarten/tabel, actieprioriteit, groepen, bulkacties,
+  assignmentbron, onboarding en lifecycle;
+- Planning ondersteunt eenmalig, dagelijks, wekelijks, weekdagen,
+  tijdvensters, tenanttijdzone, DST en occurrence-gebaseerde conflicten;
+- de worker activeert schedule-snapshots zonder de Player-offlinegaranties te
+  verzwakken;
+- Control is installeerbaar als privacyveilige PWA met shellcache en
+  routegebonden conceptherstel.
+
+## Bewust niet stilzwijgend ingevulde productbesluiten
+
+Deze onderwerpen zijn niet met een opportunistische lokale implementatie
+vastgezet, omdat ze een blijvend Player-, autorisatie- of samenwerkingscontract
+zouden introduceren:
+
+1. **Gecontroleerde visuele templates.** De huidige tenanttemplates zijn
+   veilige playlistsnapshots. Parametergebonden templates met tekst-, kleur-,
+   beeld- en portrait/landscape-rendering vereisen één versieerbaar
+   template-rendercontract dat Control, manifest en Player delen.
+2. **Algemene offline mutatiequeue.** Uploadresume en één coherente
+   Studio-intent zijn veilig. Een onbeperkte multi-intentqueue vereist
+   deterministische merge-, afhankelijkheids-, encryptie- en
+   conflictsemantiek.
+3. **Planning als afzonderlijke capability.** Planning gebruikt nu de
+   bestaande tenant-playlistschrijfrechten. Een nieuwe capability verandert
+   de rolmatrix en moet productbreed worden vastgesteld.
+4. **Organisatiebrede voorkeurensync.** Thema, dichtheid, kolommen en views zijn
+   bewust persoons- en browsergebonden; server-sync vraagt een expliciete
+   privacy- en profielkeuze.
+
+De uitvoerings- en testdetails staan in
+[`publisher-backoffice-release-evidence.md`](publisher-backoffice-release-evidence.md).

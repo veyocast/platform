@@ -73,8 +73,8 @@ tests en exitcriteria staan in
 | S29 | Production operations | Worker deployment, observability, SLO's, alerts, restore en veilige supportbundle |
 | S30 | Pilot RC gate | Live critical journey, 24-uurs soak, fysieke LG-, security-, a11y- en DR-gates |
 | S30-K | Control calmness en workspacejourneys | Actie-eerst Control, consistente overlays, thema/dichtheid, veilige playlistduplicatie en rustige mobiele flows |
-| S31 | Productiviteitsfeatures | Bulkacties, tenanttemplates, opgeslagen views en optionele voorkeurensync |
-| S32 | Groepen en planning | Schermgroepen, schedules en eenvoudige offline-safe dayparting |
+| S31 | Publisher-backoffice canon | Rustige responsive Publisher-shell, visuele resourceworkspaces, guarded authoring, autosave, persoonlijke views, bulkacties en tenanttemplates |
+| S32 | Groepen en planning | Schermgroepen, immutable target snapshots, timezone/DST-veilige schedules, conflictanalyse en offline-safe dayparting |
 | S33 | Integration framework | Server-only adapters, syncjobs en immutable offline widgetsnapshots |
 | S34 | Provider discovery | Official-only Sportlink/Twelve go/no-go en uitsluitend goedgekeurde POC's |
 | S35 | Billing | Mollie, reconciliation en scherm-entitlements zonder offline blackout |
@@ -86,7 +86,8 @@ tests en exitcriteria staan in
 - S20-S22 herstellen eerst trust, context en beheer.
 - S23-S28 herontwerpen Control rond echte klantjourneys.
 - S29-S30 zijn verplicht vóór een brede pilotclaim.
-- S31-S32 zijn post-pilot productiviteitswerk.
+- S31-S32 zijn lokaal geïmplementeerd en blijven vóór brede uitrol afhankelijk
+  van de bestaande staging-, fysieke Player- en soakgates.
 - S33-S36 starten alleen na hun expliciete provider/commerciële entry gates.
 - S37 levert beslisdocumenten en prototypes, geen stilzwijgende productclaims.
 

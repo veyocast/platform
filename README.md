@@ -161,3 +161,9 @@ De uitgewerkte vervolgroadmap S20-S37 staat in
 S20-S30 maken de bestaande kern veilig, samenhangend en pilotwaardig; S31-S37
 plannen productiviteit, scheduling, integraties, commercialisatie en begrensde
 research zonder deze launchbasis te omzeilen.
+
+De Publisher-backoffice-uitvoering van S31/S32 volgt het vastgelegde
+[`VeyoCast Publisher Backoffice Canon v1.0`](docs/design-canon/v1/VEYOCAST_PUBLISHER_BACKOFFICE_CANON_v1.0.md).
+Implementatiestatus, testbewijs en de bewust opengehouden grote
+productbesluiten staan in
+[`docs/publisher-backoffice-release-evidence.md`](docs/publisher-backoffice-release-evidence.md).
