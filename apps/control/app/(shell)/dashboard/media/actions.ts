@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -129,6 +130,84 @@ export async function retryMediaProcessing(formData: FormData) {
   completeAsset(assetId, "De video staat opnieuw in de verwerkingsqueue. De huidige releases blijven ongewijzigd.");
 }
 
+export async function createMediaFolder(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (name.length < 1 || name.length > 120) fail(null, "Gebruik een mapnaam van maximaal 120 tekens.");
+  await organizeMedia(formData, "create_folder", {
+    name,
+    parentFolderId: optionalId(formData, "parentFolderId")
+  });
+  completeLibrary("De mediamap is gemaakt.");
+}
+
+export async function createMediaTag(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const color = String(formData.get("color") ?? "").trim();
+  if (name.length < 1 || name.length > 48) fail(null, "Gebruik een tagnaam van maximaal 48 tekens.");
+  if (color && !/^#[0-9a-f]{6}$/i.test(color)) fail(null, "Gebruik een geldige hexkleur voor de tag.");
+  await organizeMedia(formData, "create_tag", { color: color || null, name });
+  completeLibrary("De mediatag is gemaakt.");
+}
+
+export async function moveMediaAsset(formData: FormData) {
+  const assetId = mediaId(formData);
+  await organizeMedia(formData, "move_asset", {
+    assetId,
+    folderId: optionalId(formData, "folderId")
+  });
+  completeAsset(assetId, "De media is naar de gekozen map verplaatst.");
+}
+
+export async function setMediaFavorite(formData: FormData) {
+  const assetId = mediaId(formData);
+  await organizeMedia(formData, "set_favorite", {
+    assetId,
+    favorite: formData.get("favorite") === "true"
+  });
+  completeAsset(assetId, formData.get("favorite") === "true"
+    ? "De media staat in je favorieten."
+    : "De media is uit je favorieten verwijderd.");
+}
+
+export async function assignMediaTag(formData: FormData) {
+  const assetId = mediaId(formData);
+  await organizeMedia(formData, "assign_tag", {
+    assetId,
+    tagId: requiredId(formData, "tagId")
+  });
+  completeAsset(assetId, "De tag is aan deze media toegevoegd.");
+}
+
+export async function removeMediaTag(formData: FormData) {
+  const assetId = mediaId(formData);
+  await organizeMedia(formData, "remove_tag", {
+    assetId,
+    tagId: requiredId(formData, "tagId")
+  });
+  completeAsset(assetId, "De tag is van deze media verwijderd.");
+}
+
+async function organizeMedia(
+  formData: FormData,
+  operation: "assign_tag" | "create_folder" | "create_tag" | "move_asset" | "remove_tag" | "set_favorite",
+  payload: Record<string, boolean | string | null>
+) {
+  const { session, supabase } = await requireMediaWriter();
+  const { data, error } = await supabase.rpc("mutate_media_organization_v1", {
+    p_idempotency_key: idempotencyValue(formData),
+    p_operation: operation,
+    p_payload: payload,
+    p_tenant_id: session.tenantId
+  });
+  if (error) {
+    console.error(`Mediaorganisatie ${operation} mislukt`, error);
+    fail(typeof payload.assetId === "string" ? payload.assetId : null, organizationError(error.code));
+  }
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    fail(typeof payload.assetId === "string" ? payload.assetId : null, "De wijziging gaf geen veilige bevestiging. Vernieuw de mediabibliotheek.");
+  }
+}
+
 async function requireMediaWriter() {
   const session = await requireTenantCapability("tenant.media.write");
   const supabase = await createControlSupabaseClient();
@@ -142,6 +221,30 @@ function mediaId(formData: FormData) {
   return assetId;
 }
 
+function requiredId(formData: FormData, key: string) {
+  const value = String(formData.get(key) ?? "");
+  if (!uuidPattern.test(value)) fail(null, "De gekozen map of tag is ongeldig. Vernieuw de pagina.");
+  return value;
+}
+
+function optionalId(formData: FormData, key: string) {
+  const value = String(formData.get(key) ?? "");
+  return value ? requiredId(formData, key) : null;
+}
+
+function idempotencyValue(formData: FormData) {
+  const value = String(formData.get("idempotencyKey") ?? "");
+  return uuidPattern.test(value) ? value : randomUUID();
+}
+
+function organizationError(code: string | undefined) {
+  if (code === "23505") return "Deze map- of tagnaam bestaat al. Kies een andere naam.";
+  if (code === "P0002") return "De media, map of tag bestaat niet meer. Vernieuw de bibliotheek.";
+  if (code === "42501") return "Je mag de mediabibliotheek niet organiseren. Er is niets gewijzigd.";
+  if (code === "23514") return "Deze wijziging zou een ongeldige mapstructuur of verwijzing maken. Er is niets gewijzigd.";
+  return "De mediabibliotheek kon niet veilig worden georganiseerd. Probeer opnieuw.";
+}
+
 function fail(assetId: string | null, message: string): never {
   const selected = assetId ? `asset=${encodeURIComponent(assetId)}&` : "";
   redirect(`/dashboard/media?${selected}fout=${encodeURIComponent(message)}`);
@@ -152,3 +255,10 @@ function completeAsset(assetId: string, message: string): never {
   revalidatePath("/dashboard/playlists");
   redirect(`/dashboard/media?asset=${assetId}&succes=${encodeURIComponent(message)}`);
 }
+
+function completeLibrary(message: string): never {
+  revalidatePath("/dashboard/media");
+  redirect(`/dashboard/media?succes=${encodeURIComponent(message)}`);
+}
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
