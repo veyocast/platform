@@ -5,3 +5,9 @@ Koppel het scherm met een veilige code aan VeyoCast Control. Daarna ontvangt de 
 De Player draait fullscreen, bewaart geverifieerde content lokaal en probeert automatisch te herstellen wanneer de internetverbinding tijdelijk wegvalt. Nieuwe releases worden pas actief nadat de benodigde content beschikbaar en gecontroleerd is.
 
 Voor gebruik is een actief VeyoCast-account met schermbeheer nodig. De app ondersteunt reguliere Android-apparaten, tablets, dedicated Android-signagehardware, Chromecast met Google TV en andere ondersteunde Android TV-apparaten. Een klassieke Chromecast zonder Android-appplatform kan de app niet uitvoeren.
+
+Privacyverklaring:
+https://veyocast.nl/privacy
+
+Account- en dataverwijdering:
+https://veyocast.nl/data-verwijderen

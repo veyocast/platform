@@ -20,6 +20,7 @@ import {
   CalendarDays,
   ChevronDown,
   ChevronRight,
+  ExternalLink,
   FileImage,
   FileStack,
   FolderKanban,
@@ -480,28 +481,41 @@ export function ControlShell({
           ))}
         </nav>
 
-        <div className="control-user">
-          <div className="control-user__avatar" aria-hidden="true">
-            {initials(session.userName)}
-          </div>
-          <div className="control-user__copy">
-            <p className="control-user__name">{session.userName}</p>
-            <p className="control-user__meta">
-              {session.roles[0] ? roleLabel[session.roles[0]] : "Geen rol toegewezen"}
-            </p>
-          </div>
-          <form
-            action={signOut}
-            onSubmit={() => clearTenantScopedLocalData(window.localStorage)}
+        <div className="control-sidebar__footer">
+          <a
+            aria-label={isSidebarCollapsed ? "Privacyverklaring" : undefined}
+            className="control-legal-link"
+            href="https://veyocast.nl/privacy"
+            rel="noreferrer"
+            target="_blank"
+            title={isSidebarCollapsed ? "Privacyverklaring" : undefined}
           >
-            <IconButton
-              aria-label="Uitloggen"
-              title="Uitloggen"
-              type="submit"
+            <ExternalLink aria-hidden="true" />
+            <span>Privacyverklaring</span>
+          </a>
+          <div className="control-user">
+            <div className="control-user__avatar" aria-hidden="true">
+              {initials(session.userName)}
+            </div>
+            <div className="control-user__copy">
+              <p className="control-user__name">{session.userName}</p>
+              <p className="control-user__meta">
+                {session.roles[0] ? roleLabel[session.roles[0]] : "Geen rol toegewezen"}
+              </p>
+            </div>
+            <form
+              action={signOut}
+              onSubmit={() => clearTenantScopedLocalData(window.localStorage)}
             >
-              <ChevronDown aria-hidden="true" />
-            </IconButton>
-          </form>
+              <IconButton
+                aria-label="Uitloggen"
+                title="Uitloggen"
+                type="submit"
+              >
+                <ChevronDown aria-hidden="true" />
+              </IconButton>
+            </form>
+          </div>
         </div>
       </aside>
 

@@ -36,6 +36,11 @@ De workflow werkt bewust alleen vanaf `main`, gebruikt GitHub Environment
 7. Maak een interne testlijst van maximaal 100 Google-/Workspace-accounts en
    koppel deze aan het internal-testkanaal.
 8. Voeg een feedbackadres toe en deel daarna de opt-inlink met testers.
+9. Vul bij **App content > Privacy policy** exact
+   `https://veyocast.nl/privacy` in.
+10. Vul bij **Data safety > Data deletion** exact
+    `https://veyocast.nl/data-verwijderen` in. Publiceer deze URL's eerst en
+    controleer ze zonder login in een privévenster.
 
 ## GitHub Environment en secrets
 
@@ -88,6 +93,11 @@ De version name krijgt de vorm `1.0.0-internal.<run>.<attempt>`.
 - Vul voor closed/production de Data Safety-sectie en een publiek bereikbaar
   privacybeleid in. Een app die uitsluitend op internal testing actief is, is
   volgens Play Console nog vrijgesteld van Data Safety.
+- De Nederlandstalige listing bevat daarnaast zichtbare links naar
+  `https://veyocast.nl/privacy` en `https://veyocast.nl/data-verwijderen`.
+- Neem niet aan dat het toevoegen van de listingtekst de afzonderlijke
+  Privacy policy- en Data deletion-velden in Play Console invult; die blijven
+  een handmatige Console-stap.
 
 ## Acceptatie op echte hardware
 

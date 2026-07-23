@@ -2,7 +2,7 @@ package nl.veyocast.player
 
 enum class TvBackAction {
     HIDE_FULLSCREEN_MEDIA,
-    RETURN_TO_ANDROID_TV,
+    RETURN_TO_ANDROID,
     NAVIGATE_WEB_HISTORY,
     OPEN_MANAGEMENT
 }
@@ -14,7 +14,7 @@ object TvBackPolicy {
         trustedWebHistoryAvailable: Boolean
     ): TvBackAction = when {
         customMediaVisible -> TvBackAction.HIDE_FULLSCREEN_MEDIA
-        managementVisible -> TvBackAction.RETURN_TO_ANDROID_TV
+        managementVisible -> TvBackAction.RETURN_TO_ANDROID
         trustedWebHistoryAvailable -> TvBackAction.NAVIGATE_WEB_HISTORY
         else -> TvBackAction.OPEN_MANAGEMENT
     }

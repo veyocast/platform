@@ -28,7 +28,7 @@ class TvInteractionPolicyTest {
             )
         )
         assertEquals(
-            TvBackAction.RETURN_TO_ANDROID_TV,
+            TvBackAction.RETURN_TO_ANDROID,
             TvBackPolicy.decide(
                 customMediaVisible = false,
                 managementVisible = true,

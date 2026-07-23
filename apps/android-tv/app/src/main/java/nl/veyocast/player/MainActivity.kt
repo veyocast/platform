@@ -2,7 +2,9 @@ package nl.veyocast.player
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -45,6 +47,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private lateinit var refreshButton: Button
     private lateinit var demoButton: Button
     private lateinit var demoSummary: TextView
+    private lateinit var privacyButton: Button
     private lateinit var returnHomeButton: Button
     private lateinit var autostartSwitch: Switch
     private lateinit var connectionValue: TextView
@@ -163,12 +166,12 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean =
-        if (handleTvKey(event)) true else super.onKeyDown(keyCode, event)
+        if (handleHardwareKey(event)) true else super.onKeyDown(keyCode, event)
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean =
-        if (handleTvKey(event)) true else super.onKeyUp(keyCode, event)
+        if (handleHardwareKey(event)) true else super.onKeyUp(keyCode, event)
 
-    private fun handleTvKey(event: KeyEvent): Boolean {
+    private fun handleHardwareKey(event: KeyEvent): Boolean {
         if (event.keyCode == KeyEvent.KEYCODE_MENU) {
             if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
                 toggleManagementPanel()
@@ -266,6 +269,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         refreshButton = findViewById(R.id.refresh_button)
         demoButton = findViewById(R.id.demo_button)
         demoSummary = findViewById(R.id.demo_summary)
+        privacyButton = findViewById(R.id.privacy_button)
         returnHomeButton = findViewById(R.id.return_home_button)
         autostartSwitch = findViewById(R.id.autostart_switch)
         connectionValue = findViewById(R.id.connection_value)
@@ -317,7 +321,14 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
             loadPlayer()
         }
         configureDemoMenu()
-        returnHomeButton.setOnClickListener { returnToAndroidTv() }
+        privacyButton.setOnClickListener {
+            runCatching {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
+            }.onFailure {
+                AppLog.warning("Privacyverklaring kon niet in een externe app worden geopend")
+            }
+        }
+        returnHomeButton.setOnClickListener { returnToAndroid() }
     }
 
     private fun configureDemoMenu() {
@@ -574,7 +585,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         settings.setGeolocationEnabled(false)
         settings.safeBrowsingEnabled = true
         settings.userAgentString = settings.userAgentString +
-            " VeyoCastAndroidTV/${BuildConfig.VERSION_NAME}"
+            " VeyoCastAndroid/${BuildConfig.VERSION_NAME}"
     }
 
     private fun createWebChromeClient(): WebChromeClient = object : WebChromeClient() {
@@ -737,13 +748,13 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
             )
         ) {
             TvBackAction.HIDE_FULLSCREEN_MEDIA -> hideCustomView()
-            TvBackAction.RETURN_TO_ANDROID_TV -> returnToAndroidTv()
+            TvBackAction.RETURN_TO_ANDROID -> returnToAndroid()
             TvBackAction.NAVIGATE_WEB_HISTORY -> view?.goBack()
             TvBackAction.OPEN_MANAGEMENT -> openManagementPanel()
         }
     }
 
-    private fun returnToAndroidTv() {
+    private fun returnToAndroid() {
         closeManagementPanel()
         if (!moveTaskToBack(true)) finish()
     }
@@ -791,6 +802,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         const val DEMO_ACTIVATION_TIMEOUT_MS = 10_000L
         const val DEMO_COOKIE_NAME = "veyocast_player_demo_session"
         const val PANEL_LONG_PRESS_MS = 1_200L
+        const val PRIVACY_POLICY_URL = "https://veyocast.nl/privacy"
     }
 }
 

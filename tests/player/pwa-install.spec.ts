@@ -55,10 +55,10 @@ test("does not offer Android installation in a desktop browser", async ({ page }
   await expect(page.getByText("Installeer de Player", { exact: true })).toHaveCount(0);
 });
 
-test("does not offer PWA installation inside the native Android TV shell", async ({ browser }) => {
+test("does not offer PWA installation inside the native Android app", async ({ browser }) => {
   const context = await browser.newContext({
     userAgent:
-      "Mozilla/5.0 (Linux; Android 14; TV) AppleWebKit/537.36 Chrome/126 Safari/537.36 VeyoCastAndroidTV/1.0.0"
+      "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/126 Safari/537.36 VeyoCastAndroid/1.0.0"
   });
   const page = await context.newPage();
 

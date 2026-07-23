@@ -4,7 +4,7 @@ type AndroidInstallEligibilityInput = {
   userAgent: string;
 };
 
-const nativeAndroidTvShellPattern = /\bVeyoCastAndroidTV\//i;
+const nativeAndroidShellPattern = /\bVeyoCastAndroid(?:TV)?\//i;
 
 export function isAndroidPwaInstallEligible({
   referrer,
@@ -12,7 +12,7 @@ export function isAndroidPwaInstallEligible({
   userAgent
 }: AndroidInstallEligibilityInput) {
   const runsInsideInstalledAndroidApp =
-    referrer.startsWith("android-app://") || nativeAndroidTvShellPattern.test(userAgent);
+    referrer.startsWith("android-app://") || nativeAndroidShellPattern.test(userAgent);
 
   return /Android/i.test(userAgent) && !standalone && !runsInsideInstalledAndroidApp;
 }

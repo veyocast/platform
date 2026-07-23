@@ -19,6 +19,17 @@ describe("Android Player-installatiegeschiktheid", () => {
         referrer: "",
         standalone: false,
         userAgent:
+          "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 VeyoCastAndroid/1.0.0"
+      })
+    ).toBe(false);
+  });
+
+  it("herkent ook de user-agent van eerder uitgebrachte Android-builds", () => {
+    expect(
+      isAndroidPwaInstallEligible({
+        referrer: "",
+        standalone: false,
+        userAgent:
           "Mozilla/5.0 (Linux; Android 14; TV) AppleWebKit/537.36 VeyoCastAndroidTV/1.0.0"
       })
     ).toBe(false);

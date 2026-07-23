@@ -48,10 +48,11 @@ hostlijst onderschept. Mixed content, file/content access, pop-ups, native
 JavaScriptinterfaces en certificaatbypasses zijn uitgeschakeld. Een SSL-fout
 wordt altijd geannuleerd.
 
-De herkenbare `VeyoCastAndroidTV/<versie>` user-agent blijft voor
-compatibiliteit met reeds uitgebrachte builds behouden en voorkomt daarnaast dat de
-hosted Player binnen deze reeds geïnstalleerde native app opnieuw de Android
-PWA-installatiekaart aanbiedt.
+Nieuwe builds gebruiken de herkenbare `VeyoCastAndroid/<versie>` user-agent.
+De Player herkent voor compatibiliteit ook de historische
+`VeyoCastAndroidTV/<versie>`-waarde van eerder uitgebrachte builds. Beide
+voorkomen dat de hosted Player binnen de reeds geïnstalleerde native app
+opnieuw de Android PWA-installatiekaart aanbiedt.
 
 Bij een mislukte eerste paginalaadactie verschijnt native:
 
