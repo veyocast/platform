@@ -94,6 +94,14 @@
   padding-top: var(--vc-space-12);
 }
 
+.resourceActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-6);
+  justify-content: flex-end;
+}
+
 .scheduleList {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
@@ -189,5 +197,14 @@
   .scheduleContent,
   .scheduleTiming {
     grid-column: 1 / -1;
+  }
+
+  .resourceFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .resourceActions {
+    justify-content: flex-start;
   }
 }

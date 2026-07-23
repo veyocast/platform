@@ -49,6 +49,38 @@ export async function instantiateTenantTemplate(formData: FormData) {
   redirect(`/dashboard/playlists/${playlistId}?succes=${encodeURIComponent("De template is als nieuw concept geopend. Releasehistorie en schermtoewijzingen zijn niet overgenomen.")}`);
 }
 
+export async function updateTenantTemplate(formData: FormData) {
+  const { supabase } = await templateWriter();
+  const templateId = uuidValue(formData, "templateId");
+  const playlistId = uuidValue(formData, "playlistId");
+  const name = nameValue(formData);
+  const description = String(formData.get("description") ?? "").trim();
+  const expectedRevision = nonNegativeIntegerValue(formData, "expectedRevision");
+  if (description.length > 500) fail("De templatebeschrijving mag maximaal 500 tekens bevatten.");
+
+  const { data, error } = await supabase.rpc("update_tenant_playlist_template_v1", {
+    p_description: description || null,
+    p_expected_revision: expectedRevision,
+    p_idempotency_key: idempotencyValue(formData),
+    p_name: name,
+    p_playlist_id: playlistId,
+    p_template_id: templateId
+  });
+  if (error) {
+    console.error("Tenanttemplate bijwerken mislukt", error);
+    fail(templateError(error.code));
+  }
+  if (resultOutcome(data) === "conflict") {
+    fail("Iemand heeft deze template intussen gewijzigd. De nieuwste versie is geladen; controleer je invoer opnieuw.");
+  }
+  if (!resultId(data, "templateId")) {
+    fail("De templateactie kon niet veilig worden bevestigd. Vernieuw de pagina en probeer opnieuw.");
+  }
+
+  revalidatePath("/dashboard/templates");
+  redirect("/dashboard/templates?succes=De+template+en+inhoudssnapshot+zijn+bijgewerkt.");
+}
+
 async function templateWriter() {
   const session = await requireTenantCapability("tenant.playlist.write");
   const supabase = await createControlSupabaseClient();
@@ -64,6 +96,12 @@ function resultId(value: unknown, key: string) {
   return typeof result === "string" && uuidPattern.test(result) ? result : null;
 }
 
+function resultOutcome(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const result = (value as Record<string, unknown>).outcome;
+  return typeof result === "string" ? result : null;
+}
+
 function nameValue(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   if (name.length < 2 || name.length > 120) {
@@ -75,6 +113,12 @@ function nameValue(formData: FormData) {
 function uuidValue(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "");
   if (!uuidPattern.test(value)) fail("De gekozen resource is ongeldig.");
+  return value;
+}
+
+function nonNegativeIntegerValue(formData: FormData, key: string) {
+  const value = Number(formData.get(key));
+  if (!Number.isSafeInteger(value) || value < 0) fail("De templaterevisie is ongeldig.");
   return value;
 }
 

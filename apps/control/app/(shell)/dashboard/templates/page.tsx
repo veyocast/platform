@@ -7,7 +7,11 @@ import { Button, PageHeader, StatusPill, SummaryStrip } from "@veyocast/ui";
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import styles from "../publisher-resources.module.css";
 import { loadTenantTemplates } from "./data";
-import { TemplateCreateDialog, TemplateUseDialog } from "./template-dialogs";
+import {
+  TemplateCreateDialog,
+  TemplateEditDialog,
+  TemplateUseDialog
+} from "./template-dialogs";
 
 type TemplatesPageProps = {
   searchParams: Promise<{ fout?: string; succes?: string }>;
@@ -21,7 +25,7 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
     : { error: null, playlists: [], templates: [] };
   const active = data.templates.filter((template) => template.status === "active");
   const canWrite = session.isLive && session.tenantStatus === "active" &&
-    hasCapability(session.roles, "tenant.playlist.write");
+    hasCapability(session.capabilities, "tenant.playlist.write");
 
   return (
     <>
@@ -60,9 +64,24 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
               </dl>
               <div className={styles.resourceFooter}>
                 <span>Bijgewerkt {formatDate(template.updatedAt)} · revisie {template.revision}</span>
-                {template.status === "active" && canWrite
-                  ? <TemplateUseDialog templateId={template.id} templateName={template.name} />
-                  : null}
+                {template.status === "active" && canWrite ? (
+                  <div className={styles.resourceActions}>
+                    {template.sourcePlaylistId ? (
+                      <Button asChild size="sm" variant="ghost">
+                        <Link href={`/dashboard/playlists/${template.sourcePlaylistId}`}>Inhoud aanpassen</Link>
+                      </Button>
+                    ) : null}
+                    <TemplateEditDialog
+                      description={template.description}
+                      name={template.name}
+                      playlists={data.playlists}
+                      revision={template.revision}
+                      sourcePlaylistId={template.sourcePlaylistId}
+                      templateId={template.id}
+                    />
+                    <TemplateUseDialog templateId={template.id} templateName={template.name} />
+                  </div>
+                ) : null}
               </div>
             </article>
           ))}

@@ -9,6 +9,7 @@ export type TenantTemplateListItem = {
   itemCount: number;
   name: string;
   revision: number;
+  sourcePlaylistId: string | null;
   sourcePlaylistName: string | null;
   status: string;
   updatedAt: string;
@@ -47,6 +48,7 @@ export async function loadTenantTemplates(tenantId: string) {
       itemCount: snapshotItemCount(template.snapshot_json),
       name: template.name,
       revision: Number(template.revision),
+      sourcePlaylistId: template.source_playlist_id,
       sourcePlaylistName: template.source_playlist_id
         ? playlistNames.get(template.source_playlist_id) ?? "Verwijderde playlist"
         : null,
