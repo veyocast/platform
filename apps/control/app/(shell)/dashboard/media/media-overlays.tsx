@@ -1,6 +1,14 @@
 "use client";
 
-import { FolderPlus, Image as ImageIcon, Tags, Video } from "lucide-react";
+import {
+  Bookmark,
+  FolderPlus,
+  Image as ImageIcon,
+  Tags,
+  Trash2,
+  Video
+} from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type ReactNode } from "react";
 
@@ -24,8 +32,13 @@ import {
   type StatusTone
 } from "@veyocast/ui";
 
-import { uploadMediaImage } from "./actions";
-import { createMediaFolder, createMediaTag } from "./actions";
+import {
+  createMediaFolder,
+  createMediaTag,
+  deleteMediaView,
+  saveMediaView,
+  uploadMediaImage
+} from "./actions";
 import { VideoUploadForm } from "./video-upload-form";
 
 type MediaUploadDialogProps = {
@@ -57,6 +70,15 @@ export type MediaTagOption = {
   id: string;
   name: string;
   revision: number;
+};
+
+export type SavedMediaViewOption = {
+  active: boolean;
+  href: string;
+  id: string;
+  name: string;
+  revision: number;
+  updatedLabel: string;
 };
 
 export function MediaUploadDialog({
@@ -288,6 +310,114 @@ export function MediaOrganizationDialog({
               <input defaultValue="#3658d6" id="new-media-tag-color" name="color" type="color" />
             </div>
             <DialogFooter><Button type="submit">Tag maken</Button></DialogFooter>
+          </form>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function SavedMediaViewsDialog({
+  canSave,
+  currentState,
+  views
+}: {
+  canSave: boolean;
+  currentState: string;
+  views: readonly SavedMediaViewOption[];
+}) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="secondary">
+          <Bookmark aria-hidden="true" />
+          Weergaven
+          {views.length > 0 ? <span aria-label={`${views.length} opgeslagen`}>{views.length}</span> : null}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Persoonlijke weergaven</DialogTitle>
+          <DialogDescription>
+            Bewaar de huidige zoekopdracht, filters, sortering en lijst- of rasterweergave
+            voor jezelf binnen deze vereniging.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody>
+          <section aria-labelledby="saved-media-views-title" className="media-usage">
+            <div>
+              <h3 id="saved-media-views-title">Opgeslagen</h3>
+              <p className="work-panel__meta">
+                Deze weergaven zijn persoonlijk en nooit zichtbaar voor andere gebruikers.
+              </p>
+            </div>
+            {views.length > 0 ? (
+              <ul aria-label="Persoonlijke mediaweergaven" className="media-usage__list">
+                {views.map((view) => (
+                  <li key={view.id}>
+                    <div>
+                      <strong>{view.name}</strong>
+                      <span>
+                        {view.active ? "Nu actief" : `Bijgewerkt ${view.updatedLabel}`}
+                      </span>
+                    </div>
+                    <div className="page-action-group">
+                      <Button asChild size="sm" variant={view.active ? "secondary" : "ghost"}>
+                        <Link aria-current={view.active ? "page" : undefined} href={view.href}>
+                          Toepassen
+                        </Link>
+                      </Button>
+                      <form action={deleteMediaView}>
+                        <input name="expectedRevision" type="hidden" value={view.revision} />
+                        <input name="viewId" type="hidden" value={view.id} />
+                        <input name="viewState" type="hidden" value={currentState} />
+                        <Button
+                          aria-label={`${view.name} verwijderen`}
+                          size="sm"
+                          title={`${view.name} verwijderen`}
+                          type="submit"
+                          variant="ghost"
+                        >
+                          <Trash2 aria-hidden="true" />
+                        </Button>
+                      </form>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="notice" role="status">
+                Je hebt nog geen persoonlijke mediaweergaven opgeslagen.
+              </p>
+            )}
+          </section>
+
+          <form action={saveMediaView} className="playlist-form">
+            <input name="viewState" type="hidden" value={currentState} />
+            <div className="field">
+              <label htmlFor="saved-media-view-name">Naam</label>
+              <input
+                autoComplete="off"
+                disabled={!canSave}
+                id="saved-media-view-name"
+                maxLength={80}
+                minLength={2}
+                name="name"
+                placeholder="Bijvoorbeeld gereed sponsorbeeld"
+                required
+                type="text"
+              />
+            </div>
+            <DialogFooter>
+              <Button disabled={!canSave} type="submit">
+                Huidige weergave opslaan
+              </Button>
+            </DialogFooter>
+            {!canSave ? (
+              <p className="notice notice--warning" role="status">
+                Persoonlijke weergaven kunnen alleen binnen een actieve live vereniging worden gewijzigd.
+              </p>
+            ) : null}
           </form>
         </DialogBody>
       </DialogContent>

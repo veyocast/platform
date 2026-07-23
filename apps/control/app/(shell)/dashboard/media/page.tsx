@@ -32,8 +32,16 @@ import {
 import {
   MediaInspectorSheet,
   MediaOrganizationDialog,
-  MediaUploadDialog
+  MediaUploadDialog,
+  SavedMediaViewsDialog
 } from "./media-overlays";
+import {
+  mediaViewHref,
+  mediaViewStateFromSearch,
+  mediaViewStateFromStorage,
+  mediaViewStateKey,
+  type MediaViewState
+} from "./saved-media-view";
 
 type MediaPageProps = {
   searchParams: Promise<{
@@ -143,6 +151,24 @@ type MediaTag = {
   revision: number;
 };
 
+type SavedMediaView = {
+  href: string;
+  id: string;
+  name: string;
+  revision: number;
+  state: MediaViewState;
+  updatedAt: string;
+};
+
+type SavedMediaViewRow = {
+  filter_json: unknown;
+  id: string;
+  name: string;
+  revision: number | string;
+  sort_json: unknown;
+  updated_at: string;
+};
+
 type ProcessingSummary = {
   attempts: number;
   errorCode: string | null;
@@ -209,14 +235,19 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
     processingCount,
     processingSummary,
     readyCount,
+    savedViews,
     selectedUsage,
     tags,
     totalCount
-  } = await loadMediaData(session.tenantId, session.isLive, params, page);
+  } = await loadMediaData(session.tenantId, session.userId, session.isLive, params, page);
   const canUpload =
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.roles, "tenant.media.write");
+  const canSaveViews =
+    session.isLive &&
+    session.tenantStatus === "active" &&
+    hasCapability(session.roles, "tenant.media.read");
   const visibleAssets = assets;
   const selectedAsset = params.asset
     ? assets.find((asset) => asset.id === params.asset) ?? null
@@ -224,6 +255,8 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
   const pageCount = Math.max(1, Math.ceil(totalCount / 20));
   const uploadCloseHref = mediaHref(params, { upload: undefined });
   const inspectorCloseHref = mediaHref(params, { asset: undefined });
+  const currentViewState = mediaViewStateFromSearch(params);
+  const currentViewStateKey = mediaViewStateKey(currentViewState);
 
   return (
     <>
@@ -298,6 +331,18 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           activeCount={mediaFilterCount(params)}
           actions={(
             <>
+              <SavedMediaViewsDialog
+                canSave={canSaveViews}
+                currentState={JSON.stringify(currentViewState)}
+                views={savedViews.map((view) => ({
+                  active: mediaViewStateKey(view.state) === currentViewStateKey,
+                  href: view.href,
+                  id: view.id,
+                  name: view.name,
+                  revision: view.revision,
+                  updatedLabel: formatDateTime(view.updatedAt)
+                }))}
+              />
               <TablePreferences
                 columns={[
                   { id: "type", label: "Type", defaultVisible: true },
@@ -714,6 +759,7 @@ function mediaFilterCount(params: Awaited<MediaPageProps["searchParams"]>) {
 
 async function loadMediaData(
   tenantId: string | null,
+  userId: string,
   isLive: boolean,
   params: Awaited<MediaPageProps["searchParams"]>,
   page: number
@@ -730,6 +776,7 @@ async function loadMediaData(
       processingCount: 0,
       processingSummary: null as ProcessingSummary | null,
       readyCount: 0,
+      savedViews: [] as SavedMediaView[],
       selectedUsage: [] as MediaUsage[],
       tags: [] as MediaTag[],
       totalCount: 0
@@ -748,6 +795,7 @@ async function loadMediaData(
       processingCount: 0,
       processingSummary: null as ProcessingSummary | null,
       readyCount: 0,
+      savedViews: [] as SavedMediaView[],
       selectedUsage: [] as MediaUsage[],
       tags: [] as MediaTag[],
       totalCount: 0
@@ -767,6 +815,7 @@ async function loadMediaData(
       processingCount: 0,
       processingSummary: null as ProcessingSummary | null,
       readyCount: 0,
+      savedViews: [] as SavedMediaView[],
       selectedUsage: [] as MediaUsage[],
       tags: [] as MediaTag[],
       totalCount: 0
@@ -781,7 +830,16 @@ async function loadMediaData(
   const folderId = uuidOrNull(params.folder);
   const tagId = uuidOrNull(params.tag);
   const sort = ["name", "newest", "oldest", "size"].includes(params.sort ?? "") ? params.sort! : "newest";
-  const [assetResult, readyResult, processingResult, failedResult, storageResult, folderResult, tagResult] = await Promise.all([
+  const [
+    assetResult,
+    readyResult,
+    processingResult,
+    failedResult,
+    storageResult,
+    folderResult,
+    tagResult,
+    savedViewResult
+  ] = await Promise.all([
     supabase.rpc("list_publisher_media_assets_v1", {
       p_created_from: dateBoundary(params.from, false),
       p_created_until: dateBoundary(params.to, true),
@@ -803,7 +861,14 @@ async function loadMediaData(
     supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["validation_failed", "quarantined"]).is("deleted_at", null),
     supabase.rpc("get_media_storage_usage", { p_tenant_id: tenantId }),
     supabase.from("media_folders").select("id, name, parent_folder_id, revision").eq("tenant_id", tenantId).order("name"),
-    supabase.from("media_tags").select("id, name, color, revision").eq("tenant_id", tenantId).order("name")
+    supabase.from("media_tags").select("id, name, color, revision").eq("tenant_id", tenantId).order("name"),
+    supabase
+      .from("publisher_saved_views")
+      .select("id, name, filter_json, sort_json, revision, updated_at")
+      .eq("tenant_id", tenantId)
+      .eq("user_id", userId)
+      .eq("resource_type", "media")
+      .order("updated_at", { ascending: false })
   ]);
 
   if (assetResult.error || readyResult.error || processingResult.error || failedResult.error || storageResult.error || folderResult.error || tagResult.error) {
@@ -819,6 +884,7 @@ async function loadMediaData(
       processingCount: 0,
       processingSummary: null as ProcessingSummary | null,
       readyCount: 0,
+      savedViews: [] as SavedMediaView[],
       selectedUsage: [] as MediaUsage[],
       tags: [] as MediaTag[],
       totalCount: 0
@@ -832,6 +898,11 @@ async function loadMediaData(
     : { data: [], error: null };
   if (variantResult.error) {
     console.error("Mediavoorbeelden laden mislukt", variantResult.error);
+  }
+  if (savedViewResult.error) {
+    console.error("Persoonlijke mediaweergaven laden mislukt", {
+      code: savedViewResult.error.code
+    });
   }
 
   const previewPaths = new Map<string, string>();
@@ -909,6 +980,19 @@ async function loadMediaData(
     result: event.result
   }));
   const storage = storageResult.data?.[0];
+  const savedViews: SavedMediaView[] = savedViewResult.error
+    ? []
+    : ((savedViewResult.data ?? []) as SavedMediaViewRow[]).flatMap((view) => {
+        const state = mediaViewStateFromStorage(view.filter_json, view.sort_json);
+        return state ? [{
+          href: mediaViewHref(state),
+          id: view.id,
+          name: view.name,
+          revision: Number(view.revision),
+          state,
+          updatedAt: view.updated_at
+        }] : [];
+      });
 
   return {
     activity,
@@ -920,7 +1004,7 @@ async function loadMediaData(
       parentFolderId: folder.parent_folder_id,
       revision: Number(folder.revision)
     })),
-    loadError: variantResult.error ? "De bibliotheek is geladen, maar één of meer voorbeelden konden niet worden gemaakt." : null,
+    loadError: mediaLibraryWarning(Boolean(variantResult.error), Boolean(savedViewResult.error)),
     mediaStorageLimitBytes: storage?.limit_bytes === null || storage?.limit_bytes === undefined
       ? null
       : Number(storage.limit_bytes),
@@ -928,6 +1012,7 @@ async function loadMediaData(
     processingCount: processingResult.count ?? 0,
     processingSummary,
     readyCount: readyResult.count ?? 0,
+    savedViews,
     selectedUsage,
     tags: (tagResult.data ?? []).map((tag) => ({
       color: tag.color,
@@ -937,6 +1022,19 @@ async function loadMediaData(
     })),
     totalCount: Number(rows[0]?.total_count ?? 0)
   };
+}
+
+function mediaLibraryWarning(previewFailed: boolean, savedViewsFailed: boolean) {
+  if (previewFailed && savedViewsFailed) {
+    return "De bibliotheek is geladen, maar voorbeelden en persoonlijke weergaven zijn tijdelijk niet beschikbaar.";
+  }
+  if (previewFailed) {
+    return "De bibliotheek is geladen, maar één of meer voorbeelden konden niet worden gemaakt.";
+  }
+  if (savedViewsFailed) {
+    return "De bibliotheek is geladen, maar persoonlijke weergaven konden niet worden opgehaald.";
+  }
+  return null;
 }
 
 function MediaType({ kind, status }: Pick<MediaAsset, "kind" | "status">) {

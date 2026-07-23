@@ -16,6 +16,12 @@ import {
 } from "../../../../lib/media/validated-video-upload";
 import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import {
+  mediaViewHref,
+  mediaViewStateToStorage,
+  parseMediaViewStatePayload,
+  type MediaViewState
+} from "./saved-media-view";
 
 export async function uploadMediaImage(formData: FormData) {
   await requireTenantCapability("tenant.media.write");
@@ -187,6 +193,78 @@ export async function removeMediaTag(formData: FormData) {
   completeAsset(assetId, "De tag is van deze media verwijderd.");
 }
 
+export async function saveMediaView(formData: FormData) {
+  const { session, supabase } = await requirePersonalMediaViewSession();
+  const state = parseMediaViewStatePayload(formData.get("viewState"));
+  if (!state) failView(null, "De huidige filters zijn ongeldig. Pas de filters opnieuw toe en probeer daarna nogmaals.");
+
+  const name = String(formData.get("name") ?? "").trim();
+  if (name.length < 2 || name.length > 80) {
+    failView(state, "Gebruik een naam van 2 tot en met 80 tekens.");
+  }
+  const storage = mediaViewStateToStorage(state);
+  const { error } = await supabase.from("publisher_saved_views").insert({
+    column_json: storage.columnJson,
+    density: storage.density,
+    filter_json: storage.filterJson,
+    is_default: false,
+    name,
+    resource_type: "media",
+    sort_json: storage.sortJson,
+    tenant_id: session.tenantId,
+    user_id: session.userId
+  });
+
+  if (error) {
+    console.error("Persoonlijke mediaweergave opslaan mislukt", {
+      code: error.code
+    });
+    failView(
+      state,
+      error.code === "23505"
+        ? "Je hebt al een mediaweergave met deze naam. Kies een andere naam."
+        : error.code === "42501"
+          ? "Je mag binnen deze vereniging geen persoonlijke weergave opslaan."
+          : "De mediaweergave kon niet veilig worden opgeslagen. Je filters zijn niet gewijzigd; probeer opnieuw."
+    );
+  }
+
+  completeView(state, "Je persoonlijke mediaweergave is opgeslagen.");
+}
+
+export async function deleteMediaView(formData: FormData) {
+  const { session, supabase } = await requirePersonalMediaViewSession();
+  const state = parseMediaViewStatePayload(formData.get("viewState"));
+  if (!state) failView(null, "De huidige filters zijn ongeldig. Vernieuw de mediabibliotheek.");
+  const viewId = requiredId(formData, "viewId");
+  const expectedRevision = Number.parseInt(String(formData.get("expectedRevision") ?? ""), 10);
+  if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+    failView(state, "De opgeslagen weergave is verouderd. Vernieuw de mediabibliotheek.");
+  }
+
+  const { data, error } = await supabase
+    .from("publisher_saved_views")
+    .delete()
+    .eq("id", viewId)
+    .eq("tenant_id", session.tenantId)
+    .eq("user_id", session.userId)
+    .eq("resource_type", "media")
+    .eq("revision", expectedRevision)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Persoonlijke mediaweergave verwijderen mislukt", {
+      code: error.code
+    });
+    failView(state, "De persoonlijke mediaweergave kon niet worden verwijderd. Je media en filters zijn niet gewijzigd.");
+  }
+  if (!data) {
+    failView(state, "De persoonlijke mediaweergave bestaat niet meer of is intussen gewijzigd. Vernieuw de pagina.");
+  }
+  completeView(state, "De persoonlijke mediaweergave is verwijderd.");
+}
+
 async function organizeMedia(
   formData: FormData,
   operation: "assign_tag" | "create_folder" | "create_tag" | "move_asset" | "remove_tag" | "set_favorite",
@@ -212,6 +290,15 @@ async function requireMediaWriter() {
   const session = await requireTenantCapability("tenant.media.write");
   const supabase = await createControlSupabaseClient();
   if (!session.isLive || !session.tenantId || !supabase) fail(null, "Live Supabase is niet beschikbaar. Er is niets gewijzigd; herstel de configuratie en log opnieuw in.");
+  return { session, supabase };
+}
+
+async function requirePersonalMediaViewSession() {
+  const session = await requireTenantCapability("tenant.media.read");
+  const supabase = await createControlSupabaseClient();
+  if (!session.isLive || !session.tenantId || !supabase) {
+    failView(null, "Live Supabase is niet beschikbaar. Er is geen persoonlijke weergave gewijzigd; herstel de configuratie en log opnieuw in.");
+  }
   return { session, supabase };
 }
 
@@ -259,6 +346,24 @@ function completeAsset(assetId: string, message: string): never {
 function completeLibrary(message: string): never {
   revalidatePath("/dashboard/media");
   redirect(`/dashboard/media?succes=${encodeURIComponent(message)}`);
+}
+
+function failView(state: MediaViewState | null, message: string): never {
+  redirect(viewResultHref(state, "fout", message));
+}
+
+function completeView(state: MediaViewState, message: string): never {
+  revalidatePath("/dashboard/media");
+  redirect(viewResultHref(state, "succes", message));
+}
+
+function viewResultHref(
+  state: MediaViewState | null,
+  key: "fout" | "succes",
+  message: string
+) {
+  const href = mediaViewHref(state ?? {});
+  return `${href}${href.includes("?") ? "&" : "?"}${key}=${encodeURIComponent(message)}`;
 }
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
