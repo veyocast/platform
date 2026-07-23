@@ -195,7 +195,7 @@ export async function loadTenantAuditEvents(
   const pageSize = 50;
   let query = supabase
     .from("audit_events")
-    .select("id, actor_user_id, action, target_type, target_id, result, created_at", {
+    .select("id, actor_user_id, action, target_type, target_id, result, metadata, created_at", {
       count: "exact"
     })
     .eq("tenant_id", tenantId)
@@ -228,25 +228,104 @@ export async function loadTenantAuditEvents(
       event.actor_user_id ? [event.actor_user_id] : []
     ))
   ];
-  const profiles = actorIds.length
-    ? await supabase.from("profiles").select("id, display_name").in("id", actorIds)
-    : { data: [], error: null };
+  const targetIds = (targetType: string) => [
+    ...new Set((events.data ?? []).flatMap((event) =>
+      event.target_type === targetType && event.target_id
+        ? [event.target_id]
+        : []
+    ))
+  ];
+  const playlistIds = targetIds("playlists");
+  const releaseIds = targetIds("playlist_releases");
+  const screenIds = targetIds("screens");
+  const mediaIds = targetIds("media_assets");
+  const scheduleIds = targetIds("content_schedules");
+  const groupIds = targetIds("screen_groups");
+  const deviceIds = targetIds("player_devices");
+  const [
+    profiles,
+    settings,
+    playlists,
+    releases,
+    screens,
+    media,
+    schedules,
+    groups,
+    devices
+  ] = await Promise.all([
+    actorIds.length
+      ? supabase.from("profiles").select("id, display_name").in("id", actorIds)
+      : Promise.resolve({ data: [], error: null }),
+    supabase
+      .from("tenant_settings")
+      .select("timezone_name")
+      .eq("tenant_id", tenantId)
+      .maybeSingle(),
+    playlistIds.length
+      ? supabase.from("playlists").select("id, name").in("id", playlistIds)
+      : Promise.resolve({ data: [], error: null }),
+    releaseIds.length
+      ? supabase.from("playlist_releases").select("id, version").in("id", releaseIds)
+      : Promise.resolve({ data: [], error: null }),
+    screenIds.length
+      ? supabase.from("screens").select("id, name").in("id", screenIds)
+      : Promise.resolve({ data: [], error: null }),
+    mediaIds.length
+      ? supabase.from("media_assets").select("id, title").in("id", mediaIds)
+      : Promise.resolve({ data: [], error: null }),
+    scheduleIds.length
+      ? supabase.from("content_schedules").select("id, name").in("id", scheduleIds)
+      : Promise.resolve({ data: [], error: null }),
+    groupIds.length
+      ? supabase.from("screen_groups").select("id, name").in("id", groupIds)
+      : Promise.resolve({ data: [], error: null }),
+    deviceIds.length
+      ? supabase.from("player_devices").select("id, device_name").in("id", deviceIds)
+      : Promise.resolve({ data: [], error: null })
+  ]);
   const names = new Map((profiles.data ?? []).map((profile) => [
     profile.id,
     profile.display_name
   ]));
+  const targetNames = new Map<string, string>([
+    ...(playlists.data ?? []).map((row) => [`playlists:${row.id}`, row.name] as const),
+    ...(releases.data ?? []).map((row) => [
+      `playlist_releases:${row.id}`,
+      `Release versie ${row.version}`
+    ] as const),
+    ...(screens.data ?? []).map((row) => [`screens:${row.id}`, row.name] as const),
+    ...(media.data ?? []).map((row) => [`media_assets:${row.id}`, row.title] as const),
+    ...(schedules.data ?? []).map((row) => [`content_schedules:${row.id}`, row.name] as const),
+    ...(groups.data ?? []).map((row) => [`screen_groups:${row.id}`, row.name] as const),
+    ...(devices.data ?? []).map((row) => [`player_devices:${row.id}`, row.device_name] as const)
+  ]);
   const total = events.count ?? 0;
+  const relatedError = [
+    profiles.error,
+    settings.error,
+    playlists.error,
+    releases.error,
+    screens.error,
+    media.error,
+    schedules.error,
+    groups.error,
+    devices.error
+  ].some(Boolean);
 
   return {
-    error: Boolean(profiles.error),
+    error: relatedError,
     events: (events.data ?? []).map((event) => ({
       ...event,
       actor_name: event.actor_user_id
         ? names.get(event.actor_user_id) ?? "Onbekende gebruiker"
-        : "Systeem"
+        : "Systeem",
+      target_name: event.target_id
+        ? targetNames.get(`${event.target_type}:${event.target_id}`) ?? null
+        : null
     })),
     page,
     pageCount: Math.max(1, Math.ceil(total / pageSize)),
+    timezoneName: settings.data?.timezone_name ?? "Europe/Amsterdam",
     total
   };
 }

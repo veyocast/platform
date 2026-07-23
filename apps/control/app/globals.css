@@ -1244,6 +1244,54 @@ kbd {
   margin-top: 2px;
 }
 
+.audit-details {
+  margin-top: var(--vc-space-4);
+}
+
+.audit-details summary {
+  align-items: center;
+  color: var(--vc-action);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 650;
+  min-height: 32px;
+}
+
+.audit-details dl {
+  background: var(--vc-surface-muted);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  display: grid;
+  gap: var(--vc-space-4);
+  margin: var(--vc-space-4) 0 0;
+  max-width: 320px;
+  padding: var(--vc-space-8);
+}
+
+.audit-details dl div {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--vc-space-12);
+  justify-content: space-between;
+}
+
+.audit-details dt,
+.audit-details dd {
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.audit-details dt {
+  color: var(--vc-text-muted);
+}
+
+.audit-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
 .table-action {
   appearance: none;
   background: transparent;
