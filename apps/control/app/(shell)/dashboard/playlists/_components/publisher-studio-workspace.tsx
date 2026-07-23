@@ -205,6 +205,8 @@ export function PublisherStudioWorkspace({
   const [restoredIntent, setRestoredIntent] =
     useState<PublisherMutationIntent | null>(null);
   const saveTimer = useRef<number | null>(null);
+  const formSaveTimer = useRef<number | null>(null);
+  const pendingForm = useRef<HTMLFormElement | null>(null);
   const pendingMove = useRef<PendingMove | null>(null);
   const replaying = useRef(false);
   const sensors = useSensors(
@@ -268,6 +270,9 @@ export function PublisherStudioWorkspace({
   useEffect(
     () => () => {
       if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
+      if (formSaveTimer.current !== null) {
+        window.clearTimeout(formSaveTimer.current);
+      }
     },
     []
   );
@@ -501,6 +506,11 @@ export function PublisherStudioWorkspace({
 
   function handleSubmitCapture(event: FormEvent<HTMLDivElement>) {
     if (!(event.target instanceof HTMLFormElement)) return;
+    if (pendingForm.current === event.target && formSaveTimer.current !== null) {
+      window.clearTimeout(formSaveTimer.current);
+      formSaveTimer.current = null;
+      pendingForm.current = null;
+    }
     const idempotencyField = event.target.elements.namedItem("idempotencyKey");
     const submitter =
       event.nativeEvent instanceof SubmitEvent
@@ -532,6 +542,28 @@ export function PublisherStudioWorkspace({
     } else {
       setSaveState("saving");
     }
+  }
+
+  function scheduleFormSave(
+    form: HTMLFormElement,
+    intent: PublisherMutationIntent
+  ) {
+    storeIntent(intent, !navigator.onLine);
+    if (formSaveTimer.current !== null) {
+      window.clearTimeout(formSaveTimer.current);
+    }
+    pendingForm.current = form;
+    formSaveTimer.current = window.setTimeout(() => {
+      formSaveTimer.current = null;
+      pendingForm.current = null;
+      if (!form.isConnected || !form.checkValidity()) return;
+      if (!navigator.onLine) {
+        storeIntent(intent, true);
+        setSaveState("offline");
+        return;
+      }
+      form.requestSubmit();
+    }, 800);
   }
 
   function scheduleOrderSave(move: PendingMove) {
@@ -698,9 +730,11 @@ export function PublisherStudioWorkspace({
             const form = event.target.closest("form");
             if (form instanceof HTMLFormElement) {
               const intent = captureIntent(form);
-              if (intent) storeIntent(intent, false);
+              if (intent && form.dataset.recoveryKind) {
+                scheduleFormSave(form, intent);
+              }
             }
-            setSaveState("changed");
+            setSaveState(navigator.onLine ? "changed" : "offline");
           }
         }}
         onSubmitCapture={handleSubmitCapture}
