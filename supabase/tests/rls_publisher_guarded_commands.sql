@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(31);
+select plan(34);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -444,6 +444,46 @@ select is(
   ),
   1,
   'publisher media rows include their tenant-scoped tags'
+);
+select is(
+  (
+    select count(*) from public.list_publisher_media_assets_v1(
+      '10000000-0000-4000-8000-000000000471',
+      50, 0, null, null, null, null, false, null, false, 'newest',
+      now() - interval '1 day', now() + interval '1 day', 'all'
+    )
+  ),
+  2::bigint,
+  'publisher media queries apply an explicit half-open creation window'
+);
+select is(
+  (
+    select asset_id from public.list_publisher_media_assets_v1(
+      '10000000-0000-4000-8000-000000000471',
+      50, 0, null, null, null, null, false, null, false, 'newest',
+      null, null, 'used'
+    )
+  ),
+  '20000000-0000-4000-8000-000000000471'::uuid,
+  'used media filtering is derived from server-side draft and release usage'
+);
+select is(
+  (
+    select format(
+      '%s|%s|%s|%s',
+      original_file_name,
+      checksum_sha256,
+      draft_usage_count,
+      release_usage_count
+    )
+    from public.list_publisher_media_assets_v1(
+      '10000000-0000-4000-8000-000000000471',
+      50, 0, null, null, null, null, false, null, false, 'newest',
+      null, null, 'unused'
+    )
+  ),
+  'command.webp|' || repeat('b', 64) || '|0|0',
+  'unused media rows retain inspector metadata and truthful usage counts'
 );
 select is(
   (

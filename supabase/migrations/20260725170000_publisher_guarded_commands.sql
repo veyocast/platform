@@ -89,106 +89,6 @@ alter table public.playlist_release_items
     or visible_until > visible_from
   );
 
-create or replace function private.materialize_publisher_release_manifest()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  enriched_items jsonb;
-  playlist_record public.playlists%rowtype;
-begin
-  select playlist.* into playlist_record
-  from public.playlists playlist
-  where playlist.tenant_id = new.tenant_id
-    and playlist.id = new.playlist_id;
-  if not found then
-    raise exception 'playlist not found for release manifest' using errcode = '23503';
-  end if;
-
-  select jsonb_agg(
-    manifest_item.value
-    || jsonb_strip_nulls(jsonb_build_object(
-      'displayTitle', item.display_title,
-      'transition', item.transition,
-      'cropFocus', jsonb_build_object(
-        'x', item.crop_focus_x,
-        'y', item.crop_focus_y
-      ),
-      'backgroundColor', item.background_color,
-      'volumePercent', item.volume_percent,
-      'trim', jsonb_strip_nulls(jsonb_build_object(
-        'startSeconds', item.trim_start_seconds,
-        'endSeconds', item.trim_end_seconds
-      )),
-      'visibility', jsonb_strip_nulls(jsonb_build_object(
-        'from', item.visible_from,
-        'until', item.visible_until
-      )),
-      'enabled', item.enabled,
-      'accessibilityName', item.accessibility_name,
-      'section', case
-        when section.id is null then null
-        else jsonb_build_object(
-          'sourceSectionId', section.id,
-          'name', section.name,
-          'positionKey', section.position_key
-        )
-      end
-    ))
-    order by manifest_item.ordinality
-  )
-  into enriched_items
-  from jsonb_array_elements(new.manifest_json -> 'items')
-    with ordinality manifest_item(value, ordinality)
-  join public.playlist_items item
-    on item.tenant_id = new.tenant_id
-    and item.playlist_id = new.playlist_id
-    and item.id = (manifest_item.value ->> 'itemId')::uuid
-  left join public.playlist_sections section
-    on section.tenant_id = item.tenant_id
-    and section.playlist_id = item.playlist_id
-    and section.id = item.section_id;
-
-  if jsonb_array_length(new.manifest_json -> 'items')
-    <> coalesce(jsonb_array_length(enriched_items), 0)
-  then
-    raise exception 'release manifest cannot resolve all authoring items'
-      using errcode = '23514';
-  end if;
-
-  new.manifest_json := jsonb_set(
-    new.manifest_json,
-    '{items}',
-    enriched_items,
-    false
-  ) || jsonb_build_object(
-    'presentationDefaults',
-    jsonb_strip_nulls(jsonb_build_object(
-      'imageDurationSeconds', playlist_record.default_image_duration_seconds,
-      'transition', playlist_record.default_transition,
-      'fitMode', playlist_record.default_fit_mode,
-      'backgroundColor', playlist_record.default_background_color,
-      'videoMuted', playlist_record.default_video_muted,
-      'loopEnabled', playlist_record.loop_enabled
-    ))
-  );
-  new.manifest_hash := encode(
-    extensions.digest(
-      pg_catalog.convert_to(new.manifest_json::text, 'UTF8'),
-      'sha256'
-    ),
-    'hex'
-  );
-  return new;
-end;
-$$;
-
-create trigger playlist_releases_materialize_publisher_manifest
-before insert on public.playlist_releases
-for each row execute function private.materialize_publisher_release_manifest();
-
 create or replace function private.materialize_publisher_release_item()
 returns trigger
 language plpgsql
@@ -1747,7 +1647,10 @@ create or replace function public.list_publisher_media_assets_v1(
   p_root_only boolean default false,
   p_tag_id uuid default null,
   p_favorites_only boolean default false,
-  p_sort text default 'newest'
+  p_sort text default 'newest',
+  p_created_from timestamptz default null,
+  p_created_until timestamptz default null,
+  p_usage text default 'all'
 )
 returns table (
   asset_id uuid,
@@ -1793,7 +1696,13 @@ begin
   if p_page_size not between 1 and 100
     or p_offset < 0
     or p_sort not in ('newest', 'oldest', 'name', 'size')
+    or p_usage not in ('all', 'used', 'unused')
     or (p_root_only and p_folder_id is not null)
+    or (
+      p_created_from is not null
+      and p_created_until is not null
+      and p_created_until <= p_created_from
+    )
   then
     raise exception 'media library query is invalid' using errcode = '22023';
   end if;
@@ -1868,6 +1777,8 @@ begin
       and (normalized_search is null or asset.title ilike '%' || normalized_search || '%')
       and (p_kind is null or asset.kind = p_kind)
       and (p_status is null or asset.status = p_status)
+      and (p_created_from is null or asset.created_at >= p_created_from)
+      and (p_created_until is null or asset.created_at < p_created_until)
       and (p_folder_id is null or asset.folder_id = p_folder_id)
       and (not p_root_only or asset.folder_id is null)
       and (
@@ -1885,7 +1796,38 @@ begin
           select 1 from public.media_asset_favorites favorite
           where favorite.tenant_id = asset.tenant_id
             and favorite.media_asset_id = asset.id
-            and favorite.user_id = actor_id
+          and favorite.user_id = actor_id
+        )
+      )
+      and (
+        p_usage = 'all'
+        or (
+          p_usage = 'used'
+          and (
+            exists (
+              select 1 from public.playlist_items item
+              where item.tenant_id = asset.tenant_id
+                and item.media_asset_id = asset.id
+            )
+            or exists (
+              select 1 from public.playlist_release_items release_item
+              where release_item.tenant_id = asset.tenant_id
+                and release_item.media_asset_id = asset.id
+            )
+          )
+        )
+        or (
+          p_usage = 'unused'
+          and not exists (
+            select 1 from public.playlist_items item
+            where item.tenant_id = asset.tenant_id
+              and item.media_asset_id = asset.id
+          )
+          and not exists (
+            select 1 from public.playlist_release_items release_item
+            where release_item.tenant_id = asset.tenant_id
+              and release_item.media_asset_id = asset.id
+          )
         )
       )
   ),
@@ -2030,8 +1972,8 @@ begin
       tenant_id,
       name,
       description,
-      desired_default_playlist_id,
-      desired_default_release_id,
+      default_playlist_id,
+      default_release_id,
       created_by,
       updated_by
     )
@@ -2472,7 +2414,7 @@ begin
       insert into public.content_schedules (
         tenant_id,
         name,
-        desired_target_kind,
+        target_kind,
         target_screen_id,
         target_screen_group_id,
         playlist_id,
@@ -2854,6 +2796,286 @@ begin
   end loop;
 
   return applied_count;
+end;
+$$;
+
+create or replace function public.publish_playlist(
+  p_playlist_id uuid,
+  p_release_notes text default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  actor_id uuid := private.current_user_id();
+  playlist_record public.playlists%rowtype;
+  draft_item_count integer;
+  publishable_item_count integer;
+  next_version integer;
+  release_id uuid;
+  release_published_at timestamptz := now();
+  manifest_items jsonb;
+  manifest_document jsonb;
+  manifest_hash text;
+  total_duration integer;
+  total_bytes bigint;
+begin
+  if actor_id is null then
+    raise exception 'publish_playlist requires an authenticated user'
+      using errcode = '42501';
+  end if;
+
+  select playlist.* into playlist_record
+  from public.playlists playlist
+  where playlist.id = p_playlist_id
+  for update;
+  if not found then
+    raise exception 'playlist not found' using errcode = 'P0002';
+  end if;
+  if playlist_record.status = 'archived'::public.playlist_status then
+    raise exception 'archived playlists cannot be published' using errcode = '23514';
+  end if;
+  if not private.can_write_playlist(playlist_record.tenant_id) then
+    raise exception 'actor cannot publish this playlist' using errcode = '42501';
+  end if;
+  perform private.require_active_tenant_command(playlist_record.tenant_id);
+
+  select count(*)::integer into draft_item_count
+  from public.playlist_items item
+  where item.tenant_id = playlist_record.tenant_id
+    and item.playlist_id = playlist_record.id;
+  if draft_item_count = 0 then
+    raise exception 'playlist has no items to publish' using errcode = '23514';
+  end if;
+
+  select
+    count(*)::integer,
+    coalesce(sum(item.duration_seconds), 0)::integer,
+    coalesce(sum(variant.file_size_bytes), 0)::bigint,
+    jsonb_agg(
+      jsonb_build_object(
+        'itemId', item.id,
+        'mediaAssetId', asset.id,
+        'mediaVariantId', variant.id,
+        'kind', asset.kind,
+        'title', asset.title,
+        'durationSeconds', item.duration_seconds,
+        'fitMode', item.fit_mode,
+        'muted', item.muted,
+        'storage', jsonb_build_object(
+          'bucket', variant.storage_bucket,
+          'path', variant.storage_path,
+          'mimeType', variant.mime_type,
+          'bytes', variant.file_size_bytes,
+          'checksumSha256', variant.checksum_sha256
+        ),
+        'metadata', jsonb_build_object(
+          'width', variant.width,
+          'height', variant.height,
+          'durationSeconds', variant.duration_seconds
+        )
+      )
+      || jsonb_strip_nulls(jsonb_build_object(
+        'displayTitle', item.display_title,
+        'transition', item.transition,
+        'cropFocus', jsonb_build_object(
+          'x', item.crop_focus_x,
+          'y', item.crop_focus_y
+        ),
+        'backgroundColor', item.background_color,
+        'volumePercent', item.volume_percent,
+        'trim', jsonb_strip_nulls(jsonb_build_object(
+          'startSeconds', item.trim_start_seconds,
+          'endSeconds', item.trim_end_seconds
+        )),
+        'visibility', jsonb_strip_nulls(jsonb_build_object(
+          'from', item.visible_from,
+          'until', item.visible_until
+        )),
+        'enabled', item.enabled,
+        'accessibilityName', item.accessibility_name,
+        'section', case
+          when section.id is null then null
+          else jsonb_build_object(
+            'sourceSectionId', section.id,
+            'name', section.name,
+            'positionKey', section.position_key
+          )
+        end
+      ))
+      order by item.sort_order
+    )
+  into
+    publishable_item_count,
+    total_duration,
+    total_bytes,
+    manifest_items
+  from public.playlist_items item
+  join public.media_assets asset
+    on asset.tenant_id = item.tenant_id
+    and asset.id = item.media_asset_id
+    and asset.status = 'ready'::public.media_asset_status
+    and asset.deleted_at is null
+  join public.media_variants variant
+    on variant.tenant_id = item.tenant_id
+    and variant.asset_id = item.media_asset_id
+    and variant.variant_type = case
+      when asset.kind = 'video'::public.media_asset_kind
+        then 'player_1080p'::public.media_variant_type
+      else 'original'::public.media_variant_type
+    end
+  left join public.playlist_sections section
+    on section.tenant_id = item.tenant_id
+    and section.playlist_id = item.playlist_id
+    and section.id = item.section_id
+  where item.tenant_id = playlist_record.tenant_id
+    and item.playlist_id = playlist_record.id;
+
+  if publishable_item_count <> draft_item_count then
+    raise exception 'playlist contains items without ready player variants'
+      using errcode = '23514';
+  end if;
+
+  select coalesce(max(release.version), 0) + 1 into next_version
+  from public.playlist_releases release
+  where release.tenant_id = playlist_record.tenant_id
+    and release.playlist_id = playlist_record.id;
+
+  manifest_document := jsonb_build_object(
+    'schemaVersion', 1,
+    'playlistId', playlist_record.id,
+    'tenantId', playlist_record.tenant_id,
+    'version', next_version,
+    'publishedAt', release_published_at,
+    'totalDurationSeconds', total_duration,
+    'totalBytes', total_bytes,
+    'presentationDefaults', jsonb_strip_nulls(jsonb_build_object(
+      'imageDurationSeconds', playlist_record.default_image_duration_seconds,
+      'transition', playlist_record.default_transition,
+      'fitMode', playlist_record.default_fit_mode,
+      'backgroundColor', playlist_record.default_background_color,
+      'videoMuted', playlist_record.default_video_muted,
+      'loopEnabled', playlist_record.loop_enabled
+    )),
+    'items', manifest_items
+  );
+  manifest_hash := encode(
+    extensions.digest(
+      pg_catalog.convert_to(manifest_document::text, 'UTF8'),
+      'sha256'
+    ),
+    'hex'
+  );
+
+  insert into public.playlist_releases (
+    tenant_id,
+    playlist_id,
+    version,
+    release_notes,
+    manifest_hash,
+    manifest_json,
+    item_count,
+    total_duration_seconds,
+    total_bytes,
+    published_by,
+    published_at
+  )
+  values (
+    playlist_record.tenant_id,
+    playlist_record.id,
+    next_version,
+    nullif(btrim(p_release_notes), ''),
+    manifest_hash,
+    manifest_document,
+    publishable_item_count,
+    total_duration,
+    total_bytes,
+    actor_id,
+    release_published_at
+  )
+  returning id into release_id;
+
+  insert into public.playlist_release_items (
+    tenant_id,
+    playlist_id,
+    release_id,
+    source_item_id,
+    media_asset_id,
+    media_variant_id,
+    sort_order,
+    duration_seconds,
+    fit_mode,
+    muted,
+    asset_kind,
+    asset_title,
+    storage_bucket,
+    storage_path,
+    mime_type,
+    file_size_bytes,
+    checksum_sha256,
+    width,
+    height,
+    asset_duration_seconds
+  )
+  select
+    playlist_record.tenant_id,
+    playlist_record.id,
+    release_id,
+    item.id,
+    asset.id,
+    variant.id,
+    item.sort_order,
+    item.duration_seconds,
+    item.fit_mode,
+    item.muted,
+    asset.kind,
+    asset.title,
+    variant.storage_bucket,
+    variant.storage_path,
+    variant.mime_type,
+    variant.file_size_bytes,
+    variant.checksum_sha256,
+    variant.width,
+    variant.height,
+    variant.duration_seconds
+  from public.playlist_items item
+  join public.media_assets asset
+    on asset.tenant_id = item.tenant_id
+    and asset.id = item.media_asset_id
+    and asset.status = 'ready'::public.media_asset_status
+    and asset.deleted_at is null
+  join public.media_variants variant
+    on variant.tenant_id = item.tenant_id
+    and variant.asset_id = item.media_asset_id
+    and variant.variant_type = case
+      when asset.kind = 'video'::public.media_asset_kind
+        then 'player_1080p'::public.media_variant_type
+      else 'original'::public.media_variant_type
+    end
+  where item.tenant_id = playlist_record.tenant_id
+    and item.playlist_id = playlist_record.id
+  order by item.sort_order;
+
+  update public.playlists
+  set status = 'published'::public.playlist_status
+  where id = playlist_record.id;
+
+  perform private.audit_event(
+    playlist_record.tenant_id,
+    'playlist.release.published',
+    'playlist_releases',
+    release_id,
+    'success',
+    jsonb_build_object(
+      'playlistId', playlist_record.id,
+      'version', next_version,
+      'itemCount', publishable_item_count,
+      'manifestHash', manifest_hash
+    )
+  );
+  return release_id;
 end;
 $$;
 
@@ -3439,6 +3661,8 @@ $$;
 
 revoke all on function private.build_playlist_authoring_snapshot(uuid)
 from public, anon, authenticated;
+revoke all on function private.materialize_publisher_release_item()
+from public, anon, authenticated;
 revoke all on function private.begin_publisher_command(uuid, text, uuid, jsonb)
 from public, anon, authenticated;
 revoke all on function private.complete_publisher_command(
@@ -3467,7 +3691,8 @@ revoke all on function public.mutate_media_organization_v1(
 ) from public, anon;
 revoke all on function public.list_publisher_media_assets_v1(
   uuid, integer, integer, text, public.media_asset_kind,
-  public.media_asset_status, uuid, boolean, uuid, boolean, text
+  public.media_asset_status, uuid, boolean, uuid, boolean, text,
+  timestamptz, timestamptz, text
 ) from public, anon;
 revoke all on function public.mutate_screen_group_v1(
   uuid, uuid, bigint, text, jsonb, uuid
@@ -3505,7 +3730,8 @@ grant execute on function public.mutate_media_organization_v1(
 ) to authenticated;
 grant execute on function public.list_publisher_media_assets_v1(
   uuid, integer, integer, text, public.media_asset_kind,
-  public.media_asset_status, uuid, boolean, uuid, boolean, text
+  public.media_asset_status, uuid, boolean, uuid, boolean, text,
+  timestamptz, timestamptz, text
 ) to authenticated;
 grant execute on function public.mutate_screen_group_v1(
   uuid, uuid, bigint, text, jsonb, uuid
