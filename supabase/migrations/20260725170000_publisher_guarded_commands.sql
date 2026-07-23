@@ -1,6 +1,23 @@
 -- S31-B: server-authoritative Publisher commands, idempotency receipts,
 -- authoring snapshots, restore-to-draft and paginated media-library queries.
 
+create or replace function private.can_publish_playlist(p_tenant_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select
+    private.has_tenant_role(
+      p_tenant_id,
+      array['tenant_owner', 'tenant_admin']::public.tenant_role[]
+    )
+    or private.is_platform_member(
+      array['platform_owner', 'platform_admin']::public.platform_role[]
+    );
+$$;
+
 alter table public.media_folders
   add column revision bigint not null default 0 check (revision >= 0);
 alter table public.media_tags
@@ -2958,7 +2975,7 @@ begin
   if playlist_record.status = 'archived'::public.playlist_status then
     raise exception 'archived playlists cannot be published' using errcode = '23514';
   end if;
-  if not private.can_write_playlist(playlist_record.tenant_id) then
+  if not private.can_publish_playlist(playlist_record.tenant_id) then
     raise exception 'actor cannot publish this playlist' using errcode = '42501';
   end if;
   perform private.require_active_tenant_command(playlist_record.tenant_id);
@@ -3385,7 +3402,7 @@ begin
     raise exception 'playlist not found' using errcode = 'P0002';
   end if;
   if private.current_user_id() is null
-    or not private.can_write_playlist(playlist_record.tenant_id)
+    or not private.can_publish_playlist(playlist_record.tenant_id)
   then
     raise exception 'actor cannot publish this playlist' using errcode = '42501';
   end if;
@@ -3543,7 +3560,7 @@ begin
   if not found then
     raise exception 'playlist not found' using errcode = 'P0002';
   end if;
-  if actor_id is null or not private.can_write_playlist(playlist_record.tenant_id) then
+  if actor_id is null or not private.can_publish_playlist(playlist_record.tenant_id) then
     raise exception 'actor cannot restore this release' using errcode = '42501';
   end if;
   perform private.require_active_tenant_command(playlist_record.tenant_id);
@@ -3810,6 +3827,82 @@ begin
 end;
 $$;
 
+create or replace function public.reassign_playlist_release_v2(
+  p_release_id uuid,
+  p_screen_ids uuid[],
+  p_idempotency_key uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  release_record public.playlist_releases%rowtype;
+  normalized_screen_ids uuid[];
+  request_json jsonb;
+  replay jsonb;
+  target_count integer;
+  outcome jsonb;
+begin
+  select release.* into release_record
+  from public.playlist_releases release
+  where release.id = p_release_id;
+  if not found then
+    raise exception 'release not found' using errcode = 'P0002';
+  end if;
+  if private.current_user_id() is null
+    or not private.can_publish_playlist(release_record.tenant_id)
+  then
+    raise exception 'actor cannot reassign this release' using errcode = '42501';
+  end if;
+  perform private.require_active_tenant_command(release_record.tenant_id);
+
+  select array_agg(screen_id order by screen_id)
+  into normalized_screen_ids
+  from (
+    select distinct unnest(p_screen_ids) as screen_id
+  ) targets;
+  if coalesce(array_length(normalized_screen_ids, 1), 0) = 0 then
+    raise exception 'at least one target screen is required' using errcode = '22023';
+  end if;
+
+  request_json := jsonb_build_object(
+    'releaseId', p_release_id,
+    'screenIds', to_jsonb(normalized_screen_ids)
+  );
+  replay := private.begin_publisher_command(
+    release_record.tenant_id,
+    'playlist.release.reassign.v2',
+    p_idempotency_key,
+    request_json
+  );
+  if replay is not null then
+    return replay;
+  end if;
+
+  target_count := public.reassign_playlist_release(
+    p_release_id,
+    normalized_screen_ids
+  );
+  outcome := jsonb_build_object(
+    'outcome', 'reassigned',
+    'releaseId', p_release_id,
+    'targetCount', target_count
+  );
+  return private.complete_publisher_command(
+    release_record.tenant_id,
+    'playlist.release.reassign.v2',
+    p_idempotency_key,
+    request_json,
+    'playlist_releases',
+    release_record.id,
+    outcome,
+    'publisher.playlist.release_reassigned'
+  );
+end;
+$$;
+
 create or replace function public.request_screen_sync_retries_v2(
   p_tenant_id uuid,
   p_screen_ids uuid[],
@@ -3902,6 +3995,8 @@ $$;
 
 revoke all on function private.build_playlist_authoring_snapshot(uuid)
 from public, anon, authenticated;
+revoke all on function private.can_publish_playlist(uuid)
+from public, anon, authenticated;
 revoke all on function private.materialize_publisher_release_item()
 from public, anon, authenticated;
 revoke all on function private.begin_publisher_command(uuid, text, uuid, jsonb)
@@ -3954,11 +4049,23 @@ revoke all on function public.publish_playlist_to_targets_v3(
 revoke all on function public.restore_playlist_release_to_draft_v1(
   uuid, bigint, uuid
 ) from public, anon;
+revoke all on function public.reassign_playlist_release_v2(
+  uuid, uuid[], uuid
+) from public, anon;
 revoke all on function public.request_screen_sync_retries_v2(
   uuid, uuid[], uuid
 ) from public, anon;
 revoke all on function public.apply_due_content_schedules_v1(timestamptz)
 from public, anon, authenticated;
+revoke execute on function public.publish_playlist(uuid, text)
+from authenticated;
+revoke execute on function public.publish_playlist_to_screens(uuid, uuid[], text)
+from authenticated;
+revoke execute on function public.publish_playlist_to_screens_v2(
+  uuid, bigint, uuid[], text
+) from authenticated;
+revoke execute on function public.reassign_playlist_release(uuid, uuid[])
+from authenticated;
 
 grant execute on function public.create_tenant_playlist_template_v1(
   uuid, text, text, uuid
@@ -3995,6 +4102,9 @@ grant execute on function public.publish_playlist_to_targets_v3(
 ) to authenticated;
 grant execute on function public.restore_playlist_release_to_draft_v1(
   uuid, bigint, uuid
+) to authenticated;
+grant execute on function public.reassign_playlist_release_v2(
+  uuid, uuid[], uuid
 ) to authenticated;
 grant execute on function public.request_screen_sync_retries_v2(
   uuid, uuid[], uuid

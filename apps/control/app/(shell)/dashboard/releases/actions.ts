@@ -26,13 +26,19 @@ export async function reassignRelease(formData: FormData) {
     fail(releaseId, "Bevestig bewust de waarschuwingen en onbekende telemetry voordat je deze release toewijst.");
   }
 
-  const { error } = await supabase.rpc("reassign_playlist_release", {
+  const { data, error } = await supabase.rpc("reassign_playlist_release_v2", {
+    p_idempotency_key: idempotencyValue(formData),
     p_release_id: releaseId,
     p_screen_ids: screenIds
   });
-  if (error) {
+  const outcome = commandResult(data);
+  if (
+    error ||
+    outcome?.outcome !== "reassigned" ||
+    Number(outcome.targetCount) !== screenIds.length
+  ) {
     console.error("Bestaande release opnieuw toewijzen mislukt", error);
-    fail(releaseId, error.code === "42501"
+    fail(releaseId, error?.code === "42501"
       ? "Je mag releases niet opnieuw toewijzen. Vraag een beheerder om je rol te controleren."
       : "De release kon niet atomair aan alle schermen worden toegewezen. Geen releasehistorie is gewijzigd.");
   }
@@ -45,7 +51,7 @@ export async function reassignRelease(formData: FormData) {
 
 export async function restoreReleaseToDraft(formData: FormData) {
   const releaseId = idValue(formData, "releaseId");
-  const session = await requireTenantCapability("tenant.playlist.write");
+  const session = await requireTenantCapability("tenant.playlist.publish", "publish");
   const supabase = await createControlSupabaseClient();
   if (!supabase || !session.tenantId) {
     fail(releaseId, "Live Supabase is niet beschikbaar. Het huidige concept is ongewijzigd.");
@@ -107,7 +113,11 @@ function isId(value: string) {
 
 function commandResult(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  return value as { outcome?: unknown; playlistId?: unknown };
+  return value as {
+    outcome?: unknown;
+    playlistId?: unknown;
+    targetCount?: unknown;
+  };
 }
 
 function idempotencyValue(formData: FormData) {

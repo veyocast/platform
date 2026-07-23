@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(24);
+select plan(30);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -45,7 +45,7 @@ values
   (
     '10000000-0000-4000-8000-000000000491',
     '00000000-0000-4000-8000-000000000491',
-    'tenant_editor'
+    'tenant_admin'
   ),
   (
     '10000000-0000-4000-8000-000000000491',
@@ -506,6 +506,76 @@ select is(
   ),
   'Clubwelkom',
   'publish and restore never rename reusable media'
+);
+
+reset role;
+update public.tenant_memberships
+set role = 'tenant_editor'
+where tenant_id = '10000000-0000-4000-8000-000000000491'
+  and user_id = '00000000-0000-4000-8000-000000000491';
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000491',
+  true
+);
+select throws_ok(
+  $$select public.publish_playlist_to_targets_v3(
+      '50000000-0000-4000-8000-000000000491',
+      2,
+      array['60000000-0000-4000-8000-000000000491'::uuid],
+      'Editor mag niet publiceren',
+      '90000000-0000-4000-8000-000000000496'
+    )$$,
+  '42501',
+  'actor cannot publish this playlist',
+  'a content editor can prepare a draft but cannot publish it'
+);
+select throws_ok(
+  $$select public.restore_playlist_release_to_draft_v1(
+      (select (outcome ->> 'releaseId')::uuid from publish_result),
+      2,
+      '90000000-0000-4000-8000-000000000497'
+    )$$,
+  '42501',
+  'actor cannot restore this release',
+  'a content editor cannot replace the shared draft from history'
+);
+select isnt(
+  has_function_privilege(
+    'authenticated',
+    'public.publish_playlist(uuid,text)',
+    'execute'
+  ),
+  true,
+  'authenticated clients cannot bypass v3 through legacy publish'
+);
+select isnt(
+  has_function_privilege(
+    'authenticated',
+    'public.publish_playlist_to_screens(uuid,uuid[],text)',
+    'execute'
+  ),
+  true,
+  'authenticated clients cannot call the unguarded legacy target publish'
+);
+select isnt(
+  has_function_privilege(
+    'authenticated',
+    'public.publish_playlist_to_screens_v2(uuid,bigint,uuid[],text)',
+    'execute'
+  ),
+  true,
+  'authenticated clients cannot call the superseded revision publish'
+);
+select isnt(
+  has_function_privilege(
+    'authenticated',
+    'public.reassign_playlist_release(uuid,uuid[])',
+    'execute'
+  ),
+  true,
+  'authenticated clients cannot bypass idempotent release reassignment'
 );
 
 select * from finish();
