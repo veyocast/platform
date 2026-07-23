@@ -20,7 +20,11 @@ import { hasCapability } from "@veyocast/auth";
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { loadScreenFleet, type FleetDevice, type FleetScreen } from "./data";
-import { requestBulkScreenSyncRetry } from "./actions";
+import {
+  addBulkScreensToGroup,
+  assignBulkScreenRelease,
+  requestBulkScreenSyncRetry
+} from "./actions";
 import { ScreenBulkForm } from "./screen-bulk-form";
 import styles from "./screens-overview.module.css";
 
@@ -33,7 +37,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const query = await searchParams;
   const data = session.isLive && session.tenantId
     ? await loadScreenFleet(session.tenantId)
-    : { devices: [], error: null, limit: 0, releases: [], screens: [] };
+    : { devices: [], error: null, groups: [], limit: 0, releases: [], screens: [] };
   const devicesByScreen = new Map(
     data.devices.filter((device) => device.status === "paired").map((device) => [device.screenId, device])
   );
@@ -64,8 +68,12 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.roles, "tenant.screen.manage");
+  const canPublish =
+    session.isLive &&
+    session.tenantStatus === "active" &&
+    hasCapability(session.roles, "tenant.playlist.publish");
   const eligibleCount = filteredScreens.filter(
-    (screen) => screen.status === "active" && devicesByScreen.has(screen.id)
+    (screen) => screen.status === "active"
   ).length;
 
   return <>
@@ -129,8 +137,13 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
     </form>
 
     <ScreenBulkForm
-      action={requestBulkScreenSyncRetry}
+      addToGroupAction={addBulkScreensToGroup}
+      assignReleaseAction={assignBulkScreenRelease}
+      canPublish={canPublish}
+      groups={data.groups}
       idempotencyKey={randomUUID()}
+      releases={data.releases}
+      syncAction={requestBulkScreenSyncRetry}
     >
     <div className={styles.viewBar}>
       <nav aria-label="Schermweergave" className={styles.viewTabs}>
@@ -169,7 +182,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
                   <input
                     aria-label={`${screen.name} selecteren`}
                     data-screen-select
-                    disabled={!canManage || screen.status !== "active" || !device}
+                    disabled={!canManage || screen.status !== "active"}
                     name="screenIds"
                     type="checkbox"
                     value={screen.id}
@@ -205,7 +218,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
         const device = devicesByScreen.get(screen.id);
         const status = screenStatus(screen, device);
         return <tr key={screen.id}>
-          <td data-label="Selecteren"><input aria-label={`${screen.name} selecteren`} data-screen-select disabled={!canManage || screen.status !== "active" || !device} name="screenIds" type="checkbox" value={screen.id} /></td>
+          <td data-label="Selecteren"><input aria-label={`${screen.name} selecteren`} data-screen-select disabled={!canManage || screen.status !== "active"} name="screenIds" type="checkbox" value={screen.id} /></td>
           <td data-column="screen" data-label="Scherm"><span className="table-primary">{screen.name}</span><span className="table-secondary">{screen.location || orientationLabel(screen.orientation)}</span></td>
           <td data-column="status" data-label="Status"><StatusPill label={status.label} tone={status.tone} /></td>
           <td data-column="player" data-label="Player">{device?.deviceName || "Niet gekoppeld"}<span className="table-secondary">{device?.appVersion ? `App ${device.appVersion}` : device?.platform || "Geen telemetry"}</span></td>

@@ -9,13 +9,23 @@ import {
 import { BulkActionBar, Button } from "@veyocast/ui";
 
 export function ScreenBulkForm({
-  action,
+  addToGroupAction,
+  assignReleaseAction,
+  canPublish,
   children,
-  idempotencyKey
+  groups,
+  idempotencyKey,
+  releases,
+  syncAction
 }: {
-  action: (formData: FormData) => void | Promise<void>;
+  addToGroupAction: (formData: FormData) => void | Promise<void>;
+  assignReleaseAction: (formData: FormData) => void | Promise<void>;
+  canPublish: boolean;
   children: ReactNode;
+  groups: Array<{ id: string; name: string }>;
   idempotencyKey: string;
+  releases: Array<{ id: string; label: string }>;
+  syncAction: (formData: FormData) => void | Promise<void>;
 }) {
   const [selectedCount, setSelectedCount] = useState(0);
 
@@ -40,17 +50,53 @@ export function ScreenBulkForm({
   }
 
   return (
-    <form action={action} onChange={updateSelection}>
+    <form onChange={updateSelection}>
       <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
       {children}
       {selectedCount > 0 ? (
         <BulkActionBar
           actions={(
-            <Button type="submit">
-              Synchronisatie opnieuw proberen
-            </Button>
+            <>
+              {groups.length ? (
+                <label className="bulk-action-field">
+                  <span>Schermgroep</span>
+                  <select name="groupId">
+                    <option value="">Kies een groep</option>
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>{group.name}</option>
+                    ))}
+                  </select>
+                  <Button formAction={addToGroupAction} type="submit" variant="secondary">
+                    Aan groep toevoegen
+                  </Button>
+                </label>
+              ) : null}
+              {canPublish && releases.length ? (
+                <div className="bulk-release-assignment">
+                  <label className="bulk-action-field">
+                    <span>Immutable release</span>
+                    <select name="releaseId">
+                      <option value="">Kies een release</option>
+                      {releases.map((release) => (
+                        <option key={release.id} value={release.id}>{release.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="bulk-confirm">
+                    <input name="confirmReleaseAssignment" type="checkbox" value="yes" />
+                    <span>Toewijzing bevestigen</span>
+                  </label>
+                  <Button formAction={assignReleaseAction} type="submit">
+                    Release toewijzen
+                  </Button>
+                </div>
+              ) : null}
+              <Button formAction={syncAction} type="submit" variant="secondary">
+                Synchronisatie opnieuw proberen
+              </Button>
+            </>
           )}
-          description="Alleen actieve schermen met een gekoppelde Player zijn selecteerbaar."
+          description="Actieve schermen zijn selecteerbaar. Sync en release-uitrol controleren gekoppelde Players opnieuw op de server."
           title={`${selectedCount} ${selectedCount === 1 ? "scherm geselecteerd" : "schermen geselecteerd"}`}
         />
       ) : null}

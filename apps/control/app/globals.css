@@ -3892,6 +3892,40 @@ html[data-density="compact"] .control-nav__link {
   overflow-wrap: anywhere;
 }
 
+.bulk-action-field,
+.bulk-release-assignment,
+.bulk-confirm {
+  align-items: center;
+  display: flex;
+  gap: var(--vc-space-8);
+}
+
+.bulk-action-field > span,
+.bulk-confirm {
+  font-size: var(--vc-font-size-xs);
+  font-weight: 650;
+}
+
+.bulk-action-field select {
+  min-height: 40px;
+  max-width: 220px;
+}
+
+@media (max-width: 767px) {
+  .bulk-action-field,
+  .bulk-release-assignment {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .bulk-action-field select,
+  .bulk-action-field .vc-button,
+  .bulk-release-assignment .vc-button {
+    max-width: none;
+    width: 100%;
+  }
+}
+
 .media-upload-results li small {
   color: var(--vc-text-muted);
   font-size: var(--vc-font-size-xs);

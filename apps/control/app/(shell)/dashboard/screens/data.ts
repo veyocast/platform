@@ -95,6 +95,12 @@ export type ScreenAuditEvent = {
 export type ScreenFleetData = {
   devices: FleetDevice[];
   error: string | null;
+  groups: Array<{
+    id: string;
+    memberIds: string[];
+    name: string;
+    revision: number;
+  }>;
   limit: number;
   releases: FleetRelease[];
   screens: FleetScreen[];
@@ -116,6 +122,7 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
   const empty: ScreenFleetData = {
     devices: [],
     error: null,
+    groups: [],
     limit: 0,
     releases: [],
     screens: [],
@@ -124,15 +131,35 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
   const supabase = await createControlSupabaseClient();
   if (!supabase) return { ...empty, error: "De beveiligde datasessie ontbreekt." };
 
-  const [screens, devices, releases, playlists, tenant, settings] = await Promise.all([
+  const [
+    screens,
+    devices,
+    releases,
+    playlists,
+    tenant,
+    settings,
+    groups,
+    groupMemberships
+  ] = await Promise.all([
     supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, default_playlist_id, default_release_id, active_assignment_source, active_schedule_id, active_target_snapshot_id, created_at").eq("tenant_id", tenantId).is("deleted_at", null).order("created_at"),
     supabase.from("player_devices").select("id, screen_id, device_name, status, app_version, platform, capabilities, storage_quota_bytes, storage_used_bytes, active_release_id, desired_release_id, last_seen_at, paired_at, revoked_at, last_error_code, last_error_at, sync_retry_requested_at").eq("tenant_id", tenantId).order("paired_at", { ascending: false }),
     supabase.from("playlist_releases").select("id, playlist_id, version").eq("tenant_id", tenantId).order("published_at", { ascending: false }),
     supabase.from("playlists").select("id, name").eq("tenant_id", tenantId),
     supabase.from("tenants").select("screen_limit").eq("id", tenantId).maybeSingle(),
-    supabase.from("tenant_settings").select("default_screen_orientation, default_resolution_width, default_resolution_height").eq("tenant_id", tenantId).maybeSingle()
+    supabase.from("tenant_settings").select("default_screen_orientation, default_resolution_width, default_resolution_height").eq("tenant_id", tenantId).maybeSingle(),
+    supabase.from("screen_groups").select("id, name, revision").eq("tenant_id", tenantId).eq("status", "active").order("name"),
+    supabase.from("screen_group_memberships").select("screen_group_id, screen_id").eq("tenant_id", tenantId)
   ]);
-  const error = [screens.error, devices.error, releases.error, playlists.error, tenant.error, settings.error].find(Boolean);
+  const error = [
+    screens.error,
+    devices.error,
+    releases.error,
+    playlists.error,
+    tenant.error,
+    settings.error,
+    groups.error,
+    groupMemberships.error
+  ].find(Boolean);
   if (error) {
     console.error("Schermvloot laden mislukt", error);
     return { ...empty, error: "De schermvloot kon niet volledig worden geladen. Vernieuw de pagina." };
@@ -142,6 +169,14 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
   return {
     devices: (devices.data ?? []).map(mapDevice),
     error: null,
+    groups: (groups.data ?? []).map((group) => ({
+      id: group.id,
+      memberIds: (groupMemberships.data ?? [])
+        .filter((membership) => membership.screen_group_id === group.id)
+        .map((membership) => membership.screen_id),
+      name: group.name,
+      revision: Number(group.revision)
+    })),
     limit: tenant.data?.screen_limit ?? 0,
     releases: (releases.data ?? []).map((release) => ({
       id: release.id,

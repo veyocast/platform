@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 
 import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { loadReleaseDetail } from "../releases/data";
 
 type ScreenCommandContext = Awaited<ReturnType<typeof requireScreenManagement>>;
 
@@ -240,6 +241,114 @@ export async function requestBulkScreenSyncRetry(formData: FormData) {
   ));
 }
 
+export async function addBulkScreensToGroup(formData: FormData) {
+  const { session, supabase } = await requireScreenManagement("mutate");
+  const screenIds = bulkScreenIds(formData);
+  const groupId = requiredUuid(formData, "groupId");
+  const { data: group, error: groupError } = await supabase
+    .from("screen_groups")
+    .select("revision")
+    .eq("tenant_id", session.tenantId)
+    .eq("id", groupId)
+    .eq("status", "active")
+    .maybeSingle();
+  const { data: memberships, error: membershipError } = await supabase
+    .from("screen_group_memberships")
+    .select("screen_id")
+    .eq("tenant_id", session.tenantId)
+    .eq("screen_group_id", groupId);
+  if (groupError || membershipError || !group) {
+    fail("/dashboard/screens", "De gekozen schermgroep bestaat niet meer. Vernieuw de vloot en probeer opnieuw.");
+  }
+  const memberIds = [
+    ...new Set([...(memberships ?? []).map((membership) => membership.screen_id), ...screenIds])
+  ];
+  const { data, error } = await supabase.rpc("mutate_screen_group_v1", {
+    p_expected_revision: Number(group.revision),
+    p_group_id: groupId,
+    p_idempotency_key: requiredUuid(formData, "idempotencyKey"),
+    p_operation: "set_members",
+    p_payload: { screenIds: memberIds },
+    p_tenant_id: session.tenantId
+  });
+  const outcome = data && typeof data === "object" && !Array.isArray(data)
+    ? data as { outcome?: unknown }
+    : null;
+  if (error || outcome?.outcome !== "applied") {
+    console.error("Schermen aan groep toevoegen mislukt", error);
+    fail(
+      "/dashboard/screens",
+      outcome?.outcome === "conflict"
+        ? "De schermgroep is intussen gewijzigd. Vernieuw de vloot en voeg de schermen daarna opnieuw toe."
+        : "De schermen konden niet samen aan de groep worden toegevoegd. Er is niets gedeeltelijk gewijzigd."
+    );
+  }
+  revalidatePath("/dashboard/screens");
+  revalidatePath("/dashboard/screen-groups");
+  revalidatePath("/dashboard/planning");
+  redirect(withMessage(
+    "/dashboard/screens",
+    "succes",
+    `${screenIds.length} ${screenIds.length === 1 ? "scherm is" : "schermen zijn"} aan de schermgroep toegevoegd.`
+  ));
+}
+
+export async function assignBulkScreenRelease(formData: FormData) {
+  const session = await requireTenantCapability(
+    "tenant.playlist.publish",
+    "publish"
+  );
+  const supabase = await createControlSupabaseClient();
+  if (!session.isLive || !session.tenantId || !supabase) {
+    fail("/dashboard/screens", "Live Supabase is niet beschikbaar. De bestaande toewijzingen zijn ongewijzigd.");
+  }
+  const screenIds = bulkScreenIds(formData);
+  const releaseId = requiredUuid(formData, "releaseId");
+  if (formData.get("confirmReleaseAssignment") !== "yes") {
+    fail("/dashboard/screens", "Bevestig eerst dat deze bestaande immutable release naar de geselecteerde schermen mag worden uitgerold.");
+  }
+  const detail = await loadReleaseDetail(session.tenantId, releaseId);
+  const targets = detail.screenStates.filter((state) =>
+    screenIds.includes(state.screen.id)
+  );
+  if (
+    targets.length !== screenIds.length ||
+    targets.some((state) => state.preflight.status === "blocked")
+  ) {
+    fail("/dashboard/screens", "Minimaal één geselecteerd scherm is niet gekoppeld, uitgeschakeld, incompatibel of heeft onvoldoende opslag.");
+  }
+  if (targets.some((state) =>
+    state.preflight.status === "warning" ||
+    state.preflight.status === "unknown"
+  )) {
+    fail("/dashboard/screens", "Minimaal één scherm heeft een preflightwaarschuwing. Wijs deze release vanuit Release Center toe om de risico's afzonderlijk te beoordelen.");
+  }
+  const { data, error } = await supabase.rpc("reassign_playlist_release_v2", {
+    p_idempotency_key: requiredUuid(formData, "idempotencyKey"),
+    p_release_id: releaseId,
+    p_screen_ids: screenIds
+  });
+  const outcome = data && typeof data === "object" && !Array.isArray(data)
+    ? data as { outcome?: unknown; targetCount?: unknown }
+    : null;
+  if (
+    error ||
+    outcome?.outcome !== "reassigned" ||
+    Number(outcome.targetCount) !== screenIds.length
+  ) {
+    console.error("Bulk releasetoewijzing mislukt", error);
+    fail("/dashboard/screens", "De release kon niet atomair aan alle geselecteerde schermen worden toegewezen. Bestaande toewijzingen blijven geldig.");
+  }
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/releases");
+  revalidatePath("/dashboard/screens");
+  redirect(withMessage(
+    "/dashboard/screens",
+    "succes",
+    `De immutable release is aan ${screenIds.length} ${screenIds.length === 1 ? "scherm" : "schermen"} toegewezen. Players schakelen pas na volledige download en verificatie.`
+  ));
+}
+
 async function runCreateScreen(context: ScreenCommandContext, formData: FormData) {
   const input = screenInput(formData);
   const initialReleaseId = optionalUuid(formData, "initialReleaseId");
@@ -256,6 +365,19 @@ async function runCreateScreen(context: ScreenCommandContext, formData: FormData
     fail("/dashboard/screens/new", screenMutationFailure(error?.code));
   }
   return data;
+}
+
+function bulkScreenIds(formData: FormData) {
+  const rawScreenIds = formData.getAll("screenIds").map(String);
+  const screenIds = [...new Set(rawScreenIds.filter(isUuid))];
+  if (
+    screenIds.length === 0 ||
+    screenIds.length > 250 ||
+    screenIds.length !== rawScreenIds.length
+  ) {
+    fail("/dashboard/screens", "Selecteer één tot en met 250 geldige schermen.");
+  }
+  return screenIds;
 }
 
 function screenInput(formData: FormData, failurePath = "/dashboard/screens/new") {
