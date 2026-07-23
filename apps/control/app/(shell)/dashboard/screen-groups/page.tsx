@@ -47,6 +47,7 @@ export default async function ScreenGroupsPage({ searchParams }: ScreenGroupsPag
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
       {data.error ? <p className="notice notice--critical" role="alert"><strong>Schermgroepen niet geladen.</strong> {data.error}</p> : null}
       {!session.isLive ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte schermgroepen te beheren.</p> : null}
+      {session.isLive && !canManage ? <p className="notice notice--info" role="status">Je kunt schermgroepen bekijken. Beheerrechten zijn nodig om groepen en leden te wijzigen.</p> : null}
 
       <SummaryStrip
         aria-label="Samenvatting schermgroepen"
