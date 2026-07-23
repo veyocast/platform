@@ -1,9 +1,14 @@
 import Link from "next/link";
 
-import { FilterBar } from "@veyocast/ui";
+import {
+  Button,
+  FilterBar,
+  SummaryStrip,
+  TablePreferences
+} from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
-import { MetricCard, PageHeader, StatusPill } from "../../_components/shell-primitives";
+import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { loadScreenFleet, type FleetDevice, type FleetScreen } from "./data";
 
 type ScreensPageProps = {
@@ -25,25 +30,29 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const statusFilter = new Set(["online", "offline", "syncing", "unpaired", "maintenance", "disabled"]).has(query.status ?? "")
     ? query.status!
     : "all";
-  const filteredScreens = data.screens.filter((screen) => {
-    const device = devicesByScreen.get(screen.id);
-    const status = screenStatus(screen, device);
-    return (statusFilter === "all" || status.kind === statusFilter) &&
-      (!normalizedQuery || [screen.name, screen.location, device?.deviceName].some((value) => value?.toLocaleLowerCase("nl-NL").includes(normalizedQuery)));
-  });
+  const filteredScreens = data.screens
+    .filter((screen) => {
+      const device = devicesByScreen.get(screen.id);
+      const status = screenStatus(screen, device);
+      return (statusFilter === "all" || status.kind === statusFilter) &&
+        (!normalizedQuery || [screen.name, screen.location, device?.deviceName].some((value) => value?.toLocaleLowerCase("nl-NL").includes(normalizedQuery)));
+    })
+    .sort((left, right) => {
+      const priorityDifference =
+        screenPriority(screenStatus(left, devicesByScreen.get(left.id)).kind) -
+        screenPriority(screenStatus(right, devicesByScreen.get(right.id)).kind);
+      return priorityDifference || left.name.localeCompare(right.name, "nl-NL");
+    });
   const online = statuses.filter((status) => status.kind === "online").length;
   const syncing = statuses.filter((status) => status.kind === "syncing").length;
-  const attention = statuses.filter((status) => !["online", "syncing"].includes(status.kind)).length;
+  const attention = statuses.filter((status) => ["maintenance", "offline", "unpaired"].includes(status.kind)).length;
 
   return <>
     <PageHeader
-      actions={<>
-        <Link className="button-link button-link--secondary" href="/dashboard/releases">Release Center</Link>
-        <Link className="button-link button-link--primary" href="/dashboard/screens/new">Scherm toevoegen</Link>
-      </>}
+      actions={<Button asChild><Link href="/dashboard/screens/new">Scherm toevoegen</Link></Button>}
       description="Beheer lifecycle, content, Players, synchronisatie en gebeurtenissen vanuit één echte schermvloot."
       eyebrow={session.tenant}
-      status={{ label: session.isLive ? "Live tenantdata" : "Demomodus zonder mutaties", tone: session.isLive ? "success" : "warning" }}
+      status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
       title="Schermen"
     />
     {query.fout ? <p className="notice notice--critical" role="alert"><strong>Actie mislukt.</strong> {query.fout}</p> : null}
@@ -51,38 +60,66 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
     {!session.isLive ? <p className="notice notice--warning" role="status">Deze pagina toont bewust geen fictieve schermen. Configureer Supabase en log in om de vloot te beheren.</p> : null}
     {data.error ? <p className="notice notice--critical" role="alert"><strong>Schermvloot niet beschikbaar.</strong> {data.error}</p> : null}
 
-    <section className="metric-grid" aria-label="Schermoverzicht">
-      <MetricCard detail="Players met een heartbeat binnen vijf minuten." label="Online" tone="success" value={String(online)} />
-      <MetricCard detail="Players die een gewenste release voorbereiden." label="Synchroniseren" tone="info" value={String(syncing)} />
-      <MetricCard detail="Niet gekoppeld, offline, onderhoud of uitgeschakeld." label="Aandacht nodig" tone="warning" value={String(attention)} />
-      <MetricCard detail="De database blokkeert iedere create boven deze grens." label="Schermlimiet" tone={data.screens.length >= data.limit && data.limit > 0 ? "warning" : "neutral"} value={`${data.screens.length}/${data.limit || "—"}`} />
-    </section>
+    <SummaryStrip
+      aria-label="Compact schermoverzicht"
+      items={[
+        {
+          detail: attention ? "Offline, niet gekoppeld of in onderhoud" : "De actieve vloot vraagt nu geen herstelactie",
+          label: "Actie nodig",
+          tone: attention ? "warning" : "success",
+          value: attention
+        },
+        { label: "Online", tone: "success", value: online },
+        { label: "Synchroniseren", tone: "info", value: syncing },
+        {
+          detail: "Toegestane capaciteit",
+          label: "In gebruik",
+          tone: data.screens.length >= data.limit && data.limit > 0 ? "warning" : "neutral",
+          value: `${data.screens.length}/${data.limit || "—"}`
+        }
+      ]}
+    />
 
     <form method="get" role="search">
       <FilterBar
         activeCount={Number(Boolean(normalizedQuery)) + Number(statusFilter !== "all")}
+        actions={(
+          <TablePreferences
+            columns={[
+              { id: "screen", label: "Scherm", required: true },
+              { id: "status", label: "Status", required: true },
+              { id: "player", label: "Player" },
+              { id: "content", label: "Content" },
+              { id: "sync", label: "Synchronisatie" },
+              { defaultVisible: false, id: "seen", label: "Laatst gezien" },
+              { id: "action", label: "Actie", required: true }
+            ]}
+            tableKey="tenant-screen-fleet"
+          />
+        )}
         clearHref="/dashboard/screens"
+        defaultOpen={Boolean(normalizedQuery) || statusFilter !== "all"}
+        primary={<input aria-label="Zoeken in de schermvloot" className="toolbar-search" defaultValue={query.q ?? ""} name="q" placeholder="Scherm, locatie of Player" type="search" />}
         results={`${filteredScreens.length} van ${data.screens.length} schermen`}
       >
-        <label className="toolbar-field"><span>Zoeken</span><input className="toolbar-search" defaultValue={query.q ?? ""} name="q" placeholder="Scherm, locatie of Player" type="search" /></label>
         <label className="toolbar-field"><span>Status</span><select className="toolbar-select" defaultValue={statusFilter} name="status"><option value="all">Alle statussen</option><option value="online">Online</option><option value="offline">Offline</option><option value="syncing">Synchroniseren</option><option value="unpaired">Niet gekoppeld</option><option value="maintenance">Onderhoud</option><option value="disabled">Uitgeschakeld</option></select></label>
-        <button className="button-link button-link--secondary" type="submit">Vloot filteren</button>
+        <Button type="submit" variant="secondary">Vloot filteren</Button>
       </FilterBar>
     </form>
 
     <section className="workspace-section" aria-labelledby="screen-fleet-title">
-      <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="screen-fleet-title">Schermvloot</h2><p className="work-panel__meta">Open een scherm voor onboarding, lifecycle, content, Player, sync en events.</p></div><StatusPill label={`${data.screens.length} totaal`} tone="neutral" /></div>
-      {filteredScreens.length ? <div className="data-table-frame"><table className="data-table data-table--responsive"><caption>Operationele schermstatus binnen de actieve vereniging.</caption><thead><tr><th scope="col">Scherm</th><th scope="col">Status</th><th scope="col">Player</th><th scope="col">Content</th><th scope="col">Synchronisatie</th><th scope="col">Laatst gezien</th><th scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
+      <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="screen-fleet-title">Schermvloot</h2><p className="work-panel__meta">De vloot staat standaard op herstelprioriteit; uitgeschakelde schermen staan onderaan.</p></div><div className="workspace-section__actions"><Button asChild size="sm" variant="secondary"><Link href="/dashboard/releases">Release Center</Link></Button><StatusPill label={`${data.screens.length} totaal`} tone="neutral" /></div></div>
+      {filteredScreens.length ? <div className="data-table-frame"><table className="data-table data-table--responsive" data-vc-table-key="tenant-screen-fleet"><caption>Operationele schermstatus binnen de actieve vereniging.</caption><thead><tr><th data-column="screen" scope="col">Scherm</th><th data-column="status" scope="col">Status</th><th data-column="player" scope="col">Player</th><th data-column="content" scope="col">Content</th><th data-column="sync" scope="col">Synchronisatie</th><th data-column="seen" scope="col">Laatst gezien</th><th data-column="action" scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
         const device = devicesByScreen.get(screen.id);
         const status = screenStatus(screen, device);
         return <tr key={screen.id}>
-          <td data-label="Scherm"><span className="table-primary">{screen.name}</span><span className="table-secondary">{screen.location || orientationLabel(screen.orientation)}</span></td>
-          <td data-label="Status"><StatusPill label={status.label} tone={status.tone} /></td>
-          <td data-label="Player">{device?.deviceName || "Niet gekoppeld"}<span className="table-secondary">{device?.appVersion ? `App ${device.appVersion}` : device?.platform || "Geen telemetry"}</span></td>
-          <td data-label="Content">{screen.assignedReleaseId ? releaseLabels.get(screen.assignedReleaseId) || `Release ${screen.assignedReleaseId.slice(0, 8)}` : "Geen release"}</td>
-          <td data-label="Synchronisatie">{syncLabel(device)}</td>
-          <td data-label="Laatst gezien">{formatLastSeen(device?.lastSeenAt)}</td>
-          <td data-label="Actie"><Link className="table-action" href={`/dashboard/screens/${screen.id}`}>Bekijk scherm</Link></td>
+          <td data-column="screen" data-label="Scherm"><span className="table-primary">{screen.name}</span><span className="table-secondary">{screen.location || orientationLabel(screen.orientation)}</span></td>
+          <td data-column="status" data-label="Status"><StatusPill label={status.label} tone={status.tone} /></td>
+          <td data-column="player" data-label="Player">{device?.deviceName || "Niet gekoppeld"}<span className="table-secondary">{device?.appVersion ? `App ${device.appVersion}` : device?.platform || "Geen telemetry"}</span></td>
+          <td data-column="content" data-label="Content">{screen.assignedReleaseId ? releaseLabels.get(screen.assignedReleaseId) || `Release ${screen.assignedReleaseId.slice(0, 8)}` : "Geen release"}</td>
+          <td data-column="sync" data-label="Synchronisatie">{syncLabel(device)}</td>
+          <td data-column="seen" data-label="Laatst gezien">{formatLastSeen(device?.lastSeenAt)}</td>
+          <td data-column="action" data-label="Actie"><Link className="table-action" href={`/dashboard/screens/${screen.id}`}>Bekijk scherm</Link></td>
         </tr>;
       })}</tbody></table></div> : <p className="notice" role="status">{data.screens.length ? "Geen schermen passen bij deze filters. Pas je zoekopdracht of statusfilter aan." : "Er zijn nog geen schermen. Start de begeleide onboarding om het eerste scherm transactioneel aan te maken."}</p>}
     </section>
@@ -104,6 +141,17 @@ function syncLabel(device: FleetDevice | undefined) {
   if (device.desiredReleaseId && device.desiredReleaseId !== device.activeReleaseId) return "Nieuwe release voorbereiden";
   if (device.activeReleaseId) return "Actieve release gelijk";
   return "Wacht op eerste release";
+}
+
+function screenPriority(kind: string) {
+  return {
+    unpaired: 0,
+    offline: 1,
+    maintenance: 2,
+    syncing: 3,
+    online: 4,
+    disabled: 5
+  }[kind] ?? 6;
 }
 
 function formatLastSeen(value: string | null | undefined) {

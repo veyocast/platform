@@ -20,7 +20,7 @@ export default function RootLayout({
   children
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="nl">
+    <html lang="nl" suppressHydrationWarning>
       <body>{children}</body>
     </html>
   );

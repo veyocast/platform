@@ -1,9 +1,11 @@
 import { hasCapability } from "@veyocast/auth";
+import { Button } from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { updateTenantSettings } from "./actions";
+import { SettingsDirtySavebar } from "./settings-dirty-savebar";
 
 type SettingsPageProps = {
   searchParams: Promise<{ fout?: string; succes?: string }>;
@@ -45,10 +47,11 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       <PageHeader
         description="Beheer de echte verenigingsgegevens en veilige standaarden voor nieuwe playlistitems en schermen."
         eyebrow={session.tenant}
-        status={{
-          label: session.isLive ? canManage ? "Live beheer" : "Alleen bekijken" : "Demomodus",
-          tone: canManage ? "success" : "warning"
-        }}
+        status={!session.isLive
+          ? { label: "Demomodus", tone: "warning" }
+          : !canManage
+            ? { label: "Alleen bekijken", tone: "warning" }
+            : undefined}
         title="Instellingen"
       />
 
@@ -61,14 +64,20 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         </p>
       ) : null}
 
+      <nav aria-label="Instellingencategorieën" className="settings-category-nav">
+        <a href="#clubprofiel">Clubprofiel</a>
+        <a href="#afspelen">Afspelen</a>
+        <a href="#schermen">Schermen</a>
+        <a href="#support">Support</a>
+      </nav>
+
       <form action={updateTenantSettings} className="settings-layout">
-        <section className="data-surface" aria-labelledby="club-profile-title">
+        <section className="data-surface" aria-labelledby="club-profile-title" id="clubprofiel">
           <div className="work-panel__header">
             <div>
               <h2 className="work-panel__title" id="club-profile-title">Clubprofiel</h2>
               <p className="work-panel__meta">De zichtbare naam van de actieve vereniging.</p>
             </div>
-            <StatusPill label="Tenantgebonden" tone="info" />
           </div>
           <div className="field">
             <label htmlFor="settings-name">Verenigingsnaam</label>
@@ -76,13 +85,12 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </div>
         </section>
 
-        <section className="data-surface" aria-labelledby="playback-defaults-title">
+        <section className="data-surface" aria-labelledby="playback-defaults-title" id="afspelen">
           <div className="work-panel__header">
             <div>
               <h2 className="work-panel__title" id="playback-defaults-title">Afspeelstandaarden</h2>
               <p className="work-panel__meta">Nieuwe playlistitems erven deze veilige beginwaarden.</p>
             </div>
-            <StatusPill label="Muted video" tone="success" />
           </div>
           <div className="form-grid">
             <div className="field">
@@ -103,13 +111,12 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </label>
         </section>
 
-        <section className="data-surface" aria-labelledby="screen-defaults-title">
+        <section className="data-surface" aria-labelledby="screen-defaults-title" id="schermen">
           <div className="work-panel__header">
             <div>
               <h2 className="work-panel__title" id="screen-defaults-title">Schermstandaarden</h2>
               <p className="work-panel__meta">Voorkeuren voor nieuw aangemaakte schermen.</p>
             </div>
-            <StatusPill label="LG-ready" tone="info" />
           </div>
           <div className="form-grid">
             <div className="field">
@@ -130,13 +137,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </div>
         </section>
 
-        <div className="sticky-form-actions">
-          <p className="work-panel__meta">Alle wijzigingen worden server-side gecontroleerd en in het auditlog vastgelegd.</p>
-          <button className="button-link button-link--primary" disabled={!canManage} type="submit">Instellingen opslaan</button>
-        </div>
+        <SettingsDirtySavebar disabled={!canManage} />
       </form>
 
-      <section className="data-surface support-export" aria-labelledby="support-export-title">
+      <section className="data-surface support-export" aria-labelledby="support-export-title" id="support">
         <div className="work-panel__header">
           <div>
             <h2 className="work-panel__title" id="support-export-title">Veilige supportbundel</h2>
@@ -150,14 +154,14 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         <div className="support-export__actions">
           {canExportSupport ? (
             <form action="/api/support-bundle" method="post">
-              <button className="button-link button-link--secondary" type="submit">
+              <Button type="submit" variant="secondary">
                 Supportbundel downloaden
-              </button>
+              </Button>
             </form>
           ) : (
-            <button className="button-link button-link--secondary" disabled type="button">
+            <Button disabled type="button" variant="secondary">
               Geen exportrechten
-            </button>
+            </Button>
           )}
           <p className="work-panel__meta">Elke geslaagde export wordt append-only geaudit.</p>
         </div>
