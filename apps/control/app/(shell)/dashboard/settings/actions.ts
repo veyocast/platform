@@ -20,6 +20,9 @@ export async function updateTenantSettings(formData: FormData) {
   const orientation = String(formData.get("defaultScreenOrientation") ?? "");
   const resolutionWidth = integerValue(formData, "defaultResolutionWidth");
   const resolutionHeight = integerValue(formData, "defaultResolutionHeight");
+  const timezoneName = String(formData.get("timezoneName") ?? "");
+  const defaultTransition = String(formData.get("defaultTransition") ?? "cut");
+  const defaultBackgroundColor = String(formData.get("defaultBackgroundColor") ?? "").trim();
 
   if (name.length < 2 || name.length > 120) {
     fail("Gebruik een verenigingsnaam van 2 tot en met 120 tekens.");
@@ -36,16 +39,28 @@ export async function updateTenantSettings(formData: FormData) {
   if (resolutionWidth < 320 || resolutionWidth > 7680 || resolutionHeight < 240 || resolutionHeight > 4320) {
     fail("De standaardresolutie valt buiten het ondersteunde bereik.");
   }
+  if (!["Europe/Amsterdam", "Europe/Berlin", "Europe/Brussels", "Europe/London", "Europe/Paris"].includes(timezoneName)) {
+    fail("Kies een ondersteunde lokale tijdzone.");
+  }
+  if (!["cut", "crossfade", "wipe"].includes(defaultTransition)) {
+    fail("De standaardovergang is ongeldig.");
+  }
+  if (defaultBackgroundColor && !/^#[0-9a-f]{6}$/i.test(defaultBackgroundColor)) {
+    fail("De standaardachtergrondkleur is ongeldig.");
+  }
 
-  const { error } = await supabase.rpc("update_tenant_control_settings", {
+  const { error } = await supabase.rpc("update_tenant_control_settings_v2", {
+    p_default_background_color: defaultBackgroundColor || null,
     p_default_fit_mode: fitMode,
     p_default_image_duration_seconds: imageDuration,
     p_default_resolution_height: resolutionHeight,
     p_default_resolution_width: resolutionWidth,
     p_default_screen_orientation: orientation,
+    p_default_transition: defaultTransition,
     p_default_video_muted: videoMuted,
     p_name: name,
-    p_tenant_id: session.tenantId
+    p_tenant_id: session.tenantId,
+    p_timezone_name: timezoneName
   });
 
   if (error) {

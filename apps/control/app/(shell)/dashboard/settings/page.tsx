@@ -12,23 +12,29 @@ type SettingsPageProps = {
 };
 
 type TenantSettings = {
+  defaultBackgroundColor: string | null;
   defaultFitMode: "contain" | "cover";
   defaultImageDuration: number;
   defaultResolutionHeight: number;
   defaultResolutionWidth: number;
   defaultScreenOrientation: "landscape" | "portrait";
+  defaultTransition: "crossfade" | "cut" | "wipe";
   defaultVideoMuted: boolean;
   name: string;
+  timezoneName: string;
 };
 
 const defaults: TenantSettings = {
+  defaultBackgroundColor: null,
   defaultFitMode: "contain",
   defaultImageDuration: 10,
   defaultResolutionHeight: 1080,
   defaultResolutionWidth: 1920,
   defaultScreenOrientation: "landscape",
+  defaultTransition: "cut",
   defaultVideoMuted: true,
-  name: ""
+  name: "",
+  timezoneName: "Europe/Amsterdam"
 };
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
@@ -66,12 +72,15 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
       <nav aria-label="Instellingencategorieën" className="settings-category-nav">
         <a href="#clubprofiel">Clubprofiel</a>
+        <a href="#tijdzone">Tijdzone</a>
         <a href="#afspelen">Afspelen</a>
         <a href="#schermen">Schermen</a>
         <a href="#support">Support</a>
       </nav>
 
       <form action={updateTenantSettings} className="settings-layout">
+        <input name="defaultBackgroundColor" type="hidden" value={data.defaultBackgroundColor ?? ""} />
+        <input name="defaultTransition" type="hidden" value={data.defaultTransition} />
         <section className="data-surface" aria-labelledby="club-profile-title" id="clubprofiel">
           <div className="work-panel__header">
             <div>
@@ -82,6 +91,25 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           <div className="field">
             <label htmlFor="settings-name">Verenigingsnaam</label>
             <input defaultValue={data.name} disabled={!canManage} id="settings-name" maxLength={120} minLength={2} name="name" required type="text" />
+          </div>
+        </section>
+
+        <section className="data-surface" aria-labelledby="timezone-settings-title" id="tijdzone">
+          <div className="work-panel__header">
+            <div>
+              <h2 className="work-panel__title" id="timezone-settings-title">Tijdzone</h2>
+              <p className="work-panel__meta">Planning, previews en activiteit gebruiken deze lokale tijd. Opgeslagen momenten blijven absolute UTC-tijdstippen.</p>
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="settings-timezone">Lokale tijdzone</label>
+            <select defaultValue={data.timezoneName} disabled={!canManage} id="settings-timezone" name="timezoneName">
+              <option value="Europe/Amsterdam">Nederland · Amsterdam</option>
+              <option value="Europe/Brussels">België · Brussel</option>
+              <option value="Europe/Berlin">Duitsland · Berlijn</option>
+              <option value="Europe/London">Verenigd Koninkrijk · Londen</option>
+              <option value="Europe/Paris">Frankrijk · Parijs</option>
+            </select>
           </div>
         </section>
 
@@ -177,7 +205,7 @@ async function loadSettings(tenantId: string | null, isLive: boolean, tenantName
 
   const [tenantResult, settingsResult] = await Promise.all([
     supabase.from("tenants").select("name").eq("id", tenantId).single(),
-    supabase.from("tenant_settings").select("default_image_duration_seconds, default_fit_mode, default_video_muted, default_screen_orientation, default_resolution_width, default_resolution_height").eq("tenant_id", tenantId).maybeSingle()
+    supabase.from("tenant_settings").select("default_image_duration_seconds, default_fit_mode, default_video_muted, default_screen_orientation, default_resolution_width, default_resolution_height, timezone_name, default_transition, default_background_color").eq("tenant_id", tenantId).maybeSingle()
   ]);
 
   if (tenantResult.error || settingsResult.error) {
@@ -188,13 +216,16 @@ async function loadSettings(tenantId: string | null, isLive: boolean, tenantName
   const row = settingsResult.data;
   return {
     data: {
+      defaultBackgroundColor: row?.default_background_color ?? defaults.defaultBackgroundColor,
       defaultFitMode: (row?.default_fit_mode ?? defaults.defaultFitMode) as TenantSettings["defaultFitMode"],
       defaultImageDuration: row?.default_image_duration_seconds ?? defaults.defaultImageDuration,
       defaultResolutionHeight: row?.default_resolution_height ?? defaults.defaultResolutionHeight,
       defaultResolutionWidth: row?.default_resolution_width ?? defaults.defaultResolutionWidth,
       defaultScreenOrientation: (row?.default_screen_orientation ?? defaults.defaultScreenOrientation) as TenantSettings["defaultScreenOrientation"],
+      defaultTransition: (row?.default_transition ?? defaults.defaultTransition) as TenantSettings["defaultTransition"],
       defaultVideoMuted: row?.default_video_muted ?? defaults.defaultVideoMuted,
-      name: tenantResult.data.name
+      name: tenantResult.data.name,
+      timezoneName: row?.timezone_name ?? defaults.timezoneName
     },
     error: null
   };
