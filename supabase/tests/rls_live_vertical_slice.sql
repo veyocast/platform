@@ -247,11 +247,19 @@ select is(
 );
 
 update live_slice_results
-set release_id = public.publish_playlist_to_screens(
-  '50000000-0000-4000-8000-000000000101',
-  array['40000000-0000-4000-8000-000000000101'::uuid],
-  'Live slice test'
-);
+set release_id = (
+  public.publish_playlist_to_targets_v3(
+    '50000000-0000-4000-8000-000000000101',
+    (
+      select revision
+      from public.playlists
+      where id = '50000000-0000-4000-8000-000000000101'
+    ),
+    array['40000000-0000-4000-8000-000000000101'::uuid],
+    'Live slice test',
+    '01000000-0000-4000-8000-000000000101'
+  ) ->> 'releaseId'
+)::uuid;
 
 select ok(
   (select release_id is not null from live_slice_results),

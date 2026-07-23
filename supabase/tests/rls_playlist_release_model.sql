@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(16);
+select plan(17);
 
 insert into auth.users (
   id,
@@ -132,6 +132,23 @@ values
     '00000000-0000-4000-8000-000000000006',
     'tenant_admin'
   );
+
+insert into public.screens (
+  id,
+  tenant_id,
+  name,
+  status,
+  orientation,
+  created_by
+)
+values (
+  '60000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000001',
+  'Publicatietest',
+  'active',
+  'landscape',
+  '00000000-0000-4000-8000-000000000003'
+);
 
 insert into public.media_assets (
   id,
@@ -305,12 +322,35 @@ select ok(
   'publish review marks ready playlist as publishable'
 );
 
-select ok(
-  public.publish_playlist(
+select throws_ok(
+  $$
+    select public.publish_playlist_to_targets_v3(
+      '50000000-0000-4000-8000-000000000001',
+      0,
+      array['60000000-0000-4000-8000-000000000001'::uuid],
+      'Goedgekeurde zomerroute',
+      '01000000-0000-4000-8000-000000000001'
+    )
+  $$,
+  '42501',
+  'actor cannot publish this playlist',
+  'tenant editor cannot publish an immutable playlist release'
+);
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000003', true);
+
+select is(
+  public.publish_playlist_to_targets_v3(
     '50000000-0000-4000-8000-000000000001',
-    'Goedgekeurde zomerroute'
-  ) is not null,
-  'tenant editor can publish an immutable playlist release'
+    0,
+    array['60000000-0000-4000-8000-000000000001'::uuid],
+    'Goedgekeurde zomerroute',
+    '01000000-0000-4000-8000-000000000002'
+  ) ->> 'outcome',
+  'published',
+  'tenant admin publishes an immutable playlist release'
 );
 
 select is(
@@ -416,14 +456,17 @@ values (
 
 select throws_ok(
   $$
-    select public.publish_playlist(
+    select public.publish_playlist_to_targets_v3(
       '50000000-0000-4000-8000-000000000002',
-      'Geen items'
+      0,
+      array['60000000-0000-4000-8000-000000000001'::uuid],
+      'Geen items',
+      '01000000-0000-4000-8000-000000000003'
     )
   $$,
-  '23514',
-  'playlist has no items to publish',
-  'empty playlists cannot be published'
+  '42501',
+  'actor cannot publish this playlist',
+  'tenant editor cannot bypass the publisher capability with an empty playlist'
 );
 
 reset role;
@@ -451,9 +494,12 @@ select throws_ok(
 
 select throws_ok(
   $$
-    select public.publish_playlist(
+    select public.publish_playlist_to_targets_v3(
       '50000000-0000-4000-8000-000000000001',
-      'Viewer publish'
+      0,
+      array['60000000-0000-4000-8000-000000000001'::uuid],
+      'Viewer publish',
+      '01000000-0000-4000-8000-000000000004'
     )
   $$,
   '42501',

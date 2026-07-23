@@ -133,23 +133,33 @@ select throws_ok(
   'cross-tenant media cannot enter a draft through the command boundary'
 );
 
+reset role;
+update public.tenant_memberships
+set role = 'tenant_admin'
+where tenant_id = '10000000-0000-4000-8000-000000000251'
+  and user_id = '00000000-0000-4000-8000-000000000251';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000251', true);
+
 select is(
-  (select outcome from public.publish_playlist_to_screens_v2(
+  public.publish_playlist_to_targets_v3(
     '50000000-0000-4000-8000-000000000251', 1,
-    array['60000000-0000-4000-8000-000000000251'::uuid], null
-  )),
+    array['60000000-0000-4000-8000-000000000251'::uuid], null,
+    '01000000-0000-4000-8000-000000000251'
+  ) ->> 'outcome',
   'conflict',
   'stale publish is rejected before a release is created'
 );
 select is((select count(*) from public.playlist_releases where playlist_id = '50000000-0000-4000-8000-000000000251'), 0::bigint, 'stale publish creates no release');
 
 select is(
-  (select outcome from public.publish_playlist_to_screens_v2(
+  public.publish_playlist_to_targets_v3(
     '50000000-0000-4000-8000-000000000251', 2,
-    array['60000000-0000-4000-8000-000000000251'::uuid], 'Studio release'
-  )),
+    array['60000000-0000-4000-8000-000000000251'::uuid], 'Studio release',
+    '01000000-0000-4000-8000-000000000252'
+  ) ->> 'outcome',
   'published',
-  'current revision publishes atomically'
+  'current revision publishes atomically for a tenant manager'
 );
 select is((select count(*) from public.playlist_releases where playlist_id = '50000000-0000-4000-8000-000000000251'), 1::bigint, 'successful publish creates one immutable release');
 
@@ -181,7 +191,7 @@ select throws_ok(
 
 reset role;
 select ok(not has_function_privilege('anon', 'public.mutate_playlist_draft_v1(uuid,bigint,text,jsonb)', 'EXECUTE'), 'anonymous cannot execute draft mutations');
-select ok(not has_function_privilege('anon', 'public.publish_playlist_to_screens_v2(uuid,bigint,uuid[],text)', 'EXECUTE'), 'anonymous cannot execute revision-aware publish');
+select ok(not has_function_privilege('anon', 'public.publish_playlist_to_targets_v3(uuid,bigint,uuid[],text,uuid)', 'EXECUTE'), 'anonymous cannot execute revision-aware publish');
 select is((select count(*) from public.audit_events where action like 'playlist.draft.%' and tenant_id = '10000000-0000-4000-8000-000000000251'), 2::bigint, 'only applied draft mutations create audit events');
 
 select * from finish();

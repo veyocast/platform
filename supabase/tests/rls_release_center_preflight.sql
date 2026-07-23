@@ -86,10 +86,13 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000261', true);
 
 select is(
-  public.reassign_playlist_release(
+  (
+    public.reassign_playlist_release_v2(
     '70000000-0000-4000-8000-000000000261',
-    array['60000000-0000-4000-8000-000000000261'::uuid, '60000000-0000-4000-8000-000000000262'::uuid]
-  ),
+    array['60000000-0000-4000-8000-000000000261'::uuid, '60000000-0000-4000-8000-000000000262'::uuid],
+    '01000000-0000-4000-8000-000000000261'
+    ) ->> 'targetCount'
+  )::integer,
   2,
   'tenant admin reassigns an existing immutable release to multiple screens'
 );
@@ -106,12 +109,20 @@ select throws_ok(
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000261', true);
 select throws_ok(
-  $$select public.reassign_playlist_release('70000000-0000-4000-8000-000000000261', array['60000000-0000-4000-8000-000000000263'::uuid])$$,
+  $$select public.reassign_playlist_release_v2(
+    '70000000-0000-4000-8000-000000000261',
+    array['60000000-0000-4000-8000-000000000263'::uuid],
+    '01000000-0000-4000-8000-000000000262'
+  )$$,
   '23514', 'one or more target screens are unavailable',
   'disabled targets are rejected atomically'
 );
 select throws_ok(
-  $$select public.reassign_playlist_release('70000000-0000-4000-8000-000000000261', array['60000000-0000-4000-8000-000000000264'::uuid])$$,
+  $$select public.reassign_playlist_release_v2(
+    '70000000-0000-4000-8000-000000000261',
+    array['60000000-0000-4000-8000-000000000264'::uuid],
+    '01000000-0000-4000-8000-000000000263'
+  )$$,
   '23514', 'one or more target screens are unavailable',
   'cross-tenant targets are rejected atomically'
 );
@@ -120,7 +131,11 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000262', true);
 select throws_ok(
-  $$select public.reassign_playlist_release('70000000-0000-4000-8000-000000000261', array['60000000-0000-4000-8000-000000000261'::uuid])$$,
+  $$select public.reassign_playlist_release_v2(
+    '70000000-0000-4000-8000-000000000261',
+    array['60000000-0000-4000-8000-000000000261'::uuid],
+    '01000000-0000-4000-8000-000000000264'
+  )$$,
   '42501', 'actor cannot reassign this release',
   'tenant viewer cannot reassign releases'
 );
@@ -130,13 +145,17 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000263', true);
 select is((select count(*) from public.release_screen_assignments), 0::bigint, 'another tenant cannot read assignment history');
 select throws_ok(
-  $$select public.reassign_playlist_release('70000000-0000-4000-8000-000000000261', array['60000000-0000-4000-8000-000000000261'::uuid])$$,
+  $$select public.reassign_playlist_release_v2(
+    '70000000-0000-4000-8000-000000000261',
+    array['60000000-0000-4000-8000-000000000261'::uuid],
+    '01000000-0000-4000-8000-000000000265'
+  )$$,
   '42501', 'actor cannot reassign this release',
   'another tenant cannot reassign the release'
 );
 
 reset role;
-select ok(not has_function_privilege('anon', 'public.reassign_playlist_release(uuid,uuid[])', 'EXECUTE'), 'anonymous callers cannot reassign releases');
+select ok(not has_function_privilege('anon', 'public.reassign_playlist_release_v2(uuid,uuid[],uuid)', 'EXECUTE'), 'anonymous callers cannot reassign releases');
 select ok(not has_table_privilege('authenticated', 'public.release_screen_assignments', 'INSERT'), 'authenticated clients cannot forge deployment history');
 select is((select count(*) from public.audit_events where action = 'playlist.release.reassigned' and tenant_id = '10000000-0000-4000-8000-000000000261'), 1::bigint, 'successful reassignment is audited exactly once');
 
