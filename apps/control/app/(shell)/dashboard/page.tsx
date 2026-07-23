@@ -145,11 +145,13 @@ function LiveDashboard({
           value={unsyncedScreenCount ? `${unsyncedScreenCount} open` : "Actueel"}
         />
         <StatusCard
-          detail="opgeslagen originele media"
           href="/dashboard/media"
           icon={<Server aria-hidden="true" />}
           label="Opslag"
           tone="neutral"
+          detail={data.mediaStorageLimitBytes === null
+            ? `${formatBytes(mediaBytes)} gebruikt · geen limiet ingesteld`
+            : `${formatBytes(mediaBytes)} van ${formatBytes(data.mediaStorageLimitBytes)}`}
           value={formatBytes(mediaBytes)}
         />
       </section>

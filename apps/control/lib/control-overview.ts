@@ -57,7 +57,7 @@ export async function loadTenantOverview(tenantId: string) {
       .eq("tenant_id", tenantId),
     supabase
       .from("tenants")
-      .select("screen_limit")
+      .select("screen_limit, media_storage_limit_bytes")
       .eq("id", tenantId)
       .maybeSingle(),
     supabase
@@ -77,6 +77,9 @@ export async function loadTenantOverview(tenantId: string) {
     heartbeats: heartbeats.data ?? [],
     invitations: invitations.data ?? [],
     memberCount: members.count ?? 0,
+    mediaStorageLimitBytes: tenant.data?.media_storage_limit_bytes === null
+      ? null
+      : Number(tenant.data?.media_storage_limit_bytes ?? 0),
     error: false,
     media: media.data ?? [],
     playlistItems: playlistItems.data ?? [],
@@ -257,6 +260,7 @@ function tenantOverviewFailure() {
     invitations: [],
     media: [],
     memberCount: 0,
+    mediaStorageLimitBytes: null,
     playlistItems: [],
     playlists: [],
     releases: [],
