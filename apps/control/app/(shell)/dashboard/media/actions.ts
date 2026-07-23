@@ -46,6 +46,79 @@ export async function uploadMediaImage(formData: FormData) {
   redirect(`/dashboard/media?succes=${encodeURIComponent(message)}#upload`);
 }
 
+export type MediaImageUploadState = {
+  completedAt: string | null;
+  results: Array<{
+    fileName: string;
+    message: string;
+    status: "critical" | "success";
+  }>;
+};
+
+export async function uploadMediaImages(
+  _previousState: MediaImageUploadState,
+  formData: FormData
+): Promise<MediaImageUploadState> {
+  await requireTenantCapability("tenant.media.write");
+  const files = formData
+    .getAll("media")
+    .filter((candidate): candidate is File => candidate instanceof File && candidate.size > 0);
+  const suppliedTitle = String(formData.get("title") ?? "").trim();
+
+  if (!files.length) {
+    return imageUploadFailure("Geen bestand", "Kies minimaal één JPEG-, PNG- of WebP-bestand met inhoud.");
+  }
+  if (files.length > 12) {
+    return imageUploadFailure(
+      "Selectie",
+      "Upload maximaal twaalf afbeeldingen per keer. Verklein de selectie en probeer opnieuw."
+    );
+  }
+  if (files.length === 1 && suppliedTitle && suppliedTitle.length < 2) {
+    return imageUploadFailure(
+      files[0]!.name,
+      "Gebruik minimaal twee tekens voor de titel of laat het veld leeg voor de bestandsnaam."
+    );
+  }
+
+  const results: MediaImageUploadState["results"] = [];
+  for (const file of files) {
+    const itemFormData = new FormData();
+    itemFormData.set("media", file);
+    itemFormData.set(
+      "title",
+      files.length === 1 && suppliedTitle
+        ? suppliedTitle
+        : mediaTitleFromFileName(file.name)
+    );
+
+    try {
+      const result = await uploadValidatedImage(itemFormData);
+      results.push({
+        fileName: file.name,
+        message: `${result.title} is gecontroleerd en gereed voor playlists.`,
+        status: "success"
+      });
+    } catch (error) {
+      if (!(error instanceof MediaUploadError)) {
+        console.error("Onverwachte batch-uploadfout", error);
+      }
+      results.push({
+        fileName: file.name,
+        message:
+          error instanceof MediaUploadError
+            ? error.message
+            : "De upload is onverwacht afgebroken. Dit bestand is niet beschikbaar gemaakt; probeer het opnieuw.",
+        status: "critical"
+      });
+    }
+  }
+
+  revalidatePath("/dashboard/media");
+  revalidatePath("/dashboard/pilot");
+  return { completedAt: new Date().toISOString(), results };
+}
+
 export async function prepareMediaVideoUpload(candidate: VideoUploadCandidate) {
   await requireTenantCapability("tenant.media.write");
   try {
@@ -322,6 +395,21 @@ function optionalId(formData: FormData, key: string) {
 function idempotencyValue(formData: FormData) {
   const value = String(formData.get("idempotencyKey") ?? "");
   return uuidPattern.test(value) ? value : randomUUID();
+}
+
+function imageUploadFailure(
+  fileName: string,
+  message: string
+): MediaImageUploadState {
+  return {
+    completedAt: new Date().toISOString(),
+    results: [{ fileName, message, status: "critical" }]
+  };
+}
+
+function mediaTitleFromFileName(fileName: string) {
+  const baseName = fileName.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim();
+  return (baseName || "Afbeelding").slice(0, 120);
 }
 
 function organizationError(code: string | undefined) {

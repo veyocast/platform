@@ -36,9 +36,9 @@ import {
   createMediaFolder,
   createMediaTag,
   deleteMediaView,
-  saveMediaView,
-  uploadMediaImage
+  saveMediaView
 } from "./actions";
+import { ImageUploadForm } from "./image-upload-form";
 import { VideoUploadForm } from "./video-upload-form";
 
 type MediaUploadDialogProps = {
@@ -145,40 +145,7 @@ export function MediaUploadDialog({
                 <h3 id="media-image-upload-title">Afbeelding</h3>
                 <p>JPEG, PNG of WebP · maximaal 20 MB.</p>
               </div>
-              <form action={uploadMediaImage} className="upload-form">
-                <div className="field">
-                  <label htmlFor="media-title">Titel</label>
-                  <input
-                    disabled={!canUpload}
-                    id="media-title"
-                    minLength={2}
-                    name="title"
-                    placeholder="Bijvoorbeeld zomerroute poster"
-                    required
-                    type="text"
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="media-file">Bestand</label>
-                  <input
-                    accept="image/jpeg,image/png,image/webp"
-                    disabled={!canUpload}
-                    id="media-file"
-                    name="media"
-                    required
-                    type="file"
-                  />
-                </div>
-                <Button disabled={!canUpload} type="submit">
-                  Uploaden en verifiëren
-                </Button>
-                {!canUpload ? (
-                  <p className="notice notice--warning" role="status">
-                    Uploaden vereist editor- of beheerrechten en een actieve
-                    vereniging.
-                  </p>
-                ) : null}
-              </form>
+              <ImageUploadForm canUpload={canUpload} />
             </section>
           ) : (
             <section

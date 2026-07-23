@@ -34,9 +34,9 @@ export async function uploadValidatedImage(formData: FormData) {
     );
   }
 
-  if (!title || title.length < 2) {
+  if (!title || title.length < 2 || title.length > 120) {
     throw new MediaUploadError(
-      "De titel is te kort. De upload is niet gestart; gebruik minimaal twee tekens."
+      "Gebruik een titel van 2 tot en met 120 tekens. De upload is niet gestart."
     );
   }
 
