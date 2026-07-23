@@ -69,22 +69,48 @@ export function PageHeader({
 }
 
 export type ToolbarProps = ComponentPropsWithoutRef<"div"> & {
+  actions?: ReactNode;
+  label?: string;
+  sticky?: boolean;
   summary?: ReactNode;
 };
 
-export function Toolbar({ children, className, summary, ...props }: ToolbarProps) {
+export function Toolbar({
+  actions,
+  children,
+  className,
+  label,
+  sticky = false,
+  summary,
+  ...props
+}: ToolbarProps) {
   return (
-    <div className={cn("vc-toolbar", className)} {...props}>
+    <div
+      aria-label={label}
+      className={cn("vc-toolbar", sticky && "vc-toolbar--sticky", className)}
+      role={label ? "toolbar" : undefined}
+      {...props}
+    >
       <div className="vc-toolbar__controls">{children}</div>
-      {summary ? <div className="vc-toolbar__summary">{summary}</div> : null}
+      {summary || actions ? (
+        <div className="vc-toolbar__meta">
+          {summary ? <div className="vc-toolbar__summary">{summary}</div> : null}
+          {actions ? <div className="vc-toolbar__actions">{actions}</div> : null}
+        </div>
+      ) : null}
     </div>
   );
+}
+
+export function ToolbarGroup({ className, ...props }: ComponentPropsWithoutRef<"div">) {
+  return <div className={cn("vc-toolbar__group", className)} {...props} />;
 }
 
 export type DataTableProps = ComponentPropsWithoutRef<"table"> & {
   caption: ReactNode;
   frameClassName?: string;
   responsive?: boolean;
+  tableKey?: string;
 };
 
 export function DataTable({
@@ -93,6 +119,7 @@ export function DataTable({
   className,
   frameClassName,
   responsive = true,
+  tableKey,
   ...props
 }: DataTableProps) {
   return (
@@ -103,6 +130,7 @@ export function DataTable({
           responsive && "vc-data-table--responsive",
           className
         )}
+        data-vc-table-key={tableKey}
         {...props}
       >
         <caption>{caption}</caption>

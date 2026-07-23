@@ -6,7 +6,10 @@ import { describe, expect, it } from "vitest";
 import {
   Badge,
   Button,
+  CompactStats,
   DataTable,
+  Dialog,
+  DialogTrigger,
   Field,
   FilterBar,
   IconButton,
@@ -15,7 +18,9 @@ import {
   Progress,
   ResourceState,
   TextInput,
-  Toolbar
+  Toolbar,
+  getTablePreferencesStorageKey,
+  parseTablePreferences
 } from "../src";
 
 describe("@veyocast/ui primitives", () => {
@@ -97,14 +102,88 @@ describe("@veyocast/ui primitives", () => {
 
   it("renders a responsive filter contract with results and reset action", () => {
     const html = renderToStaticMarkup(
-      <FilterBar activeCount={2} clearHref="/dashboard/media" results="3 van 12 zichtbaar">
-        <TextInput aria-label="Media zoeken" type="search" />
+      <FilterBar
+        activeCount={2}
+        clearHref="/dashboard/media"
+        primary={<TextInput aria-label="Media zoeken" type="search" />}
+        results="3 van 12 zichtbaar"
+      >
+        <TextInput aria-label="Type filteren" />
       </FilterBar>
     );
-    expect(html).toContain("Filters (2)");
+    expect(html).toContain('aria-label="Filters, 2 actief"');
+    expect(html).toContain("vc-filter-bar__count");
     expect(html).toContain("3 van 12 zichtbaar");
     expect(html).toContain("Filters wissen");
+    expect(html.indexOf("Media zoeken")).toBeLessThan(html.indexOf("vc-filter-bar__content"));
     expect(html).toContain("vc-filter-bar__content");
+  });
+
+  it("renders a compact semantic summary without card-only markup", () => {
+    const html = renderToStaticMarkup(
+      <CompactStats
+        items={[
+          { label: "Actie nodig", tone: "critical", value: 2 },
+          { detail: "van 8", label: "Online", tone: "success", value: 6 }
+        ]}
+      />
+    );
+
+    expect(html).toContain("<dl");
+    expect(html).toContain("<dt");
+    expect(html).toContain("<dd");
+    expect(html).toContain("vc-summary-strip__item--critical");
+    expect(html).not.toContain("vc-card");
+  });
+
+  it("exposes a Radix-backed dialog trigger with a named button", () => {
+    const html = renderToStaticMarkup(
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button>Playlist maken</Button>
+        </DialogTrigger>
+      </Dialog>
+    );
+
+    expect(html).toContain("Playlist maken");
+    expect(html).toContain('aria-haspopup="dialog"');
+    expect(html).toContain('data-state="closed"');
+  });
+
+  it("keeps required table columns visible and preserves new column defaults", () => {
+    const columns = [
+      { id: "name", label: "Naam", required: true },
+      { id: "status", label: "Status" },
+      { defaultVisible: false, id: "usage", label: "Gebruik" }
+    ] as const;
+    const stored = JSON.stringify({
+      density: "compact",
+      knownColumns: ["name"],
+      version: 1,
+      visibleColumns: []
+    });
+    const preferences = parseTablePreferences(stored, columns);
+
+    expect(preferences.density).toBe("compact");
+    expect(preferences.visibleColumns).toEqual(["name", "status"]);
+    expect(getTablePreferencesStorageKey("media")).toBe(
+      "veyocast:table:media:preferences"
+    );
+  });
+
+  it("connects a preference key to the shared table contract", () => {
+    const html = renderToStaticMarkup(
+      <DataTable caption="Schermen" tableKey="screen-fleet">
+        <thead>
+          <tr>
+            <th data-column="name" scope="col">Naam</th>
+          </tr>
+        </thead>
+      </DataTable>
+    );
+
+    expect(html).toContain('data-vc-table-key="screen-fleet"');
+    expect(html).toContain('data-column="name"');
   });
 
   it("exposes explicit loading, forbidden and stale states", () => {
@@ -132,5 +211,7 @@ describe("@veyocast/ui primitives", () => {
 
     expect(styles).not.toMatch(/#[0-9a-f]{3,8}/i);
     expect(styles).toContain("../../../tokens/veyocast-design-tokens.css");
+    expect(styles).toContain("var(--vc-motion-standard)");
+    expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
   });
 });
