@@ -28,7 +28,7 @@ const defaults: TenantSettings = {
   defaultResolutionWidth: 1920,
   defaultScreenOrientation: "landscape",
   defaultVideoMuted: true,
-  name: "Museumkwartier"
+  name: ""
 };
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
