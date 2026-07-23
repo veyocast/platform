@@ -121,7 +121,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
                 </tr>)}</tbody>
               </table>
           </div>
-        ) : <div className="empty-state" role="status"><h2>Nog geen passende playlists</h2><p>Pas de filters aan of maak een playlist om media in een vaste volgorde te publiceren.</p>{canWrite ? <PlaylistCreateDialog canWrite={canWrite} sources={data.rows.map(({ id, name }) => ({ id, name }))} /> : null}</div>}
+        ) : <div className="empty-state" role="status"><h2>Nog geen passende playlists</h2><p>Pas de filters aan of gebruik Nieuwe playlist bovenaan om media in een vaste volgorde te publiceren.</p></div>}
         {data.pageCount > 1 ? <nav aria-label="Playlistpagina's" className="pagination"><PaginationLink disabled={data.page <= 1} href={pageHref(params, data.page - 1)} label="Vorige pagina" /><span>Pagina {data.page} van {data.pageCount}</span><PaginationLink disabled={data.page >= data.pageCount} href={pageHref(params, data.page + 1)} label="Volgende pagina" /></nav> : null}
       </section>
     </>

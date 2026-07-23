@@ -151,13 +151,13 @@ export function ControlThemeSwitcher() {
     <details className="control-theme-switcher" ref={menuRef}>
       <IconButton
         asChild
-        aria-label={`Weergave: ${activeOption.label}`}
+        aria-label={`Thema en dichtheid: ${activeOption.label}`}
       >
         <summary
           aria-haspopup="menu"
           className="control-theme-switcher__trigger"
           role="button"
-          title={`Weergave: ${activeOption.label}`}
+          title={`Thema en dichtheid: ${activeOption.label}`}
         >
           <ActiveIcon aria-hidden="true" />
           <ChevronDown

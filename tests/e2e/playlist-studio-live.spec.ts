@@ -15,6 +15,8 @@ test.describe("live Playlist Studio", () => {
     const assetTitle = `S25 previewbeeld ${Date.now()}`;
     const secondAssetTitle = `S25 sleepbeeld ${Date.now()}`;
     const secondScreen = `S26 tweede scherm ${Date.now()}`;
+    const playlistName = `S25 concurrentieplaylist ${Date.now()}`;
+    const duplicateName = `S25 veilige conceptkopie ${Date.now()}`;
     await page.goto("/login");
     await page.getByLabel("E-mailadres").fill("pilot-admin@veyocast.test");
     await page.getByLabel("Wachtwoord").fill("veyocast-local");
@@ -46,7 +48,7 @@ test.describe("live Playlist Studio", () => {
     await page.goto("/dashboard/playlists");
     await page.getByRole("button", { name: "Nieuwe playlist" }).click();
     const createPlaylistDialog = page.getByRole("dialog", { name: "Nieuwe playlist" });
-    await createPlaylistDialog.getByLabel("Playlistnaam").fill("S25 concurrentieplaylist");
+    await createPlaylistDialog.getByLabel("Playlistnaam").fill(playlistName);
     await createPlaylistDialog.getByRole("button", { name: "Concept maken" }).click();
     await expect(page.getByText("De conceptplaylist is gemaakt")).toBeVisible();
     await expect(page.getByText("Revisie 0").first()).toBeVisible();
@@ -77,7 +79,7 @@ test.describe("live Playlist Studio", () => {
     await expect(page.getByAltText(`Voorbeeld van ${assetTitle}`)).toBeVisible();
     await page.getByRole("button", { name: `${assetTitle} bewerken` }).click();
     await expect(page.getByLabel("Afspeelduur in seconden")).toHaveValue("10");
-    await expect(page.getByLabel("Weergave")).toHaveValue("contain");
+    await expect(page.getByRole("combobox", { name: /Weergave/ })).toHaveValue("contain");
 
     await page.getByLabel("Afspeelduur in seconden").fill("14");
     await page.getByRole("button", { name: "Venster sluiten" }).click();
@@ -146,11 +148,11 @@ test.describe("live Playlist Studio", () => {
     await page.getByRole("button", { name: "Nieuwe playlist" }).click();
     const duplicateDialog = page.getByRole("dialog", { name: "Nieuwe playlist" });
     await duplicateDialog.getByRole("tab", { name: "Dupliceren" }).click();
-    await duplicateDialog.getByLabel("Bronplaylist").selectOption({ label: "S25 concurrentieplaylist" });
-    await duplicateDialog.getByLabel("Naam van de kopie").fill("S25 veilige conceptkopie");
+    await duplicateDialog.getByLabel("Bronplaylist").selectOption({ label: playlistName });
+    await duplicateDialog.getByLabel("Naam van de kopie").fill(duplicateName);
     await duplicateDialog.getByRole("button", { name: "Concept dupliceren" }).click();
     await expect(page.getByText("Releasehistorie en schermtoewijzingen zijn niet overgenomen")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1, name: "S25 veilige conceptkopie" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: duplicateName })).toBeVisible();
     await expect(page.getByText("Revisie 0").first()).toBeVisible();
     await expect(page.locator(".playlist-item-list > li")).toHaveCount(2);
   });

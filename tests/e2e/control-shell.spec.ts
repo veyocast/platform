@@ -93,12 +93,12 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
 test("persists theme and density preferences without a color flash", async ({ page }) => {
   await page.goto("/dashboard");
 
-  await page.getByRole("button", { name: "Weergave: Systeem" }).click();
+  await page.getByRole("button", { name: "Thema en dichtheid: Systeem" }).click();
   await page.getByRole("radio", { name: "Donker" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator(".control-brand__logo--inverse")).toBeVisible();
 
-  await page.getByRole("button", { name: "Weergave: Donker" }).click();
+  await page.getByRole("button", { name: "Thema en dichtheid: Donker" }).click();
   await page.getByRole("radio", { name: "Compact" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
 
