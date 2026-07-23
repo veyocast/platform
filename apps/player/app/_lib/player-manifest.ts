@@ -17,6 +17,27 @@ export type PlayerRuntimeState =
 
 export type PlayerManifestItemKind = "image" | "video";
 export type PlayerManifestFitMode = "contain" | "cover";
+export type PlayerManifestTransition = "cut" | "crossfade" | "wipe";
+
+export type ResolvedPlayerItemPresentation = {
+  accessibilityName: string;
+  backgroundColor: string | null;
+  cropFocusX: number;
+  cropFocusY: number;
+  displayTitle: string;
+  enabled: boolean;
+  transition: PlayerManifestTransition;
+  trimEndSeconds: number | null;
+  trimStartSeconds: number;
+  visibleFrom: number | null;
+  visibleUntil: number | null;
+  volumePercent: number;
+};
+
+export type PlayerManifestItemSelection = {
+  index: number;
+  wrapped: boolean;
+};
 
 export type PlayerManifestItem = PlayerPlaybackItem & {
   source: {
@@ -254,4 +275,167 @@ export function getPlaybackDurationMs(
   }
 
   return item.durationSeconds * 1000;
+}
+
+export function resolvePlayerItemPresentation(
+  item: PlayerManifestItem
+): ResolvedPlayerItemPresentation {
+  const cropFocusX = resolveBoundedNumber(item.cropFocusX, 0, 1, 0.5);
+  const cropFocusY = resolveBoundedNumber(item.cropFocusY, 0, 1, 0.5);
+  const trimStartSeconds = resolveBoundedNumber(
+    item.trimStartSeconds,
+    0,
+    86_400,
+    0
+  );
+  const trimEndCandidate = resolveBoundedNumber(
+    item.trimEndSeconds,
+    0,
+    86_400,
+    null
+  );
+  const trimEndSeconds =
+    trimEndCandidate !== null && trimEndCandidate > trimStartSeconds
+      ? trimEndCandidate
+      : null;
+  const visibleFrom = parseOptionalTimestamp(item.visibleFrom);
+  const visibleUntil = parseOptionalTimestamp(item.visibleUntil);
+
+  return {
+    accessibilityName:
+      resolveOptionalLabel(item.accessibilityName) ??
+      resolveOptionalLabel(item.displayTitle) ??
+      item.title,
+    backgroundColor:
+      typeof item.backgroundColor === "string" &&
+      /^#[0-9a-f]{6}$/i.test(item.backgroundColor)
+        ? item.backgroundColor
+        : null,
+    cropFocusX,
+    cropFocusY,
+    displayTitle: resolveOptionalLabel(item.displayTitle) ?? item.title,
+    enabled: item.enabled !== false,
+    transition: ["cut", "crossfade", "wipe"].includes(
+      String(item.transition)
+    )
+      ? (item.transition as PlayerManifestTransition)
+      : "cut",
+    trimEndSeconds,
+    trimStartSeconds,
+    visibleFrom,
+    visibleUntil:
+      visibleUntil !== null &&
+      (visibleFrom === null || visibleUntil > visibleFrom)
+        ? visibleUntil
+        : null,
+    volumePercent: resolveBoundedNumber(
+      item.volumePercent,
+      0,
+      100,
+      100
+    )
+  };
+}
+
+export function isPlayerManifestItemPlayable(
+  item: PlayerManifestItem,
+  at = Date.now()
+) {
+  const presentation = resolvePlayerItemPresentation(item);
+  if (!presentation.enabled) return false;
+  if (presentation.visibleFrom !== null && at < presentation.visibleFrom) {
+    return false;
+  }
+  if (presentation.visibleUntil !== null && at >= presentation.visibleUntil) {
+    return false;
+  }
+  return true;
+}
+
+export function findFirstPlayableItemIndex(
+  items: PlayerManifestItem[],
+  at = Date.now()
+) {
+  return items.findIndex((item) => isPlayerManifestItemPlayable(item, at));
+}
+
+export function findNextPlayableItem(
+  items: PlayerManifestItem[],
+  currentIndex: number,
+  at = Date.now()
+): PlayerManifestItemSelection | null {
+  if (items.length === 0) return null;
+
+  for (let offset = 1; offset <= items.length; offset += 1) {
+    const index = (currentIndex + offset) % items.length;
+    const item = items[index];
+    if (item && isPlayerManifestItemPlayable(item, at)) {
+      return {
+        index,
+        wrapped: currentIndex + offset >= items.length
+      };
+    }
+  }
+
+  return null;
+}
+
+export function getPlayerItemPlaybackDurationMs(
+  item: PlayerManifestItem,
+  overrideMs?: number | null,
+  at = Date.now()
+) {
+  const durationMs = getPlaybackDurationMs(item, overrideMs);
+  const { visibleUntil } = resolvePlayerItemPresentation(item);
+  if (visibleUntil === null) return durationMs;
+  return Math.max(0, Math.min(durationMs, visibleUntil - at));
+}
+
+export function getNextPlayerVisibilityChangeDelayMs(
+  items: PlayerManifestItem[],
+  at = Date.now()
+) {
+  const nextChangeAt = items.reduce<number | null>((nearest, item) => {
+    const { enabled, visibleFrom, visibleUntil } =
+      resolvePlayerItemPresentation(item);
+    if (!enabled) return nearest;
+
+    return [visibleFrom, visibleUntil].reduce<number | null>(
+      (candidate, timestamp) =>
+        timestamp !== null &&
+        timestamp > at &&
+        (candidate === null || timestamp < candidate)
+          ? timestamp
+          : candidate,
+      nearest
+    );
+  }, null);
+
+  return nextChangeAt === null ? null : Math.max(0, nextChangeAt - at);
+}
+
+function resolveBoundedNumber<TFallback extends number | null>(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+  fallback: TFallback
+): number | TFallback {
+  return typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= minimum &&
+    value <= maximum
+    ? value
+    : fallback;
+}
+
+function parseOptionalTimestamp(value: unknown) {
+  if (typeof value !== "string") return null;
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+function resolveOptionalLabel(value: unknown) {
+  if (typeof value !== "string") return null;
+  const label = value.trim();
+  return label ? label.slice(0, 240) : null;
 }
