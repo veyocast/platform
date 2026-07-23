@@ -53,6 +53,24 @@ belangrijkste gedragsgrenzen zijn:
 - korte desktopviewports gebruiken de beschikbare hoogte zonder een
   geforceerde 720px-editor.
 
+### Vastgelegde screenshots
+
+De screenshots zijn rechtstreeks uit de lokale live tenantflow genomen met de
+reproduceerbare pilotseed. Next.js-developmentchrome is niet onderdeel van de
+beelden.
+
+- `docs/screenshots/publisher-dashboard-desktop.png` — 1440 × 1000;
+- `docs/screenshots/publisher-dashboard-mobile.png` — 390 × 844;
+- `docs/screenshots/publisher-screens-desktop.png` — 1440 × 1000;
+- `docs/screenshots/publisher-screens-mobile.png` — 390 × 844;
+- `docs/screenshots/publisher-media-desktop.png` — 1440 × 1000;
+- `docs/screenshots/publisher-media-mobile.png` — 390 × 844.
+
+De visuele controle hiervan heeft twee aanvullende correcties opgeleverd:
+SummaryStrip-inhoud kan niet meer door de vaste shellhoogte worden
+samengedrukt en previews gebruiken uitsluitend een werkelijk bestaande
+neutrale design-token.
+
 ## 4. Uitgevoerde controles
 
 | Controle | Resultaat |
@@ -70,12 +88,12 @@ belangrijkste gedragsgrenzen zijn:
 
 ## 5. Grote keuzes die expliciet openblijven
 
-1. Een versieerbaar visueel template-rendercontract voor Control, manifest en
-   Player.
-2. Een algemene, versleutelde multi-intent offlinequeue met
-   afhankelijkheden en mergebeleid.
-3. Een afzonderlijke planningcapability en de bijbehorende tenantrolmatrix.
-4. Optionele server-sync voor persoonlijke UI-voorkeuren.
+| Vraag | Waarom dit een echte productkeuze is | Voorlopig advies |
+|---|---|---|
+| Moeten templates alleen complete playlists kopiëren, of ook invulbare tekst-, beeld- en kleurvelden aanbieden? | Invulbare templates vereisen één versieerbaar rendercontract in Control, release-manifest én Player. Een lokale UI-oplossing zou later gepubliceerde content kunnen breken. | Begin met de veilige playlisttemplates; ontwerp daarna een afzonderlijk templatecontract met migratiepad. |
+| Moeten álle offline wijzigingen automatisch in een wachtrij komen? | Meerdere offline acties kunnen elkaar tegenspreken, bijvoorbeeld verwijderen en daarna verplaatsen. Dat vraagt versleuteling, volgorde, afhankelijkheden, conflictweergave en expliciet mergebeleid. | Houd uploads hervatbaar en Studio-herstel coherent; bouw een algemene queue pas met een uitgewerkt conflictmodel. |
+| Krijgt planning een eigen permission? | Nu mag iemand die playlists kan wijzigen ook plannen. Een nieuwe permission verandert rollen, uitnodigingen, RLS, audit en supportdocumentatie. | Voeg `schedule:write` pas toe wanneer vaststaat welke tenantrollen wel content maar geen planning mogen beheren. |
+| Moeten thema, dichtheid, kolommen en opgeslagen views tussen apparaten synchroniseren? | Serversync maakt persoonlijke voorkeuren profieldata en vereist bewaartermijnen, privacykeuzes en gedrag bij gedeelde accounts of apparaten. | Houd voorkeuren voorlopig lokaal; bied later opt-in accountsync aan zonder tenantinstellingen ermee te vermengen. |
 
 Deze keuzes zijn niet nodig om de geleverde Publisher-workflows te gebruiken,
 maar mogen niet impliciet via een lokale component of ad-hoc databasekolom
@@ -85,7 +103,7 @@ worden vastgezet.
 
 - deployment naar staging en production;
 - echte live-Pilotflow tegen een geconfigureerde Supabase-omgeving;
-- fysieke Android TV/LG-validatie;
+- fysieke Android-validatie op telefoon/tablet/TV en LG-validatie;
 - 24-uurs mixed-media soak;
 - restore-drill en operationele alertdelivery.
 
