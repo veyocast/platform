@@ -67,6 +67,37 @@ test("pairing stays completely inside a short Android TV viewport", async ({
   });
 });
 
+test("pairing uses compact TV density on a 720p display", async ({ page }) => {
+  await page.setViewportSize({ height: 720, width: 1280 });
+  await page.goto(playerURL);
+  await expect(page.getByLabel("Pairingcode")).toBeVisible();
+  await expect(page.getByLabel("Device setupstatus")).toBeVisible();
+
+  const layout = await page.evaluate(() => {
+    const stage = document.querySelector<HTMLElement>(".pairing-stage");
+    const logo = document.querySelector<HTMLElement>(".pairing-logo");
+    const title = document.querySelector<HTMLElement>(".runtime-title");
+    const code = document.querySelector<HTMLElement>(".player-pairing-code");
+    if (!stage || !logo || !title || !code) return null;
+
+    const stageBox = stage.getBoundingClientRect();
+    return {
+      codeFontSize: Number.parseFloat(getComputedStyle(code).fontSize),
+      logoWidth: logo.getBoundingClientRect().width,
+      stageHeight: stageBox.height,
+      stageWidth: stageBox.width,
+      titleFontSize: Number.parseFloat(getComputedStyle(title).fontSize)
+    };
+  });
+
+  expect(layout).not.toBeNull();
+  expect(layout?.stageWidth).toBeLessThanOrEqual(1180);
+  expect(layout?.stageHeight).toBeLessThanOrEqual(640);
+  expect(layout?.logoWidth).toBeLessThanOrEqual(180);
+  expect(layout?.titleFontSize).toBeLessThanOrEqual(44);
+  expect(layout?.codeFontSize).toBeLessThanOrEqual(68);
+});
+
 test("player pairing becomes static when reduced motion is requested", async ({
   page
 }) => {

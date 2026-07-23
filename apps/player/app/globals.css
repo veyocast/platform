@@ -655,26 +655,90 @@ body {
   }
 }
 
-@media (max-height: 600px) and (min-aspect-ratio: 4 / 5) {
+@media (max-height: 800px) and (min-aspect-ratio: 4 / 5) {
   .runtime-shell--pairing {
-    --runtime-viewport-gutter: clamp(12px, 3vh, 18px);
+    --runtime-viewport-gutter: clamp(18px, 3vh, 28px);
+  }
+
+  .pairing-stage {
+    height: min(640px, calc(100dvh - var(--runtime-viewport-gutter) - var(--runtime-viewport-gutter)));
+    width: min(1180px, 96%);
   }
 
   .pairing-stage__primary,
   .pairing-stage__status {
-    padding: clamp(18px, 4vh, 24px);
+    padding: clamp(18px, 3vh, 28px);
   }
 
   .pairing-logo {
-    width: 180px;
+    width: clamp(136px, min(16vw, 21vh), 180px);
+  }
+
+  .pairing-heading {
+    gap: 8px;
+  }
+
+  .runtime-kicker {
+    font-size: 12px;
+    gap: 8px;
+  }
+
+  .runtime-title {
+    font-size: clamp(30px, min(3.8vw, 5.2vh), 44px);
+  }
+
+  .runtime-copy {
+    font-size: clamp(14px, min(1.3vw, 2.4vh), 17px);
+    line-height: 1.4;
   }
 
   .pairing-code-group {
-    margin-top: clamp(14px, 3vh, 18px);
+    gap: 6px;
+    margin-top: clamp(12px, 2vh, 16px);
+  }
+
+  .pairing-code-label,
+  .pairing-status-eyebrow {
+    font-size: 12px;
+  }
+
+  .player-pairing-code {
+    font-size: clamp(42px, min(5.6vw, 8vh), 68px);
+    min-height: clamp(72px, 14vh, 100px);
+    padding: 10px 20px;
+  }
+
+  .pairing-code-group > p,
+  .pairing-stage__status p {
+    font-size: 14px;
+    line-height: 1.4;
   }
 
   .pairing-stage__status {
-    gap: 14px;
+    gap: 10px;
+  }
+
+  .pairing-stage__status h2 {
+    font-size: clamp(24px, min(2.2vw, 4vh), 30px);
+    margin: 6px 0 8px;
+  }
+
+  .pairing-signal {
+    height: 72px;
+    width: 72px;
+  }
+
+  .player-diagnostics div {
+    min-height: 38px;
+    padding: 6px 0;
+  }
+
+  .player-diagnostics dt {
+    font-size: 12px;
+  }
+
+  .player-diagnostics dd {
+    font-size: 13px;
   }
 }
 
