@@ -154,7 +154,8 @@ function logScheduleResult(
   result: ScheduleRunResult
 ) {
   if (result.status === "completed") {
-    logger.info("publisher.schedule.evaluated", {
+    const eventLogger = result.appliedCount === 0 ? logger.debug : logger.info;
+    eventLogger("publisher.schedule.evaluated", {
       appliedCount: result.appliedCount,
       evaluatedAt: result.evaluatedAt
     });
