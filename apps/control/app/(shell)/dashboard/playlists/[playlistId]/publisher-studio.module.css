@@ -1680,7 +1680,12 @@
     color: var(--vc-action-contrast);
   }
 
-  .mobileActionBar [data-disabled] {
+  .mobileActionBar [data-disabled],
+  .mobileActionBar button:disabled {
+    background: var(--vc-surface-muted);
+    border-color: var(--vc-border);
+    color: var(--vc-text-muted);
+    cursor: not-allowed;
     opacity: 0.5;
     pointer-events: none;
   }
@@ -1831,7 +1836,8 @@
   }
 
   .durationStepper {
-    grid-column: 4;
+    grid-column: 3 / 5;
+    grid-row: 2;
     justify-self: start;
     margin-left: var(--vc-space-4);
     min-height: 44px;

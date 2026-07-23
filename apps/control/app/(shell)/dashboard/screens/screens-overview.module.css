@@ -64,6 +64,13 @@
   width: 16px;
 }
 
+@media (pointer: coarse) {
+  .selectAll,
+  .viewTab {
+    min-height: 44px;
+  }
+}
+
 .screenGrid {
   display: grid;
   gap: var(--vc-space-16);

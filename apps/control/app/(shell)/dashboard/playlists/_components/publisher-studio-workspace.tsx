@@ -813,7 +813,7 @@ export function PublisherStudioWorkspace({
             {mediaLibrary}
           </aside>
 
-          <main
+          <section
             aria-labelledby="storyboard-title"
             className={`${styles.panel} ${styles.storyboardPanel}`}
           >
@@ -841,7 +841,7 @@ export function PublisherStudioWorkspace({
               sections={sections}
               selectedId={selectedId}
             />
-          </main>
+          </section>
 
           <aside
             aria-label="Iteminstellingen"

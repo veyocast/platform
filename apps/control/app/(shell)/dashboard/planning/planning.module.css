@@ -194,6 +194,12 @@
   color: var(--vc-text);
 }
 
+@media (pointer: coarse) {
+  .viewTabs a {
+    min-height: 44px;
+  }
+}
+
 .targetFilter {
   align-items: center;
   display: flex;

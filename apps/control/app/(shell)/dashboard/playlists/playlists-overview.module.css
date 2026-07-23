@@ -40,6 +40,12 @@
   width: 16px;
 }
 
+@media (pointer: coarse) {
+  .viewTab {
+    min-height: 44px;
+  }
+}
+
 .playlistGrid {
   display: grid;
   gap: var(--vc-space-16);

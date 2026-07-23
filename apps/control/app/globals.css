@@ -4077,7 +4077,7 @@ html[data-density="compact"] .control-nav__link {
 
   .settings-savebar {
     align-items: stretch;
-    bottom: var(--vc-space-8);
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
     flex-direction: column;
   }
 
@@ -4095,6 +4095,23 @@ html[data-density="compact"] .control-nav__link {
     max-width: none;
     right: var(--vc-space-8);
     width: auto;
+  }
+}
+
+.page-action-group {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-8);
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .page-action-group > * {
+    flex: 1 1 12rem;
+    justify-content: center;
+    min-height: var(--vc-component-height-button-touch);
+    min-width: 0;
   }
 }
 
