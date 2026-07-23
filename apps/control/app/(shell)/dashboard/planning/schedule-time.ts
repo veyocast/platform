@@ -76,13 +76,19 @@ function zonedParts(date: Date, timeZone: string): DateTimeParts {
       .map((part) => [part.type, Number(part.value)])
   );
   return {
-    day: values.day,
-    hour: values.hour,
-    minute: values.minute,
-    month: values.month,
-    second: values.second,
-    year: values.year
+    day: requiredPart(values, "day"),
+    hour: requiredPart(values, "hour"),
+    minute: requiredPart(values, "minute"),
+    month: requiredPart(values, "month"),
+    second: requiredPart(values, "second"),
+    year: requiredPart(values, "year")
   };
+}
+
+function requiredPart(values: Record<string, number>, key: string) {
+  const value = values[key];
+  if (!Number.isFinite(value)) throw new Error("De datum kon niet in deze tijdzone worden gelezen.");
+  return value as number;
 }
 
 function partsAsUtcEpoch(parts: DateTimeParts) {
