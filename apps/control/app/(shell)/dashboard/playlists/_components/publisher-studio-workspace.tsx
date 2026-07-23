@@ -821,7 +821,7 @@ export function PublisherStudioWorkspace({
               items={orderedItems}
               onSelect={(id) => {
                 setSelectedId(id);
-                if (window.matchMedia("(max-width: 1180px)").matches) {
+                if (window.matchMedia("(max-width: 1319px)").matches) {
                   setInspectorSheetOpen(true);
                 }
               }}

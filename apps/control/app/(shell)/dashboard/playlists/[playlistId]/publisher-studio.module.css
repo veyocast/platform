@@ -7,7 +7,7 @@
   border-radius: var(--vc-radius-lg);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  height: max(720px, calc(100dvh - var(--vc-component-height-topbar) - 64px));
+  height: max(720px, calc(100dvh - 32px));
   min-height: 0;
   overflow: hidden;
   position: relative;
@@ -1567,7 +1567,7 @@
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1319px) {
   .workspace {
     grid-template-columns: minmax(220px, 30fr) minmax(0, 70fr);
   }
@@ -1584,7 +1584,7 @@
 @media (max-width: 900px) {
   .studio {
     height: auto;
-    min-height: calc(100dvh - var(--vc-component-height-topbar) - 48px);
+    min-height: calc(100dvh - 32px);
     overflow: visible;
   }
 
@@ -1625,7 +1625,7 @@
     align-items: stretch;
     background: color-mix(in srgb, var(--vc-surface) 97%, transparent);
     border-top: 1px solid var(--vc-border);
-    bottom: 0;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
     display: grid;
     gap: var(--vc-space-6);
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1676,7 +1676,7 @@
     border: 0;
     border-radius: 0;
     margin: calc(-1 * var(--vc-space-16));
-    min-height: calc(100dvh - var(--vc-component-height-topbar));
+    min-height: calc(100dvh - 16px);
   }
 
   .editorHeader {
@@ -1686,7 +1686,7 @@
     min-height: 64px;
     padding: var(--vc-space-8) var(--vc-space-10);
     position: sticky;
-    top: var(--vc-component-height-topbar);
+    top: 0;
   }
 
   .backLink {

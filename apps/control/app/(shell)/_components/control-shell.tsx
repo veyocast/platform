@@ -132,6 +132,8 @@ export function ControlShell({
   const activeContextName = hasTenantNavigationContext
     ? session.tenant
     : session.organization;
+  const isPlaylistStudio =
+    /^\/dashboard\/playlists\/[^/]+\/?$/.test(pathname);
   const topbarStatusTone = !session.isLive
     ? "info"
     : hasTenantNavigationContext && session.tenantStatus === "paused"
@@ -503,7 +505,10 @@ export function ControlShell({
         </div>
       </aside>
 
-      <main className="control-main">
+      <main
+        className={`control-main${isPlaylistStudio ? " control-main--editor" : ""}`}
+      >
+        {!isPlaylistStudio ? (
         <header className="control-topbar" aria-label="Control status">
           <div className="topbar-context">
             <IconButton
@@ -564,7 +569,12 @@ export function ControlShell({
             ) : null}
           </div>
         </header>
-        <div className="control-content" id="control-content" tabIndex={-1}>
+        ) : null}
+        <div
+          className={`control-content${isPlaylistStudio ? " control-content--editor" : ""}`}
+          id="control-content"
+          tabIndex={-1}
+        >
           {children}
         </div>
       </main>

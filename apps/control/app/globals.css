@@ -527,6 +527,10 @@ a {
   overscroll-behavior: contain;
 }
 
+.control-main--editor {
+  grid-template-rows: minmax(0, 1fr);
+}
+
 .control-topbar {
   align-items: center;
   background: var(--vc-background);
@@ -650,6 +654,10 @@ kbd {
   justify-content: center;
   min-width: 0;
   padding: var(--vc-space-32);
+}
+
+.control-content--editor {
+  padding: var(--vc-space-16);
 }
 
 .page-stack {
@@ -2918,6 +2926,10 @@ kbd {
     padding: var(--vc-space-24) var(--vc-space-16) var(--vc-space-32);
   }
 
+  .control-content--editor {
+    padding-top: var(--vc-space-16);
+  }
+
   .topbar-context__status,
   .topbar-help,
   .command-search span,
@@ -4318,6 +4330,10 @@ html[data-density="compact"] .control-nav__link {
 
   .control-shell[data-navigation-scope="tenant"] .control-content {
     padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .control-shell[data-navigation-scope="tenant"] .control-content--editor {
+    padding-bottom: calc(136px + env(safe-area-inset-bottom, 0px));
   }
 
   .control-mobile-nav {
