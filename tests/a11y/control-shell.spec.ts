@@ -15,33 +15,27 @@ test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   await expect(page.getByText("Deze route simuleert daarom geen klant")).toBeVisible();
 });
 
-test("collapsed desktop navigation remains keyboard restorable", async ({ page }) => {
+test("fixed Publisher navigation remains keyboard reachable", async ({ page }) => {
   await page.setViewportSize({ height: 900, width: 1280 });
   await page.goto("/dashboard");
-  await page.evaluate(() => {
-    window.localStorage.setItem("veyocast-control-sidebar-collapsed", "true");
-  });
-  await page.reload();
+  await page.waitForLoadState("networkidle");
 
-  const expandButton = page.getByRole("button", {
-    name: "Navigatie uitklappen"
-  });
-  await expect(expandButton).toBeVisible();
-  await expandButton.focus();
-  await expect(expandButton).toBeFocused();
-  await page.keyboard.press("Enter");
+  const sidebar = page.getByLabel("Control navigatie");
+  const overview = sidebar.getByRole("link", { name: /Overzicht/ });
+  await expect(sidebar).toHaveCSS("width", "224px");
+  await expect(sidebar.locator(".control-brand__logo--inverse")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Navigatie inklappen" })
-  ).toBeVisible();
-  await expect(
-    page.getByLabel("Control navigatie").getByText("Dagelijkse operatie en aandachtspunten")
-  ).toBeVisible();
+    page.getByRole("button", { name: /Navigatie (in|uit)klappen/ })
+  ).toHaveCount(0);
+  await overview.focus();
+  await expect(overview).toBeFocused();
 });
 
 test("control shell reflows across canonical viewport widths", async ({ page }) => {
-  for (const width of [320, 390, 768, 1024, 1100, 1280]) {
+  for (const width of [320, 390, 768, 1024, 1100, 1280, 1920]) {
     await page.setViewportSize({ height: 900, width });
     await page.goto("/dashboard");
+    await page.waitForLoadState("networkidle");
 
     expect(
       await page.evaluate(
@@ -49,13 +43,43 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
       )
     ).toBe(true);
 
-    if (width < 1024) {
+    if (width < 768) {
+      await expect(
+        page.getByRole("button", { name: "Navigatie openen" })
+      ).toHaveCount(0);
+      const mobileNavigation = page.getByRole("navigation", {
+        name: "Mobiele hoofdnavigatie"
+      });
+      await expect(mobileNavigation).toBeVisible();
+      await expect(
+        mobileNavigation.getByRole("link", { name: "Home" })
+      ).toHaveAttribute("aria-current", "page");
+
+      for (const control of await mobileNavigation
+        .locator("a, button")
+        .all()) {
+        const box = await control.boundingBox();
+        expect(box?.height).toBeGreaterThanOrEqual(44);
+        expect(box?.width).toBeGreaterThanOrEqual(44);
+      }
+
+      const moreButton = mobileNavigation.getByRole("button", { name: "Meer" });
+      await expect(moreButton).toBeEnabled();
+      await moreButton.click();
+      await expect(moreButton).toHaveAttribute("aria-expanded", "true");
+      const navigation = page.getByRole("navigation", {
+        name: "Hoofdnavigatie"
+      });
+      await expect(navigation.getByRole("link", { name: /Instellingen/ })).toBeVisible();
+      await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
+    } else if (width < 1024) {
       const menuButton = page.getByRole("button", { name: "Navigatie openen" });
       const quickNavigation = page.getByRole("button", {
         name: "Snel naar een onderdeel"
       });
 
       for (const control of [menuButton, quickNavigation]) {
+        await expect(control).toBeEnabled();
         const box = await control.boundingBox();
         expect(box?.height).toBeGreaterThanOrEqual(44);
         expect(box?.width).toBeGreaterThanOrEqual(44);
@@ -63,13 +87,42 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
 
       await menuButton.click();
       const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
-      await expect(navigation.getByText("Verenigingscontext", { exact: true })).toBeVisible();
-      await expect(navigation.getByRole("heading", { name: "Content" })).toBeVisible();
+      await expect(navigation.getByRole("heading", { name: "Publisher" })).toBeAttached();
+      await expect(navigation.getByRole("link", { name: /Instellingen/ })).toBeVisible();
       await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
     } else {
-      await expect(page.getByRole("navigation", { name: "Hoofdnavigatie" })).toBeVisible();
+      const sidebar = page.getByLabel("Control navigatie");
+      await expect(sidebar).toHaveCSS("width", "224px");
+      await expect(
+        page.getByRole("navigation", { name: "Hoofdnavigatie" })
+      ).toBeVisible();
     }
   }
+});
+
+test("mobile navigation never mixes tenant and platform destinations", async ({
+  page
+}) => {
+  await page.setViewportSize({ height: 844, width: 390 });
+  await page.goto("/dashboard");
+  await page.waitForLoadState("networkidle");
+
+  const mobileNavigation = page.getByRole("navigation", {
+    name: "Mobiele hoofdnavigatie"
+  });
+  await expect(mobileNavigation).toBeVisible();
+  await expect(mobileNavigation.getByRole("link", { name: "Playlists" })).toBeVisible();
+  await expect(mobileNavigation.getByRole("link", { name: "Tenants" })).toHaveCount(0);
+
+  await page.goto("/platform");
+  await expect(mobileNavigation).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Navigatie openen" })).toBeVisible();
+  await page.getByRole("button", { name: "Navigatie openen" }).click();
+  const platformNavigation = page.getByRole("navigation", {
+    name: "Hoofdnavigatie"
+  });
+  await expect(platformNavigation.getByRole("link", { name: /Tenants/ })).toBeVisible();
+  await expect(platformNavigation.getByRole("link", { name: /Playlists/ })).toHaveCount(0);
 });
 
 test("all Control overview routes remain inside the viewport", async ({ page }) => {

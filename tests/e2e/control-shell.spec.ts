@@ -13,16 +13,14 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
 
   const nav = page.getByRole("navigation", { name: "Hoofdnavigatie" });
   await expect(nav.getByRole("link", { name: /Platform/ })).toHaveCount(0);
-  await expect(nav.getByText("Verenigingscontext")).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Overzicht/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Releases/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Schermen/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
-  await expect(nav.getByRole("heading", { name: "Overzicht" }).first()).toBeVisible();
-  await expect(nav.getByRole("heading", { name: "Content" })).toBeVisible();
-  await expect(nav.getByRole("heading", { name: "Distributie" })).toBeVisible();
-  await expect(nav.getByRole("heading", { name: "Organisatie" }).first()).toBeVisible();
+  await expect(nav.getByRole("heading", { name: "Publisher" })).toBeAttached();
+  await expect(nav.getByRole("heading", { name: "Beheer" })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
 
   await nav.getByRole("link", { name: /Media/ }).click();
@@ -85,7 +83,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   ).toBeDisabled();
 
   await page.goto("/dashboard/auditlog");
-  await nav.getByRole("link", { name: /Auditlog/ }).click();
+  await nav.getByRole("link", { name: /Activiteit/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/auditlog$/);
   await expect(page.getByRole("heading", { name: "Auditlog" })).toBeVisible();
 });
@@ -138,62 +136,53 @@ test("supports the public login and auth callback routes", async ({ page }) => {
   );
 });
 
-test("collapses to an icon rail and always exposes the desktop restore control", async ({
+test("keeps the Publisher sidebar fixed at the canonical desktop width", async ({
   page
 }) => {
   await page.setViewportSize({ height: 900, width: 1280 });
   await page.goto("/dashboard");
+  await page.waitForLoadState("networkidle");
   await page.evaluate(() => {
     window.localStorage.setItem("veyocast-control-sidebar-collapsed", "true");
   });
   await page.reload();
 
   const sidebar = page.getByLabel("Control navigatie");
-  const expandButton = page.getByRole("button", {
-    name: "Navigatie uitklappen"
-  });
-  await expect(expandButton).toBeVisible();
-  await expect(expandButton).toHaveAttribute("aria-expanded", "false");
-  await expect(sidebar).toHaveCSS("width", "72px");
+  await expect(sidebar).toHaveCSS("width", "224px");
   await expect(
-    sidebar.getByRole("link", { exact: true, name: "Dashboard" })
+    sidebar.getByRole("link", { name: /Overzicht/ })
   ).toBeVisible();
-  await expect(sidebar.getByText("Dagelijkse operatie en aandachtspunten")).toBeHidden();
+  await expect(sidebar.locator(".control-brand__logo--inverse")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Navigatie (in|uit)klappen/ })
+  ).toHaveCount(0);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth
     )
   ).toBe(true);
-
-  await expandButton.click();
-  const collapseButton = page.getByRole("button", {
-    name: "Navigatie inklappen"
-  });
-  await expect(collapseButton).toBeVisible();
-  await expect(collapseButton).toHaveAttribute("aria-expanded", "true");
-  await expect(sidebar).toHaveCSS("width", "248px");
-  await expect(
-    sidebar.getByText("Dagelijkse operatie en aandachtspunten")
-  ).toBeVisible();
-
-  await collapseButton.click();
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Navigatie uitklappen" })
-  ).toBeVisible();
 });
 
 test("keeps the sidebar logo fixed while navigation and content scroll independently", async ({
   page
 }) => {
   await page.setViewportSize({ height: 480, width: 1280 });
-  await page.goto("/dashboard/media");
+  await page.goto("/dashboard/pilot");
+  await page.waitForLoadState("networkidle");
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Pilotflow" })
+  ).toBeVisible();
 
   const sidebar = page.getByLabel("Control navigatie");
-  const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
+  const navigation = page.getByRole("navigation", {
+    exact: true,
+    name: "Hoofdnavigatie"
+  });
   const main = page.getByRole("main");
   const brand = sidebar.locator(".control-brand");
-  const brandBefore = await brand.boundingBox();
+  await expect(brand).toBeVisible();
+  await expect.poll(async () => (await brand.boundingBox())?.y).toBe(16);
+  const brandBeforeY = (await brand.boundingBox())?.y;
 
   await expect(sidebar).toHaveCSS("overflow", "hidden");
   await expect(navigation).toHaveCSS("overflow-y", "auto");
@@ -201,8 +190,7 @@ test("keeps the sidebar logo fixed while navigation and content scroll independe
 
   await main.evaluate((element) => element.scrollTo({ top: 900 }));
   expect(await main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-  const brandAfterMainScroll = await brand.boundingBox();
-  expect(brandAfterMainScroll?.y).toBe(brandBefore?.y);
+  expect((await brand.boundingBox())?.y).toBe(brandBeforeY);
 
   const navCanScroll = await navigation.evaluate(
     (element) => element.scrollHeight > element.clientHeight
@@ -210,8 +198,7 @@ test("keeps the sidebar logo fixed while navigation and content scroll independe
   expect(navCanScroll).toBe(true);
   await navigation.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
   expect(await navigation.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-  const brandAfterNavScroll = await brand.boundingBox();
-  expect(brandAfterNavScroll?.y).toBe(brandBefore?.y);
+  expect((await brand.boundingBox())?.y).toBe(brandBeforeY);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });
 
@@ -219,46 +206,57 @@ test("supports command navigation and the compact mobile navigation flow", async
   page
 }) => {
   await page.goto("/dashboard");
+  await page.waitForLoadState("networkidle");
 
-  await page.getByRole("button", { name: "Snel naar een onderdeel" }).click();
+  const commandButton = page.getByRole("button", {
+    name: "Snel naar een onderdeel"
+  });
+  await expect(commandButton).toBeEnabled();
+  await commandButton.click();
   const commandPalette = page.getByRole("dialog", { name: "Snel naar een onderdeel" });
   await expect(commandPalette).toBeVisible();
   await commandPalette
     .getByPlaceholder("Zoek schermen, media, playlists of releases")
     .fill("Schermen");
-  await commandPalette.getByRole("link", { name: /Schermen/ }).click();
+  await commandPalette.locator('a[href="/dashboard/screens"]').click();
   await expect(page).toHaveURL(/\/dashboard\/screens$/);
 
   await page.setViewportSize({ height: 844, width: 390 });
   const topbar = page.getByLabel("Control status");
-  const menuButton = page.getByRole("button", { name: "Navigatie openen" });
   const searchButton = page.getByRole("button", { name: "Snel naar een onderdeel" });
+  const mobileNavigation = page.getByRole("navigation", {
+    name: "Mobiele hoofdnavigatie"
+  });
 
   await expect(topbar).toHaveCSS("min-height", "64px");
   await Promise.all([
-    expect(menuButton).toBeVisible(),
+    expect(page.getByRole("button", { name: "Navigatie openen" })).toHaveCount(0),
     expect(searchButton).toBeVisible(),
+    expect(mobileNavigation).toBeVisible(),
+    expect(
+      mobileNavigation.getByRole("link", { name: "Schermen" })
+    ).toHaveAttribute("aria-current", "page"),
     expect(page.getByRole("button", { name: "Open actiepunten" })).toHaveCount(0),
     expect(page.getByRole("link", { name: "Nieuwe playlist" })).toHaveCount(0)
   ]);
 
-  const [menuBox, searchBox, topbarBox] = await Promise.all([
-    menuButton.boundingBox(),
+  const [searchBox, topbarBox] = await Promise.all([
     searchButton.boundingBox(),
     topbar.boundingBox()
   ]);
 
-  expect(menuBox).not.toBeNull();
   expect(searchBox).not.toBeNull();
   expect(topbarBox).not.toBeNull();
-  expect(menuBox!.x).toBeLessThan(searchBox!.x);
   expect(searchBox!.y + searchBox!.height).toBeLessThanOrEqual(
     topbarBox!.y + topbarBox!.height
   );
 
-  await menuButton.click();
+  await mobileNavigation.getByRole("button", { name: "Meer" }).click();
 
-  const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
+  const navigation = page.getByRole("navigation", {
+    exact: true,
+    name: "Hoofdnavigatie"
+  });
   await expect(navigation).toBeVisible();
   await navigation.getByRole("link", { name: /Media/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/media$/);
