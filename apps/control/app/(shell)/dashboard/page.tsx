@@ -4,11 +4,19 @@ import { hasCapability } from "@veyocast/auth";
 import {
   Alert,
   Button,
-  DataTable,
   PageHeader,
-  StatusPill,
-  SummaryStrip
+  StatusPill
 } from "@veyocast/ui";
+import {
+  ArrowRight,
+  CalendarPlus,
+  CloudUpload,
+  ListPlus,
+  MonitorUp,
+  Radio,
+  RefreshCw,
+  Server
+} from "lucide-react";
 
 import { requireTenantControlSession } from "../../../lib/control-session";
 import { deriveOperationalDashboard } from "../../../lib/control-operations";
@@ -17,6 +25,7 @@ import {
   type TenantOverview
 } from "../../../lib/control-overview";
 import { OperationalActionInbox } from "../_components/operational-action-inbox";
+import styles from "./publisher-overview.module.css";
 
 export default async function DashboardPage() {
   const session = await requireTenantControlSession();
@@ -53,9 +62,37 @@ function LiveDashboard({
 }) {
   const devices = new Map(data.devices.map((device) => [device.screen_id, device]));
   const actionableSignals = operations.signals.filter((signal) => signal.severity !== "info");
-  const hasCriticalSignal = operations.signals.some(
-    (signal) => signal.severity === "critical"
+  const unsyncedScreenCount = data.devices.filter(
+    (device) =>
+      device.status === "paired" &&
+      device.desired_release_id &&
+      device.desired_release_id !== device.active_release_id
+  ).length;
+  const unpublishedDraftCount = data.playlists.filter(
+    (playlist) =>
+      playlist.status === "draft" &&
+      !data.releases.some((release) => release.playlist_id === playlist.id)
+  ).length;
+  const mediaBytes = data.media.reduce(
+    (total, asset) => total + Number(asset.file_size_bytes ?? 0),
+    0
   );
+  const releaseById = new Map(data.releases.map((release) => [release.id, release]));
+  const playlistById = new Map(data.playlists.map((playlist) => [playlist.id, playlist]));
+  const activeAssignments = data.screens
+    .map((screen) => {
+      const device = devices.get(screen.id);
+      const releaseId = device?.active_release_id ?? screen.assigned_release_id;
+      const release = releaseId ? releaseById.get(releaseId) : undefined;
+      const playlistId = release?.playlist_id ?? screen.assigned_playlist_id;
+      return {
+        device,
+        playlist: playlistId ? playlistById.get(playlistId) : undefined,
+        release,
+        screen
+      };
+    })
+    .filter(({ playlist, release }) => playlist || release);
   const onboardingComplete = operations.onboarding.filter((step) => step.complete).length;
 
   return (
@@ -63,12 +100,13 @@ function LiveDashboard({
       <PageHeader
         actions={
           <Button asChild>
-            <Link href="/dashboard/playlists">
-              Playlists beheren
+            <Link href="/dashboard/playlists?nieuw=1">
+              <ListPlus aria-hidden="true" />
+              Nieuwe playlist
             </Link>
           </Button>
         }
-        description="Wat vandaag aandacht vraagt en hoe je vloot ervoor staat."
+        description="Publiceer content en houd in één oogopslag zicht op wat er live staat."
         eyebrow={tenant}
         title={`Welkom, ${userName}`}
       />
@@ -81,134 +119,243 @@ function LiveDashboard({
         </Alert>
       ) : null}
 
-      <OperationalActionInbox
-        signals={operations.signals.slice(0, 5)}
-        totalCount={operations.signals.length}
-      />
+      <section aria-label="Publisherstatus" className={styles.statusGrid}>
+        <StatusCard
+          detail="gekoppelde schermen bereikbaar"
+          href="/dashboard/screens?status=online"
+          icon={<Radio aria-hidden="true" />}
+          label="Schermen online"
+          tone={operations.onlineScreenCount === data.screens.length ? "success" : "warning"}
+          value={`${operations.onlineScreenCount} van ${data.screens.length}`}
+        />
+        <StatusCard
+          detail={unpublishedDraftCount ? "concepten wachten op publicatie" : "alles gepubliceerd"}
+          href="/dashboard/playlists?status=draft"
+          icon={<CloudUpload aria-hidden="true" />}
+          label="Publicatie gereed"
+          tone={unpublishedDraftCount ? "warning" : "success"}
+          value={String(unpublishedDraftCount)}
+        />
+        <StatusCard
+          detail={unsyncedScreenCount ? "schermen lopen nog achter" : "alle schermen zijn bij"}
+          href="/dashboard/screens?sync=pending"
+          icon={<RefreshCw aria-hidden="true" />}
+          label="Synchronisatie"
+          tone={unsyncedScreenCount ? "warning" : "success"}
+          value={unsyncedScreenCount ? `${unsyncedScreenCount} open` : "Actueel"}
+        />
+        <StatusCard
+          detail="opgeslagen originele media"
+          href="/dashboard/media"
+          icon={<Server aria-hidden="true" />}
+          label="Opslag"
+          tone="neutral"
+          value={formatBytes(mediaBytes)}
+        />
+      </section>
 
-      <SummaryStrip
-        aria-label="Operationele samenvatting"
-        className="dashboard-operational-summary control-motion-enter"
-        items={[
-          {
-            label: "Actie nodig",
-            tone:
-              hasCriticalSignal
-                ? "critical"
-                : actionableSignals.length
-                  ? "warning"
-                  : operations.signals.length
-                    ? "info"
-                    : "success",
-            value: operations.signals.length
-          },
-          {
-            label: "Schermen online",
-            tone:
-              operations.onlineScreenCount === data.screens.length
-                ? "success"
-                : "warning",
-            value: `${operations.onlineScreenCount}/${data.screens.length}`
-          },
-          {
-            label: "Media in verwerking",
-            tone: operations.processingMediaCount ? "info" : "success",
-            value: operations.processingMediaCount
-          },
-          {
-            label: "Playback bevestigd",
-            tone: operations.activePlaybackCount ? "success" : "neutral",
-            value: operations.activePlaybackCount
-          }
-        ]}
-      />
+      <nav aria-label="Snelle acties" className={styles.quickActions}>
+        <QuickAction href="/dashboard/playlists?nieuw=1" icon={<ListPlus aria-hidden="true" />}>
+          Nieuwe playlist
+        </QuickAction>
+        <QuickAction href="/dashboard/media?upload=1" icon={<CloudUpload aria-hidden="true" />}>
+          Media uploaden
+        </QuickAction>
+        {canManageScreens ? (
+          <QuickAction href="/dashboard/screens/new" icon={<MonitorUp aria-hidden="true" />}>
+            Scherm koppelen
+          </QuickAction>
+        ) : null}
+        <QuickAction href="/dashboard/planning?nieuw=1" icon={<CalendarPlus aria-hidden="true" />}>
+          Planning maken
+        </QuickAction>
+      </nav>
 
-      <section className="dashboard-layout dashboard-layout--operations">
-        <section className="workspace-section" aria-labelledby="fleet-health-title">
-          <div className="workspace-section__header">
-            <div>
-              <h2 className="workspace-section__title" id="fleet-health-title">Vlootgezondheid</h2>
-              <p className="work-panel__meta">Koppeling, verbinding en actieve release per scherm.</p>
-            </div>
-            <div className="workspace-section__actions">
-              {canManageScreens ? (
-                <Button asChild size="sm" variant="secondary">
-                  <Link href="/dashboard/screens/new">Scherm koppelen</Link>
-                </Button>
-              ) : null}
-              <Link className="table-action" href="/dashboard/screens">Alle schermen bekijken</Link>
-            </div>
-          </div>
-          {data.screens.length ? (
-            <DataTable caption="Actuele schermstatus binnen de actieve vereniging.">
-                <thead><tr><th scope="col">Scherm</th><th scope="col">Status</th><th scope="col">Locatie</th><th scope="col">Release</th><th scope="col">Actie</th></tr></thead>
-                <tbody>{data.screens.map((screen) => {
-                  const device = devices.get(screen.id);
-                  const online = isRecentlyOnline(device?.last_seen_at);
-                  return <tr key={screen.id}>
-                    <td data-label="Scherm"><span className="table-primary">{screen.name}</span></td>
-                    <td data-label="Status"><StatusPill label={online ? "Online" : device ? "Offline" : "Niet gekoppeld"} tone={online ? "success" : "warning"} /></td>
-                    <td data-label="Locatie">{screen.location || "Niet ingesteld"}</td>
-                    <td data-label="Release">{device?.active_release_id ? shortId(device.active_release_id) : "Geen actieve release"}</td>
-                    <td data-label="Actie"><Link className="table-action" href={`/dashboard/screens/${screen.id}`}>Diagnose</Link></td>
-                  </tr>;
-                })}</tbody>
-            </DataTable>
+      <section className={styles.dashboardGrid}>
+        <section className={styles.activePanel} aria-labelledby="active-content-title">
+          <SectionHeading
+            actionHref="/dashboard/screens"
+            actionLabel="Alle schermen"
+            description="De publicaties die spelers op dit moment daadwerkelijk melden."
+            id="active-content-title"
+            title="Nu actief"
+          />
+          {activeAssignments.length ? (
+            <ul className={styles.activeList}>
+              {activeAssignments.slice(0, 6).map(({ device, playlist, release, screen }) => {
+                const online = isRecentlyOnline(device?.last_seen_at);
+                return (
+                  <li key={screen.id}>
+                    <Link className={styles.activeLink} href={`/dashboard/screens/${screen.id}`}>
+                      <span className={styles.activeIcon} aria-hidden="true"><Radio /></span>
+                      <span className={styles.activeCopy}>
+                        <strong>{playlist?.name ?? "Actieve publicatie"}</strong>
+                        <small>{screen.name}{screen.location ? ` · ${screen.location}` : ""}</small>
+                      </span>
+                      <span className={styles.activeMeta}>
+                        <StatusPill label={online ? "Live" : "Offline cache"} tone={online ? "success" : "warning"} />
+                        <small>{release ? `Versie ${release.version}` : "Toegewezen concept"}</small>
+                      </span>
+                      <ArrowRight aria-hidden="true" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           ) : (
-            <p className="notice" role="status">Nog geen schermen. Maak een scherm aan en koppel daarna een Player.</p>
+            <div className={styles.emptyCompact} role="status">
+              <Radio aria-hidden="true" />
+              <div>
+                <strong>Nog niets live</strong>
+                <p>Publiceer een playlist en wijs die toe aan een gekoppeld scherm.</p>
+              </div>
+            </div>
           )}
         </section>
 
-        <aside className="dashboard-aside" aria-label="Inrichting en publicaties">
-          <section className="status-panel" aria-labelledby="onboarding-title">
-            <div className="work-panel__header">
-              <div>
-                <h2 className="work-panel__title" id="onboarding-title">Startklaar maken</h2>
-                <p className="work-panel__meta">Afgeleid uit echte resources; geen handmatige afvinkstatus.</p>
-              </div>
-              <StatusPill label={`${onboardingComplete}/${operations.onboarding.length}`} tone={onboardingComplete === operations.onboarding.length ? "success" : "info"} />
-            </div>
-            <ol className="operational-checklist">
-              {operations.onboarding.map((step) => (
-                <li data-complete={step.complete} key={step.id}>
-                  <span aria-hidden="true">{step.complete ? "✓" : "○"}</span>
-                  <Link href={step.href}>{step.label}</Link>
-                </li>
-              ))}
-            </ol>
-          </section>
+        <aside className={styles.sideColumn}>
+          <OperationalActionInbox
+            signals={actionableSignals.slice(0, 5)}
+            totalCount={actionableSignals.length}
+          />
 
-          <section className="status-panel" aria-labelledby="recent-releases-title">
-            <div className="work-panel__header">
-              <div>
-                <h2 className="work-panel__title" id="recent-releases-title">Recente releases</h2>
-                <p className="work-panel__meta">Immutable publicaties, nieuwste eerst.</p>
+          {onboardingComplete < operations.onboarding.length ? (
+            <section className={styles.onboarding} aria-labelledby="onboarding-title">
+              <div className={styles.onboardingHeader}>
+                <div>
+                  <h2 id="onboarding-title">Startklaar maken</h2>
+                  <p>De kortste route naar een werkende eerste publicatie.</p>
+                </div>
+                <StatusPill
+                  label={`${onboardingComplete}/${operations.onboarding.length}`}
+                  tone="info"
+                />
               </div>
-              <Link className="table-action" href="/dashboard/releases">Historie</Link>
-            </div>
-            {data.releases.length ? (
-              <ul className="compact-resource-list">
-                {data.releases.slice(0, 5).map((release) => (
-                  <li key={release.id}>
-                    <Link href={`/dashboard/releases/${release.id}`}>Versie {release.version}</Link>
-                    <span>{formatDate(release.published_at)}</span>
+              <ol>
+                {operations.onboarding.filter((step) => !step.complete).slice(0, 4).map((step) => (
+                  <li key={step.id}>
+                    <Link href={step.href}>
+                      <span aria-hidden="true">○</span>
+                      {step.label}
+                      <ArrowRight aria-hidden="true" />
+                    </Link>
                   </li>
                 ))}
-              </ul>
-            ) : <p className="notice" role="status">Nog geen release gepubliceerd.</p>}
-          </section>
+              </ol>
+            </section>
+          ) : null}
         </aside>
       </section>
 
-      <section className="workspace-section" aria-labelledby="recent-events-title">
-        <div className="workspace-section__header">
-          <div><h2 className="workspace-section__title" id="recent-events-title">Recente activiteit</h2><p className="work-panel__meta">Server-side auditgebeurtenissen, nieuwste eerst.</p></div>
-          <StatusPill label={`${data.auditEvents.length} getoond`} tone="neutral" />
-        </div>
-        {data.auditEvents.length ? <ul className="health-list" aria-label="Recente auditgebeurtenissen">{data.auditEvents.map((event) => <li className="health-item" key={event.id}><span className="health-item__copy"><span className="health-item__title">{humanize(event.action)}</span><span className="work-panel__meta">{event.target_type} · {formatDate(event.created_at)}</span></span><StatusPill label={event.result === "success" ? "Geslaagd" : "Mislukt"} tone={event.result === "success" ? "success" : "critical"} /></li>)}</ul> : <p className="notice" role="status">Nog geen auditgebeurtenissen voor deze vereniging.</p>}
+      <section className={styles.activityPanel} aria-labelledby="recent-events-title">
+        <SectionHeading
+          actionHref="/dashboard/audit"
+          actionLabel="Alle activiteit"
+          description="Recente, serverbevestigde wijzigingen binnen deze organisatie."
+          id="recent-events-title"
+          title="Recente activiteit"
+        />
+        {data.auditEvents.length ? (
+          <ul className={styles.activityList} aria-label="Recente auditgebeurtenissen">
+            {data.auditEvents.map((event) => (
+              <li key={event.id}>
+                <span className={styles.activityMarker} data-result={event.result} aria-hidden="true" />
+                <span>
+                  <strong>{humanize(event.action)}</strong>
+                  <small>{event.target_type} · {formatDate(event.created_at)}</small>
+                </span>
+                <StatusPill
+                  label={event.result === "success" ? "Geslaagd" : "Mislukt"}
+                  tone={event.result === "success" ? "success" : "critical"}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className={styles.emptyCompact} role="status">
+            <span className={styles.activityMarker} aria-hidden="true" />
+            <div><strong>Nog geen activiteit</strong><p>Bevestigde wijzigingen verschijnen hier automatisch.</p></div>
+          </div>
+        )}
       </section>
     </>
   );
+}
+
+function StatusCard({
+  detail,
+  href,
+  icon,
+  label,
+  tone,
+  value
+}: {
+  detail: string;
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  tone: "success" | "warning" | "neutral";
+  value: string;
+}) {
+  return (
+    <Link className={styles.statusCard} data-tone={tone} href={href}>
+      <span className={styles.statusIcon}>{icon}</span>
+      <span className={styles.statusCopy}>
+        <small>{label}</small>
+        <strong>{value}</strong>
+        <span>{detail}</span>
+      </span>
+      <ArrowRight aria-hidden="true" />
+    </Link>
+  );
+}
+
+function QuickAction({
+  children,
+  href,
+  icon
+}: {
+  children: React.ReactNode;
+  href: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link className={styles.quickAction} href={href}>
+      {icon}
+      <span>{children}</span>
+    </Link>
+  );
+}
+
+function SectionHeading({
+  actionHref,
+  actionLabel,
+  description,
+  id,
+  title
+}: {
+  actionHref: string;
+  actionLabel: string;
+  description: string;
+  id: string;
+  title: string;
+}) {
+  return (
+    <div className={styles.sectionHeading}>
+      <div>
+        <h2 id={id}>{title}</h2>
+        <p>{description}</p>
+      </div>
+      <Link href={actionHref}>{actionLabel}<ArrowRight aria-hidden="true" /></Link>
+    </div>
+  );
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
 }
 
 function DemoDashboardPage({ userName }: { userName: string }) {
@@ -247,8 +394,4 @@ function formatDate(value: string) {
 
 function humanize(value: string) {
   return value.replaceAll(".", " ").replaceAll("_", " ");
-}
-
-function shortId(value: string) {
-  return value.slice(0, 8);
 }
