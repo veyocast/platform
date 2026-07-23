@@ -22,6 +22,7 @@ export type PlaylistListFilter = {
 
 export type PlaylistListRow = {
   assignedScreenCount: number;
+  coverPreviewUrls: string[];
   description: string | null;
   id: string;
   itemCount: number;
@@ -32,6 +33,7 @@ export type PlaylistListRow = {
   totalDurationSeconds: number;
   updatedAt: string;
   updatedBy: string;
+  warningCount: number;
 };
 
 export type PlaylistStudioData = {
@@ -119,7 +121,7 @@ export async function loadPlaylistList(
   const userIds = [...new Set(playlists.flatMap(({ updated_by }) => updated_by ? [updated_by] : []))];
   const [itemsResult, releasesResult, screensResult, profilesResult] = ids.length
     ? await Promise.all([
-        supabase.from("playlist_items").select("playlist_id, duration_seconds").eq("tenant_id", tenantId).in("playlist_id", ids),
+        supabase.from("playlist_items").select("playlist_id, media_asset_id, duration_seconds").eq("tenant_id", tenantId).in("playlist_id", ids).order("sort_order"),
         supabase.from("playlist_releases").select("playlist_id, version").eq("tenant_id", tenantId).in("playlist_id", ids).order("version", { ascending: false }),
         supabase.from("screens").select("assigned_playlist_id").eq("tenant_id", tenantId).is("deleted_at", null).in("assigned_playlist_id", ids).neq("status", "disabled"),
         userIds.length ? supabase.from("profiles").select("id, display_name").in("id", userIds) : Promise.resolve({ data: [], error: null })
@@ -129,12 +131,59 @@ export async function loadPlaylistList(
   const aggregateError = [itemsResult.error, releasesResult.error, screensResult.error, profilesResult.error].find(Boolean);
   if (aggregateError) return { ...empty, error: "De playlistdetails konden niet volledig worden geladen." };
 
+  const assetIds = [...new Set((itemsResult.data ?? []).map(({ media_asset_id }) => media_asset_id))];
+  const [assetsResult, variantsResult] = assetIds.length
+    ? await Promise.all([
+        supabase
+          .from("media_assets")
+          .select("id, status, deleted_at")
+          .eq("tenant_id", tenantId)
+          .in("id", assetIds),
+        supabase
+          .from("media_variants")
+          .select("asset_id, storage_path, variant_type")
+          .eq("tenant_id", tenantId)
+          .in("asset_id", assetIds)
+          .in("variant_type", ["thumbnail", "poster", "original"])
+      ])
+    : [{ data: [], error: null }, { data: [], error: null }];
+  if (assetsResult.error || variantsResult.error) {
+    return { ...empty, error: "De visuele playlistdetails konden niet volledig worden geladen." };
+  }
+
+  const assets = new Map((assetsResult.data ?? []).map((asset) => [asset.id, asset]));
+  const previewPaths = new Map<string, string>();
+  for (const variant of variantsResult.data ?? []) {
+    const current = previewPaths.get(variant.asset_id);
+    if (
+      !current ||
+      variant.variant_type === "thumbnail" ||
+      variant.variant_type === "poster"
+    ) {
+      previewPaths.set(variant.asset_id, variant.storage_path);
+    }
+  }
+  const signedPreviews = new Map<string, string>();
+  await Promise.all(
+    [...previewPaths.entries()].map(async ([assetId, storagePath]) => {
+      const signed = await supabase.storage
+        .from("tenant-media")
+        .createSignedUrl(storagePath, 600);
+      if (signed.data?.signedUrl) signedPreviews.set(assetId, signed.data.signedUrl);
+    })
+  );
+
   const profiles = new Map((profilesResult.data ?? []).map((profile) => [profile.id, profile.display_name]));
   const rows = playlists.map((playlist): PlaylistListRow => {
     const items = (itemsResult.data ?? []).filter((item) => item.playlist_id === playlist.id);
     const releases = (releasesResult.data ?? []).filter((release) => release.playlist_id === playlist.id);
+    const playlistAssets = items.map((item) => assets.get(item.media_asset_id));
     return {
       assignedScreenCount: (screensResult.data ?? []).filter((screen) => screen.assigned_playlist_id === playlist.id).length,
+      coverPreviewUrls: items.flatMap((item) => {
+        const previewUrl = signedPreviews.get(item.media_asset_id);
+        return previewUrl ? [previewUrl] : [];
+      }).slice(0, 4),
       description: playlist.description,
       id: playlist.id,
       itemCount: items.length,
@@ -144,7 +193,8 @@ export async function loadPlaylistList(
       status: playlist.status,
       totalDurationSeconds: items.reduce((total, item) => total + item.duration_seconds, 0),
       updatedAt: playlist.updated_at,
-      updatedBy: playlist.updated_by ? profiles.get(playlist.updated_by) ?? "Onbekende gebruiker" : "Systeem"
+      updatedBy: playlist.updated_by ? profiles.get(playlist.updated_by) ?? "Onbekende gebruiker" : "Systeem",
+      warningCount: playlistAssets.filter((asset) => !asset || asset.deleted_at || asset.status !== "ready").length
     };
   });
   const total = playlistResult.count ?? 0;
