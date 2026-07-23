@@ -80,7 +80,7 @@
 .screenCard {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-lg);
+  border-radius: var(--vc-radius-md);
   overflow: hidden;
   position: relative;
   transition:

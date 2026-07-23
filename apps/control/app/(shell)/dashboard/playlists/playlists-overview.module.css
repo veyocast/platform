@@ -55,7 +55,7 @@
 .playlistCard {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-lg);
+  border-radius: var(--vc-radius-md);
   color: var(--vc-text);
   display: grid;
   overflow: hidden;
@@ -222,7 +222,7 @@
 .listFrame {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-lg);
+  border-radius: var(--vc-radius-md);
   overflow: hidden;
 }
 

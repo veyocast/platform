@@ -159,7 +159,7 @@
   align-items: center;
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-lg);
+  border-radius: var(--vc-radius-md);
   display: flex;
   gap: var(--vc-space-16);
   justify-content: space-between;
@@ -254,7 +254,7 @@
 .calendar {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-lg);
+  border-radius: var(--vc-radius-md);
   overflow: hidden;
 }
 
@@ -433,7 +433,7 @@
   align-items: center;
   background: var(--vc-surface);
   border: 1px dashed var(--vc-border-strong);
-  border-radius: var(--vc-radius-lg);
+  border-radius: var(--vc-radius-md);
   display: grid;
   gap: var(--vc-space-12);
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -444,7 +444,7 @@
   align-items: center;
   background: var(--vc-surface);
   border: 1px dashed var(--vc-border-strong);
-  border-radius: var(--vc-radius-lg);
+  border-radius: var(--vc-radius-md);
   display: flex;
   gap: var(--vc-space-12);
   justify-content: center;

@@ -4,7 +4,7 @@
   --studio-panel: var(--vc-surface);
   background: var(--studio-canvas);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-lg);
+  border-radius: var(--vc-radius-md);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   height: calc(100dvh - 32px);
@@ -38,8 +38,8 @@
 }
 
 .headerIdentity h1 {
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 16px;
+  line-height: 22px;
   margin: 1px 0 0;
   max-width: 420px;
   overflow: hidden;
@@ -1875,7 +1875,7 @@
   }
 
   .mobileSheet {
-    border-radius: var(--vc-radius-lg) var(--vc-radius-lg) 0 0;
+    border-radius: var(--vc-radius-md) var(--vc-radius-md) 0 0;
   }
 
   .previewToolbar {

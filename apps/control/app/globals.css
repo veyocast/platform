@@ -3591,7 +3591,7 @@ html[data-density="compact"] .control-nav__link {
 .role-card-grid {
   display: grid;
   gap: var(--vc-space-12);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .role-card {
@@ -3763,6 +3763,10 @@ html[data-density="compact"] .control-nav__link {
 
 /* Enterprise density: restrained surfaces, stable one-line identities and one
    compact type hierarchy. Descriptions and recovery guidance may still wrap. */
+.control-shell {
+  --vc-radius-lg: var(--vc-radius-md);
+}
+
 .control-content {
   gap: var(--vc-space-24);
   padding: var(--vc-space-24) var(--vc-space-32);
@@ -3781,6 +3785,42 @@ html[data-density="compact"] .control-nav__link {
 .resource-toolbar,
 .metric-card {
   box-shadow: 0 1px 2px color-mix(in srgb, var(--vc-text) 4%, transparent);
+}
+
+.control-shell .vc-button,
+.control-shell .vc-icon-button,
+.control-shell .vc-card,
+.control-shell .vc-alert,
+.control-shell .vc-filter-bar,
+.control-shell .vc-summary-strip,
+body .vc-dialog__content {
+  border-radius: var(--vc-radius-md);
+}
+
+.control-shell .vc-button {
+  font-size: 13px;
+}
+
+.control-shell .vc-card,
+.control-shell .vc-summary-strip,
+body .vc-dialog__content {
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--vc-text) 5%, transparent);
+}
+
+.control-shell .vc-card__title {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.control-shell .vc-page-header__title {
+  font-size: 28px;
+  letter-spacing: -.025em;
+  line-height: 34px;
+}
+
+.control-shell .vc-summary-strip__value {
+  font-size: 16px;
+  line-height: 22px;
 }
 
 .data-surface,
@@ -3823,7 +3863,7 @@ html[data-density="compact"] .control-nav__link {
 
 @media (max-width: 1100px) {
   .role-card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -3834,6 +3874,11 @@ html[data-density="compact"] .control-nav__link {
   }
 
   .page-title {
+    font-size: 24px;
+    line-height: 30px;
+  }
+
+  .control-shell .vc-page-header__title {
     font-size: 24px;
     line-height: 30px;
   }
