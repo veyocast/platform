@@ -142,8 +142,8 @@ test.describe("live pilot vertical slice", () => {
     }
 
     await page.getByRole("link", { name: "Media uploaden" }).click();
-    await page.getByLabel("Titel", { exact: true }).fill("Ongeldig logo");
-    await page.getByLabel("Bestand", { exact: true }).setInputFiles(
+    await page.getByLabel("Titel voor één afbeelding", { exact: true }).fill("Ongeldig logo");
+    await page.getByLabel("Afbeeldingen", { exact: true }).setInputFiles(
       path.join(process.cwd(), "assets/brand/veyocast-logo-primary.svg")
     );
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
@@ -152,8 +152,8 @@ test.describe("live pilot vertical slice", () => {
     );
 
     await page.getByRole("link", { name: "Media uploaden" }).click();
-    await page.getByLabel("Titel", { exact: true }).fill("Live pilotbeeld");
-    await page.getByLabel("Bestand", { exact: true }).setInputFiles({
+    await page.getByLabel("Titel voor één afbeelding", { exact: true }).fill("Live pilotbeeld");
+    await page.getByLabel("Afbeeldingen", { exact: true }).setInputFiles({
       buffer: validPngFixture,
       mimeType: "image/png",
       name: "veyocast-live-pilot.png"

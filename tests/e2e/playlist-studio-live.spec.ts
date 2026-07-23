@@ -27,8 +27,8 @@ test.describe("live Playlist Studio", () => {
 
     await page.goto("/dashboard/media");
     await page.getByRole("link", { name: "Media uploaden" }).click();
-    await page.getByLabel("Titel", { exact: true }).fill(assetTitle);
-    await page.getByLabel("Bestand", { exact: true }).setInputFiles({
+    await page.getByLabel("Titel voor één afbeelding", { exact: true }).fill(assetTitle);
+    await page.getByLabel("Afbeeldingen", { exact: true }).setInputFiles({
       buffer: validPngFixture,
       mimeType: "image/png",
       name: "s25-preview.png"
@@ -36,8 +36,8 @@ test.describe("live Playlist Studio", () => {
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
     await expect(page.getByText(`${assetTitle} is gecontroleerd`)).toBeVisible();
     await page.getByRole("link", { name: "Media uploaden" }).click();
-    await page.getByLabel("Titel", { exact: true }).fill(secondAssetTitle);
-    await page.getByLabel("Bestand", { exact: true }).setInputFiles({
+    await page.getByLabel("Titel voor één afbeelding", { exact: true }).fill(secondAssetTitle);
+    await page.getByLabel("Afbeeldingen", { exact: true }).setInputFiles({
       buffer: validPngFixture,
       mimeType: "image/png",
       name: "s25-drag.png"
