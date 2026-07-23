@@ -27,7 +27,9 @@ import {
   Eye,
   FileImage,
   Film,
+  FolderPlus,
   GripVertical,
+  Layers3,
   MoreVertical,
   Plus,
   Redo2,
@@ -63,9 +65,15 @@ import {
 import {
   addPlaylistItem,
   archivePlaylist,
+  assignPlaylistItemSection,
+  createPlaylistSection,
+  deletePlaylistSection,
   movePlaylistItem,
+  movePlaylistSection,
   removePlaylistItem,
   updatePlaylistDetails,
+  updatePlaylistDefaults,
+  updatePlaylistSection,
   updatePlaylistItem
 } from "../actions";
 import type { PlaylistPreviewItem } from "../playlist-preview";
@@ -156,6 +164,7 @@ export function PublisherStudioWorkspace({
   playlist,
   previewItems,
   readiness,
+  sections,
   screenCount,
   serverAcknowledged,
   serverConflict
@@ -479,6 +488,7 @@ export function PublisherStudioWorkspace({
 
   function handleSubmitCapture(event: FormEvent<HTMLDivElement>) {
     if (!(event.target instanceof HTMLFormElement)) return;
+    const idempotencyField = event.target.elements.namedItem("idempotencyKey");
     const submitter =
       event.nativeEvent instanceof SubmitEvent
         ? event.nativeEvent.submitter
@@ -487,6 +497,13 @@ export function PublisherStudioWorkspace({
       event.target,
       submitter instanceof HTMLElement ? submitter : null
     );
+    if (
+      idempotencyField instanceof HTMLInputElement &&
+      !idempotencyField.value
+    ) {
+      idempotencyField.value =
+        intent?.idempotencyKey ?? createIdempotencyKey();
+    }
     if (!intent) {
       if (!navigator.onLine && event.target.dataset.onlineRequired) {
         event.preventDefault();
@@ -647,6 +664,7 @@ export function PublisherStudioWorkspace({
       playlist={playlist}
       readiness={readiness}
       restoredIntent={restoredIntent}
+      sections={sections}
     />
   );
 
@@ -804,6 +822,7 @@ export function PublisherStudioWorkspace({
               }}
               playlistId={playlist.id}
               revision={playlist.revision}
+              sections={sections}
               selectedId={selectedId}
             />
           </main>
@@ -1154,6 +1173,7 @@ function Storyboard({
   onSelect,
   playlistId,
   revision,
+  sections,
   selectedId
 }: {
   canWrite: boolean;
@@ -1161,20 +1181,33 @@ function Storyboard({
   onSelect: (id: string) => void;
   playlistId: string;
   revision: number;
+  sections: PlaylistStudioSection[];
   selectedId: string | null;
 }) {
   const { isOver, setNodeRef } = useDroppable({ id: "storyboard-dropzone" });
+  const sectionManager = (
+    <SectionManager
+      canWrite={canWrite}
+      items={items}
+      playlistId={playlistId}
+      revision={revision}
+      sections={sections}
+    />
+  );
   if (!items.length) {
     return (
-      <div
-        className={styles.storyboardEmpty}
-        data-over={isOver || undefined}
-        ref={setNodeRef}
-        role="status"
-      >
-        <CloudUpload aria-hidden="true" />
-        <h3>Start met je eerste item</h3>
-        <p>Sleep media hierheen of gebruik Media toevoegen.</p>
+      <div className={styles.storyboard}>
+        {sectionManager}
+        <div
+          className={styles.storyboardEmpty}
+          data-over={isOver || undefined}
+          ref={setNodeRef}
+          role="status"
+        >
+          <CloudUpload aria-hidden="true" />
+          <h3>Start met je eerste item</h3>
+          <p>Sleep media hierheen of gebruik Media toevoegen.</p>
+        </div>
       </div>
     );
   }
@@ -1184,6 +1217,7 @@ function Storyboard({
       data-over={isOver || undefined}
       ref={setNodeRef}
     >
+      {sectionManager}
       <SortableContext
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
@@ -1199,6 +1233,10 @@ function Storyboard({
               onSelect={onSelect}
               playlistId={playlistId}
               revision={revision}
+              sectionName={
+                sections.find((section) => section.id === item.sectionId)
+                  ?.name ?? null
+              }
               selected={item.id === selectedId}
             />
           ))}
@@ -1213,6 +1251,212 @@ function Storyboard({
   );
 }
 
+function SectionManager({
+  canWrite,
+  items,
+  playlistId,
+  revision,
+  sections
+}: {
+  canWrite: boolean;
+  items: PlaylistStudioItem[];
+  playlistId: string;
+  revision: number;
+  sections: PlaylistStudioSection[];
+}) {
+  return (
+    <section aria-labelledby="playlist-sections-title" className={styles.sectionManager}>
+      <div className={styles.sectionManagerHeading}>
+        <div>
+          <h3 id="playlist-sections-title">Secties</h3>
+          <p>
+            Organiseer lange concepten. De itemvolgorde hieronder blijft de
+            afspeelvolgorde.
+          </p>
+        </div>
+        <details className={styles.sectionCreate}>
+          <summary aria-label="Nieuwe sectie toevoegen">
+            <FolderPlus aria-hidden="true" />
+            Sectie
+          </summary>
+          <form action={createPlaylistSection} data-online-required>
+            <RevisionFields playlistId={playlistId} revision={revision} />
+            <label>
+              <span>Naam</span>
+              <input
+                disabled={!canWrite}
+                maxLength={120}
+                minLength={2}
+                name="name"
+                placeholder="Bijvoorbeeld Sponsors"
+                required
+              />
+            </label>
+            <div className={styles.inspectorFormRow}>
+              <label>
+                <span>Standaardduur</span>
+                <input
+                  disabled={!canWrite}
+                  max={3600}
+                  min={5}
+                  name="defaultDurationSeconds"
+                  placeholder="Playlist"
+                  type="number"
+                />
+              </label>
+              <label>
+                <span>Overgang</span>
+                <select disabled={!canWrite} name="defaultTransition">
+                  <option value="">Playlist</option>
+                  <option value="cut">Direct</option>
+                  <option value="crossfade">Vervagen</option>
+                  <option value="wipe">Schuiven</option>
+                </select>
+              </label>
+            </div>
+            <Button disabled={!canWrite} size="sm" type="submit">
+              Sectie toevoegen
+            </Button>
+          </form>
+        </details>
+      </div>
+      {sections.length ? (
+        <ul className={styles.sectionList}>
+          {sections.map((section, index) => {
+            const itemCount = items.filter(
+              (item) => item.sectionId === section.id
+            ).length;
+            return (
+              <li key={section.id}>
+                <details className={styles.sectionCard}>
+                  <summary>
+                    <Layers3 aria-hidden="true" />
+                    <span>
+                      <strong>{section.name}</strong>
+                      <small>
+                        {itemCount} {itemCount === 1 ? "item" : "items"}
+                      </small>
+                    </span>
+                    <Settings2 aria-hidden="true" />
+                  </summary>
+                  <div className={styles.sectionEditor}>
+                    <form action={updatePlaylistSection} data-online-required>
+                      <RevisionFields
+                        playlistId={playlistId}
+                        revision={revision}
+                      />
+                      <input name="sectionId" type="hidden" value={section.id} />
+                      <input
+                        name="enabled"
+                        type="hidden"
+                        value={section.enabled ? "on" : ""}
+                      />
+                      <label>
+                        <span>Naam</span>
+                        <input
+                          defaultValue={section.name}
+                          disabled={!canWrite}
+                          maxLength={120}
+                          minLength={2}
+                          name="name"
+                          required
+                        />
+                      </label>
+                      <div className={styles.inspectorFormRow}>
+                        <label>
+                          <span>Standaardduur</span>
+                          <input
+                            defaultValue={
+                              section.defaultDurationSeconds ?? ""
+                            }
+                            disabled={!canWrite}
+                            max={3600}
+                            min={5}
+                            name="defaultDurationSeconds"
+                            placeholder="Playlist"
+                            type="number"
+                          />
+                        </label>
+                        <label>
+                          <span>Overgang</span>
+                          <select
+                            defaultValue={section.defaultTransition ?? ""}
+                            disabled={!canWrite}
+                            name="defaultTransition"
+                          >
+                            <option value="">Playlist</option>
+                            <option value="cut">Direct</option>
+                            <option value="crossfade">Vervagen</option>
+                            <option value="wipe">Schuiven</option>
+                          </select>
+                        </label>
+                      </div>
+                      <Button disabled={!canWrite} size="sm" type="submit">
+                        Sectie opslaan
+                      </Button>
+                    </form>
+                    <div className={styles.sectionActions}>
+                      <SectionMoveForm
+                        disabled={!canWrite || index === 0}
+                        label="Omhoog"
+                        playlistId={playlistId}
+                        revision={revision}
+                        sectionId={section.id}
+                        targetPosition={Math.max(0, index - 1)}
+                      >
+                        <ArrowUp aria-hidden="true" />
+                      </SectionMoveForm>
+                      <SectionMoveForm
+                        disabled={!canWrite || index === sections.length - 1}
+                        label="Omlaag"
+                        playlistId={playlistId}
+                        revision={revision}
+                        sectionId={section.id}
+                        targetPosition={Math.min(
+                          sections.length - 1,
+                          index + 1
+                        )}
+                      >
+                        <ArrowDown aria-hidden="true" />
+                      </SectionMoveForm>
+                      <form action={deletePlaylistSection} data-online-required>
+                        <RevisionFields
+                          playlistId={playlistId}
+                          revision={revision}
+                        />
+                        <input
+                          name="sectionId"
+                          type="hidden"
+                          value={section.id}
+                        />
+                        <button disabled={!canWrite} type="submit">
+                          <Trash2 aria-hidden="true" />
+                          Verwijderen
+                        </button>
+                      </form>
+                    </div>
+                    {!section.enabled ? (
+                      <p className={styles.sectionContractNote} role="status">
+                        Deze bestaande sectie staat uit. De schakelaar blijft
+                        vergrendeld totdat publiceren dit end-to-end afdwingt.
+                      </p>
+                    ) : null}
+                  </div>
+                </details>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className={styles.sectionEmpty}>
+          Nog geen secties. Voeg ze alleen toe wanneer ze de playlist
+          overzichtelijker maken.
+        </p>
+      )}
+    </section>
+  );
+}
+
 function SortableItem({
   canWrite,
   index,
@@ -1221,6 +1465,7 @@ function SortableItem({
   onSelect,
   playlistId,
   revision,
+  sectionName,
   selected
 }: {
   canWrite: boolean;
@@ -1230,6 +1475,7 @@ function SortableItem({
   onSelect: (id: string) => void;
   playlistId: string;
   revision: number;
+  sectionName: string | null;
   selected: boolean;
 }) {
   const assetTitle = item.asset?.title ?? "Ontbrekende media";
@@ -1277,6 +1523,7 @@ function SortableItem({
         <span>
           {item.asset?.kind === "video" ? "Video" : "Afbeelding"} ·{" "}
           {item.fitMode === "cover" ? "Vullen" : "Passend"}
+          {sectionName ? ` · ${sectionName}` : ""}
         </span>
       </button>
       <DurationStepper
@@ -1406,7 +1653,8 @@ function Inspector({
   item,
   playlist,
   readiness,
-  restoredIntent
+  restoredIntent,
+  sections
 }: {
   canManage: boolean;
   canWrite: boolean;
@@ -1414,6 +1662,7 @@ function Inspector({
   playlist: Playlist;
   readiness: PublisherStudioWorkspaceProps["readiness"];
   restoredIntent: PublisherMutationIntent | null;
+  sections: PlaylistStudioSection[];
 }) {
   if (!item) {
     const playlistDraft =
@@ -1466,7 +1715,88 @@ function Inspector({
             />
           </label>
           <Button disabled={!canWrite} size="sm" type="submit">
-            Playlist opslaan
+            Naam en beschrijving opslaan
+          </Button>
+        </form>
+        <form
+          action={updatePlaylistDefaults}
+          className={`${styles.inspectorForm} ${styles.defaultsForm}`}
+          data-online-required
+        >
+          <RevisionFields
+            playlistId={playlist.id}
+            revision={playlist.revision}
+          />
+          <h3>Standaardweergave</h3>
+          <p>
+            Deze waarden worden in een nieuwe publicatie vastgelegd.
+            Iteminstellingen blijven per plaatsing leidend.
+          </p>
+          <label>
+            <span>Afbeeldingsduur in seconden</span>
+            <input
+              defaultValue={playlist.defaultImageDurationSeconds}
+              disabled={!canWrite}
+              max={3600}
+              min={5}
+              name="defaultImageDurationSeconds"
+              required
+              type="number"
+            />
+          </label>
+          <label>
+            <span>Overgang</span>
+            <select
+              defaultValue={playlist.defaultTransition}
+              disabled={!canWrite}
+              name="defaultTransition"
+            >
+              <option value="cut">Direct</option>
+              <option value="crossfade">Vervagen</option>
+              <option value="wipe">Schuiven</option>
+            </select>
+          </label>
+          <label>
+            <span>Weergave</span>
+            <select
+              defaultValue={playlist.defaultFitMode}
+              disabled={!canWrite}
+              name="defaultFitMode"
+            >
+              <option value="cover">Vullen</option>
+              <option value="contain">Passend</option>
+            </select>
+          </label>
+          <label>
+            <span>Achtergrondkleur</span>
+            <input
+              defaultValue={playlist.defaultBackgroundColor ?? ""}
+              disabled={!canWrite}
+              name="defaultBackgroundColor"
+              pattern="#[0-9A-Fa-f]{6}"
+              placeholder="#000000"
+            />
+          </label>
+          <label className={styles.checkboxField}>
+            <input
+              defaultChecked={playlist.defaultVideoMuted}
+              disabled={!canWrite}
+              name="defaultVideoMuted"
+              type="checkbox"
+            />
+            <span>Nieuwe video’s standaard zonder geluid</span>
+          </label>
+          <label className={styles.checkboxField}>
+            <input
+              defaultChecked={playlist.loopEnabled}
+              disabled={!canWrite}
+              name="loopEnabled"
+              type="checkbox"
+            />
+            <span>Playlist blijven herhalen</span>
+          </label>
+          <Button disabled={!canWrite} size="sm" type="submit">
+            Standaarden opslaan
           </Button>
         </form>
         <Readiness readiness={readiness} />
@@ -1533,7 +1863,9 @@ function Inspector({
             defaultValue={itemDraft?.displayTitle ?? item.displayTitle ?? ""}
             disabled={!canWrite}
             maxLength={120}
+            minLength={2}
             name="displayTitle"
+            pattern="^$|.{2,120}"
             placeholder={assetTitle}
           />
           <small id={`title-help-${item.id}`}>
@@ -1725,6 +2057,36 @@ function Inspector({
           Item opslaan
         </Button>
       </form>
+      <form
+        action={assignPlaylistItemSection}
+        className={`${styles.inspectorForm} ${styles.sectionAssignment}`}
+        data-online-required
+      >
+        <RevisionFields
+          playlistId={playlist.id}
+          revision={playlist.revision}
+        />
+        <input name="itemId" type="hidden" value={item.id} />
+        <label>
+          <span>Sectie</span>
+          <select
+            defaultValue={item.sectionId ?? ""}
+            disabled={!canWrite}
+            name="sectionId"
+          >
+            <option value="">Geen sectie</option>
+            {sections.map((section) => (
+              <option key={section.id} value={section.id}>
+                {section.name}
+                {!section.enabled ? " (uitgeschakeld)" : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Button disabled={!canWrite} size="sm" type="submit" variant="secondary">
+          Sectie koppelen
+        </Button>
+      </form>
     </div>
   );
 }
@@ -1829,6 +2191,36 @@ function MoveForm({
   );
 }
 
+function SectionMoveForm({
+  children,
+  disabled,
+  label,
+  playlistId,
+  revision,
+  sectionId,
+  targetPosition
+}: {
+  children: ReactNode;
+  disabled: boolean;
+  label: string;
+  playlistId: string;
+  revision: number;
+  sectionId: string;
+  targetPosition: number;
+}) {
+  return (
+    <form action={movePlaylistSection} data-online-required>
+      <RevisionFields playlistId={playlistId} revision={revision} />
+      <input name="sectionId" type="hidden" value={sectionId} />
+      <input name="targetPosition" type="hidden" value={targetPosition} />
+      <button disabled={disabled} type="submit">
+        {children}
+        {label}
+      </button>
+    </form>
+  );
+}
+
 function RevisionFields({
   playlistId,
   revision
@@ -1840,6 +2232,7 @@ function RevisionFields({
     <>
       <input name="playlistId" type="hidden" value={playlistId} />
       <input name="expectedRevision" type="hidden" value={revision} />
+      <input defaultValue="" name="idempotencyKey" type="hidden" />
     </>
   );
 }

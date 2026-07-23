@@ -543,6 +543,252 @@
   transition: background-color 160ms ease;
 }
 
+.sectionManager {
+  background: color-mix(in srgb, var(--vc-surface-muted) 72%, var(--vc-surface));
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  display: grid;
+  gap: var(--vc-space-8);
+  margin-bottom: var(--vc-space-12);
+  padding: var(--vc-space-10);
+}
+
+.sectionManagerHeading {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--vc-space-12);
+  justify-content: space-between;
+}
+
+.sectionManagerHeading h3 {
+  font-size: 13px;
+  line-height: 18px;
+  margin: 0;
+}
+
+.sectionManagerHeading p,
+.sectionEmpty {
+  color: var(--vc-text-muted);
+  font-size: 11px;
+  line-height: 16px;
+  margin: 2px 0 0;
+}
+
+.sectionCreate,
+.sectionCard {
+  position: relative;
+}
+
+.sectionCreate > summary,
+.sectionCard > summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  list-style: none;
+}
+
+.sectionCreate > summary::-webkit-details-marker,
+.sectionCard > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sectionCreate > summary {
+  background: var(--vc-surface);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-text);
+  font-size: 12px;
+  font-weight: 700;
+  gap: var(--vc-space-6);
+  min-height: 36px;
+  padding: 0 var(--vc-space-8);
+}
+
+.sectionCreate > summary:hover,
+.sectionCreate > summary:focus-visible {
+  border-color: var(--vc-action);
+  color: var(--vc-action);
+}
+
+.sectionCreate > summary svg {
+  height: 16px;
+  width: 16px;
+}
+
+.sectionCreate > form,
+.sectionEditor {
+  background: var(--vc-surface);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--vc-text) 18%, transparent);
+  display: grid;
+  gap: var(--vc-space-10);
+  padding: var(--vc-space-12);
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: min(340px, calc(100vw - 48px));
+  z-index: 10;
+}
+
+.sectionCreate label,
+.sectionEditor label {
+  display: grid;
+  gap: var(--vc-space-4);
+}
+
+.sectionCreate label > span,
+.sectionEditor label > span {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sectionCreate input,
+.sectionCreate select,
+.sectionEditor input,
+.sectionEditor select {
+  background: var(--vc-surface);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-text);
+  font: inherit;
+  min-height: 40px;
+  padding: var(--vc-space-8);
+  width: 100%;
+}
+
+.sectionList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-6);
+  list-style: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0 0 var(--vc-space-2);
+}
+
+.sectionList > li {
+  flex: 0 0 auto;
+}
+
+.sectionCard > summary {
+  background: var(--vc-surface);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  gap: var(--vc-space-6);
+  min-height: 44px;
+  padding: var(--vc-space-4) var(--vc-space-8);
+}
+
+.sectionCard > summary:hover,
+.sectionCard > summary:focus-visible,
+.sectionCard[open] > summary {
+  border-color: var(--vc-border-strong);
+}
+
+.sectionCard > summary > svg:first-child {
+  color: var(--vc-action);
+  height: 16px;
+  width: 16px;
+}
+
+.sectionCard > summary > svg:last-child {
+  color: var(--vc-text-muted);
+  height: 14px;
+  margin-left: var(--vc-space-4);
+  width: 14px;
+}
+
+.sectionCard > summary > span {
+  display: grid;
+  min-width: 96px;
+}
+
+.sectionCard > summary strong,
+.sectionCard > summary small {
+  max-width: 148px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sectionCard > summary strong {
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.sectionCard > summary small {
+  color: var(--vc-text-muted);
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.sectionEditor {
+  left: 0;
+  right: auto;
+}
+
+.sectionEditor > form {
+  display: grid;
+  gap: var(--vc-space-8);
+}
+
+.sectionActions {
+  border-top: 1px solid var(--vc-border);
+  display: grid;
+  gap: var(--vc-space-4);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: var(--vc-space-8);
+}
+
+.sectionActions button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--vc-radius-sm);
+  color: var(--vc-text);
+  cursor: pointer;
+  display: flex;
+  font-size: 11px;
+  gap: var(--vc-space-4);
+  justify-content: center;
+  min-height: 36px;
+  padding: var(--vc-space-4);
+  width: 100%;
+}
+
+.sectionActions button:hover:not(:disabled) {
+  background: var(--vc-surface-muted);
+}
+
+.sectionActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.sectionActions form:last-child button {
+  color: var(--vc-semantic-critical-text);
+}
+
+.sectionActions svg {
+  height: 14px;
+  width: 14px;
+}
+
+.sectionContractNote {
+  background: var(--vc-semantic-warning-surface);
+  border-radius: var(--vc-radius-sm);
+  color: var(--vc-semantic-warning-text);
+  font-size: 11px;
+  line-height: 16px;
+  margin: 0;
+  padding: var(--vc-space-8);
+}
+
+.sectionEmpty {
+  margin: 0;
+}
+
 .storyboard[data-over] {
   background: color-mix(in srgb, var(--vc-action-soft) 54%, transparent);
 }
@@ -838,6 +1084,25 @@
 .inspectorForm {
   display: grid;
   gap: var(--vc-space-12);
+}
+
+.defaultsForm,
+.sectionAssignment {
+  border-top: 1px solid var(--vc-border);
+  padding-top: var(--vc-space-12);
+}
+
+.defaultsForm h3 {
+  font-size: 13px;
+  line-height: 18px;
+  margin: 0;
+}
+
+.defaultsForm > p {
+  color: var(--vc-text-muted);
+  font-size: 11px;
+  line-height: 16px;
+  margin: calc(-1 * var(--vc-space-8)) 0 0;
 }
 
 .inspectorForm fieldset {
