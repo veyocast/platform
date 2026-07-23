@@ -86,18 +86,17 @@ neutrale design-token.
 | `playwright test tests/e2e --workers=1` | groen; 11 geslaagd, 2 expliciet opt-in live tests overgeslagen |
 | `PLAYWRIGHT_EXTERNAL_SERVERS=1 playwright test tests/a11y --workers=1` | groen; 22/22 tegen vooraf opgewarmde developmentservers |
 
-## 5. Grote keuzes die expliciet openblijven
+## 5. Besluiten en resterende productgrenzen
 
-| Vraag | Waarom dit een echte productkeuze is | Voorlopig advies |
+| Vraag | Besluit | Resterende grens |
 |---|---|---|
-| Moeten templates alleen complete playlists kopiëren, of ook invulbare tekst-, beeld- en kleurvelden aanbieden? | Invulbare templates vereisen één versieerbaar rendercontract in Control, release-manifest én Player. Een lokale UI-oplossing zou later gepubliceerde content kunnen breken. | Begin met de veilige playlisttemplates; ontwerp daarna een afzonderlijk templatecontract met migratiepad. |
-| Moeten álle offline wijzigingen automatisch in een wachtrij komen? | Meerdere offline acties kunnen elkaar tegenspreken, bijvoorbeeld verwijderen en daarna verplaatsen. Dat vraagt versleuteling, volgorde, afhankelijkheden, conflictweergave en expliciet mergebeleid. | Houd uploads hervatbaar en Studio-herstel coherent; bouw een algemene queue pas met een uitgewerkt conflictmodel. |
-| Krijgt planning een eigen permission? | Nu mag iemand die playlists kan wijzigen ook plannen. Een nieuwe permission verandert rollen, uitnodigingen, RLS, audit en supportdocumentatie. | Voeg `schedule:write` pas toe wanneer vaststaat welke tenantrollen wel content maar geen planning mogen beheren. |
-| Moeten thema, dichtheid, kolommen en opgeslagen views tussen apparaten synchroniseren? | Serversync maakt persoonlijke voorkeuren profieldata en vereist bewaartermijnen, privacykeuzes en gedrag bij gedeelde accounts of apparaten. | Houd voorkeuren voorlopig lokaal; bied later opt-in accountsync aan zonder tenantinstellingen ermee te vermengen. |
+| Kunnen tenanttemplates worden aangepast? | Ja. S31-B laat metadata en bronplaylist wijzigen en maakt vanuit dezelfde Playlist Studio een nieuwe revision-guarded snapshot. | Vrij invulbare tekst-, beeld- en kleurzones blijven een afzonderlijk versieerbaar Player-templatecontract. |
+| Moeten álle offline wijzigingen automatisch in een wachtrij komen? | Nee. De huidige uploadresume en Studio-herstel blijven de begrensde offlineoplossing. | Een algemene queue komt alleen terug met een expliciet conflict- en encryptiemodel. |
+| Kan een tenant eigen rollen en rechten bepalen? | Ja. S31-B levert custom werkrollen voor content, publicatie, schermen, instellingen, audit en supportexport. | Eigenaarschap, rollenbeheer en de gedeelde leesbaseline blijven beschermd; planning volgt voorlopig contentauthoring. |
+| Moeten voorkeuren tussen apparaten synchroniseren? | Nee. Thema, dichtheid, kolommen en opgeslagen views blijven persoonlijke browservoorkeuren. | Latere sync vereist een expliciete privacy- en retentiekeuze. |
 
-Deze keuzes zijn niet nodig om de geleverde Publisher-workflows te gebruiken,
-maar mogen niet impliciet via een lokale component of ad-hoc databasekolom
-worden vastgezet.
+De S31-B-implementatie en resterende grenzen staan in
+`docs/s31b-configurable-templates-roles-evidence.md`.
 
 ## 6. Externe releasegates
 

@@ -74,6 +74,7 @@ tests en exitcriteria staan in
 | S30 | Pilot RC gate | Live critical journey, 24-uurs soak, fysieke LG-, security-, a11y- en DR-gates |
 | S30-K | Control calmness en workspacejourneys | Actie-eerst Control, consistente overlays, thema/dichtheid, veilige playlistduplicatie en rustige mobiele flows |
 | S31 | Publisher-backoffice canon | Rustige responsive Publisher-shell, visuele resourceworkspaces, guarded authoring, autosave, persoonlijke views, bulkacties en tenanttemplates |
+| S31-B | Configureerbare authoring en toegang | Bewerkbare playlisttemplates, tenant-beheerde custom werkrollen en compacte enterprise-density |
 | S32 | Groepen en planning | Schermgroepen, immutable target snapshots, timezone/DST-veilige schedules, conflictanalyse en offline-safe dayparting |
 | S33 | Integration framework | Server-only adapters, syncjobs en immutable offline widgetsnapshots |
 | S34 | Provider discovery | Official-only Sportlink/Twelve go/no-go en uitsluitend goedgekeurde POC's |
