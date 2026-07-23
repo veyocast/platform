@@ -3,10 +3,17 @@ import type { ReactNode } from "react";
 
 import "@veyocast/ui/styles.css";
 import "./globals.css";
+import { ControlPwaRuntime } from "./_components/control-pwa-runtime";
 
 export const metadata: Metadata = {
   title: "VeyoCast Control",
   description: "Beheeromgeving voor VeyoCast platform- en tenantrollen",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "VeyoCast"
+  },
   icons: {
     apple: "/brand/veyocast-apple-touch-icon-180.png",
     icon: [
@@ -21,7 +28,10 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="nl" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        {children}
+        <ControlPwaRuntime />
+      </body>
     </html>
   );
 }
