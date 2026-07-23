@@ -118,72 +118,6 @@ type ProcessingSummary = {
   status: string;
 };
 
-const demoAssets: MediaAsset[] = [
-  {
-    checksumSha256: "8c40de5d3f6ca3d66317b1e6bf15bcd29acf2c93eef20482ac6a0f780677e304",
-    createdAt: "2026-07-16T12:00:00.000Z",
-    draftCount: 2,
-    fileName: "zomerroute.webp",
-    fileSizeBytes: 430080,
-    height: 1080,
-    id: "demo-ready",
-    kind: "image",
-    mimeType: "image/webp",
-    previewUrl: null,
-    releaseCount: 1,
-    screenCount: 1,
-    status: "ready",
-    storagePath: "tenants/.../assets/.../original/zomerroute.webp",
-    title: "Zomerroute poster",
-    usageCount: 2,
-    validationError: null,
-    width: 1920,
-    durationSeconds: null
-  },
-  {
-    checksumSha256: null,
-    createdAt: "2026-07-16T11:00:00.000Z",
-    draftCount: 0,
-    fileName: "welkom-loop.mp4",
-    fileSizeBytes: 65011712,
-    height: null,
-    id: "demo-processing",
-    kind: "video",
-    mimeType: "video/mp4",
-    previewUrl: null,
-    releaseCount: 0,
-    screenCount: 0,
-    status: "processing",
-    storagePath: "tenants/.../assets/.../original/welkom-loop.mp4",
-    title: "Welkom loop",
-    usageCount: 0,
-    validationError: null,
-    width: null,
-    durationSeconds: null
-  },
-  {
-    checksumSha256: null,
-    createdAt: "2026-07-16T10:00:00.000Z",
-    draftCount: 0,
-    fileName: "sponsor-logo.svg",
-    fileSizeBytes: 18342,
-    height: null,
-    id: "demo-failed",
-    kind: "image",
-    mimeType: "image/svg+xml",
-    previewUrl: null,
-    releaseCount: 0,
-    screenCount: 0,
-    status: "validation_failed",
-    storagePath: "Geen opslagobject aangemaakt",
-    title: "Sponsorlogo",
-    usageCount: 0,
-    validationError: "unsupported_media_type",
-    width: null,
-    durationSeconds: null
-  }
-];
-
 const pipelineSteps = [
   {
     detail: "Sessie, tenantrol, titel, grootte en gedeclareerd MIME-type worden server-side gecontroleerd.",
@@ -315,7 +249,9 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           {
             label: "Opslag",
             value: formatBytes(mediaStorageUsedBytes),
-            detail: `van ${formatBytes(mediaStorageLimitBytes)}`
+            detail: mediaStorageLimitBytes === null
+              ? "Geen limiet ingesteld"
+              : `van ${formatBytes(mediaStorageLimitBytes)}`
           }
         ]}
       />
@@ -667,21 +603,17 @@ async function loadMediaData(
 ) {
   if (!isLive) {
     return {
-      activity: [{ action: "media.upload.intent_created", createdAt: demoAssets[0]!.createdAt, result: "success" }] satisfies MediaActivity[],
-      assets: demoAssets,
-      failedCount: 1,
+      activity: [] as MediaActivity[],
+      assets: [] as MediaAsset[],
+      failedCount: 0,
       loadError: null,
-      mediaStorageLimitBytes: 10 * 1024 * 1024 * 1024,
-      mediaStorageUsedBytes: demoAssets.reduce((total, asset) => total + asset.fileSizeBytes, 0),
-      processingCount: 1,
+      mediaStorageLimitBytes: null as number | null,
+      mediaStorageUsedBytes: 0,
+      processingCount: 0,
       processingSummary: null as ProcessingSummary | null,
-      readyCount: 1,
-      selectedUsage: [
-        { playlistId: "demo-playlist", releaseVersion: null, resourceId: "demo-playlist", resourceName: "Museumroute", screenCount: 0, usageType: "draft" },
-        { playlistId: "demo-playlist", releaseVersion: 3, resourceId: "demo-release", resourceName: "Museumroute", screenCount: 1, usageType: "release" },
-        { playlistId: "demo-playlist", releaseVersion: 3, resourceId: "demo-screen", resourceName: "Entree", screenCount: 1, usageType: "screen" }
-      ] satisfies MediaUsage[],
-      totalCount: demoAssets.length
+      readyCount: 0,
+      selectedUsage: [] as MediaUsage[],
+      totalCount: 0
     };
   }
 
@@ -691,7 +623,7 @@ async function loadMediaData(
       assets: [],
       failedCount: 0,
       loadError: "Er is geen actieve tenant. Kies een tenant en laad de pagina opnieuw.",
-      mediaStorageLimitBytes: 0,
+      mediaStorageLimitBytes: null as number | null,
       mediaStorageUsedBytes: 0,
       processingCount: 0,
       processingSummary: null as ProcessingSummary | null,
@@ -708,7 +640,7 @@ async function loadMediaData(
       assets: [],
       failedCount: 0,
       loadError: "De beveiligde datasessie ontbreekt. Log opnieuw in en probeer het daarna nogmaals.",
-      mediaStorageLimitBytes: 0,
+      mediaStorageLimitBytes: null as number | null,
       mediaStorageUsedBytes: 0,
       processingCount: 0,
       processingSummary: null as ProcessingSummary | null,
@@ -748,7 +680,7 @@ async function loadMediaData(
       assets: [],
       failedCount: 0,
       loadError: "Tenantmedia kon niet worden gelezen. Er is niets gewijzigd; vernieuw de pagina of log opnieuw in.",
-      mediaStorageLimitBytes: 0,
+      mediaStorageLimitBytes: null as number | null,
       mediaStorageUsedBytes: 0,
       processingCount: 0,
       processingSummary: null as ProcessingSummary | null,
@@ -845,7 +777,9 @@ async function loadMediaData(
     assets,
     failedCount: failedResult.count ?? 0,
     loadError: variantResult.error ? "De bibliotheek is geladen, maar één of meer voorbeelden konden niet worden gemaakt." : null,
-    mediaStorageLimitBytes: Number(storage?.limit_bytes ?? 0),
+    mediaStorageLimitBytes: storage?.limit_bytes === null || storage?.limit_bytes === undefined
+      ? null
+      : Number(storage.limit_bytes),
     mediaStorageUsedBytes: Number(storage?.used_bytes ?? 0),
     processingCount: processingResult.count ?? 0,
     processingSummary,
