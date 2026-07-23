@@ -176,17 +176,48 @@ export default async function PlaylistStudioPage({
               : null
           }
           sections={data.sections}
-          screenCount={
-            data.screens.filter(
-              (screen) => screen.assignedPlaylistId === playlist.id
-            ).length
-          }
+          screenStatus={playlistScreenStatus(data.screens, playlist.id)}
           serverAcknowledged={Boolean(query.succes)}
           serverConflict={Boolean(query.conflict)}
         />
       ) : null}
     </>
   );
+}
+
+function playlistScreenStatus(
+  screens: Array<{
+    activeReleaseId: string | null;
+    assignedPlaylistId: string | null;
+    desiredReleaseId: string | null;
+    lastSeenAt: string | null;
+  }>,
+  playlistId: string
+) {
+  const assigned = screens.filter(
+    (screen) => screen.assignedPlaylistId === playlistId
+  );
+  const online = assigned.filter(
+    (screen) =>
+      screen.lastSeenAt &&
+      Date.now() - Date.parse(screen.lastSeenAt) <= 5 * 60_000
+  ).length;
+  const synchronizing = assigned.filter(
+    (screen) =>
+      screen.desiredReleaseId !== null &&
+      screen.activeReleaseId !== screen.desiredReleaseId
+  ).length;
+  const synchronized = assigned.filter(
+    (screen) =>
+      screen.desiredReleaseId !== null &&
+      screen.activeReleaseId === screen.desiredReleaseId
+  ).length;
+  return {
+    online,
+    synchronized,
+    synchronizing,
+    total: assigned.length
+  };
 }
 
 function ConflictPanel({

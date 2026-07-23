@@ -149,7 +149,12 @@ type PublisherStudioWorkspaceProps = {
     totalDurationSeconds: number;
   } | null;
   sections: PlaylistStudioSection[];
-  screenCount: number;
+  screenStatus: {
+    online: number;
+    synchronized: number;
+    synchronizing: number;
+    total: number;
+  };
   serverAcknowledged: boolean;
   serverConflict: boolean;
 };
@@ -178,7 +183,7 @@ export function PublisherStudioWorkspace({
   previewScreens,
   readiness,
   sections,
-  screenCount,
+  screenStatus,
   serverAcknowledged,
   serverConflict
 }: PublisherStudioWorkspaceProps & { items: PlaylistStudioItem[] }) {
@@ -886,20 +891,26 @@ export function PublisherStudioWorkspace({
           </aside>
         </div>
 
-        {screenCount > 0 ? (
+        {screenStatus.total > 0 ? (
           <footer className={styles.statusRail}>
             <Link href="/dashboard/screens">
               <span className={styles.onlineDot} aria-hidden="true" />
-              {screenCount} {screenCount === 1 ? "scherm" : "schermen"} gekoppeld
+              {screenStatus.online} / {screenStatus.total} schermen online
             </Link>
             <Link href="/dashboard/releases">
               Versie {latestReleaseVersion ?? "—"}
             </Link>
             <span>
               <Check aria-hidden="true" size={16} />
-              {latestReleaseVersion
-                ? "Publicatiestatus beschikbaar"
-                : "Nog niet gepubliceerd"}
+              {screenStatus.synchronizing
+                ? `${screenStatus.synchronizing} ${
+                    screenStatus.synchronizing === 1 ? "scherm" : "schermen"
+                  } synchroniseren`
+                : screenStatus.synchronized === screenStatus.total
+                  ? "Volledig gesynchroniseerd"
+                  : latestReleaseVersion
+                    ? "Wacht op Playerbevestiging"
+                    : "Nog niet gepubliceerd"}
             </span>
           </footer>
         ) : null}
