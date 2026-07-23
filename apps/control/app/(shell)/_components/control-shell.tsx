@@ -13,7 +13,7 @@ import {
 } from "@veyocast/ui";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Activity,
   Building2,
@@ -95,6 +95,7 @@ export function ControlShell({
   uploadQueue
 }: ControlShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isInteractive, setInteractive] = useState(false);
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -283,6 +284,13 @@ export function ControlShell({
       setSearchQuery("");
       setResourceResults([]);
     }
+  }
+
+  function navigateFromCommandPalette(href: string) {
+    router.push(href);
+    setSearchOpen(false);
+    setSearchQuery("");
+    setResourceResults([]);
   }
 
   return (
@@ -596,9 +604,9 @@ export function ControlShell({
                       className="command-result"
                       href={item.href}
                       key={item.href}
-                      onClick={() => {
-                        setSearchOpen(false);
-                        setSearchQuery("");
+                      onClick={(event) => {
+                        event.preventDefault();
+                        navigateFromCommandPalette(item.href);
                       }}
                     >
                       <Icon aria-hidden="true" />
@@ -619,9 +627,9 @@ export function ControlShell({
                       className="command-result"
                       href={result.href}
                       key={result.id}
-                      onClick={() => {
-                        setSearchOpen(false);
-                        setSearchQuery("");
+                      onClick={(event) => {
+                        event.preventDefault();
+                        navigateFromCommandPalette(result.href);
                       }}
                     >
                       <Search aria-hidden="true" />
