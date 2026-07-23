@@ -179,18 +179,18 @@ export function PublisherStudioPreview({
             key={activeItem.id}
             muted={activeItem.muted}
             onLoadedMetadata={(event) => {
-              event.currentTarget.currentTime = activeItem.trimStartSeconds ?? 0;
+              event.currentTarget.currentTime = activeItem.trim?.startSeconds ?? 0;
             }}
             onEnded={next}
             onTimeUpdate={(event) => {
-              if (activeItem.trimEndSeconds && event.currentTarget.currentTime >= activeItem.trimEndSeconds) next();
+              if (activeItem.trim?.endSeconds && event.currentTarget.currentTime >= activeItem.trim.endSeconds) next();
             }}
             playsInline
             preload="metadata"
             ref={videoRef}
             src={activeItem.url}
             style={{
-              objectPosition: `${(activeItem.cropFocusX ?? 0.5) * 100}% ${(activeItem.cropFocusY ?? 0.5) * 100}%`
+              objectPosition: `${(activeItem.cropFocus?.x ?? 0.5) * 100}% ${(activeItem.cropFocus?.y ?? 0.5) * 100}%`
             }}
           >
             <track kind="captions" />
@@ -202,7 +202,7 @@ export function PublisherStudioPreview({
             className={styles.previewMedia}
             src={activeItem.url}
             style={{
-              objectPosition: `${(activeItem.cropFocusX ?? 0.5) * 100}% ${(activeItem.cropFocusY ?? 0.5) * 100}%`
+              objectPosition: `${(activeItem.cropFocus?.x ?? 0.5) * 100}% ${(activeItem.cropFocus?.y ?? 0.5) * 100}%`
             }}
           />
         )}
@@ -273,8 +273,8 @@ function itemIsVisible(item: PlaylistPreviewItem, simulatedAt: string) {
   if (!simulatedAt) return true;
   const timestamp = Date.parse(simulatedAt);
   if (!Number.isFinite(timestamp)) return true;
-  if (item.visibleFrom && timestamp < Date.parse(item.visibleFrom)) return false;
-  if (item.visibleUntil && timestamp >= Date.parse(item.visibleUntil)) return false;
+  if (item.visibility?.from && timestamp < Date.parse(item.visibility.from)) return false;
+  if (item.visibility?.until && timestamp >= Date.parse(item.visibility.until)) return false;
   return true;
 }
 

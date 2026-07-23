@@ -49,8 +49,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
     return [{
       accessibilityName: item.accessibilityName || undefined,
       backgroundColor: item.backgroundColor || undefined,
-      cropFocusX: item.cropFocusX,
-      cropFocusY: item.cropFocusY,
+      cropFocus: { x: item.cropFocusX, y: item.cropFocusY },
       displayTitle: item.displayTitle || undefined,
       durationSeconds: item.durationSeconds,
       enabled: item.enabled,
@@ -60,11 +59,17 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
       muted: item.muted,
       title: item.asset.title,
       transition: item.transition,
-      trimEndSeconds: item.trimEndSeconds ?? undefined,
-      trimStartSeconds: item.trimStartSeconds,
+      trim: {
+        endSeconds: item.trimEndSeconds ?? undefined,
+        startSeconds: item.trimStartSeconds
+      },
       url: item.asset.variant.previewUrl,
-      visibleFrom: item.visibleFrom ?? undefined,
-      visibleUntil: item.visibleUntil ?? undefined,
+      visibility: item.visibleFrom || item.visibleUntil
+        ? {
+            from: item.visibleFrom ?? undefined,
+            until: item.visibleUntil ?? undefined
+          }
+        : undefined,
       volumePercent: item.volumePercent
     }];
   }) ?? [];
