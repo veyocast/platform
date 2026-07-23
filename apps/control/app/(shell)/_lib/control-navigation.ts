@@ -9,8 +9,8 @@ export type ControlScope = "platform" | "tenant";
 
 export type ControlNavigationSection =
   | "overview"
-  | "content"
-  | "distribution"
+  | "publisher"
+  | "management"
   | "organization";
 
 export type ControlNavigationItem = {
@@ -91,33 +91,9 @@ const controlNavigation: readonly ControlNavigationItem[] = [
   {
     description: "Dagelijkse operatie en aandachtspunten",
     href: "/dashboard",
-    label: "Dashboard",
+    label: "Overzicht",
     requiredCapability: "tenant.overview.read",
-    section: "overview",
-    scope: "tenant"
-  },
-  {
-    description: "Bibliotheek, verwerking en gebruik",
-    href: "/dashboard/media",
-    label: "Media",
-    requiredCapability: "tenant.media.read",
-    section: "content",
-    scope: "tenant"
-  },
-  {
-    description: "Concepten, publicaties en releases",
-    href: "/dashboard/playlists",
-    label: "Playlists",
-    requiredCapability: "tenant.playlist.read",
-    section: "content",
-    scope: "tenant"
-  },
-  {
-    description: "Immutable historie, uitrol en preflight",
-    href: "/dashboard/releases",
-    label: "Releases",
-    requiredCapability: "tenant.release.read",
-    section: "content",
+    section: "publisher",
     scope: "tenant"
   },
   {
@@ -125,7 +101,63 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/screens",
     label: "Schermen",
     requiredCapability: "tenant.screen.read",
-    section: "distribution",
+    section: "publisher",
+    scope: "tenant"
+  },
+  {
+    description: "Schermen logisch organiseren",
+    href: "/dashboard/screen-groups",
+    label: "Schermgroepen",
+    requiredCapability: "tenant.screen.read",
+    section: "publisher",
+    scope: "tenant"
+  },
+  {
+    description: "Concepten maken en publiceren",
+    href: "/dashboard/playlists",
+    label: "Playlists",
+    requiredCapability: "tenant.playlist.read",
+    section: "publisher",
+    scope: "tenant"
+  },
+  {
+    description: "Bibliotheek, verwerking en gebruik",
+    href: "/dashboard/media",
+    label: "Media",
+    requiredCapability: "tenant.media.read",
+    section: "publisher",
+    scope: "tenant"
+  },
+  {
+    description: "Content per scherm en tijdstip plannen",
+    href: "/dashboard/planning",
+    label: "Planning",
+    requiredCapability: "tenant.playlist.read",
+    section: "publisher",
+    scope: "tenant"
+  },
+  {
+    description: "Herbruikbare contentvormen",
+    href: "/dashboard/templates",
+    label: "Templates",
+    requiredCapability: "tenant.playlist.read",
+    section: "publisher",
+    scope: "tenant"
+  },
+  {
+    description: "Wijzigingen en publicaties volgen",
+    href: "/dashboard/auditlog",
+    label: "Activiteit",
+    requiredCapability: "tenant.audit.read",
+    section: "publisher",
+    scope: "tenant"
+  },
+  {
+    description: "Immutable historie, uitrol en preflight",
+    href: "/dashboard/releases",
+    label: "Releases",
+    requiredCapability: "tenant.release.read",
+    section: "management",
     scope: "tenant"
   },
   {
@@ -133,15 +165,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/team",
     label: "Team",
     requiredCapability: "tenant.team.read",
-    section: "organization",
-    scope: "tenant"
-  },
-  {
-    description: "Gebeurtenissen en beveiligingsspoor",
-    href: "/dashboard/auditlog",
-    label: "Auditlog",
-    requiredCapability: "tenant.audit.read",
-    section: "organization",
+    section: "management",
     scope: "tenant"
   },
   {
@@ -149,7 +173,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/settings",
     label: "Instellingen",
     requiredCapability: "tenant.settings.read",
-    section: "organization",
+    section: "management",
     scope: "tenant"
   }
 ];
@@ -165,12 +189,22 @@ const navigationScopeMeta = {
   }
 } satisfies Record<ControlScope, Readonly<{ contextLabel: string; description: string }>>;
 
-const navigationSectionMeta = [
-  { section: "overview", title: "Overzicht" },
-  { section: "content", title: "Content" },
-  { section: "distribution", title: "Distributie" },
-  { section: "organization", title: "Organisatie" }
-] satisfies readonly Readonly<{ section: ControlNavigationSection; title: string }>[];
+const navigationSectionMeta = {
+  platform: [
+    { section: "overview", title: "Overzicht" },
+    { section: "organization", title: "Organisatie" }
+  ],
+  tenant: [
+    { section: "publisher", title: "Publisher" },
+    { section: "management", title: "Beheer" }
+  ]
+} satisfies Record<
+  ControlScope,
+  readonly Readonly<{
+    section: ControlNavigationSection;
+    title: string;
+  }>[]
+>;
 
 export function getNavigationForRoles(
   roles: readonly ControlRole[],
@@ -189,7 +223,7 @@ export function getNavigationGroupsForRoles(
   const permittedItems = getNavigationForRoles(roles, includeTenantScope);
 
   return (["platform", "tenant"] as const).flatMap((scope) =>
-    navigationSectionMeta.flatMap(({ section, title }) => {
+    navigationSectionMeta[scope].flatMap(({ section, title }) => {
       const items = permittedItems.filter(
         (item) => item.scope === scope && item.section === section
       );

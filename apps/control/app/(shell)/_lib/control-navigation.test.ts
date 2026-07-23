@@ -15,12 +15,15 @@ describe("control navigation", () => {
 
     expect(links).toStrictEqual([
       "/dashboard",
-      "/dashboard/media",
-      "/dashboard/playlists",
-      "/dashboard/releases",
       "/dashboard/screens",
-      "/dashboard/team",
+      "/dashboard/screen-groups",
+      "/dashboard/playlists",
+      "/dashboard/media",
+      "/dashboard/planning",
+      "/dashboard/templates",
       "/dashboard/auditlog",
+      "/dashboard/releases",
+      "/dashboard/team",
       "/dashboard/settings"
     ]);
   });
@@ -34,25 +37,24 @@ describe("control navigation", () => {
     expect(groups.map((group) => group.id)).toStrictEqual([
       "platform-overview",
       "platform-organization",
-      "tenant-overview",
-      "tenant-content",
-      "tenant-distribution",
-      "tenant-organization"
+      "tenant-publisher",
+      "tenant-management"
     ]);
     expect(groups.filter((group) => group.scope === "tenant").map((group) => group.title)).toStrictEqual([
-      "Overzicht",
-      "Content",
-      "Distributie",
-      "Organisatie"
+      "Publisher",
+      "Beheer"
     ]);
     expect(groups.flatMap((group) => group.items).filter((item) => item.scope === "tenant").map((item) => item.href)).toStrictEqual([
       "/dashboard",
-      "/dashboard/media",
-      "/dashboard/playlists",
-      "/dashboard/releases",
       "/dashboard/screens",
-      "/dashboard/team",
+      "/dashboard/screen-groups",
+      "/dashboard/playlists",
+      "/dashboard/media",
+      "/dashboard/planning",
+      "/dashboard/templates",
       "/dashboard/auditlog",
+      "/dashboard/releases",
+      "/dashboard/team",
       "/dashboard/settings"
     ]);
     expect(groups.flatMap((group) => group.items).some((item) => item.href === "/dashboard/pilot")).toBe(false);
@@ -80,7 +82,7 @@ describe("control navigation", () => {
     expect(
       getNavigationGroupsForPathname(groups, "/dashboard/media", "platform")
         .map((group) => group.scope)
-    ).toStrictEqual(["tenant", "tenant", "tenant", "tenant"]);
+    ).toStrictEqual(["tenant", "tenant"]);
     expect(
       getNavigationGroupsForPathname(groups, "/context", "tenant")
         .every((group) => group.scope === "tenant")
