@@ -10,13 +10,25 @@ import {
 
 function item(id: string): PlaylistStudioItem {
   return {
+    accessibilityName: null,
     asset: null,
+    backgroundColor: null,
+    cropFocusX: 0.5,
+    cropFocusY: 0.5,
+    displayTitle: null,
     durationSeconds: 8,
+    enabled: true,
     fitMode: "contain",
     id,
     mediaAssetId: id,
     muted: true,
-    sortOrder: 0
+    sortOrder: 0,
+    transition: "cut",
+    trimEndSeconds: null,
+    trimStartSeconds: 0,
+    visibleFrom: null,
+    visibleUntil: null,
+    volumePercent: 100
   };
 }
 

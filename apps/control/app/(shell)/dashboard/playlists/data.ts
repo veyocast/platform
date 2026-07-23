@@ -42,8 +42,14 @@ export type PlaylistStudioData = {
   items: PlaylistStudioItem[];
   playlist: {
     archivedAt: string | null;
+    defaultBackgroundColor: string | null;
+    defaultFitMode: "contain" | "cover";
+    defaultImageDurationSeconds: number;
+    defaultTransition: "crossfade" | "cut" | "wipe";
+    defaultVideoMuted: boolean;
     description: string | null;
     id: string;
+    loopEnabled: boolean;
     name: string;
     revision: number;
     status: string;
@@ -216,8 +222,8 @@ export async function loadPlaylistStudio(
   if (!supabase) return { ...empty, error: "De beveiligde datasessie ontbreekt." };
 
   const [playlistResult, itemsResult, assetsResult, variantsResult, releasesResult, screensResult] = await Promise.all([
-    supabase.from("playlists").select("id, tenant_id, name, description, status, revision, archived_at, updated_at, updated_by").eq("tenant_id", tenantId).eq("id", playlistId).maybeSingle(),
-    supabase.from("playlist_items").select("id, media_asset_id, sort_order, duration_seconds, fit_mode, muted").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("sort_order"),
+    supabase.from("playlists").select("id, tenant_id, name, description, status, revision, archived_at, updated_at, updated_by, default_image_duration_seconds, default_transition, default_fit_mode, default_background_color, default_video_muted, loop_enabled").eq("tenant_id", tenantId).eq("id", playlistId).maybeSingle(),
+    supabase.from("playlist_items").select("id, media_asset_id, sort_order, duration_seconds, fit_mode, muted, display_title, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
     supabase.from("media_assets").select("id, tenant_id, title, kind, mime_type, status, deleted_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
     supabase.from("media_variants").select("asset_id, tenant_id, variant_type, storage_path, mime_type, file_size_bytes, checksum_sha256, width, height, duration_seconds").eq("tenant_id", tenantId),
     supabase.from("playlist_releases").select("id, version, item_count, total_duration_seconds, total_bytes, published_at, published_by").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("version", { ascending: false }),
@@ -270,13 +276,25 @@ export async function loadPlaylistStudio(
     variant: variants.find((variant) => variant.assetId === asset.id && variant.variantType === (asset.kind === "video" ? "player_1080p" : "original")) ?? null
   }));
   const items = (itemsResult.data ?? []).map((item): PlaylistStudioItem => ({
+    accessibilityName: item.accessibility_name,
     asset: assets.find((asset) => asset.id === item.media_asset_id) ?? null,
+    backgroundColor: item.background_color,
+    cropFocusX: Number(item.crop_focus_x),
+    cropFocusY: Number(item.crop_focus_y),
+    displayTitle: item.display_title,
     durationSeconds: item.duration_seconds,
+    enabled: item.enabled,
     fitMode: item.fit_mode,
     id: item.id,
     mediaAssetId: item.media_asset_id,
     muted: item.muted,
-    sortOrder: item.sort_order
+    sortOrder: item.sort_order,
+    transition: item.transition,
+    trimEndSeconds: item.trim_end_seconds === null ? null : Number(item.trim_end_seconds),
+    trimStartSeconds: Number(item.trim_start_seconds),
+    visibleFrom: item.visible_from,
+    visibleUntil: item.visible_until,
+    volumePercent: Number(item.volume_percent)
   }));
   const screens = (screensResult.data ?? []).map((screen) => ({
     assignedPlaylistId: screen.assigned_playlist_id,
@@ -318,8 +336,14 @@ export async function loadPlaylistStudio(
     items,
     playlist: {
       archivedAt: playlist.archived_at,
+      defaultBackgroundColor: playlist.default_background_color,
+      defaultFitMode: playlist.default_fit_mode,
+      defaultImageDurationSeconds: playlist.default_image_duration_seconds,
+      defaultTransition: playlist.default_transition,
+      defaultVideoMuted: playlist.default_video_muted,
       description: playlist.description,
       id: playlist.id,
+      loopEnabled: playlist.loop_enabled,
       name: playlist.name,
       revision: Number(playlist.revision),
       status: playlist.status,

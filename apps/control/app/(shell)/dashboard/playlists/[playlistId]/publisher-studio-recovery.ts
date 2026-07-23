@@ -6,12 +6,24 @@ export type ReorderIntent = {
 };
 
 export type UpdateItemIntent = {
+  accessibilityName?: string;
+  backgroundColor?: string;
+  cropFocusX?: number;
+  cropFocusY?: number;
+  displayTitle?: string;
   durationSeconds: number;
+  enabled?: boolean;
   fitMode: "contain" | "cover";
   idempotencyKey: string;
   itemId: string;
   kind: "update_item";
   muted: boolean;
+  transition?: "crossfade" | "cut" | "wipe";
+  trimEndSeconds?: number | null;
+  trimStartSeconds?: number;
+  visibleFrom?: string;
+  visibleUntil?: string;
+  volumePercent?: number;
 };
 
 export type UpdatePlaylistIntent = {
@@ -188,12 +200,28 @@ function parseIntent(value: unknown): PublisherMutationIntent | null {
     typeof value.muted === "boolean"
   ) {
     return {
+      accessibilityName: safeOptionalText(value.accessibilityName, 160),
+      backgroundColor: safeOptionalColor(value.backgroundColor),
+      cropFocusX: safeOptionalRange(value.cropFocusX, 0, 1),
+      cropFocusY: safeOptionalRange(value.cropFocusY, 0, 1),
+      displayTitle: safeOptionalText(value.displayTitle, 120),
       durationSeconds: Number(value.durationSeconds),
+      enabled: typeof value.enabled === "boolean" ? value.enabled : undefined,
       fitMode: value.fitMode,
       idempotencyKey: value.idempotencyKey,
       itemId: value.itemId,
       kind: "update_item",
-      muted: value.muted
+      muted: value.muted,
+      transition: value.transition === "cut" || value.transition === "crossfade" || value.transition === "wipe"
+        ? value.transition
+        : undefined,
+      trimEndSeconds: value.trimEndSeconds === null
+        ? null
+        : safeOptionalRange(value.trimEndSeconds, 0, 86_400),
+      trimStartSeconds: safeOptionalRange(value.trimStartSeconds, 0, 86_400),
+      visibleFrom: safeOptionalDate(value.visibleFrom),
+      visibleUntil: safeOptionalDate(value.visibleUntil),
+      volumePercent: safeOptionalRange(value.volumePercent, 0, 100)
     };
   }
   if (
@@ -216,4 +244,28 @@ function parseIntent(value: unknown): PublisherMutationIntent | null {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function safeOptionalColor(value: unknown) {
+  return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value)
+    ? value
+    : undefined;
+}
+
+function safeOptionalDate(value: unknown) {
+  return typeof value === "string" && Number.isFinite(Date.parse(value))
+    ? value
+    : undefined;
+}
+
+function safeOptionalRange(value: unknown, minimum: number, maximum: number) {
+  return typeof value === "number" && Number.isFinite(value) && value >= minimum && value <= maximum
+    ? value
+    : undefined;
+}
+
+function safeOptionalText(value: unknown, maximum: number) {
+  return typeof value === "string" && value.length <= maximum
+    ? value
+    : undefined;
 }

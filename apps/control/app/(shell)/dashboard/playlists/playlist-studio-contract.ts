@@ -1,11 +1,23 @@
 export type PlaylistStudioItem = {
+  accessibilityName: string | null;
   asset: PlaylistStudioAsset | null;
+  backgroundColor: string | null;
+  cropFocusX: number;
+  cropFocusY: number;
+  displayTitle: string | null;
   durationSeconds: number;
+  enabled: boolean;
   fitMode: "contain" | "cover";
   id: string;
   mediaAssetId: string;
   muted: boolean;
   sortOrder: number;
+  transition: "crossfade" | "cut" | "wipe";
+  trimEndSeconds: number | null;
+  trimStartSeconds: number;
+  visibleFrom: string | null;
+  visibleUntil: string | null;
+  volumePercent: number;
 };
 
 export type PlaylistStudioAsset = {

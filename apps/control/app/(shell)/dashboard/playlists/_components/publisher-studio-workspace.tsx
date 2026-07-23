@@ -91,8 +91,14 @@ import {
 import styles from "../[playlistId]/publisher-studio.module.css";
 
 type Playlist = {
+  defaultBackgroundColor: string | null;
+  defaultFitMode: "contain" | "cover";
+  defaultImageDurationSeconds: number;
+  defaultTransition: "crossfade" | "cut" | "wipe";
+  defaultVideoMuted: boolean;
   description: string | null;
   id: string;
+  loopEnabled: boolean;
   name: string;
   revision: number;
   status: string;
@@ -401,12 +407,25 @@ export function PublisherStudioWorkspace({
         10
       );
       const fitMode = String(formData.get("fitMode") ?? "");
+      const transition = String(formData.get("transition") ?? "");
+      const cropFocusX = Number(formData.get("cropFocusX"));
+      const cropFocusY = Number(formData.get("cropFocusY"));
+      const volumePercent = Number(formData.get("volumePercent"));
+      const trimStartSeconds = Number(formData.get("trimStartSeconds"));
+      const trimEndRaw = String(formData.get("trimEndSeconds") ?? "").trim();
+      const trimEndSeconds = trimEndRaw ? Number(trimEndRaw) : null;
       if (
         !orderedItems.some((item) => item.id === itemId) ||
         !Number.isInteger(durationSeconds) ||
         durationSeconds < 5 ||
         durationSeconds > 3600 ||
-        (fitMode !== "contain" && fitMode !== "cover")
+        (fitMode !== "contain" && fitMode !== "cover") ||
+        !["cut", "crossfade", "wipe"].includes(transition) ||
+        !Number.isFinite(cropFocusX) ||
+        !Number.isFinite(cropFocusY) ||
+        !Number.isInteger(volumePercent) ||
+        !Number.isFinite(trimStartSeconds) ||
+        (trimEndSeconds !== null && !Number.isFinite(trimEndSeconds))
       ) {
         return null;
       }
@@ -416,12 +435,24 @@ export function PublisherStudioWorkspace({
           ? recovery.intent.idempotencyKey
           : null;
       return {
+        accessibilityName: String(formData.get("accessibilityName") ?? "").trim(),
+        backgroundColor: String(formData.get("backgroundColor") ?? "").trim(),
+        cropFocusX,
+        cropFocusY,
+        displayTitle: String(formData.get("displayTitle") ?? "").trim(),
         durationSeconds,
+        enabled: formData.get("enabled") === "on",
         fitMode,
         idempotencyKey: previous ?? createIdempotencyKey(),
         itemId,
         kind: "update_item",
-        muted: formData.get("muted") === "on"
+        muted: formData.get("muted") === "on",
+        transition: transition as "crossfade" | "cut" | "wipe",
+        trimEndSeconds,
+        trimStartSeconds,
+        visibleFrom: String(formData.get("visibleFrom") ?? ""),
+        visibleUntil: String(formData.get("visibleUntil") ?? ""),
+        volumePercent
       };
     }
     if (kind === "reorder") {
@@ -1199,7 +1230,8 @@ function SortableItem({
   revision: number;
   selected: boolean;
 }) {
-  const title = item.asset?.title ?? "Ontbrekende media";
+  const assetTitle = item.asset?.title ?? "Ontbrekende media";
+  const title = item.displayTitle || assetTitle;
   const {
     attributes,
     isDragging,
@@ -1458,7 +1490,8 @@ function Inspector({
     );
   }
 
-  const title = item.asset?.title ?? "Ontbrekende media";
+  const assetTitle = item.asset?.title ?? "Ontbrekende media";
+  const title = item.displayTitle || assetTitle;
   const itemDraft =
     restoredIntent?.kind === "update_item" &&
     restoredIntent.itemId === item.id
@@ -1490,17 +1523,19 @@ function Inspector({
           revision={playlist.revision}
         />
         <input name="itemId" type="hidden" value={item.id} />
-        <input name="displayName" type="hidden" value={title} />
         <label>
-          <span>Titel in mediabibliotheek</span>
+          <span>Titel binnen deze playlist</span>
           <input
             aria-describedby={`title-help-${item.id}`}
-            readOnly
-            value={title}
+            data-editor-field
+            defaultValue={itemDraft?.displayTitle ?? item.displayTitle ?? ""}
+            disabled={!canWrite}
+            maxLength={120}
+            name="displayTitle"
+            placeholder={assetTitle}
           />
           <small id={`title-help-${item.id}`}>
-            De titel is hier alleen-lezen, zodat andere playlists niet
-            onverwacht wijzigen.
+            Laat leeg om de bibliotheektitel “{assetTitle}” te gebruiken.
           </small>
         </label>
         <label>
@@ -1517,6 +1552,19 @@ function Inspector({
           />
         </label>
         <label>
+          <span>Overgang</span>
+          <select
+            data-editor-field
+            defaultValue={itemDraft?.transition ?? item.transition}
+            disabled={!canWrite}
+            name="transition"
+          >
+            <option value="cut">Direct</option>
+            <option value="crossfade">Vervagen</option>
+            <option value="wipe">Schuiven</option>
+          </select>
+        </label>
+        <label>
           <span>Weergave</span>
           <select
             data-editor-field
@@ -1528,20 +1576,149 @@ function Inspector({
             <option value="contain">Passend</option>
           </select>
         </label>
-        {item.asset?.kind === "video" ? (
-          <label className={styles.checkboxField}>
+        <fieldset>
+          <legend>Focuspunt</legend>
+          <label>
+            <span>Horizontaal</span>
             <input
               data-editor-field
-              defaultChecked={itemDraft?.muted ?? item.muted}
+              defaultValue={itemDraft?.cropFocusX ?? item.cropFocusX}
               disabled={!canWrite}
-              name="muted"
-              type="checkbox"
+              max={1}
+              min={0}
+              name="cropFocusX"
+              step={0.05}
+              type="range"
             />
-            <span>Zonder geluid afspelen</span>
           </label>
+          <label>
+            <span>Verticaal</span>
+            <input
+              data-editor-field
+              defaultValue={itemDraft?.cropFocusY ?? item.cropFocusY}
+              disabled={!canWrite}
+              max={1}
+              min={0}
+              name="cropFocusY"
+              step={0.05}
+              type="range"
+            />
+          </label>
+        </fieldset>
+        <label>
+          <span>Achtergrondkleur</span>
+          <input
+            data-editor-field
+            defaultValue={itemDraft?.backgroundColor ?? item.backgroundColor ?? ""}
+            disabled={!canWrite}
+            name="backgroundColor"
+            pattern="#[0-9A-Fa-f]{6}"
+            placeholder={playlist.defaultBackgroundColor ?? "#000000"}
+            type="text"
+          />
+        </label>
+        {item.asset?.kind === "video" ? (
+          <>
+            <label>
+              <span>Volume in procenten</span>
+              <input
+                data-editor-field
+                defaultValue={itemDraft?.volumePercent ?? item.volumePercent}
+                disabled={!canWrite}
+                max={100}
+                min={0}
+                name="volumePercent"
+                type="number"
+              />
+            </label>
+            <label className={styles.checkboxField}>
+              <input
+                data-editor-field
+                defaultChecked={itemDraft?.muted ?? item.muted}
+                disabled={!canWrite}
+                name="muted"
+                type="checkbox"
+              />
+              <span>Zonder geluid afspelen</span>
+            </label>
+            <div className={styles.inspectorFormRow}>
+              <label>
+                <span>Startpunt</span>
+                <input
+                  data-editor-field
+                  defaultValue={itemDraft?.trimStartSeconds ?? item.trimStartSeconds}
+                  disabled={!canWrite}
+                  min={0}
+                  name="trimStartSeconds"
+                  step={0.1}
+                  type="number"
+                />
+              </label>
+              <label>
+                <span>Eindpunt</span>
+                <input
+                  data-editor-field
+                  defaultValue={itemDraft?.trimEndSeconds ?? item.trimEndSeconds ?? ""}
+                  disabled={!canWrite}
+                  min={0.1}
+                  name="trimEndSeconds"
+                  step={0.1}
+                  type="number"
+                />
+              </label>
+            </div>
+          </>
         ) : (
-          <input name="muted" type="hidden" value={item.muted ? "on" : ""} />
+          <>
+            <input name="muted" type="hidden" value={item.muted ? "on" : ""} />
+            <input name="volumePercent" type="hidden" value={item.volumePercent} />
+            <input name="trimStartSeconds" type="hidden" value={item.trimStartSeconds} />
+            <input name="trimEndSeconds" type="hidden" value={item.trimEndSeconds ?? ""} />
+          </>
         )}
+        <div className={styles.inspectorFormRow}>
+          <label>
+            <span>Zichtbaar vanaf</span>
+            <input
+              data-editor-field
+              defaultValue={toLocalDateTime(itemDraft?.visibleFrom ?? item.visibleFrom)}
+              disabled={!canWrite}
+              name="visibleFrom"
+              type="datetime-local"
+            />
+          </label>
+          <label>
+            <span>Zichtbaar tot</span>
+            <input
+              data-editor-field
+              defaultValue={toLocalDateTime(itemDraft?.visibleUntil ?? item.visibleUntil)}
+              disabled={!canWrite}
+              name="visibleUntil"
+              type="datetime-local"
+            />
+          </label>
+        </div>
+        <label>
+          <span>Toegankelijkheidsnaam</span>
+          <input
+            data-editor-field
+            defaultValue={itemDraft?.accessibilityName ?? item.accessibilityName ?? ""}
+            disabled={!canWrite}
+            maxLength={160}
+            name="accessibilityName"
+            placeholder={title}
+          />
+        </label>
+        <label className={styles.checkboxField}>
+          <input
+            data-editor-field
+            defaultChecked={itemDraft?.enabled ?? item.enabled}
+            disabled={!canWrite}
+            name="enabled"
+            type="checkbox"
+          />
+          <span>Item meenemen in publicatie</span>
+        </label>
         <Button disabled={!canWrite} size="sm" type="submit">
           Item opslaan
         </Button>
@@ -1669,15 +1846,30 @@ function ItemUpdateFields({ item }: { item: PlaylistStudioItem }) {
   return (
     <>
       <input name="itemId" type="hidden" value={item.id} />
-      <input
-        name="displayName"
-        type="hidden"
-        value={item.asset?.title ?? "Media-item"}
-      />
+      <input name="displayTitle" type="hidden" value={item.displayTitle ?? ""} />
       <input name="fitMode" type="hidden" value={item.fitMode} />
       <input name="muted" type="hidden" value={item.muted ? "on" : ""} />
+      <input name="transition" type="hidden" value={item.transition} />
+      <input name="cropFocusX" type="hidden" value={item.cropFocusX} />
+      <input name="cropFocusY" type="hidden" value={item.cropFocusY} />
+      <input name="backgroundColor" type="hidden" value={item.backgroundColor ?? ""} />
+      <input name="volumePercent" type="hidden" value={item.volumePercent} />
+      <input name="trimStartSeconds" type="hidden" value={item.trimStartSeconds} />
+      <input name="trimEndSeconds" type="hidden" value={item.trimEndSeconds ?? ""} />
+      <input name="visibleFrom" type="hidden" value={item.visibleFrom ?? ""} />
+      <input name="visibleUntil" type="hidden" value={item.visibleUntil ?? ""} />
+      <input name="enabled" type="hidden" value={item.enabled ? "on" : ""} />
+      <input name="accessibilityName" type="hidden" value={item.accessibilityName ?? ""} />
     </>
   );
+}
+
+function toLocalDateTime(value: string | null | undefined) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
 function formatSeconds(seconds: number) {

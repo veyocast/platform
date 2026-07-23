@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -15,7 +16,15 @@ import { loadPlaylistStudio } from "./data";
 import { getReadinessCopy } from "./readiness-copy";
 
 type MutationRow = { actual_revision: number; outcome: "applied" | "conflict" };
-type PublishRow = { actual_revision: number; outcome: "conflict" | "published"; release_id: string | null };
+type GuardedMutationResult = {
+  actualRevision: number;
+  outcome: "applied" | "conflict";
+};
+type GuardedPublishResult = {
+  actualRevision: number;
+  outcome: "conflict" | "published";
+  releaseId?: string;
+};
 
 export async function createPlaylist(formData: FormData) {
   const { session, supabase } = await requirePlaylistWriter();
@@ -77,14 +86,47 @@ export async function addPlaylistItem(formData: FormData) {
 export async function updatePlaylistItem(formData: FormData) {
   const playlistId = idValue(formData, "playlistId");
   const itemId = idValue(formData, "itemId");
-  const displayName = String(formData.get("displayName") ?? "").trim();
+  const displayTitle = nullableText(formData, "displayTitle", 120);
   const durationSeconds = Number.parseInt(String(formData.get("duration") ?? ""), 10);
   const fitMode = String(formData.get("fitMode") ?? "");
   const muted = formData.get("muted") === "on";
-  if (displayName.length < 2 || displayName.length > 120) fail(playlistId, "Gebruik een medianaam van 2 tot en met 120 tekens.");
+  const transition = String(formData.get("transition") ?? "");
+  const cropFocusX = numericValue(formData, "cropFocusX");
+  const cropFocusY = numericValue(formData, "cropFocusY");
+  const backgroundColor = nullableText(formData, "backgroundColor", 7);
+  const volumePercent = Number.parseInt(String(formData.get("volumePercent") ?? ""), 10);
+  const trimStartSeconds = numericValue(formData, "trimStartSeconds");
+  const trimEndSeconds = nullableNumber(formData, "trimEndSeconds");
+  const visibleFrom = nullableIsoDate(formData, "visibleFrom");
+  const visibleUntil = nullableIsoDate(formData, "visibleUntil");
+  const enabled = formData.get("enabled") === "on";
+  const accessibilityName = nullableText(formData, "accessibilityName", 160);
   if (!Number.isInteger(durationSeconds) || durationSeconds < 5 || durationSeconds > 3600) fail(playlistId, "De itemduur moet tussen 5 en 3600 seconden liggen.");
   if (fitMode !== "contain" && fitMode !== "cover") fail(playlistId, "Kies Volledig in beeld of Schermvullend.");
-  await mutate(formData, playlistId, "update_item", { displayName, durationSeconds, fitMode, itemId, muted }, "De iteminstellingen zijn opgeslagen.");
+  if (!["cut", "crossfade", "wipe"].includes(transition)) fail(playlistId, "Kies een geldige overgang.");
+  if (cropFocusX < 0 || cropFocusX > 1 || cropFocusY < 0 || cropFocusY > 1) fail(playlistId, "Het focuspunt moet binnen het beeld liggen.");
+  if (backgroundColor && !/^#[0-9a-f]{6}$/i.test(backgroundColor)) fail(playlistId, "Gebruik een geldige hexkleur voor de achtergrond.");
+  if (!Number.isInteger(volumePercent) || volumePercent < 0 || volumePercent > 100) fail(playlistId, "Volume moet tussen 0 en 100 procent liggen.");
+  if (trimStartSeconds < 0 || (trimEndSeconds !== null && trimEndSeconds <= trimStartSeconds)) fail(playlistId, "Het gekozen begin- en eindpunt is niet geldig.");
+  if (visibleFrom && visibleUntil && Date.parse(visibleUntil) <= Date.parse(visibleFrom)) fail(playlistId, "Het einde van de zichtbaarheid moet na het begin liggen.");
+  await mutateGuarded(formData, playlistId, "update_item_presentation", {
+    accessibilityName,
+    backgroundColor,
+    cropFocusX,
+    cropFocusY,
+    displayTitle,
+    durationSeconds,
+    enabled,
+    fitMode,
+    itemId,
+    muted,
+    transition,
+    trimEndSeconds,
+    trimStartSeconds,
+    visibleFrom,
+    visibleUntil,
+    volumePercent
+  }, "De iteminstellingen zijn opgeslagen.");
 }
 
 export async function movePlaylistItem(formData: FormData) {
@@ -92,7 +134,7 @@ export async function movePlaylistItem(formData: FormData) {
   const itemId = idValue(formData, "itemId");
   const direction = String(formData.get("direction") ?? "");
   const targetPositionValue = String(formData.get("targetPosition") ?? "");
-  const targetPosition = targetPositionValue ? Number.parseInt(targetPositionValue, 10) : null;
+  let targetPosition = targetPositionValue ? Number.parseInt(targetPositionValue, 10) : null;
   if (targetPosition === null && !["up", "down", "start", "end"].includes(direction)) fail(playlistId, "De gekozen verplaatsing is ongeldig.");
   if (targetPosition !== null && (!Number.isInteger(targetPosition) || targetPosition < 0)) fail(playlistId, "De gekozen doelpositie is ongeldig.");
   const messages: Record<string, string> = {
@@ -101,10 +143,26 @@ export async function movePlaylistItem(formData: FormData) {
     start: "Het item staat nu bovenaan.",
     up: "Het item is omhoog verplaatst."
   };
-  const payload: Record<string, boolean | number | string> = targetPosition === null
-    ? { direction, itemId }
-    : { itemId, targetPosition };
-  await mutate(formData, playlistId, "move_item", payload, messages[direction] ?? "De nieuwe volgorde is opgeslagen.");
+  if (targetPosition === null) {
+    const { supabase } = await requirePlaylistWriter();
+    const { data, error } = await supabase
+      .from("playlist_items")
+      .select("id")
+      .eq("playlist_id", playlistId)
+      .order("position_key")
+      .order("id");
+    if (error) fail(playlistId, "De actuele volgorde kon niet veilig worden geladen.");
+    const index = (data ?? []).findIndex((item) => item.id === itemId);
+    if (index < 0) fail(playlistId, "Het item bestaat niet meer. Laad Playlist Studio opnieuw.");
+    targetPosition = direction === "start"
+      ? 0
+      : direction === "end"
+        ? Math.max(0, (data?.length ?? 1) - 1)
+        : direction === "up"
+          ? Math.max(0, index - 1)
+          : Math.min(Math.max(0, (data?.length ?? 1) - 1), index + 1);
+  }
+  await mutateGuarded(formData, playlistId, "move_item", { itemId, targetPosition }, messages[direction] ?? "De nieuwe volgorde is opgeslagen.");
 }
 
 export async function removePlaylistItem(formData: FormData) {
@@ -153,8 +211,9 @@ export async function publishPlaylistGuided(formData: FormData) {
     failPublish(playlistId, "Bevestig bewust de waarschuwingen en onbekende telemetry voordat je publiceert.");
   }
 
-  const { data, error } = await supabase.rpc("publish_playlist_to_screens_v2", {
+  const { data, error } = await supabase.rpc("publish_playlist_to_targets_v3", {
     p_expected_revision: revision,
+    p_idempotency_key: idempotencyValue(formData),
     p_playlist_id: playlistId,
     p_release_notes: releaseNotes || null,
     p_screen_ids: screenIds
@@ -163,16 +222,43 @@ export async function publishPlaylistGuided(formData: FormData) {
     console.error("Begeleide playlistpublicatie mislukt", error);
     failPublish(playlistId, publishFailureMessage(error.code));
   }
-  const result = (data?.[0] ?? null) as PublishRow | null;
+  const result = data as GuardedPublishResult | null;
   if (!result) failPublish(playlistId, "De publicatie gaf geen bevestiging. De huidige release blijft spelen; probeer opnieuw.");
-  if (result.outcome === "conflict") conflict(playlistId, revision, Number(result.actual_revision), "publish");
-  if (!result.release_id) failPublish(playlistId, "De release-ID ontbreekt in de publicatiebevestiging. Controleer Release Center voordat je opnieuw probeert.");
+  if (result.outcome === "conflict") conflict(playlistId, revision, Number(result.actualRevision), "publish");
+  if (!result.releaseId) failPublish(playlistId, "De release-ID ontbreekt in de publicatiebevestiging. Controleer Release Center voordat je opnieuw probeert.");
 
   revalidatePlaylistPaths(playlistId);
   revalidatePath("/dashboard/releases");
-  revalidatePath(`/dashboard/releases/${result.release_id}`);
+  revalidatePath(`/dashboard/releases/${result.releaseId}`);
   revalidatePath("/dashboard/screens");
-  redirect(`/dashboard/releases/${result.release_id}?succes=${encodeURIComponent("De immutable release is gepubliceerd. Volg hieronder desired, download, verificatie en activatie per scherm.")}`);
+  redirect(`/dashboard/releases/${result.releaseId}?succes=${encodeURIComponent("De immutable release is gepubliceerd. Volg hieronder desired, download, verificatie en activatie per scherm.")}`);
+}
+
+async function mutateGuarded(
+  formData: FormData,
+  playlistId: string,
+  operation: "move_item" | "update_item_presentation",
+  payload: Record<string, boolean | number | string | null>,
+  success: string
+) {
+  const revision = expectedRevision(formData);
+  const { supabase } = await requirePlaylistWriter();
+  const { data, error } = await supabase.rpc("mutate_playlist_draft_v2", {
+    p_expected_revision: revision,
+    p_idempotency_key: idempotencyValue(formData),
+    p_operation: operation,
+    p_payload: payload,
+    p_playlist_id: playlistId
+  });
+  if (error) {
+    console.error(`Playlistmutatie ${operation} mislukt`, error);
+    fail(playlistId, mutationFailureMessage(error.code, operation));
+  }
+  const result = data as GuardedMutationResult | null;
+  if (!result) fail(playlistId, "De wijziging gaf geen bevestiging. Laad Playlist Studio opnieuw.");
+  if (result.outcome === "conflict") conflict(playlistId, revision, Number(result.actualRevision), operation);
+  revalidatePlaylistPaths(playlistId);
+  redirect(`/dashboard/playlists/${playlistId}?succes=${encodeURIComponent(success)}`);
 }
 
 async function mutate(
@@ -237,6 +323,41 @@ function idValue(formData: FormData, name: string) {
   const value = String(formData.get(name) ?? "");
   if (!/^[0-9a-f-]{36}$/i.test(value)) failList("De gekozen resource is ongeldig. Er is niets gewijzigd; laad de pagina opnieuw.");
   return value;
+}
+
+function idempotencyValue(formData: FormData) {
+  const value = String(formData.get("idempotencyKey") ?? "");
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+    ? value
+    : randomUUID();
+}
+
+function numericValue(formData: FormData, name: string) {
+  const value = Number(String(formData.get(name) ?? ""));
+  if (!Number.isFinite(value)) failList("Een numerieke iteminstelling is ongeldig.");
+  return value;
+}
+
+function nullableNumber(formData: FormData, name: string) {
+  const raw = String(formData.get(name) ?? "").trim();
+  if (!raw) return null;
+  const value = Number(raw);
+  if (!Number.isFinite(value)) failList("Een numerieke iteminstelling is ongeldig.");
+  return value;
+}
+
+function nullableText(formData: FormData, name: string, maxLength: number) {
+  const value = String(formData.get(name) ?? "").trim();
+  if (value.length > maxLength) failList(`De waarde voor ${name} is te lang.`);
+  return value || null;
+}
+
+function nullableIsoDate(formData: FormData, name: string) {
+  const value = String(formData.get(name) ?? "").trim();
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) failList("De gekozen zichtbaarheidstijd is ongeldig.");
+  return parsed.toISOString();
 }
 
 function conflict(playlistId: string, expected: number, actual: number, operation: string): never {
