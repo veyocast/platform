@@ -62,6 +62,33 @@ Do not hardcode brand colors in components. Use CSS variables and Tailwind token
   repeated item, modal or genuinely framed tool.
 - Mobile is a task flow with its own hierarchy, not a shrunken desktop shell.
 
+## Control calmness patterns
+
+- Een paginaheader bevat standaard breadcrumb/context, één titel, één korte
+  uitleg en maximaal één primaire actie. Toon een status alleen wanneer die
+  afwijkt, blokkeert of herstel vraagt.
+- Concrete acties staan vóór samenvattende cijfers. Een dashboardactie is een
+  compacte regel; oorzaak, effect en herstel horen in een `Sheet`.
+- Gebruik `SummaryStrip` voor compacte aantallen en prioriteiten. Grote
+  KPI-kaarten mogen de primaire taak niet onder de eerste viewport drukken.
+- Gebruik één `FilterBar`; zoeken blijft direct bereikbaar en secundaire
+  filters bundelen op compacte breedtes.
+- Gebruik `Dialog` voor begrensde creatie of bewerking en `Sheet` voor
+  inspectie/context. Beide komen uit `@veyocast/ui`, niet uit lokale forks.
+- Tabellen mogen persoonlijke kolomzichtbaarheid en dichtheid lokaal bewaren,
+  maar server-side autorisatie en queryscope veranderen daardoor nooit.
+- Platformroutes tonen alleen platformnavigatie; tenantroutes tonen alleen
+  tenantnavigatie. De actieve context bepaalt de navigatiemodus.
+- Control ondersteunt light, dark en system theme met semantische tokens. Een
+  inline bootstrap past de opgeslagen voorkeur vóór hydration toe om een
+  kleurflits te voorkomen.
+- Motion duurt functioneel 140–220 ms voor dialogs, sheets, statuswissels en
+  herordening. `prefers-reduced-motion` schakelt niet-essentiële motion uit.
+- Instellingen groeperen velden per categorie en tonen een savebar pas nadat
+  de actuele waarden afwijken van de geladen waarden.
+- Op mobiel komt de primaire taak eerst; samenvatting is één compacte strook
+  en filters, inspectie en iteminstellingen openen sequentieel.
+
 ## Accessibility
 
 - WCAG 2.2 AA for website and Control.

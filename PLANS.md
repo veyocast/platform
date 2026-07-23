@@ -72,7 +72,8 @@ tests en exitcriteria staan in
 | S28 | Operationeel dashboard | Actie-inbox, echte globale search, onboardingchecklist en contextuele help |
 | S29 | Production operations | Worker deployment, observability, SLO's, alerts, restore en veilige supportbundle |
 | S30 | Pilot RC gate | Live critical journey, 24-uurs soak, fysieke LG-, security-, a11y- en DR-gates |
-| S31 | Productiviteitsfeatures | Bulkacties, templates, playlistduplicatie en opgeslagen views |
+| S30-K | Control calmness en workspacejourneys | Actie-eerst Control, consistente overlays, thema/dichtheid, veilige playlistduplicatie en rustige mobiele flows |
+| S31 | Productiviteitsfeatures | Bulkacties, tenanttemplates, opgeslagen views en optionele voorkeurensync |
 | S32 | Groepen en planning | Schermgroepen, schedules en eenvoudige offline-safe dayparting |
 | S33 | Integration framework | Server-only adapters, syncjobs en immutable offline widgetsnapshots |
 | S34 | Provider discovery | Official-only Sportlink/Twelve go/no-go en uitsluitend goedgekeurde POC's |
