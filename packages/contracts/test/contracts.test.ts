@@ -112,6 +112,36 @@ describe("playlist contracts", () => {
   it("accepts the exact playback fields shared by editor preview and Player", () => {
     expect(
       playerPlaybackItemSchema.parse({
+        accessibilityName: "Openingsvideo zonder gesproken tekst",
+        backgroundColor: "#0A0A0A",
+        cropFocusX: 0.25,
+        cropFocusY: 0.75,
+        displayTitle: "Wedstrijdintro thuis",
+        durationSeconds: 10,
+        enabled: true,
+        fitMode: "cover",
+        id: "30000000-0000-4000-8000-000000000001",
+        kind: "video",
+        muted: false,
+        title: "Wedstrijdintro",
+        transition: "crossfade",
+        trimEndSeconds: 18,
+        trimStartSeconds: 8,
+        visibleFrom: "2026-07-23T16:00:00.000Z",
+        visibleUntil: "2026-07-23T18:00:00.000Z",
+        volumePercent: 60
+      })
+    ).toMatchObject({
+      kind: "video",
+      muted: false,
+      transition: "crossfade",
+      volumePercent: 60
+    });
+  });
+
+  it("keeps legacy schemaVersion 1 playback items valid without publisher fields", () => {
+    expect(
+      playerPlaybackItemSchema.parse({
         durationSeconds: 10,
         fitMode: "cover",
         id: "30000000-0000-4000-8000-000000000001",
@@ -119,7 +149,40 @@ describe("playlist contracts", () => {
         muted: true,
         title: "Wedstrijdintro"
       })
-    ).toMatchObject({ kind: "video", muted: true });
+    ).toEqual({
+      durationSeconds: 10,
+      fitMode: "cover",
+      id: "30000000-0000-4000-8000-000000000001",
+      kind: "video",
+      muted: true,
+      title: "Wedstrijdintro"
+    });
+  });
+
+  it("rejects invalid trim and visibility windows", () => {
+    const baseline = {
+      durationSeconds: 10,
+      fitMode: "cover",
+      id: "30000000-0000-4000-8000-000000000001",
+      kind: "video",
+      muted: true,
+      title: "Wedstrijdintro"
+    };
+
+    expect(() =>
+      playerPlaybackItemSchema.parse({
+        ...baseline,
+        trimEndSeconds: 5,
+        trimStartSeconds: 5
+      })
+    ).toThrow();
+    expect(() =>
+      playerPlaybackItemSchema.parse({
+        ...baseline,
+        visibleFrom: "2026-07-23T18:00:00.000Z",
+        visibleUntil: "2026-07-23T16:00:00.000Z"
+      })
+    ).toThrow();
   });
 
   it("keeps revision conflicts typed and free of database details", () => {
