@@ -7,6 +7,7 @@ const baseURL = `http://127.0.0.1:${controlPort}`;
 const marketingURL = `http://127.0.0.1:${marketingPort}`;
 const playerURL = `http://127.0.0.1:${playerPort}`;
 const controlOnly = process.env.PLAYWRIGHT_CONTROL_ONLY === "1";
+const externalServers = process.env.PLAYWRIGHT_EXTERNAL_SERVERS === "1";
 
 const controlWebServer = {
   command: `pnpm --filter @veyocast/control exec next dev --port ${controlPort} --hostname 127.0.0.1`,
@@ -33,31 +34,33 @@ export default defineConfig({
     baseURL,
     trace: "retain-on-failure"
   },
-  webServer: controlOnly
-    ? [controlWebServer]
-    : [
-        controlWebServer,
-        {
-          command: `pnpm --filter @veyocast/marketing exec next dev --port ${marketingPort} --hostname 127.0.0.1`,
-          reuseExistingServer: !process.env.CI,
-          timeout: 180_000,
-          url: marketingURL
-        },
-        {
-          command: `pnpm --filter @veyocast/player exec next dev --port ${playerPort} --hostname 127.0.0.1`,
-          env: {
-            DEVICE_LAB_ACCESS_TOKEN:
-              process.env.DEVICE_LAB_ACCESS_TOKEN ??
-              "veyocast-device-lab-test-token-2026",
-            DEVICE_LAB_SESSION_SECRET:
-              process.env.DEVICE_LAB_SESSION_SECRET ??
-              "veyocast-device-lab-session-secret-for-tests-2026",
-            VEYOCAST_ENVIRONMENT:
-              process.env.VEYOCAST_ENVIRONMENT ?? "staging"
+  webServer: externalServers
+    ? undefined
+    : controlOnly
+      ? [controlWebServer]
+      : [
+          controlWebServer,
+          {
+            command: `pnpm --filter @veyocast/marketing exec next dev --port ${marketingPort} --hostname 127.0.0.1`,
+            reuseExistingServer: !process.env.CI,
+            timeout: 180_000,
+            url: marketingURL
           },
-          reuseExistingServer: !process.env.CI,
-          timeout: 180_000,
-          url: playerURL
-        }
-      ]
+          {
+            command: `pnpm --filter @veyocast/player exec next dev --port ${playerPort} --hostname 127.0.0.1`,
+            env: {
+              DEVICE_LAB_ACCESS_TOKEN:
+                process.env.DEVICE_LAB_ACCESS_TOKEN ??
+                "veyocast-device-lab-test-token-2026",
+              DEVICE_LAB_SESSION_SECRET:
+                process.env.DEVICE_LAB_SESSION_SECRET ??
+                "veyocast-device-lab-session-secret-for-tests-2026",
+              VEYOCAST_ENVIRONMENT:
+                process.env.VEYOCAST_ENVIRONMENT ?? "staging"
+            },
+            reuseExistingServer: !process.env.CI,
+            timeout: 180_000,
+            url: playerURL
+          }
+        ]
 });

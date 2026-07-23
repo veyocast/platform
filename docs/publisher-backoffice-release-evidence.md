@@ -66,7 +66,7 @@ belangrijkste gedragsgrenzen zijn:
 | `pnpm test:player` | groen; 41 Chromiumtests |
 | `pnpm test:player:offline` | groen; 7 Chromiumtests |
 | `playwright test tests/e2e --workers=1` | groen; 11 geslaagd, 2 expliciet opt-in live tests overgeslagen |
-| `playwright test tests/a11y --workers=1` | 21/22 in één volledige run; de enige dev-remountassertion is herhaalbaar gestabiliseerd en afzonderlijk groen |
+| `PLAYWRIGHT_EXTERNAL_SERVERS=1 playwright test tests/a11y --workers=1` | groen; 22/22 tegen vooraf opgewarmde developmentservers |
 
 ## 5. Grote keuzes die expliciet openblijven
 
