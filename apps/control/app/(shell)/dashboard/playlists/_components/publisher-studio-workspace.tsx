@@ -133,6 +133,11 @@ type PublisherStudioWorkspaceProps = {
   latestReleaseVersion: number | null;
   playlist: Playlist;
   previewItems: PlaylistPreviewItem[];
+  previewScreens: Array<{
+    id: string;
+    name: string;
+    orientation: string;
+  }>;
   readiness: {
     canPublish: boolean;
     itemCount: number;
@@ -167,6 +172,7 @@ export function PublisherStudioWorkspace({
   items,
   playlist,
   previewItems,
+  previewScreens,
   readiness,
   sections,
   screenCount,
@@ -750,7 +756,10 @@ export function PublisherStudioWorkspace({
                   </SheetDescription>
                 </SheetHeader>
                 <SheetBody>
-                  <PublisherStudioPreview items={previewItems} />
+                  <PublisherStudioPreview
+                    items={previewItems}
+                    screens={previewScreens}
+                  />
                 </SheetBody>
               </SheetContent>
             </Sheet>

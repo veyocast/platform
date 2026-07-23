@@ -160,6 +160,7 @@ export default async function PlaylistStudioPage({
           latestReleaseVersion={data.releases[0]?.version ?? null}
           playlist={playlist}
           previewItems={previewItems}
+          previewScreens={data.screens}
           readiness={
             data.readiness
               ? {

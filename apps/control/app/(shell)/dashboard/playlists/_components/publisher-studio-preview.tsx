@@ -24,9 +24,15 @@ import {
 } from "./publisher-studio-preview-state";
 
 export function PublisherStudioPreview({
-  items
+  items,
+  screens = []
 }: {
   items: PlaylistPreviewItem[];
+  screens?: Array<{
+    id: string;
+    name: string;
+    orientation: string;
+  }>;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -35,6 +41,7 @@ export function PublisherStudioPreview({
   );
   const [playing, setPlaying] = useState(false);
   const [simulatedAt, setSimulatedAt] = useState("");
+  const [screenId, setScreenId] = useState("");
   const [speed, setSpeed] = useState<0.5 | 1 | 2 | 4>(1);
   const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -123,6 +130,27 @@ export function PublisherStudioPreview({
     <div className={styles.fullPreview}>
       <div className={styles.previewToolbar}>
         <label>
+          <span>Doelscherm</span>
+          <select
+            onChange={(event) => {
+              const nextScreenId = event.target.value;
+              setScreenId(nextScreenId);
+              const screen = screens.find((candidate) => candidate.id === nextScreenId);
+              if (screen?.orientation === "portrait" || screen?.orientation === "landscape") {
+                setOrientation(screen.orientation);
+              }
+            }}
+            value={screenId}
+          >
+            <option value="">Geen scherm · vrije simulatie</option>
+            {screens.map((screen) => (
+              <option key={screen.id} value={screen.id}>
+                {screen.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
           <span>Schermoriëntatie</span>
           <select
             onChange={(event) =>
@@ -208,6 +236,9 @@ export function PublisherStudioPreview({
         )}
         <span className={styles.previewSafeArea} aria-hidden="true" />
         <span className={styles.previewContext}>
+          {screenId
+            ? `${screens.find((screen) => screen.id === screenId)?.name ?? "Doelscherm"} · `
+            : ""}
           {simulatedAt
             ? new Intl.DateTimeFormat("nl-NL", {
                 dateStyle: "medium",
