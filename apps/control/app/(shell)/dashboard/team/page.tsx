@@ -20,7 +20,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
   const query = await searchParams;
   const data = session.isLive
     ? await loadTenantTeam(session.tenantId!)
-    : { error: false, invitations: [], members: demoMembers };
+    : { error: false, invitations: [], members: [] };
   const activeMembership = session.tenantMemberships.find(
     (membership) => membership.id === session.tenantId
   );
@@ -36,11 +36,11 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
         actions={canManage ? <a className="button-link button-link--primary" href="#nieuw-teamlid">Teamlid uitnodigen</a> : null}
         description="Beheer leden en persoonlijke uitnodigingen. Iedere rolwijziging wordt server-side gevalideerd en geaudit."
         eyebrow={session.tenant}
-        status={!session.isLive ? { label: "Demodata", tone: "warning" } : undefined}
+        status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
         title="Team"
       />
 
-      {!session.isLive ? <p className="notice notice--warning" role="status">Deze personen zijn uitsluitend lokale fixtures; teammutaties zijn uitgeschakeld.</p> : null}
+      {!session.isLive ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte teamleden en uitnodigingen te beheren.</p> : null}
       {session.tenantStatus === "paused" ? <p className="notice notice--warning" role="status">Deze vereniging is gepauzeerd. Leden en uitnodigingen blijven zichtbaar, maar wijzigingen zijn databasebreed geblokkeerd.</p> : null}
       {data.error ? <p className="notice notice--critical" role="alert"><strong>Team niet beschikbaar.</strong> Leden en uitnodigingen konden niet veilig worden geladen.</p> : null}
       {query.fout ? <p className="notice notice--critical" role="alert"><strong>Actie niet uitgevoerd.</strong> {teamErrors[query.fout] ?? teamErrors.teamwijziging}</p> : null}
@@ -70,11 +70,6 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
     </>
   );
 }
-
-const demoMembers = [
-  { created_at: "2026-07-19T08:24:00.000Z", display_name: "Lokale beheerder", role: "tenant_admin", user_id: "demo-admin" },
-  { created_at: "2026-07-19T08:12:00.000Z", display_name: "Lokale editor", role: "tenant_editor", user_id: "demo-editor" }
-];
 
 const teamErrors: Record<string, string> = {
   bestaat: "Voor dit e-mailadres staat al een uitnodiging open of het account is al lid.",
