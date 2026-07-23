@@ -19,7 +19,7 @@ export async function switchTenantContext(formData: FormData) {
   const cookieStore = await cookies();
 
   if (!slug) {
-    if (!hasCapability(session.roles, "platform.system.read")) {
+    if (!hasCapability(session.capabilities, "platform.system.read")) {
       redirect("/context?fout=platformcontext");
     }
     cookieStore.delete(tenantContextCookieName);

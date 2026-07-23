@@ -44,7 +44,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
     ? await loadPlaylistList(session.tenantId, filter)
     : { error: null, page: 1, pageCount: 1, rows: [], total: 0 };
   const tenantIsMutable = session.isLive && session.tenantStatus === "active";
-  const canWrite = tenantIsMutable && hasCapability(session.roles, "tenant.playlist.write");
+  const canWrite = tenantIsMutable && hasCapability(session.capabilities, "tenant.playlist.write");
   const view = params.view === "list" ? "list" : "cards";
   const draftsNeedingAttention = data.rows.filter(
     ({ lastPublishedVersion, status }) => status === "draft" && lastPublishedVersion !== null

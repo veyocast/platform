@@ -28,8 +28,8 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
   const comparison = comparisonData?.release?.playlistId === release?.playlistId
     ? compareReleaseItems(comparisonData?.items ?? [], data?.items ?? [])
     : null;
-  const canReassign = Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.roles, "tenant.playlist.publish"));
-  const canRestore = Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.roles, "tenant.playlist.publish"));
+  const canReassign = Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.playlist.publish"));
+  const canRestore = Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.playlist.publish"));
   const currentScreens = data?.screenStates.filter((state) => state.screen.assignedReleaseId === releaseId) ?? [];
 
   return <>

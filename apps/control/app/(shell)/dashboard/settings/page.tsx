@@ -44,9 +44,9 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const canManage =
     session.isLive &&
     session.tenantStatus === "active" &&
-    hasCapability(session.roles, "tenant.settings.manage");
+    hasCapability(session.capabilities, "tenant.settings.manage");
   const canExportSupport =
-    session.isLive && hasCapability(session.roles, "tenant.support.export");
+    session.isLive && hasCapability(session.capabilities, "tenant.support.export");
 
   return (
     <>

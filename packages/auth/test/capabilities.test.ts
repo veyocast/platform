@@ -85,4 +85,18 @@ describe("capability decisions", () => {
       requireCapability(["tenant_editor"], "tenant.media.write")
     ).not.toThrow();
   });
+
+  it("accepts a server-resolved capability set without inventing role permissions", () => {
+    const effectiveCapabilities = [
+      "tenant.overview.read",
+      "tenant.media.read",
+      "tenant.screen.manage"
+    ] as const;
+
+    expect(hasCapability(effectiveCapabilities, "tenant.screen.manage")).toBe(true);
+    expect(hasCapability(effectiveCapabilities, "tenant.playlist.write")).toBe(false);
+    expect(() =>
+      requireCapability(effectiveCapabilities, "tenant.playlist.write")
+    ).toThrowError(MissingCapabilityError);
+  });
 });

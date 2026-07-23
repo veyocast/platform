@@ -38,7 +38,7 @@ export default async function DashboardPage() {
   const operations = deriveOperationalDashboard(data);
   return (
     <LiveDashboard
-      canManageScreens={hasCapability(session.roles, "tenant.screen.manage")}
+      canManageScreens={hasCapability(session.capabilities, "tenant.screen.manage")}
       data={data}
       operations={operations}
       tenant={session.tenant}

@@ -17,7 +17,7 @@ export async function searchControlResources(
   const escaped = `%${escapeLike(query)}%`;
 
   if (!session.tenantId) {
-    if (!hasCapability(session.roles, "platform.tenant.read")) return [];
+    if (!hasCapability(session.capabilities, "platform.tenant.read")) return [];
     const tenants = await supabase
       .from("tenants")
       .select("id, name, slug, status")
@@ -36,7 +36,7 @@ export async function searchControlResources(
 
   const tenantId = session.tenantId;
   const jobs: Array<PromiseLike<ControlSearchResult[]>> = [];
-  if (hasCapability(session.roles, "tenant.media.read")) {
+  if (hasCapability(session.capabilities, "tenant.media.read")) {
     jobs.push(supabase.from("media_assets")
       .select("id, title, kind, status")
       .eq("tenant_id", tenantId)
@@ -52,7 +52,7 @@ export async function searchControlResources(
         label: asset.title
       }))));
   }
-  if (hasCapability(session.roles, "tenant.playlist.read")) {
+  if (hasCapability(session.capabilities, "tenant.playlist.read")) {
     jobs.push(supabase.from("playlists")
       .select("id, name, status")
       .eq("tenant_id", tenantId)
@@ -67,7 +67,7 @@ export async function searchControlResources(
         label: playlist.name
       }))));
   }
-  if (hasCapability(session.roles, "tenant.screen.read")) {
+  if (hasCapability(session.capabilities, "tenant.screen.read")) {
     jobs.push(supabase.from("screens")
       .select("id, name, location, status")
       .eq("tenant_id", tenantId)
@@ -83,7 +83,7 @@ export async function searchControlResources(
         label: screen.name
       }))));
   }
-  if (hasCapability(session.roles, "tenant.release.read")) {
+  if (hasCapability(session.capabilities, "tenant.release.read")) {
     jobs.push(Promise.all([
       supabase.from("playlist_releases").select("id, playlist_id, version, published_at").eq("tenant_id", tenantId).order("published_at", { ascending: false }).limit(40),
       supabase.from("playlists").select("id, name").eq("tenant_id", tenantId)

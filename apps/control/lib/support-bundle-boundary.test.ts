@@ -9,7 +9,7 @@ describe("support bundle server boundary", () => {
     );
     expect(source).toContain("export async function POST()");
     expect(source).not.toContain("export async function GET()");
-    expect(source).toContain('hasCapability(session.roles, "tenant.support.export")');
+    expect(source).toContain('hasCapability(session.capabilities, "tenant.support.export")');
     expect(source).toContain('.select("action, created_at, result")');
     expect(source).toContain('.select("id")');
     expect(source).not.toMatch(/SUPABASE_SERVICE_ROLE|serviceRole/i);

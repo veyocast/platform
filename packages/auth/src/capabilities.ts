@@ -27,7 +27,7 @@ export const capabilities = [
 
 export type Capability = (typeof capabilities)[number];
 
-const tenantReadCapabilities = [
+export const tenantReadCapabilities = [
   "tenant.overview.read",
   "tenant.media.read",
   "tenant.playlist.read",
@@ -37,7 +37,7 @@ const tenantReadCapabilities = [
   "tenant.settings.read"
 ] as const satisfies readonly Capability[];
 
-const tenantWriteCapabilities = [
+export const tenantWriteCapabilities = [
   "tenant.media.write",
   "tenant.playlist.write"
 ] as const satisfies readonly Capability[];
@@ -96,14 +96,20 @@ export function getCapabilitiesForRoles(roles: readonly HumanRole[]): Capability
 }
 
 export function hasCapability(
-  roles: readonly HumanRole[],
+  rolesOrCapabilities: readonly (HumanRole | Capability)[],
   capability: Capability
 ): boolean {
-  return roles.some((role) => roleCapabilityMatrix[role].includes(capability));
+  return rolesOrCapabilities.some((roleOrCapability) =>
+    roleOrCapability === capability ||
+    (
+      roleOrCapability in roleCapabilityMatrix &&
+      roleCapabilityMatrix[roleOrCapability as HumanRole].includes(capability)
+    )
+  );
 }
 
 export function decideCapability(
-  roles: readonly HumanRole[],
+  roles: readonly (HumanRole | Capability)[],
   capability: Capability
 ): CapabilityDecision {
   return hasCapability(roles, capability)
@@ -123,7 +129,7 @@ export class MissingCapabilityError extends Error {
 }
 
 export function requireCapability(
-  roles: readonly HumanRole[],
+  roles: readonly (HumanRole | Capability)[],
   capability: Capability
 ): void {
   if (!hasCapability(roles, capability)) {

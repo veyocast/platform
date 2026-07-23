@@ -62,7 +62,7 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
     schedule.enabled && new Date(schedule.startsAt).getTime() > now
   ).length;
   const canWrite = session.isLive && session.tenantStatus === "active" &&
-    hasCapability(session.roles, "tenant.playlist.write");
+    hasCapability(session.capabilities, "tenant.playlist.write");
   const defaultStartAt = new Date(now + 60 * 60 * 1000).toISOString();
 
   return (

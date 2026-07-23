@@ -246,13 +246,13 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
   const canUpload =
     session.isLive &&
     session.tenantStatus === "active" &&
-    hasCapability(session.roles, "tenant.media.write");
+    hasCapability(session.capabilities, "tenant.media.write");
   const viewingArchive = params.status === "archived";
   const canMutateSelected = canUpload && !viewingArchive;
   const canSaveViews =
     session.isLive &&
     session.tenantStatus === "active" &&
-    hasCapability(session.roles, "tenant.media.read");
+    hasCapability(session.capabilities, "tenant.media.read");
   const visibleAssets = assets;
   const selectedAsset = params.asset
     ? assets.find((asset) => asset.id === params.asset) ?? null

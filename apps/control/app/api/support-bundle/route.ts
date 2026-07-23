@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function POST() {
   const session = await getControlSession();
   if (!session) return error("Sessie vereist.", 401);
-  if (!hasCapability(session.roles, "tenant.support.export")) {
+  if (!hasCapability(session.capabilities, "tenant.support.export")) {
     return error("Je mist de capability om een supportbundel te exporteren.", 403);
   }
   if (!session.isLive || !session.tenantId) {

@@ -416,7 +416,7 @@ export function ControlShell({
                   </button>
                 </form>
               ))}
-              {hasCapability(session.roles, "platform.system.read") ? (
+              {hasCapability(session.capabilities, "platform.system.read") ? (
                 <form
                   action={switchTenantContext}
                   onSubmit={() => clearTenantScopedLocalData(window.localStorage)}
@@ -500,7 +500,11 @@ export function ControlShell({
             <div className="control-user__copy">
               <p className="control-user__name">{session.userName}</p>
               <p className="control-user__meta">
-                {session.roles[0] ? roleLabel[session.roles[0]] : "Geen rol toegewezen"}
+                {activeNavigationScope === "tenant" && session.tenantRoleLabel
+                  ? session.tenantRoleLabel
+                  : session.roles[0]
+                    ? roleLabel[session.roles[0]]
+                    : "Geen rol toegewezen"}
               </p>
             </div>
             <form

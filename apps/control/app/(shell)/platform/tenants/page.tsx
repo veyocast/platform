@@ -18,7 +18,7 @@ export default async function PlatformTenantsPage({
   const session = await requireControlCapability("platform.tenant.read");
   const data = session.isLive ? await loadPlatformOverview() : null;
   const { fout } = await searchParams;
-  const hasCreateCapability = hasCapability(session.roles, "platform.tenant.create");
+  const hasCreateCapability = hasCapability(session.capabilities, "platform.tenant.create");
   const canCreate = session.isLive && hasCreateCapability && session.assuranceLevel === "aal2";
 
   return (

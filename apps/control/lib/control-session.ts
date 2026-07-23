@@ -1,8 +1,11 @@
 import "server-only";
 
 import {
+  capabilities,
+  getCapabilitiesForRoles,
   hasCapability,
   requireCapability,
+  tenantReadCapabilities,
   type Capability
 } from "@veyocast/auth";
 import {
@@ -29,6 +32,7 @@ import { getControlRuntimeMode } from "./supabase/config";
 import { createControlSupabaseClient } from "./supabase/server";
 
 type TenantMembershipRow = {
+  custom_role_id: string | null;
   role: TenantRole;
   tenant_id: string;
   tenants:
@@ -39,6 +43,7 @@ type TenantMembershipRow = {
 
 const demoControlSession = {
   assuranceLevel: "aal2",
+  capabilities: getCapabilitiesForRoles(["platform_admin", "tenant_admin", "tenant_viewer"]),
   email: "operator@veyocast.test",
   isLive: false,
   nextAssuranceLevel: "aal2",
@@ -48,6 +53,7 @@ const demoControlSession = {
   tenantContextReason: "demo",
   tenantId: null,
   tenantMemberships: [],
+  tenantRoleLabel: "Beheerder",
   tenantSlug: "museumkwartier",
   tenantStatus: "active",
   userId: "demo-control-user",
@@ -84,7 +90,7 @@ export async function getControlSession(): Promise<ControlSession | null> {
     supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
     supabase
       .from("tenant_memberships")
-      .select("tenant_id, role, tenants!inner(id, name, slug, status)")
+      .select("tenant_id, role, custom_role_id, tenants!inner(id, name, slug, status)")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true }),
     supabase
@@ -99,6 +105,23 @@ export async function getControlSession(): Promise<ControlSession | null> {
   }
 
   const memberships = (tenantResult.data ?? []) as unknown as TenantMembershipRow[];
+  const customRoleIds = [
+    ...new Set(memberships.flatMap((membership) =>
+      membership.custom_role_id ? [membership.custom_role_id] : []
+    ))
+  ];
+  const customRolesResult = customRoleIds.length
+    ? await supabase
+        .from("tenant_custom_roles")
+        .select("id, name")
+        .in("id", customRoleIds)
+    : { data: [], error: null };
+  if (customRolesResult.error) {
+    throw new Error("De custom rollen voor deze sessie konden niet worden geladen.");
+  }
+  const customRoleNames = new Map(
+    (customRolesResult.data ?? []).map((role) => [role.id, role.name])
+  );
   const tenantMemberships = memberships.flatMap((membership) => {
     const tenant = Array.isArray(membership.tenants)
       ? membership.tenants[0]
@@ -106,6 +129,10 @@ export async function getControlSession(): Promise<ControlSession | null> {
     return tenant
       ? [{
           id: tenant.id,
+          customRoleId: membership.custom_role_id,
+          customRoleName: membership.custom_role_id
+            ? customRoleNames.get(membership.custom_role_id) ?? "Custom rol"
+            : null,
           name: tenant.name,
           role: membership.role,
           slug: tenant.slug,
@@ -125,9 +152,18 @@ export async function getControlSession(): Promise<ControlSession | null> {
     ),
     activeMembership?.role
   );
+  const capabilities = activeMembership?.id
+    ? await loadEffectiveCapabilities(
+        supabase,
+        activeMembership.id,
+        roles,
+        Boolean(activeMembership.customRoleId)
+      )
+    : getCapabilitiesForRoles(roles);
 
   return {
     assuranceLevel: normalizeAssuranceLevel(assuranceResult.data.currentLevel),
+    capabilities,
     email: user.email ?? "",
     isLive: true,
     nextAssuranceLevel: normalizeAssuranceLevel(assuranceResult.data.nextLevel),
@@ -137,6 +173,8 @@ export async function getControlSession(): Promise<ControlSession | null> {
     tenantContextReason: tenantResolution.reason,
     tenantId: activeMembership?.id ?? null,
     tenantMemberships,
+    tenantRoleLabel: activeMembership?.customRoleName ??
+      (activeMembership ? tenantRoleLabel[activeMembership.role] : null),
     tenantSlug: activeMembership?.slug ?? null,
     tenantStatus: activeMembership?.status ?? null,
     userId: user.id,
@@ -146,6 +184,39 @@ export async function getControlSession(): Promise<ControlSession | null> {
       user.email ??
       "VeyoCast gebruiker"
   };
+}
+
+const tenantRoleLabel = {
+  tenant_admin: "Beheerder",
+  tenant_editor: "Editor",
+  tenant_owner: "Eigenaar",
+  tenant_viewer: "Kijker"
+} as const;
+
+async function loadEffectiveCapabilities(
+  supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
+  tenantId: string,
+  fallbackRoles: ControlSession["roles"],
+  hasCustomRole: boolean
+): Promise<Capability[]> {
+  const platformCapabilities = getCapabilitiesForRoles(
+    fallbackRoles.filter((role) => role.startsWith("platform_"))
+  );
+  const { data, error } = await supabase.rpc("get_my_tenant_capabilities_v1", {
+    p_tenant_id: tenantId
+  });
+  if (error || !Array.isArray(data)) {
+    console.error("Effectieve tenantrechten laden mislukt", error);
+    return hasCustomRole
+      ? [...new Set([...platformCapabilities, ...tenantReadCapabilities])]
+      : getCapabilitiesForRoles(fallbackRoles);
+  }
+  const allowed = new Set<Capability>(capabilities);
+  const tenantCapabilities = data.filter(
+    (value): value is Capability =>
+      typeof value === "string" && allowed.has(value as Capability)
+  );
+  return [...new Set([...platformCapabilities, ...tenantCapabilities])];
 }
 
 function normalizeAssuranceLevel(level: string | null) {
@@ -173,7 +244,7 @@ export async function requireControlCapability(
   const session = await requireControlSession();
 
   try {
-    requireCapability(session.roles, capability);
+    requireCapability(session.capabilities, capability);
   } catch {
     redirect(getControlLandingPath(session));
   }
@@ -235,7 +306,7 @@ export function getControlLandingPath(session: ControlSession) {
 export function getControlPostMfaLandingPath(session: ControlSession) {
 
   if (
-    hasCapability(session.roles, "tenant.overview.read") &&
+    hasCapability(session.capabilities, "tenant.overview.read") &&
     (session.tenantId || !session.isLive)
   ) {
     return "/dashboard";
@@ -245,7 +316,7 @@ export function getControlPostMfaLandingPath(session: ControlSession) {
     return `/context?reden=${encodeURIComponent(session.tenantContextReason)}`;
   }
 
-  if (hasCapability(session.roles, "platform.system.read")) {
+  if (hasCapability(session.capabilities, "platform.system.read")) {
     return "/platform";
   }
 

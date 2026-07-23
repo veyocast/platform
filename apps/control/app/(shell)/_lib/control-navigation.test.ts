@@ -69,6 +69,22 @@ describe("control navigation", () => {
     ).toStrictEqual(["platform_admin", "tenant_viewer"]);
   });
 
+  it("builds custom-role navigation from effective capabilities", () => {
+    const links = getNavigationForRoles([
+      "tenant.overview.read",
+      "tenant.media.read",
+      "tenant.screen.read",
+      "tenant.screen.manage"
+    ]).map((item) => item.href);
+
+    expect(links).toStrictEqual([
+      "/dashboard",
+      "/dashboard/screens",
+      "/dashboard/screen-groups",
+      "/dashboard/media"
+    ]);
+  });
+
   it("shows only navigation for the route context while keeping all permitted groups available", () => {
     const groups = getNavigationGroupsForRoles([
       "platform_admin",

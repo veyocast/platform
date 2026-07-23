@@ -68,11 +68,11 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const canManage =
     session.isLive &&
     session.tenantStatus === "active" &&
-    hasCapability(session.roles, "tenant.screen.manage");
+    hasCapability(session.capabilities, "tenant.screen.manage");
   const canPublish =
     session.isLive &&
     session.tenantStatus === "active" &&
-    hasCapability(session.roles, "tenant.playlist.publish");
+    hasCapability(session.capabilities, "tenant.playlist.publish");
   const eligibleCount = filteredScreens.filter(
     (screen) => screen.status === "active"
   ).length;

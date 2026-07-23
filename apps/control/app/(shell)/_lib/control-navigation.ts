@@ -34,6 +34,7 @@ export type ControlNavigationGroup = {
 
 export type ControlSession = {
   assuranceLevel: "aal1" | "aal2";
+  capabilities: readonly Capability[];
   nextAssuranceLevel: "aal1" | "aal2";
   email: string;
   isLive: boolean;
@@ -49,6 +50,7 @@ export type ControlSession = {
     | "tenant_archived";
   tenantId: string | null;
   tenantMemberships: readonly TenantMembershipContext[];
+  tenantRoleLabel: string | null;
   tenantSlug: string | null;
   tenantStatus: TenantStatus | null;
   userId: string;
@@ -207,7 +209,7 @@ const navigationSectionMeta = {
 >;
 
 export function getNavigationForRoles(
-  roles: readonly ControlRole[],
+  roles: readonly (ControlRole | Capability)[],
   includeTenantScope = true
 ) {
   return controlNavigation.filter((item) =>
@@ -217,7 +219,7 @@ export function getNavigationForRoles(
 }
 
 export function getNavigationGroupsForRoles(
-  roles: readonly ControlRole[],
+  roles: readonly (ControlRole | Capability)[],
   includeTenantScope = true
 ): ControlNavigationGroup[] {
   const permittedItems = getNavigationForRoles(roles, includeTenantScope);

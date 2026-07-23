@@ -45,7 +45,7 @@ export default async function ContextPage({ searchParams }: ContextPageProps) {
                 <div>
                   <strong>{membership.name}</strong>
                   <p>
-                    {roleLabel[membership.role]} · {statusLabel[membership.status]}
+                    {membership.customRoleName ?? roleLabel[membership.role]} · {statusLabel[membership.status]}
                   </p>
                 </div>
                 {membership.status === "archived" ? (
@@ -70,7 +70,7 @@ export default async function ContextPage({ searchParams }: ContextPageProps) {
         </div>
       )}
 
-      {hasCapability(session.roles, "platform.system.read") ? (
+      {hasCapability(session.capabilities, "platform.system.read") ? (
         <form action={switchTenantContext}>
           <input name="tenantSlug" type="hidden" value="" />
           <button className="button-link button-link--secondary" type="submit">

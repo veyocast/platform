@@ -172,7 +172,7 @@ export async function loadTenantMembers(tenantId: string) {
 
   const memberships = await supabase
     .from("tenant_memberships")
-    .select("user_id, role, created_at")
+    .select("user_id, role, custom_role_id, created_at")
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: true });
 
@@ -200,22 +200,28 @@ export async function loadTenantMembers(tenantId: string) {
 
 export async function loadTenantTeam(tenantId: string) {
   const supabase = await createControlSupabaseClient();
-  if (!supabase) return { error: true, invitations: [], members: [] };
+  if (!supabase) return { customRoles: [], error: true, invitations: [], members: [] };
 
-  const [memberResult, invitations] = await Promise.all([
+  const [memberResult, invitations, customRoles] = await Promise.all([
     loadTenantMembers(tenantId),
     supabase
       .from("tenant_invitations")
-      .select("id, email, role, status, delivery_status, send_attempt_count, expires_at, created_at")
+      .select("id, email, role, custom_role_id, status, delivery_status, send_attempt_count, expires_at, created_at")
       .eq("tenant_id", tenantId)
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("tenant_custom_roles")
+      .select("id, name, description, capabilities, status, revision, updated_at")
+      .eq("tenant_id", tenantId)
+      .order("name")
   ]);
 
-  if (memberResult.error || invitations.error) {
-    return { error: true, invitations: [], members: [] };
+  if (memberResult.error || invitations.error || customRoles.error) {
+    return { customRoles: [], error: true, invitations: [], members: [] };
   }
 
   return {
+    customRoles: customRoles.data ?? [],
     error: false,
     invitations: invitations.data ?? [],
     members: memberResult.members

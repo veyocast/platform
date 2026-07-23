@@ -3,6 +3,8 @@ import type { TenantRole, TenantStatus } from "@veyocast/domain";
 export const tenantContextCookieName = "veyocast-tenant-context";
 
 export type TenantMembershipContext = Readonly<{
+  customRoleId?: string | null;
+  customRoleName?: string | null;
   id: string;
   name: string;
   role: TenantRole;

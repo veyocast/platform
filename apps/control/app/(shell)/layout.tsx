@@ -14,7 +14,7 @@ export default async function ShellLayout({
 }: Readonly<{ children: ReactNode }>) {
   const session = await requireControlSession();
   const navigationGroups = getNavigationGroupsForRoles(
-    session.roles,
+    session.capabilities,
     Boolean(session.tenantId) || !session.isLive
   );
   const uploadQueue = await loadGlobalUploadQueue(

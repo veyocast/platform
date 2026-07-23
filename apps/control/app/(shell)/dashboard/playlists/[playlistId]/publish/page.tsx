@@ -41,7 +41,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
     session.isLive &&
     session.tenantStatus === "active" &&
     playlist?.status !== "archived" &&
-    hasCapability(session.roles, "tenant.playlist.publish") &&
+    hasCapability(session.capabilities, "tenant.playlist.publish") &&
     studio?.readiness?.canPublish
   );
   const previewItems: PlaylistPreviewItem[] = studio?.items.flatMap((item) => {

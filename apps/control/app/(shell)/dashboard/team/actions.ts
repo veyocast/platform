@@ -13,24 +13,29 @@ import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
 export async function inviteTenantMember(formData: FormData) {
   const { session, supabase } = await teamContext();
-  const command = tenantInvitationCommandSchema.safeParse({
-    email: String(formData.get("email") ?? ""),
-    role: String(formData.get("role") ?? "")
-  });
-  if (!command.success) fail("invoer");
+  const access = accessValue(formData);
+  const email = emailValue(formData);
 
   const token = createInvitationToken();
-  const { data: invitationId, error } = await supabase.rpc("create_tenant_invitation", {
-    p_email: command.data.email,
-    p_invitation_token: token,
-    p_role: command.data.role,
-    p_tenant_id: session.tenantId
-  });
+  const invitation = access.kind === "custom"
+    ? await supabase.rpc("create_tenant_custom_role_invitation_v1", {
+        p_custom_role_id: access.id,
+        p_email: email,
+        p_invitation_token: token,
+        p_tenant_id: session.tenantId
+      })
+    : await supabase.rpc("create_tenant_invitation", {
+        p_email: email,
+        p_invitation_token: token,
+        p_role: access.role,
+        p_tenant_id: session.tenantId
+      });
+  const { data: invitationId, error } = invitation;
   if (error || typeof invitationId !== "string") {
     fail(error?.code === "23505" ? "bestaat" : error?.code === "42501" ? "rechten" : "uitnodiging");
   }
 
-  await deliverAndMark(supabase, command.data.email, {
+  await deliverAndMark(supabase, email, {
     invitationId,
     tenantId: session.tenantId,
     token
@@ -76,17 +81,68 @@ export async function revokeTenantInvitation(formData: FormData) {
 export async function changeTenantMemberRole(formData: FormData) {
   const { session, supabase } = await teamContext();
   const userId = idValue(formData, "userId");
-  const role = String(formData.get("role") ?? "");
-  if (!isTenantRole(role)) fail("invoer");
+  const access = accessValue(formData);
   if (userId === session.userId) fail("zelf");
 
-  const { error } = await supabase.rpc("set_tenant_member_role", {
-    p_role: role,
-    p_tenant_id: session.tenantId,
-    p_user_id: userId
-  });
+  const { error } = access.kind === "custom"
+    ? await supabase.rpc("set_tenant_member_custom_role_v1", {
+        p_custom_role_id: access.id,
+        p_tenant_id: session.tenantId,
+        p_user_id: userId
+      })
+    : await supabase.rpc("clear_tenant_member_custom_role_v1", {
+        p_role: access.role,
+        p_tenant_id: session.tenantId,
+        p_user_id: userId
+      });
   if (error) fail(teamMutationError(error.code, error.message));
   done("rol");
+}
+
+export async function createTenantCustomRole(formData: FormData) {
+  const { session, supabase } = await customRoleContext();
+  const details = customRoleDetails(formData);
+  const { error } = await supabase.rpc("create_tenant_custom_role_v1", {
+    p_capabilities: details.capabilities,
+    p_description: details.description || null,
+    p_name: details.name,
+    p_tenant_id: session.tenantId
+  });
+  if (error) fail(customRoleError(error.code, error.message));
+  done("custom-rol");
+}
+
+export async function updateTenantCustomRole(formData: FormData) {
+  const { session, supabase } = await customRoleContext();
+  const details = customRoleDetails(formData);
+  const roleId = idValue(formData, "roleId");
+  const expectedRevision = revisionValue(formData);
+  const { data, error } = await supabase.rpc("update_tenant_custom_role_v1", {
+    p_capabilities: details.capabilities,
+    p_description: details.description || null,
+    p_expected_revision: expectedRevision,
+    p_name: details.name,
+    p_role_id: roleId,
+    p_tenant_id: session.tenantId
+  });
+  if (error) fail(customRoleError(error.code, error.message));
+  if (resultOutcome(data) === "conflict") fail("rolconflict");
+  done("custom-rol");
+}
+
+export async function archiveTenantCustomRole(formData: FormData) {
+  const { session, supabase } = await customRoleContext();
+  const roleId = idValue(formData, "roleId");
+  const expectedRevision = revisionValue(formData);
+  if (formData.get("confirmArchive") !== "on") fail("bevestiging");
+  const { data, error } = await supabase.rpc("archive_tenant_custom_role_v1", {
+    p_expected_revision: expectedRevision,
+    p_role_id: roleId,
+    p_tenant_id: session.tenantId
+  });
+  if (error) fail(customRoleError(error.code, error.message));
+  if (resultOutcome(data) === "conflict") fail("rolconflict");
+  done("rol-gearchiveerd");
 }
 
 export async function removeTenantMember(formData: FormData) {
@@ -108,6 +164,18 @@ async function teamContext() {
   const supabase = await createControlSupabaseClient();
   if (!session.isLive || !session.tenantId || !supabase) fail("configuratie");
   return { session: { ...session, tenantId: session.tenantId }, supabase };
+}
+
+async function customRoleContext() {
+  const context = await teamContext();
+  const membership = context.session.tenantMemberships.find(
+    (item) => item.id === context.session.tenantId
+  );
+  const isPlatformManager = context.session.roles.some(
+    (role) => role === "platform_owner" || role === "platform_admin"
+  );
+  if (membership?.role !== "tenant_owner" && !isPlatformManager) fail("rol-eigenaar");
+  return context;
 }
 
 async function deliverAndMark(
@@ -138,6 +206,71 @@ function teamMutationError(code: string, message: string) {
 function isTenantRole(value: string): value is "tenant_owner" | "tenant_admin" | "tenant_editor" | "tenant_viewer" {
   return ["tenant_owner", "tenant_admin", "tenant_editor", "tenant_viewer"].includes(value);
 }
+
+function accessValue(formData: FormData):
+  | { kind: "builtin"; role: "tenant_owner" | "tenant_admin" | "tenant_editor" | "tenant_viewer" }
+  | { id: string; kind: "custom" } {
+  const value = String(formData.get("access") ?? "");
+  if (value.startsWith("builtin:")) {
+    const role = value.slice("builtin:".length);
+    if (isTenantRole(role)) return { kind: "builtin", role };
+  }
+  if (value.startsWith("custom:")) {
+    const id = value.slice("custom:".length);
+    if (/^[0-9a-f-]{36}$/i.test(id)) return { id, kind: "custom" };
+  }
+  fail("invoer");
+}
+
+function emailValue(formData: FormData) {
+  const parsed = tenantInvitationCommandSchema.shape.email.safeParse(
+    String(formData.get("email") ?? "")
+  );
+  if (!parsed.success) fail("invoer");
+  return parsed.data;
+}
+
+function customRoleDetails(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  if (name.length < 2 || name.length > 60 || description.length > 240) fail("rolinvoer");
+  const selected = new Set(
+    formData.getAll("capabilities").map((value) => String(value))
+  );
+  const capabilities = selected.has("content.write")
+    ? ["tenant.media.write", "tenant.playlist.write"]
+    : [];
+  for (const capability of configurableCapabilities) {
+    if (selected.has(capability)) capabilities.push(capability);
+  }
+  return { capabilities, description, name };
+}
+
+function revisionValue(formData: FormData) {
+  const revision = Number(formData.get("expectedRevision"));
+  if (!Number.isSafeInteger(revision) || revision < 0) fail("rolinvoer");
+  return revision;
+}
+
+function resultOutcome(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return (value as { outcome?: unknown }).outcome;
+}
+
+function customRoleError(code: string, message: string) {
+  if (code === "23505") return "rolbestaat";
+  if (code === "42501") return "rol-eigenaar";
+  if (code === "23514" && message.includes("still assigned")) return "rol-toegewezen";
+  return code === "23514" ? "rolinvoer" : "teamwijziging";
+}
+
+const configurableCapabilities = [
+  "tenant.playlist.publish",
+  "tenant.screen.manage",
+  "tenant.settings.manage",
+  "tenant.audit.read",
+  "tenant.support.export"
+] as const;
 
 function idValue(formData: FormData, name: string) {
   const value = String(formData.get(name) ?? "");

@@ -49,7 +49,7 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
   const canManage = Boolean(
     session.isLive &&
     session.tenantStatus === "active" &&
-    hasCapability(session.roles, "tenant.screen.manage")
+    hasCapability(session.capabilities, "tenant.screen.manage")
   );
   const status = screenStatus(screen?.status, pairedDevice, pairedDevice?.lastSeenAt ?? null);
 

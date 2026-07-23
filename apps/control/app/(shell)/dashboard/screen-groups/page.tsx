@@ -26,7 +26,7 @@ export default async function ScreenGroupsPage({ searchParams }: ScreenGroupsPag
   const activeGroups = data.groups.filter((group) => group.status === "active");
   const assignedScreens = new Set(activeGroups.flatMap((group) => group.memberNames));
   const canManage = session.isLive && session.tenantStatus === "active" &&
-    hasCapability(session.roles, "tenant.screen.manage");
+    hasCapability(session.capabilities, "tenant.screen.manage");
 
   return (
     <>

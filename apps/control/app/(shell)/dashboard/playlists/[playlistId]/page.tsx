@@ -50,11 +50,11 @@ export default async function PlaylistStudioPage({
     playlist?.status !== "archived";
   const canWrite = Boolean(
     tenantIsMutable &&
-      hasCapability(session.roles, "tenant.playlist.write")
+      hasCapability(session.capabilities, "tenant.playlist.write")
   );
   const canManage = Boolean(
     tenantIsMutable &&
-      hasCapability(session.roles, "tenant.playlist.archive")
+      hasCapability(session.capabilities, "tenant.playlist.archive")
   );
   const sectionById = new Map(
     data.sections.map((section) => [section.id, section])

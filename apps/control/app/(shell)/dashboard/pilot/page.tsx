@@ -55,10 +55,10 @@ export default async function PilotPage({ searchParams }: PilotPageProps) {
   const readyAssets = data.assets.filter((asset) => asset.status === "ready");
   const draftPlaylists = data.playlists.filter((playlist) => playlist.status === "draft");
   const canMutate = session.isLive && session.tenantStatus === "active";
-  const canUpload = canMutate && hasCapability(session.roles, "tenant.media.write");
-  const canEditPlaylist = canMutate && hasCapability(session.roles, "tenant.playlist.write");
-  const canPublish = canMutate && hasCapability(session.roles, "tenant.playlist.publish") && readyAssets.length > 0 && draftPlaylists.length > 0 && data.screens.length > 0;
-  const canPair = canMutate && hasCapability(session.roles, "tenant.screen.manage");
+  const canUpload = canMutate && hasCapability(session.capabilities, "tenant.media.write");
+  const canEditPlaylist = canMutate && hasCapability(session.capabilities, "tenant.playlist.write");
+  const canPublish = canMutate && hasCapability(session.capabilities, "tenant.playlist.publish") && readyAssets.length > 0 && draftPlaylists.length > 0 && data.screens.length > 0;
+  const canPair = canMutate && hasCapability(session.capabilities, "tenant.screen.manage");
 
   return (
     <>

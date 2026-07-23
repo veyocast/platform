@@ -27,7 +27,7 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
   const canManage = Boolean(
     session.isLive &&
     session.tenantStatus === "active" &&
-    hasCapability(session.roles, "tenant.screen.manage")
+    hasCapability(session.capabilities, "tenant.screen.manage")
   );
   const limitReached = Boolean(fleet && fleet.screens.length >= fleet.limit);
 

@@ -37,7 +37,7 @@ export default async function PlatformTenantDetailPage({
   }
 
   const tenant = data.tenant;
-  const canManage = hasCapability(session.roles, "platform.tenant.lifecycle");
+  const canManage = hasCapability(session.capabilities, "platform.tenant.lifecycle");
   const aal2Ready = !session.isLive || session.assuranceLevel === "aal2";
   const canMutate = canManage && aal2Ready;
   const membership = session.tenantMemberships.find((item) => item.id === tenant.id);
