@@ -227,6 +227,8 @@ describe("@veyocast/ui primitives", () => {
     expect(styles).not.toMatch(/#[0-9a-f]{3,8}/i);
     expect(styles).toContain("../../../tokens/veyocast-design-tokens.css");
     expect(styles).toContain("var(--vc-motion-standard)");
+    expect(styles).toContain(".vc-summary-strip");
+    expect(styles).toContain("min-height: 5rem");
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
   });
 });

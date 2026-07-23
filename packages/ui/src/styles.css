@@ -985,6 +985,7 @@
   grid-auto-flow: column;
   margin: 0;
   max-width: 100%;
+  min-height: 5rem;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scrollbar-width: thin;
@@ -1043,6 +1044,16 @@
 
 .vc-summary-strip__item--info .vc-summary-strip__value {
   color: var(--vc-semantic-info-text);
+}
+
+@media (max-width: 767px) {
+  .vc-summary-strip {
+    min-height: 4rem;
+  }
+
+  .vc-summary-strip__detail {
+    display: none;
+  }
 }
 
 .vc-page-header {

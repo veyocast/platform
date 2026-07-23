@@ -91,7 +91,7 @@
 
 .screenSelect {
   align-items: center;
-  background: color-mix(in srgb, var(--vc-sidebar) 82%, transparent);
+  background: color-mix(in srgb, var(--vc-neutral-900) 82%, transparent);
   border: 1px solid color-mix(in srgb, var(--vc-brand-paper-white) 24%, transparent);
   border-radius: var(--vc-radius-md);
   display: flex;
@@ -124,7 +124,7 @@
 .screenPreview {
   align-items: center;
   aspect-ratio: 16 / 7.5;
-  background: var(--vc-sidebar);
+  background: var(--vc-neutral-900);
   color: var(--vc-brand-paper-white);
   display: flex;
   flex-direction: column;

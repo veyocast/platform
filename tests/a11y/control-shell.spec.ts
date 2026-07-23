@@ -170,6 +170,38 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
   }
 });
 
+test("compact summaries remain vertically readable on desktop and mobile", async ({ page }) => {
+  for (const viewport of [
+    { height: 900, minimumHeight: 80, width: 1440 },
+    { height: 844, minimumHeight: 64, width: 390 }
+  ]) {
+    await page.setViewportSize({
+      height: viewport.height,
+      width: viewport.width
+    });
+    const summary = page.getByLabel("Compact schermoverzicht");
+    await expect(async () => {
+      try {
+        await page.goto("/dashboard/screens");
+      } catch (error) {
+        if (!String(error).includes("ERR_ABORTED")) throw error;
+      }
+      await expect(summary).toBeVisible();
+    }).toPass({ timeout: 20_000 });
+    await expect(async () => {
+      const dimensions = await summary.evaluate((element) => ({
+        clientHeight: element.clientHeight,
+        renderedHeight: element.getBoundingClientRect().height,
+        scrollHeight: element.scrollHeight
+      }));
+      expect(dimensions.renderedHeight).toBeGreaterThanOrEqual(
+        viewport.minimumHeight
+      );
+      expect(dimensions.scrollHeight).toBe(dimensions.clientHeight);
+    }).toPass({ timeout: 15_000 });
+  }
+});
+
 test("resource filters stay bundled through compact desktop", async ({ page }) => {
   await page.setViewportSize({ height: 900, width: 1100 });
   await page.goto("/dashboard/playlists");
