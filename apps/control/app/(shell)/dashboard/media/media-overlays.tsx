@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import {
   Button,
@@ -90,13 +90,27 @@ export function MediaUploadDialog({
 }: MediaUploadDialogProps) {
   const router = useRouter();
   const [kind, setKind] = useState<"image" | "video">("image");
+  const [dialogOpen, setDialogOpen] = useState(open);
+  const dialogReadyRef = useRef(false);
+
+  useEffect(() => setDialogOpen(open), [open]);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      dialogReadyRef.current = true;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <Dialog
       onOpenChange={(nextOpen) => {
-        if (!nextOpen) router.replace(closeHref, { scroll: false });
+        if (!dialogReadyRef.current && !nextOpen) return;
+        setDialogOpen(nextOpen);
+        if (dialogOpen && !nextOpen) {
+          router.replace(closeHref, { scroll: false });
+        }
       }}
-      open={open}
+      open={dialogOpen}
     >
       <DialogContent closeLabel="Uploadvenster sluiten">
         <DialogHeader>
@@ -189,13 +203,27 @@ export function MediaInspectorSheet({
   title
 }: MediaInspectorSheetProps) {
   const router = useRouter();
+  const [sheetOpen, setSheetOpen] = useState(open);
+  const sheetReadyRef = useRef(false);
+
+  useEffect(() => setSheetOpen(open), [open]);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      sheetReadyRef.current = true;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <Sheet
       onOpenChange={(nextOpen) => {
-        if (!nextOpen) router.replace(closeHref, { scroll: false });
+        if (!sheetReadyRef.current && !nextOpen) return;
+        setSheetOpen(nextOpen);
+        if (sheetOpen && !nextOpen) {
+          router.replace(closeHref, { scroll: false });
+        }
       }}
-      open={open}
+      open={sheetOpen}
     >
       <SheetContent closeLabel="Mediadetails sluiten" side="right">
         <SheetHeader>
