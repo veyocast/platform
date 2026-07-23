@@ -3,10 +3,17 @@
 ## Source order
 
 1. Approved logo/icon master assets, once supplied.
-2. `docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md`.
-3. `docs/design-canon/v1/veyocast-design-tokens.json`.
-4. Shared component library.
-5. Product-specific implementation.
+2. `docs/design-canon/v1/veyocast-design-tokens.json`.
+3. `docs/design-canon/v1/VEYOCAST_PUBLISHER_BACKOFFICE_CANON_v1.0.md`
+   for tenant-Control, Publisher and the mobile management PWA.
+4. `docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md`.
+5. Shared component library.
+6. Product-specific implementation.
+
+The Publisher canon is scope-specific: its information hierarchy, dark tenant
+sidebar, editor composition and mobile flow are binding in tenant-Control.
+Reference images do not override locked assets, canonical token values,
+contrast, accessibility, RLS, immutable releases or player/offline contracts.
 
 The VeyoCast Bold Design & Product Canon v2.1.1 is versioned in
 `docs/design-canon/v1/`. Its Markdown source, W3C-format tokens, Tailwind

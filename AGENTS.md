@@ -10,11 +10,17 @@ Voor elke taak moet de agent eerst lezen:
 4. `docs/technical-canon.md`
 5. `docs/design-implementation-canon.md`
 6. `docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md` wanneer aanwezig
-7. `docs/security-rls-canon.md`
-8. `docs/player-offline-canon.md`
-9. het relevante sprintpromptbestand in `prompts/sprints/`
+7. `docs/design-canon/v1/VEYOCAST_PUBLISHER_BACKOFFICE_CANON_v1.0.md`
+   wanneer de taak tenant-Control, Publisher of de mobiele beheer-PWA raakt
+8. `docs/security-rls-canon.md`
+9. `docs/player-offline-canon.md`
+10. het relevante sprintpromptbestand in `prompts/sprints/`
 
-Wanneer het echte designcanonbestand in de repo staat, is dat leidend boven samenvattingen in dit pakket.
+Wanneer de echte designcanonbestanden in de repo staan, zijn die leidend boven
+samenvattingen in dit pakket. Het Publishercanon is routespecifiek leidend voor
+tenant-Control; locked merkassets, officiële tokens, toegankelijkheid,
+security/RLS en player/offline-invarianten behouden altijd hun hogere
+governancegrens.
 
 ## 2. Niet onderhandelbaar
 

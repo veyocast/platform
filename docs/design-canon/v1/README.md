@@ -1,17 +1,21 @@
-# VeyoCast Bold — Design & Product Canon v2.1.0
+# VeyoCast Bold — Design & Product Canon v2.1.3
 
 Dit pakket is de normatieve bron voor de visuele en interactionele uitwerking van VeyoCast: merk, marketingwebsite, Control-dashboard, responsive PWA en fullscreen Player/ClubTV.
 
 ## Start hier
 
 1. Gebruik `VEYOCAST_DESIGN_CANON_v2.0.md` als normatieve en versiebeheerbare bron.
-2. Importeer `veyocast-design-tokens.json` als machine-readable tokenbron.
-3. Gebruik `veyocast-design-tokens.css` en `veyocast-tailwind-preset.ts` voor implementatie.
-4. Gebruik de twee CSV-bestanden als backlog, Storybook-index en QA-matrix.
+2. Gebruik `VEYOCAST_PUBLISHER_BACKOFFICE_CANON_v1.0.md` aanvullend als
+   routespecifieke bron voor tenant-Control, Publisher en de beheer-PWA.
+3. Importeer `veyocast-design-tokens.json` als machine-readable tokenbron.
+4. Gebruik `veyocast-design-tokens.css` en `veyocast-tailwind-preset.ts` voor implementatie.
+5. Gebruik de twee CSV-bestanden als backlog, Storybook-index en QA-matrix.
 
 ## Inhoud
 
 - `VEYOCAST_DESIGN_CANON_v2.0.md` — normatieve bron.
+- `VEYOCAST_PUBLISHER_BACKOFFICE_CANON_v1.0.md` — bindende tenant-Publisher-
+  compositie, routes, workflows en uitvoeringslat.
 - `veyocast-design-tokens.json` — semantische en primitieve tokens.
 - `veyocast-design-tokens.css` — light/dark CSS-variabelen.
 - `veyocast-tailwind-preset.ts` — Tailwind-mapping.
@@ -23,9 +27,13 @@ Dit pakket is de normatieve bron voor de visuele en interactionele uitwerking va
 Bij tegenstrijdigheid geldt deze volgorde:
 
 1. een juridisch en visueel goedgekeurd logo- of iconmasterbestand;
-2. de normatieve regels in de canon;
-3. de machine-readable design tokens;
-4. de component- en paginainventarissen.
+2. de machine-readable design tokens;
+3. de routespecifieke Publisherregels binnen tenant-Control;
+4. de algemene normatieve regels in het hoofdcanon;
+5. de component- en paginainventarissen.
+
+Security/RLS, immutable releases, playercompatibiliteit, offline last-known-good
+en WCAG-eisen kunnen niet door een visuele referentie worden afgezwakt.
 
 ## Merkassetstatus
 
@@ -49,4 +57,5 @@ Gebruik semantische versies:
 - minor — nieuwe backwards-compatible componenten of patronen;
 - major — fundamentele merk-, token-, component- of productwijziging.
 
-De actuele versie is `2.1.0`.
+De actuele hoofdcanonversie is `2.1.3`; het aanvullende Publishercanon is
+afzonderlijk versie `1.0`.
