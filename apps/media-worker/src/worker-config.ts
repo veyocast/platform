@@ -4,6 +4,7 @@ export type MediaWorkerConfig = {
   lockTimeoutSeconds: number;
   maxAttempts: number;
   pollIntervalMs: number;
+  schedulePollIntervalMs: number;
   serviceRoleKey: string;
   supabaseUrl: string;
   workerId: string;
@@ -45,6 +46,13 @@ export function readMediaWorkerConfig(
       250,
       60_000,
       "MEDIA_WORKER_POLL_INTERVAL_MS"
+    ),
+    schedulePollIntervalMs: readInteger(
+      environment.PUBLISHER_SCHEDULE_POLL_INTERVAL_MS,
+      15_000,
+      5_000,
+      300_000,
+      "PUBLISHER_SCHEDULE_POLL_INTERVAL_MS"
     ),
     serviceRoleKey,
     supabaseUrl,

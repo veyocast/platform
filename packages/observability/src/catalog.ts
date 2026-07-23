@@ -9,6 +9,8 @@ export const observabilityEvents = [
   "media.worker.stopped",
   "player.release.activated",
   "player.startup.completed",
+  "publisher.schedule.evaluated",
+  "publisher.schedule.failed",
   "screen.heartbeat.received",
   "screen.release.sync_completed",
   "screen.release.sync_failed",

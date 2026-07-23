@@ -28,6 +28,7 @@ const config: MediaWorkerConfig = {
   lockTimeoutSeconds: 900,
   maxAttempts: 3,
   pollIntervalMs: 2_000,
+  schedulePollIntervalMs: 15_000,
   serviceRoleKey: "service-secret",
   supabaseUrl: "https://project.supabase.co",
   workerId: "worker:test"
@@ -130,6 +131,7 @@ function createBackend(
   failureStatus: "failed" | "queued" = "failed"
 ) {
   return {
+    applyDueSchedules: vi.fn().mockResolvedValue(0),
     claimJob: vi.fn().mockResolvedValue(claimedJob),
     completeJob: vi.fn().mockResolvedValue(undefined),
     downloadOriginal: vi.fn(async (_job, path: string) => writeFile(path, source)),

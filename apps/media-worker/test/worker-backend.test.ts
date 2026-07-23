@@ -31,6 +31,36 @@ afterEach(async () => {
 });
 
 describe("Supabase media worker backend", () => {
+  it("evaluates due publisher schedules through the server-only RPC", async () => {
+    const rpc = vi.fn<WorkerRpcClient["rpc"]>().mockResolvedValue({
+      data: 3,
+      error: null
+    });
+    const backend = createBackend({ rpc });
+    const evaluatedAt = new Date("2026-07-23T14:00:00.000Z");
+
+    await expect(backend.applyDueSchedules(evaluatedAt)).resolves.toBe(3);
+    expect(rpc).toHaveBeenCalledWith("apply_due_content_schedules_v1", {
+      p_now: evaluatedAt.toISOString()
+    });
+  });
+
+  it("rejects invalid publisher schedule results", async () => {
+    const backend = createBackend({
+      rpc: vi.fn<WorkerRpcClient["rpc"]>().mockResolvedValue({
+        data: "not-a-count",
+        error: null
+      })
+    });
+
+    await expect(backend.applyDueSchedules(new Date())).rejects.toEqual(
+      expect.objectContaining<Partial<WorkerBackendError>>({
+        code: "schedule_apply_invalid",
+        retryable: false
+      })
+    );
+  });
+
   it("maps an atomic claim response without losing bigint values", async () => {
     const rpc = vi.fn<WorkerRpcClient["rpc"]>().mockResolvedValue({
       data: [{

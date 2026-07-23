@@ -8,6 +8,10 @@ import { readMediaWorkerConfig } from "./worker-config";
 import { SupabaseMediaWorkerBackend } from "./worker-backend";
 import { closeServer, createWorkerRuntimeHealth } from "./worker-health";
 import { runWorkerLoop, runWorkerOnce } from "./worker-runner";
+import {
+  runScheduleLoop,
+  type ScheduleRunResult
+} from "./schedule-runner";
 
 export {
   createMediaProcessingPlan,
@@ -61,6 +65,8 @@ export {
   WorkerRunFatalError
 } from "./worker-runner";
 export type { WorkerRunResult } from "./worker-runner";
+export { runScheduleLoop, runScheduleOnce } from "./schedule-runner";
+export type { ScheduleRunResult } from "./schedule-runner";
 export { closeServer, createWorkerRuntimeHealth } from "./worker-health";
 export type { WorkerRuntimeHealth } from "./worker-health";
 
@@ -116,23 +122,48 @@ async function main() {
   process.once("SIGTERM", stop);
   try {
     logger.info("media.worker.started", { workerId: config.workerId });
-    await runWorkerLoop({
-      backend,
-      config,
-      onQueuePoll: runtimeHealth.markPoll,
-      onResult: (result) => {
-        runtimeHealth.markPoll();
-        runtimeHealth.markResult(result.status);
-        logWorkerResult(logger, result);
-      },
-      signal: controller.signal
-    });
+    await Promise.all([
+      runWorkerLoop({
+        backend,
+        config,
+        onQueuePoll: runtimeHealth.markPoll,
+        onResult: (result) => {
+          runtimeHealth.markPoll();
+          runtimeHealth.markResult(result.status);
+          logWorkerResult(logger, result);
+        },
+        signal: controller.signal
+      }),
+      runScheduleLoop({
+        backend,
+        intervalMs: config.schedulePollIntervalMs,
+        onResult: (result) => logScheduleResult(logger, result),
+        signal: controller.signal
+      })
+    ]);
   } finally {
     process.removeListener("SIGINT", stop);
     process.removeListener("SIGTERM", stop);
     await closeServer(healthServer);
     logger.info("media.worker.stopped");
   }
+}
+
+function logScheduleResult(
+  logger: ReturnType<typeof createStructuredLogger>,
+  result: ScheduleRunResult
+) {
+  if (result.status === "completed") {
+    logger.info("publisher.schedule.evaluated", {
+      appliedCount: result.appliedCount,
+      evaluatedAt: result.evaluatedAt
+    });
+    return;
+  }
+  logger.error("publisher.schedule.failed", {
+    errorCode: result.errorCode,
+    evaluatedAt: result.evaluatedAt
+  });
 }
 
 function logWorkerResult(

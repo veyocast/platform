@@ -17,6 +17,7 @@ describe("media worker configuration", () => {
       lockTimeoutSeconds: 900,
       maxAttempts: 3,
       pollIntervalMs: 2_000,
+      schedulePollIntervalMs: 15_000,
       serviceRoleKey: serviceRoleJwt,
       supabaseUrl: "http://127.0.0.1:54321",
       workerId: "worker:test-1"
@@ -48,6 +49,11 @@ describe("media worker configuration", () => {
       SUPABASE_SERVICE_ROLE_KEY: serviceRoleJwt,
       SUPABASE_URL: "http://localhost:54321"
     })).toThrowError(/MEDIA_WORKER_POLL_INTERVAL_MS/);
+    expect(() => readMediaWorkerConfig({
+      PUBLISHER_SCHEDULE_POLL_INTERVAL_MS: "1000",
+      SUPABASE_SERVICE_ROLE_KEY: serviceRoleJwt,
+      SUPABASE_URL: "http://localhost:54321"
+    })).toThrowError(/PUBLISHER_SCHEDULE_POLL_INTERVAL_MS/);
   });
 });
 

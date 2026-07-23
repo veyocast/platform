@@ -2,10 +2,11 @@
 
 ## Doel en veiligheidsgrens
 
-De mediaworker verwerkt uitsluitend gequeuede MP4-assets uit private
-tenantopslag. De worker is een serverproces, geen browsercomponent. Geef de
-service-role key nooit een `NEXT_PUBLIC_`-naam en schrijf credentials, signed
-URL's of bronmedia niet naar logs.
+De private worker verwerkt gequeuede MP4-assets uit tenantopslag en evalueert
+periodiek welke immutable release volgens Publisher-planning actief hoort te
+zijn. De worker is een serverproces, geen browsercomponent. Geef de service-role
+key nooit een `NEXT_PUBLIC_`-naam en schrijf credentials, signed URL's of
+bronmedia niet naar logs.
 
 ## Vereisten
 
@@ -29,6 +30,7 @@ MEDIA_WORKER_ID                       standaard hostnaam + proces-ID
 MEDIA_WORKER_POLL_INTERVAL_MS         standaard 2000; deployment 500, bereik 250–60000
 MEDIA_WORKER_MAX_ATTEMPTS             standaard 3, bereik 1–10
 MEDIA_WORKER_LOCK_TIMEOUT_SECONDS     standaard 900, bereik 60–3600
+PUBLISHER_SCHEDULE_POLL_INTERVAL_MS   standaard 15000, bereik 5000–300000
 ```
 
 De configuratielader weigert publishable keys, anon-JWT's, placeholders,
@@ -52,6 +54,13 @@ Zonder argumenten print het entrypoint alleen de stateless healthpayload. De
 daemon logt per iteratie één event uit de vaste catalogus met een jobgebonden
 correlation ID. Tokens, URLs, databaseconnecties en persoonlijke velden worden
 recursief geredigeerd; stacktraces en credentials worden niet geschreven.
+
+Dezelfde daemon roept met de server-only service-role iedere vijftien seconden
+`apply_due_content_schedules_v1` aan. Die databasefunctie kiest per scherm
+deterministisch de hoogste geldige planning en valt na afloop terug op de
+standaardrelease. Een evaluatiefout stopt de mediaqueue niet; de volgende
+begrensde poll probeert opnieuw. Deze evaluator hoort per omgeving als één
+workerinstantie te draaien.
 
 In staging en production draait de worker als een afzonderlijk Compose-project
 zonder publieke poort. `/healthz` is liveness; `/readyz` wordt pas groen nadat

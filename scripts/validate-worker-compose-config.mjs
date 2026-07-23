@@ -32,6 +32,7 @@ const expectedEnvironmentNames = [
   "MEDIA_WORKER_LOCK_TIMEOUT_SECONDS",
   "MEDIA_WORKER_MAX_ATTEMPTS",
   "MEDIA_WORKER_POLL_INTERVAL_MS",
+  "PUBLISHER_SCHEDULE_POLL_INTERVAL_MS",
   "SUPABASE_SERVICE_ROLE_KEY",
   "SUPABASE_URL",
   "VEYOCAST_ENVIRONMENT"
@@ -42,7 +43,8 @@ if (JSON.stringify(environmentNames) !== JSON.stringify(expectedEnvironmentNames
 if (
   service.environment.DEPLOYMENT_SHA !== revision ||
   service.environment.VEYOCAST_ENVIRONMENT !== environment ||
-  service.environment.MEDIA_WORKER_POLL_INTERVAL_MS !== "500"
+  service.environment.MEDIA_WORKER_POLL_INTERVAL_MS !== "500" ||
+  service.environment.PUBLISHER_SCHEDULE_POLL_INTERVAL_MS !== "15000"
 ) {
   throw new Error("De mediaworker gebruikt een ongeldige revision- of pollconfiguratie.");
 }

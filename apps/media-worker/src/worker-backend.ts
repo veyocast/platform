@@ -40,6 +40,7 @@ export type FailMediaJobInput = {
 };
 
 export interface MediaWorkerBackend {
+  applyDueSchedules(evaluatedAt: Date): Promise<number>;
   claimJob(
     workerId: string,
     lockTimeoutSeconds: number,
@@ -96,6 +97,28 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
   }
 
   private readonly storageTimeoutMs: number;
+
+  async applyDueSchedules(evaluatedAt: Date) {
+    const { data, error } = await this.client.rpc("apply_due_content_schedules_v1", {
+      p_now: evaluatedAt.toISOString()
+    });
+    if (error) {
+      throw new WorkerBackendError(
+        "schedule_apply_failed",
+        true,
+        `Kon geplande content niet evalueren (${error.code ?? "database_error"}).`
+      );
+    }
+    const appliedCount = typeof data === "number" ? data : Number(data);
+    if (!Number.isSafeInteger(appliedCount) || appliedCount < 0) {
+      throw new WorkerBackendError(
+        "schedule_apply_invalid",
+        false,
+        "Database gaf een ongeldig aantal toegepaste planningen terug."
+      );
+    }
+    return appliedCount;
+  }
 
   async claimJob(
     workerId: string,
