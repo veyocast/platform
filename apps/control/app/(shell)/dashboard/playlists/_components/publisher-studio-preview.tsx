@@ -38,8 +38,12 @@ export function PublisherStudioPreview({
   const [speed, setSpeed] = useState<0.5 | 1 | 2 | 4>(1);
   const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const activeItem = items[activeIndex] ?? null;
-  const offsets = useMemo(() => buildPreviewOffsets(items), [items]);
+  const previewItems = useMemo(
+    () => items.filter((item) => itemIsVisible(item, simulatedAt)),
+    [items, simulatedAt]
+  );
+  const activeItem = previewItems[activeIndex] ?? null;
+  const offsets = useMemo(() => buildPreviewOffsets(previewItems), [previewItems]);
   const totalDuration = offsets.at(-1)?.end ?? 0;
   const timelinePosition =
     (offsets[activeIndex]?.start ?? 0) + elapsedSeconds;
@@ -51,11 +55,11 @@ export function PublisherStudioPreview({
   }, []);
 
   useEffect(() => {
-    if (activeIndex >= items.length) {
+    if (activeIndex >= previewItems.length) {
       setActiveIndex(0);
       setElapsedSeconds(0);
     }
-  }, [activeIndex, items.length]);
+  }, [activeIndex, previewItems.length]);
 
   useEffect(() => {
     if (!playing || !activeItem) return;
@@ -64,18 +68,20 @@ export function PublisherStudioPreview({
         const next = current + 0.25 * speed;
         if (next < activeItem.durationSeconds) return next;
         setActiveIndex((index) =>
-          items.length ? (index + 1) % items.length : 0
+          previewItems.length ? (index + 1) % previewItems.length : 0
         );
         return 0;
       });
     }, 250);
     return () => window.clearInterval(interval);
-  }, [activeItem, items.length, playing, speed]);
+  }, [activeItem, playing, previewItems.length, speed]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video || activeItem?.kind !== "video") return;
     video.playbackRate = speed;
+    video.muted = activeItem.muted;
+    video.volume = Math.min(1, Math.max(0, (activeItem.volumePercent ?? 100) / 100));
     if (playing) {
       void video.play().catch(() => setPlaying(false));
     } else {
@@ -92,12 +98,12 @@ export function PublisherStudioPreview({
   }
 
   function previous() {
-    setActiveIndex((index) => (index - 1 + items.length) % items.length);
+    setActiveIndex((index) => (index - 1 + previewItems.length) % previewItems.length);
     setElapsedSeconds(0);
   }
 
   function next() {
-    setActiveIndex((index) => (index + 1) % items.length);
+    setActiveIndex((index) => (index + 1) % previewItems.length);
     setElapsedSeconds(0);
   }
 
@@ -162,28 +168,42 @@ export function PublisherStudioPreview({
         className={styles.previewStage}
         data-fit={activeItem.fitMode}
         data-orientation={orientation}
+        data-transition={activeItem.transition ?? "cut"}
         ref={stageRef}
+        style={{ backgroundColor: activeItem.backgroundColor ?? "#000000" }}
       >
         {activeItem.kind === "video" ? (
           <video
-            aria-label={`Voorbeeldvideo ${activeItem.title}`}
+            aria-label={activeItem.accessibilityName ?? `Voorbeeldvideo ${activeItem.displayTitle ?? activeItem.title}`}
             className={styles.previewMedia}
             key={activeItem.id}
             muted={activeItem.muted}
+            onLoadedMetadata={(event) => {
+              event.currentTarget.currentTime = activeItem.trimStartSeconds ?? 0;
+            }}
             onEnded={next}
+            onTimeUpdate={(event) => {
+              if (activeItem.trimEndSeconds && event.currentTarget.currentTime >= activeItem.trimEndSeconds) next();
+            }}
             playsInline
             preload="metadata"
             ref={videoRef}
             src={activeItem.url}
+            style={{
+              objectPosition: `${(activeItem.cropFocusX ?? 0.5) * 100}% ${(activeItem.cropFocusY ?? 0.5) * 100}%`
+            }}
           >
             <track kind="captions" />
           </video>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            alt={`Voorbeeld van ${activeItem.title}`}
+            alt={activeItem.accessibilityName ?? `Voorbeeld van ${activeItem.displayTitle ?? activeItem.title}`}
             className={styles.previewMedia}
             src={activeItem.url}
+            style={{
+              objectPosition: `${(activeItem.cropFocusX ?? 0.5) * 100}% ${(activeItem.cropFocusY ?? 0.5) * 100}%`
+            }}
           />
         )}
         <span className={styles.previewSafeArea} aria-hidden="true" />
@@ -223,7 +243,7 @@ export function PublisherStudioPreview({
           <ChevronRight aria-hidden="true" />
         </Button>
         <p aria-live="polite">
-          {activeIndex + 1} van {items.length} · {activeItem.title}
+          {activeIndex + 1} van {previewItems.length} · {activeItem.displayTitle ?? activeItem.title}
         </p>
       </div>
 
@@ -246,6 +266,16 @@ export function PublisherStudioPreview({
       </label>
     </div>
   );
+}
+
+function itemIsVisible(item: PlaylistPreviewItem, simulatedAt: string) {
+  if (item.enabled === false) return false;
+  if (!simulatedAt) return true;
+  const timestamp = Date.parse(simulatedAt);
+  if (!Number.isFinite(timestamp)) return true;
+  if (item.visibleFrom && timestamp < Date.parse(item.visibleFrom)) return false;
+  if (item.visibleUntil && timestamp >= Date.parse(item.visibleUntil)) return false;
+  return true;
 }
 
 function formatTime(seconds: number) {

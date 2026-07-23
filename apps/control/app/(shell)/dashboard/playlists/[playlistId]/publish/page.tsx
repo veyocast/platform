@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -46,13 +47,25 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
   const previewItems: PlaylistPreviewItem[] = studio?.items.flatMap((item) => {
     if (!item.asset?.variant?.previewUrl) return [];
     return [{
+      accessibilityName: item.accessibilityName || undefined,
+      backgroundColor: item.backgroundColor || undefined,
+      cropFocusX: item.cropFocusX,
+      cropFocusY: item.cropFocusY,
+      displayTitle: item.displayTitle || undefined,
       durationSeconds: item.durationSeconds,
+      enabled: item.enabled,
       fitMode: item.fitMode,
       id: item.id,
       kind: item.asset.kind,
       muted: item.muted,
       title: item.asset.title,
-      url: item.asset.variant.previewUrl
+      transition: item.transition,
+      trimEndSeconds: item.trimEndSeconds ?? undefined,
+      trimStartSeconds: item.trimStartSeconds,
+      url: item.asset.variant.previewUrl,
+      visibleFrom: item.visibleFrom ?? undefined,
+      visibleUntil: item.visibleUntil ?? undefined,
+      volumePercent: item.volumePercent
     }];
   }) ?? [];
 
@@ -90,7 +103,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
 
       <section className="publish-workspace" id="confirmation" aria-labelledby="publish-confirm-title">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="publish-confirm-title">5. Releasegegevens en bevestiging</h2><p className="work-panel__meta">De definitieve actie controleert revisie, readiness en schermpreflight opnieuw en maakt daarna één immutable release.</p></div><StatusPill label={`Volgende versie ${studio.releases[0] ? studio.releases[0].version + 1 : 1}`} tone="neutral" /></div>
-        <form action={publishPlaylistGuided} className="playlist-form"><input name="playlistId" type="hidden" value={playlistId} /><input name="expectedRevision" type="hidden" value={playlist.revision} />{selectedIds.map((screenId) => <input key={screenId} name="screenIds" type="hidden" value={screenId} />)}<div className="field"><label htmlFor="guided-release-notes">Releasenotitie</label><textarea disabled={!canPublish} id="guided-release-notes" maxLength={500} name="releaseNotes" placeholder="Wat verandert er en waarom?" rows={3} /></div>{hasRisk ? <label className="check-row"><input disabled={!canPublish || hasBlocked} name="confirmRisk" required type="checkbox" /><span><strong>Ik bevestig bewust de waarschuwingen en onbekende telemetry</strong><span className="work-panel__meta">De huidige release blijft actief totdat de nieuwe release volledig is gedownload en geverifieerd.</span></span></label> : null}<label className="check-row"><input disabled={!canPublish || hasBlocked || !selectedIds.length} name="confirmPublish" required type="checkbox" /><span><strong>Maak een nieuwe immutable release</strong><span className="work-panel__meta">Na publicatie kan deze versie niet worden gewijzigd of verwijderd.</span></span></label><button className="button-link button-link--primary" disabled={!canPublish || hasBlocked || !selectedIds.length} type="submit">Release publiceren en uitrol volgen</button></form>
+        <form action={publishPlaylistGuided} className="playlist-form"><input name="playlistId" type="hidden" value={playlistId} /><input name="expectedRevision" type="hidden" value={playlist.revision} /><input name="idempotencyKey" type="hidden" value={randomUUID()} />{selectedIds.map((screenId) => <input key={screenId} name="screenIds" type="hidden" value={screenId} />)}<div className="field"><label htmlFor="guided-release-notes">Releasenotitie</label><textarea disabled={!canPublish} id="guided-release-notes" maxLength={500} name="releaseNotes" placeholder="Wat verandert er en waarom?" rows={3} /></div>{hasRisk ? <label className="check-row"><input disabled={!canPublish || hasBlocked} name="confirmRisk" required type="checkbox" /><span><strong>Ik bevestig bewust de waarschuwingen en onbekende telemetry</strong><span className="work-panel__meta">De huidige release blijft actief totdat de nieuwe release volledig is gedownload en geverifieerd.</span></span></label> : null}<label className="check-row"><input disabled={!canPublish || hasBlocked || !selectedIds.length} name="confirmPublish" required type="checkbox" /><span><strong>Maak een nieuwe immutable release</strong><span className="work-panel__meta">Na publicatie kan deze versie niet worden gewijzigd of verwijderd.</span></span></label><button className="button-link button-link--primary" disabled={!canPublish || hasBlocked || !selectedIds.length} type="submit">Release publiceren en uitrol volgen</button></form>
       </section>
     </> : null}
   </>;

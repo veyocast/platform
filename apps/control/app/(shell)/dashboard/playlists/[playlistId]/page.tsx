@@ -60,12 +60,24 @@ export default async function PlaylistStudioPage({
     const url = asset?.variant?.previewUrl;
     if (!asset || !url) return [];
     const playback: PlayerPlaybackItem = {
+      accessibilityName: item.accessibilityName || undefined,
+      backgroundColor: item.backgroundColor || undefined,
+      cropFocusX: item.cropFocusX,
+      cropFocusY: item.cropFocusY,
+      displayTitle: item.displayTitle || undefined,
       durationSeconds: item.durationSeconds,
+      enabled: item.enabled,
       fitMode: item.fitMode,
       id: item.id,
       kind: asset.kind,
       muted: item.muted,
-      title: asset.title
+      title: asset.title,
+      transition: item.transition,
+      trimEndSeconds: item.trimEndSeconds ?? undefined,
+      trimStartSeconds: item.trimStartSeconds,
+      visibleFrom: item.visibleFrom ?? undefined,
+      visibleUntil: item.visibleUntil ?? undefined,
+      volumePercent: item.volumePercent
     };
     return [{ ...playback, url }];
   });

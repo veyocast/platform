@@ -1082,6 +1082,24 @@
   width: 100%;
 }
 
+.previewStage[data-transition="crossfade"] .previewMedia {
+  animation: publisher-preview-fade 180ms ease both;
+}
+
+.previewStage[data-transition="wipe"] .previewMedia {
+  animation: publisher-preview-wipe 200ms ease both;
+}
+
+@keyframes publisher-preview-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes publisher-preview-wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0); }
+}
+
 .previewStage[data-orientation="portrait"] {
   aspect-ratio: 9 / 16;
   justify-self: center;
@@ -1511,6 +1529,7 @@
 @media (prefers-reduced-motion: reduce) {
   .mediaCard,
   .itemRow,
+  .previewMedia,
   .storyboard,
   .saveState > span {
     animation: none;
