@@ -70,7 +70,8 @@ test("applies video volume and trim without exposing publisher titles", async ({
   const fallback: PlayerManifestItem = {
     ...baseline.manifest.items[0]!,
     id: "publisher-video-fallback",
-    title: "Volgend beeld"
+    title: "Volgend beeld",
+    transition: "crossfade"
   };
 
   await routeManifest(page, releaseWithItems(baseline, [video, fallback]));
@@ -99,6 +100,12 @@ test("applies video volume and trim without exposing publisher titles", async ({
   });
 
   await expect(page.getByRole("img", { name: "Volgend beeld" })).toBeVisible();
+  await expect(
+    page.locator('[data-player-transition-outgoing="crossfade"]')
+  ).toBeVisible();
+  await expect(
+    page.locator('[data-player-transition-outgoing="crossfade"]')
+  ).toHaveCount(0, { timeout: 1_000 });
 });
 
 test("reduces wipe and crossfade to a cut when reduced motion is requested", async ({

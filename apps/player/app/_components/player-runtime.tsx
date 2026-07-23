@@ -3,7 +3,13 @@
 /* eslint-disable @next/next/no-img-element -- Player media URLs come from release manifests and must render directly. */
 
 import { VEYOCAST_APPS } from "@veyocast/config";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from "react";
 
 import {
   activateRelease,
@@ -1237,12 +1243,6 @@ function PlaybackView({
   }
 
   const presentation = resolvePlayerItemPresentation(activeItem);
-  const transitionClassName = {
-    crossfade: styles.crossfade,
-    cut: styles.cut,
-    wipe: styles.wipe
-  }[presentation.transition];
-
   return (
     <main className="playback-shell" aria-label="VeyoCast player">
       <section
@@ -1254,19 +1254,14 @@ function PlaybackView({
             : undefined
         }
       >
-        <div
-          className={`${styles.scene} ${transitionClassName}`}
-          data-player-transition={presentation.transition}
-          key={`${activeItem.id}:${playbackAttempt}`}
-        >
-          <PlaybackMedia
-            item={activeItem}
-            onEnded={onEnded}
-            onFailure={onFailure}
-            onReady={onReady}
-            watchdogTimeoutMs={watchdogTimeoutMs}
-          />
-        </div>
+        <PlaybackScene
+          item={activeItem}
+          onEnded={onEnded}
+          onFailure={onFailure}
+          onReady={onReady}
+          playbackAttempt={playbackAttempt}
+          watchdogTimeoutMs={watchdogTimeoutMs}
+        />
         <img
           alt=""
           aria-hidden="true"
@@ -1286,12 +1281,139 @@ function PlaybackView({
   );
 }
 
+type PlaybackSceneEntry = {
+  item: PlayerManifestItem;
+  key: string;
+};
+
+function PlaybackScene({
+  item,
+  onEnded,
+  onFailure,
+  onReady,
+  playbackAttempt,
+  watchdogTimeoutMs
+}: {
+  item: PlayerManifestItem;
+  onEnded: (itemId: string) => void;
+  onFailure: (itemId: string, code: PlaybackFailureCode) => void;
+  onReady: (itemId: string) => void;
+  playbackAttempt: number;
+  watchdogTimeoutMs: number;
+}) {
+  const requestedKey = `${item.id}:${playbackAttempt}`;
+  const requestedSceneRef = useRef<PlaybackSceneEntry>({
+    item,
+    key: requestedKey
+  });
+  requestedSceneRef.current = { item, key: requestedKey };
+  const transitionTimerRef = useRef<number | null>(null);
+  const [scene, setScene] = useState<{
+    current: PlaybackSceneEntry;
+    outgoing?: PlaybackSceneEntry;
+    transition: "cut" | "crossfade" | "wipe";
+  }>(() => ({
+    current: requestedSceneRef.current,
+    transition: resolvePlayerItemPresentation(item).transition
+  }));
+
+  useLayoutEffect(() => {
+    if (scene.current.key === requestedKey) return;
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current);
+    }
+
+    const requestedScene = requestedSceneRef.current;
+    const requestedTransition =
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "cut"
+        : resolvePlayerItemPresentation(requestedScene.item).transition;
+
+    if (requestedTransition === "cut") {
+      setScene({
+        current: requestedScene,
+        transition: "cut"
+      });
+      return;
+    }
+
+    setScene((currentScene) => ({
+      current: requestedScene,
+      outgoing: currentScene.current,
+      transition: requestedTransition
+    }));
+    transitionTimerRef.current = window.setTimeout(
+      () => {
+        setScene((currentScene) => ({
+          current: currentScene.current,
+          transition: currentScene.transition
+        }));
+        transitionTimerRef.current = null;
+      },
+      requestedTransition === "crossfade" ? 480 : 520
+    );
+  }, [requestedKey, scene.current.key]);
+
+  useEffect(
+    () => () => {
+      if (transitionTimerRef.current !== null) {
+        window.clearTimeout(transitionTimerRef.current);
+      }
+    },
+    []
+  );
+
+  const currentClassName = {
+    crossfade: styles.crossfade,
+    cut: styles.cut,
+    wipe: styles.wipe
+  }[scene.transition];
+
+  return (
+    <div className={styles.transitionStack}>
+      {scene.outgoing ? (
+        <div
+          aria-hidden="true"
+          className={`${styles.scene} ${
+            scene.transition === "crossfade" ? styles.crossfadeOutgoing : ""
+          }`}
+          data-player-transition-outgoing={scene.transition}
+          key={scene.outgoing.key}
+        >
+          <PlaybackMedia
+            item={scene.outgoing.item}
+            onEnded={onEnded}
+            onFailure={onFailure}
+            onReady={onReady}
+            passive
+            watchdogTimeoutMs={watchdogTimeoutMs}
+          />
+        </div>
+      ) : null}
+      <div
+        className={`${styles.scene} ${styles.current} ${currentClassName}`}
+        data-player-transition={scene.transition}
+        key={scene.current.key}
+      >
+        <PlaybackMedia
+          item={scene.current.item}
+          onEnded={onEnded}
+          onFailure={onFailure}
+          onReady={onReady}
+          watchdogTimeoutMs={watchdogTimeoutMs}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function PlaybackMedia({
   item,
   onEnded,
   onFailure,
   onPlaybackStateChange,
   onReady,
+  passive = false,
   watchdogTimeoutMs
 }: {
   item: PlayerManifestItem;
@@ -1299,6 +1421,7 @@ export function PlaybackMedia({
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onPlaybackStateChange?: (state: "ended" | "paused" | "playing") => void;
   onReady: (itemId: string) => void;
+  passive?: boolean;
   watchdogTimeoutMs: number;
 }) {
   const presentation = resolvePlayerItemPresentation(item);
@@ -1319,13 +1442,13 @@ export function PlaybackMedia({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const reportFailure = useCallback((code: PlaybackFailureCode) => {
-    if (failureReportedRef.current) return;
+    if (passive || failureReportedRef.current) return;
     failureReportedRef.current = true;
     onFailure(item.id, code);
-  }, [item.id, onFailure]);
+  }, [item.id, onFailure, passive]);
 
   useEffect(() => {
-    if (item.kind !== "video") return;
+    if (item.kind !== "video" || passive) return;
     const startedAt = Date.now();
     const interval = window.setInterval(() => {
       const now = Date.now();
@@ -1342,10 +1465,10 @@ export function PlaybackMedia({
       }
     }, Math.min(1_000, Math.max(125, Math.floor(watchdogTimeoutMs / 2))));
     return () => window.clearInterval(interval);
-  }, [item.kind, reportFailure, watchdogTimeoutMs]);
+  }, [item.kind, passive, reportFailure, watchdogTimeoutMs]);
 
   const completeVideoPlayback = useCallback(() => {
-    if (hasEndedRef.current) return;
+    if (passive || hasEndedRef.current) return;
     hasEndedRef.current = true;
     isPausedRef.current = false;
     hasStartedRef.current = true;
@@ -1353,7 +1476,7 @@ export function PlaybackMedia({
     onPlaybackStateChange?.("ended");
     onReady(item.id);
     onEnded(item.id);
-  }, [item.id, onEnded, onPlaybackStateChange, onReady]);
+  }, [item.id, onEnded, onPlaybackStateChange, onReady, passive]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -1388,11 +1511,12 @@ export function PlaybackMedia({
         }}
         onError={() => reportFailure("VIDEO_ERROR")}
         onPause={() => {
-          if (hasEndedRef.current) return;
+          if (passive || hasEndedRef.current) return;
           isPausedRef.current = true;
           onPlaybackStateChange?.("paused");
         }}
         onPlaying={() => {
+          if (passive) return;
           isPausedRef.current = false;
           hasStartedRef.current = true;
           lastProgressAtRef.current = Date.now();
@@ -1401,9 +1525,11 @@ export function PlaybackMedia({
           onReady(item.id);
         }}
         onStalled={() => {
+          if (passive) return;
           lastSignalRef.current = "stalled";
         }}
         onTimeUpdate={(event) => {
+          if (passive) return;
           const currentTime = event.currentTarget.currentTime;
           if (
             presentation.trimEndSeconds !== null &&
@@ -1419,6 +1545,7 @@ export function PlaybackMedia({
           }
         }}
         onWaiting={() => {
+          if (passive) return;
           lastSignalRef.current = "waiting";
         }}
         playsInline
@@ -1439,7 +1566,9 @@ export function PlaybackMedia({
       alt={presentation.accessibilityName}
       className={className}
       onError={() => reportFailure("IMAGE_ERROR")}
-      onLoad={() => onReady(item.id)}
+      onLoad={() => {
+        if (!passive) onReady(item.id);
+      }}
       src={item.source.url}
       style={mediaStyle}
     />
