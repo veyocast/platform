@@ -1,7 +1,9 @@
 package nl.veyocast.player
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -37,6 +39,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private lateinit var errorCard: View
     private lateinit var managementPanel: LinearLayout
     private lateinit var refreshButton: Button
+    private lateinit var privacyButton: Button
     private lateinit var returnHomeButton: Button
     private lateinit var autostartSwitch: Switch
     private lateinit var connectionValue: TextView
@@ -255,6 +258,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         errorCard = findViewById(R.id.error_card)
         managementPanel = findViewById(R.id.management_panel)
         refreshButton = findViewById(R.id.refresh_button)
+        privacyButton = findViewById(R.id.privacy_button)
         returnHomeButton = findViewById(R.id.return_home_button)
         autostartSwitch = findViewById(R.id.autostart_switch)
         connectionValue = findViewById(R.id.connection_value)
@@ -304,6 +308,13 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
             closeManagementPanel()
             retryPolicy.reset()
             loadPlayer()
+        }
+        privacyButton.setOnClickListener {
+            runCatching {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
+            }.onFailure {
+                AppLog.warning("Privacyverklaring kon niet in een externe app worden geopend")
+            }
         }
         returnHomeButton.setOnClickListener { returnToAndroidTv() }
     }
@@ -563,5 +574,6 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
 
     private companion object {
         const val PANEL_LONG_PRESS_MS = 1_200L
+        const val PRIVACY_POLICY_URL = "https://veyocast.nl/privacy"
     }
 }

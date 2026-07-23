@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import { MarketingFooter } from "./_components/site-chrome";
+
 const useCases = [
   {
     body: "Laat clubnieuws, wedstrijdaankondigingen en sponsorcontent op vaste schermen draaien zonder handmatige bestandwissels.",
@@ -40,6 +42,7 @@ const statusRows = [
 
 export default function MarketingPage() {
   return (
+    <>
     <main>
       <header className="site-header" aria-label="VeyoCast marketing navigatie">
         <a className="brand-link" href="#top" aria-label="VeyoCast homepage">
@@ -188,5 +191,7 @@ export default function MarketingPage() {
         </p>
       </section>
     </main>
+    <MarketingFooter />
+    </>
   );
 }

@@ -27,6 +27,8 @@
     <string name="orientation_landscape">Landschap</string>
     <string name="environment">Omgeving</string>
     <string name="version">Versie</string>
+    <string name="privacy_policy">Privacyverklaring</string>
+    <string name="privacy_policy_summary">Opent veyocast.nl/privacy in een beschikbare browser. Pairing en lokale content blijven behouden.</string>
     <string name="return_home">Terug naar Android TV</string>
     <string name="return_home_summary">Pauzeert de zichtbare media en brengt je veilig terug naar het Android TV-startscherm. Pairing en lokale content blijven behouden.</string>
 </resources>
