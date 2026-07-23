@@ -6,6 +6,9 @@ const developmentSupabaseOrigin = getDevelopmentSupabaseOrigin();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  outputFileTracingIncludes: {
+    "/api/player/demo/media": ["./demo-assets/demoveyo.mp4"]
+  },
   eslint: {
     ignoreDuringBuilds: true
   },

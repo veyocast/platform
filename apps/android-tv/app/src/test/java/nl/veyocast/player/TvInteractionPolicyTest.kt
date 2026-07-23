@@ -64,4 +64,15 @@ class TvInteractionPolicyTest {
         assertFalse(mediaPause?.fallbackToWebContent ?: true)
         assertNull(TvRemotePolicy.commandFor(KeyEvent.KEYCODE_VOLUME_UP))
     }
+
+    @Test
+    fun `left and right dispatch playlist navigation inside the staging reviewdemo`() {
+        val previousScript = WebPlaybackScripts.command(PlaybackCommand.SEEK_BACKWARD)
+        val nextScript = WebPlaybackScripts.command(PlaybackCommand.SEEK_FORWARD)
+
+        assertTrue(previousScript.contains("data-veyocast-demo-player"))
+        assertTrue(previousScript.contains("direction: 'previous'"))
+        assertTrue(nextScript.contains("data-veyocast-demo-player"))
+        assertTrue(nextScript.contains("direction: 'next'"))
+    }
 }

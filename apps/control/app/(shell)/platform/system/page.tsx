@@ -1,10 +1,26 @@
 import { alertDefinitions, sloDefinitions } from "@veyocast/observability";
-import { DataTable, PageHeader, StatusPill } from "@veyocast/ui";
+import { Button, DataTable, PageHeader, StatusPill } from "@veyocast/ui";
 
 import { requireControlCapability } from "../../../../lib/control-session";
+import { loadPlatformPlayerDemo } from "../../../../lib/platform-player-demo";
+import { configureStagingPlayerDemo } from "./actions";
 
-export default async function PlatformSystemPage() {
+type PlatformSystemPageProps = {
+  searchParams?: Promise<{ demo?: string; demoFout?: string }>;
+};
+
+export default async function PlatformSystemPage({
+  searchParams
+}: PlatformSystemPageProps) {
   const session = await requireControlCapability("platform.system.read");
+  const query = await searchParams;
+  const mayManageDemo =
+    process.env.VEYOCAST_ENVIRONMENT === "staging" &&
+    session.roles.includes("platform_owner");
+  const demo = mayManageDemo ? await loadPlatformPlayerDemo() : null;
+  const configuredDemo = demo?.options.find(
+    (option) => option.playlistId === demo.configuredPlaylistId
+  );
 
   return (
     <>
@@ -16,6 +32,95 @@ export default async function PlatformSystemPage() {
           : undefined}
         title="Systeem en herstel"
       />
+
+      {demo ? (
+        <section
+          className="workspace-section"
+          id="player-demo"
+          aria-labelledby="player-demo-title"
+        >
+          <div className="workspace-section__header">
+            <div>
+              <h2 className="workspace-section__title" id="player-demo-title">
+                Android reviewdemo
+              </h2>
+              <p className="work-panel__meta">
+                Kies de staging-playlist waarvan de nieuwste immutable release
+                via de herbruikbare reviewcode wordt afgespeeld. Echte schermen
+                en device-pairings blijven ongemoeid.
+              </p>
+            </div>
+            <StatusPill
+              label={configuredDemo ? `Release ${configuredDemo.latestReleaseVersion}` : "Veilige fallback actief"}
+              tone={configuredDemo ? "success" : "warning"}
+            />
+          </div>
+
+          {query?.demo === "opgeslagen" ? (
+            <p className="notice notice--success" role="status">
+              De reviewdemo gebruikt voortaan de nieuwste gepubliceerde release
+              van de gekozen playlist.
+            </p>
+          ) : null}
+          {query?.demoFout ? (
+            <p className="notice notice--critical" role="alert">
+              {demoErrorMessage(query.demoFout)}
+            </p>
+          ) : null}
+          {demo.error ? (
+            <p className="notice notice--critical" role="alert">
+              De democonfiguratie kon niet veilig worden geladen. De bestaande
+              configuratie is niet gewijzigd.
+            </p>
+          ) : null}
+
+          <form action={configureStagingPlayerDemo} className="settings-form">
+            <div className="field">
+              <label htmlFor="platform-player-demo-playlist">
+                Gepubliceerde demoplaylist
+              </label>
+              <select
+                defaultValue={
+                  configuredDemo
+                    ? `${configuredDemo.tenantId}:${configuredDemo.playlistId}`
+                    : ""
+                }
+                disabled={demo.error || demo.options.length === 0}
+                id="platform-player-demo-playlist"
+                name="demoPlaylist"
+                required
+              >
+                <option disabled value="">
+                  Kies een playlist met minimaal één release
+                </option>
+                {demo.options.map((option) => (
+                  <option
+                    key={`${option.tenantId}:${option.playlistId}`}
+                    value={`${option.tenantId}:${option.playlistId}`}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Button
+                disabled={demo.error || demo.options.length === 0}
+                type="submit"
+              >
+                Demoplaylist opslaan
+              </Button>
+            </div>
+          </form>
+
+          <p className="work-panel__meta">
+            Reviewcode: <strong>VYO 2VY</strong>. De code is alleen geldig in
+            de staging-app en maakt per reviewer een afzonderlijke virtuele
+            demosessie. Publiceer een nieuwe release om de reviewinhoud bij de
+            volgende demosessie bij te werken.
+          </p>
+        </section>
+      ) : null}
 
       <section className="workspace-section" aria-labelledby="slo-title">
         <div className="workspace-section__header">
@@ -65,4 +170,22 @@ function formatDuration(milliseconds: number) {
 
 function humanize(value: string) {
   return value.replaceAll("_", " ");
+}
+
+function demoErrorMessage(code: string) {
+  const messages: Record<string, string> = {
+    configuratie:
+      "De stagingdatabase is niet beschikbaar. Er is niets gewijzigd.",
+    invoer:
+      "Kies een geldige tenantplaylist uit de lijst. Er is niets gewijzigd.",
+    omgeving:
+      "De reviewdemo mag uitsluitend vanuit de stagingomgeving worden geconfigureerd.",
+    playlist:
+      "De playlist is niet actief of heeft nog geen immutable release.",
+    rechten:
+      "Alleen een Platform Owner met AAL2 mag de reviewdemo wijzigen.",
+    onverwacht:
+      "De demoplaylist kon niet worden opgeslagen. De vorige configuratie blijft actief."
+  };
+  return messages[code] ?? messages.onverwacht;
 }

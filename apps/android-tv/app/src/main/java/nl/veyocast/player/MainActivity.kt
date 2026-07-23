@@ -1,20 +1,25 @@
 package nl.veyocast.player
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.inputmethod.EditorInfo
 import android.webkit.CookieManager
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Button
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Switch
@@ -26,6 +31,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import java.net.URI
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private lateinit var root: FrameLayout
@@ -37,6 +43,8 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private lateinit var errorCard: View
     private lateinit var managementPanel: LinearLayout
     private lateinit var refreshButton: Button
+    private lateinit var demoButton: Button
+    private lateinit var demoSummary: TextView
     private lateinit var returnHomeButton: Button
     private lateinit var autostartSwitch: Switch
     private lateinit var connectionValue: TextView
@@ -193,6 +201,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     override fun onMainFrameLoadSucceeded() {
         if (mainFrameFailed) return
         pageLoaded = true
+        reconcileDemoRedirect()
         retryPolicy.reset()
         cancelScheduledRetry()
         hideErrorOverlay()
@@ -255,6 +264,8 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         errorCard = findViewById(R.id.error_card)
         managementPanel = findViewById(R.id.management_panel)
         refreshButton = findViewById(R.id.refresh_button)
+        demoButton = findViewById(R.id.demo_button)
+        demoSummary = findViewById(R.id.demo_summary)
         returnHomeButton = findViewById(R.id.return_home_button)
         autostartSwitch = findViewById(R.id.autostart_switch)
         connectionValue = findViewById(R.id.connection_value)
@@ -305,7 +316,202 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
             retryPolicy.reset()
             loadPlayer()
         }
+        configureDemoMenu()
         returnHomeButton.setOnClickListener { returnToAndroidTv() }
+    }
+
+    private fun configureDemoMenu() {
+        val visibility = if (BuildConfig.DEMO_MENU_ENABLED) View.VISIBLE else View.GONE
+        demoButton.visibility = visibility
+        demoSummary.visibility = visibility
+        if (!BuildConfig.DEMO_MENU_ENABLED) {
+            preferences.demoModeEnabled = false
+            return
+        }
+        updateDemoButton()
+        demoButton.setOnClickListener {
+            if (preferences.demoModeEnabled) disconnectDemo() else openDemoCodeDialog()
+        }
+    }
+
+    private fun updateDemoButton() {
+        demoButton.setText(
+            if (preferences.demoModeEnabled) R.string.demo_disconnect else R.string.demo_start
+        )
+    }
+
+    private fun openDemoCodeDialog() {
+        val density = resources.displayMetrics.density
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            val horizontal = (24 * density).toInt()
+            val vertical = (8 * density).toInt()
+            setPadding(horizontal, vertical, horizontal, 0)
+        }
+        val codeInput = EditText(this).apply {
+            hint = getString(R.string.demo_code_hint)
+            inputType = InputType.TYPE_CLASS_TEXT or
+                InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS or
+                InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            imeOptions = EditorInfo.IME_ACTION_DONE
+            isSingleLine = true
+            textSize = 22f
+        }
+        val feedback = TextView(this).apply {
+            setTextColor(getColor(R.color.vc_text_muted))
+            textSize = 15f
+            visibility = View.GONE
+        }
+        container.addView(codeInput)
+        container.addView(feedback)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.demo_dialog_title)
+            .setMessage(R.string.demo_dialog_message)
+            .setView(container)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.demo_connect, null)
+            .create()
+
+        dialog.setOnShowListener {
+            val connectButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            connectButton.setOnClickListener {
+                feedback.visibility = View.GONE
+                connectButton.isEnabled = false
+                activateDemo(codeInput.text?.toString().orEmpty()) { result ->
+                    connectButton.isEnabled = true
+                    when (result) {
+                        DemoActivationResult.CONNECTED -> {
+                            preferences.demoModeEnabled = true
+                            updateDemoButton()
+                            dialog.dismiss()
+                            closeManagementPanel()
+                            loadPlayer()
+                        }
+                        DemoActivationResult.INVALID_CODE -> {
+                            feedback.setText(R.string.demo_invalid_code)
+                            feedback.visibility = View.VISIBLE
+                            codeInput.requestFocus()
+                        }
+                        DemoActivationResult.UNAVAILABLE -> {
+                            feedback.setText(R.string.demo_unavailable)
+                            feedback.visibility = View.VISIBLE
+                            codeInput.requestFocus()
+                        }
+                    }
+                }
+            }
+            codeInput.setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    connectButton.performClick()
+                    true
+                } else {
+                    false
+                }
+            }
+            codeInput.requestFocus()
+        }
+        dialog.setOnDismissListener { applyImmersiveMode() }
+        dialog.show()
+    }
+
+    private fun activateDemo(
+        code: String,
+        callback: (DemoActivationResult) -> Unit
+    ) {
+        val view = webView
+        if (!BuildConfig.DEMO_MENU_ENABLED || view == null || !pageLoaded) {
+            callback(DemoActivationResult.UNAVAILABLE)
+            return
+        }
+        val resultKey = "__veyocastDemoActivation${SystemClock.elapsedRealtimeNanos()}"
+        val quotedCode = JSONObject.quote(code)
+        val quotedResultKey = JSONObject.quote(resultKey)
+        val script = """
+            (() => {
+              const resultKey = $quotedResultKey;
+              window[resultKey] = 'pending';
+              fetch('/api/player/demo/session', {
+                  body: JSON.stringify({ code: $quotedCode }),
+                  cache: 'no-store',
+                  credentials: 'same-origin',
+                  headers: { 'Content-Type': 'application/json' },
+                  method: 'POST'
+                })
+                .then((response) => {
+                  window[resultKey] = response.ok ? 'connected' :
+                    response.status === 401 ? 'invalid' : 'unavailable';
+                })
+                .catch(() => { window[resultKey] = 'unavailable'; });
+              return 'started';
+            })()
+        """.trimIndent()
+        view.evaluateJavascript(script) {
+            pollDemoActivation(
+                view = view,
+                quotedResultKey = quotedResultKey,
+                deadlineElapsedMs =
+                    SystemClock.elapsedRealtime() + DEMO_ACTIVATION_TIMEOUT_MS,
+                callback = callback
+            )
+        }
+    }
+
+    private fun pollDemoActivation(
+        view: WebView,
+        quotedResultKey: String,
+        deadlineElapsedMs: Long,
+        callback: (DemoActivationResult) -> Unit
+    ) {
+        if (webView !== view || SystemClock.elapsedRealtime() >= deadlineElapsedMs) {
+            callback(DemoActivationResult.UNAVAILABLE)
+            return
+        }
+        mainHandler.postDelayed({
+            if (webView !== view) {
+                callback(DemoActivationResult.UNAVAILABLE)
+                return@postDelayed
+            }
+            view.evaluateJavascript(
+                """
+                    (() => {
+                      const key = $quotedResultKey;
+                      const result = window[key] || 'pending';
+                      if (result !== 'pending') delete window[key];
+                      return result;
+                    })()
+                """.trimIndent()
+            ) { rawResult ->
+                when (rawResult?.trim('"')) {
+                    "connected" -> callback(DemoActivationResult.CONNECTED)
+                    "invalid" -> callback(DemoActivationResult.INVALID_CODE)
+                    "unavailable" -> callback(DemoActivationResult.UNAVAILABLE)
+                    else -> pollDemoActivation(
+                        view,
+                        quotedResultKey,
+                        deadlineElapsedMs,
+                        callback
+                    )
+                }
+            }
+        }, DEMO_ACTIVATION_POLL_MS)
+    }
+
+    private fun disconnectDemo() {
+        if (!BuildConfig.DEMO_MENU_ENABLED) return
+        webView?.evaluateJavascript(
+            "fetch('/api/player/demo/session', { method: 'DELETE', credentials: 'same-origin' }).catch(() => {})",
+            null
+        )
+        CookieManager.getInstance().setCookie(
+            playerUrl,
+            "$DEMO_COOKIE_NAME=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Strict"
+        )
+        CookieManager.getInstance().flush()
+        preferences.demoModeEnabled = false
+        updateDemoButton()
+        closeManagementPanel()
+        loadPlayer()
     }
 
     private fun preferencesOrDefaultBootStart(): Boolean = if (::preferences.isInitialized) {
@@ -407,7 +613,25 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         val view = webView ?: return
         mainFrameFailed = false
         AppLog.debug("Player-load aangevraagd; host=${safeHost(playerUrl)}")
-        view.loadUrl(playerUrl)
+        view.loadUrl(
+            if (BuildConfig.DEMO_MENU_ENABLED && preferences.demoModeEnabled) {
+                PlayerConfiguration.demoUrl(playerUrl)
+            } else {
+                playerUrl
+            }
+        )
+    }
+
+    private fun reconcileDemoRedirect() {
+        if (
+            !BuildConfig.DEMO_MENU_ENABLED ||
+            !preferences.demoModeEnabled ||
+            runCatching { URI(webView?.url.orEmpty()).path }.getOrNull() == "/demo"
+        ) {
+            return
+        }
+        preferences.demoModeEnabled = false
+        updateDemoButton()
     }
 
     private fun recreateWebViewAfterRendererFailure() {
@@ -503,6 +727,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private fun handleBack() {
         val view = webView
         val trustedWebHistoryAvailable = view != null &&
+            !preferences.demoModeEnabled &&
             navigationPolicy.shouldNavigateBack(view.url, view.canGoBack())
         when (
             TvBackPolicy.decide(
@@ -562,6 +787,15 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private fun safeHost(url: String): String = runCatching { URI(url).host }.getOrNull() ?: "onbekend"
 
     private companion object {
+        const val DEMO_ACTIVATION_POLL_MS = 100L
+        const val DEMO_ACTIVATION_TIMEOUT_MS = 10_000L
+        const val DEMO_COOKIE_NAME = "veyocast_player_demo_session"
         const val PANEL_LONG_PRESS_MS = 1_200L
     }
+}
+
+private enum class DemoActivationResult {
+    CONNECTED,
+    INVALID_CODE,
+    UNAVAILABLE
 }

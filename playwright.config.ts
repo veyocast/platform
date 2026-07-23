@@ -51,7 +51,9 @@ export default defineConfig({
               "veyocast-device-lab-test-token-2026",
             DEVICE_LAB_SESSION_SECRET:
               process.env.DEVICE_LAB_SESSION_SECRET ??
-              "veyocast-device-lab-session-secret-for-tests-2026"
+              "veyocast-device-lab-session-secret-for-tests-2026",
+            VEYOCAST_ENVIRONMENT:
+              process.env.VEYOCAST_ENVIRONMENT ?? "staging"
           },
           reuseExistingServer: !process.env.CI,
           timeout: 180_000,

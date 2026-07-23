@@ -25,6 +25,27 @@ object WebPlaybackScripts {
     """
 
     fun command(command: PlaybackCommand): String {
+        val demoNavigation = when (command) {
+            PlaybackCommand.SEEK_BACKWARD -> """
+                const demoPlayer = document.querySelector('[data-veyocast-demo-player="true"]');
+                if (demoPlayer) {
+                  window.dispatchEvent(new CustomEvent('veyocast:demo-navigate', {
+                    detail: { direction: 'previous' }
+                  }));
+                  return true;
+                }
+            """.trimIndent()
+            PlaybackCommand.SEEK_FORWARD -> """
+                const demoPlayer = document.querySelector('[data-veyocast-demo-player="true"]');
+                if (demoPlayer) {
+                  window.dispatchEvent(new CustomEvent('veyocast:demo-navigate', {
+                    detail: { direction: 'next' }
+                  }));
+                  return true;
+                }
+            """.trimIndent()
+            else -> ""
+        }
         val operation = when (command) {
             PlaybackCommand.TOGGLE -> """
                 if (media.paused) media.play().catch(() => {}); else media.pause();
@@ -41,6 +62,7 @@ object WebPlaybackScripts {
 
         return """
             (() => {
+              $demoNavigation
               const candidates = Array.from(document.querySelectorAll('video, audio'))
                 .filter((candidate) =>
                   candidate.isConnected && !candidate.ended && candidate.getClientRects().length > 0

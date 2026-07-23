@@ -164,6 +164,8 @@ Playerbeheer bevat uitsluitend shellfuncties:
 
 - verbinding en omgeving controleren;
 - de webplayer vernieuwen;
+- in de stagingvariant de afgeschermde Google Play-reviewdemo starten of
+  ontkoppelen;
 - best-effort autostart na reboot instellen;
 - bevestigen dat het scherm wakker en landscape blijft;
 - appversie bekijken;
@@ -172,6 +174,25 @@ Playerbeheer bevat uitsluitend shellfuncties:
 Het paneel wist geen pairing, device-token of offlinecache. Ontkoppelen en
 opnieuw koppelen blijven gecontroleerde acties in VeyoCast Control, zodat de
 serverstatus en het device niet uit elkaar lopen.
+
+### Staging-reviewdemo
+
+Alleen de `staging`-flavor toont `Demo starten`. Voer daar de herbruikbare
+Google Play-reviewcode `VYO 2VY` in. De code maakt geen normaal scherm of
+device-account aan: de Player geeft een ondertekende, tijdelijke virtuele
+demosessie uit en opent `/demo`. De demo gebruikt dezelfde cache-, verificatie-
+en afspeelcomponenten als de normale Player.
+
+Een Platform Owner kiest in staging onder
+`Platform > Systeem en herstel > Android reviewdemo` welke gepubliceerde
+playlist wordt gebruikt. Deze wijziging vereist AAL2 en wordt geaudit. Als de
+configuratie of gekozen release niet beschikbaar is, gebruikt de Player een
+ingebouwde veilige mixed-mediareviewplaylist. `Demo ontkoppelen` wist alleen de
+demosessie; bestaande pairing- en playercachegegevens blijven intact.
+
+De production-flavor compileert `DEMO_MENU_ENABLED=false`. Bovendien antwoorden
+alle demo-API's buiten `VEYOCAST_ENVIRONMENT=staging` met `404`, ook als iemand
+de route rechtstreeks probeert te openen.
 
 ## Bootstart
 

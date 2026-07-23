@@ -135,6 +135,10 @@ workflow bouwt en signeert production als Android App Bundle en publiceert via
 kortlevende Google Workload Identity uitsluitend naar het Play internal-
 testkanaal; Play Console-bootstrap en fysieke TV-acceptatie blijven expliciete
 externe gates.
+De stagingvariant bevat daarnaast een afgeschermde Google Play-reviewdemo. De
+vaste reviewcode maakt een tijdelijke virtuele sessie en opent een immutable
+release die een Platform Owner met AAL2 in staging kiest. Production bevat deze
+menuoptie en routes functioneel niet.
 
 S29-A activeert de mediaworker als afzonderlijke immutable, least-privilege
 staging/production-service. Veilige H.264/AAC-bronnen worden zonder

@@ -29,9 +29,23 @@ class PlayerConfigurationTest {
     @Test
     fun `current build variant uses an approved environment URL`() {
         when (BuildConfig.ENVIRONMENT) {
-            "staging" -> assertEquals("https://staging-player.veyocast.nl", BuildConfig.PLAYER_URL)
-            "production" -> assertEquals("https://player.veyocast.nl", BuildConfig.PLAYER_URL)
+            "staging" -> {
+                assertEquals("https://staging-player.veyocast.nl", BuildConfig.PLAYER_URL)
+                assertTrue(BuildConfig.DEMO_MENU_ENABLED)
+            }
+            "production" -> {
+                assertEquals("https://player.veyocast.nl", BuildConfig.PLAYER_URL)
+                assertFalse(BuildConfig.DEMO_MENU_ENABLED)
+            }
             else -> throw AssertionError("Onbekende Android TV-omgeving: ${BuildConfig.ENVIRONMENT}")
         }
+    }
+
+    @Test
+    fun `demo URL stays on the configured player origin`() {
+        assertEquals(
+            "https://staging-player.veyocast.nl/demo",
+            PlayerConfiguration.demoUrl("https://staging-player.veyocast.nl/")
+        )
     }
 }

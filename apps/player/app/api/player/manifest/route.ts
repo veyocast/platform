@@ -4,13 +4,11 @@ import { NextResponse } from "next/server";
 
 import {
   getPlayerManifestForToken,
-  type PlayerManifestEnvelope,
-  type PlayerManifestItem,
   type PlayerManifestProblem,
   type PlayerWaitingContentEnvelope
 } from "../../../_lib/player-manifest";
+import { loadPlayerReleaseEnvelope } from "../../../_lib/player-release-envelope";
 import {
-  createPlayerAdminClient,
   createPlayerAnonClient,
   isLivePlayerConfigured
 } from "../../../_lib/player-supabase";
@@ -53,31 +51,6 @@ type BootstrapRow = {
   screen_name: string;
   screen_status: string;
   tenant_id: string;
-};
-
-type ReleaseRow = {
-  id: string;
-  manifest_hash: string;
-  playlist_id: string;
-  published_at: string;
-  tenant_id: string;
-  total_bytes: number;
-  total_duration_seconds: number;
-  version: number;
-};
-
-type ReleaseItemRow = {
-  asset_kind: "image" | "video";
-  asset_title: string;
-  checksum_sha256: string;
-  duration_seconds: number;
-  file_size_bytes: number;
-  fit_mode: "contain" | "cover";
-  id: string;
-  mime_type: string;
-  muted: boolean;
-  storage_bucket: string;
-  storage_path: string;
 };
 
 async function getLiveManifest(token: string | null) {
@@ -147,61 +120,7 @@ async function getLiveManifest(token: string | null) {
   }
 
   try {
-    const admin = createPlayerAdminClient();
-    const [releaseResult, itemResult] = await Promise.all([
-      admin
-        .from("playlist_releases")
-        .select("id, tenant_id, playlist_id, version, manifest_hash, published_at, total_duration_seconds, total_bytes")
-        .eq("id", bootstrap.desired_release_id)
-        .eq("tenant_id", bootstrap.tenant_id)
-        .single(),
-      admin
-        .from("playlist_release_items")
-        .select("id, asset_kind, asset_title, duration_seconds, fit_mode, muted, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
-        .eq("release_id", bootstrap.desired_release_id)
-        .eq("tenant_id", bootstrap.tenant_id)
-        .order("sort_order", { ascending: true })
-    ]);
-
-    if (releaseResult.error || itemResult.error || !releaseResult.data) {
-      return manifestProblem(503, "ERROR_RECOVERABLE", {
-        cause: "De immutable release kon niet volledig worden gelezen.",
-        effect: "De Player activeert geen mogelijk incomplete release.",
-        recovery: "Controleer de release in Control; de last-known-good release blijft actief."
-      });
-    }
-
-    const release = releaseResult.data as ReleaseRow;
-    const releaseItems = (itemResult.data ?? []) as ReleaseItemRow[];
-    const items = await Promise.all(
-      releaseItems.map(async (item): Promise<PlayerManifestItem> => {
-        const { data: signed, error: signedError } = await admin.storage
-          .from(item.storage_bucket)
-          .createSignedUrl(item.storage_path, 60 * 60);
-
-        if (signedError || !signed?.signedUrl) {
-          throw new Error("signed asset URL unavailable");
-        }
-
-        return {
-          durationSeconds: item.duration_seconds,
-          fitMode: item.fit_mode,
-          id: item.id,
-          kind: item.asset_kind,
-          muted: item.muted,
-          source: {
-            bytes: item.file_size_bytes,
-            checksumSha256: item.checksum_sha256,
-            mimeType: item.mime_type,
-            url: signed.signedUrl
-          },
-          title: item.asset_title
-        };
-      })
-    );
-
-    const fetchedAt = new Date().toISOString();
-    const body: PlayerManifestEnvelope = {
+    const body = await loadPlayerReleaseEnvelope({
       device: {
         activeReleaseId: bootstrap.active_release_id ?? "",
         desiredReleaseId: bootstrap.desired_release_id,
@@ -209,33 +128,9 @@ async function getLiveManifest(token: string | null) {
         screenId: bootstrap.screen_id,
         screenName: bootstrap.screen_name
       },
-      diagnostics: {
-        lastSuccessfulSyncAt: fetchedAt,
-        nextSyncReason:
-          bootstrap.active_release_id === bootstrap.desired_release_id
-            ? "desired release already active"
-            : "desired release must be verified",
-        syncStatus: "online"
-      },
-      fetchedAt,
-      manifest: {
-        items,
-        label: `Pilotplaylist v${release.version}`,
-        manifestHash: release.manifest_hash,
-        playlistId: release.playlist_id,
-        publishedAt: release.published_at,
-        releaseId: release.id,
-        schemaVersion: 1,
-        tenantId: release.tenant_id,
-        totalBytes: release.total_bytes,
-        totalDurationSeconds: release.total_duration_seconds,
-        version: release.version
-      },
-      state:
-        bootstrap.active_release_id === bootstrap.desired_release_id
-          ? "PLAYING"
-          : "READY"
-    };
+      releaseId: bootstrap.desired_release_id,
+      tenantId: bootstrap.tenant_id
+    });
 
     return NextResponse.json(body, {
       headers: {

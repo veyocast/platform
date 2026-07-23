@@ -61,7 +61,7 @@ const pairingClaimPollIntervalMs = 2_000;
 const pairingProvisionCooldownMs = 5_000;
 let volatilePlayerInstanceId: string | null = null;
 
-type PlaybackFailureCode =
+export type PlaybackFailureCode =
   | "IMAGE_ERROR"
   | "VIDEO_ERROR"
   | "VIDEO_PROGRESS_TIMEOUT"
@@ -1161,22 +1161,25 @@ function PlaybackView({
   );
 }
 
-function PlaybackMedia({
+export function PlaybackMedia({
   item,
   onEnded,
   onFailure,
+  onPlaybackStateChange,
   onReady,
   watchdogTimeoutMs
 }: {
   item: PlayerManifestItem;
   onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
+  onPlaybackStateChange?: (state: "ended" | "paused" | "playing") => void;
   onReady: (itemId: string) => void;
   watchdogTimeoutMs: number;
 }) {
   const className = `playback-media playback-media--${item.fitMode}`;
   const failureReportedRef = useRef(false);
   const hasEndedRef = useRef(false);
+  const isPausedRef = useRef(false);
   const hasStartedRef = useRef(false);
   const lastCurrentTimeRef = useRef(0);
   const lastProgressAtRef = useRef(Date.now());
@@ -1194,6 +1197,7 @@ function PlaybackMedia({
     const interval = window.setInterval(() => {
       const now = Date.now();
       if (hasEndedRef.current) return;
+      if (isPausedRef.current) return;
       if (!hasStartedRef.current && now - startedAt >= watchdogTimeoutMs) {
         reportFailure("VIDEO_START_TIMEOUT");
         return;
@@ -1217,15 +1221,24 @@ function PlaybackMedia({
         muted={item.muted}
         onEnded={() => {
           hasEndedRef.current = true;
+          isPausedRef.current = false;
           hasStartedRef.current = true;
+          onPlaybackStateChange?.("ended");
           onReady(item.id);
           onEnded(item.id);
         }}
         onError={() => reportFailure("VIDEO_ERROR")}
+        onPause={() => {
+          if (hasEndedRef.current) return;
+          isPausedRef.current = true;
+          onPlaybackStateChange?.("paused");
+        }}
         onPlaying={() => {
+          isPausedRef.current = false;
           hasStartedRef.current = true;
           lastProgressAtRef.current = Date.now();
           lastSignalRef.current = null;
+          onPlaybackStateChange?.("playing");
           onReady(item.id);
         }}
         onStalled={() => {

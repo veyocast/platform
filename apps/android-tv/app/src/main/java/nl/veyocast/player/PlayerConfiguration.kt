@@ -27,5 +27,7 @@ object PlayerConfiguration {
             uri.fragment == null
     }.getOrDefault(false)
 
+    fun demoUrl(playerUrl: String): String = "${normalize(playerUrl)}/demo"
+
     private fun normalize(url: String): String = url.trim().trimEnd('/')
 }
