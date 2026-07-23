@@ -21,11 +21,13 @@ describe("capability decisions", () => {
     expect(hasCapability(["platform_owner"], "platform.user.manage")).toBe(true);
   });
 
-  it("allows tenant editors to author and publish but not manage screens or team", () => {
+  it("lets tenant editors prepare content without publishing or managing the tenant", () => {
     expect(hasCapability(["tenant_editor"], "tenant.media.write")).toBe(true);
-    expect(hasCapability(["tenant_editor"], "tenant.playlist.publish")).toBe(true);
+    expect(hasCapability(["tenant_editor"], "tenant.playlist.write")).toBe(true);
+    expect(hasCapability(["tenant_editor"], "tenant.playlist.publish")).toBe(false);
     expect(hasCapability(["tenant_editor"], "tenant.screen.manage")).toBe(false);
     expect(hasCapability(["tenant_editor"], "tenant.team.manage")).toBe(false);
+    expect(hasCapability(["tenant_admin"], "tenant.playlist.publish")).toBe(true);
   });
 
   it("keeps tenant viewers read-only", () => {

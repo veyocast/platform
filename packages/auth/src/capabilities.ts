@@ -39,7 +39,10 @@ const tenantReadCapabilities = [
 
 const tenantWriteCapabilities = [
   "tenant.media.write",
-  "tenant.playlist.write",
+  "tenant.playlist.write"
+] as const satisfies readonly Capability[];
+
+const tenantPublishCapabilities = [
   "tenant.playlist.publish"
 ] as const satisfies readonly Capability[];
 
@@ -69,11 +72,13 @@ export const roleCapabilityMatrix: Readonly<
   tenant_owner: [
     ...tenantReadCapabilities,
     ...tenantWriteCapabilities,
+    ...tenantPublishCapabilities,
     ...tenantManageCapabilities
   ],
   tenant_admin: [
     ...tenantReadCapabilities,
     ...tenantWriteCapabilities,
+    ...tenantPublishCapabilities,
     ...tenantManageCapabilities
   ],
   tenant_editor: [...tenantReadCapabilities, ...tenantWriteCapabilities],
