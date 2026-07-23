@@ -183,10 +183,15 @@ test.describe("live pilot vertical slice", () => {
     await staleEditorPage.goto(page.url());
     await expect(staleEditorPage.getByText("Revisie 0").first()).toBeVisible();
 
-    await page.getByRole("listitem").filter({ hasText: "Live pilotbeeld" }).getByRole("button", { name: "Toevoegen" }).click();
+    await page
+      .getByRole("list", { name: "Gereedstaande media" })
+      .getByRole("listitem")
+      .filter({ hasText: "Live pilotbeeld" })
+      .getByRole("button", { name: "Toevoegen: Live pilotbeeld" })
+      .click();
     await expect(page.getByText("Het media-item is aan het concept toegevoegd")).toBeVisible();
     await staleEditorPage.getByLabel("Playlistnaam").fill("Stale browsernaam");
-    await staleEditorPage.getByRole("button", { name: "Conceptgegevens opslaan" }).click();
+    await staleEditorPage.getByRole("button", { name: "Playlist opslaan" }).click();
     await expect(staleEditorPage.getByText("Dit concept is ondertussen gewijzigd.")).toBeVisible();
     await expect(staleEditorPage.getByText("Jouw actie is niet uitgevoerd.")).toBeVisible();
     await expect(staleEditorPage.getByRole("link", { name: "Nieuwste versie laden" })).toBeVisible();
@@ -197,7 +202,6 @@ test.describe("live pilot vertical slice", () => {
 
     await page.getByLabel("Afspeelduur in seconden").fill(videoFixture ? "5" : "14");
     await page.getByLabel("Weergave").selectOption("contain");
-    await page.getByRole("button", { name: "Venster sluiten" }).click();
     let leaveWarning = "";
     page.once("dialog", async (dialog) => {
       leaveWarning = dialog.message();
@@ -209,11 +213,16 @@ test.describe("live pilot vertical slice", () => {
     await page.getByRole("button", { name: "Live pilotbeeld bewerken" }).click();
     await page.getByLabel("Afspeelduur in seconden").fill(videoFixture ? "5" : "14");
     await page.getByLabel("Weergave").selectOption("contain");
-    await page.getByRole("button", { name: "Wijzigingen opslaan" }).click();
+    await page.getByRole("button", { name: "Item opslaan" }).click();
     await expect(page.getByText("De iteminstellingen zijn opgeslagen")).toBeVisible();
 
     if (videoFixture) {
-      await page.getByRole("listitem").filter({ hasText: "Live queuecontrole" }).getByRole("button", { name: "Toevoegen" }).click();
+      await page
+        .getByRole("list", { name: "Gereedstaande media" })
+        .getByRole("listitem")
+        .filter({ hasText: "Live queuecontrole" })
+        .getByRole("button", { name: "Toevoegen: Live queuecontrole" })
+        .click();
       await expect(page.getByText("Het media-item is aan het concept toegevoegd")).toBeVisible();
       const dragHandle = page.getByRole("button", { name: /Versleep Live queuecontrole/ });
       await dragHandle.focus();
@@ -221,13 +230,14 @@ test.describe("live pilot vertical slice", () => {
       await page.keyboard.press("ArrowUp");
       await page.keyboard.press("Space");
       await expect(page.getByText("De nieuwe volgorde is opgeslagen")).toBeVisible();
+      await page.getByRole("button", { name: "Voorbeeld" }).click();
       await page.getByRole("button", { name: "Volgende" }).click();
       const previewVideo = page.getByLabel("Voorbeeldvideo Live queuecontrole");
       await expect(previewVideo).toBeVisible();
       await expect(previewVideo).toHaveJSProperty("muted", true);
     }
 
-    await page.getByRole("link", { name: "Begeleide publicatie starten" }).click();
+    await page.getByRole("link", { name: "Publiceren" }).click();
     await expect(page).toHaveURL(/\/dashboard\/playlists\/.+\/publish$/);
     await page.getByLabel(/LG sprint scherm/).check();
     await page.getByRole("button", { name: "Preflight voor selectie berekenen" }).click();

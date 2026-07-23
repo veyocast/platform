@@ -171,6 +171,34 @@ export function PublisherStudioWorkspace({
     []
   );
 
+  useEffect(() => {
+    const dirty = saveState === "changed";
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (!dirty) return;
+      event.preventDefault();
+    };
+    const followLink = (event: MouseEvent) => {
+      if (!dirty || event.defaultPrevented || event.button !== 0) return;
+      const target = event.target;
+      const anchor =
+        target instanceof Element ? target.closest("a[href]") : null;
+      if (!anchor || anchor.getAttribute("href")?.startsWith("#")) return;
+      if (
+        !window.confirm(
+          "Je hebt niet-opgeslagen wijzigingen. Wil je Playlist Studio verlaten?"
+        )
+      ) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    document.addEventListener("click", followLink, true);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnload);
+      document.removeEventListener("click", followLink, true);
+    };
+  }, [saveState]);
+
   const selectedItem =
     orderedItems.find((item) => item.id === selectedId) ?? null;
   const availableAssets = useMemo(() => {
@@ -287,7 +315,17 @@ export function PublisherStudioWorkspace({
       onDragEnd={handleDragEnd}
       sensors={sensors}
     >
-      <div className={styles.studio}>
+      <div
+        className={styles.studio}
+        onChangeCapture={(event) => {
+          if (
+            event.target instanceof Element &&
+            event.target.hasAttribute("data-editor-field")
+          ) {
+            setSaveState("changed");
+          }
+        }}
+      >
         <header className={styles.editorHeader}>
           <div className={styles.headerIdentity}>
             <Link
@@ -390,13 +428,14 @@ export function PublisherStudioWorkspace({
                 setInspectorSheetOpen(true);
               }}
               playlistName={playlist.name}
+              revision={playlist.revision}
             />
             <Storyboard
               canWrite={canWrite && saveState !== "saving"}
               items={orderedItems}
               onSelect={(id) => {
                 setSelectedId(id);
-                if (window.matchMedia("(max-width: 1180px)").matches) {
+              if (window.matchMedia("(max-width: 1180px)").matches) {
                   setInspectorSheetOpen(true);
                 }
               }}
@@ -556,7 +595,7 @@ function MediaLibrary({
         ))}
       </div>
       {assets.length ? (
-        <ul className={styles.mediaGrid}>
+        <ul aria-label="Gereedstaande media" className={styles.mediaGrid}>
           {assets.map((asset) => (
             <DraggableMediaCard
               asset={asset}
@@ -635,7 +674,7 @@ function DraggableMediaCard({
         <RevisionFields playlistId={playlistId} revision={revision} />
         <input name="mediaAssetId" type="hidden" value={asset.id} />
         <button
-          aria-label={`${asset.title} toevoegen`}
+          aria-label={`Toevoegen: ${asset.title}`}
           disabled={!canWrite}
           type="submit"
         >
@@ -650,12 +689,14 @@ function StoryboardHeader({
   durationSeconds,
   itemCount,
   onPlaylistSelect,
-  playlistName
+  playlistName,
+  revision
 }: {
   durationSeconds: number;
   itemCount: number;
   onPlaylistSelect: () => void;
   playlistName: string;
+  revision: number;
 }) {
   return (
     <div className={styles.storyboardHeading}>
@@ -668,6 +709,7 @@ function StoryboardHeader({
       </div>
       <div>
         <Badge status="neutral">Concept</Badge>
+        <Badge status="info">Revisie {revision}</Badge>
         <IconButton
           aria-label="Playlistinstellingen openen"
           onClick={onPlaylistSelect}
@@ -720,7 +762,7 @@ function Storyboard({
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <ol className={styles.itemList}>
+        <ol aria-label="Playlistitems" className={styles.itemList}>
           {items.map((item, index) => (
             <SortableItem
               canWrite={canWrite}
@@ -799,6 +841,7 @@ function SortableItem({
       <span className={styles.position}>{index + 1}</span>
       <MediaThumb asset={item.asset} className={styles.itemThumb ?? ""} />
       <button
+        aria-label={`${title} bewerken`}
         className={styles.itemIdentity}
         onClick={() => onSelect(item.id)}
         type="button"
@@ -968,6 +1011,7 @@ function Inspector({
           <label>
             <span>Playlistnaam</span>
             <input
+              data-editor-field
               defaultValue={playlist.name}
               disabled={!canWrite}
               maxLength={120}
@@ -980,6 +1024,7 @@ function Inspector({
           <label>
             <span>Beschrijving</span>
             <textarea
+              data-editor-field
               defaultValue={playlist.description ?? ""}
               disabled={!canWrite}
               maxLength={500}
@@ -1050,29 +1095,22 @@ function Inspector({
           </small>
         </label>
         <label>
-          <span>Duur</span>
-          <select
-            defaultValue={String(item.durationSeconds)}
+          <span>Afspeelduur in seconden</span>
+          <input
+            data-editor-field
+            defaultValue={item.durationSeconds}
             disabled={!canWrite}
+            max={3600}
+            min={5}
             name="duration"
-          >
-            {[5, 8, 10, 15, 30]
-              .concat(
-                [item.durationSeconds].filter(
-                  (value) => ![5, 8, 10, 15, 30].includes(value)
-                )
-              )
-              .sort((a, b) => a - b)
-              .map((seconds) => (
-                <option key={seconds} value={seconds}>
-                  {seconds} seconden
-                </option>
-              ))}
-          </select>
+            required
+            type="number"
+          />
         </label>
         <label>
           <span>Weergave</span>
           <select
+            data-editor-field
             defaultValue={item.fitMode}
             disabled={!canWrite}
             name="fitMode"
@@ -1084,6 +1122,7 @@ function Inspector({
         {item.asset?.kind === "video" ? (
           <label className={styles.checkboxField}>
             <input
+              data-editor-field
               defaultChecked={item.muted}
               disabled={!canWrite}
               name="muted"
