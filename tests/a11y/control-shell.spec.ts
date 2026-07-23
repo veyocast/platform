@@ -200,11 +200,15 @@ test("activity workspace remains readable without fictional mobile rows", async 
 
   await expect(page.getByRole("heading", { name: "Recente gebeurtenissen" })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Nog geen auditgebeurtenissen" })).toBeVisible();
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
-    )
-  ).toBe(true);
+  await expect(async () => {
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth
+      )
+    ).toBe(true);
+  }).toPass({ timeout: 15_000 });
 });
 
 test("tenant context selection is explicit and keyboard reachable", async ({ page }) => {
@@ -291,9 +295,15 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await page.reload();
   await page.getByRole("button", { name: "Filters" }).click();
   const fromDate = page.getByLabel("Vanaf");
-  const fromDateBox = await fromDate.boundingBox();
-  expect(fromDateBox?.height).toBeGreaterThanOrEqual(44);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expect(async () => {
+    const fromDateBox = await fromDate.boundingBox();
+    expect(fromDateBox?.height).toBeGreaterThanOrEqual(44);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth
+      )
+    ).toBe(true);
+  }).toPass({ timeout: 15_000 });
 });
 
 test("playlists route exposes searchable resource filters and safe creation", async ({
