@@ -1,4 +1,92 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function navigate(page: Page, pathname: string) {
+  await expect(async () => {
+    try {
+      await page.goto(pathname, { waitUntil: "domcontentloaded" });
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(page).toHaveURL(new RegExp(`${pathname.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
+  }).toPass({ timeout: 20_000 });
+}
+
+async function readDashboardGeometry(page: Page) {
+  return page.evaluate(() => {
+    const visible = (element: HTMLElement) => {
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      return rect.width > 0 && rect.height > 0 && style.visibility !== "hidden";
+    };
+    const grids = Array.from(document.querySelectorAll<HTMLElement>(".form-grid"))
+      .filter(visible)
+      .map((grid) => {
+        const fields = Array.from(grid.querySelectorAll<HTMLElement>(":scope > .field"))
+          .filter(visible)
+          .map((field) => {
+            const label = field.querySelector<HTMLElement>(":scope > label");
+            const control = field.querySelector<HTMLElement>(
+              ":scope > input:not([type='hidden']):not([type='checkbox']):not([type='radio']), :scope > select, :scope > textarea"
+            );
+            const fieldRect = field.getBoundingClientRect();
+            const labelRect = label?.getBoundingClientRect();
+            const controlRect = control?.getBoundingClientRect();
+            return {
+              controlHeight: controlRect?.height ?? 0,
+              controlTop: controlRect?.top ?? 0,
+              controlWidth: controlRect?.width ?? 0,
+              fieldTop: fieldRect.top,
+              fieldWidth: fieldRect.width,
+              labelTop: labelRect?.top ?? 0
+            };
+          });
+        return fields;
+      });
+    const surfacePadding = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        ".workspace-section, .data-surface, .onboarding-workspace"
+      )
+    )
+      .filter(visible)
+      .map((surface) => Number.parseFloat(window.getComputedStyle(surface).paddingLeft));
+
+    return { grids, surfacePadding };
+  });
+}
+
+function expectCanonicalGeometry(
+  geometry: Awaited<ReturnType<typeof readDashboardGeometry>>,
+  expectedSurfacePadding: number
+) {
+  expect(geometry.grids.length).toBeGreaterThan(0);
+  for (const fields of geometry.grids) {
+    for (const field of fields) {
+      expect(Math.abs(field.controlWidth - field.fieldWidth)).toBeLessThanOrEqual(1);
+      expect(field.controlHeight).toBe(44);
+    }
+
+    const rows = new Map<number, typeof fields>();
+    for (const field of fields) {
+      const rowTop = Math.round(field.fieldTop);
+      rows.set(rowTop, [...(rows.get(rowTop) ?? []), field]);
+    }
+    for (const row of rows.values()) {
+      if (row.length < 2) continue;
+      expect(
+        Math.max(...row.map(({ labelTop }) => labelTop)) -
+          Math.min(...row.map(({ labelTop }) => labelTop))
+      ).toBeLessThanOrEqual(1);
+      expect(
+        Math.max(...row.map(({ controlTop }) => controlTop)) -
+          Math.min(...row.map(({ controlTop }) => controlTop))
+      ).toBeLessThanOrEqual(1);
+    }
+  }
+  expect(geometry.surfacePadding.length).toBeGreaterThan(0);
+  for (const padding of geometry.surfacePadding) {
+    expect(padding).toBe(expectedSurfacePadding);
+  }
+}
 
 test("screen onboarding becomes a sequential mobile flow without horizontal overflow", async ({
   page
@@ -49,4 +137,36 @@ test("playlist authoring and settings remain sequential on mobile", async ({ pag
   await expect(async () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   }).toPass();
+});
+
+test("dashboard forms and surfaces share canonical alignment", async ({ page }) => {
+  test.setTimeout(90_000);
+
+  for (const viewport of [
+    { height: 900, padding: 20, width: 1280 },
+    { height: 844, padding: 16, width: 390 }
+  ]) {
+    await page.setViewportSize({ height: viewport.height, width: viewport.width });
+    for (const route of ["/dashboard/settings", "/dashboard/screens/new"]) {
+      await navigate(page, route);
+      await expect(page.locator("#control-content")).toBeVisible();
+      expectCanonicalGeometry(await readDashboardGeometry(page), viewport.padding);
+      if (route === "/dashboard/settings") {
+        const [navigation, firstSection] = await Promise.all([
+          page.getByRole("navigation", { name: "Instellingencategorieën" }).boundingBox(),
+          page.locator(".settings-layout > .data-surface").first().boundingBox()
+        ]);
+        expect(navigation).not.toBeNull();
+        expect(firstSection).not.toBeNull();
+        expect(Math.abs((navigation?.x ?? 0) - (firstSection?.x ?? 0))).toBeLessThanOrEqual(1);
+        expect(Math.abs((navigation?.width ?? 0) - (firstSection?.width ?? 0))).toBeLessThanOrEqual(1);
+        expect(navigation?.height).toBe(50);
+      }
+    }
+
+    await navigate(page, "/dashboard/media");
+    const search = page.getByLabel("Zoeken in media");
+    await expect(search).toBeVisible();
+    expect((await search.boundingBox())?.height).toBe(viewport.width < 768 ? 44 : 40);
+  }
 });

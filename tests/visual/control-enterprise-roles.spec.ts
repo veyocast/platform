@@ -1,11 +1,29 @@
 import path from "node:path";
 
 import { createServerClient } from "@supabase/ssr";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const visualEvidenceEnabled = process.env.VEYOCAST_VISUAL_EVIDENCE === "1";
 
-async function authenticateAgainstLocalSupabase(page: import("@playwright/test").Page) {
+async function navigate(
+  page: Page,
+  pathname: string
+) {
+  await expect(async () => {
+    try {
+      await page.goto(pathname, { waitUntil: "domcontentloaded" });
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(page).toHaveURL(new RegExp(`${pathname.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
+  }).toPass({ timeout: 20_000 });
+}
+
+async function hideDevelopmentOverlays(page: Page) {
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+}
+
+async function authenticateAgainstLocalSupabase(page: Page) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -67,13 +85,14 @@ async function ensureEditableTemplateEvidence(
     throw membershipError ?? new Error("Visual evidence tenantmembership ontbreekt.");
   }
 
-  let { data: playlist, error: playlistError } = await supabase
+  const playlistResult = await supabase
     .from("playlists")
     .select("id")
     .eq("tenant_id", membership.tenant_id)
     .eq("name", "Visuele basisplaylist")
     .maybeSingle();
-  if (playlistError) throw playlistError;
+  let playlist = playlistResult.data;
+  if (playlistResult.error) throw playlistResult.error;
   if (!playlist) {
     const created = await supabase
       .from("playlists")
@@ -114,6 +133,44 @@ async function ensureEditableTemplateEvidence(
   }
 }
 
+async function expectFormGridAlignment(
+  page: Page,
+  selector: string
+) {
+  const geometry = await page.locator(selector).first().evaluate((grid) => {
+    const fields = Array.from(grid.querySelectorAll<HTMLElement>(":scope > .field"));
+    return fields.map((field) => {
+      const label = field.querySelector<HTMLElement>(":scope > label");
+      const control = field.querySelector<HTMLElement>(
+        ":scope > input:not([type='hidden']):not([type='checkbox']):not([type='radio']), :scope > select, :scope > textarea"
+      );
+      const fieldRect = field.getBoundingClientRect();
+      const labelRect = label?.getBoundingClientRect();
+      const controlRect = control?.getBoundingClientRect();
+
+      return {
+        controlHeight: controlRect?.height ?? 0,
+        controlTop: controlRect?.top ?? 0,
+        controlWidth: controlRect?.width ?? 0,
+        fieldTop: fieldRect.top,
+        fieldWidth: fieldRect.width,
+        labelTop: labelRect?.top ?? 0
+      };
+    });
+  });
+
+  expect(geometry.length).toBeGreaterThan(1);
+  const firstRowTop = Math.min(...geometry.map(({ fieldTop }) => fieldTop));
+  const firstRow = geometry.filter(({ fieldTop }) => Math.abs(fieldTop - firstRowTop) <= 1);
+  expect(firstRow.length).toBeGreaterThan(1);
+  expect(Math.max(...firstRow.map(({ labelTop }) => labelTop)) - Math.min(...firstRow.map(({ labelTop }) => labelTop))).toBeLessThanOrEqual(1);
+  expect(Math.max(...firstRow.map(({ controlTop }) => controlTop)) - Math.min(...firstRow.map(({ controlTop }) => controlTop))).toBeLessThanOrEqual(1);
+  for (const field of firstRow) {
+    expect(Math.abs(field.controlWidth - field.fieldWidth)).toBeLessThanOrEqual(1);
+    expect(field.controlHeight).toBe(44);
+  }
+}
+
 test.describe("Control enterprise roles evidence", () => {
   test.skip(!visualEvidenceEnabled, "requires local Supabase and explicit visual evidence opt-in");
   test.setTimeout(180_000);
@@ -121,10 +178,10 @@ test.describe("Control enterprise roles evidence", () => {
   test("captures the tenant role workspace on desktop and mobile", async ({ page }) => {
     await page.setViewportSize({ height: 1000, width: 1440 });
     const supabase = await authenticateAgainstLocalSupabase(page);
-    await page.goto("/dashboard", { waitUntil: "commit" });
+    await navigate(page, "/dashboard");
     await expect(page).toHaveURL(/\/dashboard$/);
 
-    await page.goto("/dashboard/team", { waitUntil: "commit" });
+    await navigate(page, "/dashboard/team");
     await expect(page.getByRole("heading", { level: 2, name: "Custom rollen" })).toBeVisible();
     await page.waitForLoadState("networkidle");
     if (await page.getByText("Contentcoördinator", { exact: true }).count() === 0) {
@@ -139,43 +196,87 @@ test.describe("Control enterprise roles evidence", () => {
     }
 
     await expect(page.getByRole("heading", { level: 2, name: "Custom rollen" })).toBeVisible();
-    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+    await expectFormGridAlignment(page, ".team-invite-form .form-grid");
+    await hideDevelopmentOverlays(page);
     await page.screenshot({
       fullPage: true,
       path: path.resolve("docs/screenshots/s31b-team-roles-desktop.png")
     });
 
     await page.setViewportSize({ height: 844, width: 390 });
-    await page.reload();
+    await navigate(page, "/dashboard/team");
     await expect(page.getByRole("heading", { level: 2, name: "Custom rollen" })).toBeVisible();
+    await hideDevelopmentOverlays(page);
     await page.screenshot({
       fullPage: true,
       path: path.resolve("docs/screenshots/s31b-team-roles-mobile.png")
     });
 
-    await page.locator("#nieuw-teamlid").scrollIntoViewIfNeeded();
-    await page.screenshot({
+    await page.addStyleTag({
+      content: ".control-mobile-nav { display: none !important; }"
+    });
+    await page.locator("#nieuw-teamlid").screenshot({
       path: path.resolve("docs/screenshots/s31b-team-invite-mobile.png")
     });
 
     await ensureEditableTemplateEvidence(supabase);
     await page.setViewportSize({ height: 1000, width: 1440 });
-    await page.goto("/dashboard/templates", { waitUntil: "commit" });
+    await navigate(page, "/dashboard/templates");
     await expect(page.getByRole("heading", { level: 1, name: "Templates" })).toBeVisible();
     await page.waitForLoadState("networkidle");
     await expect(page.getByText("Clubpublicatie", { exact: true })).toBeVisible();
-    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+    await hideDevelopmentOverlays(page);
     await page.screenshot({
       fullPage: true,
       path: path.resolve("docs/screenshots/s31b-templates-desktop.png")
     });
 
     await page.setViewportSize({ height: 844, width: 390 });
-    await page.reload();
+    await navigate(page, "/dashboard/templates");
     await expect(page.getByRole("heading", { level: 1, name: "Templates" })).toBeVisible();
+    await hideDevelopmentOverlays(page);
     await page.screenshot({
       fullPage: true,
       path: path.resolve("docs/screenshots/s31b-templates-mobile.png")
+    });
+
+    await page.setViewportSize({ height: 1000, width: 1440 });
+    await navigate(page, "/dashboard/settings");
+    await expect(page.getByRole("heading", { level: 1, name: "Instellingen" })).toBeVisible();
+    await expectFormGridAlignment(page, "#afspelen .form-grid");
+    await expectFormGridAlignment(page, "#schermen .form-grid");
+    await hideDevelopmentOverlays(page);
+    await page.screenshot({
+      fullPage: true,
+      path: path.resolve("docs/screenshots/s31b-settings-desktop.png")
+    });
+
+    await page.setViewportSize({ height: 844, width: 390 });
+    await navigate(page, "/dashboard/settings");
+    await expect(page.getByRole("heading", { level: 1, name: "Instellingen" })).toBeVisible();
+    await hideDevelopmentOverlays(page);
+    await page.screenshot({
+      fullPage: true,
+      path: path.resolve("docs/screenshots/s31b-settings-mobile.png")
+    });
+
+    await page.setViewportSize({ height: 1000, width: 1440 });
+    await navigate(page, "/dashboard/screens/new");
+    await expect(page.getByRole("heading", { level: 1, name: "Scherm toevoegen" })).toBeVisible();
+    await expectFormGridAlignment(page, ".onboarding-workspace .form-grid");
+    await hideDevelopmentOverlays(page);
+    await page.screenshot({
+      fullPage: true,
+      path: path.resolve("docs/screenshots/s31b-screen-onboarding-desktop.png")
+    });
+
+    await page.setViewportSize({ height: 844, width: 390 });
+    await navigate(page, "/dashboard/screens/new");
+    await expect(page.getByRole("heading", { level: 1, name: "Scherm toevoegen" })).toBeVisible();
+    await hideDevelopmentOverlays(page);
+    await page.screenshot({
+      fullPage: true,
+      path: path.resolve("docs/screenshots/s31b-screen-onboarding-mobile.png")
     });
   });
 });

@@ -899,9 +899,9 @@ kbd {
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-lg);
   display: grid;
-  gap: var(--vc-space-24);
+  gap: var(--vc-space-20);
   min-width: 0;
-  padding: var(--vc-space-24);
+  padding: var(--vc-space-20);
 }
 
 .onboarding-form {
@@ -1138,10 +1138,19 @@ kbd {
 
 .toolbar-date,
 .toolbar-field {
+  align-content: start;
   color: var(--vc-text-muted);
   display: grid;
   font-size: 12px;
   gap: var(--vc-space-2);
+  min-width: 0;
+}
+
+.toolbar-date > span,
+.toolbar-field > span {
+  line-height: 16px;
+  min-height: 16px;
+  white-space: nowrap;
 }
 
 .toolbar-date input,
@@ -1151,8 +1160,10 @@ kbd {
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-md);
   color: var(--vc-text);
-  min-height: 40px;
+  height: var(--vc-component-height-input-standard);
+  min-width: 0;
   padding: 0 var(--vc-space-8);
+  width: 100%;
 }
 
 .toolbar-search {
@@ -1160,7 +1171,7 @@ kbd {
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-md);
   color: var(--vc-text);
-  height: 36px;
+  height: var(--vc-component-height-input-standard);
   min-width: min(100%, 240px);
   padding: 0 var(--vc-space-10);
 }
@@ -1170,7 +1181,7 @@ kbd {
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-md);
   color: var(--vc-text);
-  height: 36px;
+  height: var(--vc-component-height-input-standard);
   padding: 0 var(--vc-space-8);
 }
 
@@ -1721,6 +1732,7 @@ kbd {
 }
 
 .form-grid {
+  align-items: start;
   display: grid;
   gap: var(--vc-space-16);
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -2335,14 +2347,21 @@ kbd {
 }
 
 .field {
+  align-content: start;
   display: grid;
   gap: var(--vc-space-6);
+  min-width: 0;
 }
 
 .field label {
+  display: block;
   font-size: 13px;
   font-weight: 650;
   line-height: 18px;
+  min-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .field input,
@@ -2353,7 +2372,19 @@ kbd {
   border-radius: var(--vc-radius-md);
   color: var(--vc-text);
   min-height: var(--vc-component-height-input-touch);
+  min-width: 0;
   padding: var(--vc-space-10) var(--vc-space-12);
+  width: 100%;
+}
+
+.field input:not([type="checkbox"]):not([type="radio"]),
+.field select {
+  height: var(--vc-component-height-input-touch);
+}
+
+.field textarea {
+  line-height: 20px;
+  resize: vertical;
 }
 
 .field input[readonly] {
@@ -2849,7 +2880,7 @@ kbd {
 
   .onboarding-workspace {
     gap: var(--vc-space-16);
-    padding: var(--vc-space-12);
+    padding: var(--vc-space-16);
   }
 
   .onboarding-summary {
@@ -3063,6 +3094,8 @@ kbd {
 
   .toolbar-search,
   .toolbar-select,
+  .toolbar-field input,
+  .toolbar-field select,
   .toolbar-date input,
   .resource-toolbar .button-link,
   .upload-actions .button-link {
@@ -3918,6 +3951,12 @@ body .vc-dialog__content {
     padding: var(--vc-space-16);
   }
 
+  .control-shell .vc-button,
+  body .vc-dialog__content .vc-button,
+  body .vc-sheet__content .vc-button {
+    min-height: var(--vc-component-height-input-touch);
+  }
+
   .page-title {
     font-size: 24px;
     line-height: 30px;
@@ -4062,17 +4101,22 @@ body .vc-dialog__content {
   border-radius: var(--vc-radius-lg);
   display: flex;
   gap: var(--vc-space-4);
+  min-height: 50px;
   overflow-x: auto;
   padding: var(--vc-space-6);
   position: sticky;
   top: calc(var(--vc-component-height-topbar) + var(--vc-space-8));
+  width: min(100%, 960px);
   z-index: calc(var(--vc-z-sticky) - 1);
 }
 
 .settings-category-nav a {
+  align-items: center;
   border-radius: var(--vc-radius-md);
+  display: inline-flex;
   flex: 0 0 auto;
   font-weight: 650;
+  line-height: 18px;
   min-height: 36px;
   padding: var(--vc-space-8) var(--vc-space-12);
   text-decoration: none;
@@ -4085,6 +4129,10 @@ body .vc-dialog__content {
 
 .settings-layout > section {
   scroll-margin-top: calc(var(--vc-component-height-topbar) + 72px);
+}
+
+.support-export {
+  width: min(100%, 960px);
 }
 
 .settings-savebar {
@@ -4455,17 +4503,19 @@ body .vc-dialog__content {
   }
 
   .settings-category-nav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    overflow-x: visible;
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
   .settings-category-nav a {
-    align-items: center;
-    display: flex;
+    flex: 0 0 auto;
     justify-content: center;
-    min-width: 0;
     text-align: center;
+  }
+
+  .settings-category-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .dashboard-operational-summary {

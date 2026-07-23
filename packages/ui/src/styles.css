@@ -231,6 +231,15 @@
   font-weight: 700;
 }
 
+.vc-field__label {
+  display: block;
+  line-height: 1.125rem;
+  min-height: 1.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .vc-alert__description,
 .vc-field__description,
 .vc-empty-state__description,
@@ -636,8 +645,10 @@
 }
 
 .vc-field {
+  align-content: start;
   display: grid;
   gap: var(--vc-space-6);
+  min-width: 0;
 }
 
 .vc-field-control {
@@ -646,9 +657,12 @@
   border-radius: var(--vc-radius-md);
   color: var(--vc-text);
   font: inherit;
+  height: var(--vc-component-height-input-standard);
   min-height: var(--vc-component-height-input-standard);
+  min-width: 0;
   outline: none;
   padding: 0 var(--vc-space-12);
+  width: 100%;
 }
 
 .vc-field-control::placeholder {
@@ -665,6 +679,8 @@
 }
 
 .vc-textarea {
+  height: auto;
+  line-height: 1.5;
   min-height: 6rem;
   padding-block: var(--vc-space-10);
   resize: vertical;
