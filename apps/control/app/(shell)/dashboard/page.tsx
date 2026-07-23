@@ -251,7 +251,7 @@ function LiveDashboard({
 
       <section className={styles.activityPanel} aria-labelledby="recent-events-title">
         <SectionHeading
-          actionHref="/dashboard/audit"
+          actionHref="/dashboard/auditlog"
           actionLabel="Alle activiteit"
           description="Recente, serverbevestigde wijzigingen binnen deze organisatie."
           id="recent-events-title"
@@ -264,7 +264,10 @@ function LiveDashboard({
                 <span className={styles.activityMarker} data-result={event.result} aria-hidden="true" />
                 <span>
                   <strong>{humanize(event.action)}</strong>
-                  <small>{event.target_type} · {formatDate(event.created_at)}</small>
+                  <small>
+                    {event.actor_name} · {event.target_name ?? targetTypeLabel(event.target_type)} ·{" "}
+                    {formatDate(event.created_at)}
+                  </small>
                 </span>
                 <StatusPill
                   label={event.result === "success" ? "Geslaagd" : "Mislukt"}
@@ -395,5 +398,17 @@ function formatDate(value: string) {
 }
 
 function humanize(value: string) {
-  return value.replaceAll(".", " ").replaceAll("_", " ");
+  const text = value.replaceAll(".", " ").replaceAll("_", " ");
+  return text.charAt(0).toLocaleUpperCase("nl-NL") + text.slice(1);
+}
+
+function targetTypeLabel(value: string) {
+  return ({
+    content_schedules: "Planning",
+    media_assets: "Media",
+    playlist_releases: "Release",
+    playlists: "Playlist",
+    screen_groups: "Schermgroep",
+    screens: "Scherm"
+  } as Record<string, string>)[value] ?? humanize(value);
 }

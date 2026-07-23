@@ -42,7 +42,7 @@ export async function loadTenantOverview(tenantId: string) {
       .limit(20),
     supabase
       .from("audit_events")
-      .select("id, action, target_type, result, created_at")
+      .select("id, actor_user_id, action, target_type, target_id, result, created_at")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
       .limit(8),
@@ -72,8 +72,55 @@ export async function loadTenantOverview(tenantId: string) {
     return tenantOverviewFailure();
   }
 
+  const overviewAudit = audit.data ?? [];
+  const actorIds = [...new Set(overviewAudit.flatMap((event) =>
+    event.actor_user_id ? [event.actor_user_id] : []
+  ))];
+  const targetIds = (targetType: string) => [
+    ...new Set(overviewAudit.flatMap((event) =>
+      event.target_type === targetType && event.target_id ? [event.target_id] : []
+    ))
+  ];
+  const [auditProfiles, auditScreens, auditSchedules, auditGroups] = await Promise.all([
+    actorIds.length
+      ? supabase.from("profiles").select("id, display_name").in("id", actorIds)
+      : Promise.resolve({ data: [], error: null }),
+    targetIds("screens").length
+      ? supabase.from("screens").select("id, name").in("id", targetIds("screens"))
+      : Promise.resolve({ data: [], error: null }),
+    targetIds("content_schedules").length
+      ? supabase.from("content_schedules").select("id, name").in("id", targetIds("content_schedules"))
+      : Promise.resolve({ data: [], error: null }),
+    targetIds("screen_groups").length
+      ? supabase.from("screen_groups").select("id, name").in("id", targetIds("screen_groups"))
+      : Promise.resolve({ data: [], error: null })
+  ]);
+  const auditActors = new Map((auditProfiles.data ?? []).map((profile) => [
+    profile.id,
+    profile.display_name
+  ]));
+  const auditTargets = new Map<string, string>([
+    ...(playlists.data ?? []).map((row) => [`playlists:${row.id}`, row.name] as const),
+    ...(releases.data ?? []).map((row) => [
+      `playlist_releases:${row.id}`,
+      `Release versie ${row.version}`
+    ] as const),
+    ...(media.data ?? []).map((row) => [`media_assets:${row.id}`, row.title] as const),
+    ...(auditScreens.data ?? []).map((row) => [`screens:${row.id}`, row.name] as const),
+    ...(auditSchedules.data ?? []).map((row) => [`content_schedules:${row.id}`, row.name] as const),
+    ...(auditGroups.data ?? []).map((row) => [`screen_groups:${row.id}`, row.name] as const)
+  ]);
+
   return {
-    auditEvents: audit.data ?? [],
+    auditEvents: overviewAudit.map((event) => ({
+      ...event,
+      actor_name: event.actor_user_id
+        ? auditActors.get(event.actor_user_id) ?? "Onbekende gebruiker"
+        : "Systeem",
+      target_name: event.target_id
+        ? auditTargets.get(`${event.target_type}:${event.target_id}`) ?? null
+        : null
+    })),
     heartbeats: heartbeats.data ?? [],
     invitations: invitations.data ?? [],
     memberCount: members.count ?? 0,
