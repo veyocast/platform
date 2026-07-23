@@ -12,7 +12,12 @@ import {
   revokePlayerDevice,
   updateScreen
 } from "../actions";
-import { loadScreenDetail, type FleetDevice, type FleetRelease } from "../data";
+import {
+  loadScreenDetail,
+  type FleetDevice,
+  type FleetRelease,
+  type ScreenSchedule
+} from "../data";
 import { ScreenLifecycleActions } from "./screen-lifecycle-actions";
 
 type ScreenDetailPageProps = {
@@ -23,9 +28,10 @@ type ScreenDetailPageProps = {
 const tabs = [
   ["overview", "Overzicht"],
   ["content", "Content"],
-  ["player", "Player"],
-  ["sync", "Synchronisatie"],
-  ["events", "Gebeurtenissen"]
+  ["planning", "Planning"],
+  ["health", "Gezondheid"],
+  ["settings", "Instellingen"],
+  ["activity", "Activiteit"]
 ] as const;
 
 export default async function ScreenDetailPage({ params, searchParams }: ScreenDetailPageProps) {
@@ -52,7 +58,7 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
     <PageHeader
       actions={screen ? <div className="page-action-group">
         <Link className="button-link button-link--secondary" href={`/dashboard/screens/new?screen=${screen.id}`}>Onboarding openen</Link>
-        <Link className="button-link button-link--primary" href={`/dashboard/screens/${screen.id}?tab=sync`}>Synchronisatie bekijken</Link>
+        <Link className="button-link button-link--primary" href={`/dashboard/screens/${screen.id}?tab=health`}>Gezondheid bekijken</Link>
       </div> : null}
       description={screen ? `${screen.location || "Geen locatie"} · ${orientationLabel(screen.orientation)} · ${resolutionLabel(screen)}` : "Het scherm kon niet worden geladen."}
       eyebrow={`${session.tenant} · Schermdetail`}
@@ -69,37 +75,48 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
       </nav>
 
       {activeTab === "overview" ? <OverviewTab
-        canManage={canManage}
         device={pairedDevice}
         latestHeartbeat={latestHeartbeat}
+        releases={data.releases}
+        schedules={data.schedules}
         screen={screen}
       /> : null}
       {activeTab === "content" ? <ContentTab releases={data.releases} screen={screen} /> : null}
-      {activeTab === "player" ? <PlayerTab canManage={canManage} devices={data.devices} screenId={screen.id} /> : null}
-      {activeTab === "sync" ? <SyncTab
+      {activeTab === "planning" ? <PlanningTab schedules={data.schedules} screen={screen} /> : null}
+      {activeTab === "health" ? <>
+        <PlayerTab canManage={canManage} devices={data.devices} screenId={screen.id} />
+        <SyncTab
         canManage={canManage}
         device={pairedDevice}
         heartbeats={data.heartbeats}
         releases={data.releases}
         screenId={screen.id}
         syncEvents={data.syncEvents}
-      /> : null}
-      {activeTab === "events" ? <EventsTab events={data.auditEvents} /> : null}
+        />
+      </> : null}
+      {activeTab === "settings" ? <SettingsTab canManage={canManage} screen={screen} /> : null}
+      {activeTab === "activity" ? <EventsTab events={data.auditEvents} /> : null}
     </> : null}
   </>;
 }
 
 function OverviewTab({
-  canManage,
   device,
   latestHeartbeat,
+  releases,
+  schedules,
   screen
 }: {
-  canManage: boolean;
   device: FleetDevice | null;
   latestHeartbeat: { createdAt: string; runtimeState: string } | null;
+  releases: FleetRelease[];
+  schedules: ScreenSchedule[];
   screen: NonNullable<Awaited<ReturnType<typeof loadScreenDetail>>["screen"]>;
 }) {
+  const activeRelease = releases.find((release) => release.id === screen.assignedReleaseId) ?? null;
+  const nextSchedule = schedules
+    .filter((schedule) => schedule.enabled && Date.parse(schedule.startsAt) > Date.now())
+    .sort((left, right) => Date.parse(left.startsAt) - Date.parse(right.startsAt))[0] ?? null;
   return <>
     <SummaryStrip
       aria-label="Schermstatus"
@@ -108,13 +125,36 @@ function OverviewTab({
         { detail: device?.platform || "Nog niet gekoppeld", label: "Player", value: device?.deviceName || "Niet gekoppeld" },
         { detail: latestHeartbeat?.runtimeState || "Runtime onbekend", label: "Heartbeat", value: latestHeartbeat ? relativeDate(latestHeartbeat.createdAt) : "Nog nooit" },
         {
-          detail: device?.lastErrorAt ? formatDate(device.lastErrorAt) : "Geen actuele Playerfout",
-          label: "Laatste fout",
-          tone: device?.lastErrorCode ? "warning" : "success",
-          value: device?.lastErrorCode || "Geen"
+          detail: assignmentExplanation(screen, schedules),
+          label: "Actieve content",
+          tone: activeRelease ? "success" : "warning",
+          value: activeRelease?.label || "Niet toegewezen"
         }
       ]}
     />
+    <section className="data-surface" aria-labelledby="screen-overview-title">
+      <div className="workspace-section__header">
+        <div><h2 className="workspace-section__title" id="screen-overview-title">In één oogopslag</h2><p className="work-panel__meta">Actuele status, verklaarbare toewijzing en eerstvolgende wijziging zonder technische ruis.</p></div>
+        <StatusPill label={screen.activeAssignmentSource === "schedule" ? "Planning actief" : screen.activeAssignmentSource === "override" ? "Override actief" : "Standaardcontent"} tone={screen.activeAssignmentSource === "override" ? "warning" : "info"} />
+      </div>
+      <dl className="onboarding-summary">
+        <SummaryItem label="Actieve bron" value={assignmentExplanation(screen, schedules)} />
+        <SummaryItem label="Eerstvolgende planning" value={nextSchedule ? `${nextSchedule.name} · ${formatDate(nextSchedule.startsAt)}` : "Geen aankomende planning"} />
+        <SummaryItem label="Player" value={device?.deviceName || "Niet gekoppeld"} />
+        <SummaryItem label="Laatste contact" value={latestHeartbeat ? relativeDate(latestHeartbeat.createdAt) : "Nog nooit"} />
+      </dl>
+    </section>
+  </>;
+}
+
+function SettingsTab({
+  canManage,
+  screen
+}: {
+  canManage: boolean;
+  screen: NonNullable<Awaited<ReturnType<typeof loadScreenDetail>>["screen"]>;
+}) {
+  return <>
     <section className="data-surface" aria-labelledby="screen-settings-title">
       <div className="workspace-section__header">
         <div><h2 className="workspace-section__title" id="screen-settings-title">Scherminstellingen en lifecycle</h2><p className="work-panel__meta">Onderhoud bewaart de lokale release. Uitschakelen trekt de Player in zodra die weer online komt.</p></div>
@@ -152,10 +192,11 @@ function OverviewTab({
 function ContentTab({ releases, screen }: { releases: FleetRelease[]; screen: NonNullable<Awaited<ReturnType<typeof loadScreenDetail>>["screen"]> }) {
   const assignedRelease = releases.find((release) => release.id === screen.assignedReleaseId) ?? null;
   return <section className="data-surface" aria-labelledby="screen-content-title">
-    <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="screen-content-title">Toegewezen content</h2><p className="work-panel__meta">Toewijzing verwijst altijd naar een immutable release. Wijzig de release via de begeleide publicatieflow.</p></div><StatusPill label={assignedRelease ? "Release toegewezen" : "Geen content"} tone={assignedRelease ? "success" : "warning"} /></div>
+    <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="screen-content-title">Toegewezen content</h2><p className="work-panel__meta">Toewijzing verwijst altijd naar een immutable release. De actieve bron blijft afzonderlijk verklaarbaar.</p></div><StatusPill label={assignedRelease ? "Release toegewezen" : "Geen content"} tone={assignedRelease ? "success" : "warning"} /></div>
     <dl className="onboarding-summary">
       <SummaryItem label="Playlist" value={assignedRelease?.playlistName || "Nog niet gekozen"} />
       <SummaryItem label="Gewenste release" value={assignedRelease ? `Versie ${assignedRelease.version}` : "Geen"} />
+      <SummaryItem label="Toewijzingsbron" value={assignmentSourceLabel(screen.activeAssignmentSource)} />
       <SummaryItem label="Release-ID" value={screen.assignedReleaseId ? `${screen.assignedReleaseId.slice(0, 12)}…` : "Geen"} />
     </dl>
     <div className="page-action-group">
@@ -170,6 +211,41 @@ function ContentTab({ releases, screen }: { releases: FleetRelease[]; screen: No
         : <Link className="button-link button-link--secondary" href="/dashboard/releases">Release Center openen</Link>}
     </div>
   </section>;
+}
+
+function PlanningTab({
+  schedules,
+  screen
+}: {
+  schedules: ScreenSchedule[];
+  screen: NonNullable<Awaited<ReturnType<typeof loadScreenDetail>>["screen"]>;
+}) {
+  return <>
+    <section className="data-surface" aria-labelledby="screen-planning-title">
+      <div className="workspace-section__header">
+        <div><h2 className="workspace-section__title" id="screen-planning-title">Planning en prioriteit</h2><p className="work-panel__meta">Individuele planning gaat vóór schermgroepsplanning. Iedere actieve keuze verwijst naar een immutable release.</p></div>
+        <StatusPill label={assignmentSourceLabel(screen.activeAssignmentSource)} tone={screen.activeAssignmentSource === "override" ? "warning" : "info"} />
+      </div>
+      <p className="notice"><strong>Nu zichtbaar:</strong> {assignmentExplanation(screen, schedules)}</p>
+      <div className="page-action-group">
+        <Link className="button-link button-link--primary" href={`/dashboard/planning?screen=${screen.id}`}>Planning beheren</Link>
+        <Link className="button-link button-link--secondary" href="/dashboard/screen-groups">Schermgroepen bekijken</Link>
+      </div>
+    </section>
+    <section className="workspace-section" aria-labelledby="screen-schedule-list-title">
+      <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="screen-schedule-list-title">Relevante planningen</h2><p className="work-panel__meta">Alle planningen die dit scherm rechtstreeks of via een groep kunnen raken.</p></div><StatusPill label={`${schedules.length} regels`} tone="neutral" /></div>
+      {schedules.length ? <ol className="screen-event-list">
+        {schedules.map((schedule) => <li key={schedule.id}>
+          <span className="screen-event-list__marker" aria-hidden="true">{schedule.isActive ? "✓" : "→"}</span>
+          <div>
+            <strong>{schedule.name} · {schedule.releaseLabel}</strong>
+            <p>{schedule.targetKind === "screen" ? "Individueel scherm" : `Schermgroep ${schedule.targetName}`} · prioriteit {schedule.priority} · {formatDate(schedule.startsAt)}{schedule.endsAt ? ` tot ${formatDate(schedule.endsAt)}` : ""}</p>
+          </div>
+          <StatusPill label={schedule.isActive ? "Nu actief" : schedule.enabled ? "Ingeschakeld" : "Uitgeschakeld"} tone={schedule.isActive ? "success" : schedule.enabled ? "info" : "neutral"} />
+        </li>)}
+      </ol> : <p className="notice" role="status">Er zijn geen individuele of groepsplanningen voor dit scherm.</p>}
+    </section>
+  </>;
 }
 
 function PlayerTab({ canManage, devices, screenId }: { canManage: boolean; devices: FleetDevice[]; screenId: string }) {
@@ -220,6 +296,18 @@ function EventsTab({ events }: { events: Array<{ action: string; createdAt: stri
 }
 
 function SummaryItem({ label, value }: { label: string; value: string }) { return <div><dt>{label}</dt><dd>{value}</dd></div>; }
+function assignmentSourceLabel(source: string) { return source === "override" ? "Directe override" : source === "schedule" ? "Planning" : "Standaardplaylist"; }
+function assignmentExplanation(screen: NonNullable<Awaited<ReturnType<typeof loadScreenDetail>>["screen"]>, schedules: ScreenSchedule[]) {
+  if (screen.activeAssignmentSource === "override") return "Actief via directe override";
+  if (screen.activeAssignmentSource === "schedule") {
+    const active = schedules.find((schedule) => schedule.id === screen.activeScheduleId);
+    if (!active) return "Actief via planning";
+    return active.targetKind === "screen"
+      ? `Actief via individuele planning “${active.name}”`
+      : `Actief via schermgroep “${active.targetName}”`;
+  }
+  return "Actief via standaardplaylist van het scherm";
+}
 function screenStatus(status: string | undefined, device: FleetDevice | null, lastSeenAt: string | null) { if (status === "disabled") return { label: "Uitgeschakeld", tone: "critical" as const }; if (status === "maintenance") return { label: "Onderhoud", tone: "warning" as const }; if (!device) return { label: "Niet gekoppeld", tone: "warning" as const }; if (lastSeenAt && Date.now() - Date.parse(lastSeenAt) <= 5 * 60_000) return { label: "Online", tone: "success" as const }; return { label: "Offline", tone: "warning" as const }; }
 function screenStatusLabel(status: string) { return status === "maintenance" ? "Onderhoud" : status === "disabled" ? "Uitgeschakeld" : "Actief"; }
 function lifecycleExplanation(status: string) { return status === "maintenance" ? "Lokale playback blijft behouden; nieuwe sync en pairing wachten." : status === "disabled" ? "Device toegang is ingetrokken zodra de serverstatus bekend is." : "Pairing, heartbeat en synchronisatie zijn toegestaan."; }

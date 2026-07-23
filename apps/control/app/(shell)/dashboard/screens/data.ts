@@ -3,9 +3,14 @@ import "server-only";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
 export type FleetScreen = {
+  activeAssignmentSource: "default" | "override" | "schedule";
+  activeScheduleId: string | null;
+  activeTargetSnapshotId: string | null;
   assignedPlaylistId: string | null;
   assignedReleaseId: string | null;
   createdAt: string;
+  defaultPlaylistId: string | null;
+  defaultReleaseId: string | null;
   id: string;
   location: string | null;
   name: string;
@@ -13,6 +18,22 @@ export type FleetScreen = {
   resolutionHeight: number | null;
   resolutionWidth: number | null;
   status: string;
+};
+
+export type ScreenSchedule = {
+  enabled: boolean;
+  endsAt: string | null;
+  id: string;
+  isActive: boolean;
+  name: string;
+  priority: number;
+  releaseId: string;
+  releaseLabel: string;
+  source: string;
+  startsAt: string;
+  targetKind: string;
+  targetName: string;
+  timezoneName: string;
 };
 
 export type FleetDevice = {
@@ -86,6 +107,7 @@ export type ScreenDetailData = {
   error: string | null;
   heartbeats: ScreenHeartbeat[];
   releases: FleetRelease[];
+  schedules: ScreenSchedule[];
   screen: FleetScreen | null;
   syncEvents: ScreenSyncEvent[];
 };
@@ -103,7 +125,7 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
   if (!supabase) return { ...empty, error: "De beveiligde datasessie ontbreekt." };
 
   const [screens, devices, releases, playlists, tenant, settings] = await Promise.all([
-    supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, created_at").eq("tenant_id", tenantId).is("deleted_at", null).order("created_at"),
+    supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, default_playlist_id, default_release_id, active_assignment_source, active_schedule_id, active_target_snapshot_id, created_at").eq("tenant_id", tenantId).is("deleted_at", null).order("created_at"),
     supabase.from("player_devices").select("id, screen_id, device_name, status, app_version, platform, capabilities, storage_quota_bytes, storage_used_bytes, active_release_id, desired_release_id, last_seen_at, paired_at, revoked_at, last_error_code, last_error_at, sync_retry_requested_at").eq("tenant_id", tenantId).order("paired_at", { ascending: false }),
     supabase.from("playlist_releases").select("id, playlist_id, version").eq("tenant_id", tenantId).order("published_at", { ascending: false }),
     supabase.from("playlists").select("id, name").eq("tenant_id", tenantId),
@@ -151,6 +173,7 @@ export async function loadScreenDetail(
     error: fleet.error,
     heartbeats: [],
     releases: fleet.releases,
+    schedules: [],
     screen,
     syncEvents: []
   };
@@ -160,16 +183,21 @@ export async function loadScreenDetail(
 
   const screenDevices = fleet.devices.filter((device) => device.screenId === screenId);
   const deviceIds = new Set(screenDevices.map((device) => device.id));
-  const [heartbeats, syncEvents, auditEvents] = await Promise.all([
+  const [heartbeats, syncEvents, auditEvents, memberships, schedules, groups] = await Promise.all([
     supabase.from("player_heartbeats").select("id, device_id, active_release_id, runtime_state, storage_used_bytes, storage_quota_bytes, app_version, created_at").eq("tenant_id", tenantId).eq("screen_id", screenId).order("created_at", { ascending: false }).limit(100),
     supabase.from("player_sync_events").select("id, device_id, release_id, phase, detail, created_at").eq("tenant_id", tenantId).eq("screen_id", screenId).order("created_at", { ascending: false }).limit(100),
-    supabase.from("audit_events").select("id, action, target_type, target_id, result, metadata, created_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(250)
+    supabase.from("audit_events").select("id, action, target_type, target_id, result, metadata, created_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(250),
+    supabase.from("screen_group_memberships").select("screen_group_id").eq("tenant_id", tenantId).eq("screen_id", screenId),
+    supabase.from("content_schedules").select("id, name, target_kind, target_screen_id, target_screen_group_id, release_id, timezone_name, starts_at, ends_at, priority, source, enabled").eq("tenant_id", tenantId).order("starts_at"),
+    supabase.from("screen_groups").select("id, name").eq("tenant_id", tenantId)
   ]);
-  const error = [heartbeats.error, syncEvents.error, auditEvents.error].find(Boolean);
+  const error = [heartbeats.error, syncEvents.error, auditEvents.error, memberships.error, schedules.error, groups.error].find(Boolean);
   if (error) {
     console.error("Schermdetail laden mislukt", error);
     return { ...empty, devices: screenDevices, error: "Playerstatus en gebeurtenissen konden niet volledig worden geladen." };
   }
+  const groupIds = new Set((memberships.data ?? []).map((membership) => membership.screen_group_id));
+  const groupNames = new Map((groups.data ?? []).map((group) => [group.id, group.name]));
 
   return {
     auditEvents: (auditEvents.data ?? [])
@@ -195,6 +223,29 @@ export async function loadScreenDetail(
       storageUsedBytes: nullableNumber(heartbeat.storage_used_bytes)
     })),
     releases: fleet.releases,
+    schedules: (schedules.data ?? [])
+      .filter((schedule) =>
+        schedule.target_kind === "screen"
+          ? schedule.target_screen_id === screenId
+          : groupIds.has(schedule.target_screen_group_id ?? "")
+      )
+      .map((schedule): ScreenSchedule => ({
+        enabled: schedule.enabled,
+        endsAt: schedule.ends_at,
+        id: schedule.id,
+        isActive: schedule.id === screen.activeScheduleId,
+        name: schedule.name,
+        priority: schedule.priority,
+        releaseId: schedule.release_id,
+        releaseLabel: fleet.releases.find((release) => release.id === schedule.release_id)?.label ?? "Verwijderde release",
+        source: schedule.source,
+        startsAt: schedule.starts_at,
+        targetKind: schedule.target_kind,
+        targetName: schedule.target_kind === "screen"
+          ? screen.name
+          : groupNames.get(schedule.target_screen_group_id ?? "") ?? "Verwijderde groep",
+        timezoneName: schedule.timezone_name
+      })),
     screen,
     syncEvents: (syncEvents.data ?? []).map((event) => ({
       createdAt: event.created_at,
@@ -208,9 +259,14 @@ export async function loadScreenDetail(
 
 function mapScreen(screen: Record<string, unknown>): FleetScreen {
   return {
+    activeAssignmentSource: assignmentSource(screen.active_assignment_source),
+    activeScheduleId: stringOrNull(screen.active_schedule_id),
+    activeTargetSnapshotId: stringOrNull(screen.active_target_snapshot_id),
     assignedPlaylistId: stringOrNull(screen.assigned_playlist_id),
     assignedReleaseId: stringOrNull(screen.assigned_release_id),
     createdAt: String(screen.created_at),
+    defaultPlaylistId: stringOrNull(screen.default_playlist_id),
+    defaultReleaseId: stringOrNull(screen.default_release_id),
     id: String(screen.id),
     location: stringOrNull(screen.location),
     name: String(screen.name),
@@ -219,6 +275,10 @@ function mapScreen(screen: Record<string, unknown>): FleetScreen {
     resolutionWidth: nullableNumber(screen.resolution_width),
     status: String(screen.status)
   };
+}
+
+function assignmentSource(value: unknown): FleetScreen["activeAssignmentSource"] {
+  return value === "schedule" || value === "override" ? value : "default";
 }
 
 function mapDevice(device: Record<string, unknown>): FleetDevice {
