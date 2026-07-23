@@ -119,6 +119,11 @@ function LiveDashboard({
         </Alert>
       ) : null}
 
+      <OperationalActionInbox
+        signals={actionableSignals.slice(0, 5)}
+        totalCount={actionableSignals.length}
+      />
+
       <section aria-label="Publisherstatus" className={styles.statusGrid}>
         <StatusCard
           detail="gekoppelde schermen bereikbaar"
@@ -173,7 +178,13 @@ function LiveDashboard({
         </QuickAction>
       </nav>
 
-      <section className={styles.dashboardGrid}>
+      <section
+        className={`${styles.dashboardGrid}${
+          onboardingComplete === operations.onboarding.length
+            ? ` ${styles.dashboardGridSingle}`
+            : ""
+        }`}
+      >
         <section className={styles.activePanel} aria-labelledby="active-content-title">
           <SectionHeading
             actionHref="/dashboard/screens"
@@ -215,13 +226,8 @@ function LiveDashboard({
           )}
         </section>
 
-        <aside className={styles.sideColumn}>
-          <OperationalActionInbox
-            signals={actionableSignals.slice(0, 5)}
-            totalCount={actionableSignals.length}
-          />
-
-          {onboardingComplete < operations.onboarding.length ? (
+        {onboardingComplete < operations.onboarding.length ? (
+          <aside className={styles.sideColumn}>
             <section className={styles.onboarding} aria-labelledby="onboarding-title">
               <div className={styles.onboardingHeader}>
                 <div>
@@ -245,8 +251,8 @@ function LiveDashboard({
                 ))}
               </ol>
             </section>
-          ) : null}
-        </aside>
+          </aside>
+        ) : null}
       </section>
 
       <section className={styles.activityPanel} aria-labelledby="recent-events-title">
