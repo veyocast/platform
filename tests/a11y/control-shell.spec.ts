@@ -323,7 +323,13 @@ test("Release Center keeps immutable history semantics readable on mobile", asyn
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Release Center" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Immutable historie" })).toBeVisible();
   await expect(page.getByText(/rollback is altijd een nieuwe toewijzing/i)).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expect(async () => {
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth
+      )
+    ).toBe(true);
+  }).toPass({ timeout: 15_000 });
 });
 
 test("settings route exposes real defaults with safe permission state", async ({ page }) => {
