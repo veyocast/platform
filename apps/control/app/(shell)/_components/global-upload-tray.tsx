@@ -1,23 +1,25 @@
 "use client";
 
+import { StatusPill } from "@veyocast/ui";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import { StatusPill } from "@veyocast/ui";
-
-type UploadQueueTrayItem = {
+export type GlobalUploadTrayItem = {
   fileName: string;
   id: string;
   status: string;
   title: string;
 };
 
-type UploadQueueTrayProps = {
-  items: UploadQueueTrayItem[];
+type GlobalUploadTrayProps = {
+  items: GlobalUploadTrayItem[];
 };
 
 const queuePreferenceKey = "veyocast:media-upload-queue:open:v1";
+const refreshIntervalMilliseconds = 5_000;
 
-export function UploadQueueTray({ items }: UploadQueueTrayProps) {
+export function GlobalUploadTray({ items }: GlobalUploadTrayProps) {
+  const router = useRouter();
   const previousCount = useRef(items.length);
   const [open, setOpen] = useState(items.length > 0);
 
@@ -34,6 +36,18 @@ export function UploadQueueTray({ items }: UploadQueueTrayProps) {
     if (items.length > previousCount.current) setOpen(true);
     previousCount.current = items.length;
   }, [items.length]);
+
+  useEffect(() => {
+    if (items.length === 0) return;
+
+    const interval = window.setInterval(() => {
+      router.refresh();
+    }, refreshIntervalMilliseconds);
+
+    return () => window.clearInterval(interval);
+  }, [items.length, router]);
+
+  if (items.length === 0) return null;
 
   function updateOpen(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -53,29 +67,22 @@ export function UploadQueueTray({ items }: UploadQueueTrayProps) {
         <summary className="media-upload-tray__summary">
           <span>
             <strong>Uploads</strong>
-            <span>{items.length > 0 ? `${items.length} in verwerking` : "Geen actieve uploads"}</span>
+            <span>{items.length} in verwerking</span>
           </span>
-          <StatusPill
-            label={items.length > 0 ? "Bezig" : "Gereed"}
-            tone={items.length > 0 ? "info" : "success"}
-          />
+          <StatusPill label="Bezig" tone="info" />
         </summary>
         <div className="media-upload-tray__content">
-          {items.length > 0 ? (
-            <ul className="media-upload-tray__list">
-              {items.map((item) => (
-                <li key={item.id}>
-                  <span>
-                    <strong>{item.title}</strong>
-                    <small>{item.fileName}</small>
-                  </span>
-                  <StatusPill label={statusLabel(item.status)} tone="warning" />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Nieuwe uploads en verwerkingsstatussen blijven hier zichtbaar.</p>
-          )}
+          <ul className="media-upload-tray__list">
+            {items.map((item) => (
+              <li key={item.id}>
+                <span>
+                  <strong>{item.title}</strong>
+                  <small>{item.fileName}</small>
+                </span>
+                <StatusPill label={statusLabel(item.status)} tone="warning" />
+              </li>
+            ))}
+          </ul>
         </div>
       </details>
     </aside>

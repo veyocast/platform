@@ -26,8 +26,6 @@ import {
   retryMediaProcessing
 } from "./actions";
 import { MediaInspectorSheet, MediaUploadDialog } from "./media-overlays";
-import { ProcessingStatusRefresh } from "./processing-status-refresh";
-import { UploadQueueTray } from "./upload-queue-tray";
 
 type MediaPageProps = {
   searchParams: Promise<{
@@ -118,13 +116,6 @@ type ProcessingSummary = {
   errorCode: string | null;
   errorMessage: string | null;
   status: string;
-};
-
-type ProcessingQueueItem = {
-  fileName: string;
-  id: string;
-  status: string;
-  title: string;
 };
 
 const demoAssets: MediaAsset[] = [
@@ -249,7 +240,6 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
     mediaStorageLimitBytes,
     mediaStorageUsedBytes,
     processingCount,
-    processingQueue,
     processingSummary,
     readyCount,
     selectedUsage,
@@ -260,7 +250,6 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
     session.tenantStatus === "active" &&
     hasCapability(session.roles, "tenant.media.write");
   const visibleAssets = assets;
-  const processingAssets = processingQueue;
   const selectedAsset = params.asset
     ? assets.find((asset) => asset.id === params.asset) ?? null
     : null;
@@ -270,7 +259,6 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
 
   return (
     <>
-      {session.isLive && processingCount > 0 ? <ProcessingStatusRefresh /> : null}
       <PageHeader
         actions={canUpload ? (
           <Button asChild>
@@ -656,8 +644,6 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
         open={params.upload === "1"}
         supabaseUrl={publicConfig?.url ?? ""}
       />
-
-      <UploadQueueTray items={processingAssets} />
     </>
   );
 }
@@ -688,7 +674,6 @@ async function loadMediaData(
       mediaStorageLimitBytes: 10 * 1024 * 1024 * 1024,
       mediaStorageUsedBytes: demoAssets.reduce((total, asset) => total + asset.fileSizeBytes, 0),
       processingCount: 1,
-      processingQueue: demoAssets.filter((asset) => ["uploading", "processing"].includes(asset.status)) satisfies ProcessingQueueItem[],
       processingSummary: null as ProcessingSummary | null,
       readyCount: 1,
       selectedUsage: [
@@ -709,7 +694,6 @@ async function loadMediaData(
       mediaStorageLimitBytes: 0,
       mediaStorageUsedBytes: 0,
       processingCount: 0,
-      processingQueue: [] as ProcessingQueueItem[],
       processingSummary: null as ProcessingSummary | null,
       readyCount: 0,
       selectedUsage: [] as MediaUsage[],
@@ -727,7 +711,6 @@ async function loadMediaData(
       mediaStorageLimitBytes: 0,
       mediaStorageUsedBytes: 0,
       processingCount: 0,
-      processingQueue: [] as ProcessingQueueItem[],
       processingSummary: null as ProcessingSummary | null,
       readyCount: 0,
       selectedUsage: [] as MediaUsage[],
@@ -740,7 +723,7 @@ async function loadMediaData(
   const status = params.status && allowedStatuses.includes(params.status) ? params.status : null;
   const usage = params.usage === "used" || params.usage === "unused" ? params.usage : "all";
 
-  const [assetResult, readyResult, processingResult, failedResult, storageResult, queueResult] = await Promise.all([
+  const [assetResult, readyResult, processingResult, failedResult, storageResult] = await Promise.all([
     supabase.rpc("list_media_assets", {
       p_created_from: dateBoundary(params.from, false),
       p_created_until: dateBoundary(params.to, true),
@@ -755,12 +738,11 @@ async function loadMediaData(
     supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("status", "ready").is("deleted_at", null),
     supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["uploading", "processing"]).is("deleted_at", null),
     supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["validation_failed", "quarantined"]).is("deleted_at", null),
-    supabase.rpc("get_media_storage_usage", { p_tenant_id: tenantId }),
-    supabase.from("media_assets").select("id, title, original_file_name, status").eq("tenant_id", tenantId).in("status", ["uploading", "processing"]).is("deleted_at", null).order("created_at", { ascending: false }).limit(10)
+    supabase.rpc("get_media_storage_usage", { p_tenant_id: tenantId })
   ]);
 
-  if (assetResult.error || readyResult.error || processingResult.error || failedResult.error || storageResult.error || queueResult.error) {
-    console.error("Mediabibliotheek laden mislukt", assetResult.error ?? readyResult.error ?? processingResult.error ?? failedResult.error ?? storageResult.error ?? queueResult.error);
+  if (assetResult.error || readyResult.error || processingResult.error || failedResult.error || storageResult.error) {
+    console.error("Mediabibliotheek laden mislukt", assetResult.error ?? readyResult.error ?? processingResult.error ?? failedResult.error ?? storageResult.error);
     return {
       activity: [] as MediaActivity[],
       assets: [],
@@ -769,7 +751,6 @@ async function loadMediaData(
       mediaStorageLimitBytes: 0,
       mediaStorageUsedBytes: 0,
       processingCount: 0,
-      processingQueue: [] as ProcessingQueueItem[],
       processingSummary: null as ProcessingSummary | null,
       readyCount: 0,
       selectedUsage: [] as MediaUsage[],
@@ -867,7 +848,6 @@ async function loadMediaData(
     mediaStorageLimitBytes: Number(storage?.limit_bytes ?? 0),
     mediaStorageUsedBytes: Number(storage?.used_bytes ?? 0),
     processingCount: processingResult.count ?? 0,
-    processingQueue: (queueResult.data ?? []).map((item) => ({ fileName: item.original_file_name, id: item.id, status: item.status, title: item.title })),
     processingSummary,
     readyCount: readyResult.count ?? 0,
     selectedUsage,

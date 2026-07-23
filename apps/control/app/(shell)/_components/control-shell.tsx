@@ -49,11 +49,16 @@ import {
   ControlThemeBootstrap,
   ControlThemeSwitcher
 } from "./control-theme-switcher";
+import {
+  GlobalUploadTray,
+  type GlobalUploadTrayItem
+} from "./global-upload-tray";
 
 type ControlShellProps = {
   children: ReactNode;
   navigationGroups: ControlNavigationGroup[];
   session: ControlSession;
+  uploadQueue: GlobalUploadTrayItem[];
 };
 
 const navigationIcons: Record<string, LucideIcon> = {
@@ -76,7 +81,8 @@ const previousSidebarStorageKey = `${String.fromCharCode(99, 97, 115, 116, 105, 
 export function ControlShell({
   children,
   navigationGroups,
-  session
+  session,
+  uploadQueue
 }: ControlShellProps) {
   const pathname = usePathname();
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
@@ -449,6 +455,9 @@ export function ControlShell({
           {children}
         </div>
       </main>
+      {hasTenantNavigationContext ? (
+        <GlobalUploadTray items={uploadQueue} />
+      ) : null}
 
         <DialogContent className="command-palette" showClose={false}>
           <DialogTitle className="vc-visually-hidden">
