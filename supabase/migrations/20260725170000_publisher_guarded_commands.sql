@@ -3810,6 +3810,96 @@ begin
 end;
 $$;
 
+create or replace function public.request_screen_sync_retries_v2(
+  p_tenant_id uuid,
+  p_screen_ids uuid[],
+  p_idempotency_key uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  normalized_screen_ids uuid[];
+  target_count integer;
+  updated_count integer;
+  request_json jsonb;
+  replay jsonb;
+  outcome jsonb;
+begin
+  if private.current_user_id() is null
+    or not private.can_manage_screens(p_tenant_id)
+  then
+    raise exception 'actor cannot manage screens for this tenant'
+      using errcode = '42501';
+  end if;
+  perform private.require_active_tenant_command(p_tenant_id);
+
+  select array_agg(screen_id order by screen_id)
+  into normalized_screen_ids
+  from (
+    select distinct unnest(p_screen_ids) as screen_id
+  ) targets;
+  target_count := coalesce(array_length(normalized_screen_ids, 1), 0);
+  if target_count = 0 or target_count > 250 then
+    raise exception 'bulk screen target count is invalid' using errcode = '22023';
+  end if;
+
+  request_json := jsonb_build_object(
+    'tenantId', p_tenant_id,
+    'screenIds', to_jsonb(normalized_screen_ids)
+  );
+  replay := private.begin_publisher_command(
+    p_tenant_id,
+    'screens.sync_retry.bulk',
+    p_idempotency_key,
+    request_json
+  );
+  if replay is not null then
+    return replay;
+  end if;
+
+  if (
+    select count(distinct screen.id)
+    from public.screens screen
+    join public.player_devices device
+      on device.tenant_id = screen.tenant_id
+      and device.screen_id = screen.id
+      and device.status = 'paired'::public.player_device_status
+    where screen.tenant_id = p_tenant_id
+      and screen.id = any(normalized_screen_ids)
+      and screen.status = 'active'::public.screen_status
+  ) <> target_count then
+    raise exception 'one or more screens have no active paired player'
+      using errcode = '23514';
+  end if;
+
+  update public.player_devices device
+  set sync_retry_requested_at = now()
+  where device.tenant_id = p_tenant_id
+    and device.screen_id = any(normalized_screen_ids)
+    and device.status = 'paired'::public.player_device_status;
+  get diagnostics updated_count = row_count;
+
+  outcome := jsonb_build_object(
+    'outcome', 'applied',
+    'targetCount', target_count,
+    'deviceCount', updated_count
+  );
+  return private.complete_publisher_command(
+    p_tenant_id,
+    'screens.sync_retry.bulk',
+    p_idempotency_key,
+    request_json,
+    'screens',
+    null,
+    outcome,
+    'publisher.screens.sync_retry_requested'
+  );
+end;
+$$;
+
 revoke all on function private.build_playlist_authoring_snapshot(uuid)
 from public, anon, authenticated;
 revoke all on function private.materialize_publisher_release_item()
@@ -3864,6 +3954,9 @@ revoke all on function public.publish_playlist_to_targets_v3(
 revoke all on function public.restore_playlist_release_to_draft_v1(
   uuid, bigint, uuid
 ) from public, anon;
+revoke all on function public.request_screen_sync_retries_v2(
+  uuid, uuid[], uuid
+) from public, anon;
 revoke all on function public.apply_due_content_schedules_v1(timestamptz)
 from public, anon, authenticated;
 
@@ -3902,6 +3995,9 @@ grant execute on function public.publish_playlist_to_targets_v3(
 ) to authenticated;
 grant execute on function public.restore_playlist_release_to_draft_v1(
   uuid, bigint, uuid
+) to authenticated;
+grant execute on function public.request_screen_sync_retries_v2(
+  uuid, uuid[], uuid
 ) to authenticated;
 grant execute on function public.apply_due_content_schedules_v1(timestamptz)
 to service_role;
