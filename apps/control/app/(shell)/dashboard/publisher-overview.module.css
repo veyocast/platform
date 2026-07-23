@@ -447,3 +447,9 @@
     transition: none;
   }
 }
+
+@media (pointer: coarse) {
+  .quickAction {
+    min-height: 44px;
+  }
+}

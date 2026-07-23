@@ -1567,6 +1567,22 @@
   }
 }
 
+@media (pointer: coarse) {
+  .filterChips button,
+  .durationStepper,
+  .itemMenu summary {
+    min-height: 44px;
+  }
+
+  .durationStepper {
+    grid-template-columns: 44px minmax(58px, auto) 44px;
+  }
+
+  .itemMenu summary {
+    width: 44px;
+  }
+}
+
 @media (max-width: 1319px) {
   .workspace {
     grid-template-columns: minmax(220px, 30fr) minmax(0, 70fr);
@@ -1813,7 +1829,7 @@
     grid-column: 4;
     justify-self: start;
     margin-left: var(--vc-space-4);
-    min-height: 32px;
+    min-height: 44px;
   }
 
   .durationStepper button {

@@ -176,7 +176,6 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
                   />
                 </label>
                 <Link className={styles.screenPreview} href={`/dashboard/screens/${screen.id}`}>
-                  <span className={styles.previewGlow} aria-hidden="true" />
                   <Monitor aria-hidden="true" />
                   <span>{release?.playlistName ?? "Geen actieve content"}</span>
                   <StatusPill label={status.label} tone={status.tone} />
