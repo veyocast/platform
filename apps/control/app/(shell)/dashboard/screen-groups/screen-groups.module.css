@@ -84,11 +84,3 @@
   gap: var(--vc-space-4);
   justify-content: flex-end;
 }
-
-@media (max-width: 639px) {
-  .dialog {
-    inset: 0;
-    max-height: 100dvh;
-    width: 100vw;
-  }
-}
