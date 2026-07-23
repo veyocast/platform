@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -42,6 +43,58 @@ export async function reassignRelease(formData: FormData) {
   redirect(`/dashboard/releases/${releaseId}?succes=${encodeURIComponent("De bestaande immutable release is opnieuw toegewezen. Players schakelen pas na volledige download en verificatie.")}`);
 }
 
+export async function restoreReleaseToDraft(formData: FormData) {
+  const releaseId = idValue(formData, "releaseId");
+  const session = await requireTenantCapability("tenant.playlist.write");
+  const supabase = await createControlSupabaseClient();
+  if (!supabase || !session.tenantId) {
+    fail(releaseId, "Live Supabase is niet beschikbaar. Het huidige concept is ongewijzigd.");
+  }
+  if (formData.get("confirmRestore") !== "on") {
+    fail(releaseId, "Bevestig dat je deze immutable versie als nieuw concept wilt herstellen.");
+  }
+
+  const { data: release, error: releaseError } = await supabase
+    .from("playlist_releases")
+    .select("playlist_id")
+    .eq("tenant_id", session.tenantId)
+    .eq("id", releaseId)
+    .maybeSingle();
+  if (releaseError || !release) fail(releaseId, "De release bestaat niet meer binnen de actieve vereniging.");
+  const { data: playlist, error: playlistError } = await supabase
+    .from("playlists")
+    .select("revision")
+    .eq("tenant_id", session.tenantId)
+    .eq("id", release.playlist_id)
+    .maybeSingle();
+  if (playlistError || !playlist) fail(releaseId, "De bijbehorende playlist bestaat niet meer.");
+
+  const { data, error } = await supabase.rpc("restore_playlist_release_to_draft_v1", {
+    p_expected_revision: playlist.revision,
+    p_idempotency_key: idempotencyValue(formData),
+    p_release_id: releaseId
+  });
+  if (error) {
+    console.error("Release als concept herstellen mislukt", error);
+    fail(releaseId, error.code === "42501"
+      ? "Je mag deze release niet als concept herstellen. Controleer je actieve rol."
+      : "De versie kon niet volledig als concept worden hersteld. Het bestaande concept is ongewijzigd.");
+  }
+  const result = commandResult(data);
+  if (!result) fail(releaseId, "De herstelactie gaf geen veilige bevestiging. Vernieuw Release Center.");
+  if (result.outcome === "conflict") {
+    fail(releaseId, "Het concept is ondertussen gewijzigd. Vernieuw de release en probeer de herstelactie daarna bewust opnieuw.");
+  }
+  if (typeof result.playlistId !== "string" || !isId(result.playlistId)) {
+    fail(releaseId, "De herstelde playlist kon niet worden bevestigd. Controleer de playlist voordat je opnieuw probeert.");
+  }
+
+  revalidatePath("/dashboard/playlists");
+  revalidatePath(`/dashboard/playlists/${result.playlistId}`);
+  revalidatePath("/dashboard/releases");
+  redirect(`/dashboard/playlists/${result.playlistId}?succes=${encodeURIComponent("De gekozen immutable versie is als nieuw concept hersteld. De releasehistorie en actieve schermtoewijzingen zijn niet gewijzigd.")}`);
+}
+
 function idValue(formData: FormData, name: string) {
   const value = String(formData.get(name) ?? "");
   if (!isId(value)) redirect("/dashboard/releases?fout=De gekozen release is ongeldig.");
@@ -50,6 +103,16 @@ function idValue(formData: FormData, name: string) {
 
 function isId(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function commandResult(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as { outcome?: unknown; playlistId?: unknown };
+}
+
+function idempotencyValue(formData: FormData) {
+  const value = String(formData.get("idempotencyKey") ?? "");
+  return isId(value) ? value : randomUUID();
 }
 
 function fail(releaseId: string, message: string): never {

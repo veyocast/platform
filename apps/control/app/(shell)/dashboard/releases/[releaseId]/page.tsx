@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -7,7 +8,7 @@ import { SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
-import { reassignRelease } from "../actions";
+import { reassignRelease, restoreReleaseToDraft } from "../actions";
 import { loadReleaseDetail } from "../data";
 
 type ReleaseDetailPageProps = {
@@ -28,6 +29,7 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
     ? compareReleaseItems(comparisonData?.items ?? [], data?.items ?? [])
     : null;
   const canReassign = Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.roles, "tenant.playlist.publish"));
+  const canRestore = Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.roles, "tenant.playlist.write"));
   const currentScreens = data?.screenStates.filter((state) => state.screen.assignedReleaseId === releaseId) ?? [];
 
   return <>
@@ -79,6 +81,30 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
       <section className="publish-workspace" id="opnieuw-toewijzen" aria-labelledby="reassign-title">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="reassign-title">Bestaande release opnieuw toewijzen</h2><p className="work-panel__meta">Dit is een veilige rollbackassignment: de release, items, hash en historie blijven volledig ongewijzigd.</p></div><StatusPill label="Append-only" tone="success" /></div>
         <form action={reassignRelease} className="playlist-form"><input name="releaseId" type="hidden" value={releaseId} /><fieldset className="checkbox-fieldset"><legend>Beschikbare doelschermen</legend>{data.screenStates.filter((state) => state.screen.status !== "disabled").map((state) => <label className="check-row" key={state.screen.id}><input disabled={!canReassign || state.preflight.status === "blocked"} name="screenIds" type="checkbox" value={state.screen.id} /><span><strong>{state.screen.name}</strong><span className="work-panel__meta">{preflightStatus(state.preflight.status).label} · {state.preflight.missingBytes === null ? "ontbrekende bytes onbekend" : `${formatBytes(state.preflight.missingBytes)} ontbreekt`}</span></span></label>)}</fieldset><label className="check-row"><input disabled={!canReassign} name="confirmRisk" type="checkbox" /><span><strong>Waarschuwingen en onbekende telemetry zijn bewust beoordeeld</strong><span className="work-panel__meta">Verplicht zodra een gekozen scherm niet volledig als gereed kan worden bewezen.</span></span></label><label className="check-row"><input disabled={!canReassign} name="confirmImmutable" required type="checkbox" /><span><strong>Ik wijs versie {release.version} opnieuw toe</strong><span className="work-panel__meta">Er wordt geen nieuwe release gemaakt en geen historie overschreven.</span></span></label><button className="button-link button-link--primary" disabled={!canReassign} type="submit">Bestaande release toewijzen</button></form>
+      </section>
+
+      <section className="workspace-section" aria-labelledby="restore-title">
+        <div className="workspace-section__header">
+          <div>
+            <h2 className="workspace-section__title" id="restore-title">Versie als concept herstellen</h2>
+            <p className="work-panel__meta">De immutable release blijft intact. Alleen het bewerkbare concept wordt uit deze lossless authoringsnapshot opgebouwd.</p>
+          </div>
+          <StatusPill label="Release blijft immutable" tone="success" />
+        </div>
+        <form action={restoreReleaseToDraft} className="playlist-form">
+          <input name="releaseId" type="hidden" value={releaseId} />
+          <input name="idempotencyKey" type="hidden" value={randomUUID()} />
+          <label className="check-row">
+            <input disabled={!canRestore} name="confirmRestore" required type="checkbox" />
+            <span>
+              <strong>Herstel versie {release.version} als nieuw concept</strong>
+              <span className="work-panel__meta">Niet-opgeslagen wijzigingen in het huidige concept worden vervangen; actieve schermen blijven hun huidige release spelen.</span>
+            </span>
+          </label>
+          <button className="button-link button-link--secondary" disabled={!canRestore} type="submit">
+            Als concept herstellen
+          </button>
+        </form>
       </section>
     </> : null}
   </>;
