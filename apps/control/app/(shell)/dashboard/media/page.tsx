@@ -1,4 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
+import { randomUUID } from "node:crypto";
+
 import { FileWarning, Image as ImageIcon, Star, Upload, Video } from "lucide-react";
 import Link from "next/link";
 
@@ -27,6 +29,7 @@ import {
   renameMediaAsset,
   removeMediaTag,
   retryMediaProcessing,
+  restoreMediaAsset,
   setMediaFavorite
 } from "./actions";
 import {
@@ -244,6 +247,8 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.roles, "tenant.media.write");
+  const viewingArchive = params.status === "archived";
+  const canMutateSelected = canUpload && !viewingArchive;
   const canSaveViews =
     session.isLive &&
     session.tenantStatus === "active" &&
@@ -392,7 +397,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             <option value="all">Alle typen</option><option value="image">Afbeeldingen</option><option value="video">Video's</option>
           </select>
           <select aria-label="Filter media op status" className="toolbar-select" defaultValue={params.status ?? "all"} name="status">
-            <option value="all">Alle statussen</option><option value="uploading">Uploaden</option><option value="processing">Verwerken</option><option value="ready">Gereed</option><option value="validation_failed">Validatie mislukt</option><option value="quarantined">In quarantaine</option>
+            <option value="all">Alle statussen</option><option value="uploading">Uploaden</option><option value="processing">Verwerken</option><option value="ready">Gereed</option><option value="validation_failed">Validatie mislukt</option><option value="quarantined">In quarantaine</option><option value="archived">Archief</option>
           </select>
           <select aria-label="Filter media op gebruik" className="toolbar-select" defaultValue={params.usage ?? "all"} name="usage">
             <option value="all">Elk gebruik</option><option value="used">In gebruik</option><option value="unused">Niet in gebruik</option>
@@ -573,7 +578,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             <form action={setMediaFavorite}>
               <input name="assetId" type="hidden" value={selectedAsset.id} />
               <input name="favorite" type="hidden" value={selectedAsset.isFavorite ? "false" : "true"} />
-              <Button disabled={!canUpload} size="sm" type="submit" variant="secondary">
+              <Button disabled={!canMutateSelected} size="sm" type="submit" variant="secondary">
                 <Star aria-hidden="true" />
                 {selectedAsset.isFavorite ? "Uit favorieten" : "Aan favorieten toevoegen"}
               </Button>
@@ -582,12 +587,12 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
               <input name="assetId" type="hidden" value={selectedAsset.id} />
               <div className="field">
                 <label htmlFor="media-folder-select">Map</label>
-                <select defaultValue={selectedAsset.folderId ?? ""} disabled={!canUpload} id="media-folder-select" name="folderId">
+                <select defaultValue={selectedAsset.folderId ?? ""} disabled={!canMutateSelected} id="media-folder-select" name="folderId">
                   <option value="">Hoofdniveau</option>
                   {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
                 </select>
               </div>
-              <Button disabled={!canUpload} size="sm" type="submit" variant="secondary">Naar map verplaatsen</Button>
+              <Button disabled={!canMutateSelected} size="sm" type="submit" variant="secondary">Naar map verplaatsen</Button>
             </form>
             {selectedAsset.tagIds.length ? (
               <ul className="media-usage__list" aria-label="Toegekende tags">
@@ -598,7 +603,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                     <form action={removeMediaTag}>
                       <input name="assetId" type="hidden" value={selectedAsset.id} />
                       <input name="tagId" type="hidden" value={tag.id} />
-                      <Button disabled={!canUpload} size="sm" type="submit" variant="ghost">Verwijderen</Button>
+                      <Button disabled={!canMutateSelected} size="sm" type="submit" variant="ghost">Verwijderen</Button>
                     </form>
                   </li> : null;
                 })}
@@ -608,12 +613,12 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
               <input name="assetId" type="hidden" value={selectedAsset.id} />
               <div className="field">
                 <label htmlFor="media-tag-select">Tag toevoegen</label>
-                <select disabled={!canUpload || tags.every((tag) => selectedAsset.tagIds.includes(tag.id))} id="media-tag-select" name="tagId" required>
+                <select disabled={!canMutateSelected || tags.every((tag) => selectedAsset.tagIds.includes(tag.id))} id="media-tag-select" name="tagId" required>
                   <option value="">Kies een tag</option>
                   {tags.filter((tag) => !selectedAsset.tagIds.includes(tag.id)).map((tag) => <option key={tag.id} value={tag.id}>{tag.name}</option>)}
                 </select>
               </div>
-              <Button disabled={!canUpload || tags.every((tag) => selectedAsset.tagIds.includes(tag.id))} size="sm" type="submit" variant="secondary">Tag toevoegen</Button>
+              <Button disabled={!canMutateSelected || tags.every((tag) => selectedAsset.tagIds.includes(tag.id))} size="sm" type="submit" variant="secondary">Tag toevoegen</Button>
             </form>
           </section>
 
@@ -684,11 +689,12 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
 
           <form action={renameMediaAsset} className="playlist-form">
             <input name="assetId" type="hidden" value={selectedAsset.id} />
+            <input name="idempotencyKey" type="hidden" value={randomUUID()} />
             <div className="field">
               <label htmlFor="media-rename-title">Mediatitel</label>
               <input
                 defaultValue={selectedAsset.title}
-                disabled={!canUpload}
+                disabled={!canMutateSelected}
                 id="media-rename-title"
                 maxLength={120}
                 minLength={2}
@@ -697,7 +703,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                 type="text"
               />
             </div>
-            <Button disabled={!canUpload} type="submit" variant="secondary">
+            <Button disabled={!canMutateSelected} type="submit" variant="secondary">
               Titel opslaan
             </Button>
           </form>
@@ -716,22 +722,40 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
               </form>
             ) : null}
 
-          <form action={archiveMediaAsset}>
-            <input name="assetId" type="hidden" value={selectedAsset.id} />
-            <Button
-              disabled={!canUpload || selectedAsset.usageCount > 0}
-              type="submit"
-              variant="destructive"
-            >
-              Media archiveren
-            </Button>
-            {selectedAsset.usageCount > 0 ? (
+          {viewingArchive ? (
+            <form action={restoreMediaAsset}>
+              <input name="assetId" type="hidden" value={selectedAsset.id} />
+              <input name="idempotencyKey" type="hidden" value={randomUUID()} />
+              <Button disabled={!canUpload} type="submit" variant="secondary">
+                Media herstellen
+              </Button>
               <p className="work-panel__meta">
-                Verwijder deze media eerst uit alle conceptplaylists.
-                Gepubliceerde releases blijven intact.
+                Het oorspronkelijke opslagobject wordt opnieuw zichtbaar; immutable releases wijzigen niet.
               </p>
-            ) : null}
-          </form>
+            </form>
+          ) : (
+            <form action={archiveMediaAsset}>
+              <input name="assetId" type="hidden" value={selectedAsset.id} />
+              <input name="idempotencyKey" type="hidden" value={randomUUID()} />
+              <Button
+                disabled={!canUpload || selectedAsset.draftCount > 0}
+                type="submit"
+                variant="destructive"
+              >
+                Media archiveren
+              </Button>
+              {selectedAsset.draftCount > 0 ? (
+                <p className="work-panel__meta">
+                  Verwijder deze media eerst uit alle conceptplaylists.
+                  Gepubliceerde releases blijven intact.
+                </p>
+              ) : selectedAsset.releaseCount > 0 ? (
+                <p className="work-panel__meta">
+                  Historische releases blijven deze bytes gebruiken en blijven volledig afspeelbaar.
+                </p>
+              ) : null}
+            </form>
+          )}
         </MediaInspectorSheet>
       ) : null}
 
@@ -827,6 +851,7 @@ async function loadMediaData(
   }
 
   const kind = params.type === "image" || params.type === "video" ? params.type : null;
+  const archivedOnly = params.status === "archived";
   const allowedStatuses = ["uploading", "processing", "ready", "validation_failed", "quarantined"];
   const status = params.status && allowedStatuses.includes(params.status) ? params.status : null;
   const usage = params.usage === "used" || params.usage === "unused" ? params.usage : "all";
@@ -834,6 +859,36 @@ async function loadMediaData(
   const folderId = uuidOrNull(params.folder);
   const tagId = uuidOrNull(params.tag);
   const sort = ["name", "newest", "oldest", "size"].includes(params.sort ?? "") ? params.sort! : "newest";
+  const assetRequest = archivedOnly
+    ? supabase.rpc("list_publisher_archived_media_assets_v1", {
+        p_created_from: dateBoundary(params.from, false),
+        p_created_until: dateBoundary(params.to, true),
+        p_folder_id: folderId,
+        p_kind: kind,
+        p_page_size: 20,
+        p_offset: (page - 1) * 20,
+        p_root_only: params.folder === "root",
+        p_search: params.q?.trim() || null,
+        p_sort: sort,
+        p_tag_id: tagId,
+        p_tenant_id: tenantId
+      })
+    : supabase.rpc("list_publisher_media_assets_v1", {
+        p_created_from: dateBoundary(params.from, false),
+        p_created_until: dateBoundary(params.to, true),
+        p_favorites_only: params.favorite === "true",
+        p_folder_id: folderId,
+        p_kind: kind,
+        p_page_size: 20,
+        p_offset: (page - 1) * 20,
+        p_root_only: params.folder === "root",
+        p_search: params.q?.trim() || null,
+        p_sort: sort,
+        p_status: status,
+        p_tag_id: tagId,
+        p_tenant_id: tenantId,
+        p_usage: usage
+      });
   const [
     assetResult,
     readyResult,
@@ -844,22 +899,7 @@ async function loadMediaData(
     tagResult,
     savedViewResult
   ] = await Promise.all([
-    supabase.rpc("list_publisher_media_assets_v1", {
-      p_created_from: dateBoundary(params.from, false),
-      p_created_until: dateBoundary(params.to, true),
-      p_favorites_only: params.favorite === "true",
-      p_folder_id: folderId,
-      p_kind: kind,
-      p_page_size: 20,
-      p_offset: (page - 1) * 20,
-      p_root_only: params.folder === "root",
-      p_search: params.q?.trim() || null,
-      p_sort: sort,
-      p_status: status,
-      p_tag_id: tagId,
-      p_tenant_id: tenantId,
-      p_usage: usage
-    }),
+    assetRequest,
     supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("status", "ready").is("deleted_at", null),
     supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["uploading", "processing"]).is("deleted_at", null),
     supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["validation_failed", "quarantined"]).is("deleted_at", null),
@@ -938,7 +978,7 @@ async function loadMediaData(
     previewUrl: signedPreviews.get(asset.asset_id) ?? null,
     releaseCount: Number(asset.release_usage_count),
     screenCount: Number(asset.screen_usage_count),
-    status: asset.status,
+    status: archivedOnly ? "archived" : asset.status,
     storagePath: asset.storage_path,
     tagIds: parseTagIds(asset.tags),
     title: asset.title,
@@ -1070,6 +1110,7 @@ function MediaStatus({ status }: { status: string }) {
 
 function mediaStatusTone(status: string) {
   if (status === "ready") return "success" as const;
+  if (status === "archived") return "neutral" as const;
   if (["validation_failed", "quarantined"].includes(status)) return "critical" as const;
   return "warning" as const;
 }
@@ -1078,6 +1119,7 @@ function statusLabel(status: string) {
   return {
     completed: "Afgerond",
     failed: "Mislukt",
+    archived: "Gearchiveerd",
     processing: "Verwerken",
     queued: "In wachtrij",
     ready: "Gereed",

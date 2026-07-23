@@ -4,7 +4,7 @@ export type MediaViewState = {
   from?: string;
   q?: string;
   sort?: "name" | "newest" | "oldest" | "size";
-  status?: "processing" | "quarantined" | "ready" | "uploading" | "validation_failed";
+  status?: "archived" | "processing" | "quarantined" | "ready" | "uploading" | "validation_failed";
   tag?: string;
   to?: string;
   type?: "image" | "video";
@@ -24,6 +24,7 @@ type MediaViewStorage = {
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const statusValues = new Set<NonNullable<MediaViewState["status"]>>([
+  "archived",
   "processing",
   "quarantined",
   "ready",

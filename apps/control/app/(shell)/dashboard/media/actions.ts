@@ -176,29 +176,24 @@ export async function cancelMediaVideoUpload(uploadSessionId: string) {
 }
 
 export async function renameMediaAsset(formData: FormData) {
-  const { session, supabase } = await requireMediaWriter();
   const assetId = mediaId(formData);
   const title = String(formData.get("title") ?? "").trim();
   if (title.length < 2 || title.length > 120) {
     fail(assetId, "Gebruik een mediatitel van 2 tot en met 120 tekens.");
   }
-
-  const { error } = await supabase.from("media_assets").update({ title }).eq("id", assetId).eq("tenant_id", session.tenantId).is("deleted_at", null);
-  if (error) fail(assetId, "De mediatitel kon niet worden opgeslagen. Het bestand en de huidige titel blijven ongewijzigd.");
+  await mutateMediaAsset(formData, "rename", { title });
   completeAsset(assetId, "De mediatitel is opgeslagen.");
 }
 
 export async function archiveMediaAsset(formData: FormData) {
-  const { session, supabase } = await requireMediaWriter();
-  const assetId = mediaId(formData);
-  const { count, error: usageError } = await supabase.from("playlist_items").select("id", { count: "exact", head: true }).eq("tenant_id", session.tenantId).eq("media_asset_id", assetId);
-  if (usageError) fail(assetId, "Het gebruik van deze media kon niet worden gecontroleerd. Er is niets gearchiveerd.");
-  if ((count ?? 0) > 0) fail(assetId, "Deze media staat nog in een playlist. Verwijder het item daar eerst; bestaande releases blijven altijd intact.");
+  await mutateMediaAsset(formData, "archive", {});
+  completeLibrary("De media is gearchiveerd. Bestaande immutable releases en opslagbytes blijven ongewijzigd.");
+}
 
-  const { error } = await supabase.from("media_assets").update({ deleted_at: new Date().toISOString() }).eq("id", assetId).eq("tenant_id", session.tenantId).is("deleted_at", null);
-  if (error) fail(assetId, "De media kon niet veilig worden gearchiveerd. Het opslagobject blijft beschikbaar en er is niets gewijzigd.");
-  revalidatePath("/dashboard/media");
-  redirect("/dashboard/media?succes=De+media+is+gearchiveerd.+Bestaande+immutable+releases+blijven+ongewijzigd.");
+export async function restoreMediaAsset(formData: FormData) {
+  const assetId = mediaId(formData);
+  await mutateMediaAsset(formData, "restore", {});
+  completeAsset(assetId, "De media is hersteld en staat weer in de actieve bibliotheek.");
 }
 
 export async function retryMediaProcessing(formData: FormData) {
@@ -359,6 +354,29 @@ async function organizeMedia(
   }
 }
 
+async function mutateMediaAsset(
+  formData: FormData,
+  operation: "archive" | "rename" | "restore",
+  payload: Record<string, string>
+) {
+  const { session, supabase } = await requireMediaWriter();
+  const assetId = mediaId(formData);
+  const { data, error } = await supabase.rpc("mutate_media_asset_v1", {
+    p_asset_id: assetId,
+    p_idempotency_key: idempotencyValue(formData),
+    p_operation: operation,
+    p_payload: payload,
+    p_tenant_id: session.tenantId
+  });
+  if (error) {
+    console.error(`Medialifecycle ${operation} mislukt`, { code: error.code });
+    fail(assetId, mediaLifecycleError(error.code, operation));
+  }
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    fail(assetId, "De mediawijziging gaf geen veilige serverbevestiging. Vernieuw de bibliotheek.");
+  }
+}
+
 async function requireMediaWriter() {
   const session = await requireTenantCapability("tenant.media.write");
   const supabase = await createControlSupabaseClient();
@@ -418,6 +436,23 @@ function organizationError(code: string | undefined) {
   if (code === "42501") return "Je mag de mediabibliotheek niet organiseren. Er is niets gewijzigd.";
   if (code === "23514") return "Deze wijziging zou een ongeldige mapstructuur of verwijzing maken. Er is niets gewijzigd.";
   return "De mediabibliotheek kon niet veilig worden georganiseerd. Probeer opnieuw.";
+}
+
+function mediaLifecycleError(
+  code: string | undefined,
+  operation: "archive" | "rename" | "restore"
+) {
+  if (code === "42501") return "Je mag deze media niet wijzigen. Er is niets aangepast.";
+  if (code === "P0002") return "De media bestaat niet meer. Vernieuw de bibliotheek.";
+  if (code === "23505") return "Dit commando is al met andere invoer verwerkt. Start de actie opnieuw.";
+  if (code === "23514" && operation === "archive") {
+    return "Deze media staat nog in een conceptplaylist of is al gearchiveerd. Verwijder het conceptitem eerst.";
+  }
+  if (code === "23514" && operation === "restore") {
+    return "Deze media is niet meer gearchiveerd. Vernieuw de bibliotheek.";
+  }
+  if (code === "23514") return "De mediatitel of huidige mediastatus is ongeldig. Er is niets aangepast.";
+  return "De mediawijziging kon niet veilig worden voltooid. Probeer opnieuw.";
 }
 
 function fail(assetId: string | null, message: string): never {
