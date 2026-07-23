@@ -154,7 +154,9 @@ export function ControlThemeSwitcher() {
         aria-label={`Weergave: ${activeOption.label}`}
       >
         <summary
+          aria-haspopup="menu"
           className="control-theme-switcher__trigger"
+          role="button"
           title={`Weergave: ${activeOption.label}`}
         >
           <ActiveIcon aria-hidden="true" />
