@@ -18,6 +18,23 @@
   gap: var(--vc-space-8);
 }
 
+.selectAll {
+  align-items: center;
+  color: var(--vc-text-muted);
+  display: inline-flex;
+  font-size: var(--vc-font-size-xs);
+  font-weight: 650;
+  gap: var(--vc-space-6);
+  min-height: 36px;
+}
+
+.selectAll input,
+.screenSelect input {
+  accent-color: var(--vc-action);
+  height: 20px;
+  width: 20px;
+}
+
 .viewTab {
   align-items: center;
   border-radius: var(--vc-radius-md);
@@ -58,10 +75,30 @@
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-lg);
   overflow: hidden;
+  position: relative;
   transition:
     border-color var(--vc-motion-fast),
     box-shadow var(--vc-motion-fast),
     transform var(--vc-motion-fast);
+}
+
+.screenSelect {
+  align-items: center;
+  background: color-mix(in srgb, var(--vc-sidebar) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--vc-brand-paper-white) 24%, transparent);
+  border-radius: var(--vc-radius-md);
+  display: flex;
+  height: 38px;
+  justify-content: center;
+  left: var(--vc-space-10);
+  position: absolute;
+  top: var(--vc-space-10);
+  width: 38px;
+  z-index: 3;
+}
+
+.screenSelect:has(input:disabled) {
+  opacity: 0.48;
 }
 
 .screenCard:hover {

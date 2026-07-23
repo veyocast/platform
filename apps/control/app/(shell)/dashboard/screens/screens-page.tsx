@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import Link from "next/link";
 import {
   Grid3X3,
@@ -13,10 +15,13 @@ import {
   SummaryStrip,
   TablePreferences
 } from "@veyocast/ui";
+import { hasCapability } from "@veyocast/auth";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { loadScreenFleet, type FleetDevice, type FleetScreen } from "./data";
+import { requestBulkScreenSyncRetry } from "./actions";
+import { ScreenBulkForm } from "./screen-bulk-form";
 import styles from "./screens-overview.module.css";
 
 type ScreensPageProps = {
@@ -55,6 +60,13 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const syncing = statuses.filter((status) => status.kind === "syncing").length;
   const attention = statuses.filter((status) => ["maintenance", "offline", "unpaired"].includes(status.kind)).length;
   const view = query.view === "list" ? "list" : "cards";
+  const canManage =
+    session.isLive &&
+    session.tenantStatus === "active" &&
+    hasCapability(session.roles, "tenant.screen.manage");
+  const eligibleCount = filteredScreens.filter(
+    (screen) => screen.status === "active" && devicesByScreen.has(screen.id)
+  ).length;
 
   return <>
     <PageHeader
@@ -116,12 +128,26 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       </FilterBar>
     </form>
 
+    <ScreenBulkForm
+      action={requestBulkScreenSyncRetry}
+      idempotencyKey={randomUUID()}
+    >
     <div className={styles.viewBar}>
       <nav aria-label="Schermweergave" className={styles.viewTabs}>
         <Link className={styles.viewTab} data-active={view === "cards"} href={screenViewHref(query, "cards")}><Grid3X3 aria-hidden="true" />Kaarten</Link>
         <Link className={styles.viewTab} data-active={view === "list"} href={screenViewHref(query, "list")}><List aria-hidden="true" />Tabel</Link>
       </nav>
       <div className={styles.viewActions}>
+        {eligibleCount ? (
+          <label className={styles.selectAll}>
+            <input
+              data-select-all
+              disabled={!canManage}
+              type="checkbox"
+            />
+            <span>Selecteer alle zichtbare</span>
+          </label>
+        ) : null}
         <Button asChild size="sm" variant="secondary"><Link href="/dashboard/releases">Release Center</Link></Button>
         <StatusPill label={`${data.screens.length} totaal`} tone="neutral" />
       </div>
@@ -139,6 +165,16 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
             const hasWarning = ["maintenance", "offline", "unpaired"].includes(status.kind);
             return (
               <article className={styles.screenCard} data-status={status.kind} key={screen.id}>
+                <label className={styles.screenSelect}>
+                  <input
+                    aria-label={`${screen.name} selecteren`}
+                    data-screen-select
+                    disabled={!canManage || screen.status !== "active" || !device}
+                    name="screenIds"
+                    type="checkbox"
+                    value={screen.id}
+                  />
+                </label>
                 <Link className={styles.screenPreview} href={`/dashboard/screens/${screen.id}`}>
                   <span className={styles.previewGlow} aria-hidden="true" />
                   <Monitor aria-hidden="true" />
@@ -166,10 +202,11 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
             );
           })}
         </div>
-      ) : filteredScreens.length ? <div className="data-table-frame"><table className="data-table data-table--responsive" data-vc-table-key="tenant-screen-fleet"><caption>Operationele schermstatus binnen de actieve vereniging.</caption><thead><tr><th data-column="screen" scope="col">Scherm</th><th data-column="status" scope="col">Status</th><th data-column="player" scope="col">Player</th><th data-column="content" scope="col">Content</th><th data-column="sync" scope="col">Synchronisatie</th><th data-column="seen" scope="col">Laatst gezien</th><th data-column="action" scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
+      ) : filteredScreens.length ? <div className="data-table-frame"><table className="data-table data-table--responsive" data-vc-table-key="tenant-screen-fleet"><caption>Operationele schermstatus binnen de actieve vereniging.</caption><thead><tr><th scope="col"><span className="sr-only">Selecteren</span></th><th data-column="screen" scope="col">Scherm</th><th data-column="status" scope="col">Status</th><th data-column="player" scope="col">Player</th><th data-column="content" scope="col">Content</th><th data-column="sync" scope="col">Synchronisatie</th><th data-column="seen" scope="col">Laatst gezien</th><th data-column="action" scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
         const device = devicesByScreen.get(screen.id);
         const status = screenStatus(screen, device);
         return <tr key={screen.id}>
+          <td data-label="Selecteren"><input aria-label={`${screen.name} selecteren`} data-screen-select disabled={!canManage || screen.status !== "active" || !device} name="screenIds" type="checkbox" value={screen.id} /></td>
           <td data-column="screen" data-label="Scherm"><span className="table-primary">{screen.name}</span><span className="table-secondary">{screen.location || orientationLabel(screen.orientation)}</span></td>
           <td data-column="status" data-label="Status"><StatusPill label={status.label} tone={status.tone} /></td>
           <td data-column="player" data-label="Player">{device?.deviceName || "Niet gekoppeld"}<span className="table-secondary">{device?.appVersion ? `App ${device.appVersion}` : device?.platform || "Geen telemetry"}</span></td>
@@ -180,6 +217,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
         </tr>;
       })}</tbody></table></div> : <p className="notice" role="status">{data.screens.length ? "Geen schermen passen bij deze filters. Pas je zoekopdracht of statusfilter aan." : "Er zijn nog geen schermen. Start de begeleide onboarding om het eerste scherm transactioneel aan te maken."}</p>}
     </section>
+    </ScreenBulkForm>
   </>;
 }
 

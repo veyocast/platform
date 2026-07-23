@@ -196,6 +196,50 @@ export async function requestScreenSyncRetry(formData: FormData) {
   );
 }
 
+export async function requestBulkScreenSyncRetry(formData: FormData) {
+  const { session, supabase } = await requireScreenManagement("mutate");
+  const rawScreenIds = formData.getAll("screenIds").map(String);
+  const screenIds = [...new Set(rawScreenIds.filter(isUuid))];
+  if (
+    screenIds.length === 0 ||
+    screenIds.length > 250 ||
+    screenIds.length !== rawScreenIds.length
+  ) {
+    fail(
+      "/dashboard/screens",
+      "Selecteer één tot en met 250 geldige, actieve schermen met een gekoppelde Player."
+    );
+  }
+  const idempotencyKey = requiredUuid(formData, "idempotencyKey");
+  const { data, error } = await supabase.rpc("request_screen_sync_retries_v2", {
+    p_idempotency_key: idempotencyKey,
+    p_screen_ids: screenIds,
+    p_tenant_id: session.tenantId
+  });
+  const result =
+    data && typeof data === "object"
+      ? data as { outcome?: unknown; targetCount?: unknown }
+      : null;
+  if (
+    error ||
+    result?.outcome !== "applied" ||
+    Number(result.targetCount) !== screenIds.length
+  ) {
+    console.error("Bulk synchronisatieverzoek mislukt", error);
+    fail("/dashboard/screens", deviceMutationFailure(error?.code));
+  }
+
+  revalidatePath("/dashboard/screens");
+  for (const screenId of screenIds) {
+    revalidatePath(`/dashboard/screens/${screenId}`);
+  }
+  redirect(withMessage(
+    "/dashboard/screens",
+    "succes",
+    `Het synchronisatieverzoek staat klaar voor ${screenIds.length} ${screenIds.length === 1 ? "scherm" : "schermen"}. De huidige release blijft spelen tot de Player het verzoek oppakt.`
+  ));
+}
+
 async function runCreateScreen(context: ScreenCommandContext, formData: FormData) {
   const input = screenInput(formData);
   const initialReleaseId = optionalUuid(formData, "initialReleaseId");
@@ -293,9 +337,13 @@ function requiredUuid(formData: FormData, name: string) {
 
 function optionalUuid(formData: FormData, name: string) {
   const value = String(formData.get(name) ?? "").trim();
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+  return isUuid(value)
     ? value
     : null;
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function fail(path: string, message: string): never {
