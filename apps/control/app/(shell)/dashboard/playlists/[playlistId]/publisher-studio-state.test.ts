@@ -4,6 +4,7 @@ import type { PlaylistStudioItem } from "../playlist-studio-contract";
 import {
   durationStep,
   itemOrder,
+  maximumItemDuration,
   reorderItems,
   restoreOrder
 } from "./publisher-studio-state";
@@ -50,5 +51,42 @@ describe("Publisher Studio editorstate", () => {
     expect(durationStep(5, "decrease")).toBe(5);
     expect(durationStep(8, "increase")).toBe(9);
     expect(durationStep(3600, "increase")).toBe(3600);
+    expect(durationStep(8, "increase", 8)).toBe(8);
+  });
+
+  it("leidt de veilige videoduur af uit bron en trimselectie", () => {
+    const videoItem = item("video");
+    videoItem.asset = {
+      deletedAt: null,
+      id: "asset-video",
+      kind: "video",
+      mimeType: "video/mp4",
+      status: "ready",
+      tenantId: "tenant",
+      title: "Video",
+      variant: {
+        assetId: "asset-video",
+        checksumSha256: "a".repeat(64),
+        durationSeconds: 12.2,
+        fileSizeBytes: 100,
+        height: 1080,
+        mimeType: "video/mp4",
+        previewUrl: null,
+        storagePath: "video.mp4",
+        tenantId: "tenant",
+        variantType: "player",
+        width: 1920
+      }
+    };
+
+    expect(maximumItemDuration(videoItem)).toBe(13);
+    expect(
+      maximumItemDuration({
+        ...videoItem,
+        trimEndSeconds: 9.5,
+        trimStartSeconds: 2
+      })
+    ).toBe(8);
+    expect(maximumItemDuration(item("image"))).toBe(3600);
   });
 });

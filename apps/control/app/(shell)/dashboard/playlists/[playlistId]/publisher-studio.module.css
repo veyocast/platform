@@ -1588,7 +1588,7 @@
   }
 }
 
-@media (max-width: 1319px) {
+@media (max-width: 1199px) {
   .workspace {
     grid-template-columns: minmax(220px, 30fr) minmax(0, 70fr);
   }

@@ -42,8 +42,25 @@ export function restoreOrder(
 
 export function durationStep(
   durationSeconds: number,
-  direction: "decrease" | "increase"
+  direction: "decrease" | "increase",
+  maximumSeconds = 3600
 ) {
   const next = durationSeconds + (direction === "increase" ? 1 : -1);
-  return Math.min(3600, Math.max(5, next));
+  return Math.min(maximumSeconds, Math.max(5, next));
+}
+
+export function maximumItemDuration(
+  item: Pick<
+    PlaylistStudioItem,
+    "asset" | "trimEndSeconds" | "trimStartSeconds"
+  >
+) {
+  if (item.asset?.kind !== "video") return 3600;
+  const sourceEnd =
+    item.trimEndSeconds ?? item.asset.variant?.durationSeconds ?? null;
+  if (sourceEnd === null) return 3600;
+  return Math.max(
+    5,
+    Math.min(3600, Math.ceil(sourceEnd - item.trimStartSeconds))
+  );
 }

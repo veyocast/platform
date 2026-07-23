@@ -100,6 +100,7 @@ import {
 import {
   durationStep,
   itemOrder,
+  maximumItemDuration,
   reorderItems,
   restoreOrder
 } from "../[playlistId]/publisher-studio-state";
@@ -832,7 +833,7 @@ export function PublisherStudioWorkspace({
               items={orderedItems}
               onSelect={(id) => {
                 setSelectedId(id);
-                if (window.matchMedia("(max-width: 1319px)").matches) {
+                if (window.matchMedia("(max-width: 1199px)").matches) {
                   setInspectorSheetOpen(true);
                 }
               }}
@@ -1583,6 +1584,7 @@ function DurationStepper({
   revision: number;
 }) {
   const title = item.asset?.title ?? "Media-item";
+  const maximumSeconds = maximumItemDuration(item);
   return (
     <form
       action={updatePlaylistItem}
@@ -1597,17 +1599,17 @@ function DurationStepper({
         disabled={!canWrite || item.durationSeconds <= 5}
         name="duration"
         type="submit"
-        value={durationStep(item.durationSeconds, "decrease")}
+        value={durationStep(item.durationSeconds, "decrease", maximumSeconds)}
       >
         −
       </button>
       <span>{item.durationSeconds} sec</span>
       <button
         aria-label="Een seconde langer"
-        disabled={!canWrite || item.durationSeconds >= 3600}
+        disabled={!canWrite || item.durationSeconds >= maximumSeconds}
         name="duration"
         type="submit"
-        value={durationStep(item.durationSeconds, "increase")}
+        value={durationStep(item.durationSeconds, "increase", maximumSeconds)}
       >
         +
       </button>
@@ -1884,6 +1886,7 @@ function Inspector({
     restoredIntent.itemId === item.id
       ? restoredIntent
       : null;
+  const maximumDuration = maximumItemDuration(item);
   return (
     <div className={styles.inspector}>
       <div className={styles.panelHeading}>
@@ -1933,7 +1936,7 @@ function Inspector({
             data-editor-field
             defaultValue={itemDraft?.durationSeconds ?? item.durationSeconds}
             disabled={!canWrite}
-            max={3600}
+            max={maximumDuration}
             min={5}
             name="duration"
             required
