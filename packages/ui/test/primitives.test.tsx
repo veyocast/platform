@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   Badge,
+  BulkActionBar,
   Button,
   CompactStats,
   DataTable,
@@ -134,6 +135,20 @@ describe("@veyocast/ui primitives", () => {
     expect(html).toContain("<dd");
     expect(html).toContain("vc-summary-strip__item--critical");
     expect(html).not.toContain("vc-card");
+  });
+
+  it("renders a shared, labelled bulk action region", () => {
+    const html = renderToStaticMarkup(
+      <BulkActionBar
+        actions={<Button>Synchroniseren</Button>}
+        description="Alleen actieve Players."
+        title="2 schermen geselecteerd"
+      />
+    );
+
+    expect(html).toContain('aria-label="2 schermen geselecteerd"');
+    expect(html).toContain("vc-bulk-action-bar__actions");
+    expect(html).toContain("Synchroniseren");
   });
 
   it("exposes a Radix-backed dialog trigger with a named button", () => {
