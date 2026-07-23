@@ -8,6 +8,7 @@ export * from "./components/filter-bar";
 export * from "./components/icon-button";
 export * from "./components/layout";
 export * from "./components/link";
+export * from "./components/operational-lists";
 export * from "./components/progress";
 export * from "./components/resource";
 export * from "./components/sheet";
