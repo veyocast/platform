@@ -158,7 +158,17 @@ function ContentTab({ releases, screen }: { releases: FleetRelease[]; screen: No
       <SummaryItem label="Gewenste release" value={assignedRelease ? `Versie ${assignedRelease.version}` : "Geen"} />
       <SummaryItem label="Release-ID" value={screen.assignedReleaseId ? `${screen.assignedReleaseId.slice(0, 12)}…` : "Geen"} />
     </dl>
-    <div className="page-action-group"><Link className="button-link button-link--primary" href="/dashboard/publish">Content publiceren</Link>{assignedRelease ? <Link className="button-link button-link--secondary" href={`/dashboard/releases/${assignedRelease.id}`}>Release bekijken</Link> : <Link className="button-link button-link--secondary" href="/dashboard/releases">Release Center openen</Link>}</div>
+    <div className="page-action-group">
+      <Link
+        className="button-link button-link--primary"
+        href={assignedRelease ? `/dashboard/playlists/${assignedRelease.playlistId}` : "/dashboard/playlists"}
+      >
+        {assignedRelease ? "Nieuwe versie maken" : "Playlist kiezen"}
+      </Link>
+      {assignedRelease
+        ? <Link className="button-link button-link--secondary" href={`/dashboard/releases/${assignedRelease.id}`}>Release bekijken</Link>
+        : <Link className="button-link button-link--secondary" href="/dashboard/releases">Release Center openen</Link>}
+    </div>
   </section>;
 }
 
