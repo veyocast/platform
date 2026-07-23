@@ -17,6 +17,7 @@ export type CalendarSchedule = {
   scheduleKind: string;
   source: string;
   startsAt: string;
+  targetId: string;
   targetKind: string;
   targetName: string;
 };
@@ -84,6 +85,40 @@ export function buildCalendarDays(
         )
     };
   });
+}
+
+export function isScheduleActiveAt(
+  schedule: CalendarSchedule,
+  at: Date,
+  timeZone: string
+) {
+  if (!schedule.enabled) return false;
+  const atIso = at.toISOString();
+  if (schedule.scheduleKind === "once") {
+    return atIso >= schedule.startsAt && (!schedule.endsAt || atIso < schedule.endsAt);
+  }
+  const occurrence = occurrenceForDate(schedule, zonedDateKey(at, timeZone), timeZone)[0];
+  return Boolean(
+    occurrence &&
+    atIso >= occurrence.startsAt &&
+    (!occurrence.endsAt || atIso < occurrence.endsAt)
+  );
+}
+
+export function scheduleMatchesPlanningTarget(
+  schedule: Pick<CalendarSchedule, "targetId" | "targetKind">,
+  selectedTarget: string,
+  groups: readonly { id: string; memberIds: readonly string[] }[]
+) {
+  const [kind, id] = selectedTarget.split(":");
+  if (!id) return false;
+  if (kind === "screen_group") {
+    return schedule.targetKind === "screen_group" && schedule.targetId === id;
+  }
+  if (kind !== "screen") return false;
+  if (schedule.targetKind === "screen" && schedule.targetId === id) return true;
+  return schedule.targetKind === "screen_group" &&
+    groups.some((group) => group.id === schedule.targetId && group.memberIds.includes(id));
 }
 
 export function shiftReferenceDate(

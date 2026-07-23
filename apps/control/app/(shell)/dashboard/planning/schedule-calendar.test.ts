@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildCalendarDays,
+  isScheduleActiveAt,
   normalizeReferenceDate,
   planningRangeLabel,
+  scheduleMatchesPlanningTarget,
   shiftReferenceDate,
   type CalendarSchedule
 } from "./schedule-calendar";
@@ -20,6 +22,7 @@ const baseSchedule: CalendarSchedule = {
   scheduleKind: "daily",
   source: "publisher",
   startsAt: "2026-07-01T16:00:00.000Z",
+  targetId: "group-1",
   targetKind: "screen_group",
   targetName: "Kantine"
 };
@@ -84,5 +87,36 @@ describe("Publisher planning calendar", () => {
     expect(shiftReferenceDate("2026-07-20", "week", 1)).toBe("2026-07-27");
     expect(shiftReferenceDate("2026-07-20", "month", -1)).toBe("2026-06-01");
     expect(planningRangeLabel("2026-07-20", "week", "Europe/Amsterdam")).toContain("20 jul");
+  });
+
+  it("telt een terugkerende planning alleen binnen het dagelijkse tijdvenster als actief", () => {
+    expect(isScheduleActiveAt(
+      baseSchedule,
+      new Date("2026-07-20T17:00:00.000Z"),
+      "Europe/Amsterdam"
+    )).toBe(true);
+    expect(isScheduleActiveAt(
+      baseSchedule,
+      new Date("2026-07-20T12:00:00.000Z"),
+      "Europe/Amsterdam"
+    )).toBe(false);
+  });
+
+  it("filtert een scherm zowel direct als via zijn schermgroep", () => {
+    expect(scheduleMatchesPlanningTarget(
+      { targetId: "screen-1", targetKind: "screen" },
+      "screen:screen-1",
+      []
+    )).toBe(true);
+    expect(scheduleMatchesPlanningTarget(
+      { targetId: "group-1", targetKind: "screen_group" },
+      "screen:screen-1",
+      [{ id: "group-1", memberIds: ["screen-1"] }]
+    )).toBe(true);
+    expect(scheduleMatchesPlanningTarget(
+      { targetId: "group-1", targetKind: "screen_group" },
+      "screen_group:group-2",
+      [{ id: "group-1", memberIds: ["screen-1"] }]
+    )).toBe(false);
   });
 });
