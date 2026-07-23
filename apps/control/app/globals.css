@@ -3901,6 +3901,20 @@ html[data-density="compact"] .control-nav__link {
     gap: var(--vc-space-20);
   }
 
+  .settings-category-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+
+  .settings-category-nav a {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+    text-align: center;
+  }
+
   .dashboard-operational-summary {
     margin-top: 0;
   }
