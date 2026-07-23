@@ -25,6 +25,15 @@ type GuardedPublishResult = {
   outcome: "conflict" | "published";
   releaseId?: string;
 };
+type PublisherDraftOperation =
+  | "assign_item_section"
+  | "create_section"
+  | "delete_section"
+  | "move_item"
+  | "move_section"
+  | "update_item_presentation"
+  | "update_playlist_defaults"
+  | "update_section";
 
 export async function createPlaylist(formData: FormData) {
   const { session, supabase } = await requirePlaylistWriter();
@@ -87,6 +96,9 @@ export async function updatePlaylistItem(formData: FormData) {
   const playlistId = idValue(formData, "playlistId");
   const itemId = idValue(formData, "itemId");
   const displayTitle = nullableText(formData, "displayTitle", 120);
+  if (displayTitle && displayTitle.length < 2) {
+    fail(playlistId, "Een aangepaste itemtitel bevat minimaal 2 tekens. Laat het veld leeg om de bibliotheektitel te gebruiken.");
+  }
   const durationSeconds = Number.parseInt(String(formData.get("duration") ?? ""), 10);
   const fitMode = String(formData.get("fitMode") ?? "");
   const muted = formData.get("muted") === "on";
@@ -127,6 +139,132 @@ export async function updatePlaylistItem(formData: FormData) {
     visibleUntil,
     volumePercent
   }, "De iteminstellingen zijn opgeslagen.");
+}
+
+export async function updatePlaylistDefaults(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const defaultImageDurationSeconds = integerValue(
+    formData,
+    "defaultImageDurationSeconds"
+  );
+  const defaultTransition = transitionValue(formData, "defaultTransition");
+  const defaultFitMode = fitModeValue(formData, "defaultFitMode");
+  const defaultBackgroundColor = nullableText(
+    formData,
+    "defaultBackgroundColor",
+    7
+  );
+  if (
+    defaultImageDurationSeconds < 5 ||
+    defaultImageDurationSeconds > 3600
+  ) {
+    fail(
+      playlistId,
+      "De standaardduur voor afbeeldingen moet tussen 5 en 3600 seconden liggen."
+    );
+  }
+  if (
+    defaultBackgroundColor &&
+    !/^#[0-9a-f]{6}$/i.test(defaultBackgroundColor)
+  ) {
+    fail(playlistId, "Gebruik een geldige hexkleur voor de standaardachtergrond.");
+  }
+  await mutateGuarded(
+    formData,
+    playlistId,
+    "update_playlist_defaults",
+    {
+      defaultBackgroundColor,
+      defaultFitMode,
+      defaultImageDurationSeconds,
+      defaultTransition,
+      defaultVideoMuted: formData.get("defaultVideoMuted") === "on",
+      loopEnabled: formData.get("loopEnabled") === "on"
+    },
+    "De standaardinstellingen van het concept zijn opgeslagen."
+  );
+}
+
+export async function createPlaylistSection(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const name = boundedText(formData, "name", 2, 120, playlistId);
+  const defaultDurationSeconds = optionalDuration(formData, playlistId);
+  const defaultTransition = optionalTransition(formData, playlistId);
+  await mutateGuarded(
+    formData,
+    playlistId,
+    "create_section",
+    {
+      defaultDurationSeconds,
+      defaultTransition,
+      enabled: true,
+      name
+    },
+    `De sectie “${name}” is toegevoegd.`
+  );
+}
+
+export async function updatePlaylistSection(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const sectionId = idValue(formData, "sectionId");
+  const name = boundedText(formData, "name", 2, 120, playlistId);
+  const defaultDurationSeconds = optionalDuration(formData, playlistId);
+  const defaultTransition = optionalTransition(formData, playlistId);
+  await mutateGuarded(
+    formData,
+    playlistId,
+    "update_section",
+    {
+      defaultDurationSeconds,
+      defaultTransition,
+      enabled: formData.get("enabled") === "on",
+      name,
+      sectionId
+    },
+    `De sectie “${name}” is bijgewerkt.`
+  );
+}
+
+export async function movePlaylistSection(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const sectionId = idValue(formData, "sectionId");
+  const targetPosition = integerValue(formData, "targetPosition");
+  if (targetPosition < 0) fail(playlistId, "De gekozen sectiepositie is ongeldig.");
+  await mutateGuarded(
+    formData,
+    playlistId,
+    "move_section",
+    { sectionId, targetPosition },
+    "De sectievolgorde is opgeslagen."
+  );
+}
+
+export async function deletePlaylistSection(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const sectionId = idValue(formData, "sectionId");
+  await mutateGuarded(
+    formData,
+    playlistId,
+    "delete_section",
+    { sectionId },
+    "De sectie is verwijderd. De items staan nu zonder sectie in het concept."
+  );
+}
+
+export async function assignPlaylistItemSection(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const itemId = idValue(formData, "itemId");
+  const sectionIdValue = String(formData.get("sectionId") ?? "");
+  const sectionId = sectionIdValue ? idValue(formData, "sectionId") : null;
+  await mutateGuarded(
+    formData,
+    playlistId,
+    "assign_item_section",
+    { itemId, sectionId },
+    sectionId
+      ? "Het item is aan de sectie gekoppeld."
+      : "Het item staat nu zonder sectie."
+  );
 }
 
 export async function movePlaylistItem(formData: FormData) {
@@ -237,7 +375,7 @@ export async function publishPlaylistGuided(formData: FormData) {
 async function mutateGuarded(
   formData: FormData,
   playlistId: string,
-  operation: "move_item" | "update_item_presentation",
+  operation: PublisherDraftOperation,
   payload: Record<string, boolean | number | string | null>,
   success: string
 ) {
@@ -335,6 +473,67 @@ function idempotencyValue(formData: FormData) {
 function numericValue(formData: FormData, name: string) {
   const value = Number(String(formData.get(name) ?? ""));
   if (!Number.isFinite(value)) failList("Een numerieke iteminstelling is ongeldig.");
+  return value;
+}
+
+function integerValue(formData: FormData, name: string) {
+  const value = Number.parseInt(String(formData.get(name) ?? ""), 10);
+  if (!Number.isInteger(value)) failList("Een gehele numerieke instelling is ongeldig.");
+  return value;
+}
+
+function boundedText(
+  formData: FormData,
+  name: string,
+  minLength: number,
+  maxLength: number,
+  playlistId: string
+) {
+  const value = String(formData.get(name) ?? "").trim();
+  if (value.length < minLength || value.length > maxLength) {
+    fail(
+      playlistId,
+      `Gebruik ${minLength} tot en met ${maxLength} tekens voor deze naam.`
+    );
+  }
+  return value;
+}
+
+function fitModeValue(formData: FormData, name: string) {
+  const value = String(formData.get(name) ?? "");
+  if (value !== "contain" && value !== "cover") {
+    failList("Kies Volledig in beeld of Schermvullend.");
+  }
+  return value;
+}
+
+function transitionValue(formData: FormData, name: string) {
+  const value = String(formData.get(name) ?? "");
+  if (value !== "cut" && value !== "crossfade" && value !== "wipe") {
+    failList("Kies een geldige overgang.");
+  }
+  return value;
+}
+
+function optionalDuration(formData: FormData, playlistId: string) {
+  const raw = String(formData.get("defaultDurationSeconds") ?? "").trim();
+  if (!raw) return null;
+  const value = Number.parseInt(raw, 10);
+  if (!Number.isInteger(value) || value < 5 || value > 3600) {
+    fail(
+      playlistId,
+      "De sectieduur moet leeg zijn of tussen 5 en 3600 seconden liggen."
+    );
+  }
+  return value;
+}
+
+function optionalTransition(formData: FormData, playlistId: string) {
+  const value = String(formData.get("defaultTransition") ?? "");
+  if (!value) return null;
+  if (!["cut", "crossfade", "wipe"].includes(value)) {
+    fail(playlistId, "Kies een geldige standaardovergang voor de sectie.");
+  }
   return value;
 }
 

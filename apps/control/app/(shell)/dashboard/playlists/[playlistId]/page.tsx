@@ -239,7 +239,13 @@ function operationLabel(operation?: string) {
     move_item: "Volgorde wijzigen",
     publish: "Publiceren",
     remove_item: "Item verwijderen",
+    assign_item_section: "Item aan sectie koppelen",
+    create_section: "Sectie toevoegen",
+    delete_section: "Sectie verwijderen",
+    move_section: "Sectie verplaatsen",
     update_details: "Conceptgegevens opslaan",
+    update_playlist_defaults: "Playliststandaarden opslaan",
+    update_section: "Sectie-instellingen opslaan",
     update_item: "Iteminstellingen opslaan"
   };
   return operation
