@@ -23,8 +23,13 @@ import {
   removeCurrentAndPreviousStorageValues
 } from "../_lib/brand-transition";
 import {
-  getPlaybackDurationMs,
+  findFirstPlayableItemIndex,
+  findNextPlayableItem,
+  getNextPlayerVisibilityChangeDelayMs,
+  getPlayerItemPlaybackDurationMs,
+  isPlayerManifestItemPlayable,
   localStorageDeviceTokenKey,
+  resolvePlayerItemPresentation,
   type PlayerManifestEnvelope,
   type PlayerManifestItem,
   type PlayerManifestProblem,
@@ -48,6 +53,7 @@ import {
   defaultWatchdogTimeoutMs,
   resolvePlayerRuntimeTiming
 } from "../_lib/player-runtime-config";
+import styles from "./player-playback.module.css";
 
 const demoPairingCode = "VYO 482";
 const localStoragePairingCodeKey = "veyocast.player.pairingCode";
@@ -109,6 +115,7 @@ export function PlayerRuntime() {
   const [runtime, setRuntime] = useState<RuntimeView>({ state: "BOOTING" });
   const [durationOverrideMs, setDurationOverrideMs] = useState<number | null>(null);
   const [playbackAttempt, setPlaybackAttempt] = useState(0);
+  const [visibilityRevision, setVisibilityRevision] = useState(0);
   const [watchdogTimeoutMs, setWatchdogTimeoutMs] = useState(defaultWatchdogTimeoutMs);
   const runtimeRef = useRef<RuntimeView>(runtime);
   const advancingRef = useRef(false);
@@ -125,18 +132,38 @@ export function PlayerRuntime() {
     if (!isPlaybackRuntime(snapshot)) return;
     const activeItem = snapshot.release.envelope.manifest.items[snapshot.activeIndex];
     if (!activeItem || activeItem.id !== itemId) return;
+    const nextSelection = findNextPlayableItem(
+      snapshot.release.envelope.manifest.items,
+      snapshot.activeIndex
+    );
+    if (!nextSelection) {
+      setRuntime((currentRuntime) =>
+        isPlaybackRuntime(currentRuntime)
+          ? {
+              ...currentRuntime,
+              syncMessage:
+                "Geen playlistitem is binnen het huidige zichtbaarheidsvenster actief."
+            }
+          : currentRuntime
+      );
+      return;
+    }
 
     advancingRef.current = true;
     try {
-      const itemCount = snapshot.release.envelope.manifest.items.length;
-      const nextIndex = (snapshot.activeIndex + 1) % itemCount;
       const deviceToken = readStoredDeviceToken();
+      const pendingFirstIndex = snapshot.pendingRelease
+        ? findFirstPlayableItemIndex(
+            snapshot.pendingRelease.envelope.manifest.items
+          )
+        : -1;
 
       if (
         snapshot.state === "SWITCH_PENDING" &&
         snapshot.pendingRelease &&
         deviceToken &&
-        nextIndex === 0 &&
+        nextSelection.wrapped &&
+        pendingFirstIndex >= 0 &&
         desiredReleaseIdRef.current ===
           snapshot.pendingRelease.envelope.manifest.releaseId
       ) {
@@ -162,7 +189,7 @@ export function PlayerRuntime() {
         }
       }
 
-      setPlaybackAttempt(0);
+      setPlaybackAttempt((attempt) => attempt + 1);
       playbackReadyRef.current = false;
       setRuntime((currentRuntime) => {
         if (!isPlaybackRuntime(currentRuntime)) return currentRuntime;
@@ -170,16 +197,34 @@ export function PlayerRuntime() {
           currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
         if (!currentItem || currentItem.id !== itemId) return currentRuntime;
 
-        const currentNextIndex =
-          (currentRuntime.activeIndex + 1) %
-          currentRuntime.release.envelope.manifest.items.length;
+        const currentNextSelection = findNextPlayableItem(
+          currentRuntime.release.envelope.manifest.items,
+          currentRuntime.activeIndex
+        );
+        if (!currentNextSelection) {
+          return {
+            ...currentRuntime,
+            syncMessage:
+              "Geen playlistitem is binnen het huidige zichtbaarheidsvenster actief."
+          };
+        }
         if (
           currentRuntime.state === "SWITCH_PENDING" &&
           currentRuntime.pendingRelease &&
-          currentNextIndex === 0
+          currentNextSelection.wrapped
         ) {
+          const nextReleaseIndex = findFirstPlayableItemIndex(
+            currentRuntime.pendingRelease.envelope.manifest.items
+          );
+          if (nextReleaseIndex < 0) {
+            return {
+              ...currentRuntime,
+              syncMessage:
+                "Nieuwe release wacht op het eerstvolgende zichtbare item; actieve release blijft spelen."
+            };
+          }
           return {
-            activeIndex: 0,
+            activeIndex: nextReleaseIndex,
             release: currentRuntime.pendingRelease,
             state: "PLAYING",
             syncMessage: "Nieuwe release is op loopgrens actief gemaakt."
@@ -188,7 +233,7 @@ export function PlayerRuntime() {
 
         return {
           ...currentRuntime,
-          activeIndex: currentNextIndex,
+          activeIndex: currentNextSelection.index,
           syncMessage: recoveryMessage ?? currentRuntime.syncMessage
         };
       });
@@ -216,7 +261,7 @@ export function PlayerRuntime() {
       playbackReadyRef.current = false;
       setPlaybackAttempt((attempt) => attempt + 1);
       setRuntime({
-        activeIndex: 0,
+        activeIndex: resolveInitialPlaybackIndex(hydratedRelease),
         release: hydratedRelease,
         state: "OFFLINE_PLAYING",
         syncMessage: "Playbackfout: last-known-good release is opnieuw geladen."
@@ -585,7 +630,7 @@ export function PlayerRuntime() {
 
       if (!cancelled) {
         setRuntime({
-          activeIndex: 0,
+          activeIndex: resolveInitialPlaybackIndex(offlineRelease),
           release: offlineRelease,
           state: "OFFLINE_PLAYING",
           syncMessage: "Last-known-good release actief terwijl online sync start."
@@ -778,7 +823,7 @@ export function PlayerRuntime() {
           }
 
           return {
-            activeIndex: 0,
+            activeIndex: resolveInitialPlaybackIndex(hydratedRelease),
             release: hydratedRelease,
             state: "PLAYING",
             syncMessage: "Release online geverifieerd en actief."
@@ -934,9 +979,65 @@ export function PlayerRuntime() {
         runtime.release.envelope.manifest.releaseId,
         runtime.activeIndex,
         runtime.release.envelope.manifest.items[runtime.activeIndex]?.id ?? "missing",
-        runtime.release.envelope.manifest.items[runtime.activeIndex]?.durationSeconds ?? 0
+        runtime.release.envelope.manifest.items[runtime.activeIndex]?.durationSeconds ?? 0,
+        runtime.release.envelope.manifest.items[runtime.activeIndex]?.visibility
+          ?.from ??
+          "always",
+        runtime.release.envelope.manifest.items[runtime.activeIndex]?.visibility
+          ?.until ??
+          "always",
+        runtime.release.envelope.manifest.items[runtime.activeIndex]?.enabled ?? true
       ].join(":")
     : null;
+
+  const visibilityScheduleKey = isPlaybackRuntime(runtime)
+    ? runtime.release.envelope.manifest.items
+        .map((item) =>
+          [
+            item.id,
+            item.enabled ?? true,
+            item.visibility?.from ?? "",
+            item.visibility?.until ?? ""
+          ].join(":")
+        )
+        .join("|")
+    : null;
+
+  useEffect(() => {
+    const playbackRuntime = runtimeRef.current;
+    if (!isPlaybackRuntime(playbackRuntime)) return;
+
+    const now = Date.now();
+    const items = playbackRuntime.release.envelope.manifest.items;
+    const activeItem = items[playbackRuntime.activeIndex];
+    if (!activeItem || !isPlayerManifestItemPlayable(activeItem, now)) {
+      const nextIndex = findFirstPlayableItemIndex(items, now);
+      if (nextIndex >= 0 && nextIndex !== playbackRuntime.activeIndex) {
+        playbackReadyRef.current = false;
+        setPlaybackAttempt((attempt) => attempt + 1);
+        setRuntime((currentRuntime) =>
+          isPlaybackRuntime(currentRuntime) &&
+          currentRuntime.release.envelope.manifest.releaseId ===
+            playbackRuntime.release.envelope.manifest.releaseId
+            ? {
+                ...currentRuntime,
+                activeIndex: nextIndex,
+                syncMessage:
+                  "Playlist is naar het actieve zichtbaarheidsvenster bijgewerkt."
+              }
+            : currentRuntime
+        );
+      }
+    }
+
+    const nextChangeDelayMs = getNextPlayerVisibilityChangeDelayMs(items, now);
+    if (nextChangeDelayMs === null) return;
+    const timer = window.setTimeout(
+      () => setVisibilityRevision((revision) => revision + 1),
+      Math.min(2_147_000_000, Math.max(50, nextChangeDelayMs))
+    );
+    return () => window.clearTimeout(timer);
+  }, [visibilityRevision, visibilityScheduleKey]);
 
   useEffect(() => {
     const playbackRuntime = runtimeRef.current;
@@ -950,6 +1051,7 @@ export function PlayerRuntime() {
     if (!activeItem) {
       return;
     }
+    if (!isPlayerManifestItemPlayable(activeItem)) return;
 
     const timer = window.setTimeout(() => {
       if (activeItem.kind === "video" && !playbackReadyRef.current) {
@@ -957,7 +1059,7 @@ export function PlayerRuntime() {
         return;
       }
       void advancePlayback(activeItem.id);
-    }, getPlaybackDurationMs(activeItem, durationOverrideMs));
+    }, getPlayerItemPlaybackDurationMs(activeItem, durationOverrideMs));
 
     return () => {
       window.clearTimeout(timer);
@@ -1116,32 +1218,55 @@ function PlaybackView({
   const manifest = runtime.release.envelope.manifest;
   const activeItem = manifest.items[runtime.activeIndex] ?? manifest.items[0];
 
-  if (!activeItem) {
+  if (!activeItem || !isPlayerManifestItemPlayable(activeItem)) {
     return (
       <ProblemPanel
         problem={{
           state: "ERROR_RECOVERABLE",
           error: {
-            cause: "Het release manifest bevat geen afspeelbare items.",
-            effect: "De player kan geen online loop starten.",
-            recovery: "Publiceer een release met minimaal een ready image- of video-item."
+            cause:
+              "Het release manifest bevat nu geen ingeschakeld item binnen het zichtbaarheidvenster.",
+            effect:
+              "De player toont geen uitgeschakelde of buiten het venster geplande content.",
+            recovery:
+              "Controleer de itemplanning of publiceer een release met minimaal één zichtbaar ready item."
           }
         }}
       />
     );
   }
 
+  const presentation = resolvePlayerItemPresentation(activeItem);
+  const transitionClassName = {
+    crossfade: styles.crossfade,
+    cut: styles.cut,
+    wipe: styles.wipe
+  }[presentation.transition];
+
   return (
     <main className="playback-shell" aria-label="VeyoCast player">
-      <section className="playback-stage" aria-label="Release playback">
-        <PlaybackMedia
+      <section
+        className="playback-stage"
+        aria-label="Release playback"
+        style={
+          presentation.backgroundColor
+            ? { backgroundColor: presentation.backgroundColor }
+            : undefined
+        }
+      >
+        <div
+          className={`${styles.scene} ${transitionClassName}`}
+          data-player-transition={presentation.transition}
           key={`${activeItem.id}:${playbackAttempt}`}
-          item={activeItem}
-          onEnded={onEnded}
-          onFailure={onFailure}
-          onReady={onReady}
-          watchdogTimeoutMs={watchdogTimeoutMs}
-        />
+        >
+          <PlaybackMedia
+            item={activeItem}
+            onEnded={onEnded}
+            onFailure={onFailure}
+            onReady={onReady}
+            watchdogTimeoutMs={watchdogTimeoutMs}
+          />
+        </div>
         <img
           alt=""
           aria-hidden="true"
@@ -1176,7 +1301,14 @@ export function PlaybackMedia({
   onReady: (itemId: string) => void;
   watchdogTimeoutMs: number;
 }) {
+  const presentation = resolvePlayerItemPresentation(item);
   const className = `playback-media playback-media--${item.fitMode}`;
+  const mediaStyle = {
+    ...(presentation.backgroundColor
+      ? { backgroundColor: presentation.backgroundColor }
+      : {}),
+    objectPosition: `${presentation.cropFocusX * 100}% ${presentation.cropFocusY * 100}%`
+  };
   const failureReportedRef = useRef(false);
   const hasEndedRef = useRef(false);
   const isPausedRef = useRef(false);
@@ -1184,6 +1316,7 @@ export function PlaybackMedia({
   const lastCurrentTimeRef = useRef(0);
   const lastProgressAtRef = useRef(Date.now());
   const lastSignalRef = useRef<"stalled" | "waiting" | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const reportFailure = useCallback((code: PlaybackFailureCode) => {
     if (failureReportedRef.current) return;
@@ -1211,21 +1344,47 @@ export function PlaybackMedia({
     return () => window.clearInterval(interval);
   }, [item.kind, reportFailure, watchdogTimeoutMs]);
 
+  const completeVideoPlayback = useCallback(() => {
+    if (hasEndedRef.current) return;
+    hasEndedRef.current = true;
+    isPausedRef.current = false;
+    hasStartedRef.current = true;
+    videoRef.current?.pause();
+    onPlaybackStateChange?.("ended");
+    onReady(item.id);
+    onEnded(item.id);
+  }, [item.id, onEnded, onPlaybackStateChange, onReady]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (item.kind !== "video" || !video) return;
+    video.volume = presentation.volumePercent / 100;
+    if (
+      video.readyState >= HTMLMediaElement.HAVE_METADATA &&
+      presentation.trimStartSeconds > 0
+    ) {
+      video.currentTime = presentation.trimStartSeconds;
+    }
+  }, [
+    item.kind,
+    presentation.trimStartSeconds,
+    presentation.volumePercent
+  ]);
+
   if (item.kind === "video") {
     return (
       <video
-        aria-label={item.title}
+        aria-label={presentation.accessibilityName}
         autoPlay
         className={className}
         data-testid="player-video"
         muted={item.muted}
-        onEnded={() => {
-          hasEndedRef.current = true;
-          isPausedRef.current = false;
-          hasStartedRef.current = true;
-          onPlaybackStateChange?.("ended");
-          onReady(item.id);
-          onEnded(item.id);
+        onEnded={completeVideoPlayback}
+        onLoadedMetadata={(event) => {
+          event.currentTarget.volume = presentation.volumePercent / 100;
+          if (presentation.trimStartSeconds > 0) {
+            event.currentTarget.currentTime = presentation.trimStartSeconds;
+          }
         }}
         onError={() => reportFailure("VIDEO_ERROR")}
         onPause={() => {
@@ -1246,6 +1405,13 @@ export function PlaybackMedia({
         }}
         onTimeUpdate={(event) => {
           const currentTime = event.currentTarget.currentTime;
+          if (
+            presentation.trimEndSeconds !== null &&
+            currentTime >= presentation.trimEndSeconds
+          ) {
+            completeVideoPlayback();
+            return;
+          }
           if (currentTime > lastCurrentTimeRef.current + 0.01) {
             lastCurrentTimeRef.current = currentTime;
             lastProgressAtRef.current = Date.now();
@@ -1258,6 +1424,8 @@ export function PlaybackMedia({
         playsInline
         poster={item.source.posterUrl}
         preload="metadata"
+        ref={videoRef}
+        style={mediaStyle}
       >
         {item.source.url ? (
           <source key={item.source.url} src={item.source.url} type={item.source.mimeType} />
@@ -1268,11 +1436,12 @@ export function PlaybackMedia({
 
   return (
     <img
-      alt={item.title}
+      alt={presentation.accessibilityName}
       className={className}
       onError={() => reportFailure("IMAGE_ERROR")}
       onLoad={() => onReady(item.id)}
       src={item.source.url}
+      style={mediaStyle}
     />
   );
 }
@@ -1465,6 +1634,13 @@ function isPlaybackRuntime(runtime: RuntimeView): runtime is PlaybackRuntime {
     "SWITCH_PENDING",
     "OFFLINE_PLAYING"
   ].includes(runtime.state);
+}
+
+function resolveInitialPlaybackIndex(release: HydratedPlayerRelease) {
+  return Math.max(
+    0,
+    findFirstPlayableItemIndex(release.envelope.manifest.items)
+  );
 }
 
 function isWaitingContentRuntime(

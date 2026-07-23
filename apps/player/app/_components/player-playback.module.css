@@ -1,0 +1,46 @@
+.scene {
+  background: Canvas;
+  inset: 0;
+  overflow: hidden;
+  position: absolute;
+  transform-origin: center;
+}
+
+.cut {
+  animation: none;
+}
+
+.crossfade {
+  animation: player-crossfade 480ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.wipe {
+  animation: player-wipe 520ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@keyframes player-crossfade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes player-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crossfade,
+  .wipe {
+    animation: none;
+  }
+}
