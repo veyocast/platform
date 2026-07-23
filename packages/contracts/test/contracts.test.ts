@@ -114,8 +114,7 @@ describe("playlist contracts", () => {
       playerPlaybackItemSchema.parse({
         accessibilityName: "Openingsvideo zonder gesproken tekst",
         backgroundColor: "#0A0A0A",
-        cropFocusX: 0.25,
-        cropFocusY: 0.75,
+        cropFocus: { x: 0.25, y: 0.75 },
         displayTitle: "Wedstrijdintro thuis",
         durationSeconds: 10,
         enabled: true,
@@ -123,12 +122,18 @@ describe("playlist contracts", () => {
         id: "30000000-0000-4000-8000-000000000001",
         kind: "video",
         muted: false,
+        section: {
+          name: "Sponsors",
+          positionKey: 2,
+          sourceSectionId: "32000000-0000-4000-8000-000000000001"
+        },
         title: "Wedstrijdintro",
         transition: "crossfade",
-        trimEndSeconds: 18,
-        trimStartSeconds: 8,
-        visibleFrom: "2026-07-23T16:00:00.000Z",
-        visibleUntil: "2026-07-23T18:00:00.000Z",
+        trim: { endSeconds: 18, startSeconds: 8 },
+        visibility: {
+          from: "2026-07-23T16:00:00.000Z",
+          until: "2026-07-23T18:00:00.000Z"
+        },
         volumePercent: 60
       })
     ).toMatchObject({
@@ -172,15 +177,16 @@ describe("playlist contracts", () => {
     expect(() =>
       playerPlaybackItemSchema.parse({
         ...baseline,
-        trimEndSeconds: 5,
-        trimStartSeconds: 5
+        trim: { endSeconds: 5, startSeconds: 5 }
       })
     ).toThrow();
     expect(() =>
       playerPlaybackItemSchema.parse({
         ...baseline,
-        visibleFrom: "2026-07-23T18:00:00.000Z",
-        visibleUntil: "2026-07-23T16:00:00.000Z"
+        visibility: {
+          from: "2026-07-23T18:00:00.000Z",
+          until: "2026-07-23T16:00:00.000Z"
+        }
       })
     ).toThrow();
   });

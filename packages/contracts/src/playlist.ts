@@ -11,6 +11,60 @@ const playlistPresentationTimestampSchema = z
     message: "Expected an ISO timestamp"
   });
 
+export const playlistCropFocusSchema = z
+  .object({
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1)
+  })
+  .strict();
+
+export const playlistTrimSchema = z
+  .object({
+    endSeconds: z.number().positive().max(86_400).optional(),
+    startSeconds: z.number().nonnegative().max(86_400)
+  })
+  .strict()
+  .superRefine((trim, context) => {
+    if (
+      trim.endSeconds !== undefined &&
+      trim.endSeconds <= trim.startSeconds
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "endSeconds must be greater than startSeconds",
+        path: ["endSeconds"]
+      });
+    }
+  });
+
+export const playlistVisibilitySchema = z
+  .object({
+    from: playlistPresentationTimestampSchema.optional(),
+    until: playlistPresentationTimestampSchema.optional()
+  })
+  .strict()
+  .superRefine((visibility, context) => {
+    if (
+      visibility.from !== undefined &&
+      visibility.until !== undefined &&
+      Date.parse(visibility.until) <= Date.parse(visibility.from)
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "until must be later than from",
+        path: ["until"]
+      });
+    }
+  });
+
+export const playlistItemSectionSnapshotSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    positionKey: z.number(),
+    sourceSectionId: z.string().uuid()
+  })
+  .strict();
+
 export const playerPlaybackItemSchema = z
   .object({
     accessibilityName: z.string().trim().min(1).max(240).optional(),
@@ -18,8 +72,7 @@ export const playerPlaybackItemSchema = z
       .string()
       .regex(/^#[0-9a-f]{6}$/i)
       .optional(),
-    cropFocusX: z.number().min(0).max(1).optional(),
-    cropFocusY: z.number().min(0).max(1).optional(),
+    cropFocus: playlistCropFocusSchema.optional(),
     displayTitle: z.string().trim().min(1).max(240).optional(),
     durationSeconds: z.number().int().min(5).max(3600),
     enabled: z.boolean().optional(),
@@ -27,38 +80,12 @@ export const playerPlaybackItemSchema = z
     id: z.string().uuid(),
     kind: playlistItemKindSchema,
     muted: z.boolean(),
+    section: playlistItemSectionSnapshotSchema.optional(),
     title: z.string().trim().min(1).max(240),
     transition: playlistTransitionSchema.optional(),
-    trimEndSeconds: z.number().positive().max(86_400).optional(),
-    trimStartSeconds: z.number().nonnegative().max(86_400).optional(),
-    visibleFrom: playlistPresentationTimestampSchema.optional(),
-    visibleUntil: playlistPresentationTimestampSchema.optional(),
+    trim: playlistTrimSchema.optional(),
+    visibility: playlistVisibilitySchema.optional(),
     volumePercent: z.number().int().min(0).max(100).optional()
-  })
-  .superRefine((item, context) => {
-    const trimStartSeconds = item.trimStartSeconds ?? 0;
-    if (
-      item.trimEndSeconds !== undefined &&
-      item.trimEndSeconds <= trimStartSeconds
-    ) {
-      context.addIssue({
-        code: "custom",
-        message: "trimEndSeconds must be greater than trimStartSeconds",
-        path: ["trimEndSeconds"]
-      });
-    }
-
-    if (
-      item.visibleFrom !== undefined &&
-      item.visibleUntil !== undefined &&
-      Date.parse(item.visibleUntil) <= Date.parse(item.visibleFrom)
-    ) {
-      context.addIssue({
-        code: "custom",
-        message: "visibleUntil must be later than visibleFrom",
-        path: ["visibleUntil"]
-      });
-    }
   })
   .strict();
 

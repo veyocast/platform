@@ -78,15 +78,15 @@ describe("player manifest contract", () => {
         manifestItem({
           accessibilityName: "  Sponsoruiting zonder gesproken tekst  ",
           backgroundColor: "#101010",
-          cropFocusX: 0.2,
-          cropFocusY: 0.8,
+          cropFocus: { x: 0.2, y: 0.8 },
           displayTitle: "  Sponsorblok  ",
           enabled: true,
           transition: "wipe",
-          trimEndSeconds: 14,
-          trimStartSeconds: 4,
-          visibleFrom: "2026-07-23T10:00:00.000Z",
-          visibleUntil: "2026-07-23T14:00:00.000Z",
+          trim: { endSeconds: 14, startSeconds: 4 },
+          visibility: {
+            from: "2026-07-23T10:00:00.000Z",
+            until: "2026-07-23T14:00:00.000Z"
+          },
           volumePercent: 35
         })
       )
@@ -106,10 +106,9 @@ describe("player manifest contract", () => {
       resolvePlayerItemPresentation(
         manifestItem({
           backgroundColor: "url(javascript:alert(1))",
-          cropFocusX: 20,
+          cropFocus: { x: 20, y: 0.5 },
           transition: "spin",
-          trimEndSeconds: 2,
-          trimStartSeconds: 4,
+          trim: { endSeconds: 2, startSeconds: 4 },
           volumePercent: 140
         } as never)
       )
@@ -128,12 +127,14 @@ describe("player manifest contract", () => {
       manifestItem({ enabled: false, id: "disabled" }),
       manifestItem({
         id: "future",
-        visibleFrom: "2026-07-23T13:00:00.000Z"
+        visibility: { from: "2026-07-23T13:00:00.000Z" }
       }),
       manifestItem({
         id: "active",
-        visibleFrom: "2026-07-23T11:00:00.000Z",
-        visibleUntil: "2026-07-23T13:00:00.000Z"
+        visibility: {
+          from: "2026-07-23T11:00:00.000Z",
+          until: "2026-07-23T13:00:00.000Z"
+        }
       })
     ];
 
@@ -149,7 +150,7 @@ describe("player manifest contract", () => {
     const at = Date.parse("2026-07-23T12:00:00.000Z");
     const item = manifestItem({
       durationSeconds: 30,
-      visibleUntil: "2026-07-23T12:00:04.000Z"
+      visibility: { until: "2026-07-23T12:00:04.000Z" }
     });
 
     expect(getPlayerItemPlaybackDurationMs(item, null, at)).toBe(4_000);

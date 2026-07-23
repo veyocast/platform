@@ -39,6 +39,15 @@ export type PlayerManifestItemSelection = {
   wrapped: boolean;
 };
 
+export type PlayerManifestPresentationDefaults = {
+  backgroundColor?: string;
+  fitMode: PlayerManifestFitMode;
+  imageDurationSeconds: number;
+  loopEnabled: boolean;
+  transition: PlayerManifestTransition;
+  videoMuted: boolean;
+};
+
 export type PlayerManifestItem = PlayerPlaybackItem & {
   source: {
     url: string;
@@ -62,6 +71,7 @@ export type PlayerReleaseManifest = {
   publishedAt: string;
   totalDurationSeconds: number;
   totalBytes: number;
+  presentationDefaults?: PlayerManifestPresentationDefaults;
   items: PlayerManifestItem[];
 };
 
@@ -280,16 +290,16 @@ export function getPlaybackDurationMs(
 export function resolvePlayerItemPresentation(
   item: PlayerManifestItem
 ): ResolvedPlayerItemPresentation {
-  const cropFocusX = resolveBoundedNumber(item.cropFocusX, 0, 1, 0.5);
-  const cropFocusY = resolveBoundedNumber(item.cropFocusY, 0, 1, 0.5);
+  const cropFocusX = resolveBoundedNumber(item.cropFocus?.x, 0, 1, 0.5);
+  const cropFocusY = resolveBoundedNumber(item.cropFocus?.y, 0, 1, 0.5);
   const trimStartSeconds = resolveBoundedNumber(
-    item.trimStartSeconds,
+    item.trim?.startSeconds,
     0,
     86_400,
     0
   );
   const trimEndCandidate = resolveBoundedNumber(
-    item.trimEndSeconds,
+    item.trim?.endSeconds,
     0,
     86_400,
     null
@@ -298,8 +308,8 @@ export function resolvePlayerItemPresentation(
     trimEndCandidate !== null && trimEndCandidate > trimStartSeconds
       ? trimEndCandidate
       : null;
-  const visibleFrom = parseOptionalTimestamp(item.visibleFrom);
-  const visibleUntil = parseOptionalTimestamp(item.visibleUntil);
+  const visibleFrom = parseOptionalTimestamp(item.visibility?.from);
+  const visibleUntil = parseOptionalTimestamp(item.visibility?.until);
 
   return {
     accessibilityName:
