@@ -1064,14 +1064,17 @@ kbd {
   margin: 0;
 }
 
-.toolbar-date {
+.toolbar-date,
+.toolbar-field {
   color: var(--vc-text-muted);
   display: grid;
   font-size: 12px;
   gap: var(--vc-space-2);
 }
 
-.toolbar-date input {
+.toolbar-date input,
+.toolbar-field input,
+.toolbar-field select {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-md);
