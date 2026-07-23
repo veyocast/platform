@@ -1,4 +1,11 @@
 import Link from "next/link";
+import {
+  Grid3X3,
+  List,
+  MapPin,
+  Monitor,
+  TriangleAlert
+} from "lucide-react";
 
 import {
   Button,
@@ -10,9 +17,10 @@ import {
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { loadScreenFleet, type FleetDevice, type FleetScreen } from "./data";
+import styles from "./screens-overview.module.css";
 
 type ScreensPageProps = {
-  searchParams: Promise<{ fout?: string; q?: string; status?: string; succes?: string }>;
+  searchParams: Promise<{ fout?: string; q?: string; status?: string; succes?: string; view?: string }>;
 };
 
 export default async function ScreensPage({ searchParams }: ScreensPageProps) {
@@ -24,7 +32,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const devicesByScreen = new Map(
     data.devices.filter((device) => device.status === "paired").map((device) => [device.screenId, device])
   );
-  const releaseLabels = new Map(data.releases.map((release) => [release.id, release.label]));
+  const releaseById = new Map(data.releases.map((release) => [release.id, release]));
   const statuses = data.screens.map((screen) => screenStatus(screen, devicesByScreen.get(screen.id)));
   const normalizedQuery = query.q?.trim().toLocaleLowerCase("nl-NL") ?? "";
   const statusFilter = new Set(["online", "offline", "syncing", "unpaired", "maintenance", "disabled"]).has(query.status ?? "")
@@ -46,6 +54,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const online = statuses.filter((status) => status.kind === "online").length;
   const syncing = statuses.filter((status) => status.kind === "syncing").length;
   const attention = statuses.filter((status) => ["maintenance", "offline", "unpaired"].includes(status.kind)).length;
+  const view = query.view === "list" ? "list" : "cards";
 
   return <>
     <PageHeader
@@ -107,16 +116,64 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       </FilterBar>
     </form>
 
-    <section className="workspace-section" aria-labelledby="screen-fleet-title">
-      <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="screen-fleet-title">Schermvloot</h2><p className="work-panel__meta">De vloot staat standaard op herstelprioriteit; uitgeschakelde schermen staan onderaan.</p></div><div className="workspace-section__actions"><Button asChild size="sm" variant="secondary"><Link href="/dashboard/releases">Release Center</Link></Button><StatusPill label={`${data.screens.length} totaal`} tone="neutral" /></div></div>
-      {filteredScreens.length ? <div className="data-table-frame"><table className="data-table data-table--responsive" data-vc-table-key="tenant-screen-fleet"><caption>Operationele schermstatus binnen de actieve vereniging.</caption><thead><tr><th data-column="screen" scope="col">Scherm</th><th data-column="status" scope="col">Status</th><th data-column="player" scope="col">Player</th><th data-column="content" scope="col">Content</th><th data-column="sync" scope="col">Synchronisatie</th><th data-column="seen" scope="col">Laatst gezien</th><th data-column="action" scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
+    <div className={styles.viewBar}>
+      <nav aria-label="Schermweergave" className={styles.viewTabs}>
+        <Link className={styles.viewTab} data-active={view === "cards"} href={screenViewHref(query, "cards")}><Grid3X3 aria-hidden="true" />Kaarten</Link>
+        <Link className={styles.viewTab} data-active={view === "list"} href={screenViewHref(query, "list")}><List aria-hidden="true" />Tabel</Link>
+      </nav>
+      <div className={styles.viewActions}>
+        <Button asChild size="sm" variant="secondary"><Link href="/dashboard/releases">Release Center</Link></Button>
+        <StatusPill label={`${data.screens.length} totaal`} tone="neutral" />
+      </div>
+    </div>
+
+    <section aria-labelledby="screen-fleet-title">
+      <h2 className="sr-only" id="screen-fleet-title">Schermvloot</h2>
+      {filteredScreens.length && view === "cards" ? (
+        <div className={styles.screenGrid}>
+          {filteredScreens.map((screen) => {
+            const device = devicesByScreen.get(screen.id);
+            const status = screenStatus(screen, device);
+            const releaseId = device?.activeReleaseId ?? screen.assignedReleaseId;
+            const release = releaseId ? releaseById.get(releaseId) : undefined;
+            const hasWarning = ["maintenance", "offline", "unpaired"].includes(status.kind);
+            return (
+              <article className={styles.screenCard} data-status={status.kind} key={screen.id}>
+                <Link className={styles.screenPreview} href={`/dashboard/screens/${screen.id}`}>
+                  <span className={styles.previewGlow} aria-hidden="true" />
+                  <Monitor aria-hidden="true" />
+                  <span>{release?.playlistName ?? "Geen actieve content"}</span>
+                  <StatusPill label={status.label} tone={status.tone} />
+                </Link>
+                <div className={styles.screenBody}>
+                  <div className={styles.screenTitle}>
+                    <div>
+                      <Link href={`/dashboard/screens/${screen.id}`}>{screen.name}</Link>
+                      <p><MapPin aria-hidden="true" />{screen.location || "Geen locatie ingesteld"}</p>
+                    </div>
+                    {hasWarning ? <TriangleAlert aria-label="Dit scherm vraagt aandacht" /> : null}
+                  </div>
+                  <dl className={styles.screenMeta}>
+                    <div><dt>Content</dt><dd>{release?.playlistName ?? "Niet toegewezen"}</dd></div>
+                    <div><dt>Versie</dt><dd>{release ? `Versie ${release.version}` : "—"}</dd></div>
+                    <div><dt>Bron</dt><dd>{screen.assignedPlaylistId ? "Standaardplaylist" : "Geen toewijzing"}</dd></div>
+                    <div><dt>Synchronisatie</dt><dd>{syncLabel(device)}</dd></div>
+                    <div><dt>Scherm</dt><dd>{screen.resolutionWidth && screen.resolutionHeight ? `${screen.resolutionWidth} × ${screen.resolutionHeight}` : "Resolutie onbekend"} · {orientationLabel(screen.orientation)}</dd></div>
+                    <div><dt>Laatste contact</dt><dd>{formatLastSeen(device?.lastSeenAt)}</dd></div>
+                  </dl>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : filteredScreens.length ? <div className="data-table-frame"><table className="data-table data-table--responsive" data-vc-table-key="tenant-screen-fleet"><caption>Operationele schermstatus binnen de actieve vereniging.</caption><thead><tr><th data-column="screen" scope="col">Scherm</th><th data-column="status" scope="col">Status</th><th data-column="player" scope="col">Player</th><th data-column="content" scope="col">Content</th><th data-column="sync" scope="col">Synchronisatie</th><th data-column="seen" scope="col">Laatst gezien</th><th data-column="action" scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
         const device = devicesByScreen.get(screen.id);
         const status = screenStatus(screen, device);
         return <tr key={screen.id}>
           <td data-column="screen" data-label="Scherm"><span className="table-primary">{screen.name}</span><span className="table-secondary">{screen.location || orientationLabel(screen.orientation)}</span></td>
           <td data-column="status" data-label="Status"><StatusPill label={status.label} tone={status.tone} /></td>
           <td data-column="player" data-label="Player">{device?.deviceName || "Niet gekoppeld"}<span className="table-secondary">{device?.appVersion ? `App ${device.appVersion}` : device?.platform || "Geen telemetry"}</span></td>
-          <td data-column="content" data-label="Content">{screen.assignedReleaseId ? releaseLabels.get(screen.assignedReleaseId) || `Release ${screen.assignedReleaseId.slice(0, 8)}` : "Geen release"}</td>
+          <td data-column="content" data-label="Content">{screen.assignedReleaseId ? releaseById.get(screen.assignedReleaseId)?.label || `Release ${screen.assignedReleaseId.slice(0, 8)}` : "Geen release"}</td>
           <td data-column="sync" data-label="Synchronisatie">{syncLabel(device)}</td>
           <td data-column="seen" data-label="Laatst gezien">{formatLastSeen(device?.lastSeenAt)}</td>
           <td data-column="action" data-label="Actie"><Link className="table-action" href={`/dashboard/screens/${screen.id}`}>Bekijk scherm</Link></td>
@@ -164,3 +221,16 @@ function formatLastSeen(value: string | null | undefined) {
 }
 
 function orientationLabel(value: string) { return value === "portrait" ? "Staand scherm" : "Liggend scherm"; }
+
+function screenViewHref(
+  query: Awaited<ScreensPageProps["searchParams"]>,
+  view: "cards" | "list"
+) {
+  const next = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value && !["view", "fout", "succes"].includes(key)) next.set(key, value);
+  }
+  if (view === "list") next.set("view", view);
+  const suffix = next.toString();
+  return suffix ? `/dashboard/screens?${suffix}` : "/dashboard/screens";
+}
