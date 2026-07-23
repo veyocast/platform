@@ -1,0 +1,19 @@
+export type ContentScheduleListItem = {
+  enabled: boolean;
+  endsAt: string | null;
+  id: string;
+  name: string;
+  playlistName: string;
+  priority: number;
+  recurrence: Record<string, unknown>;
+  releaseId: string;
+  releaseVersion: number;
+  revision: number;
+  scheduleKind: string;
+  source: string;
+  startsAt: string;
+  targetId: string;
+  targetKind: string;
+  targetName: string;
+  timezoneName: string;
+};

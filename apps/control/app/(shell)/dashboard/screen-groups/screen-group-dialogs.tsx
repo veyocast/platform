@@ -15,7 +15,7 @@ import {
   DialogTrigger
 } from "@veyocast/ui";
 
-import type { ScreenGroupListItem } from "./data";
+import type { ScreenGroupListItem } from "./screen-group-types";
 import {
   archiveScreenGroup,
   createScreenGroup,

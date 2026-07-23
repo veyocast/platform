@@ -2,25 +2,7 @@ import "server-only";
 
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
-export type ContentScheduleListItem = {
-  enabled: boolean;
-  endsAt: string | null;
-  id: string;
-  name: string;
-  playlistName: string;
-  priority: number;
-  recurrence: Record<string, unknown>;
-  releaseId: string;
-  releaseVersion: number;
-  revision: number;
-  scheduleKind: string;
-  source: string;
-  startsAt: string;
-  targetId: string;
-  targetKind: string;
-  targetName: string;
-  timezoneName: string;
-};
+import type { ContentScheduleListItem } from "./planning-types";
 
 export async function loadContentSchedules(tenantId: string) {
   const supabase = await createControlSupabaseClient();

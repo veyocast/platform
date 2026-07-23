@@ -23,7 +23,7 @@ import {
   type ScheduleConflict,
   type ScheduleConflictCheck
 } from "./actions";
-import type { ContentScheduleListItem } from "./data";
+import type { ContentScheduleListItem } from "./planning-types";
 import {
   isoToZonedDateTimeLocal,
   zonedLocalDateTimeToIso

@@ -2,18 +2,7 @@ import "server-only";
 
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
-export type ScreenGroupListItem = {
-  defaultReleaseId: string | null;
-  defaultContent: string | null;
-  description: string | null;
-  id: string;
-  memberIds: string[];
-  memberNames: string[];
-  name: string;
-  revision: number;
-  status: string;
-  updatedAt: string;
-};
+import type { ScreenGroupListItem } from "./screen-group-types";
 
 export async function loadScreenGroups(tenantId: string) {
   const supabase = await createControlSupabaseClient();
