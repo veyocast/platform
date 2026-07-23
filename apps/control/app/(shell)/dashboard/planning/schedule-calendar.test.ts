@@ -6,6 +6,7 @@ import {
   normalizeReferenceDate,
   planningRangeLabel,
   scheduleMatchesPlanningTarget,
+  schedulesOverlap,
   shiftReferenceDate,
   type CalendarSchedule
 } from "./schedule-calendar";
@@ -117,6 +118,61 @@ describe("Publisher planning calendar", () => {
       { targetId: "group-1", targetKind: "screen_group" },
       "screen_group:group-2",
       [{ id: "group-1", memberIds: ["screen-1"] }]
+    )).toBe(false);
+  });
+
+  it("meldt alleen terugkerende conflicten op dezelfde weekdag en tijd", () => {
+    const monday = {
+      ...baseSchedule,
+      recurrence: { endTime: "20:00", startTime: "18:00", weekdays: [1] },
+      scheduleKind: "weekly"
+    };
+    const tuesday = {
+      ...baseSchedule,
+      id: "schedule-2",
+      recurrence: { endTime: "20:00", startTime: "18:00", weekdays: [2] },
+      scheduleKind: "weekly"
+    };
+    const mondayOverlap = {
+      ...tuesday,
+      recurrence: { endTime: "21:00", startTime: "19:00", weekdays: [1] }
+    };
+
+    expect(schedulesOverlap(
+      monday,
+      tuesday,
+      "Europe/Amsterdam",
+      "Europe/Amsterdam"
+    )).toBe(false);
+    expect(schedulesOverlap(
+      monday,
+      mondayOverlap,
+      "Europe/Amsterdam",
+      "Europe/Amsterdam"
+    )).toBe(true);
+  });
+
+  it("behandelt niet-bestaande lokale DST-tijd niet als conflict", () => {
+    const dstWindow = {
+      ...baseSchedule,
+      endsAt: "2026-03-30T22:00:00.000Z",
+      recurrence: { endTime: "03:00", startTime: "02:30" },
+      startsAt: "2026-03-29T00:00:00.000Z"
+    };
+    const oneOff = {
+      ...baseSchedule,
+      endsAt: "2026-03-29T01:50:00.000Z",
+      id: "schedule-dst",
+      recurrence: {},
+      scheduleKind: "once",
+      startsAt: "2026-03-29T01:35:00.000Z"
+    };
+
+    expect(schedulesOverlap(
+      dstWindow,
+      oneOff,
+      "Europe/Amsterdam",
+      "Europe/Amsterdam"
     )).toBe(false);
   });
 });

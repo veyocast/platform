@@ -6,14 +6,21 @@ import { redirect } from "next/navigation";
 
 import { requireTenantCapability, requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import {
+  schedulesOverlap,
+  type CalendarSchedule
+} from "./schedule-calendar";
 import { zonedLocalDateTimeToIso } from "./schedule-time";
 
 export type ScheduleConflictInput = {
   endsAtIso: string | null;
   excludeScheduleId?: string | null;
+  recurrence: Record<string, unknown>;
+  scheduleKind: "custom" | "daily" | "once" | "weekly";
   startsAtIso: string;
   targetId: string;
   targetKind: "screen" | "screen_group";
+  timezoneName: string;
 };
 
 export type ScheduleConflict = {
@@ -74,11 +81,14 @@ export async function setContentScheduleEnabled(formData: FormData) {
     const conflicts = await runConflictCheck(context.supabase, context.session.tenantId, {
       endsAtIso: schedule.ends_at,
       excludeScheduleId: schedule.id,
+      recurrence: objectValue(schedule.recurrence_json),
+      scheduleKind: schedule.schedule_kind,
       startsAtIso: schedule.starts_at,
       targetId: schedule.target_kind === "screen"
         ? schedule.target_screen_id
         : schedule.target_screen_group_id,
-      targetKind: schedule.target_kind
+      targetKind: schedule.target_kind,
+      timezoneName: schedule.timezone_name
     });
     if (conflicts.error) fail(conflicts.error);
     if (conflicts.conflicts.length > 0 && formData.get("confirmConflicts") !== "yes") {
@@ -112,9 +122,12 @@ async function saveContentSchedule(formData: FormData, operation: "create" | "up
   const conflicts = await runConflictCheck(context.supabase, context.session.tenantId, {
     endsAtIso: input.endsAt,
     excludeScheduleId: scheduleId,
+    recurrence: input.recurrence,
+    scheduleKind: input.scheduleKind,
     startsAtIso: input.startsAt,
     targetId: input.targetId,
-    targetKind: input.targetKind
+    targetKind: input.targetKind,
+    timezoneName: input.timezoneName
   });
   if (conflicts.error) fail(conflicts.error);
   if (conflicts.conflicts.length > 0 && formData.get("confirmConflicts") !== "yes") {
@@ -178,10 +191,11 @@ async function scheduleInput(context: PlanningWriter, formData: FormData) {
     fail("Het einde moet na het begin liggen.");
   }
 
-  const scheduleKind = String(formData.get("scheduleKind") ?? "");
-  if (!["once", "daily", "weekly", "custom"].includes(scheduleKind)) {
+  const rawScheduleKind = String(formData.get("scheduleKind") ?? "");
+  if (!["once", "daily", "weekly", "custom"].includes(rawScheduleKind)) {
     fail("Kies een geldige herhaling.");
   }
+  const scheduleKind = rawScheduleKind as ScheduleConflictInput["scheduleKind"];
   const recurrence = scheduleKind === "once"
     ? {}
     : recurrenceValue(formData, scheduleKind);
@@ -245,7 +259,46 @@ async function runConflictCheck(
     };
   }
   const rows = Array.isArray(data) ? data : [];
-  const screenIds = [...new Set(rows.flatMap((row) =>
+  const scheduleIds = [...new Set(rows.flatMap((row) =>
+    typeof row.schedule_id === "string" ? [row.schedule_id] : []
+  ))];
+  const scheduleResult = scheduleIds.length
+    ? await supabase
+        .from("content_schedules")
+        .select("id, name, starts_at, ends_at, schedule_kind, recurrence_json, timezone_name")
+        .eq("tenant_id", tenantId)
+        .in("id", scheduleIds)
+    : { data: [], error: null };
+  if (scheduleResult.error) {
+    console.error("Conflicterende planningsregels laden mislukt", scheduleResult.error);
+    return {
+      conflicts: [],
+      error: "De herhalingsregels van bestaande planningen konden niet veilig worden gecontroleerd."
+    };
+  }
+  const proposed = conflictCalendarSchedule(input, "proposed", "Voorgestelde planning");
+  const overlappingScheduleIds = new Set(
+    (scheduleResult.data ?? []).flatMap((schedule) => {
+      const existing = conflictCalendarSchedule({
+        endsAtIso: schedule.ends_at,
+        recurrence: objectValue(schedule.recurrence_json),
+        scheduleKind: scheduleKindValue(schedule.schedule_kind),
+        startsAtIso: schedule.starts_at
+      }, schedule.id, schedule.name);
+      return schedulesOverlap(
+        proposed,
+        existing,
+        input.timezoneName,
+        schedule.timezone_name
+      )
+        ? [schedule.id]
+        : [];
+    })
+  );
+  const overlappingRows = rows.filter((row) =>
+    typeof row.schedule_id === "string" && overlappingScheduleIds.has(row.schedule_id)
+  );
+  const screenIds = [...new Set(overlappingRows.flatMap((row) =>
     typeof row.screen_id === "string" ? [row.screen_id] : []
   ))];
   const screenNames = new Map<string, string>();
@@ -265,7 +318,7 @@ async function runConflictCheck(
     for (const screen of screens.data ?? []) screenNames.set(screen.id, screen.name);
   }
   return {
-    conflicts: rows.flatMap((row) => {
+    conflicts: overlappingRows.flatMap((row) => {
       if (
         typeof row.schedule_id !== "string" ||
         typeof row.schedule_name !== "string" ||
@@ -290,6 +343,11 @@ async function runConflictCheck(
 function normalizeConflictInput(input: ScheduleConflictInput): ScheduleConflictInput | null {
   if (
     (input.targetKind !== "screen" && input.targetKind !== "screen_group") ||
+    !["custom", "daily", "once", "weekly"].includes(input.scheduleKind) ||
+    !input.recurrence ||
+    typeof input.recurrence !== "object" ||
+    Array.isArray(input.recurrence) ||
+    !validTimeZone(input.timezoneName) ||
     !uuidPattern.test(input.targetId) ||
     (input.excludeScheduleId && !uuidPattern.test(input.excludeScheduleId)) ||
     !validIso(input.startsAtIso) ||
@@ -322,7 +380,7 @@ async function loadTenantTimezone(context: PlanningWriter) {
 async function loadScheduleForCommand(context: PlanningWriter, scheduleId: string) {
   const { data, error } = await context.supabase
     .from("content_schedules")
-    .select("id, target_kind, target_screen_id, target_screen_group_id, starts_at, ends_at")
+    .select("id, target_kind, target_screen_id, target_screen_group_id, starts_at, ends_at, schedule_kind, recurrence_json, timezone_name")
     .eq("tenant_id", context.session.tenantId)
     .eq("id", scheduleId)
     .single();
@@ -334,10 +392,58 @@ async function loadScheduleForCommand(context: PlanningWriter, scheduleId: strin
   ) fail("Het planningsdoel is niet meer geldig.");
   return {
     ...data,
+    schedule_kind: scheduleKindValue(data.schedule_kind),
     target_kind: data.target_kind as "screen" | "screen_group",
     target_screen_group_id: data.target_screen_group_id ?? "",
     target_screen_id: data.target_screen_id ?? ""
   };
+}
+
+function conflictCalendarSchedule(
+  input: Pick<
+    ScheduleConflictInput,
+    "endsAtIso" | "recurrence" | "scheduleKind" | "startsAtIso"
+  >,
+  id: string,
+  name: string
+): CalendarSchedule {
+  return {
+    enabled: true,
+    endsAt: input.endsAtIso,
+    id,
+    name,
+    playlistName: "",
+    priority: 0,
+    recurrence: input.recurrence,
+    releaseVersion: 0,
+    scheduleKind: input.scheduleKind,
+    source: "publisher",
+    startsAt: input.startsAtIso,
+    targetId: "",
+    targetKind: "screen",
+    targetName: ""
+  };
+}
+
+function scheduleKindValue(value: unknown): ScheduleConflictInput["scheduleKind"] {
+  return value === "daily" || value === "weekly" || value === "custom"
+    ? value
+    : "once";
+}
+
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function validTimeZone(value: string) {
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: value }).format();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function commandResult(value: unknown): ScheduleCommandResult | null {

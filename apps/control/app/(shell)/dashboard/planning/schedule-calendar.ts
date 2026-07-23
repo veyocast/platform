@@ -121,6 +121,51 @@ export function scheduleMatchesPlanningTarget(
     groups.some((group) => group.id === schedule.targetId && group.memberIds.includes(id));
 }
 
+export function schedulesOverlap(
+  left: CalendarSchedule,
+  right: CalendarSchedule,
+  leftTimeZone: string,
+  rightTimeZone: string,
+  horizonDays = 93
+) {
+  const rangeStartMs = Math.max(
+    new Date(left.startsAt).getTime(),
+    new Date(right.startsAt).getTime()
+  );
+  const finiteEnds = [left.endsAt, right.endsAt]
+    .filter((value): value is string => Boolean(value))
+    .map((value) => new Date(value).getTime());
+  const rangeEndMs = Math.min(
+    finiteEnds.length ? Math.min(...finiteEnds) : Number.POSITIVE_INFINITY,
+    rangeStartMs + horizonDays * 86_400_000
+  );
+  if (!Number.isFinite(rangeStartMs) || rangeEndMs <= rangeStartMs) return false;
+
+  const scanStart = new Date(rangeStartMs - 86_400_000);
+  const scanEnd = new Date(rangeEndMs + 86_400_000);
+  const leftOccurrences = new Map<string, CalendarOccurrence>();
+  const rightOccurrences = new Map<string, CalendarOccurrence>();
+  for (
+    let cursor = scanStart.getTime();
+    cursor <= scanEnd.getTime();
+    cursor += 86_400_000
+  ) {
+    const instant = new Date(cursor);
+    for (const occurrence of occurrenceForDate(left, zonedDateKey(instant, leftTimeZone), leftTimeZone)) {
+      leftOccurrences.set(occurrence.startsAt, occurrence);
+    }
+    for (const occurrence of occurrenceForDate(right, zonedDateKey(instant, rightTimeZone), rightTimeZone)) {
+      rightOccurrences.set(occurrence.startsAt, occurrence);
+    }
+  }
+
+  return [...leftOccurrences.values()].some((leftOccurrence) =>
+    [...rightOccurrences.values()].some((rightOccurrence) =>
+      intervalsOverlap(leftOccurrence, rightOccurrence)
+    )
+  );
+}
+
 export function shiftReferenceDate(
   referenceDate: string,
   view: Exclude<PlanningView, "agenda">,
@@ -218,6 +263,18 @@ function toOccurrence(
     targetKind: schedule.targetKind,
     targetName: schedule.targetName
   };
+}
+
+function intervalsOverlap(
+  left: Pick<CalendarOccurrence, "endsAt" | "startsAt">,
+  right: Pick<CalendarOccurrence, "endsAt" | "startsAt">
+) {
+  const leftEnd = left.endsAt ? new Date(left.endsAt).getTime() : Number.POSITIVE_INFINITY;
+  const rightEnd = right.endsAt ? new Date(right.endsAt).getTime() : Number.POSITIVE_INFINITY;
+  return Math.max(
+    new Date(left.startsAt).getTime(),
+    new Date(right.startsAt).getTime()
+  ) < Math.min(leftEnd, rightEnd);
 }
 
 function recurrenceTime(value: unknown) {

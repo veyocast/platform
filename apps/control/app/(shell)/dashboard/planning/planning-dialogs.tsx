@@ -108,14 +108,18 @@ export function ContentScheduleDialog({
         timezoneName
       );
       const localEnd = String(values.get("endsAtLocal") ?? "").trim();
+      const conflictScheduleKind = scheduleKindValue(values.get("scheduleKind"));
       const result = await checkScheduleConflicts({
         endsAtIso: localEnd
           ? zonedLocalDateTimeToIso(localEnd, timezoneName)
           : null,
         excludeScheduleId: schedule?.id ?? null,
+        recurrence: conflictRecurrence(values, conflictScheduleKind),
+        scheduleKind: conflictScheduleKind,
         startsAtIso,
         targetId: target[1] ?? "",
-        targetKind: target[0] === "screen_group" ? "screen_group" : "screen"
+        targetKind: target[0] === "screen_group" ? "screen_group" : "screen",
+        timezoneName
       });
       setConflictCheck(result);
       if (!result.error && result.conflicts.length === 0) {
@@ -357,9 +361,12 @@ export function ScheduleStateDialog({
     const result = await checkScheduleConflicts({
       endsAtIso: schedule.endsAt,
       excludeScheduleId: schedule.id,
+      recurrence: schedule.recurrence,
+      scheduleKind: scheduleKindValue(schedule.scheduleKind),
       startsAtIso: schedule.startsAt,
       targetId: schedule.targetId,
-      targetKind: schedule.targetKind === "screen_group" ? "screen_group" : "screen"
+      targetKind: schedule.targetKind === "screen_group" ? "screen_group" : "screen",
+      timezoneName
     });
     setCheck(result);
     setChecking(false);
@@ -490,6 +497,27 @@ function sourceLabel(source: string) {
   if (source === "override") return "Tijdelijke override";
   if (source === "fallback") return "Fallback";
   return "Normale planning";
+}
+
+function scheduleKindValue(value: FormDataEntryValue | null) {
+  return value === "daily" || value === "weekly" || value === "custom"
+    ? value
+    : "once";
+}
+
+function conflictRecurrence(
+  values: FormData,
+  scheduleKind: ReturnType<typeof scheduleKindValue>
+) {
+  if (scheduleKind === "once") return {};
+  const recurrence: Record<string, unknown> = {
+    endTime: String(values.get("windowEndTime") ?? ""),
+    startTime: String(values.get("windowStartTime") ?? "")
+  };
+  if (scheduleKind === "weekly" || scheduleKind === "custom") {
+    recurrence.weekdays = values.getAll("weekdays").map(Number);
+  }
+  return recurrence;
 }
 
 const weekdayOptions = [
