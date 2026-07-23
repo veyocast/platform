@@ -870,6 +870,7 @@ declare
   replay jsonb;
   outcome jsonb;
   item_id uuid;
+  media_asset_id uuid;
   target_section_id uuid;
   target_position integer;
   item_count integer;
@@ -889,6 +890,8 @@ begin
     or normalized_operation not in (
       'update_playlist_defaults',
       'update_item_presentation',
+      'duplicate_item',
+      'replace_item',
       'move_item',
       'create_section',
       'update_section',
@@ -1044,6 +1047,124 @@ begin
         enabled = coalesce((p_payload ->> 'enabled')::boolean, true),
         accessibility_name = nullif(btrim(p_payload ->> 'accessibilityName'), '')
     where item.id = item_record.id;
+
+  elsif normalized_operation in ('duplicate_item', 'replace_item') then
+    begin
+      item_id := (p_payload ->> 'itemId')::uuid;
+      media_asset_id := nullif(p_payload ->> 'mediaAssetId', '')::uuid;
+    exception when invalid_text_representation then
+      raise exception 'playlist item command is invalid' using errcode = '23514';
+    end;
+
+    select item.* into item_record
+    from public.playlist_items item
+    where item.tenant_id = playlist_record.tenant_id
+      and item.playlist_id = playlist_record.id
+      and item.id = item_id
+    for update;
+    if not found then
+      raise exception 'playlist item not found' using errcode = 'P0002';
+    end if;
+
+    if normalized_operation = 'replace_item' then
+      select asset.* into media_record
+      from public.media_assets asset
+      where asset.tenant_id = playlist_record.tenant_id
+        and asset.id = media_asset_id
+        and asset.status = 'ready'::public.media_asset_status
+        and asset.deleted_at is null;
+      if not found then
+        raise exception 'replacement media is not ready in this tenant'
+          using errcode = '23514';
+      end if;
+
+      update public.playlist_items
+      set media_asset_id = media_record.id
+      where id = item_record.id;
+    else
+      select min(item.position_key) into next_position_key
+      from public.playlist_items item
+      where item.tenant_id = playlist_record.tenant_id
+        and item.playlist_id = playlist_record.id
+        and item.position_key > item_record.position_key;
+      new_position_key := case
+        when next_position_key is null then item_record.position_key + 1024
+        else (item_record.position_key + next_position_key) / 2
+      end;
+
+      select count(*)::integer into item_count
+      from public.playlist_items item
+      where item.tenant_id = playlist_record.tenant_id
+        and item.playlist_id = playlist_record.id;
+      offset_value := item_count + 1;
+      update public.playlist_items item
+      set sort_order = item.sort_order + offset_value
+      where item.tenant_id = playlist_record.tenant_id
+        and item.playlist_id = playlist_record.id;
+
+      insert into public.playlist_items (
+        tenant_id,
+        playlist_id,
+        section_id,
+        media_asset_id,
+        sort_order,
+        position_key,
+        duration_seconds,
+        fit_mode,
+        muted,
+        display_title,
+        transition,
+        crop_focus_x,
+        crop_focus_y,
+        background_color,
+        volume_percent,
+        trim_start_seconds,
+        trim_end_seconds,
+        visible_from,
+        visible_until,
+        enabled,
+        accessibility_name,
+        created_by
+      )
+      values (
+        item_record.tenant_id,
+        item_record.playlist_id,
+        item_record.section_id,
+        item_record.media_asset_id,
+        item_record.sort_order + 1,
+        new_position_key,
+        item_record.duration_seconds,
+        item_record.fit_mode,
+        item_record.muted,
+        item_record.display_title,
+        item_record.transition,
+        item_record.crop_focus_x,
+        item_record.crop_focus_y,
+        item_record.background_color,
+        item_record.volume_percent,
+        item_record.trim_start_seconds,
+        item_record.trim_end_seconds,
+        item_record.visible_from,
+        item_record.visible_until,
+        item_record.enabled,
+        item_record.accessibility_name,
+        actor_id
+      )
+      returning id into item_id;
+
+      with ordered as (
+        select
+          item.id,
+          row_number() over (order by item.position_key, item.id) - 1 as new_order
+        from public.playlist_items item
+        where item.tenant_id = playlist_record.tenant_id
+          and item.playlist_id = playlist_record.id
+      )
+      update public.playlist_items item
+      set sort_order = ordered.new_order
+      from ordered
+      where item.id = ordered.id;
+    end if;
 
   elsif normalized_operation = 'move_item' then
     begin
