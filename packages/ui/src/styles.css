@@ -571,6 +571,12 @@
     width: 100%;
   }
 
+  .vc-filter-bar__actions .vc-button {
+    line-height: 1.2;
+    padding-inline: var(--vc-space-8);
+    white-space: normal;
+  }
+
   .vc-filter-bar__actions > :first-child:nth-last-child(3) {
     grid-column: 1 / -1;
   }
