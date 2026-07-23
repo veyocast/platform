@@ -7,9 +7,10 @@ import {
   useEffect,
   useRef,
   useState,
-  type ComponentPropsWithoutRef,
   type FormEvent
 } from "react";
+
+import { Button } from "@veyocast/ui";
 
 import {
   cancelMediaVideoUpload,
@@ -293,21 +294,21 @@ export function VideoUploadForm({
       ) : null}
       <div className="upload-actions">
         {!isPaused ? (
-          <UploadButton disabled={!canUpload || isBusy} type="submit" variant="primary">
+          <Button disabled={!canUpload || isBusy} type="submit" variant="primary">
             {isBusy ? "Video versturen…" : "Video uploaden"}
-          </UploadButton>
+          </Button>
         ) : (
-          <UploadButton onClick={resume} type="button" variant="primary">Hervatten</UploadButton>
+          <Button onClick={resume} type="button" variant="primary">Hervatten</Button>
         )}
         {isBusy && uploadRef.current ? (
-          <UploadButton onClick={pause} type="button" variant="secondary">Pauzeren</UploadButton>
+          <Button onClick={pause} type="button" variant="secondary">Pauzeren</Button>
         ) : null}
         {pendingRef.current ? (
-          <UploadButton disabled={isBusy && !uploadRef.current} onClick={cancel} type="button" variant="secondary">Annuleren</UploadButton>
+          <Button disabled={isBusy && !uploadRef.current} onClick={cancel} type="button" variant="secondary">Annuleren</Button>
         ) : null}
       </div>
       {finalizationSessionId && !isBusy && notice?.tone === "critical" ? (
-        <UploadButton onClick={() => finalize(finalizationSessionId)} type="button" variant="secondary">Afronding opnieuw proberen</UploadButton>
+        <Button onClick={() => finalize(finalizationSessionId)} type="button" variant="secondary">Afronding opnieuw proberen</Button>
       ) : null}
       {notice ? <p className={`notice notice--${notice.tone}`} role={notice.tone === "critical" ? "alert" : "status"}>{notice.message}</p> : null}
       {!canUpload ? <p className="notice notice--warning" role="status">Video uploaden vereist editor- of beheerrechten en een actieve tenantverbinding.</p> : null}
@@ -352,9 +353,4 @@ function clearPendingUpload() {
 function formatBytes(value: number) {
   if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
   return `${Math.max(1, Math.round(value / 1024))} KB`;
-}
-
-function UploadButton({ className, variant, ...props }: ComponentPropsWithoutRef<"button"> & { variant: "primary" | "secondary" }) {
-  const classes = ["button-link", `button-link--${variant}`, className].filter(Boolean).join(" ");
-  return <button className={classes} {...props} />;
 }

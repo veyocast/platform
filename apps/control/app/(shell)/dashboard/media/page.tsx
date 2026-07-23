@@ -1,28 +1,33 @@
 /* eslint-disable @next/next/no-img-element */
-import { FileWarning, Image as ImageIcon, Video } from "lucide-react";
+import { FileWarning, Image as ImageIcon, Upload, Video } from "lucide-react";
 import Link from "next/link";
 
 import { hasCapability } from "@veyocast/auth";
-import { FilterBar } from "@veyocast/ui";
+import {
+  Button,
+  DataTable,
+  FilterBar,
+  PageHeader,
+  StatusPill,
+  SummaryStrip,
+  TablePreferences
+} from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../lib/control-session";
 import { getSupabasePublicConfig } from "../../../../lib/supabase/config";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import {
   HealthList,
-  MetricCard,
-  PageHeader,
-  StatusPill,
   Timeline
 } from "../../_components/shell-primitives";
 import {
   archiveMediaAsset,
   renameMediaAsset,
-  retryMediaProcessing,
-  uploadMediaImage
+  retryMediaProcessing
 } from "./actions";
+import { MediaInspectorSheet, MediaUploadDialog } from "./media-overlays";
 import { ProcessingStatusRefresh } from "./processing-status-refresh";
-import { VideoUploadForm } from "./video-upload-form";
+import { UploadQueueTray } from "./upload-queue-tray";
 
 type MediaPageProps = {
   searchParams: Promise<{
@@ -35,6 +40,7 @@ type MediaPageProps = {
     succes?: string;
     type?: string;
     to?: string;
+    upload?: string;
     usage?: string;
     view?: string;
   }>;
@@ -255,24 +261,28 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
     hasCapability(session.roles, "tenant.media.write");
   const visibleAssets = assets;
   const processingAssets = processingQueue;
-  const selectedAsset = assets.find((asset) => asset.id === params.asset) ?? visibleAssets[0] ?? null;
+  const selectedAsset = params.asset
+    ? assets.find((asset) => asset.id === params.asset) ?? null
+    : null;
   const pageCount = Math.max(1, Math.ceil(totalCount / 20));
+  const uploadCloseHref = mediaHref(params, { upload: undefined });
+  const inspectorCloseHref = mediaHref(params, { asset: undefined });
 
   return (
     <>
       {session.isLive && processingCount > 0 ? <ProcessingStatusRefresh /> : null}
       <PageHeader
         actions={canUpload ? (
-          <a className="button-link button-link--primary" href="#upload">
-            Media uploaden
-          </a>
+          <Button asChild>
+            <Link href={mediaHref(params, { upload: "1" })}>
+              <Upload aria-hidden="true" />
+              Media uploaden
+            </Link>
+          </Button>
         ) : null}
-        description="Upload gevalideerde afbeeldingen en video's en beheer tenantgebonden media voordat die in een playlist beschikbaar komt."
+        description="Beheer afbeeldingen en video's voor je playlists."
         eyebrow={session.tenant}
-        status={{
-          label: session.isLive ? "Live tenantdata" : "Demomodus",
-          tone: session.isLive ? "success" : "warning"
-        }}
+        status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
         title="Media"
       />
 
@@ -298,34 +308,80 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
         </p>
       ) : null}
 
-      <section className="metric-grid" aria-label="Mediastatussen">
-        <MetricCard
-          detail={`Geverifieerd · ${formatBytes(mediaStorageUsedBytes)} van ${formatBytes(mediaStorageLimitBytes)} gereserveerd.`}
-          label="Gereed"
-          tone="success"
-          value={String(readyCount)}
-        />
-        <MetricCard
-          detail="Nog niet beschikbaar voor publicatie."
-          label="In verwerking"
-          tone="warning"
-          value={String(processingCount)}
-        />
-        <MetricCard
-          detail="Afgewezen; herstelactie is nodig."
-          label="Validatie mislukt"
-          tone="critical"
-          value={String(failedCount)}
-        />
-      </section>
+      <SummaryStrip
+        aria-label="Samenvatting mediabibliotheek"
+        items={[
+          { label: "Media", value: String(totalCount), detail: `${readyCount} gereed` },
+          {
+            label: "In verwerking",
+            value: String(processingCount),
+            detail: processingCount > 0 ? "Automatisch bijgewerkt" : "Geen wachtrij",
+            tone: processingCount > 0 ? "warning" : "neutral"
+          },
+          {
+            label: "Actie nodig",
+            value: String(failedCount),
+            detail: failedCount > 0 ? "Controleer afgewezen media" : "Geen fouten",
+            tone: failedCount > 0 ? "critical" : "success"
+          },
+          {
+            label: "Opslag",
+            value: formatBytes(mediaStorageUsedBytes),
+            detail: `van ${formatBytes(mediaStorageLimitBytes)}`
+          }
+        ]}
+      />
 
       <form method="get" role="search">
         <FilterBar
           activeCount={mediaFilterCount(params)}
+          actions={(
+            <>
+              <TablePreferences
+                columns={[
+                  { id: "type", label: "Type", defaultVisible: true },
+                  { id: "name", label: "Media", defaultVisible: true, required: true },
+                  { id: "details", label: "Details", defaultVisible: true },
+                  { id: "status", label: "Status", defaultVisible: true },
+                  { id: "usage", label: "Gebruik", defaultVisible: true },
+                  { id: "created", label: "Toegevoegd", defaultVisible: true },
+                  { id: "actions", label: "Actie", defaultVisible: true, required: true }
+                ]}
+                defaultDensity="comfortable"
+                tableKey="media"
+              />
+              <Button asChild size="sm" variant={params.view !== "grid" ? "secondary" : "ghost"}>
+                <Link
+                  aria-current={params.view !== "grid" ? "page" : undefined}
+                  href={mediaHref(params, { page: "1", view: "list" })}
+                >
+                  Lijst
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant={params.view === "grid" ? "secondary" : "ghost"}>
+                <Link
+                  aria-current={params.view === "grid" ? "page" : undefined}
+                  href={mediaHref(params, { page: "1", view: "grid" })}
+                >
+                  Raster
+                </Link>
+              </Button>
+            </>
+          )}
           clearHref={`/dashboard/media?view=${params.view === "grid" ? "grid" : "list"}`}
+          defaultOpen={mediaFilterCount(params) > 0}
+          primary={(
+            <input
+              aria-label="Zoeken in media"
+              className="toolbar-search"
+              defaultValue={params.q}
+              name="q"
+              placeholder="Zoeken op titel of bestandsnaam"
+              type="search"
+            />
+          )}
           results={`${visibleAssets.length} van ${totalCount} zichtbaar`}
         >
-          <input aria-label="Zoeken in media" className="toolbar-search" defaultValue={params.q} name="q" placeholder="Zoeken op titel of bestandsnaam" type="search" />
           <select aria-label="Filter media op type" className="toolbar-select" defaultValue={params.type ?? "all"} name="type">
             <option value="all">Alle typen</option><option value="image">Afbeeldingen</option><option value="video">Video's</option>
           </select>
@@ -338,20 +394,19 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           <label className="toolbar-date"><span>Vanaf</span><input defaultValue={params.from} name="from" type="date" /></label>
           <label className="toolbar-date"><span>Tot en met</span><input defaultValue={params.to} name="to" type="date" /></label>
           <input name="view" type="hidden" value={params.view === "grid" ? "grid" : "list"} />
-          <button className="button-link button-link--secondary" type="submit">Filteren</button>
-          <Link aria-current={params.view !== "grid" ? "page" : undefined} className="button-link button-link--secondary" href={mediaHref(params, { page: "1", view: "list" })}>Lijst</Link>
-          <Link aria-current={params.view === "grid" ? "page" : undefined} className="button-link button-link--secondary" href={mediaHref(params, { page: "1", view: "grid" })}>Raster</Link>
+          <Button size="sm" type="submit" variant="secondary">Filters toepassen</Button>
         </FilterBar>
       </form>
 
-      <section className="resource-workspace">
-        <section className="workspace-section" aria-labelledby="media-library-title">
+      <section className="workspace-section" aria-labelledby="media-library-title">
           <div className="workspace-section__header">
             <div>
               <h2 className="workspace-section__title" id="media-library-title">
                 Mediabibliotheek
               </h2>
-              <p className="work-panel__meta">Private bucket: tenant-media</p>
+              <p className="work-panel__meta">
+                Selecteer een item om details en gebruik te bekijken.
+              </p>
             </div>
             <StatusPill label={`${totalCount} items`} tone="neutral" />
           </div>
@@ -363,246 +418,246 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                   <div className="media-library-card__body">
                     <div className="work-panel__header"><div><h3>{asset.title}</h3><p className="work-panel__meta">{asset.fileName}</p></div><MediaStatus status={asset.status} /></div>
                     <p className="work-panel__meta">{mediaDetails(asset)} · {usageSummary(asset)}</p>
-                    <Link className="table-action" href={mediaHref(params, { asset: asset.id })}>Openen</Link>
+                    <Button asChild size="sm" variant="ghost">
+                      <Link href={mediaHref(params, { asset: asset.id })}>
+                        Details bekijken
+                      </Link>
+                    </Button>
                   </div>
                 </article>
               ))}
             </div>
           ) : visibleAssets.length > 0 ? (
-            <div className="data-table-frame">
-              <table className="data-table data-table--responsive">
-                <caption>Media binnen de actieve vereniging.</caption>
+            <DataTable caption="Media binnen de actieve vereniging." tableKey="media">
                 <thead>
                   <tr>
-                    <th scope="col">Type</th>
-                    <th scope="col">Media</th>
-                    <th scope="col">Details</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Gebruik</th>
-                    <th scope="col">Toegevoegd</th>
-                    <th scope="col">Actie</th>
+                    <th data-column="type" scope="col">Type</th>
+                    <th data-column="name" scope="col">Media</th>
+                    <th data-column="details" scope="col">Details</th>
+                    <th data-column="status" scope="col">Status</th>
+                    <th data-column="usage" scope="col">Gebruik</th>
+                    <th data-column="created" scope="col">Toegevoegd</th>
+                    <th data-column="actions" scope="col">Actie</th>
                   </tr>
                 </thead>
                 <tbody>
                   {visibleAssets.map((asset) => (
                     <tr key={asset.id}>
-                      <td data-label="Type">
+                      <td data-column="type" data-label="Type">
                         <MediaType kind={asset.kind} status={asset.status} />
                       </td>
-                      <td data-label="Media">
+                      <td data-column="name" data-label="Media">
                         <span className="table-primary">{asset.title}</span>
                         <span className="table-secondary">{asset.fileName}</span>
                       </td>
-                      <td data-label="Details">{mediaDetails(asset)}</td>
-                      <td data-label="Status">
+                      <td data-column="details" data-label="Details">{mediaDetails(asset)}</td>
+                      <td data-column="status" data-label="Status">
                         <MediaStatus status={asset.status} />
                       </td>
-                      <td data-label="Gebruik">
+                      <td data-column="usage" data-label="Gebruik">
                         {usageSummary(asset)}
                       </td>
-                      <td data-label="Toegevoegd">{formatDate(asset.createdAt)}</td>
-                      <td data-label="Actie"><Link className="table-action" href={mediaHref(params, { asset: asset.id })}>Openen</Link></td>
+                      <td data-column="created" data-label="Toegevoegd">{formatDate(asset.createdAt)}</td>
+                      <td data-column="actions" data-label="Actie">
+                        <Button asChild size="sm" variant="ghost">
+                          <Link href={mediaHref(params, { asset: asset.id })}>Details</Link>
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+            </DataTable>
           ) : (
-            <p className="notice" role="status">
-              Er staat nog geen media in deze tenant. Upload een afbeelding of video om de bibliotheek te vullen.
-            </p>
+            <div className="notice" role="status">
+              <strong>Nog geen media.</strong>{" "}
+              Upload een afbeelding of video om je bibliotheek te vullen.
+            </div>
           )}
           {totalCount > 20 ? (
             <nav aria-label="Paginering mediabibliotheek" className="pagination">
-              <Link aria-disabled={page <= 1} className="button-link button-link--secondary" href={mediaHref(params, { page: String(Math.max(1, page - 1)) })}>Vorige</Link>
+              <Button asChild size="sm" variant="secondary">
+                <Link aria-disabled={page <= 1} href={mediaHref(params, { page: String(Math.max(1, page - 1)) })}>Vorige</Link>
+              </Button>
               <span>Pagina {Math.min(page, pageCount)} van {pageCount}</span>
-              <Link aria-disabled={page >= pageCount} className="button-link button-link--secondary" href={mediaHref(params, { page: String(Math.min(pageCount, page + 1)) })}>Volgende</Link>
+              <Button asChild size="sm" variant="secondary">
+                <Link aria-disabled={page >= pageCount} href={mediaHref(params, { page: String(Math.min(pageCount, page + 1)) })}>Volgende</Link>
+              </Button>
             </nav>
           ) : null}
-        </section>
-
-        <aside className="workspace-aside" aria-label="Media-inspector en uploadqueue">
-          <section className="inspector-panel" aria-labelledby="media-inspector-title">
-            <div className="work-panel__header">
-              <div>
-                <h2 className="work-panel__title" id="media-inspector-title">
-                  Media-inspector
-                </h2>
-                <p className="work-panel__meta">Meest recent toegevoegd</p>
-              </div>
-              {selectedAsset ? <MediaStatus status={selectedAsset.status} /> : null}
-            </div>
-            {selectedAsset ? (
-              <>
-                <MediaPreview asset={selectedAsset} />
-                <dl className="meta-list">
-                  <div><dt>Titel</dt><dd>{selectedAsset.title}</dd></div>
-                  <div><dt>Bestand</dt><dd>{selectedAsset.fileName}</dd></div>
-                  <div><dt>Afmetingen</dt><dd>{selectedAsset.width && selectedAsset.height ? `${selectedAsset.width} × ${selectedAsset.height}` : "Na verwerking beschikbaar"}</dd></div>
-                  <div><dt>Duur</dt><dd>{selectedAsset.durationSeconds ? `${selectedAsset.durationSeconds.toFixed(1)} seconden` : "Niet van toepassing of nog onbekend"}</dd></div>
-                  <div><dt>Checksum</dt><dd>{shortChecksum(selectedAsset.checksumSha256)}</dd></div>
-                  <div><dt>Validatie</dt><dd>{validationSummary(selectedAsset.validationError)}</dd></div>
-                  <div><dt>Opslagpad</dt><dd>{selectedAsset.storagePath}</dd></div>
-                </dl>
-                <section aria-labelledby="media-usage-title" className="media-usage">
-                  <div className="work-panel__header">
-                    <div><h3 id="media-usage-title">Gebruik en impact</h3><p className="work-panel__meta">Concept → release → scherm</p></div>
-                    <StatusPill label={usageSummary(selectedAsset)} tone={selectedAsset.usageCount > 0 ? "warning" : "neutral"} />
-                  </div>
-                  {selectedUsage.length > 0 ? (
-                    <ul className="media-usage__list">
-                      {selectedUsage.map((usage) => (
-                        <li key={`${usage.usageType}-${usage.resourceId}`}>
-                          <strong>{usage.resourceName}</strong>
-                          <span>{usageLabel(usage)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : <p className="work-panel__meta">Niet gebruikt in concepten, releases of schermtoewijzingen.</p>}
-                </section>
-                {processingSummary ? (
-                  <section className="media-usage" aria-labelledby="media-processing-title">
-                    <div className="work-panel__header"><div><h3 id="media-processing-title">Verwerking</h3><p className="work-panel__meta">{processingSummary.attempts} poging{processingSummary.attempts === 1 ? "" : "en"}</p></div><StatusPill label={statusLabel(processingSummary.status)} tone={processingSummary.status === "failed" ? "critical" : "info"} /></div>
-                    <p className="work-panel__meta">{processingExplanation(processingSummary)}</p>
-                  </section>
-                ) : null}
-                {activity.length > 0 ? (
-                  <section className="media-usage" aria-labelledby="media-activity-title">
-                    <div className="work-panel__header"><div><h3 id="media-activity-title">Activiteit</h3><p className="work-panel__meta">Controleerbare servergebeurtenissen</p></div></div>
-                    <ul className="media-usage__list">{activity.map((event) => <li key={`${event.createdAt}-${event.action}`}><strong>{activityLabel(event.action)}</strong><span>{formatDateTime(event.createdAt)} · {event.result === "success" ? "Geslaagd" : "Niet geslaagd"}</span></li>)}</ul>
-                  </section>
-                ) : null}
-                <form action={renameMediaAsset} className="playlist-form">
-                  <input name="assetId" type="hidden" value={selectedAsset.id} />
-                  <div className="field"><label htmlFor="media-rename-title">Mediatitel</label><input defaultValue={selectedAsset.title} disabled={!canUpload} id="media-rename-title" maxLength={120} minLength={2} name="title" required type="text" /></div>
-                  <button className="button-link button-link--secondary" disabled={!canUpload} type="submit">Titel opslaan</button>
-                </form>
-                {selectedAsset.kind === "video" && selectedAsset.status === "validation_failed" ? <form action={retryMediaProcessing}><input name="assetId" type="hidden" value={selectedAsset.id} /><button className="button-link button-link--secondary" disabled={!canUpload} type="submit">Verwerking opnieuw proberen</button><p className="work-panel__meta">Een tijdelijke workerfout kan opnieuw worden verwerkt. Een inhoudelijk onveilig bestand gaat in quarantaine en moet opnieuw worden aangeleverd.</p></form> : null}
-                <form action={archiveMediaAsset}>
-                  <input name="assetId" type="hidden" value={selectedAsset.id} />
-                  <button className="button-link button-link--secondary" disabled={!canUpload || selectedAsset.usageCount > 0} type="submit">Media archiveren</button>
-                  {selectedAsset.usageCount > 0 ? <p className="work-panel__meta">Verwijder deze media eerst uit alle conceptplaylists. Gepubliceerde releases blijven altijd intact.</p> : null}
-                </form>
-              </>
-            ) : (
-              <p className="notice">Na de eerste upload toont VeyoCast hier de controleerbare metadata.</p>
-            )}
-          </section>
-
-          <section className="data-surface" aria-labelledby="upload-queue-title">
-            <div className="work-panel__header">
-              <div>
-                <h2 className="work-panel__title" id="upload-queue-title">
-                  Uploadqueue
-                </h2>
-                <p className="work-panel__meta">Automatische statusupdate · media wordt pas na volledige verificatie gereed.</p>
-              </div>
-              <StatusPill label={`${processingAssets.length} items`} tone="info" />
-            </div>
-            {processingAssets.length > 0 ? (
-              <HealthList
-                ariaLabel="Uploadqueue"
-                items={processingAssets.map((asset) => ({
-                  detail: asset.fileName,
-                  label: asset.title,
-                  status: statusLabel(asset.status),
-                  tone: "warning" as const
-                }))}
-              />
-            ) : (
-              <p className="notice" role="status">Geen uploads in verwerking.</p>
-            )}
-          </section>
-        </aside>
       </section>
 
-      <section className="work-grid">
-        <section className="data-surface" aria-labelledby="pipeline-title">
+      <details className="media-guidance">
+        <summary>Upload- en verwerkingsregels</summary>
+        <div className="work-grid">
+        <section aria-labelledby="pipeline-title">
           <div className="work-panel__header">
             <div>
-              <h2 className="work-panel__title" id="pipeline-title">Pipeline voortgang</h2>
+              <h2 className="work-panel__title" id="pipeline-title">Veilige verwerking</h2>
               <p className="work-panel__meta">Van gebruikersbestand naar geverifieerde variant.</p>
             </div>
-            <StatusPill label="Server-side" tone="success" />
           </div>
           <Timeline ariaLabel="Media pipeline stappen" items={pipelineSteps} />
         </section>
 
-        <section className="data-surface" id="upload" aria-labelledby="upload-intake-title">
-          <div className="work-panel__header">
-            <div>
-              <h2 className="work-panel__title" id="upload-intake-title">Afbeelding uploaden</h2>
-              <p className="work-panel__meta">JPEG, PNG of WebP · maximaal 20 MB.</p>
-            </div>
-            <StatusPill
-              label={canUpload ? "Editor actief" : session.isLive ? "Alleen bekijken" : "Demo"}
-              tone={canUpload ? "success" : "warning"}
-            />
+      <section aria-labelledby="media-risk-title">
+        <div className="work-panel__header">
+          <div>
+            <h2 className="work-panel__title" id="media-risk-title">Ondersteunde bestanden</h2>
+            <p className="work-panel__meta">Private bucket: tenant-media</p>
           </div>
-          <form action={uploadMediaImage} className="upload-form">
+        </div>
+        <HealthList ariaLabel="Media validatierisico's" items={mediaRules} />
+      </section>
+        </div>
+      </details>
+
+      {selectedAsset ? (
+        <MediaInspectorSheet
+          closeHref={inspectorCloseHref}
+          description={selectedAsset.fileName}
+          open
+          status={{
+            label: statusLabel(selectedAsset.status),
+            tone: mediaStatusTone(selectedAsset.status)
+          }}
+          title={selectedAsset.title}
+        >
+          <MediaPreview asset={selectedAsset} />
+          <dl className="meta-list">
+            <div><dt>Type</dt><dd>{mediaDetails(selectedAsset)}</dd></div>
+            <div><dt>Afmetingen</dt><dd>{selectedAsset.width && selectedAsset.height ? `${selectedAsset.width} × ${selectedAsset.height}` : "Na verwerking beschikbaar"}</dd></div>
+            <div><dt>Duur</dt><dd>{selectedAsset.durationSeconds ? `${selectedAsset.durationSeconds.toFixed(1)} seconden` : "Niet van toepassing of nog onbekend"}</dd></div>
+            <div><dt>Checksum</dt><dd>{shortChecksum(selectedAsset.checksumSha256)}</dd></div>
+            <div><dt>Validatie</dt><dd>{validationSummary(selectedAsset.validationError)}</dd></div>
+          </dl>
+
+          <section aria-labelledby="media-usage-title" className="media-usage">
+            <div className="work-panel__header">
+              <div>
+                <h3 id="media-usage-title">Gebruik en impact</h3>
+                <p className="work-panel__meta">Concept → release → scherm</p>
+              </div>
+              <StatusPill
+                label={usageSummary(selectedAsset)}
+                tone={selectedAsset.usageCount > 0 ? "warning" : "neutral"}
+              />
+            </div>
+            {selectedUsage.length > 0 ? (
+              <ul className="media-usage__list">
+                {selectedUsage.map((usage) => (
+                  <li key={`${usage.usageType}-${usage.resourceId}`}>
+                    <strong>{usage.resourceName}</strong>
+                    <span>{usageLabel(usage)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="work-panel__meta">
+                Niet gebruikt in concepten, releases of schermtoewijzingen.
+              </p>
+            )}
+          </section>
+
+          {processingSummary ? (
+            <section className="media-usage" aria-labelledby="media-processing-title">
+              <div className="work-panel__header">
+                <div>
+                  <h3 id="media-processing-title">Verwerking</h3>
+                  <p className="work-panel__meta">
+                    {processingSummary.attempts} poging
+                    {processingSummary.attempts === 1 ? "" : "en"}
+                  </p>
+                </div>
+                <StatusPill
+                  label={statusLabel(processingSummary.status)}
+                  tone={processingSummary.status === "failed" ? "critical" : "info"}
+                />
+              </div>
+              <p className="work-panel__meta">
+                {processingExplanation(processingSummary)}
+              </p>
+            </section>
+          ) : null}
+
+          {activity.length > 0 ? (
+            <details className="media-inspector-activity">
+              <summary>Recente activiteit</summary>
+              <ul className="media-usage__list">
+                {activity.map((event) => (
+                  <li key={`${event.createdAt}-${event.action}`}>
+                    <strong>{activityLabel(event.action)}</strong>
+                    <span>
+                      {formatDateTime(event.createdAt)} ·{" "}
+                      {event.result === "success" ? "Geslaagd" : "Niet geslaagd"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+
+          <form action={renameMediaAsset} className="playlist-form">
+            <input name="assetId" type="hidden" value={selectedAsset.id} />
             <div className="field">
-              <label htmlFor="media-title">Titel</label>
+              <label htmlFor="media-rename-title">Mediatitel</label>
               <input
+                defaultValue={selectedAsset.title}
                 disabled={!canUpload}
-                id="media-title"
+                id="media-rename-title"
+                maxLength={120}
                 minLength={2}
                 name="title"
-                placeholder="Bijvoorbeeld zomerroute poster"
                 required
                 type="text"
               />
             </div>
-            <div className="field">
-              <label htmlFor="media-file">Bestand</label>
-              <input
-                accept="image/jpeg,image/png,image/webp"
-                disabled={!canUpload}
-                id="media-file"
-                name="media"
-                required
-                type="file"
-              />
-            </div>
-            <button className="button-link button-link--primary" disabled={!canUpload} type="submit">
-              Uploaden en verifiëren
-            </button>
-            {!canUpload && session.isLive ? (
-              <p className="notice notice--warning" role="status">
-                Uploaden vereist editor- of beheerrechten. Vraag een tenantbeheerder om toegang.
+            <Button disabled={!canUpload} type="submit" variant="secondary">
+              Titel opslaan
+            </Button>
+          </form>
+
+          {selectedAsset.kind === "video"
+            && selectedAsset.status === "validation_failed" ? (
+              <form action={retryMediaProcessing}>
+                <input name="assetId" type="hidden" value={selectedAsset.id} />
+                <Button disabled={!canUpload} type="submit" variant="secondary">
+                  Verwerking opnieuw proberen
+                </Button>
+                <p className="work-panel__meta">
+                  Alleen een tijdelijke workerfout kan opnieuw worden verwerkt.
+                  Lever media in quarantaine opnieuw aan.
+                </p>
+              </form>
+            ) : null}
+
+          <form action={archiveMediaAsset}>
+            <input name="assetId" type="hidden" value={selectedAsset.id} />
+            <Button
+              disabled={!canUpload || selectedAsset.usageCount > 0}
+              type="submit"
+              variant="destructive"
+            >
+              Media archiveren
+            </Button>
+            {selectedAsset.usageCount > 0 ? (
+              <p className="work-panel__meta">
+                Verwijder deze media eerst uit alle conceptplaylists.
+                Gepubliceerde releases blijven intact.
               </p>
             ) : null}
           </form>
-        </section>
+        </MediaInspectorSheet>
+      ) : null}
 
-        <section className="data-surface" aria-labelledby="video-upload-title">
-          <div className="work-panel__header">
-            <div>
-              <h2 className="work-panel__title" id="video-upload-title">Video uploaden</h2>
-              <p className="work-panel__meta">MP4 · één bestand per overdracht · maximaal 500 MB, vijf minuten en vijf openstaande intents.</p>
-            </div>
-            <StatusPill
-              label={canUpload ? "Direct naar opslag" : session.isLive ? "Alleen bekijken" : "Demo"}
-              tone={canUpload ? "success" : "warning"}
-            />
-          </div>
-          <VideoUploadForm
-            anonKey={publicConfig?.anonKey ?? ""}
-            canUpload={canUpload && publicConfig !== null}
-            supabaseUrl={publicConfig?.url ?? ""}
-          />
-        </section>
-      </section>
+      <MediaUploadDialog
+        anonKey={publicConfig?.anonKey ?? ""}
+        canUpload={canUpload && publicConfig !== null}
+        closeHref={uploadCloseHref}
+        open={params.upload === "1"}
+        supabaseUrl={publicConfig?.url ?? ""}
+      />
 
-      <section className="work-panel" aria-labelledby="media-risk-title">
-        <div className="work-panel__header">
-          <div>
-            <h2 className="work-panel__title" id="media-risk-title">Verwerkingsregels</h2>
-            <p className="work-panel__meta">Grenzen van de huidige veilige upload- en verwerkingsroutes.</p>
-          </div>
-          <StatusPill label="3 regels" tone="warning" />
-        </div>
-        <HealthList ariaLabel="Media validatierisico's" items={mediaRules} />
-      </section>
+      <UploadQueueTray items={processingAssets} />
     </>
   );
 }
@@ -768,7 +823,7 @@ async function loadMediaData(
 
   const selectedId = params.asset && assets.some((asset) => asset.id === params.asset)
     ? params.asset
-    : assets[0]?.id;
+    : null;
   const [usageResult, processingDetailResult, activityResult] = selectedId
     ? await Promise.all([
         supabase.rpc("get_media_asset_usage", { p_asset_id: selectedId }),
@@ -841,8 +896,13 @@ function MediaPreview({ asset }: { asset: MediaAsset }) {
 }
 
 function MediaStatus({ status }: { status: string }) {
-  const tone = status === "ready" ? "success" : ["validation_failed", "quarantined"].includes(status) ? "critical" : "warning";
-  return <StatusPill label={statusLabel(status)} tone={tone} />;
+  return <StatusPill label={statusLabel(status)} tone={mediaStatusTone(status)} />;
+}
+
+function mediaStatusTone(status: string) {
+  if (status === "ready") return "success" as const;
+  if (["validation_failed", "quarantined"].includes(status)) return "critical" as const;
+  return "warning" as const;
 }
 
 function statusLabel(status: string) {
