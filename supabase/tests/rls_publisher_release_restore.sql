@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(22);
+select plan(24);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -110,7 +110,7 @@ values (
   true
 );
 insert into public.playlist_sections (
-  id, tenant_id, playlist_id, name, position_key, created_by, updated_by
+  id, tenant_id, playlist_id, name, position_key, enabled, created_by, updated_by
 )
 values (
   '51000000-0000-4000-8000-000000000491',
@@ -118,6 +118,16 @@ values (
   '50000000-0000-4000-8000-000000000491',
   'Sponsors',
   1024,
+  true,
+  '00000000-0000-4000-8000-000000000491',
+  '00000000-0000-4000-8000-000000000491'
+), (
+  '51000000-0000-4000-8000-000000000492',
+  '10000000-0000-4000-8000-000000000491',
+  '50000000-0000-4000-8000-000000000491',
+  'Tijdelijk verborgen',
+  2048,
+  false,
   '00000000-0000-4000-8000-000000000491',
   '00000000-0000-4000-8000-000000000491'
 );
@@ -152,6 +162,30 @@ values (
   true,
   'Welkom van de sponsor',
   '00000000-0000-4000-8000-000000000491'
+), (
+  '52000000-0000-4000-8000-000000000492',
+  '10000000-0000-4000-8000-000000000491',
+  '50000000-0000-4000-8000-000000000491',
+  '51000000-0000-4000-8000-000000000492',
+  '20000000-0000-4000-8000-000000000491',
+  1,
+  2048,
+  8,
+  'contain',
+  true,
+  'Tijdelijk verborgen',
+  'cut',
+  0.5,
+  0.5,
+  null,
+  100,
+  0,
+  null,
+  null,
+  null,
+  true,
+  'Verborgen sponsoritem',
+  '00000000-0000-4000-8000-000000000491'
 );
 insert into public.screens (
   id, tenant_id, name, status, created_by
@@ -184,6 +218,24 @@ select is(
   (select outcome ->> 'outcome' from publish_result),
   'published',
   'v3 publication creates an immutable release'
+);
+select is(
+  (
+    select item_count
+    from public.playlist_releases
+    where id = (select (outcome ->> 'releaseId')::uuid from publish_result)
+  ),
+  1,
+  'disabled sections remain outside the immutable player release'
+);
+select is(
+  (
+    select jsonb_array_length(snapshot_json -> 'items')
+    from public.playlist_release_authoring_snapshots
+    where release_id = (select (outcome ->> 'releaseId')::uuid from publish_result)
+  ),
+  2,
+  'disabled section items remain available in the lossless authoring snapshot'
 );
 select is(
   (
@@ -352,6 +404,7 @@ select is(
     )
     from public.playlist_items
     where playlist_id = '50000000-0000-4000-8000-000000000491'
+      and display_title = 'Sponsorwelkom'
   ),
   'Sponsorwelkom|wipe|0.25000|60|t',
   'restore faithfully reconstructs item-owned presentation'

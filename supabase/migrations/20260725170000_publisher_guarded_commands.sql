@@ -2844,10 +2844,16 @@ begin
 
   select count(*)::integer into draft_item_count
   from public.playlist_items item
+  left join public.playlist_sections section
+    on section.tenant_id = item.tenant_id
+    and section.playlist_id = item.playlist_id
+    and section.id = item.section_id
   where item.tenant_id = playlist_record.tenant_id
-    and item.playlist_id = playlist_record.id;
+    and item.playlist_id = playlist_record.id
+    and item.enabled
+    and coalesce(section.enabled, true);
   if draft_item_count = 0 then
-    raise exception 'playlist has no items to publish' using errcode = '23514';
+    raise exception 'playlist has no enabled items to publish' using errcode = '23514';
   end if;
 
   select
@@ -2905,7 +2911,11 @@ begin
           )
         end
       ))
-      order by item.sort_order
+      order by
+        case when section.id is null then 0 else 1 end,
+        section.position_key,
+        item.position_key,
+        item.id
     )
   into
     publishable_item_count,
@@ -2931,7 +2941,9 @@ begin
     and section.playlist_id = item.playlist_id
     and section.id = item.section_id
   where item.tenant_id = playlist_record.tenant_id
-    and item.playlist_id = playlist_record.id;
+    and item.playlist_id = playlist_record.id
+    and item.enabled
+    and coalesce(section.enabled, true);
 
   if publishable_item_count <> draft_item_count then
     raise exception 'playlist contains items without ready player variants'
@@ -3026,7 +3038,15 @@ begin
     item.id,
     asset.id,
     variant.id,
-    item.sort_order,
+    (
+      row_number() over (
+        order by
+          case when section.id is null then 0 else 1 end,
+          section.position_key,
+          item.position_key,
+          item.id
+      ) - 1
+    )::integer,
     item.duration_seconds,
     item.fit_mode,
     item.muted,
@@ -3054,9 +3074,19 @@ begin
         then 'player_1080p'::public.media_variant_type
       else 'original'::public.media_variant_type
     end
+  left join public.playlist_sections section
+    on section.tenant_id = item.tenant_id
+    and section.playlist_id = item.playlist_id
+    and section.id = item.section_id
   where item.tenant_id = playlist_record.tenant_id
     and item.playlist_id = playlist_record.id
-  order by item.sort_order;
+    and item.enabled
+    and coalesce(section.enabled, true)
+  order by
+    case when section.id is null then 0 else 1 end,
+    section.position_key,
+    item.position_key,
+    item.id;
 
   update public.playlists
   set status = 'published'::public.playlist_status
