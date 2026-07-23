@@ -67,11 +67,12 @@ import {
   updatePlaylistDetails,
   updatePlaylistItem
 } from "../actions";
-import { PlaylistPreview, type PlaylistPreviewItem } from "../playlist-preview";
+import type { PlaylistPreviewItem } from "../playlist-preview";
 import type {
   PlaylistStudioAsset,
   PlaylistStudioItem
 } from "../playlist-studio-contract";
+import { PublisherStudioPreview } from "./publisher-studio-preview";
 import {
   durationStep,
   itemOrder,
@@ -380,7 +381,7 @@ export function PublisherStudioWorkspace({
                   </SheetDescription>
                 </SheetHeader>
                 <SheetBody>
-                  <PlaylistPreview items={previewItems} />
+                  <PublisherStudioPreview items={previewItems} />
                 </SheetBody>
               </SheetContent>
             </Sheet>
