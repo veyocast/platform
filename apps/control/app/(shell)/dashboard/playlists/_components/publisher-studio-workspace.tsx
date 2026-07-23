@@ -1346,11 +1346,6 @@ function SectionManager({
                         revision={revision}
                       />
                       <input name="sectionId" type="hidden" value={section.id} />
-                      <input
-                        name="enabled"
-                        type="hidden"
-                        value={section.enabled ? "on" : ""}
-                      />
                       <label>
                         <span>Naam</span>
                         <input
@@ -1391,6 +1386,21 @@ function SectionManager({
                           </select>
                         </label>
                       </div>
+                      <label className={styles.sectionEnabled}>
+                        <input
+                          defaultChecked={section.enabled}
+                          disabled={!canWrite}
+                          name="enabled"
+                          type="checkbox"
+                        />
+                        <span>
+                          <strong>Sectie afspelen</strong>
+                          <small>
+                            Uitgeschakelde items blijven in het concept en
+                            worden niet in de volgende release opgenomen.
+                          </small>
+                        </span>
+                      </label>
                       <Button disabled={!canWrite} size="sm" type="submit">
                         Sectie opslaan
                       </Button>
@@ -1437,8 +1447,8 @@ function SectionManager({
                     </div>
                     {!section.enabled ? (
                       <p className={styles.sectionContractNote} role="status">
-                        Deze bestaande sectie staat uit. De schakelaar blijft
-                        vergrendeld totdat publiceren dit end-to-end afdwingt.
+                        Deze sectie blijft bewerkbaar, maar wordt niet
+                        gepubliceerd zolang ze uitgeschakeld is.
                       </p>
                     ) : null}
                   </div>

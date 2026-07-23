@@ -307,8 +307,24 @@ export async function loadPlaylistStudio(
     orientation: screen.orientation
   }));
   const playlist = playlistResult.data;
+  const sections = (sectionsResult.data ?? []).map((section): PlaylistStudioSection => ({
+    defaultDurationSeconds: section.default_duration_seconds,
+    defaultTransition: section.default_transition,
+    enabled: section.enabled,
+    id: section.id,
+    name: section.name,
+    positionKey: Number(section.position_key)
+  }));
+  const enabledSections = new Set(
+    sections.filter((section) => section.enabled).map((section) => section.id)
+  );
+  const publishableItems = items.filter(
+    (item) =>
+      item.enabled &&
+      (item.sectionId === null || enabledSections.has(item.sectionId))
+  );
   const readiness = evaluatePlaylistReadiness({
-    items: items.map((item) => ({
+    items: publishableItems.map((item) => ({
       asset: item.asset ? {
         deleted: Boolean(item.asset.deletedAt),
         id: item.asset.id,
@@ -365,14 +381,7 @@ export async function loadPlaylistStudio(
       totalDurationSeconds: release.total_duration_seconds,
       version: release.version
     })),
-    sections: (sectionsResult.data ?? []).map((section): PlaylistStudioSection => ({
-      defaultDurationSeconds: section.default_duration_seconds,
-      defaultTransition: section.default_transition,
-      enabled: section.enabled,
-      id: section.id,
-      name: section.name,
-      positionKey: Number(section.position_key)
-    })),
+    sections,
     screens
   };
 }

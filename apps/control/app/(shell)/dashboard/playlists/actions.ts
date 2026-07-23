@@ -335,9 +335,21 @@ export async function publishPlaylistGuided(formData: FormData) {
     const message = blocker ? getReadinessCopy(blocker) : null;
     failPublish(playlistId, message ? `${message.label}. ${message.detail} ${message.recovery}` : "De playlist is nog niet klaar voor publicatie.");
   }
-  const targetItems = studio.items.flatMap((item) => item.asset?.variant
-    ? [{ checksumSha256: item.asset.variant.checksumSha256, fileSizeBytes: item.asset.variant.fileSizeBytes }]
-    : []);
+  const enabledSections = new Set(
+    studio.sections
+      .filter((section) => section.enabled)
+      .map((section) => section.id)
+  );
+  const targetItems = studio.items.flatMap((item) =>
+    item.enabled &&
+    (item.sectionId === null || enabledSections.has(item.sectionId)) &&
+    item.asset?.variant
+      ? [{
+          checksumSha256: item.asset.variant.checksumSha256,
+          fileSizeBytes: item.asset.variant.fileSizeBytes
+        }]
+      : []
+  );
   const preflight = await loadDraftPreflight(session.tenantId, targetItems);
   if (preflight.error) failPublish(playlistId, `${preflight.error} Er is geen release gemaakt.`);
   const targets = preflight.screenStates.filter((state) => screenIds.includes(state.screen.id));

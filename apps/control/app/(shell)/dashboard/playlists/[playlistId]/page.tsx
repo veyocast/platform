@@ -56,7 +56,25 @@ export default async function PlaylistStudioPage({
     tenantIsMutable &&
       hasCapability(session.roles, "tenant.playlist.archive")
   );
-  const previewItems: PlaylistPreviewItem[] = data.items.flatMap((item) => {
+  const sectionById = new Map(
+    data.sections.map((section) => [section.id, section])
+  );
+  const previewItems: PlaylistPreviewItem[] = [...data.items]
+    .filter((item) => {
+      const section = item.sectionId ? sectionById.get(item.sectionId) : null;
+      return item.enabled && (!section || section.enabled);
+    })
+    .sort((left, right) => {
+      const leftSection = left.sectionId ? sectionById.get(left.sectionId) : null;
+      const rightSection = right.sectionId ? sectionById.get(right.sectionId) : null;
+      if (!leftSection && rightSection) return -1;
+      if (leftSection && !rightSection) return 1;
+      if (leftSection && rightSection && leftSection.positionKey !== rightSection.positionKey) {
+        return leftSection.positionKey - rightSection.positionKey;
+      }
+      return left.sortOrder - right.sortOrder;
+    })
+    .flatMap((item) => {
     const asset = item.asset;
     const url = asset?.variant?.previewUrl;
     if (!asset || !url) return [];
@@ -72,13 +90,16 @@ export default async function PlaylistStudioPage({
       kind: asset.kind,
       muted: item.muted,
       section: item.sectionId
-        ? data.sections
-            .filter((section) => section.id === item.sectionId)
-            .map((section) => ({
-              name: section.name,
-              positionKey: section.positionKey,
-              sourceSectionId: section.id
-            }))[0]
+        ? (() => {
+            const section = sectionById.get(item.sectionId);
+            return section
+              ? {
+                  name: section.name,
+                  positionKey: section.positionKey,
+                  sourceSectionId: section.id
+                }
+              : undefined;
+          })()
         : undefined,
       title: asset.title,
       transition: item.transition,
@@ -95,7 +116,7 @@ export default async function PlaylistStudioPage({
       volumePercent: item.volumePercent
     };
     return [{ ...playback, url }];
-  });
+    });
 
   return (
     <>
