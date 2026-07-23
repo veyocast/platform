@@ -1,7 +1,7 @@
 # S31-B Bewerkbare templates, custom rollen en enterprise density
 
-**Branch:** `veyocast/s31b-configurable-templates-roles`  
-**Basis:** `7e82b2c`  
+**Branch:** `veyocast/s31b-configurable-templates-roles`
+**Basis:** `7e82b2c`
 **Datum:** 23 juli 2026
 
 ## Geleverde uitkomst
