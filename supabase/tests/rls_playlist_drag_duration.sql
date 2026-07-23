@@ -112,7 +112,7 @@ select is(
     jsonb_build_object(
       'itemId', (select id from public.playlist_items where media_asset_id = '20000000-0000-4000-8000-000000000271'),
       'displayName', 'Nieuwe videonaam',
-      'durationSeconds', 18,
+      'durationSeconds', 12,
       'fitMode', 'cover',
       'muted', true
     )
@@ -129,8 +129,8 @@ select is(
 
 select is(
   (select duration_seconds from public.playlist_items where media_asset_id = '20000000-0000-4000-8000-000000000271'),
-  18,
-  'edited playback duration is stored on the draft item'
+  12,
+  'edited playback duration within the source is stored on the draft item'
 );
 
 select is(
