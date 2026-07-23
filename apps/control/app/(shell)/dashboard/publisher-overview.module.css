@@ -24,14 +24,14 @@
 
 .statusCard:hover {
   border-color: var(--vc-border-strong);
-  box-shadow: var(--vc-shadow-sm);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--vc-text) 5%, transparent);
   transform: translateY(-1px);
 }
 
 .statusCard:focus-visible,
 .quickAction:focus-visible,
 .activeLink:focus-visible {
-  outline: 3px solid var(--vc-focus-ring);
+  outline: 3px solid var(--vc-focus);
   outline-offset: 2px;
 }
 
@@ -68,12 +68,12 @@
 
 .statusCopy small {
   color: var(--vc-text-muted);
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
   font-weight: 650;
 }
 
 .statusCopy strong {
-  font-size: var(--vc-font-size-xl);
+  font-size: 24px;
   letter-spacing: -0.025em;
   line-height: 1.15;
   margin-top: var(--vc-space-2);
@@ -81,7 +81,7 @@
 
 .statusCopy span {
   color: var(--vc-text-subtle);
-  font-size: var(--vc-font-size-xs);
+  font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -106,7 +106,7 @@
   border-radius: var(--vc-radius-md);
   color: var(--vc-text);
   display: inline-flex;
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
   font-weight: 650;
   gap: var(--vc-space-8);
   min-height: 40px;
@@ -123,7 +123,7 @@
 }
 
 .quickAction svg {
-  color: var(--vc-brand-orange);
+  color: var(--vc-brand-electric-orange);
   height: 17px;
   width: 17px;
 }
@@ -167,7 +167,7 @@
 
 .sectionHeading h2,
 .onboardingHeader h2 {
-  font-size: var(--vc-font-size-lg);
+  font-size: 16px;
   letter-spacing: -0.015em;
   line-height: 1.3;
   margin: 0;
@@ -177,7 +177,7 @@
 .onboardingHeader p,
 .emptyCompact p {
   color: var(--vc-text-muted);
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
   line-height: 1.45;
   margin: var(--vc-space-2) 0 0;
 }
@@ -187,7 +187,7 @@
   color: var(--vc-text-muted);
   display: inline-flex;
   flex: none;
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
   font-weight: 650;
   gap: var(--vc-space-6);
   text-decoration: none;
@@ -243,7 +243,7 @@
   aspect-ratio: 16 / 9;
   background: var(--vc-neutral-900);
   border-radius: var(--vc-radius-md);
-  color: var(--vc-brand-orange);
+  color: var(--vc-brand-electric-orange);
   display: flex;
   justify-content: center;
   width: 72px;
@@ -261,7 +261,7 @@
 }
 
 .activeCopy strong {
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -270,7 +270,7 @@
 .activeCopy small,
 .activeMeta small {
   color: var(--vc-text-muted);
-  font-size: var(--vc-font-size-xs);
+  font-size: 12px;
   margin-top: var(--vc-space-2);
 }
 
@@ -296,7 +296,7 @@
   align-items: center;
   color: var(--vc-text);
   display: grid;
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
   gap: var(--vc-space-10);
   grid-template-columns: auto 1fr auto;
   min-height: 46px;
@@ -304,7 +304,7 @@
 }
 
 .onboarding a > span {
-  color: var(--vc-brand-orange);
+  color: var(--vc-brand-electric-orange);
 }
 
 .onboarding a > svg {
@@ -327,29 +327,29 @@
 }
 
 .activityList strong {
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
   font-weight: 650;
 }
 
 .activityList small {
   color: var(--vc-text-muted);
-  font-size: var(--vc-font-size-xs);
+  font-size: 12px;
   margin-top: var(--vc-space-2);
 }
 
 .activityMarker {
-  background: var(--vc-semantic-info);
+  background: var(--vc-semantic-info-solid);
   border-radius: 999px;
   height: 8px;
   width: 8px;
 }
 
 .activityMarker[data-result="success"] {
-  background: var(--vc-semantic-success);
+  background: var(--vc-semantic-success-solid);
 }
 
 .activityMarker[data-result="failure"] {
-  background: var(--vc-semantic-critical);
+  background: var(--vc-semantic-critical-solid);
 }
 
 .emptyCompact {
@@ -369,7 +369,7 @@
 
 .emptyCompact strong {
   color: var(--vc-text);
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
 }
 
 @media (max-width: 1180px) {
@@ -427,7 +427,7 @@
 
   .sectionHeading,
   .onboardingHeader {
-    padding: var(--vc-space-14) var(--vc-space-16);
+    padding: var(--vc-space-12) var(--vc-space-16);
   }
 
   .activityList li {

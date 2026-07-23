@@ -1,23 +1,23 @@
 .toast {
   align-items: center;
-  background: var(--vc-sidebar, #121416);
-  border: 1px solid color-mix(in srgb, var(--vc-brand-paper-white, #fff) 18%, transparent);
-  border-radius: var(--vc-radius-lg, 10px);
-  bottom: max(var(--vc-space-16, 16px), env(safe-area-inset-bottom));
-  box-shadow: var(--vc-shadow-lg);
-  color: var(--vc-brand-paper-white, #fff);
+  background: var(--vc-neutral-900);
+  border: 1px solid color-mix(in srgb, var(--vc-brand-paper-white) 18%, transparent);
+  border-radius: var(--vc-radius-lg);
+  bottom: max(var(--vc-space-16), env(safe-area-inset-bottom));
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--vc-text) 16%, transparent);
+  color: var(--vc-brand-paper-white);
   display: grid;
-  gap: var(--vc-space-12, 12px);
+  gap: var(--vc-space-12);
   grid-template-columns: auto minmax(0, 1fr);
-  left: max(var(--vc-space-16, 16px), env(safe-area-inset-left));
+  left: max(var(--vc-space-16), env(safe-area-inset-left));
   max-width: min(460px, calc(100vw - 32px));
-  padding: var(--vc-space-12, 12px) var(--vc-space-16, 16px);
+  padding: var(--vc-space-12) var(--vc-space-16);
   position: fixed;
   z-index: 1000;
 }
 
 .toast > svg {
-  color: var(--vc-brand-orange, #ff5c20);
+  color: var(--vc-brand-electric-orange);
   height: 20px;
   width: 20px;
 }
@@ -27,12 +27,12 @@
 }
 
 .toast strong {
-  font-size: var(--vc-font-size-sm, 14px);
+  font-size: 13px;
 }
 
 .toast small {
-  color: color-mix(in srgb, var(--vc-brand-paper-white, #fff) 70%, transparent);
-  font-size: var(--vc-font-size-xs, 12px);
+  color: color-mix(in srgb, var(--vc-brand-paper-white) 70%, transparent);
+  font-size: 12px;
   line-height: 1.45;
   margin-top: 2px;
 }
@@ -44,20 +44,20 @@
 .toast button {
   background: transparent;
   border: 0;
-  border-radius: var(--vc-radius-md, 8px);
+  border-radius: var(--vc-radius-md);
   color: inherit;
   cursor: pointer;
   font: inherit;
-  font-size: var(--vc-font-size-sm, 14px);
+  font-size: 13px;
   font-weight: 700;
   min-height: 36px;
-  padding: 0 var(--vc-space-8, 8px);
+  padding: 0 var(--vc-space-8);
 }
 
 .toast button:first-of-type {
-  background: var(--vc-brand-orange, #ff5c20);
-  color: var(--vc-brand-ink-black, #0a0a0a);
-  padding-inline: var(--vc-space-12, 12px);
+  background: var(--vc-brand-electric-orange);
+  color: var(--vc-brand-ink-black);
+  padding-inline: var(--vc-space-12);
 }
 
 .toast button:last-of-type {
@@ -74,7 +74,7 @@
 }
 
 .toast button:focus-visible {
-  outline: 3px solid var(--vc-brand-paper-white, #fff);
+  outline: 3px solid var(--vc-brand-paper-white);
   outline-offset: 2px;
 }
 

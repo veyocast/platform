@@ -44,18 +44,28 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
       <SummaryStrip
         aria-label="Templatesamenvatting"
         items={[
-          { label: "Actieve templates", value: active.length },
-          { label: "Gearchiveerd", value: data.templates.length - active.length },
+          { label: "Actief", value: active.length },
+          { label: "Archief", value: data.templates.length - active.length },
           { detail: "Mogelijke bronnen voor een template", label: "Playlists", value: data.playlists.length }
         ]}
       />
 
       {data.templates.length ? (
-        <section aria-label="Tenanttemplates" className={styles.resourceGrid}>
+        <section aria-label="Tenanttemplates" className={`${styles.resourceGrid} ${styles.templateGrid}`}>
           {data.templates.map((template) => (
-            <article className={styles.resourceCard} data-muted={template.status === "archived"} key={template.id}>
+            <article
+              className={`${styles.resourceCard} ${styles.templateCard}`}
+              data-muted={template.status === "archived"}
+              key={template.id}
+            >
               <div className={styles.resourceHeader}>
-                <div><h2>{template.name}</h2><p>{template.description || "Geen beschrijving toegevoegd."}</p></div>
+                <div>
+                  <h2>{template.name}</h2>
+                  <p>{template.description || "Geen beschrijving toegevoegd."}</p>
+                  <span className={styles.resourceRevision}>
+                    Revisie {template.revision} · bijgewerkt {formatDate(template.updatedAt)}
+                  </span>
+                </div>
                 <StatusPill label={template.status === "active" ? "Actief" : "Gearchiveerd"} tone={template.status === "active" ? "success" : "neutral"} />
               </div>
               <dl className={styles.resourceMeta}>
@@ -63,7 +73,6 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
                 <div><dt>Bron</dt><dd>{template.sourcePlaylistName || "Vastgelegde snapshot"}</dd></div>
               </dl>
               <div className={styles.resourceFooter}>
-                <span>Bijgewerkt {formatDate(template.updatedAt)} · revisie {template.revision}</span>
                 {template.status === "active" && canWrite ? (
                   <div className={styles.resourceActions}>
                     {template.sourcePlaylistId ? (

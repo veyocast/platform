@@ -47,15 +47,80 @@ async function authenticateAgainstLocalSupabase(page: import("@playwright/test")
       value: "veyocast-pilot"
     }
   ]);
+
+  return supabase;
+}
+
+async function ensureEditableTemplateEvidence(
+  supabase: Awaited<ReturnType<typeof authenticateAgainstLocalSupabase>>
+) {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) throw userError ?? new Error("Visual evidence user ontbreekt.");
+
+  const { data: membership, error: membershipError } = await supabase
+    .from("tenant_memberships")
+    .select("tenant_id")
+    .eq("user_id", userData.user.id)
+    .limit(1)
+    .single();
+  if (membershipError || !membership) {
+    throw membershipError ?? new Error("Visual evidence tenantmembership ontbreekt.");
+  }
+
+  let { data: playlist, error: playlistError } = await supabase
+    .from("playlists")
+    .select("id")
+    .eq("tenant_id", membership.tenant_id)
+    .eq("name", "Visuele basisplaylist")
+    .maybeSingle();
+  if (playlistError) throw playlistError;
+  if (!playlist) {
+    const created = await supabase
+      .from("playlists")
+      .insert({
+        created_by: userData.user.id,
+        description: "Herbruikbare basis voor clubpublicaties",
+        name: "Visuele basisplaylist",
+        status: "draft",
+        tenant_id: membership.tenant_id,
+        updated_by: userData.user.id
+      })
+      .select("id")
+      .single();
+    if (created.error || !created.data) {
+      throw created.error ?? new Error("Visual evidence playlist kon niet worden gemaakt.");
+    }
+    playlist = created.data;
+  }
+
+  const { data: existingTemplate, error: templateReadError } = await supabase
+    .from("tenant_playlist_templates")
+    .select("id")
+    .eq("tenant_id", membership.tenant_id)
+    .eq("name", "Clubpublicatie")
+    .maybeSingle();
+  if (templateReadError) throw templateReadError;
+  if (!existingTemplate) {
+    const { error: templateCreateError } = await supabase.rpc(
+      "create_tenant_playlist_template_v1",
+      {
+        p_description: "Bewerkbare basis voor terugkerende publicaties",
+        p_idempotency_key: crypto.randomUUID(),
+        p_name: "Clubpublicatie",
+        p_playlist_id: playlist.id
+      }
+    );
+    if (templateCreateError) throw templateCreateError;
+  }
 }
 
 test.describe("Control enterprise roles evidence", () => {
   test.skip(!visualEvidenceEnabled, "requires local Supabase and explicit visual evidence opt-in");
-  test.setTimeout(90_000);
+  test.setTimeout(180_000);
 
   test("captures the tenant role workspace on desktop and mobile", async ({ page }) => {
     await page.setViewportSize({ height: 1000, width: 1440 });
-    await authenticateAgainstLocalSupabase(page);
+    const supabase = await authenticateAgainstLocalSupabase(page);
     await page.goto("/dashboard", { waitUntil: "commit" });
     await expect(page).toHaveURL(/\/dashboard$/);
 
@@ -86,6 +151,31 @@ test.describe("Control enterprise roles evidence", () => {
     await page.screenshot({
       fullPage: true,
       path: path.resolve("docs/screenshots/s31b-team-roles-mobile.png")
+    });
+
+    await page.locator("#nieuw-teamlid").scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: path.resolve("docs/screenshots/s31b-team-invite-mobile.png")
+    });
+
+    await ensureEditableTemplateEvidence(supabase);
+    await page.setViewportSize({ height: 1000, width: 1440 });
+    await page.goto("/dashboard/templates", { waitUntil: "commit" });
+    await expect(page.getByRole("heading", { level: 1, name: "Templates" })).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByText("Clubpublicatie", { exact: true })).toBeVisible();
+    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+    await page.screenshot({
+      fullPage: true,
+      path: path.resolve("docs/screenshots/s31b-templates-desktop.png")
+    });
+
+    await page.setViewportSize({ height: 844, width: 390 });
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 1, name: "Templates" })).toBeVisible();
+    await page.screenshot({
+      fullPage: true,
+      path: path.resolve("docs/screenshots/s31b-templates-mobile.png")
     });
   });
 });

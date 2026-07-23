@@ -317,7 +317,7 @@
 }
 
 .filterChips button[aria-pressed="true"] {
-  background: var(--vc-action-soft);
+  background: color-mix(in srgb, var(--vc-action) 12%, var(--vc-surface));
   border-color: var(--vc-action);
   color: var(--vc-action);
   font-weight: 700;
@@ -860,7 +860,7 @@
 }
 
 .storyboard[data-over] {
-  background: color-mix(in srgb, var(--vc-action-soft) 54%, transparent);
+  background: color-mix(in srgb, color-mix(in srgb, var(--vc-action) 12%, var(--vc-surface)) 54%, transparent);
 }
 
 .itemList {
@@ -999,7 +999,7 @@
 }
 
 .durationStepper button:hover:not(:disabled) {
-  background: var(--vc-action-soft);
+  background: color-mix(in srgb, var(--vc-action) 12%, var(--vc-surface));
   color: var(--vc-action);
 }
 
@@ -1112,7 +1112,7 @@
 .insertIndicator svg {
   background: var(--vc-action);
   border-radius: var(--vc-radius-full);
-  color: var(--vc-action-contrast);
+  color: var(--vc-on-action);
   height: 22px;
   padding: 5px;
   width: 22px;
@@ -1134,7 +1134,7 @@
 }
 
 .storyboardEmpty[data-over] {
-  background: var(--vc-action-soft);
+  background: color-mix(in srgb, var(--vc-action) 12%, var(--vc-surface));
   border-color: var(--vc-action);
 }
 
@@ -1677,7 +1677,7 @@
   .mobileActionBar :is(a, button):last-child {
     background: var(--vc-action);
     border-color: var(--vc-action);
-    color: var(--vc-action-contrast);
+    color: var(--vc-on-action);
   }
 
   .mobileActionBar [data-disabled],

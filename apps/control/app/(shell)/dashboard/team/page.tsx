@@ -126,7 +126,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
       </section>
 
       {canManage ? (
-        <form action={inviteTenantMember} className="data-surface" id="nieuw-teamlid">
+        <form action={inviteTenantMember} className="data-surface team-invite-form" id="nieuw-teamlid">
           <div className="work-panel__header">
             <div>
               <h2 className="work-panel__title">Nieuw teamlid</h2>
@@ -157,7 +157,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
               <p>Alleen een eigenaar kan een andere eigenaar uitnodigen.</p>
             </div>
           </div>
-          <div className="sticky-form-actions">
+          <div className="sticky-form-actions team-invite-actions">
             <p className="work-panel__meta">E-mailadres en invitation-token worden nooit in auditmetadata opgenomen.</p>
             <button className="button-link button-link--primary" type="submit">Uitnodiging versturen</button>
           </div>
@@ -170,7 +170,10 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
             <h2 className="workspace-section__title" id="team-table-title">Gebruikers en rollen</h2>
             <p className="work-panel__meta">De laatste eigenaar en je eigen toegang zijn beschermd tegen self-lockout.</p>
           </div>
-          <StatusPill label={`${data.members.length} personen`} tone="neutral" />
+          <StatusPill
+            label={data.members.length === 1 ? "1 persoon" : `${data.members.length} personen`}
+            tone="neutral"
+          />
         </div>
         {data.members.length ? (
           <div className="data-table-frame">

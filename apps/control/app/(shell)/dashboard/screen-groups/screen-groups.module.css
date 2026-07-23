@@ -18,7 +18,7 @@
 
 .screenPicker legend {
   color: var(--vc-text);
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
   font-weight: 600;
   padding: 0;
 }
@@ -26,7 +26,7 @@
 .screenPicker > p,
 .impact {
   color: var(--vc-text-muted);
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
   line-height: 1.5;
   margin: 0;
 }
@@ -69,12 +69,12 @@
 
 .screenOptions strong {
   color: var(--vc-text);
-  font-size: var(--vc-font-size-sm);
+  font-size: 13px;
 }
 
 .screenOptions small {
   color: var(--vc-text-muted);
-  font-size: var(--vc-font-size-xs);
+  font-size: 12px;
 }
 
 @media (max-width: 639px) {
