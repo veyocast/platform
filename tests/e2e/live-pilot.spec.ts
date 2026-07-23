@@ -113,8 +113,10 @@ test.describe("live pilot vertical slice", () => {
     await expect(
       page.getByRole("heading", { exact: true, name: "Media" })
     ).toBeVisible();
-    await expect(page.getByText("Live tenantdata")).toBeVisible();
 
+    await page.getByRole("link", { name: "Media uploaden" }).click();
+    const uploadDialog = page.getByRole("dialog", { name: "Media uploaden" });
+    await uploadDialog.getByRole("tab", { name: "Video" }).click();
     await page.getByLabel("Videotitel", { exact: true }).fill("Live queuecontrole");
     await page.getByLabel("Videobestand", { exact: true }).setInputFiles(videoFixture ?? {
       buffer: Buffer.from("veyocast-invalid-video-fixture"),
@@ -123,6 +125,7 @@ test.describe("live pilot vertical slice", () => {
     });
     await page.getByRole("button", { name: "Video uploaden" }).click();
     await expect(page.getByText("De video staat veilig in de verwerkingsqueue")).toBeVisible();
+    await uploadDialog.getByRole("button", { name: "Uploadvenster sluiten" }).click();
 
     if (videoFixture) {
       execFileSync("docker", [
@@ -138,6 +141,7 @@ test.describe("live pilot vertical slice", () => {
       await expect(videoRow).toContainText("Gereed");
     }
 
+    await page.getByRole("link", { name: "Media uploaden" }).click();
     await page.getByLabel("Titel", { exact: true }).fill("Ongeldig logo");
     await page.getByLabel("Bestand", { exact: true }).setInputFiles(
       path.join(process.cwd(), "assets/brand/veyocast-logo-primary.svg")
@@ -147,6 +151,7 @@ test.describe("live pilot vertical slice", () => {
       "bestandstype is niet toegestaan"
     );
 
+    await page.getByRole("link", { name: "Media uploaden" }).click();
     await page.getByLabel("Titel", { exact: true }).fill("Live pilotbeeld");
     await page.getByLabel("Bestand", { exact: true }).setInputFiles({
       buffer: validPngFixture,
@@ -165,9 +170,10 @@ test.describe("live pilot vertical slice", () => {
     await expect(page.getByText("zijn opgeslagen")).toBeVisible();
 
     await page.goto("/dashboard/playlists");
-    await expect(page.getByText("Live tenantdata")).toBeVisible();
-    await page.getByLabel("Playlistnaam").first().fill("Live pilotplaylist");
-    await page.getByRole("button", { name: "Concept maken" }).click();
+    await page.getByRole("button", { name: "Nieuwe playlist" }).click();
+    const createPlaylistDialog = page.getByRole("dialog", { name: "Nieuwe playlist" });
+    await createPlaylistDialog.getByLabel("Playlistnaam").fill("Live pilotplaylist");
+    await createPlaylistDialog.getByRole("button", { name: "Concept maken" }).click();
     await expect(page.getByText("De conceptplaylist is gemaakt")).toBeVisible();
 
     const staleEditorContext = await browser.newContext({

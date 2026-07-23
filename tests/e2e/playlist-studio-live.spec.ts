@@ -24,6 +24,7 @@ test.describe("live Playlist Studio", () => {
     await expect(page).toHaveURL(/\/dashboard$/);
 
     await page.goto("/dashboard/media");
+    await page.getByRole("link", { name: "Media uploaden" }).click();
     await page.getByLabel("Titel", { exact: true }).fill(assetTitle);
     await page.getByLabel("Bestand", { exact: true }).setInputFiles({
       buffer: validPngFixture,
@@ -32,6 +33,7 @@ test.describe("live Playlist Studio", () => {
     });
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
     await expect(page.getByText(`${assetTitle} is gecontroleerd`)).toBeVisible();
+    await page.getByRole("link", { name: "Media uploaden" }).click();
     await page.getByLabel("Titel", { exact: true }).fill(secondAssetTitle);
     await page.getByLabel("Bestand", { exact: true }).setInputFiles({
       buffer: validPngFixture,
@@ -42,8 +44,10 @@ test.describe("live Playlist Studio", () => {
     await expect(page.getByText(`${secondAssetTitle} is gecontroleerd`)).toBeVisible();
 
     await page.goto("/dashboard/playlists");
-    await page.getByLabel("Playlistnaam").fill("S25 concurrentieplaylist");
-    await page.getByRole("button", { name: "Concept maken" }).click();
+    await page.getByRole("button", { name: "Nieuwe playlist" }).click();
+    const createPlaylistDialog = page.getByRole("dialog", { name: "Nieuwe playlist" });
+    await createPlaylistDialog.getByLabel("Playlistnaam").fill("S25 concurrentieplaylist");
+    await createPlaylistDialog.getByRole("button", { name: "Concept maken" }).click();
     await expect(page.getByText("De conceptplaylist is gemaakt")).toBeVisible();
     await expect(page.getByText("Revisie 0").first()).toBeVisible();
 
@@ -116,7 +120,7 @@ test.describe("live Playlist Studio", () => {
     await expect(page.getByText("Schermdetails zijn opgeslagen")).toBeVisible();
 
     await page.goto(studioUrl);
-    await page.getByRole("link", { name: "Begeleide publicatie starten" }).click();
+    await page.getByRole("link", { name: "Publiceren" }).click();
     await expect(page).toHaveURL(/\/dashboard\/playlists\/.+\/publish$/);
     await page.getByLabel(/Pilot hoofdscherm/).check();
     await page.getByLabel(new RegExp(secondScreen)).check();
@@ -137,5 +141,17 @@ test.describe("live Playlist Studio", () => {
     await expect(page.getByRole("heading", { name: "Uitrol per scherm" })).toBeVisible();
     const horizontalLayout = await page.evaluate(() => ({ innerWidth: window.innerWidth, scrollWidth: document.documentElement.scrollWidth }));
     expect(horizontalLayout.scrollWidth <= horizontalLayout.innerWidth).toBe(true);
+
+    await page.goto("/dashboard/playlists");
+    await page.getByRole("button", { name: "Nieuwe playlist" }).click();
+    const duplicateDialog = page.getByRole("dialog", { name: "Nieuwe playlist" });
+    await duplicateDialog.getByRole("tab", { name: "Dupliceren" }).click();
+    await duplicateDialog.getByLabel("Bronplaylist").selectOption({ label: "S25 concurrentieplaylist" });
+    await duplicateDialog.getByLabel("Naam van de kopie").fill("S25 veilige conceptkopie");
+    await duplicateDialog.getByRole("button", { name: "Concept dupliceren" }).click();
+    await expect(page.getByText("Releasehistorie en schermtoewijzingen zijn niet overgenomen")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "S25 veilige conceptkopie" })).toBeVisible();
+    await expect(page.getByText("Revisie 0").first()).toBeVisible();
+    await expect(page.locator(".playlist-item-list > li")).toHaveCount(2);
   });
 });

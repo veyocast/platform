@@ -25,17 +25,20 @@ test("keeps the documented local demo pilot traceable across product planes", as
   await page.getByRole("link", { name: "Naar dashboard" }).click();
 
   await page.goto("/dashboard/media");
-  await expect(page.getByText("Private bucket: tenant-media")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mediabibliotheek" })).toBeVisible();
   await expect(page.getByRole("status").filter({
     hasText: "Uploaden is niet beschikbaar in de demomodus"
   })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Uploaden en verifiëren" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Video uploaden" })).toBeDisabled();
+  await page.goto("/dashboard/media?upload=1");
+  const uploadDialog = page.getByRole("dialog", { name: "Media uploaden" });
+  await expect(uploadDialog.getByRole("button", { name: "Uploaden en verifiëren" })).toBeDisabled();
+  await uploadDialog.getByRole("tab", { name: "Video" }).click();
+  await expect(uploadDialog.getByRole("button", { name: "Video uploaden" })).toBeDisabled();
 
   await page.goto("/dashboard/playlists");
-  await expect(page.getByText("Demomodus zonder mutaties")).toBeVisible();
+  await expect(page.getByText("Demomodus", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Playlistlijst" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Concept maken" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Nieuwe playlist" })).toHaveCount(0);
 
   await page.goto("/dashboard/screens");
   await expect(

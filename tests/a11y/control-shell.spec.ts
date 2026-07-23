@@ -110,20 +110,17 @@ test("resource filters stay bundled through compact desktop", async ({ page }) =
 
   const trigger = page.getByRole("button", { exact: true, name: "Filters" });
   await expect(trigger).toBeVisible();
-  await expect(page.getByLabel("Zoeken in playlists")).not.toBeVisible();
-  await trigger.click();
   await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
-
-  expect(
-    await page.locator(".metric-grid").first().evaluate((element) =>
-      getComputedStyle(element).gridTemplateColumns.split(" ").length
-    )
-  ).toBe(2);
+  await expect(page.getByRole("combobox", { exact: true, name: "Status" })).not.toBeVisible();
+  await trigger.click();
+  await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
+  await expect(page.getByLabel("Compact playlistoverzicht")).toBeVisible();
 
   await page.setViewportSize({ height: 900, width: 1440 });
   await page.reload();
   await expect(trigger).not.toBeVisible();
   await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
+  await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
 });
 
 test("shared audit table becomes labelled mobile rows", async ({ page }) => {
@@ -162,21 +159,31 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await page.goto("/dashboard/media");
 
   await expect(page.getByRole("heading", { exact: true, name: "Media" })).toBeVisible();
-  await expect(page.getByLabel("Bestand", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Titel", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Videobestand", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Videotitel", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Samenvatting mediabibliotheek")).toContainText(
+    "Actie nodig"
+  );
   await page.getByRole("button", { exact: true, name: "Filters" }).click();
   await expect(page.getByLabel("Filter media op gebruik")).toBeVisible();
   await expect(page.getByRole("link", { name: "Raster" })).toBeVisible();
+  await page.getByText("Upload- en verwerkingsregels", { exact: true }).click();
   await expect(page.getByLabel("Media pipeline stappen")).toContainText(
     "Veilig activeren"
   );
   await expect(page.getByRole("status").filter({
     hasText: "Uploaden is niet beschikbaar in de demomodus"
   })).toBeVisible();
+
+  await page.goto("/dashboard/media?upload=1");
+  const uploadDialog = page.getByRole("dialog", { name: "Media uploaden" });
+  await expect(uploadDialog).toBeVisible();
+  await expect(uploadDialog.getByLabel("Bestand", { exact: true })).toBeVisible();
+  await expect(uploadDialog.getByLabel("Titel", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Uploaden en verifiëren" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Video uploaden" })).toBeDisabled();
+  await uploadDialog.getByRole("tab", { name: "Video" }).click();
+  await expect(uploadDialog.getByLabel("Videobestand", { exact: true })).toBeVisible();
+  await expect(uploadDialog.getByLabel("Videotitel", { exact: true })).toBeVisible();
+  await expect(uploadDialog.getByRole("button", { name: "Video uploaden" })).toBeDisabled();
+  await uploadDialog.getByRole("button", { name: "Uploadvenster sluiten" }).click();
 
   await page.getByRole("link", { name: "Raster" }).click();
   await expect(page.locator(".media-library-grid")).toBeVisible();
@@ -199,14 +206,13 @@ test("playlists route exposes searchable resource filters and safe creation", as
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
   ).toBeVisible();
-  await expect(page.getByLabel("Playlistnaam")).toBeVisible();
   await page.getByRole("button", { exact: true, name: "Filters" }).click();
   await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
   await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
   await expect(page.getByRole("combobox", { exact: true, name: "Schermgebruik" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Playlistlijst" })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Configureer Supabase" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Concept maken" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Nieuwe playlist" })).toHaveCount(0);
 });
 
 test("Release Center keeps immutable history semantics readable on mobile", async ({ page }) => {
@@ -227,7 +233,7 @@ test("settings route exposes real defaults with safe permission state", async ({
   await expect(page.getByLabel("Afbeeldingsduur in seconden")).toBeVisible();
   await expect(page.getByLabel("Video standaard zonder geluid")).toBeVisible();
   await expect(page.getByLabel("Oriëntatie")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toHaveCount(0);
   await expect(page.getByRole("status")).toContainText("Configureer Supabase");
 });
 

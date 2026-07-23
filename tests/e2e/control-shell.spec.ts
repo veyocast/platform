@@ -12,7 +12,8 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   ).toBeVisible();
 
   const nav = page.getByRole("navigation", { name: "Hoofdnavigatie" });
-  await expect(nav.getByRole("link", { name: /Platform/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Platform/ })).toHaveCount(0);
+  await expect(nav.getByText("Verenigingscontext")).toBeVisible();
   await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Releases/ })).toBeVisible();
@@ -29,16 +30,17 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Media" })
   ).toBeVisible();
+  await page.getByText("Upload- en verwerkingsregels", { exact: true }).click();
   await expect(page.getByText("Private bucket: tenant-media")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Pipeline voortgang" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Veilige verwerking" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Playlists/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/playlists$/);
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
   ).toBeVisible();
-  await expect(page.getByText("Demomodus zonder mutaties")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Nieuwe playlist" })).toBeVisible();
+  await expect(page.getByText("Demomodus", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Nieuwe playlist" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Playlistlijst" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Releases/ }).click();
@@ -52,7 +54,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
   ).toBeVisible();
-  await expect(page.getByText("Demomodus zonder mutaties")).toBeVisible();
+  await expect(page.getByText("Demomodus", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Schermvloot" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toBeVisible();
 
@@ -61,6 +63,11 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Scherm toevoegen" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Schermdetails en eerste content" })).toBeVisible();
 
+  await page.locator("summary").filter({ hasText: "Museumkwartier" }).click();
+  await page.getByRole("button", { name: /VeyoCast platform/ }).click();
+  await expect(page).toHaveURL(/\/platform$/);
+  await expect(nav.getByText("Platformcontext")).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Media/ })).toHaveCount(0);
   await nav.getByRole("link", { name: /Tenants/ }).click();
   await expect(page).toHaveURL(/\/platform\/tenants$/);
   await expect(
@@ -77,9 +84,27 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
     page.getByRole("button", { name: "Vereniging aanmaken" })
   ).toBeDisabled();
 
+  await page.goto("/dashboard/auditlog");
   await nav.getByRole("link", { name: /Auditlog/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/auditlog$/);
   await expect(page.getByRole("heading", { name: "Auditlog" })).toBeVisible();
+});
+
+test("persists theme and density preferences without a color flash", async ({ page }) => {
+  await page.goto("/dashboard");
+
+  await page.getByRole("button", { name: "Weergave: Systeem" }).click();
+  await page.getByRole("radio", { name: "Donker" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator(".control-brand__logo--inverse")).toBeVisible();
+
+  await page.getByRole("button", { name: "Weergave: Donker" }).click();
+  await page.getByRole("radio", { name: "Compact" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
+
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
 });
 
 test("supports the public login and auth callback routes", async ({ page }) => {
