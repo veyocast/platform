@@ -11,6 +11,7 @@ export type PlaylistStudioItem = {
   id: string;
   mediaAssetId: string;
   muted: boolean;
+  sectionId: string | null;
   sortOrder: number;
   transition: "crossfade" | "cut" | "wipe";
   trimEndSeconds: number | null;
@@ -18,6 +19,15 @@ export type PlaylistStudioItem = {
   visibleFrom: string | null;
   visibleUntil: string | null;
   volumePercent: number;
+};
+
+export type PlaylistStudioSection = {
+  defaultDurationSeconds: number | null;
+  defaultTransition: "crossfade" | "cut" | "wipe" | null;
+  enabled: boolean;
+  id: string;
+  name: string;
+  positionKey: number;
 };
 
 export type PlaylistStudioAsset = {

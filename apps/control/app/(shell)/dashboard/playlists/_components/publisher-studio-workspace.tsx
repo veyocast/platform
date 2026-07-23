@@ -71,7 +71,8 @@ import {
 import type { PlaylistPreviewItem } from "../playlist-preview";
 import type {
   PlaylistStudioAsset,
-  PlaylistStudioItem
+  PlaylistStudioItem,
+  PlaylistStudioSection
 } from "../playlist-studio-contract";
 import { PublisherStudioPreview } from "./publisher-studio-preview";
 import {
@@ -127,6 +128,7 @@ type PublisherStudioWorkspaceProps = {
     totalBytes: number;
     totalDurationSeconds: number;
   } | null;
+  sections: PlaylistStudioSection[];
   screenCount: number;
   serverAcknowledged: boolean;
   serverConflict: boolean;

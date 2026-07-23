@@ -38,6 +38,7 @@ export default async function PlaylistStudioPage({
           playlist: null,
           readiness: null,
           releases: [],
+          sections: [],
           screens: []
         };
   if (session.isLive && !data.playlist && !data.error) notFound();
@@ -70,6 +71,15 @@ export default async function PlaylistStudioPage({
       id: item.id,
       kind: asset.kind,
       muted: item.muted,
+      section: item.sectionId
+        ? data.sections
+            .filter((section) => section.id === item.sectionId)
+            .map((section) => ({
+              name: section.name,
+              positionKey: section.positionKey,
+              sourceSectionId: section.id
+            }))[0]
+        : undefined,
       title: asset.title,
       transition: item.transition,
       trim: {
@@ -143,6 +153,7 @@ export default async function PlaylistStudioPage({
                 }
               : null
           }
+          sections={data.sections}
           screenCount={
             data.screens.filter(
               (screen) => screen.assignedPlaylistId === playlist.id

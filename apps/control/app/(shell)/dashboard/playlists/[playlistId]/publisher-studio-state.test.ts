@@ -22,6 +22,7 @@ function item(id: string): PlaylistStudioItem {
     id,
     mediaAssetId: id,
     muted: true,
+    sectionId: null,
     sortOrder: 0,
     transition: "cut",
     trimEndSeconds: null,
