@@ -12,9 +12,31 @@ import {
   ScheduleStateDialog
 } from "./planning-dialogs";
 import planningStyles from "./planning.module.css";
+import {
+  FilteredPlanningEmpty,
+  PlanningCalendar,
+  PlanningCalendarNavigation,
+  PlanningWorkspaceToolbar,
+  planningHref
+} from "./planning-calendar";
+import {
+  buildCalendarDays,
+  isScheduleActiveAt,
+  normalizePlanningView,
+  normalizeReferenceDate,
+  planningRangeLabel,
+  scheduleMatchesPlanningTarget,
+  shiftReferenceDate
+} from "./schedule-calendar";
 
 type PlanningPageProps = {
-  searchParams: Promise<{ fout?: string; succes?: string }>;
+  searchParams: Promise<{
+    date?: string;
+    fout?: string;
+    succes?: string;
+    target?: string;
+    view?: string;
+  }>;
 };
 
 export default async function PlanningPage({ searchParams }: PlanningPageProps) {
@@ -24,12 +46,18 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
     ? await loadContentSchedules(session.tenantId)
     : { error: null, groups: [], releases: [], schedules: [], screens: [], timezoneName: "Europe/Amsterdam" };
   const now = Date.now();
-  const active = data.schedules.filter((schedule) =>
-    schedule.enabled &&
-    new Date(schedule.startsAt).getTime() <= now &&
-    (!schedule.endsAt || new Date(schedule.endsAt).getTime() > now)
+  const view = normalizePlanningView(query.view);
+  const referenceDate = normalizeReferenceDate(query.date, data.timezoneName, new Date(now));
+  const selectedTarget = normalizeTargetFilter(query.target, data.screens, data.groups);
+  const filteredSchedules = selectedTarget
+    ? data.schedules.filter((schedule) =>
+        scheduleMatchesPlanningTarget(schedule, selectedTarget, data.groups)
+      )
+    : data.schedules;
+  const active = filteredSchedules.filter((schedule) =>
+    isScheduleActiveAt(schedule, new Date(now), data.timezoneName)
   ).length;
-  const upcoming = data.schedules.filter((schedule) =>
+  const upcoming = filteredSchedules.filter((schedule) =>
     schedule.enabled && new Date(schedule.startsAt).getTime() > now
   ).length;
   const canWrite = session.isLive && session.tenantStatus === "active" &&
@@ -65,13 +93,40 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
         items={[
           { label: "Nu actief", tone: active ? "success" : "neutral", value: active },
           { label: "Aankomend", tone: upcoming ? "info" : "neutral", value: upcoming },
-          { label: "Totaal", value: data.schedules.length }
+          {
+            detail: selectedTarget ? "Binnen de actieve doelfilter" : undefined,
+            label: "Totaal",
+            value: filteredSchedules.length
+          }
         ]}
       />
 
-      {data.schedules.length ? (
+      <PlanningWorkspaceToolbar
+        date={referenceDate}
+        groups={data.groups.map((group) => ({
+          id: group.id,
+          label: `${group.name} · ${group.memberCount} ${group.memberCount === 1 ? "scherm" : "schermen"}`
+        }))}
+        screens={data.screens.map((screen) => ({
+          id: screen.id,
+          label: `${screen.name}${screen.disabled ? " · uitgeschakeld" : ""}`
+        }))}
+        selectedTarget={selectedTarget}
+        view={view}
+      />
+
+      {data.schedules.length === 0 ? (
+        <section className={styles.empty} role="status">
+          <CalendarClock aria-hidden="true" />
+          <h2>Nog geen planning</h2>
+          <p>Publiceer eerst een playlistversie. Alleen immutable releases kunnen veilig worden ingepland.</p>
+          <Button asChild variant="secondary"><Link href="/dashboard/playlists">Naar playlists</Link></Button>
+        </section>
+      ) : selectedTarget && filteredSchedules.length === 0 ? (
+        <FilteredPlanningEmpty clearHref={planningHref({ date: referenceDate, view })} />
+      ) : view === "agenda" ? (
         <ol aria-label="Geplande content" className={styles.scheduleList}>
-          {data.schedules.map((schedule) => (
+          {filteredSchedules.map((schedule) => (
             <li className={styles.scheduleRow} key={schedule.id}>
               <span className={styles.scheduleIdentity}><strong>{schedule.name}</strong><small>{schedule.targetKind === "screen" ? "Scherm" : "Schermgroep"} · {schedule.targetName}</small></span>
               <span className={styles.scheduleContent}><strong>{schedule.playlistName}</strong><small>Immutable versie {schedule.releaseVersion} · prioriteit {schedule.priority} · {sourceLabel(schedule.source)}</small></span>
@@ -97,15 +152,52 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
           ))}
         </ol>
       ) : (
-        <section className={styles.empty} role="status">
-          <CalendarClock aria-hidden="true" />
-          <h2>Nog geen planning</h2>
-          <p>Publiceer eerst een playlistversie. Alleen immutable releases kunnen veilig worden ingepland.</p>
-          <Button asChild variant="secondary"><Link href="/dashboard/playlists">Naar playlists</Link></Button>
-        </section>
+        <>
+          <PlanningCalendarNavigation
+            label={planningRangeLabel(referenceDate, view, data.timezoneName)}
+            nextHref={planningHref({
+              date: shiftReferenceDate(referenceDate, view, 1),
+              target: selectedTarget,
+              view
+            })}
+            previousHref={planningHref({
+              date: shiftReferenceDate(referenceDate, view, -1),
+              target: selectedTarget,
+              view
+            })}
+            todayHref={planningHref({
+              date: normalizeReferenceDate(undefined, data.timezoneName, new Date(now)),
+              target: selectedTarget,
+              view
+            })}
+          />
+          <PlanningCalendar
+            days={buildCalendarDays(
+              filteredSchedules,
+              view,
+              referenceDate,
+              data.timezoneName,
+              new Date(now)
+            )}
+            timeZone={data.timezoneName}
+            view={view}
+          />
+        </>
       )}
     </>
   );
+}
+
+function normalizeTargetFilter(
+  value: string | undefined,
+  screens: { id: string }[],
+  groups: { id: string }[]
+) {
+  if (!value) return "";
+  const [kind, id] = value.split(":");
+  if (kind === "screen" && screens.some((screen) => screen.id === id)) return value;
+  if (kind === "screen_group" && groups.some((group) => group.id === id)) return value;
+  return "";
 }
 
 function sourceLabel(value: string) {

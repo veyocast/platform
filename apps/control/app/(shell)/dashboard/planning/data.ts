@@ -46,7 +46,7 @@ export async function loadContentSchedules(tenantId: string) {
       .order("name"),
     supabase
       .from("screen_group_memberships")
-      .select("screen_group_id")
+      .select("screen_group_id, screen_id")
       .eq("tenant_id", tenantId),
     supabase
       .from("playlists")
@@ -81,6 +81,9 @@ export async function loadContentSchedules(tenantId: string) {
     groups: (groups.data ?? []).map((group) => ({
       id: group.id,
       memberCount: (memberships.data ?? []).filter((membership) => membership.screen_group_id === group.id).length,
+      memberIds: (memberships.data ?? [])
+        .filter((membership) => membership.screen_group_id === group.id)
+        .map((membership) => membership.screen_id),
       name: group.name
     })),
     releases: (releases.data ?? []).map((release) => ({
