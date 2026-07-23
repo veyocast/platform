@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
 import type { PlayerPlaybackItem } from "@veyocast/contracts";
+import { Button } from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../../lib/control-session";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
@@ -71,10 +72,13 @@ export default async function PlaylistStudioPage({ params, searchParams }: Playl
     <>
       <Link className="breadcrumb-link" href="/dashboard/playlists">← Terug naar playlists</Link>
       <PageHeader
-        actions={playlist ? <div className="page-action-group"><a className="button-link button-link--secondary" href="#playlist-preview">Voorbeeld</a><Link className="button-link button-link--primary" href={`/dashboard/playlists/${playlist.id}/publish`}>Publiceren</Link></div> : null}
-        description={playlist ? `Revisie ${playlist.revision} · laatst bewerkt door ${playlist.updatedBy} op ${formatDate(playlist.updatedAt)}.` : "Open een live playlist om het concept te bewerken."}
+        description={playlist ? `Laatst bewerkt door ${playlist.updatedBy} op ${formatDate(playlist.updatedAt)}.` : "Open een live playlist om het concept te bewerken."}
         eyebrow={`${session.tenant} · Playlist Studio`}
-        status={playlist ? playlistStatus(playlist.status, data.releases.length > 0) : { label: "Niet beschikbaar", tone: "warning" }}
+        status={!playlist
+          ? { label: "Niet beschikbaar", tone: "warning" }
+          : playlist.status === "archived"
+            ? { label: "Gearchiveerd", tone: "neutral" }
+            : undefined}
         title={playlist?.name ?? "Playlist Studio"}
       />
 
@@ -84,29 +88,26 @@ export default async function PlaylistStudioPage({ params, searchParams }: Playl
       {!session.isLive ? <p className="notice notice--warning" role="status">Playlist Studio gebruikt alleen live tenantdata. Configureer Supabase en log opnieuw in.</p> : null}
       {query.conflict && playlist ? <ConflictPanel actual={query.actual} expected={query.expected} operation={query.operation} playlistId={playlist.id} updatedBy={playlist.updatedBy} /> : null}
 
-      {playlist ? <DirtyStateGuard>
-        <nav aria-label="Stappen in Playlist Studio" className="playlist-studio-steps">
-          <a href="#playlist-items">1. Playlistitems</a>
-          <a href="#add-media">2. Media toevoegen</a>
-          <a href="#item-settings">3. Iteminstellingen</a>
-          <a href="#playlist-preview">4. Preview</a>
-          <Link href={`/dashboard/playlists/${playlist.id}/publish`}>5. Publiceren</Link>
-        </nav>
-
+      {playlist ? <DirtyStateGuard toolbar={(
+        <>
+          <Button asChild size="sm" variant="secondary"><a href="#playlist-preview">Voorbeeld</a></Button>
+          <Button asChild size="sm"><Link href={`/dashboard/playlists/${playlist.id}/publish`}>Publiceren</Link></Button>
+        </>
+      )}>
         <section className="playlist-studio-details" aria-labelledby="concept-details-title">
           <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="concept-details-title">Conceptgegevens</h2><p className="work-panel__meta">Opslaan wijzigt alleen het concept, nooit een bestaande release.</p></div><StatusPill label={`Revisie ${revision}`} tone="info" /></div>
           <form action={updatePlaylistDetails} className="playlist-details-form">
             <RevisionFields playlistId={playlist.id} revision={revision} />
             <div className="field"><label htmlFor="playlist-name">Playlistnaam</label><input defaultValue={playlist.name} disabled={!canWrite} id="playlist-name" maxLength={120} minLength={2} name="name" required type="text" /></div>
             <div className="field"><label htmlFor="playlist-description">Beschrijving</label><textarea defaultValue={playlist.description ?? ""} disabled={!canWrite} id="playlist-description" maxLength={500} name="description" rows={2} /></div>
-            <button className="button-link button-link--secondary" disabled={!canWrite} type="submit">Conceptgegevens opslaan</button>
+            <Button disabled={!canWrite} type="submit" variant="secondary">Conceptgegevens opslaan</Button>
           </form>
         </section>
 
         <div className="playlist-studio-layout">
           <section className="playlist-studio-library" id="add-media" aria-labelledby="add-media-title">
             <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="add-media-title">Media toevoegen</h2><p className="work-panel__meta">Alleen gereedstaande Player-varianten.</p></div><Link className="table-action" href="/dashboard/media">Media beheren</Link></div>
-            <form className="playlist-media-search" method="get" role="search"><label className="field" htmlFor="playlist-media-search"><span>Media zoeken</span><input defaultValue={query.mediaq} id="playlist-media-search" name="mediaq" placeholder="Zoek media" type="search" /></label><button className="button-link button-link--secondary" type="submit">Zoeken</button></form>
+            <form className="playlist-media-search" method="get" role="search"><label className="field" htmlFor="playlist-media-search"><span>Media zoeken</span><input defaultValue={query.mediaq} id="playlist-media-search" name="mediaq" placeholder="Zoek media" type="search" /></label><Button type="submit" variant="secondary">Zoeken</Button></form>
             {availableAssets.length ? <ul className="playlist-media-picker">{availableAssets.map((asset) => <li key={asset.id}>
               <div className="playlist-media-picker__preview" data-kind={asset.kind}>{asset.kind === "video" ? "Video" : "Afbeelding"}</div>
               <div><strong>{asset.title}</strong><span>{formatVariantLabel(asset.kind, asset.variant)}</span></div>
@@ -116,7 +117,7 @@ export default async function PlaylistStudioPage({ params, searchParams }: Playl
 
           <section className="playlist-studio-timeline" id="playlist-items" aria-labelledby="playlist-items-title">
             <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="playlist-items-title">Playlistitems</h2><p className="work-panel__meta">Volgorde en Playerinstellingen van het concept.</p></div><StatusPill label={`${data.items.length} items · ${formatDuration(readiness?.totalDurationSeconds ?? 0)}`} tone="neutral" /></div>
-            {data.items.length ? <PlaylistTimelineEditor canWrite={canWrite} items={data.items} playlistId={playlist.id} revision={revision} /> : <div className="empty-state" role="status"><h2>Deze playlist is leeg</h2><p>Voeg minimaal één gereedstaand media-item toe voordat je kunt publiceren.</p><a className="button-link button-link--primary" href="#add-media">Media kiezen</a></div>}
+            {data.items.length ? <PlaylistTimelineEditor canWrite={canWrite} items={data.items} playlistId={playlist.id} revision={revision} /> : <div className="empty-state" role="status"><h2>Deze playlist is leeg</h2><p>Voeg minimaal één gereedstaand media-item toe voordat je kunt publiceren.</p><Button asChild><a href="#add-media">Media kiezen</a></Button></div>}
           </section>
 
           <aside className="playlist-studio-inspector" aria-label="Preview en publicatiegereedheid">
@@ -127,17 +128,9 @@ export default async function PlaylistStudioPage({ params, searchParams }: Playl
           </aside>
         </div>
 
-        <section className="publish-workspace" aria-labelledby="publish-playlist-title">
-          <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="publish-playlist-title">Publiceren</h2><p className="work-panel__meta">Maak een immutable release en wijs die als gewenste release aan schermen toe.</p></div><StatusPill label={`Volgende versie ${data.releases.length ? data.releases[0]!.version + 1 : 1}`} tone="neutral" /></div>
-          <div className="publish-workspace__grid">
-            <div className="playlist-form"><p className="notice" role="status">De begeleide flow controleert readiness, preview, doelschermen, compatibiliteit, ontbrekende bytes en verse opslagtelemetry vóór de release wordt gemaakt.</p><p className="work-panel__meta">Wijzigingen in dit concept raken {data.screens.filter((screen) => screen.assignedPlaylistId === playlist.id).length} huidige {data.screens.filter((screen) => screen.assignedPlaylistId === playlist.id).length === 1 ? "scherm" : "schermen"} pas na een nieuwe publicatie. De huidige release blijft spelen tot alle bestanden lokaal zijn geverifieerd.</p><Link className="button-link button-link--primary" href={`/dashboard/playlists/${playlist.id}/publish`}>Begeleide publicatie starten</Link></div>
-            <section aria-labelledby="release-summary-title"><h3 id="release-summary-title">Conceptsamenvatting</h3><dl className="meta-list"><div><dt>Revisie</dt><dd>{revision}</dd></div><div><dt>Items</dt><dd>{readiness?.itemCount ?? 0}</dd></div><div><dt>Totale duur</dt><dd>{formatDuration(readiness?.totalDurationSeconds ?? 0)}</dd></div><div><dt>Downloadgrootte</dt><dd>{formatBytes(readiness?.totalBytes ?? 0)}</dd></div><div><dt>Laatste release</dt><dd>{data.releases[0] ? `Versie ${data.releases[0].version}` : "Nog geen"}</dd></div></dl></section>
-          </div>
-        </section>
-
         <section className="playlist-studio-footer-actions" aria-label="Playlistbeheer">
           <p><strong>Archiveren</strong><span>Alleen mogelijk wanneer geen actief scherm deze playlist gebruikt.</span></p>
-          <form action={archivePlaylist}><RevisionFields playlistId={playlist.id} revision={revision} /><button className="button-link button-link--secondary" disabled={!canManage} type="submit">Playlist archiveren</button></form>
+          <form action={archivePlaylist}><RevisionFields playlistId={playlist.id} revision={revision} /><Button disabled={!canManage} type="submit" variant="secondary">Playlist archiveren</Button></form>
         </section>
       </DirtyStateGuard> : null}
     </>
@@ -155,12 +148,6 @@ function ConflictPanel({ actual, expected, operation, playlistId, updatedBy }: {
 function operationLabel(operation?: string) {
   const labels: Record<string, string> = { add_item: "Media toevoegen", archive: "Archiveren", move_item: "Volgorde wijzigen", publish: "Publiceren", remove_item: "Item verwijderen", update_details: "Conceptgegevens opslaan", update_item: "Iteminstellingen opslaan" };
   return operation ? labels[operation] ?? "Concept wijzigen" : "Concept wijzigen";
-}
-
-function playlistStatus(status: string, hasRelease: boolean) {
-  if (status === "archived") return { label: "Gearchiveerd", tone: "neutral" as const };
-  if (status === "published") return { label: "Gepubliceerd", tone: "success" as const };
-  return { label: hasRelease ? "Bijwerken" : "Concept", tone: hasRelease ? "warning" as const : "info" as const };
 }
 
 function formatDuration(seconds: number) {

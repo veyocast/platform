@@ -39,6 +39,27 @@ export async function createPlaylist(formData: FormData) {
   redirect(`/dashboard/playlists/${data.id}?succes=${encodeURIComponent("De conceptplaylist is gemaakt. Voeg nu gereedstaande media toe.")}`);
 }
 
+export async function duplicatePlaylist(formData: FormData) {
+  const { supabase } = await requirePlaylistWriter();
+  const sourcePlaylistId = idValue(formData, "sourcePlaylistId");
+  const requestedName = String(formData.get("name") ?? "").trim();
+  if (requestedName && (requestedName.length < 2 || requestedName.length > 120)) {
+    failList("Gebruik een naam van 2 tot en met 120 tekens voor de kopie.");
+  }
+
+  const { data, error } = await supabase.rpc("duplicate_playlist_draft_v1", {
+    p_name: requestedName || null,
+    p_source_playlist_id: sourcePlaylistId
+  });
+  if (error || typeof data !== "string") {
+    console.error("Playlist dupliceren mislukt", error);
+    failList(duplicateFailureMessage(error?.code));
+  }
+
+  revalidatePath("/dashboard/playlists");
+  redirect(`/dashboard/playlists/${data}?succes=${encodeURIComponent("De playlist is als nieuw concept gedupliceerd. Releasehistorie en schermtoewijzingen zijn niet overgenomen.")}`);
+}
+
 export async function updatePlaylistDetails(formData: FormData) {
   const playlistId = idValue(formData, "playlistId");
   const name = playlistName(formData);
@@ -240,6 +261,16 @@ function mutationFailureMessage(code: string | undefined, operation: string) {
   if (code === "42501") return "Je mag dit concept niet wijzigen. Er is niets opgeslagen; vraag een beheerder om je rol te controleren.";
   if (operation === "archive") return "De playlist kan niet worden gearchiveerd zolang deze aan een actief scherm is toegewezen.";
   return "De wijziging voldeed niet aan de playlistregels. Het bestaande concept is ongewijzigd; controleer de invoer.";
+}
+
+function duplicateFailureMessage(code: string | undefined) {
+  if (code === "P0002") {
+    return "De bronplaylist bestaat niet meer. Er is geen kopie gemaakt; vernieuw de lijst.";
+  }
+  if (code === "42501") {
+    return "Je mag deze playlist niet dupliceren. Er is geen kopie gemaakt; controleer je rol en actieve vereniging.";
+  }
+  return "De playlist kon niet veilig worden gedupliceerd. Er is geen gedeeltelijke kopie opgeslagen; probeer opnieuw.";
 }
 
 function revalidatePlaylistPaths(playlistId: string) {

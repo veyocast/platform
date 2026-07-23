@@ -1,6 +1,5 @@
 "use client";
 
-import * as Dialog from "@radix-ui/react-dialog";
 import {
   DndContext,
   KeyboardSensor,
@@ -18,10 +17,23 @@ import {
   verticalListSortingStrategy
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowDown, ArrowUp, Clock3, GripVertical, Pencil, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Clock3, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { startTransition, useEffect, useId, useState, type ReactNode } from "react";
 
-import { Badge, IconButton } from "@veyocast/ui";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  IconButton
+} from "@veyocast/ui";
 
 import { movePlaylistItem, removePlaylistItem, updatePlaylistItem } from "../actions";
 import type { PlaylistStudioItem } from "../playlist-studio-contract";
@@ -176,9 +188,9 @@ function SortablePlaylistItem({
           <form action={removePlaylistItem}>
             <RevisionFields playlistId={playlistId} revision={revision} />
             <input name="itemId" type="hidden" value={item.id} />
-            <button className="table-action table-action--critical" disabled={!canWrite} type="submit">
+            <Button disabled={!canWrite} size="sm" type="submit" variant="destructive">
               <Trash2 aria-hidden="true" size={15} /> Verwijderen
-            </button>
+            </Button>
           </form>
         </div>
       </div>
@@ -201,25 +213,19 @@ function ItemEditDialog({
 }) {
   const title = item.asset?.title ?? "Media-item";
   return (
-    <Dialog.Root>
-      <Dialog.Trigger asChild>
+    <Dialog>
+      <DialogTrigger asChild>
         <IconButton aria-label={`${title} bewerken`} className="playlist-item__edit" disabled={!canWrite}>
           <Pencil aria-hidden="true" size={18} />
         </IconButton>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="playlist-edit-dialog__overlay" />
-        <Dialog.Content aria-labelledby={dialogTitleId} className="playlist-edit-dialog__content">
-          <div className="playlist-edit-dialog__header">
-            <div>
-              <Dialog.Title className="playlist-edit-dialog__title" id={dialogTitleId}>Playlistitem bewerken</Dialog.Title>
-              <Dialog.Description className="work-panel__meta">Pas de naam en afspeelinstellingen aan.</Dialog.Description>
-            </div>
-            <Dialog.Close asChild>
-              <IconButton aria-label="Venster sluiten"><X aria-hidden="true" size={18} /></IconButton>
-            </Dialog.Close>
-          </div>
-          <form action={updatePlaylistItem} className="playlist-edit-dialog__form">
+      </DialogTrigger>
+      <DialogContent aria-labelledby={dialogTitleId} className="playlist-edit-dialog__content">
+        <DialogHeader>
+          <DialogTitle id={dialogTitleId}>Playlistitem bewerken</DialogTitle>
+          <DialogDescription>Pas alleen de instellingen van het geselecteerde item aan.</DialogDescription>
+        </DialogHeader>
+        <form action={updatePlaylistItem} className="playlist-edit-dialog__form">
+          <DialogBody>
             <RevisionFields playlistId={playlistId} revision={revision} />
             <input name="itemId" type="hidden" value={item.id} />
             <label className="field" htmlFor={`display-name-${item.id}`}>
@@ -244,14 +250,14 @@ function ItemEditDialog({
             <label className="compact-check">
               <input defaultChecked={item.muted} disabled={item.asset?.kind !== "video"} name="muted" type="checkbox" /> Zonder geluid
             </label>
-            <div className="playlist-edit-dialog__actions">
-              <Dialog.Close asChild><button className="button-link button-link--secondary" type="button">Annuleren</button></Dialog.Close>
-              <button className="button-link button-link--primary" type="submit">Wijzigingen opslaan</button>
-            </div>
-          </form>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+          </DialogBody>
+          <DialogFooter>
+            <DialogClose asChild><Button type="button" variant="secondary">Annuleren</Button></DialogClose>
+            <Button type="submit">Wijzigingen opslaan</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -289,7 +295,7 @@ function MoveForm({
       <RevisionFields playlistId={playlistId} revision={revision} />
       <input name="itemId" type="hidden" value={itemId} />
       <input name="direction" type="hidden" value={direction} />
-      <button className="table-action" disabled={disabled} type="submit">{children} {label}</button>
+      <Button disabled={disabled} size="sm" type="submit" variant="ghost">{children} {label}</Button>
     </form>
   );
 }

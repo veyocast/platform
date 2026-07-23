@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-export function DirtyStateGuard({ children }: { children: ReactNode }) {
+export function DirtyStateGuard({
+  children,
+  toolbar
+}: {
+  children: ReactNode;
+  toolbar?: ReactNode;
+}) {
   const [dirty, setDirty] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -36,9 +42,12 @@ export function DirtyStateGuard({ children }: { children: ReactNode }) {
       onSubmitCapture={() => setDirty(false)}
       ref={rootRef}
     >
-      <p aria-live="polite" className="playlist-save-state" data-dirty={dirty || undefined}>
-        {dirty ? "Niet-opgeslagen formulierwijziging" : "Concept geladen"}
-      </p>
+      <div className="playlist-studio-toolbar">
+        <p aria-live="polite" className="playlist-save-state" data-dirty={dirty || undefined}>
+          {dirty ? "Niet opgeslagen" : "Opgeslagen"}
+        </p>
+        {toolbar ? <div className="playlist-studio-toolbar__actions">{toolbar}</div> : null}
+      </div>
       {children}
     </div>
   );
