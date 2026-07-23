@@ -20,8 +20,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   ArrowDown,
+  ArrowDownToLine,
   ArrowLeft,
   ArrowUp,
+  ArrowUpToLine,
   Check,
   CloudUpload,
   Copy,
@@ -1640,6 +1642,16 @@ function ItemMenu({
           <Settings2 aria-hidden="true" /> Instellingen
         </button>
         <MoveForm
+          direction="start"
+          disabled={!canWrite || index === 0}
+          itemId={item.id}
+          label="Naar begin"
+          playlistId={playlistId}
+          revision={revision}
+        >
+          <ArrowUpToLine aria-hidden="true" />
+        </MoveForm>
+        <MoveForm
           direction="up"
           disabled={!canWrite || index === 0}
           itemId={item.id}
@@ -1658,6 +1670,16 @@ function ItemMenu({
           revision={revision}
         >
           <ArrowDown aria-hidden="true" />
+        </MoveForm>
+        <MoveForm
+          direction="end"
+          disabled={!canWrite || index === itemCount - 1}
+          itemId={item.id}
+          label="Naar einde"
+          playlistId={playlistId}
+          revision={revision}
+        >
+          <ArrowDownToLine aria-hidden="true" />
         </MoveForm>
         <form action={duplicatePlaylistItem} data-online-required>
           <RevisionFields playlistId={playlistId} revision={revision} />
@@ -2263,7 +2285,7 @@ function MoveForm({
   revision
 }: {
   children: ReactNode;
-  direction: "down" | "up";
+  direction: "down" | "end" | "start" | "up";
   disabled: boolean;
   itemId: string;
   label: string;
