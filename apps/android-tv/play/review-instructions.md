@@ -5,7 +5,7 @@ uitsluitend in `Play Console > App content > App access`.
 
 ## Werking voor de reviewer
 
-1. Start `VeyoCast Player` op een Android TV-apparaat.
+1. Start `VeyoCast Player` op een Android-apparaat, tablet of Android TV-apparaat.
 2. De app opent automatisch de production Player op `player.veyocast.nl`.
 3. Een ongekoppeld apparaat toont een tijdelijke koppelcode.
 4. Open VeyoCast Control met het afzonderlijk aangeleverde reviewaccount.

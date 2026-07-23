@@ -68,12 +68,12 @@ voor het serviceaccount aan.
 
 ## Workflow uitvoeren
 
-1. Merge de gereviewde Android TV-wijziging naar `main`.
-2. Open GitHub Actions en kies `Android TV Play internal`.
+1. Merge de gereviewde Android Player-wijziging naar `main`.
+2. Open GitHub Actions en kies `Android Player Play internal`.
 3. Kies `Run workflow` op `main`.
 4. Laat de beschermde Environment goedkeuren.
 5. Controleer na upload in Play Console de nieuwe versie onder Internal testing.
-6. Installeer uitsluitend via de opt-inlink en Google Play op een echt TV-device.
+6. Installeer via de opt-inlink en Google Play op echte telefoon-, tablet- en TV-devices.
 
 De version code wordt monotonic afgeleid van UTC-uur, workflow-run en poging.
 De version name krijgt de vorm `1.0.0-internal.<run>.<attempt>`.
@@ -83,8 +83,8 @@ De version name krijgt de vorm `1.0.0-internal.<run>.<attempt>`.
 - Nederlandstalige listingcopy staat onder `play/listing/nl-NL/`.
 - Interne release notes staan onder `play/release-notes/`.
 - De reviewerprocedure staat in `play/review-instructions.md`.
-- Minimaal één onbewerkte, scherpe screenshot van de echte TV-app moet na de
-  fysieke hardwaretest in Play Console worden geplaatst.
+- Plaats na fysieke hardwaretests minimaal één onbewerkte, scherpe screenshot
+  per ondersteunde vormfactor in Play Console.
 - Vul voor closed/production de Data Safety-sectie en een publiek bereikbaar
   privacybeleid in. Een app die uitsluitend op internal testing actief is, is
   volgens Play Console nog vrijgesteld van Data Safety.
@@ -93,11 +93,11 @@ De version name krijgt de vorm `1.0.0-internal.<run>.<attempt>`.
 
 Controleer vóór uitbreiding naar closed testing:
 
-1. launchericon en 320 x 180-banner op Google TV;
-2. volledig landscape zonder afgesneden overscan-content;
-3. pairing met alleen D-pad en OK;
+1. launchericon op telefoon/tablet en icon plus 320 x 180-banner op Google TV;
+2. portrait en landscape zonder afgesneden content; op TV ook zonder overscan;
+3. pairing via touch, toetsenbord en alleen D-pad/OK;
 4. OK/play-pause en links/rechts tijdens video;
-5. eerste BACK opent beheer en tweede BACK gaat naar Android TV Home;
+5. eerste BACK opent beheer en tweede BACK gaat naar Android Home;
 6. video pauzeert op Home en hervat bij terugkeer;
 7. apprestart behoudt pairing en lokale release;
 8. netwerkverlies blijft last-known-good afspelen en herstelt zonder reload-loop;
@@ -110,6 +110,7 @@ afzonderlijke releasebeslissing en is niet door deze workflow geautoriseerd.
 
 ## Officiële referenties
 
+- [Android app quality](https://developer.android.com/docs/quality-guidelines/core-app-quality)
 - [Android TV app quality](https://developer.android.com/docs/quality-guidelines/tv-app-quality)
 - [Google Play internal testing](https://support.google.com/googleplay/android-developer/answer/9845334)
 - [Play App Signing](https://support.google.com/googleplay/android-developer/answer/9842756)

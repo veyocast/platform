@@ -120,7 +120,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         networkMonitor.start()
 
         AppLog.info(
-            "VeyoCast Android TV ${BuildConfig.VERSION_NAME}; omgeving=${BuildConfig.ENVIRONMENT}; " +
+            "VeyoCast Android ${BuildConfig.VERSION_NAME}; omgeving=${BuildConfig.ENVIRONMENT}; " +
                 "host=${safeHost(playerUrl)}"
         )
     }

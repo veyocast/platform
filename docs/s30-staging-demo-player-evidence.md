@@ -2,9 +2,10 @@
 
 ## Doel
 
-Google Play-reviewers kunnen de Android TV-stagingapp zonder persoonlijk
-account of echte schermpairing openen. De reviewcode `VYO 2VY` start uitsluitend
-een afgeschermde virtuele demosessie met veilige mixed-media-inhoud.
+Google Play-reviewers kunnen de Android-stagingapp op telefoon, tablet of TV
+zonder persoonlijk account of echte schermpairing openen. De reviewcode
+`VYO 2VY` start uitsluitend een afgeschermde virtuele demosessie met veilige
+mixed-media-inhoud.
 
 ## Grens en architectuur
 
@@ -69,5 +70,6 @@ Android staging/production debug APK       PASS
 ```
 
 De Android-gates zijn uitgevoerd met een tijdelijke Temurin JDK 17 en de
-officiële Android SDK 37.1. Een fysieke Chromecast/Android TV blijft een
-releasegate; deze code-audit claimt geen hardwaretest.
+officiële Android SDK 37.1. Fysieke Android-validatie op telefoon, tablet,
+signagehardware en Chromecast/TV blijft een releasegate; deze code-audit claimt
+geen hardwaretest.

@@ -13,7 +13,7 @@ describe("Android Player-installatiegeschiktheid", () => {
     ).toBe(true);
   });
 
-  it("toont geen PWA-installatiekaart in de native Android TV-shell", () => {
+  it("toont geen PWA-installatiekaart in de native Android-shell", () => {
     expect(
       isAndroidPwaInstallEligible({
         referrer: "",

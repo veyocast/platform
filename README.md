@@ -8,7 +8,7 @@ the canon in `AGENTS.md`, `PLANS.md`, `TASK_LEDGER.md` and `docs/`.
 
 ```text
 apps/
-  android-tv/     Kotlin Android TV/Google TV shell around the Player
+  android-tv/     Kotlin Android-signageapp met TV/Google TV-ondersteuning
   control/        Next.js App Router control plane
   player/         Next.js App Router player plane
   marketing/      Next.js App Router public site
@@ -126,15 +126,18 @@ Ink Black splash en precachet de volledige Player-shell. Tijdens playback is
 technische diagnostiek niet publiek zichtbaar; alleen bij aantoonbaar
 netwerkverlies verschijnt rechtsonder een compacte offline-chip terwijl de
 last-known-good release lokaal blijft spelen.
-De afzonderlijke `apps/android-tv/`-app verpakt exact dezelfde hosted Player in
-een minimale native Android TV-WebView-shell. Staging en production zijn
-compile-time gescheiden; de shell voegt TV-launcher, immersive fullscreen,
-D-padbeheer en begrensd netwerk-/rendererherstel toe zonder pairing, releases,
-cache of playbacklogica te dupliceren. Een handmatige, Environment-beveiligde
-workflow bouwt en signeert production als Android App Bundle en publiceert via
-kortlevende Google Workload Identity uitsluitend naar het Play internal-
-testkanaal; Play Console-bootstrap en fysieke TV-acceptatie blijven expliciete
-externe gates.
+De afzonderlijke `apps/android-tv/`-app — de mapnaam blijft voor compatibiliteit
+met bestaande build- en Play-workflows behouden — verpakt exact dezelfde hosted
+Player in een minimale native Android-WebView-shell. De app is beschikbaar voor
+reguliere Android-apparaten, tablets, Android TV en Google TV. Staging en
+production zijn compile-time gescheiden; de shell voegt normale én TV-launcher,
+immersive fullscreen, touch-, toetsenbord- en D-padbediening en begrensd
+netwerk-/rendererherstel toe zonder pairing, releases, cache of playbacklogica
+te dupliceren. Een handmatige, Environment-beveiligde workflow bouwt en
+signeert production als Android App Bundle en publiceert via kortlevende Google
+Workload Identity uitsluitend naar het Play internal-testkanaal; Play
+Console-bootstrap en fysieke acceptatie op telefoon, tablet en TV blijven
+expliciete externe gates.
 De stagingvariant bevat daarnaast een afgeschermde Google Play-reviewdemo. De
 vaste reviewcode maakt een tijdelijke virtuele sessie en opent een immutable
 release die een Platform Owner met AAL2 in staging kiest. Production bevat deze

@@ -1,7 +1,7 @@
-VeyoCast Player verandert een Android TV- of Google TV-apparaat in een beheerd narrowcastingscherm.
+VeyoCast Player verandert een Android-apparaat, tablet, Android TV- of Google TV-apparaat in een beheerd narrowcastingscherm.
 
 Koppel het scherm met een veilige code aan VeyoCast Control. Daarna ontvangt de Player de gepubliceerde playlists, afbeeldingen, video's en planning van de gekoppelde organisatie.
 
 De Player draait fullscreen, bewaart geverifieerde content lokaal en probeert automatisch te herstellen wanneer de internetverbinding tijdelijk wegvalt. Nieuwe releases worden pas actief nadat de benodigde content beschikbaar en gecontroleerd is.
 
-Voor gebruik is een actief VeyoCast-account met schermbeheer nodig. Deze app is bedoeld voor Chromecast met Google TV en andere ondersteunde Android TV-apparaten; een klassieke Chromecast zonder Google TV kan de app niet uitvoeren.
+Voor gebruik is een actief VeyoCast-account met schermbeheer nodig. De app ondersteunt reguliere Android-apparaten, tablets, dedicated Android-signagehardware, Chromecast met Google TV en andere ondersteunde Android TV-apparaten. Een klassieke Chromecast zonder Android-appplatform kan de app niet uitvoeren.

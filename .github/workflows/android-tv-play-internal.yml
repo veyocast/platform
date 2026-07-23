@@ -1,6 +1,6 @@
-name: Android TV Play internal
+name: Android Player Play internal
 
-run-name: Android TV internal test from ${{ github.ref_name }}
+run-name: Android Player internal test from ${{ github.ref_name }}
 
 on:
   workflow_dispatch:

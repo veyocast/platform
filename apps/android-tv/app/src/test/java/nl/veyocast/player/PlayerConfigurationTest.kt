@@ -37,7 +37,7 @@ class PlayerConfigurationTest {
                 assertEquals("https://player.veyocast.nl", BuildConfig.PLAYER_URL)
                 assertFalse(BuildConfig.DEMO_MENU_ENABLED)
             }
-            else -> throw AssertionError("Onbekende Android TV-omgeving: ${BuildConfig.ENVIRONMENT}")
+            else -> throw AssertionError("Onbekende Android-omgeving: ${BuildConfig.ENVIRONMENT}")
         }
     }
 

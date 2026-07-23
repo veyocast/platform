@@ -18,7 +18,7 @@ class TvInteractionPolicyTest {
     }
 
     @Test
-    fun `back reaches Android TV through the management surface`() {
+    fun `back reaches Android through the management surface`() {
         assertEquals(
             TvBackAction.OPEN_MANAGEMENT,
             TvBackPolicy.decide(

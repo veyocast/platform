@@ -1,4 +1,4 @@
-name: Android TV
+name: Android Player
 
 on:
   pull_request:
@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   build:
-    name: Lint, test and build Android TV
+    name: Lint, test and build Android Player
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -70,7 +70,7 @@ jobs:
       - name: Build production debug APK
         run: ./gradlew assembleProductionDebug --no-daemon
 
-      - name: Upload Android TV debug APKs
+      - name: Upload Android Player debug APKs
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: veyocast-android-tv-debug-apks

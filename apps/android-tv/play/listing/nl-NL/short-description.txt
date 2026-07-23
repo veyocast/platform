@@ -1,1 +1,1 @@
-Betrouwbare fullscreen narrowcasting voor beheerde Android TV-schermen.
+Betrouwbare fullscreen narrowcasting voor beheerde Android-schermen.

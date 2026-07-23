@@ -102,9 +102,10 @@ De player:
 
 Platformshells mogen de hosted Player als enige bron van waarheid in een
 beperkte native host draaien. Zo'n shell mag lifecycle, fullscreen,
-afstandsbediening en platformherstel toevoegen, maar introduceert geen eigen
-pairing-, release-, cache-, planning- of playbackmodel. De Android TV-shell in
-`apps/android-tv/` volgt deze grens.
+touch, toetsenbord, afstandsbediening en platformherstel toevoegen, maar
+introduceert geen eigen pairing-, release-, cache-, planning- of playbackmodel.
+De algemene Android-shell in `apps/android-tv/` — met historische mapnaam —
+volgt deze grens op telefoon, tablet, signagehardware en TV.
 
 ## 6. Media plane
 
@@ -154,7 +155,8 @@ Out of scope voor kern-MVP:
 - advertentienetwerk;
 - sponsorportaal;
 - een tweede native Android/iOS-playerimplementatie; een dunne goedgekeurde
-  Android TV-hostshell rond de bestaande Player is wel toegestaan;
+  algemene Android-hostshell met TV-ondersteuning rond de bestaande Player is
+  wel toegestaan;
 - webOS/Tizen;
 - arbitrary HTML/iframe content;
 - full Sportlink/Twelve production integration;

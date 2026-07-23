@@ -1,22 +1,29 @@
-# VeyoCast Player voor Android TV
+# VeyoCast Player voor Android
 
-Dit project bouwt een minimale native Android TV-shell rond de bestaande
-VeyoCast-webplayer. De shell bevat geen playlist-, pairing-, planning-, cache-
-of playbackengine. `apps/player` blijft de enige bron van waarheid.
+Dit project bouwt een minimale native Android-signageapp rond de bestaande
+VeyoCast-webplayer. De app werkt op reguliere Android-apparaten en tablets én
+ondersteunt Android TV en Google TV. De shell bevat geen playlist-, pairing-,
+planning-, cache- of playbackengine. `apps/player` blijft de enige bron van
+waarheid.
+
+De bestaande mapnaam `apps/android-tv/` blijft voorlopig behouden om
+artifactpaden, Play-signing en bestaande CI-integraties niet onnodig te breken.
+De productscope is nadrukkelijk niet TV-only.
 
 ## Architectuur
 
 De app gebruikt één native `Activity` met een fullscreen Android `WebView`.
-Dat geeft Chromecast met Google TV en andere Android TV-apparaten een echte
-launcher-app, immersive fullscreen, D-padbediening, scherm-wakker-beleid,
-netwerkcallbacks en herstel na een beëindigde WebView-renderer zonder een tweede
-playercodebase te maken.
+Daarmee krijgen telefoons, tablets, dedicated Android-signagehardware,
+Chromecast met Google TV en andere Android TV-apparaten dezelfde launcher-app,
+immersive fullscreen, touch-, toetsenbord- en D-padbediening,
+scherm-wakker-beleid, netwerkcallbacks en herstel na een beëindigde
+WebView-renderer zonder een tweede playercodebase te maken.
 
 De verantwoordelijkheden zijn bewust gescheiden:
 
 | Native Android-shell | Bestaande webplayer |
 |---|---|
-| TV-launcher, fullscreen en landscape | schermregistratie en pairing |
+| Android- en TV-launcher, fullscreen en apparaatrotatie | schermregistratie en pairing |
 | veilige top-level navigatie | playlists, releases en planning |
 | netwerk- en rendererherstel | afbeeldingen en video |
 | scherm wakker houden | IndexedDB, Cache Storage en service worker |
@@ -30,7 +37,7 @@ de pairingstatus en lokaal geverifieerde releases behouden.
 
 De hosted Player declareert expliciet `width=device-width` en schaal 1. De
 WebView laat de fysieke viewport de initiële schaal bepalen en de native
-foutkaart en beheerlade worden op smalle TV-viewports tot de beschikbare
+foutkaart en beheerlade worden op smalle Android- en TV-viewports tot de beschikbare
 breedte begrensd, zodat geen tweede vaste canvasmaat ontstaat.
 
 Top-level navigatie is beperkt tot exact de geconfigureerde Player-origin.
@@ -41,7 +48,8 @@ hostlijst onderschept. Mixed content, file/content access, pop-ups, native
 JavaScriptinterfaces en certificaatbypasses zijn uitgeschakeld. Een SSL-fout
 wordt altijd geannuleerd.
 
-De herkenbare `VeyoCastAndroidTV/<versie>` user-agent voorkomt daarnaast dat de
+De herkenbare `VeyoCastAndroidTV/<versie>` user-agent blijft voor
+compatibiliteit met reeds uitgebrachte builds behouden en voorkomt daarnaast dat de
 hosted Player binnen deze reeds geïnstalleerde native app opnieuw de Android
 PWA-installatiekaart aanbiedt.
 
@@ -129,7 +137,8 @@ buildbestand te wijzigen:
 
 ## Installatie via ADB
 
-Schakel op Google TV eerst de ontwikkelaarsopties in. Open doorgaans
+Schakel op een Android-apparaat eerst de ontwikkelaarsopties en USB- of
+netwerkdebugging in. Op Google TV open je doorgaans
 `Instellingen > Systeem > Over > Android TV OS-build` en druk zeven keer op de
 buildregel. Schakel daarna USB- of netwerkdebugging in onder
 `Ontwikkelaarsopties`. Benamingen verschillen per Android TV-versie en fabrikant.
@@ -144,16 +153,17 @@ Voor staging debug gebruik je package
 `nl.veyocast.player.staging.debug`. Bevestig de ADB-fingerprint altijd op het
 fysieke scherm en zet netwerkdebugging na de test weer uit.
 
-## Afstandsbediening en beheerpaneel
+## Touch, toetsenbord, afstandsbediening en beheerpaneel
 
-De webplayer ontvangt D-pad-, OK- en toetsenbordinvoer rechtstreeks. Tijdens
+De webplayer ontvangt touch-, D-pad-, OK- en toetsenbordinvoer rechtstreeks. Tijdens
 video toggelt kort OK tussen afspelen en pauzeren; links en rechts springen tien
 seconden en hardwarematige play/pause-toetsen werken eveneens. Zonder actieve
 media blijft dezelfde invoer beschikbaar voor de pairinginterface. BACK gaat
 alleen terug binnen een vertrouwde Player-route en verlaat de root nooit naar
-een leeg scherm. Op de root opent de eerste BACK het native Playerbeheer; de
-tweede BACK brengt de gebruiker naar Android TV Home. Het paneel opent ook met
-de MENU-toets of door OK circa 1,2 seconde ingedrukt te houden.
+een leeg scherm. Op de root opent de eerste BACK of Android-terugactie het
+native Playerbeheer; de tweede brengt de gebruiker naar Android Home. Het
+paneel opent ook met de MENU-toets of door OK circa 1,2 seconde ingedrukt te
+houden.
 
 Wanneer de app naar de achtergrond gaat, pauzeert de shell actieve HTML-media.
 Alleen elementen die door deze lifecycleovergang zijn gepauzeerd worden bij
@@ -167,7 +177,7 @@ Playerbeheer bevat uitsluitend shellfuncties:
 - in de stagingvariant de afgeschermde Google Play-reviewdemo starten of
   ontkoppelen;
 - best-effort autostart na reboot instellen;
-- bevestigen dat het scherm wakker en landscape blijft;
+- bevestigen dat het scherm wakker blijft en de apparaatrotatie volgt;
 - appversie bekijken;
 - de app bewust afsluiten.
 
@@ -198,7 +208,7 @@ de route rechtstreeks probeert te openen.
 
 Autostart staat veilig standaard uit. Na inschakelen verwerkt een niet-
 exported receiver `BOOT_COMPLETED` en vraagt maximaal één start per vijf minuten
-aan. Google TV en fabrikanten mogen background activity starts alsnog blokkeren
+aan. Android-versies en fabrikanten mogen background activity starts alsnog blokkeren
 of uitstellen. Dit is best effort en geen gegarandeerde kioskmodus. Voor een
 gegarandeerde zakelijke kiosk is later managed device/device-ownerbeheer nodig;
 de app gebruikt nu bewust geen accessibility-, device-admin- of ongedocumenteerde
@@ -240,7 +250,7 @@ of door een later aangeleverd officieel TV-bannerasset worden vervangen.
 
 ## CI
 
-`.github/workflows/android-tv.yml` draait alleen bij Android TV-, Player- of
+`.github/workflows/android-tv.yml` draait alleen bij Android-, Player- of
 brandwijzigingen. De workflow gebruikt JDK 17, valideert de Gradle-wrapper,
 installeert SDK 37.1, voert lint en unit tests uit, bouwt beide debugvarianten en
 bewaart de APK's veertien dagen als GitHub Actions-artifact. Release signing is
@@ -259,24 +269,26 @@ secrets, variabelen en acceptatie staan in
 - Bootstart en keep-on-top zijn niet gegarandeerd zonder managed kiosk/device owner.
 - HOME en het OS-appmenu blijven door Android beheerd.
 - De shell heeft geen eigen APK-updater; distributie loopt handmatig, via een
-  intern Google Play for Android TV-kanaal of later via managed devices.
+  intern Google Play-kanaal of later via managed devices.
 - Offline media en pairing blijven afhankelijk van de bestaande webplayer,
   Android System WebView en de beschikbare apparaatopslag.
-- Een klassieke Chromecast zonder Google TV kan deze APK niet uitvoeren.
-- Fysieke Chromecast-/Android TV-tests en een lange video-/offline-soak blijven
-  vereist vóór een brede supportclaim.
+- Een klassieke Chromecast zonder Android-appplatform kan deze APK niet uitvoeren.
+- Fysieke tests op telefoon, tablet, dedicated signagehardware,
+  Chromecast/Google TV en een lange video-/offline-soak blijven vereist vóór
+  een brede supportclaim.
 
 ## Mogelijke vervolgtaken
 
-1. fysieke acceptatietest op een exact Chromecast met Google TV-profiel;
+1. fysieke acceptatietests op telefoon, tablet en Chromecast met Google TV;
 2. Play Console-bootstrap, upload key en internal testerlist activeren;
-3. echte onbewerkte TV-screenshot en definitieve store-assets vastleggen;
+3. echte onbewerkte Android- en TV-screenshots en definitieve store-assets vastleggen;
 4. bestaande VeyoCast-healthtelemetrie uitbreiden met native shellversie;
 5. managed kiosk/device-ownerprofiel voor zakelijke uitrol;
 6. hardwarematrix en 24-uurs mixed-media-soak automatiseren.
 
 ## Officiële Android-referenties
 
+- [Ondersteuning voor verschillende schermformaten](https://developer.android.com/develop/ui/compose/layouts/adaptive/support-different-display-sizes)
 - [Android TV-app en launcher configureren](https://developer.android.com/training/tv/get-started/create)
 - [Immersive fullscreen](https://developer.android.com/develop/ui/views/layout/immersive)
 - [WebView-renderer veilig herstellen](https://developer.android.com/develop/ui/views/layout/webapps/handle-termination)
