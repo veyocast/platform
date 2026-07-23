@@ -28,6 +28,11 @@ IndexedDB, Cache Storage en service-workerdata worden niet gewist bij een
 normale app- of apparaatherstart. Daardoor blijven het VeyoCast-device-token,
 de pairingstatus en lokaal geverifieerde releases behouden.
 
+De hosted Player declareert expliciet `width=device-width` en schaal 1. De
+WebView laat de fysieke viewport de initiële schaal bepalen en de native
+foutkaart en beheerlade worden op smalle TV-viewports tot de beschikbare
+breedte begrensd, zodat geen tweede vaste canvasmaat ontstaat.
+
 Top-level navigatie is beperkt tot exact de geconfigureerde Player-origin.
 `file:`, `content:`, `javascript:`, HTTP-downgrades en externe hosts worden
 geblokkeerd. API-, Supabase- en signed mediarequests blijven gewone

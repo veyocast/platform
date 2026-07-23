@@ -21,6 +21,52 @@ test("player starts in unpaired pairing mode", async ({ page }) => {
   await expect(page.getByLabel("Device setupstatus")).not.toContainText("Geen Supabase Auth-user");
 });
 
+test("pairing stays completely inside a short Android TV viewport", async ({
+  page
+}) => {
+  await page.setViewportSize({ height: 540, width: 960 });
+  await page.goto(playerURL);
+
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute(
+    "content",
+    /width=device-width/
+  );
+  await expect(page.getByLabel("Pairingcode")).toBeVisible();
+  await expect(page.getByLabel("Device setupstatus")).toBeVisible();
+
+  const viewportFit = await page.evaluate(() => {
+    const selectors = [
+      ".pairing-stage",
+      ".pairing-logo",
+      ".pairing-heading",
+      ".pairing-code-group",
+      ".pairing-stage__status",
+      ".player-diagnostics"
+    ];
+    const tolerance = 1;
+    const outsideViewport = selectors.filter((selector) => {
+      const element = document.querySelector(selector);
+      if (!element) return true;
+      const box = element.getBoundingClientRect();
+      return box.left < -tolerance || box.top < -tolerance ||
+        box.right > window.innerWidth + tolerance ||
+        box.bottom > window.innerHeight + tolerance;
+    });
+
+    return {
+      horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
+      outsideViewport,
+      verticalOverflow: document.documentElement.scrollHeight > window.innerHeight
+    };
+  });
+
+  expect(viewportFit).toEqual({
+    horizontalOverflow: false,
+    outsideViewport: [],
+    verticalOverflow: false
+  });
+});
+
 test("player pairing becomes static when reduced motion is requested", async ({
   page
 }) => {

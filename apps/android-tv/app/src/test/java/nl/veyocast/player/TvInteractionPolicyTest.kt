@@ -9,6 +9,15 @@ import org.junit.Test
 
 class TvInteractionPolicyTest {
     @Test
+    fun `native surfaces and WebView stay bounded by the physical viewport`() {
+        assertEquals(420, ViewportSizing.managementPanelWidth(1_280, density = 1f))
+        assertEquals(560, ViewportSizing.errorCardWidth(1_280, density = 1f))
+        assertEquals(272, ViewportSizing.managementPanelWidth(320, density = 1f))
+        assertEquals(272, ViewportSizing.errorCardWidth(320, density = 1f))
+        assertEquals(0, ViewportSizing.WEBVIEW_INITIAL_SCALE_PERCENT)
+    }
+
+    @Test
     fun `back reaches Android TV through the management surface`() {
         assertEquals(
             TvBackAction.OPEN_MANAGEMENT,

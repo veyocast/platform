@@ -21,6 +21,7 @@
         android:visibility="gone">
 
         <LinearLayout
+            android:id="@+id/error_card"
             android:layout_width="560dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

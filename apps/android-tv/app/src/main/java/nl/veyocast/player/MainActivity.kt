@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private lateinit var errorTitle: TextView
     private lateinit var errorMessage: TextView
     private lateinit var retryButton: Button
+    private lateinit var errorCard: View
     private lateinit var managementPanel: LinearLayout
     private lateinit var refreshButton: Button
     private lateinit var returnHomeButton: Button
@@ -93,6 +94,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         )
 
         bindViews()
+        configureViewportSizing()
         preferences = AppPreferences(this)
         playerUrl = PlayerConfiguration.resolvePlayerUrl(
             configuredUrl = BuildConfig.PLAYER_URL,
@@ -250,6 +252,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         errorTitle = findViewById(R.id.error_title)
         errorMessage = findViewById(R.id.error_message)
         retryButton = findViewById(R.id.retry_button)
+        errorCard = findViewById(R.id.error_card)
         managementPanel = findViewById(R.id.management_panel)
         refreshButton = findViewById(R.id.refresh_button)
         returnHomeButton = findViewById(R.id.return_home_button)
@@ -266,6 +269,27 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
             cancelScheduledRetry()
             if (webView == null) createWebView() else loadPlayer()
         }
+    }
+
+    private fun configureViewportSizing() {
+        root.addOnLayoutChangeListener { _, left, _, right, _, _, _, _, _ ->
+            val viewportWidth = right - left
+            if (viewportWidth <= 0) return@addOnLayoutChangeListener
+            val density = resources.displayMetrics.density
+            applyViewWidth(
+                managementPanel,
+                ViewportSizing.managementPanelWidth(viewportWidth, density)
+            )
+            applyViewWidth(
+                errorCard,
+                ViewportSizing.errorCardWidth(viewportWidth, density)
+            )
+        }
+    }
+
+    private fun applyViewWidth(view: View, width: Int) {
+        if (view.layoutParams.width == width) return
+        view.layoutParams = view.layoutParams.apply { this.width = width }
     }
 
     private fun configureManagementPanel() {
@@ -307,6 +331,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         view.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         view.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_BOUND, true)
         configureWebSettings(view.settings)
+        view.setInitialScale(ViewportSizing.WEBVIEW_INITIAL_SCALE_PERCENT)
 
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
