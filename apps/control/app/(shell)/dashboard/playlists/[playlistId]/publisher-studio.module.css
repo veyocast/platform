@@ -7,7 +7,7 @@
   border-radius: var(--vc-radius-lg);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  height: max(720px, calc(100dvh - 32px));
+  height: calc(100dvh - 32px);
   min-height: 0;
   overflow: hidden;
   position: relative;
