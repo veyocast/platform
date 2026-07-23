@@ -92,7 +92,7 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
         aria-label="Planningssamenvatting"
         items={[
           { label: "Nu actief", tone: active ? "success" : "neutral", value: active },
-          { label: "Aankomend", tone: upcoming ? "info" : "neutral", value: upcoming },
+          { label: "Nog niet gestart", tone: upcoming ? "info" : "neutral", value: upcoming },
           {
             detail: selectedTarget ? "Binnen de actieve doelfilter" : undefined,
             label: "Totaal",

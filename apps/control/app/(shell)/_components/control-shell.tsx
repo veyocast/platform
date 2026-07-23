@@ -51,7 +51,9 @@ import type {
 } from "../_lib/control-navigation";
 import { getNavigationGroupsForPathname } from "../_lib/control-navigation";
 import type { ControlSearchResult } from "../_lib/control-search-contract";
+import { clearTenantScopedLocalData } from "../_lib/tenant-local-data";
 import { switchTenantContext } from "../context/actions";
+import { signOut } from "../../login/actions";
 import {
   ControlThemeBootstrap,
   ControlThemeSwitcher
@@ -394,7 +396,11 @@ export function ControlShell({
               role="group"
             >
               {session.tenantMemberships.map((membership) => (
-                <form action={switchTenantContext} key={membership.id}>
+                <form
+                  action={switchTenantContext}
+                  key={membership.id}
+                  onSubmit={() => clearTenantScopedLocalData(window.localStorage)}
+                >
                   <input name="tenantSlug" type="hidden" value={membership.slug} />
                   <input name="returnTo" type="hidden" value={pathname} />
                   <button
@@ -408,7 +414,10 @@ export function ControlShell({
                 </form>
               ))}
               {hasCapability(session.roles, "platform.system.read") ? (
-                <form action={switchTenantContext}>
+                <form
+                  action={switchTenantContext}
+                  onSubmit={() => clearTenantScopedLocalData(window.localStorage)}
+                >
                   <input name="tenantSlug" type="hidden" value="" />
                   <button type="submit">
                     <span>VeyoCast platform</span>
@@ -479,15 +488,18 @@ export function ControlShell({
               {session.roles[0] ? roleLabel[session.roles[0]] : "Geen rol toegewezen"}
             </p>
           </div>
-          <IconButton
-            asChild
-            aria-label="Sessie wisselen"
-            title="Sessie wisselen"
+          <form
+            action={signOut}
+            onSubmit={() => clearTenantScopedLocalData(window.localStorage)}
           >
-            <Link href="/login">
+            <IconButton
+              aria-label="Uitloggen"
+              title="Uitloggen"
+              type="submit"
+            >
               <ChevronDown aria-hidden="true" />
-            </Link>
-          </IconButton>
+            </IconButton>
+          </form>
         </div>
       </aside>
 

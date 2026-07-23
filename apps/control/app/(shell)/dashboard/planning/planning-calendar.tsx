@@ -209,9 +209,15 @@ function formatOccurrenceTime(start: string, end: string | null, timeZone: strin
     minute: "2-digit",
     timeZone
   });
-  return end
-    ? `${formatter.format(new Date(start))}–${formatter.format(new Date(end))}`
-    : formatter.format(new Date(start));
+  if (!end) return formatter.format(new Date(start));
+  const dayFormatter = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone,
+    year: "numeric"
+  });
+  const crossesDay = dayFormatter.format(new Date(start)) !== dayFormatter.format(new Date(end));
+  return `${formatter.format(new Date(start))}–${formatter.format(new Date(end))}${crossesDay ? " volgende dag" : ""}`;
 }
 
 function sourceLabel(source: string) {
