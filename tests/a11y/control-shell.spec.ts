@@ -114,15 +114,23 @@ test("mobile navigation never mixes tenant and platform destinations", async ({
   await expect(mobileNavigation.getByRole("link", { name: "Playlists" })).toBeVisible();
   await expect(mobileNavigation.getByRole("link", { name: "Tenants" })).toHaveCount(0);
 
-  await page.goto("/platform");
-  await expect(mobileNavigation).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Navigatie openen" })).toBeVisible();
-  await page.getByRole("button", { name: "Navigatie openen" }).click();
-  const platformNavigation = page.getByRole("navigation", {
+  const platformPage = await page.context().newPage();
+  await platformPage.setViewportSize({ height: 844, width: 390 });
+  await platformPage.goto("/platform");
+  await platformPage.waitForLoadState("networkidle");
+  await expect(
+    platformPage.getByRole("navigation", { name: "Mobiele hoofdnavigatie" })
+  ).toHaveCount(0);
+  await expect(
+    platformPage.getByRole("button", { name: "Navigatie openen" })
+  ).toBeVisible();
+  await platformPage.getByRole("button", { name: "Navigatie openen" }).click();
+  const platformNavigation = platformPage.getByRole("navigation", {
     name: "Hoofdnavigatie"
   });
   await expect(platformNavigation.getByRole("link", { name: /Tenants/ })).toBeVisible();
   await expect(platformNavigation.getByRole("link", { name: /Playlists/ })).toHaveCount(0);
+  await platformPage.close();
 });
 
 test("all Control overview routes remain inside the viewport", async ({ page }) => {
