@@ -39,7 +39,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   ).toBeVisible();
   await expect(page.getByText("Demomodus", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Nieuwe playlist" })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Playlistlijst" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
 
   await nav.getByRole("link", { name: /Releases/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/releases$/);
@@ -85,7 +85,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await page.goto("/dashboard/auditlog");
   await nav.getByRole("link", { name: /Activiteit/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/auditlog$/);
-  await expect(page.getByRole("heading", { name: "Auditlog" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Activiteit" })).toBeVisible();
 });
 
 test("persists theme and density preferences without a color flash", async ({ page }) => {
@@ -207,6 +207,8 @@ test("supports command navigation and the compact mobile navigation flow", async
 }) => {
   await page.goto("/dashboard");
   await page.waitForLoadState("networkidle");
+  const screensWarmup = await page.request.get("/dashboard/screens");
+  expect(screensWarmup.ok()).toBe(true);
 
   const commandButton = page.getByRole("button", {
     name: "Snel naar een onderdeel"

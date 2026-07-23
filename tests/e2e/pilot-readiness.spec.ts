@@ -37,7 +37,7 @@ test("keeps the documented local demo pilot traceable across product planes", as
 
   await page.goto("/dashboard/playlists");
   await expect(page.getByText("Demomodus", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Playlistlijst" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Nieuwe playlist" })).toHaveCount(0);
 
   await page.goto("/dashboard/screens");

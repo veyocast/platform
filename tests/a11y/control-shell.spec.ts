@@ -271,7 +271,7 @@ test("playlists route exposes searchable resource filters and safe creation", as
   await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
   await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
   await expect(page.getByRole("combobox", { exact: true, name: "Schermgebruik" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Playlistlijst" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Configureer Supabase" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Nieuwe playlist" })).toHaveCount(0);
 });

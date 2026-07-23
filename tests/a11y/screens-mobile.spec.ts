@@ -31,7 +31,7 @@ test("playlist authoring and settings remain sequential on mobile", async ({ pag
   await page.goto("/dashboard/playlists");
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })).toBeVisible();
   await expect(page.getByLabel("Compact playlistoverzicht")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Playlistlijst" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
   await page.goto("/dashboard/settings");
