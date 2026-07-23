@@ -78,7 +78,7 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
               <span className={styles.scheduleTiming}><strong>{scheduleKindLabel(schedule.scheduleKind)}</strong><small>{formatScheduleWindow(schedule.startsAt, schedule.endsAt, schedule.timezoneName)}</small></span>
               <span className={planningStyles.rowActions}>
                 <StatusPill label={schedule.enabled ? "Actief" : "Uitgeschakeld"} tone={schedule.enabled ? "success" : "neutral"} />
-                {canWrite ? (
+                {canWrite && schedule.source !== "fallback" ? (
                   <>
                     <ContentScheduleDialog
                       defaultStartAt={defaultStartAt}

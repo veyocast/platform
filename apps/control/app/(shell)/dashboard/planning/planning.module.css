@@ -156,6 +156,10 @@
 }
 
 @media (max-width: 639px) {
+  .dialog {
+    width: 100vw;
+  }
+
   .twoColumns {
     grid-template-columns: 1fr;
   }

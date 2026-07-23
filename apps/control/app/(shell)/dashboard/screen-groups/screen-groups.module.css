@@ -77,6 +77,11 @@
   font-size: var(--vc-font-size-xs);
 }
 
+@media (max-width: 639px) {
+  .dialog {
+    width: 100vw;
+  }
+}
 .cardActions {
   align-items: center;
   display: flex;
