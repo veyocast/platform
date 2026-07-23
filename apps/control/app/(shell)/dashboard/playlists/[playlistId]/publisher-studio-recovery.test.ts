@@ -66,17 +66,27 @@ describe("Publisher Studio recoverybuffer", () => {
     expect(findRecovery(storage, tenantId, playlistId)).toEqual(record());
   });
 
-  it("weigert onbekende velden niet als veilig contract wanneer de allowlist faalt", () => {
+  it("projecteert onbekende URL-velden uit een geldige allowlist", () => {
     const unsafe = JSON.stringify({
       ...record(),
       intent: {
         ...record().intent,
-        idempotencyKey: "kort",
         signedUrl: "https://storage.example/token"
       }
     });
 
-    expect(parseRecovery(unsafe)).toBeNull();
+    const parsed = parseRecovery(unsafe);
+    expect(parsed).toEqual(record());
+    expect(JSON.stringify(parsed)).not.toContain("storage.example");
+  });
+
+  it("weigert een intent met een ongeldige idempotencysleutel", () => {
+    const invalid = JSON.stringify({
+      ...record(),
+      intent: { ...record().intent, idempotencyKey: "kort" }
+    });
+
+    expect(parseRecovery(invalid)).toBeNull();
   });
 
   it("wist alle revisiebuffers van exact één tenantplaylist", () => {

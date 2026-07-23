@@ -131,6 +131,8 @@ export default async function PlaylistStudioPage({
               (screen) => screen.assignedPlaylistId === playlist.id
             ).length
           }
+          serverAcknowledged={Boolean(query.succes)}
+          serverConflict={Boolean(query.conflict)}
         />
       ) : null}
     </>

@@ -43,6 +43,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type FormEvent,
   type ReactNode
 } from "react";
 
@@ -74,6 +75,14 @@ import type {
 } from "../playlist-studio-contract";
 import { PublisherStudioPreview } from "./publisher-studio-preview";
 import {
+  clearRecoveryFamily,
+  createIdempotencyKey,
+  findRecovery,
+  saveRecovery,
+  type PublisherMutationIntent,
+  type PublisherRecoveryRecord
+} from "../[playlistId]/publisher-studio-recovery";
+import {
   durationStep,
   itemOrder,
   reorderItems,
@@ -87,6 +96,7 @@ type Playlist = {
   name: string;
   revision: number;
   status: string;
+  tenantId: string;
   updatedAt: string;
   updatedBy: string;
 };
@@ -112,9 +122,17 @@ type PublisherStudioWorkspaceProps = {
     totalDurationSeconds: number;
   } | null;
   screenCount: number;
+  serverAcknowledged: boolean;
+  serverConflict: boolean;
 };
 
-type SaveState = "changed" | "error" | "saved" | "saving";
+type SaveState =
+  | "changed"
+  | "conflict"
+  | "error"
+  | "offline"
+  | "saved"
+  | "saving";
 
 type PendingMove = {
   activeId: string;
@@ -130,7 +148,9 @@ export function PublisherStudioWorkspace({
   playlist,
   previewItems,
   readiness,
-  screenCount
+  screenCount,
+  serverAcknowledged,
+  serverConflict
 }: PublisherStudioWorkspaceProps & { items: PlaylistStudioItem[] }) {
   const [orderedItems, setOrderedItems] = useState(items);
   const [selectedId, setSelectedId] = useState<string | null>(
@@ -147,8 +167,16 @@ export function PublisherStudioWorkspace({
   const [mediaSheetOpen, setMediaSheetOpen] = useState(false);
   const [previewSheetOpen, setPreviewSheetOpen] = useState(false);
   const [inspectorSheetOpen, setInspectorSheetOpen] = useState(false);
+  const [networkOnline, setNetworkOnline] = useState(true);
+  const [recovery, setRecovery] = useState<PublisherRecoveryRecord | null>(
+    null
+  );
+  const [recoveryVisible, setRecoveryVisible] = useState(false);
+  const [restoredIntent, setRestoredIntent] =
+    useState<PublisherMutationIntent | null>(null);
   const saveTimer = useRef<number | null>(null);
   const pendingMove = useRef<PendingMove | null>(null);
+  const replaying = useRef(false);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 7 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -164,6 +192,48 @@ export function PublisherStudioWorkspace({
     setHistory({ future: [], past: [] });
     setSaveState("saved");
   }, [items]);
+
+  useEffect(() => {
+    setNetworkOnline(navigator.onLine);
+    const online = () => setNetworkOnline(true);
+    const offline = () => {
+      setNetworkOnline(false);
+      setSaveState("offline");
+    };
+    window.addEventListener("online", online);
+    window.addEventListener("offline", offline);
+    return () => {
+      window.removeEventListener("online", online);
+      window.removeEventListener("offline", offline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (serverAcknowledged) {
+      clearRecoveryFamily(localStorage, playlist.tenantId, playlist.id);
+      setRecovery(null);
+      setRecoveryVisible(false);
+      setRestoredIntent(null);
+      return;
+    }
+    const found = findRecovery(localStorage, playlist.tenantId, playlist.id);
+    if (!found) return;
+    setRecovery(found);
+    setRecoveryVisible(true);
+    if (serverConflict || found.revision !== playlist.revision) {
+      setSaveState("conflict");
+    } else if (found.queued && !navigator.onLine) {
+      setSaveState("offline");
+    } else {
+      setSaveState("changed");
+    }
+  }, [
+    playlist.id,
+    playlist.revision,
+    playlist.tenantId,
+    serverAcknowledged,
+    serverConflict
+  ]);
 
   useEffect(
     () => () => {
@@ -214,17 +284,217 @@ export function PublisherStudioWorkspace({
     );
   }, [assets, mediaKind, mediaQuery]);
 
+  useEffect(() => {
+    if (
+      !networkOnline ||
+      !recovery?.queued ||
+      replaying.current ||
+      serverConflict ||
+      recovery.revision !== playlist.revision
+    ) {
+      return;
+    }
+    if (recovery.intent.kind === "update_item") {
+      setRecoveryVisible(true);
+      setRestoredIntent(recovery.intent);
+      setSelectedId(recovery.intent.itemId);
+      setSaveState("changed");
+      return;
+    }
+    replaying.current = true;
+    setSaveState("saving");
+    replayRecovery(recovery);
+  }, [
+    networkOnline,
+    playlist.revision,
+    recovery,
+    serverConflict
+  ]);
+
+  function storeIntent(
+    intent: PublisherMutationIntent,
+    queued: boolean,
+    order = itemOrder(orderedItems)
+  ) {
+    const record: PublisherRecoveryRecord = {
+      createdAt: new Date().toISOString(),
+      intent,
+      order,
+      playlistId: playlist.id,
+      queued,
+      revision: playlist.revision,
+      tenantId: playlist.tenantId,
+      version: 1
+    };
+    saveRecovery(localStorage, record);
+    setRecovery(record);
+    if (queued) setRecoveryVisible(true);
+    return record;
+  }
+
+  function replayRecovery(record: PublisherRecoveryRecord) {
+    const formData = new FormData();
+    formData.set("playlistId", playlist.id);
+    formData.set("expectedRevision", String(playlist.revision));
+    formData.set("idempotencyKey", record.intent.idempotencyKey);
+    const intent = record.intent;
+    let action: Promise<void>;
+    if (intent.kind === "reorder") {
+      formData.set("itemId", intent.activeId);
+      formData.set("targetPosition", String(intent.targetPosition));
+      action = movePlaylistItem(formData);
+    } else if (intent.kind === "update_playlist") {
+      formData.set("name", intent.name);
+      formData.set("description", intent.description);
+      action = updatePlaylistDetails(formData);
+    } else {
+      replaying.current = false;
+      setRestoredIntent(intent);
+      setSelectedId(intent.itemId);
+      setRecoveryVisible(true);
+      setSaveState("changed");
+      return;
+    }
+    startTransition(() => {
+      void action.catch(() => {
+        replaying.current = false;
+        setSaveState("error");
+        setRecoveryVisible(true);
+      });
+    });
+  }
+
+  function captureIntent(
+    form: HTMLFormElement,
+    submitter?: HTMLElement | null
+  ): PublisherMutationIntent | null {
+    const formData = new FormData(form);
+    if (submitter instanceof HTMLButtonElement && submitter.name) {
+      formData.set(submitter.name, submitter.value);
+    }
+    const kind = form.dataset.recoveryKind;
+    if (kind === "update_playlist") {
+      const name = String(formData.get("name") ?? "").trim();
+      const description = String(formData.get("description") ?? "").trim();
+      if (
+        name.length < 2 ||
+        name.length > 120 ||
+        description.length > 500
+      ) {
+        return null;
+      }
+      const previous =
+        recovery?.intent.kind === "update_playlist"
+          ? recovery.intent.idempotencyKey
+          : null;
+      return {
+        description,
+        idempotencyKey: previous ?? createIdempotencyKey(),
+        kind: "update_playlist",
+        name
+      };
+    }
+    if (kind === "update_item") {
+      const itemId = String(formData.get("itemId") ?? "");
+      const durationSeconds = Number.parseInt(
+        String(formData.get("duration") ?? ""),
+        10
+      );
+      const fitMode = String(formData.get("fitMode") ?? "");
+      if (
+        !orderedItems.some((item) => item.id === itemId) ||
+        !Number.isInteger(durationSeconds) ||
+        durationSeconds < 5 ||
+        durationSeconds > 3600 ||
+        (fitMode !== "contain" && fitMode !== "cover")
+      ) {
+        return null;
+      }
+      const previous =
+        recovery?.intent.kind === "update_item" &&
+        recovery.intent.itemId === itemId
+          ? recovery.intent.idempotencyKey
+          : null;
+      return {
+        durationSeconds,
+        fitMode,
+        idempotencyKey: previous ?? createIdempotencyKey(),
+        itemId,
+        kind: "update_item",
+        muted: formData.get("muted") === "on"
+      };
+    }
+    if (kind === "reorder") {
+      const itemId = String(formData.get("itemId") ?? "");
+      const index = orderedItems.findIndex((item) => item.id === itemId);
+      const direction = String(formData.get("direction") ?? "");
+      if (index < 0 || (direction !== "up" && direction !== "down")) {
+        return null;
+      }
+      return {
+        activeId: itemId,
+        idempotencyKey: createIdempotencyKey(),
+        kind: "reorder",
+        targetPosition:
+          direction === "up"
+            ? Math.max(0, index - 1)
+            : Math.min(orderedItems.length - 1, index + 1)
+      };
+    }
+    return null;
+  }
+
+  function handleSubmitCapture(event: FormEvent<HTMLDivElement>) {
+    if (!(event.target instanceof HTMLFormElement)) return;
+    const submitter =
+      event.nativeEvent instanceof SubmitEvent
+        ? event.nativeEvent.submitter
+        : null;
+    const intent = captureIntent(
+      event.target,
+      submitter instanceof HTMLElement ? submitter : null
+    );
+    if (!intent) {
+      if (!navigator.onLine && event.target.dataset.onlineRequired) {
+        event.preventDefault();
+        setSaveState("offline");
+      }
+      return;
+    }
+    const queued = !navigator.onLine;
+    storeIntent(intent, queued);
+    if (queued) {
+      event.preventDefault();
+      setSaveState("offline");
+    } else {
+      setSaveState("saving");
+    }
+  }
+
   function scheduleOrderSave(move: PendingMove) {
     pendingMove.current = move;
     setSaveState("changed");
+    const intent: PublisherMutationIntent = {
+      activeId: move.activeId,
+      idempotencyKey: createIdempotencyKey(),
+      kind: "reorder",
+      targetPosition: move.targetPosition
+    };
+    storeIntent(intent, false);
     if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
+      if (!navigator.onLine) {
+        storeIntent(intent, true);
+        setSaveState("offline");
+        return;
+      }
       setSaveState("saving");
       const formData = new FormData();
       formData.set("playlistId", playlist.id);
       formData.set("expectedRevision", String(playlist.revision));
       formData.set("itemId", move.activeId);
       formData.set("targetPosition", String(move.targetPosition));
+      formData.set("idempotencyKey", intent.idempotencyKey);
       startTransition(() => {
         void movePlaylistItem(formData).catch(() => setSaveState("error"));
       });
@@ -272,6 +542,9 @@ export function PublisherStudioWorkspace({
     const current = itemOrder(orderedItems);
     setOrderedItems(restoreOrder(orderedItems, previous));
     setHistory({ future: [current], past: [] });
+    clearRecoveryFamily(localStorage, playlist.tenantId, playlist.id);
+    setRecovery(null);
+    setRecoveryVisible(false);
     setSaveState("saved");
     setAnnouncement("De lokale volgordewijziging is ongedaan gemaakt.");
   }
@@ -284,6 +557,40 @@ export function PublisherStudioWorkspace({
     setOrderedItems(restoreOrder(orderedItems, next));
     setAnnouncement("De lokale volgordewijziging is opnieuw toegepast.");
     scheduleOrderSave(move);
+  }
+
+  function restoreRecovery() {
+    if (!recovery || recovery.revision !== playlist.revision) return;
+    if (recovery.intent.kind === "reorder") {
+      const restored = restoreOrder(orderedItems, recovery.order);
+      setOrderedItems(restored);
+      setRecoveryVisible(false);
+      storeIntent(recovery.intent, true, recovery.order);
+      setSaveState(navigator.onLine ? "saving" : "offline");
+      return;
+    }
+    setRestoredIntent(recovery.intent);
+    if (recovery.intent.kind === "update_item") {
+      setSelectedId(recovery.intent.itemId);
+      setInspectorSheetOpen(
+        window.matchMedia("(max-width: 1180px)").matches
+      );
+    } else {
+      setSelectedId(null);
+      setInspectorSheetOpen(
+        window.matchMedia("(max-width: 1180px)").matches
+      );
+    }
+    setRecoveryVisible(false);
+    setSaveState("changed");
+  }
+
+  function discardRecovery() {
+    clearRecoveryFamily(localStorage, playlist.tenantId, playlist.id);
+    setRecovery(null);
+    setRecoveryVisible(false);
+    setRestoredIntent(null);
+    setSaveState("saved");
   }
 
   const mediaLibrary = (
@@ -304,9 +611,9 @@ export function PublisherStudioWorkspace({
       canManage={canManage}
       canWrite={canWrite}
       item={selectedItem}
-      onSaveStart={() => setSaveState("saving")}
       playlist={playlist}
       readiness={readiness}
+      restoredIntent={restoredIntent}
     />
   );
 
@@ -323,9 +630,15 @@ export function PublisherStudioWorkspace({
             event.target instanceof Element &&
             event.target.hasAttribute("data-editor-field")
           ) {
+            const form = event.target.closest("form");
+            if (form instanceof HTMLFormElement) {
+              const intent = captureIntent(form);
+              if (intent) storeIntent(intent, false);
+            }
             setSaveState("changed");
           }
         }}
+        onSubmitCapture={handleSubmitCapture}
       >
         <header className={styles.editorHeader}>
           <div className={styles.headerIdentity}>
@@ -385,7 +698,7 @@ export function PublisherStudioWorkspace({
                 </SheetBody>
               </SheetContent>
             </Sheet>
-            {readiness?.canPublish ? (
+            {readiness?.canPublish && networkOnline ? (
               <Button asChild size="sm">
                 <Link href={`/dashboard/playlists/${playlist.id}/publish`}>
                   <CloudUpload aria-hidden="true" size={16} />
@@ -396,7 +709,11 @@ export function PublisherStudioWorkspace({
               <Button
                 disabled
                 size="sm"
-                title="Herstel eerst de publicatieblokkades"
+                title={
+                  networkOnline
+                    ? "Herstel eerst de publicatieblokkades"
+                    : "Publiceren vereist een online verbinding"
+                }
               >
                 <CloudUpload aria-hidden="true" size={16} />
                 Publiceren
@@ -408,6 +725,18 @@ export function PublisherStudioWorkspace({
         <p aria-live="polite" className="sr-only">
           {announcement}
         </p>
+
+        {recoveryVisible && recovery ? (
+          <RecoveryBanner
+            conflict={
+              serverConflict || recovery.revision !== playlist.revision
+            }
+            currentRevision={playlist.revision}
+            onDiscard={discardRecovery}
+            onRestore={restoreRecovery}
+            record={recovery}
+          />
+        ) : null}
 
         <div className={styles.workspace}>
           <aside
@@ -436,7 +765,7 @@ export function PublisherStudioWorkspace({
               items={orderedItems}
               onSelect={(id) => {
                 setSelectedId(id);
-              if (window.matchMedia("(max-width: 1180px)").matches) {
+                if (window.matchMedia("(max-width: 1180px)").matches) {
                   setInspectorSheetOpen(true);
                 }
               }}
@@ -494,14 +823,25 @@ export function PublisherStudioWorkspace({
             <Eye aria-hidden="true" />
             Preview
           </button>
-          <Link
-            aria-disabled={!readiness?.canPublish}
-            data-disabled={!readiness?.canPublish || undefined}
-            href={`/dashboard/playlists/${playlist.id}/publish`}
-          >
-            <CloudUpload aria-hidden="true" />
-            Publiceren
-          </Link>
+          {readiness?.canPublish && networkOnline ? (
+            <Link href={`/dashboard/playlists/${playlist.id}/publish`}>
+              <CloudUpload aria-hidden="true" />
+              Publiceren
+            </Link>
+          ) : (
+            <button
+              disabled
+              title={
+                networkOnline
+                  ? "Herstel eerst de publicatieblokkades"
+                  : "Publiceren vereist een online verbinding"
+              }
+              type="button"
+            >
+              <CloudUpload aria-hidden="true" />
+              Publiceren
+            </button>
+          )}
         </nav>
 
         <Sheet open={inspectorSheetOpen} onOpenChange={setInspectorSheetOpen}>
@@ -522,10 +862,62 @@ export function PublisherStudioWorkspace({
   );
 }
 
+function RecoveryBanner({
+  conflict,
+  currentRevision,
+  onDiscard,
+  onRestore,
+  record
+}: {
+  conflict: boolean;
+  currentRevision: number;
+  onDiscard: () => void;
+  onRestore: () => void;
+  record: PublisherRecoveryRecord;
+}) {
+  const labels: Record<PublisherMutationIntent["kind"], string> = {
+    reorder: "volgordewijziging",
+    update_item: "itemwijziging",
+    update_playlist: "playlistwijziging"
+  };
+  return (
+    <section
+      className={styles.recoveryBanner}
+      data-conflict={conflict || undefined}
+      role={conflict ? "alert" : "status"}
+    >
+      <div>
+        <strong>
+          {conflict
+            ? "Lokale wijziging botst met de nieuwste revisie"
+            : "Lokale wijziging gevonden"}
+        </strong>
+        <p>
+          {conflict
+            ? `De buffer hoort bij revisie ${record.revision}; de server staat op revisie ${currentRevision}. Automatisch hervatten is gestopt.`
+            : `Er staat een ${labels[record.intent.kind]} klaar. Publiceren is niet offline uitgevoerd.`}
+        </p>
+      </div>
+      <div>
+        {!conflict ? (
+          <Button onClick={onRestore} size="sm" variant="secondary">
+            Herstellen
+          </Button>
+        ) : null}
+        <Button onClick={onDiscard} size="sm" variant="ghost">
+          Lokale wijziging verwerpen
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 function AutosaveIndicator({ state }: { state: SaveState }) {
   const labels: Record<SaveState, string> = {
     changed: "Niet-opgeslagen wijziging",
+    conflict: "Herstelconflict",
     error: "Opslaan mislukt",
+    offline: "Offline gewijzigd",
     saved: "Opgeslagen",
     saving: "Bezig met opslaan"
   };
@@ -671,7 +1063,7 @@ function DraggableMediaCard({
           </small>
         </span>
       </button>
-      <form action={addPlaylistItem}>
+      <form action={addPlaylistItem} data-online-required>
         <RevisionFields playlistId={playlistId} revision={revision} />
         <input name="mediaAssetId" type="hidden" value={asset.id} />
         <button
@@ -889,6 +1281,7 @@ function DurationStepper({
       action={updatePlaylistItem}
       aria-label={`Afspeelduur van ${title}`}
       className={styles.durationStepper}
+      data-recovery-kind="update_item"
     >
       <RevisionFields playlistId={playlistId} revision={revision} />
       <ItemUpdateFields item={item} />
@@ -961,7 +1354,7 @@ function ItemMenu({
         >
           <ArrowDown aria-hidden="true" />
         </MoveForm>
-        <form action={removePlaylistItem}>
+        <form action={removePlaylistItem} data-online-required>
           <RevisionFields playlistId={playlistId} revision={revision} />
           <input name="itemId" type="hidden" value={item.id} />
           <button disabled={!canWrite} type="submit">
@@ -977,18 +1370,20 @@ function Inspector({
   canManage,
   canWrite,
   item,
-  onSaveStart,
   playlist,
-  readiness
+  readiness,
+  restoredIntent
 }: {
   canManage: boolean;
   canWrite: boolean;
   item: PlaylistStudioItem | null;
-  onSaveStart: () => void;
   playlist: Playlist;
   readiness: PublisherStudioWorkspaceProps["readiness"];
+  restoredIntent: PublisherMutationIntent | null;
 }) {
   if (!item) {
+    const playlistDraft =
+      restoredIntent?.kind === "update_playlist" ? restoredIntent : null;
     return (
       <div className={styles.inspector}>
         <div className={styles.panelHeading}>
@@ -1003,7 +1398,8 @@ function Inspector({
         <form
           action={updatePlaylistDetails}
           className={styles.inspectorForm}
-          onSubmit={onSaveStart}
+          data-recovery-kind="update_playlist"
+          key={playlistDraft?.idempotencyKey ?? "playlist-current"}
         >
           <RevisionFields
             playlistId={playlist.id}
@@ -1013,7 +1409,7 @@ function Inspector({
             <span>Playlistnaam</span>
             <input
               data-editor-field
-              defaultValue={playlist.name}
+              defaultValue={playlistDraft?.name ?? playlist.name}
               disabled={!canWrite}
               maxLength={120}
               minLength={2}
@@ -1026,7 +1422,9 @@ function Inspector({
             <span>Beschrijving</span>
             <textarea
               data-editor-field
-              defaultValue={playlist.description ?? ""}
+              defaultValue={
+                playlistDraft?.description ?? playlist.description ?? ""
+              }
               disabled={!canWrite}
               maxLength={500}
               name="description"
@@ -1038,7 +1436,11 @@ function Inspector({
           </Button>
         </form>
         <Readiness readiness={readiness} />
-        <form action={archivePlaylist} className={styles.archiveAction}>
+        <form
+          action={archivePlaylist}
+          className={styles.archiveAction}
+          data-online-required
+        >
           <RevisionFields
             playlistId={playlist.id}
             revision={playlist.revision}
@@ -1057,6 +1459,11 @@ function Inspector({
   }
 
   const title = item.asset?.title ?? "Ontbrekende media";
+  const itemDraft =
+    restoredIntent?.kind === "update_item" &&
+    restoredIntent.itemId === item.id
+      ? restoredIntent
+      : null;
   return (
     <div className={styles.inspector}>
       <div className={styles.panelHeading}>
@@ -1075,7 +1482,8 @@ function Inspector({
       <form
         action={updatePlaylistItem}
         className={styles.inspectorForm}
-        onSubmit={onSaveStart}
+        data-recovery-kind="update_item"
+        key={itemDraft?.idempotencyKey ?? item.id}
       >
         <RevisionFields
           playlistId={playlist.id}
@@ -1099,7 +1507,7 @@ function Inspector({
           <span>Afspeelduur in seconden</span>
           <input
             data-editor-field
-            defaultValue={item.durationSeconds}
+            defaultValue={itemDraft?.durationSeconds ?? item.durationSeconds}
             disabled={!canWrite}
             max={3600}
             min={5}
@@ -1112,7 +1520,7 @@ function Inspector({
           <span>Weergave</span>
           <select
             data-editor-field
-            defaultValue={item.fitMode}
+            defaultValue={itemDraft?.fitMode ?? item.fitMode}
             disabled={!canWrite}
             name="fitMode"
           >
@@ -1124,7 +1532,7 @@ function Inspector({
           <label className={styles.checkboxField}>
             <input
               data-editor-field
-              defaultChecked={item.muted}
+              defaultChecked={itemDraft?.muted ?? item.muted}
               disabled={!canWrite}
               name="muted"
               type="checkbox"
@@ -1230,7 +1638,7 @@ function MoveForm({
   revision: number;
 }) {
   return (
-    <form action={movePlaylistItem}>
+    <form action={movePlaylistItem} data-recovery-kind="reorder">
       <RevisionFields playlistId={playlistId} revision={revision} />
       <input name="itemId" type="hidden" value={itemId} />
       <input name="direction" type="hidden" value={direction} />

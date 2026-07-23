@@ -231,7 +231,9 @@ test.describe("live pilot vertical slice", () => {
       await page.keyboard.press("Space");
       await expect(page.getByText("De nieuwe volgorde is opgeslagen")).toBeVisible();
       await page.getByRole("button", { name: "Voorbeeld" }).click();
-      await page.getByRole("button", { name: "Volgende" }).click();
+      await page
+        .getByRole("button", { name: "Volgend playlistitem" })
+        .click();
       const previewVideo = page.getByLabel("Voorbeeldvideo Live queuecontrole");
       await expect(previewVideo).toBeVisible();
       await expect(previewVideo).toHaveJSProperty("muted", true);
