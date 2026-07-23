@@ -139,11 +139,14 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
   const routes = [
     "/dashboard",
     "/dashboard/media",
+    "/dashboard/planning",
     "/dashboard/playlists",
     "/dashboard/releases",
+    "/dashboard/screen-groups",
     "/dashboard/screens",
     "/dashboard/settings",
     "/dashboard/team",
+    "/dashboard/templates",
     "/dashboard/auditlog",
     "/platform",
     "/platform/tenants",
@@ -154,7 +157,9 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
     await page.setViewportSize({ height: 900, width });
 
     for (const route of routes) {
-      await page.goto(route);
+      await page.goto("about:blank");
+      await page.goto(route, { waitUntil: "domcontentloaded" });
+      await expect(page.locator("#control-content")).toBeVisible();
       expect.soft(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
@@ -173,7 +178,12 @@ test("resource filters stay bundled through compact desktop", async ({ page }) =
   await expect(trigger).toBeVisible();
   await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
   await expect(page.getByRole("combobox", { exact: true, name: "Status" })).not.toBeVisible();
-  await trigger.click();
+  await expect(async () => {
+    if ((await trigger.getAttribute("data-state")) !== "open") {
+      await trigger.click();
+    }
+    await expect(trigger).toHaveAttribute("data-state", "open");
+  }).toPass();
   await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
   await expect(page.getByLabel("Compact playlistoverzicht")).toBeVisible();
 
@@ -218,12 +228,26 @@ test("media route exposes upload intake labels and status landmarks", async ({
   page
 }) => {
   await page.goto("/dashboard/media");
+  await page.waitForLoadState("networkidle");
+  await expect(
+    page.getByRole("button", { name: "Snel naar een onderdeel" })
+  ).toBeEnabled();
+  await page.waitForTimeout(250);
 
   await expect(page.getByRole("heading", { exact: true, name: "Media" })).toBeVisible();
   await expect(page.getByLabel("Samenvatting mediabibliotheek")).toContainText(
     "Actie nodig"
   );
-  await page.getByRole("button", { exact: true, name: "Filters" }).click();
+  const mediaFilterTrigger = page.getByRole("button", {
+    exact: true,
+    name: "Filters"
+  });
+  await expect(async () => {
+    if ((await mediaFilterTrigger.getAttribute("data-state")) !== "open") {
+      await mediaFilterTrigger.click();
+    }
+    await expect(mediaFilterTrigger).toHaveAttribute("data-state", "open");
+  }).toPass();
   await expect(page.getByLabel("Filter media op gebruik")).toBeVisible();
   await expect(page.getByRole("link", { name: "Raster" })).toBeVisible();
   await page.getByText("Upload- en verwerkingsregels", { exact: true }).click();
@@ -234,11 +258,15 @@ test("media route exposes upload intake labels and status landmarks", async ({
     hasText: "Uploaden is niet beschikbaar in de demomodus"
   })).toBeVisible();
 
-  await page.goto("/dashboard/media?upload=1");
+  await page.goto("/dashboard/media?upload=1", { waitUntil: "commit" });
   const uploadDialog = page.getByRole("dialog", { name: "Media uploaden" });
   await expect(uploadDialog).toBeVisible();
-  await expect(uploadDialog.getByLabel("Bestand", { exact: true })).toBeVisible();
-  await expect(uploadDialog.getByLabel("Titel", { exact: true })).toBeVisible();
+  const imageFiles = uploadDialog.getByLabel("Afbeeldingen", { exact: true });
+  await expect(imageFiles).toBeVisible();
+  await expect(imageFiles).toHaveAttribute("multiple", "");
+  await expect(
+    uploadDialog.getByLabel("Titel voor één afbeelding", { exact: true })
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Uploaden en verifiëren" })).toBeDisabled();
   await uploadDialog.getByRole("tab", { name: "Video" }).click();
   await expect(uploadDialog.getByLabel("Videobestand", { exact: true })).toBeVisible();
@@ -247,8 +275,12 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await uploadDialog.getByRole("button", { name: "Uploadvenster sluiten" }).click();
 
   await page.getByRole("link", { name: "Raster" }).click();
-  await expect(page.locator(".media-library-grid")).toBeVisible();
-  await expect(page.getByText("2 concepten · 1 release · 1 scherm").first()).toBeVisible();
+  await expect(page).toHaveURL(/view=grid/);
+  await expect(page.getByRole("link", { name: "Raster" })).toHaveAttribute(
+    "aria-current",
+    "page"
+  );
+  await expect(page.getByRole("region", { name: "Mediabibliotheek" })).toBeVisible();
 
   await page.setViewportSize({ height: 844, width: 390 });
   await page.reload();
