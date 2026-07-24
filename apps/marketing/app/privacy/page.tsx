@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { LegalPage } from "../_components/legal-page";
+import { isPublicIndexEnvironment } from "../_lib/site-config";
 
 export const metadata: Metadata = {
   alternates: {
@@ -17,8 +19,8 @@ export const metadata: Metadata = {
     url: "https://veyocast.nl/privacy"
   },
   robots: {
-    follow: true,
-    index: true
+    follow: isPublicIndexEnvironment(),
+    index: isPublicIndexEnvironment()
   },
   title: "Privacyverklaring | VeyoCast"
 };
@@ -215,7 +217,7 @@ export default function PrivacyPage() {
             vervangt of opruimt, de beheerder de appopslag wist, de app
             verwijdert of het apparaat reset. Alleen ontkoppelen op afstand wist
             een volledig offline apparaat niet onmiddellijk. Lees de stappen op{" "}
-            <a href="/data-verwijderen">Data verwijderen</a>.
+            <Link href="/data-verwijderen">Data verwijderen</Link>.
           </p>
         </section>
 
@@ -430,7 +432,7 @@ export default function PrivacyPage() {
           </div>
           <p>
             Een verwijderverzoek en de praktische gevolgen staan op{" "}
-            <a href="/data-verwijderen">veyocast.nl/data-verwijderen</a>.
+            <Link href="/data-verwijderen">veyocast.nl/data-verwijderen</Link>.
           </p>
         </section>
 

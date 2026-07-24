@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { LegalPage } from "../_components/legal-page";
+import { isPublicIndexEnvironment } from "../_lib/site-config";
 
 export const metadata: Metadata = {
   alternates: {
@@ -17,8 +19,8 @@ export const metadata: Metadata = {
     url: "https://veyocast.nl/data-verwijderen"
   },
   robots: {
-    follow: true,
-    index: true
+    follow: isPublicIndexEnvironment(),
+    index: isPublicIndexEnvironment()
   },
   title: "Data verwijderen | VeyoCast"
 };
@@ -187,7 +189,7 @@ export default function DataRemovalPage() {
           <p>
             Bent u het niet eens met de afhandeling, dan kunt u een klacht
             indienen bij de Autoriteit Persoonsgegevens. Lees ook de volledige{" "}
-            <a href="/privacy">privacyverklaring van VeyoCast</a>.
+            <Link href="/privacy">privacyverklaring van VeyoCast</Link>.
           </p>
         </section>
       </article>
