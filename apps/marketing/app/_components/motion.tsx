@@ -16,15 +16,14 @@ export function Reveal({
 
   return (
     <motion.div
+      animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       className={className}
-      initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+      initial={false}
       transition={{
         delay,
-        duration: 0.48,
+        duration: 0.2,
         ease: [0.2, 0, 0, 1]
       }}
-      viewport={{ amount: 0.18, once: true }}
-      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
     >
       {children}
     </motion.div>

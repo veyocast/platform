@@ -20,6 +20,7 @@
   --mk-line-dark: #2a2a2a;
   --mk-orange-hover: #e94b12;
   --mk-orange-soft: #fff0e7;
+  --mk-orange-text: #a93408;
   --mk-container: 1280px;
   --mk-wide: 1440px;
   --mk-header-height: 72px;
@@ -143,6 +144,20 @@ h2 {
   text-transform: uppercase;
 }
 
+:is(
+  .home-features,
+  .platform-section,
+  .proof-section,
+  .page-intro,
+  .benefits-section,
+  .pricing-section,
+  .form-section,
+  .faq-section,
+  .related-section
+) .eyebrow {
+  color: var(--mk-orange-text);
+}
+
 .button {
   align-items: center;
   border: 1px solid transparent;
@@ -262,7 +277,7 @@ h2 {
   position: relative;
 }
 
-.desktop-navigation > ul {
+.desktop-navigation__list {
   align-items: center;
   display: flex;
   gap: 0.15rem;
@@ -271,8 +286,8 @@ h2 {
   padding: 0;
 }
 
-.desktop-navigation [data-radix-navigation-menu-trigger],
-.desktop-navigation > ul > li > a {
+.desktop-navigation__trigger,
+.desktop-navigation__list > li > a {
   align-items: center;
   background: transparent;
   border: 0;
@@ -288,38 +303,33 @@ h2 {
   text-decoration: none;
 }
 
-.desktop-navigation [data-radix-navigation-menu-trigger]:hover,
-.desktop-navigation [data-radix-navigation-menu-trigger][data-state="open"],
-.desktop-navigation > ul > li > a:hover,
-.desktop-navigation > ul > li > a[data-active] {
+.desktop-navigation__trigger:hover,
+.desktop-navigation__trigger[data-state="open"],
+.desktop-navigation__list > li > a:hover,
+.desktop-navigation__list > li > a[data-active] {
   background: #1b1b1b;
   color: var(--mk-paper);
 }
 
-.desktop-navigation [data-radix-navigation-menu-trigger] svg {
+.desktop-navigation__trigger svg {
   transition: transform 180ms var(--mk-ease);
 }
 
-.desktop-navigation [data-radix-navigation-menu-trigger][data-state="open"] svg {
+.desktop-navigation__trigger[data-state="open"] svg {
   transform: rotate(180deg);
 }
 
-.desktop-navigation > div:last-child {
-  left: 50%;
-  padding-top: 0.6rem;
-  position: absolute;
-  top: calc(100% - 1px);
-  transform: translateX(-50%);
-  width: min(620px, 72vw);
-}
-
-.desktop-navigation [data-radix-navigation-menu-viewport] {
+.desktop-navigation__viewport {
   background: #111;
   border: 1px solid var(--mk-line-dark);
   border-radius: 14px;
   box-shadow: 0 22px 70px rgb(0 0 0 / 48%);
   height: var(--radix-navigation-menu-viewport-height);
+  left: 50%;
   overflow: hidden;
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  transform: translateX(-50%);
   transform-origin: top center;
   transition:
     height 220ms var(--mk-ease),
@@ -888,7 +898,7 @@ h2 {
 
 .feature-card a {
   align-items: center;
-  color: var(--mk-orange-hover);
+  color: var(--mk-orange-text);
   display: inline-flex;
   font-size: 0.8rem;
   font-weight: 650;
@@ -1001,7 +1011,7 @@ h2 {
 }
 
 .product-screenshot__chrome b {
-  color: #77736e;
+  color: #67635e;
   font-size: 0.63rem;
   font-weight: 600;
   margin-left: auto;
@@ -1209,7 +1219,7 @@ h2 {
 }
 
 .reliability-diagram__index {
-  color: #777;
+  color: #8b8a85;
   font-size: 0.65rem;
 }
 
@@ -1275,7 +1285,7 @@ h2 {
 }
 
 .proof-card > p {
-  color: var(--mk-orange-hover);
+  color: var(--mk-orange-text);
   font-size: 0.7rem;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -1347,8 +1357,8 @@ h2 {
 .page-hero__grid {
   align-items: center;
   display: grid;
-  gap: clamp(3rem, 7vw, 7rem);
-  grid-template-columns: minmax(380px, 0.9fr) minmax(480px, 1.1fr);
+  gap: clamp(2rem, 4vw, 4rem);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   min-height: 650px;
   padding-block: clamp(4rem, 8vw, 7.5rem);
   position: relative;
@@ -1400,12 +1410,14 @@ h2 {
 
 .page-hero h1 {
   font-family: var(--font-inter-tight), Inter, sans-serif;
-  font-size: clamp(3.25rem, 5.5vw, 5.5rem);
+  font-size: clamp(3.05rem, 4vw, 3.75rem);
   font-weight: 760;
+  hyphens: manual;
   letter-spacing: -0.052em;
   line-height: 0.98;
   margin: 1rem 0 1.25rem;
-  max-width: 12ch;
+  max-width: 15ch;
+  overflow-wrap: break-word;
 }
 
 .page-hero__lead {
@@ -1606,7 +1618,7 @@ h2 {
 }
 
 .pricing-card__label {
-  color: var(--mk-orange-hover) !important;
+  color: var(--mk-orange-text) !important;
   font-size: 0.7rem !important;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -2132,7 +2144,7 @@ h2 {
 }
 
 .marketing-footer__brand span {
-  color: #777671;
+  color: #85847e;
   font-size: 0.72rem;
 }
 
@@ -2174,7 +2186,7 @@ h2 {
 }
 
 .marketing-footer__legal p {
-  color: #777671;
+  color: #85847e;
   font-size: 0.68rem;
   margin: 0;
 }
@@ -2281,7 +2293,7 @@ h2 {
 
   .hero-product-stage {
     transform: translateX(-2%);
-    width: 660px;
+    width: min(660px, 56vw);
   }
 
   .home-features__grid {
@@ -2302,7 +2314,16 @@ h2 {
   }
 
   .page-hero__grid {
-    grid-template-columns: minmax(330px, 0.9fr) minmax(420px, 1.1fr);
+    grid-template-columns: 1fr;
+  }
+
+  .page-hero__copy {
+    max-width: 760px;
+  }
+
+  .page-hero__visual {
+    max-width: 860px;
+    transform: none;
   }
 
   .benefit-card-grid {
@@ -2592,7 +2613,7 @@ h2 {
   }
 
   .page-hero h1 {
-    font-size: clamp(2.8rem, 13vw, 4.4rem);
+    font-size: clamp(2.65rem, 11.5vw, 3.7rem);
   }
 
   .page-hero__grid {
@@ -2678,13 +2699,6 @@ h2 {
     font-size: clamp(2rem, 10vw, 2.7rem);
   }
 
-  .marketing-footer__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .marketing-footer__brand {
-    grid-column: auto;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

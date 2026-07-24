@@ -68,10 +68,14 @@ export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
           />
         </Link>
 
-        <NavigationMenu.Root className="desktop-navigation" delayDuration={120}>
-          <NavigationMenu.List>
+        <NavigationMenu.Root
+          aria-label="Hoofdnavigatie"
+          className="desktop-navigation"
+          delayDuration={120}
+        >
+          <NavigationMenu.List className="desktop-navigation__list">
             <NavigationMenu.Item>
-              <NavigationMenu.Trigger>
+              <NavigationMenu.Trigger className="desktop-navigation__trigger">
                 Product <ChevronDown aria-hidden size={14} />
               </NavigationMenu.Trigger>
               <NavigationMenu.Content>
@@ -79,7 +83,7 @@ export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
               </NavigationMenu.Content>
             </NavigationMenu.Item>
             <NavigationMenu.Item>
-              <NavigationMenu.Trigger>
+              <NavigationMenu.Trigger className="desktop-navigation__trigger">
                 Oplossingen <ChevronDown aria-hidden size={14} />
               </NavigationMenu.Trigger>
               <NavigationMenu.Content>
@@ -100,7 +104,7 @@ export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
             ))}
             <NavigationMenu.Indicator />
           </NavigationMenu.List>
-          <NavigationMenu.Viewport />
+          <NavigationMenu.Viewport className="desktop-navigation__viewport" />
         </NavigationMenu.Root>
 
         <div className="marketing-header__actions">
