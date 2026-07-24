@@ -1,5 +1,5 @@
 import type { StudioAnimationPreset } from "./constants";
-import type { StudioElement } from "./schema";
+import type { StudioDocument, StudioElement } from "./schema";
 
 export type StudioFrameTransform = Readonly<{
   clipProgress: number;
@@ -93,6 +93,29 @@ export function interpolateStudioElement(
     );
   }
   return result;
+}
+
+export function evaluateStudioFrame(document: StudioDocument, timeMs: number) {
+  const clampedTime = Math.min(
+    document.motion.durationMs,
+    Math.max(0, Math.round(timeMs))
+  );
+  return document.elements
+    .filter((element) => element.visible)
+    .sort((left, right) => left.zIndex - right.zIndex)
+    .map((element) => {
+      const transform = interpolateStudioElement(
+        element,
+        clampedTime,
+        document.motion.durationMs
+      );
+      const visibleText = element.type === "text" && transform.textProgress < 1
+        ? element.text.slice(0, Math.floor(element.text.length * transform.textProgress))
+        : element.type === "text"
+          ? element.text
+          : undefined;
+      return { element, transform, visibleText };
+    });
 }
 
 function applyPreset(

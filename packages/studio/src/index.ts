@@ -1,5 +1,7 @@
+export * from "./canonical";
 export * from "./constants";
 export * from "./document";
+export * from "./geometry";
 export * from "./motion";
 export * from "./render-contract";
 export * from "./schema";
