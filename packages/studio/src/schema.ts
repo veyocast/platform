@@ -157,13 +157,19 @@ const placeholderElementSchema = baseElementSchema.extend({
   stroke: colorSchema
 });
 
+const groupElementSchema = baseElementSchema.extend({
+  type: z.literal("group"),
+  childIds: z.array(elementIdSchema).min(2).max(studioLimits.maxElements)
+});
+
 export const studioElementSchema = z.discriminatedUnion("type", [
   textElementSchema,
   imageElementSchema,
   shapeElementSchema,
   iconElementSchema,
   qrElementSchema,
-  placeholderElementSchema
+  placeholderElementSchema,
+  groupElementSchema
 ]);
 
 const artboardSchema = z.object({
@@ -240,11 +246,27 @@ export const studioDocumentSchema = z.object({
     }
   }
   for (const [index, element] of document.elements.entries()) {
-    if (element.groupId && !ids.has(element.groupId)) {
+    const group = element.groupId
+      ? document.elements.find((candidate) => candidate.id === element.groupId)
+      : undefined;
+    if (element.groupId && group?.type !== "group") {
       context.addIssue({
         code: "custom",
         message: "De gekoppelde groep bestaat niet.",
         path: ["elements", index, "groupId"]
+      });
+    }
+    if (
+      element.type === "group" &&
+      element.childIds.some((childId) => {
+        const child = document.elements.find((candidate) => candidate.id === childId);
+        return !child || child.groupId !== element.id;
+      })
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "De groepsleden en laagkoppelingen komen niet overeen.",
+        path: ["elements", index, "childIds"]
       });
     }
   }

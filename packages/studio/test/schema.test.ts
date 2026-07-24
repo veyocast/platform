@@ -46,4 +46,35 @@ describe("Studio-documentcontract", () => {
       expect(safeParseStudioDocument(template.document).success).toBe(true);
     }
   });
+
+  it("valideert groepen als expliciete wederzijdse laagrelatie", () => {
+    const template = getStudioSystemTemplate("system-matchday-landscape-hd-v1");
+    if (!template) throw new Error("Testtemplate ontbreekt.");
+    const [first, second] = template.document.elements;
+    if (!first || !second) throw new Error("Testlagen ontbreken.");
+    const grouped = {
+      ...template.document,
+      elements: [
+        { ...first, groupId: "group-main" },
+        { ...second, groupId: "group-main" },
+        ...template.document.elements.slice(2),
+        {
+          id: "group-main",
+          type: "group",
+          name: "Hoofdgroep",
+          x: 0,
+          y: 0,
+          width: 1200,
+          height: 700,
+          rotation: 0,
+          opacity: 1,
+          visible: true,
+          locked: false,
+          zIndex: template.document.elements.length,
+          childIds: [first.id, second.id]
+        }
+      ]
+    };
+    expect(safeParseStudioDocument(grouped).success).toBe(true);
+  });
 });
