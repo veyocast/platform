@@ -14,14 +14,30 @@ const workingDirectory = await mkdtemp(
   join(tmpdir(), "veyocast-studio-codec-smoke-")
 );
 const outputPath = join(workingDirectory, "studio-codec-smoke.mp4");
+const format =
+  process.env.STUDIO_SMOKE_FORMAT === "portrait-hd"
+    ? "portrait-hd"
+    : "landscape-hd";
+const requestedDurationSeconds = Number.parseInt(
+  process.env.STUDIO_SMOKE_DURATION_SECONDS ?? "1",
+  10
+);
+if (
+  !Number.isSafeInteger(requestedDurationSeconds) ||
+  requestedDurationSeconds < 1 ||
+  requestedDurationSeconds > 30
+) {
+  throw new Error("STUDIO_SMOKE_DURATION_SECONDS must be an integer from 1 to 30");
+}
 
 try {
-  const document = createEmptyStudioDocument("landscape-hd", {
+  const document = createEmptyStudioDocument(format, {
     background: "#171717",
-    durationMs: 1_000,
+    durationMs: requestedDurationSeconds * 1_000,
     motionEnabled: true
   });
   const renderer = new ResvgSharpStudioRenderer();
+  const startedAt = performance.now();
   const encoded = await encodeStudioMp4({
     document,
     outputPath,
@@ -39,7 +55,9 @@ try {
     bytes: artifact.size,
     codec: probe.videoCodec,
     durationSeconds: probe.durationSeconds,
+    elapsedSeconds: Number(((performance.now() - startedAt) / 1_000).toFixed(3)),
     faststart: true,
+    format,
     fps: probe.framesPerSecond,
     frameCount: encoded.frameCount,
     height: probe.height,
