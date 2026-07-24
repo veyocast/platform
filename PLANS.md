@@ -82,6 +82,7 @@ tests en exitcriteria staan in
 | S36 | Advertentienetwerk | Optionele deterministische ads, proof en revenue share na legal/product GO |
 | S37 | Researchhorizon | Begrensde go/no-go discovery voor AI, wrappers, LAN relay en latere opties |
 | S38 | Pixelperfect marketing en SEO | Volledige Nederlandse routematrix, premium responsive homepage, veilige claims, crawlbare SEO-templates en visuele bewijsvoering |
+| S40 | VeyoCast Studio | Tenantveilige visuele authoring, versioned ontwerpen, deterministische PNG/MP4-rendering en integratie met de bestaande mediabibliotheek |
 
 ### Programmagates
 
