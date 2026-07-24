@@ -155,7 +155,7 @@ export async function loadPlaylistList(
           .select("asset_id, storage_path, variant_type")
           .eq("tenant_id", tenantId)
           .in("asset_id", assetIds)
-          .in("variant_type", ["thumbnail", "poster", "original"])
+          .in("variant_type", ["thumbnail", "original"])
       ])
     : [{ data: [], error: null }, { data: [], error: null }];
   if (assetsResult.error || variantsResult.error) {
@@ -166,8 +166,7 @@ export async function loadPlaylistList(
   const previewPaths = new Map<string, { path: string; priority: number }>();
   const previewPriority: Record<string, number> = {
     original: 1,
-    thumbnail: 3,
-    poster: 4
+    thumbnail: 3
   };
   for (const variant of variantsResult.data ?? []) {
     const current = previewPaths.get(variant.asset_id);
