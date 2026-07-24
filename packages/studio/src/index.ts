@@ -1,4 +1,5 @@
 export * from "./canonical";
+export * from "./branding";
 export * from "./constants";
 export * from "./document";
 export * from "./geometry";
