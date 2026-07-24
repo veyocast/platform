@@ -1,5 +1,6 @@
 export const studioSchemaVersion = 1 as const;
 export const studioFontRegistryVersion = "2026-07-24.1" as const;
+export const studioRendererVersion = "1.0.0" as const;
 export const studioFps = 30 as const;
 
 export const studioPalette = {
