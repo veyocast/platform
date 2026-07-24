@@ -318,7 +318,7 @@ export async function movePlaylistItem(formData: FormData) {
       .order("id");
     if (error) fail(playlistId, "De actuele volgorde kon niet veilig worden geladen.");
     const index = (data ?? []).findIndex((item) => item.id === itemId);
-    if (index < 0) fail(playlistId, "Het item bestaat niet meer. Laad Playlist Studio opnieuw.");
+    if (index < 0) fail(playlistId, "Het item bestaat niet meer. Laad de playlisteditor opnieuw.");
     targetPosition = direction === "start"
       ? 0
       : direction === "end"
@@ -432,7 +432,7 @@ async function mutateGuarded(
     fail(playlistId, mutationFailureMessage(error.code, operation));
   }
   const result = data as GuardedMutationResult | null;
-  if (!result) fail(playlistId, "De wijziging gaf geen bevestiging. Laad Playlist Studio opnieuw.");
+  if (!result) fail(playlistId, "De wijziging gaf geen bevestiging. Laad de playlisteditor opnieuw.");
   if (result.outcome === "conflict") conflict(playlistId, revision, Number(result.actualRevision), operation);
   revalidatePlaylistPaths(playlistId);
   redirect(`/dashboard/playlists/${playlistId}?succes=${encodeURIComponent(success)}`);
@@ -486,7 +486,7 @@ async function requirePlaylistWriter(
 
 function expectedRevision(formData: FormData) {
   const revision = Number.parseInt(String(formData.get("expectedRevision") ?? ""), 10);
-  if (!Number.isInteger(revision) || revision < 0) failList("De conceptversie ontbreekt. Laad Playlist Studio opnieuw voordat je wijzigt.");
+  if (!Number.isInteger(revision) || revision < 0) failList("De conceptversie ontbreekt. Laad de playlisteditor opnieuw voordat je wijzigt.");
   return revision;
 }
 
@@ -616,7 +616,7 @@ function publishFailureMessage(code: string | undefined) {
 }
 
 function mutationFailureMessage(code: string | undefined, operation: string) {
-  if (code === "P0002") return "De playlist of het item bestaat niet meer. Laad de nieuwste versie van Playlist Studio.";
+  if (code === "P0002") return "De playlist of het item bestaat niet meer. Laad de nieuwste versie van de playlisteditor.";
   if (code === "42501") return "Je mag dit concept niet wijzigen. Er is niets opgeslagen; vraag een beheerder om je rol te controleren.";
   if (operation === "archive") return "De playlist kan niet worden gearchiveerd zolang deze aan een actief scherm is toegewezen.";
   return "De wijziging voldeed niet aan de playlistregels. Het bestaande concept is ongewijzigd; controleer de invoer.";

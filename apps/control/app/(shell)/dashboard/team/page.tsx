@@ -323,6 +323,9 @@ function roleLabel(value: string) {
 function roleCapabilityLabels(values: string[]) {
   const labels = [
     values.includes("tenant.media.write") && values.includes("tenant.playlist.write") ? "Content bewerken" : null,
+    values.includes("tenant.studio.create") ? "Studio gebruiken" : null,
+    values.includes("tenant.studio.edit_all") ? "Studio beheren" : null,
+    values.includes("tenant.studio.template.manage") ? "Studio-templates beheren" : null,
     values.includes("tenant.playlist.publish") ? "Publiceren" : null,
     values.includes("tenant.screen.manage") ? "Schermen beheren" : null,
     values.includes("tenant.settings.manage") ? "Instellingen beheren" : null,

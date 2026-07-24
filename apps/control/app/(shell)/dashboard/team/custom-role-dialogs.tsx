@@ -121,6 +121,31 @@ const permissionOptions = [
     value: "tenant.playlist.publish"
   },
   {
+    checked: (values: string[]) =>
+      values.includes("tenant.studio.create") &&
+      values.includes("tenant.studio.edit_own") &&
+      values.includes("tenant.studio.motion.edit") &&
+      values.includes("tenant.studio.render"),
+    description: "Maak en bewerk eigen ontwerpen, voeg motion toe en genereer media.",
+    label: "Studio gebruiken",
+    value: "studio.author"
+  },
+  {
+    checked: (values: string[]) =>
+      values.includes("tenant.studio.edit_all") &&
+      values.includes("tenant.studio.archive") &&
+      values.includes("tenant.studio.job.manage"),
+    description: "Bewerk alle tenantontwerpen en beheer archief- en renderacties.",
+    label: "Studio beheren",
+    value: "studio.manage"
+  },
+  {
+    checked: (values: string[]) => values.includes("tenant.studio.template.manage"),
+    description: "Maak en onderhoud herbruikbare Studio-templates voor de tenant.",
+    label: "Studio-templates beheren",
+    value: "tenant.studio.template.manage"
+  },
+  {
     checked: (values: string[]) => values.includes("tenant.screen.manage"),
     description: "Koppel, configureer, deactiveer en herstel schermen.",
     label: "Schermen beheren",

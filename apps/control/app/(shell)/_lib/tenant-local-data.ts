@@ -6,6 +6,10 @@ const tenantScopedKeys = [
   "veyocast:media-upload:pending:v1"
 ] as const;
 
+const tenantScopedDatabases = [
+  "veyocast-studio-recovery"
+] as const;
+
 export function clearTenantScopedLocalData(
   storage: Pick<Storage, "key" | "length" | "removeItem">
 ) {
@@ -17,4 +21,7 @@ export function clearTenantScopedLocalData(
     }
   }
   for (const key of keys) storage.removeItem(key);
+  if (typeof indexedDB !== "undefined") {
+    for (const database of tenantScopedDatabases) indexedDB.deleteDatabase(database);
+  }
 }

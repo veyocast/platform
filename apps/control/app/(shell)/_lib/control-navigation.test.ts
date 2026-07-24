@@ -4,7 +4,8 @@ import {
   getControlSessionRoles,
   getNavigationGroupsForPathname,
   getNavigationForRoles,
-  getNavigationGroupsForRoles
+  getNavigationGroupsForRoles,
+  isImmersiveEditorPath
 } from "./control-navigation";
 
 describe("control navigation", () => {
@@ -18,6 +19,7 @@ describe("control navigation", () => {
       "/dashboard/screens",
       "/dashboard/screen-groups",
       "/dashboard/playlists",
+      "/dashboard/studio",
       "/dashboard/media",
       "/dashboard/planning",
       "/dashboard/templates",
@@ -49,6 +51,7 @@ describe("control navigation", () => {
       "/dashboard/screens",
       "/dashboard/screen-groups",
       "/dashboard/playlists",
+      "/dashboard/studio",
       "/dashboard/media",
       "/dashboard/planning",
       "/dashboard/templates",
@@ -58,6 +61,15 @@ describe("control navigation", () => {
       "/dashboard/settings"
     ]);
     expect(groups.flatMap((group) => group.items).some((item) => item.href === "/dashboard/pilot")).toBe(false);
+  });
+
+  it("reserveert de immersieve shell alleen voor echte editorroutes", () => {
+    expect(isImmersiveEditorPath("/dashboard/playlists/playlist-id")).toBe(true);
+    expect(isImmersiveEditorPath("/dashboard/studio/design-id")).toBe(true);
+    expect(isImmersiveEditorPath("/dashboard/studio")).toBe(false);
+    expect(isImmersiveEditorPath("/dashboard/studio/new")).toBe(false);
+    expect(isImmersiveEditorPath("/dashboard/studio/templates")).toBe(false);
+    expect(isImmersiveEditorPath("/dashboard/studio/design-id/renders/job-id")).toBe(false);
   });
 
   it("combines platform roles with only the active tenant role", () => {

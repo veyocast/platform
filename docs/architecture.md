@@ -6,7 +6,7 @@
 Admin browser
   -> apps/control
   -> Supabase Auth/Postgres/Storage
-  -> media-worker
+  -> media-worker (media normalisatie + Studio rendering)
 
 Player browser/PWA
   -> apps/player
@@ -31,7 +31,9 @@ PWA voor schermen. Geen dashboardfeatures.
 
 ### `apps/media-worker`
 
-Achtergrondverwerking voor thumbnails, checksums, video metadata en later transcodering.
+Achtergrondverwerking voor checksums, video metadata, transcodering en
+deterministische Studio PNG/MP4-renders. Studio-jobs gebruiken immutable
+revisies en worden nooit in een Next.js-request gerenderd.
 
 ## Package responsibilities
 
@@ -46,6 +48,9 @@ Achtergrondverwerking voor thumbnails, checksums, video metadata en later transc
 - `packages/config`: env parsing.
 - `packages/observability`: frameworkvrije eventcatalogus, redactie,
   correlation IDs, SLO/alert- en allowlisted supportbundlecontracts.
+- `packages/studio`: frameworkvrije, versioned document-, template-, motion-,
+  tekstlayout- en rendercontracten. React Konva en Supabase blijven adapters
+  buiten dit package.
 - `packages/testkit`: fixtures en test helpers.
 
 De huidige incrementele foundation gebruikt daarnaast expliciet:
@@ -68,6 +73,7 @@ contracts <- domain <- auth
 
 apps -> services -> repositories/adapters
 apps -> contracts/domain/auth
+Control/worker -> studio
 ```
 
 - Contracts en domain importeren geen React, Next, Supabase of environment.
@@ -87,3 +93,7 @@ apps -> contracts/domain/auth
 - Design tokens are imported, not duplicated.
 - Client modules importeren geen expliciete serverentries.
 - Publieke errors volgen de allowlisted contracts uit ADR 0007.
+- Control Studio en de worker delen hetzelfde deterministische motion- en
+  tekstlayoutcontract. Alleen Control importeert de interactieve canvasadapter.
+- Player ontvangt uitsluitend normale `ready` media-assets; Studio-documenten,
+  revisies en rendercode overschrijden de Player-boundary niet.

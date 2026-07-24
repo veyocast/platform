@@ -43,7 +43,7 @@ export default function PrivacyPage() {
       description="Deze verklaring beschrijft hoe DG Webservices persoonsgegevens en technische gegevens verwerkt voor de VeyoCast-website, Control, de webplayer/PWA, de Android Player en de bijbehorende infrastructuur."
       eyebrow="Privacy bij VeyoCast"
       title="Privacyverklaring"
-      updated="23 juli 2026"
+      updated="24 juli 2026"
     >
       <nav aria-label="Inhoudsopgave" className="legal-toc">
         <p>Op deze pagina</p>
@@ -158,6 +158,11 @@ export default function PrivacyPage() {
               onveranderlijke gepubliceerde releases;
             </li>
             <li>
+              Studio-ontwerpen, bewerkbare tekst en instellingen, immutable
+              revisies, gebruikte mediareferenties, renderstatus en gegenereerde
+              PNG- of MP4-media;
+            </li>
+            <li>
               validatie- en verwerkingsfouten die nodig zijn om een upload veilig
               af te handelen.
             </li>
@@ -201,7 +206,9 @@ export default function PrivacyPage() {
             Functionele voorkeuren voor thema, navigatie, tabelweergave en de
             uploadtray worden lokaal in de browser opgeslagen. Bij een
             hervatbare upload kan ook niet-inhoudelijke bestandsmetadata lokaal
-            worden onthouden.
+            worden onthouden. Studio kan een nog niet serverbevestigd ontwerp
+            tenantgescheiden in IndexedDB bewaren voor expliciet offlineherstel.
+            Die recoveryopslag wordt bij uitloggen of contextwissel verwijderd.
           </p>
 
           <h3>VeyoCast Player en Android-app</h3>
@@ -378,7 +385,7 @@ export default function PrivacyPage() {
                   </td>
                 </tr>
                 <tr>
-                  <td>Media en playlists</td>
+                  <td>Media, playlists en Studio-ontwerpen</td>
                   <td>
                     Zolang de klant die gebruikt. Verwijderen is momenteel eerst
                     logisch; gepubliceerde releases blijven onveranderlijk en

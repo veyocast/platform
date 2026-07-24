@@ -240,6 +240,21 @@ function customRoleDetails(formData: FormData) {
   const capabilities = selected.has("content.write")
     ? ["tenant.media.write", "tenant.playlist.write"]
     : [];
+  if (selected.has("studio.author")) {
+    capabilities.push(
+      "tenant.studio.create",
+      "tenant.studio.edit_own",
+      "tenant.studio.motion.edit",
+      "tenant.studio.render"
+    );
+  }
+  if (selected.has("studio.manage")) {
+    capabilities.push(
+      "tenant.studio.edit_all",
+      "tenant.studio.archive",
+      "tenant.studio.job.manage"
+    );
+  }
   for (const capability of configurableCapabilities) {
     if (selected.has(capability)) capabilities.push(capability);
   }
@@ -266,6 +281,7 @@ function customRoleError(code: string, message: string) {
 
 const configurableCapabilities = [
   "tenant.playlist.publish",
+  "tenant.studio.template.manage",
   "tenant.screen.manage",
   "tenant.settings.manage",
   "tenant.audit.read",

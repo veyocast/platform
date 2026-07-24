@@ -71,8 +71,8 @@ export default function DataRemovalPage() {
           <p>
             Een individueel lid kan verwijdering van zijn eigen account en
             profielgegevens vragen. Het verwijderen van een lid verwijdert niet
-            automatisch de zakelijke tenant, media of playlists van de
-            organisatie.
+            automatisch de zakelijke tenant, media, playlists of
+            Studio-ontwerpen van de organisatie.
           </p>
           <p>
             Een verzoek om een volledige tenantomgeving te verwijderen moet
@@ -87,6 +87,13 @@ export default function DataRemovalPage() {
             Het huidige platform heeft nog geen directe selfserviceknop die een
             volledig account of een volledige tenant fysiek wist. Een
             geverifieerd verzoek wordt daarom gecontroleerd afgehandeld.
+          </p>
+          <p>
+            Een nog niet serverbevestigde Studio-wijziging kan lokaal in de
+            browser staan. Control verwijdert deze recoveryopslag bij uitloggen
+            of wanneer u van organisatiecontext wisselt. U kunt die opslag ook
+            direct wissen door de sitegegevens van Control in uw browser te
+            verwijderen.
           </p>
         </section>
 
@@ -152,7 +159,8 @@ export default function DataRemovalPage() {
             </li>
             <li>
               onveranderlijke release- of auditregistraties die voor integriteit
-              nodig blijven en waar mogelijk worden beperkt of geanonimiseerd;
+              nodig blijven, waaronder bronrevisies van gegenereerde
+              Studio-media, en waar mogelijk worden beperkt of geanonimiseerd;
             </li>
             <li>
               tijdelijke aanwezigheid in bestaande databaseback-ups tot die

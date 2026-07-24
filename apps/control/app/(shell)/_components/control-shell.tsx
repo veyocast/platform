@@ -32,6 +32,7 @@ import {
   MonitorSmartphone,
   MoreHorizontal,
   PackageCheck,
+  PanelsTopLeft,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
@@ -50,7 +51,10 @@ import type {
   ControlNavigationItem,
   ControlSession
 } from "../_lib/control-navigation";
-import { getNavigationGroupsForPathname } from "../_lib/control-navigation";
+import {
+  getNavigationGroupsForPathname,
+  isImmersiveEditorPath
+} from "../_lib/control-navigation";
 import type { ControlSearchResult } from "../_lib/control-search-contract";
 import { clearTenantScopedLocalData } from "../_lib/tenant-local-data";
 import { switchTenantContext } from "../context/actions";
@@ -83,6 +87,7 @@ const navigationIcons: Record<string, LucideIcon> = {
   Releases: PackageCheck,
   Schermgroepen: FolderKanban,
   Schermen: MonitorSmartphone,
+  Studio: PanelsTopLeft,
   Systeem: ServerCog,
   Team: Users,
   Templates: FileStack,
@@ -133,8 +138,7 @@ export function ControlShell({
   const activeContextName = hasTenantNavigationContext
     ? session.tenant
     : session.organization;
-  const isPlaylistStudio =
-    /^\/dashboard\/playlists\/[^/]+\/?$/.test(pathname);
+  const isImmersiveEditor = isImmersiveEditorPath(pathname);
   const topbarStatusTone = !session.isLive
     ? "info"
     : hasTenantNavigationContext && session.tenantStatus === "paused"
@@ -524,9 +528,9 @@ export function ControlShell({
       </aside>
 
       <main
-        className={`control-main${isPlaylistStudio ? " control-main--editor" : ""}`}
+        className={`control-main${isImmersiveEditor ? " control-main--editor" : ""}`}
       >
-        {!isPlaylistStudio ? (
+        {!isImmersiveEditor ? (
         <header className="control-topbar" aria-label="Control status">
           <div className="topbar-context">
             <IconButton
@@ -589,7 +593,7 @@ export function ControlShell({
         </header>
         ) : null}
         <div
-          className={`control-content${isPlaylistStudio ? " control-content--editor" : ""}`}
+          className={`control-content${isImmersiveEditor ? " control-content--editor" : ""}`}
           id="control-content"
           tabIndex={-1}
         >

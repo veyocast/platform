@@ -12,6 +12,13 @@ import {
   runScheduleLoop,
   type ScheduleRunResult
 } from "./schedule-runner";
+import { SupabaseStudioRenderBackend } from "./studio-render-backend";
+import { ResvgSharpStudioRenderer } from "./studio-render-resvg";
+import {
+  runStudioRenderLoop,
+  runStudioRenderOnce,
+  type StudioRenderRunResult
+} from "./studio-render-runner";
 
 export {
   createMediaProcessingPlan,
@@ -67,6 +74,16 @@ export {
 export type { WorkerRunResult } from "./worker-runner";
 export { runScheduleLoop, runScheduleOnce } from "./schedule-runner";
 export type { ScheduleRunResult } from "./schedule-runner";
+export {
+  SupabaseStudioRenderBackend,
+  studioRenderArtifactPaths
+} from "./studio-render-backend";
+export { ResvgSharpStudioRenderer } from "./studio-render-resvg";
+export {
+  runStudioRenderLoop,
+  runStudioRenderOnce
+} from "./studio-render-runner";
+export type { StudioRenderRunResult } from "./studio-render-runner";
 export { closeServer, createWorkerRuntimeHealth } from "./worker-health";
 export type { WorkerRuntimeHealth } from "./worker-health";
 
@@ -103,10 +120,23 @@ async function main() {
     config.supabaseUrl,
     config.serviceRoleKey
   );
+  const studioBackend = new SupabaseStudioRenderBackend(
+    config.supabaseUrl,
+    config.serviceRoleKey
+  );
+  const studioRenderer = new ResvgSharpStudioRenderer();
   if (mode === "--once") {
-    const result = await runWorkerOnce({ backend, config });
-    logWorkerResult(logger, result);
-    if (result.status === "failed") process.exitCode = 1;
+    const mediaResult = await runWorkerOnce({ backend, config });
+    logWorkerResult(logger, mediaResult);
+    const studioResult = await runStudioRenderOnce({
+      backend: studioBackend,
+      config,
+      renderer: studioRenderer
+    });
+    logStudioRenderResult(logger, studioResult);
+    if (mediaResult.status === "failed" || studioResult.status === "failed") {
+      process.exitCode = 1;
+    }
     return;
   }
 
@@ -139,6 +169,25 @@ async function main() {
         intervalMs: config.schedulePollIntervalMs,
         onResult: (result) => logScheduleResult(logger, result),
         signal: controller.signal
+      }),
+      runStudioRenderLoop({
+        backend: studioBackend,
+        config,
+        intervalMs: config.pollIntervalMs,
+        onQueuePoll: runtimeHealth.markPoll,
+        onResult: (result) => {
+          runtimeHealth.markPoll();
+          runtimeHealth.markResult(
+            result.status === "completed" ||
+              result.status === "idle" ||
+              result.status === "retry_scheduled"
+              ? result.status
+              : "failed"
+          );
+          logStudioRenderResult(logger, result);
+        },
+        renderer: studioRenderer,
+        signal: controller.signal
       })
     ]);
   } finally {
@@ -146,6 +195,30 @@ async function main() {
     process.removeListener("SIGTERM", stop);
     await closeServer(healthServer);
     logger.info("media.worker.stopped");
+  }
+}
+
+function logStudioRenderResult(
+  logger: ReturnType<typeof createStructuredLogger>,
+  result: StudioRenderRunResult
+) {
+  const eventLogger =
+    result.status === "idle" ? logger : logger.withCorrelation(result.jobId);
+  if (result.status === "idle") {
+    eventLogger.debug("studio.render.queue_polled", { outcome: "idle" });
+  } else if (result.status === "completed") {
+    eventLogger.info("studio.render.completed", {
+      jobId: result.jobId,
+      mediaAssetId: result.mediaAssetId,
+      outcome: result.status
+    });
+  } else {
+    eventLogger.error("studio.render.failed", {
+      errorCode: result.errorCode,
+      jobId: result.jobId,
+      mediaAssetId: result.mediaAssetId,
+      outcome: result.status
+    });
   }
 }
 

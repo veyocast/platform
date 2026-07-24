@@ -1,6 +1,6 @@
 # VeyoCast privacy- en Data Safety-audit
 
-Datum: 23 juli 2026
+Datum: 24 juli 2026
 Status: implementatie gereed voor review; nog niet gedeployed
 Scope: Marketing, Control, Player/PWA, algemene Android Player, Supabase-schema,
 VPS-deployment, back-ups, e-mailroutering en Google Play-documentatie
@@ -159,6 +159,10 @@ productieaannames als feit gepubliceerd.
 | Speelduur, fit, muted en volgorde | playlistitem/release-item | deterministische playback |
 | Immutable releasekopie | `playlist_releases`, `playlist_release_items` | herleidbare publicatie |
 | Schermtoewijzing | screens en release assignments | distributie |
+| Studio-projectnaam en document | `studio_projects`, `studio_project_drafts` | visuele authoring |
+| Immutable Studio-revisie en assetrelaties | `studio_revisions`, `studio_revision_assets` | reproduceerbare renderbron |
+| Renderstatus, veilige foutcode en technische outputmetadata | `studio_render_jobs`, `studio_exports` | asynchrone PNG/MP4-generatie |
+| Nog niet serverbevestigde Studio-draft | tenant- en projectgescheiden IndexedDB in Control | expliciet offlineherstel |
 
 ### 5.3 Scherm, pairing en Player
 
@@ -404,7 +408,7 @@ gepubliceerd.
 |---|---|---|---|
 | Actief account | actief zolang overeenkomst | aanwezig | als criterium gepubliceerd |
 | Account na beëindiging | max. 90 dagen | geen volledige account-/tenantdelete of job | 90 dagen niet gepubliceerd; handmatig geverifieerd proces nodig |
-| Media/playlists | tot delete/einde | media soft delete; Storage en immutable release blijven | beperking expliciet gepubliceerd |
+| Media/playlists/Studio | tot delete/einde | media en Studio-projecten gebruiken soft delete; immutable revisions, exports, Storage en releases kunnen als bewijs blijven | beperking expliciet gepubliceerd |
 | Verwijderde content in back-up | max. 90 dagen | plan/PITR onbekend; Storage niet in DB-back-up | 90 dagen niet gepubliceerd |
 | Pairing/player | tot unpair/delete | unclaimed cleanup; claimed/device/history blijven | werkelijke lifecycle gepubliceerd |
 | Playertelemetrie | max. 90 dagen | geen cleanup voor heartbeat/sync/device-lab | 90 dagen niet gepubliceerd |

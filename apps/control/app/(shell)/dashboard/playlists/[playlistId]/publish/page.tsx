@@ -75,7 +75,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
   }) ?? [];
 
   return <>
-    <Link className="breadcrumb-link" href={`/dashboard/playlists/${playlistId}`}>← Terug naar Playlist Studio</Link>
+    <Link className="breadcrumb-link" href={`/dashboard/playlists/${playlistId}`}>← Terug naar de playlisteditor</Link>
     <PageHeader
       description="Doorloop readiness, preview, releasegegevens, doelschermen, preflight en bevestiging boven echte concept- en schermdata."
       eyebrow={`${session.tenant} · Begeleide publicatie`}
@@ -91,7 +91,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
       <section className="workspace-section" id="readiness" aria-labelledby="publish-readiness-title">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="publish-readiness-title">1. Media en readiness</h2><p className="work-panel__meta">Dezelfde centrale readiness-engine wordt vlak vóór de databaseactie opnieuw uitgevoerd.</p></div><StatusPill label={studio.readiness?.canPublish ? "Gereed" : "Geblokkeerd"} tone={studio.readiness?.canPublish ? "success" : "critical"} /></div>
         <dl className="meta-list"><div><dt>Conceptrevisie</dt><dd>{playlist.revision}</dd></div><div><dt>Items</dt><dd>{studio.readiness?.itemCount ?? 0}</dd></div><div><dt>Duur</dt><dd>{formatDuration(studio.readiness?.totalDurationSeconds ?? 0)}</dd></div><div><dt>Totale download</dt><dd>{formatBytes(studio.readiness?.totalBytes ?? 0)}</dd></div></dl>
-        {!studio.readiness?.canPublish ? <p className="notice notice--critical">Herstel eerst de readinessblokkades in <Link href={`/dashboard/playlists/${playlistId}`}>Playlist Studio</Link>. Er kan geen release worden gemaakt.</p> : null}
+        {!studio.readiness?.canPublish ? <p className="notice notice--critical">Herstel eerst de readinessblokkades in de <Link href={`/dashboard/playlists/${playlistId}`}>playlisteditor</Link>. Er kan geen release worden gemaakt.</p> : null}
       </section>
 
       <section className="workspace-section" id="preview" aria-labelledby="publish-preview-title"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="publish-preview-title">2. Preview</h2><p className="work-panel__meta">Controleer de vaste volgorde, duur, fit en muted-instellingen die in de immutable release terechtkomen.</p></div><StatusPill label={`${previewItems.length} items`} tone="info" /></div><div className="publish-preview-frame"><PlaylistPreview items={previewItems} /></div></section>

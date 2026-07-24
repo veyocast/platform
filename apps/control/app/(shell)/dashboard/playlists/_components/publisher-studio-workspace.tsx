@@ -296,7 +296,7 @@ export function PublisherStudioWorkspace({
       if (!anchor || anchor.getAttribute("href")?.startsWith("#")) return;
       if (
         !window.confirm(
-          "Je hebt niet-opgeslagen wijzigingen. Wil je Playlist Studio verlaten?"
+          "Je hebt niet-opgeslagen wijzigingen. Wil je de playlisteditor verlaten?"
         )
       ) {
         event.preventDefault();

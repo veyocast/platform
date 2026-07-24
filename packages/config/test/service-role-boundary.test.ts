@@ -27,6 +27,7 @@ const serverServiceRolePatterns = [
 ];
 const allowedServerOnlyFiles = new Set([
   "apps/media-worker/src/index.ts",
+  "apps/media-worker/src/studio-render-backend.ts",
   "apps/media-worker/src/worker-backend.ts",
   "apps/media-worker/src/worker-config.ts",
   "packages/config/src/server.ts"

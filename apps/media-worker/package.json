@@ -8,16 +8,24 @@
     "build": "tsc -p tsconfig.build.json",
     "worker:once": "tsx src/index.ts --once",
     "worker:run": "tsx src/index.ts --loop",
+    "worker:studio-smoke": "tsx scripts/studio-ffmpeg-smoke.ts",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/inter-tight": "^5.3.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "@supabase/supabase-js": "^2.110.7",
     "@veyocast/config": "workspace:*",
     "@veyocast/observability": "workspace:*",
-    "@supabase/supabase-js": "^2.110.7"
+    "@veyocast/studio": "workspace:*",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
+    "@types/qrcode": "^1.5.6",
     "tsx": "^4.20.3"
   }
 }

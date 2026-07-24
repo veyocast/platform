@@ -14,6 +14,9 @@ export const observabilityEvents = [
   "screen.heartbeat.received",
   "screen.release.sync_completed",
   "screen.release.sync_failed",
+  "studio.render.completed",
+  "studio.render.failed",
+  "studio.render.queue_polled",
   "support.bundle.exported"
 ] as const;
 

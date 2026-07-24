@@ -209,7 +209,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
                 <td data-column="release" data-label="Laatste publicatie">{playlist.lastPublishedVersion ? `Versie ${playlist.lastPublishedVersion}` : "Nog niet gepubliceerd"}</td>
                 <td data-column="screens" data-label="Schermen">{playlist.assignedScreenCount}</td>
                 <td data-column="updated" data-label="Laatst bewerkt">{playlist.updatedBy}<span className="table-secondary">{formatDate(playlist.updatedAt)}</span></td>
-                <td data-column="action" data-label="Actie"><Link className="table-action" href={`/dashboard/playlists/${playlist.id}`}>Open Playlist Studio</Link></td>
+                <td data-column="action" data-label="Actie"><Link className="table-action" href={`/dashboard/playlists/${playlist.id}`}>Open playlisteditor</Link></td>
               </tr>)}</tbody>
             </table>
           </div>

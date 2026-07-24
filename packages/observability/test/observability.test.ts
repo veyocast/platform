@@ -5,6 +5,7 @@ import {
   createStructuredLogger,
   createSupportBundle,
   evaluateAlert,
+  isObservabilityEvent,
   redactObservabilityValue,
   sloDefinitions
 } from "../src";
@@ -40,6 +41,12 @@ describe("structured observability", () => {
       level: "error",
       service: "media-worker"
     });
+  });
+
+  it("recognises the privacy-safe Studio render events", () => {
+    expect(isObservabilityEvent("studio.render.queue_polled")).toBe(true);
+    expect(isObservabilityEvent("studio.render.completed")).toBe(true);
+    expect(isObservabilityEvent("studio.render.failed")).toBe(true);
   });
 });
 

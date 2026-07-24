@@ -20,6 +20,7 @@ packages/
   config/         Shared local runtime constants
   database/       Shared database role/status contracts
   observability/  Structured events, redaction, SLO/alert and support contracts
+  studio/         Versioned Studio documents, templates, motion and render contracts
   tokens/         Design token build pipeline and generated presets
   ui/             Shared React primitives and Storybook skeleton
   testkit/        Shared test helpers
@@ -170,3 +171,14 @@ De Publisher-backoffice-uitvoering van S31/S32 volgt het vastgelegde
 Implementatiestatus, testbewijs en de bewust opengehouden grote
 productbesluiten staan in
 [`docs/publisher-backoffice-release-evidence.md`](docs/publisher-backoffice-release-evidence.md).
+
+S40 voegt VeyoCast Studio als afzonderlijke authoringmodule aan Control toe.
+Ontwerpen blijven tenantgescheiden, autosave gebruikt revision guards en
+genereren bevriest een immutable bronrevisie. De bestaande media-worker maakt
+deterministische sRGB-PNG of H.264/yuv420p-MP4; Publisher en Player ontvangen
+daarna uitsluitend een normaal gevalideerd media-item. De canvas- en
+rendercontracten staan in `@veyocast/studio`; Player importeert die code nooit.
+Zie [`docs/studio/integration-matrix.md`](docs/studio/integration-matrix.md) en
+[`docs/studio/operations.md`](docs/studio/operations.md). De volledige lokale
+bewijsstatus, open releasegates en invloedrijke vervolgkeuzes staan in
+[`docs/studio/release-evidence.md`](docs/studio/release-evidence.md).
