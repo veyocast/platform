@@ -238,7 +238,7 @@ export async function loadPlaylistStudio(
   const error = [playlistResult.error, itemsResult.error, sectionsResult.error, assetsResult.error, variantsResult.error, releasesResult.error, screensResult.error, devicesResult.error].find(Boolean);
   if (error) {
     console.error("Playlist Studio laden mislukt", error);
-    return { ...empty, error: "Playlist Studio kon niet volledig worden geladen. Vernieuw de pagina." };
+    return { ...empty, error: "De playlisteditor kon niet volledig worden geladen. Vernieuw de pagina." };
   }
   if (!playlistResult.data) return empty;
 

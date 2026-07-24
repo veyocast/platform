@@ -132,12 +132,12 @@ export default async function PlaylistStudioPage({
       ) : null}
       {data.error ? (
         <p className="notice notice--critical" role="alert">
-          <strong>Playlist Studio niet volledig geladen.</strong> {data.error}
+          <strong>Playlisteditor niet volledig geladen.</strong> {data.error}
         </p>
       ) : null}
       {!session.isLive ? (
         <p className="notice notice--warning" role="status">
-          Playlist Studio gebruikt alleen live tenantdata. Configureer Supabase
+          De playlisteditor gebruikt alleen live tenantdata. Configureer Supabase
           en log opnieuw in.
         </p>
       ) : null}
