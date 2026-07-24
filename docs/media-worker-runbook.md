@@ -2,18 +2,20 @@
 
 ## Doel en veiligheidsgrens
 
-De private worker verwerkt gequeuede MP4-assets uit tenantopslag en evalueert
-periodiek welke immutable release volgens Publisher-planning actief hoort te
-zijn. De worker is een serverproces, geen browsercomponent. Geef de service-role
-key nooit een `NEXT_PUBLIC_`-naam en schrijf credentials, signed URL's of
-bronmedia niet naar logs.
+De private worker verwerkt gequeuede MP4-assets uit tenantopslag, rendert
+immutable Studio-revisies en evalueert periodiek welke immutable release volgens
+Publisher-planning actief hoort te zijn. De worker is een serverproces, geen
+browsercomponent. Geef de service-role key nooit een `NEXT_PUBLIC_`-naam en
+schrijf credentials, signed URL's, Studio-documenten of bronmedia niet naar
+logs.
 
 ## Vereisten
 
 - Node 24 en pnpm 11;
 - FFmpeg en ffprobe 6 of nieuwer op `PATH`;
 - netwerktoegang tot Supabase API en Storage;
-- voldoende tijdelijk schijfruimte voor bron plus genormaliseerde variant;
+- voldoende tijdelijk schijfruimte voor bron, genormaliseerde variant en één
+  Studio-output plus poster;
 - procesmanager met restartbeleid en één unieke worker-ID per instance.
 
 Verplichte variabelen:
@@ -55,7 +57,11 @@ daemon logt per iteratie één event uit de vaste catalogus met een jobgebonden
 correlation ID. Tokens, URLs, databaseconnecties en persoonlijke velden worden
 recursief geredigeerd; stacktraces en credentials worden niet geschreven.
 
-Dezelfde daemon roept met de server-only service-role iedere vijftien seconden
+Dezelfde daemon verwerkt drie onafhankelijke loops: media-normalisatie,
+Studio-rendering en Publisher-planning. Per proces loopt maximaal één
+Studio-render tegelijk. De media- en Studio-loop kunnen wel gelijktijdig actief
+zijn en delen dus CPU en geheugen. De daemon roept met de server-only
+service-role iedere vijftien seconden
 `apply_due_content_schedules_v1` aan. Die databasefunctie kiest per scherm
 deterministisch de hoogste geldige planning en valt na afloop terug op de
 standaardrelease. Een evaluatiefout stopt de mediaqueue niet; de volgende
@@ -68,6 +74,24 @@ de queue bereikbaar was en gaat tijdens drain of bij een stale poll terug naar
 503. `/statusz` is nadrukkelijk businessstatus en rapporteert alleen bounded
 aantallen fouten/retries uit de laatste twintig resultaten. De releaseworkflow
 wacht op readiness en promoot exact dezelfde worker-image-ID naar production.
+
+De production workercontainer installeert FFmpeg, draait als niet-rootgebruiker
+op een read-only rootfilesystem en heeft momenteel deze grenzen:
+
+| Grens | Waarde |
+|---|---:|
+| CPU | 1,5 vCPU |
+| Geheugen | 1536 MiB |
+| PID-limiet | 256 |
+| Stop grace period | 70 seconden |
+| Lease in deployment | 60 seconden |
+| Tijdelijke opslag | named volume op `/tmp`, nog zonder expliciete bytequota |
+| Logrotatie | 5 × 10 MiB |
+
+`/readyz` bewijst dat recent een workerqueue is gepolld; het onderscheidt de
+media-, Studio- en planningloop niet. `/statusz` bevat alleen bounded resultaten
+van de laatste twintig media- en Studioruns en vervangt geen queueleeftijd- of
+percentielmeting.
 
 ## Verwerkingscontract
 
@@ -94,6 +118,60 @@ Een incomplete of corrupte variant wordt nooit `ready`. Tijdelijke command-,
 database-, netwerk- en 5xx/429-storagefouten worden tot het pogingbudget opnieuw
 gequeued. Ongeldige MIME, inhoud, metadata of bronlengte faalt definitief.
 
+## Studio-rendercontract
+
+Een Studio-render start uitsluitend vanuit een door Control vastgezette
+immutable revisie. De worker claimt met `FOR UPDATE SKIP LOCKED` en gebruikt
+alleen server-side service-role-RPC's:
+
+| RPC | Verantwoordelijkheid |
+|---|---|
+| `claim_studio_render_job_v1` | claim/reclaim, attempt verhogen en bevroren document plus checksummed ready bronassets leveren |
+| `update_studio_render_job_v1` | monotone status/progress, lease vernieuwen en `cancelRequested` teruggeven |
+| `complete_studio_render_job_v1` | Storagemetadata controleren en mediaasset, varianten, Studio-export en auditevent atomair registreren |
+| `fail_studio_render_job_v1` | terminal failure/cancellation of begrensde SQL-back-off registreren |
+
+Deze RPC's zijn niet voor browsergebruik. Bronnen komen alleen uit private
+bucket `tenant-media`, moeten onder
+`tenants/{tenant_id}/assets/{asset_id}/...` staan en worden vóór rendering op
+tenantpad, MIME-signatuur, grootte, SHA-256 en dimensies gecontroleerd. De
+worker haalt geen remote URL's, scripts of externe fonts op. De gebundelde
+Inter Variable-fonts, gedeelde layout/motionfuncties en rendererversie vormen
+samen de reproduceerbare rendergrens.
+
+De statussen lopen voorwaarts:
+
+```text
+queued → preparing → rendering → encoding (alleen MP4)
+       → uploading → creating_media → completed
+```
+
+Veilige annulering eindigt als `cancelled`. Een verloren lease wordt niet door
+de oude worker als failure overschreven. Retrybare fouten worden door SQL na
+5, 10, 20, 40, 80, 160 en maximaal 300 seconden opnieuw claimbaar; het normale
+pogingbudget is drie. Exacte, idempotente objectpaden zijn:
+
+```text
+PNG-output   tenants/{tenant_id}/assets/{media_asset_id}/original/studio-output.png
+MP4-output   tenants/{tenant_id}/assets/{media_asset_id}/variants/player-1080p.mp4
+Poster       tenants/{tenant_id}/assets/{media_asset_id}/variants/studio-poster.png
+```
+
+PNG wordt als `original` geregistreerd. MP4 gebruikt hetzelfde canonical object
+voor `original` en `player_1080p`; de poster wordt de bestaande
+`thumbnail`-variant. De Player ontvangt uitsluitend dit normale ready mediaasset
+en rendert nooit Studio-JSON.
+
+Studio heeft maximaal 200 lagen, 30 seconden, 30 fps, één van de twee vaste
+HD-artboards en maximaal 64 MiB gezamenlijke ingeladen bronbytes. Frames worden
+als RGBA naar FFmpeg gestreamd en niet als volledige reeks in het geheugen
+bewaard. De encoder heeft een grens van 55 seconden; tijdelijke directories
+worden ook na fout of annulering in `finally` verwijderd.
+
+Zie [Studio render validation](studio/render-validation.md) voor de exacte
+codecsmoke en [Studio operations](studio/operations.md) voor monitoring,
+capaciteit en rollback.
+
 ## Lokale verificatie
 
 ```bash
@@ -116,6 +194,22 @@ verwachte checksums/metadata krijgen. Gebruik geen klantmedia voor deze smoke.
 - definitief `command_failed`: verifieer FFmpeg-installatie en codecs;
 - `worker_state_update_failed`: stop rollout en herstel databasebereikbaarheid;
 - groeiende queued jobleeftijd: schaal workers of onderzoek vastlopende jobs.
+
+Studio-specifiek:
+
+- `studio_claim_failed`/`studio_update_failed`: controleer databasebereikbaarheid
+  en service-role grants;
+- `studio_lease_lost`: controleer dubbele worker-ID, CPU-throttling of een
+  gestopte worker; muteer de canonical output niet handmatig;
+- `studio_asset_*`: controleer bronintegriteit, tenantpad en mediavariant;
+- `encoding_timeout`/`encoding_failed`: controleer containercodec, CPU-budget en
+  duurklasse;
+- `mp4_invalid`, `mp4_faststart_missing`, `png_invalid` of
+  `png_profile_invalid`: stop de rollout; de output wordt niet `ready`;
+- `studio_complete_failed`: controleer Storage-objectmetadata en de atomaire
+  mediaregistratie;
+- groeiende Studio-retryratio: verhoog niet blind het attemptbudget, maar
+  categoriseer eerst de fout.
 
 Niet-retrybare inhoudsfouten zoals `invalid_probe`, `unsupported_input`,
 `unsupported_mime_type` en `source_size_mismatch` zetten het asset in
