@@ -10,6 +10,15 @@ export const capabilities = [
   "tenant.overview.read",
   "tenant.media.read",
   "tenant.media.write",
+  "tenant.studio.read",
+  "tenant.studio.create",
+  "tenant.studio.edit_own",
+  "tenant.studio.edit_all",
+  "tenant.studio.archive",
+  "tenant.studio.template.manage",
+  "tenant.studio.motion.edit",
+  "tenant.studio.render",
+  "tenant.studio.job.manage",
   "tenant.playlist.read",
   "tenant.playlist.write",
   "tenant.playlist.archive",
@@ -30,6 +39,7 @@ export type Capability = (typeof capabilities)[number];
 export const tenantReadCapabilities = [
   "tenant.overview.read",
   "tenant.media.read",
+  "tenant.studio.read",
   "tenant.playlist.read",
   "tenant.release.read",
   "tenant.screen.read",
@@ -44,6 +54,20 @@ export const tenantWriteCapabilities = [
 
 const tenantPublishCapabilities = [
   "tenant.playlist.publish"
+] as const satisfies readonly Capability[];
+
+const tenantStudioAuthorCapabilities = [
+  "tenant.studio.create",
+  "tenant.studio.edit_own",
+  "tenant.studio.motion.edit",
+  "tenant.studio.render"
+] as const satisfies readonly Capability[];
+
+const tenantStudioManageCapabilities = [
+  "tenant.studio.edit_all",
+  "tenant.studio.archive",
+  "tenant.studio.template.manage",
+  "tenant.studio.job.manage"
 ] as const satisfies readonly Capability[];
 
 const tenantManageCapabilities = [
@@ -72,16 +96,24 @@ export const roleCapabilityMatrix: Readonly<
   tenant_owner: [
     ...tenantReadCapabilities,
     ...tenantWriteCapabilities,
+    ...tenantStudioAuthorCapabilities,
+    ...tenantStudioManageCapabilities,
     ...tenantPublishCapabilities,
     ...tenantManageCapabilities
   ],
   tenant_admin: [
     ...tenantReadCapabilities,
     ...tenantWriteCapabilities,
+    ...tenantStudioAuthorCapabilities,
+    ...tenantStudioManageCapabilities,
     ...tenantPublishCapabilities,
     ...tenantManageCapabilities
   ],
-  tenant_editor: [...tenantReadCapabilities, ...tenantWriteCapabilities],
+  tenant_editor: [
+    ...tenantReadCapabilities,
+    ...tenantWriteCapabilities,
+    ...tenantStudioAuthorCapabilities
+  ],
   tenant_viewer: tenantReadCapabilities
 };
 

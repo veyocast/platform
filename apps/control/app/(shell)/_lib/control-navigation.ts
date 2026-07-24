@@ -123,6 +123,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "tenant"
   },
   {
+    description: "Visuele content ontwerpen en genereren",
+    href: "/dashboard/studio",
+    label: "Studio",
+    requiredCapability: "tenant.studio.read",
+    section: "publisher",
+    scope: "tenant"
+  },
+  {
     description: "Bibliotheek, verwerking en gebruik",
     href: "/dashboard/media",
     label: "Media",
@@ -271,4 +279,13 @@ export function getControlSessionRoles(
       ...(activeTenantRole ? [activeTenantRole] : [])
     ])
   ];
+}
+
+export function isImmersiveEditorPath(pathname: string) {
+  return (
+    /^\/dashboard\/playlists\/[^/]+\/?$/.test(pathname) ||
+    /^\/dashboard\/studio\/(?!new(?:\/|$)|templates(?:\/|$))[^/]+\/?$/.test(
+      pathname
+    )
+  );
 }

@@ -99,4 +99,13 @@ describe("capability decisions", () => {
       requireCapability(effectiveCapabilities, "tenant.playlist.write")
     ).toThrowError(MissingCapabilityError);
   });
+
+  it("separates Studio authoring, tenant-wide management and viewing", () => {
+    expect(hasCapability(["tenant_editor"], "tenant.studio.create")).toBe(true);
+    expect(hasCapability(["tenant_editor"], "tenant.studio.render")).toBe(true);
+    expect(hasCapability(["tenant_editor"], "tenant.studio.edit_all")).toBe(false);
+    expect(hasCapability(["tenant_viewer"], "tenant.studio.read")).toBe(true);
+    expect(hasCapability(["tenant_viewer"], "tenant.studio.create")).toBe(false);
+    expect(hasCapability(["tenant_admin"], "tenant.studio.template.manage")).toBe(true);
+  });
 });
