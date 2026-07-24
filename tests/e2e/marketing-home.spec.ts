@@ -5,18 +5,29 @@ const marketingURL = `http://127.0.0.1:${process.env.MARKETING_PORT ?? 3108}`;
 test("renders the marketing homepage with canon-safe messaging", async ({ page }) => {
   await page.goto(marketingURL);
 
-  await expect(page).toHaveTitle(/VeyoCast .* ClubTV/);
-  await expect(page.getByRole("heading", { exact: true, name: "VeyoCast" })).toBeVisible();
-  await expect(page.getByText("local-first platform voor ClubTV")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Bekijk pilotpad" })).toBeVisible();
-
-  await expect(page.getByText("Geen advertentienetwerk.")).toBeVisible();
-  await expect(page.getByText("Geen mutable releases.")).toBeVisible();
-  await expect(page.getByText("Geen Supabase Auth-user voor players.")).toBeVisible();
-
-  await page.getByRole("link", { exact: true, name: "Pilotpad" }).click();
-  await expect(page).toHaveURL(/#pilot$/);
+  await expect(page).toHaveTitle(
+    "ClubTV en narrowcasting voor sportverenigingen | VeyoCast"
+  );
   await expect(
-    page.getByRole("heading", { name: "Van organisatie naar spelend scherm." })
+    page.getByRole("heading", {
+      exact: true,
+      level: 1,
+      name: "Breng jouw club tot leven op ieder scherm."
+    })
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Plan een demo" }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Bekijk VeyoCast" })).toBeVisible();
+  await expect(page.getByText("Immutable releases", { exact: true })).toBeVisible();
+  await expect(page.getByText("Last-known-good", { exact: true })).toBeVisible();
+  await expect(page.getByText("Server-side bevoegdheden", { exact: true })).toBeVisible();
+
+  await page.getByRole("link", { name: "Bekijk VeyoCast" }).click();
+  await expect(page).toHaveURL(/\/product$/);
+  await expect(
+    page.getByRole("heading", {
+      exact: true,
+      level: 1,
+      name: "Alles voor narrowcasting in één gebruiksvriendelijk platform"
+    })
   ).toBeVisible();
 });

@@ -21,7 +21,7 @@ test("publishes a crawlable privacy policy without external tracking requests", 
   );
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     "content",
-    /index/
+    /noindex/
   );
   await expect(page.getByText("Laatst bijgewerkt: 23 juli 2026")).toBeVisible();
   await expect(page.getByRole("link", { name: "privacy@veyocast.nl" }).first())
