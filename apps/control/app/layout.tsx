@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import "@fontsource-variable/inter/wght.css";
+import "@fontsource-variable/inter-tight/wght.css";
 import "@veyocast/ui/styles.css";
 import "./globals.css";
 import { ControlPwaRuntime } from "./_components/control-pwa-runtime";
