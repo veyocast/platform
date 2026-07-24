@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(55);
+select plan(89);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -24,13 +24,19 @@ values
     '00000000-0000-4000-8000-000000000843',
     'authenticated', 'authenticated', 'studio-other@veyocast.test',
     'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb
+  ),
+  (
+    '00000000-0000-4000-8000-000000000844',
+    'authenticated', 'authenticated', 'studio-owner@veyocast.test',
+    'test', now(), now(), now(), '{}'::jsonb, '{}'::jsonb
   );
 
 insert into public.profiles (id, display_name)
 values
   ('00000000-0000-4000-8000-000000000841', 'Studio editor'),
   ('00000000-0000-4000-8000-000000000842', 'Studio viewer'),
-  ('00000000-0000-4000-8000-000000000843', 'Studio other tenant');
+  ('00000000-0000-4000-8000-000000000843', 'Studio other tenant'),
+  ('00000000-0000-4000-8000-000000000844', 'Studio owner');
 
 insert into public.tenants (id, name, slug)
 values
@@ -65,6 +71,11 @@ values
   (
     '10000000-0000-4000-8000-000000000842',
     '00000000-0000-4000-8000-000000000843',
+    'tenant_owner'
+  ),
+  (
+    '10000000-0000-4000-8000-000000000841',
+    '00000000-0000-4000-8000-000000000844',
     'tenant_owner'
   );
 
@@ -274,7 +285,14 @@ select ok(
     'tenant.studio.create',
     'tenant.studio.edit_own',
     'tenant.studio.render'
-  ]::text[],
+  ]::text[]
+  and not (
+    'tenant.studio.edit_all' = any(
+      public.get_my_tenant_capabilities_v1(
+        '10000000-0000-4000-8000-000000000841'
+      )
+    )
+  ),
   'built-in tenant editors receive bounded Studio authoring capabilities'
 );
 
@@ -502,11 +520,65 @@ select is(
 );
 
 reset role;
+insert into public.studio_projects (
+  id,
+  tenant_id,
+  owner_user_id,
+  name,
+  orientation,
+  width,
+  height,
+  created_by,
+  updated_by
+)
+values (
+  '60000000-0000-4000-8000-000000000841',
+  '10000000-0000-4000-8000-000000000841',
+  '00000000-0000-4000-8000-000000000844',
+  'Ontwerp van tenant owner',
+  'landscape',
+  1920,
+  1080,
+  '00000000-0000-4000-8000-000000000844',
+  '00000000-0000-4000-8000-000000000844'
+);
+
+insert into public.studio_project_drafts (
+  tenant_id,
+  project_id,
+  document_json,
+  document_hash,
+  referenced_asset_ids,
+  updated_by
+)
+select
+  '10000000-0000-4000-8000-000000000841',
+  '60000000-0000-4000-8000-000000000841',
+  document,
+  private.studio_document_hash(document),
+  asset_ids,
+  '00000000-0000-4000-8000-000000000844'
+from studio_test_documents
+where name = 'static';
+
 set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
   '00000000-0000-4000-8000-000000000841',
   true
+);
+
+select throws_ok(
+  $$select public.save_studio_draft_v1(
+    '60000000-0000-4000-8000-000000000841',
+    0,
+    (select document from studio_test_documents where name = 'static'),
+    array['20000000-0000-4000-8000-000000000841'::uuid],
+    '90000000-0000-4000-8000-000000000857'
+  )$$,
+  '42501',
+  'actor cannot edit Studio project',
+  'tenant editors cannot edit another author project without edit_all'
 );
 
 insert into studio_test_results (name, result)
@@ -1170,6 +1242,555 @@ select is(
   ),
   2::bigint,
   'only successfully completed PNG and MP4 renders become exports'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000841',
+  true
+);
+
+do $$
+declare
+  source_document jsonb;
+  expected_revision bigint;
+begin
+  select document
+  into source_document
+  from studio_test_documents
+  where name = 'motion';
+
+  for expected_revision in 2..8 loop
+    perform public.save_studio_draft_v1(
+      (
+        select (result ->> 'projectId')::uuid
+        from studio_test_results
+        where name = 'create'
+      ),
+      expected_revision,
+      source_document,
+      '{}'::uuid[],
+      (
+        '91000000-0000-4000-8000-' ||
+        lpad(expected_revision::text, 12, '0')
+      )::uuid
+    );
+  end loop;
+end;
+$$;
+
+insert into studio_test_results (name, result)
+select
+  'checkpoint-save',
+  public.save_studio_draft_v1(
+    (select (result ->> 'projectId')::uuid
+      from studio_test_results where name = 'create'),
+    9,
+    document,
+    asset_ids,
+    '90000000-0000-4000-8000-000000000858'
+  )
+from studio_test_documents
+where name = 'motion';
+
+select is(
+  (
+    select result ->> 'outcome'
+    from studio_test_results
+    where name = 'checkpoint-save'
+  ),
+  'saved',
+  'tenth successful draft save returns the normal saved outcome'
+);
+
+select is(
+  (
+    select draft_revision
+    from public.studio_project_drafts
+    where project_id = (
+      select (result ->> 'projectId')::uuid
+      from studio_test_results where name = 'create'
+    )
+  ),
+  10::bigint,
+  'bounded autosave sequence reaches draft revision ten'
+);
+
+select is(
+  (
+    select count(*)
+    from public.studio_revisions
+    where project_id = (
+      select (result ->> 'projectId')::uuid
+      from studio_test_results where name = 'create'
+    )
+      and reason = 'checkpoint'
+  ),
+  1::bigint,
+  'exactly one automatic checkpoint is created per ten draft saves'
+);
+
+select is(
+  (
+    select draft_revision
+    from public.studio_revisions
+    where id = (
+      select (result ->> 'checkpointRevisionId')::uuid
+      from studio_test_results where name = 'checkpoint-save'
+    )
+  ),
+  10::bigint,
+  'checkpoint outcome identifies the immutable revision-ten snapshot'
+);
+
+select is(
+  (
+    select count(*)
+    from public.studio_revision_assets
+    where revision_id = (
+      select (result ->> 'checkpointRevisionId')::uuid
+      from studio_test_results where name = 'checkpoint-save'
+    )
+  ),
+  0::bigint,
+  'checkpoint materializes the exact empty asset set of the motion draft'
+);
+
+insert into studio_test_results (name, result)
+select
+  'restore-static',
+  public.restore_studio_revision_v1(
+    (select (result ->> 'projectId')::uuid
+      from studio_test_results where name = 'create'),
+    (select (result ->> 'revisionId')::uuid
+      from studio_test_results where name = 'render-two'),
+    10,
+    '90000000-0000-4000-8000-000000000859'
+  );
+
+select is(
+  (
+    select result ->> 'outcome'
+    from studio_test_results
+    where name = 'restore-static'
+  ),
+  'restored',
+  'an earlier immutable revision can be restored as a new draft state'
+);
+
+select is(
+  (
+    select draft_revision
+    from public.studio_project_drafts
+    where project_id = (
+      select (result ->> 'projectId')::uuid
+      from studio_test_results where name = 'create'
+    )
+  ),
+  11::bigint,
+  'restore advances rather than rewinds the active draft revision'
+);
+
+select is(
+  (
+    select draft.document_hash
+    from public.studio_project_drafts draft
+    where draft.project_id = (
+      select (result ->> 'projectId')::uuid
+      from studio_test_results where name = 'create'
+    )
+  ),
+  (
+    select revision.document_hash
+    from public.studio_revisions revision
+    where revision.id = (
+      select (result ->> 'revisionId')::uuid
+      from studio_test_results where name = 'render-two'
+    )
+  ),
+  'restored draft content exactly matches its immutable source hash'
+);
+
+select is(
+  (
+    select reason
+    from public.studio_revisions
+    where id = (
+      select (result ->> 'revisionId')::uuid
+      from studio_test_results where name = 'restore-static'
+    )
+  ),
+  'restore',
+  'restore creates a new immutable revision with explicit provenance'
+);
+
+select is(
+  (
+    select count(*)
+    from public.studio_revision_assets
+    where revision_id = (
+      select (result ->> 'revisionId')::uuid
+      from studio_test_results where name = 'restore-static'
+    )
+  ),
+  1::bigint,
+  'restore materializes the immutable source asset set again'
+);
+
+select is(
+  (
+    select count(*)
+    from public.studio_revisions
+    where id = (
+      select (result ->> 'revisionId')::uuid
+      from studio_test_results where name = 'render-two'
+    )
+  ),
+  1::bigint,
+  'restore never mutates or replaces its source revision'
+);
+
+select is(
+  (
+    select public.restore_studio_revision_v1(
+      (select (result ->> 'projectId')::uuid
+        from studio_test_results where name = 'create'),
+      (select (result ->> 'revisionId')::uuid
+        from studio_test_results where name = 'render-two'),
+      10,
+      '90000000-0000-4000-8000-000000000859'
+    ) ->> 'revisionId'
+  ),
+  (
+    select result ->> 'revisionId'
+    from studio_test_results
+    where name = 'restore-static'
+  ),
+  'restore is idempotent and returns the same new immutable revision'
+);
+
+select is(
+  (
+    select public.restore_studio_revision_v1(
+      (select (result ->> 'projectId')::uuid
+        from studio_test_results where name = 'create'),
+      (select (result ->> 'revisionId')::uuid
+        from studio_test_results where name = 'render-two'),
+      10,
+      '90000000-0000-4000-8000-000000000860'
+    ) ->> 'outcome'
+  ),
+  'conflict',
+  'stale restore returns a typed conflict without changing the active draft'
+);
+
+select ok(
+  exists (
+    select 1
+    from public.audit_events
+    where action = 'studio.revision.restored'
+      and target_id = (
+        select (result ->> 'revisionId')::uuid
+        from studio_test_results where name = 'restore-static'
+      )
+  ),
+  'successful revision restore creates an audit event'
+);
+
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000842',
+  true
+);
+
+select ok(
+  (
+    select count(*)
+    from public.studio_revisions
+    where tenant_id = '10000000-0000-4000-8000-000000000841'
+  ) >= 5,
+  'Studio-read users can safely list immutable tenant revision history'
+);
+
+select throws_ok(
+  $$select public.restore_studio_revision_v1(
+    (select (result ->> 'projectId')::uuid
+      from studio_test_results where name = 'create'),
+    (select (result ->> 'revisionId')::uuid
+      from studio_test_results where name = 'render-two'),
+    11,
+    '90000000-0000-4000-8000-000000000861'
+  )$$,
+  '42501',
+  'actor cannot restore Studio project',
+  'Studio-read users cannot restore a revision'
+);
+
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000843',
+  true
+);
+
+select is(
+  (
+    select count(*)
+    from public.studio_revisions
+    where tenant_id = '10000000-0000-4000-8000-000000000841'
+  ),
+  0::bigint,
+  'revision history remains isolated from another tenant'
+);
+
+select throws_ok(
+  $$select public.restore_studio_revision_v1(
+    (select (result ->> 'projectId')::uuid
+      from studio_test_results where name = 'create'),
+    (select (result ->> 'revisionId')::uuid
+      from studio_test_results where name = 'render-two'),
+    11,
+    '90000000-0000-4000-8000-000000000862'
+  )$$,
+  '42501',
+  'actor cannot restore Studio project',
+  'another tenant cannot restore a guessed Studio revision'
+);
+
+reset role;
+select ok(
+  has_table_privilege(
+    'service_role',
+    'public.studio_revisions',
+    'SELECT'
+  ),
+  'service role has explicit read-only access to immutable revision history'
+);
+
+select ok(
+  (
+    select relforcerowsecurity
+    from pg_catalog.pg_class
+    where oid = 'public.studio_tenant_brand_kits'::regclass
+  ),
+  'Studio tenant brand kits force RLS'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000841',
+  true
+);
+
+select throws_ok(
+  $$select public.upsert_studio_brand_kit_v1(
+    '10000000-0000-4000-8000-000000000841',
+    '#ff5a1f',
+    '#101820',
+    '20000000-0000-4000-8000-000000000841',
+    0,
+    '90000000-0000-4000-8000-000000000863'
+  )$$,
+  '42501',
+  'actor cannot manage Studio brand kit',
+  'tenant editors cannot mutate settings-owned Studio brand data'
+);
+
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000844',
+  true
+);
+
+insert into studio_test_results (name, result)
+select
+  'brand-create',
+  public.upsert_studio_brand_kit_v1(
+    '10000000-0000-4000-8000-000000000841',
+    '#ff5a1f',
+    '#101820',
+    '20000000-0000-4000-8000-000000000841',
+    0,
+    '90000000-0000-4000-8000-000000000863'
+  );
+
+select is(
+  (
+    select result ->> 'outcome'
+    from studio_test_results
+    where name = 'brand-create'
+  ),
+  'saved',
+  'settings manager can create the tenant Studio brand kit'
+);
+
+select is(
+  (
+    select primary_color || '|' || secondary_color || '|' ||
+      logo_media_asset_id::text
+    from public.studio_tenant_brand_kits
+    where tenant_id = '10000000-0000-4000-8000-000000000841'
+  ),
+  '#FF5A1F|#101820|20000000-0000-4000-8000-000000000841',
+  'brand kit persists normalized colors and a tenant-ready image logo'
+);
+
+select is(
+  (
+    select public.upsert_studio_brand_kit_v1(
+      '10000000-0000-4000-8000-000000000841',
+      '#ff5a1f',
+      '#101820',
+      '20000000-0000-4000-8000-000000000841',
+      0,
+      '90000000-0000-4000-8000-000000000863'
+    ) ->> 'revision'
+  ),
+  '0',
+  'brand kit creation is idempotent'
+);
+
+insert into studio_test_results (name, result)
+select
+  'brand-update',
+  public.upsert_studio_brand_kit_v1(
+    '10000000-0000-4000-8000-000000000841',
+    '#F04B23',
+    '#202830',
+    '20000000-0000-4000-8000-000000000841',
+    0,
+    '90000000-0000-4000-8000-000000000864'
+  );
+
+select is(
+  (
+    select result ->> 'revision'
+    from studio_test_results
+    where name = 'brand-update'
+  ),
+  '1',
+  'brand kit updates use optimistic revision control'
+);
+
+select is(
+  (
+    select public.upsert_studio_brand_kit_v1(
+      '10000000-0000-4000-8000-000000000841',
+      '#112233',
+      '#445566',
+      '20000000-0000-4000-8000-000000000841',
+      0,
+      '90000000-0000-4000-8000-000000000865'
+    ) ->> 'outcome'
+  ),
+  'conflict',
+  'stale brand kit updates return a typed conflict'
+);
+
+select throws_ok(
+  $$select public.upsert_studio_brand_kit_v1(
+    '10000000-0000-4000-8000-000000000841',
+    'oranje',
+    '#101820',
+    '20000000-0000-4000-8000-000000000841',
+    1,
+    '90000000-0000-4000-8000-000000000866'
+  )$$,
+  '23514',
+  'Studio brand kit is invalid',
+  'brand kit rejects colors outside the canonical hex contract'
+);
+
+select throws_ok(
+  $$select public.upsert_studio_brand_kit_v1(
+    '10000000-0000-4000-8000-000000000841',
+    '#112233',
+    '#445566',
+    '20000000-0000-4000-8000-000000000842',
+    1,
+    '90000000-0000-4000-8000-000000000867'
+  )$$,
+  '23514',
+  'Studio brand logo is not a ready tenant image',
+  'brand kit cannot reference a logo from another tenant'
+);
+
+select throws_ok(
+  $$update public.studio_tenant_brand_kits
+    set primary_color = '#000000'
+    where tenant_id = '10000000-0000-4000-8000-000000000841'$$,
+  '42501',
+  'permission denied for table studio_tenant_brand_kits',
+  'brand kit writes cannot bypass the guarded RPC'
+);
+
+select throws_ok(
+  $$select public.upsert_studio_brand_kit_v1(
+    '10000000-0000-4000-8000-000000000842',
+    '#112233',
+    '#445566',
+    '20000000-0000-4000-8000-000000000842',
+    0,
+    '90000000-0000-4000-8000-000000000868'
+  )$$,
+  '42501',
+  'actor cannot manage Studio brand kit',
+  'settings manager cannot mutate another tenant brand kit'
+);
+
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000842',
+  true
+);
+
+select is(
+  (
+    select count(*)
+    from public.studio_tenant_brand_kits
+    where tenant_id = '10000000-0000-4000-8000-000000000841'
+  ),
+  1::bigint,
+  'Studio-read tenant users can read their brand kit'
+);
+
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000843',
+  true
+);
+
+select is(
+  (
+    select count(*)
+    from public.studio_tenant_brand_kits
+    where tenant_id = '10000000-0000-4000-8000-000000000841'
+  ),
+  0::bigint,
+  'brand kit rows remain isolated from another tenant'
+);
+
+reset role;
+select ok(
+  exists (
+    select 1
+    from public.audit_events
+    where action = 'studio.brand_kit.saved'
+      and tenant_id = '10000000-0000-4000-8000-000000000841'
+      and target_id = '10000000-0000-4000-8000-000000000841'
+  ),
+  'brand kit mutation creates a tenant-scoped audit event'
 );
 
 select ok(

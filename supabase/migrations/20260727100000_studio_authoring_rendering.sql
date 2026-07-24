@@ -239,6 +239,20 @@ create index studio_command_receipts_actor_created_idx
 create index studio_command_receipts_target_created_idx
   on public.studio_command_receipts(tenant_id, target_type, target_id, created_at desc);
 
+create table public.studio_tenant_brand_kits (
+  tenant_id uuid primary key references public.tenants(id) on delete cascade,
+  primary_color text not null check (primary_color ~ '^#[0-9A-F]{6}$'),
+  secondary_color text not null check (secondary_color ~ '^#[0-9A-F]{6}$'),
+  logo_media_asset_id uuid not null,
+  revision bigint not null default 0 check (revision >= 0),
+  updated_by uuid references public.profiles(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  foreign key (tenant_id, logo_media_asset_id)
+    references public.media_assets(tenant_id, id)
+    on delete restrict
+);
+
 create trigger studio_projects_set_updated_at
 before update on public.studio_projects
 for each row execute function private.set_updated_at();
@@ -249,6 +263,10 @@ for each row execute function private.set_updated_at();
 
 create trigger studio_render_jobs_set_updated_at
 before update on public.studio_render_jobs
+for each row execute function private.set_updated_at();
+
+create trigger studio_tenant_brand_kits_set_updated_at
+before update on public.studio_tenant_brand_kits
 for each row execute function private.set_updated_at();
 
 create or replace function private.reject_studio_immutable_mutation()
@@ -351,7 +369,7 @@ as $$
       'tenant.playlist.read', 'tenant.playlist.write', 'tenant.release.read',
       'tenant.screen.read', 'tenant.team.read', 'tenant.settings.read',
       'tenant.studio.read', 'tenant.studio.create', 'tenant.studio.edit_own',
-      'tenant.studio.edit_all', 'tenant.studio.motion.edit', 'tenant.studio.render'
+      'tenant.studio.motion.edit', 'tenant.studio.render'
     ]::text[]
     else array[
       'tenant.overview.read', 'tenant.media.read', 'tenant.playlist.read',
@@ -495,6 +513,8 @@ alter table public.studio_exports enable row level security;
 alter table public.studio_exports force row level security;
 alter table public.studio_command_receipts enable row level security;
 alter table public.studio_command_receipts force row level security;
+alter table public.studio_tenant_brand_kits enable row level security;
+alter table public.studio_tenant_brand_kits force row level security;
 
 revoke all on
   public.studio_projects,
@@ -503,7 +523,8 @@ revoke all on
   public.studio_revision_assets,
   public.studio_render_jobs,
   public.studio_exports,
-  public.studio_command_receipts
+  public.studio_command_receipts,
+  public.studio_tenant_brand_kits
 from public, anon, authenticated;
 
 grant select on
@@ -513,8 +534,14 @@ grant select on
   public.studio_revision_assets,
   public.studio_render_jobs,
   public.studio_exports,
-  public.studio_command_receipts
+  public.studio_command_receipts,
+  public.studio_tenant_brand_kits
 to authenticated;
+
+grant select on
+  public.studio_revisions,
+  public.studio_revision_assets
+to service_role;
 
 create policy "studio_projects_select_by_scope"
 on public.studio_projects for select to authenticated
@@ -538,6 +565,10 @@ using (private.can_read_studio(tenant_id));
 
 create policy "studio_exports_select_by_scope"
 on public.studio_exports for select to authenticated
+using (private.can_read_studio(tenant_id));
+
+create policy "studio_tenant_brand_kits_select_by_scope"
+on public.studio_tenant_brand_kits for select to authenticated
 using (private.can_read_studio(tenant_id));
 
 create policy "studio_command_receipts_select_own"
@@ -1002,6 +1033,8 @@ declare
   request_json jsonb;
   replay jsonb;
   outcome jsonb;
+  checkpoint_revision_id uuid;
+  checkpoint_revision_number bigint;
 begin
   select project.*
   into project_record
@@ -1126,12 +1159,59 @@ begin
     and id = project_record.id
   returning revision into project_record.revision;
 
-  outcome := jsonb_build_object(
+  if draft_record.draft_revision % 10 = 0 then
+    select coalesce(max(revision.revision_number), 0) + 1
+    into checkpoint_revision_number
+    from public.studio_revisions revision
+    where revision.tenant_id = project_record.tenant_id
+      and revision.project_id = project_record.id;
+
+    insert into public.studio_revisions (
+      tenant_id,
+      project_id,
+      revision_number,
+      draft_revision,
+      schema_version,
+      document_json,
+      document_hash,
+      reason,
+      created_by
+    )
+    values (
+      project_record.tenant_id,
+      project_record.id,
+      checkpoint_revision_number,
+      draft_record.draft_revision,
+      draft_record.schema_version,
+      p_document,
+      next_document_hash,
+      'checkpoint',
+      actor_id
+    )
+    returning id into checkpoint_revision_id;
+
+    insert into public.studio_revision_assets (
+      tenant_id,
+      project_id,
+      revision_id,
+      media_asset_id
+    )
+    select
+      project_record.tenant_id,
+      project_record.id,
+      checkpoint_revision_id,
+      asset_id
+    from unnest(normalized_asset_ids) asset_id;
+  end if;
+
+  outcome := jsonb_strip_nulls(jsonb_build_object(
     'outcome', 'saved',
     'projectId', project_record.id,
     'projectRevision', project_record.revision,
-    'draftRevision', draft_record.draft_revision
-  );
+    'draftRevision', draft_record.draft_revision,
+    'checkpointRevisionId', checkpoint_revision_id,
+    'checkpointRevisionNumber', checkpoint_revision_number
+  ));
   return private.complete_studio_command(
     project_record.tenant_id,
     'studio.draft.save',
@@ -1141,6 +1221,403 @@ begin
     project_record.id,
     outcome,
     'studio.draft.saved'
+  );
+end;
+$$;
+
+create or replace function public.restore_studio_revision_v1(
+  p_project_id uuid,
+  p_revision_id uuid,
+  p_expected_draft_revision bigint,
+  p_idempotency_key uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  actor_id uuid := private.current_user_id();
+  project_record public.studio_projects%rowtype;
+  draft_record public.studio_project_drafts%rowtype;
+  source_revision public.studio_revisions%rowtype;
+  source_asset_ids uuid[];
+  request_json jsonb;
+  replay jsonb;
+  outcome jsonb;
+  restored_revision_id uuid;
+  restored_revision_number bigint;
+  next_motion_enabled boolean;
+  next_duration_ms integer;
+begin
+  select project.*
+  into project_record
+  from public.studio_projects project
+  where project.id = p_project_id;
+  if not found then
+    raise exception 'Studio project not found' using errcode = 'P0002';
+  end if;
+  if actor_id is null
+    or not private.can_edit_studio_project(
+      project_record.tenant_id,
+      project_record.owner_user_id
+    )
+  then
+    raise exception 'actor cannot restore Studio project' using errcode = '42501';
+  end if;
+  if project_record.project_kind = 'tenant_template'
+    and not private.has_tenant_capability(
+      project_record.tenant_id,
+      'tenant.studio.template.manage'
+    )
+  then
+    raise exception 'actor cannot restore Studio templates' using errcode = '42501';
+  end if;
+  perform private.require_active_tenant_command(project_record.tenant_id);
+  if p_expected_draft_revision is null or p_expected_draft_revision < 0 then
+    raise exception 'expected Studio revision is invalid' using errcode = '23514';
+  end if;
+
+  select revision.*
+  into source_revision
+  from public.studio_revisions revision
+  where revision.tenant_id = project_record.tenant_id
+    and revision.project_id = project_record.id
+    and revision.id = p_revision_id;
+  if not found then
+    raise exception 'Studio revision not found' using errcode = 'P0002';
+  end if;
+
+  select coalesce(
+    array_agg(revision_asset.media_asset_id order by revision_asset.media_asset_id),
+    '{}'::uuid[]
+  )
+  into source_asset_ids
+  from public.studio_revision_assets revision_asset
+  where revision_asset.tenant_id = source_revision.tenant_id
+    and revision_asset.revision_id = source_revision.id;
+
+  perform private.assert_studio_document(
+    project_record.tenant_id,
+    project_record.orientation,
+    project_record.width,
+    project_record.height,
+    source_revision.document_json,
+    source_asset_ids
+  );
+  next_motion_enabled :=
+    (source_revision.document_json #>> '{motion,enabled}')::boolean;
+  next_duration_ms :=
+    (source_revision.document_json #>> '{motion,durationMs}')::integer;
+  if next_motion_enabled
+    and not private.has_tenant_capability(
+      project_record.tenant_id,
+      'tenant.studio.motion.edit'
+    )
+  then
+    raise exception 'actor cannot restore Studio motion' using errcode = '42501';
+  end if;
+
+  request_json := jsonb_build_object(
+    'projectId', project_record.id,
+    'revisionId', source_revision.id,
+    'expectedDraftRevision', p_expected_draft_revision,
+    'documentHash', source_revision.document_hash
+  );
+  replay := private.begin_studio_command(
+    project_record.tenant_id,
+    'studio.revision.restore',
+    p_idempotency_key,
+    request_json
+  );
+  if replay is not null then
+    return replay;
+  end if;
+
+  select project.*
+  into project_record
+  from public.studio_projects project
+  where project.id = p_project_id
+  for update;
+  select draft.*
+  into draft_record
+  from public.studio_project_drafts draft
+  where draft.tenant_id = project_record.tenant_id
+    and draft.project_id = project_record.id
+  for update;
+  if not found then
+    raise exception 'Studio draft not found' using errcode = 'P0002';
+  end if;
+  if project_record.status <> 'active' then
+    raise exception 'Studio project is not restorable' using errcode = '55000';
+  end if;
+  if draft_record.draft_revision <> p_expected_draft_revision then
+    outcome := jsonb_build_object(
+      'outcome', 'conflict',
+      'projectId', project_record.id,
+      'sourceRevisionId', source_revision.id,
+      'actualRevision', draft_record.draft_revision
+    );
+    return private.complete_studio_command(
+      project_record.tenant_id,
+      'studio.revision.restore',
+      p_idempotency_key,
+      request_json,
+      'studio_projects',
+      project_record.id,
+      outcome,
+      'studio.revision.restore_conflict',
+      'failed'
+    );
+  end if;
+
+  update public.studio_project_drafts
+  set
+    draft_revision = draft_revision + 1,
+    schema_version = source_revision.schema_version,
+    document_json = source_revision.document_json,
+    document_hash = source_revision.document_hash,
+    referenced_asset_ids = source_asset_ids,
+    updated_by = actor_id
+  where tenant_id = project_record.tenant_id
+    and project_id = project_record.id
+  returning * into draft_record;
+
+  update public.studio_projects
+  set
+    motion_enabled = next_motion_enabled,
+    duration_ms = next_duration_ms,
+    revision = revision + 1,
+    updated_by = actor_id
+  where tenant_id = project_record.tenant_id
+    and id = project_record.id
+  returning * into project_record;
+
+  select coalesce(max(revision.revision_number), 0) + 1
+  into restored_revision_number
+  from public.studio_revisions revision
+  where revision.tenant_id = project_record.tenant_id
+    and revision.project_id = project_record.id;
+
+  insert into public.studio_revisions (
+    tenant_id,
+    project_id,
+    revision_number,
+    draft_revision,
+    schema_version,
+    document_json,
+    document_hash,
+    reason,
+    created_by
+  )
+  values (
+    project_record.tenant_id,
+    project_record.id,
+    restored_revision_number,
+    draft_record.draft_revision,
+    source_revision.schema_version,
+    source_revision.document_json,
+    source_revision.document_hash,
+    'restore',
+    actor_id
+  )
+  returning id into restored_revision_id;
+
+  insert into public.studio_revision_assets (
+    tenant_id,
+    project_id,
+    revision_id,
+    media_asset_id
+  )
+  select
+    project_record.tenant_id,
+    project_record.id,
+    restored_revision_id,
+    media_asset_id
+  from unnest(source_asset_ids) media_asset_id;
+
+  outcome := jsonb_build_object(
+    'outcome', 'restored',
+    'projectId', project_record.id,
+    'sourceRevisionId', source_revision.id,
+    'revisionId', restored_revision_id,
+    'revisionNumber', restored_revision_number,
+    'projectRevision', project_record.revision,
+    'draftRevision', draft_record.draft_revision
+  );
+  return private.complete_studio_command(
+    project_record.tenant_id,
+    'studio.revision.restore',
+    p_idempotency_key,
+    request_json,
+    'studio_revisions',
+    restored_revision_id,
+    outcome,
+    'studio.revision.restored'
+  );
+end;
+$$;
+
+create or replace function public.upsert_studio_brand_kit_v1(
+  p_tenant_id uuid,
+  p_primary_color text,
+  p_secondary_color text,
+  p_logo_media_asset_id uuid,
+  p_expected_revision bigint,
+  p_idempotency_key uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  actor_id uuid := private.current_user_id();
+  normalized_primary text := upper(btrim(coalesce(p_primary_color, '')));
+  normalized_secondary text := upper(btrim(coalesce(p_secondary_color, '')));
+  brand_kit public.studio_tenant_brand_kits%rowtype;
+  brand_kit_exists boolean;
+  request_json jsonb;
+  replay jsonb;
+  outcome jsonb;
+begin
+  if actor_id is null
+    or not private.has_tenant_capability(
+      p_tenant_id,
+      'tenant.settings.manage'
+    )
+  then
+    raise exception 'actor cannot manage Studio brand kit' using errcode = '42501';
+  end if;
+  perform private.require_active_tenant_command(p_tenant_id);
+  if normalized_primary !~ '^#[0-9A-F]{6}$'
+    or normalized_secondary !~ '^#[0-9A-F]{6}$'
+    or p_logo_media_asset_id is null
+    or p_expected_revision is null
+    or p_expected_revision < 0
+  then
+    raise exception 'Studio brand kit is invalid' using errcode = '23514';
+  end if;
+  if not exists (
+    select 1
+    from public.media_assets asset
+    where asset.tenant_id = p_tenant_id
+      and asset.id = p_logo_media_asset_id
+      and asset.kind = 'image'::public.media_asset_kind
+      and asset.status = 'ready'::public.media_asset_status
+      and asset.deleted_at is null
+      and exists (
+        select 1
+        from public.media_variants variant
+        where variant.tenant_id = asset.tenant_id
+          and variant.asset_id = asset.id
+          and variant.variant_type = 'original'::public.media_variant_type
+          and variant.mime_type in ('image/jpeg', 'image/png', 'image/webp')
+      )
+  ) then
+    raise exception 'Studio brand logo is not a ready tenant image'
+      using errcode = '23514';
+  end if;
+
+  request_json := jsonb_build_object(
+    'tenantId', p_tenant_id,
+    'primaryColor', normalized_primary,
+    'secondaryColor', normalized_secondary,
+    'logoMediaAssetId', p_logo_media_asset_id,
+    'expectedRevision', p_expected_revision
+  );
+  replay := private.begin_studio_command(
+    p_tenant_id,
+    'studio.brand_kit.upsert',
+    p_idempotency_key,
+    request_json
+  );
+  if replay is not null then
+    return replay;
+  end if;
+
+  perform 1
+  from public.tenants tenant
+  where tenant.id = p_tenant_id
+  for update;
+  if not found then
+    raise exception 'tenant not found' using errcode = 'P0002';
+  end if;
+
+  select kit.*
+  into brand_kit
+  from public.studio_tenant_brand_kits kit
+  where kit.tenant_id = p_tenant_id
+  for update;
+  brand_kit_exists := found;
+
+  if (not brand_kit_exists and p_expected_revision <> 0)
+    or (brand_kit_exists and brand_kit.revision <> p_expected_revision)
+  then
+    outcome := jsonb_build_object(
+      'outcome', 'conflict',
+      'tenantId', p_tenant_id,
+      'actualRevision', case when brand_kit_exists then brand_kit.revision else 0 end,
+      'exists', brand_kit_exists
+    );
+    return private.complete_studio_command(
+      p_tenant_id,
+      'studio.brand_kit.upsert',
+      p_idempotency_key,
+      request_json,
+      'studio_tenant_brand_kits',
+      p_tenant_id,
+      outcome,
+      'studio.brand_kit.conflict',
+      'failed'
+    );
+  end if;
+
+  if brand_kit_exists then
+    update public.studio_tenant_brand_kits
+    set
+      primary_color = normalized_primary,
+      secondary_color = normalized_secondary,
+      logo_media_asset_id = p_logo_media_asset_id,
+      revision = revision + 1,
+      updated_by = actor_id
+    where tenant_id = p_tenant_id
+    returning * into brand_kit;
+  else
+    insert into public.studio_tenant_brand_kits (
+      tenant_id,
+      primary_color,
+      secondary_color,
+      logo_media_asset_id,
+      revision,
+      updated_by
+    )
+    values (
+      p_tenant_id,
+      normalized_primary,
+      normalized_secondary,
+      p_logo_media_asset_id,
+      0,
+      actor_id
+    )
+    returning * into brand_kit;
+  end if;
+
+  outcome := jsonb_build_object(
+    'outcome', 'saved',
+    'tenantId', p_tenant_id,
+    'revision', brand_kit.revision,
+    'created', not brand_kit_exists
+  );
+  return private.complete_studio_command(
+    p_tenant_id,
+    'studio.brand_kit.upsert',
+    p_idempotency_key,
+    request_json,
+    'studio_tenant_brand_kits',
+    p_tenant_id,
+    outcome,
+    'studio.brand_kit.saved'
   );
 end;
 $$;
@@ -2615,6 +3092,12 @@ revoke all on function public.create_studio_project_v1(
 revoke all on function public.save_studio_draft_v1(
   uuid, bigint, jsonb, uuid[], uuid
 ) from public, anon;
+revoke all on function public.restore_studio_revision_v1(
+  uuid, uuid, bigint, uuid
+) from public, anon;
+revoke all on function public.upsert_studio_brand_kit_v1(
+  uuid, text, text, uuid, bigint, uuid
+) from public, anon;
 revoke all on function public.mutate_studio_project_v1(
   uuid, bigint, text, jsonb, uuid
 ) from public, anon;
@@ -2631,6 +3114,12 @@ grant execute on function public.create_studio_project_v1(
 ) to authenticated;
 grant execute on function public.save_studio_draft_v1(
   uuid, bigint, jsonb, uuid[], uuid
+) to authenticated;
+grant execute on function public.restore_studio_revision_v1(
+  uuid, uuid, bigint, uuid
+) to authenticated;
+grant execute on function public.upsert_studio_brand_kit_v1(
+  uuid, text, text, uuid, bigint, uuid
 ) to authenticated;
 grant execute on function public.mutate_studio_project_v1(
   uuid, bigint, text, jsonb, uuid
