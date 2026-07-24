@@ -1,6 +1,6 @@
 import { createEmptyStudioDocument } from "./document";
 import { parseStudioDocument, type StudioDocument, type StudioElement } from "./schema";
-import type { StudioFormatId } from "./constants";
+import { studioPalette, type StudioFormatId } from "./constants";
 
 export const studioTemplateCategories = [
   "matchday",
@@ -69,7 +69,7 @@ function createTemplateDocument(
   copy: Readonly<{ category: StudioTemplateCategory; eyebrow: string; title: string; subtitle: string }>
 ): StudioDocument {
   const document = createEmptyStudioDocument(formatId, {
-    background: "#0A0A0A",
+    background: studioPalette.inkBlack,
     templateId: `system-${copy.category}-${formatId}-v1`
   });
   const landscape = formatId === "landscape-hd";
@@ -92,7 +92,7 @@ function createTemplateDocument(
       locked: false,
       zIndex: 0,
       shape: "rectangle",
-      fill: { kind: "solid", color: "#FF5C20" },
+      fill: { kind: "solid", color: studioPalette.electricOrange },
       cornerRadius: 7
     },
     {
@@ -114,7 +114,7 @@ function createTemplateDocument(
       fontSize: landscape ? 30 : 34,
       lineHeight: 1.1,
       letterSpacing: 4,
-      fill: "#FFAE72",
+      fill: studioPalette.warmOrange,
       align: "left",
       verticalAlign: "top",
       autoFit: false,
@@ -140,7 +140,7 @@ function createTemplateDocument(
       fontSize: landscape ? 112 : 128,
       lineHeight: 0.98,
       letterSpacing: -3,
-      fill: "#FAFAF7",
+      fill: studioPalette.paperWhite,
       align: "left",
       verticalAlign: "top",
       autoFit: true,
@@ -166,7 +166,7 @@ function createTemplateDocument(
       fontSize: landscape ? 38 : 44,
       lineHeight: 1.25,
       letterSpacing: 0,
-      fill: "#FAFAF7",
+      fill: studioPalette.paperWhite,
       align: "left",
       verticalAlign: "top",
       autoFit: false,
@@ -188,7 +188,7 @@ function createTemplateDocument(
       zIndex: 4,
       slot: "photo",
       label: "Vervang door een clubfoto",
-      fill: "#171717",
+      fill: studioPalette.surfaceDark,
       stroke: "#505050"
     },
     {
@@ -206,8 +206,8 @@ function createTemplateDocument(
       zIndex: 5,
       slot: "tenant-logo",
       label: "Clublogo",
-      fill: "#FAFAF7",
-      stroke: "#FF5C20"
+      fill: studioPalette.paperWhite,
+      stroke: studioPalette.electricOrange
     }
   ];
 
@@ -217,8 +217,8 @@ function createTemplateDocument(
       ...document.artboard,
       background: {
         kind: "linear-gradient",
-        from: "#0A0A0A",
-        to: "#24120B",
+        from: studioPalette.inkBlack,
+        to: studioPalette.surfaceWarm,
         angle: landscape ? 0 : 90
       }
     },

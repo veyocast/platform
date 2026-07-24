@@ -2,6 +2,15 @@ export const studioSchemaVersion = 1 as const;
 export const studioFontRegistryVersion = "2026-07-24.1" as const;
 export const studioFps = 30 as const;
 
+export const studioPalette = {
+  electricOrange: "#FF5C20",
+  inkBlack: "#0A0A0A",
+  paperWhite: "#FAFAF7",
+  surfaceDark: "#171717",
+  surfaceWarm: "#24120B",
+  warmOrange: "#FFAE72"
+} as const;
+
 export const studioFormats = [
   {
     id: "landscape-hd",
