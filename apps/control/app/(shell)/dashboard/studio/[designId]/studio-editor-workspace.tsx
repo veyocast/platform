@@ -2893,11 +2893,13 @@ function RenderPanel({
                       <Link
                         href={`/dashboard/media?asset=${encodeURIComponent(job.mediaAssetId)}`}
                       >
-                        Open in Media
+                        Openen in Media
                       </Link>
                     </Button>
                     <Button asChild size="sm" variant="ghost">
-                      <Link href="/dashboard/playlists">Naar playlists</Link>
+                      <Link href="/dashboard/playlists">
+                        Openen in Publisher
+                      </Link>
                     </Button>
                   </div>
                 ) : null}
