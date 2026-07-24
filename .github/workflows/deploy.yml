@@ -109,17 +109,17 @@ jobs:
           fi
           echo "release_sha=${release_sha}" >> "${GITHUB_OUTPUT}"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
         with:
           version: 11.5.2
           run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
+          cache: true
 
       - name: Validate staging configuration and rootless daemon
         shell: bash
@@ -171,17 +171,17 @@ jobs:
         shell: bash
         run: git clean -ffdx
 
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
         with:
           version: 11.5.2
           run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
+          cache: true
 
       - name: Build, test and record SHA images
         id: release
@@ -236,17 +236,17 @@ jobs:
         shell: bash
         run: git clean -ffdx
 
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
         with:
           version: 11.5.2
           run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
+          cache: true
 
       - name: Install pinned migration tooling
         run: pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1 --network-concurrency=8 --package-import-method=copy
@@ -325,17 +325,17 @@ jobs:
             exit 1
           fi
 
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
         with:
           version: 11.5.2
           run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
+          cache: true
 
       - name: Install pinned migration tooling
         run: pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1 --network-concurrency=8 --package-import-method=copy

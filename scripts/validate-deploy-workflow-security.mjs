@@ -86,6 +86,38 @@ for (const step of cleanupSteps) {
   );
 }
 
+const nodeSetupPositions = steps.flatMap((step, index) =>
+  step.includes("name: Setup Node.js") ? [index] : []
+);
+const pnpmSetupPositions = steps.flatMap((step, index) =>
+  step.includes("name: Setup pnpm") ? [index] : []
+);
+assertEqual(
+  nodeSetupPositions.length,
+  4,
+  "Iedere deployjob moet de project-Node-toolchain activeren."
+);
+assertEqual(
+  pnpmSetupPositions.length,
+  4,
+  "Iedere deployjob moet de gepinde pnpm-toolchain activeren."
+);
+for (let index = 0; index < nodeSetupPositions.length; index += 1) {
+  if ((nodeSetupPositions[index] ?? Number.POSITIVE_INFINITY) >=
+      (pnpmSetupPositions[index] ?? Number.NEGATIVE_INFINITY)) {
+    fail(
+      "Setup Node.js moet vóór Setup pnpm draaien, zodat pnpm nooit de interne runner-npm gebruikt."
+    );
+  }
+}
+for (const position of pnpmSetupPositions) {
+  assertMatch(
+    steps[position] ?? "",
+    /\n          cache: true\n/,
+    "pnpm/action-setup moet de pnpm-store veilig cachen."
+  );
+}
+
 const migrationToolingInstall =
   "pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1 --network-concurrency=8 --package-import-method=copy";
 assertEqual(
