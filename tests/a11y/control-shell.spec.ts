@@ -145,6 +145,8 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
     "/dashboard/screen-groups",
     "/dashboard/screens",
     "/dashboard/settings",
+    "/dashboard/studio",
+    "/dashboard/studio/new",
     "/dashboard/team",
     "/dashboard/templates",
     "/dashboard/auditlog",

@@ -75,6 +75,7 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
     "tenant.studio.edit_own"
   );
   const canManageBrand =
+    session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.settings.manage");
   const activeJobs = data.renderJobs.filter((job) =>

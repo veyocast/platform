@@ -856,6 +856,7 @@
 .inspector input,
 .inspector select,
 .inspector textarea,
+.mobileElementCard input:not([type="color"]),
 .mobileElementCard textarea,
 .mobileElementCard select {
   background: var(--vc-surface);
@@ -873,6 +874,7 @@
 .inspector input:focus,
 .inspector select:focus,
 .inspector textarea:focus,
+.mobileElementCard input:not([type="color"]):focus,
 .mobileElementCard textarea:focus,
 .mobileElementCard select:focus {
   border-color: var(--vc-focus);
@@ -1906,6 +1908,12 @@
   .mobileElementCard small {
     color: var(--vc-text-muted);
     font-size: 11px;
+  }
+
+  .mobileElementCard input:not([type="color"]),
+  .mobileElementCard select,
+  .mobileElementCard textarea {
+    min-height: 44px;
   }
 
   .mobileGenerateBar {
