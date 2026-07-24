@@ -9,7 +9,8 @@ const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const packageRules = {
   auth: new Set(["@veyocast/domain"]),
   contracts: new Set(["zod"]),
-  domain: new Set<string>()
+  domain: new Set<string>(),
+  studio: new Set(["zod"])
 } as const;
 
 const forbiddenRuntimeImports = ["next", "react", "@supabase/"] as const;
@@ -177,6 +178,35 @@ describe("application package boundaries", () => {
               violations.push(`${relative(repositoryRoot, file)} -> ${specifier}`);
             }
           }
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  it("keeps the Studio canvas runtime route-local and outside Player", async () => {
+    const controlRoot = join(repositoryRoot, "apps", "control");
+    const playerRoot = join(repositoryRoot, "apps", "player");
+    const violations: string[] = [];
+
+    for (const file of await sourceFilesBelow(controlRoot)) {
+      for (const specifier of importSpecifiers(await readFile(file, "utf8"))) {
+        if (
+          (specifier === "konva" || specifier === "react-konva") &&
+          !relative(controlRoot, file).startsWith(
+            join("app", "(shell)", "dashboard", "studio")
+          )
+        ) {
+          violations.push(`${relative(repositoryRoot, file)} -> ${specifier}`);
+        }
+      }
+    }
+
+    for (const file of await sourceFilesBelow(playerRoot)) {
+      for (const specifier of importSpecifiers(await readFile(file, "utf8"))) {
+        if (specifier === "@veyocast/studio" || specifier.startsWith("@veyocast/studio/")) {
+          violations.push(`${relative(repositoryRoot, file)} -> ${specifier}`);
         }
       }
     }
