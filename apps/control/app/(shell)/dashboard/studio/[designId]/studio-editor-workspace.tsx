@@ -60,6 +60,7 @@ import { Button, Progress, StatusPill } from "@veyocast/ui";
 import {
   cancelStudioRenderAction,
   copyStudioConflictAction,
+  mutateStudioProjectAction,
   requestStudioRenderAction,
   restoreStudioRevisionAction,
   retryStudioRenderAction,
@@ -122,10 +123,12 @@ export function StudioEditorWorkspace({
     createStudioEditorState(project.document, project.draftRevision)
   );
   const stateRef = useRef(state);
+  const projectRevisionRef = useRef(project.projectRevision);
   const savingRef = useRef(false);
   const clipboardRef = useRef<string[]>([]);
   const [recovery, setRecovery] = useState<RecoveryCandidate>(null);
   const [renderMessage, setRenderMessage] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState(project.name);
   const [renderPanelOpen, setRenderPanelOpen] = useState(
     Boolean(initialRenderId) || renderJobs.length > 0
   );
@@ -206,6 +209,8 @@ export function StudioEditorWorkspace({
       return null;
     }
     const nextRevision = result.revision ?? snapshot.draftRevision;
+    projectRevisionRef.current =
+      result.projectRevision ?? projectRevisionRef.current;
     if (stateRef.current.document === snapshot.document) {
       dispatch({
         revision: nextRevision,
@@ -222,6 +227,44 @@ export function StudioEditorWorkspace({
     }
     return nextRevision;
   }, [permissions.canEdit, project.id, tenantId]);
+
+  const renameProject = useCallback(
+    async (name: string) => {
+      const normalized = name.trim();
+      if (normalized === projectName) return true;
+      if (normalized.length < 2 || normalized.length > 120) {
+        setRenderMessage("Gebruik een ontwerpnaam van 2 tot en met 120 tekens.");
+        return false;
+      }
+      const savedRevision = await save();
+      if (
+        savedRevision === null &&
+        stateRef.current.saveState !== "saved"
+      ) {
+        setRenderMessage(
+          "Sla de inhoud eerst veilig op voordat je de ontwerpnaam wijzigt."
+        );
+        return false;
+      }
+      const result = await mutateStudioProjectAction({
+        expectedRevision: projectRevisionRef.current,
+        idempotencyKey: crypto.randomUUID(),
+        operation: "rename",
+        payload: { name: normalized },
+        projectId: project.id
+      });
+      if (!result.ok) {
+        setRenderMessage(result.error ?? "De ontwerpnaam is niet gewijzigd.");
+        return false;
+      }
+      projectRevisionRef.current =
+        result.revision ?? projectRevisionRef.current;
+      setProjectName(normalized);
+      setRenderMessage("De ontwerpnaam is opgeslagen.");
+      return true;
+    },
+    [project.id, projectName, save]
+  );
 
   useEffect(() => {
     if (
@@ -458,7 +501,7 @@ export function StudioEditorWorkspace({
           </Button>
           <div>
             <span>Studio</span>
-            <h1>{project.name}</h1>
+            <h1>{projectName}</h1>
           </div>
         </div>
         <div className={styles.editorHeaderActions}>
@@ -722,6 +765,8 @@ export function StudioEditorWorkspace({
         assets={assets}
         canEdit={permissions.canEdit}
         dispatch={dispatch}
+        onRename={renameProject}
+        projectName={projectName}
         requestRender={requestRender}
         state={state}
       />
@@ -2333,15 +2378,29 @@ function MobileQuickEdit({
   assets,
   canEdit,
   dispatch,
+  onRename,
+  projectName,
   requestRender,
   state
 }: {
   assets: StudioMediaAsset[];
   canEdit: boolean;
   dispatch: (action: StudioEditorAction) => void;
+  onRename: (name: string) => Promise<boolean>;
+  projectName: string;
   requestRender: () => void;
   state: StudioEditorState;
 }) {
+  const [draftName, setDraftName] = useState(projectName);
+  const [renamePending, setRenamePending] = useState(false);
+  const [renameMessage, setRenameMessage] = useState<string | null>(null);
+  useEffect(() => setDraftName(projectName), [projectName]);
+  const backgroundColor =
+    state.document.artboard.background.kind === "solid"
+      ? state.document.artboard.background.color
+      : state.document.artboard.background.kind === "linear-gradient"
+        ? state.document.artboard.background.from
+        : "#FAFAF7";
   return (
     <section className={styles.mobileQuickEdit}>
       <div className={styles.mobilePreview}>
@@ -2359,6 +2418,72 @@ function MobileQuickEdit({
         <h2>Snel bewerken</h2>
         <p>Pas tekst en beeldslots aan. Gebruik desktop voor vrije positionering.</p>
       </div>
+      <article className={styles.mobileElementCard}>
+        <div>
+          <Type aria-hidden="true" />
+          <span>
+            <strong>Ontwerpnaam</strong>
+            <small>Zichtbaar in Studio en Media</small>
+          </span>
+        </div>
+        <label>
+          <span className="sr-only">Ontwerpnaam</span>
+          <input
+            disabled={!canEdit || renamePending}
+            maxLength={120}
+            minLength={2}
+            onChange={(event) => setDraftName(event.target.value)}
+            value={draftName}
+          />
+        </label>
+        <Button
+          disabled={
+            !canEdit ||
+            renamePending ||
+            draftName.trim() === projectName
+          }
+          onClick={() => {
+            setRenamePending(true);
+            setRenameMessage(null);
+            void onRename(draftName).then((saved) => {
+              setRenamePending(false);
+              setRenameMessage(
+                saved
+                  ? "Naam opgeslagen."
+                  : "Naam niet opgeslagen; je inhoud blijft bewaard."
+              );
+            });
+          }}
+          size="sm"
+          variant="secondary"
+        >
+          {renamePending ? "Opslaan…" : "Naam opslaan"}
+        </Button>
+        {renameMessage ? <small role="status">{renameMessage}</small> : null}
+      </article>
+      <article className={styles.mobileElementCard}>
+        <div>
+          <Square aria-hidden="true" />
+          <span>
+            <strong>Canvasachtergrond</strong>
+            <small>Eenvoudige kleur voor snelle aanpassing</small>
+          </span>
+        </div>
+        <label>
+          <span className="sr-only">Canvasachtergrondkleur</span>
+          <input
+            disabled={!canEdit}
+            onChange={(event) =>
+              dispatch({
+                background: { color: event.target.value, kind: "solid" },
+                type: "document/background"
+              })
+            }
+            type="color"
+            value={backgroundColor}
+          />
+        </label>
+      </article>
       {state.document.elements
         .filter(
           (element) =>
@@ -2825,7 +2950,12 @@ function SaveIndicator({ saveState }: { saveState: StudioEditorState["saveState"
     saving: "Opslaan…"
   }[saveState];
   return (
-    <span className={styles.saveIndicator} data-state={saveState}>
+    <span
+      aria-live="polite"
+      className={styles.saveIndicator}
+      data-state={saveState}
+      role="status"
+    >
       <i />
       {label}
     </span>

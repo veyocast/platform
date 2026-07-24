@@ -38,6 +38,7 @@ export type StudioActionResult = {
   ok: boolean;
   outcome?: string;
   projectId?: string;
+  projectRevision?: number;
   revision?: number;
   status?: string;
 };
@@ -239,7 +240,12 @@ export async function saveStudioDraftAction(input: {
   }
   revalidatePath(`/dashboard/studio/${projectId}`);
   revalidatePath("/dashboard/studio");
-  return { ok: true, outcome, revision };
+  return {
+    ok: true,
+    outcome,
+    projectRevision: resultInteger(data, "projectRevision") ?? undefined,
+    revision
+  };
 }
 
 export async function mutateStudioProjectAction(
