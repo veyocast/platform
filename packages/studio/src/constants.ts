@@ -23,12 +23,12 @@ export type StudioFormatId = (typeof studioFormats)[number]["id"];
 
 export const studioFonts = [
   {
-    family: "Inter",
+    family: "Inter Variable",
     label: "Inter",
     weights: [400, 500, 600, 700, 800]
   },
   {
-    family: "Inter Tight",
+    family: "Inter Tight Variable",
     label: "Inter Tight",
     weights: [500, 600, 700, 800]
   }

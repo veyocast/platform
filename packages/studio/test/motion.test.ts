@@ -16,7 +16,7 @@ const element: StudioElement = {
   locked: false,
   zIndex: 0,
   text: "Wedstrijddag",
-  fontFamily: "Inter Tight",
+  fontFamily: "Inter Tight Variable",
   fontWeight: 800,
   fontSize: 96,
   lineHeight: 1,
