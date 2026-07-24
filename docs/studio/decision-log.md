@@ -15,13 +15,19 @@
    preview en worker gebruikt. FFmpeg blijft de encoder.
 6. **Mobiel:** overzicht, templategebruik, contentvelden, preview en renderstatus;
    geen verkleinde desktopcanvas-editor.
+7. **Fonts:** V1 gebruikt uitsluitend de lokaal gebundelde Inter Variable-fonts.
+   Externe fonts en runtime-fetches zijn niet toegestaan.
+8. **Huisstijl:** een tenantbeheerder beheert één optionele brandkit met
+   tenant-eigen ready logoasset en kleuren. Toepassen maakt een deterministische
+   documentkopie; het systemtemplate blijft immutable.
+9. **Herstel:** iedere tiende save maakt een checkpoint. Herstellen maakt een
+   nieuwe revisie en gebruikt dezelfde optimistic-concurrencygrens.
 
 ## Invloedrijke keuzes voor de eindrapportage
 
-- Definitieve fontset en distributielicenties.
 - Eventuele toekomstige veilige, expliciete mediareplacement-versies.
-- Eventuele organisatiebrede brandkit- of systeemtemplatebeheerroute.
 - Horizontale workerschaal en renderquota voor brede productie-uitrol.
+- Production-SLO en toegelaten documentcomplexiteit na benchmarks.
 
 Deze keuzes blokkeren de eerste veilige versie niet en worden niet stilzwijgend
 als commerciële of operationele toezegging geïmplementeerd.

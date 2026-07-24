@@ -210,12 +210,31 @@ snelheid van Resvg/Sharp-frameproductie.
 | Deterministische Resvg/Sharp sRGB PNG | bewezen in media-workertest |
 | MP4 parser/validator en faststartdetectie | bewezen met technische fixtures |
 | RPC/state-machine, poster, cancel, lease en retry | bewezen in worker- en RLS-tests |
-| 1920×1080/H.264/30 fps/yuv420p/geen audio contract | bewezen als validatoracceptatie; container-smoke hierboven nog per image uitvoeren |
-| Echte FFmpeg-run op Codex-host | niet uitgevoerd: host had geen `ffmpeg` op `PATH` |
-| Echte FFmpeg-run in staging workerimage | open releasegate |
-| 1080×1920 containercodec-smoke | open releasegate |
-| 5/10/15/30 seconden productionbenchmark | open |
+| Actuele production Docker-target bouwen | bewezen met `infra/production/Dockerfile --target media-worker` |
+| 1920×1080, 5 s, H.264/30 fps/yuv420p/faststart/geen audio | bewezen in lokaal gebouwde productionimage; encode en validatie 7,473 s |
+| 1080×1920, 5 s, H.264/30 fps/yuv420p/faststart/geen audio | bewezen in lokaal gebouwde productionimage; encode en validatie 7,711 s |
+| Echte FFmpeg-run in staging workerimage | open releasegate; exacte gepromote digest nog niet gedeployd |
+| 10/15/30 seconden productionbenchmark en complexe documenten | open releasegate |
 | Fysieke clientmatrix | open; zie [operations.md](operations.md) |
 
-Claim geen productionrender-SLO of brede devicecompatibiliteit voordat de open
-releasegates en hardwarematrix met de exacte productionimage zijn vastgelegd.
+Uitgevoerde lokale commando's:
+
+```bash
+docker build --target media-worker -f infra/production/Dockerfile \
+  -t veyocast-studio-worker-smoke:local .
+
+docker run --rm \
+  -e STUDIO_SMOKE_DURATION_SECONDS=5 \
+  veyocast-studio-worker-smoke:local \
+  pnpm --filter @veyocast/media-worker worker:studio-smoke
+
+docker run --rm \
+  -e STUDIO_SMOKE_DURATION_SECONDS=5 \
+  -e STUDIO_SMOKE_FORMAT=portrait-hd \
+  veyocast-studio-worker-smoke:local \
+  pnpm --filter @veyocast/media-worker worker:studio-smoke
+```
+
+Claim geen productionrender-SLO of brede devicecompatibiliteit voordat de
+stagingjob, complexe benchmarks en hardwarematrix met de exacte
+productionimage zijn vastgelegd.

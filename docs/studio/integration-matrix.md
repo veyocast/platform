@@ -30,7 +30,8 @@
 
 1. Control valideert een document met het gedeelde schema.
 2. Een servercommand controleert capability, tenantstatus en revisienummer.
-3. De server bewaart de draft en een immutable revisiesnapshot.
+3. De server bewaart de draft; iedere tiende save maakt een immutable
+   checkpoint. Render en herstel maken altijd een immutable revisie.
 4. Export maakt atomair een job, bronrevisie en gereserveerd media-item.
 5. De worker claimt de job, resolveert uitsluitend tenant-eigen assets, rendert
    PNG of 30 fps H.264/yuv420p-MP4 en uploadt varianten.

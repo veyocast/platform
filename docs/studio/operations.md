@@ -75,7 +75,8 @@ Sharp maakt sRGB PNG/RGBA; FFmpeg ontvangt frames via een shell-vrije rawvideo
 pipe. De volledige framevolgorde wordt niet in geheugen of op schijf opgebouwd.
 
 Zie [render-validation.md](render-validation.md) voor de controlecommando's,
-bewezen unitgrenzen en nog vereiste container-smoke.
+bewezen unitgrenzen, de lokale production-image-smoke en de nog vereiste
+staging- en hardwarevalidatie.
 
 ## Productieprofiel en capaciteit
 
