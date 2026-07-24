@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import { LegalHeader, MarketingFooter } from "./site-chrome";
-
 type LegalPageProps = {
   children: ReactNode;
   description: string;
@@ -18,13 +16,9 @@ export function LegalPage({
   updated
 }: LegalPageProps) {
   return (
-    <>
-      <a className="skip-link" href="#legal-content">
-        Naar de inhoud
-      </a>
-      <LegalHeader />
-      <main className="legal-page" id="legal-content" tabIndex={-1}>
-        <header className="legal-hero">
+    <main className="legal-page" id="main-content" tabIndex={-1}>
+      <header className="legal-hero">
+        <div className="marketing-container">
           <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
           <p className="legal-hero__description">{description}</p>
@@ -33,10 +27,9 @@ export function LegalPage({
               Laatst bijgewerkt: <time dateTime="2026-07-23">{updated}</time>
             </p>
           ) : null}
-        </header>
-        <div className="legal-content">{children}</div>
-      </main>
-      <MarketingFooter />
-    </>
+        </div>
+      </header>
+      <div className="legal-content">{children}</div>
+    </main>
   );
 }

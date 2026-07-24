@@ -82,6 +82,7 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 | S35 | todo | tbd | tbd | billing en entitlements | billing schema, Mollie adapter, Control, tests | db reset/RLS + webhook/reconciliation E2E | Start alleen na pilot en product/commercieel besluit. |
 | S36 | todo | tbd | tbd | optioneel advertentienetwerk | ads/revenue schema/domain/UI/player/tests | db reset/RLS + fraud/accounting/privacy | Mag NO-GO eindigen; geen mutable runtime ads of misleidende viewsclaim. |
 | S37 | todo | tbd | tbd | gecontroleerde researchhorizon | decision docs en geïsoleerde prototypes | per track gedefinieerd | Geen productiefeature zonder afzonderlijke GO en roadmapopname. |
+| S38 | review | veyocast/s38-marketing-pixelperfect | repo-agent | pixelperfect marketingwebsite en Nederlandse SEO | Marketing shell/home/routes/contentregister, formulieren, metadata, tests en evidence | marketing lint/typecheck/test/build + a11y/E2E + 1440/1024/768/430/390 visual QA + Lighthouse | Zwarte/oranje/off-white marketingrichting, volledige canonroutematrix, echte productcaptures, veilige claims en productiegebonden indexatie zijn geleverd. Testimonials, klantlogo’s, providerdetails, definitieve prijzen, deliveryprovider, venuefotografie en 1200×630 social master blijven expliciete goedkeuringsbesluiten. |
 
 ## Statuswaarden
 

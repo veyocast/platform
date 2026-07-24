@@ -10,9 +10,15 @@ test("keeps the documented local demo pilot traceable across product planes", as
 }) => {
   await page.goto(marketingURL);
 
-  await expect(page.getByRole("heading", { exact: true, name: "VeyoCast" })).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Van organisatie naar spelend scherm." })
+    page.getByRole("heading", {
+      exact: true,
+      level: 1,
+      name: "Breng jouw club tot leven op ieder scherm."
+    })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Van idee naar ieder scherm, zonder gedoe." })
   ).toBeVisible();
 
   await page.goto("/login");

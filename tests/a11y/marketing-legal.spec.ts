@@ -15,7 +15,7 @@ for (const legalPage of [
   test(`${legalPage.heading} exposes accessible Dutch landmarks`, async ({ page }) => {
     await page.goto(`${marketingURL}${legalPage.path}`);
 
-    await expect(page.locator("html")).toHaveAttribute("lang", "nl");
+    await expect(page.locator("html")).toHaveAttribute("lang", /^nl/);
     await expect(page.getByRole("banner")).toBeVisible();
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.getByRole("heading", {
