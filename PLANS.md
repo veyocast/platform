@@ -81,6 +81,7 @@ tests en exitcriteria staan in
 | S35 | Billing | Mollie, reconciliation en scherm-entitlements zonder offline blackout |
 | S36 | Advertentienetwerk | Optionele deterministische ads, proof en revenue share na legal/product GO |
 | S37 | Researchhorizon | Begrensde go/no-go discovery voor AI, wrappers, LAN relay en latere opties |
+| S38 | Pixelperfect marketing en SEO | Volledige Nederlandse routematrix, premium responsive homepage, veilige claims, crawlbare SEO-templates en visuele bewijsvoering |
 
 ### Programmagates
 
