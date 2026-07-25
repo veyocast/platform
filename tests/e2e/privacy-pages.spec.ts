@@ -23,7 +23,7 @@ test("publishes a crawlable privacy policy without external tracking requests", 
     "content",
     /noindex/
   );
-  await expect(page.getByText("Laatst bijgewerkt: 23 juli 2026")).toBeVisible();
+  await expect(page.getByText("Laatst bijgewerkt: 24 juli 2026")).toBeVisible();
   await expect(page.getByRole("link", { name: "privacy@veyocast.nl" }).first())
     .toHaveAttribute("href", "mailto:privacy@veyocast.nl");
   await expect(page.getByRole("link", { name: "Data verwijderen" }).first())
