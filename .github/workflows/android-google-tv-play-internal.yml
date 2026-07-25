@@ -171,6 +171,7 @@ jobs:
           target: android-tv
           arch: x86
           profile: tv_1080p
+          disk-size: 2G
           disable-animations: true
           emulator-options: >-
             -no-window
