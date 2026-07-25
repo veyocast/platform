@@ -10,6 +10,8 @@ export const capabilities = [
   "tenant.overview.read",
   "tenant.media.read",
   "tenant.media.write",
+  "tenant.product.read",
+  "tenant.product.write",
   "tenant.studio.read",
   "tenant.studio.create",
   "tenant.studio.edit_own",
@@ -39,6 +41,7 @@ export type Capability = (typeof capabilities)[number];
 export const tenantReadCapabilities = [
   "tenant.overview.read",
   "tenant.media.read",
+  "tenant.product.read",
   "tenant.studio.read",
   "tenant.playlist.read",
   "tenant.release.read",
@@ -49,6 +52,7 @@ export const tenantReadCapabilities = [
 
 export const tenantWriteCapabilities = [
   "tenant.media.write",
+  "tenant.product.write",
   "tenant.playlist.write"
 ] as const satisfies readonly Capability[];
 

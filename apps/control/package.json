@@ -22,6 +22,7 @@
     "@veyocast/config": "workspace:*",
     "@veyocast/contracts": "workspace:*",
     "@veyocast/domain": "workspace:*",
+    "@veyocast/integrations": "workspace:*",
     "@veyocast/observability": "workspace:*",
     "@veyocast/studio": "workspace:*",
     "@veyocast/ui": "workspace:*",
