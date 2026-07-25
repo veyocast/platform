@@ -32,7 +32,11 @@ const expectedEnvironmentNames = [
   "MEDIA_WORKER_LOCK_TIMEOUT_SECONDS",
   "MEDIA_WORKER_MAX_ATTEMPTS",
   "MEDIA_WORKER_POLL_INTERVAL_MS",
+  "MONITOR_CONTROL_URL",
+  "MONITOR_MARKETING_URL",
+  "MONITOR_PLAYER_URL",
   "PUBLISHER_SCHEDULE_POLL_INTERVAL_MS",
+  "SLACK_ALERT_WEBHOOK_URL",
   "SUPABASE_SERVICE_ROLE_KEY",
   "SUPABASE_URL",
   "VEYOCAST_ENVIRONMENT"
@@ -44,7 +48,13 @@ if (
   service.environment.DEPLOYMENT_SHA !== revision ||
   service.environment.VEYOCAST_ENVIRONMENT !== environment ||
   service.environment.MEDIA_WORKER_POLL_INTERVAL_MS !== "500" ||
-  service.environment.PUBLISHER_SCHEDULE_POLL_INTERVAL_MS !== "15000"
+  service.environment.PUBLISHER_SCHEDULE_POLL_INTERVAL_MS !== "15000" ||
+  service.environment.MONITOR_CONTROL_URL !==
+    `https://${environment === "staging" ? "staging-control" : "control"}.veyocast.nl/api/health` ||
+  service.environment.MONITOR_PLAYER_URL !==
+    `https://${environment === "staging" ? "staging-player" : "player"}.veyocast.nl/healthz` ||
+  service.environment.MONITOR_MARKETING_URL !==
+    (environment === "production" ? "https://veyocast.nl/api/health" : "")
 ) {
   throw new Error("De mediaworker gebruikt een ongeldige revision- of pollconfiguratie.");
 }
