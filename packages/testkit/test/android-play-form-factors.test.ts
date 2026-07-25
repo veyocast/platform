@@ -141,6 +141,7 @@ describe("one multi-form-factor Google Play app", () => {
     );
     expect(tvWorkflow).toContain("api-level: 34");
     expect(tvWorkflow).toContain("target: android-tv");
+    expect(tvWorkflow).toContain("disk-size: 2G");
     expect(tvWorkflow.indexOf("Preserve signed Google TV artifact")).toBeLessThan(
       tvWorkflow.indexOf("Publish to Google Play internal testing")
     );
