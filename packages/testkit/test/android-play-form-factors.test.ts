@@ -108,10 +108,14 @@ describe("one multi-form-factor Google Play app", () => {
   });
 
   it("reuses signing identity and isolates mobile and TV Play tracks", async () => {
-    const [generalWorkflow, tvWorkflow] = await Promise.all([
-      source(".github/workflows/android-tv-play-internal.yml"),
-      source(".github/workflows/android-google-tv-play-internal.yml")
-    ]);
+    const [generalWorkflow, tvWorkflow, deviceValidationScript] =
+      await Promise.all([
+        source(".github/workflows/android-tv-play-internal.yml"),
+        source(".github/workflows/android-google-tv-play-internal.yml"),
+        source(
+          "apps/android-tv/scripts/install-tv-bundle-and-validate-launcher.sh"
+        )
+      ]);
     const sharedSecrets = [
       "ANDROID_TV_UPLOAD_KEYSTORE_BASE64",
       "ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD",
@@ -136,11 +140,17 @@ describe("one multi-form-factor Google Play app", () => {
     expect(tvWorkflow).not.toMatch(/\n\s+tracks: (?:internal|production)\s*$/mu);
     expect(tvWorkflow).toContain(":tv:bundleProductionRelease");
     expect(tvWorkflow).toContain("scripts/validate-tv-bundle.sh");
-    expect(tvWorkflow).toContain(
-      "scripts/validate-tv-launcher-on-device.sh"
-    );
     expect(tvWorkflow).toContain("api-level: 34");
     expect(tvWorkflow).toContain("target: android-tv");
+    expect(tvWorkflow).toContain(
+      "script: bash apps/android-tv/scripts/install-tv-bundle-and-validate-launcher.sh"
+    );
+    expect(deviceValidationScript).toContain(
+      '"${script_dir}/validate-tv-launcher-on-device.sh"'
+    );
+    expect(deviceValidationScript).toContain(
+      'java -jar "${BUNDLETOOL_PATH}" install-apks'
+    );
     expect(tvWorkflow).toContain(
       "Reclaim runner space for the Android TV userdata partition"
     );

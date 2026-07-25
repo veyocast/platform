@@ -200,26 +200,7 @@ jobs:
             -noaudio
             -no-boot-anim
             -camera-back none
-          script: |
-            cd apps/android-tv
-            evidence_dir="${RUNNER_TEMP}/tv-launcher-evidence"
-            store_password_file="${RUNNER_TEMP}/store-password.txt"
-            key_password_file="${RUNNER_TEMP}/key-password.txt"
-            install -d -m 0755 "${evidence_dir}"
-            umask 077
-            printf '%s' "${ANDROID_SIGNING_STORE_PASSWORD}" > "${store_password_file}"
-            printf '%s' "${ANDROID_SIGNING_KEY_PASSWORD}" > "${key_password_file}"
-            java -jar "${BUNDLETOOL_PATH}" build-apks \
-              --bundle="tv/build/outputs/bundle/productionRelease/tv-production-release.aab" \
-              --output="${evidence_dir}/tv-production-release.apks" \
-              --ks="${ANDROID_SIGNING_STORE_FILE}" \
-              --ks-pass="file:${store_password_file}" \
-              --ks-key-alias="${ANDROID_SIGNING_KEY_ALIAS}" \
-              --key-pass="file:${key_password_file}"
-            rm -f "${store_password_file}" "${key_password_file}"
-            java -jar "${BUNDLETOOL_PATH}" install-apks \
-              --apks="${evidence_dir}/tv-production-release.apks"
-            scripts/validate-tv-launcher-on-device.sh "${evidence_dir}"
+          script: bash apps/android-tv/scripts/install-tv-bundle-and-validate-launcher.sh
 
       - name: Preserve signed Google TV artifact
         if: always()
