@@ -59,6 +59,7 @@ export CONTROL_BIND_PORT=23000
 export CONTROL_HOST=control.veyocast.nl
 export MARKETING_BIND_PORT=23002
 export MARKETING_HOST=veyocast.nl
+export MONITOR_MARKETING_URL=https://veyocast.nl/api/health
 export PLAYER_BIND_PORT=23001
 export PLAYER_HOST=player.veyocast.nl
 

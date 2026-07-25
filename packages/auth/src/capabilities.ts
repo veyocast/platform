@@ -7,9 +7,15 @@ export const capabilities = [
   "platform.user.manage",
   "platform.audit.read",
   "platform.system.read",
+  "platform.ticket.read",
+  "platform.ticket.write",
+  "platform.ticket.sensitive",
+  "platform.ticket.admin",
   "tenant.overview.read",
   "tenant.media.read",
   "tenant.media.write",
+  "tenant.product.read",
+  "tenant.product.write",
   "tenant.studio.read",
   "tenant.studio.create",
   "tenant.studio.edit_own",
@@ -31,7 +37,9 @@ export const capabilities = [
   "tenant.settings.read",
   "tenant.settings.manage",
   "tenant.audit.read",
-  "tenant.support.export"
+  "tenant.support.export",
+  "tenant.ticket.read",
+  "tenant.ticket.write"
 ] as const;
 
 export type Capability = (typeof capabilities)[number];
@@ -39,17 +47,21 @@ export type Capability = (typeof capabilities)[number];
 export const tenantReadCapabilities = [
   "tenant.overview.read",
   "tenant.media.read",
+  "tenant.product.read",
   "tenant.studio.read",
   "tenant.playlist.read",
   "tenant.release.read",
   "tenant.screen.read",
   "tenant.team.read",
-  "tenant.settings.read"
+  "tenant.settings.read",
+  "tenant.ticket.read"
 ] as const satisfies readonly Capability[];
 
 export const tenantWriteCapabilities = [
   "tenant.media.write",
-  "tenant.playlist.write"
+  "tenant.product.write",
+  "tenant.playlist.write",
+  "tenant.ticket.write"
 ] as const satisfies readonly Capability[];
 
 const tenantPublishCapabilities = [
@@ -88,11 +100,18 @@ export const roleCapabilityMatrix: Readonly<
     "platform.tenant.read",
     "platform.audit.read",
     "platform.system.read",
+    "platform.ticket.read",
+    "platform.ticket.write",
+    "platform.ticket.sensitive",
     ...tenantReadCapabilities,
     "tenant.audit.read",
     "tenant.support.export"
   ],
-  platform_viewer: ["platform.tenant.read", "platform.system.read"],
+  platform_viewer: [
+    "platform.tenant.read",
+    "platform.system.read",
+    "platform.ticket.read"
+  ],
   tenant_owner: [
     ...tenantReadCapabilities,
     ...tenantWriteCapabilities,
@@ -114,7 +133,7 @@ export const roleCapabilityMatrix: Readonly<
     ...tenantWriteCapabilities,
     ...tenantStudioAuthorCapabilities
   ],
-  tenant_viewer: tenantReadCapabilities
+  tenant_viewer: [...tenantReadCapabilities, "tenant.ticket.write"]
 };
 
 export type CapabilityDecision = Readonly<{

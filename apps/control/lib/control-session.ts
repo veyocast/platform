@@ -152,7 +152,7 @@ export async function getControlSession(): Promise<ControlSession | null> {
     ),
     activeMembership?.role
   );
-  const capabilities = activeMembership?.id
+  const baseCapabilities = activeMembership?.id
     ? await loadEffectiveCapabilities(
         supabase,
         activeMembership.id,
@@ -160,10 +160,24 @@ export async function getControlSession(): Promise<ControlSession | null> {
         Boolean(activeMembership.customRoleId)
       )
     : getCapabilitiesForRoles(roles);
+  const platformTicketResult = await supabase.rpc(
+    "get_my_platform_ticket_capabilities_v1"
+  );
+  const allowedCapabilities = new Set<Capability>(capabilities);
+  const platformTicketCapabilities = Array.isArray(platformTicketResult.data)
+    ? platformTicketResult.data.filter(
+        (value): value is Capability =>
+          typeof value === "string" &&
+          allowedCapabilities.has(value as Capability)
+      )
+    : [];
+  const effectiveCapabilities = [
+    ...new Set([...baseCapabilities, ...platformTicketCapabilities])
+  ];
 
   return {
     assuranceLevel: normalizeAssuranceLevel(assuranceResult.data.currentLevel),
-    capabilities,
+    capabilities: effectiveCapabilities,
     email: user.email ?? "",
     isLive: true,
     nextAssuranceLevel: normalizeAssuranceLevel(assuranceResult.data.nextLevel),

@@ -492,11 +492,15 @@ create_candidate_env() {
   write_env_value "${candidate_env_file}" NEXT_SERVER_ACTIONS_ENCRYPTION_KEY "${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}"
   write_env_value "${candidate_env_file}" PLAYER_BIND_PORT "${PLAYER_BIND_PORT}"
   write_env_value "${candidate_env_file}" PLAYER_HOST "${PLAYER_HOST}"
+  if [[ -n ${SLACK_ALERT_WEBHOOK_URL:-} ]]; then
+    write_env_value "${candidate_env_file}" SLACK_ALERT_WEBHOOK_URL "${SLACK_ALERT_WEBHOOK_URL}"
+  fi
   write_env_value "${candidate_env_file}" SUPABASE_SERVICE_ROLE_KEY "${SUPABASE_SERVICE_ROLE_KEY}"
   write_env_value "${candidate_env_file}" VEYOCAST_ENVIRONMENT "${environment}"
   if [[ ${environment} == production ]]; then
     write_env_value "${candidate_env_file}" MARKETING_BIND_PORT "${MARKETING_BIND_PORT}"
     write_env_value "${candidate_env_file}" MARKETING_HOST "${MARKETING_HOST}"
+    write_env_value "${candidate_env_file}" MONITOR_MARKETING_URL "https://${MARKETING_HOST}/api/health"
   fi
 }
 

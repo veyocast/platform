@@ -91,6 +91,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "platform"
   },
   {
+    description: "Tickets, afdelingen en toewijzing",
+    href: "/platform/support",
+    label: "Supportdesk",
+    requiredCapability: "platform.ticket.read",
+    section: "organization",
+    scope: "platform"
+  },
+  {
     description: "Dagelijkse operatie en aandachtspunten",
     href: "/dashboard",
     label: "Overzicht",
@@ -139,6 +147,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "tenant"
   },
   {
+    description: "Twelve-producten en toekomstige gegevensbronnen",
+    href: "/dashboard/integrations",
+    label: "Integraties",
+    requiredCapability: "tenant.product.read",
+    section: "publisher",
+    scope: "tenant"
+  },
+  {
     description: "Content per scherm en tijdstip plannen",
     href: "/dashboard/planning",
     label: "Planning",
@@ -183,6 +199,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/settings",
     label: "Instellingen",
     requiredCapability: "tenant.settings.read",
+    section: "management",
+    scope: "tenant"
+  },
+  {
+    description: "Vragen, bijlagen en antwoorden volgen",
+    href: "/dashboard/support",
+    label: "Support",
+    requiredCapability: "tenant.ticket.read",
     section: "management",
     scope: "tenant"
   }

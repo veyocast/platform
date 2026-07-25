@@ -11,6 +11,10 @@ weigert onverwachte native libraries en publiceert uitsluitend naar track
 
 De workflow werkt bewust alleen vanaf `main`, gebruikt GitHub Environment
 `android-tv-internal` en kan nooit stilzwijgend naar production publiceren.
+De Android TV-bundle hoort bij dezelfde Play-app, maar wordt door de aparte
+workflow uitsluitend naar form-factortrack `tv:qa` gestuurd. Zie
+[`PLAY_STORE_GOOGLE_TV.md`](PLAY_STORE_GOOGLE_TV.md). Maak daarvoor geen tweede
+app, package of upload key.
 
 ## Eenmalige Play Console-bootstrap
 
@@ -80,7 +84,10 @@ voor het serviceaccount aan.
 5. Controleer na upload in Play Console de nieuwe versie onder Internal testing.
 6. Installeer via de opt-inlink en Google Play op echte telefoon-, tablet- en TV-devices.
 
-De version code wordt monotonic afgeleid van UTC-uur, workflow-run en poging.
+De algemene version code wordt monotonic afgeleid als
+`100000000 + run_number × 100 + run_attempt` en blijft daardoor altijd in de
+gereserveerde algemene range `100000000–199999999`. Android TV gebruikt
+afzonderlijk `200000000–299999999`, zodat uploads nooit kunnen botsen.
 De version name krijgt de vorm `1.0.0-internal.<run>.<attempt>`.
 
 ## Store- en reviewmateriaal

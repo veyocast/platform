@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "VeyoCastAndroidTV"
 include(":app")
+include(":tv")

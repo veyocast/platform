@@ -238,7 +238,7 @@ function customRoleDetails(formData: FormData) {
     formData.getAll("capabilities").map((value) => String(value))
   );
   const capabilities = selected.has("content.write")
-    ? ["tenant.media.write", "tenant.playlist.write"]
+    ? ["tenant.media.write", "tenant.product.write", "tenant.playlist.write"]
     : [];
   if (selected.has("studio.author")) {
     capabilities.push(

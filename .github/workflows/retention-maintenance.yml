@@ -1,0 +1,34 @@
+name: Retention maintenance
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: veyocast-production-retention
+  cancel-in-progress: false
+
+jobs:
+  retention:
+    environment: production
+    runs-on: [self-hosted, linux, x64, veyocast, production]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+          version: 11.5.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Run approved retention policies
+        env:
+          RETENTION_ENFORCEMENT_ENABLED: ${{ vars.RETENTION_ENFORCEMENT_ENABLED }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+        run: node scripts/run-retention.mjs

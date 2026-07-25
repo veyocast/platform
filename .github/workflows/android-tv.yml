@@ -8,6 +8,7 @@ on:
       - "assets/brand/**"
       - ".github/workflows/android-tv.yml"
       - ".github/workflows/android-tv-play-internal.yml"
+      - ".github/workflows/android-google-tv-play-internal.yml"
   push:
     branches:
       - main
@@ -17,6 +18,7 @@ on:
       - "assets/brand/**"
       - ".github/workflows/android-tv.yml"
       - ".github/workflows/android-tv-play-internal.yml"
+      - ".github/workflows/android-google-tv-play-internal.yml"
   workflow_dispatch:
 
 permissions:
@@ -70,12 +72,17 @@ jobs:
       - name: Build production debug APK
         run: ./gradlew assembleProductionDebug --no-daemon
 
+      - name: Build Google TV debug APKs
+        run: ./gradlew :tv:assembleStagingDebug :tv:assembleProductionDebug --no-daemon
+
       - name: Upload Android Player debug APKs
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: veyocast-android-tv-debug-apks
+          name: veyocast-android-debug-apks
           path: |
             apps/android-tv/app/build/outputs/apk/staging/debug/*.apk
             apps/android-tv/app/build/outputs/apk/production/debug/*.apk
+            apps/android-tv/tv/build/outputs/apk/staging/debug/*.apk
+            apps/android-tv/tv/build/outputs/apk/production/debug/*.apk
           if-no-files-found: error
           retention-days: 14

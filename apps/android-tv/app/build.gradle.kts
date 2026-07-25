@@ -13,11 +13,13 @@ val signingProperties = Properties().apply {
 
 val configuredVersionCode = providers.gradleProperty("veyocastVersionCode")
     .orElse(providers.environmentVariable("VEYCAST_VERSION_CODE"))
-    .orElse("1")
+    .orElse("100000001")
     .get()
     .toIntOrNull()
-    ?.takeIf { it in 1..2_100_000_000 }
-    ?: throw GradleException("veyocastVersionCode moet tussen 1 en 2100000000 liggen")
+    ?.takeIf { it in 100_000_000..199_999_999 }
+    ?: throw GradleException(
+        "veyocastVersionCode moet voor de algemene Play-release tussen 100000000 en 199999999 liggen"
+    )
 val configuredVersionName = providers.gradleProperty("veyocastVersionName")
     .orElse(providers.environmentVariable("VEYCAST_VERSION_NAME"))
     .orElse("1.0.0")

@@ -134,10 +134,12 @@ test("mobile navigation never mixes tenant and platform destinations", async ({
 });
 
 test("all Control overview routes remain inside the viewport", async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
 
   const routes = [
     "/dashboard",
+    "/dashboard/integrations",
+    "/dashboard/integrations/twelve-products",
     "/dashboard/media",
     "/dashboard/planning",
     "/dashboard/playlists",
@@ -169,6 +171,52 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
         `${route} blijft binnen ${width}px`
       ).toBe(true);
     }
+  }
+});
+
+test("Integraties exposes Twelve Producten as a responsive secondary journey", async ({
+  page
+}) => {
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({ height: 900, width });
+    await page.goto("/dashboard/integrations");
+
+    await expect(
+      page.getByRole("heading", { exact: true, level: 1, name: "Integraties" })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Twelve Producten" })
+    ).toBeVisible();
+    await expect(page.getByText("Gecontroleerde Excel-snapshot")).toBeVisible();
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth
+      )
+    ).toBe(true);
+
+    await page.getByRole("link", { name: "Twelve Producten openen" }).click();
+    await expect(page).toHaveURL(
+      /\/dashboard\/integrations\/twelve-products$/
+    );
+    await expect(
+      page.getByRole("heading", {
+        exact: true,
+        level: 1,
+        name: "Twelve Producten"
+      })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Nog geen producten" })
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth
+      )
+    ).toBe(true);
   }
 });
 
