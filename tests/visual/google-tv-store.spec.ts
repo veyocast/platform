@@ -23,7 +23,7 @@ test.beforeAll(async () => {
   await mkdir(outputDirectory, { recursive: true });
 });
 
-test("legt afzonderlijke Google TV-winkelbeelden vast", async ({
+test("legt Android TV-winkelbeelden voor de bestaande Play-app vast", async ({
   context,
   page
 }) => {

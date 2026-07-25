@@ -6,6 +6,11 @@ ondersteunt Android TV en Google TV. De shell bevat geen playlist-, pairing-,
 planning-, cache- of playbackengine. `apps/player` blijft de enige bron van
 waarheid.
 
+Google Play bevat één app: `VeyoCast Player` met package
+`nl.veyocast.player`. De algemene en TV-gerichte AAB zijn twee
+form-factorartifacts van diezelfde app, gebruiken dezelfde uploadkey en worden
+naar afzonderlijke Play-tracks gestuurd. Er bestaat geen tweede TV-app.
+
 De bestaande mapnaam `apps/android-tv/` blijft voorlopig behouden om
 artifactpaden, Play-signing en bestaande CI-integraties niet onnodig te breken.
 De productscope is nadrukkelijk niet TV-only.
@@ -72,6 +77,15 @@ binnen vijf minuten pauzeert automatisch herstel tot een bewuste retry.
 | `staging` | `https://staging-player.veyocast.nl` | `nl.veyocast.player.staging` |
 | `production` | `https://player.veyocast.nl` | `nl.veyocast.player` |
 
+Voor productie zijn er twee modules:
+
+| Module | Apparaten | Launcher | Play versionCode |
+|---|---|---|---|
+| `:app` | telefoon, tablet en algemeen Android | normaal + optionele Leanback | `100000000–199999999` |
+| `:tv` | Google TV en Android TV | alleen Leanback, landscape | `200000000–299999999` |
+
+Beide productionmodules gebruiken application ID `nl.veyocast.player`.
+
 Debugbuilds krijgen daarnaast de suffix `.debug`, zodat debug en release naast
 elkaar kunnen staan. Een productionbuild accepteert nooit een vrije Player-URL.
 
@@ -108,6 +122,8 @@ Voer commando's uit vanuit `apps/android-tv/`:
 ./gradlew test
 ./gradlew assembleStagingDebug
 ./gradlew assembleProductionDebug
+./gradlew :tv:assembleStagingDebug
+./gradlew :tv:assembleProductionDebug
 ```
 
 Debug-APK's verschijnen standaard hier:
@@ -115,6 +131,8 @@ Debug-APK's verschijnen standaard hier:
 ```text
 app/build/outputs/apk/staging/debug/app-staging-debug.apk
 app/build/outputs/apk/production/debug/app-production-debug.apk
+tv/build/outputs/apk/staging/debug/tv-staging-debug.apk
+tv/build/outputs/apk/production/debug/tv-production-debug.apk
 ```
 
 Releasebuilds en een Android App Bundle:
@@ -122,6 +140,7 @@ Releasebuilds en een Android App Bundle:
 ```bash
 ./gradlew assembleProductionRelease
 ./gradlew bundleProductionRelease
+./gradlew :tv:bundleProductionRelease
 ```
 
 Zonder lokale signingconfiguratie is de release-APK unsigned. Debugbuilds zijn
@@ -132,8 +151,12 @@ buildbestand te wijzigen:
 
 ```bash
 ./gradlew bundleProductionRelease \
-  -PveyocastVersionCode=2 \
+  -PveyocastVersionCode=100000001 \
   -PveyocastVersionName=1.0.1
+
+./gradlew :tv:bundleProductionRelease \
+  -PveyocastTvVersionCode=200000001 \
+  -PveyocastTvVersionName=1.0.1
 ```
 
 ## Installatie via ADB
@@ -237,8 +260,11 @@ keyPassword=...
 `keystore.properties`, `*.jks`, `*.keystore` en `local.properties` zijn
 genegeerd. Commit nooit signingmateriaal. Voor CI-release signing horen de
 vier waarden als `ANDROID_SIGNING_*` environmentvariabelen te worden aangeboden.
-De build weigert gedeeltelijke signingconfiguratie en de Play-workflow verwijdert
-het tijdelijke keystorebestand altijd.
+De algemene en TV-module lezen exact dezelfde waarden. Beide Play-workflows
+gebruiken daarom de bestaande `ANDROID_TV_UPLOAD_*` secrets uit Environment
+`android-tv-internal`; er is geen TV-specifieke uploadkey. De build weigert
+gedeeltelijke signingconfiguratie en de Play-workflow verwijdert het tijdelijke
+keystorebestand altijd.
 
 ## Branding
 
@@ -265,6 +291,13 @@ credentials; er staat geen serviceaccount-key in GitHub. Exacte bootstrap,
 secrets, variabelen en acceptatie staan in
 [`PLAY_STORE_INTERNAL_TEST.md`](PLAY_STORE_INTERNAL_TEST.md).
 
+`.github/workflows/android-google-tv-play-internal.yml` gebruikt dezelfde
+Environment, uploadkey, signingidentiteit en Workload Identity. Deze workflow
+bouwt alleen `:tv:bundleProductionRelease` en publiceert uitsluitend naar de
+officiële Android TV internal track-ID `tv:qa`. De workflow bevat geen
+production- of mobiele tracknaam. Console-inrichting en TV-acceptatie staan in
+[`PLAY_STORE_GOOGLE_TV.md`](PLAY_STORE_GOOGLE_TV.md).
+
 ## Beperkingen
 
 - Bootstart en keep-on-top zijn niet gegarandeerd zonder managed kiosk/device owner.
@@ -281,7 +314,8 @@ secrets, variabelen en acceptatie staan in
 ## Mogelijke vervolgtaken
 
 1. fysieke acceptatietests op telefoon, tablet en Chromecast met Google TV;
-2. Play Console-bootstrap, upload key en internal testerlist activeren;
+2. Android TV als form factor binnen de bestaande Play-app activeren en de
+   dedicated internal testerlist koppelen;
 3. echte onbewerkte Android- en TV-screenshots en definitieve store-assets vastleggen;
 4. bestaande VeyoCast-healthtelemetrie uitbreiden met native shellversie;
 5. managed kiosk/device-ownerprofiel voor zakelijke uitrol;

@@ -8,6 +8,7 @@ on:
       - "assets/brand/**"
       - ".github/workflows/android-tv.yml"
       - ".github/workflows/android-tv-play-internal.yml"
+      - ".github/workflows/android-google-tv-play-internal.yml"
   push:
     branches:
       - main
@@ -17,6 +18,7 @@ on:
       - "assets/brand/**"
       - ".github/workflows/android-tv.yml"
       - ".github/workflows/android-tv-play-internal.yml"
+      - ".github/workflows/android-google-tv-play-internal.yml"
   workflow_dispatch:
 
 permissions:

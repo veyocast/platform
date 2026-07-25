@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, StatusPill } from "@veyocast/ui";
 
 import { updateProduct } from "./actions";
-import type { ProductView } from "./data";
 import styles from "./products.module.css";
+import type { ProductView } from "./types";
 
 const allColumns = [
   ["category", "Categorie"],

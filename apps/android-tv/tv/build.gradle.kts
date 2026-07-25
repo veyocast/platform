@@ -13,11 +13,13 @@ val signingProperties = Properties().apply {
 
 val configuredVersionCode = providers.gradleProperty("veyocastTvVersionCode")
     .orElse(providers.environmentVariable("VEYCAST_TV_VERSION_CODE"))
-    .orElse("1")
+    .orElse("200000001")
     .get()
     .toIntOrNull()
-    ?.takeIf { it in 1..2_100_000_000 }
-    ?: throw GradleException("veyocastTvVersionCode moet tussen 1 en 2100000000 liggen")
+    ?.takeIf { it in 200_000_000..299_999_999 }
+    ?: throw GradleException(
+        "veyocastTvVersionCode moet voor de Android TV Play-release tussen 200000000 en 299999999 liggen"
+    )
 val configuredVersionName = providers.gradleProperty("veyocastTvVersionName")
     .orElse(providers.environmentVariable("VEYCAST_TV_VERSION_NAME"))
     .orElse("1.0.0")
@@ -30,10 +32,10 @@ fun signingValue(environmentName: String, propertyName: String): String? =
     providers.environmentVariable(environmentName).orNull?.trim()?.takeIf(String::isNotEmpty)
         ?: signingProperties.getProperty(propertyName)?.trim()?.takeIf(String::isNotEmpty)
 
-val releaseStoreFilePath = signingValue("ANDROID_GOOGLE_TV_SIGNING_STORE_FILE", "tvStoreFile")
-val releaseStorePassword = signingValue("ANDROID_GOOGLE_TV_SIGNING_STORE_PASSWORD", "tvStorePassword")
-val releaseKeyAlias = signingValue("ANDROID_GOOGLE_TV_SIGNING_KEY_ALIAS", "tvKeyAlias")
-val releaseKeyPassword = signingValue("ANDROID_GOOGLE_TV_SIGNING_KEY_PASSWORD", "tvKeyPassword")
+val releaseStoreFilePath = signingValue("ANDROID_SIGNING_STORE_FILE", "storeFile")
+val releaseStorePassword = signingValue("ANDROID_SIGNING_STORE_PASSWORD", "storePassword")
+val releaseKeyAlias = signingValue("ANDROID_SIGNING_KEY_ALIAS", "keyAlias")
+val releaseKeyPassword = signingValue("ANDROID_SIGNING_KEY_PASSWORD", "keyPassword")
 val releaseSigningValues = listOf(
     releaseStoreFilePath,
     releaseStorePassword,
@@ -44,7 +46,7 @@ val releaseSigningConfigured = releaseSigningValues.all { it != null }
 
 if (!releaseSigningConfigured && releaseSigningValues.any { it != null }) {
     throw GradleException(
-        "Google TV release signing is gedeeltelijk geconfigureerd; vul storebestand, beide wachtwoorden en alias in"
+        "Android TV release signing is gedeeltelijk geconfigureerd; vul storebestand, beide wachtwoorden en alias in"
     )
 }
 
@@ -57,7 +59,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "nl.veyocast.player.tv"
+        applicationId = "nl.veyocast.player"
         minSdk = 26
         targetSdk = 37
         versionCode = configuredVersionCode
@@ -72,7 +74,7 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
-            resValue("string", "app_name", "VeyoCast Player TV Staging")
+            resValue("string", "app_name", "VeyoCast Player Staging (TV)")
             buildConfigField("String", "ENVIRONMENT", "\"staging\"")
             buildConfigField("String", "PLAYER_URL", "\"https://staging-player.veyocast.nl\"")
             buildConfigField("boolean", "BOOT_START_DEFAULT", "false")
@@ -80,7 +82,7 @@ android {
         }
         create("production") {
             dimension = "environment"
-            resValue("string", "app_name", "VeyoCast Player voor TV")
+            resValue("string", "app_name", "VeyoCast Player")
             buildConfigField("String", "ENVIRONMENT", "\"production\"")
             buildConfigField("String", "PLAYER_URL", "\"https://player.veyocast.nl\"")
             buildConfigField("boolean", "BOOT_START_DEFAULT", "false")

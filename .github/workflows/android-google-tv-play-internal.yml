@@ -19,7 +19,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: android-google-tv-internal
+    environment: android-tv-internal
 
     defaults:
       run:
@@ -49,12 +49,12 @@ jobs:
 
       - name: Validate protected release secrets
         env:
-          KEYSTORE_BASE64: ${{ secrets.ANDROID_GOOGLE_TV_UPLOAD_KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_GOOGLE_TV_UPLOAD_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_GOOGLE_TV_UPLOAD_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_GOOGLE_TV_UPLOAD_KEY_PASSWORD }}
-          WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GOOGLE_TV_WORKLOAD_IDENTITY_PROVIDER }}
-          PLAY_SERVICE_ACCOUNT: ${{ vars.GOOGLE_TV_PLAY_SERVICE_ACCOUNT }}
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_TV_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEY_PASSWORD }}
+          WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          PLAY_SERVICE_ACCOUNT: ${{ vars.GOOGLE_PLAY_SERVICE_ACCOUNT }}
         run: |
           missing=0
           for variable in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
@@ -73,23 +73,30 @@ jobs:
             exit 1
           fi
           umask 077
-          printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/veyocast-google-tv-upload.jks"
-          test -s "${RUNNER_TEMP}/veyocast-google-tv-upload.jks"
+          printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/veyocast-upload.jks"
+          test -s "${RUNNER_TEMP}/veyocast-upload.jks"
 
       - name: Authenticate to Google Cloud without a stored service-account key
         id: google_auth
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
-          workload_identity_provider: ${{ vars.GOOGLE_TV_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GOOGLE_TV_PLAY_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GOOGLE_PLAY_SERVICE_ACCOUNT }}
 
       - name: Derive monotonic Play version
         run: |
-          epoch_hour=$(($(date -u +%s) / 3600))
-          release_slot=$(((GITHUB_RUN_NUMBER * 10 + GITHUB_RUN_ATTEMPT) % 100))
-          version_code=$((epoch_hour * 100 + release_slot))
-          if (( version_code < 1 || version_code > 2100000000 )); then
-            echo "::error::Afgeleide Google TV versionCode valt buiten het toegestane bereik"
+          if (( GITHUB_RUN_NUMBER < 1 || GITHUB_RUN_NUMBER > 999999 )); then
+            echo "::error::Workflow-runnummer past niet meer in de gereserveerde Android TV versionCode-range"
+            exit 1
+          fi
+          if (( GITHUB_RUN_ATTEMPT < 1 || GITHUB_RUN_ATTEMPT > 99 )); then
+            echo "::error::Workflow-poging moet tussen 1 en 99 liggen om versionCode-botsingen te voorkomen"
+            exit 1
+          fi
+          release_sequence=$((GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT))
+          version_code=$((200000000 + release_sequence))
+          if (( version_code < 200000000 || version_code > 299999999 )); then
+            echo "::error::Afgeleide Android TV versionCode valt buiten 200000000–299999999"
             exit 1
           fi
           echo "VEYCAST_TV_VERSION_CODE=${version_code}" >> "${GITHUB_ENV}"
@@ -97,10 +104,10 @@ jobs:
 
       - name: Lint, test and build signed Google TV bundle
         env:
-          ANDROID_GOOGLE_TV_SIGNING_STORE_FILE: ${{ runner.temp }}/veyocast-google-tv-upload.jks
-          ANDROID_GOOGLE_TV_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_GOOGLE_TV_UPLOAD_KEYSTORE_PASSWORD }}
-          ANDROID_GOOGLE_TV_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_GOOGLE_TV_UPLOAD_KEY_ALIAS }}
-          ANDROID_GOOGLE_TV_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_GOOGLE_TV_UPLOAD_KEY_PASSWORD }}
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/veyocast-upload.jks
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_TV_UPLOAD_KEY_ALIAS }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEY_PASSWORD }}
         run: >-
           ./gradlew
           :tv:lintProductionRelease
@@ -111,11 +118,27 @@ jobs:
       - name: Verify signed bundle and TV manifest policy
         run: |
           bundle="tv/build/outputs/bundle/productionRelease/tv-production-release.aab"
+          source_manifest="tv/src/main/AndroidManifest.xml"
           test -s "${bundle}"
           jarsigner -verify -verbose -certs "${bundle}" > "${RUNNER_TEMP}/jarsigner-google-tv-report.txt"
           grep -Fq 'jar verified.' "${RUNNER_TEMP}/jarsigner-google-tv-report.txt"
           unzip -p "${bundle}" base/manifest/AndroidManifest.xml > "${RUNNER_TEMP}/google-tv-manifest.bin"
+          strings "${RUNNER_TEMP}/google-tv-manifest.bin" | grep -Fq 'nl.veyocast.player'
+          forbidden_id="nl.veyocast.player"".""tv"
+          if strings "${RUNNER_TEMP}/google-tv-manifest.bin" | grep -Fq "${forbidden_id}"; then
+            echo "::error::De TV-bundle gebruikt een verboden tweede applicationId"
+            exit 1
+          fi
           strings "${RUNNER_TEMP}/google-tv-manifest.bin" | grep -Fq 'android.software.leanback'
+          grep -Fq 'android:name="android.software.leanback"' "${source_manifest}"
+          grep -Fq 'android:required="true"' "${source_manifest}"
+          grep -Fq 'android:name="android.hardware.touchscreen"' "${source_manifest}"
+          grep -Fq 'android:required="false"' "${source_manifest}"
+          grep -Fq 'android.intent.category.LEANBACK_LAUNCHER' "${source_manifest}"
+          if grep -Fq 'android.intent.category.LAUNCHER' "${source_manifest}"; then
+            echo "::error::De TV-bundle mag geen algemene mobiele launcher bevatten"
+            exit 1
+          fi
           if unzip -Z1 "${bundle}" | grep -Eq '^base/lib/.+\.so$'; then
             echo "::error::Native libraries vereisen een afzonderlijke ABI- en 16-KB-page-sizevalidatie"
             exit 1
@@ -135,14 +158,14 @@ jobs:
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
         with:
           serviceAccountJson: ${{ steps.google_auth.outputs.credentials_file_path }}
-          packageName: nl.veyocast.player.tv
+          packageName: nl.veyocast.player
           releaseFiles: ${{ github.workspace }}/apps/android-tv/tv/build/outputs/bundle/productionRelease/tv-production-release.aab
-          tracks: internal
+          tracks: tv:qa
           status: completed
-          releaseName: VeyoCast Player voor TV ${{ env.VEYCAST_TV_VERSION_NAME }}
+          releaseName: VeyoCast Player Android TV ${{ env.VEYCAST_TV_VERSION_NAME }}
           whatsNewDirectory: ${{ github.workspace }}/apps/android-tv/play-tv/release-notes
           mappingFile: ${{ github.workspace }}/apps/android-tv/tv/build/outputs/mapping/productionRelease/mapping.txt
 
       - name: Remove temporary signing material
         if: always()
-        run: rm -f "${RUNNER_TEMP}/veyocast-google-tv-upload.jks"
+        run: rm -f "${RUNNER_TEMP}/veyocast-upload.jks"

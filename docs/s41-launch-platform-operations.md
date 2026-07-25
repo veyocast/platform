@@ -2,8 +2,9 @@
 
 Deze sprint levert vijf los toetsbare delen:
 
-1. een afzonderlijke Google TV Play-app (`nl.veyocast.player.tv`) die dezelfde
-   native WebView-shell en webplayer gebruikt als de algemene Android-app;
+1. één multi-form-factor Google Play-app (`nl.veyocast.player`) met een
+   algemene Android-bundle en een TV-only bundle op de dedicated Android
+   TV-track, beide op dezelfde native WebView-shell en webplayer;
 2. een professionele, begrensde XLSX-productimport met bewerkbare catalogus en
    immutable Studio-shortcodes;
 3. live serviceprobes met Slack-alarm en herstelmelding;
@@ -62,5 +63,6 @@ alleen als compatibele redirects bestaan.
   oefen daarna een volledige mediarestore vanuit een locked back-upbucket.
 - Koppel een e-mailprovider wanneer ticketnotificaties ook buiten Control moeten
   worden bezorgd.
-- Draai Android TV Gradle/Play-signing CI en maak vóór publieke listing echte
+- Activeer Android TV als form factor in de bestaande VeyoCast Player-listing,
+  draai de gedeelde-signing CI en maak vóór publieke distributie echte
   screenshots op fysieke Google TV-hardware.
