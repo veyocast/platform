@@ -102,6 +102,16 @@ dist/lg-webos/latest.json
 dist/lg-webos/release-notes.json
 ```
 
+De huidige productie-IPK wordt door Marketing statisch aangeboden op:
+
+```text
+https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.0_all.ipk
+```
+
+De bytegelijke checksum, `latest.json` en release notes staan onder dezelfde
+`/ipk/`-map. Publiceer nooit handmatig een los IPK zonder de
+`publish:marketing`-validatie.
+
 ## Versies en release
 
 Verhoog voor iedere wijziging aan de lokale wrapper de semantische versie in:

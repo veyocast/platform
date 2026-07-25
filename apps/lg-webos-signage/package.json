@@ -7,8 +7,10 @@
     "build:ipk": "node scripts/build-ipk.mjs",
     "inspect": "node scripts/inspect-ipk.mjs",
     "lint": "node scripts/validate-app.mjs",
+    "publish:marketing": "node scripts/publish-marketing.mjs",
     "test": "node --test scripts/*.test.mjs",
     "typecheck": "node scripts/validate-app.mjs",
-    "validate": "node scripts/validate-app.mjs"
+    "validate": "node scripts/validate-app.mjs",
+    "validate:publication": "node scripts/validate-publication.mjs"
   }
 }
