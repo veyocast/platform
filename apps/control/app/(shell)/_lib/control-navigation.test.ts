@@ -21,12 +21,14 @@ describe("control navigation", () => {
       "/dashboard/playlists",
       "/dashboard/studio",
       "/dashboard/media",
+      "/dashboard/products",
       "/dashboard/planning",
       "/dashboard/templates",
       "/dashboard/auditlog",
       "/dashboard/releases",
       "/dashboard/team",
-      "/dashboard/settings"
+      "/dashboard/settings",
+      "/dashboard/support"
     ]);
   });
 
@@ -53,12 +55,14 @@ describe("control navigation", () => {
       "/dashboard/playlists",
       "/dashboard/studio",
       "/dashboard/media",
+      "/dashboard/products",
       "/dashboard/planning",
       "/dashboard/templates",
       "/dashboard/auditlog",
       "/dashboard/releases",
       "/dashboard/team",
-      "/dashboard/settings"
+      "/dashboard/settings",
+      "/dashboard/support"
     ]);
     expect(groups.flatMap((group) => group.items).some((item) => item.href === "/dashboard/pilot")).toBe(false);
   });
