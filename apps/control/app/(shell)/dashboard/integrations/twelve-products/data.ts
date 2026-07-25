@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 
 export type ProductView = Readonly<{
   active: boolean;

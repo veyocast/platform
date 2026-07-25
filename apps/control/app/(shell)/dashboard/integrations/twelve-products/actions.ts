@@ -8,8 +8,8 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireTenantCapability } from "../../../../lib/control-session";
-import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { requireTenantCapability } from "../../../../../lib/control-session";
+import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import { loadProductImport } from "./data";
 
 export async function remapProductImport(formData: FormData) {
@@ -35,8 +35,8 @@ export async function remapProductImport(formData: FormData) {
     console.error("Productimport opnieuw mappen mislukt", error);
     failImport(importId, "mapping");
   }
-  revalidatePath(`/dashboard/products/imports/${importId}`);
-  redirect(`/dashboard/products/imports/${importId}?succes=mapping`);
+  revalidatePath(`/dashboard/integrations/twelve-products/imports/${importId}`);
+  redirect(`/dashboard/integrations/twelve-products/imports/${importId}?succes=mapping`);
 }
 
 export async function applyProductImport(formData: FormData) {
@@ -51,8 +51,8 @@ export async function applyProductImport(formData: FormData) {
     console.error("Productimport toepassen mislukt", error);
     failImport(importId, error.code === "23514" ? "niet-gereed" : "toepassen");
   }
-  revalidatePath("/dashboard/products");
-  redirect("/dashboard/products?succes=geimporteerd");
+  revalidatePath("/dashboard/integrations/twelve-products");
+  redirect("/dashboard/integrations/twelve-products?succes=geimporteerd");
 }
 
 export async function updateProduct(formData: FormData) {
@@ -75,42 +75,42 @@ export async function updateProduct(formData: FormData) {
   });
   if (error || outcome(data) !== "updated") {
     const code = outcome(data) === "conflict" ? "conflict" : "opslaan";
-    redirect(`/dashboard/products?fout=${code}#product-${productId}`);
+    redirect(`/dashboard/integrations/twelve-products?fout=${code}#product-${productId}`);
   }
-  revalidatePath("/dashboard/products");
-  redirect(`/dashboard/products?succes=product#product-${productId}`);
+  revalidatePath("/dashboard/integrations/twelve-products");
+  redirect(`/dashboard/integrations/twelve-products?succes=product#product-${productId}`);
 }
 
 async function productContext(capability: "tenant.product.write") {
   const session = await requireTenantCapability(capability);
   const supabase = await createControlSupabaseClient();
-  if (!session.isLive || !session.tenantId || !supabase) redirect("/dashboard/products?fout=configuratie");
+  if (!session.isLive || !session.tenantId || !supabase) redirect("/dashboard/integrations/twelve-products?fout=configuratie");
   return { session: { ...session, tenantId: session.tenantId }, supabase };
 }
 
 function uuidValue(formData: FormData, name: string) {
   const value = String(formData.get(name) ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(value)) redirect("/dashboard/products?fout=invoer");
+  if (!/^[0-9a-f-]{36}$/i.test(value)) redirect("/dashboard/integrations/twelve-products?fout=invoer");
   return value;
 }
 
 function integerValue(formData: FormData, name: string, min: number, max: number) {
   const value = Number(formData.get(name));
   if (!Number.isSafeInteger(value) || value < min || value > max) {
-    redirect("/dashboard/products?fout=invoer");
+    redirect("/dashboard/integrations/twelve-products?fout=invoer");
   }
   return value;
 }
 
 function requiredTextValue(formData: FormData, name: string, max: number) {
   const value = String(formData.get(name) ?? "").trim();
-  if (!value || value.length > max) redirect("/dashboard/products?fout=invoer");
+  if (!value || value.length > max) redirect("/dashboard/integrations/twelve-products?fout=invoer");
   return value;
 }
 
 function textValue(formData: FormData, name: string, max: number) {
   const value = String(formData.get(name) ?? "").trim();
-  if (value.length > max) redirect("/dashboard/products?fout=invoer");
+  if (value.length > max) redirect("/dashboard/integrations/twelve-products?fout=invoer");
   return value || null;
 }
 
@@ -119,7 +119,7 @@ function currencyCents(value: FormDataEntryValue | null) {
   if (!text) return null;
   const number = Number(text.replace(/[€\s]/g, "").replace(",", "."));
   if (!Number.isFinite(number) || number < 0 || number > 1_000_000) {
-    redirect("/dashboard/products?fout=invoer");
+    redirect("/dashboard/integrations/twelve-products?fout=invoer");
   }
   return Math.round(number * 100);
 }
@@ -129,7 +129,7 @@ function decimalValue(value: FormDataEntryValue | null, min: number, max: number
   if (!text) return null;
   const number = Number(text.replace(",", "."));
   if (!Number.isFinite(number) || number < min || number > max) {
-    redirect("/dashboard/products?fout=invoer");
+    redirect("/dashboard/integrations/twelve-products?fout=invoer");
   }
   return number;
 }
@@ -141,5 +141,5 @@ function outcome(value: unknown) {
 }
 
 function failImport(importId: string, code: string): never {
-  redirect(`/dashboard/products/imports/${importId}?fout=${encodeURIComponent(code)}`);
+  redirect(`/dashboard/integrations/twelve-products/imports/${importId}?fout=${encodeURIComponent(code)}`);
 }

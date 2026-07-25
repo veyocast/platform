@@ -30,6 +30,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("link", { name: /Overzicht/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Integraties/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Releases/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Schermen/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
@@ -60,6 +61,25 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page.getByText("Demomodus", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Nieuwe playlist" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
+
+  await follow(
+    page,
+    () => nav.getByRole("link", { name: /Integraties/ }),
+    /\/dashboard\/integrations$/
+  );
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Integraties" })
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Twelve Producten" })).toBeVisible();
+  await follow(
+    page,
+    () => page.getByRole("link", { name: "Twelve Producten openen" }),
+    /\/dashboard\/integrations\/twelve-products$/
+  );
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Twelve Producten" })
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Nog geen producten" })).toBeVisible();
 
   await follow(
     page,

@@ -35,7 +35,7 @@ export function ProductImportDialog({ disabled = false }: { disabled?: boolean }
         return;
       }
       formRef.current?.reset();
-      router.push(`/dashboard/products/imports/${body.importId}`);
+      router.push(`/dashboard/integrations/twelve-products/imports/${body.importId}`);
       router.refresh();
     } catch {
       setMessage(

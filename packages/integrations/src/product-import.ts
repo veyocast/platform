@@ -152,13 +152,15 @@ export function guessProductColumnMapping(
       const normalized = normalizeHeader(header);
       const exactTarget = exactTwelveHeaderTargets[normalized];
       if (exactTarget) {
-        if (!exactTarget.startsWith("custom:")) {
-          if (claimed.has(exactTarget)) {
-            return [header, `custom:${slugify(header)}` as const];
-          }
-          claimed.add(exactTarget);
+        if (exactTarget.startsWith("custom:")) {
+          return [header, exactTarget];
         }
-        return [header, exactTarget];
+        const standardTarget = exactTarget as ProductStandardField;
+        if (claimed.has(standardTarget)) {
+            return [header, `custom:${slugify(header)}` as const];
+        }
+        claimed.add(standardTarget);
+        return [header, standardTarget];
       }
       const target = productStandardFields.find((field) =>
         !claimed.has(field) && headerAliases[field].some((alias) =>
