@@ -79,6 +79,7 @@ describe("one multi-form-factor Google Play app", () => {
       /android:name="android\.hardware\.touchscreen"\s+android:required="false"/u
     );
     expect(manifest).toContain("android.intent.category.LEANBACK_LAUNCHER");
+    expect(manifest).toContain("android.intent.category.DEFAULT");
     expect(manifest).toContain(
       'android:name="nl.veyocast.player.MainActivity"'
     );

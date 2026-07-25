@@ -36,6 +36,8 @@ detecteren.
 
 - de gedeelde hoofd- en testbronnen zijn als `kotlin.srcDirs` geregistreerd;
 - de TV-manifest noemt de launcherklasse volledig gekwalificeerd;
+- dezelfde launcherfilter bevat `DEFAULT`, zodat Android 14 ook de
+  package-beperkte impliciete `am start` resolveert;
 - de launcher is expliciet `enabled=true` en `exported=true`;
 - de algemene Android-module en haar manifest zijn niet gewijzigd;
 - application ID blijft uitsluitend `nl.veyocast.player`.

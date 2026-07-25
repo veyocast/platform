@@ -69,6 +69,10 @@ for tag in ("activity", "activity-alias"):
                 "android.intent.action.MAIN" in actions
                 and "android.intent.category.LEANBACK_LAUNCHER" in categories
             ):
+                if "android.intent.category.DEFAULT" not in categories:
+                    raise SystemExit(
+                        "Leanback-launcher mist DEFAULT voor een impliciete Activity Manager-start"
+                    )
                 leanback_components.append(component)
 
 if len(leanback_components) != 1:
