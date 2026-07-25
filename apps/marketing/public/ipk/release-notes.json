@@ -1,13 +1,34 @@
 {
   "appId": "nl.veyocast.player.webos",
-  "buildCommitSha": "9d91d6c7513dc6f27fc699573caf9f3838e84c71",
-  "buildTimestamp": "2026-07-25T18:32:10.519Z",
+  "buildCommitSha": "77c10bad3e8117132b9e952d37e57741223d25c2",
+  "buildTimestamp": "2026-07-25T23:15:28.098Z",
   "hardwareValidationStatus": "NEEDS_PHYSICAL_LG_TEST",
   "notes": [
-    "Eerste VeyoCast LG webOS Signage thin-wrapperrelease.",
-    "Laadt uitsluitend https://player.veyocast.nl/lg.",
+    "Productie-wrapper 1.0.1 toont altijd eerst een lokale opstart- en diagnosepagina.",
+    "Afzonderlijke volledig lokale smoketest is meegeleverd om packaging en autostart te isoleren.",
+    "Beide IPK's zijn gebouwd met de gepinde officiële @webos-tools/cli 3.2.5.",
+    "De repositorypatch vervangt uitsluitend upstream placeholdermetadata en normaliseert tar-eigenaar en bestandsrechten.",
+    "De productie-wrapper laadt uitsluitend https://player.veyocast.nl/lg.",
     "Pairing, offline media, releases, playback en telemetry blijven in de hosted Player.",
-    "SCAP en IDCAP worden niet aangeroepen zonder officiële modeldocumentatie en fysieke validatie."
+    "Fysieke validatie op LG 43UL3J-EP, webOS 6.0, firmware 03.24.90 blijft verplicht."
   ],
-  "version": "1.0.0"
+  "production": {
+    "appId": "nl.veyocast.player.webos",
+    "byteSize": 14872,
+    "downloadUrl": "https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.1_all.ipk",
+    "ipkFilename": "nl.veyocast.player.webos_1.0.1_all.ipk",
+    "sha256": "d93de0ad7b21677dded2bada3b60ead06a2429762b9fc17e46b868157e7dfaf1",
+    "title": "VeyoCast Player",
+    "version": "1.0.1"
+  },
+  "smoketest": {
+    "appId": "nl.veyocast.player.webos.smoketest",
+    "byteSize": 8876,
+    "downloadUrl": "https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk",
+    "ipkFilename": "nl.veyocast.player.webos.smoketest_1.0.1_all.ipk",
+    "sha256": "75da4a2fca72194a3b29d82e607237010259c34182b729064cda55ab9283b41d",
+    "title": "VeyoCast LG Test",
+    "version": "1.0.1"
+  },
+  "version": "1.0.1"
 }

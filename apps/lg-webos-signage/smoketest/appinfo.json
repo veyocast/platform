@@ -1,0 +1,10 @@
+{
+  "id": "nl.veyocast.player.webos.smoketest",
+  "version": "1.0.1",
+  "vendor": "DG Webservices",
+  "type": "web",
+  "main": "index.html",
+  "title": "VeyoCast LG Test",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png"
+}

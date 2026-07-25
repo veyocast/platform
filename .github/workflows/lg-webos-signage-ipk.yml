@@ -6,6 +6,7 @@ on:
       - ".github/workflows/lg-webos-signage-ipk.yml"
       - "apps/lg-webos-signage/**"
       - "apps/player/**"
+      - "patches/@webos-tools__cli@3.2.5.patch"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -16,6 +17,7 @@ on:
       - ".github/workflows/lg-webos-signage-ipk.yml"
       - "apps/lg-webos-signage/**"
       - "apps/player/**"
+      - "patches/@webos-tools__cli@3.2.5.patch"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -62,6 +64,11 @@ jobs:
       - name: Verify pinned Signage CLI
         run: |
           test "$(node -p "require('./node_modules/@webos-tools/cli/package.json').version")" = "3.2.5"
+          if grep -F 'webOS-Packager-Version: x.y.x' node_modules/@webos-tools/cli/lib/package.js; then
+            echo "De gepatchte CLI bevat nog een placeholder voor de packagerversie." >&2
+            exit 1
+          fi
+          grep -F 'webOS-Packager-Version: " + cliPackage.version' node_modules/@webos-tools/cli/lib/package.js
           pnpm exec ares-config --profile signage
           pnpm exec ares-package --version
 
@@ -70,6 +77,7 @@ jobs:
           pnpm --filter @veyocast/lg-webos-signage validate
           pnpm --filter @veyocast/lg-webos-signage test
           pnpm --filter @veyocast/lg-webos-signage validate:publication
+          pnpm --filter @veyocast/lg-webos-signage validate:hosted
 
       - name: Validate hosted LG route
         run: |
@@ -117,7 +125,8 @@ jobs:
         with:
           name: veyocast-lg-webos-signage-${{ github.run_number }}
           path: |
-            dist/lg-webos/nl.veyocast.player.webos_1.0.0_all.ipk
+            dist/lg-webos/nl.veyocast.player.webos_1.0.1_all.ipk
+            dist/lg-webos/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
             dist/lg-webos/checksums.sha256
             dist/lg-webos/latest.json
             dist/lg-webos/release-notes.json
@@ -140,7 +149,8 @@ jobs:
           fi
           base="${DISTRIBUTION_BASE_URL%/}/"
           for artifact in \
-            nl.veyocast.player.webos_1.0.0_all.ipk \
+            nl.veyocast.player.webos_1.0.1_all.ipk \
+            nl.veyocast.player.webos.smoketest_1.0.1_all.ipk \
             checksums.sha256 \
             latest.json \
             release-notes.json
@@ -154,3 +164,7 @@ jobs:
               --upload-file "dist/lg-webos/${artifact}" \
               "${base}${artifact}"
           done
+
+      - name: Verify immutable public downloads
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_https
+        run: pnpm --filter @veyocast/lg-webos-signage validate:downloads

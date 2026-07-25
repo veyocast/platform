@@ -1,117 +1,103 @@
-# VeyoCast Player voor LG webOS Signage
+# VeyoCast voor LG webOS Signage
 
-Dit project bouwt een klein, installeerbaar webOS Signage-IPK. Het bevat geen
-tweede playerimplementatie. De package levert alleen:
+Deze workspace bouwt twee zelfstandige webOS Signage-IPK's:
 
-- de webOS-appidentiteit `nl.veyocast.player.webos`;
-- een lokale fullscreen shell;
-- een lokale branded start- en foutweergave;
-- begrensde netwerkretry en reloadbescherming;
-- een streng begrensde bridge naar `https://player.veyocast.nl/lg`;
-- feature detection en een adaptergrens voor later gevalideerde SCAP/IDCAP;
-- bediening met standaard remote key-events en een lokaal beheer-/diagnosepaneel.
-
-Device identity, pairing, screen assignment, manifests, media, caching,
-release-switching, heartbeat, playback en playerrecovery blijven volledig in de
-hosted VeyoCast Player.
-
-## Vereisten
-
-- Node.js 24;
-- pnpm 11;
-- de workspace-installatie uit de repositoryroot;
-- `@webos-tools/cli` 3.2.5, exact gepind in het rootmanifest en de lockfile.
-
-De officiële CLI ondersteunt het `signage`-profiel vanaf CLI 3.2.0. Deze
-repository gebruikt 3.2.5 en voert vóór ieder pakket:
-
-```bash
-ares-config --profile signage
+```text
+nl.veyocast.player.webos_1.0.1_all.ipk
+nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
 ```
 
-uit.
+De productie-app is een dunne lokale shell rond
+`https://player.veyocast.nl/lg`. Pairing, releases, playback, IndexedDB, Cache
+Storage en last-known-good blijven in de bestaande hosted Player. De volledig
+lokale smoketest gebruikt geen netwerk, iframe of backend en is bedoeld om
+packageacceptatie, registratie, launch, JavaScript en remote-input afzonderlijk
+te bewijzen.
 
-## Valideren en bouwen
+## Officiële packaging
 
-Voer vanaf de repositoryroot uit:
+De build gebruikt uitsluitend de officiële LG/webOS-workflow:
+
+```text
+@webos-tools/cli 3.2.5
+ares-config --profile signage
+ares-package
+```
+
+CLI 3.2.5 schrijft upstream nog `webOS-Packager-Version: x.y.x` en neemt
+hostmetadata over. De pnpm-patch
+`patches/@webos-tools__cli@3.2.5.patch` corrigeert alleen die upstream
+placeholder, eigenaar/rechten en reproduceerbare timestamps. Er is geen eigen
+`ar`, `tar`, Debian- of IPK-builder.
+
+De inspectiegate eist:
+
+- `webOS-Packager-Version: 3.2.5`;
+- eigenaar `0/0`;
+- mappen `0755`;
+- bestanden `0644`;
+- exact toegestane runtimebestanden;
+- geen secrets, sourcemaps, developmenthosts of moderne niet-getranspilede
+  JavaScript-syntaxis.
+
+## Bouwen en controleren
+
+Vanaf de repositoryroot:
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm --filter @veyocast/lg-webos-signage validate
 pnpm --filter @veyocast/lg-webos-signage test
+pnpm --filter @veyocast/lg-webos-signage validate:hosted
 pnpm --filter @veyocast/lg-webos-signage build:ipk
+pnpm --filter @veyocast/lg-webos-signage inspect
+(cd dist/lg-webos && sha256sum --check checksums.sha256)
 ```
 
-De build gebruikt equivalent aan:
+De IPK's zijn byte-reproduceerbaar bij dezelfde Git-commit. `SOURCE_DATE_EPOCH`
+wordt automatisch uit de commitdatum afgeleid.
+
+Publiceer de bytegelijk gevalideerde set naar Marketing:
 
 ```bash
-ares-package -o dist/lg-webos apps/lg-webos-signage
-```
-
-met expliciete uitsluitingen voor bron-/buildbestanden. Daarna worden
-`ares-package --info` en `ares-package --info-detail` uitgevoerd en moet de
-metadata exact overeenkomen.
-
-Output:
-
-```text
-dist/lg-webos/nl.veyocast.player.webos_1.0.0_all.ipk
-dist/lg-webos/checksums.sha256
-dist/lg-webos/latest.json
-dist/lg-webos/release-notes.json
-```
-
-`LG_WEBOS_DISTRIBUTION_BASE_URL` mag tijdens een releasebuild op een expliciete
-HTTPS-map worden gezet. Zonder die waarde blijft `downloadUrl` in `latest.json`
-bewust `null`.
-
-De huidige productiepublicatie wordt als statisch Marketing-artifact onder
-`https://veyocast.nl/ipk/` geleverd. Bouw en kopieer deze bytegevalideerd met:
-
-```bash
-LG_WEBOS_DISTRIBUTION_BASE_URL=https://veyocast.nl/ipk/ \
-  pnpm --filter @veyocast/lg-webos-signage build:ipk
 pnpm --filter @veyocast/lg-webos-signage publish:marketing
+pnpm --filter @veyocast/lg-webos-signage validate:publication
 ```
 
-## Platform- en securitygrens
+Na deployment:
 
-De lokale app framet alleen `https://player.veyocast.nl/lg`. De `/lg`-route
-staat alleen een `file:`-ancestor toe, terwijl de lokale wrapper alleen berichten
-van de exacte productieorigin accepteert. Het frame:
+```bash
+pnpm --filter @veyocast/lg-webos-signage validate:downloads
+```
 
-- gebruikt geen extern script;
-- heeft geen toegang tot willekeurige top-level navigatie;
-- laadt geen ontwikkel- of staginghost;
-- bevat geen secret, devicewachtwoord of service-accountcredential;
-- gebruikt dezelfde remote HTTPS-origin voor Player localStorage, IndexedDB,
-  Cache Storage en service worker.
+## Productiestart en diagnose
 
-SCAP en IDCAP worden alleen gedetecteerd, niet aangeroepen. De adapter heeft
-expliciete grenzen voor lifecycle, remote input, netwerk, opslag, display,
-firmware/webOS-versie, apprestart en gecontroleerde reboot. Informatie die niet
-via de webstandaard bewezen kan worden blijft `null`; restart- en rebootverzoeken
-geven veilig `supported: false` terug. Concrete LG-methods, permissions,
-autostart en updates worden pas toegevoegd nadat partnerdocumentatie en echte
-hardware dat onderbouwen.
+De lokale productiepagina is direct zichtbaar en toont drie stappen: lokale
+app, netwerk en hosted Player. De iframe wordt pas vrijgegeven na
+`VEYOCAST_LG_PLAYER_READY`, protocol 1, pad `/lg`, vanuit exact
+`https://player.veyocast.nl`.
 
-## Remote input
+De wrapper heeft begrensde back-off en de volgende veilige foutcategorieën:
 
-De bridge herkent Enter/OK, BACK, de vier pijltjestoetsen en
-play/play-pause-events. BACK sluit playback niet direct, maar opent of sluit het
-lokale Playerbeheer. Tijdens playback schakelt Enter of play/pause de actieve
-video tussen afspelen en pauzeren. Pairing- en setupfocus blijft door de hosted
-Player beheerd.
+- geen netwerk;
+- DNS/host niet bereikbaar;
+- TLS-fout wanneer de engine dit signaal beschikbaar maakt;
+- hosted pagina niet geladen;
+- iframe geblokkeerd;
+- geen READY-bericht;
+- onverwachte message-origin;
+- JavaScript-fout.
 
-## Testen op hardware
+BACK opent lokaal Playerbeheer. Er worden geen pairingcodes, tokens, cookies,
+querystrings of media-URL's opgeslagen of getoond.
 
-Een lokaal gebouwd IPK is geen bewijs van algemene LG-ondersteuning. Gebruik:
+## Hardware
 
-- `docs/platforms/lg-webos-signage-ipk.md`;
-- `docs/platforms/lg-webos-signage-model-discovery-checklist.md`;
-- `docs/player/lg-physical-test-protocol.md`.
+Gebruik voor LG 43UL3J-EP, webOS 6.0, firmware 03.24.90 het exacte protocol:
 
-Device-installatiecommando's en SI Server-velden worden bewust niet gegokt.
-Exact model, firmware, Signage-versie, signingpolicy, install-/updategedrag,
-autostart en rollback moeten eerst op het doelapparaat en in de officiële
-partnerdocumentatie worden vastgesteld.
+[`docs/platforms/lg-webos-43ul3j-ep-recovery.md`](../../docs/platforms/lg-webos-43ul3j-ep-recovery.md)
+
+Autostart wordt op het scherm ingesteld met
+**Startmodus applicatie: Lokaal**. Er is geen onbewezen private LG-API of
+verzonnen `appinfo.json`-veld toegevoegd. Fysieke installatie, autostart,
+pairingbehoud en 24-uurs playback blijven hardwaregates.

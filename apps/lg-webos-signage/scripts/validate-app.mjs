@@ -11,7 +11,17 @@ export const expectedAppInfo = Object.freeze({
   title: "VeyoCast Player",
   type: "web",
   vendor: "DG Webservices",
-  version: "1.0.0"
+  version: "1.0.1"
+});
+export const expectedSmoketestAppInfo = Object.freeze({
+  icon: "icon.png",
+  id: "nl.veyocast.player.webos.smoketest",
+  largeIcon: "largeIcon.png",
+  main: "index.html",
+  title: "VeyoCast LG Test",
+  type: "web",
+  vendor: "DG Webservices",
+  version: "1.0.1"
 });
 
 export const allowedHttpsOrigins = Object.freeze([
@@ -21,6 +31,7 @@ export const expectedAppExcludes = Object.freeze([
   "README.md",
   "package.json",
   "scripts",
+  "smoketest",
   "[.]webosignore",
   "[.]turbo",
   "[.]map"
@@ -131,6 +142,16 @@ export async function validateApp(root = appRoot) {
   if (bootstrap && !bootstrap.includes('PLAYER_URL = PLAYER_ORIGIN + "/lg"')) {
     errors.push("bootstrap.js gebruikt niet de canonieke /lg-route");
   }
+  if (bootstrap && !bootstrap.includes('APP_VERSION = "1.0.1"')) {
+    errors.push("bootstrap.js gebruikt niet de releaseversie 1.0.1");
+  }
+
+  for (const filename of ["bootstrap.js", "platform-adapter.js"]) {
+    const runtimeSource = await readText(join(root, filename), errors);
+    if (runtimeSource) {
+      errors.push(...validateLegacyJavascript(runtimeSource, filename));
+    }
+  }
 
   const packageManifest = await readJson(
     join(repositoryRoot, "package.json"),
@@ -159,6 +180,93 @@ export async function validateApp(root = appRoot) {
     appInfo,
     files: payloadFiles.map((file) => relative(root, file)).sort()
   };
+}
+
+export async function validateSmoketest(
+  root = join(appRoot, "smoketest")
+) {
+  const errors = [];
+  const appInfo = await readJson(join(root, "appinfo.json"), errors);
+
+  if (appInfo) {
+    for (const [key, expectedValue] of Object.entries(
+      expectedSmoketestAppInfo
+    )) {
+      if (appInfo[key] !== expectedValue) {
+        errors.push(
+          `smoketest/appinfo.json.${key} moet ${JSON.stringify(expectedValue)} zijn`
+        );
+      }
+    }
+    const allowedKeys = new Set(Object.keys(expectedSmoketestAppInfo));
+    for (const key of Object.keys(appInfo)) {
+      if (!allowedKeys.has(key)) {
+        errors.push(`smoketest/appinfo.json bevat onverwacht veld ${key}`);
+      }
+    }
+  }
+
+  await assertFile(join(root, expectedSmoketestAppInfo.main), errors);
+  await validatePng(join(root, expectedSmoketestAppInfo.icon), 80, 80, errors);
+  await validatePng(
+    join(root, expectedSmoketestAppInfo.largeIcon),
+    130,
+    130,
+    errors
+  );
+  await validateLockedLogo(root, errors);
+
+  const indexHtml = await readText(join(root, "index.html"), errors);
+  if (indexHtml) {
+    if (/\bhttps?:\/\//iu.test(indexHtml)) {
+      errors.push("smoketest mag geen externe URL laden");
+    }
+    if (/<iframe\b/iu.test(indexHtml)) {
+      errors.push("smoketest mag geen iframe bevatten");
+    }
+    if (/<script[^>]+src=/iu.test(indexHtml)) {
+      errors.push("smoketest mag geen extern of apart script laden");
+    }
+    if (!indexHtml.includes("VeyoCast LG-test gestart")) {
+      errors.push("smoketest mist de zichtbare startbevestiging");
+    }
+    for (const requiredLabel of [
+      "App-versie",
+      "Datum/tijd",
+      "navigator.userAgent",
+      "Schermresolutie",
+      "navigator.onLine",
+      "document.visibilityState",
+      "Laatste afstandsbedieningsinput"
+    ]) {
+      if (!indexHtml.includes(requiredLabel)) {
+        errors.push(`smoketest mist veld ${requiredLabel}`);
+      }
+    }
+    errors.push(...validateLegacyJavascript(indexHtml, "smoketest/index.html"));
+  }
+
+  const files = (await listFiles(root))
+    .map((file) => relative(root, file))
+    .sort();
+  const expectedFiles = [
+    "appinfo.json",
+    "icon.png",
+    "index.html",
+    "largeIcon.png",
+    "veyocast-logo-inverse.svg"
+  ].sort();
+  if (JSON.stringify(files) !== JSON.stringify(expectedFiles)) {
+    errors.push(`smoketest-runtimebestanden wijken af: ${files.join(", ")}`);
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `LG webOS smoketest-validatie is mislukt:\n- ${errors.join("\n- ")}`
+    );
+  }
+
+  return { appInfo, files };
 }
 
 export function isSemanticVersion(value) {
@@ -204,6 +312,24 @@ export function validateExternalUrls(text, filename = "bestand") {
     }
     if (!allowedHttpsOrigins.includes(url.origin)) {
       errors.push(`${filename} bevat een domein buiten de allowlist: ${url.origin}`);
+    }
+  }
+  return errors;
+}
+
+export function validateLegacyJavascript(text, filename = "bestand") {
+  const errors = [];
+  const forbiddenSyntax = [
+    { label: "arrow function", pattern: /=>/u },
+    { label: "const-declaratie", pattern: /(^|[;{}\s])const\s+[A-Za-z_$]/u },
+    { label: "let-declaratie", pattern: /(^|[;{}\s])let\s+[A-Za-z_$]/u },
+    { label: "optional chaining", pattern: /\?\.(?:[A-Za-z_$]|\[)/u },
+    { label: "nullish coalescing", pattern: /\?\?/u },
+    { label: "template literal", pattern: /`/u }
+  ];
+  for (const syntax of forbiddenSyntax) {
+    if (syntax.pattern.test(text)) {
+      errors.push(`${filename} bevat niet-getranspilede ${syntax.label}`);
     }
   }
   return errors;
@@ -289,8 +415,9 @@ async function listFiles(root) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const result = await validateApp();
+    const smoketest = await validateSmoketest();
     process.stdout.write(
-      `LG webOS Signage-bronpakket is geldig (${result.files.length} bestanden).\n`
+      `LG webOS Signage-bronpakketten zijn geldig (${result.files.length} productiebronbestanden; ${smoketest.files.length} smoketestbestanden).\n`
     );
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : error}\n`);

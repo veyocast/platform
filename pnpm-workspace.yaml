@@ -8,3 +8,6 @@ allowBuilds:
   esbuild: true
   sharp: true
   ssh2: false
+
+patchedDependencies:
+  '@webos-tools/cli@3.2.5': patches/@webos-tools__cli@3.2.5.patch

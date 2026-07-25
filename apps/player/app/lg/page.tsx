@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { LgSignageBridge } from "../_components/lg-signage-bridge";
 import { PlayerRuntime } from "../_components/player-runtime";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   alternates: {
     canonical: "https://player.veyocast.nl/lg"

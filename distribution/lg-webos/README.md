@@ -7,7 +7,8 @@ vastgelegd.
 Publiceer steeds als één gecontroleerde set:
 
 ```text
-nl.veyocast.player.webos_1.0.0_all.ipk
+nl.veyocast.player.webos_1.0.1_all.ipk
+nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
 checksums.sha256
 latest.json
 release-notes.json

@@ -3,8 +3,11 @@ import { readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { inspectIpk } from "./inspect-ipk.mjs";
-import { expectedAppInfo } from "./validate-app.mjs";
+import {
+  inspectIpk,
+  ipkFilename,
+  packageSpecifications
+} from "./inspect-ipk.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, "../../..");
@@ -15,40 +18,55 @@ const publicationDirectory = join(
   "public",
   "ipk"
 );
-const ipkFilename = `${expectedAppInfo.id}_${expectedAppInfo.version}_all.ipk`;
-const ipkPath = join(publicationDirectory, ipkFilename);
-const expectedDownloadUrl = `https://veyocast.nl/ipk/${ipkFilename}`;
 const latest = JSON.parse(
   await readFile(join(publicationDirectory, "latest.json"), "utf8")
 );
-const digest = createHash("sha256")
-  .update(await readFile(ipkPath))
-  .digest("hex");
 const checksum = await readFile(
   join(publicationDirectory, "checksums.sha256"),
   "utf8"
 );
+const descriptors = [
+  {
+    appId: latest.appId,
+    downloadUrl: latest.downloadUrl,
+    filename: latest.ipkFilename,
+    sha256: latest.sha256,
+    version: latest.version
+  },
+  {
+    appId: latest.smoketest?.appId,
+    downloadUrl: latest.smoketest?.downloadUrl,
+    filename: latest.smoketest?.ipkFilename,
+    sha256: latest.smoketest?.sha256,
+    version: latest.smoketest?.version
+  }
+];
 
-if (latest.appId !== expectedAppInfo.id) {
-  throw new Error("De publieke release gebruikt een onverwachte app-ID");
-}
-if (latest.version !== expectedAppInfo.version) {
-  throw new Error("De publieke release gebruikt een onverwachte versie");
-}
-if (latest.ipkFilename !== ipkFilename) {
-  throw new Error("De publieke release verwijst naar een onverwachte IPK");
-}
-if (latest.downloadUrl !== expectedDownloadUrl) {
-  throw new Error(`De publieke download-URL moet ${expectedDownloadUrl} zijn`);
-}
-if (latest.sha256 !== digest) {
-  throw new Error("De publieke latest.json SHA-256 wijkt af van de IPK");
-}
-if (checksum !== `${digest}  ${ipkFilename}\n`) {
-  throw new Error("De publieke checksum wijkt af van de IPK");
-}
+for (let index = 0; index < packageSpecifications.length; index += 1) {
+  const specification = packageSpecifications[index];
+  const expected = specification.appInfo;
+  const filename = ipkFilename(expected);
+  const path = join(publicationDirectory, filename);
+  const descriptor = descriptors[index];
+  const expectedDownloadUrl = `https://veyocast.nl/ipk/${filename}`;
+  const digest = createHash("sha256")
+    .update(await readFile(path))
+    .digest("hex");
 
-await inspectIpk(ipkPath);
-process.stdout.write(
-  `Publieke LG IPK is geldig: ${expectedDownloadUrl}\nSHA-256: ${digest}\n`
-);
+  if (
+    descriptor.appId !== expected.id ||
+    descriptor.version !== expected.version ||
+    descriptor.filename !== filename ||
+    descriptor.downloadUrl !== expectedDownloadUrl ||
+    descriptor.sha256 !== digest
+  ) {
+    throw new Error(`Publieke metadata is ongeldig voor ${expected.id}`);
+  }
+  if (!checksum.includes(`${digest}  ${filename}\n`)) {
+    throw new Error(`Publieke checksum ontbreekt voor ${filename}`);
+  }
+  await inspectIpk(path, specification);
+  process.stdout.write(
+    `Publieke LG IPK is lokaal geldig: ${expectedDownloadUrl}\nSHA-256: ${digest}\n`
+  );
+}
