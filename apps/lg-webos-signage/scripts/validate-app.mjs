@@ -22,6 +22,7 @@ export const expectedAppExcludes = Object.freeze([
   "package.json",
   "scripts",
   "[.]webosignore",
+  "[.]turbo",
   "[.]map"
 ]);
 
