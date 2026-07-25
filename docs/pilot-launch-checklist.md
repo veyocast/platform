@@ -50,6 +50,23 @@ wordt aangemerkt.
 - [ ] Pilotcontent, devicehardware en netwerkcondities zijn goedgekeurd.
 - [ ] Alle afwijkingen hebben een eigenaar en vervolgdatum.
 
+## LG webOS Signage IPK
+
+- [ ] De IPK is met de gepinde `@webos-tools/cli` gebouwd en met
+      `ares-package --info` en `--info-detail` geïnspecteerd.
+- [ ] De SHA-256 in `latest.json` komt exact overeen met het aangeboden
+      IPK-bestand.
+- [ ] Het exacte LG-model, webOS Signage-platform en de firmware zijn
+      geregistreerd.
+- [ ] Partnerdocumentatie bevestigt alle benodigde appmetadata, permissions,
+      distributie- en signingvereisten voor dit model.
+- [ ] Installatie, launch, fullscreen, remote input, pairingbehoud,
+      netwerkherstel, rendererherstel en reboot zijn fysiek bewezen.
+- [ ] De volledige twintigpuntenmatrix uit
+      `docs/platforms/lg-webos-signage-ipk.md` is afgetekend.
+- [ ] Een 24-uurs mixed-media soak is zonder zwart scherm, reload-loop of
+      ongecontroleerde geheugengroei afgerond.
+
 ## Aftekenen
 
 | Veld | Waarde |

@@ -25,6 +25,7 @@
     "storybook": "pnpm --filter @veyocast/ui storybook"
   },
   "devDependencies": {
+    "@webos-tools/cli": "3.2.5",
     "@eslint/js": "^9.31.0",
     "@next/eslint-plugin-next": "^15.4.1",
     "@playwright/test": "^1.54.2",

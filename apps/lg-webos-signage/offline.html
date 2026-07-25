@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VeyoCast Player – geen verbinding</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { background: #0a0a0a; color: #fafaf7; height: 100%; margin: 0; }
+      body { align-items: center; display: flex; font-family: Inter, Arial, sans-serif; justify-content: center; padding: 5vw; }
+      main { background: #111111; border: 1px solid #333331; border-radius: 16px; max-width: 880px; padding: clamp(32px, 4vw, 64px); width: 100%; }
+      img { display: block; height: auto; margin-bottom: 48px; max-width: 320px; width: 46%; }
+      p { color: #c9c9c4; font-size: clamp(24px, 2vw, 36px); line-height: 1.45; margin: 28px 0 0; }
+      h1 { font-size: clamp(48px, 6vw, 96px); letter-spacing: -.04em; line-height: .98; margin: 0; }
+      button { background: #ff5c20; border: 1px solid #ff5c20; border-radius: 8px; color: #0a0a0a; font: inherit; font-size: clamp(20px, 1.5vw, 28px); font-weight: 700; margin-top: 40px; min-height: 64px; padding: 14px 24px; }
+      button:focus { outline: 4px solid #6681ff; outline-offset: 4px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img alt="VeyoCast" src="veyocast-logo-inverse.svg" />
+      <h1>Geen verbinding met VeyoCast</h1>
+      <p>Er wordt automatisch opnieuw geprobeerd zodra de verbinding terug is.</p>
+      <button onclick="window.location.replace('index.html')" type="button">
+        Probeer opnieuw
+      </button>
+    </main>
+  </body>
+</html>

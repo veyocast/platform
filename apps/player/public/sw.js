@@ -5,6 +5,7 @@ const SHELL_CACHE_PREFIX = "veyocast-player-shell-";
 const ASSET_CACHE = "veyocast-player-assets-v1";
 const CACHE_PATH_PREFIX = "/__veyocast-player-cache/";
 const SHELL_ENTRYPOINTS = [
+  "/lg",
   "/manifest.webmanifest",
   "/brand/veyocast-icon-primary.svg",
   "/brand/veyocast-icon-maskable-512.png",
@@ -22,12 +23,16 @@ self.addEventListener("install", (event) => {
 
 async function precachePlayerShell() {
   const cache = await caches.open(SHELL_CACHE);
-  const rootRequest = new Request("/", { cache: "reload" });
-  const rootResponse = await fetch(rootRequest);
-  if (!rootResponse.ok) throw new Error("Player shell could not be fetched");
-
-  await cache.put(new Request("/"), rootResponse.clone());
-  const shellAssets = discoverShellAssets(await rootResponse.text());
+  const shellDocuments = await Promise.all(
+    ["/", "/lg"].map(async (pathname) => {
+      const request = new Request(pathname, { cache: "reload" });
+      const response = await fetch(request);
+      if (!response.ok) throw new Error(`Player shell could not be fetched: ${pathname}`);
+      await cache.put(new Request(pathname), response.clone());
+      return response.text();
+    })
+  );
+  const shellAssets = shellDocuments.flatMap(discoverShellAssets);
   await Promise.all(
     [...new Set([...SHELL_ENTRYPOINTS, ...shellAssets])].map(async (assetUrl) => {
       const request = new Request(assetUrl, { cache: "reload" });

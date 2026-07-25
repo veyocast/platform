@@ -14,18 +14,32 @@ const nextConfig = {
   },
   transpilePackages: ["@veyocast/config"],
   async headers() {
-    const securityHeaders = [
+    const sharedSecurityHeaders = [
+      { key: "Referrer-Policy", value: "no-referrer" },
+      { key: "X-Content-Type-Options", value: "nosniff" }
+    ];
+    const defaultSecurityHeaders = [
       {
         key: "Content-Security-Policy",
         value: `default-src 'self'; base-uri 'none'; connect-src 'self' https: wss:${developmentSupabaseOrigin ? ` ${developmentSupabaseOrigin}` : ""}; font-src 'self' data:; frame-ancestors 'none'; img-src 'self' blob: data: https:; media-src 'self' blob: data: https:; object-src 'none'; script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"}; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:`
       },
-      { key: "Referrer-Policy", value: "no-referrer" },
-      { key: "X-Content-Type-Options", value: "nosniff" },
+      ...sharedSecurityHeaders,
       { key: "X-Frame-Options", value: "DENY" }
+    ];
+    const lgSignageSecurityHeaders = [
+      {
+        key: "Content-Security-Policy",
+        value: `default-src 'self'; base-uri 'none'; connect-src 'self' https: wss:; font-src 'self' data:; frame-ancestors file:; img-src 'self' blob: data: https:; media-src 'self' blob: data: https:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:`
+      },
+      ...sharedSecurityHeaders
     ];
 
     return [
-      { headers: securityHeaders, source: "/:path*" },
+      { headers: lgSignageSecurityHeaders, source: "/lg" },
+      {
+        headers: defaultSecurityHeaders,
+        source: "/:path((?!lg$).*)"
+      },
       {
         headers: [{ key: "Cache-Control", value: "no-store" }],
         source: "/device-lab/:path*"
