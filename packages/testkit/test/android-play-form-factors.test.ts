@@ -146,6 +146,9 @@ describe("one multi-form-factor Google Play app", () => {
     expect(tvWorkflow).toContain(
       "sed -i '/^disk\\.dataPartition\\.size=/d'"
     );
+    expect(tvWorkflow).not.toContain(
+      'avd_config="${ANDROID_AVD_HOME}/test.avd/config.ini"'
+    );
     expect(tvWorkflow.indexOf("Preserve signed Google TV artifact")).toBeLessThan(
       tvWorkflow.indexOf("Publish to Google Play internal testing")
     );
