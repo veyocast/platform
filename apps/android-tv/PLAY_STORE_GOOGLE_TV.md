@@ -39,6 +39,43 @@ pairing-, cache- of playbackcodebase.
 Het Google-serviceaccount krijgt in Play Console alleen rechten op package
 `nl.veyocast.player.tv` en uitsluitend op interne releases.
 
+## JDK en afzonderlijke upload key
+
+De GitHub-workflow installeert zelf Temurin JDK 17. Er hoeft daarom geen JDK op
+de VPS of self-hosted deploymentrunner te worden geïnstalleerd. Een lokale JDK
+is alleen nodig om zelf Androidbuilds te draaien of een upload key met
+`keytool` te maken.
+
+Google TV is in Play een afzonderlijke app. Maak daarom een eigen upload key
+voor `nl.veyocast.player.tv`; hergebruik de upload key van
+`nl.veyocast.player` niet. Als Play Console al een uploadcertificaat voor de
+TV-app toont, gebruik dan exact de bijbehorende bestaande keystore en maak geen
+nieuwe.
+
+Een nieuwe TV-upload key kan eenmalig op een vertrouwde lokale pc worden
+gemaakt:
+
+```bash
+keytool -genkeypair -v \
+  -keystore veyocast-google-tv-upload.jks \
+  -alias veyocast-google-tv-upload \
+  -keyalg RSA \
+  -keysize 4096 \
+  -validity 10000
+
+keytool -export -rfc \
+  -keystore veyocast-google-tv-upload.jks \
+  -alias veyocast-google-tv-upload \
+  -file veyocast-google-tv-upload-certificate.pem
+```
+
+Upload alleen het certificaat waar Play Console daarom vraagt. Bewaar de
+`.jks` plus wachtwoorden in een versleutelde offline back-up en plaats de
+base64-inhoud uitsluitend in
+`ANDROID_GOOGLE_TV_UPLOAD_KEYSTORE_BASE64`. Commit de keystore, het certificaat
+en wachtwoorden nooit. Met Play App Signing bewaart Google de app-signing key;
+VeyoCast bewaart zelf alleen deze vervangbare upload key.
+
 ## Lokale builds
 
 ```bash

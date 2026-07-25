@@ -26,13 +26,39 @@ Resolutie gebeurt uitsluitend wanneer een renderrevision wordt gemaakt. De
 uitkomst wordt daardoor onderdeel van de immutable renderinput; een latere
 prijswijziging verandert geen bestaande export of release.
 
+## Gevalideerde Twelve-export
+
+De export `export_all_products_20260725.xlsx` is lokaal en zonder opname van het
+bronbestand in Git gevalideerd:
+
+- SHA-256:
+  `cd5245d8c64543aff84c82364cecc9b4f3a65eee1fcecddf4bf7a46177d2ce49`;
+- werkblad `Products`;
+- 23 kolommen en 336 productregels;
+- alle 336 regels normaliseren zonder validatiefout;
+- `Name short` wordt productnaam en `Name long` beschrijving;
+- `Amount` is de verkoopprijs in euro's;
+- `VAT Id` blijft een Twelve-referentie en wordt niet onterecht als
+  btw-percentage geïnterpreteerd;
+- `Open price` blijft een extra ja/nee-veld;
+- `ID` is de stabiele bron-ID; lege `External ID` blijft als extra veld
+  beschikbaar.
+
+Control groepeert deze bestandsintegratie onder
+`Integraties → Twelve Producten`. De oude `/dashboard/products`-URL's blijven
+alleen als compatibele redirects bestaan.
+
 ## Open activeringen
 
-- Voeg de echte Twelve `.xlsx` opnieuw toe voor een fixture- en aliascontrole.
-- Configureer `SLACK_ALERT_WEBHOOK_URL` in staging en production.
+- Voer na deployment één gecontroleerde import met de gevalideerde Twelve
+  export uit op staging; het bronbestand wordt bewust niet gecommit.
+- `SLACK_ALERT_WEBHOOK_URL` is door de eigenaar toegevoegd; verifieer bij de
+  eerstvolgende stagingdeployment één testalarm en herstelmelding in het
+  besloten Slack-kanaal.
 - Laat voorgestelde bewaartermijnen juridisch bekrachtigen voordat enforcement
   wordt geactiveerd.
-- Kies de secundaire EU-objectstorageprovider en oefen een herstel.
+- Besluit over de geadviseerde secundaire provider Scaleway Object Storage en
+  oefen daarna een volledige mediarestore vanuit een locked back-upbucket.
 - Koppel een e-mailprovider wanneer ticketnotificaties ook buiten Control moeten
   worden bezorgd.
 - Draai Android TV Gradle/Play-signing CI en maak vóór publieke listing echte
