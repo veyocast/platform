@@ -298,6 +298,17 @@ door de Play API geretourneerde Android TV internal track-ID `tv:internal`. De w
 production- of mobiele tracknaam. Console-inrichting en TV-acceptatie staan in
 [`PLAY_STORE_GOOGLE_TV.md`](PLAY_STORE_GOOGLE_TV.md).
 
+Voor iedere TV-publicatie inspecteert de workflow de binaire AAB, niet alleen
+het bronmanifest. De gate bewijst dat exact één geëxporteerde en ingeschakelde
+`MAIN`/`LEANBACK_LAUNCHER` naar
+`nl.veyocast.player.MainActivity` resolveert én dat die klasse werkelijk in de
+release-DEX staat. Daarna installeert bundletool de gegenereerde APK-set op een
+Android TV API 34-emulator en voert de workflow de echte package-manager
+resolve- en startcommando's uit. Manifest, DEX-rapport, APK-set, ADB-uitvoer en
+logcat worden samen met het ondertekende AAB vóór de Play-upload als artifact
+bewaard. Een ontbrekende launcherklasse blokkeert de publicatie daardoor
+volledig.
+
 ## Beperkingen
 
 - Bootstart en keep-on-top zijn niet gegarandeerd zonder managed kiosk/device owner.
