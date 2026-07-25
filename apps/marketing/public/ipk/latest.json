@@ -1,12 +1,20 @@
 {
   "appId": "nl.veyocast.player.webos",
-  "buildCommitSha": "9d91d6c7513dc6f27fc699573caf9f3838e84c71",
-  "buildTimestamp": "2026-07-25T18:32:10.519Z",
-  "byteSize": 12072,
-  "downloadUrl": "https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.0_all.ipk",
-  "ipkFilename": "nl.veyocast.player.webos_1.0.0_all.ipk",
+  "buildCommitSha": "fe003285831dbd749ee81c3016563f35a49f1193",
+  "buildTimestamp": "2026-07-25T23:08:20.574Z",
+  "byteSize": 14868,
+  "downloadUrl": "https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.1_all.ipk",
+  "ipkFilename": "nl.veyocast.player.webos_1.0.1_all.ipk",
   "minimumValidatedWebOsSignageVersion": null,
-  "sha256": "eb3ce90a3d3a12c110842429c9999174049ecea20aa21777305606b90e50d304",
+  "sha256": "da708d5e01843facc5fbc9ec51d46706cd725c3e698f28ea23d16eb2d7f71c22",
+  "smoketest": {
+    "appId": "nl.veyocast.player.webos.smoketest",
+    "byteSize": 8870,
+    "downloadUrl": "https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk",
+    "ipkFilename": "nl.veyocast.player.webos.smoketest_1.0.1_all.ipk",
+    "sha256": "a24b62cf19d6deb63c3df27a9082d9136ae17594ce8fd8aefc3672a16bebd726",
+    "version": "1.0.1"
+  },
   "supportedModels": [],
-  "version": "1.0.0"
+  "version": "1.0.1"
 }
