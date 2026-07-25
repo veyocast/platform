@@ -173,10 +173,9 @@ jobs:
           profile: tv_1080p
           disk-size: 2G
           pre-emulator-launch-script: |
-            avd_config="${ANDROID_AVD_HOME}/test.avd/config.ini"
-            sed -i '/^disk\.dataPartition\.size=/d' "${avd_config}"
-            printf 'disk.dataPartition.size=2G\n' >> "${avd_config}"
-            test "$(grep -c '^disk\.dataPartition\.size=2G$' "${avd_config}")" -eq 1
+            sed -i '/^disk\.dataPartition\.size=/d' "${ANDROID_AVD_HOME}/test.avd/config.ini"
+            printf 'disk.dataPartition.size=2G\n' >> "${ANDROID_AVD_HOME}/test.avd/config.ini"
+            test "$(grep -c '^disk\.dataPartition\.size=2G$' "${ANDROID_AVD_HOME}/test.avd/config.ini")" -eq 1
           disable-animations: true
           emulator-options: >-
             -no-window
