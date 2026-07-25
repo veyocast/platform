@@ -1,7 +1,7 @@
 {
   "appId": "nl.veyocast.player.webos",
-  "buildCommitSha": "fe003285831dbd749ee81c3016563f35a49f1193",
-  "buildTimestamp": "2026-07-25T23:08:20.574Z",
+  "buildCommitSha": "77c10bad3e8117132b9e952d37e57741223d25c2",
+  "buildTimestamp": "2026-07-25T23:15:28.098Z",
   "hardwareValidationStatus": "NEEDS_PHYSICAL_LG_TEST",
   "notes": [
     "Productie-wrapper 1.0.1 toont altijd eerst een lokale opstart- en diagnosepagina.",
@@ -14,19 +14,19 @@
   ],
   "production": {
     "appId": "nl.veyocast.player.webos",
-    "byteSize": 14868,
+    "byteSize": 14872,
     "downloadUrl": "https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.1_all.ipk",
     "ipkFilename": "nl.veyocast.player.webos_1.0.1_all.ipk",
-    "sha256": "da708d5e01843facc5fbc9ec51d46706cd725c3e698f28ea23d16eb2d7f71c22",
+    "sha256": "d93de0ad7b21677dded2bada3b60ead06a2429762b9fc17e46b868157e7dfaf1",
     "title": "VeyoCast Player",
     "version": "1.0.1"
   },
   "smoketest": {
     "appId": "nl.veyocast.player.webos.smoketest",
-    "byteSize": 8870,
+    "byteSize": 8876,
     "downloadUrl": "https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk",
     "ipkFilename": "nl.veyocast.player.webos.smoketest_1.0.1_all.ipk",
-    "sha256": "a24b62cf19d6deb63c3df27a9082d9136ae17594ce8fd8aefc3672a16bebd726",
+    "sha256": "75da4a2fca72194a3b29d82e607237010259c34182b729064cda55ab9283b41d",
     "title": "VeyoCast LG Test",
     "version": "1.0.1"
   },
