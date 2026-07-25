@@ -114,6 +114,22 @@ De TV-bundle:
   `RECEIVE_BOOT_COMPLETED`;
 - bevat geen native libraries.
 
+De releaseworkflow behandelt dit als een binaire en uitvoerbare grens. Voor de
+Play-upload controleert zij de samengevoegde AAB-manifest, de werkelijke
+release-DEX en een installatie op Android TV API 34. De publicatie stopt tenzij:
+
+- `nl.veyocast.player` de enige application ID is;
+- exact één `MAIN`/`LEANBACK_LAUNCHER` aanwezig is;
+- deze naar de bestaande klasse `nl.veyocast.player.MainActivity` resolveert;
+- de Activity expliciet enabled en exported is;
+- Package Manager dezelfde Activity resolveert;
+- `am start -W` de Activity zonder klasselader- of procescrash start.
+
+Het releaseartifact bevat vóór publicatie ook de gegenereerde APK-set,
+samengevoegde manifest, DEX-validatie, ADB-uitvoer en logcat. De algemene
+Android-module en haar `internal`-track worden door deze TV-workflow niet
+gepubliceerd.
+
 De algemene app behoudt de normale Android-launcher en ondersteuning voor
 telefoon en tablet. Omdat beide artifacts dezelfde package-ID hebben, kan op
 een TV geen tweede VeyoCast-installatie of tweede pairingprofiel ontstaan.

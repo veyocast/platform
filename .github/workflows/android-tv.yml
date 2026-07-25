@@ -75,6 +75,29 @@ jobs:
       - name: Build Google TV debug APKs
         run: ./gradlew :tv:assembleStagingDebug :tv:assembleProductionDebug --no-daemon
 
+      - name: Build and validate Google TV production bundle
+        run: |
+          bundletool_url="https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar"
+          bundletool_path="${RUNNER_TEMP}/bundletool-all-1.18.3.jar"
+          curl --fail --location --silent --show-error \
+            --proto '=https' \
+            --tlsv1.2 \
+            "${bundletool_url}" \
+            --output "${bundletool_path}"
+          printf '%s  %s\n' \
+            "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29" \
+            "${bundletool_path}" \
+            | sha256sum --check --status
+          ./gradlew :tv:bundleProductionRelease \
+            -PveyocastTvVersionCode=299999999 \
+            -PveyocastTvVersionName=ci-launcher-validation \
+            --no-daemon
+          scripts/validate-tv-bundle.sh \
+            "tv/build/outputs/bundle/productionRelease/tv-production-release.aab" \
+            "${bundletool_path}" \
+            "${ANDROID_HOME}/build-tools/36.0.0/dexdump" \
+            "${RUNNER_TEMP}/tv-launcher-evidence"
+
       - name: Upload Android Player debug APKs
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
@@ -84,5 +107,7 @@ jobs:
             apps/android-tv/app/build/outputs/apk/production/debug/*.apk
             apps/android-tv/tv/build/outputs/apk/staging/debug/*.apk
             apps/android-tv/tv/build/outputs/apk/production/debug/*.apk
+            apps/android-tv/tv/build/outputs/bundle/productionRelease/*.aab
+            ${{ runner.temp }}/tv-launcher-evidence/
           if-no-files-found: error
           retention-days: 14

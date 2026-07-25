@@ -36,9 +36,11 @@ describe("one multi-form-factor Google Play app", () => {
     expect(tvGradle).toContain(`applicationId = "${canonicalApplicationId}"`);
     expect(generalGradle).not.toContain(forbiddenSecondApplicationId);
     expect(tvGradle).not.toContain(forbiddenSecondApplicationId);
-    expect(tvGradle).toContain('java.srcDirs("../app/src/main/java")');
+    expect(tvGradle).toContain('kotlin.srcDirs("../app/src/main/java")');
     expect(tvGradle).toContain('res.srcDirs("../app/src/main/res")');
-    expect(tvGradle).toContain('java.srcDirs("../app/src/test/java")');
+    expect(tvGradle).toContain('kotlin.srcDirs("../app/src/test/java")');
+    expect(tvGradle).not.toContain('java.srcDirs("../app/src/main/java")');
+    expect(tvGradle).not.toContain('java.srcDirs("../app/src/test/java")');
     expect(generalGradle).toContain("https://player.veyocast.nl");
     expect(tvGradle).toContain("https://player.veyocast.nl");
   });
@@ -77,6 +79,11 @@ describe("one multi-form-factor Google Play app", () => {
       /android:name="android\.hardware\.touchscreen"\s+android:required="false"/u
     );
     expect(manifest).toContain("android.intent.category.LEANBACK_LAUNCHER");
+    expect(manifest).toContain(
+      'android:name="nl.veyocast.player.MainActivity"'
+    );
+    expect(manifest).toContain('android:enabled="true"');
+    expect(manifest).toContain('android:exported="true"');
     expect(manifest).not.toMatch(
       /android:name="android\.intent\.category\.LAUNCHER"/u
     );
@@ -128,6 +135,15 @@ describe("one multi-form-factor Google Play app", () => {
     expect(tvWorkflow).toMatch(/\n\s+tracks: tv:internal\s*$/mu);
     expect(tvWorkflow).not.toMatch(/\n\s+tracks: (?:internal|production)\s*$/mu);
     expect(tvWorkflow).toContain(":tv:bundleProductionRelease");
+    expect(tvWorkflow).toContain("scripts/validate-tv-bundle.sh");
+    expect(tvWorkflow).toContain(
+      "scripts/validate-tv-launcher-on-device.sh"
+    );
+    expect(tvWorkflow).toContain("api-level: 34");
+    expect(tvWorkflow).toContain("target: android-tv");
+    expect(tvWorkflow.indexOf("Preserve signed Google TV artifact")).toBeLessThan(
+      tvWorkflow.indexOf("Publish to Google Play internal testing")
+    );
     expect(tvWorkflow).not.toContain(forbiddenSecondApplicationId);
     expect(tvWorkflow).not.toContain("ANDROID_GOOGLE_TV_");
     expect(tvWorkflow).not.toContain("GOOGLE_TV_PLAY_");

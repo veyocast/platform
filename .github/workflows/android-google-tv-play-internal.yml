@@ -39,7 +39,12 @@ jobs:
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
 
       - name: Install pinned Android SDK components
-        run: sdkmanager "platform-tools" "platforms;android-37.1" "build-tools;36.0.0"
+        run: >-
+          sdkmanager
+          "platform-tools"
+          "platforms;android-34"
+          "platforms;android-37.1"
+          "build-tools;36.0.0"
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c # v5
@@ -115,42 +120,95 @@ jobs:
           :tv:bundleProductionRelease
           --no-daemon
 
-      - name: Verify signed bundle and TV manifest policy
+      - name: Install pinned bundletool
+        run: |
+          bundletool_url="https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar"
+          bundletool_path="${RUNNER_TEMP}/bundletool-all-1.18.3.jar"
+          curl --fail --location --silent --show-error \
+            --proto '=https' \
+            --tlsv1.2 \
+            "${bundletool_url}" \
+            --output "${bundletool_path}"
+          printf '%s  %s\n' \
+            "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29" \
+            "${bundletool_path}" \
+            | sha256sum --check --status
+          echo "BUNDLETOOL_PATH=${bundletool_path}" >> "${GITHUB_ENV}"
+
+      - name: Verify signed bundle, resolved launcher and compiled class
         run: |
           bundle="tv/build/outputs/bundle/productionRelease/tv-production-release.aab"
-          source_manifest="tv/src/main/AndroidManifest.xml"
           test -s "${bundle}"
           jarsigner -verify -verbose -certs "${bundle}" > "${RUNNER_TEMP}/jarsigner-google-tv-report.txt"
           grep -Fq 'jar verified.' "${RUNNER_TEMP}/jarsigner-google-tv-report.txt"
-          unzip -p "${bundle}" base/manifest/AndroidManifest.xml > "${RUNNER_TEMP}/google-tv-manifest.bin"
-          strings "${RUNNER_TEMP}/google-tv-manifest.bin" | grep -Fq 'nl.veyocast.player'
-          forbidden_id="nl.veyocast.player"".""tv"
-          if strings "${RUNNER_TEMP}/google-tv-manifest.bin" | grep -Fq "${forbidden_id}"; then
-            echo "::error::De TV-bundle gebruikt een verboden tweede applicationId"
-            exit 1
-          fi
-          strings "${RUNNER_TEMP}/google-tv-manifest.bin" | grep -Fq 'android.software.leanback'
-          grep -Fq 'android:name="android.software.leanback"' "${source_manifest}"
-          grep -Fq 'android:required="true"' "${source_manifest}"
-          grep -Fq 'android:name="android.hardware.touchscreen"' "${source_manifest}"
-          grep -Fq 'android:required="false"' "${source_manifest}"
-          grep -Fq 'android.intent.category.LEANBACK_LAUNCHER' "${source_manifest}"
-          if grep -Fq 'android.intent.category.LAUNCHER' "${source_manifest}"; then
-            echo "::error::De TV-bundle mag geen algemene mobiele launcher bevatten"
-            exit 1
-          fi
+          scripts/validate-tv-bundle.sh \
+            "${bundle}" \
+            "${BUNDLETOOL_PATH}" \
+            "${ANDROID_HOME}/build-tools/36.0.0/dexdump" \
+            "${RUNNER_TEMP}/tv-launcher-evidence"
           if unzip -Z1 "${bundle}" | grep -Eq '^base/lib/.+\.so$'; then
             echo "::error::Native libraries vereisen een afzonderlijke ABI- en 16-KB-page-sizevalidatie"
             exit 1
           fi
 
+      - name: Enable Android emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install and start production TV bundle on Android TV API 34
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/veyocast-upload.jks
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_TV_UPLOAD_KEY_ALIAS }}
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEY_PASSWORD }}
+          BUNDLETOOL_PATH: ${{ env.BUNDLETOOL_PATH }}
+        with:
+          api-level: 34
+          target: android-tv
+          arch: x86
+          profile: tv_1080p
+          disable-animations: true
+          emulator-options: >-
+            -no-window
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+          script: |
+            cd apps/android-tv
+            evidence_dir="${RUNNER_TEMP}/tv-launcher-evidence"
+            store_password_file="${RUNNER_TEMP}/store-password.txt"
+            key_password_file="${RUNNER_TEMP}/key-password.txt"
+            install -d -m 0755 "${evidence_dir}"
+            umask 077
+            printf '%s' "${ANDROID_SIGNING_STORE_PASSWORD}" > "${store_password_file}"
+            printf '%s' "${ANDROID_SIGNING_KEY_PASSWORD}" > "${key_password_file}"
+            java -jar "${BUNDLETOOL_PATH}" build-apks \
+              --bundle="tv/build/outputs/bundle/productionRelease/tv-production-release.aab" \
+              --output="${evidence_dir}/tv-production-release.apks" \
+              --ks="${ANDROID_SIGNING_STORE_FILE}" \
+              --ks-pass="file:${store_password_file}" \
+              --ks-key-alias="${ANDROID_SIGNING_KEY_ALIAS}" \
+              --key-pass="file:${key_password_file}"
+            rm -f "${store_password_file}" "${key_password_file}"
+            java -jar "${BUNDLETOOL_PATH}" install-apks \
+              --apks="${evidence_dir}/tv-production-release.apks"
+            scripts/validate-tv-launcher-on-device.sh "${evidence_dir}"
+
       - name: Preserve signed Google TV artifact
+        if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: veyocast-google-tv-internal-${{ github.run_number }}
           path: |
             apps/android-tv/tv/build/outputs/bundle/productionRelease/tv-production-release.aab
             apps/android-tv/tv/build/outputs/mapping/productionRelease/mapping.txt
+            ${{ runner.temp }}/tv-launcher-evidence/
+            ${{ runner.temp }}/jarsigner-google-tv-report.txt
           if-no-files-found: error
           retention-days: 30
 
@@ -168,4 +226,8 @@ jobs:
 
       - name: Remove temporary signing material
         if: always()
-        run: rm -f "${RUNNER_TEMP}/veyocast-upload.jks"
+        run: >-
+          rm -f
+          "${RUNNER_TEMP}/veyocast-upload.jks"
+          "${RUNNER_TEMP}/store-password.txt"
+          "${RUNNER_TEMP}/key-password.txt"

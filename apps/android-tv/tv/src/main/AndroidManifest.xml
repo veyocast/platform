@@ -27,8 +27,9 @@
         android:usesCleartextTraffic="${usesCleartextTraffic}">
 
         <activity
-            android:name=".MainActivity"
+            android:name="nl.veyocast.player.MainActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:enabled="true"
             android:exported="true"
             android:launchMode="singleTask"
             android:screenOrientation="landscape"
