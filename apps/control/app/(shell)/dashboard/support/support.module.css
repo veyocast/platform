@@ -1,0 +1,19 @@
+.layout { display: grid; gap: 24px; grid-template-columns: minmax(0, 1.55fr) minmax(320px, .8fr); }
+.form { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+.form label, .reply label { display: grid; gap: 7px; font-size: .875rem; font-weight: 650; }
+.wide { grid-column: 1 / -1; }
+.checkbox { align-items: center !important; display: flex !important; font-weight: 500 !important; grid-column: 1 / -1; }
+.thread { display: grid; gap: 14px; margin-bottom: 24px; }
+.message { background: var(--color-surface-subtle); border: 1px solid var(--color-border); border-radius: 12px; max-width: 78%; padding: 16px 18px; }
+.platformMessage { justify-self: end; background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface)); }
+.message header { display: flex; gap: 16px; justify-content: space-between; margin-bottom: 10px; }
+.message header span { color: var(--color-text-muted); font-size: .8rem; }
+.message p { margin: 10px 0 0; white-space: pre-wrap; }
+.reply { border-top: 1px solid var(--color-border); display: grid; gap: 14px; padding-top: 20px; }
+.attachments { display: grid; gap: 8px; margin-bottom: 20px; }
+.attachments a { align-items: center; border: 1px solid var(--color-border); border-radius: 10px; color: inherit; display: flex; justify-content: space-between; padding: 12px 14px; text-decoration: none; }
+.attachments span { color: var(--color-text-muted); font-size: .8rem; }
+@media (max-width: 900px) {
+  .layout, .form { grid-template-columns: 1fr; }
+  .message { max-width: 94%; }
+}

@@ -91,6 +91,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "platform"
   },
   {
+    description: "Tickets, afdelingen en toewijzing",
+    href: "/platform/support",
+    label: "Supportdesk",
+    requiredCapability: "platform.ticket.read",
+    section: "organization",
+    scope: "platform"
+  },
+  {
     description: "Dagelijkse operatie en aandachtspunten",
     href: "/dashboard",
     label: "Overzicht",
@@ -191,6 +199,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/settings",
     label: "Instellingen",
     requiredCapability: "tenant.settings.read",
+    section: "management",
+    scope: "tenant"
+  },
+  {
+    description: "Vragen, bijlagen en antwoorden volgen",
+    href: "/dashboard/support",
+    label: "Support",
+    requiredCapability: "tenant.ticket.read",
     section: "management",
     scope: "tenant"
   }
