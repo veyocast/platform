@@ -139,6 +139,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "tenant"
   },
   {
+    description: "Producten, prijzen en Studio-shortcodes",
+    href: "/dashboard/products",
+    label: "Producten",
+    requiredCapability: "tenant.product.read",
+    section: "publisher",
+    scope: "tenant"
+  },
+  {
     description: "Content per scherm en tijdstip plannen",
     href: "/dashboard/planning",
     label: "Planning",
