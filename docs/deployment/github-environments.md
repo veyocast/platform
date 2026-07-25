@@ -183,3 +183,25 @@ Voor `production` is daarnaast nodig:
   goedgekeurde policies op `true`;
 - bestaande secret `SUPABASE_SERVICE_ROLE_KEY` en variable
   `NEXT_PUBLIC_SUPABASE_URL` worden door de retentionjob hergebruikt.
+
+## Slack-alarm testen
+
+Voeg `SLACK_ALERT_WEBHOOK_URL` als **Environment secret** toe aan zowel
+`staging` als `production`. Er is geen aanvullende gewone variabele nodig:
+Control-, Player- en Marketinghealth-URL's worden uit de bestaande hostvariabelen
+afgeleid.
+
+Na merge naar `main`:
+
+1. open GitHub Actions;
+2. kies `Test Slack alert delivery`;
+3. kies eerst `staging`;
+4. typ exact `TEST SLACK`;
+5. start de workflow en controleer de melding met `Dit is geen storing` in het
+   besloten Slack-kanaal;
+6. herhaal pas daarna voor `production`.
+
+Deze workflow controleert de Environment-koppeling, het secret en aflevering
+door Slack zonder een echte service uit te schakelen. De media-worker bewaakt
+de echte endpoints iedere minuut, alarmeert na drie mislukte controles en
+stuurt één herstelmelding zodra het endpoint weer gezond is.

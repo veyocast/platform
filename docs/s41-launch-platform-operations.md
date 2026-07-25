@@ -53,8 +53,9 @@ alleen als compatibele redirects bestaan.
 - Voer na deployment één gecontroleerde import met de gevalideerde Twelve
   export uit op staging; het bronbestand wordt bewust niet gecommit.
 - `SLACK_ALERT_WEBHOOK_URL` is door de eigenaar toegevoegd; verifieer bij de
-  eerstvolgende stagingdeployment één testalarm en herstelmelding in het
-  besloten Slack-kanaal.
+  handmatige `Test Slack alert delivery`-workflow eerst de stagingaflevering.
+  Verifieer na deployment daarnaast bij een gecontroleerde incidentoefening één
+  echt alarm en herstelmelding vanuit de worker.
 - Laat voorgestelde bewaartermijnen juridisch bekrachtigen voordat enforcement
   wordt geactiveerd.
 - Besluit over de geadviseerde secundaire provider Scaleway Object Storage en
