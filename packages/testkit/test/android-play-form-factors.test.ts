@@ -141,6 +141,16 @@ describe("one multi-form-factor Google Play app", () => {
     );
     expect(tvWorkflow).toContain("api-level: 34");
     expect(tvWorkflow).toContain("target: android-tv");
+    expect(tvWorkflow).toContain(
+      "Reclaim runner space for the Android TV userdata partition"
+    );
+    expect(tvWorkflow).toContain('"${ANDROID_HOME}/ndk"');
+    expect(tvWorkflow).toContain(
+      '"${GRADLE_USER_HOME}/caches"'
+    );
+    expect(tvWorkflow).toContain(
+      "Minder dan 9 GiB vrije ruimte voor de Android TV-emulator"
+    );
     expect(tvWorkflow).toContain("disk-size: 2G");
     expect(tvWorkflow).toContain("pre-emulator-launch-script:");
     expect(tvWorkflow).toContain(

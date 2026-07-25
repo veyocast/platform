@@ -158,6 +158,23 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Reclaim runner space for the Android TV userdata partition
+        run: |
+          sudo rm -rf \
+            "${ANDROID_HOME}/ndk" \
+            "${ANDROID_HOME}/cmake" \
+            "/opt/hostedtoolcache/CodeQL"
+          rm -rf \
+            "${GRADLE_USER_HOME}/caches" \
+            "${GRADLE_USER_HOME}/daemon"
+          available_kib="$(df --output=avail -k "${RUNNER_TEMP}" | tail -n 1 | tr -d ' ')"
+          required_kib="$((9 * 1024 * 1024))"
+          df -h "${RUNNER_TEMP}"
+          if (( available_kib < required_kib )); then
+            echo "::error::Minder dan 9 GiB vrije ruimte voor de Android TV-emulator"
+            exit 1
+          fi
+
       - name: Install and start production TV bundle on Android TV API 34
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
