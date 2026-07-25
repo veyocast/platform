@@ -160,7 +160,7 @@ jobs:
           serviceAccountJson: ${{ steps.google_auth.outputs.credentials_file_path }}
           packageName: nl.veyocast.player
           releaseFiles: ${{ github.workspace }}/apps/android-tv/tv/build/outputs/bundle/productionRelease/tv-production-release.aab
-          tracks: tv:qa
+          tracks: tv:internal
           status: completed
           releaseName: VeyoCast Player Android TV ${{ env.VEYCAST_TV_VERSION_NAME }}
           whatsNewDirectory: ${{ github.workspace }}/apps/android-tv/play-tv/release-notes

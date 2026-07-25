@@ -35,9 +35,11 @@ Deze keuze voor een dedicated Android TV-track is volgens Play Console na
 opslaan niet terug te zetten naar gezamenlijk releasebeheer. Maak daarom eerst
 de screenshots en testerstoegang gereed.
 
-De Google Play Publishing API noemt de Android TV internal track `tv:qa`.
-De workflow gebruikt exact die track-ID. `internal` is uitsluitend de algemene
-mobiele testtrack; `production` is in de TV-workflow nergens toegestaan.
+Voor deze bestaande Play-app retourneert de Google Play Developer API via de
+publicatieactie `tv:internal` als Android TV internal track-ID. De workflow
+gebruikt daarom exact `tv:internal`. `internal` zonder prefix is uitsluitend de
+algemene mobiele testtrack; `production` is in de TV-workflow nergens
+toegestaan.
 
 ## Bestaande GitHub Environment hergebruiken
 
@@ -76,7 +78,7 @@ maak geen nieuwe TV-key.
 | Artifact | Module | application ID | Play-track | versionCode |
 |---|---|---|---|---|
 | algemeen Android | `:app` | `nl.veyocast.player` | `internal` | `100000000–199999999` |
-| Android TV | `:tv` | `nl.veyocast.player` | `tv:qa` | `200000000–299999999` |
+| Android TV | `:tv` | `nl.veyocast.player` | `tv:internal` | `200000000–299999999` |
 
 De workflows berekenen `range-start + run_number × 100 + run_attempt`.
 Daardoor kan geen algemene en TV-upload ooit dezelfde versionCode krijgen.

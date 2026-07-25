@@ -12,7 +12,7 @@ weigert onverwachte native libraries en publiceert uitsluitend naar track
 De workflow werkt bewust alleen vanaf `main`, gebruikt GitHub Environment
 `android-tv-internal` en kan nooit stilzwijgend naar production publiceren.
 De Android TV-bundle hoort bij dezelfde Play-app, maar wordt door de aparte
-workflow uitsluitend naar form-factortrack `tv:qa` gestuurd. Zie
+workflow uitsluitend naar form-factortrack `tv:internal` gestuurd. Zie
 [`PLAY_STORE_GOOGLE_TV.md`](PLAY_STORE_GOOGLE_TV.md). Maak daarvoor geen tweede
 app, package of upload key.
 

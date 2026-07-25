@@ -294,7 +294,7 @@ secrets, variabelen en acceptatie staan in
 `.github/workflows/android-google-tv-play-internal.yml` gebruikt dezelfde
 Environment, uploadkey, signingidentiteit en Workload Identity. Deze workflow
 bouwt alleen `:tv:bundleProductionRelease` en publiceert uitsluitend naar de
-officiële Android TV internal track-ID `tv:qa`. De workflow bevat geen
+door de Play API geretourneerde Android TV internal track-ID `tv:internal`. De workflow bevat geen
 production- of mobiele tracknaam. Console-inrichting en TV-acceptatie staan in
 [`PLAY_STORE_GOOGLE_TV.md`](PLAY_STORE_GOOGLE_TV.md).
 

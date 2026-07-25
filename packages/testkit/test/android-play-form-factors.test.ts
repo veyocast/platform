@@ -124,8 +124,8 @@ describe("one multi-form-factor Google Play app", () => {
     expect(generalWorkflow).toContain(`packageName: ${canonicalApplicationId}`);
     expect(tvWorkflow).toContain(`packageName: ${canonicalApplicationId}`);
     expect(generalWorkflow).toMatch(/\n\s+tracks: internal\s*$/mu);
-    expect(generalWorkflow).not.toContain("tracks: tv:qa");
-    expect(tvWorkflow).toMatch(/\n\s+tracks: tv:qa\s*$/mu);
+    expect(generalWorkflow).not.toContain("tracks: tv:internal");
+    expect(tvWorkflow).toMatch(/\n\s+tracks: tv:internal\s*$/mu);
     expect(tvWorkflow).not.toMatch(/\n\s+tracks: (?:internal|production)\s*$/mu);
     expect(tvWorkflow).toContain(":tv:bundleProductionRelease");
     expect(tvWorkflow).not.toContain(forbiddenSecondApplicationId);
