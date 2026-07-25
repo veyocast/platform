@@ -3,8 +3,16 @@
 ## Documentstatus
 
 - **Onderzoeksdatum:** 18 juli 2026
+- **Implementatie-addendum:** 25 juli 2026
 - **Doel:** bepalen wanneer VeyoCast kan volstaan met een gewone HTTPS-player en wanneer een geïnstalleerde hosted of packaged LG webOS Signage-app nuttig of noodzakelijk wordt.
-- **Voorlopige aanbeveling:** begin met de bestaande HTTPS-player op een expliciet ondersteund `Play via URL`-model. Voeg pas een LG-wrapper toe wanneer fysieke tests aantonen dat lifecycle, autostart, screensaver, opslag of device-integratie niet betrouwbaar genoeg zijn.
+- **Huidige productbeslissing:** naast `Play via URL` is nu een dunne, installeerbare LG webOS Signage-wrapper gebouwd. Deze expliciete productopdracht vervangt de eerdere uitstelkeuze, maar niet de bewijsgrens: ondersteuning per model en firmware wordt pas geclaimd na de fysieke testmatrix.
+
+De wrapper staat in `apps/lg-webos-signage`, opent uitsluitend
+`https://player.veyocast.nl/lg` en bevat geen tweede pairing-, playlist-, cache-
+of playbackimplementatie. SCAP/IDCAP-integratie blijft beperkt tot veilige
+feature-detectie totdat de partnerdocumentatie van het doelplatform en de
+benodigde permissions zijn bevestigd. Packaging, inspectie en distributie staan
+beschreven in `docs/platforms/lg-webos-signage-ipk.md`.
 
 Dit document maakt bewust onderscheid tussen drie deploymentvormen:
 
@@ -12,7 +20,11 @@ Dit document maakt bewust onderscheid tussen drie deploymentvormen:
 2. een geïnstalleerde **hosted webOS-app**: een klein lokaal pakket met appmetadata en een redirect naar de extern gehoste VeyoCast-player;
 3. een **packaged webOS Signage-app** waarvan de applicatieshell en eventueel aanvullende services lokaal als pakket worden geïnstalleerd.
 
-De voorlopige classificatie voor VeyoCast is **hosted webplayer met beperkingen**. Er is nog geen bewijs dat een volledig packaged app noodzakelijk is, maar evenmin voldoende bewijs om een gewone URL al als productiegeschikt te verklaren.
+De huidige classificatie voor VeyoCast is **hosted webplayer met een lokaal
+geïnstalleerde herstelshell**. Er is nog geen bewijs dat een volledig lokale
+player noodzakelijk is. De wrapper zelf is evenmin een productieclaim totdat
+installatie, lifecycle, opslag, codecs, remote input, reboot en soak op het exacte
+LG-model en de exacte firmware zijn bewezen.
 
 ## Belangrijke bewijsgrens
 

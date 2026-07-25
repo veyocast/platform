@@ -1,0 +1,155 @@
+name: LG webOS Signage IPK
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/lg-webos-signage-ipk.yml"
+      - "apps/lg-webos-signage/**"
+      - "apps/player/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/lg-webos-signage-ipk.yml"
+      - "apps/lg-webos-signage/**"
+      - "apps/player/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+  workflow_dispatch:
+    inputs:
+      publish_https:
+        description: Upload de release na approval naar de geconfigureerde HTTPS PUT-map
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lg-webos-signage-ipk-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate LG wrapper and hosted route
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify pinned Signage CLI
+        run: |
+          test "$(node -p "require('./node_modules/@webos-tools/cli/package.json').version")" = "3.2.5"
+          pnpm exec ares-config --profile signage
+          pnpm exec ares-package --version
+
+      - name: Validate and test IPK source
+        run: |
+          pnpm --filter @veyocast/lg-webos-signage validate
+          pnpm --filter @veyocast/lg-webos-signage test
+
+      - name: Validate hosted LG route
+        run: |
+          pnpm --filter @veyocast/player typecheck
+          pnpm --filter @veyocast/player test
+
+  release:
+    name: Build inspected release IPK
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: lg-webos-signage-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Select Signage profile and build IPK
+        env:
+          LG_WEBOS_DISTRIBUTION_BASE_URL: ${{ vars.LG_WEBOS_DISTRIBUTION_BASE_URL }}
+        run: |
+          pnpm exec ares-config --profile signage
+          pnpm --filter @veyocast/lg-webos-signage build:ipk
+          pnpm --filter @veyocast/lg-webos-signage inspect
+          (cd dist/lg-webos && sha256sum --check checksums.sha256)
+
+      - name: Preserve IPK and distribution metadata
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: veyocast-lg-webos-signage-${{ github.run_number }}
+          path: |
+            dist/lg-webos/nl.veyocast.player.webos_1.0.0_all.ipk
+            dist/lg-webos/checksums.sha256
+            dist/lg-webos/latest.json
+            dist/lg-webos/release-notes.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload approved release to configured HTTPS PUT directory
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_https
+        env:
+          DISTRIBUTION_BASE_URL: ${{ vars.LG_WEBOS_DISTRIBUTION_BASE_URL }}
+          DISTRIBUTION_BEARER_TOKEN: ${{ secrets.LG_WEBOS_DISTRIBUTION_BEARER_TOKEN }}
+        run: |
+          if [[ ! "${DISTRIBUTION_BASE_URL:-}" =~ ^https:// ]]; then
+            echo "::error::LG_WEBOS_DISTRIBUTION_BASE_URL ontbreekt of gebruikt geen HTTPS"
+            exit 1
+          fi
+          if [[ -z "${DISTRIBUTION_BEARER_TOKEN:-}" ]]; then
+            echo "::error::LG_WEBOS_DISTRIBUTION_BEARER_TOKEN ontbreekt"
+            exit 1
+          fi
+          base="${DISTRIBUTION_BASE_URL%/}/"
+          for artifact in \
+            nl.veyocast.player.webos_1.0.0_all.ipk \
+            checksums.sha256 \
+            latest.json \
+            release-notes.json
+          do
+            curl \
+              --fail-with-body \
+              --retry 3 \
+              --retry-all-errors \
+              --request PUT \
+              --header "Authorization: Bearer ${DISTRIBUTION_BEARER_TOKEN}" \
+              --upload-file "dist/lg-webos/${artifact}" \
+              "${base}${artifact}"
+          done

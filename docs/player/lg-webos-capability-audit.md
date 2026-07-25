@@ -8,6 +8,17 @@
 - Fysiek LG-bewijs: nog niet uitgevoerd.
 - Voorlopige aanbeveling: **hosted webplayer met beperkingen**.
 
+### Addendum 25 juli 2026
+
+Sprint S42 voegt een dunne installeerbare LG webOS Signage-shell toe en een
+aparte hosted route op `/lg`. De shell verandert de conclusies over codecs,
+storagepersistentie, firmware en fysieke betrouwbaarheid niet: al die punten
+blijven `NEEDS_PHYSICAL_LG_TEST`. Pairing, immutable releases, verificatie,
+offlinecache en playback blijven eigendom van dezelfde hosted Player; de wrapper
+voegt uitsluitend lifecycle-, remote-, netwerk- en lokale foutafhandeling toe.
+Zie `docs/platforms/lg-webos-signage-ipk.md` voor het actuele
+distributiecontract.
+
 Dit rapport maakt steeds onderscheid tussen:
 
 1. de baseline vóór deze audit;
