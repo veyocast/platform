@@ -1,0 +1,13 @@
+{
+  "appId": "nl.veyocast.player.webos",
+  "buildCommitSha": "9d91d6c7513dc6f27fc699573caf9f3838e84c71",
+  "buildTimestamp": "2026-07-25T18:32:10.519Z",
+  "hardwareValidationStatus": "NEEDS_PHYSICAL_LG_TEST",
+  "notes": [
+    "Eerste VeyoCast LG webOS Signage thin-wrapperrelease.",
+    "Laadt uitsluitend https://player.veyocast.nl/lg.",
+    "Pairing, offline media, releases, playback en telemetry blijven in de hosted Player.",
+    "SCAP en IDCAP worden niet aangeroepen zonder officiële modeldocumentatie en fysieke validatie."
+  ],
+  "version": "1.0.0"
+}

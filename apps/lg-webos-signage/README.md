@@ -65,6 +65,15 @@ dist/lg-webos/release-notes.json
 HTTPS-map worden gezet. Zonder die waarde blijft `downloadUrl` in `latest.json`
 bewust `null`.
 
+De huidige productiepublicatie wordt als statisch Marketing-artifact onder
+`https://veyocast.nl/ipk/` geleverd. Bouw en kopieer deze bytegevalideerd met:
+
+```bash
+LG_WEBOS_DISTRIBUTION_BASE_URL=https://veyocast.nl/ipk/ \
+  pnpm --filter @veyocast/lg-webos-signage build:ipk
+pnpm --filter @veyocast/lg-webos-signage publish:marketing
+```
+
 ## Platform- en securitygrens
 
 De lokale app framet alleen `https://player.veyocast.nl/lg`. De `/lg`-route

@@ -69,6 +69,7 @@ jobs:
         run: |
           pnpm --filter @veyocast/lg-webos-signage validate
           pnpm --filter @veyocast/lg-webos-signage test
+          pnpm --filter @veyocast/lg-webos-signage validate:publication
 
       - name: Validate hosted LG route
         run: |
