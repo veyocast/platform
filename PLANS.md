@@ -85,6 +85,7 @@ tests en exitcriteria staan in
 | S40 | VeyoCast Studio | Tenantveilige visuele authoring, versioned ontwerpen, deterministische PNG/MP4-rendering en integratie met de bestaande mediabibliotheek |
 | S41 | Launch platform operations | Android TV-form-factorartifact binnen één Play-app, Excel-productcatalogus, Slack-alerting, retention/deletion-governance, storageback-up en supportdesk |
 | S42 | LG webOS Signage IPK | Dunne installeerbare LG-shell rond de bestaande hosted Player, met begrensd herstel, reproduceerbare IPK, CI-inspectie en expliciete fysieke hardwaregates |
+| S44 | LG webOS launch recovery | Officiële genormaliseerde 1.0.1-IPK's, zelfstandige smoketest, zichtbare opstartdiagnostiek en exact 43UL3J-EP-testprotocol |
 
 ### Programmagates
 

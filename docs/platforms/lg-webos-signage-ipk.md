@@ -7,7 +7,8 @@ Signage-bronpakket voor:
 
 ```text
 App ID: nl.veyocast.player.webos
-Versie: 1.0.0
+Versie: 1.0.1
+Smoketest: nl.veyocast.player.webos.smoketest 1.0.1
 Hosted route: https://player.veyocast.nl/lg
 ```
 
@@ -91,12 +92,16 @@ pnpm --filter @veyocast/lg-webos-signage inspect
 ```
 
 De CLI is exact gepind op `@webos-tools/cli@3.2.5`. De build gebruikt de
-officiële `signage`-profile en `ares-package`.
+officiële `signage`-profile en `ares-package`. Een vastgelegde pnpm-patch
+corrigeert uitsluitend de upstream `x.y.x`-placeholder, host-UID/rechten en
+niet-deterministische archieftijden; de repository bevat geen eigen
+IPK-builder.
 
 Artifacts:
 
 ```text
-dist/lg-webos/nl.veyocast.player.webos_1.0.0_all.ipk
+dist/lg-webos/nl.veyocast.player.webos_1.0.1_all.ipk
+dist/lg-webos/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
 dist/lg-webos/checksums.sha256
 dist/lg-webos/latest.json
 dist/lg-webos/release-notes.json
@@ -105,7 +110,8 @@ dist/lg-webos/release-notes.json
 De huidige productie-IPK wordt door Marketing statisch aangeboden op:
 
 ```text
-https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.0_all.ipk
+https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.1_all.ipk
+https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
 ```
 
 De bytegelijke checksum, `latest.json` en release notes staan onder dezelfde
@@ -147,7 +153,7 @@ installeert of benadert nooit een LG-device.
 
 ## HTTPS-distributie
 
-Host de vier bestanden uit `dist/lg-webos/` als één versie-eenheid. Gebruik
+Host de vijf bestanden uit `dist/lg-webos/` als één versie-eenheid. Gebruik
 `distribution/lg-webos/README.md` als neutrale directorylayout.
 `latest.json` is alleen VeyoCast-metadata. Er is bewust geen SI
 Server-manifestformaat verzonnen.
@@ -258,6 +264,10 @@ Voer daarnaast het uitgebreidere protocol in
 `docs/player/lg-physical-test-protocol.md` uit. Totdat resultaten zijn
 gereviewd, blijven modelversie, minimum Signage-versie en supportedModels in
 `latest.json` leeg/null.
+
+Voor LG 43UL3J-EP, webOS 6.0 en firmware 03.24.90 is het exacte
+installatie-/autostartprotocol vastgelegd in
+`docs/platforms/lg-webos-43ul3j-ep-recovery.md`.
 
 ## Waarom Android niet werkt
 

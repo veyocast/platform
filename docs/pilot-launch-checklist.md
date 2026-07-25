@@ -52,8 +52,12 @@ wordt aangemerkt.
 
 ## LG webOS Signage IPK
 
+- [ ] De zelfstandige 1.0.1-smoketest start op LG 43UL3J-EP na een koude
+      powercycle met `Startmodus applicatie: Lokaal`.
 - [ ] De IPK is met de gepinde `@webos-tools/cli` gebouwd en met
       `ares-package --info` en `--info-detail` geïnspecteerd.
+- [ ] Beide IPK's rapporteren packagerversie 3.2.5, eigenaar 0/0 en normale
+      0755/0644-rechten.
 - [ ] De SHA-256 in `latest.json` komt exact overeen met het aangeboden
       IPK-bestand.
 - [ ] Het exacte LG-model, webOS Signage-platform en de firmware zijn
