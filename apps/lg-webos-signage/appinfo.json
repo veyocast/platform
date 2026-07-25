@@ -1,6 +1,6 @@
 {
   "id": "nl.veyocast.player.webos",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "vendor": "DG Webservices",
   "type": "web",
   "main": "index.html",
@@ -11,6 +11,7 @@
     "README.md",
     "package.json",
     "scripts",
+    "smoketest",
     "[.]webosignore",
     "[.]turbo",
     "[.]map"

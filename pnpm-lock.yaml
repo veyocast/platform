@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@webos-tools/cli@3.2.5': edbb5add0a9c03cc3ae86defd5ab0f725cf9f1608e3079a50b37e71d5b11c11f
+
 importers:
 
   .:
@@ -28,7 +31,7 @@ importers:
         version: 19.2.3(@types/react@19.2.17)
       '@webos-tools/cli':
         specifier: 3.2.5
-        version: 3.2.5
+        version: 3.2.5(patch_hash=edbb5add0a9c03cc3ae86defd5ab0f725cf9f1608e3079a50b37e71d5b11c11f)
       eslint:
         specifier: ^9.31.0
         version: 9.39.5(jiti@2.7.0)
@@ -6272,7 +6275,7 @@ snapshots:
       loupe: 3.2.1
       tinyrainbow: 2.0.0
 
-  '@webos-tools/cli@3.2.5':
+  '@webos-tools/cli@3.2.5(patch_hash=edbb5add0a9c03cc3ae86defd5ab0f725cf9f1608e3079a50b37e71d5b11c11f)':
     dependencies:
       ar-async: 0.1.4
       async: 3.2.6

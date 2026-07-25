@@ -1,6 +1,6 @@
 {
   "name": "@veyocast/lg-webos-signage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,6 +11,8 @@
     "test": "node --test scripts/*.test.mjs",
     "typecheck": "node scripts/validate-app.mjs",
     "validate": "node scripts/validate-app.mjs",
+    "validate:downloads": "node scripts/validate-public-downloads.mjs",
+    "validate:hosted": "node scripts/validate-hosted-route.mjs",
     "validate:publication": "node scripts/validate-publication.mjs"
   }
 }

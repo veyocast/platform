@@ -11,7 +11,7 @@
     <style>
       :root {
         color-scheme: dark;
-        font-family: Inter, Arial, sans-serif;
+        font-family: Arial, sans-serif;
       }
 
       * {
@@ -50,11 +50,14 @@
       .local-status,
       .management {
         align-items: center;
-        background: #0a0a0a;
+        background:
+          radial-gradient(circle at 82% 14%, rgba(255, 92, 32, 0.13), transparent 30%),
+          radial-gradient(circle at 12% 88%, rgba(49, 92, 255, 0.12), transparent 36%),
+          #0a0a0a;
         display: flex;
         inset: 0;
         justify-content: center;
-        padding: 5vw;
+        padding: clamp(24px, 4vw, 72px);
         position: absolute;
         z-index: 10;
       }
@@ -65,54 +68,146 @@
       }
 
       .panel {
-        background: #111111;
-        border: 1px solid #333331;
-        border-radius: 16px;
-        max-height: 90vh;
-        max-width: 880px;
+        background: rgba(17, 17, 17, 0.97);
+        border: 1px solid #383836;
+        border-radius: 14px;
+        box-shadow: 0 30px 100px rgba(0, 0, 0, 0.38);
+        max-height: 92vh;
+        max-width: 1240px;
         overflow: auto;
-        padding: clamp(32px, 4vw, 64px);
+        padding: clamp(28px, 3.4vw, 54px);
         width: 100%;
+      }
+
+      .panel--management {
+        max-width: 1120px;
       }
 
       .brand {
         display: block;
         height: auto;
-        margin-bottom: 48px;
-        max-width: 320px;
-        width: 46%;
+        margin-bottom: clamp(24px, 3vw, 42px);
+        max-width: 290px;
+        width: 35%;
       }
 
       .eyebrow {
         color: #b9b9b2;
-        font-size: clamp(18px, 1.5vw, 28px);
+        font-size: clamp(15px, 1.15vw, 21px);
         font-weight: 700;
-        letter-spacing: 0.08em;
-        margin: 0 0 16px;
+        letter-spacing: 0.09em;
+        margin: 0 0 12px;
         text-transform: uppercase;
       }
 
       h1 {
-        font-size: clamp(48px, 6vw, 96px);
+        font-size: clamp(42px, 4.8vw, 74px);
         letter-spacing: -0.04em;
-        line-height: 0.98;
+        line-height: 1;
         margin: 0;
-        max-width: 12ch;
       }
 
       .copy {
         color: #c9c9c4;
-        font-size: clamp(24px, 2vw, 36px);
+        font-size: clamp(20px, 1.55vw, 28px);
         line-height: 1.45;
-        margin: 28px 0 0;
-        max-width: 30em;
+        margin: 20px 0 0;
+        max-width: 38em;
+      }
+
+      .steps {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        list-style: none;
+        margin: 30px 0 0;
+        padding: 0;
+      }
+
+      .step {
+        background: #181817;
+        border: 1px solid #343432;
+        border-radius: 9px;
+        min-height: 92px;
+        padding: 16px 18px;
+      }
+
+      .step strong,
+      .step span {
+        display: block;
+      }
+
+      .step strong {
+        font-size: clamp(17px, 1.15vw, 21px);
+      }
+
+      .step span {
+        color: #a9a9a3;
+        font-size: clamp(15px, 1vw, 19px);
+        margin-top: 7px;
+      }
+
+      .step[data-state="done"] {
+        border-color: rgba(45, 204, 116, 0.62);
+      }
+
+      .step[data-state="active"] {
+        border-color: #ff5c20;
+      }
+
+      .step[data-state="error"] {
+        border-color: #d64545;
+      }
+
+      .diagnostics {
+        border: 1px solid #343432;
+        border-radius: 10px;
+        margin-top: 24px;
+        overflow: hidden;
+      }
+
+      .diagnostics h2 {
+        background: #181817;
+        border-bottom: 1px solid #343432;
+        font-size: clamp(18px, 1.2vw, 22px);
+        margin: 0;
+        padding: 15px 18px;
+      }
+
+      dl {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin: 0;
+      }
+
+      dl div {
+        border-bottom: 1px solid #2e2e2c;
+        min-width: 0;
+        padding: 13px 18px;
+      }
+
+      dl div:nth-child(odd) {
+        border-right: 1px solid #2e2e2c;
+      }
+
+      dt {
+        color: #92928b;
+        font-size: clamp(13px, 0.9vw, 17px);
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+
+      dd {
+        font-size: clamp(15px, 1vw, 19px);
+        margin: 0;
+        overflow-wrap: anywhere;
       }
 
       .actions {
         display: flex;
         flex-wrap: wrap;
-        gap: 20px;
-        margin-top: 40px;
+        gap: 16px;
+        margin-top: 26px;
       }
 
       button {
@@ -121,10 +216,10 @@
         border-radius: 8px;
         color: #0a0a0a;
         font: inherit;
-        font-size: clamp(20px, 1.5vw, 28px);
+        font-size: clamp(18px, 1.2vw, 22px);
         font-weight: 700;
-        min-height: 64px;
-        padding: 14px 24px;
+        min-height: 58px;
+        padding: 13px 22px;
       }
 
       button.secondary {
@@ -133,54 +228,28 @@
         color: #fafaf7;
       }
 
-      dl {
-        border-top: 1px solid #333331;
-        display: grid;
-        gap: 0;
-        margin: 40px 0 0;
-      }
-
-      dl div {
-        align-items: baseline;
-        border-bottom: 1px solid #333331;
-        display: grid;
-        gap: 24px;
-        grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.3fr);
-        padding: 20px 0;
-      }
-
-      dt {
-        color: #92928b;
-        font-weight: 700;
-      }
-
-      dd {
-        margin: 0;
-        overflow-wrap: anywhere;
-      }
-
-      @media (max-width: 720px), (max-height: 540px) {
+      @media (max-width: 760px), (max-height: 620px) {
         .local-status,
         .management {
-          padding: 24px;
+          padding: 20px;
         }
 
         .panel {
-          padding: 28px;
+          padding: 24px;
         }
 
         .brand {
-          margin-bottom: 28px;
+          margin-bottom: 22px;
           max-width: 220px;
         }
 
-        h1 {
-          font-size: 44px;
+        .steps,
+        dl {
+          grid-template-columns: 1fr;
         }
 
-        .copy,
-        button {
-          font-size: 20px;
+        dl div:nth-child(odd) {
+          border-right: 0;
         }
       }
     </style>
@@ -197,43 +266,77 @@
 
       <section class="local-status" id="local-status" aria-live="polite">
         <div class="panel">
-          <img
-            alt="VeyoCast"
-            class="brand"
-            src="veyocast-logo-inverse.svg"
-          />
-          <p class="eyebrow" id="status-label">Player starten</p>
-          <h1 id="status-title">Verbinding met VeyoCast maken</h1>
+          <img alt="VeyoCast" class="brand" src="veyocast-logo-inverse.svg" />
+          <p class="eyebrow" id="status-label">Lokale wrapper actief</p>
+          <h1 id="status-title">VeyoCast Player wordt gestart</h1>
           <p class="copy" id="status-copy">
-            De Player wordt veilig geladen. Als het netwerk tijdelijk niet
-            beschikbaar is, proberen we het automatisch opnieuw.
+            Deze pagina komt uit de geïnstalleerde app. De hosted Player wordt
+            pas verborgen nadat de beveiligde READY-handshake is ontvangen.
           </p>
+
+          <ol class="steps">
+            <li class="step" data-state="done" id="step-local">
+              <strong>Stap 1</strong>
+              <span>Lokale applicatie gestart</span>
+            </li>
+            <li class="step" data-state="active" id="step-network">
+              <strong>Stap 2</strong>
+              <span>Netwerk controleren</span>
+            </li>
+            <li class="step" data-state="waiting" id="step-hosted">
+              <strong>Stap 3</strong>
+              <span>Hosted Player openen</span>
+            </li>
+          </ol>
+
+          <section class="diagnostics" aria-labelledby="startup-diagnostics-title">
+            <h2 id="startup-diagnostics-title">Opstartdiagnose</h2>
+            <dl>
+              <div><dt>App</dt><dd data-diagnostic="identity">Laden</dd></div>
+              <div><dt>Huidige URL</dt><dd data-diagnostic="current-url">Laden</dd></div>
+              <div><dt>Internet</dt><dd data-diagnostic="online">Controleren</dd></div>
+              <div><dt>Iframe load</dt><dd data-diagnostic="iframe-load">Nee</dd></div>
+              <div><dt>Iframe error</dt><dd data-diagnostic="iframe-error">Geen</dd></div>
+              <div><dt>READY-bericht</dt><dd data-diagnostic="ready">Nee</dd></div>
+              <div><dt>Berichten</dt><dd data-diagnostic="messages">0</dd></div>
+              <div><dt>Laatste origin</dt><dd data-diagnostic="message-origin">Geen</dd></div>
+              <div><dt>Timeout</dt><dd data-diagnostic="timeout">Nee</dd></div>
+              <div><dt>Herstartpogingen</dt><dd data-diagnostic="retries">0</dd></div>
+              <div><dt>Laatste fout</dt><dd data-diagnostic="last-error">Geen</dd></div>
+              <div><dt>Laatste wijziging</dt><dd data-diagnostic="last-change">Laden</dd></div>
+              <div><dt>Vorige sessie</dt><dd data-diagnostic="previous-session">Geen</dd></div>
+              <div><dt>User-agent</dt><dd data-diagnostic="user-agent">Laden</dd></div>
+            </dl>
+          </section>
+
           <div class="actions">
-            <button hidden id="retry-button" type="button">Probeer opnieuw</button>
+            <button hidden id="retry-button" type="button">Opnieuw proberen</button>
           </div>
         </div>
       </section>
 
       <aside class="management" hidden id="management" aria-labelledby="management-title">
-        <div class="panel">
-          <img
-            alt="VeyoCast"
-            class="brand"
-            src="veyocast-logo-inverse.svg"
-          />
+        <div class="panel panel--management">
+          <img alt="VeyoCast" class="brand" src="veyocast-logo-inverse.svg" />
           <p class="eyebrow">Playerbeheer</p>
           <h1 id="management-title">LG webOS Signage</h1>
           <p class="copy">
-            Platformdiagnostiek zonder pairingtoken, media-URL of andere
-            gevoelige gegevens.
+            Veilige wrapperdiagnostiek zonder pairingcode, token, querystring
+            of volledige media-URL.
           </p>
-          <dl>
-            <div><dt>Wrapper</dt><dd id="diagnostic-version">1.0.0</dd></div>
-            <div><dt>Hosted Player</dt><dd id="diagnostic-player">Starten</dd></div>
-            <div><dt>Internet</dt><dd id="diagnostic-network">Controleren</dd></div>
-            <div><dt>Platformadapter</dt><dd id="diagnostic-adapter">Webstandaard</dd></div>
-            <div><dt>LG API-status</dt><dd id="diagnostic-lg-api">Niet gevalideerd</dd></div>
-          </dl>
+          <section class="diagnostics" aria-labelledby="management-diagnostics-title">
+            <h2 id="management-diagnostics-title">Actuele status</h2>
+            <dl>
+              <div><dt>App</dt><dd data-diagnostic="identity">Laden</dd></div>
+              <div><dt>Hosted Player</dt><dd data-diagnostic="ready">Laden</dd></div>
+              <div><dt>Internet</dt><dd data-diagnostic="online">Laden</dd></div>
+              <div><dt>Platformadapter</dt><dd id="diagnostic-adapter">Webstandaard</dd></div>
+              <div><dt>LG API-status</dt><dd id="diagnostic-lg-api">Niet gevalideerd</dd></div>
+              <div><dt>Laatste fout</dt><dd data-diagnostic="last-error">Geen</dd></div>
+              <div><dt>Laatste wijziging</dt><dd data-diagnostic="last-change">Laden</dd></div>
+              <div><dt>Herstartpogingen</dt><dd data-diagnostic="retries">0</dd></div>
+            </dl>
+          </section>
           <div class="actions">
             <button id="resume-button" type="button">Terug naar Player</button>
             <button class="secondary" id="reload-button" type="button">

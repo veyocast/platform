@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="color-scheme" content="dark" />
+    <title>VeyoCast LG Test</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        background: #0a0a0a;
+        color: #fafaf7;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        width: 100%;
+      }
+
+      body {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        padding: 4vw;
+      }
+
+      main {
+        background: #121212;
+        border: 1px solid #3a3a38;
+        border-radius: 12px;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+        max-height: 92vh;
+        max-width: 1180px;
+        overflow: auto;
+        padding: clamp(28px, 4vw, 56px);
+        width: 100%;
+      }
+
+      .brand {
+        height: auto;
+        max-width: 270px;
+        width: 34%;
+      }
+
+      .eyebrow {
+        color: #ff5c20;
+        font-size: clamp(16px, 1.2vw, 22px);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        margin: 36px 0 12px;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        font-size: clamp(42px, 5vw, 76px);
+        letter-spacing: -0.04em;
+        line-height: 1;
+        margin: 0;
+      }
+
+      .running {
+        align-items: center;
+        color: #d2d2cd;
+        display: flex;
+        font-size: clamp(20px, 1.6vw, 28px);
+        gap: 14px;
+        margin: 24px 0 0;
+      }
+
+      .dot {
+        background: #2dcc74;
+        border-radius: 999px;
+        box-shadow: 0 0 24px rgba(45, 204, 116, 0.65);
+        height: 14px;
+        width: 14px;
+      }
+
+      dl {
+        border: 1px solid #353532;
+        border-radius: 10px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin: 34px 0 0;
+        overflow: hidden;
+      }
+
+      dl div {
+        border-bottom: 1px solid #353532;
+        padding: 18px 22px;
+      }
+
+      dl div:nth-child(odd) {
+        border-right: 1px solid #353532;
+      }
+
+      dt {
+        color: #92928b;
+        font-size: clamp(15px, 1vw, 19px);
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      dd {
+        font-size: clamp(18px, 1.25vw, 24px);
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .remote {
+        background: #191918;
+        border-left: 4px solid #ff5c20;
+        border-radius: 8px;
+        margin-top: 24px;
+        padding: 18px 22px;
+      }
+
+      @media (max-width: 760px), (max-height: 600px) {
+        body {
+          padding: 20px;
+        }
+
+        main {
+          padding: 24px;
+        }
+
+        .eyebrow {
+          margin-top: 24px;
+        }
+
+        dl {
+          grid-template-columns: 1fr;
+        }
+
+        dl div:nth-child(odd) {
+          border-right: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img
+        alt="VeyoCast"
+        class="brand"
+        src="veyocast-logo-inverse.svg"
+      />
+      <p class="eyebrow">Zelfstandige hardwaretest</p>
+      <h1>VeyoCast LG-test gestart</h1>
+      <p class="running">
+        <span class="dot" aria-hidden="true"></span>
+        JavaScript draait · teller <strong id="counter">0</strong>
+      </p>
+
+      <dl>
+        <div><dt>App-versie</dt><dd>1.0.1</dd></div>
+        <div><dt>Datum/tijd</dt><dd id="date-time">Starten</dd></div>
+        <div><dt>navigator.userAgent</dt><dd id="user-agent">Onbekend</dd></div>
+        <div><dt>Schermresolutie</dt><dd id="resolution">Onbekend</dd></div>
+        <div><dt>navigator.onLine</dt><dd id="online">Onbekend</dd></div>
+        <div><dt>document.visibilityState</dt><dd id="visibility">Onbekend</dd></div>
+      </dl>
+
+      <section class="remote" aria-live="polite">
+        <strong>Laatste afstandsbedieningsinput</strong>
+        <div id="remote-input">Nog geen toets ontvangen</div>
+      </section>
+    </main>
+
+    <script>
+      (function runSmokeTest(global, documentValue) {
+        "use strict";
+
+        var counter = 0;
+        var counterNode = documentValue.getElementById("counter");
+        var dateTimeNode = documentValue.getElementById("date-time");
+        var userAgentNode = documentValue.getElementById("user-agent");
+        var resolutionNode = documentValue.getElementById("resolution");
+        var onlineNode = documentValue.getElementById("online");
+        var visibilityNode = documentValue.getElementById("visibility");
+        var remoteNode = documentValue.getElementById("remote-input");
+
+        userAgentNode.textContent = String(global.navigator.userAgent || "Onbekend");
+        updateStatus();
+        global.setInterval(function tick() {
+          counter += 1;
+          counterNode.textContent = String(counter);
+          updateStatus();
+        }, 1000);
+
+        documentValue.addEventListener("visibilitychange", updateStatus);
+        global.addEventListener("online", updateStatus);
+        global.addEventListener("offline", updateStatus);
+        documentValue.addEventListener("keydown", function handleKey(event) {
+          var label = resolveKey(event);
+          if (!label) return;
+          event.preventDefault();
+          remoteNode.textContent =
+            label + " · keyCode " + String(event.keyCode || 0) +
+            " · " + new Date().toLocaleTimeString("nl-NL");
+        });
+
+        function updateStatus() {
+          dateTimeNode.textContent = new Date().toLocaleString("nl-NL");
+          resolutionNode.textContent =
+            String(global.screen.width || global.innerWidth || 0) +
+            " × " +
+            String(global.screen.height || global.innerHeight || 0);
+          onlineNode.textContent =
+            global.navigator.onLine === false ? "false" : "true";
+          visibilityNode.textContent =
+            String(documentValue.visibilityState || "onbekend");
+        }
+
+        function resolveKey(event) {
+          var key = event.key || "";
+          var keyCode = event.keyCode || 0;
+          if (key === "ArrowLeft" || keyCode === 37) return "LINKS";
+          if (key === "ArrowUp" || keyCode === 38) return "OMHOOG";
+          if (key === "ArrowRight" || keyCode === 39) return "RECHTS";
+          if (key === "ArrowDown" || keyCode === 40) return "OMLAAG";
+          if (key === "Enter" || keyCode === 13) return "OK";
+          if (keyCode === 461 || key === "GoBack" || key === "BrowserBack") {
+            return "BACK";
+          }
+          if (keyCode === 179 || key === "MediaPlayPause") return "PLAY/PAUSE";
+          if (keyCode === 415 || key === "MediaPlay") return "PLAY";
+          if (keyCode === 19 || key === "MediaPause") return "PAUSE";
+          return null;
+        }
+      })(window, document);
+    </script>
+  </body>
+</html>

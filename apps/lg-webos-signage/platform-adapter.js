@@ -2,7 +2,7 @@
   "use strict";
 
   var APP_ID = "nl.veyocast.player.webos";
-  var APP_VERSION = "1.0.0";
+  var APP_VERSION = "1.0.1";
   var PROTOCOL_VERSION = 1;
 
   function hasProperty(object, property) {

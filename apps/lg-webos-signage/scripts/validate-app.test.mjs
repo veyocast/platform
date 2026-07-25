@@ -4,7 +4,8 @@ import { test } from "node:test";
 import {
   isSemanticVersion,
   parsePngDimensions,
-  validateExternalUrls
+  validateExternalUrls,
+  validateLegacyJavascript
 } from "./validate-app.mjs";
 
 test("semantic versions require major, minor and patch", () => {
@@ -34,5 +35,20 @@ test("external URL validation permits only the production Player origin", () => 
   assert.match(
     validateExternalUrls("http://player.veyocast.nl/lg", "bootstrap.js")[0],
     /niet-HTTPS/u
+  );
+});
+
+test("webOS 6 runtime validation rejects untranspiled modern syntax", () => {
+  assert.deepEqual(
+    validateLegacyJavascript(
+      '(function () { "use strict"; var value = 1; return value; })();',
+      "runtime.js"
+    ),
+    []
+  );
+  assert.match(
+    validateLegacyJavascript("const value = source?.value ?? 0;", "runtime.js")
+      .join("\n"),
+    /const-declaratie|optional chaining|nullish coalescing/u
   );
 });
