@@ -150,6 +150,16 @@ export function guessProductColumnMapping(
   return Object.fromEntries(
     headers.map((header) => {
       const normalized = normalizeHeader(header);
+      const exactTarget = exactTwelveHeaderTargets[normalized];
+      if (exactTarget) {
+        if (!exactTarget.startsWith("custom:")) {
+          if (claimed.has(exactTarget)) {
+            return [header, `custom:${slugify(header)}` as const];
+          }
+          claimed.add(exactTarget);
+        }
+        return [header, exactTarget];
+      }
       const target = productStandardFields.find((field) =>
         !claimed.has(field) && headerAliases[field].some((alias) =>
           normalized === alias || normalized.includes(alias)
@@ -373,4 +383,23 @@ const headerAliases: Record<ProductStandardField, readonly string[]> = {
   price: ["verkoopprijs", "prijs inclusief btw", "incl btw", "prijs", "price", "bedrag"],
   unit: ["eenheid", "unit", "verpakking"],
   vat_rate: ["btw percentage", "btw tarief", "btw", "vat"]
+};
+
+/**
+ * Twelve exports use English technical column names whose meaning is not
+ * always the literal label. In particular, `Amount` is the sales price,
+ * `VAT Id` is a Twelve reference (not a percentage), and `Open price` is a
+ * boolean. Exact matches therefore take precedence over the generic aliases.
+ */
+const exactTwelveHeaderTargets: Readonly<
+  Record<string, Exclude<ProductColumnTarget, null>>
+> = {
+  amount: "price",
+  "external id": "custom:external-id",
+  id: "external_id",
+  "main product": "custom:main-product",
+  "name long": "description",
+  "name short": "name",
+  "open price": "custom:open-price",
+  "vat id": "custom:twelve-vat-id"
 };
