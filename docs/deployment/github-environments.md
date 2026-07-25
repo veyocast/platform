@@ -173,3 +173,13 @@ Gecontroleerde rollback:
 
 Ook rollback doorloopt staging en production approval. Een normale release
 weigert een SHA zodra `main` verder is gegaan.
+# Operationele secrets en variabelen
+
+Voor `production` is daarnaast nodig:
+
+- secret `SLACK_ALERT_WEBHOOK_URL`: inkomende webhook van het besloten
+  monitoringkanaal;
+- variable `RETENTION_ENFORCEMENT_ENABLED`: begin met `false`; pas na juridisch
+  goedgekeurde policies op `true`;
+- bestaande secret `SUPABASE_SERVICE_ROLE_KEY` en variable
+  `NEXT_PUBLIC_SUPABASE_URL` worden door de retentionjob hergebruikt.

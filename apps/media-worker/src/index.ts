@@ -19,6 +19,7 @@ import {
   runStudioRenderOnce,
   type StudioRenderRunResult
 } from "./studio-render-runner";
+import { runServiceMonitor } from "./service-monitor";
 
 export {
   createMediaProcessingPlan,
@@ -188,7 +189,8 @@ async function main() {
         },
         renderer: studioRenderer,
         signal: controller.signal
-      })
+      }),
+      ...serviceMonitorTasks(controller.signal, logger)
     ]);
   } finally {
     process.removeListener("SIGINT", stop);
@@ -196,6 +198,38 @@ async function main() {
     await closeServer(healthServer);
     logger.info("media.worker.stopped");
   }
+}
+
+function serviceMonitorTasks(
+  signal: AbortSignal,
+  logger: ReturnType<typeof createStructuredLogger>
+) {
+  const webhookUrl = process.env.SLACK_ALERT_WEBHOOK_URL?.trim();
+  if (!webhookUrl) {
+    logger.info("monitor.disabled", { reason: "webhook_not_configured" });
+    return [];
+  }
+  const targets = [
+    ["control", process.env.MONITOR_CONTROL_URL],
+    ["player", process.env.MONITOR_PLAYER_URL],
+    ["marketing", process.env.MONITOR_MARKETING_URL]
+  ]
+    .filter((entry): entry is [string, string] => Boolean(entry[1]))
+    .map(([name, url]) => ({ name, url }));
+  if (!targets.length) {
+    logger.error("monitor.disabled", { reason: "targets_not_configured" });
+    return [];
+  }
+  return [runServiceMonitor({
+    environment: process.env.VEYOCAST_ENVIRONMENT ?? "unknown",
+    onEvent: (event, fields) => {
+      if (event.endsWith(".failed")) logger.error(event, fields);
+      else logger.info(event, fields);
+    },
+    signal,
+    targets,
+    webhookUrl
+  })];
 }
 
 function logStudioRenderResult(
