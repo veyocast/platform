@@ -1,0 +1,14 @@
+{
+  "name": "@veyocast/lg-webos-signage",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:ipk": "node scripts/build-ipk.mjs",
+    "inspect": "node scripts/inspect-ipk.mjs",
+    "lint": "node scripts/validate-app.mjs",
+    "test": "node --test scripts/*.test.mjs",
+    "typecheck": "node scripts/validate-app.mjs",
+    "validate": "node scripts/validate-app.mjs"
+  }
+}

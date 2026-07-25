@@ -2,9 +2,9 @@ packages:
   - apps/*
   - packages/*
 
-onlyBuiltDependencies:
-  - esbuild
-  - sharp
 allowBuilds:
+  '@webos-tools/cli': true
+  cpu-features: false
   esbuild: true
   sharp: true
+  ssh2: false
