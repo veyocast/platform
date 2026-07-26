@@ -371,9 +371,15 @@ test("media route exposes upload intake labels and status landmarks", async ({
     hasText: "Uploaden is niet beschikbaar in de demomodus"
   })).toBeVisible();
 
-  await page.goto("/dashboard/media?upload=1", { waitUntil: "commit" });
   const uploadDialog = page.getByRole("dialog", { name: "Media uploaden" });
-  await expect(uploadDialog).toBeVisible();
+  await expect(async () => {
+    try {
+      await page.goto("/dashboard/media?upload=1", { waitUntil: "commit" });
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(uploadDialog).toBeVisible();
+  }).toPass({ timeout: 20_000 });
   const imageFiles = uploadDialog.getByLabel("Afbeeldingen", { exact: true });
   await expect(imageFiles).toBeVisible();
   await expect(imageFiles).toHaveAttribute("multiple", "");
@@ -491,13 +497,32 @@ test("tenant management exposes a labelled and safely disabled creation flow", a
 });
 
 test("screens onboarding exposes labelled lifecycle and safely disabled creation", async ({ page }) => {
-  await page.goto("/dashboard/screens");
+  // Warm the lazily compiled onboarding segment so the keyboard/click journey
+  // is not replaced by a Next dev Fast Refresh of the screens overview.
+  await expect(async () => {
+    try {
+      await page.goto("/dashboard/screens/new");
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(page.getByLabel("Onboardingstappen")).toContainText("Player koppelen");
+  }).toPass({ timeout: 20_000 });
+  await expect(async () => {
+    try {
+      await page.goto("/dashboard/screens");
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(
+      page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
+    ).toBeVisible();
+  }).toPass({ timeout: 20_000 });
 
-  await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
-  ).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "geen fictieve schermen" })).toBeVisible();
-  await page.getByRole("link", { name: "Scherm toevoegen" }).click();
+  await Promise.all([
+    page.waitForURL(/\/dashboard\/screens\/new$/, { timeout: 10_000 }),
+    page.getByRole("link", { name: "Scherm toevoegen" }).click()
+  ]);
   await expect(page.getByLabel("Onboardingstappen")).toContainText("Player koppelen");
   await expect(page.getByLabel("Schermnaam")).toBeVisible();
   await expect(page.getByLabel("Eerste content (optioneel)")).toBeVisible();
