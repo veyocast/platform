@@ -22,6 +22,7 @@ const base: ScreenAutomationSettingsInput = {
     }
   ],
   restoreAfterReboot: true,
+  scheduleMode: "weekly",
   startupEnabled: true,
   temporaryOverride: "none",
   temporaryOverrideUntil: null,
@@ -51,6 +52,37 @@ describe("screen automation contracts", () => {
       ...base,
       hdmiCecEnabled: true,
       localWakeEnabled: false
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts an always-active schedule without ambiguous equal times", () => {
+    expect(screenAutomationSettingsInputSchema.safeParse({
+      ...base,
+      periods: [],
+      scheduleMode: "always"
+    }).success).toBe(true);
+  });
+
+  it("rejects a closure combined with another exception on the same date", () => {
+    const result = screenAutomationSettingsInputSchema.safeParse({
+      ...base,
+      exceptions: [
+        {
+          date: "2026-07-27",
+          endLocalTime: null,
+          mode: "closed",
+          reason: null,
+          startLocalTime: null
+        },
+        {
+          date: "2026-07-27",
+          endLocalTime: "12:00",
+          mode: "open",
+          reason: null,
+          startLocalTime: "10:00"
+        }
+      ]
     });
     expect(result.success).toBe(false);
   });
@@ -135,5 +167,22 @@ describe("screen automation evaluator", () => {
   it("fails safely for disabled automation", () => {
     expect(evaluateScreenAutomationAt({ ...base, enabled: false }, new Date()))
       .toMatchObject({ active: false, reason: "disabled", shouldPrepareWake: false });
+  });
+
+  it("applies a cross-midnight exception before a temporary pause", () => {
+    const settings = {
+      ...base,
+      exceptions: [{
+        date: "2026-07-26",
+        endLocalTime: "01:00",
+        mode: "open" as const,
+        reason: "Toernooi",
+        startLocalTime: "22:00"
+      }],
+      temporaryOverride: "paused" as const,
+      temporaryOverrideUntil: "2026-07-27T08:00:00Z"
+    };
+    expect(evaluateScreenAutomationAt(settings, new Date("2026-07-26T22:30:00Z")))
+      .toMatchObject({ active: true, reason: "exception_open" });
   });
 });

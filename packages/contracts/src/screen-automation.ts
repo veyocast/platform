@@ -23,6 +23,7 @@ export const screenAutomationCommandStatusSchema = z.enum([
 export const screenAutomationEventTypeSchema = z.enum([
   "automation-config-received",
   "automation-config-stored",
+  "command-received",
   "schedule-evaluated",
   "wake-scheduled",
   "wake-triggered",
@@ -113,6 +114,7 @@ export const screenAutomationSettingsInputSchema = z
     offlineExecutionEnabled: z.boolean(),
     periods: z.array(screenAutomationPeriodSchema).max(56),
     restoreAfterReboot: z.boolean(),
+    scheduleMode: z.enum(["always", "weekly"]),
     startupEnabled: z.boolean(),
     temporaryOverride: z.enum(["none", "active", "paused"]).default("none"),
     temporaryOverrideUntil: z.string().datetime({ offset: true }).nullable().default(null),
@@ -125,6 +127,13 @@ export const screenAutomationSettingsInputSchema = z
         code: "custom",
         message: "HDMI-CEC vereist dat lokale startpogingen zijn ingeschakeld.",
         path: ["hdmiCecEnabled"]
+      });
+    }
+    if (settings.localWakeEnabled && !settings.startupEnabled) {
+      context.addIssue({
+        code: "custom",
+        message: "Lokale start vereist dat automatisch starten is ingeschakeld.",
+        path: ["localWakeEnabled"]
       });
     }
     if (settings.temporaryOverride !== "none" && !settings.temporaryOverrideUntil) {
@@ -175,6 +184,7 @@ export const screenAutomationCommandReportSchema = z.object({
     .string()
     .regex(/^[A-Z0-9_]{1,100}$/)
     .nullable(),
+  eventId: z.string().uuid(),
   eventType: screenAutomationEventTypeSchema,
   metadata: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
     .default({}),
@@ -223,6 +233,7 @@ export function evaluateScreenAutomationAt(
     | "enabled"
     | "exceptions"
     | "periods"
+    | "scheduleMode"
     | "temporaryOverride"
     | "temporaryOverrideUntil"
     | "timezone"
@@ -251,6 +262,7 @@ function evaluateActiveState(
     | "enabled"
     | "exceptions"
     | "periods"
+    | "scheduleMode"
     | "temporaryOverride"
     | "temporaryOverrideUntil"
     | "timezone"
@@ -275,16 +287,6 @@ function evaluateActiveState(
     };
   }
 
-  const overrideActive =
-    settings.temporaryOverride !== "none" &&
-    settings.temporaryOverrideUntil &&
-    Date.parse(settings.temporaryOverrideUntil) > at.getTime();
-  if (overrideActive) {
-    return settings.temporaryOverride === "active"
-      ? { active: true, reason: "temporary_active" }
-      : { active: false, reason: "temporary_paused" };
-  }
-
   const previous = previousLocalDate(local.date);
   const previousOpenings = settings.exceptions.filter(
     (exception) => exception.date === previous && exception.mode === "open"
@@ -296,6 +298,20 @@ function evaluateActiveState(
     )
   ) {
     return { active: true, reason: "exception_open" };
+  }
+
+  const overrideActive =
+    settings.temporaryOverride !== "none" &&
+    settings.temporaryOverrideUntil &&
+    Date.parse(settings.temporaryOverrideUntil) > at.getTime();
+  if (overrideActive) {
+    return settings.temporaryOverride === "active"
+      ? { active: true, reason: "temporary_active" }
+      : { active: false, reason: "temporary_paused" };
+  }
+
+  if (settings.scheduleMode === "always") {
+    return { active: true, reason: "weekly" };
   }
 
   const weeklyActive = settings.periods
@@ -417,35 +433,55 @@ function addExceptionOverlapIssues(
   exceptions: ScreenAutomationException[],
   context: z.RefinementCtx
 ) {
-  const grouped = new Map<string, Array<{ end: number; index: number; start: number }>>();
+  const closedDates = new Map<string, number>();
+  const windows: Array<{ end: number; index: number; start: number }> = [];
   exceptions.forEach((exception, index) => {
+    if (exception.mode === "closed") {
+      const existingIndex = closedDates.get(exception.date);
+      if (
+        existingIndex !== undefined ||
+        exceptions.some(
+          (candidate, candidateIndex) =>
+            candidateIndex !== index &&
+            candidate.date === exception.date
+        )
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "Een sluitingsdag kan niet met andere uitzonderingen worden gecombineerd.",
+          path: ["exceptions", index]
+        });
+      }
+      closedDates.set(exception.date, index);
+      return;
+    }
     if (
-      exception.mode !== "open" ||
       !exception.startLocalTime ||
       !exception.endLocalTime
     ) return;
-    const start = timeToMinute(exception.startLocalTime);
-    let end = timeToMinute(exception.endLocalTime);
+    const day = localDateToEpochDay(exception.date);
+    const start = day * 1440 + timeToMinute(exception.startLocalTime);
+    let end = day * 1440 + timeToMinute(exception.endLocalTime);
     if (end <= start) end += 24 * 60;
-    grouped.set(exception.date, [
-      ...(grouped.get(exception.date) ?? []),
-      { end, index, start }
-    ]);
+    windows.push({ end, index, start });
   });
-  for (const intervals of grouped.values()) {
-    intervals.sort((left, right) => left.start - right.start);
-    for (let index = 1; index < intervals.length; index += 1) {
-      const current = intervals[index];
-      const previous = intervals[index - 1];
-      if (current && previous && current.start < previous.end) {
-        context.addIssue({
-          code: "custom",
-          message: "Uitzonderingstijden mogen elkaar niet overlappen.",
-          path: ["exceptions", current.index]
-        });
-      }
+  windows.sort((left, right) => left.start - right.start);
+  for (let index = 1; index < windows.length; index += 1) {
+    const current = windows[index];
+    const previous = windows[index - 1];
+    if (current && previous && current.start < previous.end) {
+      context.addIssue({
+        code: "custom",
+        message: "Uitzonderingstijden mogen elkaar niet overlappen.",
+        path: ["exceptions", current.index]
+      });
     }
   }
+}
+
+function localDateToEpochDay(value: string) {
+  const [year = 1970, month = 1, day = 1] = value.split("-").map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
 }
 
 function isValidTimezone(value: string) {
