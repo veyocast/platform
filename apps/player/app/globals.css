@@ -422,6 +422,21 @@ body {
   width: 100vw;
 }
 
+video.playback-media {
+  pointer-events: none;
+}
+
+video.playback-media::-webkit-media-controls,
+video.playback-media::-webkit-media-controls-enclosure,
+video.playback-media::-webkit-media-controls-panel,
+video.playback-media::-webkit-media-controls-overlay-play-button,
+video.playback-media::-webkit-media-controls-start-playback-button {
+  -webkit-appearance: none;
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .playback-media--cover {
   object-fit: cover;
 }

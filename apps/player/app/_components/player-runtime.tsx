@@ -1500,7 +1500,10 @@ export function PlaybackMedia({
         aria-label={presentation.accessibilityName}
         autoPlay
         className={className}
+        controls={false}
+        controlsList="nodownload nofullscreen noplaybackrate"
         data-testid="player-video"
+        disablePictureInPicture
         muted={item.muted}
         onEnded={completeVideoPlayback}
         onLoadedMetadata={(event) => {
@@ -1550,9 +1553,10 @@ export function PlaybackMedia({
         }}
         playsInline
         poster={item.source.posterUrl}
-        preload="metadata"
+        preload="auto"
         ref={videoRef}
         style={mediaStyle}
+        tabIndex={-1}
       >
         {item.source.url ? (
           <source key={item.source.url} src={item.source.url} type={item.source.mimeType} />
