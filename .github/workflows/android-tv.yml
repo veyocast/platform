@@ -75,7 +75,7 @@ jobs:
       - name: Build Google TV debug APKs
         run: ./gradlew :tv:assembleStagingDebug :tv:assembleProductionDebug --no-daemon
 
-      - name: Build and validate Google TV production bundle
+      - name: Build and validate production bundles
         run: |
           bundletool_url="https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar"
           bundletool_path="${RUNNER_TEMP}/bundletool-all-1.18.3.jar"
@@ -88,10 +88,19 @@ jobs:
             "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29" \
             "${bundletool_path}" \
             | sha256sum --check --status
+          ./gradlew bundleProductionRelease \
+            -PveyocastVersionCode=199999999 \
+            -PveyocastVersionName=ci-phone-tablet-validation \
+            --no-daemon
           ./gradlew :tv:bundleProductionRelease \
             -PveyocastTvVersionCode=299999999 \
             -PveyocastTvVersionName=ci-launcher-validation \
             --no-daemon
+          scripts/validate-general-bundle.sh \
+            "app/build/outputs/bundle/productionRelease/app-production-release.aab" \
+            "${bundletool_path}" \
+            "${ANDROID_HOME}/build-tools/36.0.0/dexdump" \
+            "${RUNNER_TEMP}/general-compatibility-evidence"
           scripts/validate-tv-bundle.sh \
             "tv/build/outputs/bundle/productionRelease/tv-production-release.aab" \
             "${bundletool_path}" \
@@ -105,9 +114,11 @@ jobs:
           path: |
             apps/android-tv/app/build/outputs/apk/staging/debug/*.apk
             apps/android-tv/app/build/outputs/apk/production/debug/*.apk
+            apps/android-tv/app/build/outputs/bundle/productionRelease/*.aab
             apps/android-tv/tv/build/outputs/apk/staging/debug/*.apk
             apps/android-tv/tv/build/outputs/apk/production/debug/*.apk
             apps/android-tv/tv/build/outputs/bundle/productionRelease/*.aab
+            ${{ runner.temp }}/general-compatibility-evidence/
             ${{ runner.temp }}/tv-launcher-evidence/
           if-no-files-found: error
           retention-days: 14

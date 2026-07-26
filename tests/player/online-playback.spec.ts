@@ -93,6 +93,14 @@ test("loops to the muted video slot without browser controls", async ({
   await expect(video).toBeVisible({ timeout: 3_000 });
   await expect(video).toHaveJSProperty("muted", true);
   await expect(video).not.toHaveAttribute("controls", /.*/);
+  await expect(video).toHaveAttribute(
+    "controlslist",
+    "nodownload nofullscreen noplaybackrate"
+  );
+  await expect(video).toHaveAttribute("disablepictureinpicture", "");
+  await expect(video).toHaveAttribute("preload", "auto");
+  await expect(video).toHaveAttribute("tabindex", "-1");
+  await expect(video).toHaveCSS("pointer-events", "none");
   await expect(page.getByLabel("Player diagnostics")).toContainText("Item 2 van 3");
 });
 
