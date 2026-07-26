@@ -301,23 +301,38 @@ test("activity workspace remains readable without fictional mobile rows", async 
 });
 
 test("tenant context selection is explicit and keyboard reachable", async ({ page }) => {
-  await page.goto("/dashboard");
-
+  // Warm the lazily compiled App Router segment before testing client-side
+  // keyboard navigation; otherwise Next dev can replace the first transition
+  // with a Fast Refresh reload of the current route.
   await expect(async () => {
-    if (/\/context$/.test(page.url())) return;
-    const switcher = page.locator("summary").filter({ hasText: "Museumkwartier" });
-    await switcher.focus();
-    await expect(switcher).toBeFocused();
-    if (!(await switcher.evaluate((element) => (element.parentElement as HTMLDetailsElement | null)?.open ?? false))) {
-      await page.keyboard.press("Enter");
+    try {
+      await page.goto("/context");
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
     }
-    await expect(page.getByRole("group", { name: "Werkcontext wisselen" })).toBeVisible();
-    const contextLink = page.getByRole("link", { name: "Alle contexten beheren" });
-    await contextLink.focus();
-    await expect(contextLink).toBeFocused();
-    await page.keyboard.press("Enter");
-    await page.waitForURL(/\/context$/, { timeout: 4_000 });
+    await expect(page.getByRole("heading", { name: "Kies een vereniging" })).toBeVisible();
   }).toPass({ timeout: 20_000 });
+  await expect(async () => {
+    try {
+      await page.goto("/dashboard");
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(page.getByRole("heading", { name: "Welkom, Daan Operator" })).toBeVisible();
+  }).toPass({ timeout: 20_000 });
+
+  const switcher = page.locator("summary").filter({ hasText: "Museumkwartier" });
+  await switcher.focus();
+  await expect(switcher).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("group", { name: "Werkcontext wisselen" })).toBeVisible();
+  const contextLink = page.getByRole("link", { name: "Alle contexten beheren" });
+  await contextLink.focus();
+  await expect(contextLink).toBeFocused();
+  await Promise.all([
+    page.waitForURL(/\/context$/, { timeout: 10_000 }),
+    contextLink.press("Enter")
+  ]);
   await expect(page.getByRole("heading", { name: "Kies een vereniging" })).toBeVisible();
   await expect(page.getByText("niet automatisch een willekeurige context gekozen")).toBeVisible();
 });
