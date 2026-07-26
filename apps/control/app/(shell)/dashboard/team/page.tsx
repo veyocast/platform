@@ -1,20 +1,24 @@
 import { hasCapability } from "@veyocast/auth";
+import { DataTable } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { loadTenantTeam } from "../../../../lib/control-overview";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import {
-  archiveTenantCustomRole,
   changeTenantMemberRole,
-  inviteTenantMember,
-  removeTenantMember,
-  resendTenantInvitation,
-  revokeTenantInvitation
+  resendTenantInvitation
 } from "./actions";
 import {
   CustomRoleDialog,
   type CustomRoleView
 } from "./custom-role-dialogs";
+import {
+  ArchiveRoleDialog,
+  RemoveMemberDialog,
+  RevokeInvitationDialog
+} from "./team-action-dialogs";
+import { TeamInviteDialog } from "./team-invite-dialog";
+import { TeamTabs } from "./team-tabs";
 
 type TeamPageProps = Readonly<{
   searchParams: Promise<{ fout?: string; succes?: string; waarschuwing?: string }>;
@@ -44,7 +48,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
   return (
     <>
       <PageHeader
-        actions={canManage ? <a className="button-link button-link--primary" href="#nieuw-teamlid">Teamlid uitnodigen</a> : null}
+        actions={canManage ? <TeamInviteDialog canManageOwners={canManageOwners} customRoles={activeCustomRoles} /> : null}
         description="Beheer toegang met beschermde standaardrollen en tenant-eigen werkrollen."
         eyebrow={session.tenant}
         status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
@@ -58,7 +62,8 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
       {query.waarschuwing === "bezorging" ? <p className="notice notice--warning" role="status"><strong>Uitnodiging veilig geregistreerd.</strong> De e-mailprovider bevestigde de bezorging nog niet. Verstuur een nieuwe link om de oude token in te trekken.</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{teamSuccess[query.succes] ?? "De teamwijziging is opgeslagen en geaudit."}</p> : null}
 
-      <section className="workspace-section" aria-labelledby="custom-roles-title">
+      <TeamTabs>
+      <section className="workspace-section" aria-labelledby="custom-roles-title" data-team-panel="roles">
         <div className="workspace-section__header">
           <div>
             <h2 className="workspace-section__title" id="custom-roles-title">Custom rollen</h2>
@@ -94,25 +99,11 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
                     {canManageCustomRoles && role.status === "active" ? (
                       <div className="role-card__actions">
                         <CustomRoleDialog role={role} />
-                        <details>
-                          <summary>Archiveren</summary>
-                          <form action={archiveTenantCustomRole} className="auth-form">
-                            <input name="expectedRevision" type="hidden" value={role.revision} />
-                            <input name="roleId" type="hidden" value={role.id} />
-                            <label className="check-row">
-                              <input disabled={assignedCount > 0} name="confirmArchive" required type="checkbox" />
-                              <span>
-                                <strong>Rol archiveren</strong>
-                                <span className="work-panel__meta">
-                                  {assignedCount > 0
-                                    ? "Wijs eerst alle leden en open uitnodigingen een andere rol toe."
-                                    : "De rol verdwijnt uit nieuwe toewijzingen."}
-                                </span>
-                              </span>
-                            </label>
-                            <button className="button-link button-link--secondary" disabled={assignedCount > 0} type="submit">Rol archiveren</button>
-                          </form>
-                        </details>
+                        <ArchiveRoleDialog
+                          assignedCount={assignedCount}
+                          revision={role.revision}
+                          roleId={role.id}
+                        />
                       </div>
                     ) : null}
                   </div>
@@ -125,46 +116,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
         )}
       </section>
 
-      {canManage ? (
-        <form action={inviteTenantMember} className="data-surface team-invite-form" id="nieuw-teamlid">
-          <div className="work-panel__header">
-            <div>
-              <h2 className="work-panel__title">Nieuw teamlid</h2>
-              <p className="work-panel__meta">De persoonlijke link verloopt na zeven dagen en werkt alleen voor het opgegeven e-mailadres.</p>
-            </div>
-            <StatusPill label="Persoonlijke uitnodiging" tone="info" />
-          </div>
-          <div className="form-grid">
-            <div className="field">
-              <label htmlFor="team-email">E-mailadres</label>
-              <input autoComplete="email" id="team-email" maxLength={320} name="email" placeholder="vrijwilliger@vereniging.nl" required type="email" />
-            </div>
-            <div className="field">
-              <label htmlFor="team-access">Rol</label>
-              <select defaultValue="builtin:tenant_editor" id="team-access" name="access">
-                <optgroup label="Standaardrollen">
-                  <option value="builtin:tenant_viewer">Kijker</option>
-                  <option value="builtin:tenant_editor">Editor</option>
-                  <option value="builtin:tenant_admin">Beheerder</option>
-                  {canManageOwners ? <option value="builtin:tenant_owner">Eigenaar</option> : null}
-                </optgroup>
-                {activeCustomRoles.length ? (
-                  <optgroup label="Custom rollen">
-                    {activeCustomRoles.map((role) => <option key={role.id} value={`custom:${role.id}`}>{role.name}</option>)}
-                  </optgroup>
-                ) : null}
-              </select>
-              <p>Alleen een eigenaar kan een andere eigenaar uitnodigen.</p>
-            </div>
-          </div>
-          <div className="sticky-form-actions team-invite-actions">
-            <p className="work-panel__meta">E-mailadres en invitation-token worden nooit in auditmetadata opgenomen.</p>
-            <button className="button-link button-link--primary" type="submit">Uitnodiging versturen</button>
-          </div>
-        </form>
-      ) : null}
-
-      <section className="workspace-section" aria-labelledby="team-table-title">
+      <section className="workspace-section" aria-labelledby="team-table-title" data-team-panel="members">
         <div className="workspace-section__header">
           <div>
             <h2 className="workspace-section__title" id="team-table-title">Gebruikers en rollen</h2>
@@ -176,9 +128,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
           />
         </div>
         {data.members.length ? (
-          <div className="data-table-frame">
-            <table className="data-table data-table--responsive">
-              <caption>Toegang binnen de actieve vereniging.</caption>
+          <DataTable caption="Toegang binnen de actieve vereniging." tableKey="tenant-team-members">
               <thead><tr><th scope="col">Gebruiker</th><th scope="col">Rol</th><th scope="col">Toegevoegd</th><th scope="col">Beheer</th></tr></thead>
               <tbody>
                 {data.members.map((member) => {
@@ -217,17 +167,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
                               </select>
                               <button className="table-action" type="submit">Opslaan</button>
                             </form>
-                            <details>
-                              <summary>Intrekken</summary>
-                              <form action={removeTenantMember} className="auth-form">
-                                <input name="userId" type="hidden" value={member.user_id} />
-                                <label className="check-row">
-                                  <input name="confirmRemove" required type="checkbox" />
-                                  <span><strong>Toegang definitief intrekken</strong><span className="work-panel__meta">Open sessies verliezen bij de volgende serverrequest hun tenantcontext.</span></span>
-                                </label>
-                                <button className="button-link button-link--secondary" type="submit">Toegang intrekken</button>
-                              </form>
-                            </details>
+                            <RemoveMemberDialog userId={member.user_id} />
                           </div>
                         ) : <span>{isSelf ? "Beschermd tegen self-lockout" : "Alleen een eigenaar kan deze rol beheren"}</span>}
                       </td>
@@ -235,20 +175,17 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
                   );
                 })}
               </tbody>
-            </table>
-          </div>
+          </DataTable>
         ) : <p className="notice" role="status">Nog geen teamleden binnen deze vereniging.</p>}
       </section>
 
-      <section className="workspace-section" id="uitnodigingen" aria-labelledby="team-invitations-title">
+      <section className="workspace-section" id="uitnodigingen" aria-labelledby="team-invitations-title" data-team-panel="invitations">
         <div className="workspace-section__header">
           <div><h2 className="workspace-section__title" id="team-invitations-title">Uitnodigingen</h2><p className="work-panel__meta">Pending, verlopen, geaccepteerd en ingetrokken blijven zichtbaar als beheerbewijs.</p></div>
           <StatusPill label={`${data.invitations.length} totaal`} tone="neutral" />
         </div>
         {data.invitations.length ? (
-          <div className="data-table-frame">
-            <table className="data-table data-table--responsive">
-              <caption>Persoonlijke tenantuitnodigingen.</caption>
+          <DataTable caption="Persoonlijke tenantuitnodigingen." tableKey="tenant-team-invitations">
               <thead><tr><th scope="col">E-mail</th><th scope="col">Rol</th><th scope="col">Status</th><th scope="col">Bezorging</th><th scope="col">Actie</th></tr></thead>
               <tbody>
                 {data.invitations.map((invitation) => {
@@ -263,14 +200,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
                         {canManage && invitation.status === "pending" ? (
                           <div className="table-actions">
                             <form action={resendTenantInvitation}><input name="invitationId" type="hidden" value={invitation.id} /><button className="table-action" type="submit">Nieuwe link</button></form>
-                            <details>
-                              <summary>Intrekken</summary>
-                              <form action={revokeTenantInvitation} className="auth-form">
-                                <input name="invitationId" type="hidden" value={invitation.id} />
-                                <label className="check-row"><input name="confirmRevoke" required type="checkbox" /><span><strong>Link ongeldig maken</strong></span></label>
-                                <button className="button-link button-link--secondary" type="submit">Uitnodiging intrekken</button>
-                              </form>
-                            </details>
+                            <RevokeInvitationDialog invitationId={invitation.id} />
                           </div>
                         ) : <span>Geen actie</span>}
                       </td>
@@ -278,10 +208,10 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
                   );
                 })}
               </tbody>
-            </table>
-          </div>
+          </DataTable>
         ) : <p className="notice" role="status">Er zijn nog geen uitnodigingen verstuurd.</p>}
       </section>
+      </TeamTabs>
     </>
   );
 }

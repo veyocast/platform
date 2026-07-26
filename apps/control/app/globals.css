@@ -3730,6 +3730,50 @@ html[data-density="compact"] .control-nav__link {
   position: static;
 }
 
+.team-invite-dialog-form {
+  display: grid;
+  gap: var(--vc-space-16);
+}
+
+.team-tabs {
+  display: grid;
+  gap: var(--vc-space-16);
+}
+
+.team-tabs__list {
+  align-items: center;
+  border-bottom: 1px solid var(--vc-border);
+  display: flex;
+  gap: var(--vc-space-20);
+  min-height: 44px;
+  overflow-x: auto;
+}
+
+.team-tabs__list button {
+  align-self: stretch;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--vc-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  padding-inline: var(--vc-space-4);
+  white-space: nowrap;
+}
+
+.team-tabs__list button[aria-selected="true"] {
+  border-bottom-color: var(--vc-action);
+  color: var(--vc-text);
+}
+
+.team-tab-panels[data-active="members"] > :not([data-team-panel="members"]),
+.team-tab-panels[data-active="roles"] > :not([data-team-panel="roles"]),
+.team-tab-panels[data-active="invitations"] > :not([data-team-panel="invitations"]) {
+  display: none;
+}
+
 .role-capability-list {
   display: flex;
   flex-wrap: wrap;
@@ -4148,44 +4192,71 @@ body .vc-dialog__content {
 }
 
 .settings-category-nav {
-  align-items: center;
-  background: var(--vc-surface);
-  border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-lg);
-  display: flex;
+  display: grid;
   gap: var(--vc-space-4);
-  min-height: 50px;
-  overflow-x: auto;
-  padding: var(--vc-space-6);
   position: sticky;
-  top: calc(var(--vc-component-height-topbar) + var(--vc-space-8));
-  width: min(100%, 960px);
-  z-index: calc(var(--vc-z-sticky) - 1);
+  top: calc(var(--vc-component-height-topbar) + var(--vc-space-16));
 }
 
-.settings-category-nav a {
+.settings-category-nav button {
   align-items: center;
+  background: transparent;
+  border: 0;
   border-radius: var(--vc-radius-md);
+  color: var(--vc-text-muted);
+  cursor: pointer;
   display: inline-flex;
-  flex: 0 0 auto;
   font-weight: 650;
+  justify-content: flex-start;
   line-height: 18px;
   min-height: 36px;
   padding: var(--vc-space-8) var(--vc-space-12);
-  text-decoration: none;
+  text-align: left;
+  width: 100%;
 }
 
-.settings-category-nav a:hover,
-.settings-category-nav a:focus-visible {
+.settings-category-nav button:hover,
+.settings-category-nav button:focus-visible {
   background: var(--vc-surface-muted);
 }
 
-.settings-layout > section {
-  scroll-margin-top: calc(var(--vc-component-height-topbar) + 72px);
+.settings-category-nav button[aria-current="page"] {
+  background: var(--vc-surface-strong);
+  box-shadow: inset 2px 0 var(--vc-action);
+  color: var(--vc-text);
 }
 
-.support-export {
-  width: min(100%, 960px);
+.settings-workspace-form {
+  width: min(100%, 1120px);
+}
+
+.settings-category-workspace {
+  display: grid;
+  gap: var(--vc-space-24);
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.settings-category-select {
+  display: none;
+}
+
+.settings-category-panels > section {
+  min-height: 300px;
+}
+
+.settings-category-panels[data-active="clubprofiel"] > :not(#clubprofiel),
+.settings-category-panels[data-active="tijdzone"] > :not(#tijdzone),
+.settings-category-panels[data-active="afspelen"] > :not(#afspelen),
+.settings-category-panels[data-active="schermen"] > :not(#schermen),
+.settings-category-panels[data-active="beveiliging"] > :not(#beveiliging) {
+  display: none;
+}
+
+.settings-security-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-8);
 }
 
 .settings-savebar {
@@ -4581,19 +4652,23 @@ body .vc-dialog__content {
   }
 
   .settings-category-nav {
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .settings-category-nav a {
-    flex: 0 0 auto;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .settings-category-nav::-webkit-scrollbar {
     display: none;
+  }
+
+  .settings-category-workspace {
+    gap: var(--vc-space-12);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings-category-select {
+    display: grid;
+    font-size: 13px;
+    font-weight: 650;
+    gap: var(--vc-space-6);
+  }
+
+  .settings-category-panels > section {
+    min-height: 0;
   }
 
   .dashboard-operational-summary {
