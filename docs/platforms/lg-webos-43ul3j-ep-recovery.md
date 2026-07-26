@@ -258,6 +258,8 @@ Na deployment geldt dit fysieke protocol:
    `OK, OK, OK, BACK, OK`, en controleer het lokale herstelmenu.
 
 Dit protocol vereist geen factory reset, ontwikkelaarsmodus, USB-installatie,
-nieuwe IPK of bekend LG-beheerwachtwoord. De software-implementatie is lokaal
-gevalideerd; productiondeployment en de uitvoering op firmware 03.24.90
-blijven expliciet af te tekenen.
+nieuwe IPK of bekend LG-beheerwachtwoord. Release
+`3266167c35d1dc1340b47629a287f7628971188f` is op 26 juli 2026 door dezelfde
+immutable GitHub-releaseketen gezond naar staging en production gepromoveerd.
+De publieke productionroute geeft HTTP 200 zonder Next-clientchunks; alleen de
+uitvoering op firmware 03.24.90 blijft expliciet af te tekenen.
