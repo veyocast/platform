@@ -242,3 +242,107 @@ ingetrokken online device gaat al terug naar pairing en een tijdelijke
 manifeststoring verwijdert een geldige last-known-good koppeling niet. De open
 gaten zitten vooral in partiële/corrupte lokale state, timeoutclassificatie,
 zelfbediening en remote herstel.
+
+## Implementatie na de nulmeting
+
+De oorspronkelijke bevindingen hierboven blijven de reproduceerbare
+beginsituatie. S48 heeft de verantwoordelijkheden daarna als volgt gescheiden.
+
+### Lokale storage na S48
+
+| Categorie | Opslag | Sleutel/naam | Soft recovery | Hard recovery |
+|---|---|---|---|---|
+| Installatie-identiteit | `localStorage` | `veyocast.player.instanceId` | behouden | vernieuwd |
+| Installatiecredential | `localStorage` | `veyocast.player.installationCredential` | behouden | verwijderd en opnieuw geregistreerd |
+| Pairingpoging | `localStorage` | `veyocast.player.pairingCode`, `veyocast.player.pairingExpiresAt`, `veyocast.player.pairingProvisionAfter`, `veyocast.player.pairingRequestNonce` | verwijderd | verwijderd |
+| Centrale pairingstatus | `localStorage` | `veyocast.player.pairingMachine.v1` | verwijderd | verwijderd |
+| Schermcredential | `localStorage` | `veyocast.player.deviceToken` | alleen verwijderd wanneer inspectie definitief ongeldig antwoordt; behouden bij geldige koppeling of tijdelijke storing | verwijderd |
+| Remote-commandbewijs | `localStorage` | `veyocast.player.executedCommands.v1` | behouden | verwijderd |
+| Recoverymarker | `localStorage` | `veyocast.player.recoveryMarker` | twee minuten geldig | twee minuten geldig |
+| Playbackcache | IndexedDB/Cache Storage | `veyocast-player-cache-v1`, `veyocast-player-assets-v1`, `veyocast-player-shell-*` en bekende oude merknamen | gericht verwijderd | gericht verwijderd |
+| Diagnose/automation | lokale en sessiestorage | bestaande automation-, Device Lab-, capability- en UI-sleutels | behouden | behouden, behalve installatie-/commandstate hierboven |
+
+De raw installatie- en devicecredentials bestaan alleen in het lokale
+browser-/app-profiel. PostgreSQL bewaart uitsluitend SHA-256-hashes.
+`deviceToken` blijft om migratierisico te beperken de lokale transportplek voor
+zowel een pending als een actieve credential, maar classificatie hangt niet
+meer uitsluitend van dat ene veld af: requestnonce, expiry, pairingsnapshot en
+server-side installatiebinding maken de fase expliciet.
+
+De recoverypagina probeert daarnaast tijdelijke, niet-HttpOnly
+pairingcookies onder de bekende VeyoCast-namen te laten verlopen. De bestaande
+HttpOnly demo- en Device Lab-cookies zijn geen pairingstate en blijven buiten
+de schoonmaakactie.
+
+### Server-side model na S48
+
+- `player_installations` representeert het anonieme fysieke
+  browser-/appprofiel vóór pairing. Het bevat de hash van de publieke
+  installatie-ID, de hash van de afzonderlijke installatiecredential,
+  status/last-seen en optioneel de huidige `player_device`-binding.
+- `pairing_sessions.installation_id` koppelt iedere poging aan precies één
+  installatie. Een partial unique index laat maximaal één `pending` sessie per
+  installatie toe.
+- `pairing_sessions.request_nonce_hash` maakt herhaalde code-aanvragen
+  idempotent. `create_pairing_session_v4` vervangt onder een transactionele
+  lock alleen een verlopen/oude poging en levert bij dezelfde nonce dezelfde
+  actieve poging terug.
+- `player_devices` blijft de tenant- en schermbinding en de gehashte
+  devicecredential dragen.
+- `player_commands` bevat tenantgebonden opdrachten met commandtype, payload,
+  unieke nonce, TTL en aflever-/acknowledge-/completion-/failuretijden.
+- `private.player_pairing_events` registreert create, claim, expire, cancel en
+  recover zonder raw code of credential.
+
+`claim_pairing_session_v4` vergrendelt de sessie en installatie, valideert
+tenant/scherm/capability opnieuw en maakt de installatiebinding
+transactioneel. Een mislukte claim laat geen half-gekoppelde installatie
+achter. Verlopen `pending` rijen worden tijdens de eerstvolgende pairingactie
+opgeruimd; actieve sessies verlopen server-side na tien minuten.
+
+### Formele state-machine en timers
+
+De centrale lokale snapshot gebruikt:
+
+`BOOTING → INSTALLATION_REGISTERING → UNPAIRED → PAIRING_REQUESTING →
+PAIRING_CODE_ACTIVE → PAIRING_CLAIMING → PAIRED → ACTIVE`
+
+en de zijpaden `RECOVERING`, `OFFLINE` en `ERROR`. Iedere overgang bewaart
+`changedAt`; een pairingaanvraag bewaart ook haar starttijd.
+
+- installatie- en pairingrequests hebben een aborttimeout van 15 seconden;
+- fysieke unpairing heeft een timeout van 8 seconden;
+- codeclaim wordt iedere 2 seconden gecontroleerd;
+- remote commands worden iedere 10 seconden opgehaald;
+- transient retries gebruiken begrensde exponential back-off van 5, 10, 20,
+  40 en daarna maximaal 60 seconden;
+- `Retry-After` wordt gerespecteerd en lokaal begrensd;
+- `PAIRING_REQUESTING` ouder dan 60 seconden start één gecontroleerde nieuwe
+  aanvraag;
+- na 120 seconden verschijnt de herstelmenu-instructie;
+- een pairingcode verloopt na tien minuten en wordt zonder paginareload
+  ingetrokken en vervangen;
+- normale manifestback-off blijft maximaal vijf minuten en verwijdert nooit
+  een geldige credential of last-known-good release.
+
+Definitieve machinecodes `INVALID_DEVICE_TOKEN`, `DEVICE_REVOKED`,
+`INSTALLATION_NOT_FOUND` en `BINDING_EXPIRED` verwijderen alleen het
+ongeldige credential en de tijdelijke pairingstate. De anonieme
+installatie-ID blijft behouden en de Player vraagt automatisch een nieuwe code
+aan. Transportfouten en HTTP 500/502/503/504 doen dit nadrukkelijk niet.
+
+### Opgeloste vastloop
+
+De UI kan niet meer onbeperkt op alleen “Nieuwe koppelcode voorbereiden”
+blijven staan:
+
+1. ieder fetchpad heeft nu een timeout en begrensde retry;
+2. de 60-/120-secondenwatchdog vervangt een vastgelopen aanvraag en maakt
+   herstelbediening zichtbaar;
+3. code-expiry en definitieve credentialfouten zijn expliciete overgangen;
+4. één installatie kan server-side nooit twee actieve pairingsessies hebben;
+5. de installatiecredential houdt een bekende Player bereikbaar wanneer de
+   schermcredential defect is;
+6. `/lg/recover` werkt zonder React-hydration of normale Playerchunks;
+7. de globale clientfallback geeft retry, recoveryroute, foutcode en versie in
+   plaats van het witte Next.js-foutscherm.

@@ -346,6 +346,7 @@ test("revoked identity automatically returns to a fresh pairing session", async 
     json: {
       error: {
         cause: "Het device is ingetrokken.",
+        code: "DEVICE_REVOKED",
         effect: "Online toegang is beëindigd.",
         recovery: "Koppel de Player opnieuw."
       },
@@ -374,6 +375,79 @@ test("revoked identity automatically returns to a fresh pairing session", async 
   });
   expect(await page.evaluate(() => localStorage.getItem("veyocast.player.deviceToken")))
     .toBe("replacement-device-token");
+});
+
+test("tijdelijke 503 verwijdert geen geldige schermcredential", async ({
+  page
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "veyocast.player.deviceToken",
+      "still-valid-device-token"
+    );
+  });
+  await page.route("**/api/player/manifest", (route) => route.fulfill({
+    contentType: "application/json",
+    json: {
+      error: {
+        cause: "De Player-API is tijdelijk niet beschikbaar.",
+        code: "PLAYER_API_UNAVAILABLE",
+        effect: "Online synchronisatie wacht.",
+        recovery: "De Player probeert automatisch opnieuw."
+      },
+      state: "ERROR_RECOVERABLE"
+    },
+    status: 503
+  }));
+
+  await page.goto(playerURL);
+  await expect(page.getByText("Foutcode:")).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("veyocast.player.deviceToken")
+    )
+  ).toBe("still-valid-device-token");
+});
+
+test("definitieve 410 binding expired start automatisch herpairing", async ({
+  page
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "veyocast.player.deviceToken",
+      "expired-binding-device-token"
+    );
+  });
+  await page.route("**/api/player/manifest", (route) => route.fulfill({
+    contentType: "application/json",
+    json: {
+      error: {
+        cause: "De schermbinding is verlopen.",
+        code: "BINDING_EXPIRED",
+        effect: "De oude credential werkt niet meer.",
+        recovery: "De Player vraagt automatisch een nieuwe code aan."
+      },
+      state: "UNPAIRED"
+    },
+    status: 410
+  }));
+  await page.route("**/api/player/pairing", (route) => route.fulfill({
+    contentType: "application/json",
+    json: {
+      deviceToken: "repaired-binding-device-token",
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      live: true,
+      pairingCode: "KLM 246"
+    }
+  }));
+
+  await page.goto(playerURL);
+  await expect(page.getByLabel("Pairingcode")).toContainText("KLM 246");
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("veyocast.player.deviceToken")
+    )
+  ).toBe("repaired-binding-device-token");
 });
 
 function waitingContentEnvelope() {

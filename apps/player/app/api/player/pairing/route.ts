@@ -1,4 +1,4 @@
-import { createHash, randomBytes, randomInt } from "node:crypto";
+import { createHash } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
@@ -19,18 +19,39 @@ export async function POST(request: Request) {
 
   const supabase = createPlayerAnonClient();
   if (!supabase) {
-    return pairingFailure("De Player-configuratie is onvolledig.", 503);
+    return pairingFailure(
+      "PAIRING_API_UNAVAILABLE",
+      "De Player-configuratie is onvolledig.",
+      503
+    );
   }
 
-  const deviceToken = randomBytes(32).toString("base64url");
-  const tokenHash = sha256(deviceToken);
-  const fingerprintHash = pairingFingerprint(request);
+  const installationCredential = normalizeOpaqueCredential(
+    request.headers.get("x-veyocast-installation-credential")
+  );
+  const requestNonce = normalizeRequestNonce(
+    request.headers.get("x-veyocast-pairing-request")
+  );
+  if (!installationCredential || !requestNonce) {
+    return pairingFailure(
+      "INVALID_INSTALLATION_CREDENTIAL",
+      "De installatiecredential of idempotentiesleutel ontbreekt.",
+      401,
+      "Registreer de Playerinstallatie opnieuw zonder de schermbinding te verwijderen."
+    );
+  }
 
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    const pairingCode = createPairingCode();
-    const { data, error } = await supabase.rpc("create_pairing_session_v3", {
+  const deviceToken = deterministicDeviceToken(
+    requestNonce,
+    installationCredential
+  );
+  const tokenHash = sha256(deviceToken);
+  for (let codeAttempt = 0; codeAttempt < 4; codeAttempt += 1) {
+    const pairingCode = createPairingCode(requestNonce, codeAttempt);
+    const { data, error } = await supabase.rpc("create_pairing_session_v4", {
       p_code_hash: sha256(pairingCode),
-      p_device_fingerprint_hash: fingerprintHash,
+      p_installation_credential_hash: sha256(installationCredential),
+      p_request_nonce_hash: sha256(requestNonce),
       p_token_hash: tokenHash
     });
 
@@ -40,13 +61,22 @@ export async function POST(request: Request) {
         deviceToken,
         expiresAt: result.expiresAt,
         live: true,
-        pairingCode: formatPairingCode(pairingCode)
+        pairingCode: formatPairingCode(pairingCode),
+        reused: result.reused
       });
+    }
+
+    // A six-character public code can collide. The request nonce remains the
+    // idempotency key while a deterministic attempt suffix selects the same
+    // alternative code again after a lost response.
+    if (error?.code === "23505" && codeAttempt < 3) {
+      continue;
     }
 
     if (!error && result.code === "RATE_LIMITED") {
       const retryAfterSeconds = result.retryAfterSeconds ?? 600;
       return pairingFailure(
+        "PAIRING_RATE_LIMITED",
         "Er zijn te veel koppelcodes voor deze Player aangevraagd.",
         429,
         "De Player vraagt automatisch een nieuwe code aan; vernieuwen is niet nodig.",
@@ -54,18 +84,32 @@ export async function POST(request: Request) {
       );
     }
 
-    if (error?.code !== "23505") {
-      return pairingFailure("De pairingsessie kon niet veilig worden gemaakt.", 503);
+    if (!error && result.code === "INVALID_INSTALLATION_CREDENTIAL") {
+      return pairingFailure(
+        "INVALID_INSTALLATION_CREDENTIAL",
+        "De installatiecredential is ongeldig of ingetrokken.",
+        401,
+        "Registreer de installatie opnieuw en vraag daarna automatisch een nieuwe code aan."
+      );
     }
+
+    break;
   }
 
-  return pairingFailure("Er kon geen unieke koppelcode worden gereserveerd.", 503);
+  return pairingFailure(
+    "PAIRING_API_UNAVAILABLE",
+    "De pairingsessie kon niet veilig worden gemaakt.",
+    503
+  );
 }
 
-function createPairingCode() {
+function createPairingCode(requestNonce: string, attempt: number) {
+  const bytes = createHash("sha256")
+    .update(`code:${attempt}:${requestNonce}`)
+    .digest();
   return Array.from(
     { length: 6 },
-    () => pairingAlphabet[randomInt(pairingAlphabet.length)]
+    (_, index) => pairingAlphabet[bytes[index]! % pairingAlphabet.length]
   ).join("");
 }
 
@@ -77,27 +121,27 @@ function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
 
-function pairingFingerprint(request: Request) {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const clientAddress =
-    request.headers.get("cf-connecting-ip")?.trim() ||
-    request.headers.get("x-real-ip")?.trim() ||
-    forwarded ||
-    "unknown";
-  const userAgent = request.headers.get("user-agent")?.trim() || "unknown";
-  const playerInstance = normalizePlayerInstance(
-    request.headers.get("x-veyocast-player-instance")
-  );
-  return sha256(
-    `${clientAddress.slice(0, 80)}:${userAgent.slice(0, 240)}:${playerInstance}`
-  );
+function deterministicDeviceToken(
+  requestNonce: string,
+  installationCredential: string
+) {
+  return createHash("sha256")
+    .update(`device:${requestNonce}:${installationCredential}`)
+    .digest("base64url");
 }
 
-function normalizePlayerInstance(value: string | null) {
+function normalizeOpaqueCredential(value: string | null) {
+  const normalized = value?.trim();
+  return normalized && /^[A-Za-z0-9_-]{20,200}$/.test(normalized)
+    ? normalized
+    : null;
+}
+
+function normalizeRequestNonce(value: string | null) {
   const normalized = value?.trim().toLowerCase();
   return normalized && /^[a-f0-9-]{20,80}$/.test(normalized)
     ? normalized
-    : "legacy-player";
+    : null;
 }
 
 function pairingResult(value: unknown) {
@@ -108,6 +152,7 @@ function pairingResult(value: unknown) {
     code?: unknown;
     expiresAt?: unknown;
     ok?: unknown;
+    reused?: unknown;
     retryAfterSeconds?: unknown;
   };
   const retryAfterSeconds =
@@ -122,6 +167,7 @@ function pairingResult(value: unknown) {
         ? result.expiresAt
         : new Date(Date.now() + 10 * 60 * 1000).toISOString(),
     ok: result.ok === true,
+    reused: result.reused === true,
     retryAfterSeconds
   };
 }
@@ -135,6 +181,7 @@ function noStore(body: object) {
 }
 
 function pairingFailure(
+  code: string,
   cause: string,
   status: number,
   recovery = "Controleer Supabase en vernieuw daarna de Player.",
@@ -144,6 +191,7 @@ function pairingFailure(
     {
       error: {
         cause,
+        code,
         effect: "De Player kan nu geen veilige tijdelijke koppelcode tonen.",
         recovery
       },

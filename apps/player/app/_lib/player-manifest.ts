@@ -116,6 +116,7 @@ export type PlayerManifestProblem = {
   state: "UNPAIRED" | "DISABLED" | "ERROR_RECOVERABLE";
   error: {
     cause: string;
+    code?: string;
     effect: string;
     recovery: string;
   };
@@ -160,6 +161,7 @@ export function getPlayerManifestForToken(
         state: "UNPAIRED",
         error: {
           cause: "Er is nog geen device token aanwezig.",
+          code: "INVALID_DEVICE_TOKEN",
           effect: "Deze player kan geen release manifest ophalen.",
           recovery: "Koppel de player eerst via de pairingcode in VeyoCast Control."
         }
@@ -175,6 +177,7 @@ export function getPlayerManifestForToken(
         state: "DISABLED",
         error: {
           cause: "Deze demo-device session is uitgeschakeld.",
+          code: "DEVICE_REVOKED",
           effect: "Playback blijft gestopt en er wordt geen nieuwe release geladen.",
           recovery: "Maak een nieuwe pairing aan of herstel de device status in Control."
         }
@@ -190,6 +193,7 @@ export function getPlayerManifestForToken(
         state: "ERROR_RECOVERABLE",
         error: {
           cause: "De device token hoort niet bij een actief scherm.",
+          code: "INVALID_DEVICE_TOKEN",
           effect: "Zonder last-known-good release blijft de player in herstelstatus.",
           recovery: "Controleer de pairing of koppel het scherm opnieuw."
         }

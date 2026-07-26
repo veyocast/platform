@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const installationKey = "veyocast.player.instanceId";
+const installationCredentialKey =
+  "veyocast.player.installationCredential";
 const tokenKey = "veyocast.player.deviceToken";
 const markerKey = "veyocast.player.recovery.v1";
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
@@ -67,6 +69,12 @@ test("soft recovery behoudt installatie-ID en verwijdert een ongeldige pending p
     { installationKey, markerKey, tokenKey }
   );
   expect(result.installationId).toBe(originalInstallationId);
+  expect(
+    await page.evaluate(
+      (key) => localStorage.getItem(key),
+      installationCredentialKey
+    )
+  ).toBe("c".repeat(43));
   expect(result.token).toBeNull();
   expect(result.marker?.mode).toBe("soft");
   expect(result.marker?.expiresAt).toBeGreaterThan(Date.now());
@@ -129,10 +137,19 @@ test("volledige playerreset vernieuwt de installatie-ID", async ({ page }) => {
   await page.goto(`${playerURL}/lg/recover`);
   const originalInstallationId = "32345678-1234-4123-8123-123456789abc";
   await page.evaluate(
-    ({ installationKey, originalInstallationId }) => {
+    ({
+      installationCredentialKey,
+      installationKey,
+      originalInstallationId
+    }) => {
       localStorage.setItem(installationKey, originalInstallationId);
+      localStorage.setItem(installationCredentialKey, "d".repeat(43));
     },
-    { installationKey, originalInstallationId }
+    {
+      installationCredentialKey,
+      installationKey,
+      originalInstallationId
+    }
   );
   page.once("dialog", (dialog) => dialog.accept());
 
@@ -149,6 +166,12 @@ test("volledige playerreset vernieuwt de installatie-ID", async ({ page }) => {
     { installationKey, markerKey }
   );
   expect(result.installationId).not.toBe(originalInstallationId);
+  expect(
+    await page.evaluate(
+      (key) => localStorage.getItem(key),
+      installationCredentialKey
+    )
+  ).toBeNull();
   expect(result.installationId).toMatch(/^[a-f0-9-]{20,80}$/);
   expect(result.marker?.mode).toBe("hard");
 });
@@ -190,8 +213,14 @@ test("Cache API- en IndexedDB-fouten blokkeren de recoveryredirect niet", async 
 
 async function seedRecoveryStorage(page: Page, installationId: string) {
   await page.evaluate(
-    async ({ installationId, installationKey, tokenKey }) => {
+    async ({
+      installationCredentialKey,
+      installationId,
+      installationKey,
+      tokenKey
+    }) => {
       localStorage.setItem(installationKey, installationId);
+      localStorage.setItem(installationCredentialKey, "c".repeat(43));
       localStorage.setItem(tokenKey, "b".repeat(43));
       localStorage.setItem("veyocast.player.pairingCode", "ABC 234");
       localStorage.setItem(
@@ -228,6 +257,11 @@ async function seedRecoveryStorage(page: Page, installationId: string) {
         };
       });
     },
-    { installationId, installationKey, tokenKey }
+    {
+      installationCredentialKey,
+      installationId,
+      installationKey,
+      tokenKey
+    }
   );
 }

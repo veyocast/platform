@@ -224,3 +224,40 @@ Maak bij een afwijking:
 
 Maak pairingcodes, tokens of volledige media-URL's onleesbaar voordat bewijs
 wordt gedeeld.
+
+## URL-herstel zonder IPK of beheerwachtwoord
+
+S48 voegt een herstelpad toe dat losstaat van de lokale IPK-installatie. Het
+is bedoeld voor de huidige configuratie:
+
+```text
+EZ Instelling
+→ Afspelen via URL
+→ https://player.veyocast.nl/lg/recover
+```
+
+De response is eenvoudige server-HTML zonder React-hydration of normale
+Playerchunks. Soft recovery bewaart de anonieme installatie-ID en een
+aantoonbaar geldige schermcredential, annuleert alleen de oude pending
+pairingpoging, ruimt gerichte Playercaches op en gaat eenmaal terug naar
+`/lg`. Een afzonderlijk bevestigde **Volledige playerreset** vernieuwt ook de
+installatie-ID.
+
+Na deployment geldt dit fysieke protocol:
+
+1. open `https://player.veyocast.nl/lg/recover` via **Afspelen via URL**;
+2. verwacht **VeyoCast Player herstellen** en vier zichtbare herstelstappen;
+3. controleer dat iedere stap eindigt als `OK` of niet-blokkerende waarschuwing;
+4. verwacht automatische navigatie naar `/lg`;
+5. verwacht binnen maximaal dertig seconden een nieuwe code;
+6. claim de code in Control voor het bestaande scherm;
+7. herstart het display volledig en controleer dat dezelfde koppeling blijft;
+8. laat daarna een ongeclaimde code verlopen en controleer dat zonder reload
+   een andere code verschijnt;
+9. houd op een vastloopscherm OK acht seconden ingedrukt, of gebruik
+   `OK, OK, OK, BACK, OK`, en controleer het lokale herstelmenu.
+
+Dit protocol vereist geen factory reset, ontwikkelaarsmodus, USB-installatie,
+nieuwe IPK of bekend LG-beheerwachtwoord. De software-implementatie is lokaal
+gevalideerd; productiondeployment en de uitvoering op firmware 03.24.90
+blijven expliciet af te tekenen.

@@ -5,9 +5,13 @@ import {
 import { previousPlayerStorageKey } from "./brand-transition";
 import {
   localStorageDeviceTokenKey,
+  localStorageExecutedCommandsKey,
+  localStorageInstallationCredentialKey,
   localStoragePairingCodeKey,
   localStoragePairingExpiryKey,
+  localStoragePairingMachineKey,
   localStoragePairingProvisionAfterKey,
+  localStoragePairingRequestNonceKey,
   localStoragePlayerInstanceKey,
   localStorageRecoveryMarkerKey,
   playerRecoveryMarkerTtlMs,
@@ -32,10 +36,16 @@ const recoveryScriptConfiguration = {
     localStoragePlayerInstanceKey,
     previousPlayerStorageKey("instanceId")
   ],
+  hardResetKeys: [
+    localStorageInstallationCredentialKey,
+    localStorageExecutedCommandsKey
+  ],
   pairingKeys: [
     localStoragePairingCodeKey,
     localStoragePairingExpiryKey,
+    localStoragePairingMachineKey,
     localStoragePairingProvisionAfterKey,
+    localStoragePairingRequestNonceKey,
     previousPlayerStorageKey("pairingCode"),
     previousPlayerStorageKey("pairingExpiresAt"),
     previousPlayerStorageKey("pairingProvisionAfter")
@@ -454,6 +464,9 @@ export function renderLgRecoveryHtml() {
         }
 
         if (mode === "hard") {
+          for (index = 0; index < CONFIG.hardResetKeys.length; index += 1) {
+            safeRemove(CONFIG.hardResetKeys[index]);
+          }
           for (index = 0; index < CONFIG.installationKeys.length; index += 1) {
             safeRemove(CONFIG.installationKeys[index]);
           }
