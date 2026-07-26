@@ -1,7 +1,9 @@
 import type { PlayerPlaybackItem } from "@veyocast/contracts";
 
+import { localStorageDeviceTokenKey } from "./player-storage";
+
 export const demoOnlineDeviceToken = "demo-online";
-export const localStorageDeviceTokenKey = "veyocast.player.deviceToken";
+export { localStorageDeviceTokenKey };
 
 export type PlayerRuntimeState =
   | "UNPAIRED"

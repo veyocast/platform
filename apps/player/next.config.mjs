@@ -36,10 +36,10 @@ const nextConfig = {
     ];
 
     return [
-      { headers: lgSignageSecurityHeaders, source: "/lg" },
+      { headers: lgSignageSecurityHeaders, source: "/lg/:path*" },
       {
         headers: defaultSecurityHeaders,
-        source: "/:path((?!lg$).*)"
+        source: "/:path((?!lg(?:/.*)?$).*)"
       },
       {
         headers: [{ key: "Cache-Control", value: "no-store" }],

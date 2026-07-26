@@ -66,14 +66,16 @@ import {
   defaultWatchdogTimeoutMs,
   resolvePlayerRuntimeTiming
 } from "../_lib/player-runtime-config";
+import {
+  localStoragePairingCodeKey,
+  localStoragePairingExpiryKey,
+  localStoragePairingProvisionAfterKey,
+  localStoragePlayerInstanceKey,
+  localStorageReloadTimestampsKey
+} from "../_lib/player-storage";
 import styles from "./player-playback.module.css";
 
 const demoPairingCode = "VYO 482";
-const localStoragePairingCodeKey = "veyocast.player.pairingCode";
-const localStoragePairingExpiryKey = "veyocast.player.pairingExpiresAt";
-const localStoragePairingProvisionAfterKey = "veyocast.player.pairingProvisionAfter";
-const localStoragePlayerInstanceKey = "veyocast.player.instanceId";
-const localStorageReloadTimestampsKey = "veyocast.player.reloadTimestamps";
 const waitingContentSyncIntervalMs = 5_000;
 const maximumManifestSyncBackoffMs = 5 * 60_000;
 const pairingClaimPollIntervalMs = 2_000;
