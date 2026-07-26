@@ -91,7 +91,13 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
         screen={screen}
       /> : null}
       {activeTab === "content" ? <ContentTab releases={data.releases} screen={screen} /> : null}
-      {activeTab === "planning" ? <PlanningTab schedules={data.schedules} screen={screen} /> : null}
+      {activeTab === "planning" ? (
+        <PlanningTab
+          automationEnabled={data.automation.enabled}
+          schedules={data.schedules}
+          screen={screen}
+        />
+      ) : null}
       {activeTab === "automation" && automation ? (
         <ScreenAutomation
           automation={automation}
@@ -236,9 +242,11 @@ function ContentTab({ releases, screen }: { releases: FleetRelease[]; screen: No
 }
 
 function PlanningTab({
+  automationEnabled,
   schedules,
   screen
 }: {
+  automationEnabled: boolean;
   schedules: ScreenSchedule[];
   screen: NonNullable<Awaited<ReturnType<typeof loadScreenDetail>>["screen"]>;
 }) {
@@ -249,6 +257,15 @@ function PlanningTab({
         <StatusPill label={assignmentSourceLabel(screen.activeAssignmentSource)} tone={screen.activeAssignmentSource === "override" ? "warning" : "info"} />
       </div>
       <p className="notice"><strong>Nu zichtbaar:</strong> {assignmentExplanation(screen, schedules)}</p>
+      {!automationEnabled && schedules.some((schedule) => schedule.enabled) ? (
+        <p className="notice notice--warning">
+          <strong>Automatische start staat uit.</strong> Deze contentplanning kan
+          beginnen terwijl de Player niet automatisch actief wordt.{" "}
+          <Link href={`/dashboard/screens/${screen.id}?tab=automation`}>
+            Automatisering instellen
+          </Link>
+        </p>
+      ) : null}
       <div className="page-action-group">
         <Link className="button-link button-link--primary" href={`/dashboard/planning?target=screen:${screen.id}`}>Planning beheren</Link>
         <Link className="button-link button-link--secondary" href="/dashboard/screen-groups">Schermgroepen bekijken</Link>
