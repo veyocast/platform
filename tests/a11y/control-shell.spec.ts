@@ -404,14 +404,7 @@ test("media route exposes upload intake labels and status landmarks", async ({
 
   await page.setViewportSize({ height: 844, width: 390 });
   const mobileFilterTrigger = page.getByRole("button", { name: "Filters" });
-  await expect(async () => {
-    try {
-      await page.reload();
-    } catch (error) {
-      if (!String(error).includes("ERR_ABORTED")) throw error;
-    }
-    await expect(mobileFilterTrigger).toBeVisible();
-  }).toPass({ timeout: 20_000 });
+  await expect(mobileFilterTrigger).toBeVisible();
   await mobileFilterTrigger.click();
   const fromDate = page.getByLabel("Vanaf");
   await expect(async () => {
