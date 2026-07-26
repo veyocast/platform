@@ -11,6 +11,26 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
         val scheduledFor = intent.getStringExtra(EXTRA_SCHEDULED_FOR)
             ?.let { runCatching { Instant.parse(it) }.getOrNull() }
         val commandId = intent.getStringExtra(EXTRA_COMMAND_ID)
+        val envelope = store.currentEnvelope()
+        val settings = envelope?.settings
+        if (
+            commandId == null &&
+            settings?.offlineExecutionEnabled == false &&
+            !AutomationNetwork.isValidated(context)
+        ) {
+            store.enqueueReport(
+                eventType = "execution-failed",
+                status = "failed",
+                diagnosticCode = "OFFLINE_EXECUTION_DISABLED",
+                scheduledFor = scheduledFor
+            )
+            store.recordExecution("OFFLINE_EXECUTION_DISABLED")
+            AutomationScheduler(context).apply(
+                envelope,
+                scheduledFor ?: Instant.now()
+            )
+            return
+        }
         store.enqueueReport(
             eventType = "wake-triggered",
             commandId = commandId,
@@ -43,7 +63,7 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                 store.recordExecution("BACKGROUND_START_BLOCKED")
             }
         AutomationScheduler(context).apply(
-            store.currentEnvelope(),
+            envelope,
             scheduledFor ?: Instant.now()
         )
     }

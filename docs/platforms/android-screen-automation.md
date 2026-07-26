@@ -129,10 +129,16 @@ vervalt een schema na zeven dagen. Ongeldige schema-versie, JSON, IANA-tijdzone
 of cache-expiry faalt veilig: er wordt geen nieuw alarm ingepland. Een begrensde
 queue bewaart maximaal veertig idempotente eventrapporten.
 
+Als `Offline uitvoeren` uitstaat, slaat de native shell een geplande lokale
+start over zodra Android geen gevalideerde internetverbinding rapporteert. De
+volgende periode wordt wel opnieuw gepland. Dit verandert de bestaande
+last-known-good mediacache niet.
+
 Belangrijke foutcodes:
 
 - `BACKGROUND_START_BLOCKED`;
 - `BOOT_START_BLOCKED`;
+- `OFFLINE_EXECUTION_DISABLED`;
 - `PLAYER_HEARTBEAT_CONFIRMED`;
 - databasezijde `COMMAND_EXPIRED`, `SUPERSEDED` en
   `PLAYER_HEARTBEAT_CONFIRMED`.
@@ -175,4 +181,3 @@ geslaagde Gradle- of emulatortest is geen hardwarebewijs.
 | Chromecast met Google TV | Ja | Best effort | Ja | Mogelijke platformbijwerking |
 | Web/PWA/browser | Nee in v1 | Nee | Browserafhankelijk | Nee |
 | LG webOS Signage | Adapter later | Nee in v1 | Eigen platformpad nodig | Niet via Android |
-

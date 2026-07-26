@@ -19,12 +19,26 @@ class BootCompletedReceiver : BroadcastReceiver() {
             )
         }
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
-        if (
-            settings?.startupEnabled == true &&
-            settings.isCacheUsable(Instant.now()) &&
-            AutomationScheduleEvaluator.evaluate(settings, Instant.now()).active
-        ) {
-            attemptActivityStart(context, "automatiseringsschema")
+        if (settings != null) {
+            if (
+                settings.startupEnabled &&
+                settings.isCacheUsable(Instant.now()) &&
+                AutomationScheduleEvaluator.evaluate(settings, Instant.now()).active
+            ) {
+                if (
+                    settings.offlineExecutionEnabled ||
+                    AutomationNetwork.isValidated(context)
+                ) {
+                    attemptActivityStart(context, "automatiseringsschema")
+                } else {
+                    store.enqueueReport(
+                        eventType = "execution-failed",
+                        status = "failed",
+                        diagnosticCode = "OFFLINE_EXECUTION_DISABLED",
+                        metadata = mapOf("source" to "boot")
+                    )
+                }
+            }
             return
         }
         val preferences = AppPreferences(context)

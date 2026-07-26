@@ -98,6 +98,9 @@ gebruikt zeven dagen. Android bewaart alleen de gevalideerde operationele
 configuratie in private `SharedPreferences`; geen pairingtoken of tenantsecret.
 Na expiry wordt een lokale start niet meer uitgevoerd. De bestaande
 last-known-good mediarelease en pairingopslag worden niet gewist.
+Wanneer `Offline uitvoeren` uitstaat, wordt een lokale start zonder door
+Android gevalideerde internetverbinding overgeslagen en diagnostisch gemeld.
+De bestaande mediacache blijft daarbij intact.
 
 Bij reboot, appupdate, handmatige klokwijziging of tijdzonewijziging wordt één
 volgend inexact alarm opnieuw gepland. Bestaande schermen hebben standaard:
@@ -158,4 +161,3 @@ Nieuw opgeslagen worden schema-instellingen, technische devicecapabilities,
 uitvoertijden, commando-ID's en foutcodes. Er worden geen nieuwe advertentie-ID,
 locatie, camera-, microfoon- of contactgegevens gebruikt. De Android-app vraagt
 geen nieuwe permissie voor deze feature.
-

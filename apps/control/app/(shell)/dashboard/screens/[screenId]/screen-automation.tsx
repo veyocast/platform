@@ -257,7 +257,7 @@ function eventLabel(value: string) {
 }
 
 function eventStatus(value: string) {
-  return value === "succeeded"
+  return value === "success"
     ? "Uitgevoerd"
     : value === "failed"
       ? "Mislukt"
