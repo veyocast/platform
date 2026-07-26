@@ -1,7 +1,7 @@
 # Schermautomatisering
 
-Status: implementatie gereed voor stagingvalidatie  
-Versie: schema 1  
+Status: implementatie gereed voor stagingvalidatie
+Versie: schema 1
 Laatst bijgewerkt: 26 juli 2026
 
 ## Doel en navigatie

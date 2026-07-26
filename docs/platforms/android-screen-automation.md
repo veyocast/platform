@@ -1,6 +1,6 @@
 # Android schermautomatisering
 
-Status: code- en emulatortests vereist; fysieke hardware nog niet afgetekend  
+Status: code- en emulatortests vereist; fysieke hardware nog niet afgetekend
 Toepassing: `nl.veyocast.player` voor algemeen Android en Google/Android TV
 
 ## Architectuur

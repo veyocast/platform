@@ -1,7 +1,7 @@
 # Screen Automation — architectuur- en capability-audit
 
-Status: initiële audit vóór implementatie  
-Datum: 26 juli 2026  
+Status: initiële audit vóór implementatie
+Datum: 26 juli 2026
 Scope: Android, Android TV, Google TV en Chromecast met Google TV
 
 ## Bestaande architectuur
@@ -175,4 +175,3 @@ Toevoegen:
   device kan met deze architectuur niet op afstand worden gewekt.
 - De UI wordt pas uitvoerbaar wanneer backend en ondersteunde appversie zijn
   uitgerold; oudere of niet-Android Players krijgen capability-aware uitleg.
-
