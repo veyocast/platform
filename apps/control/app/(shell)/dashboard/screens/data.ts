@@ -93,6 +93,7 @@ export type ScreenAuditEvent = {
 };
 
 export type ScreenFleetData = {
+  automation: Record<string, ScreenAutomationSummary>;
   devices: FleetDevice[];
   error: string | null;
   groups: Array<{
@@ -107,7 +108,13 @@ export type ScreenFleetData = {
   settings: { height: number; orientation: string; width: number };
 };
 
+export type ScreenAutomationSummary = {
+  enabled: boolean;
+  label: string;
+};
+
 export type ScreenDetailData = {
+  automation: ScreenAutomationSummary;
   auditEvents: ScreenAuditEvent[];
   devices: FleetDevice[];
   error: string | null;
@@ -120,6 +127,7 @@ export type ScreenDetailData = {
 
 export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData> {
   const empty: ScreenFleetData = {
+    automation: {},
     devices: [],
     error: null,
     groups: [],
@@ -139,7 +147,9 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     tenant,
     settings,
     groups,
-    groupMemberships
+    groupMemberships,
+    automationSettings,
+    automationPeriods
   ] = await Promise.all([
     supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, default_playlist_id, default_release_id, active_assignment_source, active_schedule_id, active_target_snapshot_id, created_at").eq("tenant_id", tenantId).is("deleted_at", null).order("created_at"),
     supabase.from("player_devices").select("id, screen_id, device_name, status, app_version, platform, capabilities, storage_quota_bytes, storage_used_bytes, active_release_id, desired_release_id, last_seen_at, paired_at, revoked_at, last_error_code, last_error_at, sync_retry_requested_at").eq("tenant_id", tenantId).order("paired_at", { ascending: false }),
@@ -148,7 +158,9 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     supabase.from("tenants").select("screen_limit").eq("id", tenantId).maybeSingle(),
     supabase.from("tenant_settings").select("default_screen_orientation, default_resolution_width, default_resolution_height").eq("tenant_id", tenantId).maybeSingle(),
     supabase.from("screen_groups").select("id, name, revision").eq("tenant_id", tenantId).eq("status", "active").order("name"),
-    supabase.from("screen_group_memberships").select("screen_group_id, screen_id").eq("tenant_id", tenantId)
+    supabase.from("screen_group_memberships").select("screen_group_id, screen_id").eq("tenant_id", tenantId),
+    supabase.from("screen_automation_settings").select("screen_id, enabled, schedule_mode, temporary_override, temporary_override_until").eq("tenant_id", tenantId),
+    supabase.from("screen_automation_periods").select("screen_id, weekday, start_local_time, enabled").eq("tenant_id", tenantId).order("weekday").order("start_local_time")
   ]);
   const error = [
     screens.error,
@@ -158,7 +170,9 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     tenant.error,
     settings.error,
     groups.error,
-    groupMemberships.error
+    groupMemberships.error,
+    automationSettings.error,
+    automationPeriods.error
   ].find(Boolean);
   if (error) {
     console.error("Schermvloot laden mislukt", error);
@@ -167,6 +181,10 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
 
   const playlistNames = new Map((playlists.data ?? []).map((playlist) => [playlist.id, playlist.name]));
   return {
+    automation: automationSummaries(
+      automationSettings.data ?? [],
+      automationPeriods.data ?? []
+    ),
     devices: (devices.data ?? []).map(mapDevice),
     error: null,
     groups: (groups.data ?? []).map((group) => ({
@@ -203,6 +221,7 @@ export async function loadScreenDetail(
   const fleet = await loadScreenFleet(tenantId);
   const screen = fleet.screens.find((candidate) => candidate.id === screenId) ?? null;
   const empty: ScreenDetailData = {
+    automation: fleet.automation[screenId] ?? { enabled: false, label: "Handmatig" },
     auditEvents: [],
     devices: [],
     error: fleet.error,
@@ -235,6 +254,7 @@ export async function loadScreenDetail(
   const groupNames = new Map((groups.data ?? []).map((group) => [group.id, group.name]));
 
   return {
+    automation: empty.automation,
     auditEvents: (auditEvents.data ?? [])
       .filter((event) => event.target_id === screenId || (event.target_id && deviceIds.has(event.target_id)))
       .map((event) => ({
@@ -350,4 +370,64 @@ function objectValue(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
+}
+
+function automationSummaries(
+  settings: Array<{
+    enabled: boolean;
+    schedule_mode: string;
+    screen_id: string;
+    temporary_override: string;
+    temporary_override_until: string | null;
+  }>,
+  periods: Array<{
+    enabled: boolean;
+    screen_id: string;
+    start_local_time: string;
+    weekday: number;
+  }>
+): Record<string, ScreenAutomationSummary> {
+  const now = Date.now();
+  return Object.fromEntries(settings.map((setting) => {
+    const paused = setting.temporary_override === "paused" &&
+      setting.temporary_override_until &&
+      Date.parse(setting.temporary_override_until) > now;
+    if (!setting.enabled) {
+      return [setting.screen_id, { enabled: false, label: "Handmatig" }];
+    }
+    if (paused) {
+      return [
+        setting.screen_id,
+        { enabled: true, label: "Automatisering gepauzeerd" }
+      ];
+    }
+    if (setting.schedule_mode === "always") {
+      return [setting.screen_id, { enabled: true, label: "Altijd actief" }];
+    }
+    const activePeriods = periods.filter(
+      (period) => period.screen_id === setting.screen_id && period.enabled
+    );
+    if (!activePeriods.length) {
+      return [setting.screen_id, { enabled: true, label: "Geen bedrijfstijden" }];
+    }
+    const weekdays = new Set(activePeriods.map((period) => period.weekday));
+    const firstStart = activePeriods[0]!.start_local_time.slice(0, 5);
+    const sameStart = activePeriods.every(
+      (period) => period.start_local_time.slice(0, 5) === firstStart
+    );
+    const range = weekdays.size === 7
+      ? "Dagelijks"
+      : [1, 2, 3, 4, 5].every((weekday) => weekdays.has(weekday)) &&
+          !weekdays.has(6) &&
+          !weekdays.has(7)
+        ? "Ma–vr"
+        : `${weekdays.size} dagen`;
+    return [
+      setting.screen_id,
+      {
+        enabled: true,
+        label: sameStart ? `${range} ${firstStart}` : `${range} · wisselende tijden`
+      }
+    ];
+  }));
 }

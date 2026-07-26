@@ -19,7 +19,12 @@ import { hasCapability } from "@veyocast/auth";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
-import { loadScreenFleet, type FleetDevice, type FleetScreen } from "./data";
+import {
+  loadScreenFleet,
+  type FleetDevice,
+  type FleetScreen,
+  type ScreenAutomationSummary
+} from "./data";
 import {
   addBulkScreensToGroup,
   assignBulkScreenRelease,
@@ -37,7 +42,15 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const query = await searchParams;
   const data = session.isLive && session.tenantId
     ? await loadScreenFleet(session.tenantId)
-    : { devices: [], error: null, groups: [], limit: 0, releases: [], screens: [] };
+    : {
+        automation: {} as Record<string, ScreenAutomationSummary>,
+        devices: [],
+        error: null,
+        groups: [],
+        limit: 0,
+        releases: [],
+        screens: []
+      };
   const devicesByScreen = new Map(
     data.devices.filter((device) => device.status === "paired").map((device) => [device.screenId, device])
   );
@@ -121,6 +134,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
               { id: "player", label: "Player" },
               { id: "content", label: "Content" },
               { id: "sync", label: "Synchronisatie" },
+              { id: "automation", label: "Automatisering" },
               { defaultVisible: false, id: "seen", label: "Laatst gezien" },
               { id: "action", label: "Actie", required: true }
             ]}
@@ -207,6 +221,14 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
                     <div><dt>Versie</dt><dd>{release ? `Versie ${release.version}` : "—"}</dd></div>
                     <div><dt>Bron</dt><dd>{assignmentSourceLabel(screen, Boolean(release))}</dd></div>
                     <div><dt>Synchronisatie</dt><dd>{syncLabel(device)}</dd></div>
+                    <div>
+                      <dt>Automatisering</dt>
+                      <dd>
+                        <Link href={`/dashboard/screens/${screen.id}?tab=automation`}>
+                          {data.automation[screen.id]?.label ?? "Handmatig"}
+                        </Link>
+                      </dd>
+                    </div>
                     <div><dt>Scherm</dt><dd>{screen.resolutionWidth && screen.resolutionHeight ? `${screen.resolutionWidth} × ${screen.resolutionHeight}` : "Resolutie onbekend"} · {orientationLabel(screen.orientation)}</dd></div>
                     <div><dt>Laatste contact</dt><dd>{formatLastSeen(device?.lastSeenAt)}</dd></div>
                   </dl>
@@ -215,7 +237,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
             );
           })}
         </div>
-      ) : filteredScreens.length ? <div className="data-table-frame"><table className="data-table data-table--responsive" data-vc-table-key="tenant-screen-fleet"><caption>Operationele schermstatus binnen de actieve vereniging.</caption><thead><tr><th scope="col"><span className="sr-only">Selecteren</span></th><th data-column="screen" scope="col">Scherm</th><th data-column="status" scope="col">Status</th><th data-column="player" scope="col">Player</th><th data-column="content" scope="col">Content</th><th data-column="sync" scope="col">Synchronisatie</th><th data-column="seen" scope="col">Laatst gezien</th><th data-column="action" scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
+      ) : filteredScreens.length ? <div className="data-table-frame"><table className="data-table data-table--responsive" data-vc-table-key="tenant-screen-fleet"><caption>Operationele schermstatus binnen de actieve vereniging.</caption><thead><tr><th scope="col"><span className="sr-only">Selecteren</span></th><th data-column="screen" scope="col">Scherm</th><th data-column="status" scope="col">Status</th><th data-column="player" scope="col">Player</th><th data-column="content" scope="col">Content</th><th data-column="sync" scope="col">Synchronisatie</th><th data-column="automation" scope="col">Automatisering</th><th data-column="seen" scope="col">Laatst gezien</th><th data-column="action" scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
         const device = devicesByScreen.get(screen.id);
         const status = screenStatus(screen, device);
         return <tr key={screen.id}>
@@ -225,6 +247,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
           <td data-column="player" data-label="Player">{device?.deviceName || "Niet gekoppeld"}<span className="table-secondary">{device?.appVersion ? `App ${device.appVersion}` : device?.platform || "Geen telemetry"}</span></td>
           <td data-column="content" data-label="Content">{screen.assignedReleaseId ? releaseById.get(screen.assignedReleaseId)?.label || `Release ${screen.assignedReleaseId.slice(0, 8)}` : "Geen release"}</td>
           <td data-column="sync" data-label="Synchronisatie">{syncLabel(device)}</td>
+          <td data-column="automation" data-label="Automatisering"><Link className="table-action" href={`/dashboard/screens/${screen.id}?tab=automation`}>{data.automation[screen.id]?.label ?? "Handmatig"}</Link></td>
           <td data-column="seen" data-label="Laatst gezien">{formatLastSeen(device?.lastSeenAt)}</td>
           <td data-column="action" data-label="Actie"><Link className="table-action" href={`/dashboard/screens/${screen.id}`}>Bekijk scherm</Link></td>
         </tr>;

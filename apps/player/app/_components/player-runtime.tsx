@@ -56,6 +56,13 @@ import {
 } from "../_lib/player-connectivity";
 import { resolvePersistedPairingDelay } from "../_lib/player-pairing-recovery";
 import {
+  clearAutomationReport,
+  queueAutomationHeartbeatConfirmation,
+  readAutomationCapabilities,
+  readAutomationReport,
+  storeAutomationSync
+} from "../_lib/player-automation";
+import {
   defaultWatchdogTimeoutMs,
   resolvePlayerRuntimeTiming
 } from "../_lib/player-runtime-config";
@@ -1097,6 +1104,8 @@ export function PlayerRuntime() {
         ? playbackRuntime.release.envelope.manifest.items[playbackRuntime.activeIndex]
         : null;
       const reportedPlaybackError = lastPlaybackErrorRef.current;
+      const automationReport = readAutomationReport(window.localStorage);
+      const automationCapabilities = readAutomationCapabilities(window.localStorage);
       const syncPhase = !playbackRuntime
         ? null
         : playbackRuntime.state === "DOWNLOADING"
@@ -1111,6 +1120,8 @@ export function PlayerRuntime() {
         const response = await fetchPlayerOrigin("/api/player/heartbeat", {
           body: JSON.stringify({
             activeReleaseId: playbackRuntime?.release.envelope.manifest.releaseId ?? null,
+            automationCapabilities,
+            automationReport,
             currentItemId: activeItem?.id ?? null,
             desiredReleaseId: playbackRuntime
               ? playbackRuntime.pendingRelease?.envelope.manifest.releaseId ??
@@ -1131,6 +1142,22 @@ export function PlayerRuntime() {
           method: "POST"
         });
         if (!response.ok) throw new Error("Heartbeat is geweigerd.");
+        const heartbeat = await response.json().catch(() => null) as {
+          automation?: unknown;
+          ok?: boolean;
+        } | null;
+        if (heartbeat?.automation !== undefined) {
+          storeAutomationSync(window.localStorage, heartbeat.automation);
+        }
+        if (automationReport) {
+          clearAutomationReport(window.localStorage, automationReport);
+          queueAutomationHeartbeatConfirmation(
+            window.localStorage,
+            automationReport,
+            createAutomationEventId(),
+            new Date().toISOString()
+          );
+        }
         if (
           reportedPlaybackError?.recoveredAt &&
           lastPlaybackErrorRef.current === reportedPlaybackError
@@ -1861,6 +1888,26 @@ function createPlayerInstanceId() {
   const bytes = new Uint8Array(16);
   window.crypto.getRandomValues(bytes);
   return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+function createAutomationEventId() {
+  if (typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  window.crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40;
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (value) =>
+    value.toString(16).padStart(2, "0")
+  ).join("");
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    hex.slice(12, 16),
+    hex.slice(16, 20),
+    hex.slice(20)
+  ].join("-");
 }
 
 function readPairingProvisionDelay() {

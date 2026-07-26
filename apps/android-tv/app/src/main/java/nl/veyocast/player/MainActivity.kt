@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -33,7 +34,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import java.net.URI
+import java.time.Instant
 import org.json.JSONObject
+import org.json.JSONTokener
 
 class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private lateinit var root: FrameLayout
@@ -59,6 +62,8 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private val crashLoopGuard = CrashLoopGuard()
     private lateinit var preferences: AppPreferences
     private lateinit var networkMonitor: NetworkMonitor
+    private lateinit var automationStore: AutomationStore
+    private lateinit var automationScheduler: AutomationScheduler
     private lateinit var playerUrl: String
     private lateinit var navigationPolicy: NavigationPolicy
 
@@ -74,6 +79,15 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
     private var centerKeyPressed = false
     private var panelOpenedByLongPress = false
+    private var lastKeepAwakeState: Boolean? = null
+
+    private val automationBridgeRunnable = object : Runnable {
+        override fun run() {
+            if (!pageLoaded) return
+            syncAutomationBridge()
+            mainHandler.postDelayed(this, AUTOMATION_BRIDGE_INTERVAL_MS)
+        }
+    }
 
     private val retryRunnable = Runnable {
         retryScheduled = false
@@ -94,7 +108,6 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
         onBackPressedDispatcher.addCallback(
@@ -107,6 +120,10 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         bindViews()
         configureViewportSizing()
         preferences = AppPreferences(this)
+        automationStore = AutomationStore(this)
+        automationScheduler = AutomationScheduler(this)
+        applyScheduledKeepAwake()
+        handleAutomationLaunchIntent(intent)
         playerUrl = PlayerConfiguration.resolvePlayerUrl(
             configuredUrl = BuildConfig.PLAYER_URL,
             allowDebugOverride = BuildConfig.ALLOW_DEBUG_URL_OVERRIDE,
@@ -134,6 +151,8 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         applyImmersiveMode()
         webView?.onResume()
         evaluatePlaybackScript(WebPlaybackScripts.RESUME_AFTER_BACKGROUND)
+        applyScheduledKeepAwake()
+        handleAutomationLaunchIntent(intent)
         if (rendererRecoveryPending) {
             rendererRecoveryPending = false
             recreateWebViewAfterRendererFailure()
@@ -150,6 +169,12 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         webView?.onPause()
         CookieManager.getInstance().flush()
         super.onPause()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleAutomationLaunchIntent(intent)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -209,6 +234,8 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         cancelScheduledRetry()
         hideErrorOverlay()
         updateConnectionLabel()
+        mainHandler.removeCallbacks(automationBridgeRunnable)
+        mainHandler.post(automationBridgeRunnable)
         AppLog.info("Player-hoofdpagina geladen")
     }
 
@@ -585,7 +612,8 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         settings.setGeolocationEnabled(false)
         settings.safeBrowsingEnabled = true
         settings.userAgentString = settings.userAgentString +
-            " VeyoCastAndroid/${BuildConfig.VERSION_NAME}"
+            " VeyoCastAndroid/${BuildConfig.VERSION_NAME}" +
+            " VeyoCastFormFactor/${BuildConfig.PLAYER_FORM_FACTOR}"
     }
 
     private fun createWebChromeClient(): WebChromeClient = object : WebChromeClient() {
@@ -795,9 +823,163 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 
+    private fun syncAutomationBridge() {
+        val view = webView ?: return
+        view.evaluateJavascript(
+            """
+                (() => JSON.stringify({
+                  reportPresent:
+                    localStorage.getItem('veyocast.player.automation.report.v1') !== null,
+                  sync: localStorage.getItem('veyocast.player.automation.v1')
+                }))()
+            """.trimIndent()
+        ) { rawValue ->
+            if (view !== webView) return@evaluateJavascript
+            val payload = decodeJavascriptObject(rawValue) ?: return@evaluateJavascript
+            val reportPresent = payload.optBoolean("reportPresent", false)
+            if (!reportPresent) automationStore.acknowledgeDelivered()
+            val rawSync = payload.optNullableString("sync")
+            if (rawSync != automationStore.rawSync()) {
+                val previousEnvelope = automationStore.currentEnvelope()
+                val envelope = if (rawSync == null) {
+                    automationStore.clearSync()
+                    null
+                } else {
+                    automationStore.storeSync(rawSync)
+                }
+                val configurationChanged =
+                    previousEnvelope?.settings?.screenId != envelope?.settings?.screenId ||
+                        previousEnvelope?.settings?.revision != envelope?.settings?.revision
+                if (rawSync != null && envelope != null && configurationChanged) {
+                    automationStore.enqueueReport(
+                        eventType = "automation-config-stored",
+                        metadata = mapOf(
+                            "revision" to (envelope.settings?.revision ?: 0)
+                        )
+                    )
+                }
+                handleAutomationCommand(envelope?.command)
+                if (configurationChanged) {
+                    automationScheduler.apply(envelope)
+                    applyScheduledKeepAwake()
+                }
+            } else {
+                handleAutomationCommand(automationStore.currentEnvelope()?.command)
+            }
+            injectAutomationBridge(reportPresent)
+        }
+    }
+
+    private fun injectAutomationBridge(reportWasPresent: Boolean) {
+        val view = webView ?: return
+        val capabilities = JSONObject.quote(automationStore.capabilities(this).toString())
+        val report = if (reportWasPresent) null else automationStore.pendingReport()
+        val reportScript = report?.let {
+            """
+                localStorage.setItem(
+                  'veyocast.player.automation.report.v1',
+                  ${JSONObject.quote(it.toString())}
+                );
+            """.trimIndent()
+        }.orEmpty()
+        view.evaluateJavascript(
+            """
+                (() => {
+                  localStorage.setItem(
+                    'veyocast.player.automation.capabilities.v1',
+                    $capabilities
+                  );
+                  $reportScript
+                  return true;
+                })()
+            """.trimIndent(),
+            null
+        )
+        report?.optString("eventId")?.takeIf(String::isNotBlank)?.let(
+            automationStore::markDelivered
+        )
+    }
+
+    private fun handleAutomationCommand(command: AutomationCommand?) {
+        if (
+            command == null ||
+            command.expiresAt <= Instant.now() ||
+            automationStore.commandWasHandled(command.id)
+        ) return
+        automationStore.markCommandHandled(command.id)
+        automationStore.enqueueReport(
+            eventType = "command-received",
+            commandId = command.id
+        )
+        automationScheduler.scheduleTest(command)
+    }
+
+    private fun applyScheduledKeepAwake() {
+        val settings = automationStore.currentEnvelope()?.settings
+        val keepAwake = if (settings == null) {
+            true
+        } else {
+            settings.keepAwakeEnabled &&
+                AutomationScheduleEvaluator.evaluate(settings, Instant.now()).active
+        }
+        if (keepAwake) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+        if (
+            ::automationStore.isInitialized &&
+            settings != null &&
+            lastKeepAwakeState != keepAwake
+        ) {
+            automationStore.enqueueReport(
+                eventType = if (keepAwake) "keep-awake-enabled" else "keep-awake-disabled",
+                metadata = mapOf("activeWindow" to keepAwake)
+            )
+        }
+        lastKeepAwakeState = keepAwake
+    }
+
+    private fun handleAutomationLaunchIntent(launchIntent: Intent?) {
+        if (
+            launchIntent?.getBooleanExtra(
+                AutomationAlarmReceiver.EXTRA_AUTOMATION_START,
+                false
+            ) != true ||
+            !::automationStore.isInitialized
+        ) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setTurnScreenOn(true)
+            setShowWhenLocked(true)
+        }
+        val commandId =
+            launchIntent.getStringExtra(AutomationAlarmReceiver.EXTRA_COMMAND_ID)
+        val scheduledFor =
+            launchIntent.getStringExtra(AutomationAlarmReceiver.EXTRA_SCHEDULED_FOR)
+                ?.let { runCatching { Instant.parse(it) }.getOrNull() }
+        automationStore.enqueueReport(
+            eventType = "player-visible",
+            commandId = commandId,
+            scheduledFor = scheduledFor,
+            metadata = mapOf("activityResumed" to activityResumed)
+        )
+        automationStore.recordExecution("PLAYER_VISIBLE")
+        launchIntent.removeExtra(AutomationAlarmReceiver.EXTRA_AUTOMATION_START)
+    }
+
+    private fun decodeJavascriptObject(value: String?): JSONObject? = runCatching {
+        val decoded = JSONTokener(value ?: return null).nextValue() as? String
+            ?: return null
+        JSONObject(decoded)
+    }.getOrNull()
+
+    private fun JSONObject.optNullableString(key: String): String? =
+        if (isNull(key)) null else optString(key).takeIf(String::isNotBlank)
+
     private fun safeHost(url: String): String = runCatching { URI(url).host }.getOrNull() ?: "onbekend"
 
     private companion object {
+        const val AUTOMATION_BRIDGE_INTERVAL_MS = 15_000L
         const val DEMO_ACTIVATION_POLL_MS = 100L
         const val DEMO_ACTIVATION_TIMEOUT_MS = 10_000L
         const val DEMO_COOKIE_NAME = "veyocast_player_demo_session"

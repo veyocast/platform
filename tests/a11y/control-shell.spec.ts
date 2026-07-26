@@ -301,23 +301,38 @@ test("activity workspace remains readable without fictional mobile rows", async 
 });
 
 test("tenant context selection is explicit and keyboard reachable", async ({ page }) => {
-  await page.goto("/dashboard");
-
+  // Warm the lazily compiled App Router segment before testing client-side
+  // keyboard navigation; otherwise Next dev can replace the first transition
+  // with a Fast Refresh reload of the current route.
   await expect(async () => {
-    if (/\/context$/.test(page.url())) return;
-    const switcher = page.locator("summary").filter({ hasText: "Museumkwartier" });
-    await switcher.focus();
-    await expect(switcher).toBeFocused();
-    if (!(await switcher.evaluate((element) => (element.parentElement as HTMLDetailsElement | null)?.open ?? false))) {
-      await page.keyboard.press("Enter");
+    try {
+      await page.goto("/context");
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
     }
-    await expect(page.getByRole("group", { name: "Werkcontext wisselen" })).toBeVisible();
-    const contextLink = page.getByRole("link", { name: "Alle contexten beheren" });
-    await contextLink.focus();
-    await expect(contextLink).toBeFocused();
-    await page.keyboard.press("Enter");
-    await page.waitForURL(/\/context$/, { timeout: 4_000 });
+    await expect(page.getByRole("heading", { name: "Kies een vereniging" })).toBeVisible();
   }).toPass({ timeout: 20_000 });
+  await expect(async () => {
+    try {
+      await page.goto("/dashboard");
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(page.getByRole("heading", { name: "Welkom, Daan Operator" })).toBeVisible();
+  }).toPass({ timeout: 20_000 });
+
+  const switcher = page.locator("summary").filter({ hasText: "Museumkwartier" });
+  await switcher.focus();
+  await expect(switcher).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("group", { name: "Werkcontext wisselen" })).toBeVisible();
+  const contextLink = page.getByRole("link", { name: "Alle contexten beheren" });
+  await contextLink.focus();
+  await expect(contextLink).toBeFocused();
+  await Promise.all([
+    page.waitForURL(/\/context$/, { timeout: 10_000 }),
+    contextLink.press("Enter")
+  ]);
   await expect(page.getByRole("heading", { name: "Kies een vereniging" })).toBeVisible();
   await expect(page.getByText("niet automatisch een willekeurige context gekozen")).toBeVisible();
 });
@@ -325,6 +340,7 @@ test("tenant context selection is explicit and keyboard reachable", async ({ pag
 test("media route exposes upload intake labels and status landmarks", async ({
   page
 }) => {
+  test.slow();
   await page.goto("/dashboard/media");
   await page.waitForLoadState("networkidle");
   await expect(
@@ -356,9 +372,15 @@ test("media route exposes upload intake labels and status landmarks", async ({
     hasText: "Uploaden is niet beschikbaar in de demomodus"
   })).toBeVisible();
 
-  await page.goto("/dashboard/media?upload=1", { waitUntil: "commit" });
   const uploadDialog = page.getByRole("dialog", { name: "Media uploaden" });
-  await expect(uploadDialog).toBeVisible();
+  await expect(async () => {
+    try {
+      await page.goto("/dashboard/media?upload=1", { waitUntil: "commit" });
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(uploadDialog).toBeVisible();
+  }).toPass({ timeout: 20_000 });
   const imageFiles = uploadDialog.getByLabel("Afbeeldingen", { exact: true });
   await expect(imageFiles).toBeVisible();
   await expect(imageFiles).toHaveAttribute("multiple", "");
@@ -381,8 +403,9 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(page.getByRole("region", { name: "Mediabibliotheek" })).toBeVisible();
 
   await page.setViewportSize({ height: 844, width: 390 });
-  await page.reload();
-  await page.getByRole("button", { name: "Filters" }).click();
+  const mobileFilterTrigger = page.getByRole("button", { name: "Filters" });
+  await expect(mobileFilterTrigger).toBeVisible();
+  await mobileFilterTrigger.click();
   const fromDate = page.getByLabel("Vanaf");
   await expect(async () => {
     const fromDateBox = await fromDate.boundingBox();
@@ -476,13 +499,32 @@ test("tenant management exposes a labelled and safely disabled creation flow", a
 });
 
 test("screens onboarding exposes labelled lifecycle and safely disabled creation", async ({ page }) => {
-  await page.goto("/dashboard/screens");
+  // Warm the lazily compiled onboarding segment so the keyboard/click journey
+  // is not replaced by a Next dev Fast Refresh of the screens overview.
+  await expect(async () => {
+    try {
+      await page.goto("/dashboard/screens/new");
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(page.getByLabel("Onboardingstappen")).toContainText("Player koppelen");
+  }).toPass({ timeout: 20_000 });
+  await expect(async () => {
+    try {
+      await page.goto("/dashboard/screens");
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(
+      page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
+    ).toBeVisible();
+  }).toPass({ timeout: 20_000 });
 
-  await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
-  ).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "geen fictieve schermen" })).toBeVisible();
-  await page.getByRole("link", { name: "Scherm toevoegen" }).click();
+  await Promise.all([
+    page.waitForURL(/\/dashboard\/screens\/new$/, { timeout: 10_000 }),
+    page.getByRole("link", { name: "Scherm toevoegen" }).click()
+  ]);
   await expect(page.getByLabel("Onboardingstappen")).toContainText("Player koppelen");
   await expect(page.getByLabel("Schermnaam")).toBeVisible();
   await expect(page.getByLabel("Eerste content (optioneel)")).toBeVisible();

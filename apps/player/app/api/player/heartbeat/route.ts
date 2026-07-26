@@ -2,6 +2,12 @@ import { createHash } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
+import {
+  playerAutomationSyncSchema,
+  screenAutomationCapabilityReportSchema,
+  screenAutomationCommandReportSchema
+} from "@veyocast/contracts";
+
 import { readPlayerAppVersion } from "../../../_lib/runtime-health";
 
 import { createPlayerAnonClient } from "../../../_lib/player-supabase";
@@ -30,6 +36,8 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as {
     activeReleaseId?: string | null;
+    automationCapabilities?: unknown;
+    automationReport?: unknown;
     currentItemId?: string | null;
     desiredReleaseId?: string | null;
     lastPlaybackError?: {
@@ -54,13 +62,35 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+  const automationReport = body.automationReport == null
+    ? null
+    : screenAutomationCommandReportSchema.safeParse(body.automationReport);
+  if (automationReport && !automationReport.success) {
+    return NextResponse.json(
+      { error: "Ongeldige automatiseringsrapportage." },
+      { status: 400 }
+    );
+  }
+  const reportedCapabilities = body.automationCapabilities == null
+    ? null
+    : screenAutomationCapabilityReportSchema.safeParse(body.automationCapabilities);
+  if (reportedCapabilities && !reportedCapabilities.success) {
+    return NextResponse.json(
+      { error: "Ongeldige Player-capabilities." },
+      { status: 400 }
+    );
+  }
 
   const playbackErrorDetail = playbackErrorSyncDetail(body.lastPlaybackError);
+  const tokenHash = sha256(deviceToken);
 
   const { error } = await supabase.rpc("record_player_heartbeat_v2", {
     p_active_release_id: body.activeReleaseId ?? null,
     p_app_version: readPlayerAppVersion(),
     p_capabilities: {
+      screenAutomation: reportedCapabilities?.success
+        ? reportedCapabilities.data
+        : inferredAutomationCapabilities(request),
       manifestSchemaVersions: [1],
       releaseHashAlgorithms: ["sha256"]
     },
@@ -80,7 +110,7 @@ export async function POST(request: Request) {
       networkState: body.networkState === "offline" ? "offline" : "online"
     },
     p_sync_phase: body.syncPhase ?? null,
-    p_token_hash: sha256(deviceToken)
+    p_token_hash: tokenHash
   });
 
   if (error) {
@@ -92,8 +122,30 @@ export async function POST(request: Request) {
     );
   }
 
+  const { data: automationData, error: automationError } = await supabase.rpc(
+    "sync_player_automation_v1",
+    {
+      p_report: automationReport?.success ? automationReport.data : null,
+      p_token_hash: tokenHash
+    }
+  );
+  if (automationError) {
+    console.error("Player-automatisering synchroniseren mislukt", {
+      code: automationError.code
+    });
+  }
+  const automation = automationError
+    ? null
+    : playerAutomationSyncSchema.safeParse(automationData);
+  if (automation && !automation.success) {
+    console.error("Player-automatisering gaf een ongeldig servercontract");
+  }
+
   return NextResponse.json(
-    { ok: true },
+    {
+      automation: automation?.success ? automation.data : null,
+      ok: true
+    },
     {
       headers: {
         "Cache-Control": "no-store"
@@ -108,6 +160,26 @@ function playerPlatform(request: Request) {
   const userAgent = request.headers.get("user-agent") ?? "";
   if (/web0s|webos/i.test(userAgent)) return "LG webOS";
   return "browser";
+}
+
+function inferredAutomationCapabilities(request: Request) {
+  const userAgent = request.headers.get("user-agent") ?? "";
+  const isAndroidShell = /VeyoCastAndroid\//i.test(userAgent);
+  const isTv = /VeyoCastFormFactor\/tv/i.test(userAgent);
+  const androidVersion = userAgent.match(/Android\s+([0-9.]+)/i)?.[1];
+  return {
+    automationSchemaVersion: isAndroidShell ? 1 : 0,
+    ...(isAndroidShell ? { formFactor: isTv ? "tv" : "general" } : {}),
+    hdmiCecWakeCapability: isTv ? "probably_supported" : "unknown",
+    lastAutomationExecutionAt: null,
+    lastAutomationResult: null,
+    lastAutomationSyncAt: null,
+    ...(androidVersion ? { operatingSystem: `Android ${androidVersion}` } : {}),
+    supportsBootRestore: isAndroidShell,
+    supportsKeepAwake: isAndroidShell,
+    supportsLocalSchedule: isAndroidShell,
+    supportsScheduledWake: isAndroidShell
+  };
 }
 
 function getBearerToken(request: Request) {
