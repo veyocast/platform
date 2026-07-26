@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,6 +11,7 @@ import {
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, "../../..");
 const outputDirectory = join(repositoryRoot, "dist", "lg-webos");
+const appRoot = resolve(scriptDirectory, "..");
 const officialCliVersion = "3.2.5";
 
 export const packageSpecifications = Object.freeze([
@@ -31,6 +32,7 @@ export const packageSpecifications = Object.freeze([
   Object.freeze({
     appInfo: expectedSmoketestAppInfo,
     envelope: "official-signage-3.2.5",
+    sourceRoot: join(appRoot, "smoketest"),
     expectedApplicationFiles: [
       "appinfo.json",
       "icon.png",
@@ -104,6 +106,22 @@ export async function inspectIpk(
       `IPK-runtimebestanden wijken af voor ${expected.id}: ${applicationFiles.join(", ")}`
     );
   }
+  if (specification.sourceRoot) {
+    for (const filename of applicationFiles) {
+      const archiveBytes = await readPackageFile(
+        resolvedPath,
+        `${applicationPrefix}${filename}`
+      );
+      const sourceBytes = await readFile(
+        join(specification.sourceRoot, filename)
+      );
+      if (!archiveBytes.equals(sourceBytes)) {
+        throw new Error(
+          `IPK-runtimebestand ${filename} is niet bytegelijk aan de vastgelegde bron`
+        );
+      }
+    }
+  }
 
   const archiveMetadata = [];
   for (const member of ["control.tar.gz", "data.tar.gz"]) {
@@ -148,6 +166,19 @@ async function listPackageEntries(ipkPath) {
     .split(/\r?\n/u)
     .map((entry) => entry.replace(/^\.\//u, ""))
     .filter(Boolean);
+}
+
+async function readPackageFile(ipkPath, packagePath) {
+  const dataArchive = await runBinaryCommand("ar", [
+    "p",
+    ipkPath,
+    "data.tar.gz"
+  ]);
+  return runBinaryCommandWithInput(
+    "tar",
+    ["-xOzf", "-", packagePath],
+    dataArchive
+  );
 }
 
 async function listArchiveMetadata(ipkPath, member) {
@@ -259,6 +290,10 @@ async function runCommandWithInput(command, argumentsValue, input) {
 }
 
 async function runBinaryCommand(command, argumentsValue) {
+  return runBinaryCommandWithInput(command, argumentsValue, null);
+}
+
+async function runBinaryCommandWithInput(command, argumentsValue, input) {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(command, argumentsValue, {
       env: process.env,
@@ -284,6 +319,8 @@ async function runBinaryCommand(command, argumentsValue) {
       }
       resolvePromise(Buffer.concat(stdout));
     });
+    if (input) child.stdin.end(input);
+    else child.stdin.end();
   });
 }
 
