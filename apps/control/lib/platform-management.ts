@@ -20,7 +20,7 @@ export async function loadPlatformTenantDetail(tenantId: string) {
       .order("created_at", { ascending: true }),
     supabase
       .from("tenant_invitations")
-      .select("id, email, role, status, delivery_status, send_attempt_count, expires_at, created_at")
+      .select("id, email, role, status, delivery_status, last_delivery_error_code, send_attempt_count, expires_at, created_at")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false }),
     supabase.from("screens").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),

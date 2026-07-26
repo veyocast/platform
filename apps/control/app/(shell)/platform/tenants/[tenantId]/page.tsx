@@ -3,6 +3,10 @@ import { SummaryStrip } from "@veyocast/ui";
 import Link from "next/link";
 
 import { requireControlCapability } from "../../../../../lib/control-session";
+import {
+  invitationDeliveryLabel,
+  invitationDeliveryRecovery
+} from "../../../../../lib/invitation-delivery";
 import { loadPlatformTenantDetail } from "../../../../../lib/platform-management";
 import { switchTenantContext } from "../../../context/actions";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
@@ -116,7 +120,7 @@ export default async function PlatformTenantDetailPage({
 
       <section className="workspace-section" id="uitnodigingen" aria-labelledby="invitation-title">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="invitation-title">Uitnodigingen</h2><p className="work-panel__meta">Een nieuwe verzending roteert de acceptance-token; de vorige link wordt direct ongeldig.</p></div><StatusPill label={`${data.invitations.length} totaal`} tone="neutral" /></div>
-        {data.invitations.length ? <div className="data-table-frame"><table className="data-table data-table--responsive"><caption>Uitnodigingen voor deze vereniging.</caption><thead><tr><th scope="col">E-mail</th><th scope="col">Rol</th><th scope="col">Status</th><th scope="col">Bezorging</th><th scope="col">Actie</th></tr></thead><tbody>{data.invitations.map((invitation) => { const effectiveStatus = invitation.status === "pending" && new Date(invitation.expires_at) <= new Date() ? "expired" : invitation.status; return <tr key={invitation.id}><td data-label="E-mail"><span className="table-primary">{invitation.email}</span></td><td data-label="Rol">{roleLabel(invitation.role)}</td><td data-label="Status">{invitationStatusLabel(effectiveStatus)}</td><td data-label="Bezorging">{deliveryLabel(invitation.delivery_status)}</td><td data-label="Actie">{invitation.status === "pending" ? <form action={resendProvisioningInvitation}><input name="tenantId" type="hidden" value={tenant.id} /><input name="invitationId" type="hidden" value={invitation.id} /><button className="table-action" disabled={!canMutate} type="submit">Nieuwe link versturen</button></form> : <span>Geen actie</span>}</td></tr>; })}</tbody></table></div> : <p className="notice" role="status">Geen uitnodigingen gevonden.</p>}
+        {data.invitations.length ? <div className="data-table-frame"><table className="data-table data-table--responsive"><caption>Uitnodigingen voor deze vereniging.</caption><thead><tr><th scope="col">E-mail</th><th scope="col">Rol</th><th scope="col">Status</th><th scope="col">Bezorging</th><th scope="col">Actie</th></tr></thead><tbody>{data.invitations.map((invitation) => { const effectiveStatus = invitation.status === "pending" && new Date(invitation.expires_at) <= new Date() ? "expired" : invitation.status; return <tr key={invitation.id}><td data-label="E-mail"><span className="table-primary">{invitation.email}</span></td><td data-label="Rol">{roleLabel(invitation.role)}</td><td data-label="Status">{invitationStatusLabel(effectiveStatus)}</td><td data-label="Bezorging"><span className="table-primary">{invitationDeliveryLabel(invitation.delivery_status, invitation.last_delivery_error_code)}</span>{invitation.delivery_status === "failed" ? <span className="work-panel__meta">{invitationDeliveryRecovery(invitation.last_delivery_error_code)}</span> : null}</td><td data-label="Actie">{invitation.status === "pending" ? <form action={resendProvisioningInvitation}><input name="tenantId" type="hidden" value={tenant.id} /><input name="invitationId" type="hidden" value={invitation.id} /><button className="table-action" disabled={!canMutate} type="submit">Nieuwe link versturen</button></form> : <span>Geen actie</span>}</td></tr>; })}</tbody></table></div> : <p className="notice" role="status">Geen uitnodigingen gevonden.</p>}
       </section>
 
       <section className="workspace-section" aria-labelledby="member-title">
@@ -160,7 +164,6 @@ function statusLabel(value: string) { return value === "active" ? "Actief" : val
 function provisioningLabel(value: string) { return value === "ready" ? "Gereed" : value === "mail_failed" ? "E-mailactie nodig" : "Uitnodiging voorbereiden"; }
 function roleLabel(value: string) { return value === "tenant_owner" ? "Eigenaar" : value === "tenant_admin" ? "Beheerder" : value === "tenant_editor" ? "Editor" : "Kijker"; }
 function invitationStatusLabel(value: string) { return value === "pending" ? "In afwachting" : value === "accepted" ? "Geaccepteerd" : value === "revoked" ? "Ingetrokken" : "Verlopen"; }
-function deliveryLabel(value: string) { return value === "sent" ? "Verstuurd" : value === "failed" ? "Mislukt · opnieuw versturen" : "Nog niet verstuurd"; }
 function formatDate(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium" }).format(new Date(value)); }
 function formatDateTime(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
 function formatBytes(value: number) { if (value < 1024) return `${value} B`; if (value < 1024 ** 2) return `${(value / 1024).toFixed(1)} KB`; if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(1)} MB`; return `${(value / 1024 ** 3).toFixed(1)} GB`; }
