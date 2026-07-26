@@ -11,7 +11,9 @@ import {
 
 import {
   Button,
+  DataTable,
   FilterBar,
+  IconButton,
   SummaryStrip,
   TablePreferences
 } from "@veyocast/ui";
@@ -36,6 +38,17 @@ import styles from "./screens-overview.module.css";
 type ScreensPageProps = {
   searchParams: Promise<{ fout?: string; q?: string; status?: string; succes?: string; sync?: string; view?: string }>;
 };
+
+const screenColumns = [
+  { id: "screen", label: "Scherm", defaultVisible: true, required: true },
+  { id: "status", label: "Status", defaultVisible: true },
+  { id: "player", label: "Player", defaultVisible: true },
+  { id: "content", label: "Content", defaultVisible: true },
+  { id: "sync", label: "Synchronisatie", defaultVisible: true },
+  { id: "automation", label: "Automatisering", defaultVisible: true },
+  { id: "seen", label: "Laatst gezien", defaultVisible: true },
+  { id: "action", label: "Actie", defaultVisible: true, required: true }
+] as const;
 
 export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const session = await requireTenantControlSession("tenant.screen.read");
@@ -74,10 +87,9 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
         screenPriority(screenStatus(right, devicesByScreen.get(right.id)).kind);
       return priorityDifference || left.name.localeCompare(right.name, "nl-NL");
     });
-  const online = statuses.filter((status) => status.kind === "online").length;
   const syncing = statuses.filter((status) => status.kind === "syncing").length;
   const attention = statuses.filter((status) => ["maintenance", "offline", "unpaired"].includes(status.kind)).length;
-  const view = query.view === "list" ? "list" : "cards";
+  const view = query.view === "cards" ? "cards" : "list";
   const canManage =
     session.isLive &&
     session.tenantStatus === "active" &&
@@ -86,14 +98,13 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.playlist.publish");
-  const eligibleCount = filteredScreens.filter(
-    (screen) => screen.status === "active"
-  ).length;
+  const capacityNeedsAttention =
+    data.limit > 0 && data.screens.length >= data.limit;
 
   return <>
     <PageHeader
-      actions={<Button asChild><Link href="/dashboard/screens/new">Scherm toevoegen</Link></Button>}
-      description="Beheer lifecycle, content, Players, synchronisatie en gebeurtenissen vanuit één echte schermvloot."
+      actions={canManage ? <Button asChild><Link href="/dashboard/screens/new">Scherm toevoegen</Link></Button> : null}
+      description="Beheer de status, content en synchronisatie van ieder scherm."
       eyebrow={session.tenant}
       status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
       title="Schermen"
@@ -103,43 +114,69 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
     {!session.isLive ? <p className="notice notice--warning" role="status">Deze pagina toont bewust geen fictieve schermen. Configureer Supabase en log in om de vloot te beheren.</p> : null}
     {data.error ? <p className="notice notice--critical" role="alert"><strong>Schermvloot niet beschikbaar.</strong> {data.error}</p> : null}
 
-    <SummaryStrip
-      aria-label="Compact schermoverzicht"
-      items={[
-        {
-          detail: attention ? "Offline, niet gekoppeld of in onderhoud" : "De actieve vloot vraagt nu geen herstelactie",
-          label: "Actie nodig",
-          tone: attention ? "warning" : "success",
-          value: attention
-        },
-        { label: "Online", tone: "success", value: online },
-        { label: "Synchroniseren", tone: "info", value: syncing },
-        {
-          detail: "Toegestane capaciteit",
-          label: "In gebruik",
-          tone: data.screens.length >= data.limit && data.limit > 0 ? "warning" : "neutral",
-          value: `${data.screens.length}/${data.limit || "—"}`
-        }
-      ]}
-    />
+    {attention || syncing || capacityNeedsAttention ? (
+      <SummaryStrip
+        aria-label="Aandachtspunten schermvloot"
+        items={[
+          ...(attention
+            ? [{
+                detail: "Offline, niet gekoppeld of in onderhoud",
+                label: "Actie nodig",
+                tone: "warning" as const,
+                value: attention
+              }]
+            : []),
+          ...(syncing
+            ? [{
+                detail: "Nieuwe content wordt voorbereid",
+                label: "Synchroniseren",
+                tone: "info" as const,
+                value: syncing
+              }]
+            : []),
+          ...(capacityNeedsAttention
+            ? [{
+                detail: "Toegestane capaciteit bereikt",
+                label: "In gebruik",
+                tone: "warning" as const,
+                value: `${data.screens.length}/${data.limit}`
+              }]
+            : [])
+        ]}
+      />
+    ) : null}
 
     <form method="get" role="search">
       <FilterBar
+        className="screens-filter-bar"
         activeCount={Number(Boolean(normalizedQuery)) + Number(statusFilter !== "all")}
         actions={(
-          <TablePreferences
-            columns={[
-              { id: "screen", label: "Scherm", required: true },
-              { id: "status", label: "Status", required: true },
-              { id: "player", label: "Player" },
-              { id: "content", label: "Content" },
-              { id: "sync", label: "Synchronisatie" },
-              { id: "automation", label: "Automatisering" },
-              { defaultVisible: false, id: "seen", label: "Laatst gezien" },
-              { id: "action", label: "Actie", required: true }
-            ]}
-            tableKey="tenant-screen-fleet"
-          />
+          <>
+            <IconButton asChild aria-label="Schermen als compacte lijst tonen" title="Lijst">
+              <Link
+                aria-current={view === "list" ? "page" : undefined}
+                href={screenViewHref(query, "list")}
+              >
+                <List aria-hidden="true" />
+              </Link>
+            </IconButton>
+            <IconButton asChild aria-label="Schermen als kaarten tonen" title="Kaarten">
+              <Link
+                aria-current={view === "cards" ? "page" : undefined}
+                href={screenViewHref(query, "cards")}
+              >
+                <Grid3X3 aria-hidden="true" />
+              </Link>
+            </IconButton>
+            <div className="screens-filter-desktop-options">
+              <TablePreferences
+                columns={screenColumns}
+                tableKey="tenant-screen-fleet"
+                title="Vlootweergave"
+                triggerLabel="Weergave-instellingen"
+              />
+            </div>
+          </>
         )}
         clearHref="/dashboard/screens"
         defaultOpen={Boolean(normalizedQuery) || statusFilter !== "all"}
@@ -148,6 +185,14 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       >
         <label className="toolbar-field"><span>Status</span><select className="toolbar-select" defaultValue={statusFilter} name="status"><option value="all">Alle statussen</option><option value="online">Online</option><option value="offline">Offline</option><option value="syncing">Synchroniseren</option><option value="unpaired">Niet gekoppeld</option><option value="maintenance">Onderhoud</option><option value="disabled">Uitgeschakeld</option></select></label>
         <Button type="submit" variant="secondary">Vloot filteren</Button>
+        <div className="screens-filter-mobile-options">
+          <TablePreferences
+            columns={screenColumns}
+            tableKey="tenant-screen-fleet"
+            title="Vlootweergave"
+            triggerLabel="Weergave-instellingen"
+          />
+        </div>
       </FilterBar>
     </form>
 
@@ -160,27 +205,6 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       releases={data.releases}
       syncAction={requestBulkScreenSyncRetry}
     >
-    <div className={styles.viewBar}>
-      <nav aria-label="Schermweergave" className={styles.viewTabs}>
-        <Link aria-current={view === "cards" ? "page" : undefined} className={styles.viewTab} data-active={view === "cards"} href={screenViewHref(query, "cards")}><Grid3X3 aria-hidden="true" />Kaarten</Link>
-        <Link aria-current={view === "list" ? "page" : undefined} className={styles.viewTab} data-active={view === "list"} href={screenViewHref(query, "list")}><List aria-hidden="true" />Tabel</Link>
-      </nav>
-      <div className={styles.viewActions}>
-        {eligibleCount ? (
-          <label className={styles.selectAll}>
-            <input
-              data-select-all
-              disabled={!canManage}
-              type="checkbox"
-            />
-            <span>Selecteer alle zichtbare</span>
-          </label>
-        ) : null}
-        <Button asChild size="sm" variant="secondary"><Link href="/dashboard/releases">Release Center</Link></Button>
-        <StatusPill label={`${data.screens.length} totaal`} tone="neutral" />
-      </div>
-    </div>
-
     <section aria-labelledby="screen-fleet-title">
       <h2 className="sr-only" id="screen-fleet-title">Schermvloot</h2>
       {filteredScreens.length && view === "cards" ? (
@@ -237,7 +261,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
             );
           })}
         </div>
-      ) : filteredScreens.length ? <div className="data-table-frame"><table className="data-table data-table--responsive" data-vc-table-key="tenant-screen-fleet"><caption>Operationele schermstatus binnen de actieve vereniging.</caption><thead><tr><th scope="col"><span className="sr-only">Selecteren</span></th><th data-column="screen" scope="col">Scherm</th><th data-column="status" scope="col">Status</th><th data-column="player" scope="col">Player</th><th data-column="content" scope="col">Content</th><th data-column="sync" scope="col">Synchronisatie</th><th data-column="automation" scope="col">Automatisering</th><th data-column="seen" scope="col">Laatst gezien</th><th data-column="action" scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
+      ) : filteredScreens.length ? <DataTable caption="Operationele schermstatus binnen de actieve vereniging." tableKey="tenant-screen-fleet"><thead><tr><th scope="col"><span className="sr-only">Selecteren</span></th><th data-column="screen" scope="col">Scherm</th><th data-column="status" scope="col">Status</th><th data-column="player" scope="col">Player</th><th data-column="content" scope="col">Content</th><th data-column="sync" scope="col">Synchronisatie</th><th data-column="automation" scope="col">Automatisering</th><th data-column="seen" scope="col">Laatst gezien</th><th data-column="action" scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
         const device = devicesByScreen.get(screen.id);
         const status = screenStatus(screen, device);
         return <tr key={screen.id}>
@@ -251,7 +275,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
           <td data-column="seen" data-label="Laatst gezien">{formatLastSeen(device?.lastSeenAt)}</td>
           <td data-column="action" data-label="Actie"><Link className="table-action" href={`/dashboard/screens/${screen.id}`}>Bekijk scherm</Link></td>
         </tr>;
-      })}</tbody></table></div> : <p className="notice" role="status">{data.screens.length ? "Geen schermen passen bij deze filters. Pas je zoekopdracht of statusfilter aan." : "Er zijn nog geen schermen. Start de begeleide onboarding om het eerste scherm transactioneel aan te maken."}</p>}
+      })}</tbody></DataTable> : <p className="notice" role="status">{data.screens.length ? "Geen schermen passen bij deze filters. Pas je zoekopdracht of statusfilter aan." : "Er zijn nog geen schermen. Start de begeleide onboarding om het eerste scherm transactioneel aan te maken."}</p>}
     </section>
     </ScreenBulkForm>
   </>;
@@ -304,7 +328,7 @@ function screenViewHref(
   for (const [key, value] of Object.entries(query)) {
     if (value && !["view", "fout", "succes"].includes(key)) next.set(key, value);
   }
-  if (view === "list") next.set("view", view);
+  if (view === "cards") next.set("view", view);
   const suffix = next.toString();
   return suffix ? `/dashboard/screens?${suffix}` : "/dashboard/screens";
 }

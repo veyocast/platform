@@ -1,7 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
 import { randomUUID } from "node:crypto";
 
-import { FileWarning, Image as ImageIcon, Star, Upload, Video } from "lucide-react";
+import {
+  FileWarning,
+  Grid2X2,
+  Image as ImageIcon,
+  List,
+  Star,
+  Upload,
+  Video
+} from "lucide-react";
 import Link from "next/link";
 
 import { hasCapability } from "@veyocast/auth";
@@ -9,6 +17,7 @@ import {
   Button,
   DataTable,
   FilterBar,
+  IconButton,
   PageHeader,
   StatusPill,
   SummaryStrip,
@@ -221,6 +230,16 @@ const mediaRules = [
   }
 ] as const;
 
+const mediaColumns = [
+  { id: "type", label: "Type", defaultVisible: true },
+  { id: "name", label: "Media", defaultVisible: true, required: true },
+  { id: "details", label: "Details", defaultVisible: true },
+  { id: "status", label: "Status", defaultVisible: true },
+  { id: "usage", label: "Gebruik", defaultVisible: true },
+  { id: "created", label: "Toegevoegd", defaultVisible: true },
+  { id: "actions", label: "Actie", defaultVisible: true, required: true }
+] as const;
+
 export default async function MediaPage({ searchParams }: MediaPageProps) {
   const session = await requireControlSession();
   const publicConfig = getSupabasePublicConfig();
@@ -237,7 +256,6 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
     mediaStorageUsedBytes,
     processingCount,
     processingSummary,
-    readyCount,
     savedViews,
     selectedUsage,
     tags,
@@ -262,20 +280,23 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
   const inspectorCloseHref = mediaHref(params, { asset: undefined });
   const currentViewState = mediaViewStateFromSearch(params);
   const currentViewStateKey = mediaViewStateKey(currentViewState);
+  const storageNeedsAttention =
+    mediaStorageLimitBytes !== null &&
+    mediaStorageLimitBytes > 0 &&
+    mediaStorageUsedBytes / mediaStorageLimitBytes >= 0.8;
+  const showSummary =
+    processingCount > 0 || failedCount > 0 || storageNeedsAttention;
 
   return (
     <>
       <PageHeader
         actions={canUpload ? (
-          <div className="page-action-group">
-            <MediaOrganizationDialog canWrite={canUpload} folders={folders} />
-            <Button asChild>
-              <Link href={mediaHref(params, { upload: "1" })}>
-                <Upload aria-hidden="true" />
-                Media uploaden
-              </Link>
-            </Button>
-          </div>
+          <Button asChild>
+            <Link href={mediaHref(params, { upload: "1" })}>
+              <Upload aria-hidden="true" />
+              Media uploaden
+            </Link>
+          </Button>
         ) : null}
         description="Beheer afbeeldingen en video's voor je playlists."
         eyebrow={session.tenant}
@@ -305,78 +326,82 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
         </p>
       ) : null}
 
-      <SummaryStrip
-        aria-label="Samenvatting mediabibliotheek"
-        items={[
-          { label: "Media", value: String(totalCount), detail: `${readyCount} gereed` },
-          {
-            label: "In verwerking",
-            value: String(processingCount),
-            detail: processingCount > 0 ? "Automatisch bijgewerkt" : "Geen wachtrij",
-            tone: processingCount > 0 ? "warning" : "neutral"
-          },
-          {
-            label: "Actie nodig",
-            value: String(failedCount),
-            detail: failedCount > 0 ? "Controleer afgewezen media" : "Geen fouten",
-            tone: failedCount > 0 ? "critical" : "success"
-          },
-          {
-            label: "Opslag",
-            value: formatBytes(mediaStorageUsedBytes),
-            detail: mediaStorageLimitBytes === null
-              ? "Geen limiet ingesteld"
-              : `van ${formatBytes(mediaStorageLimitBytes)}`
-          }
-        ]}
-      />
+      {showSummary ? (
+        <SummaryStrip
+          aria-label="Aandachtspunten mediabibliotheek"
+          items={[
+            ...(processingCount > 0
+              ? [{
+                  label: "In verwerking",
+                  value: String(processingCount),
+                  detail: "Automatisch bijgewerkt",
+                  tone: "warning" as const
+                }]
+              : []),
+            ...(failedCount > 0
+              ? [{
+                  label: "Actie nodig",
+                  value: String(failedCount),
+                  detail: "Controleer afgewezen media",
+                  tone: "critical" as const
+                }]
+              : []),
+            ...(storageNeedsAttention
+              ? [{
+                  label: "Opslag",
+                  value: formatBytes(mediaStorageUsedBytes),
+                  detail: `van ${formatBytes(mediaStorageLimitBytes!)}`,
+                  tone: "warning" as const
+                }]
+              : [])
+          ]}
+        />
+      ) : null}
 
       <form method="get" role="search">
         <FilterBar
+          className="media-filter-bar"
           activeCount={mediaFilterCount(params)}
           actions={(
             <>
-              <SavedMediaViewsDialog
-                canSave={canSaveViews}
-                currentState={JSON.stringify(currentViewState)}
-                views={savedViews.map((view) => ({
-                  active: mediaViewStateKey(view.state) === currentViewStateKey,
-                  href: view.href,
-                  id: view.id,
-                  name: view.name,
-                  revision: view.revision,
-                  updatedLabel: formatDateTime(view.updatedAt)
-                }))}
-              />
-              <TablePreferences
-                columns={[
-                  { id: "type", label: "Type", defaultVisible: true },
-                  { id: "name", label: "Media", defaultVisible: true, required: true },
-                  { id: "details", label: "Details", defaultVisible: true },
-                  { id: "status", label: "Status", defaultVisible: true },
-                  { id: "usage", label: "Gebruik", defaultVisible: true },
-                  { id: "created", label: "Toegevoegd", defaultVisible: true },
-                  { id: "actions", label: "Actie", defaultVisible: true, required: true }
-                ]}
-                defaultDensity="comfortable"
-                tableKey="media"
-              />
-              <Button asChild size="sm" variant={params.view !== "grid" ? "secondary" : "ghost"}>
+              <IconButton asChild aria-label="Media als lijst tonen" title="Lijst">
                 <Link
                   aria-current={params.view !== "grid" ? "page" : undefined}
                   href={mediaHref(params, { page: "1", view: "list" })}
                 >
-                  Lijst
+                  <List aria-hidden="true" />
                 </Link>
-              </Button>
-              <Button asChild size="sm" variant={params.view === "grid" ? "secondary" : "ghost"}>
+              </IconButton>
+              <IconButton asChild aria-label="Media als raster tonen" title="Raster">
                 <Link
                   aria-current={params.view === "grid" ? "page" : undefined}
                   href={mediaHref(params, { page: "1", view: "grid" })}
                 >
-                  Raster
+                  <Grid2X2 aria-hidden="true" />
                 </Link>
-              </Button>
+              </IconButton>
+              <div className="media-filter-desktop-options">
+                <MediaOrganizationDialog canWrite={canUpload} folders={folders} />
+                <SavedMediaViewsDialog
+                  canSave={canSaveViews}
+                  currentState={JSON.stringify(currentViewState)}
+                  views={savedViews.map((view) => ({
+                    active: mediaViewStateKey(view.state) === currentViewStateKey,
+                    href: view.href,
+                    id: view.id,
+                    name: view.name,
+                    revision: view.revision,
+                    updatedLabel: formatDateTime(view.updatedAt)
+                  }))}
+                />
+                <TablePreferences
+                  columns={mediaColumns}
+                  defaultDensity="comfortable"
+                  tableKey="media"
+                  title="Weergave-instellingen"
+                  triggerLabel="Weergave-instellingen"
+                />
+              </div>
             </>
           )}
           clearHref={`/dashboard/media?view=${params.view === "grid" ? "grid" : "list"}`}
@@ -425,10 +450,32 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           <label className="toolbar-date"><span>Tot en met</span><input defaultValue={params.to} name="to" type="date" /></label>
           <input name="view" type="hidden" value={params.view === "grid" ? "grid" : "list"} />
           <Button size="sm" type="submit" variant="secondary">Filters toepassen</Button>
+          <div className="media-filter-mobile-options">
+            <MediaOrganizationDialog canWrite={canUpload} folders={folders} />
+            <SavedMediaViewsDialog
+              canSave={canSaveViews}
+              currentState={JSON.stringify(currentViewState)}
+              views={savedViews.map((view) => ({
+                active: mediaViewStateKey(view.state) === currentViewStateKey,
+                href: view.href,
+                id: view.id,
+                name: view.name,
+                revision: view.revision,
+                updatedLabel: formatDateTime(view.updatedAt)
+              }))}
+            />
+            <TablePreferences
+              columns={mediaColumns}
+              defaultDensity="comfortable"
+              tableKey="media"
+              title="Weergave-instellingen"
+              triggerLabel="Weergave-instellingen"
+            />
+          </div>
         </FilterBar>
       </form>
 
-      <section className="workspace-section" aria-labelledby="media-library-title">
+      <section className="workspace-section media-library-section" aria-labelledby="media-library-title">
           <div className="workspace-section__header">
             <div>
               <h2 className="workspace-section__title" id="media-library-title">

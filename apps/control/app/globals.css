@@ -3969,6 +3969,87 @@ body .vc-dialog__content {
   margin-top: calc(var(--vc-space-16) * -1);
 }
 
+.dashboard-health-line {
+  align-items: center;
+  background: var(--vc-semantic-success-surface);
+  border: 1px solid color-mix(
+    in srgb,
+    var(--vc-semantic-success-solid) 34%,
+    var(--vc-border)
+  );
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-semantic-success-text);
+  display: flex;
+  gap: var(--vc-space-10);
+  min-height: 48px;
+  padding: var(--vc-space-8) var(--vc-space-12);
+}
+
+.dashboard-health-line > svg {
+  flex: 0 0 auto;
+  height: 18px;
+  width: 18px;
+}
+
+.dashboard-health-line h2,
+.dashboard-health-line p {
+  margin: 0;
+}
+
+.dashboard-health-line h2 {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.dashboard-health-line p {
+  color: var(--vc-text-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.dashboard-create-menu {
+  border-block: 1px solid var(--vc-border);
+  display: grid;
+}
+
+.dashboard-create-menu a {
+  align-items: center;
+  color: var(--vc-text);
+  display: grid;
+  gap: var(--vc-space-12);
+  grid-template-columns: 36px minmax(0, 1fr);
+  min-height: 62px;
+  padding: var(--vc-space-8) var(--vc-space-4);
+  text-decoration: none;
+}
+
+.dashboard-create-menu a + a {
+  border-top: 1px solid var(--vc-border);
+}
+
+.dashboard-create-menu a > svg {
+  background: var(--vc-surface-muted);
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-action);
+  height: 36px;
+  padding: var(--vc-space-8);
+  width: 36px;
+}
+
+.dashboard-create-menu a > span {
+  display: grid;
+  gap: var(--vc-space-2);
+}
+
+.dashboard-create-menu a strong {
+  font-size: 14px;
+}
+
+.dashboard-create-menu a small {
+  color: var(--vc-text-muted);
+  font-size: 12px;
+}
+
 .operational-signal-list--compact {
   border-block: 1px solid var(--vc-border);
   display: grid;
@@ -4245,6 +4326,31 @@ body .vc-dialog__content {
   padding: var(--vc-space-4);
 }
 
+.media-filter-desktop-options,
+.media-filter-mobile-options,
+.screens-filter-desktop-options,
+.screens-filter-mobile-options {
+  align-items: center;
+  gap: var(--vc-space-8);
+}
+
+.media-filter-desktop-options,
+.screens-filter-desktop-options {
+  display: flex;
+}
+
+.media-filter-mobile-options,
+.screens-filter-mobile-options {
+  display: none;
+}
+
+.media-filter-bar .vc-icon-button[aria-current="page"],
+.screens-filter-bar .vc-icon-button[aria-current="page"] {
+  background: var(--vc-surface-strong);
+  border-color: var(--vc-border-strong);
+  color: var(--vc-text);
+}
+
 .media-upload-dialog__segments .vc-button {
   width: 100%;
 }
@@ -4471,7 +4577,7 @@ body .vc-dialog__content {
 
 @media (max-width: 767px) {
   .control-content {
-    gap: var(--vc-space-20);
+    gap: var(--vc-space-16);
   }
 
   .settings-category-nav {
@@ -4526,6 +4632,66 @@ body .vc-dialog__content {
     max-width: none;
     right: var(--vc-space-8);
     width: auto;
+  }
+
+  .media-filter-bar .vc-filter-bar__meta,
+  .screens-filter-bar .vc-filter-bar__meta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .media-filter-bar .vc-filter-bar__actions,
+  .screens-filter-bar .vc-filter-bar__actions {
+    display: flex;
+    flex: 0 0 auto;
+    grid-template-columns: none;
+    margin-left: 0;
+    width: auto;
+  }
+
+  .media-filter-bar .vc-filter-bar__actions > *,
+  .screens-filter-bar .vc-filter-bar__actions > * {
+    flex: 0 0 auto;
+    width: 44px;
+  }
+
+  .media-filter-desktop-options,
+  .screens-filter-desktop-options {
+    display: none !important;
+  }
+
+  .media-filter-mobile-options,
+  .screens-filter-mobile-options {
+    border-top: 1px solid var(--vc-border);
+    display: grid;
+    gap: var(--vc-space-8);
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: var(--vc-space-4);
+    padding-top: var(--vc-space-12);
+  }
+
+  .media-filter-mobile-options > *,
+  .screens-filter-mobile-options > * {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .media-library-section {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .media-library-section > .workspace-section__header {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
   }
 }
 

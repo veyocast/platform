@@ -13,8 +13,8 @@
   display: grid;
   gap: var(--vc-space-12);
   grid-template-columns: auto minmax(0, 1fr) auto;
-  min-height: 112px;
-  padding: var(--vc-space-16);
+  min-height: 84px;
+  padding: var(--vc-space-12);
   text-decoration: none;
   transition:
     border-color var(--vc-motion-fast),
@@ -41,9 +41,9 @@
   border-radius: var(--vc-radius-md);
   color: var(--vc-text-muted);
   display: flex;
-  height: 40px;
+  height: 36px;
   justify-content: center;
-  width: 40px;
+  width: 36px;
 }
 
 .statusIcon svg {
@@ -73,7 +73,7 @@
 }
 
 .statusCopy strong {
-  font-size: 24px;
+  font-size: 18px;
   letter-spacing: -0.025em;
   line-height: 1.15;
   margin-top: var(--vc-space-2);
@@ -393,8 +393,8 @@
   }
 
   .statusCard {
-    flex: 0 0 min(78vw, 290px);
-    min-height: 96px;
+    flex: 0 0 min(70vw, 260px);
+    min-height: 78px;
     scroll-snap-align: start;
   }
 

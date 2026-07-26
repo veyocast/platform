@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Alert,
   Button,
   Sheet,
   SheetBody,
@@ -14,7 +13,7 @@ import {
   SheetTrigger,
   StatusPill
 } from "@veyocast/ui";
-import { ArrowRight, Clock3 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock3 } from "lucide-react";
 import Link from "next/link";
 
 import type { OperationalSignal } from "../../../lib/control-operations";
@@ -33,6 +32,21 @@ export function OperationalActionInbox({
       : totalCount
         ? "info"
         : "success";
+
+  if (!signals.length && totalCount === 0) {
+    return (
+      <section
+        aria-labelledby="action-inbox-title"
+        className="dashboard-health-line control-motion-enter"
+      >
+        <CheckCircle2 aria-hidden="true" />
+        <div>
+          <h2 id="action-inbox-title">Alles werkt normaal</h2>
+          <p>Er zijn geen operationele signalen die nu aandacht vragen.</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -63,12 +77,7 @@ export function OperationalActionInbox({
             <SignalRow key={signal.id} signal={signal} />
           ))}
         </ol>
-      ) : (
-        <Alert status="success" title="Alles op orde">
-          Er zijn geen actuele operationele signalen. VeyoCast blijft
-          heartbeats, verwerking en publicatiegereedheid controleren.
-        </Alert>
-      )}
+      ) : null}
 
       {totalCount > signals.length ? (
         <p className="action-inbox__overflow-note">
