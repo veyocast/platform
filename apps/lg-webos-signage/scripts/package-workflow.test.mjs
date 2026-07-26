@@ -8,23 +8,20 @@ const buildSource = await readFile(
   resolve(import.meta.dirname, "build-ipk.mjs"),
   "utf8"
 );
-const cliPatch = await readFile(
-  resolve(repositoryRoot, "patches/@webos-tools__cli@3.2.5.patch"),
+const workspaceSource = await readFile(
+  resolve(repositoryRoot, "pnpm-workspace.yaml"),
   "utf8"
 );
 
-test("bouwt beide IPKs uitsluitend met de officiële ares-package workflow", () => {
-  assert.match(buildSource, /runCommand\("ares-package"/u);
+test("bouwt de smoketest uitsluitend met de officiële ares-package workflow", () => {
+  assert.match(buildSource, /runCommand\(\s*"ares-package"/u);
   assert.doesNotMatch(buildSource, /runCommand\("(?:ar|tar|dpkg|opkg)"/u);
-  assert.match(buildSource, /packageSpecifications/u);
-  assert.match(buildSource, /SOURCE_DATE_EPOCH/u);
+  assert.match(buildSource, /releaseCandidateSpecifications/u);
+  assert.doesNotMatch(buildSource, /SOURCE_DATE_EPOCH/u);
+  assert.doesNotMatch(buildSource, /WEBOS_PACKAGER_MAINTAINER/u);
 });
 
-test("corrigeert alleen de bekende officiële CLI-placeholder en hostmetadata", () => {
-  assert.match(cliPatch, /webOS-Packager-Version: " \+ cliPackage\.version/u);
-  assert.match(cliPatch, /entry\.uid = 0/u);
-  assert.match(cliPatch, /entry\.gid = 0/u);
-  assert.match(cliPatch, /entry\.mode/u);
-  assert.match(cliPatch, /SOURCE_DATE_EPOCH/u);
-  assert.doesNotMatch(cliPatch, /nl\.veyocast\.player/u);
+test("muteert de officiële Signage-packager niet meer met een pnpm-patch", () => {
+  assert.doesNotMatch(workspaceSource, /patchedDependencies/u);
+  assert.doesNotMatch(workspaceSource, /@webos-tools__cli/u);
 });

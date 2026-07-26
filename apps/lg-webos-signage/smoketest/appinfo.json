@@ -1,6 +1,6 @@
 {
   "id": "nl.veyocast.player.webos.smoketest",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "vendor": "DG Webservices",
   "type": "web",
   "main": "index.html",

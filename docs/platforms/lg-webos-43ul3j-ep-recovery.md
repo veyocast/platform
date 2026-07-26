@@ -9,34 +9,33 @@ Model: LG 43UL3J-EP
 webOS Signage: 6.0
 Firmware: 03.24.90
 Productie-app: nl.veyocast.player.webos 1.0.1
-Smoketest-app: nl.veyocast.player.webos.smoketest 1.0.1
+Smoketest-app: nl.veyocast.player.webos.smoketest 1.0.2
 ```
 
-De bron, officiële packageworkflow, twee IPK's, checksums en live
-hosted-routecontrole zijn geautomatiseerd bewezen. Installatie, registratie en
-autostart op dit fysieke scherm blijven **nog fysiek te valideren**. Een
-factory reset en het onbekende beheerwachtwoord zijn voor dit protocol niet
-nodig.
+Productie 1.0.1 gaf op dit scherm `IPK-upgrade mislukt` en blijft bevroren.
+De nieuwe 1.0.2 is uitsluitend een lokale package-/launch-smoketest.
+Installatie en autostart blijven **nog fysiek te valideren**. Een factory reset
+is voor dit protocol niet nodig.
 
-## Root-causeanalyse van 1.0.0
+## Root-causeanalyse van 1.0.1
 
-De oude IPK was niet door een eigen VeyoCast `ar`/`tar`-builder gemaakt. De
-repository gebruikte al het officiële `ares-package` uit
-`@webos-tools/cli@3.2.5` met profiel `signage`.
+Zowel 1.0.0 als 1.0.1 zijn als normaal IPK te lezen. De productie-URL van 1.0.1
+geeft direct 200, de download is bytegelijk aan het committed bestand en alle
+interne app-ID's en versies kloppen.
 
-De inspectie bewees wel twee concrete packageproblemen:
+De releaseketen wijkt wel op twee aantoonbare punten af:
 
-1. de officiële CLI 3.2.5 bevat upstream nog letterlijk de TODO-waarde
-   `webOS-Packager-Version: x.y.x`;
-2. de CLI nam host-UID, hostnaam en ruime bronrechten over, waardoor entries
-   onder meer als `codex/1001`, `0777` en `0666` in het pakket kwamen.
+1. een lokale pnpm-patch veranderde voor 1.0.1 de packagerwaarde, tar-eigenaar,
+   rechten en archieftijden ten opzichte van de door LG geaccepteerde 1.0.0;
+2. het publieke 1.0.1-bestand heeft een andere SHA-256 dan het artifact van de
+   laatste main-CI.
 
-De repository bevat daarom een smalle pnpm-patch op exact CLI 3.2.5. Deze
-vervangt de placeholder door `3.2.5`, zet package-eigenaar op `0/0`, gebruikt
-`0755` voor mappen en `0644` voor bestanden en fixeert archieftijden op de
-Git-committijd. De IPK blijft volledig door de officiële `ares-package`
-workflow gebouwd; VeyoCast assembleert geen IPK met `ar`, `tar`, `dpkg` of een
-eigen builder.
+De precieze LG-installerfoutcode is zonder devicelogs niet beschikbaar. Daarom
+wordt niet één veld gegokt: de eigen patch is volledig verwijderd en smoketest
+1.0.2 gebruikt de ongewijzigde officiële `@webos-tools/cli@3.2.5` met profiel
+`signage`, overeenkomstig de geaccepteerde 1.0.0-envelope. De volledige
+audit staat in
+[`docs/incidents/2026-07-26-lg-ipk-1.0.1-installation-audit.md`](../incidents/2026-07-26-lg-ipk-1.0.1-installation-audit.md).
 
 `Upgrade voltooid` bewijst alleen download en verwerking. Het bewijst geen
 launch. webOS start een geïnstalleerde lokale app na inschakelen alleen via de
@@ -116,7 +115,7 @@ Productie:
 https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.1_all.ipk
 
 Smoketest:
-https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
+https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk
 
 Checksums:
 https://veyocast.nl/ipk/checksums.sha256
@@ -137,7 +136,7 @@ Content-Length en SHA-256 nadat een goedgekeurde HTTPS-upload is uitgevoerd.
 6. Vul exact deze URL in:
 
    ```text
-   https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
+   https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk
    ```
 
 7. Start de externe lokale applicatie-upgrade.
@@ -151,7 +150,7 @@ Content-Length en SHA-256 nadat een goedgekeurde HTTPS-upload is uitgevoerd.
 Verwacht:
 
 - binnen 5 seconden: een lokale zwarte/oranje VeyoCast-testpagina;
-- binnen 15 seconden: `VeyoCast LG-test gestart` en een oplopende teller;
+- binnen 15 seconden: `VeyoCast LG smoketest 1.0.2` en een oplopende teller;
 - binnen 30 seconden: de teller loopt nog en datum/tijd, user-agent,
   resolutie, online-status en visibility-state zijn ingevuld.
 
@@ -160,40 +159,21 @@ Druk daarna op alle pijlen, OK, BACK en play/pause. Iedere toets moet onder
 internet, iframe of backend. Start hij niet, dan zit het probleem in LG-
 registratie, packageacceptatie of de lokale startmodus.
 
-### B. Productie-wrapper installeren
+### B. Stop na de smoketest
 
-1. Open opnieuw **SI Server-instelling**.
-2. Behoud **Applicatietype: IPK** en **Startmodus applicatie: Lokaal**.
-3. Kies **Lokale applicatie-upgrade: Extern**.
-4. Vervang alleen de URL door:
+Installeer productie 1.0.1 niet opnieuw als onderdeel van deze hersteltest.
+Rapporteer eerst of 1.0.2 letterlijk **Upgrade voltooid** toont en na de koude
+start opent. Pas na beoordeling van dat fysieke bewijs wordt een nieuwe
+productiekandidaat gebouwd.
 
-   ```text
-   https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.1_all.ipk
-   ```
+### C. Bestaande productie-installatie behouden
 
-5. Start de upgrade en verwacht **Upgrade voltooid**.
-6. Voer opnieuw de koude start van dertig seconden uit.
+Verwijder de bestaande productie-appdata niet. Daardoor kan pairing en cache
+behouden blijven. Publiceer of installeer geen nieuwe productieversie voordat
+de smoketest fysiek is afgetekend. Gebruik nooit een andere productie-app-ID
+als omweg.
 
-Verwacht:
-
-- binnen 5 seconden: `VeyoCast Player wordt gestart` met Stap 1 zichtbaar;
-- binnen 15 seconden: netwerk- en iframe-status zijn bijgewerkt;
-- binnen 30 seconden: de pairing-/Playerinterface is zichtbaar, of de lokale
-  diagnosepagina noemt één concrete foutcategorie met **Opnieuw proberen**.
-
-Druk BACK om Playerbeheer te openen. Controleer dat app
-`nl.veyocast.player.webos · 1.0.1`, netwerkstatus, laatste fout en retryteller
-zichtbaar zijn. BACK of **Terug naar Player** sluit het paneel.
-
-### C. Oude versie veilig vervangen
-
-Versie 1.0.1 gebruikt dezelfde productie-app-ID als 1.0.0 en een hogere
-semantische versie. Installeer 1.0.1 via exact stap B. Verwijder appdata niet:
-daardoor kan de HTTPS-originopslag met pairing en cache behouden blijven. Als
-LG 1.0.1 weigert, noteer de letterlijke melding; voer geen factory reset uit en
-installeer niet opnieuw onder een andere productie-app-ID.
-
-### D. Vereist foutbewijs
+### D. Vereist fysiek bewijs
 
 Maak bij een afwijking:
 

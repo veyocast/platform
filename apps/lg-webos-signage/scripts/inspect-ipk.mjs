@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,11 +11,13 @@ import {
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, "../../..");
 const outputDirectory = join(repositoryRoot, "dist", "lg-webos");
-const cliVersion = "3.2.5";
+const appRoot = resolve(scriptDirectory, "..");
+const officialCliVersion = "3.2.5";
 
 export const packageSpecifications = Object.freeze([
   Object.freeze({
     appInfo: expectedAppInfo,
+    envelope: "legacy-patched-1.0.1",
     expectedApplicationFiles: [
       "appinfo.json",
       "bootstrap.js",
@@ -29,6 +31,8 @@ export const packageSpecifications = Object.freeze([
   }),
   Object.freeze({
     appInfo: expectedSmoketestAppInfo,
+    envelope: "official-signage-3.2.5",
+    sourceRoot: join(appRoot, "smoketest"),
     expectedApplicationFiles: [
       "appinfo.json",
       "icon.png",
@@ -37,6 +41,9 @@ export const packageSpecifications = Object.freeze([
       "veyocast-logo-inverse.svg"
     ].sort()
   })
+]);
+export const releaseCandidateSpecifications = Object.freeze([
+  packageSpecifications[1]
 ]);
 
 export function ipkFilename(appInfo) {
@@ -68,13 +75,19 @@ export async function inspectIpk(
       throw new Error(`IPK-inspectie mist verwachte metadata: ${value}`);
     }
   }
-  if (combined.includes("webOS-Packager-Version: x.y.x")) {
-    throw new Error("IPK bevat de verboden packagerversie-placeholder x.y.x");
+  if (!combined.includes("webOS-Package-Format-Version: 2")) {
+    throw new Error("IPK moet webOS-Package-Format-Version: 2 rapporteren");
   }
-  if (!combined.includes(`webOS-Packager-Version: ${cliVersion}`)) {
-    throw new Error(
-      `IPK moet webOS-Packager-Version: ${cliVersion} rapporteren`
-    );
+  if (specification.envelope === "official-signage-3.2.5") {
+    if (!combined.includes("webOS-Packager-Version: x.y.x")) {
+      throw new Error(
+        `IPK wijkt af van de ongewijzigde officiële Signage CLI ${officialCliVersion}`
+      );
+    }
+  } else if (
+    !combined.includes(`webOS-Packager-Version: ${officialCliVersion}`)
+  ) {
+    throw new Error("Legacy 1.0.1-IPK mist zijn vastgelegde gepatchte metadata");
   }
 
   const packageEntries = await listPackageEntries(resolvedPath);
@@ -93,11 +106,31 @@ export async function inspectIpk(
       `IPK-runtimebestanden wijken af voor ${expected.id}: ${applicationFiles.join(", ")}`
     );
   }
+  if (specification.sourceRoot) {
+    for (const filename of applicationFiles) {
+      const archiveBytes = await readPackageFile(
+        resolvedPath,
+        `${applicationPrefix}${filename}`
+      );
+      const sourceBytes = await readFile(
+        join(specification.sourceRoot, filename)
+      );
+      if (!archiveBytes.equals(sourceBytes)) {
+        throw new Error(
+          `IPK-runtimebestand ${filename} is niet bytegelijk aan de vastgelegde bron`
+        );
+      }
+    }
+  }
 
   const archiveMetadata = [];
   for (const member of ["control.tar.gz", "data.tar.gz"]) {
     const metadata = await listArchiveMetadata(resolvedPath, member);
-    assertNormalizedMetadata(metadata, member);
+    if (specification.envelope === "official-signage-3.2.5") {
+      assertAcceptedSignageMetadata(metadata, member);
+    } else {
+      assertLegacyPatchedMetadata(metadata, member);
+    }
     archiveMetadata.push(...metadata);
   }
 
@@ -112,7 +145,7 @@ export async function inspectIpk(
 
 export async function inspectAllIpks() {
   const results = [];
-  for (const specification of packageSpecifications) {
+  for (const specification of releaseCandidateSpecifications) {
     const path = join(
       outputDirectory,
       ipkFilename(specification.appInfo)
@@ -133,6 +166,19 @@ async function listPackageEntries(ipkPath) {
     .split(/\r?\n/u)
     .map((entry) => entry.replace(/^\.\//u, ""))
     .filter(Boolean);
+}
+
+async function readPackageFile(ipkPath, packagePath) {
+  const dataArchive = await runBinaryCommand("ar", [
+    "p",
+    ipkPath,
+    "data.tar.gz"
+  ]);
+  return runBinaryCommandWithInput(
+    "tar",
+    ["-xOzf", "-", packagePath],
+    dataArchive
+  );
 }
 
 async function listArchiveMetadata(ipkPath, member) {
@@ -161,7 +207,7 @@ async function listArchiveMetadata(ipkPath, member) {
     });
 }
 
-function assertNormalizedMetadata(entries, member) {
+function assertLegacyPatchedMetadata(entries, member) {
   for (const entry of entries) {
     if (entry.uid !== 0 || entry.gid !== 0) {
       throw new Error(
@@ -176,6 +222,33 @@ function assertNormalizedMetadata(entries, member) {
     if (entry.mode.startsWith("-") && entry.mode !== "-rw-r--r--") {
       throw new Error(
         `${member}:${entry.path} heeft bestandsmodus ${entry.mode}, verwacht -rw-r--r--`
+      );
+    }
+  }
+}
+
+function assertAcceptedSignageMetadata(entries, member) {
+  for (const entry of entries) {
+    if (entry.uid !== 1001 || entry.gid !== 1001) {
+      throw new Error(
+        `${member}:${entry.path} wijkt af van de door LG geaccepteerde 1.0.0-eigenaar 1001/1001`
+      );
+    }
+    if (entry.mode.startsWith("d") && entry.mode !== "drwxrwxrwx") {
+      throw new Error(
+        `${member}:${entry.path} heeft directorymodus ${entry.mode}, verwacht drwxrwxrwx`
+      );
+    }
+    if (!entry.mode.startsWith("-")) continue;
+    const writablePackageFile =
+      entry.path === "control" ||
+      entry.path.endsWith("/bootstrap.js") ||
+      entry.path.endsWith("/platform-adapter.js") ||
+      entry.path.endsWith("/packageinfo.json");
+    const expectedMode = writablePackageFile ? "-rw-rw-rw-" : "-rw----r--";
+    if (entry.mode !== expectedMode) {
+      throw new Error(
+        `${member}:${entry.path} heeft bestandsmodus ${entry.mode}, verwacht ${expectedMode}`
       );
     }
   }
@@ -217,6 +290,10 @@ async function runCommandWithInput(command, argumentsValue, input) {
 }
 
 async function runBinaryCommand(command, argumentsValue) {
+  return runBinaryCommandWithInput(command, argumentsValue, null);
+}
+
+async function runBinaryCommandWithInput(command, argumentsValue, input) {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(command, argumentsValue, {
       env: process.env,
@@ -242,6 +319,8 @@ async function runBinaryCommand(command, argumentsValue) {
       }
       resolvePromise(Buffer.concat(stdout));
     });
+    if (input) child.stdin.end(input);
+    else child.stdin.end();
   });
 }
 

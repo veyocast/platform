@@ -7,14 +7,16 @@ Signage-bronpakket voor:
 
 ```text
 App ID: nl.veyocast.player.webos
-Versie: 1.0.1
-Smoketest: nl.veyocast.player.webos.smoketest 1.0.1
+Productie: 1.0.1, bevroren na installatie-incident
+Smoketest: nl.veyocast.player.webos.smoketest 1.0.2
 Hosted route: https://player.veyocast.nl/lg
 ```
 
-De bron en CI zijn gereed. Algemene productieondersteuning is nadrukkelijk nog
-niet bewezen: de package moet eerst op het exacte LG Signage-model en de exacte
-firmware worden geïnstalleerd, bijgewerkt, herstart en 24 uur getest.
+De download en interne metadata van productie 1.0.1 zijn geldig, maar die
+versie is op LG 43UL3J-EP door de installer geweigerd. Productie blijft
+bevroren. Alleen de lokale 1.0.2-smoketest mag eerst via de nieuwe immutable
+URL worden getest. Zie de
+[installatie-audit](../incidents/2026-07-26-lg-ipk-1.0.1-installation-audit.md).
 
 ## Wat het IPK bevat
 
@@ -92,16 +94,15 @@ pnpm --filter @veyocast/lg-webos-signage inspect
 ```
 
 De CLI is exact gepind op `@webos-tools/cli@3.2.5`. De build gebruikt de
-officiële `signage`-profile en `ares-package`. Een vastgelegde pnpm-patch
-corrigeert uitsluitend de upstream `x.y.x`-placeholder, host-UID/rechten en
-niet-deterministische archieftijden; de repository bevat geen eigen
-IPK-builder.
+ongewijzigde officiële `signage`-profile en `ares-package`. De eerdere
+packagerpatch is verwijderd omdat die de door 1.0.0 bewezen package-envelope
+wijzigde. De repository bevat geen eigen IPK-builder.
 
 Artifacts:
 
 ```text
-dist/lg-webos/nl.veyocast.player.webos_1.0.1_all.ipk
-dist/lg-webos/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
+apps/marketing/public/ipk/nl.veyocast.player.webos_1.0.1_all.ipk
+apps/marketing/public/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk
 dist/lg-webos/checksums.sha256
 dist/lg-webos/latest.json
 dist/lg-webos/release-notes.json
@@ -111,7 +112,7 @@ De huidige productie-IPK wordt door Marketing statisch aangeboden op:
 
 ```text
 https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.1_all.ipk
-https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
+https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk
 ```
 
 De bytegelijke checksum, `latest.json` en release notes staan onder dezelfde
@@ -137,7 +138,8 @@ De workflow `.github/workflows/lg-webos-signage-ipk.yml`:
 - bouwt alleen op `main` of handmatige dispatch;
 - gebruikt het beschermde Environment `lg-webos-signage-release`;
 - inspecteert metadata én packageinhoud;
-- bewaart IPK en metadata als GitHub Artifact;
+- bewaart het byte-exacte gepubliceerde smoketestbestand, metadata en
+  forensische uitvoer als GitHub Artifact;
 - kan alleen na handmatige dispatch en Environment-approval uploaden naar een
   expliciete HTTPS PUT-map.
 
@@ -153,7 +155,8 @@ installeert of benadert nooit een LG-device.
 
 ## HTTPS-distributie
 
-Host de vijf bestanden uit `dist/lg-webos/` als één versie-eenheid. Gebruik
+Host het immutable kandidaatbestand en de drie metadatafiles uit
+`apps/marketing/public/ipk/` als één versie-eenheid. Gebruik
 `distribution/lg-webos/README.md` als neutrale directorylayout.
 `latest.json` is alleen VeyoCast-metadata. Er is bewust geen SI
 Server-manifestformaat verzonnen.

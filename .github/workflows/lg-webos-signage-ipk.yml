@@ -6,7 +6,6 @@ on:
       - ".github/workflows/lg-webos-signage-ipk.yml"
       - "apps/lg-webos-signage/**"
       - "apps/player/**"
-      - "patches/@webos-tools__cli@3.2.5.patch"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -17,7 +16,6 @@ on:
       - ".github/workflows/lg-webos-signage-ipk.yml"
       - "apps/lg-webos-signage/**"
       - "apps/player/**"
-      - "patches/@webos-tools__cli@3.2.5.patch"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -28,6 +26,11 @@ on:
         required: true
         type: boolean
         default: false
+      audit_public:
+        description: Controleer de reeds uitgerolde immutable productie-URL
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -39,7 +42,7 @@ concurrency:
 jobs:
   validate:
     name: Validate LG wrapper and hosted route
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     steps:
@@ -64,11 +67,11 @@ jobs:
       - name: Verify pinned Signage CLI
         run: |
           test "$(node -p "require('./node_modules/@webos-tools/cli/package.json').version")" = "3.2.5"
-          if grep -F 'webOS-Packager-Version: x.y.x' node_modules/@webos-tools/cli/lib/package.js; then
-            echo "De gepatchte CLI bevat nog een placeholder voor de packagerversie." >&2
+          if grep -R "patchedDependencies" pnpm-workspace.yaml pnpm-lock.yaml; then
+            echo "De officiële Signage-packager mag niet lokaal gepatcht zijn." >&2
             exit 1
           fi
-          grep -F 'webOS-Packager-Version: " + cliPackage.version' node_modules/@webos-tools/cli/lib/package.js
+          grep -F 'webOS-Packager-Version: x.y.x' node_modules/@webos-tools/cli/lib/package.js
           pnpm exec ares-config --profile signage
           pnpm exec ares-package --version
 
@@ -88,7 +91,7 @@ jobs:
     name: Build inspected release IPK
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: lg-webos-signage-release
 
@@ -111,25 +114,49 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Select Signage profile and build IPK
+      - name: Build official Signage smoketest reference
         env:
           LG_WEBOS_DISTRIBUTION_BASE_URL: ${{ vars.LG_WEBOS_DISTRIBUTION_BASE_URL }}
         run: |
           pnpm exec ares-config --profile signage
           pnpm --filter @veyocast/lg-webos-signage build:ipk
           pnpm --filter @veyocast/lg-webos-signage inspect
-          (cd dist/lg-webos && sha256sum --check checksums.sha256)
+
+      - name: Preserve full 1.0.1 forensic evidence
+        run: |
+          mkdir -p dist/lg-webos/evidence
+          bash apps/lg-webos-signage/scripts/audit-public-ipk.sh \
+            https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.1_all.ipk \
+            apps/marketing/public/ipk/nl.veyocast.player.webos_1.0.1_all.ipk \
+            dist/lg-webos/evidence/public-1.0.1
+          bash apps/lg-webos-signage/scripts/compare-ipks.sh \
+            apps/marketing/public/ipk/nl.veyocast.player.webos_1.0.0_all.ipk \
+            apps/marketing/public/ipk/nl.veyocast.player.webos_1.0.1_all.ipk \
+            dist/lg-webos/evidence/compare-1.0.0-1.0.1
+          bash apps/lg-webos-signage/scripts/compare-ipks.sh \
+            apps/marketing/public/ipk/nl.veyocast.player.webos_1.0.0_all.ipk \
+            apps/marketing/public/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk \
+            dist/lg-webos/evidence/compare-1.0.0-smoketest-1.0.2
+          pnpm exec ares-package -i \
+            apps/marketing/public/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk \
+            > dist/lg-webos/evidence/smoketest-1.0.2-ares-package-info.txt
+          pnpm exec ares-package -I \
+            apps/marketing/public/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk \
+            > dist/lg-webos/evidence/smoketest-1.0.2-ares-package-info-detail.txt
+          sha256sum \
+            apps/marketing/public/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk \
+            > dist/lg-webos/evidence/smoketest-1.0.2.sha256
 
       - name: Preserve IPK and distribution metadata
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: veyocast-lg-webos-signage-${{ github.run_number }}
           path: |
-            dist/lg-webos/nl.veyocast.player.webos_1.0.1_all.ipk
-            dist/lg-webos/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
-            dist/lg-webos/checksums.sha256
-            dist/lg-webos/latest.json
-            dist/lg-webos/release-notes.json
+            apps/marketing/public/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk
+            apps/marketing/public/ipk/checksums.sha256
+            apps/marketing/public/ipk/latest.json
+            apps/marketing/public/ipk/release-notes.json
+            dist/lg-webos/evidence/**
           if-no-files-found: error
           retention-days: 30
 
@@ -149,8 +176,7 @@ jobs:
           fi
           base="${DISTRIBUTION_BASE_URL%/}/"
           for artifact in \
-            nl.veyocast.player.webos_1.0.1_all.ipk \
-            nl.veyocast.player.webos.smoketest_1.0.1_all.ipk \
+            nl.veyocast.player.webos.smoketest_1.0.2_all.ipk \
             checksums.sha256 \
             latest.json \
             release-notes.json
@@ -161,10 +187,21 @@ jobs:
               --retry-all-errors \
               --request PUT \
               --header "Authorization: Bearer ${DISTRIBUTION_BEARER_TOKEN}" \
-              --upload-file "dist/lg-webos/${artifact}" \
+              --upload-file "apps/marketing/public/ipk/${artifact}" \
               "${base}${artifact}"
           done
 
       - name: Verify immutable public downloads
         if: github.event_name == 'workflow_dispatch' && inputs.publish_https
         run: pnpm --filter @veyocast/lg-webos-signage validate:downloads
+
+      - name: Audit deployed immutable smoketest
+        if: >-
+          github.event_name == 'workflow_dispatch' &&
+          inputs.publish_https &&
+          inputs.audit_public
+        run: |
+          bash apps/lg-webos-signage/scripts/audit-public-ipk.sh \
+            https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk \
+            apps/marketing/public/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk \
+            dist/lg-webos/evidence/public-smoketest-1.0.2

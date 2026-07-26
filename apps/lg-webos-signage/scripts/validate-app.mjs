@@ -21,7 +21,7 @@ export const expectedSmoketestAppInfo = Object.freeze({
   title: "VeyoCast LG Test",
   type: "web",
   vendor: "DG Webservices",
-  version: "1.0.1"
+  version: "1.0.2"
 });
 
 export const allowedHttpsOrigins = Object.freeze([
@@ -227,7 +227,7 @@ export async function validateSmoketest(
     if (/<script[^>]+src=/iu.test(indexHtml)) {
       errors.push("smoketest mag geen extern of apart script laden");
     }
-    if (!indexHtml.includes("VeyoCast LG-test gestart")) {
+    if (!indexHtml.includes("VeyoCast LG smoketest 1.0.2")) {
       errors.push("smoketest mist de zichtbare startbevestiging");
     }
     for (const requiredLabel of [

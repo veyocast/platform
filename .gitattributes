@@ -19,6 +19,3 @@ apps/lg-webos-signage/smoketest/veyocast-logo-inverse.svg binary
 
 # This verified canonical source uses Markdown hard line breaks intentionally.
 docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md whitespace=-trailing-space
-
-# pnpm patches contain unified-diff context lines whose whitespace is significant.
-patches/*.patch whitespace=-blank-at-eol

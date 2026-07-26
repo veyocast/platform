@@ -1,16 +1,15 @@
 {
   "appId": "nl.veyocast.player.webos",
-  "buildCommitSha": "77c10bad3e8117132b9e952d37e57741223d25c2",
-  "buildTimestamp": "2026-07-25T23:15:28.098Z",
+  "buildCommitSha": "5acf3954edf93887000949d550aee26acf77b264",
+  "buildTimestamp": "2026-07-26T12:15:15.169Z",
   "hardwareValidationStatus": "NEEDS_PHYSICAL_LG_TEST",
   "notes": [
-    "Productie-wrapper 1.0.1 toont altijd eerst een lokale opstart- en diagnosepagina.",
-    "Afzonderlijke volledig lokale smoketest is meegeleverd om packaging en autostart te isoleren.",
-    "Beide IPK's zijn gebouwd met de gepinde officiële @webos-tools/cli 3.2.5.",
-    "De repositorypatch vervangt uitsluitend upstream placeholdermetadata en normaliseert tar-eigenaar en bestandsrechten.",
-    "De productie-wrapper laadt uitsluitend https://player.veyocast.nl/lg.",
-    "Pairing, offline media, releases, playback en telemetry blijven in de hosted Player.",
-    "Fysieke validatie op LG 43UL3J-EP, webOS 6.0, firmware 03.24.90 blijft verplicht."
+    "Productie-wrapper 1.0.1 blijft bevroren en wordt in deze herstelrun niet opnieuw gebouwd of overschreven.",
+    "Smoketest 1.0.2 bevat uitsluitend lokale HTML, CSS, JavaScript en locked VeyoCast-assets.",
+    "Smoketest 1.0.2 is gebouwd met de ongewijzigde officiële @webos-tools/cli 3.2.5 en het signage-profiel.",
+    "De pakket-envelope volgt de structuur van de fysiek door LG geaccepteerde 1.0.0.",
+    "De publieke URL moet bytegelijk zijn aan het bewaarde CI-artifact.",
+    "Fysieke installatie op LG 43UL3J-EP, webOS Signage 6.0, firmware 03.24.90 blijft verplicht."
   ],
   "production": {
     "appId": "nl.veyocast.player.webos",
@@ -23,12 +22,12 @@
   },
   "smoketest": {
     "appId": "nl.veyocast.player.webos.smoketest",
-    "byteSize": 8876,
-    "downloadUrl": "https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.1_all.ipk",
-    "ipkFilename": "nl.veyocast.player.webos.smoketest_1.0.1_all.ipk",
-    "sha256": "75da4a2fca72194a3b29d82e607237010259c34182b729064cda55ab9283b41d",
+    "byteSize": 8888,
+    "downloadUrl": "https://veyocast.nl/ipk/nl.veyocast.player.webos.smoketest_1.0.2_all.ipk",
+    "ipkFilename": "nl.veyocast.player.webos.smoketest_1.0.2_all.ipk",
+    "sha256": "fff3c5359259d21db641246dbfd2e01d537f2879dccbd12ab6e6952eea9f764a",
     "title": "VeyoCast LG Test",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "version": "1.0.1"
 }

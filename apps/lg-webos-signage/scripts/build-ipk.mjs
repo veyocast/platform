@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import {
   inspectIpk,
   ipkFilename,
-  packageSpecifications
+  releaseCandidateSpecifications
 } from "./inspect-ipk.mjs";
 import { validateApp, validateSmoketest } from "./validate-app.mjs";
 
@@ -21,6 +21,13 @@ const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const appRoot = resolve(scriptDirectory, "..");
 const repositoryRoot = resolve(scriptDirectory, "../../..");
 const outputDirectory = join(repositoryRoot, "dist", "lg-webos");
+const publicationDirectory = join(
+  repositoryRoot,
+  "apps",
+  "marketing",
+  "public",
+  "ipk"
+);
 const canonicalDistributionBaseUrl = "https://veyocast.nl/ipk/";
 
 export async function buildIpks() {
@@ -32,21 +39,16 @@ export async function buildIpks() {
   const buildCommitSha = (
     await runCommand("git", ["rev-parse", "HEAD"], repositoryRoot)
   ).stdout.trim();
-  const sourceDateEpoch = (
-    await runCommand("git", ["show", "-s", "--format=%ct", "HEAD"], repositoryRoot)
-  ).stdout.trim();
   await runCommand("ares-config", ["--profile", "signage"]);
 
   const releases = [];
-  for (const specification of packageSpecifications) {
-    const sourceRoot =
-      specification.appInfo.id === "nl.veyocast.player.webos"
-        ? appRoot
-        : join(appRoot, "smoketest");
-    await runCommand("ares-package", ["-o", outputDirectory, sourceRoot], repositoryRoot, {
-      SOURCE_DATE_EPOCH: sourceDateEpoch,
-      WEBOS_PACKAGER_MAINTAINER: "DG Webservices <support@veyocast.nl>"
-    });
+  for (const specification of releaseCandidateSpecifications) {
+    const sourceRoot = join(appRoot, "smoketest");
+    await runCommand(
+      "ares-package",
+      ["-o", outputDirectory, sourceRoot],
+      repositoryRoot
+    );
     const filename = ipkFilename(specification.appInfo);
     const path = join(outputDirectory, filename);
     const inspection = await inspectIpk(path, specification);
@@ -66,26 +68,22 @@ export async function buildIpks() {
     });
   }
 
-  const buildTimestamp = new Date().toISOString();
-  const production = releases.find(
-    (release) => release.appId === "nl.veyocast.player.webos"
-  );
-  const smoketest = releases.find(
-    (release) => release.appId === "nl.veyocast.player.webos.smoketest"
-  );
-  if (!production || !smoketest) {
-    throw new Error("Productie- en smoketest-IPK moeten beide gebouwd zijn");
+  const smoketest = releases[0];
+  if (!smoketest) {
+    throw new Error("De 1.0.2-smoketest-IPK is niet gebouwd");
   }
 
+  const previousLatest = JSON.parse(
+    await readFile(join(publicationDirectory, "latest.json"), "utf8")
+  );
+  const previousReleaseNotes = JSON.parse(
+    await readFile(join(publicationDirectory, "release-notes.json"), "utf8")
+  );
+  const buildTimestamp = new Date().toISOString();
   const latest = {
-    appId: production.appId,
+    ...previousLatest,
     buildCommitSha,
     buildTimestamp,
-    byteSize: production.byteSize,
-    downloadUrl: production.downloadUrl,
-    ipkFilename: production.filename,
-    minimumValidatedWebOsSignageVersion: null,
-    sha256: production.sha256,
     smoketest: {
       appId: smoketest.appId,
       byteSize: smoketest.byteSize,
@@ -93,34 +91,26 @@ export async function buildIpks() {
       ipkFilename: smoketest.filename,
       sha256: smoketest.sha256,
       version: smoketest.version
-    },
-    supportedModels: [],
-    version: production.version
+    }
   };
   const releaseNotes = {
-    appId: production.appId,
+    ...previousReleaseNotes,
     buildCommitSha,
     buildTimestamp,
     hardwareValidationStatus: "NEEDS_PHYSICAL_LG_TEST",
     notes: [
-      "Productie-wrapper 1.0.1 toont altijd eerst een lokale opstart- en diagnosepagina.",
-      "Afzonderlijke volledig lokale smoketest is meegeleverd om packaging en autostart te isoleren.",
-      "Beide IPK's zijn gebouwd met de gepinde officiële @webos-tools/cli 3.2.5.",
-      "De repositorypatch vervangt uitsluitend upstream placeholdermetadata en normaliseert tar-eigenaar en bestandsrechten.",
-      "De productie-wrapper laadt uitsluitend https://player.veyocast.nl/lg.",
-      "Pairing, offline media, releases, playback en telemetry blijven in de hosted Player.",
-      "Fysieke validatie op LG 43UL3J-EP, webOS 6.0, firmware 03.24.90 blijft verplicht."
+      "Productie-wrapper 1.0.1 blijft bevroren en wordt in deze herstelrun niet opnieuw gebouwd of overschreven.",
+      "Smoketest 1.0.2 bevat uitsluitend lokale HTML, CSS, JavaScript en locked VeyoCast-assets.",
+      "Smoketest 1.0.2 is gebouwd met de ongewijzigde officiële @webos-tools/cli 3.2.5 en het signage-profiel.",
+      "De pakket-envelope volgt de structuur van de fysiek door LG geaccepteerde 1.0.0.",
+      "De publieke URL moet bytegelijk zijn aan het bewaarde CI-artifact.",
+      "Fysieke installatie op LG 43UL3J-EP, webOS Signage 6.0, firmware 03.24.90 blijft verplicht."
     ],
-    production: publicReleaseDescriptor(production),
-    smoketest: publicReleaseDescriptor(smoketest),
-    version: production.version
+    smoketest: publicReleaseDescriptor(smoketest)
   };
-
   await writeFile(
     join(outputDirectory, "checksums.sha256"),
-    releases
-      .map((release) => `${release.sha256}  ${release.filename}`)
-      .join("\n") + "\n",
+    `${smoketest.sha256}  ${smoketest.filename}\n`,
     "utf8"
   );
   await writeJson(join(outputDirectory, "latest.json"), latest);
@@ -159,13 +149,12 @@ async function writeJson(path, value) {
 async function runCommand(
   command,
   argumentsValue,
-  cwd = repositoryRoot,
-  extraEnvironment = {}
+  cwd = repositoryRoot
 ) {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(command, argumentsValue, {
       cwd,
-      env: { ...process.env, ...extraEnvironment },
+      env: process.env,
       shell: false
     });
     let stdout = "";
