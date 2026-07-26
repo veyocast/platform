@@ -51,9 +51,8 @@
   opgeheven.
 - HttpOnly demo- en Device Lab-cookies zijn geen pairingstate en worden niet
   door de browserpagina verwijderd.
-- De route is lokaal production-buildbaar, maar staat nog niet op
-  `player.veyocast.nl`. De production healthroute rapporteerde tijdens de
-  nulmeting nog main-revision `de82605a`.
+- Tijdens fase 1 stond de route nog niet op `player.veyocast.nl`; de latere
+  deploymentstatus staat onder **Deploymentbewijs**.
 - Fysieke acceptatie op LG 43UL3J-EP kan pas na merge, database-migratie,
   staging/productiondeployment en bediening op het apparaat worden afgetekend.
 
@@ -221,18 +220,35 @@ blijft onderdeel van de fysieke acceptatie.
 - Definitieve workspacegate: 25 van 25 linttaken, 25 van 25 typechecktaken en
   25 van 25 unittaken geslaagd.
 
-## Open release- en acceptatiegrenzen
+## Deploymentbewijs
 
-- De branch wijzigt production niet automatisch. Database-migratie en Player-,
-  Control- en eventuele workerdeployment moeten via het bestaande
-  releaseproces worden uitgevoerd.
-- `https://player.veyocast.nl/lg/recover` rapporteerde tijdens de nulmeting nog
-  niet deze branchrevision.
+- PR `#61` is zonder bypass gemergd naar `main` als
+  `3266167c35d1dc1340b47629a287f7628971188f`.
+- GitHub Actions-run `30222015007` voltooide op 26 juli 2026:
+  - staging-preflight;
+  - één immutable releasebuild voor Control, Player, Marketing en worker;
+  - beide S48-databasemigraties op staging;
+  - stagingdeployment en healthmatrix;
+  - digest-gelijke promotie en migraties naar production;
+  - production-healthmatrix.
+- Publieke checks rapporteerden exact deze revision en `status: ok` voor:
+  - `https://staging-control.veyocast.nl/api/health`;
+  - `https://staging-player.veyocast.nl/healthz`;
+  - `https://control.veyocast.nl/api/health`;
+  - `https://player.veyocast.nl/healthz`;
+  - `https://veyocast.nl/api/health`.
+- Zowel `https://staging-player.veyocast.nl/lg/recover` als
+  `https://player.veyocast.nl/lg/recover` gaf HTTP 200, de titel
+  **VeyoCast Player herstellen**, een bytegelijke 21.573-byte response en geen
+  verwijzing naar `/_next/`-clientchunks.
+
+## Open acceptatiegrens
+
 - Alleen een fysieke uitvoering op LG 43UL3J-EP kan bewijzen dat de specifieke
   Signage-browser alle stappen uitvoert en binnen dertig seconden een code
   toont.
-- De taak blijft daarom `in_progress` totdat deployment en het onderstaande
-  fysieke protocol met gesaneerd bewijs zijn afgetekend.
+- De taak blijft daarom `in_progress` totdat het onderstaande fysieke protocol
+  met gesaneerd bewijs is afgetekend.
 
 ## Fysiek testprotocol na deployment
 
