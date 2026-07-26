@@ -1,10 +1,10 @@
 # VeyoCast voor LG webOS Signage
 
-Deze workspace bouwt twee zelfstandige webOS Signage-IPK's:
+Deze workspace beheert twee zelfstandige webOS Signage-IPK's:
 
 ```text
-nl.veyocast.player.webos_1.0.1_all.ipk
-nl.veyocast.player.webos.smoketest_1.0.1_all.ipk
+Productie, bevroren: nl.veyocast.player.webos_1.0.1_all.ipk
+Installatietest:       nl.veyocast.player.webos.smoketest_1.0.2_all.ipk
 ```
 
 De productie-app is een dunne lokale shell rond
@@ -24,21 +24,26 @@ ares-config --profile signage
 ares-package
 ```
 
-CLI 3.2.5 schrijft upstream nog `webOS-Packager-Version: x.y.x` en neemt
-hostmetadata over. De pnpm-patch
-`patches/@webos-tools__cli@3.2.5.patch` corrigeert alleen die upstream
-placeholder, eigenaar/rechten en reproduceerbare timestamps. Er is geen eigen
-`ar`, `tar`, Debian- of IPK-builder.
+CLI 3.2.5 wordt ongewijzigd gebruikt. Het upstreampakket schrijft
+`webOS-Packager-Version: x.y.x` en gebruikt de Signage-envelope waarmee 1.0.0
+op het doelapparaat werd geaccepteerd. De eerdere lokale pnpm-patch wijzigde
+deze envelope en is na de 1.0.1-installatieregressie verwijderd. Er is geen
+eigen `ar`, `tar`, Debian- of IPK-builder.
 
-De inspectiegate eist:
+De huidige herstelbuild bouwt uitsluitend smoketest 1.0.2 en eist:
 
-- `webOS-Packager-Version: 3.2.5`;
-- eigenaar `0/0`;
-- mappen `0755`;
-- bestanden `0644`;
+- packageformat 2 en de ongewijzigde CLI-marker `x.y.x`;
+- eigenaar `1001/1001`;
+- mappen `0777`;
+- bestanden `0604` of `0666`, overeenkomstig de geaccepteerde 1.0.0;
 - exact toegestane runtimebestanden;
 - geen secrets, sourcemaps, developmenthosts of moderne niet-getranspilede
   JavaScript-syntaxis.
+
+Dit is geen claim dat ruime packagebestandsrechten algemeen wenselijk zijn.
+Het is een gecontroleerde terugkeer naar de bewezen geaccepteerde Signage-
+packageroutput. Verander de envelope pas na partnerdocumentatie én een fysieke
+installatietest.
 
 ## Bouwen en controleren
 
@@ -54,8 +59,11 @@ pnpm --filter @veyocast/lg-webos-signage inspect
 (cd dist/lg-webos && sha256sum --check checksums.sha256)
 ```
 
-De IPK's zijn byte-reproduceerbaar bij dezelfde Git-commit. `SOURCE_DATE_EPOCH`
-wordt automatisch uit de commitdatum afgeleid.
+`build:ipk` bouwt tijdens het incidentonderzoek niet opnieuw de bevroren
+productie-wrapper. De officiële packager legt host- en bouwtijdmetadata vast;
+daarom publiceert CI niet een later herbouwd bestand, maar exact het
+geïnspecteerde immutable bestand uit
+`apps/marketing/public/ipk/`.
 
 Publiceer de bytegelijk gevalideerde set naar Marketing:
 
@@ -69,6 +77,18 @@ Na deployment:
 ```bash
 pnpm --filter @veyocast/lg-webos-signage validate:downloads
 ```
+
+Forensische controles:
+
+```bash
+bash apps/lg-webos-signage/scripts/audit-public-ipk.sh \
+  https://veyocast.nl/ipk/nl.veyocast.player.webos_1.0.1_all.ipk \
+  apps/marketing/public/ipk/nl.veyocast.player.webos_1.0.1_all.ipk \
+  dist/lg-webos/evidence/public-1.0.1
+```
+
+Zie voor oorzaak, hashes, headers en de volledige 1.0.0/1.0.1-vergelijking
+[`docs/incidents/2026-07-26-lg-ipk-1.0.1-installation-audit.md`](../../docs/incidents/2026-07-26-lg-ipk-1.0.1-installation-audit.md).
 
 ## Productiestart en diagnose
 

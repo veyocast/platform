@@ -12,7 +12,7 @@ test("smoketest is volledig lokaal en toont levende runtime-informatie", () => {
   assert.doesNotMatch(source, /\bhttps?:\/\//u);
   assert.doesNotMatch(source, /<iframe\b/iu);
   assert.doesNotMatch(source, /<script[^>]+src=/iu);
-  assert.match(source, /VeyoCast LG-test gestart/u);
+  assert.match(source, /VeyoCast LG smoketest 1\.0\.2/u);
   assert.match(source, /setInterval/u);
   assert.match(source, /navigator\.userAgent/u);
   assert.match(source, /documentValue\.visibilityState/u);

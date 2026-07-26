@@ -1,12 +1,12 @@
 import { createHash } from "node:crypto";
-import { copyFile, mkdir, readFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
   inspectIpk,
   ipkFilename,
-  packageSpecifications
+  releaseCandidateSpecifications
 } from "./inspect-ipk.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -19,12 +19,11 @@ const publicationDirectory = join(
   "public",
   "ipk"
 );
-const releaseFiles = packageSpecifications.map((specification) =>
+const releaseFiles = releaseCandidateSpecifications.map((specification) =>
   ipkFilename(specification.appInfo)
 );
 const publicationFiles = [
   ...releaseFiles,
-  "checksums.sha256",
   "latest.json",
   "release-notes.json"
 ];
@@ -37,6 +36,7 @@ for (const filename of publicationFiles) {
     join(publicationDirectory, filename)
   );
 }
+await updatePublishedChecksums();
 await validatePublishedRelease();
 
 process.stdout.write(
@@ -51,24 +51,15 @@ async function validateSourceRelease() {
   const latest = JSON.parse(
     await readFile(join(sourceDirectory, "latest.json"), "utf8")
   );
-  const descriptors = [
-    {
-      downloadUrl: latest.downloadUrl,
-      filename: latest.ipkFilename,
-      sha256: latest.sha256
-    },
-    {
-      downloadUrl: latest.smoketest?.downloadUrl,
-      filename: latest.smoketest?.ipkFilename,
-      sha256: latest.smoketest?.sha256
-    }
-  ];
+  const descriptor = {
+    downloadUrl: latest.smoketest?.downloadUrl,
+    filename: latest.smoketest?.ipkFilename,
+    sha256: latest.smoketest?.sha256
+  };
 
-  for (let index = 0; index < packageSpecifications.length; index += 1) {
-    const specification = packageSpecifications[index];
+  for (const specification of releaseCandidateSpecifications) {
     const expectedFilename = ipkFilename(specification.appInfo);
     const expectedDownloadUrl = `https://veyocast.nl/ipk/${expectedFilename}`;
-    const descriptor = descriptors[index];
     if (
       descriptor.filename !== expectedFilename ||
       descriptor.downloadUrl !== expectedDownloadUrl
@@ -96,8 +87,7 @@ async function validateSourceRelease() {
 }
 
 async function validatePublishedRelease() {
-  for (let index = 0; index < packageSpecifications.length; index += 1) {
-    const specification = packageSpecifications[index];
+  for (const specification of releaseCandidateSpecifications) {
     const filename = ipkFilename(specification.appInfo);
     const sourceDigest = await sha256(join(sourceDirectory, filename));
     const publishedDigest = await sha256(join(publicationDirectory, filename));
@@ -106,6 +96,23 @@ async function validatePublishedRelease() {
     }
     await inspectIpk(join(publicationDirectory, filename), specification);
   }
+}
+
+async function updatePublishedChecksums() {
+  const checksumPath = join(publicationDirectory, "checksums.sha256");
+  const existing = await readFile(checksumPath, "utf8");
+  const releaseFilenames = new Set(releaseFiles);
+  const lines = existing
+    .split(/\r?\n/u)
+    .filter(Boolean)
+    .filter((line) => {
+      const filename = line.split(/\s+/u).at(-1);
+      return filename && !releaseFilenames.has(filename);
+    });
+  for (const filename of releaseFiles) {
+    lines.push(`${await sha256(join(sourceDirectory, filename))}  ${filename}`);
+  }
+  await writeFile(checksumPath, `${lines.join("\n")}\n`, "utf8");
 }
 
 async function sha256(path) {

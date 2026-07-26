@@ -86,6 +86,7 @@ tests en exitcriteria staan in
 | S41 | Launch platform operations | Android TV-form-factorartifact binnen één Play-app, Excel-productcatalogus, Slack-alerting, retention/deletion-governance, storageback-up en supportdesk |
 | S42 | LG webOS Signage IPK | Dunne installeerbare LG-shell rond de bestaande hosted Player, met begrensd herstel, reproduceerbare IPK, CI-inspectie en expliciete fysieke hardwaregates |
 | S44 | LG webOS launch recovery | Officiële genormaliseerde 1.0.1-IPK's, zelfstandige smoketest, zichtbare opstartdiagnostiek en exact 43UL3J-EP-testprotocol |
+| S45 | LG IPK-installatieforensics | Bevries geweigerde productie 1.0.1, bewijs download- en packageprovenance, herstel de ongewijzigde Signage-envelope en publiceer uitsluitend immutable smoketest 1.0.2 |
 
 ### Programmagates
 
