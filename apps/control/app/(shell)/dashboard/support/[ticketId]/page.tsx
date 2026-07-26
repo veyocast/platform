@@ -5,7 +5,7 @@ import { Button, PageHeader, StatusPill } from "@veyocast/ui";
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { addTicketMessage, deleteSupportTicket, uploadTicketAttachment } from "../actions";
 import { loadSupportTicket } from "../data";
-import { formatDate, relationName, statusLabel } from "../page";
+import { formatDate, relationName, statusLabel } from "../support-format";
 import styles from "../support.module.css";
 
 export default async function TicketPage({ params }: { params: Promise<{ ticketId: string }> }) {

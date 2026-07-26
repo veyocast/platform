@@ -416,7 +416,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
               type="search"
             />
           )}
-          results={`${visibleAssets.length} van ${totalCount} zichtbaar`}
+          results={visibleAssets.length === totalCount ? `${totalCount} media` : `${visibleAssets.length} van ${totalCount}`}
         >
           <select aria-label="Filter media op type" className="toolbar-select" defaultValue={params.type ?? "all"} name="type">
             <option value="all">Alle typen</option><option value="image">Afbeeldingen</option><option value="video">Video's</option>

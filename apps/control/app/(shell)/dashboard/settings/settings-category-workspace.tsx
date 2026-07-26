@@ -15,8 +15,10 @@ type CategoryId = (typeof categories)[number]["id"];
 
 export function SettingsCategoryWorkspace({ children }: { children: ReactNode }) {
   const [activeCategory, setActiveCategory] = useState<CategoryId>("clubprofiel");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    setHydrated(true);
     const requested = window.location.hash.slice(1);
     if (categories.some((category) => category.id === requested)) {
       setActiveCategory(requested as CategoryId);
@@ -29,7 +31,7 @@ export function SettingsCategoryWorkspace({ children }: { children: ReactNode })
   }
 
   return (
-    <div className="settings-category-workspace">
+    <div className="settings-category-workspace" data-hydrated={hydrated ? "true" : "false"}>
       <nav aria-label="Instellingencategorieën" className="settings-category-nav">
         {categories.map((category) => (
           <button

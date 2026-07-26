@@ -1457,6 +1457,7 @@ kbd {
 }
 
 .status-pill {
+  align-self: flex-start;
   align-items: center;
   border: 1px solid transparent;
   border-radius: var(--vc-radius-full);
@@ -4241,6 +4242,7 @@ body .vc-dialog__content {
 }
 
 .settings-category-panels > section {
+  align-content: start;
   min-height: 300px;
 }
 

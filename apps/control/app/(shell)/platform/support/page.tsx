@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { requireControlCapability } from "../../../../lib/control-session";
 import { loadPlatformSupport } from "../../dashboard/support/data";
-import { formatDate, relationName, statusLabel } from "../../dashboard/support/page";
+import { formatDate, relationName, statusLabel } from "../../dashboard/support/support-format";
 
 export default async function PlatformSupportPage() {
   await requireControlCapability("platform.ticket.read");

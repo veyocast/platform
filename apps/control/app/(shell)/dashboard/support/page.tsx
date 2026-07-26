@@ -4,6 +4,7 @@ import { Button, DataTable, PageHeader, StatusPill } from "@veyocast/ui";
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { loadTenantSupport } from "./data";
 import { NewTicketDialog } from "./new-ticket-dialog";
+import { formatDate, relationName, statusLabel } from "./support-format";
 
 export default async function SupportPage() {
   const session = await requireTenantControlSession("tenant.ticket.read");
@@ -67,17 +68,4 @@ export default async function SupportPage() {
       </section>
     </>
   );
-}
-
-export function relationName(value: unknown) {
-  const item = Array.isArray(value) ? value[0] : value;
-  return item && typeof item === "object" && "name" in item
-    ? String(item.name)
-    : "—";
-}
-export function statusLabel(status: string) {
-  return ({ open: "Open", in_progress: "In behandeling", waiting_for_customer: "Wacht op klant", resolved: "Opgelost", closed: "Gesloten" } as Record<string, string>)[status] ?? status;
-}
-export function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }

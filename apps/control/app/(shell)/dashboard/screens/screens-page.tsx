@@ -181,7 +181,9 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
         clearHref="/dashboard/screens"
         defaultOpen={Boolean(normalizedQuery) || statusFilter !== "all"}
         primary={<input aria-label="Zoeken in de schermvloot" className="toolbar-search" defaultValue={query.q ?? ""} name="q" placeholder="Scherm, locatie of Player" type="search" />}
-        results={`${filteredScreens.length} van ${data.screens.length} schermen`}
+        results={filteredScreens.length === data.screens.length
+          ? `${data.screens.length} ${data.screens.length === 1 ? "scherm" : "schermen"}`
+          : `${filteredScreens.length} van ${data.screens.length}`}
       >
         <label className="toolbar-field"><span>Status</span><select className="toolbar-select" defaultValue={statusFilter} name="status"><option value="all">Alle statussen</option><option value="online">Online</option><option value="offline">Offline</option><option value="syncing">Synchroniseren</option><option value="unpaired">Niet gekoppeld</option><option value="maintenance">Onderhoud</option><option value="disabled">Uitgeschakeld</option></select></label>
         <Button type="submit" variant="secondary">Vloot filteren</Button>

@@ -349,10 +349,10 @@ function DemoDashboardPage({ userName }: { userName: string }) {
   return (
     <>
       <PageHeader
-        description="Deze lokale demomodus bevat bewust geen fictieve KPI’s of operationele meldingen. Verbind een live tenant om het dashboard te vullen."
+        description={`Hallo ${firstName(userName)}. Deze lokale demomodus bevat bewust geen fictieve KPI’s of operationele meldingen.`}
         eyebrow="Lokale demomodus"
         status={{ label: "Geen live tenantdata", tone: "info" }}
-        title={`Welkom, ${userName}`}
+        title="Overzicht"
       />
       <section className="empty-dashboard" aria-labelledby="demo-dashboard-title">
         <StatusPill label="Veilige lege staat" tone="info" />

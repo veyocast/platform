@@ -81,9 +81,11 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               <p className="work-panel__meta">De zichtbare naam van de actieve vereniging.</p>
             </div>
           </div>
-          <div className="field">
-            <label htmlFor="settings-name">Verenigingsnaam</label>
-            <input defaultValue={data.name} disabled={!canManage} id="settings-name" maxLength={120} minLength={2} name="name" required type="text" />
+          <div className="form-grid">
+            <div className="field">
+              <label htmlFor="settings-name">Verenigingsnaam</label>
+              <input defaultValue={data.name} disabled={!canManage} id="settings-name" maxLength={120} minLength={2} name="name" required type="text" />
+            </div>
           </div>
         </section>
 
