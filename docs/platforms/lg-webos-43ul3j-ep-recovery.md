@@ -17,6 +17,22 @@ De nieuwe 1.0.2 is uitsluitend een lokale package-/launch-smoketest.
 Installatie en autostart blijven **nog fysiek te valideren**. Een factory reset
 is voor dit protocol niet nodig.
 
+Nieuwe fysieke waarneming op 26 juli 2026:
+
+```text
+1. Lokale applicatie-upgrade: Extern
+2. Smoketest 1.0.2: Upgrade voltooid
+3. Display uit en weer aan
+4. Melding: Failed to upgrade IPK APP
+5. De lokale smoketestpagina werd niet zichtbaar
+```
+
+Dit bewijst dat de handmatige download/verwerkingsstap wordt geaccepteerd, maar
+nog niet dat de appregistratie en lokale launch de koude start overleven. Het
+onderscheid tussen **Extern als upgradebron** en **Lokaal als startmodus** moet
+nu op het apparaat worden vastgelegd. Een eventuele automatische upgrade bij
+boot wordt eerst geïsoleerd; er wordt hiervoor geen nieuw pakket gebouwd.
+
 ## Root-causeanalyse van 1.0.1
 
 Zowel 1.0.0 als 1.0.1 zijn als normaal IPK te lezen. De productie-URL van 1.0.1
@@ -142,9 +158,16 @@ Content-Length en SHA-256 nadat een goedgekeurde HTTPS-upload is uitgevoerd.
 7. Start de externe lokale applicatie-upgrade.
 8. Verwacht letterlijk **Upgrade voltooid**. Maak een foto van een andere
    melding en stop bij een fout.
-9. Controleer dat **Startmodus applicatie: Lokaal** nog steeds geselecteerd is.
-10. Sluit het instellingenmenu.
-11. Schakel het display uit. Haal voor een echte koude start de netstekker
+9. Open na de melding opnieuw de volledige **SI Server-instelling**.
+10. Controleer dat **Startmodus applicatie: Lokaal** geselecteerd is. `Extern`
+    hoort alleen bij **Lokale applicatie-upgrade** en mag niet de startmodus
+    zijn.
+11. Zet voor deze isolatietest **Automatisch instellen: Uit**. Dit is tijdelijk:
+    zo kan de koude start de reeds geïnstalleerde lokale app testen zonder
+    tegelijk opnieuw een externe upgrade te proberen.
+12. Druk niet opnieuw op **Extern** en wijzig de immutable URL niet.
+13. Sluit het instellingenmenu.
+14. Schakel het display uit. Haal voor een echte koude start de netstekker
     dertig seconden los, sluit hem weer aan en schakel het display in.
 
 Verwacht:
@@ -158,6 +181,20 @@ Druk daarna op alle pijlen, OK, BACK en play/pause. Iedere toets moet onder
 **Laatste afstandsbedieningsinput** verschijnen. Deze test gebruikt geen
 internet, iframe of backend. Start hij niet, dan zit het probleem in LG-
 registratie, packageacceptatie of de lokale startmodus.
+
+Interpretatie van deze isolatietest:
+
+- start 1.0.2 nu wel, dan kwam de eerdere rebootmelding uit een nieuwe
+  automatische upgradepoging en niet uit de reeds draaiende smoketest;
+- verschijnt opnieuw `Failed to upgrade IPK APP`, leg dan Startmodus,
+  Automatisch instellen, URL en het tijdstip op één fotoserie vast; zonder
+  LG-installatielog is nog niet bewezen of registratie of validatie faalt;
+- verschijnt alleen de normale input zonder fout of smoketest, dan is de lokale
+  launch niet actief geworden en moet de modelconfiguratie worden onderzocht.
+
+Laat **Automatisch instellen** na deze test uit tot vaststaat hoe firmware
+03.24.90 versiecontrole en herinstallatie bij boot uitvoert. Dit is een
+diagnostische maatregel, geen definitieve productieconfiguratie.
 
 ### B. Stop na de smoketest
 
