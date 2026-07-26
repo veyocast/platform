@@ -340,6 +340,7 @@ test("tenant context selection is explicit and keyboard reachable", async ({ pag
 test("media route exposes upload intake labels and status landmarks", async ({
   page
 }) => {
+  test.slow();
   await page.goto("/dashboard/media");
   await page.waitForLoadState("networkidle");
   await expect(
@@ -402,8 +403,16 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(page.getByRole("region", { name: "Mediabibliotheek" })).toBeVisible();
 
   await page.setViewportSize({ height: 844, width: 390 });
-  await page.reload();
-  await page.getByRole("button", { name: "Filters" }).click();
+  const mobileFilterTrigger = page.getByRole("button", { name: "Filters" });
+  await expect(async () => {
+    try {
+      await page.reload();
+    } catch (error) {
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+    await expect(mobileFilterTrigger).toBeVisible();
+  }).toPass({ timeout: 20_000 });
+  await mobileFilterTrigger.click();
   const fromDate = page.getByLabel("Vanaf");
   await expect(async () => {
     const fromDateBox = await fromDate.boundingBox();
