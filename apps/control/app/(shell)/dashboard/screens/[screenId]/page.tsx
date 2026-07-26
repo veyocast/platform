@@ -18,7 +18,12 @@ import {
   type FleetRelease,
   type ScreenSchedule
 } from "../data";
+import {
+  automationCapabilityView,
+  loadScreenAutomation
+} from "./automation-data";
 import { ScreenLifecycleActions } from "./screen-lifecycle-actions";
+import { ScreenAutomation } from "./screen-automation";
 
 type ScreenDetailPageProps = {
   params: Promise<{ screenId: string }>;
@@ -29,6 +34,7 @@ const tabs = [
   ["overview", "Overzicht"],
   ["content", "Content"],
   ["planning", "Planning"],
+  ["automation", "Automatisering"],
   ["health", "Gezondheid"],
   ["settings", "Instellingen"],
   ["activity", "Activiteit"]
@@ -45,6 +51,9 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
   if (session.isLive && !data?.screen && !data?.error) notFound();
   const screen = data?.screen ?? null;
   const pairedDevice = data?.devices.find((device) => device.status === "paired") ?? null;
+  const automation = activeTab === "automation" && session.isLive && session.tenantId
+    ? await loadScreenAutomation(session.tenantId, screenId)
+    : null;
   const latestHeartbeat = data?.heartbeats[0] ?? null;
   const canManage = Boolean(
     session.isLive &&
@@ -83,6 +92,19 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
       /> : null}
       {activeTab === "content" ? <ContentTab releases={data.releases} screen={screen} /> : null}
       {activeTab === "planning" ? <PlanningTab schedules={data.schedules} screen={screen} /> : null}
+      {activeTab === "automation" && automation ? (
+        <ScreenAutomation
+          automation={automation}
+          canManage={canManage}
+          capabilities={automationCapabilityView(
+            pairedDevice?.platform ?? null,
+            pairedDevice?.appVersion ?? null,
+            pairedDevice?.capabilities ?? {}
+          )}
+          device={pairedDevice}
+          screenId={screen.id}
+        />
+      ) : null}
       {activeTab === "health" ? <>
         <PlayerTab canManage={canManage} devices={data.devices} screenId={screen.id} />
         <SyncTab
