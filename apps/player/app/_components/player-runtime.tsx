@@ -56,6 +56,12 @@ import {
 } from "../_lib/player-connectivity";
 import { resolvePersistedPairingDelay } from "../_lib/player-pairing-recovery";
 import {
+  clearAutomationReport,
+  readAutomationCapabilities,
+  readAutomationReport,
+  storeAutomationSync
+} from "../_lib/player-automation";
+import {
   defaultWatchdogTimeoutMs,
   resolvePlayerRuntimeTiming
 } from "../_lib/player-runtime-config";
@@ -1097,6 +1103,8 @@ export function PlayerRuntime() {
         ? playbackRuntime.release.envelope.manifest.items[playbackRuntime.activeIndex]
         : null;
       const reportedPlaybackError = lastPlaybackErrorRef.current;
+      const automationReport = readAutomationReport(window.localStorage);
+      const automationCapabilities = readAutomationCapabilities(window.localStorage);
       const syncPhase = !playbackRuntime
         ? null
         : playbackRuntime.state === "DOWNLOADING"
@@ -1111,6 +1119,8 @@ export function PlayerRuntime() {
         const response = await fetchPlayerOrigin("/api/player/heartbeat", {
           body: JSON.stringify({
             activeReleaseId: playbackRuntime?.release.envelope.manifest.releaseId ?? null,
+            automationCapabilities,
+            automationReport,
             currentItemId: activeItem?.id ?? null,
             desiredReleaseId: playbackRuntime
               ? playbackRuntime.pendingRelease?.envelope.manifest.releaseId ??
@@ -1131,6 +1141,16 @@ export function PlayerRuntime() {
           method: "POST"
         });
         if (!response.ok) throw new Error("Heartbeat is geweigerd.");
+        const heartbeat = await response.json().catch(() => null) as {
+          automation?: unknown;
+          ok?: boolean;
+        } | null;
+        if (heartbeat?.automation !== undefined) {
+          storeAutomationSync(window.localStorage, heartbeat.automation);
+        }
+        if (automationReport) {
+          clearAutomationReport(window.localStorage, automationReport);
+        }
         if (
           reportedPlaybackError?.recoveredAt &&
           lastPlaybackErrorRef.current === reportedPlaybackError
