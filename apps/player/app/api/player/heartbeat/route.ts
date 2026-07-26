@@ -31,7 +31,10 @@ export async function POST(request: Request) {
   const supabase = createPlayerAnonClient();
 
   if (!deviceToken || !supabase) {
-    return NextResponse.json({ ok: false }, { status: 401 });
+    return heartbeatFailure(
+      deviceToken ? "PLAYER_API_UNAVAILABLE" : "INVALID_DEVICE_TOKEN",
+      deviceToken ? 503 : 401
+    );
   }
 
   const body = (await request.json().catch(() => null)) as {
@@ -114,11 +117,22 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    return NextResponse.json(
-      {
-        error: "Heartbeat is geweigerd."
-      },
-      { status: 403 }
+    const { data: credentialState, error: credentialError } =
+      await supabase.rpc("inspect_player_device_credential_v1", {
+        p_token_hash: tokenHash
+      });
+    if (credentialError) {
+      return heartbeatFailure("PLAYER_API_UNAVAILABLE", 503);
+    }
+    const code =
+      credentialState === "DEVICE_REVOKED"
+        ? "DEVICE_REVOKED"
+        : credentialState === "PAIRING_PENDING"
+          ? "PAIRING_PENDING"
+          : "INVALID_DEVICE_TOKEN";
+    return heartbeatFailure(
+      code,
+      code === "DEVICE_REVOKED" ? 403 : code === "PAIRING_PENDING" ? 409 : 401
     );
   }
 
@@ -195,4 +209,32 @@ function sha256(value: string) {
 
 function safeNonNegativeInteger(value: number | null | undefined) {
   return Number.isSafeInteger(value) && Number(value) >= 0 ? Number(value) : null;
+}
+
+function heartbeatFailure(code: string, status: number) {
+  return NextResponse.json(
+    {
+      error: {
+        cause:
+          code === "DEVICE_REVOKED"
+            ? "De schermcredential is ingetrokken."
+            : code === "PAIRING_PENDING"
+              ? "De koppelcode is nog niet geclaimd."
+              : code === "INVALID_DEVICE_TOKEN"
+                ? "De schermcredential is ongeldig."
+                : "De Player-API is tijdelijk niet beschikbaar.",
+        code,
+        effect: "De Playerstatus is niet bijgewerkt.",
+        recovery:
+          code === "PAIRING_PENDING"
+            ? "Claim de zichtbare code in Control."
+            : "De Player beoordeelt automatisch of opnieuw koppelen nodig is."
+      },
+      ok: false
+    },
+    {
+      headers: { "Cache-Control": "no-store" },
+      status
+    }
+  );
 }

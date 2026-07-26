@@ -3,9 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "browserslist": [
+    "chrome 79"
+  ],
   "scripts": {
     "dev": "next dev --port 3001",
-    "build": "next build && node ../../scripts/assert-client-bundle-secret-free.mjs .",
+    "build": "next build && node ../../scripts/assert-client-bundle-secret-free.mjs . && node ../../scripts/assert-player-webos6-compatible.mjs .",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import { PlayerPwaControls } from "./_components/player-pwa-controls";
 import { ServiceWorkerRegistration } from "./_components/service-worker-registration";
+import { playerClientFallbackScript } from "./_lib/player-client-fallback";
 
 export const metadata: Metadata = {
   applicationName: "VeyoCast Player",
@@ -35,6 +36,10 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <body>
+        <script
+          dangerouslySetInnerHTML={{ __html: playerClientFallbackScript }}
+          id="veyocast-client-fallback-guard"
+        />
         <ServiceWorkerRegistration />
         {children}
         <PlayerPwaControls />

@@ -2,14 +2,18 @@
 
 ## Reikwijdte
 
-Dit document beschrijft de S27-grens tussen een fysieke Player, de publieke
-pairing-API, een bevoegde Control-gebruiker en de tenantgebonden database. De
-Player blijft een revocable device en is geen Supabase Auth-user.
+Dit document beschrijft de S27/S48-grens tussen een fysieke Player, de publieke
+installatie- en pairing-API, het remote command-kanaal, een bevoegde
+Control-gebruiker en de tenantgebonden database. De Player blijft een revocable
+device en is geen Supabase Auth-user.
 
 ## Te beschermen waarden
 
 - het ruwe device-token dat uitsluitend op de Player staat;
+- de afzonderlijke ruwe installatiecredential die uitsluitend op de Player
+  staat;
 - de tijdelijke pairingcode en de nog niet geclaimde tokenhash;
+- remote commandnonces, TTL en terminale uitvoeringsstatus;
 - tenant-, scherm- en release-ownership;
 - de gekoppelde device-identiteit en intrekkingsstatus;
 - last-known-good playback tijdens netwerkverlies;
@@ -27,6 +31,13 @@ Player blijft een revocable device en is geen Supabase Auth-user.
    autorisatiebewijs.
 4. Een device-token autoriseert uitsluitend de gekoppelde Playerbootstrap,
    manifesten en heartbeat voor dat ene scherm.
+5. De installatiecredential autoriseert alleen installatie-heartbeat,
+   pairing voor die installatie en ophalen/bevestigen van reeds
+   tenantgeautoriseerde commands. Zij kan geen tenant, scherm of opdracht
+   kiezen.
+6. Control kan commands alleen via een server-side capabilitycheck voor het
+   actieve tenantscherm aanmaken; de Player kan geen commandtype of payload
+   verhogen.
 
 ## Dreigingen en controls
 
@@ -37,7 +48,15 @@ Player blijft een revocable device en is geen Supabase Auth-user.
 | Gelijktijdige double claim | Twee actieve Players | Rijlock op pairingsessie plus unieke partial index voor één paired device per scherm. |
 | Cross-tenant claim | Device aan verkeerd scherm | Command valideert beheerrol voor `p_tenant_id` en zoekt het scherm uitsluitend binnen dezelfde actieve tenant. |
 | Pairingsessie-spam | Databasevervuiling/DoS | Duurzame per-fingerprint- en globale creationlimiet; vorige pending sessie voor dezelfde fingerprint wordt geannuleerd. Alleen hashes worden bewaard. De fingerprint combineert het beheerde netwerk-/user-agentsignaal met een lokale, niet-geheime Player-instance-ID, zodat meerdere schermen achter dezelfde verbinding elkaar niet annuleren. |
+| Twee gelijktijdige code-aanvragen | Dubbele actieve code of onduidelijke claim | Transactionele installation-lock, gehashte idempotencynonce en unique partial index voor maximaal één `pending` sessie per installatie. |
 | Device secret in Control/log/URL | Overname van Player | Ruw token wordt alleen in de no-store Playerresponse geleverd. Control ontvangt alleen een code; actions, redirects, events en metadata bevatten geen token. Raw databasefouten worden niet naar UI/API geretourneerd. |
+| Installatiecredential in database/log/URL | Overname van anonieme Player of commands | Ruwe credential verschijnt alleen in de no-store registratie-response en lokale storage. PostgreSQL, audit, Control, URLs en foutdata bevatten uitsluitend de hash of niet-geheime installatie-ID. |
+| Gekraakte devicecredential blokkeert herstel | Player blijft permanent onbereikbaar | Afzonderlijke installation-auth voorkomt dat commandpolling van het defecte devicecredential afhangt. Recovery roteert het devicecredential pas bij uitvoering en behoudt de schermbinding. |
+| Cross-tenant command | Onbevoegd herladen, unpairen of cache wissen | Queuefunctie valideert actorcapability, actieve tenant, screenownership en de actuele installation/devicebinding opnieuw. Player-RLS geeft geen directe tabeltoegang. |
+| Command replay | Herhaalde reload/wipe | Cryptografische nonce, TTL, terminale databasevelden, row lock en lokale bounded executed-noncejournal. Terminale of verlopen commands worden niet opnieuw geleverd. |
+| Verlopen command wordt alsnog uitgevoerd | Late onverwachte wijziging | Pollfunctie markeert verlopen opdrachten failed en levert alleen commands binnen TTL. Completion valideert dezelfde installatie, nonce en niet-terminale status. |
+| Player vervalst commandresultaat | Onjuiste Controlstatus of tokenrotatie | Alleen de geauthenticeerde installation kan de eigen opdracht bevestigen. Server bepaalt het herstelresultaat en credential; Player bepaalt geen tenant-, screen- of commandownership. |
+| Een tijdelijke API-fout wist geldige binding | Onnodige re-pairing en contentonderbreking | Alleen allowlisted definitieve machinecodes verwijderen de devicecredential. 500/502/503/504, DNS, timeout en offline houden credential plus last-known-good release vast. |
 | Directe schermlimiet-race | Meer schermen dan contract | Create-command en bestaande limiettrigger vergrendelen dezelfde tenantrij voordat aantal en insert worden uitgevoerd. |
 | Revoked device blijft online synchroniseren | Ongeautoriseerde nieuwe content | Bootstrap en heartbeat selecteren alleen `paired` devices op een actief scherm. Revoke faalt daarna gesloten. |
 | Revoked device is offline | Intrekking lijkt direct terwijl server onbereikbaar is | Control meldt expliciet dat cached last-known-good content zichtbaar kan blijven tot de eerstvolgende verbinding. Er wordt geen onmogelijke remote-wipeclaim gedaan. |
@@ -61,6 +80,10 @@ Player blijft een revocable device en is geen Supabase Auth-user.
 - Pending, verlopen en geannuleerde pairingsessies worden bij de eerstvolgende
   pairingactie verwijderd zodra zij vijftien minuten oud zijn. Claimed sessies
   blijven bestaan als referentie voor device- en auditbewijs.
+- De S48-server gebruikt de installation-lock en één actieve pendingindex;
+  dezelfde requestnonce retourneert idempotent dezelfde nog geldige sessie.
+- Remote commands hebben per type een korte server-side TTL en gaan na
+  completion/failure nooit terug naar een leverbare status.
 - De fingerprint is alleen een begrenzingssignaal en geen device-identiteit.
   Reverse-proxyheaders kunnen worden gespoofd buiten de beheerde VPS-route;
   daarom blijft ook de globale grens actief.
@@ -70,8 +93,11 @@ Player blijft een revocable device en is geen Supabase Auth-user.
 - Een volledig offline apparaat kan niet op afstand worden gewist of direct
   gestopt. Fysieke toegang en de eerstvolgende verbinding blijven noodzakelijk.
 - Een aanvaller met volledige fysieke browser-/opslagtoegang kan lokale
-  Playerdata proberen uit te lezen. Fysieke hardening en LG-kioskconfiguratie
-  horen bij S30-hardwarevalidatie.
+  Playerdata en beide credentials proberen uit te lezen of hard recovery
+  starten. Fysieke hardening en LG-kioskconfiguratie blijven nodig; het
+  herstelmenu vraagt bewust geen onbekend LG-beheerwachtwoord.
+- Remote recovery is een pollmodel en werkt pas wanneer de Player de VeyoCast
+  API kan bereiken. Het is geen push- of remote-wipegarantie.
 - De database rate limiter vervangt geen upstream DDoS-bescherming. Caddy/VPS-
   netwerkbegrenzing blijft defense in depth.
 - Fysieke LG-validatie, firmwareverschillen en de 24-uurs soak blijven S30-gates.
@@ -81,5 +107,9 @@ Player blijft een revocable device en is geen Supabase Auth-user.
 `supabase/tests/rls_screen_fleet_onboarding.sql` bewijst limietafdwinging,
 wrong-tenant denial, expiry/replaybasis, creation- en claimrate limiting,
 maintenance, retry, eerste heartbeat, veilige foutcode, revoke, re-pair en
-disable. De live browserjourney bewijst create → pair → heartbeat → detail →
-sync/events boven echte Supabase-data.
+disable. `supabase/tests/rls_player_installations_commands.sql` bewijst
+gehashte installatiecredentials, atomaire/idempotente pairing, command-TTL,
+eenmalige uitvoering, tenantisolatie en behoud van scherm/playlist bij recover
+en unpair. De volledige database-run bevat na S48 724 geslaagde assertions. De
+live browserjourney bewijst create → pair → heartbeat → detail → sync/events
+boven echte Supabase-data.

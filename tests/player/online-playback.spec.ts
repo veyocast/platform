@@ -109,7 +109,9 @@ test("shows a recoverable state for an unknown device token", async ({
 }) => {
   await page.goto(`${playerURL}/?deviceToken=unknown-device`);
 
-  await expect(page.getByRole("heading", { name: "Playback wacht" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Player opnieuw koppelen" })
+  ).toBeVisible();
   await expect(page.getByRole("status")).toContainText(
     "De device token hoort niet bij een actief scherm."
   );

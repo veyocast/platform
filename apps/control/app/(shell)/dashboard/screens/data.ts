@@ -92,6 +92,18 @@ export type ScreenAuditEvent = {
   targetType: string;
 };
 
+export type ScreenPlayerCommand = {
+  acknowledgedAt: string | null;
+  commandType: string;
+  completedAt: string | null;
+  createdAt: string;
+  deliveredAt: string | null;
+  expiresAt: string;
+  failedAt: string | null;
+  failureCode: string | null;
+  id: string;
+};
+
 export type ScreenFleetData = {
   automation: Record<string, ScreenAutomationSummary>;
   devices: FleetDevice[];
@@ -119,6 +131,7 @@ export type ScreenDetailData = {
   devices: FleetDevice[];
   error: string | null;
   heartbeats: ScreenHeartbeat[];
+  playerCommands: ScreenPlayerCommand[];
   releases: FleetRelease[];
   schedules: ScreenSchedule[];
   screen: FleetScreen | null;
@@ -226,6 +239,7 @@ export async function loadScreenDetail(
     devices: [],
     error: fleet.error,
     heartbeats: [],
+    playerCommands: [],
     releases: fleet.releases,
     schedules: [],
     screen,
@@ -237,15 +251,32 @@ export async function loadScreenDetail(
 
   const screenDevices = fleet.devices.filter((device) => device.screenId === screenId);
   const deviceIds = new Set(screenDevices.map((device) => device.id));
-  const [heartbeats, syncEvents, auditEvents, memberships, schedules, groups] = await Promise.all([
+  const [
+    heartbeats,
+    syncEvents,
+    auditEvents,
+    memberships,
+    schedules,
+    groups,
+    playerCommands
+  ] = await Promise.all([
     supabase.from("player_heartbeats").select("id, device_id, active_release_id, runtime_state, storage_used_bytes, storage_quota_bytes, app_version, created_at").eq("tenant_id", tenantId).eq("screen_id", screenId).order("created_at", { ascending: false }).limit(100),
     supabase.from("player_sync_events").select("id, device_id, release_id, phase, detail, created_at").eq("tenant_id", tenantId).eq("screen_id", screenId).order("created_at", { ascending: false }).limit(100),
     supabase.from("audit_events").select("id, action, target_type, target_id, result, metadata, created_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(250),
     supabase.from("screen_group_memberships").select("screen_group_id").eq("tenant_id", tenantId).eq("screen_id", screenId),
     supabase.from("content_schedules").select("id, name, target_kind, target_screen_id, target_screen_group_id, release_id, timezone_name, starts_at, ends_at, priority, source, enabled").eq("tenant_id", tenantId).order("starts_at"),
-    supabase.from("screen_groups").select("id, name").eq("tenant_id", tenantId)
+    supabase.from("screen_groups").select("id, name").eq("tenant_id", tenantId),
+    supabase.from("player_commands").select("id, command_type, created_at, expires_at, delivered_at, acknowledged_at, completed_at, failed_at, failure_code").eq("tenant_id", tenantId).eq("screen_id", screenId).order("created_at", { ascending: false }).limit(25)
   ]);
-  const error = [heartbeats.error, syncEvents.error, auditEvents.error, memberships.error, schedules.error, groups.error].find(Boolean);
+  const error = [
+    heartbeats.error,
+    syncEvents.error,
+    auditEvents.error,
+    memberships.error,
+    schedules.error,
+    groups.error,
+    playerCommands.error
+  ].find(Boolean);
   if (error) {
     console.error("Schermdetail laden mislukt", error);
     return { ...empty, devices: screenDevices, error: "Playerstatus en gebeurtenissen konden niet volledig worden geladen." };
@@ -276,6 +307,17 @@ export async function loadScreenDetail(
       runtimeState: heartbeat.runtime_state,
       storageQuotaBytes: nullableNumber(heartbeat.storage_quota_bytes),
       storageUsedBytes: nullableNumber(heartbeat.storage_used_bytes)
+    })),
+    playerCommands: (playerCommands.data ?? []).map((command) => ({
+      acknowledgedAt: command.acknowledged_at,
+      commandType: command.command_type,
+      completedAt: command.completed_at,
+      createdAt: command.created_at,
+      deliveredAt: command.delivered_at,
+      expiresAt: command.expires_at,
+      failedAt: command.failed_at,
+      failureCode: command.failure_code,
+      id: command.id
     })),
     releases: fleet.releases,
     schedules: (schedules.data ?? [])

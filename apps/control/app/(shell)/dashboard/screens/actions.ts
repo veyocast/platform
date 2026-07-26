@@ -1,6 +1,6 @@
 "use server";
 
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -47,7 +47,7 @@ export async function claimScreenPairing(formData: FormData) {
     fail(returnPath, "De apparaatnaam mag maximaal 120 tekens bevatten.");
   }
 
-  const { data, error } = await supabase.rpc("claim_pairing_session_v3", {
+  const { data, error } = await supabase.rpc("claim_pairing_session_v4", {
     p_code_hash: createHash("sha256").update(pairingCode).digest("hex"),
     p_device_name: deviceName || "LG webOS Signage",
     p_screen_id: screenId,
@@ -195,6 +195,64 @@ export async function requestScreenSyncRetry(formData: FormData) {
     "Het retryverzoek is vastgelegd. De Player pakt dit op bij de eerstvolgende verbinding; de huidige release blijft spelen.",
     screenId
   );
+}
+
+export async function queuePlayerRecoveryCommand(formData: FormData) {
+  const { session, supabase } = await requireScreenManagement("mutate");
+  const screenId = requiredUuid(formData, "screenId");
+  const commandType = String(formData.get("commandType") ?? "").trim();
+  const allowedCommands = new Set([
+    "RELOAD_PLAYER",
+    "RECOVER_PAIRING",
+    "FORCE_UNPAIR",
+    "CLEAR_PLAYER_CACHE"
+  ]);
+  const returnPath = `/dashboard/screens/${screenId}?tab=health`;
+  if (!allowedCommands.has(commandType)) {
+    fail(returnPath, "Kies een geldige Playeractie.");
+  }
+  if (
+    commandType === "RECOVER_PAIRING" &&
+    formData.get("confirmPreserve") !== "yes"
+  ) {
+    fail(
+      returnPath,
+      "Bevestig dat scherm, tenant, planning en playlist behouden moeten blijven."
+    );
+  }
+  if (
+    commandType === "FORCE_UNPAIR" &&
+    formData.get("confirmUnpair") !== "yes"
+  ) {
+    fail(
+      returnPath,
+      "Bevestig wat wordt losgekoppeld voordat je een nieuwe code aanvraagt."
+    );
+  }
+
+  const { data, error } = await supabase.rpc("queue_player_command_v1", {
+    p_command_type: commandType,
+    p_nonce: optionalUuid(formData, "nonce") ?? randomUUID(),
+    p_payload: {},
+    p_screen_id: screenId,
+    p_tenant_id: session.tenantId,
+    p_ttl_seconds: commandType === "RELOAD_PLAYER" ? 300 : 900
+  });
+  if (error) fail(returnPath, deviceMutationFailure(error.code));
+  const result = commandResult(data);
+  if (!result.ok) {
+    fail(returnPath, playerCommandFailure(result.code));
+  }
+
+  const message =
+    commandType === "RECOVER_PAIRING"
+      ? "Herstelopdracht staat klaar. Scherm, tenant, playlist en planning blijven behouden; de Player haalt een nieuwe schermcredential op."
+      : commandType === "FORCE_UNPAIR"
+        ? "Ontkoppelopdracht staat klaar. Het schermobject, content en historie blijven behouden; de Player toont daarna een nieuwe code."
+        : commandType === "CLEAR_PLAYER_CACHE"
+          ? "Cacheherstel staat klaar. De koppeling en scherminstellingen blijven behouden."
+          : "Herlaadopdracht staat klaar. Koppeling en lokale opslag blijven ongewijzigd.";
+  complete(returnPath, message, screenId);
 }
 
 export async function requestBulkScreenSyncRetry(formData: FormData) {
@@ -440,6 +498,19 @@ function deviceMutationFailure(code: string | undefined) {
   if (code === "P0002") return "Er is geen actieve gekoppelde Player voor deze actie. Controleer de Playerstatus of koppel opnieuw.";
   if (code === "23514") return "De Playergegevens zijn niet geldig. Er is niets gewijzigd.";
   return "De deviceactie kon niet veilig worden uitgevoerd. Er is niets gewijzigd; probeer opnieuw.";
+}
+
+function playerCommandFailure(code: string | null) {
+  if (code === "SCREEN_UNAVAILABLE") {
+    return "Dit scherm is niet beschikbaar voor remote herstel. Activeer het scherm en probeer opnieuw.";
+  }
+  if (code === "PLAYER_UNPAIRED") {
+    return "Dit scherm heeft geen actieve Player. Gebruik onboarding om een nieuwe code te koppelen.";
+  }
+  if (code === "PLAYER_INSTALLATION_UNAVAILABLE") {
+    return "Deze oudere Player heeft nog geen afzonderlijke installatiecredential. Laat hem eenmaal de actuele Player laden en probeer daarna opnieuw.";
+  }
+  return "De Playeropdracht kon niet veilig worden klaargezet. De bestaande koppeling is ongewijzigd.";
 }
 
 function commandResult(value: unknown) {

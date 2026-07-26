@@ -8,7 +8,8 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
-  useState
+  useState,
+  type ReactNode
 } from "react";
 
 import {
@@ -48,13 +49,37 @@ import {
   type PlayerRecoveryAction
 } from "../_lib/player-recovery";
 import {
+  clearPlayerContentCaches,
+  parsePlayerCommands,
+  readExecutedPlayerCommandNonces,
+  rememberExecutedPlayerCommand,
+  shouldExecutePlayerCommand,
+  type PlayerCommand
+} from "../_lib/player-commands";
+import {
   fetchPlayerOrigin,
   playerConnectivityEventName,
   readPlayerConnectivity,
   reportPlayerConnectivity,
   type PlayerConnectivityEvent
 } from "../_lib/player-connectivity";
+import { resolveLgRemoteCommand } from "../_lib/lg-signage-bridge";
 import { resolvePersistedPairingDelay } from "../_lib/player-pairing-recovery";
+import {
+  createPairingMachineSnapshot,
+  isDefinitiveCredentialError,
+  pairingRequestWatchdog,
+  transitionPairingMachine,
+  withVisibleRecoveryHint,
+  writePairingMachineSnapshot,
+  type PairingMachineEvent,
+  type PairingMachineSnapshot
+} from "../_lib/player-pairing-machine";
+import {
+  advanceRecoveryInputSequence,
+  createRecoveryInputSequenceState,
+  playerRecoveryHoldDurationMs
+} from "../_lib/player-recovery-input";
 import {
   clearAutomationReport,
   queueAutomationHeartbeatConfirmation,
@@ -66,14 +91,21 @@ import {
   defaultWatchdogTimeoutMs,
   resolvePlayerRuntimeTiming
 } from "../_lib/player-runtime-config";
+import {
+  localStorageExecutedCommandsKey,
+  localStorageInstallationCredentialKey,
+  localStoragePairingCodeKey,
+  localStoragePairingExpiryKey,
+  localStoragePairingMachineKey,
+  localStoragePairingProvisionAfterKey,
+  localStoragePairingRequestNonceKey,
+  localStoragePlayerInstanceKey,
+  localStorageReloadTimestampsKey
+} from "../_lib/player-storage";
 import styles from "./player-playback.module.css";
+import { PlayerRecoveryMenu } from "./player-recovery-menu";
 
 const demoPairingCode = "VYO 482";
-const localStoragePairingCodeKey = "veyocast.player.pairingCode";
-const localStoragePairingExpiryKey = "veyocast.player.pairingExpiresAt";
-const localStoragePairingProvisionAfterKey = "veyocast.player.pairingProvisionAfter";
-const localStoragePlayerInstanceKey = "veyocast.player.instanceId";
-const localStorageReloadTimestampsKey = "veyocast.player.reloadTimestamps";
 const waitingContentSyncIntervalMs = 5_000;
 const maximumManifestSyncBackoffMs = 5 * 60_000;
 const pairingClaimPollIntervalMs = 2_000;
@@ -117,15 +149,35 @@ type WaitingContentRuntime = {
 
 type RuntimeView =
   | { state: "BOOTING" }
-  | { state: "PAIRING_RETRY"; reason: string; retryAt: string }
+  | {
+      state: "PAIRING_RETRY";
+      errorCode?: string;
+      reason: string;
+      retryAt: string;
+    }
   | { state: "UNPAIRED"; pairingCode?: string; expiresAt?: string }
   | { state: "SYNCING"; deviceToken: string }
   | WaitingContentRuntime
   | PlaybackRuntime
   | { state: "ERROR_RECOVERABLE" | "DISABLED"; error: PlayerManifestProblem["error"] };
 
+type InstallationRuntime =
+  | { status: "registering" }
+  | { credential: string; status: "ready" }
+  | { code: string; status: "unavailable" };
+
 export function PlayerRuntime() {
   const [runtime, setRuntime] = useState<RuntimeView>({ state: "BOOTING" });
+  const [installation, setInstallation] = useState<InstallationRuntime>({
+    status: "registering"
+  });
+  const [pairingRevision, setPairingRevision] = useState(0);
+  const [recoveryMenuOpen, setRecoveryMenuOpen] = useState(false);
+  const [installationDisplayId, setInstallationDisplayId] =
+    useState("Onbekend");
+  const [pairingMachine, setPairingMachine] = useState<PairingMachineSnapshot>(
+    () => createPairingMachineSnapshot()
+  );
   const [durationOverrideMs, setDurationOverrideMs] = useState<number | null>(null);
   const [playbackAttempt, setPlaybackAttempt] = useState(0);
   const [visibilityRevision, setVisibilityRevision] = useState(0);
@@ -137,7 +189,105 @@ export function PlayerRuntime() {
   const hydratedReleasesRef = useRef<HydratedPlayerRelease[]>([]);
   const lastPlaybackErrorRef = useRef<PlaybackErrorReport | null>(null);
   const playbackReadyRef = useRef(false);
+  const pairingMachineRef = useRef<PairingMachineSnapshot>(pairingMachine);
   runtimeRef.current = runtime;
+  pairingMachineRef.current = pairingMachine;
+
+  const transitionPairing = useCallback((event: PairingMachineEvent) => {
+    const next = transitionPairingMachine(pairingMachineRef.current, event);
+    pairingMachineRef.current = next;
+    setPairingMachine(next);
+    writePairingMachineSnapshot(
+      window.localStorage,
+      localStoragePairingMachineKey,
+      next
+    );
+  }, []);
+
+  const handleLocalRetry = useCallback(() => {
+    setRecoveryMenuOpen(false);
+    setPairingRevision((revision) => revision + 1);
+  }, []);
+
+  const handleLocalNewPairing = useCallback(async () => {
+    setRecoveryMenuOpen(false);
+    transitionPairing({ type: "RECOVERY_STARTED" });
+    const deviceToken = readStoredDeviceToken();
+    if (
+      deviceToken &&
+      installation.status === "ready"
+    ) {
+      await fetchPlayerOriginWithTimeout(
+        "/api/player/pairing/unpair",
+        {
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${deviceToken}`,
+            "X-VeyoCast-Installation-Credential":
+              installation.credential
+          },
+          method: "POST"
+        },
+        8_000
+      ).catch(() => undefined);
+    }
+    clearStoredPlayerIdentity();
+    transitionPairing({ type: "RECOVERY_COMPLETED" });
+    setPairingRevision((revision) => revision + 1);
+  }, [installation, transitionPairing]);
+
+  useEffect(() => {
+    let holdTimer: number | undefined;
+    let sequence = createRecoveryInputSequenceState();
+
+    function clearHoldTimer() {
+      if (holdTimer) {
+        window.clearTimeout(holdTimer);
+        holdTimer = undefined;
+      }
+    }
+
+    function handleKeydown(event: KeyboardEvent) {
+      if (recoveryMenuOpen || event.repeat) return;
+      const command = resolveLgRemoteCommand(event);
+      if (!command) return;
+
+      const sequenceResult = advanceRecoveryInputSequence(
+        sequence,
+        command
+      );
+      sequence = sequenceResult.state;
+      if (sequenceResult.opened) {
+        clearHoldTimer();
+        event.preventDefault();
+        setRecoveryMenuOpen(true);
+        return;
+      }
+
+      if (command === "enter") {
+        clearHoldTimer();
+        holdTimer = window.setTimeout(() => {
+          setRecoveryMenuOpen(true);
+        }, playerRecoveryHoldDurationMs);
+      } else {
+        clearHoldTimer();
+      }
+    }
+
+    function handleKeyup(event: KeyboardEvent) {
+      if (resolveLgRemoteCommand(event) === "enter") clearHoldTimer();
+    }
+
+    window.addEventListener("keydown", handleKeydown, true);
+    window.addEventListener("keyup", handleKeyup, true);
+    window.addEventListener("blur", clearHoldTimer);
+    return () => {
+      clearHoldTimer();
+      window.removeEventListener("keydown", handleKeydown, true);
+      window.removeEventListener("keyup", handleKeyup, true);
+      window.removeEventListener("blur", clearHoldTimer);
+    };
+  }, [recoveryMenuOpen]);
 
   const advancePlayback = useCallback(async (itemId: string, recoveryMessage?: string) => {
     if (advancingRef.current) return;
@@ -400,6 +550,134 @@ export function PlayerRuntime() {
   }, [advancePlayback, enterReloadCooldown, performControlledReload, restorePersistedLastKnownGood]);
 
   useEffect(() => {
+    let cancelled = false;
+    let retryTimer: number | undefined;
+    let retryAttempt = 0;
+    let installationNotFoundRecoveries = 0;
+
+    transitionPairing({ type: "INSTALLATION_REGISTERING" });
+
+    async function registerInstallation() {
+      const deviceToken = readStoredDeviceToken();
+      const existingCredential = readStoredInstallationCredential();
+      const publicInstallationId = readOrCreatePlayerInstanceId();
+      setInstallationDisplayId(publicInstallationId);
+      try {
+        const response = await fetchPlayerOriginWithTimeout(
+          "/api/player/installation",
+          {
+            body: JSON.stringify({
+              installationId: publicInstallationId
+            }),
+            cache: "no-store",
+            headers: {
+              ...(deviceToken
+                ? { Authorization: `Bearer ${deviceToken}` }
+                : {}),
+              "Content-Type": "application/json",
+              ...(existingCredential
+                ? {
+                    "X-VeyoCast-Installation-Credential":
+                      existingCredential
+                  }
+                : {})
+            },
+            method: "POST"
+          },
+          15_000
+        );
+        const body = (await response.json().catch(() => null)) as
+          | {
+              error?: { code?: string };
+              installationCredential?: string;
+              ok?: boolean;
+            }
+          | null;
+        if (cancelled) return;
+
+        if (
+          response.ok &&
+          body?.ok === true &&
+          isOpaqueCredential(body.installationCredential)
+        ) {
+          writeStoredInstallationCredential(body.installationCredential);
+          setInstallation({
+            credential: body.installationCredential,
+            status: "ready"
+          });
+          transitionPairing({
+            hasDeviceCredential: Boolean(deviceToken),
+            type: "INSTALLATION_READY"
+          });
+          return;
+        }
+
+        const code =
+          body?.error?.code ??
+          (response.status >= 500
+            ? "INSTALLATION_API_UNAVAILABLE"
+            : "INVALID_INSTALLATION_CREDENTIAL");
+        if (
+          code === "INSTALLATION_NOT_FOUND" &&
+          installationNotFoundRecoveries < 1
+        ) {
+          installationNotFoundRecoveries += 1;
+          clearStoredInstallationCredential();
+          setInstallation({ status: "registering" });
+          scheduleRetry(0);
+          return;
+        }
+        const definitive = new Set([
+          "INSTALLATION_CREDENTIAL_REQUIRED",
+          "INSTALLATION_REVOKED",
+          "INVALID_INSTALLATION_CREDENTIAL"
+        ]).has(code);
+        setInstallation({ code, status: "unavailable" });
+        transitionPairing(
+          definitive
+            ? { code, type: "UNEXPECTED_ERROR" }
+            : {
+                code,
+                hasValidBinding: Boolean(deviceToken),
+                type: "TEMPORARY_FAILURE"
+              }
+        );
+        if (!definitive) scheduleRetry();
+      } catch {
+        if (cancelled) return;
+        const code = navigator.onLine
+          ? "INSTALLATION_API_UNAVAILABLE"
+          : "PLAYER_OFFLINE";
+        setInstallation({ code, status: "unavailable" });
+        transitionPairing({
+          code,
+          hasValidBinding: Boolean(deviceToken),
+          type: "TEMPORARY_FAILURE"
+        });
+        scheduleRetry();
+      }
+    }
+
+    function scheduleRetry(delayOverrideMs?: number) {
+      const delay =
+        delayOverrideMs ?? transientPairingRetryDelayMs(retryAttempt);
+      if (delayOverrideMs === undefined) retryAttempt += 1;
+      if (retryTimer) window.clearTimeout(retryTimer);
+      retryTimer = window.setTimeout(() => {
+        void registerInstallation();
+      }, delay);
+    }
+
+    void registerInstallation();
+    return () => {
+      cancelled = true;
+      if (retryTimer) window.clearTimeout(retryTimer);
+    };
+  }, [transitionPairing]);
+
+  useEffect(() => {
+    if (installation.status === "registering") return undefined;
+
     const searchParams = new URLSearchParams(window.location.search);
     const queryToken = searchParams.get("deviceToken");
     const timing = resolvePlayerRuntimeTiming(
@@ -412,6 +690,24 @@ export function PlayerRuntime() {
     setWatchdogTimeoutMs(timing.watchdogTimeoutMs);
 
     const deviceToken = queryToken ?? readStoredDeviceToken();
+    const installationCredential =
+      installation.status === "ready" ? installation.credential : null;
+
+    if (!deviceToken && !installationCredential) {
+      setRuntime({
+        error: {
+          cause: "De installatiecredential ontbreekt of is ongeldig.",
+          code:
+            installation.status === "unavailable"
+              ? installation.code
+              : "INVALID_INSTALLATION_CREDENTIAL",
+          effect: "Er kan nu geen veilige nieuwe koppelcode worden gemaakt.",
+          recovery: "Open /lg/recover en kies zo nodig Volledige playerreset."
+        },
+        state: "ERROR_RECOVERABLE"
+      });
+      return undefined;
+    }
 
     if (!deviceToken) {
       let cancelled = false;
@@ -420,7 +716,11 @@ export function PlayerRuntime() {
       let provisionTimer: number | undefined;
       let retryAttempts = 0;
 
-      function queuePairingProvision(delayMs: number, reason?: string) {
+      function queuePairingProvision(
+        delayMs: number,
+        reason?: string,
+        errorCode?: string
+      ) {
         if (cancelled) return;
         const boundedDelayMs = Math.max(0, delayMs);
         if (provisionTimer) window.clearTimeout(provisionTimer);
@@ -428,6 +728,7 @@ export function PlayerRuntime() {
           const retryAt = Date.now() + boundedDelayMs;
           writePairingProvisionAfter(retryAt);
           setRuntime({
+            ...(errorCode ? { errorCode } : {}),
             reason: reason ?? "Een eerdere aanvraag wordt nog veilig afgerond.",
             retryAt: new Date(retryAt).toISOString(),
             state: "PAIRING_RETRY"
@@ -439,16 +740,25 @@ export function PlayerRuntime() {
       }
 
       async function provisionPairing() {
+        transitionPairing({ type: "PAIRING_REQUESTED" });
         writePairingProvisionAfter(Date.now() + pairingProvisionCooldownMs);
         try {
-          const response = await fetchPlayerOrigin("/api/player/pairing", {
-            cache: "no-store",
-            headers: {
-              "X-VeyoCast-Player-Instance": readOrCreatePlayerInstanceId()
+          const response = await fetchPlayerOriginWithTimeout(
+            "/api/player/pairing",
+            {
+              cache: "no-store",
+              headers: {
+                "X-VeyoCast-Installation-Credential":
+                  installationCredential!,
+                "X-VeyoCast-Pairing-Request":
+                  readOrCreatePairingRequestNonce(),
+                "X-VeyoCast-Player-Instance": readOrCreatePlayerInstanceId()
+              },
+              keepalive: true,
+              method: "POST"
             },
-            keepalive: true,
-            method: "POST"
-          });
+            15_000
+          );
           const body = (await response.json()) as PairingResponse;
 
           if (cancelled) {
@@ -456,11 +766,21 @@ export function PlayerRuntime() {
           }
 
           if (!response.ok) {
+            transitionPairing({
+              code:
+                body.error?.code ??
+                (navigator.onLine
+                  ? "PAIRING_API_UNAVAILABLE"
+                  : "PLAYER_OFFLINE"),
+              hasValidBinding: false,
+              type: "TEMPORARY_FAILURE"
+            });
             const delayMs = pairingRetryDelayMs(response, body, retryAttempts);
             retryAttempts += 1;
             queuePairingProvision(
               delayMs,
-              body.error?.cause ?? "De koppelservice is tijdelijk niet beschikbaar."
+              body.error?.cause ?? "De koppelservice is tijdelijk niet beschikbaar.",
+              body.error?.code ?? "PAIRING_API_UNAVAILABLE"
             );
             return;
           }
@@ -476,7 +796,8 @@ export function PlayerRuntime() {
             retryAttempts += 1;
             queuePairingProvision(
               delayMs,
-              "De koppelservice gaf nog geen volledige veilige code terug."
+              "De koppelservice gaf nog geen volledige veilige code terug.",
+              "PAIRING_RESPONSE_INVALID"
             );
             return;
           }
@@ -485,6 +806,7 @@ export function PlayerRuntime() {
           clearPairingProvisionAfter();
           const pendingToken = body.deviceToken;
           writeStoredPairing(body);
+          transitionPairing({ type: "PAIRING_CODE_RECEIVED" });
           setRuntime({
             expiresAt: body.expiresAt,
             pairingCode: body.pairingCode,
@@ -497,19 +819,32 @@ export function PlayerRuntime() {
             void pollPairingClaim(pendingToken);
           }, pairingClaimPollIntervalMs);
         } catch {
+          transitionPairing({
+            code: navigator.onLine
+              ? "PAIRING_API_UNAVAILABLE"
+              : "PLAYER_OFFLINE",
+            hasValidBinding: false,
+            type: "TEMPORARY_FAILURE"
+          });
           const delayMs = transientPairingRetryDelayMs(retryAttempts);
           retryAttempts += 1;
           queuePairingProvision(
             delayMs,
-            "De koppelservice is tijdelijk niet bereikbaar."
+            "De koppelservice is tijdelijk niet bereikbaar.",
+            navigator.onLine
+              ? "PAIRING_API_UNAVAILABLE"
+              : "PLAYER_OFFLINE"
           );
         }
       }
 
       async function pollPairingClaim(pendingToken: string) {
+        transitionPairing({ type: "PAIRING_CLAIM_POLLING" });
         if (await confirmPairingClaim(pendingToken) && !cancelled) {
           clearStoredPairing();
-          window.location.reload();
+          clearPairingRequestNonce();
+          transitionPairing({ type: "PAIRING_CLAIMED" });
+          setPairingRevision((revision) => revision + 1);
         }
       }
 
@@ -520,7 +855,11 @@ export function PlayerRuntime() {
         expiryTimer = window.setTimeout(() => {
           if (cancelled) return;
           clearStoredPlayerIdentity();
-          window.location.reload();
+          transitionPairing({
+            code: "PAIRING_CODE_EXPIRED",
+            type: "DEFINITIVE_CREDENTIAL_ERROR"
+          });
+          setPairingRevision((revision) => revision + 1);
         }, Math.max(0, expiry - Date.now()));
       }
 
@@ -531,6 +870,29 @@ export function PlayerRuntime() {
           ? "Een eerdere aanvraag wordt nog veilig afgerond."
           : undefined
       );
+      const watchdogTimer = window.setInterval(() => {
+        const action = pairingRequestWatchdog(pairingMachineRef.current);
+        if (action === "RESTART_REQUEST") {
+          clearPairingRequestNonce();
+          queuePairingProvision(
+            0,
+            "De vorige aanvraag duurde te lang.",
+            "PAIRING_REQUEST_TIMEOUT"
+          );
+        } else if (
+          action === "SHOW_RECOVERY_HINT" &&
+          !pairingMachineRef.current.recoveryHintVisible
+        ) {
+          const next = withVisibleRecoveryHint(pairingMachineRef.current);
+          pairingMachineRef.current = next;
+          setPairingMachine(next);
+          writePairingMachineSnapshot(
+            window.localStorage,
+            localStoragePairingMachineKey,
+            next
+          );
+        }
+      }, 1_000);
 
       return () => {
         cancelled = true;
@@ -543,6 +905,7 @@ export function PlayerRuntime() {
         if (expiryTimer) {
           window.clearTimeout(expiryTimer);
         }
+        window.clearInterval(watchdogTimer);
       };
     }
 
@@ -554,10 +917,15 @@ export function PlayerRuntime() {
 
       if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
         clearStoredPlayerIdentity();
-        window.location.reload();
+        transitionPairing({
+          code: "PAIRING_CODE_EXPIRED",
+          type: "DEFINITIVE_CREDENTIAL_ERROR"
+        });
+        setPairingRevision((revision) => revision + 1);
         return undefined;
       }
 
+      transitionPairing({ type: "PAIRING_CODE_RECEIVED" });
       setRuntime({
         expiresAt: pendingPairing.expiresAt,
         pairingCode: pendingPairing.pairingCode,
@@ -565,9 +933,12 @@ export function PlayerRuntime() {
       });
 
       async function pollPairingClaim() {
+        transitionPairing({ type: "PAIRING_CLAIM_POLLING" });
         if (await confirmPairingClaim(pendingToken) && !cancelled) {
           clearStoredPairing();
-          window.location.reload();
+          clearPairingRequestNonce();
+          transitionPairing({ type: "PAIRING_CLAIMED" });
+          setPairingRevision((revision) => revision + 1);
         }
       }
 
@@ -578,7 +949,11 @@ export function PlayerRuntime() {
       const expiryTimer = window.setTimeout(() => {
         if (cancelled) return;
         clearStoredPlayerIdentity();
-        window.location.reload();
+        transitionPairing({
+          code: "PAIRING_CODE_EXPIRED",
+          type: "DEFINITIVE_CREDENTIAL_ERROR"
+        });
+        setPairingRevision((revision) => revision + 1);
       }, Math.max(0, expiresAt - Date.now()));
 
       return () => {
@@ -605,6 +980,7 @@ export function PlayerRuntime() {
       );
     }
 
+    transitionPairing({ type: "ACTIVATED" });
     setRuntime({ state: "SYNCING", deviceToken: activeDeviceToken });
 
     async function restoreLastKnownGood() {
@@ -896,12 +1272,24 @@ export function PlayerRuntime() {
     }
 
     function handleManifestProblem(problem: PlayerManifestProblem) {
-      if (problem.state === "UNPAIRED") {
+      if (
+        problem.state === "UNPAIRED" &&
+        isDefinitiveCredentialError(problem.error.code)
+      ) {
         clearStoredPlayerIdentity();
-        window.location.reload();
+        transitionPairing({
+          code: problem.error.code!,
+          type: "DEFINITIVE_CREDENTIAL_ERROR"
+        });
+        setPairingRevision((revision) => revision + 1);
         return;
       }
 
+      transitionPairing({
+        code: problem.error.code ?? "PLAYER_API_UNAVAILABLE",
+        hasValidBinding: true,
+        type: "TEMPORARY_FAILURE"
+      });
       keepCachedPlaybackOrShowProblem(
         "Online manifest gaf geen speelbare release terug.",
         problem.error.cause,
@@ -985,7 +1373,165 @@ export function PlayerRuntime() {
       window.removeEventListener("online", handleNetworkOnline);
       hydratedReleasesRef.current.splice(0).forEach(revokeHydratedRelease);
     };
-  }, []);
+  }, [installation, pairingRevision, transitionPairing]);
+
+  useEffect(() => {
+    if (installation.status !== "ready") return undefined;
+    const installationCredential = installation.credential;
+    let cancelled = false;
+    let pollInFlight = false;
+
+    async function completeCommand(
+      command: PlayerCommand,
+      failureCode?: string
+    ) {
+      const response = await fetchPlayerOriginWithTimeout(
+        "/api/player/commands",
+        {
+          body: JSON.stringify({
+            commandId: command.id,
+            commandType: command.commandType,
+            ...(failureCode ? { failureCode } : {}),
+            phase: "completed"
+          }),
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${installationCredential}`,
+            "Content-Type": "application/json"
+          },
+          method: "POST"
+        },
+        15_000
+      );
+      const body = (await response.json().catch(() => null)) as
+        | {
+            commandType?: string;
+            deviceToken?: string;
+            error?: { code?: string };
+            ok?: boolean;
+          }
+        | null;
+      if (!response.ok || body?.ok !== true) {
+        throw new Error(body?.error?.code ?? "COMMAND_EXECUTION_FAILED");
+      }
+      return body;
+    }
+
+    async function acknowledgeCommand(command: PlayerCommand) {
+      const response = await fetchPlayerOriginWithTimeout(
+        "/api/player/commands",
+        {
+          body: JSON.stringify({
+            commandId: command.id,
+            phase: "acknowledged"
+          }),
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${installationCredential}`,
+            "Content-Type": "application/json"
+          },
+          method: "POST"
+        },
+        15_000
+      );
+      if (!response.ok) throw new Error("COMMAND_ACKNOWLEDGE_FAILED");
+    }
+
+    async function executeCommand(command: PlayerCommand) {
+      const executed = readExecutedPlayerCommandNonces(
+        window.localStorage,
+        localStorageExecutedCommandsKey
+      );
+      const shouldExecute = shouldExecutePlayerCommand(command, executed);
+      if (!shouldExecute && !executed.has(command.nonce)) return;
+
+      await acknowledgeCommand(command);
+      if (cancelled) return;
+
+      if (shouldExecute) {
+        if (command.commandType === "CLEAR_PLAYER_CACHE") {
+          const cacheResult = await clearPlayerContentCaches();
+          if (!cacheResult.ok) {
+            const failureCode =
+              cacheResult.failures[0] ?? "PLAYER_CACHE_CLEAR_FAILED";
+            rememberExecutedPlayerCommand(
+              window.localStorage,
+              localStorageExecutedCommandsKey,
+              command.nonce
+            );
+            await completeCommand(command, failureCode);
+            return;
+          }
+        }
+        rememberExecutedPlayerCommand(
+          window.localStorage,
+          localStorageExecutedCommandsKey,
+          command.nonce
+        );
+      }
+
+      const completion = await completeCommand(command);
+      if (cancelled) return;
+
+      if (command.commandType === "RECOVER_PAIRING") {
+        if (!isOpaqueCredential(completion.deviceToken)) {
+          throw new Error("RECOVERY_CREDENTIAL_MISSING");
+        }
+        transitionPairing({ type: "RECOVERY_STARTED" });
+        writeStoredDeviceToken(completion.deviceToken);
+        clearStoredPairing();
+        clearPairingRequestNonce();
+        transitionPairing({ type: "ACTIVATED" });
+        setPairingRevision((revision) => revision + 1);
+      } else if (command.commandType === "FORCE_UNPAIR") {
+        transitionPairing({ type: "RECOVERY_STARTED" });
+        clearStoredPlayerIdentity();
+        transitionPairing({ type: "RECOVERY_COMPLETED" });
+        setPairingRevision((revision) => revision + 1);
+      } else if (command.commandType === "RELOAD_PLAYER") {
+        window.location.reload();
+      }
+    }
+
+    async function pollCommands() {
+      if (cancelled || pollInFlight) return;
+      pollInFlight = true;
+      try {
+        const response = await fetchPlayerOriginWithTimeout(
+          "/api/player/commands",
+          {
+            cache: "no-store",
+            headers: {
+              Authorization: `Bearer ${installationCredential}`
+            }
+          },
+          15_000
+        );
+        const body = (await response.json().catch(() => null)) as
+          | { commands?: unknown; ok?: boolean }
+          | null;
+        if (!response.ok || body?.ok !== true || cancelled) return;
+        const commands = parsePlayerCommands(body.commands);
+        for (const command of commands) {
+          if (cancelled) return;
+          await executeCommand(command);
+        }
+      } catch {
+        // The bounded polling loop retries without changing valid credentials.
+      } finally {
+        pollInFlight = false;
+      }
+    }
+
+    void pollCommands();
+    const pollTimer = window.setInterval(() => {
+      void pollCommands();
+    }, 10_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(pollTimer);
+    };
+  }, [installation, transitionPairing]);
 
   const playbackScheduleKey = isPlaybackRuntime(runtime)
     ? [
@@ -1187,8 +1733,33 @@ export function PlayerRuntime() {
     };
   }, []);
 
+  const recoveryMenu = recoveryMenuOpen ? (
+    <PlayerRecoveryMenu
+      installationId={installationDisplayId}
+      lastErrorCode={
+        pairingMachine.lastErrorCode ??
+        lastPlaybackErrorRef.current?.code ??
+        "Geen"
+      }
+      networkStatus={
+        readPlayerConnectivity()
+          ? "Browser en VeyoCast-origin bereikbaar"
+          : navigator.onLine
+            ? "Internet actief; VeyoCast API niet bereikbaar"
+            : "Televisie offline"
+      }
+      onClose={() => setRecoveryMenuOpen(false)}
+      onNewPairing={() => {
+        void handleLocalNewPairing();
+      }}
+      onRetry={handleLocalRetry}
+      playerVersion={process.env.NEXT_PUBLIC_APP_VERSION ?? "development"}
+    />
+  ) : null;
+
+  let playerView: ReactNode;
   if (isPlaybackRuntime(runtime)) {
-    return (
+    playerView = (
       <PlaybackView
         onFailure={handlePlaybackFailure}
         onEnded={handlePlaybackEnded}
@@ -1198,39 +1769,42 @@ export function PlayerRuntime() {
         watchdogTimeoutMs={watchdogTimeoutMs}
       />
     );
-  }
-
-  if (runtime.state === "SYNCING") {
-    return <SetupPanel stateLabel="SYNCING" title="Release ophalen" />;
-  }
-
-  if (runtime.state === "BOOTING") {
-    return <SetupPanel stateLabel="BOOTING" title="Koppelcode maken" />;
-  }
-
-  if (runtime.state === "PAIRING_RETRY") {
-    return (
+  } else if (runtime.state === "SYNCING") {
+    playerView = <SetupPanel stateLabel="SYNCING" title="Release ophalen" />;
+  } else if (runtime.state === "BOOTING") {
+    playerView = <SetupPanel stateLabel="BOOTING" title="Koppelcode maken" />;
+  } else if (runtime.state === "PAIRING_RETRY") {
+    playerView = (
       <SetupPanel
-        detail={`${runtime.reason} De Player probeert het automatisch opnieuw; vernieuwen is niet nodig.`}
+        detail={`${runtime.reason}${
+          runtime.errorCode ? ` Foutcode: ${runtime.errorCode}.` : ""
+        } De Player probeert het automatisch opnieuw; vernieuwen is niet nodig.${
+          pairingMachine.recoveryHintVisible
+            ? " Koppelen duurt langer dan verwacht. Houd OK acht seconden ingedrukt voor herstelopties."
+            : ""
+        }`}
         stateLabel="PAIRING_RETRY"
         title="Nieuwe koppelcode voorbereiden"
       />
     );
+  } else if (runtime.state === "READY") {
+    playerView = <WaitingContentPanel runtime={runtime} />;
+  } else if (
+    runtime.state === "ERROR_RECOVERABLE" ||
+    runtime.state === "DISABLED"
+  ) {
+    playerView = <ProblemPanel problem={runtime} />;
+  } else {
+    playerView = (
+      <PairingPanel
+        pairingCode={
+          runtime.state === "UNPAIRED" ? runtime.pairingCode : undefined
+        }
+      />
+    );
   }
 
-  if (runtime.state === "READY") {
-    return <WaitingContentPanel runtime={runtime} />;
-  }
-
-  if (runtime.state === "ERROR_RECOVERABLE" || runtime.state === "DISABLED") {
-    return <ProblemPanel problem={runtime} />;
-  }
-
-  return (
-    <PairingPanel
-      pairingCode={runtime.state === "UNPAIRED" ? runtime.pairingCode : undefined}
-    />
-  );
+  return <>{playerView}{recoveryMenu}</>;
 }
 
 function PlaybackView({
@@ -1711,6 +2285,8 @@ function ProblemPanel({
 }: {
   problem: Extract<RuntimeView, { state: "ERROR_RECOVERABLE" | "DISABLED" }>;
 }) {
+  const title = problemTitle(problem.error.code);
+
   return (
     <main className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player status">
       <SetupBackdrop />
@@ -1718,9 +2294,14 @@ function ProblemPanel({
         <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
         <p className="runtime-kicker">{problem.state}</p>
         <h1 className="runtime-title" id="player-title">
-          Playback wacht
+          {title}
         </h1>
         <div className="runtime-problem" role="status">
+          {problem.error.code ? (
+            <p>
+              <strong>Foutcode:</strong> {problem.error.code}
+            </p>
+          ) : null}
           <p>
             <strong>Oorzaak:</strong> {problem.error.cause}
           </p>
@@ -1734,6 +2315,35 @@ function ProblemPanel({
       </section>
     </main>
   );
+}
+
+function problemTitle(code?: string) {
+  if (
+    code === "PAIRING_API_UNAVAILABLE" ||
+    code === "PAIRING_SERVICE_UNAVAILABLE"
+  ) {
+    return "Koppelservice tijdelijk niet beschikbaar";
+  }
+  if (code === "PLAYER_OFFLINE") {
+    return "Televisie is offline";
+  }
+  if (
+    code === "PLAYER_API_UNAVAILABLE" ||
+    code === "INSTALLATION_API_UNAVAILABLE"
+  ) {
+    return "VeyoCast API tijdelijk niet bereikbaar";
+  }
+  if (code === "PAIRING_CODE_EXPIRED") {
+    return "Koppelcode wordt vernieuwd";
+  }
+  if (
+    code === "INVALID_DEVICE_TOKEN" ||
+    code === "DEVICE_REVOKED" ||
+    code === "BINDING_EXPIRED"
+  ) {
+    return "Player opnieuw koppelen";
+  }
+  return "Playback wacht";
 }
 
 function WaitingContentPanel({ runtime }: { runtime: WaitingContentRuntime }) {
@@ -1850,6 +2460,43 @@ function writeStoredDeviceToken(deviceToken: string) {
   }
 }
 
+function readStoredInstallationCredential() {
+  try {
+    const value = window.localStorage.getItem(
+      localStorageInstallationCredentialKey
+    );
+    return isOpaqueCredential(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredInstallationCredential(credential: string) {
+  try {
+    window.localStorage.setItem(
+      localStorageInstallationCredentialKey,
+      credential
+    );
+  } catch {
+    // A volatile credential still supports this page lifecycle.
+  }
+}
+
+function clearStoredInstallationCredential() {
+  try {
+    window.localStorage.removeItem(localStorageInstallationCredentialKey);
+  } catch {
+    // The next registration can still rotate a volatile credential.
+  }
+}
+
+function isOpaqueCredential(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    /^[A-Za-z0-9_-]{20,200}$/.test(value)
+  );
+}
+
 type PairingResponse = {
   deviceToken?: string;
   expiresAt?: string;
@@ -1908,6 +2555,37 @@ function createAutomationEventId() {
     hex.slice(16, 20),
     hex.slice(20)
   ].join("-");
+}
+
+function readOrCreatePairingRequestNonce() {
+  try {
+    const stored = window.localStorage.getItem(
+      localStoragePairingRequestNonceKey
+    );
+    if (stored && /^[a-f0-9-]{20,80}$/i.test(stored)) {
+      return stored.toLowerCase();
+    }
+  } catch {
+    // Continue with a volatile nonce for this request.
+  }
+  const requestNonce = createPlayerInstanceId();
+  try {
+    window.localStorage.setItem(
+      localStoragePairingRequestNonceKey,
+      requestNonce
+    );
+  } catch {
+    // The request remains safe but cannot be coalesced across a reload.
+  }
+  return requestNonce;
+}
+
+function clearPairingRequestNonce() {
+  try {
+    window.localStorage.removeItem(localStoragePairingRequestNonceKey);
+  } catch {
+    // Storage can be unavailable in locked-down kiosk contexts.
+  }
 }
 
 function readPairingProvisionDelay() {
@@ -2020,9 +2698,39 @@ function clearStoredPlayerIdentity() {
       previousPlayerStorageKey("deviceToken")
     );
     clearStoredPairing();
+    clearPairingRequestNonce();
   } catch {
     // Storage can be unavailable in locked-down kiosk contexts.
   }
+}
+
+async function fetchPlayerOriginWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs: number
+) {
+  if (typeof AbortController === "function") {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetchPlayerOrigin(input, {
+        ...init,
+        signal: controller.signal
+      });
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
+  return await Promise.race([
+    fetchPlayerOrigin(input, init),
+    new Promise<Response>((_, reject) => {
+      window.setTimeout(
+        () => reject(new Error("PLAYER_REQUEST_TIMEOUT")),
+        timeoutMs
+      );
+    })
+  ]);
 }
 
 async function confirmPairingClaim(deviceToken: string) {

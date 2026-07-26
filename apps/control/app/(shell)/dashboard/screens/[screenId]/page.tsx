@@ -16,6 +16,7 @@ import {
   loadScreenDetail,
   type FleetDevice,
   type FleetRelease,
+  type ScreenPlayerCommand,
   type ScreenSchedule
 } from "../data";
 import {
@@ -23,6 +24,7 @@ import {
   loadScreenAutomation
 } from "./automation-data";
 import { ScreenLifecycleActions } from "./screen-lifecycle-actions";
+import { ScreenPlayerRecoveryActions } from "./screen-player-recovery-actions";
 import { ScreenAutomation } from "./screen-automation";
 
 type ScreenDetailPageProps = {
@@ -112,7 +114,13 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
         />
       ) : null}
       {activeTab === "health" ? <>
-        <PlayerTab canManage={canManage} devices={data.devices} screenId={screen.id} />
+        <PlayerTab
+          canManage={canManage}
+          commands={data.playerCommands}
+          devices={data.devices}
+          screenId={screen.id}
+          screenName={screen.name}
+        />
         <SyncTab
         canManage={canManage}
         device={pairedDevice}
@@ -287,7 +295,19 @@ function PlanningTab({
   </>;
 }
 
-function PlayerTab({ canManage, devices, screenId }: { canManage: boolean; devices: FleetDevice[]; screenId: string }) {
+function PlayerTab({
+  canManage,
+  commands,
+  devices,
+  screenId,
+  screenName
+}: {
+  canManage: boolean;
+  commands: ScreenPlayerCommand[];
+  devices: FleetDevice[];
+  screenId: string;
+  screenName: string;
+}) {
   const pairedDevice = devices.find((device) => device.status === "paired") ?? null;
   return <>
     {!pairedDevice ? <section className="data-surface" aria-labelledby="pair-player-title"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="pair-player-title">Nog geen actieve Player</h2><p className="work-panel__meta">Start of hervat onboarding met een nieuwe tijdelijke code.</p></div><StatusPill label="Niet gekoppeld" tone="warning" /></div><Link className="button-link button-link--primary" href={`/dashboard/screens/new?screen=${screenId}`}>Player koppelen</Link></section> : <section className="data-surface" aria-labelledby="player-device-title">
@@ -301,10 +321,76 @@ function PlayerTab({ canManage, devices, screenId }: { canManage: boolean; devic
         <SummaryItem label="Status" value={pairedDevice.status === "paired" ? "Gekoppeld" : pairedDevice.status} />
       </dl>
       <form action={renamePlayerDevice} className="inline-form"><input name="deviceId" type="hidden" value={pairedDevice.id} /><input name="screenId" type="hidden" value={screenId} /><div className="field"><label htmlFor="device-rename">Playernaam</label><input defaultValue={pairedDevice.deviceName || "VeyoCast Player"} disabled={!canManage} id="device-rename" maxLength={120} name="deviceName" required type="text" /></div><button className="button-link button-link--secondary" disabled={!canManage} type="submit">Player hernoemen</button></form>
-      <div className="danger-zone"><div><h3>Device intrekken of opnieuw koppelen</h3><p>Intrekking wordt bij de eerstvolgende verbinding afgedwongen. Zolang het apparaat offline is, kan de lokaal gevalideerde release zichtbaar blijven.</p></div><form action={revokePlayerDevice} className="playlist-form"><input name="deviceId" type="hidden" value={pairedDevice.id} /><input name="screenId" type="hidden" value={screenId} /><label className="check-row"><input disabled={!canManage} name="confirmOffline" required type="checkbox" value="yes" /><span><strong>Ik begrijp het offline gevolg</strong><span className="work-panel__meta">De server kan een volledig offline apparaat niet onmiddellijk bereiken.</span></span></label><div className="page-action-group"><button className="button-link button-link--destructive" disabled={!canManage} name="rePair" type="submit" value="false">Player intrekken</button><button className="button-link button-link--secondary" disabled={!canManage} name="rePair" type="submit" value="true">Intrekken en opnieuw koppelen</button></div></form></div>
+      <div className="danger-zone"><div><h3>Device permanent intrekken</h3><p>Gebruik deze beheeractie alleen wanneer de installatie niet meer gebruikt mag worden. Kies bij <strong>Meer acties</strong> voor <strong>Ontkoppelen en nieuwe code</strong> wanneer dezelfde fysieke Player opnieuw gekoppeld moet worden.</p></div><form action={revokePlayerDevice} className="playlist-form"><input name="deviceId" type="hidden" value={pairedDevice.id} /><input name="screenId" type="hidden" value={screenId} /><label className="check-row"><input disabled={!canManage} name="confirmOffline" required type="checkbox" value="yes" /><span><strong>Ik begrijp het offline gevolg</strong><span className="work-panel__meta">De server kan een volledig offline apparaat niet onmiddellijk bereiken.</span></span></label><div className="page-action-group"><button className="button-link button-link--destructive" disabled={!canManage} name="rePair" type="submit" value="false">Player intrekken</button></div></form></div>
     </section>}
+    {pairedDevice ? (
+      <>
+        <ScreenPlayerRecoveryActions
+          canManage={canManage}
+          screenId={screenId}
+          screenName={screenName}
+        />
+        <PlayerCommandStatus commands={commands} />
+      </>
+    ) : null}
     {devices.some((device) => device.status !== "paired") ? <section className="workspace-section" aria-labelledby="device-history-title"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="device-history-title">Devicehistorie</h2><p className="work-panel__meta">Ingetrokken identiteiten blijven traceerbaar en worden nooit opnieuw actief gemaakt.</p></div></div><div className="data-table-frame"><table className="data-table data-table--responsive"><caption>Historische Players voor dit scherm.</caption><thead><tr><th scope="col">Player</th><th scope="col">Status</th><th scope="col">Gekoppeld</th><th scope="col">Ingetrokken</th></tr></thead><tbody>{devices.filter((device) => device.status !== "paired").map((device) => <tr key={device.id}><td data-label="Player"><span className="table-primary">{device.deviceName || "VeyoCast Player"}</span><span className="table-secondary">{device.platform || "Platform onbekend"}</span></td><td data-label="Status"><StatusPill label="Ingetrokken" tone="critical" /></td><td data-label="Gekoppeld">{formatDate(device.pairedAt)}</td><td data-label="Ingetrokken">{device.revokedAt ? formatDate(device.revokedAt) : "Onbekend"}</td></tr>)}</tbody></table></div></section> : null}
   </>;
+}
+
+function PlayerCommandStatus({ commands }: { commands: ScreenPlayerCommand[] }) {
+  return (
+    <section className="workspace-section" aria-labelledby="player-command-status-title">
+      <div className="workspace-section__header">
+        <div>
+          <h2 className="workspace-section__title" id="player-command-status-title">
+            Opdrachtstatus
+          </h2>
+          <p className="work-panel__meta">
+            Aflevering en uitvoering worden rechtstreeks door de Player bevestigd.
+          </p>
+        </div>
+        <StatusPill label={`${commands.length} opdrachten`} tone="neutral" />
+      </div>
+      {commands.length ? (
+        <div className="data-table-frame">
+          <table className="data-table data-table--responsive">
+            <caption>Recente eenmalige Playeropdrachten.</caption>
+            <thead>
+              <tr>
+                <th scope="col">Opdracht</th>
+                <th scope="col">Status</th>
+                <th scope="col">Aangemaakt</th>
+                <th scope="col">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {commands.map((command) => {
+                const status = playerCommandStatus(command);
+                return (
+                  <tr key={command.id}>
+                    <td data-label="Opdracht">
+                      <span className="table-primary">
+                        {playerCommandLabel(command.commandType)}
+                      </span>
+                    </td>
+                    <td data-label="Status">
+                      <StatusPill label={status.label} tone={status.tone} />
+                    </td>
+                    <td data-label="Aangemaakt">{formatDate(command.createdAt)}</td>
+                    <td data-label="Details">
+                      {command.failureCode ?? `Verloopt ${formatDate(command.expiresAt)}`}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="notice" role="status">Nog geen remote Playeropdrachten.</p>
+      )}
+    </section>
+  );
 }
 
 function SyncTab({ canManage, device, heartbeats, releases, screenId, syncEvents }: { canManage: boolean; device: FleetDevice | null; heartbeats: Array<{ createdAt: string; runtimeState: string }>; releases: FleetRelease[]; screenId: string; syncEvents: Array<{ createdAt: string; id: string; phase: string; releaseId: string | null }> }) {
@@ -357,6 +443,18 @@ function relativeDate(value: string) { const elapsed = Math.max(0, Date.now() - 
 function releaseLabel(id: string | null, releases: FleetRelease[]) { if (!id) return "Geen"; return releases.find((release) => release.id === id)?.label ?? `Release ${id.slice(0, 8)}`; }
 function formatStorage(device: FleetDevice | null) { if (!device || device.storageUsedBytes === null || device.storageQuotaBytes === null) return "Onbekend"; return `${formatBytes(device.storageUsedBytes)} / ${formatBytes(device.storageQuotaBytes)}`; }
 function formatBytes(value: number) { if (value < 1024 ** 2) return `${Math.round(value / 1024)} kB`; if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(1)} MB`; return `${(value / 1024 ** 3).toFixed(1)} GB`; }
+function playerCommandLabel(value: string) { return ({ RELOAD_PLAYER: "Player opnieuw laden", RECOVER_PAIRING: "Koppeling herstellen", FORCE_UNPAIR: "Ontkoppelen en nieuwe code", CLEAR_PLAYER_CACHE: "Lokale cache herstellen" } as Record<string, string>)[value] ?? "Playeropdracht"; }
+function playerCommandStatus(command: ScreenPlayerCommand) {
+  if (command.completedAt) return { label: "Geslaagd", tone: "success" as const };
+  if (command.failedAt || Date.parse(command.expiresAt) <= Date.now()) {
+    return command.failureCode === "COMMAND_EXPIRED" || !command.failedAt
+      ? { label: "Verlopen", tone: "warning" as const }
+      : { label: "Mislukt", tone: "critical" as const };
+  }
+  if (command.acknowledgedAt) return { label: "Player herstelt", tone: "info" as const };
+  if (command.deliveredAt) return { label: "Afgeleverd", tone: "info" as const };
+  return { label: "Wacht op player", tone: "neutral" as const };
+}
 function syncPhaseLabel(value: string) { return ({ manifest_received: "Manifest ontvangen", downloading: "Downloaden", verifying: "Verifiëren", switch_pending: "Wissel gereed", active: "Actief", failed: "Mislukt" } as Record<string, string>)[value] ?? "Onbekende fase"; }
 function syncPhaseIcon(value: string) { return value === "active" ? "✓" : value === "failed" ? "!" : "→"; }
-function eventLabel(value: string) { return ({ "screen.created": "Scherm aangemaakt", "screen.updated": "Scherm bijgewerkt", "screen.deactivated": "Scherm gedeactiveerd", "screen.removed": "Scherm verwijderd", "player_device.paired": "Player gekoppeld", "player_device.renamed": "Player hernoemd", "player_device.revoked": "Player ingetrokken", "player_device.sync_retry_requested": "Synchronisatie opnieuw aangevraagd" } as Record<string, string>)[value] ?? "Beheeractie"; }
+function eventLabel(value: string) { return ({ "screen.created": "Scherm aangemaakt", "screen.updated": "Scherm bijgewerkt", "screen.deactivated": "Scherm gedeactiveerd", "screen.removed": "Scherm verwijderd", "player_device.paired": "Player gekoppeld", "player_device.renamed": "Player hernoemd", "player_device.revoked": "Player ingetrokken", "player_device.sync_retry_requested": "Synchronisatie opnieuw aangevraagd", "player_command.queued": "Playeropdracht klaargezet", "player_command.delivered": "Playeropdracht afgeleverd", "player_command.completed": "Playeropdracht geslaagd", "player_command.failed": "Playeropdracht mislukt", "player_command.expired": "Playeropdracht verlopen" } as Record<string, string>)[value] ?? "Beheeractie"; }

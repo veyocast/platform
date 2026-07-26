@@ -57,6 +57,7 @@ async function getLiveManifest(token: string | null) {
   if (!token?.trim()) {
     return manifestProblem(401, "UNPAIRED", {
       cause: "Er is nog geen device-token aanwezig.",
+      code: "INVALID_DEVICE_TOKEN",
       effect: "De Player kan geen toegewezen release ophalen.",
       recovery: "Maak een koppelcode en koppel de Player in VeyoCast Control."
     });
@@ -66,6 +67,7 @@ async function getLiveManifest(token: string | null) {
   if (!anon) {
     return manifestProblem(503, "ERROR_RECOVERABLE", {
       cause: "De publieke Supabase-configuratie is niet beschikbaar.",
+      code: "PLAYER_API_UNAVAILABLE",
       effect: "Online synchronisatie kan niet starten.",
       recovery: "Herstel de Player-configuratie; een lokale release blijft actief."
     });
@@ -79,17 +81,43 @@ async function getLiveManifest(token: string | null) {
   if (error) {
     return manifestProblem(503, "ERROR_RECOVERABLE", {
       cause: "Device-validatie bij Supabase is mislukt.",
+      code: "PLAYER_API_UNAVAILABLE",
       effect: "De Player kan de gewenste release niet bepalen.",
       recovery: "Controleer de verbinding; een lokale release blijft actief."
     });
   }
 
   if (!bootstrap) {
-    return manifestProblem(401, "UNPAIRED", {
-      cause: "De koppelcode is nog niet geclaimd of het device is ingetrokken.",
+    const tokenHash = createHash("sha256").update(token.trim()).digest("hex");
+    const { data: credentialState, error: credentialError } = await anon.rpc(
+      "inspect_player_device_credential_v1",
+      { p_token_hash: tokenHash }
+    );
+    if (credentialError) {
+      return manifestProblem(503, "ERROR_RECOVERABLE", {
+        cause: "Device-validatie bij Supabase is tijdelijk niet beschikbaar.",
+        code: "PLAYER_API_UNAVAILABLE",
+        effect: "De Player kan de gewenste release niet bepalen.",
+        recovery: "De Player probeert dit automatisch opnieuw; lokale content blijft actief."
+      });
+    }
+    const errorCode =
+      credentialState === "DEVICE_REVOKED"
+        ? "DEVICE_REVOKED"
+        : "INVALID_DEVICE_TOKEN";
+    return manifestProblem(
+      errorCode === "DEVICE_REVOKED" ? 403 : 401,
+      "UNPAIRED",
+      {
+      cause:
+        errorCode === "DEVICE_REVOKED"
+          ? "De schermcredential is ingetrokken."
+          : "De schermcredential is ongeldig of de koppeling is nog niet geclaimd.",
+      code: errorCode,
       effect: "Er is nog geen scherm- en releasecontext beschikbaar.",
       recovery: "Voer de zichtbare koppelcode in VeyoCast Control in."
-    });
+      }
+    );
   }
 
   if (!bootstrap.desired_release_id) {
@@ -140,6 +168,7 @@ async function getLiveManifest(token: string | null) {
   } catch {
     return manifestProblem(503, "ERROR_RECOVERABLE", {
       cause: "Niet alle release-assets konden veilig worden ontsloten.",
+      code: "RELEASE_ASSETS_UNAVAILABLE",
       effect: "De Player activeert deze release niet.",
       recovery: "Controleer storage en publiceer zo nodig een nieuwe release."
     });
