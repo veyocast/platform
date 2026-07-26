@@ -66,6 +66,7 @@ android {
         versionName = configuredVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["usesCleartextTraffic"] = "false"
+        buildConfigField("String", "PLAYER_FORM_FACTOR", "\"tv\"")
     }
 
     flavorDimensions += "environment"
