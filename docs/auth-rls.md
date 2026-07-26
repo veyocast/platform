@@ -71,6 +71,12 @@ naar de server-side `/auth/confirm`-route. Hosted staging en production moeten
 dezelfde template, Control-redirect en SMTP-config gebruiken; de standaard
 implicit-flow is niet geschikt voor deze SSR-acceptatie.
 
+Control bewaart geen ruwe SMTP-responses. Bekende Supabase Auth-fouten worden
+privacyveilig geclassificeerd als ontbrekende SMTP-configuratie, rate limit,
+bestaand account, uitgeschakelde provider of tijdelijke onbeschikbaarheid.
+De productionconfiguratie en hersteltest staan in
+`docs/deployment/supabase-auth-email.md`.
+
 ## Expliciete context en capabilities
 
 Control kiest nooit impliciet de eerste membership. De gekozen tenant-slug staat
@@ -93,6 +99,14 @@ ook in Supabase Auth ingeschakeld houden.
 Supabase levert geen recovery codes; daarom ondersteunt de UI meerdere
 geverifieerde authenticators en adviseert zij een tweede factor als herstelpad.
 Een factor verwijderen vereist een bestaande AAL2-sessie.
+
+Wachtwoordherstel gebruikt een eigen Control-journey. De hosted recoverytemplate
+stuurt een `TokenHash` naar de server-side `/auth/confirm`-route; oudere
+Supabase-links met tokens in het URL-fragment worden uitsluitend in de browser
+ingelezen, direct uit de adresbalk verwijderd en in HttpOnly sessiecookies
+omgezet. Recovery kent nooit rollen toe. De allereerste production-platformrol
+volgt de fail-closed procedure in
+`docs/deployment/production-control-bootstrap.md`.
 
 Tenantstatusbeleid:
 
