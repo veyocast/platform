@@ -4,6 +4,7 @@ import {
   clearAutomationReport,
   localStorageAutomationReportKey,
   localStorageAutomationSyncKey,
+  queueAutomationHeartbeatConfirmation,
   readAutomationCapabilities,
   readAutomationReport,
   storeAutomationSync
@@ -62,5 +63,21 @@ describe("player automation bridge storage", () => {
     expect(
       storeAutomationSync(storage, { command: { id: "unsafe" }, settings: null })
     ).toBe(false);
+  });
+
+  it("queues a command completion only after a visible Player heartbeat", () => {
+    const storage = memoryStorage();
+    expect(
+      queueAutomationHeartbeatConfirmation(
+        storage,
+        { ...report, commandId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", eventType: "player-visible" },
+        "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "2026-07-26T10:00:30.000Z"
+      )
+    ).toBe(true);
+    expect(readAutomationReport(storage)).toMatchObject({
+      diagnosticCode: "PLAYER_HEARTBEAT_CONFIRMED",
+      eventType: "heartbeat-sent"
+    });
   });
 });

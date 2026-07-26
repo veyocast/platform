@@ -160,10 +160,12 @@ export const screenAutomationSettingsSchema =
 
 export const screenAutomationCapabilityReportSchema = z.object({
   automationSchemaVersion: z.number().int().min(0),
+  formFactor: z.enum(["general", "tv"]).optional(),
   hdmiCecWakeCapability: hdmiCecWakeCapabilitySchema,
   lastAutomationExecutionAt: z.string().datetime({ offset: true }).nullable(),
   lastAutomationResult: z.string().max(100).nullable(),
   lastAutomationSyncAt: z.string().datetime({ offset: true }).nullable(),
+  operatingSystem: z.string().trim().min(1).max(100).optional(),
   supportsBootRestore: z.boolean(),
   supportsKeepAwake: z.boolean(),
   supportsLocalSchedule: z.boolean(),
@@ -281,7 +283,11 @@ function evaluateActiveState(
   if (openings.length) {
     return {
       active: openings.some((opening) =>
-        matchesLocalWindow(local.minute, opening.startLocalTime!, opening.endLocalTime!)
+        matchesAnchoredLocalWindow(
+          local.minute,
+          opening.startLocalTime!,
+          opening.endLocalTime!
+        )
       ),
       reason: "exception_open"
     };
@@ -318,7 +324,7 @@ function evaluateActiveState(
     .filter((period) => period.enabled)
     .some((period) => {
       if (period.weekday === local.weekday) {
-        return matchesLocalWindow(
+        return matchesAnchoredLocalWindow(
           local.minute,
           period.startLocalTime,
           period.endLocalTime
@@ -351,6 +357,18 @@ function findNextTransition(
   return null;
 }
 
+function matchesAnchoredLocalWindow(
+  minute: number,
+  start: string,
+  end: string
+) {
+  const startMinute = timeToMinute(start);
+  const endMinute = timeToMinute(end);
+  return startMinute < endMinute
+    ? minute >= startMinute && minute < endMinute
+    : minute >= startMinute;
+}
+
 function localParts(at: Date, timezone: string) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     day: "2-digit",
@@ -371,14 +389,6 @@ function localParts(at: Date, timezone: string) {
     minute: Number(value("hour")) * 60 + Number(value("minute")),
     weekday
   };
-}
-
-function matchesLocalWindow(minute: number, start: string, end: string) {
-  const startMinute = timeToMinute(start);
-  const endMinute = timeToMinute(end);
-  return startMinute < endMinute
-    ? minute >= startMinute && minute < endMinute
-    : minute >= startMinute || minute < endMinute;
 }
 
 function crossesMidnight(start: string, end: string) {

@@ -231,6 +231,7 @@ function commandStatus(status: string) {
     completed: "Playerstart gerapporteerd",
     expired: "Verlopen",
     failed: "Mislukt",
+    heartbeat_received: "Heartbeat bevestigd",
     player_started: "Player zichtbaar",
     received: "Ontvangen door Player",
     requested: "Wacht op Player",
@@ -240,14 +241,18 @@ function commandStatus(status: string) {
 
 function eventLabel(value: string) {
   return ({
+    "activity-start-requested": "Android-appstart aangevraagd",
+    "automation-config-received": "Configuratie ontvangen",
+    "automation-config-stored": "Configuratie lokaal opgeslagen",
     "command-received": "Testopdracht ontvangen",
-    "configuration-applied": "Configuratie lokaal toegepast",
-    "configuration-expired": "Offlineconfiguratie verlopen",
-    "hdmi-cec-unavailable": "HDMI-CEC niet beschikbaar",
+    "execution-failed": "Lokale uitvoering mislukt",
+    "heartbeat-sent": "Heartbeat na start bevestigd",
+    "keep-awake-disabled": "Keep-awake uitgeschakeld",
+    "keep-awake-enabled": "Keep-awake ingeschakeld",
     "player-visible": "Player zichtbaar geworden",
-    "schedule-restored": "Schema hersteld",
-    "wake-attempted": "Lokale startpoging uitgevoerd",
-    "wake-failed": "Lokale startpoging mislukt"
+    "schedule-evaluated": "Schema lokaal geëvalueerd",
+    "wake-scheduled": "Startpoging ingepland",
+    "wake-triggered": "Lokale startpoging geactiveerd"
   } as Record<string, string>)[value] ?? value;
 }
 

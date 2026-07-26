@@ -166,12 +166,15 @@ function inferredAutomationCapabilities(request: Request) {
   const userAgent = request.headers.get("user-agent") ?? "";
   const isAndroidShell = /VeyoCastAndroid\//i.test(userAgent);
   const isTv = /VeyoCastFormFactor\/tv/i.test(userAgent);
+  const androidVersion = userAgent.match(/Android\s+([0-9.]+)/i)?.[1];
   return {
     automationSchemaVersion: isAndroidShell ? 1 : 0,
+    ...(isAndroidShell ? { formFactor: isTv ? "tv" : "general" } : {}),
     hdmiCecWakeCapability: isTv ? "probably_supported" : "unknown",
     lastAutomationExecutionAt: null,
     lastAutomationResult: null,
     lastAutomationSyncAt: null,
+    ...(androidVersion ? { operatingSystem: `Android ${androidVersion}` } : {}),
     supportsBootRestore: isAndroidShell,
     supportsKeepAwake: isAndroidShell,
     supportsLocalSchedule: isAndroidShell,

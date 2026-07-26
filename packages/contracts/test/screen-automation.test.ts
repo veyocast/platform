@@ -114,6 +114,8 @@ describe("screen automation evaluator", () => {
     };
     expect(evaluateScreenAutomationAt(settings, new Date("2026-07-24T22:15:00Z")).active)
       .toBe(true);
+    expect(evaluateScreenAutomationAt(settings, new Date("2026-07-23T22:15:00Z")).active)
+      .toBe(false);
   });
 
   it("applies a date closure before a temporary override and weekly schedule", () => {
@@ -184,5 +186,7 @@ describe("screen automation evaluator", () => {
     };
     expect(evaluateScreenAutomationAt(settings, new Date("2026-07-26T22:30:00Z")))
       .toMatchObject({ active: true, reason: "exception_open" });
+    expect(evaluateScreenAutomationAt(settings, new Date("2026-07-25T22:30:00Z")))
+      .toMatchObject({ active: false });
   });
 });

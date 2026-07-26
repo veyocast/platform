@@ -48,6 +48,28 @@ export function storeAutomationSync(storage: StorageLike, input: unknown) {
   return true;
 }
 
+export function queueAutomationHeartbeatConfirmation(
+  storage: StorageLike,
+  previous: ScreenAutomationCommandReport,
+  eventId: string,
+  occurredAt: string
+) {
+  if (!previous.commandId || previous.eventType !== "player-visible") return false;
+  const next = screenAutomationCommandReportSchema.safeParse({
+    commandId: previous.commandId,
+    diagnosticCode: "PLAYER_HEARTBEAT_CONFIRMED",
+    eventId,
+    eventType: "heartbeat-sent",
+    metadata: {},
+    occurredAt,
+    scheduledFor: null,
+    status: "success"
+  });
+  if (!next.success) return false;
+  storage.setItem(localStorageAutomationReportKey, JSON.stringify(next.data));
+  return true;
+}
+
 function parseStoredValue<T>(
   value: string | null,
   schema: { safeParse: (input: unknown) => { success: true; data: T } | { success: false } }
