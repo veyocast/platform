@@ -9,8 +9,9 @@ export type ControlScope = "platform" | "tenant";
 
 export type ControlNavigationSection =
   | "overview"
-  | "publisher"
+  | "workspace"
   | "management"
+  | "support"
   | "organization";
 
 export type ControlNavigationItem = {
@@ -103,31 +104,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard",
     label: "Overzicht",
     requiredCapability: "tenant.overview.read",
-    section: "publisher",
-    scope: "tenant"
-  },
-  {
-    description: "Vloot, koppeling en diagnose",
-    href: "/dashboard/screens",
-    label: "Schermen",
-    requiredCapability: "tenant.screen.read",
-    section: "publisher",
-    scope: "tenant"
-  },
-  {
-    description: "Schermen logisch organiseren",
-    href: "/dashboard/screen-groups",
-    label: "Schermgroepen",
-    requiredCapability: "tenant.screen.read",
-    section: "publisher",
-    scope: "tenant"
-  },
-  {
-    description: "Concepten maken en publiceren",
-    href: "/dashboard/playlists",
-    label: "Playlists",
-    requiredCapability: "tenant.playlist.read",
-    section: "publisher",
+    section: "workspace",
     scope: "tenant"
   },
   {
@@ -135,7 +112,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/studio",
     label: "Studio",
     requiredCapability: "tenant.studio.read",
-    section: "publisher",
+    section: "workspace",
     scope: "tenant"
   },
   {
@@ -143,15 +120,23 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/media",
     label: "Media",
     requiredCapability: "tenant.media.read",
-    section: "publisher",
+    section: "workspace",
     scope: "tenant"
   },
   {
-    description: "Twelve-producten en toekomstige gegevensbronnen",
-    href: "/dashboard/integrations",
-    label: "Integraties",
-    requiredCapability: "tenant.product.read",
-    section: "publisher",
+    description: "Concepten maken en publiceren",
+    href: "/dashboard/playlists",
+    label: "Playlists",
+    requiredCapability: "tenant.playlist.read",
+    section: "workspace",
+    scope: "tenant"
+  },
+  {
+    description: "Vloot, koppeling en diagnose",
+    href: "/dashboard/screens",
+    label: "Schermen",
+    requiredCapability: "tenant.screen.read",
+    section: "workspace",
     scope: "tenant"
   },
   {
@@ -159,7 +144,15 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/planning",
     label: "Planning",
     requiredCapability: "tenant.playlist.read",
-    section: "publisher",
+    section: "workspace",
+    scope: "tenant"
+  },
+  {
+    description: "Schermen logisch organiseren",
+    href: "/dashboard/screen-groups",
+    label: "Schermgroepen",
+    requiredCapability: "tenant.screen.read",
+    section: "management",
     scope: "tenant"
   },
   {
@@ -167,15 +160,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/templates",
     label: "Templates",
     requiredCapability: "tenant.playlist.read",
-    section: "publisher",
-    scope: "tenant"
-  },
-  {
-    description: "Wijzigingen en publicaties volgen",
-    href: "/dashboard/auditlog",
-    label: "Activiteit",
-    requiredCapability: "tenant.audit.read",
-    section: "publisher",
+    section: "management",
     scope: "tenant"
   },
   {
@@ -187,10 +172,26 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "tenant"
   },
   {
+    description: "Twelve-producten en toekomstige gegevensbronnen",
+    href: "/dashboard/integrations",
+    label: "Integraties",
+    requiredCapability: "tenant.product.read",
+    section: "management",
+    scope: "tenant"
+  },
+  {
     description: "Mensen, rollen en uitnodigingen",
     href: "/dashboard/team",
     label: "Team",
     requiredCapability: "tenant.team.read",
+    section: "management",
+    scope: "tenant"
+  },
+  {
+    description: "Wijzigingen en publicaties volgen",
+    href: "/dashboard/auditlog",
+    label: "Activiteit",
+    requiredCapability: "tenant.audit.read",
     section: "management",
     scope: "tenant"
   },
@@ -207,7 +208,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/support",
     label: "Support",
     requiredCapability: "tenant.ticket.read",
-    section: "management",
+    section: "support",
     scope: "tenant"
   }
 ];
@@ -229,8 +230,9 @@ const navigationSectionMeta = {
     { section: "organization", title: "Organisatie" }
   ],
   tenant: [
-    { section: "publisher", title: "Publisher" },
-    { section: "management", title: "Beheer" }
+    { section: "workspace", title: "Werkplek" },
+    { section: "management", title: "Beheer" },
+    { section: "support", title: "Support" }
   ]
 } satisfies Record<
   ControlScope,

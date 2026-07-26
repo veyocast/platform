@@ -34,7 +34,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("link", { name: /Releases/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Schermen/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
-  await expect(nav.getByRole("heading", { name: "Publisher" })).toBeAttached();
+  await expect(nav.getByRole("heading", { name: "Werkplek" })).toBeAttached();
   await expect(nav.getByRole("heading", { name: "Beheer" })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
 

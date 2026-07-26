@@ -3528,18 +3528,6 @@ html[data-theme="dark"] .control-brand__logo--inverse {
   }
 }
 
-.control-theme-switcher {
-  position: relative;
-}
-
-.control-theme-switcher > summary {
-  list-style: none;
-}
-
-.control-theme-switcher > summary::-webkit-details-marker {
-  display: none;
-}
-
 .control-theme-switcher__trigger {
   gap: var(--vc-space-2);
 }
@@ -3555,24 +3543,8 @@ html[data-theme="dark"] .control-brand__logo--inverse {
   width: 12px;
 }
 
-.control-theme-switcher[open] .control-theme-switcher__chevron {
-  transform: rotate(180deg);
-}
-
 .control-theme-switcher__menu {
-  background: var(--vc-surface);
-  border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-lg);
-  box-shadow: 0 var(--vc-space-16) var(--vc-space-40)
-    color-mix(in srgb, var(--vc-text) 16%, transparent);
-  display: grid;
-  gap: var(--vc-space-12);
-  min-width: 196px;
-  padding: var(--vc-space-8);
-  position: absolute;
-  right: 0;
-  top: calc(100% + var(--vc-space-8));
-  z-index: var(--vc-z-dropdown);
+  width: min(calc(100vw - var(--vc-space-32)), 360px);
 }
 
 .control-theme-switcher__density {
@@ -4585,6 +4557,10 @@ body .vc-dialog__content {
   display: none;
 }
 
+.control-mobile-menu-title {
+  display: none;
+}
+
 .topbar-context__copy {
   display: grid;
   gap: var(--vc-space-2);
@@ -4724,22 +4700,53 @@ body .vc-dialog__content {
   display: none;
 }
 
-.control-shell[data-navigation-scope="tenant"] .control-nav__group:first-child .control-nav__heading {
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  height: 1px;
-  overflow: hidden;
-  position: absolute;
-  white-space: nowrap;
-  width: 1px;
-}
-
 .control-shell[data-navigation-scope="tenant"] .control-nav__heading {
   font-size: 11px;
   letter-spacing: .07em;
   line-height: 16px;
   padding-inline: var(--vc-space-12);
   text-transform: uppercase;
+}
+
+.control-nav__group-heading {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.control-nav__group-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--vc-radius-sm);
+  color: var(--publisher-sidebar-muted, var(--vc-text-muted));
+  cursor: pointer;
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  margin-right: var(--vc-space-4);
+  width: 32px;
+}
+
+.control-nav__group-toggle:hover {
+  background: var(--publisher-sidebar-surface-active, var(--vc-surface-muted));
+  color: inherit;
+}
+
+.control-nav__group-toggle svg {
+  height: 15px;
+  transition: transform var(--vc-motion-fast);
+  width: 15px;
+}
+
+.control-nav__group-toggle[aria-expanded="false"] svg {
+  transform: rotate(-90deg);
+}
+
+@media (min-width: 1024px) {
+  .control-nav__group[data-collapsed="true"] .control-nav__list {
+    display: none;
+  }
 }
 
 .control-shell[data-navigation-scope="tenant"] .control-nav__list {
@@ -4812,6 +4819,87 @@ body .vc-dialog__content {
   background: var(--publisher-sidebar-surface-active);
   border-color: var(--vc-neutral-700);
   color: var(--vc-brand-paper-white);
+}
+
+.control-account-menu {
+  width: min(calc(100vw - var(--vc-space-32)), 430px);
+}
+
+.control-account-menu__identity {
+  align-items: center;
+  display: grid;
+  gap: var(--vc-space-12);
+  grid-template-columns: 40px minmax(0, 1fr);
+}
+
+.control-account-menu__identity .control-user__avatar {
+  align-items: center;
+  border-radius: var(--vc-radius-full);
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.control-account-menu__links {
+  border-block: 1px solid var(--vc-border);
+  display: grid;
+}
+
+.control-account-menu__links a {
+  align-items: center;
+  color: var(--vc-text);
+  display: grid;
+  gap: var(--vc-space-10);
+  grid-template-columns: 20px minmax(0, 1fr);
+  min-height: 48px;
+  padding-inline: var(--vc-space-4);
+  text-decoration: none;
+}
+
+.control-account-menu__links a + a {
+  border-top: 1px solid var(--vc-border);
+}
+
+.control-account-menu__links a:hover {
+  color: var(--vc-link);
+}
+
+.control-account-menu__links svg,
+.control-account-menu__role svg,
+.control-account-menu__preferences svg {
+  height: 18px;
+  width: 18px;
+}
+
+.control-account-menu__preferences {
+  align-items: center;
+  display: flex;
+  gap: var(--vc-space-12);
+  justify-content: space-between;
+}
+
+.control-account-menu__preferences > div,
+.control-account-menu__role {
+  align-items: center;
+  display: flex;
+  gap: var(--vc-space-10);
+}
+
+.control-account-menu__preferences h3,
+.control-account-menu__preferences p,
+.control-account-menu__role {
+  margin: 0;
+}
+
+.control-account-menu__preferences h3 {
+  font-size: 14px;
+}
+
+.control-account-menu__preferences p,
+.control-account-menu__role {
+  color: var(--vc-text-muted);
+  font-size: 12px;
 }
 
 .control-shell[data-navigation-scope="tenant"] .control-topbar {
@@ -4891,6 +4979,44 @@ body .vc-dialog__content {
 
   .control-shell[data-navigation-scope="tenant"] .control-content--editor {
     padding-bottom: calc(136px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .control-mobile-menu-title {
+    color: var(--vc-brand-paper-white);
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    padding: var(--vc-space-8) var(--vc-space-10) var(--vc-space-4);
+  }
+
+  .control-shell[data-navigation-scope="tenant"] .control-sidebar__top {
+    gap: var(--vc-space-8);
+  }
+
+  .control-shell[data-navigation-scope="tenant"] .control-brand {
+    display: none;
+  }
+
+  .control-shell[data-navigation-scope="tenant"] .control-nav {
+    gap: var(--vc-space-16);
+    padding-top: var(--vc-space-12);
+  }
+
+  .control-shell[data-navigation-scope="tenant"] .control-nav__group {
+    gap: var(--vc-space-4);
+  }
+
+  .control-shell[data-navigation-scope="tenant"] .control-nav__group-toggle {
+    display: none;
+  }
+
+  .control-shell[data-navigation-scope="tenant"] .control-nav__group[data-collapsed="true"] .control-nav__list {
+    display: grid;
+  }
+
+  .control-shell[data-navigation-scope="tenant"] .control-nav__list li[data-mobile-primary="true"] {
+    display: none;
   }
 
   .control-mobile-nav {

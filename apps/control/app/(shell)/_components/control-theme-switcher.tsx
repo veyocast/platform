@@ -1,6 +1,14 @@
 "use client";
 
-import { IconButton } from "@veyocast/ui";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+  IconButton
+} from "@veyocast/ui";
 import {
   AlignJustify,
   ChevronDown,
@@ -10,7 +18,7 @@ import {
   Sun
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export type ControlThemePreference = "light" | "dark" | "system";
 export type ControlDensityPreference = "comfortable" | "compact";
@@ -63,7 +71,7 @@ export function ControlThemeBootstrap() {
 }
 
 export function ControlThemeSwitcher() {
-  const menuRef = useRef<HTMLDetailsElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [preference, setPreference] =
     useState<ControlThemePreference>("system");
   const [density, setDensity] =
@@ -102,28 +110,10 @@ export function ControlThemeSwitcher() {
         applyDensity(nextDensity);
       }
     };
-    const handlePointerDown = (event: PointerEvent) => {
-      if (
-        menuRef.current?.open &&
-        !menuRef.current.contains(event.target as Node)
-      ) {
-        menuRef.current.open = false;
-      }
-    };
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && menuRef.current?.open) {
-        menuRef.current.open = false;
-        menuRef.current.querySelector("summary")?.focus();
-      }
-    };
     media.addEventListener("change", handleSystemThemeChange);
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleEscape);
     window.addEventListener("storage", handleStorage);
     return () => {
       media.removeEventListener("change", handleSystemThemeChange);
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleEscape);
       window.removeEventListener("storage", handleStorage);
     };
   }, []);
@@ -132,14 +122,14 @@ export function ControlThemeSwitcher() {
     storePreference(themeStorageKey, nextPreference);
     setPreference(nextPreference);
     applyTheme(nextPreference);
-    if (menuRef.current) menuRef.current.open = false;
+    setMenuOpen(false);
   }
 
   function selectDensity(nextDensity: ControlDensityPreference) {
     storePreference(densityStorageKey, nextDensity);
     setDensity(nextDensity);
     applyDensity(nextDensity);
-    if (menuRef.current) menuRef.current.open = false;
+    setMenuOpen(false);
   }
 
   const activeOption =
@@ -148,15 +138,11 @@ export function ControlThemeSwitcher() {
   const ActiveIcon = activeOption.icon;
 
   return (
-    <details className="control-theme-switcher" ref={menuRef}>
-      <IconButton
-        asChild
-        aria-label={`Thema en dichtheid: ${activeOption.label}`}
-      >
-        <summary
-          aria-haspopup="menu"
+    <Dialog onOpenChange={setMenuOpen} open={menuOpen}>
+      <DialogTrigger asChild>
+        <IconButton
+          aria-label={`Thema en dichtheid: ${activeOption.label}`}
           className="control-theme-switcher__trigger"
-          role="button"
           title={`Thema en dichtheid: ${activeOption.label}`}
         >
           <ActiveIcon aria-hidden="true" />
@@ -164,55 +150,59 @@ export function ControlThemeSwitcher() {
             aria-hidden="true"
             className="control-theme-switcher__chevron"
           />
-        </summary>
-      </IconButton>
-      <div
-        className="control-theme-switcher__menu"
-      >
-        <div aria-label="Thema kiezen" role="radiogroup">
-          <p className="control-theme-switcher__label">Thema</p>
-          {themeOptions.map((option) => {
-            const Icon = option.icon;
-            return (
-              <button
-                aria-checked={preference === option.value}
-                className="control-theme-switcher__option"
-                key={option.value}
-                onClick={() => selectTheme(option.value)}
-                role="radio"
-                type="button"
-              >
-                <Icon aria-hidden="true" />
-                <span>{option.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <div
-          aria-label="Informatiedichtheid kiezen"
-          className="control-theme-switcher__density"
-          role="radiogroup"
-        >
-          <p className="control-theme-switcher__label">Dichtheid</p>
-          {densityOptions.map((option) => {
-            const Icon = option.icon;
-            return (
-              <button
-                aria-checked={density === option.value}
-                className="control-theme-switcher__option"
-                key={option.value}
-                onClick={() => selectDensity(option.value)}
-                role="radio"
-                type="button"
-              >
-                <Icon aria-hidden="true" />
-                <span>{option.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </details>
+        </IconButton>
+      </DialogTrigger>
+      <DialogContent className="control-theme-switcher__menu">
+        <DialogTitle>Weergave aanpassen</DialogTitle>
+        <DialogDescription>
+          Kies een thema en de informatiedichtheid van Control.
+        </DialogDescription>
+        <DialogBody>
+          <div aria-label="Thema kiezen" role="radiogroup">
+            <p className="control-theme-switcher__label">Thema</p>
+            {themeOptions.map((option) => {
+              const Icon = option.icon;
+              return (
+                <button
+                  aria-checked={preference === option.value}
+                  className="control-theme-switcher__option"
+                  key={option.value}
+                  onClick={() => selectTheme(option.value)}
+                  role="radio"
+                  type="button"
+                >
+                  <Icon aria-hidden="true" />
+                  <span>{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div
+            aria-label="Informatiedichtheid kiezen"
+            className="control-theme-switcher__density"
+            role="radiogroup"
+          >
+            <p className="control-theme-switcher__label">Dichtheid</p>
+            {densityOptions.map((option) => {
+              const Icon = option.icon;
+              return (
+                <button
+                  aria-checked={density === option.value}
+                  className="control-theme-switcher__option"
+                  key={option.value}
+                  onClick={() => selectDensity(option.value)}
+                  role="radio"
+                  type="button"
+                >
+                  <Icon aria-hidden="true" />
+                  <span>{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   );
 }
 

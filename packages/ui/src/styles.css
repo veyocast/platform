@@ -1479,6 +1479,14 @@
 }
 
 @media (max-width: 767px) {
+  .vc-page-header {
+    gap: var(--vc-space-6);
+  }
+
+  .vc-page-header .vc-breadcrumbs {
+    display: none;
+  }
+
   .vc-page-header__main,
   .vc-inspector__header {
     align-items: stretch;
@@ -1486,8 +1494,13 @@
   }
 
   .vc-page-header__title {
-    font-size: 1.625rem;
-    line-height: 2rem;
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+    line-height: 1.875rem;
+  }
+
+  .vc-page-header__copy {
+    gap: var(--vc-space-4);
   }
 
   .vc-page-header__actions,

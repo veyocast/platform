@@ -94,7 +94,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
 
       await menuButton.click();
       const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
-      await expect(navigation.getByRole("heading", { name: "Publisher" })).toBeAttached();
+      await expect(navigation.getByRole("heading", { name: "Werkplek" })).toBeAttached();
       await expect(navigation.getByRole("link", { name: /Instellingen/ })).toBeVisible();
       await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
     } else {
