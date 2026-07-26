@@ -152,15 +152,23 @@ test("dashboard forms and surfaces share canonical alignment", async ({ page }) 
       await expect(page.locator("#control-content")).toBeVisible();
       expectCanonicalGeometry(await readDashboardGeometry(page), viewport.padding);
       if (route === "/dashboard/settings") {
-        const [navigation, firstSection] = await Promise.all([
-          page.getByRole("navigation", { name: "Instellingencategorieën" }).boundingBox(),
-          page.locator(".settings-layout > .data-surface").first().boundingBox()
-        ]);
-        expect(navigation).not.toBeNull();
-        expect(firstSection).not.toBeNull();
-        expect(Math.abs((navigation?.x ?? 0) - (firstSection?.x ?? 0))).toBeLessThanOrEqual(1);
-        expect(Math.abs((navigation?.width ?? 0) - (firstSection?.width ?? 0))).toBeLessThanOrEqual(1);
-        expect(navigation?.height).toBe(50);
+        const navigationLocator = page.getByRole("navigation", {
+          name: "Instellingencategorieën"
+        });
+        const firstSectionLocator = page.locator(".settings-layout > .data-surface").first();
+        await expect(navigationLocator).toBeVisible();
+        await expect(firstSectionLocator).toBeVisible();
+        await expect(async () => {
+          const [navigation, firstSection] = await Promise.all([
+            navigationLocator.boundingBox(),
+            firstSectionLocator.boundingBox()
+          ]);
+          expect(navigation).not.toBeNull();
+          expect(firstSection).not.toBeNull();
+          expect(Math.abs((navigation?.x ?? 0) - (firstSection?.x ?? 0))).toBeLessThanOrEqual(1);
+          expect(Math.abs((navigation?.width ?? 0) - (firstSection?.width ?? 0))).toBeLessThanOrEqual(1);
+          expect(navigation?.height).toBe(50);
+        }).toPass({ timeout: 10_000 });
       }
     }
 
