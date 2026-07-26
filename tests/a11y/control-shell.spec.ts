@@ -32,10 +32,11 @@ test("fixed Publisher navigation remains keyboard reachable", async ({ page }) =
 });
 
 test("control shell reflows across canonical viewport widths", async ({ page }) => {
+  await page.goto("/dashboard");
+  await page.waitForLoadState("networkidle");
+
   for (const width of [320, 390, 768, 1024, 1100, 1280, 1920]) {
     await page.setViewportSize({ height: 900, width });
-    await page.goto("/dashboard");
-    await page.waitForLoadState("networkidle");
 
     expect(
       await page.evaluate(
@@ -72,6 +73,12 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
       });
       await expect(navigation.getByRole("link", { name: /Instellingen/ })).toBeVisible();
       await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
+      await page
+        .getByRole("button", { name: "Navigatie sluiten" })
+        .filter({ visible: true })
+        .last()
+        .click();
+      await expect(moreButton).toHaveAttribute("aria-expanded", "false");
     } else if (width < 1024) {
       const menuButton = page.getByRole("button", { name: "Navigatie openen" });
       const quickNavigation = page.getByRole("button", {
@@ -504,6 +511,19 @@ test("public auth routes have clear headings and forms", async ({ context, page 
   ).toBeVisible();
   await expect(page.getByLabel("E-mailadres")).toBeVisible();
   await expect(page.getByLabel("Tenant")).toBeVisible();
+
+  const forgotPasswordPage = await context.newPage();
+  await forgotPasswordPage.goto("/forgot-password");
+  await expect(
+    forgotPasswordPage.getByRole("heading", {
+      name: "Nieuw wachtwoord aanvragen"
+    })
+  ).toBeVisible();
+  await expect(forgotPasswordPage.getByLabel("E-mailadres")).toBeVisible();
+  await expect(
+    forgotPasswordPage.getByRole("button", { name: "Herstelmail aanvragen" })
+  ).toBeVisible();
+  await forgotPasswordPage.close();
 
   const invitePage = await context.newPage();
   await invitePage.goto("/accept-invite");

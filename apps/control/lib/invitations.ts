@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomBytes } from "node:crypto";
 
+import { classifyInvitationDeliveryError } from "./invitation-delivery";
 import { createControlAdminClient } from "./supabase/admin";
 
 export const invitationContextCookieName = "veyocast-invitation-context";
@@ -53,6 +54,15 @@ export function createAccountInvitationRedirectUrl() {
   return appUrl.toString();
 }
 
+export function createPasswordRecoveryRedirectUrl() {
+  const appUrl = publicControlUrl();
+
+  appUrl.pathname = "/auth/confirm";
+  appUrl.search = "";
+  appUrl.searchParams.set("recovery", "password");
+  return appUrl.toString();
+}
+
 function publicControlUrl() {
   const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() ?? "";
   const appUrl = new URL(configuredUrl || "http://127.0.0.1:3000");
@@ -96,10 +106,7 @@ async function sendInvitationEmail(
 
     return {
       delivered: false as const,
-      errorCode:
-        error.status === 429
-          ? "invite_rate_limited"
-          : "invite_delivery_failed"
+      errorCode: classifyInvitationDeliveryError(error)
     };
   } catch {
     return {

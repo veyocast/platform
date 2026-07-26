@@ -1,8 +1,12 @@
 import { VEYOCAST_APPS } from "@veyocast/config";
 import Link from "next/link";
 
-import { getControlRuntimeMode } from "../../lib/supabase/config";
+import {
+  getControlRuntimeMode,
+  getSupabasePublicConfig
+} from "../../lib/supabase/config";
 import { signIn } from "./actions";
+import { RecoveryFragmentBridge } from "./recovery-fragment-bridge";
 
 type LoginPageProps = {
   searchParams: Promise<{ fout?: string; reden?: string }>;
@@ -10,12 +14,19 @@ type LoginPageProps = {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const runtimeMode = getControlRuntimeMode();
+  const supabaseConfig = getSupabasePublicConfig();
   const live = runtimeMode === "live";
   const demo = runtimeMode === "demo";
   const { fout, reden } = await searchParams;
 
   return (
     <main className="auth-shell">
+      {live && supabaseConfig ? (
+        <RecoveryFragmentBridge
+          anonKey={supabaseConfig.anonKey}
+          supabaseUrl={supabaseConfig.url}
+        />
+      ) : null}
       <section className="auth-panel" aria-labelledby="login-title">
         <div>
           <p className="auth-kicker">
@@ -86,12 +97,19 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             De dienst weigert toegang totdat de serverconfiguratie is hersteld. Probeer later opnieuw.
           </div>
         )}
-        {live ? <p className="auth-footnote">
-          Uitgenodigd?{" "}
-          <Link className="button-link button-link--secondary" href="/accept-invite">
-            Invite accepteren
-          </Link>
-        </p> : null}
+        {live ? (
+          <div className="auth-footnote">
+            <p>
+              <Link href="/forgot-password">Wachtwoord vergeten?</Link>
+            </p>
+            <p>
+              Uitgenodigd?{" "}
+              <Link className="button-link button-link--secondary" href="/accept-invite">
+                Invite accepteren
+              </Link>
+            </p>
+          </div>
+        ) : null}
       </section>
     </main>
   );
@@ -99,11 +117,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
 const loginErrors: Record<string, string> = {
   gegevens: "Vul je e-mailadres en wachtwoord in.",
+  herstel: "De wachtwoordlink is ongeldig of verlopen. Vraag een nieuwe herstelmail aan.",
   inloggen: "Inloggen is mislukt. Controleer je gegevens en probeer opnieuw."
 };
 
 const loginReasons: Record<string, string> = {
   "geen-toegang": "Dit account heeft nog geen toegang tot VeyoCast Control. Vraag een beheerder om een rol toe te wijzen.",
+  "wachtwoord-gewijzigd": "Je wachtwoord is gewijzigd. Log opnieuw in met je nieuwe wachtwoord.",
   sessie: "Je sessie ontbreekt of is verlopen. Log opnieuw in.",
   uitgenodigd: "Je account is ingesteld. Log in met je nieuwe wachtwoord."
 };

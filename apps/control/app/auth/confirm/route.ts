@@ -22,9 +22,36 @@ export async function GET(request: NextRequest) {
   );
   const isPlatformAccountInvitation =
     request.nextUrl.searchParams.get("account") === "platform";
+  const isPasswordRecovery =
+    request.nextUrl.searchParams.get("recovery") === "password";
   const redirectTo = controlRedirectUrl(request);
 
   redirectTo.search = "";
+
+  if (tokenHash && type === "recovery" && isPasswordRecovery) {
+    const config = getSupabasePublicConfig();
+    redirectTo.pathname = "/auth/reset-password";
+    const response = NextResponse.redirect(redirectTo);
+    const supabase = config
+      ? createServerClient(config.url, config.anonKey, {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, options, value }) => {
+                response.cookies.set(name, value, options);
+              });
+            }
+          }
+        })
+      : null;
+    const { error } = supabase
+      ? await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
+      : { error: new Error("unavailable") };
+
+    if (!error) return response;
+  }
 
   if (
     tokenHash &&
