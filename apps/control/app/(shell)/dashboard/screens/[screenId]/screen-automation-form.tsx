@@ -29,6 +29,7 @@ import {
 import { CalendarPlus, Copy, Plus, Trash2 } from "lucide-react";
 
 import { saveScreenAutomation } from "./automation-actions";
+import { isoToZonedLocal, zonedLocalToIso } from "./automation-time";
 import styles from "./screen-automation.module.css";
 
 const weekdays = [
@@ -306,6 +307,69 @@ export function ScreenAutomationForm({
           ) : (
             <p className={styles.empty}>Geen datumuitzonderingen ingesteld.</p>
           )}
+        </section>
+
+        <section className={styles.section} aria-labelledby="temporary-override-title">
+          <div className={styles.sectionHeader}>
+            <div>
+              <h3 id="temporary-override-title">Tijdelijke override</h3>
+              <p>
+                Gaat na datumuitzonderingen vóór het weekschema en verloopt
+                automatisch. Tijdzone: <strong>{settings.timezone}</strong>.
+              </p>
+            </div>
+          </div>
+          <div className={styles.overrideFields}>
+            <label>
+              <span>Gedrag</span>
+              <Select
+                disabled={!canManage || !settings.enabled}
+                onChange={(event) => {
+                  const temporaryOverride =
+                    event.target.value === "active" ||
+                    event.target.value === "paused"
+                      ? event.target.value
+                      : "none";
+                  setSettings((current) => ({
+                    ...current,
+                    temporaryOverride,
+                    temporaryOverrideUntil: temporaryOverride === "none"
+                      ? null
+                      : current.temporaryOverrideUntil ??
+                        new Date(Date.now() + 86_400_000).toISOString()
+                  }));
+                }}
+                value={settings.temporaryOverride}
+              >
+                <option value="none">Geen override</option>
+                <option value="active">Tijdelijk actief</option>
+                <option value="paused">Tijdelijk gepauzeerd</option>
+              </Select>
+            </label>
+            <label>
+              <span>Geldig tot</span>
+              <TextInput
+                disabled={
+                  !canManage ||
+                  !settings.enabled ||
+                  settings.temporaryOverride === "none"
+                }
+                onChange={(event) => setSettings((current) => ({
+                  ...current,
+                  temporaryOverrideUntil: event.target.value
+                    ? zonedLocalToIso(event.target.value, current.timezone)
+                    : null
+                }))}
+                type="datetime-local"
+                value={settings.temporaryOverrideUntil
+                  ? isoToZonedLocal(
+                      settings.temporaryOverrideUntil,
+                      settings.timezone
+                    )
+                  : ""}
+              />
+            </label>
+          </div>
         </section>
 
         <div className={styles.saveBar}>

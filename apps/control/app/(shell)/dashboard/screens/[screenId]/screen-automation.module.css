@@ -273,6 +273,18 @@
   color: var(--vc-text-muted);
 }
 
+.overrideFields {
+  display: grid;
+  gap: var(--vc-space-12);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.overrideFields label {
+  display: grid;
+  font-weight: 650;
+  gap: var(--vc-space-6);
+}
+
 .exception {
   align-items: start;
   display: grid;
@@ -421,6 +433,7 @@
   .deviceSummary,
   .capabilityGrid,
   .latestResult,
+  .overrideFields,
   .compatibility {
     grid-template-columns: 1fr;
   }
