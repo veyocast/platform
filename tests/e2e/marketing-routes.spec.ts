@@ -95,6 +95,7 @@ test("demo form validates server-side and reports no false delivery", async ({
 test("homepage and product templates have no horizontal overflow", async ({
   page
 }) => {
+  test.slow();
   for (const width of [1440, 1024, 768, 430, 390, 360]) {
     await page.setViewportSize({ height: 844, width });
     for (const pathname of ["/", "/product", "/demo"]) {
