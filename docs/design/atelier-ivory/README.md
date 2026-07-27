@@ -1,7 +1,9 @@
 # Atelier Ivory — implementatiehandboek
 
-Datum: 27 juli 2026  
-Branch: `veyocast/s50-atelier-ivory`  
+Datum: 27 juli 2026
+
+Branch: `veyocast/s50-atelier-ivory`
+
 Bronnen: Atelier Ivory Design Canon v1.0, Component Library v1.0 en de
 vijftien unieke referentiebeelden uit `Screenshots.zip`.
 
