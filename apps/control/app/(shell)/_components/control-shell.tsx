@@ -102,6 +102,12 @@ const navigationIcons: Record<string, LucideIcon> = {
 const sidebarStorageKey = "veyocast-control-sidebar-collapsed";
 const managementStorageKey = "veyocast-control-management-open";
 const previousSidebarStorageKey = `${String.fromCharCode(99, 97, 115, 116, 105, 118, 111)}-control-sidebar-collapsed`;
+const mobilePrimaryLabels = [
+  "Overzicht",
+  "Schermen",
+  "Playlists",
+  "Studio"
+] as const;
 
 export function ControlShell({
   children,
@@ -325,7 +331,7 @@ export function ControlShell({
     <Dialog onOpenChange={handleSearchOpenChange} open={isSearchOpen}>
       <ControlThemeBootstrap />
       <div
-        className={`control-shell control-shell--motion${activeNavigationScope === "platform" && isSidebarCollapsed ? " control-shell--collapsed" : ""}`}
+        className={`control-shell control-shell--motion${isSidebarCollapsed ? " control-shell--collapsed" : ""}`}
         data-navigation-scope={activeNavigationScope}
       >
       <a className="skip-link" href="#control-content">
@@ -344,7 +350,18 @@ export function ControlShell({
         id="control-sidebar-navigation"
         ref={sidebarRef}
       >
-        <p className="control-mobile-menu-title">Menu</p>
+        <div className="control-mobile-menu-header">
+          <p className="control-mobile-menu-title">Meer</p>
+          <IconButton
+            aria-label="Meer-menu sluiten"
+            className="control-mobile-sheet-close"
+            disabled={!isInteractive}
+            onClick={() => closeMobileNavigation()}
+            title="Meer-menu sluiten"
+          >
+            <X aria-hidden="true" />
+          </IconButton>
+        </div>
         <div className="control-sidebar__top">
           <div className="control-brand">
             <Image
@@ -516,8 +533,8 @@ export function ControlShell({
                   return (
                     <li
                       data-mobile-primary={
-                        ["Overzicht", "Schermen", "Playlists", "Media"].includes(
-                          item.label
+                        mobilePrimaryLabels.includes(
+                          item.label as (typeof mobilePrimaryLabels)[number]
                         )
                           ? "true"
                           : undefined
@@ -843,13 +860,30 @@ function MobileBottomNav({
   const items = groups
     .flatMap((group) => group.items)
     .filter((item) =>
-      ["Overzicht", "Schermen", "Playlists", "Media"].includes(item.label)
+      mobilePrimaryLabels.includes(
+        item.label as (typeof mobilePrimaryLabels)[number]
+      )
     )
     .sort(
       (left, right) =>
-        ["Overzicht", "Schermen", "Playlists", "Media"].indexOf(left.label) -
-        ["Overzicht", "Schermen", "Playlists", "Media"].indexOf(right.label)
+        mobilePrimaryLabels.indexOf(
+          left.label as (typeof mobilePrimaryLabels)[number]
+        ) -
+        mobilePrimaryLabels.indexOf(
+          right.label as (typeof mobilePrimaryLabels)[number]
+        )
     );
+  const moreActive =
+    isMoreOpen ||
+    groups
+      .flatMap((group) => group.items)
+      .filter(
+        (item) =>
+          !mobilePrimaryLabels.includes(
+            item.label as (typeof mobilePrimaryLabels)[number]
+          )
+      )
+      .some((item) => isActive(pathname, item));
 
   return (
     <nav
@@ -871,7 +905,7 @@ function MobileBottomNav({
                 href={item.href}
               >
                 <Icon aria-hidden="true" />
-                <span>{item.label === "Overzicht" ? "Home" : item.label}</span>
+                <span>{item.label}</span>
               </Link>
             </li>
           );
@@ -881,7 +915,7 @@ function MobileBottomNav({
             aria-controls="control-sidebar-navigation"
             aria-expanded={isMoreOpen}
             className="control-mobile-nav__item"
-            data-active={isMoreOpen ? "true" : undefined}
+            data-active={moreActive ? "true" : undefined}
             disabled={!isInteractive}
             onClick={onMore}
             type="button"

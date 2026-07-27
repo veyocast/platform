@@ -22,11 +22,11 @@ test("fixed Publisher navigation remains keyboard reachable", async ({ page }) =
 
   const sidebar = page.getByLabel("Control navigatie");
   const overview = sidebar.getByRole("link", { name: /Overzicht/ });
-  await expect(sidebar).toHaveCSS("width", "224px");
+  await expect(sidebar).toHaveCSS("width", "232px");
   await expect(sidebar.locator(".control-brand__logo--inverse")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Navigatie (in|uit)klappen/ })
-  ).toHaveCount(0);
+  ).toBeVisible();
   await overview.focus();
   await expect(overview).toBeFocused();
 });
@@ -53,7 +53,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
       });
       await expect(mobileNavigation).toBeVisible();
       await expect(
-        mobileNavigation.getByRole("link", { name: "Home" })
+        mobileNavigation.getByRole("link", { name: "Overzicht" })
       ).toHaveAttribute("aria-current", "page");
 
       for (const control of await mobileNavigation
@@ -95,7 +95,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
       await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
     } else {
       const sidebar = page.getByLabel("Control navigatie");
-      await expect(sidebar).toHaveCSS("width", "224px");
+      await expect(sidebar).toHaveCSS("width", "232px");
       await expect(
         page.getByRole("navigation", { name: "Hoofdnavigatie" })
       ).toBeVisible();

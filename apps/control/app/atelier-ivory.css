@@ -459,3 +459,318 @@ html[data-design-system="atelier-ivory"] .vc-skeleton {
     transition-duration: 1ms !important;
   }
 }
+
+/* App shell */
+
+html[data-design-system="atelier-ivory"] .control-shell {
+  background: var(--ai-bg);
+  grid-template-columns: var(--ai-sidebar-expanded) minmax(0, 1fr);
+}
+
+html[data-design-system="atelier-ivory"] .control-shell--collapsed,
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"].control-shell--collapsed {
+  grid-template-columns: var(--ai-sidebar-compact) minmax(0, 1fr);
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] {
+  grid-template-columns: var(--ai-sidebar-expanded) minmax(0, 1fr);
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar,
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-sidebar {
+  --publisher-sidebar-border: var(--ai-sidebar-border);
+  --publisher-sidebar-muted: #aaa397;
+  --publisher-sidebar-surface: var(--ai-sidebar);
+  --publisher-sidebar-surface-active: var(--ai-sidebar-active);
+  background: var(--ai-sidebar);
+  border-right: 1px solid var(--ai-sidebar-border);
+  color: var(--ai-ink-inverse);
+  padding: 16px 12px 12px;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-brand {
+  min-height: 48px;
+  padding-inline: 8px;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-brand__logo {
+  max-width: 122px;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-sidebar__collapse {
+  background: transparent;
+  border-color: transparent;
+  color: #aaa397;
+  display: inline-flex;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-sidebar__collapse:hover {
+  background: var(--ai-sidebar-active);
+  border-color: var(--ai-sidebar-border);
+  color: #fffdfc;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .tenant-switcher {
+  background: var(--ai-sidebar-raised);
+  border-color: var(--ai-sidebar-border);
+  border-radius: 8px;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .tenant-switcher:hover {
+  border-color: #514a40;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-nav {
+  gap: 20px;
+  padding-top: 20px;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-nav__heading {
+  color: #8f897f;
+  font-size: 0.6875rem;
+  font-weight: 680;
+  letter-spacing: 0.08em;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-nav__link {
+  border-radius: 8px;
+  color: #c5beb1;
+  min-height: 42px;
+  padding: 9px 12px;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-nav__link:hover {
+  background: var(--ai-sidebar-raised);
+  color: #fffdfc;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-nav__link[aria-current="page"] {
+  background: var(--ai-sidebar-active);
+  box-shadow: inset 3px 0 var(--ai-brand);
+  color: #fffdfc;
+}
+
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-nav__label {
+  font-size: 0.875rem;
+  font-weight: 590;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar__footer {
+  border-color: var(--ai-sidebar-border);
+}
+
+html[data-design-system="atelier-ivory"] .control-main {
+  background: var(--ai-bg);
+}
+
+html[data-design-system="atelier-ivory"] .control-topbar,
+html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-topbar {
+  background: color-mix(in srgb, var(--ai-canvas) 92%, transparent);
+  border-bottom-color: var(--ai-border);
+  min-height: var(--ai-topbar-desktop);
+  padding: 12px clamp(24px, 2.5vw, 40px);
+  backdrop-filter: blur(12px);
+}
+
+html[data-design-system="atelier-ivory"] .topbar-context__breadcrumb {
+  color: var(--ai-ink-soft);
+  font-size: 0.8125rem;
+}
+
+html[data-design-system="atelier-ivory"] .command-search {
+  background: var(--ai-surface);
+  border-color: var(--ai-border);
+  color: var(--ai-ink-soft);
+  height: 40px;
+  min-width: 240px;
+}
+
+html[data-design-system="atelier-ivory"] .control-content {
+  gap: 24px;
+  grid-template-columns: minmax(0, var(--ai-content-max));
+  padding: 28px clamp(24px, 2.75vw, 48px) 48px;
+}
+
+html[data-design-system="atelier-ivory"] .control-content--editor {
+  padding: 16px;
+}
+
+html[data-design-system="atelier-ivory"] .page-stack {
+  gap: 24px;
+}
+
+html[data-design-system="atelier-ivory"] .control-mobile-menu-header,
+html[data-design-system="atelier-ivory"] .control-mobile-sheet-close {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  html[data-design-system="atelier-ivory"] .control-shell,
+  html[data-design-system="atelier-ivory"] .control-shell--collapsed,
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"],
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"].control-shell--collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-sidebar {
+    max-width: 304px;
+    width: min(304px, calc(100vw - 32px));
+  }
+
+  html[data-design-system="atelier-ivory"] .control-topbar,
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-topbar {
+    padding-inline: 24px;
+  }
+
+  html[data-design-system="atelier-ivory"] :where(
+    .control-menu-trigger,
+    .command-search
+  ) {
+    height: 44px;
+    min-height: 44px;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-content {
+    padding-inline: clamp(20px, 3vw, 32px);
+  }
+}
+
+@media (max-width: 767px) {
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-topbar {
+    background: var(--ai-sidebar);
+    border-bottom-color: var(--ai-sidebar-border);
+    color: #fffdfc;
+    min-height: calc(var(--ai-topbar-mobile) + env(safe-area-inset-top, 0px));
+    padding:
+      env(safe-area-inset-top, 0px)
+      12px
+      0;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .topbar-context__breadcrumb > strong {
+    color: #fffdfc;
+    font-family: var(--vc-font-display);
+    font-size: 0.9375rem;
+    font-weight: 680;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-topbar :where(
+    .command-search,
+    .control-theme-switcher__trigger,
+    .topbar-help
+  ) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-content,
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-content {
+    gap: 20px;
+    padding:
+      20px
+      16px
+      calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+
+  html[data-design-system="atelier-ivory"] .control-content--editor,
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-content--editor {
+    padding: 0 0 calc(92px + env(safe-area-inset-bottom, 0px));
+  }
+
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-sidebar {
+    border: 1px solid var(--ai-sidebar-border);
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    bottom: 0;
+    box-shadow: var(--ai-shadow-3);
+    height: min(82dvh, 720px);
+    inset-inline: 0;
+    max-width: none;
+    padding: 12px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    top: auto;
+    transform: translateY(105%);
+    width: 100%;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-sidebar--open {
+    transform: translateY(0);
+  }
+
+  html[data-design-system="atelier-ivory"] .control-mobile-menu-header {
+    align-items: center;
+    border-bottom: 1px solid var(--ai-sidebar-border);
+    display: flex;
+    justify-content: space-between;
+    min-height: 48px;
+    padding: 0 4px 8px;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-mobile-menu-title {
+    color: #fffdfc;
+    font-family: var(--vc-font-display);
+    font-size: 1.125rem;
+    font-weight: 700;
+    padding: 0;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-mobile-sheet-close {
+    background: var(--ai-sidebar-raised);
+    border-color: var(--ai-sidebar-border);
+    color: #fffdfc;
+    display: inline-flex;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-sidebar__top {
+    padding-top: 12px;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-mobile-nav {
+    background: var(--ai-sidebar-raised);
+    border: 1px solid var(--ai-sidebar-border);
+    border-radius: 16px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    box-shadow: var(--ai-shadow-2);
+    left: 16px;
+    margin-inline: auto;
+    max-width: 560px;
+    padding: 0;
+    right: 16px;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-mobile-nav__list {
+    min-height: var(--ai-mobile-nav-height);
+    padding-inline: 4px;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-mobile-nav__item {
+    border-radius: 10px;
+    color: #9b9387;
+    font-size: 0.625rem;
+    font-weight: 620;
+    gap: 3px;
+    line-height: 1.1;
+    min-height: var(--ai-mobile-nav-height);
+  }
+
+  html[data-design-system="atelier-ivory"] .control-mobile-nav__item:hover,
+  html[data-design-system="atelier-ivory"] .control-mobile-nav__item[aria-current="page"],
+  html[data-design-system="atelier-ivory"] .control-mobile-nav__item[data-active="true"] {
+    background: color-mix(in srgb, var(--ai-sidebar-active) 84%, transparent);
+    box-shadow: none;
+    color: #fffdfc;
+  }
+
+  html[data-design-system="atelier-ivory"] .control-mobile-nav__item[aria-current="page"] svg,
+  html[data-design-system="atelier-ivory"] .control-mobile-nav__item[data-active="true"] svg {
+    color: var(--ai-brand);
+  }
+
+  html[data-design-system="atelier-ivory"] .control-mobile-nav__item svg {
+    height: 19px;
+    width: 19px;
+  }
+
+  html[data-design-system="atelier-ivory"] .media-upload-tray {
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+}

@@ -221,7 +221,7 @@ test("supports the public login and auth callback routes", async ({ page }) => {
   );
 });
 
-test("keeps the Publisher sidebar fixed at the canonical desktop width", async ({
+test("supports the canonical expanded and compact Publisher sidebar", async ({
   page
 }) => {
   await page.setViewportSize({ height: 900, width: 1280 });
@@ -233,14 +233,14 @@ test("keeps the Publisher sidebar fixed at the canonical desktop width", async (
   await page.reload();
 
   const sidebar = page.getByLabel("Control navigatie");
-  await expect(sidebar).toHaveCSS("width", "224px");
+  await expect(sidebar).toHaveCSS("width", "80px");
   await expect(
     sidebar.getByRole("link", { name: /Overzicht/ })
   ).toBeVisible();
-  await expect(sidebar.locator(".control-brand__logo--inverse")).toBeVisible();
+  await expect(sidebar.locator(".control-brand__icon")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Navigatie (in|uit)klappen/ })
-  ).toHaveCount(0);
+  ).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth
@@ -323,7 +323,7 @@ test("supports command navigation and the compact mobile navigation flow", async
     name: "Mobiele hoofdnavigatie"
   });
 
-  await expect(topbar).toHaveCSS("min-height", "64px");
+  await expect(topbar).toHaveCSS("min-height", "56px");
   await Promise.all([
     expect(page.getByRole("button", { name: "Navigatie openen" })).toHaveCount(0),
     expect(searchButton).toBeVisible(),
@@ -353,11 +353,12 @@ test("supports command navigation and the compact mobile navigation flow", async
     name: "Hoofdnavigatie"
   });
   await expect(navigation).toBeVisible();
-  await expect(navigation.getByRole("link", { name: /Media/ })).toHaveCount(0);
+  await expect(navigation.getByRole("link", { name: /Media/ })).toBeVisible();
+  await expect(navigation.getByRole("link", { name: /Studio/ })).toHaveCount(0);
   await page.keyboard.press("Escape");
   await follow(
     page,
-    () => mobileNavigation.getByRole("link", { name: "Media" }),
-    /\/dashboard\/media$/
+    () => mobileNavigation.getByRole("link", { name: "Studio" }),
+    /\/dashboard\/studio$/
   );
 });
