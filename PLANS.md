@@ -91,6 +91,7 @@ tests en exitcriteria staan in
 | S47 | Schermautomatisering | Per-scherm bedrijfstijden, capability-aware Control, inexacte lokale Androidstart, schedule-aware keep-awake en eerlijke HDMI-CEC-diagnostiek |
 | S50 | Atelier Ivory Control en Studio | Definitieve semantische light/dark-interface, responsive shell, kernworkspaces, beide editors en visuele bewijsvoering |
 | S52 | Control floating overlays | Portaled overflowmenu’s, viewport collision handling en clippingvrije focus/menuweergave |
+| S53 | Android- en LG herstelbetrouwbaarheid | Officiële Android-app herkent dezelfde installation na herinstallatie, verifieert boot-/updatestarts en opent Play-updatebeheer; standalone LG-recovery maakt vóór redirect aantoonbaar een nieuwe code |
 
 ### Programmagates
 
