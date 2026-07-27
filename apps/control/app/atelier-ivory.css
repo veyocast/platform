@@ -313,14 +313,18 @@ html[data-design-system="atelier-ivory"] :where(
   .field input,
   .field select,
   .field textarea,
+  .settings-category-select select,
   .toolbar-field input,
   .toolbar-field select,
   .toolbar-date input
 ) {
   background: var(--ai-surface);
+  border: 1px solid var(--ai-border);
+  border-radius: 8px;
   border-color: var(--ai-border);
   color: var(--ai-ink);
   min-height: 40px;
+  padding-inline: 12px;
 }
 
 html[data-design-system="atelier-ivory"] :where(
@@ -328,6 +332,7 @@ html[data-design-system="atelier-ivory"] :where(
   .field input,
   .field select,
   .field textarea,
+  .settings-category-select select,
   .toolbar-field input,
   .toolbar-field select,
   .toolbar-date input
@@ -340,6 +345,7 @@ html[data-design-system="atelier-ivory"] :where(
   .field input,
   .field select,
   .field textarea,
+  .settings-category-select select,
   .toolbar-field input,
   .toolbar-field select,
   .toolbar-date input
@@ -581,6 +587,82 @@ html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="t
 
 html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-brand__logo {
   max-width: 122px;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .control-brand__logo--primary {
+  display: none;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .control-brand__logo--inverse {
+  display: block;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar :where(
+  .control-brand__meta,
+  .control-user__meta,
+  .tenant-switcher__label,
+  .control-nav__description,
+  .control-nav__heading,
+  .control-nav__context small
+) {
+  color: #aaa397;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .tenant-switcher {
+  background: var(--ai-sidebar-raised);
+  border-color: var(--ai-sidebar-border);
+  color: #fffdfc;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .tenant-switcher__mark {
+  background: var(--ai-brand);
+  color: #171714;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .tenant-switcher__menu {
+  background: var(--ai-sidebar-raised);
+  border-color: #514a40;
+  color: #fffdfc;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .tenant-switcher__menu :where(button, a) {
+  color: #fffdfc;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .tenant-switcher__menu :where(button, a):hover {
+  background: var(--ai-sidebar-active);
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .control-nav__context span,
+html[data-design-system="atelier-ivory"] .control-sidebar .control-user__name {
+  color: #fffdfc;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .control-nav__link {
+  color: #c5beb1;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .control-nav__link:hover {
+  background: var(--ai-sidebar-raised);
+  color: #fffdfc;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .control-nav__link[aria-current="page"] {
+  background: var(--ai-sidebar-active);
+  border-color: transparent;
+  box-shadow: inset 3px 0 var(--ai-brand);
+  color: #fffdfc;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .control-user__avatar {
+  background: var(--ai-sidebar-active);
+  color: #fffdfc;
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .control-user .vc-icon-button {
+  background: transparent;
+  border-color: var(--ai-sidebar-border);
+  color: #aaa397;
 }
 
 html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-sidebar__collapse {
@@ -866,6 +948,10 @@ html[data-design-system="atelier-ivory"] .control-mobile-sheet-close {
   }
 
   html[data-design-system="atelier-ivory"] .control-content--editor .vc-button {
+    min-height: 44px;
+  }
+
+  html[data-design-system="atelier-ivory"] .settings-category-select select {
     min-height: 44px;
   }
 

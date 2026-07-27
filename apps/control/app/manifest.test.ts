@@ -21,4 +21,11 @@ describe("VeyoCast Control PWA-manifest", () => {
       ])
     );
   });
+
+  it("uses the canonical Atelier Ivory launch colors", () => {
+    expect(manifest()).toMatchObject({
+      background_color: "#F5F1E8",
+      theme_color: "#151411"
+    });
+  });
 });

@@ -25,7 +25,24 @@ const allRoutes = [
     demoOnly: true,
     name: "studio-editor",
     pathname: "/dashboard/studio/system-matchday-landscape-hd-v1"
-  }
+  },
+  {
+    name: "screen-groups",
+    pathname: "/dashboard/screen-groups",
+    supplemental: true
+  },
+  { name: "releases", pathname: "/dashboard/releases", supplemental: true },
+  { name: "templates", pathname: "/dashboard/templates", supplemental: true },
+  {
+    name: "integrations",
+    pathname: "/dashboard/integrations",
+    supplemental: true
+  },
+  { name: "settings", pathname: "/dashboard/settings", supplemental: true },
+  { name: "team", pathname: "/dashboard/team", supplemental: true },
+  { name: "support", pathname: "/dashboard/support", supplemental: true },
+  { name: "auditlog", pathname: "/dashboard/auditlog", supplemental: true },
+  { name: "platform", pathname: "/platform", supplemental: true }
 ] as const;
 
 const allViewports = [
@@ -51,7 +68,7 @@ const requestedViewports = new Set(
 const routes = (
   requestedRoutes.size
     ? allRoutes.filter((route) => requestedRoutes.has(route.name))
-    : allRoutes
+    : allRoutes.filter((route) => !("supplemental" in route))
 ).filter((route) => !("demoOnly" in route) || demoEvidence);
 const activeRoutes = routes.filter(
   (route) => !("liveOnly" in route) || !demoEvidence
