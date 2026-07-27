@@ -852,22 +852,20 @@ html[data-design-system="atelier-ivory"] .control-mobile-sheet-close {
   }
 
   html[data-design-system="atelier-ivory"] .vc-summary-strip {
-    grid-auto-flow: initial;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
+    min-height: 82px;
     overflow: hidden;
   }
 
   html[data-design-system="atelier-ivory"] .vc-summary-strip__item {
+    flex: 1 1 0;
     min-height: 82px;
+    min-width: 0;
     padding: 12px 14px;
   }
 
   html[data-design-system="atelier-ivory"] .vc-summary-strip__item + .vc-summary-strip__item {
-    border-left: 0;
-    border-top: 1px solid var(--ai-border);
-  }
-
-  html[data-design-system="atelier-ivory"] .vc-summary-strip__item:nth-child(even) {
     border-left: 1px solid var(--ai-border);
   }
 

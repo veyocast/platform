@@ -101,6 +101,57 @@ async function navigate(page: Page, pathname: string) {
   });
 }
 
+async function assertSummaryStripsFit(page: Page, context: string) {
+  const summaries = page.locator(".vc-summary-strip");
+  for (let index = 0; index < await summaries.count(); index += 1) {
+    const metrics = await summaries.nth(index).evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      const elementStyle = getComputedStyle(element);
+      const items = Array.from(element.children).map((child) => {
+        const itemBounds = child.getBoundingClientRect();
+        const itemStyle = getComputedStyle(child);
+        return {
+          bottom: Math.round(itemBounds.bottom),
+          display: itemStyle.display,
+          height: Math.round(itemBounds.height),
+          left: Math.round(itemBounds.left),
+          right: Math.round(itemBounds.right),
+          position: itemStyle.position,
+          top: Math.round(itemBounds.top),
+          width: Math.round(itemBounds.width)
+        };
+      });
+      return {
+        bounds: {
+          bottom: Math.round(bounds.bottom),
+          left: Math.round(bounds.left),
+          right: Math.round(bounds.right),
+          top: Math.round(bounds.top)
+        },
+        clientWidth: element.clientWidth,
+        display: elementStyle.display,
+        height: elementStyle.height,
+        items,
+        position: elementStyle.position,
+        scrollWidth: element.scrollWidth
+      };
+    });
+    const fits =
+      metrics.scrollWidth <= metrics.clientWidth &&
+      metrics.items.every(
+        (item) =>
+          item.display !== "none" &&
+          item.height > 0 &&
+          item.width > 0 &&
+          item.top >= metrics.bounds.top - 1 &&
+          item.bottom <= metrics.bounds.bottom + 1 &&
+          item.left >= metrics.bounds.left - 1 &&
+          item.right <= metrics.bounds.right + 1
+      );
+    expect.soft(fits, `${context}: ${JSON.stringify(metrics)}`).toBe(true);
+  }
+}
+
 test.describe("Atelier Ivory visual evidence", () => {
   test.skip(!evidenceEnabled, "requires local Supabase and explicit evidence opt-in");
   test.setTimeout(900_000);
@@ -137,6 +188,11 @@ test.describe("Atelier Ivory visual evidence", () => {
         for (const route of routes) {
           await navigate(page, route.pathname);
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+          if (route.name === "planning") {
+            await expect(
+              page.locator(".vc-summary-strip > .vc-summary-strip__item")
+            ).toHaveCount(3);
+          }
           await page.waitForTimeout(250);
 
           expect.soft(
@@ -147,6 +203,10 @@ test.describe("Atelier Ivory visual evidence", () => {
             ),
             `${route.pathname} blijft binnen ${viewport.name} in ${theme}`
           ).toBe(true);
+          await assertSummaryStripsFit(
+            page,
+            `${route.pathname} ${viewport.name} ${theme}`
+          );
 
           await page.screenshot({
             fullPage: true,

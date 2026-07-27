@@ -16,7 +16,7 @@
 .recurrence {
   background: var(--vc-surface-muted);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-md);
+  border-radius: var(--vc-radius-xl);
   display: grid;
   gap: var(--vc-space-12);
   padding: var(--vc-space-12);
@@ -159,17 +159,18 @@
   align-items: center;
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-md);
+  border-radius: var(--vc-radius-xl);
   display: flex;
   gap: var(--vc-space-16);
   justify-content: space-between;
-  padding: var(--vc-space-8);
+  padding: var(--vc-space-12);
 }
 
 .viewTabs {
   align-items: center;
   background: var(--vc-surface-muted);
-  border-radius: var(--vc-radius-md);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-lg);
   display: flex;
   gap: var(--vc-space-2);
   padding: var(--vc-space-2);
@@ -178,7 +179,7 @@
 .viewTabs a {
   align-items: center;
   border: 1px solid transparent;
-  border-radius: var(--vc-radius-sm);
+  border-radius: var(--vc-radius-md);
   color: var(--vc-text-muted);
   display: inline-flex;
   font-size: .875rem;
@@ -191,6 +192,7 @@
 .viewTabs a[aria-current="page"] {
   background: var(--vc-surface);
   border-color: var(--vc-border);
+  box-shadow: var(--ai-shadow-1, 0 1px 2px rgb(0 0 0 / 6%));
   color: var(--vc-text);
 }
 
@@ -254,7 +256,7 @@
 .calendar {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-md);
+  border-radius: var(--vc-radius-xl);
   overflow: hidden;
 }
 
@@ -284,7 +286,7 @@
   display: grid;
   gap: var(--vc-space-8);
   min-width: 0;
-  padding: var(--vc-space-8);
+  padding: var(--vc-space-10);
 }
 
 .calendar[data-view="month"] .calendarDay {
@@ -356,11 +358,11 @@
   background: color-mix(in srgb, var(--vc-semantic-info-solid) 9%, var(--vc-surface));
   border: 1px solid color-mix(in srgb, var(--vc-semantic-info-solid) 32%, var(--vc-border));
   border-left: 3px solid var(--vc-semantic-info-solid);
-  border-radius: var(--vc-radius-sm);
+  border-radius: var(--vc-radius-md);
   display: grid;
   gap: var(--vc-space-2);
   min-width: 0;
-  padding: var(--vc-space-6);
+  padding: var(--vc-space-8);
 }
 
 .calendarDay li[data-source="override"] {
@@ -433,7 +435,7 @@
   align-items: center;
   background: var(--vc-surface);
   border: 1px dashed var(--vc-border-strong);
-  border-radius: var(--vc-radius-md);
+  border-radius: var(--vc-radius-xl);
   display: grid;
   gap: var(--vc-space-12);
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -444,7 +446,7 @@
   align-items: center;
   background: var(--vc-surface);
   border: 1px dashed var(--vc-border-strong);
-  border-radius: var(--vc-radius-md);
+  border-radius: var(--vc-radius-xl);
   display: flex;
   gap: var(--vc-space-12);
   justify-content: center;
@@ -502,6 +504,10 @@
 
   .targetFilter select {
     min-width: 0;
+  }
+
+  .workspaceToolbar {
+    padding: var(--vc-space-12);
   }
 }
 
@@ -568,6 +574,11 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .workspaceToolbar {
+    gap: var(--vc-space-12);
+    padding: var(--vc-space-10);
+  }
+
   .viewTabs a {
     justify-content: center;
     padding-inline: var(--vc-space-8);
@@ -580,6 +591,10 @@
   .targetFilter label,
   .targetFilter select {
     grid-column: 1 / -1;
+  }
+
+  .targetFilter > :global(.vc-button) {
+    width: 100%;
   }
 
   .calendarNavigation {
