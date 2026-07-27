@@ -6,6 +6,7 @@ import {
   createPlayerAnonClient,
   isLivePlayerConfigured
 } from "../../../_lib/player-supabase";
+import { readNativeRecoveryCredential } from "../../../_lib/player-native-recovery";
 
 const maximumRequestBytes = 256;
 
@@ -33,6 +34,10 @@ export async function POST(request: Request) {
   );
   const deviceOrPendingCredential = normalizeCredential(getBearerToken(request));
   const newCredential = randomBytes(32).toString("base64url");
+  const newDeviceCredential = randomBytes(32).toString("base64url");
+  const nativeRecoveryCredential = readNativeRecoveryCredential(
+    request.headers.get("cookie")
+  );
 
   if (!isLivePlayerConfigured()) {
     return noStore({
@@ -48,13 +53,17 @@ export async function POST(request: Request) {
     return installationFailure("INSTALLATION_API_UNAVAILABLE", 503);
   }
 
-  const { data, error } = await supabase.rpc("register_player_installation_v1", {
+  const { data, error } = await supabase.rpc("register_player_installation_v2", {
     p_device_or_pending_token_hash: deviceOrPendingCredential
       ? sha256(deviceOrPendingCredential)
       : null,
     p_existing_credential_hash: existingCredential
       ? sha256(existingCredential)
       : null,
+    p_native_recovery_credential_hash: nativeRecoveryCredential
+      ? sha256(nativeRecoveryCredential)
+      : null,
+    p_new_device_credential_hash: sha256(newDeviceCredential),
     p_new_credential_hash: sha256(newCredential),
     p_public_identifier_hash: sha256(installationId)
   });
@@ -78,6 +87,9 @@ export async function POST(request: Request) {
 
   return noStore({
     bound: Boolean(result.boundDeviceId),
+    ...(result.deviceCredentialRotated
+      ? { deviceCredential: newDeviceCredential }
+      : {}),
     installationCredential:
       result.created || result.credentialRotated
         ? newCredential
@@ -123,6 +135,7 @@ function parseInstallationResult(value: unknown) {
       code: null,
       created: false,
       credentialRotated: false,
+      deviceCredentialRotated: false,
       installationId: null,
       ok: false
     };
@@ -134,6 +147,7 @@ function parseInstallationResult(value: unknown) {
     code: typeof result.code === "string" ? result.code : null,
     created: result.created === true,
     credentialRotated: result.credentialRotated === true,
+    deviceCredentialRotated: result.deviceCredentialRotated === true,
     installationId:
       typeof result.installationId === "string" ? result.installationId : null,
     ok: result.ok === true

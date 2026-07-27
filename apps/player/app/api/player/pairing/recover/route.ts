@@ -11,7 +11,13 @@ const maximumRequestBytes = 512;
 
 export async function POST(request: Request) {
   const deviceToken = getBearerToken(request);
-  if (!deviceToken || !/^[A-Za-z0-9_-]{20,200}$/.test(deviceToken)) {
+  const installationCredential = normalizeCredential(
+    request.headers.get("x-veyocast-installation-credential")
+  );
+  if (
+    (!deviceToken || !/^[A-Za-z0-9_-]{20,200}$/.test(deviceToken)) &&
+    !installationCredential
+  ) {
     return recoveryFailure(
       "INVALID_DEVICE_CREDENTIAL",
       401,
@@ -68,13 +74,26 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data, error } = await supabase.rpc("recover_pending_pairing_v1", {
+  const { data, error } = await supabase.rpc("recover_player_pairing_v2", {
+    p_installation_credential_hash: installationCredential
+      ? sha256(installationCredential)
+      : null,
     p_installation_id_hash: sha256(installationId),
-    p_pending_token_hash: sha256(deviceToken),
+    p_pending_token_hash:
+      deviceToken && /^[A-Za-z0-9_-]{20,200}$/.test(deviceToken)
+        ? sha256(deviceToken)
+        : null,
     p_recovery_mode: mode
   });
   const result = parseRecoveryResult(data);
 
+  if (!error && result.code === "RECOVERY_CREDENTIAL_INVALID") {
+    return recoveryFailure(
+      "RECOVERY_CREDENTIAL_INVALID",
+      401,
+      "De herstelcredential is ongeldig of hoort niet bij deze installatie."
+    );
+  }
   if (error || !result.ok) {
     return recoveryFailure(
       "PAIRING_RECOVERY_UNAVAILABLE",
@@ -85,6 +104,7 @@ export async function POST(request: Request) {
 
   return noStore({
     cancelledPendingPairing: result.cancelledPendingPairing,
+    bindingState: result.bindingState,
     code: "RECOVERY_ACCEPTED",
     live: true,
     ok: true
@@ -104,6 +124,13 @@ function normalizeInstallationId(value: unknown) {
   return /^[a-f0-9-]{20,80}$/.test(normalized) ? normalized : null;
 }
 
+function normalizeCredential(value: string | null) {
+  const normalized = value?.trim();
+  return normalized && /^[A-Za-z0-9_-]{20,200}$/.test(normalized)
+    ? normalized
+    : null;
+}
+
 function parseBody(value: string) {
   try {
     return JSON.parse(value) as {
@@ -117,14 +144,26 @@ function parseBody(value: string) {
 
 function parseRecoveryResult(value: unknown) {
   if (!value || typeof value !== "object") {
-    return { cancelledPendingPairing: false, ok: false };
+    return {
+      bindingState: null,
+      cancelledPendingPairing: false,
+      code: null,
+      ok: false
+    };
   }
   const result = value as {
     cancelledPendingPairing?: unknown;
+    bindingState?: unknown;
+    code?: unknown;
     ok?: unknown;
   };
   return {
+    bindingState:
+      result.bindingState === "PAIRED" || result.bindingState === "UNPAIRED"
+        ? result.bindingState
+        : null,
     cancelledPendingPairing: result.cancelledPendingPairing === true,
+    code: typeof result.code === "string" ? result.code : null,
     ok: result.ok === true
   };
 }
