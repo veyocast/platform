@@ -7,8 +7,9 @@ De repository gebruikt exact twee deployment-Environments: `staging` en
 
 - `staging` heeft geen reviewer nodig en rolt na een groene main-release
   automatisch uit.
-- `production` heeft `TIXOCEO` als required reviewer en start pas na een
-  volledig gezonde stagingdeployment. Admin bypass is uitgeschakeld.
+- `production` start uitsluitend na `workflow_dispatch` met
+  `deploy_target=production` en pas na een volledig gezonde stagingdeployment.
+  Environment-reviewers zijn een aanvullende vier-ogenbeveiliging.
 - Environment secrets blijven environment-scoped; gebruik geen gedeelde
   repositorysecrets voor Supabase- of Device Lab-credentials.
 - De workflow heeft uitsluitend `contents: read` en deployt nooit vanuit
@@ -17,11 +18,11 @@ De repository gebruikt exact twee deployment-Environments: `staging` en
   remote `main`-fetches gebruiken dit token via een tijdelijke command-scoped
   HTTP-header; het is geen repositorysecret en wordt niet opgeslagen.
 
-De GitHub API-audit van 19 juli 2026 bevestigde voor beide Environments een
-custom branch policy voor exact `main`. Daarna is `TIXOCEO` als concrete
-required reviewer ingesteld en is admin bypass uitgeschakeld. Self-review blijft
-toegestaan zolang er geen tweede bevoegde reviewer bekend is; voeg voor een
-vier-ogenprincipe eerst een tweede reviewer toe en schakel self-review dan uit.
+De GitHub API-audit van 27 juli 2026 bevestigde voor beide Environments een
+custom branch policy voor exact `main`, maar geen actieve required reviewer op
+`production`. Daarom is productionautorisatie niet afhankelijk van die
+instelling: de workflowconditie weigert iedere gewone `main`-push. Voeg waar het
+GitHub-plan dit ondersteunt reviewers toe als extra vier-ogenbeveiliging.
 
 ## Variables
 
@@ -145,15 +146,16 @@ daemon onder gebruiker `deploy` bereiken.
 
 1. Open `Settings` → `Environments` → `production`.
 2. Laat deployment branches uitsluitend `main` toe.
-3. Controleer dat `TIXOCEO` required reviewer is.
-4. Voeg voor vier-ogenapproval een tweede reviewer toe en schakel daarna
-   self-review uit.
-5. Controleer dat admin bypass uitgeschakeld blijft.
-6. Sla op en start een handmatige releasetest.
+3. Controleer dat admin bypass uitgeschakeld blijft.
+4. Voeg waar het GitHub-plan dit ondersteunt required reviewers toe als extra
+   vier-ogenbeveiliging.
+5. Sla op en start een handmatige releasetest.
 
-Na een gezonde stagingdeployment verschijnt `deploy-production` als wachtende
-job. De reviewer controleert commit-SHA, staginghealth en releasemodus en kiest
-pas daarna `Review deployments` → `Approve and deploy`.
+Een gewone push naar `main` stopt altijd na een gezonde stagingdeployment.
+Production start uitsluitend vanuit `workflow_dispatch` met
+`deploy_target=production`; de operator controleert vooraf commit-SHA,
+staginghealth en releasemodus. Environment-reviewers zijn een aanvullende
+beveiliging en niet de enige productiongrens.
 
 ## Workflow dispatch
 
@@ -161,18 +163,22 @@ Normale handmatige redeploy van actuele `main`:
 
 - kies workflow `Deploy VeyoCast`;
 - kies branch `main`;
+- kies `deploy_target=staging`, of uitsluitend bij expliciete
+  productieautorisatie `deploy_target=production`;
 - kies `mode=release`;
 - laat `release_sha` leeg of vul de actuele volledige main-SHA in;
 - laat `rollback_confirmation` leeg.
 
 Gecontroleerde rollback:
 
+- kies het gewenste `deploy_target`;
 - kies `mode=rollback`;
 - vul een volledige, reeds gebouwde SHA uit `main` in;
 - vul exact `ROLLBACK` in als bevestiging.
 
-Ook rollback doorloopt staging en production approval. Een normale release
-weigert een SHA zodra `main` verder is gegaan.
+Iedere rollback doorloopt staging. Alleen `deploy_target=production` vervolgt
+naar production. Een normale release weigert een SHA zodra `main` verder is
+gegaan.
 # Operationele secrets en variabelen
 
 Voor `production` is daarnaast nodig:

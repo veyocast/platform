@@ -50,13 +50,13 @@ Management API-token nodig.
 | Onderdeel | Gecontroleerde toestand | Status | Actie |
 |---|---|---|---|
 | Environment branch policy | staging en production hebben custom policy exact `main` | correct | behouden |
-| Production approval | required reviewer `TIXOCEO`; admin bypass uit; self-review toegestaan | werkend met één bekende reviewer | voeg tweede reviewer toe vóór verplicht vier-ogenbeleid |
+| Production authorization | productionjob alleen bij handmatige dispatch met `deploy_target=production`; Environment-reviewers zijn aanvullend | workflow-afgedwongen | behoud statische workflowguard en voeg reviewers toe waar het GitHub-plan dit ondersteunt |
 | Repository runners | API ziet twee online runners, één per environment | afwijking | verifieer waarom vaste infrastructuur vier runners noemt |
 | Runnerlabels | runners hebben `self-hosted`, `Linux`, `X64`, `veyocast`, `deploy`, environment | bruikbaar voor nieuw model | gebruik geen oud `veyocast-vps`-label |
 | Oude deployrun | run `29664542758` stond queued op een verouderd label | gecorrigeerd | run geannuleerd |
 | Oude workflow | één dynamische `deploy-vps.yml` via `workflow_run` | vervangen | consolideren naar `.github/workflows/deploy.yml` |
 | Definitieve triggers | `push` naar `main` en `workflow_dispatch`, nooit PR | vereist | statisch valideren |
-| Jobgraph | `preflight` → `build-release` → `deploy-staging` → `deploy-production` | vereist | production houdt `needs: deploy-staging` |
+| Jobgraph | push: `preflight` → `build-release` → `deploy-staging`; expliciete productiondispatch voegt `deploy-production` toe | vereist | production houdt `needs: deploy-staging` en de dispatchconditie |
 | Concurrency | `deploy-veyocast-main`, niet annuleren | vereist | behouden |
 | Action pinning | oude workflow gebruikte mutable major-tags | incorrect | volledige action-SHA's gebruiken |
 | Stale protection | oude productiepad accepteerde iedere main-ancestor | incorrect | actuele main eisen, behalve bevestigde rollback |
@@ -69,7 +69,7 @@ Management API-token nodig.
 |---|---|---|---|
 | Staging webservices | Control en Player | exact Control en Player | worker draait bewust in een afzonderlijk Compose-project |
 | Production webservices | Marketing, Control en Player | exact Marketing, Control en Player | worker draait bewust in een afzonderlijk Compose-project; Caddy blijft op de host |
-| Marketing | ontbrak in VPS-deploy | production-only; vóór approval tijdelijk gezond | toegevoegd aan SHA-release |
+| Marketing | ontbrak in VPS-deploy | production-only; vóór productionautorisatie tijdelijk gezond | toegevoegd aan SHA-release |
 | Hostbindings | actieve VPS-webservices gebruikten al localhost | alle bindings expliciet `127.0.0.1` | statisch bewijzen via gerenderde Compose-JSON |
 | Reverse proxy | extern Docker-netwerk plus oud container-Caddy | Caddy op host naar localhost | netwerkcode en variable verwijderen |
 | Composeproject | via dynamische top-level naam | expliciet `-p veyocast-staging` of `-p veyocast-production` | afdwingen in centraal script |
@@ -127,8 +127,8 @@ queuebereikbaarheid; deployment en rollback draineren de lopende job maximaal
 
 ## Open externe acties vóór production
 
-1. Voeg desgewenst een tweede productionreviewer toe en schakel dan self-review
-   uit voor een vier-ogenbeleid; admin bypass staat al uit.
+1. Voeg waar het GitHub-plan dit ondersteunt productionreviewers toe als extra
+   vier-ogenbeleid; de workflowconditie blijft de primaire technische grens.
 2. Bevestig dat de twee niet-zichtbare runners bestaan of pas de vastgelegde
    capaciteit bewust aan.
 3. Bevestig dat beide Environments dezelfde

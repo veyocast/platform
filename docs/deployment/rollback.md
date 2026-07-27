@@ -35,23 +35,25 @@ staan en moet backward-compatible zijn.
 
 ## Aanbevolen GitHub-rollback
 
-Gebruik voor production altijd de workflow, zodat eerst staging wordt bewezen en
-production opnieuw approval vereist.
+Gebruik voor production altijd de workflow, zodat eerst staging wordt bewezen
+en production alleen na een expliciete productiondispatch start.
 
 1. Kies een eerder gezond verklaarde SHA uit `REVISION`,
    `PREVIOUS_REVISION` of releasehistorie.
 2. Controleer de app/schema-compatibiliteit en leg incidentreden en gekozen SHA
    vast.
 3. Open Actions → `Deploy VeyoCast` → `Run workflow` op branch `main`.
-4. Kies `mode=rollback`.
-5. Vul de volledige 40-teken-SHA in bij `release_sha`.
-6. Vul exact `ROLLBACK` in bij `rollback_confirmation`.
-7. Controleer dat `build-release` alleen bestaande image-ID's en metadata
+4. Kies `deploy_target=production`.
+5. Kies `mode=rollback`.
+6. Vul de volledige 40-teken-SHA in bij `release_sha`.
+7. Vul exact `ROLLBACK` in bij `rollback_confirmation`.
+8. Controleer dat `build-release` alleen bestaande image-ID's en metadata
    valideert en niets opnieuw bouwt.
-8. Laat de release naar staging terugzetten en controleer alle staginghealth en
+9. Laat de release naar staging terugzetten en controleer alle staginghealth en
    functionele smoke tests.
-9. Laat een required reviewer production bewust goedkeuren.
-10. Controleer na production de healthmatrix en de functionele kernflows.
+10. Controleer dat de expliciet gekozen productionjob dezelfde release
+    activeert.
+11. Controleer na production de healthmatrix en de functionele kernflows.
 
 De workflow accepteert geen commit buiten `main`. In rollbackmodus is een oudere
 main-SHA toegestaan; in normale releasemodus moet de SHA exact de actuele
@@ -88,13 +90,13 @@ De GitHub-route blijft daarom de standaard.
 Automatische database-down-migrations zijn verboden. Bij een onverenigbare of
 schadelijke migration:
 
-1. stop verdere productionapproval;
+1. stop verdere productionautorisatie;
 2. laat waar mogelijk de vorige applicatierelease draaien;
 3. bepaal impact aan de hand van Supabase migration history en auditlogs;
 4. maak een nieuwe forward-fixmigration, of herstel bewust vanuit een externe
    Supabase-back-up volgens het geldende databaseherstelplan;
 5. bewijs tenantisolatie en RLS opnieuw;
-6. doorloop daarna de volledige staging- en approvalflow.
+6. doorloop daarna de volledige staging- en expliciete productionflow.
 
 Een databaseherstel kan data na het back-uppunt verliezen en vereist daarom een
 aparte incidentbeslissing. Het deploymentscript voert dit nooit automatisch uit.
