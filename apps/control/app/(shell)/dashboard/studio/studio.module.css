@@ -92,7 +92,6 @@
 .projectCard {
   box-shadow: none;
   min-width: 0;
-  overflow: hidden;
   transition:
     border-color 160ms ease,
     transform 160ms ease;
@@ -254,10 +253,6 @@
   display: grid;
   min-width: 190px;
   padding: var(--vc-space-6);
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  z-index: 20;
 }
 
 .actionPopover button {
@@ -1211,11 +1206,12 @@
 
 .layerContext {
   flex: 0 0 auto;
-  position: relative;
 }
 
-.layerContext > summary {
+.layerContextTrigger {
   align-items: center;
+  background: transparent;
+  border: 0;
   border-radius: var(--vc-radius-sm);
   color: var(--vc-text-muted);
   cursor: pointer;
@@ -1226,17 +1222,13 @@
   width: 30px;
 }
 
-.layerContext > summary::-webkit-details-marker {
-  display: none;
-}
-
-.layerContext > summary:hover,
-.layerContext[open] > summary {
+.layerContextTrigger:hover,
+.layerContext[data-open="true"] .layerContextTrigger {
   background: var(--vc-surface-muted);
   color: var(--vc-text);
 }
 
-.layerContext > div {
+.layerContextPanel {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-md);
@@ -1244,13 +1236,9 @@
   display: grid;
   min-width: 190px;
   padding: var(--vc-space-6);
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 30;
 }
 
-.layerContext > div button {
+.layerContextPanel button {
   background: transparent;
   border: 0;
   border-radius: var(--vc-radius-sm);
@@ -1262,16 +1250,16 @@
   text-align: left;
 }
 
-.layerContext > div button:hover:not(:disabled) {
+.layerContextPanel button:hover:not(:disabled) {
   background: var(--vc-surface-muted);
 }
 
-.layerContext > div button:disabled {
+.layerContextPanel button:disabled {
   cursor: not-allowed;
   opacity: 0.46;
 }
 
-.layerContext > div .contextDelete {
+.layerContextPanel .contextDelete {
   color: var(--vc-semantic-critical-text);
 }
 

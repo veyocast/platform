@@ -1,0 +1,39 @@
+.anchor {
+  min-width: 0;
+}
+
+.trigger {
+  font: inherit;
+}
+
+.panel {
+  box-sizing: border-box;
+  max-width: calc(100vw - 24px);
+  overscroll-behavior: contain;
+  overflow-y: auto;
+  position: fixed;
+  z-index: var(--vc-z-dropdown);
+}
+
+.panel[data-ready="false"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel[data-ready="true"] {
+    animation: floating-panel-enter var(--vc-motion-fast) ease-out;
+  }
+}
+
+@keyframes floating-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

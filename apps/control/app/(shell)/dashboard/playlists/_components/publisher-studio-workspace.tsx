@@ -66,6 +66,7 @@ import {
   SheetTrigger
 } from "@veyocast/ui";
 
+import { FloatingPanel } from "../../../_components/floating-panel";
 import {
   addPlaylistItem,
   archivePlaylist,
@@ -1336,11 +1337,19 @@ function SectionManager({
             afspeelvolgorde.
           </p>
         </div>
-        <details className={styles.sectionCreate}>
-          <summary aria-label="Nieuwe sectie toevoegen">
-            <FolderPlus aria-hidden="true" />
-            Sectie
-          </summary>
+        <FloatingPanel
+          className={styles.sectionCreate}
+          contentClassName={styles.sectionCreatePanel}
+          contentLabel="Nieuwe sectie toevoegen"
+          trigger={
+            <>
+              <FolderPlus aria-hidden="true" />
+              Sectie
+            </>
+          }
+          triggerAriaLabel="Nieuwe sectie toevoegen"
+          triggerClassName={styles.sectionCreateTrigger}
+        >
           <form action={createPlaylistSection} data-online-required>
             <RevisionFields playlistId={playlistId} revision={revision} />
             <label>
@@ -1380,7 +1389,7 @@ function SectionManager({
               Sectie toevoegen
             </Button>
           </form>
-        </details>
+        </FloatingPanel>
       </div>
       {sections.length ? (
         <ul className={styles.sectionList}>
@@ -1390,18 +1399,27 @@ function SectionManager({
             ).length;
             return (
               <li key={section.id}>
-                <details className={styles.sectionCard}>
-                  <summary>
-                    <Layers3 aria-hidden="true" />
-                    <span>
-                      <strong>{section.name}</strong>
-                      <small>
-                        {itemCount} {itemCount === 1 ? "item" : "items"}
-                      </small>
-                    </span>
-                    <Settings2 aria-hidden="true" />
-                  </summary>
-                  <div className={styles.sectionEditor}>
+                <FloatingPanel
+                  align="start"
+                  className={styles.sectionCard}
+                  contentClassName={styles.sectionEditor}
+                  contentLabel={`Sectie ${section.name} bewerken`}
+                  trigger={
+                    <>
+                      <Layers3 aria-hidden="true" />
+                      <span>
+                        <strong>{section.name}</strong>
+                        <small>
+                          {itemCount} {itemCount === 1 ? "item" : "items"}
+                        </small>
+                      </span>
+                      <Settings2 aria-hidden="true" />
+                    </>
+                  }
+                  triggerAriaLabel={`Sectie ${section.name} bewerken`}
+                  triggerClassName={styles.sectionCardTrigger}
+                >
+                  <>
                     <form action={updatePlaylistSection} data-online-required>
                       <RevisionFields
                         playlistId={playlistId}
@@ -1513,8 +1531,8 @@ function SectionManager({
                         gepubliceerd zolang ze uitgeschakeld is.
                       </p>
                     ) : null}
-                  </div>
-                </details>
+                  </>
+                </FloatingPanel>
               </li>
             );
           })}
@@ -1680,70 +1698,83 @@ function ItemMenu({
   revision: number;
 }) {
   return (
-    <details className={styles.itemMenu}>
-      <summary aria-label="Itemacties">
-        <MoreVertical aria-hidden="true" />
-      </summary>
-      <div>
-        <button onClick={onSettings} type="button">
-          <Settings2 aria-hidden="true" /> Instellingen
-        </button>
-        <MoveForm
-          direction="start"
-          disabled={!canWrite || index === 0}
-          itemId={item.id}
-          label="Naar begin"
-          playlistId={playlistId}
-          revision={revision}
-        >
-          <ArrowUpToLine aria-hidden="true" />
-        </MoveForm>
-        <MoveForm
-          direction="up"
-          disabled={!canWrite || index === 0}
-          itemId={item.id}
-          label="Omhoog"
-          playlistId={playlistId}
-          revision={revision}
-        >
-          <ArrowUp aria-hidden="true" />
-        </MoveForm>
-        <MoveForm
-          direction="down"
-          disabled={!canWrite || index === itemCount - 1}
-          itemId={item.id}
-          label="Omlaag"
-          playlistId={playlistId}
-          revision={revision}
-        >
-          <ArrowDown aria-hidden="true" />
-        </MoveForm>
-        <MoveForm
-          direction="end"
-          disabled={!canWrite || index === itemCount - 1}
-          itemId={item.id}
-          label="Naar einde"
-          playlistId={playlistId}
-          revision={revision}
-        >
-          <ArrowDownToLine aria-hidden="true" />
-        </MoveForm>
-        <form action={duplicatePlaylistItem} data-online-required>
-          <RevisionFields playlistId={playlistId} revision={revision} />
-          <input name="itemId" type="hidden" value={item.id} />
-          <button disabled={!canWrite} type="submit">
-            <Copy aria-hidden="true" /> Dupliceren
+    <FloatingPanel
+      className={styles.itemMenu}
+      contentClassName={styles.itemMenuPanel}
+      contentLabel="Itemacties"
+      role="group"
+      trigger={<MoreVertical aria-hidden="true" />}
+      triggerAriaLabel="Itemacties"
+      triggerClassName={styles.itemMenuTrigger}
+    >
+      {(close) => (
+        <>
+          <button
+            onClick={() => {
+              onSettings();
+              close();
+            }}
+            type="button"
+          >
+            <Settings2 aria-hidden="true" /> Instellingen
           </button>
-        </form>
-        <form action={removePlaylistItem} data-online-required>
-          <RevisionFields playlistId={playlistId} revision={revision} />
-          <input name="itemId" type="hidden" value={item.id} />
-          <button disabled={!canWrite} type="submit">
-            <Trash2 aria-hidden="true" /> Verwijderen
-          </button>
-        </form>
-      </div>
-    </details>
+          <MoveForm
+            direction="start"
+            disabled={!canWrite || index === 0}
+            itemId={item.id}
+            label="Naar begin"
+            playlistId={playlistId}
+            revision={revision}
+          >
+            <ArrowUpToLine aria-hidden="true" />
+          </MoveForm>
+          <MoveForm
+            direction="up"
+            disabled={!canWrite || index === 0}
+            itemId={item.id}
+            label="Omhoog"
+            playlistId={playlistId}
+            revision={revision}
+          >
+            <ArrowUp aria-hidden="true" />
+          </MoveForm>
+          <MoveForm
+            direction="down"
+            disabled={!canWrite || index === itemCount - 1}
+            itemId={item.id}
+            label="Omlaag"
+            playlistId={playlistId}
+            revision={revision}
+          >
+            <ArrowDown aria-hidden="true" />
+          </MoveForm>
+          <MoveForm
+            direction="end"
+            disabled={!canWrite || index === itemCount - 1}
+            itemId={item.id}
+            label="Naar einde"
+            playlistId={playlistId}
+            revision={revision}
+          >
+            <ArrowDownToLine aria-hidden="true" />
+          </MoveForm>
+          <form action={duplicatePlaylistItem} data-online-required>
+            <RevisionFields playlistId={playlistId} revision={revision} />
+            <input name="itemId" type="hidden" value={item.id} />
+            <button disabled={!canWrite} type="submit">
+              <Copy aria-hidden="true" /> Dupliceren
+            </button>
+          </form>
+          <form action={removePlaylistItem} data-online-required>
+            <RevisionFields playlistId={playlistId} revision={revision} />
+            <input name="itemId" type="hidden" value={item.id} />
+            <button disabled={!canWrite} type="submit">
+              <Trash2 aria-hidden="true" /> Verwijderen
+            </button>
+          </form>
+        </>
+      )}
+    </FloatingPanel>
   );
 }
 

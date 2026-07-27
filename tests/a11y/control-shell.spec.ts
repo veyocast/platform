@@ -312,7 +312,9 @@ test("tenant context selection is explicit and keyboard reachable", async ({ pag
     await expect(page.getByRole("heading", { name: "Overzicht" })).toBeVisible();
   }).toPass({ timeout: 20_000 });
 
-  const switcher = page.locator("summary").filter({ hasText: "Museumkwartier" });
+  const switcher = page.getByRole("button", {
+    name: "Actieve context: Museumkwartier"
+  });
   await switcher.focus();
   await expect(switcher).toBeFocused();
   await page.keyboard.press("Enter");

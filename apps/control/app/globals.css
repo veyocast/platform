@@ -141,7 +141,7 @@ a {
     padding: var(--vc-space-8);
   }
 
-  .control-shell--collapsed .tenant-switcher > summary {
+  .control-shell--collapsed .tenant-switcher__trigger {
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
   }
@@ -257,21 +257,22 @@ a {
   border-color: var(--vc-border-strong);
 }
 
-.tenant-switcher > summary {
+.tenant-switcher__trigger {
   align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
   cursor: pointer;
   display: grid;
   gap: var(--vc-space-8);
   grid-template-columns: 28px minmax(0, 1fr) 16px;
   min-height: 50px;
   padding: var(--vc-space-8);
+  text-align: left;
+  width: 100%;
 }
 
-.tenant-switcher > summary::-webkit-details-marker {
-  display: none;
-}
-
-.tenant-switcher[open] .tenant-switcher__chevron {
+.tenant-switcher[data-open="true"] .tenant-switcher__chevron {
   transform: rotate(180deg);
 }
 
@@ -284,9 +285,6 @@ a {
   left: 0;
   min-width: 260px;
   padding: var(--vc-space-8);
-  position: absolute;
-  top: calc(100% + var(--vc-space-6));
-  z-index: var(--vc-z-dropdown);
 }
 
 .tenant-switcher__menu button,
@@ -4909,24 +4907,24 @@ body .vc-dialog__content {
   color: var(--vc-on-action);
 }
 
-.control-shell[data-navigation-scope="tenant"] .tenant-switcher__menu {
+.tenant-switcher__menu--tenant {
   background: var(--vc-neutral-850);
   border-color: var(--vc-neutral-700);
   color: var(--vc-brand-paper-white);
 }
 
-.control-shell[data-navigation-scope="tenant"] .tenant-switcher__menu button,
-.control-shell[data-navigation-scope="tenant"] .tenant-switcher__menu > a {
+.tenant-switcher__menu--tenant button,
+.tenant-switcher__menu--tenant > a {
   color: var(--vc-brand-paper-white);
 }
 
-.control-shell[data-navigation-scope="tenant"] .tenant-switcher__menu button:hover,
-.control-shell[data-navigation-scope="tenant"] .tenant-switcher__menu button[aria-current="true"],
-.control-shell[data-navigation-scope="tenant"] .tenant-switcher__menu > a:hover {
+.tenant-switcher__menu--tenant button:hover,
+.tenant-switcher__menu--tenant button[aria-current="true"],
+.tenant-switcher__menu--tenant > a:hover {
   background: var(--publisher-sidebar-surface-active);
 }
 
-.control-shell[data-navigation-scope="tenant"] .tenant-switcher__menu small {
+.tenant-switcher__menu--tenant small {
   color: var(--publisher-sidebar-muted);
 }
 
