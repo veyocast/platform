@@ -292,6 +292,57 @@ test("keeps the sidebar logo fixed while navigation and content scroll independe
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });
 
+test("keeps the complete mobile page reachable above the fixed navigation", async ({
+  page
+}) => {
+  await page.setViewportSize({ height: 640, width: 390 });
+  await page.goto("/dashboard");
+  await page.waitForLoadState("networkidle");
+
+  const main = page.getByRole("main");
+  const content = page.locator("#control-content");
+  const mobileNavigation = page.getByRole("navigation", {
+    name: "Mobiele hoofdnavigatie"
+  });
+
+  await expect(async () => {
+    const metrics = await main.evaluate((element) => {
+      const contentElement = element.querySelector<HTMLElement>(
+        "#control-content"
+      );
+      const navigationElement = document.querySelector<HTMLElement>(
+        ".control-mobile-nav"
+      );
+      const pageElement = contentElement?.firstElementChild as HTMLElement | null;
+      if (!contentElement || !navigationElement || !pageElement) return null;
+
+      pageElement.style.minHeight = "1800px";
+      const contentClientHeight = contentElement.clientHeight;
+      const contentScrollHeight = contentElement.scrollHeight;
+      const canScroll = element.scrollHeight > element.clientHeight;
+      element.scrollTop = element.scrollHeight;
+
+      const pageBox = pageElement.getBoundingClientRect();
+      const navigationBox = navigationElement.getBoundingClientRect();
+      return {
+        canScroll,
+        contentClientHeight,
+        contentScrollHeight,
+        navigationTop: navigationBox.top,
+        pageBottom: pageBox.bottom
+      };
+    });
+
+    expect(metrics).not.toBeNull();
+    expect(metrics!.contentClientHeight).toBeGreaterThanOrEqual(
+      metrics!.contentScrollHeight
+    );
+    expect(metrics!.canScroll).toBe(true);
+    expect(metrics!.pageBottom).toBeLessThan(metrics!.navigationTop);
+  }).toPass({ timeout: 20_000 });
+  await expect(mobileNavigation).toBeVisible();
+});
+
 test("supports command navigation and the compact mobile navigation flow", async ({
   page
 }) => {

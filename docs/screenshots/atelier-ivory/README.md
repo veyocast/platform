@@ -50,3 +50,26 @@ ATELIER_IVORY_OUTPUT_ROOT=/tmp/atelier-ivory-review \
 Aanvullende routes zijn selecteerbaar met `screen-groups`, `releases`,
 `templates`, `integrations`, `settings`, `team`, `support`, `auditlog` en
 `platform`.
+
+## Mobiele scrollcontrole
+
+De mobiele scrollregressie doorloopt vijftien Control- en Platformroutes op
+390 × 640 en 430 × 844 met touch-, hoge pixelratio- en Samsung
+Internet-emulatie. Iedere route moet zijn laatste inhoud boven de vaste
+navigatie kunnen tonen:
+
+```bash
+PLAYWRIGHT_CONTROL_ONLY=1 \
+pnpm exec playwright test tests/e2e/control-mobile-scroll.spec.ts \
+  --project=chromium --workers=1
+```
+
+Onderkantbeelden kunnen optioneel naar een tijdelijke reviewmap worden
+geschreven:
+
+```bash
+MOBILE_SCROLL_EVIDENCE_DIR=/tmp/veyocast-mobile-scroll-after \
+PLAYWRIGHT_CONTROL_ONLY=1 \
+pnpm exec playwright test tests/e2e/control-mobile-scroll.spec.ts \
+  --project=chromium --workers=1
+```

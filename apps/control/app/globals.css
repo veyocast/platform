@@ -562,7 +562,7 @@ a {
 
 .control-main {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
   height: 100dvh;
   min-width: 0;
   overflow-y: auto;

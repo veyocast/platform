@@ -79,6 +79,9 @@ gecentraliseerd object afgeleid.
 - Drawers presenteren mobiel als bottom sheet.
 - Planning gebruikt mobiel de bestaande agendaweergave.
 - Playlist- en Studio-actiebalken staan boven de mobiele hoofdnavigatie.
+- Gewone pagina-inhoud bepaalt de natuurlijke tweede gridrij van de shell. Alleen
+  immersive editors gebruiken een begrensde viewport-rij; zo blijft het einde
+  van lange pagina's ook in Samsung Internet bereikbaar.
 - De volledige Studio-canvaswerkplek blijft desktop-first. Mobiel toont alleen
   functies die op aanraking betrouwbaar te bedienen zijn.
 - Lange Nederlandse tekst mag afbreken; interactieve labels worden niet
@@ -116,7 +119,7 @@ instellingen, team, support, auditlog en platform is met dezelfde runner in
 | `pnpm test` | alle 16 workspace-suites groen; Control 99/99 |
 | `pnpm build` | 15/15 Turbotaken groen |
 | Accessibility | 29/29 Control/marketing/Player-checks groen |
-| Playwright | 100 tests groen in de seriële totaalrun; resterende marketing-overflowcheck na passende timeout afzonderlijk groen; 8 expliciete environment-skips |
+| Playwright | 103 unieke checks groen; 8 expliciete environment-skips; mobiele scrollmatrix 30/30 route-viewportcombinaties |
 | Visueel | 72/72 eindbeelden zonder overflow, KPI-clipping of clientfouten |
 
 De Control-build toont al vóór deze sprint aanwezige Autoprefixer-waarschuwingen
