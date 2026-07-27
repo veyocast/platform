@@ -73,14 +73,14 @@
 
 .screenGrid {
   display: grid;
-  gap: var(--vc-space-16);
+  gap: var(--vc-space-20);
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .screenCard {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-md);
+  border-radius: var(--vc-radius-xl);
   overflow: hidden;
   position: relative;
   transition:
@@ -117,7 +117,7 @@
 
 .screenCard:hover {
   border-color: var(--vc-border-strong);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--vc-text) 5%, transparent);
+  box-shadow: none;
   transform: translateY(-1px);
 }
 
@@ -163,8 +163,8 @@
 
 .screenBody {
   display: grid;
-  gap: var(--vc-space-16);
-  padding: var(--vc-space-16);
+  gap: var(--vc-space-20);
+  padding: var(--vc-space-20);
 }
 
 .screenTitle {
@@ -176,7 +176,8 @@
 
 .screenTitle a {
   color: var(--vc-text);
-  font-size: 14px;
+  font-family: var(--vc-font-display);
+  font-size: 15px;
   font-weight: 720;
   letter-spacing: -0.015em;
   text-decoration: none;
@@ -249,6 +250,15 @@
 
   .screenPreview {
     aspect-ratio: 16 / 6.5;
+  }
+
+  .screenBody {
+    gap: var(--vc-space-16);
+    padding: var(--vc-space-16);
+  }
+
+  .screenMeta {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

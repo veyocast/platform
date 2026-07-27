@@ -1,6 +1,6 @@
 .statusGrid {
   display: grid;
-  gap: var(--vc-space-12);
+  gap: var(--vc-space-16);
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -8,13 +8,13 @@
   align-items: center;
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-md);
+  border-radius: var(--vc-radius-xl);
   color: var(--vc-text);
   display: grid;
   gap: var(--vc-space-12);
   grid-template-columns: auto minmax(0, 1fr) auto;
-  min-height: 84px;
-  padding: var(--vc-space-12);
+  min-height: 96px;
+  padding: var(--vc-space-16);
   text-decoration: none;
   transition:
     border-color var(--vc-motion-fast),
@@ -24,7 +24,7 @@
 
 .statusCard:hover {
   border-color: var(--vc-border-strong);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--vc-text) 5%, transparent);
+  box-shadow: none;
   transform: translateY(-1px);
 }
 
@@ -41,9 +41,9 @@
   border-radius: var(--vc-radius-md);
   color: var(--vc-text-muted);
   display: flex;
-  height: 36px;
+  height: 40px;
   justify-content: center;
-  width: 36px;
+  width: 40px;
 }
 
 .statusIcon svg {
@@ -68,12 +68,13 @@
 
 .statusCopy small {
   color: var(--vc-text-muted);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 650;
 }
 
 .statusCopy strong {
-  font-size: 18px;
+  font-family: var(--vc-font-display);
+  font-size: 20px;
   letter-spacing: -0.025em;
   line-height: 1.15;
   margin-top: var(--vc-space-2);
@@ -131,8 +132,8 @@
 .dashboardGrid {
   align-items: start;
   display: grid;
-  gap: var(--vc-space-16);
-  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.75fr);
+  gap: var(--vc-space-20);
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.7fr);
 }
 
 .dashboardGridSingle {
@@ -144,7 +145,7 @@
 .onboarding {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-md);
+  border-radius: var(--vc-radius-xl);
 }
 
 .activePanel,
@@ -158,7 +159,7 @@
   display: flex;
   gap: var(--vc-space-16);
   justify-content: space-between;
-  padding: var(--vc-space-16);
+  padding: var(--vc-space-20);
 }
 
 .sectionHeading {
@@ -167,7 +168,8 @@
 
 .sectionHeading h2,
 .onboardingHeader h2 {
-  font-size: 16px;
+  font-family: var(--vc-font-display);
+  font-size: 17px;
   letter-spacing: -0.015em;
   line-height: 1.3;
   margin: 0;
@@ -222,8 +224,8 @@
   display: grid;
   gap: var(--vc-space-12);
   grid-template-columns: auto minmax(0, 1fr) auto auto;
-  min-height: 78px;
-  padding: var(--vc-space-12) var(--vc-space-16);
+  min-height: 82px;
+  padding: var(--vc-space-12) var(--vc-space-20);
   text-decoration: none;
   transition: background-color var(--vc-motion-fast);
 }
@@ -242,7 +244,7 @@
   align-items: center;
   aspect-ratio: 16 / 9;
   background: var(--vc-neutral-900);
-  border-radius: var(--vc-radius-md);
+  border-radius: var(--vc-radius-lg);
   color: var(--vc-brand-electric-orange);
   display: flex;
   justify-content: center;
@@ -357,7 +359,7 @@
   color: var(--vc-text-muted);
   display: flex;
   gap: var(--vc-space-12);
-  padding: var(--vc-space-24);
+  padding: var(--vc-space-28) var(--vc-space-20);
 }
 
 .emptyCompact > svg {
@@ -384,18 +386,28 @@
 
 @media (max-width: 720px) {
   .statusGrid {
-    display: flex;
-    gap: var(--vc-space-8);
-    margin-inline: calc(var(--vc-space-16) * -1);
-    overflow-x: auto;
-    padding: 0 var(--vc-space-16) var(--vc-space-4);
-    scroll-snap-type: x proximity;
+    gap: var(--vc-space-10);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .statusCard {
-    flex: 0 0 min(70vw, 260px);
-    min-height: 78px;
-    scroll-snap-align: start;
+    align-content: start;
+    gap: var(--vc-space-8);
+    grid-template-columns: auto minmax(0, 1fr);
+    min-height: 118px;
+    padding: var(--vc-space-12);
+  }
+
+  .statusCard > svg {
+    display: none;
+  }
+
+  .statusCopy {
+    grid-column: 1 / -1;
+  }
+
+  .statusCopy span {
+    white-space: normal;
   }
 
   .quickActions {
@@ -427,7 +439,7 @@
 
   .sectionHeading,
   .onboardingHeader {
-    padding: var(--vc-space-12) var(--vc-space-16);
+    padding: var(--vc-space-16);
   }
 
   .activityList li {

@@ -23,3 +23,12 @@ pnpm exec playwright test tests/visual/atelier-ivory-evidence.spec.ts \
 
 Gebruik `ATELIER_IVORY_STAGE=final` voor de eindbeelden. De test faalt naast
 visuele capture ook op horizontale documentoverflow.
+
+Voor snelle iteratie kan de matrix worden beperkt, bijvoorbeeld:
+
+```bash
+ATELIER_IVORY_ROUTES=overview,screens \
+ATELIER_IVORY_VIEWPORTS=390x844,1440x900 \
+ATELIER_IVORY_OUTPUT_ROOT=/tmp/atelier-ivory-review \
+# ...dezelfde omgeving en Playwright-opdracht
+```

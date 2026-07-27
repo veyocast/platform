@@ -7,7 +7,7 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 const evidenceEnabled = process.env.ATELIER_IVORY_EVIDENCE === "1";
 const evidenceStage = process.env.ATELIER_IVORY_STAGE ?? "baseline";
 
-const routes = [
+const allRoutes = [
   { name: "overview", pathname: "/dashboard" },
   { name: "screens", pathname: "/dashboard/screens" },
   { name: "playlists", pathname: "/dashboard/playlists" },
@@ -16,7 +16,7 @@ const routes = [
   { name: "studio", pathname: "/dashboard/studio" }
 ] as const;
 
-const viewports = [
+const allViewports = [
   { height: 844, name: "390x844", width: 390 },
   { height: 1024, name: "768x1024", width: 768 },
   { height: 900, name: "1440x900", width: 1440 },
@@ -24,6 +24,24 @@ const viewports = [
 ] as const;
 
 const themes = ["light", "dark"] as const;
+const requestedRoutes = new Set(
+  (process.env.ATELIER_IVORY_ROUTES ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
+const requestedViewports = new Set(
+  (process.env.ATELIER_IVORY_VIEWPORTS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
+const routes = requestedRoutes.size
+  ? allRoutes.filter((route) => requestedRoutes.has(route.name))
+  : allRoutes;
+const viewports = requestedViewports.size
+  ? allViewports.filter((viewport) => requestedViewports.has(viewport.name))
+  : allViewports;
 
 async function authenticateAgainstLocalSupabase(context: BrowserContext) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -90,12 +108,14 @@ test.describe("Atelier Ivory visual evidence", () => {
   test("captures every primary workspace in the canonical viewport and theme matrix", async ({
     browser
   }) => {
-    const evidenceDirectory = path.resolve(
-      "docs",
-      "screenshots",
-      "atelier-ivory",
-      evidenceStage
-    );
+    const evidenceDirectory = process.env.ATELIER_IVORY_OUTPUT_ROOT
+      ? path.resolve(process.env.ATELIER_IVORY_OUTPUT_ROOT, evidenceStage)
+      : path.resolve(
+          "docs",
+          "screenshots",
+          "atelier-ivory",
+          evidenceStage
+        );
     mkdirSync(evidenceDirectory, { recursive: true });
 
     const context = await browser.newContext();

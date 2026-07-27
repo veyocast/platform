@@ -633,6 +633,64 @@ html[data-design-system="atelier-ivory"] .control-mobile-sheet-close {
   html[data-design-system="atelier-ivory"] .control-content {
     padding-inline: clamp(20px, 3vw, 32px);
   }
+
+  html[data-design-system="atelier-ivory"] .vc-data-table--responsive,
+  html[data-design-system="atelier-ivory"] .vc-data-table--responsive tbody,
+  html[data-design-system="atelier-ivory"] .vc-data-table--responsive tr,
+  html[data-design-system="atelier-ivory"] .vc-data-table--responsive td {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+
+  html[data-design-system="atelier-ivory"] .vc-data-table-frame:has(
+    .vc-data-table--responsive
+  ) {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  html[data-design-system="atelier-ivory"] .vc-data-table--responsive thead,
+  html[data-design-system="atelier-ivory"] .vc-data-table--responsive caption {
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
+  html[data-design-system="atelier-ivory"] .vc-data-table--responsive tr {
+    background: var(--ai-surface);
+    border: 1px solid var(--ai-border);
+    border-radius: 12px;
+    margin: 0 0 12px;
+    padding: 14px 16px;
+    width: 100%;
+  }
+
+  html[data-design-system="atelier-ivory"] .vc-data-table--responsive tr:first-child {
+    border-top: 1px solid var(--ai-border);
+  }
+
+  html[data-design-system="atelier-ivory"] .vc-data-table--responsive td {
+    border: 0;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(7.5rem, 0.8fr) minmax(0, 1.2fr);
+    padding: 5px 0;
+  }
+
+  html[data-design-system="atelier-ivory"] .vc-data-table--responsive td::before {
+    color: var(--ai-ink-muted);
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 650;
+  }
 }
 
 @media (max-width: 767px) {
@@ -675,6 +733,26 @@ html[data-design-system="atelier-ivory"] .control-mobile-sheet-close {
   html[data-design-system="atelier-ivory"] .control-content--editor,
   html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-content--editor {
     padding: 0 0 calc(92px + env(safe-area-inset-bottom, 0px));
+  }
+
+  html[data-design-system="atelier-ivory"] .vc-summary-strip {
+    grid-auto-flow: initial;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+  }
+
+  html[data-design-system="atelier-ivory"] .vc-summary-strip__item {
+    min-height: 82px;
+    padding: 12px 14px;
+  }
+
+  html[data-design-system="atelier-ivory"] .vc-summary-strip__item + .vc-summary-strip__item {
+    border-left: 0;
+    border-top: 1px solid var(--ai-border);
+  }
+
+  html[data-design-system="atelier-ivory"] .vc-summary-strip__item:nth-child(even) {
+    border-left: 1px solid var(--ai-border);
   }
 
   html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-sidebar {
