@@ -4,7 +4,7 @@ import Link from "next/link";
 import { requireControlCapability } from "../../../../../lib/control-session";
 import { loadPlatformSupport } from "../../../dashboard/support/data";
 import { assignPlatformSupportRole, createPlatformSupportRole, createSupportDepartment } from "../actions";
-import { relationName } from "../../../dashboard/support/page";
+import { relationName } from "../../../dashboard/support/support-format";
 import styles from "../../../dashboard/support/support.module.css";
 
 export default async function SupportSettingsPage() {

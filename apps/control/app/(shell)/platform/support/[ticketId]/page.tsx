@@ -5,7 +5,7 @@ import { Button, PageHeader, StatusPill } from "@veyocast/ui";
 import { requireControlCapability } from "../../../../../lib/control-session";
 import { addTicketMessage, deleteSupportTicket, updateTicketStatus, uploadTicketAttachment } from "../../../dashboard/support/actions";
 import { loadSupportTicket } from "../../../dashboard/support/data";
-import { formatDate, relationName, statusLabel } from "../../../dashboard/support/page";
+import { formatDate, relationName, statusLabel } from "../../../dashboard/support/support-format";
 import styles from "../../../dashboard/support/support.module.css";
 
 export default async function PlatformTicketPage({ params }: { params: Promise<{ ticketId: string }> }) {

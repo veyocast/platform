@@ -182,6 +182,7 @@ test.describe("Control enterprise roles evidence", () => {
     await expect(page).toHaveURL(/\/dashboard$/);
 
     await navigate(page, "/dashboard/team");
+    await page.getByRole("tab", { name: "Rollen" }).click();
     await expect(page.getByRole("heading", { level: 2, name: "Custom rollen" })).toBeVisible();
     await page.waitForLoadState("networkidle");
     if (await page.getByText("Contentcoördinator", { exact: true }).count() === 0) {
@@ -193,10 +194,10 @@ test.describe("Control enterprise roles evidence", () => {
       await dialog.getByLabel(/Publiceren/).check();
       await dialog.getByRole("button", { name: "Rol maken" }).click();
       await expect(page.getByText("De custom rol en effectieve werkrechten zijn opgeslagen.")).toBeVisible();
+      await page.getByRole("tab", { name: "Rollen" }).click();
     }
 
     await expect(page.getByRole("heading", { level: 2, name: "Custom rollen" })).toBeVisible();
-    await expectFormGridAlignment(page, ".team-invite-form .form-grid");
     await hideDevelopmentOverlays(page);
     await page.screenshot({
       fullPage: true,
@@ -205,6 +206,7 @@ test.describe("Control enterprise roles evidence", () => {
 
     await page.setViewportSize({ height: 844, width: 390 });
     await navigate(page, "/dashboard/team");
+    await page.getByRole("tab", { name: "Rollen" }).click();
     await expect(page.getByRole("heading", { level: 2, name: "Custom rollen" })).toBeVisible();
     await hideDevelopmentOverlays(page);
     await page.screenshot({
@@ -212,12 +214,11 @@ test.describe("Control enterprise roles evidence", () => {
       path: path.resolve("docs/screenshots/s31b-team-roles-mobile.png")
     });
 
-    await page.addStyleTag({
-      content: ".control-mobile-nav { display: none !important; }"
-    });
-    await page.locator("#nieuw-teamlid").screenshot({
+    await page.getByRole("button", { name: "Teamlid uitnodigen" }).click();
+    await page.getByRole("dialog", { name: "Teamlid uitnodigen" }).screenshot({
       path: path.resolve("docs/screenshots/s31b-team-invite-mobile.png")
     });
+    await page.getByRole("button", { name: "Sluiten" }).click();
 
     await ensureEditableTemplateEvidence(supabase);
     await page.setViewportSize({ height: 1000, width: 1440 });
@@ -243,7 +244,9 @@ test.describe("Control enterprise roles evidence", () => {
     await page.setViewportSize({ height: 1000, width: 1440 });
     await navigate(page, "/dashboard/settings");
     await expect(page.getByRole("heading", { level: 1, name: "Instellingen" })).toBeVisible();
+    await page.getByRole("button", { name: "Afspelen", exact: true }).click();
     await expectFormGridAlignment(page, "#afspelen .form-grid");
+    await page.getByRole("button", { name: "Schermen", exact: true }).click();
     await expectFormGridAlignment(page, "#schermen .form-grid");
     await hideDevelopmentOverlays(page);
     await page.screenshot({

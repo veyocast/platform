@@ -1,24 +1,28 @@
+import { hasCapability } from "@veyocast/auth";
 import { Button, DataTable, PageHeader, StatusPill } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
-import { createSupportTicket } from "./actions";
 import { loadTenantSupport } from "./data";
-import styles from "./support.module.css";
+import { NewTicketDialog } from "./new-ticket-dialog";
+import { formatDate, relationName, statusLabel } from "./support-format";
 
 export default async function SupportPage() {
   const session = await requireTenantControlSession("tenant.ticket.read");
   const data = session.tenantId
     ? await loadTenantSupport(session.tenantId)
     : { departments: [], tickets: [] };
+  const canWrite = session.isLive && hasCapability(session.capabilities, "tenant.ticket.write");
+  const canExportSupport =
+    session.isLive && hasCapability(session.capabilities, "tenant.support.export");
   return (
     <>
       <PageHeader
+        actions={canWrite ? <NewTicketDialog departments={data.departments} /> : null}
         description="Stel een vraag en volg ieder antwoord onder één herkenbaar ticketnummer."
         eyebrow={session.tenant}
         title="Support"
       />
-      <div className={styles.layout}>
-        <section className="workspace-section" aria-labelledby="tickets-title">
+      <section className="workspace-section" aria-labelledby="tickets-title">
           <div className="workspace-section__header">
             <div>
               <h2 className="workspace-section__title" id="tickets-title">Mijn tickets</h2>
@@ -40,38 +44,28 @@ export default async function SupportPage() {
             </tbody>
           </DataTable>
           {!data.tickets.length ? <p className="work-panel__meta">Nog geen tickets.</p> : null}
-        </section>
-        <section className="workspace-section" aria-labelledby="new-ticket-title">
-          <div className="workspace-section__header">
-            <div>
-              <h2 className="workspace-section__title" id="new-ticket-title">Nieuw ticket</h2>
-              <p className="work-panel__meta">Kies de juiste afdeling voor een snellere behandeling.</p>
-            </div>
+      </section>
+
+      <section className="data-surface support-export" aria-labelledby="support-export-title">
+        <div className="work-panel__header">
+          <div>
+            <h2 className="work-panel__title" id="support-export-title">Veilige supportbundel</h2>
+            <p className="work-panel__meta">
+              Exporteert een privacyveilige diagnose over de laatste 24 uur. Tokens, persoonsgegevens,
+              credentialhashes, URL&apos;s en ruwe logs worden nooit opgenomen.
+            </p>
           </div>
-          <form action={createSupportTicket} className={styles.form}>
-            <label><span>Afdeling</span><select name="departmentId" required>{data.departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}</select></label>
-            <label><span>Prioriteit</span><select defaultValue="normal" name="priority"><option value="low">Laag</option><option value="normal">Normaal</option><option value="high">Hoog</option><option value="urgent">Urgent</option></select></label>
-            <label className={styles.wide}><span>Onderwerp</span><input maxLength={160} name="subject" required /></label>
-            <label className={styles.wide}><span>Bericht</span><textarea maxLength={10000} name="body" required rows={7} /></label>
-            <label className={styles.checkbox}><input name="sensitive" type="checkbox" /> Bevat gevoelige inhoud; beperk inzage</label>
-            <Button type="submit">Ticket versturen</Button>
-          </form>
-        </section>
-      </div>
+          <StatusPill label="Allowlist" tone="success" />
+        </div>
+        <div className="support-export__actions">
+          {canExportSupport ? (
+            <form action="/api/support-bundle" method="post">
+              <Button type="submit" variant="secondary">Supportbundel downloaden</Button>
+            </form>
+          ) : <Button disabled type="button" variant="secondary">Geen exportrechten</Button>}
+          <p className="work-panel__meta">Elke geslaagde export wordt append-only geaudit.</p>
+        </div>
+      </section>
     </>
   );
 }
-
-export function relationName(value: unknown) {
-  const item = Array.isArray(value) ? value[0] : value;
-  return item && typeof item === "object" && "name" in item
-    ? String(item.name)
-    : "—";
-}
-export function statusLabel(status: string) {
-  return ({ open: "Open", in_progress: "In behandeling", waiting_for_customer: "Wacht op klant", resolved: "Opgelost", closed: "Gesloten" } as Record<string, string>)[status] ?? status;
-}
-export function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
-}
-

@@ -71,9 +71,10 @@ studio:       54323
 
 S19 finaliseert de VPS-releaseketen. Elke actuele `main`-SHA wordt eenmaal als
 immutable Control-, Player- en Marketingimage gebouwd, eerst naar staging
-uitgerold en pas na groene healthchecks en GitHub Environment-approval met exact
-dezelfde image-digests naar production gepromoveerd. Caddy blijft op de host;
-containers binden alleen op `127.0.0.1`. Zie `docs/deployment/`.
+uitgerold. Alleen een expliciete handmatige productiondispatch promoveert hem
+na groene healthchecks met exact dezelfde image-digests naar production. Caddy
+blijft op de host; containers binden alleen op `127.0.0.1`. Zie
+`docs/deployment/`.
 
 Development blijft op de bestaande dev-VPS. Staging en production hebben op de
 andere VPS eigen Compose-projecten, runtimebestanden en Supabase-projecten.

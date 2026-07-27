@@ -27,6 +27,16 @@ assertNotMatch(
   /^\s*pull_request(?:_target)?:/m,
   "Pull requests mogen geen deployment starten."
 );
+assertMatch(
+  workflow,
+  /workflow_dispatch:\n    inputs:\n      deploy_target:[\s\S]*?options:\n          - staging\n          - production\n/,
+  "Een handmatige deployment moet expliciet staging of production kiezen."
+);
+assertMatch(
+  workflow,
+  /deploy-production:\n    name: Deploy production \(explicit dispatch\)\n    needs: deploy-staging\n    if: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.deploy_target == 'production' \}\}/,
+  "Production mag uitsluitend na een expliciete production-dispatch starten."
+);
 
 const steps = readStepBlocks(workflow);
 for (const step of steps) {
@@ -239,7 +249,7 @@ assertMatch(
 );
 assertMatch(
   workflow,
-  /name: Approve and deploy production[\s\S]*?needs: deploy-staging/,
+  /name: Deploy production \(explicit dispatch\)[\s\S]*?needs: deploy-staging/,
   "Production mag uitsluitend de geverifieerde stagingrelease consumeren."
 );
 assertMatch(

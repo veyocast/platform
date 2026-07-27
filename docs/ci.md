@@ -46,13 +46,16 @@ Do not mark those gates as optional once their feature surface exists.
 `.github/workflows/deploy.yml` deployt uitsluitend na een push naar `main` of een
 gecontroleerde handmatige dispatch. De workflow bouwt de actuele SHA-images één
 keer, activeert staging na migration guards en lokale/publieke healthchecks en
-laat production vervolgens op Environment-approval wachten. Production bouwt
-niet opnieuw en verifieert de exacte staging image-IDs vóór activatie.
+stopt daar bij iedere gewone push. Production is uitsluitend bereikbaar via een
+handmatige dispatch met `deploy_target=production`; ook dan wordt eerst staging
+geverifieerd. Production bouwt niet opnieuw en verifieert de exacte staging
+image-IDs vóór activatie.
 
 `scripts/validate-github-actions.sh` voert naast actionlint een statische
 deploymentsecuritycontrole uit. Die bewaakt `contents: read`, de afwezigheid van
 pull-requestdeployments, `persist-credentials: false`, expliciete jobtokenauth
-voor iedere remote Git-opdracht en de main-/rollback-/stale-releaseguards.
+voor iedere remote Git-opdracht, de expliciete productionkeuze en de
+main-/rollback-/stale-releaseguards.
 
 De bestaande dev-VPS is geen target van deze workflow. Configuratie, secrets,
 runnerlabels, poorten en runbooks staan in `docs/deployment/`.

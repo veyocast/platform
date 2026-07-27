@@ -1,10 +1,13 @@
+import Link from "next/link";
+
 import { hasCapability } from "@veyocast/auth";
 import { Button } from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
-import { PageHeader, StatusPill } from "../../_components/shell-primitives";
+import { PageHeader } from "../../_components/shell-primitives";
 import { updateTenantSettings } from "./actions";
+import { SettingsCategoryWorkspace } from "./settings-category-workspace";
 import { SettingsDirtySavebar } from "./settings-dirty-savebar";
 
 type SettingsPageProps = {
@@ -45,9 +48,6 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.settings.manage");
-  const canExportSupport =
-    session.isLive && hasCapability(session.capabilities, "tenant.support.export");
-
   return (
     <>
       <PageHeader
@@ -70,17 +70,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         </p>
       ) : null}
 
-      <nav aria-label="Instellingencategorieën" className="settings-category-nav">
-        <a href="#clubprofiel">Clubprofiel</a>
-        <a href="#tijdzone">Tijdzone</a>
-        <a href="#afspelen">Afspelen</a>
-        <a href="#schermen">Schermen</a>
-        <a href="#support">Support</a>
-      </nav>
-
-      <form action={updateTenantSettings} className="settings-layout">
+      <form action={updateTenantSettings} className="settings-workspace-form">
         <input name="defaultBackgroundColor" type="hidden" value={data.defaultBackgroundColor ?? ""} />
         <input name="defaultTransition" type="hidden" value={data.defaultTransition} />
+        <SettingsCategoryWorkspace>
         <section className="data-surface" aria-labelledby="club-profile-title" id="clubprofiel">
           <div className="work-panel__header">
             <div>
@@ -88,9 +81,11 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               <p className="work-panel__meta">De zichtbare naam van de actieve vereniging.</p>
             </div>
           </div>
-          <div className="field">
-            <label htmlFor="settings-name">Verenigingsnaam</label>
-            <input defaultValue={data.name} disabled={!canManage} id="settings-name" maxLength={120} minLength={2} name="name" required type="text" />
+          <div className="form-grid">
+            <div className="field">
+              <label htmlFor="settings-name">Verenigingsnaam</label>
+              <input defaultValue={data.name} disabled={!canManage} id="settings-name" maxLength={120} minLength={2} name="name" required type="text" />
+            </div>
           </div>
         </section>
 
@@ -165,35 +160,21 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </div>
         </section>
 
+        <section className="data-surface" aria-labelledby="security-settings-title" id="beveiliging">
+          <div className="work-panel__header">
+            <div>
+              <h2 className="work-panel__title" id="security-settings-title">Beveiliging</h2>
+              <p className="work-panel__meta">Beheer je eigen sessies en tweestapsverificatie zonder tenantinstellingen te vermengen.</p>
+            </div>
+          </div>
+          <div className="settings-security-actions">
+            <Button asChild variant="secondary"><Link href="/dashboard/account/mfa">Tweestapsverificatie beheren</Link></Button>
+            <Button asChild variant="ghost"><Link href="/dashboard/account">Accountinstellingen</Link></Button>
+          </div>
+        </section>
+        </SettingsCategoryWorkspace>
         <SettingsDirtySavebar disabled={!canManage} />
       </form>
-
-      <section className="data-surface support-export" aria-labelledby="support-export-title" id="support">
-        <div className="work-panel__header">
-          <div>
-            <h2 className="work-panel__title" id="support-export-title">Veilige supportbundel</h2>
-            <p className="work-panel__meta">
-              Exporteert alleen servicestatus, versie, eventcodes, release-ID&apos;s en het tijdvenster van de laatste 24 uur.
-              Tokens, URL&apos;s, persoonsgegevens, credentialhashes, user agents en ruwe logs worden nooit opgenomen.
-            </p>
-          </div>
-          <StatusPill label="Allowlist" tone="success" />
-        </div>
-        <div className="support-export__actions">
-          {canExportSupport ? (
-            <form action="/api/support-bundle" method="post">
-              <Button type="submit" variant="secondary">
-                Supportbundel downloaden
-              </Button>
-            </form>
-          ) : (
-            <Button disabled type="button" variant="secondary">
-              Geen exportrechten
-            </Button>
-          )}
-          <p className="work-panel__meta">Elke geslaagde export wordt append-only geaudit.</p>
-        </div>
-      </section>
     </>
   );
 }

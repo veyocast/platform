@@ -10,7 +10,7 @@ test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   await expect(
     page.getByRole("navigation", { name: "Hoofdnavigatie" })
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Welkom, Daan Operator" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Overzicht" })).toBeVisible();
   await expect(page.getByText("Veilige lege staat")).toBeVisible();
   await expect(page.getByText("Deze route simuleert daarom geen klant")).toBeVisible();
 });
@@ -73,11 +73,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
       });
       await expect(navigation.getByRole("link", { name: /Instellingen/ })).toBeVisible();
       await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
-      await page
-        .getByRole("button", { name: "Navigatie sluiten" })
-        .filter({ visible: true })
-        .last()
-        .click();
+      await page.keyboard.press("Escape");
       await expect(moreButton).toHaveAttribute("aria-expanded", "false");
     } else if (width < 1024) {
       const menuButton = page.getByRole("button", { name: "Navigatie openen" });
@@ -94,7 +90,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
 
       await menuButton.click();
       const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
-      await expect(navigation.getByRole("heading", { name: "Publisher" })).toBeAttached();
+      await expect(navigation.getByRole("heading", { name: "Werkplek" })).toBeAttached();
       await expect(navigation.getByRole("link", { name: /Instellingen/ })).toBeVisible();
       await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
     } else {
@@ -203,10 +199,12 @@ test("Integraties exposes Twelve Producten as a responsive secondary journey", a
       )
     ).toBe(true);
 
-    await page.getByRole("link", { name: "Twelve Producten openen" }).click();
-    await expect(page).toHaveURL(
-      /\/dashboard\/integrations\/twelve-products$/
-    );
+    await expect(async () => {
+      if (!/\/dashboard\/integrations\/twelve-products$/.test(page.url())) {
+        await page.getByRole("link", { name: "Twelve Producten openen" }).click();
+      }
+      await expect(page).toHaveURL(/\/dashboard\/integrations\/twelve-products$/);
+    }).toPass({ timeout: 20_000 });
     await expect(
       page.getByRole("heading", {
         exact: true,
@@ -227,35 +225,28 @@ test("Integraties exposes Twelve Producten as a responsive secondary journey", a
   }
 });
 
-test("compact summaries remain vertically readable on desktop and mobile", async ({ page }) => {
+test("screen workspace keeps its primary controls readable on desktop and mobile", async ({ page }) => {
   for (const viewport of [
-    { height: 900, minimumHeight: 80, width: 1440 },
-    { height: 844, minimumHeight: 64, width: 390 }
+    { height: 900, width: 1440 },
+    { height: 844, width: 390 }
   ]) {
     await page.setViewportSize({
       height: viewport.height,
       width: viewport.width
     });
-    const summary = page.getByLabel("Compact schermoverzicht");
     await expect(async () => {
       try {
         await page.goto("/dashboard/screens");
       } catch (error) {
         if (!String(error).includes("ERR_ABORTED")) throw error;
       }
-      await expect(summary).toBeVisible();
+      await expect(page.getByLabel("Zoeken in de schermvloot")).toBeVisible();
     }).toPass({ timeout: 20_000 });
-    await expect(async () => {
-      const dimensions = await summary.evaluate((element) => ({
-        clientHeight: element.clientHeight,
-        renderedHeight: element.getBoundingClientRect().height,
-        scrollHeight: element.scrollHeight
-      }));
-      expect(dimensions.renderedHeight).toBeGreaterThanOrEqual(
-        viewport.minimumHeight
-      );
-      expect(dimensions.scrollHeight).toBe(dimensions.clientHeight);
-    }).toPass({ timeout: 15_000 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
+      )
+    ).toBe(true);
   }
 });
 
@@ -318,7 +309,7 @@ test("tenant context selection is explicit and keyboard reachable", async ({ pag
     } catch (error) {
       if (!String(error).includes("ERR_ABORTED")) throw error;
     }
-    await expect(page.getByRole("heading", { name: "Welkom, Daan Operator" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Overzicht" })).toBeVisible();
   }).toPass({ timeout: 20_000 });
 
   const switcher = page.locator("summary").filter({ hasText: "Museumkwartier" });
@@ -349,9 +340,7 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await page.waitForTimeout(250);
 
   await expect(page.getByRole("heading", { exact: true, name: "Media" })).toBeVisible();
-  await expect(page.getByLabel("Samenvatting mediabibliotheek")).toContainText(
-    "Actie nodig"
-  );
+  await expect(page.getByLabel("Samenvatting mediabibliotheek")).toHaveCount(0);
   const mediaFilterTrigger = page.getByRole("button", {
     exact: true,
     name: "Filters"
@@ -363,7 +352,7 @@ test("media route exposes upload intake labels and status landmarks", async ({
     await expect(mediaFilterTrigger).toHaveAttribute("data-state", "open");
   }).toPass();
   await expect(page.getByLabel("Filter media op gebruik")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Raster" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Media als raster tonen" })).toBeVisible();
   await page.getByText("Upload- en verwerkingsregels", { exact: true }).click();
   await expect(page.getByLabel("Media pipeline stappen")).toContainText(
     "Veilig activeren"
@@ -394,9 +383,9 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(uploadDialog.getByRole("button", { name: "Video uploaden" })).toBeDisabled();
   await uploadDialog.getByRole("button", { name: "Uploadvenster sluiten" }).click();
 
-  await page.getByRole("link", { name: "Raster" }).click();
+  await page.getByRole("link", { name: "Media als raster tonen" }).click();
   await expect(page).toHaveURL(/view=grid/);
-  await expect(page.getByRole("link", { name: "Raster" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "Media als raster tonen" })).toHaveAttribute(
     "aria-current",
     "page"
   );
@@ -459,9 +448,20 @@ test("settings route exposes real defaults with safe permission state", async ({
 
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Instellingen" })).toBeVisible();
   await expect(page.getByLabel("Verenigingsnaam")).toBeVisible();
-  await expect(page.getByLabel("Afbeeldingsduur in seconden")).toBeVisible();
+  await expect(page.locator(".settings-category-workspace")).toHaveAttribute("data-hydrated", "true");
+  await expect(async () => {
+    if (!(await page.getByLabel("Afbeeldingsduur in seconden").isVisible())) {
+      await page.getByRole("button", { name: "Afspelen", exact: true }).click();
+    }
+    await expect(page.getByLabel("Afbeeldingsduur in seconden")).toBeVisible();
+  }).toPass();
   await expect(page.getByLabel("Video standaard zonder geluid")).toBeVisible();
-  await expect(page.getByLabel("Oriëntatie")).toBeVisible();
+  await expect(async () => {
+    if (!(await page.getByLabel("Oriëntatie").isVisible())) {
+      await page.getByRole("button", { name: "Schermen", exact: true }).click();
+    }
+    await expect(page.getByLabel("Oriëntatie")).toBeVisible();
+  }).toPass();
   await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toHaveCount(0);
   await expect(page.getByRole("status")).toContainText("Configureer Supabase");
 });
@@ -521,10 +521,8 @@ test("screens onboarding exposes labelled lifecycle and safely disabled creation
   }).toPass({ timeout: 20_000 });
 
   await expect(page.getByRole("status").filter({ hasText: "geen fictieve schermen" })).toBeVisible();
-  await Promise.all([
-    page.waitForURL(/\/dashboard\/screens\/new$/, { timeout: 10_000 }),
-    page.getByRole("link", { name: "Scherm toevoegen" }).click()
-  ]);
+  await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
+  await page.goto("/dashboard/screens/new");
   await expect(page.getByLabel("Onboardingstappen")).toContainText("Player koppelen");
   await expect(page.getByLabel("Schermnaam")).toBeVisible();
   await expect(page.getByLabel("Eerste content (optioneel)")).toBeVisible();

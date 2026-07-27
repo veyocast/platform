@@ -16,17 +16,17 @@ describe("control navigation", () => {
 
     expect(links).toStrictEqual([
       "/dashboard",
-      "/dashboard/screens",
-      "/dashboard/screen-groups",
-      "/dashboard/playlists",
       "/dashboard/studio",
       "/dashboard/media",
-      "/dashboard/integrations",
+      "/dashboard/playlists",
+      "/dashboard/screens",
       "/dashboard/planning",
+      "/dashboard/screen-groups",
       "/dashboard/templates",
-      "/dashboard/auditlog",
       "/dashboard/releases",
+      "/dashboard/integrations",
       "/dashboard/team",
+      "/dashboard/auditlog",
       "/dashboard/settings",
       "/dashboard/support"
     ]);
@@ -41,26 +41,28 @@ describe("control navigation", () => {
     expect(groups.map((group) => group.id)).toStrictEqual([
       "platform-overview",
       "platform-organization",
-      "tenant-publisher",
-      "tenant-management"
+      "tenant-workspace",
+      "tenant-management",
+      "tenant-support"
     ]);
     expect(groups.filter((group) => group.scope === "tenant").map((group) => group.title)).toStrictEqual([
-      "Publisher",
-      "Beheer"
+      "Werkplek",
+      "Beheer",
+      "Support"
     ]);
     expect(groups.flatMap((group) => group.items).filter((item) => item.scope === "tenant").map((item) => item.href)).toStrictEqual([
       "/dashboard",
-      "/dashboard/screens",
-      "/dashboard/screen-groups",
-      "/dashboard/playlists",
       "/dashboard/studio",
       "/dashboard/media",
-      "/dashboard/integrations",
+      "/dashboard/playlists",
+      "/dashboard/screens",
       "/dashboard/planning",
+      "/dashboard/screen-groups",
       "/dashboard/templates",
-      "/dashboard/auditlog",
       "/dashboard/releases",
+      "/dashboard/integrations",
       "/dashboard/team",
+      "/dashboard/auditlog",
       "/dashboard/settings",
       "/dashboard/support"
     ]);
@@ -95,9 +97,9 @@ describe("control navigation", () => {
 
     expect(links).toStrictEqual([
       "/dashboard",
+      "/dashboard/media",
       "/dashboard/screens",
-      "/dashboard/screen-groups",
-      "/dashboard/media"
+      "/dashboard/screen-groups"
     ]);
   });
 
@@ -114,7 +116,7 @@ describe("control navigation", () => {
     expect(
       getNavigationGroupsForPathname(groups, "/dashboard/media", "platform")
         .map((group) => group.scope)
-    ).toStrictEqual(["tenant", "tenant"]);
+    ).toStrictEqual(["tenant", "tenant", "tenant"]);
     expect(
       getNavigationGroupsForPathname(groups, "/context", "tenant")
         .every((group) => group.scope === "tenant")

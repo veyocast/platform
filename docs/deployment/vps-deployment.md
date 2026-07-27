@@ -112,7 +112,7 @@ machinebrede Gitconfig of interactieve credentialinvoer.
    - `veyocast-player:${GITHUB_SHA}`;
    - `veyocast-marketing:${GITHUB_SHA}`.
 3. De lokale Docker image-ID's worden vastgelegd in releasemetadata. Marketing
-   wordt vóór enige productieapproval in een tijdelijke container gezond
+   wordt vóór enige productieautorisatie in een tijdelijke container gezond
    bevonden.
 4. `deploy-staging` voert een migration dry-run en forward migration uit,
    activeert alleen Control en Player en controleert lokale en publieke health.
@@ -120,11 +120,12 @@ machinebrede Gitconfig of interactieve credentialinvoer.
    materialiseert die met één build-child, beperkte netwerkconcurrency en
    copy-imports zodat de begrensde runner niet opnieuw de hele monorepo of een
    grote hardlink-workerpool hoeft op te bouwen.
-5. `deploy-production` heeft `needs: deploy-staging` en gebruikt GitHub
-   Environment `production`. De job wacht op required reviewer `TIXOCEO`.
-6. Na approval controleert de job opnieuw dat `origin/main` nog exact dezelfde
-   SHA heeft, vergelijkt alle drie lokale image-ID's met de geteste release en
-   deployt zonder build.
+5. `deploy-production` heeft `needs: deploy-staging`, gebruikt GitHub
+   Environment `production` en start uitsluitend bij een handmatige dispatch
+   met `deploy_target=production`. Een gewone push naar `main` stopt na staging.
+6. De job controleert opnieuw dat `origin/main` nog exact dezelfde SHA heeft,
+   vergelijkt alle lokale image-ID's met de geteste release en deployt zonder
+   build.
 
 Alle runners moeten dezelfde Rootless Docker-daemon en lokale imagestore van de
 gebruiker `deploy` gebruiken. Zonder die eigenschap kan production de op staging
@@ -259,7 +260,7 @@ bij blijvend falen alleen geredigeerde containerlogs.
 
 1. Controleer de Environments volgens
    [github-environments.md](./github-environments.md), inclusief main-only
-   branch policy en de ingestelde productionreviewer.
+   branch policy en de expliciete productiondispatch.
 2. Bevestig dat alle runnerprocessen online zijn, de vereiste labels hebben en
    dezelfde Rootless Docker-daemon onder `deploy` gebruiken.
 3. Bevestig dat staging en production verschillende Supabase-projecten hebben.
@@ -270,10 +271,11 @@ bij blijvend falen alleen geredigeerde containerlogs.
    workflow in `release`-modus met de actuele volledige main-SHA.
 7. Volg `preflight`, `build-release` en `deploy-staging` en test op staging:
    login, afbeeldingupload, playlistpublicatie, pairing en playback.
-8. Open de wachtende `deploy-production`-job, controleer SHA en stagingbewijs en
-   keur de GitHub Environment-deployment goed.
-9. Controleer alle drie production-healthroutes en voer een functionele smoke
-   uit.
+8. Stop voor een staging-only release. Start alleen na expliciete
+   productieautorisatie een nieuwe dispatch met `deploy_target=production`;
+   controleer SHA en stagingbewijs.
+9. Controleer na een productiondispatch alle production-healthroutes en voer
+   een functionele smoke uit.
 
 ## Troubleshooting
 
@@ -283,17 +285,17 @@ Controleer dat een online runner alle vijf labels heeft. `veyocast-vps` is geen
 label van het definitieve model. Controleer daarnaast of de runners als
 repositoryrunners zichtbaar zijn en onder dezelfde `deploy`-gebruiker draaien.
 
-### Production vraagt geen approval
+### Productionjob wordt overgeslagen
 
-Controleer of de protection rule met required reviewer `TIXOCEO` nog actief is.
-Self-review is voorlopig toegestaan; voor verplicht vier-ogenapproval moet eerst
-een tweede reviewer worden toegevoegd.
+Dit is verwacht bij iedere push naar `main` en bij
+`deploy_target=staging`. Start alleen na expliciete productieautorisatie een
+handmatige dispatch met `deploy_target=production`.
 
 ### Production meldt een stale release
 
-`main` is na staging verder gegaan. Keur de oude job niet alsnog goed. Laat de
-nieuwste main-run staging opnieuw doorlopen. Gebruik alleen de expliciete
-rollbackmodus voor een bewust gekozen oudere release.
+`main` is na staging verder gegaan. Start de verouderde release niet alsnog.
+Laat de nieuwste main-run staging opnieuw doorlopen. Gebruik alleen de
+expliciete rollbackmodus voor een bewust gekozen oudere release.
 
 ### Releaseautorisatie kan `origin/main` niet ophalen
 

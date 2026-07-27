@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { hasCapability } from "@veyocast/auth";
 import {
   Alert,
@@ -9,14 +7,12 @@ import {
 } from "@veyocast/ui";
 import {
   ArrowRight,
-  CalendarPlus,
-  CloudUpload,
-  ListPlus,
-  MonitorUp,
+  PackageCheck,
   Radio,
   RefreshCw,
   Server
 } from "lucide-react";
+import Link from "next/link";
 
 import { requireTenantControlSession } from "../../../lib/control-session";
 import { deriveOperationalDashboard } from "../../../lib/control-operations";
@@ -25,6 +21,7 @@ import {
   type TenantOverview
 } from "../../../lib/control-overview";
 import { OperationalActionInbox } from "../_components/operational-action-inbox";
+import { DashboardCreateMenu } from "./dashboard-create-menu";
 import styles from "./publisher-overview.module.css";
 
 export default async function DashboardPage() {
@@ -38,7 +35,11 @@ export default async function DashboardPage() {
   const operations = deriveOperationalDashboard(data);
   return (
     <LiveDashboard
+      canCreateMedia={hasCapability(session.capabilities, "tenant.media.write")}
+      canCreatePlaylist={hasCapability(session.capabilities, "tenant.playlist.write")}
+      canCreateStudio={hasCapability(session.capabilities, "tenant.studio.create")}
       canManageScreens={hasCapability(session.capabilities, "tenant.screen.manage")}
+      canWriteSupport={hasCapability(session.capabilities, "tenant.ticket.write")}
       data={data}
       operations={operations}
       tenant={session.tenant}
@@ -48,13 +49,21 @@ export default async function DashboardPage() {
 }
 
 function LiveDashboard({
+  canCreateMedia,
+  canCreatePlaylist,
+  canCreateStudio,
   canManageScreens,
+  canWriteSupport,
   data,
   operations,
   tenant,
   userName
 }: {
+  canCreateMedia: boolean;
+  canCreatePlaylist: boolean;
+  canCreateStudio: boolean;
   canManageScreens: boolean;
+  canWriteSupport: boolean;
   data: TenantOverview;
   operations: ReturnType<typeof deriveOperationalDashboard>;
   tenant: string;
@@ -99,16 +108,17 @@ function LiveDashboard({
     <>
       <PageHeader
         actions={
-          <Button asChild>
-            <Link href="/dashboard/playlists?nieuw=1">
-              <ListPlus aria-hidden="true" />
-              Nieuwe playlist
-            </Link>
-          </Button>
+          <DashboardCreateMenu
+            canCreateMedia={canCreateMedia}
+            canCreatePlaylist={canCreatePlaylist}
+            canCreateStudio={canCreateStudio}
+            canManageScreens={canManageScreens}
+            canWriteSupport={canWriteSupport}
+          />
         }
-        description="Publiceer content en houd in één oogopslag zicht op wat er live staat."
+        description={`Hallo ${firstName(userName)}. Dit is de actuele status van je VeyoCast-omgeving.`}
         eyebrow={tenant}
-        title={`Welkom, ${userName}`}
+        title="Overzicht"
       />
 
       {data.error ? (
@@ -123,60 +133,6 @@ function LiveDashboard({
         signals={actionableSignals.slice(0, 5)}
         totalCount={actionableSignals.length}
       />
-
-      <section aria-label="Publisherstatus" className={styles.statusGrid}>
-        <StatusCard
-          detail="gekoppelde schermen bereikbaar"
-          href="/dashboard/screens?status=online"
-          icon={<Radio aria-hidden="true" />}
-          label="Schermen online"
-          tone={operations.onlineScreenCount === data.screens.length ? "success" : "warning"}
-          value={`${operations.onlineScreenCount} van ${data.screens.length}`}
-        />
-        <StatusCard
-          detail={unpublishedDraftCount ? "concepten wachten op publicatie" : "alles gepubliceerd"}
-          href="/dashboard/playlists?status=draft"
-          icon={<CloudUpload aria-hidden="true" />}
-          label="Publicatie gereed"
-          tone={unpublishedDraftCount ? "warning" : "success"}
-          value={String(unpublishedDraftCount)}
-        />
-        <StatusCard
-          detail={unsyncedScreenCount ? "schermen lopen nog achter" : "alle schermen zijn bij"}
-          href="/dashboard/screens?sync=pending"
-          icon={<RefreshCw aria-hidden="true" />}
-          label="Synchronisatie"
-          tone={unsyncedScreenCount ? "warning" : "success"}
-          value={unsyncedScreenCount ? `${unsyncedScreenCount} open` : "Actueel"}
-        />
-        <StatusCard
-          href="/dashboard/media"
-          icon={<Server aria-hidden="true" />}
-          label="Opslag"
-          tone="neutral"
-          detail={data.mediaStorageLimitBytes === null
-            ? `${formatBytes(mediaBytes)} gebruikt · geen limiet ingesteld`
-            : `${formatBytes(mediaBytes)} van ${formatBytes(data.mediaStorageLimitBytes)}`}
-          value={formatBytes(mediaBytes)}
-        />
-      </section>
-
-      <nav aria-label="Snelle acties" className={styles.quickActions}>
-        <QuickAction href="/dashboard/playlists?nieuw=1" icon={<ListPlus aria-hidden="true" />}>
-          Nieuwe playlist
-        </QuickAction>
-        <QuickAction href="/dashboard/media?upload=1" icon={<CloudUpload aria-hidden="true" />}>
-          Media uploaden
-        </QuickAction>
-        {canManageScreens ? (
-          <QuickAction href="/dashboard/screens/new" icon={<MonitorUp aria-hidden="true" />}>
-            Scherm koppelen
-          </QuickAction>
-        ) : null}
-        <QuickAction href="/dashboard/planning?nieuw=1" icon={<CalendarPlus aria-hidden="true" />}>
-          Planning maken
-        </QuickAction>
-      </nav>
 
       <section
         className={`${styles.dashboardGrid}${
@@ -255,6 +211,43 @@ function LiveDashboard({
         ) : null}
       </section>
 
+      <section aria-label="Publisherstatus" className={styles.statusGrid}>
+        <StatusCard
+          detail="gekoppelde schermen bereikbaar"
+          href="/dashboard/screens?status=online"
+          icon={<Radio aria-hidden="true" />}
+          label="Schermen online"
+          tone={operations.onlineScreenCount === data.screens.length ? "success" : "warning"}
+          value={`${operations.onlineScreenCount} van ${data.screens.length}`}
+        />
+        <StatusCard
+          detail={unpublishedDraftCount ? "concepten wachten op publicatie" : "alles gepubliceerd"}
+          href="/dashboard/playlists?status=draft"
+          icon={<PackageCheck aria-hidden="true" />}
+          label="Publicatie gereed"
+          tone={unpublishedDraftCount ? "warning" : "success"}
+          value={String(unpublishedDraftCount)}
+        />
+        <StatusCard
+          detail={unsyncedScreenCount ? "schermen lopen nog achter" : "alle schermen zijn bij"}
+          href="/dashboard/screens?sync=pending"
+          icon={<RefreshCw aria-hidden="true" />}
+          label="Synchronisatie"
+          tone={unsyncedScreenCount ? "warning" : "success"}
+          value={unsyncedScreenCount ? `${unsyncedScreenCount} open` : "Actueel"}
+        />
+        <StatusCard
+          href="/dashboard/media"
+          icon={<Server aria-hidden="true" />}
+          label="Opslag"
+          tone="neutral"
+          detail={data.mediaStorageLimitBytes === null
+            ? `${formatBytes(mediaBytes)} gebruikt · geen limiet ingesteld`
+            : `${formatBytes(mediaBytes)} van ${formatBytes(data.mediaStorageLimitBytes)}`}
+          value={formatBytes(mediaBytes)}
+        />
+      </section>
+
       <section className={styles.activityPanel} aria-labelledby="recent-events-title">
         <SectionHeading
           actionHref="/dashboard/auditlog"
@@ -321,23 +314,6 @@ function StatusCard({
   );
 }
 
-function QuickAction({
-  children,
-  href,
-  icon
-}: {
-  children: React.ReactNode;
-  href: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Link className={styles.quickAction} href={href}>
-      {icon}
-      <span>{children}</span>
-    </Link>
-  );
-}
-
 function SectionHeading({
   actionHref,
   actionLabel,
@@ -373,10 +349,10 @@ function DemoDashboardPage({ userName }: { userName: string }) {
   return (
     <>
       <PageHeader
-        description="Deze lokale demomodus bevat bewust geen fictieve KPI’s of operationele meldingen. Verbind een live tenant om het dashboard te vullen."
+        description={`Hallo ${firstName(userName)}. Deze lokale demomodus bevat bewust geen fictieve KPI’s of operationele meldingen.`}
         eyebrow="Lokale demomodus"
         status={{ label: "Geen live tenantdata", tone: "info" }}
-        title={`Welkom, ${userName}`}
+        title="Overzicht"
       />
       <section className="empty-dashboard" aria-labelledby="demo-dashboard-title">
         <StatusPill label="Veilige lege staat" tone="info" />
@@ -417,4 +393,8 @@ function targetTypeLabel(value: string) {
     screen_groups: "Schermgroep",
     screens: "Scherm"
   } as Record<string, string>)[value] ?? humanize(value);
+}
+
+function firstName(value: string) {
+  return value.trim().split(/\s+/)[0] || value;
 }

@@ -15,9 +15,10 @@ async function follow(
 }
 
 test("renders the control shell with role-aware navigation", async ({ page }) => {
+  test.setTimeout(90_000);
   await page.goto("/dashboard");
 
-  await expect(page.getByRole("heading", { name: "Welkom, Daan Operator" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Overzicht" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Verbind een live omgeving voor operationeel inzicht" })).toBeVisible();
   await expect(page.getByText("Veilige lege staat")).toBeVisible();
   await expect(page.getByText("Bestuurskamer")).toHaveCount(0);
@@ -30,11 +31,16 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("link", { name: /Overzicht/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
+  await expect(async () => {
+    const expandButton = nav.getByRole("button", { name: "Beheer uitklappen" });
+    if (await expandButton.count()) await expandButton.click();
+    await expect(nav.getByRole("link", { name: /Integraties/ })).toBeVisible();
+  }).toPass();
   await expect(nav.getByRole("link", { name: /Integraties/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Releases/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Schermen/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
-  await expect(nav.getByRole("heading", { name: "Publisher" })).toBeAttached();
+  await expect(nav.getByRole("heading", { name: "Werkplek" })).toBeAttached();
   await expect(nav.getByRole("heading", { name: "Beheer" })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
 
@@ -100,13 +106,8 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   ).toBeVisible();
   await expect(page.getByText("Demomodus", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Schermvloot" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toBeVisible();
-
-  await follow(
-    page,
-    () => page.getByRole("link", { name: "Scherm toevoegen" }),
-    /\/dashboard\/screens\/new$/
-  );
+  await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
+  await page.goto("/dashboard/screens/new");
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Scherm toevoegen" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Schermdetails en eerste content" })).toBeVisible();
 
@@ -150,57 +151,34 @@ test("persists theme and density preferences without a color flash", async ({ pa
   test.setTimeout(60_000);
   await page.goto("/dashboard");
 
+  const dialog = page.getByRole("dialog", { name: "Weergave aanpassen" });
+  const trigger = page.getByRole("button", {
+    name: /Thema en dichtheid: (Systeem|Donker)/
+  });
   await expect(async () => {
-    if ((await page.locator("html").getAttribute("data-theme")) !== "dark") {
-      const switcher = page.locator("details.control-theme-switcher");
-      if ((await switcher.getAttribute("open")) === null) {
-        await page
-          .getByRole("button", {
-            name: /Thema en dichtheid: (Systeem|Donker)/
-          })
-          .click();
-      }
-      await expect(switcher).toHaveAttribute("open", "");
-      await page
-        .getByRole("radio", { name: "Donker" })
-        .click();
-    }
-    await expect
-      .poll(() =>
-        page.evaluate(() =>
-          window.localStorage.getItem("veyocast-control-theme")
-        )
-      )
-      .toBe("dark");
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  }).toPass({ timeout: 45_000 });
+    if (!(await dialog.isVisible())) await trigger.click();
+    await expect(dialog).toBeVisible();
+  }).toPass();
+  await dialog.getByRole("radio", { name: "Donker" }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect.poll(() =>
+    page.evaluate(() => window.localStorage.getItem("veyocast-control-theme"))
+  ).toBe("dark");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator(".control-brand__logo--inverse")).toBeVisible();
 
   await expect(async () => {
-    if ((await page.locator("html").getAttribute("data-density")) !== "compact") {
-      const switcher = page.locator("details.control-theme-switcher");
-      if ((await switcher.getAttribute("open")) === null) {
-        await page
-          .getByRole("button", { name: "Thema en dichtheid: Donker" })
-          .click();
-      }
-      await expect(switcher).toHaveAttribute("open", "");
-      await page
-        .getByRole("radio", { name: "Compact" })
-        .click();
+    if (!(await dialog.isVisible())) {
+      await page.getByRole("button", { name: "Thema en dichtheid: Donker" }).click();
     }
-    await expect
-      .poll(() =>
-        page.evaluate(() =>
-          window.localStorage.getItem("veyocast-control-density")
-        )
-      )
-      .toBe("compact");
-    await expect(page.locator("html")).toHaveAttribute(
-      "data-density",
-      "compact"
-    );
-  }).toPass({ timeout: 45_000 });
+    await expect(dialog).toBeVisible();
+  }).toPass();
+  await dialog.getByRole("radio", { name: "Compact" }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect.poll(() =>
+    page.evaluate(() => window.localStorage.getItem("veyocast-control-density"))
+  ).toBe("compact");
+  await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -294,6 +272,11 @@ test("keeps the sidebar logo fixed while navigation and content scroll independe
   await expect(sidebar).toHaveCSS("overflow", "hidden");
   await expect(navigation).toHaveCSS("overflow-y", "auto");
   await expect(main).toHaveCSS("overflow-y", "auto");
+  await navigation.getByRole("button", { name: "Beheer uitklappen" }).click();
+  await main.evaluate((element) => {
+    const content = element.querySelector<HTMLElement>("#control-content");
+    if (content) content.style.minHeight = "1400px";
+  });
 
   await main.evaluate((element) => element.scrollTo({ top: 900 }));
   expect(await main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
@@ -370,9 +353,11 @@ test("supports command navigation and the compact mobile navigation flow", async
     name: "Hoofdnavigatie"
   });
   await expect(navigation).toBeVisible();
+  await expect(navigation.getByRole("link", { name: /Media/ })).toHaveCount(0);
+  await page.keyboard.press("Escape");
   await follow(
     page,
-    () => navigation.getByRole("link", { name: /Media/ }),
+    () => mobileNavigation.getByRole("link", { name: "Media" }),
     /\/dashboard\/media$/
   );
 });

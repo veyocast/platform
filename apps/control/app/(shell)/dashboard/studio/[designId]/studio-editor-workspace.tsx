@@ -535,15 +535,17 @@ export function StudioEditorWorkspace({
             </Button>
           </div>
           <SaveIndicator saveState={state.saveState} />
-          <Button
-            disabled={!permissions.canEdit || state.saveState === "saving"}
-            onClick={() => void save()}
-            size="sm"
-            variant="secondary"
-          >
-            <Save aria-hidden="true" />
-            Opslaan
-          </Button>
+          {state.saveState !== "saved" ? (
+            <Button
+              disabled={!permissions.canEdit || state.saveState === "saving"}
+              onClick={() => void save()}
+              size="sm"
+              variant="secondary"
+            >
+              <Save aria-hidden="true" />
+              Opslaan
+            </Button>
+          ) : null}
           <Button
             onClick={() => setPreviewOpen(true)}
             size="sm"

@@ -6,6 +6,14 @@ on:
       - main
   workflow_dispatch:
     inputs:
+      deploy_target:
+        description: Doel na stagingvalidatie
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
       mode:
         description: Normale release of gecontroleerde rollback
         required: true
@@ -271,8 +279,9 @@ jobs:
         run: bash scripts/deploy-vps.sh staging deploy
 
   deploy-production:
-    name: Approve and deploy production
+    name: Deploy production (explicit dispatch)
     needs: deploy-staging
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_target == 'production' }}
     runs-on:
       - self-hosted
       - linux
@@ -318,7 +327,7 @@ jobs:
           unset auth_header
 
           if [[ ${DEPLOYMENT_MODE} == release && $(git rev-parse origin/main) != "${RELEASE_SHA}" ]]; then
-            echo "Main is verder gegaan; deze production approval is verouderd." >&2
+            echo "Main is verder gegaan; deze productiondeployment is verouderd." >&2
             exit 1
           fi
           if [[ ${DEPLOYMENT_MODE} == rollback ]] && ! git merge-base --is-ancestor "${RELEASE_SHA}" origin/main; then

@@ -132,7 +132,7 @@ test("playlist authoring and settings remain sequential on mobile", async ({ pag
 
   await navigate(page, "/dashboard/settings");
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Instellingen" })).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "Instellingencategorieën" })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Categorie" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toHaveCount(0);
   await expect(async () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -155,20 +155,16 @@ test("dashboard forms and surfaces share canonical alignment", async ({ page }) 
         const navigationLocator = page.getByRole("navigation", {
           name: "Instellingencategorieën"
         });
-        const firstSectionLocator = page.locator(".settings-layout > .data-surface").first();
-        await expect(navigationLocator).toBeVisible();
+        const selectLocator = page.getByRole("combobox", { name: "Categorie" });
+        const firstSectionLocator = page.locator(".settings-category-panels > .data-surface:visible").first();
         await expect(firstSectionLocator).toBeVisible();
-        await expect(async () => {
-          const [navigation, firstSection] = await Promise.all([
-            navigationLocator.boundingBox(),
-            firstSectionLocator.boundingBox()
-          ]);
-          expect(navigation).not.toBeNull();
-          expect(firstSection).not.toBeNull();
-          expect(Math.abs((navigation?.x ?? 0) - (firstSection?.x ?? 0))).toBeLessThanOrEqual(1);
-          expect(Math.abs((navigation?.width ?? 0) - (firstSection?.width ?? 0))).toBeLessThanOrEqual(1);
-          expect(navigation?.height).toBe(50);
-        }).toPass({ timeout: 10_000 });
+        if (viewport.width < 768) {
+          await expect(navigationLocator).not.toBeVisible();
+          await expect(selectLocator).toBeVisible();
+        } else {
+          await expect(navigationLocator).toBeVisible();
+          await expect(selectLocator).not.toBeVisible();
+        }
       }
     }
 

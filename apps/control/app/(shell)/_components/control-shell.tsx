@@ -2,10 +2,14 @@
 
 import { hasCapability } from "@veyocast/auth";
 import {
+  Button,
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
   IconButton,
@@ -16,6 +20,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Activity,
+  BadgeCheck,
   Building2,
   CalendarDays,
   ChevronDown,
@@ -39,6 +44,7 @@ import {
   ServerCog,
   Settings2,
   ShieldCheck,
+  SlidersHorizontal,
   Users,
   X
 } from "lucide-react";
@@ -94,6 +100,7 @@ const navigationIcons: Record<string, LucideIcon> = {
   Tenants: Building2
 };
 const sidebarStorageKey = "veyocast-control-sidebar-collapsed";
+const managementStorageKey = "veyocast-control-management-open";
 const previousSidebarStorageKey = `${String.fromCharCode(99, 97, 115, 116, 105, 118, 111)}-control-sidebar-collapsed`;
 
 export function ControlShell({
@@ -108,6 +115,7 @@ export function ControlShell({
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
+  const [isManagementOpen, setManagementOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [resourceResults, setResourceResults] = useState<ControlSearchResult[]>([]);
   const [isResourceSearchPending, setResourceSearchPending] = useState(false);
@@ -156,6 +164,9 @@ export function ControlShell({
     }
     setSidebarCollapsed(
       (currentPreference ?? previousPreference) === "true"
+    );
+    setManagementOpen(
+      window.localStorage.getItem(managementStorageKey) === "true"
     );
     setInteractive(true);
 
@@ -295,6 +306,14 @@ export function ControlShell({
     }
   }
 
+  function toggleManagement() {
+    setManagementOpen((current) => {
+      const next = !current;
+      window.localStorage.setItem(managementStorageKey, String(next));
+      return next;
+    });
+  }
+
   function navigateFromCommandPalette(href: string) {
     router.push(href);
     setSearchOpen(false);
@@ -325,6 +344,7 @@ export function ControlShell({
         id="control-sidebar-navigation"
         ref={sidebarRef}
       >
+        <p className="control-mobile-menu-title">Menu</p>
         <div className="control-sidebar__top">
           <div className="control-brand">
             <Image
@@ -444,6 +464,13 @@ export function ControlShell({
             <section
               aria-labelledby={`control-nav-${group.id}`}
               className="control-nav__group"
+              data-collapsed={
+                group.section === "management" &&
+                !isManagementOpen &&
+                !group.items.some((item) => isActive(pathname, item))
+                  ? "true"
+                  : undefined
+              }
               data-scope={group.scope}
               key={group.id}
             >
@@ -453,16 +480,50 @@ export function ControlShell({
                   <small>{group.description}</small>
                 </div>
               ) : null}
-              <h2 className="control-nav__heading" id={`control-nav-${group.id}`}>
-                {group.title}
-              </h2>
-              <ul className="control-nav__list">
+              <div className="control-nav__group-heading">
+                <h2 className="control-nav__heading" id={`control-nav-${group.id}`}>
+                  {group.title}
+                </h2>
+                {group.section === "management" ? (
+                  <button
+                    aria-controls={`control-nav-list-${group.id}`}
+                    aria-expanded={
+                      isManagementOpen ||
+                      group.items.some((item) => isActive(pathname, item))
+                    }
+                    aria-label={`${group.title} ${
+                      isManagementOpen ||
+                      group.items.some((item) => isActive(pathname, item))
+                        ? "inklappen"
+                        : "uitklappen"
+                    }`}
+                    className="control-nav__group-toggle"
+                    onClick={toggleManagement}
+                    type="button"
+                  >
+                    <ChevronDown aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
+              <ul
+                className="control-nav__list"
+                id={`control-nav-list-${group.id}`}
+              >
                 {group.items.map((item) => {
                   const Icon = navigationIcons[item.label] ?? LayoutDashboard;
                   const active = isActive(pathname, item);
 
                   return (
-                    <li key={item.href}>
+                    <li
+                      data-mobile-primary={
+                        ["Overzicht", "Schermen", "Playlists", "Media"].includes(
+                          item.label
+                        )
+                          ? "true"
+                          : undefined
+                      }
+                      key={item.href}
+                    >
                       <Link
                         aria-current={active ? "page" : undefined}
                         aria-label={isSidebarCollapsed ? item.label : undefined}
@@ -511,18 +572,10 @@ export function ControlShell({
                     : "Geen rol toegewezen"}
               </p>
             </div>
-            <form
-              action={signOut}
-              onSubmit={() => clearTenantScopedLocalData(window.localStorage)}
-            >
-              <IconButton
-                aria-label="Uitloggen"
-                title="Uitloggen"
-                type="submit"
-              >
-                <ChevronDown aria-hidden="true" />
-              </IconButton>
-            </form>
+            <AccountMenu
+              activeScope={activeNavigationScope}
+              session={session}
+            />
           </div>
         </div>
       </aside>
@@ -685,6 +738,91 @@ export function ControlShell({
             </div>
         </DialogContent>
       </div>
+    </Dialog>
+  );
+}
+
+function AccountMenu({
+  activeScope,
+  session
+}: {
+  activeScope: "platform" | "tenant";
+  session: ControlSession;
+}) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <IconButton
+          aria-label="Accountmenu openen"
+          title="Accountmenu openen"
+        >
+          <ChevronDown aria-hidden="true" />
+        </IconButton>
+      </DialogTrigger>
+      <DialogContent className="control-account-menu">
+        <DialogHeader>
+          <div className="control-account-menu__identity">
+            <span className="control-user__avatar" aria-hidden="true">
+              {initials(session.userName)}
+            </span>
+            <div>
+              <DialogTitle>{session.userName}</DialogTitle>
+              <DialogDescription>{session.email}</DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+        <DialogBody>
+          <nav aria-label="Accountinstellingen" className="control-account-menu__links">
+            {activeScope === "tenant" ? (
+              <Link href="/dashboard/settings">
+                <Settings2 aria-hidden="true" />
+                Profiel en instellingen
+              </Link>
+            ) : null}
+            {session.isLive ? (
+              <Link href="/auth/mfa">
+                <ShieldCheck aria-hidden="true" />
+                Accountbeveiliging en MFA
+              </Link>
+            ) : null}
+            <a href="https://veyocast.nl/privacy" rel="noreferrer" target="_blank">
+              <ExternalLink aria-hidden="true" />
+              Privacyverklaring
+            </a>
+          </nav>
+          <section
+            aria-labelledby="account-preferences-title"
+            className="control-account-menu__preferences"
+          >
+            <div>
+              <SlidersHorizontal aria-hidden="true" />
+              <div>
+                <h3 id="account-preferences-title">Weergave</h3>
+                <p>Kies thema en informatiedichtheid.</p>
+              </div>
+            </div>
+            <ControlThemeSwitcher />
+          </section>
+          <p className="control-account-menu__role">
+            <BadgeCheck aria-hidden="true" />
+            {activeScope === "tenant" && session.tenantRoleLabel
+              ? session.tenantRoleLabel
+              : session.roles[0]
+                ? roleLabel[session.roles[0]]
+                : "Geen rol toegewezen"}
+          </p>
+        </DialogBody>
+        <DialogFooter>
+          <form
+            action={signOut}
+            onSubmit={() => clearTenantScopedLocalData(window.localStorage)}
+          >
+            <Button type="submit" variant="destructive">
+              Uitloggen
+            </Button>
+          </form>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
