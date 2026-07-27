@@ -44,6 +44,7 @@ export class StudioImageRenderError extends Error {
       | "png_invalid"
       | "png_profile_invalid"
       | "render_cancelled"
+      | "renderer_font_unavailable"
       | "renderer_output_invalid",
     message: string
   ) {

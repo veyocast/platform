@@ -13,12 +13,38 @@ import {
 const require = createRequire(import.meta.url);
 const studioFontFiles = [
   require.resolve(
-    "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2"
+    "@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf"
   ),
   require.resolve(
-    "@fontsource-variable/inter-tight/files/inter-tight-latin-wght-normal.woff2"
+    "@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/inter/800ExtraBold/Inter_800ExtraBold.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/inter-tight/400Regular/InterTight_400Regular.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/inter-tight/500Medium/InterTight_500Medium.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/inter-tight/600SemiBold/InterTight_600SemiBold.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/inter-tight/700Bold/InterTight_700Bold.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/inter-tight/800ExtraBold/InterTight_800ExtraBold.ttf"
   )
 ];
+const studioFontFamilies = ["Inter", "Inter Tight"] as const;
+let studioFontsValidated = false;
 
 export class ResvgSharpStudioRenderer implements StudioExternalRenderer {
   async renderPng(input: {
@@ -97,12 +123,44 @@ export class ResvgSharpStudioRenderer implements StudioExternalRenderer {
 }
 
 function renderSvg(svg: string) {
+  validateStudioRendererFonts();
+  return createResvg(svg).render().asPng();
+}
+
+export function validateStudioRendererFonts() {
+  if (studioFontsValidated) return;
+
+  for (const family of studioFontFamilies) {
+    const probe = createResvg(
+      [
+        '<svg xmlns="http://www.w3.org/2000/svg" width="180" height="48">',
+        `<text x="4" y="37" fill="#FFFFFF" font-family="${family}"`,
+        ' font-size="32" font-weight="700">VeyoCast</text>',
+        "</svg>"
+      ].join(""),
+      "__VeyoCastMissingFont__"
+    ).render();
+    const hasVisibleGlyph = probe.pixels.some(
+      (channel, index) => index % 4 === 3 && channel > 0
+    );
+    if (!hasVisibleGlyph) {
+      throw new StudioImageRenderError(
+        "renderer_font_unavailable",
+        `Studio-renderer kan het verplichte lettertype ${family} niet laden.`
+      );
+    }
+  }
+
+  studioFontsValidated = true;
+}
+
+function createResvg(svg: string, defaultFontFamily = "Inter") {
   return new Resvg(svg, {
     fitTo: { mode: "original" },
     font: {
-      defaultFontFamily: "Inter Variable",
+      defaultFontFamily,
       fontFiles: studioFontFiles,
       loadSystemFonts: false
     }
-  }).render().asPng();
+  });
 }

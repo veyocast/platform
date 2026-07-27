@@ -4,7 +4,8 @@ import {
   parseStudioDocument,
   studioRendererVersion,
   type StudioDocument,
-  type StudioElement
+  type StudioElement,
+  type StudioFontFamily
 } from "@veyocast/studio";
 
 export type StudioSvgAssetSource =
@@ -22,6 +23,11 @@ export type RenderStudioSvgInput = {
   assetSources?: StudioSvgAssetSources;
   document: StudioDocument;
   timeMs: number;
+};
+
+const rendererFontFamilies: Record<StudioFontFamily, string> = {
+  "Inter Tight Variable": "Inter Tight",
+  "Inter Variable": "Inter"
 };
 
 export class StudioSvgRenderError extends Error {
@@ -245,7 +251,7 @@ function renderText(
     background,
     `<text x="${number(x)}" y="${number(y)}"`,
     ` fill="${escapeAttribute(element.fill)}"`,
-    ` font-family="${escapeAttribute(element.fontFamily)}"`,
+    ` font-family="${escapeAttribute(rendererFontFamilies[element.fontFamily])}"`,
     ` font-size="${number(layout.fontSize)}"`,
     ` font-weight="${element.fontWeight}"`,
     ` letter-spacing="${number(element.letterSpacing)}"`,
