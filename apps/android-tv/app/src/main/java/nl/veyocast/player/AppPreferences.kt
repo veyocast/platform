@@ -1,6 +1,7 @@
 package nl.veyocast.player
 
 import android.content.Context
+import android.content.Intent
 import androidx.core.content.edit
 
 class AppPreferences(context: Context) {
@@ -16,10 +17,19 @@ class AppPreferences(context: Context) {
             putBoolean(KEY_DEMO_MODE, BuildConfig.DEMO_MENU_ENABLED && value)
         }
 
-    fun mayAttemptBootStart(now: Long = System.currentTimeMillis()): Boolean {
-        val previousAttempt = preferences.getLong(KEY_LAST_BOOT_ATTEMPT, 0)
-        if (previousAttempt > now || now - previousAttempt >= BOOT_ATTEMPT_COOLDOWN_MS) {
-            preferences.edit { putLong(KEY_LAST_BOOT_ATTEMPT, now) }
+    fun mayAttemptBootStart(
+        trigger: String?,
+        now: Long = System.currentTimeMillis()
+    ): Boolean {
+        val key =
+            if (trigger == Intent.ACTION_MY_PACKAGE_REPLACED) {
+                KEY_LAST_UPDATE_ATTEMPT
+            } else {
+                KEY_LAST_BOOT_ATTEMPT
+            }
+        val previousAttempt = preferences.getLong(key, 0)
+        if (previousAttempt > now || now - previousAttempt >= START_ATTEMPT_COOLDOWN_MS) {
+            preferences.edit { putLong(key, now) }
             return true
         }
         return false
@@ -30,6 +40,7 @@ class AppPreferences(context: Context) {
         const val KEY_BOOT_START = "boot_start_enabled"
         const val KEY_DEMO_MODE = "staging_demo_mode_enabled"
         const val KEY_LAST_BOOT_ATTEMPT = "last_boot_attempt_ms"
-        const val BOOT_ATTEMPT_COOLDOWN_MS = 5 * 60_000L
+        const val KEY_LAST_UPDATE_ATTEMPT = "last_update_attempt_ms"
+        const val START_ATTEMPT_COOLDOWN_MS = 60_000L
     }
 }

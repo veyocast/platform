@@ -45,6 +45,47 @@ application = root.find("application")
 if application is None:
     raise SystemExit("Productionmanifest bevat geen application")
 
+permissions = {
+    permission.attrib.get(android + "name")
+    for permission in root.findall("uses-permission")
+}
+if "android.permission.RECEIVE_BOOT_COMPLETED" not in permissions:
+    raise SystemExit("TV-bundle mist RECEIVE_BOOT_COMPLETED")
+
+def normalized_component_name(component):
+    name = component.attrib.get(android + "name", "")
+    if name.startswith("."):
+        return package_name + name
+    if "." not in name:
+        return package_name + "." + name
+    return name
+
+receivers = {
+    normalized_component_name(receiver): receiver
+    for receiver in application.findall("receiver")
+}
+boot_receiver = receivers.get("nl.veyocast.player.BootCompletedReceiver")
+verification_receiver = receivers.get(
+    "nl.veyocast.player.AutomationLaunchVerificationReceiver"
+)
+if boot_receiver is None or verification_receiver is None:
+    raise SystemExit("TV-bundle mist boot- of zichtbaarheidverificatiereceiver")
+if boot_receiver.attrib.get(android + "exported") != "false":
+    raise SystemExit("Bootreceiver moet exported=false blijven")
+if verification_receiver.attrib.get(android + "exported") != "false":
+    raise SystemExit("Zichtbaarheidverificatiereceiver moet exported=false blijven")
+boot_actions = {
+    action.attrib.get(android + "name")
+    for intent_filter in boot_receiver.findall("intent-filter")
+    for action in intent_filter.findall("action")
+}
+for required_action in (
+    "android.intent.action.BOOT_COMPLETED",
+    "android.intent.action.MY_PACKAGE_REPLACED",
+):
+    if required_action not in boot_actions:
+        raise SystemExit(f"Bootreceiver mist {required_action}")
+
 main_components = []
 launcher_categories = []
 leanback_components = []
@@ -115,6 +156,7 @@ with open(report_path, "w", encoding="utf-8") as report:
     report.write(f"resolvedActivity={activity_name}\n")
     report.write(f"exported={exported}\n")
     report.write(f"enabled={enabled}\n")
+    report.write("bootRecoveryContract=true\n")
 PY
 
 rm -rf "${dex_dir}"
@@ -143,6 +185,15 @@ if ! grep -Fq "Class descriptor  : 'Lnl/veyocast/player/BootCompletedReceiver;'"
   echo "nl.veyocast.player.BootCompletedReceiver ontbreekt in de production-DEX" >&2
   exit 1
 fi
+for class_name in \
+  AutomationActivityLauncher \
+  AutomationLaunchVerifier \
+  AutomationLaunchVerificationReceiver; do
+  if ! grep -Fq "Class descriptor  : 'Lnl/veyocast/player/${class_name};'" "${dex_report}"; then
+    echo "nl.veyocast.player.${class_name} ontbreekt in de production-DEX" >&2
+    exit 1
+  fi
+done
 
 printf 'classExists=true\n' >> "${launcher_report}"
 printf 'bundle=%s\n' "${bundle_path}" >> "${launcher_report}"
