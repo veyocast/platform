@@ -1,0 +1,143 @@
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Layers3, RefreshCw, Sparkles } from "lucide-react";
+
+import { hasCapability } from "@veyocast/auth";
+import { Button, SummaryStrip } from "@veyocast/ui";
+
+import { requireTenantControlSession } from "../../../../lib/control-session";
+import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { PageHeader, StatusPill } from "../../_components/shell-primitives";
+import styles from "../dynamic-content.module.css";
+
+type PageProps = {
+  searchParams: Promise<{ fout?: string; succes?: string }>;
+};
+
+export default async function SlidesPage({ searchParams }: PageProps) {
+  const session = await requireTenantControlSession("tenant.dynamic_slide.read");
+  const params = await searchParams;
+  const canWrite =
+    session.isLive &&
+    session.tenantStatus === "active" &&
+    hasCapability(session.capabilities, "tenant.dynamic_slide.write");
+  const slides = session.isLive ? await loadSlides(session.tenantId!) : [];
+
+  return (
+    <>
+      <PageHeader
+        actions={canWrite ? <Button asChild><Link href="/dashboard/slides/new"><Sparkles aria-hidden="true" />Nieuwe dynamische slide</Link></Button> : null}
+        description="Maak vaste, professioneel vormgegeven slides uit product- en nieuwsdata. Iedere versie wordt vooraf als immutable beeld gerenderd."
+        eyebrow={session.tenant}
+        title="Slides"
+      />
+      {params.fout ? <p className="notice notice--critical" role="alert">{params.fout}</p> : null}
+      {params.succes ? <p className="notice notice--success" role="status">{params.succes}</p> : null}
+      <SummaryStrip items={[
+        { label: "Slides", value: slides.length },
+        { label: "Gereed", value: slides.filter((slide) => slide.status === "ready").length },
+        { label: "In verwerking", value: slides.filter((slide) => slide.status === "rendering").length }
+      ]} />
+
+      <section aria-labelledby="slides-list-title">
+        <h2 className="sr-only" id="slides-list-title">Dynamische slides</h2>
+        {slides.length ? (
+          <div className={styles.grid}>
+            {slides.map((slide) => (
+              <article className={styles.card} key={slide.id}>
+                <div className={styles.preview} data-orientation={slide.orientation}>
+                  {slide.previewUrl ? (
+                    <Image alt={`Voorbeeld van ${slide.name}`} fill sizes="(max-width: 680px) 100vw, 33vw" src={slide.previewUrl} unoptimized />
+                  ) : (
+                    <div className={styles.previewPlaceholder}>
+                      {slide.status === "rendering" ? <RefreshCw aria-hidden="true" /> : <Layers3 aria-hidden="true" />}
+                      <span>{slide.status === "rendering" ? "Immutable preview wordt gemaakt" : "Nog geen bruikbare preview"}</span>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.cardTop}>
+                    <StatusPill {...slideStatus(slide.status)} />
+                    <span className={styles.muted}>{slide.orientation === "portrait" ? "Staand" : "Liggend"}</span>
+                  </div>
+                  <div>
+                    <h3 className={styles.cardTitle}>{slide.name}</h3>
+                    <p className={styles.muted}>{slide.slide_type === "menu" ? "Menubord" : "Nieuws"} · {slide.selection_mode === "latest" ? "Volgt nieuwste snapshot" : "Vastgezet"}</p>
+                  </div>
+                  <Button asChild size="sm" variant="secondary"><Link href={`/dashboard/slides/${slide.id}`}>Open slide <ArrowRight aria-hidden="true" /></Link></Button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <Layers3 aria-hidden="true" />
+            <h2>Nog geen dynamische slides</h2>
+            <p>Kies een vast platformtemplate en koppel een gecontroleerde databron.</p>
+            {canWrite ? <Button asChild><Link href="/dashboard/slides/new">Eerste slide maken</Link></Button> : null}
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
+
+async function loadSlides(tenantId: string) {
+  const supabase = await createControlSupabaseClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("dynamic_slides")
+    .select("id, name, slide_type, orientation, selection_mode, status, current_snapshot_id")
+    .eq("tenant_id", tenantId)
+    .neq("status", "archived")
+    .order("updated_at", { ascending: false });
+  if (error) {
+    console.error("Dynamische slides laden mislukt", { code: error.code });
+    return [];
+  }
+  const snapshotIds = (data ?? []).flatMap((slide) =>
+    slide.current_snapshot_id ? [slide.current_snapshot_id] : []
+  );
+  const snapshots = snapshotIds.length
+    ? await supabase
+      .from("dynamic_slide_snapshots")
+      .select("id, output_media_asset_id")
+      .in("id", snapshotIds)
+    : { data: [], error: null };
+  const assetIds = (snapshots.data ?? []).flatMap((snapshot) =>
+    snapshot.output_media_asset_id ? [snapshot.output_media_asset_id] : []
+  );
+  const variants = assetIds.length
+    ? await supabase
+      .from("media_variants")
+      .select("asset_id, storage_path")
+      .eq("variant_type", "original")
+      .in("asset_id", assetIds)
+    : { data: [], error: null };
+  const signedUrls = new Map<string, string>();
+  await Promise.all((variants.data ?? []).map(async (variant) => {
+    const result = await supabase.storage
+      .from("tenant-media")
+      .createSignedUrl(variant.storage_path, 600);
+    if (result.data?.signedUrl) signedUrls.set(variant.asset_id, result.data.signedUrl);
+  }));
+  const snapshotAssets = new Map(
+    (snapshots.data ?? []).map((snapshot) => [
+      snapshot.id,
+      snapshot.output_media_asset_id
+    ])
+  );
+  return (data ?? []).map((slide) => ({
+    ...slide,
+    previewUrl: slide.current_snapshot_id
+      ? signedUrls.get(snapshotAssets.get(slide.current_snapshot_id) ?? "") ?? null
+      : null
+  }));
+}
+
+function slideStatus(status: string) {
+  if (status === "ready") return { label: "Gereed", tone: "success" as const };
+  if (status === "rendering") return { label: "Renderen", tone: "info" as const };
+  if (status === "error") return { label: "Herstel nodig", tone: "critical" as const };
+  return { label: "Concept", tone: "neutral" as const };
+}
