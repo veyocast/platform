@@ -53,7 +53,8 @@ test("keeps the documented local demo pilot traceable across product planes", as
   await expect(
     page.getByRole("status").filter({ hasText: "geen fictieve schermen" })
   ).toBeVisible();
-  await page.getByRole("link", { name: "Scherm toevoegen" }).click();
+  await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
+  await page.goto("/dashboard/screens/new");
   await expect(page.getByRole("button", { name: "Scherm maken en doorgaan" })).toBeDisabled();
 
   const manifestResponse = await page.request.get(
