@@ -609,3 +609,84 @@ grant execute on function public.complete_scheduled_rss_sync_v1(
 grant execute on function public.fail_scheduled_rss_sync_v1(
   uuid, text, text, text
 ) to service_role;
+
+create or replace function private.queue_latest_dynamic_snapshots_after_sync()
+returns trigger
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  slide_record public.dynamic_slides%rowtype;
+  snapshot_data jsonb;
+  revision_hash text;
+  new_snapshot_id uuid;
+  queued_count integer := 0;
+begin
+  if new.kind <> 'rss'
+    or new.revision is not distinct from old.revision
+  then
+    return new;
+  end if;
+
+  for slide_record in
+    select *
+    from public.dynamic_slides slide
+    where slide.tenant_id = new.tenant_id
+      and slide.data_source_id = new.id
+      and slide.selection_mode = 'latest'
+      and slide.status <> 'archived'
+  loop
+    snapshot_data := private.build_dynamic_snapshot_data(slide_record);
+    revision_hash := encode(extensions.digest(
+      pg_catalog.convert_to(jsonb_build_object(
+        'templateVersionId', slide_record.template_version_id,
+        'configuration', slide_record.configuration_json,
+        'data', snapshot_data
+      )::text, 'UTF8'), 'sha256'
+    ), 'hex');
+    new_snapshot_id := null;
+
+    insert into public.dynamic_slide_snapshots(
+      tenant_id, dynamic_slide_id, template_version_id, data_source_id,
+      source_revision_hash, snapshot_data_json
+    ) values (
+      slide_record.tenant_id, slide_record.id,
+      slide_record.template_version_id, slide_record.data_source_id,
+      revision_hash, snapshot_data
+    )
+    on conflict (
+      dynamic_slide_id, source_revision_hash, template_version_id
+    ) do nothing
+    returning id into new_snapshot_id;
+
+    if new_snapshot_id is not null then
+      insert into public.dynamic_render_jobs(tenant_id, snapshot_id)
+      values (slide_record.tenant_id, new_snapshot_id);
+      update public.dynamic_slides set status = 'rendering'
+      where id = slide_record.id;
+      queued_count := queued_count + 1;
+    end if;
+  end loop;
+
+  if queued_count > 0 then
+    insert into public.audit_events(
+      tenant_id, action, target_type, target_id, result, metadata
+    ) values (
+      new.tenant_id, 'dynamic.snapshot.auto_queued',
+      'dynamic_data_sources', new.id, 'success',
+      jsonb_build_object(
+        'systemExecuted', true,
+        'queuedCount', queued_count
+      )
+    );
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger dynamic_data_sources_queue_latest_snapshots
+after update of revision on public.dynamic_data_sources
+for each row execute function private.queue_latest_dynamic_snapshots_after_sync();
+
+revoke all on function private.queue_latest_dynamic_snapshots_after_sync()
+  from public, anon, authenticated;

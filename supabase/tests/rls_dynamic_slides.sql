@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(15);
+select plan(18);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -210,6 +210,78 @@ select is(
   ),
   'ready',
   'playlist references an ordinary ready image asset'
+);
+
+insert into dynamic_test_ids values (
+  'rss_source',
+  public.create_dynamic_data_source_v1(
+    '10000000-0000-4000-8000-000000000a51',
+    'Clubnieuws',
+    'rss',
+    '{"url":"https://example.com/news.xml"}'::jsonb
+  )
+);
+
+select lives_ok(
+  $$select public.record_rss_sync_v1(
+    (select id from dynamic_test_ids where name = 'rss_source'),
+    '[{
+      "externalId":"article-1",
+      "title":"Trainingstijden",
+      "intro":"Bekijk de actuele trainingstijden.",
+      "author":"Redactie",
+      "sourceName":"Clubnieuws",
+      "link":"https://example.com/news/training",
+      "publishedAt":"2026-07-27T09:00:00Z"
+    }]'::jsonb
+  )$$,
+  'an RSS source can be populated before creating a slide'
+);
+
+insert into dynamic_test_ids
+select
+  'rss_slide',
+  (
+    public.create_dynamic_slide_v1(
+      '10000000-0000-4000-8000-000000000a51',
+      'Laatste clubnieuws',
+      version.id,
+      (select id from dynamic_test_ids where name = 'rss_source'),
+      'latest',
+      '{"title":"Clubnieuws","maxItems":4}'::jsonb
+    ) ->> 'slideId'
+  )::uuid
+from public.dynamic_template_versions version
+join public.dynamic_templates template on template.id = version.template_id
+where template.slug = 'news-editorial-landscape'
+  and version.status = 'published';
+
+select lives_ok(
+  $$select public.record_rss_sync_v1(
+    (select id from dynamic_test_ids where name = 'rss_source'),
+    '[{
+      "externalId":"article-1",
+      "title":"Nieuwe trainingstijden",
+      "intro":"De training begint vanaf maandag een uur eerder.",
+      "author":"Redactie",
+      "sourceName":"Clubnieuws",
+      "link":"https://example.com/news/training",
+      "publishedAt":"2026-07-27T10:00:00Z"
+    }]'::jsonb
+  )$$,
+  'a manual RSS refresh succeeds'
+);
+
+select is(
+  (
+    select count(*)
+    from public.dynamic_slide_snapshots
+    where dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'rss_slide'
+    )
+  ),
+  2::bigint,
+  'a manual RSS refresh automatically queues a new latest snapshot'
 );
 
 reset role;
