@@ -367,6 +367,66 @@ html[data-design-system="atelier-ivory"] .vc-error-state {
 }
 
 html[data-design-system="atelier-ivory"] :where(
+  .empty-state,
+  .empty-dashboard
+) {
+  background: var(--ai-surface);
+  border: 1px dashed var(--ai-border-strong);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+html[data-design-system="atelier-ivory"] .media-library-section {
+  padding: 20px;
+}
+
+html[data-design-system="atelier-ivory"] .media-library-grid {
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+html[data-design-system="atelier-ivory"] .media-library-card {
+  background: var(--ai-surface);
+  border-color: var(--ai-border);
+  border-radius: 12px;
+  box-shadow: none;
+  overflow: hidden;
+  transition:
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+html[data-design-system="atelier-ivory"] .media-library-card:hover {
+  border-color: var(--ai-border-strong);
+  transform: translateY(-1px);
+}
+
+html[data-design-system="atelier-ivory"] .media-library-card__body {
+  gap: 14px;
+  padding: 16px;
+}
+
+html[data-design-system="atelier-ivory"] .media-guidance {
+  background: var(--ai-surface);
+  border-color: var(--ai-border);
+  border-radius: 12px;
+}
+
+html[data-design-system="atelier-ivory"] .media-guidance > summary {
+  min-height: 52px;
+  padding: 14px 18px;
+}
+
+html[data-design-system="atelier-ivory"] :where(
+  .media-upload-dialog__panel,
+  .media-usage
+) {
+  background: var(--ai-canvas);
+  border-color: var(--ai-border);
+  border-radius: 12px;
+}
+
+html[data-design-system="atelier-ivory"] :where(
   .vc-dialog__content,
   .vc-sheet__content
 ) {
@@ -425,6 +485,18 @@ html[data-design-system="atelier-ivory"] .vc-skeleton {
     .vc-button,
     .vc-icon-button,
     .vc-field-control
+  ) {
+    min-height: 44px;
+  }
+
+  html[data-design-system="atelier-ivory"] :where(
+    .field input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+    .field select,
+    .toolbar-field input,
+    .toolbar-field select,
+    .toolbar-date input,
+    .toolbar-search,
+    .toolbar-select
   ) {
     min-height: 44px;
   }
@@ -691,6 +763,50 @@ html[data-design-system="atelier-ivory"] .control-mobile-sheet-close {
     font-size: 0.75rem;
     font-weight: 650;
   }
+
+  html[data-design-system="atelier-ivory"] .data-table--responsive,
+  html[data-design-system="atelier-ivory"] .data-table--responsive tbody,
+  html[data-design-system="atelier-ivory"] .data-table--responsive tr,
+  html[data-design-system="atelier-ivory"] .data-table--responsive td {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+
+  html[data-design-system="atelier-ivory"] .data-table--responsive thead,
+  html[data-design-system="atelier-ivory"] .data-table--responsive caption {
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
+  html[data-design-system="atelier-ivory"] .data-table--responsive tr {
+    background: var(--ai-surface);
+    border: 1px solid var(--ai-border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+  }
+
+  html[data-design-system="atelier-ivory"] .data-table--responsive td {
+    border: 0;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(7.5rem, 0.8fr) minmax(0, 1.2fr);
+    padding: 5px 0;
+  }
+
+  html[data-design-system="atelier-ivory"] .data-table--responsive td::before {
+    color: var(--ai-ink-muted);
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 650;
+  }
 }
 
 @media (max-width: 767px) {
@@ -753,6 +869,14 @@ html[data-design-system="atelier-ivory"] .control-mobile-sheet-close {
 
   html[data-design-system="atelier-ivory"] .vc-summary-strip__item:nth-child(even) {
     border-left: 1px solid var(--ai-border);
+  }
+
+  html[data-design-system="atelier-ivory"] .media-library-section {
+    padding: 16px;
+  }
+
+  html[data-design-system="atelier-ivory"] .media-library-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="tenant"] .control-sidebar {
