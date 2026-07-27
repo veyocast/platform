@@ -16,6 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@veyocast/contracts": "workspace:*",
     "exceljs": "^4.4.0"
   }
 }
