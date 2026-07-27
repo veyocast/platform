@@ -6,6 +6,7 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 
 const evidenceEnabled = process.env.ATELIER_IVORY_EVIDENCE === "1";
 const evidenceStage = process.env.ATELIER_IVORY_STAGE ?? "baseline";
+const demoEvidence = process.env.ATELIER_IVORY_DEMO === "1";
 
 const allRoutes = [
   { name: "overview", pathname: "/dashboard" },
@@ -13,7 +14,13 @@ const allRoutes = [
   { name: "playlists", pathname: "/dashboard/playlists" },
   { name: "media", pathname: "/dashboard/media" },
   { name: "planning", pathname: "/dashboard/planning" },
-  { name: "studio", pathname: "/dashboard/studio" }
+  { name: "studio", pathname: "/dashboard/studio" },
+  { name: "studio-new", pathname: "/dashboard/studio/new" },
+  {
+    demoOnly: true,
+    name: "studio-editor",
+    pathname: "/dashboard/studio/system-matchday-landscape-hd-v1"
+  }
 ] as const;
 
 const allViewports = [
@@ -36,14 +43,18 @@ const requestedViewports = new Set(
     .map((value) => value.trim())
     .filter(Boolean)
 );
-const routes = requestedRoutes.size
-  ? allRoutes.filter((route) => requestedRoutes.has(route.name))
-  : allRoutes;
+const routes = (
+  requestedRoutes.size
+    ? allRoutes.filter((route) => requestedRoutes.has(route.name))
+    : allRoutes
+).filter((route) => !("demoOnly" in route) || demoEvidence);
 const viewports = requestedViewports.size
   ? allViewports.filter((viewport) => requestedViewports.has(viewport.name))
   : allViewports;
 
 async function authenticateAgainstLocalSupabase(context: BrowserContext) {
+  if (demoEvidence) return;
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !anonKey) {
