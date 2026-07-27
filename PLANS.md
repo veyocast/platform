@@ -89,6 +89,7 @@ tests en exitcriteria staan in
 | S45 | LG IPK-installatieforensics | Bevries geweigerde productie 1.0.1, bewijs download- en packageprovenance, herstel de ongewijzigde Signage-envelope en publiceer uitsluitend immutable smoketest 1.0.2 |
 | S46 | Device compatibility en playback-hardening | Algemene Android-compatibiliteit binair bewaken, mobiele Play-track herstellen en native video-startoverlays onderdrukken zonder kiosk- of overlaypermissies |
 | S47 | Schermautomatisering | Per-scherm bedrijfstijden, capability-aware Control, inexacte lokale Androidstart, schedule-aware keep-awake en eerlijke HDMI-CEC-diagnostiek |
+| S50 | Atelier Ivory Control en Studio | Definitieve semantische light/dark-interface, responsive shell, kernworkspaces, beide editors en visuele bewijsvoering |
 
 ### Programmagates
 
