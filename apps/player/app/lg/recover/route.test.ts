@@ -30,6 +30,11 @@ describe("zelfstandige LG recoveryroute", () => {
     expect(html).toContain("veyocast.player.instanceId");
     expect(html).toContain("veyocast-player-cache-v1");
     expect(html).toContain("veyocast-player-assets-v1");
+    expect(html).toContain('"/api/player/installation"');
+    expect(html).toContain('"/api/player/pairing"');
+    expect(html).toContain("Nieuwe koppelcode ");
+    expect(html).toContain("maximumAttempts = 4");
+    expect(html).toContain("stopRecovery(detail)");
   });
 
   it("gebruikt conservatieve functies in plaats van moderne modulechunks", () => {

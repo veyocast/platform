@@ -36,6 +36,9 @@ const recoveryScriptConfiguration = {
     localStoragePlayerInstanceKey,
     previousPlayerStorageKey("instanceId")
   ],
+  installationCredentialKeys: [
+    localStorageInstallationCredentialKey
+  ],
   hardResetKeys: [
     localStorageInstallationCredentialKey,
     localStorageExecutedCommandsKey
@@ -267,6 +270,7 @@ export function renderLgRecoveryHtml() {
     var autoTimer = null;
     var deviceToken = null;
     var installationId = null;
+    var installationCredential = null;
     var credentialStatus = "missing";
     var cacheNotes = [];
 
@@ -348,25 +352,37 @@ export function renderLgRecoveryHtml() {
       detailNode.textContent = detail;
     }
 
-    function guardedStep(number, task, next) {
+    function guardedStep(number, task, next, timeoutMs) {
       var finished = false;
       var timeout = window.setTimeout(function () {
-        finish("warning", "Deze stap duurde te lang en is veilig overgeslagen.");
-      }, 12000);
+        finish(
+          "warning",
+          "Deze stap duurde te lang. Er is niets onveilig verwijderd.",
+          false
+        );
+      }, timeoutMs || 12000);
       setStep(number, "running", "Bezig...");
 
-      function finish(status, detail) {
+      function finish(status, detail, shouldContinue) {
         if (finished) { return; }
         finished = true;
         window.clearTimeout(timeout);
         setStep(number, status, detail);
+        if (shouldContinue === false) {
+          stopRecovery(detail);
+          return;
+        }
         window.setTimeout(next, 120);
       }
 
       try {
         task(finish);
       } catch (error) {
-        finish("warning", "Niet beschikbaar op deze browser; herstel gaat verder.");
+        finish(
+          "warning",
+          "Deze stap gaf een onverwachte fout. Probeer het herstel opnieuw.",
+          false
+        );
       }
     }
 
@@ -374,6 +390,7 @@ export function renderLgRecoveryHtml() {
       var xhr;
       ensureInstallationId();
       deviceToken = firstStored(CONFIG.deviceTokenKeys);
+      installationCredential = firstStored(CONFIG.installationCredentialKeys);
       if (!deviceToken) {
         credentialStatus = "missing";
         done("done", "Installatie-ID gevonden; er is geen actief devicecredential.");
@@ -423,14 +440,22 @@ export function renderLgRecoveryHtml() {
 
     function notifyPendingRecovery(callback) {
       var xhr;
-      if (!deviceToken) {
+      if (!deviceToken && !installationCredential) {
         callback(false);
         return;
       }
       xhr = new XMLHttpRequest();
       xhr.open("POST", "/api/player/pairing/recover", true);
       xhr.timeout = 6000;
-      xhr.setRequestHeader("Authorization", "Bearer " + deviceToken);
+      if (deviceToken) {
+        xhr.setRequestHeader("Authorization", "Bearer " + deviceToken);
+      }
+      if (installationCredential) {
+        xhr.setRequestHeader(
+          "X-VeyoCast-Installation-Credential",
+          installationCredential
+        );
+      }
       xhr.setRequestHeader("Content-Type", "application/json");
       xhr.onload = function () { callback(xhr.status >= 200 && xhr.status < 300); };
       xhr.onerror = function () { callback(false); };
@@ -472,6 +497,7 @@ export function renderLgRecoveryHtml() {
           }
           installationId = createInstallationId().toLowerCase();
           safeSet(CONFIG.installationKeys[0], installationId);
+          installationCredential = null;
         }
 
         if (!serverNotified && deviceToken) {
@@ -629,21 +655,200 @@ export function renderLgRecoveryHtml() {
       });
     }
 
-    function prepareNewPairing(done) {
+    function validOpaqueCredential(value) {
+      return typeof value === "string" && /^[A-Za-z0-9_-]{20,200}$/.test(value);
+    }
+
+    function parseJson(xhr) {
+      try { return JSON.parse(xhr.responseText || "null"); } catch (error) { return null; }
+    }
+
+    function requestJson(method, path, headers, body, callback) {
+      var xhr = new XMLHttpRequest();
+      var key;
+      xhr.open(method, path, true);
+      xhr.timeout = 9000;
+      xhr.setRequestHeader("Accept", "application/json");
+      for (key in headers) {
+        if (Object.prototype.hasOwnProperty.call(headers, key) && headers[key]) {
+          xhr.setRequestHeader(key, headers[key]);
+        }
+      }
+      xhr.onload = function () {
+        callback(null, xhr.status, parseJson(xhr), xhr.getResponseHeader("Retry-After"));
+      };
+      xhr.onerror = function () {
+        callback("NETWORK_ERROR", 0, null, null);
+      };
+      xhr.ontimeout = function () {
+        callback("TIMEOUT", 0, null, null);
+      };
+      xhr.send(body || null);
+    }
+
+    function preparePairingMarker(pairingPrepared) {
       var now = new Date().getTime();
       var marker = {
         completedAt: now,
         expiresAt: now + CONFIG.recoveryMarkerTtlMs,
         mode: mode,
+        pairingPrepared: pairingPrepared === true,
         version: 1
       };
       safeSet(CONFIG.recoveryMarkerKey, JSON.stringify(marker));
-      done(
-        "done",
-        credentialStatus === "valid" && mode === "soft"
-          ? "Herstel voltooid; de bestaande koppeling wordt opnieuw geladen."
-          : "Herstel voltooid; de Player vraagt op /lg een nieuwe code aan."
-      );
+    }
+
+    function persistPreparedPairing(body) {
+      safeSet(CONFIG.deviceTokenKeys[0], body.deviceToken);
+      safeSet(CONFIG.pairingKeys[0], body.pairingCode);
+      safeSet(CONFIG.pairingKeys[1], body.expiresAt);
+      safeRemove(CONFIG.pairingKeys[3]);
+    }
+
+    function retryDelay(attempt, retryAfter) {
+      var serverSeconds = Number(retryAfter);
+      if (isFinite(serverSeconds) && serverSeconds > 0) {
+        return Math.min(10000, Math.max(1000, Math.ceil(serverSeconds * 1000)));
+      }
+      return Math.min(8000, 1000 * Math.pow(2, attempt));
+    }
+
+    function prepareNewPairing(done) {
+      var attempt = 0;
+      var maximumAttempts = 4;
+
+      if (credentialStatus === "valid" && mode === "soft") {
+        preparePairingMarker(false);
+        done("done", "De bestaande geldige koppeling wordt opnieuw geladen.");
+        return;
+      }
+
+      if (credentialStatus === "unknown" && mode === "soft" && deviceToken) {
+        done(
+          "warning",
+          "De schermcredential kon niet veilig worden beoordeeld. De koppeling blijft behouden; probeer opnieuw zodra VeyoCast bereikbaar is.",
+          false
+        );
+        return;
+      }
+
+      function failOrRetry(code, detail, retryAfter) {
+        var delay;
+        if (attempt >= maximumAttempts) {
+          done(
+            "warning",
+            detail + " Foutcode: " + code + ". Gebruik Opnieuw herstellen zodra de verbinding beschikbaar is.",
+            false
+          );
+          return;
+        }
+        delay = retryDelay(attempt - 1, retryAfter);
+        setStep(
+          4,
+          "running",
+          detail + " Nieuwe gecontroleerde poging over " + Math.ceil(delay / 1000) + " seconden."
+        );
+        window.setTimeout(registerInstallation, delay);
+      }
+
+      function requestPairing() {
+        var nonce = createInstallationId().toLowerCase();
+        safeSet(CONFIG.pairingKeys[4], nonce);
+        requestJson(
+          "POST",
+          "/api/player/pairing",
+          {
+            "X-VeyoCast-Installation-Credential": installationCredential,
+            "X-VeyoCast-Pairing-Request": nonce,
+            "X-VeyoCast-Player-Instance": installationId
+          },
+          null,
+          function (transportError, status, body, retryAfter) {
+            var code =
+              body && body.error && body.error.code
+                ? body.error.code
+                : transportError || "PAIRING_API_UNAVAILABLE";
+            if (
+              status >= 200 &&
+              status < 300 &&
+              body &&
+              validOpaqueCredential(body.deviceToken) &&
+              typeof body.expiresAt === "string" &&
+              typeof body.pairingCode === "string"
+            ) {
+              persistPreparedPairing(body);
+              preparePairingMarker(true);
+              done(
+                "done",
+                "Nieuwe koppelcode " + body.pairingCode + " is veilig voorbereid."
+              );
+              return;
+            }
+            failOrRetry(
+              code,
+              body && body.error && body.error.cause
+                ? body.error.cause
+                : "De koppelservice is tijdelijk niet bereikbaar.",
+              retryAfter
+            );
+          }
+        );
+      }
+
+      function registerInstallation() {
+        var headers = { "Content-Type": "application/json" };
+        attempt += 1;
+        if (installationCredential) {
+          headers["X-VeyoCast-Installation-Credential"] = installationCredential;
+        }
+        requestJson(
+          "POST",
+          "/api/player/installation",
+          headers,
+          JSON.stringify({ installationId: installationId }),
+          function (transportError, status, body, retryAfter) {
+            var code =
+              body && body.error && body.error.code
+                ? body.error.code
+                : transportError || "INSTALLATION_API_UNAVAILABLE";
+            if (
+              status >= 200 &&
+              status < 300 &&
+              body &&
+              body.ok === true &&
+              validOpaqueCredential(body.installationCredential)
+            ) {
+              installationCredential = body.installationCredential;
+              safeSet(
+                CONFIG.installationCredentialKeys[0],
+                installationCredential
+              );
+              requestPairing();
+              return;
+            }
+            if (
+              (status === 401 || status === 404 || status === 410) &&
+              mode === "soft"
+            ) {
+              done(
+                "warning",
+                "De installatiecredential is definitief ongeldig. Kies Volledige playerreset om een nieuwe installatie te registreren. Foutcode: " + code + ".",
+                false
+              );
+              return;
+            }
+            failOrRetry(
+              code,
+              body && body.error && body.error.cause
+                ? body.error.cause
+                : "De installatieservice is tijdelijk niet bereikbaar.",
+              retryAfter
+            );
+          }
+        );
+      }
+
+      registerInstallation();
     }
 
     function finishRecovery() {
@@ -652,6 +857,14 @@ export function renderLgRecoveryHtml() {
       window.setTimeout(function () {
         window.location.replace("/lg");
       }, 1200);
+    }
+
+    function stopRecovery(detail) {
+      running = false;
+      byId("soft-recovery").disabled = false;
+      byId("hard-recovery").disabled = false;
+      byId("summary").textContent =
+        detail || "Herstel is gestopt zonder de bestaande schermbinding onveilig te verwijderen.";
     }
 
     function startRecovery(requestedMode) {
@@ -675,7 +888,7 @@ export function renderLgRecoveryHtml() {
       guardedStep(1, checkPlayerStatus, function () {
         guardedStep(2, clearPairingAttempt, function () {
           guardedStep(3, repairLocalCache, function () {
-            guardedStep(4, prepareNewPairing, finishRecovery);
+            guardedStep(4, prepareNewPairing, finishRecovery, 45000);
           });
         });
       });

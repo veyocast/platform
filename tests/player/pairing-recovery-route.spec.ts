@@ -6,6 +6,8 @@ const installationCredentialKey =
 const tokenKey = "veyocast.player.deviceToken";
 const markerKey = "veyocast.player.recovery.v1";
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
+const recoveredInstallationCredential = "n".repeat(43);
+const recoveredPendingToken = "z".repeat(43);
 
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/player/pairing/recover", async (route) => {
@@ -14,6 +16,31 @@ test.beforeEach(async ({ page }) => {
         cancelledPendingPairing: true,
         code: "RECOVERY_ACCEPTED",
         ok: true
+      }),
+      contentType: "application/json",
+      status: 200
+    });
+  });
+  await page.route("**/api/player/installation", async (route) => {
+    await route.fulfill({
+      body: JSON.stringify({
+        bound: false,
+        installationCredential: recoveredInstallationCredential,
+        installationId: "52000000-0000-4000-8000-000000000153",
+        live: true,
+        ok: true
+      }),
+      contentType: "application/json",
+      status: 200
+    });
+  });
+  await page.route("**/api/player/pairing", async (route) => {
+    await route.fulfill({
+      body: JSON.stringify({
+        deviceToken: recoveredPendingToken,
+        expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+        live: true,
+        pairingCode: "RCV 234"
       }),
       contentType: "application/json",
       status: 200
@@ -63,7 +90,9 @@ test("soft recovery behoudt installatie-ID en verwijdert een ongeldige pending p
       marker: JSON.parse(localStorage.getItem(markerKey) ?? "null") as {
         expiresAt?: number;
         mode?: string;
+        pairingPrepared?: boolean;
       } | null,
+      pairingCode: localStorage.getItem("veyocast.player.pairingCode"),
       token: localStorage.getItem(tokenKey)
     }),
     { installationKey, markerKey, tokenKey }
@@ -74,9 +103,11 @@ test("soft recovery behoudt installatie-ID en verwijdert een ongeldige pending p
       (key) => localStorage.getItem(key),
       installationCredentialKey
     )
-  ).toBe("c".repeat(43));
-  expect(result.token).toBeNull();
+  ).toBe(recoveredInstallationCredential);
+  expect(result.token).toBe(recoveredPendingToken);
+  expect(result.pairingCode).toBe("RCV 234");
   expect(result.marker?.mode).toBe("soft");
+  expect(result.marker?.pairingPrepared).toBe(true);
   expect(result.marker?.expiresAt).toBeGreaterThan(Date.now());
 });
 
@@ -171,7 +202,10 @@ test("volledige playerreset vernieuwt de installatie-ID", async ({ page }) => {
       (key) => localStorage.getItem(key),
       installationCredentialKey
     )
-  ).toBeNull();
+  ).toBe(recoveredInstallationCredential);
+  expect(
+    await page.evaluate((key) => localStorage.getItem(key), tokenKey)
+  ).toBe(recoveredPendingToken);
   expect(result.installationId).toMatch(/^[a-f0-9-]{20,80}$/);
   expect(result.marker?.mode).toBe("hard");
 });
@@ -209,6 +243,54 @@ test("Cache API- en IndexedDB-fouten blokkeren de recoveryredirect niet", async 
 
   const marker = await page.evaluate((key) => localStorage.getItem(key), markerKey);
   expect(JSON.parse(marker ?? "null")).toMatchObject({ mode: "soft", version: 1 });
+});
+
+test("tijdelijke pairing-503 toont herstelactie en doet geen valse redirect", async ({
+  page
+}) => {
+  await page.unroute("**/api/player/pairing");
+  let pairingAttempts = 0;
+  await page.route("**/api/player/pairing", async (route) => {
+    pairingAttempts += 1;
+    await route.fulfill({
+      body: JSON.stringify({
+        error: {
+          cause: "Pairingservice tijdelijk niet beschikbaar",
+          code: "PAIRING_API_UNAVAILABLE"
+        }
+      }),
+      contentType: "application/json",
+      status: 503
+    });
+  });
+  await page.goto(`${playerURL}/lg/recover`);
+  await page.evaluate(
+    ({ installationCredentialKey, installationKey }) => {
+      localStorage.setItem(
+        installationKey,
+        "52345678-1234-4123-8123-123456789abc"
+      );
+      localStorage.setItem(installationCredentialKey, "c".repeat(43));
+    },
+    { installationCredentialKey, installationKey }
+  );
+
+  await page.getByRole("button", { name: "Nu herstellen" }).click();
+  await expect(page.locator("#step-4")).toHaveAttribute(
+    "data-status",
+    "warning",
+    { timeout: 20_000 }
+  );
+
+  expect(pairingAttempts).toBe(4);
+  expect(new URL(page.url()).pathname).toBe("/lg/recover");
+  await expect(page.getByRole("button", { name: "Nu herstellen" })).toBeEnabled();
+  await expect(page.locator("#summary")).toContainText(
+    "PAIRING_API_UNAVAILABLE"
+  );
+  expect(
+    await page.evaluate((key) => localStorage.getItem(key), markerKey)
+  ).toBeNull();
 });
 
 async function seedRecoveryStorage(page: Page, installationId: string) {

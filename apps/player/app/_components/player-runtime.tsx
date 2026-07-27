@@ -68,6 +68,7 @@ import {
   resolvePersistedPairingDelay,
   shouldRotatePairingRequestNonce
 } from "../_lib/player-pairing-recovery";
+import { consumePlayerRecoveryMarker } from "../_lib/player-recovery-marker";
 import {
   createPairingMachineSnapshot,
   isDefinitiveCredentialError,
@@ -592,6 +593,7 @@ export function PlayerRuntime() {
         const body = (await response.json().catch(() => null)) as
           | {
               error?: { code?: string };
+              deviceCredential?: string;
               installationCredential?: string;
               ok?: boolean;
             }
@@ -603,13 +605,23 @@ export function PlayerRuntime() {
           body?.ok === true &&
           isOpaqueCredential(body.installationCredential)
         ) {
+          const recoveredDeviceCredential = isOpaqueCredential(
+            body.deviceCredential
+          )
+            ? body.deviceCredential
+            : null;
+          if (recoveredDeviceCredential) {
+            writeStoredDeviceToken(recoveredDeviceCredential);
+          }
           writeStoredInstallationCredential(body.installationCredential);
           setInstallation({
             credential: body.installationCredential,
             status: "ready"
           });
           transitionPairing({
-            hasDeviceCredential: Boolean(deviceToken),
+            hasDeviceCredential: Boolean(
+              deviceToken || recoveredDeviceCredential
+            ),
             type: "INSTALLATION_READY"
           });
           return;
@@ -695,6 +707,11 @@ export function PlayerRuntime() {
     const deviceToken = queryToken ?? readStoredDeviceToken();
     const installationCredential =
       installation.status === "ready" ? installation.credential : null;
+    const recoveryMarker = consumePlayerRecoveryMarker(window.localStorage);
+    if (recoveryMarker && !recoveryMarker.pairingPrepared && !deviceToken) {
+      clearPairingProvisionAfter();
+      clearPairingRequestNonce();
+    }
 
     if (!deviceToken && !installationCredential) {
       setRuntime({
