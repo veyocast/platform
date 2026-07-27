@@ -12,6 +12,11 @@ const allRoutes = [
   { name: "overview", pathname: "/dashboard" },
   { name: "screens", pathname: "/dashboard/screens" },
   { name: "playlists", pathname: "/dashboard/playlists" },
+  {
+    liveOnly: true,
+    name: "playlist-editor",
+    pathname: "/dashboard/playlists"
+  },
   { name: "media", pathname: "/dashboard/media" },
   { name: "planning", pathname: "/dashboard/planning" },
   { name: "studio", pathname: "/dashboard/studio" },
@@ -48,6 +53,9 @@ const routes = (
     ? allRoutes.filter((route) => requestedRoutes.has(route.name))
     : allRoutes
 ).filter((route) => !("demoOnly" in route) || demoEvidence);
+const activeRoutes = routes.filter(
+  (route) => !("liveOnly" in route) || !demoEvidence
+);
 const viewports = requestedViewports.size
   ? allViewports.filter((viewport) => requestedViewports.has(viewport.name))
   : allViewports;
@@ -110,6 +118,49 @@ async function navigate(page: Page, pathname: string) {
   await page.addStyleTag({
     content: "nextjs-portal { display: none !important; }"
   });
+}
+
+async function resolveRoute(
+  page: Page,
+  route: (typeof allRoutes)[number],
+  resolvedPaths: Map<string, string>
+) {
+  if (route.name !== "playlist-editor") return route.pathname;
+
+  const cached = resolvedPaths.get(route.name);
+  if (cached) return cached;
+
+  await navigate(page, route.pathname);
+  const editorLink = page.locator(
+    'a[href^="/dashboard/playlists/"]:not([href$="/new"])'
+  ).first();
+  if (await editorLink.count()) {
+    const href = await editorLink.getAttribute("href");
+    if (href) {
+      const pathname = new URL(href, "http://127.0.0.1").pathname;
+      resolvedPaths.set(route.name, pathname);
+      return pathname;
+    }
+  }
+
+  await page.getByRole("button", { name: "Nieuwe playlist" }).click();
+  const dialog = page.getByRole("dialog", { name: "Nieuwe playlist" });
+  await dialog.getByLabel("Playlistnaam").fill("Atelier Ivory visuele review");
+  await dialog.getByRole("button", { name: "Concept maken" }).click();
+  await expect(dialog).not.toBeVisible();
+  let pathname = new URL(page.url()).pathname;
+  if (!/\/dashboard\/playlists\/[^/]+$/.test(pathname)) {
+    const createdLink = page.getByRole("link", {
+      exact: true,
+      name: "Atelier Ivory visuele review"
+    }).first();
+    await expect(createdLink).toBeVisible();
+    const href = await createdLink.getAttribute("href");
+    if (!href) throw new Error("De lokale playlistfixture heeft geen editorlink.");
+    pathname = new URL(href, "http://127.0.0.1").pathname;
+  }
+  resolvedPaths.set(route.name, pathname);
+  return pathname;
 }
 
 async function assertSummaryStripsFit(page: Page, context: string) {
@@ -182,6 +233,7 @@ test.describe("Atelier Ivory visual evidence", () => {
 
     const context = await browser.newContext();
     await authenticateAgainstLocalSupabase(context);
+    const resolvedPaths = new Map<string, string>();
 
     for (const theme of themes) {
       const page = await context.newPage();
@@ -196,8 +248,9 @@ test.describe("Atelier Ivory visual evidence", () => {
           width: viewport.width
         });
 
-        for (const route of routes) {
-          await navigate(page, route.pathname);
+        for (const route of activeRoutes) {
+          const pathname = await resolveRoute(page, route, resolvedPaths);
+          await navigate(page, pathname);
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
           if (route.name === "planning") {
             await expect(
@@ -212,11 +265,11 @@ test.describe("Atelier Ivory visual evidence", () => {
                 document.documentElement.scrollWidth <=
                 document.documentElement.clientWidth
             ),
-            `${route.pathname} blijft binnen ${viewport.name} in ${theme}`
+            `${pathname} blijft binnen ${viewport.name} in ${theme}`
           ).toBe(true);
           await assertSummaryStripsFit(
             page,
-            `${route.pathname} ${viewport.name} ${theme}`
+            `${pathname} ${viewport.name} ${theme}`
           );
 
           await page.screenshot({
