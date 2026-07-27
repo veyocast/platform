@@ -73,6 +73,7 @@ import {
   GlobalUploadTray,
   type GlobalUploadTrayItem
 } from "./global-upload-tray";
+import { FloatingPanel } from "./floating-panel";
 
 type ControlShellProps = {
   children: ReactNode;
@@ -416,11 +417,16 @@ export function ControlShell({
             </IconButton>
           </div>
 
-          <details className="tenant-switcher">
-            <summary
-              aria-label={isSidebarCollapsed ? `Actieve context: ${activeContextName}` : undefined}
-              title={isSidebarCollapsed ? activeContextName : undefined}
-            >
+          <FloatingPanel
+            align="start"
+            className="tenant-switcher"
+            contentClassName={`tenant-switcher__menu${
+              hasTenantNavigationContext ? " tenant-switcher__menu--tenant" : ""
+            }`}
+            contentLabel="Werkcontext wisselen"
+            role="group"
+            trigger={
+              <>
               <span className="tenant-switcher__mark" aria-hidden="true">
                 {activeContextName.slice(0, 1)}
               </span>
@@ -433,12 +439,13 @@ export function ControlShell({
                 <span className="tenant-switcher__value">{activeContextName}</span>
               </span>
               <ChevronDown aria-hidden="true" className="tenant-switcher__chevron" />
-            </summary>
-            <div
-              aria-label="Werkcontext wisselen"
-              className="tenant-switcher__menu"
-              role="group"
-            >
+              </>
+            }
+            triggerAriaLabel={`Actieve context: ${activeContextName}`}
+            triggerClassName="tenant-switcher__trigger"
+            triggerTitle={isSidebarCollapsed ? activeContextName : undefined}
+          >
+            <>
               {session.tenantMemberships.map((membership) => (
                 <form
                   action={switchTenantContext}
@@ -472,8 +479,8 @@ export function ControlShell({
               <Link href="/context" onClick={() => setMobileNavOpen(false)}>
                 Alle contexten beheren
               </Link>
-            </div>
-          </details>
+            </>
+          </FloatingPanel>
         </div>
 
         <nav className="control-nav" aria-label="Hoofdnavigatie">

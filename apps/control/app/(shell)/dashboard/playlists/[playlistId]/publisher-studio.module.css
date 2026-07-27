@@ -576,23 +576,17 @@
 
 .sectionCreate,
 .sectionCard {
-  position: relative;
+  min-width: 0;
 }
 
-.sectionCreate > summary,
-.sectionCard > summary {
+.sectionCreateTrigger,
+.sectionCardTrigger {
   align-items: center;
   cursor: pointer;
   display: flex;
-  list-style: none;
 }
 
-.sectionCreate > summary::-webkit-details-marker,
-.sectionCard > summary::-webkit-details-marker {
-  display: none;
-}
-
-.sectionCreate > summary {
+.sectionCreateTrigger {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-md);
@@ -604,18 +598,18 @@
   padding: 0 var(--vc-space-8);
 }
 
-.sectionCreate > summary:hover,
-.sectionCreate > summary:focus-visible {
+.sectionCreateTrigger:hover,
+.sectionCreateTrigger:focus-visible {
   border-color: var(--vc-action);
   color: var(--vc-action);
 }
 
-.sectionCreate > summary svg {
+.sectionCreateTrigger svg {
   height: 16px;
   width: 16px;
 }
 
-.sectionCreate > form,
+.sectionCreatePanel,
 .sectionEditor {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
@@ -624,27 +618,23 @@
   display: grid;
   gap: var(--vc-space-10);
   padding: var(--vc-space-12);
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
   width: min(340px, calc(100vw - 48px));
-  z-index: 10;
 }
 
-.sectionCreate label,
+.sectionCreatePanel label,
 .sectionEditor label {
   display: grid;
   gap: var(--vc-space-4);
 }
 
-.sectionCreate label > span,
+.sectionCreatePanel label > span,
 .sectionEditor label > span {
   font-size: 11px;
   font-weight: 700;
 }
 
-.sectionCreate input,
-.sectionCreate select,
+.sectionCreatePanel input,
+.sectionCreatePanel select,
 .sectionEditor input,
 .sectionEditor select {
   background: var(--vc-surface);
@@ -671,7 +661,7 @@
   flex: 0 0 auto;
 }
 
-.sectionCard > summary {
+.sectionCardTrigger {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-md);
@@ -680,52 +670,51 @@
   padding: var(--vc-space-4) var(--vc-space-8);
 }
 
-.sectionCard > summary:hover,
-.sectionCard > summary:focus-visible,
-.sectionCard[open] > summary {
+.sectionCardTrigger:hover,
+.sectionCardTrigger:focus-visible,
+.sectionCard[data-open="true"] .sectionCardTrigger {
   border-color: var(--vc-border-strong);
 }
 
-.sectionCard > summary > svg:first-child {
+.sectionCardTrigger > svg:first-child {
   color: var(--vc-action);
   height: 16px;
   width: 16px;
 }
 
-.sectionCard > summary > svg:last-child {
+.sectionCardTrigger > svg:last-child {
   color: var(--vc-text-muted);
   height: 14px;
   margin-left: var(--vc-space-4);
   width: 14px;
 }
 
-.sectionCard > summary > span {
+.sectionCardTrigger > span {
   display: grid;
   min-width: 96px;
 }
 
-.sectionCard > summary strong,
-.sectionCard > summary small {
+.sectionCardTrigger strong,
+.sectionCardTrigger small {
   max-width: 148px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.sectionCard > summary strong {
+.sectionCardTrigger strong {
   font-size: 12px;
   line-height: 17px;
 }
 
-.sectionCard > summary small {
+.sectionCardTrigger small {
   color: var(--vc-text-muted);
   font-size: 10px;
   line-height: 14px;
 }
 
 .sectionEditor {
-  left: 0;
-  right: auto;
+  min-width: min(340px, calc(100vw - 48px));
 }
 
 .sectionEditor > form {
@@ -1030,32 +1019,29 @@
 }
 
 .itemMenu {
-  position: relative;
+  min-width: 0;
 }
 
-.itemMenu summary {
+.itemMenuTrigger {
   align-items: center;
+  background: transparent;
+  border: 0;
   border-radius: var(--vc-radius-md);
   color: var(--vc-text-muted);
   cursor: pointer;
   display: flex;
   height: 44px;
   justify-content: center;
-  list-style: none;
   width: 36px;
 }
 
-.itemMenu summary::-webkit-details-marker {
-  display: none;
-}
-
-.itemMenu summary:hover,
-.itemMenu summary:focus-visible {
+.itemMenuTrigger:hover,
+.itemMenuTrigger:focus-visible {
   background: var(--vc-surface-muted);
   color: var(--vc-text);
 }
 
-.itemMenu > div {
+.itemMenuPanel {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-md);
@@ -1063,18 +1049,9 @@
   display: grid;
   min-width: 184px;
   padding: var(--vc-space-4);
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 8;
 }
 
-.itemRow:nth-last-child(-n + 2) .itemMenu > div {
-  bottom: calc(100% + 4px);
-  top: auto;
-}
-
-.itemMenu button {
+.itemMenuPanel button {
   align-items: center;
   background: transparent;
   border: 0;
@@ -1090,21 +1067,21 @@
   width: 100%;
 }
 
-.itemMenu button:hover:not(:disabled) {
+.itemMenuPanel button:hover:not(:disabled) {
   background: var(--vc-surface-muted);
 }
 
-.itemMenu button:disabled {
+.itemMenuPanel button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
 
-.itemMenu button svg {
+.itemMenuPanel button svg {
   height: 16px;
   width: 16px;
 }
 
-.itemMenu form:last-child button {
+.itemMenuPanel form:last-child button {
   color: var(--vc-semantic-critical-text);
 }
 
@@ -1593,7 +1570,7 @@
 @media (pointer: coarse) {
   .filterChips button,
   .durationStepper,
-  .itemMenu summary {
+  .itemMenuTrigger {
     min-height: 44px;
   }
 
@@ -1601,7 +1578,7 @@
     grid-template-columns: 44px minmax(58px, auto) 44px;
   }
 
-  .itemMenu summary {
+  .itemMenuTrigger {
     width: 44px;
   }
 }
@@ -1849,7 +1826,7 @@
 
   .dragHandle,
   .position,
-  .itemMenu summary {
+  .itemMenuTrigger {
     color: var(--vc-text-muted);
   }
 
@@ -1888,7 +1865,7 @@
     grid-row: 1 / span 2;
   }
 
-  .itemMenu > div {
+  .itemMenuPanel {
     background: var(--vc-surface);
     color: var(--vc-text);
   }

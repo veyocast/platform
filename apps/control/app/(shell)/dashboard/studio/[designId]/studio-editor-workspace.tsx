@@ -57,6 +57,7 @@ import {
 } from "@veyocast/studio";
 import { Button, Progress, StatusPill } from "@veyocast/ui";
 
+import { FloatingPanel } from "../../../_components/floating-panel";
 import {
   cancelStudioRenderAction,
   copyStudioConflictAction,
@@ -2159,68 +2160,84 @@ function LayerList({
               {element.locked ? <Lock aria-hidden="true" /> : <Unlock aria-hidden="true" />}
             </button>
           </div>
-          <details className={styles.layerContext}>
-            <summary aria-label={`Meer acties voor ${element.name}`}>
-              <MoreHorizontal aria-hidden="true" />
-            </summary>
-            <div>
+          <FloatingPanel
+            className={styles.layerContext}
+            contentClassName={styles.layerContextPanel}
+            contentLabel={`Meer acties voor ${element.name}`}
+            role="menu"
+            trigger={<MoreHorizontal aria-hidden="true" />}
+            triggerAriaLabel={`Meer acties voor ${element.name}`}
+            triggerClassName={styles.layerContextTrigger}
+          >
+            {(close) => (
+              <>
               <button
                 disabled={!canEdit || element.type === "group"}
-                onClick={() =>
-                  dispatch({ elementId: element.id, type: "element/duplicate" })
-                }
+                onClick={() => {
+                  dispatch({ elementId: element.id, type: "element/duplicate" });
+                  close();
+                }}
+                role="menuitem"
                 type="button"
               >
                 Dupliceren
               </button>
               <button
                 disabled={!canEdit}
-                onClick={() =>
+                onClick={() => {
                   dispatch({
                     elementId: element.id,
                     targetIndex: element.zIndex + 1,
                     type: "element/move"
-                  })
-                }
+                  });
+                  close();
+                }}
+                role="menuitem"
                 type="button"
               >
                 Naar voren
               </button>
               <button
                 disabled={!canEdit}
-                onClick={() =>
+                onClick={() => {
                   dispatch({
                     elementId: element.id,
                     targetIndex: element.zIndex - 1,
                     type: "element/move"
-                  })
-                }
+                  });
+                  close();
+                }}
+                role="menuitem"
                 type="button"
               >
                 Naar achteren
               </button>
               <button
                 disabled={!canEdit}
-                onClick={() =>
+                onClick={() => {
                   dispatch({
                     elementId: element.id,
                     targetIndex: Number.MAX_SAFE_INTEGER,
                     type: "element/move"
-                  })
-                }
+                  });
+                  close();
+                }}
+                role="menuitem"
                 type="button"
               >
                 Helemaal vooraan
               </button>
               <button
                 disabled={!canEdit}
-                onClick={() =>
+                onClick={() => {
                   dispatch({
                     elementId: element.id,
                     targetIndex: 0,
                     type: "element/move"
-                  })
-                }
+                  });
+                  close();
+                }}
+                role="menuitem"
                 type="button"
               >
                 Helemaal achteraan
@@ -2228,15 +2245,18 @@ function LayerList({
               <button
                 className={styles.contextDelete}
                 disabled={!canEdit}
-                onClick={() =>
-                  dispatch({ elementIds: [element.id], type: "element/remove" })
-                }
+                onClick={() => {
+                  dispatch({ elementIds: [element.id], type: "element/remove" });
+                  close();
+                }}
+                role="menuitem"
                 type="button"
               >
                 Verwijderen
               </button>
-            </div>
-          </details>
+              </>
+            )}
+          </FloatingPanel>
         </li>
       ))}
     </ol>

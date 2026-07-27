@@ -11,8 +11,9 @@ import {
   Trash2
 } from "lucide-react";
 
-import { Button } from "@veyocast/ui";
+import { Button, buttonVariants } from "@veyocast/ui";
 
+import { FloatingPanel } from "../../_components/floating-panel";
 import { mutateStudioProjectAction } from "./actions";
 import type { StudioProjectSummary } from "./types";
 import styles from "./studio.module.css";
@@ -63,93 +64,103 @@ export function ProjectActions({
         </Link>
       </Button>
       {canMutate ? (
-        <div className={styles.actionMenu}>
-          <Button
-            aria-expanded={open}
-            aria-label={`Acties voor ${project.name}`}
-            onClick={() => setOpen((value) => !value)}
-            size="sm"
-            variant="ghost"
-          >
-            <MoreHorizontal aria-hidden="true" />
-          </Button>
-          {open ? (
-            <div className={styles.actionPopover}>
-              {canEdit ? (
-                <>
-                  <button
-                    disabled={pending}
-                    onClick={() => setRenaming((value) => !value)}
-                    type="button"
-                  >
-                    <Pencil aria-hidden="true" />
-                    Hernoemen
-                  </button>
-                  {renaming ? (
-                    <form
-                      className={styles.renameForm}
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        run("rename");
-                      }}
-                    >
-                      <label>
-                        <span className="sr-only">Nieuwe ontwerpnaam</span>
-                        <input
-                          maxLength={120}
-                          minLength={2}
-                          onChange={(event) => setName(event.target.value)}
-                          required
-                          value={name}
-                        />
-                      </label>
-                      <Button disabled={pending} size="sm" type="submit">
-                        Opslaan
-                      </Button>
-                    </form>
-                  ) : null}
-                  <button disabled={pending} onClick={() => run("duplicate")} type="button">
-                    <Copy aria-hidden="true" />
-                    Dupliceren
-                  </button>
-                </>
-              ) : null}
-              {canArchive && project.status === "active" ? (
-                <button disabled={pending} onClick={() => run("archive")} type="button">
-                  <Archive aria-hidden="true" />
-                  Archiveren
-                </button>
-              ) : null}
-              {canArchive &&
-              (project.status === "archived" || project.status === "deleted") ? (
-                <button disabled={pending} onClick={() => run("restore")} type="button">
-                  <RotateCcw aria-hidden="true" />
-                  Herstellen
-                </button>
-              ) : null}
-              {canArchive ? (
+        <FloatingPanel
+          className={styles.actionMenu}
+          contentClassName={styles.actionPopover}
+          contentLabel={`Acties voor ${project.name}`}
+          onOpenChange={setOpen}
+          open={open}
+          trigger={<MoreHorizontal aria-hidden="true" />}
+          triggerAriaLabel={`Acties voor ${project.name}`}
+          triggerClassName={buttonVariants({ size: "sm", variant: "ghost" })}
+        >
+          <>
+            {canEdit ? (
+              <>
                 <button
-                  className={styles.destructiveMenuItem}
                   disabled={pending}
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        `"${project.name}" verwijderen? Je kunt het volgens het bewaarbeleid nog herstellen.`
-                      )
-                    ) {
-                      run("delete");
-                    }
-                  }}
+                  onClick={() => setRenaming((value) => !value)}
                   type="button"
                 >
-                  <Trash2 aria-hidden="true" />
-                  Verwijderen
+                  <Pencil aria-hidden="true" />
+                  Hernoemen
                 </button>
-              ) : null}
-              {message ? <p role="alert">{message}</p> : null}
-            </div>
-          ) : null}
-        </div>
+                {renaming ? (
+                  <form
+                    className={styles.renameForm}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      run("rename");
+                    }}
+                  >
+                    <label>
+                      <span className="sr-only">Nieuwe ontwerpnaam</span>
+                      <input
+                        maxLength={120}
+                        minLength={2}
+                        onChange={(event) => setName(event.target.value)}
+                        required
+                        value={name}
+                      />
+                    </label>
+                    <Button disabled={pending} size="sm" type="submit">
+                      Opslaan
+                    </Button>
+                  </form>
+                ) : null}
+                <button
+                  disabled={pending}
+                  onClick={() => run("duplicate")}
+                  type="button"
+                >
+                  <Copy aria-hidden="true" />
+                  Dupliceren
+                </button>
+              </>
+            ) : null}
+            {canArchive && project.status === "active" ? (
+              <button
+                disabled={pending}
+                onClick={() => run("archive")}
+                type="button"
+              >
+                <Archive aria-hidden="true" />
+                Archiveren
+              </button>
+            ) : null}
+            {canArchive &&
+            (project.status === "archived" || project.status === "deleted") ? (
+              <button
+                disabled={pending}
+                onClick={() => run("restore")}
+                type="button"
+              >
+                <RotateCcw aria-hidden="true" />
+                Herstellen
+              </button>
+            ) : null}
+            {canArchive ? (
+              <button
+                className={styles.destructiveMenuItem}
+                disabled={pending}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      `"${project.name}" verwijderen? Je kunt het volgens het bewaarbeleid nog herstellen.`
+                    )
+                  ) {
+                    run("delete");
+                  }
+                }}
+                type="button"
+              >
+                <Trash2 aria-hidden="true" />
+                Verwijderen
+              </button>
+            ) : null}
+            {message ? <p role="alert">{message}</p> : null}
+          </>
+        </FloatingPanel>
       ) : null}
     </div>
   );
