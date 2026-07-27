@@ -183,6 +183,12 @@ importers:
       '@veyocast/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@veyocast/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@veyocast/integrations':
+        specifier: workspace:*
+        version: link:../../packages/integrations
       '@veyocast/observability':
         specifier: workspace:*
         version: link:../../packages/observability

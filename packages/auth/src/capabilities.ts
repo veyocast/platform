@@ -11,11 +11,18 @@ export const capabilities = [
   "platform.ticket.write",
   "platform.ticket.sensitive",
   "platform.ticket.admin",
+  "platform.dynamic_template.read",
+  "platform.dynamic_template.write",
+  "platform.dynamic_template.publish",
   "tenant.overview.read",
   "tenant.media.read",
   "tenant.media.write",
   "tenant.product.read",
   "tenant.product.write",
+  "tenant.dynamic_slide.read",
+  "tenant.dynamic_slide.write",
+  "tenant.data_source.read",
+  "tenant.data_source.manage",
   "tenant.studio.read",
   "tenant.studio.create",
   "tenant.studio.edit_own",
@@ -48,6 +55,8 @@ export const tenantReadCapabilities = [
   "tenant.overview.read",
   "tenant.media.read",
   "tenant.product.read",
+  "tenant.dynamic_slide.read",
+  "tenant.data_source.read",
   "tenant.studio.read",
   "tenant.playlist.read",
   "tenant.release.read",
@@ -60,6 +69,7 @@ export const tenantReadCapabilities = [
 export const tenantWriteCapabilities = [
   "tenant.media.write",
   "tenant.product.write",
+  "tenant.dynamic_slide.write",
   "tenant.playlist.write",
   "tenant.ticket.write"
 ] as const satisfies readonly Capability[];
@@ -82,6 +92,10 @@ const tenantStudioManageCapabilities = [
   "tenant.studio.job.manage"
 ] as const satisfies readonly Capability[];
 
+const tenantDataSourceManageCapabilities = [
+  "tenant.data_source.manage"
+] as const satisfies readonly Capability[];
+
 const tenantManageCapabilities = [
   "tenant.playlist.archive",
   "tenant.screen.manage",
@@ -100,6 +114,7 @@ export const roleCapabilityMatrix: Readonly<
     "platform.tenant.read",
     "platform.audit.read",
     "platform.system.read",
+    "platform.dynamic_template.read",
     "platform.ticket.read",
     "platform.ticket.write",
     "platform.ticket.sensitive",
@@ -110,13 +125,15 @@ export const roleCapabilityMatrix: Readonly<
   platform_viewer: [
     "platform.tenant.read",
     "platform.system.read",
-    "platform.ticket.read"
+    "platform.ticket.read",
+    "platform.dynamic_template.read"
   ],
   tenant_owner: [
     ...tenantReadCapabilities,
     ...tenantWriteCapabilities,
     ...tenantStudioAuthorCapabilities,
     ...tenantStudioManageCapabilities,
+    ...tenantDataSourceManageCapabilities,
     ...tenantPublishCapabilities,
     ...tenantManageCapabilities
   ],
@@ -125,6 +142,7 @@ export const roleCapabilityMatrix: Readonly<
     ...tenantWriteCapabilities,
     ...tenantStudioAuthorCapabilities,
     ...tenantStudioManageCapabilities,
+    ...tenantDataSourceManageCapabilities,
     ...tenantPublishCapabilities,
     ...tenantManageCapabilities
   ],
