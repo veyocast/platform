@@ -254,6 +254,13 @@ test.describe("Atelier Ivory visual evidence", () => {
 
     for (const theme of themes) {
       const page = await context.newPage();
+      const clientErrors: string[] = [];
+      page.on("console", (message) => {
+        if (message.type() === "error") clientErrors.push(message.text());
+      });
+      page.on("pageerror", (error) => {
+        clientErrors.push(error.message);
+      });
       await page.addInitScript((selectedTheme) => {
         window.localStorage.setItem("veyocast-control-theme", selectedTheme);
         window.localStorage.setItem("veyocast-control-density", "comfortable");
@@ -266,6 +273,7 @@ test.describe("Atelier Ivory visual evidence", () => {
         });
 
         for (const route of activeRoutes) {
+          clientErrors.length = 0;
           const pathname = await resolveRoute(page, route, resolvedPaths);
           await navigate(page, pathname);
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
@@ -275,6 +283,10 @@ test.describe("Atelier Ivory visual evidence", () => {
             ).toHaveCount(3);
           }
           await page.waitForTimeout(250);
+          expect.soft(
+            clientErrors,
+            `${pathname} heeft geen client-, hydration- of consolefouten`
+          ).toEqual([]);
 
           expect.soft(
             await page.evaluate(
