@@ -5,6 +5,7 @@ import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/inter-tight/wght.css";
 import "@veyocast/ui/styles.css";
 import "./globals.css";
+import "./atelier-ivory.css";
 import { ControlPwaRuntime } from "./_components/control-pwa-runtime";
 
 export const metadata: Metadata = {
@@ -29,7 +30,11 @@ export default function RootLayout({
   children
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="nl" suppressHydrationWarning>
+    <html
+      data-design-system="atelier-ivory"
+      lang="nl"
+      suppressHydrationWarning
+    >
       <body>
         {children}
         <ControlPwaRuntime />
