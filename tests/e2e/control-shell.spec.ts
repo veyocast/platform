@@ -23,7 +23,9 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page.getByText("Veilige lege staat")).toBeVisible();
   await expect(page.getByText("Bestuurskamer")).toHaveCount(0);
   await expect(
-    page.locator("summary").filter({ hasText: "Museumkwartier" })
+    page.getByRole("button", {
+      name: "Actieve context: Museumkwartier"
+    })
   ).toBeVisible();
 
   const nav = page.getByRole("navigation", { name: "Hoofdnavigatie" });
@@ -113,7 +115,9 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
 
   await expect(async () => {
     if (/\/platform$/.test(page.url())) return;
-    await page.locator("summary").filter({ hasText: "Museumkwartier" }).click();
+    await page.getByRole("button", {
+      name: "Actieve context: Museumkwartier"
+    }).click();
     await page.getByRole("button", { name: /VeyoCast platform/ }).click();
     await expect(page).toHaveURL(/\/platform$/);
   }).toPass({ timeout: 20_000 });

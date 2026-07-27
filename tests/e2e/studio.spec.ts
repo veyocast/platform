@@ -57,6 +57,33 @@ test("desktop Studio editor supports editing, preview and revision inspection", 
   await expect(page.getByRole("button", { name: "Passend in werkvlak" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Canvas verschuiven; houd ook spatie ingedrukt" })).toBeVisible();
 
+  const layerActionTrigger = page
+    .getByRole("button", { name: /Meer acties voor/ })
+    .first();
+  const layerRow = layerActionTrigger.locator("xpath=ancestor::li");
+  await layerActionTrigger.click();
+  const layerMenu = page.locator('[data-floating-panel][role="menu"]');
+  await expect(layerMenu).toBeVisible();
+  expect(
+    await layerMenu.evaluate((element) => element.parentElement === document.body)
+  ).toBe(true);
+  const [layerMenuBox, layerRowBox] = await Promise.all([
+    layerMenu.boundingBox(),
+    layerRow.boundingBox()
+  ]);
+  expect(layerMenuBox).not.toBeNull();
+  expect(layerRowBox).not.toBeNull();
+  expect(layerMenuBox!.y + layerMenuBox!.height).toBeGreaterThan(
+    layerRowBox!.y + layerRowBox!.height
+  );
+  expect(layerMenuBox!.x).toBeGreaterThanOrEqual(12);
+  expect(layerMenuBox!.x + layerMenuBox!.width).toBeLessThanOrEqual(1428);
+  await expect(layerMenu).toHaveCSS("position", "fixed");
+  await expect(layerMenu).toHaveCSS("z-index", "300");
+  await page.keyboard.press("Escape");
+  await expect(layerMenu).not.toBeVisible();
+  await expect(layerActionTrigger).toBeFocused();
+
   await page.getByRole("button", { exact: true, name: "Tekst" }).click();
   await expect(page.getByRole("button", { name: "Ongedaan maken" })).toBeEnabled();
   await expect(page.locator('input[value="Nieuwe tekst"]')).toBeVisible();
