@@ -2,7 +2,11 @@ import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { createEmptyStudioDocument } from "@veyocast/studio";
+import {
+  createEmptyStudioDocument,
+  parseStudioDocument,
+  type StudioFontFamily
+} from "@veyocast/studio";
 import sharp from "sharp";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -11,6 +15,7 @@ import {
   validateStudioPng
 } from "../src/studio-render-image";
 import { ResvgSharpStudioRenderer } from "../src/studio-render-resvg";
+import { renderStudioSvg } from "../src/studio-render-svg";
 import {
   studioRenderRetryDelaySeconds,
   withStudioRenderTempDirectory
@@ -104,9 +109,7 @@ describe("Studio render validators and safety bounds", () => {
   });
 
   it("rasterizes deterministic sRGB PNG and local QR data without network", async () => {
-    const document = createEmptyStudioDocument("landscape-hd", {
-      background: "#141414"
-    });
+    const document = studioTextDocument("Inter Variable", 700);
     const renderer = new ResvgSharpStudioRenderer();
     const first = await renderStudioPng({ document, renderer });
     const second = await renderStudioPng({ document, renderer });
@@ -142,6 +145,43 @@ describe("Studio render validators and safety bounds", () => {
     });
     expect([...rgba.subarray(0, 4)]).toEqual([255, 0, 0, 255]);
   });
+
+  it.each([
+    ["Inter Variable", 400],
+    ["Inter Variable", 500],
+    ["Inter Variable", 600],
+    ["Inter Variable", 700],
+    ["Inter Variable", 800],
+    ["Inter Tight Variable", 400],
+    ["Inter Tight Variable", 500],
+    ["Inter Tight Variable", 600],
+    ["Inter Tight Variable", 700],
+    ["Inter Tight Variable", 800]
+  ] satisfies [StudioFontFamily, 400 | 500 | 600 | 700 | 800][])(
+    "rasterizes visible %s glyphs at weight %i",
+    async (fontFamily, fontWeight) => {
+      const document = studioTextDocument(fontFamily, fontWeight);
+      const renderer = new ResvgSharpStudioRenderer();
+      const rgba = await renderer.renderRgba({
+        height: document.artboard.height,
+        svg: renderStudioSvg({ document, timeMs: 0 }),
+        width: document.artboard.width
+      });
+      let brightPixels = 0;
+      for (let index = 0; index < rgba.length; index += 4) {
+        if (
+          (rgba[index] ?? 0) > 220 &&
+          (rgba[index + 1] ?? 0) > 220 &&
+          (rgba[index + 2] ?? 0) > 220 &&
+          (rgba[index + 3] ?? 0) > 0
+        ) {
+          brightPixels += 1;
+        }
+      }
+
+      expect(brightPixels).toBeGreaterThan(1_000);
+    }
+  );
 
   it("detects whether moov precedes mdat without loading media payloads", async () => {
     const directory = await temporaryDirectory();
@@ -226,4 +266,42 @@ async function temporaryDirectory() {
   const path = await mkdtemp(join(tmpdir(), "veyocast-studio-test-"));
   temporaryDirectories.push(path);
   return path;
+}
+
+function studioTextDocument(
+  fontFamily: StudioFontFamily,
+  fontWeight: 400 | 500 | 600 | 700 | 800
+) {
+  const document = createEmptyStudioDocument("landscape-hd", {
+    background: "#141414"
+  });
+  return parseStudioDocument({
+    ...document,
+    elements: [{
+      align: "left",
+      autoFit: false,
+      cornerRadius: 0,
+      fill: "#FAFAF7",
+      fontFamily,
+      fontSize: 144,
+      fontWeight,
+      height: 220,
+      id: "rendered-text",
+      letterSpacing: 0,
+      lineHeight: 1,
+      locked: false,
+      name: "Gerenderde tekst",
+      opacity: 1,
+      padding: 0,
+      rotation: 0,
+      text: "VeyoCast tekst",
+      type: "text",
+      verticalAlign: "top",
+      visible: true,
+      width: 1_500,
+      x: 120,
+      y: 120,
+      zIndex: 0
+    }]
+  });
 }

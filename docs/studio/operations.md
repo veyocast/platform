@@ -70,9 +70,19 @@ vervang of verwijder deze objecten nooit als herstelactie.
 | Poster | PNG op exact artboardformaat uit dezelfde bevroren revisie |
 
 De worker gebruikt het gedeelde schema-, text-layout- en motioncontract en
-lokaal gebundelde Inter Variable-fontbestanden. Resvg rendert SVG naar pixels;
-Sharp maakt sRGB PNG/RGBA; FFmpeg ontvangt frames via een shell-vrije rawvideo
-pipe. De volledige framevolgorde wordt niet in geheugen of op schijf opgebouwd.
+lokaal gebundelde, statische Inter- en Inter Tight-TTF-bestanden voor iedere
+toegestane dikte. De browsernamen `Inter Variable` en `Inter Tight Variable`
+worden aan de rendergrens expliciet naar de interne fontfamilies vertaald.
+Resvg rendert SVG naar pixels; Sharp maakt sRGB PNG/RGBA; FFmpeg ontvangt frames
+via een shell-vrije rawvideo pipe. De volledige framevolgorde wordt niet in
+geheugen of op schijf opgebouwd.
+
+Vóór de eerste render voert ieder workerproces een glyphprobe voor beide
+families uit met systeemfonts en netwerkfetch uitgeschakeld. Een ontbrekend of
+onleesbaar font stopt de job met `renderer_font_unavailable`; de worker mag in
+dat geval geen succesvolle maar tekstloze export registreren. De regressietest
+controleert bovendien zichtbare rasterpixels voor alle ondersteunde
+familie-/diktecombinaties.
 
 Zie [render-validation.md](render-validation.md) voor de controlecommando's,
 bewezen unitgrenzen, de lokale production-image-smoke en de nog vereiste
@@ -173,8 +183,8 @@ high-cardinality metriclabel.
 ## Incident en rollback
 
 1. Stop bij `mp4_invalid`, `mp4_faststart_missing`, `png_invalid`,
-   `png_profile_invalid` of herhaalde completionfouten onmiddellijk nieuwe
-   Studio-claims.
+   `png_profile_invalid`, `renderer_font_unavailable` of herhaalde
+   completionfouten onmiddellijk nieuwe Studio-claims.
 2. Trek tijdelijk alleen `EXECUTE` op `claim_studio_render_job_v1` voor
    `service_role` in wanneer normale media en planning moeten blijven draaien.
    Het volledig naar nul schalen van de worker stopt ook die twee loops.

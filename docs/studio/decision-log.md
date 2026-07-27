@@ -15,8 +15,11 @@
    preview en worker gebruikt. FFmpeg blijft de encoder.
 6. **Mobiel:** overzicht, templategebruik, contentvelden, preview en renderstatus;
    geen verkleinde desktopcanvas-editor.
-7. **Fonts:** V1 gebruikt uitsluitend de lokaal gebundelde Inter Variable-fonts.
-   Externe fonts en runtime-fetches zijn niet toegestaan.
+7. **Fonts:** V1 gebruikt in Control lokaal gebundelde variabele webfonts en in
+   de worker renderer-compatibele statische Inter-/Inter Tight-TTF's voor alle
+   toegestane diktes. De rendergrens vertaalt de familienamen en bewijst met een
+   glyphprobe dat tekst werkelijk naar pixels wordt gerasterd. Externe fonts,
+   systeemfontfallbacks en runtime-fetches zijn niet toegestaan.
 8. **Huisstijl:** een tenantbeheerder beheert één optionele brandkit met
    tenant-eigen ready logoasset en kleuren. Toepassen maakt een deterministische
    documentkopie; het systemtemplate blijft immutable.

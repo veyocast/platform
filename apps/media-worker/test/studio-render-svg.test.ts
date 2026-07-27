@@ -104,7 +104,7 @@ describe("deterministic Studio SVG scene", () => {
     const second = renderStudioSvg({ document, timeMs: 500 });
 
     expect(second).toBe(first);
-    expect(first).toContain("Inter Tight Variable");
+    expect(first).toContain('font-family="Inter Tight"');
     expect(first).toContain("Veyo &amp; &lt;Studio&gt;");
     expect(first).toContain('width="450"');
     expect(first).not.toContain("Groep");
