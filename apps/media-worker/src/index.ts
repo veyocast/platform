@@ -26,6 +26,12 @@ import {
   runDynamicRenderOnce,
   type DynamicRenderRunResult
 } from "./dynamic-render-runner";
+import {
+  SupabaseRssSyncBackend,
+  runRssSyncLoop,
+  runRssSyncOnce,
+  type RssSyncRunResult
+} from "./rss-sync-runner";
 
 export {
   createMediaProcessingPlan,
@@ -108,6 +114,12 @@ export {
   runDynamicRenderOnce
 } from "./dynamic-render-runner";
 export type { DynamicRenderRunResult } from "./dynamic-render-runner";
+export {
+  SupabaseRssSyncBackend,
+  runRssSyncLoop,
+  runRssSyncOnce
+} from "./rss-sync-runner";
+export type { ClaimedRssSync, RssSyncRunResult } from "./rss-sync-runner";
 
 export type WorkerHealth = {
   service: string;
@@ -150,6 +162,10 @@ async function main() {
     config.supabaseUrl,
     config.serviceRoleKey
   );
+  const rssBackend = new SupabaseRssSyncBackend(
+    config.supabaseUrl,
+    config.serviceRoleKey
+  );
   const studioRenderer = new ResvgSharpStudioRenderer();
   if (mode === "--once") {
     const mediaResult = await runWorkerOnce({ backend, config });
@@ -166,10 +182,17 @@ async function main() {
       renderer: studioRenderer
     });
     logDynamicRenderResult(logger, dynamicResult);
+    const rssResult = await runRssSyncOnce({
+      backend: rssBackend,
+      lockTimeoutSeconds: config.lockTimeoutSeconds,
+      workerId: config.workerId
+    });
+    logRssSyncResult(logger, rssResult);
     if (
       mediaResult.status === "failed" ||
       studioResult.status === "failed" ||
-      dynamicResult.status === "failed"
+      dynamicResult.status === "failed" ||
+      rssResult.status === "failed"
     ) {
       process.exitCode = 1;
     }
@@ -243,6 +266,14 @@ async function main() {
         renderer: studioRenderer,
         signal: controller.signal
       }),
+      runRssSyncLoop({
+        backend: rssBackend,
+        intervalMs: config.schedulePollIntervalMs,
+        lockTimeoutSeconds: config.lockTimeoutSeconds,
+        onResult: (result) => logRssSyncResult(logger, result),
+        signal: controller.signal,
+        workerId: config.workerId
+      }),
       ...serviceMonitorTasks(controller.signal, logger)
     ]);
   } finally {
@@ -272,6 +303,29 @@ function logDynamicRenderResult(
       errorCode: result.errorCode,
       jobId: result.jobId,
       mediaAssetId: result.mediaAssetId,
+      outcome: result.status
+    });
+  }
+}
+
+function logRssSyncResult(
+  logger: ReturnType<typeof createStructuredLogger>,
+  result: RssSyncRunResult
+) {
+  const eventLogger =
+    result.status === "idle" ? logger : logger.withCorrelation(result.runId);
+  if (result.status === "idle") {
+    eventLogger.debug("dynamic.rss.queue_polled", { outcome: "idle" });
+  } else if (result.status === "completed") {
+    eventLogger.info("dynamic.rss.completed", {
+      dataSourceId: result.dataSourceId,
+      itemCount: result.itemCount,
+      outcome: result.status
+    });
+  } else {
+    eventLogger.error("dynamic.rss.failed", {
+      dataSourceId: result.dataSourceId,
+      errorCode: result.errorCode,
       outcome: result.status
     });
   }
