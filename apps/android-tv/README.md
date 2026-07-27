@@ -32,13 +32,26 @@ De verantwoordelijkheden zijn bewust gescheiden:
 | veilige top-level navigatie | playlists, releases en planning |
 | netwerk- en rendererherstel | afbeeldingen en video |
 | scherm wakker houden | IndexedDB, Cache Storage en service worker |
-| best-effort bootstart | statusrapportage en platformfouten |
+| geverifieerde boot-/updatestartpoging | statusrapportage en platformfouten |
 | verborgen lokaal beheerpaneel | last-known-good en immutable releases |
 
 De WebView gebruikt het normale appdataprofiel. Cookies, `localStorage`,
 IndexedDB, Cache Storage en service-workerdata worden niet gewist bij een
 normale app- of apparaatherstart. Daardoor blijven het VeyoCast-device-token,
 de pairingstatus en lokaal geverifieerde releases behouden.
+
+Een verwijdering van de app wist dit WebView-profiel wel. Vanaf S53 leidt de
+officiële Android-app daarom uit Androids per signing key, gebruiker en
+apparaat afgeschermde `ANDROID_ID` een eenrichtingsherstelcredential af. De
+native shell plaatst die alleen als `Secure`, `HttpOnly` en `SameSite=Strict`
+cookie op de vaste Player-origin. De server bewaart uitsluitend de SHA-256-hash.
+Na herinstallatie met dezelfde officiële application ID en signing key kan de
+server daarmee de bestaande Installation herkennen en beide verloren
+Playercredentials roteren, zonder de Screen-, tenant-, playlist- of
+planningsbinding te wijzigen. Het ruwe Android-ID, een MAC-adres en de
+herstelcredential verschijnen nooit in Control, URL's, logging of PostgreSQL.
+Factory reset, een andere signing key, een andere application ID en een
+ingetrokken devicebinding herstellen bewust niet automatisch.
 
 De hosted Player declareert expliciet `width=device-width` en schaal 1. De
 WebView laat de fysieke viewport de initiële schaal bepalen en de native
@@ -198,9 +211,14 @@ Playerbeheer bevat uitsluitend shellfuncties:
 
 - verbinding en omgeving controleren;
 - de webplayer vernieuwen;
+- in production de Google Play-detailpagina openen om automatische updates
+  voor VeyoCast Player in te schakelen;
 - in de stagingvariant de afgeschermde Google Play-reviewdemo starten of
   ontkoppelen;
-- best-effort autostart na reboot instellen;
+- autostart na reboot en normale app-update instellen en de laatst geverifieerde
+  uitkomst bekijken;
+- de Android-appinstellingen openen wanneer het apparaatbeleid een
+  achtergrondstart blokkeert;
 - bevestigen dat het scherm wakker blijft en de apparaatrotatie volgt;
 - appversie bekijken;
 - de app bewust afsluiten.
@@ -208,6 +226,25 @@ Playerbeheer bevat uitsluitend shellfuncties:
 Het paneel wist geen pairing, device-token of offlinecache. Ontkoppelen en
 opnieuw koppelen blijven gecontroleerde acties in VeyoCast Control, zodat de
 serverstatus en het device niet uit elkaar lopen.
+
+Android staat niet toe dat VeyoCast de globale of app-specifieke
+Play-automatische-updatevoorkeur stilzwijgend wijzigt. De menuactie opent daarom
+de officiële Play-detailpagina; daar schakelt de gebruiker via **Meer →
+Automatisch updaten** de voorkeur in. Op beheerde apparaten kan een EMM in
+plaats daarvan een maintenance window of high-priority updatebeleid afdwingen.
+
+Nieuwe staging- en productioninstallaties hebben de lokale autostartschakelaar
+standaard aan. Een startverzoek geldt pas als geslaagd wanneer `MainActivity`
+werkelijk `resumed` is. Na dertig seconden zonder zichtbare Activity wordt
+`BACKGROUND_START_NOT_VISIBLE` vastgelegd en in Playerbeheer getoond. Boot en
+`MY_PACKAGE_REPLACED` gebruiken op recente Androidversies expliciete
+background-launchopt-ins.
+
+Dit neemt het Android-platformbeleid niet weg: sinds Android 10 kan een gewone
+app een background activity launch blokkeren zonder exception terug te geven.
+Een absoluut gegarandeerde signageboot vereist device-owner/kioskbeheer of dat
+VeyoCast als default launcher is ingericht. De unmanaged Play-app rapporteert
+de werkelijke uitkomst en doet geen stil succesvoorwendsel.
 
 ### Staging-reviewdemo
 
@@ -313,8 +350,9 @@ volledig.
 
 - Bootstart en keep-on-top zijn niet gegarandeerd zonder managed kiosk/device owner.
 - HOME en het OS-appmenu blijven door Android beheerd.
-- De shell heeft geen eigen APK-updater; distributie loopt handmatig, via een
-  intern Google Play-kanaal of later via managed devices.
+- De shell heeft geen eigen APK-updater; distributie loopt via Google Play of
+  managed devices. Het beheerpaneel opent de Play-updatevoorkeur, maar kan die
+  systeeminstelling niet zonder gebruikers- of EMM-toestemming wijzigen.
 - Offline media en pairing blijven afhankelijk van de bestaande webplayer,
   Android System WebView en de beschikbare apparaatopslag.
 - Een klassieke Chromecast zonder Android-appplatform kan deze APK niet uitvoeren.

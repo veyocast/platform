@@ -121,6 +121,55 @@ class AutomationStore(context: Context) {
         }
     }
 
+    fun lastExecutionResult(): String? =
+        preferences.getString(KEY_LAST_RESULT, null)
+
+    fun beginLaunchAttempt(source: String): String {
+        val attemptId = UUID.randomUUID().toString()
+        preferences.edit {
+            putString(KEY_LAUNCH_ATTEMPT_ID, attemptId)
+            putString(KEY_LAUNCH_ATTEMPT_SOURCE, source.take(100))
+            putString(KEY_LAUNCH_ATTEMPT_AT, Instant.now().toString())
+        }
+        return attemptId
+    }
+
+    @Synchronized
+    fun completeLaunchAttempt(attemptId: String): Boolean {
+        if (preferences.getString(KEY_LAUNCH_ATTEMPT_ID, null) != attemptId) {
+            return false
+        }
+        preferences.edit {
+            remove(KEY_LAUNCH_ATTEMPT_ID)
+            remove(KEY_LAUNCH_ATTEMPT_SOURCE)
+            remove(KEY_LAUNCH_ATTEMPT_AT)
+        }
+        return true
+    }
+
+    fun failLaunchAttempt(
+        attemptId: String,
+        commandId: String?,
+        diagnosticCode: String,
+        scheduledFor: Instant?,
+        source: String
+    ): Boolean {
+        if (!completeLaunchAttempt(attemptId)) return false
+        enqueueReport(
+            eventType = "execution-failed",
+            status = "failed",
+            commandId = commandId,
+            diagnosticCode = diagnosticCode,
+            scheduledFor = scheduledFor,
+            metadata = mapOf(
+                "attemptId" to attemptId,
+                "source" to source
+            )
+        )
+        recordExecution(diagnosticCode)
+        return true
+    }
+
     private fun reportQueue(): JSONArray = runCatching {
         JSONArray(preferences.getString(KEY_REPORTS, "[]"))
     }.getOrElse { JSONArray() }
@@ -132,6 +181,9 @@ class AutomationStore(context: Context) {
         const val KEY_LAST_EXECUTION_AT = "last_execution_at"
         const val KEY_LAST_RESULT = "last_result"
         const val KEY_LAST_SYNC_AT = "last_sync_at"
+        const val KEY_LAUNCH_ATTEMPT_AT = "launch_attempt_at"
+        const val KEY_LAUNCH_ATTEMPT_ID = "launch_attempt_id"
+        const val KEY_LAUNCH_ATTEMPT_SOURCE = "launch_attempt_source"
         const val KEY_REPORTS = "reports"
         const val KEY_SYNC = "sync"
         const val MAX_REPORTS = 40

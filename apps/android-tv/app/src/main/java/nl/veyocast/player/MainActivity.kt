@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.provider.Settings
 import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
@@ -48,11 +49,15 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private lateinit var errorCard: View
     private lateinit var managementPanel: LinearLayout
     private lateinit var refreshButton: Button
+    private lateinit var updateButton: Button
+    private lateinit var updateSummary: TextView
     private lateinit var demoButton: Button
     private lateinit var demoSummary: TextView
     private lateinit var privacyButton: Button
     private lateinit var returnHomeButton: Button
     private lateinit var autostartSwitch: Switch
+    private lateinit var autostartStatus: TextView
+    private lateinit var appSettingsButton: Button
     private lateinit var connectionValue: TextView
     private lateinit var environmentValue: TextView
     private lateinit var versionValue: TextView
@@ -123,7 +128,6 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         automationStore = AutomationStore(this)
         automationScheduler = AutomationScheduler(this)
         applyScheduledKeepAwake()
-        handleAutomationLaunchIntent(intent)
         playerUrl = PlayerConfiguration.resolvePlayerUrl(
             configuredUrl = BuildConfig.PLAYER_URL,
             allowDebugOverride = BuildConfig.ALLOW_DEBUG_URL_OVERRIDE,
@@ -294,11 +298,15 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         errorCard = findViewById(R.id.error_card)
         managementPanel = findViewById(R.id.management_panel)
         refreshButton = findViewById(R.id.refresh_button)
+        updateButton = findViewById(R.id.update_button)
+        updateSummary = findViewById(R.id.update_summary)
         demoButton = findViewById(R.id.demo_button)
         demoSummary = findViewById(R.id.demo_summary)
         privacyButton = findViewById(R.id.privacy_button)
         returnHomeButton = findViewById(R.id.return_home_button)
         autostartSwitch = findViewById(R.id.autostart_switch)
+        autostartStatus = findViewById(R.id.autostart_status)
+        appSettingsButton = findViewById(R.id.app_settings_button)
         connectionValue = findViewById(R.id.connection_value)
         environmentValue = findViewById(R.id.environment_value)
         versionValue = findViewById(R.id.version_value)
@@ -341,12 +349,27 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         autostartSwitch.setOnCheckedChangeListener { _, checked ->
             preferences.bootStartEnabled = checked
             AppLog.info("Autostartinstelling gewijzigd; actief=$checked")
+            updateAutostartStatus()
         }
+        appSettingsButton.setOnClickListener {
+            runCatching {
+                startActivity(
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:$packageName")
+                    )
+                )
+            }.onFailure {
+                AppLog.warning("Android-appinstellingen konden niet worden geopend")
+            }
+        }
+        updateAutostartStatus()
         refreshButton.setOnClickListener {
             closeManagementPanel()
             retryPolicy.reset()
             loadPlayer()
         }
+        configureUpdateMenu()
         configureDemoMenu()
         privacyButton.setOnClickListener {
             runCatching {
@@ -372,10 +395,60 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         }
     }
 
+    private fun configureUpdateMenu() {
+        val visibility = if (BuildConfig.ENVIRONMENT == "production") {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        updateButton.visibility = visibility
+        updateSummary.visibility = visibility
+        updateButton.setOnClickListener {
+            val marketIntent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("market://details?id=$PLAY_STORE_APPLICATION_ID")
+            ).apply {
+                setPackage(PLAY_STORE_PACKAGE)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            runCatching {
+                startActivity(marketIntent)
+            }.recoverCatching {
+                startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(
+                            "https://play.google.com/store/apps/details" +
+                                "?id=$PLAY_STORE_APPLICATION_ID"
+                        )
+                    )
+                )
+            }.onFailure {
+                AppLog.warning("Google Play-updateinstellingen konden niet worden geopend")
+            }
+        }
+    }
+
     private fun updateDemoButton() {
         demoButton.setText(
             if (preferences.demoModeEnabled) R.string.demo_disconnect else R.string.demo_start
         )
+    }
+
+    private fun updateAutostartStatus() {
+        val result = automationStore.lastExecutionResult()
+        autostartStatus.text = when (result) {
+            "PLAYER_VISIBLE" ->
+                getString(R.string.autostart_status_visible)
+            "BACKGROUND_START_NOT_VISIBLE" ->
+                getString(R.string.autostart_status_not_visible)
+            "BACKGROUND_START_BLOCKED" ->
+                getString(R.string.autostart_status_blocked)
+            null ->
+                getString(R.string.autostart_status_not_tested)
+            else ->
+                getString(R.string.autostart_status_result, result)
+        }
     }
 
     private fun openDemoCodeDialog() {
@@ -652,13 +725,31 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         val view = webView ?: return
         mainFrameFailed = false
         AppLog.debug("Player-load aangevraagd; host=${safeHost(playerUrl)}")
-        view.loadUrl(
+        val destination =
             if (BuildConfig.DEMO_MENU_ENABLED && preferences.demoModeEnabled) {
                 PlayerConfiguration.demoUrl(playerUrl)
             } else {
                 playerUrl
             }
+        val recoveryCredential = NativeRecoveryIdentity.from(
+            this,
+            BuildConfig.ENVIRONMENT
         )
+        if (recoveryCredential == null) {
+            AppLog.warning("Native herinstallatie-identiteit is niet beschikbaar")
+            view.loadUrl(destination)
+            return
+        }
+        val secure = runCatching {
+            URI(playerUrl).scheme.equals("https", ignoreCase = true)
+        }.getOrDefault(false)
+        CookieManager.getInstance().setCookie(
+            playerUrl,
+            NativeRecoveryIdentity.cookie(recoveryCredential, secure)
+        ) {
+            CookieManager.getInstance().flush()
+            if (webView === view) view.loadUrl(destination)
+        }
     }
 
     private fun reconcileDemoRedirect() {
@@ -724,6 +815,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
 
     private fun openManagementPanel() {
         hideCustomView()
+        updateAutostartStatus()
         managementPanel.visibility = View.VISIBLE
         refreshButton.requestFocus()
     }
@@ -942,6 +1034,7 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
 
     private fun handleAutomationLaunchIntent(launchIntent: Intent?) {
         if (
+            !activityResumed ||
             launchIntent?.getBooleanExtra(
                 AutomationAlarmReceiver.EXTRA_AUTOMATION_START,
                 false
@@ -957,14 +1050,35 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
         val scheduledFor =
             launchIntent.getStringExtra(AutomationAlarmReceiver.EXTRA_SCHEDULED_FOR)
                 ?.let { runCatching { Instant.parse(it) }.getOrNull() }
+        val attemptId =
+            launchIntent.getStringExtra(
+                AutomationActivityLauncher.EXTRA_LAUNCH_ATTEMPT_ID
+            )
+        if (
+            attemptId != null &&
+            !automationStore.completeLaunchAttempt(attemptId)
+        ) {
+            launchIntent.removeExtra(AutomationAlarmReceiver.EXTRA_AUTOMATION_START)
+            launchIntent.removeExtra(
+                AutomationActivityLauncher.EXTRA_LAUNCH_ATTEMPT_ID
+            )
+            return
+        }
+        AutomationLaunchVerifier.cancel(this)
         automationStore.enqueueReport(
             eventType = "player-visible",
             commandId = commandId,
             scheduledFor = scheduledFor,
-            metadata = mapOf("activityResumed" to activityResumed)
+            metadata = mapOf(
+                "activityResumed" to activityResumed,
+                "attemptId" to attemptId
+            )
         )
         automationStore.recordExecution("PLAYER_VISIBLE")
         launchIntent.removeExtra(AutomationAlarmReceiver.EXTRA_AUTOMATION_START)
+        launchIntent.removeExtra(
+            AutomationActivityLauncher.EXTRA_LAUNCH_ATTEMPT_ID
+        )
     }
 
     private fun decodeJavascriptObject(value: String?): JSONObject? = runCatching {
@@ -979,6 +1093,8 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private fun safeHost(url: String): String = runCatching { URI(url).host }.getOrNull() ?: "onbekend"
 
     private companion object {
+        const val PLAY_STORE_APPLICATION_ID = "nl.veyocast.player"
+        const val PLAY_STORE_PACKAGE = "com.android.vending"
         const val AUTOMATION_BRIDGE_INTERVAL_MS = 15_000L
         const val DEMO_ACTIVATION_POLL_MS = 100L
         const val DEMO_ACTIVATION_TIMEOUT_MS = 10_000L

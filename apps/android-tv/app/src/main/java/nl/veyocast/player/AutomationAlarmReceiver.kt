@@ -37,31 +37,12 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             scheduledFor = scheduledFor
         )
         store.recordExecution("WAKE_TRIGGERED")
-        val launchIntent = Intent(context, MainActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            putExtra(EXTRA_AUTOMATION_START, true)
-            putExtra(EXTRA_COMMAND_ID, commandId)
-            putExtra(EXTRA_SCHEDULED_FOR, scheduledFor?.toString())
-        }
-        runCatching { context.startActivity(launchIntent) }
-            .onSuccess {
-                store.enqueueReport(
-                    eventType = "activity-start-requested",
-                    commandId = commandId,
-                    scheduledFor = scheduledFor
-                )
-                store.recordExecution("ACTIVITY_START_REQUESTED")
-            }
-            .onFailure {
-                store.enqueueReport(
-                    eventType = "execution-failed",
-                    status = "failed",
-                    commandId = commandId,
-                    diagnosticCode = "BACKGROUND_START_BLOCKED",
-                    scheduledFor = scheduledFor
-                )
-                store.recordExecution("BACKGROUND_START_BLOCKED")
-            }
+        AutomationActivityLauncher.request(
+            context = context,
+            source = if (commandId == null) "lokaal automatiseringsalarm" else "Control-testopdracht",
+            commandId = commandId,
+            scheduledFor = scheduledFor
+        )
         AutomationScheduler(context).apply(
             envelope,
             scheduledFor ?: Instant.now()

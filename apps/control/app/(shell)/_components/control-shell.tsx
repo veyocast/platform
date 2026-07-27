@@ -424,6 +424,7 @@ export function ControlShell({
               hasTenantNavigationContext ? " tenant-switcher__menu--tenant" : ""
             }`}
             contentLabel="Werkcontext wisselen"
+            disabled={!isInteractive}
             role="group"
             trigger={
               <>

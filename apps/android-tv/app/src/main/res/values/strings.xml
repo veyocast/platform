@@ -19,6 +19,8 @@
     <string name="connection_offline">Geen netwerk gedetecteerd</string>
     <string name="refresh_player">Player vernieuwen</string>
     <string name="refresh_player_summary">Vraag de webplayer om de actuele status en content opnieuw te laden.</string>
+    <string name="manage_updates">Automatische updates instellen</string>
+    <string name="manage_updates_summary">Opent VeyoCast Player in Google Play. Kies daar Meer en zet Automatisch updaten aan. De bestaande koppeling blijft bij een normale update behouden.</string>
     <string name="demo_start">Demo starten</string>
     <string name="demo_disconnect">Demo ontkoppelen</string>
     <string name="demo_summary">Opent de veilige, vooraf geconfigureerde staging-reviewplaylist. Een normaal gekoppeld scherm wordt niet gewijzigd.</string>
@@ -32,7 +34,13 @@
     <string name="demo_connected">Reviewdemo verbonden</string>
     <string name="demo_disconnected">Reviewdemo ontkoppeld</string>
     <string name="autostart">Autostart na herstart</string>
-    <string name="autostart_summary">Android probeert VeyoCast na een apparaatherstart te openen. Het apparaatbeleid kan dit blokkeren.</string>
+    <string name="autostart_summary">Start VeyoCast na een apparaatherstart én na een normale Play-update. De Player controleert binnen 30 seconden of Android hem echt zichtbaar heeft gemaakt.</string>
+    <string name="autostart_status_not_tested">Laatste controle: nog niet uitgevoerd</string>
+    <string name="autostart_status_visible">Laatste controle: Player zichtbaar gestart</string>
+    <string name="autostart_status_not_visible">Laatste controle: Android liet de Player niet zichtbaar worden</string>
+    <string name="autostart_status_blocked">Laatste controle: Android blokkeerde de achtergrondstart</string>
+    <string name="autostart_status_result">Laatste controle: %1$s</string>
+    <string name="open_app_settings">Android-appinstellingen openen</string>
     <string name="keep_awake">Scherm wakker houden</string>
     <string name="keep_awake_summary">Actief zolang de VeyoCast Player op de voorgrond staat.</string>
     <string name="orientation">Oriëntatie</string>

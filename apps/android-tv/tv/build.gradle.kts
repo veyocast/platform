@@ -78,7 +78,7 @@ android {
             resValue("string", "app_name", "VeyoCast Player Staging (TV)")
             buildConfigField("String", "ENVIRONMENT", "\"staging\"")
             buildConfigField("String", "PLAYER_URL", "\"https://staging-player.veyocast.nl\"")
-            buildConfigField("boolean", "BOOT_START_DEFAULT", "false")
+            buildConfigField("boolean", "BOOT_START_DEFAULT", "true")
             buildConfigField("boolean", "DEMO_MENU_ENABLED", "true")
         }
         create("production") {
@@ -86,7 +86,7 @@ android {
             resValue("string", "app_name", "VeyoCast Player")
             buildConfigField("String", "ENVIRONMENT", "\"production\"")
             buildConfigField("String", "PLAYER_URL", "\"https://player.veyocast.nl\"")
-            buildConfigField("boolean", "BOOT_START_DEFAULT", "false")
+            buildConfigField("boolean", "BOOT_START_DEFAULT", "true")
             buildConfigField("boolean", "DEMO_MENU_ENABLED", "false")
         }
     }
