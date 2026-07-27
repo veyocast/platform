@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const viewports = [
   { height: 720, width: 320 },
@@ -8,14 +8,44 @@ const viewports = [
   { height: 900, width: 1440 }
 ] as const;
 
+async function openDashboard(page: Page) {
+  await expect(async () => {
+    try {
+      await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    } catch (error) {
+      // Next dev can replace the first navigation while compiling a lazy
+      // App Router segment. A real page failure still fails the assertions.
+      if (!String(error).includes("ERR_ABORTED")) throw error;
+    }
+
+    await expect(
+      page.getByRole("heading", { exact: true, level: 1, name: "Overzicht" })
+    ).toBeVisible();
+
+    const contextTrigger = page.getByRole("button", {
+      name: "Actieve context: Museumkwartier"
+    });
+    if (await contextTrigger.isVisible()) {
+      await expect(contextTrigger).toBeEnabled();
+      return;
+    }
+
+    const mobileMoreTrigger = page.getByRole("button", { name: "Meer" });
+    const navigationTrigger = (await mobileMoreTrigger.isVisible())
+      ? mobileMoreTrigger
+      : page.getByRole("button", { name: "Navigatie openen" });
+    await expect(navigationTrigger).toBeEnabled();
+  }).toPass({ timeout: 20_000 });
+}
+
 test("floating panels stay above clipped containers at every Control breakpoint", async ({
   page
 }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(90_000);
 
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
-    await page.goto("/dashboard");
+    await openDashboard(page);
 
     const contextTrigger = page.getByRole("button", {
       name: "Actieve context: Museumkwartier"
