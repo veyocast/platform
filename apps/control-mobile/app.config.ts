@@ -2,13 +2,13 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 
 const packageName = "nl.veyocast.control";
 const versionCode = Number.parseInt(
-  process.env.VEYOCAST_CONTROL_VERSION_CODE ?? "100000001",
+  process.env.VEYOCAST_CONTROL_VERSION_CODE ?? "300000001",
   10
 );
 
-if (!Number.isInteger(versionCode) || versionCode < 100_000_000 || versionCode > 199_999_999) {
+if (!Number.isInteger(versionCode) || versionCode < 300_000_000 || versionCode > 399_999_999) {
   throw new Error(
-    "VEYOCAST_CONTROL_VERSION_CODE moet tussen 100000000 en 199999999 liggen."
+    "VEYOCAST_CONTROL_VERSION_CODE moet tussen 300000000 en 399999999 liggen."
   );
 }
 
@@ -22,13 +22,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: "../../assets/brand/veyocast-social-avatar-1024.png",
   scheme: "veyocast-control",
   userInterfaceStyle: "automatic",
-  runtimeVersion: {
-    policy: "appVersion"
-  },
   experiments: {
     typedRoutes: true
   },
   android: {
+    allowBackup: false,
     package: packageName,
     versionCode,
     adaptiveIcon: {
