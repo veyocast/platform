@@ -32,6 +32,12 @@ import {
   runRssSyncOnce,
   type RssSyncRunResult
 } from "./rss-sync-runner";
+import {
+  SupabaseSportlinkSyncBackend,
+  runSportlinkSyncLoop,
+  runSportlinkSyncOnce,
+  type SportlinkSyncRunResult
+} from "./sportlink-sync-runner";
 
 export {
   createMediaProcessingPlan,
@@ -120,6 +126,15 @@ export {
   runRssSyncOnce
 } from "./rss-sync-runner";
 export type { ClaimedRssSync, RssSyncRunResult } from "./rss-sync-runner";
+export {
+  SupabaseSportlinkSyncBackend,
+  runSportlinkSyncLoop,
+  runSportlinkSyncOnce
+} from "./sportlink-sync-runner";
+export type {
+  ClaimedSportlinkSync,
+  SportlinkSyncRunResult
+} from "./sportlink-sync-runner";
 
 export type WorkerHealth = {
   service: string;
@@ -166,6 +181,10 @@ async function main() {
     config.supabaseUrl,
     config.serviceRoleKey
   );
+  const sportlinkBackend = new SupabaseSportlinkSyncBackend(
+    config.supabaseUrl,
+    config.serviceRoleKey
+  );
   const studioRenderer = new ResvgSharpStudioRenderer();
   if (mode === "--once") {
     const mediaResult = await runWorkerOnce({ backend, config });
@@ -188,11 +207,19 @@ async function main() {
       workerId: config.workerId
     });
     logRssSyncResult(logger, rssResult);
+    const sportlinkResult = await runSportlinkSyncOnce({
+      backend: sportlinkBackend,
+      encryptionKey: config.sportlinkEncryptionKey,
+      lockTimeoutSeconds: config.lockTimeoutSeconds,
+      workerId: config.workerId
+    });
+    logSportlinkSyncResult(logger, sportlinkResult);
     if (
       mediaResult.status === "failed" ||
       studioResult.status === "failed" ||
       dynamicResult.status === "failed" ||
-      rssResult.status === "failed"
+      rssResult.status === "failed" ||
+      sportlinkResult.status === "failed"
     ) {
       process.exitCode = 1;
     }
@@ -274,6 +301,15 @@ async function main() {
         signal: controller.signal,
         workerId: config.workerId
       }),
+      runSportlinkSyncLoop({
+        backend: sportlinkBackend,
+        encryptionKey: config.sportlinkEncryptionKey,
+        intervalMs: config.schedulePollIntervalMs,
+        lockTimeoutSeconds: config.lockTimeoutSeconds,
+        onResult: (result) => logSportlinkSyncResult(logger, result),
+        signal: controller.signal,
+        workerId: config.workerId
+      }),
       ...serviceMonitorTasks(controller.signal, logger)
     ]);
   } finally {
@@ -281,6 +317,29 @@ async function main() {
     process.removeListener("SIGTERM", stop);
     await closeServer(healthServer);
     logger.info("media.worker.stopped");
+  }
+}
+
+function logSportlinkSyncResult(
+  logger: ReturnType<typeof createStructuredLogger>,
+  result: SportlinkSyncRunResult
+) {
+  const eventLogger =
+    result.status === "idle" ? logger : logger.withCorrelation(result.runId);
+  if (result.status === "idle") {
+    eventLogger.debug("sportlink.sync.queue_polled", { outcome: "idle" });
+  } else if (result.status === "completed") {
+    eventLogger.info("sportlink.sync.completed", {
+      datasetGroup: result.datasetGroup,
+      outcome: result.status,
+      readCount: result.readCount
+    });
+  } else {
+    eventLogger.error("sportlink.sync.failed", {
+      datasetGroup: result.datasetGroup,
+      errorCode: result.errorCode,
+      outcome: result.status
+    });
   }
 }
 

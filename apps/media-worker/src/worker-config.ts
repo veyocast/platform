@@ -6,6 +6,7 @@ export type MediaWorkerConfig = {
   pollIntervalMs: number;
   schedulePollIntervalMs: number;
   serviceRoleKey: string;
+  sportlinkEncryptionKey: string | null;
   supabaseUrl: string;
   workerId: string;
 };
@@ -55,9 +56,23 @@ export function readMediaWorkerConfig(
       "PUBLISHER_SCHEDULE_POLL_INTERVAL_MS"
     ),
     serviceRoleKey,
+    sportlinkEncryptionKey: readOptionalEncryptionKey(
+      environment.SPORTLINK_CONFIG_ENCRYPTION_KEY
+    ),
     supabaseUrl,
     workerId
   };
+}
+
+function readOptionalEncryptionKey(rawValue: string | undefined) {
+  const value = rawValue?.trim();
+  if (!value) return null;
+  if (value.length < 32) {
+    throw new WorkerConfigurationError(
+      "SPORTLINK_CONFIG_ENCRYPTION_KEY moet minimaal 32 tekens bevatten."
+    );
+  }
+  return value;
 }
 
 export class WorkerConfigurationError extends Error {
