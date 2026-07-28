@@ -3,6 +3,7 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  useWindowDimensions,
   type ScrollViewProps,
   type StyleProp,
   type ViewStyle
@@ -32,11 +33,24 @@ export function ScreenScrollView({
   contentContainerStyle,
   ...props
 }: PropsWithChildren<ScrollViewProps>) {
+  const { width } = useWindowDimensions();
+  const horizontalPadding =
+    width >= 1200
+      ? mobileSpacing.major
+      : width >= 768
+        ? mobileSpacing.section
+        : width >= 390
+          ? mobileSpacing.card
+          : mobileSpacing.default;
   return (
     <ScrollView
       {...props}
       automaticallyAdjustContentInsets
-      contentContainerStyle={[styles.screenContent, contentContainerStyle]}
+      contentContainerStyle={[
+        styles.screenContent,
+        { paddingHorizontal: horizontalPadding },
+        contentContainerStyle
+      ]}
       contentInsetAdjustmentBehavior="automatic"
       keyboardDismissMode="interactive"
       keyboardShouldPersistTaps="handled"
@@ -95,13 +109,19 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: mobileRadius.card,
     borderWidth: 1,
-    padding: mobileSpacing.default
+    padding: mobileSpacing.default,
+    shadowColor: "#000000",
+    shadowOffset: { height: 3, width: 0 },
+    shadowOpacity: 0.035,
+    shadowRadius: 10
   },
   screenContent: {
+    alignSelf: "center",
     gap: mobileSpacing.section,
-    paddingBottom: 112,
-    paddingHorizontal: mobileSpacing.default,
-    paddingTop: mobileSpacing.default
+    maxWidth: 1180,
+    paddingBottom: mobileSpacing.large,
+    paddingTop: mobileSpacing.section,
+    width: "100%"
   },
   sectionCopy: {
     flex: 1,
