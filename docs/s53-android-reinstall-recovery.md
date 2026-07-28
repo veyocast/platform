@@ -84,8 +84,10 @@ de knoppen opnieuw en verwijdert geen mogelijk geldige schermbinding.
 Iedere staging- en productiondeployment voert voortaan na de migratie een
 echte installation → pairing → recover-smoke uit tegen de publieke Player-URL.
 De tijdelijke databasegegevens worden in dezelfde gecontroleerde stap
-opgeruimd. De smoke verifieert ook dat `/lg/recover` geen Next-clientchunks
-nodig heeft.
+opgeruimd via een service-role-only RPC. Die RPC accepteert uitsluitend de
+exacte gehashte smoke-installatie en weigert ieder record met een echte
+device-/schermbinding. De smoke verifieert ook dat `/lg/recover` geen
+Next-clientchunks nodig heeft.
 
 ## Nog fysiek te bewijzen
 
@@ -111,8 +113,8 @@ nodig heeft.
 - Player: 25 testbestanden en 95 tests groen; production build inclusief
   webOS-compatibiliteits- en secret-scan groen.
 - Database reset: migration toegepast.
-- RLS: 39 bestanden en 746 assertions groen, inclusief 22 gerichte
-  herinstallatie- en recoveryasserties.
+- RLS: 40 bestanden en 758 assertions groen, inclusief 22 gerichte
+  herinstallatie-/recoveryasserties en 12 cleanup-boundarychecks.
 - Android general en TV: production lint, unitvarianten, debug-APK's en
   geminificeerde production-AAB's groen. Bundletool- en DEX-inspectie bewijzen
   beide launchers, boot/package-replaced receivers en de behouden

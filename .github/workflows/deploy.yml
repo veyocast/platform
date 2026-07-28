@@ -281,8 +281,9 @@ jobs:
       - name: Prove live pairing and standalone LG recovery on staging
         shell: bash
         env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           PLAYER_ORIGIN: https://staging-player.veyocast.nl
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: bash scripts/smoke-player-pairing-recovery.sh
 
   deploy-production:
@@ -387,6 +388,7 @@ jobs:
       - name: Prove live pairing and standalone LG recovery on production
         shell: bash
         env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           PLAYER_ORIGIN: https://player.veyocast.nl
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: bash scripts/smoke-player-pairing-recovery.sh

@@ -2,7 +2,8 @@
 set -Eeuo pipefail
 
 : "${PLAYER_ORIGIN:?PLAYER_ORIGIN ontbreekt}"
-: "${SUPABASE_DB_URL:?SUPABASE_DB_URL ontbreekt}"
+: "${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL ontbreekt}"
+: "${SUPABASE_SERVICE_ROLE_KEY:?SUPABASE_SERVICE_ROLE_KEY ontbreekt}"
 
 case "${PLAYER_ORIGIN}" in
   https://staging-player.veyocast.nl|https://player.veyocast.nl) ;;
@@ -17,28 +18,31 @@ installation_id="$(tr -d '-' < /proc/sys/kernel/random/uuid)"
 installation_hash="$(printf '%s' "${installation_id}" | sha256sum | cut -d' ' -f1)"
 
 cleanup() {
-  psql "${SUPABASE_DB_URL}" \
-    --set ON_ERROR_STOP=1 \
-    --set "installation_hash=${installation_hash}" \
-    <<'SQL'
-begin;
-delete from private.player_pairing_events event
-using public.player_installations installation
-where event.installation_id = installation.id
-  and installation.public_identifier_hash = :'installation_hash';
-delete from private.player_pairing_recovery_events
-where installation_id_hash = :'installation_hash';
-delete from private.pairing_creation_attempts
-where fingerprint_hash = :'installation_hash';
-delete from public.pairing_sessions pairing
-using public.player_installations installation
-where pairing.installation_id = installation.id
-  and installation.public_identifier_hash = :'installation_hash';
-delete from public.player_installations
-where public_identifier_hash = :'installation_hash';
-commit;
-SQL
+  local command_status=$?
+  local cleanup_status=0
+  trap - EXIT
+  set +e
+
+  curl \
+    --fail-with-body \
+    --silent \
+    --show-error \
+    --proto '=https' \
+    --tlsv1.2 \
+    --header 'Accept: application/json' \
+    --header 'Content-Type: application/json' \
+    --header "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+    --header "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+    --data "{\"p_installation_id_hash\":\"${installation_hash}\"}" \
+    "${NEXT_PUBLIC_SUPABASE_URL%/}/rest/v1/rpc/cleanup_player_pairing_smoke_v1" \
+    > /dev/null
+  cleanup_status=$?
   rm -rf "${work_dir}"
+
+  if (( command_status == 0 && cleanup_status != 0 )); then
+    command_status="${cleanup_status}"
+  fi
+  exit "${command_status}"
 }
 trap cleanup EXIT
 
