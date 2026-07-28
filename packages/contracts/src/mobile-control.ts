@@ -137,10 +137,9 @@ export const mobilePairingClaimRequestSchema = z
 export const mobilePairingClaimSchema = z
   .object({
     code: mobilePairingCodeSchema,
-    expiresAt: instant,
-    pairingId: uuid,
+    deviceId: uuid,
     screenId: uuid,
-    status: z.enum(["claiming", "paired", "rejected"])
+    status: z.literal("paired")
   })
   .strict();
 
