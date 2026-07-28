@@ -15,7 +15,7 @@ import {
   ShieldCheck,
   UserRound
 } from "lucide-react-native";
-import { Linking, StyleSheet, View } from "react-native";
+import { Alert, Linking, StyleSheet, View } from "react-native";
 
 import { useAuth } from "../../src/auth/auth-provider";
 import { PageHeader } from "../../src/components/page-header";
@@ -25,7 +25,7 @@ import { useTenant } from "../../src/tenant/tenant-provider";
 export default function MeerScreen() {
   const router = useRouter();
   const theme = useMobileTheme();
-  const { signOut } = useAuth();
+  const { signOut, signOutEverywhere } = useAuth();
   const { session } = useTenant();
   return (
     <AppShell>
@@ -94,6 +94,25 @@ export default function MeerScreen() {
           icon={<LogOut color={theme.colors.critical} size={22} />}
           label="Uitloggen"
           onPress={() => void signOut()}
+        />
+        <SettingsRow
+          description="Trek alle VeyoCast-sessies voor dit account in."
+          icon={<ShieldCheck color={theme.colors.critical} size={22} />}
+          label="Overal uitloggen"
+          onPress={() =>
+            Alert.alert(
+              "Overal uitloggen?",
+              "Je wordt ook op andere apparaten en in Control opnieuw om je wachtwoord gevraagd.",
+              [
+                { style: "cancel", text: "Annuleren" },
+                {
+                  onPress: () => void signOutEverywhere(),
+                  style: "destructive",
+                  text: "Overal uitloggen"
+                }
+              ]
+            )
+          }
         />
       </ScreenScrollView>
     </AppShell>

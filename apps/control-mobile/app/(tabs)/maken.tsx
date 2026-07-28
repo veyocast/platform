@@ -11,6 +11,7 @@ import {
   useMobileTheme
 } from "@veyocast/mobile-design-system";
 import * as ImagePicker from "expo-image-picker";
+import * as Network from "expo-network";
 import { useRouter } from "expo-router";
 import {
   Camera,
@@ -19,7 +20,7 @@ import {
   RefreshCw,
   UploadCloud
 } from "lucide-react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -33,6 +34,7 @@ import {
   updateImageUpload,
   type QueuedImageUpload
 } from "../../src/storage/upload-queue";
+import { uploadFailureStatus } from "../../src/storage/upload-retry";
 import { useTenant } from "../../src/tenant/tenant-provider";
 
 export default function MakenScreen() {
@@ -46,29 +48,22 @@ export default function MakenScreen() {
   const [queue, setQueue] = useState<QueuedImageUpload[]>([]);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  const resuming = useRef(false);
 
   const refreshQueue = useCallback(async () => {
     if (!activeTenant) return;
     setQueue(await listImageUploads(activeTenant.id));
   }, [activeTenant]);
 
-  useEffect(() => {
-    void refreshQueue();
-  }, [refreshQueue]);
-
   async function pick(source: "camera" | "library") {
     setError(null);
     const permission =
       source === "camera"
         ? await ImagePicker.requestCameraPermissionsAsync()
-        : await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
+        : null;
+    if (permission && !permission.granted) {
       setError(
-        new Error(
-          source === "camera"
-            ? "Cameratoegang is niet verleend."
-            : "Toegang tot foto’s is niet verleend."
-        )
+        new Error("Cameratoegang is niet verleend.")
       );
       return;
     }
@@ -124,31 +119,64 @@ export default function MakenScreen() {
     }
   }
 
-  async function processItem(item: QueuedImageUpload) {
-    if (!activeTenant) return;
-    await updateImageUpload(item.id, "uploading");
+  const processItem = useCallback(
+    async (item: QueuedImageUpload) => {
+      if (!activeTenant || item.tenant_id !== activeTenant.id) return;
+      await updateImageUpload(item.id, "uploading");
+      try {
+        await mobileApi.uploadImage(activeTenant.id, {
+          fileName: item.file_name,
+          mimeType: item.mime_type,
+          title: item.title,
+          uri: item.uri
+        });
+        await completeImageUpload(item);
+        await queryClient.invalidateQueries({
+          queryKey: ["content", activeTenant.id]
+        });
+      } catch (uploadError) {
+        await updateImageUpload(
+          item.id,
+          uploadFailureStatus(uploadError),
+          uploadError instanceof MobileApiError
+            ? uploadError.code
+            : "NETWORK_UNAVAILABLE"
+        );
+        throw uploadError;
+      }
+    },
+    [activeTenant, queryClient]
+  );
+
+  const resumePending = useCallback(async () => {
+    if (!activeTenant || resuming.current) return;
+    const network = await Network.getNetworkStateAsync();
+    if (!network.isConnected || network.isInternetReachable === false) return;
+    resuming.current = true;
     try {
-      await mobileApi.uploadImage(activeTenant.id, {
-        fileName: item.file_name,
-        mimeType: item.mime_type,
-        title: item.title,
-        uri: item.uri
-      });
-      await completeImageUpload(item);
-      await queryClient.invalidateQueries({
-        queryKey: ["content", activeTenant.id]
-      });
-    } catch (uploadError) {
-      await updateImageUpload(
-        item.id,
-        "failed",
-        uploadError instanceof MobileApiError
-          ? uploadError.code
-          : "UPLOAD_FAILED"
-      );
-      throw uploadError;
+      const items = await listImageUploads(activeTenant.id);
+      for (const item of items.filter(({ status }) => status === "pending")) {
+        try {
+          await processItem(item);
+        } catch {
+          break;
+        }
+      }
+      await refreshQueue();
+    } finally {
+      resuming.current = false;
     }
-  }
+  }, [activeTenant, processItem, refreshQueue]);
+
+  useEffect(() => {
+    void refreshQueue().then(resumePending);
+    const subscription = Network.addNetworkStateListener((state) => {
+      if (state.isConnected && state.isInternetReachable !== false) {
+        void resumePending();
+      }
+    });
+    return () => subscription.remove();
+  }, [refreshQueue, resumePending]);
 
   async function retry(item: QueuedImageUpload) {
     setBusy(true);

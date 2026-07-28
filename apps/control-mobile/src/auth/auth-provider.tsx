@@ -25,6 +25,7 @@ type AuthContextValue = {
   session: Session | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  signOutEverywhere: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -92,6 +93,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
     ]);
   }, []);
 
+  const signOutEverywhere = useCallback(async () => {
+    if (!mobileSupabase) {
+      throw new Error(mobileRuntimeError ?? "De appconfiguratie ontbreekt.");
+    }
+    const { error } = await mobileSupabase.auth.signOut({ scope: "global" });
+    if (error) throw error;
+    await Promise.all([
+      selectedTenantStorage.remove(),
+      clearAllTenantCaches()
+    ]);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       configurationError: mobileRuntimeError,
@@ -99,9 +112,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
       resetPassword,
       session,
       signIn,
-      signOut
+      signOut,
+      signOutEverywhere
     }),
-    [initialized, resetPassword, session, signIn, signOut]
+    [
+      initialized,
+      resetPassword,
+      session,
+      signIn,
+      signOut,
+      signOutEverywhere
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
