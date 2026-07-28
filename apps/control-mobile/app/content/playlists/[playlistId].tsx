@@ -672,11 +672,8 @@ const styles = StyleSheet.create({
     width: 48
   },
   draggingItem: {
+    boxShadow: "0 12px 20px rgba(0, 0, 0, 0.2)",
     elevation: 10,
-    shadowColor: "#000000",
-    shadowOffset: { height: 12, width: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20
   },
   dropPreview: {
     alignItems: "center",

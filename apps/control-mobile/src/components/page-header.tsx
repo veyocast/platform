@@ -159,8 +159,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: mobileRadius.control,
     borderWidth: 1,
+    flex: 1,
     flexDirection: "row",
     gap: mobileSpacing.compact,
+    minWidth: 0,
     minHeight: 44,
     paddingHorizontal: mobileSpacing.compact
   },

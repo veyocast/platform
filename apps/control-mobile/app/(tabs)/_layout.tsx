@@ -1,14 +1,21 @@
 import { Tabs } from "expo-router";
+import { useWindowDimensions } from "react-native";
 
-import { PremiumTabBar } from "../../src/navigation/premium-tab-bar";
+import {
+  PremiumTabBar,
+  premiumRailBreakpoint
+} from "../../src/navigation/premium-tab-bar";
 
 export default function TabsLayout() {
+  const { width } = useWindowDimensions();
   return (
     <Tabs
       tabBar={(props) => <PremiumTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarHideOnKeyboard: true
+        tabBarHideOnKeyboard: true,
+        tabBarPosition:
+          width >= premiumRailBreakpoint ? "left" : "bottom"
       }}
     >
       <Tabs.Screen

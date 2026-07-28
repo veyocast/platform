@@ -107,13 +107,10 @@ export function SectionHeader({
 
 const styles = StyleSheet.create({
   card: {
+    boxShadow: "0 3px 10px rgba(0, 0, 0, 0.035)",
     borderRadius: mobileRadius.card,
     borderWidth: 1,
-    padding: mobileSpacing.default,
-    shadowColor: "#000000",
-    shadowOffset: { height: 3, width: 0 },
-    shadowOpacity: 0.035,
-    shadowRadius: 10
+    padding: mobileSpacing.default
   },
   screenContent: {
     alignSelf: "center",

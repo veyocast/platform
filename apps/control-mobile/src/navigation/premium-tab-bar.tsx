@@ -37,9 +37,11 @@ const tabPresentation: Record<
   vandaag: { icon: LayoutDashboard, label: "Vandaag" }
 };
 
+export const premiumRailBreakpoint = 768;
+
 export function PremiumTabBar(props: PremiumTabBarProps) {
   const { width } = useWindowDimensions();
-  return width >= 840 ? (
+  return width >= premiumRailBreakpoint ? (
     <TabletNavigationRail {...props} />
   ) : (
     <PhoneNavigationDock {...props} />
@@ -385,10 +387,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     minHeight: 68,
     paddingHorizontal: mobileSpacing.micro,
-    shadowColor: "#000000",
-    shadowOffset: { height: 8, width: 0 },
-    shadowOpacity: 0.18,
-    shadowRadius: 18
+    boxShadow: "0 8px 18px rgba(0, 0, 0, 0.18)"
   },
   phoneIcon: {
     alignItems: "center",
