@@ -2,6 +2,7 @@ import {
   getMobileRequestContext,
   requireMobileTenant
 } from "../../../../../lib/mobile-api/context";
+import { mobileCockpitMediaStatuses } from "../../../../../lib/mobile-api/cockpit";
 import {
   mobileContextFailure,
   mobileData,
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
           .from("media_assets")
           .select("id, title, status, created_at, validation_error")
           .eq("tenant_id", tenant.id)
-          .in("status", ["uploaded", "processing", "validation_failed"]),
+          .in("status", [...mobileCockpitMediaStatuses]),
         context.supabase
           .from("playlists")
           .select("id, name, status, updated_at")
