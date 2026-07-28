@@ -138,10 +138,10 @@ const styles = StyleSheet.create({
   },
   copy: {
     flex: 1,
-    gap: mobileSpacing.micro
+    gap: 2
   },
   header: {
-    gap: mobileSpacing.default
+    gap: mobileSpacing.inline
   },
   headerAction: {
     borderWidth: 1,
@@ -169,9 +169,9 @@ const styles = StyleSheet.create({
   organizationIcon: {
     alignItems: "center",
     borderRadius: mobileRadius.chip,
-    height: 30,
+    height: 28,
     justifyContent: "center",
-    width: 30
+    width: 28
   },
   tenantName: {
     flexShrink: 1

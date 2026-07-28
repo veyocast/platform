@@ -3,6 +3,7 @@ import {
   AppShell,
   AppText,
   Button,
+  IconButton,
   InlineAlert,
   ScreenScrollView,
   SectionHeader,
@@ -212,7 +213,7 @@ export default function PlaylistDetailScreen() {
         </View>
 
         <SectionHeader
-          description="Houd de greep vast en sleep om te ordenen. Omhoog en Omlaag blijven altijd beschikbaar."
+          description="Sleep met de greep of gebruik de pijlen."
           title={`Items · ${playlist.items.length}`}
         />
         <View style={styles.list}>
@@ -304,7 +305,7 @@ export default function PlaylistDetailScreen() {
                     </View>
                   ) : null}
                   <View style={styles.actions}>
-                    <Button
+                    <IconButton
                       accessibilityLabel={`${item.title} omhoog`}
                       disabled={index === 0 || busyKey === "move_item"}
                       icon={<ArrowUp color={theme.colors.ink} size={18} />}
@@ -318,10 +319,8 @@ export default function PlaylistDetailScreen() {
                         })
                       }
                       variant="secondary"
-                    >
-                      Omhoog
-                    </Button>
-                    <Button
+                    />
+                    <IconButton
                       accessibilityLabel={`${item.title} omlaag`}
                       disabled={
                         index === playlist.items.length - 1 ||
@@ -338,9 +337,7 @@ export default function PlaylistDetailScreen() {
                         })
                       }
                       variant="secondary"
-                    >
-                      Omlaag
-                    </Button>
+                    />
                     <Button
                       accessibilityLabel={`${item.title} uitsnede wijzigen`}
                       onPress={() =>
@@ -356,6 +353,7 @@ export default function PlaylistDetailScreen() {
                           operation: "update_item"
                         })
                       }
+                      size="compact"
                       variant="secondary"
                     >
                       {item.fitMode === "contain" ? "Vullen" : "Passend"}
@@ -383,6 +381,7 @@ export default function PlaylistDetailScreen() {
                           ]
                         )
                       }
+                      size="compact"
                       variant="danger"
                     >
                       Verwijder
@@ -685,7 +684,7 @@ const styles = StyleSheet.create({
     paddingVertical: mobileSpacing.compact
   },
   heading: { gap: mobileSpacing.compact },
-  item: { gap: mobileSpacing.inline },
+  item: { gap: mobileSpacing.compact },
   itemHeading: {
     alignItems: "center",
     flexDirection: "row",

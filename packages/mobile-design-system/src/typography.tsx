@@ -1,6 +1,11 @@
 import type { PropsWithChildren } from "react";
-import { Text, type TextProps, type TextStyle } from "react-native";
-import { mobileType } from "./tokens";
+import {
+  StyleSheet,
+  Text,
+  type TextProps,
+  type TextStyle
+} from "react-native";
+import { mobileFontFamilyForWeight, mobileType } from "./tokens";
 import { useMobileTheme } from "./theme";
 
 export type TextRole =
@@ -30,6 +35,7 @@ export function AppText({
 }: AppTextProps) {
   const theme = useMobileTheme();
   const roleStyle = mobileType[variant] as TextStyle;
+  const resolvedStyle = StyleSheet.flatten([roleStyle, style]) as TextStyle;
   return (
     <Text
       {...props}
@@ -38,7 +44,7 @@ export function AppText({
         roleStyle,
         {
           color: muted ? theme.colors.secondaryInk : theme.colors.ink,
-          fontFamily: "sans-serif"
+          fontFamily: mobileFontFamilyForWeight(resolvedStyle.fontWeight)
         },
         style
       ]}

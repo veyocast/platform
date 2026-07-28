@@ -5,7 +5,12 @@ import {
   View,
   type TextInputProps
 } from "react-native";
-import { minimumTouchTarget, mobileRadius, mobileSpacing } from "./tokens";
+import {
+  minimumTouchTarget,
+  mobileFontFamily,
+  mobileRadius,
+  mobileSpacing
+} from "./tokens";
 import { useMobileTheme } from "./theme";
 import { AppText } from "./typography";
 
@@ -89,8 +94,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
+    fontFamily: mobileFontFamily.regular,
+    fontSize: 14,
+    lineHeight: 20,
     minHeight: minimumTouchTarget,
     paddingVertical: 0
   },

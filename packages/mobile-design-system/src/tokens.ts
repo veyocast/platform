@@ -44,35 +44,53 @@ export const mobileSpacing = {
   compact: 8,
   inline: 12,
   default: 16,
-  card: 20,
-  section: 24,
-  major: 32,
-  large: 40
+  card: 16,
+  section: 20,
+  major: 24,
+  large: 32
 } as const;
 
 export const mobileRadius = {
-  chip: 8,
-  control: 12,
-  card: 16,
-  hero: 20,
-  sheet: 24,
-  prominent: 28,
+  chip: 6,
+  control: 8,
+  card: 12,
+  hero: 16,
+  sheet: 20,
+  prominent: 24,
   full: 999
 } as const;
 
 export const mobileType = {
-  display: { fontSize: 30, lineHeight: 36, fontWeight: "600" },
-  pageTitle: { fontSize: 26, lineHeight: 32, fontWeight: "600" },
-  section: { fontSize: 20, lineHeight: 26, fontWeight: "600" },
-  cardTitle: { fontSize: 16, lineHeight: 22, fontWeight: "600" },
-  body: { fontSize: 15, lineHeight: 22, fontWeight: "400" },
-  bodyStrong: { fontSize: 15, lineHeight: 22, fontWeight: "500" },
-  label: { fontSize: 13, lineHeight: 18, fontWeight: "500" },
+  display: { fontSize: 26, lineHeight: 30, fontWeight: "700" },
+  pageTitle: { fontSize: 24, lineHeight: 29, fontWeight: "700" },
+  section: { fontSize: 18, lineHeight: 23, fontWeight: "600" },
+  cardTitle: { fontSize: 15, lineHeight: 20, fontWeight: "600" },
+  body: { fontSize: 14, lineHeight: 20, fontWeight: "400" },
+  bodyStrong: { fontSize: 14, lineHeight: 20, fontWeight: "500" },
+  label: { fontSize: 12, lineHeight: 16, fontWeight: "500" },
   caption: { fontSize: 12, lineHeight: 16, fontWeight: "400" },
   micro: { fontSize: 11, lineHeight: 14, fontWeight: "500" }
 } as const;
 
-export const minimumTouchTarget = 48;
+export const mobileFontFamily = {
+  regular: "Roboto_400Regular",
+  medium: "Roboto_500Medium",
+  semibold: "Roboto_600SemiBold",
+  bold: "Roboto_700Bold"
+} as const;
+
+export function mobileFontFamilyForWeight(
+  weight: number | string | undefined
+) {
+  const numericWeight =
+    typeof weight === "number" ? weight : Number.parseInt(weight ?? "400", 10);
+  if (numericWeight >= 700) return mobileFontFamily.bold;
+  if (numericWeight >= 600) return mobileFontFamily.semibold;
+  if (numericWeight >= 500) return mobileFontFamily.medium;
+  return mobileFontFamily.regular;
+}
+
+export const minimumTouchTarget = 44;
 
 export type MobileThemeMode = "dark" | "light";
 export type MobileStatusTone = "critical" | "info" | "neutral" | "success" | "warning";

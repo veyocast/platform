@@ -31,7 +31,8 @@ export default function VandaagScreen() {
   const router = useRouter();
   const theme = useMobileTheme();
   const { width } = useWindowDimensions();
-  const metricWidth = width >= 840 ? "31%" : "47%";
+  const metricWidth =
+    width >= 900 ? "23%" : width >= 840 ? "31%" : "47%";
   const data = query.data?.data;
 
   return (
@@ -185,22 +186,22 @@ function formatTimestamp(value: string) {
 const styles = StyleSheet.create({
   metric: {
     flexGrow: 1,
-    gap: mobileSpacing.compact,
-    minWidth: 148
+    gap: mobileSpacing.micro,
+    minWidth: 136
   },
   metrics: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: mobileSpacing.inline
+    gap: mobileSpacing.compact
   },
-  section: { gap: mobileSpacing.default },
+  section: { gap: mobileSpacing.inline },
   sectionTitle: {
     alignItems: "flex-start",
     flexDirection: "row",
-    gap: mobileSpacing.default,
+    gap: mobileSpacing.inline,
     justifyContent: "space-between"
   },
-  signal: { gap: mobileSpacing.default },
+  signal: { gap: mobileSpacing.inline },
   signalHeader: {
     alignItems: "center",
     flexDirection: "row",

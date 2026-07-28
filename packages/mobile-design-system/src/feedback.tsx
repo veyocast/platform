@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     borderRadius: mobileRadius.full,
     flexDirection: "row",
     gap: 6,
-    minHeight: 28,
+    minHeight: 24,
     paddingHorizontal: mobileSpacing.compact
   },
   center: {

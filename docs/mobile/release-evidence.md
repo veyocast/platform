@@ -18,9 +18,22 @@ Datum: 28 juli 2026
 - GitHub Action-syntax en pinned actions zijn lokaal gevalideerd;
 - globale native crashfallback voorkomt een generiek leeg Expo-scherm.
 
+## Dichtheids- en viewport-evidence
+
+- Roboto 400/500/600/700 wordt vóór het verbergen van het splashscreen geladen;
+- telefoonkaarten, paginakoppen, knoppen en de bottom dock gebruiken één
+  compacte semantische schaal;
+- het cockpitdashboard past op 320×720 en 390×844 volledig boven de dock;
+- een playlist met drie items toont op 390×844 alle items en bedieningen in de
+  eerste viewport;
+- 768×1024 gebruikt een 2×2 metriekgrid naast de rail en 1024×768 vier
+  uitgelijnde kolommen;
+- 320, 390, 430, 768 en 1024 zijn zonder horizontale documentoverflow
+  gecontroleerd.
+
 ## Accessibility-evidence in code
 
-- 48-dp minimale bediening;
+- 44-dp minimale bediening volgens WCAG 2.2;
 - semantische rollen voor headings, buttons, tabs, radio/checkbox en alerts;
 - statuslabel naast kleur;
 - light/dark systeemthema;
