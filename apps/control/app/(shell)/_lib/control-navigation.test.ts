@@ -17,6 +17,7 @@ describe("control navigation", () => {
     expect(links).toStrictEqual([
       "/dashboard",
       "/dashboard/studio",
+      "/dashboard/slides",
       "/dashboard/media",
       "/dashboard/playlists",
       "/dashboard/screens",
@@ -25,6 +26,7 @@ describe("control navigation", () => {
       "/dashboard/templates",
       "/dashboard/releases",
       "/dashboard/integrations",
+      "/dashboard/data-sources",
       "/dashboard/team",
       "/dashboard/auditlog",
       "/dashboard/settings",
@@ -53,6 +55,7 @@ describe("control navigation", () => {
     expect(groups.flatMap((group) => group.items).filter((item) => item.scope === "tenant").map((item) => item.href)).toStrictEqual([
       "/dashboard",
       "/dashboard/studio",
+      "/dashboard/slides",
       "/dashboard/media",
       "/dashboard/playlists",
       "/dashboard/screens",
@@ -61,6 +64,7 @@ describe("control navigation", () => {
       "/dashboard/templates",
       "/dashboard/releases",
       "/dashboard/integrations",
+      "/dashboard/data-sources",
       "/dashboard/team",
       "/dashboard/auditlog",
       "/dashboard/settings",

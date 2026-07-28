@@ -47,6 +47,9 @@ describe("structured observability", () => {
     expect(isObservabilityEvent("studio.render.queue_polled")).toBe(true);
     expect(isObservabilityEvent("studio.render.completed")).toBe(true);
     expect(isObservabilityEvent("studio.render.failed")).toBe(true);
+    expect(isObservabilityEvent("dynamic.render.queue_polled")).toBe(true);
+    expect(isObservabilityEvent("dynamic.render.completed")).toBe(true);
+    expect(isObservabilityEvent("dynamic.render.failed")).toBe(true);
   });
 });
 

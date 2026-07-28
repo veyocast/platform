@@ -28,6 +28,7 @@ import {
   ExternalLink,
   FileImage,
   FileStack,
+  Layers3,
   FolderKanban,
   Home,
   LayoutDashboard,
@@ -98,6 +99,9 @@ const navigationIcons: Record<string, LucideIcon> = {
   Systeem: ServerCog,
   Team: Users,
   Templates: FileStack,
+  "Dynamische templates": FileStack,
+  Databronnen: ServerCog,
+  Slides: Layers3,
   Tenants: Building2
 };
 const sidebarStorageKey = "veyocast-control-sidebar-collapsed";

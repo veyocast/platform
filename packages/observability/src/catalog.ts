@@ -20,6 +20,12 @@ export const observabilityEvents = [
   "studio.render.completed",
   "studio.render.failed",
   "studio.render.queue_polled",
+  "dynamic.render.completed",
+  "dynamic.render.failed",
+  "dynamic.render.queue_polled",
+  "dynamic.rss.completed",
+  "dynamic.rss.failed",
+  "dynamic.rss.queue_polled",
   "support.bundle.exported"
 ] as const;
 

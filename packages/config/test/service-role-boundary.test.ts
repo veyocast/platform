@@ -26,7 +26,9 @@ const serverServiceRolePatterns = [
   /service_role_key/i
 ];
 const allowedServerOnlyFiles = new Set([
+  "apps/media-worker/src/dynamic-render-backend.ts",
   "apps/media-worker/src/index.ts",
+  "apps/media-worker/src/rss-sync-runner.ts",
   "apps/media-worker/src/studio-render-backend.ts",
   "apps/media-worker/src/worker-backend.ts",
   "apps/media-worker/src/worker-config.ts",

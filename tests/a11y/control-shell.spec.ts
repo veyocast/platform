@@ -177,6 +177,43 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
   }
 });
 
+test("dynamic content workspaces remain usable on mobile and desktop", async ({
+  page
+}) => {
+  test.setTimeout(120_000);
+
+  for (const width of [320, 390, 768, 1280]) {
+    await page.setViewportSize({ height: 900, width });
+    for (const route of [
+      "/dashboard/data-sources",
+      "/dashboard/slides",
+      "/dashboard/slides/new",
+      "/platform/templates",
+      "/platform/templates/new"
+    ]) {
+      await expect(async () => {
+        try {
+          await page.goto(route, { waitUntil: "domcontentloaded" });
+        } catch (error) {
+          if (!(error instanceof Error) || !error.message.includes("ERR_ABORTED")) {
+            throw error;
+          }
+        }
+        await expect(page.locator("#control-content")).toBeVisible();
+        await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      }).toPass({ timeout: 20_000 });
+      expect.soft(
+        await page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth
+        ),
+        `${route} heeft geen horizontale overflow op ${width}px`
+      ).toBe(true);
+    }
+  }
+});
+
 test("Integraties exposes Twelve Producten as a responsive secondary journey", async ({
   page
 }) => {
