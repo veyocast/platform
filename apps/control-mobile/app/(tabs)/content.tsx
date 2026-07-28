@@ -1,6 +1,8 @@
 import {
   AppShell,
   AppText,
+  Button,
+  PressableSurface,
   ScreenScrollView,
   SegmentedControl,
   Skeleton,
@@ -11,6 +13,7 @@ import {
   useMobileTheme
 } from "@veyocast/mobile-design-system";
 import { FileImage, ListVideo } from "lucide-react-native";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { RefreshControl, StyleSheet, View } from "react-native";
 
@@ -21,6 +24,7 @@ import { useMobileContent } from "../../src/query/use-mobile-data";
 type Segment = "media" | "playlists";
 
 export default function ContentScreen() {
+  const router = useRouter();
   const [segment, setSegment] = useState<Segment>("media");
   const query = useMobileContent();
   const theme = useMobileTheme();
@@ -47,6 +51,14 @@ export default function ContentScreen() {
           ]}
           value={segment}
         />
+        {segment === "playlists" ? (
+          <Button
+            icon={<ListVideo color="#0A0A0A" size={20} />}
+            onPress={() => router.push("/content/playlists/new")}
+          >
+            Nieuwe playlist
+          </Button>
+        ) : null}
         {query.isLoading ? (
           <View style={styles.list}>
             <Skeleton />
@@ -95,33 +107,44 @@ export default function ContentScreen() {
         ) : content?.playlists.length ? (
           <View style={styles.list}>
             {content.playlists.map((playlist) => (
-              <SurfaceCard key={playlist.id} style={styles.row}>
-                <ListVideo color={theme.colors.secondaryInk} size={26} />
-                <View style={styles.copy}>
-                  <AppText variant="cardTitle">{playlist.name}</AppText>
-                  <AppText muted>
-                    {playlist.itemCount} item(s)
-                    {playlist.publishedVersion
-                      ? ` · versie ${playlist.publishedVersion}`
-                      : ""}
-                  </AppText>
-                  <StatusBadge
-                    label={
-                      playlist.status === "published"
-                        ? "Gepubliceerd"
-                        : "Concept"
-                    }
-                    tone={
-                      playlist.status === "published" ? "success" : "neutral"
-                    }
-                  />
-                </View>
-              </SurfaceCard>
+              <PressableSurface
+                accessibilityLabel={`Open playlist ${playlist.name}`}
+                accessibilityRole="button"
+                key={playlist.id}
+                onPress={() =>
+                  router.push(`/content/playlists/${playlist.id}`)
+                }
+              >
+                <SurfaceCard style={styles.row}>
+                  <ListVideo color={theme.colors.secondaryInk} size={26} />
+                  <View style={styles.copy}>
+                    <AppText variant="cardTitle">{playlist.name}</AppText>
+                    <AppText muted>
+                      {playlist.itemCount} item(s)
+                      {playlist.publishedVersion
+                        ? ` · versie ${playlist.publishedVersion}`
+                        : ""}
+                    </AppText>
+                    <StatusBadge
+                      label={
+                        playlist.status === "published"
+                          ? "Gepubliceerd"
+                          : "Concept"
+                      }
+                      tone={
+                        playlist.status === "published"
+                          ? "success"
+                          : "neutral"
+                      }
+                    />
+                  </View>
+                </SurfaceCard>
+              </PressableSurface>
             ))}
           </View>
         ) : (
           <StateView
-            description="Maak in Control een playlist of voeg mobiele playlistauthoring toe zodra je rechten dat toelaten."
+            description="Maak een playlist en voeg gereed verwerkte media toe."
             icon={<ListVideo color={theme.colors.secondaryInk} size={34} />}
             title="Nog geen playlists"
           />

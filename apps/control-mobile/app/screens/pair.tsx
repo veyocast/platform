@@ -13,7 +13,7 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
-import { Camera, Check, Keyboard, Link2 } from "lucide-react-native";
+import { Camera, Check, Keyboard, Link2, MonitorCog } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -42,6 +42,9 @@ export default function PairScreen() {
   const [scanned, setScanned] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [screenName, setScreenName] = useState("");
+  const [screenLocation, setScreenLocation] = useState("");
   const available =
     screens.data?.data.items.filter((screen) => screen.status === "pairing") ??
     [];
@@ -81,6 +84,30 @@ export default function PairScreen() {
     }
   }
 
+  async function createScreen() {
+    if (!activeTenant || screenName.trim().length < 2) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await mobileApi.createScreen(activeTenant.id, {
+        location: screenLocation.trim() || null,
+        name: screenName.trim(),
+        orientation: "landscape",
+        resolutionHeight: 1080,
+        resolutionWidth: 1920
+      });
+      setScreenId(result.screenId);
+      setShowCreate(false);
+      await queryClient.invalidateQueries({
+        queryKey: ["screens", activeTenant.id]
+      });
+    } catch (createError) {
+      setError(createError);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function handleScan(data: string) {
     if (scanned) return;
     const parsed = pairingCodeFromScan(data);
@@ -106,8 +133,8 @@ export default function PairScreen() {
             Koppel een fysieke Player
           </AppText>
           <AppText muted>
-            Kies eerst een bestaand schermobject. De tijdelijke code bevat
-            nooit een device- of installatiesecret.
+            Kies een bestaand schermobject of maak er één. De tijdelijke code
+            bevat nooit een device- of installatiesecret.
           </AppText>
         </View>
         <View style={styles.list}>
@@ -134,11 +161,48 @@ export default function PairScreen() {
           })}
           {!available.length && !screens.isLoading ? (
             <InlineAlert
-              description="Maak eerst een schermobject in Control. Bestaande content en planning worden daarna aan dat scherm gekoppeld."
+              description="Maak hier een schermobject. Bestaande content en planning blijven afzonderlijk beheerd."
               title="Geen ongekoppelde schermen"
               tone="warning"
             />
           ) : null}
+          {showCreate ? (
+            <SurfaceCard style={styles.createCard}>
+              <AppText variant="cardTitle">Nieuw schermobject</AppText>
+              <TextField
+                label="Schermnaam"
+                maxLength={120}
+                onChangeText={setScreenName}
+                placeholder="Bijvoorbeeld Kantine links"
+                value={screenName}
+              />
+              <TextField
+                label="Locatie (optioneel)"
+                maxLength={160}
+                onChangeText={setScreenLocation}
+                placeholder="Kantine"
+                value={screenLocation}
+              />
+              <Button
+                disabled={screenName.trim().length < 2}
+                loading={busy}
+                onPress={() => void createScreen()}
+              >
+                Scherm maken
+              </Button>
+              <Button onPress={() => setShowCreate(false)} variant="ghost">
+                Annuleren
+              </Button>
+            </SurfaceCard>
+          ) : (
+            <Button
+              icon={<MonitorCog color={theme.colors.ink} size={20} />}
+              onPress={() => setShowCreate(true)}
+              variant="secondary"
+            >
+              Nieuw schermobject
+            </Button>
+          )}
         </View>
         <SegmentedControl
           accessibilityLabel="Koppelcode invoeren"
@@ -201,6 +265,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     width: "100%"
   },
+  createCard: { gap: mobileSpacing.inline },
   choiceCopy: { flex: 1, gap: mobileSpacing.micro },
   copy: { gap: mobileSpacing.micro },
   list: { gap: mobileSpacing.compact },

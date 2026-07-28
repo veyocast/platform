@@ -11,7 +11,14 @@ import {
   type MobilePairingClaimRequest,
   type MobilePlayerCommandRequest,
   type MobileDeviceRegistration,
-  type MobileNotificationPreferences
+  type MobileNotificationPreferences,
+  type MobileCreatePlaylistRequest,
+  type MobileCreateScreenRequest,
+  type MobilePlaylistMutationRequest,
+  type MobilePlaylistPublishRequest,
+  mobilePlaylistDetailSchema,
+  mobilePlaylistMutationResultSchema,
+  mobilePlaylistPublishResultSchema
 } from "@veyocast/contracts";
 import { z } from "zod";
 
@@ -48,6 +55,20 @@ export const mobileApi = {
       { tenantId }
     ).then((response) => response.data);
   },
+  createPlaylist(tenantId: string, input: MobileCreatePlaylistRequest) {
+    return request(
+      "/api/mobile/v1/playlists",
+      dataEnvelope(z.object({ playlistId: z.string().uuid() })),
+      { body: input, method: "POST", tenantId }
+    ).then((response) => response.data);
+  },
+  createScreen(tenantId: string, input: MobileCreateScreenRequest) {
+    return request(
+      "/api/mobile/v1/screens",
+      dataEnvelope(z.object({ screenId: z.string().uuid() })),
+      { body: input, method: "POST", tenantId }
+    ).then((response) => response.data);
+  },
   content(tenantId: string) {
     return request(
       "/api/mobile/v1/content",
@@ -66,6 +87,35 @@ export const mobileApi = {
       "/api/mobile/v1/notifications/preferences",
       mobileNotificationPreferencesEnvelopeSchema,
       { tenantId }
+    ).then((response) => response.data);
+  },
+  playlist(tenantId: string, playlistId: string) {
+    return request(
+      `/api/mobile/v1/playlists/${playlistId}`,
+      dataEnvelope(mobilePlaylistDetailSchema),
+      { tenantId }
+    ).then((response) => response.data);
+  },
+  mutatePlaylist(
+    tenantId: string,
+    playlistId: string,
+    input: MobilePlaylistMutationRequest
+  ) {
+    return request(
+      `/api/mobile/v1/playlists/${playlistId}`,
+      dataEnvelope(mobilePlaylistMutationResultSchema),
+      { body: input, method: "POST", tenantId }
+    ).then((response) => response.data);
+  },
+  publishPlaylist(
+    tenantId: string,
+    playlistId: string,
+    input: MobilePlaylistPublishRequest
+  ) {
+    return request(
+      `/api/mobile/v1/playlists/${playlistId}/publish`,
+      dataEnvelope(mobilePlaylistPublishResultSchema),
+      { body: input, method: "POST", tenantId }
     ).then((response) => response.data);
   },
   registerNotificationDevice(
