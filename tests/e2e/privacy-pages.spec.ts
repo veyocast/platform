@@ -40,7 +40,7 @@ test("explains deletion for account, tenant, player and local Android data", asy
   await expect(page).toHaveTitle("Data verwijderen | VeyoCast");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
-    "https://veyocast.nl/data-verwijderen"
+    "https://veyocast.nl/account-verwijderen"
   );
   await expect(page.getByRole("heading", { name: "Persoonlijk account en tenantaccounts" }))
     .toBeVisible();
