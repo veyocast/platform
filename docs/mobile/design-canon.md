@@ -16,7 +16,13 @@
 
 - 320-dp telefoons: één kolom, vijf primaire tabs, volledige verticale scroll.
 - Grote telefoons: dezelfde informatiehiërarchie met ruimere cards.
-- Tablets/resizable windows: vaste navigatierail en begrensde contentbreedte.
+- Telefoons gebruiken een zwevende donkere navigatiedock met één verhoogde
+  primaire maakactie; de dock respecteert safe areas en bedekt de laatste
+  inhoud nooit.
+- Vanaf 768 dp gebruiken tablets en resizable windows een vaste
+  navigatierail, compacte organisatiecontext en begrensde contentbreedte.
+- De paginakop bevat organisatiecontext, notificaties en accounttoegang zonder
+  op 320 dp buiten de viewport te lopen.
 - Systeemfontschaling, light/dark, safe areas en Android back blijven native.
 - Geen desktop-three-panel-editor op mobiel.
 
@@ -30,6 +36,12 @@
   afzonderlijke states.
 - Push- en cameratoestemming worden pas gevraagd na een relevante
   gebruikersactie.
+- Drag-and-drop wordt alleen toegepast waar ruimtelijke volgorde betekenis
+  heeft. Playlistitems zijn via een zichtbare greep en long-press te
+  verslepen, tonen de doelpositie en geven haptische startfeedback.
+- Iedere dragactie heeft een gelijkwaardige expliciete bediening en
+  accessibility-adjustable actie. Upload, instellingen en schermacties krijgen
+  geen decoratieve draginteractie zonder betekenisvol ordeningscontract.
 
 ## Assets
 

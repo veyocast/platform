@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(12);
+select plan(15);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
 values
@@ -131,6 +131,49 @@ select is(
   (select duration_seconds from public.playlist_items where media_asset_id = '20000000-0000-4000-8000-000000000271'),
   12,
   'edited playback duration within the source is stored on the draft item'
+);
+
+select is(
+  (
+    public.mutate_playlist_draft_v2(
+      '50000000-0000-4000-8000-000000000271',
+      4,
+      'move_item',
+      jsonb_build_object(
+        'itemId', (
+          select id
+          from public.playlist_items
+          where media_asset_id = '20000000-0000-4000-8000-000000000271'
+        ),
+        'targetPosition', 0
+      ),
+      '90000000-0000-4000-8000-000000000271'
+    ) ->> 'outcome'
+  ),
+  'applied',
+  'guarded drag reorder resolves the schema-qualified position constraint'
+);
+
+select ok(
+  (
+    select video.position_key < image.position_key
+    from public.playlist_items video
+    join public.playlist_items image
+      on image.playlist_id = video.playlist_id
+    where video.media_asset_id = '20000000-0000-4000-8000-000000000271'
+      and image.media_asset_id = '20000000-0000-4000-8000-000000000272'
+  ),
+  'guarded drag reorder updates the canonical position key'
+);
+
+select is(
+  (
+    select sort_order
+    from public.playlist_items
+    where media_asset_id = '20000000-0000-4000-8000-000000000271'
+  ),
+  0,
+  'guarded drag reorder keeps the legacy sort order synchronized'
 );
 
 select is(
