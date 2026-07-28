@@ -1,0 +1,81 @@
+import {
+  createContext,
+  useContext,
+  useMemo,
+  type PropsWithChildren
+} from "react";
+import { useColorScheme } from "react-native";
+import {
+  mobilePalette,
+  type MobileThemeMode
+} from "./tokens";
+
+export type MobileTheme = Readonly<{
+  mode: MobileThemeMode;
+  colors: Readonly<{
+    action: string;
+    actionPressed: string;
+    canvas: string;
+    critical: string;
+    focus: string;
+    ink: string;
+    line: string;
+    mutedInk: string;
+    raised: string;
+    secondaryInk: string;
+    strongLine: string;
+    surface: string;
+    success: string;
+    warning: string;
+  }>;
+}>;
+
+function createTheme(mode: MobileThemeMode): MobileTheme {
+  const base = mobilePalette[mode];
+  return {
+    mode,
+    colors: {
+      action: mobilePalette.brand.action,
+      actionPressed: mobilePalette.brand.actionPressed,
+      canvas: base.canvas,
+      critical: mobilePalette.status.critical,
+      focus: base.focus,
+      ink: base.ink,
+      line: base.line,
+      mutedInk: base.mutedInk,
+      raised: base.raised,
+      secondaryInk: base.secondaryInk,
+      strongLine: base.strongLine,
+      surface: base.surface,
+      success: mobilePalette.status.success,
+      warning: mobilePalette.status.warning
+    }
+  };
+}
+
+const lightTheme = createTheme("light");
+const darkTheme = createTheme("dark");
+const MobileThemeContext = createContext<MobileTheme>(lightTheme);
+
+export type MobileThemeProviderProps = PropsWithChildren<{
+  preference?: MobileThemeMode | "system";
+}>;
+
+export function MobileThemeProvider({
+  children,
+  preference = "system"
+}: MobileThemeProviderProps) {
+  const systemMode = useColorScheme();
+  const mode: MobileThemeMode =
+    preference === "system" ? (systemMode === "dark" ? "dark" : "light") : preference;
+  const theme = useMemo(() => (mode === "dark" ? darkTheme : lightTheme), [mode]);
+  return (
+    <MobileThemeContext.Provider value={theme}>
+      {children}
+    </MobileThemeContext.Provider>
+  );
+}
+
+export function useMobileTheme() {
+  return useContext(MobileThemeContext);
+}

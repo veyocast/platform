@@ -1,0 +1,163 @@
+name: VeyoCast Control Mobile CI
+
+on:
+  pull_request:
+    paths:
+      - "apps/control-mobile/**"
+      - "apps/control/app/api/mobile/**"
+      - "apps/control/lib/mobile-api/**"
+      - "packages/mobile-design-system/**"
+      - "packages/contracts/**"
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "assets/brand/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/control-mobile-*.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/control-mobile/**"
+      - "apps/control/app/api/mobile/**"
+      - "apps/control/lib/mobile-api/**"
+      - "packages/mobile-design-system/**"
+      - "packages/contracts/**"
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "assets/brand/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/control-mobile-*.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: control-mobile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  EXPO_PUBLIC_CONTROL_ORIGIN: https://control.veyocast.nl
+  EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-public-anon-key-not-a-secret-000000000000
+  VEYOCAST_CONTROL_VERSION_CODE: "399999999"
+  VEYOCAST_CONTROL_VERSION_NAME: 1.0.0-ci
+
+jobs:
+  native:
+    name: Native app, AAB and 16 KB gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+
+      - name: Install pinned Android SDK components
+        run: >-
+          sdkmanager
+          "platform-tools"
+          "platforms;android-36"
+          "build-tools;36.0.0"
+          "ndk;28.0.13004108"
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Expo dependency set and public config
+        run: |
+          pnpm --filter @veyocast/control-mobile exec expo install --check
+          pnpm --filter @veyocast/control-mobile config:validate
+
+      - name: Lint, typecheck and unit test
+        run: |
+          pnpm --filter @veyocast/mobile-design-system lint
+          pnpm --filter @veyocast/mobile-design-system typecheck
+          pnpm --filter @veyocast/mobile-design-system test
+          pnpm --filter @veyocast/control-mobile lint
+          pnpm --filter @veyocast/control-mobile typecheck
+          pnpm --filter @veyocast/control-mobile test
+          pnpm --filter @veyocast/control lint
+          pnpm --filter @veyocast/control typecheck
+          pnpm --filter @veyocast/control test
+
+      - name: Export Hermes application bundle
+        run: pnpm --filter @veyocast/control-mobile build
+
+      - name: Assert exported bundle contains no server secrets
+        run: node scripts/assert-client-bundle-secret-free.mjs apps/control-mobile
+
+      - name: Generate Android project
+        run: pnpm --filter @veyocast/control-mobile prebuild:android
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c # v5
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+
+      - name: Android lint, tests and release bundle
+        working-directory: apps/control-mobile/android
+        run: ./gradlew lint test bundleRelease --no-daemon
+
+      - name: Install verified bundletool
+        run: |
+          curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 \
+            https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar \
+            --output "${RUNNER_TEMP}/bundletool.jar"
+          printf '%s  %s\n' \
+            a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29 \
+            "${RUNNER_TEMP}/bundletool.jar" | sha256sum --check --status
+
+      - name: Validate manifest, native inventory and 16 KB alignment
+        run: |
+          aab="apps/control-mobile/android/app/build/outputs/bundle/release/app-release.aab"
+          apps/control-mobile/scripts/validate-android-bundle.sh \
+            "${aab}" \
+            "${RUNNER_TEMP}/bundletool.jar" \
+            "${ANDROID_HOME}/build-tools/36.0.0/zipalign" \
+            "${ANDROID_HOME}/ndk/28.0.13004108/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
+            "${RUNNER_TEMP}/control-mobile-evidence"
+          java -jar "${RUNNER_TEMP}/bundletool.jar" dump manifest \
+            --bundle="${aab}" --module=base \
+            > "${RUNNER_TEMP}/control-mobile-evidence/manifest.xml"
+          grep -Fq 'package="nl.veyocast.control"' \
+            "${RUNNER_TEMP}/control-mobile-evidence/manifest.xml"
+          grep -Fq 'targetSdkVersion="36"' \
+            "${RUNNER_TEMP}/control-mobile-evidence/manifest.xml"
+
+      - name: Generate CycloneDX SBOM
+        run: >-
+          node apps/control-mobile/scripts/generate-sbom.mjs
+          "${RUNNER_TEMP}/control-mobile-evidence/sbom.cdx.json"
+
+      - name: Upload CI evidence
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: control-mobile-ci-${{ github.run_number }}
+          path: |
+            apps/control-mobile/android/app/build/outputs/bundle/release/app-release.aab
+            apps/control-mobile/android/app/build/outputs/mapping/release/mapping.txt
+            ${{ runner.temp }}/control-mobile-evidence/
+          if-no-files-found: error
+          retention-days: 14

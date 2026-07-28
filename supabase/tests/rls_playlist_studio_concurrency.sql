@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(18);
+select plan(22);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
 values
@@ -163,6 +163,55 @@ select is(
 );
 select is((select count(*) from public.playlist_releases where playlist_id = '50000000-0000-4000-8000-000000000251'), 1::bigint, 'successful publish creates one immutable release');
 
+select is(
+  public.mutate_playlist_draft_mobile_v1(
+    '50000000-0000-4000-8000-000000000251',
+    2,
+    'move_item',
+    jsonb_build_object(
+      'direction', 'start',
+      'itemId', (
+        select id
+        from public.playlist_items
+        where playlist_id = '50000000-0000-4000-8000-000000000251'
+        limit 1
+      )
+    ),
+    '01000000-0000-4000-8000-000000000253'
+  ) ->> 'outcome',
+  'applied',
+  'mobile wrapper applies an allowed draft mutation'
+);
+select is(
+  (select revision from public.playlists where id = '50000000-0000-4000-8000-000000000251'),
+  3::bigint,
+  'mobile mutation advances the revision once'
+);
+select is(
+  public.mutate_playlist_draft_mobile_v1(
+    '50000000-0000-4000-8000-000000000251',
+    2,
+    'move_item',
+    jsonb_build_object(
+      'direction', 'start',
+      'itemId', (
+        select id
+        from public.playlist_items
+        where playlist_id = '50000000-0000-4000-8000-000000000251'
+        limit 1
+      )
+    ),
+    '01000000-0000-4000-8000-000000000253'
+  ) ->> 'actualRevision',
+  '3',
+  'replayed mobile mutation returns the original result'
+);
+select is(
+  (select revision from public.playlists where id = '50000000-0000-4000-8000-000000000251'),
+  3::bigint,
+  'replayed mobile mutation does not apply twice'
+);
+
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000252', true);
@@ -192,7 +241,7 @@ select throws_ok(
 reset role;
 select ok(not has_function_privilege('anon', 'public.mutate_playlist_draft_v1(uuid,bigint,text,jsonb)', 'EXECUTE'), 'anonymous cannot execute draft mutations');
 select ok(not has_function_privilege('anon', 'public.publish_playlist_to_targets_v3(uuid,bigint,uuid[],text,uuid)', 'EXECUTE'), 'anonymous cannot execute revision-aware publish');
-select is((select count(*) from public.audit_events where action like 'playlist.draft.%' and tenant_id = '10000000-0000-4000-8000-000000000251'), 2::bigint, 'only applied draft mutations create audit events');
+select is((select count(*) from public.audit_events where action like 'playlist.draft.%' and tenant_id = '10000000-0000-4000-8000-000000000251'), 3::bigint, 'only applied draft mutations create audit events');
 
 select * from finish();
 rollback;

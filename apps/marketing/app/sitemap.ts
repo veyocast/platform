@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/",
     ...sitemapPages.map((page) => page.pathname),
     "/privacy",
+    "/account-verwijderen",
     "/data-verwijderen"
   ];
 

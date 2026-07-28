@@ -10,6 +10,7 @@ the canon in `AGENTS.md`, `PLANS.md`, `TASK_LEDGER.md` and `docs/`.
 apps/
   android-tv/     Kotlin Android-signageapp met TV/Google TV-ondersteuning
   control/        Next.js App Router control plane
+  control-mobile/ Native React Native/Expo Router beheerapp
   player/         Next.js App Router player plane
   marketing/      Next.js App Router public site
   media-worker/   TypeScript media queue, Storage and FFmpeg worker
@@ -21,6 +22,7 @@ packages/
   database/       Shared database role/status contracts
   observability/  Structured events, redaction, SLO/alert and support contracts
   studio/         Versioned Studio documents, templates, motion and render contracts
+  mobile-design-system/ Atelier Ivory Native tokens en componenten
   tokens/         Design token build pipeline and generated presets
   ui/             Shared React primitives and Storybook skeleton
   testkit/        Shared test helpers
