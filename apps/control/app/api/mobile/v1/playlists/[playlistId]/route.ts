@@ -13,6 +13,7 @@ import {
   mobileData,
   mobileFailure
 } from "../../../../../../lib/mobile-api/response";
+import { mobilePlaylistMutationRpc } from "../../../../../../lib/mobile-api/playlist-mutation";
 
 export async function GET(
   request: Request,
@@ -204,7 +205,7 @@ export async function POST(
               }
             : { itemId: input.itemId };
     const { data, error } = await context.supabase.rpc(
-      "mutate_playlist_draft_mobile_v1",
+      mobilePlaylistMutationRpc(input.operation),
       {
         p_expected_revision: input.expectedRevision,
         p_idempotency_key: input.idempotencyKey,
@@ -214,6 +215,11 @@ export async function POST(
       }
     );
     if (error || !data || typeof data !== "object" || Array.isArray(data)) {
+      console.error("Mobile playlist mutation failed", {
+        code: error?.code ?? "INVALID_RESULT",
+        operation: input.operation,
+        requestId: context.requestId
+      });
       return mobileFailure({
         code: error?.code === "42501" ? "FORBIDDEN" : "CONFLICT",
         message: "De playlistwijziging kon niet veilig worden opgeslagen.",
