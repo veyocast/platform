@@ -80,6 +80,7 @@ export default function MeerScreen() {
             description="Pushmeldingen worden alleen gevraagd wanneer je ze hier inschakelt."
             icon={<Bell color={theme.colors.ink} size={22} />}
             label="Meldingsvoorkeuren"
+            onPress={() => router.push("/more/notifications")}
           />
           <SettingsRow
             description="Open de publieke VeyoCast-supportomgeving."

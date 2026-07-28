@@ -3,12 +3,15 @@ import {
   mobileCockpitEnvelopeSchema,
   mobileContentEnvelopeSchema,
   mobileDeletionRequestsEnvelopeSchema,
+  mobileNotificationPreferencesEnvelopeSchema,
   mobilePairingClaimSchema,
   mobilePlayerCommandSchema,
   mobileScreensEnvelopeSchema,
   mobileSessionEnvelopeSchema,
   type MobilePairingClaimRequest,
-  type MobilePlayerCommandRequest
+  type MobilePlayerCommandRequest,
+  type MobileDeviceRegistration,
+  type MobileNotificationPreferences
 } from "@veyocast/contracts";
 import { z } from "zod";
 
@@ -58,6 +61,29 @@ export const mobileApi = {
       mobileDeletionRequestsEnvelopeSchema
     ).then((response) => response.data);
   },
+  notificationPreferences(tenantId: string) {
+    return request(
+      "/api/mobile/v1/notifications/preferences",
+      mobileNotificationPreferencesEnvelopeSchema,
+      { tenantId }
+    ).then((response) => response.data);
+  },
+  registerNotificationDevice(
+    input: MobileDeviceRegistration
+  ) {
+    return request(
+      "/api/mobile/v1/notifications/device",
+      dataEnvelope(z.object({ deviceId: z.string().uuid() })),
+      { body: input, method: "POST" }
+    ).then((response) => response.data);
+  },
+  revokeNotificationDevice(deviceId: string) {
+    return request(
+      "/api/mobile/v1/notifications/device",
+      dataEnvelope(z.object({ revoked: z.boolean() })),
+      { body: { deviceId }, method: "DELETE" }
+    ).then((response) => response.data);
+  },
   requestAccountDeletion(reason?: string) {
     return request(
       "/api/mobile/v1/account/deletion",
@@ -69,6 +95,16 @@ export const mobileApi = {
         })
       ),
       { body: { reason }, method: "POST" }
+    ).then((response) => response.data);
+  },
+  updateNotificationPreferences(
+    tenantId: string,
+    input: MobileNotificationPreferences
+  ) {
+    return request(
+      "/api/mobile/v1/notifications/preferences",
+      mobileNotificationPreferencesEnvelopeSchema,
+      { body: input, method: "PUT", tenantId }
     ).then((response) => response.data);
   },
   async uploadImage(
@@ -179,7 +215,7 @@ async function request<T>(
   schema: z.ZodType<T>,
   options: {
     body?: unknown;
-    method?: "GET" | "POST";
+    method?: "DELETE" | "GET" | "POST" | "PUT";
     tenantId?: string;
   } = {}
 ): Promise<T> {

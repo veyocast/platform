@@ -19,6 +19,7 @@ import { AppLock } from "../src/components/app-lock";
 import { FullScreenError } from "../src/components/app-error";
 import { MobileQueryProvider } from "../src/query/query-provider";
 import { TenantProvider } from "../src/tenant/tenant-provider";
+import { NotificationRouter } from "../src/notifications/notification-router";
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -83,7 +84,9 @@ function RootNavigator() {
         <Stack.Screen name="more/organizations" options={{ title: "Organisaties" }} />
         <Stack.Screen name="more/security" options={{ title: "Beveiliging" }} />
         <Stack.Screen name="more/account" options={{ title: "Account" }} />
+        <Stack.Screen name="more/notifications" options={{ title: "Meldingen" }} />
       </Stack>
+      <NotificationRouter />
       <AppLock />
     </>
   );

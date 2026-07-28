@@ -237,10 +237,42 @@ export const mobileDeletionRequestsEnvelopeSchema = z
   })
   .strict();
 
+export const mobileNotificationPreferencesSchema = z
+  .object({
+    approvalRequested: z.boolean(),
+    mediaFailed: z.boolean(),
+    playerError: z.boolean(),
+    publicationCompleted: z.boolean(),
+    screenOffline: z.boolean()
+  })
+  .strict();
+
+export const mobileNotificationPreferencesEnvelopeSchema = z
+  .object({
+    data: mobileNotificationPreferencesSchema,
+    meta: mobileApiMetaSchema
+  })
+  .strict();
+
+export const mobileDeviceRegistrationSchema = z
+  .object({
+    appVersion: z.string().trim().min(1).max(80),
+    locale: z.string().trim().max(32).nullable(),
+    pushToken: z.string().trim().min(16).max(4096),
+    timezone: z.string().trim().max(120).nullable()
+  })
+  .strict();
+
 export type MobileApiErrorEnvelope = z.infer<
   typeof mobileApiErrorEnvelopeSchema
 >;
 export type MobileCockpit = z.infer<typeof mobileCockpitSchema>;
+export type MobileDeviceRegistration = z.infer<
+  typeof mobileDeviceRegistrationSchema
+>;
+export type MobileNotificationPreferences = z.infer<
+  typeof mobileNotificationPreferencesSchema
+>;
 export type MobilePairingClaimRequest = z.infer<
   typeof mobilePairingClaimRequestSchema
 >;
