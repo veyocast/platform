@@ -2,10 +2,16 @@ import "react-native-gesture-handler";
 
 import {
   AppShell,
+  mobileFontFamily,
   MobileThemeProvider,
   ScreenScrollView,
   useMobileTheme
 } from "@veyocast/mobile-design-system";
+import { Roboto_400Regular } from "@expo-google-fonts/roboto/400Regular";
+import { Roboto_500Medium } from "@expo-google-fonts/roboto/500Medium";
+import { Roboto_600SemiBold } from "@expo-google-fonts/roboto/600SemiBold";
+import { Roboto_700Bold } from "@expo-google-fonts/roboto/700Bold";
+import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { Stack, type ErrorBoundaryProps } from "expo-router";
 import { useEffect } from "react";
@@ -38,6 +44,13 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    Roboto_400Regular,
+    Roboto_500Medium,
+    Roboto_600SemiBold,
+    Roboto_700Bold
+  });
+  const fontsReady = fontsLoaded || Boolean(fontError);
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -46,7 +59,7 @@ export default function RootLayout() {
             <AuthProvider>
               <AppLockProvider>
                 <TenantProvider>
-                  <RootNavigator />
+                  <RootNavigator fontsReady={fontsReady} />
                 </TenantProvider>
               </AppLockProvider>
             </AuthProvider>
@@ -57,13 +70,13 @@ export default function RootLayout() {
   );
 }
 
-function RootNavigator() {
+function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
   const { initialized } = useAuth();
   const theme = useMobileTheme();
   useEffect(() => {
-    if (initialized) void SplashScreen.hideAsync();
-  }, [initialized]);
-  if (!initialized) return null;
+    if (initialized && fontsReady) void SplashScreen.hideAsync();
+  }, [fontsReady, initialized]);
+  if (!initialized || !fontsReady) return null;
   return (
     <>
       <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
@@ -73,7 +86,11 @@ function RootNavigator() {
           headerBackButtonDisplayMode: "minimal",
           headerShadowVisible: false,
           headerStyle: { backgroundColor: theme.colors.surface },
-          headerTintColor: theme.colors.ink
+          headerTintColor: theme.colors.ink,
+          headerTitleStyle: {
+            fontFamily: mobileFontFamily.medium,
+            fontSize: 16
+          }
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
