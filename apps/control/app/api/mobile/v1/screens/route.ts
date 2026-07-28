@@ -1,3 +1,5 @@
+import { mobileCreateScreenRequestSchema } from "@veyocast/contracts";
+
 import {
   getMobileRequestContext,
   requireMobileTenant
@@ -95,6 +97,54 @@ export async function GET(request: Request) {
       { items, nextCursor: null, total: items.length },
       context.requestId
     );
+  } catch (error) {
+    return mobileContextFailure(error);
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const context = await getMobileRequestContext(request);
+    const tenant = requireMobileTenant(
+      request,
+      context,
+      "tenant.screen.manage"
+    );
+    const parsed = mobileCreateScreenRequestSchema.safeParse(
+      await request.json().catch(() => null)
+    );
+    if (!parsed.success) {
+      return mobileFailure({
+        code: "VALIDATION",
+        message: "De schermgegevens zijn niet geldig.",
+        recovery: "Controleer naam, locatie, oriëntatie en resolutie.",
+        requestId: context.requestId,
+        status: 422
+      });
+    }
+    const input = parsed.data;
+    const { data, error } = await context.supabase.rpc("create_screen_v1", {
+      p_initial_release_id: null,
+      p_location: input.location,
+      p_name: input.name,
+      p_orientation: input.orientation,
+      p_resolution_height: input.resolutionHeight,
+      p_resolution_width: input.resolutionWidth,
+      p_tenant_id: tenant.id
+    });
+    if (error || typeof data !== "string") {
+      return mobileFailure({
+        code: error?.code === "42501" ? "FORBIDDEN" : "CONFLICT",
+        message: "Het scherm kon niet veilig worden aangemaakt.",
+        recovery:
+          error?.code === "53100"
+            ? "De schermlimiet is bereikt. Deactiveer een scherm of verhoog de limiet."
+            : "Controleer je rechten en probeer het opnieuw.",
+        requestId: context.requestId,
+        status: error?.code === "42501" ? 403 : 409
+      });
+    }
+    return mobileData({ screenId: data }, context.requestId, 201);
   } catch (error) {
     return mobileContextFailure(error);
   }

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   mobilePairingClaimRequestSchema,
+  mobilePlaylistPublishRequestSchema,
   mobilePlayerCommandRequestSchema
 } from "../src/mobile-control";
 
@@ -40,6 +41,26 @@ describe("mobile Control contracts", () => {
       mobilePlayerCommandRequestSchema.safeParse({
         ...common,
         commandType: "NEXT_ITEM"
+      }).success
+    ).toBe(false);
+  });
+
+  it("requires an explicit, bounded target selection for publication", () => {
+    const valid = {
+      confirmWarnings: false,
+      expectedRevision: 4,
+      idempotencyKey: "6ccfb8e2-7381-438e-9964-8f5452448771",
+      releaseNotes: "Kantine bijgewerkt",
+      screenIds: ["7a28c2cb-b028-40a7-b53b-596f3f59f6b5"]
+    };
+
+    expect(mobilePlaylistPublishRequestSchema.safeParse(valid).success).toBe(
+      true
+    );
+    expect(
+      mobilePlaylistPublishRequestSchema.safeParse({
+        ...valid,
+        screenIds: []
       }).success
     ).toBe(false);
   });

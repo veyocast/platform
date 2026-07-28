@@ -121,6 +121,16 @@ export const mobileScreensEnvelopeSchema = z
   })
   .strict();
 
+export const mobileCreateScreenRequestSchema = z
+  .object({
+    location: z.string().trim().max(160).nullable(),
+    name: z.string().trim().min(2).max(120),
+    orientation: z.enum(["landscape", "portrait"]),
+    resolutionHeight: z.number().int().min(240).max(4320),
+    resolutionWidth: z.number().int().min(320).max(7680)
+  })
+  .strict();
+
 export const mobilePairingCodeSchema = z
   .string()
   .trim()
@@ -199,6 +209,116 @@ export const mobilePlaylistSchema = z
   })
   .strict();
 
+export const mobileCreatePlaylistRequestSchema = z
+  .object({
+    description: z.string().trim().max(500).nullable(),
+    name: z.string().trim().min(2).max(120)
+  })
+  .strict();
+
+export const mobilePlaylistItemSchema = z
+  .object({
+    durationSeconds: z.number().int().min(5).max(3600),
+    fitMode: z.enum(["contain", "cover"]),
+    id: uuid,
+    mediaAssetId: uuid,
+    mimeType: z.string().min(1).max(160),
+    muted: z.boolean(),
+    sortOrder: z.number().int().nonnegative(),
+    title: z.string().min(1).max(240)
+  })
+  .strict();
+
+export const mobilePlaylistTargetSchema = z
+  .object({
+    id: uuid,
+    lastSeenAt: instant.nullable(),
+    name: z.string().min(1).max(160),
+    status: z.enum(["blocked", "ready", "warning"])
+  })
+  .strict();
+
+export const mobilePlaylistDetailSchema = z
+  .object({
+    description: z.string().max(500).nullable(),
+    id: uuid,
+    items: z.array(mobilePlaylistItemSchema).readonly(),
+    name: z.string().min(1).max(160),
+    publishTargets: z.array(mobilePlaylistTargetSchema).readonly(),
+    readyMedia: z.array(mobileMediaAssetSchema).readonly(),
+    revision: z.number().int().nonnegative(),
+    status: z.enum(["archived", "draft", "published"])
+  })
+  .strict();
+
+export const mobilePlaylistPublishRequestSchema = z
+  .object({
+    confirmWarnings: z.boolean(),
+    expectedRevision: z.number().int().nonnegative(),
+    idempotencyKey: uuid,
+    releaseNotes: z.string().trim().max(500).nullable(),
+    screenIds: z.array(uuid).min(1).max(100)
+  })
+  .strict();
+
+export const mobilePlaylistPublishResultSchema = z
+  .object({
+    actualRevision: z.number().int().nonnegative(),
+    outcome: z.enum(["applied", "conflict"]),
+    releaseId: uuid.nullable()
+  })
+  .strict();
+
+export const mobilePlaylistMutationRequestSchema = z.discriminatedUnion(
+  "operation",
+  [
+    z
+      .object({
+        expectedRevision: z.number().int().nonnegative(),
+        idempotencyKey: uuid,
+        mediaAssetId: uuid,
+        operation: z.literal("add_item")
+      })
+      .strict(),
+    z
+      .object({
+        direction: z.enum(["down", "end", "start", "up"]),
+        expectedRevision: z.number().int().nonnegative(),
+        idempotencyKey: uuid,
+        itemId: uuid,
+        operation: z.literal("move_item")
+      })
+      .strict(),
+    z
+      .object({
+        expectedRevision: z.number().int().nonnegative(),
+        displayName: z.string().trim().min(2).max(120),
+        fitMode: z.enum(["contain", "cover"]),
+        idempotencyKey: uuid,
+        itemId: uuid,
+        muted: z.boolean(),
+        operation: z.literal("update_item"),
+        durationSeconds: z.number().int().min(5).max(3600)
+      })
+      .strict(),
+    z
+      .object({
+        expectedRevision: z.number().int().nonnegative(),
+        idempotencyKey: uuid,
+        itemId: uuid,
+        operation: z.literal("remove_item")
+      })
+      .strict()
+  ]
+);
+
+export const mobilePlaylistMutationResultSchema = z
+  .object({
+    actualRevision: z.number().int().nonnegative(),
+    outcome: z.enum(["applied", "conflict"])
+  })
+  .strict();
+
 export const mobileContentSchema = z
   .object({
     media: z.array(mobileMediaAssetSchema).readonly(),
@@ -270,8 +390,21 @@ export type MobileCockpit = z.infer<typeof mobileCockpitSchema>;
 export type MobileDeviceRegistration = z.infer<
   typeof mobileDeviceRegistrationSchema
 >;
+export type MobileCreatePlaylistRequest = z.infer<
+  typeof mobileCreatePlaylistRequestSchema
+>;
+export type MobileCreateScreenRequest = z.infer<
+  typeof mobileCreateScreenRequestSchema
+>;
 export type MobileNotificationPreferences = z.infer<
   typeof mobileNotificationPreferencesSchema
+>;
+export type MobilePlaylistDetail = z.infer<typeof mobilePlaylistDetailSchema>;
+export type MobilePlaylistMutationRequest = z.infer<
+  typeof mobilePlaylistMutationRequestSchema
+>;
+export type MobilePlaylistPublishRequest = z.infer<
+  typeof mobilePlaylistPublishRequestSchema
 >;
 export type MobilePairingClaimRequest = z.infer<
   typeof mobilePairingClaimRequestSchema
