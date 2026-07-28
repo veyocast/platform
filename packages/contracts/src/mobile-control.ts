@@ -282,11 +282,11 @@ export const mobilePlaylistMutationRequestSchema = z.discriminatedUnion(
       .strict(),
     z
       .object({
-        direction: z.enum(["down", "end", "start", "up"]),
         expectedRevision: z.number().int().nonnegative(),
         idempotencyKey: uuid,
         itemId: uuid,
-        operation: z.literal("move_item")
+        operation: z.literal("move_item"),
+        targetPosition: z.number().int().min(0).max(999)
       })
       .strict(),
     z

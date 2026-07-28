@@ -190,7 +190,10 @@ export async function POST(
       input.operation === "add_item"
         ? { mediaAssetId: input.mediaAssetId }
         : input.operation === "move_item"
-          ? { direction: input.direction, itemId: input.itemId }
+          ? {
+              itemId: input.itemId,
+              targetPosition: input.targetPosition
+            }
           : input.operation === "update_item"
             ? {
                 durationSeconds: input.durationSeconds,
