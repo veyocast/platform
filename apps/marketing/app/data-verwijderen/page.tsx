@@ -6,7 +6,7 @@ import { isPublicIndexEnvironment } from "../_lib/site-config";
 
 export const metadata: Metadata = {
   alternates: {
-    canonical: "https://veyocast.nl/data-verwijderen"
+    canonical: "https://veyocast.nl/account-verwijderen"
   },
   description:
     "Zo vraagt u verwijdering van een VeyoCast-account, organisatiegegevens of lokale Android Player-data aan.",
@@ -84,9 +84,11 @@ export default function DataRemovalPage() {
             export-, communicatie- of wettelijke stappen moeten uitvoeren.
           </p>
           <p>
-            Het huidige platform heeft nog geen directe selfserviceknop die een
-            volledig account of een volledige tenant fysiek wist. Een
-            geverifieerd verzoek wordt daarom gecontroleerd afgehandeld.
+            In VeyoCast Control voor Android kan een ingelogde gebruiker een
+            formeel accountverwijderverzoek indienen en de status volgen. Een
+            verzoek wist niet onmiddellijk en onomkeerbaar alle gegevens:
+            bevoegdheid, bewaarplichten, tenantdata en back-ups worden eerst
+            gecontroleerd afgehandeld.
           </p>
           <p>
             Een nog niet serverbevestigde Studio-wijziging kan lokaal in de

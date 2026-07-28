@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createHash, randomUUID } from "node:crypto";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { requireTenantCapability } from "../control-session";
 import { createControlAdminClient } from "../supabase/admin";
@@ -27,6 +28,29 @@ export async function uploadValidatedImage(formData: FormData) {
       "Uploaden is alleen beschikbaar met een actieve Supabase-sessie. Log opnieuw in en probeer het daarna nogmaals."
     );
   }
+
+  return uploadValidatedImageCandidate({
+    candidate,
+    supabase,
+    tenantId: session.tenantId,
+    title,
+    userId: session.userId
+  });
+}
+
+export async function uploadValidatedImageCandidate({
+  candidate,
+  supabase,
+  tenantId,
+  title,
+  userId
+}: {
+  candidate: FormDataEntryValue | null;
+  supabase: SupabaseClient;
+  tenantId: string;
+  title: string;
+  userId: string;
+}) {
 
   if (!(candidate instanceof File) || candidate.size === 0) {
     throw new MediaUploadError(
@@ -64,11 +88,11 @@ export async function uploadValidatedImage(formData: FormData) {
   const assetId = randomUUID();
   const safeFileName = sanitizeFileName(candidate.name, detectedMimeType);
   const storagePath =
-    `tenants/${session.tenantId}/assets/${assetId}/original/${safeFileName}`;
+    `tenants/${tenantId}/assets/${assetId}/original/${safeFileName}`;
   const checksumSha256 = createHash("sha256").update(bytes).digest("hex");
 
   const { error: assetError } = await supabase.from("media_assets").insert({
-    created_by: session.userId,
+    created_by: userId,
     file_size_bytes: bytes.byteLength,
     id: assetId,
     kind: "image",
@@ -77,7 +101,7 @@ export async function uploadValidatedImage(formData: FormData) {
     status: "uploading",
     storage_bucket: "tenant-media",
     storage_path: storagePath,
-    tenant_id: session.tenantId,
+    tenant_id: tenantId,
     title
   });
 
@@ -128,7 +152,7 @@ export async function uploadValidatedImage(formData: FormData) {
     mime_type: detectedMimeType,
     storage_bucket: "tenant-media",
     storage_path: storagePath,
-    tenant_id: session.tenantId,
+    tenant_id: tenantId,
     variant_type: "original"
   });
 

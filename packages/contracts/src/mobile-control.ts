@@ -199,6 +199,44 @@ export const mobilePlaylistSchema = z
   })
   .strict();
 
+export const mobileContentSchema = z
+  .object({
+    media: z.array(mobileMediaAssetSchema).readonly(),
+    playlists: z.array(mobilePlaylistSchema).readonly()
+  })
+  .strict();
+
+export const mobileContentEnvelopeSchema = z
+  .object({
+    data: mobileContentSchema,
+    meta: mobileApiMetaSchema
+  })
+  .strict();
+
+export const mobileDeletionRequestSchema = z
+  .object({
+    executedAt: instant.nullable(),
+    id: uuid,
+    requestedAt: instant,
+    requestNumber: z.number().int().positive(),
+    status: z.enum([
+      "approved",
+      "blocked",
+      "cancelled",
+      "executed",
+      "legal_review",
+      "requested"
+    ])
+  })
+  .strict();
+
+export const mobileDeletionRequestsEnvelopeSchema = z
+  .object({
+    data: z.array(mobileDeletionRequestSchema).readonly(),
+    meta: mobileApiMetaSchema
+  })
+  .strict();
+
 export type MobileApiErrorEnvelope = z.infer<
   typeof mobileApiErrorEnvelopeSchema
 >;
