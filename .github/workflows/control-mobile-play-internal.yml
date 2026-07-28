@@ -1,0 +1,206 @@
+name: VeyoCast Control Mobile Play internal
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: control-mobile-play-internal
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    name: Signed AAB to Play internal
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: android-control-internal
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+
+      - name: Install Android SDK components
+        run: >-
+          sdkmanager
+          "platform-tools"
+          "platforms;android-36"
+          "build-tools;36.0.0"
+          "ndk;28.0.13004108"
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate protected environment
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEY_PASSWORD }}
+          GOOGLE_SERVICES_BASE64: ${{ secrets.ANDROID_CONTROL_GOOGLE_SERVICES_JSON_BASE64 }}
+          WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          PLAY_SERVICE_ACCOUNT: ${{ vars.GOOGLE_PLAY_CONTROL_SERVICE_ACCOUNT }}
+          EXPECTED_UPLOAD_CERT: ${{ vars.ANDROID_CONTROL_UPLOAD_CERT_SHA256 }}
+          CONTROL_ORIGIN: ${{ vars.CONTROL_MOBILE_PUBLIC_ORIGIN }}
+          SUPABASE_URL: ${{ vars.CONTROL_MOBILE_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.CONTROL_MOBILE_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          for variable in \
+            KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD \
+            GOOGLE_SERVICES_BASE64 WORKLOAD_IDENTITY_PROVIDER \
+            PLAY_SERVICE_ACCOUNT EXPECTED_UPLOAD_CERT CONTROL_ORIGIN \
+            SUPABASE_URL SUPABASE_ANON_KEY; do
+            if [[ -z "${!variable:-}" ]]; then
+              echo "::error::Beschermde secret/variabele ${variable} ontbreekt"
+              exit 1
+            fi
+          done
+          umask 077
+          printf '%s' "${KEYSTORE_BASE64}" | base64 --decode \
+            > "${RUNNER_TEMP}/control-upload.jks"
+          printf '%s' "${GOOGLE_SERVICES_BASE64}" | base64 --decode \
+            > "${RUNNER_TEMP}/google-services.json"
+          test -s "${RUNNER_TEMP}/control-upload.jks"
+          test -s "${RUNNER_TEMP}/google-services.json"
+          actual="$(
+            keytool -list -v \
+              -keystore "${RUNNER_TEMP}/control-upload.jks" \
+              -storepass "${KEYSTORE_PASSWORD}" \
+              -alias "${KEY_ALIAS}" |
+              awk -F': ' '/SHA256:/{print $2; exit}' |
+              tr -d ':[:space:]' |
+              tr '[:lower:]' '[:upper:]'
+          )"
+          expected="$(printf '%s' "${EXPECTED_UPLOAD_CERT}" | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')"
+          test "${actual}" = "${expected}"
+
+      - name: Derive monotonic Control version
+        run: |
+          sequence=$((GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT))
+          version_code=$((300000000 + sequence))
+          if (( version_code > 399999999 )); then
+            echo "::error::Control Mobile versionCode-range is uitgeput"
+            exit 1
+          fi
+          echo "VEYOCAST_CONTROL_VERSION_CODE=${version_code}" >> "${GITHUB_ENV}"
+          echo "VEYOCAST_CONTROL_VERSION_NAME=1.0.0-internal.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" >> "${GITHUB_ENV}"
+
+      - name: Authenticate to Google Cloud using WIF
+        id: google_auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GOOGLE_PLAY_CONTROL_SERVICE_ACCOUNT }}
+
+      - name: Generate signed Android project
+        env:
+          ANDROID_CONTROL_GOOGLE_SERVICES_FILE: ${{ runner.temp }}/google-services.json
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/control-upload.jks
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEY_ALIAS }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEY_PASSWORD }}
+          EXPO_PUBLIC_CONTROL_ORIGIN: ${{ vars.CONTROL_MOBILE_PUBLIC_ORIGIN }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.CONTROL_MOBILE_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.CONTROL_MOBILE_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          pnpm --filter @veyocast/control-mobile exec expo install --check
+          pnpm --filter @veyocast/control-mobile config:validate
+          pnpm --filter @veyocast/control-mobile prebuild:android
+
+      - name: Validate Gradle wrapper and configure cache
+        uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c # v5
+
+      - name: Build tested signed release
+        env:
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/control-upload.jks
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEY_ALIAS }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEY_PASSWORD }}
+        working-directory: apps/control-mobile/android
+        run: ./gradlew lint test bundleRelease --no-daemon
+
+      - name: Install verified bundletool
+        run: |
+          curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 \
+            https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar \
+            --output "${RUNNER_TEMP}/bundletool.jar"
+          printf '%s  %s\n' \
+            a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29 \
+            "${RUNNER_TEMP}/bundletool.jar" | sha256sum --check --status
+
+      - name: Validate signing, manifest and 16 KB support
+        env:
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/control-upload.jks
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEY_ALIAS }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEY_PASSWORD }}
+        run: |
+          aab="apps/control-mobile/android/app/build/outputs/bundle/release/app-release.aab"
+          mkdir -p "${RUNNER_TEMP}/control-mobile-release"
+          jarsigner -verify -verbose -certs "${aab}" \
+            > "${RUNNER_TEMP}/control-mobile-release/jarsigner.txt"
+          grep -Fq 'jar verified.' "${RUNNER_TEMP}/control-mobile-release/jarsigner.txt"
+          apps/control-mobile/scripts/validate-android-bundle.sh \
+            "${aab}" \
+            "${RUNNER_TEMP}/bundletool.jar" \
+            "${ANDROID_HOME}/build-tools/36.0.0/zipalign" \
+            "${ANDROID_HOME}/ndk/28.0.13004108/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
+            "${RUNNER_TEMP}/control-mobile-release"
+          node apps/control-mobile/scripts/generate-sbom.mjs \
+            "${RUNNER_TEMP}/control-mobile-release/sbom.cdx.json"
+          jq -n \
+            --arg sha "${GITHUB_SHA}" \
+            --arg versionCode "${VEYOCAST_CONTROL_VERSION_CODE}" \
+            --arg versionName "${VEYOCAST_CONTROL_VERSION_NAME}" \
+            --arg digest "$(sha256sum "${aab}" | cut -d' ' -f1)" \
+            '{commitSha:$sha,versionCode:$versionCode,versionName:$versionName,sha256:$digest}' \
+            > "${RUNNER_TEMP}/control-mobile-release/release-metadata.json"
+
+      - name: Preserve exact signed candidate and evidence
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: control-mobile-internal-${{ github.run_number }}
+          path: |
+            apps/control-mobile/android/app/build/outputs/bundle/release/app-release.aab
+            apps/control-mobile/android/app/build/outputs/mapping/release/mapping.txt
+            ${{ runner.temp }}/control-mobile-release/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish exact candidate to Play internal testing
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
+        with:
+          serviceAccountJson: ${{ steps.google_auth.outputs.credentials_file_path }}
+          packageName: nl.veyocast.control
+          releaseFiles: ${{ github.workspace }}/apps/control-mobile/android/app/build/outputs/bundle/release/app-release.aab
+          tracks: internal
+          status: completed
+          releaseName: VeyoCast Control ${{ env.VEYOCAST_CONTROL_VERSION_NAME }}
+
+      - name: Remove temporary credentials
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/control-upload.jks" "${RUNNER_TEMP}/google-services.json"

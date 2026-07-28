@@ -48,6 +48,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "android.permission.WRITE_EXTERNAL_STORAGE",
       "com.google.android.gms.permission.AD_ID"
     ],
+    ...(process.env.ANDROID_CONTROL_GOOGLE_SERVICES_FILE
+      ? {
+          googleServicesFile:
+            process.env.ANDROID_CONTROL_GOOGLE_SERVICES_FILE
+        }
+      : {}),
     intentFilters: [
       {
         action: "VIEW",
@@ -68,6 +74,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     "expo-router",
+    "./plugins/with-control-signing.cjs",
     [
       "expo-splash-screen",
       {

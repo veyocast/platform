@@ -6,11 +6,12 @@ export default [
     ignores: ["android/**", "dist/**", ".expo/**"]
   },
   {
-    files: ["metro.config.cjs"],
+    files: ["metro.config.cjs", "plugins/**/*.cjs"],
     languageOptions: {
       globals: {
         __dirname: "readonly",
         module: "readonly",
+        process: "readonly",
         require: "readonly"
       }
     },

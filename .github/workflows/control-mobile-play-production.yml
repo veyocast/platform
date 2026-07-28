@@ -1,0 +1,112 @@
+name: VeyoCast Control Mobile Play production promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      internal_run_id:
+        description: "Geslaagde internal-workflow run-ID"
+        required: true
+        type: string
+      artifact_name:
+        description: "Exacte internal artifactnaam"
+        required: true
+        type: string
+      expected_version_code:
+        description: "Geteste versionCode uit release-metadata.json"
+        required: true
+        type: string
+      rollout_fraction:
+        description: "Eerste productiefractie (0.05–0.10)"
+        required: true
+        default: "0.10"
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+  id-token: write
+
+concurrency:
+  group: control-mobile-play-production
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: github.ref == 'refs/heads/main'
+    name: Promote tested internal version without rebuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: android-control-production
+
+    steps:
+      - name: Checkout exact main source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Download protected internal candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ${{ runner.temp }}/candidate
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.internal_run_id }}
+
+      - name: Prove candidate identity and rollout bounds
+        run: |
+          metadata="$(find "${RUNNER_TEMP}/candidate" -name release-metadata.json -print -quit)"
+          aab="$(find "${RUNNER_TEMP}/candidate" -name app-release.aab -print -quit)"
+          test -s "${metadata}"
+          test -s "${aab}"
+          test "$(jq -r .versionCode "${metadata}")" = "${{ inputs.expected_version_code }}"
+          test "$(jq -r .commitSha "${metadata}")" = "${GITHUB_SHA}"
+          test "$(jq -r .sha256 "${metadata}")" = "$(sha256sum "${aab}" | cut -d' ' -f1)"
+          awk -v value="${{ inputs.rollout_fraction }}" \
+            'BEGIN { exit !(value >= 0.05 && value <= 0.10) }'
+
+      - name: Authenticate to Google Cloud using WIF
+        id: google_auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GOOGLE_PLAY_CONTROL_SERVICE_ACCOUNT }}
+          token_format: access_token
+
+      - name: Promote existing internal version to staged production
+        env:
+          PACKAGE_NAME: nl.veyocast.control
+          ACCESS_TOKEN: ${{ steps.google_auth.outputs.access_token }}
+          VERSION_CODE: ${{ inputs.expected_version_code }}
+          USER_FRACTION: ${{ inputs.rollout_fraction }}
+        run: |
+          api="https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${PACKAGE_NAME}"
+          edit_id="$(
+            curl --fail --silent --show-error \
+              -X POST \
+              -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d '{}' \
+              "${api}/edits" | jq -er .id
+          )"
+          internal="$(
+            curl --fail --silent --show-error \
+              -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+              "${api}/edits/${edit_id}/tracks/internal"
+          )"
+          jq -e --arg version "${VERSION_CODE}" \
+            '[.releases[]?.versionCodes[]?] | index($version) != null' \
+            <<< "${internal}"
+          payload="$(
+            jq -n \
+              --arg version "${VERSION_CODE}" \
+              --argjson fraction "${USER_FRACTION}" \
+              '{track:"production",releases:[{name:("VeyoCast Control "+$version),status:"inProgress",userFraction:$fraction,versionCodes:[$version]}]}'
+          )"
+          curl --fail --silent --show-error \
+            -X PUT \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "${payload}" \
+            "${api}/edits/${edit_id}/tracks/production" > /dev/null
+          curl --fail --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            "${api}/edits/${edit_id}:commit" > /dev/null
