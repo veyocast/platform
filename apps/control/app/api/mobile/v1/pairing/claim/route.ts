@@ -37,10 +37,11 @@ export async function POST(request: Request) {
     }
     const input = parsed.data;
     const { data, error } = await context.supabase.rpc(
-      "claim_pairing_session_v4",
+      "claim_pairing_session_mobile_v1",
       {
         p_code_hash: createHash("sha256").update(input.code).digest("hex"),
         p_device_name: "VeyoCast Player",
+        p_idempotency_key: input.idempotencyKey,
         p_screen_id: input.screenId,
         p_tenant_id: tenant.id
       }
