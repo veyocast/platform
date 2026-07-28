@@ -30,6 +30,7 @@ const config: MediaWorkerConfig = {
   pollIntervalMs: 2_000,
   schedulePollIntervalMs: 15_000,
   serviceRoleKey: "service-secret",
+  sportlinkEncryptionKey: null,
   supabaseUrl: "https://project.supabase.co",
   workerId: "worker:test"
 };

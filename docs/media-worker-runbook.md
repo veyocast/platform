@@ -32,6 +32,7 @@ MEDIA_WORKER_ID                       standaard hostnaam + proces-ID
 MEDIA_WORKER_POLL_INTERVAL_MS         standaard 2000; deployment 500, bereik 250–60000
 MEDIA_WORKER_MAX_ATTEMPTS             standaard 3, bereik 1–10
 MEDIA_WORKER_LOCK_TIMEOUT_SECONDS     standaard 900, bereik 60–3600
+SPORTLINK_CONFIG_ENCRYPTION_KEY       server-only, stabiel en minimaal 32 tekens
 PUBLISHER_SCHEDULE_POLL_INTERVAL_MS   standaard 15000, bereik 5000–300000
 ```
 

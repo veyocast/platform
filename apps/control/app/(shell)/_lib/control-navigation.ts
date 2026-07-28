@@ -100,6 +100,22 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "platform"
   },
   {
+    description: "Vaste dynamische vormgeving en versies",
+    href: "/platform/templates",
+    label: "Dynamische templates",
+    requiredCapability: "platform.dynamic_template.read",
+    section: "organization",
+    scope: "platform"
+  },
+  {
+    description: "Club.Dataservice-verbindingen en synchronisatie",
+    href: "/platform/integrations/sportlink",
+    label: "Sportlink",
+    requiredCapability: "platform.tenant.read",
+    section: "organization",
+    scope: "platform"
+  },
+  {
     description: "Dagelijkse operatie en aandachtspunten",
     href: "/dashboard",
     label: "Overzicht",
@@ -112,6 +128,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/studio",
     label: "Studio",
     requiredCapability: "tenant.studio.read",
+    section: "workspace",
+    scope: "tenant"
+  },
+  {
+    description: "Datagedreven menu- en nieuwsslides",
+    href: "/dashboard/slides",
+    label: "Slides",
+    requiredCapability: "tenant.dynamic_slide.read",
     section: "workspace",
     scope: "tenant"
   },
@@ -176,6 +200,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/integrations",
     label: "Integraties",
     requiredCapability: "tenant.product.read",
+    section: "management",
+    scope: "tenant"
+  },
+  {
+    description: "Product-, RSS- en providerdata beheren",
+    href: "/dashboard/data-sources",
+    label: "Databronnen",
+    requiredCapability: "tenant.data_source.read",
     section: "management",
     scope: "tenant"
   },

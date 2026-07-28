@@ -90,8 +90,10 @@ tests en exitcriteria staan in
 | S46 | Device compatibility en playback-hardening | Algemene Android-compatibiliteit binair bewaken, mobiele Play-track herstellen en native video-startoverlays onderdrukken zonder kiosk- of overlaypermissies |
 | S47 | Schermautomatisering | Per-scherm bedrijfstijden, capability-aware Control, inexacte lokale Androidstart, schedule-aware keep-awake en eerlijke HDMI-CEC-diagnostiek |
 | S50 | Atelier Ivory Control en Studio | Definitieve semantische light/dark-interface, responsive shell, kernworkspaces, beide editors en visuele bewijsvoering |
+| S51 | Vaste dynamische slides | Platformtemplates, tenant product/RSS-bronnen, veilige immutable PNG-snapshots en bestaande offline Playerreleaseketen |
 | S52 | Control floating overlays | Portaled overflowmenu’s, viewport collision handling en clippingvrije focus/menuweergave |
 | S53 | Android- en LG herstelbetrouwbaarheid | Officiële Android-app herkent dezelfde installation na herinstallatie, verifieert boot-/updatestarts en opent Play-updatebeheer; standalone LG-recovery maakt vóór redirect aantoonbaar een nieuwe code |
+| S54 | Sportlink Club.Dataservice | Tenantveilige server-only Sportlink-data, lease-based synchronisatie, vaste sportslides en immutable offline Playeroutput |
 
 ### Programmagates
 

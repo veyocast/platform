@@ -7,6 +7,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./server": {
+      "types": "./src/server.ts",
+      "default": "./src/server.ts"
     }
   },
   "scripts": {
@@ -16,6 +20,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "exceljs": "^4.4.0"
+    "@veyocast/contracts": "workspace:*",
+    "exceljs": "^4.4.0",
+    "zod": "^4.4.3"
   }
 }

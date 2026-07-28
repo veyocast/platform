@@ -20,6 +20,24 @@ import {
   type StudioRenderRunResult
 } from "./studio-render-runner";
 import { runServiceMonitor } from "./service-monitor";
+import { SupabaseDynamicRenderBackend } from "./dynamic-render-backend";
+import {
+  runDynamicRenderLoop,
+  runDynamicRenderOnce,
+  type DynamicRenderRunResult
+} from "./dynamic-render-runner";
+import {
+  SupabaseRssSyncBackend,
+  runRssSyncLoop,
+  runRssSyncOnce,
+  type RssSyncRunResult
+} from "./rss-sync-runner";
+import {
+  SupabaseSportlinkSyncBackend,
+  runSportlinkSyncLoop,
+  runSportlinkSyncOnce,
+  type SportlinkSyncRunResult
+} from "./sportlink-sync-runner";
 
 export {
   createMediaProcessingPlan,
@@ -87,6 +105,36 @@ export {
 export type { StudioRenderRunResult } from "./studio-render-runner";
 export { closeServer, createWorkerRuntimeHealth } from "./worker-health";
 export type { WorkerRuntimeHealth } from "./worker-health";
+export {
+  SupabaseDynamicRenderBackend,
+  dynamicRenderStoragePath,
+  parseClaimedDynamicRenderJob
+} from "./dynamic-render-backend";
+export type {
+  ClaimedDynamicRenderJob,
+  DynamicRenderBackend
+} from "./dynamic-render-backend";
+export {
+  classifyDynamicRenderFailure,
+  runDynamicRenderLoop,
+  runDynamicRenderOnce
+} from "./dynamic-render-runner";
+export type { DynamicRenderRunResult } from "./dynamic-render-runner";
+export {
+  SupabaseRssSyncBackend,
+  runRssSyncLoop,
+  runRssSyncOnce
+} from "./rss-sync-runner";
+export type { ClaimedRssSync, RssSyncRunResult } from "./rss-sync-runner";
+export {
+  SupabaseSportlinkSyncBackend,
+  runSportlinkSyncLoop,
+  runSportlinkSyncOnce
+} from "./sportlink-sync-runner";
+export type {
+  ClaimedSportlinkSync,
+  SportlinkSyncRunResult
+} from "./sportlink-sync-runner";
 
 export type WorkerHealth = {
   service: string;
@@ -125,6 +173,18 @@ async function main() {
     config.supabaseUrl,
     config.serviceRoleKey
   );
+  const dynamicBackend = new SupabaseDynamicRenderBackend(
+    config.supabaseUrl,
+    config.serviceRoleKey
+  );
+  const rssBackend = new SupabaseRssSyncBackend(
+    config.supabaseUrl,
+    config.serviceRoleKey
+  );
+  const sportlinkBackend = new SupabaseSportlinkSyncBackend(
+    config.supabaseUrl,
+    config.serviceRoleKey
+  );
   const studioRenderer = new ResvgSharpStudioRenderer();
   if (mode === "--once") {
     const mediaResult = await runWorkerOnce({ backend, config });
@@ -135,7 +195,32 @@ async function main() {
       renderer: studioRenderer
     });
     logStudioRenderResult(logger, studioResult);
-    if (mediaResult.status === "failed" || studioResult.status === "failed") {
+    const dynamicResult = await runDynamicRenderOnce({
+      backend: dynamicBackend,
+      config,
+      renderer: studioRenderer
+    });
+    logDynamicRenderResult(logger, dynamicResult);
+    const rssResult = await runRssSyncOnce({
+      backend: rssBackend,
+      lockTimeoutSeconds: config.lockTimeoutSeconds,
+      workerId: config.workerId
+    });
+    logRssSyncResult(logger, rssResult);
+    const sportlinkResult = await runSportlinkSyncOnce({
+      backend: sportlinkBackend,
+      encryptionKey: config.sportlinkEncryptionKey,
+      lockTimeoutSeconds: config.lockTimeoutSeconds,
+      workerId: config.workerId
+    });
+    logSportlinkSyncResult(logger, sportlinkResult);
+    if (
+      mediaResult.status === "failed" ||
+      studioResult.status === "failed" ||
+      dynamicResult.status === "failed" ||
+      rssResult.status === "failed" ||
+      sportlinkResult.status === "failed"
+    ) {
       process.exitCode = 1;
     }
     return;
@@ -190,6 +275,41 @@ async function main() {
         renderer: studioRenderer,
         signal: controller.signal
       }),
+      runDynamicRenderLoop({
+        backend: dynamicBackend,
+        config,
+        intervalMs: config.pollIntervalMs,
+        onResult: (result) => {
+          runtimeHealth.markPoll();
+          runtimeHealth.markResult(
+            result.status === "completed" ||
+              result.status === "idle" ||
+              result.status === "retry_scheduled"
+              ? result.status
+              : "failed"
+          );
+          logDynamicRenderResult(logger, result);
+        },
+        renderer: studioRenderer,
+        signal: controller.signal
+      }),
+      runRssSyncLoop({
+        backend: rssBackend,
+        intervalMs: config.schedulePollIntervalMs,
+        lockTimeoutSeconds: config.lockTimeoutSeconds,
+        onResult: (result) => logRssSyncResult(logger, result),
+        signal: controller.signal,
+        workerId: config.workerId
+      }),
+      runSportlinkSyncLoop({
+        backend: sportlinkBackend,
+        encryptionKey: config.sportlinkEncryptionKey,
+        intervalMs: config.schedulePollIntervalMs,
+        lockTimeoutSeconds: config.lockTimeoutSeconds,
+        onResult: (result) => logSportlinkSyncResult(logger, result),
+        signal: controller.signal,
+        workerId: config.workerId
+      }),
       ...serviceMonitorTasks(controller.signal, logger)
     ]);
   } finally {
@@ -197,6 +317,76 @@ async function main() {
     process.removeListener("SIGTERM", stop);
     await closeServer(healthServer);
     logger.info("media.worker.stopped");
+  }
+}
+
+function logSportlinkSyncResult(
+  logger: ReturnType<typeof createStructuredLogger>,
+  result: SportlinkSyncRunResult
+) {
+  const eventLogger =
+    result.status === "idle" ? logger : logger.withCorrelation(result.runId);
+  if (result.status === "idle") {
+    eventLogger.debug("sportlink.sync.queue_polled", { outcome: "idle" });
+  } else if (result.status === "completed") {
+    eventLogger.info("sportlink.sync.completed", {
+      datasetGroup: result.datasetGroup,
+      outcome: result.status,
+      readCount: result.readCount
+    });
+  } else {
+    eventLogger.error("sportlink.sync.failed", {
+      datasetGroup: result.datasetGroup,
+      errorCode: result.errorCode,
+      outcome: result.status
+    });
+  }
+}
+
+function logDynamicRenderResult(
+  logger: ReturnType<typeof createStructuredLogger>,
+  result: DynamicRenderRunResult
+) {
+  const eventLogger =
+    result.status === "idle" ? logger : logger.withCorrelation(result.jobId);
+  if (result.status === "idle") {
+    eventLogger.debug("dynamic.render.queue_polled", { outcome: "idle" });
+  } else if (result.status === "completed") {
+    eventLogger.info("dynamic.render.completed", {
+      jobId: result.jobId,
+      mediaAssetId: result.mediaAssetId,
+      outcome: result.status
+    });
+  } else {
+    eventLogger.error("dynamic.render.failed", {
+      errorCode: result.errorCode,
+      jobId: result.jobId,
+      mediaAssetId: result.mediaAssetId,
+      outcome: result.status
+    });
+  }
+}
+
+function logRssSyncResult(
+  logger: ReturnType<typeof createStructuredLogger>,
+  result: RssSyncRunResult
+) {
+  const eventLogger =
+    result.status === "idle" ? logger : logger.withCorrelation(result.runId);
+  if (result.status === "idle") {
+    eventLogger.debug("dynamic.rss.queue_polled", { outcome: "idle" });
+  } else if (result.status === "completed") {
+    eventLogger.info("dynamic.rss.completed", {
+      dataSourceId: result.dataSourceId,
+      itemCount: result.itemCount,
+      outcome: result.status
+    });
+  } else {
+    eventLogger.error("dynamic.rss.failed", {
+      dataSourceId: result.dataSourceId,
+      errorCode: result.errorCode,
+      outcome: result.status
+    });
   }
 }
 

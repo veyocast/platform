@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, FileSpreadsheet, RefreshCw } from "lucide-react";
+import { ArrowRight, Database, FileSpreadsheet, RefreshCw } from "lucide-react";
 
 import { StatusPill } from "@veyocast/ui";
 
@@ -32,6 +32,23 @@ export default async function IntegrationsPage() {
         </div>
 
         <div className={styles.grid}>
+          <article className={styles.card}>
+            <div className={styles.cardHeader}>
+              <span className={styles.icon} aria-hidden="true"><Database /></span>
+              <StatusPill label="Beschikbaar" tone="success" />
+            </div>
+            <div className={styles.cardBody}>
+              <div><p className={styles.provider}>Sportlink</p><h3>Club.Dataservice</h3></div>
+              <p>Programma, uitslagen, standen, afgelastingen en clubagenda via veilige offline snapshots.</p>
+            </div>
+            <dl className={styles.meta}>
+              <div><dt>Werkwijze</dt><dd>Server-side synchronisatie</dd></div>
+              <div><dt>Player</dt><dd>Geen directe providerverbinding</dd></div>
+            </dl>
+            <Link className={styles.link} href="/dashboard/data-sources/sportlink">
+              Sportlink beheren <ArrowRight aria-hidden="true" />
+            </Link>
+          </article>
           <article className={styles.card}>
             <div className={styles.cardHeader}>
               <span className={styles.icon} aria-hidden="true">

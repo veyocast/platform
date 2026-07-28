@@ -19,6 +19,8 @@
     "@resvg/resvg-js": "^2.6.2",
     "@supabase/supabase-js": "^2.110.7",
     "@veyocast/config": "workspace:*",
+    "@veyocast/contracts": "workspace:*",
+    "@veyocast/integrations": "workspace:*",
     "@veyocast/observability": "workspace:*",
     "@veyocast/studio": "workspace:*",
     "qrcode": "^1.5.4",
