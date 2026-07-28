@@ -110,14 +110,14 @@ const styles = StyleSheet.create({
     boxShadow: "0 3px 10px rgba(0, 0, 0, 0.035)",
     borderRadius: mobileRadius.card,
     borderWidth: 1,
-    padding: mobileSpacing.default
+    padding: mobileSpacing.inline
   },
   screenContent: {
     alignSelf: "center",
-    gap: mobileSpacing.section,
+    gap: mobileSpacing.default,
     maxWidth: 1180,
     paddingBottom: mobileSpacing.large,
-    paddingTop: mobileSpacing.section,
+    paddingTop: mobileSpacing.default,
     width: "100%"
   },
   sectionCopy: {

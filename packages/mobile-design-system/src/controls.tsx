@@ -13,11 +13,13 @@ import { useMobileTheme } from "./theme";
 import { AppText } from "./typography";
 
 export type ButtonVariant = "danger" | "ghost" | "primary" | "secondary";
+export type ButtonSize = "compact" | "default";
 
 export type ButtonProps = PropsWithChildren<
   Omit<PressableProps, "children" | "style"> & {
     icon?: ReactNode;
     loading?: boolean;
+    size?: ButtonSize;
     style?: StyleProp<ViewStyle>;
     variant?: ButtonVariant;
   }
@@ -28,6 +30,7 @@ export function Button({
   disabled,
   icon,
   loading = false,
+  size = "default",
   style,
   variant = "primary",
   ...props
@@ -65,6 +68,7 @@ export function Button({
       disabled={unavailable}
       style={({ pressed }) => [
         styles.button,
+        size === "compact" && styles.buttonCompact,
         {
           backgroundColor:
             pressed && variant === "primary"
@@ -83,7 +87,7 @@ export function Button({
         <>
           {icon}
           <AppText
-            variant="bodyStrong"
+            variant={size === "compact" ? "label" : "bodyStrong"}
             style={{ color: variantColors.foreground, textAlign: "center" }}
           >
             {children}
@@ -257,7 +261,11 @@ const styles = StyleSheet.create({
     gap: mobileSpacing.compact,
     justifyContent: "center",
     minHeight: minimumTouchTarget,
-    paddingHorizontal: mobileSpacing.default
+    paddingHorizontal: mobileSpacing.inline
+  },
+  buttonCompact: {
+    gap: mobileSpacing.micro,
+    paddingHorizontal: mobileSpacing.compact
   },
   chip: {
     alignItems: "center",

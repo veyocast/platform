@@ -66,7 +66,7 @@ function PhoneNavigationDock({
         styles.phoneBar,
         {
           backgroundColor: theme.colors.canvas,
-          paddingBottom: Math.max(insets.bottom, mobileSpacing.compact)
+          paddingBottom: Math.max(insets.bottom, mobileSpacing.micro)
         }
       ]}
     >
@@ -136,7 +136,7 @@ function PhoneNavigationDock({
               >
                 <Icon
                   color={createAction ? "#0A0A0A" : color}
-                  size={createAction ? 25 : 23}
+                  size={createAction ? 23 : 21}
                   strokeWidth={selected || createAction ? 2.35 : 1.9}
                 />
               </View>
@@ -368,42 +368,42 @@ const styles = StyleSheet.create({
   },
   createIcon: {
     borderRadius: mobileRadius.full,
-    borderWidth: 4,
-    height: 48,
-    marginTop: -14,
-    width: 48
+    borderWidth: 3,
+    height: 44,
+    marginTop: -10,
+    width: 44
   },
   darkText: {
     color: "#0A0A0A",
     fontWeight: "700"
   },
   phoneBar: {
-    paddingHorizontal: mobileSpacing.inline,
-    paddingTop: mobileSpacing.compact
+    paddingHorizontal: mobileSpacing.compact,
+    paddingTop: mobileSpacing.micro
   },
   phoneDock: {
     borderRadius: mobileRadius.hero,
     borderWidth: 1,
     flexDirection: "row",
-    minHeight: 68,
+    minHeight: 60,
     paddingHorizontal: mobileSpacing.micro,
     boxShadow: "0 8px 18px rgba(0, 0, 0, 0.18)"
   },
   phoneIcon: {
     alignItems: "center",
     borderRadius: mobileRadius.control,
-    height: 36,
+    height: 32,
     justifyContent: "center",
-    width: 42
+    width: 38
   },
   phoneItem: {
     alignItems: "center",
     flex: 1,
     gap: 2,
     justifyContent: "center",
-    minHeight: 66,
+    minHeight: 58,
     paddingHorizontal: 2,
-    paddingVertical: mobileSpacing.compact
+    paddingVertical: mobileSpacing.micro
   },
   phoneLabel: {
     fontSize: 10,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   rail: {
     borderRightWidth: 1,
     paddingHorizontal: mobileSpacing.default,
-    width: 232
+    width: 216
   },
   railActiveMark: {
     borderRadius: mobileRadius.full,
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: "row",
     gap: mobileSpacing.inline,
-    minHeight: 52,
+    minHeight: 44,
     paddingHorizontal: mobileSpacing.inline
   },
   railItemCopy: {
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   },
   railNavigation: {
     gap: mobileSpacing.compact,
-    marginTop: mobileSpacing.major
+    marginTop: mobileSpacing.section
   },
   railSectionLabel: {
     letterSpacing: 0.6,
