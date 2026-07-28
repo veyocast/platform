@@ -108,6 +108,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "platform"
   },
   {
+    description: "Club.Dataservice-verbindingen en synchronisatie",
+    href: "/platform/integrations/sportlink",
+    label: "Sportlink",
+    requiredCapability: "platform.tenant.read",
+    section: "organization",
+    scope: "platform"
+  },
+  {
     description: "Dagelijkse operatie en aandachtspunten",
     href: "/dashboard",
     label: "Overzicht",
