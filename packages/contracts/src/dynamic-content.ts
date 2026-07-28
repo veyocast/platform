@@ -1,11 +1,33 @@
 import { z } from "zod";
 
-export const dynamicSlideTypes = ["menu", "news"] as const;
+export const sportDynamicSlideTypes = [
+  "sport_program",
+  "sport_results",
+  "sport_standing",
+  "sport_period_standing",
+  "sport_match_of_the_day",
+  "sport_next_match",
+  "sport_cancellations",
+  "sport_dressing_rooms",
+  "sport_officials",
+  "sport_team",
+  "sport_sponsor",
+  "sport_activities",
+  "sport_trainings",
+  "sport_volunteers",
+  "sport_birthdays"
+] as const;
+export const dynamicSlideTypes = [
+  "menu",
+  "news",
+  ...sportDynamicSlideTypes
+] as const;
 export const dynamicSlideOrientations = ["landscape", "portrait"] as const;
 export const dynamicDataSourceKinds = [
   "manual_products",
   "twelve_excel",
-  "rss"
+  "rss",
+  "sportlink"
 ] as const;
 
 export const dynamicSlideTypeSchema = z.enum(dynamicSlideTypes);
@@ -96,7 +118,13 @@ export const dynamicSnapshotDataSchema = z.discriminatedUnion("type", [
   z.object({
     data: canonicalNewsFeedSchema,
     type: z.literal("news")
-  })
+  }),
+  ...sportDynamicSlideTypes.map((slideType) =>
+    z.object({
+      sport: z.record(z.string(), z.unknown()),
+      type: z.literal(slideType)
+    })
+  )
 ]);
 
 export type CanonicalProduct = z.infer<typeof canonicalProductSchema>;
