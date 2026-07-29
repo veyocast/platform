@@ -53,8 +53,8 @@ export const mobileSpacing = {
 export const mobileRadius = {
   chip: 6,
   control: 8,
-  card: 12,
-  hero: 16,
+  card: 10,
+  hero: 14,
   sheet: 20,
   prominent: 24,
   full: 999

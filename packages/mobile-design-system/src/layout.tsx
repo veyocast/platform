@@ -107,7 +107,6 @@ export function SectionHeader({
 
 const styles = StyleSheet.create({
   card: {
-    boxShadow: "0 3px 10px rgba(0, 0, 0, 0.035)",
     borderRadius: mobileRadius.card,
     borderWidth: 1,
     padding: mobileSpacing.inline
@@ -125,7 +124,7 @@ const styles = StyleSheet.create({
     gap: mobileSpacing.micro
   },
   sectionHeader: {
-    alignItems: "flex-start",
+    alignItems: "center",
     flexDirection: "row",
     gap: mobileSpacing.default,
     justifyContent: "space-between"

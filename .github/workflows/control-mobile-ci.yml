@@ -46,7 +46,7 @@ jobs:
   native:
     name: Native app, AAB and 16 KB gates
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -72,6 +72,15 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+
+      - name: Reclaim runner disk for native Android compilation
+        run: |
+          sudo rm -rf \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/boost \
+            /usr/share/dotnet
+          df --human-readable /
 
       - name: Install pinned Android SDK components
         run: >-
@@ -108,7 +117,25 @@ jobs:
         run: node scripts/assert-client-bundle-secret-free.mjs apps/control-mobile
 
       - name: Generate Android project
-        run: pnpm --filter @veyocast/control-mobile prebuild:android
+        run: |
+          pnpm --filter @veyocast/control-mobile prebuild:android
+          manifest="apps/control-mobile/android/app/src/main/AndroidManifest.xml"
+          if grep --fixed-strings --quiet 'data-generated=' "${manifest}"; then
+            echo "Expo genereerde een ongeldige data-generated manifestmarker." >&2
+            exit 1
+          fi
+          [[ $(grep --count 'android:autoVerify="true"' "${manifest}") -eq 1 ]]
+          grep --fixed-strings --quiet \
+            '<uses-feature android:name="android.hardware.camera" android:required="false"/>' \
+            "${manifest}"
+          base_styles="apps/control-mobile/android/app/src/main/res/values/styles.xml"
+          api_33_styles="apps/control-mobile/android/app/src/main/res/values-v33/styles.xml"
+          if grep --fixed-strings --quiet 'android:windowSplashScreenBehavior' "${base_styles}"; then
+            echo "De API 33-splashstijl staat onveilig in de basisresources." >&2
+            exit 1
+          fi
+          grep --fixed-strings --quiet 'android:windowSplashScreenBehavior' "${api_33_styles}"
+          grep --fixed-strings --quiet 'parent="Theme.SplashScreen"' "${api_33_styles}"
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c # v5
@@ -118,7 +145,15 @@ jobs:
 
       - name: Android lint, tests and release bundle
         working-directory: apps/control-mobile/android
-        run: ./gradlew lint test bundleRelease --no-daemon
+        run: >-
+          ./gradlew
+          :app:lintRelease
+          :app:testReleaseUnitTest
+          :app:bundleRelease
+          -PndkVersion=28.0.13004108
+          -x :react-native-reanimated:lintAnalyzeRelease
+          -x :react-native-worklets:lintAnalyzeRelease
+          --no-daemon
 
       - name: Install verified bundletool
         run: |

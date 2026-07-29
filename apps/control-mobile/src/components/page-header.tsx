@@ -31,6 +31,7 @@ export function PageHeader({
   const { session } = useAuth();
   const { activeTenant } = useTenant();
   const compact = width < 560;
+  const showOrganization = width < 768;
   const userInitial = (session?.user.email ?? "V")
     .slice(0, 1)
     .toLocaleUpperCase("nl-NL");
@@ -52,7 +53,7 @@ export function PageHeader({
         </AppText>
       </View>
       <View style={styles.context}>
-        {activeTenant ? (
+        {activeTenant && showOrganization ? (
           <PressableSurface
             accessibilityLabel={`Organisatie wisselen. Actief: ${activeTenant.name}`}
             accessibilityRole="button"
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     gap: 2
   },
   header: {
-    gap: mobileSpacing.inline
+    gap: mobileSpacing.compact
   },
   headerAction: {
     borderWidth: 1,
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     gap: mobileSpacing.compact,
     minWidth: 0,
     minHeight: 44,
-    paddingHorizontal: mobileSpacing.compact
+    paddingHorizontal: mobileSpacing.inline
   },
   organizationIcon: {
     alignItems: "center",

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import {
-  mobilePalette,
   mobileRadius,
   mobileSpacing,
   type MobileStatusTone
@@ -27,18 +26,18 @@ export function StatusBadge({
 }) {
   const theme = useMobileTheme();
   const foreground = {
-    critical: mobilePalette.status.critical,
+    critical: theme.colors.critical,
     info: theme.colors.focus,
     neutral: theme.colors.secondaryInk,
-    success: mobilePalette.status.success,
-    warning: mobilePalette.status.warning
+    success: theme.colors.success,
+    warning: theme.colors.warning
   }[tone];
   const background = {
-    critical: mobilePalette.status.criticalSurface,
-    info: mobilePalette.status.infoSurface,
+    critical: theme.colors.criticalSurface,
+    info: theme.colors.infoSurface,
     neutral: theme.colors.surface,
-    success: mobilePalette.status.successSurface,
-    warning: mobilePalette.status.warningSurface
+    success: theme.colors.successSurface,
+    warning: theme.colors.warningSurface
   }[tone];
   return (
     <View

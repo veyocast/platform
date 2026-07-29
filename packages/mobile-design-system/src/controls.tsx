@@ -8,11 +8,20 @@ import {
   type StyleProp,
   type ViewStyle
 } from "react-native";
-import { minimumTouchTarget, mobileRadius, mobileSpacing } from "./tokens";
+import {
+  minimumTouchTarget,
+  mobileRadius,
+  mobileSpacing
+} from "./tokens";
 import { useMobileTheme } from "./theme";
 import { AppText } from "./typography";
 
-export type ButtonVariant = "danger" | "ghost" | "primary" | "secondary";
+export type ButtonVariant =
+  | "danger"
+  | "dangerQuiet"
+  | "ghost"
+  | "primary"
+  | "secondary";
 export type ButtonSize = "compact" | "default";
 
 export type ButtonProps = PropsWithChildren<
@@ -42,6 +51,11 @@ export function Button({
       background: theme.colors.critical,
       border: theme.colors.critical,
       foreground: "#FFFFFF"
+    },
+    dangerQuiet: {
+      background: theme.colors.criticalSurface,
+      border: "transparent",
+      foreground: theme.colors.critical
     },
     ghost: {
       background: "transparent",

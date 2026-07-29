@@ -14,6 +14,7 @@ import {
 
 import {
   AppText,
+  mobilePalette,
   mobileRadius,
   mobileSpacing,
   useMobileTheme
@@ -173,14 +174,22 @@ function TabletNavigationRail({
   const { activeTenant } = useTenant();
   const email = session?.user.email ?? "Account";
   const initial = email.slice(0, 1).toLocaleUpperCase("nl-NL");
+  const rail = {
+    background: mobilePalette.dark.canvas,
+    border: mobilePalette.dark.line,
+    foreground: mobilePalette.dark.ink,
+    muted: mobilePalette.dark.secondaryInk,
+    raised: mobilePalette.dark.raised,
+    surface: mobilePalette.dark.surface
+  };
 
   return (
     <View
       style={[
         styles.rail,
         {
-          backgroundColor: theme.colors.surface,
-          borderColor: theme.colors.line,
+          backgroundColor: rail.background,
+          borderColor: rail.border,
           paddingBottom: Math.max(insets.bottom, mobileSpacing.default),
           paddingTop: Math.max(insets.top, mobileSpacing.card)
         }
@@ -189,15 +198,17 @@ function TabletNavigationRail({
       <View style={styles.railBrand}>
         <View
           style={[
-            styles.railLogo,
-            { backgroundColor: theme.colors.canvas }
+          styles.railLogo,
+            { backgroundColor: rail.surface }
           ]}
         >
           <BrandMark size={34} />
         </View>
         <View style={styles.railBrandCopy}>
-          <AppText variant="cardTitle">VeyoCast</AppText>
-          <AppText muted variant="micro">
+          <AppText variant="cardTitle" style={{ color: rail.foreground }}>
+            VeyoCast
+          </AppText>
+          <AppText variant="micro" style={{ color: rail.muted }}>
             Control
           </AppText>
         </View>
@@ -211,8 +222,8 @@ function TabletNavigationRail({
           style={({ pressed }) => [
             styles.tenantCard,
             {
-              backgroundColor: theme.colors.canvas,
-              borderColor: theme.colors.line,
+              backgroundColor: rail.surface,
+              borderColor: rail.border,
               opacity: pressed ? 0.76 : 1
             }
           ]}
@@ -228,10 +239,18 @@ function TabletNavigationRail({
             </AppText>
           </View>
           <View style={styles.railItemCopy}>
-            <AppText numberOfLines={1} variant="label">
+            <AppText
+              numberOfLines={1}
+              variant="label"
+              style={{ color: rail.foreground }}
+            >
               {activeTenant.name}
             </AppText>
-            <AppText muted numberOfLines={1} variant="micro">
+            <AppText
+              numberOfLines={1}
+              variant="micro"
+              style={{ color: rail.muted }}
+            >
               Actieve organisatie
             </AppText>
           </View>
@@ -239,7 +258,10 @@ function TabletNavigationRail({
       ) : null}
 
       <View style={styles.railNavigation}>
-        <AppText muted variant="micro" style={styles.railSectionLabel}>
+        <AppText
+          variant="micro"
+          style={[styles.railSectionLabel, { color: rail.muted }]}
+        >
           Werkplek
         </AppText>
         {state.routes.map((route, index) => {
@@ -273,10 +295,10 @@ function TabletNavigationRail({
                 styles.railItem,
                 {
                   backgroundColor: selected
-                    ? theme.colors.canvas
+                    ? rail.raised
                     : "transparent",
                   borderColor: selected
-                    ? theme.colors.line
+                    ? rail.border
                     : "transparent",
                   opacity: pressed ? 0.72 : 1
                 }
@@ -295,7 +317,7 @@ function TabletNavigationRail({
               />
               <Icon
                 color={
-                  selected ? theme.colors.action : theme.colors.secondaryInk
+                  selected ? theme.colors.action : rail.muted
                 }
                 size={21}
                 strokeWidth={selected ? 2.4 : 1.9}
@@ -304,8 +326,8 @@ function TabletNavigationRail({
                 variant="bodyStrong"
                 style={{
                   color: selected
-                    ? theme.colors.ink
-                    : theme.colors.secondaryInk
+                    ? rail.foreground
+                    : rail.muted
                 }}
               >
                 {presentation.label}
@@ -322,7 +344,7 @@ function TabletNavigationRail({
         style={({ pressed }) => [
           styles.accountCard,
           {
-            borderColor: theme.colors.line,
+            borderColor: rail.border,
             opacity: pressed ? 0.76 : 1
           }
         ]}
@@ -338,10 +360,18 @@ function TabletNavigationRail({
           </AppText>
         </View>
         <View style={styles.railItemCopy}>
-          <AppText numberOfLines={1} variant="label">
+          <AppText
+            numberOfLines={1}
+            variant="label"
+            style={{ color: rail.foreground }}
+          >
             Account
           </AppText>
-          <AppText muted numberOfLines={1} variant="micro">
+          <AppText
+            numberOfLines={1}
+            variant="micro"
+            style={{ color: rail.muted }}
+          >
             {email}
           </AppText>
         </View>
@@ -368,26 +398,26 @@ const styles = StyleSheet.create({
   },
   createIcon: {
     borderRadius: mobileRadius.full,
-    borderWidth: 3,
-    height: 44,
-    marginTop: -10,
-    width: 44
+    borderWidth: 2,
+    height: 40,
+    marginTop: -7,
+    width: 40
   },
   darkText: {
     color: "#0A0A0A",
     fontWeight: "700"
   },
   phoneBar: {
-    paddingHorizontal: mobileSpacing.compact,
+    paddingHorizontal: mobileSpacing.inline,
     paddingTop: mobileSpacing.micro
   },
   phoneDock: {
     borderRadius: mobileRadius.hero,
     borderWidth: 1,
     flexDirection: "row",
-    minHeight: 60,
+    minHeight: 58,
     paddingHorizontal: mobileSpacing.micro,
-    boxShadow: "0 8px 18px rgba(0, 0, 0, 0.18)"
+    boxShadow: "0 5px 14px rgba(0, 0, 0, 0.16)"
   },
   phoneIcon: {
     alignItems: "center",
@@ -401,7 +431,7 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
     justifyContent: "center",
-    minHeight: 58,
+    minHeight: 56,
     paddingHorizontal: 2,
     paddingVertical: mobileSpacing.micro
   },
@@ -412,8 +442,8 @@ const styles = StyleSheet.create({
   },
   rail: {
     borderRightWidth: 1,
-    paddingHorizontal: mobileSpacing.default,
-    width: 216
+    paddingHorizontal: mobileSpacing.inline,
+    width: 208
   },
   railActiveMark: {
     borderRadius: mobileRadius.full,
@@ -436,7 +466,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: "row",
     gap: mobileSpacing.inline,
-    minHeight: 44,
+    minHeight: 46,
     paddingHorizontal: mobileSpacing.inline
   },
   railItemCopy: {

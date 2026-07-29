@@ -14,12 +14,16 @@ export function SettingsRow({
   icon,
   label,
   onPress,
+  grouped = false,
+  showDivider = false,
   trailing
 }: {
   description?: string;
+  grouped?: boolean;
   icon: ReactNode;
   label: string;
   onPress?: () => void;
+  showDivider?: boolean;
   trailing?: ReactNode;
 }) {
   const theme = useMobileTheme();
@@ -33,7 +37,13 @@ export function SettingsRow({
         {
           backgroundColor: theme.colors.raised,
           borderColor: theme.colors.line
-        }
+        },
+        grouped && styles.grouped,
+        grouped &&
+          showDivider && {
+            borderBottomColor: theme.colors.line,
+            borderBottomWidth: 1
+          }
       ]}
     >
       <View
@@ -74,5 +84,11 @@ const styles = StyleSheet.create({
     gap: mobileSpacing.inline,
     minHeight: 76,
     padding: mobileSpacing.inline
+  },
+  grouped: {
+    backgroundColor: "transparent",
+    borderRadius: 0,
+    borderWidth: 0,
+    minHeight: 68
   }
 });

@@ -18,6 +18,8 @@ describe("Atelier Ivory Native tokens", () => {
   it("keeps spacing and radii on the governed grids", () => {
     expect(Object.values(mobileSpacing).every((value) => value % 4 === 0)).toBe(true);
     expect(Object.values(mobileRadius).slice(0, -1).every((value) => value % 2 === 0)).toBe(true);
+    expect(mobileRadius.card).toBe(10);
+    expect(mobileRadius.hero).toBe(14);
   });
 
   it("keeps the native interface compact without using 12 px primary body copy", () => {

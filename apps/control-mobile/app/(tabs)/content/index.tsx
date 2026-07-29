@@ -17,9 +17,9 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { RefreshControl, StyleSheet, View } from "react-native";
 
-import { AppError } from "../../src/components/app-error";
-import { PageHeader } from "../../src/components/page-header";
-import { useMobileContent } from "../../src/query/use-mobile-data";
+import { AppError } from "../../../src/components/app-error";
+import { PageHeader } from "../../../src/components/page-header";
+import { useMobileContent } from "../../../src/query/use-mobile-data";
 
 type Segment = "media" | "playlists";
 

@@ -60,9 +60,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         autoVerify: true,
         data: [
           {
-            scheme: "veyocast-control"
-          },
-          {
             scheme: "https",
             host: "control.veyocast.nl",
             pathPrefix: "/mobile"
@@ -75,6 +72,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     "expo-router",
     "./plugins/with-control-signing.cjs",
+    "./plugins/with-control-manifest-hygiene.cjs",
     [
       "expo-splash-screen",
       {

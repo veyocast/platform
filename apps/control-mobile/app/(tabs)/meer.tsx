@@ -51,69 +51,86 @@ export default function MeerScreen() {
         ) : null}
         <View style={styles.section}>
           <AppText muted variant="label">
-            ORGANISATIE EN ACCOUNT
+            Organisatie en account
           </AppText>
-          <SettingsRow
-            description="Wissel zonder gegevens tussen organisaties te mengen."
-            icon={<Building2 color={theme.colors.ink} size={22} />}
-            label="Organisaties"
-            onPress={() => router.push("/more/organizations")}
-          />
-          <SettingsRow
-            description="Biometrie en lokale appbeveiliging."
-            icon={<ShieldCheck color={theme.colors.ink} size={22} />}
-            label="Beveiliging"
-            onPress={() => router.push("/more/security")}
-          />
-          <SettingsRow
-            description="Profiel, verwijderen en sessie."
-            icon={<UserRound color={theme.colors.ink} size={22} />}
-            label="Account"
-            onPress={() => router.push("/more/account")}
-          />
+          <SurfaceCard style={styles.settingsGroup}>
+            <SettingsRow
+              description="Wissel zonder gegevens tussen organisaties te mengen."
+              grouped
+              icon={<Building2 color={theme.colors.ink} size={21} />}
+              label="Organisaties"
+              onPress={() => router.push("/more/organizations")}
+              showDivider
+            />
+            <SettingsRow
+              description="Biometrie en lokale appbeveiliging."
+              grouped
+              icon={<ShieldCheck color={theme.colors.ink} size={21} />}
+              label="Beveiliging"
+              onPress={() => router.push("/more/security")}
+              showDivider
+            />
+            <SettingsRow
+              description="Profiel, verwijderen en sessie."
+              grouped
+              icon={<UserRound color={theme.colors.ink} size={21} />}
+              label="Account"
+              onPress={() => router.push("/more/account")}
+            />
+          </SurfaceCard>
         </View>
         <View style={styles.section}>
           <AppText muted variant="label">
-            MELDINGEN EN SUPPORT
+            Meldingen en support
           </AppText>
-          <SettingsRow
-            description="Pushmeldingen worden alleen gevraagd wanneer je ze hier inschakelt."
-            icon={<Bell color={theme.colors.ink} size={22} />}
-            label="Meldingsvoorkeuren"
-            onPress={() => router.push("/more/notifications")}
-          />
-          <SettingsRow
-            description="Open de publieke VeyoCast-supportomgeving."
-            icon={<CircleHelp color={theme.colors.ink} size={22} />}
-            label="Support"
-            onPress={() => void Linking.openURL("https://veyocast.nl/support")}
-          />
+          <SurfaceCard style={styles.settingsGroup}>
+            <SettingsRow
+              description="Pushmeldingen worden alleen gevraagd wanneer je ze hier inschakelt."
+              grouped
+              icon={<Bell color={theme.colors.ink} size={21} />}
+              label="Meldingsvoorkeuren"
+              onPress={() => router.push("/more/notifications")}
+              showDivider
+            />
+            <SettingsRow
+              description="Open de publieke VeyoCast-supportomgeving."
+              grouped
+              icon={<CircleHelp color={theme.colors.ink} size={21} />}
+              label="Support"
+              onPress={() => void Linking.openURL("https://veyocast.nl/support")}
+            />
+          </SurfaceCard>
         </View>
-        <SettingsRow
-          description="Wis sessietokens en lokale tenantcache op dit apparaat."
-          icon={<LogOut color={theme.colors.critical} size={22} />}
-          label="Uitloggen"
-          onPress={() => void signOut()}
-        />
-        <SettingsRow
-          description="Trek alle VeyoCast-sessies voor dit account in."
-          icon={<ShieldCheck color={theme.colors.critical} size={22} />}
-          label="Overal uitloggen"
-          onPress={() =>
-            Alert.alert(
-              "Overal uitloggen?",
-              "Je wordt ook op andere apparaten en in Control opnieuw om je wachtwoord gevraagd.",
-              [
-                { style: "cancel", text: "Annuleren" },
-                {
-                  onPress: () => void signOutEverywhere(),
-                  style: "destructive",
-                  text: "Overal uitloggen"
-                }
-              ]
-            )
-          }
-        />
+        <SurfaceCard style={styles.settingsGroup}>
+          <SettingsRow
+            description="Wis sessietokens en lokale tenantcache op dit apparaat."
+            grouped
+            icon={<LogOut color={theme.colors.critical} size={21} />}
+            label="Uitloggen"
+            onPress={() => void signOut()}
+            showDivider
+          />
+          <SettingsRow
+            description="Trek alle VeyoCast-sessies voor dit account in."
+            grouped
+            icon={<ShieldCheck color={theme.colors.critical} size={21} />}
+            label="Overal uitloggen"
+            onPress={() =>
+              Alert.alert(
+                "Overal uitloggen?",
+                "Je wordt ook op andere apparaten en in Control opnieuw om je wachtwoord gevraagd.",
+                [
+                  { style: "cancel", text: "Annuleren" },
+                  {
+                    onPress: () => void signOutEverywhere(),
+                    style: "destructive",
+                    text: "Overal uitloggen"
+                  }
+                ]
+              )
+            }
+          />
+        </SurfaceCard>
       </ScreenScrollView>
     </AppShell>
   );
@@ -122,10 +139,10 @@ export default function MeerScreen() {
 const styles = StyleSheet.create({
   avatar: {
     alignItems: "center",
-    borderRadius: 16,
-    height: 56,
+    borderRadius: 12,
+    height: 48,
     justifyContent: "center",
-    width: 56
+    width: 48
   },
   copy: { flex: 1, gap: mobileSpacing.micro },
   profile: {
@@ -133,5 +150,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: mobileSpacing.inline
   },
-  section: { gap: mobileSpacing.compact }
+  section: { gap: mobileSpacing.compact },
+  settingsGroup: {
+    overflow: "hidden",
+    padding: 0
+  }
 });

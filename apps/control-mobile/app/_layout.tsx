@@ -98,8 +98,6 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="screens/[screenId]" options={{ title: "Scherm" }} />
         <Stack.Screen name="screens/pair" options={{ title: "Scherm koppelen" }} />
-        <Stack.Screen name="content/playlists/new" options={{ title: "Playlist maken" }} />
-        <Stack.Screen name="content/playlists/[playlistId]" options={{ title: "Playlist" }} />
         <Stack.Screen name="more/organizations" options={{ title: "Organisaties" }} />
         <Stack.Screen name="more/security" options={{ title: "Beveiliging" }} />
         <Stack.Screen name="more/account" options={{ title: "Account" }} />

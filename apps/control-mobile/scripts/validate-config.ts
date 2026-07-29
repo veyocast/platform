@@ -30,6 +30,21 @@ for (const permission of [
   assert.ok(blocked.has(permission), `${permission} moet geblokkeerd zijn.`);
 }
 
+assert.deepEqual(exp.android?.intentFilters, [
+  {
+    action: "VIEW",
+    autoVerify: true,
+    data: [
+      {
+        scheme: "https",
+        host: "control.veyocast.nl",
+        pathPrefix: "/mobile"
+      }
+    ],
+    category: ["BROWSABLE", "DEFAULT"]
+  }
+]);
+
 console.log(
   `VeyoCast Control-config gevalideerd: ${exp.android.package} v${exp.android.versionCode}`
 );

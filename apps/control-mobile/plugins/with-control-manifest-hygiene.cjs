@@ -1,0 +1,84 @@
+const fs = require("node:fs/promises");
+const path = require("node:path");
+const {
+  AndroidConfig,
+  withAndroidManifest,
+  withAndroidStyles,
+  withDangerousMod
+} = require("@expo/config-plugins");
+
+const splashBehaviorName = "android:windowSplashScreenBehavior";
+
+module.exports = function withControlManifestHygiene(config) {
+  config = withAndroidManifest(config, (androidConfig) => {
+    const mainActivity = AndroidConfig.Manifest.getMainActivityOrThrow(
+      androidConfig.modResults
+    );
+
+    for (const intentFilter of mainActivity["intent-filter"] ?? []) {
+      if (!intentFilter.$) continue;
+      delete intentFilter.$["data-generated"];
+      if (Object.keys(intentFilter.$).length === 0) {
+        delete intentFilter.$;
+      }
+    }
+
+    const features = (androidConfig.modResults.manifest["uses-feature"] ??= []);
+    const cameraFeature = features.find(
+      (feature) => feature.$?.["android:name"] === "android.hardware.camera"
+    );
+    if (cameraFeature) {
+      cameraFeature.$["android:required"] = "false";
+    } else {
+      features.push({
+        $: {
+          "android:name": "android.hardware.camera",
+          "android:required": "false"
+        }
+      });
+    }
+
+    return androidConfig;
+  });
+
+  config = withAndroidStyles(config, (androidConfig) => {
+    const splashStyle = androidConfig.modResults.resources.style?.find(
+      (style) => style.$?.name === "Theme.App.SplashScreen"
+    );
+    if (splashStyle?.item) {
+      splashStyle.item = splashStyle.item.filter(
+        (item) => item.$?.name !== splashBehaviorName
+      );
+    }
+    return androidConfig;
+  });
+
+  return withDangerousMod(config, [
+    "android",
+    async (androidConfig) => {
+      const valuesV33 = path.join(
+        androidConfig.modRequest.projectRoot,
+        "android",
+        "app",
+        "src",
+        "main",
+        "res",
+        "values-v33"
+      );
+      await fs.mkdir(valuesV33, { recursive: true });
+      await fs.writeFile(
+        path.join(valuesV33, "styles.xml"),
+        `<resources>
+  <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">@color/splashscreen_background</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/splashscreen_logo</item>
+    <item name="postSplashScreenTheme">@style/AppTheme</item>
+    <item name="${splashBehaviorName}">icon_preferred</item>
+  </style>
+</resources>
+`
+      );
+      return androidConfig;
+    }
+  ]);
+};
