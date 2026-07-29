@@ -117,7 +117,14 @@ jobs:
         run: node scripts/assert-client-bundle-secret-free.mjs apps/control-mobile
 
       - name: Generate Android project
-        run: pnpm --filter @veyocast/control-mobile prebuild:android
+        run: |
+          pnpm --filter @veyocast/control-mobile prebuild:android
+          manifest="apps/control-mobile/android/app/src/main/AndroidManifest.xml"
+          if grep --fixed-strings --quiet 'data-generated=' "${manifest}"; then
+            echo "Expo genereerde een ongeldige data-generated manifestmarker." >&2
+            exit 1
+          fi
+          [[ $(grep --count 'android:autoVerify="true"' "${manifest}") -eq 1 ]]
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c # v5

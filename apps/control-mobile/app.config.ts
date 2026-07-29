@@ -60,9 +60,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         autoVerify: true,
         data: [
           {
-            scheme: "veyocast-control"
-          },
-          {
             scheme: "https",
             host: "control.veyocast.nl",
             pathPrefix: "/mobile"
@@ -140,7 +137,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           usesCleartextTraffic: false
         }
       }
-    ]
+    ],
+    "./plugins/with-control-manifest-hygiene.cjs"
   ],
   extra: {
     controlOrigin:
