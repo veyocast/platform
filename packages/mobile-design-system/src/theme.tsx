@@ -17,7 +17,9 @@ export type MobileTheme = Readonly<{
     actionPressed: string;
     canvas: string;
     critical: string;
+    criticalSurface: string;
     focus: string;
+    infoSurface: string;
     ink: string;
     line: string;
     mutedInk: string;
@@ -26,12 +28,28 @@ export type MobileTheme = Readonly<{
     strongLine: string;
     surface: string;
     success: string;
+    successSurface: string;
     warning: string;
+    warningSurface: string;
   }>;
 }>;
 
 function createTheme(mode: MobileThemeMode): MobileTheme {
   const base = mobilePalette[mode];
+  const statusSurfaces =
+    mode === "dark"
+      ? {
+          critical: "#2A1716",
+          info: "#18203D",
+          success: "#13261D",
+          warning: "#2A2015"
+        }
+      : {
+          critical: mobilePalette.status.criticalSurface,
+          info: mobilePalette.status.infoSurface,
+          success: mobilePalette.status.successSurface,
+          warning: mobilePalette.status.warningSurface
+        };
   return {
     mode,
     colors: {
@@ -39,7 +57,9 @@ function createTheme(mode: MobileThemeMode): MobileTheme {
       actionPressed: mobilePalette.brand.actionPressed,
       canvas: base.canvas,
       critical: mobilePalette.status.critical,
+      criticalSurface: statusSurfaces.critical,
       focus: base.focus,
+      infoSurface: statusSurfaces.info,
       ink: base.ink,
       line: base.line,
       mutedInk: base.mutedInk,
@@ -48,7 +68,9 @@ function createTheme(mode: MobileThemeMode): MobileTheme {
       strongLine: base.strongLine,
       surface: base.surface,
       success: mobilePalette.status.success,
-      warning: mobilePalette.status.warning
+      successSurface: statusSurfaces.success,
+      warning: mobilePalette.status.warning,
+      warningSurface: statusSurfaces.warning
     }
   };
 }
