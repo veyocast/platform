@@ -72,6 +72,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     "expo-router",
     "./plugins/with-control-signing.cjs",
+    "./plugins/with-control-manifest-hygiene.cjs",
     [
       "expo-splash-screen",
       {
@@ -137,8 +138,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           usesCleartextTraffic: false
         }
       }
-    ],
-    "./plugins/with-control-manifest-hygiene.cjs"
+    ]
   ],
   extra: {
     controlOrigin:

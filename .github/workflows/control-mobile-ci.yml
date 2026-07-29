@@ -46,7 +46,7 @@ jobs:
   native:
     name: Native app, AAB and 16 KB gates
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -125,6 +125,13 @@ jobs:
             exit 1
           fi
           [[ $(grep --count 'android:autoVerify="true"' "${manifest}") -eq 1 ]]
+          base_styles="apps/control-mobile/android/app/src/main/res/values/styles.xml"
+          api_33_styles="apps/control-mobile/android/app/src/main/res/values-v33/styles.xml"
+          if grep --fixed-strings --quiet 'android:windowSplashScreenBehavior' "${base_styles}"; then
+            echo "De API 33-splashstijl staat onveilig in de basisresources." >&2
+            exit 1
+          fi
+          grep --fixed-strings --quiet 'android:windowSplashScreenBehavior' "${api_33_styles}"
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c # v5
