@@ -1,14 +1,15 @@
 package nl.veyocast.player
 
 import android.app.ActivityOptions
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.SystemClock
 import java.time.Instant
 
 object AutomationActivityLauncher {
-    @Suppress("DEPRECATION")
     fun request(
         context: Context,
         source: String,
@@ -55,31 +56,12 @@ object AutomationActivityLauncher {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             creatorOptions
         )
-        val senderOptions =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                ActivityOptions.makeBasic()
-                    .setPendingIntentBackgroundActivityStartMode(
-                        backgroundStartMode
-                    )
-                    .toBundle()
-            } else {
-                null
-            }
-
         runCatching {
-            if (senderOptions == null) {
-                pendingIntent.send()
-            } else {
-                pendingIntent.send(
-                    context,
-                    0,
-                    null,
-                    null,
-                    null,
-                    null,
-                    senderOptions
-                )
-            }
+            context.getSystemService(AlarmManager::class.java).setAndAllowWhileIdle(
+                AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + SYSTEM_DELIVERY_DELAY_MS,
+                pendingIntent
+            )
         }
             .onSuccess {
                 store.enqueueReport(
@@ -92,7 +74,10 @@ object AutomationActivityLauncher {
                     )
                 )
                 store.recordExecution("ACTIVITY_START_REQUESTED")
-                AppLog.info("Autostart aangevraagd via $source; zichtbaarheid wordt geverifieerd")
+                AppLog.info(
+                    "Autostart via Android-systeemalarm gepland vanuit $source; " +
+                        "zichtbaarheid wordt geverifieerd"
+                )
             }
             .onFailure {
                 AutomationLaunchVerifier.cancel(context)
@@ -109,4 +94,5 @@ object AutomationActivityLauncher {
 
     const val EXTRA_LAUNCH_ATTEMPT_ID = "veyocast_automation_launch_attempt_id"
     private const val ACTIVITY_REQUEST_CODE = 47_004
+    private const val SYSTEM_DELIVERY_DELAY_MS = 2_000L
 }

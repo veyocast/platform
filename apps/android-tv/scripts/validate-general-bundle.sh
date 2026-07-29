@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "${script_dir}/validate-autostart-contract.sh"
+
 if (( $# < 3 || $# > 4 )); then
   echo "Gebruik: $0 <algemene-aab> <bundletool-jar> <dexdump> [bewijsmap]" >&2
   exit 64
@@ -143,12 +146,18 @@ if activity_name != "nl.veyocast.player.MainActivity":
 exported = component.attrib.get(android + "exported")
 enabled = component.attrib.get(android + "enabled", "true")
 orientation = component.attrib.get(android + "screenOrientation", "")
+show_when_locked = component.attrib.get(android + "showWhenLocked", "false")
+turn_screen_on = component.attrib.get(android + "turnScreenOn", "false")
 if exported != "true":
     raise SystemExit(f"Algemene Activity is niet exported=true: {exported!r}")
 if enabled != "true":
     raise SystemExit(f"Algemene Activity is niet enabled=true: {enabled!r}")
 if orientation == "landscape":
     raise SystemExit("Algemene Activity is ten onrechte vastgezet op landscape")
+if show_when_locked != "true" or turn_screen_on != "true":
+    raise SystemExit(
+        "Algemene Activity moet een systeemstart zichtbaar kunnen maken"
+    )
 
 version_code = root.attrib.get(android + "versionCode", "")
 if not version_code.isdigit() or not 100_000_000 <= int(version_code) <= 199_999_999:
@@ -171,6 +180,8 @@ with open(report_path, "w", encoding="utf-8") as report:
     report.write(f"exported={exported}\n")
     report.write(f"enabled={enabled}\n")
     report.write(f"screenOrientation={orientation or 'unspecified'}\n")
+    report.write(f"showWhenLocked={show_when_locked}\n")
+    report.write(f"turnScreenOn={turn_screen_on}\n")
     report.write("bootRecoveryContract=true\n")
 PY
 
