@@ -70,7 +70,7 @@ export default async function SlidesPage({ searchParams }: PageProps) {
             ))}
           </div>
         ) : (
-          <div className="empty-state">
+          <div className={`empty-state ${styles.emptyState}`}>
             <Layers3 aria-hidden="true" />
             <h2>Nog geen dynamische slides</h2>
             <p>Kies een vast platformtemplate en koppel een gecontroleerde databron.</p>

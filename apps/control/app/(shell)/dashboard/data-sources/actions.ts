@@ -29,7 +29,17 @@ export async function createRssSource(formData: FormData) {
   if (error || typeof data !== "string") {
     redirect("/dashboard/data-sources?fout=De+RSS-databron+kon+niet+veilig+worden+gemaakt.");
   }
-  await syncRss(data, supabase);
+  try {
+    await syncRss(data, supabase);
+  } catch (syncError) {
+    revalidatePath("/dashboard/data-sources");
+    const message = rssErrorMessage(syncError);
+    redirect(
+      `/dashboard/data-sources?fout=${encodeURIComponent(
+        `De RSS-databron is opgeslagen, maar de eerste synchronisatie mislukte. ${message}`
+      )}`
+    );
+  }
   revalidatePath("/dashboard/data-sources");
   redirect(`/dashboard/data-sources?succes=RSS-databron+is+gekoppeld+en+gecontroleerd.`);
 }
@@ -105,9 +115,7 @@ export async function syncRssSource(formData: FormData) {
   try {
     await syncRss(sourceId, supabase);
   } catch (error) {
-    const message = error instanceof Error
-      ? error.message
-      : "De RSS-feed kon niet worden bijgewerkt.";
+    const message = rssErrorMessage(error);
     redirect(`/dashboard/data-sources?fout=${encodeURIComponent(message)}`);
   }
   revalidatePath("/dashboard/data-sources");
@@ -169,6 +177,15 @@ function isHttpUrl(value: string) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function rssErrorMessage(error: unknown) {
+  if (error instanceof SafeRssFetchError) {
+    return error.message;
+  }
+  return error instanceof Error
+    ? error.message
+    : "De RSS-feed kon niet worden bijgewerkt.";
 }
 
 const uuidPattern =
