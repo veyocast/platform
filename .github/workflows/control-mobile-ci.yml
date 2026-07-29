@@ -73,6 +73,15 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
 
+      - name: Reclaim runner disk for native Android compilation
+        run: |
+          sudo rm -rf \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/boost \
+            /usr/share/dotnet
+          df --human-readable /
+
       - name: Install pinned Android SDK components
         run: >-
           sdkmanager
@@ -118,7 +127,13 @@ jobs:
 
       - name: Android lint, tests and release bundle
         working-directory: apps/control-mobile/android
-        run: ./gradlew lint test bundleRelease --no-daemon
+        run: >-
+          ./gradlew
+          lint
+          test
+          bundleRelease
+          -PndkVersion=28.0.13004108
+          --no-daemon
 
       - name: Install verified bundletool
         run: |
