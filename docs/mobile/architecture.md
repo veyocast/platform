@@ -30,19 +30,21 @@ React Native app
 | `/(tabs)/vandaag` | operationele cockpit |
 | `/(tabs)/schermen` | zoeken/filteren en schermvloot |
 | `/(tabs)/maken` | foto kiezen/maken en duurzame uploadqueue |
-| `/(tabs)/content` | media- en playlistbibliotheek |
+| `/(tabs)/content` | media- en playlistbibliotheek met geneste authoringstack |
 | `/(tabs)/meer` | account, security en organisatie |
 | `/screens/[screenId]` | schermstatus en remote herstelcommando's |
 | `/screens/pair` | code/QR, schermcreate en pairing |
-| `/content/playlists/new` | compact playlistconcept |
-| `/content/playlists/[playlistId]` | lichte authoring, targets en publiceren |
+| `/content/playlists/new` | compact playlistconcept binnen de Content-tab |
+| `/content/playlists/[playlistId]` | lichte authoring, targets en publiceren binnen de Content-tab |
 | `/more/organizations` | tenantwisseling |
 | `/more/security` | biometrische app-lock |
 | `/more/notifications` | push opt-in en categorievoorkeuren |
 | `/more/account` | account en verwijderingsverzoek |
 
 Telefoons gebruiken vijf tabs; bredere vensters gebruiken een adaptieve rail.
-Alle inhoud blijft native scrollbaar en houdt rekening met safe areas.
+Playlistcreatie en -detail zijn genest onder de Content-tab, waardoor dock of
+rail tijdens authoring zichtbaar blijft. Alle inhoud blijft native scrollbaar
+en houdt rekening met safe areas.
 
 ## Design-systeminventaris
 
@@ -56,7 +58,7 @@ Alle inhoud blijft native scrollbaar en houdt rekening met safe areas.
 - badges, alerts, skeletons en lege/fouttoestanden.
 
 Statussen combineren altijd tekst met kleur/icoon. Touch targets zijn minimaal
-48 dp. Spacing volgt de 4/8-dp-grid en gebruikt canonieke tokens.
+44 dp. Spacing volgt de 4/8-dp-grid en gebruikt canonieke tokens.
 
 ## Mobiele API en contracts
 

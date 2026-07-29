@@ -1,6 +1,6 @@
 # VeyoCast Control Mobile — release-evidence
 
-Datum: 28 juli 2026
+Datum: 29 juli 2026
 
 ## Lokaal bewezen
 
@@ -21,15 +21,21 @@ Datum: 28 juli 2026
 ## Dichtheids- en viewport-evidence
 
 - Roboto 400/500/600/700 wordt vóór het verbergen van het splashscreen geladen;
-- telefoonkaarten, paginakoppen, knoppen en de bottom dock gebruiken één
+- telefoonkaarten, paginakoppen, knoppen en de 58-dp bottom dock gebruiken één
   compacte semantische schaal;
-- het cockpitdashboard past op 320×720 en 390×844 volledig boven de dock;
-- een playlist met drie items toont op 390×844 alle items en bedieningen in de
-  eerste viewport;
-- 768×1024 gebruikt een 2×2 metriekgrid naast de rail en 1024×768 vier
-  uitgelijnde kolommen;
+- de cockpit toont de herstelactie vóór cijfers en bundelt vier statussen in
+  één 2×2-summary-surface op telefoon en één rij naast de tablet-rail;
+- playlistitems groeperen de twee verplaatsacties, weergavemodus en rustige
+  critical-actie zonder het zichtbare 44-dp touch target te verkleinen;
+- playlistcreatie en -detail blijven in de Content-tab, zodat dock of rail
+  beschikbaar blijft;
+- herhaalde instellingen gebruiken gegroepeerde lijsten met interne dividers
+  in plaats van een verzameling losse cards;
 - 320, 390, 430, 768 en 1024 zijn zonder horizontale documentoverflow
   gecontroleerd.
+- light, dark, playlist-top, playlist-bottom, gegroepeerde instellingen en de
+  donkere tablet-rail zijn als echte lokale render beoordeeld; de laatste
+  publicatieknop eindigt op 390×844 op y=734 en blijft daarmee boven de dock.
 
 ## Accessibility-evidence in code
 
