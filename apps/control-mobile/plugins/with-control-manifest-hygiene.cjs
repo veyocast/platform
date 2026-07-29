@@ -23,6 +23,21 @@ module.exports = function withControlManifestHygiene(config) {
       }
     }
 
+    const features = (androidConfig.modResults.manifest["uses-feature"] ??= []);
+    const cameraFeature = features.find(
+      (feature) => feature.$?.["android:name"] === "android.hardware.camera"
+    );
+    if (cameraFeature) {
+      cameraFeature.$["android:required"] = "false";
+    } else {
+      features.push({
+        $: {
+          "android:name": "android.hardware.camera",
+          "android:required": "false"
+        }
+      });
+    }
+
     return androidConfig;
   });
 
