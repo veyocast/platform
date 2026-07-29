@@ -54,7 +54,10 @@ module.exports = function withControlManifestHygiene(config) {
       await fs.writeFile(
         path.join(valuesV33, "styles.xml"),
         `<resources>
-  <style name="Theme.App.SplashScreen">
+  <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">@color/splashscreen_background</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/splashscreen_logo</item>
+    <item name="postSplashScreenTheme">@style/AppTheme</item>
     <item name="${splashBehaviorName}">icon_preferred</item>
   </style>
 </resources>

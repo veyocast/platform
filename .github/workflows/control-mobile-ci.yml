@@ -132,6 +132,7 @@ jobs:
             exit 1
           fi
           grep --fixed-strings --quiet 'android:windowSplashScreenBehavior' "${api_33_styles}"
+          grep --fixed-strings --quiet 'parent="Theme.SplashScreen"' "${api_33_styles}"
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c # v5
