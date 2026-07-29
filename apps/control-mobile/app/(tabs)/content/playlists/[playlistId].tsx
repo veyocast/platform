@@ -45,6 +45,9 @@ import Animated, {
 import { mobileApi } from "../../../../src/api/mobile-api";
 import { AppError } from "../../../../src/components/app-error";
 import {
+  playlistItemActionLayout
+} from "../../../../src/playlists/action-layout";
+import {
   playlistDragItemStride,
   playlistDropTarget
 } from "../../../../src/playlists/drag-position";
@@ -685,7 +688,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
+    gap: playlistItemActionLayout.gap,
     paddingTop: mobileSpacing.compact
   },
   compactRow: {
@@ -722,10 +725,13 @@ const styles = StyleSheet.create({
   itemCopy: { flex: 1, gap: mobileSpacing.micro },
   list: { gap: mobileSpacing.compact },
   deleteAction: {
-    paddingHorizontal: mobileSpacing.compact
+    paddingHorizontal: mobileSpacing.compact,
+    width: playlistItemActionLayout.deleteWidth
   },
   fitAction: {
-    paddingHorizontal: mobileSpacing.compact
+    marginLeft: "auto",
+    paddingHorizontal: mobileSpacing.compact,
+    width: playlistItemActionLayout.fitWidth
   },
   moveButton: {
     borderWidth: 0,
@@ -743,7 +749,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: "row",
     minHeight: 44,
-    overflow: "hidden"
+    overflow: "hidden",
+    width: playlistItemActionLayout.moveWidth
   },
   position: {
     alignItems: "center",

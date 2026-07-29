@@ -27,6 +27,9 @@ Datum: 29 juli 2026
   één 2×2-summary-surface op telefoon en één rij naast de tablet-rail;
 - playlistitems groeperen de twee verplaatsacties, weergavemodus en rustige
   critical-actie zonder het zichtbare 44-dp touch target te verkleinen;
+- de playlistbedieningsrail is op 320, 390 en 430 dp geometrisch gemeten:
+  `Vullen`/`Passend` is steeds 68 dp breed, `Verwijder` steeds 90 dp breed en
+  alle rijen blijven 44 dp hoog en zonder horizontale documentoverflow;
 - playlistcreatie en -detail blijven in de Content-tab, zodat dock of rail
   beschikbaar blijft;
 - herhaalde instellingen gebruiken gegroepeerde lijsten met interne dividers
