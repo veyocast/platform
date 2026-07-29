@@ -21,6 +21,85 @@ test("player starts in unpaired pairing mode", async ({ page }) => {
   await expect(page.getByLabel("Device setupstatus")).not.toContainText("Geen Supabase Auth-user");
 });
 
+test("LG pairing uses the legacy transport and ignores a false browser offline hint", async ({
+  page
+}) => {
+  const requestTypes: Record<string, string[]> = {
+    installation: [],
+    pairing: []
+  };
+  await page.addInitScript(() => {
+    Object.defineProperty(window.navigator, "onLine", {
+      configurable: true,
+      value: false
+    });
+  });
+  await page.route("**/api/player/installation", (route) => {
+    requestTypes.installation.push(route.request().resourceType());
+    return route.fulfill({
+      contentType: "application/json",
+      json: {
+        bound: false,
+        installationCredential: "i".repeat(43),
+        live: true,
+        ok: true
+      }
+    });
+  });
+  await page.route("**/api/player/pairing", (route) => {
+    requestTypes.pairing.push(route.request().resourceType());
+    return route.fulfill({
+      contentType: "application/json",
+      json: {
+        deviceToken: "p".repeat(43),
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+        live: true,
+        pairingCode: "LGX 234"
+      }
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    contentType: "application/json",
+    json: { ok: false },
+    status: 403
+  }));
+
+  await page.goto(`${playerURL}/lg`);
+
+  await expect(page.getByLabel("Pairingcode")).toContainText("LGX 234");
+  await expect(page.getByLabel("Device setupstatus")).toContainText("Verbonden");
+  await expect(
+    page.getByText("Geen internetverbinding", { exact: true })
+  ).toHaveCount(0);
+  expect(requestTypes).toEqual({
+    installation: ["xhr"],
+    pairing: ["xhr"]
+  });
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const diagnostics = JSON.parse(
+          localStorage.getItem(
+            "veyocast.player.transportDiagnostics.v1"
+          ) ?? "[]"
+        ) as Array<{
+          onlineHint?: boolean;
+          path?: string;
+          status?: number;
+          transport?: string;
+        }>;
+        return diagnostics.find(
+          (entry) => entry.path === "/api/player/pairing"
+        );
+      })
+    )
+    .toMatchObject({
+      onlineHint: false,
+      status: 200,
+      transport: "xhr"
+    });
+});
+
 test("pairing stays completely inside a short Android TV viewport", async ({
   page
 }) => {

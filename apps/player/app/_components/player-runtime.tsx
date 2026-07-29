@@ -58,9 +58,10 @@ import {
 } from "../_lib/player-commands";
 import {
   fetchPlayerOrigin,
+  formatPlayerTransportDiagnostic,
   playerConnectivityEventName,
   readPlayerConnectivity,
-  reportPlayerConnectivity,
+  readLatestPlayerTransportDiagnostic,
   type PlayerConnectivityEvent
 } from "../_lib/player-connectivity";
 import { resolveLgRemoteCommand } from "../_lib/lg-signage-bridge";
@@ -660,9 +661,7 @@ export function PlayerRuntime() {
         if (!definitive) scheduleRetry();
       } catch {
         if (cancelled) return;
-        const code = navigator.onLine
-          ? "INSTALLATION_API_UNAVAILABLE"
-          : "PLAYER_OFFLINE";
+        const code = "INSTALLATION_API_UNAVAILABLE";
         setInstallation({ code, status: "unavailable" });
         transitionPairing({
           code,
@@ -794,7 +793,6 @@ export function PlayerRuntime() {
                   readOrCreatePairingRequestNonce(),
                 "X-VeyoCast-Player-Instance": readOrCreatePlayerInstanceId()
               },
-              keepalive: true,
               method: "POST"
             },
             15_000
@@ -807,11 +805,7 @@ export function PlayerRuntime() {
 
           if (!response.ok) {
             transitionPairing({
-              code:
-                body.error?.code ??
-                (navigator.onLine
-                  ? "PAIRING_API_UNAVAILABLE"
-                  : "PLAYER_OFFLINE"),
+              code: body.error?.code ?? "PAIRING_API_UNAVAILABLE",
               hasValidBinding: false,
               type: "TEMPORARY_FAILURE"
             });
@@ -866,24 +860,19 @@ export function PlayerRuntime() {
           }, pairingClaimPollIntervalMs);
         } catch {
           transitionPairing({
-            code: navigator.onLine
-              ? "PAIRING_API_UNAVAILABLE"
-              : "PLAYER_OFFLINE",
+            code: "PAIRING_API_UNAVAILABLE",
             hasValidBinding: false,
             type: "TEMPORARY_FAILURE"
           });
           const delayMs = transientPairingRetryDelayMs(retryAttempts);
           retryAttempts += 1;
-          const nonceRotated =
-            navigator.onLine && rotateStuckPairingRequestNonce();
+          const nonceRotated = rotateStuckPairingRequestNonce();
           queuePairingProvision(
             delayMs,
             nonceRotated
               ? "De vastgelopen pairingaanvraag is veilig vervangen."
               : "De koppelservice is tijdelijk niet bereikbaar.",
-            navigator.onLine
-              ? "PAIRING_API_UNAVAILABLE"
-              : "PLAYER_OFFLINE"
+            "PAIRING_API_UNAVAILABLE"
           );
         }
       }
@@ -1388,15 +1377,10 @@ export function PlayerRuntime() {
     }
 
     function handleNetworkOffline() {
-      setRuntime((currentRuntime) =>
-        isPlaybackRuntime(currentRuntime)
-          ? {
-              ...currentRuntime,
-              state: "OFFLINE_PLAYING",
-              syncMessage: "Geen internetverbinding; last-known-good blijft lokaal spelen."
-            }
-          : currentRuntime
-      );
+      // navigator.onLine is only a hint on embedded webOS. An immediate,
+      // bounded origin request provides the actual connectivity evidence.
+      if (syncTimer) window.clearTimeout(syncTimer);
+      void syncOnlineManifest();
     }
 
     function handleNetworkOnline() {
@@ -1725,7 +1709,7 @@ export function PlayerRuntime() {
                 playbackRuntime.release.envelope.manifest.releaseId
               : null,
             lastPlaybackError: reportedPlaybackError,
-            networkState: navigator.onLine ? "online" : "offline",
+            networkState: readPlayerConnectivity() ? "online" : "offline",
             runtimeState: playbackRuntime?.state ?? "READY",
             storageQuotaBytes: storage.quota,
             storageUsedBytes: storage.usage,
@@ -1794,9 +1778,7 @@ export function PlayerRuntime() {
       networkStatus={
         readPlayerConnectivity()
           ? "Browser en VeyoCast-origin bereikbaar"
-          : navigator.onLine
-            ? "Internet actief; VeyoCast API niet bereikbaar"
-            : "Televisie offline"
+          : "VeyoCast-origin niet bereikbaar"
       }
       onClose={() => setRecoveryMenuOpen(false)}
       onNewPairing={() => {
@@ -1804,6 +1786,9 @@ export function PlayerRuntime() {
       }}
       onRetry={handleLocalRetry}
       playerVersion={process.env.NEXT_PUBLIC_APP_VERSION ?? "development"}
+      transportDiagnostic={formatPlayerTransportDiagnostic(
+        readLatestPlayerTransportDiagnostic()
+      )}
     />
   ) : null;
 
@@ -1833,6 +1818,9 @@ export function PlayerRuntime() {
             ? " Koppelen duurt langer dan verwacht. Houd OK acht seconden ingedrukt voor herstelopties."
             : ""
         }`}
+        transportDiagnostic={formatPlayerTransportDiagnostic(
+          readLatestPlayerTransportDiagnostic()
+        )}
         stateLabel="PAIRING_RETRY"
         title="Nieuwe koppelcode voorbereiden"
       />
@@ -2240,19 +2228,13 @@ function PairingPanel({
 
   useEffect(() => {
     const updateConnection = (online = readPlayerConnectivity()) =>
-      setConnectionLabel(online ? "Verbonden" : "Geen internetverbinding");
-    const updateBrowserConnection = () =>
-      reportPlayerConnectivity(navigator.onLine);
+      setConnectionLabel(online ? "Verbonden" : "VeyoCast niet bereikbaar");
     const updatePlayerConnection = (event: Event) =>
       updateConnection((event as PlayerConnectivityEvent).detail.online);
     setDeviceLabel(detectDeviceLabel(navigator.userAgent));
     updateConnection();
-    window.addEventListener("online", updateBrowserConnection);
-    window.addEventListener("offline", updateBrowserConnection);
     window.addEventListener(playerConnectivityEventName, updatePlayerConnection);
     return () => {
-      window.removeEventListener("online", updateBrowserConnection);
-      window.removeEventListener("offline", updateBrowserConnection);
       window.removeEventListener(
         playerConnectivityEventName,
         updatePlayerConnection
@@ -2299,11 +2281,13 @@ function PairingPanel({
 function SetupPanel({
   detail,
   stateLabel,
-  title
+  title,
+  transportDiagnostic
 }: {
   detail?: string;
   stateLabel: "BOOTING" | "PAIRING_RETRY" | "SYNCING";
   title: string;
+  transportDiagnostic?: string;
 }) {
   const visibleStateLabel = {
     BOOTING: "Player starten",
@@ -2325,6 +2309,11 @@ function SetupPanel({
             ? "De player vraagt een tijdelijke, veilige koppelcode aan. Het geheime device-token blijft op dit apparaat."
             : "De player haalt het toegewezen release manifest op. Playback start zodra de online release compleet is gelezen.")}
         </p>
+        {transportDiagnostic ? (
+          <p className="runtime-transport-diagnostic">
+            Diagnose: {transportDiagnostic}
+          </p>
+        ) : null}
       </section>
     </main>
   );
@@ -2789,7 +2778,7 @@ async function confirmPairingClaim(deviceToken: string) {
       body: JSON.stringify({
         activeReleaseId: null,
         desiredReleaseId: null,
-        networkState: navigator.onLine ? "online" : "offline",
+        networkState: readPlayerConnectivity() ? "online" : "offline",
         runtimeState: "READY",
         syncPhase: null
       }),

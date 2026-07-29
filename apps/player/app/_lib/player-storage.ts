@@ -15,6 +15,8 @@ export const localStorageExecutedCommandsKey =
 export const localStorageRecoveryMarkerKey = "veyocast.player.recovery.v1";
 export const localStorageReloadTimestampsKey =
   "veyocast.player.reloadTimestamps";
+export const localStorageTransportDiagnosticsKey =
+  "veyocast.player.transportDiagnostics.v1";
 
 export const playerRecoveryMarkerTtlMs = 2 * 60_000;
 

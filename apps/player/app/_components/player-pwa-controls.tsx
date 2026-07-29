@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import {
   playerConnectivityEventName,
   readPlayerConnectivity,
-  reportPlayerConnectivity,
   type PlayerConnectivityEvent
 } from "../_lib/player-connectivity";
 import { isAndroidPwaInstallEligible } from "../_lib/player-install-eligibility";
@@ -152,21 +151,13 @@ function usePlayerOnlineStatus() {
   const [online, setOnline] = useState(true);
 
   useEffect(() => {
-    function updateBrowserConnection() {
-      reportPlayerConnectivity(navigator.onLine);
-    }
-
     function updatePlayerConnection(event: Event) {
       setOnline((event as PlayerConnectivityEvent).detail.online);
     }
 
     setOnline(readPlayerConnectivity());
-    window.addEventListener("online", updateBrowserConnection);
-    window.addEventListener("offline", updateBrowserConnection);
     window.addEventListener(playerConnectivityEventName, updatePlayerConnection);
     return () => {
-      window.removeEventListener("online", updateBrowserConnection);
-      window.removeEventListener("offline", updateBrowserConnection);
       window.removeEventListener(playerConnectivityEventName, updatePlayerConnection);
     };
   }, []);
