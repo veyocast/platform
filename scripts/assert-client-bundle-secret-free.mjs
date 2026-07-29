@@ -1,8 +1,8 @@
-import { readdir, readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { readdir, readFile, stat } from "node:fs/promises";
+import { extname, resolve } from "node:path";
 
 const appDirectory = resolve(process.argv[2] ?? ".");
-const staticDirectory = resolve(appDirectory, ".next/static");
+const outputDirectories = await findOutputDirectories(appDirectory);
 const configuredSecret = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 const forbiddenPatterns = [
   /SUPABASE_SERVICE_ROLE_KEY/,
@@ -11,22 +11,40 @@ const forbiddenPatterns = [
   /role["']?\s*:\s*["']service_role["']/
 ];
 
-const files = await collectFiles(staticDirectory);
+if (outputDirectories.length === 0) {
+  console.error(
+    `Geen clientbundle gevonden in ${appDirectory} (.next/static of dist).`
+  );
+  process.exit(1);
+}
+
+const files = (
+  await Promise.all(outputDirectories.map((directory) => collectFiles(directory)))
+).flat();
+const containsHermesBundle = files.some((file) => extname(file) === ".hbc");
+const containsSourceMap = files.some((file) => extname(file) === ".map");
 const violations = [];
 
+if (containsHermesBundle && !containsSourceMap) {
+  console.error(
+    "Hermes-clientbundle mist een source map; een betrouwbare secretscan is niet mogelijk."
+  );
+  process.exit(1);
+}
+
 for (const file of files) {
-  const contents = await readFile(file, "utf8");
+  const contents = await readFile(file);
   const containsConfiguredSecret = Boolean(
     configuredSecret &&
       configuredSecret.length >= 16 &&
-      contents.includes(configuredSecret)
+      contents.includes(Buffer.from(configuredSecret))
   );
+  const containsForbiddenPattern =
+    isInspectableTextFile(file) &&
+    forbiddenPatterns.some((pattern) => pattern.test(contents.toString("utf8")));
 
-  if (
-    containsConfiguredSecret ||
-    forbiddenPatterns.some((pattern) => pattern.test(contents))
-  ) {
-    violations.push(file.slice(staticDirectory.length + 1));
+  if (containsConfiguredSecret || containsForbiddenPattern) {
+    violations.push(file.slice(appDirectory.length + 1));
   }
 }
 
@@ -35,6 +53,21 @@ if (violations.length > 0) {
     `Clientbundle bevat gevoelige serverconfiguratie (${violations.join(", ")}).`
   );
   process.exitCode = 1;
+}
+
+async function findOutputDirectories(directory) {
+  const candidates = [resolve(directory, ".next/static"), resolve(directory, "dist")];
+  const output = [];
+
+  for (const candidate of candidates) {
+    try {
+      if ((await stat(candidate)).isDirectory()) output.push(candidate);
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+  }
+
+  return output;
 }
 
 async function collectFiles(directory) {
@@ -51,4 +84,17 @@ async function collectFiles(directory) {
   }
 
   return files;
+}
+
+function isInspectableTextFile(file) {
+  return new Set([
+    ".cjs",
+    ".css",
+    ".html",
+    ".js",
+    ".json",
+    ".map",
+    ".mjs",
+    ".txt"
+  ]).has(extname(file));
 }
