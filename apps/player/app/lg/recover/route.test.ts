@@ -26,6 +26,11 @@ describe("zelfstandige LG recoveryroute", () => {
     expect(html).toContain('startRecovery("hard")');
     expect(html).toContain("window.confirm");
     expect(html).toContain('window.location.replace("/lg")');
+    expect(html).toContain("Technische diagnose");
+    expect(html).toContain("transportDiagnosticsKey");
+    expect(html).toContain(
+      "veyocast.player.transportDiagnostics.v1"
+    );
     expect(html).toContain("veyocast.player.recovery.v1");
     expect(html).toContain("veyocast.player.instanceId");
     expect(html).toContain("veyocast-player-cache-v1");
