@@ -29,8 +29,9 @@ trap 'rm -rf "${unpack}"' EXIT
 unzip -q "${aab}" -d "${unpack}/aab"
 
 : > "${evidence}/native-inventory.tsv"
+: > "${evidence}/elf-load-alignment.tsv"
 while IFS= read -r library; do
-  relative="${library#${unpack}/aab/}"
+  relative="${library#"${unpack}"/aab/}"
   abi="$(printf '%s' "${relative}" | cut -d/ -f3)"
   printf '%s\t%s\t%s\n' \
     "${abi}" \
@@ -40,7 +41,25 @@ while IFS= read -r library; do
 
   while IFS= read -r alignment; do
     value="${alignment#0x}"
+    status="compatible"
     if (( 16#${value} < 16#4000 )); then
+      status="required-64-bit-failure"
+      if [[ "${abi}" =~ ^(armeabi-v7a|x86)$ ]]; then
+        status="legacy-32-bit"
+      fi
+    fi
+    printf '%s\t%s\t%s\t%s\n' \
+      "${abi}" \
+      "${relative}" \
+      "${alignment}" \
+      "${status}" \
+      >> "${evidence}/elf-load-alignment.tsv"
+
+    # Android's 16 KB devices and official ELF checker target the 64-bit
+    # arm64-v8a and x86_64 ABIs. The 32-bit variants remain inventoried and
+    # zip-aligned, but their 4 KB ELF LOAD segments are not a Play blocker.
+    if [[ "${abi}" =~ ^(arm64-v8a|x86_64)$ ]] &&
+      (( 16#${value} < 16#4000 )); then
       echo "::error::${relative} heeft LOAD-alignment ${alignment}, lager dan 0x4000" >&2
       exit 1
     fi
