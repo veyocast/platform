@@ -10,9 +10,9 @@ import { useRouter } from "expo-router";
 import { ListPlus } from "lucide-react-native";
 import { useState } from "react";
 
-import { mobileApi } from "../../../src/api/mobile-api";
-import { AppError } from "../../../src/components/app-error";
-import { useTenant } from "../../../src/tenant/tenant-provider";
+import { mobileApi } from "../../../../src/api/mobile-api";
+import { AppError } from "../../../../src/components/app-error";
+import { useTenant } from "../../../../src/tenant/tenant-provider";
 
 export default function CreatePlaylistScreen() {
   const { activeTenant } = useTenant();

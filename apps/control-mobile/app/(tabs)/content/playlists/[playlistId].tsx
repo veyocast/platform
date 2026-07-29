@@ -42,13 +42,13 @@ import Animated, {
   withSpring
 } from "react-native-reanimated";
 
-import { mobileApi } from "../../../src/api/mobile-api";
-import { AppError } from "../../../src/components/app-error";
+import { mobileApi } from "../../../../src/api/mobile-api";
+import { AppError } from "../../../../src/components/app-error";
 import {
   playlistDragItemStride,
   playlistDropTarget
-} from "../../../src/playlists/drag-position";
-import { useTenant } from "../../../src/tenant/tenant-provider";
+} from "../../../../src/playlists/drag-position";
+import { useTenant } from "../../../../src/tenant/tenant-provider";
 
 export default function PlaylistDetailScreen() {
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
@@ -249,7 +249,12 @@ export default function PlaylistDetailScreen() {
                 {(dragGesture) => (
                   <SurfaceCard style={styles.item}>
                   <View style={styles.itemHeading}>
-                    <View style={styles.position}>
+                    <View
+                      style={[
+                        styles.position,
+                        { backgroundColor: theme.colors.surface }
+                      ]}
+                    >
                       <AppText muted variant="micro">
                         {index + 1}
                       </AppText>
@@ -304,40 +309,59 @@ export default function PlaylistDetailScreen() {
                       </AppText>
                     </View>
                   ) : null}
-                  <View style={styles.actions}>
-                    <IconButton
-                      accessibilityLabel={`${item.title} omhoog`}
-                      disabled={index === 0 || busyKey === "move_item"}
-                      icon={<ArrowUp color={theme.colors.ink} size={18} />}
-                      onPress={() =>
-                        void mutate({
-                          expectedRevision: playlist.revision,
-                          idempotencyKey: Crypto.randomUUID(),
-                          itemId: item.id,
-                          operation: "move_item",
-                          targetPosition: index - 1
-                        })
-                      }
-                      variant="secondary"
-                    />
-                    <IconButton
-                      accessibilityLabel={`${item.title} omlaag`}
-                      disabled={
-                        index === playlist.items.length - 1 ||
-                        busyKey === "move_item"
-                      }
-                      icon={<ArrowDown color={theme.colors.ink} size={18} />}
-                      onPress={() =>
-                        void mutate({
-                          expectedRevision: playlist.revision,
-                          idempotencyKey: Crypto.randomUUID(),
-                          itemId: item.id,
-                          operation: "move_item",
-                          targetPosition: index + 1
-                        })
-                      }
-                      variant="secondary"
-                    />
+                  <View
+                    style={[
+                      styles.actions,
+                      { borderTopColor: theme.colors.line }
+                    ]}
+                  >
+                    <View
+                      accessibilityLabel={`${item.title} verplaatsen`}
+                      style={[
+                        styles.moveGroup,
+                        { borderColor: theme.colors.strongLine }
+                      ]}
+                    >
+                      <IconButton
+                        accessibilityLabel={`${item.title} omhoog`}
+                        disabled={index === 0 || busyKey === "move_item"}
+                        icon={<ArrowUp color={theme.colors.ink} size={18} />}
+                        onPress={() =>
+                          void mutate({
+                            expectedRevision: playlist.revision,
+                            idempotencyKey: Crypto.randomUUID(),
+                            itemId: item.id,
+                            operation: "move_item",
+                            targetPosition: index - 1
+                          })
+                        }
+                        style={styles.moveButton}
+                      />
+                      <View
+                        style={[
+                          styles.moveDivider,
+                          { backgroundColor: theme.colors.line }
+                        ]}
+                      />
+                      <IconButton
+                        accessibilityLabel={`${item.title} omlaag`}
+                        disabled={
+                          index === playlist.items.length - 1 ||
+                          busyKey === "move_item"
+                        }
+                        icon={<ArrowDown color={theme.colors.ink} size={18} />}
+                        onPress={() =>
+                          void mutate({
+                            expectedRevision: playlist.revision,
+                            idempotencyKey: Crypto.randomUUID(),
+                            itemId: item.id,
+                            operation: "move_item",
+                            targetPosition: index + 1
+                          })
+                        }
+                        style={styles.moveButton}
+                      />
+                    </View>
                     <Button
                       accessibilityLabel={`${item.title} uitsnede wijzigen`}
                       onPress={() =>
@@ -354,13 +378,14 @@ export default function PlaylistDetailScreen() {
                         })
                       }
                       size="compact"
+                      style={styles.fitAction}
                       variant="secondary"
                     >
                       {item.fitMode === "contain" ? "Vullen" : "Passend"}
                     </Button>
                     <Button
                       accessibilityLabel={`${item.title} verwijderen`}
-                      icon={<Trash2 color="#FFFFFF" size={18} />}
+                      icon={<Trash2 color={theme.colors.critical} size={17} />}
                       onPress={() =>
                         Alert.alert(
                           "Item verwijderen?",
@@ -382,7 +407,8 @@ export default function PlaylistDetailScreen() {
                         )
                       }
                       size="compact"
-                      variant="danger"
+                      style={styles.deleteAction}
+                      variant="dangerQuiet"
                     >
                       Verwijder
                     </Button>
@@ -655,9 +681,12 @@ function DragHandle({
 
 const styles = StyleSheet.create({
   actions: {
+    alignItems: "center",
+    borderTopWidth: 1,
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: mobileSpacing.compact
+    gap: 6,
+    paddingTop: mobileSpacing.compact
   },
   compactRow: {
     alignItems: "center",
@@ -692,6 +721,30 @@ const styles = StyleSheet.create({
   },
   itemCopy: { flex: 1, gap: mobileSpacing.micro },
   list: { gap: mobileSpacing.compact },
+  deleteAction: {
+    paddingHorizontal: mobileSpacing.compact
+  },
+  fitAction: {
+    paddingHorizontal: mobileSpacing.compact
+  },
+  moveButton: {
+    borderWidth: 0,
+    minHeight: 44,
+    minWidth: 44,
+    paddingHorizontal: mobileSpacing.compact
+  },
+  moveDivider: {
+    height: 24,
+    width: 1
+  },
+  moveGroup: {
+    alignItems: "center",
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: "row",
+    minHeight: 44,
+    overflow: "hidden"
+  },
   position: {
     alignItems: "center",
     borderRadius: 999,
