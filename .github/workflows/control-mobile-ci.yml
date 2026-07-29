@@ -129,9 +129,9 @@ jobs:
         working-directory: apps/control-mobile/android
         run: >-
           ./gradlew
-          lint
-          test
-          bundleRelease
+          :app:lintRelease
+          :app:testReleaseUnitTest
+          :app:bundleRelease
           -PndkVersion=28.0.13004108
           --no-daemon
 
