@@ -288,6 +288,10 @@ test("tijdelijke pairing-503 toont herstelactie en doet geen valse redirect", as
   await expect(page.locator("#summary")).toContainText(
     "PAIRING_API_UNAVAILABLE"
   );
+  await expect(page.locator("#diagnostic-panel")).toHaveAttribute("open", "");
+  await expect(page.locator("#diagnostic-log")).toContainText(
+    "XHR | POST /api/player/pairing | HTTP 503"
+  );
   expect(
     await page.evaluate((key) => localStorage.getItem(key), markerKey)
   ).toBeNull();

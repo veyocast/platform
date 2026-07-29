@@ -10,6 +10,7 @@ type PlayerRecoveryMenuProps = {
   onNewPairing: () => void;
   onRetry: () => void;
   playerVersion: string;
+  transportDiagnostic: string;
 };
 
 export function PlayerRecoveryMenu({
@@ -19,7 +20,8 @@ export function PlayerRecoveryMenu({
   onClose,
   onNewPairing,
   onRetry,
-  playerVersion
+  playerVersion,
+  transportDiagnostic
 }: PlayerRecoveryMenuProps) {
   const firstActionRef = useRef<HTMLButtonElement>(null);
 
@@ -97,6 +99,7 @@ export function PlayerRecoveryMenu({
           <div><dt>Installatie-ID</dt><dd>{installationId}</dd></div>
           <div><dt>Player-versie</dt><dd>{playerVersion}</dd></div>
           <div><dt>Laatste foutcode</dt><dd>{lastErrorCode}</dd></div>
+          <div><dt>Laatste API-aanvraag</dt><dd>{transportDiagnostic}</dd></div>
         </dl>
       </section>
     </div>

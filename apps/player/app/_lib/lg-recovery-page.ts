@@ -14,6 +14,7 @@ import {
   localStoragePairingRequestNonceKey,
   localStoragePlayerInstanceKey,
   localStorageRecoveryMarkerKey,
+  localStorageTransportDiagnosticsKey,
   playerRecoveryMarkerTtlMs,
   temporaryPairingCookieNames
 } from "./player-storage";
@@ -55,6 +56,7 @@ const recoveryScriptConfiguration = {
   ],
   recoveryMarkerKey: localStorageRecoveryMarkerKey,
   recoveryMarkerTtlMs: playerRecoveryMarkerTtlMs,
+  transportDiagnosticsKey: localStorageTransportDiagnosticsKey,
   shellCachePrefixes: [
     "veyocast-player-shell-",
     `${legacyNamespace}-player-shell-`
@@ -205,6 +207,31 @@ export function renderLgRecoveryHtml() {
       color: var(--vc-success);
       font-weight: 700;
     }
+    .diagnostics {
+      margin-top: 20px;
+      border: 1px solid var(--vc-border);
+      border-radius: 6px;
+      background: var(--vc-surface);
+    }
+    .diagnostics summary {
+      padding: 13px 16px;
+      color: var(--vc-muted);
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .diagnostics pre {
+      max-height: 220px;
+      margin: 0;
+      padding: 0 16px 16px;
+      overflow: auto;
+      color: var(--vc-muted);
+      font-family: "Courier New", monospace;
+      font-size: 16px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
     noscript {
       display: block;
       margin-top: 24px;
@@ -254,6 +281,10 @@ export function renderLgRecoveryHtml() {
       </li>
     </ol>
     <p class="summary" id="summary" role="status" aria-live="polite">Soft recovery start automatisch.</p>
+    <details class="diagnostics" id="diagnostic-panel">
+      <summary>Technische diagnose</summary>
+      <pre id="diagnostic-log">Nog geen API-aanvraag geregistreerd.</pre>
+    </details>
     <div class="actions">
       <button class="primary" id="soft-recovery" type="button">Nu herstellen</button>
       <button id="hard-recovery" type="button">Volledige playerreset</button>
@@ -293,6 +324,71 @@ export function renderLgRecoveryHtml() {
 
     function safeRemove(key) {
       try { window.localStorage.removeItem(key); } catch (error) {}
+    }
+
+    function readDiagnostics() {
+      var parsed;
+      try {
+        parsed = JSON.parse(safeGet(CONFIG.transportDiagnosticsKey) || "[]");
+        return Object.prototype.toString.call(parsed) === "[object Array]"
+          ? parsed
+          : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function renderDiagnostics() {
+      var diagnostics = readDiagnostics();
+      var lines = [];
+      var index;
+      var item;
+      for (index = 0; index < diagnostics.length && index < 8; index += 1) {
+        item = diagnostics[index] || {};
+        lines.push(
+          String(item.at || "onbekend") + " | " +
+          String(item.transport || "onbekend").toUpperCase() + " | " +
+          String(item.method || "GET") + " " +
+          String(item.path || "onbekend") + " | " +
+          (item.outcome === "response"
+            ? "HTTP " + String(item.status || 0)
+            : String(item.outcome || "onbekend").toUpperCase()) + " | " +
+          (item.onlineHint === false
+            ? "browserhint offline"
+            : item.onlineHint === true
+              ? "browserhint online"
+              : "browserhint onbekend")
+        );
+      }
+      byId("diagnostic-log").textContent =
+        lines.length > 0
+          ? lines.join("\\n")
+          : "Nog geen API-aanvraag geregistreerd.";
+    }
+
+    function recordDiagnostic(method, path, outcome, status) {
+      var diagnostics = readDiagnostics();
+      var onlineHint =
+        window.navigator && typeof window.navigator.onLine === "boolean"
+          ? window.navigator.onLine
+          : null;
+      diagnostics.unshift({
+        at: new Date().toISOString(),
+        method: method,
+        onlineHint: onlineHint,
+        outcome: outcome,
+        path: path,
+        status: typeof status === "number" && status > 0 ? status : null,
+        transport: "xhr"
+      });
+      safeSet(
+        CONFIG.transportDiagnosticsKey,
+        JSON.stringify(diagnostics.slice(0, 20))
+      );
+      renderDiagnostics();
+      if (outcome !== "response" || status < 200 || status >= 300) {
+        byId("diagnostic-panel").open = true;
+      }
     }
 
     function firstStored(keys) {
@@ -408,6 +504,7 @@ export function renderLgRecoveryHtml() {
       xhr.setRequestHeader("Accept", "application/json");
       xhr.setRequestHeader("Authorization", "Bearer " + deviceToken);
       xhr.onload = function () {
+        recordDiagnostic("GET", "/api/player/manifest", "response", xhr.status);
         if (xhr.status >= 200 && xhr.status < 300) {
           credentialStatus = "valid";
           done("done", "De bestaande schermkoppeling is geldig en blijft behouden.");
@@ -428,10 +525,12 @@ export function renderLgRecoveryHtml() {
         done("warning", "De serverstatus is tijdelijk onbekend; een mogelijk geldige koppeling blijft behouden.");
       };
       xhr.onerror = function () {
+        recordDiagnostic("GET", "/api/player/manifest", "error", null);
         credentialStatus = "unknown";
         done("warning", "VeyoCast is niet bereikbaar; een mogelijk geldige koppeling blijft behouden.");
       };
       xhr.ontimeout = function () {
+        recordDiagnostic("GET", "/api/player/manifest", "timeout", null);
         credentialStatus = "unknown";
         done("warning", "De statuscontrole duurde te lang; een mogelijk geldige koppeling blijft behouden.");
       };
@@ -457,9 +556,23 @@ export function renderLgRecoveryHtml() {
         );
       }
       xhr.setRequestHeader("Content-Type", "application/json");
-      xhr.onload = function () { callback(xhr.status >= 200 && xhr.status < 300); };
-      xhr.onerror = function () { callback(false); };
-      xhr.ontimeout = function () { callback(false); };
+      xhr.onload = function () {
+        recordDiagnostic(
+          "POST",
+          "/api/player/pairing/recover",
+          "response",
+          xhr.status
+        );
+        callback(xhr.status >= 200 && xhr.status < 300);
+      };
+      xhr.onerror = function () {
+        recordDiagnostic("POST", "/api/player/pairing/recover", "error", null);
+        callback(false);
+      };
+      xhr.ontimeout = function () {
+        recordDiagnostic("POST", "/api/player/pairing/recover", "timeout", null);
+        callback(false);
+      };
       xhr.send(JSON.stringify({
         installationId: installationId,
         mode: mode
@@ -675,12 +788,15 @@ export function renderLgRecoveryHtml() {
         }
       }
       xhr.onload = function () {
+        recordDiagnostic(method, path, "response", xhr.status);
         callback(null, xhr.status, parseJson(xhr), xhr.getResponseHeader("Retry-After"));
       };
       xhr.onerror = function () {
+        recordDiagnostic(method, path, "error", null);
         callback("NETWORK_ERROR", 0, null, null);
       };
       xhr.ontimeout = function () {
+        recordDiagnostic(method, path, "timeout", null);
         callback("TIMEOUT", 0, null, null);
       };
       xhr.send(body || null);
@@ -865,6 +981,7 @@ export function renderLgRecoveryHtml() {
       byId("hard-recovery").disabled = false;
       byId("summary").textContent =
         detail || "Herstel is gestopt zonder de bestaande schermbinding onveilig te verwijderen.";
+      byId("diagnostic-panel").open = true;
     }
 
     function startRecovery(requestedMode) {
@@ -896,6 +1013,7 @@ export function renderLgRecoveryHtml() {
 
     byId("soft-recovery").onclick = function () { startRecovery("soft"); };
     byId("hard-recovery").onclick = function () { startRecovery("hard"); };
+    renderDiagnostics();
     autoTimer = window.setTimeout(function () { startRecovery("soft"); }, 2500);
   }());
   </script>
