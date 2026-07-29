@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { Database, FileSpreadsheet, Rss, ShieldCheck } from "lucide-react";
+import {
+  Database,
+  FileSpreadsheet,
+  Rss,
+  ShieldCheck,
+  Trophy
+} from "lucide-react";
 
 import { hasCapability } from "@veyocast/auth";
 import { Button, SummaryStrip } from "@veyocast/ui";
@@ -36,7 +42,22 @@ export default async function DataSourcesPage({ searchParams }: PageProps) {
   return (
     <>
       <PageHeader
-        actions={<Button asChild variant="secondary"><Link href="/dashboard/integrations/twelve-products"><FileSpreadsheet aria-hidden="true" />Twelve-import</Link></Button>}
+        actions={(
+          <div className={styles.heroActions}>
+            <Button asChild variant="secondary">
+              <Link href="/dashboard/data-sources/sportlink">
+                <Trophy aria-hidden="true" />
+                Sportlink koppelen
+              </Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/dashboard/integrations/twelve-products">
+                <FileSpreadsheet aria-hidden="true" />
+                Twelve-import
+              </Link>
+            </Button>
+          </div>
+        )}
         description="Beheer providerdata als gecontroleerde snapshots. Schermen benaderen deze bronnen nooit rechtstreeks."
         eyebrow={session.tenant}
         title="Databronnen"
@@ -62,7 +83,11 @@ export default async function DataSourcesPage({ searchParams }: PageProps) {
               <article className={styles.card} key={source.id}>
                 <div className={styles.cardBody}>
                   <div className={styles.cardTop}>
-                    {source.kind === "rss" ? <Rss aria-hidden="true" /> : <Database aria-hidden="true" />}
+                    {source.kind === "rss"
+                      ? <Rss aria-hidden="true" />
+                      : source.kind === "sportlink"
+                        ? <Trophy aria-hidden="true" />
+                        : <Database aria-hidden="true" />}
                     <StatusPill {...sourceStatus(source.provider_status)} />
                   </div>
                   <div>
@@ -71,7 +96,10 @@ export default async function DataSourcesPage({ searchParams }: PageProps) {
                   </div>
                   <dl className={styles.definitionList}>
                     <div><dt>Laatste goede sync</dt><dd>{formatDate(source.last_successful_sync_at)}</dd></div>
-                    <div><dt>Laatste fout</dt><dd>{source.last_error_code ?? "Geen"}</dd></div>
+                    <div>
+                      <dt>Laatste fout</dt>
+                      <dd>{sourceErrorCopy(source.last_error_code)}</dd>
+                    </div>
                   </dl>
                   {source.kind === "rss" && canManage ? (
                     <form action={syncRssSource}>
@@ -82,11 +110,18 @@ export default async function DataSourcesPage({ searchParams }: PageProps) {
                   {source.kind === "twelve_excel" ? (
                     <p className={styles.muted}><ShieldCheck aria-hidden="true" /> Officiële API niet gekoppeld; gecontroleerde Excel-import blijft actief.</p>
                   ) : null}
+                  {source.kind === "sportlink" ? (
+                    <Button asChild size="sm" variant="secondary">
+                      <Link href="/dashboard/data-sources/sportlink">
+                        Sportlink beheren
+                      </Link>
+                    </Button>
+                  ) : null}
                 </div>
               </article>
             ))}
           </div>
-        ) : <div className="empty-state"><h3>Nog geen databronnen</h3><p>Maak hieronder een handmatige productbron of veilige RSS-feed.</p></div>}
+        ) : <div className={`empty-state ${styles.emptyState}`}><h3>Nog geen databronnen</h3><p>Maak hieronder een productbron, veilige RSS-feed of Sportlink-koppeling.</p></div>}
       </section>
 
       {canManage ? (
@@ -107,6 +142,26 @@ export default async function DataSourcesPage({ searchParams }: PageProps) {
               <label className={styles.field}><span>Bronsoort</span><select name="kind"><option value="manual_products">Handmatige producten</option><option value="twelve_excel">Twelve Excel-export</option></select></label>
               <Button type="submit"><Database aria-hidden="true" />Productbron maken</Button>
             </form>
+            <article className={styles.formSection}>
+              <h2>Sportlink Club.Dataservice</h2>
+              <p className={styles.muted}>
+                Importeer club, teams, wedstrijden, uitslagen, standen en
+                activiteiten via de officiële server-side koppeling.
+              </p>
+              <p className={styles.muted}>
+                Je hebt hiervoor de Client ID uit Sportlink Club.Dataservice
+                nodig. VeyoCast test en versleutelt deze voordat de eerste
+                synchronisatie wordt ingepland.
+              </p>
+              <div>
+                <Button asChild variant="secondary">
+                  <Link href="/dashboard/data-sources/sportlink">
+                    <Trophy aria-hidden="true" />
+                    Sportlink instellen
+                  </Link>
+                </Button>
+              </div>
+            </article>
           </div>
         </section>
       ) : null}
@@ -149,6 +204,7 @@ async function loadSources(tenantId: string) {
 
 function sourceKind(kind: string) {
   if (kind === "rss") return "RSS/Atom-nieuws";
+  if (kind === "sportlink") return "Sportlink · wedstrijden en competitie";
   if (kind === "twelve_excel") return "Twelve · gecontroleerde Excel-snapshot";
   return "Handmatige productcatalogus";
 }
@@ -164,4 +220,17 @@ function formatDate(value: string | null) {
   return value
     ? new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
     : "Nog niet";
+}
+
+function sourceErrorCopy(code: string | null) {
+  if (!code) return "Geen";
+  const messages: Record<string, string> = {
+    rss_fetch_blocked: "Feed-URL is om veiligheidsredenen geblokkeerd",
+    rss_fetch_http_error: "Feedserver gaf een foutantwoord",
+    rss_fetch_invalid_content: "URL bevat geen geldige RSS- of Atom-feed",
+    rss_fetch_too_large: "Feed is groter dan de veilige limiet",
+    rss_fetch_unavailable: "Feed was tijdelijk niet bereikbaar",
+    rss_sync_failed: "Feed kon niet worden verwerkt"
+  };
+  return `${messages[code] ?? "Synchronisatie mislukt"} (${code})`;
 }

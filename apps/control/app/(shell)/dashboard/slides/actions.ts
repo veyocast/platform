@@ -26,6 +26,38 @@ export async function createDynamicSlide(formData: FormData) {
   ) {
     redirect("/dashboard/slides/new?fout=Controleer+de+naam,+template+en+databron.");
   }
+  const [templateResult, sourceResult] = await Promise.all([
+    supabase
+      .from("dynamic_templates")
+      .select("slide_type")
+      .eq("current_published_version_id", templateVersionId)
+      .eq("status", "published")
+      .maybeSingle(),
+    supabase
+      .from("dynamic_data_sources")
+      .select("kind")
+      .eq("id", dataSourceId)
+      .eq("tenant_id", session.tenantId!)
+      .neq("status", "archived")
+      .maybeSingle()
+  ]);
+  const templateSlideType = templateResult.data?.slide_type;
+  const sourceKind = sourceResult.data?.kind;
+  if (templateResult.error || !templateSlideType) {
+    redirect(
+      "/dashboard/slides/new?fout=Het+gekozen+template+is+niet+meer+gepubliceerd.+Kies+een+ander+template."
+    );
+  }
+  if (sourceResult.error || !sourceKind) {
+    redirect(
+      "/dashboard/slides/new?fout=De+gekozen+databron+is+niet+meer+beschikbaar."
+    );
+  }
+  if (!sourceMatchesSlideType(sourceKind, templateSlideType)) {
+    redirect(
+      "/dashboard/slides/new?fout=Template+en+databron+horen+niet+bij+hetzelfde+slidetype.+Kies+de+combinatie+opnieuw."
+    );
+  }
   const { data, error } = await supabase.rpc("create_dynamic_slide_v1", {
     p_configuration_json: {
       ...(category ? { category } : {}),
@@ -42,7 +74,15 @@ export async function createDynamicSlide(formData: FormData) {
     ? data.slideId
     : null;
   if (error || !slideId) {
-    redirect("/dashboard/slides/new?fout=De+slide+kon+niet+worden+gemaakt.+Controleer+of+de+databron+bruikbare+inhoud+bevat.");
+    console.error("Dynamische slide maken mislukt", {
+      code: error?.code ?? "slide_result_invalid"
+    });
+    const message = error?.code === "23514"
+      ? "De gekozen databron bevat nog geen bruikbare inhoud. Synchroniseer de bron en probeer het opnieuw."
+      : error?.code === "42501"
+        ? "Je hebt geen toestemming om deze dynamische slide te maken."
+        : "De slide kon tijdelijk niet worden gemaakt. Je bestaande slides en publicaties zijn niet gewijzigd.";
+    redirect(`/dashboard/slides/new?fout=${encodeURIComponent(message)}`);
   }
   revalidatePath("/dashboard/slides");
   redirect(`/dashboard/slides/${slideId}?succes=De+eerste+immutable+snapshot+wordt+gerenderd.`);
@@ -93,6 +133,14 @@ export async function addDynamicSlideToPlaylist(formData: FormData) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function sourceMatchesSlideType(kind: string, slideType: string) {
+  if (slideType === "menu") {
+    return kind === "manual_products" || kind === "twelve_excel";
+  }
+  if (slideType === "news") return kind === "rss";
+  return kind === "sportlink" && slideType.startsWith("sport_");
 }
 
 const uuidPattern =

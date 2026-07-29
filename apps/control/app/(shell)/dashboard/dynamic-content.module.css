@@ -4,6 +4,25 @@
   gap: var(--vc-space-8);
 }
 
+.emptyState {
+  display: grid;
+  min-height: 14rem;
+  gap: var(--vc-space-12);
+  padding: clamp(var(--vc-space-20), 4vw, var(--vc-space-40));
+  align-content: center;
+  justify-items: start;
+}
+
+.emptyState > :where(h2, p) {
+  margin: 0;
+}
+
+.emptyState > svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--vc-action);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
@@ -109,6 +128,58 @@
   font-weight: 700;
 }
 
+.choiceCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--vc-space-12);
+  padding: var(--vc-space-16);
+  align-items: center;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-lg);
+  background: var(--vc-surface);
+  cursor: pointer;
+}
+
+.choiceCard:has(input:checked) {
+  border-color: var(--vc-action);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--vc-action) 18%, transparent);
+}
+
+.choiceCard span {
+  display: grid;
+  min-width: 0;
+  gap: var(--vc-space-4);
+}
+
+.choiceCard small,
+.fieldHint {
+  color: var(--vc-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.choiceBadge {
+  padding: var(--vc-space-4) var(--vc-space-8);
+  border-radius: 999px;
+  background: var(--vc-surface-muted);
+  color: var(--vc-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.inlineGuidance {
+  display: grid;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-16);
+  border: 1px solid var(--vc-border-strong);
+  border-radius: var(--vc-radius-lg);
+  background: var(--vc-surface-muted);
+}
+
+.inlineGuidance > a {
+  justify-self: start;
+}
+
 .fieldGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -204,7 +275,7 @@
 
 .sourceForms {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
   gap: var(--vc-space-16);
 }
 
@@ -309,5 +380,14 @@
   .formActions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .choiceCard {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .choiceBadge {
+    grid-column: 2;
+    justify-self: start;
   }
 }
