@@ -1,7 +1,7 @@
 import { lookup } from "node:dns/promises";
 import { request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
-import { isIP } from "node:net";
+import { isIP, type LookupFunction } from "node:net";
 
 export const rssFetchMaximumBytes = 2_000_000;
 export const rssFetchTimeoutMs = 8_000;
@@ -138,9 +138,7 @@ function requestPinned(
           accept: "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, text/plain;q=0.5",
           "user-agent": "VeyoCast-RSS/1.0"
         },
-        lookup(_hostname, _options, callback) {
-          callback(null, address, family);
-        },
+        lookup: createPinnedLookup(address, family),
         servername: url.hostname,
         timeout: rssFetchTimeoutMs
       },
@@ -181,6 +179,24 @@ function requestPinned(
     });
     request.end();
   });
+}
+
+/**
+ * Keep the verified DNS address pinned while supporting both callback shapes
+ * used by Node's HTTP client. Node 24 requests all addresses internally, even
+ * when a single verified address is supplied by the application.
+ */
+export function createPinnedLookup(
+  address: string,
+  family: number
+): LookupFunction {
+  return (_hostname, options, callback) => {
+    if (options.all) {
+      callback(null, [{ address, family }]);
+      return;
+    }
+    callback(null, address, family);
+  };
 }
 
 export function isPublicIp(address: string): boolean {

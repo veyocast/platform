@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { isPublicIp } from "../src/safe-rss-fetch";
+import {
+  createPinnedLookup,
+  isPublicIp
+} from "../src/safe-rss-fetch";
 
 describe("RSS SSRF-grens", () => {
   it.each([
@@ -24,4 +27,23 @@ describe("RSS SSRF-grens", () => {
       expect(isPublicIp(address)).toBe(true);
     }
   );
+
+  it("levert het geverifieerde adres in Node 24 all-modus terug", () => {
+    const lookup = createPinnedLookup("203.0.113.10", 4);
+
+    lookup("feed.example", { all: true }, (error, addresses) => {
+      expect(error).toBeNull();
+      expect(addresses).toEqual([{ address: "203.0.113.10", family: 4 }]);
+    });
+  });
+
+  it("blijft compatibel met de klassieke single-address callback", () => {
+    const lookup = createPinnedLookup("203.0.113.10", 4);
+
+    lookup("feed.example", { all: false }, (error, address, family) => {
+      expect(error).toBeNull();
+      expect(address).toBe("203.0.113.10");
+      expect(family).toBe(4);
+    });
+  });
 });
