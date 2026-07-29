@@ -9,6 +9,7 @@ import {
   Skeleton,
   StateView,
   StatusBadge,
+  mobileRadius,
   mobileSpacing,
   useMobileTheme
 } from "@veyocast/mobile-design-system";
@@ -53,7 +54,7 @@ export default function SchermenScreen() {
           />
         }
       >
-        <PageHeader eyebrow="Fleet" title="Schermen" />
+        <PageHeader eyebrow="Schermbeheer" title="Schermen" />
         <Button
           icon={<Plus color="#0A0A0A" size={20} />}
           onPress={() => router.push("/screens/pair")}
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
   },
   list: { gap: mobileSpacing.inline },
   pressable: {
-    borderRadius: 16,
+    borderRadius: mobileRadius.card,
     borderWidth: 1
   },
   row: {
