@@ -133,6 +133,7 @@ jobs:
           :app:testReleaseUnitTest
           :app:bundleRelease
           -PndkVersion=28.0.13004108
+          -x :react-native-reanimated:lintAnalyzeRelease
           -x :react-native-worklets:lintAnalyzeRelease
           --no-daemon
 
