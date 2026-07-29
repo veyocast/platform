@@ -13,7 +13,8 @@ platformlifecycle toe:
 - `AutomationScheduleEvaluator` evalueert dezelfde precedentie als het
   TypeScript-contract;
 - `AutomationScheduler` plant één volgende inexacte startpoging;
-- `AutomationAlarmReceiver` registreert trigger en best-effort Activity-start;
+- `AutomationAlarmReceiver` registreert trigger en plant de Activity-start via
+  een systeemalarm;
 - `BootCompletedReceiver` herstelt na boot, appupdate, klok- en
   tijdzonewijziging;
 - `MainActivity` synchroniseert via vertrouwde localStorage van de eigen
@@ -43,10 +44,14 @@ Reden:
 - WorkManager is niet bedoeld als wandklokplanner;
 - een permanente foreground service is buiten proportie en niet nodig.
 
-Android kan het alarm door Doze of energiebesparing uitstellen. Vanaf Android
-10 kan een achtergrond-Activity-start worden geblokkeerd. Daarom rapporteert
-VeyoCast afzonderlijk `wake-triggered`, `activity-start-requested`,
-`player-visible` en `heartbeat-sent`.
+Android kan het alarm door Doze of energiebesparing uitstellen. Een app die een
+Activity-`PendingIntent` zelf verstuurt, voldoet niet automatisch aan Androids
+Background Activity Launch-uitzonderingen. VeyoCast plant die expliciete
+`PendingIntent` daarom via `AlarmManager`; Android levert hem als
+systeemcomponent af. De manifests zetten `showWhenLocked` en `turnScreenOn`,
+terwijl alleen een werkelijk hervatte Activity `player-visible` mag
+rapporteren. VeyoCast registreert `wake-triggered`,
+`activity-start-requested`, `player-visible` en `heartbeat-sent` afzonderlijk.
 
 ## Keep-awake
 
@@ -60,8 +65,10 @@ Met automation is de flag alleen gezet wanneer:
 - `Scherm actief houden tijdens afspelen` aanstaat.
 
 Buiten het venster wordt de flag vrijgegeven. De app vraagt geen CPU wake lock
-aan. `setTurnScreenOn(true)` en `setShowWhenLocked(true)` worden alleen gebruikt
-voor een automation-start op API 27+; ook dit bewijst geen fysieke TV-status.
+aan. `setTurnScreenOn(true)` en `setShowWhenLocked(true)` worden voor een
+automation-start op API 27+ gebruikt; dezelfde eigenschappen staan in beide
+release-manifests zodat Android ze al tijdens een koude Activity-start kent.
+Ook dit bewijst geen fysieke TV-status.
 
 ## Boot en update
 
@@ -170,7 +177,9 @@ Fysiek, per model/firmware:
 10. 24-uurs soak uitvoeren.
 
 De huidige implementatie is niet fysiek getest in deze repositoryrun. Een
-geslaagde Gradle- of emulatortest is geen hardwarebewijs.
+geslaagde Gradle- of emulatortest is geen hardwarebewijs. De gedetailleerde
+oorzaakanalyse, remote-wakematrix en hardwareacceptatie staan in
+[`docs/s59-android-remote-wake-analysis.md`](../s59-android-remote-wake-analysis.md).
 
 ## Ondersteuningsmatrix
 
