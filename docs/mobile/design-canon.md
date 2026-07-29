@@ -60,6 +60,9 @@
 - Playlistitemacties vormen één bedieningsrail: verplaatsing als segment,
   weergavemodus als secundaire actie en verwijderen als rustige critical-actie
   met zichtbaar tekstlabel en bevestiging.
+- De bedieningsrail gebruikt vaste semantische kolommen. `Vullen` en `Passend`
+  nemen dezelfde breedte in, de critical-actie blijft per kaart op dezelfde
+  rechterlijn en alle drie de controlgroepen blijven 44 dp hoog.
 
 ## Assets
 
