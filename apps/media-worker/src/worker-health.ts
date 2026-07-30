@@ -1,8 +1,18 @@
+import { renameSync, rmSync, writeFileSync } from "node:fs";
 import { createServer, type Server } from "node:http";
 
 import { VEYOCAST_APPS } from "@veyocast/config";
 
 const readinessFreshnessMs = 75_000;
+const readinessFileWriteIntervalMs = 5_000;
+const defaultReadinessFilePath = "/tmp/veyocast-media-worker-ready.json";
+
+type ReadinessMarker = {
+  environment: string;
+  lastPollAt: number;
+  revision: string;
+  service: string;
+};
 
 export type WorkerRuntimeHealth = {
   markDraining: () => void;
@@ -15,23 +25,47 @@ export function createWorkerRuntimeHealth({
   environment = process.env.VEYOCAST_ENVIRONMENT ?? "development",
   now = () => Date.now(),
   port = 3100,
+  readinessFilePath = defaultReadinessFilePath,
+  readinessFileWriteInterval = readinessFileWriteIntervalMs,
   revision = process.env.DEPLOYMENT_SHA ?? "development"
 }: {
   environment?: string;
   now?: () => number;
   port?: number;
+  readinessFilePath?: string;
+  readinessFileWriteInterval?: number;
   revision?: string;
 } = {}): WorkerRuntimeHealth {
   let draining = false;
   let lastPollAt: number | null = null;
+  let lastReadinessFileWriteAt: number | null = null;
   const recentResults: Array<"completed" | "failed" | "idle" | "retry_scheduled"> = [];
+
+  removeReadinessMarker(readinessFilePath);
 
   return {
     markDraining() {
       draining = true;
+      removeReadinessMarker(readinessFilePath);
     },
     markPoll() {
-      lastPollAt = now();
+      if (draining) return;
+      const polledAt = now();
+      lastPollAt = polledAt;
+      if (
+        lastReadinessFileWriteAt === null ||
+        polledAt - lastReadinessFileWriteAt >= readinessFileWriteInterval
+      ) {
+        const marker: ReadinessMarker = {
+          environment,
+          lastPollAt: polledAt,
+          revision,
+          service: VEYOCAST_APPS["media-worker"].name
+        };
+        if (writeReadinessMarker(readinessFilePath, marker)) {
+          lastReadinessFileWriteAt = polledAt;
+        }
+      }
     },
     markResult(status) {
       recentResults.push(status);
@@ -101,4 +135,24 @@ export function closeServer(server: Server) {
   return new Promise<void>((resolve, reject) => {
     server.close((error) => error ? reject(error) : resolve());
   });
+}
+
+function removeReadinessMarker(path: string) {
+  try {
+    rmSync(path, { force: true });
+  } catch {
+    // Readiness fails closed when the marker cannot be removed or refreshed.
+  }
+}
+
+function writeReadinessMarker(path: string, marker: ReadinessMarker) {
+  const temporaryPath = `${path}.${process.pid}.tmp`;
+  try {
+    writeFileSync(temporaryPath, JSON.stringify(marker), { encoding: "utf8", mode: 0o600 });
+    renameSync(temporaryPath, path);
+    return true;
+  } catch {
+    removeReadinessMarker(temporaryPath);
+    return false;
+  }
 }

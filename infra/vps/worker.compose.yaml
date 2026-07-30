@@ -18,7 +18,7 @@ services:
       SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL ontbreekt}
       VEYOCAST_ENVIRONMENT: ${VEYOCAST_ENVIRONMENT:?VEYOCAST_ENVIRONMENT ontbreekt}
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/readyz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "try{const b=JSON.parse(require('node:fs').readFileSync('/tmp/veyocast-media-worker-ready.json','utf8'));const age=Date.now()-b.lastPollAt;const valid=b.service==='VeyoCast Media Worker'&&b.environment===process.env.VEYOCAST_ENVIRONMENT&&b.revision===process.env.DEPLOYMENT_SHA&&Number.isFinite(b.lastPollAt)&&age>=-5000&&age<=75000;if(!valid)process.exit(1)}catch{process.exit(1)}"]
       interval: 5s
       timeout: 3s
       retries: 4

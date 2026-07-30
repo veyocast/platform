@@ -574,20 +574,30 @@ verify_health_matrix() {
 }
 
 check_worker_readiness() {
-  local attempt container_id docker_health expected_image actual_image env_is_exact probe_result
+  local attempt container_id docker_health expected_image actual_image env_is_exact marker_result probe_result
   probe_result="nog geen probe uitgevoerd"
+  marker_result="nog geen heartbeatprobe uitgevoerd"
   docker_health="onbekend"
   for attempt in $(seq 1 24); do
     if probe_result=$("${WORKER_COMPOSE_ARGS[@]}" exec -T media-worker node -e \
-      "fetch('http://127.0.0.1:3100/readyz').then(async r=>{const b=await r.json();const valid=r.ok&&b.status==='ready'&&b.service==='VeyoCast Media Worker'&&b.environment==='${environment}'&&b.revision==='${DEPLOYMENT_SHA}';process.stdout.write(JSON.stringify({environment:b.environment,httpStatus:r.status,revision:b.revision,service:b.service,status:b.status,valid}));if(!valid)process.exitCode=1}).catch(e=>{process.stdout.write(JSON.stringify({error:e instanceof Error?e.name:'unknown',valid:false}));process.exitCode=1})" 2>&1); then
+      "fetch('http://127.0.0.1:3100/readyz').then(async r=>{const b=await r.json();const valid=r.ok&&b.status==='ready'&&b.service==='VeyoCast Media Worker'&&b.environment==='${environment}'&&b.revision==='${DEPLOYMENT_SHA}';process.stdout.write(JSON.stringify({environment:b.environment,httpStatus:r.status,revision:b.revision,service:b.service,status:b.status,valid}));if(!valid)process.exitCode=1}).catch(e=>{process.stdout.write(JSON.stringify({causeCode:e&&e.cause&&typeof e.cause.code==='string'?e.cause.code:undefined,error:e instanceof Error?e.name:'unknown',valid:false}));process.exitCode=1})" 2>&1); then
+      return 0
+    fi
+
+    # De worker publiceert na een echte queuepoll ook een atomisch
+    # heartbeatbestand op het eigen writable tmp-volume. Dit omzeilt uitsluitend
+    # de lokale TCP-route; omgeving, revisie, servicenaam en versheid blijven
+    # strikt aan dezelfde geautoriseerde release gebonden.
+    if marker_result=$("${WORKER_COMPOSE_ARGS[@]}" exec -T media-worker node -e \
+      "try{const b=JSON.parse(require('node:fs').readFileSync('/tmp/veyocast-media-worker-ready.json','utf8'));const ageMs=Date.now()-b.lastPollAt;const valid=b.service==='VeyoCast Media Worker'&&b.environment==='${environment}'&&b.revision==='${DEPLOYMENT_SHA}'&&Number.isFinite(b.lastPollAt)&&ageMs>=-5000&&ageMs<=75000;process.stdout.write(JSON.stringify({ageMs,environment:b.environment,revision:b.revision,service:b.service,valid}));if(!valid)process.exitCode=1}catch(e){process.stdout.write(JSON.stringify({error:e instanceof Error?e.name:'unknown',errorCode:e&&typeof e.code==='string'?e.code:undefined,valid:false}));process.exitCode=1}" 2>&1); then
+      echo "Media-workerreadiness bevestigd via de releasegebonden queueheartbeat."
       return 0
     fi
 
     # `docker compose exec` kan op een drukke rootless host tijdelijk geen
     # extra proces starten terwijl de reeds draaiende container wel gezond is.
-    # De ingebouwde Docker-healthcheck bevraagt exact hetzelfde /readyz
-    # endpoint. Accepteer die alleen wanneer containerimage én niet-geheime
-    # runtime-identiteit exact bij deze geautoriseerde release horen.
+    # Accepteer de ingebouwde healthcheck alleen wanneer containerimage én
+    # niet-geheime runtime-identiteit exact bij deze release horen.
     container_id=$("${WORKER_COMPOSE_ARGS[@]}" ps -q media-worker 2>/dev/null || true)
     if [[ -n ${container_id} ]]; then
       docker_health=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}' "${container_id}" 2>/dev/null || true)
@@ -631,7 +641,7 @@ check_worker_readiness() {
       sleep 3
     fi
   done
-  echo "Readinesscheck mislukt: media-worker. Laatste veilige probe: ${probe_result}. Docker-health: ${docker_health}." >&2
+  echo "Readinesscheck mislukt: media-worker. Laatste veilige HTTP-probe: ${probe_result}. Laatste veilige heartbeatprobe: ${marker_result}. Docker-health: ${docker_health}." >&2
   return 1
 }
 
