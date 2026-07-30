@@ -97,6 +97,7 @@ tests en exitcriteria staan in
 | S55 | VeyoCast Control Mobile | Native Android-first beheerapp met veilige mobiele API, offlinekern en afzonderlijke Play-publicatieketen |
 | S61 | LG herstelcode-handoff | Canonieke timestamps en claim-bevestigde standalone recovery voorkomen dat oude webOS-clients een voorbereide code verliezen en opnieuw rate-limiten |
 | S62 | LG release-playback | webOS-veilige playback uit geverifieerde cachebytes, niet-destructieve clientfallback en staande Control-mediapreview |
+| S63 | Media-upload en LG native videostreaming | Begrensde individuele afbeeldinguploads en native HTTP-rangevideo op LG met geverifieerde offlinefallback |
 
 ### Programmagates
 

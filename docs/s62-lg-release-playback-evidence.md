@@ -1,5 +1,11 @@
 # S62 — LG release-activatie en staande mediapreview
 
+> Correctie na fysieke vervolgtest: de object-URL uit S62 bleek geschikt voor
+> afbeeldingen, maar niet als primaire MP4-transportlaag op de 43UL3J-EP.
+> S63 gebruikt voor video native HTTPS-range-streaming en houdt de
+> geverifieerde object-URL uitsluitend als offline/foutfallback. Zie
+> `docs/s63-media-playback-hotfix-evidence.md`.
+
 ## Aanleiding en fysiek bewijs
 
 Op 30 juli 2026 was de LG 43UL3J-EP succesvol gekoppeld en stond de Player op

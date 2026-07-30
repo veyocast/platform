@@ -231,8 +231,11 @@ Wanneer het scherm **Wachten op content** toont, is pairing afgerond. Een
 fout die pas na release-toewijzing verschijnt wordt daarom niet met een nieuwe
 pairing of volledige playerreset behandeld.
 
-Vanaf S62 gebruikt `/lg` de reeds checksum-gevalideerde lokale cachebytes via
-een webOS-veilige object-URL. Een mediafout kan de gekoppelde Player niet meer
+Vanaf S63 gebruikt `/lg` voor MP4 bij een werkende verbinding eerst de
+gesigneerde HTTPS-bron. Daardoor kan de native LG-mediastack byte-rangeverzoeken
+zelf afhandelen. De reeds checksum-gevalideerde lokale object-URL blijft
+beschikbaar als fout- en offlinefallback. Afbeeldingen blijven direct uit de
+geverifieerde cache spelen. Een mediafout kan de gekoppelde Player niet meer
 vervangen door een wit of fataal scherm; een echte onverwachte clientfout
 verschijnt als VeyoCast-overlay boven de intacte runtime.
 
