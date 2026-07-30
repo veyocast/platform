@@ -64,6 +64,8 @@ test("onverwachte clientfout toont de lokale VeyoCast-fallback", async ({
   const fallback = page.locator("#veyocast-client-fallback");
   await expect(fallback).toBeVisible();
   await expect(fallback).toContainText("PLAYER_CLIENT_EXCEPTION");
+  await expect(fallback).toContainText("PLAYER_RUNTIME_ERROR");
+  await expect(fallback).toContainText("runtime-mounted");
   await expect(
     fallback.getByRole("button", { name: "Opnieuw proberen" })
   ).toBeVisible();
@@ -71,4 +73,19 @@ test("onverwachte clientfout toont de lokale VeyoCast-fallback", async ({
     fallback.getByRole("link", { name: "Player herstellen" })
   ).toHaveAttribute("href", "/lg/recover");
   await expect(page.getByText("Application error")).toHaveCount(0);
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const entries = JSON.parse(
+          localStorage.getItem(
+            "veyocast.player.transportDiagnostics.v1"
+          ) ?? "[]"
+        ) as Array<{ code?: string; stage?: string }>;
+        return entries[0];
+      })
+    )
+    .toMatchObject({
+      code: "PLAYER_RUNTIME_ERROR",
+      stage: "runtime-mounted"
+    });
 });

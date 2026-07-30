@@ -146,6 +146,52 @@ test("pairing stays completely inside a short Android TV viewport", async ({
   });
 });
 
+test("LG hervat een opgeslagen pairing met PostgreSQL-microseconden zonder nieuwe code", async ({
+  page
+}) => {
+  let pairingRequests = 0;
+  await page.addInitScript(() => {
+    const base = new Date(Date.now() + 60_000).toISOString();
+    const postgresTimestamp =
+      base.slice(0, -1).replace(/(\.\d{3})$/, "$1" + "456") + "+00:00";
+    localStorage.setItem("veyocast.player.deviceToken", "m".repeat(43));
+    localStorage.setItem("veyocast.player.pairingCode", "MIC 123");
+    localStorage.setItem(
+      "veyocast.player.pairingExpiresAt",
+      postgresTimestamp
+    );
+  });
+  await page.route("**/api/player/pairing", async (route) => {
+    pairingRequests += 1;
+    await route.fulfill({
+      contentType: "application/json",
+      json: {
+        deviceToken: "unexpected-replacement-token",
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+        live: true,
+        pairingCode: "BAD 429"
+      }
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      json: { error: { code: "PAIRING_PENDING" }, ok: false },
+      status: 409
+    })
+  );
+
+  await page.goto(`${playerURL}/lg`);
+
+  await expect(page.getByLabel("Pairingcode")).toContainText("MIC 123");
+  expect(pairingRequests).toBe(0);
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("veyocast.player.deviceToken")
+    )
+  ).toBe("m".repeat(43));
+});
+
 test("pairing uses compact TV density on a 720p display", async ({ page }) => {
   await page.setViewportSize({ height: 720, width: 1280 });
   await page.goto(playerURL);

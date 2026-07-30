@@ -248,9 +248,10 @@ Na deployment geldt dit fysieke protocol:
 1. open `https://player.veyocast.nl/lg/recover` via **Afspelen via URL**;
 2. verwacht **VeyoCast Player herstellen** en vier zichtbare herstelstappen;
 3. controleer dat iedere stap eindigt als `OK` of niet-blokkerende waarschuwing;
-4. verwacht automatische navigatie naar `/lg`;
-5. verwacht binnen maximaal dertig seconden een nieuwe code;
-6. claim de code in Control voor het bestaande scherm;
+4. verwacht een grote herstelcode onder **Koppel deze Player in Control**;
+5. claim deze code in Control voor het bestaande scherm terwijl
+   `/lg/recover` zichtbaar blijft;
+6. verwacht pas na de serverbevestiging automatische navigatie naar `/lg`;
 7. herstart het display volledig en controleer dat dezelfde koppeling blijft;
 8. laat daarna een ongeclaimde code verlopen en controleer dat zonder reload
    een andere code verschijnt;
@@ -297,3 +298,41 @@ en kan een HTTP 429 daarom niet oplossen. Bovendien is installatie en koude
 autostart van de productie-IPK op dit exacte scherm nog niet bewezen. De IPK
 blijft een optionele lifecyclewrapper nadat de fysieke packageproef slaagt,
 niet een alternatief pairingprotocol.
+
+### Claim-bevestigde overdracht naar `/lg`
+
+Nieuw fysiek bewijs van 30 juli 2026 toonde na S60 achtereenvolgens:
+
+1. `/lg/recover` maakte succesvol herstelcode `8F EAFR`;
+2. de automatische navigatie naar `/lg` eindigde eenmaal in
+   `PLAYER_CLIENT_EXCEPTION`;
+3. na opnieuw proberen toonde `/lg` kort **Koppelcode maken**;
+4. de daaropvolgende nieuwe `POST /api/player/pairing` kreeg HTTP 429.
+
+De pairing-API gaf `expiresAt` rechtstreeks in PostgreSQL-vorm terug, met zes
+fractiecijfers en een numerieke UTC-offset. De runtime gebruikte de ingebouwde
+datumparser om de lokaal voorbereide pairing te beoordelen. Dat formaat is op
+oudere webOS-engines niet betrouwbaar. Een niet-parseerbare waarde werd
+veiligheidshalve als verlopen behandeld, waarna de runtime de nog geldige
+pending sessie verwijderde en een nieuwe code vroeg. Dat verklaart precies de
+waargenomen overgang van een geldige recoverycode naar **Koppelcode maken** en
+HTTP 429.
+
+S61 sluit beide overdrachtsrisico's:
+
+- de pairing-API levert voortaan canonieke ISO-tijd met milliseconden en `Z`;
+- de runtime accepteert defensief ook bestaande PostgreSQL-timestamps met
+  microseconden;
+- `/lg/recover` blijft zelf de grote code tonen en controleert de claim via
+  heartbeat;
+- HTTP 409 `PAIRING_PENDING` is normale wachtstatus en veroorzaakt geen nieuwe
+  code;
+- pas na heartbeat 200 worden code, expiry en requestnonce lokaal verwijderd
+  en wordt `/lg` geopend;
+- een onverwachte clientfout bewaart koppeling en lokale release, logt alleen
+  een veilige foutcategorie en opstartfase en voert hoogstens één
+  gecontroleerde reload per twee minuten uit.
+
+Hierdoor kan de oude `/lg`-lus de fysieke herstelcode niet meer overrulen:
+zolang de code niet in Control is geclaimd, blijft het scherm op de
+bundle-onafhankelijke recoverypagina staan.

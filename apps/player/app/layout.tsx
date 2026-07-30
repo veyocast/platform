@@ -34,7 +34,7 @@ export default function RootLayout({
   children
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="nl">
+    <html data-veyocast-player-stage="document" lang="nl">
       <body>
         <script
           dangerouslySetInnerHTML={{ __html: playerClientFallbackScript }}

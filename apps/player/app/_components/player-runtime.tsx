@@ -68,6 +68,7 @@ import { resolveLgRemoteCommand } from "../_lib/lg-signage-bridge";
 import {
   resolvePersistedPairingDelay
 } from "../_lib/player-pairing-recovery";
+import { parsePlayerTimestamp } from "../_lib/player-time";
 import { consumePlayerRecoveryMarker } from "../_lib/player-recovery-marker";
 import {
   createPairingMachineSnapshot,
@@ -196,6 +197,25 @@ export function PlayerRuntime() {
   const pairingMachineRef = useRef<PairingMachineSnapshot>(pairingMachine);
   runtimeRef.current = runtime;
   pairingMachineRef.current = pairingMachine;
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const stableTimer = window.setTimeout(() => {
+      try {
+        window.sessionStorage.removeItem(
+          "veyocast.player.clientFallbackRetry.v1"
+        );
+      } catch {
+        // Een geblokkeerde sessionStorage mag de Player niet blokkeren.
+      }
+      root.setAttribute("data-veyocast-player-stage", "runtime-stable");
+    }, 10_000);
+
+    root.setAttribute("data-veyocast-player-stage", "runtime-mounted");
+    return () => {
+      window.clearTimeout(stableTimer);
+    };
+  }, []);
 
   const transitionPairing = useCallback((event: PairingMachineEvent) => {
     const next = transitionPairingMachine(pairingMachineRef.current, event);
@@ -859,7 +879,9 @@ export function PlayerRuntime() {
       }
 
       function schedulePairingExpiry(expiresAt: string | undefined) {
-        const expiry = expiresAt ? new Date(expiresAt).getTime() : Number.NaN;
+        const expiry = expiresAt
+          ? parsePlayerTimestamp(expiresAt)
+          : Number.NaN;
         if (!Number.isFinite(expiry)) return;
         if (expiryTimer) window.clearTimeout(expiryTimer);
         expiryTimer = window.setTimeout(() => {
@@ -922,7 +944,7 @@ export function PlayerRuntime() {
     if (pendingPairing) {
       let cancelled = false;
       const pendingToken = deviceToken;
-      const expiresAt = new Date(pendingPairing.expiresAt).getTime();
+      const expiresAt = parsePlayerTimestamp(pendingPairing.expiresAt);
 
       if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
         clearStoredPlayerIdentity();
