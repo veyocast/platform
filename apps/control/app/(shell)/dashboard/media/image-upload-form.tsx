@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 
 import { Button, StatusPill } from "@veyocast/ui";
@@ -9,10 +10,16 @@ import {
   maxImageUploadBatchSize,
   validateImageUploadFile
 } from "../../../../lib/media/image-upload-policy";
-import {
-  uploadMediaImages,
-  type MediaImageUploadState
-} from "./actions";
+import type { ImageUploadApiResult } from "../../../../lib/media/image-upload-api";
+
+type MediaImageUploadState = {
+  completedAt: string | null;
+  results: Array<{
+    fileName: string;
+    message: string;
+    status: "critical" | "success";
+  }>;
+};
 
 const initialState: MediaImageUploadState = {
   completedAt: null,
@@ -23,6 +30,7 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
   const [state, setState] = useState(initialState);
   const [pending, setPending] = useState(false);
 
@@ -64,13 +72,44 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
 
         const formData = new FormData();
         formData.set("media", file);
-        if (files.length === 1) {
-          formData.set("title", titleInputRef.current?.value.trim() ?? "");
-        }
+        const suppliedTitle = titleInputRef.current?.value.trim() ?? "";
+        formData.set(
+          "title",
+          files.length === 1 && suppliedTitle
+            ? suppliedTitle
+            : mediaTitleFromFileName(file.name)
+        );
 
         try {
-          const result = await uploadMediaImages(initialState, formData);
-          results.push(...result.results);
+          const response = await fetch("/api/media/images", {
+            body: formData,
+            cache: "no-store",
+            credentials: "same-origin",
+            method: "POST"
+          });
+          const result = (await response.json().catch(() => null)) as
+            | ImageUploadApiResult
+            | null;
+
+          if (!response.ok || !result?.ok) {
+            const reference = result?.requestId
+              ? ` Referentie: ${result.requestId}.`
+              : "";
+            results.push({
+              fileName: file.name,
+              message:
+                result && !result.ok
+                  ? `${result.error.message} ${result.error.recovery}${reference}`
+                  : `De uploadservice gaf geen geldig antwoord.${reference} Probeer het bestand opnieuw.`,
+              status: "critical"
+            });
+          } else {
+            results.push({
+              fileName: file.name,
+              message: `${result.data.title} is gecontroleerd en gereed voor playlists.`,
+              status: "success"
+            });
+          }
         } catch {
           results.push({
             fileName: file.name,
@@ -86,6 +125,7 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
       setState({ completedAt, results });
       if (results.some((result) => result.status === "success")) {
         formRef.current?.reset();
+        router.refresh();
       }
     } finally {
       setPending(false);
@@ -179,4 +219,12 @@ function failureState(fileName: string, message: string): MediaImageUploadState 
     completedAt: new Date().toISOString(),
     results: [{ fileName, message, status: "critical" }]
   };
+}
+
+function mediaTitleFromFileName(fileName: string) {
+  const baseName = fileName
+    .replace(/\.[^.]+$/, "")
+    .replace(/[_-]+/g, " ")
+    .trim();
+  return (baseName.length >= 2 ? baseName : "Afbeelding").slice(0, 120);
 }

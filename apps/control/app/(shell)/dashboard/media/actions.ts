@@ -5,10 +5,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
-  MediaUploadError,
-  uploadValidatedImage
+  MediaUploadError
 } from "../../../../lib/media/validated-image-upload";
-import { maxImageUploadBatchSize } from "../../../../lib/media/image-upload-policy";
 import {
   cancelValidatedVideoUpload,
   finalizeValidatedVideoUpload,
@@ -23,102 +21,6 @@ import {
   parseMediaViewStatePayload,
   type MediaViewState
 } from "./saved-media-view";
-
-export async function uploadMediaImage(formData: FormData) {
-  await requireTenantCapability("tenant.media.write");
-  let message: string;
-
-  try {
-    const result = await uploadValidatedImage(formData);
-    message = `${result.title} is gecontroleerd en gereed voor playlists.`;
-  } catch (error) {
-    if (error instanceof MediaUploadError) {
-      redirect(`/dashboard/media?fout=${encodeURIComponent(error.message)}#upload`);
-    }
-
-    console.error("Onverwachte media-uploadfout", error);
-    redirect(
-      "/dashboard/media?fout=De+upload+is+onverwacht+afgebroken.+Er+is+geen+media+beschikbaar+gemaakt%3B+probeer+opnieuw.#upload"
-    );
-  }
-
-  revalidatePath("/dashboard/media");
-  revalidatePath("/dashboard/pilot");
-  redirect(`/dashboard/media?succes=${encodeURIComponent(message)}#upload`);
-}
-
-export type MediaImageUploadState = {
-  completedAt: string | null;
-  results: Array<{
-    fileName: string;
-    message: string;
-    status: "critical" | "success";
-  }>;
-};
-
-export async function uploadMediaImages(
-  _previousState: MediaImageUploadState,
-  formData: FormData
-): Promise<MediaImageUploadState> {
-  await requireTenantCapability("tenant.media.write");
-  const files = formData
-    .getAll("media")
-    .filter((candidate): candidate is File => candidate instanceof File && candidate.size > 0);
-  const suppliedTitle = String(formData.get("title") ?? "").trim();
-
-  if (!files.length) {
-    return imageUploadFailure("Geen bestand", "Kies minimaal één JPEG-, PNG- of WebP-bestand met inhoud.");
-  }
-  if (files.length > maxImageUploadBatchSize) {
-    return imageUploadFailure(
-      "Selectie",
-      `Upload maximaal ${maxImageUploadBatchSize} afbeeldingen per keer. Verklein de selectie en probeer opnieuw.`
-    );
-  }
-  if (files.length === 1 && suppliedTitle && suppliedTitle.length < 2) {
-    return imageUploadFailure(
-      files[0]!.name,
-      "Gebruik minimaal twee tekens voor de titel of laat het veld leeg voor de bestandsnaam."
-    );
-  }
-
-  const results: MediaImageUploadState["results"] = [];
-  for (const file of files) {
-    const itemFormData = new FormData();
-    itemFormData.set("media", file);
-    itemFormData.set(
-      "title",
-      files.length === 1 && suppliedTitle
-        ? suppliedTitle
-        : mediaTitleFromFileName(file.name)
-    );
-
-    try {
-      const result = await uploadValidatedImage(itemFormData);
-      results.push({
-        fileName: file.name,
-        message: `${result.title} is gecontroleerd en gereed voor playlists.`,
-        status: "success"
-      });
-    } catch (error) {
-      if (!(error instanceof MediaUploadError)) {
-        console.error("Onverwachte batch-uploadfout", error);
-      }
-      results.push({
-        fileName: file.name,
-        message:
-          error instanceof MediaUploadError
-            ? error.message
-            : "De upload is onverwacht afgebroken. Dit bestand is niet beschikbaar gemaakt; probeer het opnieuw.",
-        status: "critical"
-      });
-    }
-  }
-
-  revalidatePath("/dashboard/media");
-  revalidatePath("/dashboard/pilot");
-  return { completedAt: new Date().toISOString(), results };
-}
 
 export async function prepareMediaVideoUpload(candidate: VideoUploadCandidate) {
   await requireTenantCapability("tenant.media.write");
@@ -414,21 +316,6 @@ function optionalId(formData: FormData, key: string) {
 function idempotencyValue(formData: FormData) {
   const value = String(formData.get("idempotencyKey") ?? "");
   return uuidPattern.test(value) ? value : randomUUID();
-}
-
-function imageUploadFailure(
-  fileName: string,
-  message: string
-): MediaImageUploadState {
-  return {
-    completedAt: new Date().toISOString(),
-    results: [{ fileName, message, status: "critical" }]
-  };
-}
-
-function mediaTitleFromFileName(fileName: string) {
-  const baseName = fileName.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim();
-  return (baseName || "Afbeelding").slice(0, 120);
 }
 
 function organizationError(code: string | undefined) {
