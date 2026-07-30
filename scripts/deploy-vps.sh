@@ -574,17 +574,64 @@ verify_health_matrix() {
 }
 
 check_worker_readiness() {
-  local attempt
+  local attempt container_id docker_health expected_image actual_image env_is_exact probe_result
+  probe_result="nog geen probe uitgevoerd"
+  docker_health="onbekend"
   for attempt in $(seq 1 24); do
-    if "${WORKER_COMPOSE_ARGS[@]}" exec -T media-worker node -e \
-      "fetch('http://127.0.0.1:3100/readyz').then(async r=>{const b=await r.json();if(!r.ok||b.status!=='ready'||b.service!=='VeyoCast Media Worker'||b.environment!=='${environment}'||b.revision!=='${DEPLOYMENT_SHA}')process.exit(1)}).catch(()=>process.exit(1))"; then
+    if probe_result=$("${WORKER_COMPOSE_ARGS[@]}" exec -T media-worker node -e \
+      "fetch('http://127.0.0.1:3100/readyz').then(async r=>{const b=await r.json();const valid=r.ok&&b.status==='ready'&&b.service==='VeyoCast Media Worker'&&b.environment==='${environment}'&&b.revision==='${DEPLOYMENT_SHA}';process.stdout.write(JSON.stringify({environment:b.environment,httpStatus:r.status,revision:b.revision,service:b.service,status:b.status,valid}));if(!valid)process.exitCode=1}).catch(e=>{process.stdout.write(JSON.stringify({error:e instanceof Error?e.name:'unknown',valid:false}));process.exitCode=1})" 2>&1); then
       return 0
     fi
+
+    # `docker compose exec` kan op een drukke rootless host tijdelijk geen
+    # extra proces starten terwijl de reeds draaiende container wel gezond is.
+    # De ingebouwde Docker-healthcheck bevraagt exact hetzelfde /readyz
+    # endpoint. Accepteer die alleen wanneer containerimage én niet-geheime
+    # runtime-identiteit exact bij deze geautoriseerde release horen.
+    container_id=$("${WORKER_COMPOSE_ARGS[@]}" ps -q media-worker 2>/dev/null || true)
+    if [[ -n ${container_id} ]]; then
+      docker_health=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}' "${container_id}" 2>/dev/null || true)
+      actual_image=$(docker inspect --format '{{.Image}}' "${container_id}" 2>/dev/null || true)
+      expected_image=$(metadata_image_id media-worker 2>/dev/null || true)
+      # De JavaScript-template-expressies worden bewust pas door Node
+      # geëvalueerd; Bash mag deze single-quoted bron niet expanderen.
+      # shellcheck disable=SC2016
+      if docker inspect --format '{{json .Config.Env}}' "${container_id}" 2>/dev/null \
+        | EXPECTED_ENVIRONMENT="${environment}" EXPECTED_REVISION="${DEPLOYMENT_SHA}" node -e '
+            let input = "";
+            process.stdin.setEncoding("utf8");
+            process.stdin.on("data", (chunk) => { input += chunk; });
+            process.stdin.on("end", () => {
+              try {
+                const values = JSON.parse(input);
+                const environment = values.find((value) => value.startsWith("VEYOCAST_ENVIRONMENT="));
+                const revision = values.find((value) => value.startsWith("DEPLOYMENT_SHA="));
+                if (
+                  environment !== `VEYOCAST_ENVIRONMENT=${process.env.EXPECTED_ENVIRONMENT}` ||
+                  revision !== `DEPLOYMENT_SHA=${process.env.EXPECTED_REVISION}`
+                ) process.exitCode = 1;
+              } catch {
+                process.exitCode = 1;
+              }
+            });
+          '; then
+        env_is_exact=true
+      else
+        env_is_exact=false
+      fi
+      if [[ ${docker_health} == healthy \
+        && ${actual_image} == "${expected_image}" \
+        && ${env_is_exact} == true ]]; then
+        echo "Media-workerreadiness bevestigd via de ingebouwde Docker-healthcheck."
+        return 0
+      fi
+    fi
+
     if (( attempt < 24 )); then
       sleep 3
     fi
   done
-  echo "Readinesscheck mislukt: media-worker." >&2
+  echo "Readinesscheck mislukt: media-worker. Laatste veilige probe: ${probe_result}. Docker-health: ${docker_health}." >&2
   return 1
 }
 
