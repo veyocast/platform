@@ -100,6 +100,8 @@ test("does not treat an intentional video pause as a playback stall", async ({
   await expect(playerVideo).toBeVisible();
   await playerVideo.evaluate((element) => {
     element.dispatchEvent(new Event("playing", { bubbles: true }));
+    element.autoplay = false;
+    element.pause();
     element.dispatchEvent(new Event("pause", { bubbles: true }));
   });
   await page.waitForTimeout(1_500);

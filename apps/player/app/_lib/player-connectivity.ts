@@ -6,12 +6,15 @@ export type PlayerConnectivityEvent = CustomEvent<{ online: boolean }>;
 
 export type PlayerTransportDiagnostic = {
   at: string;
+  code?: string;
   method: string;
   onlineHint: boolean | null;
-  outcome: "abort" | "error" | "response" | "timeout";
+  outcome: "abort" | "error" | "exception" | "response" | "timeout";
   path: string;
+  playerState?: string;
+  stage?: string;
   status: number | null;
-  transport: "fetch" | "xhr";
+  transport: "browser" | "fetch" | "xhr";
 };
 
 let lastKnownOriginConnectivity: boolean | null = null;
@@ -269,11 +272,14 @@ function isPlayerTransportDiagnostic(
       typeof candidate.onlineHint === "boolean") &&
     (candidate.outcome === "abort" ||
       candidate.outcome === "error" ||
+      candidate.outcome === "exception" ||
       candidate.outcome === "response" ||
       candidate.outcome === "timeout") &&
     typeof candidate.path === "string" &&
     (candidate.status === null || typeof candidate.status === "number") &&
-    (candidate.transport === "fetch" || candidate.transport === "xhr")
+    (candidate.transport === "browser" ||
+      candidate.transport === "fetch" ||
+      candidate.transport === "xhr")
   );
 }
 

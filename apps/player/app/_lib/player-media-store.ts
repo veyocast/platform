@@ -40,8 +40,18 @@ export class CacheStorageMediaStore implements PlayerMediaStore {
       throw new Error(`cached asset missing: ${cacheKey}`);
     }
 
-    if (typeof navigator !== "undefined" && navigator.serviceWorker?.controller) {
+    if (!shouldUseObjectUrlForCachedPlayback()) {
       return { url: cacheKey };
+    }
+
+    if (typeof URL.createObjectURL !== "function") {
+      if (
+        typeof navigator !== "undefined" &&
+        navigator.serviceWorker?.controller
+      ) {
+        return { url: cacheKey };
+      }
+      throw new Error("Object URL API is unavailable");
     }
 
     const objectUrl = URL.createObjectURL(await response.blob());
@@ -58,4 +68,29 @@ export class CacheStorageMediaStore implements PlayerMediaStore {
 
 export function createPlayerMediaStore(cacheName: string): PlayerMediaStore {
   return new CacheStorageMediaStore(cacheName);
+}
+
+export function shouldUseObjectUrlForCachedPlayback({
+  pathname = typeof window === "undefined" ? "" : window.location.pathname,
+  serviceWorkerControlled =
+    typeof navigator !== "undefined" &&
+    Boolean(navigator.serviceWorker?.controller),
+  userAgent =
+    typeof navigator === "undefined" ? "" : navigator.userAgent
+}: {
+  pathname?: string;
+  serviceWorkerControlled?: boolean;
+  userAgent?: string;
+} = {}) {
+  if (!serviceWorkerControlled) return true;
+
+  // De mediaspeler van webOS Signage kan een serviceworker-URL wel openen,
+  // maar range-requests vervolgens buiten de gecontroleerde documentcontext
+  // uitvoeren. Een object-URL gebruikt exact dezelfde geverifieerde cachebytes
+  // en omzeilt alleen die instabiele transportgrens.
+  return (
+    pathname === "/lg" ||
+    pathname.startsWith("/lg/") ||
+    /web0s|webos|netcast|lg browser|\blge\b/i.test(userAgent)
+  );
 }

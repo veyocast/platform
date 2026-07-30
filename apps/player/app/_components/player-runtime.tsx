@@ -217,6 +217,13 @@ export function PlayerRuntime() {
     };
   }, []);
 
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-veyocast-player-runtime-state",
+      runtime.state
+    );
+  }, [runtime.state]);
+
   const transitionPairing = useCallback((event: PairingMachineEvent) => {
     const next = transitionPairingMachine(pairingMachineRef.current, event);
     pairingMachineRef.current = next;
@@ -2103,7 +2110,7 @@ export function PlaybackMedia({
     hasEndedRef.current = true;
     isPausedRef.current = false;
     hasStartedRef.current = true;
-    videoRef.current?.pause();
+    safelyPauseVideo(videoRef.current);
     onPlaybackStateChange?.("ended");
     onReady(item.id);
     onEnded(item.id);
@@ -2112,15 +2119,20 @@ export function PlaybackMedia({
   useEffect(() => {
     const video = videoRef.current;
     if (item.kind !== "video" || !video) return;
-    video.volume = presentation.volumePercent / 100;
+    safelySetVideoVolume(
+      video,
+      presentation.volumePercent / 100,
+      item.muted
+    );
     if (
-      video.readyState >= HTMLMediaElement.HAVE_METADATA &&
+      video.readyState >= 1 &&
       presentation.trimStartSeconds > 0
     ) {
-      video.currentTime = presentation.trimStartSeconds;
+      safelySeekVideo(video, presentation.trimStartSeconds);
     }
   }, [
     item.kind,
+    item.muted,
     presentation.trimStartSeconds,
     presentation.volumePercent
   ]);
@@ -2138,9 +2150,16 @@ export function PlaybackMedia({
         muted={item.muted}
         onEnded={completeVideoPlayback}
         onLoadedMetadata={(event) => {
-          event.currentTarget.volume = presentation.volumePercent / 100;
+          safelySetVideoVolume(
+            event.currentTarget,
+            presentation.volumePercent / 100,
+            item.muted
+          );
           if (presentation.trimStartSeconds > 0) {
-            event.currentTarget.currentTime = presentation.trimStartSeconds;
+            safelySeekVideo(
+              event.currentTarget,
+              presentation.trimStartSeconds
+            );
           }
         }}
         onError={() => reportFailure("VIDEO_ERROR")}
@@ -2208,6 +2227,36 @@ export function PlaybackMedia({
       style={mediaStyle}
     />
   );
+}
+
+function safelyPauseVideo(video: HTMLVideoElement | null) {
+  if (!video) return;
+  try {
+    video.pause();
+  } catch {
+    // Embedded mediastacks kunnen pause tijdens een native fout weigeren.
+  }
+}
+
+function safelySeekVideo(video: HTMLVideoElement, timeSeconds: number) {
+  try {
+    video.currentTime = timeSeconds;
+  } catch {
+    // De watchdog houdt de release bestuurbaar wanneer seeking niet kan.
+  }
+}
+
+function safelySetVideoVolume(
+  video: HTMLVideoElement,
+  volume: number,
+  muted: boolean
+) {
+  if (muted) return;
+  try {
+    video.volume = Math.min(1, Math.max(0, volume));
+  } catch {
+    // Volume is op sommige webOS Signage-mediastacks read-only.
+  }
 }
 
 function PairingPanel({

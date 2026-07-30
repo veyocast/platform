@@ -47,7 +47,28 @@ export const playerClientFallbackScript = `
       return "document";
     }
   }
-  function recordDiagnostic(code, bootStage) {
+  function runtimeState() {
+    try {
+      return document.documentElement.getAttribute(
+        "data-veyocast-player-runtime-state"
+      ) || "UNKNOWN";
+    } catch (error) {
+      return "UNKNOWN";
+    }
+  }
+  function isManagedMediaError(event) {
+    var target = event && event.target;
+    var tagName =
+      target && target.tagName ? String(target.tagName).toUpperCase() : "";
+    return (
+      tagName === "AUDIO" ||
+      tagName === "IMG" ||
+      tagName === "SOURCE" ||
+      tagName === "TRACK" ||
+      tagName === "VIDEO"
+    );
+  }
+  function recordDiagnostic(code, bootStage, playerState) {
     var diagnostics = [];
     try {
       diagnostics = JSON.parse(
@@ -66,6 +87,7 @@ export const playerClientFallbackScript = `
             : null,
         outcome: "exception",
         path: window.location.pathname,
+        playerState: playerState,
         stage: bootStage,
         status: null,
         transport: "browser"
@@ -97,29 +119,45 @@ export const playerClientFallbackScript = `
     var body;
     var bootStage;
     var code;
+    var fallback;
+    var host;
+    var playerState;
     var retryScheduled;
     var version;
     if (shown || !document || !document.body) { return; }
+    if (isManagedMediaError(event)) {
+      return;
+    }
     if (event && event.type === "error" && !event.error && !event.message) {
       return;
     }
     shown = true;
     bootStage = stage();
+    playerState = runtimeState();
     code = classify(event);
-    recordDiagnostic(code, bootStage);
+    recordDiagnostic(code, bootStage, playerState);
     retryScheduled = scheduleBoundedRetry();
     version = ${JSON.stringify(
       process.env.NEXT_PUBLIC_APP_VERSION ?? "development"
     )};
     body = document.body;
-    body.innerHTML =
+    host = document.getElementById("veyocast-client-fallback-host");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "veyocast-client-fallback-host";
+      body.appendChild(host);
+    }
+    host.setAttribute("role", "presentation");
+    host.style.cssText =
+      "position:fixed;inset:0;z-index:2147483647;overflow:auto;background:#0a0a0a";
+    host.innerHTML =
       '<main id="veyocast-client-fallback" aria-labelledby="veyocast-client-fallback-title" style="box-sizing:border-box;background:var(--vc-brand-ink-black,Canvas);color:var(--vc-brand-paper-white,CanvasText);display:flex;min-height:100vh;align-items:center;justify-content:center;padding:6vw;font-family:system-ui,sans-serif">' +
       '<section style="max-width:760px;width:100%">' +
       '<img alt="VeyoCast" src="/brand/veyocast-logo-inverse.svg" style="display:block;max-width:230px;width:46%;margin-bottom:32px">' +
       '<p style="font-size:16px;letter-spacing:.08em;text-transform:uppercase">Playerherstel</p>' +
       '<h1 id="veyocast-client-fallback-title" style="font-size:clamp(34px,6vw,64px);line-height:1.05;margin:8px 0 20px">De Player kon niet veilig starten</h1>' +
       '<p style="font-size:clamp(18px,2.4vw,25px);line-height:1.5">Er is een onverwachte client-side fout opgetreden. Een geldige lokale release en koppeling zijn niet verwijderd.</p>' +
-      '<p style="font-family:ui-monospace,monospace">Foutcode: ${playerClientFallbackCode}<br>Diagnose: ' + text(code) + '<br>Opstartfase: ' + text(bootStage) + '<br>Player-versie: ' + text(version) + '</p>' +
+      '<p style="font-family:ui-monospace,monospace">Foutcode: ${playerClientFallbackCode}<br>Diagnose: ' + text(code) + '<br>Opstartfase: ' + text(bootStage) + '<br>Playerstatus: ' + text(playerState) + '<br>Player-versie: ' + text(version) + '</p>' +
       (retryScheduled
         ? '<p style="font-size:18px;line-height:1.5">De Player probeert over enkele seconden één keer gecontroleerd opnieuw.</p>'
         : '') +
@@ -127,11 +165,14 @@ export const playerClientFallbackScript = `
       '<button id="veyocast-client-retry" type="button" style="background:var(--vc-brand-electric-orange);border:0;border-radius:6px;color:var(--vc-brand-ink-black);font:inherit;font-weight:700;min-height:52px;padding:12px 20px">Opnieuw proberen</button>' +
       '<a href="/lg/recover" style="background:var(--vc-brand-paper-white);border-radius:6px;color:var(--vc-brand-ink-black);display:inline-flex;align-items:center;font-weight:700;min-height:52px;padding:0 20px;text-decoration:none">Player herstellen</a>' +
       '</div></section></main>';
-    document.getElementById("veyocast-client-retry").onclick = function () {
-      window.location.reload();
-    };
+    fallback = document.getElementById("veyocast-client-retry");
+    if (fallback) {
+      fallback.onclick = function () {
+        window.location.reload();
+      };
+    }
   }
-  window.addEventListener("error", showFallback);
+  window.addEventListener("error", showFallback, true);
   window.addEventListener("unhandledrejection", showFallback);
 }());
 `;

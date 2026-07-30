@@ -40,6 +40,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: playerClientFallbackScript }}
           id="veyocast-client-fallback-guard"
         />
+        <div id="veyocast-client-fallback-host" />
         <ServiceWorkerRegistration />
         {children}
         <PlayerPwaControls />

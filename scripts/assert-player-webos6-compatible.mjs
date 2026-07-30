@@ -3,6 +3,7 @@ import path from "node:path";
 
 const playerRoot = path.resolve(process.argv[2] ?? "apps/player");
 const chunksRoot = path.join(playerRoot, ".next", "static", "chunks");
+const standaloneBrowserFiles = [path.join(playerRoot, "public", "sw.js")];
 const excludedFrameworkFiles = /^(?:main|polyfills)-.*\.js$/;
 const unsupportedSyntax = [
   {
@@ -24,6 +25,17 @@ for (const file of await listFiles(chunksRoot)) {
   if (!file.endsWith(".js") || excludedFrameworkFiles.test(path.basename(file))) {
     continue;
   }
+  const source = await readFile(file, "utf8");
+  for (const check of unsupportedSyntax) {
+    if (check.pattern.test(source)) {
+      failures.push(
+        `${path.relative(playerRoot, file)} bevat ${check.label}.`
+      );
+    }
+  }
+}
+
+for (const file of standaloneBrowserFiles) {
   const source = await readFile(file, "utf8");
   for (const check of unsupportedSyntax) {
     if (check.pattern.test(source)) {
