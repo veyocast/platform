@@ -8,6 +8,7 @@ import {
   MediaUploadError,
   uploadValidatedImage
 } from "../../../../lib/media/validated-image-upload";
+import { maxImageUploadBatchSize } from "../../../../lib/media/image-upload-policy";
 import {
   cancelValidatedVideoUpload,
   finalizeValidatedVideoUpload,
@@ -68,10 +69,10 @@ export async function uploadMediaImages(
   if (!files.length) {
     return imageUploadFailure("Geen bestand", "Kies minimaal één JPEG-, PNG- of WebP-bestand met inhoud.");
   }
-  if (files.length > 12) {
+  if (files.length > maxImageUploadBatchSize) {
     return imageUploadFailure(
       "Selectie",
-      "Upload maximaal twaalf afbeeldingen per keer. Verklein de selectie en probeer opnieuw."
+      `Upload maximaal ${maxImageUploadBatchSize} afbeeldingen per keer. Verklein de selectie en probeer opnieuw.`
     );
   }
   if (files.length === 1 && suppliedTitle && suppliedTitle.length < 2) {
