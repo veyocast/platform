@@ -51,11 +51,14 @@ actief waren; de storing zat in uploadtransport en videostart.
 - Control: 116 unit-tests en TypeScriptcontrole groen.
 - Player: 102 unit-tests inclusief online native MP4-bron en offline
   blobfallback groen.
+- Workspace: 28/28 lint-, 28/28 typecheck- en 28/28 unittaken groen.
 - Control- en Player-productionbuilds groen.
 - De Player-build is door de Chromium 79/webOS 6-syntaxguard gegaan.
-
-De volledige workspace-, a11y-, Player- en offlinegates worden vóór merge
-opnieuw uitgevoerd en in de PR/deploymentchecks vastgelegd.
+- De brede Chromiumrun gaf 110 groen en 8 bewuste live/visual skips. Vijf
+  parallelle devserverchecks faalden aanvankelijk door routecompilatie of,
+  voor de reviewdemo, een opnieuw gestarte pauze. Na de callbackreparatie zijn
+  alle vijf afzonderlijk en serieel groen; daaronder de volledige
+  viewportmatrix, floating panels, marketingnavigatie en videopause.
 
 ## Fysieke heracceptatie
 
