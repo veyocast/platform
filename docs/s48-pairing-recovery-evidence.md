@@ -96,8 +96,9 @@ requeststart in lokale storage.
 
 - Alle installatie- en pairingrequests hebben een timeout van 15 seconden en
   begrensde exponential back-off.
-- Een request ouder dan 60 seconden wordt gecontroleerd vervangen; na twee
-  minuten verschijnt de fysieke herstelmenu-instructie.
+- Een request ouder dan 60 seconden wordt gecontroleerd opnieuw aangeboden met
+  dezelfde idempotency nonce; na twee minuten verschijnt de fysieke
+  herstelmenu-instructie.
 - Een verlopen tienminutencode wordt ingetrokken en automatisch vervangen,
   zonder reload.
 - HTTP 500, 502, 503, 504, timeout, DNS- of offlinefouten verwijderen geen
