@@ -11,6 +11,7 @@ import {
   imageUploadPolicyMessage,
   validateImageUploadFile
 } from "./image-upload-policy";
+import { readImageDimensions } from "./image-dimensions";
 
 export class MediaUploadError extends Error {
   constructor(message: string) {
@@ -84,6 +85,13 @@ export async function uploadValidatedImageCandidate({
     );
   }
 
+  const dimensions = readImageDimensions(bytes, detectedMimeType);
+  if (!dimensions) {
+    throw new MediaUploadError(
+      "De afbeelding bevat geen geldige breedte en hoogte. Er is niets opgeslagen; exporteer het bestand opnieuw als JPEG, PNG of WebP."
+    );
+  }
+
   const assetId = randomUUID();
   const safeFileName = sanitizeFileName(candidate.name, detectedMimeType);
   const storagePath =
@@ -93,6 +101,7 @@ export async function uploadValidatedImageCandidate({
   const { error: assetError } = await supabase.from("media_assets").insert({
     created_by: userId,
     file_size_bytes: bytes.byteLength,
+    height: dimensions.height,
     id: assetId,
     kind: "image",
     mime_type: detectedMimeType,
@@ -101,7 +110,8 @@ export async function uploadValidatedImageCandidate({
     storage_bucket: "tenant-media",
     storage_path: storagePath,
     tenant_id: tenantId,
-    title
+    title,
+    width: dimensions.width
   });
 
   if (assetError) {
@@ -148,11 +158,13 @@ export async function uploadValidatedImageCandidate({
     asset_id: assetId,
     checksum_sha256: checksumSha256,
     file_size_bytes: bytes.byteLength,
+    height: dimensions.height,
     mime_type: detectedMimeType,
     storage_bucket: "tenant-media",
     storage_path: storagePath,
     tenant_id: tenantId,
-    variant_type: "original"
+    variant_type: "original",
+    width: dimensions.width
   });
 
   if (variantError) {
