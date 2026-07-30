@@ -66,8 +66,7 @@ import {
 } from "../_lib/player-connectivity";
 import { resolveLgRemoteCommand } from "../_lib/lg-signage-bridge";
 import {
-  resolvePersistedPairingDelay,
-  shouldRotatePairingRequestNonce
+  resolvePersistedPairingDelay
 } from "../_lib/player-pairing-recovery";
 import { consumePlayerRecoveryMarker } from "../_lib/player-recovery-marker";
 import {
@@ -734,26 +733,6 @@ export function PlayerRuntime() {
       let pollTimer: number | undefined;
       let provisionTimer: number | undefined;
       let retryAttempts = 0;
-      let firstTransientPairingFailureAt: number | null = null;
-
-      function rotateStuckPairingRequestNonce() {
-        const now = Date.now();
-        if (firstTransientPairingFailureAt === null) {
-          firstTransientPairingFailureAt = now;
-          return false;
-        }
-        if (
-          !shouldRotatePairingRequestNonce(
-            firstTransientPairingFailureAt,
-            now
-          )
-        ) {
-          return false;
-        }
-        clearPairingRequestNonce();
-        firstTransientPairingFailureAt = now;
-        return true;
-      }
 
       function queuePairingProvision(
         delayMs: number,
@@ -811,14 +790,10 @@ export function PlayerRuntime() {
             });
             const delayMs = pairingRetryDelayMs(response, body, retryAttempts);
             retryAttempts += 1;
-            const nonceRotated =
-              response.status >= 500 && rotateStuckPairingRequestNonce();
             queuePairingProvision(
               delayMs,
-              nonceRotated
-                ? "De vastgelopen pairingaanvraag is veilig vervangen."
-                : body.error?.cause ??
-                    "De koppelservice is tijdelijk niet beschikbaar.",
+              body.error?.cause ??
+                "De koppelservice is tijdelijk niet beschikbaar.",
               body.error?.code ?? "PAIRING_API_UNAVAILABLE"
             );
             return;
@@ -842,7 +817,6 @@ export function PlayerRuntime() {
           }
 
           retryAttempts = 0;
-          firstTransientPairingFailureAt = null;
           clearPairingProvisionAfter();
           const pendingToken = body.deviceToken;
           writeStoredPairing(body);
@@ -866,12 +840,9 @@ export function PlayerRuntime() {
           });
           const delayMs = transientPairingRetryDelayMs(retryAttempts);
           retryAttempts += 1;
-          const nonceRotated = rotateStuckPairingRequestNonce();
           queuePairingProvision(
             delayMs,
-            nonceRotated
-              ? "De vastgelopen pairingaanvraag is veilig vervangen."
-              : "De koppelservice is tijdelijk niet bereikbaar.",
+            "De koppelservice is tijdelijk niet bereikbaar.",
             "PAIRING_API_UNAVAILABLE"
           );
         }
@@ -912,10 +883,9 @@ export function PlayerRuntime() {
       const watchdogTimer = window.setInterval(() => {
         const action = pairingRequestWatchdog(pairingMachineRef.current);
         if (action === "RESTART_REQUEST") {
-          clearPairingRequestNonce();
           queuePairingProvision(
             0,
-            "De vorige aanvraag duurde te lang.",
+            "De vorige aanvraag duurde te lang en wordt idempotent hervat.",
             "PAIRING_REQUEST_TIMEOUT"
           );
         } else if (

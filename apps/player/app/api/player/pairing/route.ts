@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   const tokenHash = sha256(deviceToken);
   for (let codeAttempt = 0; codeAttempt < 4; codeAttempt += 1) {
     const pairingCode = createPairingCode(requestNonce, codeAttempt);
-    const { data, error } = await supabase.rpc("create_pairing_session_v4", {
+    const { data, error } = await supabase.rpc("create_pairing_session_v5", {
       p_code_hash: sha256(pairingCode),
       p_installation_credential_hash: sha256(installationCredential),
       p_request_nonce_hash: sha256(requestNonce),
