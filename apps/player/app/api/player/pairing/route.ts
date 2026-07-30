@@ -6,6 +6,7 @@ import {
   createPlayerAnonClient,
   isLivePlayerConfigured
 } from "../../../_lib/player-supabase";
+import { normalizePlayerTimestamp } from "../../../_lib/player-time";
 
 const pairingAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -160,13 +161,14 @@ function pairingResult(value: unknown) {
     Number.isFinite(result.retryAfterSeconds)
       ? Math.min(600, Math.max(1, Math.ceil(result.retryAfterSeconds)))
       : null;
+  const expiresAt =
+    typeof result.expiresAt === "string"
+      ? normalizePlayerTimestamp(result.expiresAt)
+      : null;
   return {
     code: typeof result.code === "string" ? result.code : null,
-    expiresAt:
-      typeof result.expiresAt === "string"
-        ? result.expiresAt
-        : new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    ok: result.ok === true,
+    expiresAt,
+    ok: result.ok === true && expiresAt !== null,
     reused: result.reused === true,
     retryAfterSeconds
   };
