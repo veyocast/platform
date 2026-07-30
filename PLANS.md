@@ -99,6 +99,7 @@ tests en exitcriteria staan in
 | S62 | LG release-playback | webOS-veilige playback uit geverifieerde cachebytes, niet-destructieve clientfallback en staande Control-mediapreview |
 | S63 | Media-upload en LG native videostreaming | Begrensde individuele afbeeldinguploads en native HTTP-rangevideo op LG met geverifieerde offlinefallback |
 | S64 | Uploadtransport en media-accessvernieuwing | Afbeeldingen omzeilen Server Actions via een begrensde same-origin API en actieve Players vernieuwen verlopen signed media-toegang zonder release- of koppelverlies |
+| S65 | Portrait-afbeeldingsoriëntatie | Afbeeldingsuploads registreren betrouwbare PNG/JPEG/WebP-afmetingen inclusief EXIF-rotatie en Control/Player behouden portraitgeometrie zonder bestaande uploads te breken |
 
 ### Programmagates
 

@@ -573,6 +573,10 @@ body {
   width: 100vw;
 }
 
+img.playback-media {
+  image-orientation: from-image;
+}
+
 video.playback-media {
   pointer-events: none;
 }

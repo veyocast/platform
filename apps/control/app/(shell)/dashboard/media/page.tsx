@@ -1179,9 +1179,9 @@ function MediaPreview({ asset, compact = false }: { asset: MediaAsset; compact?:
     if (compact) {
       return <div className="media-card__preview" data-kind="video"><Video aria-hidden="true" /><span>Video</span></div>;
     }
-    return <video className="media-inspector-preview" controls muted preload="metadata" src={asset.previewUrl}><track kind="captions" /></video>;
+    return <video className="media-inspector-preview" controls data-preview-mode={compact ? "compact" : "inspector"} muted preload="metadata" src={asset.previewUrl}><track kind="captions" /></video>;
   }
-  return <img alt={`Voorbeeld van ${asset.title}`} className="media-inspector-preview" src={asset.previewUrl} />;
+  return <img alt={`Voorbeeld van ${asset.title}`} className="media-inspector-preview" data-preview-mode={compact ? "compact" : "inspector"} src={asset.previewUrl} />;
 }
 
 function MediaStatus({ status }: { status: string }) {

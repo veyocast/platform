@@ -2442,6 +2442,16 @@ kbd {
   width: 100%;
 }
 
+.media-inspector-preview[data-preview-mode="inspector"]:is(img) {
+  aspect-ratio: auto;
+  height: auto;
+  image-orientation: from-image;
+  justify-self: center;
+  max-height: min(60dvh, 640px);
+  max-width: 100%;
+  width: auto;
+}
+
 .media-card__body {
   display: grid;
   gap: var(--vc-space-8);

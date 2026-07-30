@@ -2333,9 +2333,16 @@ function MediaThumb({
   asset: PlaylistStudioAsset | null;
   className: string;
 }) {
+  const [intrinsicDimensions, setIntrinsicDimensions] = useState<{
+    assetId: string;
+    height: number;
+    width: number;
+  } | null>(null);
+  const fallbackDimensions =
+    intrinsicDimensions?.assetId === asset?.id ? intrinsicDimensions : null;
   const geometry = resolveMediaPreviewGeometry(
-    asset?.variant?.width,
-    asset?.variant?.height
+    asset?.variant?.width ?? fallbackDimensions?.width,
+    asset?.variant?.height ?? fallbackDimensions?.height
   );
   const mediaStyle = geometry.aspectRatio
     ? { aspectRatio: geometry.aspectRatio }
@@ -2348,6 +2355,14 @@ function MediaThumb({
         alt=""
         className={className}
         data-media-orientation={geometry.orientation}
+        onLoad={(event) => {
+          if (asset.variant?.width && asset.variant.height) return;
+          const width = event.currentTarget.naturalWidth;
+          const height = event.currentTarget.naturalHeight;
+          if (width > 0 && height > 0) {
+            setIntrinsicDimensions({ assetId: asset.id, height, width });
+          }
+        }}
         src={asset.variant.previewUrl}
         style={mediaStyle}
       />
@@ -2363,6 +2378,14 @@ function MediaThumb({
         <video
           aria-label={`Videofragment van ${asset.title}`}
           muted
+          onLoadedMetadata={(event) => {
+            if (asset.variant?.width && asset.variant.height) return;
+            const width = event.currentTarget.videoWidth;
+            const height = event.currentTarget.videoHeight;
+            if (width > 0 && height > 0) {
+              setIntrinsicDimensions({ assetId: asset.id, height, width });
+            }
+          }}
           playsInline
           preload="metadata"
           src={asset.variant.previewUrl}
