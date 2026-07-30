@@ -197,10 +197,14 @@ test("recovers automatically when pairing creation is temporarily rate limited",
 }) => {
   let pairingRequests = 0;
   const playerInstances: string[] = [];
+  const requestNonces: string[] = [];
   await page.route("**/api/player/pairing", (route) => {
     pairingRequests += 1;
     playerInstances.push(
       route.request().headers()["x-veyocast-player-instance"] ?? ""
+    );
+    requestNonces.push(
+      route.request().headers()["x-veyocast-pairing-request"] ?? ""
     );
     if (pairingRequests === 1) {
       return route.fulfill({
@@ -248,6 +252,55 @@ test("recovers automatically when pairing creation is temporarily rate limited",
   expect(pairingRequests).toBe(2);
   expect(playerInstances[0]).toMatch(/^[a-f0-9-]{20,80}$/);
   expect(playerInstances[1]).toBe(playerInstances[0]);
+  expect(requestNonces[0]).toMatch(/^[a-f0-9-]{20,80}$/);
+  expect(requestNonces[1]).toBe(requestNonces[0]);
+});
+
+test("reuses one idempotency key across a temporary pairing outage", async ({
+  page
+}) => {
+  let pairingRequests = 0;
+  const requestNonces: string[] = [];
+  await page.route("**/api/player/pairing", (route) => {
+    pairingRequests += 1;
+    requestNonces.push(
+      route.request().headers()["x-veyocast-pairing-request"] ?? ""
+    );
+    if (pairingRequests === 1) {
+      return route.fulfill({
+        contentType: "application/json",
+        json: {
+          error: {
+            cause: "Koppelservice tijdelijk niet beschikbaar.",
+            code: "PAIRING_API_UNAVAILABLE"
+          }
+        },
+        status: 503
+      });
+    }
+    return route.fulfill({
+      contentType: "application/json",
+      json: {
+        deviceToken: "temporary-outage-token",
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+        live: true,
+        pairingCode: "TMP 503"
+      }
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    contentType: "application/json",
+    json: { ok: false },
+    status: 403
+  }));
+
+  await page.goto(playerURL);
+  await expect(page.getByLabel("Pairingcode")).toContainText("TMP 503", {
+    timeout: 8_000
+  });
+  expect(pairingRequests).toBe(2);
+  expect(requestNonces[0]).toMatch(/^[a-f0-9-]{20,80}$/);
+  expect(requestNonces[1]).toBe(requestNonces[0]);
 });
 
 test("coalesces rapid refreshes before requesting another pairing code", async ({

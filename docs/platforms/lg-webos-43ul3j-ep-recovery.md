@@ -263,3 +263,37 @@ nieuwe IPK of bekend LG-beheerwachtwoord. Release
 immutable GitHub-releaseketen gezond naar staging en production gepromoveerd.
 De publieke productionroute geeft HTTP 200 zonder Next-clientchunks; alleen de
 uitvoering op firmware 03.24.90 blijft expliciet af te tekenen.
+
+### Herstel uit `PAIRING_RATE_LIMITED`
+
+Fysiek bewijs van 30 juli 2026 liet zien dat `/lg/recover` wel succesvol
+annuleerde en registreerde, maar daarna iedere tien seconden met een nieuwe
+requestnonce opnieuw een code aanvroeg. De server antwoordde terecht met HTTP
+429. Daardoor kon herstel zijn eigen vijf-per-tien-minutenlimiet onderhouden.
+
+S60 sluit deze lus op twee niveaus:
+
+- de gewone Player en de zelfstandige recoverypagina behouden tijdens
+  tijdelijke fouten één requestnonce en hervatten dus dezelfde idempotente
+  aanvraag;
+- `Retry-After` wordt tot maximaal tien minuten gerespecteerd in plaats van
+  lokaal tot tien seconden te worden afgekapt;
+- een met de installatiecredential bewezen recovery krijgt server-side één
+  eenmalige vrijstelling op de installatiegrens;
+- die vrijstelling wordt bij de eerstvolgende geslaagde codeaanvraag
+  verbruikt, kan binnen tien minuten niet opnieuw worden uitgegeven en omzeilt
+  nooit de wereldwijde misbruikgrens;
+- annulering, vrijstelling en nieuwe code blijven atomair, tenantblind voor de
+  browser en geaudit.
+
+Dit is expliciet bedoeld om ook een Player die **al** HTTP 429 toont direct uit
+de lus te halen. Na deployment opent de beheerder eenmaal
+`https://player.veyocast.nl/lg/recover`. Zodra een code zichtbaar is, wordt
+**Afspelen via URL** teruggezet op `https://player.veyocast.nl/lg`.
+
+Voor de LG 43UL3J-EP met firmware 03.24.90 is **Afspelen via URL** momenteel de
+productiekeuze. De IPK gebruikt dezelfde hosted Player en dezelfde pairing-API
+en kan een HTTP 429 daarom niet oplossen. Bovendien is installatie en koude
+autostart van de productie-IPK op dit exacte scherm nog niet bewezen. De IPK
+blijft een optionele lifecyclewrapper nadat de fysieke packageproef slaagt,
+niet een alternatief pairingprotocol.

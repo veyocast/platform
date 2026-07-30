@@ -44,7 +44,7 @@ describe("pairing recovery API", () => {
       cancelledPendingPairing: true,
       ok: true
     });
-    expect(rpc).toHaveBeenCalledWith("recover_player_pairing_v2", {
+    expect(rpc).toHaveBeenCalledWith("recover_player_pairing_v3", {
       p_installation_credential_hash: sha256(credential),
       p_installation_id_hash: sha256(installationId),
       p_pending_token_hash: null,

@@ -824,7 +824,7 @@ export function renderLgRecoveryHtml() {
     function retryDelay(attempt, retryAfter) {
       var serverSeconds = Number(retryAfter);
       if (isFinite(serverSeconds) && serverSeconds > 0) {
-        return Math.min(10000, Math.max(1000, Math.ceil(serverSeconds * 1000)));
+        return Math.min(600000, Math.max(1000, Math.ceil(serverSeconds * 1000)));
       }
       return Math.min(8000, 1000 * Math.pow(2, attempt));
     }
@@ -832,6 +832,7 @@ export function renderLgRecoveryHtml() {
     function prepareNewPairing(done) {
       var attempt = 0;
       var maximumAttempts = 4;
+      var requestNonce = null;
 
       if (credentialStatus === "valid" && mode === "soft") {
         preparePairingMarker(false);
@@ -868,14 +869,19 @@ export function renderLgRecoveryHtml() {
       }
 
       function requestPairing() {
-        var nonce = createInstallationId().toLowerCase();
-        safeSet(CONFIG.pairingKeys[4], nonce);
+        if (!validInstallationId(requestNonce)) {
+          requestNonce = firstStored([CONFIG.pairingKeys[4]]);
+        }
+        if (!validInstallationId(requestNonce)) {
+          requestNonce = createInstallationId().toLowerCase();
+          safeSet(CONFIG.pairingKeys[4], requestNonce);
+        }
         requestJson(
           "POST",
           "/api/player/pairing",
           {
             "X-VeyoCast-Installation-Credential": installationCredential,
-            "X-VeyoCast-Pairing-Request": nonce,
+            "X-VeyoCast-Pairing-Request": requestNonce,
             "X-VeyoCast-Player-Instance": installationId
           },
           null,
@@ -1005,7 +1011,7 @@ export function renderLgRecoveryHtml() {
       guardedStep(1, checkPlayerStatus, function () {
         guardedStep(2, clearPairingAttempt, function () {
           guardedStep(3, repairLocalCache, function () {
-            guardedStep(4, prepareNewPairing, finishRecovery, 45000);
+            guardedStep(4, prepareNewPairing, finishRecovery, 660000);
           });
         });
       });

@@ -250,8 +250,12 @@ test("tijdelijke pairing-503 toont herstelactie en doet geen valse redirect", as
 }) => {
   await page.unroute("**/api/player/pairing");
   let pairingAttempts = 0;
+  const requestNonces: string[] = [];
   await page.route("**/api/player/pairing", async (route) => {
     pairingAttempts += 1;
+    requestNonces.push(
+      route.request().headers()["x-veyocast-pairing-request"] ?? ""
+    );
     await route.fulfill({
       body: JSON.stringify({
         error: {
@@ -283,6 +287,8 @@ test("tijdelijke pairing-503 toont herstelactie en doet geen valse redirect", as
   );
 
   expect(pairingAttempts).toBe(4);
+  expect(new Set(requestNonces).size).toBe(1);
+  expect(requestNonces[0]).toMatch(/^[a-f0-9-]{20,80}$/);
   expect(new URL(page.url()).pathname).toBe("/lg/recover");
   await expect(page.getByRole("button", { name: "Nu herstellen" })).toBeEnabled();
   await expect(page.locator("#summary")).toContainText(

@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data, error } = await supabase.rpc("recover_player_pairing_v2", {
+  const { data, error } = await supabase.rpc("recover_player_pairing_v3", {
     p_installation_credential_hash: installationCredential
       ? sha256(installationCredential)
       : null,

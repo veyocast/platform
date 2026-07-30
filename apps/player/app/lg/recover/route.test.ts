@@ -39,6 +39,13 @@ describe("zelfstandige LG recoveryroute", () => {
     expect(html).toContain('"/api/player/pairing"');
     expect(html).toContain("Nieuwe koppelcode ");
     expect(html).toContain("maximumAttempts = 4");
+    expect(html).toContain("Math.min(600000");
+    expect(html).toContain(
+      '"X-VeyoCast-Pairing-Request": requestNonce'
+    );
+    expect(html).toContain(
+      "guardedStep(4, prepareNewPairing, finishRecovery, 660000)"
+    );
     expect(html).toContain("stopRecovery(detail)");
   });
 
