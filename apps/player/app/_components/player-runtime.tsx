@@ -20,7 +20,9 @@ import {
   preparePendingRelease,
   readActiveRelease,
   readPreviousRelease,
+  refreshHydratedReleaseEnvelope,
   revokeHydratedRelease,
+  shouldRestartForRefreshedMediaAccess,
   type HydratedPlayerRelease,
   type PlayerCachePhase
 } from "../_lib/player-cache";
@@ -1136,6 +1138,15 @@ export function PlayerRuntime() {
           if (currentRuntime.pendingRelease) {
             releaseHydratedReference(currentRuntime.pendingRelease);
           }
+          const refreshedEnvelope = refreshHydratedReleaseEnvelope({
+            cachedEnvelope: currentRuntime.release.envelope,
+            freshEnvelope: body
+          });
+          const mediaAccessNeedsRestart =
+            shouldRestartForRefreshedMediaAccess({
+              cachedFetchedAt: currentRuntime.release.envelope.fetchedAt,
+              freshFetchedAt: body.fetchedAt
+            });
           setRuntime((value) =>
             isPlaybackRuntime(value)
               ? {
@@ -1144,13 +1155,9 @@ export function PlayerRuntime() {
                   release: {
                     ...value.release,
                     envelope: withSyncDiagnostics(
-                      {
-                        ...value.release.envelope,
-                        device: body.device,
-                        fetchedAt: body.fetchedAt
-                      },
+                      refreshedEnvelope,
                       "online",
-                      "release unchanged"
+                      "release unchanged; media access refreshed"
                     )
                   },
                   state:
@@ -1162,6 +1169,9 @@ export function PlayerRuntime() {
                 }
               : value
           );
+          if (mediaAccessNeedsRestart || !playbackReadyRef.current) {
+            setPlaybackAttempt((attempt) => attempt + 1);
+          }
           syncSucceeded = true;
           return;
         }
