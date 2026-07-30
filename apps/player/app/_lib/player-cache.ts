@@ -452,7 +452,7 @@ export async function sha256Hex(bytes: ArrayBuffer) {
 
 function withCachedUrls(
   envelope: PlayerManifestEnvelope,
-  objectUrls: Record<string, string>
+  playbackUrls: Record<string, string>
 ): PlayerManifestEnvelope {
   const manifest = envelope.manifest;
 
@@ -474,23 +474,54 @@ function withCachedUrls(
             )
           : null;
         const cachedMediaUrl = mediaAsset
-          ? objectUrls[mediaAsset.cacheKey]
+          ? playbackUrls[mediaAsset.cacheKey]
           : undefined;
         const cachedPosterUrl = posterAsset
-          ? objectUrls[posterAsset.cacheKey]
+          ? playbackUrls[posterAsset.cacheKey]
           : undefined;
+        const mediaSource = resolveHydratedMediaSource({
+          cachedUrl: cachedMediaUrl,
+          item
+        });
 
         return {
           ...item,
           source: {
             ...item.source,
-            url: cachedMediaUrl ?? item.source.url,
+            ...mediaSource,
             posterUrl: cachedPosterUrl ?? item.source.posterUrl
           }
         };
       })
     }
   };
+}
+
+export function resolveHydratedMediaSource({
+  cachedUrl,
+  item,
+  online = typeof navigator === "undefined" || navigator.onLine !== false
+}: {
+  cachedUrl?: string;
+  item: PlayerManifestItem;
+  online?: boolean;
+}): Pick<PlayerManifestItem["source"], "fallbackUrl" | "url"> {
+  if (!cachedUrl) return { url: item.source.url };
+
+  const nativeStreamFirst =
+    item.kind === "video" &&
+    online &&
+    cachedUrl.startsWith("blob:") &&
+    Boolean(item.source.url);
+
+  if (nativeStreamFirst) {
+    return {
+      fallbackUrl: cachedUrl,
+      url: item.source.url
+    };
+  }
+
+  return { url: cachedUrl };
 }
 
 function toCacheAsset(

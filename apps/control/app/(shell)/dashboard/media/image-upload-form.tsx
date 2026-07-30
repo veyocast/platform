@@ -1,9 +1,14 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 import { Button, StatusPill } from "@veyocast/ui";
 
+import {
+  imageUploadPolicyMessage,
+  maxImageUploadBatchSize,
+  validateImageUploadFile
+} from "../../../../lib/media/image-upload-policy";
 import {
   uploadMediaImages,
   type MediaImageUploadState
@@ -16,23 +21,82 @@ const initialState: MediaImageUploadState = {
 
 export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, action, pending] = useActionState(uploadMediaImages, initialState);
-
-  useEffect(() => {
-    if (state.completedAt && state.results.some((result) => result.status === "success")) {
-      formRef.current?.reset();
-    }
-  }, [state.completedAt, state.results]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const [state, setState] = useState(initialState);
+  const [pending, setPending] = useState(false);
 
   const completedCount = state.results.filter(
     (result) => result.status === "success"
   ).length;
 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!canUpload || pending) return;
+
+    const files = [...(fileInputRef.current?.files ?? [])];
+    if (files.length === 0) {
+      setState(failureState("Geen bestand", "Kies minimaal één JPEG-, PNG- of WebP-bestand met inhoud."));
+      return;
+    }
+    if (files.length > maxImageUploadBatchSize) {
+      setState(failureState(
+        "Selectie",
+        `Upload maximaal ${maxImageUploadBatchSize} afbeeldingen per keer. Verklein de selectie en probeer opnieuw.`
+      ));
+      return;
+    }
+
+    setPending(true);
+    const results: MediaImageUploadState["results"] = [];
+    try {
+      for (const file of files) {
+        const policyFailure = validateImageUploadFile(file);
+        if (policyFailure) {
+          results.push({
+            fileName: file.name,
+            message: imageUploadPolicyMessage(policyFailure),
+            status: "critical"
+          });
+          setState({ completedAt: null, results: [...results] });
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.set("media", file);
+        if (files.length === 1) {
+          formData.set("title", titleInputRef.current?.value.trim() ?? "");
+        }
+
+        try {
+          const result = await uploadMediaImages(initialState, formData);
+          results.push(...result.results);
+        } catch {
+          results.push({
+            fileName: file.name,
+            message:
+              "De uploadverbinding werd onderbroken. Dit bestand is niet beschikbaar gemaakt; probeer het opnieuw.",
+            status: "critical"
+          });
+        }
+        setState({ completedAt: null, results: [...results] });
+      }
+
+      const completedAt = new Date().toISOString();
+      setState({ completedAt, results });
+      if (results.some((result) => result.status === "success")) {
+        formRef.current?.reset();
+      }
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <form
-      action={action}
       aria-busy={pending}
       className="upload-form"
+      onSubmit={handleSubmit}
       ref={formRef}
     >
       <div className="field">
@@ -44,6 +108,7 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
           minLength={2}
           name="title"
           placeholder="Optioneel · standaard de bestandsnaam"
+          ref={titleInputRef}
           type="text"
         />
       </div>
@@ -55,10 +120,14 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
           id="media-file"
           multiple
           name="media"
+          ref={fileInputRef}
           required
           type="file"
         />
-        <small>Maximaal twaalf bestanden per upload.</small>
+        <small>
+          Maximaal {maxImageUploadBatchSize} bestanden; ieder bestand wordt
+          afzonderlijk en veilig verzonden.
+        </small>
       </div>
       <Button disabled={!canUpload || pending} type="submit">
         {pending ? "Afbeeldingen verifiëren…" : "Uploaden en verifiëren"}
@@ -103,4 +172,11 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
       ) : null}
     </form>
   );
+}
+
+function failureState(fileName: string, message: string): MediaImageUploadState {
+  return {
+    completedAt: new Date().toISOString(),
+    results: [{ fileName, message, status: "critical" }]
+  };
 }

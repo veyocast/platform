@@ -12,6 +12,7 @@ import {
   migratePreviousReleaseCacheKeys,
   playerStorageReserveBytes,
   preparePendingRelease,
+  resolveHydratedMediaSource,
   sha256Hex,
   verifyAssetBytes
 } from "./player-cache";
@@ -268,6 +269,57 @@ describe("player cache contract", () => {
     await expect(hydratePreparedRelease({ assets, envelope }, store)).rejects.toThrow(
       "missing or corrupt"
     );
+  });
+
+  it("streams LG video over HTTP first and keeps verified blob bytes as fallback", () => {
+    const source = resolveHydratedMediaSource({
+      cachedUrl: "blob:https://player.veyocast.nl/verified-video",
+      item: {
+        durationSeconds: 10,
+        fitMode: "contain",
+        id: "portrait-video",
+        kind: "video",
+        muted: true,
+        source: {
+          bytes: 1024,
+          checksumSha256: "a".repeat(64),
+          mimeType: "video/mp4",
+          url: "https://storage.veyocast.nl/signed/video.mp4"
+        },
+        title: "Staande video"
+      },
+      online: true
+    });
+
+    expect(source).toEqual({
+      fallbackUrl: "blob:https://player.veyocast.nl/verified-video",
+      url: "https://storage.veyocast.nl/signed/video.mp4"
+    });
+  });
+
+  it("uses verified cached video bytes immediately while offline", () => {
+    const source = resolveHydratedMediaSource({
+      cachedUrl: "blob:https://player.veyocast.nl/verified-video",
+      item: {
+        durationSeconds: 10,
+        fitMode: "contain",
+        id: "portrait-video",
+        kind: "video",
+        muted: true,
+        source: {
+          bytes: 1024,
+          checksumSha256: "a".repeat(64),
+          mimeType: "video/mp4",
+          url: "https://storage.veyocast.nl/signed/video.mp4"
+        },
+        title: "Staande video"
+      },
+      online: false
+    });
+
+    expect(source).toEqual({
+      url: "blob:https://player.veyocast.nl/verified-video"
+    });
   });
 
   it("garbage-collects only unreferenced player assets", async () => {

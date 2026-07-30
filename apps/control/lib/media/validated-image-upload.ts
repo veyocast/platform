@@ -6,9 +6,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireTenantCapability } from "../control-session";
 import { createControlAdminClient } from "../supabase/admin";
 import { createControlSupabaseClient } from "../supabase/server";
-
-const allowedImageMimeTypes = ["image/jpeg", "image/png", "image/webp"] as const;
-const maxImageBytes = 20 * 1024 * 1024;
+import {
+  allowedImageUploadMimeTypes,
+  imageUploadPolicyMessage,
+  validateImageUploadFile
+} from "./image-upload-policy";
 
 export class MediaUploadError extends Error {
   constructor(message: string) {
@@ -64,22 +66,19 @@ export async function uploadValidatedImageCandidate({
     );
   }
 
-  if (candidate.size > maxImageBytes) {
-    throw new MediaUploadError(
-      "De afbeelding is groter dan 20 MB. Verklein of comprimeer het bestand en probeer opnieuw."
-    );
-  }
-
-  if (!allowedImageMimeTypes.includes(candidate.type as (typeof allowedImageMimeTypes)[number])) {
-    throw new MediaUploadError(
-      "Dit bestandstype is niet toegestaan. Er is niets opgeslagen; gebruik JPEG, PNG of WebP."
-    );
+  const policyFailure = validateImageUploadFile(candidate);
+  if (policyFailure) {
+    throw new MediaUploadError(imageUploadPolicyMessage(policyFailure));
   }
 
   const bytes = Buffer.from(await candidate.arrayBuffer());
   const detectedMimeType = detectImageMime(bytes);
 
-  if (!detectedMimeType || detectedMimeType !== candidate.type) {
+  if (
+    !detectedMimeType ||
+    !allowedImageUploadMimeTypes.includes(detectedMimeType) ||
+    detectedMimeType !== candidate.type
+  ) {
     throw new MediaUploadError(
       "De bestandsinhoud komt niet overeen met het opgegeven type. Er is niets opgeslagen; kies een geldige afbeelding."
     );

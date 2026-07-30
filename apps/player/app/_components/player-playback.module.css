@@ -1,6 +1,6 @@
 .transitionStack,
 .scene {
-  background: Canvas;
+  background: var(--vc-brand-ink-black);
   inset: 0;
   overflow: hidden;
   position: absolute;

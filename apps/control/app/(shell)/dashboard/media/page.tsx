@@ -246,6 +246,20 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
   const params = await searchParams;
   const { fout, succes } = params;
   const page = positiveInteger(params.page, 1);
+  const mediaData = await loadMediaData(
+    session.tenantId,
+    session.userId,
+    session.isLive,
+    params,
+    page
+  ).catch((error: unknown) => {
+    console.error("Mediabibliotheek onverwacht onderbroken", {
+      code: error instanceof Error ? error.name : "UNKNOWN"
+    });
+    return emptyMediaData(
+      "De bibliotheekverbinding werd onderbroken. Uploaden blijft beschikbaar; probeer de lijst daarna opnieuw te laden."
+    );
+  });
   const {
     assets,
     activity,
@@ -260,7 +274,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
     selectedUsage,
     tags,
     totalCount
-  } = await loadMediaData(session.tenantId, session.userId, session.isLive, params, page);
+  } = mediaData;
   const canUpload =
     session.isLive &&
     session.tenantStatus === "active" &&
@@ -1112,6 +1126,25 @@ async function loadMediaData(
       revision: Number(tag.revision)
     })),
     totalCount: Number(rows[0]?.total_count ?? 0)
+  };
+}
+
+function emptyMediaData(loadError: string | null) {
+  return {
+    activity: [] as MediaActivity[],
+    assets: [] as MediaAsset[],
+    failedCount: 0,
+    folders: [] as MediaFolder[],
+    loadError,
+    mediaStorageLimitBytes: null as number | null,
+    mediaStorageUsedBytes: 0,
+    processingCount: 0,
+    processingSummary: null as ProcessingSummary | null,
+    readyCount: 0,
+    savedViews: [] as SavedMediaView[],
+    selectedUsage: [] as MediaUsage[],
+    tags: [] as MediaTag[],
+    totalCount: 0
   };
 }
 

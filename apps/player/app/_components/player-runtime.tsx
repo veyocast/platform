@@ -2077,13 +2077,17 @@ export function PlaybackMedia({
   const lastCurrentTimeRef = useRef(0);
   const lastProgressAtRef = useRef(Date.now());
   const lastSignalRef = useRef<"stalled" | "waiting" | null>(null);
+  const fallbackAttemptedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [sourceUrl, setSourceUrl] = useState(item.source.url);
 
   const reportFailure = useCallback((code: PlaybackFailureCode) => {
     if (passive || failureReportedRef.current) return;
     failureReportedRef.current = true;
     onFailure(item.id, code);
   }, [item.id, onFailure, passive]);
+  const reportFailureRef = useRef(reportFailure);
+  reportFailureRef.current = reportFailure;
 
   useEffect(() => {
     if (item.kind !== "video" || passive) return;
@@ -2137,11 +2141,42 @@ export function PlaybackMedia({
     presentation.volumePercent
   ]);
 
+  useEffect(() => {
+    if (item.kind !== "video") return;
+    fallbackAttemptedRef.current = false;
+    setSourceUrl(item.source.url);
+  }, [item.id, item.kind, item.source.url]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (item.kind !== "video" || !video || passive) return;
+
+    hasEndedRef.current = false;
+    isPausedRef.current = false;
+    hasStartedRef.current = false;
+    lastCurrentTimeRef.current = 0;
+    lastProgressAtRef.current = Date.now();
+    lastSignalRef.current = null;
+
+    try {
+      video.load();
+      const playResult = video.play();
+      if (playResult && typeof playResult.catch === "function") {
+        void playResult.catch(() => {
+          // De startwatchdog probeert fallback/herstel gecontroleerd; een
+          // autoplay-rejectie mag niet als een fatale clientfout eindigen.
+        });
+      }
+    } catch {
+      reportFailureRef.current("VIDEO_ERROR");
+    }
+  }, [item.kind, passive, sourceUrl]);
+
   if (item.kind === "video") {
     return (
       <video
         aria-label={presentation.accessibilityName}
-        autoPlay
+        autoPlay={!passive}
         className={className}
         controls={false}
         controlsList="nodownload nofullscreen noplaybackrate"
@@ -2162,9 +2197,22 @@ export function PlaybackMedia({
             );
           }
         }}
-        onError={() => reportFailure("VIDEO_ERROR")}
+        onError={() => {
+          const fallbackUrl = item.source.fallbackUrl;
+          if (
+            fallbackUrl &&
+            fallbackUrl !== sourceUrl &&
+            !fallbackAttemptedRef.current
+          ) {
+            fallbackAttemptedRef.current = true;
+            setSourceUrl(fallbackUrl);
+            return;
+          }
+          reportFailure("VIDEO_ERROR");
+        }}
         onPause={() => {
           if (passive || hasEndedRef.current) return;
+          if (!hasStartedRef.current) return;
           isPausedRef.current = true;
           onPlaybackStateChange?.("paused");
         }}
@@ -2205,13 +2253,10 @@ export function PlaybackMedia({
         poster={item.source.posterUrl}
         preload="auto"
         ref={videoRef}
+        src={sourceUrl}
         style={mediaStyle}
         tabIndex={-1}
-      >
-        {item.source.url ? (
-          <source key={item.source.url} src={item.source.url} type={item.source.mimeType} />
-        ) : null}
-      </video>
+      />
     );
   }
 

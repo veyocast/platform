@@ -24,8 +24,8 @@
 
 body {
   margin: 0;
-  background: Canvas;
-  color: CanvasText;
+  background: var(--vc-brand-ink-black);
+  color: var(--vc-brand-paper-white);
 }
 
 .player-recovery-menu {
@@ -549,8 +549,8 @@ body {
 }
 
 .playback-shell {
-  background: Canvas;
-  color: CanvasText;
+  background: var(--vc-brand-ink-black);
+  color: var(--vc-brand-paper-white);
   cursor: none;
   height: 100vh;
   height: 100dvh;
@@ -560,7 +560,7 @@ body {
 }
 
 .playback-stage {
-  background: color-mix(in oklab, CanvasText 6%, Canvas);
+  background: var(--vc-brand-ink-black);
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -593,7 +593,7 @@ video.playback-media::-webkit-media-controls-start-playback-button {
 }
 
 .playback-media--contain {
-  background: Canvas;
+  background: var(--vc-brand-ink-black);
   object-fit: contain;
 }
 

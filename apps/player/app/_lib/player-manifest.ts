@@ -53,6 +53,7 @@ export type PlayerManifestPresentationDefaults = {
 export type PlayerManifestItem = PlayerPlaybackItem & {
   source: {
     url: string;
+    fallbackUrl?: string;
     posterUrl?: string;
     posterBytes?: number;
     posterChecksumSha256?: string;
