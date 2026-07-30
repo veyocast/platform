@@ -1,5 +1,12 @@
 # S63 — Media-upload en LG native videostreaming
 
+> Correctie na fysieke acceptatie: een verhoogde Server Action-limiet bleek
+> niet voldoende voor de gebruikte mobiele 8K-upload en dezelfde actieve
+> release behield na sync een verlopen signed URL. S64 verplaatst de afbeelding
+> naar een begrensde same-origin API en vernieuwt tijdelijke media-access zonder
+> release- of cacheverlies. Zie
+> [`s64-upload-lg-media-access-evidence.md`](s64-upload-lg-media-access-evidence.md).
+
 ## Fysieke productiebevindingen
 
 Op 30 juli 2026 bleef de Media-route na een afbeeldingsupload in de algemene
