@@ -95,6 +95,7 @@ tests en exitcriteria staan in
 | S53 | Android- en LG herstelbetrouwbaarheid | Officiële Android-app herkent dezelfde installation na herinstallatie, verifieert boot-/updatestarts en opent Play-updatebeheer; standalone LG-recovery maakt vóór redirect aantoonbaar een nieuwe code |
 | S54 | Sportlink Club.Dataservice | Tenantveilige server-only Sportlink-data, lease-based synchronisatie, vaste sportslides en immutable offline Playeroutput |
 | S55 | VeyoCast Control Mobile | Native Android-first beheerapp met veilige mobiele API, offlinekern en afzonderlijke Play-publicatieketen |
+| S61 | LG herstelcode-handoff | Canonieke timestamps en claim-bevestigde standalone recovery voorkomen dat oude webOS-clients een voorbereide code verliezen en opnieuw rate-limiten |
 
 ### Programmagates
 
