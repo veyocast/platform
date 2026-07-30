@@ -227,7 +227,11 @@ async function networkFirstNavigation(request) {
     if (response.ok) await cache.put(request, response.clone());
     return response;
   } catch {
-    return (await cache.match(request)) ?? (await cache.match("/")) ?? new Response("Offline", { status: 503 });
+    const cachedRequest = await cache.match(request);
+    if (cachedRequest) return cachedRequest;
+    const cachedShell = await cache.match("/");
+    if (cachedShell) return cachedShell;
+    return new Response("Offline", { status: 503 });
   }
 }
 

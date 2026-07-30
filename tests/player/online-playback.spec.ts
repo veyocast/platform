@@ -32,6 +32,57 @@ test("fetches an online release manifest and starts playback", async ({
   await expect(page.getByTestId("player-brand-mark")).toHaveCSS("opacity", "0.4");
 });
 
+test("LG activeert de eerste release vanuit wachten op content via lokale cachebytes", async ({
+  page
+}) => {
+  const manifestResponse = await page.request.get(
+    `${playerURL}/api/player/manifest?deviceToken=demo-online`
+  );
+  const release = (await manifestResponse.json()) as PlayerManifestEnvelope;
+  let manifestRequests = 0;
+
+  await page.route("**/api/player/manifest", (route) => {
+    manifestRequests += 1;
+    if (manifestRequests === 1) {
+      return route.fulfill({
+        body: JSON.stringify({
+          device: {
+            ...release.device,
+            activeReleaseId: null,
+            desiredReleaseId: null
+          },
+          diagnostics: {
+            lastSuccessfulSyncAt: new Date().toISOString(),
+            nextSyncReason: "waiting for first release",
+            syncStatus: "online"
+          },
+          fetchedAt: new Date().toISOString(),
+          state: "READY"
+        }),
+        contentType: "application/json"
+      });
+    }
+    return route.fulfill({
+      body: JSON.stringify(release),
+      contentType: "application/json"
+    });
+  });
+
+  await page.goto(`${playerURL}/lg?deviceToken=demo-online&durationMs=5000`);
+
+  await expect(
+    page.getByRole("heading", { name: "Wachten op content" })
+  ).toBeVisible();
+  const image = page.getByRole("img", { name: "Clubhuis entree" });
+  await expect(image).toBeVisible({ timeout: 8_000 });
+  await expect(image).toHaveAttribute("src", /^blob:/);
+  await expect(page.locator("#veyocast-client-fallback")).toHaveCount(0);
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-veyocast-player-runtime-state",
+    "PLAYING"
+  );
+});
+
 test("advances three naturally ended videos without freezing between items", async ({
   page
 }) => {

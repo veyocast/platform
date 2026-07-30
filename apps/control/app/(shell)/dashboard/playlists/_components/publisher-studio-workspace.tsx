@@ -89,6 +89,7 @@ import type {
   PlaylistStudioItem,
   PlaylistStudioSection
 } from "../playlist-studio-contract";
+import { resolveMediaPreviewGeometry } from "./media-preview-geometry";
 import { PublisherStudioPreview } from "./publisher-studio-preview";
 import {
   clearRecoveryFamily,
@@ -1962,6 +1963,10 @@ function Inspector({
     restoredIntent.itemId === item.id
       ? restoredIntent
       : null;
+  const mediaGeometry = resolveMediaPreviewGeometry(
+    item.asset?.variant?.width,
+    item.asset?.variant?.height
+  );
   const maximumDuration = maximumItemDuration(item);
   return (
     <div className={styles.inspector}>
@@ -1978,6 +1983,11 @@ function Inspector({
         asset={item.asset}
         className={styles.inspectorPreview ?? ""}
       />
+      {mediaGeometry.label ? (
+        <p className={styles.inspectorMediaMeta}>
+          {mediaGeometry.label}
+        </p>
+      ) : null}
       <form
         action={updatePlaylistItem}
         className={styles.inspectorForm}
@@ -2323,13 +2333,33 @@ function MediaThumb({
   asset: PlaylistStudioAsset | null;
   className: string;
 }) {
+  const geometry = resolveMediaPreviewGeometry(
+    asset?.variant?.width,
+    asset?.variant?.height
+  );
+  const mediaStyle = geometry.aspectRatio
+    ? { aspectRatio: geometry.aspectRatio }
+    : undefined;
+
   if (asset?.kind === "image" && asset.variant?.previewUrl) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img alt="" className={className} src={asset.variant.previewUrl} />;
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        alt=""
+        className={className}
+        data-media-orientation={geometry.orientation}
+        src={asset.variant.previewUrl}
+        style={mediaStyle}
+      />
+    );
   }
   if (asset?.kind === "video" && asset.variant?.previewUrl) {
     return (
-      <span className={`${className} ${styles.videoThumb}`}>
+      <span
+        className={`${className} ${styles.videoThumb}`}
+        data-media-orientation={geometry.orientation}
+        style={mediaStyle}
+      >
         <video
           aria-label={`Videofragment van ${asset.title}`}
           muted
@@ -2344,7 +2374,11 @@ function MediaThumb({
     );
   }
   return (
-    <span className={`${className} ${styles.missingThumb}`}>
+    <span
+      className={`${className} ${styles.missingThumb}`}
+      data-media-orientation={geometry.orientation}
+      style={mediaStyle}
+    >
       {asset?.kind === "video" ? (
         <Film aria-hidden="true" />
       ) : (

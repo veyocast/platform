@@ -225,6 +225,30 @@ Maak bij een afwijking:
 Maak pairingcodes, tokens of volledige media-URL's onleesbaar voordat bewijs
 wordt gedeeld.
 
+## Release-playback na succesvolle pairing
+
+Wanneer het scherm **Wachten op content** toont, is pairing afgerond. Een
+fout die pas na release-toewijzing verschijnt wordt daarom niet met een nieuwe
+pairing of volledige playerreset behandeld.
+
+Vanaf S62 gebruikt `/lg` de reeds checksum-gevalideerde lokale cachebytes via
+een webOS-veilige object-URL. Een mediafout kan de gekoppelde Player niet meer
+vervangen door een wit of fataal scherm; een echte onverwachte clientfout
+verschijnt als VeyoCast-overlay boven de intacte runtime.
+
+Fysieke controle:
+
+1. laat de bestaande koppeling staan;
+2. wijs een geldige immutable release toe;
+3. verwacht binnen de normale manifestpoll dat **Wachten op content** overgaat
+   in playback;
+4. controleer minimaal één volledige videoloop;
+5. controleer dat dezelfde koppeling na een koude herstart terugkomt.
+
+Bij een afwijking leg je foutcode, diagnose, Playerstate, Player-versie en
+laatste API-regel vast. Verwijder geen installatie-ID, credential of
+last-known-goodrelease voordat die diagnose is beoordeeld.
+
 ## URL-herstel zonder IPK of beheerwachtwoord
 
 S48 voegt een herstelpad toe dat losstaat van de lokale IPK-installatie. Het
