@@ -2086,6 +2086,8 @@ export function PlaybackMedia({
     failureReportedRef.current = true;
     onFailure(item.id, code);
   }, [item.id, onFailure, passive]);
+  const reportFailureRef = useRef(reportFailure);
+  reportFailureRef.current = reportFailure;
 
   useEffect(() => {
     if (item.kind !== "video" || passive) return;
@@ -2166,9 +2168,9 @@ export function PlaybackMedia({
         });
       }
     } catch {
-      reportFailure("VIDEO_ERROR");
+      reportFailureRef.current("VIDEO_ERROR");
     }
-  }, [item.kind, passive, reportFailure, sourceUrl]);
+  }, [item.kind, passive, sourceUrl]);
 
   if (item.kind === "video") {
     return (
