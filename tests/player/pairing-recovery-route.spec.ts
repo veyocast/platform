@@ -46,6 +46,13 @@ test.beforeEach(async ({ page }) => {
       status: 200
     });
   });
+  await page.route("**/api/player/heartbeat", async (route) => {
+    await route.fulfill({
+      body: JSON.stringify({ ok: true }),
+      contentType: "application/json",
+      status: 200
+    });
+  });
   await page.route("**/lg", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname !== "/lg") {
@@ -105,10 +112,83 @@ test("soft recovery behoudt installatie-ID en verwijdert een ongeldige pending p
     )
   ).toBe(recoveredInstallationCredential);
   expect(result.token).toBe(recoveredPendingToken);
-  expect(result.pairingCode).toBe("RCV 234");
+  expect(result.pairingCode).toBeNull();
   expect(result.marker?.mode).toBe("soft");
   expect(result.marker?.pairingPrepared).toBe(true);
   expect(result.marker?.expiresAt).toBeGreaterThan(Date.now());
+});
+
+test("recovery blijft op de statische code tot Control de koppeling bevestigt", async ({
+  page
+}) => {
+  await page.unroute("**/api/player/heartbeat");
+  let heartbeatAttempts = 0;
+  let pairingAttempts = 0;
+  await page.route("**/api/player/heartbeat", async (route) => {
+    heartbeatAttempts += 1;
+    await route.fulfill({
+      body: JSON.stringify({
+        error:
+          heartbeatAttempts === 1
+            ? { code: "PAIRING_PENDING" }
+            : undefined,
+        ok: heartbeatAttempts > 1
+      }),
+      contentType: "application/json",
+      status: heartbeatAttempts > 1 ? 200 : 409
+    });
+  });
+  await page.unroute("**/api/player/pairing");
+  await page.route("**/api/player/pairing", async (route) => {
+    pairingAttempts += 1;
+    const expiresAt = new Date(Date.now() + 10 * 60_000)
+      .toISOString()
+      .replace("Z", "456+00:00");
+    await route.fulfill({
+      body: JSON.stringify({
+        deviceToken: recoveredPendingToken,
+        expiresAt,
+        live: true,
+        pairingCode: "RCV 234"
+      }),
+      contentType: "application/json",
+      status: 200
+    });
+  });
+  await page.goto(`${playerURL}/lg/recover`);
+  await seedRecoveryStorage(
+    page,
+    "17345678-1234-4123-8123-123456789abc"
+  );
+
+  await page.getByRole("button", { name: "Nu herstellen" }).click();
+
+  await expect(page.locator("#pairing-handoff")).toBeVisible();
+  await expect(page.getByLabel("Herstelcode")).toHaveText("RCV 234");
+  await expect(page.locator("#pairing-handoff-detail")).toContainText(
+    "Nog niet gekoppeld"
+  );
+  expect(new URL(page.url()).pathname).toBe("/lg/recover");
+  expect(pairingAttempts).toBe(1);
+
+  await page.waitForURL("**/lg", { timeout: 8_000 });
+  expect(heartbeatAttempts).toBe(2);
+  expect(pairingAttempts).toBe(1);
+  const stored = await page.evaluate(
+    ({ tokenKey }) => ({
+      code: localStorage.getItem("veyocast.player.pairingCode"),
+      expiry: localStorage.getItem("veyocast.player.pairingExpiresAt"),
+      nonce: localStorage.getItem("veyocast.player.pairingRequestNonce"),
+      token: localStorage.getItem(tokenKey)
+    }),
+    { tokenKey }
+  );
+  expect(stored).toEqual({
+    code: null,
+    expiry: null,
+    nonce: null,
+    token: recoveredPendingToken
+  });
 });
 
 test("soft recovery bewaart een geldige schermcredential", async ({ page }) => {

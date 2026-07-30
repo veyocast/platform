@@ -37,7 +37,10 @@ describe("zelfstandige LG recoveryroute", () => {
     expect(html).toContain("veyocast-player-assets-v1");
     expect(html).toContain('"/api/player/installation"');
     expect(html).toContain('"/api/player/pairing"');
-    expect(html).toContain("Nieuwe koppelcode ");
+    expect(html).toContain('"/api/player/heartbeat"');
+    expect(html).toContain("Koppel deze Player in Control");
+    expect(html).toContain("Koppelcode voorbereid");
+    expect(html).toContain("waitForPairingClaim(body, done)");
     expect(html).toContain("maximumAttempts = 4");
     expect(html).toContain("Math.min(600000");
     expect(html).toContain(
@@ -46,6 +49,7 @@ describe("zelfstandige LG recoveryroute", () => {
     expect(html).toContain(
       "guardedStep(4, prepareNewPairing, finishRecovery, 660000)"
     );
+    expect(html).toContain("409");
     expect(html).toContain("stopRecovery(detail)");
   });
 

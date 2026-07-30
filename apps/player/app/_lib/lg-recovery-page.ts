@@ -207,6 +207,38 @@ export function renderLgRecoveryHtml() {
       color: var(--vc-success);
       font-weight: 700;
     }
+    .pairing-handoff {
+      margin-top: 20px;
+      padding: 22px;
+      border: 1px solid var(--vc-border);
+      border-radius: 8px;
+      background: var(--vc-surface);
+    }
+    .pairing-handoff[hidden] { display: none; }
+    .pairing-handoff-label {
+      display: block;
+      color: var(--vc-muted);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .pairing-handoff-code {
+      display: block;
+      margin-top: 8px;
+      color: var(--vc-paper);
+      font-family: "Courier New", monospace;
+      font-size: 56px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      line-height: 1;
+    }
+    .pairing-handoff-detail {
+      display: block;
+      margin-top: 12px;
+      color: var(--vc-muted);
+      font-size: 17px;
+    }
     .diagnostics {
       margin-top: 20px;
       border: 1px solid var(--vc-border);
@@ -250,6 +282,10 @@ export function renderLgRecoveryHtml() {
       .step-title { font-size: 18px; }
       .step-detail { font-size: 13px; }
       .summary { margin-top: 10px; }
+      .pairing-handoff { margin-top: 10px; padding: 12px; }
+      .pairing-handoff-label { font-size: 12px; }
+      .pairing-handoff-code { font-size: 38px; }
+      .pairing-handoff-detail { margin-top: 7px; font-size: 13px; }
       .actions { margin-top: 12px; gap: 8px; }
       button { min-height: 44px; padding: 8px 18px; }
       footer { margin-top: 5px; font-size: 12px; }
@@ -281,6 +317,11 @@ export function renderLgRecoveryHtml() {
       </li>
     </ol>
     <p class="summary" id="summary" role="status" aria-live="polite">Soft recovery start automatisch.</p>
+    <section class="pairing-handoff" id="pairing-handoff" hidden aria-labelledby="pairing-handoff-label">
+      <span class="pairing-handoff-label" id="pairing-handoff-label">Koppel deze Player in Control</span>
+      <strong class="pairing-handoff-code" id="pairing-handoff-code" aria-label="Herstelcode"></strong>
+      <span class="pairing-handoff-detail" id="pairing-handoff-detail">De Player wacht hier veilig totdat Control de koppeling bevestigt.</span>
+    </section>
     <details class="diagnostics" id="diagnostic-panel">
       <summary>Technische diagnose</summary>
       <pre id="diagnostic-log">Nog geen API-aanvraag geregistreerd.</pre>
@@ -366,7 +407,7 @@ export function renderLgRecoveryHtml() {
           : "Nog geen API-aanvraag geregistreerd.";
     }
 
-    function recordDiagnostic(method, path, outcome, status) {
+    function recordDiagnostic(method, path, outcome, status, quietFailure) {
       var diagnostics = readDiagnostics();
       var onlineHint =
         window.navigator && typeof window.navigator.onLine === "boolean"
@@ -386,7 +427,10 @@ export function renderLgRecoveryHtml() {
         JSON.stringify(diagnostics.slice(0, 20))
       );
       renderDiagnostics();
-      if (outcome !== "response" || status < 200 || status >= 300) {
+      if (
+        quietFailure !== true &&
+        (outcome !== "response" || status < 200 || status >= 300)
+      ) {
         byId("diagnostic-panel").open = true;
       }
     }
@@ -776,7 +820,7 @@ export function renderLgRecoveryHtml() {
       try { return JSON.parse(xhr.responseText || "null"); } catch (error) { return null; }
     }
 
-    function requestJson(method, path, headers, body, callback) {
+    function requestJson(method, path, headers, body, callback, quietStatus) {
       var xhr = new XMLHttpRequest();
       var key;
       xhr.open(method, path, true);
@@ -788,7 +832,13 @@ export function renderLgRecoveryHtml() {
         }
       }
       xhr.onload = function () {
-        recordDiagnostic(method, path, "response", xhr.status);
+        recordDiagnostic(
+          method,
+          path,
+          "response",
+          xhr.status,
+          xhr.status === quietStatus
+        );
         callback(null, xhr.status, parseJson(xhr), xhr.getResponseHeader("Retry-After"));
       };
       xhr.onerror = function () {
@@ -819,6 +869,93 @@ export function renderLgRecoveryHtml() {
       safeSet(CONFIG.pairingKeys[0], body.pairingCode);
       safeSet(CONFIG.pairingKeys[1], body.expiresAt);
       safeRemove(CONFIG.pairingKeys[3]);
+    }
+
+    function parsePlayerTimestamp(value) {
+      var normalized = String(value || "")
+        .replace(/(\\.\\d{3})\\d+(?=(?:z|[+-]\\d{2}:?\\d{2})$)/i, "$1")
+        .replace(/\\+00:00$/, "Z");
+      var timestamp = new Date(normalized).getTime();
+      return isFinite(timestamp) ? timestamp : null;
+    }
+
+    function waitForPairingClaim(body, done) {
+      var expiresAt = parsePlayerTimestamp(body.expiresAt);
+      var handoff = byId("pairing-handoff");
+      var handoffDetail = byId("pairing-handoff-detail");
+      handoff.hidden = false;
+      byId("pairing-handoff-code").textContent = body.pairingCode;
+      byId("summary").textContent =
+        "Voer de code in Control in. Dit scherm gaat pas verder nadat de koppeling is bevestigd.";
+      setStep(
+        4,
+        "running",
+        "Koppelcode voorbereid; wachten op bevestiging vanuit Control."
+      );
+
+      function pollClaim() {
+        if (expiresAt !== null && expiresAt <= new Date().getTime()) {
+          done(
+            "warning",
+            "De herstelcode is verlopen voordat Control de koppeling bevestigde. Kies Nu herstellen voor een nieuwe code.",
+            false
+          );
+          return;
+        }
+        requestJson(
+          "POST",
+          "/api/player/heartbeat",
+          {
+            "Authorization": "Bearer " + body.deviceToken,
+            "Content-Type": "application/json"
+          },
+          JSON.stringify({
+            activeReleaseId: null,
+            desiredReleaseId: null,
+            networkState: "online",
+            runtimeState: "READY",
+            syncPhase: null
+          }),
+          function (transportError, status, responseBody) {
+            if (
+              status >= 200 &&
+              status < 300 &&
+              responseBody &&
+              responseBody.ok === true
+            ) {
+              safeRemove(CONFIG.pairingKeys[0]);
+              safeRemove(CONFIG.pairingKeys[1]);
+              safeRemove(CONFIG.pairingKeys[2]);
+              safeRemove(CONFIG.pairingKeys[3]);
+              safeRemove(CONFIG.pairingKeys[4]);
+              handoffDetail.textContent =
+                "Koppeling bevestigd. De normale Player wordt geopend.";
+              preparePairingMarker(true);
+              done(
+                "done",
+                "De koppeling is door Control bevestigd en veilig lokaal bewaard."
+              );
+              return;
+            }
+            if (status === 401 || status === 403 || status === 410) {
+              done(
+                "warning",
+                "De herstelcode is door de server geweigerd. Kies Nu herstellen voor een nieuwe gecontroleerde poging.",
+                false
+              );
+              return;
+            }
+            handoffDetail.textContent =
+              transportError || status >= 500
+                ? "Control kon tijdelijk niet worden gecontroleerd. De code blijft geldig; de Player probeert opnieuw."
+                : "Nog niet gekoppeld. Voer de zichtbare code in bij het gewenste scherm in Control.";
+            window.setTimeout(pollClaim, 3000);
+          },
+          409
+        );
+      }
+
+      window.setTimeout(pollClaim, 500);
     }
 
     function retryDelay(attempt, retryAfter) {
@@ -900,10 +1037,7 @@ export function renderLgRecoveryHtml() {
             ) {
               persistPreparedPairing(body);
               preparePairingMarker(true);
-              done(
-                "done",
-                "Nieuwe koppelcode " + body.pairingCode + " is veilig voorbereid."
-              );
+              waitForPairingClaim(body, done);
               return;
             }
             failOrRetry(
