@@ -96,6 +96,7 @@ tests en exitcriteria staan in
 | S54 | Sportlink Club.Dataservice | Tenantveilige server-only Sportlink-data, lease-based synchronisatie, vaste sportslides en immutable offline Playeroutput |
 | S55 | VeyoCast Control Mobile | Native Android-first beheerapp met veilige mobiele API, offlinekern en afzonderlijke Play-publicatieketen |
 | S61 | LG herstelcode-handoff | Canonieke timestamps en claim-bevestigde standalone recovery voorkomen dat oude webOS-clients een voorbereide code verliezen en opnieuw rate-limiten |
+| S62 | LG release-playback | webOS-veilige playback uit geverifieerde cachebytes, niet-destructieve clientfallback en staande Control-mediapreview |
 
 ### Programmagates
 
