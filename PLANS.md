@@ -101,6 +101,7 @@ tests en exitcriteria staan in
 | S64 | Uploadtransport en media-accessvernieuwing | Afbeeldingen omzeilen Server Actions via een begrensde same-origin API en actieve Players vernieuwen verlopen signed media-toegang zonder release- of koppelverlies |
 | S65 | Portrait-afbeeldingsoriëntatie | Afbeeldingsuploads registreren betrouwbare PNG/JPEG/WebP-afmetingen inclusief EXIF-rotatie en Control/Player behouden portraitgeometrie zonder bestaande uploads te breken |
 | S66 | Productie-workerreadiness | De deployment bevestigt media-workerreadiness via de directe probe of een exact aan image, omgeving en revisie gebonden Docker-healthcheck |
+| S67 | Releasegebonden workerheartbeat | Een recente echte queuepoll bewijst workerreadiness ook wanneer uitsluitend de lokale TCP-route in de productiecontainer faalt |
 
 ### Programmagates
 

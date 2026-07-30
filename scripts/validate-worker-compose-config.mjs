@@ -67,8 +67,16 @@ if (
 ) {
   throw new Error("De mediaworker gebruikt geen afgeschermde tijdelijke opslag of netwerk.");
 }
-if (!service.healthcheck?.test?.join(" ").includes("/readyz")) {
-  throw new Error("De mediaworker heeft geen readinesscheck.");
+const healthcheck = service.healthcheck?.test?.join(" ") ?? "";
+if (
+  !healthcheck.includes("/tmp/veyocast-media-worker-ready.json") ||
+  !healthcheck.includes("VEYOCAST_ENVIRONMENT") ||
+  !healthcheck.includes("DEPLOYMENT_SHA") ||
+  !healthcheck.includes("Number.isFinite") ||
+  !healthcheck.includes("age>=-5000") ||
+  !healthcheck.includes("age<=75000")
+) {
+  throw new Error("De mediaworker heeft geen strikt releasegebonden queueheartbeat.");
 }
 
 const network = config.networks?.worker;
