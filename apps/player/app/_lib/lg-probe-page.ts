@@ -15,7 +15,8 @@ const probeConfiguration = {
   probeDatabaseName: "veyocast-lg-probe-v1",
   probeResultKey: "veyocast.player.lgProbe.v1",
   probeStorageKey: "veyocast.player.lgProbe.storageCheck",
-  referenceVideoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4"
+  referenceVideoMimeType: 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"',
+  referenceVideoUrl: "/lg-probe/h264-baseline-aac.mp4"
 };
 
 export function renderLgProbeHtml() {
@@ -97,7 +98,7 @@ export function renderLgProbeHtml() {
         <ol class="steps">
           <li class="step" id="step-platform"><div class="mark">WACHT</div><div><h3>Browser en opslag</h3><p>Browserfuncties en geïsoleerde opslagproeven.</p></div></li>
           <li class="step" id="step-origin"><div class="mark">WACHT</div><div><h3>VeyoCast-origin</h3><p>De Player-server en een ingebouwde afbeelding.</p></div></li>
-          <li class="step" id="step-reference"><div class="mark">WACHT</div><div><h3>Bekende referentievideo</h3><p>Een onafhankelijk H.264/MP4-bestand test de LG-videodecoder.</p></div></li>
+          <li class="step" id="step-reference"><div class="mark">WACHT</div><div><h3>VeyoCast-videoreferentie</h3><p>Een kleine H.264 Baseline/AAC-LC-video op dezelfde VeyoCast-origin test de LG-videodecoder.</p></div></li>
           <li class="step" id="step-manifest"><div class="mark">WACHT</div><div><h3>Koppeling en actieve release</h3><p>Alleen lezen; de bestaande schermkoppeling blijft behouden.</p></div></li>
           <li class="step" id="step-direct"><div class="mark">WACHT</div><div><h3>Actief bestand rechtstreeks</h3><p>Test de eerste actieve video, of anders het eerste afspeelbare item, buiten de VeyoCast-cache.</p></div></li>
           <li class="step" id="step-blob"><div class="mark">WACHT</div><div><h3>Actief bestand als Blob</h3><p>Test de huidige geheugenroute zonder serviceworker.</p></div></li>
@@ -542,14 +543,21 @@ export function renderLgProbeHtml() {
     }
 
     function testReferenceVideo(currentRun) {
-      setStep("reference", "running", "Bekende H.264/MP4-referentievideo wordt zichtbaar afgespeeld.");
+      var capability = "";
+      try {
+        capability = document.createElement("video").canPlayType(CONFIG.referenceVideoMimeType) || "leeg";
+      } catch (error) {
+        capability = "exception";
+      }
+      setStep("reference", "running", "Same-origin H.264 Baseline/AAC-LC-referentievideo wordt zichtbaar afgespeeld.");
       return playVideo(CONFIG.referenceVideoUrl + "?probe=" + String(Date.now()), 18000).then(function (video) {
         if (currentRun !== runId) return;
-        var detail = "Referentievideo speelt: " + video.width + "x" + video.height + ", duur " + video.duration + " sec.";
+        var detail = "Same-origin referentievideo speelt: " + video.width + "x" + video.height + ", duur " + video.duration + " sec, canPlayType=" + capability + ".";
         setStep("reference", "pass", detail);
         record("reference", "pass", "REFERENCE_VIDEO_OK", detail);
       }).catch(function (error) {
-        var detail = "Referentievideo startte niet: " + safeText(error && error.message);
+        if (currentRun !== runId) return;
+        var detail = "Same-origin referentievideo startte niet: " + safeText(error && error.message) + ", canPlayType=" + capability + ".";
         setStep("reference", "fail", detail);
         record("reference", "fail", "REFERENCE_VIDEO_FAILED", detail);
       });
@@ -802,11 +810,15 @@ export function renderLgProbeHtml() {
       var blob = resultFor("blob");
       var cache = resultFor("cache");
       var manifestResult = resultFor("manifest");
+      var activeVideo = activeItem && activeItem.kind === "video";
       if (manifestResult && manifestResult.code === "PROBE_UNPAIRED") {
         return { code: "LG-UNPAIRED", summary: "De browser werkt, maar er is geen geldige lokale koppeling om content te testen." };
       }
       if (manifestResult && manifestResult.code === "WAITING_FOR_CONTENT") {
         return { code: "LG-WAITING-CONTENT", summary: "De koppeling werkt. Publiceer eerst een release en voer daarna de probe opnieuw uit." };
+      }
+      if (reference && reference.status === "fail") {
+        return { code: "LG-VIDEO-REFERENCE", summary: "De ingebouwde same-origin H.264 Baseline/AAC-LC-video startte niet. De afbeeldingsuitslagen blijven geldig, maar video is niet gereed verklaard." };
       }
       if (direct && direct.code === "ACTIVE_DIRECT_MEDIA_ONLY") {
         return { code: "LG-DIRECT-FETCH", summary: "Het actieve bestand rendert rechtstreeks, maar ranged download faalt. Dit wijst op CORS, signed URL of het downloadpad vóór de Player-cache." };
@@ -821,13 +833,14 @@ export function renderLgProbeHtml() {
         return { code: "LG-CACHE-RANGE", summary: "Rechtstreeks afspelen werkt, maar het normale cache/serviceworkerpad niet. De Player moet dit pad op LG omzeilen." };
       }
       if (direct && direct.status === "pass" && (!cache || cache.status === "warn")) {
-        return { code: "LG-DIRECT-READY", summary: "Directe playback werkt. De cacheproef kon nog niet beslissend worden uitgevoerd." };
+        return activeVideo
+          ? { code: "LG-DIRECT-READY", summary: "De actieve VeyoCast-video speelt rechtstreeks. De cacheproef kon nog niet beslissend worden uitgevoerd." }
+          : { code: "LG-IMAGE-DIRECT-READY", summary: "De actieve VeyoCast-afbeelding rendert rechtstreeks. De cacheproef kon nog niet beslissend worden uitgevoerd." };
       }
       if (direct && direct.status === "pass" && cache && cache.status === "pass") {
-        return { code: "LG-PLAYBACK-READY", summary: "De LG kan zowel rechtstreeks als via het bestaande Player-cachepad afspelen." };
-      }
-      if (reference && reference.status === "fail") {
-        return { code: "LG-VIDEO-REFERENCE", summary: "De bekende H.264-referentievideo startte niet. Dit kan de LG-videodecoder zijn, maar ook toegang tot de externe referentiebron." };
+        return activeVideo
+          ? { code: "LG-PLAYBACK-READY", summary: "De actieve VeyoCast-video speelt zowel rechtstreeks als via het bestaande Player-cachepad." }
+          : { code: "LG-IMAGE-PLAYBACK-READY", summary: "De actieve VeyoCast-afbeelding werkt rechtstreeks, als Blob en via het bestaande Player-cachepad. De same-origin videoreferentie werkt ook; publiceer een testvideo voor een volledige videoketenproef." };
       }
       var failures = results.filter(function (entry) { return entry.status === "fail"; });
       if (failures.length) {
@@ -872,7 +885,7 @@ export function renderLgProbeHtml() {
           occurredAt: nowIso()
         },
         networkState: navigator.onLine ? "online" : "offline",
-        runtimeState: diagnosis.code === "LG-PLAYBACK-READY" ? "PLAYING" : "ERROR_RECOVERABLE",
+        runtimeState: diagnosis.code === "LG-PLAYBACK-READY" || diagnosis.code === "LG-IMAGE-PLAYBACK-READY" ? "PLAYING" : "ERROR_RECOVERABLE",
         syncPhase: "lg_probe"
       };
       return xhr("POST", "/api/player/heartbeat", {
