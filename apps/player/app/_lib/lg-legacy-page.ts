@@ -14,6 +14,7 @@ const legacyConfig = {
   pairingCodeKey: "veyocast.player.pairingCode",
   pairingExpiryKey: "veyocast.player.pairingExpiresAt",
   pairingNonceKey: "veyocast.player.pairingRequestNonce",
+  previousReleaseStore: "previousReleases",
   previousDeviceTokenKey: "castivo.player.deviceToken",
   requestTimeoutMs: 12_000,
   videoProgressTimeoutMs: 10_000,
@@ -79,6 +80,7 @@ export function renderLgLegacyHtml() {
     var CONFIG = ${config};
     var runtime = {
       activeIndex: 0,
+      bootGeneration: 0,
       cachedRelease: null,
       currentElement: null,
       currentItem: null,
@@ -414,7 +416,7 @@ export function renderLgLegacyHtml() {
           desiredReleaseId: null,
           networkState: "online",
           runtimeState: "READY",
-          syncPhase: "lg-legacy-pairing"
+          syncPhase: null
         }),
         function (transport, status, body) {
           var code = errorCode(body, transport || "PAIRING_API_UNAVAILABLE");
@@ -865,7 +867,7 @@ export function renderLgLegacyHtml() {
               : runtime.state === "ERROR_RECOVERABLE"
                 ? "ERROR_RECOVERABLE"
                 : "READY",
-        syncPhase: "lg-legacy"
+        syncPhase: manifest ? "active" : null
       };
     }
     function sendHeartbeat() {
@@ -966,7 +968,89 @@ export function renderLgLegacyHtml() {
         }
       );
     }
+    function recoverCachedDeviceToken(callback) {
+      var open;
+      var stores = [CONFIG.activeReleaseStore, CONFIG.previousReleaseStore];
+      var storeIndex = 0;
+      var latestToken = null;
+      var latestActivatedAt = 0;
+      var finished = false;
+
+      function finish(value) {
+        if (finished) return;
+        finished = true;
+        callback(value);
+      }
+      if (!window.indexedDB) {
+        finish(null);
+        return;
+      }
+      try {
+        open = window.indexedDB.open(CONFIG.databaseName);
+      } catch (error) {
+        finish(null);
+        return;
+      }
+      open.onerror = function () { finish(null); };
+      open.onsuccess = function () {
+        var database = open.result;
+
+        function scanNextStore() {
+          var transaction;
+          var requestResult;
+          var storeName;
+          if (storeIndex >= stores.length) {
+            database.close();
+            finish(latestToken);
+            return;
+          }
+          storeName = stores[storeIndex];
+          storeIndex += 1;
+          if (!database.objectStoreNames.contains(storeName)) {
+            scanNextStore();
+            return;
+          }
+          try {
+            transaction = database.transaction(storeName, "readonly");
+            requestResult = transaction.objectStore(storeName).openCursor();
+          } catch (error) {
+            scanNextStore();
+            return;
+          }
+          requestResult.onerror = function () { scanNextStore(); };
+          requestResult.onsuccess = function () {
+            var cursor = requestResult.result;
+            var candidate;
+            var activatedAt;
+            if (!cursor) {
+              scanNextStore();
+              return;
+            }
+            candidate = cursor.value;
+            activatedAt = new Date(
+              candidate && candidate.activatedAt || ""
+            ).getTime();
+            if (
+              candidate &&
+              validCredential(candidate.deviceToken) &&
+              candidate.envelope &&
+              isManifestEnvelope(candidate.envelope) &&
+              (!latestToken ||
+                (isFinite(activatedAt) && activatedAt > latestActivatedAt))
+            ) {
+              latestToken = candidate.deviceToken;
+              latestActivatedAt = isFinite(activatedAt) ? activatedAt : 0;
+            }
+            cursor.continue();
+          };
+        }
+        scanNextStore();
+      };
+    }
     function boot() {
+      var generation;
+      runtime.bootGeneration += 1;
+      generation = runtime.bootGeneration;
       runtime.installationId = ensureInstallationId();
       runtime.installationCredential = safeRead(CONFIG.installationCredentialKey);
       if (!validCredential(runtime.installationCredential)) {
@@ -980,18 +1064,36 @@ export function renderLgLegacyHtml() {
         "Installatie, koppeling en laatste geldige release worden gecontroleerd.",
         ""
       );
-      registerInstallation(function (ok, code, retryAfter) {
-        if (!ok) {
-          scheduleBoot(
-            code || "INSTALLATION_API_UNAVAILABLE",
-            "De installatie kon tijdelijk niet worden gecontroleerd.",
-            retryAfter
+      function continueBoot() {
+        if (generation !== runtime.bootGeneration) return;
+        registerInstallation(function (ok, code, retryAfter) {
+          if (generation !== runtime.bootGeneration) return;
+          if (!ok) {
+            scheduleBoot(
+              code || "INSTALLATION_API_UNAVAILABLE",
+              "De installatie kon tijdelijk niet worden gecontroleerd.",
+              retryAfter
+            );
+            return;
+          }
+          runtime.syncFailures = 0;
+          if (runtime.deviceToken) syncManifest();
+          else ensurePairing();
+        });
+      }
+      if (runtime.deviceToken) {
+        continueBoot();
+        return;
+      }
+      recoverCachedDeviceToken(function (recoveredToken) {
+        if (generation !== runtime.bootGeneration) return;
+        if (recoveredToken && persistDeviceToken(recoveredToken)) {
+          log(
+            "LEGACY_DEVICE_CREDENTIAL_RECOVERED",
+            "Credential hersteld uit geverifieerde lokale release."
           );
-          return;
         }
-        runtime.syncFailures = 0;
-        if (runtime.deviceToken) syncManifest();
-        else ensurePairing();
+        continueBoot();
       });
     }
     window.onerror = function (message) {

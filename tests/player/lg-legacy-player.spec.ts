@@ -4,7 +4,10 @@ const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 const deviceToken = "d".repeat(48);
 const installationCredential = "i".repeat(48);
 
-async function mockLegacyApis(page: Page) {
+async function mockLegacyApis(
+  page: Page,
+  heartbeatBodies: Array<Record<string, unknown>> = []
+) {
   await page.route("**/api/player/installation", async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -65,6 +68,9 @@ async function mockLegacyApis(page: Page) {
     });
   });
   await page.route("**/api/player/heartbeat", async (route) => {
+    heartbeatBodies.push(
+      (route.request().postDataJSON() ?? {}) as Record<string, unknown>
+    );
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({ automation: null, ok: true })
@@ -81,9 +87,10 @@ async function mockLegacyApis(page: Page) {
 test("LG Legacy Player gebruikt statische shell en precies één media-element", async ({
   page
 }) => {
+  const heartbeatBodies: Array<Record<string, unknown>> = [];
   const requestedUrls: string[] = [];
   page.on("request", (request) => requestedUrls.push(request.url()));
-  await mockLegacyApis(page);
+  await mockLegacyApis(page, heartbeatBodies);
   await page.addInitScript(
     ({ credential, token }) => {
       localStorage.setItem("veyocast.player.deviceToken", token);
@@ -110,7 +117,120 @@ test("LG Legacy Player gebruikt statische shell en precies één media-element",
   await expect(page.locator("#status")).toBeHidden();
   await expect(page.locator("#watermark")).toHaveClass("visible");
   await expect(page.locator("#media-root > *")).toHaveCount(1);
+  await expect.poll(() => heartbeatBodies.length).toBeGreaterThan(0);
+  expect(heartbeatBodies.at(-1)).toMatchObject({
+    runtimeState: "PLAYING",
+    syncPhase: "active"
+  });
   expect(requestedUrls.some((url) => url.includes("/_next/"))).toBe(false);
+});
+
+test("LG Legacy Player herstelt een lokaal verwijderde schermcredential uit de actieve release", async ({
+  page
+}) => {
+  const installationAuthorizations: Array<string | undefined> = [];
+  let pairingRequests = 0;
+  const envelope = cachedImageEnvelope("credential-recovery-image");
+
+  await page.route("**/api/player/installation", async (route) => {
+    installationAuthorizations.push(
+      route.request().headers()["authorization"]
+    );
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        bound: true,
+        installationCredential,
+        ok: true
+      })
+    });
+  });
+  await page.route("**/api/player/pairing", async (route) => {
+    pairingRequests += 1;
+    await route.fulfill({ status: 429 });
+  });
+  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(envelope)
+    });
+  });
+  await page.route("**/api/player/heartbeat", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ automation: null, ok: true })
+    });
+  });
+  await page.route("**/api/player/commands", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ commands: [], ok: true })
+    });
+  });
+
+  await page.goto(`${playerURL}/healthz`);
+  await page.evaluate(
+    async ({ credential, release, token }) => {
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+      localStorage.removeItem("veyocast.player.deviceToken");
+      const database = await new Promise<IDBDatabase>((resolve, reject) => {
+        const open = indexedDB.open("veyocast-player-cache-v1", 2);
+        open.onupgradeneeded = () => {
+          if (!open.result.objectStoreNames.contains("activeReleases")) {
+            open.result.createObjectStore("activeReleases", {
+              keyPath: "deviceToken"
+            });
+          }
+          if (!open.result.objectStoreNames.contains("previousReleases")) {
+            open.result.createObjectStore("previousReleases", {
+              keyPath: "deviceToken"
+            });
+          }
+        };
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => resolve(open.result);
+      });
+      await new Promise<void>((resolve, reject) => {
+        const transaction = database.transaction("activeReleases", "readwrite");
+        transaction.objectStore("activeReleases").put({
+          activatedAt: new Date().toISOString(),
+          assets: [],
+          deviceToken: token,
+          envelope: release
+        });
+        transaction.onerror = () => reject(transaction.error);
+        transaction.oncomplete = () => resolve();
+      });
+      database.close();
+    },
+    {
+      credential: installationCredential,
+      release: envelope,
+      token: deviceToken
+    }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+
+  await expect(page.locator("#media-root > img")).toBeVisible();
+  await expect.poll(() => installationAuthorizations.at(-1)).toBe(
+    `Bearer ${deviceToken}`
+  );
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        localStorage.getItem("veyocast.player.deviceToken")
+      )
+    )
+    .toBe(deviceToken);
+  expect(pairingRequests).toBe(0);
 });
 
 test("LG Legacy Player toont pairing zonder witte of horizontaal overlopende pagina", async ({
@@ -167,6 +287,53 @@ test("LG Legacy Player toont pairing zonder witte of horizontaal overlopende pag
     "rgb(5, 5, 5)"
   );
 });
+
+function cachedImageEnvelope(itemId: string) {
+  return {
+    state: "PLAYING",
+    fetchedAt: new Date().toISOString(),
+    device: {
+      id: "device-legacy",
+      screenId: "screen-legacy",
+      screenName: "LG Legacy",
+      activeReleaseId: "release-legacy",
+      desiredReleaseId: "release-legacy"
+    },
+    manifest: {
+      schemaVersion: 1,
+      tenantId: "tenant-legacy",
+      playlistId: "playlist-legacy",
+      releaseId: "release-legacy",
+      version: 1,
+      label: "Legacy herstelbewijs",
+      manifestHash: "a".repeat(64),
+      publishedAt: new Date().toISOString(),
+      totalDurationSeconds: 5,
+      totalBytes: 1,
+      items: [
+        {
+          id: itemId,
+          kind: "image",
+          title: "Legacy herstelbeeld",
+          durationSeconds: 5,
+          fitMode: "contain",
+          muted: true,
+          source: {
+            url: "/player-demo/clubhuis-entree.svg",
+            mimeType: "image/svg+xml",
+            bytes: 1,
+            checksumSha256: "b".repeat(64)
+          }
+        }
+      ]
+    },
+    diagnostics: {
+      syncStatus: "online",
+      lastSuccessfulSyncAt: new Date().toISOString(),
+      nextSyncReason: "test"
+    }
+  };
+}
 
 test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release", async ({
   page

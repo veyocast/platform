@@ -42,6 +42,10 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain('"/api/player/commands"');
     expect(html).toContain("veyocast-player-cache-v1");
     expect(html).toContain("veyocast-player-assets-v1");
+    expect(html).toContain("LEGACY_DEVICE_CREDENTIAL_RECOVERED");
+    expect(html).toContain('syncPhase: manifest ? "active" : null');
+    expect(html).not.toContain('syncPhase: "lg-legacy"');
+    expect(html).not.toContain('syncPhase: "lg-legacy-pairing"');
   });
 
   it("houdt de inline runtime compatibel met oude webOS syntax", () => {

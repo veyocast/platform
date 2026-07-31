@@ -83,6 +83,119 @@ test("LG activeert de eerste release vanuit wachten op content via lokale cacheb
   );
 });
 
+test("LG herstelt een lokaal verwijderde schermcredential uit de geverifieerde releasecache", async ({
+  page
+}) => {
+  const manifestResponse = await page.request.get(
+    `${playerURL}/api/player/manifest?deviceToken=demo-online`
+  );
+  const release = (await manifestResponse.json()) as PlayerManifestEnvelope;
+  const recoveredDeviceToken = "r".repeat(48);
+  const installationCredential = "i".repeat(48);
+  const installationAuthorizations: Array<string | undefined> = [];
+  let pairingRequests = 0;
+
+  await page.route("**/api/player/installation", async (route) => {
+    installationAuthorizations.push(
+      route.request().headers()["authorization"]
+    );
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        bound: true,
+        installationCredential,
+        ok: true
+      })
+    });
+  });
+  await page.route("**/api/player/pairing", async (route) => {
+    pairingRequests += 1;
+    await route.fulfill({ status: 429 });
+  });
+  await page.route("**/api/player/manifest", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(release)
+    });
+  });
+  await page.route("**/api/player/heartbeat", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ automation: null, ok: true })
+    });
+  });
+  await page.route("**/api/player/commands", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ commands: [], ok: true })
+    });
+  });
+
+  await page.goto(`${playerURL}/healthz`);
+  await page.evaluate(
+    async ({ credential, envelope, token }) => {
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "22345678-1234-4123-8123-123456789abc"
+      );
+      localStorage.removeItem("veyocast.player.deviceToken");
+      const database = await new Promise<IDBDatabase>((resolve, reject) => {
+        const open = indexedDB.open("veyocast-player-cache-v1", 2);
+        open.onupgradeneeded = () => {
+          if (!open.result.objectStoreNames.contains("activeReleases")) {
+            open.result.createObjectStore("activeReleases", {
+              keyPath: "deviceToken"
+            });
+          }
+          if (!open.result.objectStoreNames.contains("previousReleases")) {
+            open.result.createObjectStore("previousReleases", {
+              keyPath: "deviceToken"
+            });
+          }
+        };
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => resolve(open.result);
+      });
+      await new Promise<void>((resolve, reject) => {
+        const transaction = database.transaction("activeReleases", "readwrite");
+        transaction.objectStore("activeReleases").put({
+          activatedAt: new Date().toISOString(),
+          assets: [],
+          deviceToken: token,
+          envelope
+        });
+        transaction.onerror = () => reject(transaction.error);
+        transaction.oncomplete = () => resolve();
+      });
+      database.close();
+    },
+    {
+      credential: installationCredential,
+      envelope: release,
+      token: recoveredDeviceToken
+    }
+  );
+
+  await page.goto(`${playerURL}/lg?durationMs=5000`);
+
+  await expect(page.getByLabel("Release playback")).toBeVisible();
+  await expect.poll(() => installationAuthorizations.at(-1)).toBe(
+    `Bearer ${recoveredDeviceToken}`
+  );
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        localStorage.getItem("veyocast.player.deviceToken")
+      )
+    )
+    .toBe(recoveredDeviceToken);
+  expect(pairingRequests).toBe(0);
+});
+
 test("advances three naturally ended videos without freezing between items", async ({
   page
 }) => {
