@@ -5,9 +5,6 @@ const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 test("zelfstandige LG-probe blijft semantisch en toetsenbordbedienbaar", async ({
   page
 }) => {
-  await page.route("https://media.w3.org/**", async (route) => {
-    await route.fulfill({ body: "niet beschikbaar in browsertest", status: 404 });
-  });
   await page.setViewportSize({ height: 720, width: 1280 });
   await page.goto(`${playerURL}/lg/probe`);
 
