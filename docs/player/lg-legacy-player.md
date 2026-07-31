@@ -45,6 +45,11 @@ De Legacy Player:
 - `LG-PLAYBACK-READY`: decoder, directe media en bestaande cache werken. Zoek
   het defect in de React/runtime-overgang; de Legacy Player is een geschikte
   geïsoleerde workaround.
+- `LG-IMAGE-PLAYBACK-READY`: de ingebouwde same-origin H.264
+  Baseline/AAC-LC-video, de actieve releaseafbeelding, Blob-route en bestaande
+  Player-cache werken. De Legacy Player mag opt-in worden getest, maar
+  publiceer eerst een release met een echte VeyoCast-video voordat
+  `/lg/legacy` als vaste start-URL wordt ingesteld.
 - `LG-CACHE-RANGE`: gebruik online direct; laat cached video alleen als
   gecontroleerde fallback dienen.
 - `LG-BLOB-MEMORY`: vermijd Blob als primaire videobron. De Legacy Player doet
