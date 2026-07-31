@@ -147,7 +147,9 @@ Player-runtime. De probe:
 1. controleert browserfuncties via eigen tijdelijke localStorage-, Cache
    Storage- en IndexedDB-records;
 2. controleert de Player-origin en rendert een ingebouwde PNG;
-3. speelt een bekende externe H.264/MP4-referentievideo zichtbaar af;
+3. speelt een kleine synthetische H.264 Baseline/AAC-LC-referentievideo vanaf
+   dezelfde Player-origin zichtbaar af, zodat externe DNS, CORS en
+   beschikbaarheid van derde partijen de decoderproef niet beïnvloeden;
 4. leest met de bestaande devicecredential het actuele manifest;
 5. test de eerste actieve video, of anders het eerste afspeelbare release-item,
    rechtstreeks vanaf de signed URL;
@@ -167,12 +169,14 @@ Laat de pagina open totdat een van deze eindcodes verschijnt:
 
 | Code | Betekenis | Eerstvolgende maatregel |
 |---|---|---|
-| `LG-PLAYBACK-READY` | direct en cachepad spelen | zoek verder in normale runtime/overgangen |
+| `LG-PLAYBACK-READY` | actieve VeyoCast-video speelt direct en via cache | zoek verder in normale runtime/overgangen |
+| `LG-IMAGE-PLAYBACK-READY` | actieve afbeelding werkt direct, als Blob en via cache; same-origin videoreferentie werkt ook | publiceer een korte testvideo om signed URL, codec en videocache end-to-end te bewijzen |
+| `LG-IMAGE-DIRECT-READY` | actieve afbeelding werkt direct, cacheproef is niet beslissend | controleer cache/serviceworker en voer opnieuw uit |
 | `LG-CACHE-RANGE` | direct werkt, cachepad faalt | hosted LG-playback moet cache/serviceworker omzeilen |
 | `LG-BLOB-MEMORY` | direct werkt, Blob faalt | vermijd volledige asset-Blob op deze LG |
 | `LG-DIRECT-FETCH` | media-element werkt, ranged download faalt | controleer CORS, signed URL en downloadpad |
 | `LG-ACTIVE-ASSET` | referentievideo werkt, actief bestand faalt | normaliseer codecprofiel en controleer signed URL/release |
-| `LG-VIDEO-REFERENCE` | referentievideo faalt | controleer externe bereikbaarheid en LG-decoder |
+| `LG-VIDEO-REFERENCE` | ingebouwde same-origin H.264 Baseline/AAC-LC-video faalt | behandel video als niet bewezen; noteer mediaError, readyState en networkState |
 | `LG-WAITING-CONTENT` | koppeling geldig, geen release | publiceer een immutable testrelease |
 | `LG-UNPAIRED` | geen lokale devicecredential | koppel of herstel eerst de Player |
 
