@@ -190,6 +190,31 @@ export async function readPreviousRelease(deviceToken: string) {
   return readReleaseFromStore(playerPreviousReleaseStoreName, deviceToken);
 }
 
+export async function recoverDeviceTokenFromPersistedRelease() {
+  await migratePreviousPlayerStorage();
+  const database = await openPlayerDatabase();
+
+  try {
+    const candidates = [];
+
+    for (const storeName of [
+      playerActiveReleaseStoreName,
+      playerPreviousReleaseStoreName
+    ]) {
+      const candidate = await readLatestDeviceTokenCandidate(
+        database,
+        storeName
+      );
+      if (candidate) candidates.push(candidate);
+    }
+
+    candidates.sort((left, right) => right.activatedAt - left.activatedAt);
+    return candidates[0]?.deviceToken ?? null;
+  } finally {
+    database.close();
+  }
+}
+
 export async function garbageCollectPersistedPlayerMedia(
   deviceToken: string,
   store = createPlayerMediaStore(playerAssetCacheName)
@@ -234,6 +259,65 @@ async function readReleaseFromStore(storeName: string, deviceToken: string) {
   database.close();
 
   return cachedRelease;
+}
+
+async function readLatestDeviceTokenCandidate(
+  database: IDBDatabase,
+  storeName: string
+) {
+  if (!database.objectStoreNames.contains(storeName)) return null;
+
+  const transaction = database.transaction(storeName, "readonly");
+  const completed = transactionDone(transaction);
+  const store = transaction.objectStore(storeName);
+  const candidate = await new Promise<{
+    activatedAt: number;
+    deviceToken: string;
+  } | null>((resolve, reject) => {
+    let latest: { activatedAt: number; deviceToken: string } | null = null;
+    const request = store.openCursor();
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) {
+        resolve(latest);
+        return;
+      }
+
+      const value = persistedDeviceTokenCandidate(cursor.value);
+      if (value && (!latest || value.activatedAt > latest.activatedAt)) {
+        latest = value;
+      }
+      cursor.continue();
+    };
+  });
+  await completed;
+  return candidate;
+}
+
+function persistedDeviceTokenCandidate(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+
+  const release = value as Partial<CachedPlayerRelease>;
+  const deviceToken = release.deviceToken;
+  const envelope = release.envelope;
+  if (
+    typeof deviceToken !== "string" ||
+    !/^[A-Za-z0-9_-]{20,200}$/.test(deviceToken) ||
+    !envelope ||
+    typeof envelope !== "object" ||
+    !("device" in envelope) ||
+    !("manifest" in envelope)
+  ) {
+    return null;
+  }
+
+  const activatedAt = Date.parse(release.activatedAt ?? "");
+  return {
+    activatedAt: Number.isFinite(activatedAt) ? activatedAt : 0,
+    deviceToken
+  };
 }
 
 export function migratePreviousReleaseCacheKeys(

@@ -25,6 +25,14 @@ const runtimeStates = new Set([
   "OFFLINE_PLAYING",
   "ERROR_RECOVERABLE"
 ]);
+const syncPhases = new Set([
+  "manifest_received",
+  "downloading",
+  "verifying",
+  "switch_pending",
+  "active",
+  "failed"
+]);
 
 export async function POST(request: Request) {
   const deviceToken = getBearerToken(request);
@@ -112,7 +120,7 @@ export async function POST(request: Request) {
       desiredReleaseId: safePlayerIdentifier(body.desiredReleaseId),
       networkState: body.networkState === "offline" ? "offline" : "online"
     },
-    p_sync_phase: body.syncPhase ?? null,
+    p_sync_phase: normalizeSyncPhase(body.syncPhase),
     p_token_hash: tokenHash
   });
 
@@ -129,10 +137,18 @@ export async function POST(request: Request) {
         ? "DEVICE_REVOKED"
         : credentialState === "PAIRING_PENDING"
           ? "PAIRING_PENDING"
-          : "INVALID_DEVICE_TOKEN";
+          : credentialState === "PAIRED"
+            ? "PLAYER_API_UNAVAILABLE"
+            : "INVALID_DEVICE_TOKEN";
     return heartbeatFailure(
       code,
-      code === "DEVICE_REVOKED" ? 403 : code === "PAIRING_PENDING" ? 409 : 401
+      code === "DEVICE_REVOKED"
+        ? 403
+        : code === "PAIRING_PENDING"
+          ? 409
+          : code === "PLAYER_API_UNAVAILABLE"
+            ? 503
+            : 401
     );
   }
 
@@ -209,6 +225,10 @@ function sha256(value: string) {
 
 function safeNonNegativeInteger(value: number | null | undefined) {
   return Number.isSafeInteger(value) && Number(value) >= 0 ? Number(value) : null;
+}
+
+function normalizeSyncPhase(value: string | null | undefined) {
+  return typeof value === "string" && syncPhases.has(value) ? value : null;
 }
 
 function heartbeatFailure(code: string, status: number) {

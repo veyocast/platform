@@ -20,6 +20,7 @@ import {
   preparePendingRelease,
   readActiveRelease,
   readPreviousRelease,
+  recoverDeviceTokenFromPersistedRelease,
   refreshHydratedReleaseEnvelope,
   revokeHydratedRelease,
   shouldRestartForRefreshedMediaAccess,
@@ -591,7 +592,18 @@ export function PlayerRuntime() {
     transitionPairing({ type: "INSTALLATION_REGISTERING" });
 
     async function registerInstallation() {
-      const deviceToken = readStoredDeviceToken();
+      let deviceToken = readStoredDeviceToken();
+      if (
+        !deviceToken &&
+        (window.location.pathname === "/lg" ||
+          window.location.pathname.startsWith("/lg/"))
+      ) {
+        deviceToken = await recoverDeviceTokenFromPersistedRelease().catch(
+          () => null
+        );
+        if (cancelled) return;
+        if (deviceToken) writeStoredDeviceToken(deviceToken);
+      }
       const existingCredential = readStoredInstallationCredential();
       const publicInstallationId = readOrCreatePlayerInstanceId();
       setInstallationDisplayId(publicInstallationId);

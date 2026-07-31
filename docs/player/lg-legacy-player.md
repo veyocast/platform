@@ -25,6 +25,32 @@ De Legacy Player:
 - toont bij fouten een VeyoCast-statusvlak in plaats van een wit of zwart
   scherm.
 
+## Heartbeat- en credentialbehoud
+
+Een fysieke LG-test op 1 augustus 2026 bewees dat de eerste Legacy-runtime de
+actieve releaseafbeelding kon tonen, maar niet online verscheen in Control. De
+runtime stuurde de niet-canonieke synchronisatiefase `lg-legacy`; de
+database accepteert uitsluitend `manifest_received`, `downloading`,
+`verifying`, `switch_pending`, `active` en `failed`. De heartbeattransactie
+werd daardoor teruggedraaid. De API classificeerde de nog gekoppelde
+devicecredential vervolgens ten onrechte als `INVALID_DEVICE_TOKEN`, waarna de
+client hem lokaal verwijderde en een nieuwe pairing probeerde te maken.
+
+De herstelde keten bewaakt drie grenzen:
+
+- Legacy rapporteert tijdens playback uitsluitend `active` en tijdens pairing
+  geen synchronisatiefase;
+- de heartbeat-API normaliseert onbekende fasen naar `null` en vertaalt een
+  databasefout bij een aantoonbaar `PAIRED` credential naar de tijdelijke fout
+  `PLAYER_API_UNAVAILABLE`;
+- wanneer alleen de lokale devicecredential ontbreekt, zoeken `/lg` en
+  `/lg/legacy` de nieuwste geldige credential in de reeds geverifieerde
+  actieve of vorige IndexedDB-release. De installatie-ID, schermbinding,
+  immutable release en cache blijven ongewijzigd.
+
+Een werkelijk ingetrokken of onbekende credential blijft definitief afgewezen.
+De cachefallback kan dus geen server-side revoke ongedaan maken.
+
 ## Veilige ingebruikname
 
 1. Pair en publiceer op de gewone `/lg`-route.
