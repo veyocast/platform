@@ -132,6 +132,54 @@ Stop wanneer HTTPS, tokenvalidatie, tokenverwijdering, versie-identiteit of
 testmedia niet correct zijn. Een HTTP-test is geen geldig service-worker- of
 persistent-storagebewijs.
 
+### 3.4 Statische probe voor een vastgelopen productieplayer
+
+Gebruik vóór recovery, reset of IPK-wijziging eerst:
+
+```text
+https://<player-host>/lg/probe
+```
+
+Deze route is zelfstandig gerenderde HTML met conservatieve inline JavaScript.
+Hij laadt geen React-hydration, Next.js-clientchunks of normale
+Player-runtime. De probe:
+
+1. controleert browserfuncties via eigen tijdelijke localStorage-, Cache
+   Storage- en IndexedDB-records;
+2. controleert de Player-origin en rendert een ingebouwde PNG;
+3. speelt een bekende externe H.264/MP4-referentievideo zichtbaar af;
+4. leest met de bestaande devicecredential het actuele manifest;
+5. test de eerste actieve video, of anders het eerste afspeelbare release-item,
+   rechtstreeks vanaf de signed URL;
+6. test hetzelfde bestand, tot maximaal 40 MB, als Blob/object-URL;
+7. leest uitsluitend een reeds aanwezige VeyoCast-cache-entry en test het
+   serviceworker-/byte-rangepad.
+
+De probe verwijdert of vervangt geen installatie-ID, devicecredential,
+pairingstatus, release of normale Player-cache. Hij maakt alleen eigen
+testrecords aan en ruimt die na de controle op. Het veilige samenvattingsrapport
+wordt lokaal opgeslagen onder `veyocast.player.lgProbe.v1`. Wanneer de Player
+gekoppeld is, stuurt de probe de eindcode ook via de bestaande heartbeat naar
+Control; tokens, tenantnamen en signed URL's worden niet in het zichtbare
+rapport opgenomen.
+
+Laat de pagina open totdat een van deze eindcodes verschijnt:
+
+| Code | Betekenis | Eerstvolgende maatregel |
+|---|---|---|
+| `LG-PLAYBACK-READY` | direct en cachepad spelen | zoek verder in normale runtime/overgangen |
+| `LG-CACHE-RANGE` | direct werkt, cachepad faalt | hosted LG-playback moet cache/serviceworker omzeilen |
+| `LG-BLOB-MEMORY` | direct werkt, Blob faalt | vermijd volledige asset-Blob op deze LG |
+| `LG-DIRECT-FETCH` | media-element werkt, ranged download faalt | controleer CORS, signed URL en downloadpad |
+| `LG-ACTIVE-ASSET` | referentievideo werkt, actief bestand faalt | normaliseer codecprofiel en controleer signed URL/release |
+| `LG-VIDEO-REFERENCE` | referentievideo faalt | controleer externe bereikbaarheid en LG-decoder |
+| `LG-WAITING-CONTENT` | koppeling geldig, geen release | publiceer een immutable testrelease |
+| `LG-UNPAIRED` | geen lokale devicecredential | koppel of herstel eerst de Player |
+
+Maak één foto van de volledige stappenlijst, één foto van de diagnosecode en
+noteer model, firmware, tijdstip en actieve releaseversie. Voer recovery pas na
+deze bewijsopname uit; anders gaat de oorspronkelijke storingscontext verloren.
+
 ## 4. Apparaatregistratie en nulmeting
 
 Leg vóór wijziging of reset vast:
