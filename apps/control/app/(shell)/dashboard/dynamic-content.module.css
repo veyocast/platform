@@ -112,6 +112,19 @@
   max-width: 74rem;
 }
 
+.wizard {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-xl);
+  background: var(--vc-surface);
+  box-shadow: 0 12px 36px rgb(10 10 10 / 6%);
+}
+
+.wizard > * {
+  min-width: 0;
+}
+
 .formSection {
   display: grid;
   gap: var(--vc-space-16);
@@ -119,6 +132,10 @@
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-xl);
   background: var(--vc-surface);
+}
+
+.formSection[hidden] {
+  display: none;
 }
 
 .formSection h2 {
@@ -230,40 +247,182 @@
   grid-column: 1 / -1;
 }
 
-.steps {
+.wizardSteps {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-lg);
-  background: var(--vc-surface);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--vc-border);
+  list-style: none;
 }
 
-.step {
-  display: grid;
+.wizardStep {
   min-width: 0;
-  gap: 0.15rem;
-  padding: var(--vc-space-12);
   border-right: 1px solid var(--vc-border);
 }
 
-.step:last-child {
+.wizardStep:last-child {
   border-right: 0;
 }
 
-.step strong {
-  color: var(--vc-action);
-  font-size: 0.75rem;
-  font-weight: 700;
+.wizardStep button {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 4rem;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-12);
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--vc-text-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  text-align: left;
 }
 
-.step span {
-  overflow: hidden;
+.wizardStep button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.wizardStep button:not(:disabled) {
+  cursor: pointer;
+}
+
+.wizardStep[data-current="true"] {
+  background: color-mix(in srgb, var(--vc-action) 8%, var(--vc-surface));
+  box-shadow: inset 0 -3px 0 var(--vc-action);
+}
+
+.wizardStep[data-current="true"] button,
+.wizardStep[data-complete="true"] button {
+  color: var(--vc-text);
+}
+
+.wizardStepNumber {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--vc-border-strong);
+  border-radius: 999px;
+  background: var(--vc-surface);
   color: var(--vc-text-muted);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 750;
+}
+
+.wizardStepNumber svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.wizardStep[data-current="true"] .wizardStepNumber {
+  border-color: var(--vc-action);
+  background: var(--vc-action);
+  color: var(--vc-on-action);
+}
+
+.wizardStep[data-complete="true"] .wizardStepNumber {
+  border-color: var(--vc-semantic-success-solid);
+  background: var(--vc-semantic-success-surface);
+  color: var(--vc-semantic-success-text);
+}
+
+.wizardStep button > span:last-child {
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.wizardStatus {
+  display: grid;
+  gap: var(--vc-space-4);
+  padding: var(--vc-space-20) clamp(var(--vc-space-16), 3vw, var(--vc-space-24)) 0;
+}
+
+.wizardStatus > span {
+  color: var(--vc-action);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wizardStatus > strong {
+  color: var(--vc-text);
+  font-family: var(--vc-font-display);
+  font-size: 1.25rem;
+}
+
+.wizardStatus > p {
+  margin: 0;
+  color: var(--vc-text-muted);
+  font-size: 0.875rem;
+}
+
+.wizard .formSection {
+  min-height: 18rem;
+  align-content: start;
+  border: 0;
+  border-radius: 0;
+}
+
+.wizard .formSection h2:focus {
+  outline: none;
+}
+
+.wizardReview {
+  display: grid;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-lg);
+}
+
+.wizardReview div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.35fr) minmax(0, 1fr);
+  gap: var(--vc-space-16);
+  padding: var(--vc-space-12) var(--vc-space-16);
+  border-bottom: 1px solid var(--vc-border);
+}
+
+.wizardReview div:last-child {
+  border-bottom: 0;
+}
+
+.wizardReview dt {
+  color: var(--vc-text-muted);
+  font-size: 0.8125rem;
+}
+
+.wizardReview dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--vc-text);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.wizardActions {
+  display: flex;
+  gap: var(--vc-space-16);
+  padding: var(--vc-space-16) clamp(var(--vc-space-16), 3vw, var(--vc-space-24));
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--vc-border);
+  background: var(--vc-surface-muted);
+}
+
+.wizardActions > div {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--vc-space-8);
 }
 
 .split {
@@ -330,18 +489,6 @@
 }
 
 @media (max-width: 74rem) {
-  .steps {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .step:nth-child(4) {
-    border-right: 0;
-  }
-
-  .step:nth-child(-n + 4) {
-    border-bottom: 1px solid var(--vc-border);
-  }
-
   .codeGrid,
   .split {
     grid-template-columns: 1fr;
@@ -358,22 +505,16 @@
     grid-template-columns: 1fr;
   }
 
-  .steps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .wizardSteps {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
   }
 
-  .step,
-  .step:nth-child(4) {
+  .wizardStep {
+    min-width: 8.25rem;
     border-right: 1px solid var(--vc-border);
-    border-bottom: 1px solid var(--vc-border);
-  }
-
-  .step:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .step:nth-last-child(-n + 2) {
-    border-bottom: 0;
+    scroll-snap-align: start;
   }
 
   .cardTop,
@@ -389,5 +530,30 @@
   .choiceBadge {
     grid-column: 2;
     justify-self: start;
+  }
+
+  .wizard .formSection {
+    min-height: 21rem;
+  }
+
+  .wizardReview div {
+    grid-template-columns: 1fr;
+    gap: var(--vc-space-4);
+  }
+
+  .wizardActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .wizardActions > div {
+    display: grid;
+    width: 100%;
+    flex: 1 1 auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wizardActions > div > * {
+    width: 100%;
   }
 }

@@ -16,17 +16,6 @@ type PageProps = {
   searchParams: Promise<{ fout?: string }>;
 };
 
-const steps = [
-  "Dynamische slide",
-  "Categorie",
-  "Slidetype",
-  "Template",
-  "Databron",
-  "Inhoud",
-  "Voorbeeld",
-  "Opslaan"
-];
-
 export default async function NewSlidePage({ searchParams }: PageProps) {
   const session = await requireTenantControlSession("tenant.dynamic_slide.write");
   const params = await searchParams;
@@ -43,9 +32,6 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
         title="Dynamische slide maken"
       />
       {params.fout ? <p className="notice notice--critical" role="alert"><strong>Slide niet gemaakt.</strong> {params.fout}</p> : null}
-      <div aria-label="Stappen voor dynamische slide" className={styles.steps}>
-        {steps.map((step, index) => <div className={styles.step} key={step}><strong>{index + 1}</strong><span>{step}</span></div>)}
-      </div>
 
       {!data.sources.length ? (
         <div className={`empty-state ${styles.emptyState}`}>
