@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(20);
+select plan(22);
 
 insert into public.tenants (id, name, slug)
 values ('10000000-0000-4000-8000-000000000901', 'Worker tenant', 'worker-tenant');
@@ -150,6 +150,25 @@ select throws_ok(
   'a different worker cannot complete the claimed job'
 );
 
+select throws_ok(
+  $$
+    select public.complete_media_processing_job(
+      '40000000-0000-4000-8000-000000000901',
+      'worker:test-1',
+      repeat('a', 64),
+      'tenants/10000000-0000-4000-8000-000000000901/assets/20000000-0000-4000-8000-000000000901/variants/player-1080p.mp4',
+      repeat('b', 64),
+      900,
+      1920,
+      1920,
+      30
+    )
+  $$,
+  '23514',
+  'processed variant metadata is invalid',
+  'completion rejects a variant whose short edge exceeds 1080'
+);
+
 select public.complete_media_processing_job(
   '40000000-0000-4000-8000-000000000901',
   'worker:test-1',
@@ -157,8 +176,8 @@ select public.complete_media_processing_job(
   'tenants/10000000-0000-4000-8000-000000000901/assets/20000000-0000-4000-8000-000000000901/variants/player-1080p.mp4',
   repeat('b', 64),
   900,
-  1280,
-  720,
+  1080,
+  1920,
   30
 );
 reset role;
@@ -172,6 +191,16 @@ select is(
   (select count(*) from public.media_variants where asset_id = '20000000-0000-4000-8000-000000000901'),
   2::bigint,
   'completion registers original and player variants atomically'
+);
+select is(
+  (
+    select format('%sx%s', width, height)
+    from public.media_variants
+    where asset_id = '20000000-0000-4000-8000-000000000901'
+      and variant_type = 'player_1080p'
+  ),
+  '1080x1920',
+  'completion preserves a portrait player variant within the long-edge contract'
 );
 select is(
   (select status::text from public.media_processing_jobs where id = '40000000-0000-4000-8000-000000000901'),
