@@ -818,6 +818,10 @@
   z-index: var(--vc-z-modal);
 }
 
+.vc-dialog__overlay {
+  z-index: calc(var(--vc-z-modal) + 1);
+}
+
 .vc-dialog__content {
   animation-duration: var(--vc-motion-standard);
   animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
@@ -835,6 +839,7 @@
   top: 50%;
   transform: translate(-50%, -50%);
   width: min(calc(100vw - var(--vc-space-32)), 35rem);
+  z-index: calc(var(--vc-z-modal) + 2);
 }
 
 .vc-dialog__content[data-state="open"] {

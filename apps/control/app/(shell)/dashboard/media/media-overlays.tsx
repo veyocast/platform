@@ -287,6 +287,7 @@ export function ArchiveMediaDialog({
         <DialogBody>
           <div className="notice notice--warning" role="status">
             <strong>Gevolgen voor concepten</strong>
+            <br />
             {draftCount > 0 ? (
               <span>
                 De {mediaLabel} wordt ook uit {draftCount} conceptplaylist
@@ -299,6 +300,7 @@ export function ArchiveMediaDialog({
           </div>
           <div className="notice notice--success" role="status">
             <strong>Blijft behouden</strong>
+            <br />
             <span>
               {releaseCount > 0
                 ? `${releaseCount} bestaande release${releaseCount === 1 ? "" : "s"}`
