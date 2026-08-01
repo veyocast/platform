@@ -150,6 +150,12 @@ test("dashboard forms and surfaces share canonical alignment", async ({ page }) 
     for (const route of ["/dashboard/settings", "/dashboard/screens/new"]) {
       await navigate(page, route);
       await expect(page.locator("#control-content")).toBeVisible();
+      await expect(page.locator(".form-grid:visible").first()).toBeVisible();
+      await expect(
+        page
+          .locator(".workspace-section:visible, .data-surface:visible, .onboarding-workspace:visible")
+          .first()
+      ).toBeVisible();
       expectCanonicalGeometry(await readDashboardGeometry(page), viewport.padding);
       if (route === "/dashboard/settings") {
         const navigationLocator = page.getByRole("navigation", {

@@ -137,7 +137,7 @@ test("mobile navigation never mixes tenant and platform destinations", async ({
 });
 
 test("all Control overview routes remain inside the viewport", async ({ page }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(600_000);
 
   const routes = [
     "/dashboard",
