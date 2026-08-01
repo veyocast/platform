@@ -103,6 +103,7 @@ tests en exitcriteria staan in
 | S66 | Productie-workerreadiness | De deployment bevestigt media-workerreadiness via de directe probe of een exact aan image, omgeving en revisie gebonden Docker-healthcheck |
 | S67 | Releasegebonden workerheartbeat | Een recente echte queuepoll bewijst workerreadiness ook wanneer uitsluitend de lokale TCP-route in de productiecontainer faalt |
 | S79 | Veilige mediaverwijdering | Video en afbeelding vanuit Media transactioneel archiveren met expliciete conceptimpact |
+| S81 | Begeleide slide- en mediabeheerflow | Dynamische slides in afzonderlijke gevalideerde stappen maken en mediaverwijdering direct vindbaar en herstelbaar maken |
 
 ### Programmagates
 
