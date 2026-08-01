@@ -32,7 +32,6 @@ import {
   Timeline
 } from "../../_components/shell-primitives";
 import {
-  archiveMediaAsset,
   assignMediaTag,
   moveMediaAsset,
   renameMediaAsset,
@@ -42,6 +41,7 @@ import {
   setMediaFavorite
 } from "./actions";
 import {
+  ArchiveMediaDialog,
   MediaInspectorSheet,
   MediaOrganizationDialog,
   MediaUploadDialog,
@@ -800,27 +800,16 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
               </p>
             </form>
           ) : (
-            <form action={archiveMediaAsset}>
-              <input name="assetId" type="hidden" value={selectedAsset.id} />
-              <input name="idempotencyKey" type="hidden" value={randomUUID()} />
-              <Button
-                disabled={!canUpload || selectedAsset.draftCount > 0}
-                type="submit"
-                variant="destructive"
-              >
-                Media archiveren
-              </Button>
-              {selectedAsset.draftCount > 0 ? (
-                <p className="work-panel__meta">
-                  Verwijder deze media eerst uit alle conceptplaylists.
-                  Gepubliceerde releases blijven intact.
-                </p>
-              ) : selectedAsset.releaseCount > 0 ? (
-                <p className="work-panel__meta">
-                  Historische releases blijven deze bytes gebruiken en blijven volledig afspeelbaar.
-                </p>
-              ) : null}
-            </form>
+            <ArchiveMediaDialog
+              assetId={selectedAsset.id}
+              canArchive={canUpload}
+              draftCount={selectedAsset.draftCount}
+              idempotencyKey={randomUUID()}
+              kind={selectedAsset.kind}
+              releaseCount={selectedAsset.releaseCount}
+              screenCount={selectedAsset.screenCount}
+              title={selectedAsset.title}
+            />
           )}
         </MediaInspectorSheet>
       ) : null}

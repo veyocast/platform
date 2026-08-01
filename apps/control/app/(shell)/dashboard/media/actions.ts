@@ -89,8 +89,26 @@ export async function renameMediaAsset(formData: FormData) {
 }
 
 export async function archiveMediaAsset(formData: FormData) {
-  await mutateMediaAsset(formData, "archive", {});
-  completeLibrary("De media is gearchiveerd. Bestaande immutable releases en opslagbytes blijven ongewijzigd.");
+  const assetId = mediaId(formData);
+  if (formData.get("confirmArchive") !== "on") {
+    fail(assetId, "Bevestig eerst dat je deze media uit de actieve bibliotheek wilt verwijderen.");
+  }
+  const expectedDraftCount = Number.parseInt(
+    String(formData.get("expectedDraftCount") ?? ""),
+    10
+  );
+  if (!Number.isSafeInteger(expectedDraftCount) || expectedDraftCount < 0) {
+    fail(assetId, "Het actuele mediagebruik kon niet veilig worden bevestigd. Vernieuw de bibliotheek.");
+  }
+  await mutateMediaAsset(formData, "archive", {
+    expectedDraftCount,
+    removeDraftReferences: expectedDraftCount > 0
+  });
+  completeLibrary(
+    expectedDraftCount > 0
+      ? `De media is uit ${expectedDraftCount} concept${expectedDraftCount === 1 ? "" : "en"} verwijderd en staat nu herstelbaar in het archief. Bestaande releases blijven afspeelbaar.`
+      : "De media is uit de actieve bibliotheek verwijderd en staat herstelbaar in het archief. Bestaande releases blijven afspeelbaar."
+  );
 }
 
 export async function restoreMediaAsset(formData: FormData) {
@@ -260,7 +278,7 @@ async function organizeMedia(
 async function mutateMediaAsset(
   formData: FormData,
   operation: "archive" | "rename" | "restore",
-  payload: Record<string, string>
+  payload: Record<string, boolean | number | string>
 ) {
   const { session, supabase } = await requireMediaWriter();
   const assetId = mediaId(formData);
@@ -333,8 +351,11 @@ function mediaLifecycleError(
   if (code === "42501") return "Je mag deze media niet wijzigen. Er is niets aangepast.";
   if (code === "P0002") return "De media bestaat niet meer. Vernieuw de bibliotheek.";
   if (code === "23505") return "Dit commando is al met andere invoer verwerkt. Start de actie opnieuw.";
+  if (code === "40001" && operation === "archive") {
+    return "Het gebruik van deze media is intussen gewijzigd. Vernieuw de bibliotheek en controleer de gevolgen opnieuw.";
+  }
   if (code === "23514" && operation === "archive") {
-    return "Deze media staat nog in een conceptplaylist of is al gearchiveerd. Verwijder het conceptitem eerst.";
+    return "Deze media kon niet veilig worden verwijderd. Vernieuw de bibliotheek en controleer de conceptplaatsingen opnieuw.";
   }
   if (code === "23514" && operation === "restore") {
     return "Deze media is niet meer gearchiveerd. Vernieuw de bibliotheek.";
