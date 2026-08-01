@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(38);
+select plan(40);
 
 insert into public.playlists (
   id,
@@ -199,6 +199,7 @@ select is(
   'recovery action creates one command'
 );
 
+select set_config('request.jwt.claim.sub', '', true);
 set local role anon;
 select is(
   jsonb_array_length(
@@ -209,6 +210,19 @@ select is(
 );
 
 reset role;
+select ok(
+  exists (
+    select 1
+    from public.audit_events event
+    join public.player_commands command
+      on command.id::text = event.metadata ->> 'commandId'
+    where command.nonce = '50000000-0000-4000-8000-000000000148'
+      and event.action = 'player_command.delivered'
+      and event.actor_user_id is null
+      and event.actor_device_id = command.device_id
+  ),
+  'anonymous installation polling writes a verified device audit'
+);
 select ok(
   (
     select delivered_at is not null
@@ -285,6 +299,19 @@ select ok(
     where nonce = '50000000-0000-4000-8000-000000000148'
   ),
   'completed recovery is terminal'
+);
+select ok(
+  exists (
+    select 1
+    from public.audit_events event
+    join public.player_commands command
+      on command.id::text = event.metadata ->> 'commandId'
+    where command.nonce = '50000000-0000-4000-8000-000000000148'
+      and event.action = 'player_command.completed'
+      and event.actor_user_id is null
+      and event.actor_device_id = command.device_id
+  ),
+  'anonymous command completion writes a verified device audit'
 );
 
 set local role anon;
