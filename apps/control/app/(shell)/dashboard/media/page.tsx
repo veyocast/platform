@@ -728,6 +728,11 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
               <p className="work-panel__meta">
                 {processingExplanation(processingSummary)}
               </p>
+              {processingSummary.status === "failed" && processingSummary.errorCode ? (
+                <p className="work-panel__meta">
+                  Foutcode: <code>{processingSummary.errorCode}</code>
+                </p>
+              ) : null}
             </section>
           ) : null}
 
@@ -1295,6 +1300,7 @@ function processingExplanation(processing: ProcessingSummary) {
   if (processing.status === "completed") return "De bron en playervariant zijn geverifieerd; de media kan in conceptplaylists worden gebruikt.";
   const cause = {
     command_failed: "De worker kon FFmpeg tijdelijk niet uitvoeren.",
+    complete_failed: "De geverifieerde playervariant kon niet transactioneel worden geregistreerd. Probeer de verwerking opnieuw.",
     normalization_failed: "De video kon niet naar het playercontract worden genormaliseerd.",
     processing_timeout: "De video kon niet binnen één minuut veilig worden verwerkt. Lever bij voorkeur H.264/AAC tot 1080p30 aan.",
     player_upload_failed: "De geverifieerde variant kon niet naar private opslag worden geschreven.",
