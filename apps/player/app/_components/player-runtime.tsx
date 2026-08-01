@@ -1958,6 +1958,13 @@ type PlaybackSceneEntry = {
   key: string;
 };
 
+type PlaybackSceneState = {
+  current: PlaybackSceneEntry;
+  outgoing?: PlaybackSceneEntry;
+  ready: boolean;
+  transition: "cut" | "crossfade" | "wipe";
+};
+
 function PlaybackScene({
   item,
   onEnded,
@@ -1980,20 +1987,14 @@ function PlaybackScene({
   });
   requestedSceneRef.current = { item, key: requestedKey };
   const transitionTimerRef = useRef<number | null>(null);
-  const [scene, setScene] = useState<{
-    current: PlaybackSceneEntry;
-    outgoing?: PlaybackSceneEntry;
-    transition: "cut" | "crossfade" | "wipe";
-  }>(() => ({
+  const [scene, setScene] = useState<PlaybackSceneState>(() => ({
     current: requestedSceneRef.current,
+    ready: false,
     transition: resolvePlayerItemPresentation(item).transition
   }));
 
   useLayoutEffect(() => {
     if (scene.current.key === requestedKey) return;
-    if (transitionTimerRef.current !== null) {
-      window.clearTimeout(transitionTimerRef.current);
-    }
 
     const requestedScene = requestedSceneRef.current;
     const requestedTransition =
@@ -2001,30 +2002,45 @@ function PlaybackScene({
         ? "cut"
         : resolvePlayerItemPresentation(requestedScene.item).transition;
 
-    if (requestedTransition === "cut") {
-      setScene({
-        current: requestedScene,
-        transition: "cut"
-      });
-      return;
-    }
-
     setScene((currentScene) => ({
       current: requestedScene,
-      outgoing: currentScene.current,
+      outgoing: currentScene.ready
+        ? currentScene.current
+        : currentScene.outgoing,
+      ready: false,
       transition: requestedTransition
     }));
+  }, [requestedKey, scene.current.key]);
+
+  useEffect(() => {
+    if (!scene.ready || !scene.outgoing) return;
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current);
+    }
+
     transitionTimerRef.current = window.setTimeout(
       () => {
         setScene((currentScene) => ({
           current: currentScene.current,
+          ready: currentScene.ready,
           transition: currentScene.transition
         }));
         transitionTimerRef.current = null;
       },
-      requestedTransition === "crossfade" ? 480 : 520
+      scene.transition === "crossfade"
+        ? 480
+        : scene.transition === "wipe"
+          ? 520
+          : 80
     );
-  }, [requestedKey, scene.current.key]);
+
+    return () => {
+      if (transitionTimerRef.current !== null) {
+        window.clearTimeout(transitionTimerRef.current);
+        transitionTimerRef.current = null;
+      }
+    };
+  }, [scene.current.key, scene.outgoing, scene.ready, scene.transition]);
 
   useEffect(
     () => () => {
@@ -2035,11 +2051,13 @@ function PlaybackScene({
     []
   );
 
-  const currentClassName = {
-    crossfade: styles.crossfade,
-    cut: styles.cut,
-    wipe: styles.wipe
-  }[scene.transition];
+  const currentClassName = scene.ready
+    ? {
+        crossfade: styles.crossfade,
+        cut: styles.cut,
+        wipe: styles.wipe
+      }[scene.transition]
+    : styles.pending;
 
   return (
     <div className={styles.transitionStack}>
@@ -2047,7 +2065,9 @@ function PlaybackScene({
         <div
           aria-hidden="true"
           className={`${styles.scene} ${
-            scene.transition === "crossfade" ? styles.crossfadeOutgoing : ""
+            scene.ready && scene.transition === "crossfade"
+              ? styles.crossfadeOutgoing
+              : ""
           }`}
           data-player-transition-outgoing={scene.transition}
           key={scene.outgoing.key}
@@ -2064,6 +2084,9 @@ function PlaybackScene({
       ) : null}
       <div
         className={`${styles.scene} ${styles.current} ${currentClassName}`}
+        data-player-handoff={
+          scene.ready ? "first-frame-ready" : "waiting-for-first-frame"
+        }
         data-player-transition={scene.transition}
         key={scene.current.key}
       >
@@ -2071,7 +2094,14 @@ function PlaybackScene({
           item={scene.current.item}
           onEnded={onEnded}
           onFailure={onFailure}
-          onReady={onReady}
+          onReady={(itemId) => {
+            onReady(itemId);
+            setScene((currentScene) =>
+              currentScene.current.key === scene.current.key
+                ? { ...currentScene, ready: true }
+                : currentScene
+            );
+          }}
           watchdogTimeoutMs={watchdogTimeoutMs}
         />
       </div>
@@ -2113,6 +2143,9 @@ export function PlaybackMedia({
   const lastSignalRef = useRef<"stalled" | "waiting" | null>(null);
   const fallbackAttemptedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const readyFrameRef = useRef<number | null>(null);
+  const readyFrameSecondRef = useRef<number | null>(null);
+  const readyReportedRef = useRef(false);
   const [sourceUrl, setSourceUrl] = useState(item.source.url);
 
   const reportFailure = useCallback((code: PlaybackFailureCode) => {
@@ -2122,6 +2155,37 @@ export function PlaybackMedia({
   }, [item.id, onFailure, passive]);
   const reportFailureRef = useRef(reportFailure);
   reportFailureRef.current = reportFailure;
+
+  const reportReady = useCallback(() => {
+    if (passive || readyReportedRef.current) return;
+    readyReportedRef.current = true;
+    onReady(item.id);
+  }, [item.id, onReady, passive]);
+
+  const reportVideoFirstFrame = useCallback(() => {
+    if (passive || readyReportedRef.current || readyFrameRef.current !== null) {
+      return;
+    }
+    readyFrameRef.current = window.requestAnimationFrame(() => {
+      readyFrameRef.current = null;
+      readyFrameSecondRef.current = window.requestAnimationFrame(() => {
+        readyFrameSecondRef.current = null;
+        reportReady();
+      });
+    });
+  }, [passive, reportReady]);
+
+  useEffect(
+    () => () => {
+      if (readyFrameRef.current !== null) {
+        window.cancelAnimationFrame(readyFrameRef.current);
+      }
+      if (readyFrameSecondRef.current !== null) {
+        window.cancelAnimationFrame(readyFrameSecondRef.current);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (item.kind !== "video" || passive) return;
@@ -2150,9 +2214,9 @@ export function PlaybackMedia({
     hasStartedRef.current = true;
     safelyPauseVideo(videoRef.current);
     onPlaybackStateChange?.("ended");
-    onReady(item.id);
+    reportReady();
     onEnded(item.id);
-  }, [item.id, onEnded, onPlaybackStateChange, onReady, passive]);
+  }, [item.id, onEnded, onPlaybackStateChange, passive, reportReady]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -2257,7 +2321,7 @@ export function PlaybackMedia({
           lastProgressAtRef.current = Date.now();
           lastSignalRef.current = null;
           onPlaybackStateChange?.("playing");
-          onReady(item.id);
+          reportVideoFirstFrame();
         }}
         onStalled={() => {
           if (passive) return;
@@ -2300,7 +2364,7 @@ export function PlaybackMedia({
       className={className}
       onError={() => reportFailure("IMAGE_ERROR")}
       onLoad={() => {
-        if (!passive) onReady(item.id);
+        reportReady();
       }}
       src={item.source.url}
       style={mediaStyle}

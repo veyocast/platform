@@ -43,11 +43,12 @@ test("does not remount a healthy video when no watchdog override is present", as
   await page.goto(`${playerURL}/?deviceToken=demo-online`);
 
   const playerVideo = page.getByTestId("player-video");
-  await expect(playerVideo).toBeVisible();
+  await expect(playerVideo).toBeAttached();
   await playerVideo.evaluate((element) => {
     element.dataset.playbackInstance = "original";
     element.dispatchEvent(new Event("playing", { bubbles: true }));
   });
+  await expect(playerVideo).toBeVisible();
   await page.waitForTimeout(1_500);
 
   await expect(playerVideo).toHaveAttribute("data-playback-instance", "original");
@@ -97,13 +98,14 @@ test("does not treat an intentional video pause as a playback stall", async ({
   );
 
   const playerVideo = page.getByTestId("player-video");
-  await expect(playerVideo).toBeVisible();
+  await expect(playerVideo).toBeAttached();
   await playerVideo.evaluate((element) => {
     element.dispatchEvent(new Event("playing", { bubbles: true }));
     element.autoplay = false;
     element.pause();
     element.dispatchEvent(new Event("pause", { bubbles: true }));
   });
+  await expect(playerVideo).toBeVisible();
   await page.waitForTimeout(1_500);
 
   await expect(playerVideo).toBeVisible();
@@ -240,11 +242,12 @@ test("detects a stalled video that stops making time progress", async ({ page })
   await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=10000&watchdogMs=1000`);
 
   const video = page.getByTestId("player-video");
-  await expect(video).toBeVisible();
+  await expect(video).toBeAttached();
   await video.evaluate((element) => {
     element.dispatchEvent(new Event("playing", { bubbles: true }));
     element.dispatchEvent(new Event("stalled", { bubbles: true }));
   });
+  await expect(video).toBeVisible();
 
   await expect(page.getByLabel("Player diagnostics")).toContainText(
     "Playbackfout VIDEO_STALLED_TIMEOUT",
@@ -290,8 +293,9 @@ test("hands a naturally ended video directly to the next playlist item", async (
   await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=2000`);
 
   const video = page.getByTestId("player-video");
-  await expect(video).toBeVisible();
+  await expect(video).toBeAttached();
   await video.dispatchEvent("playing");
+  await expect(video).toBeVisible();
   await video.dispatchEvent("ended");
 
   await expect(page.getByRole("img", { name: "Na ended" })).toBeVisible({ timeout: 500 });

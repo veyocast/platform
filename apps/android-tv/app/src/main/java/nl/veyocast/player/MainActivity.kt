@@ -3,6 +3,7 @@ package nl.veyocast.player
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
@@ -85,6 +86,11 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     private var centerKeyPressed = false
     private var panelOpenedByLongPress = false
     private var lastKeepAwakeState: Boolean? = null
+    private val blankVideoPoster: Bitmap by lazy {
+        Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888).apply {
+            eraseColor(Color.BLACK)
+        }
+    }
 
     private val automationBridgeRunnable = object : Runnable {
         override fun run() {
@@ -690,6 +696,8 @@ class MainActivity : ComponentActivity(), VeyoCastWebViewClient.Events {
     }
 
     private fun createWebChromeClient(): WebChromeClient = object : WebChromeClient() {
+        override fun getDefaultVideoPoster(): Bitmap = blankVideoPoster
+
         override fun onShowCustomView(view: View, callback: CustomViewCallback) {
             if (customView != null) {
                 callback.onCustomViewHidden()
