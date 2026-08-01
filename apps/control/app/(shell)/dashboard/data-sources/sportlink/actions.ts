@@ -98,7 +98,8 @@ export async function requestSportlinkSync(formData: FormData) {
     }`);
   }
   revalidatePath("/dashboard/data-sources/sportlink");
-  redirect("/dashboard/data-sources/sportlink?succes=Synchronisatie+ingepland.");
+  revalidatePath("/dashboard/slides/new");
+  redirect("/dashboard/data-sources/sportlink?succes=Synchronisatie+ingepland.+De+status+wordt+automatisch+bijgewerkt.");
 }
 
 const syncGroups = [

@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles
+} from "lucide-react";
 
 import { Button } from "@veyocast/ui";
 
@@ -17,6 +22,7 @@ export type SlideSourceOption = {
   lastSuccessfulSyncAt: string | null;
   name: string;
   providerStatus: string;
+  successfulDatasetGroups: string[];
 };
 
 export type SlideTemplateOption = {
@@ -31,42 +37,175 @@ type Props = {
   templates: SlideTemplateOption[];
 };
 
+const wizardSteps = [
+  {
+    description: "Geef de slide een herkenbare naam en kies wat je wilt tonen.",
+    label: "Basis"
+  },
+  {
+    description: "Kies de vaste vormgeving en schermoriëntatie.",
+    label: "Template"
+  },
+  {
+    description: "Koppel de gecontroleerde bron voor deze slide.",
+    label: "Databron"
+  },
+  {
+    description: "Bepaal welke titel en selectie op het scherm verschijnen.",
+    label: "Inhoud"
+  },
+  {
+    description: "Controleer de keuzes voordat VeyoCast de slide maakt.",
+    label: "Controleren"
+  }
+] as const;
+
 export function SlideComposerForm({ sources, templates }: Props) {
   const initialTemplate = templates.find((template) =>
     sources.some((source) =>
       sourceMatchesSlideType(source.kind, template.slideType) &&
-      sourceHasContent(source)
+      sourceHasContent(source, template.slideType)
     )
   ) ?? templates[0]!;
+  const formRef = useRef<HTMLFormElement>(null);
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [furthestStep, setFurthestStep] = useState(0);
+  const [name, setName] = useState("");
   const [slideType, setSlideType] = useState(initialTemplate.slideType);
+  const [templateVersionId, setTemplateVersionId] = useState(
+    initialTemplate.versionId
+  );
+  const [dataSourceId, setDataSourceId] = useState("");
+  const [selectionMode, setSelectionMode] = useState("latest");
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [maxItems, setMaxItems] = useState("8");
   const matchingTemplates = templates.filter(
     (template) => template.slideType === slideType
   );
   const matchingSources = sources.filter(
     (source) => sourceMatchesSlideType(source.kind, slideType)
   );
-  const readySources = matchingSources.filter(sourceHasContent);
-  const selectedSource = readySources[0] ?? null;
+  const readySources = matchingSources.filter((source) =>
+    sourceHasContent(source, slideType)
+  );
+  const selectedTemplate =
+    matchingTemplates.find(
+      (template) => template.versionId === templateVersionId
+    ) ?? matchingTemplates[0]!;
+  const selectedSource =
+    readySources.find((source) => source.id === dataSourceId) ??
+    readySources[0] ??
+    null;
+
+  useEffect(() => {
+    stepHeadingRef.current?.focus();
+  }, [currentStep]);
+
+  function goToNextStep() {
+    const section = formRef.current?.querySelector<HTMLElement>(
+      `[data-wizard-step="${currentStep}"]`
+    );
+    const invalidControl = section
+      ? [...section.querySelectorAll<
+          HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >("input, select, textarea")].find((control) => !control.checkValidity())
+      : null;
+    if (invalidControl) {
+      invalidControl.reportValidity();
+      invalidControl.focus();
+      return;
+    }
+
+    const nextStep = Math.min(currentStep + 1, wizardSteps.length - 1);
+    setCurrentStep(nextStep);
+    setFurthestStep((value) => Math.max(value, nextStep));
+  }
+
+  function selectSlideType(value: string) {
+    const nextTemplate = templates.find(
+      (template) => template.slideType === value
+    );
+    setSlideType(value);
+    setTemplateVersionId(nextTemplate?.versionId ?? "");
+    setDataSourceId("");
+  }
 
   return (
-    <form action={createDynamicSlide} className={styles.form}>
-      <section className={styles.formSection}>
-        <h2>1–3. Basis</h2>
+    <form
+      action={createDynamicSlide}
+      className={`${styles.form} ${styles.wizard}`}
+      onSubmit={(event) => {
+        if (currentStep < wizardSteps.length - 1) {
+          event.preventDefault();
+          goToNextStep();
+        }
+      }}
+      ref={formRef}
+    >
+      <nav aria-label="Voortgang dynamische slide">
+        <ol className={styles.wizardSteps}>
+          {wizardSteps.map((step, index) => {
+            const complete = index < currentStep;
+            const available = index <= furthestStep;
+            return (
+              <li
+                className={styles.wizardStep}
+                data-complete={complete}
+                data-current={index === currentStep}
+                key={step.label}
+              >
+                <button
+                  aria-current={index === currentStep ? "step" : undefined}
+                  disabled={!available}
+                  onClick={() => setCurrentStep(index)}
+                  type="button"
+                >
+                  <span aria-hidden="true" className={styles.wizardStepNumber}>
+                    {complete ? <Check /> : index + 1}
+                  </span>
+                  <span>{step.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+
+      <div className={styles.wizardStatus}>
+        <span>
+          Stap {currentStep + 1} van {wizardSteps.length}
+        </span>
+        <strong>{wizardSteps[currentStep]!.label}</strong>
+        <p>{wizardSteps[currentStep]!.description}</p>
+      </div>
+
+      <section
+        className={styles.formSection}
+        data-wizard-step="0"
+        hidden={currentStep !== 0}
+      >
+        <h2 ref={currentStep === 0 ? stepHeadingRef : undefined} tabIndex={-1}>
+          Wat voor slide wil je maken?
+        </h2>
         <div className={styles.fieldGrid}>
           <label className={styles.field}>
             <span>Naam van de slide</span>
             <input
               maxLength={120}
               name="name"
+              onChange={(event) => setName(event.currentTarget.value)}
               placeholder="Kantinemenu vandaag"
               required
+              value={name}
             />
           </label>
           <label className={styles.field}>
             <span>Slidetype</span>
             <select
               name="slideType"
-              onChange={(event) => setSlideType(event.currentTarget.value)}
+              onChange={(event) => selectSlideType(event.currentTarget.value)}
               value={slideType}
             >
               {slideTypeGroups(templates).map((group) => (
@@ -80,22 +219,25 @@ export function SlideComposerForm({ sources, templates }: Props) {
               ))}
             </select>
           </label>
-          <label className={`${styles.field} ${styles.fieldWide}`}>
-            <span>Titel op het scherm</span>
-            <input maxLength={160} name="title" placeholder="Menu vandaag" />
-          </label>
         </div>
       </section>
 
-      <section className={styles.formSection}>
-        <h2>4. Kies template</h2>
+      <section
+        className={styles.formSection}
+        data-wizard-step="1"
+        hidden={currentStep !== 1}
+      >
+        <h2 ref={currentStep === 1 ? stepHeadingRef : undefined} tabIndex={-1}>
+          Kies een template
+        </h2>
         <div className={styles.grid}>
-          {matchingTemplates.map((template, index) => (
+          {matchingTemplates.map((template) => (
             <label className={styles.choiceCard} key={template.versionId}>
               <input
-                defaultChecked={index === 0}
+                checked={selectedTemplate.versionId === template.versionId}
                 key={`${slideType}-${template.versionId}`}
                 name="templateVersionId"
+                onChange={() => setTemplateVersionId(template.versionId)}
                 type="radio"
                 value={template.versionId}
               />
@@ -112,25 +254,34 @@ export function SlideComposerForm({ sources, templates }: Props) {
         </div>
       </section>
 
-      <section className={styles.formSection}>
-        <h2>5–6. Databron en inhoud</h2>
+      <section
+        className={styles.formSection}
+        data-wizard-step="2"
+        hidden={currentStep !== 2}
+      >
+        <h2 ref={currentStep === 2 ? stepHeadingRef : undefined} tabIndex={-1}>
+          Kies een databron
+        </h2>
         {!matchingSources.length ? (
           <div className={styles.inlineGuidance} role="status">
             <strong>Voor dit slidetype ontbreekt een passende databron.</strong>
             <span>{missingSourceCopy(slideType)}</span>
             <Button asChild size="sm" variant="secondary">
-              <Link href={sourceSetupHref(slideType)}>Databron koppelen</Link>
+              <Link href={sourceSetupHref(slideType)}>
+                {sourceActionLabel(slideType, "connect")}
+              </Link>
             </Button>
           </div>
         ) : !readySources.length ? (
           <div className={styles.inlineGuidance} role="status">
-            <strong>De passende databron bevat nog geen bruikbare inhoud.</strong>
-            <span>
-              Synchroniseer de bron eerst. Daarna kun je de slide zonder nieuwe
-              configuratie aanmaken.
-            </span>
+            <strong>
+              De passende databron bevat nog geen bruikbare inhoud.
+            </strong>
+            <span>{missingContentCopy(slideType)}</span>
             <Button asChild size="sm" variant="secondary">
-              <Link href={sourceSetupHref(slideType)}>Databron herstellen</Link>
+              <Link href={sourceSetupHref(slideType)}>
+                {sourceActionLabel(slideType, "sync")}
+              </Link>
             </Button>
           </div>
         ) : null}
@@ -138,11 +289,12 @@ export function SlideComposerForm({ sources, templates }: Props) {
           <label className={styles.field}>
             <span>Databron</span>
             <select
-              defaultValue={selectedSource?.id}
               disabled={!selectedSource}
               key={slideType}
               name="dataSourceId"
+              onChange={(event) => setDataSourceId(event.currentTarget.value)}
               required
+              value={selectedSource?.id ?? ""}
             >
               {readySources.map((source) => (
                 <option key={source.id} value={source.id}>
@@ -151,7 +303,9 @@ export function SlideComposerForm({ sources, templates }: Props) {
               ))}
             </select>
             {matchingSources.some(
-              (source) => sourceHasContent(source) && source.providerStatus === "error"
+              (source) =>
+                sourceHasContent(source, slideType) &&
+                source.providerStatus === "error"
             ) ? (
               <small className={styles.fieldHint}>
                 De laatste goede inhoud blijft beschikbaar bij een tijdelijke
@@ -161,48 +315,171 @@ export function SlideComposerForm({ sources, templates }: Props) {
           </label>
           <label className={styles.field}>
             <span>Selectiemodus</span>
-            <select defaultValue="latest" name="selectionMode">
+            <select
+              name="selectionMode"
+              onChange={(event) => setSelectionMode(event.currentTarget.value)}
+              value={selectionMode}
+            >
               <option value="latest">Automatisch nieuwste snapshot</option>
               <option value="pinned">Deze versie vastzetten</option>
             </select>
           </label>
+        </div>
+      </section>
+
+      <section
+        className={styles.formSection}
+        data-wizard-step="3"
+        hidden={currentStep !== 3}
+      >
+        <h2 ref={currentStep === 3 ? stepHeadingRef : undefined} tabIndex={-1}>
+          Configureer de inhoud
+        </h2>
+        <div className={styles.fieldGrid}>
+          <label className={`${styles.field} ${styles.fieldWide}`}>
+            <span>Titel op het scherm</span>
+            <input
+              maxLength={160}
+              name="title"
+              onChange={(event) => setTitle(event.currentTarget.value)}
+              placeholder="Menu vandaag"
+              value={title}
+            />
+          </label>
           <label className={styles.field}>
             <span>Categorie (optioneel)</span>
-            <input maxLength={160} name="category" placeholder="Dranken" />
+            <input
+              maxLength={160}
+              name="category"
+              onChange={(event) => setCategory(event.currentTarget.value)}
+              placeholder="Dranken"
+              value={category}
+            />
           </label>
           <label className={styles.field}>
             <span>Maximaal aantal items</span>
-            <input defaultValue="8" max="40" min="1" name="maxItems" type="number" />
+            <input
+              max="40"
+              min="1"
+              name="maxItems"
+              onChange={(event) => setMaxItems(event.currentTarget.value)}
+              required
+              type="number"
+              value={maxItems}
+            />
           </label>
         </div>
       </section>
 
-      <section className={styles.formSection}>
-        <h2>7–8. Voorbeeld en opslaan</h2>
+      <section
+        className={styles.formSection}
+        data-wizard-step="4"
+        hidden={currentStep !== 4}
+      >
+        <h2 ref={currentStep === 4 ? stepHeadingRef : undefined} tabIndex={-1}>
+          Controleer en maak de slide
+        </h2>
+        <dl className={styles.wizardReview}>
+          <div>
+            <dt>Naam</dt>
+            <dd>{name || "Nog niet ingevuld"}</dd>
+          </div>
+          <div>
+            <dt>Slidetype</dt>
+            <dd>{slideTypeLabel(slideType)}</dd>
+          </div>
+          <div>
+            <dt>Template</dt>
+            <dd>{templateSummary(selectedTemplate)}</dd>
+          </div>
+          <div>
+            <dt>Databron</dt>
+            <dd>{selectedSource?.name ?? "Geen bruikbare bron"}</dd>
+          </div>
+          <div>
+            <dt>Inhoud</dt>
+            <dd>
+              {title || "Template-titel"} · maximaal {maxItems || "—"} items
+              {category ? ` · categorie ${category}` : ""}
+            </dd>
+          </div>
+        </dl>
         <p className={styles.muted}>
-          Na opslaan verschijnt de immutable workerpreview hier en in de
-          slidebibliotheek. Pas wanneer die gereed is kan de snapshot naar een
-          playlist.
+          Na opslaan maakt de worker een immutable voorbeeld. Pas wanneer dat
+          gereed is, kan de snapshot naar een playlist.
         </p>
-        <div className={styles.formActions}>
-          <span className={styles.muted}>
-            Bestaande releases en schermcache blijven ongewijzigd.
-          </span>
-          <Button disabled={!selectedSource} type="submit">
-            <Sparkles aria-hidden="true" />
-            Opslaan als slide
-          </Button>
-        </div>
       </section>
+
+      <footer className={styles.wizardActions}>
+        <span className={styles.muted}>
+          Bestaande releases en schermcache blijven ongewijzigd.
+        </span>
+        <div>
+          <Button
+            disabled={currentStep === 0}
+            onClick={() => setCurrentStep((step) => Math.max(0, step - 1))}
+            type="button"
+            variant="secondary"
+          >
+            <ChevronLeft aria-hidden="true" />
+            Vorige
+          </Button>
+          {currentStep < wizardSteps.length - 1 ? (
+            <Button
+              disabled={currentStep === 2 && !selectedSource}
+              onClick={goToNextStep}
+              type="button"
+            >
+              Volgende
+              <ChevronRight aria-hidden="true" />
+            </Button>
+          ) : (
+            <Button disabled={!selectedSource} type="submit">
+              <Sparkles aria-hidden="true" />
+              Slide maken
+            </Button>
+          )}
+        </div>
+      </footer>
     </form>
   );
 }
 
-export function sourceHasContent(source: SlideSourceOption) {
+export function sourceHasContent(
+  source: SlideSourceOption,
+  slideType?: string
+) {
   if (source.kind === "sportlink") {
+    const requiredDatasetGroup = slideType
+      ? requiredSportlinkDatasetGroup(slideType)
+      : null;
+    if (requiredDatasetGroup) {
+      return source.successfulDatasetGroups.includes(requiredDatasetGroup);
+    }
     return Boolean(source.lastSuccessfulSyncAt);
   }
   return source.itemCount > 0;
+}
+
+export function requiredSportlinkDatasetGroup(slideType: string) {
+  const groups: Record<string, string> = {
+    sport_activities: "activities",
+    sport_birthdays: "public_people",
+    sport_cancellations: "matches",
+    sport_dressing_rooms: "match_details",
+    sport_match_of_the_day: "matches",
+    sport_next_match: "matches",
+    sport_officials: "match_details",
+    sport_period_standing: "competitions",
+    sport_program: "matches",
+    sport_results: "matches",
+    sport_sponsor: "teams",
+    sport_standing: "competitions",
+    sport_team: "teams",
+    sport_trainings: "teams",
+    sport_volunteers: "volunteers"
+  };
+  return groups[slideType] ?? null;
 }
 
 export function sourceMatchesSlideType(kind: string, slideType: string) {
@@ -227,6 +504,18 @@ function sourceSetupHref(slideType: string) {
     : "/dashboard/data-sources";
 }
 
+function sourceActionLabel(
+  slideType: string,
+  action: "connect" | "sync"
+) {
+  if (slideType.startsWith("sport_")) {
+    return action === "connect"
+      ? "Sportlink koppelen"
+      : "Sportlink synchroniseren";
+  }
+  return action === "connect" ? "Databron koppelen" : "Databron herstellen";
+}
+
 function missingSourceCopy(slideType: string) {
   if (slideType === "menu") {
     return "Maak een handmatige of Twelve-productbron en voeg minimaal één product toe.";
@@ -235,6 +524,27 @@ function missingSourceCopy(slideType: string) {
     return "Koppel een publieke RSS- of Atom-feed en voer de eerste synchronisatie uit.";
   }
   return "Koppel Sportlink Club.Dataservice en wacht tot de eerste synchronisatie gereed is.";
+}
+
+function missingContentCopy(slideType: string) {
+  const datasetGroup = requiredSportlinkDatasetGroup(slideType);
+  if (!datasetGroup) {
+    return "Synchroniseer de bron eerst. Daarna kun je de slide zonder nieuwe configuratie aanmaken.";
+  }
+  return `De Sportlink-dataset ‘${sportlinkDatasetLabel(datasetGroup)}’ is ingeschakeld, maar nog niet succesvol afgerond. Open de databron, start de synchronisatie en wacht op de status Gereed.`;
+}
+
+function sportlinkDatasetLabel(value: string) {
+  const labels: Record<string, string> = {
+    activities: "Clubagenda",
+    competitions: "Competities en standen",
+    match_details: "Wedstrijddetails",
+    matches: "Programma en uitslagen",
+    public_people: "Publieke personen",
+    teams: "Teams",
+    volunteers: "Vrijwilligers"
+  };
+  return labels[value] ?? value;
 }
 
 function slideTypeGroups(templates: SlideTemplateOption[]) {
@@ -247,6 +557,16 @@ function slideTypeGroups(templates: SlideTemplateOption[]) {
       ? [{ label: "Wedstrijden & competitie", options: sports }]
       : [])
   ];
+}
+
+function templateSummary(template: SlideTemplateOption) {
+  const orientation =
+    template.orientation === "portrait" ? "Staand" : "Liggend";
+  return template.name.toLocaleLowerCase("nl-NL").includes(
+    orientation.toLocaleLowerCase("nl-NL")
+  )
+    ? template.name
+    : `${template.name} · ${orientation}`;
 }
 
 function slideTypeLabel(value: string) {

@@ -231,4 +231,15 @@ describe("@veyocast/ui primitives", () => {
     expect(styles).toContain("min-height: 5rem");
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
   });
+
+  it("keeps a confirmation dialog above an open sheet", async () => {
+    const styles = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+
+    expect(styles).toMatch(
+      /\.vc-dialog__overlay\s*\{[^}]*z-index:\s*calc\(var\(--vc-z-modal\) \+ 1\)/s
+    );
+    expect(styles).toMatch(
+      /\.vc-dialog__content\s*\{[^}]*z-index:\s*calc\(var\(--vc-z-modal\) \+ 2\)/s
+    );
+  });
 });

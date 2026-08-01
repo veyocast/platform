@@ -496,7 +496,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                 Mediabibliotheek
               </h2>
               <p className="work-panel__meta">
-                Selecteer een item om details en gebruik te bekijken.
+                Open een item om het te beheren of veilig uit Media te verwijderen.
               </p>
             </div>
             <StatusPill label={`${totalCount} items`} tone="neutral" />
@@ -511,7 +511,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                     <p className="work-panel__meta">{asset.isFavorite ? "Favoriet · " : ""}{mediaDetails(asset)} · {usageSummary(asset)}</p>
                     <Button asChild size="sm" variant="ghost">
                       <Link href={mediaHref(params, { asset: asset.id })}>
-                        Details bekijken
+                        Beheren en verwijderen
                       </Link>
                     </Button>
                   </div>
@@ -551,7 +551,9 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                       <td data-column="created" data-label="Toegevoegd">{formatDate(asset.createdAt)}</td>
                       <td data-column="actions" data-label="Actie">
                         <Button asChild size="sm" variant="ghost">
-                          <Link href={mediaHref(params, { asset: asset.id })}>Details</Link>
+                          <Link href={mediaHref(params, { asset: asset.id })}>
+                            Beheren
+                          </Link>
                         </Button>
                       </td>
                     </tr>
@@ -617,6 +619,51 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           }}
           title={selectedAsset.title}
         >
+          {fout ? (
+            <p className="notice notice--critical" role="alert">
+              <strong>Mediaactie mislukt.</strong> {fout}
+            </p>
+          ) : null}
+          {succes ? (
+            <p className="notice notice--success" role="status">
+              {succes}
+            </p>
+          ) : null}
+          <section aria-labelledby="media-management-action-title" className="media-usage">
+            <div className="work-panel__header">
+              <div>
+                <h3 id="media-management-action-title">Media beheren</h3>
+                <p className="work-panel__meta">
+                  Verwijderen is herstelbaar en wijzigt bestaande releases niet.
+                </p>
+              </div>
+            </div>
+            {viewingArchive ? (
+              <form action={restoreMediaAsset}>
+                <input name="assetId" type="hidden" value={selectedAsset.id} />
+                <input name="idempotencyKey" type="hidden" value={randomUUID()} />
+                <Button disabled={!canUpload} type="submit" variant="secondary">
+                  Media herstellen
+                </Button>
+              </form>
+            ) : (
+              <ArchiveMediaDialog
+                assetId={selectedAsset.id}
+                canArchive={canUpload}
+                draftCount={selectedAsset.draftCount}
+                idempotencyKey={randomUUID()}
+                kind={selectedAsset.kind}
+                releaseCount={selectedAsset.releaseCount}
+                screenCount={selectedAsset.screenCount}
+                title={selectedAsset.title}
+              />
+            )}
+            {!canUpload ? (
+              <p className="work-panel__meta">
+                Je account heeft alleen leesrechten voor deze mediabibliotheek.
+              </p>
+            ) : null}
+          </section>
           <MediaPreview asset={selectedAsset} />
           <dl className="meta-list">
             <div><dt>Type</dt><dd>{mediaDetails(selectedAsset)}</dd></div>
@@ -788,29 +835,6 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
               </form>
             ) : null}
 
-          {viewingArchive ? (
-            <form action={restoreMediaAsset}>
-              <input name="assetId" type="hidden" value={selectedAsset.id} />
-              <input name="idempotencyKey" type="hidden" value={randomUUID()} />
-              <Button disabled={!canUpload} type="submit" variant="secondary">
-                Media herstellen
-              </Button>
-              <p className="work-panel__meta">
-                Het oorspronkelijke opslagobject wordt opnieuw zichtbaar; immutable releases wijzigen niet.
-              </p>
-            </form>
-          ) : (
-            <ArchiveMediaDialog
-              assetId={selectedAsset.id}
-              canArchive={canUpload}
-              draftCount={selectedAsset.draftCount}
-              idempotencyKey={randomUUID()}
-              kind={selectedAsset.kind}
-              releaseCount={selectedAsset.releaseCount}
-              screenCount={selectedAsset.screenCount}
-              title={selectedAsset.title}
-            />
-          )}
         </MediaInspectorSheet>
       ) : null}
 

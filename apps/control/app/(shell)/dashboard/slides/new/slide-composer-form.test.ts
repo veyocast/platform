@@ -13,7 +13,8 @@ const source: SlideSourceOption = {
   lastErrorCode: null,
   lastSuccessfulSyncAt: null,
   name: "Clubnieuws",
-  providerStatus: "ready"
+  providerStatus: "ready",
+  successfulDatasetGroups: []
 };
 
 describe("dynamische slide-opties", () => {
@@ -39,11 +40,26 @@ describe("dynamische slide-opties", () => {
   });
 
   it("gebruikt Sportlink pas na de eerste geslaagde synchronisatie", () => {
-    expect(sourceHasContent({ ...source, kind: "sportlink" })).toBe(false);
+    expect(sourceHasContent(
+      { ...source, kind: "sportlink" },
+      "sport_program"
+    )).toBe(false);
     expect(sourceHasContent({
       ...source,
       kind: "sportlink",
-      lastSuccessfulSyncAt: "2026-07-29T18:00:00.000Z"
-    })).toBe(true);
+      lastSuccessfulSyncAt: "2026-07-29T18:00:00.000Z",
+      successfulDatasetGroups: ["matches"]
+    }, "sport_program")).toBe(true);
+  });
+
+  it("controleert Sportlink-gereedheid per vereiste dataset", () => {
+    const sportlink = {
+      ...source,
+      kind: "sportlink",
+      lastSuccessfulSyncAt: null,
+      successfulDatasetGroups: ["competitions"]
+    };
+    expect(sourceHasContent(sportlink, "sport_standing")).toBe(true);
+    expect(sourceHasContent(sportlink, "sport_program")).toBe(false);
   });
 });
