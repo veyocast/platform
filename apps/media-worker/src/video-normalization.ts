@@ -27,6 +27,11 @@ export type VideoNormalizationResult = {
   outputPath: string;
 };
 
+export type PlayerVideoDimensions = {
+  height: number;
+  width: number;
+};
+
 export class VideoProcessingError extends Error {
   constructor(
     readonly code:
@@ -94,7 +99,7 @@ export function buildNormalizationArguments(
   const codecArguments = input && canRemuxWithoutTranscoding(input)
     ? ["-c:v", "copy", "-c:a", "copy"]
     : [
-      "-vf", "scale=w='if(gte(iw,ih),min(1920,iw),min(1080,iw))':h='if(gte(iw,ih),min(1080,ih),min(1920,ih))':force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1,fps=30",
+      "-vf", "scale=w='if(gte(iw,ih),1920,1080)':h='if(gte(iw,ih),1080,1920)':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos,setsar=1,fps=30",
       "-c:v", "libx264", "-profile:v", "main", "-level:v", "4.0",
       "-pix_fmt", "yuv420p", "-preset", "veryfast", "-crf", "21",
       "-maxrate", "6M", "-bufsize", "12M",
@@ -110,13 +115,27 @@ export function buildNormalizationArguments(
 }
 
 export function canRemuxWithoutTranscoding(probe: VideoProbe) {
+  const canonicalDimensions = getCanonicalPlayerDimensions(probe.width, probe.height);
   return probe.videoCodec === "h264"
     && (probe.audioCodec === null || probe.audioCodec === "aac")
-    && Math.max(probe.width, probe.height) <= 1920
-    && Math.min(probe.width, probe.height) <= 1080
+    && probe.width === canonicalDimensions.width
+    && probe.height === canonicalDimensions.height
     && probe.framesPerSecond <= 30.01
     && probe.pixelFormat === "yuv420p"
     && probe.rotationDegrees === 0;
+}
+
+export function getCanonicalPlayerDimensions(
+  width: number,
+  height: number
+): PlayerVideoDimensions {
+  const maximumWidth = width >= height ? 1920 : 1080;
+  const maximumHeight = width >= height ? 1080 : 1920;
+  const scale = Math.min(maximumWidth / width, maximumHeight / height);
+  return {
+    height: Math.max(2, Math.floor((height * scale) / 2) * 2),
+    width: Math.max(2, Math.floor((width * scale) / 2) * 2)
+  };
 }
 
 export function parseVideoProbe(serializedProbe: string): VideoProbe {
@@ -177,6 +196,7 @@ export function validateInputProbe(probe: VideoProbe) {
 }
 
 export function validatePlayerVariant(probe: VideoProbe) {
+  const canonicalDimensions = getCanonicalPlayerDimensions(probe.width, probe.height);
   const failures = [
     !probe.formatNames.some((name) => name === "mov" || name === "mp4") && "MP4-container ontbreekt",
     probe.videoCodec !== "h264" && "videocodec is niet H.264",
@@ -185,6 +205,10 @@ export function validatePlayerVariant(probe: VideoProbe) {
       Math.max(probe.width, probe.height) > 1920 ||
       Math.min(probe.width, probe.height) > 1080
     ) && "resolutie is groter dan 1080p",
+    (
+      probe.width !== canonicalDimensions.width ||
+      probe.height !== canonicalDimensions.height
+    ) && "resolutie vult het passende 1080p-doel niet",
     probe.framesPerSecond > 30.01 && "framerate is hoger dan 30 fps",
     probe.pixelFormat !== "yuv420p" && "pixel format is niet yuv420p",
     probe.rotationDegrees !== 0 && "rotatiemetadata is niet in pixels verwerkt",

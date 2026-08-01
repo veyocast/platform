@@ -49,13 +49,18 @@ boundary for video jobs. It:
 - maps exactly the first video stream and an optional first audio stream;
 - generates MP4/H.264 Main, yuv420p, at most 1920 pixels on the long edge
   and 1080 pixels on the short edge at 30 fps;
+- scales smaller video up to the largest fitting 1080p raster with Lanczos,
+  without cropping or changing its aspect ratio: `1280×720` becomes
+  `1920×1080`, while `720×1280` becomes `1080×1920`;
 - normalizes optional audio to AAC, 48 kHz, stereo;
 - writes fast-start MP4 and probes the output again before accepting it;
 - bounds command duration and captured process output.
 
-De production worker gebruikt voor reeds conforme H.264/yuv420p/AAC-video een
-nieuwe, geverifieerde remux in plaats van een kwaliteitsverlagende volledige
-transcode. Afwijkende invoer gebruikt `veryfast`, een harde FFmpeg-grens van
+De production worker gebruikt voor reeds conforme én maximaal passende
+H.264/yuv420p/AAC-video een nieuwe, geverifieerde remux in plaats van een
+kwaliteitsverlagende volledige transcode. Een kleinere variant zoals 720p is
+niet eindconform en wordt één keer naar het passende 1080p-raster
+genormaliseerd. Afwijkende invoer gebruikt `veryfast`, een harde FFmpeg-grens van
 40 seconden en acht-secondenlimieten voor beide Storage-overdrachten. Queuepolling staat in de gedeployde stack op 500 ms; Control
 ververst zolang er actieve uploads zijn iedere twee seconden.
 

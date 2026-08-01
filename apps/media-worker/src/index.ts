@@ -48,6 +48,7 @@ export {
 export {
   buildNormalizationArguments,
   canRemuxWithoutTranscoding,
+  getCanonicalPlayerDimensions,
   maximumNormalizationTimeMs,
   normalizePlayerVideo,
   parseVideoProbe,
@@ -60,6 +61,7 @@ export {
 export type {
   CommandResult,
   CommandRunner,
+  PlayerVideoDimensions,
   VideoNormalizationResult,
   VideoProbe
 } from "./video-normalization";
