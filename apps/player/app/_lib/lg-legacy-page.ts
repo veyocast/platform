@@ -89,6 +89,7 @@ export function renderLgLegacyHtml() {
       installationCredential: null,
       installationId: null,
       itemFailures: {},
+      lastClockSkewLoggedAt: 0,
       lastProgressAt: 0,
       objectUrl: null,
       offline: false,
@@ -126,6 +127,13 @@ export function renderLgLegacyHtml() {
     }
     function parseJson(value) {
       try { return JSON.parse(value || "null"); } catch (error) { return null; }
+    }
+    function parsePlayerTimestamp(value) {
+      var normalized = String(value || "")
+        .replace(/(\\.\\d{3})\\d+(?=(?:z|[+-]\\d{2}:?\\d{2})$)/i, "$1")
+        .replace(/\\+00:00$/, "Z");
+      var timestamp = new Date(normalized).getTime();
+      return isFinite(timestamp) ? timestamp : null;
     }
     function errorCode(body, fallback) {
       return body && body.error && typeof body.error.code === "string"
@@ -923,18 +931,25 @@ export function renderLgLegacyHtml() {
         }
       );
     }
-    function executeCommand(command) {
+    function executeCommand(command, serverNow) {
       var executed = readExecutedCommands();
+      var alreadyExecuted;
+      var expiresAt;
       if (
         !command ||
         typeof command.id !== "string" ||
-        typeof command.nonce !== "string" ||
-        executed.indexOf(command.nonce) !== -1 ||
-        new Date(command.expiresAt || "").getTime() <= now()
+        typeof command.nonce !== "string"
       ) return;
+      expiresAt = parsePlayerTimestamp(command.expiresAt);
+      if (
+        serverNow === null ||
+        expiresAt === null ||
+        expiresAt <= serverNow
+      ) return;
+      alreadyExecuted = executed.indexOf(command.nonce) !== -1;
       commandRequest(command, "acknowledged", null, function (acknowledged) {
         if (!acknowledged) return;
-        rememberCommand(command.nonce);
+        if (!alreadyExecuted) rememberCommand(command.nonce);
         commandRequest(command, "completed", null, function (completed, body) {
           if (!completed) return;
           if (command.commandType === "RECOVER_PAIRING" && validCredential(body && body.deviceToken)) {
@@ -960,10 +975,31 @@ export function renderLgLegacyHtml() {
         function (transport, status, body) {
           var commands;
           var index;
+          var serverNow;
           if (transport || status < 200 || status >= 300 || !body) return;
+          serverNow = parsePlayerTimestamp(body.serverTime);
+          if (serverNow === null) {
+            log(
+              "LEGACY_COMMAND_TIME_INVALID",
+              "De commandresponse bevat geen geldige servertijd."
+            );
+            return;
+          }
+          if (
+            Math.abs(now() - serverNow) > 60000 &&
+            now() - runtime.lastClockSkewLoggedAt > 600000
+          ) {
+            runtime.lastClockSkewLoggedAt = now();
+            log(
+              "LEGACY_CLOCK_SKEW",
+              "Tv-klok wijkt " +
+                String(Math.round((now() - serverNow) / 1000)) +
+                " seconden af; servertijd wordt gebruikt."
+            );
+          }
           commands = Array.isArray(body.commands) ? body.commands : [];
           for (index = 0; index < commands.length; index += 1) {
-            executeCommand(commands[index]);
+            executeCommand(commands[index], serverNow);
           }
         }
       );

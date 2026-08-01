@@ -79,7 +79,11 @@ async function mockLegacyApis(
   await page.route("**/api/player/commands", async (route) => {
     await route.fulfill({
       contentType: "application/json",
-      body: JSON.stringify({ commands: [], ok: true })
+      body: JSON.stringify({
+        commands: [],
+        ok: true,
+        serverTime: new Date().toISOString()
+      })
     });
   });
 }
@@ -164,7 +168,11 @@ test("LG Legacy Player herstelt een lokaal verwijderde schermcredential uit de a
   await page.route("**/api/player/commands", async (route) => {
     await route.fulfill({
       contentType: "application/json",
-      body: JSON.stringify({ commands: [], ok: true })
+      body: JSON.stringify({
+        commands: [],
+        ok: true,
+        serverTime: new Date().toISOString()
+      })
     });
   });
 
@@ -231,6 +239,121 @@ test("LG Legacy Player herstelt een lokaal verwijderde schermcredential uit de a
     )
     .toBe(deviceToken);
   expect(pairingRequests).toBe(0);
+});
+
+test("LG Legacy Player voltooit remote recovery ondanks een twee uur voorlopende tv-klok", async ({
+  page
+}) => {
+  const recoveredDeviceToken = "r".repeat(48);
+  const phases: string[] = [];
+  const serverNow = Date.now() - 2 * 60 * 60 * 1_000;
+  const commandId = "33333333-3333-4333-8333-333333333333";
+  const commandNonce = "44444444-4444-4444-8444-444444444444";
+  let completed = false;
+
+  await page.route("**/api/player/installation", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        bound: true,
+        installationCredential,
+        ok: true
+      })
+    });
+  });
+  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        device: {
+          activeReleaseId: null,
+          desiredReleaseId: null,
+          id: "device-clock-skew",
+          screenId: "screen-clock-skew",
+          screenName: "LG kloktest"
+        },
+        state: "READY"
+      })
+    });
+  });
+  await page.route("**/api/player/heartbeat", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ automation: null, ok: true })
+    });
+  });
+  await page.route("**/api/player/commands", async (route) => {
+    if (route.request().method() === "GET") {
+      const expiresAt = new Date(serverNow + 15 * 60 * 1_000)
+        .toISOString()
+        .replace(/(\.\d{3})Z$/, "$1000+00:00");
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          commands: completed
+            ? []
+            : [{
+                commandType: "RECOVER_PAIRING",
+                createdAt: new Date(serverNow).toISOString(),
+                expiresAt,
+                id: commandId,
+                nonce: commandNonce,
+                payload: {}
+              }],
+          ok: true,
+          serverTime: new Date(serverNow).toISOString()
+        })
+      });
+      return;
+    }
+
+    const requestBody = route.request().postDataJSON() as {
+      phase?: string;
+    };
+    phases.push(requestBody.phase ?? "missing");
+    if (requestBody.phase === "completed") completed = true;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...(requestBody.phase === "completed"
+          ? {
+              commandType: "RECOVER_PAIRING",
+              deviceToken: recoveredDeviceToken
+            }
+          : {}),
+        ok: true
+      })
+    });
+  });
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+
+  await expect
+    .poll(() => phases, { timeout: 15_000 })
+    .toEqual(["acknowledged", "completed"]);
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        localStorage.getItem("veyocast.player.deviceToken")
+      )
+    )
+    .toBe(recoveredDeviceToken);
+  await expect(page.getByRole("heading", { name: "Wachten op content" }))
+    .toBeVisible();
 });
 
 test("LG Legacy Player toont pairing zonder witte of horizontaal overlopende pagina", async ({

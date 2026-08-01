@@ -48,6 +48,19 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).not.toContain('syncPhase: "lg-legacy-pairing"');
   });
 
+  it("verwerkt remote commands op servertijd en hervat een ontbrekende completion", () => {
+    const html = renderLgLegacyHtml();
+
+    expect(html).toContain("serverNow = parsePlayerTimestamp(body.serverTime)");
+    expect(html).toContain("executeCommand(commands[index], serverNow)");
+    expect(html).toContain("expiresAt <= serverNow");
+    expect(html).toContain("LEGACY_CLOCK_SKEW");
+    expect(html).toContain("if (!alreadyExecuted) rememberCommand(command.nonce)");
+    expect(html).not.toContain(
+      'new Date(command.expiresAt || "").getTime() <= now()'
+    );
+  });
+
   it("houdt de inline runtime compatibel met oude webOS syntax", () => {
     const html = renderLgLegacyHtml();
     const inlineScript = html.slice(

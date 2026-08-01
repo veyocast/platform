@@ -127,7 +127,11 @@ test("LG herstelt een lokaal verwijderde schermcredential uit de geverifieerde r
   await page.route("**/api/player/commands", async (route) => {
     await route.fulfill({
       contentType: "application/json",
-      body: JSON.stringify({ commands: [], ok: true })
+      body: JSON.stringify({
+        commands: [],
+        ok: true,
+        serverTime: new Date().toISOString()
+      })
     });
   });
 
