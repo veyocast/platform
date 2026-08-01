@@ -267,7 +267,9 @@ export function SlideComposerForm({ sources, templates }: Props) {
             <strong>Voor dit slidetype ontbreekt een passende databron.</strong>
             <span>{missingSourceCopy(slideType)}</span>
             <Button asChild size="sm" variant="secondary">
-              <Link href={sourceSetupHref(slideType)}>Databron koppelen</Link>
+              <Link href={sourceSetupHref(slideType)}>
+                {sourceActionLabel(slideType, "connect")}
+              </Link>
             </Button>
           </div>
         ) : !readySources.length ? (
@@ -277,7 +279,9 @@ export function SlideComposerForm({ sources, templates }: Props) {
             </strong>
             <span>{missingContentCopy(slideType)}</span>
             <Button asChild size="sm" variant="secondary">
-              <Link href={sourceSetupHref(slideType)}>Databron herstellen</Link>
+              <Link href={sourceSetupHref(slideType)}>
+                {sourceActionLabel(slideType, "sync")}
+              </Link>
             </Button>
           </div>
         ) : null}
@@ -498,6 +502,18 @@ function sourceSetupHref(slideType: string) {
   return slideType.startsWith("sport_")
     ? "/dashboard/data-sources/sportlink"
     : "/dashboard/data-sources";
+}
+
+function sourceActionLabel(
+  slideType: string,
+  action: "connect" | "sync"
+) {
+  if (slideType.startsWith("sport_")) {
+    return action === "connect"
+      ? "Sportlink koppelen"
+      : "Sportlink synchroniseren";
+  }
+  return action === "connect" ? "Databron koppelen" : "Databron herstellen";
 }
 
 function missingSourceCopy(slideType: string) {
