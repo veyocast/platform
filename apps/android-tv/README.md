@@ -72,6 +72,14 @@ De Player herkent voor compatibiliteit ook de historische
 voorkomen dat de hosted Player binnen de reeds geïnstalleerde native app
 opnieuw de Android PWA-installatiekaart aanbiedt.
 
+Tijdens een mediawissel blijft de uitgaande Playerlaag zichtbaar totdat de
+volgende video werkelijk speelt en twee renderframes heeft gekregen. De
+inkomende videolaag is vóór dat moment niet zichtbaar of aanraakbaar. De
+native `WebChromeClient` vervangt daarnaast Androids standaard videoposter door
+een effen zwarte bitmap; daardoor kan de WebView geen eigen playicoon tussen
+twee VeyoCast-items tonen. Deze shellmaatregel introduceert geen tweede
+playbackengine en verandert pairing, releasevolgorde of offlinecache niet.
+
 Bij een mislukte eerste paginalaadactie verschijnt native:
 
 > Geen verbinding met VeyoCast
