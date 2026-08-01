@@ -33,6 +33,7 @@ import {
 } from "@veyocast/ui";
 
 import {
+  archiveMediaAsset,
   createMediaFolder,
   createMediaTag,
   deleteMediaView,
@@ -56,6 +57,17 @@ type MediaInspectorSheetProps = {
   open: boolean;
   status: Readonly<{ label: string; tone: StatusTone }>;
   title: string;
+};
+
+type ArchiveMediaDialogProps = {
+  canArchive: boolean;
+  draftCount: number;
+  idempotencyKey: string;
+  kind: "image" | "video";
+  releaseCount: number;
+  screenCount: number;
+  title: string;
+  assetId: string;
 };
 
 export type MediaFolderOption = {
@@ -239,6 +251,84 @@ export function MediaInspectorSheet({
         </SheetBody>
       </SheetContent>
     </Sheet>
+  );
+}
+
+export function ArchiveMediaDialog({
+  assetId,
+  canArchive,
+  draftCount,
+  idempotencyKey,
+  kind,
+  releaseCount,
+  screenCount,
+  title
+}: ArchiveMediaDialogProps) {
+  const mediaLabel = kind === "video" ? "video" : "afbeelding";
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button disabled={!canArchive} type="button" variant="destructive">
+          <Trash2 aria-hidden="true" />
+          Uit Media verwijderen
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {kind === "video" ? "Video" : "Afbeelding"} ‘{title}’ verwijderen?
+          </DialogTitle>
+          <DialogDescription>
+            De {mediaLabel} verdwijnt uit de actieve mediabibliotheek en gaat naar
+            het herstelbare archief. Het bestand wordt niet direct fysiek gewist.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody>
+          <div className="notice notice--warning" role="status">
+            <strong>Gevolgen voor concepten</strong>
+            {draftCount > 0 ? (
+              <span>
+                De {mediaLabel} wordt ook uit {draftCount} conceptplaylist
+                {draftCount === 1 ? "" : "s"} verwijderd. Die concepten krijgen
+                niet-gepubliceerde wijzigingen.
+              </span>
+            ) : (
+              <span>De {mediaLabel} staat niet in een conceptplaylist.</span>
+            )}
+          </div>
+          <div className="notice notice--success" role="status">
+            <strong>Blijft behouden</strong>
+            <span>
+              {releaseCount > 0
+                ? `${releaseCount} bestaande release${releaseCount === 1 ? "" : "s"}`
+                : "Bestaande releasehistorie"} blijft onveranderlijk en
+              afspeelbaar{screenCount > 0 ? ` op ${screenCount} actieve scherm${screenCount === 1 ? "" : "en"}` : ""}.
+            </span>
+          </div>
+          <form action={archiveMediaAsset} className="playlist-form">
+            <input name="assetId" type="hidden" value={assetId} />
+            <input name="expectedDraftCount" type="hidden" value={draftCount} />
+            <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
+            <label className="check-row">
+              <input name="confirmArchive" required type="checkbox" />
+              <span>
+                <strong>Ik begrijp de gevolgen</strong>
+                <span className="work-panel__meta">
+                  Verwijder deze {mediaLabel} uit Media
+                  {draftCount > 0 ? " en uit de genoemde conceptplaylists" : ""}.
+                </span>
+              </span>
+            </label>
+            <DialogFooter>
+              <Button type="submit" variant="destructive">
+                {kind === "video" ? "Video verwijderen" : "Afbeelding verwijderen"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   );
 }
 
