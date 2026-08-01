@@ -56,6 +56,16 @@ describe("player remote commands", () => {
     ).toBe(false);
   });
 
+  it("gebruikt de servertijd wanneer de apparaatklok twee uur voorloopt", () => {
+    const serverNow = Date.parse("2026-07-26T10:01:00.000Z");
+    const incorrectDeviceNow = Date.parse("2026-07-26T12:01:00.000Z");
+
+    expect(incorrectDeviceNow).toBeGreaterThan(Date.parse(command.expiresAt));
+    expect(
+      shouldExecutePlayerCommand(command, new Set(), serverNow)
+    ).toBe(true);
+  });
+
   it("weigert onbekende commandtypes en onvolledige records", () => {
     expect(parsePlayerCommands([command, { ...command, commandType: "WIPE" }]))
       .toEqual([command]);

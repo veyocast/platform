@@ -63,12 +63,12 @@ export function parsePlayerCommands(value: unknown): PlayerCommand[] {
 export function shouldExecutePlayerCommand(
   command: PlayerCommand,
   executedNonces: ReadonlySet<string>,
-  now = Date.now()
+  authoritativeNow = Date.now()
 ) {
   const expiry = Date.parse(command.expiresAt);
   return (
     Number.isFinite(expiry) &&
-    expiry > now &&
+    expiry > authoritativeNow &&
     !executedNonces.has(command.nonce)
   );
 }

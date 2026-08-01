@@ -1492,12 +1492,19 @@ export function PlayerRuntime() {
       if (!response.ok) throw new Error("COMMAND_ACKNOWLEDGE_FAILED");
     }
 
-    async function executeCommand(command: PlayerCommand) {
+    async function executeCommand(
+      command: PlayerCommand,
+      authoritativeNow: number
+    ) {
       const executed = readExecutedPlayerCommandNonces(
         window.localStorage,
         localStorageExecutedCommandsKey
       );
-      const shouldExecute = shouldExecutePlayerCommand(command, executed);
+      const shouldExecute = shouldExecutePlayerCommand(
+        command,
+        executed,
+        authoritativeNow
+      );
       if (!shouldExecute && !executed.has(command.nonce)) return;
 
       await acknowledgeCommand(command);
@@ -1563,13 +1570,18 @@ export function PlayerRuntime() {
           15_000
         );
         const body = (await response.json().catch(() => null)) as
-          | { commands?: unknown; ok?: boolean }
+          | { commands?: unknown; ok?: boolean; serverTime?: unknown }
           | null;
         if (!response.ok || body?.ok !== true || cancelled) return;
+        const authoritativeNow =
+          typeof body.serverTime === "string"
+            ? parsePlayerTimestamp(body.serverTime)
+            : Number.NaN;
+        if (!Number.isFinite(authoritativeNow)) return;
         const commands = parsePlayerCommands(body.commands);
         for (const command of commands) {
           if (cancelled) return;
-          await executeCommand(command);
+          await executeCommand(command, authoritativeNow);
         }
       } catch {
         // The bounded polling loop retries without changing valid credentials.

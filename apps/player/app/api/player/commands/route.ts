@@ -6,6 +6,7 @@ import {
   createPlayerAnonClient,
   isLivePlayerConfigured
 } from "../../../_lib/player-supabase";
+import { normalizePlayerTimestamp } from "../../../_lib/player-time";
 
 const maximumRequestBytes = 384;
 
@@ -15,7 +16,12 @@ export async function GET(request: Request) {
     return commandFailure("INVALID_INSTALLATION_CREDENTIAL", 401);
   }
   if (!isLivePlayerConfigured()) {
-    return noStore({ commands: [], live: false, ok: true });
+    return noStore({
+      commands: [],
+      live: false,
+      ok: true,
+      serverTime: new Date().toISOString()
+    });
   }
 
   const supabase = createPlayerAnonClient();
@@ -31,7 +37,12 @@ export async function GET(request: Request) {
       401
     );
   }
-  return noStore({ commands: result.commands, live: true, ok: true });
+  return noStore({
+    commands: result.commands,
+    live: true,
+    ok: true,
+    serverTime: new Date().toISOString()
+  });
 }
 
 export async function POST(request: Request) {
@@ -169,7 +180,10 @@ function parsePollResult(value: unknown) {
   }
   const result = value as Record<string, unknown>;
   const commands = Array.isArray(result.commands)
-    ? result.commands.filter(isPlayerCommand)
+    ? result.commands.flatMap((command) => {
+        const normalized = normalizePlayerCommand(command);
+        return normalized ? [normalized] : [];
+      })
     : [];
   return {
     code: typeof result.code === "string" ? result.code : null,
@@ -178,28 +192,46 @@ function parsePollResult(value: unknown) {
   };
 }
 
-function isPlayerCommand(value: unknown): value is {
+function normalizePlayerCommand(value: unknown): {
   commandType: string;
   createdAt: string;
   expiresAt: string;
   id: string;
   nonce: string;
   payload: Record<string, unknown>;
-} {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+} | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const command = value as Record<string, unknown>;
-  return (
+  const createdAt =
+    typeof command.createdAt === "string"
+      ? normalizePlayerTimestamp(command.createdAt)
+      : null;
+  const expiresAt =
+    typeof command.expiresAt === "string"
+      ? normalizePlayerTimestamp(command.expiresAt)
+      : null;
+  if (
     typeof command.id === "string" &&
     typeof command.nonce === "string" &&
     typeof command.commandType === "string" &&
-    typeof command.createdAt === "string" &&
-    typeof command.expiresAt === "string" &&
+    createdAt &&
+    expiresAt &&
     Boolean(
       command.payload &&
       typeof command.payload === "object" &&
       !Array.isArray(command.payload)
     )
-  );
+  ) {
+    return {
+      commandType: command.commandType,
+      createdAt,
+      expiresAt,
+      id: command.id,
+      nonce: command.nonce,
+      payload: command.payload as Record<string, unknown>
+    };
+  }
+  return null;
 }
 
 function parseCompletionResult(value: unknown) {
