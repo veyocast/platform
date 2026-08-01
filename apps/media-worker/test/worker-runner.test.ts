@@ -41,6 +41,7 @@ const outputProbe: VideoProbe = {
   framesPerSecond: 30,
   height: 1080,
   pixelFormat: "yuv420p",
+  rotationDegrees: 0,
   videoCodec: "h264",
   width: 1920
 };
