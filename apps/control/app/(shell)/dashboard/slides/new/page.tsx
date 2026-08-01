@@ -73,6 +73,36 @@ async function loadOptions(tenantId: string) {
     supabase.from("dynamic_data_sources").select("id, name, kind, provider_status, last_successful_sync_at, last_error_code").eq("tenant_id", tenantId).eq("status", "active").order("name"),
     supabase.from("dynamic_templates").select("id, name, slide_type, orientation, current_published_version_id").eq("status", "published").order("name")
   ]);
+  const sportSources = (sourcesResult.data ?? []).filter(
+    (source) => source.kind === "sportlink"
+  );
+  const successfulGroupsBySource = new Map<string, string[]>();
+  if (sportSources.length) {
+    const connectionsResult = await supabase
+      .from("sportlink_connections")
+      .select("id, data_source_id")
+      .eq("tenant_id", tenantId)
+      .in("data_source_id", sportSources.map((source) => source.id));
+    const connections = connectionsResult.data ?? [];
+    if (connections.length) {
+      const policiesResult = await supabase
+        .from("sportlink_sync_policies")
+        .select("connection_id, dataset_group, last_success_at")
+        .eq("tenant_id", tenantId)
+        .in("connection_id", connections.map((connection) => connection.id))
+        .not("last_success_at", "is", null);
+      const sourceIdByConnection = new Map(
+        connections.map((connection) => [connection.id, connection.data_source_id])
+      );
+      for (const policy of policiesResult.data ?? []) {
+        const sourceId = sourceIdByConnection.get(policy.connection_id);
+        if (!sourceId || !policy.last_success_at) continue;
+        const groups = successfulGroupsBySource.get(sourceId) ?? [];
+        groups.push(policy.dataset_group);
+        successfulGroupsBySource.set(sourceId, groups);
+      }
+    }
+  }
   const sources = await Promise.all((sourcesResult.data ?? []).map(
     async (source): Promise<SlideSourceOption> => ({
       id: source.id,
@@ -86,7 +116,8 @@ async function loadOptions(tenantId: string) {
       lastErrorCode: source.last_error_code,
       lastSuccessfulSyncAt: source.last_successful_sync_at,
       name: source.name,
-      providerStatus: source.provider_status
+      providerStatus: source.provider_status,
+      successfulDatasetGroups: successfulGroupsBySource.get(source.id) ?? []
     })
   ));
   return {

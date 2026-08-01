@@ -17,6 +17,7 @@ export type SlideSourceOption = {
   lastSuccessfulSyncAt: string | null;
   name: string;
   providerStatus: string;
+  successfulDatasetGroups: string[];
 };
 
 export type SlideTemplateOption = {
@@ -35,7 +36,7 @@ export function SlideComposerForm({ sources, templates }: Props) {
   const initialTemplate = templates.find((template) =>
     sources.some((source) =>
       sourceMatchesSlideType(source.kind, template.slideType) &&
-      sourceHasContent(source)
+      sourceHasContent(source, template.slideType)
     )
   ) ?? templates[0]!;
   const [slideType, setSlideType] = useState(initialTemplate.slideType);
@@ -45,7 +46,9 @@ export function SlideComposerForm({ sources, templates }: Props) {
   const matchingSources = sources.filter(
     (source) => sourceMatchesSlideType(source.kind, slideType)
   );
-  const readySources = matchingSources.filter(sourceHasContent);
+  const readySources = matchingSources.filter((source) =>
+    sourceHasContent(source, slideType)
+  );
   const selectedSource = readySources[0] ?? null;
 
   return (
@@ -126,8 +129,7 @@ export function SlideComposerForm({ sources, templates }: Props) {
           <div className={styles.inlineGuidance} role="status">
             <strong>De passende databron bevat nog geen bruikbare inhoud.</strong>
             <span>
-              Synchroniseer de bron eerst. Daarna kun je de slide zonder nieuwe
-              configuratie aanmaken.
+              {missingContentCopy(slideType)}
             </span>
             <Button asChild size="sm" variant="secondary">
               <Link href={sourceSetupHref(slideType)}>Databron herstellen</Link>
@@ -151,7 +153,9 @@ export function SlideComposerForm({ sources, templates }: Props) {
               ))}
             </select>
             {matchingSources.some(
-              (source) => sourceHasContent(source) && source.providerStatus === "error"
+              (source) =>
+                sourceHasContent(source, slideType) &&
+                source.providerStatus === "error"
             ) ? (
               <small className={styles.fieldHint}>
                 De laatste goede inhoud blijft beschikbaar bij een tijdelijke
@@ -198,11 +202,41 @@ export function SlideComposerForm({ sources, templates }: Props) {
   );
 }
 
-export function sourceHasContent(source: SlideSourceOption) {
+export function sourceHasContent(
+  source: SlideSourceOption,
+  slideType?: string
+) {
   if (source.kind === "sportlink") {
+    const requiredDatasetGroup = slideType
+      ? requiredSportlinkDatasetGroup(slideType)
+      : null;
+    if (requiredDatasetGroup) {
+      return source.successfulDatasetGroups.includes(requiredDatasetGroup);
+    }
     return Boolean(source.lastSuccessfulSyncAt);
   }
   return source.itemCount > 0;
+}
+
+export function requiredSportlinkDatasetGroup(slideType: string) {
+  const groups: Record<string, string> = {
+    sport_activities: "activities",
+    sport_birthdays: "public_people",
+    sport_cancellations: "matches",
+    sport_dressing_rooms: "match_details",
+    sport_match_of_the_day: "matches",
+    sport_next_match: "matches",
+    sport_officials: "match_details",
+    sport_period_standing: "competitions",
+    sport_program: "matches",
+    sport_results: "matches",
+    sport_sponsor: "teams",
+    sport_standing: "competitions",
+    sport_team: "teams",
+    sport_trainings: "teams",
+    sport_volunteers: "volunteers"
+  };
+  return groups[slideType] ?? null;
 }
 
 export function sourceMatchesSlideType(kind: string, slideType: string) {
@@ -235,6 +269,27 @@ function missingSourceCopy(slideType: string) {
     return "Koppel een publieke RSS- of Atom-feed en voer de eerste synchronisatie uit.";
   }
   return "Koppel Sportlink Club.Dataservice en wacht tot de eerste synchronisatie gereed is.";
+}
+
+function missingContentCopy(slideType: string) {
+  const datasetGroup = requiredSportlinkDatasetGroup(slideType);
+  if (!datasetGroup) {
+    return "Synchroniseer de bron eerst. Daarna kun je de slide zonder nieuwe configuratie aanmaken.";
+  }
+  return `De Sportlink-dataset ‘${sportlinkDatasetLabel(datasetGroup)}’ is ingeschakeld, maar nog niet succesvol afgerond. Open de databron, start de synchronisatie en wacht op de status Gereed.`;
+}
+
+function sportlinkDatasetLabel(value: string) {
+  const labels: Record<string, string> = {
+    activities: "Clubagenda",
+    competitions: "Competities en standen",
+    match_details: "Wedstrijddetails",
+    matches: "Programma en uitslagen",
+    public_people: "Publieke personen",
+    teams: "Teams",
+    volunteers: "Vrijwilligers"
+  };
+  return labels[value] ?? value;
 }
 
 function slideTypeGroups(templates: SlideTemplateOption[]) {
