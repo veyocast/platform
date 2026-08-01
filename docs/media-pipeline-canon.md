@@ -47,7 +47,8 @@ boundary for video jobs. It:
 - invokes `ffprobe` and `ffmpeg` with `spawn(..., { shell: false })`;
 - rejects malformed probes, non-MP4 input and video longer than five minutes;
 - maps exactly the first video stream and an optional first audio stream;
-- generates MP4/H.264 Main, yuv420p, maximum 1920×1080 at 30 fps;
+- generates MP4/H.264 Main, yuv420p, at most 1920 pixels on the long edge
+  and 1080 pixels on the short edge at 30 fps;
 - normalizes optional audio to AAC, 48 kHz, stereo;
 - writes fast-start MP4 and probes the output again before accepting it;
 - bounds command duration and captured process output.
@@ -77,6 +78,8 @@ De daemon:
 - streamt bron en variant zonder een bestand van maximaal 500 MB in geheugen te laden;
 - controleert bron- en variant-SHA-256 en verwachte bronlengte;
 - schrijft original en `player_1080p` plus de ready-transitie in één transactie;
+- accepteert in die transactie hetzelfde lange-/korte-zijdecontract voor zowel
+  landscape- als portraitoutput;
 - zet alleen tijdelijke fouten opnieuw klaar en stopt na een begrensd aantal pogingen;
 - verwijdert ieder eigen tijdelijk werkpad in een `finally`-pad.
 
