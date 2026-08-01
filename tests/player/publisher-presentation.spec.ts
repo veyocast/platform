@@ -78,6 +78,8 @@ test("applies video volume and trim without exposing publisher titles", async ({
   await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=30000`);
 
   const playerVideo = page.getByTestId("player-video");
+  await expect(playerVideo).toBeAttached();
+  await playerVideo.dispatchEvent("playing");
   await expect(playerVideo).toBeVisible();
   await expect(playerVideo).toHaveAttribute(
     "aria-label",

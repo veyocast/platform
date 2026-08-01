@@ -200,7 +200,7 @@ test("LG herstelt een lokaal verwijderde schermcredential uit de geverifieerde r
   expect(pairingRequests).toBe(0);
 });
 
-test("advances three naturally ended videos without freezing between items", async ({
+test("keeps the previous video visible until the next first frame is ready", async ({
   page
 }) => {
   const manifestResponse = await page.request.get(
@@ -238,18 +238,33 @@ test("advances three naturally ended videos without freezing between items", asy
   await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=2000`);
 
   const firstVideo = page.getByLabel("Video een");
-  await expect(firstVideo).toBeVisible();
+  await expect(firstVideo).toBeAttached();
   await firstVideo.dispatchEvent("playing");
+  await expect(firstVideo).toBeVisible();
   await firstVideo.dispatchEvent("ended");
 
   const secondVideo = page.getByLabel("Video twee");
-  await expect(secondVideo).toBeVisible({ timeout: 500 });
-  await expect(firstVideo).toHaveCount(0);
+  await expect(secondVideo).toBeAttached({ timeout: 500 });
+  await expect(secondVideo).toBeHidden();
+  await expect(firstVideo).toBeVisible();
+  await expect(
+    page.locator('[data-player-handoff="waiting-for-first-frame"]')
+  ).toBeAttached();
+
   await secondVideo.dispatchEvent("playing");
+  await expect(secondVideo).toBeVisible();
+  await expect(
+    page.locator('[data-player-handoff="first-frame-ready"]')
+  ).toBeAttached();
+  await expect(firstVideo).toHaveCount(0, { timeout: 1_000 });
   await secondVideo.dispatchEvent("ended");
 
   const thirdVideo = page.getByLabel("Video drie");
-  await expect(thirdVideo).toBeVisible({ timeout: 500 });
+  await expect(thirdVideo).toBeAttached({ timeout: 500 });
+  await expect(thirdVideo).toBeHidden();
+  await expect(secondVideo).toBeVisible();
+  await thirdVideo.dispatchEvent("playing");
+  await expect(thirdVideo).toBeVisible();
 });
 
 test("loops to the muted video slot without browser controls", async ({
@@ -258,7 +273,9 @@ test("loops to the muted video slot without browser controls", async ({
   await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=300`);
 
   const video = page.getByTestId("player-video");
-  await expect(video).toBeVisible({ timeout: 3_000 });
+  await expect(video).toBeAttached({ timeout: 3_000 });
+  await video.dispatchEvent("playing");
+  await expect(video).toBeVisible();
   await expect(video).toHaveJSProperty("muted", true);
   await expect(video).not.toHaveAttribute("controls", /.*/);
   await expect(video).toHaveAttribute(
