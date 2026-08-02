@@ -27,8 +27,12 @@ test("fixed Publisher navigation remains keyboard reachable", async ({ page }) =
   await expect(
     page.getByRole("button", { name: /Navigatie (in|uit)klappen/ })
   ).toBeVisible();
-  await overview.focus();
-  await expect(overview).toBeFocused();
+  await expect
+    .poll(async () => {
+      await overview.focus();
+      return overview.evaluate((element) => element === document.activeElement);
+    })
+    .toBe(true);
 });
 
 test("control shell reflows across canonical viewport widths", async ({ page }) => {

@@ -17,6 +17,7 @@ async function openDashboard(page: Page) {
       // App Router segment. A real page failure still fails the assertions.
       if (!String(error).includes("ERR_ABORTED")) throw error;
     }
+    await page.waitForLoadState("networkidle");
 
     await expect(
       page.getByRole("heading", { exact: true, level: 1, name: "Overzicht" })
@@ -30,7 +31,10 @@ async function openDashboard(page: Page) {
       return;
     }
 
-    const mobileMoreTrigger = page.getByRole("button", { name: "Meer" });
+    const mobileMoreTrigger = page.getByRole("button", {
+      exact: true,
+      name: "Meer"
+    });
     const navigationTrigger = (await mobileMoreTrigger.isVisible())
       ? mobileMoreTrigger
       : page.getByRole("button", { name: "Navigatie openen" });
@@ -51,12 +55,18 @@ test("floating panels stay above clipped containers at every Control breakpoint"
       name: "Actieve context: Museumkwartier"
     });
     if (!(await contextTrigger.isVisible())) {
-      const mobileMoreTrigger = page.getByRole("button", { name: "Meer" });
+      const mobileMoreTrigger = page.getByRole("button", {
+        exact: true,
+        name: "Meer"
+      });
       const navigationTrigger = (await mobileMoreTrigger.isVisible())
         ? mobileMoreTrigger
         : page.getByRole("button", { name: "Navigatie openen" });
       await expect(navigationTrigger).toBeEnabled();
       await navigationTrigger.click();
+      await expect(page.locator("#control-sidebar-navigation")).toHaveClass(
+        /control-sidebar--open/
+      );
       await expect(contextTrigger).toBeVisible();
     }
 
