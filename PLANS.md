@@ -104,6 +104,7 @@ tests en exitcriteria staan in
 | S67 | Releasegebonden workerheartbeat | Een recente echte queuepoll bewijst workerreadiness ook wanneer uitsluitend de lokale TCP-route in de productiecontainer faalt |
 | S79 | Veilige mediaverwijdering | Video en afbeelding vanuit Media transactioneel archiveren met expliciete conceptimpact |
 | S81 | Begeleide slide- en mediabeheerflow | Dynamische slides in afzonderlijke gevalideerde stappen maken en mediaverwijdering direct vindbaar en herstelbaar maken |
+| S82 | Sportlink-lease en Europese tenanttijd | Langdurige Sportlink-syncs met lease-heartbeat en direct herstel uitvoeren; Control en sportslides expliciet in Amsterdam-, Brussel- of Parijstijd tonen |
 
 ### Programmagates
 
