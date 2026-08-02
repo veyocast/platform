@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(13);
+select plan(21);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -34,6 +34,9 @@ select is((select count(*) from public.sportlink_connections),1::bigint,
   'owner reads the own connection');
 select is((select count(*) from public.sportlink_sync_policies),8::bigint,
   'exactly one policy per dataset group is initialized');
+select is((select timezone from public.sportlink_connections),
+  'Europe/Amsterdam',
+  'a Sportlink connection inherits the tenant timezone');
 select ok(not has_column_privilege('authenticated',
   'public.sportlink_connections','encrypted_client_id','select'),
   'encrypted Client ID is not selectable by browser roles');
@@ -60,6 +63,12 @@ select throws_ok($$select public.upsert_sportlink_connection_v1(
   '42501',null,'another tenant cannot replace credentials');
 
 reset role;
+update public.tenant_settings
+set timezone_name='Europe/Paris'
+where tenant_id='10000000-0000-4000-8000-000000000b01';
+select is((select timezone from public.sportlink_connections),
+  'Europe/Paris',
+  'a changed tenant timezone is propagated to the Sportlink connection');
 update public.sportlink_sync_policies
 set enabled=(dataset_group='matches'),next_sync_at=now();
 set local role service_role;
@@ -70,8 +79,44 @@ select is((select count(*) from public.claim_due_sportlink_sync_v1(
 select is((select count(*) from public.claim_due_sportlink_sync_v1(
   'worker:sportlink-test-2',900)),0::bigint,
   'a second worker cannot claim the active dataset lease');
+reset role;
+select set_config(
+  'test.sportlink_run_id',
+  (select id::text from public.sportlink_sync_runs where status='running' limit 1),
+  true
+);
+set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select is(public.renew_sportlink_sync_lease_v1(
+  current_setting('test.sportlink_run_id')::uuid,
+  'worker:sportlink-test-2'),false,
+  'a different worker cannot renew an active dataset lease');
+select is(public.renew_sportlink_sync_lease_v1(
+  current_setting('test.sportlink_run_id')::uuid,
+  'worker:sportlink-test'),true,
+  'the owning worker can renew its active dataset lease');
 
 reset role;
+update public.sportlink_sync_runs
+set locked_at=now()-interval '16 minutes'
+where status='running';
+set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select is((select count(*) from public.claim_due_sportlink_sync_v1(
+  'worker:sportlink-recovery',900)),1::bigint,
+  'an expired worker lease is closed and immediately reclaimed');
+reset role;
+select is((select count(*) from public.sportlink_sync_runs
+  where status='failed' and error_code='SPORTLINK_WORKER_LEASE_EXPIRED'),1::bigint,
+  'lease recovery records the safe machine-readable failure');
+select is((select count(*) from public.sportlink_sync_runs
+  where status='running'),1::bigint,
+  'lease recovery leaves exactly one active run for the dataset');
+select is((select count(*) from public.audit_events
+  where action='sportlink.sync.lease_expired'
+    and result='failed'),1::bigint,
+  'lease recovery writes one safe worker audit event');
+
 set local role anon;
 select is((select count(*) from public.sportlink_connections),0::bigint,
   'anonymous cannot read Sportlink connections');

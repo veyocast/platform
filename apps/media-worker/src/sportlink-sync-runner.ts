@@ -54,6 +54,25 @@ type NormalizedSportlinkBatch = {
   teams: SportTeam[];
 };
 
+type SportlinkSyncBackend = {
+  claim(
+    workerId: string,
+    lockTimeoutSeconds: number
+  ): Promise<ClaimedSportlinkSync | null>;
+  complete(
+    job: ClaimedSportlinkSync,
+    workerId: string,
+    batch: NormalizedSportlinkBatch
+  ): Promise<number>;
+  fail(
+    job: ClaimedSportlinkSync,
+    workerId: string,
+    code: string,
+    message: string
+  ): Promise<void>;
+  renew(job: ClaimedSportlinkSync, workerId: string): Promise<boolean>;
+};
+
 const emptyBatch = (): NormalizedSportlinkBatch => ({
   activities: [],
   club: null,
@@ -123,22 +142,37 @@ export class SupabaseSportlinkSyncBackend {
     });
     if (result.error) throw new Error("sportlink_sync_failure_report_failed");
   }
+
+  async renew(job: ClaimedSportlinkSync, workerId: string) {
+    const result = await this.client.rpc("renew_sportlink_sync_lease_v1", {
+      p_run_id: job.runId,
+      p_worker_id: workerId
+    });
+    if (result.error) throw new Error("sportlink_sync_lease_renew_failed");
+    return result.data === true;
+  }
 }
 
 export async function runSportlinkSyncOnce({
   backend,
   encryptionKey,
+  executeDataset = executeSportlinkDataset,
   lockTimeoutSeconds,
   workerId
 }: {
-  backend: SupabaseSportlinkSyncBackend;
+  backend: SportlinkSyncBackend;
   encryptionKey: string | null;
+  executeDataset?: (
+    job: ClaimedSportlinkSync,
+    encryptionKey: string
+  ) => Promise<NormalizedSportlinkBatch>;
   lockTimeoutSeconds: number;
   workerId: string;
 }): Promise<SportlinkSyncRunResult> {
   const job = await backend.claim(workerId, lockTimeoutSeconds);
   if (!job) return { status: "idle" };
 
+  let lease: ReturnType<typeof startLeaseHeartbeat> | null = null;
   try {
     if (!encryptionKey) {
       throw new SportlinkWorkerError(
@@ -146,12 +180,15 @@ export async function runSportlinkSyncOnce({
         "De serverconfiguratie voor Sportlink-synchronisatie ontbreekt."
       );
     }
-    const clientId = decryptSportlinkClientId({
-      ciphertext: job.encryptedClientId,
-      iv: job.encryptionIv,
-      tag: job.encryptionTag
-    }, encryptionKey);
-    const batch = await fetchSportlinkDataset(job.datasetGroup, new SportlinkClient(clientId));
+    lease = startLeaseHeartbeat({
+      backend,
+      intervalMs: leaseRenewIntervalMs(lockTimeoutSeconds),
+      job,
+      lockTimeoutSeconds,
+      workerId
+    });
+    const batch = await executeDataset(job, encryptionKey);
+    lease.assertOwned();
     const readCount = await backend.complete(job, workerId, batch);
     return {
       datasetGroup: job.datasetGroup,
@@ -161,13 +198,20 @@ export async function runSportlinkSyncOnce({
     };
   } catch (error) {
     const failure = classifySportlinkSyncFailure(error);
-    await backend.fail(job, workerId, failure.code, failure.message);
+    try {
+      await backend.fail(job, workerId, failure.code, failure.message);
+    } catch {
+      // A run may already have been reclaimed after an actual worker outage.
+      // Reporting that stale failure must not terminate the dispatcher loop.
+    }
     return {
       datasetGroup: job.datasetGroup,
       errorCode: failure.code,
       runId: job.runId,
       status: "failed"
     };
+  } finally {
+    await lease?.stop();
   }
 }
 
@@ -180,7 +224,7 @@ export async function runSportlinkSyncLoop({
   signal,
   workerId
 }: {
-  backend: SupabaseSportlinkSyncBackend;
+  backend: SportlinkSyncBackend;
   encryptionKey: string | null;
   intervalMs: number;
   lockTimeoutSeconds: number;
@@ -198,6 +242,21 @@ export async function runSportlinkSyncLoop({
     onResult(result);
     if (result.status === "idle") await abortableDelay(intervalMs, signal);
   }
+}
+
+async function executeSportlinkDataset(
+  job: ClaimedSportlinkSync,
+  encryptionKey: string
+) {
+  const clientId = decryptSportlinkClientId({
+    ciphertext: job.encryptedClientId,
+    iv: job.encryptionIv,
+    tag: job.encryptionTag
+  }, encryptionKey);
+  return fetchSportlinkDataset(
+    job.datasetGroup,
+    new SportlinkClient(clientId)
+  );
 }
 
 async function fetchSportlinkDataset(
@@ -293,6 +352,76 @@ async function fetchSportlinkDataset(
     "SPORTLINK_DATASET_DISABLED",
     "Deze Sportlink-dataset is niet geactiveerd."
   );
+}
+
+function leaseRenewIntervalMs(lockTimeoutSeconds: number) {
+  return Math.max(
+    5_000,
+    Math.min(30_000, Math.floor(lockTimeoutSeconds * 1_000 / 3))
+  );
+}
+
+function startLeaseHeartbeat({
+  backend,
+  intervalMs,
+  job,
+  lockTimeoutSeconds,
+  workerId
+}: {
+  backend: SportlinkSyncBackend;
+  intervalMs: number;
+  job: ClaimedSportlinkSync;
+  lockTimeoutSeconds: number;
+  workerId: string;
+}) {
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let pending: Promise<void> | null = null;
+  let lost = false;
+  let lastRenewedAt = Date.now();
+  const renewalBudgetMs = Math.max(1_000, lockTimeoutSeconds * 1_000 * 0.8);
+
+  const schedule = () => {
+    if (stopped || lost) return;
+    timer = setTimeout(() => {
+      pending = renew().finally(() => {
+        pending = null;
+        schedule();
+      });
+    }, intervalMs);
+  };
+
+  const renew = async () => {
+    try {
+      if (await backend.renew(job, workerId)) {
+        lastRenewedAt = Date.now();
+        return;
+      }
+      lost = true;
+    } catch {
+      if (Date.now() - lastRenewedAt >= renewalBudgetMs) {
+        lost = true;
+      }
+    }
+  };
+
+  schedule();
+
+  return {
+    assertOwned() {
+      if (lost) {
+        throw new SportlinkWorkerError(
+          "SPORTLINK_WORKER_LEASE_LOST",
+          "De synchronisatielease is door een andere worker overgenomen."
+        );
+      }
+    },
+    async stop() {
+      stopped = true;
+      if (timer) clearTimeout(timer);
+      await pending;
+    }
+  };
 }
 
 async function fetchStandings(client: SportlinkClient) {
