@@ -1,7 +1,4 @@
-import {
-  playerDynamicTemplatePayloadSchema,
-  type PlayerDynamicTemplatePayload
-} from "@veyocast/contracts";
+import type { PlayerDynamicTemplatePayload } from "@veyocast/contracts";
 
 export type DynamicTemplateTheme = "dark" | "light";
 
@@ -56,13 +53,35 @@ const matchSlideTypes = new Set([
   "sport_match_of_the_day",
   "sport_next_match"
 ]);
+const dynamicSlideTypes = new Set<PlayerDynamicTemplatePayload["slideType"]>([
+  "menu",
+  "news",
+  "sport_activities",
+  "sport_birthdays",
+  "sport_cancellations",
+  "sport_dressing_rooms",
+  "sport_match_of_the_day",
+  "sport_next_match",
+  "sport_officials",
+  "sport_period_standing",
+  "sport_program",
+  "sport_results",
+  "sport_sponsor",
+  "sport_standing",
+  "sport_team",
+  "sport_trainings",
+  "sport_volunteers"
+]);
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const snapshotHashPattern = /^[a-f0-9]{64}$/;
+const templateSlugPattern = /^[a-z0-9][a-z0-9-]{0,119}$/;
 
 export function createDynamicTemplateView(
   value: unknown
 ): DynamicTemplateView | null {
-  const parsed = playerDynamicTemplatePayloadSchema.safeParse(value);
-  if (!parsed.success) return null;
-  const payload = parsed.data;
+  const payload = parseDynamicTemplatePayload(value);
+  if (!payload) return null;
   const data = payload.data;
   const accentColor = safeColor(
     readRecord(data.brand)?.primaryColor,
@@ -153,6 +172,69 @@ export function createDynamicTemplateView(
     theme,
     title
   };
+}
+
+function parseDynamicTemplatePayload(
+  value: unknown
+): PlayerDynamicTemplatePayload | null {
+  const payload = readRecord(value);
+  if (!payload) return null;
+  const allowedKeys = new Set([
+    "data",
+    "orientation",
+    "schemaVersion",
+    "slideType",
+    "snapshotHash",
+    "snapshotId",
+    "templateSlug",
+    "templateVersionId"
+  ]);
+  if (Object.keys(payload).some((key) => !allowedKeys.has(key))) return null;
+
+  const data = readRecord(payload.data);
+  const orientation = payload.orientation;
+  const slideType = payload.slideType;
+  const snapshotHash = payload.snapshotHash;
+  const snapshotId = payload.snapshotId;
+  const templateSlug = payload.templateSlug;
+  const templateVersionId = payload.templateVersionId;
+  if (
+    !data ||
+    payload.schemaVersion !== 1 ||
+    (orientation !== "landscape" && orientation !== "portrait") ||
+    !isDynamicSlideType(slideType) ||
+    typeof snapshotHash !== "string" ||
+    !snapshotHashPattern.test(snapshotHash) ||
+    typeof snapshotId !== "string" ||
+    !uuidPattern.test(snapshotId) ||
+    typeof templateSlug !== "string" ||
+    templateSlug !== templateSlug.trim() ||
+    !templateSlugPattern.test(templateSlug) ||
+    typeof templateVersionId !== "string" ||
+    !uuidPattern.test(templateVersionId)
+  ) {
+    return null;
+  }
+
+  return {
+    data,
+    orientation,
+    schemaVersion: 1,
+    slideType,
+    snapshotHash,
+    snapshotId,
+    templateSlug,
+    templateVersionId
+  };
+}
+
+function isDynamicSlideType(
+  value: unknown
+): value is PlayerDynamicTemplatePayload["slideType"] {
+  return (
+    typeof value === "string" &&
+    dynamicSlideTypes.has(value as PlayerDynamicTemplatePayload["slideType"])
+  );
 }
 
 export function dynamicTemplatePageDurationMs(
