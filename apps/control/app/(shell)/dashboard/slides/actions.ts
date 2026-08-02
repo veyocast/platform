@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -126,7 +127,7 @@ export async function refreshDynamicSlide(formData: FormData) {
 }
 
 export async function addDynamicSlideToPlaylist(formData: FormData) {
-  await requireTenantControlSession("tenant.playlist.write");
+  const session = await requireTenantControlSession("tenant.playlist.write");
   const slideId = String(formData.get("slideId") ?? "");
   const playlistId = String(formData.get("playlistId") ?? "");
   const duration = Math.min(3600, Math.max(5, Number(formData.get("duration")) || 10));
@@ -138,16 +139,40 @@ export async function addDynamicSlideToPlaylist(formData: FormData) {
   ) {
     redirect(`/dashboard/slides/${slideId}?fout=Kies+een+geldige+playlist.`);
   }
-  const { error } = await supabase.rpc("add_dynamic_slide_to_playlist_v1", {
+  const playlist = await supabase
+    .from("playlists")
+    .select("revision")
+    .eq("id", playlistId)
+    .eq("tenant_id", session.tenantId!)
+    .maybeSingle();
+  if (
+    playlist.error ||
+    !playlist.data ||
+    !Number.isInteger(Number(playlist.data.revision))
+  ) {
+    redirect(`/dashboard/slides/${slideId}?fout=De+playlist+kon+niet+veilig+worden+geladen.`);
+  }
+  const { data, error } = await supabase.rpc("add_dynamic_slide_to_playlist_v2", {
     p_duration_seconds: duration,
     p_dynamic_slide_id: slideId,
+    p_expected_revision: Number(playlist.data.revision),
+    p_idempotency_key: randomUUID(),
     p_playlist_id: playlistId
   });
-  if (error) {
+  if (
+    error ||
+    !isRecord(data) ||
+    (data.outcome !== "applied" && data.outcome !== "conflict")
+  ) {
     redirect(`/dashboard/slides/${slideId}?fout=De+slide+is+nog+niet+gereed+of+kon+niet+aan+de+playlist+worden+toegevoegd.`);
   }
+  if (data.outcome === "conflict") {
+    redirect(
+      `/dashboard/slides/${slideId}?fout=De+playlist+is+ondertussen+gewijzigd.+Open+de+slide+opnieuw+en+probeer+nogmaals.`
+    );
+  }
   revalidatePath(`/dashboard/playlists/${playlistId}`);
-  redirect(`/dashboard/playlists/${playlistId}?succes=Dynamische+snapshot+is+aan+het+concept+toegevoegd.`);
+  redirect(`/dashboard/playlists/${playlistId}?succes=De+dynamische+HTML%2FCSS-slide+is+aan+het+concept+toegevoegd.`);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

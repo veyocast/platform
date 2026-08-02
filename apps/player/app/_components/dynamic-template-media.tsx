@@ -73,20 +73,27 @@ export function DynamicTemplateMedia({
     "--template-accent": view.accentColor,
     "--template-page-duration": `${pageDurationMs}ms`
   };
-  const isPortraitNews =
-    view.slideType === "news" && view.orientation === "portrait";
+  const isEditorialNews =
+    view.slideType === "news" &&
+    (view.orientation === "portrait" || view.theme === "dark");
+  const editorialNewsClass = view.orientation === "portrait"
+    ? styles.rssPortrait
+    : styles.rssLandscape;
 
   return (
     <section
       aria-label={item.accessibilityName ?? item.title}
-      className={`${styles.root} ${isPortraitNews ? styles.rssPortrait : ""}`}
+      className={`${styles.root} ${
+        isEditorialNews ? editorialNewsClass : ""
+      }`}
       data-orientation={view.orientation}
       data-slide-type={view.slideType}
       data-theme={view.theme}
       style={style}
     >
-      {isPortraitNews ? (
-        <PortraitNewsPage
+      {isEditorialNews ? (
+        <EditorialNewsPage
+          key={`${view.snapshotId}-${pageIndex}`}
           page={page}
           pageCount={pageCount}
           pageIndex={pageIndex}
@@ -122,7 +129,7 @@ export function DynamicTemplateMedia({
   );
 }
 
-function PortraitNewsPage({
+function EditorialNewsPage({
   page,
   pageCount,
   pageIndex,

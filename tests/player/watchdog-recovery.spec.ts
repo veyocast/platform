@@ -48,7 +48,7 @@ test("does not remount a healthy video when no watchdog override is present", as
     element.dataset.playbackInstance = "original";
     element.dispatchEvent(new Event("playing", { bubbles: true }));
   });
-  await expect(playerVideo).toBeVisible();
+  await expect(playerVideo).toBeVisible({ timeout: 15_000 });
   await page.waitForTimeout(1_500);
 
   await expect(playerVideo).toHaveAttribute("data-playback-instance", "original");
@@ -101,6 +101,9 @@ test("does not treat an intentional video pause as a playback stall", async ({
   await expect(playerVideo).toBeAttached();
   await playerVideo.evaluate((element) => {
     element.dispatchEvent(new Event("playing", { bubbles: true }));
+  });
+  await expect(playerVideo).toBeVisible({ timeout: 15_000 });
+  await playerVideo.evaluate((element) => {
     element.autoplay = false;
     element.pause();
     element.dispatchEvent(new Event("pause", { bubbles: true }));

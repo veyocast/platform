@@ -100,7 +100,7 @@ export function PublisherStudioPreview({
   if (!activeItem) {
     return (
       <div className={styles.previewEmpty} role="status">
-        Voeg gereedstaande media toe om de playlist te previewen.
+        Voeg gereedstaande inhoud toe om de playlist te previewen.
       </div>
     );
   }

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  collectSportlinkPoolIds,
   runSportlinkSyncOnce,
   SupabaseSportlinkSyncBackend
 } from "../src/sportlink-sync-runner";
@@ -10,6 +11,20 @@ afterEach(() => {
 });
 
 describe("Sportlink sync worker", () => {
+  it("derives bounded club pools without an incomplete team-pool request", () => {
+    expect(collectSportlinkPoolIds(
+      [
+        { poulecode: 90, teamcode: 10, teamnaam: "Club 1" },
+        { poulecode: null, teamcode: 11, teamnaam: "Club 2" },
+        { poulecode: 90, teamcode: 12, teamnaam: "Club 3" }
+      ],
+      [
+        { poulecode: 91, teamcode: 11 },
+        { poulecode: 92, teamcode: 999 }
+      ]
+    )).toEqual(["90", "91"]);
+  });
+
   it("claims a command once and reports missing encryption configuration safely", async () => {
     const rpc = vi.fn()
       .mockResolvedValueOnce({

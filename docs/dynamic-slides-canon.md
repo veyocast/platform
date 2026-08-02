@@ -117,6 +117,14 @@ manual product changes increment the same source revision boundary. A
 successful refresh queues one new snapshot per slide in `latest` mode.
 `pinned` slides remain on their selected snapshot.
 
+`tenant_settings.primary_color` is the single tenant-owned accent for news
+templates. It is normalized to an uppercase six-digit hex value and frozen
+into `snapshot_data_json.brand.primaryColor`. Changing it increments only the
+relevant active RSS source revisions, so mutable latest-mode slides receive a
+new immutable snapshot while existing releases and pinned history remain
+unchanged. Control previews use that same value; the Control product skin does
+not inherit tenant branding.
+
 The new output becomes current only after upload, checksum creation and
 transactionally registering a ready PNG. A latest-mode item in a mutable
 playlist concept then follows that completed snapshot and matching fallback
@@ -124,6 +132,15 @@ asset atomically; the concept revision is incremented and audited. Published
 releases remain immutable and only change through the existing explicit
 publication flow. Active Players therefore never receive an unreviewed mutable
 release.
+
+The playlist editor lists ready dynamic slides as a separate
+`Dynamische slides` content type. Generated fallback assets are not offered as
+ordinary images. Adding or dragging a dynamic slide records
+`dynamic_slide_id`, `dynamic_snapshot_id` and its selection mode through a
+revision-checked, idempotent command. A database provenance trigger also
+promotes any generated fallback selected through a legacy media path back to
+its HTML/CSS identity. Playlist and release thumbnails may still show the
+immutable PNG, but Player playback prefers the trusted HTML/CSS payload.
 
 The author chooses the bounded item count. Menu products, news articles and
 Sportlink rows are split into deterministic pages by the trusted runtime.
@@ -144,6 +161,21 @@ The five-step Control wizard shows a real visual variant preview before the
 author selects source, item count and review. Templates use only locked
 VeyoCast themes and normalized content. The normal Player lock-up remains the
 only permanent playback watermark.
+
+S85 makes the dark portrait RSS template the single canonical portrait news
+composition. S86 gives its existing dark landscape companion a separately
+designed 16:9 composition with the same bounded supplier logo, white shadowed
+section header, full-bleed verified article image and per-article timing. The
+light landscape news template remains available and unchanged. Landscape is
+not a crop or scaled copy of portrait: its headline and metadata occupy a
+dedicated left reading zone while the image retains the wider visual field.
+
+Every editorial news page restarts the same bounded entrance sequence:
+background image, headline, accent, intro and finally supplier, metadata and
+progress context. The sequence completes early within the configured page
+duration and never changes the five-second default timing. Browser and LG
+Legacy runtimes use equivalent CSS keyframes. `prefers-reduced-motion: reduce`
+removes all entrance motion and exposes the complete content immediately.
 
 ## Security and authorization
 

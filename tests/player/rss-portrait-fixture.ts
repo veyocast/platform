@@ -13,6 +13,21 @@ export async function routePortraitRssManifest(
   page: Page,
   playerUrl: string
 ) {
+  return routeRssManifest(page, playerUrl, "portrait");
+}
+
+export async function routeLandscapeRssManifest(
+  page: Page,
+  playerUrl: string
+) {
+  return routeRssManifest(page, playerUrl, "landscape");
+}
+
+async function routeRssManifest(
+  page: Page,
+  playerUrl: string,
+  orientation: "landscape" | "portrait"
+) {
   const baselineResponse = await page.request.get(
     `${playerUrl}/api/player/manifest?deviceToken=demo-online`
   );
@@ -35,7 +50,9 @@ export async function routePortraitRssManifest(
   const item: PlayerManifestItem = {
     ...fallback,
     accessibilityName: "Dynamisch voetbalnieuws",
-    displayTitle: "RSS nieuws · staand",
+    displayTitle: `RSS nieuws · ${
+      orientation === "portrait" ? "staand" : "liggend"
+    }`,
     durationSeconds: 10,
     dynamicTemplate: {
       assets: {
@@ -85,16 +102,18 @@ export async function routePortraitRssManifest(
         },
         type: "news"
       },
-      orientation: "portrait",
+      orientation,
       schemaVersion: 1,
       slideType: "news",
       snapshotHash: "a".repeat(64),
       snapshotId: "88888888-8888-4888-8888-888888888888",
-      templateSlug: "news-newsroom-dark-portrait",
+      templateSlug: `news-newsroom-dark-${orientation}`,
       templateVersionId: "99999999-9999-4999-8999-999999999999"
     },
-    id: "rss-portrait-html",
-    title: "RSS nieuws · staand"
+    id: `rss-${orientation}-html`,
+    title: `RSS nieuws · ${
+      orientation === "portrait" ? "staand" : "liggend"
+    }`
   };
   const releaseId = "55555555-5555-4555-8555-555555555555";
   const manifest: PlayerManifestEnvelope = {
@@ -112,7 +131,7 @@ export async function routePortraitRssManifest(
       totalBytes:
         item.source.bytes + heroBytes.byteLength + logoBytes.byteLength,
       totalDurationSeconds: 10,
-      version: 85
+      version: orientation === "portrait" ? 85 : 86
     }
   };
 
@@ -121,6 +140,13 @@ export async function routePortraitRssManifest(
   );
   await page.route(logoUrl, (route) =>
     route.fulfill({ body: logoBytes, contentType: "image/png" })
+  );
+  await page.route("**/api/player/heartbeat", (route) =>
+    route.fulfill({
+      body: JSON.stringify({ accepted: true }),
+      contentType: "application/json",
+      status: 200
+    })
   );
   await page.route("**/api/player/manifest", (route) =>
     route.fulfill({

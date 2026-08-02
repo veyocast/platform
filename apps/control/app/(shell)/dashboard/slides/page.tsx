@@ -27,7 +27,7 @@ export default async function SlidesPage({ searchParams }: PageProps) {
     <>
       <PageHeader
         actions={canWrite ? <Button asChild><Link href="/dashboard/slides/new"><Sparkles aria-hidden="true" />Nieuwe dynamische slide</Link></Button> : null}
-        description="Maak vaste, professioneel vormgegeven slides uit product- en nieuwsdata. Iedere versie wordt vooraf als immutable beeld gerenderd."
+        description="Maak dynamische HTML/CSS-slides uit product- en nieuwsdata. Iedere snapshot krijgt daarnaast een immutable PNG als veilige fallback."
         eyebrow={session.tenant}
         title="Slides"
       />
@@ -54,6 +54,10 @@ export default async function SlidesPage({ searchParams }: PageProps) {
                       <span>{slide.status === "rendering" ? "Immutable preview wordt gemaakt" : "Nog geen bruikbare preview"}</span>
                     </div>
                   )}
+                  <span className={styles.previewTypeBadge}>
+                    <Sparkles aria-hidden="true" />
+                    HTML/CSS
+                  </span>
                 </div>
                 <div className={styles.cardBody}>
                   <div className={styles.cardTop}>
@@ -62,7 +66,7 @@ export default async function SlidesPage({ searchParams }: PageProps) {
                   </div>
                   <div>
                     <h3 className={styles.cardTitle}>{slide.name}</h3>
-                    <p className={styles.muted}>{slide.slide_type === "menu" ? "Menubord" : "Nieuws"} · {slide.selection_mode === "latest" ? "Volgt nieuwste snapshot" : "Vastgezet"}</p>
+                    <p className={styles.muted}>{slide.slide_type === "menu" ? "Menubord" : "Nieuws"} · {slide.selection_mode === "latest" ? "Volgt nieuwste snapshot" : "Vastgezet"} · PNG-fallback</p>
                   </div>
                   <Button asChild size="sm" variant="secondary"><Link href={`/dashboard/slides/${slide.id}`}>Open slide <ArrowRight aria-hidden="true" /></Link></Button>
                 </div>

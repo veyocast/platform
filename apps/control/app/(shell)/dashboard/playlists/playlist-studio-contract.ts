@@ -5,6 +5,8 @@ export type PlaylistStudioItem = {
   cropFocusX: number;
   cropFocusY: number;
   displayTitle: string | null;
+  dynamicSlideId: string | null;
+  dynamicSnapshotId: string | null;
   durationSeconds: number;
   enabled: boolean;
   fitMode: "contain" | "cover";
@@ -19,6 +21,18 @@ export type PlaylistStudioItem = {
   visibleFrom: string | null;
   visibleUntil: string | null;
   volumePercent: number;
+};
+
+export type PlaylistStudioDynamicSlide = {
+  durationSeconds: number;
+  id: string;
+  name: string;
+  orientation: "landscape" | "portrait";
+  previewAsset: PlaylistStudioAsset;
+  selectionMode: "latest" | "pinned";
+  slideCount: number;
+  slideType: string;
+  snapshotId: string;
 };
 
 export type PlaylistStudioSection = {

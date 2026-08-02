@@ -74,11 +74,12 @@ export default async function SportlinkPage({ searchParams }: Props) {
           </p>
         ) : null}
         {connection.last_error_code ? (
-          <p className="notice notice--critical" role="alert">
+          <div className="notice notice--critical" role="alert">
             <strong>De laatste synchronisatie is mislukt.</strong>{" "}
-            Foutcode: {connection.last_error_code}. De laatste goede inhoud blijft
-            behouden; start de synchronisatie opnieuw.
-          </p>
+            {syncFailureCopy(connection.last_error_code)} De laatste goede
+            inhoud blijft behouden; start de synchronisatie opnieuw.
+            <TechnicalErrorCode code={connection.last_error_code} />
+          </div>
         ) : null}
         <dl className={styles.definitionList}>
           <div><dt>Frequenties</dt><dd>Uur, dag, week of maand per dataset</dd></div>
@@ -118,8 +119,19 @@ export default async function SportlinkPage({ searchParams }: Props) {
               ["weekly", "monthly"].includes(policy.frequency) ? (
                 <p className="notice notice--warning">Deze frequentie kan programma, afgelastingen of kleedkamers zichtbaar verouderd maken.</p>
               ) : null}
-              <label className={styles.field}>
-                <span><input defaultChecked={policy.enabled} disabled={!canManage} name="enabled" type="checkbox" /> Automatisch synchroniseren</span>
+              <label className={styles.checkboxField}>
+                <input
+                  defaultChecked={policy.enabled}
+                  disabled={!canManage}
+                  name="enabled"
+                  type="checkbox"
+                />
+                <span>
+                  <strong>Automatisch synchroniseren</strong>
+                  <small>
+                    Voert deze dataset uit volgens de gekozen frequentie.
+                  </small>
+                </span>
               </label>
               <p className={styles.muted}>
                 Laatste geslaagde sync · {formatDate(policy.last_success_at)}
@@ -128,9 +140,11 @@ export default async function SportlinkPage({ searchParams }: Props) {
                 Volgende poging · {formatDate(policy.next_sync_at)}
               </p>
               {policy.last_run_status === "failed" && policy.last_error_code ? (
-                <p className="notice notice--critical" role="alert">
-                  Laatste poging mislukt · {policy.last_error_code}
-                </p>
+                <div className="notice notice--critical" role="alert">
+                  <strong>Laatste poging mislukt.</strong>{" "}
+                  {syncFailureCopy(policy.last_error_code)}
+                  <TechnicalErrorCode code={policy.last_error_code} />
+                </div>
               ) : null}
               {canManage ? <Button size="sm" type="submit" variant="secondary">Beleid opslaan</Button> : null}
             </div>
@@ -237,4 +251,46 @@ function datasetStatus(policy: {
     return { label: "Ingepland", tone: "warning" as const };
   }
   return { label: "Gepauzeerd", tone: "neutral" as const };
+}
+
+function syncFailureCopy(code: string) {
+  const copy: Record<string, string> = {
+    SPORTLINK_ARGUMENT_INVALID:
+      "Een providerfilter viel buiten het ondersteunde contract.",
+    SPORTLINK_CLIENT_ID_INVALID:
+      "De opgeslagen Client ID wordt niet meer door Sportlink geaccepteerd.",
+    SPORTLINK_CONDITION_ERROR:
+      "Deze selectie is op dit moment niet beschikbaar bij Sportlink.",
+    SPORTLINK_CONFIGURATION_UNAVAILABLE:
+      "De serverconfiguratie voor de versleutelde koppeling ontbreekt.",
+    SPORTLINK_NETWORK_ERROR:
+      "Sportlink was tijdelijk niet bereikbaar.",
+    SPORTLINK_RATE_LIMITED:
+      "Sportlink vraagt tijdelijk om minder aanvragen.",
+    SPORTLINK_REQUIRED_ARGUMENT_MISSING:
+      "Sportlink miste een benodigde competitiecode.",
+    SPORTLINK_SCOPE_INSUFFICIENT:
+      "De Client ID heeft onvoldoende rechten voor deze dataset.",
+    SPORTLINK_SERVER_ERROR:
+      "Sportlink meldde tijdelijk een providerstoring.",
+    SPORTLINK_SYNC_INTERNAL_ERROR:
+      "De opgehaalde gegevens konden niet in de database worden afgerond.",
+    SPORTLINK_TIMEOUT:
+      "Sportlink reageerde niet binnen de veilige tijdslimiet.",
+    SPORTLINK_WORKER_LEASE_EXPIRED:
+      "De worker werd onderbroken; de dataset is automatisch opnieuw ingepland.",
+    SPORTLINK_WORKER_LEASE_LOST:
+      "Een andere worker heeft de verlopen synchronisatie veilig overgenomen."
+  };
+  return copy[code] ??
+    "De dataset kon deze keer niet veilig worden bijgewerkt.";
+}
+
+function TechnicalErrorCode({ code }: { code: string }) {
+  return (
+    <details className={styles.technicalDetails}>
+      <summary>Technische code</summary>
+      <code>{code}</code>
+    </details>
+  );
 }

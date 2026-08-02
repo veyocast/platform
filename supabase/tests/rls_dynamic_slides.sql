@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(22);
+select plan(35);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -55,6 +55,34 @@ select ok(
     )
   ),
   'tenant owner receives data source manage capability'
+);
+
+select lives_ok(
+  $$select public.update_tenant_control_settings_v3(
+    '10000000-0000-4000-8000-000000000a51',
+    'Dynamic tenant',
+    '#315cff',
+    10,
+    'contain',
+    true,
+    'landscape',
+    1920,
+    1080,
+    'Europe/Amsterdam',
+    'cut',
+    null
+  )$$,
+  'tenant owner can set the canonical primary slide colour'
+);
+
+select is(
+  (
+    select primary_color
+    from public.tenant_settings
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  ),
+  '#315CFF',
+  'primary slide colour is normalized before storage'
 );
 
 create temporary table dynamic_test_ids (
@@ -194,23 +222,118 @@ insert into public.playlists (
 );
 
 select lives_ok(
-  $$select public.add_dynamic_slide_to_playlist_v1(
+  $$select public.add_dynamic_slide_to_playlist_v2(
     '30000000-0000-4000-8000-000000000a51',
     (select id from dynamic_test_ids where name = 'slide'),
-    12
+    0,
+    12,
+    'a5100000-0000-4000-8000-000000000001'
   )$$,
-  'ready dynamic snapshot can enter the normal playlist draft'
+  'ready dynamic snapshot enters the playlist as a guarded HTML/CSS item'
 );
 
-select is(
+select ok(
   (
-    select asset.status::text
+    select
+      item.dynamic_slide_id is not null
+      and item.dynamic_snapshot_id is not null
+      and item.dynamic_selection_mode = 'latest'
+      and asset.status = 'ready'
     from public.playlist_items item
     join public.media_assets asset on asset.id = item.media_asset_id
     where item.playlist_id = '30000000-0000-4000-8000-000000000a51'
   ),
-  'ready',
-  'playlist references an ordinary ready image asset'
+  'playlist preserves HTML/CSS provenance plus a ready image fallback'
+);
+
+select is(
+  (
+    select revision
+    from public.playlists
+    where id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  1::bigint,
+  'guarded dynamic insertion increments the playlist revision'
+);
+
+select lives_ok(
+  $$select public.add_dynamic_slide_to_playlist_v2(
+    '30000000-0000-4000-8000-000000000a51',
+    (select id from dynamic_test_ids where name = 'slide'),
+    0,
+    12,
+    'a5100000-0000-4000-8000-000000000001'
+  )$$,
+  'replaying the same dynamic insertion is idempotent'
+);
+
+select is(
+  (
+    select count(*)
+    from public.playlist_items
+    where playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  1::bigint,
+  'an idempotent replay does not duplicate the dynamic slide'
+);
+
+select is(
+  (
+    select outcome
+    from public.mutate_playlist_draft_v1(
+      '30000000-0000-4000-8000-000000000a51',
+      1,
+      'add_item',
+      jsonb_build_object(
+        'mediaAssetId',
+        (
+          select snapshot.output_media_asset_id
+          from public.dynamic_slides slide
+          join public.dynamic_slide_snapshots snapshot
+            on snapshot.id = slide.current_snapshot_id
+          where slide.id = (
+            select id from dynamic_test_ids where name = 'slide'
+          )
+        )
+      )
+    )
+  ),
+  'applied',
+  'a legacy fallback selection can still enter the guarded draft'
+);
+
+select ok(
+  (
+    select bool_and(
+      item.dynamic_slide_id is not null
+      and item.dynamic_snapshot_id is not null
+    )
+    from public.playlist_items item
+    where item.playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'generated fallback selections are promoted to HTML/CSS provenance'
+);
+
+select lives_ok(
+  $$update public.playlist_items
+    set dynamic_slide_id = null,
+        dynamic_snapshot_id = null,
+        dynamic_selection_mode = null
+    where playlist_id = '30000000-0000-4000-8000-000000000a51'$$,
+  'direct fallback demotion is canonicalized by trusted provenance'
+);
+
+select ok(
+  (
+    select bool_and(
+      item.dynamic_slide_id is not null
+      and item.dynamic_snapshot_id is not null
+      and item.dynamic_selection_mode = 'latest'
+    )
+    from public.playlist_items item
+    where item.playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'generated fallback cannot be persisted as ordinary image provenance'
 );
 
 reset role;
@@ -274,8 +397,10 @@ select set_config(
 
 select ok(
   (
-    select item.dynamic_snapshot_id = slide.current_snapshot_id
+    select bool_and(
+      item.dynamic_snapshot_id = slide.current_snapshot_id
       and item.media_asset_id = snapshot.output_media_asset_id
+    )
     from public.playlist_items item
     join public.dynamic_slides slide
       on slide.id = item.dynamic_slide_id
@@ -330,6 +455,20 @@ join public.dynamic_templates template on template.id = version.template_id
 where template.slug = 'news-editorial-landscape'
   and version.status = 'published';
 
+select is(
+  (
+    select snapshot.snapshot_data_json #>> '{brand,primaryColor}'
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'rss_slide'
+    )
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  '#315CFF',
+  'RSS snapshot freezes the tenant primary colour for HTML/CSS playback'
+);
+
 select lives_ok(
   $$select public.record_rss_sync_v1(
     (select id from dynamic_test_ids where name = 'rss_source'),
@@ -358,9 +497,59 @@ select is(
   'a manual RSS refresh automatically queues a new latest snapshot'
 );
 
+select lives_ok(
+  $$select public.update_tenant_control_settings_v3(
+    '10000000-0000-4000-8000-000000000a51',
+    'Dynamic tenant',
+    '#00aa77',
+    10,
+    'contain',
+    true,
+    'landscape',
+    1920,
+    1080,
+    'Europe/Amsterdam',
+    'cut',
+    null
+  )$$,
+  'changing the primary colour safely requests a fresh latest snapshot'
+);
+
+select is(
+  (
+    select count(*)
+    from public.dynamic_slide_snapshots
+    where dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'rss_slide'
+    )
+  ),
+  3::bigint,
+  'colour refresh adds one immutable RSS snapshot without rewriting history'
+);
+
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000a52', true);
+
+select throws_ok(
+  $$select public.update_tenant_control_settings_v3(
+    '10000000-0000-4000-8000-000000000a51',
+    'Dynamic tenant',
+    '#FFFFFF',
+    10,
+    'contain',
+    true,
+    'landscape',
+    1920,
+    1080,
+    'Europe/Amsterdam',
+    'cut',
+    null
+  )$$,
+  '42501',
+  'actor cannot update tenant settings',
+  'tenant viewer cannot change the primary slide colour'
+);
 
 select throws_ok(
   $$select public.refresh_dynamic_slide_v1(

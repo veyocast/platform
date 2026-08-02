@@ -1759,6 +1759,35 @@ kbd {
   gap: var(--vc-space-4);
 }
 
+.settings-color-field {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 11rem);
+  gap: var(--vc-space-8);
+  align-items: center;
+}
+
+.settings-color-field input[type="color"] {
+  width: 52px;
+  height: var(--vc-component-height-input-touch);
+  min-height: var(--vc-component-height-input-touch);
+  padding: 4px;
+  cursor: pointer;
+}
+
+.settings-color-field input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.settings-color-field input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: var(--vc-radius-sm);
+}
+
+.settings-color-field input[type="color"]::-moz-color-swatch {
+  border: 0;
+  border-radius: var(--vc-radius-sm);
+}
+
 .sticky-form-actions {
   align-items: center;
   background: var(--vc-surface);
@@ -4255,6 +4284,7 @@ body .vc-dialog__content {
 }
 
 .settings-category-panels[data-active="clubprofiel"] > :not(#clubprofiel),
+.settings-category-panels[data-active="huisstijl"] > :not(#huisstijl),
 .settings-category-panels[data-active="tijdzone"] > :not(#tijdzone),
 .settings-category-panels[data-active="afspelen"] > :not(#afspelen),
 .settings-category-panels[data-active="schermen"] > :not(#schermen),

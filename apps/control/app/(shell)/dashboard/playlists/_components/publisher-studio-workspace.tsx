@@ -39,6 +39,7 @@ import {
   Replace,
   Search,
   Settings2,
+  Sparkles,
   Trash2,
   Undo2
 } from "lucide-react";
@@ -68,6 +69,7 @@ import {
 
 import { FloatingPanel } from "../../../_components/floating-panel";
 import {
+  addDynamicPlaylistSlide,
   addPlaylistItem,
   archivePlaylist,
   assignPlaylistItemSection,
@@ -86,6 +88,7 @@ import {
 import type { PlaylistPreviewItem } from "../playlist-preview";
 import type {
   PlaylistStudioAsset,
+  PlaylistStudioDynamicSlide,
   PlaylistStudioItem,
   PlaylistStudioSection
 } from "../playlist-studio-contract";
@@ -135,6 +138,7 @@ type PublisherStudioWorkspaceProps = {
   assets: PlaylistStudioAsset[];
   canManage: boolean;
   canWrite: boolean;
+  dynamicSlides: PlaylistStudioDynamicSlide[];
   latestReleaseVersion: number | null;
   playlist: Playlist;
   previewItems: PlaylistPreviewItem[];
@@ -178,6 +182,7 @@ export function PublisherStudioWorkspace({
   assets,
   canManage,
   canWrite,
+  dynamicSlides,
   latestReleaseVersion,
   items,
   playlist,
@@ -194,7 +199,8 @@ export function PublisherStudioWorkspace({
     items[0]?.id ?? null
   );
   const [mediaQuery, setMediaQuery] = useState("");
-  const [mediaKind, setMediaKind] = useState<"all" | "image" | "video">("all");
+  const [mediaKind, setMediaKind] =
+    useState<"all" | "dynamic" | "image" | "video">("all");
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [announcement, setAnnouncement] = useState("");
   const [history, setHistory] = useState<{
@@ -325,6 +331,14 @@ export function PublisherStudioWorkspace({
         (!query || asset.title.toLocaleLowerCase("nl-NL").includes(query))
     );
   }, [assets, mediaKind, mediaQuery]);
+  const availableDynamicSlides = useMemo(() => {
+    const query = mediaQuery.trim().toLocaleLowerCase("nl-NL");
+    if (mediaKind !== "all" && mediaKind !== "dynamic") return [];
+    return dynamicSlides.filter(
+      (slide) =>
+        !query || slide.name.toLocaleLowerCase("nl-NL").includes(query)
+    );
+  }, [dynamicSlides, mediaKind, mediaQuery]);
 
   useEffect(() => {
     if (
@@ -621,6 +635,28 @@ export function PublisherStudioWorkspace({
       return;
     }
 
+    if (active.data.current?.type === "dynamic-slide") {
+      const dynamicSlideId = String(
+        active.data.current.dynamicSlideId ?? ""
+      );
+      const durationSeconds = String(
+        active.data.current.durationSeconds ?? ""
+      );
+      if (!dynamicSlideId || !durationSeconds) return;
+      setSaveState("saving");
+      const formData = new FormData();
+      formData.set("playlistId", playlist.id);
+      formData.set("expectedRevision", String(playlist.revision));
+      formData.set("dynamicSlideId", dynamicSlideId);
+      formData.set("durationSeconds", durationSeconds);
+      startTransition(() => {
+        void addDynamicPlaylistSlide(formData).catch(() =>
+          setSaveState("error")
+        );
+      });
+      return;
+    }
+
     if (active.id === over.id) return;
     const next = reorderItems(orderedItems, String(active.id), String(over.id));
     if (next === orderedItems) return;
@@ -699,6 +735,7 @@ export function PublisherStudioWorkspace({
     <MediaLibrary
       assets={availableAssets}
       canWrite={canWrite && saveState !== "saving"}
+      dynamicSlides={availableDynamicSlides}
       mediaKind={mediaKind}
       mediaQuery={mediaQuery}
       onKindChange={setMediaKind}
@@ -849,7 +886,7 @@ export function PublisherStudioWorkspace({
 
         <div className={styles.workspace}>
           <aside
-            aria-label="Mediabibliotheek"
+            aria-label="Inhoudsbibliotheek"
             className={`${styles.panel} ${styles.libraryPanel}`}
           >
             {mediaLibrary}
@@ -922,14 +959,14 @@ export function PublisherStudioWorkspace({
             <SheetTrigger asChild>
               <button type="button">
                 <Plus aria-hidden="true" />
-                Media
+                Inhoud
               </button>
             </SheetTrigger>
             <SheetContent className={styles.mobileSheet} side="bottom">
               <SheetHeader>
-                <SheetTitle>Media toevoegen</SheetTitle>
+                <SheetTitle>Inhoud toevoegen</SheetTitle>
                 <SheetDescription>
-                  Kies gereedstaande media voor deze playlist.
+                  Kies gereedstaande media of een dynamische HTML/CSS-slide.
                 </SheetDescription>
               </SheetHeader>
               <SheetBody>{mediaLibrary}</SheetBody>
@@ -1052,6 +1089,7 @@ function AutosaveIndicator({ state }: { state: SaveState }) {
 function MediaLibrary({
   assets,
   canWrite,
+  dynamicSlides,
   mediaKind,
   mediaQuery,
   onKindChange,
@@ -1061,9 +1099,10 @@ function MediaLibrary({
 }: {
   assets: PlaylistStudioAsset[];
   canWrite: boolean;
-  mediaKind: "all" | "image" | "video";
+  dynamicSlides: PlaylistStudioDynamicSlide[];
+  mediaKind: "all" | "dynamic" | "image" | "video";
   mediaQuery: string;
-  onKindChange: (kind: "all" | "image" | "video") => void;
+  onKindChange: (kind: "all" | "dynamic" | "image" | "video") => void;
   onQueryChange: (query: string) => void;
   playlistId: string;
   revision: number;
@@ -1072,10 +1111,10 @@ function MediaLibrary({
     <div className={styles.library}>
       <div className={styles.panelHeading}>
         <div>
-          <h2>Mediabibliotheek</h2>
-          <p>Sleep of voeg gereedstaande media toe.</p>
+          <h2>Inhoudsbibliotheek</h2>
+          <p>Voeg media of dynamische HTML/CSS-slides toe.</p>
         </div>
-        <Link href="/dashboard/media">Beheren</Link>
+        <Link href="/dashboard/slides">Slides beheren</Link>
       </div>
       <label className={styles.searchField}>
         <Search aria-hidden="true" />
@@ -1087,8 +1126,8 @@ function MediaLibrary({
           value={mediaQuery}
         />
       </label>
-      <div aria-label="Filter media op type" className={styles.filterChips}>
-        {(["all", "image", "video"] as const).map((kind) => (
+      <div aria-label="Filter inhoud op type" className={styles.filterChips}>
+        {(["all", "dynamic", "image", "video"] as const).map((kind) => (
           <button
             aria-pressed={mediaKind === kind}
             key={kind}
@@ -1097,14 +1136,25 @@ function MediaLibrary({
           >
             {kind === "all"
               ? "Alles"
+              : kind === "dynamic"
+                ? "Dynamische slides"
               : kind === "image"
                 ? "Afbeeldingen"
                 : "Video"}
           </button>
         ))}
       </div>
-      {assets.length ? (
-        <ul aria-label="Gereedstaande media" className={styles.mediaGrid}>
+      {assets.length || dynamicSlides.length ? (
+        <ul aria-label="Gereedstaande inhoud" className={styles.mediaGrid}>
+          {dynamicSlides.map((slide) => (
+            <DraggableDynamicSlideCard
+              canWrite={canWrite}
+              key={slide.id}
+              playlistId={playlistId}
+              revision={revision}
+              slide={slide}
+            />
+          ))}
           {assets.map((asset) => (
             <DraggableMediaCard
               asset={asset}
@@ -1118,7 +1168,7 @@ function MediaLibrary({
       ) : (
         <div className={styles.compactEmpty} role="status">
           <FileImage aria-hidden="true" />
-          <p>Geen gereedstaande media gevonden.</p>
+          <p>Geen gereedstaande inhoud gevonden.</p>
         </div>
       )}
       <Link className={styles.uploadDropzone} href="/dashboard/media">
@@ -1127,6 +1177,92 @@ function MediaLibrary({
         <span>Open de veilige uploadflow</span>
       </Link>
     </div>
+  );
+}
+
+function DraggableDynamicSlideCard({
+  canWrite,
+  playlistId,
+  revision,
+  slide
+}: {
+  canWrite: boolean;
+  playlistId: string;
+  revision: number;
+  slide: PlaylistStudioDynamicSlide;
+}) {
+  const {
+    attributes,
+    isDragging,
+    listeners,
+    setNodeRef,
+    transform
+  } = useDraggable({
+    data: {
+      durationSeconds: slide.durationSeconds,
+      dynamicSlideId: slide.id,
+      type: "dynamic-slide"
+    },
+    disabled: !canWrite,
+    id: `dynamic-slide-${slide.id}`
+  });
+  return (
+    <li
+      className={`${styles.mediaCard} ${styles.dynamicSlideCard}`}
+      data-dragging={isDragging || undefined}
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform) }}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        aria-label={`${slide.name} als dynamische HTML/CSS-slide naar playlist slepen`}
+        className={styles.mediaDragTarget}
+        disabled={!canWrite}
+        type="button"
+      >
+        <span className={styles.dynamicSlideThumb}>
+          <MediaThumb
+            asset={slide.previewAsset}
+            className={styles.mediaThumb ?? ""}
+          />
+          <span className={styles.dynamicTypeBadge}>
+            <Sparkles aria-hidden="true" />
+            HTML/CSS
+          </span>
+        </span>
+        <span>
+          <strong>{slide.name}</strong>
+          <small>
+            Dynamisch ·{" "}
+            {slide.orientation === "portrait" ? "Portrait" : "Landscape"}
+            {slide.slideType === "news"
+              ? ` · ${slide.slideCount} nieuwsslides`
+              : ""}
+          </small>
+        </span>
+      </button>
+      <form action={addDynamicPlaylistSlide} data-online-required>
+        <RevisionFields playlistId={playlistId} revision={revision} />
+        <input
+          name="dynamicSlideId"
+          type="hidden"
+          value={slide.id}
+        />
+        <input
+          name="durationSeconds"
+          type="hidden"
+          value={slide.durationSeconds}
+        />
+        <button
+          aria-label={`Dynamische HTML/CSS-slide toevoegen: ${slide.name}`}
+          disabled={!canWrite}
+          type="submit"
+        >
+          <Plus aria-hidden="true" />
+        </button>
+      </form>
+    </li>
   );
 }
 
@@ -1612,7 +1748,12 @@ function SortableItem({
       >
         <strong>{title}</strong>
         <span>
-          {item.asset?.kind === "video" ? "Video" : "Afbeelding"} ·{" "}
+          {item.dynamicSlideId
+            ? "Dynamische HTML/CSS-slide"
+            : item.asset?.kind === "video"
+              ? "Video"
+              : "Afbeelding"}{" "}
+          ·{" "}
           {item.fitMode === "cover" ? "Vullen" : "Passend"}
           {sectionName ? ` · ${sectionName}` : ""}
         </span>
@@ -1660,7 +1801,9 @@ function DurationStepper({
       <ItemUpdateFields item={item} />
       <button
         aria-label="Een seconde korter"
-        disabled={!canWrite || item.durationSeconds <= 5}
+        disabled={
+          !canWrite || Boolean(item.dynamicSlideId) || item.durationSeconds <= 5
+        }
         name="duration"
         type="submit"
         value={durationStep(item.durationSeconds, "decrease", maximumSeconds)}
@@ -1670,7 +1813,11 @@ function DurationStepper({
       <span>{item.durationSeconds} sec</span>
       <button
         aria-label="Een seconde langer"
-        disabled={!canWrite || item.durationSeconds >= maximumSeconds}
+        disabled={
+          !canWrite ||
+          Boolean(item.dynamicSlideId) ||
+          item.durationSeconds >= maximumSeconds
+        }
         name="duration"
         type="submit"
         value={durationStep(item.durationSeconds, "increase", maximumSeconds)}
@@ -1976,7 +2123,11 @@ function Inspector({
           <p>{title}</p>
         </div>
         <Badge status={item.asset?.status === "ready" ? "success" : "warning"}>
-          {item.asset?.status === "ready" ? "Gereed" : "Blokkade"}
+          {item.asset?.status === "ready"
+            ? item.dynamicSlideId
+              ? "HTML/CSS"
+              : "Gereed"
+            : "Blokkade"}
         </Badge>
       </div>
       <MediaThumb
@@ -1986,6 +2137,13 @@ function Inspector({
       {mediaGeometry.label ? (
         <p className={styles.inspectorMediaMeta}>
           {mediaGeometry.label}
+        </p>
+      ) : null}
+      {item.dynamicSlideId ? (
+        <p className={styles.dynamicItemNote}>
+          De Player rendert dit item als HTML/CSS. Deze afbeelding is alleen de
+          immutable preview en offline fallback; de afspeelduur volgt de
+          ingestelde nieuwsslides.
         </p>
       ) : null}
       <form
@@ -2025,6 +2183,7 @@ function Inspector({
             max={maximumDuration}
             min={5}
             name="duration"
+            readOnly={Boolean(item.dynamicSlideId)}
             required
             type="number"
           />
@@ -2259,7 +2418,11 @@ function Inspector({
           />
           <input name="itemId" type="hidden" value={item.id} />
           <label>
-            <span>Media vervangen</span>
+            <span>
+              {item.dynamicSlideId
+                ? "Vervangen door gewone media"
+                : "Media vervangen"}
+            </span>
             <select
               defaultValue=""
               disabled={!canWrite}

@@ -61,7 +61,7 @@ test.describe("live Playlist Studio", () => {
     await expect(stalePage.getByText("Revisie 0").first()).toBeVisible();
 
     await page
-      .getByRole("list", { name: "Gereedstaande media" })
+      .getByRole("list", { name: "Gereedstaande inhoud" })
       .getByRole("listitem")
       .filter({ hasText: assetTitle })
       .getByRole("button", { name: `Toevoegen: ${assetTitle}` })
@@ -98,7 +98,7 @@ test.describe("live Playlist Studio", () => {
     await expect(page.getByText("De iteminstellingen zijn opgeslagen")).toBeVisible();
 
     await page
-      .getByRole("list", { name: "Gereedstaande media" })
+      .getByRole("list", { name: "Gereedstaande inhoud" })
       .getByRole("listitem")
       .filter({ hasText: secondAssetTitle })
       .getByRole("button", { name: `Toevoegen: ${secondAssetTitle}` })

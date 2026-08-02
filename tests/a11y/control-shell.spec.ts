@@ -232,13 +232,15 @@ test("Integraties exposes Twelve Producten as a responsive secondary journey", a
       page.getByRole("heading", { name: "Twelve Producten" })
     ).toBeVisible();
     await expect(page.getByText("Gecontroleerde Excel-snapshot")).toBeVisible();
-    expect(
-      await page.evaluate(
-        () =>
-          document.documentElement.scrollWidth <=
-          document.documentElement.clientWidth
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth
+        )
       )
-    ).toBe(true);
+      .toBe(true);
 
     await expect(async () => {
       if (!/\/dashboard\/integrations\/twelve-products$/.test(page.url())) {
@@ -256,13 +258,15 @@ test("Integraties exposes Twelve Producten as a responsive secondary journey", a
     await expect(
       page.getByRole("heading", { name: "Nog geen producten" })
     ).toBeVisible();
-    expect(
-      await page.evaluate(
-        () =>
-          document.documentElement.scrollWidth <=
-          document.documentElement.clientWidth
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth
+        )
       )
-    ).toBe(true);
+      .toBe(true);
   }
 });
 
@@ -492,6 +496,14 @@ test("settings route exposes real defaults with safe permission state", async ({
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Instellingen" })).toBeVisible();
   await expect(page.getByLabel("Verenigingsnaam")).toBeVisible();
   await expect(page.locator(".settings-category-workspace")).toHaveAttribute("data-hydrated", "true");
+  const primaryColor = page.getByLabel("Primaire kleur", { exact: true });
+  await expect(async () => {
+    if (!(await primaryColor.isVisible())) {
+      await page.getByRole("button", { name: "Huisstijl", exact: true }).click();
+    }
+    await expect(primaryColor).toBeVisible();
+  }).toPass({ timeout: 20_000 });
+  await expect(page.getByLabel("Primaire kleur kiezen")).toBeVisible();
   await expect(async () => {
     if (!(await page.getByLabel("Afbeeldingsduur in seconden").isVisible())) {
       await page.getByRole("button", { name: "Afspelen", exact: true }).click();

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ListPlus, RefreshCw } from "lucide-react";
 import { notFound } from "next/navigation";
+import type { CSSProperties } from "react";
 
 import { hasCapability } from "@veyocast/auth";
 import { Button } from "@veyocast/ui";
@@ -18,6 +19,10 @@ import {
 type PageProps = {
   params: Promise<{ slideId: string }>;
   searchParams: Promise<{ fout?: string; succes?: string }>;
+};
+
+type NewsPreviewStyle = CSSProperties & {
+  "--news-accent": string;
 };
 
 export default async function SlideDetailPage({ params, searchParams }: PageProps) {
@@ -48,9 +53,19 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
           <h2 className="sr-only" id="slide-preview-title">
             Huidige HTML/CSS-weergave
           </h2>
-          <div className={styles.preview} data-orientation={data.slide.orientation}>
+          <div
+            className={`${styles.preview} ${
+              data.newsPreview ? styles.newsPreviewStage : ""
+            }`}
+            data-orientation={data.slide.orientation}
+          >
             {data.newsPreview ? (
-              <div className={styles.newsHtmlPreview}>
+              <div
+                className={styles.newsHtmlPreview}
+                style={{
+                  "--news-accent": data.newsPreview.primaryColor
+                } as NewsPreviewStyle}
+              >
                 {data.newsPreview.heroUrl ? (
                   <Image
                     alt=""
@@ -155,7 +170,7 @@ async function loadSlide(slideId: string, tenantId: string) {
   if (!supabase) return null;
   const [slideResult, playlistsResult] = await Promise.all([
     supabase.from("dynamic_slides").select("*").eq("tenant_id", tenantId).eq("id", slideId).maybeSingle(),
-    supabase.from("playlists").select("id, name").eq("tenant_id", tenantId).neq("status", "archived").order("name")
+    supabase.from("playlists").select("id, name, revision").eq("tenant_id", tenantId).neq("status", "archived").order("name")
   ]);
   if (!slideResult.data || slideResult.error) return null;
   let previewUrl: string | null = null;
@@ -165,6 +180,7 @@ async function loadSlide(slideId: string, tenantId: string) {
     intro: string;
     logoUrl: string | null;
     meta: string;
+    primaryColor: string;
     sectionTitle: string;
     sourceName: string;
   } | null = null;
@@ -185,6 +201,7 @@ async function loadSlide(slideId: string, tenantId: string) {
     if (slideResult.data.slide_type === "news" && snapshot.data) {
       const snapshotData = readRecord(snapshot.data.snapshot_data_json);
       const news = readRecord(snapshotData?.news);
+      const brand = readRecord(snapshotData?.brand);
       const articles = Array.isArray(news?.articles) ? news.articles : [];
       const article = readRecord(articles[0]);
       const secondsPerSlide = boundedInteger(
@@ -215,6 +232,7 @@ async function loadSlide(slideId: string, tenantId: string) {
             formatNewsDate(article.publishedAt),
             author || sourceName
           ].filter(Boolean).join(" · "),
+          primaryColor: normalizePrimaryColor(brand?.primaryColor),
           sectionTitle: safeString(news?.title) || "Nieuws",
           sourceName
         };
@@ -256,6 +274,12 @@ function readRecord(value: unknown): Record<string, unknown> | null {
 
 function safeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizePrimaryColor(value: unknown) {
+  return typeof value === "string" && /^#[0-9A-Fa-f]{6}$/.test(value)
+    ? value.toUpperCase()
+    : "#FF5C20";
 }
 
 function boundedInteger(

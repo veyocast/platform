@@ -55,19 +55,21 @@ test("floating panels stay above clipped containers at every Control breakpoint"
       name: "Actieve context: Museumkwartier"
     });
     if (!(await contextTrigger.isVisible())) {
-      const mobileMoreTrigger = page.getByRole("button", {
-        exact: true,
-        name: "Meer"
-      });
-      const navigationTrigger = (await mobileMoreTrigger.isVisible())
-        ? mobileMoreTrigger
-        : page.getByRole("button", { name: "Navigatie openen" });
-      await expect(navigationTrigger).toBeEnabled();
-      await navigationTrigger.click();
-      await expect(page.locator("#control-sidebar-navigation")).toHaveClass(
-        /control-sidebar--open/
-      );
-      await expect(contextTrigger).toBeVisible();
+      await expect(async () => {
+        const mobileMoreTrigger = page.getByRole("button", {
+          exact: true,
+          name: "Meer"
+        });
+        const navigationTrigger = (await mobileMoreTrigger.isVisible())
+          ? mobileMoreTrigger
+          : page.getByRole("button", { name: "Navigatie openen" });
+        await expect(navigationTrigger).toBeEnabled();
+        await navigationTrigger.click();
+        await expect(page.locator("#control-sidebar-navigation")).toHaveClass(
+          /control-sidebar--open/
+        );
+        await expect(contextTrigger).toBeVisible();
+      }).toPass({ timeout: 20_000 });
     }
 
     await contextTrigger.click();

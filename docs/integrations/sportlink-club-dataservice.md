@@ -26,6 +26,13 @@ Dependent team, pool, standing and match-information calls were also verified.
 `wedstrijd-informatie` already contains venue, dressing-room and official
 subobjects and is preferred over N+1 detail requests.
 
+Competition discovery uses the club `teams` and `poulelijst` responses. Direct
+`poulecode` values are combined with pool rows matching the club team codes,
+deduplicated and capped before `poulestand` is requested. The worker does not
+call `teampoulelijst` with an incomplete argument set: the live contract
+requires both `teamcode` and `lokaleteamcode`, while the verified `teams`
+response does not provide a usable local-team code for that dependency.
+
 Stable provider errors are mapped by code: 4001 condition unavailable, 4002
 required argument, 4011 token invalid, 4012 Client ID invalid, 4031 missing
 scope, 4041 unknown article and 5001 provider failure. Empty arrays and 4001 for

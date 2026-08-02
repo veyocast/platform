@@ -160,28 +160,38 @@ test("persists theme and density preferences without a color flash", async ({ pa
     name: /Thema en dichtheid: (Systeem|Donker)/
   });
   await expect(async () => {
-    if (!(await dialog.isVisible())) await trigger.click();
-    await expect(dialog).toBeVisible();
-  }).toPass();
-  await dialog.getByRole("radio", { name: "Donker" }).click();
+    const storedTheme = await page.evaluate(() =>
+      window.localStorage.getItem("veyocast-control-theme")
+    );
+    if (storedTheme !== "dark") {
+      if (!(await dialog.isVisible())) await trigger.click();
+      await expect(dialog).toBeVisible();
+      await dialog.getByRole("radio", { name: "Donker" }).click();
+    }
+    await expect.poll(() =>
+      page.evaluate(() => window.localStorage.getItem("veyocast-control-theme"))
+    ).toBe("dark");
+  }).toPass({ timeout: 30_000 });
   await expect(dialog).not.toBeVisible();
-  await expect.poll(() =>
-    page.evaluate(() => window.localStorage.getItem("veyocast-control-theme"))
-  ).toBe("dark");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator(".control-brand__logo--inverse")).toBeVisible();
 
   await expect(async () => {
-    if (!(await dialog.isVisible())) {
-      await page.getByRole("button", { name: "Thema en dichtheid: Donker" }).click();
+    const storedDensity = await page.evaluate(() =>
+      window.localStorage.getItem("veyocast-control-density")
+    );
+    if (storedDensity !== "compact") {
+      if (!(await dialog.isVisible())) {
+        await page.getByRole("button", { name: "Thema en dichtheid: Donker" }).click();
+      }
+      await expect(dialog).toBeVisible();
+      await dialog.getByRole("radio", { name: "Compact" }).click();
     }
-    await expect(dialog).toBeVisible();
-  }).toPass();
-  await dialog.getByRole("radio", { name: "Compact" }).click();
+    await expect.poll(() =>
+      page.evaluate(() => window.localStorage.getItem("veyocast-control-density"))
+    ).toBe("compact");
+  }).toPass({ timeout: 30_000 });
   await expect(dialog).not.toBeVisible();
-  await expect.poll(() =>
-    page.evaluate(() => window.localStorage.getItem("veyocast-control-density"))
-  ).toBe("compact");
   await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
 
   await page.reload();

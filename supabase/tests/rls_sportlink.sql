@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(21);
+select plan(24);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -116,6 +116,34 @@ select is((select count(*) from public.audit_events
   where action='sportlink.sync.lease_expired'
     and result='failed'),1::bigint,
   'lease recovery writes one safe worker audit event');
+
+select set_config(
+  'test.sportlink_recovery_run_id',
+  (select id::text from public.sportlink_sync_runs
+    where status='running' limit 1),
+  true
+);
+set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select lives_ok(
+  $$select public.complete_sportlink_sync_v1(
+    current_setting('test.sportlink_recovery_run_id')::uuid,
+    'worker:sportlink-recovery',
+    '{}'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb
+  )$$,
+  'a valid provider run completes without a PL/pgSQL counter collision'
+);
+reset role;
+select is((select count(*) from public.sportlink_sync_runs
+  where status='succeeded' and read_count=0),1::bigint,
+  'successful completion records the normalized read count');
+select ok((select last_success_at is not null
+  from public.sportlink_sync_policies where dataset_group='matches'),
+  'successful completion updates the dataset policy');
 
 set local role anon;
 select is((select count(*) from public.sportlink_connections),0::bigint,
