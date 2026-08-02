@@ -16,17 +16,36 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).not.toContain('type="module"');
   });
 
-  it("gebruikt één dynamisch media-element met direct-online playback", () => {
+  it("speelt afbeeldingen en video uitsluitend vanuit geverifieerde lokale cache", () => {
     const html = renderLgLegacyHtml();
 
     expect(html).toContain('document.createElement("img")');
     expect(html).toContain('document.createElement("video")');
-    expect(html).toContain('byId("media-root").innerHTML = ""');
+    expect(html).toContain("preparePendingRelease");
+    expect(html).toContain('window.crypto.subtle.digest("SHA-256", bytes)');
+    expect(html).toContain("cache.put(asset.cacheKey, response)");
+    expect(html).toContain("persistRelease(envelope, assets");
+    expect(html).toContain("window.URL.createObjectURL(blob)");
+    expect(html).not.toContain(
+      'runtime.releaseSource === "online" && item.source.url'
+    );
     expect(html).toContain("video.muted = true");
     expect(html).toContain("video.play()");
     expect(html).toContain("LEGACY_VIDEO_START_TIMEOUT");
     expect(html).toContain("LEGACY_VIDEO_STALLED");
-    expect(html).not.toContain("crossfade");
+  });
+
+  it("laat ongewijzigde releases en het huidige beeld onaangeraakt", () => {
+    const html = renderLgLegacyHtml();
+
+    expect(html).toContain('headers["If-None-Match"] = releaseEtag(knownReleaseId)');
+    expect(html).toContain("status === 304 && knownReleaseId");
+    expect(html).toContain("runtime.pendingRelease");
+    expect(html).toContain("LEGACY_RELEASE_SWITCH_PENDING");
+    expect(html).toContain("activatePendingRelease");
+    expect(html).toContain("commitPendingMedia");
+    expect(html).toContain("image.decode()");
+    expect(html).toContain("legacy-media-layer");
   });
 
   it("rendert vertrouwde menu-, nieuws- en sporttemplates zonder injecteerbare HTML", () => {
@@ -56,7 +75,7 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("veyocast-player-cache-v1");
     expect(html).toContain("veyocast-player-assets-v1");
     expect(html).toContain("LEGACY_DEVICE_CREDENTIAL_RECOVERED");
-    expect(html).toContain('syncPhase: manifest ? "active" : null');
+    expect(html).toContain("syncPhase: runtime.syncPhase");
     expect(html).not.toContain('syncPhase: "lg-legacy"');
     expect(html).not.toContain('syncPhase: "lg-legacy-pairing"');
     expect(html).toContain("@keyframes legacy-rss-photo-in");

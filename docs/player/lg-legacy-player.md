@@ -14,16 +14,51 @@ De Legacy Player:
 - hergebruikt de bestaande installatie-ID, installatiecredential,
   devicecredential en pairing-API;
 - vraagt en vernieuwt idempotent een koppelcode;
-- haalt hetzelfde immutable release-manifest op;
-- toont steeds exact één `img` of `video`;
-- gebruikt online media rechtstreeks vanaf de gesigneerde HTTPS-URL;
+- leest bij startup eerst de geverifieerde lokale actieve of vorige release;
+- controleert daarna conditioneel via de release-ETag of een nieuw immutable
+  manifest beschikbaar is;
+- downloadt alleen voor een nieuwe of beschadigde release alle media-,
+  poster- en dynamische-templateassets;
+- controleert bestandsgrootte en SHA-256 vóór opslag in Cache Storage;
+- bewaart actieve en vorige release atomisch in IndexedDB en verwijdert alleen
+  assets die door geen van beide releases worden gebruikt;
+- speelt afbeeldingen én video altijd af vanuit lokale, geverifieerde bytes;
+- houdt het huidige media-element zichtbaar totdat de volgende afbeelding
+  gedecodeerd of de volgende video werkelijk gestart is;
 - zet video expliciet op muted, roept `load()`/`play()` aan en bewaakt start,
   voortgang en einde;
-- leest offline uitsluitend een reeds door de gewone Player geverifieerde
-  last-known-good release en cache;
 - stuurt dezelfde heartbeat en verwerkt dezelfde remote herstelcommando's;
 - toont bij fouten een VeyoCast-statusvlak in plaats van een wit of zwart
   scherm.
+
+## Release- en cacheketen
+
+Een ongewijzigde release levert `304 Not Modified`. Legacy wijzigt dan geen
+playbacktimer, playlistindex, media-URL of DOM-element. Ook na een herstart
+komt de bekende release-ID uit IndexedDB, waardoor geen volledig manifest of
+signed media-URL nodig is zolang de toewijzing gelijk blijft.
+
+Een gewijzigde release doorloopt achtereenvolgens:
+
+1. manifest ontvangen en alle cachebare assets inventariseren;
+2. bestaande cachebytes opnieuw op grootte en SHA-256 controleren;
+3. vrije opslag controleren met dezelfde reservegrens als de hoofdplayer;
+4. uitsluitend ontbrekende assets sequentieel downloaden;
+5. iedere download vóór `cache.put` verifiëren;
+6. de complete release als `switch_pending` vasthouden;
+7. op de eerstvolgende loopgrens active en previous atomisch bijwerken;
+8. pas daarna de nieuwe lokale release afspelen en verouderde bytes opruimen.
+
+Tijdens alle stappen blijft de huidige last-known-good release spelen. Een
+ontbrekende lokale asset forceert één volledige manifestvernieuwing zodat de
+actieve release gecontroleerd kan worden hersteld; Legacy valt nooit stilzwijgend
+terug op de externe media-URL.
+
+Afbeeldingen worden op een verborgen tweede laag geladen en waar ondersteund
+met `HTMLImageElement.decode()` voorbereid. Lokale video start muted op die
+tweede laag. De lagen wisselen pas nadat beeld of video gereed is, waarna de
+oude Blob-URL wordt ingetrokken. Daardoor komt de zwarte Playerachtergrond
+niet tussen twee geldige items in beeld.
 
 ## Heartbeat- en credentialbehoud
 
@@ -38,8 +73,9 @@ client hem lokaal verwijderde en een nieuwe pairing probeerde te maken.
 
 De herstelde keten bewaakt drie grenzen:
 
-- Legacy rapporteert tijdens playback uitsluitend `active` en tijdens pairing
-  geen synchronisatiefase;
+- Legacy rapporteert uitsluitend de canonieke fasen `downloading`,
+  `verifying`, `switch_pending`, `active` en `failed`; tijdens pairing is de
+  synchronisatiefase leeg;
 - de heartbeat-API normaliseert onbekende fasen naar `null` en vertaalt een
   databasefout bij een aantoonbaar `PAIRED` credential naar de tijdelijke fout
   `PLAYER_API_UNAVAILABLE`;
@@ -53,9 +89,11 @@ De cachefallback kan dus geen server-side revoke ongedaan maken.
 
 ## Veilige ingebruikname
 
-1. Pair en publiceer op de gewone `/lg`-route.
-2. Open `https://player.veyocast.nl/lg/probe` en noteer de diagnosecode.
-3. Open daarna handmatig `https://player.veyocast.nl/lg/legacy`.
+1. Open `https://player.veyocast.nl/lg/probe` en noteer de diagnosecode.
+2. Open daarna handmatig `https://player.veyocast.nl/lg/legacy`, koppel het
+   scherm en publiceer een release.
+3. Controleer dat de eerste release eerst downloadt/verifieert en daarna pas
+   start.
 4. Controleer afbeeldingen, H.264-video, minstens drie loopwissels,
    heartbeat in Control en een herstart van de televisie.
 5. Onderbreek het netwerk terwijl een eerder geverifieerde release bestaat.
@@ -76,13 +114,14 @@ De cachefallback kan dus geen server-side revoke ongedaan maken.
   Player-cache werken. De Legacy Player mag opt-in worden getest, maar
   publiceer eerst een release met een echte VeyoCast-video voordat
   `/lg/legacy` als vaste start-URL wordt ingesteld.
-- `LG-CACHE-RANGE`: gebruik online direct; laat cached video alleen als
-  gecontroleerde fallback dienen.
-- `LG-BLOB-MEMORY`: vermijd Blob als primaire videobron. De Legacy Player doet
-  dat al.
+- `LG-CACHE-RANGE`: de serviceworker-rangeroute is voor Legacy niet de primaire
+  videobron; controleer dat dezelfde cachebytes als Blob wel stabiel afspelen.
+- `LG-BLOB-MEMORY`: gebruik `/lg/legacy` niet als vaste route zolang de lokale
+  videoblob op het scherm onvoldoende geheugen heeft. Direct-online playback
+  is geen toegestane data- of offlinefallback.
 - `LG-DIRECT-FETCH`: media-elementen kunnen rechtstreeks afspelen, terwijl
-  XHR/range/CORS hapert. De Legacy Player downloadt de actieve media niet via
-  XHR.
+  XHR of CORS hapert. Herstel eerst Storage-CORS of de apparaatgrens; Legacy
+  activeert geen release die het niet volledig lokaal kan verifiëren.
 - `LG-ACTIVE-ASSET`: normaliseer de video naar een LG-veilig H.264/AAC-profiel
   of herstel de signed URL voordat de route wordt omgezet.
 - `LG-VIDEO-REFERENCE`: stop met Playerwijzigingen en controleer eerst de

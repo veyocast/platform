@@ -107,6 +107,9 @@ tests en exitcriteria staan in
 | S82 | Sportlink-lease en Europese tenanttijd | Langdurige Sportlink-syncs met lease-heartbeat en direct herstel uitvoeren; Control en sportslides expliciet in Amsterdam-, Brussel- of Parijstijd tonen |
 | S83 | Veilige RSS-compatibiliteit | Gewone nieuwspagina’s begrensd naar hun gedeclareerde feed laten doorverwijzen en legacy RSS-doctypes inert negeren zonder entityresolutie of SSRF-versoepeling |
 | S84 | HTML/CSS dynamische slides | Menu, nieuws en Sportlink als locked responsive Player-templates met paging, varianten en een immutable PNG-fallback tonen |
+| S85 | Portrait RSS-nieuwsslider | Eén configureerbare staande HTML/CSS-nieuwsslider met lokale leverancier- en artikelmedia |
+| S86 | Landscape RSS en Sportlink-herstel | Beide nieuwsoriëntaties animeren met tenantkleur, als dynamische playlistcontent publiceren en Sportlink volledig herstellen |
+| S87 | LG Legacy lokale releaseketen | Afbeeldingen en video vooraf downloaden, verifiëren en lokaal afspelen; ongewijzigde releases uitsluitend conditioneel controleren en zonder zwart frame wisselen |
 
 ### Programmagates
 

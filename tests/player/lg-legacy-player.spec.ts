@@ -1,12 +1,37 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+
 import { expect, test, type Page } from "@playwright/test";
 
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 const deviceToken = "d".repeat(48);
 const installationCredential = "i".repeat(48);
+const legacyImagePath = "/__legacy-test/image.svg";
+const legacyImageSvg =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#ff5a1f"/></svg>';
+const legacyImageBytes = Buffer.byteLength(legacyImageSvg);
+const legacyImageChecksum = createHash("sha256")
+  .update(legacyImageSvg)
+  .digest("hex");
+const legacySecondImagePath = "/__legacy-test/image-second.svg";
+const legacySecondImageSvg =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#175cd3"/></svg>';
+const legacySecondImageBytes = Buffer.byteLength(legacySecondImageSvg);
+const legacySecondImageChecksum = createHash("sha256")
+  .update(legacySecondImageSvg)
+  .digest("hex");
+const legacyVideoPath = "/lg-probe/h264-baseline-aac.mp4";
+const legacyVideoBytes = readFileSync(
+  "apps/player/public/lg-probe/h264-baseline-aac.mp4"
+);
+const legacyVideoChecksum = createHash("sha256")
+  .update(legacyVideoBytes)
+  .digest("hex");
 
 async function mockLegacyApis(
   page: Page,
-  heartbeatBodies: Array<Record<string, unknown>> = []
+  heartbeatBodies: Array<Record<string, unknown>> = [],
+  manifestEtags: Array<string | undefined> = []
 ) {
   await page.route("**/api/player/installation", async (route) => {
     await route.fulfill({
@@ -18,9 +43,25 @@ async function mockLegacyApis(
       })
     });
   });
+  await page.route(`**${legacyImagePath}`, async (route) => {
+    await route.fulfill({
+      contentType: "image/svg+xml",
+      body: legacyImageSvg
+    });
+  });
   await page.route("**/api/player/manifest?legacy=*", async (route) => {
+    const etag = route.request().headers()["if-none-match"];
+    manifestEtags.push(etag);
+    if (etag === '"release-release-legacy"') {
+      await route.fulfill({
+        headers: { ETag: etag },
+        status: 304
+      });
+      return;
+    }
     await route.fulfill({
       contentType: "application/json",
+      headers: { ETag: '"release-release-legacy"' },
       body: JSON.stringify({
         state: "PLAYING",
         fetchedAt: new Date().toISOString(),
@@ -41,7 +82,7 @@ async function mockLegacyApis(
           manifestHash: "a".repeat(64),
           publishedAt: new Date().toISOString(),
           totalDurationSeconds: 5,
-          totalBytes: 1,
+          totalBytes: legacyImageBytes,
           items: [
             {
               id: "legacy-image",
@@ -51,10 +92,10 @@ async function mockLegacyApis(
               fitMode: "contain",
               muted: true,
               source: {
-                url: "/player-demo/clubhuis-entree.svg",
+                url: legacyImagePath,
                 mimeType: "image/svg+xml",
-                bytes: 1,
-                checksumSha256: "b".repeat(64)
+                bytes: legacyImageBytes,
+                checksumSha256: legacyImageChecksum
               }
             }
           ]
@@ -88,13 +129,14 @@ async function mockLegacyApis(
   });
 }
 
-test("LG Legacy Player gebruikt statische shell en precies één media-element", async ({
+test("LG Legacy Player gebruikt een statische shell en lokale afbeelding", async ({
   page
 }) => {
   const heartbeatBodies: Array<Record<string, unknown>> = [];
+  const manifestEtags: Array<string | undefined> = [];
   const requestedUrls: string[] = [];
   page.on("request", (request) => requestedUrls.push(request.url()));
-  await mockLegacyApis(page, heartbeatBodies);
+  await mockLegacyApis(page, heartbeatBodies, manifestEtags);
   await page.addInitScript(
     ({ credential, token }) => {
       localStorage.setItem("veyocast.player.deviceToken", token);
@@ -114,10 +156,7 @@ test("LG Legacy Player gebruikt statische shell en precies één media-element",
 
   const image = page.locator("#media-root > img");
   await expect(image).toBeVisible();
-  await expect(image).toHaveAttribute(
-    "src",
-    "/player-demo/clubhuis-entree.svg"
-  );
+  await expect(image).toHaveAttribute("src", /^blob:/);
   await expect(page.locator("#status")).toBeHidden();
   await expect(page.locator("#watermark")).toHaveClass("visible");
   await expect(page.locator("#media-root > *")).toHaveCount(1);
@@ -126,7 +165,245 @@ test("LG Legacy Player gebruikt statische shell en precies één media-element",
     runtimeState: "PLAYING",
     syncPhase: "active"
   });
+  await expect
+    .poll(() =>
+      page.evaluate(
+        async (cacheKey) =>
+          Boolean(
+            await (
+              await caches.open("veyocast-player-assets-v1")
+            ).match(cacheKey)
+          ),
+        `/__veyocast-player-cache/${legacyImageChecksum}`
+      )
+    )
+    .toBe(true);
+  await image.evaluate((element) => {
+    element.setAttribute("data-playback-instance", "unchanged");
+    window.dispatchEvent(new Event("online"));
+  });
+  await expect.poll(() => manifestEtags.at(-1)).toBe(
+    '"release-release-legacy"'
+  );
+  await expect(image).toHaveAttribute("data-playback-instance", "unchanged");
+  manifestEtags.length = 0;
+  await page.reload();
+  await expect(page.locator("#media-root > img")).toBeVisible();
+  await expect.poll(() => manifestEtags[0]).toBe(
+    '"release-release-legacy"'
+  );
+  expect(
+    requestedUrls.filter((url) => url.endsWith(legacyImagePath))
+  ).toHaveLength(1);
   expect(requestedUrls.some((url) => url.includes("/_next/"))).toBe(false);
+});
+
+test("LG Legacy Player downloadt en speelt video vanuit één lokale Blob", async ({
+  page
+}) => {
+  const requestedUrls: string[] = [];
+  page.on("request", (request) => requestedUrls.push(request.url()));
+  await page.route("**/api/player/installation", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        bound: true,
+        installationCredential,
+        ok: true
+      })
+    });
+  });
+  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(
+        legacyEnvelope({
+          bytes: legacyVideoBytes.byteLength,
+          checksumSha256: legacyVideoChecksum,
+          id: "legacy-video",
+          kind: "video",
+          mimeType: "video/mp4",
+          title: "Lokale Legacy-video",
+          url: legacyVideoPath
+        })
+      )
+    });
+  });
+  await page.route("**/api/player/heartbeat", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ automation: null, ok: true })
+    });
+  });
+  await page.route("**/api/player/commands", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        commands: [],
+        ok: true,
+        serverTime: new Date().toISOString()
+      })
+    });
+  });
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+
+  const video = page.locator("#media-root > video");
+  await expect(video).toBeVisible();
+  await expect(video).toHaveAttribute("src", /^blob:/);
+  await expect
+    .poll(() => video.evaluate((element) => !element.paused))
+    .toBe(true);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        async (cacheKey) =>
+          Boolean(
+            await (
+              await caches.open("veyocast-player-assets-v1")
+            ).match(cacheKey)
+          ),
+        `/__veyocast-player-cache/${legacyVideoChecksum}`
+      )
+    )
+    .toBe(true);
+  expect(
+    requestedUrls.filter((url) => url.endsWith(legacyVideoPath))
+  ).toHaveLength(1);
+});
+
+test("LG Legacy Player houdt het oude beeld zichtbaar tot de nieuwe lokale release klaar is", async ({
+  page
+}) => {
+  let desiredRelease = "release-first";
+  const requestedUrls: string[] = [];
+  page.on("request", (request) => requestedUrls.push(request.url()));
+  await page.route("**/api/player/installation", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        bound: true,
+        installationCredential,
+        ok: true
+      })
+    });
+  });
+  await page.route(`**${legacyImagePath}`, async (route) => {
+    await route.fulfill({
+      contentType: "image/svg+xml",
+      body: legacyImageSvg
+    });
+  });
+  await page.route(`**${legacySecondImagePath}`, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await route.fulfill({
+      contentType: "image/svg+xml",
+      body: legacySecondImageSvg
+    });
+  });
+  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+    const etag = `"release-${desiredRelease}"`;
+    if (route.request().headers()["if-none-match"] === etag) {
+      await route.fulfill({ headers: { ETag: etag }, status: 304 });
+      return;
+    }
+    const second = desiredRelease === "release-second";
+    await route.fulfill({
+      contentType: "application/json",
+      headers: { ETag: etag },
+      body: JSON.stringify(
+        imageReleaseEnvelope({
+          activeReleaseId: second ? "release-first" : desiredRelease,
+          bytes: second ? legacySecondImageBytes : legacyImageBytes,
+          checksumSha256: second
+            ? legacySecondImageChecksum
+            : legacyImageChecksum,
+          path: second ? legacySecondImagePath : legacyImagePath,
+          releaseId: desiredRelease
+        })
+      )
+    });
+  });
+  await page.route("**/api/player/heartbeat", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ automation: null, ok: true })
+    });
+  });
+  await page.route("**/api/player/commands", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        commands: [],
+        ok: true,
+        serverTime: new Date().toISOString()
+      })
+    });
+  });
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+  const firstImage = page.locator("#media-root > img");
+  await expect(firstImage).toBeVisible();
+  await firstImage.evaluate((element) => {
+    element.setAttribute("data-release", "first");
+  });
+  desiredRelease = "release-second";
+
+  const uninterrupted = await page.evaluate(async () => {
+    let visibleAtEverySample = true;
+    const endAt = Date.now() + 2_500;
+    window.dispatchEvent(new Event("online"));
+    while (Date.now() < endAt) {
+      const hasVisibleMedia = Array.from(
+        document.querySelectorAll("#media-root > .legacy-media-layer")
+      ).some((element) => {
+        const style = window.getComputedStyle(element);
+        return (
+          style.display !== "none" &&
+          style.visibility !== "hidden" &&
+          Number(style.opacity) > 0.01
+        );
+      });
+      if (!hasVisibleMedia) visibleAtEverySample = false;
+      await new Promise((resolve) => window.setTimeout(resolve, 16));
+    }
+    return visibleAtEverySample;
+  });
+
+  expect(uninterrupted).toBe(true);
+  await expect(page.locator('[data-release="first"]')).toHaveCount(0);
+  await expect(page.locator("#media-root > img")).toBeVisible();
+  expect(
+    requestedUrls.filter((url) => url.endsWith(legacySecondImagePath))
+  ).toHaveLength(1);
 });
 
 test("LG Legacy Player herstelt een lokaal verwijderde schermcredential uit de actieve release", async ({
@@ -152,6 +429,12 @@ test("LG Legacy Player herstelt een lokaal verwijderde schermcredential uit de a
   await page.route("**/api/player/pairing", async (route) => {
     pairingRequests += 1;
     await route.fulfill({ status: 429 });
+  });
+  await page.route(`**${legacyImagePath}`, async (route) => {
+    await route.fulfill({
+      contentType: "image/svg+xml",
+      body: legacyImageSvg
+    });
   });
   await page.route("**/api/player/manifest?legacy=*", async (route) => {
     await route.fulfill({
@@ -412,6 +695,26 @@ test("LG Legacy Player toont pairing zonder witte of horizontaal overlopende pag
 });
 
 function cachedImageEnvelope(itemId: string) {
+  return legacyEnvelope({
+    bytes: legacyImageBytes,
+    checksumSha256: legacyImageChecksum,
+    id: itemId,
+    kind: "image",
+    mimeType: "image/svg+xml",
+    title: "Legacy herstelbeeld",
+    url: legacyImagePath
+  });
+}
+
+function legacyEnvelope(item: {
+  bytes: number;
+  checksumSha256: string;
+  id: string;
+  kind: "image" | "video";
+  mimeType: string;
+  title: string;
+  url: string;
+}) {
   return {
     state: "PLAYING",
     fetchedAt: new Date().toISOString(),
@@ -432,20 +735,20 @@ function cachedImageEnvelope(itemId: string) {
       manifestHash: "a".repeat(64),
       publishedAt: new Date().toISOString(),
       totalDurationSeconds: 5,
-      totalBytes: 1,
+      totalBytes: item.bytes,
       items: [
         {
-          id: itemId,
-          kind: "image",
-          title: "Legacy herstelbeeld",
+          id: item.id,
+          kind: item.kind,
+          title: item.title,
           durationSeconds: 5,
           fitMode: "contain",
           muted: true,
           source: {
-            url: "/player-demo/clubhuis-entree.svg",
-            mimeType: "image/svg+xml",
-            bytes: 1,
-            checksumSha256: "b".repeat(64)
+            url: item.url,
+            mimeType: item.mimeType,
+            bytes: item.bytes,
+            checksumSha256: item.checksumSha256
           }
         }
       ]
@@ -458,10 +761,40 @@ function cachedImageEnvelope(itemId: string) {
   };
 }
 
+function imageReleaseEnvelope({
+  activeReleaseId,
+  bytes,
+  checksumSha256,
+  path,
+  releaseId
+}: {
+  activeReleaseId: string;
+  bytes: number;
+  checksumSha256: string;
+  path: string;
+  releaseId: string;
+}) {
+  const envelope = legacyEnvelope({
+    bytes,
+    checksumSha256,
+    id: `${releaseId}-image`,
+    kind: "image",
+    mimeType: "image/svg+xml",
+    title: releaseId,
+    url: path
+  });
+  envelope.device.activeReleaseId = activeReleaseId;
+  envelope.device.desiredReleaseId = releaseId;
+  envelope.manifest.releaseId = releaseId;
+  envelope.manifest.manifestHash = checksumSha256;
+  envelope.manifest.items[0]!.durationSeconds = 1;
+  return envelope;
+}
+
 test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release", async ({
   page
 }) => {
-  const checksum = "c".repeat(64);
+  const checksum = legacyImageChecksum;
   await page.route("**/api/player/installation", async (route) => {
     await route.fulfill({
       status: 503,
@@ -480,7 +813,7 @@ test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release"
   });
   await page.goto(`${playerURL}/healthz`);
   await page.evaluate(
-    async ({ cacheChecksum, credential, token }) => {
+    async ({ cacheBytes, cacheChecksum, cachedImage, credential, token }) => {
       localStorage.setItem("veyocast.player.deviceToken", token);
       localStorage.setItem(
         "veyocast.player.installationCredential",
@@ -510,7 +843,7 @@ test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release"
           manifestHash: "d".repeat(64),
           publishedAt: new Date().toISOString(),
           totalDurationSeconds: 5,
-          totalBytes: 100,
+          totalBytes: cacheBytes,
           items: [
             {
               id: "offline-image",
@@ -522,7 +855,7 @@ test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release"
               source: {
                 url: "https://expired.invalid/offline.svg",
                 mimeType: "image/svg+xml",
-                bytes: 100,
+                bytes: cacheBytes,
                 checksumSha256: cacheChecksum
               }
             }
@@ -555,7 +888,14 @@ test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release"
         const transaction = database.transaction("activeReleases", "readwrite");
         transaction.objectStore("activeReleases").put({
           activatedAt: new Date().toISOString(),
-          assets: [],
+          assets: [{
+            bytes: cacheBytes,
+            cacheKey: `/__veyocast-player-cache/${cacheChecksum}`,
+            checksumSha256: cacheChecksum,
+            itemId: "offline-image",
+            kind: "media",
+            url: "https://expired.invalid/offline.svg"
+          }],
           deviceToken: token,
           envelope
         });
@@ -567,13 +907,21 @@ test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release"
       await cache.put(
         `/__veyocast-player-cache/${cacheChecksum}`,
         new Response(
-          '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#ff5a1f"/></svg>',
-          { headers: { "Content-Type": "image/svg+xml" } }
+          cachedImage,
+          {
+            headers: {
+              "Accept-Ranges": "bytes",
+              "Content-Length": String(cacheBytes),
+              "Content-Type": "image/svg+xml"
+            }
+          }
         )
       );
     },
     {
+      cacheBytes: legacyImageBytes,
       cacheChecksum: checksum,
+      cachedImage: legacyImageSvg,
       credential: installationCredential,
       token: deviceToken
     }
