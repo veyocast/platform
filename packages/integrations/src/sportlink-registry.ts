@@ -12,8 +12,14 @@ const integer = (min: number, max: number) =>
 const text = z.string().trim().min(1).max(80).optional();
 const yesNo = z.enum(["JA", "NEE", "ja", "nee"]).optional();
 const none = z.object({}).strict();
-const team = z.object({ teamcode: code.optional(), lokaleteamcode: code.optional() })
-  .strict().refine((v) => v.teamcode !== undefined || v.lokaleteamcode !== undefined);
+const team = z.object({
+  teamcode: code.optional(),
+  lokaleteamcode: code.optional()
+}).strict().refine(
+  (value) =>
+    value.teamcode !== undefined || value.lokaleteamcode !== undefined
+);
+const teamPool = z.object({ teamcode: code, lokaleteamcode: code }).strict();
 const match = z.object({ wedstrijdcode: code }).strict();
 const schedule = z.object({
   wedstrijdtype: text, teamcode: code.optional(), lokaleteamcode: code.optional(),
@@ -56,7 +62,7 @@ export const sportlinkArticleRegistry = {
     gebruiklokaleteamgegevens: yesNo
   }).strict()),
   "team-gegevens": def("team_details", "teams", "mapTeams", team),
-  teampoulelijst: def("team_pools", "competitions", "mapPools", team),
+  teampoulelijst: def("team_pools", "competitions", "mapPools", teamPool),
   poulelijst: def("pools", "competitions", "mapPools"),
   "poule-indeling": def("pool_members", "competitions", "mapPoolMembers",
     z.object({ poulecode: code }).strict()),

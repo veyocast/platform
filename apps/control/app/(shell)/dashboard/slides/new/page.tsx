@@ -21,7 +21,7 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const data = session.isLive
     ? await loadOptions(session.tenantId!)
-    : { sources: [], templates: [] };
+    : { primaryColor: "#FF5C20", sources: [], templates: [] };
 
   return (
     <>
@@ -46,7 +46,11 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
       ) : !data.templates.length ? (
         <div className={`empty-state ${styles.emptyState}`}><LayoutTemplate aria-hidden="true" /><h2>Geen gepubliceerde templates</h2><p>Een platformbeheerder moet eerst een dynamisch template publiceren.</p></div>
       ) : (
-        <SlideComposerForm sources={data.sources} templates={data.templates} />
+        <SlideComposerForm
+          primaryColor={data.primaryColor}
+          sources={data.sources}
+          templates={data.templates}
+        />
       )}
     </>
   );
@@ -54,10 +58,13 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
 
 async function loadOptions(tenantId: string) {
   const supabase = await createControlSupabaseClient();
-  if (!supabase) return { sources: [], templates: [] };
-  const [sourcesResult, templatesResult] = await Promise.all([
+  if (!supabase) {
+    return { primaryColor: "#FF5C20", sources: [], templates: [] };
+  }
+  const [sourcesResult, templatesResult, settingsResult] = await Promise.all([
     supabase.from("dynamic_data_sources").select("id, name, kind, provider_status, last_successful_sync_at, last_error_code").eq("tenant_id", tenantId).eq("status", "active").order("name"),
-    supabase.from("dynamic_templates").select("id, slug, name, description, slide_type, orientation, current_published_version_id").eq("status", "published").order("name")
+    supabase.from("dynamic_templates").select("id, slug, name, description, slide_type, orientation, current_published_version_id").eq("status", "published").order("name"),
+    supabase.from("tenant_settings").select("primary_color").eq("tenant_id", tenantId).maybeSingle()
   ]);
   const sportSources = (sourcesResult.data ?? []).filter(
     (source) => source.kind === "sportlink"
@@ -107,6 +114,7 @@ async function loadOptions(tenantId: string) {
     })
   ));
   return {
+    primaryColor: normalizePrimaryColor(settingsResult.data?.primary_color),
     sources,
     templates: (templatesResult.data ?? []).flatMap((template) =>
       template.current_published_version_id ? [{
@@ -119,6 +127,12 @@ async function loadOptions(tenantId: string) {
       }] : []
     )
   };
+}
+
+function normalizePrimaryColor(value: unknown) {
+  return typeof value === "string" && /^#[0-9A-Fa-f]{6}$/.test(value)
+    ? value.toUpperCase()
+    : "#FF5C20";
 }
 
 async function loadSourceItemCount(

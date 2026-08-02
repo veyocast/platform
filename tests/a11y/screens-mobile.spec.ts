@@ -132,7 +132,11 @@ test("playlist authoring and settings remain sequential on mobile", async ({ pag
 
   await navigate(page, "/dashboard/settings");
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Instellingen" })).toBeVisible();
-  await expect(page.getByRole("combobox", { name: "Categorie" })).toBeVisible();
+  await expect(page.locator(".settings-category-workspace")).toHaveAttribute("data-hydrated", "true");
+  const settingsCategory = page.getByRole("combobox", { name: "Categorie" });
+  await expect(settingsCategory).toBeVisible();
+  await settingsCategory.selectOption("huisstijl");
+  await expect(page.getByLabel("Primaire kleur", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toHaveCount(0);
   await expect(async () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

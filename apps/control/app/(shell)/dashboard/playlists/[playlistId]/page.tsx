@@ -33,6 +33,7 @@ export default async function PlaylistStudioPage({
       ? await loadPlaylistStudio(session.tenantId, playlistId)
       : {
           assets: [],
+          dynamicSlides: [],
           error: null,
           items: [],
           playlist: null,
@@ -156,6 +157,7 @@ export default async function PlaylistStudioPage({
           assets={data.assets}
           canManage={canManage}
           canWrite={canWrite}
+          dynamicSlides={data.dynamicSlides}
           items={data.items}
           latestReleaseVersion={data.releases[0]?.version ?? null}
           playlist={playlist}

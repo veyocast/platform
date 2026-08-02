@@ -426,30 +426,64 @@ function startLeaseHeartbeat({
 
 async function fetchStandings(client: SportlinkClient) {
   const teams = await client.fetchArticle("teams");
-  const teamCodes = extractSportlinkRecords(teams.payload)
-    .map((team) => scalar(team.teamcode))
-    .filter((value): value is string => Boolean(value && /^\d+$/.test(value)))
-    .slice(0, 24);
-  const poolIds = new Set<string>();
-
-  for (const teamcode of teamCodes) {
-    const pools = await client.fetchArticle("teampoulelijst", { teamcode });
-    for (const pool of extractSportlinkRecords(pools.payload)) {
-      const poolId = scalar(pool.poulecode);
-      if (poolId && /^\d+$/.test(poolId)) poolIds.add(poolId);
-      if (poolIds.size >= 24) break;
-    }
-    if (poolIds.size >= 24) break;
-  }
+  const pools = await client.fetchArticle("poulelijst");
+  const poolIds = collectSportlinkPoolIds(teams.payload, pools.payload);
 
   const standings: SportStanding[] = [];
   for (const poolId of poolIds) {
-    const response = await client.fetchArticle("poulestand", {
-      poulecode: poolId
-    });
-    standings.push(mapSportlinkStandings(response.payload, poolId));
+    try {
+      const response = await client.fetchArticle("poulestand", {
+        poulecode: poolId
+      });
+      standings.push(mapSportlinkStandings(response.payload, poolId));
+    } catch (error) {
+      if (
+        error instanceof SportlinkClientError &&
+        error.code === "SPORTLINK_CONDITION_ERROR"
+      ) {
+        continue;
+      }
+      throw error;
+    }
   }
   return standings;
+}
+
+export function collectSportlinkPoolIds(
+  teamsPayload: unknown,
+  poolsPayload: unknown,
+  maximum = 24
+) {
+  const boundedMaximum = Number.isFinite(maximum)
+    ? Math.min(24, Math.max(1, Math.trunc(maximum)))
+    : 24;
+  const teamRecords = extractSportlinkRecords(teamsPayload);
+  const teamCodes = new Set(
+    teamRecords
+      .map((team) => scalar(team.teamcode))
+      .filter((value): value is string =>
+        Boolean(value && /^\d+$/.test(value))
+      )
+  );
+  const poolIds = new Set<string>();
+  const addPool = (value: unknown) => {
+    const poolId = scalar(value);
+    if (poolId && /^\d+$/.test(poolId) && poolIds.size < boundedMaximum) {
+      poolIds.add(poolId);
+    }
+  };
+
+  for (const team of teamRecords) {
+    addPool(team.poulecode);
+  }
+  for (const pool of extractSportlinkRecords(poolsPayload)) {
+    const teamCode = scalar(pool.teamcode);
+    if (teamCode && teamCodes.has(teamCode)) {
+      addPool(pool.poulecode);
+    }
+  }
+
+  return [...poolIds];
 }
 
 function parseClaim(value: unknown): ClaimedSportlinkSync {

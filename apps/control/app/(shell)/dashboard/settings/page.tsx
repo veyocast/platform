@@ -6,6 +6,7 @@ import { Button } from "@veyocast/ui";
 import { requireControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import { PageHeader } from "../../_components/shell-primitives";
+import { PrimaryColorField } from "./primary-color-field";
 import { updateTenantSettings } from "./actions";
 import { SettingsCategoryWorkspace } from "./settings-category-workspace";
 import { SettingsDirtySavebar } from "./settings-dirty-savebar";
@@ -24,6 +25,7 @@ type TenantSettings = {
   defaultTransition: "crossfade" | "cut" | "wipe";
   defaultVideoMuted: boolean;
   name: string;
+  primaryColor: string;
   timezoneName: string;
 };
 
@@ -37,6 +39,7 @@ const defaults: TenantSettings = {
   defaultTransition: "cut",
   defaultVideoMuted: true,
   name: "",
+  primaryColor: "#FF5C20",
   timezoneName: "Europe/Amsterdam"
 };
 
@@ -86,6 +89,24 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               <label htmlFor="settings-name">Verenigingsnaam</label>
               <input defaultValue={data.name} disabled={!canManage} id="settings-name" maxLength={120} minLength={2} name="name" required type="text" />
             </div>
+          </div>
+        </section>
+
+        <section className="data-surface" aria-labelledby="brand-settings-title" id="huisstijl">
+          <div className="work-panel__header">
+            <div>
+              <h2 className="work-panel__title" id="brand-settings-title">Huisstijl</h2>
+              <p className="work-panel__meta">
+                De primaire verenigingskleur wordt gebruikt in dynamische
+                nieuwsslides, zonder de VeyoCast-beheerinterface over te nemen.
+              </p>
+            </div>
+          </div>
+          <div className="form-grid">
+            <PrimaryColorField
+              defaultValue={data.primaryColor}
+              disabled={!canManage}
+            />
           </div>
         </section>
 
@@ -186,7 +207,7 @@ async function loadSettings(tenantId: string | null, isLive: boolean, tenantName
 
   const [tenantResult, settingsResult] = await Promise.all([
     supabase.from("tenants").select("name").eq("id", tenantId).single(),
-    supabase.from("tenant_settings").select("default_image_duration_seconds, default_fit_mode, default_video_muted, default_screen_orientation, default_resolution_width, default_resolution_height, timezone_name, default_transition, default_background_color").eq("tenant_id", tenantId).maybeSingle()
+    supabase.from("tenant_settings").select("primary_color, default_image_duration_seconds, default_fit_mode, default_video_muted, default_screen_orientation, default_resolution_width, default_resolution_height, timezone_name, default_transition, default_background_color").eq("tenant_id", tenantId).maybeSingle()
   ]);
 
   if (tenantResult.error || settingsResult.error) {
@@ -206,6 +227,7 @@ async function loadSettings(tenantId: string | null, isLive: boolean, tenantName
       defaultTransition: (row?.default_transition ?? defaults.defaultTransition) as TenantSettings["defaultTransition"],
       defaultVideoMuted: row?.default_video_muted ?? defaults.defaultVideoMuted,
       name: tenantResult.data.name,
+      primaryColor: row?.primary_color ?? defaults.primaryColor,
       timezoneName: row?.timezone_name ?? defaults.timezoneName
     },
     error: null

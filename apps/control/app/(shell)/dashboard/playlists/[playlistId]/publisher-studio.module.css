@@ -440,6 +440,48 @@
   width: 100%;
 }
 
+.dynamicSlideCard {
+  border-color: color-mix(in srgb, var(--vc-action) 42%, var(--vc-border));
+}
+
+.dynamicSlideThumb {
+  display: block;
+  position: relative;
+}
+
+.dynamicTypeBadge {
+  align-items: center;
+  background: color-mix(in srgb, var(--vc-surface) 91%, transparent);
+  border: 1px solid color-mix(in srgb, var(--vc-action) 52%, var(--vc-border));
+  border-radius: var(--vc-radius-full);
+  bottom: var(--vc-space-6);
+  color: var(--vc-action);
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 800;
+  gap: 4px;
+  left: var(--vc-space-6);
+  letter-spacing: 0.04em;
+  padding: 4px 7px;
+  position: absolute;
+  text-transform: uppercase;
+}
+
+.dynamicTypeBadge svg {
+  height: 12px;
+  width: 12px;
+}
+
+.dynamicItemNote {
+  background: color-mix(in srgb, var(--vc-action) 8%, var(--vc-surface));
+  border-left: 3px solid var(--vc-action);
+  color: var(--vc-text-muted);
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 0;
+  padding: var(--vc-space-8);
+}
+
 .videoThumb {
   position: relative;
 }

@@ -20,6 +20,16 @@ describe("Sportlink server-only adapter", () => {
     expect(() => parseSportlinkArguments("programma", {
       aantaldagen: 999, willekeurig: "nee"
     })).toThrow();
+    expect(parseSportlinkArguments("teampoulelijst", {
+      lokaleteamcode: 8,
+      teamcode: 4
+    })).toEqual({
+      lokaleteamcode: 8,
+      teamcode: 4
+    });
+    expect(() => parseSportlinkArguments("teampoulelijst", {
+      teamcode: 4
+    })).toThrow();
   });
 
   it("redacts credentials in URLs", () => {

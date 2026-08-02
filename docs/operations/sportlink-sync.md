@@ -10,6 +10,13 @@ lease and unique running-group index prevent overlapping work for the same
 connection and dataset group. Failed work is safely retried after fifteen
 minutes without deleting normalized data.
 
+Run completion qualifies the persisted `read_count` column and keeps the
+standing counter under a distinct PL/pgSQL variable name. This prevents a
+valid provider response from being flattened into
+`SPORTLINK_SYNC_INTERNAL_ERROR`. The recovery migration only brings policies
+forward when their last failed run carried that code or the repaired
+competition-argument code; last-known-good normalized data is retained.
+
 Dependency order:
 
 1. club and capabilities;

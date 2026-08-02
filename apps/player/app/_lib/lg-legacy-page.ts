@@ -104,33 +104,56 @@ export function renderLgLegacyHtml() {
     .portrait .dynamic-match-meta{width:100%;padding:2vh 0;border-top:1px solid rgba(98,95,87,.3);border-bottom:1px solid rgba(98,95,87,.3)}
     .portrait .dynamic-row{grid-template-columns:44px minmax(0,1fr);min-height:10.5vh}
     .portrait .dynamic-row strong{grid-column:2;justify-self:start;text-align:left}
-    .dynamic-template.rss-news-portrait{display:block;padding:0;background:#0a0a0a;color:#fafaf7}
-    .rss-news-portrait>header,.rss-news-portrait>footer{display:none}
-    .rss-news-portrait .dynamic-body{position:absolute;inset:0;display:block;padding:0}
+    .dynamic-template.rss-news-portrait,.dynamic-template.rss-news-landscape{display:block;padding:0;background:#0a0a0a;color:#fafaf7}
+    .rss-news-portrait>header,.rss-news-portrait>footer,.rss-news-landscape>header,.rss-news-landscape>footer{display:none}
+    .rss-news-portrait .dynamic-body,.rss-news-landscape .dynamic-body{position:absolute;inset:0;display:block;padding:0}
     .legacy-rss-page{position:absolute;inset:0;overflow:hidden;background:#0a0a0a}
     .legacy-rss-hero,.legacy-rss-grade{position:absolute;inset:0}
-    .legacy-rss-hero{overflow:hidden;background:#0a0a0a}
+    .legacy-rss-hero{overflow:hidden;background:#0a0a0a;animation:legacy-rss-photo-in 760ms cubic-bezier(.16,1,.3,1) both}
     .legacy-rss-hero>span{position:absolute;top:34%;left:50%;color:rgba(255,255,255,.045);font-size:min(82vw,900px);font-weight:900;line-height:1;transform:translate(-50%,-50%)}
     .legacy-rss-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 38%;filter:saturate(.88) contrast(1.04) brightness(.9)}
     .legacy-rss-grade{background:linear-gradient(180deg,rgba(10,10,10,.94),rgba(10,10,10,.38) 13%,transparent 29%,transparent 48%,rgba(10,10,10,.72) 64%,#0a0a0a 80%,#0a0a0a)}
-    .legacy-rss-provider{position:absolute;top:3%;right:7%;left:7%;display:flex;flex-direction:column;align-items:center}
+    .legacy-rss-provider{position:absolute;top:3%;right:7%;left:7%;display:flex;flex-direction:column;align-items:center;animation:legacy-rss-detail-in 520ms 1120ms cubic-bezier(.2,0,0,1) both}
     .legacy-rss-provider img{width:auto;max-width:min(24vw,130px);height:min(3.9vh,75px);object-fit:contain;filter:drop-shadow(0 .6vh 1.2vh rgba(0,0,0,.44))}
     .legacy-rss-provider strong{overflow:hidden;max-width:36vw;padding:.45vh 1.2vw;border:1px solid rgba(255,255,255,.14);border-radius:.65vh;background:rgba(10,10,10,.52);font-size:clamp(13px,1.3vw,28px);text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
     .legacy-rss-provider p{margin:2.7vh 0 0;color:#fafaf7;font-size:clamp(15px,2.3vw,25px);font-weight:720;letter-spacing:.34em;line-height:1;text-shadow:.2em .2em 0 rgba(0,0,0,.72),.35em .35em 1.1em rgba(0,0,0,.82);text-transform:uppercase}
     .legacy-rss-story{position:absolute;top:59.2%;right:7%;left:7%}
-    .legacy-rss-story h2{display:-webkit-box;max-width:84%;margin:0;overflow:hidden;color:#fafaf7;font-size:clamp(43px,7.25vw,78px);font-weight:760;letter-spacing:-.04em;line-height:1.06;text-shadow:0 .35em 1.35em rgba(0,0,0,.72);-webkit-box-orient:vertical;-webkit-line-clamp:3}
+    .legacy-rss-story h2{display:-webkit-box;max-width:84%;margin:0;overflow:hidden;color:#fafaf7;font-size:clamp(43px,7.25vw,78px);font-weight:760;letter-spacing:-.04em;line-height:1.06;text-shadow:0 .35em 1.35em rgba(0,0,0,.72);animation:legacy-rss-title-in 620ms 380ms cubic-bezier(.16,1,.3,1) both;-webkit-box-orient:vertical;-webkit-line-clamp:3}
     .legacy-rss-story h2.compact{font-size:clamp(38px,5.95vw,64px);line-height:1.08}
-    .legacy-rss-story i{display:block;width:16%;height:3px;margin-top:1.7vh;background:var(--accent);box-shadow:0 0 .7em var(--accent)}
-    .legacy-rss-story p{display:-webkit-box;max-width:67%;margin:1.7vh 0 0;overflow:hidden;color:rgba(250,250,247,.86);font-size:clamp(20px,3.15vw,34px);font-style:normal;line-height:1.42;-webkit-box-orient:vertical;-webkit-line-clamp:3}
-    .legacy-rss-meta{position:absolute;bottom:8.2%;left:7%;display:flex;max-width:70%;gap:3vw;color:rgba(250,250,247,.84);font-size:clamp(13px,1.85vw,20px);font-weight:540;text-transform:uppercase}
+    .legacy-rss-story i{display:block;width:16%;height:3px;margin-top:1.7vh;background:var(--accent);box-shadow:0 0 .7em var(--accent);animation:legacy-rss-accent-in 520ms 650ms cubic-bezier(.16,1,.3,1) both}
+    .legacy-rss-story p{display:-webkit-box;max-width:67%;margin:1.7vh 0 0;overflow:hidden;color:rgba(250,250,247,.86);font-size:clamp(20px,3.15vw,34px);font-style:normal;line-height:1.42;animation:legacy-rss-copy-in 560ms 820ms cubic-bezier(.2,0,0,1) both;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+    .legacy-rss-meta{position:absolute;bottom:8.2%;left:7%;display:flex;max-width:70%;gap:3vw;color:rgba(250,250,247,.84);font-size:clamp(13px,1.85vw,20px);font-weight:540;text-transform:uppercase;animation:legacy-rss-detail-in 520ms 1190ms cubic-bezier(.2,0,0,1) both}
     .legacy-rss-meta span{overflow:hidden;max-width:28vw;text-overflow:ellipsis;white-space:nowrap}
     .legacy-rss-meta b{margin-right:.45em;color:var(--accent);font-size:.72em;letter-spacing:.1em}
-    .legacy-rss-footer{position:absolute;right:3.5%;bottom:0;left:3.5%;height:6.4%;border-top:1px solid rgba(255,255,255,.065)}
+    .legacy-rss-footer{position:absolute;right:3.5%;bottom:0;left:3.5%;height:6.4%;border-top:1px solid rgba(255,255,255,.065);animation:legacy-rss-detail-in 520ms 1280ms cubic-bezier(.2,0,0,1) both}
     .legacy-rss-progress{position:absolute;top:50%;left:29%;width:47%;height:8px;overflow:hidden;border:1px solid rgba(255,255,255,.19);border-radius:999px;background:rgba(255,255,255,.08);transform:translateY(-50%)}
     .legacy-rss-progress i{display:block;width:100%;height:100%;border-radius:inherit;background:var(--accent);animation:legacy-rss-progress var(--rss-duration) linear forwards;transform:scaleX(0);transform-origin:left center}
     .legacy-rss-counter{position:absolute;top:50%;right:3.8%;color:rgba(255,255,255,.46);font-size:clamp(17px,2.4vw,26px);transform:translateY(-50%)}
     .legacy-rss-counter b{color:#fff;font-size:1.25em}
+    .rss-news-landscape .legacy-rss-hero>span{top:48%;left:72%;font-size:min(52vw,760px)}
+    .rss-news-landscape .legacy-rss-hero img{object-position:68% 42%}
+    .rss-news-landscape .legacy-rss-grade{background:linear-gradient(90deg,#0a0a0a 0,rgba(10,10,10,.94) 20%,rgba(10,10,10,.78) 43%,rgba(10,10,10,.28) 68%,transparent 88%),linear-gradient(180deg,rgba(10,10,10,.86),rgba(10,10,10,.12) 24%,transparent 52%,rgba(10,10,10,.6) 82%,#0a0a0a)}
+    .rss-news-landscape .legacy-rss-provider{top:4.2%;right:5%;left:5%}
+    .rss-news-landscape .legacy-rss-provider img{max-width:min(13vw,150px);height:min(7vh,75px)}
+    .rss-news-landscape .legacy-rss-provider strong{max-width:22vw;font-size:clamp(14px,1.05vw,22px)}
+    .rss-news-landscape .legacy-rss-provider p{max-width:58%;margin-top:1.8vh;font-size:clamp(18px,1.45vw,30px);text-shadow:.18em .18em 0 rgba(0,0,0,.8),.34em .34em .9em rgba(0,0,0,.9)}
+    .rss-news-landscape .legacy-rss-story{top:31%;right:auto;left:6%;width:56%}
+    .rss-news-landscape .legacy-rss-story h2{max-width:100%;font-size:clamp(58px,4.7vw,90px)}
+    .rss-news-landscape .legacy-rss-story h2.compact{font-size:clamp(52px,4vw,76px);line-height:1.06}
+    .rss-news-landscape .legacy-rss-story i{width:13%;margin-top:2.2vh}
+    .rss-news-landscape .legacy-rss-story p{max-width:88%;margin-top:2vh;font-size:clamp(28px,2vw,40px);line-height:1.35}
+    .rss-news-landscape .legacy-rss-meta{bottom:10.2%;left:6%;max-width:58%;gap:2.4vw;font-size:clamp(15px,1.35vw,26px)}
+    .rss-news-landscape .legacy-rss-meta span{max-width:22vw}
+    .rss-news-landscape .legacy-rss-footer{right:3%;left:3%;height:7%}
+    .rss-news-landscape .legacy-rss-progress{left:31%;width:49%;height:8px}
+    .rss-news-landscape .legacy-rss-counter{right:2.8%;font-size:clamp(18px,1.45vw,28px)}
+    @keyframes legacy-rss-photo-in{from{opacity:0;transform:scale(1.035)}to{opacity:1;transform:scale(1)}}
+    @keyframes legacy-rss-title-in{from{opacity:0;transform:translateY(.42em)}to{opacity:1;transform:translateY(0)}}
+    @keyframes legacy-rss-accent-in{from{opacity:0;transform:scaleX(0);transform-origin:left center}to{opacity:1;transform:scaleX(1);transform-origin:left center}}
+    @keyframes legacy-rss-copy-in{from{opacity:0;transform:translateY(.65em)}to{opacity:1;transform:translateY(0)}}
+    @keyframes legacy-rss-detail-in{from{opacity:0;transform:translateY(.45em)}to{opacity:1;transform:translateY(0)}}
     @keyframes legacy-rss-progress{to{transform:scaleX(1)}}
+    @media(prefers-reduced-motion:reduce){.legacy-rss-page *,.legacy-rss-page *:before,.legacy-rss-page *:after{animation:none!important;transition:none!important}.legacy-rss-progress i{transform:scaleX(1)}}
     @media(max-height:650px){.panel{padding:24px}.logo{width:210px;margin-bottom:24px}#detail{margin-top:14px}#pairing{margin-top:18px}}
   </style>
 </head>
@@ -958,11 +981,19 @@ export function renderLgLegacyHtml() {
     function renderNewsTemplate(body, snapshot, payload, root) {
       var news = templateRecord(snapshot.data) || templateRecord(snapshot.news) || {};
       var articles = templateArray(news.articles);
+      var usesEditorialLayout =
+        payload.orientation === "portrait" ||
+        (
+          payload.orientation === "landscape" &&
+          templateText(payload.templateSlug, "").indexOf("dark") >= 0
+        );
       var seconds = Number(news.secondsPerSlide);
       if (!isFinite(seconds)) seconds = 5;
       seconds = Math.min(120, Math.max(5, Math.round(seconds)));
-      if (payload.orientation === "portrait") {
-        root.className += " rss-news-portrait";
+      if (usesEditorialLayout) {
+        root.className += payload.orientation === "portrait"
+          ? " rss-news-portrait"
+          : " rss-news-landscape";
       }
       return {
         pages: articles.length ? articles : [null],
@@ -975,7 +1006,7 @@ export function renderLgLegacyHtml() {
             body.appendChild(templateNode("div", "dynamic-empty", "Er zijn nu geen nieuwsberichten."));
             return;
           }
-          if (payload.orientation === "portrait") {
+          if (usesEditorialLayout) {
             var page = templateNode("div", "legacy-rss-page");
             var hero = templateNode("div", "legacy-rss-hero");
             var heroUrl = templateAssetUrl(payload, templateText(article.heroMediaAssetId, ""));

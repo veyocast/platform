@@ -59,6 +59,10 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain('syncPhase: manifest ? "active" : null');
     expect(html).not.toContain('syncPhase: "lg-legacy"');
     expect(html).not.toContain('syncPhase: "lg-legacy-pairing"');
+    expect(html).toContain("@keyframes legacy-rss-photo-in");
+    expect(html).toContain("animation:legacy-rss-title-in 620ms 380ms");
+    expect(html).toContain("animation:legacy-rss-copy-in 560ms 820ms");
+    expect(html).toContain("@media(prefers-reduced-motion:reduce)");
   });
 
   it("verwerkt remote commands op servertijd en hervat een ontbrekende completion", () => {

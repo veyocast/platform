@@ -379,7 +379,8 @@
   min-height: 11vh;
 }
 
-.rssPortrait {
+.rssPortrait,
+.rssLandscape {
   --rss-background: var(--vc-brand-ink-black);
   --rss-paper: var(--vc-brand-paper-white);
   background: var(--rss-background);
@@ -406,6 +407,7 @@
 }
 
 .rssHero {
+  animation: rss-photo-in 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
   background: var(--rss-background);
   overflow: hidden;
   z-index: -1;
@@ -453,6 +455,7 @@
 
 .rssProviderHeader {
   align-items: center;
+  animation: rss-detail-in 520ms 1120ms cubic-bezier(0.2, 0, 0, 1) both;
   display: flex;
   flex-direction: column;
   left: 7%;
@@ -583,6 +586,7 @@
   max-width: 84%;
   overflow: hidden;
   text-shadow: 0 0.35em 1.35em rgba(0, 0, 0, 0.72);
+  animation: rss-title-in 620ms 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .rssStory h1[data-compact="true"] {
@@ -591,6 +595,7 @@
 }
 
 .rssTitleAccent {
+  animation: rss-accent-in 520ms 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
   background: linear-gradient(
     90deg,
     var(--template-accent),
@@ -615,10 +620,12 @@
   margin: 1.7vh 0 0;
   max-width: 67%;
   overflow: hidden;
+  animation: rss-copy-in 560ms 820ms cubic-bezier(0.2, 0, 0, 1) both;
 }
 
 .rssMetadata {
   align-items: center;
+  animation: rss-detail-in 520ms 1190ms cubic-bezier(0.2, 0, 0, 1) both;
   bottom: 8.2%;
   display: flex;
   gap: 3vw;
@@ -684,6 +691,7 @@
 }
 
 .rssEmpty {
+  animation: rss-title-in 620ms 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
   background: rgba(10, 10, 10, 0.68);
   border-left: 7px solid var(--template-accent);
   font-size: clamp(28px, 4.7vw, 52px);
@@ -696,6 +704,7 @@
 }
 
 .rssFooter {
+  animation: rss-detail-in 520ms 1280ms cubic-bezier(0.2, 0, 0, 1) both;
   border-top: 1px solid rgba(255, 255, 255, 0.065);
   bottom: 0;
   height: 6.4%;
@@ -751,23 +760,231 @@
   margin: 0 0.12em;
 }
 
-@keyframes rss-progress {
-  to {
-    transform: scaleX(1);
-  }
+.rssLandscape .rssHeroInitial {
+  font-size: min(52vw, 760px);
+  left: 72%;
+  top: 48%;
 }
 
-.rssPage {
-  animation: rss-page-in 320ms cubic-bezier(0.2, 0, 0, 1);
+.rssLandscape .rssHeroImage {
+  object-position: 68% 42%;
 }
 
-@keyframes rss-page-in {
+.rssLandscape .rssHeroGrade {
+  background:
+    linear-gradient(
+      90deg,
+      var(--rss-background) 0,
+      rgba(10, 10, 10, 0.94) 20%,
+      rgba(10, 10, 10, 0.78) 43%,
+      rgba(10, 10, 10, 0.28) 68%,
+      transparent 88%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(10, 10, 10, 0.86) 0,
+      rgba(10, 10, 10, 0.12) 24%,
+      transparent 52%,
+      rgba(10, 10, 10, 0.6) 82%,
+      var(--rss-background) 100%
+    );
+}
+
+.rssLandscape .rssProviderHeader {
+  left: 5%;
+  right: 5%;
+  top: 4.2%;
+}
+
+.rssLandscape .rssProviderLogo {
+  height: min(7vh, 75px);
+  max-width: min(13vw, 150px);
+}
+
+.rssLandscape .rssProviderWordmark {
+  gap: 0.7vw;
+  min-height: min(5.4vh, 58px);
+  padding: 0.55vh 0.8vw 0.55vh 0.55vw;
+}
+
+.rssLandscape .rssProviderWordmark strong {
+  font-size: clamp(14px, 1.05vw, 22px);
+  max-width: 19vw;
+}
+
+.rssLandscape .rssGlyph {
+  height: min(3.5vh, 38px);
+  width: min(3.5vh, 38px);
+}
+
+.rssLandscape .rssSectionTitle {
+  font-size: clamp(18px, 1.45vw, 30px);
+  margin-top: 1.8vh;
+  max-width: 58%;
+  text-shadow:
+    0.18em 0.18em 0 rgba(0, 0, 0, 0.8),
+    0.34em 0.34em 0.9em rgba(0, 0, 0, 0.9);
+}
+
+.rssLandscape .rssSectionTitle::before,
+.rssLandscape .rssSectionTitle::after {
+  width: 18%;
+}
+
+.rssLandscape .rssSectionTitle::before {
+  left: 17%;
+}
+
+.rssLandscape .rssSectionTitle::after {
+  right: 17%;
+}
+
+.rssLandscape .rssStory {
+  left: 6%;
+  right: auto;
+  top: 31%;
+  width: 56%;
+}
+
+.rssLandscape .rssStory h1 {
+  font-size: clamp(58px, 4.7vw, 90px);
+  max-width: 100%;
+}
+
+.rssLandscape .rssStory h1[data-compact="true"] {
+  font-size: clamp(52px, 4vw, 76px);
+  line-height: 1.06;
+}
+
+.rssLandscape .rssTitleAccent {
+  margin-top: 2.2vh;
+  width: 13%;
+}
+
+.rssLandscape .rssStory > p {
+  -webkit-line-clamp: 3;
+  font-size: clamp(28px, 2vw, 40px);
+  line-height: 1.35;
+  margin-top: 2vh;
+  max-width: 88%;
+}
+
+.rssLandscape .rssMetadata {
+  bottom: 10.2%;
+  gap: 2.4vw;
+  left: 6%;
+  max-width: 58%;
+}
+
+.rssLandscape .rssMetaItem {
+  gap: 0.8vw;
+}
+
+.rssLandscape .rssMetaIcon {
+  height: clamp(38px, 3vw, 58px);
+  width: clamp(38px, 3vw, 58px);
+}
+
+.rssLandscape .rssMetaItem small {
+  font-size: clamp(11px, 0.82vw, 16px);
+}
+
+.rssLandscape .rssMetaItem strong {
+  font-size: clamp(15px, 1.35vw, 26px);
+  max-width: 18vw;
+}
+
+.rssLandscape .rssEmpty {
+  right: 42%;
+  top: 40%;
+}
+
+.rssLandscape .rssFooter {
+  height: 7%;
+  left: 3%;
+  right: 3%;
+}
+
+.rssLandscape .rssProgress {
+  height: clamp(5px, 0.42vw, 8px);
+  left: 31%;
+  width: 49%;
+}
+
+.rssLandscape .rssCounter {
+  font-size: clamp(18px, 1.45vw, 28px);
+  right: 2.8%;
+}
+
+.rssLandscape .rssCounter strong {
+  font-size: clamp(23px, 1.85vw, 36px);
+}
+
+@keyframes rss-photo-in {
   from {
-    opacity: 0.62;
+    opacity: 0;
+    transform: scale(1.035);
   }
 
   to {
     opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rss-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.42em);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rss-accent-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
+@keyframes rss-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.65em);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rss-detail-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rss-progress {
+  to {
+    transform: scaleX(1);
   }
 }
 

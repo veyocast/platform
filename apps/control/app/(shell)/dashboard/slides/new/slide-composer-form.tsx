@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties
+} from "react";
 import {
   Check,
   ChevronLeft,
@@ -35,8 +40,13 @@ export type SlideTemplateOption = {
 };
 
 type Props = {
+  primaryColor: string;
   sources: SlideSourceOption[];
   templates: SlideTemplateOption[];
+};
+
+type PreviewStyle = CSSProperties & {
+  "--preview-accent": string;
 };
 
 const wizardSteps = [
@@ -62,7 +72,11 @@ const wizardSteps = [
   }
 ] as const;
 
-export function SlideComposerForm({ sources, templates }: Props) {
+export function SlideComposerForm({
+  primaryColor,
+  sources,
+  templates
+}: Props) {
   const initialTemplate = templates.find((template) =>
     sources.some((source) =>
       sourceMatchesSlideType(source.kind, template.slideType) &&
@@ -241,7 +255,10 @@ export function SlideComposerForm({ sources, templates }: Props) {
         <div className={styles.grid}>
           {matchingTemplates.map((template) => (
             <label className={styles.choiceCard} key={template.versionId}>
-              <TemplatePreview template={template} />
+              <TemplatePreview
+                primaryColor={primaryColor}
+                template={template}
+              />
               <input
                 checked={selectedTemplate.versionId === template.versionId}
                 key={`${slideType}-${template.versionId}`}
@@ -495,8 +512,10 @@ export function SlideComposerForm({ sources, templates }: Props) {
 }
 
 function TemplatePreview({
+  primaryColor,
   template
 }: {
+  primaryColor: string;
   template: SlideTemplateOption;
 }) {
   const isDark = template.slug.includes("dark");
@@ -507,14 +526,19 @@ function TemplatePreview({
       : isSingleMatchSlide(template.slideType)
         ? "match"
         : "sport";
+  const isEditorialNews =
+    previewType === "news" &&
+    (template.orientation === "portrait" || isDark);
 
   return (
     <span
       aria-hidden="true"
       className={styles.templatePreview}
+      data-editorial-news={isEditorialNews || undefined}
       data-orientation={template.orientation}
       data-preview-type={previewType}
       data-theme={isDark ? "dark" : "light"}
+      style={{ "--preview-accent": primaryColor } as PreviewStyle}
     >
       <span className={styles.templatePreviewKicker}>
         {previewType === "menu"

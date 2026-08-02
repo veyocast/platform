@@ -14,6 +14,9 @@ export async function updateTenantSettings(formData: FormData) {
     fail("Live Supabase is niet beschikbaar. Er is niets opgeslagen; herstel de configuratie en log opnieuw in.");
   }
   const name = String(formData.get("name") ?? "").trim();
+  const primaryColor = String(formData.get("primaryColor") ?? "")
+    .trim()
+    .toUpperCase();
   const imageDuration = integerValue(formData, "defaultImageDuration");
   const fitMode = String(formData.get("defaultFitMode") ?? "");
   const videoMuted = formData.get("defaultVideoMuted") === "on";
@@ -26,6 +29,9 @@ export async function updateTenantSettings(formData: FormData) {
 
   if (name.length < 2 || name.length > 120) {
     fail("Gebruik een verenigingsnaam van 2 tot en met 120 tekens.");
+  }
+  if (!/^#[0-9A-F]{6}$/.test(primaryColor)) {
+    fail("Gebruik voor de primaire kleur een geldige hexkleur, zoals #315CFF.");
   }
   if (imageDuration < 5 || imageDuration > 3600) {
     fail("De standaard afbeeldingsduur moet tussen 5 en 3600 seconden liggen.");
@@ -49,7 +55,7 @@ export async function updateTenantSettings(formData: FormData) {
     fail("De standaardachtergrondkleur is ongeldig.");
   }
 
-  const { error } = await supabase.rpc("update_tenant_control_settings_v2", {
+  const { error } = await supabase.rpc("update_tenant_control_settings_v3", {
     p_default_background_color: defaultBackgroundColor || null,
     p_default_fit_mode: fitMode,
     p_default_image_duration_seconds: imageDuration,
@@ -59,6 +65,7 @@ export async function updateTenantSettings(formData: FormData) {
     p_default_transition: defaultTransition,
     p_default_video_muted: videoMuted,
     p_name: name,
+    p_primary_color: primaryColor,
     p_tenant_id: session.tenantId,
     p_timezone_name: timezoneName
   });
@@ -70,7 +77,7 @@ export async function updateTenantSettings(formData: FormData) {
 
   revalidatePath("/dashboard/settings");
   revalidatePath("/dashboard");
-  redirect("/dashboard/settings?succes=De+verenigings-+en+afspeelstandaarden+zijn+opgeslagen.");
+  redirect("/dashboard/settings?succes=De+verenigings-,+huisstijl-+en+afspeelstandaarden+zijn+opgeslagen.");
 }
 
 function integerValue(formData: FormData, name: string) {

@@ -17,6 +17,8 @@ function item(id: string): PlaylistStudioItem {
     cropFocusX: 0.5,
     cropFocusY: 0.5,
     displayTitle: null,
+    dynamicSlideId: null,
+    dynamicSnapshotId: null,
     durationSeconds: 8,
     enabled: true,
     fitMode: "contain",

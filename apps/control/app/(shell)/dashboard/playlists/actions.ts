@@ -94,6 +94,62 @@ export async function addPlaylistItem(formData: FormData) {
   await mutate(formData, playlistId, "add_item", { mediaAssetId }, "Het media-item is aan het concept toegevoegd.");
 }
 
+export async function addDynamicPlaylistSlide(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const dynamicSlideId = idValue(formData, "dynamicSlideId");
+  const durationSeconds = integerValue(formData, "durationSeconds");
+  if (durationSeconds < 5 || durationSeconds > 3600) {
+    fail(
+      playlistId,
+      "De berekende duur van de dynamische slide is ongeldig. Vernieuw de editor."
+    );
+  }
+  const revision = expectedRevision(formData);
+  const { supabase } = await requirePlaylistWriter();
+  const { data, error } = await supabase.rpc(
+    "add_dynamic_slide_to_playlist_v2",
+    {
+      p_duration_seconds: durationSeconds,
+      p_dynamic_slide_id: dynamicSlideId,
+      p_expected_revision: revision,
+      p_idempotency_key: idempotencyValue(formData),
+      p_playlist_id: playlistId
+    }
+  );
+  if (error) {
+    console.error("Dynamische slide aan playlist toevoegen mislukt", {
+      code: error.code
+    });
+    fail(
+      playlistId,
+      error.code === "23514"
+        ? "De dynamische slide heeft geen gereedstaande snapshot meer. Vernieuw de editor en probeer opnieuw."
+        : "De dynamische slide kon niet aan het concept worden toegevoegd. Er is niets gewijzigd."
+    );
+  }
+  const result = data as GuardedMutationResult | null;
+  if (!result) {
+    fail(
+      playlistId,
+      "De wijziging gaf geen bevestiging. Laad de playlisteditor opnieuw."
+    );
+  }
+  if (result.outcome === "conflict") {
+    conflict(
+      playlistId,
+      revision,
+      Number(result.actualRevision),
+      "add_dynamic_slide"
+    );
+  }
+  revalidatePlaylistPaths(playlistId);
+  redirect(
+    `/dashboard/playlists/${playlistId}?succes=${encodeURIComponent(
+      "De dynamische HTML/CSS-slide is aan het concept toegevoegd."
+    )}`
+  );
+}
+
 export async function updatePlaylistItem(formData: FormData) {
   const playlistId = idValue(formData, "playlistId");
   const itemId = idValue(formData, "itemId");

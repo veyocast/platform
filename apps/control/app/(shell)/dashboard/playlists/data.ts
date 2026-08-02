@@ -8,6 +8,7 @@ import {
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import type {
   PlaylistStudioAsset,
+  PlaylistStudioDynamicSlide,
   PlaylistStudioItem,
   PlaylistStudioSection,
   PlaylistStudioVariant
@@ -39,6 +40,7 @@ export type PlaylistListRow = {
 
 export type PlaylistStudioData = {
   assets: PlaylistStudioAsset[];
+  dynamicSlides: PlaylistStudioDynamicSlide[];
   error: string | null;
   items: PlaylistStudioItem[];
   playlist: {
@@ -221,21 +223,23 @@ export async function loadPlaylistStudio(
   playlistId: string,
   signPreviews = true
 ): Promise<PlaylistStudioData> {
-  const empty: PlaylistStudioData = { assets: [], error: null, items: [], playlist: null, readiness: null, releases: [], sections: [], screens: [] };
+  const empty: PlaylistStudioData = { assets: [], dynamicSlides: [], error: null, items: [], playlist: null, readiness: null, releases: [], sections: [], screens: [] };
   const supabase = await createControlSupabaseClient();
   if (!supabase) return { ...empty, error: "De beveiligde datasessie ontbreekt." };
 
-  const [playlistResult, itemsResult, sectionsResult, assetsResult, variantsResult, releasesResult, screensResult, devicesResult] = await Promise.all([
+  const [playlistResult, itemsResult, sectionsResult, assetsResult, variantsResult, releasesResult, screensResult, devicesResult, dynamicSlidesResult, dynamicSnapshotsResult] = await Promise.all([
     supabase.from("playlists").select("id, tenant_id, name, description, status, revision, archived_at, updated_at, updated_by, default_image_duration_seconds, default_transition, default_fit_mode, default_background_color, default_video_muted, loop_enabled").eq("tenant_id", tenantId).eq("id", playlistId).maybeSingle(),
-    supabase.from("playlist_items").select("id, media_asset_id, section_id, sort_order, duration_seconds, fit_mode, muted, display_title, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
+    supabase.from("playlist_items").select("id, media_asset_id, section_id, sort_order, duration_seconds, fit_mode, muted, display_title, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, dynamic_slide_id, dynamic_snapshot_id").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
     supabase.from("playlist_sections").select("id, name, position_key, enabled, default_duration_seconds, default_transition").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
     supabase.from("media_assets").select("id, tenant_id, title, kind, mime_type, status, deleted_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
     supabase.from("media_variants").select("asset_id, tenant_id, variant_type, storage_path, mime_type, file_size_bytes, checksum_sha256, width, height, duration_seconds").eq("tenant_id", tenantId),
     supabase.from("playlist_releases").select("id, version, item_count, total_duration_seconds, total_bytes, published_at, published_by").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("version", { ascending: false }),
     supabase.from("screens").select("id, name, orientation, assigned_playlist_id").eq("tenant_id", tenantId).is("deleted_at", null).eq("status", "active").order("name"),
-    supabase.from("player_devices").select("screen_id, active_release_id, desired_release_id, last_seen_at").eq("tenant_id", tenantId).eq("status", "paired").order("paired_at", { ascending: false })
+    supabase.from("player_devices").select("screen_id, active_release_id, desired_release_id, last_seen_at").eq("tenant_id", tenantId).eq("status", "paired").order("paired_at", { ascending: false }),
+    supabase.from("dynamic_slides").select("id, name, slide_type, orientation, selection_mode, status, current_snapshot_id").eq("tenant_id", tenantId).eq("status", "ready").order("updated_at", { ascending: false }),
+    supabase.from("dynamic_slide_snapshots").select("id, dynamic_slide_id, status, output_media_asset_id, snapshot_data_json").eq("tenant_id", tenantId)
   ]);
-  const error = [playlistResult.error, itemsResult.error, sectionsResult.error, assetsResult.error, variantsResult.error, releasesResult.error, screensResult.error, devicesResult.error].find(Boolean);
+  const error = [playlistResult.error, itemsResult.error, sectionsResult.error, assetsResult.error, variantsResult.error, releasesResult.error, screensResult.error, devicesResult.error, dynamicSlidesResult.error, dynamicSnapshotsResult.error].find(Boolean);
   if (error) {
     console.error("Playlist Studio laden mislukt", error);
     return { ...empty, error: "De playlisteditor kon niet volledig worden geladen. Vernieuw de pagina." };
@@ -271,7 +275,7 @@ export async function loadPlaylistStudio(
       width: variant.width
     };
   }));
-  const assets = (assetsResult.data ?? []).map((asset): PlaylistStudioAsset => ({
+  const allAssets = (assetsResult.data ?? []).map((asset): PlaylistStudioAsset => ({
     deletedAt: asset.deleted_at,
     id: asset.id,
     kind: asset.kind,
@@ -281,13 +285,56 @@ export async function loadPlaylistStudio(
     title: asset.title,
     variant: variants.find((variant) => variant.assetId === asset.id && variant.variantType === (asset.kind === "video" ? "player_1080p" : "original")) ?? null
   }));
+  const dynamicOutputAssetIds = new Set(
+    (dynamicSnapshotsResult.data ?? []).flatMap((snapshot) =>
+      snapshot.output_media_asset_id ? [snapshot.output_media_asset_id] : []
+    )
+  );
+  const assets = allAssets.filter((asset) => !dynamicOutputAssetIds.has(asset.id));
+  const snapshotsById = new Map(
+    (dynamicSnapshotsResult.data ?? []).map((snapshot) => [snapshot.id, snapshot])
+  );
+  const dynamicSlides = (dynamicSlidesResult.data ?? []).flatMap(
+    (slide): PlaylistStudioDynamicSlide[] => {
+      const snapshot = slide.current_snapshot_id
+        ? snapshotsById.get(slide.current_snapshot_id)
+        : null;
+      const previewAsset = snapshot?.output_media_asset_id
+        ? allAssets.find((asset) => asset.id === snapshot.output_media_asset_id)
+        : null;
+      if (
+        !snapshot ||
+        snapshot.status !== "ready" ||
+        !previewAsset ||
+        !previewAsset.variant ||
+        previewAsset.status !== "ready" ||
+        previewAsset.deletedAt
+      ) {
+        return [];
+      }
+      const playback = dynamicSlidePlayback(snapshot.snapshot_data_json);
+      return [{
+        durationSeconds: playback.durationSeconds,
+        id: slide.id,
+        name: slide.name,
+        orientation: slide.orientation as "landscape" | "portrait",
+        previewAsset,
+        selectionMode: slide.selection_mode as "latest" | "pinned",
+        slideCount: playback.slideCount,
+        slideType: slide.slide_type,
+        snapshotId: snapshot.id
+      }];
+    }
+  );
   const items = (itemsResult.data ?? []).map((item): PlaylistStudioItem => ({
     accessibilityName: item.accessibility_name,
-    asset: assets.find((asset) => asset.id === item.media_asset_id) ?? null,
+    asset: allAssets.find((asset) => asset.id === item.media_asset_id) ?? null,
     backgroundColor: item.background_color,
     cropFocusX: Number(item.crop_focus_x),
     cropFocusY: Number(item.crop_focus_y),
     displayTitle: item.display_title,
+    dynamicSlideId: item.dynamic_slide_id,
+    dynamicSnapshotId: item.dynamic_snapshot_id,
     durationSeconds: item.duration_seconds,
     enabled: item.enabled,
     fitMode: item.fit_mode,
@@ -363,6 +410,7 @@ export async function loadPlaylistStudio(
 
   return {
     assets,
+    dynamicSlides,
     error: profilesResult.error ? "De namen van bewerkers konden niet volledig worden geladen." : null,
     items,
     playlist: {
@@ -395,6 +443,28 @@ export async function loadPlaylistStudio(
     sections,
     screens
   };
+}
+
+function dynamicSlidePlayback(value: unknown) {
+  const root = recordValue(value);
+  const news = recordValue(root?.news);
+  if (!news) return { durationSeconds: 10, slideCount: 1 };
+  const articles = Array.isArray(news.articles) ? news.articles : [];
+  const slideCount = Math.max(articles.length, 1);
+  const requestedSeconds = Number(news.secondsPerSlide);
+  const secondsPerSlide = Number.isInteger(requestedSeconds)
+    ? Math.min(120, Math.max(5, requestedSeconds))
+    : 5;
+  return {
+    durationSeconds: Math.min(3600, slideCount * secondsPerSlide),
+    slideCount
+  };
+}
+
+function recordValue(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
 }
 
 function escapeLike(value: string) {
