@@ -1,7 +1,7 @@
 import type { CanonicalNewsArticle } from "@veyocast/contracts";
 
 const entityPattern = /&(#x?[0-9a-f]+|amp|apos|gt|lt|quot);/gi;
-const blockedXmlPattern = /<!DOCTYPE|<!ENTITY|\bSYSTEM\b|\bPUBLIC\b/i;
+const entityDeclarationPattern = /<!ENTITY\b/i;
 
 export class RssParseError extends Error {
   readonly code = "rss_invalid_feed";
@@ -25,18 +25,20 @@ export function parseRssOrAtom(
   if (xml.length > 2_000_000) {
     throw new RssParseError("De feed is groter dan de veilige limiet.");
   }
-  if (blockedXmlPattern.test(xml)) {
-    throw new RssParseError("DTD- en entitydeclaraties zijn niet toegestaan.");
+  if (entityDeclarationPattern.test(xml)) {
+    throw new RssParseError("XML-entitydeclaraties zijn niet toegestaan.");
   }
+  const feedXml = stripInertFeedDoctypes(xml);
+  assertFeedDocument(feedXml);
   const rootTitle =
-    firstTag(xml, "channel") && firstTag(firstTag(xml, "channel")!, "title") ||
-    firstTag(xml, "feed") && firstTag(firstTag(xml, "feed")!, "title") ||
+    firstTag(feedXml, "channel") && firstTag(firstTag(feedXml, "channel")!, "title") ||
+    firstTag(feedXml, "feed") && firstTag(firstTag(feedXml, "feed")!, "title") ||
     new URL(sourceUrl).hostname;
   const itemBlocks = [
-    ...xml.matchAll(/<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi)
+    ...feedXml.matchAll(/<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi)
   ].flatMap((match) => match[1] ? [match[1]] : []);
   const entryBlocks = [
-    ...xml.matchAll(/<entry(?:\s[^>]*)?>([\s\S]*?)<\/entry>/gi)
+    ...feedXml.matchAll(/<entry(?:\s[^>]*)?>([\s\S]*?)<\/entry>/gi)
   ].flatMap((match) => match[1] ? [match[1]] : []);
   const blocks = (itemBlocks.length ? itemBlocks : entryBlocks).slice(
     0,
@@ -79,6 +81,70 @@ export function parseRssOrAtom(
     articles,
     title: cleanText(rootTitle ?? "") || new URL(sourceUrl).hostname
   };
+}
+
+function stripInertFeedDoctypes(xml: string): string {
+  let result = xml;
+  let searchFrom = 0;
+  for (;;) {
+    const start = result.slice(searchFrom).search(/<!DOCTYPE\b/i);
+    if (start < 0) return result;
+    const declarationStart = searchFrom + start;
+    let quote: "'" | "\"" | null = null;
+    let hasInternalSubset = false;
+    let declarationEnd = -1;
+
+    for (let index = declarationStart + 9; index < result.length; index += 1) {
+      const character = result[index];
+      if (quote) {
+        if (character === quote) quote = null;
+        continue;
+      }
+      if (character === "'" || character === "\"") {
+        quote = character;
+        continue;
+      }
+      if (character === "[") hasInternalSubset = true;
+      if (character === ">") {
+        declarationEnd = index + 1;
+        break;
+      }
+    }
+
+    if (declarationEnd < 0 || hasInternalSubset) {
+      throw new RssParseError(
+        "Interne DTD-subsets en XML-entitydeclaraties zijn niet toegestaan."
+      );
+    }
+    const declaration = result.slice(declarationStart, declarationEnd);
+    if (!/^<!DOCTYPE\s+(?:rss|feed|rdf:RDF)\b/i.test(declaration)) {
+      throw new RssParseError(
+        "De URL verwijst naar een webpagina in plaats van een RSS- of Atom-feed."
+      );
+    }
+
+    // This parser never resolves a DTD. Removing the inert declaration keeps
+    // legacy RSS metadata compatible without permitting filesystem or network
+    // entity expansion.
+    result =
+      result.slice(0, declarationStart) +
+      result.slice(declarationEnd);
+    searchFrom = declarationStart;
+  }
+}
+
+function assertFeedDocument(xml: string) {
+  const documentStart = xml
+    .replace(/^\uFEFF/, "")
+    .replace(/^\s*<\?xml[\s\S]*?\?>/i, "")
+    .replace(/^(?:\s*<!--[\s\S]*?-->)*\s*/, "");
+  const rootName = documentStart.match(/^<([A-Za-z_][\w.:-]*)\b/)?.[1]
+    ?.toLowerCase();
+  if (!rootName || !["feed", "rdf:rdf", "rss"].includes(rootName)) {
+    throw new RssParseError(
+      "De URL verwijst naar een webpagina in plaats van een RSS- of Atom-feed."
+    );
+  }
 }
 
 function rssLink(block: string): string | null {

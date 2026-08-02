@@ -105,6 +105,7 @@ tests en exitcriteria staan in
 | S79 | Veilige mediaverwijdering | Video en afbeelding vanuit Media transactioneel archiveren met expliciete conceptimpact |
 | S81 | Begeleide slide- en mediabeheerflow | Dynamische slides in afzonderlijke gevalideerde stappen maken en mediaverwijdering direct vindbaar en herstelbaar maken |
 | S82 | Sportlink-lease en Europese tenanttijd | Langdurige Sportlink-syncs met lease-heartbeat en direct herstel uitvoeren; Control en sportslides expliciet in Amsterdam-, Brussel- of Parijstijd tonen |
+| S83 | Veilige RSS-compatibiliteit | Gewone nieuwspagina’s begrensd naar hun gedeclareerde feed laten doorverwijzen en legacy RSS-doctypes inert negeren zonder entityresolutie of SSRF-versoepeling |
 
 ### Programmagates
 

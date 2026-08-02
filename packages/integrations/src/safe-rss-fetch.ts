@@ -24,7 +24,8 @@ export class SafeRssFetchError extends Error {
 
 export async function fetchSafeRss(
   rawUrl: string,
-  redirectCount = 0
+  redirectCount = 0,
+  discoveryCount = 0
 ): Promise<{ body: string; finalUrl: string }> {
   const url = parseSafeUrl(rawUrl);
   const addresses = await resolvePublicAddresses(url.hostname);
@@ -48,7 +49,11 @@ export async function fetchSafeRss(
       );
     }
     const redirectUrl = new URL(response.location, url);
-    return fetchSafeRss(redirectUrl.toString(), redirectCount + 1);
+    return fetchSafeRss(
+      redirectUrl.toString(),
+      redirectCount + 1,
+      discoveryCount
+    );
   }
   if (response.statusCode < 200 || response.statusCode >= 300) {
     throw new SafeRssFetchError(
@@ -57,6 +62,21 @@ export async function fetchSafeRss(
     );
   }
   const contentType = response.contentType.toLowerCase();
+  if (
+    contentType.includes("text/html") ||
+    looksLikeHtml(response.body)
+  ) {
+    const discoveredUrl = discoveryCount < 1
+      ? discoverAlternateFeedUrl(response.body, url.toString())
+      : null;
+    if (discoveredUrl) {
+      return fetchSafeRss(discoveredUrl, redirectCount, discoveryCount + 1);
+    }
+    throw new SafeRssFetchError(
+      "rss_fetch_invalid_content",
+      "De URL verwijst naar een webpagina zonder vindbare RSS- of Atom-feed. Gebruik de echte feed-URL, vaak eindigend op /rss.xml."
+    );
+  }
   if (
     contentType &&
     !contentType.includes("xml") &&
@@ -70,6 +90,67 @@ export async function fetchSafeRss(
     );
   }
   return { body: response.body, finalUrl: url.toString() };
+}
+
+export function discoverAlternateFeedUrl(
+  html: string,
+  pageUrl: string
+): string | null {
+  const linkTags = html.match(/<link\b[^>]*>/gi)?.slice(0, 100) ?? [];
+  for (const tag of linkTags) {
+    const attributes = readHtmlAttributes(tag);
+    const rel = attributes.rel?.toLowerCase().split(/\s+/) ?? [];
+    const type = attributes.type?.toLowerCase().split(";")[0]?.trim();
+    if (
+      !rel.includes("alternate") ||
+      !["application/atom+xml", "application/rdf+xml", "application/rss+xml"]
+        .includes(type ?? "") ||
+      !attributes.href
+    ) {
+      continue;
+    }
+    try {
+      const candidate = new URL(
+        decodeXmlAttribute(attributes.href),
+        pageUrl
+      );
+      if (
+        (candidate.protocol === "https:" || candidate.protocol === "http:") &&
+        candidate.toString() !== pageUrl
+      ) {
+        return candidate.toString();
+      }
+    } catch {
+      // Ignore a malformed discovery candidate and inspect the next link.
+    }
+  }
+  return null;
+}
+
+function readHtmlAttributes(tag: string) {
+  const attributes: Record<string, string> = {};
+  for (const match of tag.matchAll(
+    /\b([a-z][\w:-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/gi
+  )) {
+    const name = match[1]?.toLowerCase();
+    const value = match[2] ?? match[3] ?? match[4];
+    if (name && value !== undefined && attributes[name] === undefined) {
+      attributes[name] = value;
+    }
+  }
+  return attributes;
+}
+
+function decodeXmlAttribute(value: string) {
+  return value
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, "\"")
+    .replace(/&#39;|&apos;/gi, "'");
+}
+
+function looksLikeHtml(body: string) {
+  const start = body.slice(0, 4_096);
+  return /<!DOCTYPE\s+html\b|<html\b/i.test(start);
 }
 
 function parseSafeUrl(rawUrl: string): URL {

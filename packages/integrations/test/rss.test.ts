@@ -36,13 +36,37 @@ describe("RSS/Atom normalisatie", () => {
     expect(feed.articles[0]?.link).toBe("https://example.org/bericht");
   });
 
-  it("weigert XML entities en lege feeds", () => {
+  it("negeert een externe legacy-DTD zonder deze op te halen", () => {
+    const feed = parseRssOrAtom(
+      `<?xml version="1.0"?>
+      <!DOCTYPE rss PUBLIC "-//Netscape Communications//DTD RSS 0.91//EN"
+        "https://example.com/rss-0.91.dtd">
+      <rss version="2.0"><channel><title>PUBLIC nieuws</title><item>
+        <title>SYSTEM blijft gewone tekst</title>
+        <link>https://example.com/nieuws/1</link>
+      </item></channel></rss>`,
+      "https://example.com/feed.xml"
+    );
+
+    expect(feed).toMatchObject({
+      articles: [{ title: "SYSTEM blijft gewone tekst" }],
+      title: "PUBLIC nieuws"
+    });
+  });
+
+  it("weigert interne entities, HTML en lege feeds", () => {
     expect(() =>
       parseRssOrAtom(
         "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]><rss/>",
         "https://example.com/feed"
       )
     ).toThrowError(RssParseError);
+    expect(() =>
+      parseRssOrAtom(
+        "<!DOCTYPE html><html><title>Nieuws</title></html>",
+        "https://example.com/nieuws"
+      )
+    ).toThrowError("webpagina");
     expect(() =>
       parseRssOrAtom("<rss><channel/></rss>", "https://example.com/feed")
     ).toThrowError("geen bruikbare nieuwsartikelen");

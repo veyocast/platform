@@ -90,7 +90,11 @@ RSS is fetched only by Control or the media worker. Each request and redirect:
   loopback, link-local, carrier-grade NAT, multicast or reserved;
 - pins the checked address in the actual socket lookup;
 - bounds redirects, response time and response bytes;
-- rejects DTD/entity declarations and non-feed content;
+- may discover one declared RSS/Atom-alternate from a bounded public HTML page,
+  waarna de ontdekte URL opnieuw door exact dezelfde SSRF-grens gaat;
+- strips an external legacy feed `DOCTYPE` as inert metadata without ever
+  resolving it, while rejecting internal DTD subsets and entity declarations;
+- rejects HTML without a declared feed and all other non-feed content;
 - normalizes at most 50 articles.
 
 A failed sync records a stable error code and schedules a bounded retry. It
