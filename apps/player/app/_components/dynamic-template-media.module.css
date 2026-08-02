@@ -1,0 +1,395 @@
+.root {
+  --template-background: #f4efe6;
+  --template-ink: #11110f;
+  --template-muted: #625f57;
+  --template-panel: #fffdf7;
+  background: var(--template-background);
+  color: var(--template-ink);
+  display: grid;
+  font-family: Roboto, Arial, Helvetica, sans-serif;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  inset: 0;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 5.5vh 5vw 4vh;
+  position: absolute;
+  width: 100%;
+}
+
+.root[data-theme="dark"] {
+  --template-background: #080908;
+  --template-ink: #fffdf7;
+  --template-muted: #c9c4b9;
+  --template-panel: #141512;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(241, 90, 36, 0.22), transparent 28%),
+    linear-gradient(135deg, #171816 0%, #080908 58%, #020302 100%);
+}
+
+.atmosphere {
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.atmosphere span {
+  background: var(--template-accent);
+  display: block;
+  height: 36vw;
+  opacity: 0.08;
+  position: absolute;
+  right: -14vw;
+  top: -16vw;
+  transform: rotate(28deg);
+  width: 42vw;
+}
+
+.atmosphere span:nth-child(2) {
+  bottom: -24vw;
+  left: -18vw;
+  right: auto;
+  top: auto;
+}
+
+.atmosphere span:nth-child(3) {
+  height: 1px;
+  inset: 4vh 4vw auto;
+  opacity: 0.45;
+  transform: none;
+  width: auto;
+}
+
+.header {
+  border-bottom: 2px solid rgba(98, 95, 87, 0.28);
+  display: grid;
+  gap: 1.2vh;
+  padding: 1.8vh 0 2.8vh;
+}
+
+.header p,
+.newsMeta {
+  color: var(--template-accent);
+  font-size: clamp(17px, 1.45vw, 30px);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  font-size: clamp(44px, 5vw, 96px);
+  letter-spacing: -0.045em;
+  line-height: 0.94;
+  margin: 0;
+  max-width: 86%;
+}
+
+.menuGrid {
+  align-content: center;
+  display: grid;
+  gap: 1.2vh 2.2vw;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 3vh 0;
+}
+
+.menuItem {
+  align-items: start;
+  background: var(--template-panel);
+  border-left: clamp(5px, 0.5vw, 10px) solid var(--template-accent);
+  display: grid;
+  gap: 2vw;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 11vh;
+  padding: 1.6vh 1.5vw;
+}
+
+.menuItem p {
+  color: var(--template-accent);
+  font-size: clamp(14px, 1vw, 22px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.4vh;
+  text-transform: uppercase;
+}
+
+.menuItem h2 {
+  font-size: clamp(25px, 2.2vw, 44px);
+  line-height: 1.05;
+  margin: 0;
+}
+
+.menuItem span {
+  color: var(--template-muted);
+  display: block;
+  font-size: clamp(15px, 1.05vw, 23px);
+  line-height: 1.3;
+  margin-top: 0.8vh;
+}
+
+.menuItem strong {
+  color: var(--template-accent);
+  font-size: clamp(28px, 2.5vw, 50px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.newsArticle {
+  align-self: center;
+  max-width: 82%;
+  padding: 5vh 0;
+}
+
+.newsArticle h2 {
+  font-size: clamp(64px, 7.2vw, 140px);
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+  margin: 2vh 0 3vh;
+}
+
+.newsArticle > p:last-child {
+  color: var(--template-muted);
+  font-size: clamp(25px, 2.35vw, 48px);
+  line-height: 1.35;
+  margin: 0;
+  max-width: 78%;
+}
+
+.matchCentre {
+  align-items: center;
+  display: grid;
+  gap: 3vw;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  padding: 5vh 2vw;
+}
+
+.team {
+  display: grid;
+  gap: 2vh;
+  justify-items: center;
+  min-width: 0;
+  text-align: center;
+}
+
+.team div {
+  align-items: center;
+  background: var(--template-panel);
+  border: clamp(5px, 0.55vw, 11px) solid var(--template-accent);
+  color: var(--template-ink);
+  display: flex;
+  font-size: clamp(58px, 7vw, 132px);
+  font-weight: 900;
+  justify-content: center;
+  height: min(25vw, 32vh);
+  width: min(25vw, 32vh);
+}
+
+.team h2 {
+  font-size: clamp(36px, 3.6vw, 72px);
+  letter-spacing: -0.035em;
+  line-height: 1;
+  margin: 0;
+  max-width: 100%;
+}
+
+.matchMeta {
+  display: grid;
+  gap: 1.4vh;
+  justify-items: center;
+  min-width: 18vw;
+  text-align: center;
+}
+
+.matchMeta span {
+  color: var(--template-accent);
+  font-size: clamp(16px, 1.25vw, 26px);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.matchMeta strong {
+  font-size: clamp(38px, 4vw, 78px);
+  line-height: 1;
+}
+
+.matchMeta p {
+  color: var(--template-muted);
+  font-size: clamp(20px, 1.5vw, 30px);
+  margin: 0;
+}
+
+.sportList {
+  align-content: center;
+  display: grid;
+  padding: 2.5vh 0;
+}
+
+.listHeading,
+.sportRow {
+  align-items: center;
+  display: grid;
+  gap: 1.4vw;
+  grid-template-columns: minmax(46px, 0.35fr) minmax(0, 4fr) minmax(140px, 1.15fr);
+}
+
+.listHeading {
+  color: var(--template-muted);
+  font-size: clamp(14px, 1vw, 20px);
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  padding: 0 1.1vw 1.1vh;
+  text-transform: uppercase;
+}
+
+.sportRow {
+  border-top: 1px solid rgba(98, 95, 87, 0.3);
+  min-height: 8.4vh;
+  padding: 1vh 1.1vw;
+}
+
+.sportRow > span {
+  color: var(--template-accent);
+  font-size: clamp(20px, 1.6vw, 32px);
+  font-weight: 900;
+}
+
+.sportRow h2 {
+  font-size: clamp(24px, 2vw, 40px);
+  line-height: 1.05;
+  margin: 0;
+}
+
+.sportRow p {
+  color: var(--template-muted);
+  font-size: clamp(15px, 1.1vw, 23px);
+  margin: 0.45vh 0 0;
+}
+
+.sportRow strong {
+  font-size: clamp(20px, 1.45vw, 30px);
+  font-variant-numeric: tabular-nums;
+  justify-self: end;
+  text-align: right;
+}
+
+.emptyState {
+  align-self: center;
+  background: var(--template-panel);
+  border-left: 8px solid var(--template-accent);
+  font-size: clamp(26px, 2.4vw, 48px);
+  font-weight: 800;
+  justify-self: stretch;
+  padding: 3vh 3vw;
+}
+
+.footer {
+  align-items: center;
+  border-top: 1px solid rgba(98, 95, 87, 0.3);
+  color: var(--template-muted);
+  display: flex;
+  font-size: clamp(13px, 0.95vw, 20px);
+  font-weight: 700;
+  justify-content: space-between;
+  letter-spacing: 0.06em;
+  padding-top: 1.7vh;
+  text-transform: uppercase;
+}
+
+.root[data-orientation="portrait"] {
+  padding: 5vh 6vw 4vh;
+}
+
+.root[data-orientation="portrait"] .header h1 {
+  font-size: clamp(54px, 8vw, 104px);
+  max-width: 100%;
+}
+
+.root[data-orientation="portrait"] .menuGrid {
+  gap: 1.1vh;
+  grid-template-columns: 1fr;
+}
+
+.root[data-orientation="portrait"] .menuItem {
+  min-height: 7.4vh;
+  padding: 1.2vh 2.6vw;
+}
+
+.root[data-orientation="portrait"] .newsArticle {
+  max-width: 100%;
+}
+
+.root[data-orientation="portrait"] .newsArticle h2 {
+  font-size: clamp(62px, 11.5vw, 132px);
+}
+
+.root[data-orientation="portrait"] .newsArticle > p:last-child {
+  font-size: clamp(27px, 4vw, 48px);
+  max-width: 100%;
+}
+
+.root[data-orientation="portrait"] .matchCentre {
+  gap: 3vh;
+  grid-template-columns: 1fr;
+  padding: 4vh 0;
+}
+
+.root[data-orientation="portrait"] .team {
+  grid-template-columns: auto minmax(0, 1fr);
+  justify-items: start;
+  text-align: left;
+  width: 100%;
+}
+
+.root[data-orientation="portrait"] .team div {
+  font-size: clamp(44px, 9vw, 92px);
+  grid-row: span 2;
+  height: min(24vw, 17vh);
+  width: min(24vw, 17vh);
+}
+
+.root[data-orientation="portrait"] .team h2 {
+  align-self: center;
+  font-size: clamp(38px, 6.2vw, 68px);
+}
+
+.root[data-orientation="portrait"] .matchMeta {
+  border-bottom: 1px solid rgba(98, 95, 87, 0.3);
+  border-top: 1px solid rgba(98, 95, 87, 0.3);
+  padding: 2.5vh 0;
+  width: 100%;
+}
+
+.root[data-orientation="portrait"] .listHeading,
+.root[data-orientation="portrait"] .sportRow {
+  grid-template-columns: 44px minmax(0, 1fr);
+}
+
+.root[data-orientation="portrait"] .listHeading span:last-child,
+.root[data-orientation="portrait"] .sportRow > strong {
+  grid-column: 2;
+  justify-self: start;
+  text-align: left;
+}
+
+.root[data-orientation="portrait"] .sportRow {
+  min-height: 11vh;
+}
+
+@media (max-width: 900px) {
+  .root {
+    padding-inline: 6vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

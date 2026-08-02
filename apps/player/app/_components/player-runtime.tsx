@@ -111,6 +111,7 @@ import {
   localStorageReloadTimestampsKey
 } from "../_lib/player-storage";
 import styles from "./player-playback.module.css";
+import { DynamicTemplateMedia } from "./dynamic-template-media";
 import { PlayerRecoveryMenu } from "./player-recovery-menu";
 
 const demoPairingCode = "VYO 482";
@@ -2110,6 +2111,46 @@ function PlaybackScene({
 }
 
 export function PlaybackMedia({
+  item,
+  onEnded,
+  onFailure,
+  onPlaybackStateChange,
+  onReady,
+  passive = false,
+  watchdogTimeoutMs
+}: {
+  item: PlayerManifestItem;
+  onEnded: (itemId: string) => void;
+  onFailure: (itemId: string, code: PlaybackFailureCode) => void;
+  onPlaybackStateChange?: (state: "ended" | "paused" | "playing") => void;
+  onReady: (itemId: string) => void;
+  passive?: boolean;
+  watchdogTimeoutMs: number;
+}) {
+  if (item.dynamicTemplate) {
+    return (
+      <DynamicTemplateMedia
+        item={item}
+        onReady={onReady}
+        passive={passive}
+      />
+    );
+  }
+
+  return (
+    <BinaryPlaybackMedia
+      item={item}
+      onEnded={onEnded}
+      onFailure={onFailure}
+      onPlaybackStateChange={onPlaybackStateChange}
+      onReady={onReady}
+      passive={passive}
+      watchdogTimeoutMs={watchdogTimeoutMs}
+    />
+  );
+}
+
+function BinaryPlaybackMedia({
   item,
   onEnded,
   onFailure,

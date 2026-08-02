@@ -110,6 +110,22 @@ export const dynamicTemplateManifestSchema = z.object({
   slideType: dynamicSlideTypeSchema
 });
 
+export const playerDynamicTemplatePayloadSchema = z
+  .object({
+    data: z.record(z.string(), z.unknown()),
+    orientation: dynamicSlideOrientationSchema,
+    schemaVersion: z.literal(1),
+    slideType: dynamicSlideTypeSchema,
+    snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
+    snapshotId: idSchema,
+    templateSlug: z
+      .string()
+      .trim()
+      .regex(/^[a-z0-9][a-z0-9-]{0,119}$/),
+    templateVersionId: idSchema
+  })
+  .strict();
+
 export const dynamicSnapshotDataSchema = z.discriminatedUnion("type", [
   z.object({
     data: canonicalMenuSchema,
@@ -135,5 +151,8 @@ export type CanonicalNewsArticle = z.infer<
 export type CanonicalNewsFeed = z.infer<typeof canonicalNewsFeedSchema>;
 export type DynamicTemplateManifest = z.infer<
   typeof dynamicTemplateManifestSchema
+>;
+export type PlayerDynamicTemplatePayload = z.infer<
+  typeof playerDynamicTemplatePayloadSchema
 >;
 export type DynamicSnapshotData = z.infer<typeof dynamicSnapshotDataSchema>;

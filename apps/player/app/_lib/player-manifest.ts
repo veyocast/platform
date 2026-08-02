@@ -1,4 +1,7 @@
-import type { PlayerPlaybackItem } from "@veyocast/contracts";
+import type {
+  PlayerDynamicTemplatePayload,
+  PlayerPlaybackItem
+} from "@veyocast/contracts";
 
 import { localStorageDeviceTokenKey } from "./player-storage";
 
@@ -51,6 +54,7 @@ export type PlayerManifestPresentationDefaults = {
 };
 
 export type PlayerManifestItem = PlayerPlaybackItem & {
+  dynamicTemplate?: PlayerDynamicTemplatePayload;
   source: {
     url: string;
     fallbackUrl?: string;

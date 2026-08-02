@@ -53,6 +53,57 @@ export function renderLgLegacyHtml() {
     #watermark.visible{display:block}
     #offline{position:absolute;right:2vw;bottom:2vh;display:none;padding:8px 12px;border-radius:999px;background:rgba(7,7,7,.76);color:#f4c15d;font-size:16px;font-weight:700}
     #offline.visible{display:block}
+    .dynamic-template{--accent:#f15a24;position:absolute;inset:0;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;padding:5vh 5vw 4vh;background:#f4efe6;color:#11110f;font-family:Arial,Helvetica,sans-serif}
+    .dynamic-template.dark{background:#080908;color:#fffdf7}
+    .dynamic-template header{border-bottom:2px solid rgba(98,95,87,.3);padding:1.8vh 0 2.8vh}
+    .dynamic-template header p,.dynamic-news-meta{margin:0 0 1vh;color:var(--accent);font-size:clamp(17px,1.45vw,30px);font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+    .dynamic-template h1{margin:0;max-width:90%;font-size:clamp(44px,5vw,96px);line-height:.94;letter-spacing:-.045em}
+    .dynamic-body{align-self:stretch;display:grid;align-content:center;min-height:0;padding:2.5vh 0}
+    .dynamic-menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.2vh 2.2vw}
+    .dynamic-menu-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2vw;min-height:10vh;padding:1.5vh 1.5vw;border-left:8px solid var(--accent);background:#fffdf7}
+    .dark .dynamic-menu-item{background:#141512}
+    .dynamic-menu-item small{display:block;margin:0 0 .4vh;color:var(--accent);font-size:clamp(13px,1vw,21px);font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .dynamic-menu-item h2{margin:0;font-size:clamp(24px,2.2vw,44px);line-height:1.05}
+    .dynamic-menu-item p{margin:.7vh 0 0;color:#625f57;font-size:clamp(14px,1.05vw,23px);line-height:1.3}
+    .dark .dynamic-menu-item p{color:#c9c4b9}
+    .dynamic-menu-item strong{color:var(--accent);font-size:clamp(27px,2.5vw,50px);white-space:nowrap}
+    .dynamic-news{max-width:84%;padding:4vh 0}
+    .dynamic-news h2{margin:1.8vh 0 2.6vh;font-size:clamp(62px,7.2vw,138px);line-height:.92;letter-spacing:-.055em}
+    .dynamic-news p:last-child{margin:0;max-width:80%;color:#625f57;font-size:clamp(24px,2.35vw,47px);line-height:1.35}
+    .dark .dynamic-news p:last-child{color:#c9c4b9}
+    .dynamic-match{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:3vw;padding:4vh 1vw;text-align:center}
+    .dynamic-team{display:grid;justify-items:center;gap:2vh;min-width:0}
+    .dynamic-team-mark{display:flex;align-items:center;justify-content:center;width:min(25vw,32vh);height:min(25vw,32vh);border:9px solid var(--accent);background:#fffdf7;color:#11110f;font-size:clamp(52px,7vw,126px);font-weight:900}
+    .dark .dynamic-team-mark{background:#141512;color:#fffdf7}
+    .dynamic-team h2{margin:0;font-size:clamp(34px,3.5vw,70px);line-height:1}
+    .dynamic-match-meta{display:grid;justify-items:center;gap:1.3vh;min-width:18vw}
+    .dynamic-match-meta small{color:var(--accent);font-size:clamp(15px,1.2vw,25px);font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+    .dynamic-match-meta strong{font-size:clamp(36px,4vw,76px)}
+    .dynamic-match-meta p{margin:0;color:#625f57;font-size:clamp(18px,1.5vw,29px)}
+    .dark .dynamic-match-meta p{color:#c9c4b9}
+    .dynamic-list{display:grid}
+    .dynamic-row{display:grid;grid-template-columns:50px minmax(0,1fr) minmax(130px,1.15fr);align-items:center;gap:1.4vw;min-height:8.5vh;padding:1vh 1vw;border-top:1px solid rgba(98,95,87,.3)}
+    .dynamic-row>span{color:var(--accent);font-size:clamp(19px,1.6vw,31px);font-weight:900}
+    .dynamic-row h2{margin:0;font-size:clamp(23px,2vw,39px);line-height:1.05}
+    .dynamic-row p{margin:.4vh 0 0;color:#625f57;font-size:clamp(14px,1.1vw,22px)}
+    .dark .dynamic-row p{color:#c9c4b9}
+    .dynamic-row strong{justify-self:end;font-size:clamp(19px,1.4vw,29px);text-align:right}
+    .dynamic-empty{padding:3vh 3vw;border-left:8px solid var(--accent);background:#fffdf7;font-size:clamp(25px,2.4vw,47px);font-weight:800}
+    .dark .dynamic-empty{background:#141512}
+    .dynamic-template footer{display:flex;justify-content:space-between;padding-top:1.7vh;border-top:1px solid rgba(98,95,87,.3);color:#625f57;font-size:clamp(12px,.95vw,19px);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+    .dark footer{color:#c9c4b9}
+    .dynamic-template.portrait{padding:5vh 6vw 4vh}
+    .portrait .dynamic-menu-grid{grid-template-columns:1fr;gap:1vh}
+    .portrait .dynamic-menu-item{min-height:7.2vh;padding:1.1vh 2.6vw}
+    .portrait .dynamic-news{max-width:100%}
+    .portrait .dynamic-news h2{font-size:clamp(60px,11.5vw,130px)}
+    .portrait .dynamic-news p:last-child{max-width:100%;font-size:clamp(26px,4vw,47px)}
+    .portrait .dynamic-match{grid-template-columns:1fr;gap:2.5vh}
+    .portrait .dynamic-team{grid-template-columns:auto minmax(0,1fr);align-items:center;justify-items:start;width:100%;text-align:left}
+    .portrait .dynamic-team-mark{width:min(24vw,17vh);height:min(24vw,17vh);font-size:clamp(42px,9vw,90px)}
+    .portrait .dynamic-match-meta{width:100%;padding:2vh 0;border-top:1px solid rgba(98,95,87,.3);border-bottom:1px solid rgba(98,95,87,.3)}
+    .portrait .dynamic-row{grid-template-columns:44px minmax(0,1fr);min-height:10.5vh}
+    .portrait .dynamic-row strong{grid-column:2;justify-self:start;text-align:left}
     @media(max-height:650px){.panel{padding:24px}.logo{width:210px;margin-bottom:24px}#detail{margin-top:14px}#pairing{margin-top:18px}}
   </style>
 </head>
@@ -99,6 +150,7 @@ export function renderLgLegacyHtml() {
       retryTimer: null,
       state: "BOOTING",
       syncFailures: 0,
+      templateTimer: null,
       watchdogTimer: null
     };
     var definitiveCredentialCodes = {
@@ -641,9 +693,11 @@ export function renderLgLegacyHtml() {
       window.clearTimeout(runtime.playbackTimer);
       window.clearTimeout(runtime.watchdogTimer);
       window.clearInterval(runtime.progressTimer);
+      window.clearInterval(runtime.templateTimer);
       runtime.playbackTimer = null;
       runtime.watchdogTimer = null;
       runtime.progressTimer = null;
+      runtime.templateTimer = null;
       if (runtime.currentElement && runtime.currentElement.tagName === "VIDEO") {
         try { runtime.currentElement.pause(); } catch (error) {}
         runtime.currentElement.removeAttribute("src");
@@ -718,7 +772,15 @@ export function renderLgLegacyHtml() {
           failItem("LEGACY_CACHE_MISSING");
           return;
         }
-        if (item.kind === "video") playVideo(item, sourceUrl);
+        if (validDynamicTemplate(item.dynamicTemplate)) {
+          try {
+            playDynamicTemplate(item, sourceUrl);
+          } catch (error) {
+            log("LEGACY_TEMPLATE_ERROR", String(error && error.message || error));
+            if (item.kind === "video") playVideo(item, sourceUrl);
+            else playImage(item, sourceUrl);
+          }
+        } else if (item.kind === "video") playVideo(item, sourceUrl);
         else playImage(item, sourceUrl);
       });
     }
@@ -733,6 +795,255 @@ export function renderLgLegacyHtml() {
       var seconds = Number(item.durationSeconds || defaults.imageDurationSeconds || 10);
       if (!isFinite(seconds) || seconds < 1) seconds = 10;
       return Math.min(3600000, Math.max(1000, Math.round(seconds * 1000)));
+    }
+    function validDynamicTemplate(value) {
+      return value &&
+        value.schemaVersion === 1 &&
+        typeof value.templateSlug === "string" &&
+        /^[a-z0-9][a-z0-9-]{0,119}$/.test(value.templateSlug) &&
+        typeof value.slideType === "string" &&
+        (value.orientation === "portrait" || value.orientation === "landscape") &&
+        value.data &&
+        typeof value.data === "object";
+    }
+    function templateRecord(value) {
+      return value && typeof value === "object" && !Array.isArray(value)
+        ? value
+        : null;
+    }
+    function templateArray(value) {
+      return Array.isArray(value) ? value.slice(0, 40) : [];
+    }
+    function templateText(value, fallback) {
+      var normalized;
+      if (typeof value !== "string") return fallback || "";
+      normalized = value.replace(/\\s+/g, " ").replace(/^\\s+|\\s+$/g, "");
+      return normalized ? normalized.slice(0, 500) : fallback || "";
+    }
+    function templateNode(tagName, className, text) {
+      var element = document.createElement(tagName);
+      if (className) element.className = className;
+      if (typeof text === "string") element.textContent = text;
+      return element;
+    }
+    function templatePrice(value, currency) {
+      var amount = Number(value);
+      var rendered;
+      if (!isFinite(amount)) return "";
+      rendered = (amount / 100).toFixed(2).replace(".", ",");
+      return (currency === "EUR" || !currency ? "€ " : currency + " ") + rendered;
+    }
+    function templatePages(items, perPage) {
+      var pages = [];
+      var index;
+      if (!items.length) return [[]];
+      for (index = 0; index < items.length; index += perPage) {
+        pages.push(items.slice(index, index + perPage));
+      }
+      return pages;
+    }
+    function templateInitials(value) {
+      return templateText(value, "VC").split(/\\s+/).slice(0, 2).map(function (part) {
+        return part.charAt(0).toUpperCase();
+      }).join("");
+    }
+    function sportTemplateTitle(slideType) {
+      var titles = {
+        sport_activities: "Clubagenda",
+        sport_birthdays: "Verjaardagen",
+        sport_cancellations: "Afgelastingen",
+        sport_dressing_rooms: "Veld- en kleedkamerindeling",
+        sport_match_of_the_day: "Wedstrijd van de dag",
+        sport_next_match: "Volgende wedstrijd",
+        sport_officials: "Wedstrijdofficials",
+        sport_period_standing: "Periodestand",
+        sport_program: "Programma van vandaag",
+        sport_results: "Uitslagen",
+        sport_sponsor: "Partner van de week",
+        sport_standing: "Stand",
+        sport_team: "Team",
+        sport_trainings: "Trainingen",
+        sport_volunteers: "Vrijwilligers"
+      };
+      return titles[slideType] || "Clubinformatie";
+    }
+    function renderMenuTemplate(body, snapshot, orientation) {
+      var menu = templateRecord(snapshot.data) || templateRecord(snapshot.menu) || {};
+      var products = templateArray(menu.products);
+      var pages = templatePages(products, orientation === "portrait" ? 10 : 8);
+      return {
+        pages: pages,
+        render: function (page) {
+          var grid = templateNode("div", "dynamic-menu-grid");
+          var index;
+          var product;
+          var item;
+          var copy;
+          var price;
+          body.innerHTML = "";
+          if (!page.length) {
+            body.appendChild(templateNode("div", "dynamic-empty", "Er zijn nu geen beschikbare producten."));
+            return;
+          }
+          for (index = 0; index < page.length; index += 1) {
+            product = templateRecord(page[index]) || {};
+            if (!templateText(product.name, "")) continue;
+            item = templateNode("article", "dynamic-menu-item");
+            copy = templateNode("div", "");
+            if (product.category) copy.appendChild(templateNode("small", "", templateText(product.category, "")));
+            copy.appendChild(templateNode("h2", "", templateText(product.name, "Product")));
+            if (product.description) copy.appendChild(templateNode("p", "", templateText(product.description, "")));
+            price = templateNode("strong", "", templatePrice(product.priceMinor, templateText(product.currency, "EUR")));
+            item.appendChild(copy);
+            item.appendChild(price);
+            grid.appendChild(item);
+          }
+          body.appendChild(grid);
+        }
+      };
+    }
+    function renderNewsTemplate(body, snapshot) {
+      var news = templateRecord(snapshot.data) || templateRecord(snapshot.news) || {};
+      var articles = templateArray(news.articles);
+      return {
+        pages: articles.length ? articles : [null],
+        render: function (articleValue) {
+          var article = templateRecord(articleValue);
+          var wrapper;
+          body.innerHTML = "";
+          if (!article) {
+            body.appendChild(templateNode("div", "dynamic-empty", "Er zijn nu geen nieuwsberichten."));
+            return;
+          }
+          wrapper = templateNode("article", "dynamic-news");
+          wrapper.appendChild(templateNode("p", "dynamic-news-meta", templateText(article.sourceName, templateText(news.sourceName, "Clubnieuws"))));
+          wrapper.appendChild(templateNode("h2", "", templateText(article.title, "Clubnieuws")));
+          if (article.intro) wrapper.appendChild(templateNode("p", "", templateText(article.intro, "")));
+          body.appendChild(wrapper);
+        }
+      };
+    }
+    function splitTemplateTeams(value) {
+      var parts = templateText(value, "").split(/\\s+[–—-]\\s+/);
+      return [parts[0] || "Thuisteam", parts.slice(1).join(" – ") || "Uitteam"];
+    }
+    function renderMatchTeam(name) {
+      var team = templateNode("article", "dynamic-team");
+      team.appendChild(templateNode("div", "dynamic-team-mark", templateInitials(name)));
+      team.appendChild(templateNode("h2", "", name));
+      return team;
+    }
+    function renderSportTemplate(body, snapshot, slideType, orientation) {
+      var sport = templateRecord(snapshot.sport) || {};
+      var items = templateArray(sport.items);
+      var match = slideType === "sport_match_of_the_day" || slideType === "sport_next_match";
+      var pages = match ? [items.length ? items[0] : null] : templatePages(items, orientation === "portrait" ? 6 : 8);
+      return {
+        pages: pages,
+        render: function (page) {
+          var item;
+          var teams;
+          var centre;
+          var meta;
+          var list;
+          var index;
+          var row;
+          var copy;
+          body.innerHTML = "";
+          if (match) {
+            item = templateRecord(page);
+            if (!item) {
+              body.appendChild(templateNode("div", "dynamic-empty", "Deze wedstrijdinformatie is nog niet beschikbaar."));
+              return;
+            }
+            teams = splitTemplateTeams(templateText(item.primary, ""));
+            centre = templateNode("div", "dynamic-match");
+            centre.appendChild(renderMatchTeam(teams[0]));
+            meta = templateNode("div", "dynamic-match-meta");
+            meta.appendChild(templateNode("small", "", templateText(item.status, "Programma")));
+            meta.appendChild(templateNode("strong", "", templateText(item.secondary, "Tijd volgt")));
+            meta.appendChild(templateNode("p", "", templateText(item.meta, "Locatie volgt")));
+            centre.appendChild(meta);
+            centre.appendChild(renderMatchTeam(teams[1]));
+            body.appendChild(centre);
+            return;
+          }
+          if (!page.length) {
+            body.appendChild(templateNode("div", "dynamic-empty", "Deze clubinformatie is nu niet beschikbaar."));
+            return;
+          }
+          list = templateNode("div", "dynamic-list");
+          for (index = 0; index < page.length; index += 1) {
+            item = templateRecord(page[index]) || {};
+            if (!templateText(item.primary, "")) continue;
+            row = templateNode("article", "dynamic-row");
+            row.appendChild(templateNode("span", "", String(index + 1)));
+            copy = templateNode("div", "");
+            copy.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
+            if (item.secondary) copy.appendChild(templateNode("p", "", templateText(item.secondary, "")));
+            row.appendChild(copy);
+            row.appendChild(templateNode("strong", "", templateText(item.meta, templateText(item.status, ""))));
+            list.appendChild(row);
+          }
+          body.appendChild(list);
+        }
+      };
+    }
+    function playDynamicTemplate(item, fallbackUrl) {
+      var payload = item.dynamicTemplate;
+      var snapshot = templateRecord(payload.data) || {};
+      var root = templateNode("section", "dynamic-template");
+      var header = templateNode("header", "");
+      var body = templateNode("div", "dynamic-body");
+      var footer = templateNode("footer", "");
+      var sourceLabel = "VeyoCast ClubTV";
+      var title = "Clubinformatie";
+      var renderer;
+      var pageIndex = 0;
+      var accent = "#f15a24";
+      var brand = templateRecord(snapshot.brand);
+      if (brand && typeof brand.primaryColor === "string" && /^#[0-9a-f]{6}$/i.test(brand.primaryColor)) {
+        accent = brand.primaryColor;
+      }
+      root.className += payload.templateSlug.indexOf("dark") !== -1 ? " dark" : "";
+      root.className += payload.orientation === "portrait" ? " portrait" : "";
+      root.style.setProperty("--accent", accent);
+      if (payload.slideType === "menu") {
+        sourceLabel = "Clubkantine";
+        title = templateText((templateRecord(snapshot.data) || {}).title, "Menu vandaag");
+        renderer = renderMenuTemplate(body, snapshot, payload.orientation);
+      } else if (payload.slideType === "news") {
+        sourceLabel = "Clubnieuws";
+        title = "Het laatste nieuws";
+        renderer = renderNewsTemplate(body, snapshot);
+      } else {
+        sourceLabel = payload.slideType.indexOf("standing") !== -1 ? "Competitie" : "Match centre";
+        title = templateText((templateRecord(snapshot.sport) || {}).title, sportTemplateTitle(payload.slideType));
+        renderer = renderSportTemplate(body, snapshot, payload.slideType, payload.orientation);
+      }
+      header.appendChild(templateNode("p", "", sourceLabel));
+      header.appendChild(templateNode("h1", "", title));
+      footer.appendChild(templateNode("span", "", "VeyoCast ClubTV"));
+      footer.appendChild(templateNode("span", "dynamic-page-number", renderer.pages.length > 1 ? "1 / " + String(renderer.pages.length) : "Live clubinformatie"));
+      root.appendChild(header);
+      root.appendChild(body);
+      root.appendChild(footer);
+      byId("media-root").appendChild(root);
+      runtime.currentElement = root;
+      renderer.render(renderer.pages[0]);
+      if (renderer.pages.length > 1) {
+        runtime.templateTimer = window.setInterval(function () {
+          var number;
+          if (runtime.currentElement !== root) return;
+          pageIndex = (pageIndex + 1) % renderer.pages.length;
+          renderer.render(renderer.pages[pageIndex]);
+          number = root.querySelector(".dynamic-page-number");
+          if (number) number.textContent = String(pageIndex + 1) + " / " + String(renderer.pages.length);
+        }, Math.max(4000, Math.floor(itemDurationMs(item) / renderer.pages.length)));
+      }
+      mediaReady();
+      runtime.playbackTimer = window.setTimeout(nextItem, itemDurationMs(item));
+      log("LEGACY_TEMPLATE_READY", payload.slideType + " " + payload.templateSlug);
     }
     function playImage(item, sourceUrl) {
       var image;
