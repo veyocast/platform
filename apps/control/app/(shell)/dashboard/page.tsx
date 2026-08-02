@@ -20,6 +20,7 @@ import {
   loadTenantOverview,
   type TenantOverview
 } from "../../../lib/control-overview";
+import { formatTenantDateTime } from "../../../lib/tenant-time";
 import { OperationalActionInbox } from "../_components/operational-action-inbox";
 import { DashboardCreateMenu } from "./dashboard-create-menu";
 import styles from "./publisher-overview.module.css";
@@ -376,7 +377,7 @@ function isRecentlyOnline(value: string | null | undefined) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return formatTenantDateTime(value, null);
 }
 
 function humanize(value: string) {

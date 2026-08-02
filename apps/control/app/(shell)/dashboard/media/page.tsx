@@ -27,6 +27,7 @@ import {
 import { requireControlSession } from "../../../../lib/control-session";
 import { getSupabasePublicConfig } from "../../../../lib/supabase/config";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import {
   HealthList,
   Timeline
@@ -1239,14 +1240,15 @@ function formatBytes(value: number) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
+  return formatTenantDateTime(value, null, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
 }
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(value));
+  return formatTenantDateTime(value, null);
 }
 
 function shortChecksum(value: string | null) {

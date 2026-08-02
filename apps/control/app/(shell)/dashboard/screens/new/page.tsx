@@ -3,6 +3,7 @@ import Link from "next/link";
 import { hasCapability } from "@veyocast/auth";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
+import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import { claimScreenPairing, createScreenOnboarding } from "../actions";
 import { loadScreenDetail, loadScreenFleet } from "../data";
@@ -187,5 +188,5 @@ function formatBytes(value: number) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return formatTenantDateTime(value, null);
 }

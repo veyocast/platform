@@ -6,6 +6,7 @@ import { Button, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
+import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import styles from "../../dynamic-content.module.css";
 import {
@@ -23,6 +24,8 @@ export default async function SportlinkPage({ searchParams }: Props) {
   const data = session.isLive ? await loadConnection(session.tenantId!) : null;
   const connection = data?.connection ?? null;
   const policies = data?.policies ?? [];
+  const formatDate = (value: string | null) =>
+    formatTenantDateTime(value, session.timezoneName);
   const canManage = session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.data_source.manage");
   const isSyncPending = policies.some((policy) =>
@@ -186,11 +189,6 @@ async function loadConnection(tenantId: string) {
     })
   };
 }
-function formatDate(value: string | null) {
-  return value ? new Intl.DateTimeFormat("nl-NL", {
-    dateStyle: "medium", timeStyle: "short"
-  }).format(new Date(value)) : "Nog niet";
-}
 function errorCopy(code: string) {
   const copy: Record<string, string> = {
     SPORTLINK_CLIENT_ID_INVALID: "De Client ID is ongeldig.",
@@ -200,6 +198,7 @@ function errorCopy(code: string) {
     POLICY_SAVE_FAILED: "Het synchronisatiebeleid kon niet worden opgeslagen.",
     PRIVACY_OPT_IN_REQUIRED: "Persoonsfeeds vereisen eerst een expliciete privacy-activering.",
     SAVE_FAILED: "De geteste verbinding kon niet veilig worden opgeslagen.",
+    SPORTLINK_WORKER_LEASE_EXPIRED: "De synchronisatieworker werd onderbroken. De dataset is automatisch opnieuw ingepland; de laatste goede inhoud blijft beschikbaar.",
     SYNC_COOLDOWN: "Er is recent al een handmatige synchronisatie gestart. Probeer het over vijftien minuten opnieuw.",
     SYNC_FAILED: "De synchronisatie kon niet veilig worden ingepland."
   };

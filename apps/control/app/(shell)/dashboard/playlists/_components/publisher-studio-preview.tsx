@@ -16,6 +16,7 @@ import {
 
 import { Button } from "@veyocast/ui";
 
+import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import type { PlaylistPreviewItem } from "../playlist-preview";
 import styles from "../[playlistId]/publisher-studio.module.css";
 import {
@@ -240,10 +241,7 @@ export function PublisherStudioPreview({
             ? `${screens.find((screen) => screen.id === screenId)?.name ?? "Doelscherm"} · `
             : ""}
           {simulatedAt
-            ? new Intl.DateTimeFormat("nl-NL", {
-                dateStyle: "medium",
-                timeStyle: "short"
-              }).format(new Date(simulatedAt))
+            ? formatTenantDateTime(simulatedAt, null)
             : "Previewtijd laden…"}
         </span>
       </div>

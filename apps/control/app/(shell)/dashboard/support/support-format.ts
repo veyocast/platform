@@ -16,8 +16,6 @@ export function statusLabel(status: string) {
 }
 
 export function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(value));
+  return formatTenantDateTime(value, null);
 }
+import { formatTenantDateTime } from "../../../../lib/tenant-time";

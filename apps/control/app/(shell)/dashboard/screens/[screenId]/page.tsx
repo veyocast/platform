@@ -5,6 +5,7 @@ import { hasCapability } from "@veyocast/auth";
 import { SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
+import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import {
   renamePlayerDevice,
@@ -438,7 +439,7 @@ function screenStatusLabel(status: string) { return status === "maintenance" ? "
 function lifecycleExplanation(status: string) { return status === "maintenance" ? "Lokale playback blijft behouden; nieuwe sync en pairing wachten." : status === "disabled" ? "Device toegang is ingetrokken zodra de serverstatus bekend is." : "Pairing, heartbeat en synchronisatie zijn toegestaan."; }
 function orientationLabel(value: string) { return value === "portrait" ? "Staand" : "Liggend"; }
 function resolutionLabel(screen: { resolutionHeight: number | null; resolutionWidth: number | null }) { return screen.resolutionWidth && screen.resolutionHeight ? `${screen.resolutionWidth} × ${screen.resolutionHeight}` : "Resolutie onbekend"; }
-function formatDate(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
+function formatDate(value: string) { return formatTenantDateTime(value, null); }
 function relativeDate(value: string) { const elapsed = Math.max(0, Date.now() - Date.parse(value)); if (elapsed < 60_000) return "zojuist"; if (elapsed < 3_600_000) return `${Math.floor(elapsed / 60_000)} min geleden`; if (elapsed < 86_400_000) return `${Math.floor(elapsed / 3_600_000)} uur geleden`; return formatDate(value); }
 function releaseLabel(id: string | null, releases: FleetRelease[]) { if (!id) return "Geen"; return releases.find((release) => release.id === id)?.label ?? `Release ${id.slice(0, 8)}`; }
 function formatStorage(device: FleetDevice | null) { if (!device || device.storageUsedBytes === null || device.storageQuotaBytes === null) return "Onbekend"; return `${formatBytes(device.storageUsedBytes)} / ${formatBytes(device.storageQuotaBytes)}`; }

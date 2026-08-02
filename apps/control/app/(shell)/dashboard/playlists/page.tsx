@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { requireControlSession } from "../../../../lib/control-session";
+import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { loadPlaylistList, type PlaylistListFilter } from "./data";
 import { PlaylistCreateDialog } from "./playlist-create-dialog";
@@ -283,5 +284,5 @@ function formatDuration(seconds: number) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return formatTenantDateTime(value, null);
 }

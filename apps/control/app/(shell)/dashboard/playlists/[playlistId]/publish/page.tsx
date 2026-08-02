@@ -6,6 +6,7 @@ import { hasCapability } from "@veyocast/auth";
 import type { ReleasePreflightReasonCode } from "@veyocast/domain";
 
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
+import { formatTenantDateTime } from "../../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../../_components/shell-primitives";
 import { publishPlaylistGuided } from "../../actions";
 import { loadPlaylistStudio } from "../../data";
@@ -114,7 +115,12 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
   </>;
 }
 
-function formatDate(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)); }
+function formatDate(value: string) {
+  return formatTenantDateTime(value, null, {
+    dateStyle: "short",
+    timeStyle: "short"
+  });
+}
 function formatDuration(seconds: number) { return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`; }
 function formatBytes(bytes: number) { if (!bytes) return "0 MB"; return bytes >= 1024 ** 3 ? `${(bytes / 1024 ** 3).toFixed(1)} GB` : `${(bytes / 1024 ** 2).toFixed(1)} MB`; }
 function preflightStatus(status: string) { return status === "ready" ? { label: "Gereed", tone: "success" as const } : status === "warning" ? { label: "Waarschuwing", tone: "warning" as const } : status === "blocked" ? { label: "Geblokkeerd", tone: "critical" as const } : { label: "Onbekend", tone: "info" as const }; }

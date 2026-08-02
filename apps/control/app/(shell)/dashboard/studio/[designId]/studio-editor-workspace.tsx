@@ -11,6 +11,7 @@ import {
   useState,
   useTransition
 } from "react";
+import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import {
   ArrowDown,
   ArrowLeft,
@@ -3088,17 +3089,14 @@ function renderJobTone(status: StudioRenderJob["status"]) {
 }
 
 function formatJobDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", {
+  return formatTenantDateTime(value, null, {
     dateStyle: "short",
     timeStyle: "short"
-  }).format(new Date(value));
+  });
 }
 
 function formatRevisionDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(value));
+  return formatTenantDateTime(value, null);
 }
 
 function revisionReasonLabel(reason: StudioRevision["reason"]) {

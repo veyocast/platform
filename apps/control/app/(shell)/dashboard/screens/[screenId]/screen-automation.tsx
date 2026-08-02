@@ -1,4 +1,5 @@
 import type { FleetDevice } from "../data";
+import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import {
   type AutomationCapabilityView,
   type AutomationSupportStatus,
@@ -31,6 +32,8 @@ export function ScreenAutomation({
   device,
   screenId
 }: ScreenAutomationProps) {
+  const formatDate = (value: string) =>
+    formatTenantDateTime(value, automation.settings.timezone);
   const latestCommand = automation.commands[0] ?? null;
   const latestEvent = automation.events[0] ?? null;
   const isOnline = Boolean(
@@ -262,11 +265,4 @@ function eventStatus(value: string) {
     : value === "failed"
       ? "Mislukt"
       : "Informatie";
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(value));
 }

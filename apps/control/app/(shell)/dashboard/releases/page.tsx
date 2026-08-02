@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
+import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { loadReleaseCenter } from "./data";
 
@@ -63,6 +64,6 @@ export default async function ReleaseCenterPage({ searchParams }: ReleaseCenterP
   </>;
 }
 
-function formatDate(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
+function formatDate(value: string) { return formatTenantDateTime(value, null); }
 function formatDuration(seconds: number) { const minutes = Math.floor(seconds / 60); return `${minutes} min ${seconds % 60} sec`; }
 function formatBytes(bytes: number) { if (!bytes) return "0 MB"; return bytes >= 1024 ** 3 ? `${(bytes / 1024 ** 3).toFixed(1)} GB` : `${(bytes / 1024 ** 2).toFixed(1)} MB`; }

@@ -3,6 +3,7 @@ import { DataTable } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { loadTenantTeam } from "../../../../lib/control-overview";
+import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import {
   changeTenantMemberRole,
@@ -274,5 +275,5 @@ function deliveryLabel(value: string) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium" }).format(new Date(value));
+  return formatTenantDateTime(value, null, { dateStyle: "medium" });
 }

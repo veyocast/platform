@@ -158,6 +158,7 @@ export default async function PlatformTenantsPage({
             <select defaultValue="Europe/Amsterdam" disabled={!canCreate} id="tenant-timezone" name="timezone">
               <option value="Europe/Amsterdam">Europa/Amsterdam</option>
               <option value="Europe/Brussels">Europa/Brussel</option>
+              <option value="Europe/Paris">Europa/Parijs</option>
               <option value="UTC">UTC</option>
             </select>
           </div>

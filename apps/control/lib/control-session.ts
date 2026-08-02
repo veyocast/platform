@@ -30,6 +30,10 @@ import {
 } from "./tenant-context";
 import { getControlRuntimeMode } from "./supabase/config";
 import { createControlSupabaseClient } from "./supabase/server";
+import {
+  defaultTenantTimeZone,
+  normalizeTenantTimeZone
+} from "./tenant-time";
 
 type TenantMembershipRow = {
   custom_role_id: string | null;
@@ -56,6 +60,7 @@ const demoControlSession = {
   tenantRoleLabel: "Beheerder",
   tenantSlug: "museumkwartier",
   tenantStatus: "active",
+  timezoneName: defaultTenantTimeZone,
   userId: "demo-control-user",
   userName: "Daan Operator"
 } satisfies ControlSession;
@@ -146,6 +151,16 @@ export async function getControlSession(): Promise<ControlSession | null> {
     cookieStore.get(tenantContextCookieName)?.value
   );
   const activeMembership = tenantResolution.context;
+  const tenantSettingsResult = activeMembership?.id
+    ? await supabase
+        .from("tenant_settings")
+        .select("timezone_name")
+        .eq("tenant_id", activeMembership.id)
+        .maybeSingle()
+    : { data: null, error: null };
+  if (tenantSettingsResult.error) {
+    console.error("Tijdzone voor actieve tenant laden mislukt", tenantSettingsResult.error);
+  }
   const roles = getControlSessionRoles(
     (platformResult.data ?? []).map(
       (membership) => membership.role as PlatformRole
@@ -191,6 +206,9 @@ export async function getControlSession(): Promise<ControlSession | null> {
       (activeMembership ? tenantRoleLabel[activeMembership.role] : null),
     tenantSlug: activeMembership?.slug ?? null,
     tenantStatus: activeMembership?.status ?? null,
+    timezoneName: normalizeTenantTimeZone(
+      tenantSettingsResult.data?.timezone_name
+    ),
     userId: user.id,
     userName:
       profileResult.data?.display_name ??

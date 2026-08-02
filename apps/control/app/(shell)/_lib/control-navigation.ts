@@ -54,6 +54,7 @@ export type ControlSession = {
   tenantRoleLabel: string | null;
   tenantSlug: string | null;
   tenantStatus: TenantStatus | null;
+  timezoneName: string;
   userId: string;
   userName: string;
 };

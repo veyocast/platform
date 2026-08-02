@@ -7,6 +7,7 @@ import { compareReleaseItems, type ReleasePreflightReasonCode } from "@veyocast/
 import { SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
+import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import { reassignRelease, restoreReleaseToDraft } from "../actions";
 import { loadReleaseDetail } from "../data";
@@ -111,7 +112,7 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
 }
 
 function DiffCard({ items, label }: { items: string[]; label: string }) { return <article className="work-panel"><h3>{label}</h3>{items.length ? <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Geen</p>}</article>; }
-function formatDate(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
+function formatDate(value: string) { return formatTenantDateTime(value, null); }
 function formatDuration(seconds: number) { const minutes = Math.floor(Math.abs(seconds) / 60); return `${minutes} min ${Math.abs(seconds) % 60} sec`; }
 function formatBytes(bytes: number) { if (!bytes) return "0 MB"; return bytes >= 1024 ** 3 ? `${(bytes / 1024 ** 3).toFixed(1)} GB` : `${(bytes / 1024 ** 2).toFixed(1)} MB`; }
 function signedDuration(value: number) { return `${value >= 0 ? "+" : "−"}${formatDuration(value)}`; }

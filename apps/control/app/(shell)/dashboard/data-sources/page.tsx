@@ -12,6 +12,7 @@ import { Button, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import styles from "../dynamic-content.module.css";
 import {
@@ -38,6 +39,8 @@ export default async function DataSourcesPage({ searchParams }: PageProps) {
   const sources = session.isLive
     ? await loadSources(session.tenantId!)
     : [];
+  const formatDate = (value: string | null) =>
+    formatTenantDateTime(value, session.timezoneName);
 
   return (
     <>
@@ -216,12 +219,6 @@ function sourceStatus(status: string) {
   return { label: "Synchroniseren", tone: "info" as const };
 }
 
-function formatDate(value: string | null) {
-  return value
-    ? new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
-    : "Nog niet";
-}
-
 function sourceErrorCopy(code: string | null) {
   if (!code) return "Geen";
   const messages: Record<string, string> = {
@@ -230,7 +227,8 @@ function sourceErrorCopy(code: string | null) {
     rss_fetch_invalid_content: "URL bevat geen geldige RSS- of Atom-feed",
     rss_fetch_too_large: "Feed is groter dan de veilige limiet",
     rss_fetch_unavailable: "Feed was tijdelijk niet bereikbaar",
-    rss_sync_failed: "Feed kon niet worden verwerkt"
+    rss_sync_failed: "Feed kon niet worden verwerkt",
+    sportlink_worker_lease_expired: "Sportlink-worker onderbroken; automatisch opnieuw ingepland"
   };
   return `${messages[code] ?? "Synchronisatie mislukt"} (${code})`;
 }

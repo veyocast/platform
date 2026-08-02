@@ -28,6 +28,7 @@ import {
 } from "@veyocast/ui";
 import { CalendarPlus, Copy, Plus, Trash2 } from "lucide-react";
 
+import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { saveScreenAutomation } from "./automation-actions";
 import { isoToZonedLocal, zonedLocalToIso } from "./automation-time";
 import styles from "./screen-automation.module.css";
@@ -267,10 +268,10 @@ export function ScreenAutomationForm({
           {disclaimerAcceptedAt ? (
             <p className={styles.accepted}>
               Compatibiliteitsverklaring geaccepteerd op{" "}
-              {new Intl.DateTimeFormat("nl-NL", {
-                dateStyle: "medium",
-                timeStyle: "short"
-              }).format(new Date(disclaimerAcceptedAt))}.
+              {formatTenantDateTime(
+                disclaimerAcceptedAt,
+                settings.timezone
+              )}.
             </p>
           ) : null}
         </section>

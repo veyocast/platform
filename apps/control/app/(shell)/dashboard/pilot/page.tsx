@@ -3,6 +3,7 @@ import Link from "next/link";
 import { hasCapability } from "@veyocast/auth";
 
 import { requireControlSession } from "../../../../lib/control-session";
+import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import {
   PageHeader,
@@ -474,8 +475,8 @@ function formatLastSeen(value: string | null) {
     return "Nog niet";
   }
 
-  return new Intl.DateTimeFormat("nl-NL", {
+  return formatTenantDateTime(value, null, {
     dateStyle: "short",
     timeStyle: "short"
-  }).format(new Date(value));
+  });
 }

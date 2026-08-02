@@ -20,6 +20,7 @@ import {
 import { hasCapability } from "@veyocast/auth";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
+import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import {
   loadScreenFleet,
@@ -317,7 +318,10 @@ function formatLastSeen(value: string | null | undefined) {
   if (elapsed < 60_000) return "Nu";
   if (elapsed < 3_600_000) return `${Math.floor(elapsed / 60_000)} min geleden`;
   if (elapsed < 86_400_000) return `${Math.floor(elapsed / 3_600_000)} uur geleden`;
-  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
+  return formatTenantDateTime(value, null, {
+    dateStyle: "short",
+    timeStyle: "short"
+  });
 }
 
 function orientationLabel(value: string) { return value === "portrait" ? "Staand scherm" : "Liggend scherm"; }

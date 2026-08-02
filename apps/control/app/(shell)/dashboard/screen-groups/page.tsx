@@ -5,6 +5,7 @@ import { hasCapability } from "@veyocast/auth";
 import { Button, PageHeader, StatusPill, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
+import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import styles from "../publisher-resources.module.css";
 import { loadScreenGroups } from "./data";
 import groupStyles from "./screen-groups.module.css";
@@ -110,5 +111,5 @@ export default async function ScreenGroupsPage({ searchParams }: ScreenGroupsPag
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium" }).format(new Date(value));
+  return formatTenantDateTime(value, null, { dateStyle: "medium" });
 }
