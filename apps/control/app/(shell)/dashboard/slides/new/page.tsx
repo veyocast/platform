@@ -27,7 +27,7 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
     <>
       <PageHeader
         actions={<Button asChild variant="ghost"><Link href="/dashboard/slides">Annuleren</Link></Button>}
-        description="Doorloop de vaste keuzes; VeyoCast maakt daarna een controleerbare datasnapshot en server-side PNG."
+        description="Kies bron, inhoud en vormgeving. De Player toont de gecontroleerde snapshot direct als HTML/CSS; een immutable PNG blijft beschikbaar als veilige fallback."
         eyebrow="Nieuwe slide"
         title="Dynamische slide maken"
       />
@@ -57,7 +57,7 @@ async function loadOptions(tenantId: string) {
   if (!supabase) return { sources: [], templates: [] };
   const [sourcesResult, templatesResult] = await Promise.all([
     supabase.from("dynamic_data_sources").select("id, name, kind, provider_status, last_successful_sync_at, last_error_code").eq("tenant_id", tenantId).eq("status", "active").order("name"),
-    supabase.from("dynamic_templates").select("id, name, slide_type, orientation, current_published_version_id").eq("status", "published").order("name")
+    supabase.from("dynamic_templates").select("id, slug, name, description, slide_type, orientation, current_published_version_id").eq("status", "published").order("name")
   ]);
   const sportSources = (sourcesResult.data ?? []).filter(
     (source) => source.kind === "sportlink"
@@ -110,9 +110,11 @@ async function loadOptions(tenantId: string) {
     sources,
     templates: (templatesResult.data ?? []).flatMap((template) =>
       template.current_published_version_id ? [{
+        description: template.description,
         name: template.name,
         orientation: template.orientation,
         slideType: template.slide_type,
+        slug: template.slug,
         versionId: template.current_published_version_id
       }] : []
     )

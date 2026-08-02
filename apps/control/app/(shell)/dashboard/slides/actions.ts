@@ -14,7 +14,10 @@ export async function createDynamicSlide(formData: FormData) {
   const selectionMode = String(formData.get("selectionMode") ?? "latest");
   const title = String(formData.get("title") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
-  const maxItems = Math.min(40, Math.max(1, Number(formData.get("maxItems")) || 8));
+  const requestedMaxItems = Math.min(
+    40,
+    Math.max(1, Number(formData.get("maxItems")) || 8)
+  );
   const supabase = await createControlSupabaseClient();
   if (
     !supabase ||
@@ -58,9 +61,12 @@ export async function createDynamicSlide(formData: FormData) {
       "/dashboard/slides/new?fout=Template+en+databron+horen+niet+bij+hetzelfde+slidetype.+Kies+de+combinatie+opnieuw."
     );
   }
+  const maxItems = isSingleMatchSlide(templateSlideType)
+    ? 1
+    : requestedMaxItems;
   const { data, error } = await supabase.rpc("create_dynamic_slide_v1", {
     p_configuration_json: {
-      ...(category ? { category } : {}),
+      ...(templateSlideType === "menu" && category ? { category } : {}),
       maxItems,
       ...(title ? { title } : {})
     },
@@ -141,6 +147,13 @@ function sourceMatchesSlideType(kind: string, slideType: string) {
   }
   if (slideType === "news") return kind === "rss";
   return kind === "sportlink" && slideType.startsWith("sport_");
+}
+
+function isSingleMatchSlide(slideType: string) {
+  return [
+    "sport_match_of_the_day",
+    "sport_next_match"
+  ].includes(slideType);
 }
 
 const uuidPattern =

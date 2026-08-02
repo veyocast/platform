@@ -157,6 +157,89 @@
   cursor: pointer;
 }
 
+.templatePreview {
+  --preview-accent: var(--vc-action);
+  display: grid !important;
+  min-height: 10rem;
+  grid-column: 1 / -1;
+  gap: var(--vc-space-8) !important;
+  padding: var(--vc-space-16);
+  align-content: center;
+  overflow: hidden;
+  border: 1px solid rgb(98 95 87 / 28%);
+  border-radius: var(--vc-radius-md);
+  background: #f4efe6;
+  color: #11110f;
+}
+
+.templatePreview[data-theme="dark"] {
+  border-color: rgb(255 255 255 / 16%);
+  background:
+    radial-gradient(circle at 84% 8%, rgb(241 90 36 / 20%), transparent 32%),
+    #080908;
+  color: #fffdf7;
+}
+
+.templatePreview[data-orientation="portrait"] {
+  width: min(100%, 14rem);
+  min-height: 17rem;
+  justify-self: center;
+}
+
+.templatePreviewKicker {
+  color: var(--preview-accent);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.templatePreview > strong {
+  max-width: 90%;
+  font-size: clamp(1.1rem, 2.4vw, 1.75rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+.templatePreviewRows {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--vc-space-4) var(--vc-space-12) !important;
+  padding-top: var(--vc-space-8);
+  border-top: 1px solid rgb(98 95 87 / 28%);
+  font-size: 0.6875rem;
+}
+
+.templatePreviewRows :where(i, b) {
+  overflow: hidden;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.templatePreviewRows b,
+.templatePreviewScore {
+  color: var(--preview-accent);
+  font-weight: 800;
+}
+
+.templatePreviewCopy {
+  max-width: 86%;
+  color: #625f57;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.templatePreview[data-theme="dark"] .templatePreviewCopy {
+  color: #c9c4b9;
+}
+
+.templatePreviewScore {
+  padding-top: var(--vc-space-8);
+  border-top: 1px solid rgb(98 95 87 / 28%);
+  font-size: 0.75rem;
+}
+
 .choiceCard:has(input:checked) {
   border-color: var(--vc-action);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--vc-action) 18%, transparent);

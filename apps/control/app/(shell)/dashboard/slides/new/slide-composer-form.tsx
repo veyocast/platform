@@ -26,9 +26,11 @@ export type SlideSourceOption = {
 };
 
 export type SlideTemplateOption = {
+  description: string;
   name: string;
   orientation: string;
   slideType: string;
+  slug: string;
   versionId: string;
 };
 
@@ -130,6 +132,8 @@ export function SlideComposerForm({ sources, templates }: Props) {
     setSlideType(value);
     setTemplateVersionId(nextTemplate?.versionId ?? "");
     setDataSourceId("");
+    setCategory("");
+    setMaxItems(defaultMaxItems(value));
   }
 
   return (
@@ -233,6 +237,7 @@ export function SlideComposerForm({ sources, templates }: Props) {
         <div className={styles.grid}>
           {matchingTemplates.map((template) => (
             <label className={styles.choiceCard} key={template.versionId}>
+              <TemplatePreview template={template} />
               <input
                 checked={selectedTemplate.versionId === template.versionId}
                 key={`${slideType}-${template.versionId}`}
@@ -247,8 +252,11 @@ export function SlideComposerForm({ sources, templates }: Props) {
                   {slideTypeLabel(template.slideType)} ·{" "}
                   {template.orientation === "portrait" ? "Staand" : "Liggend"}
                 </small>
+                <small>{template.description}</small>
               </span>
-              <span className={styles.choiceBadge}>Platformtemplate</span>
+              <span className={styles.choiceBadge}>
+                {templateThemeLabel(template)}
+              </span>
             </label>
           ))}
         </div>
@@ -346,20 +354,22 @@ export function SlideComposerForm({ sources, templates }: Props) {
               value={title}
             />
           </label>
+          {slideType === "menu" ? (
+            <label className={styles.field}>
+              <span>Categorie (optioneel)</span>
+              <input
+                maxLength={160}
+                name="category"
+                onChange={(event) => setCategory(event.currentTarget.value)}
+                placeholder="Dranken"
+                value={category}
+              />
+            </label>
+          ) : null}
           <label className={styles.field}>
-            <span>Categorie (optioneel)</span>
+            <span>{maxItemsLabel(slideType)}</span>
             <input
-              maxLength={160}
-              name="category"
-              onChange={(event) => setCategory(event.currentTarget.value)}
-              placeholder="Dranken"
-              value={category}
-            />
-          </label>
-          <label className={styles.field}>
-            <span>Maximaal aantal items</span>
-            <input
-              max="40"
+              max={isSingleMatchSlide(slideType) ? "1" : "40"}
               min="1"
               name="maxItems"
               onChange={(event) => setMaxItems(event.currentTarget.value)}
@@ -367,6 +377,9 @@ export function SlideComposerForm({ sources, templates }: Props) {
               type="number"
               value={maxItems}
             />
+            <small className={styles.fieldHint}>
+              {maxItemsHelp(slideType, selectedTemplate.orientation)}
+            </small>
           </label>
         </div>
       </section>
@@ -399,14 +412,16 @@ export function SlideComposerForm({ sources, templates }: Props) {
           <div>
             <dt>Inhoud</dt>
             <dd>
-              {title || "Template-titel"} · maximaal {maxItems || "—"} items
+              {title || "Template-titel"} ·{" "}
+              {maxItemsSummary(slideType, maxItems)}
               {category ? ` · categorie ${category}` : ""}
             </dd>
           </div>
         </dl>
         <p className={styles.muted}>
-          Na opslaan maakt de worker een immutable voorbeeld. Pas wanneer dat
-          gereed is, kan de snapshot naar een playlist.
+          Na opslaan maakt VeyoCast een immutable datasnapshot. Players tonen
+          die met de gekozen HTML/CSS-template; de worker bewaart daarnaast
+          automatisch een PNG-fallback voor offline en oudere apparaten.
         </p>
       </section>
 
@@ -442,6 +457,67 @@ export function SlideComposerForm({ sources, templates }: Props) {
         </div>
       </footer>
     </form>
+  );
+}
+
+function TemplatePreview({
+  template
+}: {
+  template: SlideTemplateOption;
+}) {
+  const isDark = template.slug.includes("dark");
+  const previewType = template.slideType === "menu"
+    ? "menu"
+    : template.slideType === "news"
+      ? "news"
+      : isSingleMatchSlide(template.slideType)
+        ? "match"
+        : "sport";
+
+  return (
+    <span
+      aria-hidden="true"
+      className={styles.templatePreview}
+      data-orientation={template.orientation}
+      data-preview-type={previewType}
+      data-theme={isDark ? "dark" : "light"}
+    >
+      <span className={styles.templatePreviewKicker}>
+        {previewType === "menu"
+          ? "Clubkantine"
+          : previewType === "news"
+            ? "Clubnieuws"
+            : "Match centre"}
+      </span>
+      <strong>
+        {previewType === "menu"
+          ? "Menu vandaag"
+          : previewType === "news"
+            ? "Het laatste clubnieuws"
+            : previewType === "match"
+              ? "VeyoCast 1 – Bezoekers"
+              : slideTypeLabel(template.slideType)}
+      </strong>
+      {previewType === "menu" ? (
+        <span className={styles.templatePreviewRows}>
+          <i>Clubburger</i><b>€ 6,95</b>
+          <i>Friet groot</i><b>€ 4,25</b>
+          <i>Frisdrank</i><b>€ 2,75</b>
+        </span>
+      ) : previewType === "news" ? (
+        <span className={styles.templatePreviewCopy}>
+          Alles wat leden en bezoekers vandaag moeten weten.
+        </span>
+      ) : previewType === "match" ? (
+        <span className={styles.templatePreviewScore}>14:30 · Veld 1</span>
+      ) : (
+        <span className={styles.templatePreviewRows}>
+          <i>1. VeyoCast</i><b>24 pt</b>
+          <i>2. Clubteam</i><b>21 pt</b>
+          <i>3. Bezoekers</i><b>18 pt</b>
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -557,6 +633,56 @@ function slideTypeGroups(templates: SlideTemplateOption[]) {
       ? [{ label: "Wedstrijden & competitie", options: sports }]
       : [])
   ];
+}
+
+function defaultMaxItems(slideType: string) {
+  if (isSingleMatchSlide(slideType)) return "1";
+  if (slideType === "news") return "5";
+  if (slideType === "menu") return "12";
+  return "8";
+}
+
+function isSingleMatchSlide(slideType: string) {
+  return [
+    "sport_match_of_the_day",
+    "sport_next_match"
+  ].includes(slideType);
+}
+
+function maxItemsLabel(slideType: string) {
+  if (slideType === "news") return "Aantal nieuwsartikelen";
+  if (slideType === "menu") return "Aantal producten";
+  if (isSingleMatchSlide(slideType)) return "Aantal wedstrijden";
+  return "Aantal regels";
+}
+
+function maxItemsHelp(slideType: string, orientation: string) {
+  if (isSingleMatchSlide(slideType)) {
+    return "Deze Match Centre-template toont altijd precies één wedstrijd.";
+  }
+  const pageSize = slideType === "menu"
+    ? orientation === "portrait" ? 10 : 8
+    : slideType === "news"
+      ? 1
+      : orientation === "portrait" ? 6 : 8;
+  if (slideType === "news") {
+    return "Elk artikel krijgt een eigen schermpagina; VeyoCast wisselt automatisch.";
+  }
+  return `Bij meer dan ${pageSize} items verdeelt VeyoCast de inhoud automatisch over meerdere pagina’s.`;
+}
+
+function maxItemsSummary(slideType: string, maxItems: string) {
+  const amount = maxItems || "—";
+  if (slideType === "news") return `${amount} nieuwsartikelen`;
+  if (slideType === "menu") return `${amount} producten`;
+  if (isSingleMatchSlide(slideType)) return "1 wedstrijd";
+  return `${amount} regels`;
+}
+
+function templateThemeLabel(template: SlideTemplateOption) {
+  if (template.slug.includes("dark")) return "Donker";
+  if (template.slug.includes("light")) return "Licht";
+  return "Atelier licht";
 }
 
 function templateSummary(template: SlideTemplateOption) {
