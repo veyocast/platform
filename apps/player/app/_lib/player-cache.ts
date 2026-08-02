@@ -1,3 +1,5 @@
+import type { PlayerDynamicTemplateAsset } from "@veyocast/contracts";
+
 import type {
   PlayerManifestEnvelope,
   PlayerManifestItem,
@@ -26,7 +28,7 @@ export type PlayerCacheAsset = {
   cacheKey: string;
   checksumSha256: string;
   itemId: string;
-  kind: "media" | "poster";
+  kind: "dynamic" | "media" | "poster";
   url: string;
 };
 
@@ -73,6 +75,10 @@ export function getCacheableAssets(
           item.source.posterChecksumSha256
         )
       );
+    }
+
+    for (const asset of Object.values(item.dynamicTemplate?.assets ?? {})) {
+      assets.push(toDynamicCacheAsset(item, asset));
     }
 
     return assets;
@@ -568,9 +574,14 @@ function withCachedUrls(
           cachedUrl: cachedMediaUrl,
           item
         });
+        const dynamicTemplate = hydrateDynamicTemplateAssets(
+          item.dynamicTemplate,
+          playbackUrls
+        );
 
         return {
           ...item,
+          ...(dynamicTemplate ? { dynamicTemplate } : {}),
           source: {
             ...item.source,
             ...mediaSource,
@@ -645,6 +656,14 @@ export function refreshHydratedReleaseEnvelope({
 
         return {
           ...item,
+          ...(item.dynamicTemplate
+            ? {
+                dynamicTemplate: refreshDynamicTemplateAssetAccess(
+                  cachedItem.dynamicTemplate,
+                  item.dynamicTemplate
+                )
+              }
+            : {}),
           source: {
             ...item.source,
             ...resolveHydratedMediaSource({
@@ -694,6 +713,68 @@ function toCacheAsset(
     itemId: item.id,
     kind,
     url
+  };
+}
+
+function toDynamicCacheAsset(
+  item: PlayerManifestItem,
+  asset: PlayerDynamicTemplateAsset
+): PlayerCacheAsset {
+  return {
+    bytes: asset.bytes,
+    cacheKey: `/__veyocast-player-cache/${asset.checksumSha256}`,
+    checksumSha256: asset.checksumSha256,
+    itemId: item.id,
+    kind: "dynamic",
+    url: asset.url
+  };
+}
+
+function hydrateDynamicTemplateAssets(
+  template: PlayerManifestItem["dynamicTemplate"],
+  playbackUrls: Record<string, string>
+) {
+  if (!template?.assets) return template;
+  return {
+    ...template,
+    assets: Object.fromEntries(
+      Object.entries(template.assets).map(([assetId, asset]) => [
+        assetId,
+        {
+          ...asset,
+          url:
+            playbackUrls[
+              `/__veyocast-player-cache/${asset.checksumSha256}`
+            ] ?? asset.url
+        }
+      ])
+    )
+  };
+}
+
+function refreshDynamicTemplateAssetAccess(
+  cachedTemplate: PlayerManifestItem["dynamicTemplate"],
+  freshTemplate: NonNullable<PlayerManifestItem["dynamicTemplate"]>
+) {
+  if (!freshTemplate.assets) return freshTemplate;
+  return {
+    ...freshTemplate,
+    assets: Object.fromEntries(
+      Object.entries(freshTemplate.assets).map(([assetId, asset]) => {
+        const cachedAsset = cachedTemplate?.assets?.[assetId];
+        const cachedUrl =
+          cachedAsset?.checksumSha256 === asset.checksumSha256
+            ? cachedPlaybackUrl(cachedAsset.url)
+            : undefined;
+        return [
+          assetId,
+          {
+            ...asset,
+            url: cachedUrl ?? asset.url
+          }
+        ];
+      })
+    )
   };
 }
 

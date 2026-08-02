@@ -80,6 +80,8 @@ export const canonicalNewsArticleSchema = z.object({
 export const canonicalNewsFeedSchema = z.object({
   articles: z.array(canonicalNewsArticleSchema).max(50),
   generatedAt: z.string().datetime(),
+  providerLogoMediaAssetId: idSchema.nullable().optional(),
+  secondsPerSlide: z.number().int().min(5).max(120).optional(),
   sourceName: safeLabelSchema
 });
 
@@ -110,8 +112,21 @@ export const dynamicTemplateManifestSchema = z.object({
   slideType: dynamicSlideTypeSchema
 });
 
+export const playerDynamicTemplateAssetSchema = z
+  .object({
+    bytes: z.number().int().positive().max(8_000_000),
+    checksumSha256: z.string().regex(/^[a-f0-9]{64}$/),
+    mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+    url: z.string().min(1).max(4_096)
+  })
+  .strict();
+
 export const playerDynamicTemplatePayloadSchema = z
   .object({
+    assets: z
+      .record(idSchema, playerDynamicTemplateAssetSchema)
+      .refine((assets) => Object.keys(assets).length <= 51)
+      .optional(),
     data: z.record(z.string(), z.unknown()),
     orientation: dynamicSlideOrientationSchema,
     schemaVersion: z.literal(1),
@@ -151,6 +166,9 @@ export type CanonicalNewsArticle = z.infer<
 export type CanonicalNewsFeed = z.infer<typeof canonicalNewsFeedSchema>;
 export type DynamicTemplateManifest = z.infer<
   typeof dynamicTemplateManifestSchema
+>;
+export type PlayerDynamicTemplateAsset = z.infer<
+  typeof playerDynamicTemplateAssetSchema
 >;
 export type PlayerDynamicTemplatePayload = z.infer<
   typeof playerDynamicTemplatePayloadSchema

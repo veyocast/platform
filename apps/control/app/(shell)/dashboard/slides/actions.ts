@@ -18,6 +18,10 @@ export async function createDynamicSlide(formData: FormData) {
     40,
     Math.max(1, Number(formData.get("maxItems")) || 8)
   );
+  const requestedSecondsPerSlide = Math.min(
+    120,
+    Math.max(5, Number(formData.get("secondsPerSlide")) || 5)
+  );
   const supabase = await createControlSupabaseClient();
   if (
     !supabase ||
@@ -63,12 +67,21 @@ export async function createDynamicSlide(formData: FormData) {
   }
   const maxItems = isSingleMatchSlide(templateSlideType)
     ? 1
-    : requestedMaxItems;
+    : templateSlideType === "news"
+      ? Math.min(requestedMaxItems, 12)
+      : requestedMaxItems;
   const { data, error } = await supabase.rpc("create_dynamic_slide_v1", {
     p_configuration_json: {
       ...(templateSlideType === "menu" && category ? { category } : {}),
       maxItems,
-      ...(title ? { title } : {})
+      ...(templateSlideType === "news"
+        ? { secondsPerSlide: requestedSecondsPerSlide }
+        : {}),
+      ...(templateSlideType === "news"
+        ? { title: title || "Voetbalnieuws" }
+        : title
+          ? { title }
+          : {})
     },
     p_data_source_id: dataSourceId,
     p_name: name,

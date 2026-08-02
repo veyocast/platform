@@ -36,6 +36,31 @@ describe("RSS/Atom normalisatie", () => {
     expect(feed.articles[0]?.link).toBe("https://example.org/bericht");
   });
 
+  it("ontdekt leverancierlogo en begrensde artikelbeelden naast de tekstsnapshot", () => {
+    const feed = parseRssOrAtom(
+      `<rss xmlns:media="http://search.yahoo.com/mrss/"><channel>
+        <title>Voetbalnieuws</title>
+        <image><url>/assets/logo.png</url></image>
+        <item>
+          <guid>bericht-met-beeld</guid>
+          <title>Nieuwe aanwinst</title>
+          <link>https://example.org/voetbal/aanwinst</link>
+          <media:content type="image/jpeg" url="/media/aanwinst.jpg"/>
+        </item>
+      </channel></rss>`,
+      "https://example.org/voetbal/rss.xml"
+    );
+
+    expect(feed.media).toEqual({
+      articleImages: [{
+        externalId: "bericht-met-beeld",
+        url: "https://example.org/media/aanwinst.jpg"
+      }],
+      providerLogoUrl: "https://example.org/assets/logo.png"
+    });
+    expect(feed.articles[0]?.heroMediaAssetId).toBeNull();
+  });
+
   it("negeert een externe legacy-DTD zonder deze op te halen", () => {
     const feed = parseRssOrAtom(
       `<?xml version="1.0"?>

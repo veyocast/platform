@@ -82,7 +82,10 @@ export function SlideComposerForm({ sources, templates }: Props) {
   const [selectionMode, setSelectionMode] = useState("latest");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
-  const [maxItems, setMaxItems] = useState("8");
+  const [maxItems, setMaxItems] = useState(
+    defaultMaxItems(initialTemplate.slideType)
+  );
+  const [secondsPerSlide, setSecondsPerSlide] = useState("5");
   const matchingTemplates = templates.filter(
     (template) => template.slideType === slideType
   );
@@ -134,6 +137,7 @@ export function SlideComposerForm({ sources, templates }: Props) {
     setDataSourceId("");
     setCategory("");
     setMaxItems(defaultMaxItems(value));
+    setSecondsPerSlide("5");
   }
 
   return (
@@ -350,7 +354,9 @@ export function SlideComposerForm({ sources, templates }: Props) {
               maxLength={160}
               name="title"
               onChange={(event) => setTitle(event.currentTarget.value)}
-              placeholder="Menu vandaag"
+              placeholder={
+                slideType === "news" ? "Voetbalnieuws" : "Menu vandaag"
+              }
               value={title}
             />
           </label>
@@ -369,7 +375,13 @@ export function SlideComposerForm({ sources, templates }: Props) {
           <label className={styles.field}>
             <span>{maxItemsLabel(slideType)}</span>
             <input
-              max={isSingleMatchSlide(slideType) ? "1" : "40"}
+              max={
+                isSingleMatchSlide(slideType)
+                  ? "1"
+                  : slideType === "news"
+                    ? "12"
+                    : "40"
+              }
               min="1"
               name="maxItems"
               onChange={(event) => setMaxItems(event.currentTarget.value)}
@@ -381,6 +393,25 @@ export function SlideComposerForm({ sources, templates }: Props) {
               {maxItemsHelp(slideType, selectedTemplate.orientation)}
             </small>
           </label>
+          {slideType === "news" ? (
+            <label className={styles.field}>
+              <span>Seconden per nieuwsslide</span>
+              <input
+                max="120"
+                min="5"
+                name="secondsPerSlide"
+                onChange={(event) =>
+                  setSecondsPerSlide(event.currentTarget.value)
+                }
+                required
+                type="number"
+                value={secondsPerSlide}
+              />
+              <small className={styles.fieldHint}>
+                Minimaal 5 seconden, zodat elke kop rustig leesbaar blijft.
+              </small>
+            </label>
+          ) : null}
         </div>
       </section>
 
@@ -414,6 +445,9 @@ export function SlideComposerForm({ sources, templates }: Props) {
             <dd>
               {title || "Template-titel"} ·{" "}
               {maxItemsSummary(slideType, maxItems)}
+              {slideType === "news"
+                ? ` · ${secondsPerSlide || "—"} seconden per slide`
+                : ""}
               {category ? ` · categorie ${category}` : ""}
             </dd>
           </div>
@@ -650,7 +684,7 @@ function isSingleMatchSlide(slideType: string) {
 }
 
 function maxItemsLabel(slideType: string) {
-  if (slideType === "news") return "Aantal nieuwsartikelen";
+  if (slideType === "news") return "Aantal nieuwsslides";
   if (slideType === "menu") return "Aantal producten";
   if (isSingleMatchSlide(slideType)) return "Aantal wedstrijden";
   return "Aantal regels";
@@ -666,14 +700,14 @@ function maxItemsHelp(slideType: string, orientation: string) {
       ? 1
       : orientation === "portrait" ? 6 : 8;
   if (slideType === "news") {
-    return "Elk artikel krijgt een eigen schermpagina; VeyoCast wisselt automatisch.";
+    return "Kies 1 tot 12 berichten. Elk artikel krijgt een eigen HTML/CSS-scherm.";
   }
   return `Bij meer dan ${pageSize} items verdeelt VeyoCast de inhoud automatisch over meerdere pagina’s.`;
 }
 
 function maxItemsSummary(slideType: string, maxItems: string) {
   const amount = maxItems || "—";
-  if (slideType === "news") return `${amount} nieuwsartikelen`;
+  if (slideType === "news") return `${amount} nieuwsslides`;
   if (slideType === "menu") return `${amount} producten`;
   if (isSingleMatchSlide(slideType)) return "1 wedstrijd";
   return `${amount} regels`;

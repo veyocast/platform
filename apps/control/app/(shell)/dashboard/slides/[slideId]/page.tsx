@@ -45,27 +45,102 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
       <div className={styles.split}>
         <section className={styles.card} aria-labelledby="slide-preview-title">
-          <h2 className="sr-only" id="slide-preview-title">Huidige output</h2>
+          <h2 className="sr-only" id="slide-preview-title">
+            Huidige HTML/CSS-weergave
+          </h2>
           <div className={styles.preview} data-orientation={data.slide.orientation}>
-            {data.previewUrl ? <Image alt={`Huidige output van ${data.slide.name}`} fill sizes="70vw" src={data.previewUrl} unoptimized /> : <div className={styles.previewPlaceholder}><RefreshCw aria-hidden="true" /><span>De eerste workerpreview is nog niet gereed.</span></div>}
+            {data.newsPreview ? (
+              <div className={styles.newsHtmlPreview}>
+                {data.newsPreview.heroUrl ? (
+                  <Image
+                    alt=""
+                    className={styles.newsHtmlPreviewHero}
+                    fill
+                    sizes="70vw"
+                    src={data.newsPreview.heroUrl}
+                    unoptimized
+                  />
+                ) : null}
+                <span
+                  aria-hidden="true"
+                  className={styles.newsHtmlPreviewGrade}
+                />
+                <header>
+                  {data.newsPreview.logoUrl ? (
+                    <Image
+                      alt={data.newsPreview.sourceName}
+                      height={75}
+                      src={data.newsPreview.logoUrl}
+                      unoptimized
+                      width={130}
+                    />
+                  ) : (
+                    <strong>{data.newsPreview.sourceName}</strong>
+                  )}
+                  <p>{data.newsPreview.sectionTitle}</p>
+                </header>
+                <article>
+                  <h3>{data.newsPreview.articleTitle}</h3>
+                  <span aria-hidden="true" />
+                  <p>{data.newsPreview.intro}</p>
+                  <small>{data.newsPreview.meta}</small>
+                </article>
+              </div>
+            ) : data.previewUrl ? (
+              <Image alt={`Offline fallback van ${data.slide.name}`} fill sizes="70vw" src={data.previewUrl} unoptimized />
+            ) : (
+              <div className={styles.previewPlaceholder}><RefreshCw aria-hidden="true" /><span>De eerste workerpreview is nog niet gereed.</span></div>
+            )}
           </div>
           <div className={styles.cardBody}>
             <dl className={styles.definitionList}>
               <div><dt>Type</dt><dd>{data.slide.slide_type === "menu" ? "Menubord" : "Nieuws"}</dd></div>
               <div><dt>Formaat</dt><dd>{data.slide.orientation === "portrait" ? "Staand" : "Liggend"}</dd></div>
               <div><dt>Selectie</dt><dd>{data.slide.selection_mode === "latest" ? "Nieuwste goede snapshot" : "Vastgezet"}</dd></div>
+              {data.newsPlayback ? (
+                <div>
+                  <dt>Afspelen</dt>
+                  <dd>
+                    {data.newsPlayback.slideCount} slides ×{" "}
+                    {data.newsPlayback.secondsPerSlide} seconden
+                  </dd>
+                </div>
+              ) : null}
               <div><dt>Laatste foutcode</dt><dd>{data.slide.last_error_code ?? "Geen"}</dd></div>
             </dl>
           </div>
         </section>
         <aside className={styles.formSection}>
           <h2>Beschikbaar in playlistmaker</h2>
-          <p className={styles.muted}>De huidige PNG wordt als normale mediareferentie toegevoegd. Een latere bronupdate wijzigt deze conceptregel niet stilzwijgend.</p>
+          <p className={styles.muted}>
+            De Player toont deze slide als echte HTML/CSS. De immutable PNG
+            blijft uitsluitend beschikbaar als technische offline fallback
+            voor oudere apparaten.
+          </p>
           {canAdd && data.playlists.length ? (
             <form action={addDynamicSlideToPlaylist} className={styles.form}>
               <input name="slideId" type="hidden" value={slideId} />
               <label className={styles.field}><span>Playlistconcept</span><select name="playlistId">{data.playlists.map((playlist) => <option key={playlist.id} value={playlist.id}>{playlist.name}</option>)}</select></label>
-              <label className={styles.field}><span>Duur in seconden</span><input defaultValue="10" min="5" max="3600" name="duration" type="number" /></label>
+              {data.newsPlayback ? (
+                <>
+                  <input
+                    name="duration"
+                    type="hidden"
+                    value={data.newsPlayback.totalSeconds}
+                  />
+                  <p className={styles.inlineGuidance}>
+                    <strong>
+                      Totale duur: {data.newsPlayback.totalSeconds} seconden
+                    </strong>
+                    <span>
+                      De ingestelde tijd per nieuwsslide wordt automatisch
+                      toegepast.
+                    </span>
+                  </p>
+                </>
+              ) : (
+                <label className={styles.field}><span>Duur in seconden</span><input defaultValue="10" min="5" max="3600" name="duration" type="number" /></label>
+              )}
               <Button type="submit"><ListPlus aria-hidden="true" />Aan playlist toevoegen</Button>
             </form>
           ) : <p className="notice notice--warning">{data.slide.status === "ready" ? "Maak eerst een playlistconcept of vraag schrijfrechten." : "Wacht tot de snapshot gereed is."}</p>}
@@ -84,8 +159,22 @@ async function loadSlide(slideId: string, tenantId: string) {
   ]);
   if (!slideResult.data || slideResult.error) return null;
   let previewUrl: string | null = null;
+  let newsPreview: {
+    articleTitle: string;
+    heroUrl: string | null;
+    intro: string;
+    logoUrl: string | null;
+    meta: string;
+    sectionTitle: string;
+    sourceName: string;
+  } | null = null;
+  let newsPlayback: {
+    secondsPerSlide: number;
+    slideCount: number;
+    totalSeconds: number;
+  } | null = null;
   if (slideResult.data.current_snapshot_id) {
-    const snapshot = await supabase.from("dynamic_slide_snapshots").select("output_media_asset_id").eq("id", slideResult.data.current_snapshot_id).maybeSingle();
+    const snapshot = await supabase.from("dynamic_slide_snapshots").select("output_media_asset_id, snapshot_data_json").eq("id", slideResult.data.current_snapshot_id).maybeSingle();
     if (snapshot.data?.output_media_asset_id) {
       const variant = await supabase.from("media_variants").select("storage_path").eq("asset_id", snapshot.data.output_media_asset_id).eq("variant_type", "original").maybeSingle();
       if (variant.data?.storage_path) {
@@ -93,13 +182,107 @@ async function loadSlide(slideId: string, tenantId: string) {
         previewUrl = signed.data?.signedUrl ?? null;
       }
     }
+    if (slideResult.data.slide_type === "news" && snapshot.data) {
+      const snapshotData = readRecord(snapshot.data.snapshot_data_json);
+      const news = readRecord(snapshotData?.news);
+      const articles = Array.isArray(news?.articles) ? news.articles : [];
+      const article = readRecord(articles[0]);
+      const secondsPerSlide = boundedInteger(
+        news?.secondsPerSlide,
+        5,
+        120,
+        5
+      );
+      const slideCount = Math.max(articles.length, 1);
+      newsPlayback = {
+        secondsPerSlide,
+        slideCount,
+        totalSeconds: slideCount * secondsPerSlide
+      };
+      if (article) {
+        const [heroUrl, logoUrl] = await Promise.all([
+          signedMediaUrl(supabase, article.heroMediaAssetId),
+          signedMediaUrl(supabase, news?.providerLogoMediaAssetId)
+        ]);
+        const author = safeString(article.author);
+        const sourceName = safeString(news?.sourceName) || "Clubnieuws";
+        newsPreview = {
+          articleTitle: safeString(article.title) || "Actueel nieuws",
+          heroUrl,
+          intro: safeString(article.intro),
+          logoUrl,
+          meta: [
+            formatNewsDate(article.publishedAt),
+            author || sourceName
+          ].filter(Boolean).join(" · "),
+          sectionTitle: safeString(news?.title) || "Nieuws",
+          sourceName
+        };
+      }
+    }
   }
   return {
+    newsPlayback,
+    newsPreview,
     playlists: playlistsResult.data ?? [],
     previewUrl,
     slide: slideResult.data
   };
 }
+
+async function signedMediaUrl(
+  supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
+  value: unknown
+) {
+  if (typeof value !== "string" || !uuidPattern.test(value)) return null;
+  const variant = await supabase
+    .from("media_variants")
+    .select("storage_bucket, storage_path")
+    .eq("asset_id", value)
+    .eq("variant_type", "original")
+    .maybeSingle();
+  if (!variant.data || variant.error) return null;
+  const signed = await supabase.storage
+    .from(variant.data.storage_bucket)
+    .createSignedUrl(variant.data.storage_path, 600);
+  return signed.data?.signedUrl ?? null;
+}
+
+function readRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function safeString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function boundedInteger(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+  fallback: number
+) {
+  const numeric = Number(value);
+  return Number.isInteger(numeric)
+    ? Math.min(maximum, Math.max(minimum, numeric))
+    : fallback;
+}
+
+function formatNewsDate(value: unknown) {
+  if (typeof value !== "string" || !Number.isFinite(Date.parse(value))) {
+    return "";
+  }
+  return new Intl.DateTimeFormat("nl-NL", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  }).format(new Date(value));
+}
+
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function slideStatus(status: string) {
   if (status === "ready") return { label: "Gereed", tone: "success" as const };

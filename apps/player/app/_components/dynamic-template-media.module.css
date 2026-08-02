@@ -379,6 +379,398 @@
   min-height: 11vh;
 }
 
+.rssPortrait {
+  --rss-background: var(--vc-brand-ink-black);
+  --rss-paper: var(--vc-brand-paper-white);
+  background: var(--rss-background);
+  color: var(--rss-paper);
+  display: block;
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  padding: 0;
+}
+
+.rssPage {
+  height: 100%;
+  inset: 0;
+  isolation: isolate;
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+}
+
+.rssHero,
+.rssHeroImage,
+.rssHeroGrade {
+  inset: 0;
+  position: absolute;
+}
+
+.rssHero {
+  background: var(--rss-background);
+  overflow: hidden;
+  z-index: -1;
+}
+
+.rssHeroInitial {
+  color: rgba(255, 255, 255, 0.045);
+  font-size: min(82vw, 900px);
+  font-weight: 850;
+  left: 50%;
+  line-height: 1;
+  position: absolute;
+  top: 34%;
+  transform: translate(-50%, -50%);
+}
+
+.rssHeroImage {
+  filter: saturate(0.88) contrast(1.04) brightness(0.9);
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 38%;
+  width: 100%;
+}
+
+.rssHeroGrade {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(10, 10, 10, 0.24),
+      transparent 34%,
+      transparent 72%,
+      rgba(10, 10, 10, 0.2)
+    ),
+    linear-gradient(
+      180deg,
+      rgba(10, 10, 10, 0.94) 0,
+      rgba(10, 10, 10, 0.38) 13%,
+      transparent 29%,
+      transparent 48%,
+      rgba(10, 10, 10, 0.72) 64%,
+      var(--rss-background) 80%,
+      var(--rss-background) 100%
+    );
+}
+
+.rssProviderHeader {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  left: 7%;
+  position: absolute;
+  right: 7%;
+  top: 3%;
+}
+
+.rssProviderLogo {
+  filter: drop-shadow(0 0.6vh 1.2vh rgba(0, 0, 0, 0.44));
+  height: min(3.9vh, 75px);
+  max-width: min(24vw, 130px);
+  object-fit: contain;
+  width: auto;
+}
+
+.rssProviderWordmark {
+  align-items: center;
+  background: rgba(10, 10, 10, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.65vh;
+  box-shadow: 0 0.7vh 2.4vh rgba(0, 0, 0, 0.34);
+  display: inline-flex;
+  gap: 1.1vw;
+  min-height: min(3.1vh, 58px);
+  padding: 0.38vh 1.2vw 0.38vh 0.75vw;
+}
+
+.rssProviderWordmark[hidden] {
+  display: none;
+}
+
+.rssProviderWordmark strong {
+  font-size: clamp(13px, 1.3vw, 28px);
+  font-weight: 760;
+  letter-spacing: -0.02em;
+  max-width: 29vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rssGlyph {
+  align-items: center;
+  background: var(--template-accent);
+  border-radius: 0.48vh;
+  display: flex;
+  height: min(2.1vh, 38px);
+  justify-content: center;
+  width: min(2.1vh, 38px);
+}
+
+.rssGlyph svg {
+  height: 62%;
+  width: 62%;
+}
+
+.rssGlyph circle {
+  fill: currentColor;
+}
+
+.rssGlyph path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 5.5;
+}
+
+.rssSectionTitle {
+  color: var(--rss-paper);
+  font-size: clamp(15px, 2.3vw, 25px);
+  font-weight: 720;
+  letter-spacing: 0.34em;
+  line-height: 1;
+  margin: 2.7vh 0 0;
+  max-width: 84%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-shadow:
+    0.2em 0.2em 0 rgba(0, 0, 0, 0.72),
+    0.35em 0.35em 1.1em rgba(0, 0, 0, 0.82);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rssSectionTitle::before,
+.rssSectionTitle::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(250, 250, 247, 0.7)
+  );
+  content: "";
+  height: 1px;
+  position: absolute;
+  top: calc(100% - 0.5em);
+  width: 22%;
+}
+
+.rssSectionTitle::before {
+  left: 5%;
+}
+
+.rssSectionTitle::after {
+  right: 5%;
+  transform: scaleX(-1);
+}
+
+.rssStory {
+  left: 7%;
+  position: absolute;
+  right: 7%;
+  top: 59.2%;
+}
+
+.rssStory h1 {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: var(--rss-paper);
+  display: -webkit-box;
+  font-size: clamp(43px, 7.25vw, 78px);
+  font-weight: 760;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+  margin: 0;
+  max-width: 84%;
+  overflow: hidden;
+  text-shadow: 0 0.35em 1.35em rgba(0, 0, 0, 0.72);
+}
+
+.rssStory h1[data-compact="true"] {
+  font-size: clamp(38px, 5.95vw, 64px);
+  line-height: 1.08;
+}
+
+.rssTitleAccent {
+  background: linear-gradient(
+    90deg,
+    var(--template-accent),
+    transparent
+  );
+  box-shadow: 0 0 0.7em var(--template-accent);
+  display: block;
+  height: 3px;
+  margin-top: 1.7vh;
+  width: 16%;
+}
+
+.rssStory > p {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: rgba(250, 250, 247, 0.86);
+  display: -webkit-box;
+  font-size: clamp(20px, 3.15vw, 34px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.42;
+  margin: 1.7vh 0 0;
+  max-width: 67%;
+  overflow: hidden;
+}
+
+.rssMetadata {
+  align-items: center;
+  bottom: 8.2%;
+  display: flex;
+  gap: 3vw;
+  left: 7%;
+  max-width: 70%;
+  position: absolute;
+}
+
+.rssMetaItem {
+  align-items: center;
+  display: flex;
+  gap: 1.35vw;
+  min-width: 0;
+}
+
+.rssMetaIcon {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid var(--template-accent);
+  border-radius: 50%;
+  color: var(--template-accent);
+  display: flex;
+  flex: 0 0 auto;
+  height: clamp(34px, 5.2vw, 56px);
+  justify-content: center;
+  width: clamp(34px, 5.2vw, 56px);
+}
+
+.rssMetaIcon svg {
+  fill: none;
+  height: 49%;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 49%;
+}
+
+.rssMetaItem > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rssMetaItem small {
+  color: var(--template-accent);
+  font-size: clamp(10px, 1.4vw, 15px);
+  font-weight: 720;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rssMetaItem strong {
+  color: rgba(250, 250, 247, 0.84);
+  font-size: clamp(13px, 1.85vw, 20px);
+  font-weight: 540;
+  margin-top: 0.28em;
+  max-width: 21vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rssEmpty {
+  background: rgba(10, 10, 10, 0.68);
+  border-left: 7px solid var(--template-accent);
+  font-size: clamp(28px, 4.7vw, 52px);
+  font-weight: 760;
+  left: 7%;
+  padding: 2vh 4vw;
+  position: absolute;
+  right: 7%;
+  top: 58%;
+}
+
+.rssFooter {
+  border-top: 1px solid rgba(255, 255, 255, 0.065);
+  bottom: 0;
+  height: 6.4%;
+  left: 3.5%;
+  position: absolute;
+  right: 3.5%;
+}
+
+.rssProgress {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.19);
+  border-radius: 999px;
+  height: clamp(5px, 0.52vw, 10px);
+  left: 29%;
+  overflow: hidden;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 47%;
+}
+
+.rssProgress > span {
+  animation: rss-progress var(--template-page-duration) linear forwards;
+  background: var(--template-accent);
+  border-radius: inherit;
+  box-shadow: 0 0 1em var(--template-accent);
+  inset: 0;
+  position: absolute;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.rssCounter {
+  align-items: baseline;
+  color: rgba(255, 255, 255, 0.46);
+  display: inline-flex;
+  font-size: clamp(17px, 2.4vw, 26px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  position: absolute;
+  right: 3.8%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.rssCounter strong {
+  color: rgba(255, 255, 255, 0.96);
+  font-size: clamp(21px, 3vw, 33px);
+  font-weight: 720;
+}
+
+.rssCounter span:first-of-type {
+  margin: 0 0.12em;
+}
+
+@keyframes rss-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.rssPage {
+  animation: rss-page-in 320ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes rss-page-in {
+  from {
+    opacity: 0.62;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 @media (max-width: 900px) {
   .root {
     padding-inline: 6vw;
@@ -391,5 +783,9 @@
   .root *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  .rssProgress > span {
+    transform: scaleX(1);
   }
 }
