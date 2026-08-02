@@ -82,6 +82,39 @@ describe("player cache contract", () => {
     );
   });
 
+  it("neemt checksum-gebonden RSS-beelden mee in dezelfde offline releasecache", () => {
+    const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);
+    if (!lookup.ok) throw new Error("expected demo manifest");
+    const item = lookup.body.manifest.items[0]!;
+    item.dynamicTemplate = {
+      assets: {
+        "66666666-6666-4666-8666-666666666666": {
+          bytes: 2048,
+          checksumSha256: "e".repeat(64),
+          mimeType: "image/webp",
+          url: "https://storage.example.test/rss-hero.webp"
+        }
+      },
+      data: { news: { articles: [] }, type: "news" },
+      orientation: "portrait",
+      schemaVersion: 1,
+      slideType: "news",
+      snapshotHash: "f".repeat(64),
+      snapshotId: "77777777-7777-4777-8777-777777777777",
+      templateSlug: "news-newsroom-dark-portrait",
+      templateVersionId: "88888888-8888-4888-8888-888888888888"
+    };
+
+    expect(getCacheableAssets(lookup.body.manifest)).toContainEqual({
+      bytes: 2048,
+      cacheKey: `/__veyocast-player-cache/${"e".repeat(64)}`,
+      checksumSha256: "e".repeat(64),
+      itemId: item.id,
+      kind: "dynamic",
+      url: "https://storage.example.test/rss-hero.webp"
+    });
+  });
+
   it("moves previous release metadata to the VeyoCast cache namespace", () => {
     const previousNamespace = String.fromCharCode(99, 97, 115, 116, 105, 118, 111);
     const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);

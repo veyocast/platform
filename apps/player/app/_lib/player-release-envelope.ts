@@ -1,6 +1,11 @@
 import "server-only";
 
-import type { PlayerDynamicTemplatePayload } from "@veyocast/contracts";
+import {
+  playerDynamicTemplateAssetSchema,
+  playerDynamicTemplatePayloadSchema,
+  type PlayerDynamicTemplateAsset,
+  type PlayerDynamicTemplatePayload
+} from "@veyocast/contracts";
 
 import type {
   PlayerManifestEnvelope,
@@ -101,8 +106,10 @@ export async function loadPlayerReleaseEnvelope({
   const presentationDefaults = readPresentationDefaults(release.manifest_json);
   const dynamicTemplates = await loadDynamicTemplatePayloads(
     admin,
-    releaseItems
+    releaseItems,
+    tenantId
   );
+  const dynamicAssetBytes = uniqueDynamicAssetBytes(dynamicTemplates);
 
   const items = await Promise.all(
     releaseItems.map(async (item): Promise<PlayerManifestItem> => {
@@ -189,7 +196,7 @@ export async function loadPlayerReleaseEnvelope({
       releaseId: release.id,
       schemaVersion: 1,
       tenantId: release.tenant_id,
-      totalBytes: release.total_bytes,
+      totalBytes: release.total_bytes + dynamicAssetBytes,
       totalDurationSeconds: release.total_duration_seconds,
       version: release.version,
       ...(presentationDefaults ? { presentationDefaults } : {})
@@ -201,7 +208,8 @@ export async function loadPlayerReleaseEnvelope({
 
 async function loadDynamicTemplatePayloads(
   admin: ReturnType<typeof createPlayerAdminClient>,
-  releaseItems: ReleaseItemRow[]
+  releaseItems: ReleaseItemRow[],
+  tenantId: string
 ) {
   const snapshotIds = [
     ...new Set(
@@ -247,12 +255,116 @@ async function loadDynamicTemplatePayloads(
     templates: (templateResult.data ?? []) as DynamicTemplatePayloadRow[],
     versions
   });
+  const mediaIdsBySnapshot = new Map(
+    snapshots.map((snapshot) => [
+      snapshot.id,
+      collectDynamicSnapshotMediaAssetIds(snapshot.snapshot_data_json)
+    ])
+  );
+  const mediaAssetIds = [
+    ...new Set([...mediaIdsBySnapshot.values()].flat())
+  ];
+  const assetsById = mediaAssetIds.length
+    ? await loadDynamicTemplateAssets(admin, tenantId, mediaAssetIds)
+    : new Map<string, PlayerDynamicTemplateAsset>();
   for (const item of releaseItems) {
     if (!item.dynamic_snapshot_id) continue;
     const payload = payloads.get(item.dynamic_snapshot_id);
-    if (payload) result.set(item.id, payload);
+    if (!payload) continue;
+    const assets = Object.fromEntries(
+      (mediaIdsBySnapshot.get(item.dynamic_snapshot_id) ?? []).flatMap(
+        (assetId) => {
+          const asset = assetsById.get(assetId);
+          return asset ? [[assetId, asset]] : [];
+        }
+      )
+    );
+    const parsed = playerDynamicTemplatePayloadSchema.safeParse({
+      ...payload,
+      ...(Object.keys(assets).length ? { assets } : {})
+    });
+    if (parsed.success) result.set(item.id, parsed.data);
   }
   return result;
+}
+
+export function collectDynamicSnapshotMediaAssetIds(snapshot: unknown) {
+  if (!isRecord(snapshot)) return [];
+  const news = isRecord(snapshot.news) ? snapshot.news : null;
+  if (!news) return [];
+  const ids = new Set<string>();
+  if (
+    typeof news.providerLogoMediaAssetId === "string" &&
+    uuidPattern.test(news.providerLogoMediaAssetId)
+  ) {
+    ids.add(news.providerLogoMediaAssetId);
+  }
+  if (Array.isArray(news.articles)) {
+    for (const value of news.articles.slice(0, 50)) {
+      const article = isRecord(value) ? value : null;
+      if (
+        article &&
+        typeof article.heroMediaAssetId === "string" &&
+        uuidPattern.test(article.heroMediaAssetId)
+      ) {
+        ids.add(article.heroMediaAssetId);
+      }
+    }
+  }
+  return [...ids];
+}
+
+async function loadDynamicTemplateAssets(
+  admin: ReturnType<typeof createPlayerAdminClient>,
+  tenantId: string,
+  mediaAssetIds: string[]
+) {
+  const assetResult = await admin
+    .from("media_assets")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("kind", "image")
+    .eq("status", "ready")
+    .in("id", mediaAssetIds);
+  if (assetResult.error) return new Map<string, PlayerDynamicTemplateAsset>();
+  const readyIds = (assetResult.data ?? []).map((asset) => asset.id);
+  if (!readyIds.length) return new Map<string, PlayerDynamicTemplateAsset>();
+  const variantResult = await admin
+    .from("media_variants")
+    .select("asset_id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
+    .eq("tenant_id", tenantId)
+    .eq("variant_type", "original")
+    .in("asset_id", readyIds);
+  if (variantResult.error) {
+    return new Map<string, PlayerDynamicTemplateAsset>();
+  }
+  const assets = new Map<string, PlayerDynamicTemplateAsset>();
+  await Promise.all((variantResult.data ?? []).map(async (variant) => {
+    const signed = await admin.storage
+      .from(variant.storage_bucket)
+      .createSignedUrl(variant.storage_path, 60 * 60);
+    if (signed.error || !signed.data?.signedUrl) return;
+    const parsed = playerDynamicTemplateAssetSchema.safeParse({
+      bytes: Number(variant.file_size_bytes),
+      checksumSha256: variant.checksum_sha256,
+      mimeType: variant.mime_type,
+      url: signed.data.signedUrl
+    });
+    if (parsed.success) assets.set(variant.asset_id, parsed.data);
+  }));
+  return assets;
+}
+
+function uniqueDynamicAssetBytes(
+  templates: Map<string, PlayerDynamicTemplatePayload>
+) {
+  const assets = new Map<string, number>();
+  for (const template of templates.values()) {
+    for (const asset of Object.values(template.assets ?? {})) {
+      assets.set(asset.checksumSha256, asset.bytes);
+    }
+  }
+  return [...assets.values()].reduce((total, bytes) => total + bytes, 0);
 }
 
 function readPresentationDefaults(
@@ -292,3 +404,6 @@ function readPresentationDefaults(
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

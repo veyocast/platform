@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   createDynamicTemplateView,
-  dynamicTemplateMinimumPlaybackMs
+  dynamicTemplateMinimumPlaybackMs,
+  dynamicTemplatePageDurationMs
 } from "./dynamic-template-view";
 
 const base = {
@@ -36,6 +37,7 @@ describe("trusted dynamic template view", () => {
     expect(view?.theme).toBe("dark");
     expect(view?.pages).toHaveLength(3);
     expect(view?.pages[0]).toMatchObject({ kind: "menu" });
+    expect(dynamicTemplatePageDurationMs(30, 3)).toBe(10_000);
     expect(dynamicTemplateMinimumPlaybackMs({
       ...base,
       data: {
@@ -74,6 +76,67 @@ describe("trusted dynamic template view", () => {
       item: { title: "Tweede bericht" },
       kind: "news"
     });
+  });
+
+  it("koppelt portrait RSS-media en de ingestelde tijd aan iedere HTML-pagina", () => {
+    const heroId = "33333333-3333-4333-8333-333333333333";
+    const logoId = "44444444-4444-4444-8444-444444444444";
+    const payload = {
+      ...base,
+      assets: {
+        [heroId]: {
+          bytes: 1024,
+          checksumSha256: "c".repeat(64),
+          mimeType: "image/webp",
+          url: "blob:https://player.veyocast.test/hero"
+        },
+        [logoId]: {
+          bytes: 512,
+          checksumSha256: "d".repeat(64),
+          mimeType: "image/webp",
+          url: "/__veyocast-player-cache/logo"
+        }
+      },
+      data: {
+        news: {
+          articles: [
+            {
+              author: "Sportredactie",
+              externalId: "1",
+              heroMediaAssetId: heroId,
+              title: "Eerste bericht"
+            },
+            { externalId: "2", title: "Tweede bericht" }
+          ],
+          providerLogoMediaAssetId: logoId,
+          secondsPerSlide: 7,
+          sourceName: "AD:voetbal",
+          title: "Voetbalnieuws"
+        },
+        type: "news"
+      },
+      orientation: "portrait",
+      slideType: "news",
+      templateSlug: "news-newsroom-dark-portrait"
+    } as const;
+    const view = createDynamicTemplateView(payload);
+
+    expect(view).toMatchObject({
+      pageDurationMs: 7_000,
+      providerLogoUrl: "/__veyocast-player-cache/logo",
+      title: "Voetbalnieuws"
+    });
+    expect(view?.pages[0]).toMatchObject({
+      item: {
+        author: "Sportredactie",
+        heroUrl: "blob:https://player.veyocast.test/hero"
+      },
+      kind: "news"
+    });
+    expect(dynamicTemplateMinimumPlaybackMs(payload)).toBe(14_000);
+    expect(dynamicTemplatePageDurationMs(30, 2, view?.pageDurationMs)).toBe(
+      7_000
+    );
   });
 
   it("bouwt Match Centre alleen uit genormaliseerde tekstvelden", () => {

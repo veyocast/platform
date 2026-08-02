@@ -19,9 +19,12 @@ export type DynamicTemplateMenuItem = {
 };
 
 export type DynamicTemplateNewsItem = {
+  author: string;
   date: string;
+  heroUrl: string;
   id: string;
   intro: string;
+  link: string;
   source: string;
   title: string;
 };
@@ -41,7 +44,9 @@ export type DynamicTemplateView = {
   accentColor: string;
   emptyState: string;
   orientation: PlayerDynamicTemplatePayload["orientation"];
+  pageDurationMs?: number;
   pages: DynamicTemplatePage[];
+  providerLogoUrl: string;
   slideType: PlayerDynamicTemplatePayload["slideType"];
   snapshotId: string;
   sourceLabel: string;
@@ -103,6 +108,7 @@ export function createDynamicTemplateView(
       pages: paginate(items, payload.orientation === "portrait" ? 10 : 8).map(
         (page) => ({ items: page, kind: "menu" as const })
       ),
+      providerLogoUrl: "",
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
       sourceLabel: "Clubkantine",
@@ -114,21 +120,27 @@ export function createDynamicTemplateView(
   if (payload.slideType === "news") {
     const news = readRecord(data.news) ?? readRecord(data.data);
     const articles = readArray(news?.articles)
-      .map((article) => toNewsItem(article, news))
+      .map((article) => toNewsItem(article, news, payload))
       .filter((item): item is DynamicTemplateNewsItem => item !== null);
+    const secondsPerSlide = safeInteger(news?.secondsPerSlide, 5, 120, 5);
     return {
       accentColor,
       emptyState: articles.length ? "" : "Er zijn nu geen nieuwsberichten.",
       orientation: payload.orientation,
+      pageDurationMs: secondsPerSlide * 1_000,
       pages: (articles.length ? articles : [null]).map((item) => ({
         item,
         kind: "news" as const
       })),
+      providerLogoUrl: dynamicAssetUrl(
+        news?.providerLogoMediaAssetId,
+        payload
+      ),
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
       sourceLabel: safeText(news?.sourceName, "Clubnieuws"),
       theme,
-      title: safeText(news?.title, "Clubnieuws")
+      title: safeText(news?.title, "Nieuws")
     };
   }
 
@@ -149,6 +161,7 @@ export function createDynamicTemplateView(
       emptyState,
       orientation: payload.orientation,
       pages: [{ awayTeam, homeTeam, item, kind: "match" }],
+      providerLogoUrl: "",
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
       sourceLabel: "Match centre",
@@ -166,6 +179,7 @@ export function createDynamicTemplateView(
       items: page,
       kind: "sport-list" as const
     })),
+    providerLogoUrl: "",
     slideType: payload.slideType,
     snapshotId: payload.snapshotId,
     sourceLabel: sportLabel(payload.slideType),
@@ -180,6 +194,7 @@ function parseDynamicTemplatePayload(
   const payload = readRecord(value);
   if (!payload) return null;
   const allowedKeys = new Set([
+    "assets",
     "data",
     "orientation",
     "schemaVersion",
@@ -191,6 +206,7 @@ function parseDynamicTemplatePayload(
   ]);
   if (Object.keys(payload).some((key) => !allowedKeys.has(key))) return null;
 
+  const assets = parseDynamicAssets(payload.assets);
   const data = readRecord(payload.data);
   const orientation = payload.orientation;
   const slideType = payload.slideType;
@@ -199,6 +215,7 @@ function parseDynamicTemplatePayload(
   const templateSlug = payload.templateSlug;
   const templateVersionId = payload.templateVersionId;
   if (
+    assets === null ||
     !data ||
     payload.schemaVersion !== 1 ||
     (orientation !== "landscape" && orientation !== "portrait") ||
@@ -217,6 +234,7 @@ function parseDynamicTemplatePayload(
   }
 
   return {
+    assets,
     data,
     orientation,
     schemaVersion: 1,
@@ -226,6 +244,56 @@ function parseDynamicTemplatePayload(
     templateSlug,
     templateVersionId
   };
+}
+
+function parseDynamicAssets(
+  value: unknown
+): NonNullable<PlayerDynamicTemplatePayload["assets"]> | null {
+  if (value === undefined) return {};
+  const assets = readRecord(value);
+  if (!assets || Object.keys(assets).length > 51) return null;
+
+  const parsed: NonNullable<PlayerDynamicTemplatePayload["assets"]> = {};
+  for (const [assetId, candidate] of Object.entries(assets)) {
+    const asset = readRecord(candidate);
+    if (
+      !uuidPattern.test(assetId) ||
+      !asset ||
+      Object.keys(asset).some(
+        (key) =>
+          !["bytes", "checksumSha256", "mimeType", "url"].includes(key)
+      ) ||
+      !Number.isInteger(asset.bytes) ||
+      Number(asset.bytes) <= 0 ||
+      Number(asset.bytes) > 8_000_000 ||
+      typeof asset.checksumSha256 !== "string" ||
+      !snapshotHashPattern.test(asset.checksumSha256) ||
+      !isDynamicImageMimeType(asset.mimeType) ||
+      typeof asset.url !== "string" ||
+      asset.url.length < 1 ||
+      asset.url.length > 4_096 ||
+      !isSafeDynamicAssetUrl(asset.url)
+    ) {
+      return null;
+    }
+    parsed[assetId] = {
+      bytes: Number(asset.bytes),
+      checksumSha256: asset.checksumSha256,
+      mimeType: asset.mimeType,
+      url: asset.url
+    };
+  }
+  return parsed;
+}
+
+function isDynamicImageMimeType(
+  value: unknown
+): value is "image/jpeg" | "image/png" | "image/webp" {
+  return (
+    value === "image/jpeg" ||
+    value === "image/png" ||
+    value === "image/webp"
+  );
 }
 
 function isDynamicSlideType(
@@ -239,8 +307,15 @@ function isDynamicSlideType(
 
 export function dynamicTemplatePageDurationMs(
   durationSeconds: number,
-  pageCount: number
+  pageCount: number,
+  configuredPageDurationMs?: number
 ) {
+  if (
+    configuredPageDurationMs &&
+    Number.isFinite(configuredPageDurationMs)
+  ) {
+    return Math.min(120_000, Math.max(5_000, configuredPageDurationMs));
+  }
   const effectiveDuration = Math.max(
     5_000,
     durationSeconds * 1_000,
@@ -252,7 +327,9 @@ export function dynamicTemplatePageDurationMs(
 
 export function dynamicTemplateMinimumPlaybackMs(value: unknown) {
   const view = createDynamicTemplateView(value);
-  return view ? Math.max(5_000, view.pages.length * 5_000) : 0;
+  return view
+    ? Math.max(5_000, view.pages.length * (view.pageDurationMs ?? 5_000))
+    : 0;
 }
 
 function toMenuItem(value: unknown): DynamicTemplateMenuItem | null {
@@ -271,19 +348,70 @@ function toMenuItem(value: unknown): DynamicTemplateMenuItem | null {
 
 function toNewsItem(
   value: unknown,
-  feed: Record<string, unknown> | null
+  feed: Record<string, unknown> | null,
+  payload: PlayerDynamicTemplatePayload
 ): DynamicTemplateNewsItem | null {
   const item = readRecord(value);
   if (!item) return null;
   const title = safeText(item.title, "");
   if (!title) return null;
   return {
+    author: safeText(item.author, ""),
     date: formatDate(item.publishedAt),
+    heroUrl: dynamicAssetUrl(item.heroMediaAssetId, payload),
     id: safeText(item.externalId, title),
     intro: safeText(item.intro, ""),
+    link: safePublicLink(item.link),
     source: safeText(item.sourceName, safeText(feed?.sourceName, "Clubnieuws")),
     title
   };
+}
+
+function dynamicAssetUrl(
+  value: unknown,
+  payload: PlayerDynamicTemplatePayload
+) {
+  if (typeof value !== "string" || !uuidPattern.test(value)) return "";
+  return payload.assets?.[value]?.url ?? "";
+}
+
+function safePublicLink(value: unknown) {
+  if (typeof value !== "string") return "";
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.toString()
+      : "";
+  } catch {
+    return "";
+  }
+}
+
+function isSafeDynamicAssetUrl(value: string) {
+  if (
+    value.startsWith("/__veyocast-player-cache/") ||
+    value.startsWith("blob:")
+  ) {
+    return true;
+  }
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function safeInteger(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+  fallback: number
+) {
+  const numeric = Number(value);
+  return Number.isInteger(numeric)
+    ? Math.min(maximum, Math.max(minimum, numeric))
+    : fallback;
 }
 
 function toListItem(value: unknown): DynamicTemplateListItem | null {

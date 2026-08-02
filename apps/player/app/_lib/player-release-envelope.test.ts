@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildDynamicTemplatePayloadMap } from "./player-dynamic-template-payload";
+import { collectDynamicSnapshotMediaAssetIds } from "./player-release-envelope";
 
 describe("dynamic template release payload", () => {
   it("bindt een immutable snapshot aan de gepubliceerde platformtemplate", () => {
@@ -53,5 +54,23 @@ describe("dynamic template release payload", () => {
     });
 
     expect(payloads.size).toBe(0);
+  });
+
+  it("verzamelt alleen begrensde UUID-mediareferenties uit een nieuwssnapshot", () => {
+    expect(collectDynamicSnapshotMediaAssetIds({
+      news: {
+        articles: [
+          {
+            heroMediaAssetId: "33333333-3333-4333-8333-333333333333"
+          },
+          { heroMediaAssetId: "javascript:alert(1)" }
+        ],
+        providerLogoMediaAssetId:
+          "44444444-4444-4444-8444-444444444444"
+      }
+    })).toEqual([
+      "44444444-4444-4444-8444-444444444444",
+      "33333333-3333-4333-8333-333333333333"
+    ]);
   });
 });

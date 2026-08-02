@@ -150,6 +150,14 @@ async function syncRss(
     if (result.error) {
       throw new Error("De genormaliseerde RSS-snapshot kon niet worden opgeslagen.");
     }
+    const mediaSyncResult = await supabase.rpc("request_rss_media_sync_v1", {
+      p_data_source_id: sourceId
+    });
+    if (mediaSyncResult.error) {
+      throw new Error(
+        "De RSS-inhoud is opgeslagen, maar de mediasynchronisatie kon niet worden ingepland."
+      );
+    }
   } catch (error) {
     const code = error instanceof SafeRssFetchError
       ? error.code

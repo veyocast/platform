@@ -8,6 +8,11 @@ import {
 } from "@veyocast/integrations/server";
 import { createClient } from "@supabase/supabase-js";
 
+import {
+  prepareRssMediaArtifacts,
+  type RssMediaArtifact
+} from "./rss-media";
+
 export type ClaimedRssSync = {
   dataSourceId: string;
   runId: string;
@@ -30,6 +35,15 @@ type RpcClient = {
     functionName: string,
     parameters: Record<string, unknown>
   ): Promise<{ data: unknown; error: { code?: string } | null }>;
+  storage?: {
+    from(bucket: string): {
+      upload(
+        path: string,
+        bytes: Uint8Array,
+        options: Record<string, unknown>
+      ): Promise<{ error: { message?: string } | null }>;
+    };
+  };
 };
 
 export class SupabaseRssSyncBackend {
@@ -58,10 +72,12 @@ export class SupabaseRssSyncBackend {
   async complete(
     job: ClaimedRssSync,
     workerId: string,
-    articles: unknown[]
+    articles: unknown[],
+    media: RssMediaArtifact[]
   ) {
-    const result = await this.client.rpc("complete_scheduled_rss_sync_v1", {
+    const result = await this.client.rpc("complete_scheduled_rss_sync_v2", {
       p_articles: articles,
+      p_media_assets: media.map(toMediaPayload),
       p_run_id: job.runId,
       p_worker_id: workerId
     });
@@ -69,6 +85,20 @@ export class SupabaseRssSyncBackend {
       throw new Error("rss_sync_complete_failed");
     }
     return Number(result.data);
+  }
+
+  async uploadMedia(media: RssMediaArtifact[]) {
+    if (!this.client.storage) throw new Error("rss_media_storage_unavailable");
+    for (const artifact of media) {
+      const result = await this.client.storage
+        .from("tenant-media")
+        .upload(artifact.storagePath, artifact.bytes, {
+          cacheControl: "31536000",
+          contentType: artifact.mimeType,
+          upsert: true
+        });
+      if (result.error) throw new Error("rss_media_upload_failed");
+    }
   }
 
   async fail(
@@ -101,7 +131,26 @@ export async function runRssSyncOnce({
   try {
     const response = await fetchSafeRss(job.sourceUrl);
     const feed = parseRssOrAtom(response.body, response.finalUrl);
-    const itemCount = await backend.complete(job, workerId, feed.articles);
+    const media = await prepareRssMediaArtifacts(job, feed);
+    await backend.uploadMedia(media);
+    const heroAssetByExternalId = new Map(
+      media.flatMap((asset) =>
+        asset.role === "article_hero" && asset.externalId
+          ? [[asset.externalId, asset.assetId] as const]
+          : []
+      )
+    );
+    const articles = feed.articles.map((article) => ({
+      ...article,
+      heroMediaAssetId:
+        heroAssetByExternalId.get(article.externalId) ?? null
+    }));
+    const itemCount = await backend.complete(
+      job,
+      workerId,
+      articles,
+      media
+    );
     return {
       dataSourceId: job.dataSourceId,
       itemCount,
@@ -144,6 +193,21 @@ export async function runRssSyncLoop({
     onResult(result);
     if (result.status === "idle") await abortableDelay(intervalMs, signal);
   }
+}
+
+function toMediaPayload(artifact: RssMediaArtifact) {
+  return {
+    assetId: artifact.assetId,
+    checksumSha256: artifact.checksumSha256,
+    externalId: artifact.externalId,
+    fileSizeBytes: artifact.fileSizeBytes,
+    height: artifact.height,
+    mimeType: artifact.mimeType,
+    role: artifact.role,
+    storagePath: artifact.storagePath,
+    title: artifact.title,
+    width: artifact.width
+  };
 }
 
 function parseClaim(value: unknown): ClaimedRssSync {

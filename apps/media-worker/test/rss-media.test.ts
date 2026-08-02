@@ -1,0 +1,56 @@
+import sharp from "sharp";
+import { describe, expect, it } from "vitest";
+
+import { normalizeRssImage } from "../src/rss-media";
+
+const job = {
+  dataSourceId: "22222222-2222-4222-8222-222222222222",
+  runId: "33333333-3333-4333-8333-333333333333",
+  sourceUrl: "https://example.test/rss.xml",
+  tenantId: "11111111-1111-4111-8111-111111111111"
+};
+
+describe("RSS media normalisatie", () => {
+  it("maakt een content-addressed portrait WebP zonder providerbytes uit te voeren", async () => {
+    const input = await sharp({
+      create: {
+        background: { alpha: 1, b: 35, g: 88, r: 180 },
+        channels: 4,
+        height: 360,
+        width: 640
+      }
+    }).png().toBuffer();
+
+    const first = await normalizeRssImage(
+      job,
+      {
+        externalId: "article-1",
+        role: "article_hero",
+        title: "Nieuwsbeeld"
+      },
+      input
+    );
+    const second = await normalizeRssImage(
+      job,
+      {
+        externalId: "article-1",
+        role: "article_hero",
+        title: "Nieuwsbeeld"
+      },
+      input
+    );
+
+    expect(first).toMatchObject({
+      externalId: "article-1",
+      height: 1920,
+      mimeType: "image/webp",
+      role: "article_hero",
+      width: 1080
+    });
+    expect(first.assetId).toBe(second.assetId);
+    expect(first.storagePath).toBe(
+      `tenants/${job.tenantId}/assets/${first.assetId}/rss-article_hero.webp`
+    );
+    expect(first.checksumSha256).toMatch(/^[a-f0-9]{64}$/);
+  });
+});

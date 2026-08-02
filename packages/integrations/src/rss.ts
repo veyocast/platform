@@ -14,6 +14,10 @@ export class RssParseError extends Error {
 
 export type ParsedNewsFeed = {
   articles: CanonicalNewsArticle[];
+  media: {
+    articleImages: Array<{ externalId: string; url: string }>;
+    providerLogoUrl: string | null;
+  };
   title: string;
 };
 
@@ -34,6 +38,13 @@ export function parseRssOrAtom(
     firstTag(feedXml, "channel") && firstTag(firstTag(feedXml, "channel")!, "title") ||
     firstTag(feedXml, "feed") && firstTag(firstTag(feedXml, "feed")!, "title") ||
     new URL(sourceUrl).hostname;
+  const channel = firstTag(feedXml, "channel");
+  const providerLogoUrl = resolveHttpUrl(
+    channel
+      ? firstTag(firstTag(channel, "image") ?? "", "url")
+      : firstTag(firstTag(feedXml, "feed") ?? "", "logo"),
+    sourceUrl
+  );
   const itemBlocks = [
     ...feedXml.matchAll(/<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi)
   ].flatMap((match) => match[1] ? [match[1]] : []);
@@ -44,6 +55,7 @@ export function parseRssOrAtom(
     0,
     Math.min(50, Math.max(1, limit))
   );
+  const articleImages: Array<{ externalId: string; url: string }> = [];
   const articles = blocks.flatMap((block, index) => {
     const title = cleanText(firstTag(block, "title") ?? "");
     const link = rssLink(block) ?? sourceUrl;
@@ -57,6 +69,13 @@ export function parseRssOrAtom(
     const externalId = cleanText(
       firstTag(block, "guid") ?? firstTag(block, "id") ?? link
     ).slice(0, 512);
+    const imageUrl = rssImageUrl(block, sourceUrl);
+    if (imageUrl) {
+      articleImages.push({
+        externalId: externalId || `${link}#${index}`,
+        url: imageUrl
+      });
+    }
     return [{
       author: nullableText(
         firstTag(block, "author") ?? firstTag(block, "dc:creator")
@@ -79,6 +98,10 @@ export function parseRssOrAtom(
   }
   return {
     articles,
+    media: {
+      articleImages,
+      providerLogoUrl
+    },
     title: cleanText(rootTitle ?? "") || new URL(sourceUrl).hostname
   };
 }
@@ -155,6 +178,41 @@ function rssLink(block: string): string | null {
     /<link\b(?=[^>]*\bhref=["']([^"']+)["'])[^>]*\/?>/i
   )?.[1];
   return nullableText(atomAlternate ?? atomAny ?? firstTag(block, "link"));
+}
+
+function rssImageUrl(block: string, sourceUrl: string): string | null {
+  const mediaContent = block.match(
+    /<media:content\b(?=[^>]*\b(?:medium=["']image["']|type=["']image\/[^"']+["']))(?=[^>]*\burl=["']([^"']+)["'])[^>]*\/?>/i
+  )?.[1];
+  const mediaThumbnail = block.match(
+    /<media:thumbnail\b(?=[^>]*\burl=["']([^"']+)["'])[^>]*\/?>/i
+  )?.[1];
+  const enclosure = block.match(
+    /<enclosure\b(?=[^>]*\btype=["']image\/[^"']+["'])(?=[^>]*\burl=["']([^"']+)["'])[^>]*\/?>/i
+  )?.[1];
+  const htmlImage = (
+    firstTag(block, "description") ??
+    firstTag(block, "content:encoded") ??
+    firstTag(block, "content") ??
+    ""
+  ).match(/<img\b(?=[^>]*\bsrc=["']([^"']+)["'])[^>]*>/i)?.[1];
+  return resolveHttpUrl(
+    mediaContent ?? mediaThumbnail ?? enclosure ?? htmlImage,
+    sourceUrl
+  );
+}
+
+function resolveHttpUrl(
+  value: string | null | undefined,
+  baseUrl: string
+): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(decodeEntities(value.trim()), baseUrl);
+    return isHttpUrl(url.toString()) ? url.toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 function firstTag(xml: string, tag: string): string | null {
