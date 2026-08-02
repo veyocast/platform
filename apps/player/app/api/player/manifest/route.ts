@@ -28,16 +28,26 @@ export async function GET(request: Request) {
   const bearerToken = getBearerToken(request);
 
   if (isLivePlayerConfigured()) {
-    return getLiveManifest(bearerToken);
+    return getLiveManifest(request, bearerToken);
   }
 
   const token = bearerToken ?? requestUrl.searchParams.get("deviceToken");
   const lookup = getPlayerManifestForToken(token);
 
+  if (
+    lookup.ok &&
+    requestHasReleaseEtag(request, lookup.body.manifest.releaseId)
+  ) {
+    return unchangedRelease(lookup.body.manifest.releaseId);
+  }
+
   return NextResponse.json(lookup.body, {
     status: lookup.status,
     headers: {
-      "Cache-Control": "no-store"
+      "Cache-Control": "no-store",
+      ...(lookup.ok
+        ? { ETag: releaseEtag(lookup.body.manifest.releaseId) }
+        : {})
     }
   });
 }
@@ -53,7 +63,7 @@ type BootstrapRow = {
   tenant_id: string;
 };
 
-async function getLiveManifest(token: string | null) {
+async function getLiveManifest(request: Request, token: string | null) {
   if (!token?.trim()) {
     return manifestProblem(401, "UNPAIRED", {
       cause: "Er is nog geen device-token aanwezig.",
@@ -147,6 +157,10 @@ async function getLiveManifest(token: string | null) {
     );
   }
 
+  if (requestHasReleaseEtag(request, bootstrap.desired_release_id)) {
+    return unchangedRelease(bootstrap.desired_release_id);
+  }
+
   try {
     const body = await loadPlayerReleaseEnvelope({
       device: {
@@ -162,7 +176,8 @@ async function getLiveManifest(token: string | null) {
 
     return NextResponse.json(body, {
       headers: {
-        "Cache-Control": "no-store"
+        "Cache-Control": "no-store",
+        ETag: releaseEtag(bootstrap.desired_release_id)
       }
     });
   } catch {
@@ -173,6 +188,27 @@ async function getLiveManifest(token: string | null) {
       recovery: "Controleer storage en publiceer zo nodig een nieuwe release."
     });
   }
+}
+
+function releaseEtag(releaseId: string) {
+  return `"release-${releaseId}"`;
+}
+
+function requestHasReleaseEtag(request: Request, releaseId: string) {
+  const expected = releaseEtag(releaseId);
+  return (request.headers.get("if-none-match") ?? "")
+    .split(",")
+    .some((value) => value.trim().replace(/^W\//, "") === expected);
+}
+
+function unchangedRelease(releaseId: string) {
+  return new NextResponse(null, {
+    headers: {
+      "Cache-Control": "no-store",
+      ETag: releaseEtag(releaseId)
+    },
+    status: 304
+  });
 }
 
 function manifestProblem(
