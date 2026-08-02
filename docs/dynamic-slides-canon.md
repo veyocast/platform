@@ -1,30 +1,36 @@
 # VeyoCast dynamic slides canon
 
-Status: implemented MVP contract (S51)
+Status: implemented HTML/CSS-first runtime with immutable PNG fallback (S84)
 Scope: fixed menu boards, RSS news, Publisher integration and all Players
 
 ## Product boundary
 
-A dynamic slide is not a live web page and is not a new Player item type.
-VeyoCast resolves provider data on the server, freezes a canonical data
-snapshot and renders that snapshot to a normal immutable PNG media asset.
-Playlist publication then uses the existing schema-v1 release manifest,
-checksums, atomic activation and last-known-good cache.
+A dynamic slide is not a remote provider page and never contains tenant-authored
+JavaScript. VeyoCast resolves provider data server-side and freezes a canonical
+tenant snapshot. Publication includes two representations of that exact
+snapshot:
+
+- a small, validated Player payload rendered by a locked VeyoCast HTML/CSS
+  component;
+- a generated immutable PNG used as verified offline and legacy fallback.
 
 ```text
 Provider/file/manual input
   → server-only adapter and validation
   → canonical tenant data
   → immutable slide snapshot
-  → bounded render job
-  → ready PNG media asset
-  → playlist draft
-  → immutable release
-  → existing browser/LG/Android offline cache
+  ├→ trusted template identity + normalized Player payload
+  └→ bounded render job → ready PNG media asset
+  → playlist draft → immutable release
+  → browser/LG/Android checksum cache
+  → locked HTML/CSS runtime, or verified PNG fallback
 ```
 
-Players never receive provider credentials, template source or untrusted HTML.
-They never call RSS, Twelve or another provider.
+Players never receive provider credentials, provider URLs, raw feed/provider
+responses, editable template source, arbitrary HTML or executable script. They
+never call RSS, Twelve or Sportlink. Only a known template identity, bounded
+normalized data and the already approved fallback asset are added to the
+immutable release envelope.
 
 ## Concepts
 
@@ -62,7 +68,9 @@ Rejected:
 - arbitrary helpers, JavaScript, `eval`, external asset URLs, CSS imports,
   CSS expressions and unbounded nesting or collections.
 
-The Control preview and media worker use the same parser and renderer.
+The Control preview and media worker use the same parser and renderer for the
+fallback. Player HTML/CSS is implemented as locked product code and does not
+interpret the stored SVG/CSS template source.
 
 ## Canonical data
 
@@ -104,26 +112,38 @@ release.
 ## Refresh and publication semantics
 
 RSS sources receive a worker lease and default to a 15-minute refresh (bounded
-to 5–1440 minutes). A successful source refresh queues a new snapshot only for
-slides in `latest` mode. `pinned` slides remain on their selected snapshot.
+to 5–1440 minutes). Twelve apply, a successful Sportlink dataset sync and
+manual product changes increment the same source revision boundary. A
+successful refresh queues one new snapshot per slide in `latest` mode.
+`pinned` slides remain on their selected snapshot.
 
-The new output becomes the slide's current snapshot only after upload,
-checksum creation and transactionally registering a ready PNG. Existing
-playlist rows and releases are not silently mutated. An editor deliberately
-adds the current snapshot to a playlist; publication creates the usual
-immutable release. This keeps change impact visible and preserves rollback.
+The new output becomes current only after upload, checksum creation and
+transactionally registering a ready PNG. A latest-mode item in a mutable
+playlist concept then follows that completed snapshot and matching fallback
+asset atomically; the concept revision is incremented and audited. Published
+releases remain immutable and only change through the existing explicit
+publication flow. Active Players therefore never receive an unreviewed mutable
+release.
+
+The author chooses the bounded item count. Menu products, news articles and
+Sportlink rows are split into deterministic pages by the trusted runtime.
+Single-match templates stay limited to one match. Each page receives enough
+playback time to remain readable before the next item or page.
 
 ## Reference templates
 
-The migration seeds four platform templates:
+The original light menu/news templates remain available. S84 adds responsive
+portrait and landscape variants for:
 
-- Atelier menubord — liggend (1920×1080);
-- Atelier menubord — staand (1080×1920);
-- Editorial nieuws — liggend (1920×1080);
-- Editorial nieuws — staand (1080×1920).
+- Clubhouse menu, including a dark variant;
+- Newsroom, including a dark variant;
+- every supported Sportlink slide type in light and dark Match Centre
+  treatments.
 
-They use the tenant brand kit's primary color with conservative fallbacks.
-The normal Player lock-up remains the only permanent playback watermark.
+The five-step Control wizard shows a real visual variant preview before the
+author selects source, item count and review. Templates use only locked
+VeyoCast themes and normalized content. The normal Player lock-up remains the
+only permanent playback watermark.
 
 ## Security and authorization
 
@@ -166,26 +186,20 @@ honour normal media usage and immutable release retention.
 
 ## Verification evidence
 
-- A clean Supabase reset applies both S51 migrations.
-- The complete database suite passes 39 files and 742 RLS assertions; the
-  dynamic suite contains 18 assertions including tenant isolation, one render
-  lease, a normal ready PNG, playlist insertion and automatic snapshot creation
-  after a manual RSS refresh.
-- All 25 workspace lint, typecheck and unit-test tasks pass. This includes 28
-  integration tests, 61 media-worker tests, 103 Control tests and 85 Player
-  tests after the independently deployed pairing hotfix was merged back.
-- The Control production build contains all template, data-source and slide
-  routes.
-- The dedicated dynamic workspace browser test passes at 320, 390, 768 and
-  1280 pixels without horizontal overflow. The complete accessibility matrix
-  passes 29 of 30 scenarios in one serial run; the single unrelated
-  navigation-focus race passes immediately in isolation.
-- The complete Chromium matrix passes 101 scenarios with nine explicitly
-  environment-dependent skips. Three unrelated parallel Next.js development
-  navigation races all pass in the serial or isolated reruns.
-- Desktop and mobile visual review evidence was captured for the slide list,
-  creation flow and platform template workspace. No production deployment was
-  performed for S51.
+- Contract tests reject unknown template identities and unbounded snapshot
+  payloads.
+- Player tests cover menu, news, Sportlink, pagination, direct DOM rendering,
+  fallback and the conservative LG Legacy source.
+- Database tests cover non-RSS source revisioning, snapshot creation,
+  completion and atomic latest-draft following without mutating a release.
+- The final S84 local evidence includes a clean reset, 840 RLS assertions,
+  28/28 workspace lint/typecheck/test tasks, 17/17 production builds including
+  the webOS guard, 66 Player checks, seven offline checks, 32 accessibility
+  checks and 127 active serial Chromium scenarios.
+- A database-backed renderer smoke test rendered all 76 relevant published
+  fallback versions, including the four new menu/news variants.
+- Deployment evidence is recorded separately from these local gates so a
+  successful rollout is never mistaken for physical LG acceptance.
 
 ## Explicit non-goals
 
@@ -193,6 +207,6 @@ honour normal media usage and immutable release retention.
 - No provider call from a Player.
 - No invented Twelve API.
 - No silent mutation of a published release.
-- No production deployment as part of S51.
-- Physical LG validation remains a release acceptance step, not a local
-  implementation claim.
+- No browser-side evaluation of SVG template source.
+- Physical LG rendering remains a release acceptance step; a successful
+  automated deployment is not itself a hardware claim.

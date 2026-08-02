@@ -43,6 +43,13 @@ off and require explicit privacy activation. `adresboek` and every `mijn-*`
 financial/personal article are excluded; VeyoCast implements no Sportlink OAuth
 member portal.
 
+The supported canonical datasets can feed fixed Player-rendered Sportlink
+slides. Control offers portrait/landscape and light/dark variants plus a
+bounded row count. Publication freezes the normalized snapshot in the release;
+the Player renders locked HTML/CSS and retains the PNG generated from the same
+snapshot as offline/legacy fallback. This does not broaden the provider or
+privacy boundary.
+
 Local discovery reads `SPORTLINK_CLIENT_ID` without printing it. Application
 connections additionally require `SPORTLINK_CONFIG_ENCRYPTION_KEY` of at least
 32 characters. Never commit either value. The VPS Compose boundary injects the

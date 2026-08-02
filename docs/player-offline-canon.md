@@ -36,6 +36,9 @@ DISABLED
   officiële setup-assets en alle door de eerste HTML-render gerefereerde
   Next.js shellbestanden.
 - Manifests and sync metadata: IndexedDB.
+- Trusted dynamic-slide payloads are part of the immutable release envelope and
+  therefore retained with that release. The runtime is locked application code;
+  no stored template source or script is evaluated on the Player.
 - Media assets: Cache Storage MVP; adapter abstraction for later OPFS/chunking.
 - Asset keys: checksum-based.
 - Storage quota checked before pending release download.
@@ -53,6 +56,13 @@ DISABLED
 8. Keep previous release as fallback.
 9. Garbage collect old releases safely.
 ```
+
+For a dynamic slide, the Player renders the bounded normalized snapshot as
+HTML/CSS. The checksum-verified PNG belonging to the same snapshot remains a
+required release asset and is used whenever the runtime payload is absent,
+invalid or unsupported. Consequently a temporary renderer or browser
+compatibility problem does not turn valid last-known-good playback into a black
+screen.
 
 ## Video notes
 

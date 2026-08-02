@@ -106,6 +106,7 @@ tests en exitcriteria staan in
 | S81 | Begeleide slide- en mediabeheerflow | Dynamische slides in afzonderlijke gevalideerde stappen maken en mediaverwijdering direct vindbaar en herstelbaar maken |
 | S82 | Sportlink-lease en Europese tenanttijd | Langdurige Sportlink-syncs met lease-heartbeat en direct herstel uitvoeren; Control en sportslides expliciet in Amsterdam-, Brussel- of Parijstijd tonen |
 | S83 | Veilige RSS-compatibiliteit | Gewone nieuwspagina’s begrensd naar hun gedeclareerde feed laten doorverwijzen en legacy RSS-doctypes inert negeren zonder entityresolutie of SSRF-versoepeling |
+| S84 | HTML/CSS dynamische slides | Menu, nieuws en Sportlink als locked responsive Player-templates met paging, varianten en een immutable PNG-fallback tonen |
 
 ### Programmagates
 
