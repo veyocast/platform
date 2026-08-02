@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(18);
+select plan(22);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -61,6 +61,7 @@ create temporary table dynamic_test_ids (
   name text primary key,
   id uuid not null
 );
+grant select on dynamic_test_ids to service_role;
 
 insert into dynamic_test_ids values (
   'source',
@@ -210,6 +211,79 @@ select is(
   ),
   'ready',
   'playlist references an ordinary ready image asset'
+);
+
+reset role;
+
+update public.tenant_products
+set name = 'Cola zero'
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and slug = 'cola';
+
+set local role service_role;
+
+select lives_ok(
+  $$update public.dynamic_data_sources
+    set revision = revision + 1
+    where id = (select id from dynamic_test_ids where name = 'source')$$,
+  'a non-RSS source revision queues latest snapshots too'
+);
+
+select is(
+  (
+    select count(*)
+    from public.dynamic_slide_snapshots
+    where dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'slide'
+    )
+  ),
+  2::bigint,
+  'menu source refresh creates one new immutable snapshot'
+);
+
+create temporary table dynamic_refresh_claim as
+select * from public.claim_dynamic_render_job_v1(
+  'dynamic-refresh-worker',
+  120,
+  3
+);
+
+select lives_ok(
+  $$select public.complete_dynamic_render_job_v1(
+    (select job_id from dynamic_refresh_claim),
+    'dynamic-refresh-worker',
+    'tenants/' || (select tenant_id from dynamic_refresh_claim)::text ||
+      '/assets/' ||
+      (select output_media_asset_id from dynamic_refresh_claim)::text ||
+      '/dynamic-slide.png',
+    4096,
+    repeat('c', 64),
+    1920,
+    1080
+  )$$,
+  'refreshed snapshot can complete with its own immutable fallback'
+);
+
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000a51',
+  true
+);
+
+select ok(
+  (
+    select item.dynamic_snapshot_id = slide.current_snapshot_id
+      and item.media_asset_id = snapshot.output_media_asset_id
+    from public.playlist_items item
+    join public.dynamic_slides slide
+      on slide.id = item.dynamic_slide_id
+    join public.dynamic_slide_snapshots snapshot
+      on snapshot.id = item.dynamic_snapshot_id
+    where item.playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'latest playlist draft follows the completed snapshot and matching fallback'
 );
 
 insert into dynamic_test_ids values (
