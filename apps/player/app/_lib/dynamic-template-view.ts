@@ -159,8 +159,18 @@ export function dynamicTemplatePageDurationMs(
   durationSeconds: number,
   pageCount: number
 ) {
-  if (pageCount <= 1) return Math.max(5_000, durationSeconds * 1_000);
-  return Math.max(4_000, Math.floor((durationSeconds * 1_000) / pageCount));
+  const effectiveDuration = Math.max(
+    5_000,
+    durationSeconds * 1_000,
+    pageCount * 5_000
+  );
+  if (pageCount <= 1) return effectiveDuration;
+  return Math.floor(effectiveDuration / pageCount);
+}
+
+export function dynamicTemplateMinimumPlaybackMs(value: unknown) {
+  const view = createDynamicTemplateView(value);
+  return view ? Math.max(5_000, view.pages.length * 5_000) : 0;
 }
 
 function toMenuItem(value: unknown): DynamicTemplateMenuItem | null {

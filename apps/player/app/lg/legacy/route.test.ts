@@ -29,6 +29,19 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).not.toContain("crossfade");
   });
 
+  it("rendert vertrouwde menu-, nieuws- en sporttemplates zonder injecteerbare HTML", () => {
+    const html = renderLgLegacyHtml();
+
+    expect(html).toContain('templateNode("section", "dynamic-template")');
+    expect(html).toContain("renderMenuTemplate");
+    expect(html).toContain("renderNewsTemplate");
+    expect(html).toContain("renderSportTemplate");
+    expect(html).toContain("LEGACY_TEMPLATE_READY");
+    expect(html).toContain("element.textContent = text");
+    expect(html).not.toContain("eval(");
+    expect(html).not.toContain("new Function(");
+  });
+
   it("deelt identiteit en API-contracten met de gewone Player", () => {
     const html = renderLgLegacyHtml();
 

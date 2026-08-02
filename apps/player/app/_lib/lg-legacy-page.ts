@@ -1001,6 +1001,7 @@ export function renderLgLegacyHtml() {
       var renderer;
       var pageIndex = 0;
       var accent = "#f15a24";
+      var templateDuration;
       var brand = templateRecord(snapshot.brand);
       if (brand && typeof brand.primaryColor === "string" && /^#[0-9a-f]{6}$/i.test(brand.primaryColor)) {
         accent = brand.primaryColor;
@@ -1031,6 +1032,10 @@ export function renderLgLegacyHtml() {
       byId("media-root").appendChild(root);
       runtime.currentElement = root;
       renderer.render(renderer.pages[0]);
+      templateDuration = Math.max(
+        itemDurationMs(item),
+        renderer.pages.length * 5000
+      );
       if (renderer.pages.length > 1) {
         runtime.templateTimer = window.setInterval(function () {
           var number;
@@ -1039,10 +1044,10 @@ export function renderLgLegacyHtml() {
           renderer.render(renderer.pages[pageIndex]);
           number = root.querySelector(".dynamic-page-number");
           if (number) number.textContent = String(pageIndex + 1) + " / " + String(renderer.pages.length);
-        }, Math.max(4000, Math.floor(itemDurationMs(item) / renderer.pages.length)));
+        }, Math.floor(templateDuration / renderer.pages.length));
       }
       mediaReady();
-      runtime.playbackTimer = window.setTimeout(nextItem, itemDurationMs(item));
+      runtime.playbackTimer = window.setTimeout(nextItem, templateDuration);
       log("LEGACY_TEMPLATE_READY", payload.slideType + " " + payload.templateSlug);
     }
     function playImage(item, sourceUrl) {

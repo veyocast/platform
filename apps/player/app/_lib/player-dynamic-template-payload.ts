@@ -1,7 +1,7 @@
 import {
-  dynamicSlideOrientations,
-  dynamicSlideTypes,
   playerDynamicTemplatePayloadSchema,
+  type dynamicSlideOrientations,
+  type dynamicSlideTypes,
   type PlayerDynamicTemplatePayload
 } from "@veyocast/contracts";
 

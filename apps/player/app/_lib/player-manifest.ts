@@ -4,6 +4,7 @@ import type {
 } from "@veyocast/contracts";
 
 import { localStorageDeviceTokenKey } from "./player-storage";
+import { dynamicTemplateMinimumPlaybackMs } from "./dynamic-template-view";
 
 export const demoOnlineDeviceToken = "demo-online";
 export { localStorageDeviceTokenKey };
@@ -406,7 +407,12 @@ export function getPlayerItemPlaybackDurationMs(
   overrideMs?: number | null,
   at = Date.now()
 ) {
-  const durationMs = getPlaybackDurationMs(item, overrideMs);
+  const durationMs = Math.max(
+    getPlaybackDurationMs(item, overrideMs),
+    item.dynamicTemplate
+      ? dynamicTemplateMinimumPlaybackMs(item.dynamicTemplate)
+      : 0
+  );
   const { visibleUntil } = resolvePlayerItemPresentation(item);
   if (visibleUntil === null) return durationMs;
   return Math.max(0, Math.min(durationMs, visibleUntil - at));
