@@ -537,7 +537,43 @@ begin
           end,
           'type', 'string', 'required', true
         )
-      )
+      ) ||
+      case
+        when template_row.slide_type = 'menu' then jsonb_build_array(
+          jsonb_build_object(
+            'path', 'menu.products.name',
+            'type', 'string', 'required', true
+          ),
+          jsonb_build_object(
+            'path', 'menu.products.priceMinor',
+            'type', 'number', 'required', true
+          )
+        )
+        when template_row.slide_type = 'news' then jsonb_build_array(
+          jsonb_build_object(
+            'path', 'news.articles.title',
+            'type', 'string', 'required', true
+          ),
+          jsonb_build_object(
+            'path', 'news.articles.intro',
+            'type', 'string', 'required', false
+          )
+        )
+        else jsonb_build_array(
+          jsonb_build_object(
+            'path', 'sport.items.primary',
+            'type', 'string', 'required', true
+          ),
+          jsonb_build_object(
+            'path', 'sport.items.secondary',
+            'type', 'string', 'required', false
+          ),
+          jsonb_build_object(
+            'path', 'sport.items.meta',
+            'type', 'string', 'required', false
+          )
+        )
+      end
     );
     sample_data := case
       when template_row.slide_type = 'menu' then jsonb_build_object(
