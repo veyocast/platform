@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(24);
+select plan(33);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -144,6 +144,231 @@ select is((select count(*) from public.sportlink_sync_runs
 select ok((select last_success_at is not null
   from public.sportlink_sync_policies where dataset_group='matches'),
   'successful completion updates the dataset policy');
+
+reset role;
+select set_config(
+  'test.sportlink_connection_id',
+  (select id::text from public.sportlink_connections limit 1),
+  true
+);
+set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select lives_ok(
+  $$select public.record_sportlink_sync_v1(
+    current_setting('test.sportlink_connection_id')::uuid,
+    '{}'::jsonb,
+    '[
+      {
+        "externalId":"10",
+        "localExternalId":"1",
+        "name":"Testclub 1",
+        "competitionOptions":[{
+          "externalId":"competition-a",
+          "name":"Reguliere competitie",
+          "period":"Fase 1",
+          "poolExternalId":"701",
+          "poolName":"Poule A",
+          "type":"Competitie"
+        }]
+      },
+      {
+        "externalId":"10",
+        "localExternalId":"1",
+        "name":"Testclub 1",
+        "competitionOptions":[{
+          "externalId":"competition-b",
+          "name":"Districtsbeker",
+          "period":"Groep 3",
+          "poolExternalId":"702",
+          "poolName":"Poule B",
+          "type":"Beker"
+        }]
+      }
+    ]'::jsonb,
+    jsonb_build_array(
+      jsonb_build_object(
+        'externalId','match-cup',
+        'startsAt',(now() + interval '1 day')::text,
+        'status','scheduled',
+        'homeTeam',jsonb_build_object(
+          'externalId','10','name','Testclub 1','score',null
+        ),
+        'awayTeam',jsonb_build_object(
+          'externalId','20','name','Bezoekers','score',null
+        ),
+        'competition',jsonb_build_object(
+          'externalId','competition-b',
+          'name','Districtsbeker',
+          'period','Groep 3',
+          'type','Beker'
+        ),
+        'pool',jsonb_build_object(
+          'externalId','702','name','Poule B'
+        ),
+        'venue',jsonb_build_object('field','Veld 1'),
+        'dressingRooms','{}'::jsonb,
+        'officials','[]'::jsonb,
+        'isHomeMatch',true
+      ),
+      jsonb_build_object(
+        'externalId','match-league',
+        'startsAt',(now() + interval '2 days')::text,
+        'status','scheduled',
+        'homeTeam',jsonb_build_object(
+          'externalId','30','name','Ander team','score',null
+        ),
+        'awayTeam',jsonb_build_object(
+          'externalId','40','name','Andere bezoekers','score',null
+        ),
+        'competition',jsonb_build_object(
+          'externalId','competition-c',
+          'name','Reguliere competitie',
+          'period','Fase 1',
+          'type','Competitie'
+        ),
+        'pool',jsonb_build_object(
+          'externalId','703','name','Poule C'
+        ),
+        'venue',jsonb_build_object('field','Veld 2'),
+        'dressingRooms','{}'::jsonb,
+        'officials','[]'::jsonb,
+        'isHomeMatch',false
+      )
+    ),
+    '[]'::jsonb
+  )$$,
+  'duplicate provider team rows complete as one normalized team'
+);
+reset role;
+select is(
+  (select count(*) from public.sports_teams where external_id='10'),
+  1::bigint,
+  'one canonical team row is stored for all competition contexts'
+);
+select is(
+  (
+    select jsonb_array_length(metadata -> 'competitionOptions')
+    from public.sports_teams
+    where external_id='10'
+  ),
+  2,
+  'the canonical team retains both competition and cup choices'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000b01',
+  true
+);
+select lives_ok(
+  $$select public.create_dynamic_slide_v1(
+    '10000000-0000-4000-8000-000000000b01',
+    'Bekerprogramma Testclub 1',
+    (
+      select version.id
+      from public.dynamic_template_versions version
+      join public.dynamic_templates template
+        on template.id = version.template_id
+      where template.slug = 'sportlink-program-landscape'
+        and version.status = 'published'
+    ),
+    (
+      select connection.data_source_id
+      from public.sportlink_connections connection
+      limit 1
+    ),
+    'latest',
+    '{
+      "title":"Bekerprogramma",
+      "maxItems":8,
+      "sportTeamExternalId":"10",
+      "sportCompetitionExternalId":"competition-b"
+    }'::jsonb
+  )$$,
+  'tenant owner can create a team- and competition-scoped program slide'
+);
+select is(
+  (
+    select snapshot.snapshot_data_json #>>
+      '{sport,selection,team,externalId}'
+    from public.dynamic_slide_snapshots snapshot
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Bekerprogramma Testclub 1'
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  '10',
+  'the immutable snapshot freezes the selected team identity'
+);
+select is(
+  (
+    select snapshot.snapshot_data_json #>>
+      '{sport,selection,competition,externalId}'
+    from public.dynamic_slide_snapshots snapshot
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Bekerprogramma Testclub 1'
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  'competition-b',
+  'the immutable snapshot freezes the selected competition context'
+);
+select is(
+  (
+    select jsonb_array_length(
+      snapshot.snapshot_data_json #> '{sport,items}'
+    )
+    from public.dynamic_slide_snapshots snapshot
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Bekerprogramma Testclub 1'
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  1,
+  'snapshot filtering happens before the configured item limit'
+);
+select is(
+  (
+    select snapshot.snapshot_data_json #>>
+      '{sport,items,0,id}'
+    from public.dynamic_slide_snapshots snapshot
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Bekerprogramma Testclub 1'
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  'match-cup',
+  'only the selected team and competition match is frozen'
+);
+select throws_ok(
+  $$select public.create_dynamic_slide_v1(
+    '10000000-0000-4000-8000-000000000b01',
+    'Ongeldig team',
+    (
+      select version.id
+      from public.dynamic_template_versions version
+      join public.dynamic_templates template
+        on template.id = version.template_id
+      where template.slug = 'sportlink-program-landscape'
+        and version.status = 'published'
+    ),
+    (
+      select connection.data_source_id
+      from public.sportlink_connections connection
+      limit 1
+    ),
+    'latest',
+    '{"sportTeamExternalId":"tenant-b-team"}'::jsonb
+  )$$,
+  '23514',
+  null,
+  'an unavailable or cross-tenant team identity is rejected server-side'
+);
 
 set local role anon;
 select is((select count(*) from public.sportlink_connections),0::bigint,

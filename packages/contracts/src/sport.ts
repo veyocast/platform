@@ -36,9 +36,19 @@ export const sportClubSchema = z.object({
   websiteUrl: safeUrlSchema
 });
 
+export const sportTeamCompetitionSchema = z.object({
+  externalId: idSchema,
+  name: labelSchema,
+  period: optionalLabelSchema,
+  poolExternalId: idSchema.nullable(),
+  poolName: optionalLabelSchema,
+  type: optionalLabelSchema
+});
+
 export const sportTeamSchema = z.object({
   category: optionalLabelSchema,
   competitionName: optionalLabelSchema,
+  competitionOptions: z.array(sportTeamCompetitionSchema).max(40).optional(),
   externalId: idSchema,
   gender: optionalLabelSchema,
   localExternalId: idSchema.nullable(),
@@ -192,5 +202,8 @@ export type SportSponsor = z.infer<typeof sportSponsorSchema>;
 export type SportStanding = z.infer<typeof sportStandingSchema>;
 export type SportStandingRow = z.infer<typeof sportStandingRowSchema>;
 export type SportTeam = z.infer<typeof sportTeamSchema>;
+export type SportTeamCompetition = z.infer<
+  typeof sportTeamCompetitionSchema
+>;
 export type SportTraining = z.infer<typeof sportTrainingSchema>;
 export type SportVolunteerTask = z.infer<typeof sportVolunteerTaskSchema>;

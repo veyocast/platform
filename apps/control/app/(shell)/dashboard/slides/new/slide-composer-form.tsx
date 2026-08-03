@@ -18,6 +18,10 @@ import { Button } from "@veyocast/ui";
 
 import styles from "../../dynamic-content.module.css";
 import { createDynamicSlide } from "../actions";
+import type {
+  SportlinkCompetitionOption,
+  SportlinkTeamOption
+} from "./sportlink-slide-options";
 
 export type SlideSourceOption = {
   id: string;
@@ -27,6 +31,8 @@ export type SlideSourceOption = {
   lastSuccessfulSyncAt: string | null;
   name: string;
   providerStatus: string;
+  sportCompetitions: SportlinkCompetitionOption[];
+  sportTeams: SportlinkTeamOption[];
   successfulDatasetGroups: string[];
 };
 
@@ -96,6 +102,9 @@ export function SlideComposerForm({
   const [selectionMode, setSelectionMode] = useState("latest");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
+  const [sportCompetitionExternalId, setSportCompetitionExternalId] =
+    useState("*");
+  const [sportTeamExternalId, setSportTeamExternalId] = useState("*");
   const [maxItems, setMaxItems] = useState(
     defaultMaxItems(initialTemplate.slideType)
   );
@@ -117,6 +126,23 @@ export function SlideComposerForm({
     readySources.find((source) => source.id === dataSourceId) ??
     readySources[0] ??
     null;
+  const sportTeams = selectedSource?.sportTeams ?? [];
+  const selectedSportTeamExternalId = sportTeams.some(
+    (team) => team.externalId === sportTeamExternalId
+  )
+    ? sportTeamExternalId
+    : "*";
+  const sportCompetitions = (selectedSource?.sportCompetitions ?? []).filter(
+    (competition) =>
+      selectedSportTeamExternalId === "*" ||
+      competition.teamExternalIds.includes(selectedSportTeamExternalId)
+  );
+  const selectedSportCompetitionExternalId = sportCompetitions.some(
+    (competition) =>
+      competition.externalId === sportCompetitionExternalId
+  )
+    ? sportCompetitionExternalId
+    : "*";
 
   useEffect(() => {
     stepHeadingRef.current?.focus();
@@ -150,6 +176,8 @@ export function SlideComposerForm({
     setTemplateVersionId(nextTemplate?.versionId ?? "");
     setDataSourceId("");
     setCategory("");
+    setSportCompetitionExternalId("*");
+    setSportTeamExternalId("*");
     setMaxItems(defaultMaxItems(value));
     setSecondsPerSlide("5");
   }
@@ -321,7 +349,11 @@ export function SlideComposerForm({
               disabled={!selectedSource}
               key={slideType}
               name="dataSourceId"
-              onChange={(event) => setDataSourceId(event.currentTarget.value)}
+              onChange={(event) => {
+                setDataSourceId(event.currentTarget.value);
+                setSportCompetitionExternalId("*");
+                setSportTeamExternalId("*");
+              }}
               required
               value={selectedSource?.id ?? ""}
             >
@@ -372,7 +404,11 @@ export function SlideComposerForm({
               name="title"
               onChange={(event) => setTitle(event.currentTarget.value)}
               placeholder={
-                slideType === "news" ? "Voetbalnieuws" : "Menu vandaag"
+                slideType === "news"
+                  ? "Voetbalnieuws"
+                  : slideType.startsWith("sport_")
+                    ? slideTypeLabel(slideType)
+                    : "Menu vandaag"
               }
               value={title}
             />
@@ -388,6 +424,55 @@ export function SlideComposerForm({
                 value={category}
               />
             </label>
+          ) : null}
+          {supportsSportMatchSelection(slideType) ? (
+            <>
+              <label className={styles.field}>
+                <span>Team</span>
+                <select
+                  name="sportTeamExternalId"
+                  onChange={(event) => {
+                    setSportTeamExternalId(event.currentTarget.value);
+                    setSportCompetitionExternalId("*");
+                  }}
+                  value={selectedSportTeamExternalId}
+                >
+                  <option value="*">Alle teams</option>
+                  {sportTeams.map((team) => (
+                    <option key={team.externalId} value={team.externalId}>
+                      {team.label}
+                    </option>
+                  ))}
+                </select>
+                <small className={styles.fieldHint}>
+                  Kies één team of toon het volledige clubprogramma.
+                </small>
+              </label>
+              <label className={styles.field}>
+                <span>Competitie, beker of fase</span>
+                <select
+                  name="sportCompetitionExternalId"
+                  onChange={(event) =>
+                    setSportCompetitionExternalId(event.currentTarget.value)
+                  }
+                  value={selectedSportCompetitionExternalId}
+                >
+                  <option value="*">Alle competities en fasen</option>
+                  {sportCompetitions.map((competition) => (
+                    <option
+                      key={competition.externalId}
+                      value={competition.externalId}
+                    >
+                      {competition.label}
+                    </option>
+                  ))}
+                </select>
+                <small className={styles.fieldHint}>
+                  Sportlink-contexten zoals competitie, beker, fase en poule
+                  blijven afzonderlijk kiesbaar.
+                </small>
+              </label>
+            </>
           ) : null}
           <label className={styles.field}>
             <span>{maxItemsLabel(slideType)}</span>
@@ -457,6 +542,33 @@ export function SlideComposerForm({
             <dt>Databron</dt>
             <dd>{selectedSource?.name ?? "Geen bruikbare bron"}</dd>
           </div>
+          {supportsSportMatchSelection(slideType) ? (
+            <>
+              <div>
+                <dt>Team</dt>
+                <dd>
+                  {selectedSportTeamExternalId === "*"
+                    ? "Alle teams"
+                    : sportTeams.find(
+                        (team) =>
+                          team.externalId === selectedSportTeamExternalId
+                      )?.label ?? "Onbekend team"}
+                </dd>
+              </div>
+              <div>
+                <dt>Competitie / fase</dt>
+                <dd>
+                  {selectedSportCompetitionExternalId === "*"
+                    ? "Alle competities en fasen"
+                    : sportCompetitions.find(
+                        (competition) =>
+                          competition.externalId ===
+                          selectedSportCompetitionExternalId
+                      )?.label ?? "Onbekende competitie"}
+                </dd>
+              </div>
+            </>
+          ) : null}
           <div>
             <dt>Inhoud</dt>
             <dd>
@@ -584,36 +696,38 @@ export function sourceHasContent(
   slideType?: string
 ) {
   if (source.kind === "sportlink") {
-    const requiredDatasetGroup = slideType
-      ? requiredSportlinkDatasetGroup(slideType)
-      : null;
-    if (requiredDatasetGroup) {
-      return source.successfulDatasetGroups.includes(requiredDatasetGroup);
+    const requiredDatasetGroups = slideType
+      ? requiredSportlinkDatasetGroups(slideType)
+      : [];
+    if (requiredDatasetGroups.length) {
+      return requiredDatasetGroups.every((datasetGroup) =>
+        source.successfulDatasetGroups.includes(datasetGroup)
+      );
     }
     return Boolean(source.lastSuccessfulSyncAt);
   }
   return source.itemCount > 0;
 }
 
-export function requiredSportlinkDatasetGroup(slideType: string) {
-  const groups: Record<string, string> = {
-    sport_activities: "activities",
-    sport_birthdays: "public_people",
-    sport_cancellations: "matches",
-    sport_dressing_rooms: "match_details",
-    sport_match_of_the_day: "matches",
-    sport_next_match: "matches",
-    sport_officials: "match_details",
-    sport_period_standing: "competitions",
-    sport_program: "matches",
-    sport_results: "matches",
-    sport_sponsor: "teams",
-    sport_standing: "competitions",
-    sport_team: "teams",
-    sport_trainings: "teams",
-    sport_volunteers: "volunteers"
+export function requiredSportlinkDatasetGroups(slideType: string) {
+  const groups: Record<string, string[]> = {
+    sport_activities: ["activities"],
+    sport_birthdays: ["public_people"],
+    sport_cancellations: ["matches", "teams"],
+    sport_dressing_rooms: ["match_details", "teams"],
+    sport_match_of_the_day: ["matches", "teams"],
+    sport_next_match: ["matches", "teams"],
+    sport_officials: ["match_details", "teams"],
+    sport_period_standing: ["competitions"],
+    sport_program: ["matches", "teams"],
+    sport_results: ["matches", "teams"],
+    sport_sponsor: ["teams"],
+    sport_standing: ["competitions"],
+    sport_team: ["teams"],
+    sport_trainings: ["teams"],
+    sport_volunteers: ["volunteers"]
   };
-  return groups[slideType] ?? null;
+  return groups[slideType] ?? [];
 }
 
 export function sourceMatchesSlideType(kind: string, slideType: string) {
@@ -661,11 +775,14 @@ function missingSourceCopy(slideType: string) {
 }
 
 function missingContentCopy(slideType: string) {
-  const datasetGroup = requiredSportlinkDatasetGroup(slideType);
-  if (!datasetGroup) {
+  const datasetGroups = requiredSportlinkDatasetGroups(slideType);
+  if (!datasetGroups.length) {
     return "Synchroniseer de bron eerst. Daarna kun je de slide zonder nieuwe configuratie aanmaken.";
   }
-  return `De Sportlink-dataset ‘${sportlinkDatasetLabel(datasetGroup)}’ is ingeschakeld, maar nog niet succesvol afgerond. Open de databron, start de synchronisatie en wacht op de status Gereed.`;
+  const labels = datasetGroups
+    .map((datasetGroup) => `‘${sportlinkDatasetLabel(datasetGroup)}’`)
+    .join(" en ");
+  return `De vereiste Sportlink-dataset ${labels} is nog niet succesvol afgerond. Open de databron, start de synchronisatie en wacht op de status Gereed.`;
 }
 
 function sportlinkDatasetLabel(value: string) {
@@ -704,6 +821,18 @@ function isSingleMatchSlide(slideType: string) {
   return [
     "sport_match_of_the_day",
     "sport_next_match"
+  ].includes(slideType);
+}
+
+export function supportsSportMatchSelection(slideType: string) {
+  return [
+    "sport_cancellations",
+    "sport_dressing_rooms",
+    "sport_match_of_the_day",
+    "sport_next_match",
+    "sport_officials",
+    "sport_program",
+    "sport_results"
   ].includes(slideType);
 }
 

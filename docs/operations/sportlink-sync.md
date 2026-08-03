@@ -17,6 +17,16 @@ valid provider response from being flattened into
 forward when their last failed run carried that code or the repaired
 competition-argument code; last-known-good normalized data is retained.
 
+The official Teams response can repeat one `teamcode` for competition, cup,
+phase and pool contexts. Normalize those rows to one canonical team before the
+set-based database upsert and retain the distinct contexts in
+`sports_teams.metadata.competitionOptions`. The database repeats this
+deduplication defensively, because two equal conflict keys in one
+`INSERT .. ON CONFLICT DO UPDATE` statement would otherwise abort the complete
+run. A recovery migration immediately requeues enabled Teams policies whose
+previous run ended in `SPORTLINK_SYNC_INTERNAL_ERROR`; it does not clear the
+last-known-good dataset.
+
 Dependency order:
 
 1. club and capabilities;
@@ -39,3 +49,9 @@ containing `client_id`.
 Stale data remains visible in Control. It is not deleted from Player releases.
 Program items expire after their configured window; cancellation, dressing-room
 and official data expire after match day; birthdays after their date.
+
+For match-driven slides, Control may persist a bounded canonical
+`sportTeamExternalId` and `sportCompetitionExternalId`. Both identities are
+validated against the tenant's Sportlink connection. Filtering happens while
+building the immutable snapshot and before the row limit; the frozen snapshot
+also records the human-readable team and competition/phase selection.

@@ -11,6 +11,10 @@ import {
   SlideComposerForm,
   type SlideSourceOption
 } from "./slide-composer-form";
+import {
+  buildSportlinkSlideOptions,
+  type SportlinkSlideOptions
+} from "./sportlink-slide-options";
 
 type PageProps = {
   searchParams: Promise<{ fout?: string }>;
@@ -70,6 +74,7 @@ async function loadOptions(tenantId: string) {
     (source) => source.kind === "sportlink"
   );
   const successfulGroupsBySource = new Map<string, string[]>();
+  const sportOptionsBySource = new Map<string, SportlinkSlideOptions>();
   if (sportSources.length) {
     const connectionsResult = await supabase
       .from("sportlink_connections")
@@ -78,12 +83,31 @@ async function loadOptions(tenantId: string) {
       .in("data_source_id", sportSources.map((source) => source.id));
     const connections = connectionsResult.data ?? [];
     if (connections.length) {
-      const policiesResult = await supabase
-        .from("sportlink_sync_policies")
-        .select("connection_id, dataset_group, last_success_at")
-        .eq("tenant_id", tenantId)
-        .in("connection_id", connections.map((connection) => connection.id))
-        .not("last_success_at", "is", null);
+      const connectionIds = connections.map((connection) => connection.id);
+      const [policiesResult, teamsResult, matchesResult] = await Promise.all([
+        supabase
+          .from("sportlink_sync_policies")
+          .select("connection_id, dataset_group, last_success_at")
+          .eq("tenant_id", tenantId)
+          .in("connection_id", connectionIds)
+          .not("last_success_at", "is", null),
+        supabase
+          .from("sports_teams")
+          .select("source_connection_id, external_id, name, metadata")
+          .eq("tenant_id", tenantId)
+          .eq("active", true)
+          .in("source_connection_id", connectionIds)
+          .limit(1000),
+        supabase
+          .from("sports_matches")
+          .select(
+            "source_connection_id, home_team, away_team, competition, pool"
+          )
+          .eq("tenant_id", tenantId)
+          .eq("active", true)
+          .in("source_connection_id", connectionIds)
+          .limit(1000)
+      ]);
       const sourceIdByConnection = new Map(
         connections.map((connection) => [connection.id, connection.data_source_id])
       );
@@ -93,6 +117,24 @@ async function loadOptions(tenantId: string) {
         const groups = successfulGroupsBySource.get(sourceId) ?? [];
         groups.push(policy.dataset_group);
         successfulGroupsBySource.set(sourceId, groups);
+      }
+      for (const source of sportSources) {
+        const sourceConnectionIds = new Set(
+          connections
+            .filter((connection) => connection.data_source_id === source.id)
+            .map((connection) => connection.id)
+        );
+        sportOptionsBySource.set(
+          source.id,
+          buildSportlinkSlideOptions({
+            matches: (matchesResult.data ?? []).filter((match) =>
+              sourceConnectionIds.has(match.source_connection_id)
+            ),
+            teams: (teamsResult.data ?? []).filter((team) =>
+              sourceConnectionIds.has(team.source_connection_id)
+            )
+          })
+        );
       }
     }
   }
@@ -110,6 +152,9 @@ async function loadOptions(tenantId: string) {
       lastSuccessfulSyncAt: source.last_successful_sync_at,
       name: source.name,
       providerStatus: source.provider_status,
+      sportCompetitions:
+        sportOptionsBySource.get(source.id)?.competitions ?? [],
+      sportTeams: sportOptionsBySource.get(source.id)?.teams ?? [],
       successfulDatasetGroups: successfulGroupsBySource.get(source.id) ?? []
     })
   ));
