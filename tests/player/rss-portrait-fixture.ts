@@ -70,7 +70,11 @@ async function routeRssManifest(
         }
       },
       data: {
-        brand: { primaryColor: "#315cff" },
+        brand: {
+          clubName: "Duindorp sv",
+          logoMediaAssetId: logoId,
+          primaryColor: "#315cff"
+        },
         news: {
           articles: [
             {
@@ -107,7 +111,7 @@ async function routeRssManifest(
       slideType: "news",
       snapshotHash: "a".repeat(64),
       snapshotId: "88888888-8888-4888-8888-888888888888",
-      templateSlug: `news-newsroom-dark-${orientation}`,
+      templateSlug: `editorial-arena-nieuws-dark-${orientation}`,
       templateVersionId: "99999999-9999-4999-8999-999999999999"
     },
     id: `rss-${orientation}-html`,

@@ -27,7 +27,7 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
   ).toBeVisible();
   await expect(page.getByText("Voetbalnieuws", { exact: true })).toHaveCSS(
     "color",
-    "rgb(250, 250, 247)"
+    "rgb(243, 240, 233)"
   );
   const supplierLogo = page.getByRole("img", { name: "AD:voetbal" });
   await expect(supplierLogo).toBeVisible();
@@ -36,5 +36,11 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
     "opacity",
     "0.4"
   );
+  if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.screenshot({
+      path: "docs/screenshots/s91-editorial-arena-news-portrait.png"
+    });
+  }
   expect(browserErrors).toEqual([]);
 });

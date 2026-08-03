@@ -261,6 +261,32 @@ describe("trusted dynamic template view", () => {
     });
   });
 
+  it("toont tien standregels per landscapepagina", () => {
+    const view = createDynamicTemplateView({
+      ...base,
+      data: {
+        sport: {
+          items: Array.from({ length: 11 }, (_, index) => ({
+            id: `team-${index + 1}`,
+            position: index + 1,
+            teamName: `Vereniging ${index + 1}`
+          }))
+        },
+        type: "sport_standing"
+      },
+      slideType: "sport_standing",
+      templateSlug: "editorial-arena-competitiestand-dark-landscape"
+    });
+
+    expect(view?.pages).toHaveLength(2);
+    expect(view?.pages[0]).toMatchObject({
+      items: expect.arrayContaining([
+        expect.objectContaining({ teamName: "Vereniging 10" })
+      ]),
+      kind: "standing"
+    });
+  });
+
   it("weigert payloads met een niet-vertrouwd contract", () => {
     expect(createDynamicTemplateView({
       ...base,

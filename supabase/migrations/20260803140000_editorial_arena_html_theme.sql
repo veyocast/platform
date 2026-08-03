@@ -247,7 +247,7 @@ begin
       when variant.slide_type = 'news' then 1
       when variant.slide_type = 'sport_standing'
         and variant.orientation = 'portrait' then 18
-      when variant.slide_type = 'sport_standing' then 8
+      when variant.slide_type = 'sport_standing' then 10
       when variant.orientation = 'portrait' then 8
       else 8
     end;

@@ -240,7 +240,7 @@ export function createDynamicTemplateView(
       .filter((item): item is DynamicTemplateStandingItem => item !== null);
     const competition = readRecord(sport?.competition);
     const pool = readRecord(sport?.pool);
-    const perPage = payload.orientation === "portrait" ? 18 : 8;
+    const perPage = payload.orientation === "portrait" ? 18 : 10;
     return {
       accentColor,
       clubLogoUrl,

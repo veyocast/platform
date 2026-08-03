@@ -30,11 +30,16 @@ for (const orientation of ["landscape", "portrait"] as const) {
       page.getByLabel(/Vorm Duindorp sv: winst, winst, gelijk/u)
     ).toBeVisible();
     expect(await slide.evaluate((element) =>
-      getComputedStyle(element).getPropertyValue("--template-accent").trim()
+      getComputedStyle(element).getPropertyValue("--arena-accent").trim()
     )).toBe("#315CFF");
     await expect(slide.locator("canvas")).toHaveCount(0);
     expect(await slide.locator("article").count()).toBe(
-      orientation === "portrait" ? 18 : 8
+      orientation === "portrait" ? 18 : 10
     );
+    if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
+      await page.screenshot({
+        path: `docs/screenshots/s91-editorial-arena-standing-${orientation}.png`
+      });
+    }
   });
 }

@@ -13,9 +13,9 @@ test("portrait nieuwsslide houdt kop, bron en positie toegankelijk", async ({
 
   await expect(page.getByLabel("Release playback")).toBeVisible();
   await expect(page.getByLabel("Dynamisch voetbalnieuws")).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "De eerste dynamische voetbalheadline staat live"
-  );
+  await expect(page.getByRole("heading", {
+    name: "De eerste dynamische voetbalheadline staat live"
+  })).toBeVisible();
   await expect(page.getByText("Door", { exact: true })).toBeVisible();
-  await expect(page.getByText("1/2", { exact: false })).toBeVisible();
+  await expect(page.getByText("1 / 2", { exact: true })).toBeVisible();
 });

@@ -87,7 +87,11 @@ export function DynamicTemplateMedia({
       style={style}
     >
       <ArenaHeader view={view} />
-      <main className={styles.arenaContent}>
+      <main
+        className={styles.arenaContent}
+        data-page-count={pageCount}
+        data-page-index={pageIndex}
+      >
         <ArenaPage
           key={`${view.snapshotId}-${pageIndex}`}
           page={page}
@@ -354,7 +358,14 @@ function ArenaStanding({
             <span>{team.lost ?? "–"}</span>
             <strong>{team.points ?? "–"}</strong>
             <span>{signed(team.goalDifference)}</span>
-            <span className={styles.arenaForm}>
+            <span
+              aria-label={`Vorm ${team.teamName}: ${
+                team.form.length
+                  ? team.form.map(resultLabel).join(", ")
+                  : "niet beschikbaar"
+              }`}
+              className={styles.arenaForm}
+            >
               {team.form.length ? team.form.map((result, index) => (
                 <i data-result={result} key={`${result}-${index}`}>
                   {result === "win" ? "W" : result === "draw" ? "G" : "V"}
@@ -511,6 +522,12 @@ function splitTeams(value: string) {
 function signed(value: number | null) {
   if (value === null) return "–";
   return value > 0 ? `+${value}` : String(value);
+}
+
+function resultLabel(result: string) {
+  if (result === "win") return "winst";
+  if (result === "draw") return "gelijk";
+  return "verlies";
 }
 
 function arenaSubtitle(slideType: DynamicTemplateView["slideType"]) {
