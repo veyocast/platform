@@ -31,8 +31,62 @@ describe("Sportlink team- en competitieopties", () => {
     expect(result.competitions).toEqual([{
       externalId: "cup-3",
       label: "Beker · Districtsbeker · Groep 3 · Poule B",
+      seasonValues: [],
       teamExternalIds: ["10"]
     }]);
+  });
+
+  it("onthoudt historische standseizoenen en teams uit de stand", () => {
+    const result = buildSportlinkSlideOptions({
+      matches: [],
+      standings: [
+        {
+          metadata: {
+            competition: {
+              externalId: "league-4",
+              name: "Vierde klasse",
+              season: "2025/2026",
+              type: "Competitie"
+            },
+            pool: { name: "4C" }
+          },
+          rows_json: [{
+            externalId: "10",
+            teamName: "Testclub 1"
+          }],
+          source_connection_id: "connection"
+        },
+        {
+          metadata: {
+            competition: {
+              externalId: "league-4",
+              name: "Vierde klasse",
+              season: "2026/2027",
+              type: "Competitie"
+            },
+            pool: { name: "4C" }
+          },
+          rows_json: [{
+            externalId: "10",
+            teamName: "Testclub 1"
+          }],
+          source_connection_id: "connection"
+        }
+      ],
+      teams: []
+    });
+
+    expect(result.teams).toEqual([
+      { externalId: "10", label: "Testclub 1" }
+    ]);
+    expect(result.seasons.map((season) => season.value)).toEqual([
+      "2026/2027",
+      "2025/2026"
+    ]);
+    expect(result.competitions[0]?.seasonValues).toEqual([
+      "2026/2027",
+      "2025/2026"
+    ]);
   });
 
   it("koppelt een wedstrijd op teamnaam als Sportlink andere ids gebruikt", () => {

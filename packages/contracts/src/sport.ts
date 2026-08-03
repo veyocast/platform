@@ -42,6 +42,7 @@ export const sportTeamCompetitionSchema = z.object({
   period: optionalLabelSchema,
   poolExternalId: idSchema.nullable(),
   poolName: optionalLabelSchema,
+  season: optionalLabelSchema.optional(),
   type: optionalLabelSchema
 });
 
@@ -125,6 +126,7 @@ export const sportMatchSchema = z.object({
 export const sportStandingRowSchema = z.object({
   drawn: z.number().int().min(0).nullable(),
   externalId: idSchema,
+  form: z.array(z.enum(["draw", "loss", "win"])).max(3),
   goalsAgainst: z.number().int().min(0).nullable(),
   goalsFor: z.number().int().min(0).nullable(),
   lost: z.number().int().min(0).nullable(),

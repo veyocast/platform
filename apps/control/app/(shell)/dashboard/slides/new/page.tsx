@@ -84,7 +84,12 @@ async function loadOptions(tenantId: string) {
     const connections = connectionsResult.data ?? [];
     if (connections.length) {
       const connectionIds = connections.map((connection) => connection.id);
-      const [policiesResult, teamsResult, matchesResult] = await Promise.all([
+      const [
+        policiesResult,
+        teamsResult,
+        matchesResult,
+        standingsResult
+      ] = await Promise.all([
         supabase
           .from("sportlink_sync_policies")
           .select("connection_id, dataset_group, last_success_at")
@@ -103,6 +108,13 @@ async function loadOptions(tenantId: string) {
           .select(
             "source_connection_id, home_team, away_team, competition, pool"
           )
+          .eq("tenant_id", tenantId)
+          .eq("active", true)
+          .in("source_connection_id", connectionIds)
+          .limit(1000),
+        supabase
+          .from("sports_standings")
+          .select("source_connection_id, rows_json, metadata")
           .eq("tenant_id", tenantId)
           .eq("active", true)
           .in("source_connection_id", connectionIds)
@@ -130,6 +142,9 @@ async function loadOptions(tenantId: string) {
             matches: (matchesResult.data ?? []).filter((match) =>
               sourceConnectionIds.has(match.source_connection_id)
             ),
+            standings: (standingsResult.data ?? []).filter((standing) =>
+              sourceConnectionIds.has(standing.source_connection_id)
+            ),
             teams: (teamsResult.data ?? []).filter((team) =>
               sourceConnectionIds.has(team.source_connection_id)
             )
@@ -154,6 +169,7 @@ async function loadOptions(tenantId: string) {
       providerStatus: source.provider_status,
       sportCompetitions:
         sportOptionsBySource.get(source.id)?.competitions ?? [],
+      sportSeasons: sportOptionsBySource.get(source.id)?.seasons ?? [],
       sportTeams: sportOptionsBySource.get(source.id)?.teams ?? [],
       successfulDatasetGroups: successfulGroupsBySource.get(source.id) ?? []
     })

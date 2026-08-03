@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(33);
+select plan(36);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -48,11 +48,11 @@ select is((select count(*) from public.sportlink_sync_policies
   'privacy-sensitive people and volunteer policies default to disabled');
 select lives_ok($$select public.update_sportlink_sync_policy_v1(
   (select id from public.sportlink_connections limit 1),
-  'matches','daily',true)$$,
-  'tenant owner can choose an exact supported dataset frequency');
+  'matches','five_minutes',true)$$,
+  'tenant owner can choose the five-minute dataset frequency');
 select is((select frequency from public.sportlink_sync_policies
-  where dataset_group='matches'),'daily',
-  'the selected frequency is stored');
+  where dataset_group='matches'),'five_minutes',
+  'the five-minute frequency is stored');
 
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000b02',true);
 select is((select count(*) from public.sportlink_connections),0::bigint,
@@ -69,6 +69,25 @@ where tenant_id='10000000-0000-4000-8000-000000000b01';
 select is((select timezone from public.sportlink_connections),
   'Europe/Paris',
   'a changed tenant timezone is propagated to the Sportlink connection');
+insert into public.sports_standings(
+  tenant_id,source_connection_id,external_id,pool_external_id,
+  rows_json,scores_published,season_key,metadata
+) values
+(
+  '10000000-0000-4000-8000-000000000b01',
+  (select id from public.sportlink_connections limit 1),
+  'standing-history','701','[]',true,'2025/2026',
+  '{"season":"2025/2026"}'
+),
+(
+  '10000000-0000-4000-8000-000000000b01',
+  (select id from public.sportlink_connections limit 1),
+  'standing-history','701','[]',true,'2026/2027',
+  '{"season":"2026/2027"}'
+);
+select is((select count(*) from public.sports_standings
+  where external_id='standing-history'),2::bigint,
+  'the same competition standing remains available for historical seasons');
 update public.sportlink_sync_policies
 set enabled=(dataset_group='matches'),next_sync_at=now();
 set local role service_role;
@@ -255,6 +274,70 @@ select is(
   'the canonical team retains both competition and cup choices'
 );
 
+insert into public.sports_standings(
+  tenant_id,source_connection_id,external_id,pool_external_id,
+  rows_json,scores_published,season_key,metadata
+) values (
+  '10000000-0000-4000-8000-000000000b01',
+  current_setting('test.sportlink_connection_id')::uuid,
+  'standing-current','701',
+  '[{
+    "drawn":3,
+    "externalId":"10",
+    "form":[],
+    "goalsAgainst":12,
+    "goalsFor":30,
+    "lost":1,
+    "played":16,
+    "points":39,
+    "position":1,
+    "teamName":"Testclub 1",
+    "won":12
+  }]'::jsonb,
+  true,
+  '2026/2027',
+  '{
+    "competition":{
+      "externalId":"competition-a",
+      "name":"Reguliere competitie",
+      "season":"2026/2027"
+    },
+    "pool":{"externalId":"701","name":"Poule A"},
+    "season":"2026/2027"
+  }'::jsonb
+);
+insert into public.sports_matches(
+  tenant_id,source_connection_id,external_id,starts_at,status,
+  home_team,away_team,competition,pool,scores_published,is_home_match
+) values
+(
+  '10000000-0000-4000-8000-000000000b01',
+  current_setting('test.sportlink_connection_id')::uuid,
+  'form-win',now()-interval '3 days','finished',
+  '{"externalId":"10","name":"Testclub 1","score":2}',
+  '{"externalId":"20","name":"Bezoekers","score":0}',
+  '{"externalId":"competition-a","name":"Reguliere competitie"}',
+  '{"externalId":"701","name":"Poule A"}',true,true
+),
+(
+  '10000000-0000-4000-8000-000000000b01',
+  current_setting('test.sportlink_connection_id')::uuid,
+  'form-draw',now()-interval '2 days','finished',
+  '{"externalId":"20","name":"Bezoekers","score":1}',
+  '{"externalId":"10","name":"Testclub 1","score":1}',
+  '{"externalId":"competition-a","name":"Reguliere competitie"}',
+  '{"externalId":"701","name":"Poule A"}',true,false
+),
+(
+  '10000000-0000-4000-8000-000000000b01',
+  current_setting('test.sportlink_connection_id')::uuid,
+  'form-loss',now()-interval '1 day','finished',
+  '{"externalId":"10","name":"Testclub 1","score":0}',
+  '{"externalId":"20","name":"Bezoekers","score":3}',
+  '{"externalId":"competition-a","name":"Reguliere competitie"}',
+  '{"externalId":"701","name":"Poule A"}',true,true
+);
+
 set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
@@ -287,6 +370,49 @@ select lives_ok(
     }'::jsonb
   )$$,
   'tenant owner can create a team- and competition-scoped program slide'
+);
+select lives_ok(
+  $$select public.create_dynamic_slide_v1(
+    '10000000-0000-4000-8000-000000000b01',
+    'Portraitstand Testclub 1',
+    (
+      select version.id
+      from public.dynamic_template_versions version
+      join public.dynamic_templates template
+        on template.id = version.template_id
+      where template.slug =
+        'sportlink-standing-club-edition-dark-portrait'
+        and version.status = 'published'
+    ),
+    (
+      select connection.data_source_id
+      from public.sportlink_connections connection
+      limit 1
+    ),
+    'latest',
+    '{
+      "title":"Stand",
+      "maxItems":18,
+      "sportTeamExternalId":"10",
+      "sportCompetitionExternalId":"competition-a",
+      "sportSeason":"2026/2027"
+    }'::jsonb
+  )$$,
+  'tenant owner can create an eighteen-row portrait standing slide'
+);
+select is(
+  (
+    select snapshot.snapshot_data_json #>
+      '{sport,items,0,form}'
+    from public.dynamic_slide_snapshots snapshot
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Portraitstand Testclub 1'
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  '["win", "draw", "loss"]'::jsonb,
+  'the standing snapshot freezes the last three results in chronological order'
 );
 select is(
   (

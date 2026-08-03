@@ -21,6 +21,9 @@ export async function createDynamicSlide(formData: FormData) {
   const sportTeamExternalId = normalizeSportlinkSelection(
     formData.get("sportTeamExternalId")
   );
+  const sportSeason = normalizeSportlinkSelection(
+    formData.get("sportSeason")
+  );
   const requestedMaxItems = Math.min(
     40,
     Math.max(1, Number(formData.get("maxItems")) || 8)
@@ -73,8 +76,12 @@ export async function createDynamicSlide(formData: FormData) {
     );
   }
   if (
-    supportsSportMatchSelection(templateSlideType) &&
-    (sportCompetitionExternalId === false || sportTeamExternalId === false)
+    supportsSportContextSelection(templateSlideType) &&
+    (
+      sportCompetitionExternalId === false ||
+      sportTeamExternalId === false ||
+      sportSeason === false
+    )
   ) {
     redirect(
       "/dashboard/slides/new?fout=De+gekozen+Sportlink-selectie+is+ongeldig.+Kies+team+en+competitie+opnieuw."
@@ -92,13 +99,16 @@ export async function createDynamicSlide(formData: FormData) {
       ...(templateSlideType === "news"
         ? { secondsPerSlide: requestedSecondsPerSlide }
         : {}),
-      ...(supportsSportMatchSelection(templateSlideType) &&
+      ...(supportsSportContextSelection(templateSlideType) &&
       sportCompetitionExternalId
         ? { sportCompetitionExternalId }
         : {}),
-      ...(supportsSportMatchSelection(templateSlideType) &&
+      ...(supportsSportContextSelection(templateSlideType) &&
       sportTeamExternalId
         ? { sportTeamExternalId }
+        : {}),
+      ...(supportsSportStandingSelection(templateSlideType) && sportSeason
+        ? { sportSeason }
         : {}),
       ...(templateSlideType === "news"
         ? { title: title || "Voetbalnieuws" }
@@ -226,6 +236,18 @@ function supportsSportMatchSelection(slideType: string) {
     "sport_program",
     "sport_results"
   ].includes(slideType);
+}
+
+function supportsSportStandingSelection(slideType: string) {
+  return [
+    "sport_period_standing",
+    "sport_standing"
+  ].includes(slideType);
+}
+
+function supportsSportContextSelection(slideType: string) {
+  return supportsSportMatchSelection(slideType) ||
+    supportsSportStandingSelection(slideType);
 }
 
 function normalizeSportlinkSelection(value: FormDataEntryValue | null) {

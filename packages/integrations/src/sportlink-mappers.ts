@@ -145,7 +145,8 @@ export function mapSportlinkStandings(
   payload: unknown,
   poolExternalId: string,
   poolName = "Competitiestand",
-  periodNumber: number | null = null
+  periodNumber: number | null = null,
+  competition: SportStanding["competition"] = null
 ): SportStanding {
   const rows = isolate(payload, (value) => {
     const teamName = string(value.team ?? value.teamnaam);
@@ -153,6 +154,9 @@ export function mapSportlinkStandings(
     return {
       drawn: numberOrNull(value.gelijk ?? value.gelijkspel),
       externalId: nullable(value.teamcode) ?? stableId("standing-team", teamName),
+      form: standingForm(
+        value.vorm ?? value.form ?? value.laatstedriewedstrijden
+      ),
       goalsAgainst: numberOrNull(value.doelpuntentegen ?? value["doelpunten tegen"]),
       goalsFor: numberOrNull(value.doelpuntenvoor ?? value["doelpunten voor"]),
       lost: numberOrNull(value.verloren),
@@ -164,7 +168,7 @@ export function mapSportlinkStandings(
     };
   });
   return {
-    competition: null,
+    competition,
     externalId: stableId("standing", `${poolExternalId}:${periodNumber ?? "all"}`),
     periodNumber,
     pool: { competitionExternalId: null, externalId: poolExternalId, name: poolName },
@@ -229,6 +233,7 @@ function mapTeamCompetition(
     period: context.period,
     poolExternalId: nullable(value.poulecode),
     poolName: context.poolName,
+    season: nullable(value.seizoen),
     type: context.type
   };
 }
@@ -350,6 +355,29 @@ function dateTime(primary: unknown, date: unknown, time: unknown) {
 function parseScore(value: unknown): [number, number] | null {
   const match = string(value)?.match(/(\d+)\s*[-–]\s*(\d+)/);
   return match ? [Number(match[1]), Number(match[2])] : null;
+}
+function standingForm(value: unknown): Array<"draw" | "loss" | "win"> {
+  const rawValues = Array.isArray(value)
+    ? value
+    : (string(value) ?? "").split(/[\s,;|/-]+/u);
+  const values = rawValues.length === 1 &&
+      typeof rawValues[0] === "string" &&
+      /^[WGV]{1,3}$/iu.test(rawValues[0])
+    ? rawValues[0].split("")
+    : rawValues;
+  return values.flatMap((entry) => {
+    const normalized = string(entry)?.toLowerCase();
+    if (["w", "win", "winst", "gewonnen"].includes(normalized ?? "")) {
+      return ["win" as const];
+    }
+    if (["g", "gl", "draw", "gelijk", "gelijkspel"].includes(normalized ?? "")) {
+      return ["draw" as const];
+    }
+    if (["v", "loss", "verlies", "verloren"].includes(normalized ?? "")) {
+      return ["loss" as const];
+    }
+    return [];
+  }).slice(-3);
 }
 function splitPeople(value: unknown, role: string) {
   return (string(value) ?? "").split(/[,;]/).map((name) => name.trim())

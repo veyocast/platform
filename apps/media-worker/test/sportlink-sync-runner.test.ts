@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  collectSportlinkPoolContexts,
   collectSportlinkPoolIds,
   runSportlinkSyncOnce,
   SupabaseSportlinkSyncBackend
@@ -23,6 +24,26 @@ describe("Sportlink sync worker", () => {
         { poulecode: 92, teamcode: 999 }
       ]
     )).toEqual(["90", "91"]);
+  });
+
+  it("keeps competition and season with every standings context", () => {
+    expect(collectSportlinkPoolContexts(
+      [{
+        competitie: "Vierde klasse",
+        poule: "4C",
+        poulecode: 701,
+        seizoen: "2026/2027",
+        teamcode: 10
+      }],
+      []
+    )).toEqual([{
+      competition: expect.objectContaining({
+        name: "Vierde klasse",
+        season: "2026/2027"
+      }),
+      poolExternalId: "701",
+      poolName: "4C"
+    }]);
   });
 
   it("claims a command once and reports missing encryption configuration safely", async () => {

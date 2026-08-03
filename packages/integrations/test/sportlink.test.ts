@@ -47,8 +47,14 @@ describe("Sportlink server-only adapter", () => {
       wedstrijdcode: 7, wedstrijddatum: "2026-07-28T19:30:00+02:00",
       thuisteam: "Testclub 1", uitteam: "Bezoekers", uitslag: "2 - 1"
     }], "results")[0]?.homeTeam.score).toBe(2);
-    expect(mapSportlinkStandings([{ positie: 1, team: "Testclub 1", punten: 9 }],
-      "pool-1").scoresPublished).toBe(true);
+    const standing = mapSportlinkStandings([{
+      positie: 1,
+      punten: 9,
+      team: "Testclub 1",
+      vorm: "WGV"
+    }], "pool-1");
+    expect(standing.scoresPublished).toBe(true);
+    expect(standing.rows[0]?.form).toEqual(["win", "draw", "loss"]);
     expect(stableSportlinkExternalId("test", "a")).toBe(
       stableSportlinkExternalId("test", "a")
     );
@@ -85,6 +91,17 @@ describe("Sportlink server-only adapter", () => {
     expect(teams[0]?.competitionOptions).toHaveLength(2);
     expect(teams[0]?.competitionOptions?.map((option) => option.type))
       .toEqual(["Competitie", "Beker"]);
+  });
+
+  it("keeps the season on team competition contexts", () => {
+    expect(mapSportlinkTeams([{
+      competitie: "Vierde klasse",
+      poule: "4C",
+      poulecode: 701,
+      seizoen: "2026/2027",
+      teamcode: 10,
+      teamnaam: "Testclub 1"
+    }])[0]?.competitionOptions?.[0]?.season).toBe("2026/2027");
   });
 
   it("normalizes competition type, phase and pool on matches", () => {

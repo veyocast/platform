@@ -166,6 +166,101 @@ describe("trusted dynamic template view", () => {
     });
   });
 
+  it("bouwt de clubeditie-stand uit gestructureerde HTML/CSS-rijen", () => {
+    const view = createDynamicTemplateView({
+      ...base,
+      data: {
+        brand: { primaryColor: "#123456" },
+        sport: {
+          competition: { name: "Vierde klasse" },
+          items: [{
+            drawn: 3,
+            form: ["win", "draw", "loss"],
+            goalDifference: 18,
+            goalsAgainst: 12,
+            goalsFor: 30,
+            id: "team-1",
+            lost: 1,
+            played: 16,
+            points: 39,
+            position: 1,
+            selected: true,
+            teamName: "VeyoCast 1",
+            won: 12
+          }],
+          pool: { name: "4C" },
+          season: "2026/2027",
+          title: "Stand"
+        },
+        type: "sport_standing"
+      },
+      slideType: "sport_standing",
+      templateSlug: "sportlink-standing-club-edition-dark-landscape"
+    });
+
+    expect(view).toMatchObject({
+      accentColor: "#123456",
+      standingContext: {
+        competition: "Vierde klasse",
+        pool: "4C",
+        season: "2026/2027"
+      },
+      templateStyle: "standing-club-edition"
+    });
+    expect(view?.pages[0]).toMatchObject({
+      items: [{
+        form: ["win", "draw", "loss"],
+        points: 39,
+        selected: true,
+        teamName: "VeyoCast 1"
+      }],
+      kind: "standing"
+    });
+  });
+
+  it("toont maximaal achttien standregels per portraitpagina", () => {
+    const view = createDynamicTemplateView({
+      ...base,
+      data: {
+        brand: { primaryColor: "#123456" },
+        sport: {
+          items: Array.from({ length: 19 }, (_, index) => ({
+            drawn: 0,
+            form: ["win", "draw", "loss"],
+            goalDifference: 18 - index,
+            goalsAgainst: 12,
+            goalsFor: 30,
+            id: `team-${index + 1}`,
+            lost: 1,
+            played: 16,
+            points: 39 - index,
+            position: index + 1,
+            selected: false,
+            teamName: `Vereniging ${index + 1}`,
+            won: 12
+          })),
+          title: "Stand"
+        },
+        type: "sport_standing"
+      },
+      orientation: "portrait",
+      slideType: "sport_standing",
+      templateSlug: "sportlink-standing-club-edition-dark-portrait"
+    });
+
+    expect(view?.pages).toHaveLength(2);
+    expect(view?.pages[0]).toMatchObject({
+      items: expect.arrayContaining([
+        expect.objectContaining({ teamName: "Vereniging 18" })
+      ]),
+      kind: "standing"
+    });
+    expect(view?.pages[1]).toMatchObject({
+      items: [expect.objectContaining({ teamName: "Vereniging 19" })],
+      kind: "standing"
+    });
+  });
+
   it("weigert payloads met een niet-vertrouwd contract", () => {
     expect(createDynamicTemplateView({
       ...base,
