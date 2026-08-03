@@ -110,6 +110,8 @@ tests en exitcriteria staan in
 | S85 | Portrait RSS-nieuwsslider | Eén configureerbare staande HTML/CSS-nieuwsslider met lokale leverancier- en artikelmedia |
 | S86 | Landscape RSS en Sportlink-herstel | Beide nieuwsoriëntaties animeren met tenantkleur, als dynamische playlistcontent publiceren en Sportlink volledig herstellen |
 | S87 | LG Legacy lokale releaseketen | Afbeeldingen en video vooraf downloaden, verifiëren en lokaal afspelen; ongewijzigde releases uitsluitend conditioneel controleren en zonder zwart frame wisselen |
+| S89 | Sportlink team- en competitiecontext | Teamsync dedupliceren en wedstrijdslides tenantveilig op team, competitie, beker of fase filteren |
+| S90 | Sportlink standseizoenen en clubeditie | Standen op team, competitie en seizoen selecteren, historie behouden, vijfminutensync aanbieden en portrait/landscape als locked HTML/CSS tonen |
 
 ### Programmagates
 

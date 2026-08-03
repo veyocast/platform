@@ -82,7 +82,7 @@ export default async function SportlinkPage({ searchParams }: Props) {
           </div>
         ) : null}
         <dl className={styles.definitionList}>
-          <div><dt>Frequenties</dt><dd>Uur, dag, week of maand per dataset</dd></div>
+          <div><dt>Frequenties</dt><dd>5 minuten, uur, dag, week of maand per dataset</dd></div>
           <div><dt>Privacy</dt><dd>Persoonsdatasets standaard uitgeschakeld</dd></div>
           <div><dt>Offline</dt><dd>Laatste geldige PNG blijft in de Playerrelease</dd></div>
         </dl>
@@ -109,6 +109,7 @@ export default async function SportlinkPage({ searchParams }: Props) {
               <label className={styles.field}>
                 <span>Frequentie</span>
                 <select defaultValue={policy.frequency} disabled={!canManage} name="frequency">
+                  <option value="five_minutes">Elke 5 minuten</option>
                   <option value="hourly">Elk uur</option>
                   <option value="daily">Dagelijks</option>
                   <option value="weekly">Wekelijks</option>

@@ -111,6 +111,50 @@ export function renderLgLegacyHtml() {
     .portrait .dynamic-match-meta{width:100%;padding:2vh 0;border-top:1px solid rgba(98,95,87,.3);border-bottom:1px solid rgba(98,95,87,.3)}
     .portrait .dynamic-row{grid-template-columns:44px minmax(0,1fr);min-height:10.5vh}
     .portrait .dynamic-row strong{grid-column:2;justify-self:start;text-align:left}
+    .dynamic-template.standing-club{display:block;padding:0;background:#070b0f;color:#f6f4ee}
+    .standing-club>header,.standing-club>footer{display:none}
+    .standing-club .dynamic-body{position:absolute;inset:0;display:block;padding:0}
+    .legacy-standing{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 100% 0,rgba(241,90,36,.22),transparent 48%),radial-gradient(ellipse at 0 100%,rgba(241,90,36,.17),transparent 45%),#070b0f}
+    .legacy-standing:before{position:absolute;top:0;right:0;left:0;height:6px;background:var(--accent);content:""}
+    .legacy-standing-header{position:absolute;top:2.4%;right:5.2%;left:5.2%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;min-height:22%;gap:2.2vw;border-bottom:1px solid rgba(255,255,255,.12)}
+    .legacy-standing-mark{display:flex;align-items:center;justify-content:center;width:min(10vh,8vw);height:min(10vh,8vw);border:2px solid var(--accent);border-radius:50%;background:rgba(255,255,255,.055);font-size:clamp(25px,3vw,54px);font-weight:900}
+    .legacy-standing-title small{display:block;color:var(--accent);font-size:clamp(15px,1.35vw,28px);font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+    .legacy-standing-title h2{max-width:100%;margin:.6vh 0 1vh;font-size:clamp(54px,5.7vw,108px);letter-spacing:-.035em;line-height:.86;text-transform:uppercase}
+    .legacy-standing-title p,.legacy-standing-context span{margin:0;color:rgba(246,244,238,.72);font-size:clamp(14px,1.15vw,24px);font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+    .legacy-standing-context{max-width:32vw;text-align:right;text-transform:uppercase}
+    .legacy-standing-context strong{display:block;font-size:clamp(22px,2vw,40px);line-height:1.05}
+    .legacy-standing-context span{display:block;margin-top:1.1vh}
+    .legacy-standing-card{position:absolute;top:27%;right:5.2%;bottom:10%;left:5.2%;overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:1vw;background:rgba(9,13,17,.94)}
+    .legacy-standing-columns,.legacy-standing-row{display:grid;grid-template-columns:minmax(42px,.35fr) minmax(260px,4.8fr) repeat(4,minmax(38px,.55fr)) minmax(52px,.65fr) minmax(58px,.7fr) minmax(112px,1.35fr);align-items:center;gap:.7vw}
+    .legacy-standing-columns{height:10%;margin:0 1.3vw;padding:0 1vw;border-bottom:1px solid var(--accent);color:var(--accent);font-size:clamp(12px,.9vw,18px);font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+    .legacy-standing-rows{height:90%}
+    .legacy-standing-row{position:relative;height:12.5%;margin:0 1.3vw;padding:0 1vw;border-bottom:1px solid rgba(255,255,255,.09);font-size:clamp(19px,1.55vw,31px)}
+    .legacy-standing-row.selected{background:rgba(241,90,36,.18);box-shadow:inset 5px 0 0 var(--accent),inset 0 0 0 1px var(--accent)}
+    .legacy-standing-row>span,.legacy-standing-row>strong{text-align:center}
+    .legacy-standing-rank{color:var(--accent)}
+    .legacy-standing-team{display:flex;align-items:center;min-width:0;gap:1vw;text-align:left!important}
+    .legacy-standing-team i{display:flex;flex:0 0 auto;align-items:center;justify-content:center;width:min(4.8vh,2.8vw);height:min(4.8vh,2.8vw);border:1px solid rgba(255,255,255,.14);border-radius:50%;background:rgba(255,255,255,.07);font-size:.55em;font-style:normal;font-weight:900}
+    .legacy-standing-team b{overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+    .legacy-standing-points{font-size:1.18em}
+    .legacy-standing-form{display:flex;align-items:center;justify-content:center;gap:.28em}
+    .legacy-standing-form i{display:inline-flex;align-items:center;justify-content:center;width:1.55em;height:1.55em;border-radius:50%;background:#737b85;color:#fff;font-size:.62em;font-style:normal;font-weight:900}
+    .legacy-standing-form i.win{background:#1f9d63}
+    .legacy-standing-form i.loss{background:#cb3f49}
+    .legacy-standing-form b{color:rgba(246,244,238,.55)}
+    .legacy-standing-footer{position:absolute;right:5.2%;bottom:3.2%;left:5.2%;display:flex;align-items:center;justify-content:space-between;color:rgba(246,244,238,.62);font-size:clamp(12px,.9vw,18px);font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+    .legacy-standing-footer span:first-child:before{display:inline-block;width:.55em;height:.55em;margin-right:.7vw;border-radius:50%;background:var(--accent);box-shadow:0 0 .8em var(--accent);content:""}
+    .portrait.standing-club .legacy-standing-header{top:2%;grid-template-columns:auto minmax(0,1fr);min-height:19%;gap:2.4vw 3.5vw}
+    .portrait.standing-club .legacy-standing-mark{width:min(9vh,16vw);height:min(9vh,16vw)}
+    .portrait.standing-club .legacy-standing-title h2{font-size:clamp(66px,12vw,120px)}
+    .portrait.standing-club .legacy-standing-context{grid-column:1/-1;max-width:none;margin-left:calc(min(9vh,16vw) + 3.5vw);padding-left:2.6vw;border-left:3px solid var(--accent);text-align:left}
+    .portrait.standing-club .legacy-standing-card{top:23.5%;bottom:8.5%;border-radius:2vw}
+    .portrait.standing-club .legacy-standing-columns,.portrait.standing-club .legacy-standing-row{grid-template-columns:minmax(34px,.45fr) minmax(190px,3.8fr) repeat(4,minmax(31px,.6fr)) minmax(40px,.7fr) minmax(46px,.8fr) minmax(88px,1.55fr);gap:.75vw}
+    .portrait.standing-club .legacy-standing-columns{height:7%;margin:0 1.6vw;padding:0 .8vw;font-size:clamp(11px,1.35vw,16px)}
+    .portrait.standing-club .legacy-standing-rows{height:93%}
+    .portrait.standing-club .legacy-standing-row{height:5.5556%;margin:0 1.6vw;padding:0 .8vw;font-size:clamp(12px,1.9vw,20px)}
+    .portrait.standing-club .legacy-standing-team{gap:1.4vw}
+    .portrait.standing-club .legacy-standing-team i{width:min(2.5vh,4.4vw);height:min(2.5vh,4.4vw)}
+    .portrait.standing-club .legacy-standing-footer{bottom:2.7%;font-size:clamp(11px,1.75vw,18px)}
     .dynamic-template.rss-news-portrait,.dynamic-template.rss-news-landscape{display:block;padding:0;background:#0a0a0a;color:#fafaf7}
     .rss-news-portrait>header,.rss-news-portrait>footer,.rss-news-landscape>header,.rss-news-landscape>footer{display:none}
     .rss-news-portrait .dynamic-body,.rss-news-landscape .dynamic-body{position:absolute;inset:0;display:block;padding:0}
@@ -2105,6 +2149,120 @@ export function renderLgLegacyHtml() {
       team.appendChild(templateNode("h2", "", name));
       return team;
     }
+    function standingValue(value) {
+      return value === null || typeof value === "undefined" || value === ""
+        ? "–"
+        : String(value);
+    }
+    function renderStandingClubTemplate(body, snapshot, payload) {
+      var sport = templateRecord(snapshot.sport) || {};
+      var competition = templateRecord(sport.competition) || {};
+      var pool = templateRecord(sport.pool) || {};
+      var items = templateArray(sport.items);
+      var pages = templatePages(items, payload.orientation === "portrait" ? 18 : 8);
+      return {
+        pages: pages,
+        render: function (page) {
+          var stage = templateNode("section", "legacy-standing");
+          var header = templateNode("header", "legacy-standing-header");
+          var title = templateNode("div", "legacy-standing-title");
+          var context = templateNode("div", "legacy-standing-context");
+          var card = templateNode("section", "legacy-standing-card");
+          var columns = templateNode("div", "legacy-standing-columns");
+          var rows = templateNode("div", "legacy-standing-rows");
+          var footer = templateNode("footer", "legacy-standing-footer");
+          var round = 0;
+          var index;
+          var item;
+          var row;
+          var team;
+          var form;
+          var formIndex;
+          var difference;
+          var pageIndex = Math.max(0, pages.indexOf(page));
+          var labels = ["#", "Team", "G", "W", "GL", "V", "PT", "+/−", "Vorm"];
+          body.innerHTML = "";
+          for (index = 0; index < page.length; index += 1) {
+            item = templateRecord(page[index]) || {};
+            round = Math.max(round, Number(item.played) || 0);
+          }
+          header.appendChild(templateNode("div", "legacy-standing-mark", "VC"));
+          title.appendChild(templateNode("small", "", "Competitie"));
+          title.appendChild(templateNode("h2", "", templateText(sport.title, "Stand")));
+          title.appendChild(templateNode("p", "", round ? "Na speelronde " + String(round) : "Actuele stand"));
+          header.appendChild(title);
+          context.appendChild(templateNode("strong", "", templateText(competition.name, "Competitie")));
+          context.appendChild(templateNode(
+            "span",
+            "",
+            [templateText(pool.name, ""), templateText(sport.season, "")]
+              .filter(function (value) { return Boolean(value); })
+              .join(" · ")
+          ));
+          header.appendChild(context);
+          for (index = 0; index < labels.length; index += 1) {
+            columns.appendChild(templateNode("span", "", labels[index]));
+          }
+          card.appendChild(columns);
+          if (!page.length) {
+            rows.appendChild(templateNode("div", "dynamic-empty", "De stand is nog niet gepubliceerd."));
+          }
+          for (index = 0; index < page.length; index += 1) {
+            item = templateRecord(page[index]) || {};
+            row = templateNode("article", "legacy-standing-row" + (item.selected === true ? " selected" : ""));
+            row.appendChild(templateNode("strong", "legacy-standing-rank", standingValue(item.position)));
+            team = templateNode("span", "legacy-standing-team");
+            team.appendChild(templateNode("i", "", templateInitials(templateText(item.teamName, "VC"))));
+            team.appendChild(templateNode("b", "", templateText(item.teamName, "Team")));
+            row.appendChild(team);
+            row.appendChild(templateNode("span", "", standingValue(item.played)));
+            row.appendChild(templateNode("span", "", standingValue(item.won)));
+            row.appendChild(templateNode("span", "", standingValue(item.drawn)));
+            row.appendChild(templateNode("span", "", standingValue(item.lost)));
+            row.appendChild(templateNode("strong", "legacy-standing-points", standingValue(item.points)));
+            difference = Number(item.goalDifference);
+            row.appendChild(templateNode(
+              "span",
+              "",
+              isFinite(difference)
+                ? (difference > 0 ? "+" : "") + String(difference)
+                : "–"
+            ));
+            form = templateNode("span", "legacy-standing-form");
+            item.form = templateArray(item.form).slice(-3);
+            if (!item.form.length) {
+              form.appendChild(templateNode("b", "", "–"));
+            }
+            for (formIndex = 0; formIndex < item.form.length; formIndex += 1) {
+              form.appendChild(templateNode(
+                "i",
+                item.form[formIndex] === "win"
+                  ? "win"
+                  : item.form[formIndex] === "loss" ? "loss" : "",
+                item.form[formIndex] === "win"
+                  ? "W"
+                  : item.form[formIndex] === "draw" ? "G" : "V"
+              ));
+            }
+            row.appendChild(form);
+            rows.appendChild(row);
+          }
+          card.appendChild(rows);
+          footer.appendChild(templateNode("span", "", "Live uit Sportlink Club.Dataservice"));
+          footer.appendChild(templateNode(
+            "span",
+            "",
+            pages.length > 1
+              ? String(pageIndex + 1) + " / " + String(pages.length)
+              : "Actuele clubinformatie"
+          ));
+          stage.appendChild(header);
+          stage.appendChild(card);
+          stage.appendChild(footer);
+          body.appendChild(stage);
+        }
+      };
+    }
     function renderSportTemplate(body, snapshot, slideType, orientation) {
       var sport = templateRecord(snapshot.sport) || {};
       var items = templateArray(sport.items);
@@ -2180,6 +2338,12 @@ export function renderLgLegacyHtml() {
       }
       root.className += payload.templateSlug.indexOf("dark") !== -1 ? " dark" : "";
       root.className += payload.orientation === "portrait" ? " portrait" : "";
+      if (
+        payload.slideType === "sport_standing" &&
+        payload.templateSlug.indexOf("standing-club-edition") !== -1
+      ) {
+        root.className += " standing-club";
+      }
       root.style.setProperty("--accent", accent);
       if (payload.slideType === "menu") {
         sourceLabel = "Clubkantine";
@@ -2192,7 +2356,9 @@ export function renderLgLegacyHtml() {
       } else {
         sourceLabel = payload.slideType.indexOf("standing") !== -1 ? "Competitie" : "Match centre";
         title = templateText((templateRecord(snapshot.sport) || {}).title, sportTemplateTitle(payload.slideType));
-        renderer = renderSportTemplate(body, snapshot, payload.slideType, payload.orientation);
+        renderer = root.className.indexOf("standing-club") !== -1
+          ? renderStandingClubTemplate(body, snapshot, payload)
+          : renderSportTemplate(body, snapshot, payload.slideType, payload.orientation);
       }
       header.appendChild(templateNode("p", "", sourceLabel));
       header.appendChild(templateNode("h1", "", title));

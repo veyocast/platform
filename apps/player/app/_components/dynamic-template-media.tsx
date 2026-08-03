@@ -12,6 +12,7 @@ import {
   dynamicTemplatePageDurationMs,
   type DynamicTemplateListItem,
   type DynamicTemplatePage,
+  type DynamicTemplateStandingItem,
   type DynamicTemplateView
 } from "../_lib/dynamic-template-view";
 import type { PlayerManifestItem } from "../_lib/player-manifest";
@@ -79,19 +80,28 @@ export function DynamicTemplateMedia({
   const editorialNewsClass = view.orientation === "portrait"
     ? styles.rssPortrait
     : styles.rssLandscape;
+  const isStandingClubEdition =
+    view.templateStyle === "standing-club-edition";
 
   return (
     <section
       aria-label={item.accessibilityName ?? item.title}
       className={`${styles.root} ${
         isEditorialNews ? editorialNewsClass : ""
-      }`}
+      } ${isStandingClubEdition ? styles.standingClubEdition : ""}`}
       data-orientation={view.orientation}
       data-slide-type={view.slideType}
       data-theme={view.theme}
       style={style}
     >
-      {isEditorialNews ? (
+      {isStandingClubEdition ? (
+        <StandingClubEdition
+          page={page}
+          pageCount={pageCount}
+          pageIndex={pageIndex}
+          view={view}
+        />
+      ) : isEditorialNews ? (
         <EditorialNewsPage
           key={`${view.snapshotId}-${pageIndex}`}
           page={page}
@@ -127,6 +137,136 @@ export function DynamicTemplateMedia({
       )}
     </section>
   );
+}
+
+function StandingClubEdition({
+  page,
+  pageCount,
+  pageIndex,
+  view
+}: {
+  page: DynamicTemplatePage;
+  pageCount: number;
+  pageIndex: number;
+  view: DynamicTemplateView;
+}) {
+  const items = page.kind === "standing" ? page.items : [];
+  const context = view.standingContext;
+  const round = items.reduce(
+    (maximum, item) => Math.max(maximum, item.played ?? 0),
+    0
+  );
+
+  return (
+    <div className={styles.standingPage}>
+      <div aria-hidden="true" className={styles.standingAmbient}>
+        <span />
+        <span />
+      </div>
+      <header className={styles.standingHeader}>
+        <div aria-hidden="true" className={styles.standingClubMark}>
+          VC
+        </div>
+        <div className={styles.standingTitle}>
+          <span>Competitie</span>
+          <h1>{view.title}</h1>
+          <p>{round ? `Na speelronde ${round}` : "Actuele stand"}</p>
+        </div>
+        <div className={styles.standingCompetition}>
+          <strong>{context?.competition || "Competitie"}</strong>
+          <span>
+            {[context?.pool, context?.season].filter(Boolean).join(" · ")}
+          </span>
+        </div>
+      </header>
+
+      <section
+        aria-label={`${view.title}, pagina ${pageIndex + 1}`}
+        className={styles.standingCard}
+      >
+        <div aria-hidden="true" className={styles.standingColumns}>
+          <span>#</span>
+          <span>Team</span>
+          <span>G</span>
+          <span>W</span>
+          <span>GL</span>
+          <span>V</span>
+          <span>PT</span>
+          <span>+/−</span>
+          <span>Vorm</span>
+        </div>
+        <div className={styles.standingRows}>
+          {items.length ? items.map((item) => (
+            <StandingRow item={item} key={item.id} />
+          )) : (
+            <div className={styles.standingEmpty}>{view.emptyState}</div>
+          )}
+        </div>
+      </section>
+
+      <footer className={styles.standingFooter}>
+        <span>
+          <i aria-hidden="true" />
+          {view.sourceLabel}
+        </span>
+        <span>
+          {pageCount > 1
+            ? `${pageIndex + 1} / ${pageCount}`
+            : "Actuele clubinformatie"}
+        </span>
+      </footer>
+    </div>
+  );
+}
+
+function StandingRow({ item }: { item: DynamicTemplateStandingItem }) {
+  const initials = item.teamName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+  const difference = item.goalDifference === null
+    ? "–"
+    : item.goalDifference > 0
+      ? `+${item.goalDifference}`
+      : String(item.goalDifference);
+
+  return (
+    <article className={styles.standingRow} data-selected={item.selected}>
+      <strong className={styles.standingRank}>{item.position ?? "–"}</strong>
+      <span className={styles.standingTeam}>
+        <i aria-hidden="true">{initials || "VC"}</i>
+        <b>{item.teamName}</b>
+      </span>
+      <span>{item.played ?? "–"}</span>
+      <span>{item.won ?? "–"}</span>
+      <span>{item.drawn ?? "–"}</span>
+      <span>{item.lost ?? "–"}</span>
+      <strong className={styles.standingPoints}>{item.points ?? "–"}</strong>
+      <span>{difference}</span>
+      <span
+        aria-label={`Vorm ${item.teamName}: ${
+          item.form.length
+            ? item.form.map(standingFormLabel).join(", ")
+            : "niet beschikbaar"
+        }`}
+        className={styles.standingForm}
+      >
+        {item.form.length ? item.form.map((result, index) => (
+          <i aria-hidden="true" data-result={result} key={`${result}-${index}`}>
+            {result === "win" ? "W" : result === "draw" ? "G" : "V"}
+          </i>
+        )) : <b aria-hidden="true">–</b>}
+      </span>
+    </article>
+  );
+}
+
+function standingFormLabel(result: DynamicTemplateStandingItem["form"][number]) {
+  if (result === "win") return "winst";
+  if (result === "draw") return "gelijk";
+  return "verlies";
 }
 
 function EditorialNewsPage({
@@ -325,6 +465,8 @@ function TemplatePage({
       </div>
     );
   }
+
+  if (page.kind === "standing") return null;
 
   return (
     <div className={styles.sportList}>

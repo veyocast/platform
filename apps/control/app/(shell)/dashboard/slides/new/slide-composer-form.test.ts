@@ -4,7 +4,9 @@ import {
   requiredSportlinkDatasetGroups,
   sourceHasContent,
   sourceMatchesSlideType,
+  supportsSportContextSelection,
   supportsSportMatchSelection,
+  supportsSportStandingSelection,
   type SlideSourceOption
 } from "./slide-composer-form";
 
@@ -17,6 +19,7 @@ const source: SlideSourceOption = {
   name: "Clubnieuws",
   providerStatus: "ready",
   sportCompetitions: [],
+  sportSeasons: [],
   sportTeams: [],
   successfulDatasetGroups: []
 };
@@ -78,5 +81,11 @@ describe("dynamische slide-opties", () => {
     expect(supportsSportMatchSelection("sport_program")).toBe(true);
     expect(supportsSportMatchSelection("sport_results")).toBe(true);
     expect(supportsSportMatchSelection("sport_standing")).toBe(false);
+  });
+
+  it("biedt team, competitie en seizoen voor standslides", () => {
+    expect(supportsSportStandingSelection("sport_standing")).toBe(true);
+    expect(supportsSportStandingSelection("sport_period_standing")).toBe(true);
+    expect(supportsSportContextSelection("sport_standing")).toBe(true);
   });
 });

@@ -112,4 +112,10 @@ const syncGroups = [
   "public_people",
   "volunteers"
 ] as const;
-const frequencies = ["hourly", "daily", "weekly", "monthly"] as const;
+const frequencies = [
+  "five_minutes",
+  "hourly",
+  "daily",
+  "weekly",
+  "monthly"
+] as const;

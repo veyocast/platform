@@ -379,6 +379,440 @@
   min-height: 11vh;
 }
 
+.standingClubEdition {
+  background: #05080b;
+  color: #f6f4ee;
+  display: block;
+  font-family: "Arial Narrow", Roboto, Arial, Helvetica, sans-serif;
+  padding: 0;
+}
+
+.standingPage {
+  background:
+    radial-gradient(
+      ellipse 48% 38% at 98% 2%,
+      color-mix(in srgb, var(--template-accent) 27%, transparent),
+      transparent 76%
+    ),
+    radial-gradient(
+      ellipse 42% 33% at 0 100%,
+      color-mix(in srgb, var(--template-accent) 22%, transparent),
+      transparent 74%
+    ),
+    #070b0f;
+  height: 100%;
+  inset: 0;
+  isolation: isolate;
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+}
+
+.standingPage::before {
+  background: var(--template-accent);
+  content: "";
+  height: max(5px, 0.6vh);
+  inset: 0 0 auto;
+  position: absolute;
+  z-index: 4;
+}
+
+.standingAmbient {
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.standingAmbient span {
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 50%;
+  height: 68vw;
+  position: absolute;
+  right: -31vw;
+  top: -47vw;
+  width: 68vw;
+}
+
+.standingAmbient span:last-child {
+  bottom: -41vw;
+  left: -29vw;
+  right: auto;
+  top: auto;
+}
+
+.standingHeader {
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  gap: 2.2vw;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  left: 5.2%;
+  min-height: 22%;
+  position: absolute;
+  right: 5.2%;
+  top: 2.4%;
+}
+
+.standingClubMark {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.055);
+  border: 2px solid color-mix(
+    in srgb,
+    var(--template-accent) 72%,
+    white
+  );
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  font-size: clamp(25px, 3vw, 54px);
+  font-weight: 900;
+  height: min(10vh, 8vw);
+  justify-content: center;
+  letter-spacing: -0.06em;
+  width: min(10vh, 8vw);
+}
+
+.standingTitle {
+  min-width: 0;
+  text-transform: uppercase;
+}
+
+.standingTitle > span {
+  color: var(--template-accent);
+  display: block;
+  font-size: clamp(15px, 1.35vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.standingTitle h1 {
+  font-size: clamp(54px, 5.7vw, 108px);
+  letter-spacing: -0.035em;
+  line-height: 0.86;
+  margin: 0.6vh 0 1vh;
+  max-width: 100%;
+  text-transform: uppercase;
+}
+
+.standingTitle p,
+.standingCompetition span {
+  color: rgba(246, 244, 238, 0.72);
+  font-size: clamp(14px, 1.15vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.standingCompetition {
+  max-width: 32vw;
+  min-width: 17vw;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.standingCompetition strong {
+  display: block;
+  font-size: clamp(22px, 2vw, 40px);
+  line-height: 1.05;
+}
+
+.standingCompetition span {
+  display: block;
+  margin-top: 1.1vh;
+}
+
+.standingCard {
+  background: rgba(9, 13, 17, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 1vw;
+  bottom: 10%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 2.2vh 7vh rgba(0, 0, 0, 0.2);
+  left: 5.2%;
+  overflow: hidden;
+  position: absolute;
+  right: 5.2%;
+  top: 27%;
+}
+
+.standingColumns,
+.standingRow {
+  align-items: center;
+  display: grid;
+  gap: 0.7vw;
+  grid-template-columns:
+    minmax(42px, 0.35fr)
+    minmax(260px, 4.8fr)
+    repeat(4, minmax(38px, 0.55fr))
+    minmax(52px, 0.65fr)
+    minmax(58px, 0.7fr)
+    minmax(112px, 1.35fr);
+}
+
+.standingColumns {
+  border-bottom: 1px solid color-mix(
+    in srgb,
+    var(--template-accent) 52%,
+    transparent
+  );
+  color: var(--template-accent);
+  font-size: clamp(12px, 0.9vw, 18px);
+  font-weight: 800;
+  height: 10%;
+  letter-spacing: 0.1em;
+  margin: 0 1.3vw;
+  padding: 0 1vw;
+  text-transform: uppercase;
+}
+
+.standingRows {
+  height: 90%;
+}
+
+.standingRow {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: clamp(19px, 1.55vw, 31px);
+  height: 12.5%;
+  margin: 0 1.3vw;
+  padding: 0 1vw;
+  position: relative;
+}
+
+.standingRow:last-child {
+  border-bottom: 0;
+}
+
+.standingRow[data-selected="true"] {
+  background: color-mix(
+    in srgb,
+    var(--template-accent) 18%,
+    transparent
+  );
+  box-shadow:
+    inset 5px 0 0 var(--template-accent),
+    inset 0 0 0 1px color-mix(
+      in srgb,
+      var(--template-accent) 54%,
+      transparent
+    );
+}
+
+.standingRow > span:not(.standingTeam),
+.standingRank,
+.standingPoints {
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.standingRank {
+  color: var(--template-accent);
+}
+
+.standingTeam {
+  align-items: center;
+  display: flex;
+  gap: 1vw;
+  min-width: 0;
+}
+
+.standingTeam i {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 0.55em;
+  font-style: normal;
+  font-weight: 900;
+  height: min(4.8vh, 2.8vw);
+  justify-content: center;
+  letter-spacing: -0.05em;
+  width: min(4.8vh, 2.8vw);
+}
+
+.standingTeam b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.standingPoints {
+  color: #fff;
+  font-size: 1.18em;
+}
+
+.standingForm {
+  align-items: center;
+  display: flex;
+  gap: 0.28em;
+  justify-content: center;
+}
+
+.standingForm i {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  font-size: 0.62em;
+  font-style: normal;
+  font-weight: 900;
+  height: 1.55em;
+  justify-content: center;
+  width: 1.55em;
+}
+
+.standingForm i[data-result="win"] {
+  background: #1f9d63;
+}
+
+.standingForm i[data-result="draw"] {
+  background: #737b85;
+}
+
+.standingForm i[data-result="loss"] {
+  background: #cb3f49;
+}
+
+.standingForm b {
+  color: rgba(246, 244, 238, 0.55);
+}
+
+.standingEmpty {
+  align-items: center;
+  display: flex;
+  font-size: clamp(28px, 2.5vw, 48px);
+  font-weight: 800;
+  height: 100%;
+  justify-content: center;
+  padding: 4vw;
+  text-align: center;
+}
+
+.standingFooter {
+  align-items: center;
+  bottom: 3.2%;
+  color: rgba(246, 244, 238, 0.62);
+  display: flex;
+  font-size: clamp(12px, 0.9vw, 18px);
+  font-weight: 750;
+  justify-content: space-between;
+  left: 5.2%;
+  letter-spacing: 0.08em;
+  position: absolute;
+  right: 5.2%;
+  text-transform: uppercase;
+}
+
+.standingFooter span:first-child {
+  align-items: center;
+  display: flex;
+  gap: 0.7vw;
+}
+
+.standingFooter i {
+  background: var(--template-accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0.8em var(--template-accent);
+  height: 0.55em;
+  width: 0.55em;
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingHeader {
+  align-content: center;
+  gap: 2.4vw 3.5vw;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 19%;
+  top: 2%;
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingClubMark {
+  height: min(9vh, 16vw);
+  width: min(9vh, 16vw);
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingTitle h1 {
+  font-size: clamp(66px, 12vw, 120px);
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingTitle > span {
+  font-size: clamp(16px, 2.9vw, 30px);
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingCompetition {
+  border-left: 3px solid var(--template-accent);
+  grid-column: 1 / -1;
+  margin-left: calc(min(9vh, 16vw) + 3.5vw);
+  max-width: none;
+  padding-left: 2.6vw;
+  text-align: left;
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingCompetition strong {
+  font-size: clamp(24px, 4.6vw, 46px);
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingCompetition span,
+.standingClubEdition[data-orientation="portrait"] .standingTitle p {
+  font-size: clamp(13px, 2.35vw, 24px);
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingCard {
+  border-radius: 2vw;
+  bottom: 8.5%;
+  top: 23.5%;
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingColumns,
+.standingClubEdition[data-orientation="portrait"] .standingRow {
+  gap: 0.75vw;
+  grid-template-columns:
+    minmax(34px, 0.45fr)
+    minmax(190px, 3.8fr)
+    repeat(4, minmax(31px, 0.6fr))
+    minmax(40px, 0.7fr)
+    minmax(46px, 0.8fr)
+    minmax(88px, 1.55fr);
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingColumns {
+  font-size: clamp(11px, 1.35vw, 16px);
+  height: 7%;
+  margin: 0 1.6vw;
+  padding: 0 0.8vw;
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingRows {
+  height: 93%;
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingRow {
+  font-size: clamp(12px, 1.9vw, 20px);
+  height: 5.5556%;
+  margin: 0 1.6vw;
+  padding: 0 0.8vw;
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingTeam {
+  gap: 1.4vw;
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingTeam i {
+  height: min(2.5vh, 4.4vw);
+  width: min(2.5vh, 4.4vw);
+}
+
+.standingClubEdition[data-orientation="portrait"] .standingFooter {
+  bottom: 2.7%;
+  font-size: clamp(11px, 1.75vw, 18px);
+}
+
 .rssPortrait,
 .rssLandscape {
   --rss-background: var(--vc-brand-ink-black);

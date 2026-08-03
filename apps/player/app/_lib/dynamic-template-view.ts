@@ -29,6 +29,24 @@ export type DynamicTemplateNewsItem = {
   title: string;
 };
 
+export type DynamicTemplateStandingItem = {
+  drawn: number | null;
+  form: DynamicTemplateStandingForm[];
+  goalDifference: number | null;
+  goalsAgainst: number | null;
+  goalsFor: number | null;
+  id: string;
+  lost: number | null;
+  played: number | null;
+  points: number | null;
+  position: number | null;
+  selected: boolean;
+  teamName: string;
+  won: number | null;
+};
+
+export type DynamicTemplateStandingForm = "draw" | "loss" | "win";
+
 export type DynamicTemplatePage =
   | { items: DynamicTemplateMenuItem[]; kind: "menu" }
   | { item: DynamicTemplateNewsItem | null; kind: "news" }
@@ -38,6 +56,7 @@ export type DynamicTemplatePage =
       item: DynamicTemplateListItem | null;
       kind: "match";
     }
+  | { items: DynamicTemplateStandingItem[]; kind: "standing" }
   | { items: DynamicTemplateListItem[]; kind: "sport-list" };
 
 export type DynamicTemplateView = {
@@ -50,6 +69,12 @@ export type DynamicTemplateView = {
   slideType: PlayerDynamicTemplatePayload["slideType"];
   snapshotId: string;
   sourceLabel: string;
+  standingContext?: {
+    competition: string;
+    pool: string;
+    season: string;
+  };
+  templateStyle: "default" | "standing-club-edition";
   theme: DynamicTemplateTheme;
   title: string;
 };
@@ -112,6 +137,7 @@ export function createDynamicTemplateView(
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
       sourceLabel: "Clubkantine",
+      templateStyle: "default",
       theme,
       title: safeText(menu?.title, "Menu vandaag")
     };
@@ -139,6 +165,7 @@ export function createDynamicTemplateView(
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
       sourceLabel: safeText(news?.sourceName, "Clubnieuws"),
+      templateStyle: "default",
       theme,
       title: safeText(news?.title, "Nieuws")
     };
@@ -165,7 +192,41 @@ export function createDynamicTemplateView(
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
       sourceLabel: "Match centre",
+      templateStyle: "default",
       theme,
+      title
+    };
+  }
+
+  if (
+    payload.slideType === "sport_standing" &&
+    payload.templateSlug.includes("standing-club-edition")
+  ) {
+    const standingItems = readArray(sport?.items)
+      .map(toStandingItem)
+      .filter((item): item is DynamicTemplateStandingItem => item !== null);
+    const competition = readRecord(sport?.competition);
+    const pool = readRecord(sport?.pool);
+    const perPage = payload.orientation === "portrait" ? 18 : 8;
+    return {
+      accentColor,
+      emptyState,
+      orientation: payload.orientation,
+      pages: paginate(standingItems, perPage).map((page) => ({
+        items: page,
+        kind: "standing" as const
+      })),
+      providerLogoUrl: "",
+      slideType: payload.slideType,
+      snapshotId: payload.snapshotId,
+      sourceLabel: "Live uit Sportlink Club.Dataservice",
+      standingContext: {
+        competition: safeText(competition?.name, "Competitie"),
+        pool: safeText(pool?.name, ""),
+        season: safeText(sport?.season, "")
+      },
+      templateStyle: "standing-club-edition",
+      theme: "dark",
       title
     };
   }
@@ -183,9 +244,55 @@ export function createDynamicTemplateView(
     slideType: payload.slideType,
     snapshotId: payload.snapshotId,
     sourceLabel: sportLabel(payload.slideType),
+    templateStyle: "default",
     theme,
     title
   };
+}
+
+function toStandingItem(value: unknown): DynamicTemplateStandingItem | null {
+  const item = readRecord(value);
+  if (!item) return null;
+  const teamName = safeText(item.teamName, "");
+  if (!teamName) return null;
+  return {
+    drawn: safeNullableInteger(item.drawn),
+    form: readStandingForm(item.form),
+    goalDifference: safeNullableInteger(item.goalDifference),
+    goalsAgainst: safeNullableInteger(item.goalsAgainst),
+    goalsFor: safeNullableInteger(item.goalsFor),
+    id: safeText(item.id, teamName),
+    lost: safeNullableInteger(item.lost),
+    played: safeNullableInteger(item.played),
+    points: safeNullableInteger(item.points),
+    position: safeNullableInteger(item.position),
+    selected: item.selected === true,
+    teamName,
+    won: safeNullableInteger(item.won)
+  };
+}
+
+function readStandingForm(value: unknown): DynamicTemplateStandingForm[] {
+  const values = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? value.split(/[\s,;|/-]+/u)
+      : [];
+  return values.flatMap((entry) => {
+    const normalized = typeof entry === "string"
+      ? entry.trim().toLowerCase()
+      : "";
+    if (["w", "win", "winst", "gewonnen"].includes(normalized)) {
+      return ["win" as const];
+    }
+    if (["g", "gl", "draw", "gelijk", "gelijkspel"].includes(normalized)) {
+      return ["draw" as const];
+    }
+    if (["v", "loss", "verlies", "verloren"].includes(normalized)) {
+      return ["loss" as const];
+    }
+    return [];
+  }).slice(-3);
 }
 
 function parseDynamicTemplatePayload(
@@ -412,6 +519,13 @@ function safeInteger(
   return Number.isInteger(numeric)
     ? Math.min(maximum, Math.max(minimum, numeric))
     : fallback;
+}
+
+function safeNullableInteger(value: unknown) {
+  const numeric = Number(value);
+  return Number.isInteger(numeric) && numeric >= -999 && numeric <= 999
+    ? numeric
+    : null;
 }
 
 function toListItem(value: unknown): DynamicTemplateListItem | null {

@@ -14,7 +14,8 @@ import {
   mapSportlinkClub,
   mapSportlinkMatches,
   mapSportlinkStandings,
-  mapSportlinkTeams
+  mapSportlinkTeams,
+  stableSportlinkExternalId
 } from "@veyocast/integrations/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -427,15 +428,24 @@ function startLeaseHeartbeat({
 async function fetchStandings(client: SportlinkClient) {
   const teams = await client.fetchArticle("teams");
   const pools = await client.fetchArticle("poulelijst");
-  const poolIds = collectSportlinkPoolIds(teams.payload, pools.payload);
+  const contexts = collectSportlinkPoolContexts(
+    teams.payload,
+    pools.payload
+  );
 
   const standings: SportStanding[] = [];
-  for (const poolId of poolIds) {
+  for (const context of contexts) {
     try {
       const response = await client.fetchArticle("poulestand", {
-        poulecode: poolId
+        poulecode: context.poolExternalId
       });
-      standings.push(mapSportlinkStandings(response.payload, poolId));
+      standings.push(mapSportlinkStandings(
+        response.payload,
+        context.poolExternalId,
+        context.poolName,
+        null,
+        context.competition
+      ));
     } catch (error) {
       if (
         error instanceof SportlinkClientError &&
@@ -454,10 +464,23 @@ export function collectSportlinkPoolIds(
   poolsPayload: unknown,
   maximum = 24
 ) {
+  return collectSportlinkPoolContexts(
+    teamsPayload,
+    poolsPayload,
+    maximum
+  ).map((context) => context.poolExternalId);
+}
+
+export function collectSportlinkPoolContexts(
+  teamsPayload: unknown,
+  poolsPayload: unknown,
+  maximum = 24
+) {
   const boundedMaximum = Number.isFinite(maximum)
     ? Math.min(24, Math.max(1, Math.trunc(maximum)))
     : 24;
   const teamRecords = extractSportlinkRecords(teamsPayload);
+  const poolRecords = extractSportlinkRecords(poolsPayload);
   const teamCodes = new Set(
     teamRecords
       .map((team) => scalar(team.teamcode))
@@ -465,25 +488,65 @@ export function collectSportlinkPoolIds(
         Boolean(value && /^\d+$/.test(value))
       )
   );
-  const poolIds = new Set<string>();
-  const addPool = (value: unknown) => {
-    const poolId = scalar(value);
-    if (poolId && /^\d+$/.test(poolId) && poolIds.size < boundedMaximum) {
-      poolIds.add(poolId);
+  const contexts = new Map<string, {
+    competition: SportStanding["competition"];
+    poolExternalId: string;
+    poolName: string;
+  }>();
+  const addPool = (value: Record<string, unknown>) => {
+    const poolId = scalar(value.poulecode);
+    if (
+      poolId &&
+      /^\d+$/.test(poolId) &&
+      contexts.size < boundedMaximum &&
+      !contexts.has(poolId)
+    ) {
+      const competitionName = scalar(
+        value.competitienaam ?? value.competitie
+      );
+      const competitionType = scalar(
+        value.competitiesoort ?? value.competitietype
+      );
+      const period = scalar(
+        value.competitieperiode ?? value.fase ?? value.klasse
+      );
+      const poolName = scalar(value.poule ?? value.klassepoule)
+        ?? "Competitiestand";
+      const competitionLabel =
+        competitionName ?? competitionType ?? period ?? poolName;
+      contexts.set(poolId, {
+        competition: {
+          externalId: stableSportlinkExternalId(
+            "competition-context",
+            [
+              competitionType ?? "",
+              competitionName ?? "",
+              period ?? "",
+              poolName
+            ].join("|")
+          ),
+          name: competitionLabel,
+          period,
+          season: scalar(value.seizoen),
+          type: competitionType
+        },
+        poolExternalId: poolId,
+        poolName
+      });
     }
   };
 
   for (const team of teamRecords) {
-    addPool(team.poulecode);
+    addPool(team);
   }
-  for (const pool of extractSportlinkRecords(poolsPayload)) {
+  for (const pool of poolRecords) {
     const teamCode = scalar(pool.teamcode);
     if (teamCode && teamCodes.has(teamCode)) {
-      addPool(pool.poulecode);
+      addPool(pool);
     }
   }
 
-  return [...poolIds];
+  return [...contexts.values()];
 }
 
 function parseClaim(value: unknown): ClaimedSportlinkSync {

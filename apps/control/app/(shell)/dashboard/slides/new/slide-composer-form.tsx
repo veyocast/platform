@@ -20,6 +20,7 @@ import styles from "../../dynamic-content.module.css";
 import { createDynamicSlide } from "../actions";
 import type {
   SportlinkCompetitionOption,
+  SportlinkSeasonOption,
   SportlinkTeamOption
 } from "./sportlink-slide-options";
 
@@ -32,6 +33,7 @@ export type SlideSourceOption = {
   name: string;
   providerStatus: string;
   sportCompetitions: SportlinkCompetitionOption[];
+  sportSeasons: SportlinkSeasonOption[];
   sportTeams: SportlinkTeamOption[];
   successfulDatasetGroups: string[];
 };
@@ -105,6 +107,7 @@ export function SlideComposerForm({
   const [sportCompetitionExternalId, setSportCompetitionExternalId] =
     useState("*");
   const [sportTeamExternalId, setSportTeamExternalId] = useState("*");
+  const [sportSeason, setSportSeason] = useState("*");
   const [maxItems, setMaxItems] = useState(
     defaultMaxItems(initialTemplate.slideType)
   );
@@ -143,6 +146,20 @@ export function SlideComposerForm({
   )
     ? sportCompetitionExternalId
     : "*";
+  const sportSeasons = (selectedSource?.sportSeasons ?? []).filter(
+    (season) =>
+      (selectedSportTeamExternalId === "*" ||
+        season.teamExternalIds.includes(selectedSportTeamExternalId)) &&
+      (selectedSportCompetitionExternalId === "*" ||
+        season.competitionExternalIds.includes(
+          selectedSportCompetitionExternalId
+        ))
+  );
+  const selectedSportSeason = sportSeasons.some(
+    (season) => season.value === sportSeason
+  )
+    ? sportSeason
+    : "*";
 
   useEffect(() => {
     stepHeadingRef.current?.focus();
@@ -178,6 +195,7 @@ export function SlideComposerForm({
     setCategory("");
     setSportCompetitionExternalId("*");
     setSportTeamExternalId("*");
+    setSportSeason("*");
     setMaxItems(defaultMaxItems(value));
     setSecondsPerSlide("5");
   }
@@ -353,6 +371,7 @@ export function SlideComposerForm({
                 setDataSourceId(event.currentTarget.value);
                 setSportCompetitionExternalId("*");
                 setSportTeamExternalId("*");
+                setSportSeason("*");
               }}
               required
               value={selectedSource?.id ?? ""}
@@ -425,7 +444,7 @@ export function SlideComposerForm({
               />
             </label>
           ) : null}
-          {supportsSportMatchSelection(slideType) ? (
+          {supportsSportContextSelection(slideType) ? (
             <>
               <label className={styles.field}>
                 <span>Team</span>
@@ -434,6 +453,7 @@ export function SlideComposerForm({
                   onChange={(event) => {
                     setSportTeamExternalId(event.currentTarget.value);
                     setSportCompetitionExternalId("*");
+                    setSportSeason("*");
                   }}
                   value={selectedSportTeamExternalId}
                 >
@@ -445,7 +465,9 @@ export function SlideComposerForm({
                   ))}
                 </select>
                 <small className={styles.fieldHint}>
-                  Kies één team of toon het volledige clubprogramma.
+                  {supportsSportStandingSelection(slideType)
+                    ? "Kies het team dat in de stand wordt uitgelicht."
+                    : "Kies één team of toon het volledige clubprogramma."}
                 </small>
               </label>
               <label className={styles.field}>
@@ -453,7 +475,12 @@ export function SlideComposerForm({
                 <select
                   name="sportCompetitionExternalId"
                   onChange={(event) =>
-                    setSportCompetitionExternalId(event.currentTarget.value)
+                    {
+                      setSportCompetitionExternalId(
+                        event.currentTarget.value
+                      );
+                      setSportSeason("*");
+                    }
                   }
                   value={selectedSportCompetitionExternalId}
                 >
@@ -472,6 +499,31 @@ export function SlideComposerForm({
                   blijven afzonderlijk kiesbaar.
                 </small>
               </label>
+              {supportsSportStandingSelection(slideType) ? (
+                <label className={styles.field}>
+                  <span>Seizoen</span>
+                  <select
+                    name="sportSeason"
+                    onChange={(event) =>
+                      setSportSeason(event.currentTarget.value)
+                    }
+                    value={selectedSportSeason}
+                  >
+                    <option value="*">
+                      Huidig / nieuwste seizoen (automatisch)
+                    </option>
+                    {sportSeasons.map((season) => (
+                      <option key={season.value} value={season.value}>
+                        {season.label}
+                      </option>
+                    ))}
+                  </select>
+                  <small className={styles.fieldHint}>
+                    Eerder gesynchroniseerde seizoenen blijven beschikbaar.
+                    Automatisch volgt bij een seizoenswissel de nieuwste stand.
+                  </small>
+                </label>
+              ) : null}
             </>
           ) : null}
           <label className={styles.field}>
@@ -542,7 +594,7 @@ export function SlideComposerForm({
             <dt>Databron</dt>
             <dd>{selectedSource?.name ?? "Geen bruikbare bron"}</dd>
           </div>
-          {supportsSportMatchSelection(slideType) ? (
+          {supportsSportContextSelection(slideType) ? (
             <>
               <div>
                 <dt>Team</dt>
@@ -567,6 +619,16 @@ export function SlideComposerForm({
                       )?.label ?? "Onbekende competitie"}
                 </dd>
               </div>
+              {supportsSportStandingSelection(slideType) ? (
+                <div>
+                  <dt>Seizoen</dt>
+                  <dd>
+                    {selectedSportSeason === "*"
+                      ? "Huidig / nieuwste (automatisch)"
+                      : selectedSportSeason}
+                  </dd>
+                </div>
+              ) : null}
             </>
           ) : null}
           <div>
@@ -814,6 +876,7 @@ function defaultMaxItems(slideType: string) {
   if (isSingleMatchSlide(slideType)) return "1";
   if (slideType === "news") return "5";
   if (slideType === "menu") return "12";
+  if (supportsSportStandingSelection(slideType)) return "18";
   return "8";
 }
 
@@ -836,6 +899,18 @@ export function supportsSportMatchSelection(slideType: string) {
   ].includes(slideType);
 }
 
+export function supportsSportStandingSelection(slideType: string) {
+  return [
+    "sport_period_standing",
+    "sport_standing"
+  ].includes(slideType);
+}
+
+export function supportsSportContextSelection(slideType: string) {
+  return supportsSportMatchSelection(slideType) ||
+    supportsSportStandingSelection(slideType);
+}
+
 function maxItemsLabel(slideType: string) {
   if (slideType === "news") return "Aantal nieuwsslides";
   if (slideType === "menu") return "Aantal producten";
@@ -851,7 +926,10 @@ function maxItemsHelp(slideType: string, orientation: string) {
     ? orientation === "portrait" ? 10 : 8
     : slideType === "news"
       ? 1
-      : orientation === "portrait" ? 6 : 8;
+      : supportsSportStandingSelection(slideType) &&
+          orientation === "portrait"
+        ? 18
+        : orientation === "portrait" ? 6 : 8;
   if (slideType === "news") {
     return "Kies 1 tot 12 berichten. Elk artikel krijgt een eigen HTML/CSS-scherm.";
   }
