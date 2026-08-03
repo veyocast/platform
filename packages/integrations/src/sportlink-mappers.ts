@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import type {
   SportActivity, SportClub, SportMatch, SportPersonDisplay, SportStanding,
-  SportTeam
+  SportTeam, SportTeamCompetition
 } from "@veyocast/contracts";
 
 import { extractSportlinkRecords } from "./sportlink-client";
@@ -28,22 +28,63 @@ export function mapSportlinkClub(payload: unknown): SportClub | null {
 }
 
 export function mapSportlinkTeams(payload: unknown): SportTeam[] {
-  return isolate(payload, (value) => {
-    const name = string(value.teamnaam);
-    const sourceId = nullable(value.teamcode) ?? nullable(value.lokaleteamcode);
-    if (!name || !sourceId) throw new Error("team_core_invalid");
-    return {
-      category: nullable(value.leeftijdscategorie ?? value.categorie),
-      competitionName: nullable(value.competitienaam ?? value.competitie),
-      externalId: sourceId,
-      gender: nullable(value.geslacht),
-      localExternalId: nullable(value.lokaleteamcode),
-      logoUrl: httpUrl(value.teamlogo),
-      name,
-      photoUrl: httpUrl(value.teamfoto),
-      teamType: nullable(value.teamsoort)
-    };
-  });
+  const teams = new Map<string, SportTeam>();
+
+  for (const value of extractSportlinkRecords(payload)) {
+    try {
+      const name = string(value.teamnaam);
+      const sourceId = nullable(value.teamcode) ??
+        nullable(value.lokaleteamcode);
+      if (!name || !sourceId) throw new Error("team_core_invalid");
+
+      const competition = mapTeamCompetition(value);
+      const existing = teams.get(sourceId);
+      if (!existing) {
+        teams.set(sourceId, {
+          category: nullable(value.leeftijdscategorie ?? value.categorie),
+          competitionName: nullable(
+            value.competitienaam ?? value.competitie
+          ) ?? competition?.name ?? null,
+          competitionOptions: competition ? [competition] : [],
+          externalId: sourceId,
+          gender: nullable(value.geslacht),
+          localExternalId: nullable(value.lokaleteamcode),
+          logoUrl: httpUrl(value.teamlogo),
+          name,
+          photoUrl: httpUrl(value.teamfoto),
+          teamType: nullable(value.teamsoort)
+        });
+        continue;
+      }
+
+      existing.category ??= nullable(
+        value.leeftijdscategorie ?? value.categorie
+      );
+      existing.competitionName ??= nullable(
+        value.competitienaam ?? value.competitie
+      ) ?? competition?.name ?? null;
+      existing.gender ??= nullable(value.geslacht);
+      existing.localExternalId ??= nullable(value.lokaleteamcode);
+      existing.logoUrl ??= httpUrl(value.teamlogo);
+      existing.photoUrl ??= httpUrl(value.teamfoto);
+      existing.teamType ??= nullable(value.teamsoort);
+      if (
+        competition &&
+        !(existing.competitionOptions ?? []).some(
+          (option) => option.externalId === competition.externalId
+        )
+      ) {
+        existing.competitionOptions = [
+          ...(existing.competitionOptions ?? []),
+          competition
+        ];
+      }
+    } catch {
+      // One malformed row must not invalidate the complete public team feed.
+    }
+  }
+
+  return [...teams.values()];
 }
 
 export function mapSportlinkMatches(
@@ -61,9 +102,10 @@ export function mapSportlinkMatches(
     const scores = parseScore(value.uitslag);
     const cancelled = mode === "cancellations" ||
       /afgelast|cancel/i.test(string(value.status) ?? "");
+    const competition = mapMatchCompetition(value);
     return {
       awayTeam: {
-        externalId: nullable(value.uitteamid),
+        externalId: nullable(value.uitteamid ?? value.uitteamcode),
         logoUrl: httpUrl(value.uitteamlogo),
         name: awayName,
         score: scores?.[1] ?? null
@@ -71,15 +113,7 @@ export function mapSportlinkMatches(
       cancellationReason: cancelled
         ? nullable(value.info ?? value.status) ?? "Afgelast"
         : null,
-      competition: nullable(value.competitie ?? value.competitienaam)
-        ? {
-            externalId: stableId("competition", string(value.competitie ?? value.competitienaam)!),
-            name: string(value.competitie ?? value.competitienaam)!,
-            period: null,
-            season: null,
-            type: nullable(value.competitiesoort)
-          }
-        : null,
+      competition,
       dressingRooms: {
         away: nullable(value.kleedkameruitteam),
         home: nullable(value.kleedkamerthuisteam),
@@ -87,17 +121,14 @@ export function mapSportlinkMatches(
       },
       externalId,
       homeTeam: {
-        externalId: nullable(value.thuisteamid),
+        externalId: nullable(value.thuisteamid ?? value.thuisteamcode),
         logoUrl: httpUrl(value.thuisteamlogo),
         name: homeName,
         score: scores?.[0] ?? null
       },
       isHomeMatch: /thuis|home|1|ja/i.test(string(value.eigenteam ?? value.teamvolgorde) ?? ""),
       officials: splitPeople(value.scheidsrechters ?? value.scheidsrechter, "Scheidsrechter"),
-      pool: nullable(value.poule)
-        ? { competitionExternalId: null, externalId: nullable(value.poulecode)
-          ?? stableId("pool", string(value.poule)!), name: string(value.poule)! }
-        : null,
+      pool: mapMatchPool(value, competition?.externalId ?? null),
       startsAt,
       status: cancelled ? "cancelled" : mode === "results" ? "finished" : "scheduled",
       venue: {
@@ -185,6 +216,79 @@ export function privacyFilterSportlinkPayload(payload: unknown): unknown {
 
 export function stableSportlinkExternalId(namespace: string, ...parts: unknown[]) {
   return stableId(namespace, parts.map((value) => String(value ?? "")).join("|"));
+}
+
+function mapTeamCompetition(
+  value: Record<string, unknown>
+): SportTeamCompetition | null {
+  const context = competitionContext(value);
+  if (!context) return null;
+  return {
+    externalId: context.externalId,
+    name: context.name,
+    period: context.period,
+    poolExternalId: nullable(value.poulecode),
+    poolName: context.poolName,
+    type: context.type
+  };
+}
+
+function mapMatchCompetition(value: Record<string, unknown>) {
+  const context = competitionContext(value);
+  if (!context) return null;
+  return {
+    externalId: context.externalId,
+    name: context.name,
+    period: context.period,
+    season: nullable(value.seizoen),
+    type: context.type
+  };
+}
+
+function mapMatchPool(
+  value: Record<string, unknown>,
+  competitionExternalId: string | null
+) {
+  const name = nullable(value.poule ?? value.klassepoule);
+  if (!name) return null;
+  return {
+    competitionExternalId,
+    externalId: nullable(value.poulecode) ?? stableId(
+      "pool-context",
+      `${competitionExternalId ?? ""}|${name}`
+    ),
+    name
+  };
+}
+
+function competitionContext(value: Record<string, unknown>) {
+  const competitionName = nullable(
+    value.competitie ?? value.competitienaam
+  );
+  const competitionType = nullable(
+    value.competitiesoort ?? value.competitietype
+  );
+  const period = nullable(
+    value.competitieperiode ?? value.fase ?? value.klasse
+  );
+  const poolName = nullable(value.poule ?? value.klassepoule);
+  const name = competitionName ?? competitionType ?? period ?? poolName;
+  if (!name) return null;
+  return {
+    externalId: stableId(
+      "competition-context",
+      [
+        competitionType ?? "",
+        competitionName ?? "",
+        period ?? "",
+        poolName ?? ""
+      ].join("|")
+    ),
+    name,
+    period,
+    poolName,
+    type: competitionType
+  };
 }
 
 function isolate<T>(payload: unknown, mapper: (value: Record<string, unknown>) => T) {

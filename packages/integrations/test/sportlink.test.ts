@@ -54,6 +54,64 @@ describe("Sportlink server-only adapter", () => {
     );
   });
 
+  it("merges one Sportlink team across competition, cup and phase rows", () => {
+    const teams = mapSportlinkTeams([
+      {
+        klasse: "2e klasse",
+        competitieperiode: "Fase 1",
+        competitienaam: "Reguliere competitie",
+        competitiesoort: "Competitie",
+        poule: "Poule A",
+        poulecode: 701,
+        teamcode: 10,
+        teamnaam: "Testclub 1"
+      },
+      {
+        klasse: "Groep 3",
+        competitienaam: "Districtsbeker",
+        competitiesoort: "Beker",
+        poule: "Poule B",
+        poulecode: 702,
+        teamcode: 10,
+        teamnaam: "Testclub 1"
+      }
+    ]);
+
+    expect(teams).toHaveLength(1);
+    expect(teams[0]).toMatchObject({
+      externalId: "10",
+      name: "Testclub 1"
+    });
+    expect(teams[0]?.competitionOptions).toHaveLength(2);
+    expect(teams[0]?.competitionOptions?.map((option) => option.type))
+      .toEqual(["Competitie", "Beker"]);
+  });
+
+  it("normalizes competition type, phase and pool on matches", () => {
+    const [match] = mapSportlinkMatches([{
+      aanvangstijd: "14:30",
+      competitie: "Districtsbeker",
+      competitiesoort: "Beker",
+      datum: "03-08-2026",
+      klasse: "Groep 3",
+      poule: "Poule B",
+      thuisteam: "Testclub 1",
+      thuisteamid: 10,
+      uitteam: "Bezoekers",
+      uitteamid: 20,
+      wedstrijdcode: 72,
+      wedstrijddatum: "2026-08-03T14:30:00+02:00"
+    }]);
+
+    expect(match?.competition).toMatchObject({
+      name: "Districtsbeker",
+      period: "Groep 3",
+      type: "Beker"
+    });
+    expect(match?.pool?.name).toBe("Poule B");
+    expect(match?.homeTeam.externalId).toBe("10");
+  });
+
   it("normalizes Europe/Amsterdam wall-clock dates across daylight saving time", () => {
     const matches = mapSportlinkMatches([
       {

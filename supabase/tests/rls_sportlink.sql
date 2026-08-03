@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(24);
+select plan(27);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -144,6 +144,67 @@ select is((select count(*) from public.sportlink_sync_runs
 select ok((select last_success_at is not null
   from public.sportlink_sync_policies where dataset_group='matches'),
   'successful completion updates the dataset policy');
+
+reset role;
+select set_config(
+  'test.sportlink_connection_id',
+  (select id::text from public.sportlink_connections limit 1),
+  true
+);
+set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select lives_ok(
+  $$select public.record_sportlink_sync_v1(
+    current_setting('test.sportlink_connection_id')::uuid,
+    '{}'::jsonb,
+    '[
+      {
+        "externalId":"10",
+        "localExternalId":"1",
+        "name":"Testclub 1",
+        "competitionOptions":[{
+          "externalId":"competition-a",
+          "name":"Reguliere competitie",
+          "period":"Fase 1",
+          "poolExternalId":"701",
+          "poolName":"Poule A",
+          "type":"Competitie"
+        }]
+      },
+      {
+        "externalId":"10",
+        "localExternalId":"1",
+        "name":"Testclub 1",
+        "competitionOptions":[{
+          "externalId":"competition-b",
+          "name":"Districtsbeker",
+          "period":"Groep 3",
+          "poolExternalId":"702",
+          "poolName":"Poule B",
+          "type":"Beker"
+        }]
+      }
+    ]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb
+  )$$,
+  'duplicate provider team rows complete as one normalized team'
+);
+reset role;
+select is(
+  (select count(*) from public.sports_teams where external_id='10'),
+  1::bigint,
+  'one canonical team row is stored for all competition contexts'
+);
+select is(
+  (
+    select jsonb_array_length(metadata -> 'competitionOptions')
+    from public.sports_teams
+    where external_id='10'
+  ),
+  2,
+  'the canonical team retains both competition and cup choices'
+);
 
 set local role anon;
 select is((select count(*) from public.sportlink_connections),0::bigint,
