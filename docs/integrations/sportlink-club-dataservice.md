@@ -33,6 +33,13 @@ call `teampoulelijst` with an incomplete argument set: the live contract
 requires both `teamcode` and `lokaleteamcode`, while the verified `teams`
 response does not provide a usable local-team code for that dependency.
 
+The `teams` article may return the same team code once per competition
+context. VeyoCast stores one canonical team and retains the separate
+competition type, name, phase/class and pool contexts as bounded options.
+Program and result slides can therefore be scoped to a team and to an exact
+competition, cup or phase without treating provider duplicates as distinct
+teams.
+
 Stable provider errors are mapped by code: 4001 condition unavailable, 4002
 required argument, 4011 token invalid, 4012 Client ID invalid, 4031 missing
 scope, 4041 unknown article and 5001 provider failure. Empty arrays and 4001 for
@@ -52,10 +59,12 @@ member portal.
 
 The supported canonical datasets can feed fixed Player-rendered Sportlink
 slides. Control offers portrait/landscape and light/dark variants plus a
-bounded row count. Publication freezes the normalized snapshot in the release;
-the Player renders locked HTML/CSS and retains the PNG generated from the same
-snapshot as offline/legacy fallback. This does not broaden the provider or
-privacy boundary.
+bounded row count. Match-driven slides additionally offer canonical team and
+competition/phase filters after both Teams and Matches have completed at least
+one successful synchronization. Publication freezes the normalized content and
+selection in the release; the Player renders locked HTML/CSS and retains the
+PNG generated from the same snapshot as offline/legacy fallback. This does not
+broaden the provider or privacy boundary.
 
 Local discovery reads `SPORTLINK_CLIENT_ID` without printing it. Application
 connections additionally require `SPORTLINK_CONFIG_ENCRYPTION_KEY` of at least
