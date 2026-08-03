@@ -15,6 +15,12 @@ export async function createDynamicSlide(formData: FormData) {
   const selectionMode = String(formData.get("selectionMode") ?? "latest");
   const title = String(formData.get("title") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
+  const sportCompetitionExternalId = normalizeSportlinkSelection(
+    formData.get("sportCompetitionExternalId")
+  );
+  const sportTeamExternalId = normalizeSportlinkSelection(
+    formData.get("sportTeamExternalId")
+  );
   const requestedMaxItems = Math.min(
     40,
     Math.max(1, Number(formData.get("maxItems")) || 8)
@@ -66,6 +72,14 @@ export async function createDynamicSlide(formData: FormData) {
       "/dashboard/slides/new?fout=Template+en+databron+horen+niet+bij+hetzelfde+slidetype.+Kies+de+combinatie+opnieuw."
     );
   }
+  if (
+    supportsSportMatchSelection(templateSlideType) &&
+    (sportCompetitionExternalId === false || sportTeamExternalId === false)
+  ) {
+    redirect(
+      "/dashboard/slides/new?fout=De+gekozen+Sportlink-selectie+is+ongeldig.+Kies+team+en+competitie+opnieuw."
+    );
+  }
   const maxItems = isSingleMatchSlide(templateSlideType)
     ? 1
     : templateSlideType === "news"
@@ -77,6 +91,14 @@ export async function createDynamicSlide(formData: FormData) {
       maxItems,
       ...(templateSlideType === "news"
         ? { secondsPerSlide: requestedSecondsPerSlide }
+        : {}),
+      ...(supportsSportMatchSelection(templateSlideType) &&
+      sportCompetitionExternalId
+        ? { sportCompetitionExternalId }
+        : {}),
+      ...(supportsSportMatchSelection(templateSlideType) &&
+      sportTeamExternalId
+        ? { sportTeamExternalId }
         : {}),
       ...(templateSlideType === "news"
         ? { title: title || "Voetbalnieuws" }
@@ -192,6 +214,30 @@ function isSingleMatchSlide(slideType: string) {
     "sport_match_of_the_day",
     "sport_next_match"
   ].includes(slideType);
+}
+
+function supportsSportMatchSelection(slideType: string) {
+  return [
+    "sport_cancellations",
+    "sport_dressing_rooms",
+    "sport_match_of_the_day",
+    "sport_next_match",
+    "sport_officials",
+    "sport_program",
+    "sport_results"
+  ].includes(slideType);
+}
+
+function normalizeSportlinkSelection(value: FormDataEntryValue | null) {
+  const normalized = String(value ?? "").trim();
+  if (!normalized || normalized === "*") return null;
+  return normalized.length <= 240 &&
+    ![...normalized].some((character) => {
+      const codePoint = character.codePointAt(0) ?? 0;
+      return codePoint <= 31 || codePoint === 127;
+    })
+    ? normalized
+    : false;
 }
 
 const uuidPattern =

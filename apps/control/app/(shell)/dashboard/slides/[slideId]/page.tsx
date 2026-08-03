@@ -109,9 +109,21 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
           </div>
           <div className={styles.cardBody}>
             <dl className={styles.definitionList}>
-              <div><dt>Type</dt><dd>{data.slide.slide_type === "menu" ? "Menubord" : "Nieuws"}</dd></div>
+              <div><dt>Type</dt><dd>{slideTypeLabel(data.slide.slide_type)}</dd></div>
               <div><dt>Formaat</dt><dd>{data.slide.orientation === "portrait" ? "Staand" : "Liggend"}</dd></div>
               <div><dt>Selectie</dt><dd>{data.slide.selection_mode === "latest" ? "Nieuwste goede snapshot" : "Vastgezet"}</dd></div>
+              {data.sportSelection?.team ? (
+                <div>
+                  <dt>Team</dt>
+                  <dd>{data.sportSelection.team}</dd>
+                </div>
+              ) : null}
+              {data.sportSelection?.competition ? (
+                <div>
+                  <dt>Competitie / fase</dt>
+                  <dd>{data.sportSelection.competition}</dd>
+                </div>
+              ) : null}
               {data.newsPlayback ? (
                 <div>
                   <dt>Afspelen</dt>
@@ -189,6 +201,10 @@ async function loadSlide(slideId: string, tenantId: string) {
     slideCount: number;
     totalSeconds: number;
   } | null = null;
+  let sportSelection: {
+    competition: string | null;
+    team: string | null;
+  } | null = null;
   if (slideResult.data.current_snapshot_id) {
     const snapshot = await supabase.from("dynamic_slide_snapshots").select("output_media_asset_id, snapshot_data_json").eq("id", slideResult.data.current_snapshot_id).maybeSingle();
     if (snapshot.data?.output_media_asset_id) {
@@ -238,13 +254,39 @@ async function loadSlide(slideId: string, tenantId: string) {
         };
       }
     }
+    if (slideResult.data.slide_type.startsWith("sport_") && snapshot.data) {
+      const snapshotData = readRecord(snapshot.data.snapshot_data_json);
+      const sport = readRecord(snapshotData?.sport);
+      const selection = readRecord(sport?.selection);
+      const team = readRecord(selection?.team);
+      const competition = readRecord(selection?.competition);
+      const competitionParts = [
+        safeString(competition?.type),
+        safeString(competition?.name),
+        safeString(competition?.period),
+        safeString(competition?.poolName)
+      ].filter((value, index, values) =>
+        Boolean(value) &&
+        values.findIndex((candidate) =>
+          candidate.toLocaleLowerCase("nl-NL") ===
+          value.toLocaleLowerCase("nl-NL")
+        ) === index
+      );
+      if (team || competition) {
+        sportSelection = {
+          competition: competitionParts.join(" · ") || null,
+          team: safeString(team?.name) || null
+        };
+      }
+    }
   }
   return {
     newsPlayback,
     newsPreview,
     playlists: playlistsResult.data ?? [],
     previewUrl,
-    slide: slideResult.data
+    slide: slideResult.data,
+    sportSelection
   };
 }
 
@@ -313,4 +355,27 @@ function slideStatus(status: string) {
   if (status === "rendering") return { label: "Renderen", tone: "info" as const };
   if (status === "error") return { label: "Herstel nodig", tone: "critical" as const };
   return { label: "Concept", tone: "neutral" as const };
+}
+
+function slideTypeLabel(value: string) {
+  const labels: Record<string, string> = {
+    menu: "Menubord",
+    news: "Nieuws",
+    sport_activities: "Clubagenda",
+    sport_birthdays: "Jarigen",
+    sport_cancellations: "Afgelastingen",
+    sport_dressing_rooms: "Veld- en kleedkamerindeling",
+    sport_match_of_the_day: "Match of the Day",
+    sport_next_match: "Volgende wedstrijd",
+    sport_officials: "Scheidsrechtersaanstellingen",
+    sport_period_standing: "Periodestand",
+    sport_program: "Programma",
+    sport_results: "Uitslagen",
+    sport_sponsor: "Teamsponsor",
+    sport_standing: "Competitiestand",
+    sport_team: "Teamvoorstelling",
+    sport_trainings: "Trainingsoverzicht",
+    sport_volunteers: "Vrijwilligers"
+  };
+  return labels[value] ?? value;
 }

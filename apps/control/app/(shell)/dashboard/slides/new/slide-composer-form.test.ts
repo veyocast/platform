@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  requiredSportlinkDatasetGroups,
   sourceHasContent,
   sourceMatchesSlideType,
+  supportsSportMatchSelection,
   type SlideSourceOption
 } from "./slide-composer-form";
 
@@ -14,6 +16,8 @@ const source: SlideSourceOption = {
   lastSuccessfulSyncAt: null,
   name: "Clubnieuws",
   providerStatus: "ready",
+  sportCompetitions: [],
+  sportTeams: [],
   successfulDatasetGroups: []
 };
 
@@ -48,7 +52,7 @@ describe("dynamische slide-opties", () => {
       ...source,
       kind: "sportlink",
       lastSuccessfulSyncAt: "2026-07-29T18:00:00.000Z",
-      successfulDatasetGroups: ["matches"]
+      successfulDatasetGroups: ["matches", "teams"]
     }, "sport_program")).toBe(true);
   });
 
@@ -61,5 +65,18 @@ describe("dynamische slide-opties", () => {
     };
     expect(sourceHasContent(sportlink, "sport_standing")).toBe(true);
     expect(sourceHasContent(sportlink, "sport_program")).toBe(false);
+  });
+
+  it("vereist voor programma en uitslagen zowel wedstrijden als teams", () => {
+    expect(requiredSportlinkDatasetGroups("sport_program"))
+      .toEqual(["matches", "teams"]);
+    expect(requiredSportlinkDatasetGroups("sport_results"))
+      .toEqual(["matches", "teams"]);
+  });
+
+  it("biedt team- en competitiekeuze voor alle wedstrijdslides", () => {
+    expect(supportsSportMatchSelection("sport_program")).toBe(true);
+    expect(supportsSportMatchSelection("sport_results")).toBe(true);
+    expect(supportsSportMatchSelection("sport_standing")).toBe(false);
   });
 });
