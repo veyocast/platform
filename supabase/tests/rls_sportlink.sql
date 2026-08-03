@@ -353,7 +353,7 @@ select lives_ok(
       from public.dynamic_template_versions version
       join public.dynamic_templates template
         on template.id = version.template_id
-      where template.slug = 'sportlink-program-landscape'
+      where template.slug = 'editorial-arena-programma-dark-landscape'
         and version.status = 'published'
     ),
     (
@@ -381,7 +381,7 @@ select lives_ok(
       join public.dynamic_templates template
         on template.id = version.template_id
       where template.slug =
-        'sportlink-standing-club-edition-dark-portrait'
+        'editorial-arena-competitiestand-dark-portrait'
         and version.status = 'published'
     ),
     (
@@ -480,7 +480,7 @@ select throws_ok(
       from public.dynamic_template_versions version
       join public.dynamic_templates template
         on template.id = version.template_id
-      where template.slug = 'sportlink-program-landscape'
+      where template.slug = 'editorial-arena-programma-dark-landscape'
         and version.status = 'published'
     ),
     (

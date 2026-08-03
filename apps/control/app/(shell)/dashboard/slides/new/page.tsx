@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Database, LayoutTemplate } from "lucide-react";
 
+import { editorialArenaActiveSlideTypes } from "@veyocast/contracts";
 import { Button } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
@@ -178,7 +179,11 @@ async function loadOptions(tenantId: string) {
     primaryColor: normalizePrimaryColor(settingsResult.data?.primary_color),
     sources,
     templates: (templatesResult.data ?? []).flatMap((template) =>
-      template.current_published_version_id ? [{
+      template.current_published_version_id &&
+      template.slug.startsWith("editorial-arena-") &&
+      editorialArenaActiveSlideTypes.includes(
+        template.slide_type as (typeof editorialArenaActiveSlideTypes)[number]
+      ) ? [{
         description: template.description,
         name: template.name,
         orientation: template.orientation,

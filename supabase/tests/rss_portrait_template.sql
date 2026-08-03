@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(4);
+select plan(6);
 
 select is(
   (
@@ -13,8 +13,8 @@ select is(
       and orientation = 'portrait'
       and status = 'published'
   ),
-  1::bigint,
-  'exactly one portrait news template remains selectable'
+  2::bigint,
+  'both Editorial Arena portrait news modes are selectable'
 );
 
 select is(
@@ -23,8 +23,8 @@ select is(
     from public.dynamic_templates
     where slug = 'news-editorial-portrait'
   ),
-  'withdrawn',
-  'the previous portrait news variant is withdrawn'
+  'archived',
+  'the previous portrait news variant is archived'
 );
 
 select is(
@@ -37,8 +37,38 @@ select is(
       and template.orientation = 'portrait'
       and version.status = 'published'
   ),
-  1::bigint,
-  'exactly one portrait news template version remains published'
+  2::bigint,
+  'both Editorial Arena portrait news versions are published'
+);
+
+select is(
+  (
+    select count(*)
+    from public.dynamic_templates
+    where slug like 'editorial-arena-%'
+      and status = 'published'
+  ),
+  40::bigint,
+  'ten capability-backed types expose four Editorial Arena variants'
+);
+
+select is(
+  (
+    select count(*)
+    from public.dynamic_templates
+    where status = 'published'
+      and slide_type in (
+        'sport_match_of_the_day',
+        'sport_period_standing',
+        'sport_sponsor',
+        'sport_team',
+        'sport_trainings',
+        'sport_birthdays',
+        'sport_volunteers'
+      )
+  ),
+  0::bigint,
+  'types without a complete data flow stay inactive'
 );
 
 select ok(
