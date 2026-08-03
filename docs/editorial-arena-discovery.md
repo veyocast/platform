@@ -116,7 +116,7 @@ Aanpassing:
 - veldlimieten blijven client- én server-side afgedwongen;
 - team/competitie blijft alleen zichtbaar voor match- en standdata;
 - seizoen blijft alleen zichtbaar voor de competitiestand;
-- maximaal 18 rijen in portrait stand en maximaal 8 in landscape per pagina;
+- maximaal 18 rijen in portrait stand en maximaal 10 in landscape per pagina;
 - RSS heeft 1–12 artikelen en 5–120 seconden per artikel;
 - MOTM en de zes incomplete capabilities komen niet in de dropdown.
 
@@ -168,6 +168,26 @@ De Editorial Arena-templateversie en resolved config/data/brand zitten in de
 bestaande hash. Dedupe en last-valid gedrag blijven intact. Een backfill wordt
 door de migratie alleen voor bestaande actieve slides gequeueëd wanneer de
 nieuwe templateversie een nog onbekende hash oplevert.
+
+## Verificatie
+
+- 40 capability-gated templates veilig als HTML/CSS gerenderd;
+- database-reset groen met 45 RLS-bestanden en 876 assertions;
+- workspace lint, typecheck en unit-gates 28/28 groen;
+- productiebuild 17/17 groen, inclusief de statische webOS-guard;
+- a11y 34/34 en offline Player 7/7 groen;
+- volledige Chromium-E2E: 135 groen, 8 bewust overgeslagen en 2
+  belastingflakes afzonderlijk groen;
+- Player-suite: 73/74 onder parallelle runnerdruk; de ene watchdogtest
+  afzonderlijk 1/1 groen en in de volledige E2E-run eveneens groen;
+- LG legacy en probe 11/11 groen, inclusief dynamische HTML/CSS-READY- en
+  RENDER-signalen.
+
+De referentie-PNG's gebruiken vaste voorbeeldinhoud en een oranje accent,
+terwijl de renderer tenantdata en de tenant-primarykleur gebruikt. Een ruwe
+pixelratio zou daarom een onjuiste kwaliteitsclaim zijn. De vaste canvassen,
+geometrie en responsive beslissingen zijn met screenshots en gerichte
+visuele tests op 1920×1080 en 1080×1920 gecontroleerd.
 
 ## Migratie-audit
 
