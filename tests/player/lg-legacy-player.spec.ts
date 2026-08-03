@@ -129,6 +129,81 @@ async function mockLegacyApis(
   });
 }
 
+async function mockEditorialArenaLegacyApis(page: Page) {
+  await page.route("**/api/player/installation", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        bound: true,
+        installationCredential,
+        ok: true
+      })
+    });
+  });
+  await page.route(`**${legacyImagePath}`, async (route) => {
+    await route.fulfill({
+      contentType: "image/svg+xml",
+      body: legacyImageSvg
+    });
+  });
+  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+    const envelope = legacyEnvelope({
+      bytes: legacyImageBytes,
+      checksumSha256: legacyImageChecksum,
+      id: "editorial-news",
+      kind: "image",
+      mimeType: "image/svg+xml",
+      title: "Editorial Arena nieuws",
+      url: legacyImagePath
+    });
+    Object.assign(envelope.manifest.items[0]!, {
+      dynamicTemplate: {
+        data: {
+          data: {
+            articles: [{
+              author: "VeyoCast redactie",
+              intro: "De volledige HTML/CSS-renderketen werkt ook op de legacy Player.",
+              publishedAt: "2026-08-03T18:00:00.000Z",
+              title: "Editorial Arena staat zichtbaar op LG"
+            }],
+            generatedAt: "2026-08-03T18:00:00.000Z",
+            secondsPerSlide: 5,
+            sourceName: "VeyoCast"
+          },
+          type: "news"
+        },
+        orientation: "landscape",
+        schemaVersion: 1,
+        slideType: "news",
+        snapshotHash: "b".repeat(64),
+        snapshotId: "11111111-1111-4111-8111-111111111111",
+        templateSlug: "editorial-arena-nieuws-dark-landscape",
+        templateVersionId: "22222222-2222-4222-8222-222222222222"
+      }
+    });
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(envelope)
+    });
+  });
+  await page.route("**/api/player/heartbeat", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ automation: null, ok: true })
+    });
+  });
+  await page.route("**/api/player/commands", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        commands: [],
+        ok: true,
+        serverTime: new Date().toISOString()
+      })
+    });
+  });
+}
+
 test("LG Legacy Player gebruikt een statische shell en lokale afbeelding", async ({
   page
 }) => {
@@ -196,6 +271,58 @@ test("LG Legacy Player gebruikt een statische shell en lokale afbeelding", async
     requestedUrls.filter((url) => url.endsWith(legacyImagePath))
   ).toHaveLength(1);
   expect(requestedUrls.some((url) => url.includes("/_next/"))).toBe(false);
+});
+
+test("LG webOS wordt zonder Next.js-chunks naar zichtbare Editorial Arena HTML/CSS geleid", async ({
+  browser
+}) => {
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36"
+  });
+  const page = await context.newPage();
+  const requestedUrls: string[] = [];
+  page.on("request", (request) => requestedUrls.push(request.url()));
+  await mockEditorialArenaLegacyApis(page);
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg`);
+
+  await expect(page).toHaveURL(/\/lg\/legacy$/);
+  await expect(page.locator(".dynamic-template.editorial-arena")).toBeVisible();
+  await expect(page.locator(".editorial-news")).toBeVisible();
+  await expect(page.getByRole("heading", {
+    name: "Editorial Arena staat zichtbaar op LG"
+  })).toBeVisible();
+  await expect(page.locator("#status")).toBeHidden();
+  await expect(page.locator("#watermark")).toHaveClass("visible");
+  expect(requestedUrls.some((url) => url.includes("/_next/"))).toBe(false);
+  const diagnostics = await page.evaluate(() =>
+    localStorage.getItem("veyocast.player.lgLegacyDiagnostics.v1")
+  );
+  expect(diagnostics).toContain("LEGACY_TEMPLATE_READY");
+  expect(diagnostics).not.toContain("LEGACY_CLIENT_EXCEPTION");
+  if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
+    await page.waitForTimeout(1_400);
+    await page.screenshot({
+      path: "docs/screenshots/s91-editorial-arena-lg-legacy.png"
+    });
+  }
+
+  await context.close();
 });
 
 test("LG Legacy Player downloadt en speelt video vanuit één lokale Blob", async ({
