@@ -22,6 +22,25 @@ export const dynamicSlideTypes = [
   "news",
   ...sportDynamicSlideTypes
 ] as const;
+
+/**
+ * The only Editorial Arena types backed by a complete, tested data flow in
+ * the current repository. Control and Player share this capability gate.
+ */
+export const editorialArenaActiveSlideTypes = [
+  "menu",
+  "news",
+  "sport_activities",
+  "sport_cancellations",
+  "sport_dressing_rooms",
+  "sport_next_match",
+  "sport_officials",
+  "sport_program",
+  "sport_results",
+  "sport_standing"
+] as const satisfies readonly (typeof dynamicSlideTypes)[number][];
+
+export const editorialArenaThemeId = "editorial-arena" as const;
 export const dynamicSlideOrientations = ["landscape", "portrait"] as const;
 export const dynamicDataSourceKinds = [
   "manual_products",

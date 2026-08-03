@@ -31,7 +31,7 @@ describe("trusted dynamic template view", () => {
         type: "menu"
       },
       slideType: "menu",
-      templateSlug: "menu-clubhouse-dark-landscape"
+      templateSlug: "editorial-arena-menubord-dark-landscape"
     });
 
     expect(view?.theme).toBe("dark");
@@ -50,7 +50,7 @@ describe("trusted dynamic template view", () => {
         type: "menu"
       },
       slideType: "menu",
-      templateSlug: "menu-clubhouse-dark-landscape"
+      templateSlug: "editorial-arena-menubord-dark-landscape"
     })).toBe(15_000);
   });
 
@@ -68,7 +68,7 @@ describe("trusted dynamic template view", () => {
         type: "news"
       },
       slideType: "news",
-      templateSlug: "news-newsroom-dark-landscape"
+      templateSlug: "editorial-arena-nieuws-dark-landscape"
     });
 
     expect(view?.pages).toHaveLength(2);
@@ -117,7 +117,7 @@ describe("trusted dynamic template view", () => {
       },
       orientation: "portrait",
       slideType: "news",
-      templateSlug: "news-newsroom-dark-portrait"
+      templateSlug: "editorial-arena-nieuws-dark-portrait"
     } as const;
     const view = createDynamicTemplateView(payload);
 
@@ -156,7 +156,7 @@ describe("trusted dynamic template view", () => {
         type: "sport_next_match"
       },
       slideType: "sport_next_match",
-      templateSlug: "sportlink-next-match-match-centre-light-landscape"
+      templateSlug: "editorial-arena-volgende-wedstrijd-light-landscape"
     });
 
     expect(view?.pages[0]).toMatchObject({
@@ -195,7 +195,7 @@ describe("trusted dynamic template view", () => {
         type: "sport_standing"
       },
       slideType: "sport_standing",
-      templateSlug: "sportlink-standing-club-edition-dark-landscape"
+      templateSlug: "editorial-arena-competitiestand-dark-landscape"
     });
 
     expect(view).toMatchObject({
@@ -245,7 +245,7 @@ describe("trusted dynamic template view", () => {
       },
       orientation: "portrait",
       slideType: "sport_standing",
-      templateSlug: "sportlink-standing-club-edition-dark-portrait"
+      templateSlug: "editorial-arena-competitiestand-dark-portrait"
     });
 
     expect(view?.pages).toHaveLength(2);
@@ -267,7 +267,21 @@ describe("trusted dynamic template view", () => {
       data: {},
       injectedScript: "alert(1)",
       slideType: "news",
-      templateSlug: "news-newsroom-dark-landscape"
+      templateSlug: "editorial-arena-nieuws-dark-landscape"
+    })).toBeNull();
+  });
+
+  it("activeert geen type zonder complete databron", () => {
+    expect(createDynamicTemplateView({
+      ...base,
+      data: {
+        sport: {
+          items: [{ id: "person-1", primary: "Voorbeeldspeler" }]
+        },
+        type: "sport_team"
+      },
+      slideType: "sport_team",
+      templateSlug: "editorial-arena-teamvoorstelling-dark-landscape"
     })).toBeNull();
   });
 });

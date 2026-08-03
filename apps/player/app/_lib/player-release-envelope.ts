@@ -290,9 +290,29 @@ async function loadDynamicTemplatePayloads(
 
 export function collectDynamicSnapshotMediaAssetIds(snapshot: unknown) {
   if (!isRecord(snapshot)) return [];
-  const news = isRecord(snapshot.news) ? snapshot.news : null;
-  if (!news) return [];
   const ids = new Set<string>();
+  const brand = isRecord(snapshot.brand) ? snapshot.brand : null;
+  if (
+    typeof brand?.logoMediaAssetId === "string" &&
+    uuidPattern.test(brand.logoMediaAssetId)
+  ) {
+    ids.add(brand.logoMediaAssetId);
+  }
+  const menu = isRecord(snapshot.menu) ? snapshot.menu : null;
+  if (Array.isArray(menu?.products)) {
+    for (const value of menu.products.slice(0, 40)) {
+      const product = isRecord(value) ? value : null;
+      if (
+        product &&
+        typeof product.imageMediaAssetId === "string" &&
+        uuidPattern.test(product.imageMediaAssetId)
+      ) {
+        ids.add(product.imageMediaAssetId);
+      }
+    }
+  }
+  const news = isRecord(snapshot.news) ? snapshot.news : null;
+  if (!news) return [...ids];
   if (
     typeof news.providerLogoMediaAssetId === "string" &&
     uuidPattern.test(news.providerLogoMediaAssetId)
