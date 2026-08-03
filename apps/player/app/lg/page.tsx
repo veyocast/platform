@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { LgSignageBridge } from "../_components/lg-signage-bridge";
 import { PlayerRuntime } from "../_components/player-runtime";
@@ -16,7 +18,13 @@ export const metadata: Metadata = {
   title: "VeyoCast Player voor LG webOS Signage"
 };
 
-export default function LgSignagePlayerPage() {
+export default async function LgSignagePlayerPage() {
+  const userAgent = (await headers()).get("user-agent") ?? "";
+
+  if (/web0s|webos|netcast|lg browser|\blge\b/i.test(userAgent)) {
+    redirect("/lg/legacy");
+  }
+
   return (
     <>
       <LgSignageBridge />

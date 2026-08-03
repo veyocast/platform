@@ -101,7 +101,7 @@ describe("player cache contract", () => {
       slideType: "news",
       snapshotHash: "f".repeat(64),
       snapshotId: "77777777-7777-4777-8777-777777777777",
-      templateSlug: "news-newsroom-dark-portrait",
+      templateSlug: "editorial-arena-nieuws-dark-portrait",
       templateVersionId: "88888888-8888-4888-8888-888888888888"
     };
 

@@ -25,7 +25,7 @@ describe("dynamic template release payload", () => {
           id: templateId,
           orientation: "landscape",
           slide_type: "news",
-          slug: "news-editorial-dark-landscape"
+          slug: "editorial-arena-nieuws-dark-landscape"
         }
       ],
       versions: [{ id: versionId, template_id: templateId }]
@@ -35,7 +35,7 @@ describe("dynamic template release payload", () => {
       orientation: "landscape",
       slideType: "news",
       snapshotHash: "b".repeat(64),
-      templateSlug: "news-editorial-dark-landscape"
+      templateSlug: "editorial-arena-nieuws-dark-landscape"
     });
   });
 
@@ -56,8 +56,18 @@ describe("dynamic template release payload", () => {
     expect(payloads.size).toBe(0);
   });
 
-  it("verzamelt alleen begrensde UUID-mediareferenties uit een nieuwssnapshot", () => {
+  it("verzamelt alleen begrensde UUID-mediareferenties uit HTML/CSS-snapshots", () => {
     expect(collectDynamicSnapshotMediaAssetIds({
+      brand: {
+        logoMediaAssetId: "55555555-5555-4555-8555-555555555555"
+      },
+      menu: {
+        products: [
+          {
+            imageMediaAssetId: "66666666-6666-4666-8666-666666666666"
+          }
+        ]
+      },
       news: {
         articles: [
           {
@@ -69,6 +79,8 @@ describe("dynamic template release payload", () => {
           "44444444-4444-4444-8444-444444444444"
       }
     })).toEqual([
+      "55555555-5555-4555-8555-555555555555",
+      "66666666-6666-4666-8666-666666666666",
       "44444444-4444-4444-8444-444444444444",
       "33333333-3333-4333-8333-333333333333"
     ]);

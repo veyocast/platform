@@ -1,21 +1,37 @@
-import type { PlayerDynamicTemplatePayload } from "@veyocast/contracts";
+import {
+  editorialArenaActiveSlideTypes,
+  type PlayerDynamicTemplatePayload
+} from "@veyocast/contracts";
 
 export type DynamicTemplateTheme = "dark" | "light";
 
 export type DynamicTemplateListItem = {
+  awayRoom: string;
+  awayScore: number | null;
+  awayTeam: string;
+  competition: string;
+  date: string;
+  homeRoom: string;
+  homeScore: number | null;
+  homeTeam: string;
   id: string;
   meta: string;
+  officials: string[];
   primary: string;
   secondary: string;
   status: string;
+  time: string;
+  venue: string;
 };
 
 export type DynamicTemplateMenuItem = {
   category: string;
   description: string;
   id: string;
+  imageUrl: string;
   name: string;
   price: string;
+  variant: string;
 };
 
 export type DynamicTemplateNewsItem = {
@@ -61,6 +77,8 @@ export type DynamicTemplatePage =
 
 export type DynamicTemplateView = {
   accentColor: string;
+  clubLogoUrl: string;
+  clubName: string;
   emptyState: string;
   orientation: PlayerDynamicTemplatePayload["orientation"];
   pageDurationMs?: number;
@@ -112,11 +130,21 @@ export function createDynamicTemplateView(
 ): DynamicTemplateView | null {
   const payload = parseDynamicTemplatePayload(value);
   if (!payload) return null;
+  if (
+    !editorialArenaActiveSlideTypes.includes(
+      payload.slideType as (typeof editorialArenaActiveSlideTypes)[number]
+    )
+  ) {
+    return null;
+  }
   const data = payload.data;
   const accentColor = safeColor(
     readRecord(data.brand)?.primaryColor,
-    "#f15a24"
+    "#FF5C20"
   );
+  const brand = readRecord(data.brand);
+  const clubLogoUrl = dynamicAssetUrl(brand?.logoMediaAssetId, payload);
+  const clubName = safeText(brand?.clubName, "Vereniging");
   const theme: DynamicTemplateTheme = payload.templateSlug.includes("dark")
     ? "dark"
     : "light";
@@ -124,10 +152,12 @@ export function createDynamicTemplateView(
   if (payload.slideType === "menu") {
     const menu = readRecord(data.menu) ?? readRecord(data.data);
     const items = readArray(menu?.products)
-      .map(toMenuItem)
+      .map((item) => toMenuItem(item, payload))
       .filter((item): item is DynamicTemplateMenuItem => item !== null);
     return {
       accentColor,
+      clubLogoUrl,
+      clubName,
       emptyState: items.length ? "" : "Er zijn nu geen beschikbare producten.",
       orientation: payload.orientation,
       pages: paginate(items, payload.orientation === "portrait" ? 10 : 8).map(
@@ -151,6 +181,8 @@ export function createDynamicTemplateView(
     const secondsPerSlide = safeInteger(news?.secondsPerSlide, 5, 120, 5);
     return {
       accentColor,
+      clubLogoUrl,
+      clubName,
       emptyState: articles.length ? "" : "Er zijn nu geen nieuwsberichten.",
       orientation: payload.orientation,
       pageDurationMs: secondsPerSlide * 1_000,
@@ -185,6 +217,8 @@ export function createDynamicTemplateView(
     const [homeTeam, awayTeam] = splitTeams(item?.primary ?? "");
     return {
       accentColor,
+      clubLogoUrl,
+      clubName,
       emptyState,
       orientation: payload.orientation,
       pages: [{ awayTeam, homeTeam, item, kind: "match" }],
@@ -199,17 +233,18 @@ export function createDynamicTemplateView(
   }
 
   if (
-    payload.slideType === "sport_standing" &&
-    payload.templateSlug.includes("standing-club-edition")
+    payload.slideType === "sport_standing"
   ) {
     const standingItems = readArray(sport?.items)
       .map(toStandingItem)
       .filter((item): item is DynamicTemplateStandingItem => item !== null);
     const competition = readRecord(sport?.competition);
     const pool = readRecord(sport?.pool);
-    const perPage = payload.orientation === "portrait" ? 18 : 8;
+    const perPage = payload.orientation === "portrait" ? 18 : 10;
     return {
       accentColor,
+      clubLogoUrl,
+      clubName,
       emptyState,
       orientation: payload.orientation,
       pages: paginate(standingItems, perPage).map((page) => ({
@@ -226,7 +261,7 @@ export function createDynamicTemplateView(
         season: safeText(sport?.season, "")
       },
       templateStyle: "standing-club-edition",
-      theme: "dark",
+      theme,
       title
     };
   }
@@ -234,6 +269,8 @@ export function createDynamicTemplateView(
   const perPage = payload.orientation === "portrait" ? 6 : 8;
   return {
     accentColor,
+    clubLogoUrl,
+    clubName,
     emptyState,
     orientation: payload.orientation,
     pages: paginate(items, perPage).map((page) => ({
@@ -439,7 +476,10 @@ export function dynamicTemplateMinimumPlaybackMs(value: unknown) {
     : 0;
 }
 
-function toMenuItem(value: unknown): DynamicTemplateMenuItem | null {
+function toMenuItem(
+  value: unknown,
+  payload: PlayerDynamicTemplatePayload
+): DynamicTemplateMenuItem | null {
   const item = readRecord(value);
   if (!item) return null;
   const name = safeText(item.name, "");
@@ -448,8 +488,10 @@ function toMenuItem(value: unknown): DynamicTemplateMenuItem | null {
     category: safeText(item.category, ""),
     description: safeText(item.description, ""),
     id: safeText(item.id, name),
+    imageUrl: dynamicAssetUrl(item.imageMediaAssetId, payload),
     name,
-    price: formatPrice(item.priceMinor, safeText(item.currency, "EUR"))
+    price: formatPrice(item.priceMinor, safeText(item.currency, "EUR")),
+    variant: safeText(item.variantLine, "")
   };
 }
 
@@ -534,12 +576,36 @@ function toListItem(value: unknown): DynamicTemplateListItem | null {
   const primary = safeText(item.primary, "");
   if (!primary) return null;
   return {
+    awayRoom: safeText(item.awayRoom, ""),
+    awayScore: safeNullableScore(item.awayScore),
+    awayTeam: safeText(item.awayTeam, ""),
+    competition: safeText(item.competition, ""),
+    date: safeText(item.date, ""),
+    homeRoom: safeText(item.homeRoom, ""),
+    homeScore: safeNullableScore(item.homeScore),
+    homeTeam: safeText(item.homeTeam, ""),
     id: safeText(item.id, primary),
     meta: safeText(item.meta, ""),
+    officials: readArray(item.officials)
+      .flatMap((value) => {
+        const official = readRecord(value);
+        const name = safeText(official?.displayName, "");
+        return name ? [name] : [];
+      })
+      .slice(0, 8),
     primary,
     secondary: safeText(item.secondary, ""),
-    status: safeText(item.status, "")
+    status: safeText(item.status, ""),
+    time: safeText(item.time, ""),
+    venue: safeText(item.venue, "")
   };
+}
+
+function safeNullableScore(value: unknown) {
+  const numeric = Number(value);
+  return Number.isInteger(numeric) && numeric >= 0 && numeric <= 999
+    ? numeric
+    : null;
 }
 
 function paginate<T>(items: T[], perPage: number): T[][] {

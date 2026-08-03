@@ -945,9 +945,9 @@ function maxItemsSummary(slideType: string, maxItems: string) {
 }
 
 function templateThemeLabel(template: SlideTemplateOption) {
-  if (template.slug.includes("dark")) return "Donker";
-  if (template.slug.includes("light")) return "Licht";
-  return "Atelier licht";
+  return template.slug.includes("-dark-")
+    ? "Editorial Arena · donker"
+    : "Editorial Arena · licht";
 }
 
 function templateSummary(template: SlideTemplateOption) {

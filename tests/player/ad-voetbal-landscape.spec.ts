@@ -21,22 +21,22 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
   await expect(slide).toHaveAttribute("data-slide-type", "news");
   await expect(slide).toHaveAttribute("data-orientation", "landscape");
   expect(await slide.evaluate((element) =>
-    getComputedStyle(element).getPropertyValue("--template-accent").trim()
+    getComputedStyle(element).getPropertyValue("--arena-accent").trim()
   )).toBe("#315cff");
 
   const headline = page.getByRole("heading", {
     name: "De eerste dynamische voetbalheadline staat live"
   });
   await expect(headline).toBeVisible();
-  expect((await headline.boundingBox())?.x).toBeLessThan(1920 * 0.2);
+  expect((await headline.boundingBox())?.x).toBeGreaterThan(1920 * 0.45);
   const motion = await slide.evaluate((root) => {
-    const heroImage = root.querySelector<HTMLImageElement>('img[alt=""]');
     const elements = [
-      heroImage?.parentElement,
-      root.querySelector("article h1"),
-      root.querySelector("article > p"),
+      root.querySelector("main > div > section"),
+      root.querySelector("main article h2"),
+      root.querySelector("main article > p"),
+      root.querySelector("main article > span"),
+      root.querySelector("main article > div"),
       root.querySelector("header"),
-      root.querySelector("article + div"),
       root.querySelector("footer")
     ];
     return elements.map((element) => {
@@ -51,19 +51,17 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
   });
   expect(motion.map(({ delayMs }) => Math.round(delayMs))).toEqual([
     0,
-    380,
-    820,
-    1120,
-    1190,
-    1280
+    260,
+    520,
+    760,
+    760,
+    900,
+    1020
   ]);
   expect(motion.every(({ name }) => name !== "none")).toBe(true);
 
   const sectionTitle = page.getByText("Voetbalnieuws", { exact: true });
-  await expect(sectionTitle).toHaveCSS("color", "rgb(250, 250, 247)");
-  expect(await sectionTitle.evaluate(
-    (element) => getComputedStyle(element).textShadow
-  )).not.toBe("none");
+  await expect(sectionTitle).toHaveCSS("color", "rgb(243, 240, 233)");
 
   const supplierLogo = page.getByRole("img", { name: "AD:voetbal" });
   await expect(supplierLogo).toBeVisible();
@@ -74,6 +72,12 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
   );
   await expect(slide.locator("canvas")).toHaveCount(0);
   expect(await slide.locator("*").count()).toBeGreaterThan(20);
+  if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.screenshot({
+      path: "docs/screenshots/s91-editorial-arena-news-landscape.png"
+    });
+  }
   await expect(slide.locator('[data-page-index="1"]')).toBeVisible({
     timeout: 7_000
   });

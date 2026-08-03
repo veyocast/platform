@@ -12,6 +12,7 @@ const probeConfiguration = {
     "veyocast.player.instanceId",
     "castivo.player.instanceId"
   ],
+  legacyDiagnosticsKey: "veyocast.player.lgLegacyDiagnostics.v1",
   probeDatabaseName: "veyocast-lg-probe-v1",
   probeResultKey: "veyocast.player.lgProbe.v1",
   probeStorageKey: "veyocast.player.lgProbe.storageCheck",
@@ -100,6 +101,7 @@ export function renderLgProbeHtml() {
           <li class="step" id="step-origin"><div class="mark">WACHT</div><div><h3>VeyoCast-origin</h3><p>De Player-server en een ingebouwde afbeelding.</p></div></li>
           <li class="step" id="step-reference"><div class="mark">WACHT</div><div><h3>VeyoCast-videoreferentie</h3><p>Een kleine H.264 Baseline/AAC-LC-video op dezelfde VeyoCast-origin test de LG-videodecoder.</p></div></li>
           <li class="step" id="step-manifest"><div class="mark">WACHT</div><div><h3>Koppeling en actieve release</h3><p>Alleen lezen; de bestaande schermkoppeling blijft behouden.</p></div></li>
+          <li class="step" id="step-template"><div class="mark">WACHT</div><div><h3>Dynamische HTML/CSS-slide</h3><p>Controleert het Editorial Arena-contract en het laatste lokale renderresultaat van de legacy Player.</p></div></li>
           <li class="step" id="step-direct"><div class="mark">WACHT</div><div><h3>Actief bestand rechtstreeks</h3><p>Test de eerste actieve video, of anders het eerste afspeelbare item, buiten de VeyoCast-cache.</p></div></li>
           <li class="step" id="step-blob"><div class="mark">WACHT</div><div><h3>Actief bestand als Blob</h3><p>Test de huidige geheugenroute zonder serviceworker.</p></div></li>
           <li class="step" id="step-cache"><div class="mark">WACHT</div><div><h3>Bestaande Player-cache</h3><p>Test exact het serviceworker- en byte-rangepad van normale playback.</p></div></li>
@@ -567,14 +569,16 @@ export function renderLgProbeHtml() {
       if (!body || !body.manifest || !body.manifest.items || !body.manifest.items.length) return null;
       var index;
       var firstPlayable = null;
+      var firstVideo = null;
       for (index = 0; index < body.manifest.items.length; index += 1) {
         var item = body.manifest.items[index];
         if (item && item.enabled !== false && item.source && item.source.url) {
           if (!firstPlayable) firstPlayable = item;
-          if (item.kind === "video") return item;
+          if (item.dynamicTemplate) return item;
+          if (!firstVideo && item.kind === "video") firstVideo = item;
         }
       }
-      return firstPlayable;
+      return firstVideo || firstPlayable;
     }
 
     function testManifest(currentRun) {
@@ -607,7 +611,11 @@ export function renderLgProbeHtml() {
         }
         var source = activeItem.source || {};
         var releaseId = body.manifest && body.manifest.releaseId ? "release aanwezig" : "release-id ontbreekt";
-        var detail = "Koppeling geldig; " + releaseId + "; eerste item=" + activeItem.kind + ", MIME=" + safeText(source.mimeType) + ", bytes=" + String(source.bytes || 0) + ".";
+        var template = activeItem.dynamicTemplate;
+        var templateDetail = template
+          ? ", dynamisch=" + safeText(template.slideType) + "/" + safeText(template.templateSlug)
+          : "";
+        var detail = "Koppeling geldig; " + releaseId + "; eerste item=" + activeItem.kind + ", MIME=" + safeText(source.mimeType) + ", bytes=" + String(source.bytes || 0) + templateDetail + ".";
         setStep("manifest", "pass", detail);
         record("manifest", "pass", "MANIFEST_OK", detail);
       }).catch(function (error) {
@@ -615,6 +623,94 @@ export function renderLgProbeHtml() {
         setStep("manifest", "fail", detail);
         record("manifest", "fail", "MANIFEST_FAILED", detail);
       });
+    }
+
+    function readLegacyDiagnostics() {
+      var entries = null;
+      try {
+        entries = JSON.parse(
+          window.localStorage.getItem(CONFIG.legacyDiagnosticsKey) || "null"
+        );
+      } catch (error) {}
+      return Array.isArray(entries) ? entries : [];
+    }
+
+    function testDynamicTemplate() {
+      var supportedTypes = [
+        "menu",
+        "news",
+        "sport_activities",
+        "sport_cancellations",
+        "sport_dressing_rooms",
+        "sport_next_match",
+        "sport_officials",
+        "sport_program",
+        "sport_results",
+        "sport_standing"
+      ];
+      var template = activeItem && activeItem.dynamicTemplate;
+      if (!template) {
+        var missing = "Geen dynamische slide als eerste relevant release-item; HTML/CSS-rendering is overgeslagen.";
+        setStep("template", "warn", missing);
+        record("template", "warn", "NO_DYNAMIC_TEMPLATE", missing);
+        return Promise.resolve();
+      }
+      setStep("template", "running", "Editorial Arena-contract en legacy-renderdiagnose worden gecontroleerd.");
+      if (
+        template.schemaVersion !== 1 ||
+        typeof template.templateSlug !== "string" ||
+        template.templateSlug.indexOf("editorial-arena-") !== 0 ||
+        supportedTypes.indexOf(template.slideType) === -1 ||
+        (template.orientation !== "portrait" && template.orientation !== "landscape") ||
+        !template.data ||
+        typeof template.data !== "object"
+      ) {
+        var invalid = "De actieve dynamische slide voldoet niet aan het ondersteunde Editorial Arena-contract.";
+        setStep("template", "fail", invalid);
+        record("template", "fail", "DYNAMIC_TEMPLATE_INVALID", invalid);
+        return Promise.resolve();
+      }
+      var diagnostics = readLegacyDiagnostics();
+      var lastTemplateEvent = null;
+      var index;
+      for (index = diagnostics.length - 1; index >= 0; index -= 1) {
+        if (
+          diagnostics[index] &&
+          (
+            diagnostics[index].code === "LEGACY_TEMPLATE_READY" ||
+            diagnostics[index].code === "LEGACY_TEMPLATE_ERROR" ||
+            diagnostics[index].code === "LEGACY_TEMPLATE_CACHE_MISSING" ||
+            diagnostics[index].code === "LEGACY_CLIENT_EXCEPTION"
+          )
+        ) {
+          lastTemplateEvent = diagnostics[index];
+          break;
+        }
+      }
+      if (
+        lastTemplateEvent &&
+        lastTemplateEvent.code !== "LEGACY_TEMPLATE_READY"
+      ) {
+        var failed = "Contract geldig, maar de laatste legacy-render meldde " +
+          safeText(lastTemplateEvent.code) + ": " +
+          safeText(lastTemplateEvent.detail) + ".";
+        setStep("template", "fail", failed);
+        record("template", "fail", "DYNAMIC_TEMPLATE_RUNTIME_FAILED", failed);
+        return Promise.resolve();
+      }
+      var ready = "HTML/CSS-contract geldig: " + safeText(template.slideType) +
+        ", " + safeText(template.orientation) + ", " +
+        safeText(template.templateSlug) + ".";
+      if (lastTemplateEvent) {
+        ready += " De legacy Player heeft lokaal LEGACY_TEMPLATE_READY vastgelegd.";
+        setStep("template", "pass", ready);
+        record("template", "pass", "DYNAMIC_TEMPLATE_READY", ready);
+      } else {
+        ready += " Er is nog geen lokale renderdiagnose; open eerst de Player en voer de probe opnieuw uit.";
+        setStep("template", "warn", ready);
+        record("template", "warn", "DYNAMIC_TEMPLATE_NOT_YET_RENDERED", ready);
+      }
+      return Promise.resolve();
     }
 
     function markNoActiveItem(step) {
@@ -810,6 +906,7 @@ export function renderLgProbeHtml() {
       var blob = resultFor("blob");
       var cache = resultFor("cache");
       var manifestResult = resultFor("manifest");
+      var templateResult = resultFor("template");
       var activeVideo = activeItem && activeItem.kind === "video";
       if (manifestResult && manifestResult.code === "PROBE_UNPAIRED") {
         return { code: "LG-UNPAIRED", summary: "De browser werkt, maar er is geen geldige lokale koppeling om content te testen." };
@@ -819,6 +916,9 @@ export function renderLgProbeHtml() {
       }
       if (reference && reference.status === "fail") {
         return { code: "LG-VIDEO-REFERENCE", summary: "De ingebouwde same-origin H.264 Baseline/AAC-LC-video startte niet. De afbeeldingsuitslagen blijven geldig, maar video is niet gereed verklaard." };
+      }
+      if (templateResult && templateResult.status === "fail") {
+        return { code: "LG-HTML-CSS-RENDER", summary: "Het Editorial Arena-contract of de laatste legacy-render faalde. Open de technische details voor de precieze rendercode." };
       }
       if (direct && direct.code === "ACTIVE_DIRECT_MEDIA_ONLY") {
         return { code: "LG-DIRECT-FETCH", summary: "Het actieve bestand rendert rechtstreeks, maar ranged download faalt. Dit wijst op CORS, signed URL of het downloadpad vóór de Player-cache." };
@@ -838,6 +938,9 @@ export function renderLgProbeHtml() {
           : { code: "LG-IMAGE-DIRECT-READY", summary: "De actieve VeyoCast-afbeelding rendert rechtstreeks. De cacheproef kon nog niet beslissend worden uitgevoerd." };
       }
       if (direct && direct.status === "pass" && cache && cache.status === "pass") {
+        if (templateResult && templateResult.code === "DYNAMIC_TEMPLATE_READY") {
+          return { code: "LG-HTML-CSS-READY", summary: "De dynamische Editorial Arena-slide, bronmedia en lokale cache zijn op deze LG gereed." };
+        }
         return activeVideo
           ? { code: "LG-PLAYBACK-READY", summary: "De actieve VeyoCast-video speelt zowel rechtstreeks als via het bestaande Player-cachepad." }
           : { code: "LG-IMAGE-PLAYBACK-READY", summary: "De actieve VeyoCast-afbeelding werkt rechtstreeks, als Blob en via het bestaande Player-cachepad. De same-origin videoreferentie werkt ook; publiceer een testvideo voor een volledige videoketenproef." };
@@ -885,7 +988,7 @@ export function renderLgProbeHtml() {
           occurredAt: nowIso()
         },
         networkState: navigator.onLine ? "online" : "offline",
-        runtimeState: diagnosis.code === "LG-PLAYBACK-READY" || diagnosis.code === "LG-IMAGE-PLAYBACK-READY" ? "PLAYING" : "ERROR_RECOVERABLE",
+        runtimeState: diagnosis.code === "LG-PLAYBACK-READY" || diagnosis.code === "LG-IMAGE-PLAYBACK-READY" || diagnosis.code === "LG-HTML-CSS-READY" ? "PLAYING" : "ERROR_RECOVERABLE",
         syncPhase: "lg_probe"
       };
       return xhr("POST", "/api/player/heartbeat", {
@@ -933,13 +1036,14 @@ export function renderLgProbeHtml() {
       byId("technical-log").textContent = "Probe gestart…";
       byId("result-code").textContent = "WORDT GEMAAKT";
       byId("result-summary").textContent = "De controles zijn nog bezig.";
-      ["platform", "origin", "reference", "manifest", "direct", "blob", "cache"].forEach(function (id) {
+      ["platform", "origin", "reference", "manifest", "template", "direct", "blob", "cache"].forEach(function (id) {
         setStep(id, "waiting", null);
       });
       testPlatform(currentRun)
         .then(function () { return testOrigin(currentRun); })
         .then(function () { return testReferenceVideo(currentRun); })
         .then(function () { return testManifest(currentRun); })
+        .then(function () { return testDynamicTemplate(currentRun); })
         .then(function () { return testDirect(currentRun); })
         .then(function () { return testBlob(currentRun); })
         .then(function () { return testCache(currentRun); })

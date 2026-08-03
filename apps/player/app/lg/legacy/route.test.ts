@@ -57,6 +57,10 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("renderSportTemplate");
     expect(html).toContain("renderStandingClubTemplate");
     expect(html).toContain("standing-club-edition");
+    expect(html).toContain("editorial-arena-");
+    expect(html).toContain("editorialArenaSlideTypes");
+    expect(html).toContain("editorial-news");
+    expect(html).toContain("@keyframes editorial-photo-in");
     expect(html).toContain("LEGACY_TEMPLATE_READY");
     expect(html).toContain("element.textContent = text");
     expect(html).not.toContain("eval(");
@@ -77,6 +81,8 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("veyocast-player-cache-v1");
     expect(html).toContain("veyocast-player-assets-v1");
     expect(html).toContain("LEGACY_DEVICE_CREDENTIAL_RECOVERED");
+    expect(html).toContain("VEYOCAST_LG_PLAYER_READY");
+    expect(html).toContain('path: "/lg"');
     expect(html).toContain("syncPhase: runtime.syncPhase");
     expect(html).not.toContain('syncPhase: "lg-legacy"');
     expect(html).not.toContain('syncPhase: "lg-legacy-pairing"');

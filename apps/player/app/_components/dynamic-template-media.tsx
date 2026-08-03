@@ -4,7 +4,8 @@ import {
   useEffect,
   useRef,
   useState,
-  type CSSProperties
+  type CSSProperties,
+  type ReactNode
 } from "react";
 
 import {
@@ -18,9 +19,9 @@ import {
 import type { PlayerManifestItem } from "../_lib/player-manifest";
 import styles from "./dynamic-template-media.module.css";
 
-type TemplateStyle = CSSProperties & {
-  "--template-accent": string;
-  "--template-page-duration": string;
+type ArenaStyle = CSSProperties & {
+  "--arena-accent": string;
+  "--arena-page-duration": string;
 };
 
 export function DynamicTemplateMedia({
@@ -70,352 +71,96 @@ export function DynamicTemplateMedia({
     pageCount,
     view.pageDurationMs
   );
-  const style: TemplateStyle = {
-    "--template-accent": view.accentColor,
-    "--template-page-duration": `${pageDurationMs}ms`
+  const style: ArenaStyle = {
+    "--arena-accent": view.accentColor,
+    "--arena-page-duration": `${pageDurationMs}ms`
   };
-  const isEditorialNews =
-    view.slideType === "news" &&
-    (view.orientation === "portrait" || view.theme === "dark");
-  const editorialNewsClass = view.orientation === "portrait"
-    ? styles.rssPortrait
-    : styles.rssLandscape;
-  const isStandingClubEdition =
-    view.templateStyle === "standing-club-edition";
 
   return (
     <section
       aria-label={item.accessibilityName ?? item.title}
-      className={`${styles.root} ${
-        isEditorialNews ? editorialNewsClass : ""
-      } ${isStandingClubEdition ? styles.standingClubEdition : ""}`}
+      className={styles.arenaRoot}
       data-orientation={view.orientation}
+      data-passive={passive || undefined}
       data-slide-type={view.slideType}
       data-theme={view.theme}
       style={style}
     >
-      {isStandingClubEdition ? (
-        <StandingClubEdition
-          page={page}
-          pageCount={pageCount}
-          pageIndex={pageIndex}
-          view={view}
-        />
-      ) : isEditorialNews ? (
-        <EditorialNewsPage
+      <ArenaHeader view={view} />
+      <main
+        className={styles.arenaContent}
+        data-page-count={pageCount}
+        data-page-index={pageIndex}
+      >
+        <ArenaPage
           key={`${view.snapshotId}-${pageIndex}`}
           page={page}
-          pageCount={pageCount}
-          pageIndex={pageIndex}
           view={view}
         />
-      ) : (
-        <>
-          <div aria-hidden="true" className={styles.atmosphere}>
-            <span />
-            <span />
-            <span />
-          </div>
-          <header className={styles.header}>
-            <p>{view.sourceLabel}</p>
-            <h1>{view.title}</h1>
-          </header>
-          <TemplatePage page={page} view={view} />
-          {view.emptyState ? (
-            <div className={styles.emptyState}>{view.emptyState}</div>
-          ) : null}
-          <footer className={styles.footer}>
-            {pageCount > 1 ? (
-              <span>
-                Pagina {pageIndex + 1} van {pageCount}
-              </span>
-            ) : (
-              <span>Live clubinformatie</span>
-            )}
-          </footer>
-        </>
-      )}
+        {view.emptyState && pageIsEmpty(page) ? (
+          <div className={styles.arenaEmpty}>{view.emptyState}</div>
+        ) : null}
+      </main>
+      <ArenaFooter
+        pageCount={pageCount}
+        pageIndex={pageIndex}
+        view={view}
+      />
     </section>
   );
 }
 
-function StandingClubEdition({
-  page,
-  pageCount,
-  pageIndex,
-  view
-}: {
-  page: DynamicTemplatePage;
-  pageCount: number;
-  pageIndex: number;
-  view: DynamicTemplateView;
-}) {
-  const items = page.kind === "standing" ? page.items : [];
-  const context = view.standingContext;
-  const round = items.reduce(
-    (maximum, item) => Math.max(maximum, item.played ?? 0),
-    0
-  );
-
+function ArenaHeader({ view }: { view: DynamicTemplateView }) {
+  const initials = initialsFor(view.clubName);
   return (
-    <div className={styles.standingPage}>
-      <div aria-hidden="true" className={styles.standingAmbient}>
-        <span />
-        <span />
-      </div>
-      <header className={styles.standingHeader}>
-        <div aria-hidden="true" className={styles.standingClubMark}>
-          VC
-        </div>
-        <div className={styles.standingTitle}>
-          <span>Competitie</span>
-          <h1>{view.title}</h1>
-          <p>{round ? `Na speelronde ${round}` : "Actuele stand"}</p>
-        </div>
-        <div className={styles.standingCompetition}>
-          <strong>{context?.competition || "Competitie"}</strong>
-          <span>
-            {[context?.pool, context?.season].filter(Boolean).join(" · ")}
-          </span>
-        </div>
-      </header>
-
-      <section
-        aria-label={`${view.title}, pagina ${pageIndex + 1}`}
-        className={styles.standingCard}
-      >
-        <div aria-hidden="true" className={styles.standingColumns}>
-          <span>#</span>
-          <span>Team</span>
-          <span>G</span>
-          <span>W</span>
-          <span>GL</span>
-          <span>V</span>
-          <span>PT</span>
-          <span>+/−</span>
-          <span>Vorm</span>
-        </div>
-        <div className={styles.standingRows}>
-          {items.length ? items.map((item) => (
-            <StandingRow item={item} key={item.id} />
-          )) : (
-            <div className={styles.standingEmpty}>{view.emptyState}</div>
-          )}
-        </div>
-      </section>
-
-      <footer className={styles.standingFooter}>
-        <span>
-          <i aria-hidden="true" />
-          {view.sourceLabel}
-        </span>
-        <span>
-          {pageCount > 1
-            ? `${pageIndex + 1} / ${pageCount}`
-            : "Actuele clubinformatie"}
-        </span>
-      </footer>
-    </div>
-  );
-}
-
-function StandingRow({ item }: { item: DynamicTemplateStandingItem }) {
-  const initials = item.teamName
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("");
-  const difference = item.goalDifference === null
-    ? "–"
-    : item.goalDifference > 0
-      ? `+${item.goalDifference}`
-      : String(item.goalDifference);
-
-  return (
-    <article className={styles.standingRow} data-selected={item.selected}>
-      <strong className={styles.standingRank}>{item.position ?? "–"}</strong>
-      <span className={styles.standingTeam}>
-        <i aria-hidden="true">{initials || "VC"}</i>
-        <b>{item.teamName}</b>
-      </span>
-      <span>{item.played ?? "–"}</span>
-      <span>{item.won ?? "–"}</span>
-      <span>{item.drawn ?? "–"}</span>
-      <span>{item.lost ?? "–"}</span>
-      <strong className={styles.standingPoints}>{item.points ?? "–"}</strong>
-      <span>{difference}</span>
-      <span
-        aria-label={`Vorm ${item.teamName}: ${
-          item.form.length
-            ? item.form.map(standingFormLabel).join(", ")
-            : "niet beschikbaar"
-        }`}
-        className={styles.standingForm}
-      >
-        {item.form.length ? item.form.map((result, index) => (
-          <i aria-hidden="true" data-result={result} key={`${result}-${index}`}>
-            {result === "win" ? "W" : result === "draw" ? "G" : "V"}
-          </i>
-        )) : <b aria-hidden="true">–</b>}
-      </span>
-    </article>
-  );
-}
-
-function standingFormLabel(result: DynamicTemplateStandingItem["form"][number]) {
-  if (result === "win") return "winst";
-  if (result === "draw") return "gelijk";
-  return "verlies";
-}
-
-function EditorialNewsPage({
-  page,
-  pageCount,
-  pageIndex,
-  view
-}: {
-  page: DynamicTemplatePage;
-  pageCount: number;
-  pageIndex: number;
-  view: DynamicTemplateView;
-}) {
-  const article = page.kind === "news" ? page.item : null;
-  const providerInitial = view.sourceLabel.charAt(0).toUpperCase() || "N";
-
-  return (
-    <div
-      className={styles.rssPage}
-      data-page-index={pageIndex}
-      key={article?.id ?? `empty-${pageIndex}`}
-    >
-      <div aria-hidden="true" className={styles.rssHero}>
-        <span className={styles.rssHeroInitial}>{providerInitial}</span>
-        {article?.heroUrl ? (
-          // The Player must render verified blob/cache URLs without Next's
-          // online image optimizer so offline playback remains self-contained.
+    <header className={styles.arenaMasthead}>
+      <div aria-hidden="true" className={styles.arenaCrest}>
+        {view.clubLogoUrl ? (
+          // Verified release-cache/blob URL; never use the online optimizer.
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            alt=""
-            className={styles.rssHeroImage}
-            onError={(event) => {
-              event.currentTarget.hidden = true;
-            }}
-            src={article.heroUrl}
-          />
-        ) : null}
-        <span className={styles.rssHeroGrade} />
-      </div>
-
-      <header className={styles.rssProviderHeader}>
-        {view.providerLogoUrl ? (
-          // Supplier logos use the same checksum-verified local cache path.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            alt={view.sourceLabel}
-            className={styles.rssProviderLogo}
-            onError={(event) => {
-              event.currentTarget.hidden = true;
-              event.currentTarget.nextElementSibling?.removeAttribute("hidden");
-            }}
-            src={view.providerLogoUrl}
-          />
-        ) : null}
-        <span
-          className={styles.rssProviderWordmark}
-          hidden={Boolean(view.providerLogoUrl)}
-        >
-          <RssIcon />
-          <strong>{view.sourceLabel}</strong>
-        </span>
-        <p className={styles.rssSectionTitle}>{view.title}</p>
-      </header>
-
-      {article ? (
-        <>
-          <article className={styles.rssStory}>
-            <h1 data-compact={article.title.length > 88}>
-              {article.title}
-            </h1>
-            <span aria-hidden="true" className={styles.rssTitleAccent} />
-            {article.intro ? <p>{article.intro}</p> : null}
-          </article>
-          <div className={styles.rssMetadata}>
-            {article.date ? (
-              <NewsMeta icon="calendar" label="Datum" value={article.date} />
-            ) : null}
-            <NewsMeta
-              icon="source"
-              label="Door"
-              value={article.author || article.source}
-            />
-          </div>
-        </>
-      ) : (
-        <div className={styles.rssEmpty}>{view.emptyState}</div>
-      )}
-
-      <footer className={styles.rssFooter}>
-        <span
-          aria-hidden="true"
-          className={styles.rssProgress}
-          key={`${article?.id ?? "empty"}-${pageIndex}`}
-        >
-          <span />
-        </span>
-        <span className={styles.rssCounter}>
-          <strong>{pageIndex + 1}</strong>
-          <span>/</span>
-          <span>{Math.max(pageCount, 1)}</span>
-        </span>
-      </footer>
-    </div>
-  );
-}
-
-function NewsMeta({
-  icon,
-  label,
-  value
-}: {
-  icon: "calendar" | "source";
-  label: string;
-  value: string;
-}) {
-  return (
-    <span className={styles.rssMetaItem}>
-      <span aria-hidden="true" className={styles.rssMetaIcon}>
-        {icon === "calendar" ? (
-          <svg viewBox="0 0 32 32">
-            <rect height="19" rx="4" width="21" x="5.5" y="7.5" />
-            <path d="M10 4.5v6M22 4.5v6M6 13h20" />
-          </svg>
+          <img alt="" src={view.clubLogoUrl} />
         ) : (
-          <svg viewBox="0 0 32 32">
-            <path d="m12.8 19.2 6.4-6.4M10.2 22.4l-1.7 1.7A5.3 5.3 0 0 1 1 16.6l5.3-5.3a5.3 5.3 0 0 1 7.5 0M21.8 9.6l1.7-1.7a5.3 5.3 0 1 1 7.5 7.5l-5.3 5.3a5.3 5.3 0 0 1-7.5 0" />
-          </svg>
+          <>
+            <span>{initials}</span>
+            <i />
+          </>
         )}
-      </span>
-      <span>
-        <small>{label}</small>
-        <strong>{value}</strong>
-      </span>
-    </span>
+      </div>
+      <div className={styles.arenaHeading}>
+        <p>Editorial Arena</p>
+        <h1>{view.title}</h1>
+        <span>{arenaSubtitle(view.slideType)}</span>
+      </div>
+      <div className={styles.arenaContext}>
+        <strong>{view.sourceLabel}</strong>
+        <span><i aria-hidden="true" /> VeyoCast</span>
+      </div>
+    </header>
   );
 }
 
-function RssIcon() {
+function ArenaFooter({
+  pageCount,
+  pageIndex,
+  view
+}: {
+  pageCount: number;
+  pageIndex: number;
+  view: DynamicTemplateView;
+}) {
   return (
-    <span aria-hidden="true" className={styles.rssGlyph}>
-      <svg viewBox="0 0 48 48">
-        <circle cx="11" cy="37" r="4.5" />
-        <path d="M7 21.5c10.8 0 19.5 8.7 19.5 19.5M7 8c18.2 0 33 14.8 33 33" />
-      </svg>
-    </span>
+    <footer className={styles.arenaFooter}>
+      <span><i aria-hidden="true" /> {view.sourceLabel}</span>
+      <span>
+        {pageCount > 1
+          ? `${pageIndex + 1} / ${pageCount}`
+          : "Actuele clubinformatie"}
+      </span>
+    </footer>
   );
 }
 
-function TemplatePage({
+function ArenaPage({
   page,
   view
 }: {
@@ -424,94 +169,379 @@ function TemplatePage({
 }) {
   if (page.kind === "menu") {
     return (
-      <div className={styles.menuGrid}>
-        {page.items.map((item) => (
-          <article className={styles.menuItem} key={item.id}>
-            <div>
-              {item.category ? <p>{item.category}</p> : null}
-              <h2>{item.name}</h2>
-              {item.description ? <span>{item.description}</span> : null}
-            </div>
-            <strong>{item.price}</strong>
-          </article>
-        ))}
+      <div className={styles.arenaMenuLayout}>
+        <section className={`${styles.arenaPanel} ${styles.arenaMenuHero}`}>
+          <PanelTitle label="Kantine" title="Vandaag op het menu" />
+          <h2>Lekker voor, tijdens &amp; <em>na de wedstrijd</em></h2>
+          <p>Vers uit de clubkantine. Prijzen en beschikbaarheid zijn actueel.</p>
+        </section>
+        <section className={styles.arenaMenuItems}>
+          {page.items.map((product) => (
+            <article className={`${styles.arenaPanel} ${styles.arenaMenuCard}`} key={product.id}>
+              <div aria-hidden="true" className={styles.arenaProductImage}>
+                {product.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img alt="" src={product.imageUrl} />
+                ) : <span>{initialsFor(product.name)}</span>}
+              </div>
+              <div>
+                <h3>{product.name}</h3>
+                {product.variant ? <em>{product.variant}</em> : null}
+                {product.description ? <p>{product.description}</p> : null}
+              </div>
+              <strong>{product.price}</strong>
+            </article>
+          ))}
+        </section>
       </div>
     );
   }
 
   if (page.kind === "news") {
-    return page.item ? (
-      <article className={styles.newsArticle}>
-        <p className={styles.newsMeta}>
-          {page.item.source}
-          {page.item.date ? ` · ${page.item.date}` : ""}
-        </p>
-        <h2>{page.item.title}</h2>
-        {page.item.intro ? <p>{page.item.intro}</p> : null}
-      </article>
-    ) : null;
-  }
-
-  if (page.kind === "match") {
+    const article = page.item;
     return (
-      <div className={styles.matchCentre}>
-        <TeamMark name={page.homeTeam} />
-        <div className={styles.matchMeta}>
-          <span>{page.item?.status || "Programma"}</span>
-          <strong>{page.item?.secondary || "Tijd volgt"}</strong>
-          <p>{page.item?.meta || "Locatie volgt"}</p>
-        </div>
-        <TeamMark name={page.awayTeam} />
+      <div className={styles.arenaNewsLayout}>
+        <section className={`${styles.arenaPanel} ${styles.arenaNewsHero}`}>
+          {article?.heroUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img alt="" src={article.heroUrl} />
+          ) : <span aria-hidden="true">{initialsFor(view.sourceLabel)}</span>}
+          <div className={styles.arenaNewsSource}>
+            {view.providerLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img alt={view.sourceLabel} src={view.providerLogoUrl} />
+            ) : <strong>{view.sourceLabel}</strong>}
+          </div>
+        </section>
+        <article className={`${styles.arenaPanel} ${styles.arenaNewsStory}`}>
+          {article ? (
+            <>
+              <span>Laatste nieuws</span>
+              <h2>{article.title}</h2>
+              {article.intro ? <p>{article.intro}</p> : null}
+              <div className={styles.arenaNewsMeta}>
+                {article.date ? <small><b>Datum</b>{article.date}</small> : null}
+                <small><b>Door</b>{article.author || article.source}</small>
+              </div>
+            </>
+          ) : null}
+        </article>
       </div>
     );
   }
 
-  if (page.kind === "standing") return null;
+  if (page.kind === "standing") {
+    return <ArenaStanding items={page.items} view={view} />;
+  }
+
+  if (page.kind === "match") {
+    return <ArenaNextMatch item={page.item} view={view} />;
+  }
+
+  if (view.slideType === "sport_activities") {
+    return (
+      <div className={styles.arenaAgendaLayout}>
+        <section className={`${styles.arenaPanel} ${styles.arenaListPanel}`}>
+          <PanelTitle label="Binnenkort" title="Clubagenda" />
+          {page.items.map((entry) => (
+            <ArenaRow item={entry} key={entry.id} kind="agenda" />
+          ))}
+        </section>
+        <aside className={`${styles.arenaPanel} ${styles.arenaStatPanel}`}>
+          <span>Op de club</span>
+          <strong>{page.items.length}</strong>
+          <p>activiteiten in deze selectie</p>
+        </aside>
+      </div>
+    );
+  }
+
+  if (view.slideType === "sport_cancellations") {
+    return (
+      <div className={styles.arenaAlertLayout}>
+        <section className={`${styles.arenaPanel} ${styles.arenaListPanel}`}>
+          <PanelTitle label="Wedstrijddag" title="Actuele meldingen" />
+          {page.items.map((entry) => (
+            <ArenaRow item={entry} key={entry.id} kind="cancellation" />
+          ))}
+        </section>
+        <aside className={`${styles.arenaPanel} ${styles.arenaStatPanel}`}>
+          <span>Afgelast</span>
+          <strong>{page.items.length}</strong>
+          <p>De laatste bevestigde Sportlink-status blijft zichtbaar.</p>
+        </aside>
+      </div>
+    );
+  }
+
+  if (view.slideType === "sport_dressing_rooms") {
+    const midpoint = Math.ceil(page.items.length / 2);
+    return (
+      <div className={styles.arenaGroundLayout}>
+        {[page.items.slice(0, midpoint), page.items.slice(midpoint)].map(
+          (items, index) => (
+            <section className={`${styles.arenaPanel} ${styles.arenaListPanel}`} key={index}>
+              <PanelTitle label={`Indeling ${index + 1}`} title="Veld & kleedkamers" />
+              {items.map((entry) => (
+                <ArenaRow item={entry} key={entry.id} kind="dressing" />
+              ))}
+            </section>
+          )
+        )}
+      </div>
+    );
+  }
+
+  if (view.slideType === "sport_results") {
+    return (
+      <section className={`${styles.arenaPanel} ${styles.arenaFixturePanel}`}>
+        <PanelTitle label="Laatste speelronde" title="Uitslagen" />
+        {page.items.map((entry) => (
+          <ResultRow item={entry} key={entry.id} />
+        ))}
+      </section>
+    );
+  }
+
+  if (view.slideType === "sport_officials") {
+    return (
+      <div className={styles.arenaAlertLayout}>
+        <section className={`${styles.arenaPanel} ${styles.arenaListPanel}`}>
+          <PanelTitle label="Wedstrijddag" title="Aanstellingen" />
+          {page.items.map((entry) => (
+            <ArenaRow item={entry} key={entry.id} kind="official" />
+          ))}
+        </section>
+        <aside className={`${styles.arenaPanel} ${styles.arenaStatPanel}`}>
+          <span>Vandaag actief</span>
+          <strong>{page.items.reduce((count, item) => count + Math.max(item.officials.length, 1), 0)}</strong>
+          <p>officials op ons complex</p>
+        </aside>
+      </div>
+    );
+  }
 
   return (
-    <div className={styles.sportList}>
-      <div className={styles.listHeading}>
-        <span>{view.slideType.includes("standing") ? "#" : "Wedstrijd"}</span>
-        <span>Datum / informatie</span>
-        <span>{view.slideType.includes("standing") ? "Punten" : "Locatie"}</span>
-      </div>
-      {page.items.map((item, index) => (
-        <SportRow index={index} item={item} key={item.id} />
+    <section className={`${styles.arenaPanel} ${styles.arenaFixturePanel}`}>
+      <PanelTitle label="Aankomende wedstrijden" title="Programma" />
+      {page.items.map((entry) => (
+        <ProgramRow item={entry} key={entry.id} />
       ))}
+    </section>
+  );
+}
+
+function ArenaStanding({
+  items,
+  view
+}: {
+  items: DynamicTemplateStandingItem[];
+  view: DynamicTemplateView;
+}) {
+  return (
+    <section className={`${styles.arenaPanel} ${styles.arenaStanding}`}>
+      <div className={styles.arenaStandingHead} aria-hidden="true">
+        <span>#</span><span>Team</span><span>G</span><span>W</span>
+        <span>GL</span><span>V</span><span>PT</span><span>+/−</span><span>Vorm</span>
+      </div>
+      <div className={styles.arenaStandingRows}>
+        {items.map((team) => (
+          <article data-selected={team.selected || undefined} key={team.id}>
+            <strong>{team.position ?? "–"}</strong>
+            <span className={styles.arenaStandingTeam}>
+              <i aria-hidden="true">{initialsFor(team.teamName)}</i>
+              <b>{team.teamName}</b>
+            </span>
+            <span>{team.played ?? "–"}</span>
+            <span>{team.won ?? "–"}</span>
+            <span>{team.drawn ?? "–"}</span>
+            <span>{team.lost ?? "–"}</span>
+            <strong>{team.points ?? "–"}</strong>
+            <span>{signed(team.goalDifference)}</span>
+            <span
+              aria-label={`Vorm ${team.teamName}: ${
+                team.form.length
+                  ? team.form.map(resultLabel).join(", ")
+                  : "niet beschikbaar"
+              }`}
+              className={styles.arenaForm}
+            >
+              {team.form.length ? team.form.map((result, index) => (
+                <i data-result={result} key={`${result}-${index}`}>
+                  {result === "win" ? "W" : result === "draw" ? "G" : "V"}
+                </i>
+              )) : "–"}
+            </span>
+          </article>
+        ))}
+      </div>
+      {view.standingContext ? (
+        <p className={styles.arenaStandingContext}>
+          {[view.standingContext.competition, view.standingContext.pool, view.standingContext.season]
+            .filter(Boolean).join(" · ")}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function ArenaNextMatch({
+  item,
+  view
+}: {
+  item: DynamicTemplateListItem | null;
+  view: DynamicTemplateView;
+}) {
+  const home = item?.homeTeam || splitTeams(item?.primary ?? "")[0];
+  const away = item?.awayTeam || splitTeams(item?.primary ?? "")[1];
+  return (
+    <div className={styles.arenaMatchLayout}>
+      <section className={`${styles.arenaPanel} ${styles.arenaMatchMain}`}>
+        <div className={styles.arenaMatchMeta}>{item?.competition || view.sourceLabel}</div>
+        <div className={styles.arenaVersus}>
+          <TeamBadge name={home} />
+          <div>
+            <span>{item?.date || item?.secondary}</span>
+            <strong>{item?.time || "Tijd volgt"}</strong>
+            <i>VS</i>
+            <small>{item?.venue || item?.meta || "Locatie volgt"}</small>
+          </div>
+          <TeamBadge name={away} />
+        </div>
+      </section>
+      <aside className={`${styles.arenaPanel} ${styles.arenaMatchSide}`}>
+        <PanelTitle label="Wedstrijdinformatie" title="Volgende wedstrijd" />
+        <dl>
+          <div><dt>Datum</dt><dd>{item?.date || item?.secondary || "Volgt"}</dd></div>
+          <div><dt>Aftrap</dt><dd>{item?.time || "Volgt"}</dd></div>
+          <div><dt>Locatie</dt><dd>{item?.venue || item?.meta || "Volgt"}</dd></div>
+        </dl>
+      </aside>
     </div>
   );
 }
 
-function TeamMark({ name }: { name: string }) {
-  const initials = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("");
+function ProgramRow({ item }: { item: DynamicTemplateListItem }) {
+  const [fallbackHome, fallbackAway] = splitTeams(item.primary);
+  const home = item.homeTeam || fallbackHome;
+  const away = item.awayTeam || fallbackAway;
   return (
-    <article className={styles.team}>
-      <div aria-hidden="true">{initials || "VC"}</div>
+    <article className={styles.arenaProgramRow}>
+      <strong>{item.date || item.secondary}</strong>
+      <span><TeamMini name={home} /> {home} <i>VS</i> <TeamMini name={away} /> {away}</span>
+      <small>{item.venue || item.meta}</small>
+      <b>{item.time}</b>
+    </article>
+  );
+}
+
+function ResultRow({ item }: { item: DynamicTemplateListItem }) {
+  const [fallbackHome, fallbackAway] = splitTeams(item.primary);
+  const home = item.homeTeam || fallbackHome;
+  const away = item.awayTeam || fallbackAway;
+  return (
+    <article className={styles.arenaResultRow}>
+      <span>{home} <TeamMini name={home} /></span>
+      <strong>
+        <i>{item.homeScore ?? "–"}</i><b>–</b><i>{item.awayScore ?? "–"}</i>
+      </strong>
+      <span><TeamMini name={away} /> {away}</span>
+      <small>{item.date || item.secondary}</small>
+    </article>
+  );
+}
+
+function ArenaRow({
+  item,
+  kind
+}: {
+  item: DynamicTemplateListItem;
+  kind: "agenda" | "cancellation" | "dressing" | "official";
+}) {
+  let meta: ReactNode = item.venue || item.meta;
+  if (kind === "dressing") {
+    meta = (
+      <span className={styles.arenaRoom}>
+        {[item.homeRoom && `Thuis ${item.homeRoom}`, item.awayRoom && `Uit ${item.awayRoom}`]
+          .filter(Boolean).join(" · ") || item.meta}
+      </span>
+    );
+  } else if (kind === "official") {
+    meta = item.officials.join(" · ") || item.meta || "Nog niet bekend";
+  }
+  return (
+    <article className={styles.arenaRow} data-kind={kind}>
+      <strong>{item.time || item.date || item.secondary}</strong>
+      <div><h3>{item.primary}</h3><p>{meta}</p></div>
+      {kind === "cancellation" ? <b>{item.status || "Afgelast"}</b> : null}
+    </article>
+  );
+}
+
+function PanelTitle({ label, title }: { label: string; title: string }) {
+  return (
+    <header className={styles.arenaPanelTitle}>
+      <span>{label}</span>
+      <h2>{title}</h2>
+    </header>
+  );
+}
+
+function TeamBadge({ name }: { name: string }) {
+  return (
+    <article className={styles.arenaTeamBadge}>
+      <TeamMini name={name} large />
       <h2>{name}</h2>
     </article>
   );
 }
 
-function SportRow({
-  index,
-  item
-}: {
-  index: number;
-  item: DynamicTemplateListItem;
-}) {
+function TeamMini({ large = false, name }: { large?: boolean; name: string }) {
   return (
-    <article className={styles.sportRow}>
-      <span>{index + 1}</span>
-      <div>
-        <h2>{item.primary}</h2>
-        {item.secondary ? <p>{item.secondary}</p> : null}
-      </div>
-      <strong>{item.meta || item.status}</strong>
-    </article>
+    <i aria-hidden="true" className={large ? styles.arenaTeamLarge : styles.arenaTeamMini}>
+      {initialsFor(name)}
+    </i>
   );
+}
+
+function pageIsEmpty(page: DynamicTemplatePage) {
+  if (page.kind === "news" || page.kind === "match") return !page.item;
+  return page.items.length === 0;
+}
+
+function initialsFor(value: string) {
+  return value.split(/\s+/).filter(Boolean).slice(0, 2)
+    .map((part) => part[0]?.toUpperCase()).join("") || "VC";
+}
+
+function splitTeams(value: string) {
+  const parts = value.split(/\s+[–—-]\s+/).map((part) => part.trim());
+  return [parts[0] || "Thuisteam", parts.slice(1).join(" – ") || "Uitteam"] as const;
+}
+
+function signed(value: number | null) {
+  if (value === null) return "–";
+  return value > 0 ? `+${value}` : String(value);
+}
+
+function resultLabel(result: string) {
+  if (result === "win") return "winst";
+  if (result === "draw") return "gelijk";
+  return "verlies";
+}
+
+function arenaSubtitle(slideType: DynamicTemplateView["slideType"]) {
+  const subtitles: Partial<Record<DynamicTemplateView["slideType"], string>> = {
+    menu: "Kantinefavorieten",
+    news: "Nieuws uit en rond de club",
+    sport_activities: "Wat speelt er deze maand",
+    sport_cancellations: "Actuele wedstrijdstatus",
+    sport_dressing_rooms: "Indeling wedstrijddag",
+    sport_next_match: "Alles klaar voor de aftrap",
+    sport_officials: "Aanstellingen wedstrijddag",
+    sport_program: "Aankomende wedstrijden",
+    sport_results: "Laatste speelronde",
+    sport_standing: "Actuele competitiestand"
+  };
+  return subtitles[slideType] ?? "Clubinformatie";
 }

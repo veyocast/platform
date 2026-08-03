@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(35);
+select plan(37);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -150,7 +150,7 @@ select
   )::uuid
 from public.dynamic_template_versions version
 join public.dynamic_templates template on template.id = version.template_id
-where template.slug = 'menu-atelier-landscape'
+where template.slug = 'editorial-arena-menubord-dark-landscape'
   and version.status = 'published';
 
 select is(
@@ -158,6 +158,20 @@ select is(
     where id = (select id from dynamic_test_ids where name = 'slide')),
   'rendering',
   'creating a slide atomically queues its first immutable snapshot'
+);
+
+select is(
+  (
+    select snapshot.snapshot_data_json #>> '{brand,primaryColor}'
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'slide'
+    )
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  '#315CFF',
+  'menu snapshots use the same tenant primary colour as news and sports'
 );
 
 select is(
@@ -452,7 +466,7 @@ select
   )::uuid
 from public.dynamic_template_versions version
 join public.dynamic_templates template on template.id = version.template_id
-where template.slug = 'news-editorial-landscape'
+where template.slug = 'editorial-arena-nieuws-dark-landscape'
   and version.status = 'published';
 
 select is(
@@ -497,6 +511,22 @@ select is(
   'a manual RSS refresh automatically queues a new latest snapshot'
 );
 
+create temporary table primary_color_snapshot_counts (
+  name text primary key,
+  snapshot_count bigint not null
+);
+
+insert into primary_color_snapshot_counts values (
+  'menu',
+  (
+    select count(*)
+    from public.dynamic_slide_snapshots
+    where dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'slide'
+    )
+  )
+);
+
 select lives_ok(
   $$select public.update_tenant_control_settings_v3(
     '10000000-0000-4000-8000-000000000a51',
@@ -525,6 +555,22 @@ select is(
   ),
   3::bigint,
   'colour refresh adds one immutable RSS snapshot without rewriting history'
+);
+
+select is(
+  (
+    select count(*) - (
+      select snapshot_count
+      from primary_color_snapshot_counts
+      where name = 'menu'
+    )
+    from public.dynamic_slide_snapshots
+    where dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'slide'
+    )
+  ),
+  1::bigint,
+  'colour refresh also queues a new immutable menu snapshot'
 );
 
 reset role;

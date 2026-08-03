@@ -22,28 +22,31 @@ export async function routeSportlinkStandingManifest(
     durationSeconds: 10,
     dynamicTemplate: {
       data: {
-        brand: { primaryColor: "#315CFF" },
+        brand: { clubName: "Duindorp sv", primaryColor: "#315CFF" },
         sport: {
           competition: { name: "Vierde klasse" },
-          items: Array.from({ length: 20 }, (_, index) => ({
-            drawn: 3,
-            form: index % 2 === 0
-              ? ["win", "draw", "loss"]
-              : ["win", "win", "draw"],
-            goalDifference: 24 - index * 3,
-            goalsAgainst: 15 + index * 2,
-            goalsFor: 39 - index,
-            id: `team-${index + 1}`,
-            lost: index + 1,
-            played: 18,
-            points: 42 - index * 3,
-            position: index + 1,
-            selected: index === 1,
-            teamName: index === 1
-              ? "Duindorp sv"
-              : `Vereniging ${index + 1}`,
-            won: 14 - index
-          })),
+          items: Array.from({ length: 20 }, (_, index) => {
+            const won = Math.max(0, 14 - index);
+            return {
+              drawn: 3,
+              form: index % 2 === 0
+                ? ["win", "draw", "loss"]
+                : ["win", "win", "draw"],
+              goalDifference: 24 - index * 3,
+              goalsAgainst: 15 + index * 2,
+              goalsFor: 39 - index,
+              id: `team-${index + 1}`,
+              lost: 18 - 3 - won,
+              played: 18,
+              points: won * 3 + 3,
+              position: index + 1,
+              selected: index === 1,
+              teamName: index === 1
+                ? "Duindorp sv"
+                : `Vereniging ${index + 1}`,
+              won
+            };
+          }),
           pool: { name: "4C" },
           season: "2026/2027",
           title: "Stand"
@@ -56,7 +59,7 @@ export async function routeSportlinkStandingManifest(
       snapshotHash: "c".repeat(64),
       snapshotId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       templateSlug:
-        `sportlink-standing-club-edition-dark-${orientation}`,
+        `editorial-arena-competitiestand-dark-${orientation}`,
       templateVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
     },
     id: `sportlink-standing-${orientation}`,

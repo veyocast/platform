@@ -18,6 +18,7 @@ describe("zelfstandige LG compatibiliteitsprobe", () => {
     );
     expect(html).toContain("LG compatibiliteitsprobe");
     expect(html).toContain("VeyoCast-videoreferentie");
+    expect(html).toContain("Dynamische HTML/CSS-slide");
     expect(html).toContain("Bestaande Player-cache");
     expect(html).not.toContain("/_next/");
     expect(html).not.toContain("__next");
@@ -56,6 +57,10 @@ describe("zelfstandige LG compatibiliteitsprobe", () => {
     expect(html).toContain("testDirect");
     expect(html).toContain("testBlob");
     expect(html).toContain("testCache");
+    expect(html).toContain("testDynamicTemplate");
+    expect(html).toContain("DYNAMIC_TEMPLATE_READY");
+    expect(html).toContain("LG-HTML-CSS-RENDER");
+    expect(html).toContain("LG-HTML-CSS-READY");
     expect(html).toContain("Range");
     expect(html).toContain("/__veyocast-player-cache/");
     expect(html).toContain("veyocast-player-assets-v1");
