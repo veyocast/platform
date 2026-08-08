@@ -74,6 +74,11 @@ import {
 import { parsePlayerTimestamp } from "../_lib/player-time";
 import { consumePlayerRecoveryMarker } from "../_lib/player-recovery-marker";
 import {
+  currentPlayerApplicationVersion,
+  playerVersionHeader,
+  shouldReloadPlayerApplication
+} from "../_lib/player-app-update";
+import {
   createPairingMachineSnapshot,
   isDefinitiveCredentialError,
   pairingRequestWatchdog,
@@ -193,6 +198,7 @@ export function PlayerRuntime() {
   const [watchdogTimeoutMs, setWatchdogTimeoutMs] = useState(defaultWatchdogTimeoutMs);
   const runtimeRef = useRef<RuntimeView>(runtime);
   const advancingRef = useRef(false);
+  const applicationReloadPendingRef = useRef(false);
   const consecutiveFailuresRef = useRef(0);
   const desiredReleaseIdRef = useRef<string | null>(null);
   const hydratedReleasesRef = useRef<HydratedPlayerRelease[]>([]);
@@ -330,6 +336,11 @@ export function PlayerRuntime() {
     if (!isPlaybackRuntime(snapshot)) return;
     const activeItem = snapshot.release.envelope.manifest.items[snapshot.activeIndex];
     if (!activeItem || activeItem.id !== itemId) return;
+    if (applicationReloadPendingRef.current) {
+      applicationReloadPendingRef.current = false;
+      window.location.reload();
+      return;
+    }
     const nextSelection = findNextPlayableItem(
       snapshot.release.envelope.manifest.items,
       snapshot.activeIndex
@@ -1101,6 +1112,19 @@ export function PlayerRuntime() {
             }
           }
         );
+        if (
+          shouldReloadPlayerApplication(
+            currentPlayerApplicationVersion(),
+            response.headers.get(playerVersionHeader)
+          )
+        ) {
+          if (isPlaybackRuntime(runtimeRef.current)) {
+            applicationReloadPendingRef.current = true;
+          } else {
+            window.location.reload();
+            return;
+          }
+        }
         const body = (await response.json()) as
           | PlayerManifestEnvelope
           | PlayerManifestProblem

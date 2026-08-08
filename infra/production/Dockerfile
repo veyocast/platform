@@ -14,6 +14,7 @@ FROM dependencies AS web-builder
 ARG DEPLOYMENT_SHA
 ARG SERVER_ACTIONS_KEY_FINGERPRINT
 ENV DEPLOYMENT_SHA=$DEPLOYMENT_SHA
+ENV NEXT_PUBLIC_APP_VERSION=$DEPLOYMENT_SHA
 RUN --mount=type=secret,id=next_server_actions_encryption_key \
   test -n "$SERVER_ACTIONS_KEY_FINGERPRINT"; \
   test -s /run/secrets/next_server_actions_encryption_key; \

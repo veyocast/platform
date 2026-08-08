@@ -86,6 +86,9 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain('"/api/player/pairing"');
     expect(html).toContain('"/api/player/manifest?legacy="');
     expect(html).toContain('"/api/player/heartbeat"');
+    expect(html).toContain('appVersion');
+    expect(html).toContain('X-VeyoCast-Player-Version');
+    expect(html).toContain('runtime.applicationReloadPending = true');
     expect(html).toContain('"/api/player/commands"');
     expect(html).toContain("veyocast-player-cache-v1");
     expect(html).toContain("veyocast-player-assets-v1");

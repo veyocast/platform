@@ -19,6 +19,7 @@ describe("player manifest conditionele releasecheck", () => {
     expect(response.headers.get("etag")).toBe(
       `"release-${body.manifest.releaseId}"`
     );
+    expect(response.headers.get("x-veyocast-player-version")).toBeTruthy();
   });
 
   it("slaat manifest en signed URLs over wanneer de release ongewijzigd is", async () => {
@@ -29,6 +30,7 @@ describe("player manifest conditionele releasecheck", () => {
     const response = await GET(manifestRequest(etag ?? undefined));
 
     expect(response.status).toBe(304);
+    expect(response.headers.get("x-veyocast-player-version")).toBeTruthy();
     expect(response.headers.get("etag")).toBe(etag);
     expect(await response.text()).toBe("");
   });

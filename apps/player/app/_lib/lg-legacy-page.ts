@@ -1,5 +1,8 @@
+import { currentPlayerApplicationVersion } from "./player-app-update";
+
 const legacyConfig = {
   activeReleaseStore: "activeReleases",
+  appVersion: currentPlayerApplicationVersion(),
   assetRequestTimeoutMs: 120_000,
   cacheName: "veyocast-player-assets-v1",
   cachePathPrefix: "/__veyocast-player-cache/",
@@ -301,6 +304,7 @@ export function renderLgLegacyHtml() {
     var runtime = {
       activeIndex: 0,
       activationInFlight: false,
+      applicationReloadPending: false,
       bootGeneration: 0,
       cachedRelease: null,
       currentElement: null,
@@ -451,7 +455,8 @@ export function renderLgLegacyHtml() {
           transportCode,
           xhr.status || 0,
           responseBody,
-          xhr.getResponseHeader("Retry-After")
+          xhr.getResponseHeader("Retry-After"),
+          xhr.getResponseHeader("X-VeyoCast-Player-Version")
         );
       }
       xhr.onload = function () { finish(null); };
@@ -1150,9 +1155,20 @@ export function renderLgLegacyHtml() {
         "/api/player/manifest?legacy=" + String(now()),
         headers,
         null,
-        function (transport, status, body) {
+        function (transport, status, body, retryAfter, advertisedVersion) {
           var code = errorCode(body, transport || "PLAYER_API_UNAVAILABLE");
           runtime.syncInFlight = false;
+          if (
+            advertisedVersion &&
+            String(advertisedVersion) !== String(CONFIG.appVersion)
+          ) {
+            if (runtime.currentElement) {
+              runtime.applicationReloadPending = true;
+            } else {
+              window.location.reload();
+              return;
+            }
+          }
           if (!transport && status === 304 && knownReleaseId) {
             clearTemporaryPairing();
             runtime.syncFailures = 0;
@@ -2915,6 +2931,11 @@ export function renderLgLegacyHtml() {
       );
     }
     function nextItem() {
+      if (runtime.applicationReloadPending) {
+        runtime.applicationReloadPending = false;
+        window.location.reload();
+        return;
+      }
       var items = playableItems(runtime.envelope);
       var nextIndex;
       var wrapped;
