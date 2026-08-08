@@ -66,6 +66,9 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
   const supplierLogo = page.getByRole("img", { name: "AD:voetbal" });
   await expect(supplierLogo).toBeVisible();
   expect((await supplierLogo.boundingBox())?.height).toBeLessThanOrEqual(75);
+  const photoBox = await slide.locator("main section").first().boundingBox();
+  expect(photoBox).not.toBeNull();
+  expect(photoBox!.width / photoBox!.height).toBeCloseTo(16 / 9, 2);
   await expect(page.getByTestId("player-brand-mark")).toHaveCSS(
     "opacity",
     "0.4"

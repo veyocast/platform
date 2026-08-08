@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -24,6 +25,11 @@ type ArenaStyle = CSSProperties & {
   "--arena-page-duration": string;
 };
 
+const arenaCanvasSize = {
+  landscape: { height: 1080, width: 1920 },
+  portrait: { height: 1920, width: 1080 }
+} as const;
+
 export function DynamicTemplateMedia({
   item,
   onReady,
@@ -33,23 +39,50 @@ export function DynamicTemplateMedia({
   onReady: (itemId: string) => void;
   passive?: boolean;
 }) {
-  const view = createDynamicTemplateView(item.dynamicTemplate);
+  const view = useMemo(
+    () => createDynamicTemplateView(item.dynamicTemplate),
+    [item.dynamicTemplate]
+  );
   const readyRef = useRef(false);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const [pageIndex, setPageIndex] = useState(0);
+  const [canvasScale, setCanvasScale] = useState<number | null>(null);
   const pageCount = view?.pages.length ?? 0;
+  const canvas = arenaCanvasSize[view?.orientation ?? "landscape"];
 
   useEffect(() => {
     setPageIndex(0);
   }, [item.id, view?.snapshotId]);
 
   useEffect(() => {
-    if (!view || passive || readyRef.current) return;
+    const viewport = viewportRef.current;
+    if (!viewport || !view) return;
+    const updateScale = () => {
+      const width = viewport.clientWidth;
+      const height = viewport.clientHeight;
+      if (width < 1 || height < 1) return;
+      setCanvasScale(Math.min(width / canvas.width, height / canvas.height));
+    };
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    const observer = typeof ResizeObserver === "function"
+      ? new ResizeObserver(updateScale)
+      : null;
+    observer?.observe(viewport);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateScale);
+    };
+  }, [canvas.height, canvas.width, view]);
+
+  useEffect(() => {
+    if (!view || canvasScale === null || passive || readyRef.current) return;
     const frame = window.requestAnimationFrame(() => {
       readyRef.current = true;
       onReady(item.id);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [item.id, onReady, passive, view]);
+  }, [canvasScale, item.id, onReady, passive, view]);
 
   useEffect(() => {
     if (!view || pageCount <= 1 || passive) return;
@@ -73,40 +106,48 @@ export function DynamicTemplateMedia({
   );
   const style: ArenaStyle = {
     "--arena-accent": view.accentColor,
-    "--arena-page-duration": `${pageDurationMs}ms`
+    "--arena-page-duration": `${pageDurationMs}ms`,
+    height: canvas.height,
+    opacity: canvasScale === null ? 0 : 1,
+    transform: `translate(-50%, -50%) scale(${canvasScale ?? 1})`,
+    width: canvas.width
   };
 
   return (
-    <section
-      aria-label={item.accessibilityName ?? item.title}
-      className={styles.arenaRoot}
-      data-orientation={view.orientation}
-      data-passive={passive || undefined}
-      data-slide-type={view.slideType}
-      data-theme={view.theme}
-      style={style}
-    >
-      <ArenaHeader view={view} />
-      <main
-        className={styles.arenaContent}
-        data-page-count={pageCount}
-        data-page-index={pageIndex}
+    <div className={styles.arenaViewport} ref={viewportRef}>
+      <section
+        aria-label={item.accessibilityName ?? item.title}
+        className={styles.arenaRoot}
+        data-canvas-height={canvas.height}
+        data-canvas-width={canvas.width}
+        data-orientation={view.orientation}
+        data-passive={passive || undefined}
+        data-slide-type={view.slideType}
+        data-theme={view.theme}
+        style={style}
       >
-        <ArenaPage
-          key={`${view.snapshotId}-${pageIndex}`}
-          page={page}
+        <ArenaHeader view={view} />
+        <main
+          className={styles.arenaContent}
+          data-page-count={pageCount}
+          data-page-index={pageIndex}
+        >
+          <ArenaPage
+            key={`${view.snapshotId}-${pageIndex}`}
+            page={page}
+            view={view}
+          />
+          {view.emptyState && pageIsEmpty(page) ? (
+            <div className={styles.arenaEmpty}>{view.emptyState}</div>
+          ) : null}
+        </main>
+        <ArenaFooter
+          pageCount={pageCount}
+          pageIndex={pageIndex}
           view={view}
         />
-        {view.emptyState && pageIsEmpty(page) ? (
-          <div className={styles.arenaEmpty}>{view.emptyState}</div>
-        ) : null}
-      </main>
-      <ArenaFooter
-        pageCount={pageCount}
-        pageIndex={pageIndex}
-        view={view}
-      />
-    </section>
+      </section>
+    </div>
   );
 }
 
@@ -217,7 +258,7 @@ function ArenaPage({
           {article ? (
             <>
               <span>Laatste nieuws</span>
-              <h2>{article.title}</h2>
+              <h2 className={newsTitleClassName(article.title)}>{article.title}</h2>
               {article.intro ? <p>{article.intro}</p> : null}
               <div className={styles.arenaNewsMeta}>
                 {article.date ? <small><b>Datum</b>{article.date}</small> : null}
@@ -329,6 +370,12 @@ function ArenaPage({
       ))}
     </section>
   );
+}
+
+function newsTitleClassName(title: string) {
+  if (title.length > 96) return styles.arenaNewsTitleDense;
+  if (title.length > 64) return styles.arenaNewsTitleCompact;
+  return undefined;
 }
 
 function ArenaStanding({

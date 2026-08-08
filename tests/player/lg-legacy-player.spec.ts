@@ -129,7 +129,10 @@ async function mockLegacyApis(
   });
 }
 
-async function mockEditorialArenaLegacyApis(page: Page) {
+async function mockEditorialArenaLegacyApis(
+  page: Page,
+  orientation: "landscape" | "portrait" = "landscape"
+) {
   await page.route("**/api/player/installation", async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -172,12 +175,12 @@ async function mockEditorialArenaLegacyApis(page: Page) {
           },
           type: "news"
         },
-        orientation: "landscape",
+        orientation,
         schemaVersion: 1,
         slideType: "news",
         snapshotHash: "b".repeat(64),
         snapshotId: "11111111-1111-4111-8111-111111111111",
-        templateSlug: "editorial-arena-nieuws-dark-landscape",
+        templateSlug: `editorial-arena-nieuws-dark-${orientation}`,
         templateVersionId: "22222222-2222-4222-8222-222222222222"
       }
     });
@@ -321,6 +324,53 @@ test("LG webOS wordt zonder Next.js-chunks naar zichtbare Editorial Arena HTML/C
       path: "docs/screenshots/s91-editorial-arena-lg-legacy.png"
     });
   }
+
+  await context.close();
+});
+
+test("LG Legacy schaalt ieder logisch portraitcanvas binnen een landscapeviewport", async ({
+  browser
+}) => {
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+    viewport: { height: 1080, width: 1920 }
+  });
+  const page = await context.newPage();
+  await mockEditorialArenaLegacyApis(page, "portrait");
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+
+  const slide = page.locator(".dynamic-template.editorial-arena");
+  await expect(slide).toBeVisible();
+  await expect(slide).toHaveAttribute("data-canvas-width", "1080");
+  await expect(slide).toHaveAttribute("data-canvas-height", "1920");
+  const slideBox = await slide.boundingBox();
+  expect(slideBox).not.toBeNull();
+  expect(slideBox!.x).toBeCloseTo(656.25, 1);
+  expect(slideBox!.y).toBeCloseTo(0, 1);
+  expect(slideBox!.width).toBeCloseTo(607.5, 1);
+  expect(slideBox!.height).toBeCloseTo(1080, 1);
+  const photoBox = await slide.locator(".editorial-news-art").boundingBox();
+  expect(photoBox).not.toBeNull();
+  expect(photoBox!.width / photoBox!.height).toBeCloseTo(16 / 9, 2);
+  await expect(page.getByRole("heading", {
+    name: "Editorial Arena staat zichtbaar op LG"
+  })).toBeVisible();
 
   await context.close();
 });
