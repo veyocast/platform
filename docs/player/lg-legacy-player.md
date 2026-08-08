@@ -87,6 +87,14 @@ De herstelde keten bewaakt drie grenzen:
 Een werkelijk ingetrokken of onbekende credential blijft definitief afgewezen.
 De cachefallback kan dus geen server-side revoke ongedaan maken.
 
+Een pending koppelcode wordt eveneens uitsluitend door de server als geldig of
+verlopen beoordeeld. Legacy bewaart de code, pending devicecredential en
+idempotentiesleutel tijdens herladen en blijft heartbeat gebruiken zolang de
+server `PAIRING_PENDING` teruggeeft. De lokale TV-klok mag de code niet wissen
+of roteren: oudere LG-schermen kunnen uren voor- of achterlopen. Alleen een
+definitieve serverresponse maakt de tijdelijke pairing ongeldig en vraagt één
+nieuwe code aan.
+
 ## Veilige ingebruikname
 
 1. Open eerst `https://player.veyocast.nl/lg/html-debug`. Wacht op

@@ -90,6 +90,8 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("animation:legacy-rss-title-in 620ms 380ms");
     expect(html).toContain("animation:legacy-rss-copy-in 560ms 820ms");
     expect(html).toContain("@media(prefers-reduced-motion:reduce)");
+    expect(html).not.toContain("expiresAt <= now()");
+    expect(html).not.toContain("expiresAt > now() + 1000");
   });
 
   it("verwerkt remote commands op servertijd en hervat een ontbrekende completion", () => {
