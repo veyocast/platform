@@ -1,5 +1,8 @@
+import { currentPlayerApplicationVersion } from "./player-app-update";
+
 const legacyConfig = {
   activeReleaseStore: "activeReleases",
+  appVersion: currentPlayerApplicationVersion(),
   assetRequestTimeoutMs: 120_000,
   cacheName: "veyocast-player-assets-v1",
   cachePathPrefix: "/__veyocast-player-cache/",
@@ -146,20 +149,19 @@ export function renderLgLegacyHtml() {
     .dark .editorial-news-art,.dark .editorial-news-copy{border-color:rgba(255,255,255,.12);background:#0d1218}
     .editorial-news-art{align-self:center;width:100%;height:auto;display:block;background:#152d43;animation:editorial-photo-in 360ms ease-out both}
     .editorial-news-art:before{display:block;padding-top:56.25%;content:""}
-    .editorial-news-art>img{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover}
+    .editorial-news-art>img{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:contain}
     .editorial-news-art>span{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.08);font-size:clamp(70px,14vw,270px);font-weight:900}
     .editorial-news-source{position:absolute;top:4%;left:4%;z-index:2;max-width:42%;max-height:12%;color:#fff;font-weight:900;text-transform:uppercase}
     .editorial-news-source img{width:auto;max-width:190px;height:auto;max-height:64px;object-fit:contain}
-    .editorial-news-copy{display:flex;flex-direction:column;justify-content:center;padding:5%}
+    .editorial-news-copy{display:flex;flex-direction:column;justify-content:flex-start;padding:5%}
     .editorial-news-copy>span{margin:0 0 .6em;color:var(--accent);font-size:clamp(11px,1.04vw,20px);font-weight:900;letter-spacing:.18em;text-transform:uppercase;animation:editorial-copy-in 280ms 760ms ease-out both}
     .editorial-news-copy h2{margin:0;font-size:clamp(38px,3.75vw,72px);font-weight:900;letter-spacing:-.025em;line-height:.92;text-transform:uppercase;animation:editorial-copy-in 300ms 260ms ease-out both}
-    .editorial-news-copy h2.compact{font-size:clamp(34px,3.2vw,61px);line-height:.96}
     .editorial-news-copy h2.dense{font-size:clamp(29px,2.75vw,53px);line-height:1}
-    .editorial-news-copy p{max-width:92%;margin:4% 0 0;color:#6f7882;font-size:clamp(14px,1.15vw,22px);line-height:1.5;animation:editorial-copy-in 300ms 520ms ease-out both}
+    .editorial-news-copy p{max-width:92%;margin:4% 0 0;color:#6f7882;font-size:clamp(18px,1.4vw,27px);line-height:1.45;animation:editorial-copy-in 300ms 520ms ease-out both}
     .dark .editorial-news-copy p{color:#9aa2ac}
-    .editorial-news-meta{display:flex;gap:8%;margin-top:5%;padding-top:4%;border-top:1px solid rgba(23,32,42,.13);animation:editorial-copy-in 280ms 760ms ease-out both}
+    .editorial-news-meta{display:flex;gap:6%;margin-top:auto;padding-top:2.6%;border-top:1px solid rgba(23,32,42,.13);animation:editorial-copy-in 280ms 760ms ease-out both}
     .dark .editorial-news-meta{border-color:rgba(255,255,255,.12)}
-    .editorial-news-meta small{font-size:clamp(10px,.83vw,16px)}
+    .editorial-news-meta small{min-width:0;font-size:clamp(13px,1vw,19px)}
     .editorial-news-meta b{display:block;margin-bottom:.4em;color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
     @keyframes editorial-photo-in{from{opacity:0;transform:scale(1.025)}}
     @keyframes editorial-copy-in{from{opacity:0;transform:translateY(18px)}}
@@ -170,8 +172,9 @@ export function renderLgLegacyHtml() {
     .dynamic-template.editorial-arena.portrait>footer{right:5.37%;bottom:1.88%;left:17.37%}
     .editorial-arena.portrait .editorial-news{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
     .editorial-arena.portrait .editorial-news-copy h2{font-size:clamp(34px,5.75vw,62px);line-height:.96}
-    .editorial-arena.portrait .editorial-news-copy h2.compact{font-size:clamp(30px,5vw,54px)}
     .editorial-arena.portrait .editorial-news-copy h2.dense{font-size:clamp(27px,4.35vw,47px)}
+    .editorial-arena.portrait .editorial-news-copy p{max-width:100%;font-size:26px;line-height:1.45}
+    .editorial-arena.portrait .editorial-news-meta small{font-size:20px}
     .dynamic-template.standing-club{display:block;padding:0;background:#070b0f;color:#f6f4ee}
     .standing-club>header,.standing-club>footer{display:none}
     .standing-club .dynamic-body{position:absolute;top:0;right:0;bottom:0;left:0;display:block;padding:0}
@@ -301,6 +304,7 @@ export function renderLgLegacyHtml() {
     var runtime = {
       activeIndex: 0,
       activationInFlight: false,
+      applicationReloadPending: false,
       bootGeneration: 0,
       cachedRelease: null,
       currentElement: null,
@@ -451,7 +455,8 @@ export function renderLgLegacyHtml() {
           transportCode,
           xhr.status || 0,
           responseBody,
-          xhr.getResponseHeader("Retry-After")
+          xhr.getResponseHeader("Retry-After"),
+          xhr.getResponseHeader("X-VeyoCast-Player-Version")
         );
       }
       xhr.onload = function () { finish(null); };
@@ -1150,9 +1155,20 @@ export function renderLgLegacyHtml() {
         "/api/player/manifest?legacy=" + String(now()),
         headers,
         null,
-        function (transport, status, body) {
+        function (transport, status, body, retryAfter, advertisedVersion) {
           var code = errorCode(body, transport || "PLAYER_API_UNAVAILABLE");
           runtime.syncInFlight = false;
+          if (
+            advertisedVersion &&
+            String(advertisedVersion) !== String(CONFIG.appVersion)
+          ) {
+            if (runtime.currentElement) {
+              runtime.applicationReloadPending = true;
+            } else {
+              window.location.reload();
+              return;
+            }
+          }
           if (!transport && status === 304 && knownReleaseId) {
             clearTemporaryPairing();
             runtime.syncFailures = 0;
@@ -2214,11 +2230,7 @@ export function renderLgLegacyHtml() {
             arenaCopy.appendChild(templateNode("span", "", "Laatste nieuws"));
             var arenaTitleText = templateText(article.title, "Clubnieuws");
             var arenaTitle = templateNode("h2", "", arenaTitleText);
-            if (arenaTitleText.length > 96) {
-              arenaTitle.className = "dense";
-            } else if (arenaTitleText.length > 64) {
-              arenaTitle.className = "compact";
-            }
+            if (arenaTitleText.length > 64) arenaTitle.className = "dense";
             arenaCopy.appendChild(arenaTitle);
             if (article.intro) {
               arenaCopy.appendChild(templateNode(
@@ -2919,6 +2931,11 @@ export function renderLgLegacyHtml() {
       );
     }
     function nextItem() {
+      if (runtime.applicationReloadPending) {
+        runtime.applicationReloadPending = false;
+        window.location.reload();
+        return;
+      }
       var items = playableItems(runtime.envelope);
       var nextIndex;
       var wrapped;

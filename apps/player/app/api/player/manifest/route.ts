@@ -12,6 +12,10 @@ import {
   createPlayerAnonClient,
   isLivePlayerConfigured
 } from "../../../_lib/player-supabase";
+import {
+  currentPlayerApplicationVersion,
+  playerVersionHeader
+} from "../../../_lib/player-app-update";
 
 function getBearerToken(request: Request) {
   const authorization = request.headers.get("authorization");
@@ -26,30 +30,34 @@ function getBearerToken(request: Request) {
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const bearerToken = getBearerToken(request);
+  let response: Response;
 
   if (isLivePlayerConfigured()) {
-    return getLiveManifest(request, bearerToken);
-  }
+    response = await getLiveManifest(request, bearerToken);
+  } else {
+    const token = bearerToken ?? requestUrl.searchParams.get("deviceToken");
+    const lookup = getPlayerManifestForToken(token);
 
-  const token = bearerToken ?? requestUrl.searchParams.get("deviceToken");
-  const lookup = getPlayerManifestForToken(token);
-
-  if (
-    lookup.ok &&
-    requestHasReleaseEtag(request, lookup.body.manifest.releaseId)
-  ) {
-    return unchangedRelease(lookup.body.manifest.releaseId);
-  }
-
-  return NextResponse.json(lookup.body, {
-    status: lookup.status,
-    headers: {
-      "Cache-Control": "no-store",
-      ...(lookup.ok
-        ? { ETag: releaseEtag(lookup.body.manifest.releaseId) }
-        : {})
+    if (
+      lookup.ok &&
+      requestHasReleaseEtag(request, lookup.body.manifest.releaseId)
+    ) {
+      response = unchangedRelease(lookup.body.manifest.releaseId);
+    } else {
+      response = NextResponse.json(lookup.body, {
+        status: lookup.status,
+        headers: {
+          "Cache-Control": "no-store",
+          ...(lookup.ok
+            ? { ETag: releaseEtag(lookup.body.manifest.releaseId) }
+            : {})
+        }
+      });
     }
-  });
+  }
+
+  response.headers.set(playerVersionHeader, currentPlayerApplicationVersion());
+  return response;
 }
 
 type BootstrapRow = {

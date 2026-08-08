@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(37);
+select plan(44);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -352,6 +352,63 @@ select ok(
 
 reset role;
 
+insert into public.screens (
+  id, tenant_id, name, orientation, status, created_by
+) values (
+  '40000000-0000-4000-8000-000000000a51',
+  '10000000-0000-4000-8000-000000000a51',
+  'Dynamic scherm',
+  'landscape',
+  'active',
+  '00000000-0000-4000-8000-000000000a51'
+);
+
+insert into public.player_devices (
+  id, tenant_id, screen_id, device_name, token_hash, status
+) values (
+  '50000000-0000-4000-8000-000000000a51',
+  '10000000-0000-4000-8000-000000000a51',
+  '40000000-0000-4000-8000-000000000a51',
+  'Dynamic player',
+  repeat('d', 64),
+  'paired'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000a51',
+  true
+);
+
+insert into dynamic_test_ids
+select
+  'base_release',
+  (
+    public.publish_playlist_to_targets_v3(
+      '30000000-0000-4000-8000-000000000a51',
+      (
+        select revision from public.playlists
+        where id = '30000000-0000-4000-8000-000000000a51'
+      ),
+      array['40000000-0000-4000-8000-000000000a51'::uuid],
+      'Eerste dynamische release',
+      'a5100000-0000-4000-8000-000000000002'
+    ) ->> 'releaseId'
+  )::uuid;
+
+select is(
+  (
+    select default_release_id
+    from public.screens
+    where id = '40000000-0000-4000-8000-000000000a51'
+  ),
+  (select id from dynamic_test_ids where name = 'base_release'),
+  'the explicitly published release becomes the screen default'
+);
+
+reset role;
+
 update public.tenant_products
 set name = 'Cola zero'
 where tenant_id = '10000000-0000-4000-8000-000000000a51'
@@ -425,6 +482,57 @@ select ok(
   'latest playlist draft follows the completed snapshot and matching fallback'
 );
 
+select is(
+  (
+    select count(*)
+    from public.playlist_releases release
+    where release.playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  2::bigint,
+  'one changed latest snapshot creates exactly one new immutable release'
+);
+
+select isnt(
+  (
+    select desired_release_id
+    from public.player_devices
+    where id = '50000000-0000-4000-8000-000000000a51'
+  ),
+  (select id from dynamic_test_ids where name = 'base_release'),
+  'the paired Player receives the automatically published desired release'
+);
+
+select ok(
+  (
+    select bool_and(
+      release_item.dynamic_snapshot_id = slide.current_snapshot_id
+    )
+    from public.player_devices device
+    join public.playlist_release_items release_item
+      on release_item.tenant_id = device.tenant_id
+      and release_item.release_id = device.desired_release_id
+    join public.dynamic_slide_snapshots released_snapshot
+      on released_snapshot.tenant_id = release_item.tenant_id
+      and released_snapshot.id = release_item.dynamic_snapshot_id
+    join public.dynamic_slides slide
+      on slide.tenant_id = released_snapshot.tenant_id
+      and slide.id = released_snapshot.dynamic_slide_id
+    where device.id = '50000000-0000-4000-8000-000000000a51'
+  ),
+  'the automatic release freezes the current HTML/CSS snapshot'
+);
+
+select is(
+  (
+    select count(*)
+    from public.audit_events event
+    where event.tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and event.action = 'dynamic.release.auto_published'
+  ),
+  1::bigint,
+  'automatic dynamic publication remains auditable'
+);
+
 insert into dynamic_test_ids values (
   'rss_source',
   public.create_dynamic_data_source_v1(
@@ -433,6 +541,16 @@ insert into dynamic_test_ids values (
     'rss',
     '{"url":"https://example.com/news.xml"}'::jsonb
   )
+);
+
+select is(
+  (
+    select config_json ->> 'refreshMinutes'
+    from public.dynamic_data_sources
+    where id = (select id from dynamic_test_ids where name = 'rss_source')
+  ),
+  '5',
+  'new RSS sources default to a five-minute refresh interval'
 );
 
 select lives_ok(
@@ -449,6 +567,36 @@ select lives_ok(
     }]'::jsonb
   )$$,
   'an RSS source can be populated before creating a slide'
+);
+
+create temporary table rss_revision_before as
+select revision
+from public.dynamic_data_sources
+where id = (select id from dynamic_test_ids where name = 'rss_source');
+
+select is(
+  (
+    with repeated_sync as (
+      select public.record_rss_sync_v1(
+        (select id from dynamic_test_ids where name = 'rss_source'),
+        '[{
+          "externalId":"article-1",
+          "title":"Trainingstijden",
+          "intro":"Bekijk de actuele trainingstijden.",
+          "author":"Redactie",
+          "sourceName":"Clubnieuws",
+          "link":"https://example.com/news/training",
+          "publishedAt":"2026-07-27T09:00:00Z"
+        }]'::jsonb
+      )
+    )
+    select source.revision
+    from repeated_sync
+    cross join public.dynamic_data_sources source
+    where source.id = (select id from dynamic_test_ids where name = 'rss_source')
+  ),
+  (select revision from rss_revision_before),
+  'an unchanged RSS payload does not advance its content revision'
 );
 
 insert into dynamic_test_ids

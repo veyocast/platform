@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { routeLandscapeRssManifest } from "./rss-portrait-fixture";
+import {
+  longNewsTitle,
+  mediumNewsTitle,
+  routeLandscapeRssManifest
+} from "./rss-portrait-fixture";
 
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
@@ -25,7 +29,7 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
   )).toBe("#315cff");
 
   const headline = page.getByRole("heading", {
-    name: "De eerste dynamische voetbalheadline staat live"
+    name: mediumNewsTitle
   });
   await expect(headline).toBeVisible();
   expect((await headline.boundingBox())?.x).toBeGreaterThan(1920 * 0.45);
@@ -69,6 +73,14 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
   const photoBox = await slide.locator("main section").first().boundingBox();
   expect(photoBox).not.toBeNull();
   expect(photoBox!.width / photoBox!.height).toBeCloseTo(16 / 9, 2);
+  await expect(slide.locator("main section img").first()).toHaveCSS(
+    "object-fit",
+    "contain"
+  );
+  await expect(slide.locator("main article")).toHaveCSS(
+    "justify-content",
+    "flex-start"
+  );
   await expect(page.getByTestId("player-brand-mark")).toHaveCSS(
     "opacity",
     "0.4"
@@ -86,7 +98,7 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
   });
   await expect(
     page.getByRole("heading", {
-      name: "Ook het tweede bericht gebruikt echte HTML en CSS"
+      name: longNewsTitle
     })
   ).toBeVisible();
   expect(browserErrors).toEqual([]);
@@ -101,7 +113,7 @@ test("respecteert minder beweging zonder inhoud te verbergen", async ({
   await page.goto(`${playerURL}/?deviceToken=demo-online`);
 
   const headline = page.getByRole("heading", {
-    name: "De eerste dynamische voetbalheadline staat live"
+    name: mediumNewsTitle
   });
   const intro = page.getByText(
     "Het laatste voetbalnieuws staat klaar voor leden en bezoekers."

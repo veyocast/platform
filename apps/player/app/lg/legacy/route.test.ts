@@ -64,6 +64,11 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain('orientation === "portrait" ? 1080 : 1920');
     expect(html).toContain('orientation === "portrait" ? 1920 : 1080');
     expect(html).toContain("padding-top:56.25%");
+    expect(html).toContain("object-fit:contain");
+    expect(html).toContain("justify-content:flex-start");
+    expect(html).toContain("margin-top:auto");
+    expect(html).not.toContain(".editorial-news-copy h2.compact");
+    expect(html).not.toContain('arenaTitle.className = "compact"');
     expect(html).toContain("@keyframes editorial-photo-in");
     expect(html).toContain("LEGACY_TEMPLATE_READY");
     expect(html).toContain("element.textContent = text");
@@ -81,6 +86,9 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain('"/api/player/pairing"');
     expect(html).toContain('"/api/player/manifest?legacy="');
     expect(html).toContain('"/api/player/heartbeat"');
+    expect(html).toContain('appVersion');
+    expect(html).toContain('X-VeyoCast-Player-Version');
+    expect(html).toContain('runtime.applicationReloadPending = true');
     expect(html).toContain('"/api/player/commands"');
     expect(html).toContain("veyocast-player-cache-v1");
     expect(html).toContain("veyocast-player-assets-v1");

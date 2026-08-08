@@ -167,7 +167,7 @@ async function mockEditorialArenaLegacyApis(
               author: "VeyoCast redactie",
               intro: "De volledige HTML/CSS-renderketen werkt ook op de legacy Player.",
               publishedAt: "2026-08-03T18:00:00.000Z",
-              title: "Editorial Arena staat zichtbaar op LG"
+              title: "Oos Kesbeke: een fijnproever ben ik niet, ik vind het lekker of niet"
             }],
             generatedAt: "2026-08-03T18:00:00.000Z",
             secondsPerSlide: 5,
@@ -308,7 +308,7 @@ test("LG webOS wordt zonder Next.js-chunks naar zichtbare Editorial Arena HTML/C
   await expect(page.locator(".dynamic-template.editorial-arena")).toBeVisible();
   await expect(page.locator(".editorial-news")).toBeVisible();
   await expect(page.getByRole("heading", {
-    name: "Editorial Arena staat zichtbaar op LG"
+    name: "Oos Kesbeke: een fijnproever ben ik niet, ik vind het lekker of niet"
   })).toBeVisible();
   await expect(page.locator("#status")).toBeHidden();
   await expect(page.locator("#watermark")).toHaveClass("visible");
@@ -368,9 +368,21 @@ test("LG Legacy schaalt ieder logisch portraitcanvas binnen een landscapeviewpor
   const photoBox = await slide.locator(".editorial-news-art").boundingBox();
   expect(photoBox).not.toBeNull();
   expect(photoBox!.width / photoBox!.height).toBeCloseTo(16 / 9, 2);
-  await expect(page.getByRole("heading", {
-    name: "Editorial Arena staat zichtbaar op LG"
-  })).toBeVisible();
+  const story = slide.locator(".editorial-news-copy");
+  await expect(story).toHaveCSS("justify-content", "flex-start");
+  const headline = page.getByRole("heading", {
+    name: "Oos Kesbeke: een fijnproever ben ik niet, ik vind het lekker of niet"
+  });
+  await expect(headline).toHaveClass("dense");
+  const meta = slide.locator(".editorial-news-meta");
+  const [storyBox, metaBox] = await Promise.all([
+    story.boundingBox(),
+    meta.boundingBox()
+  ]);
+  expect(storyBox).not.toBeNull();
+  expect(metaBox).not.toBeNull();
+  expect(storyBox!.y + storyBox!.height - (metaBox!.y + metaBox!.height))
+    .toBeLessThan(45);
 
   await context.close();
 });

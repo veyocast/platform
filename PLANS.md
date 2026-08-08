@@ -116,6 +116,8 @@ tests en exitcriteria staan in
 | S92 | LG HTML/CSS-renderdiagnose | Zelfstandige TV-diagnose met de echte legacy stylesheet en compatibele fullscreenpositionering, zonder playerdata te wijzigen |
 | S93 | LG pairing bij klokafwijking | Pending pairing server-authoritatief behouden zodat een voorlopende TV-klok geen codecarrousel en rate-limit veroorzaakt |
 | S94 | LG dynamische slide-viewportfit | Alle Editorial Arena-slides op hun vaste portrait- of landscapecanvas proportioneel binnen iedere LG-viewport tonen, met 16:9-nieuwsbeeld en passende titels |
+| S95 | RSS-nieuws leesbaarheid en beeldfit | Lange nieuwstitels harmoniseren, intro/metadata leesbaar positioneren en RSS-beelden zonder vergroting of dubbele crop binnen het 16:9-vlak tonen |
+| S96 | Automatische dynamische livevernieuwing | RSS iedere vijf minuten controleren, ongewijzigde feeds dedupliceren, gewijzigde latest-slides atomisch als nieuwe immutable release uitrollen en Playercode op een veilige grens verversen |
 
 ### Programmagates
 

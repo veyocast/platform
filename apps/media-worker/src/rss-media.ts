@@ -88,10 +88,10 @@ export async function normalizeRssImage(
         .webp({ effort: 4, quality: 88 })
     : pipeline
         .resize({
-          fit: "cover",
-          height: 1920,
-          position: "attention",
-          width: 1080
+          fit: "inside",
+          height: 1080,
+          width: 1920,
+          withoutEnlargement: true
         })
         .webp({ effort: 4, quality: 82 });
   const output = await normalized.toBuffer({ resolveWithObject: true });

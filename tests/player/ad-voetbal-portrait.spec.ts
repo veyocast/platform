@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { routePortraitRssManifest } from "./rss-portrait-fixture";
+import {
+  longNewsTitle,
+  mediumNewsTitle,
+  routePortraitRssManifest
+} from "./rss-portrait-fixture";
 
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
@@ -22,7 +26,7 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
   await expect(slide).toHaveAttribute("data-orientation", "portrait");
   await expect(
     page.getByRole("heading", {
-      name: "De eerste dynamische voetbalheadline staat live"
+      name: mediumNewsTitle
     })
   ).toBeVisible();
   await expect(page.getByText("Voetbalnieuws", { exact: true })).toHaveCSS(
@@ -36,6 +40,46 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
   const photoBox = await photo.boundingBox();
   expect(photoBox).not.toBeNull();
   expect(photoBox!.width / photoBox!.height).toBeCloseTo(16 / 9, 2);
+  await expect(photo.locator("img").first()).toHaveCSS(
+    "object-fit",
+    "contain"
+  );
+
+  const story = slide.locator("main article");
+  await expect(story).toHaveCSS("justify-content", "flex-start");
+  const mediumTitle = page.getByRole("heading", { name: mediumNewsTitle });
+  const mediumTitleSize = Number.parseFloat(
+    await mediumTitle.evaluate((element) => getComputedStyle(element).fontSize)
+  );
+  const intro = page.getByText(
+    "Het laatste voetbalnieuws staat klaar voor leden en bezoekers."
+  );
+  expect(Number.parseFloat(
+    await intro.evaluate((element) => getComputedStyle(element).fontSize)
+  )).toBeGreaterThanOrEqual(26);
+  const meta = story.locator("div").last();
+  await expect(meta).toHaveCSS("border-top-style", "solid");
+  const [storyBox, metaBox] = await Promise.all([
+    story.boundingBox(),
+    meta.boundingBox()
+  ]);
+  expect(storyBox).not.toBeNull();
+  expect(metaBox).not.toBeNull();
+  expect(storyBox!.y + storyBox!.height - (metaBox!.y + metaBox!.height))
+    .toBeLessThan(70);
+  expect(await meta.locator("small").count()).toBe(2);
+  expect(Number.parseFloat(
+    await meta.locator("small").first().evaluate(
+      (element) => getComputedStyle(element).fontSize
+    )
+  )).toBeGreaterThanOrEqual(20);
+
+  const longTitle = page.getByRole("heading", { name: longNewsTitle });
+  await expect(longTitle).toBeVisible({ timeout: 7_000 });
+  const longTitleSize = Number.parseFloat(
+    await longTitle.evaluate((element) => getComputedStyle(element).fontSize)
+  );
+  expect(longTitleSize).toBeCloseTo(mediumTitleSize, 2);
   await expect(page.getByTestId("player-brand-mark")).toHaveCSS(
     "opacity",
     "0.4"

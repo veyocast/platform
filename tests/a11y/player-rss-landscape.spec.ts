@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-import { routeLandscapeRssManifest } from "../player/rss-portrait-fixture";
+import {
+  mediumNewsTitle,
+  routeLandscapeRssManifest
+} from "../player/rss-portrait-fixture";
 
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
@@ -14,7 +17,7 @@ test("landscape nieuwsslide houdt kop, bron en positie toegankelijk", async ({
   await expect(page.getByLabel("Release playback")).toBeVisible();
   await expect(page.getByLabel("Dynamisch voetbalnieuws")).toBeVisible();
   await expect(page.getByRole("heading", {
-    name: "De eerste dynamische voetbalheadline staat live"
+    name: mediumNewsTitle
   })).toBeVisible();
   await expect(page.getByText("Door", { exact: true })).toBeVisible();
   await expect(page.getByText("1 / 2", { exact: true })).toBeVisible();

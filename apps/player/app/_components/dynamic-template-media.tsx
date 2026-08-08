@@ -373,8 +373,7 @@ function ArenaPage({
 }
 
 function newsTitleClassName(title: string) {
-  if (title.length > 96) return styles.arenaNewsTitleDense;
-  if (title.length > 64) return styles.arenaNewsTitleCompact;
+  if (title.length > 64) return styles.arenaNewsTitleDense;
   return undefined;
 }
 
