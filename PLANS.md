@@ -113,6 +113,7 @@ tests en exitcriteria staan in
 | S89 | Sportlink team- en competitiecontext | Teamsync dedupliceren en wedstrijdslides tenantveilig op team, competitie, beker of fase filteren |
 | S90 | Sportlink standseizoenen en clubeditie | Standen op team, competitie en seizoen selecteren, historie behouden, vijfminutensync aanbieden en portrait/landscape als locked HTML/CSS tonen |
 | S91 | Editorial Arena | Eén capability-gated HTML/CSS-thema voor alle volledig ondersteunde dynamische databronnen, met vier vaste canvasvarianten, tenantkleur, motion en veilige immutable fallback |
+| S92 | LG HTML/CSS-renderdiagnose | Zelfstandige TV-diagnose met de echte legacy stylesheet en compatibele fullscreenpositionering, zonder playerdata te wijzigen |
 
 ### Programmagates
 

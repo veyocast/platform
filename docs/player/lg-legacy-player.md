@@ -89,20 +89,52 @@ De cachefallback kan dus geen server-side revoke ongedaan maken.
 
 ## Veilige ingebruikname
 
-1. Open `https://player.veyocast.nl/lg/probe` en noteer de diagnosecode.
-2. Open daarna handmatig `https://player.veyocast.nl/lg/legacy`, koppel het
+1. Open eerst `https://player.veyocast.nl/lg/html-debug`. Wacht op
+   `LG-HTML-CSS-READY` en controleer dat de volledige Editorial Arena-proefslide
+   zichtbaar is. Deze route verandert geen koppeling, release of mediacache.
+2. Open `https://player.veyocast.nl/lg/probe` en noteer de diagnosecode.
+3. Open daarna handmatig `https://player.veyocast.nl/lg/legacy`, koppel het
    scherm en publiceer een release.
-3. Controleer dat de eerste release eerst downloadt/verifieert en daarna pas
+4. Controleer dat de eerste release eerst downloadt/verifieert en daarna pas
    start.
-4. Controleer afbeeldingen, H.264-video, minstens drie loopwissels,
+5. Controleer afbeeldingen, H.264-video, minstens drie loopwissels,
    heartbeat in Control en een herstart van de televisie.
-5. Onderbreek het netwerk terwijl een eerder geverifieerde release bestaat.
+6. Onderbreek het netwerk terwijl een eerder geverifieerde release bestaat.
    De lokale release moet blijven spelen of een expliciet statusvlak tonen;
    nooit een leeg wit/zwart vlak.
-6. Test `Player opnieuw laden` en `Koppeling herstellen` vanuit Control.
-7. Pas na fysieke acceptatie mag de ingestelde LG-URL van `/lg` naar
+7. Test `Player opnieuw laden` en `Koppeling herstellen` vanuit Control.
+8. Pas na fysieke acceptatie mag de ingestelde LG-URL van `/lg` naar
    `/lg/legacy` wijzigen. De generieke, Android- en IPK-players blijven op hun
    bestaande route.
+
+## HTML/CSS-renderdiagnose
+
+`/lg/html-debug` is uitsluitend voor de LG web player en bevat geen React-
+hydration of Next.js-clientchunks. De route toont altijd eerst
+`LG-HTML-CSS-NO-SCRIPT`. Zodra de conservatieve inline runtime start, meet hij
+de viewport, CSS Grid, CSS-variabelen, fullscreenpositionering, een
+same-origin asset en een zichtbare fixture met exact dezelfde legacy-
+stylesheet als normale dynamische slides.
+
+De legacy Player gebruikt voor fullscreenlagen expliciet `top`, `right`,
+`bottom` en `left`. Daardoor blijft de renderlaag bruikbaar wanneer de TV de
+kortere `inset`-notatie niet begrijpt. De debugpagina rapporteert dat als
+`INSET_FALLBACK_ACTIVE`; dit is informatief zolang het eindresultaat
+`LG-HTML-CSS-READY` is.
+
+- `LG-HTML-CSS-NO-SCRIPT`: de browser heeft de inline runtime niet uitgevoerd;
+  noteer het schermbeeld en controleer CSP/browserfouten.
+- `LG-HTML-CSS-VIEWPORT`: de browser meldt geen bruikbare viewport.
+- `LG-HTML-CSS-FEATURES`: Grid of CSS-variabelen werkt niet zoals vereist.
+- `LG-HTML-CSS-LAYOUT`: de echte productiefixture vult het testvlak niet.
+- `LG-HTML-CSS-ASSET`: de ingebouwde same-origin afbeelding decodeert niet.
+- `LG-HTML-CSS-READY`: DOM, vereiste CSS, fullscreenfallback en assetrendering
+  zijn op dit apparaat gereed.
+
+Open in de technische details het lokaal begrensde rapport en deel de code met
+Support. Het rapport staat alleen onder
+`veyocast.player.lgHtmlDebug.v1`; installatie-ID, credentials, immutable
+releases, IndexedDB en Cache Storage worden niet gelezen of gewijzigd.
 
 ## Probe-uitkomsten
 
