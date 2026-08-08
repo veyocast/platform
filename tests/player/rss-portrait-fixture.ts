@@ -9,6 +9,11 @@ import type {
   PlayerManifestItem
 } from "../../apps/player/app/_lib/player-manifest";
 
+export const mediumNewsTitle =
+  "Oos Kesbeke: ‘Een fijnproever ben ik niet, ik vind het lekker of niet’";
+export const longNewsTitle =
+  "Veiligheidsraad waarschuwt: ‘Erop vertrouwen dat brandweer er is en altijd kan helpen, zal niet altijd gaan’";
+
 export async function routePortraitRssManifest(
   page: Page,
   playerUrl: string
@@ -86,7 +91,7 @@ async function routeRssManifest(
               link: "https://example.com/voetbal/eerste",
               publishedAt: "2026-08-02T14:46:00.000Z",
               sourceName: "AD:voetbal",
-              title: "De eerste dynamische voetbalheadline staat live"
+              title: mediumNewsTitle
             },
             {
               author: "Redactie",
@@ -96,7 +101,7 @@ async function routeRssManifest(
               link: "https://example.com/voetbal/tweede",
               publishedAt: "2026-08-02T14:36:00.000Z",
               sourceName: "AD:voetbal",
-              title: "Ook het tweede bericht gebruikt echte HTML en CSS"
+              title: longNewsTitle
             }
           ],
           providerLogoMediaAssetId: logoId,

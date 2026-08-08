@@ -11,7 +11,7 @@ const job = {
 };
 
 describe("RSS media normalisatie", () => {
-  it("maakt een content-addressed portrait WebP zonder providerbytes uit te voeren", async () => {
+  it("bewaart beeldverhouding en bronresolutie zonder providerbytes uit te voeren", async () => {
     const input = await sharp({
       create: {
         background: { alpha: 1, b: 35, g: 88, r: 180 },
@@ -42,15 +42,42 @@ describe("RSS media normalisatie", () => {
 
     expect(first).toMatchObject({
       externalId: "article-1",
-      height: 1920,
+      height: 360,
       mimeType: "image/webp",
       role: "article_hero",
-      width: 1080
+      width: 640
     });
     expect(first.assetId).toBe(second.assetId);
     expect(first.storagePath).toBe(
       `tenants/${job.tenantId}/assets/${first.assetId}/rss-article_hero.webp`
     );
     expect(first.checksumSha256).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it("verkleint grote nieuwsbeelden proportioneel binnen een 16:9 maximum", async () => {
+    const input = await sharp({
+      create: {
+        background: { alpha: 1, b: 35, g: 88, r: 180 },
+        channels: 4,
+        height: 2400,
+        width: 1600
+      }
+    }).png().toBuffer();
+
+    const artifact = await normalizeRssImage(
+      job,
+      {
+        externalId: "portrait-article",
+        role: "article_hero",
+        title: "Staand nieuwsbeeld"
+      },
+      input
+    );
+
+    expect(artifact).toMatchObject({
+      height: 1080,
+      width: 720
+    });
+    expect(artifact.width / artifact.height).toBeCloseTo(2 / 3, 4);
   });
 });
