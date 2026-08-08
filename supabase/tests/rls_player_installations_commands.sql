@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(40);
+select plan(41);
 
 insert into public.playlists (
   id,
@@ -170,6 +170,34 @@ select is(
   'screen starts with an immutable assigned release'
 );
 
+insert into public.player_commands (
+  tenant_id, installation_id, screen_id, device_id, command_type,
+  payload, nonce, created_at, expires_at
+)
+select
+  device.tenant_id,
+  installation.id,
+  device.screen_id,
+  device.id,
+  'RELOAD_PLAYER',
+  '{"reason":"scheduled-test"}'::jsonb,
+  '51000000-0000-4000-8000-000000000148',
+  now() + interval '10 minutes',
+  now() + interval '1 day'
+from public.player_installations installation
+join public.player_devices device on device.id = installation.bound_device_id
+where installation.public_identifier_hash = repeat('a', 64);
+
+set local role anon;
+select is(
+  jsonb_array_length(
+    public.poll_player_commands_v1(repeat('c', 64)) -> 'commands'
+  ),
+  0,
+  'a scheduled rollout reload is not delivered before its safe activation time'
+);
+
+reset role;
 set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
@@ -505,8 +533,8 @@ select is(
     from public.player_commands
     where tenant_id = '10000000-0000-4000-8000-000000000101'
   ),
-  3::bigint,
-  'tenant manager reads only the three own command records through RLS'
+  4::bigint,
+  'tenant manager reads only the four own command records through RLS'
 );
 reset role;
 select is(

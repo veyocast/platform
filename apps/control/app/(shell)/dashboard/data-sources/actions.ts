@@ -21,7 +21,7 @@ export async function createRssSource(formData: FormData) {
     redirect("/dashboard/data-sources?fout=Controleer+de+naam+en+publieke+feed-URL.");
   }
   const { data, error } = await supabase.rpc("create_dynamic_data_source_v1", {
-    p_config_json: { url },
+    p_config_json: { refreshMinutes: 5, url },
     p_kind: "rss",
     p_name: name,
     p_tenant_id: session.tenantId!
