@@ -821,6 +821,76 @@ test("LG Legacy Player toont pairing zonder witte of horizontaal overlopende pag
   );
 });
 
+test("LG Legacy Player roteert een geldige code niet door een voorlopende TV-klok", async ({
+  page
+}) => {
+  let pairingRequests = 0;
+  let heartbeatRequests = 0;
+  const requestNonces: string[] = [];
+
+  await page.route("**/api/player/installation", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        bound: false,
+        installationCredential,
+        ok: true
+      })
+    });
+  });
+  await page.route("**/api/player/pairing", async (route) => {
+    pairingRequests += 1;
+    requestNonces.push(
+      route.request().headers()["x-veyocast-pairing-request"] ?? ""
+    );
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        deviceToken,
+        expiresAt: new Date(Date.now() - 2 * 60 * 60 * 1_000).toISOString(),
+        pairingCode: "CLK 748"
+      })
+    });
+  });
+  await page.route("**/api/player/heartbeat", async (route) => {
+    heartbeatRequests += 1;
+    await route.fulfill({
+      status: 409,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: {
+          cause: "Koppelcode is nog niet geclaimd.",
+          code: "PAIRING_PENDING"
+        },
+        ok: false
+      })
+    });
+  });
+  await page.route("**/api/player/commands", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        commands: [],
+        ok: true,
+        serverTime: new Date().toISOString()
+      })
+    });
+  });
+
+  await page.goto(`${playerURL}/lg/legacy`);
+
+  await expect(page.locator("#pairing-code")).toHaveText("CLK 748");
+  await expect
+    .poll(() => heartbeatRequests, { timeout: 8_000 })
+    .toBeGreaterThanOrEqual(2);
+  await page.waitForTimeout(1_500);
+  expect(pairingRequests).toBe(1);
+  expect(requestNonces).toHaveLength(1);
+  expect(requestNonces[0]).toMatch(/^[a-f0-9-]{20,80}$/);
+  await expect(page.locator("#pairing-code")).toHaveText("CLK 748");
+  await expect(page.getByText("PAIRING_RATE_LIMITED")).toHaveCount(0);
+});
+
 function cachedImageEnvelope(itemId: string) {
   return legacyEnvelope({
     bytes: legacyImageBytes,

@@ -624,8 +624,7 @@ export function renderLgLegacyHtml() {
     }
     function ensurePairing() {
       var code = safeRead(CONFIG.pairingCodeKey);
-      var expiresAt = new Date(safeRead(CONFIG.pairingExpiryKey) || "").getTime();
-      if (code && isFinite(expiresAt) && expiresAt > now() + 1000 && runtime.deviceToken) {
+      if (code && runtime.deviceToken) {
         showPairing(code);
         setState("PAIRING_CODE_ACTIVE");
         pollPairingClaim();
@@ -636,13 +635,7 @@ export function renderLgLegacyHtml() {
     }
     function pollPairingClaim() {
       var pairingCode = safeRead(CONFIG.pairingCodeKey);
-      var expiresAt = new Date(safeRead(CONFIG.pairingExpiryKey) || "").getTime();
       if (!runtime.deviceToken || !pairingCode) {
-        clearInvalidDeviceCredential();
-        requestPairing();
-        return;
-      }
-      if (!isFinite(expiresAt) || expiresAt <= now()) {
         clearInvalidDeviceCredential();
         requestPairing();
         return;
