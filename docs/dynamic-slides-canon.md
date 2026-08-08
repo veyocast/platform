@@ -92,6 +92,19 @@ Existing immutable releases retain their original bytes; a subsequent
 successful source sync creates new content-addressed media for the next
 snapshot and publication.
 
+Active RSS sources are checked server-side every five minutes. A normalized
+article and media hash decides whether the provider content actually changed.
+An unchanged check only advances the next sync time and creates no snapshot,
+render job, release or Player download.
+
+When a changed `latest` snapshot becomes ready, the system creates a new
+immutable release from the previous live release. It replaces only dynamic
+release items; unrelated unpublished draft edits are never included. Screens
+using that playlist as their default receive the release as `desired`. An
+active schedule remains authoritative and falls back to the refreshed default
+after its window ends. The Player still downloads and verifies the complete
+release and switches only at a loop boundary.
+
 The existing Twelve Excel parser and staging/apply transaction remain the
 supported Twelve path. The official API is explicitly `not_connected` until
 official endpoint, field and authentication documentation is approved. No
@@ -223,7 +236,8 @@ Structured events:
 
 Audit events cover datasource creation/sync/failure, manual product creation,
 slide/snapshot creation, playlist insertion, template create/update/version/
-publish/withdraw and worker completion.
+publish/withdraw, worker completion and automatic immutable publication through
+`dynamic.release.auto_published`.
 
 Operational recovery is retrying the failed source or render. The last good
 snapshot stays available throughout. Generated asset deletion must continue to

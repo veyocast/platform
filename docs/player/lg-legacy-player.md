@@ -38,6 +38,16 @@ playbacktimer, playlistindex, media-URL of DOM-element. Ook na een herstart
 komt de bekende release-ID uit IndexedDB, waardoor geen volledig manifest of
 signed media-URL nodig is zolang de toewijzing gelijk blijft.
 
+Iedere manifestresponse adverteert ook de actuele Player-appversie. Wijkt die
+af van de geopende Legacy-runtime, dan blijft het huidige item zichtbaar en
+herlaadt de pagina op de eerstvolgende itemgrens. Nieuwe HTML/CSS-renderers
+worden daardoor na volgende deployments automatisch actief zonder periodieke
+blinde paginareloads of een onderbreking midden in een video.
+
+De S96-migratie plant eenmalig een vertraagde `RELOAD_PLAYER` voor recent
+actieve installaties. Die bootstrap bereikt ook shells die de versieheader nog
+niet kennen; volgende deployments verlopen volledig via de versiehandshake.
+
 Een gewijzigde release doorloopt achtereenvolgens:
 
 1. manifest ontvangen en alle cachebare assets inventariseren;
