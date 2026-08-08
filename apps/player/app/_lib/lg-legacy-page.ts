@@ -144,14 +144,17 @@ export function renderLgLegacyHtml() {
     .editorial-news{display:grid;grid-template-columns:1.02fr .98fr;gap:1.6%;height:100%}
     .editorial-news-art,.editorial-news-copy{position:relative;overflow:hidden;border:1px solid rgba(23,32,42,.13);border-radius:24px;background:#fffefa;box-shadow:0 24px 80px rgba(0,0,0,.24)}
     .dark .editorial-news-art,.dark .editorial-news-copy{border-color:rgba(255,255,255,.12);background:#0d1218}
-    .editorial-news-art{display:flex;align-items:center;justify-content:center;background:#152d43;animation:editorial-photo-in 360ms ease-out both}
-    .editorial-news-art>img{width:100%;height:100%;object-fit:cover}
-    .editorial-news-art>span{color:rgba(255,255,255,.08);font-size:clamp(70px,14vw,270px);font-weight:900}
+    .editorial-news-art{align-self:center;width:100%;height:auto;display:block;background:#152d43;animation:editorial-photo-in 360ms ease-out both}
+    .editorial-news-art:before{display:block;padding-top:56.25%;content:""}
+    .editorial-news-art>img{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover}
+    .editorial-news-art>span{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.08);font-size:clamp(70px,14vw,270px);font-weight:900}
     .editorial-news-source{position:absolute;top:4%;left:4%;z-index:2;max-width:42%;max-height:12%;color:#fff;font-weight:900;text-transform:uppercase}
     .editorial-news-source img{width:auto;max-width:190px;height:auto;max-height:64px;object-fit:contain}
     .editorial-news-copy{display:flex;flex-direction:column;justify-content:center;padding:5%}
     .editorial-news-copy>span{margin:0 0 .6em;color:var(--accent);font-size:clamp(11px,1.04vw,20px);font-weight:900;letter-spacing:.18em;text-transform:uppercase;animation:editorial-copy-in 280ms 760ms ease-out both}
     .editorial-news-copy h2{margin:0;font-size:clamp(38px,3.75vw,72px);font-weight:900;letter-spacing:-.025em;line-height:.92;text-transform:uppercase;animation:editorial-copy-in 300ms 260ms ease-out both}
+    .editorial-news-copy h2.compact{font-size:clamp(34px,3.2vw,61px);line-height:.96}
+    .editorial-news-copy h2.dense{font-size:clamp(29px,2.75vw,53px);line-height:1}
     .editorial-news-copy p{max-width:92%;margin:4% 0 0;color:#6f7882;font-size:clamp(14px,1.15vw,22px);line-height:1.5;animation:editorial-copy-in 300ms 520ms ease-out both}
     .dark .editorial-news-copy p{color:#9aa2ac}
     .editorial-news-meta{display:flex;gap:8%;margin-top:5%;padding-top:4%;border-top:1px solid rgba(23,32,42,.13);animation:editorial-copy-in 280ms 760ms ease-out both}
@@ -165,8 +168,10 @@ export function renderLgLegacyHtml() {
     .editorial-arena.portrait .editorial-context{display:none}
     .editorial-arena.portrait .dynamic-body{top:15.83%;right:5.37%;bottom:5.52%;left:5.37%}
     .dynamic-template.editorial-arena.portrait>footer{right:5.37%;bottom:1.88%;left:17.37%}
-    .editorial-arena.portrait .editorial-news{grid-template-columns:1fr;grid-template-rows:42% 1fr}
-    .editorial-arena.portrait .editorial-news-copy h2{font-size:clamp(44px,7vw,76px)}
+    .editorial-arena.portrait .editorial-news{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+    .editorial-arena.portrait .editorial-news-copy h2{font-size:clamp(34px,5.75vw,62px);line-height:.96}
+    .editorial-arena.portrait .editorial-news-copy h2.compact{font-size:clamp(30px,5vw,54px)}
+    .editorial-arena.portrait .editorial-news-copy h2.dense{font-size:clamp(27px,4.35vw,47px)}
     .dynamic-template.standing-club{display:block;padding:0;background:#070b0f;color:#f6f4ee}
     .standing-club>header,.standing-club>footer{display:none}
     .standing-club .dynamic-body{position:absolute;top:0;right:0;bottom:0;left:0;display:block;padding:0}
@@ -2207,11 +2212,14 @@ export function renderLgLegacyHtml() {
             }
             arenaHero.appendChild(arenaSource);
             arenaCopy.appendChild(templateNode("span", "", "Laatste nieuws"));
-            arenaCopy.appendChild(templateNode(
-              "h2",
-              "",
-              templateText(article.title, "Clubnieuws")
-            ));
+            var arenaTitleText = templateText(article.title, "Clubnieuws");
+            var arenaTitle = templateNode("h2", "", arenaTitleText);
+            if (arenaTitleText.length > 96) {
+              arenaTitle.className = "dense";
+            } else if (arenaTitleText.length > 64) {
+              arenaTitle.className = "compact";
+            }
+            arenaCopy.appendChild(arenaTitle);
             if (article.intro) {
               arenaCopy.appendChild(templateNode(
                 "p",
@@ -2537,6 +2545,46 @@ export function renderLgLegacyHtml() {
         }
       };
     }
+    function fitDynamicTemplateCanvas(root, orientation) {
+      var mediaRoot = byId("media-root");
+      var logicalWidth = orientation === "portrait" ? 1080 : 1920;
+      var logicalHeight = orientation === "portrait" ? 1920 : 1080;
+      var viewportWidth = mediaRoot.clientWidth || window.innerWidth || logicalWidth;
+      var viewportHeight = mediaRoot.clientHeight || window.innerHeight || logicalHeight;
+      var scale = Math.min(
+        viewportWidth / logicalWidth,
+        viewportHeight / logicalHeight
+      );
+      if (!isFinite(scale) || scale <= 0) scale = 1;
+      root.setAttribute("data-canvas-height", String(logicalHeight));
+      root.setAttribute("data-canvas-width", String(logicalWidth));
+      root.setAttribute("data-template-orientation", orientation);
+      root.style.top = "50%";
+      root.style.right = "auto";
+      root.style.bottom = "auto";
+      root.style.left = "50%";
+      root.style.width = String(logicalWidth) + "px";
+      root.style.height = String(logicalHeight) + "px";
+      root.style.transform = "translate(-50%, -50%) scale(" + String(scale) + ")";
+      root.style.transformOrigin = "center center";
+    }
+    function refitDynamicTemplates() {
+      var current = runtime.currentElement;
+      var pending = runtime.pendingElement;
+      var orientation;
+      if (current && current.getAttribute) {
+        orientation = current.getAttribute("data-template-orientation");
+        if (orientation === "portrait" || orientation === "landscape") {
+          fitDynamicTemplateCanvas(current, orientation);
+        }
+      }
+      if (pending && pending !== current && pending.getAttribute) {
+        orientation = pending.getAttribute("data-template-orientation");
+        if (orientation === "portrait" || orientation === "landscape") {
+          fitDynamicTemplateCanvas(pending, orientation);
+        }
+      }
+    }
     function playDynamicTemplate(item, fallbackUrl, objectUrls, generation) {
       var payload = item.dynamicTemplate;
       var snapshot = templateRecord(payload.data) || {};
@@ -2630,6 +2678,7 @@ export function renderLgLegacyHtml() {
       root.appendChild(body);
       root.appendChild(footer);
       renderer.render(renderer.pages[0]);
+      fitDynamicTemplateCanvas(root, payload.orientation);
       beginPendingMedia(root, objectUrls);
       if (!commitPendingMedia(root, objectUrls, generation)) return;
       templateDuration = Math.max(
@@ -3220,6 +3269,7 @@ export function renderLgLegacyHtml() {
     window.addEventListener("offline", function () {
       restoreLastKnownGood(function () {});
     });
+    window.addEventListener("resize", refitDynamicTemplates);
     notifyLgWrapperReady();
     boot();
   }());

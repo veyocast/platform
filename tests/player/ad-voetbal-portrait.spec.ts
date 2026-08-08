@@ -32,6 +32,10 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
   const supplierLogo = page.getByRole("img", { name: "AD:voetbal" });
   await expect(supplierLogo).toBeVisible();
   expect((await supplierLogo.boundingBox())?.height).toBeLessThanOrEqual(75);
+  const photo = slide.locator("main section").first();
+  const photoBox = await photo.boundingBox();
+  expect(photoBox).not.toBeNull();
+  expect(photoBox!.width / photoBox!.height).toBeCloseTo(16 / 9, 2);
   await expect(page.getByTestId("player-brand-mark")).toHaveCSS(
     "opacity",
     "0.4"
@@ -42,5 +46,22 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
       path: "docs/screenshots/s91-editorial-arena-news-portrait.png"
     });
   }
+  await page.setViewportSize({ height: 1080, width: 1920 });
+  await expect.poll(async () => {
+    const box = await slide.boundingBox();
+    return box ? {
+      bottom: Math.round(box.y + box.height),
+      height: Math.round(box.height),
+      left: Math.round(box.x),
+      right: Math.round(box.x + box.width),
+      top: Math.round(box.y)
+    } : null;
+  }).toEqual({
+    bottom: 1080,
+    height: 1080,
+    left: 656,
+    right: 1264,
+    top: 0
+  });
   expect(browserErrors).toEqual([]);
 });

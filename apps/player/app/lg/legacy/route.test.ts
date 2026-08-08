@@ -60,6 +60,10 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("editorial-arena-");
     expect(html).toContain("editorialArenaSlideTypes");
     expect(html).toContain("editorial-news");
+    expect(html).toContain("fitDynamicTemplateCanvas(root, payload.orientation)");
+    expect(html).toContain('orientation === "portrait" ? 1080 : 1920');
+    expect(html).toContain('orientation === "portrait" ? 1920 : 1080');
+    expect(html).toContain("padding-top:56.25%");
     expect(html).toContain("@keyframes editorial-photo-in");
     expect(html).toContain("LEGACY_TEMPLATE_READY");
     expect(html).toContain("element.textContent = text");

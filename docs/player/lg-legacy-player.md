@@ -60,6 +60,25 @@ tweede laag. De lagen wisselen pas nadat beeld of video gereed is, waarna de
 oude Blob-URL wordt ingetrokken. Daardoor komt de zwarte Playerachtergrond
 niet tussen twee geldige items in beeld.
 
+## Logisch canvas en viewportfit
+
+Alle dynamische HTML/CSS-slides behouden hun vaste ontwerpcanvas:
+
+- landscape: `1920 × 1080`;
+- portrait: `1080 × 1920`.
+
+De gewone en Legacy Player schalen dat volledige canvas proportioneel met
+`min(viewportbreedte / canvasbreedte, viewporthoogte / canvashoogte)` en
+centreren het resultaat. Een LG die door firmware, rotatie of browsermodus een
+afwijkende viewport rapporteert, rekt een portraitslide daardoor niet meer uit
+tot landscape en snijdt geen titel, standrij of footer af. Vrije ruimte buiten
+het canvas blijft de neutrale Playerachtergrond. Een resize herberekent de fit
+zonder release-, cache- of playlistwissel.
+
+Nieuwsbeelden staan binnen beide oriëntaties in een vaste 16:9-container en
+schalen met `object-fit: cover`. Lange titels gebruiken twee begrensde compacte
+typografiestappen; de inhoud en volgorde blijven gelijk.
+
 ## Heartbeat- en credentialbehoud
 
 Een fysieke LG-test op 1 augustus 2026 bewees dat de eerste Legacy-runtime de
