@@ -115,6 +115,7 @@ tests en exitcriteria staan in
 | S91 | Editorial Arena | Eén capability-gated HTML/CSS-thema voor alle volledig ondersteunde dynamische databronnen, met vier vaste canvasvarianten, tenantkleur, motion en veilige immutable fallback |
 | S92 | LG HTML/CSS-renderdiagnose | Zelfstandige TV-diagnose met de echte legacy stylesheet en compatibele fullscreenpositionering, zonder playerdata te wijzigen |
 | S93 | LG pairing bij klokafwijking | Pending pairing server-authoritatief behouden zodat een voorlopende TV-klok geen codecarrousel en rate-limit veroorzaakt |
+| S94 | LG dynamische slide-viewportfit | Alle Editorial Arena-slides op hun vaste portrait- of landscapecanvas proportioneel binnen iedere LG-viewport tonen, met 16:9-nieuwsbeeld en passende titels |
 
 ### Programmagates
 
