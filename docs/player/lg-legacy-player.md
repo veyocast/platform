@@ -73,11 +73,13 @@ centreren het resultaat. Een LG die door firmware, rotatie of browsermodus een
 afwijkende viewport rapporteert, rekt een portraitslide daardoor niet meer uit
 tot landscape en snijdt geen titel, standrij of footer af. Vrije ruimte buiten
 het canvas blijft de neutrale Playerachtergrond. Een resize herberekent de fit
-zonder release-, cache- of playlistwissel.
+direct zonder release-, cache- of playlistwissel.
 
 Nieuwsbeelden staan binnen beide oriëntaties in een vaste 16:9-container en
-schalen met `object-fit: cover`. Lange titels gebruiken twee begrensde compacte
-typografiestappen; de inhoud en volgorde blijven gelijk.
+bewaren met `object-fit: contain` het volledige bronbeeld zonder vergroting.
+Kop en grotere intro starten bovenaan; middellange en lange titels gebruiken
+dezelfde begrensde maat. Datum en auteur staan naast elkaar onder de
+scheidingslijn linksonder in het tekstpaneel.
 
 ## Heartbeat- en credentialbehoud
 

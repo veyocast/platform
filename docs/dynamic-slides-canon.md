@@ -83,6 +83,15 @@ News articles use a stable source external ID, title, intro, author, source
 name, public HTTP(S) link, publication timestamp and optional tenant media ID.
 Raw XML/HTML is not exposed to templates.
 
+RSS article images retain their intrinsic aspect ratio and are never enlarged
+during normalization. Images larger than the Player budget are reduced
+proportionally within 1920×1080. The locked news renderer places the complete
+verified image with `contain` inside its 16:9 media zone, so a provider image is
+not first forced into portrait and then cropped a second time on the Player.
+Existing immutable releases retain their original bytes; a subsequent
+successful source sync creates new content-addressed media for the next
+snapshot and publication.
+
 The existing Twelve Excel parser and staging/apply transaction remain the
 supported Twelve path. The official API is explicitly `not_connected` until
 official endpoint, field and authentication documentation is approved. No
@@ -176,6 +185,10 @@ progress context. The sequence completes early within the configured page
 duration and never changes the five-second default timing. Browser and LG
 Legacy runtimes use equivalent CSS keyframes. `prefers-reduced-motion: reduce`
 removes all entrance motion and exposes the complete content immediately.
+News copy starts at the top of its panel. Medium and long multi-line headlines
+share one bounded display size, the larger intro follows directly below and
+the date/author pair remains anchored side by side beneath a divider at the
+lower-left edge of the panel.
 
 ## Security and authorization
 
