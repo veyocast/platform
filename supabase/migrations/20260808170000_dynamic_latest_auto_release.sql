@@ -489,7 +489,9 @@ begin
       from unnest(active_screen_ids) screen_id;
     end if;
 
-    perform private.audit_event(
+    insert into public.audit_events (
+      tenant_id, action, target_type, target_id, result, metadata
+    ) values (
       target.tenant_id,
       'dynamic.release.auto_published',
       'playlist_releases',
@@ -677,7 +679,9 @@ begin
       now() + interval '1 day 10 minutes'
     ) returning id into command_id;
 
-    perform private.audit_event(
+    insert into public.audit_events (
+      tenant_id, action, target_type, target_id, result, metadata
+    ) values (
       target.tenant_id,
       'player_command.queued',
       'screens',
