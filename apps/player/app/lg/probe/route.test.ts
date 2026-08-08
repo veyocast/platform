@@ -19,6 +19,7 @@ describe("zelfstandige LG compatibiliteitsprobe", () => {
     expect(html).toContain("LG compatibiliteitsprobe");
     expect(html).toContain("VeyoCast-videoreferentie");
     expect(html).toContain("Dynamische HTML/CSS-slide");
+    expect(html).toContain('href="/lg/html-debug"');
     expect(html).toContain("Bestaande Player-cache");
     expect(html).not.toContain("/_next/");
     expect(html).not.toContain("__next");

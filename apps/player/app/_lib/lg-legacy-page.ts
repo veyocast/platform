@@ -39,12 +39,12 @@ export function renderLgLegacyHtml() {
     *{box-sizing:border-box}
     html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#050505;color:#f7f5f0;font-family:Arial,Helvetica,sans-serif}
     body{position:relative}
-    #media-root{position:absolute;inset:0;background:#050505;overflow:hidden}
+    #media-root{position:absolute;top:0;right:0;bottom:0;left:0;background:#050505;overflow:hidden}
     #media-root img,#media-root video{display:block;width:100%;height:100%;border:0;background:#050505}
-    .legacy-media-layer{position:absolute;inset:0;z-index:1;opacity:0;visibility:hidden;transition:opacity 180ms ease}
+    .legacy-media-layer{position:absolute;top:0;right:0;bottom:0;left:0;z-index:1;opacity:0;visibility:hidden;transition:opacity 180ms ease}
     .legacy-media-layer.visible{opacity:1;visibility:visible}
     .legacy-media-layer.retiring{opacity:0;visibility:visible}
-    #status{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:5vh 5vw;background:#080908}
+    #status{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;padding:5vh 5vw;background:#080908}
     #status[hidden]{display:none}
     .panel{width:min(860px,90vw);padding:clamp(28px,4vw,58px);border:1px solid rgba(255,255,255,.22);border-radius:24px;background:#101110}
     .logo{display:block;width:min(290px,48vw);height:auto;margin:0 0 42px}
@@ -60,7 +60,7 @@ export function renderLgLegacyHtml() {
     #watermark.visible{display:block}
     #offline{position:absolute;right:2vw;bottom:2vh;display:none;padding:8px 12px;border-radius:999px;background:rgba(7,7,7,.76);color:#f4c15d;font-size:16px;font-weight:700}
     #offline.visible{display:block}
-    .dynamic-template{--accent:#ff5c20;position:absolute;inset:0;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;padding:5vh 5vw 4vh;background:#f4efe6;color:#11110f;font-family:Arial,Helvetica,sans-serif}
+    .dynamic-template{--accent:#ff5c20;position:absolute;top:0;right:0;bottom:0;left:0;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;padding:5vh 5vw 4vh;background:#f4efe6;color:#11110f;font-family:Arial,Helvetica,sans-serif}
     .dynamic-template.dark{background:#080908;color:#fffdf7}
     .dynamic-template header{border-bottom:2px solid rgba(98,95,87,.3);padding:1.8vh 0 2.8vh}
     .dynamic-template header p,.dynamic-news-meta{margin:0 0 1vh;color:var(--accent);font-size:clamp(17px,1.45vw,30px);font-weight:800;letter-spacing:.14em;text-transform:uppercase}
@@ -169,8 +169,8 @@ export function renderLgLegacyHtml() {
     .editorial-arena.portrait .editorial-news-copy h2{font-size:clamp(44px,7vw,76px)}
     .dynamic-template.standing-club{display:block;padding:0;background:#070b0f;color:#f6f4ee}
     .standing-club>header,.standing-club>footer{display:none}
-    .standing-club .dynamic-body{position:absolute;inset:0;display:block;padding:0}
-    .legacy-standing{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 100% 0,rgba(241,90,36,.22),transparent 48%),radial-gradient(ellipse at 0 100%,rgba(241,90,36,.17),transparent 45%),#070b0f}
+    .standing-club .dynamic-body{position:absolute;top:0;right:0;bottom:0;left:0;display:block;padding:0}
+    .legacy-standing{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;background:radial-gradient(ellipse at 100% 0,rgba(241,90,36,.22),transparent 48%),radial-gradient(ellipse at 0 100%,rgba(241,90,36,.17),transparent 45%),#070b0f}
     .legacy-standing:before{position:absolute;top:0;right:0;left:0;height:6px;background:var(--accent);content:""}
     .legacy-standing-header{position:absolute;top:2.4%;right:5.2%;left:5.2%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;min-height:22%;gap:2.2vw;border-bottom:1px solid rgba(255,255,255,.12)}
     .legacy-standing-mark{display:flex;align-items:center;justify-content:center;width:min(10vh,8vw);height:min(10vh,8vw);border:2px solid var(--accent);border-radius:50%;background:rgba(255,255,255,.055);font-size:clamp(25px,3vw,54px);font-weight:900}
@@ -220,12 +220,12 @@ export function renderLgLegacyHtml() {
     .standing-club.editorial-arena:not(.dark) .legacy-standing-team i{border-color:rgba(23,32,42,.14);background:rgba(23,32,42,.05)}
     .dynamic-template.rss-news-portrait,.dynamic-template.rss-news-landscape{display:block;padding:0;background:#0a0a0a;color:#fafaf7}
     .rss-news-portrait>header,.rss-news-portrait>footer,.rss-news-landscape>header,.rss-news-landscape>footer{display:none}
-    .rss-news-portrait .dynamic-body,.rss-news-landscape .dynamic-body{position:absolute;inset:0;display:block;padding:0}
-    .legacy-rss-page{position:absolute;inset:0;overflow:hidden;background:#0a0a0a}
-    .legacy-rss-hero,.legacy-rss-grade{position:absolute;inset:0}
+    .rss-news-portrait .dynamic-body,.rss-news-landscape .dynamic-body{position:absolute;top:0;right:0;bottom:0;left:0;display:block;padding:0}
+    .legacy-rss-page{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;background:#0a0a0a}
+    .legacy-rss-hero,.legacy-rss-grade{position:absolute;top:0;right:0;bottom:0;left:0}
     .legacy-rss-hero{overflow:hidden;background:#0a0a0a;animation:legacy-rss-photo-in 760ms cubic-bezier(.16,1,.3,1) both}
     .legacy-rss-hero>span{position:absolute;top:34%;left:50%;color:rgba(255,255,255,.045);font-size:min(82vw,900px);font-weight:900;line-height:1;transform:translate(-50%,-50%)}
-    .legacy-rss-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 38%;filter:saturate(.88) contrast(1.04) brightness(.9)}
+    .legacy-rss-hero img{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover;object-position:50% 38%;filter:saturate(.88) contrast(1.04) brightness(.9)}
     .legacy-rss-grade{background:linear-gradient(180deg,rgba(10,10,10,.94),rgba(10,10,10,.38) 13%,transparent 29%,transparent 48%,rgba(10,10,10,.72) 64%,#0a0a0a 80%,#0a0a0a)}
     .legacy-rss-provider{position:absolute;top:3%;right:7%;left:7%;display:flex;flex-direction:column;align-items:center;animation:legacy-rss-detail-in 520ms 1120ms cubic-bezier(.2,0,0,1) both}
     .legacy-rss-provider img{width:auto;max-width:min(24vw,130px);height:min(3.9vh,75px);object-fit:contain;filter:drop-shadow(0 .6vh 1.2vh rgba(0,0,0,.44))}

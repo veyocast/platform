@@ -132,6 +132,7 @@ export function renderLgProbeHtml() {
 
     <div class="actions">
       <button class="button button-primary" id="run-again" type="button">Probe opnieuw uitvoeren</button>
+      <a class="button" href="/lg/html-debug">HTML/CSS-renderdiagnose</a>
       <a class="button" href="/lg">Player openen</a>
       <a class="button" href="/lg/recover">Player herstellen</a>
     </div>

@@ -13,6 +13,12 @@ const legacyPageFile = path.join(
   "_lib",
   "lg-legacy-page.ts"
 );
+const htmlDebugPageFile = path.join(
+  playerRoot,
+  "app",
+  "_lib",
+  "lg-html-debug-page.ts"
+);
 const failures = [];
 
 for (const file of standaloneBrowserFiles) {
@@ -41,6 +47,21 @@ if (
 ) {
   failures.push(
     "app/_lib/lg-legacy-page.ts verwijst naar modulecode of Next.js-clientchunks."
+  );
+}
+if (legacyPageSource.includes("position:absolute;inset:0")) {
+  failures.push(
+    "app/_lib/lg-legacy-page.ts gebruikt opnieuw inset:0 voor een absolute fullscreenlaag; behoud de vier-randenfallback voor oude LG-browsers."
+  );
+}
+
+const htmlDebugPageSource = await readFile(htmlDebugPageFile, "utf8");
+if (
+  htmlDebugPageSource.includes('type="module"') ||
+  htmlDebugPageSource.includes("/_next/")
+) {
+  failures.push(
+    "app/_lib/lg-html-debug-page.ts verwijst naar modulecode of Next.js-clientchunks."
   );
 }
 
