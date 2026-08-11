@@ -17,10 +17,33 @@ describe("RSS/Atom normalisatie", () => {
 
     expect(feed.title).toBe("Clubnieuws");
     expect(feed.articles[0]).toMatchObject({
+      canonicalLink: "https://example.com/nieuws/finale",
       externalId: "bericht-1",
       intro: "We zijn kampioen .",
       sourceName: "Clubnieuws",
       title: "Finale & feest"
+    });
+    expect(feed.articles[0]?.qrMediaAssetId).toBeNull();
+  });
+
+  it("houdt bij meerdere providerupdates van dezelfde artikellink alleen de nieuwste over", () => {
+    const feed = parseRssOrAtom(
+      `<rss><channel><title>Updates</title>
+        <item><guid>oud</guid><title>Oude titel</title>
+          <link>https://example.org/bericht/?utm_source=rss</link>
+          <pubDate>Mon, 10 Aug 2026 10:00:00 GMT</pubDate></item>
+        <item><guid>nieuw</guid><title>Bijgewerkte titel</title>
+          <link>https://example.org/bericht?fbclid=provider</link>
+          <pubDate>Mon, 10 Aug 2026 11:00:00 GMT</pubDate></item>
+      </channel></rss>`,
+      "https://example.org/feed.xml"
+    );
+
+    expect(feed.articles).toHaveLength(1);
+    expect(feed.articles[0]).toMatchObject({
+      canonicalLink: "https://example.org/bericht",
+      externalId: "nieuw",
+      title: "Bijgewerkte titel"
     });
   });
 

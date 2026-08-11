@@ -109,11 +109,84 @@ describe("Sportlink sync worker", () => {
     expect(rpc).toHaveBeenCalledTimes(1);
   });
 
+  it("uploads an official club logo locally before completing the provider run", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: { readCount: 1 },
+      error: null
+    });
+    const upload = vi.fn().mockResolvedValue({ error: null });
+    const from = vi.fn(() => ({ upload }));
+    const backend = new SupabaseSportlinkSyncBackend(
+      "https://project.supabase.co",
+      "service-secret",
+      { rpc, storage: { from } }
+    );
+    const bytes = new Uint8Array([1, 2, 3]);
+
+    await expect(backend.complete({
+      connectionId: "20000000-0000-4000-8000-000000000001",
+      dataSourceId: "30000000-0000-4000-8000-000000000001",
+      datasetGroup: "club_profile",
+      encryptedClientId: "ciphertext",
+      encryptionIv: "initialization",
+      encryptionTag: "authentication",
+      runId: "40000000-0000-4000-8000-000000000001",
+      tenantId: "10000000-0000-4000-8000-000000000001"
+    }, "worker:sportlink", {
+      activities: [],
+      club: {
+        city: "Den Haag",
+        clubCode: "DUIN",
+        colors: { primary: null, secondary: null, text: null },
+        externalId: "club-1",
+        foundedOn: null,
+        information: null,
+        logoUrl: null,
+        name: "Duindorp sv",
+        websiteUrl: null
+      },
+      clubLogo: {
+        assetId: "50000000-0000-5000-8000-000000000001",
+        bytes,
+        checksumSha256: "a".repeat(64),
+        fileSizeBytes: 3,
+        height: 100,
+        mimeType: "image/webp",
+        role: "club_logo",
+        storagePath: "tenants/10000000-0000-4000-8000-000000000001/assets/50000000-0000-5000-8000-000000000001/sportlink-club-logo.webp",
+        title: "Duindorp sv clublogo",
+        width: 100
+      },
+      matches: [],
+      standings: [],
+      teams: []
+    })).resolves.toBe(1);
+
+    expect(from).toHaveBeenCalledWith("tenant-media");
+    expect(upload).toHaveBeenCalledWith(
+      "tenants/10000000-0000-4000-8000-000000000001/assets/50000000-0000-5000-8000-000000000001/sportlink-club-logo.webp",
+      bytes,
+      {
+        cacheControl: "31536000",
+        contentType: "image/webp",
+        upsert: true
+      }
+    );
+    expect(rpc).toHaveBeenCalledWith("complete_sportlink_sync_v2", expect.objectContaining({
+      p_club_logo: expect.objectContaining({
+        assetId: "50000000-0000-5000-8000-000000000001",
+        role: "club_logo"
+      }),
+      p_run_id: "40000000-0000-4000-8000-000000000001"
+    }));
+  });
+
   it("renews the lease while a provider dataset is still being fetched", async () => {
     vi.useFakeTimers();
     let finishDataset: ((value: {
       activities: [];
       club: null;
+      clubLogo: null;
       matches: [];
       standings: [];
       teams: [];
@@ -137,7 +210,7 @@ describe("Sportlink sync worker", () => {
       if (functionName === "renew_sportlink_sync_lease_v1") {
         return { data: true, error: null };
       }
-      if (functionName === "complete_sportlink_sync_v1") {
+      if (functionName === "complete_sportlink_sync_v2") {
         return { data: { readCount: 0 }, error: null };
       }
       return { data: null, error: null };
@@ -168,6 +241,7 @@ describe("Sportlink sync worker", () => {
     finishDataset?.({
       activities: [],
       club: null,
+      clubLogo: null,
       matches: [],
       standings: [],
       teams: []

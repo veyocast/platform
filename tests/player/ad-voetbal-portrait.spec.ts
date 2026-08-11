@@ -33,6 +33,9 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
     "color",
     "rgb(243, 240, 233)"
   );
+  await expect(page.getByText("Editorial Arena", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Nieuws uit en rond de club", { exact: true }))
+    .toHaveCount(0);
   const supplierLogo = page.getByRole("img", { name: "AD:voetbal" });
   await expect(supplierLogo).toBeVisible();
   expect((await supplierLogo.boundingBox())?.height).toBeLessThanOrEqual(75);
@@ -57,7 +60,7 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
   expect(Number.parseFloat(
     await intro.evaluate((element) => getComputedStyle(element).fontSize)
   )).toBeGreaterThanOrEqual(26);
-  const meta = story.locator("div").last();
+  const meta = story.getByTestId("news-meta");
   await expect(meta).toHaveCSS("border-top-style", "solid");
   const [storyBox, metaBox] = await Promise.all([
     story.boundingBox(),
@@ -73,6 +76,8 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
       (element) => getComputedStyle(element).fontSize
     )
   )).toBeGreaterThanOrEqual(20);
+  await expect(story.getByTestId("news-qr")).toBeVisible();
+  await expect(story.getByText("Scan voor het artikel")).toBeVisible();
 
   const longTitle = page.getByRole("heading", { name: longNewsTitle });
   await expect(longTitle).toBeVisible({ timeout: 7_000 });
@@ -108,4 +113,21 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
     top: 0
   });
   expect(browserErrors).toEqual([]);
+});
+
+test("vult een extra hoge portraitviewport zonder zwarte stroken", async ({
+  page
+}) => {
+  await page.setViewportSize({ height: 2048, width: 945 });
+  await routePortraitRssManifest(page, playerURL);
+  await page.goto(`${playerURL}/?deviceToken=demo-online`);
+
+  const slide = page.getByLabel("Dynamisch voetbalnieuws");
+  await expect(slide).toBeVisible();
+  const box = await slide.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.y).toBeLessThanOrEqual(0);
+  expect(box!.y + box!.height).toBeGreaterThanOrEqual(2048);
+  expect(box!.x).toBeLessThanOrEqual(0);
+  expect(box!.x + box!.width).toBeGreaterThanOrEqual(945);
 });

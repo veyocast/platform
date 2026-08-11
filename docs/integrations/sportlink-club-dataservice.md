@@ -40,6 +40,19 @@ Program and result slides can therefore be scoped to a team and to an exact
 competition, cup or phase without treating provider duplicates as distinct
 teams.
 
+The `teams` article is also the authoritative client-scoped club-team set for
+Control. Opponents that occur in matches or standing rows remain renderable
+content, but are never promoted into the team selector. If Sportlink uses a
+different identifier for the same own team in a match or standing, VeyoCast
+may associate it by normalized team name only with an existing client team;
+that does not create an extra selectable opponent.
+
+The official `clublogo` PNG is normalized server-side to a bounded WebP and
+stored once under the tenant media path by content hash. Sportlink slide
+snapshots use it only when the tenant has no explicit Studio brand logo. The
+asset is included in immutable Player releases and local offline cache; neither
+the browser Player nor LG Legacy hotlinks the provider.
+
 Stable provider errors are mapped by code: 4001 condition unavailable, 4002
 required argument, 4011 token invalid, 4012 Client ID invalid, 4031 missing
 scope, 4041 unknown article and 5001 provider failure. Empty arrays and 4001 for

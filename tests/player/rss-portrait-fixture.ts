@@ -51,6 +51,7 @@ async function routeRssManifest(
   const logoUrl = "https://rss-assets.veyocast.test/provider-logo.png";
   const heroId = "66666666-6666-4666-8666-666666666666";
   const logoId = "77777777-7777-4777-8777-777777777777";
+  const qrId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
   const fallback = baseline.manifest.items[0]!;
   const item: PlayerManifestItem = {
     ...fallback,
@@ -68,6 +69,12 @@ async function routeRssManifest(
           url: heroUrl
         },
         [logoId]: {
+          bytes: logoBytes.byteLength,
+          checksumSha256: checksum(logoBytes),
+          mimeType: "image/png",
+          url: logoUrl
+        },
+        [qrId]: {
           bytes: logoBytes.byteLength,
           checksumSha256: checksum(logoBytes),
           mimeType: "image/png",
@@ -90,6 +97,7 @@ async function routeRssManifest(
                 "Het laatste voetbalnieuws staat klaar voor leden en bezoekers.",
               link: "https://example.com/voetbal/eerste",
               publishedAt: "2026-08-02T14:46:00.000Z",
+              qrMediaAssetId: qrId,
               sourceName: "AD:voetbal",
               title: mediumNewsTitle
             },
@@ -100,6 +108,7 @@ async function routeRssManifest(
               intro: "Een tweede bericht volgt automatisch.",
               link: "https://example.com/voetbal/tweede",
               publishedAt: "2026-08-02T14:36:00.000Z",
+              qrMediaAssetId: qrId,
               sourceName: "AD:voetbal",
               title: longNewsTitle
             }
@@ -138,7 +147,7 @@ async function routeRssManifest(
       manifestHash: "b".repeat(64),
       releaseId,
       totalBytes:
-        item.source.bytes + heroBytes.byteLength + logoBytes.byteLength,
+        item.source.bytes + heroBytes.byteLength + (logoBytes.byteLength * 2),
       totalDurationSeconds: 10,
       version: orientation === "portrait" ? 85 : 86
     }

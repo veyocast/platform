@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(41);
+select plan(45);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -163,6 +163,64 @@ select is((select count(*) from public.sportlink_sync_runs
 select ok((select last_success_at is not null
   from public.sportlink_sync_policies where dataset_group='matches'),
   'successful completion updates the dataset policy');
+
+select ok(not has_function_privilege(
+  'authenticated',
+  'public.complete_sportlink_sync_v2(uuid,text,jsonb,jsonb,jsonb,jsonb,jsonb,jsonb)',
+  'execute'
+), 'browser roles cannot execute the Sportlink media completion RPC');
+
+reset role;
+insert into public.sportlink_sync_runs(
+  id, tenant_id, connection_id, dataset_group, status, worker_id, locked_at
+) values (
+  '40000000-0000-4000-8000-000000000b10',
+  '10000000-0000-4000-8000-000000000b01',
+  (select id from public.sportlink_connections limit 1),
+  'club_profile',
+  'running',
+  'worker:sportlink-club-logo',
+  now()
+);
+set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select lives_ok(
+  $$select public.complete_sportlink_sync_v2(
+    '40000000-0000-4000-8000-000000000b10',
+    'worker:sportlink-club-logo',
+    '{"externalId":"club-duindorp","name":"Duindorp sv"}'::jsonb,
+    '{
+      "assetId":"50000000-0000-5000-8000-000000000b10",
+      "checksumSha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "fileSizeBytes":12345,
+      "height":398,
+      "mimeType":"image/webp",
+      "role":"club_logo",
+      "storagePath":"tenants/10000000-0000-4000-8000-000000000b01/assets/50000000-0000-5000-8000-000000000b10/sportlink-club-logo.webp",
+      "title":"Duindorp sv clublogo",
+      "width":512
+    }'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb
+  )$$,
+  'the service worker registers and completes an official club logo import'
+);
+reset role;
+select is((
+  select count(*)
+  from public.media_assets
+  where id = '50000000-0000-5000-8000-000000000b10'
+    and tenant_id = '10000000-0000-4000-8000-000000000b01'
+    and status = 'ready'
+), 1::bigint, 'the Sportlink club logo is a ready tenant-owned media asset');
+select is((
+  select logo_media_asset_id
+  from public.sports_clubs
+  where external_id = 'club-duindorp'
+), '50000000-0000-5000-8000-000000000b10'::uuid,
+  'the normalized client club references its local Sportlink logo');
 
 reset role;
 select set_config(

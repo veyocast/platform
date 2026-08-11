@@ -80,4 +80,32 @@ describe("RSS media normalisatie", () => {
     });
     expect(artifact.width / artifact.height).toBeCloseTo(2 / 3, 4);
   });
+
+  it("maakt QR-invoer verliesvrij en content-addressed beschikbaar", async () => {
+    const input = await sharp({
+      create: {
+        background: { alpha: 1, b: 255, g: 255, r: 255 },
+        channels: 4,
+        height: 512,
+        width: 512
+      }
+    }).png().toBuffer();
+    const artifact = await normalizeRssImage(
+      job,
+      {
+        externalId: "article-qr",
+        role: "article_qr",
+        title: "QR-code artikel"
+      },
+      input
+    );
+
+    expect(artifact).toMatchObject({
+      externalId: "article-qr",
+      height: 512,
+      role: "article_qr",
+      width: 512
+    });
+    expect(artifact.storagePath).toContain("/rss-article_qr.webp");
+  });
 });

@@ -83,6 +83,19 @@ News articles use a stable source external ID, title, intro, author, source
 name, public HTTP(S) link, publication timestamp and optional tenant media ID.
 Raw XML/HTML is not exposed to templates.
 
+The canonical public article URL is the article identity across provider
+updates. Tracking parameters, fragments and a trailing slash do not create a
+second article. When a feed contains multiple entries for that identity, only
+the newest publication is normalized. A successful sync mirrors the current
+bounded feed and removes older normalized duplicates; immutable historical
+snapshots remain unchanged and are deduplicated by the renderer at playback.
+
+Each current article receives a QR code generated inside the media worker from
+its canonical HTTP(S) URL. The QR is a content-addressed, checksum-verified
+tenant media asset included in the immutable Player release. Preview and both
+Player runtimes use those same local bytes; neither Player contacts the RSS
+provider or an external QR service.
+
 RSS article images retain their intrinsic aspect ratio and are never enlarged
 during normalization. Images larger than the Player budget are reduced
 proportionally within 1920×1080. The locked news renderer places the complete
@@ -91,6 +104,14 @@ not first forced into portrait and then cropped a second time on the Player.
 Existing immutable releases retain their original bytes; a subsequent
 successful source sync creates new content-addressed media for the next
 snapshot and publication.
+
+Portrait templates keep a fixed 1080×1920 logical canvas. A portrait physical
+viewport uses proportional cover-fit so narrow or extra-tall screens have no
+letterbox bands. The renderer calculates the horizontal crop and adds it to
+the logical safe zones for header, content and footer. Landscape or mismatched
+orientation still uses contain-fit. Standings use one shared grid definition
+for header and every row; a selected team is marked with an inset highlight
+that never changes column geometry.
 
 Active RSS sources are checked server-side every five minutes. A normalized
 article and media hash decides whether the provider content actually changed.

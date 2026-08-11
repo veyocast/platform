@@ -19,6 +19,11 @@ import {
 } from "@veyocast/integrations/server";
 import { createClient } from "@supabase/supabase-js";
 
+import {
+  prepareSportlinkClubLogo,
+  type SportlinkMediaArtifact
+} from "./sportlink-media";
+
 export type ClaimedSportlinkSync = {
   connectionId: string;
   dataSourceId: string;
@@ -45,11 +50,21 @@ type RpcClient = {
     functionName: string,
     parameters: Record<string, unknown>
   ): Promise<{ data: unknown; error: { code?: string } | null }>;
+  storage?: {
+    from(bucket: string): {
+      upload(
+        path: string,
+        bytes: Uint8Array,
+        options: Record<string, unknown>
+      ): Promise<{ error: { message?: string } | null }>;
+    };
+  };
 };
 
 type NormalizedSportlinkBatch = {
   activities: SportActivity[];
   club: SportClub | null;
+  clubLogo: SportlinkMediaArtifact | null;
   matches: SportMatch[];
   standings: SportStanding[];
   teams: SportTeam[];
@@ -77,6 +92,7 @@ type SportlinkSyncBackend = {
 const emptyBatch = (): NormalizedSportlinkBatch => ({
   activities: [],
   club: null,
+  clubLogo: null,
   matches: [],
   standings: [],
   teams: []
@@ -110,9 +126,23 @@ export class SupabaseSportlinkSyncBackend {
     workerId: string,
     batch: NormalizedSportlinkBatch
   ) {
-    const result = await this.client.rpc("complete_sportlink_sync_v1", {
+    if (batch.clubLogo) {
+      if (!this.client.storage) {
+        throw new Error("sportlink_media_storage_unavailable");
+      }
+      const upload = await this.client.storage
+        .from("tenant-media")
+        .upload(batch.clubLogo.storagePath, batch.clubLogo.bytes, {
+          cacheControl: "31536000",
+          contentType: batch.clubLogo.mimeType,
+          upsert: true
+        });
+      if (upload.error) throw new Error("sportlink_media_upload_failed");
+    }
+    const result = await this.client.rpc("complete_sportlink_sync_v2", {
       p_activities: batch.activities,
       p_club: batch.club ?? {},
+      p_club_logo: batch.clubLogo ? toMediaPayload(batch.clubLogo) : {},
       p_matches: batch.matches,
       p_run_id: job.runId,
       p_standings: batch.standings,
@@ -256,28 +286,35 @@ async function executeSportlinkDataset(
   }, encryptionKey);
   return fetchSportlinkDataset(
     job.datasetGroup,
-    new SportlinkClient(clientId)
+    new SportlinkClient(clientId),
+    job
   );
 }
 
 async function fetchSportlinkDataset(
   datasetGroup: string,
-  client: SportlinkClient
+  client: SportlinkClient,
+  job: ClaimedSportlinkSync
 ): Promise<NormalizedSportlinkBatch> {
   const batch = emptyBatch();
 
   if (datasetGroup === "club_profile") {
-    const [club] = await Promise.all([
+    const [clubResponse, logo] = await Promise.all([
       client.fetchArticle("clubgegevens"),
       client.fetchClubLogo()
     ]);
-    batch.club = mapSportlinkClub(club.payload);
+    batch.club = mapSportlinkClub(clubResponse.payload);
     if (!batch.club) {
       throw new SportlinkWorkerError(
         "SPORTLINK_CLUB_INVALID",
         "Sportlink gaf geen bruikbare clubidentiteit terug."
       );
     }
+    batch.clubLogo = await prepareSportlinkClubLogo(
+      job,
+      batch.club.name,
+      logo.bytes
+    );
     return batch;
   }
 
@@ -353,6 +390,20 @@ async function fetchSportlinkDataset(
     "SPORTLINK_DATASET_DISABLED",
     "Deze Sportlink-dataset is niet geactiveerd."
   );
+}
+
+function toMediaPayload(artifact: SportlinkMediaArtifact) {
+  return {
+    assetId: artifact.assetId,
+    checksumSha256: artifact.checksumSha256,
+    fileSizeBytes: artifact.fileSizeBytes,
+    height: artifact.height,
+    mimeType: artifact.mimeType,
+    role: artifact.role,
+    storagePath: artifact.storagePath,
+    title: artifact.title,
+    width: artifact.width
+  };
 }
 
 function leaseRenewIntervalMs(lockTimeoutSeconds: number) {

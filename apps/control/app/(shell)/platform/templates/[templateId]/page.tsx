@@ -16,7 +16,7 @@ import {
   updateDynamicTemplate,
   withdrawTemplate
 } from "../actions";
-import { TemplateForm } from "../new/page";
+import { TemplateForm } from "../template-form";
 
 type PageProps = {
   params: Promise<{ templateId: string }>;

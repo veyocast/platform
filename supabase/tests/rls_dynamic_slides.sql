@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(55);
+select plan(56);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -758,6 +758,19 @@ select lives_ok(
     }]'::jsonb
   )$$,
   'an RSS source can be populated before creating a slide'
+);
+
+select is(
+  (
+    select canonical_link
+    from public.dynamic_news_articles
+    where data_source_id = (
+      select id from dynamic_test_ids where name = 'rss_source'
+    )
+      and external_id = 'article-1'
+  ),
+  'https://example.com/news/training',
+  'RSS rows store a canonical article link for deduplication'
 );
 
 create temporary table rss_revision_before as

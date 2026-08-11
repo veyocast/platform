@@ -332,6 +332,7 @@ function collectPreviewMediaAssetIds(snapshot: Record<string, unknown>) {
     for (const candidate of news.articles.slice(0, 50)) {
       const article = isRecord(candidate) ? candidate : null;
       add(article?.heroMediaAssetId);
+      add(article?.qrMediaAssetId);
     }
   }
   return [...ids];

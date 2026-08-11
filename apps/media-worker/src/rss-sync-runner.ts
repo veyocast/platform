@@ -140,10 +140,19 @@ export async function runRssSyncOnce({
           : []
       )
     );
+    const qrAssetByExternalId = new Map(
+      media.flatMap((asset) =>
+        asset.role === "article_qr" && asset.externalId
+          ? [[asset.externalId, asset.assetId] as const]
+          : []
+      )
+    );
     const articles = feed.articles.map((article) => ({
       ...article,
       heroMediaAssetId:
-        heroAssetByExternalId.get(article.externalId) ?? null
+        heroAssetByExternalId.get(article.externalId) ?? null,
+      qrMediaAssetId:
+        qrAssetByExternalId.get(article.externalId) ?? null
     }));
     const itemCount = await backend.complete(
       job,

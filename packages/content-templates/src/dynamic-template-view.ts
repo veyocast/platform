@@ -41,6 +41,7 @@ export type DynamicTemplateNewsItem = {
   id: string;
   intro: string;
   link: string;
+  qrUrl: string;
   source: string;
   title: string;
 };
@@ -175,9 +176,9 @@ export function createDynamicTemplateView(
 
   if (payload.slideType === "news") {
     const news = readRecord(data.news) ?? readRecord(data.data);
-    const articles = readArray(news?.articles)
+    const articles = uniqueLatestNewsItems(readArray(news?.articles)
       .map((article) => toNewsItem(article, news, payload))
-      .filter((item): item is DynamicTemplateNewsItem => item !== null);
+      .filter((item): item is DynamicTemplateNewsItem => item !== null));
     const secondsPerSlide = safeInteger(news?.secondsPerSlide, 5, 120, 5);
     return {
       accentColor,
@@ -511,9 +512,42 @@ function toNewsItem(
     id: safeText(item.externalId, title),
     intro: safeText(item.intro, ""),
     link: safePublicLink(item.link),
+    qrUrl: dynamicAssetUrl(item.qrMediaAssetId, payload),
     source: safeText(item.sourceName, safeText(feed?.sourceName, "Clubnieuws")),
     title
   };
+}
+
+function uniqueLatestNewsItems(items: DynamicTemplateNewsItem[]) {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = canonicalNewsLink(item.link) || `id:${item.id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function canonicalNewsLink(value: string) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    for (const key of [...url.searchParams.keys()]) {
+      const normalized = key.toLowerCase();
+      if (
+        normalized.startsWith("utm_") ||
+        ["fbclid", "gclid", "mc_cid", "mc_eid"].includes(normalized)
+      ) {
+        url.searchParams.delete(key);
+      }
+    }
+    url.searchParams.sort();
+    if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/, "");
+    return url.toString();
+  } catch {
+    return "";
+  }
 }
 
 function dynamicAssetUrl(
