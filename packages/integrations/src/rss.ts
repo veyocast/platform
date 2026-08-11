@@ -55,8 +55,7 @@ export function parseRssOrAtom(
     0,
     Math.min(50, Math.max(1, limit))
   );
-  const articleImages: Array<{ externalId: string; url: string }> = [];
-  const articles = blocks.flatMap((block, index) => {
+  const candidates = blocks.flatMap((block, index) => {
     const title = cleanText(firstTag(block, "title") ?? "");
     const link = rssLink(block) ?? sourceUrl;
     if (!title || !isHttpUrl(link)) return [];
@@ -70,29 +69,35 @@ export function parseRssOrAtom(
       firstTag(block, "guid") ?? firstTag(block, "id") ?? link
     ).slice(0, 512);
     const imageUrl = rssImageUrl(block, sourceUrl);
-    if (imageUrl) {
-      articleImages.push({
-        externalId: externalId || `${link}#${index}`,
-        url: imageUrl
-      });
-    }
     return [{
-      author: nullableText(
-        firstTag(block, "author") ?? firstTag(block, "dc:creator")
-      ),
-      externalId: externalId || `${link}#${index}`,
-      heroMediaAssetId: null,
-      intro: nullableText(
-        firstTag(block, "description") ??
-        firstTag(block, "summary") ??
-        firstTag(block, "content")
-      ),
-      link,
-      publishedAt,
-      sourceName: cleanText(rootTitle ?? "") || new URL(sourceUrl).hostname,
-      title
-    } satisfies CanonicalNewsArticle];
+      article: {
+        author: nullableText(
+          firstTag(block, "author") ?? firstTag(block, "dc:creator")
+        ),
+        canonicalLink: canonicalArticleLink(link),
+        externalId: externalId || `${link}#${index}`,
+        heroMediaAssetId: null,
+        intro: nullableText(
+          firstTag(block, "description") ??
+          firstTag(block, "summary") ??
+          firstTag(block, "content")
+        ),
+        link,
+        publishedAt,
+        qrMediaAssetId: null,
+        sourceName: cleanText(rootTitle ?? "") || new URL(sourceUrl).hostname,
+        title
+      } satisfies CanonicalNewsArticle,
+      imageUrl
+    }];
   });
+  const uniqueCandidates = uniqueLatestArticles(candidates);
+  const articles = uniqueCandidates.map((candidate) => candidate.article);
+  const articleImages = uniqueCandidates.flatMap((candidate) =>
+    candidate.imageUrl
+      ? [{ externalId: candidate.article.externalId, url: candidate.imageUrl }]
+      : []
+  );
   if (!articles.length) {
     throw new RssParseError("De feed bevat geen bruikbare nieuwsartikelen.");
   }
@@ -104,6 +109,43 @@ export function parseRssOrAtom(
     },
     title: cleanText(rootTitle ?? "") || new URL(sourceUrl).hostname
   };
+}
+
+function uniqueLatestArticles<T extends {
+  article: CanonicalNewsArticle;
+  imageUrl: string | null;
+}>(candidates: T[]): T[] {
+  const latestByLink = new Map<string, T>();
+  for (const candidate of candidates) {
+    const current = latestByLink.get(candidate.article.canonicalLink);
+    if (!current || articleTime(candidate.article) > articleTime(current.article)) {
+      latestByLink.set(candidate.article.canonicalLink, candidate);
+    }
+  }
+  return [...latestByLink.values()].sort(
+    (left, right) => articleTime(right.article) - articleTime(left.article)
+  );
+}
+
+function articleTime(article: CanonicalNewsArticle) {
+  return article.publishedAt ? Date.parse(article.publishedAt) || 0 : 0;
+}
+
+export function canonicalArticleLink(value: string) {
+  const url = new URL(value);
+  url.hash = "";
+  for (const key of [...url.searchParams.keys()]) {
+    const normalized = key.toLowerCase();
+    if (
+      normalized.startsWith("utm_") ||
+      ["fbclid", "gclid", "mc_cid", "mc_eid"].includes(normalized)
+    ) {
+      url.searchParams.delete(key);
+    }
+  }
+  url.searchParams.sort();
+  if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/, "");
+  return url.toString();
 }
 
 function stripInertFeedDoctypes(xml: string): string {

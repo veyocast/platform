@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import type { ParsedNewsFeed } from "@veyocast/integrations";
 import { fetchSafeRssImage } from "@veyocast/integrations/server";
+import QRCode from "qrcode";
 import sharp from "sharp";
 
 import type { ClaimedRssSync } from "./rss-sync-runner";
@@ -17,7 +18,7 @@ export type RssMediaArtifact = {
   fileSizeBytes: number;
   height: number;
   mimeType: "image/webp";
-  role: "article_hero" | "provider_logo";
+  role: "article_hero" | "article_qr" | "provider_logo";
   storagePath: string;
   title: string;
   width: number;
@@ -43,6 +44,12 @@ export async function prepareRssMediaArtifacts(
         feed.articles.find((article) => article.externalId === image.externalId)
           ?.title ?? "RSS-nieuwsafbeelding",
       url: image.url
+    })),
+    ...feed.articles.slice(0, maximumArticleImages).map((article) => ({
+      externalId: article.externalId,
+      role: "article_qr" as const,
+      title: `QR-code ${article.title}`,
+      url: article.link
     }))
   ];
   const artifacts = await mapWithConcurrency(
@@ -50,8 +57,15 @@ export async function prepareRssMediaArtifacts(
     mediaConcurrency,
     async (candidate) => {
       try {
-        const image = await fetchSafeRssImage(candidate.url);
-        return await normalizeRssImage(job, candidate, image.body);
+        const input = candidate.role === "article_qr"
+          ? await QRCode.toBuffer(candidate.url, {
+              errorCorrectionLevel: "M",
+              margin: 4,
+              type: "png",
+              width: 512
+            })
+          : (await fetchSafeRssImage(candidate.url)).body;
+        return await normalizeRssImage(job, candidate, input);
       } catch {
         // Remote media is supplementary. A valid normalized text feed remains
         // publishable when a supplier image is missing or temporarily broken.
@@ -86,7 +100,12 @@ export async function normalizeRssImage(
           width: 260
         })
         .webp({ effort: 4, quality: 88 })
-    : pipeline
+    : candidate.role === "article_qr"
+      ? pipeline
+        .flatten({ background: "#ffffff" })
+        .resize({ fit: "contain", height: 512, width: 512 })
+        .webp({ effort: 4, lossless: true })
+      : pipeline
         .resize({
           fit: "inside",
           height: 1080,

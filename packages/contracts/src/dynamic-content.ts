@@ -87,11 +87,13 @@ export const canonicalMenuSchema = z.object({
 
 export const canonicalNewsArticleSchema = z.object({
   author: z.string().trim().max(160).nullable(),
+  canonicalLink: z.string().url().max(2_048),
   externalId: z.string().trim().min(1).max(512),
   heroMediaAssetId: idSchema.nullable(),
   intro: safeTextSchema.nullable(),
   link: z.string().url().max(2_048),
   publishedAt: z.string().datetime().nullable(),
+  qrMediaAssetId: idSchema.nullable(),
   sourceName: safeLabelSchema,
   title: safeLabelSchema
 });

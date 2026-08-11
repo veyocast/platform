@@ -329,6 +329,13 @@ export function collectDynamicSnapshotMediaAssetIds(snapshot: unknown) {
       ) {
         ids.add(article.heroMediaAssetId);
       }
+      if (
+        article &&
+        typeof article.qrMediaAssetId === "string" &&
+        uuidPattern.test(article.qrMediaAssetId)
+      ) {
+        ids.add(article.qrMediaAssetId);
+      }
     }
   }
   return [...ids];
