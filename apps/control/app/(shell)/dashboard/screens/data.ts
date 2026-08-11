@@ -57,10 +57,12 @@ export type FleetDevice = {
 };
 
 export type FleetRelease = {
+  automatic: boolean;
   id: string;
   label: string;
   playlistId: string;
   playlistName: string;
+  publishedAt: string;
   version: number;
 };
 
@@ -166,7 +168,7 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
   ] = await Promise.all([
     supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, default_playlist_id, default_release_id, active_assignment_source, active_schedule_id, active_target_snapshot_id, created_at").eq("tenant_id", tenantId).is("deleted_at", null).order("created_at"),
     supabase.from("player_devices").select("id, screen_id, device_name, status, app_version, platform, capabilities, storage_quota_bytes, storage_used_bytes, active_release_id, desired_release_id, last_seen_at, paired_at, revoked_at, last_error_code, last_error_at, sync_retry_requested_at").eq("tenant_id", tenantId).order("paired_at", { ascending: false }),
-    supabase.from("playlist_releases").select("id, playlist_id, version").eq("tenant_id", tenantId).order("published_at", { ascending: false }),
+    supabase.from("playlist_releases").select("id, playlist_id, version, published_at, release_notes").eq("tenant_id", tenantId).order("published_at", { ascending: false }),
     supabase.from("playlists").select("id, name").eq("tenant_id", tenantId),
     supabase.from("tenants").select("screen_limit").eq("id", tenantId).maybeSingle(),
     supabase.from("tenant_settings").select("default_screen_orientation, default_resolution_width, default_resolution_height").eq("tenant_id", tenantId).maybeSingle(),
@@ -210,10 +212,12 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     })),
     limit: tenant.data?.screen_limit ?? 0,
     releases: (releases.data ?? []).map((release) => ({
+      automatic: release.release_notes === "Automatische dynamische vernieuwing",
       id: release.id,
       label: `${playlistNames.get(release.playlist_id) ?? "Verwijderde playlist"} · versie ${release.version}`,
       playlistId: release.playlist_id,
       playlistName: playlistNames.get(release.playlist_id) ?? "Verwijderde playlist",
+      publishedAt: release.published_at,
       version: release.version
     })),
     screens: (screens.data ?? []).map(mapScreen),

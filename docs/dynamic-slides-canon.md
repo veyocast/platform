@@ -133,11 +133,23 @@ release.
 
 ## Refresh and publication semantics
 
-RSS sources receive a worker lease and default to a 15-minute refresh (bounded
+RSS sources receive a worker lease and default to a five-minute refresh (bounded
 to 5–1440 minutes). Twelve apply, a successful Sportlink dataset sync and
-manual product changes increment the same source revision boundary. A
-successful refresh queues one new snapshot per slide in `latest` mode.
-`pinned` slides remain on their selected snapshot.
+manual product changes increment the same source revision boundary. A provider
+check and a content change are deliberately separate events: one successful
+Sportlink sync advances the source revision exactly once, while the canonical
+snapshot hash excludes observation-only timestamps such as `generatedAt`.
+Only changed Player content queues one new snapshot per affected slide in
+`latest` mode; `pinned` slides remain on their selected snapshot. An unchanged
+manual refresh explicitly reports that no version was made.
+
+Fallback image identities are content-addressed by tenant, template version
+and canonical snapshot hash. Equal outputs therefore reuse the same registered
+asset instead of allocating a new storage path. The release remains immutable:
+when real content changes, the system still creates and verifies a complete new
+release and the Player activates it only at a safe boundary. When content is
+unchanged, no snapshot, render job, fallback object, release, desired-release
+change or Player download is created.
 
 `tenant_settings.primary_color` is the single tenant-owned accent for news
 templates. It is normalized to an uppercase six-digit hex value and frozen
