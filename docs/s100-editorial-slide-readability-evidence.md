@@ -43,3 +43,11 @@ screen fill does not clip readable content.
 - Browser tests assert the removed news labels, visible QR, shared standings
   grid, stable selected-row rank position and full extra-tall viewport cover.
 - LG route and Player tests exercise the equivalent ES5-compatible runtime.
+
+Final local gate results: database reset plus 45 RLS files/901 assertions;
+workspace lint, typecheck and test 30/30; production builds 18/18; focused
+slide/LG browser matrix 16/16; offline 7/7. The broad Chromium run completed
+134 scenarios with 8 intentional skips. Eight process/load failures (including
+one Chromium SIGSEGV) all passed in a serial 8/8 rerun. Two a11y navigation
+timeouts and one LG retire-overlap timing check likewise passed in isolated
+runs.
