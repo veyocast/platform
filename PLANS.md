@@ -120,6 +120,7 @@ tests en exitcriteria staan in
 | S96 | Automatische dynamische livevernieuwing | RSS iedere vijf minuten controleren, ongewijzigde feeds dedupliceren, gewijzigde latest-slides atomisch als nieuwe immutable release uitrollen en Playercode op een veilige grens verversen |
 | S98 | Data-aware Sportlink-slidewizard | Echte Player-preview uit de canonieke snapshotbuilder, alleen renderbare team-/competitie-/seizoenopties, preflight en datakwaliteit zonder providercalls of mutable previews |
 | S99 | Inhoudsgestuurde dynamische publicatie | Eén Sportlink-revisie per sync, stabiele inhoudshashes, hergebruikte fallbackassets en alleen een nieuwe immutable release wanneer zichtbare Playerinhoud wijzigt |
+| S100 | Leesbare Editorial slides en clientgebonden Sportlink-keuze | Nieuws/standen op afstand leesbaar en schermvullend tonen, RSS-artikelen canoniek dedupliceren, uitsluitend teams van de Sportlink-client aanbieden en het officiële clublogo lokaal in releases opnemen |
 
 ### Programmagates
 

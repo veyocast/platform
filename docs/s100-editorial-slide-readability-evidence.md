@@ -44,10 +44,27 @@ screen fill does not clip readable content.
   grid, stable selected-row rank position and full extra-tall viewport cover.
 - LG route and Player tests exercise the equivalent ES5-compatible runtime.
 
-Final local gate results: database reset plus 45 RLS files/901 assertions;
+## Sportlink client scope and club logo
+
+- The wizard builds team choices only from `sports_teams`, whose canonical
+  source is the Client ID-bound Sportlink `teams` article. Match and standings
+  opponents can no longer leak into the selector.
+- Competition, season and availability records retain only own-team IDs. A
+  normalized name match can bridge provider ID differences but can never add a
+  new team option.
+- The already verified official `clublogo` PNG is now normalized to at most
+  512×512 WebP, stored content-addressed in `tenant-media`, registered through
+  a service-role-only completion RPC and linked to the normalized club.
+- Snapshot branding resolves in the order tenant Studio logo, local Sportlink
+  club logo, then the existing initials shield. The Player receives the chosen
+  asset through the normal immutable release and offline-cache path.
+- Expo SDK 57 patch dependencies were aligned with the current official
+  package catalog so the Android CI export gate no longer rejects the lockfile.
+
+Final local gate results: database reset plus 45 RLS files/905 assertions;
 workspace lint, typecheck and test 30/30; production builds 18/18; focused
-slide/LG browser matrix 16/16; offline 7/7. The broad Chromium run completed
-134 scenarios with 8 intentional skips. Eight process/load failures (including
-one Chromium SIGSEGV) all passed in a serial 8/8 rerun. Two a11y navigation
-timeouts and one LG retire-overlap timing check likewise passed in isolated
-runs.
+slide/LG browser matrix 16/16; Expo dependency check green; a11y 35/35. The
+broad Chromium run completed 138 scenarios with 8 intentional skips; two
+serial Studio scenarios did not start after their parent failed. Four
+resource-load failures (including one Chromium SIGSEGV) and both skipped Studio
+scenarios then passed in a serial 6/6 rerun.
