@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(48);
+select plan(55);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -284,6 +284,89 @@ select is(
   'a completed render becomes the current ready snapshot'
 );
 
+insert into dynamic_test_ids
+select
+  'duplicate_slide',
+  (
+    public.create_dynamic_slide_v1(
+      '10000000-0000-4000-8000-000000000a51',
+      'Tweede kantinemenu',
+      version.id,
+      (select id from dynamic_test_ids where name = 'source'),
+      'latest',
+      '{"title":"Vandaag","maxItems":8}'::jsonb
+    ) ->> 'slideId'
+  )::uuid
+from public.dynamic_template_versions version
+join public.dynamic_templates template on template.id = version.template_id
+where template.slug = 'editorial-arena-menubord-dark-landscape'
+  and version.status = 'published';
+
+select is(
+  (
+    select job.output_media_asset_id
+    from public.dynamic_render_jobs job
+    join public.dynamic_slide_snapshots snapshot on snapshot.id = job.snapshot_id
+    where snapshot.dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'duplicate_slide'
+    )
+  ),
+  (
+    select snapshot.output_media_asset_id
+    from public.dynamic_slides slide
+    join public.dynamic_slide_snapshots snapshot
+      on snapshot.id = slide.current_snapshot_id
+    where slide.id = (select id from dynamic_test_ids where name = 'slide')
+  ),
+  'identical dynamic output receives the same content-addressed fallback id'
+);
+
+reset role;
+set local role service_role;
+
+create temporary table duplicate_dynamic_claim as
+select * from public.claim_dynamic_render_job_v1(
+  'duplicate-dynamic-worker',
+  120,
+  3
+);
+
+select lives_ok(
+  $$select public.complete_dynamic_render_job_v1(
+    (select job_id from duplicate_dynamic_claim),
+    'duplicate-dynamic-worker',
+    'tenants/' || (select tenant_id from duplicate_dynamic_claim)::text ||
+      '/assets/' ||
+      (select output_media_asset_id from duplicate_dynamic_claim)::text ||
+      '/dynamic-slide.png',
+    4096,
+    repeat('b', 64),
+    1920,
+    1080
+  )$$,
+  'an identical fallback render safely reuses its existing media identity'
+);
+
+select is(
+  (
+    select count(*)
+    from public.media_assets asset
+    where asset.id = (
+      select output_media_asset_id from duplicate_dynamic_claim
+    )
+  ),
+  1::bigint,
+  'identical fallback bytes occupy one canonical media asset'
+);
+
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000a51',
+  true
+);
+
 insert into public.playlists (
   id, tenant_id, name, created_by
 ) values (
@@ -548,6 +631,56 @@ select is(
   ),
   2::bigint,
   'one changed latest snapshot creates exactly one new immutable release'
+);
+
+reset role;
+set local role service_role;
+
+select lives_ok(
+  $$update public.dynamic_data_sources
+    set revision = revision + 1
+    where id = (select id from dynamic_test_ids where name = 'source')$$,
+  'an unchanged provider check remains a valid source operation'
+);
+
+select is(
+  (
+    select count(*)
+    from public.dynamic_slide_snapshots
+    where dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'slide'
+    )
+  ),
+  2::bigint,
+  'unchanged canonical content creates no extra immutable snapshot'
+);
+
+select is(
+  (
+    select count(*)
+    from public.playlist_releases release
+    where release.playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  2::bigint,
+  'unchanged canonical content creates no extra playlist release'
+);
+
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000a51',
+  true
+);
+
+select is(
+  (
+    public.refresh_dynamic_slide_v1(
+      (select id from dynamic_test_ids where name = 'slide')
+    ) ->> 'changed'
+  )::boolean,
+  false,
+  'manual refresh reports honestly when the slide content is unchanged'
 );
 
 select isnt(

@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(36);
+select plan(41);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -494,6 +494,92 @@ select throws_ok(
   '23514',
   null,
   'an unavailable or cross-tenant team identity is rejected server-side'
+);
+
+reset role;
+select set_config(
+  'test.sportlink_source_revision_before',
+  (
+    select source.revision::text
+    from public.dynamic_data_sources source
+    join public.sportlink_connections connection
+      on connection.data_source_id = source.id
+    limit 1
+  ),
+  true
+);
+select set_config(
+  'test.sportlink_snapshot_count_before',
+  (select count(*)::text from public.dynamic_slide_snapshots),
+  true
+);
+select set_config(
+  'test.sportlink_render_count_before',
+  (select count(*)::text from public.dynamic_render_jobs),
+  true
+);
+update public.sportlink_sync_policies
+set enabled = (dataset_group = 'matches'),
+    next_sync_at = now();
+
+set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select is(
+  (select count(*) from public.claim_due_sportlink_sync_v1(
+    'worker:sportlink-content-check',
+    900
+  )),
+  1::bigint,
+  'a later Sportlink content check claims one due dataset'
+);
+reset role;
+select set_config(
+  'test.sportlink_content_check_run_id',
+  (
+    select id::text
+    from public.sportlink_sync_runs
+    where status = 'running'
+    order by started_at desc
+    limit 1
+  ),
+  true
+);
+set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select lives_ok(
+  $$select public.complete_sportlink_sync_v1(
+    current_setting('test.sportlink_content_check_run_id')::uuid,
+    'worker:sportlink-content-check',
+    '{}'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb
+  )$$,
+  'an unchanged Sportlink content check completes normally'
+);
+
+reset role;
+select is(
+  (
+    select source.revision
+    from public.dynamic_data_sources source
+    join public.sportlink_connections connection
+      on connection.data_source_id = source.id
+    limit 1
+  ),
+  current_setting('test.sportlink_source_revision_before')::bigint + 1,
+  'a successful Sportlink check advances exactly one source revision'
+);
+select is(
+  (select count(*) from public.dynamic_slide_snapshots),
+  current_setting('test.sportlink_snapshot_count_before')::bigint,
+  'unchanged Sportlink data creates no extra dynamic snapshot'
+);
+select is(
+  (select count(*) from public.dynamic_render_jobs),
+  current_setting('test.sportlink_render_count_before')::bigint,
+  'unchanged Sportlink data creates no extra fallback render'
 );
 
 set local role anon;
