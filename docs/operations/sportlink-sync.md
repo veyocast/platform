@@ -27,6 +27,14 @@ run. A recovery migration immediately requeues enabled Teams policies whose
 previous run ended in `SPORTLINK_SYNC_INTERNAL_ERROR`; it does not clear the
 last-known-good dataset.
 
+Control team filters must be populated only from these normalized `teams`
+rows. Match home/away teams and standing rows contain opponents and may enrich
+availability, competition and season context, but must not create selectable
+teams. The completion worker also stores the official client club logo as a
+content-addressed tenant media asset. The corresponding RPC is service-role
+only and validates tenant path, hash, MIME type, dimensions and file size
+before linking it to `sports_clubs`.
+
 Dependency order:
 
 1. club and capabilities;
