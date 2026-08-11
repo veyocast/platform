@@ -145,6 +145,20 @@
   text-transform: uppercase;
 }
 
+.arenaRoot[data-slide-type="news"] .arenaMasthead {
+  height: 13%;
+}
+
+.arenaRoot[data-slide-type="news"] .arenaHeading {
+  align-items: center;
+  display: flex;
+  min-height: 100%;
+}
+
+.arenaRoot[data-slide-type="news"] .arenaContent {
+  top: 15.4%;
+}
+
 .arenaContext {
   align-items: flex-end;
   display: flex;
@@ -438,11 +452,12 @@
   flex-direction: column;
   justify-content: flex-start;
   padding: 5%;
+  position: relative;
 }
 
 .arenaNewsStory h2 {
   font-family: "Arial Narrow", Arial, sans-serif;
-  font-size: clamp(38px, 3.75vw, 72px);
+  font-size: clamp(46px, 4.17vw, 80px);
   font-weight: 900;
   letter-spacing: -0.025em;
   line-height: 0.92;
@@ -451,13 +466,13 @@
 }
 
 .arenaNewsTitleDense {
-  font-size: clamp(29px, 2.75vw, 53px) !important;
+  font-size: clamp(36px, 3.12vw, 60px) !important;
   line-height: 1 !important;
 }
 
 .arenaNewsStory > p {
   color: var(--arena-muted);
-  font-size: clamp(18px, 1.4vw, 27px);
+  font-size: clamp(24px, 1.67vw, 32px);
   line-height: 1.45;
   margin: 4% 0 0;
   max-width: 92%;
@@ -469,6 +484,7 @@
   gap: 6%;
   margin-top: auto;
   padding-top: 2.6%;
+  padding-right: 250px;
 }
 
 .arenaNewsMeta small {
@@ -481,6 +497,33 @@
   display: block;
   letter-spacing: 0.12em;
   margin-bottom: 0.4em;
+  text-transform: uppercase;
+}
+
+.arenaNewsQr {
+  align-items: center;
+  bottom: 4.5%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: absolute;
+  right: 5%;
+  width: 220px;
+}
+
+.arenaNewsQr img {
+  background: #fff;
+  border-radius: 8px;
+  display: block;
+  height: 220px;
+  width: 220px;
+}
+
+.arenaNewsQr span {
+  color: var(--arena-muted);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
@@ -717,13 +760,14 @@
   display: grid;
   gap: 0.7%;
   grid-template-columns: 4% 1fr repeat(6, 5.7%) 15%;
+  box-sizing: border-box;
 }
 
 .arenaStandingHead {
   border-bottom: 2px solid var(--arena-accent);
   color: var(--arena-accent);
   font-family: "Arial Narrow", Arial, sans-serif;
-  font-size: clamp(10px, 0.94vw, 18px);
+  font-size: clamp(14px, 1.15vw, 22px);
   font-weight: 900;
   height: 7%;
   letter-spacing: 0.08em;
@@ -739,7 +783,7 @@
 .arenaStandingRows > article {
   border-bottom: 1px solid var(--arena-line);
   font-family: "Arial Narrow", Arial, sans-serif;
-  font-size: clamp(12px, 1.15vw, 22px);
+  font-size: clamp(18px, 1.46vw, 28px);
   font-weight: 800;
   height: 10%;
   padding: 0 0.7%;
@@ -747,9 +791,20 @@
 
 .arenaStandingRows > article[data-selected] {
   background: linear-gradient(90deg, color-mix(in srgb, var(--arena-accent) 23%, transparent), color-mix(in srgb, var(--arena-accent) 7%, transparent));
-  border: 1px solid color-mix(in srgb, var(--arena-accent) 75%, transparent);
-  border-left: 7px solid var(--arena-accent);
   border-radius: 12px;
+  box-shadow:
+    inset 7px 0 0 var(--arena-accent),
+    inset 0 0 0 1px color-mix(in srgb, var(--arena-accent) 75%, transparent);
+}
+
+.arenaStandingHead > span,
+.arenaStandingRows > article > span,
+.arenaStandingRows > article > strong {
+  text-align: center;
+}
+
+.arenaStandingHead > span:nth-child(2) {
+  text-align: left;
 }
 
 .arenaStandingTeam {
@@ -925,7 +980,8 @@
   gap: 2.2%;
   grid-template-columns: 12% 1fr;
   height: 14.06%;
-  margin: 0 5.37%;
+  margin-left: calc(5.37% + var(--arena-viewport-inset-x, 0px));
+  margin-right: calc(5.37% + var(--arena-viewport-inset-x, 0px));
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaContext {
@@ -947,15 +1003,15 @@
 
 .arenaRoot[data-orientation="portrait"] .arenaContent {
   bottom: 5.52%;
-  left: 5.37%;
-  right: 5.37%;
+  left: calc(5.37% + var(--arena-viewport-inset-x, 0px));
+  right: calc(5.37% + var(--arena-viewport-inset-x, 0px));
   top: 15.83%;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaFooter {
   bottom: 1.88%;
-  left: 5.37%;
-  right: 5.37%;
+  left: calc(5.37% + var(--arena-viewport-inset-x, 0px));
+  right: calc(5.37% + var(--arena-viewport-inset-x, 0px));
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaMenuLayout,
@@ -989,23 +1045,44 @@
   grid-template-rows: auto minmax(0, 1fr);
 }
 
+.arenaRoot[data-orientation="portrait"][data-slide-type="news"] .arenaMasthead {
+  height: 9.5%;
+}
+
+.arenaRoot[data-orientation="portrait"][data-slide-type="news"] .arenaContent {
+  top: 11.2%;
+}
+
 .arenaRoot[data-orientation="portrait"] .arenaNewsStory h2 {
-  font-size: clamp(34px, 5.75vw, 62px);
+  font-size: clamp(52px, 6.67vw, 72px);
   line-height: 0.96;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsTitleDense {
-  font-size: clamp(27px, 4.35vw, 47px) !important;
+  font-size: clamp(42px, 5.37vw, 58px) !important;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsStory > p {
-  font-size: 26px;
+  font-size: 34px;
   line-height: 1.45;
   max-width: 100%;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsMeta small {
-  font-size: 20px;
+  font-size: 24px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaNewsMeta {
+  padding-right: 260px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaNewsQr {
+  width: 230px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaNewsQr img {
+  height: 230px;
+  width: 230px;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaAgendaLayout {
@@ -1061,11 +1138,12 @@
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaStandingRows > article {
-  font-size: clamp(11px, 1.66vw, 18px);
+  font-size: clamp(20px, 2.4vw, 26px);
   height: 5.55%;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaStandingHead {
+  font-size: clamp(14px, 1.67vw, 18px);
   height: 5%;
 }
 

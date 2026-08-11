@@ -24,6 +24,7 @@ import styles from "./editorial-arena-renderer.module.css";
 type ArenaStyle = CSSProperties & {
   "--arena-accent": string;
   "--arena-page-duration": string;
+  "--arena-viewport-inset-x": string;
 };
 
 const arenaCanvasSize = {
@@ -58,6 +59,7 @@ export function EditorialArenaRenderer({
   const viewportRef = useRef<HTMLDivElement>(null);
   const [internalPageIndex, setInternalPageIndex] = useState(0);
   const [canvasScale, setCanvasScale] = useState<number | null>(null);
+  const [canvasInsetX, setCanvasInsetX] = useState(0);
   const pageCount = view?.pages.length ?? 0;
   const canvas = arenaCanvasSize[view?.orientation ?? "landscape"];
 
@@ -72,7 +74,16 @@ export function EditorialArenaRenderer({
       const width = viewport.clientWidth;
       const height = viewport.clientHeight;
       if (width < 1 || height < 1) return;
-      setCanvasScale(Math.min(width / canvas.width, height / canvas.height));
+      const fillsPortraitViewport = view.orientation === "portrait" && height >= width;
+      const scale = fillsPortraitViewport
+        ? Math.max(width / canvas.width, height / canvas.height)
+        : Math.min(width / canvas.width, height / canvas.height);
+      setCanvasScale(scale);
+      setCanvasInsetX(
+        fillsPortraitViewport
+          ? Math.max(0, (canvas.width - width / scale) / 2)
+          : 0
+      );
     };
     updateScale();
     window.addEventListener("resize", updateScale);
@@ -126,6 +137,7 @@ export function EditorialArenaRenderer({
   const style: ArenaStyle = {
     "--arena-accent": view.accentColor,
     "--arena-page-duration": `${pageDurationMs}ms`,
+    "--arena-viewport-inset-x": `${canvasInsetX}px`,
     height: canvas.height,
     opacity: canvasScale === null ? 0 : 1,
     transform: `translate(-50%, -50%) scale(${canvasScale ?? 1})`,
@@ -186,9 +198,11 @@ function ArenaHeader({ view }: { view: DynamicTemplateView }) {
         )}
       </div>
       <div className={styles.arenaHeading}>
-        <p>Editorial Arena</p>
+        {view.slideType === "news" ? null : <p>Editorial Arena</p>}
         <h1>{view.title}</h1>
-        <span>{arenaSubtitle(view.slideType)}</span>
+        {view.slideType === "news"
+          ? null
+          : <span>{arenaSubtitle(view.slideType)}</span>}
       </div>
       <div className={styles.arenaContext}>
         <strong>{view.sourceLabel}</strong>
@@ -275,10 +289,16 @@ function ArenaPage({
               <span>Laatste nieuws</span>
               <h2 className={newsTitleClassName(article.title)}>{article.title}</h2>
               {article.intro ? <p>{article.intro}</p> : null}
-              <div className={styles.arenaNewsMeta}>
+              <div className={styles.arenaNewsMeta} data-testid="news-meta">
                 {article.date ? <small><b>Datum</b>{article.date}</small> : null}
                 <small><b>Door</b>{article.author || article.source}</small>
               </div>
+              {article.qrUrl ? (
+                <div className={styles.arenaNewsQr} data-testid="news-qr">
+                  <img alt={`QR-code naar ${article.title}`} src={article.qrUrl} />
+                  <span>Scan voor het artikel</span>
+                </div>
+              ) : null}
             </>
           ) : null}
         </article>

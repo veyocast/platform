@@ -36,6 +36,25 @@ for (const orientation of ["landscape", "portrait"] as const) {
     expect(await slide.locator("article").count()).toBe(
       orientation === "portrait" ? 18 : 10
     );
+    const standingHead = slide.locator("main section > div").first();
+    const standingRows = slide.locator("main article");
+    const firstRow = standingRows.first();
+    const selectedRow = standingRows.filter({ hasText: "Duindorp sv" });
+    expect(await standingHead.evaluate((element) =>
+      getComputedStyle(element).gridTemplateColumns
+    )).toBe(await firstRow.evaluate((element) =>
+      getComputedStyle(element).gridTemplateColumns
+    ));
+    const [firstRank, selectedRank] = await Promise.all([
+      firstRow.locator(":scope > strong").first().boundingBox(),
+      selectedRow.locator(":scope > strong").first().boundingBox()
+    ]);
+    expect(firstRank).not.toBeNull();
+    expect(selectedRank).not.toBeNull();
+    expect(selectedRank!.x).toBeCloseTo(firstRank!.x, 1);
+    expect(Number.parseFloat(await selectedRow.evaluate(
+      (element) => getComputedStyle(element).fontSize
+    ))).toBeGreaterThanOrEqual(orientation === "portrait" ? 25 : 28);
     if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
       await page.screenshot({
         path: `docs/screenshots/s91-editorial-arena-standing-${orientation}.png`

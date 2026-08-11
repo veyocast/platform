@@ -66,6 +66,9 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
 
   const sectionTitle = page.getByText("Voetbalnieuws", { exact: true });
   await expect(sectionTitle).toHaveCSS("color", "rgb(243, 240, 233)");
+  await expect(page.getByText("Editorial Arena", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Nieuws uit en rond de club", { exact: true }))
+    .toHaveCount(0);
 
   const supplierLogo = page.getByRole("img", { name: "AD:voetbal" });
   await expect(supplierLogo).toBeVisible();
@@ -81,6 +84,7 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
     "justify-content",
     "flex-start"
   );
+  await expect(slide.getByTestId("news-qr")).toBeVisible();
   await expect(page.getByTestId("player-brand-mark")).toHaveCSS(
     "opacity",
     "0.4"

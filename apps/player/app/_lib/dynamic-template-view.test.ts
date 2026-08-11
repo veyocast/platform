@@ -81,6 +81,7 @@ describe("trusted dynamic template view", () => {
   it("koppelt portrait RSS-media en de ingestelde tijd aan iedere HTML-pagina", () => {
     const heroId = "33333333-3333-4333-8333-333333333333";
     const logoId = "44444444-4444-4444-8444-444444444444";
+    const qrId = "55555555-5555-4555-8555-555555555555";
     const payload = {
       ...base,
       assets: {
@@ -95,6 +96,12 @@ describe("trusted dynamic template view", () => {
           checksumSha256: "d".repeat(64),
           mimeType: "image/webp",
           url: "/__veyocast-player-cache/logo"
+        },
+        [qrId]: {
+          bytes: 768,
+          checksumSha256: "e".repeat(64),
+          mimeType: "image/webp",
+          url: "/__veyocast-player-cache/qr"
         }
       },
       data: {
@@ -104,6 +111,8 @@ describe("trusted dynamic template view", () => {
               author: "Sportredactie",
               externalId: "1",
               heroMediaAssetId: heroId,
+              link: "https://example.test/article?utm_source=rss",
+              qrMediaAssetId: qrId,
               title: "Eerste bericht"
             },
             { externalId: "2", title: "Tweede bericht" }
@@ -129,7 +138,8 @@ describe("trusted dynamic template view", () => {
     expect(view?.pages[0]).toMatchObject({
       item: {
         author: "Sportredactie",
-        heroUrl: "blob:https://player.veyocast.test/hero"
+        heroUrl: "blob:https://player.veyocast.test/hero",
+        qrUrl: "/__veyocast-player-cache/qr"
       },
       kind: "news"
     });
@@ -137,6 +147,38 @@ describe("trusted dynamic template view", () => {
     expect(dynamicTemplatePageDurationMs(30, 2, view?.pageDurationMs)).toBe(
       7_000
     );
+  });
+
+  it("verbergt oudere snapshotregels van hetzelfde nieuwsartikel", () => {
+    const view = createDynamicTemplateView({
+      ...base,
+      data: {
+        news: {
+          articles: [
+            {
+              externalId: "latest",
+              link: "https://example.test/article?utm_source=rss",
+              title: "Laatste update"
+            },
+            {
+              externalId: "older",
+              link: "https://example.test/article?fbclid=old",
+              title: "Eerdere update"
+            }
+          ],
+          sourceName: "Clubnieuws"
+        },
+        type: "news"
+      },
+      slideType: "news",
+      templateSlug: "editorial-arena-nieuws-dark-portrait"
+    });
+
+    expect(view?.pages).toHaveLength(1);
+    expect(view?.pages[0]).toMatchObject({
+      item: { id: "latest", title: "Laatste update" },
+      kind: "news"
+    });
   });
 
   it("bouwt Match Centre alleen uit genormaliseerde tekstvelden", () => {
