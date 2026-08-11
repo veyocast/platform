@@ -73,7 +73,12 @@ describe("Sportlink team- en competitieopties", () => {
           source_connection_id: "connection"
         }
       ],
-      teams: []
+      teams: [{
+        external_id: "10",
+        metadata: {},
+        name: "Testclub 1",
+        source_connection_id: "connection"
+      }]
     });
 
     expect(result.teams).toEqual([
@@ -87,6 +92,43 @@ describe("Sportlink team- en competitieopties", () => {
       "2026/2027",
       "2025/2026"
     ]);
+  });
+
+  it("toont alleen teams uit de clientgebonden teamsfeed en nooit tegenstanders", () => {
+    const result = buildSportlinkSlideOptions({
+      matches: [{
+        away_team: { externalId: "opponent-1", name: "Tegenstander 1" },
+        competition: { externalId: "league-1", name: "Eerste klasse" },
+        home_team: { externalId: "own-provider-id", name: "Duindorp sv 1" },
+        pool: null,
+        source_connection_id: "connection"
+      }],
+      standings: [{
+        metadata: {
+          competition: { externalId: "league-1", name: "Eerste klasse" }
+        },
+        rows_json: [
+          { externalId: "opponent-1", teamName: "Tegenstander 1" },
+          { externalId: "standing-own-id", teamName: "Duindorp sv 1" },
+          { externalId: "opponent-2", teamName: "Tegenstander 2" }
+        ],
+        source_connection_id: "connection"
+      }],
+      teams: [{
+        external_id: "duindorp-1",
+        metadata: {},
+        name: "Duindorp sv 1",
+        source_connection_id: "connection"
+      }]
+    });
+
+    expect(result.teams).toEqual([
+      { externalId: "duindorp-1", label: "Duindorp sv 1" }
+    ]);
+    expect(result.competitions[0]?.teamExternalIds).toEqual(["duindorp-1"]);
+    expect(result.availability.every((item) =>
+      item.teamExternalIds.every((id) => id === "duindorp-1")
+    )).toBe(true);
   });
 
   it("koppelt een wedstrijd op teamnaam als Sportlink andere ids gebruikt", () => {

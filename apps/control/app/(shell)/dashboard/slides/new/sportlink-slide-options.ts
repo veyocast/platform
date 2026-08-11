@@ -97,7 +97,10 @@ export function buildSportlinkSlideOptions({
   teams: SportlinkTeamRow[];
   timeZoneByConnectionId?: Record<string, string>;
 }): SportlinkSlideOptions {
-  const teamOptions = uniqueTeams(teams, standings);
+  // The client-scoped `teams` dataset contains the tenant club's own teams.
+  // Standings and matches also contain opponents and must never promote those
+  // clubs to an authoring option.
+  const teamOptions = uniqueTeams(teams);
   const teamByExternalId = new Map(
     teamOptions.map((team) => [team.externalId, team])
   );
@@ -187,8 +190,13 @@ export function buildSportlinkSlideOptions({
     const season = text(competition?.season) ?? text(metadata?.season);
     const standingTeamIds = array(standing.rows_json).flatMap((value) => {
       const row = record(value);
-      const teamExternalId = text(row?.externalId);
-      return teamExternalId ? [teamExternalId] : [];
+      if (!row) return [];
+      const externalId = text(row.externalId);
+      if (externalId && teamByExternalId.has(externalId)) {
+        return [externalId];
+      }
+      const name = text(row.teamName);
+      return name ? teamIdsByName.get(normalizeName(name)) ?? [] : [];
     });
     if (externalId) {
       addCompetition(competitions, {
@@ -368,26 +376,13 @@ function localDateKey(value: Date, timeZone: string) {
   }
 }
 
-function uniqueTeams(
-  teams: SportlinkTeamRow[],
-  standings: SportlinkStandingRow[]
-) {
+function uniqueTeams(teams: SportlinkTeamRow[]) {
   const unique = new Map<string, SportlinkTeamOption>();
   for (const team of teams) {
     const externalId = text(team.external_id);
     const label = text(team.name);
     if (externalId && label) {
       unique.set(externalId, { externalId, label });
-    }
-  }
-  for (const standing of standings) {
-    for (const value of array(standing.rows_json)) {
-      const row = record(value);
-      const externalId = text(row?.externalId);
-      const label = text(row?.teamName);
-      if (externalId && label && !unique.has(externalId)) {
-        unique.set(externalId, { externalId, label });
-      }
     }
   }
   return [...unique.values()];
