@@ -25,6 +25,7 @@ import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import {
   loadScreenFleet,
   type FleetDevice,
+  type FleetRelease,
   type FleetScreen,
   type ScreenAutomationSummary
 } from "./data";
@@ -245,9 +246,9 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
                   </div>
                   <dl className={styles.screenMeta}>
                     <div><dt>Content</dt><dd>{release?.playlistName ?? "Niet toegewezen"}</dd></div>
-                    <div><dt>Versie</dt><dd>{release ? `Versie ${release.version}` : "—"}</dd></div>
+                    <div><dt>Publicatie</dt><dd>{releaseDisplay(release)}</dd></div>
                     <div><dt>Bron</dt><dd>{assignmentSourceLabel(screen, Boolean(release))}</dd></div>
-                    <div><dt>Synchronisatie</dt><dd>{syncLabel(device)}</dd></div>
+                    <div><dt>Synchronisatie</dt><dd>{syncLabel(device, releaseById)}</dd></div>
                     <div>
                       <dt>Automatisering</dt>
                       <dd>
@@ -273,7 +274,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
           <td data-column="status" data-label="Status"><StatusPill label={status.label} tone={status.tone} /></td>
           <td data-column="player" data-label="Player">{device?.deviceName || "Niet gekoppeld"}<span className="table-secondary">{device?.appVersion ? `App ${device.appVersion}` : device?.platform || "Geen telemetry"}</span></td>
           <td data-column="content" data-label="Content">{screen.assignedReleaseId ? releaseById.get(screen.assignedReleaseId)?.label || `Release ${screen.assignedReleaseId.slice(0, 8)}` : "Geen release"}</td>
-          <td data-column="sync" data-label="Synchronisatie">{syncLabel(device)}</td>
+          <td data-column="sync" data-label="Synchronisatie">{syncLabel(device, releaseById)}</td>
           <td data-column="automation" data-label="Automatisering"><Link className="table-action" href={`/dashboard/screens/${screen.id}?tab=automation`}>{data.automation[screen.id]?.label ?? "Handmatig"}</Link></td>
           <td data-column="seen" data-label="Laatst gezien">{formatLastSeen(device?.lastSeenAt)}</td>
           <td data-column="action" data-label="Actie"><Link className="table-action" href={`/dashboard/screens/${screen.id}`}>Bekijk scherm</Link></td>
@@ -293,12 +294,35 @@ function screenStatus(screen: FleetScreen, device?: FleetDevice) {
   return { kind: "offline", label: "Offline", tone: "warning" as const };
 }
 
-function syncLabel(device: FleetDevice | undefined) {
+function syncLabel(
+  device: FleetDevice | undefined,
+  releaseById: Map<string, FleetRelease>
+) {
   if (!device) return "Wacht op pairing";
   if (device.syncRetryRequestedAt) return "Retry aangevraagd";
-  if (device.desiredReleaseId && device.desiredReleaseId !== device.activeReleaseId) return "Nieuwe release voorbereiden";
-  if (device.activeReleaseId) return "Actieve release gelijk";
+  if (device.desiredReleaseId && device.desiredReleaseId !== device.activeReleaseId) {
+    const activeVersion = device.activeReleaseId
+      ? releaseById.get(device.activeReleaseId)?.version
+      : undefined;
+    const desiredVersion = releaseById.get(device.desiredReleaseId)?.version;
+    if (desiredVersion !== undefined) {
+      return activeVersion === undefined
+        ? `Versie ${desiredVersion} voorbereiden`
+        : `Versie ${activeVersion} → ${desiredVersion}`;
+    }
+    return "Nieuwe publicatie voorbereiden";
+  }
+  if (device.activeReleaseId) return "Player is bijgewerkt";
   return "Wacht op eerste release";
+}
+
+function releaseDisplay(release: FleetRelease | undefined) {
+  if (!release) return "—";
+  if (!release.automatic) return `Versie ${release.version}`;
+  return `Automatisch bijgewerkt · ${formatTenantDateTime(release.publishedAt, null, {
+    dateStyle: "short",
+    timeStyle: "short"
+  })}`;
 }
 
 function screenPriority(kind: string) {

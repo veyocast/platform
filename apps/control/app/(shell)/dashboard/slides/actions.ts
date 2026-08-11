@@ -382,7 +382,7 @@ export async function refreshDynamicSlide(formData: FormData) {
   if (!supabase || !uuidPattern.test(slideId)) {
     redirect("/dashboard/slides?fout=De+slide+is+ongeldig.");
   }
-  const { error } = await supabase.rpc("refresh_dynamic_slide_v1", {
+  const { data, error } = await supabase.rpc("refresh_dynamic_slide_v1", {
     p_slide_id: slideId
   });
   if (error) {
@@ -390,6 +390,9 @@ export async function refreshDynamicSlide(formData: FormData) {
   }
   revalidatePath(`/dashboard/slides/${slideId}`);
   revalidatePath("/dashboard/slides");
+  if (isRecord(data) && data.changed === false) {
+    redirect(`/dashboard/slides/${slideId}?succes=De+inhoud+is+ongewijzigd.+Er+is+geen+nieuwe+versie+aangemaakt.`);
+  }
   redirect(`/dashboard/slides/${slideId}?succes=Nieuwe+snapshot+staat+in+de+renderqueue.`);
 }
 
