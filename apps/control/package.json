@@ -20,6 +20,7 @@
     "@supabase/supabase-js": "^2.110.7",
     "@veyocast/auth": "workspace:*",
     "@veyocast/config": "workspace:*",
+    "@veyocast/content-templates": "workspace:*",
     "@veyocast/contracts": "workspace:*",
     "@veyocast/domain": "workspace:*",
     "@veyocast/integrations": "workspace:*",

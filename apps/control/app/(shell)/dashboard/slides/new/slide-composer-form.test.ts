@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  availabilityCount,
   requiredSportlinkDatasetGroups,
   sourceHasContent,
   sourceMatchesSlideType,
@@ -18,6 +19,7 @@ const source: SlideSourceOption = {
   lastSuccessfulSyncAt: null,
   name: "Clubnieuws",
   providerStatus: "ready",
+  sportAvailability: [],
   sportCompetitions: [],
   sportSeasons: [],
   sportTeams: [],
@@ -87,5 +89,38 @@ describe("dynamische slide-opties", () => {
     expect(supportsSportStandingSelection("sport_standing")).toBe(true);
     expect(supportsSportStandingSelection("sport_period_standing")).toBe(true);
     expect(supportsSportContextSelection("sport_standing")).toBe(true);
+  });
+
+  it("telt alleen inhoud binnen de gekozen team- en competitiecontext", () => {
+    const availability = [
+      {
+        competitionExternalId: "league-a",
+        homeAway: "home" as const,
+        itemCount: 1,
+        lastSyncedAt: "2026-08-11T10:00:00.000Z",
+        season: "2026/2027",
+        slideType: "sport_program",
+        startsAt: "2026-08-12T18:00:00.000Z",
+        teamExternalIds: ["team-1"]
+      },
+      {
+        competitionExternalId: "league-b",
+        homeAway: "away" as const,
+        itemCount: 1,
+        lastSyncedAt: "2026-08-11T10:00:00.000Z",
+        season: "2026/2027",
+        slideType: "sport_program",
+        startsAt: "2026-08-13T18:00:00.000Z",
+        teamExternalIds: ["team-2"]
+      }
+    ];
+    expect(availabilityCount(availability, {
+      competitionExternalId: "league-a",
+      teamExternalId: "team-1"
+    })).toBe(1);
+    expect(availabilityCount(availability, {
+      competitionExternalId: "league-a",
+      teamExternalId: "team-2"
+    })).toBe(0);
   });
 });

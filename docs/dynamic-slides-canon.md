@@ -184,6 +184,18 @@ author selects source, item count and review. Templates use only locked
 VeyoCast themes and normalized content. The normal Player lock-up remains the
 only permanent playback watermark.
 
+S98 replaces the decorative wizard example with a tenant-authorized,
+non-persisted preview from the canonical snapshot builder. Control and Player
+import the same Editorial Arena view model and DOM/CSS renderer. The preview
+therefore never calls Sportlink from the browser, never creates a draft slide,
+snapshot or render job, and cannot mutate an immutable release. Sportlink
+team, competition and season choices are indexed from normalized rows and are
+shown by default only when the selected slide type has renderable content.
+Authors can reveal empty historical/context options for diagnosis, but cannot
+publish an empty selection. The wizard also exposes last successful sync,
+last safe provider state, item/page count and missing-asset fallback before
+creation.
+
 S85 makes the dark portrait RSS template the single canonical portrait news
 composition. S86 gives its existing dark landscape companion a separately
 designed 16:9 composition with the same bounded supplier logo, white shadowed

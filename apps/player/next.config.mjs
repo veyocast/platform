@@ -12,7 +12,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
-  transpilePackages: ["@veyocast/config"],
+  transpilePackages: ["@veyocast/config", "@veyocast/content-templates"],
   async headers() {
     const sharedSecurityHeaders = [
       { key: "Referrer-Policy", value: "no-referrer" },
