@@ -835,6 +835,214 @@
   gap: var(--vc-space-8);
 }
 
+.checkField {
+  display: flex;
+  min-height: 3.75rem;
+  flex-direction: row;
+  gap: var(--vc-space-12);
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.checkField input {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  accent-color: var(--vc-action);
+}
+
+.checkField > span {
+  display: grid;
+  gap: var(--vc-space-4);
+}
+
+.checkField small {
+  color: var(--vc-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 450;
+}
+
+.livePreview,
+.sourceQuality {
+  display: grid;
+  gap: var(--vc-space-16);
+  padding: var(--vc-space-16);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-lg);
+  background: var(--vc-surface-muted);
+}
+
+.livePreviewHeader,
+.livePreviewFooter,
+.sourceQuality > header {
+  display: flex;
+  gap: var(--vc-space-12);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.livePreviewHeader > div,
+.sourceQuality > header > div {
+  display: grid;
+  gap: var(--vc-space-4);
+}
+
+.livePreviewHeader span,
+.sourceQuality > header span {
+  color: var(--vc-action);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.livePreviewHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.livePreviewLoading {
+  display: inline-flex;
+  gap: var(--vc-space-8);
+  align-items: center;
+  color: var(--vc-text-muted) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.livePreviewLoading svg {
+  width: 1rem;
+  height: 1rem;
+  animation: preview-spin 900ms linear infinite;
+}
+
+.livePreviewStage {
+  width: min(100%, 48rem);
+  aspect-ratio: 16 / 9;
+  justify-self: center;
+  overflow: hidden;
+  border: 1px solid var(--vc-border-strong);
+  border-radius: var(--vc-radius-md);
+  background: #050505;
+  box-shadow: var(--vc-shadow-sm);
+}
+
+.livePreviewStage[data-orientation="portrait"] {
+  width: min(100%, 22rem);
+  aspect-ratio: 9 / 16;
+}
+
+.livePreviewFooter > div:first-child,
+.livePreviewMessage {
+  display: grid;
+  gap: var(--vc-space-4);
+}
+
+.livePreviewFooter span,
+.livePreviewMessage span {
+  color: var(--vc-text-muted);
+  font-size: 0.8125rem;
+}
+
+.livePreviewPager {
+  display: flex;
+  gap: var(--vc-space-8);
+  align-items: center;
+}
+
+.livePreviewPager svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.livePreviewMessage {
+  min-height: 9rem;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.sourceQuality dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--vc-space-8);
+  margin: 0;
+}
+
+.sourceQuality dl div {
+  display: grid;
+  gap: var(--vc-space-4);
+  padding: var(--vc-space-12);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface);
+}
+
+.sourceQuality dt {
+  color: var(--vc-text-muted);
+  font-size: 0.75rem;
+}
+
+.sourceQuality dd {
+  margin: 0;
+  color: var(--vc-text);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.preflightList {
+  display: grid;
+  gap: var(--vc-space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.preflightList li {
+  display: flex;
+  gap: var(--vc-space-8);
+  align-items: center;
+  color: var(--vc-text-muted);
+  font-size: 0.8125rem;
+}
+
+.preflightList svg {
+  width: 1rem;
+  height: 1rem;
+  padding: 0.15rem;
+  border-radius: 999px;
+  background: var(--vc-surface);
+}
+
+.preflightList li[data-ready="true"] {
+  color: var(--vc-semantic-success-text);
+}
+
+.preflightList li[data-ready="true"] svg {
+  background: var(--vc-semantic-success-surface);
+}
+
+.sourceQualityWarning {
+  margin: 0;
+  padding: var(--vc-space-12);
+  border-left: 3px solid var(--vc-semantic-warning-solid);
+  background: var(--vc-semantic-warning-surface);
+  color: var(--vc-semantic-warning-text);
+  font-size: 0.8125rem;
+}
+
+.cardDataMeta {
+  margin: var(--vc-space-8) 0 0;
+  color: var(--vc-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+@keyframes preview-spin {
+  to { transform: rotate(360deg); }
+}
+
 .split {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.7fr);
@@ -965,5 +1173,22 @@
 
   .wizardActions > div > * {
     width: 100%;
+  }
+
+  .livePreviewHeader,
+  .livePreviewFooter,
+  .sourceQuality > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sourceQuality dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .livePreviewLoading svg {
+    animation: none;
   }
 }

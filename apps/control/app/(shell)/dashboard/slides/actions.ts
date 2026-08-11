@@ -1,11 +1,141 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import {
+  playerDynamicTemplateAssetSchema,
+  playerDynamicTemplatePayloadSchema,
+  type PlayerDynamicTemplateAsset,
+  type PlayerDynamicTemplatePayload
+} from "@veyocast/contracts";
+
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+
+export type DynamicSlidePreviewResult =
+  | {
+      itemCount: number;
+      missingAssetCount: number;
+      ok: true;
+      payload: PlayerDynamicTemplatePayload;
+      source: {
+        lastErrorCode: string | null;
+        lastSuccessfulSyncAt: string | null;
+        providerStatus: string;
+      };
+    }
+  | {
+      code: string;
+      message: string;
+      ok: false;
+    };
+
+export async function previewDynamicSlide(
+  formData: FormData
+): Promise<DynamicSlidePreviewResult> {
+  const session = await requireTenantControlSession("tenant.dynamic_slide.write");
+  const name = String(formData.get("name") ?? "Voorbeeld").trim();
+  const templateVersionId = String(formData.get("templateVersionId") ?? "");
+  const dataSourceId = String(formData.get("dataSourceId") ?? "");
+  const configuration = dynamicSlideConfiguration(formData);
+  const supabase = await createControlSupabaseClient();
+  if (
+    !supabase ||
+    !uuidPattern.test(templateVersionId) ||
+    !uuidPattern.test(dataSourceId)
+  ) {
+    return {
+      code: "PREVIEW_SELECTION_INVALID",
+      message: "Kies eerst een geldig template en een beschikbare databron.",
+      ok: false
+    };
+  }
+
+  const { data, error } = await supabase.rpc("preview_dynamic_slide_v1", {
+    p_configuration_json: configuration,
+    p_data_source_id: dataSourceId,
+    p_name: name || "Voorbeeld",
+    p_template_version_id: templateVersionId,
+    p_tenant_id: session.tenantId!
+  });
+  if (error || !isRecord(data)) {
+    console.error("Dynamische slide preview mislukt", {
+      code: error?.code ?? "preview_result_invalid"
+    });
+    return {
+      code: error?.code ?? "PREVIEW_UNAVAILABLE",
+      message:
+        error?.code === "42501"
+          ? "Je hebt geen toestemming om deze preview te laden."
+          : "De echte preview kon tijdelijk niet worden opgebouwd. De databron en bestaande slides zijn niet gewijzigd.",
+      ok: false
+    };
+  }
+
+  const snapshotData = isRecord(data.data) ? data.data : null;
+  const source = isRecord(data.source) ? data.source : null;
+  if (
+    !snapshotData ||
+    typeof data.previewId !== "string" ||
+    !uuidPattern.test(data.previewId)
+  ) {
+    return {
+      code: "PREVIEW_PAYLOAD_INVALID",
+      message: "De databron gaf geen geldige voorbeeldinhoud terug.",
+      ok: false
+    };
+  }
+
+  const mediaAssetIds = collectPreviewMediaAssetIds(snapshotData);
+  const assets = await loadPreviewAssets(
+    supabase,
+    session.tenantId!,
+    mediaAssetIds
+  );
+  const parsed = playerDynamicTemplatePayloadSchema.safeParse({
+    ...(assets.size ? { assets: Object.fromEntries(assets) } : {}),
+    data: snapshotData,
+    orientation: data.orientation,
+    schemaVersion: 1,
+    slideType: data.slideType,
+    snapshotHash: createHash("sha256")
+      .update(JSON.stringify(snapshotData))
+      .digest("hex"),
+    snapshotId: data.previewId,
+    templateSlug: data.templateSlug,
+    templateVersionId: data.templateVersionId
+  });
+  if (!parsed.success) {
+    return {
+      code: "PREVIEW_PAYLOAD_INVALID",
+      message: "De voorbeeldinhoud voldoet niet aan het veilige Playercontract.",
+      ok: false
+    };
+  }
+
+  return {
+    itemCount: previewItemCount(snapshotData),
+    missingAssetCount: Math.max(0, mediaAssetIds.length - assets.size),
+    ok: true,
+    payload: parsed.data,
+    source: {
+      lastErrorCode:
+        typeof source?.lastErrorCode === "string"
+          ? source.lastErrorCode
+          : null,
+      lastSuccessfulSyncAt:
+        typeof source?.lastSuccessfulSyncAt === "string"
+          ? source.lastSuccessfulSyncAt
+          : null,
+      providerStatus:
+        typeof source?.providerStatus === "string"
+          ? source.providerStatus
+          : "unknown"
+    }
+  };
+}
 
 export async function createDynamicSlide(formData: FormData) {
   const session = await requireTenantControlSession("tenant.dynamic_slide.write");
@@ -94,11 +224,17 @@ export async function createDynamicSlide(formData: FormData) {
       : requestedMaxItems;
   const { data, error } = await supabase.rpc("create_dynamic_slide_v1", {
     p_configuration_json: {
-      ...(templateSlideType === "menu" && category ? { category } : {}),
+      ...dynamicSlideConfiguration(formData),
       maxItems,
+      ...(templateSlideType === "menu" && category ? { category } : {}),
       ...(templateSlideType === "news"
-        ? { secondsPerSlide: requestedSecondsPerSlide }
-        : {}),
+        ? {
+            secondsPerSlide: requestedSecondsPerSlide,
+            title: title || "Voetbalnieuws"
+          }
+        : title
+          ? { title }
+          : {}),
       ...(supportsSportContextSelection(templateSlideType) &&
       sportCompetitionExternalId
         ? { sportCompetitionExternalId }
@@ -109,12 +245,7 @@ export async function createDynamicSlide(formData: FormData) {
         : {}),
       ...(supportsSportStandingSelection(templateSlideType) && sportSeason
         ? { sportSeason }
-        : {}),
-      ...(templateSlideType === "news"
-        ? { title: title || "Voetbalnieuws" }
-        : title
-          ? { title }
-          : {})
+        : {})
     },
     p_data_source_id: dataSourceId,
     p_name: name,
@@ -138,6 +269,110 @@ export async function createDynamicSlide(formData: FormData) {
   }
   revalidatePath("/dashboard/slides");
   redirect(`/dashboard/slides/${slideId}?succes=De+eerste+immutable+snapshot+wordt+gerenderd.`);
+}
+
+function dynamicSlideConfiguration(formData: FormData) {
+  const title = String(formData.get("title") ?? "").trim();
+  const category = String(formData.get("category") ?? "").trim();
+  const slideType = String(formData.get("slideType") ?? "");
+  const sportCompetitionExternalId = normalizeSportlinkSelection(
+    formData.get("sportCompetitionExternalId")
+  );
+  const sportTeamExternalId = normalizeSportlinkSelection(
+    formData.get("sportTeamExternalId")
+  );
+  const sportSeason = normalizeSportlinkSelection(formData.get("sportSeason"));
+  const maxItems = Math.min(
+    slideType === "news" ? 12 : 40,
+    Math.max(1, Number(formData.get("maxItems")) || 8)
+  );
+  const secondsPerSlide = Math.min(
+    120,
+    Math.max(5, Number(formData.get("secondsPerSlide")) || 5)
+  );
+  return {
+    ...(slideType === "menu" && category ? { category } : {}),
+    maxItems,
+    ...(slideType === "news" ? { secondsPerSlide } : {}),
+    ...(typeof sportCompetitionExternalId === "string"
+      ? { sportCompetitionExternalId }
+      : {}),
+    ...(typeof sportTeamExternalId === "string"
+      ? { sportTeamExternalId }
+      : {}),
+    ...(supportsSportStandingSelection(slideType) &&
+    typeof sportSeason === "string"
+      ? { sportSeason }
+      : {}),
+    ...(slideType === "news"
+      ? { title: title || "Voetbalnieuws" }
+      : title
+        ? { title }
+        : {})
+  };
+}
+
+function collectPreviewMediaAssetIds(snapshot: Record<string, unknown>) {
+  const ids = new Set<string>();
+  const add = (value: unknown) => {
+    if (typeof value === "string" && uuidPattern.test(value)) ids.add(value);
+  };
+  const brand = isRecord(snapshot.brand) ? snapshot.brand : null;
+  add(brand?.logoMediaAssetId);
+  const menu = isRecord(snapshot.menu) ? snapshot.menu : null;
+  if (Array.isArray(menu?.products)) {
+    for (const candidate of menu.products.slice(0, 40)) {
+      const product = isRecord(candidate) ? candidate : null;
+      add(product?.imageMediaAssetId);
+    }
+  }
+  const news = isRecord(snapshot.news) ? snapshot.news : null;
+  add(news?.providerLogoMediaAssetId);
+  if (Array.isArray(news?.articles)) {
+    for (const candidate of news.articles.slice(0, 50)) {
+      const article = isRecord(candidate) ? candidate : null;
+      add(article?.heroMediaAssetId);
+    }
+  }
+  return [...ids];
+}
+
+async function loadPreviewAssets(
+  supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
+  tenantId: string,
+  mediaAssetIds: string[]
+) {
+  const assets = new Map<string, PlayerDynamicTemplateAsset>();
+  if (!mediaAssetIds.length) return assets;
+  const variants = await supabase
+    .from("media_variants")
+    .select("asset_id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
+    .eq("tenant_id", tenantId)
+    .eq("variant_type", "original")
+    .in("asset_id", mediaAssetIds);
+  if (variants.error) return assets;
+  await Promise.all((variants.data ?? []).map(async (variant) => {
+    const signed = await supabase.storage
+      .from(variant.storage_bucket)
+      .createSignedUrl(variant.storage_path, 600);
+    const parsed = playerDynamicTemplateAssetSchema.safeParse({
+      bytes: Number(variant.file_size_bytes),
+      checksumSha256: variant.checksum_sha256,
+      mimeType: variant.mime_type,
+      url: signed.data?.signedUrl
+    });
+    if (parsed.success) assets.set(variant.asset_id, parsed.data);
+  }));
+  return assets;
+}
+
+function previewItemCount(snapshot: Record<string, unknown>) {
+  const sport = isRecord(snapshot.sport) ? snapshot.sport : null;
+  if (Array.isArray(sport?.items)) return sport.items.length;
+  const menu = isRecord(snapshot.menu) ? snapshot.menu : null;
+  if (Array.isArray(menu?.products)) return menu.products.length;
+  const news = isRecord(snapshot.news) ? snapshot.news : null;
+  return Array.isArray(news?.articles) ? news.articles.length : 0;
 }
 
 export async function refreshDynamicSlide(formData: FormData) {

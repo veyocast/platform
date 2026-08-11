@@ -138,4 +138,69 @@ describe("Sportlink team- en competitieopties", () => {
       teamExternalIds: ["10"]
     });
   });
+
+  it("merkt alleen renderbare wedstrijdinhoud als beschikbaar aan", () => {
+    const result = buildSportlinkSlideOptions({
+      matches: [
+        {
+          active: true,
+          away_team: { externalId: "away", name: "Bezoekers" },
+          competition: {
+            externalId: "league-1",
+            name: "Eerste klasse",
+            season: "2026/2027"
+          },
+          home_team: { externalId: "team-1", name: "Testclub 1" },
+          pool: null,
+          source_connection_id: "connection",
+          starts_at: "2026-08-12T18:00:00.000Z",
+          status: "scheduled"
+        },
+        {
+          active: true,
+          away_team: { externalId: "away", name: "Bezoekers", score: 1 },
+          competition: {
+            externalId: "league-1",
+            name: "Eerste klasse",
+            season: "2026/2027"
+          },
+          home_team: { externalId: "team-1", name: "Testclub 1", score: 2 },
+          pool: null,
+          scores_published: true,
+          source_connection_id: "connection",
+          starts_at: "2026-08-09T12:00:00.000Z",
+          status: "finished"
+        },
+        {
+          active: true,
+          away_team: { externalId: "away", name: "Bezoekers" },
+          competition: {
+            externalId: "league-1",
+            name: "Eerste klasse",
+            season: "2026/2027"
+          },
+          home_team: { externalId: "team-1", name: "Testclub 1" },
+          pool: null,
+          scores_published: false,
+          source_connection_id: "connection",
+          starts_at: "2026-08-08T12:00:00.000Z",
+          status: "finished"
+        }
+      ],
+      now: new Date("2026-08-11T12:00:00.000Z"),
+      teams: [{
+        external_id: "team-1",
+        metadata: {},
+        name: "Testclub 1",
+        source_connection_id: "connection"
+      }]
+    });
+
+    expect(result.availability.filter((item) =>
+      item.slideType === "sport_program"
+    )).toHaveLength(1);
+    expect(result.availability.filter((item) =>
+      item.slideType === "sport_results"
+    )).toHaveLength(1);
+  });
 });

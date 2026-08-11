@@ -18,9 +18,21 @@ export type SportlinkTeamOption = {
 };
 
 export type SportlinkSlideOptions = {
+  availability: SportlinkAvailabilityRecord[];
   competitions: SportlinkCompetitionOption[];
   seasons: SportlinkSeasonOption[];
   teams: SportlinkTeamOption[];
+};
+
+export type SportlinkAvailabilityRecord = {
+  competitionExternalId: string | null;
+  homeAway: "away" | "home" | null;
+  itemCount: number;
+  lastSyncedAt: string | null;
+  season: string | null;
+  slideType: string;
+  startsAt: string | null;
+  teamExternalIds: string[];
 };
 
 export type SportlinkTeamRow = {
@@ -31,16 +43,30 @@ export type SportlinkTeamRow = {
 };
 
 export type SportlinkMatchRow = {
+  active?: boolean;
   away_team: unknown;
   competition: unknown;
+  dressing_rooms?: unknown;
+  expires_at?: string | null;
   home_team: unknown;
+  is_home_match?: boolean;
+  last_synced_at?: string | null;
+  officials?: unknown;
   pool: unknown;
+  scores_published?: boolean;
   source_connection_id: string;
+  starts_at?: string;
+  status?: string;
 };
 
 export type SportlinkStandingRow = {
+  active?: boolean;
+  last_synced_at?: string | null;
   metadata: unknown;
+  period_number?: number | null;
   rows_json: unknown;
+  scores_published?: boolean;
+  season_key?: string;
   source_connection_id: string;
 };
 
@@ -60,12 +86,16 @@ type MutableSeason = {
 
 export function buildSportlinkSlideOptions({
   matches,
+  now = new Date(),
   standings = [],
-  teams
+  teams,
+  timeZoneByConnectionId = {}
 }: {
   matches: SportlinkMatchRow[];
+  now?: Date;
   standings?: SportlinkStandingRow[];
   teams: SportlinkTeamRow[];
+  timeZoneByConnectionId?: Record<string, string>;
 }): SportlinkSlideOptions {
   const teamOptions = uniqueTeams(teams, standings);
   const teamByExternalId = new Map(
@@ -82,6 +112,7 @@ export function buildSportlinkSlideOptions({
 
   const competitions = new Map<string, MutableCompetition>();
   const seasons = new Map<string, MutableSeason>();
+  const availability: SportlinkAvailabilityRecord[] = [];
   for (const teamRow of teams) {
     const metadata = record(teamRow.metadata);
     for (const option of array(metadata?.competitionOptions)) {
@@ -134,6 +165,16 @@ export function buildSportlinkSlideOptions({
       teamExternalIds,
       value: text(competition.season)
     });
+    availability.push(...matchAvailability({
+      competitionExternalId: externalId,
+      match,
+      now,
+      season: text(competition.season),
+      teamExternalIds: [...new Set(teamExternalIds)],
+      timeZone:
+        timeZoneByConnectionId[match.source_connection_id] ??
+        "Europe/Amsterdam"
+    }));
   }
 
   for (const standing of standings) {
@@ -165,9 +206,36 @@ export function buildSportlinkSlideOptions({
       teamExternalIds: standingTeamIds,
       value: season
     });
+    const rows = array(standing.rows_json);
+    if (
+      standing.active !== false &&
+      standing.scores_published === true &&
+      rows.length > 0
+    ) {
+      const standingAvailability = {
+        competitionExternalId: externalId,
+        homeAway: null,
+        itemCount: rows.length,
+        lastSyncedAt: text(standing.last_synced_at),
+        season: text(standing.season_key) ?? season,
+        startsAt: null,
+        teamExternalIds: [...new Set(standingTeamIds)]
+      } satisfies Omit<SportlinkAvailabilityRecord, "slideType">;
+      availability.push({
+        ...standingAvailability,
+        slideType: "sport_standing"
+      });
+      if (standing.period_number !== null && standing.period_number !== undefined) {
+        availability.push({
+          ...standingAvailability,
+          slideType: "sport_period_standing"
+        });
+      }
+    }
   }
 
   return {
+    availability,
     competitions: [...competitions.values()]
       .map((competition) => ({
         externalId: competition.externalId,
@@ -190,6 +258,114 @@ export function buildSportlinkSlideOptions({
       left.label.localeCompare(right.label, "nl-NL", { numeric: true })
     )
   };
+}
+
+function matchAvailability({
+  competitionExternalId,
+  match,
+  now,
+  season,
+  teamExternalIds,
+  timeZone
+}: {
+  competitionExternalId: string;
+  match: SportlinkMatchRow;
+  now: Date;
+  season: string | null;
+  teamExternalIds: string[];
+  timeZone: string;
+}): SportlinkAvailabilityRecord[] {
+  const startsAt = validDate(match.starts_at);
+  const expiresAt = validDate(match.expires_at);
+  if (
+    match.active === false ||
+    !startsAt ||
+    (expiresAt && expiresAt.getTime() <= now.getTime())
+  ) {
+    return [];
+  }
+  const status = text(match.status)?.toLowerCase() ?? "";
+  const scheduled = status === "scheduled" || status === "postponed";
+  const future = startsAt.getTime() >= now.getTime();
+  const todayOrLater = localDateKey(startsAt, timeZone) >=
+    localDateKey(now, timeZone);
+  const scoresReady =
+    match.scores_published !== false &&
+    scoreIsPresent(match.home_team) &&
+    scoreIsPresent(match.away_team);
+  const dressingRooms = record(match.dressing_rooms);
+  const hasDressingRooms = Boolean(
+    text(dressingRooms?.home) ||
+    text(dressingRooms?.away) ||
+    text(dressingRooms?.official)
+  );
+  const hasOfficials = array(match.officials).some((candidate) => {
+    const official = record(candidate);
+    return Boolean(text(official?.displayName) ?? text(candidate));
+  });
+  const base = {
+    competitionExternalId,
+    homeAway: match.is_home_match === true ? "home" as const : "away" as const,
+    itemCount: 1,
+    lastSyncedAt: text(match.last_synced_at),
+    season,
+    startsAt: startsAt.toISOString(),
+    teamExternalIds
+  };
+  const result: SportlinkAvailabilityRecord[] = [];
+  if (scheduled && todayOrLater) {
+    result.push({ ...base, slideType: "sport_program" });
+  }
+  if (status === "finished" && scoresReady) {
+    result.push({ ...base, slideType: "sport_results" });
+  }
+  if (status === "cancelled") {
+    result.push({ ...base, slideType: "sport_cancellations" });
+  }
+  if (scheduled && future) {
+    result.push({ ...base, slideType: "sport_next_match" });
+  }
+  if (scheduled && todayOrLater && hasDressingRooms) {
+    result.push({ ...base, slideType: "sport_dressing_rooms" });
+  }
+  if (scheduled && todayOrLater && hasOfficials) {
+    result.push({ ...base, slideType: "sport_officials" });
+  }
+  if (
+    scheduled &&
+    localDateKey(startsAt, timeZone) === localDateKey(now, timeZone)
+  ) {
+    result.push({ ...base, slideType: "sport_match_of_the_day" });
+  }
+  return result;
+}
+
+function scoreIsPresent(value: unknown) {
+  const team = record(value);
+  const score = team?.score;
+  return (typeof score === "number" && Number.isFinite(score)) ||
+    (typeof score === "string" && /^\d+$/.test(score.trim()));
+}
+
+function validDate(value: unknown) {
+  if (typeof value !== "string") return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : null;
+}
+
+function localDateKey(value: Date, timeZone: string) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      day: "2-digit",
+      month: "2-digit",
+      timeZone,
+      year: "numeric"
+    }).formatToParts(value);
+    const byType = new Map(parts.map((part) => [part.type, part.value]));
+    return `${byType.get("year")}-${byType.get("month")}-${byType.get("day")}`;
+  } catch {
+    return value.toISOString().slice(0, 10);
+  }
 }
 
 function uniqueTeams(

@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useTransition,
   type CSSProperties
 } from "react";
 import {
@@ -17,8 +18,14 @@ import {
 import { Button } from "@veyocast/ui";
 
 import styles from "../../dynamic-content.module.css";
-import { createDynamicSlide } from "../actions";
+import {
+  createDynamicSlide,
+  previewDynamicSlide,
+  type DynamicSlidePreviewResult
+} from "../actions";
+import { DynamicSlideLivePreview } from "./dynamic-slide-live-preview";
 import type {
+  SportlinkAvailabilityRecord,
   SportlinkCompetitionOption,
   SportlinkSeasonOption,
   SportlinkTeamOption
@@ -32,6 +39,7 @@ export type SlideSourceOption = {
   lastSuccessfulSyncAt: string | null;
   name: string;
   providerStatus: string;
+  sportAvailability: SportlinkAvailabilityRecord[];
   sportCompetitions: SportlinkCompetitionOption[];
   sportSeasons: SportlinkSeasonOption[];
   sportTeams: SportlinkTeamOption[];
@@ -112,6 +120,10 @@ export function SlideComposerForm({
     defaultMaxItems(initialTemplate.slideType)
   );
   const [secondsPerSlide, setSecondsPerSlide] = useState("5");
+  const [showEmptySportOptions, setShowEmptySportOptions] = useState(false);
+  const [previewResult, setPreviewResult] =
+    useState<DynamicSlidePreviewResult | null>(null);
+  const [isPreviewPending, startPreviewTransition] = useTransition();
   const matchingTemplates = templates.filter(
     (template) => template.slideType === slideType
   );
@@ -129,16 +141,30 @@ export function SlideComposerForm({
     readySources.find((source) => source.id === dataSourceId) ??
     readySources[0] ??
     null;
-  const sportTeams = selectedSource?.sportTeams ?? [];
+  const sportAvailability = (selectedSource?.sportAvailability ?? []).filter(
+    (record) => record.slideType === slideType
+  );
+  const sportTeams = (selectedSource?.sportTeams ?? []).filter((team) =>
+    showEmptySportOptions ||
+    availabilityCount(sportAvailability, { teamExternalId: team.externalId }) > 0
+  );
   const selectedSportTeamExternalId = sportTeams.some(
     (team) => team.externalId === sportTeamExternalId
   )
     ? sportTeamExternalId
     : "*";
   const sportCompetitions = (selectedSource?.sportCompetitions ?? []).filter(
-    (competition) =>
-      selectedSportTeamExternalId === "*" ||
-      competition.teamExternalIds.includes(selectedSportTeamExternalId)
+    (competition) => {
+      const belongsToTeam = selectedSportTeamExternalId === "*" ||
+        competition.teamExternalIds.includes(selectedSportTeamExternalId);
+      return belongsToTeam && (
+        showEmptySportOptions ||
+        availabilityCount(sportAvailability, {
+          competitionExternalId: competition.externalId,
+          teamExternalId: selectedSportTeamExternalId
+        }) > 0
+      );
+    }
   );
   const selectedSportCompetitionExternalId = sportCompetitions.some(
     (competition) =>
@@ -146,24 +172,84 @@ export function SlideComposerForm({
   )
     ? sportCompetitionExternalId
     : "*";
-  const sportSeasons = (selectedSource?.sportSeasons ?? []).filter(
-    (season) =>
+  const sportSeasons = (selectedSource?.sportSeasons ?? []).filter((season) => {
+    const belongsToSelection =
       (selectedSportTeamExternalId === "*" ||
         season.teamExternalIds.includes(selectedSportTeamExternalId)) &&
       (selectedSportCompetitionExternalId === "*" ||
         season.competitionExternalIds.includes(
           selectedSportCompetitionExternalId
-        ))
-  );
+        ));
+    return belongsToSelection && (
+      showEmptySportOptions ||
+      availabilityCount(sportAvailability, {
+        competitionExternalId: selectedSportCompetitionExternalId,
+        season: season.value,
+        teamExternalId: selectedSportTeamExternalId
+      }) > 0
+    );
+  });
   const selectedSportSeason = sportSeasons.some(
     (season) => season.value === sportSeason
   )
     ? sportSeason
     : "*";
+  const selectedSportItemCount = availabilityCount(sportAvailability, {
+    competitionExternalId: selectedSportCompetitionExternalId,
+    season: selectedSportSeason,
+    teamExternalId: selectedSportTeamExternalId
+  });
+  const selectedSportHasContent = !supportsSportContextSelection(slideType) ||
+    selectedSportItemCount > 0;
 
   useEffect(() => {
     stepHeadingRef.current?.focus();
   }, [currentStep]);
+
+  useEffect(() => {
+    if (!selectedSource || !selectedTemplate) {
+      setPreviewResult(null);
+      return;
+    }
+    let active = true;
+    const timer = window.setTimeout(() => {
+      const previewFormData = new FormData();
+      previewFormData.set("name", name || "Voorbeeld");
+      previewFormData.set("slideType", slideType);
+      previewFormData.set("templateVersionId", selectedTemplate.versionId);
+      previewFormData.set("dataSourceId", selectedSource.id);
+      previewFormData.set("title", title);
+      previewFormData.set("category", category);
+      previewFormData.set(
+        "sportCompetitionExternalId",
+        selectedSportCompetitionExternalId
+      );
+      previewFormData.set("sportTeamExternalId", selectedSportTeamExternalId);
+      previewFormData.set("sportSeason", selectedSportSeason);
+      previewFormData.set("maxItems", maxItems);
+      previewFormData.set("secondsPerSlide", secondsPerSlide);
+      startPreviewTransition(async () => {
+        const result = await previewDynamicSlide(previewFormData);
+        if (active) setPreviewResult(result);
+      });
+    }, 550);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [
+    category,
+    maxItems,
+    name,
+    secondsPerSlide,
+    selectedSource,
+    selectedSportCompetitionExternalId,
+    selectedSportSeason,
+    selectedSportTeamExternalId,
+    selectedTemplate,
+    slideType,
+    title
+  ]);
 
   function goToNextStep() {
     const section = formRef.current?.querySelector<HTMLElement>(
@@ -327,6 +413,12 @@ export function SlideComposerForm({
             </label>
           ))}
         </div>
+        {currentStep === 1 ? (
+          <DynamicSlideLivePreview
+            loading={isPreviewPending}
+            result={previewResult}
+          />
+        ) : null}
       </section>
 
       <section
@@ -405,6 +497,17 @@ export function SlideComposerForm({
             </select>
           </label>
         </div>
+        {selectedSource ? (
+          <SourceQualityPanel
+            itemCount={supportsSportContextSelection(slideType)
+              ? selectedSportItemCount
+              : previewResult?.ok
+                ? previewResult.itemCount
+                : selectedSource.itemCount}
+            previewResult={previewResult}
+            source={selectedSource}
+          />
+        ) : null}
       </section>
 
       <section
@@ -446,6 +549,24 @@ export function SlideComposerForm({
           ) : null}
           {supportsSportContextSelection(slideType) ? (
             <>
+              <label
+                className={`${styles.field} ${styles.fieldWide} ${styles.checkField}`}
+              >
+                <input
+                  checked={showEmptySportOptions}
+                  onChange={(event) =>
+                    setShowEmptySportOptions(event.currentTarget.checked)
+                  }
+                  type="checkbox"
+                />
+                <span>
+                  Toon ook opties zonder bruikbare inhoud
+                  <small>
+                    Lege opties worden gemarkeerd en kunnen pas na een
+                    geslaagde synchronisatie worden gebruikt.
+                  </small>
+                </span>
+              </label>
               <label className={styles.field}>
                 <span>Team</span>
                 <select
@@ -459,8 +580,19 @@ export function SlideComposerForm({
                 >
                   <option value="*">Alle teams</option>
                   {sportTeams.map((team) => (
-                    <option key={team.externalId} value={team.externalId}>
-                      {team.label}
+                    <option
+                      disabled={availabilityCount(sportAvailability, {
+                        teamExternalId: team.externalId
+                      }) === 0}
+                      key={team.externalId}
+                      value={team.externalId}
+                    >
+                      {optionLabel(
+                        team.label,
+                        availabilityCount(sportAvailability, {
+                          teamExternalId: team.externalId
+                        })
+                      )}
                     </option>
                   ))}
                 </select>
@@ -487,10 +619,20 @@ export function SlideComposerForm({
                   <option value="*">Alle competities en fasen</option>
                   {sportCompetitions.map((competition) => (
                     <option
+                      disabled={availabilityCount(sportAvailability, {
+                        competitionExternalId: competition.externalId,
+                        teamExternalId: selectedSportTeamExternalId
+                      }) === 0}
                       key={competition.externalId}
                       value={competition.externalId}
                     >
-                      {competition.label}
+                      {optionLabel(
+                        competition.label,
+                        availabilityCount(sportAvailability, {
+                          competitionExternalId: competition.externalId,
+                          teamExternalId: selectedSportTeamExternalId
+                        })
+                      )}
                     </option>
                   ))}
                 </select>
@@ -513,8 +655,25 @@ export function SlideComposerForm({
                       Huidig / nieuwste seizoen (automatisch)
                     </option>
                     {sportSeasons.map((season) => (
-                      <option key={season.value} value={season.value}>
-                        {season.label}
+                      <option
+                        disabled={availabilityCount(sportAvailability, {
+                          competitionExternalId:
+                            selectedSportCompetitionExternalId,
+                          season: season.value,
+                          teamExternalId: selectedSportTeamExternalId
+                        }) === 0}
+                        key={season.value}
+                        value={season.value}
+                      >
+                        {optionLabel(
+                          season.label,
+                          availabilityCount(sportAvailability, {
+                            competitionExternalId:
+                              selectedSportCompetitionExternalId,
+                            season: season.value,
+                            teamExternalId: selectedSportTeamExternalId
+                          })
+                        )}
                       </option>
                     ))}
                   </select>
@@ -567,6 +726,29 @@ export function SlideComposerForm({
             </label>
           ) : null}
         </div>
+        {supportsSportContextSelection(slideType) &&
+        !selectedSportHasContent ? (
+          <div className={styles.inlineGuidance} role="alert">
+            <strong>
+              Deze selectie bevat nu geen publiceerbare Sportlink-inhoud.
+            </strong>
+            <span>
+              Kies een optie met een aantal tussen haakjes of synchroniseer de
+              vereiste dataset opnieuw.
+            </span>
+            <Button asChild size="sm" variant="secondary">
+              <Link href="/dashboard/data-sources/sportlink">
+                Sportlink controleren
+              </Link>
+            </Button>
+          </div>
+        ) : null}
+        {currentStep === 3 ? (
+          <DynamicSlideLivePreview
+            loading={isPreviewPending}
+            result={previewResult}
+          />
+        ) : null}
       </section>
 
       <section
@@ -648,6 +830,12 @@ export function SlideComposerForm({
           die met de gekozen HTML/CSS-template; de worker bewaart daarnaast
           automatisch een PNG-fallback voor offline en oudere apparaten.
         </p>
+        {currentStep === 4 ? (
+          <DynamicSlideLivePreview
+            loading={isPreviewPending}
+            result={previewResult}
+          />
+        ) : null}
       </section>
 
       <footer className={styles.wizardActions}>
@@ -666,7 +854,10 @@ export function SlideComposerForm({
           </Button>
           {currentStep < wizardSteps.length - 1 ? (
             <Button
-              disabled={currentStep === 2 && !selectedSource}
+              disabled={
+                (currentStep === 2 && !selectedSource) ||
+                (currentStep === 3 && !selectedSportHasContent)
+              }
               onClick={goToNextStep}
               type="button"
             >
@@ -674,7 +865,14 @@ export function SlideComposerForm({
               <ChevronRight aria-hidden="true" />
             </Button>
           ) : (
-            <Button disabled={!selectedSource} type="submit">
+            <Button
+              disabled={
+                !selectedSource ||
+                !selectedSportHasContent ||
+                !previewResult?.ok
+              }
+              type="submit"
+            >
               <Sparkles aria-hidden="true" />
               Slide maken
             </Button>
@@ -683,6 +881,111 @@ export function SlideComposerForm({
       </footer>
     </form>
   );
+}
+
+function SourceQualityPanel({
+  itemCount,
+  previewResult,
+  source
+}: {
+  itemCount: number;
+  previewResult: DynamicSlidePreviewResult | null;
+  source: SlideSourceOption;
+}) {
+  const lastSync = source.lastSuccessfulSyncAt
+    ? new Intl.DateTimeFormat("nl-NL", {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }).format(new Date(source.lastSuccessfulSyncAt))
+    : "Nog niet gesynchroniseerd";
+  const previewReady = previewResult?.ok === true;
+  const missingAssets = previewResult?.ok
+    ? previewResult.missingAssetCount
+    : null;
+
+  return (
+    <section aria-label="Datakwaliteit en publicatiecontrole" className={styles.sourceQuality}>
+      <header>
+        <div>
+          <span>Datakwaliteit</span>
+          <strong>{source.name}</strong>
+        </div>
+        <Button asChild size="sm" variant="secondary">
+          <Link href={sourceSetupHref(source.kind === "sportlink" ? "sport_program" : source.kind === "rss" ? "news" : "menu")}>
+            Bron openen
+          </Link>
+        </Button>
+      </header>
+      <dl>
+        <div>
+          <dt>Laatste geslaagde sync</dt>
+          <dd>{lastSync}</dd>
+        </div>
+        <div>
+          <dt>Bruikbare inhoud</dt>
+          <dd>{itemCount} {itemCount === 1 ? "item" : "items"}</dd>
+        </div>
+        <div>
+          <dt>Providerstatus</dt>
+          <dd>{source.providerStatus === "error" ? "Fout · laatste goede data blijft behouden" : "Beschikbaar"}</dd>
+        </div>
+      </dl>
+      <ul className={styles.preflightList}>
+        <li data-ready={itemCount > 0}>
+          <Check aria-hidden="true" /> Inhoud voor de gekozen selectie
+        </li>
+        <li data-ready={previewReady}>
+          <Check aria-hidden="true" /> Veilige snapshot en Player-renderer
+        </li>
+        <li data-ready={missingAssets === 0}>
+          <Check aria-hidden="true" />
+          {missingAssets === null
+            ? "Afbeeldingen worden nog gecontroleerd"
+            : missingAssets === 0
+              ? "Alle gekoppelde afbeeldingen beschikbaar"
+              : `${missingAssets} afbeelding(en) gebruiken een veilige fallback`}
+        </li>
+      </ul>
+      {source.lastErrorCode ? (
+        <p className={styles.sourceQualityWarning}>
+          Laatste synchronisatiemelding: {source.lastErrorCode}. Een nieuwe
+          slide gebruikt alleen de laatst gevalideerde inhoud.
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+export function availabilityCount(
+  records: SportlinkAvailabilityRecord[],
+  selection: {
+    competitionExternalId?: string;
+    season?: string;
+    teamExternalId?: string;
+  }
+) {
+  return records.reduce((total, record) => {
+    if (
+      selection.teamExternalId &&
+      selection.teamExternalId !== "*" &&
+      !record.teamExternalIds.includes(selection.teamExternalId)
+    ) return total;
+    if (
+      selection.competitionExternalId &&
+      selection.competitionExternalId !== "*" &&
+      record.competitionExternalId !== selection.competitionExternalId
+    ) return total;
+    if (
+      selection.season &&
+      selection.season !== "*" &&
+      record.season !== selection.season
+    ) return total;
+    return total + record.itemCount;
+  }, 0);
+}
+
+function optionLabel(label: string, count: number) {
+  return count > 0 ? `${label} (${count})` : `${label} (geen inhoud)`;
 }
 
 function TemplatePreview({

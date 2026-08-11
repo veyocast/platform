@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(44);
+select plan(48);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -133,6 +133,64 @@ select is(
   ) ->> 'outcome',
   'applied',
   'menu product catalog is materialized'
+);
+
+select is(
+  (
+    select public.preview_dynamic_slide_v1(
+      '10000000-0000-4000-8000-000000000a51',
+      'Menuvoorbeeld',
+      version.id,
+      (select id from dynamic_test_ids where name = 'source'),
+      '{"title":"Vandaag","maxItems":8}'::jsonb
+    ) #>> '{data,menu,products,0,name}'
+    from public.dynamic_template_versions version
+    join public.dynamic_templates template on template.id = version.template_id
+    where template.slug = 'editorial-arena-menubord-dark-landscape'
+      and version.status = 'published'
+  ),
+  'Cola',
+  'preview uses the canonical normalized snapshot builder'
+);
+
+select is(
+  (select count(*) from public.dynamic_slides),
+  0::bigint,
+  'preview does not persist a mutable dynamic slide'
+);
+
+select is(
+  (select count(*) from public.dynamic_slide_snapshots) +
+    (select count(*) from public.dynamic_render_jobs),
+  0::bigint,
+  'preview creates neither snapshots nor render jobs'
+);
+
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000a52',
+  true
+);
+select throws_ok(
+  $$select public.preview_dynamic_slide_v1(
+    '10000000-0000-4000-8000-000000000a51',
+    'Verboden voorbeeld',
+    (select version.id
+      from public.dynamic_template_versions version
+      join public.dynamic_templates template on template.id = version.template_id
+      where template.slug = 'editorial-arena-menubord-dark-landscape'
+        and version.status = 'published'),
+    (select id from dynamic_test_ids where name = 'source'),
+    '{}'::jsonb
+  )$$,
+  '42501',
+  'actor cannot preview dynamic slides',
+  'viewer cannot preview dynamic slides'
+);
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000a51',
+  true
 );
 
 insert into dynamic_test_ids
