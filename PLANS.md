@@ -118,6 +118,7 @@ tests en exitcriteria staan in
 | S94 | LG dynamische slide-viewportfit | Alle Editorial Arena-slides op hun vaste portrait- of landscapecanvas proportioneel binnen iedere LG-viewport tonen, met 16:9-nieuwsbeeld en passende titels |
 | S95 | RSS-nieuws leesbaarheid en beeldfit | Lange nieuwstitels harmoniseren, intro/metadata leesbaar positioneren en RSS-beelden zonder vergroting of dubbele crop binnen het 16:9-vlak tonen |
 | S96 | Automatische dynamische livevernieuwing | RSS iedere vijf minuten controleren, ongewijzigde feeds dedupliceren, gewijzigde latest-slides atomisch als nieuwe immutable release uitrollen en Playercode op een veilige grens verversen |
+| S98 | Data-aware Sportlink-slidewizard | Echte Player-preview uit de canonieke snapshotbuilder, alleen renderbare team-/competitie-/seizoenopties, preflight en datakwaliteit zonder providercalls of mutable previews |
 
 ### Programmagates
 
