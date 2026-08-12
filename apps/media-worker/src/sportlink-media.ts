@@ -11,16 +11,43 @@ export type SportlinkMediaArtifact = {
   fileSizeBytes: number;
   height: number;
   mimeType: "image/webp";
-  role: "club_logo";
+  role: "club_logo" | "team_logo";
   storagePath: string;
   title: string;
   width: number;
+};
+
+export type SportlinkTeamLogoArtifact = SportlinkMediaArtifact & {
+  role: "team_logo";
+  sourceUrl: string;
 };
 
 export async function prepareSportlinkClubLogo(
   job: ClaimedSportlinkSync,
   clubName: string,
   input: Uint8Array
+): Promise<SportlinkMediaArtifact> {
+  return prepareSportlinkLogo(job, clubName, input, "club_logo");
+}
+
+export async function prepareSportlinkTeamLogo(
+  job: ClaimedSportlinkSync,
+  teamName: string,
+  sourceUrl: string,
+  input: Uint8Array
+): Promise<SportlinkTeamLogoArtifact> {
+  return {
+    ...await prepareSportlinkLogo(job, teamName, input, "team_logo"),
+    role: "team_logo",
+    sourceUrl
+  };
+}
+
+async function prepareSportlinkLogo(
+  job: ClaimedSportlinkSync,
+  name: string,
+  input: Uint8Array,
+  role: "club_logo" | "team_logo"
 ): Promise<SportlinkMediaArtifact> {
   const output = await sharp(input, {
     failOn: "warning",
@@ -47,8 +74,11 @@ export async function prepareSportlinkClubLogo(
     .update(output.data)
     .digest("hex");
   const assetId = contentAddressedUuid(
-    `${job.tenantId}\0club_logo\0${checksumSha256}`
+    `${job.tenantId}\0${role}\0${checksumSha256}`
   );
+  const fileName = role === "club_logo"
+    ? "sportlink-club-logo.webp"
+    : "sportlink-team-logo.webp";
   return {
     assetId,
     bytes: output.data,
@@ -56,10 +86,11 @@ export async function prepareSportlinkClubLogo(
     fileSizeBytes: output.data.byteLength,
     height: output.info.height,
     mimeType: "image/webp",
-    role: "club_logo",
+    role,
     storagePath:
-      `tenants/${job.tenantId}/assets/${assetId}/sportlink-club-logo.webp`,
-    title: `${clubName} clublogo`.slice(0, 160),
+      `tenants/${job.tenantId}/assets/${assetId}/${fileName}`,
+    title: `${name} ${role === "club_logo" ? "clublogo" : "teamlogo"}`
+      .slice(0, 160),
     width: output.info.width
   };
 }
