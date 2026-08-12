@@ -159,12 +159,12 @@ export function renderLgLegacyHtml() {
     .editorial-news-copy h2.dense{font-size:clamp(36px,3.12vw,60px);line-height:1}
     .editorial-news-copy p{max-width:92%;margin:4% 0 0;color:#6f7882;font-size:clamp(24px,1.67vw,32px);line-height:1.45;animation:editorial-copy-in 300ms 520ms ease-out both}
     .dark .editorial-news-copy p{color:#9aa2ac}
-    .editorial-news-meta{display:flex;gap:6%;margin-top:auto;padding-top:2.6%;padding-right:250px;border-top:1px solid rgba(23,32,42,.13);animation:editorial-copy-in 280ms 760ms ease-out both}
+    .editorial-news-meta{display:flex;gap:6%;margin-top:auto;margin-right:135px;padding-top:2.6%;padding-right:0;border-top:1px solid rgba(23,32,42,.13);animation:editorial-copy-in 280ms 760ms ease-out both}
     .dark .editorial-news-meta{border-color:rgba(255,255,255,.12)}
     .editorial-news-meta small{min-width:0;font-size:clamp(13px,1vw,19px)}
     .editorial-news-meta b{display:block;margin-bottom:.4em;color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
-    .editorial-news-qr{position:absolute;right:5%;bottom:4.5%;display:flex;flex-direction:column;align-items:center;gap:10px;width:220px;color:#6f7882;font-size:17px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
-    .editorial-news-qr img{display:block;width:220px;height:220px;border-radius:8px;background:#fff}
+    .editorial-news-qr{position:absolute;right:5%;bottom:4.5%;display:flex;flex-direction:column;align-items:center;gap:10px;width:110px;color:#6f7882;font-size:12px;font-weight:800;letter-spacing:.05em;text-align:center;text-transform:uppercase}
+    .editorial-news-qr img{display:block;width:110px;height:110px;border-radius:8px;background:#fff}
     @keyframes editorial-photo-in{from{opacity:0;transform:scale(1.025)}}
     @keyframes editorial-copy-in{from{opacity:0;transform:translateY(18px)}}
     @media (prefers-reduced-motion:reduce){.editorial-news-art,.editorial-news-copy>span,.editorial-news-copy h2,.editorial-news-copy p,.editorial-news-meta{animation:none}}
@@ -176,10 +176,10 @@ export function renderLgLegacyHtml() {
     .editorial-arena.portrait .editorial-news-copy h2{font-size:clamp(52px,6.67vw,72px);line-height:.96}
     .editorial-arena.portrait .editorial-news-copy h2.dense{font-size:clamp(42px,5.37vw,58px)}
     .editorial-arena.portrait .editorial-news-copy p{max-width:100%;font-size:34px;line-height:1.45}
-    .editorial-arena.portrait .editorial-news-meta{padding-right:260px}
+    .editorial-arena.portrait .editorial-news-meta{margin-right:145px;padding-right:0}
     .editorial-arena.portrait .editorial-news-meta small{font-size:24px}
-    .editorial-arena.portrait .editorial-news-qr{width:230px}
-    .editorial-arena.portrait .editorial-news-qr img{width:230px;height:230px}
+    .editorial-arena.portrait .editorial-news-qr{width:115px}
+    .editorial-arena.portrait .editorial-news-qr img{width:115px;height:115px}
     .editorial-arena[data-slide-type="news"]>header{height:13%}
     .editorial-arena[data-slide-type="news"] .dynamic-body{top:15.4%}
     .editorial-arena.portrait[data-slide-type="news"]>header{height:9.5%}
@@ -191,6 +191,7 @@ export function renderLgLegacyHtml() {
     .legacy-standing:before{position:absolute;top:0;right:0;left:0;height:6px;background:var(--accent);content:""}
     .legacy-standing-header{position:absolute;top:2.4%;right:5.2%;left:5.2%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;min-height:22%;gap:2.2vw;border-bottom:1px solid rgba(255,255,255,.12)}
     .legacy-standing-mark{display:flex;align-items:center;justify-content:center;width:min(10vh,8vw);height:min(10vh,8vw);border:2px solid var(--accent);border-radius:50%;background:rgba(255,255,255,.055);font-size:clamp(25px,3vw,54px);font-weight:900}
+    .legacy-standing-mark img{width:100%;height:100%;object-fit:contain}
     .legacy-standing-title small{display:block;color:var(--accent);font-size:clamp(15px,1.35vw,28px);font-weight:800;letter-spacing:.18em;text-transform:uppercase}
     .legacy-standing-title h2{max-width:100%;margin:.6vh 0 1vh;font-size:clamp(54px,5.7vw,108px);letter-spacing:-.035em;line-height:.86;text-transform:uppercase}
     .legacy-standing-title p,.legacy-standing-context span{margin:0;color:rgba(246,244,238,.72);font-size:clamp(14px,1.15vw,24px);font-weight:700;letter-spacing:.09em;text-transform:uppercase}
@@ -207,7 +208,8 @@ export function renderLgLegacyHtml() {
     .legacy-standing-columns>span:nth-child(2){text-align:left}
     .legacy-standing-rank{color:var(--accent)}
     .legacy-standing-team{display:flex;align-items:center;min-width:0;gap:1vw;text-align:left!important}
-    .legacy-standing-team i{display:flex;flex:0 0 auto;align-items:center;justify-content:center;width:min(4.8vh,2.8vw);height:min(4.8vh,2.8vw);border:1px solid rgba(255,255,255,.14);border-radius:50%;background:rgba(255,255,255,.07);font-size:.55em;font-style:normal;font-weight:900}
+    .legacy-standing-team i,.legacy-standing-team img{display:flex;flex:0 0 auto;align-items:center;justify-content:center;width:min(4.8vh,2.8vw);height:min(4.8vh,2.8vw);border:1px solid rgba(255,255,255,.14);border-radius:50%;background:rgba(255,255,255,.07);font-size:.55em;font-style:normal;font-weight:900}
+    .legacy-standing-team img{border:0;background:transparent;object-fit:contain}
     .legacy-standing-team b{overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
     .legacy-standing-points{font-size:1.18em}
     .legacy-standing-form{display:flex;align-items:center;justify-content:center;gap:.28em}
@@ -227,7 +229,7 @@ export function renderLgLegacyHtml() {
     .portrait.standing-club .legacy-standing-rows{height:93%}
     .portrait.standing-club .legacy-standing-row{height:5.5556%;margin:0 1.6vw;padding:0 .8vw;font-size:clamp(20px,2.4vw,26px)}
     .portrait.standing-club .legacy-standing-team{gap:1.4vw}
-    .portrait.standing-club .legacy-standing-team i{width:min(2.5vh,4.4vw);height:min(2.5vh,4.4vw)}
+    .portrait.standing-club .legacy-standing-team i,.portrait.standing-club .legacy-standing-team img{width:min(2.5vh,4.4vw);height:min(2.5vh,4.4vw)}
     .portrait.standing-club .legacy-standing-footer{bottom:2.7%;font-size:clamp(11px,1.75vw,18px)}
     .portrait.standing-club .legacy-standing-header,.portrait.standing-club .legacy-standing-card,.portrait.standing-club .legacy-standing-footer{right:calc(5.2% + var(--viewport-inset-x,0px));left:calc(5.2% + var(--viewport-inset-x,0px))}
     .dynamic-template.standing-club.editorial-arena:not(.dark),.standing-club.editorial-arena:not(.dark) .legacy-standing{background:#f3f1ec;color:#17202a}
@@ -2448,10 +2450,24 @@ export function renderLgLegacyHtml() {
             item = templateRecord(page[index]) || {};
             round = Math.max(round, Number(item.played) || 0);
           }
-          header.appendChild(templateNode("div", "legacy-standing-mark", "VC"));
-          title.appendChild(templateNode("small", "", "Competitie"));
+          var standingBrand = templateRecord(snapshot.brand) || {};
+          var standingMark = templateNode("div", "legacy-standing-mark");
+          var standingLogoUrl = templateAssetUrl(
+            payload,
+            templateText(standingBrand.logoMediaAssetId, "")
+          );
+          if (standingLogoUrl) {
+            var standingLogo = templateNode("img", "");
+            standingLogo.alt = "";
+            standingLogo.src = standingLogoUrl;
+            standingMark.appendChild(standingLogo);
+          } else {
+            standingMark.appendChild(document.createTextNode(templateInitials(
+              templateText(standingBrand.clubName, "VeyoCast")
+            )));
+          }
+          header.appendChild(standingMark);
           title.appendChild(templateNode("h2", "", templateText(sport.title, "Stand")));
-          title.appendChild(templateNode("p", "", round ? "Na speelronde " + String(round) : "Actuele stand"));
           header.appendChild(title);
           context.appendChild(templateNode("strong", "", templateText(competition.name, "Competitie")));
           context.appendChild(templateNode(
@@ -2474,7 +2490,18 @@ export function renderLgLegacyHtml() {
             row = templateNode("article", "legacy-standing-row" + (item.selected === true ? " selected" : ""));
             row.appendChild(templateNode("strong", "legacy-standing-rank", standingValue(item.position)));
             team = templateNode("span", "legacy-standing-team");
-            team.appendChild(templateNode("i", "", templateInitials(templateText(item.teamName, "VC"))));
+            var teamLogoUrl = templateAssetUrl(
+              payload,
+              templateText(item.logoMediaAssetId, "")
+            );
+            if (teamLogoUrl) {
+              var teamLogo = templateNode("img", "");
+              teamLogo.alt = "";
+              teamLogo.src = teamLogoUrl;
+              team.appendChild(teamLogo);
+            } else {
+              team.appendChild(templateNode("i", "", templateInitials(templateText(item.teamName, "VC"))));
+            }
             team.appendChild(templateNode("b", "", templateText(item.teamName, "Team")));
             row.appendChild(team);
             row.appendChild(templateNode("span", "", standingValue(item.played)));
@@ -2725,13 +2752,7 @@ export function renderLgLegacyHtml() {
             )
           ));
         }
-        if (payload.slideType !== "news") {
-          heading.appendChild(templateNode("p", "", "Editorial Arena"));
-        }
         heading.appendChild(templateNode("h1", "", title));
-        if (payload.slideType !== "news") {
-          heading.appendChild(templateNode("span", "", "Actuele clubinformatie"));
-        }
         context.appendChild(templateNode("strong", "", sourceLabel));
         context.appendChild(templateNode("span", "", "VeyoCast"));
         header.appendChild(crest);
