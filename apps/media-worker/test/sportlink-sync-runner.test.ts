@@ -159,6 +159,7 @@ describe("Sportlink sync worker", () => {
       },
       matches: [],
       standings: [],
+      teamLogos: [],
       teams: []
     })).resolves.toBe(1);
 
@@ -172,7 +173,7 @@ describe("Sportlink sync worker", () => {
         upsert: true
       }
     );
-    expect(rpc).toHaveBeenCalledWith("complete_sportlink_sync_v2", expect.objectContaining({
+    expect(rpc).toHaveBeenCalledWith("complete_sportlink_sync_v3", expect.objectContaining({
       p_club_logo: expect.objectContaining({
         assetId: "50000000-0000-5000-8000-000000000001",
         role: "club_logo"
@@ -189,6 +190,7 @@ describe("Sportlink sync worker", () => {
       clubLogo: null;
       matches: [];
       standings: [];
+      teamLogos: [];
       teams: [];
     }) => void) | undefined;
     const rpc = vi.fn(async (functionName: string) => {
@@ -210,7 +212,7 @@ describe("Sportlink sync worker", () => {
       if (functionName === "renew_sportlink_sync_lease_v1") {
         return { data: true, error: null };
       }
-      if (functionName === "complete_sportlink_sync_v2") {
+      if (functionName === "complete_sportlink_sync_v3") {
         return { data: { readCount: 0 }, error: null };
       }
       return { data: null, error: null };
@@ -244,6 +246,7 @@ describe("Sportlink sync worker", () => {
       clubLogo: null,
       matches: [],
       standings: [],
+      teamLogos: [],
       teams: []
     });
     await expect(execution).resolves.toEqual({

@@ -51,10 +51,14 @@ describe("Sportlink server-only adapter", () => {
       positie: 1,
       punten: 9,
       team: "Testclub 1",
+      teamlogo: "https://cdn.sportlink.com/logo/testclub.png",
       vorm: "WGV"
     }], "pool-1");
     expect(standing.scoresPublished).toBe(true);
     expect(standing.rows[0]?.form).toEqual(["win", "draw", "loss"]);
+    expect(standing.rows[0]?.logoUrl).toBe(
+      "https://cdn.sportlink.com/logo/testclub.png"
+    );
     expect(stableSportlinkExternalId("test", "a")).toBe(
       stableSportlinkExternalId("test", "a")
     );

@@ -198,11 +198,7 @@ function ArenaHeader({ view }: { view: DynamicTemplateView }) {
         )}
       </div>
       <div className={styles.arenaHeading}>
-        {view.slideType === "news" ? null : <p>Editorial Arena</p>}
         <h1>{view.title}</h1>
-        {view.slideType === "news"
-          ? null
-          : <span>{arenaSubtitle(view.slideType)}</span>}
       </div>
       <div className={styles.arenaContext}>
         <strong>{view.sourceLabel}</strong>
@@ -430,7 +426,11 @@ function ArenaStanding({
           <article data-selected={team.selected || undefined} key={team.id}>
             <strong>{team.position ?? "–"}</strong>
             <span className={styles.arenaStandingTeam}>
-              <i aria-hidden="true">{initialsFor(team.teamName)}</i>
+              {team.logoUrl ? (
+                <img alt="" src={team.logoUrl} />
+              ) : (
+                <i aria-hidden="true">{initialsFor(team.teamName)}</i>
+              )}
               <b>{team.teamName}</b>
             </span>
             <span>{team.played ?? "–"}</span>
@@ -609,20 +609,4 @@ function resultLabel(result: string) {
   if (result === "win") return "winst";
   if (result === "draw") return "gelijk";
   return "verlies";
-}
-
-function arenaSubtitle(slideType: DynamicTemplateView["slideType"]) {
-  const subtitles: Partial<Record<DynamicTemplateView["slideType"], string>> = {
-    menu: "Kantinefavorieten",
-    news: "Nieuws uit en rond de club",
-    sport_activities: "Wat speelt er deze maand",
-    sport_cancellations: "Actuele wedstrijdstatus",
-    sport_dressing_rooms: "Indeling wedstrijddag",
-    sport_next_match: "Alles klaar voor de aftrap",
-    sport_officials: "Aanstellingen wedstrijddag",
-    sport_program: "Aankomende wedstrijden",
-    sport_results: "Laatste speelronde",
-    sport_standing: "Actuele competitiestand"
-  };
-  return subtitles[slideType] ?? "Clubinformatie";
 }

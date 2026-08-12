@@ -54,6 +54,7 @@ export type DynamicTemplateStandingItem = {
   goalsFor: number | null;
   id: string;
   lost: number | null;
+  logoUrl: string;
   played: number | null;
   points: number | null;
   position: number | null;
@@ -237,14 +238,16 @@ export function createDynamicTemplateView(
     payload.slideType === "sport_standing"
   ) {
     const standingItems = readArray(sport?.items)
-      .map(toStandingItem)
+      .map((item) => toStandingItem(item, payload))
       .filter((item): item is DynamicTemplateStandingItem => item !== null);
     const competition = readRecord(sport?.competition);
     const pool = readRecord(sport?.pool);
     const perPage = payload.orientation === "portrait" ? 18 : 10;
     return {
       accentColor,
-      clubLogoUrl,
+      clubLogoUrl: clubLogoUrl ||
+        standingItems.find((item) => item.selected && item.logoUrl)?.logoUrl ||
+        "",
       clubName,
       emptyState,
       orientation: payload.orientation,
@@ -288,7 +291,10 @@ export function createDynamicTemplateView(
   };
 }
 
-function toStandingItem(value: unknown): DynamicTemplateStandingItem | null {
+function toStandingItem(
+  value: unknown,
+  payload: PlayerDynamicTemplatePayload
+): DynamicTemplateStandingItem | null {
   const item = readRecord(value);
   if (!item) return null;
   const teamName = safeText(item.teamName, "");
@@ -301,6 +307,7 @@ function toStandingItem(value: unknown): DynamicTemplateStandingItem | null {
     goalsFor: safeNullableInteger(item.goalsFor),
     id: safeText(item.id, teamName),
     lost: safeNullableInteger(item.lost),
+    logoUrl: dynamicAssetUrl(item.logoMediaAssetId, payload),
     played: safeNullableInteger(item.played),
     points: safeNullableInteger(item.points),
     position: safeNullableInteger(item.position),

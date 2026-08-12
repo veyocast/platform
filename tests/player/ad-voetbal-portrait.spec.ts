@@ -76,8 +76,17 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
       (element) => getComputedStyle(element).fontSize
     )
   )).toBeGreaterThanOrEqual(20);
-  await expect(story.getByTestId("news-qr")).toBeVisible();
+  const qr = story.getByTestId("news-qr");
+  await expect(qr).toBeVisible();
   await expect(story.getByText("Scan voor het artikel")).toBeVisible();
+  const [qrBox, finalMetaBox] = await Promise.all([
+    qr.boundingBox(),
+    meta.boundingBox()
+  ]);
+  expect(qrBox).not.toBeNull();
+  expect(finalMetaBox).not.toBeNull();
+  expect(qrBox!.width).toBeLessThanOrEqual(120);
+  expect(finalMetaBox!.x + finalMetaBox!.width).toBeLessThan(qrBox!.x);
 
   const longTitle = page.getByRole("heading", { name: longNewsTitle });
   await expect(longTitle).toBeVisible({ timeout: 7_000 });

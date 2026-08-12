@@ -23,9 +23,15 @@ for (const orientation of ["landscape", "portrait"] as const) {
       orientation
     );
     await expect(page.getByRole("heading", { name: "Stand" })).toBeVisible();
+    await expect(page.getByText("Editorial Arena", { exact: true }))
+      .toHaveCount(0);
+    await expect(page.getByText("Actuele competitiestand", { exact: true }))
+      .toHaveCount(0);
     await expect(page.getByText("Vierde klasse")).toBeVisible();
     await expect(page.getByText("2026/2027")).toBeVisible();
     await expect(page.getByText("Duindorp sv")).toBeVisible();
+    await expect(slide.locator("header img")).toHaveCount(1);
+    await expect(slide.locator("main article img").first()).toBeVisible();
     await expect(
       page.getByLabel(/Vorm Duindorp sv: winst, winst, gelijk/u)
     ).toBeVisible();

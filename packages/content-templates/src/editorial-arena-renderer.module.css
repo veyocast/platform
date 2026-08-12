@@ -483,8 +483,9 @@
   display: flex;
   gap: 6%;
   margin-top: auto;
+  margin-right: 135px;
   padding-top: 2.6%;
-  padding-right: 250px;
+  padding-right: 0;
 }
 
 .arenaNewsMeta small {
@@ -508,22 +509,23 @@
   gap: 10px;
   position: absolute;
   right: 5%;
-  width: 220px;
+  width: 110px;
 }
 
 .arenaNewsQr img {
   background: #fff;
   border-radius: 8px;
   display: block;
-  height: 220px;
-  width: 220px;
+  height: 110px;
+  width: 110px;
 }
 
 .arenaNewsQr span {
   color: var(--arena-muted);
-  font-size: 17px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.05em;
+  text-align: center;
   text-transform: uppercase;
 }
 
@@ -814,7 +816,8 @@
   min-width: 0;
 }
 
-.arenaStandingTeam > i {
+.arenaStandingTeam > i,
+.arenaStandingTeam > img {
   align-items: center;
   background: var(--arena-accent);
   clip-path: polygon(6% 0, 94% 0, 84% 75%, 50% 100%, 16% 75%);
@@ -825,6 +828,12 @@
   height: 2em;
   justify-content: center;
   width: 1.7em;
+}
+
+.arenaStandingTeam > img {
+  background: transparent;
+  clip-path: none;
+  object-fit: contain;
 }
 
 .arenaStandingTeam > b {
@@ -1073,16 +1082,17 @@
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsMeta {
-  padding-right: 260px;
+  margin-right: 145px;
+  padding-right: 0;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsQr {
-  width: 230px;
+  width: 115px;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsQr img {
-  height: 230px;
-  width: 230px;
+  height: 115px;
+  width: 115px;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaAgendaLayout {

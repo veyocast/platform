@@ -209,8 +209,17 @@ describe("trusted dynamic template view", () => {
   });
 
   it("bouwt de clubeditie-stand uit gestructureerde HTML/CSS-rijen", () => {
+    const teamLogoId = "99999999-9999-4999-8999-999999999999";
     const view = createDynamicTemplateView({
       ...base,
+      assets: {
+        [teamLogoId]: {
+          bytes: 512,
+          checksumSha256: "f".repeat(64),
+          mimeType: "image/webp",
+          url: "/__veyocast-player-cache/team-logo"
+        }
+      },
       data: {
         brand: { primaryColor: "#123456" },
         sport: {
@@ -223,6 +232,7 @@ describe("trusted dynamic template view", () => {
             goalsFor: 30,
             id: "team-1",
             lost: 1,
+            logoMediaAssetId: teamLogoId,
             played: 16,
             points: 39,
             position: 1,
@@ -242,6 +252,7 @@ describe("trusted dynamic template view", () => {
 
     expect(view).toMatchObject({
       accentColor: "#123456",
+      clubLogoUrl: "/__veyocast-player-cache/team-logo",
       standingContext: {
         competition: "Vierde klasse",
         pool: "4C",
@@ -252,6 +263,7 @@ describe("trusted dynamic template view", () => {
     expect(view?.pages[0]).toMatchObject({
       items: [{
         form: ["win", "draw", "loss"],
+        logoUrl: "/__veyocast-player-cache/team-logo",
         points: 39,
         selected: true,
         teamName: "VeyoCast 1"

@@ -307,6 +307,10 @@ test("LG webOS wordt zonder Next.js-chunks naar zichtbare Editorial Arena HTML/C
   await expect(page).toHaveURL(/\/lg\/legacy$/);
   await expect(page.locator(".dynamic-template.editorial-arena")).toBeVisible();
   await expect(page.locator(".editorial-news")).toBeVisible();
+  await expect(page.getByText("Editorial Arena", { exact: true }))
+    .toHaveCount(0);
+  await expect(page.getByText("Actuele clubinformatie", { exact: true }))
+    .toHaveCount(0);
   await expect(page.getByRole("heading", {
     name: "Oos Kesbeke: een fijnproever ben ik niet, ik vind het lekker of niet"
   })).toBeVisible();

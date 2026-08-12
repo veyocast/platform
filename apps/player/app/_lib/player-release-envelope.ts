@@ -311,6 +311,19 @@ export function collectDynamicSnapshotMediaAssetIds(snapshot: unknown) {
       }
     }
   }
+  const sport = isRecord(snapshot.sport) ? snapshot.sport : null;
+  if (Array.isArray(sport?.items)) {
+    for (const value of sport.items.slice(0, 100)) {
+      const item = isRecord(value) ? value : null;
+      if (
+        item &&
+        typeof item.logoMediaAssetId === "string" &&
+        uuidPattern.test(item.logoMediaAssetId)
+      ) {
+        ids.add(item.logoMediaAssetId);
+      }
+    }
+  }
   const news = isRecord(snapshot.news) ? snapshot.news : null;
   if (!news) return [...ids];
   if (

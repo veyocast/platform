@@ -1,3 +1,7 @@
+import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
 import type { Page } from "@playwright/test";
 
 import type {
@@ -15,14 +19,31 @@ export async function routeSportlinkStandingManifest(
   );
   const baseline = await baselineResponse.json() as PlayerManifestEnvelope;
   const fallback = baseline.manifest.items[0]!;
+  const logoBytes = await readFile(path.resolve(
+    process.cwd(),
+    "apps/player/public/brand/veyocast-icon-192.png"
+  ));
+  const logoId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
   const item: PlayerManifestItem = {
     ...fallback,
     accessibilityName: "Dynamische competitiestand",
     displayTitle: "Competitiestand",
     durationSeconds: 10,
     dynamicTemplate: {
+      assets: {
+        [logoId]: {
+          bytes: logoBytes.byteLength,
+          checksumSha256: createHash("sha256").update(logoBytes).digest("hex"),
+          mimeType: "image/png",
+          url: `${playerUrl}/brand/veyocast-icon-192.png`
+        }
+      },
       data: {
-        brand: { clubName: "Duindorp sv", primaryColor: "#315CFF" },
+        brand: {
+          clubName: "Duindorp sv",
+          logoMediaAssetId: logoId,
+          primaryColor: "#315CFF"
+        },
         sport: {
           competition: { name: "Vierde klasse" },
           items: Array.from({ length: 20 }, (_, index) => {
@@ -37,6 +58,7 @@ export async function routeSportlinkStandingManifest(
               goalsFor: 39 - index,
               id: `team-${index + 1}`,
               lost: 18 - 3 - won,
+              logoMediaAssetId: logoId,
               played: 18,
               points: won * 3 + 3,
               position: index + 1,
