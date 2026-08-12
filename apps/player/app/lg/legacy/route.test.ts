@@ -55,8 +55,12 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("renderMenuTemplate");
     expect(html).toContain("renderNewsTemplate");
     expect(html).toContain("renderSportTemplate");
-    expect(html).toContain("renderStandingClubTemplate");
-    expect(html).toContain("standing-club-edition");
+    expect(html).toContain("renderEditorialStandingTemplate");
+    expect(html).toContain("legacy-standing-card");
+    expect(html).not.toContain("standing-club-edition");
+    expect(html).not.toContain("legacy-standing-header");
+    expect(html).toContain("#media-root>img,#media-root>video");
+    expect(html).not.toContain("#media-root img,#media-root video");
     expect(html).toContain("editorial-arena-");
     expect(html).toContain("editorialArenaSlideTypes");
     expect(html).toContain("editorial-news");
