@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import {
   playerDynamicTemplateAssetSchema,
   playerDynamicTemplatePayloadSchema,
+  priceListSlideConfigSchema,
   type PlayerDynamicTemplateAsset,
   type PlayerDynamicTemplatePayload
 } from "@veyocast/contracts";
@@ -40,6 +41,13 @@ export async function previewDynamicSlide(
   const templateVersionId = String(formData.get("templateVersionId") ?? "");
   const dataSourceId = String(formData.get("dataSourceId") ?? "");
   const configuration = dynamicSlideConfiguration(formData);
+  if (!configuration) {
+    return {
+      code: "PREVIEW_CONFIGURATION_INVALID",
+      message: "Selecteer minimaal één beschikbaar product en controleer de kolomindeling.",
+      ok: false
+    };
+  }
   const supabase = await createControlSupabaseClient();
   if (
     !supabase ||
@@ -205,6 +213,12 @@ export async function createDynamicSlide(formData: FormData) {
       "/dashboard/slides/new?fout=Template+en+databron+horen+niet+bij+hetzelfde+slidetype.+Kies+de+combinatie+opnieuw."
     );
   }
+  const configuration = dynamicSlideConfiguration(formData);
+  if (!configuration) {
+    redirect(
+      "/dashboard/slides/new?fout=Selecteer+minimaal+een+beschikbaar+product+en+controleer+de+kolomindeling."
+    );
+  }
   if (
     supportsSportContextSelection(templateSlideType) &&
     (
@@ -224,8 +238,8 @@ export async function createDynamicSlide(formData: FormData) {
       : requestedMaxItems;
   const { data, error } = await supabase.rpc("create_dynamic_slide_v1", {
     p_configuration_json: {
-      ...dynamicSlideConfiguration(formData),
-      maxItems,
+      ...configuration,
+      ...(templateSlideType === "price_list" ? {} : { maxItems }),
       ...(templateSlideType === "menu" && category ? { category } : {}),
       ...(templateSlideType === "news"
         ? {
@@ -290,6 +304,15 @@ function dynamicSlideConfiguration(formData: FormData) {
     120,
     Math.max(5, Number(formData.get("secondsPerSlide")) || 5)
   );
+  if (slideType === "price_list") {
+    const raw = String(formData.get("priceListConfiguration") ?? "");
+    try {
+      const parsed = priceListSlideConfigSchema.safeParse(JSON.parse(raw));
+      return parsed.success ? parsed.data : null;
+    } catch {
+      return null;
+    }
+  }
   return {
     ...(slideType === "menu" && category ? { category } : {}),
     maxItems,
@@ -324,6 +347,17 @@ function collectPreviewMediaAssetIds(snapshot: Record<string, unknown>) {
     for (const candidate of menu.products.slice(0, 40)) {
       const product = isRecord(candidate) ? candidate : null;
       add(product?.imageMediaAssetId);
+    }
+  }
+  const priceList = isRecord(snapshot.priceList) ? snapshot.priceList : null;
+  if (Array.isArray(priceList?.sections)) {
+    for (const sectionCandidate of priceList.sections.slice(0, 40)) {
+      const section = isRecord(sectionCandidate) ? sectionCandidate : null;
+      if (!Array.isArray(section?.products)) continue;
+      for (const productCandidate of section.products.slice(0, 100)) {
+        const product = isRecord(productCandidate) ? productCandidate : null;
+        if (product?.photoVisible === true) add(product.imageMediaAssetId);
+      }
     }
   }
   const news = isRecord(snapshot.news) ? snapshot.news : null;
@@ -372,6 +406,13 @@ function previewItemCount(snapshot: Record<string, unknown>) {
   if (Array.isArray(sport?.items)) return sport.items.length;
   const menu = isRecord(snapshot.menu) ? snapshot.menu : null;
   if (Array.isArray(menu?.products)) return menu.products.length;
+  const priceList = isRecord(snapshot.priceList) ? snapshot.priceList : null;
+  if (Array.isArray(priceList?.sections)) {
+    return priceList.sections.reduce((count, candidate) => {
+      const section = isRecord(candidate) ? candidate : null;
+      return count + (Array.isArray(section?.products) ? section.products.length : 0);
+    }, 0);
+  }
   const news = isRecord(snapshot.news) ? snapshot.news : null;
   return Array.isArray(news?.articles) ? news.articles.length : 0;
 }
@@ -451,7 +492,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function sourceMatchesSlideType(kind: string, slideType: string) {
-  if (slideType === "menu") {
+  if (slideType === "menu" || slideType === "price_list") {
     return kind === "manual_products" || kind === "twelve_excel";
   }
   if (slideType === "news") return kind === "rss";

@@ -12,6 +12,7 @@ import {
   SlideComposerForm,
   type SlideSourceOption
 } from "./slide-composer-form";
+import type { PriceListProductOption } from "./price-list-configurator";
 import {
   buildSportlinkSlideOptions,
   type SportlinkMatchRow,
@@ -29,7 +30,7 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const data = session.isLive
     ? await loadOptions(session.tenantId!)
-    : { primaryColor: "#FF5C20", sources: [], templates: [] };
+    : { primaryColor: "#FF5C20", products: [], sources: [], templates: [] };
 
   return (
     <>
@@ -56,6 +57,7 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
       ) : (
         <SlideComposerForm
           primaryColor={data.primaryColor}
+          products={data.products}
           sources={data.sources}
           templates={data.templates}
         />
@@ -67,7 +69,7 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
 async function loadOptions(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) {
-    return { primaryColor: "#FF5C20", sources: [], templates: [] };
+    return { primaryColor: "#FF5C20", products: [], sources: [], templates: [] };
   }
   const [sourcesResult, templatesResult, settingsResult] = await Promise.all([
     supabase.from("dynamic_data_sources").select("id, name, kind, provider_status, last_successful_sync_at, last_error_code").eq("tenant_id", tenantId).eq("status", "active").order("name"),
@@ -197,6 +199,7 @@ async function loadOptions(tenantId: string) {
   ));
   return {
     primaryColor: normalizePrimaryColor(settingsResult.data?.primary_color),
+    products: await loadPriceListProducts(supabase, tenantId),
     sources,
     templates: (templatesResult.data ?? []).flatMap((template) =>
       template.current_published_version_id &&
@@ -213,6 +216,35 @@ async function loadOptions(tenantId: string) {
       }] : []
     )
   };
+}
+
+async function loadPriceListProducts(
+  supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
+  tenantId: string
+): Promise<PriceListProductOption[]> {
+  const result = await supabase
+    .from("tenant_products")
+    .select("id, data_source_id, name, description, category, price_cents, image_media_asset_id, available, sort_order")
+    .eq("tenant_id", tenantId)
+    .eq("active", true)
+    .order("category")
+    .order("sort_order")
+    .order("name")
+    .limit(2_000);
+  return (result.data ?? []).flatMap((product) => {
+    if (!product.id || !product.name || product.price_cents === null) return [];
+    return [{
+      available: product.available !== false,
+      category: product.category?.trim() || "Overig",
+      dataSourceId: product.data_source_id,
+      description: product.description?.trim() || "",
+      id: product.id,
+      imageMediaAssetId: product.image_media_asset_id,
+      name: product.name,
+      priceCents: Number(product.price_cents),
+      sortOrder: Number(product.sort_order ?? 0)
+    }];
+  });
 }
 
 async function loadAllSportlinkRows<T>(

@@ -48,12 +48,13 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("legacy-media-layer");
   });
 
-  it("rendert vertrouwde menu-, nieuws- en sporttemplates zonder injecteerbare HTML", () => {
+  it("rendert vertrouwde menu-, prijslijst-, nieuws- en sporttemplates zonder injecteerbare HTML", () => {
     const html = renderLgLegacyHtml();
 
     expect(html).toContain('templateNode("section", "dynamic-template")');
     expect(html).toContain("renderMenuTemplate");
     expect(html).toContain("renderNewsTemplate");
+    expect(html).toContain("renderPriceListTemplate");
     expect(html).toContain("renderSportTemplate");
     expect(html).toContain("renderEditorialStandingTemplate");
     expect(html).toContain("legacy-standing-card");
@@ -65,6 +66,9 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("editorialArenaSlideTypes");
     expect(html).toContain("editorial-news");
     expect(html).toContain("editorial-news-qr");
+    expect(html).toContain("legacy-price-grid");
+    expect(html).toContain("legacy-price-media");
+    expect(html).toContain('payload.slideType === "price_list"');
     expect(html).toContain("templateUniqueNewsArticles");
     expect(html).toContain("fitDynamicTemplateCanvas(root, payload.orientation)");
     expect(html).toContain('orientation === "portrait" ? 1080 : 1920');

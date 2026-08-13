@@ -48,8 +48,8 @@ select is(
     where slug like 'editorial-arena-%'
       and status = 'published'
   ),
-  40::bigint,
-  'ten capability-backed types expose four Editorial Arena variants'
+  44::bigint,
+  'eleven capability-backed types expose four Editorial Arena variants'
 );
 
 select is(

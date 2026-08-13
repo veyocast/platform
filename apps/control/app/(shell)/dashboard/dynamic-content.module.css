@@ -1192,3 +1192,152 @@
     animation: none;
   }
 }
+
+.priceListBuilder {
+  display: grid;
+  gap: var(--vc-space-16);
+}
+
+.priceListPhotoMode {
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-16);
+  padding: var(--vc-space-16);
+}
+
+.priceListPhotoMode legend {
+  font-weight: 800;
+  padding: 0 var(--vc-space-8);
+}
+
+.priceListPhotoMode label {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--vc-space-8);
+  min-height: 44px;
+}
+
+.priceListSearch {
+  align-items: center;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  display: flex;
+  gap: var(--vc-space-8);
+  min-height: 48px;
+  padding: 0 var(--vc-space-12);
+}
+
+.priceListSearch svg {
+  color: var(--vc-text-muted);
+  height: 20px;
+  width: 20px;
+}
+
+.priceListSearch input {
+  background: transparent;
+  border: 0;
+  color: var(--vc-text);
+  flex: 1;
+  font: inherit;
+  min-height: 46px;
+  min-width: 0;
+  outline: 0;
+}
+
+.priceListCategoryEditor {
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  overflow: hidden;
+}
+
+.priceListCategoryEditor > header {
+  align-items: flex-end;
+  background: var(--vc-surface-muted);
+  display: flex;
+  justify-content: space-between;
+  padding: var(--vc-space-16);
+}
+
+.priceListCategoryEditor > header div,
+.priceListCategoryEditor > header label {
+  display: grid;
+  gap: var(--vc-space-4);
+}
+
+.priceListCategoryEditor > header .priceListCategoryOrder {
+  display: flex;
+  gap: var(--vc-space-4);
+}
+
+.priceListCategoryEditor > header span,
+.priceListCategoryEditor small {
+  color: var(--vc-text-muted);
+  font-size: 0.875rem;
+}
+
+.priceListSelectActions {
+  display: flex;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-12) var(--vc-space-16) 0;
+}
+
+.priceListCategoryEditor ul {
+  list-style: none;
+  margin: 0;
+  padding: var(--vc-space-8) var(--vc-space-16) var(--vc-space-16);
+}
+
+.priceListCategoryEditor li {
+  align-items: center;
+  border-bottom: 1px solid var(--vc-border);
+  display: grid;
+  gap: var(--vc-space-8);
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  min-height: 60px;
+  padding: var(--vc-space-8) 0;
+}
+
+.priceListCategoryEditor li > label {
+  align-items: center;
+  display: flex;
+  gap: var(--vc-space-12);
+  min-width: 0;
+}
+
+.priceListCategoryEditor li > label > span {
+  display: grid;
+  min-width: 0;
+}
+
+.priceListCategoryEditor li strong,
+.priceListCategoryEditor li small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.priceListCapacity {
+  background: var(--vc-surface-muted);
+  border-left: 4px solid var(--vc-accent);
+  display: grid;
+  gap: var(--vc-space-4);
+  padding: var(--vc-space-16);
+}
+
+@media (max-width: 44rem) {
+  .priceListCategoryEditor > header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--vc-space-12);
+  }
+
+  .priceListCategoryEditor li {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .priceListCategoryEditor li > select {
+    grid-column: 1 / -1;
+  }
+}

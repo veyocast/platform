@@ -19,6 +19,11 @@ import {
   type DynamicTemplateStandingItem,
   type DynamicTemplateView
 } from "./dynamic-template-view";
+import type {
+  PriceListRenderPage,
+  ResolvedPriceListItem,
+  ResolvedPriceListRow
+} from "./price-list";
 import styles from "./editorial-arena-renderer.module.css";
 
 type ArenaStyle = CSSProperties & {
@@ -265,6 +270,10 @@ function ArenaPage({
     );
   }
 
+  if (page.kind === "price-list") {
+    return <ArenaPriceList page={page.page} />;
+  }
+
   if (page.kind === "news") {
     const article = page.item;
     return (
@@ -400,6 +409,61 @@ function ArenaPage({
         <ProgramRow item={entry} key={entry.id} />
       ))}
     </section>
+  );
+}
+
+function ArenaPriceList({ page }: { page: PriceListRenderPage }) {
+  return (
+    <div className={styles.arenaPriceListGrid}>
+      <PriceListColumn label="Linkerkolom" rows={page.columns.left} />
+      <PriceListColumn label="Rechterkolom" rows={page.columns.right} />
+    </div>
+  );
+}
+
+function PriceListColumn({
+  label,
+  rows
+}: {
+  label: string;
+  rows: ResolvedPriceListRow[];
+}) {
+  return (
+    <section aria-label={label} className={styles.arenaPriceListColumn}>
+      {rows.map((row) => row.kind === "category" ? (
+        <h2 className={styles.arenaPriceListCategory} key={row.id} title={row.name}>
+          <i aria-hidden="true" />
+          <span>{row.name}</span>
+          {row.continuation ? <small>vervolg</small> : null}
+        </h2>
+      ) : (
+        <PriceListProduct item={row.item} key={row.item.id} />
+      ))}
+    </section>
+  );
+}
+
+function PriceListProduct({ item }: { item: ResolvedPriceListItem }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const hasImage = item.image.kind === "image" && !imageFailed;
+  return (
+    <article className={styles.arenaPriceListProduct}>
+      <span aria-hidden="true" className={styles.arenaPriceListMedia}>
+        {hasImage && item.image.kind === "image" ? (
+          <img
+            alt=""
+            onError={() => setImageFailed(true)}
+            src={item.image.url}
+            style={{ objectPosition: item.image.objectPosition }}
+          />
+        ) : null}
+      </span>
+      <span className={styles.arenaPriceListCopy}>
+        <strong title={item.name}>{item.name}</strong>
+        <small title={item.description}>{item.description || "\u00a0"}</small>
+      </span>
+      <b>{item.formattedPrice}</b>
+    </article>
   );
 }
 
@@ -587,6 +651,9 @@ function TeamMini({ large = false, name }: { large?: boolean; name: string }) {
 
 function pageIsEmpty(page: DynamicTemplatePage) {
   if (page.kind === "news" || page.kind === "match") return !page.item;
+  if (page.kind === "price-list") {
+    return page.page.columns.left.length + page.page.columns.right.length === 0;
+  }
   return page.items.length === 0;
 }
 

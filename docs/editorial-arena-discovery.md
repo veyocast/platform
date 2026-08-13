@@ -218,3 +218,14 @@ visuele tests op 1920×1080 en 1080×1920 gecontroleerd.
 - Handmatige clubagenda, sponsor, roster, trainingen, jarigen, vrijwilligers en
   officials: de repository heeft geen volledige typed manual wizard, dus deze
   worden niet als manual optie gepresenteerd.
+
+## Aanvulling S103 — Prijslijst
+
+`price_list` is als elfde capability-backed type actief. De bron is uitsluitend
+de bestaande tenantproductcatalogus met een actieve `manual_products`- of
+`twelve_excel`-databron. De registry bevat vier varianten (dark/light ×
+landscape/portrait), de wizard heeft een typed configuratie en echte
+Playerpreview, de thumbnailqueue gebruikt pagina 1 van de centrale pagineerder
+en playlist/publicatie hergebruiken de bestaande immutable snapshotprovenance.
+Categorieën zonder beschikbare producten en product-ID's buiten tenant of bron
+blijven fail-closed en worden niet als live optie geïmproviseerd.

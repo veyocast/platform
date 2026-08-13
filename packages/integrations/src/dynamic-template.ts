@@ -1,4 +1,12 @@
-import type { DynamicTemplateManifest } from "@veyocast/contracts";
+import {
+  paginatePriceList,
+  PRICE_LIST_METRICS,
+  type DynamicTemplateManifest,
+  type PriceListColumn,
+  type PriceListOrientation,
+  type ResolvedPriceListItem,
+  type ResolvedPriceListSection
+} from "@veyocast/contracts";
 
 const allowedSvgElements = new Set([
   "circle",
@@ -98,6 +106,9 @@ export function renderDynamicTemplate(
   input: unknown
 ): string {
   validateDynamicTemplate(source);
+  if (source.manifest.slideType === "price_list") {
+    return renderPriceListSnapshotSvg(source, input);
+  }
   const rendered = renderBlock(
     source.markup,
     { parent: null, value: input },
@@ -110,6 +121,167 @@ export function renderDynamicTemplate(
     rendered,
     "</svg>"
   ].join("");
+}
+
+function renderPriceListSnapshotSvg(
+  source: DynamicTemplateSource,
+  input: unknown
+) {
+  const orientation: PriceListOrientation = source.manifest.canvas.width >
+    source.manifest.canvas.height ? "landscape" : "portrait";
+  const metrics = PRICE_LIST_METRICS[orientation];
+  const root = recordValue(input);
+  const priceList = recordValue(root?.priceList);
+  const brand = recordValue(root?.brand);
+  const sections = arrayValue(priceList?.sections).flatMap((value) => {
+    const section = recordValue(value);
+    const column = section?.column;
+    const id = stringValue(section?.id);
+    const name = stringValue(section?.name);
+    if ((column !== "left" && column !== "right") || !id || !name) return [];
+    const products = arrayValue(section?.products).flatMap((entry) => {
+      const product = recordValue(entry);
+      const productId = stringValue(product?.id);
+      const productName = stringValue(product?.name);
+      if (!productId || !productName) return [];
+      return [{
+        description: stringValue(product?.description),
+        formattedPrice: stringValue(product?.formattedPrice),
+        id: productId,
+        image: { kind: "empty" as const },
+        name: productName,
+        photoVisible: product?.photoVisible === true
+      } satisfies ResolvedPriceListItem];
+    });
+    if (!products.length) return [];
+    return [{
+      column,
+      id,
+      name,
+      order: finiteInteger(section?.order),
+      products
+    } satisfies ResolvedPriceListSection];
+  });
+  const page = paginatePriceList(sections, orientation)[0]!;
+  const light = source.css.includes("#f3f1ec");
+  const background = light ? "#f3f1ec" : "#070a0e";
+  const foreground = light ? "#17202a" : "#f3f0e9";
+  const muted = light ? "#6f7882" : "#9aa2ac";
+  const divider = light ? "rgba(23,32,42,.12)" : "rgba(255,255,255,.12)";
+  const accentCandidate = stringValue(brand?.primaryColor).toUpperCase();
+  const accent = /^#[0-9A-F]{6}$/.test(accentCandidate)
+    ? accentCandidate
+    : "#FF5C20";
+  const title = truncate(stringValue(priceList?.title) || "Prijslijst", 32);
+  const clubName = truncate(stringValue(brand?.clubName) || "Vereniging", 46);
+  const logoSize = orientation === "landscape" ? 112 : 104;
+  const headerX = metrics.safeMargin + logoSize + 32;
+  const priceWidth = orientation === "landscape" ? 120 : 92;
+  const nameSize = orientation === "landscape" ? 26 : 20;
+  const descriptionSize = orientation === "landscape" ? 17 : 14;
+  const priceSize = orientation === "landscape" ? 32 : 24;
+  const categorySize = orientation === "landscape" ? 28 : 22;
+  const columns = (["left", "right"] as const).map((column, columnIndex) =>
+    renderSnapshotPriceListColumn({
+      accent,
+      categorySize,
+      descriptionSize,
+      divider,
+      foreground,
+      metrics,
+      muted,
+      nameSize,
+      priceSize,
+      priceWidth,
+      rows: page.columns[column],
+      x: metrics.safeMargin + columnIndex * (metrics.columnWidth + metrics.columnGap)
+    })
+  ).join("");
+  return [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${metrics.canvasWidth}" height="${metrics.canvasHeight}" viewBox="0 0 ${metrics.canvasWidth} ${metrics.canvasHeight}">`,
+    `<rect width="100%" height="100%" fill="${background}"/>`,
+    `<rect width="100%" height="8" fill="${accent}"/>`,
+    `<rect x="${metrics.safeMargin}" y="40" width="${logoSize}" height="${logoSize}" fill="none"/>`,
+    `<text x="${headerX}" y="112" fill="${foreground}" font-family="Arial,sans-serif" font-size="58" font-weight="900">${escapeXml(title)}</text>`,
+    `<line x1="${metrics.safeMargin}" x2="${metrics.canvasWidth - metrics.safeMargin}" y1="176" y2="176" stroke="${divider}"/>`,
+    columns,
+    `<text x="${metrics.safeMargin}" y="${metrics.canvasHeight - 34}" fill="${muted}" font-family="Arial,sans-serif" font-size="14" font-weight="700">${escapeXml(clubName)}</text>`,
+    `<text x="${metrics.canvasWidth - metrics.safeMargin}" y="${metrics.canvasHeight - 34}" text-anchor="end" fill="${muted}" font-family="Arial,sans-serif" font-size="14">1 / ${page.pageCount}</text>`,
+    "</svg>"
+  ].join("");
+}
+
+function renderSnapshotPriceListColumn({
+  accent,
+  categorySize,
+  descriptionSize,
+  divider,
+  foreground,
+  metrics,
+  muted,
+  nameSize,
+  priceSize,
+  priceWidth,
+  rows,
+  x
+}: {
+  accent: string;
+  categorySize: number;
+  descriptionSize: number;
+  divider: string;
+  foreground: string;
+  metrics: (typeof PRICE_LIST_METRICS)[PriceListOrientation];
+  muted: string;
+  nameSize: number;
+  priceSize: number;
+  priceWidth: number;
+  rows: ReturnType<typeof paginatePriceList>[number]["columns"][PriceListColumn];
+  x: number;
+}) {
+  return rows.map((row, index) => {
+    const y = metrics.contentTop + index * metrics.rowHeight;
+    const dividerLine = `<line x1="${x}" x2="${x + metrics.columnWidth}" y1="${y + metrics.rowHeight}" y2="${y + metrics.rowHeight}" stroke="${divider}"/>`;
+    if (row.kind === "category") {
+      return [
+        `<rect x="${x}" y="${y + 12}" width="8" height="${metrics.rowHeight - 24}" fill="${accent}"/>`,
+        `<text x="${x + 28}" y="${y + metrics.rowHeight * .62}" fill="${foreground}" font-family="Arial,sans-serif" font-size="${categorySize}" font-weight="900">${escapeXml(truncate(row.name, 34))}</text>`,
+        row.continuation
+          ? `<text x="${x + metrics.columnWidth}" y="${y + metrics.rowHeight * .62}" text-anchor="end" fill="${muted}" font-family="Arial,sans-serif" font-size="11" font-weight="700">VERVOLG</text>`
+          : "",
+        dividerLine
+      ].join("");
+    }
+    const copyX = x + metrics.mediaSize + 16;
+    const priceX = x + metrics.columnWidth;
+    const copyWidth = metrics.columnWidth - metrics.mediaSize - 32 - priceWidth;
+    const nameLength = Math.max(8, Math.floor(copyWidth / (nameSize * .58)));
+    const descriptionLength = Math.max(8, Math.floor(copyWidth / (descriptionSize * .55)));
+    return [
+      `<text x="${copyX}" y="${y + metrics.rowHeight * .45}" fill="${foreground}" font-family="Arial,sans-serif" font-size="${nameSize}" font-weight="800">${escapeXml(truncate(row.item.name, nameLength))}</text>`,
+      `<text x="${copyX}" y="${y + metrics.rowHeight * .73}" fill="${muted}" font-family="Arial,sans-serif" font-size="${descriptionSize}">${escapeXml(truncate(row.item.description, descriptionLength))}</text>`,
+      `<text x="${priceX}" y="${y + metrics.rowHeight * .62}" text-anchor="end" fill="${accent}" font-family="Arial,sans-serif" font-size="${priceSize}" font-weight="900">${escapeXml(row.item.formattedPrice)}</text>`,
+      dividerLine
+    ].join("");
+  }).join("");
+}
+
+function recordValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function arrayValue(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function finiteInteger(value: unknown) {
+  const number = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(number) ? Math.trunc(number) : 0;
+}
+
+function truncate(value: string, length: number) {
+  return value.length > length ? `${value.slice(0, Math.max(1, length - 1))}…` : value;
 }
 
 function validateTokens(
