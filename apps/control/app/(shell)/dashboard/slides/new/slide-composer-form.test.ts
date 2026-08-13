@@ -19,6 +19,7 @@ const source: SlideSourceOption = {
   lastSuccessfulSyncAt: null,
   name: "Clubnieuws",
   providerStatus: "ready",
+  products: [],
   sportAvailability: [],
   sportCompetitions: [],
   sportSeasons: [],

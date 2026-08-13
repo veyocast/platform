@@ -16,21 +16,23 @@ import {
   dynamicTemplatePageDurationMs,
   type DynamicTemplateListItem,
   type DynamicTemplatePage,
+  type DynamicTemplatePriceEntry,
   type DynamicTemplateStandingItem,
   type DynamicTemplateView
 } from "./dynamic-template-view";
+import {
+  editorialArenaCanvas,
+  sportColumnCount,
+  sportRowHeight
+} from "./editorial-arena-layout";
+import { editorialThemeCssVariables } from "./editorial-arena-theme";
 import styles from "./editorial-arena-renderer.module.css";
 
 type ArenaStyle = CSSProperties & {
   "--arena-accent": string;
   "--arena-page-duration": string;
-  "--arena-viewport-inset-x": string;
+  "--arena-row-height": string;
 };
-
-const arenaCanvasSize = {
-  landscape: { height: 1080, width: 1920 },
-  portrait: { height: 1920, width: 1080 }
-} as const;
 
 export type EditorialArenaItem = {
   accessibilityName?: string;
@@ -59,9 +61,8 @@ export function EditorialArenaRenderer({
   const viewportRef = useRef<HTMLDivElement>(null);
   const [internalPageIndex, setInternalPageIndex] = useState(0);
   const [canvasScale, setCanvasScale] = useState<number | null>(null);
-  const [canvasInsetX, setCanvasInsetX] = useState(0);
   const pageCount = view?.pages.length ?? 0;
-  const canvas = arenaCanvasSize[view?.orientation ?? "landscape"];
+  const canvas = editorialArenaCanvas[view?.orientation ?? "landscape"];
 
   useEffect(() => {
     setInternalPageIndex(0);
@@ -74,16 +75,8 @@ export function EditorialArenaRenderer({
       const width = viewport.clientWidth;
       const height = viewport.clientHeight;
       if (width < 1 || height < 1) return;
-      const fillsPortraitViewport = view.orientation === "portrait" && height >= width;
-      const scale = fillsPortraitViewport
-        ? Math.max(width / canvas.width, height / canvas.height)
-        : Math.min(width / canvas.width, height / canvas.height);
+      const scale = Math.min(width / canvas.width, height / canvas.height);
       setCanvasScale(scale);
-      setCanvasInsetX(
-        fillsPortraitViewport
-          ? Math.max(0, (canvas.width - width / scale) / 2)
-          : 0
-      );
     };
     updateScale();
     window.addEventListener("resize", updateScale);
@@ -135,9 +128,10 @@ export function EditorialArenaRenderer({
     view.pageDurationMs
   );
   const style: ArenaStyle = {
+    ...editorialThemeCssVariables(view.themeTokens),
     "--arena-accent": view.accentColor,
     "--arena-page-duration": `${pageDurationMs}ms`,
-    "--arena-viewport-inset-x": `${canvasInsetX}px`,
+    "--arena-row-height": `${pageRowHeight(page, view)}px`,
     height: canvas.height,
     opacity: canvasScale === null ? 0 : 1,
     transform: `translate(-50%, -50%) scale(${canvasScale ?? 1})`,
@@ -177,6 +171,7 @@ export function EditorialArenaRenderer({
           pageIndex={pageIndex}
           view={view}
         />
+        <VerticalSlideIndex pageIndex={pageIndex} view={view} />
       </section>
     </div>
   );
@@ -223,13 +218,34 @@ function ArenaFooter({
 }) {
   return (
     <footer className={styles.arenaFooter}>
-      <span><i aria-hidden="true" /> {view.sourceLabel}</span>
-      <span>
-        {pageCount > 1
-          ? `${pageIndex + 1} / ${pageCount}`
-          : "Actuele clubinformatie"}
+      <span className={styles.arenaFooterLine}><i aria-hidden="true" /></span>
+      <span>{view.sourceLabel}</span>
+      <span className={styles.arenaPageDots} aria-label={`Pagina ${pageIndex + 1} van ${pageCount}`}>
+        <b>{pageIndex + 1} / {pageCount}</b>
+        {Array.from({ length: Math.max(1, pageCount) }, (_, index) => (
+          <i data-active={index === pageIndex || undefined} key={index} />
+        ))}
       </span>
     </footer>
+  );
+}
+
+function VerticalSlideIndex({
+  pageIndex,
+  view
+}: {
+  pageIndex: number;
+  view: DynamicTemplateView;
+}) {
+  const label = view.slideType === "news"
+    ? "EDITORIAL"
+    : view.slideType === "menu"
+      ? "PRIJSLIJST"
+      : "MATCHCENTRE";
+  return (
+    <span aria-hidden="true" className={styles.arenaVerticalIndex}>
+      {label} / {String(pageIndex + 1).padStart(2, "0")}
+    </span>
   );
 }
 
@@ -242,29 +258,23 @@ function ArenaPage({
 }) {
   if (page.kind === "menu") {
     return (
-      <div className={styles.arenaMenuLayout}>
-        <section className={`${styles.arenaPanel} ${styles.arenaMenuHero}`}>
-          <PanelTitle label="Kantine" title="Vandaag op het menu" />
-          <h2>Lekker voor, tijdens &amp; <em>na de wedstrijd</em></h2>
-          <p>Vers uit de clubkantine. Prijzen en beschikbaarheid zijn actueel.</p>
-        </section>
-        <section className={styles.arenaMenuItems}>
-          {page.items.map((product) => (
-            <article className={`${styles.arenaPanel} ${styles.arenaMenuCard}`} key={product.id}>
-              <div aria-hidden="true" className={styles.arenaProductImage}>
-                {product.imageUrl ? (
-                  <img alt="" src={product.imageUrl} />
-                ) : <span>{initialsFor(product.name)}</span>}
-              </div>
-              <div>
-                <h3>{product.name}</h3>
-                {product.variant ? <em>{product.variant}</em> : null}
-                {product.description ? <p>{product.description}</p> : null}
-              </div>
-              <strong>{product.price}</strong>
-            </article>
-          ))}
-        </section>
+      <div className={styles.arenaPriceColumns}>
+        {page.columns.map((entries, index) => (
+          <section
+            aria-label={`Prijslijst kolom ${index + 1}`}
+            className={`${styles.arenaPanel} ${styles.arenaPriceColumn}`}
+            key={index}
+          >
+            {entries.map((entry) => (
+              <PriceEntry
+                categoryPhotoModes={view.priceCategoryPhotoModes}
+                entry={entry}
+                key={entry.kind === "category" ? entry.id : entry.item.id}
+                photoMode={view.pricePhotoMode}
+              />
+            ))}
+          </section>
+        ))}
       </div>
     );
   }
@@ -272,10 +282,16 @@ function ArenaPage({
   if (page.kind === "news") {
     const article = page.item;
     return (
-      <div className={styles.arenaNewsLayout}>
+      <div className={styles.arenaNewsLayout} data-news-variant={view.newsVariant}>
         <section className={`${styles.arenaPanel} ${styles.arenaNewsHero}`}>
           {article?.heroUrl ? (
-            <img alt="" src={article.heroUrl} />
+            <img
+              alt=""
+              src={article.heroUrl}
+              style={{
+                objectPosition: `${article.imageFocalPoint.x * 100}% ${article.imageFocalPoint.y * 100}%`
+              }}
+            />
           ) : <span aria-hidden="true">{initialsFor(view.sourceLabel)}</span>}
           <div className={styles.arenaNewsSource}>
             {view.providerLogoUrl ? (
@@ -302,6 +318,17 @@ function ArenaPage({
             </>
           ) : null}
         </article>
+        {page.secondaryItems.length ? (
+          <aside className={styles.arenaNewsGrid}>
+            {page.secondaryItems.map((secondary) => (
+              <article className={styles.arenaPanel} key={secondary.id}>
+                <span>{secondary.source}</span>
+                <h3>{secondary.title}</h3>
+                <small>{secondary.date}</small>
+              </article>
+            ))}
+          </aside>
+        ) : null}
       </div>
     );
   }
@@ -370,12 +397,13 @@ function ArenaPage({
 
   if (view.slideType === "sport_results") {
     return (
-      <section className={`${styles.arenaPanel} ${styles.arenaFixturePanel}`}>
-        <PanelTitle label="Laatste speelronde" title="Uitslagen" />
-        {page.items.map((entry) => (
-          <ResultRow item={entry} key={entry.id} />
-        ))}
-      </section>
+      <SportListColumns
+        items={page.items}
+        label="Laatste speelronde"
+        renderRow={(entry) => <ResultRow item={entry} key={entry.id} />}
+        title="Uitslagen"
+        view={view}
+      />
     );
   }
 
@@ -398,12 +426,45 @@ function ArenaPage({
   }
 
   return (
-    <section className={`${styles.arenaPanel} ${styles.arenaFixturePanel}`}>
-      <PanelTitle label="Aankomende wedstrijden" title="Programma" />
-      {page.items.map((entry) => (
-        <ProgramRow item={entry} key={entry.id} />
+    <SportListColumns
+      items={page.items}
+      label="Aankomende wedstrijden"
+      renderRow={(entry) => <ProgramRow item={entry} key={entry.id} />}
+      title="Programma"
+      view={view}
+    />
+  );
+}
+
+function SportListColumns({
+  items,
+  label,
+  renderRow,
+  title,
+  view
+}: {
+  items: DynamicTemplateListItem[];
+  label: string;
+  renderRow: (item: DynamicTemplateListItem) => ReactNode;
+  title: string;
+  view: DynamicTemplateView;
+}) {
+  const columns = splitIntoColumns(items, view.orientation);
+  return (
+    <div className={styles.arenaSportColumns} data-columns={columns.length}>
+      {columns.map((column, index) => (
+        <section
+          className={`${styles.arenaPanel} ${styles.arenaFixturePanel}`}
+          key={index}
+        >
+          <PanelTitle
+            label={columns.length > 1 ? `${label} · ${index + 1}` : label}
+            title={title}
+          />
+          {column.map(renderRow)}
+        </section>
       ))}
-    </section>
+    </div>
   );
 }
 
@@ -419,43 +480,24 @@ function ArenaStanding({
   items: DynamicTemplateStandingItem[];
   view: DynamicTemplateView;
 }) {
+  const columns = splitIntoColumns(items, view.orientation);
   return (
-    <section className={`${styles.arenaPanel} ${styles.arenaStanding}`}>
-      <div className={styles.arenaStandingHead} aria-hidden="true">
-        <span>#</span><span>Team</span><span>G</span><span>W</span>
-        <span>GL</span><span>V</span><span>PT</span><span>+/−</span><span>Vorm</span>
-      </div>
-      <div className={styles.arenaStandingRows}>
-        {items.map((team) => (
-          <article data-selected={team.selected || undefined} key={team.id}>
-            <strong>{team.position ?? "–"}</strong>
-            <span className={styles.arenaStandingTeam}>
-              <i aria-hidden="true">{initialsFor(team.teamName)}</i>
-              <b>{team.teamName}</b>
-            </span>
-            <span>{team.played ?? "–"}</span>
-            <span>{team.won ?? "–"}</span>
-            <span>{team.drawn ?? "–"}</span>
-            <span>{team.lost ?? "–"}</span>
-            <strong>{team.points ?? "–"}</strong>
-            <span>{signed(team.goalDifference)}</span>
-            <span
-              aria-label={`Vorm ${team.teamName}: ${
-                team.form.length
-                  ? team.form.map(resultLabel).join(", ")
-                  : "niet beschikbaar"
-              }`}
-              className={styles.arenaForm}
-            >
-              {team.form.length ? team.form.map((result, index) => (
-                <i data-result={result} key={`${result}-${index}`}>
-                  {result === "win" ? "W" : result === "draw" ? "G" : "V"}
-                </i>
-              )) : "–"}
-            </span>
-          </article>
-        ))}
-      </div>
+    <section className={styles.arenaStandingLayout} data-columns={columns.length}>
+      {columns.map((column, columnIndex) => (
+        <div className={`${styles.arenaPanel} ${styles.arenaStanding}`} key={columnIndex}>
+          <div
+            className={styles.arenaStandingHead}
+            aria-hidden="true"
+            data-testid="standing-head"
+          >
+            <span>#</span><span>Team</span><span>G</span><span>W</span>
+            <span>GL</span><span>V</span><span>PT</span><span>+/−</span><span>Vorm</span>
+          </div>
+          <div className={styles.arenaStandingRows}>
+            {column.map((team) => <StandingRow key={team.id} team={team} />)}
+          </div>
+        </div>
+      ))}
       {view.standingContext ? (
         <p className={styles.arenaStandingContext}>
           {[view.standingContext.competition, view.standingContext.pool, view.standingContext.season]
@@ -463,6 +505,81 @@ function ArenaStanding({
         </p>
       ) : null}
     </section>
+  );
+}
+
+function StandingRow({ team }: { team: DynamicTemplateStandingItem }) {
+  return (
+    <article
+      data-standing-row=""
+      data-selected={team.selected || undefined}
+      data-zone={team.zone || undefined}
+    >
+      <strong>{team.position ?? "–"}</strong>
+      <span className={styles.arenaStandingTeam}>
+        <i aria-hidden="true">{initialsFor(team.teamName)}</i>
+        <b>{team.teamName}</b>
+      </span>
+      <span>{team.played ?? "–"}</span>
+      <span>{team.won ?? "–"}</span>
+      <span>{team.drawn ?? "–"}</span>
+      <span>{team.lost ?? "–"}</span>
+      <strong>{team.points ?? "–"}</strong>
+      <span>{signed(team.goalDifference)}</span>
+      <span
+        aria-label={`Vorm ${team.teamName}: ${team.form.length
+          ? team.form.map(resultLabel).join(", ")
+          : "niet beschikbaar"}`}
+        className={styles.arenaForm}
+      >
+        {team.form.length ? team.form.map((result, index) => (
+          <i data-result={result} key={`${result}-${index}`}>
+            {result === "win" ? "W" : result === "draw" ? "G" : "V"}
+          </i>
+        )) : "–"}
+      </span>
+    </article>
+  );
+}
+
+function PriceEntry({
+  entry,
+  photoMode,
+  categoryPhotoModes
+}: {
+  entry: DynamicTemplatePriceEntry;
+  photoMode: DynamicTemplateView["pricePhotoMode"];
+  categoryPhotoModes: DynamicTemplateView["priceCategoryPhotoModes"];
+}) {
+  if (entry.kind === "category") {
+    return <h2 className={styles.arenaPriceCategory}>{entry.name}</h2>;
+  }
+  const product = entry.item;
+  const categoryMode = categoryPhotoModes[product.category] ?? "inherit";
+  const resolvedPhotoMode = categoryMode === "inherit"
+    ? photoMode
+    : categoryMode;
+  return (
+    <article className={styles.arenaPriceRow}>
+      <div aria-hidden="true" className={styles.arenaProductImage}>
+        {resolvedPhotoMode === "show" && product.imageUrl ? (
+          <img
+            alt=""
+            src={product.imageUrl}
+            style={{
+              objectPosition: `${product.imageFocalPoint.x * 100}% ${product.imageFocalPoint.y * 100}%`
+            }}
+          />
+        ) : null}
+      </div>
+      <div>
+        <h3>{product.name}</h3>
+        {product.description || product.variant ? (
+          <p>{product.description || product.variant}</p>
+        ) : null}
+      </div>
+      <strong>{product.price}</strong>
+    </article>
   );
 }
 
@@ -587,7 +704,30 @@ function TeamMini({ large = false, name }: { large?: boolean; name: string }) {
 
 function pageIsEmpty(page: DynamicTemplatePage) {
   if (page.kind === "news" || page.kind === "match") return !page.item;
+  if (page.kind === "menu") {
+    return page.columns.every((column) => column.length === 0);
+  }
   return page.items.length === 0;
+}
+
+function splitIntoColumns<T>(
+  items: T[],
+  orientation: DynamicTemplateView["orientation"]
+) {
+  const columns = sportColumnCount(orientation, items.length);
+  if (columns === 1) return [items];
+  const midpoint = Math.ceil(items.length / 2);
+  return [items.slice(0, midpoint), items.slice(midpoint)];
+}
+
+function pageRowHeight(
+  page: DynamicTemplatePage,
+  view: DynamicTemplateView
+) {
+  if (page.kind === "standing" || page.kind === "sport-list") {
+    return sportRowHeight(view.orientation, page.items.length);
+  }
+  return 82;
 }
 
 function initialsFor(value: string) {

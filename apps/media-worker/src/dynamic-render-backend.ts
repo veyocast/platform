@@ -2,6 +2,7 @@ import {
   dynamicTemplateManifestSchema,
   type DynamicTemplateManifest
 } from "@veyocast/contracts";
+import type { PlayerDynamicTemplateAsset } from "@veyocast/contracts";
 import { createClient } from "@supabase/supabase-js";
 
 export type ClaimedDynamicRenderJob = {
@@ -32,6 +33,9 @@ export interface DynamicRenderBackend {
     lockTimeoutSeconds: number,
     maxAttempts: number
   ): Promise<ClaimedDynamicRenderJob | null>;
+  resolveAssets?(
+    job: ClaimedDynamicRenderJob
+  ): Promise<Record<string, PlayerDynamicTemplateAsset>>;
   completeJob(
     job: ClaimedDynamicRenderJob,
     workerId: string,
@@ -77,6 +81,7 @@ export class DynamicRenderBackendError extends Error {
 
 export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
   private readonly client: DynamicRpcClient;
+  private readonly assetClient: ReturnType<typeof createClient> | null;
 
   constructor(
     supabaseUrl: string,
@@ -86,6 +91,52 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     this.client = client ?? createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     }) as unknown as DynamicRpcClient;
+    this.assetClient = client ? null : createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+  }
+
+  async resolveAssets(job: ClaimedDynamicRenderJob) {
+    if (!this.assetClient) return {};
+    const ids = collectAssetIds(job.snapshotData);
+    if (!ids.length) return {};
+    const variants = await this.assetClient
+      .from("media_variants")
+      .select("asset_id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
+      .eq("tenant_id", job.tenantId)
+      .eq("variant_type", "original")
+      .in("asset_id", ids);
+    if (variants.error) throw new DynamicRenderBackendError(
+      "dynamic_asset_resolution_failed",
+      true,
+      "Thumbnailassets konden tijdelijk niet worden opgelost."
+    );
+    const rows = (variants.data ?? []) as unknown as Array<{
+      asset_id: string;
+      checksum_sha256: string;
+      file_size_bytes: number;
+      mime_type: string;
+      storage_bucket: string;
+      storage_path: string;
+    }>;
+    const entries = await Promise.all(rows.map(async (variant) => {
+      const signed = await this.assetClient!.storage
+        .from(variant.storage_bucket)
+        .createSignedUrl(variant.storage_path, 300);
+      if (signed.error || !signed.data.signedUrl) return null;
+      const mimeType = variant.mime_type;
+      if (!["image/jpeg", "image/png", "image/webp"].includes(mimeType)) return null;
+      return [variant.asset_id, {
+        bytes: variant.file_size_bytes,
+        checksumSha256: variant.checksum_sha256,
+        mimeType,
+        url: signed.data.signedUrl
+      }] as const;
+    }));
+    return Object.fromEntries(entries.filter((entry) => entry !== null)) as Record<
+      string,
+      PlayerDynamicTemplateAsset
+    >;
   }
 
   async claimJob(
@@ -249,4 +300,27 @@ function invalidClaim(): never {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function collectAssetIds(snapshot: unknown) {
+  if (!isRecord(snapshot)) return [];
+  const ids = new Set<string>();
+  const add = (value: unknown) => {
+    if (typeof value === "string" && /^[0-9a-f-]{36}$/i.test(value)) ids.add(value);
+  };
+  const brand = isRecord(snapshot.brand) ? snapshot.brand : null;
+  add(brand?.logoMediaAssetId);
+  const menu = isRecord(snapshot.menu) ? snapshot.menu : null;
+  if (Array.isArray(menu?.products)) {
+    for (const item of menu.products) if (isRecord(item)) add(item.imageMediaAssetId);
+  }
+  const news = isRecord(snapshot.news) ? snapshot.news : null;
+  add(news?.providerLogoMediaAssetId);
+  if (Array.isArray(news?.articles)) {
+    for (const item of news.articles) if (isRecord(item)) {
+      add(item.heroMediaAssetId);
+      add(item.qrMediaAssetId);
+    }
+  }
+  return [...ids].slice(0, 51);
 }

@@ -12,6 +12,7 @@ import {
   type DynamicRenderBackend
 } from "./dynamic-render-backend";
 import type { StudioExternalRenderer } from "./studio-render-image";
+import type { ReactDomDynamicThumbnailRenderer } from "./dynamic-react-thumbnail";
 
 export type DynamicRenderRunResult =
   | { status: "idle" }
@@ -26,6 +27,7 @@ export async function runDynamicRenderOnce({
   backend,
   config,
   renderer,
+  reactDomRenderer,
   signal
 }: {
   backend: DynamicRenderBackend;
@@ -35,6 +37,7 @@ export async function runDynamicRenderOnce({
     workerId: string;
   };
   renderer: StudioExternalRenderer;
+  reactDomRenderer?: ReactDomDynamicThumbnailRenderer;
   signal?: AbortSignal;
 }): Promise<DynamicRenderRunResult> {
   const job = await backend.claimJob(
@@ -51,16 +54,30 @@ export async function runDynamicRenderOnce({
         "Dynamische render is tijdens afsluiten onderbroken."
       );
     }
-    const svg = renderDynamicTemplate(
-      { css: job.css, manifest: job.manifest, markup: job.markup },
-      job.snapshotData
-    );
-    const bytes = await renderer.renderPng({
-      height: job.manifest.canvas.height,
-      signal,
-      svg,
-      width: job.manifest.canvas.width
-    });
+    let bytes: Uint8Array | null = null;
+    if (reactDomRenderer) {
+      try {
+        bytes = await reactDomRenderer.renderPng({
+          assets: await backend.resolveAssets?.(job) ?? {},
+          job,
+          signal
+        });
+      } catch {
+        bytes = null;
+      }
+    }
+    if (!bytes) {
+      const svg = renderDynamicTemplate(
+        { css: job.css, manifest: job.manifest, markup: job.markup },
+        job.snapshotData
+      );
+      bytes = await renderer.renderPng({
+        height: job.manifest.canvas.height,
+        signal,
+        svg,
+        width: job.manifest.canvas.width
+      });
+    }
     const artifact = {
       byteLength: bytes.byteLength,
       bytes,
@@ -96,6 +113,7 @@ export async function runDynamicRenderLoop({
   intervalMs,
   onResult = () => undefined,
   renderer,
+  reactDomRenderer,
   signal
 }: {
   backend: DynamicRenderBackend;
@@ -107,6 +125,7 @@ export async function runDynamicRenderLoop({
   intervalMs: number;
   onResult?: (result: DynamicRenderRunResult) => void;
   renderer: StudioExternalRenderer;
+  reactDomRenderer?: ReactDomDynamicThumbnailRenderer;
   signal: AbortSignal;
 }) {
   while (!signal.aborted) {
@@ -114,6 +133,7 @@ export async function runDynamicRenderLoop({
       backend,
       config,
       renderer,
+      reactDomRenderer,
       signal
     });
     onResult(result);

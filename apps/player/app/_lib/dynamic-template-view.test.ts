@@ -35,9 +35,9 @@ describe("trusted dynamic template view", () => {
     });
 
     expect(view?.theme).toBe("dark");
-    expect(view?.pages).toHaveLength(3);
+    expect(view?.pages).toHaveLength(2);
     expect(view?.pages[0]).toMatchObject({ kind: "menu" });
-    expect(dynamicTemplatePageDurationMs(30, 3)).toBe(10_000);
+    expect(dynamicTemplatePageDurationMs(30, 2)).toBe(15_000);
     expect(dynamicTemplateMinimumPlaybackMs({
       ...base,
       data: {
@@ -51,7 +51,7 @@ describe("trusted dynamic template view", () => {
       },
       slideType: "menu",
       templateSlug: "editorial-arena-menubord-dark-landscape"
-    })).toBe(15_000);
+    })).toBe(10_000);
   });
 
   it("maakt ieder nieuwsartikel een afzonderlijke pagina", () => {
@@ -260,7 +260,7 @@ describe("trusted dynamic template view", () => {
     });
   });
 
-  it("toont maximaal achttien standregels per portraitpagina", () => {
+  it("toont maximaal twintig standregels per portraitpagina", () => {
     const view = createDynamicTemplateView({
       ...base,
       data: {
@@ -290,20 +290,16 @@ describe("trusted dynamic template view", () => {
       templateSlug: "editorial-arena-competitiestand-dark-portrait"
     });
 
-    expect(view?.pages).toHaveLength(2);
+    expect(view?.pages).toHaveLength(1);
     expect(view?.pages[0]).toMatchObject({
       items: expect.arrayContaining([
-        expect.objectContaining({ teamName: "Vereniging 18" })
+        expect.objectContaining({ teamName: "Vereniging 19" })
       ]),
-      kind: "standing"
-    });
-    expect(view?.pages[1]).toMatchObject({
-      items: [expect.objectContaining({ teamName: "Vereniging 19" })],
       kind: "standing"
     });
   });
 
-  it("toont tien standregels per landscapepagina", () => {
+  it("houdt elf standregels op één landscape-pagina voor tweekolomsweergave", () => {
     const view = createDynamicTemplateView({
       ...base,
       data: {
@@ -320,10 +316,11 @@ describe("trusted dynamic template view", () => {
       templateSlug: "editorial-arena-competitiestand-dark-landscape"
     });
 
-    expect(view?.pages).toHaveLength(2);
+    expect(view?.pages).toHaveLength(1);
     expect(view?.pages[0]).toMatchObject({
       items: expect.arrayContaining([
-        expect.objectContaining({ teamName: "Vereniging 10" })
+        expect.objectContaining({ teamName: "Vereniging 10" }),
+        expect.objectContaining({ teamName: "Vereniging 11" })
       ]),
       kind: "standing"
     });

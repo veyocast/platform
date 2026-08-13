@@ -61,7 +61,7 @@ CMD ["node", "apps/marketing/server.js"]
 
 FROM base AS media-worker
 RUN apt-get update \
-  && apt-get install --yes --no-install-recommends ca-certificates ffmpeg \
+  && apt-get install --yes --no-install-recommends ca-certificates chromium ffmpeg \
   && rm -rf /var/lib/apt/lists/*
 COPY --chown=node:node --from=dependencies /app /app
 USER node

@@ -1,0 +1,21 @@
+.page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.page > div {
+  width: 100%;
+  height: 100%;
+}
+
+.error {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  background: #111315;
+  color: #f7f3eb;
+  font: 600 24px/1.4 sans-serif;
+}

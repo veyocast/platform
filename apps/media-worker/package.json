@@ -23,6 +23,7 @@
     "@veyocast/integrations": "workspace:*",
     "@veyocast/observability": "workspace:*",
     "@veyocast/studio": "workspace:*",
+    "playwright-core": "1.54.2",
     "qrcode": "^1.5.4",
     "sharp": "^0.34.5"
   },

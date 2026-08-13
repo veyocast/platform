@@ -1192,3 +1192,229 @@
     animation: none;
   }
 }
+
+.editorialThemeEditor,
+.editorialPriceEditor {
+  display: grid;
+  gap: var(--vc-space-16);
+  grid-column: 1 / -1;
+}
+
+.editorialThemeActions,
+.editorialModeTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-8);
+}
+
+.editorialTokenGroups {
+  display: grid;
+  gap: var(--vc-space-16);
+}
+
+.editorialTokenGroup,
+.editorialFocalPoint,
+.editorialPriceProduct fieldset {
+  min-width: 0;
+  padding: var(--vc-space-16);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+}
+
+.editorialTokenGroup legend,
+.editorialFocalPoint legend,
+.editorialPriceProduct legend {
+  padding: 0 var(--vc-space-8);
+  font-weight: 650;
+}
+
+.editorialTokenField {
+  display: grid;
+  align-items: end;
+  gap: var(--vc-space-4);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.editorialColorInput {
+  display: grid;
+  align-items: center;
+  gap: var(--vc-space-8);
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+}
+
+.editorialColorInput i {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-sm);
+}
+
+.editorialContrastGrid {
+  display: grid;
+  gap: var(--vc-space-8);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.editorialContrastGrid > div {
+  display: grid;
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-12);
+  border: 1px solid var(--vc-border);
+  border-left: 4px solid var(--vc-semantic-critical-solid);
+  border-radius: var(--vc-radius-sm);
+  background: var(--vc-surface-muted);
+}
+
+.editorialContrastGrid > div[data-valid="true"] {
+  border-left-color: var(--vc-semantic-success-solid);
+}
+
+.editorialPriceEditor > header,
+.editorialPriceColumn > header,
+.editorialPriceGroup > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vc-space-12);
+}
+
+.editorialPriceEditor > header h3,
+.editorialPriceEditor > header p {
+  margin: 0;
+}
+
+.editorialProductPicker {
+  display: grid;
+  max-height: 18rem;
+  overflow: auto;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editorialProductPicker label {
+  display: grid;
+  align-items: center;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-12);
+  border-bottom: 1px solid var(--vc-border);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.editorialProductPicker span,
+.editorialPriceProduct > span {
+  display: grid;
+  min-width: 0;
+}
+
+.editorialPriceColumns,
+.livePreviewOrientations {
+  display: grid;
+  align-items: start;
+  gap: var(--vc-space-16);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editorialPriceColumn {
+  display: grid;
+  min-height: 14rem;
+  gap: var(--vc-space-12);
+  padding: var(--vc-space-16);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface-muted);
+}
+
+.editorialPriceColumn[data-overflow="true"] {
+  border-color: var(--vc-semantic-critical-solid);
+}
+
+.editorialPriceGroup {
+  display: grid;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-12);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-sm);
+  background: var(--vc-surface);
+}
+
+.editorialPriceGroup > header > button,
+.editorialPriceProduct > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--vc-text-muted);
+  cursor: grab;
+}
+
+.editorialPriceGroup > header > label {
+  display: grid;
+  gap: var(--vc-space-2);
+}
+
+.editorialPriceGroup > header > div {
+  display: flex;
+}
+
+.editorialPriceProduct {
+  display: grid;
+  align-items: center;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-8);
+  border-top: 1px solid var(--vc-border);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.editorialPriceProduct fieldset {
+  display: grid;
+  gap: var(--vc-space-8);
+  grid-column: 2 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editorialPriceProduct fieldset label,
+.editorialFocalPoint label {
+  display: grid;
+  gap: var(--vc-space-4);
+}
+
+.editorialFocalPoint {
+  display: grid;
+  gap: var(--vc-space-12);
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editorialOverflow {
+  margin: 0;
+  color: var(--vc-semantic-critical-solid);
+  font-weight: 650;
+}
+
+.validationControl {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.livePreviewOrientations > div {
+  display: grid;
+  min-width: 0;
+  gap: var(--vc-space-8);
+}
+
+@media (max-width: 64rem) {
+  .editorialContrastGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .editorialPriceColumns,
+  .livePreviewOrientations,
+  .editorialProductPicker {
+    grid-template-columns: 1fr;
+  }
+}

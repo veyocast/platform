@@ -33,11 +33,9 @@ for (const orientation of ["landscape", "portrait"] as const) {
       getComputedStyle(element).getPropertyValue("--arena-accent").trim()
     )).toBe("#315CFF");
     await expect(slide.locator("canvas")).toHaveCount(0);
-    expect(await slide.locator("article").count()).toBe(
-      orientation === "portrait" ? 18 : 10
-    );
-    const standingHead = slide.locator("main section > div").first();
-    const standingRows = slide.locator("main article");
+    const standingRows = slide.locator("[data-standing-row]");
+    expect(await standingRows.count()).toBe(20);
+    const standingHead = slide.getByTestId("standing-head").first();
     const firstRow = standingRows.first();
     const selectedRow = standingRows.filter({ hasText: "Duindorp sv" });
     expect(await standingHead.evaluate((element) =>
@@ -56,6 +54,7 @@ for (const orientation of ["landscape", "portrait"] as const) {
       (element) => getComputedStyle(element).fontSize
     ))).toBeGreaterThanOrEqual(orientation === "portrait" ? 25 : 28);
     if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
+      await page.emulateMedia({ reducedMotion: "reduce" });
       await page.screenshot({
         path: `docs/screenshots/s91-editorial-arena-standing-${orientation}.png`
       });

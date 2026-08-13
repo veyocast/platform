@@ -116,6 +116,9 @@ export function renderLgLegacyHtml() {
     .portrait .dynamic-row strong{grid-column:2;justify-self:start;text-align:left}
     .dynamic-template.editorial-arena{display:block;padding:0;background:#f3f1ec;color:#17202a}
     .dynamic-template.editorial-arena.dark{background:#070a0e;color:#f3f0e9}
+    .dynamic-template.editorial-arena{background:var(--editorial-canvas);color:var(--editorial-text)}
+    .editorial-arena .dynamic-menu-grid,.editorial-arena .dynamic-list,.editorial-arena .dynamic-match,.editorial-arena .editorial-news-art,.editorial-arena .editorial-news-copy,.editorial-arena .legacy-standing-card{border-color:var(--editorial-border);background:var(--editorial-surface);box-shadow:0 24px 80px var(--editorial-shadow)}
+    .editorial-arena .dynamic-menu-item,.editorial-arena .legacy-standing-row{border-color:var(--editorial-border-soft);background:var(--editorial-row)}
     .editorial-arena:before{position:absolute;top:0;right:0;left:0;height:8px;background:var(--accent);content:""}
     .dynamic-template.editorial-arena>header{position:absolute;top:0;right:4.27%;left:4.27%;height:17.41%;display:grid;grid-template-columns:5.73% 1fr 22.4%;align-items:center;gap:1.46%;padding:0;border-bottom:1px solid rgba(23,32,42,.13)}
     .dynamic-template.editorial-arena.dark>header{border-color:rgba(255,255,255,.12)}
@@ -136,6 +139,7 @@ export function renderLgLegacyHtml() {
     .editorial-arena.dark .dynamic-menu-grid,.editorial-arena.dark .dynamic-list,.editorial-arena.dark .dynamic-match{border-color:rgba(255,255,255,.12);background:#0d1218}
     .editorial-arena .dynamic-menu-item{grid-template-columns:92px minmax(0,1fr) auto;min-height:auto;border:1px solid rgba(23,32,42,.13);border-left:6px solid var(--accent);border-radius:14px;background:#f7f5f0}
     .editorial-arena.dark .dynamic-menu-item{border-color:rgba(255,255,255,.12);background:#121820}
+    .editorial-arena.portrait .dynamic-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:1vh 1.4vw}
     .editorial-product-pic{display:flex;align-items:center;justify-content:center;width:92px;height:92px;overflow:hidden;border:1px solid rgba(23,32,42,.13);border-radius:18px;background:var(--accent);color:#fff;font-size:32px;font-weight:900}
     .dark .editorial-product-pic{border-color:rgba(255,255,255,.12)}
     .editorial-product-pic img{width:100%;height:100%;object-fit:cover}
@@ -202,6 +206,8 @@ export function renderLgLegacyHtml() {
     .legacy-standing-columns{height:10%;margin:0 1.3vw;padding:0 1vw;border-bottom:1px solid var(--accent);color:var(--accent);font-size:clamp(14px,1.1vw,22px);font-weight:800;letter-spacing:.1em;text-transform:uppercase}
     .legacy-standing-rows{height:90%}
     .legacy-standing-row{position:relative;height:10%;margin:0 1.3vw;padding:0 1vw;border-bottom:1px solid rgba(255,255,255,.09);font-size:clamp(22px,1.72vw,34px)}
+    .legacy-standing-rows.two-columns{display:grid;grid-auto-flow:column;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(10,10%);column-gap:1.2vw}
+    .legacy-standing-rows.two-columns .legacy-standing-row{box-sizing:border-box;width:auto;height:auto;margin:0;padding:0 1vw}
     .legacy-standing-row.selected{background:rgba(241,90,36,.18);box-shadow:inset 5px 0 0 var(--accent),inset 0 0 0 1px var(--accent)}
     .legacy-standing-columns>span,.legacy-standing-row>span,.legacy-standing-row>strong{text-align:center}
     .legacy-standing-columns>span:nth-child(2){text-align:left}
@@ -225,7 +231,7 @@ export function renderLgLegacyHtml() {
     .portrait.standing-club .legacy-standing-columns,.portrait.standing-club .legacy-standing-row{grid-template-columns:minmax(34px,.45fr) minmax(190px,3.8fr) repeat(4,minmax(31px,.6fr)) minmax(40px,.7fr) minmax(46px,.8fr) minmax(88px,1.55fr);gap:.75vw}
     .portrait.standing-club .legacy-standing-columns{height:7%;margin:0 1.6vw;padding:0 .8vw;font-size:clamp(11px,1.35vw,16px)}
     .portrait.standing-club .legacy-standing-rows{height:93%}
-    .portrait.standing-club .legacy-standing-row{height:5.5556%;margin:0 1.6vw;padding:0 .8vw;font-size:clamp(20px,2.4vw,26px)}
+    .portrait.standing-club .legacy-standing-row{height:5%;margin:0 1.6vw;padding:0 .8vw;font-size:clamp(20px,2.4vw,26px)}
     .portrait.standing-club .legacy-standing-team{gap:1.4vw}
     .portrait.standing-club .legacy-standing-team i{width:min(2.5vh,4.4vw);height:min(2.5vh,4.4vw)}
     .portrait.standing-club .legacy-standing-footer{bottom:2.7%;font-size:clamp(11px,1.75vw,18px)}
@@ -2085,6 +2091,8 @@ export function renderLgLegacyHtml() {
     }
     function renderMenuTemplate(body, snapshot, orientation, payload) {
       var menu = templateRecord(snapshot.data) || templateRecord(snapshot.menu) || {};
+      var editorial = templateRecord(snapshot.editorial) || {};
+      var photoMode = templateText(editorial.pricePhotoMode, "show");
       var products = templateArray(menu.products);
       var pages = templatePages(products, orientation === "portrait" ? 10 : 8);
       return {
@@ -2110,13 +2118,13 @@ export function renderLgLegacyHtml() {
             picture = templateNode(
               "div",
               "editorial-product-pic",
-              templateInitials(templateText(product.name, "Product"))
+              ""
             );
             pictureUrl = templateAssetUrl(
               payload,
               templateText(product.imageMediaAssetId, "")
             );
-            if (pictureUrl) {
+            if (photoMode === "show" && pictureUrl) {
               picture.textContent = "";
               var pictureImage = templateNode("img", "");
               pictureImage.alt = "";
@@ -2421,7 +2429,7 @@ export function renderLgLegacyHtml() {
       var competition = templateRecord(sport.competition) || {};
       var pool = templateRecord(sport.pool) || {};
       var items = templateArray(sport.items);
-      var pages = templatePages(items, payload.orientation === "portrait" ? 18 : 10);
+      var pages = templatePages(items, 20);
       return {
         pages: pages,
         render: function (page) {
@@ -2444,6 +2452,9 @@ export function renderLgLegacyHtml() {
           var pageIndex = Math.max(0, pages.indexOf(page));
           var labels = ["#", "Team", "G", "W", "GL", "V", "PT", "+/−", "Vorm"];
           body.innerHTML = "";
+          if (payload.orientation === "landscape" && page.length > 10) {
+            rows.className += " two-columns";
+          }
           for (index = 0; index < page.length; index += 1) {
             item = templateRecord(page[index]) || {};
             round = Math.max(round, Number(item.played) || 0);
@@ -2669,12 +2680,19 @@ export function renderLgLegacyHtml() {
       var accent = "#ff5c20";
       var templateDuration;
       var brand = templateRecord(snapshot.brand);
+      var editorialConfiguration = templateRecord(snapshot.editorial) || {};
+      var editorialTheme = templateRecord(editorialConfiguration.theme) || {};
+      var editorialMode = templateText(
+        editorialTheme.mode,
+        payload.templateSlug.indexOf("dark") !== -1 ? "dark" : "light"
+      );
+      var editorialTokens = templateRecord(editorialTheme[editorialMode]) || {};
       var editorialArena =
         templateText(payload.templateSlug, "").indexOf("editorial-arena-") === 0;
       if (brand && typeof brand.primaryColor === "string" && /^#[0-9a-f]{6}$/i.test(brand.primaryColor)) {
         accent = brand.primaryColor;
       }
-      root.className += payload.templateSlug.indexOf("dark") !== -1 ? " dark" : "";
+      root.className += editorialMode === "dark" ? " dark" : "";
       root.className += payload.orientation === "portrait" ? " portrait" : "";
       root.setAttribute("data-slide-type", payload.slideType);
       if (editorialArena) root.className += " editorial-arena";
@@ -2688,6 +2706,16 @@ export function renderLgLegacyHtml() {
         root.className += " standing-club";
       }
       root.style.setProperty("--accent", accent);
+      root.style.setProperty("--editorial-canvas", templateText(editorialTokens.canvas, editorialMode === "dark" ? "#090B0E" : "#D7D2C8"));
+      root.style.setProperty("--editorial-surface", templateText(editorialTokens.surface, editorialMode === "dark" ? "#0D1116" : "#F3F0E9"));
+      root.style.setProperty("--editorial-row", templateText(editorialTokens.row, editorialMode === "dark" ? "#11161C" : "#FBF9F4"));
+      root.style.setProperty("--editorial-text", templateText(editorialTokens.text, editorialMode === "dark" ? "#F7F3EB" : "#111315"));
+      root.style.setProperty("--editorial-border", templateText(editorialTokens.border, editorialMode === "dark" ? "rgba(250,250,247,.15)" : "rgba(17,19,21,.12)"));
+      root.style.setProperty("--editorial-border-soft", templateText(editorialTokens.borderSoft, editorialMode === "dark" ? "rgba(250,250,247,.09)" : "rgba(17,19,21,.075)"));
+      root.style.setProperty("--editorial-shadow", templateText(editorialTokens.shadow, editorialMode === "dark" ? "rgba(0,0,0,.34)" : "rgba(66,55,41,.14)"));
+      if (templateText(editorialTokens.accent, "")) {
+        root.style.setProperty("--accent", templateText(editorialTokens.accent, accent));
+      }
       if (payload.slideType === "menu") {
         sourceLabel = "Clubkantine";
         title = templateText((templateRecord(snapshot.data) || {}).title, "Menu vandaag");

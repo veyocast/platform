@@ -1,7 +1,20 @@
 import {
   editorialArenaActiveSlideTypes,
+  type EditorialColorTokens,
+  type EditorialFocalPoint,
+  type EditorialNewsVariant,
+  type EditorialPricePhotoMode,
   type PlayerDynamicTemplatePayload
 } from "@veyocast/contracts";
+
+import {
+  activeEditorialTokens,
+  parseEditorialArenaConfiguration
+} from "./editorial-arena-theme";
+import {
+  paginateEditorialRows,
+  priceRowsThatFit
+} from "./editorial-arena-layout";
 
 export type DynamicTemplateTheme = "dark" | "light";
 
@@ -18,6 +31,7 @@ export type DynamicTemplateListItem = {
   meta: string;
   officials: string[];
   primary: string;
+  selected: boolean;
   secondary: string;
   status: string;
   time: string;
@@ -29,16 +43,22 @@ export type DynamicTemplateMenuItem = {
   description: string;
   id: string;
   imageUrl: string;
+  imageFocalPoint: EditorialFocalPoint;
   name: string;
   price: string;
   variant: string;
 };
+
+export type DynamicTemplatePriceEntry =
+  | { id: string; kind: "category"; name: string }
+  | { item: DynamicTemplateMenuItem; kind: "product" };
 
 export type DynamicTemplateNewsItem = {
   author: string;
   date: string;
   heroUrl: string;
   id: string;
+  imageFocalPoint: EditorialFocalPoint;
   intro: string;
   link: string;
   qrUrl: string;
@@ -54,19 +74,28 @@ export type DynamicTemplateStandingItem = {
   goalsFor: number | null;
   id: string;
   lost: number | null;
+  logoUrl: string;
   played: number | null;
   points: number | null;
   position: number | null;
   selected: boolean;
   teamName: string;
   won: number | null;
+  zone: "playoff" | "promotion" | "relegation" | "";
 };
 
 export type DynamicTemplateStandingForm = "draw" | "loss" | "win";
 
 export type DynamicTemplatePage =
-  | { items: DynamicTemplateMenuItem[]; kind: "menu" }
-  | { item: DynamicTemplateNewsItem | null; kind: "news" }
+  | {
+      columns: [DynamicTemplatePriceEntry[], DynamicTemplatePriceEntry[]];
+      kind: "menu";
+    }
+  | {
+      item: DynamicTemplateNewsItem | null;
+      kind: "news";
+      secondaryItems: DynamicTemplateNewsItem[];
+    }
   | {
       awayTeam: string;
       homeTeam: string;
@@ -84,6 +113,12 @@ export type DynamicTemplateView = {
   orientation: PlayerDynamicTemplatePayload["orientation"];
   pageDurationMs?: number;
   pages: DynamicTemplatePage[];
+  newsVariant: EditorialNewsVariant;
+  pricePhotoMode: EditorialPricePhotoMode;
+  priceCategoryPhotoModes: Record<
+    string,
+    "inherit" | EditorialPricePhotoMode
+  >;
   providerLogoUrl: string;
   slideType: PlayerDynamicTemplatePayload["slideType"];
   snapshotId: string;
@@ -95,6 +130,7 @@ export type DynamicTemplateView = {
   };
   templateStyle: "default" | "standing-club-edition";
   theme: DynamicTemplateTheme;
+  themeTokens: EditorialColorTokens;
   title: string;
 };
 
@@ -149,6 +185,11 @@ export function createDynamicTemplateView(
   const theme: DynamicTemplateTheme = payload.templateSlug.includes("dark")
     ? "dark"
     : "light";
+  const editorial = parseEditorialArenaConfiguration(data.editorial, {
+    accent: accentColor,
+    mode: theme
+  });
+  const themeTokens = activeEditorialTokens(editorial.theme);
 
   if (payload.slideType === "menu") {
     const menu = readRecord(data.menu) ?? readRecord(data.data);
@@ -156,20 +197,27 @@ export function createDynamicTemplateView(
       .map((item) => toMenuItem(item, payload))
       .filter((item): item is DynamicTemplateMenuItem => item !== null);
     return {
-      accentColor,
+      accentColor: themeTokens.accent,
       clubLogoUrl,
       clubName,
       emptyState: items.length ? "" : "Er zijn nu geen beschikbare producten.",
       orientation: payload.orientation,
-      pages: paginate(items, payload.orientation === "portrait" ? 10 : 8).map(
-        (page) => ({ items: page, kind: "menu" as const })
+      pages: buildPriceListPages(
+        items,
+        payload.orientation,
+        editorial.priceList?.columns
       ),
+      newsVariant: editorial.newsVariant,
+      pricePhotoMode: editorial.pricePhotoMode,
+      priceCategoryPhotoModes:
+        editorial.priceList?.categoryPhotoModes ?? {},
       providerLogoUrl: "",
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
       sourceLabel: "Clubkantine",
       templateStyle: "default",
       theme,
+      themeTokens,
       title: safeText(menu?.title, "Menu vandaag")
     };
   }
@@ -181,16 +229,16 @@ export function createDynamicTemplateView(
       .filter((item): item is DynamicTemplateNewsItem => item !== null));
     const secondsPerSlide = safeInteger(news?.secondsPerSlide, 5, 120, 5);
     return {
-      accentColor,
+      accentColor: themeTokens.accent,
       clubLogoUrl,
       clubName,
       emptyState: articles.length ? "" : "Er zijn nu geen nieuwsberichten.",
       orientation: payload.orientation,
       pageDurationMs: secondsPerSlide * 1_000,
-      pages: (articles.length ? articles : [null]).map((item) => ({
-        item,
-        kind: "news" as const
-      })),
+      pages: buildNewsPages(articles, editorial.newsVariant),
+      newsVariant: editorial.newsVariant,
+      pricePhotoMode: editorial.pricePhotoMode,
+      priceCategoryPhotoModes: {},
       providerLogoUrl: dynamicAssetUrl(
         news?.providerLogoMediaAssetId,
         payload
@@ -200,6 +248,7 @@ export function createDynamicTemplateView(
       sourceLabel: safeText(news?.sourceName, "Clubnieuws"),
       templateStyle: "default",
       theme,
+      themeTokens,
       title: safeText(news?.title, "Nieuws")
     };
   }
@@ -217,18 +266,22 @@ export function createDynamicTemplateView(
     const item = items[0] ?? null;
     const [homeTeam, awayTeam] = splitTeams(item?.primary ?? "");
     return {
-      accentColor,
+      accentColor: themeTokens.accent,
       clubLogoUrl,
       clubName,
       emptyState,
       orientation: payload.orientation,
       pages: [{ awayTeam, homeTeam, item, kind: "match" }],
+      newsVariant: editorial.newsVariant,
+      pricePhotoMode: editorial.pricePhotoMode,
+      priceCategoryPhotoModes: {},
       providerLogoUrl: "",
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
       sourceLabel: "Match centre",
       templateStyle: "default",
       theme,
+      themeTokens,
       title
     };
   }
@@ -241,17 +294,19 @@ export function createDynamicTemplateView(
       .filter((item): item is DynamicTemplateStandingItem => item !== null);
     const competition = readRecord(sport?.competition);
     const pool = readRecord(sport?.pool);
-    const perPage = payload.orientation === "portrait" ? 18 : 10;
     return {
-      accentColor,
+      accentColor: themeTokens.accent,
       clubLogoUrl,
       clubName,
       emptyState,
       orientation: payload.orientation,
-      pages: paginate(standingItems, perPage).map((page) => ({
+      pages: paginateEditorialRows(standingItems).map((page) => ({
         items: page,
         kind: "standing" as const
       })),
+      newsVariant: editorial.newsVariant,
+      pricePhotoMode: editorial.pricePhotoMode,
+      priceCategoryPhotoModes: {},
       providerLogoUrl: "",
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
@@ -263,13 +318,16 @@ export function createDynamicTemplateView(
       },
       templateStyle: "standing-club-edition",
       theme,
+      themeTokens,
       title
     };
   }
 
-  const perPage = payload.orientation === "portrait" ? 6 : 8;
+  const perPage = ["sport_program", "sport_results"].includes(
+    payload.slideType
+  ) ? 20 : payload.orientation === "portrait" ? 6 : 8;
   return {
-    accentColor,
+    accentColor: themeTokens.accent,
     clubLogoUrl,
     clubName,
     emptyState,
@@ -278,12 +336,16 @@ export function createDynamicTemplateView(
       items: page,
       kind: "sport-list" as const
     })),
+    newsVariant: editorial.newsVariant,
+    pricePhotoMode: editorial.pricePhotoMode,
+    priceCategoryPhotoModes: {},
     providerLogoUrl: "",
     slideType: payload.slideType,
     snapshotId: payload.snapshotId,
     sourceLabel: sportLabel(payload.slideType),
     templateStyle: "default",
     theme,
+    themeTokens,
     title
   };
 }
@@ -301,12 +363,18 @@ function toStandingItem(value: unknown): DynamicTemplateStandingItem | null {
     goalsFor: safeNullableInteger(item.goalsFor),
     id: safeText(item.id, teamName),
     lost: safeNullableInteger(item.lost),
+    logoUrl: "",
     played: safeNullableInteger(item.played),
     points: safeNullableInteger(item.points),
     position: safeNullableInteger(item.position),
     selected: item.selected === true,
     teamName,
-    won: safeNullableInteger(item.won)
+    won: safeNullableInteger(item.won),
+    zone: ["playoff", "promotion", "relegation"].includes(
+      safeText(item.zone, "")
+    )
+      ? safeText(item.zone, "") as DynamicTemplateStandingItem["zone"]
+      : ""
   };
 }
 
@@ -490,6 +558,10 @@ function toMenuItem(
     description: safeText(item.description, ""),
     id: safeText(item.id, name),
     imageUrl: dynamicAssetUrl(item.imageMediaAssetId, payload),
+    imageFocalPoint: readFocalPoint(
+      readRecord(payload.data.editorial)?.priceList,
+      safeText(item.id, name)
+    ),
     name,
     price: formatPrice(item.priceMinor, safeText(item.currency, "EUR")),
     variant: safeText(item.variantLine, "")
@@ -510,6 +582,7 @@ function toNewsItem(
     date: formatDate(item.publishedAt),
     heroUrl: dynamicAssetUrl(item.heroMediaAssetId, payload),
     id: safeText(item.externalId, title),
+    imageFocalPoint: readEditorialNewsFocalPoint(payload.data.editorial),
     intro: safeText(item.intro, ""),
     link: safePublicLink(item.link),
     qrUrl: dynamicAssetUrl(item.qrMediaAssetId, payload),
@@ -628,11 +701,120 @@ function toListItem(value: unknown): DynamicTemplateListItem | null {
       })
       .slice(0, 8),
     primary,
+    selected: item.selected === true,
     secondary: safeText(item.secondary, ""),
     status: safeText(item.status, ""),
     time: safeText(item.time, ""),
     venue: safeText(item.venue, "")
   };
+}
+
+function buildPriceListPages(
+  items: DynamicTemplateMenuItem[],
+  orientation: PlayerDynamicTemplatePayload["orientation"],
+  configuredColumns?: {
+    left: Array<{ category: string; kind: "category" } | { kind: "product"; productId: string }>;
+    right: Array<{ category: string; kind: "category" } | { kind: "product"; productId: string }>;
+  }
+) {
+  if (configuredColumns) {
+    const products = new Map(items.map((item) => [item.id, item]));
+    const resolve = (configured: typeof configuredColumns.left) => configured
+      .flatMap((entry): DynamicTemplatePriceEntry[] => {
+        if (entry.kind === "category") {
+          return [{
+            id: `category-${entry.category.toLocaleLowerCase("nl-NL")}`,
+            kind: "category",
+            name: entry.category
+          }];
+        }
+        const item = products.get(entry.productId);
+        return item ? [{ item, kind: "product" }] : [];
+      });
+    const columns = [
+      resolve(configuredColumns.left),
+      resolve(configuredColumns.right)
+    ] as const;
+    const rowsPerColumn = priceRowsThatFit(orientation);
+    const pageCount = Math.max(
+      1,
+      Math.ceil(columns[0].length / rowsPerColumn),
+      Math.ceil(columns[1].length / rowsPerColumn)
+    );
+    return Array.from({ length: pageCount }, (_, index) => ({
+      columns: [
+        columns[0].slice(index * rowsPerColumn, (index + 1) * rowsPerColumn),
+        columns[1].slice(index * rowsPerColumn, (index + 1) * rowsPerColumn)
+      ] as [DynamicTemplatePriceEntry[], DynamicTemplatePriceEntry[]],
+      kind: "menu" as const
+    }));
+  }
+  const entries: DynamicTemplatePriceEntry[] = [];
+  let currentCategory = "";
+  for (const item of items) {
+    const category = item.category || "Overig";
+    if (category !== currentCategory) {
+      entries.push({
+        id: `category-${category.toLocaleLowerCase("nl-NL")}`,
+        kind: "category",
+        name: category
+      });
+      currentCategory = category;
+    }
+    entries.push({ item, kind: "product" });
+  }
+  const rowsPerColumn = priceRowsThatFit(orientation);
+  const rowsPerPage = rowsPerColumn * 2;
+  const chunks = paginate(entries, rowsPerPage);
+  return chunks.map((chunk) => ({
+    columns: [
+      chunk.slice(0, rowsPerColumn),
+      chunk.slice(rowsPerColumn, rowsPerPage)
+    ] as [DynamicTemplatePriceEntry[], DynamicTemplatePriceEntry[]],
+    kind: "menu" as const
+  }));
+}
+
+function readFocalPoint(value: unknown, productId: string): EditorialFocalPoint {
+  const priceList = readRecord(value);
+  const points = readRecord(priceList?.productFocalPoints);
+  return normalizeFocalPoint(points?.[productId]);
+}
+
+function readEditorialNewsFocalPoint(value: unknown): EditorialFocalPoint {
+  const editorial = readRecord(value);
+  return normalizeFocalPoint(editorial?.newsFocalPoint);
+}
+
+function normalizeFocalPoint(value: unknown): EditorialFocalPoint {
+  const point = readRecord(value);
+  const x = Number(point?.x);
+  const y = Number(point?.y);
+  return {
+    x: Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : 0.5,
+    y: Number.isFinite(y) ? Math.min(1, Math.max(0, y)) : 0.5
+  };
+}
+
+function buildNewsPages(
+  articles: DynamicTemplateNewsItem[],
+  variant: EditorialNewsVariant
+) {
+  if (!articles.length) {
+    return [{ item: null, kind: "news" as const, secondaryItems: [] }];
+  }
+  if (variant !== "news_grid") {
+    return articles.map((item) => ({
+      item,
+      kind: "news" as const,
+      secondaryItems: []
+    }));
+  }
+  return paginate(articles, 3).map(([item, ...secondaryItems]) => ({
+    item: item ?? null,
+    kind: "news" as const,
+    secondaryItems
+  }));
 }
 
 function safeNullableScore(value: unknown) {

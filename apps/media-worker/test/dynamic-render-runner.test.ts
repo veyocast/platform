@@ -75,6 +75,31 @@ describe("dynamic render worker", () => {
       expect.objectContaining({ retryable: false })
     );
   });
+
+  it("gebruikt React-DOM primair en de immutable SVG-PNG als fallback", async () => {
+    const backend = backendMock({
+      ...job,
+      snapshotData: { menu: { title: "Kantine" }, type: "menu" }
+    });
+    const fallback = {
+      renderPng: vi.fn().mockResolvedValue(Buffer.from("fallback")),
+      renderQrSvgDataUri: vi.fn(),
+      renderRgba: vi.fn()
+    };
+    const reactDomRenderer = {
+      renderPng: vi.fn().mockRejectedValue(new Error("chromium offline"))
+    };
+    const result = await runDynamicRenderOnce({
+      backend,
+      config: { lockTimeoutSeconds: 120, maxAttempts: 3, workerId: "worker-1" },
+      reactDomRenderer: reactDomRenderer as never,
+      renderer: fallback
+    });
+
+    expect(result.status).toBe("completed");
+    expect(reactDomRenderer.renderPng).toHaveBeenCalledOnce();
+    expect(fallback.renderPng).toHaveBeenCalledOnce();
+  });
 });
 
 function backendMock(

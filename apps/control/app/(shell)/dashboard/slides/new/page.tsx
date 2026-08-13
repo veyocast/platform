@@ -186,6 +186,12 @@ async function loadOptions(tenantId: string) {
       lastSuccessfulSyncAt: source.last_successful_sync_at,
       name: source.name,
       providerStatus: source.provider_status,
+      products: await loadSourceProducts(
+        supabase,
+        tenantId,
+        source.id,
+        source.kind
+      ),
       sportAvailability:
         sportOptionsBySource.get(source.id)?.availability ?? [],
       sportCompetitions:
@@ -213,6 +219,37 @@ async function loadOptions(tenantId: string) {
       }] : []
     )
   };
+}
+
+async function loadSourceProducts(
+  supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
+  tenantId: string,
+  sourceId: string,
+  kind: string
+) {
+  if (kind !== "manual_products" && kind !== "twelve_excel") return [];
+  const result = await supabase
+    .from("tenant_products")
+    .select(
+      "id, name, description, category, image_media_asset_id, price_cents, currency, sort_order"
+    )
+    .eq("tenant_id", tenantId)
+    .eq("active", true)
+    .eq("available", true)
+    .or(`data_source_id.eq.${sourceId},data_source_id.is.null`)
+    .order("sort_order")
+    .order("name")
+    .limit(100);
+  return (result.data ?? []).map((product) => ({
+    category: product.category || "Overig",
+    currency: product.currency,
+    description: product.description,
+    hasImage: Boolean(product.image_media_asset_id),
+    id: product.id,
+    name: product.name,
+    priceCents: product.price_cents,
+    sortOrder: product.sort_order
+  }));
 }
 
 async function loadAllSportlinkRows<T>(
