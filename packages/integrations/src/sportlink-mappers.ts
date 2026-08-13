@@ -160,6 +160,10 @@ export function mapSportlinkStandings(
       goalsAgainst: numberOrNull(value.doelpuntentegen ?? value["doelpunten tegen"]),
       goalsFor: numberOrNull(value.doelpuntenvoor ?? value["doelpunten voor"]),
       lost: numberOrNull(value.verloren),
+      logoUrl: httpUrl(
+        value.teamlogo ?? value.team_logo ?? value.clublogo ??
+        value.kleinlogo ?? value.logo
+      ),
       played: numberOrNull(value.gespeeld ?? value["aantal wedstrijden"]),
       points: numberOrNull(value.punten ?? value.totaalpunten),
       position: numberOrNull(value.positie),

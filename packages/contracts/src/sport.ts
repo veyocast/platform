@@ -130,6 +130,7 @@ export const sportStandingRowSchema = z.object({
   goalsAgainst: z.number().int().min(0).nullable(),
   goalsFor: z.number().int().min(0).nullable(),
   lost: z.number().int().min(0).nullable(),
+  logoUrl: safeUrlSchema.optional(),
   played: z.number().int().min(0).nullable(),
   points: z.number().int().nullable(),
   position: z.number().int().min(1).nullable(),

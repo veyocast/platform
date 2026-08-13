@@ -209,8 +209,17 @@ describe("trusted dynamic template view", () => {
   });
 
   it("bouwt de clubeditie-stand uit gestructureerde HTML/CSS-rijen", () => {
+    const teamLogoId = "99999999-9999-4999-8999-999999999999";
     const view = createDynamicTemplateView({
       ...base,
+      assets: {
+        [teamLogoId]: {
+          bytes: 512,
+          checksumSha256: "f".repeat(64),
+          mimeType: "image/webp",
+          url: "/__veyocast-player-cache/team-logo"
+        }
+      },
       data: {
         brand: { primaryColor: "#123456" },
         sport: {
@@ -223,6 +232,7 @@ describe("trusted dynamic template view", () => {
             goalsFor: 30,
             id: "team-1",
             lost: 1,
+            logoMediaAssetId: teamLogoId,
             played: 16,
             points: 39,
             position: 1,
@@ -242,6 +252,7 @@ describe("trusted dynamic template view", () => {
 
     expect(view).toMatchObject({
       accentColor: "#123456",
+      clubLogoUrl: "/__veyocast-player-cache/team-logo",
       standingContext: {
         competition: "Vierde klasse",
         pool: "4C",
@@ -252,6 +263,7 @@ describe("trusted dynamic template view", () => {
     expect(view?.pages[0]).toMatchObject({
       items: [{
         form: ["win", "draw", "loss"],
+        logoUrl: "/__veyocast-player-cache/team-logo",
         points: 39,
         selected: true,
         teamName: "VeyoCast 1"
@@ -323,6 +335,113 @@ describe("trusted dynamic template view", () => {
         expect.objectContaining({ teamName: "Vereniging 11" })
       ]),
       kind: "standing"
+    });
+  });
+
+  it("bouwt een prijslijst met vaste fotovakken en negen landscaperijen", () => {
+    const photoId = "77777777-7777-4777-8777-777777777777";
+    const view = createDynamicTemplateView({
+      ...base,
+      assets: {
+        [photoId]: {
+          bytes: 512,
+          checksumSha256: "7".repeat(64),
+          mimeType: "image/webp",
+          url: "/__veyocast-player-cache/product"
+        }
+      },
+      data: {
+        brand: { primaryColor: "#315CFF" },
+        priceList: {
+          sections: [{
+            column: "left",
+            id: "dranken",
+            name: "Dranken",
+            order: 0,
+            products: Array.from({ length: 10 }, (_, index) => ({
+              description: "Koel geserveerd",
+              formattedPrice: `€ ${index + 1},50`,
+              id: `product-${index + 1}`,
+              imageMediaAssetId: index === 0 ? photoId : null,
+              name: `Product ${index + 1}`,
+              photoVisible: index < 2
+            }))
+          }],
+          title: "Kantineprijzen"
+        },
+        type: "price_list"
+      },
+      slideType: "price_list",
+      templateSlug: "editorial-arena-prijslijst-dark-landscape"
+    });
+
+    expect(view).toMatchObject({
+      accentColor: "#315CFF",
+      pages: [
+        { kind: "price-list" },
+        { kind: "price-list" }
+      ],
+      title: "Kantineprijzen"
+    });
+    const firstPage = view?.pages[0];
+    expect(firstPage?.kind).toBe("price-list");
+    if (firstPage?.kind !== "price-list") return;
+    expect(firstPage.page.columns.left).toHaveLength(9);
+    expect(firstPage.page.columns.left[1]).toMatchObject({
+      item: { image: { kind: "image", url: "/__veyocast-player-cache/product" } },
+      kind: "product"
+    });
+    expect(firstPage.page.columns.left[2]).toMatchObject({
+      item: { image: { kind: "empty" }, photoVisible: true },
+      kind: "product"
+    });
+    const secondPage = view?.pages[1];
+    expect(secondPage?.kind).toBe("price-list");
+    if (secondPage?.kind !== "price-list") return;
+    expect(secondPage.page.columns.left[0]).toMatchObject({
+      continuation: true,
+      kind: "category"
+    });
+  });
+
+  it("houdt verborgen prijslijstfoto's ook zonder asset als leeg vak", () => {
+    const view = createDynamicTemplateView({
+      ...base,
+      data: {
+        priceList: {
+          sections: [{
+            column: "right",
+            id: "snacks",
+            name: "Snacks",
+            order: 0,
+            products: [{
+              formattedPrice: "€ 3,00",
+              id: "snack-1",
+              imageMediaAssetId: "77777777-7777-4777-8777-777777777777",
+              name: "Tosti",
+              photoVisible: false
+            }]
+          }],
+          title: "Prijslijst"
+        },
+        type: "price_list"
+      },
+      orientation: "portrait",
+      slideType: "price_list",
+      templateSlug: "editorial-arena-prijslijst-light-portrait"
+    });
+
+    expect(view?.theme).toBe("light");
+    expect(view?.pages[0]).toMatchObject({
+      kind: "price-list",
+      page: {
+        columns: {
+          right: [
+            { kind: "category" },
+            { item: { image: { kind: "empty" }, photoVisible: false }, kind: "product" }
+          ]
+        }
+      }
     });
   });
 

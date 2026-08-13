@@ -10,6 +10,7 @@ import {
   SportlinkClientError,
   decryptSportlinkClientId,
   extractSportlinkRecords,
+  fetchSafeRssImage,
   mapSportlinkActivities,
   mapSportlinkClub,
   mapSportlinkMatches,
@@ -21,7 +22,9 @@ import { createClient } from "@supabase/supabase-js";
 
 import {
   prepareSportlinkClubLogo,
-  type SportlinkMediaArtifact
+  prepareSportlinkTeamLogo,
+  type SportlinkMediaArtifact,
+  type SportlinkTeamLogoArtifact
 } from "./sportlink-media";
 
 export type ClaimedSportlinkSync = {
@@ -67,6 +70,7 @@ type NormalizedSportlinkBatch = {
   clubLogo: SportlinkMediaArtifact | null;
   matches: SportMatch[];
   standings: SportStanding[];
+  teamLogos: SportlinkTeamLogoArtifact[];
   teams: SportTeam[];
 };
 
@@ -95,6 +99,7 @@ const emptyBatch = (): NormalizedSportlinkBatch => ({
   clubLogo: null,
   matches: [],
   standings: [],
+  teamLogos: [],
   teams: []
 });
 
@@ -126,26 +131,33 @@ export class SupabaseSportlinkSyncBackend {
     workerId: string,
     batch: NormalizedSportlinkBatch
   ) {
-    if (batch.clubLogo) {
+    const media = [batch.clubLogo, ...batch.teamLogos]
+      .filter(
+        (artifact): artifact is SportlinkMediaArtifact => Boolean(artifact)
+      );
+    if (media.length) {
       if (!this.client.storage) {
         throw new Error("sportlink_media_storage_unavailable");
       }
-      const upload = await this.client.storage
-        .from("tenant-media")
-        .upload(batch.clubLogo.storagePath, batch.clubLogo.bytes, {
-          cacheControl: "31536000",
-          contentType: batch.clubLogo.mimeType,
-          upsert: true
-        });
-      if (upload.error) throw new Error("sportlink_media_upload_failed");
+      for (const artifact of media) {
+        const upload = await this.client.storage
+          .from("tenant-media")
+          .upload(artifact.storagePath, artifact.bytes, {
+            cacheControl: "31536000",
+            contentType: artifact.mimeType,
+            upsert: true
+          });
+        if (upload.error) throw new Error("sportlink_media_upload_failed");
+      }
     }
-    const result = await this.client.rpc("complete_sportlink_sync_v2", {
+    const result = await this.client.rpc("complete_sportlink_sync_v3", {
       p_activities: batch.activities,
       p_club: batch.club ?? {},
       p_club_logo: batch.clubLogo ? toMediaPayload(batch.clubLogo) : {},
       p_matches: batch.matches,
       p_run_id: job.runId,
       p_standings: batch.standings,
+      p_team_logos: batch.teamLogos.map(toMediaPayload),
       p_teams: batch.teams,
       p_worker_id: workerId
     });
@@ -382,7 +394,9 @@ async function fetchSportlinkDataset(
   }
 
   if (datasetGroup === "competitions") {
-    batch.standings = await fetchStandings(client);
+    const result = await fetchStandings(client, job);
+    batch.standings = result.standings;
+    batch.teamLogos = result.teamLogos;
     return batch;
   }
 
@@ -400,6 +414,7 @@ function toMediaPayload(artifact: SportlinkMediaArtifact) {
     height: artifact.height,
     mimeType: artifact.mimeType,
     role: artifact.role,
+    sourceUrl: "sourceUrl" in artifact ? artifact.sourceUrl : undefined,
     storagePath: artifact.storagePath,
     title: artifact.title,
     width: artifact.width
@@ -476,7 +491,10 @@ function startLeaseHeartbeat({
   };
 }
 
-async function fetchStandings(client: SportlinkClient) {
+async function fetchStandings(
+  client: SportlinkClient,
+  job: ClaimedSportlinkSync
+) {
   const teams = await client.fetchArticle("teams");
   const pools = await client.fetchArticle("poulelijst");
   const contexts = collectSportlinkPoolContexts(
@@ -507,7 +525,52 @@ async function fetchStandings(client: SportlinkClient) {
       throw error;
     }
   }
-  return standings;
+  return {
+    standings,
+    teamLogos: await fetchStandingTeamLogos(job, standings)
+  };
+}
+
+async function fetchStandingTeamLogos(
+  job: ClaimedSportlinkSync,
+  standings: SportStanding[]
+) {
+  const unique = new Map<string, string>();
+  for (const standing of standings) {
+    for (const row of standing.rows) {
+      if (row.logoUrl && !unique.has(row.logoUrl)) {
+        unique.set(row.logoUrl, row.teamName);
+      }
+      if (unique.size >= 100) break;
+    }
+    if (unique.size >= 100) break;
+  }
+  const entries = [...unique];
+  const artifacts: SportlinkTeamLogoArtifact[] = [];
+  for (let offset = 0; offset < entries.length; offset += 6) {
+    const chunk = entries.slice(offset, offset + 6);
+    const imported = await Promise.all(
+      chunk.map(async ([sourceUrl, teamName]) => {
+        try {
+          const image = await fetchSafeRssImage(sourceUrl);
+          return await prepareSportlinkTeamLogo(
+            job,
+            teamName,
+            sourceUrl,
+            image.body
+          );
+        } catch {
+          // A temporarily unavailable provider image must not invalidate the
+          // standings dataset. The initials fallback remains deterministic.
+          return null;
+        }
+      })
+    );
+    artifacts.push(...imported.filter(
+      (artifact): artifact is SportlinkTeamLogoArtifact => artifact !== null
+    ));
+  }
+  return artifacts;
 }
 
 export function collectSportlinkPoolIds(

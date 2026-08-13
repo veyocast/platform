@@ -78,4 +78,43 @@ describe("safe dynamic template", () => {
       })
     );
   });
+
+  it("uses the canonical 9-row paginator for the price-list snapshot", () => {
+    const svg = renderDynamicTemplate({
+      css: ".bg{fill:#070a0e}",
+      manifest: {
+        allowedFields: [
+          { path: "priceList.title", required: true, type: "string" }
+        ],
+        canvas: { height: 1080, width: 1920 },
+        engine: "veyocast-safe-template-v1",
+        maxCollectionItems: 100,
+        schemaVersion: 1,
+        slideType: "price_list"
+      },
+      markup: "<text>{{priceList.title}}</text>"
+    }, {
+      brand: { clubName: "Duindorp sv", primaryColor: "#315CFF" },
+      priceList: {
+        sections: [{
+          column: "left",
+          id: "drinks",
+          name: "Dranken",
+          order: 0,
+          products: Array.from({ length: 10 }, (_, index) => ({
+            description: "Koud",
+            formattedPrice: "€ 2,50",
+            id: `product-${index + 1}`,
+            name: `Product ${index + 1}`
+          }))
+        }],
+        title: "Prijslijst"
+      }
+    });
+
+    expect(svg).toContain("Product 8");
+    expect(svg).not.toContain("Product 9");
+    expect(svg).toContain("1 / 2");
+    expect(svg).toContain("#315CFF");
+  });
 });

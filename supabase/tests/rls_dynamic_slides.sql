@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(61);
+select plan(69);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -958,6 +958,204 @@ select is(
 );
 
 reset role;
+insert into public.tenant_products(
+  id, tenant_id, source, slug, name, category, price_cents
+) values (
+  'ffffffff-ffff-4fff-8fff-ffffffffffff',
+  '10000000-0000-4000-8000-000000000a52',
+  'manual',
+  'foreign-cola',
+  'Cola van andere tenant',
+  'Dranken',
+  275
+);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000a51', true);
+
+select is(
+  (
+    select count(*)
+    from public.dynamic_templates
+    where slide_type = 'price_list'
+      and status = 'published'
+  ),
+  4::bigint,
+  'Editorial Arena registers all four price-list variants'
+);
+
+insert into dynamic_test_ids
+select
+  'price_slide',
+  (
+    public.create_dynamic_slide_v1(
+      '10000000-0000-4000-8000-000000000a51',
+      'Kantineprijslijst',
+      version.id,
+      (select id from dynamic_test_ids where name = 'source'),
+      'latest',
+      jsonb_build_object(
+        'title', 'Prijslijst',
+        'slidePhotoMode', 'hide',
+        'sections', jsonb_build_array(jsonb_build_object(
+          'id', 'a5100000-0000-4000-8000-000000000010',
+          'categoryId', 'Dranken',
+          'categoryNameOverride', null,
+          'column', 'left',
+          'order', 0,
+          'photoMode', 'inherit',
+          'products', jsonb_build_array(jsonb_build_object(
+            'id', 'a5100000-0000-4000-8000-000000000011',
+            'productId', (
+              select id from public.tenant_products
+              where tenant_id = '10000000-0000-4000-8000-000000000a51'
+                and slug = 'cola'
+            ),
+            'order', 0,
+            'visible', true
+          ))
+        ))
+      )
+    ) ->> 'slideId'
+  )::uuid
+from public.dynamic_template_versions version
+join public.dynamic_templates template on template.id = version.template_id
+where template.slug = 'editorial-arena-prijslijst-dark-landscape'
+  and version.status = 'published';
+
+select is(
+  (select slide_type from public.dynamic_slides
+   where id = (select id from dynamic_test_ids where name = 'price_slide')),
+  'price_list',
+  'price-list creation persists the typed slide discriminator'
+);
+
+select is(
+  (
+    select snapshot.snapshot_data_json ->> 'type'
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'price_slide'
+    )
+    order by snapshot.created_at desc limit 1
+  ),
+  'price_list',
+  'price-list creation queues a canonical immutable snapshot'
+);
+
+select is(
+  (
+    select snapshot.snapshot_data_json #>>
+      '{priceList,sections,0,products,0,formattedPrice}'
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'price_slide'
+    )
+    order by snapshot.created_at desc limit 1
+  ),
+  '€ 2,50',
+  'price-list snapshots format cents deterministically for Dutch signage'
+);
+
+select ok(
+  not (
+    select snapshot.snapshot_data_json #>
+      '{priceList,sections,0,products,0}' ? 'imageMediaAssetId'
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'price_slide'
+    )
+    order by snapshot.created_at desc limit 1
+  ),
+  'hidden price-list photos do not enter snapshot or offline asset manifests'
+);
+
+select lives_ok(
+  $$select public.refresh_dynamic_slide_v1(
+    (select id from dynamic_test_ids where name = 'price_slide')
+  )$$,
+  'an authorized actor can refresh a valid price list'
+);
+
+select throws_ok(
+  $$select public.create_dynamic_slide_v1(
+    '10000000-0000-4000-8000-000000000a51',
+    'Ongeldige prijslijst',
+    (select version.id
+     from public.dynamic_template_versions version
+     join public.dynamic_templates template on template.id = version.template_id
+     where template.slug = 'editorial-arena-prijslijst-dark-landscape'
+       and version.status = 'published'),
+    (select id from dynamic_test_ids where name = 'source'),
+    'latest',
+    '{"title":"Prijslijst","slidePhotoMode":"show","sections":[{"id":"a5100000-0000-4000-8000-000000000020","categoryId":"Dranken","column":"left","order":0,"photoMode":"inherit","products":[{"id":"a5100000-0000-4000-8000-000000000021","productId":"ffffffff-ffff-4fff-8fff-ffffffffffff","order":0,"visible":true}]}]}'::jsonb
+  )$$,
+  '23514',
+  'price list product is unavailable',
+  'unavailable or foreign product ids fail closed'
+);
+
+select is(
+  (
+    select count(*)
+    from public.dynamic_slide_snapshots
+    where dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'price_slide'
+    )
+  ),
+  1::bigint,
+  'unchanged price-list refresh reuses the immutable snapshot'
+);
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000a52', true);
+
+select throws_ok(
+  $$select public.update_tenant_control_settings_v3(
+    '10000000-0000-4000-8000-000000000a51',
+    'Dynamic tenant',
+    '#FFFFFF',
+    10,
+    'contain',
+    true,
+    'landscape',
+    1920,
+    1080,
+    'Europe/Amsterdam',
+    'cut',
+    null
+  )$$,
+  '42501',
+  'actor cannot update tenant settings',
+  'tenant viewer cannot change the primary slide colour'
+);
+
+select throws_ok(
+  $$select public.refresh_dynamic_slide_v1(
+    (select id from dynamic_test_ids where name = 'slide')
+  )$$,
+  '42501',
+  'actor cannot refresh dynamic slide',
+  'tenant viewer cannot create new snapshots'
+);
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000a53', true);
+
+select is(
+  (select count(*) from public.dynamic_slides),
+  0::bigint,
+  'another tenant cannot read dynamic slides'
+);
+
+select is(
+  (select count(*) from public.dynamic_slide_snapshots),
+  0::bigint,
+  'another tenant cannot read immutable snapshot data'
+);
+
+reset role;
 insert into public.tenant_products (
   id, tenant_id, source, slug, name, description, category, price_cents,
   currency, active, available, sort_order
@@ -1100,53 +1298,6 @@ select throws_ok(
 );
 
 reset role;
-set local role authenticated;
-select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000a52', true);
-
-select throws_ok(
-  $$select public.update_tenant_control_settings_v3(
-    '10000000-0000-4000-8000-000000000a51',
-    'Dynamic tenant',
-    '#FFFFFF',
-    10,
-    'contain',
-    true,
-    'landscape',
-    1920,
-    1080,
-    'Europe/Amsterdam',
-    'cut',
-    null
-  )$$,
-  '42501',
-  'actor cannot update tenant settings',
-  'tenant viewer cannot change the primary slide colour'
-);
-
-select throws_ok(
-  $$select public.refresh_dynamic_slide_v1(
-    (select id from dynamic_test_ids where name = 'slide')
-  )$$,
-  '42501',
-  'actor cannot refresh dynamic slide',
-  'tenant viewer cannot create new snapshots'
-);
-
-reset role;
-set local role authenticated;
-select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000a53', true);
-
-select is(
-  (select count(*) from public.dynamic_slides),
-  0::bigint,
-  'another tenant cannot read dynamic slides'
-);
-
-select is(
-  (select count(*) from public.dynamic_slide_snapshots),
-  0::bigint,
-  'another tenant cannot read immutable snapshot data'
-);
 
 select * from finish();
 rollback;

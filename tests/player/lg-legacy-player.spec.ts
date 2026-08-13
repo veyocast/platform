@@ -207,6 +207,184 @@ async function mockEditorialArenaLegacyApis(
   });
 }
 
+async function mockEditorialStandingLegacyApis(page: Page) {
+  const logoId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+  await page.route("**/api/player/installation", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        bound: true,
+        installationCredential,
+        ok: true
+      })
+    });
+  });
+  await page.route(`**${legacyImagePath}`, async (route) => {
+    await route.fulfill({
+      contentType: "image/svg+xml",
+      body: legacyImageSvg
+    });
+  });
+  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+    const envelope = legacyEnvelope({
+      bytes: legacyImageBytes,
+      checksumSha256: legacyImageChecksum,
+      id: "editorial-standing",
+      kind: "image",
+      mimeType: "image/svg+xml",
+      title: "Editorial Arena stand",
+      url: legacyImagePath
+    });
+    Object.assign(envelope.manifest.items[0]!, {
+      dynamicTemplate: {
+        assets: {
+          [logoId]: {
+            bytes: legacyImageBytes,
+            checksumSha256: legacyImageChecksum,
+            mimeType: "image/svg+xml",
+            url: legacyImagePath
+          }
+        },
+        data: {
+          brand: {
+            clubName: "Duindorp sv",
+            logoMediaAssetId: logoId,
+            primaryColor: "#ff5a1f"
+          },
+          sport: {
+            competition: { name: "Mannen KNVB beker amateurs" },
+            items: ["CVC Reeuwijk 1", "Duindorp sv 1", "LSVV 70 1", "TAVV 1"]
+              .map((teamName, index) => ({
+                drawn: 0,
+                form: [],
+                goalDifference: 0,
+                id: `standing-team-${index + 1}`,
+                logoMediaAssetId: logoId,
+                lost: 0,
+                played: 0,
+                points: 0,
+                position: index + 1,
+                selected: index === 1,
+                teamName,
+                won: 0
+              })),
+            pool: { name: "Poulefase 30" },
+            season: "2026/2027",
+            title: "Stand"
+          },
+          type: "sport_standing"
+        },
+        orientation: "portrait",
+        schemaVersion: 1,
+        slideType: "sport_standing",
+        snapshotHash: "c".repeat(64),
+        snapshotId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        templateSlug: "editorial-arena-competitiestand-dark-portrait",
+        templateVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+      }
+    });
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(envelope)
+    });
+  });
+  await page.route("**/api/player/heartbeat", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ automation: null, ok: true })
+    });
+  });
+  await page.route("**/api/player/commands", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        commands: [],
+        ok: true,
+        serverTime: new Date().toISOString()
+      })
+    });
+  });
+}
+
+async function mockEditorialPriceListLegacyApis(page: Page) {
+  const imageId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+  await page.route("**/api/player/installation", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ bound: true, installationCredential, ok: true })
+  }));
+  await page.route(`**${legacyImagePath}`, (route) => route.fulfill({
+    contentType: "image/svg+xml",
+    body: legacyImageSvg
+  }));
+  await page.route("**/api/player/manifest?legacy=*", (route) => {
+    const envelope = legacyEnvelope({
+      bytes: legacyImageBytes,
+      checksumSha256: legacyImageChecksum,
+      id: "editorial-price-list",
+      kind: "image",
+      mimeType: "image/svg+xml",
+      title: "Editorial Arena prijslijst",
+      url: legacyImagePath
+    });
+    Object.assign(envelope.manifest.items[0]!, {
+      dynamicTemplate: {
+        assets: {
+          [imageId]: {
+            bytes: legacyImageBytes,
+            checksumSha256: legacyImageChecksum,
+            mimeType: "image/svg+xml",
+            url: legacyImagePath
+          }
+        },
+        data: {
+          brand: {
+            clubName: "Duindorp sv",
+            logoMediaAssetId: imageId,
+            primaryColor: "#ff5a1f"
+          },
+          priceList: {
+            sections: (["left", "right"] as const).map((column, columnIndex) => ({
+              column,
+              id: `legacy-${column}`,
+              name: column === "left" ? "Dranken" : "Snacks",
+              order: columnIndex,
+              products: Array.from({ length: 8 }, (_, index) => ({
+                description: "Clubprijs",
+                formattedPrice: `€ ${index + 2},50`,
+                id: `${column}-${index}`,
+                imageMediaAssetId: index === 0 ? imageId : null,
+                name: `${column === "left" ? "Drank" : "Snack"} ${index + 1}`,
+                photoVisible: index !== 2
+              }))
+            })),
+            title: "Prijslijst"
+          },
+          type: "price_list"
+        },
+        orientation: "portrait",
+        schemaVersion: 1,
+        slideType: "price_list",
+        snapshotHash: "c".repeat(64),
+        snapshotId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        templateSlug: "editorial-arena-prijslijst-dark-portrait",
+        templateVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+      }
+    });
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(envelope)
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ automation: null, ok: true })
+  }));
+  await page.route("**/api/player/commands", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ commands: [], ok: true, serverTime: new Date().toISOString() })
+  }));
+}
+
 test("LG Legacy Player gebruikt een statische shell en lokale afbeelding", async ({
   page
 }) => {
@@ -307,6 +485,10 @@ test("LG webOS wordt zonder Next.js-chunks naar zichtbare Editorial Arena HTML/C
   await expect(page).toHaveURL(/\/lg\/legacy$/);
   await expect(page.locator(".dynamic-template.editorial-arena")).toBeVisible();
   await expect(page.locator(".editorial-news")).toBeVisible();
+  await expect(page.getByText("Editorial Arena", { exact: true }))
+    .toHaveCount(0);
+  await expect(page.getByText("Actuele clubinformatie", { exact: true }))
+    .toHaveCount(0);
   await expect(page.getByRole("heading", {
     name: "Oos Kesbeke: een fijnproever ben ik niet, ik vind het lekker of niet"
   })).toBeVisible();
@@ -384,6 +566,105 @@ test("LG Legacy schaalt ieder logisch portraitcanvas binnen een landscapeviewpor
   expect(storyBox!.y + storyBox!.height - (metaBox!.y + metaBox!.height))
     .toBeLessThan(45);
 
+  await context.close();
+});
+
+test("LG Legacy toont de stand als één Editorial Arena-canvas met begrensde logo's", async ({
+  browser
+}) => {
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+    viewport: { height: 1920, width: 1080 }
+  });
+  const page = await context.newPage();
+  await mockEditorialStandingLegacyApis(page);
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+
+  const slide = page.locator(".dynamic-template.editorial-arena");
+  await expect(slide).toBeVisible();
+  await expect(slide.getByRole("heading", { name: "Stand", exact: true }))
+    .toHaveCount(1);
+  await expect(slide.locator(".legacy-standing-card")).toHaveCount(1);
+  await expect(slide.locator(".legacy-standing-header")).toHaveCount(0);
+  await expect(slide.locator(".legacy-standing-row")).toHaveCount(4);
+
+  const crestBox = await slide.locator(".editorial-crest img").boundingBox();
+  expect(crestBox).not.toBeNull();
+  expect(crestBox!.width).toBeLessThan(130);
+  expect(crestBox!.height).toBeLessThan(130);
+  const rowLogoBoxes = await slide.locator(".legacy-standing-team img")
+    .evaluateAll((images) => images.map((image) => {
+      const rect = image.getBoundingClientRect();
+      return { height: rect.height, width: rect.width };
+    }));
+  expect(rowLogoBoxes).toHaveLength(4);
+  expect(rowLogoBoxes.every(({ height, width }) => height <= 55 && width <= 55))
+    .toBe(true);
+  await expect(slide.getByText("Mannen KNVB beker amateurs", { exact: false }))
+    .toHaveCount(1);
+
+  if (process.env.CAPTURE_LG_STANDING === "1") {
+    await page.screenshot({
+      path: "docs/screenshots/s102-lg-standing-single-canvas.png"
+    });
+  }
+  await context.close();
+});
+
+test("LG Legacy toont de prijslijst één-op-één in het portraitcanvas", async ({
+  browser
+}) => {
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+    viewport: { height: 1920, width: 1080 }
+  });
+  const page = await context.newPage();
+  await mockEditorialPriceListLegacyApis(page);
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem("veyocast.player.installationCredential", credential);
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+  const slide = page.locator(".dynamic-template.editorial-arena");
+  await expect(slide).toBeVisible();
+  await expect(slide.getByRole("heading", { name: "Prijslijst", exact: true }))
+    .toHaveCount(1);
+  await expect(slide.locator(".legacy-price-grid")).toHaveCount(1);
+  await expect(slide.locator(".legacy-price-column")).toHaveCount(2);
+  await expect(slide.locator(".legacy-price-product")).toHaveCount(16);
+  await expect(slide.locator(".legacy-price-media")).toHaveCount(16);
+  const slideBox = await slide.boundingBox();
+  expect(slideBox).toEqual(expect.objectContaining({ height: 1920, width: 1080 }));
+  if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
+    await page.screenshot({
+      path: "docs/screenshots/s103-editorial-arena-price-list-lg-legacy.png"
+    });
+  }
   await context.close();
 });
 

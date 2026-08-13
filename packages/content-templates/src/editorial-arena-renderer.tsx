@@ -26,6 +26,11 @@ import {
   sportRowHeight
 } from "./editorial-arena-layout";
 import { editorialThemeCssVariables } from "./editorial-arena-theme";
+import type {
+  PriceListRenderPage,
+  ResolvedPriceListItem,
+  ResolvedPriceListRow
+} from "./price-list";
 import styles from "./editorial-arena-renderer.module.css";
 
 type ArenaStyle = CSSProperties & {
@@ -193,11 +198,7 @@ function ArenaHeader({ view }: { view: DynamicTemplateView }) {
         )}
       </div>
       <div className={styles.arenaHeading}>
-        {view.slideType === "news" ? null : <p>Editorial Arena</p>}
         <h1>{view.title}</h1>
-        {view.slideType === "news"
-          ? null
-          : <span>{arenaSubtitle(view.slideType)}</span>}
       </div>
       <div className={styles.arenaContext}>
         <strong>{view.sourceLabel}</strong>
@@ -277,6 +278,10 @@ function ArenaPage({
         ))}
       </div>
     );
+  }
+
+  if (page.kind === "price-list") {
+    return <ArenaPriceList page={page.page} />;
   }
 
   if (page.kind === "news") {
@@ -468,6 +473,61 @@ function SportListColumns({
   );
 }
 
+function ArenaPriceList({ page }: { page: PriceListRenderPage }) {
+  return (
+    <div className={styles.arenaPriceListGrid}>
+      <PriceListColumn label="Linkerkolom" rows={page.columns.left} />
+      <PriceListColumn label="Rechterkolom" rows={page.columns.right} />
+    </div>
+  );
+}
+
+function PriceListColumn({
+  label,
+  rows
+}: {
+  label: string;
+  rows: ResolvedPriceListRow[];
+}) {
+  return (
+    <section aria-label={label} className={styles.arenaPriceListColumn}>
+      {rows.map((row) => row.kind === "category" ? (
+        <h2 className={styles.arenaPriceListCategory} key={row.id} title={row.name}>
+          <i aria-hidden="true" />
+          <span>{row.name}</span>
+          {row.continuation ? <small>vervolg</small> : null}
+        </h2>
+      ) : (
+        <PriceListProduct item={row.item} key={row.item.id} />
+      ))}
+    </section>
+  );
+}
+
+function PriceListProduct({ item }: { item: ResolvedPriceListItem }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const hasImage = item.image.kind === "image" && !imageFailed;
+  return (
+    <article className={styles.arenaPriceListProduct}>
+      <span aria-hidden="true" className={styles.arenaPriceListMedia}>
+        {hasImage && item.image.kind === "image" ? (
+          <img
+            alt=""
+            onError={() => setImageFailed(true)}
+            src={item.image.url}
+            style={{ objectPosition: item.image.objectPosition }}
+          />
+        ) : null}
+      </span>
+      <span className={styles.arenaPriceListCopy}>
+        <strong title={item.name}>{item.name}</strong>
+        <small title={item.description}>{item.description || "\u00a0"}</small>
+      </span>
+      <b>{item.formattedPrice}</b>
+    </article>
+  );
+}
+
 function newsTitleClassName(title: string) {
   if (title.length > 64) return styles.arenaNewsTitleDense;
   return undefined;
@@ -517,7 +577,11 @@ function StandingRow({ team }: { team: DynamicTemplateStandingItem }) {
     >
       <strong>{team.position ?? "–"}</strong>
       <span className={styles.arenaStandingTeam}>
-        <i aria-hidden="true">{initialsFor(team.teamName)}</i>
+        {team.logoUrl ? (
+          <img alt="" src={team.logoUrl} />
+        ) : (
+          <i aria-hidden="true">{initialsFor(team.teamName)}</i>
+        )}
         <b>{team.teamName}</b>
       </span>
       <span>{team.played ?? "–"}</span>
@@ -707,6 +771,9 @@ function pageIsEmpty(page: DynamicTemplatePage) {
   if (page.kind === "menu") {
     return page.columns.every((column) => column.length === 0);
   }
+  if (page.kind === "price-list") {
+    return page.page.columns.left.length + page.page.columns.right.length === 0;
+  }
   return page.items.length === 0;
 }
 
@@ -749,20 +816,4 @@ function resultLabel(result: string) {
   if (result === "win") return "winst";
   if (result === "draw") return "gelijk";
   return "verlies";
-}
-
-function arenaSubtitle(slideType: DynamicTemplateView["slideType"]) {
-  const subtitles: Partial<Record<DynamicTemplateView["slideType"], string>> = {
-    menu: "Kantinefavorieten",
-    news: "Nieuws uit en rond de club",
-    sport_activities: "Wat speelt er deze maand",
-    sport_cancellations: "Actuele wedstrijdstatus",
-    sport_dressing_rooms: "Indeling wedstrijddag",
-    sport_next_match: "Alles klaar voor de aftrap",
-    sport_officials: "Aanstellingen wedstrijddag",
-    sport_program: "Aankomende wedstrijden",
-    sport_results: "Laatste speelronde",
-    sport_standing: "Actuele competitiestand"
-  };
-  return subtitles[slideType] ?? "Clubinformatie";
 }

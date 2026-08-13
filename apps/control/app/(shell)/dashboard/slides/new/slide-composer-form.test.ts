@@ -32,6 +32,9 @@ describe("dynamische slide-opties", () => {
     expect(sourceMatchesSlideType("rss", "news")).toBe(true);
     expect(sourceMatchesSlideType("rss", "menu")).toBe(false);
     expect(sourceMatchesSlideType("manual_products", "menu")).toBe(true);
+    expect(sourceMatchesSlideType("manual_products", "price_list")).toBe(true);
+    expect(sourceMatchesSlideType("twelve_excel", "price_list")).toBe(true);
+    expect(sourceMatchesSlideType("rss", "price_list")).toBe(false);
     expect(sourceMatchesSlideType("sportlink", "sport_program")).toBe(true);
     expect(sourceMatchesSlideType("rss", "sport_program")).toBe(false);
   });

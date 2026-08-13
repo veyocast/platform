@@ -121,7 +121,8 @@ tests en exitcriteria staan in
 | S98 | Data-aware Sportlink-slidewizard | Echte Player-preview uit de canonieke snapshotbuilder, alleen renderbare team-/competitie-/seizoenopties, preflight en datakwaliteit zonder providercalls of mutable previews |
 | S99 | Inhoudsgestuurde dynamische publicatie | Eén Sportlink-revisie per sync, stabiele inhoudshashes, hergebruikte fallbackassets en alleen een nieuwe immutable release wanneer zichtbare Playerinhoud wijzigt |
 | S100 | Leesbare Editorial slides en clientgebonden Sportlink-keuze | Nieuws/standen op afstand leesbaar en schermvullend tonen, RSS-artikelen canoniek dedupliceren, uitsluitend teams van de Sportlink-client aanbieden en het officiële clublogo lokaal in releases opnemen |
-| S101 | Editorial Arena slidesuite v2 | Eén vast landscape-/portraitframe, volledige light/dark-semantiektokens, vier nieuwsvarianten, tweekoloms prijslijsten en 20-regels sportpaging met immutable snapshotconfiguratie |
+| S101 | Editorial logo- en headerafwerking | Sportlink-teamlogo's server-side als offline release-assets tonen, het eigen clublogo als tenantfallback gebruiken en Editorial headers/nieuws-QR vereenvoudigen |
+| S104 | Editorial Arena authoring completion | Volledige light/dark-tokenauthoring, focal points, handmatige prijskolommen, gedeelde React-DOM-thumbnails en een vaste 48-cellen-regressiematrix |
 
 ### Programmagates
 

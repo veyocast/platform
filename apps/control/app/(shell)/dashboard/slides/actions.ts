@@ -10,6 +10,7 @@ import {
   editorialThemeConfigSchema,
   playerDynamicTemplateAssetSchema,
   playerDynamicTemplatePayloadSchema,
+  priceListSlideConfigSchema,
   type EditorialPriceListConfiguration,
   type PlayerDynamicTemplateAsset,
   type PlayerDynamicTemplatePayload
@@ -49,6 +50,13 @@ export async function previewDynamicSlide(
   const templateVersionId = String(formData.get("templateVersionId") ?? "");
   const dataSourceId = String(formData.get("dataSourceId") ?? "");
   const configuration = dynamicSlideConfiguration(formData);
+  if (!configuration) {
+    return {
+      code: "PREVIEW_CONFIGURATION_INVALID",
+      message: "Selecteer minimaal één beschikbaar product en controleer de kolomindeling.",
+      ok: false
+    };
+  }
   const supabase = await createControlSupabaseClient();
   if (
     !supabase ||
@@ -171,16 +179,32 @@ export async function createDynamicSlide(formData: FormData) {
     120,
     Math.max(5, Number(formData.get("secondsPerSlide")) || 5)
   );
-  if (!editorialColorsAreValid(formData)) {
+  const requestedSlideType = String(formData.get("slideType") ?? "");
+  if (
+    requestedSlideType !== "price_list" &&
+    !editorialColorsAreValid(formData)
+  ) {
     redirect(
       "/dashboard/slides/new?fout=Een+of+meer+Editorial+Arena-kleuren+zijn+ongeldig.+Gebruik+geldige+hexkleuren."
     );
   }
   const configuration = dynamicSlideConfiguration(formData);
-  const theme = isRecord(configuration.editorial)
-    ? editorialThemeConfigSchema.safeParse(configuration.editorial.theme)
+  if (!configuration) {
+    redirect(
+      "/dashboard/slides/new?fout=Selecteer+minimaal+een+beschikbaar+product+en+controleer+de+kolomindeling."
+    );
+  }
+  const editorialConfiguration = "editorial" in configuration &&
+    isRecord(configuration.editorial)
+    ? configuration.editorial
     : null;
-  if (!theme?.success || !editorialThemeHasValidContrast(theme.data)) {
+  const theme = editorialConfiguration
+    ? editorialThemeConfigSchema.safeParse(editorialConfiguration.theme)
+    : null;
+  if (
+    requestedSlideType !== "price_list" &&
+    (!theme?.success || !editorialThemeHasValidContrast(theme.data))
+  ) {
     redirect(
       "/dashboard/slides/new?fout=De+gekozen+tekst-+en+paneelkleuren+hebben+onvoldoende+contrast.+Kies+duidelijker+kleuren."
     );
@@ -240,9 +264,9 @@ export async function createDynamicSlide(formData: FormData) {
       "/dashboard/slides/new?fout=De+gekozen+Sportlink-selectie+is+ongeldig.+Kies+team+en+competitie+opnieuw."
     );
   }
-  const priceList = isRecord(configuration.editorial)
+  const priceList = editorialConfiguration
     ? editorialPriceListConfigurationSchema.safeParse(
-        configuration.editorial.priceList
+        editorialConfiguration.priceList
       )
     : null;
   if (templateSlideType === "menu" && !priceList?.success) {
@@ -285,7 +309,7 @@ export async function createDynamicSlide(formData: FormData) {
   const { data, error } = await supabase.rpc("create_dynamic_slide_v1", {
     p_configuration_json: {
       ...configuration,
-      maxItems,
+      ...(templateSlideType === "price_list" ? {} : { maxItems }),
       ...(templateSlideType === "menu" && category ? { category } : {}),
       ...(templateSlideType === "news"
         ? {
@@ -346,6 +370,15 @@ function dynamicSlideConfiguration(formData: FormData) {
     120,
     Math.max(5, Number(formData.get("secondsPerSlide")) || 5)
   );
+  if (slideType === "price_list") {
+    const raw = String(formData.get("priceListConfiguration") ?? "");
+    try {
+      const parsed = priceListSlideConfigSchema.safeParse(JSON.parse(raw));
+      return parsed.success ? parsed.data : null;
+    } catch {
+      return null;
+    }
+  }
   const theme = editorialThemeFromForm(formData);
   const priceList = parseJsonField(
     formData.get("priceListJson"),
@@ -519,6 +552,17 @@ function collectPreviewMediaAssetIds(snapshot: Record<string, unknown>) {
       add(product?.imageMediaAssetId);
     }
   }
+  const priceList = isRecord(snapshot.priceList) ? snapshot.priceList : null;
+  if (Array.isArray(priceList?.sections)) {
+    for (const sectionCandidate of priceList.sections.slice(0, 40)) {
+      const section = isRecord(sectionCandidate) ? sectionCandidate : null;
+      if (!Array.isArray(section?.products)) continue;
+      for (const productCandidate of section.products.slice(0, 100)) {
+        const product = isRecord(productCandidate) ? productCandidate : null;
+        if (product?.photoVisible === true) add(product.imageMediaAssetId);
+      }
+    }
+  }
   const news = isRecord(snapshot.news) ? snapshot.news : null;
   add(news?.providerLogoMediaAssetId);
   if (Array.isArray(news?.articles)) {
@@ -565,6 +609,13 @@ function previewItemCount(snapshot: Record<string, unknown>) {
   if (Array.isArray(sport?.items)) return sport.items.length;
   const menu = isRecord(snapshot.menu) ? snapshot.menu : null;
   if (Array.isArray(menu?.products)) return menu.products.length;
+  const priceList = isRecord(snapshot.priceList) ? snapshot.priceList : null;
+  if (Array.isArray(priceList?.sections)) {
+    return priceList.sections.reduce((count, candidate) => {
+      const section = isRecord(candidate) ? candidate : null;
+      return count + (Array.isArray(section?.products) ? section.products.length : 0);
+    }, 0);
+  }
   const news = isRecord(snapshot.news) ? snapshot.news : null;
   return Array.isArray(news?.articles) ? news.articles.length : 0;
 }
@@ -644,7 +695,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function sourceMatchesSlideType(kind: string, slideType: string) {
-  if (slideType === "menu") {
+  if (slideType === "menu" || slideType === "price_list") {
     return kind === "manual_products" || kind === "twelve_excel";
   }
   if (slideType === "news") return kind === "rss";

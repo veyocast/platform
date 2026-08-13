@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(45);
+select plan(52);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -169,6 +169,11 @@ select ok(not has_function_privilege(
   'public.complete_sportlink_sync_v2(uuid,text,jsonb,jsonb,jsonb,jsonb,jsonb,jsonb)',
   'execute'
 ), 'browser roles cannot execute the Sportlink media completion RPC');
+select ok(not has_function_privilege(
+  'authenticated',
+  'public.complete_sportlink_sync_v3(uuid,text,jsonb,jsonb,jsonb,jsonb,jsonb,jsonb,jsonb)',
+  'execute'
+), 'browser roles cannot execute the Sportlink standing-logo completion RPC');
 
 reset role;
 insert into public.sportlink_sync_runs(
@@ -221,6 +226,79 @@ select is((
   where external_id = 'club-duindorp'
 ), '50000000-0000-5000-8000-000000000b10'::uuid,
   'the normalized client club references its local Sportlink logo');
+
+reset role;
+insert into public.sportlink_sync_runs(
+  id, tenant_id, connection_id, dataset_group, status, worker_id, locked_at
+) values (
+  '40000000-0000-4000-8000-000000000b11',
+  '10000000-0000-4000-8000-000000000b01',
+  (select id from public.sportlink_connections limit 1),
+  'competitions',
+  'running',
+  'worker:sportlink-team-logo',
+  now()
+);
+set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select lives_ok(
+  $$select public.complete_sportlink_sync_v3(
+    '40000000-0000-4000-8000-000000000b11',
+    'worker:sportlink-team-logo',
+    '{}'::jsonb,
+    '{}'::jsonb,
+    '[{
+      "assetId":"50000000-0000-5000-8000-000000000b11",
+      "checksumSha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "fileSizeBytes":6789,
+      "height":256,
+      "mimeType":"image/webp",
+      "role":"team_logo",
+      "sourceUrl":"https://cdn.sportlink.com/logo/testclub.png",
+      "storagePath":"tenants/10000000-0000-4000-8000-000000000b01/assets/50000000-0000-5000-8000-000000000b11/sportlink-team-logo.webp",
+      "title":"Testclub 1 teamlogo",
+      "width":256
+    }]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb,
+    '[]'::jsonb,
+    '[{
+      "externalId":"standing-logo-import",
+      "periodNumber":null,
+      "pool":{"externalId":"799","name":"Logo poule"},
+      "rows":[{
+        "externalId":"logo-team",
+        "logoUrl":"https://cdn.sportlink.com/logo/testclub.png",
+        "teamName":"Testclub logo"
+      }],
+      "scoresPublished":true
+    }]'::jsonb
+  )$$,
+  'the service worker completes a standing with a canonical local team logo'
+);
+reset role;
+select is((
+  select count(*)
+  from public.media_assets
+  where id = '50000000-0000-5000-8000-000000000b11'
+    and tenant_id = '10000000-0000-4000-8000-000000000b01'
+    and status = 'ready'
+), 1::bigint, 'the standing team logo is a ready tenant-owned media asset');
+select is((
+  select row ->> 'logoMediaAssetId'
+  from public.sports_standings standing
+  cross join lateral jsonb_array_elements(standing.rows_json) row
+  where standing.external_id = 'standing-logo-import'
+  limit 1
+), '50000000-0000-5000-8000-000000000b11',
+  'the normalized standing row references the local team logo');
+select is((
+  select row ->> 'logoUrl'
+  from public.sports_standings standing
+  cross join lateral jsonb_array_elements(standing.rows_json) row
+  where standing.external_id = 'standing-logo-import'
+  limit 1
+), null, 'the provider logo URL is not persisted into the player dataset');
 
 reset role;
 select set_config(
@@ -346,6 +424,7 @@ insert into public.sports_standings(
     "goalsAgainst":12,
     "goalsFor":30,
     "lost":1,
+    "logoMediaAssetId":"50000000-0000-5000-8000-000000000b11",
     "played":16,
     "points":39,
     "position":1,
@@ -471,6 +550,34 @@ select is(
   ),
   '["win", "draw", "loss"]'::jsonb,
   'the standing snapshot freezes the last three results in chronological order'
+);
+select is(
+  (
+    select snapshot.snapshot_data_json #>>
+      '{sport,items,0,logoMediaAssetId}'
+    from public.dynamic_slide_snapshots snapshot
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Portraitstand Testclub 1'
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  '50000000-0000-5000-8000-000000000b11',
+  'the immutable standing snapshot includes the cached row logo'
+);
+select is(
+  (
+    select snapshot.snapshot_data_json #>>
+      '{brand,logoMediaAssetId}'
+    from public.dynamic_slide_snapshots snapshot
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Portraitstand Testclub 1'
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  '50000000-0000-5000-8000-000000000b10',
+  'the immutable snapshot prefers the official club logo in the masthead'
 );
 select is(
   (
