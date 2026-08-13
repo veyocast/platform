@@ -314,3 +314,55 @@ honour normal media usage and immutable release retention.
 - No browser-side evaluation of SVG template source.
 - Physical LG rendering remains a release acceptance step; a successful
   automated deployment is not itself a hardware claim.
+
+## Editorial Arena v2 (S101)
+
+S101 materialiseert de bestaande Editorial Arena-identiteit als één gedeeld
+contract voor de actuele prijs-, nieuws-, stand-, programma- en
+uitslagenfamilies. Iedere browserrender start op exact 1920×1080 of 1080×1920;
+alle viewportaanpassing gebeurt met één uniforme contain-schaal buiten het
+canvas. Header, contentvlak, footer, paginapositie en verticale index gebruiken
+de vaste metrics uit `@veyocast/content-templates`.
+
+Het `editorial`-snapshotdeel heeft `schemaVersion: 2`, vier nieuwsvarianten,
+een prijslijst-fotomodus en volledige expliciete light- én dark-tokenmaps. De
+cascade is platformdefault → tenantaccent → slideoverride. Publicatie bevriest
+de opgeloste maps, zodat een latere brandingwijziging geen bestaande release
+verandert. Component-CSS mag alleen semantische `--vc-*`-variabelen gebruiken;
+een broncodeguard bewaakt hex-, rgb-, hsl- en oklch-drift. Control blokkeert
+ongeldige kleuren, tekst/paneelcontrast onder 4,5:1 en onvoldoende QR-contrast
+ook server-side.
+
+Prijslijsten renderen twee kolommen, tellen categorieën als volledige rijen en
+houden het vierkante mediavak leeg én maatvast wanneer een foto ontbreekt of is
+uitgeschakeld. Nieuws ondersteunt `hero_split`, `fullscreen_gradient`,
+`news_grid` en `text_only`. Stand, programma en uitslagen gebruiken één kolom
+tot tien regels, exact twee landschapkolommen vanaf elf en één portretkolom tot
+twintig; boven twintig ontstaat deterministisch een volgende pagina.
+
+De migratie verrijkt nieuwe en mutable legacy snapshots met veilige volledige
+defaults zonder oude content te verwijderen. Reeds gepubliceerde releases
+worden niet herschreven. De bestaande RSS-, Sportlink- en Twelve/Excel-
+normalisatie blijft server-side; Player en renderer doen geen providercalls.
+De normale locked VeyoCast-Playerlock-up op 40% opacity blijft vanwege het
+hoger geldende playercanon de enige permanente softwarewatermark.
+
+Control biedt snelle én geavanceerde authoring voor alle semantische tokens,
+met onafhankelijke light/darkmaps, reset/kopieeracties, dubbel georiënteerde
+preview en contrastvalidatie. De prijseditor bewaart categorieën en producten
+exact in de gekozen kolomvolgorde, ondersteunt toegankelijke drag-and-drop,
+categoriegebonden foto-overrides en focal points. De immutable snapshotbuilder
+resolveert ieder product opnieuw tenant- en brongebonden voordat het wordt
+bevroren.
+
+De primaire thumbnailcapture opent een speciale Playerroute en voert daarin
+letterlijk dezelfde React-DOM-renderer uit. Snapshotdata wordt base64url in het
+URL-fragment aangeboden, niet aan de server; fonts en beelden moeten gereed zijn
+voor capture. Chromium of assetresolution mag de bestaande publicatieketen niet
+breken: de reeds bestaande immutable worker-PNG blijft daarom de automatische
+compatibiliteits- en offlinefallback. Een ingecheckte 48-cellenpixelmatrix
+dekt twaalf families/varianten in beide oriëntaties en beide thema's.
+
+Hosted uitrol en fysieke LG-acceptatie blijven afzonderlijke releasegates. Een
+gezonde stagingresponse of Chromiumtest mag nooit als fysieke hardwarepass
+worden beschreven.

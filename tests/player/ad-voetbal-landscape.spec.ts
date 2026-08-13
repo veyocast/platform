@@ -65,7 +65,7 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
   expect(motion.every(({ name }) => name !== "none")).toBe(true);
 
   const sectionTitle = page.getByText("Voetbalnieuws", { exact: true });
-  await expect(sectionTitle).toHaveCSS("color", "rgb(243, 240, 233)");
+  await expect(sectionTitle).toHaveCSS("color", "rgb(247, 243, 235)");
   await expect(page.getByText("Editorial Arena", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Nieuws uit en rond de club", { exact: true }))
     .toHaveCount(0);

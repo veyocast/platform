@@ -11,6 +11,10 @@
     "./dynamic-template-view": {
       "types": "./dist/dynamic-template-view.d.ts",
       "default": "./src/dynamic-template-view.ts"
+    },
+    "./editorial-arena-theme": {
+      "types": "./dist/editorial-arena-theme.d.ts",
+      "default": "./src/editorial-arena-theme.ts"
     }
   },
   "scripts": {

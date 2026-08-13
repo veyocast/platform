@@ -5,12 +5,21 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
+  editorialFocalPointSchema,
+  editorialPriceListConfigurationSchema,
+  editorialThemeConfigSchema,
   playerDynamicTemplateAssetSchema,
   playerDynamicTemplatePayloadSchema,
   priceListSlideConfigSchema,
+  type EditorialPriceListConfiguration,
   type PlayerDynamicTemplateAsset,
   type PlayerDynamicTemplatePayload
 } from "@veyocast/contracts";
+import {
+  contrastRatio,
+  resolveEditorialThemeConfig
+} from "@veyocast/content-templates/editorial-arena-theme";
+import { priceRowsThatFit } from "@veyocast/content-templates";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
@@ -170,6 +179,36 @@ export async function createDynamicSlide(formData: FormData) {
     120,
     Math.max(5, Number(formData.get("secondsPerSlide")) || 5)
   );
+  const requestedSlideType = String(formData.get("slideType") ?? "");
+  if (
+    requestedSlideType !== "price_list" &&
+    !editorialColorsAreValid(formData)
+  ) {
+    redirect(
+      "/dashboard/slides/new?fout=Een+of+meer+Editorial+Arena-kleuren+zijn+ongeldig.+Gebruik+geldige+hexkleuren."
+    );
+  }
+  const configuration = dynamicSlideConfiguration(formData);
+  if (!configuration) {
+    redirect(
+      "/dashboard/slides/new?fout=Selecteer+minimaal+een+beschikbaar+product+en+controleer+de+kolomindeling."
+    );
+  }
+  const editorialConfiguration = "editorial" in configuration &&
+    isRecord(configuration.editorial)
+    ? configuration.editorial
+    : null;
+  const theme = editorialConfiguration
+    ? editorialThemeConfigSchema.safeParse(editorialConfiguration.theme)
+    : null;
+  if (
+    requestedSlideType !== "price_list" &&
+    (!theme?.success || !editorialThemeHasValidContrast(theme.data))
+  ) {
+    redirect(
+      "/dashboard/slides/new?fout=De+gekozen+tekst-+en+paneelkleuren+hebben+onvoldoende+contrast.+Kies+duidelijker+kleuren."
+    );
+  }
   const supabase = await createControlSupabaseClient();
   if (
     !supabase ||
@@ -184,7 +223,7 @@ export async function createDynamicSlide(formData: FormData) {
   const [templateResult, sourceResult] = await Promise.all([
     supabase
       .from("dynamic_templates")
-      .select("slide_type")
+      .select("slide_type, orientation")
       .eq("current_published_version_id", templateVersionId)
       .eq("status", "published")
       .maybeSingle(),
@@ -213,12 +252,6 @@ export async function createDynamicSlide(formData: FormData) {
       "/dashboard/slides/new?fout=Template+en+databron+horen+niet+bij+hetzelfde+slidetype.+Kies+de+combinatie+opnieuw."
     );
   }
-  const configuration = dynamicSlideConfiguration(formData);
-  if (!configuration) {
-    redirect(
-      "/dashboard/slides/new?fout=Selecteer+minimaal+een+beschikbaar+product+en+controleer+de+kolomindeling."
-    );
-  }
   if (
     supportsSportContextSelection(templateSlideType) &&
     (
@@ -231,11 +264,48 @@ export async function createDynamicSlide(formData: FormData) {
       "/dashboard/slides/new?fout=De+gekozen+Sportlink-selectie+is+ongeldig.+Kies+team+en+competitie+opnieuw."
     );
   }
+  const priceList = editorialConfiguration
+    ? editorialPriceListConfigurationSchema.safeParse(
+        editorialConfiguration.priceList
+      )
+    : null;
+  if (templateSlideType === "menu" && !priceList?.success) {
+    redirect(
+      "/dashboard/slides/new?fout=Selecteer+en+orden+eerst+de+producten+voor+beide+prijskolommen."
+    );
+  }
+  if (templateSlideType === "menu" && priceList?.success) {
+    const orientation = templateResult.data?.orientation === "portrait"
+      ? "portrait"
+      : "landscape";
+    const capacity = priceRowsThatFit(orientation);
+    if (
+      priceList.data.columns.left.length > capacity ||
+      priceList.data.columns.right.length > capacity ||
+      !(await priceListBelongsToSource({
+        configuration: priceList.data,
+        dataSourceId,
+        supabase,
+        tenantId: session.tenantId!
+      }))
+    ) {
+      redirect(
+        "/dashboard/slides/new?fout=De+prijslijstindeling+is+ongeldig,+loopt+over+of+bevat+producten+buiten+de+gekozen+tenantbron."
+      );
+    }
+  }
+  const configuredPriceItems = priceList?.success
+    ? priceProductCount(priceList.data)
+    : 0;
   const maxItems = isSingleMatchSlide(templateSlideType)
     ? 1
     : templateSlideType === "news"
       ? Math.min(requestedMaxItems, 12)
-      : requestedMaxItems;
+      : isEditorialSportList(templateSlideType)
+        ? Math.min(requestedMaxItems, 20)
+        : templateSlideType === "menu" && configuredPriceItems
+          ? Math.min(configuredPriceItems, 40)
+          : requestedMaxItems;
   const { data, error } = await supabase.rpc("create_dynamic_slide_v1", {
     p_configuration_json: {
       ...configuration,
@@ -296,10 +366,6 @@ function dynamicSlideConfiguration(formData: FormData) {
     formData.get("sportTeamExternalId")
   );
   const sportSeason = normalizeSportlinkSelection(formData.get("sportSeason"));
-  const maxItems = Math.min(
-    slideType === "news" ? 12 : 40,
-    Math.max(1, Number(formData.get("maxItems")) || 8)
-  );
   const secondsPerSlide = Math.min(
     120,
     Math.max(5, Number(formData.get("secondsPerSlide")) || 5)
@@ -313,7 +379,45 @@ function dynamicSlideConfiguration(formData: FormData) {
       return null;
     }
   }
+  const theme = editorialThemeFromForm(formData);
+  const priceList = parseJsonField(
+    formData.get("priceListJson"),
+    editorialPriceListConfigurationSchema
+  );
+  const newsFocalPoint = parseJsonField(
+    formData.get("newsFocalPointJson"),
+    editorialFocalPointSchema
+  );
+  const configuredItems = priceList ? priceProductCount(priceList) : 0;
+  const maxItems = Math.min(
+    slideType === "news" ? 12 : isEditorialSportList(slideType) ? 20 : 40,
+    Math.max(
+      1,
+      slideType === "menu" && configuredItems
+        ? configuredItems
+        : Number(formData.get("maxItems")) || 8
+    )
+  );
+  const newsVariant = [
+    "hero_split",
+    "fullscreen_gradient",
+    "news_grid",
+    "text_only"
+  ].includes(String(formData.get("newsVariant")))
+    ? String(formData.get("newsVariant"))
+    : "hero_split";
+  const pricePhotoMode = formData.get("pricePhotoMode") === "reserve-empty"
+    ? "reserve-empty"
+    : "show";
   return {
+    editorial: {
+      ...(newsFocalPoint ? { newsFocalPoint } : {}),
+      newsVariant,
+      ...(priceList ? { priceList } : {}),
+      pricePhotoMode,
+      schemaVersion: 2,
+      theme
+    },
     ...(slideType === "menu" && category ? { category } : {}),
     maxItems,
     ...(slideType === "news" ? { secondsPerSlide } : {}),
@@ -333,6 +437,105 @@ function dynamicSlideConfiguration(formData: FormData) {
         ? { title }
         : {})
   };
+}
+
+function editorialColorsAreValid(formData: FormData) {
+  return editorialThemeConfigSchema.safeParse(
+    parseJson(formData.get("editorialThemeJson"))
+  ).success;
+}
+
+function editorialThemeFromForm(formData: FormData) {
+  const parsed = editorialThemeConfigSchema.safeParse(
+    parseJson(formData.get("editorialThemeJson"))
+  );
+  if (parsed.success) return parsed.data;
+  return resolveEditorialThemeConfig({ mode: "light" });
+}
+
+function editorialThemeHasValidContrast(
+  theme: ReturnType<typeof editorialThemeFromForm>
+) {
+  return (["light", "dark"] as const).every((mode) => {
+    const tokens = theme[mode];
+    return [
+      contrastRatio(tokens.text, tokens.surface),
+      contrastRatio(tokens.textOnAccent, tokens.accent),
+      contrastRatio(tokens.textOnSelected, tokens.rowSelected),
+      contrastRatio(tokens.qrSurface, tokens.imageOverlayStart),
+      contrastRatio(tokens.qrInk, tokens.qrSurface)
+    ].every((ratio) => ratio !== null && ratio >= 4.5);
+  });
+}
+
+function parseJson(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || value.length > 32_768) return null;
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+function parseJsonField<T>(
+  value: FormDataEntryValue | null,
+  schema: { safeParse: (value: unknown) => { data?: T; success: boolean } }
+) {
+  const parsed = schema.safeParse(parseJson(value));
+  return parsed.success ? parsed.data : undefined;
+}
+
+function priceProductCount(configuration: EditorialPriceListConfiguration) {
+  return [
+    ...configuration.columns.left,
+    ...configuration.columns.right
+  ].filter((entry) => entry.kind === "product").length;
+}
+
+async function priceListBelongsToSource({
+  configuration,
+  dataSourceId,
+  supabase,
+  tenantId
+}: {
+  configuration: EditorialPriceListConfiguration;
+  dataSourceId: string;
+  supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>;
+  tenantId: string;
+}) {
+  const ids: string[] = [];
+  const categoryByProduct = new Map<string, string>();
+  for (const entries of [configuration.columns.left, configuration.columns.right]) {
+    let category = "";
+    for (const entry of entries) {
+      if (entry.kind === "category") {
+        category = entry.category;
+        continue;
+      }
+      if (!category || ids.includes(entry.productId)) return false;
+      ids.push(entry.productId);
+      categoryByProduct.set(entry.productId, category);
+    }
+  }
+  if (!ids.length || ids.length > 40) return false;
+  const result = await supabase
+    .from("tenant_products")
+    .select("id, category")
+    .eq("tenant_id", tenantId)
+    .eq("active", true)
+    .eq("available", true)
+    .in("id", ids)
+    .or(`data_source_id.eq.${dataSourceId},data_source_id.is.null`);
+  if (result.error || result.data?.length !== ids.length) return false;
+  return result.data.every(
+    (product) => (product.category || "Overig") === categoryByProduct.get(product.id)
+  );
+}
+
+function isEditorialSportList(slideType: string) {
+  return ["sport_program", "sport_results", "sport_standing"].includes(
+    slideType
+  );
 }
 
 function collectPreviewMediaAssetIds(snapshot: Record<string, unknown>) {

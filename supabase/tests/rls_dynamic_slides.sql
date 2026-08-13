@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(64);
+select plan(69);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -835,6 +835,38 @@ select is(
   'RSS snapshot freezes the tenant primary colour for HTML/CSS playback'
 );
 
+select is(
+  (
+    select snapshot.snapshot_data_json #>> '{editorial,schemaVersion}'
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'rss_slide'
+    )
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  '2',
+  'Editorial Arena snapshots freeze the v2 presentation contract'
+);
+
+select ok(
+  (
+    select jsonb_typeof(
+      snapshot.snapshot_data_json #> '{editorial,theme,dark}'
+    ) = 'object'
+      and jsonb_typeof(
+        snapshot.snapshot_data_json #> '{editorial,theme,light}'
+      ) = 'object'
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'rss_slide'
+    )
+    order by snapshot.created_at desc
+    limit 1
+  ),
+  'immutable Editorial Arena snapshots contain both complete theme maps'
+);
+
 select lives_ok(
   $$select public.record_rss_sync_v1(
     (select id from dynamic_test_ids where name = 'rss_source'),
@@ -1122,6 +1154,150 @@ select is(
   0::bigint,
   'another tenant cannot read immutable snapshot data'
 );
+
+reset role;
+insert into public.tenant_products (
+  id, tenant_id, source, slug, name, description, category, price_cents,
+  currency, active, available, sort_order
+) values
+  (
+    '20000000-0000-4000-8000-000000000a51',
+    '10000000-0000-4000-8000-000000000a51',
+    'manual', 'broodje-gezond', 'Broodje gezond', 'Vers bereid',
+    'Broodjes', 475, 'EUR', true, true, 200
+  ),
+  (
+    '20000000-0000-4000-8000-000000000a52',
+    '10000000-0000-4000-8000-000000000a52',
+    'manual', 'vreemd-product', 'Vreemd product', null,
+    'Verboden', 999, 'EUR', true, true, 10
+  );
+create temporary table editorial_test_configuration as
+select private.editorial_arena_configuration_v2(
+  'dark', '#315CFF'
+) as configuration;
+grant select on editorial_test_configuration to authenticated;
+insert into dynamic_test_ids
+select 'product_cola', id
+from public.tenant_products
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and slug = 'cola';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000a51', true);
+
+insert into dynamic_test_ids
+select
+  'manual_price_slide',
+  (
+    public.create_dynamic_slide_v1(
+      '10000000-0000-4000-8000-000000000a51',
+      'Handmatig geordende clubkaart',
+      version.id,
+      (select id from dynamic_test_ids where name = 'source'),
+      'latest',
+      jsonb_build_object(
+        'title', 'Clubkaart', 'maxItems', 2,
+        'editorial',
+        (select configuration from editorial_test_configuration) ||
+          jsonb_build_object(
+            'priceList', jsonb_build_object(
+              'categoryPhotoModes', jsonb_build_object(
+                'Dranken', 'reserve-empty', 'Broodjes', 'show'
+              ),
+              'columns', jsonb_build_object(
+                'left', jsonb_build_array(
+                  jsonb_build_object('kind', 'category', 'category', 'Dranken'),
+                  jsonb_build_object(
+                    'kind', 'product', 'productId',
+                    (select id from dynamic_test_ids where name = 'product_cola')
+                  )
+                ),
+                'right', jsonb_build_array(
+                  jsonb_build_object('kind', 'category', 'category', 'Broodjes'),
+                  jsonb_build_object(
+                    'kind', 'product', 'productId',
+                    '20000000-0000-4000-8000-000000000a51'
+                  )
+                )
+              ),
+              'productFocalPoints', jsonb_build_object(
+                '20000000-0000-4000-8000-000000000a51',
+                jsonb_build_object('x', 0.35, 'y', 0.7)
+              )
+            )
+          )
+      )
+    ) ->> 'slideId'
+  )::uuid
+from public.dynamic_template_versions version
+join public.dynamic_templates template on template.id = version.template_id
+where template.slug = 'editorial-arena-menubord-dark-landscape'
+  and version.status = 'published';
+
+select is(
+  (
+    select string_agg(product ->> 'name', ',' order by ordinal)
+    from public.dynamic_slide_snapshots snapshot
+    cross join jsonb_array_elements(snapshot.snapshot_data_json #> '{menu,products}')
+      with ordinality as selected(product, ordinal)
+    where snapshot.dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'manual_price_slide'
+    )
+  ),
+  'Cola zero,Broodje gezond',
+  'immutable menu snapshot resolves exactly the manually ordered product set'
+);
+
+select is(
+  (
+    select snapshot.snapshot_data_json #>>
+      '{editorial,priceList,productFocalPoints,20000000-0000-4000-8000-000000000a51,y}'
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.dynamic_slide_id = (
+      select id from dynamic_test_ids where name = 'manual_price_slide'
+    )
+  ),
+  '0.7',
+  'category overrides, manual columns and focal points are frozen immutably'
+);
+
+select throws_ok(
+  $$select public.preview_dynamic_slide_v1(
+    '10000000-0000-4000-8000-000000000a51',
+    'Verboden product',
+    (select version.id
+      from public.dynamic_template_versions version
+      join public.dynamic_templates template on template.id = version.template_id
+      where template.slug = 'editorial-arena-menubord-dark-landscape'
+        and version.status = 'published'),
+    (select id from dynamic_test_ids where name = 'source'),
+    jsonb_build_object(
+      'editorial',
+      (select configuration from editorial_test_configuration) ||
+        jsonb_build_object(
+          'priceList', jsonb_build_object(
+            'categoryPhotoModes', '{}'::jsonb,
+            'columns', jsonb_build_object(
+              'left', jsonb_build_array(
+                jsonb_build_object('kind', 'category', 'category', 'Verboden'),
+                jsonb_build_object(
+                  'kind', 'product', 'productId',
+                  '20000000-0000-4000-8000-000000000a52'
+                )
+              ),
+              'right', '[]'::jsonb
+            ),
+            'productFocalPoints', '{}'::jsonb
+          )
+        )
+    )
+  )$$,
+  '22023',
+  'editorial price-list contains unavailable or foreign products',
+  'snapshot builder rejects a cross-tenant product reference'
+);
+
+reset role;
 
 select * from finish();
 rollback;

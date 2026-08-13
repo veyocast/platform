@@ -13,9 +13,11 @@ import styles from "../../dynamic-content.module.css";
 import type { DynamicSlidePreviewResult } from "../actions";
 
 export function DynamicSlideLivePreview({
+  dualOrientation = false,
   loading,
   result
 }: {
+  dualOrientation?: boolean;
   loading: boolean;
   result: DynamicSlidePreviewResult | null;
 }) {
@@ -50,21 +52,34 @@ export function DynamicSlideLivePreview({
 
       {result?.ok && view ? (
         <>
-          <div
-            className={styles.livePreviewStage}
-            data-orientation={result.payload.orientation}
-          >
-            <EditorialArenaRenderer
-              item={{
-                accessibilityName: `Preview ${view.title}`,
-                durationSeconds: Math.max(5, view.pages.length * 5),
-                dynamicTemplate: result.payload,
-                id: `preview-${result.payload.snapshotId}`,
-                title: view.title
-              }}
-              pageIndex={pageIndex}
-              passive
-            />
+          <div className={dualOrientation ? styles.livePreviewOrientations : undefined}>
+            {(dualOrientation
+              ? (["landscape", "portrait"] as const)
+              : [result.payload.orientation]
+            ).map((orientation) => (
+              <div key={orientation}>
+                {dualOrientation ? <strong>{orientation === "landscape" ? "Landscape" : "Portrait"}</strong> : null}
+                <div
+                  className={styles.livePreviewStage}
+                  data-orientation={orientation}
+                >
+                  <EditorialArenaRenderer
+                    item={{
+                      accessibilityName: `Preview ${view.title} ${orientation}`,
+                      durationSeconds: Math.max(5, view.pages.length * 5),
+                      dynamicTemplate: {
+                        ...result.payload,
+                        orientation
+                      },
+                      id: `preview-${result.payload.snapshotId}-${orientation}`,
+                      title: view.title
+                    }}
+                    pageIndex={pageIndex}
+                    passive
+                  />
+                </div>
+              </div>
+            ))}
           </div>
           <footer className={styles.livePreviewFooter}>
             <div>

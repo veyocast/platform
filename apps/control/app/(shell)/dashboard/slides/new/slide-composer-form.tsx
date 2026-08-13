@@ -3,6 +3,8 @@
 import Link from "next/link";
 import {
   useEffect,
+  useCallback,
+  useMemo,
   useRef,
   useState,
   useTransition,
@@ -16,6 +18,11 @@ import {
 } from "lucide-react";
 
 import { Button } from "@veyocast/ui";
+import {
+  editorialArenaDarkTokens,
+  editorialArenaLightTokens
+} from "@veyocast/content-templates/editorial-arena-theme";
+import type { EditorialThemeConfig } from "@veyocast/contracts";
 
 import styles from "../../dynamic-content.module.css";
 import {
@@ -24,6 +31,11 @@ import {
   type DynamicSlidePreviewResult
 } from "../actions";
 import { DynamicSlideLivePreview } from "./dynamic-slide-live-preview";
+import {
+  EditorialPriceEditor,
+  type EditorialPriceProductOption
+} from "./editorial-price-editor";
+import { EditorialThemeEditor } from "./editorial-theme-editor";
 import {
   PriceListConfigurator,
   type PriceListProductOption
@@ -43,6 +55,7 @@ export type SlideSourceOption = {
   lastSuccessfulSyncAt: string | null;
   name: string;
   providerStatus: string;
+  products: EditorialPriceProductOption[];
   sportAvailability: SportlinkAvailabilityRecord[];
   sportCompetitions: SportlinkCompetitionOption[];
   sportSeasons: SportlinkSeasonOption[];
@@ -88,6 +101,10 @@ const wizardSteps = [
     label: "Inhoud"
   },
   {
+    description: "Kies het thema en controleer de leesbaarheid van de slide.",
+    label: "Kleuren & uitstraling"
+  },
+  {
     description: "Controleer de keuzes voordat VeyoCast de slide maakt.",
     label: "Controleren"
   }
@@ -126,6 +143,21 @@ export function SlideComposerForm({
     defaultMaxItems(initialTemplate.slideType)
   );
   const [secondsPerSlide, setSecondsPerSlide] = useState("5");
+  const [newsVariant, setNewsVariant] = useState("hero_split");
+  const [pricePhotoMode, setPricePhotoMode] = useState("show");
+  const initialThemeMode =
+    initialTemplate.slug.includes("-dark-") ? "dark" : "light"
+  const tenantThemeDefaults = useMemo<EditorialThemeConfig>(() => ({
+    dark: { ...editorialArenaDarkTokens, accent: primaryColor },
+    light: { ...editorialArenaLightTokens, accent: primaryColor },
+    mode: initialThemeMode
+  }), [initialThemeMode, primaryColor]);
+  const [theme, setTheme] = useState<EditorialThemeConfig>(tenantThemeDefaults);
+  const [priceListJson, setPriceListJson] = useState("");
+  const [newsFocalPoint, setNewsFocalPoint] = useState({ x: 0.5, y: 0.5 });
+  const handlePriceListChange = useCallback((value: string) => {
+    setPriceListJson((current) => current === value ? current : value);
+  }, []);
   const [priceListConfiguration, setPriceListConfiguration] = useState("");
   const [showEmptySportOptions, setShowEmptySportOptions] = useState(false);
   const [previewResult, setPreviewResult] =
@@ -235,6 +267,11 @@ export function SlideComposerForm({
       previewFormData.set("sportSeason", selectedSportSeason);
       previewFormData.set("maxItems", maxItems);
       previewFormData.set("secondsPerSlide", secondsPerSlide);
+      previewFormData.set("newsVariant", newsVariant);
+      previewFormData.set("pricePhotoMode", pricePhotoMode);
+      previewFormData.set("editorialThemeJson", JSON.stringify(theme));
+      previewFormData.set("priceListJson", priceListJson);
+      previewFormData.set("newsFocalPointJson", JSON.stringify(newsFocalPoint));
       if (slideType === "price_list") {
         previewFormData.set("priceListConfiguration", priceListConfiguration);
       }
@@ -251,6 +288,9 @@ export function SlideComposerForm({
     category,
     maxItems,
     name,
+    newsVariant,
+    pricePhotoMode,
+    priceListJson,
     priceListConfiguration,
     secondsPerSlide,
     selectedSource,
@@ -259,6 +299,8 @@ export function SlideComposerForm({
     selectedSportTeamExternalId,
     selectedTemplate,
     slideType,
+    theme,
+    newsFocalPoint,
     title
   ]);
 
@@ -295,6 +337,10 @@ export function SlideComposerForm({
     setSportSeason("*");
     setMaxItems(defaultMaxItems(value));
     setSecondsPerSlide("5");
+    setNewsVariant("hero_split");
+    setPricePhotoMode("show");
+    setPriceListJson("");
+    setNewsFocalPoint({ x: 0.5, y: 0.5 });
     setPriceListConfiguration("");
   }
 
@@ -408,6 +454,12 @@ export function SlideComposerForm({
                 key={`${slideType}-${template.versionId}`}
                 name="templateVersionId"
                 onChange={() => setTemplateVersionId(template.versionId)}
+                onClick={() => {
+                  const mode = template.slug.includes("-dark-")
+                    ? "dark"
+                    : "light";
+                  setTheme((current) => ({ ...current, mode }));
+                }}
                 type="radio"
                 value={template.versionId}
               />
@@ -548,16 +600,62 @@ export function SlideComposerForm({
             />
           </label>
           {slideType === "menu" ? (
+            <>
+              <label className={styles.field}>
+                <span>Categorie (optioneel)</span>
+                <input
+                  maxLength={160}
+                  name="category"
+                  onChange={(event) => setCategory(event.currentTarget.value)}
+                  placeholder="Dranken"
+                  value={category}
+                />
+              </label>
+              <label className={styles.field}>
+                <span>Productfoto’s</span>
+                <select
+                  name="pricePhotoMode"
+                  onChange={(event) => setPricePhotoMode(event.currentTarget.value)}
+                  value={pricePhotoMode}
+                >
+                  <option value="show">Tonen wanneer beschikbaar</option>
+                  <option value="reserve-empty">Ruimte leeg reserveren</option>
+                </select>
+              </label>
+              {selectedSource ? (
+                <EditorialPriceEditor
+                  defaultPhotoMode={pricePhotoMode === "reserve-empty" ? "reserve-empty" : "show"}
+                  maxItems={Number(maxItems) || 1}
+                  onChange={handlePriceListChange}
+                  orientation={selectedTemplate.orientation === "portrait" ? "portrait" : "landscape"}
+                  products={selectedSource.products}
+                  sourceId={selectedSource.id}
+                />
+              ) : null}
+            </>
+          ) : null}
+          {slideType === "news" ? (
             <label className={styles.field}>
-              <span>Categorie (optioneel)</span>
-              <input
-                maxLength={160}
-                name="category"
-                onChange={(event) => setCategory(event.currentTarget.value)}
-                placeholder="Dranken"
-                value={category}
-              />
+              <span>Nieuwsvariant</span>
+              <select
+                name="newsVariant"
+                onChange={(event) => setNewsVariant(event.currentTarget.value)}
+                value={newsVariant}
+              >
+                <option value="hero_split">Hero split</option>
+                <option value="fullscreen_gradient">Fullscreen gradient</option>
+                <option value="news_grid">Nieuwsgrid</option>
+                <option value="text_only">Zonder foto</option>
+              </select>
             </label>
+          ) : null}
+          {slideType === "news" ? (
+            <fieldset className={styles.editorialFocalPoint}>
+              <legend>Focal point nieuwsbeeld</legend>
+              <label>X <input max="100" min="0" name="newsFocalPointX" onChange={(event) => setNewsFocalPoint((point) => ({ ...point, x: Number(event.currentTarget.value) / 100 }))} type="range" value={Math.round(newsFocalPoint.x * 100)} /></label>
+              <label>Y <input max="100" min="0" name="newsFocalPointY" onChange={(event) => setNewsFocalPoint((point) => ({ ...point, y: Number(event.currentTarget.value) / 100 }))} type="range" value={Math.round(newsFocalPoint.y * 100)} /></label>
+              <input name="newsFocalPointJson" type="hidden" value={JSON.stringify(newsFocalPoint)} />
+            </fieldset>
           ) : null}
           {slideType === "price_list" && selectedSource ? (
             <div className={`${styles.field} ${styles.fieldWide}`}>
@@ -722,6 +820,8 @@ export function SlideComposerForm({
                   ? "1"
                   : slideType === "news"
                     ? "12"
+                    : isEditorialSportList(slideType)
+                      ? "20"
                     : "40"
               }
               min="1"
@@ -786,6 +886,28 @@ export function SlideComposerForm({
         hidden={currentStep !== 4}
       >
         <h2 ref={currentStep === 4 ? stepHeadingRef : undefined} tabIndex={-1}>
+          Kies kleuren en uitstraling
+        </h2>
+        <EditorialThemeEditor
+          defaults={tenantThemeDefaults}
+          onChange={setTheme}
+          theme={theme}
+        />
+        {currentStep === 4 ? (
+          <DynamicSlideLivePreview
+            dualOrientation
+            loading={isPreviewPending}
+            result={previewResult}
+          />
+        ) : null}
+      </section>
+
+      <section
+        className={styles.formSection}
+        data-wizard-step="5"
+        hidden={currentStep !== 5}
+      >
+        <h2 ref={currentStep === 5 ? stepHeadingRef : undefined} tabIndex={-1}>
           Controleer en maak de slide
         </h2>
         <dl className={styles.wizardReview}>
@@ -853,13 +975,17 @@ export function SlideComposerForm({
               {category ? ` · categorie ${category}` : ""}
             </dd>
           </div>
+          <div>
+            <dt>Uitstraling</dt>
+            <dd>{theme.mode === "dark" ? "Donker" : "Licht"} · accent {theme[theme.mode].accent}</dd>
+          </div>
         </dl>
         <p className={styles.muted}>
           Na opslaan maakt VeyoCast een immutable datasnapshot. Players tonen
           die met de gekozen HTML/CSS-template; de worker bewaart daarnaast
           automatisch een PNG-fallback voor offline en oudere apparaten.
         </p>
-        {currentStep === 4 ? (
+        {currentStep === 5 ? (
           <DynamicSlideLivePreview
             loading={isPreviewPending}
             result={previewResult}
@@ -1215,6 +1341,7 @@ function defaultMaxItems(slideType: string) {
   if (slideType === "news") return "5";
   if (slideType === "menu") return "12";
   if (slideType === "price_list") return "40";
+  if (isEditorialSportList(slideType)) return "20";
   if (supportsSportStandingSelection(slideType)) return "18";
   return "8";
 }
@@ -1224,6 +1351,12 @@ function isSingleMatchSlide(slideType: string) {
     "sport_match_of_the_day",
     "sport_next_match"
   ].includes(slideType);
+}
+
+function isEditorialSportList(slideType: string) {
+  return ["sport_program", "sport_results", "sport_standing"].includes(
+    slideType
+  );
 }
 
 export function supportsSportMatchSelection(slideType: string) {
@@ -1262,12 +1395,11 @@ function maxItemsHelp(slideType: string, orientation: string) {
     return "Deze Match Centre-template toont altijd precies één wedstrijd.";
   }
   const pageSize = slideType === "menu"
-    ? orientation === "portrait" ? 10 : 8
+    ? orientation === "portrait" ? 32 : 16
     : slideType === "news"
       ? 1
-      : supportsSportStandingSelection(slideType) &&
-          orientation === "portrait"
-        ? 18
+      : isEditorialSportList(slideType)
+        ? 20
         : orientation === "portrait" ? 6 : 8;
   if (slideType === "news") {
     return "Kies 1 tot 12 berichten. Elk artikel krijgt een eigen HTML/CSS-scherm.";

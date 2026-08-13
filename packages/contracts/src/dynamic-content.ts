@@ -43,6 +43,17 @@ export const editorialArenaActiveSlideTypes = [
 ] as const satisfies readonly (typeof dynamicSlideTypes)[number][];
 
 export const editorialArenaThemeId = "editorial-arena" as const;
+export const editorialArenaThemeModes = ["light", "dark"] as const;
+export const editorialArenaNewsVariants = [
+  "hero_split",
+  "fullscreen_gradient",
+  "news_grid",
+  "text_only"
+] as const;
+export const editorialArenaPricePhotoModes = [
+  "show",
+  "reserve-empty"
+] as const;
 export const dynamicSlideOrientations = ["landscape", "portrait"] as const;
 export const dynamicDataSourceKinds = [
   "manual_products",
@@ -58,6 +69,89 @@ export const dynamicDataSourceKindSchema = z.enum(dynamicDataSourceKinds);
 const safeLabelSchema = z.string().trim().min(1).max(160);
 const safeTextSchema = z.string().trim().max(4_000);
 const idSchema = z.string().uuid();
+const cssColorSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .regex(
+    /^(#[0-9a-f]{6}|rgba?\([0-9.,%\s]+\)|hsla?\([0-9.,%\s]+\))$/i,
+    "Ongeldige CSS-kleur"
+  );
+
+export const editorialColorTokensSchema = z.object({
+  accent: cssColorSchema,
+  accentSoft: cssColorSchema,
+  border: cssColorSchema,
+  borderSoft: cssColorSchema,
+  canvas: cssColorSchema,
+  danger: cssColorSchema,
+  divider: cssColorSchema,
+  imageOverlayEnd: cssColorSchema,
+  imageOverlayMid: cssColorSchema,
+  imageOverlayStart: cssColorSchema,
+  neutral: cssColorSchema,
+  panel: cssColorSchema,
+  qrInk: cssColorSchema,
+  qrSurface: cssColorSchema,
+  row: cssColorSchema,
+  rowSelected: cssColorSchema,
+  shadow: cssColorSchema,
+  success: cssColorSchema,
+  surface: cssColorSchema,
+  surfaceRaised: cssColorSchema,
+  text: cssColorSchema,
+  textFaint: cssColorSchema,
+  textMuted: cssColorSchema,
+  textOnAccent: cssColorSchema,
+  textOnSelected: cssColorSchema,
+  warning: cssColorSchema
+}).strict();
+
+export const editorialThemeConfigSchema = z.object({
+  dark: editorialColorTokensSchema,
+  light: editorialColorTokensSchema,
+  mode: z.enum(editorialArenaThemeModes)
+}).strict();
+
+export const editorialFocalPointSchema = z.object({
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1)
+}).strict();
+
+export const editorialPriceListEntrySchema = z.discriminatedUnion("kind", [
+  z.object({
+    category: z.string().trim().min(1).max(160),
+    kind: z.literal("category")
+  }).strict(),
+  z.object({
+    kind: z.literal("product"),
+    productId: idSchema
+  }).strict()
+]);
+
+export const editorialPriceListConfigurationSchema = z.object({
+  categoryPhotoModes: z.record(
+    z.string().trim().min(1).max(160),
+    z.enum(["inherit", ...editorialArenaPricePhotoModes])
+  ),
+  columns: z.object({
+    left: z.array(editorialPriceListEntrySchema).max(100),
+    right: z.array(editorialPriceListEntrySchema).max(100)
+  }).strict(),
+  productFocalPoints: z.record(idSchema, editorialFocalPointSchema)
+}).strict();
+
+export const editorialArenaConfigurationSchema = z.object({
+  newsFocalPoint: editorialFocalPointSchema.optional(),
+  newsVariant: z.enum(editorialArenaNewsVariants).default("hero_split"),
+  priceList: editorialPriceListConfigurationSchema.optional(),
+  pricePhotoMode: z
+    .enum(editorialArenaPricePhotoModes)
+    .default("show"),
+  schemaVersion: z.literal(2),
+  theme: editorialThemeConfigSchema
+}).strict();
 
 export const priceListPhotoModes = ["show", "hide"] as const;
 export const priceListCategoryPhotoModes = ["inherit", "show", "hide"] as const;
@@ -280,3 +374,16 @@ export type PlayerDynamicTemplatePayload = z.infer<
   typeof playerDynamicTemplatePayloadSchema
 >;
 export type DynamicSnapshotData = z.infer<typeof dynamicSnapshotDataSchema>;
+export type EditorialColorTokens = z.infer<typeof editorialColorTokensSchema>;
+export type EditorialThemeConfig = z.infer<typeof editorialThemeConfigSchema>;
+export type EditorialFocalPoint = z.infer<typeof editorialFocalPointSchema>;
+export type EditorialPriceListConfiguration = z.infer<
+  typeof editorialPriceListConfigurationSchema
+>;
+export type EditorialArenaConfiguration = z.infer<
+  typeof editorialArenaConfigurationSchema
+>;
+export type EditorialNewsVariant =
+  (typeof editorialArenaNewsVariants)[number];
+export type EditorialPricePhotoMode =
+  (typeof editorialArenaPricePhotoModes)[number];

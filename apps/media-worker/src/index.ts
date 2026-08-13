@@ -26,6 +26,7 @@ import {
   runDynamicRenderOnce,
   type DynamicRenderRunResult
 } from "./dynamic-render-runner";
+import { ReactDomDynamicThumbnailRenderer } from "./dynamic-react-thumbnail";
 import {
   SupabaseRssSyncBackend,
   runRssSyncLoop,
@@ -188,6 +189,9 @@ async function main() {
     config.serviceRoleKey
   );
   const studioRenderer = new ResvgSharpStudioRenderer();
+  const reactDomRenderer = process.env.MONITOR_PLAYER_URL
+    ? new ReactDomDynamicThumbnailRenderer(process.env.MONITOR_PLAYER_URL)
+    : undefined;
   if (mode === "--once") {
     const mediaResult = await runWorkerOnce({ backend, config });
     logWorkerResult(logger, mediaResult);
@@ -200,6 +204,7 @@ async function main() {
     const dynamicResult = await runDynamicRenderOnce({
       backend: dynamicBackend,
       config,
+      reactDomRenderer,
       renderer: studioRenderer
     });
     logDynamicRenderResult(logger, dynamicResult);
@@ -293,6 +298,7 @@ async function main() {
           logDynamicRenderResult(logger, result);
         },
         renderer: studioRenderer,
+        reactDomRenderer,
         signal: controller.signal
       }),
       runRssSyncLoop({

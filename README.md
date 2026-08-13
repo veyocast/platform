@@ -160,6 +160,13 @@ filterervaring voor de belangrijkste Control-resources toe. Zie
 
 Physical model/firmware validation and the 24-hour mixed-media soak remain
 required before an LG support claim.
+
+S101 brengt de vijf actuele dynamische slidefamilies onder Editorial Arena v2:
+vaste landscape-/portraitcanvassen, volledige light/dark-semantiektokens,
+vier nieuwsvarianten, maatvaste tweekoloms prijslijsten en sportpaging tot
+twintig regels. Opgeloste themawaarden worden in immutable snapshots bevroren;
+zie [`docs/dynamic-slides-canon.md`](docs/dynamic-slides-canon.md) en
+[`docs/s101-editorial-arena-slide-suite-evidence.md`](docs/s101-editorial-arena-slide-suite-evidence.md).
 De officiële VeyoCast-merkassetset v1.0 is vastgelegd in `assets/brand/` met
 locked SVG-masters, goedgekeurde technische afgeleiden en SHA-256-controle.
 

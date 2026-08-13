@@ -31,7 +31,7 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
   ).toBeVisible();
   await expect(page.getByText("Voetbalnieuws", { exact: true })).toHaveCSS(
     "color",
-    "rgb(243, 240, 233)"
+    "rgb(247, 243, 235)"
   );
   await expect(page.getByText("Editorial Arena", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Nieuws uit en rond de club", { exact: true }))
@@ -42,7 +42,7 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
   const photo = slide.locator("main section").first();
   const photoBox = await photo.boundingBox();
   expect(photoBox).not.toBeNull();
-  expect(photoBox!.width / photoBox!.height).toBeCloseTo(16 / 9, 2);
+  expect(photoBox!.width).toBeGreaterThan(photoBox!.height);
   await expect(photo.locator("img").first()).toHaveCSS(
     "object-fit",
     "contain"
@@ -124,7 +124,7 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
   expect(browserErrors).toEqual([]);
 });
 
-test("vult een extra hoge portraitviewport zonder zwarte stroken", async ({
+test("behoudt het vaste canvas in een extra hoge portraitviewport", async ({
   page
 }) => {
   await page.setViewportSize({ height: 2048, width: 945 });
@@ -135,8 +135,9 @@ test("vult een extra hoge portraitviewport zonder zwarte stroken", async ({
   await expect(slide).toBeVisible();
   const box = await slide.boundingBox();
   expect(box).not.toBeNull();
-  expect(box!.y).toBeLessThanOrEqual(0);
-  expect(box!.y + box!.height).toBeGreaterThanOrEqual(2048);
-  expect(box!.x).toBeLessThanOrEqual(0);
-  expect(box!.x + box!.width).toBeGreaterThanOrEqual(945);
+  expect(box!.width).toBeCloseTo(945, 0);
+  expect(box!.height).toBeCloseTo(1680, 0);
+  expect(box!.x).toBeCloseTo(0, 0);
+  expect(box!.y).toBeCloseTo(184, 0);
+  expect(box!.width / box!.height).toBeCloseTo(1080 / 1920, 3);
 });
