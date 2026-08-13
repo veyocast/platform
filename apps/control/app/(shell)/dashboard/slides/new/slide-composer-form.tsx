@@ -24,6 +24,10 @@ import {
   type DynamicSlidePreviewResult
 } from "../actions";
 import { DynamicSlideLivePreview } from "./dynamic-slide-live-preview";
+import {
+  PriceListConfigurator,
+  type PriceListProductOption
+} from "./price-list-configurator";
 import type {
   SportlinkAvailabilityRecord,
   SportlinkCompetitionOption,
@@ -57,6 +61,7 @@ export type SlideTemplateOption = {
 
 type Props = {
   primaryColor: string;
+  products: PriceListProductOption[];
   sources: SlideSourceOption[];
   templates: SlideTemplateOption[];
 };
@@ -90,6 +95,7 @@ const wizardSteps = [
 
 export function SlideComposerForm({
   primaryColor,
+  products,
   sources,
   templates
 }: Props) {
@@ -120,6 +126,7 @@ export function SlideComposerForm({
     defaultMaxItems(initialTemplate.slideType)
   );
   const [secondsPerSlide, setSecondsPerSlide] = useState("5");
+  const [priceListConfiguration, setPriceListConfiguration] = useState("");
   const [showEmptySportOptions, setShowEmptySportOptions] = useState(false);
   const [previewResult, setPreviewResult] =
     useState<DynamicSlidePreviewResult | null>(null);
@@ -228,6 +235,9 @@ export function SlideComposerForm({
       previewFormData.set("sportSeason", selectedSportSeason);
       previewFormData.set("maxItems", maxItems);
       previewFormData.set("secondsPerSlide", secondsPerSlide);
+      if (slideType === "price_list") {
+        previewFormData.set("priceListConfiguration", priceListConfiguration);
+      }
       startPreviewTransition(async () => {
         const result = await previewDynamicSlide(previewFormData);
         if (active) setPreviewResult(result);
@@ -241,6 +251,7 @@ export function SlideComposerForm({
     category,
     maxItems,
     name,
+    priceListConfiguration,
     secondsPerSlide,
     selectedSource,
     selectedSportCompetitionExternalId,
@@ -284,6 +295,7 @@ export function SlideComposerForm({
     setSportSeason("*");
     setMaxItems(defaultMaxItems(value));
     setSecondsPerSlide("5");
+    setPriceListConfiguration("");
   }
 
   return (
@@ -547,6 +559,23 @@ export function SlideComposerForm({
               />
             </label>
           ) : null}
+          {slideType === "price_list" && selectedSource ? (
+            <div className={`${styles.field} ${styles.fieldWide}`}>
+              <PriceListConfigurator
+                dataSourceId={selectedSource.id}
+                key={`${selectedSource.id}-${selectedTemplate.orientation}`}
+                onConfigurationChange={setPriceListConfiguration}
+                orientation={selectedTemplate.orientation}
+                products={products}
+                title={title}
+              />
+              <input
+                name="priceListConfiguration"
+                type="hidden"
+                value={priceListConfiguration}
+              />
+            </div>
+          ) : null}
           {supportsSportContextSelection(slideType) ? (
             <>
               <label
@@ -685,7 +714,7 @@ export function SlideComposerForm({
               ) : null}
             </>
           ) : null}
-          <label className={styles.field}>
+          {slideType !== "price_list" ? <label className={styles.field}>
             <span>{maxItemsLabel(slideType)}</span>
             <input
               max={
@@ -705,7 +734,7 @@ export function SlideComposerForm({
             <small className={styles.fieldHint}>
               {maxItemsHelp(slideType, selectedTemplate.orientation)}
             </small>
-          </label>
+          </label> : null}
           {slideType === "news" ? (
             <label className={styles.field}>
               <span>Seconden per nieuwsslide</span>
@@ -998,6 +1027,8 @@ function TemplatePreview({
   const isDark = template.slug.includes("dark");
   const previewType = template.slideType === "menu"
     ? "menu"
+    : template.slideType === "price_list"
+      ? "price-list"
     : template.slideType === "news"
       ? "news"
       : isSingleMatchSlide(template.slideType)
@@ -1020,6 +1051,8 @@ function TemplatePreview({
       <span className={styles.templatePreviewKicker}>
         {previewType === "menu"
           ? "Clubkantine"
+          : previewType === "price-list"
+            ? "Clubprijzen"
           : previewType === "news"
             ? "Clubnieuws"
             : "Match centre"}
@@ -1027,13 +1060,15 @@ function TemplatePreview({
       <strong>
         {previewType === "menu"
           ? "Menu vandaag"
+          : previewType === "price-list"
+            ? "Prijslijst"
           : previewType === "news"
             ? "Het laatste clubnieuws"
             : previewType === "match"
               ? "VeyoCast 1 – Bezoekers"
               : slideTypeLabel(template.slideType)}
       </strong>
-      {previewType === "menu" ? (
+      {previewType === "menu" || previewType === "price-list" ? (
         <span className={styles.templatePreviewRows}>
           <i>Clubburger</i><b>€ 6,95</b>
           <i>Friet groot</i><b>€ 4,25</b>
@@ -1096,7 +1131,7 @@ export function requiredSportlinkDatasetGroups(slideType: string) {
 }
 
 export function sourceMatchesSlideType(kind: string, slideType: string) {
-  if (slideType === "menu") {
+  if (slideType === "menu" || slideType === "price_list") {
     return kind === "manual_products" || kind === "twelve_excel";
   }
   if (slideType === "news") return kind === "rss";
@@ -1130,7 +1165,7 @@ function sourceActionLabel(
 }
 
 function missingSourceCopy(slideType: string) {
-  if (slideType === "menu") {
+  if (slideType === "menu" || slideType === "price_list") {
     return "Maak een handmatige of Twelve-productbron en voeg minimaal één product toe.";
   }
   if (slideType === "news") {
@@ -1179,6 +1214,7 @@ function defaultMaxItems(slideType: string) {
   if (isSingleMatchSlide(slideType)) return "1";
   if (slideType === "news") return "5";
   if (slideType === "menu") return "12";
+  if (slideType === "price_list") return "40";
   if (supportsSportStandingSelection(slideType)) return "18";
   return "8";
 }
@@ -1266,6 +1302,7 @@ function templateSummary(template: SlideTemplateOption) {
 function slideTypeLabel(value: string) {
   const labels: Record<string, string> = {
     menu: "Menubord",
+    price_list: "Prijslijst",
     news: "Nieuws",
     sport_activities: "Clubagenda",
     sport_birthdays: "Jarigen",

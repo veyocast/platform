@@ -269,6 +269,156 @@
 
 /* Menu */
 
+/* Price list */
+
+.arenaRoot[data-slide-type="price_list"] .arenaMasthead {
+  gap: 32px;
+  grid-template-columns: 112px 1fr;
+  height: 16.3%;
+  margin-left: 64px;
+  margin-right: 64px;
+}
+
+.arenaRoot[data-slide-type="price_list"] .arenaCrest {
+  height: 112px;
+  width: 112px;
+}
+
+.arenaRoot[data-slide-type="price_list"] .arenaContext {
+  display: none;
+}
+
+.arenaRoot[data-slide-type="price_list"] .arenaContent {
+  bottom: 8.15%;
+  left: 3.33%;
+  right: 3.33%;
+  top: 18.52%;
+}
+
+.arenaPriceListGrid {
+  display: grid;
+  gap: 64px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  height: 100%;
+}
+
+.arenaPriceListColumn {
+  align-self: start;
+  min-width: 0;
+}
+
+.arenaPriceListCategory,
+.arenaPriceListProduct {
+  border-bottom: 1px solid var(--arena-line);
+  height: 88px;
+  margin: 0;
+  min-width: 0;
+}
+
+.arenaPriceListCategory {
+  align-items: center;
+  display: flex;
+  font-family: "Arial Narrow", Arial, sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  gap: 24px;
+  letter-spacing: 0.025em;
+  line-height: 1;
+  overflow: hidden;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.arenaPriceListCategory > i {
+  background: var(--arena-accent);
+  flex: 0 0 8px;
+  height: 64px;
+}
+
+.arenaPriceListCategory > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arenaPriceListCategory > small {
+  color: var(--arena-muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-left: auto;
+  text-transform: uppercase;
+}
+
+.arenaPriceListProduct {
+  align-items: center;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 64px minmax(0, 1fr) 120px;
+  padding: 12px 0;
+}
+
+.arenaPriceListMedia {
+  display: block;
+  height: 64px;
+  overflow: hidden;
+  width: 64px;
+}
+
+.arenaPriceListMedia img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.arenaPriceListCopy {
+  align-items: center;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  height: 64px;
+  min-width: 0;
+}
+
+.arenaPriceListCopy strong,
+.arenaPriceListCopy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arenaPriceListCopy strong {
+  align-self: end;
+  font-family: "Arial Narrow", Arial, sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.arenaPriceListCopy small {
+  align-self: start;
+  color: var(--arena-muted);
+  font-size: 17px;
+  line-height: 22px;
+  padding-top: 5px;
+}
+
+.arenaPriceListProduct > b {
+  color: var(--arena-accent);
+  font-family: "Arial Narrow", Arial, sans-serif;
+  font-size: 32px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  justify-self: end;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  max-width: 120px;
+  overflow: hidden;
+  text-align: right;
+  white-space: nowrap;
+}
+
 .arenaMenuLayout,
 .arenaNewsLayout,
 .arenaAgendaLayout,
@@ -1015,6 +1165,65 @@
   left: calc(5.37% + var(--arena-viewport-inset-x, 0px));
   right: calc(5.37% + var(--arena-viewport-inset-x, 0px));
   top: 15.83%;
+}
+
+.arenaRoot[data-orientation="portrait"][data-slide-type="price_list"] .arenaMasthead {
+  gap: 24px;
+  grid-template-columns: 104px 1fr;
+  height: 9.27%;
+  margin-left: 48px;
+  margin-right: 48px;
+}
+
+.arenaRoot[data-orientation="portrait"][data-slide-type="price_list"] .arenaCrest {
+  height: 104px;
+  width: 104px;
+}
+
+.arenaRoot[data-orientation="portrait"][data-slide-type="price_list"] .arenaContent {
+  bottom: 4.58%;
+  left: 4.44%;
+  right: 4.44%;
+  top: 10.42%;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaPriceListGrid {
+  gap: 32px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaPriceListCategory,
+.arenaRoot[data-orientation="portrait"] .arenaPriceListProduct {
+  height: 96px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaPriceListCategory {
+  font-size: 22px;
+  gap: 16px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaPriceListCategory > i {
+  flex-basis: 7px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaPriceListProduct {
+  gap: 12px;
+  grid-template-columns: 64px minmax(0, 1fr) 92px;
+  padding: 16px 0;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaPriceListCopy strong {
+  font-size: 20px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaPriceListCopy small {
+  font-size: 14px;
+  line-height: 19px;
+  padding-top: 4px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaPriceListProduct > b {
+  font-size: 24px;
+  max-width: 92px;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaFooter {

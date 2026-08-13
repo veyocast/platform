@@ -311,6 +311,23 @@ export function collectDynamicSnapshotMediaAssetIds(snapshot: unknown) {
       }
     }
   }
+  const priceList = isRecord(snapshot.priceList) ? snapshot.priceList : null;
+  if (Array.isArray(priceList?.sections)) {
+    for (const sectionValue of priceList.sections.slice(0, 40)) {
+      const section = isRecord(sectionValue) ? sectionValue : null;
+      if (!Array.isArray(section?.products)) continue;
+      for (const productValue of section.products.slice(0, 100)) {
+        const product = isRecord(productValue) ? productValue : null;
+        if (
+          product?.photoVisible === true &&
+          typeof product.imageMediaAssetId === "string" &&
+          uuidPattern.test(product.imageMediaAssetId)
+        ) {
+          ids.add(product.imageMediaAssetId);
+        }
+      }
+    }
+  }
   const sport = isRecord(snapshot.sport) ? snapshot.sport : null;
   if (Array.isArray(sport?.items)) {
     for (const value of sport.items.slice(0, 100)) {

@@ -3,6 +3,13 @@ import {
   type PlayerDynamicTemplatePayload
 } from "@veyocast/contracts";
 
+import {
+  paginatePriceList,
+  type PriceListRenderPage,
+  type ResolvedPriceListItem,
+  type ResolvedPriceListSection
+} from "./price-list";
+
 export type DynamicTemplateTheme = "dark" | "light";
 
 export type DynamicTemplateListItem = {
@@ -67,6 +74,7 @@ export type DynamicTemplateStandingForm = "draw" | "loss" | "win";
 
 export type DynamicTemplatePage =
   | { items: DynamicTemplateMenuItem[]; kind: "menu" }
+  | { kind: "price-list"; page: PriceListRenderPage }
   | { item: DynamicTemplateNewsItem | null; kind: "news" }
   | {
       awayTeam: string;
@@ -105,6 +113,7 @@ const matchSlideTypes = new Set([
 ]);
 const dynamicSlideTypes = new Set<PlayerDynamicTemplatePayload["slideType"]>([
   "menu",
+  "price_list",
   "news",
   "sport_activities",
   "sport_birthdays",
@@ -172,6 +181,29 @@ export function createDynamicTemplateView(
       templateStyle: "default",
       theme,
       title: safeText(menu?.title, "Menu vandaag")
+    };
+  }
+
+  if (payload.slideType === "price_list") {
+    const priceList = readRecord(data.priceList);
+    const sections = readArray(priceList?.sections)
+      .map((section) => toPriceListSection(section, payload))
+      .filter((section): section is ResolvedPriceListSection => section !== null);
+    const pages = paginatePriceList(sections, payload.orientation);
+    return {
+      accentColor,
+      clubLogoUrl,
+      clubName,
+      emptyState: sections.length ? "" : "Er zijn geen producten geselecteerd.",
+      orientation: payload.orientation,
+      pages: pages.map((page) => ({ kind: "price-list" as const, page })),
+      providerLogoUrl: "",
+      slideType: payload.slideType,
+      snapshotId: payload.snapshotId,
+      sourceLabel: "Prijzen uit de clubkantine",
+      templateStyle: "default",
+      theme,
+      title: safeText(priceList?.title, "Prijslijst")
     };
   }
 
@@ -291,6 +323,63 @@ export function createDynamicTemplateView(
   };
 }
 
+function toPriceListSection(
+  value: unknown,
+  payload: PlayerDynamicTemplatePayload
+): ResolvedPriceListSection | null {
+  const section = readRecord(value);
+  if (!section || (section.column !== "left" && section.column !== "right")) {
+    return null;
+  }
+  const id = safeText(section.id, "");
+  const name = safeText(section.name, "");
+  if (!id || !name) return null;
+  const products = readArray(section.products)
+    .map((product) => toPriceListItem(product, payload))
+    .filter((product): product is ResolvedPriceListItem => product !== null);
+  if (!products.length) return null;
+  return {
+    column: section.column,
+    id,
+    name,
+    order: safeInteger(section.order, 0, 100_000, 0),
+    products
+  };
+}
+
+function toPriceListItem(
+  value: unknown,
+  payload: PlayerDynamicTemplatePayload
+): ResolvedPriceListItem | null {
+  const product = readRecord(value);
+  if (!product) return null;
+  const id = safeText(product.id, "");
+  const name = safeText(product.name, "");
+  if (!id || !name) return null;
+  const photoVisible = product.photoVisible === true;
+  const url = photoVisible
+    ? dynamicAssetUrl(product.imageMediaAssetId, payload)
+    : "";
+  const focalPoint = readRecord(product.imageFocalPoint);
+  const x = safeNumber(focalPoint?.x, 0, 1, 0.5);
+  const y = safeNumber(focalPoint?.y, 0, 1, 0.5);
+  return {
+    description: safeText(product.description, ""),
+    formattedPrice: safeText(product.formattedPrice, ""),
+    id,
+    image: url
+      ? {
+          alt: name,
+          kind: "image",
+          objectPosition: `${Math.round(x * 100)}% ${Math.round(y * 100)}%`,
+          url
+        }
+      : { kind: "empty" },
+    name,
+    photoVisible
+  };
+}
+
 function toStandingItem(
   value: unknown,
   payload: PlayerDynamicTemplatePayload
@@ -403,7 +492,7 @@ function parseDynamicAssets(
 ): NonNullable<PlayerDynamicTemplatePayload["assets"]> | null {
   if (value === undefined) return {};
   const assets = readRecord(value);
-  if (!assets || Object.keys(assets).length > 51) return null;
+  if (!assets || Object.keys(assets).length > 201) return null;
 
   const parsed: NonNullable<PlayerDynamicTemplatePayload["assets"]> = {};
   for (const [assetId, candidate] of Object.entries(assets)) {
@@ -600,6 +689,18 @@ function safeInteger(
 ) {
   const numeric = Number(value);
   return Number.isInteger(numeric)
+    ? Math.min(maximum, Math.max(minimum, numeric))
+    : fallback;
+}
+
+function safeNumber(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+  fallback: number
+) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric)
     ? Math.min(maximum, Math.max(minimum, numeric))
     : fallback;
 }

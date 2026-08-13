@@ -143,6 +143,27 @@ export function renderLgLegacyHtml() {
     .editorial-arena.dark .dynamic-row{border-color:rgba(255,255,255,.12)}
     .editorial-arena .dynamic-match{padding:2.8%}
     .editorial-arena .dynamic-team-mark{border:0;background:var(--accent);color:#fff;clip-path:polygon(7% 0,93% 0,85% 72%,50% 100%,15% 72%)}
+    .dynamic-template.editorial-arena[data-slide-type="price_list"]>header{right:64px;left:64px;height:16.3%;grid-template-columns:112px 1fr;gap:32px}
+    .editorial-arena[data-slide-type="price_list"] .editorial-crest{width:112px;height:112px}
+    .editorial-arena[data-slide-type="price_list"] .editorial-context{display:none}
+    .editorial-arena[data-slide-type="price_list"] .dynamic-body{top:18.52%;right:3.33%;bottom:8.15%;left:3.33%}
+    .legacy-price-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:64px;height:100%}
+    .legacy-price-column{min-width:0;align-self:start}
+    .legacy-price-category,.legacy-price-product{box-sizing:border-box;height:88px;margin:0;border-bottom:1px solid rgba(255,255,255,.12)}
+    .legacy-price-category{display:flex;align-items:center;gap:24px;overflow:hidden;font-size:28px;font-weight:900;text-transform:uppercase;white-space:nowrap}
+    .legacy-price-category:before{flex:0 0 8px;height:64px;background:var(--accent);content:""}
+    .legacy-price-category span{overflow:hidden;text-overflow:ellipsis}
+    .legacy-price-category small{margin-left:auto;color:#9aa2ac;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+    .legacy-price-product{display:grid;grid-template-columns:64px minmax(0,1fr) 120px;align-items:center;gap:16px;padding:12px 0}
+    .legacy-price-media{display:block;width:64px;height:64px;overflow:hidden}
+    .legacy-price-media img{display:block;width:100%;height:100%;object-fit:cover}
+    .legacy-price-copy{display:grid;grid-template-rows:1fr 1fr;align-items:center;min-width:0;height:64px}
+    .legacy-price-copy strong,.legacy-price-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .legacy-price-copy strong{align-self:end;font-size:26px;line-height:1}
+    .legacy-price-copy small{align-self:start;padding-top:5px;color:#9aa2ac;font-size:17px;line-height:22px}
+    .legacy-price-product>b{justify-self:end;overflow:hidden;max-width:120px;color:var(--accent);font-size:32px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+    .editorial-arena:not(.dark) .legacy-price-category,.editorial-arena:not(.dark) .legacy-price-product{border-color:rgba(23,32,42,.12)}
+    .editorial-arena:not(.dark) .legacy-price-category small,.editorial-arena:not(.dark) .legacy-price-copy small{color:#6f7882}
     .editorial-arena.dark .dynamic-team-mark{background:var(--accent);color:#fff}
     .editorial-news{display:grid;grid-template-columns:1.02fr .98fr;gap:1.6%;height:100%}
     .editorial-news-art,.editorial-news-copy{position:relative;overflow:hidden;border:1px solid rgba(23,32,42,.13);border-radius:24px;background:#fffefa;box-shadow:0 24px 80px rgba(0,0,0,.24)}
@@ -185,6 +206,17 @@ export function renderLgLegacyHtml() {
     .editorial-arena[data-slide-type="news"] .dynamic-body{top:15.4%}
     .editorial-arena.portrait[data-slide-type="news"]>header{height:9.5%}
     .editorial-arena.portrait[data-slide-type="news"] .dynamic-body{top:11.2%}
+    .dynamic-template.editorial-arena.portrait[data-slide-type="price_list"]>header{right:48px;left:48px;height:9.27%;grid-template-columns:104px 1fr;gap:24px}
+    .editorial-arena.portrait[data-slide-type="price_list"] .editorial-crest{width:104px;height:104px}
+    .editorial-arena.portrait[data-slide-type="price_list"] .dynamic-body{top:10.42%;right:4.44%;bottom:4.58%;left:4.44%}
+    .portrait .legacy-price-grid{gap:32px}
+    .portrait .legacy-price-category,.portrait .legacy-price-product{height:96px}
+    .portrait .legacy-price-category{gap:16px;font-size:22px}
+    .portrait .legacy-price-category:before{flex-basis:7px}
+    .portrait .legacy-price-product{grid-template-columns:64px minmax(0,1fr) 92px;gap:12px;padding:16px 0}
+    .portrait .legacy-price-copy strong{font-size:20px}
+    .portrait .legacy-price-copy small{padding-top:4px;font-size:14px;line-height:19px}
+    .portrait .legacy-price-product>b{max-width:92px;font-size:24px}
     .legacy-standing-card{box-sizing:border-box;height:100%;overflow:hidden;padding:1.35%;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:#0d1218;box-shadow:0 24px 80px rgba(0,0,0,.24)}
     .legacy-standing-columns,.legacy-standing-row{box-sizing:border-box;display:grid;grid-template-columns:4% 1fr repeat(6,5.7%) 15%;align-items:center;gap:.7%}
     .legacy-standing-columns{height:7%;padding:0 .7%;border-bottom:2px solid var(--accent);color:var(--accent);font-size:22px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
@@ -1989,6 +2021,7 @@ export function renderLgLegacyHtml() {
     }
     var editorialArenaSlideTypes = [
       "menu",
+      "price_list",
       "news",
       "sport_activities",
       "sport_cancellations",
@@ -2005,7 +2038,7 @@ export function renderLgLegacyHtml() {
         : null;
     }
     function templateArray(value) {
-      return Array.isArray(value) ? value.slice(0, 40) : [];
+      return Array.isArray(value) ? value.slice(0, 100) : [];
     }
     function templateText(value, fallback) {
       var normalized;
@@ -2131,6 +2164,108 @@ export function renderLgLegacyHtml() {
         )
       ) return localUrl;
       return "";
+    }
+    function renderPriceListTemplate(body, snapshot, orientation, payload) {
+      var priceList = templateRecord(snapshot.priceList) || {};
+      var sections = templateArray(priceList.sections);
+      var capacity = orientation === "portrait" ? 17 : 9;
+      var columns = { left: [], right: [] };
+      var pagesByColumn = { left: [], right: [] };
+      var columnNames = ["left", "right"];
+      var index;
+      sections.sort(function (left, right) {
+        return Number(left.order || 0) - Number(right.order || 0) ||
+          templateText(left.id, "").localeCompare(templateText(right.id, ""));
+      });
+      for (index = 0; index < sections.length; index += 1) {
+        var section = templateRecord(sections[index]) || {};
+        if (section.column === "left" || section.column === "right") {
+          columns[section.column].push(section);
+        }
+      }
+      function paginateColumn(columnName) {
+        var pages = [];
+        var current = [];
+        var sectionIndex;
+        function flush() {
+          if (current.length) pages.push(current);
+          current = [];
+        }
+        for (sectionIndex = 0; sectionIndex < columns[columnName].length; sectionIndex += 1) {
+          var source = columns[columnName][sectionIndex];
+          var products = templateArray(source.products);
+          var productIndex;
+          if (!products.length) continue;
+          if (capacity - current.length < 2) flush();
+          current.push({ kind: "category", name: source.name, continuation: false });
+          for (productIndex = 0; productIndex < products.length; productIndex += 1) {
+            if (current.length === capacity) {
+              flush();
+              current.push({ kind: "category", name: source.name, continuation: true });
+            }
+            current.push({ kind: "product", product: products[productIndex] });
+          }
+        }
+        flush();
+        return pages;
+      }
+      for (index = 0; index < columnNames.length; index += 1) {
+        pagesByColumn[columnNames[index]] = paginateColumn(columnNames[index]);
+      }
+      var pageCount = Math.max(pagesByColumn.left.length, pagesByColumn.right.length, 1);
+      var pages = [];
+      for (index = 0; index < pageCount; index += 1) {
+        pages.push({
+          left: pagesByColumn.left[index] || [],
+          right: pagesByColumn.right[index] || []
+        });
+      }
+      return {
+        pages: pages,
+        render: function (page) {
+          var grid = templateNode("div", "legacy-price-grid");
+          body.innerHTML = "";
+          function appendColumn(name) {
+            var column = templateNode("section", "legacy-price-column");
+            var rows = page[name] || [];
+            var rowIndex;
+            for (rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+              var row = rows[rowIndex];
+              if (row.kind === "category") {
+                var category = templateNode("h2", "legacy-price-category");
+                category.appendChild(templateNode("span", "", templateText(row.name, "Categorie")));
+                if (row.continuation) category.appendChild(templateNode("small", "", "vervolg"));
+                column.appendChild(category);
+              } else {
+                var product = templateRecord(row.product) || {};
+                var article = templateNode("article", "legacy-price-product");
+                var media = templateNode("span", "legacy-price-media");
+                var mediaUrl = product.photoVisible === true
+                  ? templateAssetUrl(payload, templateText(product.imageMediaAssetId, ""))
+                  : "";
+                if (mediaUrl) {
+                  var image = templateNode("img", "");
+                  image.alt = "";
+                  image.onerror = function () { this.parentNode.removeChild(this); };
+                  image.src = mediaUrl;
+                  media.appendChild(image);
+                }
+                var copy = templateNode("span", "legacy-price-copy");
+                copy.appendChild(templateNode("strong", "", templateText(product.name, "Product")));
+                copy.appendChild(templateNode("small", "", templateText(product.description, "\u00a0")));
+                article.appendChild(media);
+                article.appendChild(copy);
+                article.appendChild(templateNode("b", "", templateText(product.formattedPrice, "")));
+                column.appendChild(article);
+              }
+            }
+            grid.appendChild(column);
+          }
+          appendColumn("left");
+          appendColumn("right");
+          body.appendChild(grid);
+        }
+      };
     }
     function templateDate(value) {
       var date = new Date(templateText(value, ""));
@@ -2644,6 +2779,10 @@ export function renderLgLegacyHtml() {
         sourceLabel = "Clubkantine";
         title = templateText((templateRecord(snapshot.data) || {}).title, "Menu vandaag");
         renderer = renderMenuTemplate(body, snapshot, payload.orientation, payload);
+      } else if (payload.slideType === "price_list") {
+        sourceLabel = "Prijzen uit de clubkantine";
+        title = templateText((templateRecord(snapshot.priceList) || {}).title, "Prijslijst");
+        renderer = renderPriceListTemplate(body, snapshot, payload.orientation, payload);
       } else if (payload.slideType === "news") {
         sourceLabel = "Clubnieuws";
         title = "Het laatste nieuws";
