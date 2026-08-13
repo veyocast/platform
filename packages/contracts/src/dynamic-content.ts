@@ -19,6 +19,7 @@ export const sportDynamicSlideTypes = [
 ] as const;
 export const dynamicSlideTypes = [
   "menu",
+  "price_list",
   "news",
   ...sportDynamicSlideTypes
 ] as const;
@@ -29,6 +30,7 @@ export const dynamicSlideTypes = [
  */
 export const editorialArenaActiveSlideTypes = [
   "menu",
+  "price_list",
   "news",
   "sport_activities",
   "sport_cancellations",
@@ -56,6 +58,78 @@ export const dynamicDataSourceKindSchema = z.enum(dynamicDataSourceKinds);
 const safeLabelSchema = z.string().trim().min(1).max(160);
 const safeTextSchema = z.string().trim().max(4_000);
 const idSchema = z.string().uuid();
+
+export const priceListPhotoModes = ["show", "hide"] as const;
+export const priceListCategoryPhotoModes = ["inherit", "show", "hide"] as const;
+export const priceListColumns = ["left", "right"] as const;
+
+export const priceListProductPlacementSchema = z.object({
+  descriptionOverride: z.string().trim().max(240).nullable(),
+  id: idSchema,
+  imageAssetIdOverride: idSchema.nullable(),
+  imageFocalPointOverride: z.object({
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1)
+  }).nullable(),
+  nameOverride: z.string().trim().min(1).max(160).nullable(),
+  order: z.number().int().min(0).max(100_000),
+  priceCentsOverride: z.number().int().min(0).max(999_999_999).nullable(),
+  productId: idSchema,
+  visible: z.boolean()
+}).strict();
+
+export const priceListSectionPlacementSchema = z.object({
+  categoryId: z.string().trim().min(1).max(200),
+  categoryNameOverride: z.string().trim().min(1).max(160).nullable(),
+  column: z.enum(priceListColumns),
+  id: idSchema,
+  order: z.number().int().min(0).max(100_000),
+  photoMode: z.enum(priceListCategoryPhotoModes),
+  products: z.array(priceListProductPlacementSchema).min(1).max(100)
+}).strict();
+
+export const priceListSlideConfigSchema = z.object({
+  sections: z.array(priceListSectionPlacementSchema).min(1).max(40),
+  slidePhotoMode: z.enum(priceListPhotoModes),
+  title: safeLabelSchema
+}).strict().superRefine((config, context) => {
+  const placementIds = new Set<string>();
+  const productIds = new Set<string>();
+  let placementCount = 0;
+  for (const section of config.sections) {
+    if (placementIds.has(section.id)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Section placement IDs must be unique."
+      });
+    }
+    placementIds.add(section.id);
+    for (const product of section.products) {
+      placementCount += 1;
+      if (placementIds.has(product.id)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Placement IDs must be unique."
+        });
+      }
+      placementIds.add(product.id);
+      if (product.visible && productIds.has(product.productId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A product can only be placed once."
+        });
+      }
+      if (product.visible) productIds.add(product.productId);
+    }
+  }
+  if (placementCount > 200) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Een prijslijst kan maximaal 200 producten bevatten.",
+      path: ["sections"]
+    });
+  }
+});
 
 export const canonicalProductSchema = z.object({
   active: z.boolean(),
@@ -146,7 +220,7 @@ export const playerDynamicTemplatePayloadSchema = z
   .object({
     assets: z
       .record(idSchema, playerDynamicTemplateAssetSchema)
-      .refine((assets) => Object.keys(assets).length <= 51)
+      .refine((assets) => Object.keys(assets).length <= 201)
       .optional(),
     data: z.record(z.string(), z.unknown()),
     orientation: dynamicSlideOrientationSchema,
@@ -171,6 +245,10 @@ export const dynamicSnapshotDataSchema = z.discriminatedUnion("type", [
     data: canonicalNewsFeedSchema,
     type: z.literal("news")
   }),
+  z.object({
+    priceList: z.record(z.string(), z.unknown()),
+    type: z.literal("price_list")
+  }),
   ...sportDynamicSlideTypes.map((slideType) =>
     z.object({
       sport: z.record(z.string(), z.unknown()),
@@ -185,6 +263,13 @@ export type CanonicalNewsArticle = z.infer<
   typeof canonicalNewsArticleSchema
 >;
 export type CanonicalNewsFeed = z.infer<typeof canonicalNewsFeedSchema>;
+export type PriceListProductPlacement = z.infer<
+  typeof priceListProductPlacementSchema
+>;
+export type PriceListSectionPlacement = z.infer<
+  typeof priceListSectionPlacementSchema
+>;
+export type PriceListSlideConfig = z.infer<typeof priceListSlideConfigSchema>;
 export type DynamicTemplateManifest = z.infer<
   typeof dynamicTemplateManifestSchema
 >;

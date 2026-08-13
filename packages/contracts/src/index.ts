@@ -4,5 +4,6 @@ export * from "./errors";
 export * from "./identity";
 export * from "./mobile-control";
 export * from "./playlist";
+export * from "./price-list";
 export * from "./screen-automation";
 export * from "./sport";
