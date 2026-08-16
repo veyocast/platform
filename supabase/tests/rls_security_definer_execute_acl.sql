@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(4);
+select plan(5);
 
 select is(
   (
@@ -148,6 +148,35 @@ select ok(
     'EXECUTE'
   ),
   'the superseded publish RPC is unavailable to every Data API role'
+);
+
+select ok(
+  not exists (
+    select 1
+    from pg_catalog.pg_proc procedure
+    join pg_catalog.pg_namespace namespace
+      on namespace.oid = procedure.pronamespace
+    where namespace.nspname = 'public'
+      and procedure.proname = 'rls_auto_enable'
+      and procedure.pronargs = 0
+      and (
+        has_function_privilege('anon', procedure.oid, 'EXECUTE')
+        or has_function_privilege('authenticated', procedure.oid, 'EXECUTE')
+        or has_function_privilege('service_role', procedure.oid, 'EXECUTE')
+        or exists (
+          select 1
+          from pg_catalog.aclexplode(
+            coalesce(
+              procedure.proacl,
+              pg_catalog.acldefault('f', procedure.proowner)
+            )
+          ) privilege
+          where privilege.grantee = 0
+            and privilege.privilege_type = 'EXECUTE'
+        )
+      )
+  ),
+  'the Supabase RLS event-trigger helper is unavailable to Data API roles'
 );
 
 select * from finish();
