@@ -7,6 +7,7 @@ import { createStructuredLogger } from "@veyocast/observability";
 import { readMediaWorkerConfig } from "./worker-config";
 import { SupabaseMediaWorkerBackend } from "./worker-backend";
 import { closeServer, createWorkerRuntimeHealth } from "./worker-health";
+import { runWorkerTaskGroup } from "./worker-lifecycle";
 import { runWorkerLoop, runWorkerOnce } from "./worker-runner";
 import {
   runScheduleLoop,
@@ -236,7 +237,10 @@ async function main() {
   const controller = new AbortController();
   const runtimeHealth = createWorkerRuntimeHealth();
   const healthServer = await runtimeHealth.startServer();
+  let draining = false;
   const stop = () => {
+    if (draining) return;
+    draining = true;
     runtimeHealth.markDraining();
     logger.info("media.worker.draining");
     controller.abort();
@@ -245,81 +249,85 @@ async function main() {
   process.once("SIGTERM", stop);
   try {
     logger.info("media.worker.started", { workerId: config.workerId });
-    await Promise.all([
-      runWorkerLoop({
-        backend,
-        config,
-        onQueuePoll: runtimeHealth.markPoll,
-        onResult: (result) => {
-          runtimeHealth.markPoll();
-          runtimeHealth.markResult(result.status);
-          logWorkerResult(logger, result);
-        },
-        signal: controller.signal
-      }),
-      runScheduleLoop({
-        backend,
-        intervalMs: config.schedulePollIntervalMs,
-        onResult: (result) => logScheduleResult(logger, result),
-        signal: controller.signal
-      }),
-      runStudioRenderLoop({
-        backend: studioBackend,
-        config,
-        intervalMs: config.pollIntervalMs,
-        onQueuePoll: runtimeHealth.markPoll,
-        onResult: (result) => {
-          runtimeHealth.markPoll();
-          runtimeHealth.markResult(
-            result.status === "completed" ||
-              result.status === "idle" ||
-              result.status === "retry_scheduled"
-              ? result.status
-              : "failed"
-          );
-          logStudioRenderResult(logger, result);
-        },
-        renderer: studioRenderer,
-        signal: controller.signal
-      }),
-      runDynamicRenderLoop({
-        backend: dynamicBackend,
-        config,
-        intervalMs: config.pollIntervalMs,
-        onResult: (result) => {
-          runtimeHealth.markPoll();
-          runtimeHealth.markResult(
-            result.status === "completed" ||
-              result.status === "idle" ||
-              result.status === "retry_scheduled"
-              ? result.status
-              : "failed"
-          );
-          logDynamicRenderResult(logger, result);
-        },
-        renderer: studioRenderer,
-        reactDomRenderer,
-        signal: controller.signal
-      }),
-      runRssSyncLoop({
-        backend: rssBackend,
-        intervalMs: config.schedulePollIntervalMs,
-        lockTimeoutSeconds: config.lockTimeoutSeconds,
-        onResult: (result) => logRssSyncResult(logger, result),
-        signal: controller.signal,
-        workerId: config.workerId
-      }),
-      runSportlinkSyncLoop({
-        backend: sportlinkBackend,
-        encryptionKey: config.sportlinkEncryptionKey,
-        intervalMs: config.schedulePollIntervalMs,
-        lockTimeoutSeconds: config.lockTimeoutSeconds,
-        onResult: (result) => logSportlinkSyncResult(logger, result),
-        signal: controller.signal,
-        workerId: config.workerId
-      }),
-      ...serviceMonitorTasks(controller.signal, logger)
-    ]);
+    await runWorkerTaskGroup({
+      controller,
+      onDraining: stop,
+      tasks: [
+        runWorkerLoop({
+          backend,
+          config,
+          onQueuePoll: runtimeHealth.markPoll,
+          onResult: (result) => {
+            runtimeHealth.markPoll();
+            runtimeHealth.markResult(result.status);
+            logWorkerResult(logger, result);
+          },
+          signal: controller.signal
+        }),
+        runScheduleLoop({
+          backend,
+          intervalMs: config.schedulePollIntervalMs,
+          onResult: (result) => logScheduleResult(logger, result),
+          signal: controller.signal
+        }),
+        runStudioRenderLoop({
+          backend: studioBackend,
+          config,
+          intervalMs: config.pollIntervalMs,
+          onQueuePoll: runtimeHealth.markPoll,
+          onResult: (result) => {
+            runtimeHealth.markPoll();
+            runtimeHealth.markResult(
+              result.status === "completed" ||
+                result.status === "idle" ||
+                result.status === "retry_scheduled"
+                ? result.status
+                : "failed"
+            );
+            logStudioRenderResult(logger, result);
+          },
+          renderer: studioRenderer,
+          signal: controller.signal
+        }),
+        runDynamicRenderLoop({
+          backend: dynamicBackend,
+          config,
+          intervalMs: config.pollIntervalMs,
+          onResult: (result) => {
+            runtimeHealth.markPoll();
+            runtimeHealth.markResult(
+              result.status === "completed" ||
+                result.status === "idle" ||
+                result.status === "retry_scheduled"
+                ? result.status
+                : "failed"
+            );
+            logDynamicRenderResult(logger, result);
+          },
+          renderer: studioRenderer,
+          reactDomRenderer,
+          signal: controller.signal
+        }),
+        runRssSyncLoop({
+          backend: rssBackend,
+          intervalMs: config.schedulePollIntervalMs,
+          lockTimeoutSeconds: config.lockTimeoutSeconds,
+          onResult: (result) => logRssSyncResult(logger, result),
+          signal: controller.signal,
+          workerId: config.workerId
+        }),
+        runSportlinkSyncLoop({
+          backend: sportlinkBackend,
+          encryptionKey: config.sportlinkEncryptionKey,
+          intervalMs: config.schedulePollIntervalMs,
+          lockTimeoutSeconds: config.lockTimeoutSeconds,
+          onResult: (result) => logSportlinkSyncResult(logger, result),
+          signal: controller.signal,
+          workerId: config.workerId
+        }),
+        ...serviceMonitorTasks(controller.signal, logger)
+      ]
+    });
   } finally {
     process.removeListener("SIGINT", stop);
     process.removeListener("SIGTERM", stop);
