@@ -31,6 +31,9 @@
     `EXECUTE`. Anonieme uitvoering is beperkt tot een expliciet geteste
     allowlist van Player-RPC's die hun eigen revocable devicecredential
     valideren; menselijke command-RPC's vereisen minimaal `authenticated`.
+19. De door Supabase beheerde `public.rls_auto_enable()`-event-trigger blijft
+    waar aanwezig actief als `postgres`, maar geen enkele Data API-rol krijgt
+    directe `EXECUTE`-rechten op deze helper.
 
 ## Helper functions
 
@@ -47,6 +50,11 @@ Any `SECURITY DEFINER` function must set `search_path = ''` and be narrowly
 granted. Iedere nieuwe of gewijzigde functie moet de grants voor `PUBLIC`,
 `anon`, `authenticated` en `service_role` expliciet beoordelen; vertrouwen op
 Supabase- of PostgreSQL-defaultprivileges is verboden.
+
+Een platform-managed event-triggerhelper mag een door Supabase vastgezette
+`search_path` behouden wanneer de applicatiemigraties haar niet definiëren. De
+applicatie sluit wel expliciet haar Data API-ACL; de eigenaarstoegang en de
+event-trigger zelf blijven intact.
 
 ## Required tests
 
