@@ -69,6 +69,12 @@ standaardrelease. Een evaluatiefout stopt de mediaqueue niet; de volgende
 begrensde poll probeert opnieuw. Deze evaluator hoort per omgeving als één
 workerinstantie te draaien.
 
+Een onverwachte fatale fout in één parallelle loop zet de volledige daemon
+direct in drain, annuleert de overige loops en laat de oorspronkelijke fout na
+het sluiten van de healthserver doorstromen. Het proces eindigt daardoor met
+een foutstatus, zodat het Compose-restartbeleid de worker opnieuw start; een
+deels levende daemon met een stale queueheartbeat geldt nooit als herstel.
+
 In staging en production draait de worker als een afzonderlijk Compose-project
 zonder publieke poort. `/healthz` is liveness; `/readyz` wordt pas groen nadat
 de queue bereikbaar was en gaat tijdens drain of bij een stale poll terug naar
