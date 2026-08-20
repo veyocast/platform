@@ -1,3 +1,99 @@
+@font-face {
+  font-family: "Inter";
+  src: url("./fonts/inter-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Newsreader";
+  src: url("./fonts/newsreader-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("./fonts/space-grotesk-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Fraunces";
+  src: url("./fonts/fraunces-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Barlow Condensed";
+  src: url("./fonts/barlow-condensed-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("./fonts/source-serif-4-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600 800;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Manrope";
+  src: url("./fonts/manrope-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  src: url("./fonts/cormorant-garamond-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("./fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("./fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("./fonts/ibm-plex-mono-latin-700-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Anton";
+  src: url("./fonts/anton-latin-400-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+}
+
 .arenaViewport {
   position: absolute;
   inset: 0;
@@ -11,12 +107,107 @@
   left: 50%;
   box-sizing: border-box;
   overflow: hidden;
-  background: var(--vc-canvas);
+  background: var(--vc-theme-canvas, var(--vc-canvas));
   color: var(--vc-text);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--vc-theme-body-font, "Inter"), system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   transform-origin: center;
   transition: opacity 140ms ease-out;
+}
+
+.arenaRoot::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+}
+
+.arenaRoot h1,
+.arenaRoot h2,
+.arenaRoot h3 {
+  font-family: var(--vc-theme-display-font, "Inter"), system-ui, sans-serif;
+  font-weight: var(--vc-theme-display-weight, 800);
+  letter-spacing: var(--vc-theme-display-letter-spacing, -0.03em);
+}
+
+.arenaRoot[data-theme-id="editorial"]::after {
+  background: linear-gradient(112deg, transparent 0 68%, color-mix(in srgb, var(--vc-theme-accent) 12%, transparent));
+  box-shadow: inset 7.8cqw 0 0 -7.72cqw var(--vc-theme-accent);
+}
+
+.arenaRoot[data-theme-id="obsidian"]::after {
+  background:
+    radial-gradient(circle at 82% 15%, color-mix(in srgb, var(--vc-theme-accent) 24%, transparent), transparent 31%),
+    linear-gradient(color-mix(in srgb, var(--vc-theme-line) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--vc-theme-line) 55%, transparent) 1px, transparent 1px);
+  background-size: auto, 5cqw 5cqw, 5cqw 5cqw;
+}
+
+.arenaRoot[data-theme-id="atelier"]::after {
+  background:
+    radial-gradient(circle at 90% 100%, color-mix(in srgb, var(--vc-theme-accent) 16%, transparent), transparent 38%),
+    repeating-linear-gradient(90deg, transparent 0 1.72cqw, color-mix(in srgb, var(--vc-theme-line) 40%, transparent) 1.72cqw 1.8cqw);
+}
+
+.arenaRoot[data-theme-id="velocity"]::after {
+  background:
+    repeating-linear-gradient(118deg, transparent 0 7.85cqw, color-mix(in srgb, var(--vc-theme-accent) 26%, transparent) 7.85cqw 8cqw),
+    linear-gradient(118deg, transparent 0 64%, color-mix(in srgb, var(--vc-theme-accent) 18%, transparent) 72%);
+}
+
+.arenaRoot[data-theme-id="velocity"] h1 {
+  transform: skewX(-5deg);
+}
+
+.arenaRoot[data-theme-id="heritage"]::after {
+  background: repeating-linear-gradient(90deg, transparent 0 4.9cqw, color-mix(in srgb, var(--vc-theme-line) 28%, transparent) 4.9cqw 5cqw);
+}
+
+.arenaRoot[data-theme-id="halo"]::after {
+  background:
+    radial-gradient(circle at 75% 42%, color-mix(in srgb, var(--vc-theme-accent) 36%, transparent), transparent 28%),
+    radial-gradient(circle at 15% 90%, color-mix(in srgb, var(--vc-theme-support) 22%, transparent), transparent 34%);
+}
+
+.arenaRoot[data-theme-id="swiss"]::after {
+  background:
+    linear-gradient(90deg, var(--vc-theme-accent) 0 1.2cqw, transparent 1.2cqw),
+    linear-gradient(90deg, transparent 24.95%, var(--vc-theme-line) 25%, transparent 25.05%, transparent 49.95%, var(--vc-theme-line) 50%, transparent 50.05%, transparent 74.95%, var(--vc-theme-line) 75%, transparent 75.05%);
+}
+
+.arenaRoot[data-theme-id="pavilion"]::after {
+  background: radial-gradient(circle at 80% 10%, color-mix(in srgb, var(--vc-theme-accent) 24%, transparent), transparent 35%);
+}
+
+.arenaRoot[data-theme-id="tactical"]::after {
+  background:
+    radial-gradient(circle at 82% 50%, color-mix(in srgb, var(--vc-theme-accent) 24%, transparent), transparent 36%),
+    linear-gradient(color-mix(in srgb, var(--vc-theme-line) 58%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--vc-theme-line) 58%, transparent) 1px, transparent 1px);
+  background-size: auto, 4cqw 4cqw, 4cqw 4cqw;
+}
+
+.arenaRoot[data-theme-id="terrace"]::after {
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--vc-theme-text) 22%, transparent) .05cqw, transparent .06cqw) 0 0 / .22cqw .22cqw,
+    linear-gradient(125deg, transparent 0 68%, color-mix(in srgb, var(--vc-theme-accent) 22%, transparent) 78%);
+  opacity: .72;
+}
+
+.arenaRoot[data-transition]:not([data-transition="instant-cut"]) .arenaContent > * {
+  animation: vc-theme-enter var(--vc-motion-duration) var(--vc-motion-easing) both;
+}
+
+@keyframes vc-theme-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--vc-motion-translate));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .arenaRoot::before {
@@ -655,7 +846,7 @@
 .arenaStandingHead,
 .arenaStandingRows > article {
   display: grid;
-  grid-template-columns: 44px minmax(180px, 1fr) repeat(4, 42px) 52px 58px 116px;
+  grid-template-columns: 40px minmax(130px, 1fr) repeat(6, 34px) 46px 116px 44px 52px;
   align-items: center;
   gap: 8px;
 }
@@ -680,9 +871,13 @@
 }
 
 .arenaStandingRows > article[data-selected] {
-  background: var(--vc-row-selected);
-  color: var(--vc-text-on-selected);
+  background: color-mix(in srgb, var(--vc-accent) 18%, var(--vc-row));
+  color: var(--vc-text);
   box-shadow: inset 6px 0 0 var(--vc-accent);
+}
+
+.arenaStandingRows > article[data-selected] .arenaStandingTeam b {
+  color: var(--vc-accent);
 }
 
 .arenaStandingRows > article[data-zone="promotion"]::after,
@@ -779,6 +974,16 @@
 
 .arenaForm i[data-result="loss"] {
   background: var(--vc-danger);
+}
+
+.arenaStandingZone {
+  overflow: hidden;
+  color: var(--vc-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .arenaStandingContext {
@@ -1098,7 +1303,7 @@
 
 .arenaRoot[data-orientation="portrait"] .arenaStandingHead,
 .arenaRoot[data-orientation="portrait"] .arenaStandingRows > article {
-  grid-template-columns: 38px minmax(160px, 1fr) repeat(4, 35px) 44px 48px 100px;
+  grid-template-columns: 38px minmax(150px, 1fr) repeat(6, 35px) 46px 110px 46px 54px;
   gap: 6px;
 }
 
@@ -1300,7 +1505,8 @@
   .arenaNewsStory > p,
   .arenaNewsMeta,
   .arenaMasthead,
-  .arenaFooter {
+  .arenaFooter,
+  .arenaContent > * {
     animation: none;
   }
 }

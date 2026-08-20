@@ -19,10 +19,14 @@ import {
 
 import { Button } from "@veyocast/ui";
 import {
-  editorialArenaDarkTokens,
-  editorialArenaLightTokens
-} from "@veyocast/content-templates/editorial-arena-theme";
-import type { EditorialThemeConfig } from "@veyocast/contracts";
+  freezeThemePresentation,
+  themeToEditorialTokens
+} from "@veyocast/content-templates/theme-catalog";
+import type {
+  EditorialThemeConfig,
+  ThemeMode,
+  ThemeSelection
+} from "@veyocast/contracts";
 
 import styles from "../../dynamic-content.module.css";
 import {
@@ -73,6 +77,7 @@ export type SlideTemplateOption = {
 };
 
 type Props = {
+  defaultThemeSelection: ThemeSelection;
   primaryColor: string;
   products: PriceListProductOption[];
   sources: SlideSourceOption[];
@@ -111,6 +116,7 @@ const wizardSteps = [
 ] as const;
 
 export function SlideComposerForm({
+  defaultThemeSelection,
   primaryColor,
   products,
   sources,
@@ -148,11 +154,17 @@ export function SlideComposerForm({
   const initialThemeMode =
     initialTemplate.slug.includes("-dark-") ? "dark" : "light"
   const tenantThemeDefaults = useMemo<EditorialThemeConfig>(() => ({
-    dark: { ...editorialArenaDarkTokens, accent: primaryColor },
-    light: { ...editorialArenaLightTokens, accent: primaryColor },
+    dark: editorialTokensFor(defaultThemeSelection, "dark"),
+    light: editorialTokensFor(defaultThemeSelection, "light"),
     mode: initialThemeMode
-  }), [initialThemeMode, primaryColor]);
+  }), [defaultThemeSelection, initialThemeMode]);
   const [theme, setTheme] = useState<EditorialThemeConfig>(tenantThemeDefaults);
+  const [themeSelection, setThemeSelection] = useState<ThemeSelection>(() => ({
+    ...defaultThemeSelection,
+    modePolicy: defaultThemeSelection.modePolicy.kind === "fixed"
+      ? { ...defaultThemeSelection.modePolicy, mode: initialThemeMode }
+      : defaultThemeSelection.modePolicy
+  }));
   const [priceListJson, setPriceListJson] = useState("");
   const [newsFocalPoint, setNewsFocalPoint] = useState({ x: 0.5, y: 0.5 });
   const handlePriceListChange = useCallback((value: string) => {
@@ -270,6 +282,7 @@ export function SlideComposerForm({
       previewFormData.set("newsVariant", newsVariant);
       previewFormData.set("pricePhotoMode", pricePhotoMode);
       previewFormData.set("editorialThemeJson", JSON.stringify(theme));
+      previewFormData.set("themeSelectionJson", JSON.stringify(themeSelection));
       previewFormData.set("priceListJson", priceListJson);
       previewFormData.set("newsFocalPointJson", JSON.stringify(newsFocalPoint));
       if (slideType === "price_list") {
@@ -300,6 +313,7 @@ export function SlideComposerForm({
     selectedTemplate,
     slideType,
     theme,
+    themeSelection,
     newsFocalPoint,
     title
   ]);
@@ -459,6 +473,9 @@ export function SlideComposerForm({
                     ? "dark"
                     : "light";
                   setTheme((current) => ({ ...current, mode }));
+                  setThemeSelection((current) => current.modePolicy.kind === "fixed"
+                    ? { ...current, modePolicy: { kind: "fixed", mode } }
+                    : current);
                 }}
                 type="radio"
                 value={template.versionId}
@@ -891,6 +908,8 @@ export function SlideComposerForm({
         <EditorialThemeEditor
           defaults={tenantThemeDefaults}
           onChange={setTheme}
+          onSelectionChange={setThemeSelection}
+          selection={themeSelection}
           theme={theme}
         />
         {currentStep === 4 ? (
@@ -1413,6 +1432,14 @@ function maxItemsSummary(slideType: string, maxItems: string) {
   if (slideType === "menu") return `${amount} producten`;
   if (isSingleMatchSlide(slideType)) return "1 wedstrijd";
   return `${amount} regels`;
+}
+
+function editorialTokensFor(selection: ThemeSelection, mode: ThemeMode) {
+  return themeToEditorialTokens(freezeThemePresentation({
+    instant: "2026-01-01T12:00:00.000Z",
+    selection: { ...selection, modePolicy: { kind: "fixed", mode } },
+    timezone: "Europe/Amsterdam"
+  }));
 }
 
 function templateThemeLabel(template: SlideTemplateOption) {

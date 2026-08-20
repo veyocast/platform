@@ -32,11 +32,18 @@ import type {
   ResolvedPriceListRow
 } from "./price-list";
 import styles from "./editorial-arena-renderer.module.css";
+import {
+  resolveThemeTransition,
+  themeCssVariables
+} from "./theme-catalog";
 
 type ArenaStyle = CSSProperties & {
   "--arena-accent": string;
   "--arena-page-duration": string;
   "--arena-row-height": string;
+  "--vc-motion-duration": string;
+  "--vc-motion-easing": string;
+  "--vc-motion-translate": string;
 };
 
 export type EditorialArenaItem = {
@@ -97,11 +104,23 @@ export function EditorialArenaRenderer({
 
   useEffect(() => {
     if (!view || canvasScale === null || passive || readyRef.current) return;
-    const frame = window.requestAnimationFrame(() => {
-      readyRef.current = true;
-      onReady(item.id);
+    let active = true;
+    let frame = 0;
+    const fontsReady = "fonts" in document
+      ? document.fonts.ready
+      : Promise.resolve();
+    void fontsReady.then(() => {
+      if (!active) return;
+      frame = window.requestAnimationFrame(() => {
+        if (!active) return;
+        readyRef.current = true;
+        onReady(item.id);
+      });
     });
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      active = false;
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, [canvasScale, item.id, onReady, passive, view]);
 
   useEffect(() => {
@@ -132,11 +151,20 @@ export function EditorialArenaRenderer({
     pageCount,
     view.pageDurationMs
   );
+  const transition = resolveThemeTransition(
+    view.themePresentation,
+    page.kind,
+    false
+  );
   const style: ArenaStyle = {
     ...editorialThemeCssVariables(view.themeTokens),
+    ...themeCssVariables(view.themePresentation),
     "--arena-accent": view.accentColor,
     "--arena-page-duration": `${pageDurationMs}ms`,
     "--arena-row-height": `${pageRowHeight(page, view)}px`,
+    "--vc-motion-duration": `${transition.durationMs}ms`,
+    "--vc-motion-easing": transition.easing,
+    "--vc-motion-translate": `${transition.translatePercent}%`,
     height: canvas.height,
     opacity: canvasScale === null ? 0 : 1,
     transform: `translate(-50%, -50%) scale(${canvasScale ?? 1})`,
@@ -154,6 +182,8 @@ export function EditorialArenaRenderer({
         data-passive={passive || undefined}
         data-slide-type={view.slideType}
         data-theme={view.theme}
+        data-theme-id={view.themeId}
+        data-transition={transition.key}
         style={style}
       >
         <ArenaHeader view={view} />
@@ -550,8 +580,9 @@ function ArenaStanding({
             aria-hidden="true"
             data-testid="standing-head"
           >
-            <span>#</span><span>Team</span><span>G</span><span>W</span>
-            <span>GL</span><span>V</span><span>PT</span><span>+/−</span><span>Vorm</span>
+            <span>#</span><span>Team</span><span>GS</span><span>W</span>
+            <span>G</span><span>V</span><span>DV</span><span>DT</span>
+            <span>+/−</span><span>Vorm</span><span>PT</span><span>Zone</span>
           </div>
           <div className={styles.arenaStandingRows}>
             {column.map((team) => <StandingRow key={team.id} team={team} />)}
@@ -588,7 +619,8 @@ function StandingRow({ team }: { team: DynamicTemplateStandingItem }) {
       <span>{team.won ?? "–"}</span>
       <span>{team.drawn ?? "–"}</span>
       <span>{team.lost ?? "–"}</span>
-      <strong>{team.points ?? "–"}</strong>
+      <span>{team.goalsFor ?? "–"}</span>
+      <span>{team.goalsAgainst ?? "–"}</span>
       <span>{signed(team.goalDifference)}</span>
       <span
         aria-label={`Vorm ${team.teamName}: ${team.form.length
@@ -601,6 +633,16 @@ function StandingRow({ team }: { team: DynamicTemplateStandingItem }) {
             {result === "win" ? "W" : result === "draw" ? "G" : "V"}
           </i>
         )) : "–"}
+      </span>
+      <strong>{team.points ?? "–"}</strong>
+      <span className={styles.arenaStandingZone}>
+        {team.zone === "promotion"
+          ? "Prom."
+          : team.zone === "relegation"
+            ? "Degr."
+            : team.zone === "playoff"
+              ? "Play-off"
+              : "–"}
       </span>
     </article>
   );

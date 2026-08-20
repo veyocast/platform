@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { themeSelectionSchema } from "./theme-engine";
+
 export const sportDynamicSlideTypes = [
   "sport_program",
   "sport_results",
@@ -35,6 +37,7 @@ export const editorialArenaActiveSlideTypes = [
   "sport_activities",
   "sport_cancellations",
   "sport_dressing_rooms",
+  "sport_match_of_the_day",
   "sport_next_match",
   "sport_officials",
   "sport_program",
@@ -150,7 +153,8 @@ export const editorialArenaConfigurationSchema = z.object({
     .enum(editorialArenaPricePhotoModes)
     .default("show"),
   schemaVersion: z.literal(2),
-  theme: editorialThemeConfigSchema
+  theme: editorialThemeConfigSchema,
+  themeSelection: themeSelectionSchema.optional()
 }).strict();
 
 export const priceListPhotoModes = ["show", "hide"] as const;
@@ -174,8 +178,13 @@ export const priceListProductPlacementSchema = z.object({
 
 export const priceListSectionPlacementSchema = z.object({
   categoryId: z.string().trim().min(1).max(200),
-  categoryNameOverride: z.string().trim().min(1).max(160).nullable(),
+  categoryIdentity: z.object({
+    providerConnectionId: idSchema,
+    sourceCategoryId: z.string().trim().min(1).max(200)
+  }).strict().optional(),
+  categoryNameOverride: z.string().trim().min(1).max(28).nullable(),
   column: z.enum(priceListColumns),
+  expectedRevision: z.number().int().min(0).optional(),
   id: idSchema,
   order: z.number().int().min(0).max(100_000),
   photoMode: z.enum(priceListCategoryPhotoModes),

@@ -4,7 +4,9 @@ import {
   type EditorialFocalPoint,
   type EditorialNewsVariant,
   type EditorialPricePhotoMode,
-  type PlayerDynamicTemplatePayload
+  type PlayerDynamicTemplatePayload,
+  type SelectableThemeId,
+  type ThemePresentationSnapshot
 } from "@veyocast/contracts";
 
 import {
@@ -21,6 +23,12 @@ import {
   type ResolvedPriceListItem,
   type ResolvedPriceListSection
 } from "./price-list";
+import {
+  freezeThemePresentation,
+  parseThemePresentationSnapshot,
+  resolveThemeDefinition,
+  themeToEditorialTokens
+} from "./theme-catalog";
 
 export type DynamicTemplateTheme = "dark" | "light";
 
@@ -137,6 +145,8 @@ export type DynamicTemplateView = {
   };
   templateStyle: "default" | "standing-club-edition";
   theme: DynamicTemplateTheme;
+  themeId: SelectableThemeId;
+  themePresentation: ThemePresentationSnapshot;
   themeTokens: EditorialColorTokens;
   title: string;
 };
@@ -173,15 +183,28 @@ const templateSlugPattern = /^[a-z0-9][a-z0-9-]{0,119}$/;
 export function createDynamicTemplateView(
   value: unknown
 ): DynamicTemplateView | null {
+  return createDynamicTemplateViewInternal(value, false);
+}
+
+/** Fixture-only entrypoint for typed families without a live provider gate. */
+export function createDynamicTemplateFixtureView(
+  value: unknown
+): DynamicTemplateView | null {
+  return createDynamicTemplateViewInternal(value, true);
+}
+
+function createDynamicTemplateViewInternal(
+  value: unknown,
+  allowFixtureOnly: boolean
+): DynamicTemplateView | null {
   const payload = parseDynamicTemplatePayload(value);
   if (!payload) return null;
   if (
-    !editorialArenaActiveSlideTypes.includes(
+    !dynamicSlideTypes.has(payload.slideType) ||
+    (!allowFixtureOnly && !editorialArenaActiveSlideTypes.includes(
       payload.slideType as (typeof editorialArenaActiveSlideTypes)[number]
-    )
-  ) {
-    return null;
-  }
+    ))
+  ) return null;
   const data = payload.data;
   const accentColor = safeColor(
     readRecord(data.brand)?.primaryColor,
@@ -197,7 +220,26 @@ export function createDynamicTemplateView(
     accent: accentColor,
     mode: theme
   });
-  const themeTokens = activeEditorialTokens(editorial.theme);
+  const frozenPresentation = parseThemePresentationSnapshot(data.themePresentation);
+  const themePresentation = frozenPresentation ?? freezeThemePresentation({
+    instant: "1970-01-01T00:00:00.000Z",
+    selection: {
+      accent: accentColor,
+      categoryOverrides: [],
+      modePolicy: { kind: "fixed", mode: theme },
+      ref: { catalog: "v2", id: "editorial", version: "1.0.0" },
+      support: null
+    },
+    timezone: "UTC"
+  });
+  const themeDefinition = resolveThemeDefinition(themePresentation.selection);
+  const themeTokens = frozenPresentation
+    ? themeToEditorialTokens(themePresentation)
+    : activeEditorialTokens(editorial.theme);
+  const themeIdentity = {
+    themeId: themeDefinition.id,
+    themePresentation
+  };
 
   if (payload.slideType === "menu") {
     const menu = readRecord(data.menu) ?? readRecord(data.data);
@@ -225,6 +267,7 @@ export function createDynamicTemplateView(
       sourceLabel: "Clubkantine",
       templateStyle: "default",
       theme,
+      ...themeIdentity,
       themeTokens,
       title: safeText(menu?.title, "Menu vandaag")
     };
@@ -252,6 +295,7 @@ export function createDynamicTemplateView(
       sourceLabel: "Prijzen uit de clubkantine",
       templateStyle: "default",
       theme,
+      ...themeIdentity,
       themeTokens,
       title: safeText(priceList?.title, "Prijslijst")
     };
@@ -283,6 +327,7 @@ export function createDynamicTemplateView(
       sourceLabel: safeText(news?.sourceName, "Clubnieuws"),
       templateStyle: "default",
       theme,
+      ...themeIdentity,
       themeTokens,
       title: safeText(news?.title, "Nieuws")
     };
@@ -316,6 +361,7 @@ export function createDynamicTemplateView(
       sourceLabel: "Match centre",
       templateStyle: "default",
       theme,
+      ...themeIdentity,
       themeTokens,
       title
     };
@@ -355,6 +401,7 @@ export function createDynamicTemplateView(
       },
       templateStyle: "standing-club-edition",
       theme,
+      ...themeIdentity,
       themeTokens,
       title
     };
@@ -382,6 +429,7 @@ export function createDynamicTemplateView(
     sourceLabel: sportLabel(payload.slideType),
     templateStyle: "default",
     theme,
+    ...themeIdentity,
     themeTokens,
     title
   };

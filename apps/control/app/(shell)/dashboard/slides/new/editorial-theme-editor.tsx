@@ -1,259 +1,277 @@
 "use client";
 
-import { useState } from "react";
-
 import type {
-  EditorialColorTokens,
-  EditorialThemeConfig
+  EditorialThemeConfig,
+  SelectableThemeId,
+  ThemeMode,
+  ThemeSelection
 } from "@veyocast/contracts";
-import { contrastRatio } from "@veyocast/content-templates/editorial-arena-theme";
+import {
+  freezeThemePresentation,
+  themeCatalog,
+  themeCatalogOptions,
+  themeToEditorialTokens
+} from "@veyocast/content-templates/theme-catalog";
 import { Button } from "@veyocast/ui";
 
 import styles from "../../dynamic-content.module.css";
 
-const tokenGroups = [
-  { label: "Achtergrond", tokens: ["canvas"] },
-  {
-    label: "Oppervlakken",
-    tokens: ["surface", "surfaceRaised", "panel", "row", "rowSelected"]
-  },
-  {
-    label: "Tekst",
-    tokens: ["text", "textMuted", "textFaint", "textOnAccent", "textOnSelected"]
-  },
-  { label: "Borders", tokens: ["border", "borderSoft", "divider"] },
-  {
-    label: "Accent en status",
-    tokens: ["accent", "accentSoft", "success", "warning", "danger", "neutral"]
-  },
-  { label: "Shadows", tokens: ["shadow"] },
-  {
-    label: "Foto-overlay",
-    tokens: ["imageOverlayStart", "imageOverlayMid", "imageOverlayEnd"]
-  },
-  { label: "QR", tokens: ["qrSurface", "qrInk"] }
-] as const satisfies ReadonlyArray<{
-  label: string;
-  tokens: readonly (keyof EditorialColorTokens)[];
-}>;
-
-const tokenLabels: Record<keyof EditorialColorTokens, string> = {
-  accent: "Accent",
-  accentSoft: "Zacht accent",
-  border: "Border",
-  borderSoft: "Zachte border",
-  canvas: "Canvas",
-  danger: "Fout",
-  divider: "Scheidingslijn",
-  imageOverlayEnd: "Overlay einde",
-  imageOverlayMid: "Overlay midden",
-  imageOverlayStart: "Overlay start",
-  neutral: "Neutraal",
-  panel: "Paneel",
-  qrInk: "QR-voorgrond",
-  qrSurface: "QR-achtergrond",
-  row: "Rij",
-  rowSelected: "Geselecteerde rij",
-  shadow: "Schaduw",
-  success: "Succes",
-  surface: "Hoofdpaneel",
-  surfaceRaised: "Verhoogd paneel",
-  text: "Hoofdtekst",
-  textFaint: "Subtiele tekst",
-  textMuted: "Gedempte tekst",
-  textOnAccent: "Tekst op accent",
-  textOnSelected: "Tekst op selectie",
-  warning: "Waarschuwing"
-};
+const allDays = [0, 1, 2, 3, 4, 5, 6];
 
 export function EditorialThemeEditor({
   defaults,
   onChange,
+  onSelectionChange,
+  selection,
   theme
 }: {
   defaults: EditorialThemeConfig;
   onChange: (theme: EditorialThemeConfig) => void;
+  onSelectionChange: (selection: ThemeSelection) => void;
+  selection: ThemeSelection;
   theme: EditorialThemeConfig;
 }) {
-  const [advanced, setAdvanced] = useState(false);
-  const active = theme[theme.mode];
+  const selectedId = selection.ref.catalog === "v2"
+    ? selection.ref.id
+    : "editorial";
+  const selected = themeCatalog[selectedId];
 
-  function setMode(mode: EditorialThemeConfig["mode"]) {
-    onChange({ ...theme, mode });
+  function updateSelection(next: ThemeSelection) {
+    onSelectionChange(next);
+    onChange(legacyThemeBridge(next));
   }
 
-  function setToken(
-    mode: EditorialThemeConfig["mode"],
-    token: keyof EditorialColorTokens,
-    value: string
-  ) {
-    onChange({
-      ...theme,
-      [mode]: { ...theme[mode], [token]: value }
+  function setThemeId(id: SelectableThemeId) {
+    updateSelection({
+      ...selection,
+      ref: { catalog: "v2", id, version: themeCatalog[id].version }
     });
+  }
+
+  function setPolicy(kind: "auto" | "fixed" | "schedule") {
+    const mode = activeMode(selection, theme.mode);
+    updateSelection({
+      ...selection,
+      modePolicy: kind === "fixed"
+        ? { kind, mode }
+        : kind === "auto"
+          ? { kind }
+          : {
+              entries: [
+                { days: allDays, end: "07:00", mode: "dark", start: "18:00" }
+              ],
+              fallback: "light",
+              kind,
+              timezone: "Europe/Amsterdam"
+            }
+    });
+  }
+
+  function setFixedMode(mode: ThemeMode) {
+    updateSelection({ ...selection, modePolicy: { kind: "fixed", mode } });
   }
 
   return (
     <div className={styles.editorialThemeEditor}>
+      <fieldset className={styles.editorialTokenGroup}>
+        <legend>Premium thema</legend>
+        <div className={styles.grid} data-testid="theme-catalog-v2">
+          {themeCatalogOptions.map((option) => {
+            const definition = themeCatalog[option.id];
+            return (
+              <label className={styles.choiceCard} key={option.id}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    background: `linear-gradient(135deg, ${definition.light.canvas} 0 49%, ${definition.dark.canvas} 50% 100%)`,
+                    border: `8px solid ${definition.accentDefault}`,
+                    borderRadius: 18,
+                    display: "block",
+                    height: 88,
+                    width: 132
+                  }}
+                />
+                <input
+                  checked={selectedId === option.id}
+                  name="selectableThemeId"
+                  onChange={() => setThemeId(option.id)}
+                  type="radio"
+                  value={option.id}
+                />
+                <span>
+                  <strong>{option.name}</strong>
+                  <small>{option.id} · v{option.version}</small>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
       <div className={styles.fieldGrid}>
         <label className={styles.field}>
-          <span>Thema</span>
+          <span>Licht/donker-beleid</span>
           <select
-            name="themeMode"
-            onChange={(event) => setMode(
-              event.currentTarget.value === "dark" ? "dark" : "light"
+            name="themeModePolicyKind"
+            onChange={(event) => setPolicy(
+              event.currentTarget.value === "auto"
+                ? "auto"
+                : event.currentTarget.value === "schedule"
+                  ? "schedule"
+                  : "fixed"
             )}
-            value={theme.mode}
+            value={selection.modePolicy.kind}
           >
-            <option value="light">Licht</option>
-            <option value="dark">Donker</option>
+            <option value="fixed">Vaste modus</option>
+            <option value="schedule">Volgens tijdschema</option>
+            <option value="auto">Automatisch op schermvoorkeur</option>
           </select>
         </label>
-        {(["accent", "canvas", "surface", "text"] as const).map((token) => (
-          <TokenInput
-            key={token}
-            label={tokenLabels[token]}
-            name={`quick-${theme.mode}-${token}`}
-            onChange={(value) => setToken(theme.mode, token, value)}
-            value={active[token]}
-          />
-        ))}
-      </div>
 
-      <ContrastMatrix tokens={active} />
+        {selection.modePolicy.kind === "fixed" ? (
+          <label className={styles.field}>
+            <span>Vaste modus</span>
+            <select
+              name="themeMode"
+              onChange={(event) => setFixedMode(
+                event.currentTarget.value === "dark" ? "dark" : "light"
+              )}
+              value={selection.modePolicy.mode}
+            >
+              <option value="light">Licht</option>
+              <option value="dark">Donker</option>
+            </select>
+          </label>
+        ) : null}
+
+        {selection.modePolicy.kind === "schedule" ? (
+          <>
+            <label className={styles.field}>
+              <span>Donker vanaf</span>
+              <input
+                onChange={(event) => updateSchedule(selection, updateSelection, {
+                  start: event.currentTarget.value
+                })}
+                type="time"
+                value={selection.modePolicy.entries[0]?.start ?? "18:00"}
+              />
+            </label>
+            <label className={styles.field}>
+              <span>Licht vanaf</span>
+              <input
+                onChange={(event) => updateSchedule(selection, updateSelection, {
+                  end: event.currentTarget.value
+                })}
+                type="time"
+                value={selection.modePolicy.entries[0]?.end ?? "07:00"}
+              />
+            </label>
+          </>
+        ) : null}
+
+        <label className={styles.field}>
+          <span>Accentkleur (optioneel)</span>
+          <input
+            onChange={(event) => updateSelection({
+              ...selection,
+              accent: event.currentTarget.value || null
+            })}
+            pattern="#[0-9A-Fa-f]{6}"
+            placeholder={selected.accentDefault}
+            value={selection.accent ?? ""}
+          />
+        </label>
+        <label className={styles.field}>
+          <span>Steunkleur (optioneel)</span>
+          <input
+            onChange={(event) => updateSelection({
+              ...selection,
+              support: event.currentTarget.value || null
+            })}
+            pattern="#[0-9A-Fa-f]{6}"
+            placeholder={selected.supportDefault}
+            value={selection.support ?? ""}
+          />
+        </label>
+      </div>
 
       <div className={styles.editorialThemeActions}>
         <Button
-          onClick={() => setAdvanced((value) => !value)}
-          size="sm"
-          type="button"
-          variant="secondary"
-        >
-          {advanced ? "Geavanceerde kleuren sluiten" : "Alle tokens bewerken"}
-        </Button>
-        <Button
-          onClick={() => onChange(defaults)}
-          size="sm"
-          type="button"
-          variant="ghost"
-        >
-          Volledige slide resetten
-        </Button>
-        <Button
-          onClick={() => onChange({ ...theme, dark: { ...theme.light } })}
+          onClick={() => {
+            const reset: ThemeSelection = {
+              accent: defaults.light.accent,
+              categoryOverrides: [],
+              modePolicy: { kind: "fixed", mode: defaults.mode },
+              ref: {
+                catalog: "v2",
+                id: "editorial",
+                version: themeCatalog.editorial.version
+              },
+              support: null
+            };
+            updateSelection(reset);
+          }}
           size="sm"
           type="button"
           variant="ghost"
         >
-          Licht naar donker kopiëren
+          Terug naar tenantstandaard
         </Button>
       </div>
-
-      {advanced ? (
-        <div className={styles.editorialTokenGroups}>
-          <div className={styles.editorialModeTabs} role="group" aria-label="Tokenmap kiezen">
-            {(["light", "dark"] as const).map((mode) => (
-              <Button
-                aria-pressed={theme.mode === mode}
-                key={mode}
-                onClick={() => setMode(mode)}
-                size="sm"
-                type="button"
-                variant={theme.mode === mode ? "primary" : "secondary"}
-              >
-                {mode === "light" ? "Light-map" : "Dark-map"}
-              </Button>
-            ))}
-          </div>
-          {tokenGroups.map((group) => (
-            <fieldset className={styles.editorialTokenGroup} key={group.label}>
-              <legend>{group.label}</legend>
-              <div className={styles.fieldGrid}>
-                {group.tokens.map((token) => (
-                  <div className={styles.editorialTokenField} key={token}>
-                    <TokenInput
-                      label={tokenLabels[token]}
-                      name={`${theme.mode}-${token}`}
-                      onChange={(value) => setToken(theme.mode, token, value)}
-                      value={theme[theme.mode][token]}
-                    />
-                    <Button
-                      aria-label={`${tokenLabels[token]} resetten`}
-                      onClick={() => setToken(
-                        theme.mode,
-                        token,
-                        defaults[theme.mode][token]
-                      )}
-                      size="sm"
-                      type="button"
-                      variant="ghost"
-                    >
-                      Reset
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </fieldset>
-          ))}
-          <ContrastMatrix tokens={theme[theme.mode]} />
-        </div>
-      ) : null}
-      <input name="editorialThemeJson" type="hidden" value={JSON.stringify(theme)} />
+      <input
+        name="editorialThemeJson"
+        type="hidden"
+        value={JSON.stringify(theme)}
+      />
+      <input
+        name="themeSelectionJson"
+        type="hidden"
+        value={JSON.stringify(selection)}
+      />
     </div>
   );
 }
 
-function TokenInput({
-  label,
-  name,
-  onChange,
-  value
-}: {
-  label: string;
-  name: string;
-  onChange: (value: string) => void;
-  value: string;
-}) {
-  return (
-    <label className={styles.field}>
-      <span>{label}</span>
-      <span className={styles.editorialColorInput}>
-        <i aria-hidden="true" style={{ background: value }} />
-        <input
-          aria-label={label}
-          name={name}
-          onChange={(event) => onChange(event.currentTarget.value)}
-          pattern="(#[0-9A-Fa-f]{6}|rgba?\([0-9.,%\s]+\)|hsla?\([0-9.,%\s]+\))"
-          required
-          spellCheck={false}
-          value={value}
-        />
-      </span>
-    </label>
-  );
+function updateSchedule(
+  selection: ThemeSelection,
+  update: (value: ThemeSelection) => void,
+  value: { end?: string; start?: string }
+) {
+  if (selection.modePolicy.kind !== "schedule") return;
+  const current = selection.modePolicy.entries[0] ?? {
+    days: allDays,
+    end: "07:00",
+    mode: "dark" as const,
+    start: "18:00"
+  };
+  update({
+    ...selection,
+    modePolicy: {
+      ...selection.modePolicy,
+      entries: [{ ...current, ...value }]
+    }
+  });
 }
 
-function ContrastMatrix({ tokens }: { tokens: EditorialColorTokens }) {
-  const combinations = [
-    ["Gewone tekst", tokens.text, tokens.surface, 4.5],
-    ["Tekst op accent", tokens.textOnAccent, tokens.accent, 4.5],
-    ["Tekst op selectie", tokens.textOnSelected, tokens.rowSelected, 4.5],
-    ["Tekst op foto", tokens.qrSurface, tokens.imageOverlayStart, 4.5],
-    ["QR-code", tokens.qrInk, tokens.qrSurface, 4.5]
-  ] as const;
-  return (
-    <div className={styles.editorialContrastGrid} aria-label="Contrastcontrole">
-      {combinations.map(([label, foreground, background, minimum]) => {
-        const ratio = contrastRatio(foreground, background);
-        const ready = ratio !== null && ratio >= minimum;
-        return (
-          <div data-valid={ready} key={label} role={ready ? "status" : "alert"}>
-            <strong>{label}</strong>
-            <span>{ratio === null ? "Niet berekenbaar" : `${ratio.toFixed(2)}:1`}</span>
-            <small>{ready ? "Voldoet" : `Minimaal ${minimum}:1`}</small>
-          </div>
-        );
-      })}
-    </div>
+function activeMode(selection: ThemeSelection, fallback: ThemeMode) {
+  return selection.modePolicy.kind === "fixed"
+    ? selection.modePolicy.mode
+    : selection.modePolicy.kind === "schedule"
+      ? selection.modePolicy.fallback
+      : fallback;
+}
+
+function legacyThemeBridge(selection: ThemeSelection): EditorialThemeConfig {
+  const tokens = (mode: ThemeMode) => themeToEditorialTokens(
+    freezeThemePresentation({
+      instant: "2026-01-01T12:00:00.000Z",
+      selection: { ...selection, modePolicy: { kind: "fixed", mode } },
+      timezone: "Europe/Amsterdam"
+    })
   );
+  return {
+    dark: tokens("dark"),
+    light: tokens("light"),
+    mode: activeMode(selection, "light")
+  };
 }

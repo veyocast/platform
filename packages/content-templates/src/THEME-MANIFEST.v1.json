@@ -1,0 +1,544 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "manifestId": "veyocast-theme-catalog",
+  "manifestVersion": "1.0.0",
+  "status": "approved",
+  "logicalCanvases": {
+    "landscape": { "width": 1920, "height": 1080 },
+    "portrait": { "width": 1080, "height": 1920 }
+  },
+  "shared": {
+    "bodyFontRef": "vc-inter-v1",
+    "baseDisplaySizeCqw": 4.75,
+    "baseRadiusCqw": 2.1,
+    "safeAreaLandscape": { "inlinePercent": 4.5, "blockPercent": 5.2 },
+    "safeAreaPortrait": { "inlinePercent": 6.0, "blockPercent": 4.0 },
+    "surfaceBorderCqw": 0.08,
+    "motionFastMs": 200,
+    "posterTimeMs": 900,
+    "reducedMotionFadeMs": 120
+  },
+  "fontAssets": {
+    "vc-inter-v1": {
+      "family": "Inter",
+      "style": "normal",
+      "weightRange": "400 900",
+      "requiredFormat": "woff2-variable",
+      "license": "OFL-1.1",
+      "lockRequirement": "Commit the exact font file, license and SHA-256 in fonts.lock.json."
+    },
+    "vc-newsreader-v1": {
+      "family": "Newsreader",
+      "style": "normal",
+      "weightRange": "400 700",
+      "requiredFormat": "woff2-variable",
+      "license": "OFL-1.1",
+      "lockRequirement": "Commit the exact font file, license and SHA-256 in fonts.lock.json."
+    },
+    "vc-space-grotesk-v1": {
+      "family": "Space Grotesk",
+      "style": "normal",
+      "weightRange": "500 700",
+      "requiredFormat": "woff2-variable",
+      "license": "OFL-1.1",
+      "lockRequirement": "Commit the exact font file, license and SHA-256 in fonts.lock.json."
+    },
+    "vc-fraunces-v1": {
+      "family": "Fraunces",
+      "style": "normal",
+      "weightRange": "500 700",
+      "requiredFormat": "woff2-variable",
+      "license": "OFL-1.1",
+      "lockRequirement": "Commit the exact font file, license and SHA-256 in fonts.lock.json."
+    },
+    "vc-barlow-condensed-v1": {
+      "family": "Barlow Condensed",
+      "style": "normal",
+      "weightRange": "700 900",
+      "requiredFormat": "woff2-variable",
+      "license": "OFL-1.1",
+      "lockRequirement": "Commit the exact font file, license and SHA-256 in fonts.lock.json."
+    },
+    "vc-source-serif-4-v1": {
+      "family": "Source Serif 4",
+      "style": "normal",
+      "weightRange": "600 800",
+      "requiredFormat": "woff2-variable",
+      "license": "OFL-1.1",
+      "lockRequirement": "Commit the exact font file, license and SHA-256 in fonts.lock.json."
+    },
+    "vc-manrope-v1": {
+      "family": "Manrope",
+      "style": "normal",
+      "weightRange": "400 800",
+      "requiredFormat": "woff2-variable",
+      "license": "OFL-1.1",
+      "lockRequirement": "Commit the exact font file, license and SHA-256 in fonts.lock.json."
+    },
+    "vc-cormorant-garamond-v1": {
+      "family": "Cormorant Garamond",
+      "style": "normal",
+      "weightRange": "600 700",
+      "requiredFormat": "woff2-variable",
+      "license": "OFL-1.1",
+      "lockRequirement": "Commit the exact font file, license and SHA-256 in fonts.lock.json."
+    },
+    "vc-ibm-plex-mono-v1": {
+      "family": "IBM Plex Mono",
+      "style": "normal",
+      "weightRange": "500 700",
+      "requiredFormat": "woff2-variable-or-static-set",
+      "license": "OFL-1.1",
+      "lockRequirement": "Commit the exact font files, license and SHA-256 values in fonts.lock.json."
+    },
+    "vc-anton-v1": {
+      "family": "Anton",
+      "style": "normal",
+      "weightRange": "400",
+      "requiredFormat": "woff2",
+      "license": "OFL-1.1",
+      "lockRequirement": "Commit the exact font file, license and SHA-256 in fonts.lock.json."
+    }
+  },
+  "transitions": {
+    "instant-cut": { "durationMs": 0, "easing": "linear", "translatePercent": 0 },
+    "arena-dissolve": { "durationMs": 420, "easing": "cubic-bezier(.22,1,.36,1)", "translatePercent": 0 },
+    "editorial-shift": { "durationMs": 520, "easing": "cubic-bezier(.22,1,.36,1)", "translatePercent": 2.5 },
+    "panel-reveal": { "durationMs": 560, "easing": "cubic-bezier(.16,1,.3,1)", "translatePercent": 0 }
+  },
+  "decorationRecipes": {
+    "editorial-rail": {
+      "background": { "type": "linear-gradient", "angleDeg": 112, "accentStartPercent": 68, "accentMixLightPercent": 12, "accentMixDarkPercent": 17 },
+      "keyline": { "xCqw": 4.4, "widthCqw": 0.08 }
+    },
+    "broadcast-grid-glass": {
+      "radial": { "centerPercent": [82, 15], "accentMixLightPercent": 22, "accentMixDarkPercent": 28, "fadeEndLightPercent": 31, "fadeEndDarkPercent": 32 },
+      "grid": { "sizeCqw": 5, "lineCqw": 0.08, "maskCenterPercent": [70, 50], "maskFadeEndPercent": 66 },
+      "surfaceSheen": { "angleDeg": 145, "alpha": 0.07, "fadeEndPercent": 38 }
+    },
+    "atelier-linen": {
+      "radial": { "centerPercent": [90, 100], "accentMixLightPercent": 14, "accentMixDarkPercent": 18, "fadeEndPercent": 38 },
+      "stripe": { "angleDeg": 90, "stepCqw": 1.8, "lineCqw": 0.08, "opacity": 0.12 }
+    },
+    "velocity-lane": {
+      "background": { "type": "linear-gradient", "angleDeg": 118, "accentStartPercent": 64, "accentEndPercent": 72, "accentMixLightPercent": 13, "accentMixDarkPercent": 20 },
+      "lane": { "angleDeg": 118, "stepCqw": 8, "lineCqw": 0.15 },
+      "titleSkewDeg": -5,
+      "surfaceSkewDeg": -0.8
+    },
+    "heritage-pinstripe": {
+      "stripe": { "angleDeg": 90, "stepCqw": 5, "lineCqw": 0.1, "lightAlpha": 0.04, "darkAlpha": 0.035 },
+      "watermark": { "text": "1908", "rightCqw": 4.5, "bottomCqw": 2.8, "fontSizeCqw": 11, "fontWeight": 800, "lineHeight": 0.7 },
+      "surfaceInset": { "widthCqw": 0.25, "accentMixPercent": 7 }
+    },
+    "stadium-halo": {
+      "primaryRadial": { "centerPercent": [75, 42], "accentMixLightPercent": 32, "accentMixDarkPercent": 38, "fadeEndLightPercent": 27, "fadeEndDarkPercent": 28 },
+      "supportRadial": { "centerPercent": [15, 90], "color": "#6960ff", "lightAlpha": 0.18, "darkAlpha": 0.24, "fadeEndLightPercent": 32, "fadeEndDarkPercent": 34 },
+      "ring": { "sizeCqw": 30, "rightCqw": 6, "topCqw": 11, "borderCqw": 0.12, "accentMixPercent": 42, "staticGlowCqw": 3 }
+    },
+    "swiss-grid": {
+      "accentRail": { "side": "left", "widthCqw": 1.2 },
+      "gridColumnsPercent": [25, 50, 75],
+      "gridLineCqw": 0.1,
+      "surfaceBlur": false
+    },
+    "pavilion-polish": {
+      "radial": { "centerPercent": [80, 10], "accentMixLightPercent": 22, "accentMixDarkPercent": 25, "fadeEndLightPercent": 34, "fadeEndDarkPercent": 35 },
+      "surfaceInsetHighlight": { "widthCqw": 0.08, "color": "rgba(255,255,255,.18)" }
+    },
+    "tactical-coordinate-grid": {
+      "radial": { "centerPercent": [82, 50], "accentMixLightPercent": 21, "accentMixDarkPercent": 25, "fadeEndLightPercent": 35, "fadeEndDarkPercent": 36 },
+      "grid": { "sizeCqw": 4, "lineCqw": 0.08, "opacity": 0.58, "maxVisualProminencePercent": 20 },
+      "coordinateLabel": { "text": "+ 52.071° / 4.300°", "rightCqw": 4.5, "bottomCqw": 4, "fontSizeCqw": 0.65, "letterSpacingEm": 0.1 }
+    },
+    "terrace-poster-grain": {
+      "background": { "type": "linear-gradient", "angleDeg": 125, "accentStartPercent": 68, "accentEndPercent": 78, "accentMixLightPercent": 19, "accentMixDarkPercent": 24 },
+      "grain": { "dotCqw": 0.05, "stepCqw": 0.22, "opacity": 0.22, "forbiddenOnCriticalText": true },
+      "titleRotateDeg": -1,
+      "alternateSurfaceRotateDeg": 0.35
+    }
+  },
+  "themes": [
+    {
+      "id": "editorial",
+      "name": "Editorial Arena",
+      "version": "1.0.0",
+      "accentDefault": "#ff5a1f",
+      "supportDefault": "#17324d",
+      "displayFontRef": "vc-newsreader-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 500,
+      "displayLetterSpacingEm": -0.055,
+      "radiusCqw": 2.1,
+      "densityScale": 1.0,
+      "light": {
+        "canvas": "#f3f1ea",
+        "surface": "rgba(255,255,255,.87)",
+        "surfaceAlt": "#dedbd0",
+        "text": "#17202a",
+        "muted": "#6d7478",
+        "line": "rgba(23,32,42,.14)",
+        "shadow": "0 1.8cqw 4.2cqw rgba(30,35,38,.12)"
+      },
+      "dark": {
+        "canvas": "#10171f",
+        "surface": "rgba(27,37,48,.90)",
+        "surfaceAlt": "#263241",
+        "text": "#f5f1e8",
+        "muted": "#9da7ae",
+        "line": "rgba(255,255,255,.13)",
+        "shadow": "0 2cqw 5cqw rgba(0,0,0,.30)"
+      },
+      "decoration": { "id": "editorial-rail", "intensity": 0.22, "dataDenseMultiplier": 0.55 },
+      "primitiveModifiers": ["editorial-title-serif", "asymmetric-media-frame", "left-keyline"],
+      "motion": {
+        "default": "arena-dissolve",
+        "overrides": { "news": "editorial-shift", "hero": "editorial-shift" },
+        "overrideUsageCapPercent": 20
+      }
+    },
+    {
+      "id": "obsidian",
+      "name": "Obsidian Broadcast",
+      "version": "1.0.0",
+      "accentDefault": "#ff6b20",
+      "supportDefault": "#30bced",
+      "displayFontRef": "vc-space-grotesk-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 700,
+      "displayLetterSpacingEm": -0.045,
+      "radiusCqw": 2.1,
+      "densityScale": 0.98,
+      "light": {
+        "canvas": "#e9edf1",
+        "surface": "rgba(255,255,255,.72)",
+        "surfaceAlt": "#d8dee6",
+        "text": "#111820",
+        "muted": "#65717d",
+        "line": "rgba(10,20,30,.13)",
+        "shadow": "0 2cqw 5cqw rgba(25,41,56,.15)"
+      },
+      "dark": {
+        "canvas": "#07090c",
+        "surface": "rgba(20,24,31,.76)",
+        "surfaceAlt": "#202630",
+        "text": "#f5f7fa",
+        "muted": "#929ba7",
+        "line": "rgba(255,255,255,.13)",
+        "shadow": "0 2cqw 6cqw rgba(0,0,0,.50), inset 0 .08cqw 0 rgba(255,255,255,.06)"
+      },
+      "decoration": { "id": "broadcast-grid-glass", "intensity": 0.24, "dataDenseMultiplier": 0.6 },
+      "primitiveModifiers": ["glass-surface-sheen", "broadcast-grid", "score-only-glow"],
+      "motion": {
+        "default": "arena-dissolve",
+        "overrides": { "hero": "panel-reveal", "sponsor-fullscreen": "panel-reveal" },
+        "overrideUsageCapPercent": 25
+      }
+    },
+    {
+      "id": "atelier",
+      "name": "Clubhouse Atelier",
+      "version": "1.0.0",
+      "accentDefault": "#d75b2a",
+      "supportDefault": "#65745f",
+      "displayFontRef": "vc-fraunces-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 550,
+      "displayLetterSpacingEm": -0.045,
+      "radiusCqw": 2.8,
+      "densityScale": 1.04,
+      "light": {
+        "canvas": "#eee8dc",
+        "surface": "rgba(255,252,245,.90)",
+        "surfaceAlt": "#dcd2c0",
+        "text": "#2a2a25",
+        "muted": "#777268",
+        "line": "rgba(61,53,43,.14)",
+        "shadow": "0 1.4cqw 4cqw rgba(73,60,43,.12)"
+      },
+      "dark": {
+        "canvas": "#211f1a",
+        "surface": "rgba(52,48,39,.90)",
+        "surfaceAlt": "#454034",
+        "text": "#f2ecdf",
+        "muted": "#aaa294",
+        "line": "rgba(255,244,224,.13)",
+        "shadow": "0 1.5cqw 4cqw rgba(0,0,0,.30)"
+      },
+      "decoration": { "id": "atelier-linen", "intensity": 0.12, "dataDenseMultiplier": 0.45 },
+      "primitiveModifiers": ["soft-surface", "hospitality-spacing", "linen-keylines"],
+      "motion": { "default": "arena-dissolve", "overrides": {}, "overrideUsageCapPercent": 0 }
+    },
+    {
+      "id": "velocity",
+      "name": "Velocity Grid",
+      "version": "1.0.0",
+      "accentDefault": "#ff3d00",
+      "supportDefault": "#665cff",
+      "displayFontRef": "vc-barlow-condensed-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 850,
+      "displayLetterSpacingEm": -0.035,
+      "radiusCqw": 1.45,
+      "densityScale": 0.96,
+      "light": {
+        "canvas": "#f5f7fa",
+        "surface": "rgba(255,255,255,.92)",
+        "surfaceAlt": "#e5e9ef",
+        "text": "#10131a",
+        "muted": "#68707b",
+        "line": "rgba(13,18,28,.13)",
+        "shadow": "0 2cqw 4cqw rgba(40,49,65,.13)"
+      },
+      "dark": {
+        "canvas": "#0b0d15",
+        "surface": "rgba(25,28,42,.90)",
+        "surfaceAlt": "#24283a",
+        "text": "#f6f7fb",
+        "muted": "#969baa",
+        "line": "rgba(255,255,255,.13)",
+        "shadow": "0 2cqw 5cqw rgba(0,0,0,.38)"
+      },
+      "decoration": { "id": "velocity-lane", "intensity": 0.2, "dataDenseMultiplier": 0.65 },
+      "primitiveModifiers": ["condensed-display", "single-direction-skew", "rhythmic-lanes"],
+      "motion": {
+        "default": "editorial-shift",
+        "overrides": { "standings": "arena-dissolve", "price-list": "arena-dissolve" },
+        "overrideUsageCapPercent": 100
+      }
+    },
+    {
+      "id": "heritage",
+      "name": "Heritage 1908",
+      "version": "1.0.0",
+      "accentDefault": "#b8872f",
+      "supportDefault": "#183f35",
+      "displayFontRef": "vc-source-serif-4-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 650,
+      "displayLetterSpacingEm": -0.045,
+      "radiusCqw": 1.25,
+      "densityScale": 1.0,
+      "light": {
+        "canvas": "#f0ebdf",
+        "surface": "rgba(255,252,243,.92)",
+        "surfaceAlt": "#ddd5c3",
+        "text": "#183b32",
+        "muted": "#73746a",
+        "line": "rgba(24,59,50,.17)",
+        "shadow": "0 1.5cqw 4cqw rgba(53,45,31,.12)"
+      },
+      "dark": {
+        "canvas": "#102821",
+        "surface": "rgba(28,55,47,.92)",
+        "surfaceAlt": "#29473f",
+        "text": "#f2e9d7",
+        "muted": "#afa994",
+        "line": "rgba(242,233,215,.16)",
+        "shadow": "0 1.5cqw 4cqw rgba(0,0,0,.28)"
+      },
+      "decoration": { "id": "heritage-pinstripe", "intensity": 0.12, "dataDenseMultiplier": 0.55 },
+      "primitiveModifiers": ["serif-display", "double-keyline", "pinstripe-background"],
+      "motion": { "default": "arena-dissolve", "overrides": {}, "overrideUsageCapPercent": 0 }
+    },
+    {
+      "id": "halo",
+      "name": "Stadium Halo",
+      "version": "1.0.0",
+      "accentDefault": "#ff4f77",
+      "supportDefault": "#6f66ff",
+      "displayFontRef": "vc-manrope-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 750,
+      "displayLetterSpacingEm": -0.055,
+      "radiusCqw": 3.0,
+      "densityScale": 1.02,
+      "light": {
+        "canvas": "#f1eff8",
+        "surface": "rgba(255,255,255,.64)",
+        "surfaceAlt": "#dedbea",
+        "text": "#181626",
+        "muted": "#716d80",
+        "line": "rgba(29,25,46,.12)",
+        "shadow": "0 2.2cqw 6cqw rgba(83,71,126,.16)"
+      },
+      "dark": {
+        "canvas": "#0d0b18",
+        "surface": "rgba(31,27,50,.62)",
+        "surfaceAlt": "#2b2544",
+        "text": "#f8f5ff",
+        "muted": "#aaa2bd",
+        "line": "rgba(255,255,255,.13)",
+        "shadow": "0 2.2cqw 6cqw rgba(0,0,0,.42), 0 0 4cqw color-mix(in srgb, var(--vc-accent) 9%, transparent)"
+      },
+      "decoration": { "id": "stadium-halo", "intensity": 0.28, "dataDenseMultiplier": 0.32 },
+      "primitiveModifiers": ["translucent-panel", "hero-light-field", "large-radius"],
+      "motion": {
+        "default": "arena-dissolve",
+        "overrides": { "hero": "panel-reveal", "player-profile": "panel-reveal", "sponsor-fullscreen": "panel-reveal" },
+        "overrideUsageCapPercent": 30
+      }
+    },
+    {
+      "id": "swiss",
+      "name": "Swiss Score",
+      "version": "1.0.0",
+      "accentDefault": "#ef2b2d",
+      "supportDefault": "#2356ff",
+      "displayFontRef": "vc-inter-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 900,
+      "displayLetterSpacingEm": -0.075,
+      "radiusCqw": 0.65,
+      "densityScale": 0.92,
+      "light": {
+        "canvas": "#f5f4ef",
+        "surface": "#ffffff",
+        "surfaceAlt": "#e7e6df",
+        "text": "#090a0b",
+        "muted": "#606166",
+        "line": "rgba(0,0,0,.16)",
+        "shadow": "0 .7cqw 0 rgba(0,0,0,.08)"
+      },
+      "dark": {
+        "canvas": "#111111",
+        "surface": "#1e1e1e",
+        "surfaceAlt": "#2b2b2b",
+        "text": "#f5f4ef",
+        "muted": "#a2a2a0",
+        "line": "rgba(255,255,255,.17)",
+        "shadow": "0 .7cqw 0 rgba(255,255,255,.05)"
+      },
+      "decoration": { "id": "swiss-grid", "intensity": 0.16, "dataDenseMultiplier": 0.8 },
+      "primitiveModifiers": ["uppercase-display", "strict-grid", "flat-surface"],
+      "motion": {
+        "default": "arena-dissolve",
+        "overrides": { "operational-live": "instant-cut" },
+        "overrideUsageCapPercent": 100
+      }
+    },
+    {
+      "id": "pavilion",
+      "name": "Pavilion Luxe",
+      "version": "1.0.0",
+      "accentDefault": "#cf9b55",
+      "supportDefault": "#74324a",
+      "displayFontRef": "vc-cormorant-garamond-v1",
+      "bodyFontRef": "vc-manrope-v1",
+      "displayWeight": 650,
+      "displayLetterSpacingEm": -0.04,
+      "radiusCqw": 2.4,
+      "densityScale": 1.04,
+      "light": {
+        "canvas": "#f4ede4",
+        "surface": "rgba(255,251,245,.90)",
+        "surfaceAlt": "#dfd1c1",
+        "text": "#3c1f29",
+        "muted": "#806d71",
+        "line": "rgba(69,34,46,.15)",
+        "shadow": "0 2cqw 5cqw rgba(76,46,52,.14)"
+      },
+      "dark": {
+        "canvas": "#27121b",
+        "surface": "rgba(65,31,44,.88)",
+        "surfaceAlt": "#523140",
+        "text": "#f5eadb",
+        "muted": "#bda7aa",
+        "line": "rgba(255,235,218,.15)",
+        "shadow": "0 2cqw 5cqw rgba(0,0,0,.32)"
+      },
+      "decoration": { "id": "pavilion-polish", "intensity": 0.18, "dataDenseMultiplier": 0.45 },
+      "primitiveModifiers": ["luxe-title-serif", "polished-panel", "metal-highlight-only"],
+      "motion": {
+        "default": "arena-dissolve",
+        "overrides": { "hero": "panel-reveal", "hospitality": "panel-reveal", "sponsor-fullscreen": "panel-reveal" },
+        "overrideUsageCapPercent": 35
+      }
+    },
+    {
+      "id": "tactical",
+      "name": "Tactical Matrix",
+      "version": "1.0.0",
+      "accentDefault": "#38e68b",
+      "supportDefault": "#00a6c8",
+      "displayFontRef": "vc-ibm-plex-mono-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 650,
+      "displayLetterSpacingEm": -0.06,
+      "radiusCqw": 1.4,
+      "densityScale": 0.94,
+      "light": {
+        "canvas": "#edf3ef",
+        "surface": "rgba(255,255,255,.78)",
+        "surfaceAlt": "#d9e5dd",
+        "text": "#10241c",
+        "muted": "#60756c",
+        "line": "rgba(10,47,32,.15)",
+        "shadow": "0 1.5cqw 4cqw rgba(25,66,48,.13)"
+      },
+      "dark": {
+        "canvas": "#07140f",
+        "surface": "rgba(16,40,30,.80)",
+        "surfaceAlt": "#173c2d",
+        "text": "#effff6",
+        "muted": "#86a798",
+        "line": "rgba(91,239,169,.17)",
+        "shadow": "0 1.5cqw 4cqw rgba(0,0,0,.40)"
+      },
+      "decoration": { "id": "tactical-coordinate-grid", "intensity": 0.18, "dataDenseMultiplier": 0.7 },
+      "primitiveModifiers": ["mono-labels", "coordinate-grid", "performance-status"],
+      "motion": {
+        "default": "arena-dissolve",
+        "overrides": { "operational-live": "instant-cut" },
+        "overrideUsageCapPercent": 100
+      }
+    },
+    {
+      "id": "terrace",
+      "name": "Terrace Culture",
+      "version": "1.0.0",
+      "accentDefault": "#ff5c35",
+      "supportDefault": "#38d5c7",
+      "displayFontRef": "vc-anton-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 400,
+      "displayLetterSpacingEm": -0.03,
+      "radiusCqw": 1.1,
+      "densityScale": 0.98,
+      "light": {
+        "canvas": "#ecebe5",
+        "surface": "rgba(255,255,252,.88)",
+        "surfaceAlt": "#d8d6cc",
+        "text": "#161616",
+        "muted": "#696963",
+        "line": "rgba(0,0,0,.16)",
+        "shadow": ".8cqw .8cqw 0 color-mix(in srgb, var(--vc-accent) 22%, rgba(0,0,0,.08))"
+      },
+      "dark": {
+        "canvas": "#151515",
+        "surface": "rgba(36,36,35,.90)",
+        "surfaceAlt": "#30302d",
+        "text": "#f4f2e9",
+        "muted": "#a4a29b",
+        "line": "rgba(255,255,255,.16)",
+        "shadow": ".8cqw .8cqw 0 color-mix(in srgb, var(--vc-accent) 30%, rgba(0,0,0,.40))"
+      },
+      "decoration": { "id": "terrace-poster-grain", "intensity": 0.16, "dataDenseMultiplier": 0.3 },
+      "primitiveModifiers": ["poster-display", "controlled-sticker-layer", "quiet-data-surface"],
+      "motion": {
+        "default": "editorial-shift",
+        "overrides": { "standings": "arena-dissolve", "price-list": "arena-dissolve" },
+        "overrideUsageCapPercent": 100
+      }
+    }
+  ],
+  "visualAcceptance": {
+    "referencePlatform": "Pinned Chromium version in CI, Linux, deviceScaleFactor 1, bundled fonts loaded",
+    "goldenResolutions": ["1920x1080", "1080x1920"],
+    "requiredModes": ["light", "dark"],
+    "maxPerceptualDiffPercent": 0.15,
+    "maxSingleChannelDelta": 12,
+    "zeroToleranceRegions": ["safe-area clipping", "critical text", "prices", "scores", "table columns", "QR quiet zone"],
+    "goldenUpdatePolicy": "Golden updates require named design approval and a manifest semver change; tests may not auto-accept diffs."
+  }
+}

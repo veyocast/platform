@@ -5,5 +5,6 @@ export * from "./identity";
 export * from "./mobile-control";
 export * from "./playlist";
 export * from "./price-list";
+export * from "./theme-engine";
 export * from "./screen-automation";
 export * from "./sport";
