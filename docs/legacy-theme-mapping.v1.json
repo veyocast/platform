@@ -1,0 +1,14 @@
+{
+  "status": "approval_required",
+  "automaticConversion": false,
+  "ordinaryEditConversion": false,
+  "manifestVersion": "1.0.0",
+  "mappings": [
+    {
+      "from": { "catalog": "legacy", "legacyThemeId": "editorial-arena", "version": 1 },
+      "proposal": { "catalog": "v2", "id": "editorial", "version": "1.0.0" },
+      "reason": "Dichtste semantische en compositorische opvolger; conversie blijft expliciet per mutable slide."
+    }
+  ],
+  "approval": null
+}

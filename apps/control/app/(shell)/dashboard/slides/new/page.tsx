@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { Database, LayoutTemplate } from "lucide-react";
 
-import { editorialArenaActiveSlideTypes } from "@veyocast/contracts";
+import {
+  editorialArenaActiveSlideTypes,
+  themeSelectionSchema,
+  type ThemeSelection
+} from "@veyocast/contracts";
 import { Button } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
@@ -30,7 +34,13 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const data = session.isLive
     ? await loadOptions(session.tenantId!)
-    : { primaryColor: "#FF5C20", products: [], sources: [], templates: [] };
+    : {
+        defaultThemeSelection: fallbackThemeSelection("#FF5C20"),
+        primaryColor: "#FF5C20",
+        products: [],
+        sources: [],
+        templates: []
+      };
 
   return (
     <>
@@ -56,6 +66,7 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
         <div className={`empty-state ${styles.emptyState}`}><LayoutTemplate aria-hidden="true" /><h2>Geen gepubliceerde templates</h2><p>Een platformbeheerder moet eerst een dynamisch template publiceren.</p></div>
       ) : (
         <SlideComposerForm
+          defaultThemeSelection={data.defaultThemeSelection}
           primaryColor={data.primaryColor}
           products={data.products}
           sources={data.sources}
@@ -69,12 +80,20 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
 async function loadOptions(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) {
-    return { primaryColor: "#FF5C20", products: [], sources: [], templates: [] };
+    return {
+      defaultThemeSelection: fallbackThemeSelection("#FF5C20"),
+      primaryColor: "#FF5C20",
+      products: [],
+      sources: [],
+      templates: []
+    };
   }
   const [sourcesResult, templatesResult, settingsResult] = await Promise.all([
     supabase.from("dynamic_data_sources").select("id, name, kind, provider_status, last_successful_sync_at, last_error_code").eq("tenant_id", tenantId).eq("status", "active").order("name"),
     supabase.from("dynamic_templates").select("id, slug, name, description, slide_type, orientation, current_published_version_id").eq("status", "published").order("name"),
-    supabase.from("tenant_settings").select("primary_color").eq("tenant_id", tenantId).maybeSingle()
+    supabase.from("tenant_settings").select(
+      "primary_color, default_theme_id, default_theme_version, theme_mode_policy, theme_accent, theme_support"
+    ).eq("tenant_id", tenantId).maybeSingle()
   ]);
   const sportSources = (sourcesResult.data ?? []).filter(
     (source) => source.kind === "sportlink"
@@ -203,8 +222,23 @@ async function loadOptions(tenantId: string) {
       successfulDatasetGroups: successfulGroupsBySource.get(source.id) ?? []
     })
   ));
+  const primaryColor = normalizePrimaryColor(settingsResult.data?.primary_color);
+  const defaultThemeSelection = themeSelectionSchema.safeParse({
+    accent: settingsResult.data?.theme_accent ?? primaryColor,
+    categoryOverrides: [],
+    modePolicy: settingsResult.data?.theme_mode_policy,
+    ref: {
+      catalog: "v2",
+      id: settingsResult.data?.default_theme_id,
+      version: settingsResult.data?.default_theme_version
+    },
+    support: settingsResult.data?.theme_support ?? null
+  });
   return {
-    primaryColor: normalizePrimaryColor(settingsResult.data?.primary_color),
+    defaultThemeSelection: defaultThemeSelection.success
+      ? defaultThemeSelection.data
+      : fallbackThemeSelection(primaryColor),
+    primaryColor,
     products: await loadPriceListProducts(supabase, tenantId),
     sources,
     templates: (templatesResult.data ?? []).flatMap((template) =>
@@ -221,6 +255,16 @@ async function loadOptions(tenantId: string) {
         versionId: template.current_published_version_id
       }] : []
     )
+  };
+}
+
+function fallbackThemeSelection(primaryColor: string): ThemeSelection {
+  return {
+    accent: primaryColor,
+    categoryOverrides: [],
+    modePolicy: { kind: "fixed", mode: "light" },
+    ref: { catalog: "v2", id: "editorial", version: "1.0.0" },
+    support: null
   };
 }
 
@@ -261,7 +305,7 @@ async function loadPriceListProducts(
 ): Promise<PriceListProductOption[]> {
   const result = await supabase
     .from("tenant_products")
-    .select("id, data_source_id, name, description, category, price_cents, image_media_asset_id, available, sort_order")
+    .select("id, data_source_id, source_category_id, name, description, category, price_cents, image_media_asset_id, available, sort_order")
     .eq("tenant_id", tenantId)
     .eq("active", true)
     .order("category")
@@ -279,6 +323,7 @@ async function loadPriceListProducts(
       imageMediaAssetId: product.image_media_asset_id,
       name: product.name,
       priceCents: Number(product.price_cents),
+      sourceCategoryId: product.source_category_id,
       sortOrder: Number(product.sort_order ?? 0)
     }];
   });

@@ -1,6 +1,11 @@
 import Link from "next/link";
 
 import { hasCapability } from "@veyocast/auth";
+import {
+  themeModePolicySchema,
+  type ThemeModePolicy
+} from "@veyocast/contracts";
+import { themeCatalogOptions } from "@veyocast/content-templates/theme-catalog";
 import { Button } from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../lib/control-session";
@@ -26,6 +31,11 @@ type TenantSettings = {
   defaultVideoMuted: boolean;
   name: string;
   primaryColor: string;
+  themeAccent: string | null;
+  themeId: string;
+  themeModePolicy: ThemeModePolicy;
+  themeSettingsRevision: number;
+  themeSupport: string | null;
   timezoneName: string;
 };
 
@@ -40,6 +50,11 @@ const defaults: TenantSettings = {
   defaultVideoMuted: true,
   name: "",
   primaryColor: "#FF5C20",
+  themeAccent: null,
+  themeId: "editorial",
+  themeModePolicy: { kind: "fixed", mode: "light" },
+  themeSettingsRevision: 0,
+  themeSupport: null,
   timezoneName: "Europe/Amsterdam"
 };
 
@@ -106,6 +121,99 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             <PrimaryColorField
               defaultValue={data.primaryColor}
               disabled={!canManage}
+            />
+            <div className="field">
+              <label htmlFor="settings-theme-id">Standaard slidethema</label>
+              <select
+                defaultValue={data.themeId}
+                disabled={!canManage}
+                id="settings-theme-id"
+                name="themeId"
+              >
+                {themeCatalogOptions.map((theme) => (
+                  <option key={theme.id} value={theme.id}>
+                    {theme.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="settings-theme-policy">Licht/donker-beleid</label>
+              <select
+                defaultValue={data.themeModePolicy.kind}
+                disabled={!canManage}
+                id="settings-theme-policy"
+                name="themeModePolicyKind"
+              >
+                <option value="fixed">Vaste modus</option>
+                <option value="schedule">Tijdschema</option>
+                <option value="auto">Automatisch (07:00–18:00 licht)</option>
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="settings-theme-fixed-mode">Vaste modus</label>
+              <select
+                defaultValue={data.themeModePolicy.kind === "fixed"
+                  ? data.themeModePolicy.mode
+                  : "light"}
+                disabled={!canManage}
+                id="settings-theme-fixed-mode"
+                name="themeFixedMode"
+              >
+                <option value="light">Licht</option>
+                <option value="dark">Donker</option>
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="settings-theme-schedule-start">Donker vanaf</label>
+              <input
+                defaultValue={data.themeModePolicy.kind === "schedule"
+                  ? data.themeModePolicy.entries[0]?.start ?? "18:00"
+                  : "18:00"}
+                disabled={!canManage}
+                id="settings-theme-schedule-start"
+                name="themeScheduleStart"
+                type="time"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="settings-theme-schedule-end">Licht vanaf</label>
+              <input
+                defaultValue={data.themeModePolicy.kind === "schedule"
+                  ? data.themeModePolicy.entries[0]?.end ?? "07:00"
+                  : "07:00"}
+                disabled={!canManage}
+                id="settings-theme-schedule-end"
+                name="themeScheduleEnd"
+                type="time"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="settings-theme-accent">Thema-accent (optioneel)</label>
+              <input
+                defaultValue={data.themeAccent ?? ""}
+                disabled={!canManage}
+                id="settings-theme-accent"
+                name="themeAccent"
+                pattern="#[0-9A-Fa-f]{6}"
+                placeholder="#FF5C20"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="settings-theme-support">Steunkleur (optioneel)</label>
+              <input
+                defaultValue={data.themeSupport ?? ""}
+                disabled={!canManage}
+                id="settings-theme-support"
+                name="themeSupport"
+                pattern="#[0-9A-Fa-f]{6}"
+                placeholder="#17324D"
+              />
+            </div>
+            <input
+              name="themeSettingsRevision"
+              type="hidden"
+              value={data.themeSettingsRevision}
             />
           </div>
         </section>
@@ -207,7 +315,7 @@ async function loadSettings(tenantId: string | null, isLive: boolean, tenantName
 
   const [tenantResult, settingsResult] = await Promise.all([
     supabase.from("tenants").select("name").eq("id", tenantId).single(),
-    supabase.from("tenant_settings").select("primary_color, default_image_duration_seconds, default_fit_mode, default_video_muted, default_screen_orientation, default_resolution_width, default_resolution_height, timezone_name, default_transition, default_background_color").eq("tenant_id", tenantId).maybeSingle()
+    supabase.from("tenant_settings").select("primary_color, default_image_duration_seconds, default_fit_mode, default_video_muted, default_screen_orientation, default_resolution_width, default_resolution_height, timezone_name, default_transition, default_background_color, default_theme_id, theme_mode_policy, theme_accent, theme_support, theme_settings_revision").eq("tenant_id", tenantId).maybeSingle()
   ]);
 
   if (tenantResult.error || settingsResult.error) {
@@ -216,6 +324,7 @@ async function loadSettings(tenantId: string | null, isLive: boolean, tenantName
   }
 
   const row = settingsResult.data;
+  const modePolicy = themeModePolicySchema.safeParse(row?.theme_mode_policy);
   return {
     data: {
       defaultBackgroundColor: row?.default_background_color ?? defaults.defaultBackgroundColor,
@@ -228,6 +337,15 @@ async function loadSettings(tenantId: string | null, isLive: boolean, tenantName
       defaultVideoMuted: row?.default_video_muted ?? defaults.defaultVideoMuted,
       name: tenantResult.data.name,
       primaryColor: row?.primary_color ?? defaults.primaryColor,
+      themeAccent: row?.theme_accent ?? defaults.themeAccent,
+      themeId: row?.default_theme_id ?? defaults.themeId,
+      themeModePolicy: modePolicy.success
+        ? modePolicy.data
+        : defaults.themeModePolicy,
+      themeSettingsRevision: Number(
+        row?.theme_settings_revision ?? defaults.themeSettingsRevision
+      ),
+      themeSupport: row?.theme_support ?? defaults.themeSupport,
       timezoneName: row?.timezone_name ?? defaults.timezoneName
     },
     error: null

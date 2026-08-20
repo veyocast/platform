@@ -11,6 +11,7 @@ import {
   playerDynamicTemplateAssetSchema,
   playerDynamicTemplatePayloadSchema,
   priceListSlideConfigSchema,
+  themeSelectionSchema,
   type EditorialPriceListConfiguration,
   type PlayerDynamicTemplateAsset,
   type PlayerDynamicTemplatePayload
@@ -266,7 +267,9 @@ export async function createDynamicSlide(formData: FormData) {
   }
   const priceList = editorialConfiguration
     ? editorialPriceListConfigurationSchema.safeParse(
-        editorialConfiguration.priceList
+        "priceList" in editorialConfiguration
+          ? editorialConfiguration.priceList
+          : undefined
       )
     : null;
   if (templateSlideType === "menu" && !priceList?.success) {
@@ -374,7 +377,17 @@ function dynamicSlideConfiguration(formData: FormData) {
     const raw = String(formData.get("priceListConfiguration") ?? "");
     try {
       const parsed = priceListSlideConfigSchema.safeParse(JSON.parse(raw));
-      return parsed.success ? parsed.data : null;
+      if (!parsed.success) return null;
+      return {
+        ...parsed.data,
+        editorial: {
+          newsVariant: "hero_split",
+          pricePhotoMode: "show",
+          schemaVersion: 2,
+          theme: editorialThemeFromForm(formData),
+          themeSelection: themeSelectionFromForm(formData)
+        }
+      };
     } catch {
       return null;
     }
@@ -416,7 +429,8 @@ function dynamicSlideConfiguration(formData: FormData) {
       ...(priceList ? { priceList } : {}),
       pricePhotoMode,
       schemaVersion: 2,
-      theme
+      theme,
+      themeSelection: themeSelectionFromForm(formData)
     },
     ...(slideType === "menu" && category ? { category } : {}),
     maxItems,
@@ -442,7 +456,27 @@ function dynamicSlideConfiguration(formData: FormData) {
 function editorialColorsAreValid(formData: FormData) {
   return editorialThemeConfigSchema.safeParse(
     parseJson(formData.get("editorialThemeJson"))
+  ).success && themeSelectionSchema.safeParse(
+    parseJson(formData.get("themeSelectionJson"))
   ).success;
+}
+
+function themeSelectionFromForm(formData: FormData) {
+  const parsed = themeSelectionSchema.safeParse(
+    parseJson(formData.get("themeSelectionJson"))
+  );
+  if (parsed.success) return parsed.data;
+  return {
+    accent: null,
+    categoryOverrides: [],
+    modePolicy: { kind: "fixed" as const, mode: "light" as const },
+    ref: {
+      catalog: "v2" as const,
+      id: "editorial" as const,
+      version: "1.0.0"
+    },
+    support: null
+  };
 }
 
 function editorialThemeFromForm(formData: FormData) {

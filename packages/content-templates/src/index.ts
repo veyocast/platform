@@ -3,3 +3,6 @@ export * from "./editorial-arena-layout";
 export * from "./editorial-arena-renderer";
 export * from "./editorial-arena-theme";
 export * from "./price-list";
+export * from "./theme-catalog";
+export * from "./theme-motion";
+export * from "./theme-visual-matrix";

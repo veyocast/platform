@@ -15,6 +15,10 @@
     "./editorial-arena-theme": {
       "types": "./dist/editorial-arena-theme.d.ts",
       "default": "./src/editorial-arena-theme.ts"
+    },
+    "./theme-catalog": {
+      "types": "./dist/theme-catalog.d.ts",
+      "default": "./src/theme-catalog.ts"
     }
   },
   "scripts": {
