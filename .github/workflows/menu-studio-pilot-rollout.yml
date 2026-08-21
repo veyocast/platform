@@ -1,0 +1,186 @@
+name: Menu Studio pilot rollout
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Omgeving met de pilottenant
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      tenant_name:
+        description: Exacte zichtbare tenantnaam
+        required: true
+        type: string
+      flag:
+        description: Volgende flag in de rollout- of rollbackvolgorde
+        required: true
+        type: choice
+        options:
+          - read
+          - authoring
+          - linked_groups
+          - media
+          - publish
+          - player
+      action:
+        description: Flag aan- of uitzetten
+        required: true
+        type: choice
+        options:
+          - enable
+          - disable
+      release_sha:
+        description: Volledige reeds gedeployde main-SHA
+        required: true
+        type: string
+      reason:
+        description: Auditreden van 10 tot 240 tekens
+        required: true
+        type: string
+      confirmation:
+        description: Typ MENU STUDIO PILOT
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: menu-studio-pilot-${{ inputs.target_environment }}-${{ inputs.tenant_name }}
+  cancel-in-progress: false
+
+jobs:
+  rollout:
+    name: Apply one audited pilot flag
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: ${{ inputs.target_environment }}
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - veyocast
+      - ${{ inputs.target_environment }}
+    timeout-minutes: 10
+    steps:
+      - name: Verify deployed release and apply guarded flag
+        shell: bash
+        env:
+          ACTION: ${{ inputs.action }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          EXPECTED_RELEASE_SHA: ${{ inputs.release_sha }}
+          FLAG: ${{ inputs.flag }}
+          OPERATOR: github:${{ github.actor }}
+          REASON: ${{ inputs.reason }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+          TENANT_NAME: ${{ inputs.tenant_name }}
+          WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+
+          if [[ ${CONFIRMATION} != "MENU STUDIO PILOT" ]]; then
+            echo "De expliciete bevestiging MENU STUDIO PILOT ontbreekt." >&2
+            exit 1
+          fi
+          if [[ ! ${EXPECTED_RELEASE_SHA} =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Een volledige release-SHA is verplicht." >&2
+            exit 1
+          fi
+          if [[ ${EXPECTED_RELEASE_SHA} != "${WORKFLOW_SHA}" ]]; then
+            echo "Alleen de actuele main-SHA mag voor een pilot worden geactiveerd." >&2
+            exit 1
+          fi
+          if [[ ${#TENANT_NAME} -lt 2 || ${#TENANT_NAME} -gt 120 || ${TENANT_NAME} == *$'\n'* || ${TENANT_NAME} == *$'\r'* ]]; then
+            echo "De tenantnaam is ongeldig." >&2
+            exit 1
+          fi
+          if [[ ${#REASON} -lt 10 || ${#REASON} -gt 240 || ${REASON} == *$'\n'* || ${REASON} == *$'\r'* ]]; then
+            echo "De auditreden is ongeldig." >&2
+            exit 1
+          fi
+          if [[ ${ACTION} == enable ]]; then
+            enabled=true
+            expected_db_value=t
+          else
+            enabled=false
+            expected_db_value=f
+          fi
+
+          if [[ ${TARGET_ENVIRONMENT} == production ]]; then
+            health_url="https://control.veyocast.nl/api/health"
+          else
+            health_url="https://staging-control.veyocast.nl/api/health"
+          fi
+          health_payload="$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "${health_url}")"
+          if ! grep --fixed-strings --quiet "\"environment\":\"${TARGET_ENVIRONMENT}\"" <<<"${health_payload}" \
+            || ! grep --fixed-strings --quiet "\"revision\":\"${EXPECTED_RELEASE_SHA}\"" <<<"${health_payload}" \
+            || ! grep --fixed-strings --quiet '"status":"ok"' <<<"${health_payload}"
+          then
+            echo "De doelomgeving draait niet op de bevestigde release-SHA." >&2
+            exit 1
+          fi
+          unset health_payload
+
+          migration_count="$(
+            psql "${SUPABASE_DB_URL}" --no-psqlrc --tuples-only --no-align --set ON_ERROR_STOP=1 \
+              --command="select count(*) from supabase_migrations.schema_migrations where version = '20260821214542';"
+          )"
+          if [[ ${migration_count//[[:space:]]/} != 1 ]]; then
+            echo "De Menu Studio pilotmigratie ontbreekt in de doelomgeving." >&2
+            exit 1
+          fi
+
+          changed="$(
+            psql "${SUPABASE_DB_URL}" --no-psqlrc --tuples-only --no-align --set ON_ERROR_STOP=1 \
+              --set tenant_name="${TENANT_NAME}" \
+              --set flag="${FLAG}" \
+              --set enabled="${enabled}" \
+              --set reason="${REASON}" \
+              --set operator="${OPERATOR}" \
+              --set run_url="${RUN_URL}" <<'SQL'
+          begin;
+          select private.set_menu_studio_pilot_flag_v1(
+            :'tenant_name',
+            :'flag',
+            :'enabled'::boolean,
+            :'reason',
+            :'operator',
+            :'run_url'
+          ) ->> 'changed';
+          commit;
+          SQL
+          )"
+
+          if [[ ${changed} == *t* ]]; then
+            echo "De pilotflag is gewijzigd en geaudit."
+          else
+            echo "De pilotflag stond al in de gevraagde toestand; er was geen mutatie nodig."
+          fi
+
+          verified="$(
+            psql "${SUPABASE_DB_URL}" --no-psqlrc --tuples-only --no-align --set ON_ERROR_STOP=1 \
+              --set tenant_name="${TENANT_NAME}" \
+              --set flag="${FLAG}" <<'SQL'
+          select case :'flag'
+            when 'read' then settings.menu_document_v2_read_enabled
+            when 'authoring' then settings.menu_studio_v2_authoring_enabled
+            when 'linked_groups' then settings.menu_studio_v2_linked_groups_enabled
+            when 'media' then settings.menu_studio_v2_media_enabled
+            when 'publish' then settings.menu_studio_v2_publish_enabled
+            when 'player' then settings.menu_studio_v2_player_enabled
+          end
+          from public.tenant_settings settings
+          join public.tenants tenant on tenant.id = settings.tenant_id
+          where lower(btrim(tenant.name)) = lower(btrim(:'tenant_name'));
+          SQL
+          )"
+          if [[ ${verified//[[:space:]]/} != "${expected_db_value}" ]]; then
+            echo "De readback van de pilotflag wijkt af; rollout stopt." >&2
+            exit 1
+          fi
+          echo "De readback van de pilotflag is bevestigd."

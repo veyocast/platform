@@ -21,18 +21,13 @@ export default async function SlidesPage({ searchParams }: PageProps) {
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.dynamic_slide.write");
-  const [slides, menuStudioEnabled] = session.isLive
-    ? await Promise.all([
-        loadSlides(session.tenantId!),
-        loadMenuStudioEnabled(session.tenantId!)
-      ])
-    : [[], false];
+  const slides = session.isLive ? await loadSlides(session.tenantId!) : [];
 
   return (
     <>
       <PageHeader
-        actions={canWrite ? <div className={styles.heroActions}>{menuStudioEnabled ? <Button asChild><Link href="/dashboard/slides/menu-studio/new"><WandSparkles aria-hidden="true" />Open Menu Studio</Link></Button> : null}<Button asChild variant={menuStudioEnabled ? "secondary" : "primary"}><Link href="/dashboard/slides/new"><Sparkles aria-hidden="true" />Nieuwe dynamische slide</Link></Button></div> : null}
-        description="Maak dynamische HTML/CSS-slides uit product- en nieuwsdata. Iedere snapshot krijgt daarnaast een immutable PNG als veilige fallback."
+        actions={canWrite ? <Button asChild><Link href="/dashboard/slides/menu-studio/new"><WandSparkles aria-hidden="true" />Menu Studio openen</Link></Button> : null}
+        description="Beheer bestaande dynamische slides en bouw nieuwe menuschermen in Menu Studio. Iedere publicatie blijft een immutable momentopname."
         eyebrow={session.tenant}
         title="Slides"
       />
@@ -85,25 +80,13 @@ export default async function SlidesPage({ searchParams }: PageProps) {
           <div className={`empty-state ${styles.emptyState}`}>
             <Layers3 aria-hidden="true" />
             <h2>Nog geen dynamische slides</h2>
-            <p>Kies een vast platformtemplate en koppel een gecontroleerde databron.</p>
-            {canWrite ? <Button asChild><Link href="/dashboard/slides/new">Eerste slide maken</Link></Button> : null}
+            <p>Koppel een gecontroleerde productbron en bouw daarna je eerste menu in Menu Studio.</p>
+            {canWrite ? <Button asChild><Link href="/dashboard/slides/menu-studio/new">Eerste menu maken</Link></Button> : null}
           </div>
         )}
       </section>
     </>
   );
-}
-
-async function loadMenuStudioEnabled(tenantId: string) {
-  const supabase = await createControlSupabaseClient();
-  if (!supabase) return false;
-  const result = await supabase
-    .from("tenant_settings")
-    .select("menu_document_v2_read_enabled, menu_studio_v2_authoring_enabled")
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-  return !result.error && result.data?.menu_document_v2_read_enabled === true &&
-    result.data.menu_studio_v2_authoring_enabled === true;
 }
 
 async function loadSlides(tenantId: string) {

@@ -4,6 +4,15 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
+  async redirects() {
+    return [
+      {
+        destination: "/dashboard/slides/menu-studio/new",
+        permanent: false,
+        source: "/dashboard/slides/new"
+      }
+    ];
+  },
   transpilePackages: ["@veyocast/config", "@veyocast/content-templates"]
 };
 
