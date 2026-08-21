@@ -206,7 +206,12 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       canPublish={canPublish}
       groups={data.groups}
       idempotencyKey={randomUUID()}
-      releases={data.releases}
+      playlists={[
+        ...new Map(data.releases.map((release) => [
+          release.playlistId,
+          { id: release.playlistId, label: release.playlistName }
+        ])).values()
+      ].sort((left, right) => left.label.localeCompare(right.label, "nl"))}
       syncAction={requestBulkScreenSyncRetry}
     >
     <section aria-labelledby="screen-fleet-title">

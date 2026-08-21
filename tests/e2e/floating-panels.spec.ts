@@ -103,3 +103,33 @@ test("floating panels stay above clipped containers at every Control breakpoint"
     await expect(contextTrigger).toBeFocused();
   }
 });
+
+test("het volledige Meer-paneel blijft bereikbaar op echte mobiele viewports", async ({ page }) => {
+  test.setTimeout(90_000);
+  const mobileViewports = [
+    { height: 640, width: 360 },
+    { height: 844, width: 390 },
+    { height: 915, width: 412 },
+    { height: 1024, width: 768 }
+  ];
+
+  for (const viewport of mobileViewports) {
+    await page.setViewportSize(viewport);
+    await openDashboard(page);
+    const more = page.getByRole("button", { exact: true, name: "Meer" });
+    const trigger = await more.isVisible()
+      ? more
+      : page.getByRole("button", { name: "Navigatie openen" });
+    await trigger.click();
+
+    const sidebar = page.locator("#control-sidebar-navigation");
+    await expect(sidebar).toHaveClass(/control-sidebar--open/);
+    const footer = sidebar.locator(".control-sidebar__footer");
+    await footer.scrollIntoViewIfNeeded();
+    await expect(footer).toBeVisible();
+    const bounds = await footer.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height + 1);
+    await page.keyboard.press("Escape");
+  }
+});

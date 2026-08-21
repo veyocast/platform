@@ -45,7 +45,22 @@ async function saveScreenGroup(formData: FormData, operation: "create" | "update
   const { session, supabase } = await screenGroupManager();
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const defaultReleaseId = optionalUuid(formData, "defaultReleaseId");
+  const defaultPlaylistId = optionalUuid(formData, "defaultPlaylistId");
+  let defaultReleaseId: string | null = null;
+  if (defaultPlaylistId) {
+    const latestRelease = await supabase
+      .from("playlist_releases")
+      .select("id")
+      .eq("tenant_id", session.tenantId)
+      .eq("playlist_id", defaultPlaylistId)
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (latestRelease.error || !latestRelease.data?.id) {
+      fail("Deze playlist heeft nog geen geldige publicatie. Publiceer hem eerst.");
+    }
+    defaultReleaseId = latestRelease.data.id;
+  }
   const screenIds = uniqueUuids(formData.getAll("screenIds"));
   if (name.length < 2 || name.length > 120) {
     fail("Gebruik een groepsnaam van 2 tot en met 120 tekens.");

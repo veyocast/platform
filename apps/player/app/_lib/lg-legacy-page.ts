@@ -1,4 +1,30 @@
 import { currentPlayerApplicationVersion } from "./player-app-update";
+import themeManifestSource from "../../../../packages/content-templates/src/THEME-MANIFEST.v1.json";
+
+const legacyFontAssets = themeManifestSource.fontAssets as Record<
+  string,
+  { family: string }
+>;
+
+const legacyThemeCatalog = Object.fromEntries(
+  themeManifestSource.themes.map((theme) => [
+    theme.id,
+    {
+      accent: theme.accentDefault,
+      bodyFont: legacyFontAssets[theme.bodyFontRef]?.family ?? "Arial",
+      decoration: theme.decoration.id,
+      density: theme.densityScale,
+      displayFont: legacyFontAssets[theme.displayFontRef]?.family ?? "Arial",
+      displayLetterSpacingEm: theme.displayLetterSpacingEm,
+      displayWeight: theme.displayWeight,
+      light: theme.light,
+      dark: theme.dark,
+      radiusPx: Math.round(theme.radiusCqw * 16),
+      support: theme.supportDefault,
+      version: theme.version
+    }
+  ])
+);
 
 const legacyConfig = {
   activeReleaseStore: "activeReleases",
@@ -24,6 +50,8 @@ const legacyConfig = {
   requestTimeoutMs: 12_000,
   storageReserveBytes: 16 * 1024 * 1024,
   storageReserveMaximumBytes: 64 * 1024 * 1024,
+  themeCatalog: legacyThemeCatalog,
+  themeManifestVersion: themeManifestSource.manifestVersion,
   videoProgressTimeoutMs: 10_000,
   videoStartTimeoutMs: 15_000
 } as const;
@@ -117,6 +145,18 @@ export function renderLgLegacyHtml() {
     .dynamic-template.editorial-arena{display:block;padding:0;background:#f3f1ec;color:#17202a}
     .dynamic-template.editorial-arena.dark{background:#070a0e;color:#f3f0e9}
     .dynamic-template.editorial-arena{background:var(--editorial-canvas);color:var(--editorial-text)}
+    .dynamic-template.editorial-arena[data-theme-id]{font-family:var(--vc-theme-body-font),Arial,Helvetica,sans-serif}
+    .dynamic-template.editorial-arena[data-theme-id] h1,.dynamic-template.editorial-arena[data-theme-id] h2{font-family:var(--vc-theme-display-font),Arial,Helvetica,sans-serif;font-weight:var(--vc-theme-display-weight);letter-spacing:var(--vc-theme-display-spacing)}
+    .dynamic-template.editorial-arena[data-theme-id="editorial"]{background-image:linear-gradient(112deg,transparent 0,transparent 68%,rgba(255,90,31,.10) 100%)}
+    .dynamic-template.editorial-arena[data-theme-id="obsidian"]{background-image:radial-gradient(circle at 82% 15%,rgba(48,188,237,.18),transparent 32%),linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:auto,80px 80px,80px 80px}
+    .dynamic-template.editorial-arena[data-theme-id="atelier"]{background-image:radial-gradient(circle at 90% 100%,rgba(215,91,42,.12),transparent 38%),repeating-linear-gradient(90deg,transparent 0,transparent 28px,rgba(255,255,255,.035) 29px)}
+    .dynamic-template.editorial-arena[data-theme-id="velocity"]{background-image:linear-gradient(118deg,transparent 0,transparent 64%,rgba(255,61,0,.15) 64%,rgba(255,61,0,.05) 72%,transparent 72%)}
+    .dynamic-template.editorial-arena[data-theme-id="heritage"]{background-image:repeating-linear-gradient(90deg,transparent 0,transparent 78px,rgba(184,135,47,.055) 80px)}
+    .dynamic-template.editorial-arena[data-theme-id="halo"]{background-image:radial-gradient(circle at 75% 42%,rgba(255,79,119,.20),transparent 28%),radial-gradient(circle at 15% 90%,rgba(111,102,255,.14),transparent 34%)}
+    .dynamic-template.editorial-arena[data-theme-id="swiss"]{background-image:linear-gradient(90deg,var(--accent) 0,var(--accent) 18px,transparent 18px),linear-gradient(90deg,transparent 25%,var(--editorial-border) 25%,var(--editorial-border) 25.1%,transparent 25.1%,transparent 50%,var(--editorial-border) 50%,var(--editorial-border) 50.1%,transparent 50.1%,transparent 75%,var(--editorial-border) 75%,var(--editorial-border) 75.1%,transparent 75.1%)}
+    .dynamic-template.editorial-arena[data-theme-id="pavilion"]{background-image:radial-gradient(circle at 80% 10%,rgba(207,155,85,.18),transparent 35%)}
+    .dynamic-template.editorial-arena[data-theme-id="tactical"]{background-image:radial-gradient(circle at 82% 50%,rgba(56,230,139,.13),transparent 36%),linear-gradient(rgba(56,230,139,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(56,230,139,.055) 1px,transparent 1px);background-size:auto,64px 64px,64px 64px}
+    .dynamic-template.editorial-arena[data-theme-id="terrace"]{background-image:linear-gradient(125deg,transparent 0,transparent 68%,rgba(255,92,53,.16) 78%,transparent 78%),radial-gradient(rgba(255,255,255,.08) 1px,transparent 1px);background-size:auto,5px 5px}
     .editorial-arena .dynamic-menu-grid,.editorial-arena .dynamic-list,.editorial-arena .dynamic-match,.editorial-arena .editorial-news-art,.editorial-arena .editorial-news-copy,.editorial-arena .legacy-standing-card{border-color:var(--editorial-border);background:var(--editorial-surface);box-shadow:0 24px 80px var(--editorial-shadow)}
     .editorial-arena .dynamic-menu-item,.editorial-arena .legacy-standing-row{border-color:var(--editorial-border-soft);background:var(--editorial-row)}
     .editorial-arena:before{position:absolute;top:0;right:0;left:0;height:8px;background:var(--accent);content:""}
@@ -1852,6 +1892,17 @@ export function renderLgLegacyHtml() {
       cachedAssetUrl(item && item.source, callback);
     }
     function sourceForItem(item, callback) {
+      if (
+        item &&
+        item.kind === "video" &&
+        !runtime.offline &&
+        item.source &&
+        typeof item.source.url === "string" &&
+        item.source.url.toLowerCase().indexOf("https://") === 0
+      ) {
+        callback(item.source.url, null, true);
+        return;
+      }
       cachedItemUrl(item, callback);
     }
     function preloadLocalImage(url, callback) {
@@ -1947,7 +1998,7 @@ export function renderLgLegacyHtml() {
       clearPlaybackTimers();
       cancelPendingMedia();
       silenceCurrentMediaEvents();
-      sourceForItem(item, function (sourceUrl, objectUrl) {
+      sourceForItem(item, function (sourceUrl, objectUrl, networkVideoSource) {
         var objectUrls = objectUrl ? [objectUrl] : [];
         if (
           generation !== runtime.playbackGeneration ||
@@ -1981,14 +2032,14 @@ export function renderLgLegacyHtml() {
             } catch (error) {
               log("LEGACY_TEMPLATE_ERROR", String(error && error.message || error));
               if (item.kind === "video") {
-                playVideo(item, sourceUrl, objectUrls, generation);
+                playVideo(item, sourceUrl, objectUrls, generation, networkVideoSource === true);
               } else {
                 playImage(item, sourceUrl, objectUrls, generation);
               }
             }
           });
         } else if (item.kind === "video") {
-          playVideo(item, sourceUrl, objectUrls, generation);
+          playVideo(item, sourceUrl, objectUrls, generation, networkVideoSource === true);
         } else {
           playImage(item, sourceUrl, objectUrls, generation);
         }
@@ -2030,6 +2081,7 @@ export function renderLgLegacyHtml() {
       "sport_activities",
       "sport_cancellations",
       "sport_dressing_rooms",
+      "sport_match_of_the_day",
       "sport_next_match",
       "sport_officials",
       "sport_program",
@@ -2773,21 +2825,40 @@ export function renderLgLegacyHtml() {
       var brand = templateRecord(snapshot.brand);
       var editorialConfiguration = templateRecord(snapshot.editorial) || {};
       var editorialTheme = templateRecord(editorialConfiguration.theme) || {};
+      var themePresentation = templateRecord(snapshot.themePresentation) || {};
+      var themeSelection = templateRecord(themePresentation.selection) || {};
+      var themeReference = templateRecord(themeSelection.ref) || {};
+      var resolvedThemeMode = templateRecord(themePresentation.resolvedMode) || {};
+      var manifestTheme = templateRecord(CONFIG.themeCatalog[templateText(themeReference.id, "editorial")]) || templateRecord(CONFIG.themeCatalog.editorial) || {};
       var editorialMode = templateText(
-        editorialTheme.mode,
+        resolvedThemeMode.mode,
+        templateText(editorialTheme.mode,
         payload.templateSlug.indexOf("dark") !== -1 ? "dark" : "light"
+        )
       );
-      var editorialTokens = templateRecord(editorialTheme[editorialMode]) || {};
+      var manifestPalette = templateRecord(manifestTheme[editorialMode]) || {};
+      var editorialTokens = Object.keys(manifestPalette).length
+        ? manifestPalette
+        : templateRecord(editorialTheme[editorialMode]) || {};
       var editorialArena =
         templateText(payload.templateSlug, "").indexOf("editorial-arena-") === 0;
       if (brand && typeof brand.primaryColor === "string" && /^#[0-9a-f]{6}$/i.test(brand.primaryColor)) {
         accent = brand.primaryColor;
       }
+      if (typeof manifestTheme.accent === "string") accent = manifestTheme.accent;
+      if (typeof themeSelection.accent === "string" && /^#[0-9a-f]{6}$/i.test(themeSelection.accent)) {
+        accent = themeSelection.accent;
+      }
       root.className += editorialMode === "dark" ? " dark" : "";
       root.className += payload.orientation === "portrait" ? " portrait" : "";
       root.setAttribute("data-slide-type", payload.slideType);
+      root.setAttribute("data-theme-id", templateText(themeReference.id, "editorial"));
       if (editorialArena) root.className += " editorial-arena";
       root.style.setProperty("--accent", accent);
+      root.style.setProperty("--vc-theme-body-font", templateText(manifestTheme.bodyFont, "Arial"));
+      root.style.setProperty("--vc-theme-display-font", templateText(manifestTheme.displayFont, "Arial"));
+      root.style.setProperty("--vc-theme-display-weight", String(Number(manifestTheme.displayWeight) || 700));
+      root.style.setProperty("--vc-theme-display-spacing", String(Number(manifestTheme.displayLetterSpacingEm) || 0) + "em");
       root.style.setProperty("--editorial-canvas", templateText(editorialTokens.canvas, editorialMode === "dark" ? "#090B0E" : "#D7D2C8"));
       root.style.setProperty("--editorial-surface", templateText(editorialTokens.surface, editorialMode === "dark" ? "#0D1116" : "#F3F0E9"));
       root.style.setProperty("--editorial-row", templateText(editorialTokens.row, editorialMode === "dark" ? "#11161C" : "#FBF9F4"));
@@ -2931,9 +3002,48 @@ export function renderLgLegacyHtml() {
       }, 12000);
       image.src = sourceUrl;
     }
-    function playVideo(item, sourceUrl, objectUrls, generation) {
+    function playVideo(item, sourceUrl, objectUrls, generation, allowCacheFallback) {
       var video;
       var committed = false;
+      var fallbackStarted = false;
+      function fallbackOrFail(code) {
+        if (!allowCacheFallback || fallbackStarted) {
+          failItem(code);
+          return;
+        }
+        fallbackStarted = true;
+        log("LEGACY_VIDEO_NETWORK_FALLBACK", code);
+        clearPlaybackTimers();
+        if (runtime.pendingElement === video) cancelPendingMedia();
+        if (runtime.currentElement === video) {
+          video.oncanplay = null;
+          video.onended = null;
+          video.onerror = null;
+          video.onloadedmetadata = null;
+          video.onplaying = null;
+          video.ontimeupdate = null;
+        }
+        cachedItemUrl(item, function (cachedUrl, cachedObjectUrl) {
+          if (
+            generation !== runtime.playbackGeneration ||
+            item !== runtime.currentItem
+          ) {
+            if (cachedObjectUrl) revokeObjectUrls([cachedObjectUrl]);
+            return;
+          }
+          if (!cachedUrl) {
+            failItem("LEGACY_VIDEO_CACHE_FALLBACK_MISSING");
+            return;
+          }
+          playVideo(
+            item,
+            cachedUrl,
+            cachedObjectUrl ? [cachedObjectUrl] : [],
+            generation,
+            false
+          );
+        });
+      }
       video = document.createElement("video");
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
@@ -2980,7 +3090,7 @@ export function renderLgLegacyHtml() {
       };
       video.onerror = function () {
         if (generation === runtime.playbackGeneration) {
-          failItem("LEGACY_VIDEO_ERROR");
+          fallbackOrFail("LEGACY_VIDEO_ERROR");
         }
       };
       beginPendingMedia(video, objectUrls);
@@ -2989,7 +3099,7 @@ export function renderLgLegacyHtml() {
           generation === runtime.playbackGeneration &&
           (!video || video.paused || video.readyState < 2)
         ) {
-          failItem("LEGACY_VIDEO_START_TIMEOUT");
+          fallbackOrFail("LEGACY_VIDEO_START_TIMEOUT");
         }
       }, CONFIG.videoStartTimeoutMs);
       runtime.progressTimer = window.setInterval(function () {
@@ -3000,7 +3110,7 @@ export function renderLgLegacyHtml() {
           runtime.lastProgressAt &&
           now() - runtime.lastProgressAt > CONFIG.videoProgressTimeoutMs
         ) {
-          failItem("LEGACY_VIDEO_STALLED");
+          fallbackOrFail("LEGACY_VIDEO_STALLED");
         }
       }, 2000);
       video.src = sourceUrl;

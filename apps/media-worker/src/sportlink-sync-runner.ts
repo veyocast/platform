@@ -141,7 +141,7 @@ export class SupabaseSportlinkSyncBackend {
       }
       for (const artifact of media) {
         const upload = await this.client.storage
-          .from("tenant-media")
+          .from("provider-assets")
           .upload(artifact.storagePath, artifact.bytes, {
             cacheControl: "31536000",
             contentType: artifact.mimeType,
@@ -150,7 +150,7 @@ export class SupabaseSportlinkSyncBackend {
         if (upload.error) throw new Error("sportlink_media_upload_failed");
       }
     }
-    const result = await this.client.rpc("complete_sportlink_sync_v3", {
+    const result = await this.client.rpc("complete_sportlink_sync_v4", {
       p_activities: batch.activities,
       p_club: batch.club ?? {},
       p_club_logo: batch.clubLogo ? toMediaPayload(batch.clubLogo) : {},
@@ -324,6 +324,7 @@ async function fetchSportlinkDataset(
     }
     batch.clubLogo = await prepareSportlinkClubLogo(
       job,
+      batch.club.externalId,
       batch.club.name,
       logo.bytes
     );
@@ -410,6 +411,7 @@ function toMediaPayload(artifact: SportlinkMediaArtifact) {
   return {
     assetId: artifact.assetId,
     checksumSha256: artifact.checksumSha256,
+    externalId: artifact.externalId,
     fileSizeBytes: artifact.fileSizeBytes,
     height: artifact.height,
     mimeType: artifact.mimeType,
@@ -535,11 +537,14 @@ async function fetchStandingTeamLogos(
   job: ClaimedSportlinkSync,
   standings: SportStanding[]
 ) {
-  const unique = new Map<string, string>();
+  const unique = new Map<string, { externalId: string; teamName: string }>();
   for (const standing of standings) {
     for (const row of standing.rows) {
       if (row.logoUrl && !unique.has(row.logoUrl)) {
-        unique.set(row.logoUrl, row.teamName);
+        unique.set(row.logoUrl, {
+          externalId: row.externalId,
+          teamName: row.teamName
+        });
       }
       if (unique.size >= 100) break;
     }
@@ -550,12 +555,13 @@ async function fetchStandingTeamLogos(
   for (let offset = 0; offset < entries.length; offset += 6) {
     const chunk = entries.slice(offset, offset + 6);
     const imported = await Promise.all(
-      chunk.map(async ([sourceUrl, teamName]) => {
+      chunk.map(async ([sourceUrl, team]) => {
         try {
           const image = await fetchSafeRssImage(sourceUrl);
           return await prepareSportlinkTeamLogo(
             job,
-            teamName,
+            team.externalId,
+            team.teamName,
             sourceUrl,
             image.body
           );

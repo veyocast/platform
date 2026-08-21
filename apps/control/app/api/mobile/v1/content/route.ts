@@ -22,6 +22,7 @@ export async function GET(request: Request) {
           .from("media_assets")
           .select("id, title, mime_type, status, file_size_bytes, created_at")
           .eq("tenant_id", tenant.id)
+          .eq("source_kind", "user")
           .is("deleted_at", null)
           .order("created_at", { ascending: false })
           .limit(100),

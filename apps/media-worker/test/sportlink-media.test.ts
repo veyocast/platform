@@ -25,17 +25,18 @@ describe("Sportlink clublogo", () => {
       encryptionTag: "authentication",
       runId: "40000000-0000-4000-8000-000000000001",
       tenantId: "10000000-0000-4000-8000-000000000001"
-    }, "Duindorp sv", input);
+    }, "club-1", "Duindorp sv", input);
 
     expect(artifact).toMatchObject({
       height: 398,
+      externalId: "club-1",
       mimeType: "image/webp",
       role: "club_logo",
       title: "Duindorp sv clublogo",
       width: 512
     });
     expect(artifact.storagePath).toBe(
-      `tenants/10000000-0000-4000-8000-000000000001/assets/${artifact.assetId}/sportlink-club-logo.webp`
+      `providers/sportlink/club_logo/${artifact.checksumSha256}.webp`
     );
     expect(artifact.checksumSha256).toMatch(/^[a-f0-9]{64}$/);
   });
@@ -58,17 +59,18 @@ describe("Sportlink clublogo", () => {
       encryptionTag: "authentication",
       runId: "40000000-0000-4000-8000-000000000001",
       tenantId: "10000000-0000-4000-8000-000000000001"
-    }, "Bezoekers 1", "https://cdn.sportlink.com/bezoekers.png", input);
+    }, "team-1", "Bezoekers 1", "https://cdn.sportlink.com/bezoekers.png", input);
 
     expect(artifact).toMatchObject({
       height: 256,
+      externalId: "team-1",
       role: "team_logo",
       sourceUrl: "https://cdn.sportlink.com/bezoekers.png",
       title: "Bezoekers 1 teamlogo",
       width: 256
     });
     expect(artifact.storagePath).toBe(
-      `tenants/10000000-0000-4000-8000-000000000001/assets/${artifact.assetId}/sportlink-team-logo.webp`
+      `providers/sportlink/team_logo/${artifact.checksumSha256}.webp`
     );
   });
 });

@@ -98,14 +98,14 @@ export function ScreenGroupDialog({
             <div className="field">
               <label htmlFor={`screen-group-release-${group?.id ?? "new"}`}>Standaardcontent</label>
               <select
-                defaultValue={group?.defaultReleaseId ?? ""}
+                defaultValue={group?.defaultPlaylistId ?? ""}
                 id={`screen-group-release-${group?.id ?? "new"}`}
-                name="defaultReleaseId"
+                name="defaultPlaylistId"
               >
                 <option value="">Geen standaardcontent</option>
-                {releases.map((release) => <option key={release.id} value={release.id}>{release.label}</option>)}
+                {releases.map((playlist) => <option key={playlist.id} value={playlist.id}>{playlist.label}</option>)}
               </select>
-              <small>Alleen een bestaande immutable release kan als standaard worden gekozen.</small>
+              <small>Bij opslaan wordt de actuele immutable publicatie van deze playlist vastgelegd.</small>
             </div>
             <fieldset className={styles.screenPicker}>
               <legend>Schermen</legend>

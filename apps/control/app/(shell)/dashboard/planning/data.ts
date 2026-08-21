@@ -68,11 +68,14 @@ export async function loadContentSchedules(tenantId: string) {
         .map((membership) => membership.screen_id),
       name: group.name
     })),
-    releases: (releases.data ?? []).map((release) => ({
-      id: release.id,
-      label: `${playlistNames.get(release.playlist_id) ?? "Verwijderde playlist"} · versie ${release.version}`,
-      playlistId: release.playlist_id
-    })),
+    releases: [...new Map((releases.data ?? []).map((release) => [
+      release.playlist_id,
+      {
+        id: release.playlist_id,
+        label: playlistNames.get(release.playlist_id) ?? "Verwijderde playlist",
+        playlistId: release.playlist_id
+      }
+    ])).values()].sort((left, right) => left.label.localeCompare(right.label, "nl")),
     schedules: (schedules.data ?? []).map((schedule): ContentScheduleListItem => {
       const release = releaseById.get(schedule.release_id);
       return {
@@ -81,6 +84,7 @@ export async function loadContentSchedules(tenantId: string) {
         id: schedule.id,
         name: schedule.name,
         playlistName: playlistNames.get(schedule.playlist_id) ?? "Verwijderde playlist",
+        playlistId: schedule.playlist_id,
         priority: schedule.priority,
         recurrence: jsonRecord(schedule.recurrence_json),
         releaseId: schedule.release_id,

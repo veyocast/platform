@@ -193,15 +193,15 @@ export function ContentScheduleDialog({
                 />
               </div>
               <div className="field">
-                <label htmlFor={`schedule-release-${schedule?.id ?? "new"}`}>Immutable release</label>
+                <label htmlFor={`schedule-release-${schedule?.id ?? "new"}`}>Playlist</label>
                 <select
-                  defaultValue={schedule?.releaseId ?? ""}
+                  defaultValue={schedule?.playlistId ?? ""}
                   id={`schedule-release-${schedule?.id ?? "new"}`}
-                  name="releaseId"
+                  name="playlistId"
                   required
                 >
-                  <option value="">Kies een release</option>
-                  {releases.map((release) => <option key={release.id} value={release.id}>{release.label}</option>)}
+                  <option value="">Kies een playlist</option>
+                  {releases.map((playlist) => <option key={playlist.id} value={playlist.id}>{playlist.label}</option>)}
                 </select>
               </div>
             </div>

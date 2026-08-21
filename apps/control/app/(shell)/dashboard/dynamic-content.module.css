@@ -918,6 +918,9 @@
 }
 
 .livePreviewStage {
+  position: relative;
+  isolation: isolate;
+  contain: layout paint;
   width: min(100%, 48rem);
   aspect-ratio: 16 / 9;
   justify-self: center;

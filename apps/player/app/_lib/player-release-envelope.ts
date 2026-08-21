@@ -385,18 +385,35 @@ async function loadDynamicTemplateAssets(
     .in("id", mediaAssetIds);
   if (assetResult.error) return new Map<string, PlayerDynamicTemplateAsset>();
   const readyIds = (assetResult.data ?? []).map((asset) => asset.id);
-  if (!readyIds.length) return new Map<string, PlayerDynamicTemplateAsset>();
-  const variantResult = await admin
-    .from("media_variants")
-    .select("asset_id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
-    .eq("tenant_id", tenantId)
-    .eq("variant_type", "original")
-    .in("asset_id", readyIds);
-  if (variantResult.error) {
+  const missingIds = mediaAssetIds.filter((id) => !readyIds.includes(id));
+  const [variantResult, providerResult] = await Promise.all([
+    readyIds.length
+      ? admin
+          .from("media_variants")
+          .select("asset_id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
+          .eq("tenant_id", tenantId)
+          .eq("variant_type", "original")
+          .in("asset_id", readyIds)
+      : Promise.resolve({ data: [], error: null }),
+    missingIds.length
+      ? admin
+          .from("provider_asset_versions")
+          .select("id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
+          .in("id", missingIds)
+      : Promise.resolve({ data: [], error: null })
+  ]);
+  if (variantResult.error || providerResult.error) {
     return new Map<string, PlayerDynamicTemplateAsset>();
   }
+  const resolvedVariants = [
+    ...(variantResult.data ?? []),
+    ...(providerResult.data ?? []).map((provider) => ({
+      ...provider,
+      asset_id: provider.id
+    }))
+  ];
   const assets = new Map<string, PlayerDynamicTemplateAsset>();
-  await Promise.all((variantResult.data ?? []).map(async (variant) => {
+  await Promise.all(resolvedVariants.map(async (variant) => {
     const signed = await admin.storage
       .from(variant.storage_bucket)
       .createSignedUrl(variant.storage_path, 60 * 60);
