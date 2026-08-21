@@ -15,6 +15,83 @@ const base = {
 } as const;
 
 describe("trusted dynamic template view", () => {
+  it("rendert MenuDocument.v2 via dezelfde MenuScene voor Player en Control", () => {
+    const view = createDynamicTemplateView({
+      ...base,
+      data: {
+        menuDocument: {
+          assets: [],
+          createdAt: "2026-08-21T12:00:00.000Z",
+          id: "menu-1",
+          pages: [{
+            blocks: [{
+              id: "category-1",
+              layout: {
+                landscape: { h: 704, rotation: 0, w: 846, x: 96, y: 248 },
+                portrait: { h: 1388, rotation: 0, w: 450, x: 72, y: 348 }
+              },
+              order: 0,
+              productNodes: [{
+                id: "placement-1",
+                kind: "product",
+                order: 0,
+                productRef: { productId: "product-1", source: "manual" },
+                snapshotFallback: {
+                  available: true,
+                  name: "Espresso",
+                  price: { amountMinor: 250, currency: "EUR", taxMode: "inclusive" }
+                }
+              }],
+              source: { source: "manual", sourceCategoryId: "dranken", sourceName: "Dranken" },
+              type: "category"
+            }],
+            id: "page-1",
+            order: 0
+          }],
+          publication: {
+            assetManifestVersion: "1.0.0",
+            contentFitVersion: "dom-measured-2.0.0",
+            documentRevision: 2,
+            publishedAt: "2026-08-21T12:00:00.000Z",
+            rendererVersion: "2.0.0",
+            themeManifestVersion: "1.0.0"
+          },
+          revision: 2,
+          schemaVersion: "menu-document.v2",
+          tenantId: "tenant-1",
+          theme: {
+            brand: { accent: "#FF5C20" },
+            mode: "light",
+            themeId: "editorial",
+            themeVersion: "1.0.0"
+          },
+          title: "Lunch",
+          updatedAt: "2026-08-21T12:00:00.000Z"
+        },
+        type: "price_list"
+      },
+      slideType: "price_list",
+      templateSlug: "editorial-arena-prijslijst-light-landscape"
+    });
+
+    expect(view).toMatchObject({
+      sourceLabel: "Menu Studio",
+      themeId: "editorial",
+      title: "Lunch"
+    });
+    expect(view?.pages[0]).toMatchObject({
+      kind: "menu-v2",
+      page: {
+        columns: {
+          left: [
+            { kind: "category", label: "Dranken" },
+            { kind: "product", product: { snapshotFallback: { name: "Espresso" } } }
+          ]
+        }
+      }
+    });
+  });
+
   it("verdeelt een uitgebreid menu zonder tekst te verkleinen", () => {
     const view = createDynamicTemplateView({
       ...base,

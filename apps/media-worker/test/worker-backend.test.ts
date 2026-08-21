@@ -90,9 +90,12 @@ describe("Supabase media worker backend", () => {
     const directory = await temporaryDirectory();
     const sourcePath = join(directory, "source.mp4");
     const outputPath = join(directory, "output.mp4");
+    const posterPath = join(directory, "poster.png");
     await writeFile(outputPath, "normalized");
+    await writeFile(posterPath, "poster");
     const fetchMock = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(new Response("hello world", { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 200 }))
       .mockResolvedValueOnce(new Response(null, { status: 200 }));
     const backend = createBackend(
       { rpc: vi.fn() },
@@ -102,6 +105,7 @@ describe("Supabase media worker backend", () => {
     await backend.downloadOriginal(job, sourcePath);
     expect(await readFile(sourcePath, "utf8")).toBe("hello world");
     await backend.uploadPlayerVariant(job, outputPath, "tenants/t/assets/a/variants/player.mp4");
+    await backend.uploadPosterVariant(job, posterPath, "tenants/t/assets/a/variants/poster.png");
 
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain(
       "/media/tenants/tenant%20one/assets/video/original/intro.mp4"
@@ -113,6 +117,8 @@ describe("Supabase media worker backend", () => {
     });
     expect(new Headers(uploadRequest?.headers).get("x-upsert")).toBe("true");
     expect(await new Response(uploadRequest?.body).text()).toBe("normalized");
+    expect(new Headers(fetchMock.mock.calls[2]?.[1]?.headers).get("content-type"))
+      .toBe("image/png");
   });
 
   it("uses the exact atomic completion RPC contract", async () => {
@@ -128,6 +134,9 @@ describe("Supabase media worker backend", () => {
       height: 720,
       jobId: job.jobId,
       originalChecksum: "a".repeat(64),
+      posterChecksum: "c".repeat(64),
+      posterSizeBytes: 120,
+      posterStoragePath: "tenants/t/assets/a/variants/poster.png",
       playerChecksum: "b".repeat(64),
       playerSizeBytes: 900,
       playerStoragePath: "tenants/t/assets/a/variants/player-1080p.mp4",
@@ -140,6 +149,9 @@ describe("Supabase media worker backend", () => {
       p_height: 720,
       p_job_id: job.jobId,
       p_original_checksum_sha256: "a".repeat(64),
+      p_poster_checksum_sha256: "c".repeat(64),
+      p_poster_file_size_bytes: 120,
+      p_poster_storage_path: "tenants/t/assets/a/variants/poster.png",
       p_player_checksum_sha256: "b".repeat(64),
       p_player_file_size_bytes: 900,
       p_player_storage_path: "tenants/t/assets/a/variants/player-1080p.mp4",

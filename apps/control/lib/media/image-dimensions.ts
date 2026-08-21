@@ -19,7 +19,7 @@ const jpegStartOfFrameMarkers = new Set([
   0xcf
 ]);
 const maximumDimensionPixels = 32_768;
-const maximumTotalPixels = 268_435_456;
+const maximumTotalPixels = 67_108_864;
 
 export function readImageDimensions(
   bytes: Uint8Array,
@@ -28,7 +28,39 @@ export function readImageDimensions(
   if (mimeType === "image/png") return readPngDimensions(bytes);
   if (mimeType === "image/jpeg") return readJpegDimensions(bytes);
   if (mimeType === "image/webp") return readWebpDimensions(bytes);
+  if (mimeType === "image/gif") return readGifDimensions(bytes);
+  if (mimeType === "image/svg+xml") return readSvgDimensions(bytes);
   return null;
+}
+
+function readGifDimensions(bytes: Uint8Array) {
+  if (
+    bytes.length < 10 ||
+    (ascii(bytes, 0, 6) !== "GIF87a" && ascii(bytes, 0, 6) !== "GIF89a")
+  ) return null;
+  return validDimensions(
+    (bytes[6] ?? 0) | ((bytes[7] ?? 0) << 8),
+    (bytes[8] ?? 0) | ((bytes[9] ?? 0) << 8)
+  );
+}
+
+function readSvgDimensions(bytes: Uint8Array) {
+  const source = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  const root = source.match(/<svg\b([^>]*)>/i)?.[1];
+  if (!root) return null;
+  const width = svgLength(root, "width");
+  const height = svgLength(root, "height");
+  if (width !== null && height !== null) return validDimensions(width, height);
+  const viewBox = root.match(/\bviewBox\s*=\s*["']\s*([-+]?\d*\.?\d+)\s+([-+]?\d*\.?\d+)\s+([-+]?\d*\.?\d+)\s+([-+]?\d*\.?\d+)\s*["']/i);
+  if (!viewBox) return null;
+  return validDimensions(Math.round(Number(viewBox[3])), Math.round(Number(viewBox[4])));
+}
+
+function svgLength(attributes: string, name: string) {
+  const value = attributes.match(new RegExp(`\\b${name}\\s*=\\s*["']\\s*([0-9]+(?:\\.[0-9]+)?)(?:px)?\\s*["']`, "i"));
+  if (!value) return null;
+  const number = Math.round(Number(value[1]));
+  return Number.isFinite(number) ? number : null;
 }
 
 function readPngDimensions(bytes: Uint8Array) {

@@ -13,6 +13,7 @@ import { runWorkerOnce } from "../src/worker-runner";
 
 const source = "source-video";
 const output = "normalized-video";
+const posterOutput = "normalized-poster";
 const job: ClaimedMediaJob = {
   assetId: "20000000-0000-4000-8000-000000000003",
   attemptCount: 1,
@@ -35,7 +36,7 @@ const config: MediaWorkerConfig = {
   workerId: "worker:test"
 };
 const outputProbe: VideoProbe = {
-  audioCodec: "aac",
+  audioCodec: null,
   durationSeconds: 12.5,
   formatNames: ["mov", "mp4"],
   framesPerSecond: 30,
@@ -60,7 +61,7 @@ describe("media worker runner", () => {
       return { input: outputProbe, output: outputProbe, outputPath };
     });
 
-    await expect(runWorkerOnce({ backend, config, normalize })).resolves.toEqual({
+    await expect(runWorkerOnce({ backend, config, normalize, poster: createPoster })).resolves.toEqual({
       assetId: job.assetId,
       jobId: job.jobId,
       status: "completed"
@@ -70,10 +71,17 @@ describe("media worker runner", () => {
       expect.stringMatching(/player-1080p\.mp4$/),
       `tenants/${job.tenantId}/assets/${job.assetId}/variants/player-1080p.mp4`
     );
+    expect(backend.uploadPosterVariant).toHaveBeenCalledWith(
+      job,
+      expect.stringMatching(/poster\.png$/),
+      `tenants/${job.tenantId}/assets/${job.assetId}/variants/poster.png`
+    );
     expect(backend.completeJob).toHaveBeenCalledWith(expect.objectContaining({
       durationSeconds: 12.5,
       height: 1080,
       originalChecksum: sha256(source),
+      posterChecksum: sha256(posterOutput),
+      posterSizeBytes: Buffer.byteLength(posterOutput),
       playerChecksum: sha256(output),
       playerSizeBytes: Buffer.byteLength(output),
       width: 1920,
@@ -82,11 +90,55 @@ describe("media worker runner", () => {
     expect(backend.failJob).not.toHaveBeenCalled();
   });
 
+  it("normaliseert een WebM-bron naar dezelfde stille H.264-playervariant", async () => {
+    const webmJob = {
+      ...job,
+      mimeType: "video/webm",
+      originalFileName: "intro.webm",
+      storagePath: "tenants/100/assets/200/original/intro.webm"
+    };
+    const backend = createBackend(webmJob);
+    const normalize = vi.fn(async ({ inputPath, outputPath }: { inputPath: string; outputPath: string }) => {
+      expect(inputPath).toMatch(/source\.webm$/);
+      await writeFile(outputPath, output);
+      return { input: outputProbe, output: outputProbe, outputPath };
+    });
+
+    await expect(runWorkerOnce({ backend, config, normalize, poster: createPoster })).resolves.toMatchObject({
+      assetId: job.assetId,
+      status: "completed"
+    });
+    expect(backend.uploadPlayerVariant).toHaveBeenCalledWith(
+      webmJob,
+      expect.stringMatching(/player-1080p\.mp4$/),
+      expect.stringMatching(/player-1080p\.mp4$/)
+    );
+  });
+
+  it("stuurt GIF-invoer door dezelfde stille video- en posterpipeline", async () => {
+    const gifJob = {
+      ...job,
+      mimeType: "image/gif",
+      originalFileName: "intro.gif",
+      storagePath: "tenants/100/assets/200/original/intro.gif"
+    };
+    const backend = createBackend(gifJob);
+    const normalize = vi.fn(async ({ inputPath, outputPath }: { inputPath: string; outputPath: string }) => {
+      expect(inputPath).toMatch(/source\.gif$/);
+      await writeFile(outputPath, output);
+      return { input: outputProbe, output: outputProbe, outputPath };
+    });
+
+    await expect(runWorkerOnce({ backend, config, normalize, poster: createPoster }))
+      .resolves.toMatchObject({ assetId: job.assetId, status: "completed" });
+    expect(backend.uploadPosterVariant).toHaveBeenCalledOnce();
+  });
+
   it("fails permanently before normalization when the source size differs", async () => {
     const backend = createBackend({ ...job, fileSizeBytes: 999 });
     const normalize = vi.fn();
 
-    await expect(runWorkerOnce({ backend, config, normalize })).resolves.toMatchObject({
+    await expect(runWorkerOnce({ backend, config, normalize, poster: createPoster })).resolves.toMatchObject({
       errorCode: "source_size_mismatch",
       status: "failed"
     });
@@ -102,7 +154,7 @@ describe("media worker runner", () => {
       new VideoProcessingError("command_failed", "FFmpeg tijdelijk niet beschikbaar.")
     );
 
-    await expect(runWorkerOnce({ backend, config, normalize })).resolves.toMatchObject({
+    await expect(runWorkerOnce({ backend, config, normalize, poster: createPoster })).resolves.toMatchObject({
       errorCode: "command_failed",
       status: "retry_scheduled"
     });
@@ -118,7 +170,7 @@ describe("media worker runner", () => {
       new VideoProcessingError("processing_timeout", "FFmpeg overschreed 50 seconden.")
     );
 
-    await expect(runWorkerOnce({ backend, config, normalize })).resolves.toMatchObject({
+    await expect(runWorkerOnce({ backend, config, normalize, poster: createPoster })).resolves.toMatchObject({
       errorCode: "processing_timeout",
       status: "failed"
     });
@@ -138,8 +190,14 @@ function createBackend(
     completeJob: vi.fn().mockResolvedValue(undefined),
     downloadOriginal: vi.fn(async (_job, path: string) => writeFile(path, source)),
     failJob: vi.fn().mockResolvedValue(failureStatus),
-    uploadPlayerVariant: vi.fn().mockResolvedValue(undefined)
+    uploadPlayerVariant: vi.fn().mockResolvedValue(undefined),
+    uploadPosterVariant: vi.fn().mockResolvedValue(undefined)
   } satisfies MediaWorkerBackend;
+}
+
+async function createPoster({ outputPath }: { inputPath: string; outputPath: string }) {
+  await writeFile(outputPath, posterOutput);
+  return outputPath;
 }
 
 function sha256(value: string) {

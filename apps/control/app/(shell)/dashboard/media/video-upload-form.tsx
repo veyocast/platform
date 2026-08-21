@@ -74,15 +74,19 @@ export function VideoUploadForm({
     const file = formData.get("video-file");
     if (!(file instanceof File) || file.size === 0) {
       setNotice({
-        message: "Kies een MP4-video met inhoud. De upload is niet gestart.",
+        message: "Kies een MP4- of WebM-video met inhoud. De upload is niet gestart.",
         tone: "critical"
       });
       return;
     }
 
-    if (file.type !== "video/mp4" || !/\.mp4$/i.test(file.name)) {
+    if (
+      (file.type !== "video/mp4" && file.type !== "video/webm") ||
+      (file.type === "video/mp4" && !/\.mp4$/i.test(file.name)) ||
+      (file.type === "video/webm" && !/\.webm$/i.test(file.name))
+    ) {
       setNotice({
-        message: "Kies een echt MP4-bestand. Extensie en gedeclareerd bestandstype moeten beide video/mp4 zijn.",
+        message: "Kies een echt MP4- of WebM-bestand. Extensie en gedeclareerd bestandstype moeten overeenkomen.",
         tone: "critical"
       });
       return;
@@ -156,7 +160,7 @@ export function VideoUploadForm({
       metadata: {
         bucketName: upload.bucket,
         cacheControl: "31536000",
-        contentType: "video/mp4",
+        contentType: file.type,
         objectName: upload.path
       },
       onError(error) {
@@ -284,7 +288,7 @@ export function VideoUploadForm({
       </div>
       <div className="field">
         <label htmlFor="video-file">Videobestand</label>
-        <input accept="video/mp4,.mp4" disabled={!canUpload || isBusy || isPaused} id="video-file" name="video-file" required type="file" />
+        <input accept="video/mp4,video/webm,.mp4,.webm" disabled={!canUpload || isBusy || isPaused} id="video-file" name="video-file" required type="file" />
       </div>
       {progress > 0 ? (
         <div className="upload-progress">

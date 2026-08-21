@@ -1,10 +1,14 @@
 export const allowedImageUploadMimeTypes = [
+  "image/gif",
   "image/jpeg",
   "image/png",
+  "image/svg+xml",
   "image/webp"
 ] as const;
 
-export const maxImageUploadBytes = 20 * 1024 * 1024;
+export const maxImageUploadBytes = 50 * 1024 * 1024;
+export const maxRasterImageUploadBytes = 25 * 1024 * 1024;
+export const maxSvgUploadBytes = 2 * 1024 * 1024;
 export const maxImageUploadBatchSize = 12;
 
 export type ImageUploadPolicyFailure =
@@ -20,7 +24,6 @@ export function validateImageUploadFile({
   type: string;
 }): ImageUploadPolicyFailure | null {
   if (!Number.isFinite(size) || size <= 0) return "empty_file";
-  if (size > maxImageUploadBytes) return "file_too_large";
   if (
     !allowedImageUploadMimeTypes.includes(
       type as (typeof allowedImageUploadMimeTypes)[number]
@@ -28,6 +31,10 @@ export function validateImageUploadFile({
   ) {
     return "unsupported_mime_type";
   }
+  const limit = type === "image/gif"
+    ? maxImageUploadBytes
+    : type === "image/svg+xml" ? maxSvgUploadBytes : maxRasterImageUploadBytes;
+  if (size > limit) return "file_too_large";
   return null;
 }
 
@@ -36,7 +43,7 @@ export function imageUploadPolicyMessage(failure: ImageUploadPolicyFailure) {
     return "Het bestand bevat geen bruikbare gegevens.";
   }
   if (failure === "file_too_large") {
-    return "De afbeelding is groter dan 20 MB. Verklein of comprimeer het bestand en probeer opnieuw.";
+    return "Het bestand overschrijdt de veilige limiet: 25 MB voor afbeeldingen, 50 MB voor GIF en 2 MB voor SVG. Verklein het bestand en probeer opnieuw.";
   }
-  return "Dit bestandstype is niet toegestaan. Gebruik JPEG, PNG of WebP.";
+  return "Dit bestandstype is niet toegestaan. Gebruik JPEG, PNG, WebP, GIF of een veilig SVG-bestand.";
 }

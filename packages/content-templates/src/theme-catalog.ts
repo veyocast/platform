@@ -114,6 +114,7 @@ export function themeCssVariables(
   const palette = theme[snapshot.resolvedMode.mode];
   return {
     "--vc-theme-accent": selection.accent ?? theme.accentDefault,
+    "--vc-theme-accent-ink": palette.canvas,
     "--vc-theme-body-font": quoteFont(themeManifest.fontAssets[theme.bodyFontRef]!.family),
     "--vc-theme-canvas": palette.canvas,
     "--vc-theme-density": theme.densityScale,

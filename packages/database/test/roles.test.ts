@@ -113,14 +113,18 @@ describe("@veyocast/database role constants", () => {
 
   it("maps allowed media MIME types to the database asset kind", () => {
     expect(mediaAllowedMimeTypes).toEqual([
+      "image/gif",
       "image/jpeg",
       "image/png",
+      "image/svg+xml",
       "image/webp",
-      "video/mp4"
+      "video/mp4",
+      "video/webm"
     ]);
     expect(getMediaKindForMimeType("image/webp")).toBe("image");
     expect(getMediaKindForMimeType("video/mp4")).toBe("video");
-    expect(getMediaKindForMimeType("image/svg+xml")).toBeNull();
+    expect(getMediaKindForMimeType("image/svg+xml")).toBe("image");
+    expect(getMediaKindForMimeType("video/webm")).toBe("video");
     expect(isAllowedMediaMimeType("image/png")).toBe(true);
     expect(isAllowedMediaMimeType("application/x-msdownload")).toBe(false);
   });

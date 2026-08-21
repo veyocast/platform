@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(22);
+select plan(24);
 
 insert into public.tenants (id, name, slug)
 values ('10000000-0000-4000-8000-000000000901', 'Worker tenant', 'worker-tenant');
@@ -88,12 +88,20 @@ select ok(
   'service role can claim media jobs'
 );
 select ok(
-  not has_function_privilege('authenticated', 'public.complete_media_processing_job(uuid,text,text,text,text,bigint,integer,integer,numeric)', 'EXECUTE'),
+  not has_function_privilege('authenticated', 'public.complete_media_processing_job(uuid,text,text,text,text,bigint,text,text,bigint,integer,integer,numeric)', 'EXECUTE'),
   'authenticated users cannot complete media jobs'
 );
 select ok(
-  has_function_privilege('service_role', 'public.complete_media_processing_job(uuid,text,text,text,text,bigint,integer,integer,numeric)', 'EXECUTE'),
+  has_function_privilege('service_role', 'public.complete_media_processing_job(uuid,text,text,text,text,bigint,text,text,bigint,integer,integer,numeric)', 'EXECUTE'),
   'service role can complete media jobs'
+);
+select ok(
+  not has_function_privilege('authenticated', 'public.complete_media_processing_job(uuid,text,text,text,text,bigint,integer,integer,numeric)', 'EXECUTE'),
+  'authenticated users cannot call the legacy rolling-deploy completion overload'
+);
+select ok(
+  has_function_privilege('service_role', 'public.complete_media_processing_job(uuid,text,text,text,text,bigint,integer,integer,numeric)', 'EXECUTE'),
+  'service role retains the legacy completion overload during rolling deploys'
 );
 select ok(
   has_function_privilege('service_role', 'public.fail_media_processing_job(uuid,text,text,text,boolean,integer)', 'EXECUTE'),
@@ -140,6 +148,9 @@ select throws_ok(
       'tenants/10000000-0000-4000-8000-000000000901/assets/20000000-0000-4000-8000-000000000901/variants/player-1080p.mp4',
       repeat('b', 64),
       900,
+      'tenants/10000000-0000-4000-8000-000000000901/assets/20000000-0000-4000-8000-000000000901/variants/poster.png',
+      repeat('c', 64),
+      300,
       1280,
       720,
       30
@@ -159,6 +170,9 @@ select throws_ok(
       'tenants/10000000-0000-4000-8000-000000000901/assets/20000000-0000-4000-8000-000000000901/variants/player-1080p.mp4',
       repeat('b', 64),
       900,
+      'tenants/10000000-0000-4000-8000-000000000901/assets/20000000-0000-4000-8000-000000000901/variants/poster.png',
+      repeat('c', 64),
+      300,
       1920,
       1920,
       30
@@ -176,6 +190,9 @@ select public.complete_media_processing_job(
   'tenants/10000000-0000-4000-8000-000000000901/assets/20000000-0000-4000-8000-000000000901/variants/player-1080p.mp4',
   repeat('b', 64),
   900,
+  'tenants/10000000-0000-4000-8000-000000000901/assets/20000000-0000-4000-8000-000000000901/variants/poster.png',
+  repeat('c', 64),
+  300,
   1080,
   1920,
   30
@@ -189,8 +206,8 @@ select is(
 );
 select is(
   (select count(*) from public.media_variants where asset_id = '20000000-0000-4000-8000-000000000901'),
-  2::bigint,
-  'completion registers original and player variants atomically'
+  3::bigint,
+  'completion registers original, silent player and poster variants atomically'
 );
 select is(
   (

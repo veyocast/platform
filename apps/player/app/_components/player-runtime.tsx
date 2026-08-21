@@ -203,6 +203,7 @@ export function PlayerRuntime() {
   const desiredReleaseIdRef = useRef<string | null>(null);
   const hydratedReleasesRef = useRef<HydratedPlayerRelease[]>([]);
   const lastPlaybackErrorRef = useRef<PlaybackErrorReport | null>(null);
+  const sendHeartbeatRef = useRef<(() => void) | null>(null);
   const playbackReadyRef = useRef(false);
   const pairingMachineRef = useRef<PairingMachineSnapshot>(pairingMachine);
   runtimeRef.current = runtime;
@@ -521,6 +522,7 @@ export function PlayerRuntime() {
         ...lastError,
         recoveredAt: new Date().toISOString()
       };
+      sendHeartbeatRef.current?.();
     }
   }, []);
 
@@ -1811,6 +1813,10 @@ export function PlayerRuntime() {
       }
     }
 
+    sendHeartbeatRef.current = () => {
+      void sendHeartbeat();
+    };
+
     const initialHeartbeatTimer = window.setTimeout(() => {
       void sendHeartbeat();
     }, 1_000);
@@ -1822,6 +1828,7 @@ export function PlayerRuntime() {
       window.clearTimeout(initialHeartbeatTimer);
       window.clearInterval(heartbeatTimer);
       if (recoveryHeartbeatTimer) window.clearTimeout(recoveryHeartbeatTimer);
+      sendHeartbeatRef.current = null;
     };
   }, []);
 

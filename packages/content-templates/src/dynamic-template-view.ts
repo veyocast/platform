@@ -4,6 +4,8 @@ import {
   type EditorialFocalPoint,
   type EditorialNewsVariant,
   type EditorialPricePhotoMode,
+  menuDocumentV2Schema,
+  type MenuDocumentV2,
   type PlayerDynamicTemplatePayload,
   type SelectableThemeId,
   type ThemePresentationSnapshot
@@ -23,6 +25,11 @@ import {
   type ResolvedPriceListItem,
   type ResolvedPriceListSection
 } from "./price-list";
+import {
+  resolveMenuScenePages,
+  type MenuSceneAsset,
+  type ResolvedMenuScenePage
+} from "./menu-scene";
 import {
   freezeThemePresentation,
   parseThemePresentationSnapshot,
@@ -111,6 +118,12 @@ export type DynamicTemplatePage =
       secondaryItems: DynamicTemplateNewsItem[];
     }
   | { kind: "price-list"; page: PriceListRenderPage }
+  | {
+      assets: Record<string, MenuSceneAsset>;
+      document: MenuDocumentV2;
+      kind: "menu-v2";
+      page: ResolvedMenuScenePage;
+    }
   | {
       awayTeam: string;
       homeTeam: string;
@@ -275,6 +288,48 @@ function createDynamicTemplateViewInternal(
 
   if (payload.slideType === "price_list") {
     const priceList = readRecord(data.priceList);
+    const menuDocument = menuDocumentV2Schema.safeParse(
+      data.menuDocument ?? priceList?.menuDocument
+    );
+    if (menuDocument.success) {
+      const pages = resolveMenuScenePages(menuDocument.data, payload.orientation);
+      const assets = Object.fromEntries(menuDocument.data.assets.flatMap((asset) => {
+        const url = dynamicAssetUrl(asset.assetId, payload);
+        const payloadAsset = payload.assets?.[asset.assetId];
+        return url ? [[asset.assetId, {
+          kind: asset.kind,
+          mimeType: payloadAsset?.mimeType,
+          posterUrl: payloadAsset?.posterUrl,
+          url
+        } satisfies MenuSceneAsset]] : [];
+      }));
+      return {
+        accentColor: menuDocument.data.theme.brand.accent,
+        clubLogoUrl,
+        clubName,
+        emptyState: pages.length ? "" : "Dit menu bevat nog geen renderbare inhoud.",
+        orientation: payload.orientation,
+        pages: pages.map((page) => ({
+          assets,
+          document: menuDocument.data,
+          kind: "menu-v2" as const,
+          page
+        })),
+        newsVariant: editorial.newsVariant,
+        pricePhotoMode: editorial.pricePhotoMode,
+        priceCategoryPhotoModes: {},
+        providerLogoUrl: "",
+        slideType: payload.slideType,
+        snapshotId: payload.snapshotId,
+        sourceLabel: "Menu Studio",
+        templateStyle: "default",
+        theme: menuDocument.data.theme.mode,
+        ...themeIdentity,
+        themeId: menuDocument.data.theme.themeId,
+        themeTokens,
+        title: menuDocument.data.title || "Menu"
+      };
+    }
     const sections = readArray(priceList?.sections)
       .map((section) => toPriceListSection(section, payload))
       .filter((section): section is ResolvedPriceListSection => section !== null);
@@ -614,23 +669,45 @@ function parseDynamicAssets(
   const parsed: NonNullable<PlayerDynamicTemplatePayload["assets"]> = {};
   for (const [assetId, candidate] of Object.entries(assets)) {
     const asset = readRecord(candidate);
+    const posterKeys = [
+      "posterBytes",
+      "posterChecksumSha256",
+      "posterMimeType",
+      "posterUrl"
+    ];
+    const posterValues = posterKeys.map((key) => asset?.[key]);
+    const hasPoster = posterValues.every((entry) => entry !== undefined);
+    const incompletePoster = posterValues.some((entry) => entry !== undefined) && !hasPoster;
     if (
       !uuidPattern.test(assetId) ||
       !asset ||
       Object.keys(asset).some(
         (key) =>
-          !["bytes", "checksumSha256", "mimeType", "url"].includes(key)
+          !["bytes", "checksumSha256", "mimeType", "url", ...posterKeys].includes(key)
       ) ||
       !Number.isInteger(asset.bytes) ||
       Number(asset.bytes) <= 0 ||
-      Number(asset.bytes) > 8_000_000 ||
+      Number(asset.bytes) > 524_288_000 ||
       typeof asset.checksumSha256 !== "string" ||
       !snapshotHashPattern.test(asset.checksumSha256) ||
-      !isDynamicImageMimeType(asset.mimeType) ||
+      !isDynamicAssetMimeType(asset.mimeType) ||
       typeof asset.url !== "string" ||
       asset.url.length < 1 ||
       asset.url.length > 4_096 ||
-      !isSafeDynamicAssetUrl(asset.url)
+      !isSafeDynamicAssetUrl(asset.url) ||
+      incompletePoster ||
+      (hasPoster && (
+        !Number.isInteger(asset.posterBytes) ||
+        Number(asset.posterBytes) <= 0 ||
+        Number(asset.posterBytes) > 50_000_000 ||
+        typeof asset.posterChecksumSha256 !== "string" ||
+        !snapshotHashPattern.test(asset.posterChecksumSha256) ||
+        asset.posterMimeType !== "image/png" ||
+        typeof asset.posterUrl !== "string" ||
+        asset.posterUrl.length < 1 ||
+        asset.posterUrl.length > 4_096 ||
+        !isSafeDynamicAssetUrl(asset.posterUrl)
+      ))
     ) {
       return null;
     }
@@ -638,19 +715,28 @@ function parseDynamicAssets(
       bytes: Number(asset.bytes),
       checksumSha256: asset.checksumSha256,
       mimeType: asset.mimeType,
+      ...(hasPoster ? {
+        posterBytes: Number(asset.posterBytes),
+        posterChecksumSha256: String(asset.posterChecksumSha256),
+        posterMimeType: "image/png" as const,
+        posterUrl: String(asset.posterUrl)
+      } : {}),
       url: asset.url
     };
   }
   return parsed;
 }
 
-function isDynamicImageMimeType(
+function isDynamicAssetMimeType(
   value: unknown
-): value is "image/jpeg" | "image/png" | "image/webp" {
+): value is NonNullable<PlayerDynamicTemplatePayload["assets"]>[string]["mimeType"] {
   return (
+    value === "image/gif" ||
     value === "image/jpeg" ||
     value === "image/png" ||
-    value === "image/webp"
+    value === "image/svg+xml" ||
+    value === "image/webp" ||
+    value === "video/mp4"
   );
 }
 

@@ -17,7 +17,7 @@ type MediaImageUploadState = {
   results: Array<{
     fileName: string;
     message: string;
-    status: "critical" | "success";
+    status: "critical" | "success" | "warning";
   }>;
 };
 
@@ -106,8 +106,10 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
           } else {
             results.push({
               fileName: file.name,
-              message: `${result.data.title} is gecontroleerd en gereed voor playlists.`,
-              status: "success"
+              message: result.data.processing
+                ? `${result.data.title} is gecontroleerd en wordt omgezet naar een stille videoloop met poster.`
+                : `${result.data.title} is gecontroleerd en gereed voor playlists.`,
+              status: result.data.processing ? "warning" : "success"
             });
           }
         } catch {
@@ -123,7 +125,7 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
 
       const completedAt = new Date().toISOString();
       setState({ completedAt, results });
-      if (results.some((result) => result.status === "success")) {
+      if (results.some((result) => result.status !== "critical")) {
         formRef.current?.reset();
         router.refresh();
       }
@@ -155,7 +157,7 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
       <div className="field">
         <label htmlFor="media-file">Afbeeldingen</label>
         <input
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/gif,image/jpeg,image/png,image/svg+xml,image/webp,.gif,.jpg,.jpeg,.png,.svg,.webp"
           disabled={!canUpload || pending}
           id="media-file"
           multiple
@@ -196,7 +198,7 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
                   <small>{result.message}</small>
                 </span>
                 <StatusPill
-                  label={result.status === "success" ? "Gereed" : "Mislukt"}
+                  label={result.status === "success" ? "Gereed" : result.status === "warning" ? "In verwerking" : "Mislukt"}
                   tone={result.status}
                 />
               </li>

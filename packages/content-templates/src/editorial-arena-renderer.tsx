@@ -31,6 +31,7 @@ import type {
   ResolvedPriceListItem,
   ResolvedPriceListRow
 } from "./price-list";
+import { MenuSceneCanvas } from "./menu-scene";
 import styles from "./editorial-arena-renderer.module.css";
 import {
   resolveThemeTransition,
@@ -186,27 +187,39 @@ export function EditorialArenaRenderer({
         data-transition={transition.key}
         style={style}
       >
-        <ArenaHeader view={view} />
-        <main
-          className={styles.arenaContent}
-          data-page-count={pageCount}
-          data-page-index={pageIndex}
-        >
-          <ArenaPage
-            key={`${view.snapshotId}-${pageIndex}`}
-            page={page}
-            view={view}
+        {page.kind === "menu-v2" ? (
+          <MenuSceneCanvas
+            assets={page.assets}
+            document={page.document}
+            orientation={view.orientation}
+            page={page.page}
+            style={{ height: canvas.height, left: 0, top: 0, transform: "none", width: canvas.width }}
           />
-          {view.emptyState && pageIsEmpty(page) ? (
-            <div className={styles.arenaEmpty}>{view.emptyState}</div>
-          ) : null}
-        </main>
-        <ArenaFooter
-          pageCount={pageCount}
-          pageIndex={pageIndex}
-          view={view}
-        />
-        <VerticalSlideIndex pageIndex={pageIndex} view={view} />
+        ) : (
+          <>
+            <ArenaHeader view={view} />
+            <main
+              className={styles.arenaContent}
+              data-page-count={pageCount}
+              data-page-index={pageIndex}
+            >
+              <ArenaPage
+                key={`${view.snapshotId}-${pageIndex}`}
+                page={page}
+                view={view}
+              />
+              {view.emptyState && pageIsEmpty(page) ? (
+                <div className={styles.arenaEmpty}>{view.emptyState}</div>
+              ) : null}
+            </main>
+            <ArenaFooter
+              pageCount={pageCount}
+              pageIndex={pageIndex}
+              view={view}
+            />
+            <VerticalSlideIndex pageIndex={pageIndex} view={view} />
+          </>
+        )}
       </section>
     </div>
   );
@@ -287,6 +300,7 @@ function ArenaPage({
   page: DynamicTemplatePage;
   view: DynamicTemplateView;
 }) {
+  if (page.kind === "menu-v2") return null;
   if (page.kind === "menu") {
     return (
       <div className={styles.arenaPriceColumns}>
@@ -809,6 +823,10 @@ function TeamMini({ large = false, name }: { large?: boolean; name: string }) {
 }
 
 function pageIsEmpty(page: DynamicTemplatePage) {
+  if (page.kind === "menu-v2") {
+    return page.page.columns.left.length + page.page.columns.right.length === 0 &&
+      page.page.floatingBlocks.length === 0;
+  }
   if (page.kind === "news" || page.kind === "match") return !page.item;
   if (page.kind === "menu") {
     return page.columns.every((column) => column.length === 0);

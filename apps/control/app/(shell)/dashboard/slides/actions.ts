@@ -597,6 +597,13 @@ function collectPreviewMediaAssetIds(snapshot: Record<string, unknown>) {
       }
     }
   }
+  const menuDocument = isRecord(snapshot.menuDocument) ? snapshot.menuDocument : null;
+  if (Array.isArray(menuDocument?.assets)) {
+    for (const candidate of menuDocument.assets.slice(0, 100)) {
+      const asset = isRecord(candidate) ? candidate : null;
+      add(asset?.assetId);
+    }
+  }
   const news = isRecord(snapshot.news) ? snapshot.news : null;
   add(news?.providerLogoMediaAssetId);
   if (Array.isArray(news?.articles)) {
@@ -618,12 +625,24 @@ async function loadPreviewAssets(
   if (!mediaAssetIds.length) return assets;
   const variants = await supabase
     .from("media_variants")
-    .select("asset_id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
+    .select("asset_id, variant_type, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
     .eq("tenant_id", tenantId)
-    .eq("variant_type", "original")
+    .in("variant_type", ["original", "player_1080p"])
     .in("asset_id", mediaAssetIds);
   if (variants.error) return assets;
-  await Promise.all((variants.data ?? []).map(async (variant) => {
+  const assetKinds = await supabase
+    .from("media_assets")
+    .select("id, kind")
+    .eq("tenant_id", tenantId)
+    .in("id", mediaAssetIds);
+  if (assetKinds.error) return assets;
+  const kindById = new Map((assetKinds.data ?? []).map((asset) => [asset.id, asset.kind]));
+  const preferred = (variants.data ?? []).filter((variant) =>
+    kindById.get(variant.asset_id) === "video"
+      ? variant.variant_type === "player_1080p"
+      : variant.variant_type === "original"
+  );
+  await Promise.all(preferred.map(async (variant) => {
     const signed = await supabase.storage
       .from(variant.storage_bucket)
       .createSignedUrl(variant.storage_path, 600);
@@ -643,6 +662,18 @@ function previewItemCount(snapshot: Record<string, unknown>) {
   if (Array.isArray(sport?.items)) return sport.items.length;
   const menu = isRecord(snapshot.menu) ? snapshot.menu : null;
   if (Array.isArray(menu?.products)) return menu.products.length;
+  const menuDocument = isRecord(snapshot.menuDocument) ? snapshot.menuDocument : null;
+  if (Array.isArray(menuDocument?.pages)) {
+    return menuDocument.pages.reduce((total, pageValue) => {
+      const page = isRecord(pageValue) ? pageValue : null;
+      if (!Array.isArray(page?.blocks)) return total;
+      return total + page.blocks.reduce((pageTotal, blockValue) => {
+        const block = isRecord(blockValue) ? blockValue : null;
+        if (block?.type === "product-group") return pageTotal + 1;
+        return pageTotal + (Array.isArray(block?.productNodes) ? block.productNodes.length : 0);
+      }, 0);
+    }, 0);
+  }
   const priceList = isRecord(snapshot.priceList) ? snapshot.priceList : null;
   if (Array.isArray(priceList?.sections)) {
     return priceList.sections.reduce((count, candidate) => {

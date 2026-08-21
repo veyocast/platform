@@ -14,5 +14,8 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
+  },
+  "dependencies": {
+    "@veyocast/contracts": "workspace:*"
   }
 }

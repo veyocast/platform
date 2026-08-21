@@ -2,6 +2,7 @@ export * from "./dynamic-template-view";
 export * from "./editorial-arena-layout";
 export * from "./editorial-arena-renderer";
 export * from "./editorial-arena-theme";
+export * from "./menu-scene";
 export * from "./price-list";
 export * from "./theme-catalog";
 export * from "./theme-motion";

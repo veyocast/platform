@@ -50,6 +50,18 @@ describe("afbeeldingsafmetingen", () => {
     });
   });
 
+  it("leest GIF- en SVG-afmetingen zonder een browserdecoder", () => {
+    const gif = new Uint8Array(10);
+    gif.set(textBytes("GIF89a"), 0);
+    gif.set([0x38, 0x04, 0x80, 0x07], 6);
+    expect(readImageDimensions(gif, "image/gif")).toEqual({ height: 1920, width: 1080 });
+
+    expect(readImageDimensions(
+      new TextEncoder().encode('<svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>'),
+      "image/svg+xml"
+    )).toEqual({ height: 1920, width: 1080 });
+  });
+
   it("weigert corrupte inhoud zonder bruikbare afmetingen", () => {
     expect(
       readImageDimensions(new Uint8Array([137, 80, 78, 71]), "image/png")

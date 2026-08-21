@@ -63,8 +63,8 @@ export const pairingSessionStatuses = [
 
 export const screenOrientations = ["landscape", "portrait"] as const;
 
-export const mediaImageMimeTypes = ["image/jpeg", "image/png", "image/webp"] as const;
-export const mediaVideoMimeTypes = ["video/mp4"] as const;
+export const mediaImageMimeTypes = ["image/gif", "image/jpeg", "image/png", "image/svg+xml", "image/webp"] as const;
+export const mediaVideoMimeTypes = ["video/mp4", "video/webm"] as const;
 export const mediaAllowedMimeTypes = [
   ...mediaImageMimeTypes,
   ...mediaVideoMimeTypes

@@ -42,7 +42,10 @@ const allowedMimeTypes = {
   "image/jpeg": { extensions: ["jpg", "jpeg"], kind: "image" },
   "image/png": { extensions: ["png"], kind: "image" },
   "image/webp": { extensions: ["webp"], kind: "image" },
-  "video/mp4": { extensions: ["mp4"], kind: "video" }
+  "image/gif": { extensions: ["gif"], kind: "video" },
+  "image/svg+xml": { extensions: ["svg"], kind: "image" },
+  "video/mp4": { extensions: ["mp4"], kind: "video" },
+  "video/webm": { extensions: ["webm"], kind: "video" }
 } as const satisfies Record<
   string,
   { extensions: readonly string[]; kind: MediaKind }
@@ -97,7 +100,7 @@ export function validateMediaCandidate(
     return {
       code: "file_too_large",
       effect: "De upload overschrijdt de MVP-limiet van 500 MB.",
-      recovery: "Comprimeer de video of kies een kortere MP4."
+      recovery: "Comprimeer de video of kies een kortere MP4 of WebM."
     };
   }
 
@@ -107,7 +110,7 @@ export function validateMediaCandidate(
     return {
       code: "unsupported_mime_type",
       effect: "De worker verwerkt dit bestandstype niet.",
-      recovery: "Gebruik JPEG, PNG, WebP of MP4/H.264 met AAC-audio."
+      recovery: "Gebruik JPEG, PNG, WebP, GIF, veilig SVG, MP4 of WebM."
     };
   }
 

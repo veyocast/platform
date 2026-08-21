@@ -91,24 +91,43 @@ export async function normalizePlayerVideo({
   return { input, output, outputPath };
 }
 
+export async function createPlayerVideoPoster({
+  inputPath,
+  outputPath,
+  runner = runCommand
+}: {
+  inputPath: string;
+  outputPath: string;
+  runner?: CommandRunner;
+}) {
+  await runner("ffmpeg", [
+    "-hide_banner", "-nostdin", "-y",
+    "-ss", "0.5", "-i", inputPath,
+    "-map", "0:v:0", "-frames:v", "1",
+    "-vf", "thumbnail,scale=w='if(gte(iw,ih),min(1920,iw),min(1080,iw))':h='if(gte(iw,ih),min(1080,ih),min(1920,ih))':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos",
+    "-an", "-f", "image2", outputPath
+  ], { timeoutMs: maximumNormalizationTimeMs });
+  return outputPath;
+}
+
 export function buildNormalizationArguments(
   inputPath: string,
   outputPath: string,
   input?: VideoProbe
 ) {
   const codecArguments = input && canRemuxWithoutTranscoding(input)
-    ? ["-c:v", "copy", "-c:a", "copy"]
+    ? ["-c:v", "copy"]
     : [
       "-vf", "scale=w='if(gte(iw,ih),1920,1080)':h='if(gte(iw,ih),1080,1920)':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos,setsar=1,fps=30",
       "-c:v", "libx264", "-profile:v", "main", "-level:v", "4.0",
       "-pix_fmt", "yuv420p", "-preset", "veryfast", "-crf", "21",
-      "-maxrate", "6M", "-bufsize", "12M",
-      "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2"
+      "-maxrate", "6M", "-bufsize", "12M"
     ];
   return [
     "-hide_banner", "-nostdin", "-y", "-i", inputPath,
-    "-map", "0:v:0", "-map", "0:a:0?",
+    "-map", "0:v:0",
     ...codecArguments,
+    "-an",
     "-metadata:s:v:0", "rotate=0",
     "-movflags", "+faststart", "-f", "mp4", outputPath
   ] as const;
@@ -184,8 +203,13 @@ export function parseVideoProbe(serializedProbe: string): VideoProbe {
 }
 
 export function validateInputProbe(probe: VideoProbe) {
-  if (!probe.formatNames.some((name) => name === "mov" || name === "mp4")) {
-    throw new VideoProcessingError("unsupported_input", "Alleen een MP4-container wordt verwerkt.");
+  if (!probe.formatNames.some((name) =>
+    name === "gif" || name === "mov" || name === "mp4" || name === "matroska" || name === "webm"
+  )) {
+    throw new VideoProcessingError("unsupported_input", "Alleen GIF, MP4 of WebM wordt verwerkt.");
+  }
+  if (probe.formatNames.includes("gif") && probe.durationSeconds > 60) {
+    throw new VideoProcessingError("unsupported_input", "Een GIF mag maximaal 60 seconden duren.");
   }
   if (probe.durationSeconds > maxVideoDurationSeconds) {
     throw new VideoProcessingError(
@@ -200,7 +224,7 @@ export function validatePlayerVariant(probe: VideoProbe) {
   const failures = [
     !probe.formatNames.some((name) => name === "mov" || name === "mp4") && "MP4-container ontbreekt",
     probe.videoCodec !== "h264" && "videocodec is niet H.264",
-    probe.audioCodec !== null && probe.audioCodec !== "aac" && "audiocodec is niet AAC",
+    probe.audioCodec !== null && "deliveryvariant bevat nog audio",
     (
       Math.max(probe.width, probe.height) > 1920 ||
       Math.min(probe.width, probe.height) > 1080

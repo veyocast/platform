@@ -7,6 +7,7 @@ export type ImageUploadApiResult =
   | {
       data: {
         assetId: string;
+        processing: boolean;
         title: string;
       };
       ok: true;

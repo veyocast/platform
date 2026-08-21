@@ -1,4 +1,5 @@
 export * from "./identity";
+export * from "./menu-studio";
 export * from "./tenant-policy";
 export * from "./team-policy";
 export * from "./playlist-readiness";

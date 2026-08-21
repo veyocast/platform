@@ -79,6 +79,18 @@ export function getCacheableAssets(
 
     for (const asset of Object.values(item.dynamicTemplate?.assets ?? {})) {
       assets.push(toDynamicCacheAsset(item, asset));
+      if (
+        asset.posterUrl && asset.posterBytes && asset.posterChecksumSha256
+      ) {
+        assets.push({
+          bytes: asset.posterBytes,
+          cacheKey: `/__veyocast-player-cache/${asset.posterChecksumSha256}`,
+          checksumSha256: asset.posterChecksumSha256,
+          itemId: item.id,
+          kind: "dynamic",
+          url: asset.posterUrl
+        });
+      }
     }
 
     return assets;
@@ -742,6 +754,11 @@ function hydrateDynamicTemplateAssets(
         assetId,
         {
           ...asset,
+          posterUrl: asset.posterChecksumSha256
+            ? playbackUrls[
+                `/__veyocast-player-cache/${asset.posterChecksumSha256}`
+              ] ?? asset.posterUrl
+            : asset.posterUrl,
           url:
             playbackUrls[
               `/__veyocast-player-cache/${asset.checksumSha256}`
@@ -770,6 +787,10 @@ function refreshDynamicTemplateAssetAccess(
           assetId,
           {
             ...asset,
+            posterUrl:
+              cachedAsset && cachedAsset.posterChecksumSha256 === asset.posterChecksumSha256
+                ? cachedPlaybackUrl(cachedAsset.posterUrl) ?? asset.posterUrl
+                : asset.posterUrl,
             url: cachedUrl ?? asset.url
           }
         ];
