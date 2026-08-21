@@ -13,15 +13,12 @@ test("maakt Sportlink vindbaar vanuit databronnen", async ({
   ).toBeVisible();
 });
 
-test("maakt Sportlink vindbaar vanuit de slideflow", async ({ page }) => {
+test("stuurt de oude slideflow door naar Menu Studio", async ({ page }) => {
   await page.goto("/dashboard/slides/new", { waitUntil: "networkidle" });
 
-  await expect(
-    page.getByRole("heading", { name: "Eerst een databron nodig" })
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Sportlink koppelen" })
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/dashboard\/slides\/menu-studio\/new$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Menu Studio" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dynamische slide maken" })).toHaveCount(0);
 });
 
 test("houdt de dynamische-slide lege staat vrij van de containerrand", async ({

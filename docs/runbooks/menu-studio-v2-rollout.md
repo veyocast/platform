@@ -71,6 +71,40 @@ from public.tenant_settings
 where tenant_id = :tenant_id;
 ```
 
+### S113 operationele pilotbediening
+
+S113 levert `.github/workflows/menu-studio-pilot-rollout.yml` als de
+afzonderlijke beheerhandeling. De workflow:
+
+- is alleen handmatig op `main` beschikbaar;
+- gebruikt de gekozen beschermde `staging`- of `production`-Environment en
+  uitsluitend diens databasecredential;
+- vereist de exacte tenantnaam, volledige reeds gedeployde main-SHA, reden en
+  bevestiging `MENU STUDIO PILOT`;
+- controleert eerst de Control-health-SHA en de aanwezige S113-migratie;
+- wijzigt exact één flag via de owner-only private databasefunctie;
+- weigert een onbekende, dubbele of niet-actieve tenant en een overgeslagen
+  dependency;
+- schrijft alleen bij een echte mutatie een audit-event met flag, van/naar,
+  GitHub-operator, reden en workflowrun;
+- leest de gekozen flag na de transactie terug zonder tenantinhoud te loggen.
+
+De private functie is expliciet niet uitvoerbaar door `anon`, `authenticated`
+of `service_role`; dit is dus geen algemene Data API-backdoor. Gebruik voor
+Duindorp SV zes afzonderlijke `enable`-runs in de hierboven vastgelegde
+volgorde. Gebruik voor rollback afzonderlijke `disable`-runs in deze volgorde:
+
+1. `player`;
+2. `publish`;
+3. `media` en `linked_groups`;
+4. `authoring`;
+5. `read`.
+
+De oude route `/dashboard/slides/new` redirect vanaf S113 naar Menu Studio.
+Bestaande legacy-slides blijven via hun bestaande detailroute beschikbaar;
+hun configuraties, snapshots en releases worden niet geconverteerd of
+verwijderd.
+
 ## Pre-deploy impact en locks
 
 Voer read-only uit tegen elke doelomgeving; noteer alleen tellingen, nooit

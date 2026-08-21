@@ -23,6 +23,12 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     page.setDefaultNavigationTimeout(60_000);
     await authenticate(page);
     await page.setViewportSize({ height: 960, width: 1440 });
+    await page.goto("/dashboard/slides");
+    await expect(page.getByRole("link", { name: "Menu Studio openen" })).toHaveAttribute(
+      "href",
+      "/dashboard/slides/menu-studio/new"
+    );
+    await expect(page.getByRole("link", { name: "Nieuwe dynamische slide" })).toHaveCount(0);
     await page.goto(`/dashboard/slides/menu-studio/new?bron=${sourceId}`);
     await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
 
