@@ -8,6 +8,7 @@ export type SportlinkMediaArtifact = {
   assetId: string;
   bytes: Uint8Array;
   checksumSha256: string;
+  externalId: string;
   fileSizeBytes: number;
   height: number;
   mimeType: "image/webp";
@@ -24,27 +25,30 @@ export type SportlinkTeamLogoArtifact = SportlinkMediaArtifact & {
 
 export async function prepareSportlinkClubLogo(
   job: ClaimedSportlinkSync,
+  externalId: string,
   clubName: string,
   input: Uint8Array
 ): Promise<SportlinkMediaArtifact> {
-  return prepareSportlinkLogo(job, clubName, input, "club_logo");
+  return prepareSportlinkLogo(job, externalId, clubName, input, "club_logo");
 }
 
 export async function prepareSportlinkTeamLogo(
   job: ClaimedSportlinkSync,
+  externalId: string,
   teamName: string,
   sourceUrl: string,
   input: Uint8Array
 ): Promise<SportlinkTeamLogoArtifact> {
   return {
-    ...await prepareSportlinkLogo(job, teamName, input, "team_logo"),
+    ...await prepareSportlinkLogo(job, externalId, teamName, input, "team_logo"),
     role: "team_logo",
     sourceUrl
   };
 }
 
 async function prepareSportlinkLogo(
-  job: ClaimedSportlinkSync,
+  _job: ClaimedSportlinkSync,
+  externalId: string,
   name: string,
   input: Uint8Array,
   role: "club_logo" | "team_logo"
@@ -74,21 +78,18 @@ async function prepareSportlinkLogo(
     .update(output.data)
     .digest("hex");
   const assetId = contentAddressedUuid(
-    `${job.tenantId}\0${role}\0${checksumSha256}`
+    `sportlink\0${role}\0${externalId}\0${checksumSha256}`
   );
-  const fileName = role === "club_logo"
-    ? "sportlink-club-logo.webp"
-    : "sportlink-team-logo.webp";
   return {
     assetId,
     bytes: output.data,
     checksumSha256,
+    externalId,
     fileSizeBytes: output.data.byteLength,
     height: output.info.height,
     mimeType: "image/webp",
     role,
-    storagePath:
-      `tenants/${job.tenantId}/assets/${assetId}/${fileName}`,
+    storagePath: `providers/sportlink/${role}/${checksumSha256}.webp`,
     title: `${name} ${role === "club_logo" ? "clublogo" : "teamlogo"}`
       .slice(0, 160),
     width: output.info.width

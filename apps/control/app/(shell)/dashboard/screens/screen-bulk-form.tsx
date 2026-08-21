@@ -15,7 +15,7 @@ export function ScreenBulkForm({
   children,
   groups,
   idempotencyKey,
-  releases,
+  playlists,
   syncAction
 }: {
   addToGroupAction: (formData: FormData) => void | Promise<void>;
@@ -24,7 +24,7 @@ export function ScreenBulkForm({
   children: ReactNode;
   groups: Array<{ id: string; name: string }>;
   idempotencyKey: string;
-  releases: Array<{ id: string; label: string }>;
+  playlists: Array<{ id: string; label: string }>;
   syncAction: (formData: FormData) => void | Promise<void>;
 }) {
   const [selectedCount, setSelectedCount] = useState(0);
@@ -71,14 +71,14 @@ export function ScreenBulkForm({
                   </Button>
                 </label>
               ) : null}
-              {canPublish && releases.length ? (
+              {canPublish && playlists.length ? (
                 <div className="bulk-release-assignment">
                   <label className="bulk-action-field">
-                    <span>Immutable release</span>
-                    <select name="releaseId">
-                      <option value="">Kies een release</option>
-                      {releases.map((release) => (
-                        <option key={release.id} value={release.id}>{release.label}</option>
+                    <span>Playlist</span>
+                    <select name="playlistId">
+                      <option value="">Kies een playlist</option>
+                      {playlists.map((playlist) => (
+                        <option key={playlist.id} value={playlist.id}>{playlist.label}</option>
                       ))}
                     </select>
                   </label>
@@ -87,7 +87,7 @@ export function ScreenBulkForm({
                     <span>Toewijzing bevestigen</span>
                   </label>
                   <Button formAction={assignReleaseAction} type="submit">
-                    Release toewijzen
+                    Playlist toewijzen
                   </Button>
                 </div>
               ) : null}

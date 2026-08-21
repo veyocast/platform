@@ -1,5 +1,6 @@
 export type ScreenGroupListItem = {
   defaultReleaseId: string | null;
+  defaultPlaylistId: string | null;
   defaultContent: string | null;
   description: string | null;
   id: string;

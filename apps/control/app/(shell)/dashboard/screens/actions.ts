@@ -361,10 +361,22 @@ export async function assignBulkScreenRelease(formData: FormData) {
     fail("/dashboard/screens", "Live Supabase is niet beschikbaar. De bestaande toewijzingen zijn ongewijzigd.");
   }
   const screenIds = bulkScreenIds(formData);
-  const releaseId = requiredUuid(formData, "releaseId");
+  const playlistId = requiredUuid(formData, "playlistId");
   if (formData.get("confirmReleaseAssignment") !== "yes") {
-    fail("/dashboard/screens", "Bevestig eerst dat deze bestaande immutable release naar de geselecteerde schermen mag worden uitgerold.");
+    fail("/dashboard/screens", "Bevestig eerst dat de actuele publicatie van deze playlist naar de geselecteerde schermen mag worden uitgerold.");
   }
+  const latestRelease = await supabase
+    .from("playlist_releases")
+    .select("id")
+    .eq("tenant_id", session.tenantId)
+    .eq("playlist_id", playlistId)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (latestRelease.error || !latestRelease.data?.id) {
+    fail("/dashboard/screens", "Deze playlist heeft nog geen geldige publicatie. Publiceer de playlist eerst en probeer het daarna opnieuw.");
+  }
+  const releaseId = latestRelease.data.id;
   const detail = await loadReleaseDetail(session.tenantId, releaseId);
   const targets = detail.screenStates.filter((state) =>
     screenIds.includes(state.screen.id)

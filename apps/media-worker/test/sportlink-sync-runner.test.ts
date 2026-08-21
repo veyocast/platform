@@ -149,11 +149,12 @@ describe("Sportlink sync worker", () => {
         assetId: "50000000-0000-5000-8000-000000000001",
         bytes,
         checksumSha256: "a".repeat(64),
+        externalId: "club-1",
         fileSizeBytes: 3,
         height: 100,
         mimeType: "image/webp",
         role: "club_logo",
-        storagePath: "tenants/10000000-0000-4000-8000-000000000001/assets/50000000-0000-5000-8000-000000000001/sportlink-club-logo.webp",
+        storagePath: `providers/sportlink/club_logo/${"a".repeat(64)}.webp`,
         title: "Duindorp sv clublogo",
         width: 100
       },
@@ -163,9 +164,9 @@ describe("Sportlink sync worker", () => {
       teams: []
     })).resolves.toBe(1);
 
-    expect(from).toHaveBeenCalledWith("tenant-media");
+    expect(from).toHaveBeenCalledWith("provider-assets");
     expect(upload).toHaveBeenCalledWith(
-      "tenants/10000000-0000-4000-8000-000000000001/assets/50000000-0000-5000-8000-000000000001/sportlink-club-logo.webp",
+      `providers/sportlink/club_logo/${"a".repeat(64)}.webp`,
       bytes,
       {
         cacheControl: "31536000",
@@ -173,7 +174,7 @@ describe("Sportlink sync worker", () => {
         upsert: true
       }
     );
-    expect(rpc).toHaveBeenCalledWith("complete_sportlink_sync_v3", expect.objectContaining({
+    expect(rpc).toHaveBeenCalledWith("complete_sportlink_sync_v4", expect.objectContaining({
       p_club_logo: expect.objectContaining({
         assetId: "50000000-0000-5000-8000-000000000001",
         role: "club_logo"
@@ -212,7 +213,7 @@ describe("Sportlink sync worker", () => {
       if (functionName === "renew_sportlink_sync_lease_v1") {
         return { data: true, error: null };
       }
-      if (functionName === "complete_sportlink_sync_v3") {
+      if (functionName === "complete_sportlink_sync_v4") {
         return { data: { readCount: 0 }, error: null };
       }
       return { data: null, error: null };

@@ -56,6 +56,8 @@ import {
   type MediaViewState
 } from "./saved-media-view";
 
+const mediaPageSize = 48;
+
 type MediaPageProps = {
   searchParams: Promise<{
     asset?: string;
@@ -290,7 +292,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
   const selectedAsset = params.asset
     ? assets.find((asset) => asset.id === params.asset) ?? null
     : null;
-  const pageCount = Math.max(1, Math.ceil(totalCount / 20));
+  const pageCount = Math.max(1, Math.ceil(totalCount / mediaPageSize));
   const uploadCloseHref = mediaHref(params, { upload: undefined });
   const inspectorCloseHref = mediaHref(params, { asset: undefined });
   const currentViewState = mediaViewStateFromSearch(params);
@@ -567,7 +569,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
               Upload een afbeelding of video om je bibliotheek te vullen.
             </div>
           )}
-          {totalCount > 20 ? (
+          {totalCount > mediaPageSize ? (
             <nav aria-label="Paginering mediabibliotheek" className="pagination">
               <Button asChild size="sm" variant="secondary">
                 {page <= 1
@@ -945,8 +947,8 @@ async function loadMediaData(
         p_created_until: dateBoundary(params.to, true),
         p_folder_id: folderId,
         p_kind: kind,
-        p_page_size: 20,
-        p_offset: (page - 1) * 20,
+        p_page_size: mediaPageSize,
+        p_offset: (page - 1) * mediaPageSize,
         p_root_only: params.folder === "root",
         p_search: params.q?.trim() || null,
         p_sort: sort,
@@ -959,8 +961,8 @@ async function loadMediaData(
         p_favorites_only: params.favorite === "true",
         p_folder_id: folderId,
         p_kind: kind,
-        p_page_size: 20,
-        p_offset: (page - 1) * 20,
+        p_page_size: mediaPageSize,
+        p_offset: (page - 1) * mediaPageSize,
         p_root_only: params.folder === "root",
         p_search: params.q?.trim() || null,
         p_sort: sort,
@@ -980,9 +982,9 @@ async function loadMediaData(
     savedViewResult
   ] = await Promise.all([
     assetRequest,
-    supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("status", "ready").is("deleted_at", null),
-    supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["uploading", "processing"]).is("deleted_at", null),
-    supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["validation_failed", "quarantined"]).is("deleted_at", null),
+    supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("source_kind", "user").eq("status", "ready").is("deleted_at", null),
+    supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("source_kind", "user").in("status", ["uploading", "processing"]).is("deleted_at", null),
+    supabase.from("media_assets").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("source_kind", "user").in("status", ["validation_failed", "quarantined"]).is("deleted_at", null),
     supabase.rpc("get_media_storage_usage", { p_tenant_id: tenantId }),
     supabase.from("media_folders").select("id, name, parent_folder_id, revision").eq("tenant_id", tenantId).order("name"),
     supabase.from("media_tags").select("id, name, color, revision").eq("tenant_id", tenantId).order("name"),
@@ -1037,10 +1039,19 @@ async function loadMediaData(
   }
 
   const signedPreviews = new Map<string, string>();
-  await Promise.all([...previewPaths.entries()].map(async ([assetId, path]) => {
-    const { data, error } = await supabase.storage.from("tenant-media").createSignedUrl(path, 600);
-    if (!error && data?.signedUrl) signedPreviews.set(assetId, data.signedUrl);
-  }));
+  const previewEntries = [...previewPaths.entries()];
+  if (previewEntries.length) {
+    const signed = await supabase.storage
+      .from("tenant-media")
+      .createSignedUrls(previewEntries.map(([, path]) => path), 600);
+    if (!signed.error) {
+      const assetByPath = new Map(previewEntries.map(([assetId, path]) => [path, assetId]));
+      for (const preview of signed.data ?? []) {
+        const assetId = assetByPath.get(preview.path ?? "");
+        if (assetId && preview.signedUrl) signedPreviews.set(assetId, preview.signedUrl);
+      }
+    }
+  }
 
   const assets: MediaAsset[] = rows.map((asset) => ({
     checksumSha256: asset.checksum_sha256,

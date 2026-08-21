@@ -4,6 +4,7 @@ export type ContentScheduleListItem = {
   id: string;
   name: string;
   playlistName: string;
+  playlistId: string;
   priority: number;
   recurrence: Record<string, unknown>;
   releaseId: string;

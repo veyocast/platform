@@ -176,7 +176,19 @@ async function scheduleInput(context: PlanningWriter, formData: FormData) {
   if ((targetKind !== "screen" && targetKind !== "screen_group") || !uuidPattern.test(targetId)) {
     fail("Kies een geldig scherm of een geldige schermgroep.");
   }
-  const releaseId = requiredUuid(formData, "releaseId");
+  const playlistId = requiredUuid(formData, "playlistId");
+  const latestRelease = await context.supabase
+    .from("playlist_releases")
+    .select("id")
+    .eq("tenant_id", context.session.tenantId)
+    .eq("playlist_id", playlistId)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (latestRelease.error || !latestRelease.data?.id) {
+    fail("Deze playlist heeft nog geen geldige publicatie. Publiceer hem eerst.");
+  }
+  const releaseId = latestRelease.data.id;
   const timezoneName = await loadTenantTimezone(context);
   let startsAt: string;
   let endsAt: string | null;

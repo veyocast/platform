@@ -47,6 +47,7 @@ async function loadGlobalUploadQueue(
     .from("media_assets")
     .select("id, title, original_file_name, status")
     .eq("tenant_id", tenantId)
+    .eq("source_kind", "user")
     .in("status", ["uploading", "processing"])
     .is("deleted_at", null)
     .order("created_at", { ascending: false })

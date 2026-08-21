@@ -32,6 +32,7 @@ export async function loadScreenGroups(tenantId: string) {
       .from("playlist_releases")
       .select("id, playlist_id, version")
       .eq("tenant_id", tenantId)
+      .order("version", { ascending: false })
   ]);
 
   const error = [groups.error, memberships.error, screens.error, playlists.error, releases.error].find(Boolean);
@@ -56,8 +57,9 @@ export async function loadScreenGroups(tenantId: string) {
         .map((membership) => membership.screen_id);
       return {
         defaultReleaseId: group.default_release_id,
+        defaultPlaylistId: playlistId ?? null,
         defaultContent: playlistId
-          ? `${playlistNames.get(playlistId) ?? "Verwijderde playlist"}${release ? ` · versie ${release.version}` : ""}`
+          ? playlistNames.get(playlistId) ?? "Verwijderde playlist"
           : null,
         description: group.description,
         id: group.id,
@@ -73,10 +75,13 @@ export async function loadScreenGroups(tenantId: string) {
         updatedAt: group.updated_at
       };
     }),
-    releases: (releases.data ?? []).map((release) => ({
-      id: release.id,
-      label: `${playlistNames.get(release.playlist_id) ?? "Verwijderde playlist"} · versie ${release.version}`
-    })),
+    releases: [...new Map((releases.data ?? []).map((release) => [
+      release.playlist_id,
+      {
+        id: release.playlist_id,
+        label: playlistNames.get(release.playlist_id) ?? "Verwijderde playlist"
+      }
+    ])).values()].sort((left, right) => left.label.localeCompare(right.label, "nl")),
     screens: (screens.data ?? []).map((screen) => ({
       disabled: screen.status === "disabled",
       id: screen.id,

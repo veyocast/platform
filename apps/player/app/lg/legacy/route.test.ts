@@ -16,7 +16,7 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).not.toContain('type="module"');
   });
 
-  it("speelt afbeeldingen en video uitsluitend vanuit geverifieerde lokale cache", () => {
+  it("speelt LG-video online via HTTPS/Range en valt terug op de geverifieerde cache", () => {
     const html = renderLgLegacyHtml();
 
     expect(html).toContain('document.createElement("img")');
@@ -26,9 +26,11 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("cache.put(asset.cacheKey, response)");
     expect(html).toContain("persistRelease(envelope, assets");
     expect(html).toContain("window.URL.createObjectURL(blob)");
-    expect(html).not.toContain(
-      'runtime.releaseSource === "online" && item.source.url'
-    );
+    expect(html).toContain('item.kind === "video"');
+    expect(html).toContain('item.source.url.toLowerCase().indexOf("https://") === 0');
+    expect(html).toContain("callback(item.source.url, null, true)");
+    expect(html).toContain("LEGACY_VIDEO_NETWORK_FALLBACK");
+    expect(html).toContain("LEGACY_VIDEO_CACHE_FALLBACK_MISSING");
     expect(html).toContain("video.muted = true");
     expect(html).toContain("video.play()");
     expect(html).toContain("LEGACY_VIDEO_START_TIMEOUT");
@@ -82,9 +84,34 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).not.toContain('arenaTitle.className = "compact"');
     expect(html).toContain("@keyframes editorial-photo-in");
     expect(html).toContain("LEGACY_TEMPLATE_READY");
+    expect(html).toContain('"sport_match_of_the_day"');
     expect(html).toContain("element.textContent = text");
     expect(html).not.toContain("eval(");
     expect(html).not.toContain("new Function(");
+  });
+
+  it("resolveert exact de tien goedgekeurde Theme Engine v2-thema's in Legacy", () => {
+    const html = renderLgLegacyHtml();
+    const ids = [
+      "editorial",
+      "obsidian",
+      "atelier",
+      "velocity",
+      "heritage",
+      "halo",
+      "swiss",
+      "pavilion",
+      "tactical",
+      "terrace"
+    ];
+
+    expect(html).toContain('themeManifestVersion":"1.0.0"');
+    expect(html).toContain("snapshot.themePresentation");
+    expect(html).toContain('root.setAttribute("data-theme-id"');
+    ids.forEach((id) => {
+      expect(html).toContain(`data-theme-id="${id}"`);
+      expect(html).toContain(`"${id}":{`);
+    });
   });
 
   it("deelt identiteit en API-contracten met de gewone Player", () => {
