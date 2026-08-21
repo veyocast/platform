@@ -66,6 +66,32 @@ jobs:
       - ${{ inputs.target_environment }}
     timeout-minutes: 10
     steps:
+      - name: Checkout trusted release tooling
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          clean: true
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Remove stale workspace files
+        shell: bash
+        run: git clean -ffdx
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+          cache: true
+
+      - name: Install pinned database tooling
+        run: pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1 --network-concurrency=8 --package-import-method=copy
+
       - name: Verify deployed release and apply guarded flag
         shell: bash
         env:
@@ -105,10 +131,8 @@ jobs:
           fi
           if [[ ${ACTION} == enable ]]; then
             enabled=true
-            expected_db_value=t
           else
             enabled=false
-            expected_db_value=f
           fi
 
           if [[ ${TARGET_ENVIRONMENT} == production ]]; then
@@ -126,61 +150,67 @@ jobs:
           fi
           unset health_payload
 
-          migration_count="$(
-            psql "${SUPABASE_DB_URL}" --no-psqlrc --tuples-only --no-align --set ON_ERROR_STOP=1 \
-              --command="select count(*) from supabase_migrations.schema_migrations where version = '20260821214542';"
-          )"
-          if [[ ${migration_count//[[:space:]]/} != 1 ]]; then
-            echo "De Menu Studio pilotmigratie ontbreekt in de doelomgeving." >&2
-            exit 1
-          fi
+          encode_base64() {
+            printf '%s' "$1" | base64 | tr -d '\n'
+          }
+          tenant_name_b64="$(encode_base64 "${TENANT_NAME}")"
+          flag_b64="$(encode_base64 "${FLAG}")"
+          reason_b64="$(encode_base64 "${REASON}")"
+          operator_b64="$(encode_base64 "${OPERATOR}")"
+          run_url_b64="$(encode_base64 "${RUN_URL}")"
 
-          changed="$(
-            psql "${SUPABASE_DB_URL}" --no-psqlrc --tuples-only --no-align --set ON_ERROR_STOP=1 \
-              --set tenant_name="${TENANT_NAME}" \
-              --set flag="${FLAG}" \
-              --set enabled="${enabled}" \
-              --set reason="${REASON}" \
-              --set operator="${OPERATOR}" \
-              --set run_url="${RUN_URL}" <<'SQL'
-          begin;
-          select private.set_menu_studio_pilot_flag_v1(
-            :'tenant_name',
-            :'flag',
-            :'enabled'::boolean,
-            :'reason',
-            :'operator',
-            :'run_url'
-          ) ->> 'changed';
-          commit;
-          SQL
-          )"
+          pnpm exec supabase db query \
+            --db-url "${SUPABASE_DB_URL}" \
+            --output json \
+            "do \$menu_studio_rollout\$
+            declare
+              requested_tenant_name constant text := convert_from(decode('${tenant_name_b64}', 'base64'), 'UTF8');
+              requested_flag constant text := convert_from(decode('${flag_b64}', 'base64'), 'UTF8');
+              requested_enabled constant boolean := ${enabled};
+              requested_reason constant text := convert_from(decode('${reason_b64}', 'base64'), 'UTF8');
+              requested_operator constant text := convert_from(decode('${operator_b64}', 'base64'), 'UTF8');
+              requested_run_url constant text := convert_from(decode('${run_url_b64}', 'base64'), 'UTF8');
+              change_result jsonb;
+              verified boolean;
+            begin
+              if (
+                select count(*)
+                from supabase_migrations.schema_migrations
+                where version = '20260821214542'
+              ) <> 1 then
+                raise exception 'Menu Studio pilot migration is missing';
+              end if;
 
-          if [[ ${changed} == *t* ]]; then
-            echo "De pilotflag is gewijzigd en geaudit."
-          else
-            echo "De pilotflag stond al in de gevraagde toestand; er was geen mutatie nodig."
-          fi
+              change_result := private.set_menu_studio_pilot_flag_v1(
+                requested_tenant_name,
+                requested_flag,
+                requested_enabled,
+                requested_reason,
+                requested_operator,
+                requested_run_url
+              );
 
-          verified="$(
-            psql "${SUPABASE_DB_URL}" --no-psqlrc --tuples-only --no-align --set ON_ERROR_STOP=1 \
-              --set tenant_name="${TENANT_NAME}" \
-              --set flag="${FLAG}" <<'SQL'
-          select case :'flag'
-            when 'read' then settings.menu_document_v2_read_enabled
-            when 'authoring' then settings.menu_studio_v2_authoring_enabled
-            when 'linked_groups' then settings.menu_studio_v2_linked_groups_enabled
-            when 'media' then settings.menu_studio_v2_media_enabled
-            when 'publish' then settings.menu_studio_v2_publish_enabled
-            when 'player' then settings.menu_studio_v2_player_enabled
-          end
-          from public.tenant_settings settings
-          join public.tenants tenant on tenant.id = settings.tenant_id
-          where lower(btrim(tenant.name)) = lower(btrim(:'tenant_name'));
-          SQL
-          )"
-          if [[ ${verified//[[:space:]]/} != "${expected_db_value}" ]]; then
-            echo "De readback van de pilotflag wijkt af; rollout stopt." >&2
-            exit 1
-          fi
-          echo "De readback van de pilotflag is bevestigd."
+              select case requested_flag
+                when 'read' then settings.menu_document_v2_read_enabled
+                when 'authoring' then settings.menu_studio_v2_authoring_enabled
+                when 'linked_groups' then settings.menu_studio_v2_linked_groups_enabled
+                when 'media' then settings.menu_studio_v2_media_enabled
+                when 'publish' then settings.menu_studio_v2_publish_enabled
+                when 'player' then settings.menu_studio_v2_player_enabled
+              end
+              into strict verified
+              from public.tenant_settings settings
+              join public.tenants tenant on tenant.id = settings.tenant_id
+              where lower(btrim(tenant.name)) = lower(btrim(requested_tenant_name));
+
+              if verified is distinct from requested_enabled
+                or change_result ->> 'flag' is distinct from requested_flag
+                or (change_result ->> 'enabled')::boolean is distinct from requested_enabled
+              then
+                raise exception 'Menu Studio pilot readback differs from the requested state';
+              end if;
+            end
+            \$menu_studio_rollout\$;"
+
+          unset tenant_name_b64 flag_b64 reason_b64 operator_b64 run_url_b64
+          echo "De pilotflag en de atomische readback zijn bevestigd."

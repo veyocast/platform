@@ -89,6 +89,10 @@ afzonderlijke beheerhandeling. De workflow:
   GitHub-operator, reden en workflowrun;
 - leest de gekozen flag na de transactie terug zonder tenantinhoud te loggen.
 
+De workflow installeert de in de workspace-lockfile vastgezette Supabase CLI en
+voert migratiecheck, mutatie en readback als één atomische `db query` uit. Zij
+veronderstelt geen los `psql`-pakket op de geharde environment-runner.
+
 De private functie is expliciet niet uitvoerbaar door `anon`, `authenticated`
 of `service_role`; dit is dus geen algemene Data API-backdoor. Gebruik voor
 Duindorp SV zes afzonderlijke `enable`-runs in de hierboven vastgelegde
