@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 
 import {
+  createPlayerVideoPoster,
   normalizePlayerVideo,
   VideoProcessingError,
   type VideoNormalizationResult
@@ -21,6 +22,10 @@ type Normalizer = (input: {
   inputPath: string;
   outputPath: string;
 }) => Promise<VideoNormalizationResult>;
+type PosterGenerator = (input: {
+  inputPath: string;
+  outputPath: string;
+}) => Promise<string>;
 
 export type WorkerRunResult =
   | { status: "idle" }
@@ -36,11 +41,13 @@ export async function runWorkerOnce({
   backend,
   config,
   normalize = normalizePlayerVideo,
+  poster = createPlayerVideoPoster,
   onQueuePoll = () => undefined
 }: {
   backend: MediaWorkerBackend;
   config: MediaWorkerConfig;
   normalize?: Normalizer;
+  poster?: PosterGenerator;
   onQueuePoll?: () => void;
 }): Promise<WorkerRunResult> {
   const job = await backend.claimJob(
@@ -55,8 +62,14 @@ export async function runWorkerOnce({
   try {
     assertSupportedJob(job);
     workingDirectory = await mkdtemp(join(tmpdir(), "veyocast-media-"));
-    const inputPath = join(workingDirectory, "source.mp4");
+    const inputPath = join(
+      workingDirectory,
+      job.mimeType === "video/webm"
+        ? "source.webm"
+        : job.mimeType === "image/gif" ? "source.gif" : "source.mp4"
+    );
     const outputPath = join(workingDirectory, "player-1080p.mp4");
+    const posterPath = join(workingDirectory, "poster.png");
 
     await backend.downloadOriginal(job, inputPath);
     const inputStat = await stat(inputPath);
@@ -69,18 +82,29 @@ export async function runWorkerOnce({
     }
     const originalChecksum = await sha256File(inputPath);
     const normalized = await normalize({ inputPath, outputPath });
+    await poster({ inputPath: outputPath, outputPath: posterPath });
     const outputStat = await stat(outputPath);
+    const posterStat = await stat(posterPath);
     const playerChecksum = await sha256File(outputPath);
+    const posterChecksum = await sha256File(posterPath);
     const playerStoragePath =
       `tenants/${job.tenantId}/assets/${job.assetId}/variants/player-1080p.mp4`;
+    const posterStoragePath =
+      `tenants/${job.tenantId}/assets/${job.assetId}/variants/poster.png`;
 
-    await backend.uploadPlayerVariant(job, outputPath, playerStoragePath);
+    await Promise.all([
+      backend.uploadPlayerVariant(job, outputPath, playerStoragePath),
+      backend.uploadPosterVariant(job, posterPath, posterStoragePath)
+    ]);
     await backend.completeJob({
       assetId: job.assetId,
       durationSeconds: normalized.output.durationSeconds,
       height: normalized.output.height,
       jobId: job.jobId,
       originalChecksum,
+      posterChecksum,
+      posterSizeBytes: posterStat.size,
+      posterStoragePath,
       playerChecksum,
       playerSizeBytes: outputStat.size,
       playerStoragePath,
@@ -162,11 +186,15 @@ class JobProcessingError extends Error {
 }
 
 function assertSupportedJob(job: ClaimedMediaJob) {
-  if (job.mimeType !== "video/mp4") {
+  if (
+    job.mimeType !== "image/gif" &&
+    job.mimeType !== "video/mp4" &&
+    job.mimeType !== "video/webm"
+  ) {
     throw new JobProcessingError(
       "unsupported_mime_type",
       false,
-      "De worker accepteert alleen video/mp4."
+      "De worker accepteert alleen image/gif, video/mp4 of video/webm."
     );
   }
 }

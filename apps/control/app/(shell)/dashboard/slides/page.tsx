@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Layers3, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowRight, Layers3, RefreshCw, Sparkles, WandSparkles } from "lucide-react";
 
 import { hasCapability } from "@veyocast/auth";
 import { Button, SummaryStrip } from "@veyocast/ui";
@@ -21,12 +21,17 @@ export default async function SlidesPage({ searchParams }: PageProps) {
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.dynamic_slide.write");
-  const slides = session.isLive ? await loadSlides(session.tenantId!) : [];
+  const [slides, menuStudioEnabled] = session.isLive
+    ? await Promise.all([
+        loadSlides(session.tenantId!),
+        loadMenuStudioEnabled(session.tenantId!)
+      ])
+    : [[], false];
 
   return (
     <>
       <PageHeader
-        actions={canWrite ? <Button asChild><Link href="/dashboard/slides/new"><Sparkles aria-hidden="true" />Nieuwe dynamische slide</Link></Button> : null}
+        actions={canWrite ? <div className={styles.heroActions}>{menuStudioEnabled ? <Button asChild><Link href="/dashboard/slides/menu-studio/new"><WandSparkles aria-hidden="true" />Open Menu Studio</Link></Button> : null}<Button asChild variant={menuStudioEnabled ? "secondary" : "primary"}><Link href="/dashboard/slides/new"><Sparkles aria-hidden="true" />Nieuwe dynamische slide</Link></Button></div> : null}
         description="Maak dynamische HTML/CSS-slides uit product- en nieuwsdata. Iedere snapshot krijgt daarnaast een immutable PNG als veilige fallback."
         eyebrow={session.tenant}
         title="Slides"
@@ -71,7 +76,7 @@ export default async function SlidesPage({ searchParams }: PageProps) {
                       {slide.itemCount} {slide.itemCount === 1 ? "item" : "items"} · {snapshotAge(slide.snapshotCreatedAt)}
                     </p>
                   </div>
-                  <Button asChild size="sm" variant="secondary"><Link href={`/dashboard/slides/${slide.id}`}>Open slide <ArrowRight aria-hidden="true" /></Link></Button>
+                  <Button asChild size="sm" variant="secondary"><Link href={slide.menuStudio ? `/dashboard/slides/menu-studio/${slide.id}` : `/dashboard/slides/${slide.id}`}>Open slide <ArrowRight aria-hidden="true" /></Link></Button>
                 </div>
               </article>
             ))}
@@ -89,12 +94,24 @@ export default async function SlidesPage({ searchParams }: PageProps) {
   );
 }
 
+async function loadMenuStudioEnabled(tenantId: string) {
+  const supabase = await createControlSupabaseClient();
+  if (!supabase) return false;
+  const result = await supabase
+    .from("tenant_settings")
+    .select("menu_document_v2_read_enabled, menu_studio_v2_authoring_enabled")
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+  return !result.error && result.data?.menu_document_v2_read_enabled === true &&
+    result.data.menu_studio_v2_authoring_enabled === true;
+}
+
 async function loadSlides(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("dynamic_slides")
-    .select("id, name, slide_type, orientation, selection_mode, status, current_snapshot_id, data_source_id, last_error_code, updated_at")
+    .select("id, name, slide_type, orientation, selection_mode, status, current_snapshot_id, data_source_id, last_error_code, updated_at, configuration_json")
     .eq("tenant_id", tenantId)
     .neq("status", "archived")
     .order("updated_at", { ascending: false });
@@ -139,6 +156,7 @@ async function loadSlides(tenantId: string) {
   );
   return (data ?? []).map((slide) => ({
     ...slide,
+    menuStudio: object(slide.configuration_json)?.schemaVersion === "menu-document.v2",
     itemCount: snapshotItemCount(
       slide.current_snapshot_id
         ? snapshotById.get(slide.current_snapshot_id)?.snapshot_data_json
@@ -191,6 +209,18 @@ function snapshotItemCount(value: unknown) {
   if (Array.isArray(sport?.items)) return sport.items.length;
   const menu = object(snapshot.menu);
   if (Array.isArray(menu?.products)) return menu.products.length;
+  const menuDocument = object(snapshot.menuDocument);
+  if (Array.isArray(menuDocument?.pages)) {
+    return menuDocument.pages.reduce((total, pageValue) => {
+      const page = object(pageValue);
+      if (!Array.isArray(page?.blocks)) return total;
+      return total + page.blocks.reduce((pageTotal, blockValue) => {
+        const block = object(blockValue);
+        if (block?.type === "product-group") return pageTotal + 1;
+        return pageTotal + (Array.isArray(block?.productNodes) ? block.productNodes.length : 0);
+      }, 0);
+    }, 0);
+  }
   const news = object(snapshot.news);
   return Array.isArray(news?.articles) ? news.articles.length : 0;
 }

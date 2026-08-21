@@ -9,7 +9,7 @@ const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const packageRules = {
   auth: new Set(["@veyocast/domain"]),
   contracts: new Set(["zod"]),
-  domain: new Set<string>(),
+  domain: new Set(["@veyocast/contracts"]),
   studio: new Set(["zod"])
 } as const;
 

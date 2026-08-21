@@ -312,12 +312,36 @@ export const dynamicTemplateManifestSchema = z.object({
 
 export const playerDynamicTemplateAssetSchema = z
   .object({
-    bytes: z.number().int().positive().max(8_000_000),
+    bytes: z.number().int().positive().max(524_288_000),
     checksumSha256: z.string().regex(/^[a-f0-9]{64}$/),
-    mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+    mimeType: z.enum([
+      "image/gif",
+      "image/jpeg",
+      "image/png",
+      "image/svg+xml",
+      "image/webp",
+      "video/mp4"
+    ]),
+    posterBytes: z.number().int().positive().max(25_000_000).optional(),
+    posterChecksumSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+    posterMimeType: z.literal("image/png").optional(),
+    posterUrl: z.string().min(1).max(4_096).optional(),
     url: z.string().min(1).max(4_096)
-  })
-  .strict();
+  }).strict().superRefine((asset, context) => {
+    const posterFields = [
+      asset.posterBytes,
+      asset.posterChecksumSha256,
+      asset.posterMimeType,
+      asset.posterUrl
+    ];
+    if (posterFields.some((value) => value !== undefined) &&
+      posterFields.some((value) => value === undefined)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Poster metadata moet volledig zijn."
+      });
+    }
+  });
 
 export const playerDynamicTemplatePayloadSchema = z
   .object({

@@ -328,6 +328,20 @@ export function collectDynamicSnapshotMediaAssetIds(snapshot: unknown) {
       }
     }
   }
+  const menuDocument = isRecord(snapshot.menuDocument)
+    ? snapshot.menuDocument
+    : null;
+  if (Array.isArray(menuDocument?.assets)) {
+    for (const value of menuDocument.assets.slice(0, 100)) {
+      const asset = isRecord(value) ? value : null;
+      if (
+        typeof asset?.assetId === "string" &&
+        uuidPattern.test(asset.assetId)
+      ) {
+        ids.add(asset.assetId);
+      }
+    }
+  }
   const sport = isRecord(snapshot.sport) ? snapshot.sport : null;
   if (Array.isArray(sport?.items)) {
     for (const value of sport.items.slice(0, 100)) {
@@ -378,21 +392,22 @@ async function loadDynamicTemplateAssets(
 ) {
   const assetResult = await admin
     .from("media_assets")
-    .select("id")
+    .select("id, kind")
     .eq("tenant_id", tenantId)
-    .eq("kind", "image")
     .eq("status", "ready")
     .in("id", mediaAssetIds);
   if (assetResult.error) return new Map<string, PlayerDynamicTemplateAsset>();
-  const readyIds = (assetResult.data ?? []).map((asset) => asset.id);
+  const readyAssets = assetResult.data ?? [];
+  const readyIds = readyAssets.map((asset) => asset.id);
+  const kindById = new Map(readyAssets.map((asset) => [asset.id, asset.kind]));
   const missingIds = mediaAssetIds.filter((id) => !readyIds.includes(id));
   const [variantResult, providerResult] = await Promise.all([
     readyIds.length
       ? admin
           .from("media_variants")
-          .select("asset_id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
+          .select("asset_id, variant_type, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
           .eq("tenant_id", tenantId)
-          .eq("variant_type", "original")
+          .in("variant_type", ["original", "player_1080p", "thumbnail"])
           .in("asset_id", readyIds)
       : Promise.resolve({ data: [], error: null }),
     missingIds.length
@@ -405,26 +420,55 @@ async function loadDynamicTemplateAssets(
   if (variantResult.error || providerResult.error) {
     return new Map<string, PlayerDynamicTemplateAsset>();
   }
-  const resolvedVariants = [
-    ...(variantResult.data ?? []),
-    ...(providerResult.data ?? []).map((provider) => ({
-      ...provider,
-      asset_id: provider.id
-    }))
-  ];
   const assets = new Map<string, PlayerDynamicTemplateAsset>();
-  await Promise.all(resolvedVariants.map(async (variant) => {
-    const signed = await admin.storage
-      .from(variant.storage_bucket)
-      .createSignedUrl(variant.storage_path, 60 * 60);
-    if (signed.error || !signed.data?.signedUrl) return;
+  const variants = variantResult.data ?? [];
+  await Promise.all(readyAssets.map(async (asset) => {
+    const delivery = variants.find((variant) =>
+      variant.asset_id === asset.id && variant.variant_type === (
+        kindById.get(asset.id) === "video" ? "player_1080p" : "original"
+      )
+    );
+    const poster = kindById.get(asset.id) === "video"
+      ? variants.find((variant) =>
+          variant.asset_id === asset.id && variant.variant_type === "thumbnail"
+        )
+      : null;
+    if (!delivery || (kindById.get(asset.id) === "video" && !poster)) return;
+    const [signed, signedPoster] = await Promise.all([
+      admin.storage.from(delivery.storage_bucket)
+        .createSignedUrl(delivery.storage_path, 60 * 60),
+      poster
+        ? admin.storage.from(poster.storage_bucket)
+            .createSignedUrl(poster.storage_path, 60 * 60)
+        : Promise.resolve({ data: null, error: null })
+    ]);
+    if (signed.error || !signed.data?.signedUrl ||
+      (poster && (signedPoster.error || !signedPoster.data?.signedUrl))) return;
     const parsed = playerDynamicTemplateAssetSchema.safeParse({
-      bytes: Number(variant.file_size_bytes),
-      checksumSha256: variant.checksum_sha256,
-      mimeType: variant.mime_type,
+      bytes: Number(delivery.file_size_bytes),
+      checksumSha256: delivery.checksum_sha256,
+      mimeType: delivery.mime_type,
+      ...(poster ? {
+        posterBytes: Number(poster.file_size_bytes),
+        posterChecksumSha256: poster.checksum_sha256,
+        posterMimeType: "image/png",
+        posterUrl: signedPoster.data?.signedUrl
+      } : {}),
       url: signed.data.signedUrl
     });
-    if (parsed.success) assets.set(variant.asset_id, parsed.data);
+    if (parsed.success) assets.set(asset.id, parsed.data);
+  }));
+  await Promise.all((providerResult.data ?? []).map(async (provider) => {
+    const signed = await admin.storage.from(provider.storage_bucket)
+      .createSignedUrl(provider.storage_path, 60 * 60);
+    if (signed.error || !signed.data?.signedUrl) return;
+    const parsed = playerDynamicTemplateAssetSchema.safeParse({
+      bytes: Number(provider.file_size_bytes),
+      checksumSha256: provider.checksum_sha256,
+      mimeType: provider.mime_type,
+      url: signed.data.signedUrl
+    });
+    if (parsed.success) assets.set(provider.id, parsed.data);
   }));
   return assets;
 }
@@ -436,6 +480,9 @@ function uniqueDynamicAssetBytes(
   for (const template of templates.values()) {
     for (const asset of Object.values(template.assets ?? {})) {
       assets.set(asset.checksumSha256, asset.bytes);
+      if (asset.posterChecksumSha256 && asset.posterBytes) {
+        assets.set(asset.posterChecksumSha256, asset.posterBytes);
+      }
     }
   }
   return [...assets.values()].reduce((total, bytes) => total + bytes, 0);

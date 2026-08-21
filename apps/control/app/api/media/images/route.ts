@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       requestId,
       413,
       "REQUEST_TOO_LARGE",
-      "De afbeelding is groter dan de veilige uploadlimiet van 20 MB.",
+      "Het bestand is groter dan de maximale uploadlimiet van 50 MB.",
       "Verklein of comprimeer het bestand en probeer opnieuw."
     );
   }
@@ -114,6 +114,7 @@ export async function POST(request: Request) {
       {
         data: {
           assetId: result.assetId,
+          processing: result.processing,
           title: result.title
         },
         ok: true,

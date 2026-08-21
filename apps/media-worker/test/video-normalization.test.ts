@@ -3,9 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildNormalizationArguments,
   canRemuxWithoutTranscoding,
+  createPlayerVideoPoster,
   getCanonicalPlayerDimensions,
   normalizePlayerVideo,
   parseVideoProbe,
+  validateInputProbe,
   validatePlayerVariant,
   VideoProcessingError,
   type CommandRunner
@@ -21,8 +23,7 @@ const inputProbe = JSON.stringify({
 const normalizedProbe = JSON.stringify({
   format: { duration: "12.400", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
   streams: [
-    { codec_name: "h264", codec_type: "video", height: 1080, pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 1920 },
-    { codec_name: "aac", codec_type: "audio" }
+    { codec_name: "h264", codec_type: "video", height: 1080, pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 1920 }
   ]
 });
 const portraitProbe = JSON.stringify({
@@ -47,16 +48,33 @@ const rotatedPortraitProbe = JSON.stringify({
 });
 
 describe("video normalization", () => {
+  it("accepteert WebM als broncontainer maar houdt MP4 als playeroutput", () => {
+    const webm = parseVideoProbe(JSON.stringify({
+      format: { duration: "4.2", format_name: "matroska,webm" },
+      streams: [{
+        codec_name: "vp9", codec_type: "video", height: 720,
+        pix_fmt: "yuv420p", r_frame_rate: "25/1", width: 1280
+      }]
+    }));
+    expect(validateInputProbe(webm)).toBeUndefined();
+    expect(canRemuxWithoutTranscoding(webm)).toBe(false);
+    expect(buildNormalizationArguments(
+      "/tmp/source.webm",
+      "/tmp/player.mp4",
+      webm
+    )).toContain("libx264");
+  });
+
   it("parses container, codecs, dimensions, duration and fractional fps", () => {
     expect(parseVideoProbe(normalizedProbe)).toEqual({
-      audioCodec: "aac", durationSeconds: 12.4,
+      audioCodec: null, durationSeconds: 12.4,
       formatNames: ["mov", "mp4", "m4a", "3gp", "3g2", "mj2"],
       framesPerSecond: 30, height: 1080, pixelFormat: "yuv420p",
       rotationDegrees: 0, videoCodec: "h264", width: 1920
     });
   });
 
-  it("builds a shell-free, orientation-aware 1080p30 H.264/AAC command", () => {
+  it("builds a shell-free, orientation-aware and silent 1080p30 H.264 command", () => {
     const args = buildNormalizationArguments("/tmp/input with spaces.mp4", "/tmp/player.mp4");
     expect(args).toContain("/tmp/input with spaces.mp4");
     expect(args).toContain("libx264");
@@ -67,7 +85,22 @@ describe("video normalization", () => {
       expect.arrayContaining(["-metadata:s:v:0", "rotate=0"])
     );
     expect(args).toContain("+faststart");
+    expect(args).toContain("-an");
     expect(args.at(-1)).toBe("/tmp/player.mp4");
+  });
+
+  it("maakt een begrensde poster met dezelfde shell-vrije runner", async () => {
+    const runner = vi.fn<CommandRunner>().mockResolvedValue({ stderr: "", stdout: "" });
+    await expect(createPlayerVideoPoster({
+      inputPath: "/jobs/player.mp4",
+      outputPath: "/jobs/poster.png",
+      runner
+    })).resolves.toBe("/jobs/poster.png");
+    expect(runner).toHaveBeenCalledWith(
+      "ffmpeg",
+      expect.arrayContaining(["-frames:v", "1", "-an", "/jobs/poster.png"]),
+      expect.objectContaining({ timeoutMs: 40_000 })
+    );
   });
 
   it("upscales 720p landscape and portrait video to the matching Full HD raster", () => {

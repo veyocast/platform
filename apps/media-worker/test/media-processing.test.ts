@@ -50,17 +50,41 @@ describe("media processing shell", () => {
     });
   });
 
-  it("rejects unsafe or unsupported file types with recovery copy", () => {
+  it("accepteert de uitgebreide, vooraf gevalideerde Menu Studio-formaten", () => {
     expect(
       validateMediaCandidate({
         ...baseCandidate,
         fileName: "logo.svg",
         mimeType: "image/svg+xml"
       })
+    ).toBeNull();
+    expect(createMediaProcessingPlan({
+      ...baseCandidate,
+      fileName: "intro.webm",
+      mimeType: "video/webm"
+    })).toMatchObject({ kind: "video", status: "queued" });
+    expect(createMediaProcessingPlan({
+      ...baseCandidate,
+      fileName: "animatie.gif",
+      mimeType: "image/gif"
+    })).toMatchObject({
+      kind: "video",
+      status: "queued",
+      variants: expect.arrayContaining([{ type: "thumbnail" }])
+    });
+  });
+
+  it("rejects unsafe or unsupported file types with recovery copy", () => {
+    expect(
+      validateMediaCandidate({
+        ...baseCandidate,
+        fileName: "payload.exe",
+        mimeType: "application/x-msdownload"
+      })
     ).toEqual({
       code: "unsupported_mime_type",
       effect: "De worker verwerkt dit bestandstype niet.",
-      recovery: "Gebruik JPEG, PNG, WebP of MP4/H.264 met AAC-audio."
+      recovery: "Gebruik JPEG, PNG, WebP, GIF, veilig SVG, MP4 of WebM."
     });
 
     expect(

@@ -30,7 +30,7 @@ export async function prepareValidatedVideoUpload(
   const { session, supabase } = await requireWritableMediaSession();
   validateCandidate(candidate);
 
-  const safeFileName = sanitizeVideoFileName(candidate.fileName);
+  const safeFileName = sanitizeVideoFileName(candidate.fileName, candidate.mimeType);
   const { data, error } = await supabase.rpc("create_media_video_upload_intent", {
     p_expected_mime_type: candidate.mimeType,
     p_expected_size_bytes: candidate.fileSizeBytes,
@@ -147,15 +147,19 @@ function validateCandidate(candidate: VideoUploadCandidate) {
     !isUuid(candidate.idempotencyKey) ||
     typeof candidate.fileName !== "string" ||
     candidate.fileName.length > 255 ||
-    !/\.mp4$/i.test(candidate.fileName)
+    !/\.(?:mp4|webm)$/i.test(candidate.fileName)
   ) {
     throw new MediaUploadError(
-      "Alleen een bestand met de extensie .mp4 kan worden verwerkt. Kies een MP4-video."
+      "Alleen een bestand met de extensie .mp4 of .webm kan worden verwerkt. Kies een MP4- of WebM-video."
     );
   }
-  if (candidate.mimeType !== "video/mp4") {
+  if (
+    (candidate.mimeType !== "video/mp4" && candidate.mimeType !== "video/webm") ||
+    (candidate.mimeType === "video/mp4" && !/\.mp4$/i.test(candidate.fileName)) ||
+    (candidate.mimeType === "video/webm" && !/\.webm$/i.test(candidate.fileName))
+  ) {
     throw new MediaUploadError(
-      "Het gedeclareerde bestandstype is geen MP4. Er is niets opgeslagen; kies een MP4-video."
+      "Bestandsextensie en gedeclareerd videotype komen niet overeen. Er is niets opgeslagen."
     );
   }
   if (
@@ -164,22 +168,23 @@ function validateCandidate(candidate: VideoUploadCandidate) {
     candidate.fileSizeBytes > maxVideoBytes
   ) {
     throw new MediaUploadError(
-      "De video is leeg of groter dan 500 MB. Kies een MP4-video van maximaal 500 MB."
+      "De video is leeg of groter dan 500 MB. Kies een MP4- of WebM-video van maximaal 500 MB."
     );
   }
 }
 
-function sanitizeVideoFileName(fileName: string) {
+function sanitizeVideoFileName(fileName: string, mimeType: string) {
+  const extension = mimeType === "video/webm" ? "webm" : "mp4";
   const baseName =
     fileName
       .replace(/^.*[\\/]/, "")
-      .replace(/\.mp4$/i, "")
+      .replace(/\.(?:mp4|webm)$/i, "")
       .normalize("NFKD")
       .replace(/[^a-zA-Z0-9-_]+/g, "-")
       .replace(/^-+|-+$/g, "")
       .toLowerCase()
       .slice(0, 80) || "video";
-  return `${baseName}.mp4`;
+  return `${baseName}.${extension}`;
 }
 
 function isUuid(value: string) {

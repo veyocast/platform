@@ -82,7 +82,7 @@ describe("player cache contract", () => {
     );
   });
 
-  it("neemt checksum-gebonden RSS-beelden mee in dezelfde offline releasecache", () => {
+  it("neemt checksum-gebonden dynamische video en poster mee in dezelfde offline releasecache", () => {
     const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);
     if (!lookup.ok) throw new Error("expected demo manifest");
     const item = lookup.body.manifest.items[0]!;
@@ -91,8 +91,12 @@ describe("player cache contract", () => {
         "66666666-6666-4666-8666-666666666666": {
           bytes: 2048,
           checksumSha256: "e".repeat(64),
-          mimeType: "image/webp",
-          url: "https://storage.example.test/rss-hero.webp"
+          mimeType: "video/mp4",
+          posterBytes: 512,
+          posterChecksumSha256: "d".repeat(64),
+          posterMimeType: "image/png",
+          posterUrl: "https://storage.example.test/menu-poster.png",
+          url: "https://storage.example.test/menu-loop.mp4"
         }
       },
       data: { news: { articles: [] }, type: "news" },
@@ -111,7 +115,15 @@ describe("player cache contract", () => {
       checksumSha256: "e".repeat(64),
       itemId: item.id,
       kind: "dynamic",
-      url: "https://storage.example.test/rss-hero.webp"
+      url: "https://storage.example.test/menu-loop.mp4"
+    });
+    expect(getCacheableAssets(lookup.body.manifest)).toContainEqual({
+      bytes: 512,
+      cacheKey: `/__veyocast-player-cache/${"d".repeat(64)}`,
+      checksumSha256: "d".repeat(64),
+      itemId: item.id,
+      kind: "dynamic",
+      url: "https://storage.example.test/menu-poster.png"
     });
   });
 

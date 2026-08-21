@@ -23,6 +23,9 @@ export type CompleteMediaJobInput = {
   height: number;
   jobId: string;
   originalChecksum: string;
+  posterChecksum: string;
+  posterSizeBytes: number;
+  posterStoragePath: string;
   playerChecksum: string;
   playerSizeBytes: number;
   playerStoragePath: string;
@@ -50,6 +53,11 @@ export interface MediaWorkerBackend {
   downloadOriginal(job: ClaimedMediaJob, destinationPath: string): Promise<void>;
   failJob(input: FailMediaJobInput): Promise<"failed" | "queued">;
   uploadPlayerVariant(
+    job: ClaimedMediaJob,
+    sourcePath: string,
+    storagePath: string
+  ): Promise<void>;
+  uploadPosterVariant(
     job: ClaimedMediaJob,
     sourcePath: string,
     storagePath: string
@@ -147,6 +155,9 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
       p_height: input.height,
       p_job_id: input.jobId,
       p_original_checksum_sha256: input.originalChecksum,
+      p_poster_checksum_sha256: input.posterChecksum,
+      p_poster_file_size_bytes: input.posterSizeBytes,
+      p_poster_storage_path: input.posterStoragePath,
       p_player_checksum_sha256: input.playerChecksum,
       p_player_file_size_bytes: input.playerSizeBytes,
       p_player_storage_path: input.playerStoragePath,
@@ -222,6 +233,24 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
     sourcePath: string,
     storagePath: string
   ) {
+    return this.uploadVariant(job, sourcePath, storagePath, "video/mp4", "player");
+  }
+
+  async uploadPosterVariant(
+    job: ClaimedMediaJob,
+    sourcePath: string,
+    storagePath: string
+  ) {
+    return this.uploadVariant(job, sourcePath, storagePath, "image/png", "poster");
+  }
+
+  private async uploadVariant(
+    job: ClaimedMediaJob,
+    sourcePath: string,
+    storagePath: string,
+    contentType: string,
+    label: "player" | "poster"
+  ) {
     const signal = AbortSignal.timeout(this.storageTimeoutMs);
     const request = {
       body: Readable.toWeb(createReadStream(sourcePath)) as unknown as BodyInit,
@@ -229,7 +258,7 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
       headers: {
         ...this.storageHeaders(),
         "cache-control": "max-age=31536000",
-        "content-type": "video/mp4",
+        "content-type": contentType,
         "x-upsert": "true"
       },
       method: "POST",
@@ -242,10 +271,10 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
         request
       );
     } catch {
-      throw storageRequestError("player_upload", signal.aborted);
+      throw storageRequestError(`${label}_upload`, signal.aborted);
     }
     if (!response.ok) {
-      throw storageError("player_upload_failed", response.status);
+      throw storageError(`${label}_upload_failed`, response.status);
     }
   }
 
@@ -273,7 +302,7 @@ function storageError(code: string, status: number) {
 }
 
 function storageRequestError(
-  phase: "player_upload" | "source_download",
+  phase: "player_upload" | "poster_upload" | "source_download",
   timedOut: boolean
 ) {
   return new WorkerBackendError(

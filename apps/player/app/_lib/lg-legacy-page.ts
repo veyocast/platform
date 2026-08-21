@@ -208,6 +208,35 @@ export function renderLgLegacyHtml() {
     .legacy-price-product>b{justify-self:end;overflow:hidden;max-width:120px;color:var(--accent);font-size:32px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     .editorial-arena:not(.dark) .legacy-price-category,.editorial-arena:not(.dark) .legacy-price-product{border-color:rgba(23,32,42,.12)}
     .editorial-arena:not(.dark) .legacy-price-category small,.editorial-arena:not(.dark) .legacy-price-copy small{color:#6f7882}
+    .dynamic-template.menu-studio-v2>header{top:72px;right:96px;left:96px;height:152px;grid-template-columns:1fr auto;gap:48px;border-bottom:4px solid var(--accent)}
+    .menu-studio-v2 .editorial-crest,.menu-studio-v2 .editorial-context{display:none}
+    .menu-studio-v2 .editorial-heading p{margin-bottom:10px;font-size:24px}
+    .dynamic-template.menu-studio-v2 .editorial-heading h1{font-family:var(--vc-theme-display-font),Arial,sans-serif;font-size:82px;font-weight:var(--vc-theme-display-weight);letter-spacing:var(--vc-theme-display-spacing);line-height:.95}
+    .editorial-arena.menu-studio-v2 .dynamic-body{top:248px;right:96px;bottom:auto;left:96px;height:704px}
+    .dynamic-template.editorial-arena.menu-studio-v2>footer{right:96px;bottom:48px;left:96px;height:48px;border-top:2px solid var(--editorial-border)}
+    .menu-studio-v2 .legacy-price-grid{gap:36px}
+    .menu-studio-v2 .legacy-price-column{box-sizing:border-box;height:100%;padding:22px;border:2px solid var(--editorial-border);border-radius:20px;background:var(--editorial-surface);box-shadow:0 24px 80px var(--editorial-shadow)}
+    .menu-studio-v2 .legacy-price-category{height:70px;border-bottom:3px solid var(--accent);font-family:var(--vc-theme-display-font),Arial,sans-serif;font-size:36px}
+    .menu-studio-v2 .legacy-price-category:before{display:none}
+    .menu-studio-v2 .legacy-price-product{height:78px;grid-template-columns:64px minmax(0,1fr) 120px;padding:8px 4px}
+    .menu-studio-v2 .legacy-price-copy strong{font-size:26px}
+    .menu-studio-v2 .legacy-price-copy small{font-size:18px}
+    .menu-studio-v2 .legacy-price-product>b{font-size:26px}
+    .legacy-menu-group{background:var(--editorial-row)}
+    .legacy-menu-free{color:var(--accent)}
+    .dynamic-template.menu-studio-v2.portrait>header{top:96px;right:72px;left:72px;height:228px;grid-template-columns:1fr auto}
+    .dynamic-template.menu-studio-v2.portrait .editorial-heading h1{font-size:76px}
+    .editorial-arena.menu-studio-v2.portrait .dynamic-body{top:348px;right:72px;bottom:auto;left:72px;height:1388px}
+    .dynamic-template.editorial-arena.menu-studio-v2.portrait>footer{right:72px;bottom:96px;left:72px;height:64px}
+    .menu-studio-v2.portrait .legacy-price-grid{gap:36px}
+    .menu-studio-v2.portrait .legacy-price-column{padding:18px}
+    .menu-studio-v2.portrait .legacy-price-category{height:70px;font-size:30px}
+    .menu-studio-v2.portrait .legacy-price-product{height:78px;grid-template-columns:56px minmax(0,1fr) 92px;gap:10px;padding:7px 2px}
+    .menu-studio-v2.portrait .legacy-price-media{width:56px;height:56px}
+    .menu-studio-v2.portrait .legacy-price-copy{height:56px}
+    .menu-studio-v2.portrait .legacy-price-copy strong{font-size:20px}
+    .menu-studio-v2.portrait .legacy-price-copy small{font-size:14px}
+    .menu-studio-v2.portrait .legacy-price-product>b{font-size:21px}
     .editorial-arena.dark .dynamic-team-mark{background:var(--accent);color:#fff}
     .editorial-news{display:grid;grid-template-columns:1.02fr .98fr;gap:1.6%;height:100%}
     .editorial-news-art,.editorial-news-copy{position:relative;overflow:hidden;border:1px solid rgba(23,32,42,.13);border-radius:24px;background:#fffefa;box-shadow:0 24px 80px rgba(0,0,0,.24)}
@@ -2223,7 +2252,190 @@ export function renderLgLegacyHtml() {
       ) return localUrl;
       return "";
     }
+    function renderMenuStudioTemplate(body, snapshot, orientation, payload) {
+      var document = templateRecord(snapshot.menuDocument) || {};
+      var sourcePages = templateArray(document.pages);
+      var capacity = orientation === "portrait" ? 14 : 8;
+      var pages = [];
+      function groupCost(group) {
+        var display = templateRecord(group.display) || {};
+        return Number(display.maxLines) === 2 ? 2 : 1;
+      }
+      function paginate(blocks, column) {
+        var result = [];
+        var current = [];
+        var used = 0;
+        var blockIndex;
+        function flush() {
+          if (current.length) result.push(current);
+          current = [];
+          used = 0;
+        }
+        blocks.sort(function (left, right) {
+          return Number(left.order || 0) - Number(right.order || 0) ||
+            templateText(left.id, "").localeCompare(templateText(right.id, ""));
+        });
+        for (blockIndex = 0; blockIndex < blocks.length; blockIndex += 1) {
+          var block = templateRecord(blocks[blockIndex]) || {};
+          var layout = templateRecord((templateRecord(block.layout) || {})[orientation]) || {};
+          var midpoint = Number(layout.x || 0) + Number(layout.w || 0) / 2;
+          var isLeft = midpoint <= (orientation === "portrait" ? 540 : 960);
+          if ((column === "left") !== isLeft) continue;
+          if (block.type === "product-group") {
+            var standalone = templateRecord(block.group) || {};
+            var standaloneCost = groupCost(standalone);
+            if (used + standaloneCost > capacity) flush();
+            current.push({ kind: "group", group: standalone });
+            used += standaloneCost;
+            continue;
+          }
+          if (block.type !== "category") continue;
+          var nodes = templateArray(block.productNodes);
+          nodes.sort(function (left, right) {
+            return Number(left.order || 0) - Number(right.order || 0) ||
+              templateText(left.id, "").localeCompare(templateText(right.id, ""));
+          });
+          var offset = 0;
+          var continuation = false;
+          while (offset < nodes.length) {
+            var minimumCount = Math.min(2, nodes.length - offset);
+            var minimumCost = 1;
+            var minimumIndex;
+            for (minimumIndex = 0; minimumIndex < minimumCount; minimumIndex += 1) {
+              minimumCost += nodes[offset + minimumIndex].kind === "product-group"
+                ? groupCost(nodes[offset + minimumIndex])
+                : 1;
+            }
+            if (used > 0 && capacity - used < minimumCost) {
+              flush();
+              continue;
+            }
+            current.push({
+              continuation: continuation,
+              kind: "category",
+              name: templateText(block.labelOverride, templateText((templateRecord(block.source) || {}).sourceName, "Categorie"))
+            });
+            used += 1;
+            while (offset < nodes.length) {
+              var node = templateRecord(nodes[offset]) || {};
+              var cost = node.kind === "product-group" ? groupCost(node) : 1;
+              if (used + cost > capacity) break;
+              current.push(node.kind === "product-group"
+                ? { kind: "group", group: node }
+                : { kind: "product", product: node });
+              used += cost;
+              offset += 1;
+            }
+            if (offset < nodes.length) {
+              flush();
+              continuation = true;
+            }
+          }
+        }
+        flush();
+        return result;
+      }
+      for (var sourceIndex = 0; sourceIndex < sourcePages.length; sourceIndex += 1) {
+        var sourcePage = templateRecord(sourcePages[sourceIndex]) || {};
+        var flowBlocks = templateArray(sourcePage.blocks);
+        var left = paginate(flowBlocks.slice(0), "left");
+        var right = paginate(flowBlocks.slice(0), "right");
+        var count = Math.max(left.length, right.length, 1);
+        for (var pageIndex = 0; pageIndex < count; pageIndex += 1) {
+          pages.push({ left: left[pageIndex] || [], right: right[pageIndex] || [] });
+        }
+      }
+      function appendMedia(article, assetId, label) {
+        var media = templateNode("span", "legacy-price-media");
+        var url = templateAssetUrl(payload, templateText(assetId, ""));
+        if (url) {
+          var image = templateNode("img", "");
+          image.alt = templateText(label, "");
+          image.src = url;
+          media.appendChild(image);
+        }
+        article.appendChild(media);
+      }
+      function appendProduct(column, product) {
+        var snapshotFallback = templateRecord(product.snapshotFallback) || {};
+        var money = templateRecord(snapshotFallback.price) || {};
+        var article = templateNode("article", "legacy-price-product");
+        appendMedia(article, product.mediaOverrideAssetId || snapshotFallback.imageAssetId, snapshotFallback.name);
+        var copy = templateNode("span", "legacy-price-copy");
+        copy.appendChild(templateNode("strong", "", templateText(product.nameOverride, templateText(snapshotFallback.name, "Product"))));
+        copy.appendChild(templateNode("small", "", templateText(snapshotFallback.variantLabel, "\u00a0")));
+        article.appendChild(copy);
+        article.appendChild(templateNode("b", "", templatePrice(money.amountMinor, templateText(money.currency, "EUR"))));
+        column.appendChild(article);
+      }
+      function appendGroup(column, group) {
+        var lines = templateArray(group.secondaryLineItems);
+        var linked = [];
+        var labels = [];
+        var index;
+        for (index = 0; index < lines.length; index += 1) {
+          var line = templateRecord(lines[index]) || {};
+          if (line.kind === "linked-product") linked.push(line);
+          labels.push(line.kind === "free-text"
+            ? templateText(line.label, "")
+            : templateText(line.labelOverride, templateText((templateRecord(line.snapshotFallback) || {}).variantLabel, templateText((templateRecord(line.snapshotFallback) || {}).name, ""))));
+        }
+        var article = templateNode("article", "legacy-price-product legacy-menu-group");
+        appendMedia(article, group.imageAssetId, group.title);
+        var copy = templateNode("span", "legacy-price-copy");
+        copy.appendChild(templateNode("strong", "", templateText(group.title, "Productgroep")));
+        copy.appendChild(templateNode("small", "legacy-menu-free", labels.join(" · ")));
+        article.appendChild(copy);
+        var price = "";
+        if (group.pricePolicy === "shared") {
+          var shared = templateRecord(group.sharedPrice) || {};
+          price = templatePrice(shared.amountMinor, templateText(shared.currency, "EUR"));
+        } else if (group.pricePolicy === "from" && linked.length) {
+          var lowest = null;
+          for (index = 0; index < linked.length; index += 1) {
+            var linkedMoney = templateRecord((templateRecord(linked[index].snapshotFallback) || {}).price) || {};
+            if (lowest === null || Number(linkedMoney.amountMinor) < lowest.amount) {
+              lowest = { amount: Number(linkedMoney.amountMinor), currency: templateText(linkedMoney.currency, "EUR") };
+            }
+          }
+          if (lowest) price = "Vanaf " + templatePrice(lowest.amount, lowest.currency);
+        }
+        article.appendChild(templateNode("b", "", price));
+        column.appendChild(article);
+      }
+      return {
+        pages: pages.length ? pages : [{ left: [], right: [] }],
+        render: function (page) {
+          var grid = templateNode("div", "legacy-price-grid");
+          body.innerHTML = "";
+          function appendColumn(name) {
+            var column = templateNode("section", "legacy-price-column");
+            var rows = page[name] || [];
+            for (var rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+              var row = rows[rowIndex];
+              if (row.kind === "category") {
+                var category = templateNode("h2", "legacy-price-category");
+                category.appendChild(templateNode("span", "", row.name));
+                if (row.continuation) category.appendChild(templateNode("small", "", "vervolg"));
+                column.appendChild(category);
+              } else if (row.kind === "group") {
+                appendGroup(column, templateRecord(row.group) || {});
+              } else {
+                appendProduct(column, templateRecord(row.product) || {});
+              }
+            }
+            grid.appendChild(column);
+          }
+          appendColumn("left");
+          appendColumn("right");
+          body.appendChild(grid);
+        }
+      };
+    }
     function renderPriceListTemplate(body, snapshot, orientation, payload) {
+      if ((templateRecord(snapshot.menuDocument) || {}).schemaVersion === "menu-document.v2") {
+        return renderMenuStudioTemplate(body, snapshot, orientation, payload);
+      }
       var priceList = templateRecord(snapshot.priceList) || {};
       var sections = templateArray(priceList.sections);
       var capacity = orientation === "portrait" ? 17 : 9;
@@ -2875,7 +3087,12 @@ export function renderLgLegacyHtml() {
         renderer = renderMenuTemplate(body, snapshot, payload.orientation, payload);
       } else if (payload.slideType === "price_list") {
         sourceLabel = "Prijzen uit de clubkantine";
-        title = templateText((templateRecord(snapshot.priceList) || {}).title, "Prijslijst");
+        var menuStudioDocument = templateRecord(snapshot.menuDocument) || {};
+        if (menuStudioDocument.schemaVersion === "menu-document.v2") {
+          root.className += " menu-studio-v2";
+          sourceLabel = "Menu Studio";
+        }
+        title = templateText(menuStudioDocument.title, templateText((templateRecord(snapshot.priceList) || {}).title, "Prijslijst"));
         renderer = renderPriceListTemplate(body, snapshot, payload.orientation, payload);
       } else if (payload.slideType === "news") {
         sourceLabel = "Clubnieuws";
