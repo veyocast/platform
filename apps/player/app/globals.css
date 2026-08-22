@@ -613,6 +613,17 @@ video.playback-media::-webkit-media-controls-start-playback-button {
   z-index: 2;
 }
 
+.sponsor-layer { inset: 0; pointer-events: none; position: absolute; z-index: 1; }
+.sponsor-placement { background: color-mix(in srgb, var(--vc-brand-ink-black) 78%, transparent); border: 1px solid color-mix(in srgb, var(--vc-brand-paper-white) 22%, transparent); border-radius: var(--vc-radius-md); display: grid; margin: 0; overflow: hidden; padding: clamp(8px, 1vw, 16px); position: absolute; }
+.sponsor-placement img { display: block; height: 100%; object-fit: contain; width: 100%; }
+.sponsor-placement figcaption { font-size: clamp(12px, 1.1vw, 20px); font-weight: 700; order: -1; text-align: center; }
+.sponsor-placement--fullscreen { background: var(--vc-brand-ink-black); border: 0; border-radius: 0; inset: 0; padding: 4vh 4vw; z-index: 3; }
+.sponsor-placement--presented_by { align-items: center; bottom: 3vh; gap: 8px; grid-template-columns: auto minmax(90px, 12vw); max-width: 34vw; right: 3vw; }
+.sponsor-placement--footer { bottom: 2.5vh; height: clamp(56px, 9vh, 110px); left: 22vw; right: 22vw; }
+.sponsor-placement--corner { height: clamp(72px, 12vw, 180px); right: 3vw; top: 3vh; width: clamp(92px, 16vw, 260px); }
+.sponsor-placement--match_sponsor { height: clamp(64px, 9vw, 150px); right: 3vw; top: 22vh; width: clamp(110px, 18vw, 280px); }
+.sponsor-placement--match_ball_sponsor { height: clamp(56px, 8vw, 132px); right: 3vw; top: 40vh; width: clamp(96px, 15vw, 240px); }
+
 .pwa-install-card {
   align-items: flex-start;
   background: var(--vc-neutral-900);

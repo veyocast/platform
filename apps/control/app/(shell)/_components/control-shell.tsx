@@ -30,6 +30,7 @@ import {
   FileStack,
   Layers3,
   FolderKanban,
+  Handshake,
   Home,
   LayoutDashboard,
   ListVideo,
@@ -102,6 +103,7 @@ const navigationIcons: Record<string, LucideIcon> = {
   "Dynamische templates": FileStack,
   Databronnen: ServerCog,
   Slides: Layers3,
+  "Sponsor Hub": Handshake,
   Tenants: Building2
 };
 const sidebarStorageKey = "veyocast-control-sidebar-collapsed";
@@ -396,7 +398,11 @@ export function ControlShell({
                 width={120}
               />
               <p className="control-brand__meta">
-                {hasTenantNavigationContext ? "Publisher" : "Control"}
+                {hasTenantNavigationContext
+                  ? pathname.startsWith("/dashboard/sponsors")
+                    ? "Sponsor Hub"
+                    : "Publisher"
+                  : "Control"}
               </p>
             </div>
             <IconButton

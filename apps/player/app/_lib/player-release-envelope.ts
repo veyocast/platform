@@ -3,8 +3,10 @@ import "server-only";
 import {
   playerDynamicTemplateAssetSchema,
   playerDynamicTemplatePayloadSchema,
+  playerSponsorPlanSchema,
   type PlayerDynamicTemplateAsset,
-  type PlayerDynamicTemplatePayload
+  type PlayerDynamicTemplatePayload,
+  type PlayerSponsorPlan
 } from "@veyocast/contracts";
 
 import type {
@@ -110,6 +112,7 @@ export async function loadPlayerReleaseEnvelope({
     tenantId
   );
   const dynamicAssetBytes = uniqueDynamicAssetBytes(dynamicTemplates);
+  const sponsorPlan = await loadSponsorPlan(admin, tenantId, device.screenId);
 
   const items = await Promise.all(
     releaseItems.map(async (item): Promise<PlayerManifestItem> => {
@@ -196,14 +199,83 @@ export async function loadPlayerReleaseEnvelope({
       releaseId: release.id,
       schemaVersion: 1,
       tenantId: release.tenant_id,
-      totalBytes: release.total_bytes + dynamicAssetBytes,
+      totalBytes: release.total_bytes + dynamicAssetBytes + uniqueSponsorAssetBytes(sponsorPlan),
       totalDurationSeconds: release.total_duration_seconds,
       version: release.version,
-      ...(presentationDefaults ? { presentationDefaults } : {})
+      ...(presentationDefaults ? { presentationDefaults } : {}),
+      ...(sponsorPlan ? { sponsorPlan } : {})
     },
     state:
       device.activeReleaseId === device.desiredReleaseId ? "PLAYING" : "READY"
   };
+}
+
+async function loadSponsorPlan(
+  admin: ReturnType<typeof createPlayerAdminClient>,
+  tenantId: string,
+  screenId: string
+): Promise<PlayerSponsorPlan | undefined> {
+  const targetResult = await admin
+    .from("sponsor_plan_targets")
+    .select("plan_revision_id")
+    .eq("tenant_id", tenantId)
+    .eq("screen_id", screenId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (targetResult.error || !targetResult.data?.plan_revision_id) return undefined;
+  const planResult = await admin
+    .from("sponsor_plan_revisions")
+    .select("plan_json,expires_at")
+    .eq("tenant_id", tenantId)
+    .eq("id", targetResult.data.plan_revision_id)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+  if (planResult.error || !planResult.data?.plan_json) return undefined;
+  const rawPlan = planResult.data.plan_json;
+  if (!isRecord(rawPlan) || !Array.isArray(rawPlan.placements)) return undefined;
+  const placements = await Promise.all(
+    rawPlan.placements.map(async (value) => {
+      if (!isRecord(value) || !Array.isArray(value.creatives)) {
+        throw new Error("invalid sponsor placement");
+      }
+      const creatives = await Promise.all(
+        value.creatives.map(async (creativeValue) => {
+          if (!isRecord(creativeValue) || typeof creativeValue.url !== "string") {
+            throw new Error("invalid sponsor creative");
+          }
+          const storage = parseStorageUrl(creativeValue.url);
+          if (!storage) throw new Error("invalid sponsor storage reference");
+          const signed = await admin.storage
+            .from(storage.bucket)
+            .createSignedUrl(storage.path, 60 * 60);
+          if (signed.error || !signed.data?.signedUrl) {
+            throw new Error("sponsor asset unavailable");
+          }
+          return { ...creativeValue, url: signed.data.signedUrl };
+        })
+      );
+      return { ...value, creatives };
+    })
+  );
+  const parsed = playerSponsorPlanSchema.safeParse({ ...rawPlan, placements });
+  return parsed.success ? parsed.data : undefined;
+}
+
+function parseStorageUrl(value: string) {
+  if (!value.startsWith("storage://")) return null;
+  const [bucket, ...path] = value.slice("storage://".length).split("/");
+  return bucket && path.length ? { bucket, path: path.join("/") } : null;
+}
+
+function uniqueSponsorAssetBytes(plan: PlayerSponsorPlan | undefined) {
+  if (!plan) return 0;
+  const seen = new Set<string>();
+  return plan.placements.reduce((total, placement) => placement.creatives.reduce((sum, creative) => {
+    if (seen.has(creative.checksumSha256)) return sum;
+    seen.add(creative.checksumSha256);
+    return sum + creative.bytes;
+  }, total), 0);
 }
 
 async function loadDynamicTemplatePayloads(

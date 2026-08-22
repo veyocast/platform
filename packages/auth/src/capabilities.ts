@@ -46,7 +46,12 @@ export const capabilities = [
   "tenant.audit.read",
   "tenant.support.export",
   "tenant.ticket.read",
-  "tenant.ticket.write"
+  "tenant.ticket.write",
+  "tenant.sponsor.read",
+  "tenant.sponsor.write",
+  "tenant.sponsor.approve",
+  "tenant.sponsor.publish",
+  "tenant.sponsor.report"
 ] as const;
 
 export type Capability = (typeof capabilities)[number];
@@ -63,7 +68,9 @@ export const tenantReadCapabilities = [
   "tenant.screen.read",
   "tenant.team.read",
   "tenant.settings.read",
-  "tenant.ticket.read"
+  "tenant.ticket.read",
+  "tenant.sponsor.read",
+  "tenant.sponsor.report"
 ] as const satisfies readonly Capability[];
 
 export const tenantWriteCapabilities = [
@@ -71,11 +78,14 @@ export const tenantWriteCapabilities = [
   "tenant.product.write",
   "tenant.dynamic_slide.write",
   "tenant.playlist.write",
-  "tenant.ticket.write"
+  "tenant.ticket.write",
+  "tenant.sponsor.write"
 ] as const satisfies readonly Capability[];
 
 const tenantPublishCapabilities = [
-  "tenant.playlist.publish"
+  "tenant.playlist.publish",
+  "tenant.sponsor.approve",
+  "tenant.sponsor.publish"
 ] as const satisfies readonly Capability[];
 
 const tenantStudioAuthorCapabilities = [

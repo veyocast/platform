@@ -165,10 +165,6 @@ async function getLiveManifest(request: Request, token: string | null) {
     );
   }
 
-  if (requestHasReleaseEtag(request, bootstrap.desired_release_id)) {
-    return unchangedRelease(bootstrap.desired_release_id);
-  }
-
   try {
     const body = await loadPlayerReleaseEnvelope({
       device: {
@@ -181,11 +177,18 @@ async function getLiveManifest(request: Request, token: string | null) {
       releaseId: bootstrap.desired_release_id,
       tenantId: bootstrap.tenant_id
     });
+    const etag = deliveryEtag(body.manifest.releaseId, body.manifest.sponsorPlan?.revisionId);
+    if (requestHasEtag(request, etag)) {
+      return new NextResponse(null, {
+        headers: { "Cache-Control": "no-store", ETag: etag },
+        status: 304
+      });
+    }
 
     return NextResponse.json(body, {
       headers: {
         "Cache-Control": "no-store",
-        ETag: releaseEtag(bootstrap.desired_release_id)
+        ETag: etag
       }
     });
   } catch {
@@ -196,6 +199,16 @@ async function getLiveManifest(request: Request, token: string | null) {
       recovery: "Controleer storage en publiceer zo nodig een nieuwe release."
     });
   }
+}
+
+function deliveryEtag(releaseId: string, sponsorRevisionId?: string) {
+  return `"delivery-${releaseId}-${sponsorRevisionId ?? "none"}"`;
+}
+
+function requestHasEtag(request: Request, etag: string) {
+  return (request.headers.get("if-none-match") ?? "")
+    .split(",")
+    .some((value) => value.trim().replace(/^W\//, "") === etag);
 }
 
 function releaseEtag(releaseId: string) {

@@ -32,6 +32,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("link", { name: /Platform/ })).toHaveCount(0);
   await expect(nav.getByRole("link", { name: /Overzicht/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Sponsor Hub/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
   await expect(async () => {
     const expandButton = nav.getByRole("button", { name: "Beheer uitklappen" });
@@ -45,6 +46,15 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("heading", { name: "Werkplek" })).toBeAttached();
   await expect(nav.getByRole("heading", { name: "Beheer" })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
+
+  await follow(
+    page,
+    () => nav.getByRole("link", { name: /Sponsor Hub/ }),
+    /\/dashboard\/sponsors$/
+  );
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Sponsor Hub" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Sponsor Hub onderdelen" })).toBeVisible();
+  await expect(page.getByText("Campagnes wisselen zonder de playlist te bewerken.")).toBeVisible();
 
   await follow(
     page,
