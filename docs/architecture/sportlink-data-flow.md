@@ -48,6 +48,12 @@ observatie herberekent hun tijdvenster; de bestaande contenthash dedupliceert
 ongewijzigde snapshots. `emptyBehavior=skip` maakt een lege aankomstslide niet
 speelbaar, terwijl een geldige last-known-good release intact blijft.
 
+Bezoekerswelkomstslides hebben vijf deterministische motionpresets (`aurora-rise`,
+`spotlight-bloom`, `kinetic-split`, `prism-swipe` en `grand-flip`). De standaard
+`auto`-stand verdeelt ze over kaarten en pagina's; een beheerder kan ook één
+preset vastzetten. Na de intro blijft het kaartbeeld statisch en
+`prefers-reduced-motion` schakelt beweging en lichtswipes uit.
+
 Club- en teamlogo's blijven buiten Media in de globale, private S111-provider-
 cache. De repo-audit wees zowel legacy tenant-mediarecords als actief historisch
 importgedrag aan; de actuele importer schrijft uitsluitend immutable,

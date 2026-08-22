@@ -58,7 +58,8 @@ describe("aankomstslides", () => {
   const config = {
     cardCount: 2, dutyDeskText: null, emptyBehavior: "skip" as const,
     highlightRecentMinutes: 15, minutesAfter: 30, minutesBefore: 90,
-    pageDurationSeconds: 12, placeholderText: "Geen aankomsten",
+    motionPreset: "auto" as const, pageDurationSeconds: 12,
+    placeholderText: "Geen aankomsten",
     showArrivalTime: true, showClubLogo: true, showCompetition: false,
     showDressingRoom: true, showField: true, showKickoffTime: true,
     showSponsor: false, showWelcome: true, sponsorMediaAssetId: null,

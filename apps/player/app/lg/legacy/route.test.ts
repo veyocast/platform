@@ -87,6 +87,14 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).not.toContain(".editorial-news-copy h2.compact");
     expect(html).not.toContain('arenaTitle.className = "compact"');
     expect(html).toContain("@keyframes editorial-photo-in");
+    expect(html).toContain("@keyframes legacy-arrival-aurora");
+    expect(html).toContain("@keyframes legacy-arrival-spotlight");
+    expect(html).toContain("@keyframes legacy-arrival-kinetic");
+    expect(html).toContain("@keyframes legacy-arrival-prism");
+    expect(html).toContain("@keyframes legacy-arrival-flip");
+    expect(html).toContain('"sport_visitor_arrivals"');
+    expect(html).toContain('"sport_referee_arrivals"');
+    expect(html).toContain('templateNode("div", "legacy-arrival-grid")');
     expect(html).toContain("LEGACY_TEMPLATE_READY");
     expect(html).toContain('"sport_match_of_the_day"');
     expect(html).toContain("element.textContent = text");

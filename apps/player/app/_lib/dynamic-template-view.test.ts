@@ -4,7 +4,8 @@ import {
   createDynamicTemplateView,
   dynamicTemplateMinimumPlaybackMs,
   dynamicTemplatePageDurationMs,
-  dynamicTemplateShouldSkip
+  dynamicTemplateShouldSkip,
+  resolveWelcomeMotionPreset
 } from "./dynamic-template-view";
 
 const base = {
@@ -550,6 +551,17 @@ describe("trusted dynamic template view", () => {
     const view = createDynamicTemplateView(payload);
     expect(view?.pages).toHaveLength(3);
     expect(view?.pageDurationMs).toBe(9_000);
+    expect(view?.arrivalMotionPreset).toBe("auto");
+    expect(Array.from({ length: 5 }, (_, index) =>
+      resolveWelcomeMotionPreset("auto", 0, index, 5))).toEqual([
+      "aurora-rise",
+      "spotlight-bloom",
+      "kinetic-split",
+      "prism-swipe",
+      "grand-flip"
+    ]);
+    expect(resolveWelcomeMotionPreset("grand-flip", 8, 3, 4))
+      .toBe("grand-flip");
     expect(dynamicTemplateShouldSkip(payload)).toBe(false);
     expect(dynamicTemplateShouldSkip({
       ...payload,

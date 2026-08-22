@@ -20,6 +20,15 @@ export const sportlinkCompetitionSelectionModes = [
   "pinned"
 ] as const;
 
+export const sportlinkArrivalMotionPresets = [
+  "auto",
+  "aurora-rise",
+  "spotlight-bloom",
+  "kinetic-split",
+  "prism-swipe",
+  "grand-flip"
+] as const;
+
 export const sportlinkSlideContextSchema = z.object({
   competitionId: z.string().trim().min(1).max(200).nullable(),
   competitionSelectionMode: z.enum(sportlinkCompetitionSelectionModes),
@@ -36,6 +45,7 @@ export const sportlinkArrivalConfigSchema = z.object({
   highlightRecentMinutes: z.number().int().min(0).max(180).default(15),
   minutesAfter: z.number().int().min(0).max(360).default(30),
   minutesBefore: z.number().int().min(0).max(720).default(90),
+  motionPreset: z.enum(sportlinkArrivalMotionPresets).default("auto"),
   pageDurationSeconds: z.number().int().min(5).max(120).default(12),
   placeholderText: z.string().trim().min(1).max(160).default("Er worden nu geen teams verwacht."),
   showArrivalTime: z.boolean().default(true),
@@ -68,6 +78,8 @@ export const createSportlinkSlideBatchSchema = z.object({
 
 export type SportlinkSlideContext = z.infer<typeof sportlinkSlideContextSchema>;
 export type SportlinkArrivalConfig = z.infer<typeof sportlinkArrivalConfigSchema>;
+export type SportlinkArrivalMotionPreset =
+  (typeof sportlinkArrivalMotionPresets)[number];
 export type SportlinkSlideDraft = z.infer<typeof sportlinkSlideDraftSchema>;
 
 export type SportlinkSlideBlueprint = {

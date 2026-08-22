@@ -8,6 +8,7 @@ import {
   type MenuDocumentV2,
   type PlayerDynamicTemplatePayload,
   type SelectableThemeId,
+  type SportlinkArrivalMotionPreset,
   type ThemePresentationSnapshot
 } from "@veyocast/contracts";
 
@@ -136,6 +137,7 @@ export type DynamicTemplatePage =
 
 export type DynamicTemplateView = {
   accentColor: string;
+  arrivalMotionPreset?: SportlinkArrivalMotionPreset;
   clubLogoUrl: string;
   clubName: string;
   emptyState: string;
@@ -471,6 +473,7 @@ function createDynamicTemplateViewInternal(
     const pageDurationSeconds = safeInteger(sport?.pageDurationSeconds, 5, 120, 12);
     return {
       accentColor: themeTokens.accent,
+      arrivalMotionPreset: safeArrivalMotionPreset(arrivalConfig?.motionPreset),
       clubLogoUrl,
       clubName,
       emptyState: items.length ? "" : safeText(
@@ -528,6 +531,34 @@ function createDynamicTemplateViewInternal(
     themeTokens,
     title
   };
+}
+
+export const welcomeMotionPresets = [
+  "aurora-rise",
+  "spotlight-bloom",
+  "kinetic-split",
+  "prism-swipe",
+  "grand-flip"
+] as const;
+
+export function resolveWelcomeMotionPreset(
+  configured: SportlinkArrivalMotionPreset | undefined,
+  pageIndex: number,
+  itemIndex: number,
+  pageSize: number
+) {
+  if (configured && configured !== "auto") return configured;
+  const absoluteIndex = Math.max(0, pageIndex) * Math.max(1, pageSize) +
+    Math.max(0, itemIndex);
+  return welcomeMotionPresets[absoluteIndex % welcomeMotionPresets.length]!;
+}
+
+function safeArrivalMotionPreset(value: unknown): SportlinkArrivalMotionPreset {
+  return value === "aurora-rise" || value === "spotlight-bloom" ||
+    value === "kinetic-split" || value === "prism-swipe" ||
+    value === "grand-flip"
+    ? value
+    : "auto";
 }
 
 function toPriceListSection(
