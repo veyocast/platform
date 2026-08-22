@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- Player media URLs come from release manifests and must render directly. */
 
 import { VEYOCAST_APPS } from "@veyocast/config";
+import type { SponsorPlayEvent, SponsorPositionKey } from "@veyocast/contracts";
 import {
   useCallback,
   useEffect,
@@ -72,6 +73,12 @@ import {
   resolvePersistedPairingDelay
 } from "../_lib/player-pairing-recovery";
 import { parsePlayerTimestamp } from "../_lib/player-time";
+import {
+  appendSponsorProof,
+  removeAcceptedSponsorProof,
+  selectPlayerSponsor,
+  type SponsorPlaybackSelection
+} from "../_lib/player-sponsor";
 import { consumePlayerRecoveryMarker } from "../_lib/player-recovery-marker";
 import {
   currentPlayerApplicationVersion,
@@ -1172,7 +1179,9 @@ export function PlayerRuntime() {
         desiredReleaseIdRef.current = releaseId;
         if (
           isPlaybackRuntime(currentRuntime) &&
-          currentRuntime.release.envelope.manifest.releaseId === releaseId
+          currentRuntime.release.envelope.manifest.releaseId === releaseId &&
+          currentRuntime.release.envelope.manifest.sponsorPlan?.revisionId ===
+            body.manifest.sponsorPlan?.revisionId
         ) {
           if (currentRuntime.pendingRelease) {
             releaseHydratedReference(currentRuntime.pendingRelease);
@@ -1966,6 +1975,12 @@ function PlaybackView({
           playbackAttempt={playbackAttempt}
           watchdogTimeoutMs={watchdogTimeoutMs}
         />
+        <SponsorLayer
+          activeItemId={activeItem.id}
+          plan={manifest.sponsorPlan}
+          screenId={runtime.release.envelope.device.screenId}
+          showFullscreen={activeItem.id === manifest.items[0]?.id}
+        />
         <img
           alt=""
           aria-hidden="true"
@@ -1983,6 +1998,113 @@ function PlaybackView({
       </aside>
     </main>
   );
+}
+
+const sponsorProofStorageKey = "veyocast-player-sponsor-proof-v1";
+const sponsorPositions = [
+  "fullscreen",
+  "presented_by",
+  "footer",
+  "corner",
+  "match_sponsor",
+  "match_ball_sponsor"
+] as const satisfies readonly SponsorPositionKey[];
+
+function SponsorLayer({ activeItemId, plan, screenId, showFullscreen }: {
+  activeItemId: string;
+  plan: PlayerManifestEnvelope["manifest"]["sponsorPlan"];
+  screenId: string;
+  showFullscreen: boolean;
+}) {
+  if (!plan || Date.parse(plan.expiresAt) <= Date.now()) return null;
+  const selections = sponsorPositions.flatMap((positionKey) => {
+    if (positionKey === "fullscreen" && !showFullscreen) return [];
+    const selection = selectPlayerSponsor({
+      orientation: typeof window === "undefined" || window.innerWidth >= window.innerHeight
+        ? "landscape"
+        : "portrait",
+      plan,
+      positionKey,
+      seed: `${screenId}:${activeItemId}:${plan.revisionId}`
+    });
+    return selection ? [{ positionKey, selection }] : [];
+  });
+  return <div aria-label="Sponsoruitingen" className="sponsor-layer">
+    {selections.map(({ positionKey, selection }) => <SponsorPlacement
+      key={`${activeItemId}:${positionKey}:${selection.creative.creativeId}`}
+      planRevisionId={plan.revisionId}
+      positionKey={positionKey}
+      selection={selection}
+    />)}
+  </div>;
+}
+
+function SponsorPlacement({ planRevisionId, positionKey, selection }: {
+  planRevisionId: string;
+  positionKey: SponsorPositionKey;
+  selection: SponsorPlaybackSelection;
+}) {
+  const { creative, placement } = selection;
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      if (positionKey === "fullscreen") setVisible(false);
+      void queueAndFlushSponsorProof({
+        campaignId: placement.campaignId,
+        context: placement.context,
+        creativeId: creative.creativeId,
+        eventId: crypto.randomUUID(),
+        happenedAt: new Date().toISOString(),
+        planRevisionId,
+        playedMs: Math.round(creative.durationSeconds * 1_000),
+        positionId: placement.positionId,
+        sponsorId: placement.sponsorId
+      });
+    }, creative.durationSeconds * 1_000);
+    return () => window.clearTimeout(timeout);
+  }, [creative, placement, planRevisionId, positionKey]);
+
+  if (!visible) return null;
+  return <figure className={`sponsor-placement sponsor-placement--${positionKey}`} data-position={positionKey}>
+    <img alt={`${creative.sponsorName}, sponsor`} src={creative.url} />
+    {positionKey === "presented_by" ? <figcaption>Mede mogelijk gemaakt door</figcaption> : null}
+  </figure>;
+}
+
+async function queueAndFlushSponsorProof(event: SponsorPlayEvent) {
+  const queued = appendSponsorProof(readSponsorProofQueue(), event);
+  writeSponsorProofQueue(queued);
+  const token = readStoredDeviceToken();
+  if (!token || navigator.onLine === false) return;
+  const batch = queued.slice(0, 100);
+  try {
+    const response = await fetch("/api/player/sponsor-events", {
+      body: JSON.stringify({ events: batch }),
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      method: "POST"
+    });
+    if (!response.ok) return;
+    writeSponsorProofQueue(removeAcceptedSponsorProof(queued, batch.map((item) => item.eventId)));
+  } catch {
+    // De durable lokale wachtrij wordt na de volgende vertoning opnieuw aangeboden.
+  }
+}
+
+function readSponsorProofQueue(): SponsorPlayEvent[] {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(sponsorProofStorageKey) ?? "[]");
+    return Array.isArray(value) ? value.slice(-500) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSponsorProofQueue(queue: readonly SponsorPlayEvent[]) {
+  try {
+    window.localStorage.setItem(sponsorProofStorageKey, JSON.stringify(queue));
+  } catch {
+    // Playback blijft leidend wanneer browseropslag tijdelijk niet beschikbaar is.
+  }
 }
 
 type PlaybackSceneEntry = {

@@ -5,7 +5,6 @@ import {
   getCapabilitiesForRoles,
   hasCapability,
   requireCapability,
-  tenantReadCapabilities,
   type Capability
 } from "@veyocast/auth";
 import {
@@ -240,7 +239,7 @@ async function loadEffectiveCapabilities(
   if (error || !Array.isArray(data)) {
     console.error("Effectieve tenantrechten laden mislukt", error);
     return hasCustomRole
-      ? [...new Set([...platformCapabilities, ...tenantReadCapabilities])]
+      ? platformCapabilities
       : getCapabilitiesForRoles(fallbackRoles);
   }
   const allowed = new Set<Capability>(capabilities);
@@ -342,6 +341,13 @@ export function getControlPostMfaLandingPath(session: ControlSession) {
     (session.tenantId || !session.isLive)
   ) {
     return "/dashboard";
+  }
+
+  if (
+    hasCapability(session.capabilities, "tenant.sponsor.read") &&
+    (session.tenantId || !session.isLive)
+  ) {
+    return "/dashboard/sponsors";
   }
 
   if (session.tenantMemberships.length > 0) {

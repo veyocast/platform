@@ -17,6 +17,7 @@ describe("control navigation", () => {
     expect(links).toStrictEqual([
       "/dashboard",
       "/dashboard/studio",
+      "/dashboard/sponsors",
       "/dashboard/slides",
       "/dashboard/media",
       "/dashboard/playlists",
@@ -55,6 +56,7 @@ describe("control navigation", () => {
     expect(groups.flatMap((group) => group.items).filter((item) => item.scope === "tenant").map((item) => item.href)).toStrictEqual([
       "/dashboard",
       "/dashboard/studio",
+      "/dashboard/sponsors",
       "/dashboard/slides",
       "/dashboard/media",
       "/dashboard/playlists",
@@ -105,6 +107,14 @@ describe("control navigation", () => {
       "/dashboard/screens",
       "/dashboard/screen-groups"
     ]);
+  });
+
+  it("keeps a sponsor committee inside the compact Sponsor Hub workspace", () => {
+    expect(getNavigationForRoles([
+      "tenant.sponsor.read",
+      "tenant.sponsor.write",
+      "tenant.sponsor.report"
+    ]).map((item) => item.href)).toStrictEqual(["/dashboard/sponsors"]);
   });
 
   it("shows only navigation for the route context while keeping all permitted groups available", () => {

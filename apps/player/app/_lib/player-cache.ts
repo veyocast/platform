@@ -1,4 +1,5 @@
 import type { PlayerDynamicTemplateAsset } from "@veyocast/contracts";
+import type { PlayerSponsorCreative, PlayerSponsorPlan } from "@veyocast/contracts";
 
 import type {
   PlayerManifestEnvelope,
@@ -28,7 +29,7 @@ export type PlayerCacheAsset = {
   cacheKey: string;
   checksumSha256: string;
   itemId: string;
-  kind: "dynamic" | "media" | "poster";
+  kind: "dynamic" | "media" | "poster" | "sponsor";
   url: string;
 };
 
@@ -58,7 +59,7 @@ export type PlayerCacheResult =
 export function getCacheableAssets(
   manifest: PlayerReleaseManifest
 ): PlayerCacheAsset[] {
-  return manifest.items.flatMap((item) => {
+  const contentAssets = manifest.items.flatMap((item) => {
     const assets: PlayerCacheAsset[] = [];
 
     if (item.source.url) {
@@ -95,6 +96,16 @@ export function getCacheableAssets(
 
     return assets;
   });
+  const seen = new Set(contentAssets.map((asset) => asset.cacheKey));
+  const sponsorAssets = manifest.sponsorPlan?.placements.flatMap((placement) =>
+    placement.creatives.flatMap((creative) => {
+      const asset = toSponsorCacheAsset(creative);
+      if (seen.has(asset.cacheKey)) return [];
+      seen.add(asset.cacheKey);
+      return [asset];
+    })
+  ) ?? [];
+  return [...contentAssets, ...sponsorAssets];
 }
 
 export async function preparePendingRelease({
@@ -563,6 +574,9 @@ function withCachedUrls(
     ...envelope,
     manifest: {
       ...manifest,
+      ...(manifest.sponsorPlan
+        ? { sponsorPlan: hydrateSponsorPlan(manifest.sponsorPlan, playbackUrls) }
+        : {}),
       items: manifest.items.map((item) => {
         const mediaAsset = item.source.url
           ? toCacheAsset(item, "media", item.source.url)
@@ -649,6 +663,14 @@ export function refreshHydratedReleaseEnvelope({
     ...freshEnvelope,
     manifest: {
       ...freshEnvelope.manifest,
+      ...(freshEnvelope.manifest.sponsorPlan
+        ? {
+            sponsorPlan: refreshSponsorPlanAccess(
+              cachedEnvelope.manifest.sponsorPlan,
+              freshEnvelope.manifest.sponsorPlan
+            )
+          }
+        : {}),
       items: freshEnvelope.manifest.items.map((item) => {
         const cachedItem = cachedItems.get(item.id);
         if (
@@ -725,6 +747,56 @@ function toCacheAsset(
     itemId: item.id,
     kind,
     url
+  };
+}
+
+function toSponsorCacheAsset(creative: PlayerSponsorCreative): PlayerCacheAsset {
+  return {
+    bytes: creative.bytes,
+    cacheKey: `/__veyocast-player-cache/${creative.checksumSha256}`,
+    checksumSha256: creative.checksumSha256,
+    itemId: creative.creativeId,
+    kind: "sponsor",
+    url: creative.url
+  };
+}
+
+function hydrateSponsorPlan(
+  plan: PlayerSponsorPlan,
+  playbackUrls: Record<string, string>
+): PlayerSponsorPlan {
+  return {
+    ...plan,
+    placements: plan.placements.map((placement) => ({
+      ...placement,
+      creatives: placement.creatives.map((creative) => ({
+        ...creative,
+        url: playbackUrls[toSponsorCacheAsset(creative).cacheKey] ?? creative.url
+      }))
+    }))
+  };
+}
+
+function refreshSponsorPlanAccess(
+  cached: PlayerSponsorPlan | undefined,
+  fresh: PlayerSponsorPlan
+) {
+  const cachedCreatives = new Map(
+    cached?.placements.flatMap((placement) =>
+      placement.creatives.map((creative) => [creative.checksumSha256, creative] as const)
+    ) ?? []
+  );
+  return {
+    ...fresh,
+    placements: fresh.placements.map((placement) => ({
+      ...placement,
+      creatives: placement.creatives.map((creative) => {
+        const cachedCreative = cachedCreatives.get(creative.checksumSha256);
+        return cachedPlaybackUrl(cachedCreative?.url)
+          ? { ...creative, url: cachedCreative!.url }
+          : creative;
+      })
+    }))
   };
 }
 

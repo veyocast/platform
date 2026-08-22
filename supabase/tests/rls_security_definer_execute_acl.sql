@@ -38,6 +38,7 @@ with expected(oid) as (
     ('public.get_player_device_bootstrap(text)'::regprocedure),
     ('public.inspect_player_device_credential_v1(text)'::regprocedure),
     ('public.poll_player_commands_v1(text)'::regprocedure),
+    ('public.record_sponsor_play_events_v1(text,jsonb)'::regprocedure),
     (
       'public.record_player_heartbeat(text,text,uuid,bigint,bigint,text,text,jsonb)'
         ::regprocedure

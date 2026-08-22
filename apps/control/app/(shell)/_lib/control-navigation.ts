@@ -133,6 +133,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "tenant"
   },
   {
+    description: "Sponsors, campagnes, posities en bewijs van vertoning",
+    href: "/dashboard/sponsors",
+    label: "Sponsor Hub",
+    requiredCapability: "tenant.sponsor.read",
+    section: "workspace",
+    scope: "tenant"
+  },
+  {
     description: "Datagedreven menu- en nieuwsslides",
     href: "/dashboard/slides",
     label: "Slides",

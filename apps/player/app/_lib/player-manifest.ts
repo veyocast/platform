@@ -1,6 +1,7 @@
 import type {
   PlayerDynamicTemplatePayload,
-  PlayerPlaybackItem
+  PlayerPlaybackItem,
+  PlayerSponsorPlan
 } from "@veyocast/contracts";
 
 import { localStorageDeviceTokenKey } from "./player-storage";
@@ -80,6 +81,7 @@ export type PlayerReleaseManifest = {
   totalDurationSeconds: number;
   totalBytes: number;
   presentationDefaults?: PlayerManifestPresentationDefaults;
+  sponsorPlan?: PlayerSponsorPlan;
   items: PlayerManifestItem[];
 };
 

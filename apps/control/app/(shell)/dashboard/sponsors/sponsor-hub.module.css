@@ -1,0 +1,37 @@
+.shell { display: grid; gap: var(--space-6); grid-template-columns: minmax(0, 1fr); min-width: 0; width: 100%; }
+.hero { background: linear-gradient(135deg, var(--vc-brand-ink-black) 0%, color-mix(in srgb, var(--vc-brand-ink-black) 88%, var(--vc-brand-electric-orange)) 100%); border-radius: var(--vc-radius-xl); color: var(--vc-brand-paper-white); overflow: hidden; padding: clamp(1.5rem, 4vw, 3rem); position: relative; }
+.hero::after { background: var(--vc-brand-electric-orange); border-radius: var(--vc-radius-full); content: ""; height: 8rem; opacity: .18; position: absolute; right: -2rem; top: -3rem; width: 8rem; }
+.eyebrow { color: var(--vc-brand-electric-orange); font-size: .78rem; font-weight: 800; letter-spacing: .14em; margin: 0 0 .75rem; text-transform: uppercase; }
+.hero h1 { color: inherit; font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -.04em; line-height: .95; margin: 0; max-width: 12ch; }
+.hero p { color: color-mix(in srgb, var(--vc-brand-paper-white) 76%, transparent); margin: 1rem 0 0; max-width: 65ch; }
+.tabs { display: flex; gap: .5rem; min-width: 0; overflow-x: auto; padding-block: .25rem; scrollbar-width: thin; }
+.tabs a { border: 1px solid var(--vc-border); border-radius: var(--vc-radius-full); color: var(--vc-text); flex: 0 0 auto; font-size: .86rem; font-weight: 700; padding: .6rem .9rem; text-decoration: none; }
+.tabs a:hover, .tabs a:focus-visible { background: var(--vc-surface-muted); border-color: var(--vc-brand-electric-orange); }
+.metrics { display: grid; gap: 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.metric { background: var(--vc-surface); border: 1px solid var(--vc-border); border-radius: var(--vc-radius-lg); padding: 1.15rem; }
+.metric span { color: var(--vc-text-muted); display: block; font-size: .82rem; }
+.metric strong { display: block; font-size: 1.85rem; letter-spacing: -.04em; margin-top: .35rem; }
+.grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.panel { background: var(--vc-surface); border: 1px solid var(--vc-border); border-radius: var(--vc-radius-lg); padding: 1.25rem; }
+.panel h2, .panel h3 { margin: 0; }
+.panelHeader { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 1rem; }
+.panelHeader p { color: var(--vc-text-muted); font-size: .88rem; margin: .35rem 0 0; }
+.form { display: grid; gap: .8rem; }
+.formGrid { display: grid; gap: .75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.field { display: grid; gap: .35rem; }
+.field span { font-size: .82rem; font-weight: 700; }
+.field input, .field select, .field textarea { background: var(--vc-surface); border: 1px solid var(--vc-border); border-radius: var(--vc-radius-md); color: var(--vc-text); font: inherit; min-height: 2.75rem; padding: .65rem .75rem; width: 100%; }
+.field textarea { min-height: 6rem; resize: vertical; }
+.wide { grid-column: 1 / -1; }
+.list { display: grid; gap: .6rem; list-style: none; margin: 0; padding: 0; }
+.list li { align-items: center; border-top: 1px solid var(--vc-border); display: flex; gap: .75rem; justify-content: space-between; padding-top: .75rem; }
+.list li:first-child { border-top: 0; padding-top: 0; }
+.list small { color: var(--vc-text-muted); display: block; margin-top: .15rem; }
+.actions { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem; }
+.banner { border: 1px solid var(--vc-border); border-left: 4px solid var(--vc-brand-electric-orange); border-radius: var(--vc-radius-md); margin: 0; padding: .9rem 1rem; }
+.pipeline { display: grid; gap: .75rem; grid-template-columns: repeat(5, minmax(8rem, 1fr)); overflow-x: auto; }
+.stage { background: var(--vc-surface-muted); border-radius: var(--vc-radius-md); min-height: 8rem; padding: .8rem; }
+.stage strong { font-size: .82rem; text-transform: capitalize; }
+.stage span { color: var(--vc-text-muted); display: block; font-size: 1.5rem; margin-top: .5rem; }
+@media (max-width: 900px) { .metrics, .grid { grid-template-columns: 1fr 1fr; } .pipeline { grid-template-columns: repeat(5, minmax(12rem, 1fr)); } }
+@media (max-width: 620px) { .metrics, .grid, .formGrid { grid-template-columns: 1fr; } .hero { border-radius: var(--vc-radius-lg); } .wide { grid-column: auto; } }
