@@ -125,6 +125,7 @@ tests en exitcriteria staan in
 | S104 | Editorial Arena authoring completion | Volledige light/dark-tokenauthoring, focal points, handmatige prijskolommen, gedeelde React-DOM-thumbnails en een vaste 48-cellen-regressiematrix |
 | S115 | Sponsor Hub | Tenantveilige sponsoroperatie met vier-ogen-campagnes, semantische posities, immutable offline sponsorplannen en devicegebonden Proof of Play |
 | S116 | Menu Studio portrait save hotfix | De gekozen staande of liggende schermstand bepaalt atomisch het opgeslagen template, concept en de volgende immutable snapshot |
+| S117 | Menu Studio authoring-UX hotfix | Productgroepbewerking duidelijk afsluitbaar maken, korte portraitmenu's bovenaan verankeren en de menunaam zichtbaar én resourcebreed bewerkbaar maken |
 
 ### Programmagates
 

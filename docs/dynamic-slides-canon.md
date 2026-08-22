@@ -366,3 +366,20 @@ dekt twaalf families/varianten in beide oriëntaties en beide thema's.
 Hosted uitrol en fysieke LG-acceptatie blijven afzonderlijke releasegates. Een
 gezonde stagingresponse of Chromiumtest mag nooit als fysieke hardwarepass
 worden beschreven.
+
+## Menu Studio authoringinteractie (S117)
+
+Productgroepbewerking is tijdelijke editorcontext, geen aparte navigatielaag.
+Zolang een groep actief is tonen inspector en productbibliotheek dat expliciet;
+de beheerder kan die context met een zichtbare `Klaar`-actie sluiten zonder de
+opslag- of publicatiestatus te wijzigen. Het selecteren van een ander canvasblok
+sluit de groepscontext eveneens.
+
+De menunaam is een zichtbaar tekstveld en de canonieke identiteit van zowel het
+`MenuDocument.v2` als de corresponderende Slides-resource. Een `set-title`-
+command bewaart beide waarden in dezelfde revision-checked, idempotente en
+tenantbeveiligde transactie. Portraitmenu's verankeren categorieën en artikelen
+altijd bovenaan het contentvlak; ondervulling mag nooit opnieuw tot verticale
+centrering leiden. Preview, browser-Player en primaire thumbnail gebruiken
+hiervoor dezelfde `MenuScene`-CSS. Bestaande snapshots en releases blijven
+immutable totdat de beheerder opnieuw publiceert.
