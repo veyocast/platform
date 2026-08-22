@@ -6,7 +6,7 @@ import {
   isSponsorPlanUsable,
   selectSponsorCreative,
   selectSponsorPlacement
-} from "./sponsor";
+} from "../src/sponsor";
 
 const creative = {
   bytes: 1200,
