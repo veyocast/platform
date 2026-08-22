@@ -224,19 +224,6 @@ export function renderLgLegacyHtml() {
     .menu-studio-v2 .legacy-price-product>b{font-size:26px}
     .legacy-menu-group{background:var(--editorial-row)}
     .legacy-menu-free{color:var(--accent)}
-    .dynamic-template.menu-studio-v2.portrait>header{top:96px;right:72px;left:72px;height:228px;grid-template-columns:1fr auto}
-    .dynamic-template.menu-studio-v2.portrait .editorial-heading h1{font-size:76px}
-    .editorial-arena.menu-studio-v2.portrait .dynamic-body{top:348px;right:72px;bottom:auto;left:72px;height:1388px}
-    .dynamic-template.editorial-arena.menu-studio-v2.portrait>footer{right:72px;bottom:96px;left:72px;height:64px}
-    .menu-studio-v2.portrait .legacy-price-grid{gap:36px}
-    .menu-studio-v2.portrait .legacy-price-column{padding:18px}
-    .menu-studio-v2.portrait .legacy-price-category{height:70px;font-size:30px}
-    .menu-studio-v2.portrait .legacy-price-product{height:78px;grid-template-columns:56px minmax(0,1fr) 92px;gap:10px;padding:7px 2px}
-    .menu-studio-v2.portrait .legacy-price-media{width:56px;height:56px}
-    .menu-studio-v2.portrait .legacy-price-copy{height:56px}
-    .menu-studio-v2.portrait .legacy-price-copy strong{font-size:20px}
-    .menu-studio-v2.portrait .legacy-price-copy small{font-size:14px}
-    .menu-studio-v2.portrait .legacy-price-product>b{font-size:21px}
     .editorial-arena.dark .dynamic-team-mark{background:var(--accent);color:#fff}
     .editorial-news{display:grid;grid-template-columns:1.02fr .98fr;gap:1.6%;height:100%}
     .editorial-news-art,.editorial-news-copy{position:relative;overflow:hidden;border:1px solid rgba(23,32,42,.13);border-radius:24px;background:#fffefa;box-shadow:0 24px 80px rgba(0,0,0,.24)}
@@ -290,6 +277,20 @@ export function renderLgLegacyHtml() {
     .portrait .legacy-price-copy strong{font-size:20px}
     .portrait .legacy-price-copy small{padding-top:4px;font-size:14px;line-height:19px}
     .portrait .legacy-price-product>b{max-width:92px;font-size:24px}
+    .dynamic-template.editorial-arena.menu-studio-v2.portrait[data-slide-type="price_list"]>header{top:96px;right:72px;left:72px;height:228px;grid-template-columns:1fr auto;align-items:flex-end;padding:0 0 40px;border-bottom:4px solid var(--accent);gap:48px}
+    .dynamic-template.editorial-arena.menu-studio-v2.portrait .editorial-heading h1{max-width:760px;font-size:72px;line-height:70px;overflow-wrap:anywhere}
+    .dynamic-template.editorial-arena.menu-studio-v2.portrait[data-slide-type="price_list"] .dynamic-body{top:348px;right:72px;bottom:auto;left:72px;height:1388px}
+    .dynamic-template.editorial-arena.menu-studio-v2.portrait[data-slide-type="price_list"]>footer{right:72px;bottom:96px;left:72px;height:64px;font-size:20px;font-weight:700;letter-spacing:.08em}
+    .menu-studio-v2.portrait .legacy-price-grid{grid-template-columns:minmax(0,1fr);gap:20px}
+    .menu-studio-v2.portrait .legacy-price-column{display:flex;padding:22px 28px;flex-direction:column;justify-content:flex-start}
+    .menu-studio-v2.portrait .legacy-price-category{height:auto;min-height:76px;align-items:flex-end;margin:0 0 10px;padding:0 0 13px;font-size:34px;line-height:38px;white-space:normal}
+    .menu-studio-v2.portrait .legacy-price-product{height:auto;min-height:62px;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;padding:5px 4px}
+    .menu-studio-v2.portrait .legacy-menu-group{min-height:72px}
+    .menu-studio-v2.portrait .legacy-price-media{width:48px;height:48px}
+    .menu-studio-v2.portrait .legacy-price-copy{height:auto}
+    .menu-studio-v2.portrait .legacy-price-copy strong{font-size:26px;line-height:30px;white-space:normal}
+    .menu-studio-v2.portrait .legacy-price-copy small{padding-top:0;font-size:17px;line-height:20px;white-space:normal}
+    .menu-studio-v2.portrait .legacy-price-product>b{max-width:none;font-size:26px;line-height:30px}
     .legacy-standing-card{box-sizing:border-box;height:100%;overflow:hidden;padding:1.35%;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:#0d1218;box-shadow:0 24px 80px rgba(0,0,0,.24)}
     .legacy-standing-columns,.legacy-standing-row{box-sizing:border-box;display:grid;grid-template-columns:4% 1fr repeat(6,5.7%) 15%;align-items:center;gap:.7%}
     .legacy-standing-columns{height:7%;padding:0 .7%;border-bottom:2px solid var(--accent);color:var(--accent);font-size:22px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
@@ -2279,7 +2280,7 @@ export function renderLgLegacyHtml() {
           var block = templateRecord(blocks[blockIndex]) || {};
           var layout = templateRecord((templateRecord(block.layout) || {})[orientation]) || {};
           var midpoint = Number(layout.x || 0) + Number(layout.w || 0) / 2;
-          var isLeft = midpoint <= (orientation === "portrait" ? 540 : 960);
+          var isLeft = orientation === "portrait" || midpoint <= 960;
           if ((column === "left") !== isLeft) continue;
           if (block.type === "product-group") {
             var standalone = templateRecord(block.group) || {};
@@ -2339,7 +2340,9 @@ export function renderLgLegacyHtml() {
         var sourcePage = templateRecord(sourcePages[sourceIndex]) || {};
         var flowBlocks = templateArray(sourcePage.blocks);
         var left = paginate(flowBlocks.slice(0), "left");
-        var right = paginate(flowBlocks.slice(0), "right");
+        var right = orientation === "portrait"
+          ? []
+          : paginate(flowBlocks.slice(0), "right");
         var count = Math.max(left.length, right.length, 1);
         for (var pageIndex = 0; pageIndex < count; pageIndex += 1) {
           pages.push({ left: left[pageIndex] || [], right: right[pageIndex] || [] });
@@ -2427,7 +2430,7 @@ export function renderLgLegacyHtml() {
             grid.appendChild(column);
           }
           appendColumn("left");
-          appendColumn("right");
+          if (orientation !== "portrait") appendColumn("right");
           body.appendChild(grid);
         }
       };
@@ -3054,6 +3057,7 @@ export function renderLgLegacyHtml() {
         : templateRecord(editorialTheme[editorialMode]) || {};
       var editorialArena =
         templateText(payload.templateSlug, "").indexOf("editorial-arena-") === 0;
+      var menuStudioV2 = false;
       if (brand && typeof brand.primaryColor === "string" && /^#[0-9a-f]{6}$/i.test(brand.primaryColor)) {
         accent = brand.primaryColor;
       }
@@ -3089,6 +3093,7 @@ export function renderLgLegacyHtml() {
         sourceLabel = "Prijzen uit de clubkantine";
         var menuStudioDocument = templateRecord(snapshot.menuDocument) || {};
         if (menuStudioDocument.schemaVersion === "menu-document.v2") {
+          menuStudioV2 = true;
           root.className += " menu-studio-v2";
           sourceLabel = "Menu Studio";
         }
@@ -3127,6 +3132,7 @@ export function renderLgLegacyHtml() {
             )
           ));
         }
+        if (menuStudioV2) heading.appendChild(templateNode("p", "", "Menu"));
         heading.appendChild(templateNode("h1", "", title));
         context.appendChild(templateNode("strong", "", sourceLabel));
         context.appendChild(templateNode("span", "", "VeyoCast"));
@@ -3137,8 +3143,16 @@ export function renderLgLegacyHtml() {
         header.appendChild(templateNode("p", "", sourceLabel));
         header.appendChild(templateNode("h1", "", title));
       }
-      footer.appendChild(templateNode("span", "", "VeyoCast ClubTV"));
-      footer.appendChild(templateNode("span", "dynamic-page-number", renderer.pages.length > 1 ? "1 / " + String(renderer.pages.length) : "Live clubinformatie"));
+      footer.appendChild(templateNode("span", "", menuStudioV2 ? "Prijslijst" : "VeyoCast ClubTV"));
+      footer.appendChild(templateNode(
+        "span",
+        "dynamic-page-number",
+        menuStudioV2
+          ? "1 / " + String(renderer.pages.length)
+          : renderer.pages.length > 1
+            ? "1 / " + String(renderer.pages.length)
+            : "Live clubinformatie"
+      ));
       root.appendChild(header);
       root.appendChild(body);
       root.appendChild(footer);
