@@ -21,6 +21,35 @@ export type MenuStudioSource = {
   name: string;
 };
 
+export type MenuStudioTemplateOption = {
+  name: string;
+  orientation: "landscape" | "portrait";
+  slug: string;
+  versionId: string;
+};
+
+export function menuStudioTemplateVersionIds(
+  templates: MenuStudioTemplateOption[],
+  currentVersionId?: string
+): Partial<Record<MenuStudioTemplateOption["orientation"], string>> {
+  const current = templates.find((template) => template.versionId === currentVersionId);
+  const family = current ? templateFamily(current.slug) : null;
+  const result: Partial<Record<MenuStudioTemplateOption["orientation"], string>> = {};
+  for (const orientation of ["landscape", "portrait"] as const) {
+    const template = templates.find((candidate) =>
+      candidate.orientation === orientation &&
+      family !== null &&
+      templateFamily(candidate.slug) === family
+    ) ?? templates.find((candidate) => candidate.orientation === orientation);
+    if (template) result[orientation] = template.versionId;
+  }
+  return result;
+}
+
+function templateFamily(slug: string) {
+  return slug.replace(/-(?:landscape|portrait)$/u, "");
+}
+
 export async function loadMenuStudioOptions(
   tenantId: string,
   requestedSourceId?: string,
@@ -70,22 +99,24 @@ export async function loadMenuStudioOptions(
         loadMedia(supabase, tenantId, includedAssetIds)
       ])
     : [[], []];
+  const templates = (templatesResult.data ?? []).flatMap((template) =>
+    template.current_published_version_id &&
+    (template.orientation === "landscape" || template.orientation === "portrait")
+      ? [{
+          name: template.name,
+          orientation: template.orientation,
+          slug: template.slug,
+          versionId: template.current_published_version_id
+        } satisfies MenuStudioTemplateOption]
+      : []
+  );
   return {
     flags: flags(settings),
     media,
     products,
     source,
     sources,
-    template: (templatesResult.data ?? []).flatMap((template) =>
-      template.current_published_version_id
-        ? [{
-            name: template.name,
-            orientation: template.orientation,
-            slug: template.slug,
-            versionId: template.current_published_version_id
-          }]
-        : []
-    )[0] ?? null,
+    templates,
     theme: {
       brand: {
         accent: requiredColor(settings?.theme_accent ?? settings?.primary_color, "#FF5C20"),
@@ -105,7 +136,7 @@ export async function loadMenuStudioSlide(tenantId: string, slideId: string) {
   if (!supabase) return null;
   const slideResult = await supabase
     .from("dynamic_slides")
-    .select("id, name, data_source_id, template_version_id, configuration_json, menu_document_revision, menu_last_published_revision, status")
+    .select("id, name, orientation, data_source_id, template_version_id, configuration_json, menu_document_revision, menu_last_published_revision, status")
     .eq("tenant_id", tenantId)
     .eq("id", slideId)
     .neq("status", "archived")
@@ -119,7 +150,7 @@ export async function loadMenuStudioSlide(tenantId: string, slideId: string) {
     slideResult.data.data_source_id,
     document.data.assets.map((asset) => asset.assetId)
   );
-  if (!options?.source || !options.template) return null;
+  if (!options?.source || !options.templates.length) return null;
   return {
     ...options,
     document: document.data,

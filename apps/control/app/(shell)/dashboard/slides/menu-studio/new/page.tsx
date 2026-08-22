@@ -8,7 +8,8 @@ import { requireTenantControlSession } from "../../../../../../lib/control-sessi
 import { PageHeader } from "../../../../_components/shell-primitives";
 import {
   initialMenuDocument,
-  loadMenuStudioOptions
+  loadMenuStudioOptions,
+  menuStudioTemplateVersionIds
 } from "../data";
 import { MenuStudioEditor } from "../menu-studio-editor";
 import styles from "../menu-studio.module.css";
@@ -45,7 +46,7 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
           Maak of koppel een actieve handmatige of Twelve-productbron voordat je een menu samenstelt.
           <Button asChild><Link href="/dashboard/data-sources">Databron toevoegen</Link></Button>
         </State>
-      ) : !data.template ? (
+      ) : !data.templates.length ? (
         <State icon={<LayoutTemplate aria-hidden="true" />} title="Geen gepubliceerd prijslijsttemplate">
           Een platformbeheerder moet eerst een geschikt Editorial Arena-prijslijsttemplate publiceren.
         </State>
@@ -62,6 +63,9 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
             </nav>
           ) : null}
           <MenuStudioEditor
+            initialOrientation={data.templates.some((template) => template.orientation === "landscape")
+              ? "landscape"
+              : "portrait"}
             initialDocument={initialMenuDocument({
               documentId: randomUUID(),
               tenantId: session.tenantId!,
@@ -75,7 +79,7 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
             publishEnabled={data.flags.publish && data.flags.player}
             sourceId={data.source.id}
             sourceName={data.source.name}
-            templateVersionId={data.template.versionId}
+            templateVersionIds={menuStudioTemplateVersionIds(data.templates)}
           />
         </>
       )}

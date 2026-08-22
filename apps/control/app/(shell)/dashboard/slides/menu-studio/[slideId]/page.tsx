@@ -5,7 +5,7 @@ import { Button } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
 import { PageHeader } from "../../../../_components/shell-primitives";
-import { loadMenuStudioSlide } from "../data";
+import { loadMenuStudioSlide, menuStudioTemplateVersionIds } from "../data";
 import { MenuStudioEditor } from "../menu-studio-editor";
 
 type PageProps = {
@@ -34,6 +34,7 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
       />
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
       <MenuStudioEditor
+        initialOrientation={data.slide.orientation === "portrait" ? "portrait" : "landscape"}
         initialDocument={data.document}
         linkedGroupsEnabled={data.flags.linkedGroups}
         media={data.media}
@@ -44,7 +45,10 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
         slideId={slideId}
         sourceId={data.source.id}
         sourceName={data.source.name}
-        templateVersionId={data.slide.template_version_id}
+        templateVersionIds={menuStudioTemplateVersionIds(
+          data.templates,
+          data.slide.template_version_id
+        )}
       />
     </>
   );

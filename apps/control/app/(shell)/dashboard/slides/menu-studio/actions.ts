@@ -138,6 +138,57 @@ export async function saveMenuStudioCommand(input: {
   };
 }
 
+export async function setMenuStudioOrientation(input: {
+  expectedRevision: number;
+  operationId?: string;
+  orientation: "landscape" | "portrait";
+  slideId: string;
+  templateVersionId: string;
+}): Promise<MenuStudioActionResult> {
+  await requireTenantControlSession("tenant.dynamic_slide.write");
+  const operationId = input.operationId ?? randomUUID();
+  if (
+    !uuidPattern.test(input.slideId) ||
+    !uuidPattern.test(input.templateVersionId) ||
+    !uuidPattern.test(operationId) ||
+    !Number.isInteger(input.expectedRevision) ||
+    input.expectedRevision < 1 ||
+    (input.orientation !== "landscape" && input.orientation !== "portrait")
+  ) {
+    return failure("MENU_ORIENTATION_INVALID", "De gekozen schermstand is ongeldig.");
+  }
+  const supabase = await createControlSupabaseClient();
+  if (!supabase) {
+    return failure("MENU_STUDIO_UNAVAILABLE", "Menu Studio is momenteel niet beschikbaar.");
+  }
+  const result = await supabase.rpc("set_menu_studio_orientation_v2", {
+    p_expected_revision: input.expectedRevision,
+    p_operation_id: operationId,
+    p_orientation: input.orientation,
+    p_slide_id: input.slideId,
+    p_template_version_id: input.templateVersionId
+  });
+  if (result.error) return rpcFailure(result.error.code, "omgezet");
+  const response = record(result.data);
+  const document = menuDocumentV2Schema.safeParse(response?.document);
+  if (!document.success || response?.orientation !== input.orientation) {
+    return failure(
+      "MENU_STUDIO_RESPONSE_INVALID",
+      "De server bevestigde de gekozen schermstand niet. De opgeslagen versie blijft behouden."
+    );
+  }
+  revalidatePath(`/dashboard/slides/menu-studio/${input.slideId}`);
+  revalidatePath(`/dashboard/slides/${input.slideId}`);
+  revalidatePath("/dashboard/slides");
+  return {
+    document: document.data,
+    ok: true,
+    outcome: response?.outcome === "already_applied" ? "already_applied" : "applied",
+    revision: document.data.revision,
+    slideId: input.slideId
+  };
+}
+
 export async function publishMenuStudio(input: {
   expectedRevision: number;
   operationId?: string;
