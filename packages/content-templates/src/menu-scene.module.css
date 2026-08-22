@@ -349,10 +349,7 @@
   display: flex;
   padding: 22px 28px;
   flex-direction: column;
-}
-
-.canvas[data-orientation="portrait"] .columns[data-underfilled="true"] .column {
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .canvas[data-orientation="portrait"] .category {

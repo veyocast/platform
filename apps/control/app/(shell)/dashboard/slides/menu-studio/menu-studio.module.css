@@ -74,6 +74,10 @@
 }
 
 .titleField label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vc-space-8);
   color: var(--vc-text-muted);
   font-size: .75rem;
   font-weight: 800;
@@ -81,12 +85,23 @@
   text-transform: uppercase;
 }
 
+.titleField label small {
+  padding: .15rem .4rem;
+  border-radius: var(--vc-radius-full);
+  background: color-mix(in srgb, var(--vc-action) 12%, var(--vc-surface));
+  color: var(--vc-text);
+  font-size: .62rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .titleField input {
   min-height: 2.4rem;
-  padding: 0;
-  border: 0;
+  padding: .45rem .7rem;
+  border: 1px solid var(--vc-border-strong);
+  border-radius: var(--vc-radius-md);
   outline: 0;
-  background: transparent;
+  background: var(--vc-surface);
   color: var(--vc-text);
   font-family: var(--vc-font-display);
   font-size: clamp(1rem, 2vw, 1.35rem);
@@ -94,7 +109,7 @@
 }
 
 .titleField input:focus-visible {
-  border-radius: var(--vc-radius-sm);
+  border-color: var(--vc-action);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--vc-action) 34%, transparent);
 }
 
@@ -643,6 +658,65 @@
   overflow: auto;
 }
 
+.activeGroupBar {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-8) var(--vc-space-12);
+  border: 1px solid var(--vc-action);
+  border-radius: var(--vc-radius-md);
+  background: color-mix(in srgb, var(--vc-action) 9%, var(--vc-surface));
+}
+
+.activeGroupBar span,
+.activeGroupBar strong,
+.activeGroupBar small {
+  display: block;
+  min-width: 0;
+}
+
+.activeGroupBar strong {
+  color: var(--vc-text);
+  font-size: .74rem;
+}
+
+.activeGroupBar small {
+  margin-top: .12rem;
+  overflow: hidden;
+  color: var(--vc-text-muted);
+  font-size: .68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activeGroupBar button,
+.inspectorHeader > button {
+  display: inline-flex;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: .3rem;
+  padding: 0 .65rem;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-sm);
+  background: var(--vc-surface);
+  color: var(--vc-text);
+  font: inherit;
+  font-size: .7rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.activeGroupBar svg,
+.inspectorHeader svg,
+.inspectorDone svg {
+  width: 1rem;
+  height: 1rem;
+}
+
 .productLibrary article {
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-md);
@@ -821,6 +895,30 @@
   margin: .18rem 0 0;
   font-family: var(--vc-font-display);
   font-size: .96rem;
+}
+
+.inspectorHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--vc-space-8);
+}
+
+.inspectorDone {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  padding: .45rem .7rem;
+  border: 1px solid var(--vc-action);
+  border-radius: var(--vc-radius-sm);
+  background: var(--vc-action);
+  color: var(--vc-brand-ink-black);
+  font: inherit;
+  font-size: .74rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .inspectorGrid {

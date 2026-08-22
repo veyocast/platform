@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(33);
+select plan(34);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -178,6 +178,12 @@ select is(
   (select menu_document_revision from public.dynamic_slides where id = (select id from menu_test_state where name = 'slide')),
   2::bigint,
   'save increments the MenuDocument revision exactly once'
+);
+
+select is(
+  (select name from public.dynamic_slides where id = (select id from menu_test_state where name = 'slide')),
+  'Avondmenu',
+  'set-title keeps the visible Slides resource name synchronized'
 );
 
 select is(

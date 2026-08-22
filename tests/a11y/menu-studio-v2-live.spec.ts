@@ -73,6 +73,17 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     await freeInput.fill("Ook zonder suiker");
     await freeInput.blur();
     await expect(groupInspector.locator("input").last()).toHaveValue("Ook zonder suiker");
+    await expect(page.getByText("Actieve productgroep", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Klaar", exact: true }).click();
+    await expect(groupInspector).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Koppel aan actieve groep" })).toHaveCount(0);
+
+    const menuName = page.getByLabel("Menunaam");
+    await expect(menuName).toBeVisible();
+    await expect(page.getByText(/Naam op de slide en in Slides · automatisch opgeslagen/)).toBeVisible();
+    await menuName.fill("Avondmenu kantine");
+    await menuName.press("Enter");
+    await expect(menuName).toHaveValue("Avondmenu kantine");
 
     const dragHandle = page.getByRole("button", { name: /Versleep Frisdranken/ });
     await dragHandle.focus();
@@ -121,6 +132,8 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     await mobileFreeInput.fill("Ook mobiel bewerkbaar");
     await mobileFreeInput.blur();
     await expect(mobileFreeInput).toHaveValue("Ook mobiel bewerkbaar");
+    await mobilePage.getByRole("button", { name: "Klaar met productgroep" }).tap();
+    await expect(mobilePage.getByRole("region", { name: /Productgroep Coca-Cola Regular bewerken/ })).toHaveCount(0);
     await mobilePage.getByRole("button", { name: "Bibliotheek", exact: true }).tap();
     await expect(mobilePage.getByRole("heading", { name: "Bibliotheek" })).toBeVisible();
     expect(await mobilePage.evaluate(

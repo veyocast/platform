@@ -148,6 +148,33 @@ test("portrait meet twintig echte DOM-productregels na font-ready zonder crop", 
   });
 });
 
+test("portrait start een korte prijslijst altijd bovenaan", async ({ page }) => {
+  await page.setViewportSize({ height: 1920, width: 1080 });
+  const payload = buildPayload("editorial", "light", "portrait");
+  const menu = buildDocument("editorial", "light");
+  const shortCategory = category("short", "Snacks", 0, "left");
+  shortCategory.productNodes = Array.from({ length: 3 }, (_, index) =>
+    product("short", "Snack", index)
+  );
+  menu.assets = [];
+  menu.pages[0]!.blocks = [shortCategory];
+  payload.assets = {};
+  payload.data = { menuDocument: menu };
+
+  await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+  await expect.poll(async () => page.evaluate(
+    () => document.documentElement.dataset.thumbnailReady === "true"
+  )).toBe(true);
+  const column = page.locator("[data-menu-column]");
+  await expect(column).toHaveCSS("justify-content", "flex-start");
+  const geometry = await column.evaluate((element) => {
+    const column = element.getBoundingClientRect();
+    const firstRow = element.querySelector<HTMLElement>("[data-menu-row]")?.getBoundingClientRect();
+    return { columnTop: column.top, firstRowTop: firstRow?.top ?? Number.POSITIVE_INFINITY };
+  });
+  expect(geometry.firstRowTop - geometry.columnTop).toBeLessThan(30);
+});
+
 test("Menu Studio-video bewaakt poster, muted autoplay en het ingestelde fragment", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const payload = buildPayload("editorial", "light", "landscape");

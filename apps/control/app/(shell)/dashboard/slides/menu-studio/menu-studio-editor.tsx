@@ -39,6 +39,7 @@ import {
   Type,
   Undo2,
   Video,
+  X,
   ZoomIn,
   ZoomOut
 } from "lucide-react";
@@ -735,24 +736,42 @@ export function MenuStudioEditor({
     });
   }
 
+  function closeProductGroup() {
+    setSelectedGroupId(null);
+  }
+
+  function commitMenuTitle(input: HTMLInputElement) {
+    const title = input.value.trim();
+    const currentTitle = historyRef.current.present.title ?? "";
+    if (title === currentTitle) return;
+    if (title.length < 2) {
+      input.value = currentTitle;
+      setMessage("Geef het menu een naam van minimaal 2 tekens. De opgeslagen naam is behouden.");
+      setStatus("error");
+      return;
+    }
+    void executeOperation({ kind: "set-title", title });
+  }
+
   return (
     <div className={styles.studio} data-hydrated={hydrated || undefined} data-mobile-panel={mobilePanel}>
       <header className={styles.toolbar}>
         <div className={styles.titleField}>
-          <label htmlFor="menu-title">Menunaam</label>
+          <label htmlFor="menu-title"><span>Menunaam</span><small>Bewerkbaar</small></label>
           <input
             defaultValue={document.title ?? ""}
             id="menu-title"
             key={`${document.id}:${document.title ?? ""}`}
             maxLength={120}
-            onBlur={(event) => {
-              const title = event.currentTarget.value.trim();
-              if (title !== (historyRef.current.present.title ?? "")) {
-                void executeOperation({ kind: "set-title", title });
-              }
+            minLength={2}
+            onBlur={(event) => commitMenuTitle(event.currentTarget)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.currentTarget.blur();
             }}
+            placeholder="Geef dit menu een naam"
+            required
           />
-          <small>{sourceName} · revisie {document.revision}</small>
+          <small>Naam op de slide en in Slides · automatisch opgeslagen · {sourceName} · revisie {document.revision}</small>
         </div>
         <div className={styles.toolActions}>
           <Button
@@ -856,8 +875,14 @@ export function MenuStudioEditor({
                       labelOverride,
                       pageId: page.id
                     })}
-                    onSelect={() => setSelectedBlockId(block.id)}
-                    onSelectGroup={(groupId) => setSelectedGroupId(groupId)}
+                    onSelect={() => {
+                      setSelectedBlockId(block.id);
+                      setSelectedGroupId(null);
+                    }}
+                    onSelectGroup={(groupId) => {
+                      setSelectedBlockId(block.id);
+                      setSelectedGroupId(groupId);
+                    }}
                     onUpdateGroup={(categoryId, group, policy) => void updateGroup(categoryId, group, policy)}
                     selected={selectedBlockId === block.id}
                   />
@@ -894,6 +919,7 @@ export function MenuStudioEditor({
                 pageId: page.id
               })}
               onLinkProduct={(product) => void linkProductToSelectedGroup(product)}
+              onClose={closeProductGroup}
               onUngroup={() => void ungroup(selectedGroup.category.id, selectedGroup.group)}
               products={products}
             />
@@ -1023,6 +1049,12 @@ export function MenuStudioEditor({
 
           <section className={styles.librarySection}>
             <h3>Producten <span>{products.length}</span></h3>
+            {selectedGroup ? (
+              <div className={styles.activeGroupBar} role="status">
+                <span><strong>Actieve productgroep</strong><small>{selectedGroup.group.title}</small></span>
+                <button onClick={closeProductGroup} type="button"><X aria-hidden="true" /> Klaar</button>
+              </div>
+            ) : null}
             <div className={styles.productLibrary}>
               {products.map((product) => {
                 const selected = Boolean(
@@ -1380,6 +1412,7 @@ function GroupInspector({
   group,
   onAddFreeText,
   onChange,
+  onClose,
   onLinkProduct,
   onUngroup,
   products
@@ -1388,6 +1421,7 @@ function GroupInspector({
   group: MenuProductGroupPlacement;
   onAddFreeText: () => void;
   onChange: (group: MenuProductGroupPlacement) => void;
+  onClose: () => void;
   onLinkProduct: (product: MenuStudioProductOption) => void;
   onUngroup: () => void;
   products: MenuStudioProductOption[];
@@ -1428,7 +1462,10 @@ function GroupInspector({
   };
   return (
     <section aria-label={`Productgroep ${group.title} bewerken`} className={styles.inspector}>
-      <header><span>Productgroep</span><h3>{group.title}</h3></header>
+      <header className={styles.inspectorHeader}>
+        <div><span>Productgroep</span><h3>{group.title}</h3></div>
+        <button aria-label={`Productgroep ${group.title} sluiten`} onClick={onClose} type="button"><X aria-hidden="true" /></button>
+      </header>
       <p className={styles.inspectorNote}>Categorie {categoryId}. Gekoppelde regels houden hun bron-ID; vrije regels blijven presentatie-inhoud.</p>
       <div
         aria-label="Sleep een product of vrije subregel naar deze productgroep"
@@ -1502,6 +1539,7 @@ function GroupInspector({
         </label>
       </div>
       <button className={styles.inspectorAction} onClick={onUngroup} type="button">Groep splitsen naar gekoppelde producten</button>
+      <button className={styles.inspectorDone} onClick={onClose} type="button"><CheckCircle2 aria-hidden="true" /> Klaar met productgroep</button>
     </section>
   );
 }
