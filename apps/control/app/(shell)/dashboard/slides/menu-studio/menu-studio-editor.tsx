@@ -79,7 +79,8 @@ import { Button } from "@veyocast/ui";
 import {
   createMenuStudioDraft,
   publishMenuStudio,
-  saveMenuStudioCommand
+  saveMenuStudioCommand,
+  setMenuStudioOrientation
 } from "./actions";
 import styles from "./menu-studio.module.css";
 
@@ -114,6 +115,7 @@ export type MenuStudioMediaOption = {
 
 export function MenuStudioEditor({
   initialDocument,
+  initialOrientation,
   linkedGroupsEnabled,
   media,
   mediaEnabled,
@@ -123,9 +125,10 @@ export function MenuStudioEditor({
   slideId,
   sourceId,
   sourceName,
-  templateVersionId
+  templateVersionIds
 }: {
   initialDocument: MenuDocumentV2;
+  initialOrientation: "landscape" | "portrait";
   linkedGroupsEnabled: boolean;
   media: MenuStudioMediaOption[];
   mediaEnabled: boolean;
@@ -135,12 +138,12 @@ export function MenuStudioEditor({
   slideId?: string;
   sourceId: string;
   sourceName: string;
-  templateVersionId: string;
+  templateVersionIds: Partial<Record<"landscape" | "portrait", string>>;
 }) {
   const router = useRouter();
   const [history, setHistoryState] = useState(() => createMenuStudioHistory(initialDocument));
   const historyRef = useRef(history);
-  const [orientation, setOrientation] = useState<"landscape" | "portrait">("landscape");
+  const [orientation, setOrientation] = useState<"landscape" | "portrait">(initialOrientation);
   const [pageIndex, setPageIndex] = useState(0);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -652,6 +655,12 @@ export function MenuStudioEditor({
     if (mode !== "create" || isPending) return;
     startTransition(async () => {
       setStatus("saving");
+      const templateVersionId = templateVersionIds[orientation];
+      if (!templateVersionId) {
+        setMessage(`Er is geen gepubliceerd ${orientation === "portrait" ? "staand" : "liggend"} prijslijsttemplate beschikbaar.`);
+        setStatus("error");
+        return;
+      }
       const result = await createMenuStudioDraft({
         dataSourceId: sourceId,
         document: historyRef.current.present,
@@ -666,6 +675,45 @@ export function MenuStudioEditor({
       setStatus("saved");
       router.push(`/dashboard/slides/menu-studio/${result.slideId}?succes=Concept+opgeslagen`);
     });
+  }
+
+  async function changeOrientation(nextOrientation: "landscape" | "portrait") {
+    if (nextOrientation === orientation || busyRef.current || isPending) return;
+    const templateVersionId = templateVersionIds[nextOrientation];
+    if (!templateVersionId) {
+      setMessage(`Er is geen gepubliceerd ${nextOrientation === "portrait" ? "staand" : "liggend"} prijslijsttemplate beschikbaar.`);
+      setStatus("error");
+      return;
+    }
+    if (mode === "create" || !slideId) {
+      setOrientation(nextOrientation);
+      setPageIndex(0);
+      setMessage(null);
+      setStatus("unsaved");
+      return;
+    }
+
+    busyRef.current = true;
+    setStatus("saving");
+    setMessage(null);
+    const current = historyRef.current;
+    const result = await setMenuStudioOrientation({
+      expectedRevision: current.present.revision,
+      operationId: crypto.randomUUID(),
+      orientation: nextOrientation,
+      slideId,
+      templateVersionId
+    });
+    busyRef.current = false;
+    if (!result.ok) {
+      setMessage(result.message);
+      setStatus("error");
+      return;
+    }
+    setHistory({ ...current, present: result.document });
+    setOrientation(nextOrientation);
+    setPageIndex(0);
+    setStatus("saved");
   }
 
   function publish() {
@@ -858,8 +906,18 @@ export function MenuStudioEditor({
             <div>
               <button aria-label="Uitzoomen" disabled={zoom <= 0.5} onClick={() => setZoom((value) => Math.max(0.5, value - 0.25))} type="button"><ZoomOut aria-hidden="true" /></button>
               <button aria-label="Inzoomen" disabled={zoom >= 2} onClick={() => setZoom((value) => Math.min(2, value + 0.25))} type="button"><ZoomIn aria-hidden="true" /></button>
-              <button aria-pressed={orientation === "landscape"} onClick={() => setOrientation("landscape")} type="button"><Monitor aria-hidden="true" />Liggend</button>
-              <button aria-pressed={orientation === "portrait"} onClick={() => setOrientation("portrait")} type="button"><Smartphone aria-hidden="true" />Staand</button>
+              <button
+                aria-pressed={orientation === "landscape"}
+                disabled={!templateVersionIds.landscape || status === "saving"}
+                onClick={() => void changeOrientation("landscape")}
+                type="button"
+              ><Monitor aria-hidden="true" />Liggend</button>
+              <button
+                aria-pressed={orientation === "portrait"}
+                disabled={!templateVersionIds.portrait || status === "saving"}
+                onClick={() => void changeOrientation("portrait")}
+                type="button"
+              ><Smartphone aria-hidden="true" />Staand</button>
             </div>
           </div>
           <div

@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(27);
+select plan(33);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -118,6 +118,8 @@ select 'created', public.create_menu_studio_draft_v2(
 from public.dynamic_template_versions version
 join public.dynamic_templates template on template.id = version.template_id
 where template.slide_type = 'price_list'
+  and template.orientation = 'landscape'
+  and template.current_published_version_id = version.id
   and version.status = 'published'
 limit 1;
 
@@ -221,6 +223,67 @@ select throws_ok(
   'browser roles cannot bypass the command RPC with a direct slide update'
 );
 
+insert into menu_test_state(name, value)
+select 'oriented', public.set_menu_studio_orientation_v2(
+  (select id from menu_test_state where name = 'slide'),
+  2,
+  'portrait',
+  version.id,
+  '20000000-0000-4000-8000-000000001128'
+)
+from public.dynamic_template_versions version
+join public.dynamic_templates template on template.id = version.template_id
+where template.slide_type = 'price_list'
+  and template.orientation = 'portrait'
+  and template.current_published_version_id = version.id
+  and version.status = 'published'
+limit 1;
+
+select is(
+  (select value ->> 'outcome' from menu_test_state where name = 'oriented'),
+  'applied',
+  'orientation change is applied as an explicit Menu Studio command'
+);
+
+select is(
+  (select orientation from public.dynamic_slides where id = (select id from menu_test_state where name = 'slide')),
+  'portrait',
+  'portrait orientation is persisted on the dynamic slide'
+);
+
+select is(
+  (select template.orientation
+   from public.dynamic_slides slide
+   join public.dynamic_templates template on template.id = slide.template_id
+   where slide.id = (select id from menu_test_state where name = 'slide')),
+  'portrait',
+  'orientation change pins a matching published template'
+);
+
+select is(
+  (select menu_document_revision from public.dynamic_slides where id = (select id from menu_test_state where name = 'slide')),
+  3::bigint,
+  'orientation change increments the MenuDocument revision'
+);
+
+select is(
+  (select (configuration_json ->> 'revision')::bigint from public.dynamic_slides where id = (select id from menu_test_state where name = 'slide')),
+  3::bigint,
+  'orientation change keeps the stored document revision synchronized'
+);
+
+select is(
+  public.set_menu_studio_orientation_v2(
+    (select id from menu_test_state where name = 'slide'),
+    2,
+    'portrait',
+    (select template_version_id from public.dynamic_slides where id = (select id from menu_test_state where name = 'slide')),
+    '20000000-0000-4000-8000-000000001128'
+  ) ->> 'outcome',
+  'already_applied',
+  'orientation command is idempotent for the same operation id'
+);
+
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000001123', true);
 
 select is(
@@ -245,7 +308,7 @@ select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000001122
 
 select is(
   (select count(*) from public.menu_studio_operations),
-  2::bigint,
+  3::bigint,
   'a same-tenant viewer can read the append-only audit trail'
 );
 
@@ -268,7 +331,7 @@ values (
   'published',
   public.publish_menu_studio_document_v2(
     (select id from menu_test_state where name = 'slide'),
-    2,
+    3,
     '20000000-0000-4000-8000-000000001127'
   )
 );
@@ -281,7 +344,7 @@ select is(
 
 select is(
   (select menu_last_published_revision from public.dynamic_slides where id = (select id from menu_test_state where name = 'slide')),
-  2::bigint,
+  3::bigint,
   'published revision is recorded separately from the draft revision'
 );
 
@@ -300,7 +363,7 @@ select is(
 select is(
   public.publish_menu_studio_document_v2(
     (select id from menu_test_state where name = 'slide'),
-    2,
+    3,
     '20000000-0000-4000-8000-000000001127'
   ) ->> 'outcome',
   'already_applied',
