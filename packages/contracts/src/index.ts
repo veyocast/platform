@@ -10,3 +10,4 @@ export * from "./theme-engine";
 export * from "./screen-automation";
 export * from "./sponsor";
 export * from "./sport";
+export * from "./sportlink-slide-blueprints";

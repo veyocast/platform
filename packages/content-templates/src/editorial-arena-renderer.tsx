@@ -386,6 +386,25 @@ function ArenaPage({
     return <ArenaStanding items={page.items} view={view} />;
   }
 
+  if (page.kind === "arrivals") {
+    return (
+      <div className={styles.arenaArrivalGrid} data-cards={page.items.length}>
+        {page.items.map((entry, index) => (
+          <article className={styles.arenaArrivalCard} key={entry.id}>
+            <span>{entry.status
+              .replaceAll("{{club}}", view.clubName)
+              .replaceAll("{{team}}", entry.primary) ||
+              (view.slideType === "sport_visitor_arrivals" ? "Welkom" : "Wedstrijdofficial")}</span>
+            <b>{String(index + 1).padStart(2, "0")}</b>
+            <h2>{entry.primary}</h2>
+            <p>{entry.secondary}</p>
+            <strong>{entry.meta}</strong>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
   if (page.kind === "match") {
     return <ArenaNextMatch item={page.item} view={view} />;
   }

@@ -370,12 +370,14 @@ function slideTypeLabel(value: string) {
     sport_officials: "Scheidsrechtersaanstellingen",
     sport_period_standing: "Periodestand",
     sport_program: "Programma",
+    sport_referee_arrivals: "Aankomst scheidsrechters",
     sport_results: "Uitslagen",
     sport_sponsor: "Teamsponsor",
     sport_standing: "Competitiestand",
     sport_team: "Teamvoorstelling",
     sport_trainings: "Trainingsoverzicht",
-    sport_volunteers: "Vrijwilligers"
+    sport_volunteers: "Vrijwilligers",
+    sport_visitor_arrivals: "Aankomst bezoekende teams"
   };
   return labels[value] ?? value;
 }

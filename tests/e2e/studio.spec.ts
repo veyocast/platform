@@ -15,7 +15,7 @@ test("Studio overview and creation journey use real responsive controls", async 
     page.getByRole("heading", { exact: true, level: 1, name: "Studio" })
   ).toBeVisible();
   await expect(page.getByLabel("Studio-samenvatting")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Nieuw ontwerp" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Nieuwe slide" })).toBeVisible();
   await expect(
     page.getByRole("region", { name: "Studio-ontwerpen" })
   ).toBeVisible();
@@ -27,9 +27,13 @@ test("Studio overview and creation journey use real responsive controls", async 
 
   await expect(async () => {
     if (/\/dashboard\/studio\/new$/.test(page.url())) return;
-    await page.getByRole("link", { name: "Nieuw ontwerp" }).click();
+    await page.getByRole("link", { name: "Nieuwe slide" }).click();
     await expect(page).toHaveURL(/\/dashboard\/studio\/new$/);
   }).toPass({ timeout: 20_000 });
+  await page.locator("article").filter({
+    has: page.getByRole("heading", { name: "Vrij ontwerp" })
+  }).getByRole("link", { name: "Openen" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/studio\/new\?family=free$/);
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Nieuw ontwerp" })
   ).toBeVisible();

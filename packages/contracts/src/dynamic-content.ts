@@ -17,7 +17,9 @@ export const sportDynamicSlideTypes = [
   "sport_activities",
   "sport_trainings",
   "sport_volunteers",
-  "sport_birthdays"
+  "sport_birthdays",
+  "sport_visitor_arrivals",
+  "sport_referee_arrivals"
 ] as const;
 export const dynamicSlideTypes = [
   "menu",
@@ -41,8 +43,10 @@ export const editorialArenaActiveSlideTypes = [
   "sport_next_match",
   "sport_officials",
   "sport_program",
+  "sport_referee_arrivals",
   "sport_results",
-  "sport_standing"
+  "sport_standing",
+  "sport_visitor_arrivals"
 ] as const satisfies readonly (typeof dynamicSlideTypes)[number][];
 
 export const editorialArenaThemeId = "editorial-arena" as const;

@@ -2170,12 +2170,14 @@ export function renderLgLegacyHtml() {
         sport_officials: "Wedstrijdofficials",
         sport_period_standing: "Periodestand",
         sport_program: "Programma van vandaag",
+        sport_referee_arrivals: "Aankomst scheidsrechters",
         sport_results: "Uitslagen",
         sport_sponsor: "Partner van de week",
         sport_standing: "Stand",
         sport_team: "Team",
         sport_trainings: "Trainingen",
-        sport_volunteers: "Vrijwilligers"
+        sport_volunteers: "Vrijwilligers",
+        sport_visitor_arrivals: "Welkom bezoekende teams"
       };
       return titles[slideType] || "Clubinformatie";
     }

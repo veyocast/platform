@@ -93,6 +93,11 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
       <PageHeader
         actions={
           <>
+            {hasCapability(session.capabilities, "tenant.dynamic_slide.read") ? (
+              <Button asChild variant="secondary">
+                <Link href="/dashboard/slides">Datagedreven slides</Link>
+              </Button>
+            ) : null}
             {canManageBrand ? (
               <BrandKitDialog
                 assets={brandResources.assets}
@@ -104,7 +109,7 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
               <Button asChild>
                 <Link href="/dashboard/studio/new">
                   <Plus aria-hidden="true" />
-                  Nieuw ontwerp
+                  Nieuwe slide
                 </Link>
               </Button>
             ) : null}
