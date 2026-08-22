@@ -385,6 +385,92 @@ async function mockEditorialPriceListLegacyApis(page: Page) {
   }));
 }
 
+async function mockMenuStudioPortraitLegacyApis(page: Page) {
+  await page.route("**/api/player/installation", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ bound: true, installationCredential, ok: true })
+  }));
+  await page.route(`**${legacyImagePath}`, (route) => route.fulfill({
+    contentType: "image/svg+xml",
+    body: legacyImageSvg
+  }));
+  await page.route("**/api/player/manifest?legacy=*", (route) => {
+    const envelope = legacyEnvelope({
+      bytes: legacyImageBytes,
+      checksumSha256: legacyImageChecksum,
+      id: "menu-studio-portrait",
+      kind: "image",
+      mimeType: "image/svg+xml",
+      title: "Menu Studio portrait",
+      url: legacyImagePath
+    });
+    Object.assign(envelope.manifest.items[0]!, {
+      dynamicTemplate: {
+        assets: {},
+        data: {
+          menuDocument: {
+            schemaVersion: "menu-document.v2",
+            title: "Nieuw menu",
+            pages: [{
+              id: "page-portrait",
+              order: 0,
+              blocks: [{
+                id: "category-hardloper",
+                layout: {
+                  landscape: { h: 320, rotation: 0, w: 800, x: 1010, y: 248 },
+                  portrait: { h: 420, rotation: 0, w: 936, x: 72, y: 348 }
+                },
+                labelOverride: "Hardloper, frisdrank",
+                order: 0,
+                productNodes: [{
+                  id: "product-aa-drink",
+                  kind: "product",
+                  order: 0,
+                  snapshotFallback: {
+                    available: true,
+                    name: "AA Drink",
+                    price: { amountMinor: 250, currency: "EUR" },
+                    variantLabel: "AA Drink · Naar keuze"
+                  }
+                }],
+                source: { sourceName: "Hardloper, frisdrank" },
+                type: "category"
+              }]
+            }]
+          },
+          themePresentation: {
+            resolvedMode: { mode: "dark" },
+            selection: {
+              accent: "#30bced",
+              ref: { catalog: "v2", id: "obsidian", version: "1.0.0" }
+            }
+          },
+          type: "price_list"
+        },
+        orientation: "portrait",
+        schemaVersion: 1,
+        slideType: "price_list",
+        snapshotHash: "d".repeat(64),
+        snapshotId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        templateSlug: "editorial-arena-prijslijst-dark-portrait",
+        templateVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+      }
+    });
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(envelope)
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ automation: null, ok: true })
+  }));
+  await page.route("**/api/player/commands", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ commands: [], ok: true, serverTime: new Date().toISOString() })
+  }));
+}
+
 test("LG Legacy Player gebruikt een statische shell en lokale afbeelding", async ({
   page
 }) => {
@@ -663,6 +749,80 @@ test("LG Legacy toont de prijslijst één-op-één in het portraitcanvas", async
   if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
     await page.screenshot({
       path: "docs/screenshots/s103-editorial-arena-price-list-lg-legacy.png"
+    });
+  }
+  await context.close();
+});
+
+test("LG Legacy toont Menu Studio v2 portrait als één brede bovenuitgelijnde kolom", async ({
+  browser
+}) => {
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+    viewport: { height: 1920, width: 1080 }
+  });
+  const page = await context.newPage();
+  await mockMenuStudioPortraitLegacyApis(page);
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem("veyocast.player.installationCredential", credential);
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+  const slide = page.locator(".dynamic-template.menu-studio-v2.portrait");
+  await expect(slide).toBeVisible();
+  await expect(slide.locator(".editorial-heading p")).toHaveText("Menu");
+  await expect(slide.getByRole("heading", { name: "Nieuw menu", exact: true }))
+    .toHaveCount(1);
+  await expect(slide.locator(".legacy-price-column")).toHaveCount(1);
+  await expect(slide.locator(".legacy-price-category"))
+    .toHaveText("Hardloper, frisdrank");
+  await expect(slide.locator(".legacy-price-copy strong")).toHaveText("AA Drink");
+  await expect(slide.locator(".legacy-price-product > b")).toHaveText("€ 2,50");
+  await expect(slide.locator("footer > span").first()).toHaveText("Prijslijst");
+  await expect(slide.locator(".dynamic-page-number")).toHaveText("1 / 1");
+
+  const geometry = await slide.evaluate((element) => {
+    const grid = element.querySelector<HTMLElement>(".legacy-price-grid")!;
+    const column = element.querySelector<HTMLElement>(".legacy-price-column")!;
+    const category = element.querySelector<HTMLElement>(".legacy-price-category")!;
+    const footer = element.querySelector<HTMLElement>("footer")!;
+    const header = element.querySelector<HTMLElement>("header")!;
+    const product = element.querySelector<HTMLElement>(".legacy-price-product")!;
+    const title = element.querySelector<HTMLElement>(".editorial-heading h1")!;
+    const productName = element.querySelector<HTMLElement>(".legacy-price-copy strong")!;
+    return {
+      categoryBottom: category.getBoundingClientRect().bottom,
+      categoryFontSize: getComputedStyle(category).fontSize,
+      column: column.getBoundingClientRect().toJSON(),
+      gridColumns: getComputedStyle(grid).gridTemplateColumns,
+      footerFontSize: getComputedStyle(footer).fontSize,
+      headerBorderColor: getComputedStyle(header).borderBottomColor,
+      productFontSize: getComputedStyle(productName).fontSize,
+      productTop: product.getBoundingClientRect().top,
+      titleFontSize: getComputedStyle(title).fontSize
+    };
+  });
+  expect(geometry.gridColumns).toBe("936px");
+  expect(geometry.column).toEqual(expect.objectContaining({ height: 1388, width: 936, x: 72 }));
+  expect(geometry.productTop).toBe(geometry.categoryBottom + 10);
+  expect(geometry.categoryFontSize).toBe("34px");
+  expect(geometry.footerFontSize).toBe("20px");
+  expect(geometry.headerBorderColor).toBe("rgb(48, 188, 237)");
+  expect(geometry.productFontSize).toBe("26px");
+  expect(geometry.titleFontSize).toBe("72px");
+
+  if (process.env.CAPTURE_MENU_STUDIO_LG === "1") {
+    await page.screenshot({
+      path: "docs/screenshots/s118-menu-studio-lg-legacy-portrait.png"
     });
   }
   await context.close();
