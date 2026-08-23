@@ -8,6 +8,13 @@ import {
 } from "../src/sportlink-slide-wizard";
 
 const templateVersionId = "00000000-0000-4000-8000-000000000001";
+const themeSelection = {
+  accent: null,
+  categoryOverrides: [],
+  modePolicy: { kind: "fixed" as const, mode: "light" as const },
+  ref: { catalog: "v2" as const, id: "editorial" as const, version: "1.0.0" },
+  support: null
+};
 const team = (id: string) => ({
   context: {
     competitionId: "competition-1", competitionSelectionMode: "pinned" as const,
@@ -31,7 +38,8 @@ describe("Sportlink bulk wizard", () => {
           sport_program: templateVersionId,
           sport_results: templateVersionId,
           sport_standing: templateVersionId
-        }
+        },
+        themeSelection
       });
       expect(result).toHaveLength(total);
       if (result.length > 1) {
@@ -45,7 +53,8 @@ describe("Sportlink bulk wizard", () => {
     const drafts = buildSportlinkSlideDrafts({
       blueprintKeys: ["sportlink.pool_standings"], orientation: "landscape",
       teams: [team("a"), team("b")],
-      templateVersionIdBySlideType: { sport_standing: templateVersionId }
+      templateVersionIdBySlideType: { sport_standing: templateVersionId },
+      themeSelection
     });
     const copied = copySportlinkContextToTeam(drafts, 0, "b");
     copied[0]!.context.poolId = "later-aangepast";

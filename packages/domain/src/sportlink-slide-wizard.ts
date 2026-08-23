@@ -3,7 +3,8 @@ import {
   type SportlinkArrivalConfig,
   type SportlinkSlideBlueprintKey,
   type SportlinkSlideContext,
-  type SportlinkSlideDraft
+  type SportlinkSlideDraft,
+  type ThemeSelection
 } from "@veyocast/contracts";
 
 export type SportlinkWizardTeam = {
@@ -16,6 +17,7 @@ export function buildSportlinkSlideDrafts(input: {
   orientation: "landscape" | "portrait";
   templateVersionIdBySlideType: Record<string, string>;
   teams: SportlinkWizardTeam[];
+  themeSelection: ThemeSelection;
 }): SportlinkSlideDraft[] {
   return input.teams.flatMap((team) => input.blueprintKeys.map((blueprintKey) => {
     const blueprint = sportlinkSlideBlueprints[blueprintKey];
@@ -26,9 +28,17 @@ export function buildSportlinkSlideDrafts(input: {
     return {
       blueprintKey,
       context: { ...team.context },
+      display: {
+        columns: input.orientation === "portrait" ? "two" : "two",
+        showDressingRoom: false,
+        showField: true,
+        showHomeAway: true,
+        showReferee: false
+      },
       name: `${team.name} · ${blueprint.label}`.slice(0, 120),
       orientation: input.orientation,
       templateVersionId,
+      themeSelection: input.themeSelection,
       title: blueprint.label
     };
   }));

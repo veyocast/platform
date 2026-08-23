@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { themeSelectionSchema } from "./theme-engine";
+
 export const sportlinkSlideBlueprintKeys = [
   "sportlink.club_schedule_today",
   "sportlink.club_schedule_next_7_days",
@@ -60,12 +62,28 @@ export const sportlinkArrivalConfigSchema = z.object({
   welcomeText: z.string().trim().min(1).max(80).default("Welkom bij {{club}}")
 }).strict();
 
+export const sportlinkDisplayConfigSchema = z.object({
+  columns: z.enum(["one", "two"]).default("two"),
+  showDressingRoom: z.boolean().default(false),
+  showField: z.boolean().default(true),
+  showHomeAway: z.boolean().default(true),
+  showReferee: z.boolean().default(false)
+}).strict();
+
 export const sportlinkSlideDraftSchema = z.object({
   blueprintKey: z.enum(sportlinkSlideBlueprintKeys),
   context: sportlinkSlideContextSchema,
+  display: sportlinkDisplayConfigSchema.default({
+    columns: "two",
+    showDressingRoom: false,
+    showField: true,
+    showHomeAway: true,
+    showReferee: false
+  }),
   name: z.string().trim().min(2).max(120),
   orientation: z.enum(["landscape", "portrait"]),
   templateVersionId: z.string().uuid(),
+  themeSelection: themeSelectionSchema,
   title: z.string().trim().min(1).max(160),
   arrival: sportlinkArrivalConfigSchema.optional()
 }).strict();
@@ -78,6 +96,7 @@ export const createSportlinkSlideBatchSchema = z.object({
 
 export type SportlinkSlideContext = z.infer<typeof sportlinkSlideContextSchema>;
 export type SportlinkArrivalConfig = z.infer<typeof sportlinkArrivalConfigSchema>;
+export type SportlinkDisplayConfig = z.infer<typeof sportlinkDisplayConfigSchema>;
 export type SportlinkArrivalMotionPreset =
   (typeof sportlinkArrivalMotionPresets)[number];
 export type SportlinkSlideDraft = z.infer<typeof sportlinkSlideDraftSchema>;

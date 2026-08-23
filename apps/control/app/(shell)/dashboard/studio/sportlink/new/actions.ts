@@ -18,7 +18,7 @@ export async function createSportlinkSlideBatch(formData: FormData) {
   if (!supabase || !session.tenantId) {
     redirect("/dashboard/studio/sportlink/new?fout=De+veilige+verbinding+is+niet+beschikbaar.");
   }
-  const { data, error } = await supabase.rpc("create_sportlink_slide_batch_v1", {
+  const { data, error } = await supabase.rpc("create_sportlink_slide_batch_v2", {
     p_data_source_id: parsed.data.dataSourceId,
     p_drafts: parsed.data.drafts,
     p_idempotency_key: parsed.data.idempotencyKey,
