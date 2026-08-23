@@ -124,7 +124,7 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
   expect(browserErrors).toEqual([]);
 });
 
-test("behoudt het vaste canvas in een extra hoge portraitviewport", async ({
+test("vult een extra hoge portraitviewport met het vaste canvas", async ({
   page
 }) => {
   await page.setViewportSize({ height: 2048, width: 945 });
@@ -133,11 +133,12 @@ test("behoudt het vaste canvas in een extra hoge portraitviewport", async ({
 
   const slide = page.getByLabel("Dynamisch voetbalnieuws");
   await expect(slide).toBeVisible();
+  await expect(slide).toHaveAttribute("data-viewport-fit", "cover");
   const box = await slide.boundingBox();
   expect(box).not.toBeNull();
-  expect(box!.width).toBeCloseTo(945, 0);
-  expect(box!.height).toBeCloseTo(1680, 0);
-  expect(box!.x).toBeCloseTo(0, 0);
-  expect(box!.y).toBeCloseTo(184, 0);
+  expect(box!.x).toBeLessThanOrEqual(0);
+  expect(box!.y).toBeLessThanOrEqual(0);
+  expect(box!.x + box!.width).toBeGreaterThanOrEqual(945);
+  expect(box!.y + box!.height).toBeGreaterThanOrEqual(2048);
   expect(box!.width / box!.height).toBeCloseTo(1080 / 1920, 3);
 });

@@ -5,6 +5,40 @@ export const editorialArenaCanvas = {
   portrait: { height: 1920, width: 1080 }
 } as const;
 
+export type EditorialArenaViewportFit = {
+  insetX: number;
+  insetY: number;
+  mode: "contain" | "cover";
+  scale: number;
+};
+
+export function resolveEditorialArenaViewportFit(
+  viewport: { height: number; width: number },
+  orientation: PlayerDynamicTemplatePayload["orientation"]
+): EditorialArenaViewportFit {
+  const canvas = editorialArenaCanvas[orientation];
+  if (viewport.width <= 0 || viewport.height <= 0) {
+    return { insetX: 0, insetY: 0, mode: "contain", scale: 0 };
+  }
+  const orientationMatches = orientation === "portrait"
+    ? viewport.height >= viewport.width
+    : viewport.width >= viewport.height;
+  const mode = orientationMatches ? "cover" : "contain";
+  const scale = mode === "cover"
+    ? Math.max(viewport.width / canvas.width, viewport.height / canvas.height)
+    : Math.min(viewport.width / canvas.width, viewport.height / canvas.height);
+  return {
+    insetX: mode === "cover"
+      ? Math.max(0, (canvas.width - viewport.width / scale) / 2)
+      : 0,
+    insetY: mode === "cover"
+      ? Math.max(0, (canvas.height - viewport.height / scale) / 2)
+      : 0,
+    mode,
+    scale
+  };
+}
+
 export const editorialArenaFrameMetrics = {
   landscape: {
     contentBottom: 92,

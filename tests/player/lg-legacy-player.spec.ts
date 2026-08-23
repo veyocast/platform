@@ -627,6 +627,7 @@ test("LG Legacy schaalt ieder logisch portraitcanvas binnen een landscapeviewpor
   await expect(slide).toBeVisible();
   await expect(slide).toHaveAttribute("data-canvas-width", "1080");
   await expect(slide).toHaveAttribute("data-canvas-height", "1920");
+  await expect(slide).toHaveAttribute("data-viewport-fit", "contain");
   const slideBox = await slide.boundingBox();
   expect(slideBox).not.toBeNull();
   expect(slideBox!.x).toBeCloseTo(656.25, 1);
@@ -684,6 +685,7 @@ test("LG Legacy toont de stand als één Editorial Arena-canvas met begrensde lo
 
   const slide = page.locator(".dynamic-template.editorial-arena");
   await expect(slide).toBeVisible();
+  await expect(slide).toHaveAttribute("data-viewport-fit", "cover");
   await expect(slide.getByRole("heading", { name: "Stand", exact: true }))
     .toHaveCount(1);
   await expect(slide.locator(".legacy-standing-card")).toHaveCount(1);

@@ -3071,16 +3071,23 @@ export function renderLgLegacyHtml() {
       var logicalHeight = orientation === "portrait" ? 1920 : 1080;
       var viewportWidth = mediaRoot.clientWidth || window.innerWidth || logicalWidth;
       var viewportHeight = mediaRoot.clientHeight || window.innerHeight || logicalHeight;
-      var scale = orientation === "portrait" && viewportHeight >= viewportWidth
+      var orientationMatches = orientation === "portrait"
+        ? viewportHeight >= viewportWidth
+        : viewportWidth >= viewportHeight;
+      var scale = orientationMatches
         ? Math.max(viewportWidth / logicalWidth, viewportHeight / logicalHeight)
         : Math.min(viewportWidth / logicalWidth, viewportHeight / logicalHeight);
       if (!isFinite(scale) || scale <= 0) scale = 1;
-      var insetX = orientation === "portrait" && viewportHeight >= viewportWidth
+      var insetX = orientationMatches
         ? Math.max(0, (logicalWidth - viewportWidth / scale) / 2)
+        : 0;
+      var insetY = orientationMatches
+        ? Math.max(0, (logicalHeight - viewportHeight / scale) / 2)
         : 0;
       root.setAttribute("data-canvas-height", String(logicalHeight));
       root.setAttribute("data-canvas-width", String(logicalWidth));
       root.setAttribute("data-template-orientation", orientation);
+      root.setAttribute("data-viewport-fit", orientationMatches ? "cover" : "contain");
       root.style.top = "50%";
       root.style.right = "auto";
       root.style.bottom = "auto";
@@ -3088,6 +3095,7 @@ export function renderLgLegacyHtml() {
       root.style.width = String(logicalWidth) + "px";
       root.style.height = String(logicalHeight) + "px";
       root.style.setProperty("--viewport-inset-x", String(insetX) + "px");
+      root.style.setProperty("--viewport-inset-y", String(insetY) + "px");
       root.style.transform = "translate(-50%, -50%) scale(" + String(scale) + ")";
       root.style.transformOrigin = "center center";
     }

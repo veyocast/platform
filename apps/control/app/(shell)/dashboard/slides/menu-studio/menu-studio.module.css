@@ -510,7 +510,8 @@
 .stage {
   position: relative;
   width: 100%;
-  min-height: 31rem;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 14%);
   border-radius: var(--vc-radius-lg);
@@ -518,7 +519,10 @@
 }
 
 .stage[data-orientation="portrait"] {
-  min-height: 42rem;
+  width: min(100%, 26rem);
+  min-height: 0;
+  aspect-ratio: 9 / 16;
+  justify-self: center;
 }
 
 .stage[data-drop-active="true"] {
@@ -1488,7 +1492,7 @@
 
   .stage,
   .stage[data-orientation="portrait"] {
-    min-height: calc(100dvh - 20rem);
+    min-height: 0;
   }
 
   .saveStatus {

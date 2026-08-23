@@ -101,8 +101,14 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     await expect(page.getByRole("group", { name: "Kolommen in staande modus" })).toBeVisible();
     await page.getByRole("button", { name: "2 kolommen" }).click();
     await expect(scene.locator('[data-column-count="2"]')).toBeVisible();
-    const sceneBox = await scene.boundingBox();
+    const [sceneBox, portraitStageBox] = await Promise.all([
+      scene.boundingBox(),
+      canvasDropTarget.boundingBox()
+    ]);
     expect(sceneBox && sceneBox.width / sceneBox.height).toBeCloseTo(9 / 16, 2);
+    expect(portraitStageBox && portraitStageBox.width / portraitStageBox.height).toBeCloseTo(9 / 16, 2);
+    expect(Math.abs((sceneBox?.height ?? 0) - (portraitStageBox?.height ?? 0))).toBeLessThan(4);
+    expect(Math.abs((sceneBox?.width ?? 0) - (portraitStageBox?.width ?? 0))).toBeLessThan(4);
     await page.getByRole("button", { name: "obsidian" }).click();
     await expect(scene).toHaveAttribute("data-theme-id", "obsidian");
     await expectNoSeriousAxeViolations(page);
