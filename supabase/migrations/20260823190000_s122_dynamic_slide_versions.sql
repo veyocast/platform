@@ -187,6 +187,17 @@ alter table public.dynamic_slide_snapshots
   references public.dynamic_slide_versions(dynamic_slide_id, id)
   on delete restrict;
 
+-- Snapshot identity is scoped to an immutable design version. The content
+-- hash itself stays purely content-addressed so identical output can still
+-- reuse the same generated fallback asset across logical slides.
+alter table public.dynamic_slide_snapshots
+  drop constraint dynamic_slide_snapshots_dynamic_slide_id_source_revision_ha_key,
+  add constraint dynamic_slide_snapshots_slide_version_content_key
+  unique (
+    dynamic_slide_id, dynamic_slide_version_id, source_revision_hash,
+    template_version_id
+  );
+
 create index dynamic_slide_snapshots_version_idx
   on public.dynamic_slide_snapshots(
     tenant_id, dynamic_slide_version_id, created_at desc
@@ -692,23 +703,9 @@ stable
 security definer
 set search_path = ''
 as $$
-  select encode(extensions.digest(pg_catalog.convert_to(
-    private.dynamic_snapshot_content_hash_before_s122_versions(
-      p_slide, p_snapshot_data
-    ) || ':' || coalesce(
-      (
-        select version.id::text
-        from public.dynamic_slide_versions version
-        where version.dynamic_slide_id = p_slide.id
-          and version.id = case
-            when version.status = 'publishing'
-              then p_slide.active_draft_version_id
-            else p_slide.current_published_version_id
-          end
-        limit 1
-      ),
-      p_slide.id::text
-    ), 'UTF8'), 'sha256'), 'hex')
+  select private.dynamic_snapshot_content_hash_before_s122_versions(
+    p_slide, p_snapshot_data
+  )
 $$;
 
 revoke all on function private.dynamic_snapshot_content_hash_v1(
@@ -732,6 +729,7 @@ declare
   snapshot_data jsonb;
   content_hash text;
   new_snapshot_id uuid;
+  runtime_version_id uuid;
   queued_count integer := 0;
 begin
   for slide_record in
@@ -740,7 +738,14 @@ begin
       and slide.data_source_id = p_data_source_id
       and slide.selection_mode = 'latest'
       and slide.status <> 'archived'
-      and slide.current_published_version_id is not null
+      and (
+        slide.current_published_version_id is not null
+        or exists (
+          select 1 from public.dynamic_slide_versions publishing
+          where publishing.id = slide.active_draft_version_id
+            and publishing.status = 'publishing'
+        )
+      )
       and not exists (
         select 1 from public.dynamic_slide_versions draft
         where draft.id = slide.active_draft_version_id
@@ -749,6 +754,13 @@ begin
       and (p_slide_types is null or slide.slide_type = any(p_slide_types))
     order by slide.id
   loop
+    select case
+      when active.status = 'publishing' then slide_record.active_draft_version_id
+      else slide_record.current_published_version_id
+    end into runtime_version_id
+    from (select 1) singleton
+    left join public.dynamic_slide_versions active
+      on active.id = slide_record.active_draft_version_id;
     snapshot_data := private.build_dynamic_snapshot_data(slide_record);
     content_hash := private.dynamic_snapshot_content_hash_v1(slide_record, snapshot_data);
     new_snapshot_id := null;
@@ -756,7 +768,7 @@ begin
       select 1 from public.dynamic_slide_snapshots current_snapshot
       where current_snapshot.id = slide_record.current_snapshot_id
         and current_snapshot.dynamic_slide_id = slide_record.id
-        and current_snapshot.dynamic_slide_version_id = slide_record.current_published_version_id
+        and current_snapshot.dynamic_slide_version_id = runtime_version_id
         and current_snapshot.template_version_id = slide_record.template_version_id
         and private.dynamic_snapshot_content_hash_v1(
           slide_record, current_snapshot.snapshot_data_json
@@ -768,7 +780,10 @@ begin
     ) values (
       slide_record.tenant_id, slide_record.id, slide_record.template_version_id,
       slide_record.data_source_id, content_hash, snapshot_data
-    ) on conflict (dynamic_slide_id, source_revision_hash, template_version_id)
+    ) on conflict (
+      dynamic_slide_id, dynamic_slide_version_id, source_revision_hash,
+      template_version_id
+    )
       do nothing returning id into new_snapshot_id;
     if new_snapshot_id is not null then
       insert into public.dynamic_render_jobs(tenant_id, snapshot_id)
