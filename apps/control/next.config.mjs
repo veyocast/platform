@@ -7,7 +7,7 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        destination: "/dashboard/slides/menu-studio/new",
+        destination: "/dashboard/studio/new",
         permanent: false,
         source: "/dashboard/slides/new"
       }

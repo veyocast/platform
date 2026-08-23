@@ -14,6 +14,7 @@ import type { PlayerDynamicTemplatePayload } from "@veyocast/contracts";
 import {
   createDynamicTemplateView,
   dynamicTemplatePageDurationMs,
+  resolveWelcomeMotionPreset,
   type DynamicTemplateListItem,
   type DynamicTemplatePage,
   type DynamicTemplatePriceEntry,
@@ -206,6 +207,7 @@ export function EditorialArenaRenderer({
               <ArenaPage
                 key={`${view.snapshotId}-${pageIndex}`}
                 page={page}
+                pageIndex={pageIndex}
                 view={view}
               />
               {view.emptyState && pageIsEmpty(page) ? (
@@ -295,9 +297,11 @@ function VerticalSlideIndex({
 
 function ArenaPage({
   page,
+  pageIndex,
   view
 }: {
   page: DynamicTemplatePage;
+  pageIndex: number;
   view: DynamicTemplateView;
 }) {
   if (page.kind === "menu-v2") return null;
@@ -384,6 +388,39 @@ function ArenaPage({
 
   if (page.kind === "standing") {
     return <ArenaStanding items={page.items} view={view} />;
+  }
+
+  if (page.kind === "arrivals") {
+    const pageSize = Math.max(1, ...view.pages.map((candidate) =>
+      candidate.kind === "arrivals" ? candidate.items.length : 0));
+    return (
+      <div className={styles.arenaArrivalGrid} data-cards={page.items.length}>
+        {page.items.map((entry, index) => (
+          <article
+            className={styles.arenaArrivalCard}
+            data-motion={view.slideType === "sport_visitor_arrivals"
+              ? resolveWelcomeMotionPreset(
+                view.arrivalMotionPreset,
+                pageIndex,
+                index,
+                pageSize
+              )
+              : undefined}
+            key={entry.id}
+            style={{ "--arrival-delay": `${index * 110}ms` } as CSSProperties}
+          >
+            <span>{entry.status
+              .replaceAll("{{club}}", view.clubName)
+              .replaceAll("{{team}}", entry.primary) ||
+              (view.slideType === "sport_visitor_arrivals" ? "Welkom" : "Wedstrijdofficial")}</span>
+            <b>{String(index + 1).padStart(2, "0")}</b>
+            <h2>{entry.primary}</h2>
+            <p>{entry.secondary}</p>
+            <strong>{entry.meta}</strong>
+          </article>
+        ))}
+      </div>
+    );
   }
 
   if (page.kind === "match") {

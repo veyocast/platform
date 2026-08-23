@@ -8,6 +8,7 @@ import {
   type MenuDocumentV2,
   type PlayerDynamicTemplatePayload,
   type SelectableThemeId,
+  type SportlinkArrivalMotionPreset,
   type ThemePresentationSnapshot
 } from "@veyocast/contracts";
 
@@ -131,10 +132,12 @@ export type DynamicTemplatePage =
       kind: "match";
     }
   | { items: DynamicTemplateStandingItem[]; kind: "standing" }
+  | { items: DynamicTemplateListItem[]; kind: "arrivals" }
   | { items: DynamicTemplateListItem[]; kind: "sport-list" };
 
 export type DynamicTemplateView = {
   accentColor: string;
+  arrivalMotionPreset?: SportlinkArrivalMotionPreset;
   clubLogoUrl: string;
   clubName: string;
   emptyState: string;
@@ -181,12 +184,14 @@ const dynamicSlideTypes = new Set<PlayerDynamicTemplatePayload["slideType"]>([
   "sport_officials",
   "sport_period_standing",
   "sport_program",
+  "sport_referee_arrivals",
   "sport_results",
   "sport_sponsor",
   "sport_standing",
   "sport_team",
   "sport_trainings",
-  "sport_volunteers"
+  "sport_volunteers",
+  "sport_visitor_arrivals"
 ]);
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -462,6 +467,44 @@ function createDynamicTemplateViewInternal(
     };
   }
 
+  if (["sport_visitor_arrivals", "sport_referee_arrivals"].includes(payload.slideType)) {
+    const arrivalConfig = readRecord(sport?.arrivalConfig);
+    const cardsPerPage = safeInteger(arrivalConfig?.cardCount, 1, 4, 4);
+    const pageDurationSeconds = safeInteger(sport?.pageDurationSeconds, 5, 120, 12);
+    return {
+      accentColor: themeTokens.accent,
+      arrivalMotionPreset: safeArrivalMotionPreset(arrivalConfig?.motionPreset),
+      clubLogoUrl,
+      clubName,
+      emptyState: items.length ? "" : safeText(
+        arrivalConfig?.placeholderText,
+        payload.slideType === "sport_visitor_arrivals"
+          ? "Er worden nu geen teams verwacht."
+          : "Er worden nu geen scheidsrechters verwacht."
+      ),
+      orientation: payload.orientation,
+      pageDurationMs: pageDurationSeconds * 1_000,
+      pages: paginate(items, cardsPerPage).map((page) => ({
+        items: page,
+        kind: "arrivals" as const
+      })),
+      newsVariant: editorial.newsVariant,
+      pricePhotoMode: editorial.pricePhotoMode,
+      priceCategoryPhotoModes: {},
+      providerLogoUrl: "",
+      slideType: payload.slideType,
+      snapshotId: payload.snapshotId,
+      sourceLabel: payload.slideType === "sport_visitor_arrivals"
+        ? "Welkom op ons sportpark"
+        : "Ontvangst wedstrijdofficials",
+      templateStyle: "default",
+      theme,
+      ...themeIdentity,
+      themeTokens,
+      title
+    };
+  }
+
   const perPage = ["sport_program", "sport_results"].includes(
     payload.slideType
   ) ? 20 : payload.orientation === "portrait" ? 6 : 8;
@@ -488,6 +531,34 @@ function createDynamicTemplateViewInternal(
     themeTokens,
     title
   };
+}
+
+export const welcomeMotionPresets = [
+  "aurora-rise",
+  "spotlight-bloom",
+  "kinetic-split",
+  "prism-swipe",
+  "grand-flip"
+] as const;
+
+export function resolveWelcomeMotionPreset(
+  configured: SportlinkArrivalMotionPreset | undefined,
+  pageIndex: number,
+  itemIndex: number,
+  pageSize: number
+) {
+  if (configured && configured !== "auto") return configured;
+  const absoluteIndex = Math.max(0, pageIndex) * Math.max(1, pageSize) +
+    Math.max(0, itemIndex);
+  return welcomeMotionPresets[absoluteIndex % welcomeMotionPresets.length]!;
+}
+
+function safeArrivalMotionPreset(value: unknown): SportlinkArrivalMotionPreset {
+  return value === "aurora-rise" || value === "spotlight-bloom" ||
+    value === "kinetic-split" || value === "prism-swipe" ||
+    value === "grand-flip"
+    ? value
+    : "auto";
 }
 
 function toPriceListSection(
@@ -774,6 +845,16 @@ export function dynamicTemplateMinimumPlaybackMs(value: unknown) {
   return view
     ? Math.max(5_000, view.pages.length * (view.pageDurationMs ?? 5_000))
     : 0;
+}
+
+export function dynamicTemplateShouldSkip(value: unknown) {
+  const payload = parseDynamicTemplatePayload(value);
+  if (!payload || !["sport_visitor_arrivals", "sport_referee_arrivals"].includes(payload.slideType)) {
+    return false;
+  }
+  const sport = readRecord(payload.data.sport);
+  const arrivalConfig = readRecord(sport?.arrivalConfig);
+  return arrivalConfig?.emptyBehavior === "skip" && readArray(sport?.items).length === 0;
 }
 
 function toMenuItem(
@@ -1147,14 +1228,18 @@ function sportTitle(slideType: PlayerDynamicTemplatePayload["slideType"]) {
     sport_officials: "Wedstrijdofficials",
     sport_period_standing: "Periodestand",
     sport_program: "Programma van vandaag",
+    sport_referee_arrivals: "Aankomst scheidsrechters",
     sport_results: "Uitslagen",
     sport_sponsor: "Partner van de week",
-    sport_standing: "Stand"
+    sport_standing: "Stand",
+    sport_visitor_arrivals: "Welkom bezoekende teams"
   };
   return titles[slideType] ?? "Clubnieuws";
 }
 
 function sportLabel(slideType: PlayerDynamicTemplatePayload["slideType"]) {
+  if (slideType === "sport_visitor_arrivals") return "Welkom op ons sportpark";
+  if (slideType === "sport_referee_arrivals") return "Ontvangst wedstrijdofficials";
   if (slideType.includes("standing")) return "Competitie";
   if (slideType === "sport_results") return "Laatste uitslagen";
   if (slideType === "sport_cancellations") return "Clubmelding";

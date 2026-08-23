@@ -5,3 +5,4 @@ export * from "./team-policy";
 export * from "./playlist-readiness";
 export * from "./release-operations";
 export * from "./sponsor";
+export * from "./sportlink-slide-wizard";

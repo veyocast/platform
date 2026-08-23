@@ -3,7 +3,19 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(69);
+select plan(71);
+
+select ok(
+  (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class
+   where oid = 'public.sportlink_slide_batches'::regclass),
+  'Sportlink slide batches force tenant RLS'
+);
+
+select ok(
+  not has_table_privilege('anon', 'public.sportlink_slide_batches', 'SELECT')
+  and not has_table_privilege('authenticated', 'public.sportlink_slide_batches', 'INSERT'),
+  'browser roles cannot bypass the guarded Sportlink batch command'
+);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,

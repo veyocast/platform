@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   collectSportlinkPoolContexts,
   collectSportlinkPoolIds,
+  enrichSportlinkPoolMatches,
   runSportlinkSyncOnce,
   SupabaseSportlinkSyncBackend
 } from "../src/sportlink-sync-runner";
@@ -44,6 +45,25 @@ describe("Sportlink sync worker", () => {
       poolExternalId: "701",
       poolName: "4C"
     }]);
+  });
+
+  it("marks every pool fixture with the requested pool context", () => {
+    const context = collectSportlinkPoolContexts([{
+      competitie: "Vierde klasse", poule: "4C", poulecode: 701, teamcode: 10
+    }], [])[0]!;
+    const match = {
+      awayTeam: { externalId: "away", logoUrl: null, name: "Uit", score: null },
+      cancellationReason: null, competition: null,
+      dressingRooms: { away: null, home: null, official: null }, externalId: "match-1",
+      homeTeam: { externalId: "home", logoUrl: null, name: "Thuis", score: null },
+      isHomeMatch: false, officials: [], pool: null,
+      startsAt: "2026-08-23T12:00:00.000Z", status: "scheduled" as const,
+      venue: { city: null, field: null, name: null, routeUrl: null }
+    };
+    expect(enrichSportlinkPoolMatches([match], context)[0]).toMatchObject({
+      pool: { externalId: "701", name: "4C" },
+      competition: { name: "Vierde klasse" }
+    });
   });
 
   it("claims a command once and reports missing encryption configuration safely", async () => {

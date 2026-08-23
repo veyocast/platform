@@ -5,7 +5,10 @@ import type {
 } from "@veyocast/contracts";
 
 import { localStorageDeviceTokenKey } from "./player-storage";
-import { dynamicTemplateMinimumPlaybackMs } from "./dynamic-template-view";
+import {
+  dynamicTemplateMinimumPlaybackMs,
+  dynamicTemplateShouldSkip
+} from "./dynamic-template-view";
 
 export const demoOnlineDeviceToken = "demo-online";
 export { localStorageDeviceTokenKey };
@@ -367,6 +370,9 @@ export function isPlayerManifestItemPlayable(
 ) {
   const presentation = resolvePlayerItemPresentation(item);
   if (!presentation.enabled) return false;
+  if (item.dynamicTemplate && dynamicTemplateShouldSkip(item.dynamicTemplate)) {
+    return false;
+  }
   if (presentation.visibleFrom !== null && at < presentation.visibleFrom) {
     return false;
   }

@@ -26,8 +26,8 @@ export default async function SlidesPage({ searchParams }: PageProps) {
   return (
     <>
       <PageHeader
-        actions={canWrite ? <Button asChild><Link href="/dashboard/slides/menu-studio/new"><WandSparkles aria-hidden="true" />Menu Studio openen</Link></Button> : null}
-        description="Beheer bestaande dynamische slides en bouw nieuwe menuschermen in Menu Studio. Iedere publicatie blijft een immutable momentopname."
+        actions={canWrite ? <Button asChild><Link href="/dashboard/studio/new"><WandSparkles aria-hidden="true" />Nieuwe slide</Link></Button> : null}
+        description="Beheer alle datagedreven Studio-slides. Iedere publicatie blijft een immutable momentopname."
         eyebrow={session.tenant}
         title="Slides"
       />
@@ -80,8 +80,8 @@ export default async function SlidesPage({ searchParams }: PageProps) {
           <div className={`empty-state ${styles.emptyState}`}>
             <Layers3 aria-hidden="true" />
             <h2>Nog geen dynamische slides</h2>
-            <p>Koppel een gecontroleerde productbron en bouw daarna je eerste menu in Menu Studio.</p>
-            {canWrite ? <Button asChild><Link href="/dashboard/slides/menu-studio/new">Eerste menu maken</Link></Button> : null}
+            <p>Kies in Studio een vrije slide, menu of Sportlink-slide.</p>
+            {canWrite ? <Button asChild><Link href="/dashboard/studio/new">Eerste slide maken</Link></Button> : null}
           </div>
         )}
       </section>

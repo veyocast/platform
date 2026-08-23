@@ -168,6 +168,11 @@ export class SupabaseSportlinkSyncBackend {
     if (!Number.isSafeInteger(readCount) || readCount < 0) {
       throw new Error("sportlink_sync_complete_invalid");
     }
+    // Re-evaluate clock-based arrival windows after every successful provider
+    // observation. The database content hash prevents duplicate snapshots.
+    await this.client.rpc("refresh_sportlink_time_sensitive_slides_v1", {
+      p_connection_id: job.connectionId
+    });
     return readCount;
   }
 
@@ -338,15 +343,37 @@ async function fetchSportlinkDataset(
   }
 
   if (datasetGroup === "matches") {
-    const [program, results, cancellations] = await Promise.all([
+    const [program, results, cancellations, teams, pools] = await Promise.all([
       client.fetchArticle("programma", { aantaldagen: 42, aantalregels: 100 }),
       client.fetchArticle("uitslagen", { aantaldagen: 14, aantalregels: 100 }),
-      client.fetchArticle("afgelastingen", { aantaldagen: 42, aantalregels: 100 })
+      client.fetchArticle("afgelastingen", { aantaldagen: 42, aantalregels: 100 }),
+      client.fetchArticle("teams"),
+      client.fetchArticle("poulelijst")
     ]);
+    const poolMatches: SportMatch[] = [];
+    for (const context of collectSportlinkPoolContexts(teams.payload, pools.payload)) {
+      for (const request of [
+        { article: "poule-programma" as const, mode: "program" as const, args: { poulecode: context.poolExternalId, aantaldagen: 7, eigenwedstrijden: "NEE" as const } },
+        { article: "pouleuitslagen" as const, mode: "results" as const, args: { poulecode: context.poolExternalId, aantaldagen: 7, eigenwedstrijden: "NEE" as const } }
+      ]) {
+        try {
+          const response = await client.fetchArticle(request.article, request.args);
+          poolMatches.push(...enrichSportlinkPoolMatches(
+            mapSportlinkMatches(response.payload, request.mode), context
+          ));
+        } catch (error) {
+          if (error instanceof SportlinkClientError && [
+            "SPORTLINK_CONDITION_ERROR", "SPORTLINK_SCOPE_INSUFFICIENT"
+          ].includes(error.code)) continue;
+          throw error;
+        }
+      }
+    }
     batch.matches = [
       ...mapSportlinkMatches(program.payload, "program"),
       ...mapSportlinkMatches(results.payload, "results"),
-      ...mapSportlinkMatches(cancellations.payload, "cancellations")
+      ...mapSportlinkMatches(cancellations.payload, "cancellations"),
+      ...poolMatches
     ];
     return batch;
   }
@@ -667,6 +694,22 @@ export function collectSportlinkPoolContexts(
   }
 
   return [...contexts.values()];
+}
+
+export function enrichSportlinkPoolMatches(
+  matches: SportMatch[],
+  context: ReturnType<typeof collectSportlinkPoolContexts>[number]
+) {
+  return matches.map((match): SportMatch => ({
+    ...match,
+    competition: match.competition ?? context.competition,
+    pool: {
+      competitionExternalId:
+        match.pool?.competitionExternalId ?? context.competition?.externalId ?? null,
+      externalId: context.poolExternalId,
+      name: match.pool?.name ?? context.poolName
+    }
+  }));
 }
 
 function parseClaim(value: unknown): ClaimedSportlinkSync {

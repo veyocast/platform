@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   createDynamicTemplateView,
   dynamicTemplateMinimumPlaybackMs,
-  dynamicTemplatePageDurationMs
+  dynamicTemplatePageDurationMs,
+  dynamicTemplateShouldSkip,
+  resolveWelcomeMotionPreset
 } from "./dynamic-template-view";
 
 const base = {
@@ -530,6 +532,41 @@ describe("trusted dynamic template view", () => {
       slideType: "news",
       templateSlug: "editorial-arena-nieuws-dark-landscape"
     })).toBeNull();
+  });
+
+  it("pagineert aankomsten deterministisch en respecteert lege-skip", () => {
+    const payload = {
+      ...base,
+      data: { sport: {
+        arrivalConfig: { cardCount: 2, emptyBehavior: "skip" },
+        items: Array.from({ length: 5 }, (_, index) => ({
+          id: `arrival-${index}`, primary: `Team ${index}`, secondary: "Aanvang 14:30", meta: "Kleedkamer 4"
+        })),
+        pageDurationSeconds: 9,
+        title: "Welkom"
+      }, type: "sport_visitor_arrivals" },
+      slideType: "sport_visitor_arrivals",
+      templateSlug: "editorial-arena-bezoekers-aankomst-light-landscape"
+    } as const;
+    const view = createDynamicTemplateView(payload);
+    expect(view?.pages).toHaveLength(3);
+    expect(view?.pageDurationMs).toBe(9_000);
+    expect(view?.arrivalMotionPreset).toBe("auto");
+    expect(Array.from({ length: 5 }, (_, index) =>
+      resolveWelcomeMotionPreset("auto", 0, index, 5))).toEqual([
+      "aurora-rise",
+      "spotlight-bloom",
+      "kinetic-split",
+      "prism-swipe",
+      "grand-flip"
+    ]);
+    expect(resolveWelcomeMotionPreset("grand-flip", 8, 3, 4))
+      .toBe("grand-flip");
+    expect(dynamicTemplateShouldSkip(payload)).toBe(false);
+    expect(dynamicTemplateShouldSkip({
+      ...payload,
+      data: { ...payload.data, sport: { ...payload.data.sport, items: [] } }
+    })).toBe(true);
   });
 
   it("activeert geen type zonder complete databron", () => {

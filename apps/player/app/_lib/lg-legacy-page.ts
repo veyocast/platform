@@ -126,6 +126,27 @@ export function renderLgLegacyHtml() {
     .dynamic-row p{margin:.4vh 0 0;color:#625f57;font-size:clamp(14px,1.1vw,22px)}
     .dark .dynamic-row p{color:#c9c4b9}
     .dynamic-row strong{justify-self:end;font-size:clamp(19px,1.4vw,29px);text-align:right}
+    .legacy-arrival-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:18px;height:100%}
+    .legacy-arrival-card{position:relative;display:flex;flex-direction:column;justify-content:flex-start;box-sizing:border-box;min-height:0;padding:38px;overflow:hidden;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 18px 58px var(--editorial-shadow);animation-delay:var(--arrival-delay,0ms);animation-duration:1400ms;animation-fill-mode:both;animation-timing-function:cubic-bezier(.16,1,.3,1);will-change:filter,opacity,transform}
+    .legacy-arrival-card>i{color:var(--accent);font-size:18px;font-style:normal;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+    .legacy-arrival-card>b{position:absolute;top:26px;right:30px;color:#8c929a;font-size:28px}
+    .legacy-arrival-card h2{max-width:86%;margin:38px 0 14px;color:var(--editorial-text);font-size:52px;line-height:.98}
+    .legacy-arrival-card p{margin:0 0 18px;color:#9aa2ac;font-size:25px}
+    .legacy-arrival-card strong{margin-top:auto;padding-top:20px;border-top:1px solid var(--editorial-border-soft);color:var(--editorial-text);font-size:23px}
+    .legacy-arrival-card[data-motion="aurora-rise"]{animation-name:legacy-arrival-aurora}
+    .legacy-arrival-card[data-motion="spotlight-bloom"]{animation-name:legacy-arrival-spotlight}
+    .legacy-arrival-card[data-motion="kinetic-split"]{animation-name:legacy-arrival-kinetic;transform-origin:left center}
+    .legacy-arrival-card[data-motion="prism-swipe"]{animation-name:legacy-arrival-prism}
+    .legacy-arrival-card[data-motion="grand-flip"]{animation-name:legacy-arrival-flip;backface-visibility:hidden;transform-origin:left center}
+    .editorial-arena.portrait .legacy-arrival-grid{grid-template-columns:1fr;grid-template-rows:repeat(4,minmax(0,1fr));gap:14px}
+    .editorial-arena.portrait .legacy-arrival-card{padding:30px 34px}
+    .editorial-arena.portrait .legacy-arrival-card h2{margin-top:24px;font-size:46px}
+    @keyframes legacy-arrival-aurora{0%{opacity:0;filter:blur(18px) saturate(1.8);transform:translateY(88px) scale(.9)}58%{opacity:1;filter:blur(0) saturate(1.28);transform:translateY(-8px) scale(1.015)}100%{opacity:1;filter:none;transform:none}}
+    @keyframes legacy-arrival-spotlight{0%{opacity:0;filter:brightness(2.2) blur(10px);transform:scale(.72)}62%{opacity:1;filter:brightness(1.18);transform:scale(1.025)}100%{opacity:1;filter:none;transform:none}}
+    @keyframes legacy-arrival-kinetic{0%{opacity:0;filter:blur(7px);transform:translateX(-125px) skewX(-8deg) scaleX(.82)}68%{opacity:1;filter:none;transform:translateX(10px) skewX(1deg) scaleX(1.015)}100%{opacity:1;filter:none;transform:none}}
+    @keyframes legacy-arrival-prism{0%{opacity:0;filter:hue-rotate(-24deg) saturate(1.9);transform:translateX(110px) rotate(2.5deg) scale(.94)}64%{opacity:1;filter:hue-rotate(5deg) saturate(1.2);transform:translateX(-7px) rotate(-.25deg) scale(1.01)}100%{opacity:1;filter:none;transform:none}}
+    @keyframes legacy-arrival-flip{0%{opacity:0;filter:blur(9px);transform:perspective(1400px) rotateY(-72deg) translateX(-55px) scale(.9)}70%{opacity:1;filter:none;transform:perspective(1400px) rotateY(5deg) translateX(5px) scale(1.01)}100%{opacity:1;filter:none;transform:perspective(1400px) rotateY(0) translateX(0) scale(1)}}
+    @media(prefers-reduced-motion:reduce){.legacy-arrival-card[data-motion]{animation:none;filter:none;opacity:1;transform:none}}
     .dynamic-empty{padding:3vh 3vw;border-left:8px solid var(--accent);background:#fffdf7;font-size:clamp(25px,2.4vw,47px);font-weight:800}
     .dark .dynamic-empty{background:#141512}
     .dynamic-template footer{display:flex;justify-content:space-between;padding-top:1.7vh;border-top:1px solid rgba(98,95,87,.3);color:#625f57;font-size:clamp(12px,.95vw,19px);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
@@ -2115,8 +2136,10 @@ export function renderLgLegacyHtml() {
       "sport_next_match",
       "sport_officials",
       "sport_program",
+      "sport_referee_arrivals",
       "sport_results",
-      "sport_standing"
+      "sport_standing",
+      "sport_visitor_arrivals"
     ];
     function templateRecord(value) {
       return value && typeof value === "object" && !Array.isArray(value)
@@ -2170,12 +2193,14 @@ export function renderLgLegacyHtml() {
         sport_officials: "Wedstrijdofficials",
         sport_period_standing: "Periodestand",
         sport_program: "Programma van vandaag",
+        sport_referee_arrivals: "Aankomst scheidsrechters",
         sport_results: "Uitslagen",
         sport_sponsor: "Partner van de week",
         sport_standing: "Stand",
         sport_team: "Team",
         sport_trainings: "Trainingen",
-        sport_volunteers: "Vrijwilligers"
+        sport_volunteers: "Vrijwilligers",
+        sport_visitor_arrivals: "Welkom bezoekende teams"
       };
       return titles[slideType] || "Clubinformatie";
     }
@@ -2897,11 +2922,20 @@ export function renderLgLegacyHtml() {
     function renderSportTemplate(body, snapshot, slideType, orientation) {
       var sport = templateRecord(snapshot.sport) || {};
       var items = templateArray(sport.items);
+      var arrival = slideType === "sport_visitor_arrivals" || slideType === "sport_referee_arrivals";
+      var arrivalConfiguration = templateRecord(sport.arrivalConfig) || {};
+      var cardsPerPage = Math.max(1, Math.min(4, Number(arrivalConfiguration.cardCount) || 4));
       var match = slideType === "sport_match_of_the_day" || slideType === "sport_next_match";
-      var pages = match ? [items.length ? items[0] : null] : templatePages(items, orientation === "portrait" ? 6 : 8);
+      var pages = match ? [items.length ? items[0] : null] : templatePages(
+        items,
+        arrival ? cardsPerPage : orientation === "portrait" ? 6 : 8
+      );
       return {
         pages: pages,
-        render: function (page) {
+        pageDuration: arrival
+          ? Math.max(5000, Math.min(120000, (Number(sport.pageDurationSeconds) || 12) * 1000))
+          : undefined,
+        render: function (page, activePageIndex) {
           var item;
           var teams;
           var centre;
@@ -2942,6 +2976,40 @@ export function renderLgLegacyHtml() {
           }
           if (!page.length) {
             body.appendChild(templateNode("div", "dynamic-empty", "Deze clubinformatie is nu niet beschikbaar."));
+            return;
+          }
+          if (arrival) {
+            var arrivalGrid = templateNode("div", "legacy-arrival-grid");
+            var configuredMotion = templateText(arrivalConfiguration.motionPreset, "auto");
+            var motionPresets = ["aurora-rise", "spotlight-bloom", "kinetic-split", "prism-swipe", "grand-flip"];
+            var clubName = templateText((templateRecord(snapshot.brand) || {}).clubName, "onze club");
+            for (index = 0; index < page.length; index += 1) {
+              item = templateRecord(page[index]) || {};
+              if (!templateText(item.primary, "")) continue;
+              var motion = motionPresets.indexOf(configuredMotion) !== -1
+                ? configuredMotion
+                : motionPresets[((Number(activePageIndex) || 0) * cardsPerPage + index) % motionPresets.length];
+              var arrivalCard = templateNode("article", "legacy-arrival-card");
+              if (slideType === "sport_visitor_arrivals") {
+                arrivalCard.setAttribute("data-motion", motion);
+                arrivalCard.style.setProperty("--arrival-delay", String(index * 110) + "ms");
+              }
+              var welcome = templateText(
+                item.status,
+                slideType === "sport_visitor_arrivals" ? "Welkom" : "Wedstrijdofficial"
+              ).replace(/\\{\\{club\\}\\}/g, clubName).replace(/\\{\\{team\\}\\}/g, templateText(item.primary, ""));
+              arrivalCard.appendChild(templateNode("i", "", welcome));
+              arrivalCard.appendChild(templateNode(
+                "b",
+                "",
+                (index + 1 < 10 ? "0" : "") + String(index + 1)
+              ));
+              arrivalCard.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
+              arrivalCard.appendChild(templateNode("p", "", templateText(item.secondary, "")));
+              arrivalCard.appendChild(templateNode("strong", "", templateText(item.meta, "")));
+              arrivalGrid.appendChild(arrivalCard);
+            }
+            body.appendChild(arrivalGrid);
             return;
           }
           list = templateNode("div", "dynamic-list");
@@ -3156,7 +3224,7 @@ export function renderLgLegacyHtml() {
       root.appendChild(header);
       root.appendChild(body);
       root.appendChild(footer);
-      renderer.render(renderer.pages[0]);
+      renderer.render(renderer.pages[0], 0);
       fitDynamicTemplateCanvas(root, payload.orientation);
       beginPendingMedia(root, objectUrls);
       if (!commitPendingMedia(root, objectUrls, generation)) return;
@@ -3169,7 +3237,7 @@ export function renderLgLegacyHtml() {
           var number;
           if (runtime.currentElement !== root) return;
           pageIndex = (pageIndex + 1) % renderer.pages.length;
-          renderer.render(renderer.pages[pageIndex]);
+          renderer.render(renderer.pages[pageIndex], pageIndex);
           number = root.querySelector(".dynamic-page-number");
           if (number) number.textContent = String(pageIndex + 1) + " / " + String(renderer.pages.length);
         }, renderer.pageDuration || Math.floor(templateDuration / renderer.pages.length));
