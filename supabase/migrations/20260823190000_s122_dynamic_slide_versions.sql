@@ -174,11 +174,25 @@ alter table public.dynamic_slides
 alter table public.dynamic_slide_snapshots
   add column dynamic_slide_version_id uuid;
 
+-- Existing ready/failed snapshots are immutable at runtime. The one-time
+-- provenance backfill is the sole exception and therefore temporarily removes
+-- only the UPDATE guard inside this transactional migration. Any failure rolls
+-- the trigger removal back together with the migration.
+drop trigger dynamic_snapshots_reject_update
+  on public.dynamic_slide_snapshots;
+
 update public.dynamic_slide_snapshots snapshot
 set dynamic_slide_version_id = version.id
 from public.dynamic_slide_versions version
 where version.dynamic_slide_id = snapshot.dynamic_slide_id
   and version.version_number = 1;
+
+create trigger dynamic_snapshots_reject_update
+before update on public.dynamic_slide_snapshots
+for each row when (
+  old.status = 'ready' or old.status = 'failed'
+)
+execute function private.reject_dynamic_immutable_mutation();
 
 alter table public.dynamic_slide_snapshots
   alter column dynamic_slide_version_id set not null,
