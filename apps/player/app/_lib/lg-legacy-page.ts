@@ -242,7 +242,7 @@ export function renderLgLegacyHtml() {
     .menu-studio-v2 .legacy-price-product{height:78px;grid-template-columns:64px minmax(0,1fr) 120px;padding:8px 4px}
     .menu-studio-v2 .legacy-price-copy strong{font-size:26px}
     .menu-studio-v2 .legacy-price-copy small{font-size:18px}
-    .menu-studio-v2 .legacy-price-product>b{font-size:26px}
+    .menu-studio-v2 .legacy-price-product>b{color:currentColor;font-size:26px}
     .legacy-menu-group{background:var(--editorial-row)}
     .legacy-menu-free{color:var(--accent)}
     .editorial-arena.dark .dynamic-team-mark{background:var(--accent);color:#fff}
@@ -303,6 +303,7 @@ export function renderLgLegacyHtml() {
     .dynamic-template.editorial-arena.menu-studio-v2.portrait[data-slide-type="price_list"] .dynamic-body{top:348px;right:72px;bottom:auto;left:72px;height:1388px}
     .dynamic-template.editorial-arena.menu-studio-v2.portrait[data-slide-type="price_list"]>footer{right:72px;bottom:96px;left:72px;height:64px;font-size:20px;font-weight:700;letter-spacing:.08em}
     .menu-studio-v2.portrait .legacy-price-grid{grid-template-columns:minmax(0,1fr);gap:20px}
+    .menu-studio-v2.portrait .legacy-price-grid.legacy-price-grid-two{grid-template-columns:repeat(2,minmax(0,1fr))}
     .menu-studio-v2.portrait .legacy-price-column{display:flex;padding:22px 28px;flex-direction:column;justify-content:flex-start}
     .menu-studio-v2.portrait .legacy-price-category{height:auto;min-height:76px;align-items:flex-end;margin:0 0 10px;padding:0 0 13px;font-size:34px;line-height:38px;white-space:normal}
     .menu-studio-v2.portrait .legacy-price-product{height:auto;min-height:62px;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;padding:5px 4px}
@@ -2287,7 +2288,7 @@ export function renderLgLegacyHtml() {
         var display = templateRecord(group.display) || {};
         return Number(display.maxLines) === 2 ? 2 : 1;
       }
-      function paginate(blocks, column) {
+      function paginate(blocks, column, portraitTwoColumns) {
         var result = [];
         var current = [];
         var used = 0;
@@ -2305,7 +2306,9 @@ export function renderLgLegacyHtml() {
           var block = templateRecord(blocks[blockIndex]) || {};
           var layout = templateRecord((templateRecord(block.layout) || {})[orientation]) || {};
           var midpoint = Number(layout.x || 0) + Number(layout.w || 0) / 2;
-          var isLeft = orientation === "portrait" || midpoint <= 960;
+          var isLeft = orientation === "portrait"
+            ? !portraitTwoColumns || midpoint <= 540
+            : midpoint <= 960;
           if ((column === "left") !== isLeft) continue;
           if (block.type === "product-group") {
             var standalone = templateRecord(block.group) || {};
@@ -2364,13 +2367,25 @@ export function renderLgLegacyHtml() {
       for (var sourceIndex = 0; sourceIndex < sourcePages.length; sourceIndex += 1) {
         var sourcePage = templateRecord(sourcePages[sourceIndex]) || {};
         var flowBlocks = templateArray(sourcePage.blocks);
-        var left = paginate(flowBlocks.slice(0), "left");
-        var right = orientation === "portrait"
+        var portraitColumnSetting = Number(sourcePage.portraitColumns);
+        var portraitTwoColumns = orientation === "portrait" && portraitColumnSetting === 2;
+        if (orientation === "portrait" && portraitColumnSetting !== 1) {
+          for (var flowIndex = 0; flowIndex < flowBlocks.length; flowIndex += 1) {
+            var flowLayout = templateRecord((templateRecord(flowBlocks[flowIndex].layout) || {}).portrait) || {};
+            if (Number(flowLayout.w || 0) > 0 && Number(flowLayout.w) < 700) portraitTwoColumns = true;
+          }
+        }
+        var left = paginate(flowBlocks.slice(0), "left", portraitTwoColumns);
+        var right = orientation === "portrait" && !portraitTwoColumns
           ? []
-          : paginate(flowBlocks.slice(0), "right");
+          : paginate(flowBlocks.slice(0), "right", portraitTwoColumns);
         var count = Math.max(left.length, right.length, 1);
         for (var pageIndex = 0; pageIndex < count; pageIndex += 1) {
-          pages.push({ left: left[pageIndex] || [], right: right[pageIndex] || [] });
+          pages.push({
+            left: left[pageIndex] || [],
+            portraitTwoColumns: portraitTwoColumns,
+            right: right[pageIndex] || []
+          });
         }
       }
       function appendMedia(article, assetId, label) {
@@ -2435,6 +2450,7 @@ export function renderLgLegacyHtml() {
         pages: pages.length ? pages : [{ left: [], right: [] }],
         render: function (page) {
           var grid = templateNode("div", "legacy-price-grid");
+          if (page.portraitTwoColumns) grid.className += " legacy-price-grid-two";
           body.innerHTML = "";
           function appendColumn(name) {
             var column = templateNode("section", "legacy-price-column");

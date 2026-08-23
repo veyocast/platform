@@ -128,6 +128,7 @@ tests en exitcriteria staan in
 | S116 | Menu Studio portrait save hotfix | De gekozen staande of liggende schermstand bepaalt atomisch het opgeslagen template, concept en de volgende immutable snapshot |
 | S117 | Menu Studio authoring-UX hotfix | Productgroepbewerking duidelijk afsluitbaar maken, korte portraitmenu's bovenaan verankeren en de menunaam zichtbaar én resourcebreed bewerkbaar maken |
 | S118 | LG Menu Studio portrait hotfix | Menu Studio v2 op LG Legacy met dezelfde éénkoloms portraitzones, bovenuitlijning en leesbare maatvoering als de gedeelde renderer tonen |
+| S120 | Menu Studio bibliotheek- en portrait-UX | Preview bovenaan verankeren, categorieën en media via modale pickers toevoegen, producten alfabetisch filterbaar maken, vrije groepsinvoer optioneel houden en één of twee portraitkolommen expliciet kiezen |
 
 ### Programmagates
 
