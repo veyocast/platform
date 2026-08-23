@@ -68,8 +68,7 @@ import {
   type MenuDocumentV2,
   type MenuProductGroupPlacement,
   type MenuProductPlacement,
-  type MenuStudioCommand,
-  type MenuThemeSelection
+  type MenuStudioCommand
 } from "@veyocast/contracts";
 import {
   applyMenuStudioCommand,
@@ -89,6 +88,8 @@ import {
   DialogHeader,
   DialogTitle
 } from "@veyocast/ui";
+
+import { ThemePicker } from "../_components/theme-picker";
 
 import {
   createMenuStudioDraft,
@@ -134,6 +135,7 @@ export type MenuStudioMediaOption = {
 
 export function MenuStudioEditor({
   initialDocument,
+  defaultThemeId,
   initialOrientation,
   linkedGroupsEnabled,
   media,
@@ -146,6 +148,7 @@ export function MenuStudioEditor({
   sourceName,
   templateVersionIds
 }: {
+  defaultThemeId: MenuDocumentV2["theme"]["themeId"];
   initialDocument: MenuDocumentV2;
   initialOrientation: "landscape" | "portrait";
   linkedGroupsEnabled: boolean;
@@ -1099,19 +1102,15 @@ export function MenuStudioEditor({
           <PanelHeading icon={<PackagePlus aria-hidden="true" />} title="Bibliotheek" />
           <section className={styles.librarySection}>
             <h3>Art direction</h3>
-            <div className={styles.themeGrid}>
-              {themeIds.map((themeId) => (
-                <button
-                  aria-pressed={document.theme.themeId === themeId}
-                  key={themeId}
-                  onClick={() => void executeOperation({
-                    kind: "set-theme",
-                    theme: { ...document.theme, themeId }
-                  })}
-                  type="button"
-                ><span data-theme={themeId} />{themeId}</button>
-              ))}
-            </div>
+            <ThemePicker
+              defaultThemeId={defaultThemeId}
+              label="Thema voor deze menuversie"
+              onChange={(themeId) => void executeOperation({
+                kind: "set-theme",
+                theme: { ...document.theme, themeId }
+              })}
+              value={document.theme.themeId}
+            />
             <button
               className={styles.modeToggle}
               onClick={() => void executeOperation({
@@ -2230,16 +2229,3 @@ function slugId(value: string) {
   const slug = value.normalize("NFKD").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
   return slug || crypto.randomUUID();
 }
-
-const themeIds: MenuThemeSelection["themeId"][] = [
-  "editorial",
-  "obsidian",
-  "atelier",
-  "velocity",
-  "heritage",
-  "halo",
-  "swiss",
-  "pavilion",
-  "tactical",
-  "terrace"
-];

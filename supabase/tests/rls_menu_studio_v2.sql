@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(34);
+select plan(41);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -380,6 +380,84 @@ select is(
   (select count(*) from public.dynamic_slide_snapshots where dynamic_slide_id = (select id from menu_test_state where name = 'slide')),
   1::bigint,
   'idempotent publish does not duplicate immutable snapshots'
+);
+
+reset role;
+update public.dynamic_slide_snapshots
+set status = 'ready', completed_at = now()
+where dynamic_slide_id = (select id from menu_test_state where name = 'slide');
+update public.dynamic_slides
+set current_snapshot_id = (
+  select id from public.dynamic_slide_snapshots
+  where dynamic_slide_id = (select id from menu_test_state where name = 'slide')
+)
+where id = (select id from menu_test_state where name = 'slide');
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000001121', true);
+
+select is(
+  (select status from public.dynamic_slide_versions
+   where dynamic_slide_id = (select id from menu_test_state where name = 'slide')
+     and version_number = 1),
+  'published',
+  'ready Menu Studio output promotes v1 to immutable history'
+);
+insert into menu_test_state(name, value)
+values ('version-2', public.create_or_resume_dynamic_slide_version_v1(
+  (select id from menu_test_state where name = 'slide'), null
+));
+select is(
+  (select value ->> 'outcome' from menu_test_state where name = 'version-2'),
+  'created',
+  'a published menu creates one cloned v2 draft'
+);
+select is(
+  (select (configuration_json ->> 'revision')::bigint
+   from public.dynamic_slide_versions
+   where dynamic_slide_id = (select id from menu_test_state where name = 'slide')
+     and version_number = 2),
+  3::bigint,
+  'the complete MenuDocument revision is cloned into v2'
+);
+select is(
+  public.save_menu_studio_document_v2(
+    (select id from menu_test_state where name = 'slide'), 3,
+    '20000000-0000-4000-8000-000000001129',
+    '{"kind":"set-title","title":"Menu versie 2"}'::jsonb,
+    jsonb_set(
+      (select configuration_json from public.dynamic_slides
+       where id = (select id from menu_test_state where name = 'slide')),
+      '{title}', '"Menu versie 2"'::jsonb
+    )
+  ) ->> 'outcome',
+  'applied',
+  'the cloned menu remains editable through the revision-aware command path'
+);
+select is(
+  (select name from public.dynamic_slide_versions
+   where dynamic_slide_id = (select id from menu_test_state where name = 'slide')
+     and version_number = 2),
+  'Menu versie 2',
+  'the visible menu name is versioned with the edited title'
+);
+select is(
+  (select name from public.dynamic_slide_versions
+   where dynamic_slide_id = (select id from menu_test_state where name = 'slide')
+     and version_number = 1),
+  'Avondmenu',
+  'editing v2 leaves the historical v1 name unchanged'
+);
+select is(
+  public.publish_dynamic_slide_version_v1(
+    (select id from menu_test_state where name = 'slide'),
+    (select id from public.dynamic_slide_versions
+     where dynamic_slide_id = (select id from menu_test_state where name = 'slide')
+       and version_number = 2),
+    4
+  ) ->> 'outcome',
+  'publishing',
+  'v2 publication starts without mutating the current v1 snapshot'
 );
 
 select throws_ok(

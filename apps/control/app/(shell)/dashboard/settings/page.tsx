@@ -2,15 +2,17 @@ import Link from "next/link";
 
 import { hasCapability } from "@veyocast/auth";
 import {
+  selectableThemeIdSchema,
   themeModePolicySchema,
+  type SelectableThemeId,
   type ThemeModePolicy
 } from "@veyocast/contracts";
-import { themeCatalogOptions } from "@veyocast/content-templates/theme-catalog";
 import { Button } from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import { PageHeader } from "../../_components/shell-primitives";
+import { ThemePickerField } from "../slides/_components/theme-picker";
 import { PrimaryColorField } from "./primary-color-field";
 import { updateTenantSettings } from "./actions";
 import { SettingsCategoryWorkspace } from "./settings-category-workspace";
@@ -122,20 +124,14 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               defaultValue={data.primaryColor}
               disabled={!canManage}
             />
-            <div className="field">
-              <label htmlFor="settings-theme-id">Standaard slidethema</label>
-              <select
-                defaultValue={data.themeId}
+            <div className="field field--full">
+              <ThemePickerField
+                defaultThemeId={safeThemeId(data.themeId)}
                 disabled={!canManage}
-                id="settings-theme-id"
-                name="themeId"
-              >
-                {themeCatalogOptions.map((theme) => (
-                  <option key={theme.id} value={theme.id}>
-                    {theme.name}
-                  </option>
-                ))}
-              </select>
+                initialThemeId={safeThemeId(data.themeId)}
+                label="Standaard slidethema"
+              />
+              <p className="field__help">Dit thema wordt voorgeselecteerd voor nieuwe slides. Bestaande gepubliceerde versies veranderen niet.</p>
             </div>
             <div className="field">
               <label htmlFor="settings-theme-policy">Licht/donker-beleid</label>
@@ -306,6 +302,11 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       </form>
     </>
   );
+}
+
+function safeThemeId(value: string): SelectableThemeId {
+  const parsed = selectableThemeIdSchema.safeParse(value);
+  return parsed.success ? parsed.data : "editorial";
 }
 
 async function loadSettings(tenantId: string | null, isLive: boolean, tenantName: string) {

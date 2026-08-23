@@ -23,8 +23,10 @@ import {
 } from "./dynamic-template-view";
 import {
   editorialArenaCanvas,
+  resolveEditorialArenaViewportFit,
   sportColumnCount,
-  sportRowHeight
+  sportRowHeight,
+  type EditorialArenaViewportFit
 } from "./editorial-arena-layout";
 import { editorialThemeCssVariables } from "./editorial-arena-theme";
 import type {
@@ -43,6 +45,8 @@ type ArenaStyle = CSSProperties & {
   "--arena-accent": string;
   "--arena-page-duration": string;
   "--arena-row-height": string;
+  "--arena-viewport-inset-x": string;
+  "--arena-viewport-inset-y": string;
   "--vc-motion-duration": string;
   "--vc-motion-easing": string;
   "--vc-motion-translate": string;
@@ -74,7 +78,7 @@ export function EditorialArenaRenderer({
   const readyRef = useRef(false);
   const viewportRef = useRef<HTMLDivElement>(null);
   const [internalPageIndex, setInternalPageIndex] = useState(0);
-  const [canvasScale, setCanvasScale] = useState<number | null>(null);
+  const [viewportFit, setViewportFit] = useState<EditorialArenaViewportFit | null>(null);
   const pageCount = view?.pages.length ?? 0;
   const canvas = editorialArenaCanvas[view?.orientation ?? "landscape"];
 
@@ -89,8 +93,10 @@ export function EditorialArenaRenderer({
       const width = viewport.clientWidth;
       const height = viewport.clientHeight;
       if (width < 1 || height < 1) return;
-      const scale = Math.min(width / canvas.width, height / canvas.height);
-      setCanvasScale(scale);
+      setViewportFit(resolveEditorialArenaViewportFit(
+        { height, width },
+        view.orientation
+      ));
     };
     updateScale();
     window.addEventListener("resize", updateScale);
@@ -105,7 +111,7 @@ export function EditorialArenaRenderer({
   }, [canvas.height, canvas.width, view]);
 
   useEffect(() => {
-    if (!view || canvasScale === null || passive || readyRef.current) return;
+    if (!view || viewportFit === null || passive || readyRef.current) return;
     let active = true;
     let frame = 0;
     const fontsReady = "fonts" in document
@@ -123,7 +129,7 @@ export function EditorialArenaRenderer({
       active = false;
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [canvasScale, item.id, onReady, passive, view]);
+  }, [item.id, onReady, passive, view, viewportFit]);
 
   useEffect(() => {
     if (
@@ -164,12 +170,14 @@ export function EditorialArenaRenderer({
     "--arena-accent": view.accentColor,
     "--arena-page-duration": `${pageDurationMs}ms`,
     "--arena-row-height": `${pageRowHeight(page, view)}px`,
+    "--arena-viewport-inset-x": `${viewportFit?.insetX ?? 0}px`,
+    "--arena-viewport-inset-y": `${viewportFit?.insetY ?? 0}px`,
     "--vc-motion-duration": `${transition.durationMs}ms`,
     "--vc-motion-easing": transition.easing,
     "--vc-motion-translate": `${transition.translatePercent}%`,
     height: canvas.height,
-    opacity: canvasScale === null ? 0 : 1,
-    transform: `translate(-50%, -50%) scale(${canvasScale ?? 1})`,
+    opacity: viewportFit === null ? 0 : 1,
+    transform: `translate(-50%, -50%) scale(${viewportFit?.scale ?? 1})`,
     width: canvas.width
   };
 
@@ -186,6 +194,7 @@ export function EditorialArenaRenderer({
         data-theme={view.theme}
         data-theme-id={view.themeId}
         data-transition={transition.key}
+        data-viewport-fit={viewportFit?.mode}
         style={style}
       >
         {page.kind === "menu-v2" ? (

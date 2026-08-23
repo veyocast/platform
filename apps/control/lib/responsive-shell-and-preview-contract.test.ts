@@ -41,6 +41,8 @@ describe("responsive Control-grenzen", () => {
     expect(editor).toContain("Kolommen in staande modus");
     expect(editor).toContain("2 kolommen");
     expect(studioCss).toMatch(/\.previewPanel\s*\{\s*position: sticky/);
+    expect(studioCss).toMatch(/\.stage\s*\{[^}]*aspect-ratio: 16 \/ 9/s);
+    expect(studioCss).toMatch(/\.stage\[data-orientation="portrait"\]\s*\{[^}]*aspect-ratio: 9 \/ 16/s);
     expect(sceneCss).toContain('.viewport[data-alignment="top"]');
   });
 });

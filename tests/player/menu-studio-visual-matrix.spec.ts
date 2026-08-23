@@ -197,6 +197,30 @@ test("Menu Studio-video bewaakt poster, muted autoplay en het ingestelde fragmen
   expect(currentTime).toBeLessThan(0.85);
 });
 
+test("Menu Studio vult een gelijk georiënteerde viewport zonder letterboxing", async ({ page }) => {
+  for (const candidate of [
+    { orientation: "landscape" as const, viewport: { height: 1200, width: 1920 } },
+    { orientation: "portrait" as const, viewport: { height: 1920, width: 1200 } }
+  ]) {
+    await page.setViewportSize(candidate.viewport);
+    await page.goto("about:blank");
+    await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(
+      buildPayload("editorial", "dark", candidate.orientation)
+    )}`);
+    await expect.poll(async () => page.evaluate(
+      () => document.documentElement.dataset.thumbnailReady === "true"
+    )).toBe(true);
+    const scene = page.getByRole("region", { name: "Editorial Arena-thumbnail" });
+    await expect(scene).toHaveAttribute("data-viewport-fit", "cover");
+    const box = await scene.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeLessThanOrEqual(0.5);
+    expect(box!.y).toBeLessThanOrEqual(0.5);
+    expect(box!.x + box!.width).toBeGreaterThanOrEqual(candidate.viewport.width - 0.5);
+    expect(box!.y + box!.height).toBeGreaterThanOrEqual(candidate.viewport.height - 0.5);
+  }
+});
+
 function buildPayload(
   themeId: MenuDocumentV2["theme"]["themeId"],
   mode: MenuDocumentV2["theme"]["mode"],

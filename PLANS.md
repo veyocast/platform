@@ -129,6 +129,8 @@ tests en exitcriteria staan in
 | S117 | Menu Studio authoring-UX hotfix | Productgroepbewerking duidelijk afsluitbaar maken, korte portraitmenu's bovenaan verankeren en de menunaam zichtbaar én resourcebreed bewerkbaar maken |
 | S118 | LG Menu Studio portrait hotfix | Menu Studio v2 op LG Legacy met dezelfde éénkoloms portraitzones, bovenuitlijning en leesbare maatvoering als de gedeelde renderer tonen |
 | S120 | Menu Studio bibliotheek- en portrait-UX | Preview bovenaan verankeren, categorieën en media via modale pickers toevoegen, producten alfabetisch filterbaar maken, vrije groepsinvoer optioneel houden en één of twee portraitkolommen expliciet kiezen |
+| S121 | Dynamische slides schermvullend | Gelijk georiënteerde dynamische slides zonder letterboxing over de volledige viewport tonen en de Menu Studio-preview exact in het gekozen canvasformaat weergeven |
+| S122 | Dynamic slide versioning, thema en Sportlink-wizard | Eén logische menu-/Sportlink-slide met immutable ontwerpversies, creation-default thema per tenant, gedeelde visuele themakiezer en een overzichtelijke vijfstaps bulkflow |
 
 ### Programmagates
 

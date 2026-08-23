@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   paginateEditorialRows,
   priceRowsThatFit,
+  resolveEditorialArenaViewportFit,
   sportColumnCount,
   sportRowHeight,
   sportRowsPerColumn
@@ -16,6 +17,25 @@ import {
 } from "../src/editorial-arena-theme";
 
 describe("Editorial Arena v2 layout", () => {
+  it("vult een viewport met gelijke oriëntatie en bewaart mismatch zonder crop", () => {
+    expect(resolveEditorialArenaViewportFit(
+      { height: 1200, width: 1920 },
+      "landscape"
+    )).toMatchObject({ mode: "cover", scale: 1200 / 1080 });
+    expect(resolveEditorialArenaViewportFit(
+      { height: 1920, width: 1200 },
+      "portrait"
+    )).toMatchObject({ mode: "cover", scale: 1200 / 1080 });
+    expect(resolveEditorialArenaViewportFit(
+      { height: 1080, width: 1080 },
+      "landscape"
+    )).toMatchObject({ mode: "cover", scale: 1 });
+    expect(resolveEditorialArenaViewportFit(
+      { height: 1080, width: 1920 },
+      "portrait"
+    )).toEqual({ insetX: 0, insetY: 0, mode: "contain", scale: 1080 / 1920 });
+  });
+
   it("telt vaste prijslijstrijen per kolom", () => {
     expect(priceRowsThatFit("landscape")).toBe(8);
     expect(priceRowsThatFit("portrait")).toBe(16);

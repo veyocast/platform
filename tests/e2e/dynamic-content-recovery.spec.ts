@@ -53,7 +53,13 @@ test("toont de Sportlink-bulkwizard als Studio-familie", async ({ page }) => {
   await page.goto("/dashboard/studio/sportlink/new", { waitUntil: "networkidle" });
 
   await expect(page.getByRole("heading", { level: 1, name: "Sportlink-slides maken" })).toBeVisible();
-  for (const step of ["Bron", "Teams", "Slidetypen", "Context", "Weergave", "Controle", "Maken"]) {
+  for (const step of [
+    "Wat wil je tonen?",
+    "Teams & slides",
+    "Competitie & poule",
+    "Thema & weergave",
+    "Controleren & aanmaken"
+  ]) {
     await expect(page.getByLabel("Voortgang")).toContainText(step);
   }
   await expect(page.getByText("Koppel en synchroniseer eerst Sportlink via Databronnen.")).toBeVisible();
