@@ -28,4 +28,19 @@ describe("responsive Control-grenzen", () => {
     expect(css).toContain("env(safe-area-inset-bottom, 0px)");
     expect(css).toContain("overscroll-behavior: contain");
   });
+
+  it("houdt de Menu Studio-preview bovenaan en verplaatst grote bibliotheken naar dialogs", async () => {
+    const editor = await source("app/(shell)/dashboard/slides/menu-studio/menu-studio-editor.tsx");
+    const studioCss = await source("app/(shell)/dashboard/slides/menu-studio/menu-studio.module.css");
+    const sceneCss = await source("../../packages/content-templates/src/menu-scene.module.css");
+
+    expect(editor).toContain('alignment="top"');
+    expect(editor).toContain("<CategoryPickerDialog");
+    expect(editor).toContain("<MediaPickerDialog");
+    expect(editor).toContain("Filter op categorie");
+    expect(editor).toContain("Kolommen in staande modus");
+    expect(editor).toContain("2 kolommen");
+    expect(studioCss).toMatch(/\.previewPanel\s*\{\s*position: sticky/);
+    expect(sceneCss).toContain('.viewport[data-alignment="top"]');
+  });
 });

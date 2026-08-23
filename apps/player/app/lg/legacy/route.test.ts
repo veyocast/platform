@@ -59,6 +59,9 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("renderPriceListTemplate");
     expect(html).toContain("renderMenuStudioTemplate");
     expect(html).toContain("menu-studio-v2");
+    expect(html).toContain(".menu-studio-v2 .legacy-price-product>b{color:currentColor");
+    expect(html).toContain("legacy-price-grid-two");
+    expect(html).toContain("portraitTwoColumns");
     expect(html).toContain('snapshot.menuDocument');
     expect(html).toContain('orientation === "portrait" ? 14 : 8');
     expect(html).toContain("renderSportTemplate");

@@ -24,15 +24,18 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  Columns2,
   ExternalLink,
   GripVertical,
   Image as ImageIcon,
+  Images,
   Layers3,
   Monitor,
   PackagePlus,
   Plus,
   Redo2,
   Save,
+  Search,
   Send,
   Smartphone,
   Trash2,
@@ -47,6 +50,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   useTransition,
@@ -75,7 +79,16 @@ import {
   undoMenuStudioHistory,
   type MenuStudioHistory
 } from "@veyocast/domain";
-import { Button } from "@veyocast/ui";
+import {
+  Button,
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@veyocast/ui";
 
 import {
   createMenuStudioDraft,
@@ -84,6 +97,11 @@ import {
   setMenuStudioOrientation
 } from "./actions";
 import styles from "./menu-studio.module.css";
+
+const dutchProductCollator = new Intl.Collator("nl-NL", {
+  numeric: true,
+  sensitivity: "base"
+});
 
 export type MenuStudioProductOption = {
   available: boolean;
@@ -152,6 +170,9 @@ export function MenuStudioEditor({
   const [contentOverflow, setContentOverflow] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [mobilePanel, setMobilePanel] = useState<"build" | "preview" | "library">("preview");
+  const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [productCategoryFilter, setProductCategoryFilter] = useState("all");
   const [status, setStatus] = useState<"error" | "published" | "saved" | "saving" | "unsaved">(
     mode === "edit" ? "saved" : "unsaved"
   );
@@ -161,6 +182,13 @@ export function MenuStudioEditor({
   const stageRef = useRef<HTMLDivElement>(null);
   const document = history.present;
   const page = document.pages[0]!;
+  const productCategories = useMemo(() => Array.from(
+    new Set(products.map((product) => product.category))
+  ).sort(dutchProductCollator.compare), [products]);
+  const visibleProducts = useMemo(() => products
+    .filter((product) => productCategoryFilter === "all" || product.category === productCategoryFilter)
+    .sort((left, right) => dutchProductCollator.compare(left.name, right.name) ||
+      dutchProductCollator.compare(left.category, right.category)), [productCategoryFilter, products]);
   const scenePages = resolveMenuScenePages(document, orientation);
   const activePageIndex = Math.min(pageIndex, Math.max(0, scenePages.length - 1));
   const selectedBlock = page.blocks.find((block) => block.id === selectedBlockId) ?? null;
@@ -325,7 +353,7 @@ export function MenuStudioEditor({
     }
     let category = findCategory(currentPage.blocks, product.category);
     if (!category) {
-      const block = categoryBlock(product, currentPage.blocks);
+      const block = categoryBlock(product, currentPage.blocks, currentPage.portraitColumns);
       const next = await executeOperation({ block, kind: "add-block", pageId: currentPage.id });
       if (!next) return;
       category = next.pages[0]!.blocks.find(
@@ -362,7 +390,7 @@ export function MenuStudioEditor({
     const representative = products.find((product) => product.category === categoryName);
     if (!representative) return;
     await executeOperation({
-      block: categoryBlock(representative, currentPage.blocks),
+      block: categoryBlock(representative, currentPage.blocks, currentPage.portraitColumns),
       kind: "add-block",
       pageId: currentPage.id
     });
@@ -390,13 +418,6 @@ export function MenuStudioEditor({
           order: 0,
           productRef: existing.node.productRef,
           snapshotFallback: existing.node.snapshotFallback
-        },
-        {
-          id: crypto.randomUUID(),
-          kind: "free-text",
-          label: "Naar keuze",
-          order: 1,
-          presentationOnly: true
         }
       ],
       sharedPrice: existing.node.snapshotFallback.price,
@@ -611,6 +632,27 @@ export function MenuStudioEditor({
     });
   }
 
+  async function addCategories(categoryNames: string[]) {
+    for (const categoryName of categoryNames) {
+      await placeCategory(categoryName);
+    }
+  }
+
+  async function addMediaSelection(
+    assetIds: string[],
+    placement: "logo" | "media" | "menu-logo"
+  ) {
+    for (const assetId of assetIds) {
+      const asset = media.find((candidate) => candidate.id === assetId);
+      if (!asset) continue;
+      if (placement === "menu-logo") {
+        await setHeaderLogo(asset);
+      } else {
+        await addMediaBlock(asset, placement);
+      }
+    }
+  }
+
   async function handleCanvasDrop(event: ReactDragEvent<HTMLElement>) {
     event.preventDefault();
     event.stopPropagation();
@@ -715,6 +757,41 @@ export function MenuStudioEditor({
     setOrientation(nextOrientation);
     setPageIndex(0);
     setStatus("saved");
+  }
+
+  async function changePortraitColumns(columnCount: 1 | 2) {
+    const current = historyRef.current.present;
+    if (portraitColumnCount(
+      current.pages[0]!.blocks,
+      current.pages[0]!.portraitColumns
+    ) === columnCount || busyRef.current || isPending) return;
+    const pages = current.pages.map((currentPage) => ({
+      ...currentPage,
+      portraitColumns: columnCount,
+      blocks: currentPage.blocks.map((block) => {
+        if (block.type !== "category" && block.type !== "product-group") return block;
+        const landscapeMidpoint = block.layout.landscape.x + block.layout.landscape.w / 2;
+        const left = landscapeMidpoint <= 960;
+        return {
+          ...block,
+          layout: {
+            ...block.layout,
+            portrait: columnCount === 1
+              ? { h: 1388, rotation: 0, w: 936, x: 72, y: 348 }
+              : { h: 1388, rotation: 0, w: 458, x: left ? 72 : 550, y: 348 }
+          }
+        };
+      })
+    }));
+    await executeOperation({
+      assets: current.assets,
+      kind: "restore-content",
+      pages,
+      providerSnapshot: current.providerSnapshot ?? null,
+      theme: current.theme,
+      title: current.title ?? null
+    });
+    setPageIndex(0);
   }
 
   function publish() {
@@ -945,6 +1022,23 @@ export function MenuStudioEditor({
                 type="button"
               ><Smartphone aria-hidden="true" />Staand</button>
             </div>
+            {orientation === "portrait" ? (
+              <div aria-label="Kolommen in staande modus" className={styles.portraitColumnPicker} role="group">
+                <span><Columns2 aria-hidden="true" /> Indeling staand</span>
+                <button
+                  aria-pressed={portraitColumnCount(page.blocks, page.portraitColumns) === 1}
+                  disabled={status === "saving"}
+                  onClick={() => void changePortraitColumns(1)}
+                  type="button"
+                >1 kolom</button>
+                <button
+                  aria-pressed={portraitColumnCount(page.blocks, page.portraitColumns) === 2}
+                  disabled={status === "saving"}
+                  onClick={() => void changePortraitColumns(2)}
+                  type="button"
+                >2 kolommen</button>
+              </div>
+            ) : null}
           </div>
           <div
             aria-label="Compositiecanvas; sleep hier categorieën, producten en media naartoe"
@@ -977,6 +1071,7 @@ export function MenuStudioEditor({
               onDrop={(event) => void handleCanvasDrop(event)}
             >Laat los om op het canvas te plaatsen</div>
             <MenuScene
+              alignment="top"
               assets={assets}
               document={document}
               onContentFit={setContentOverflow}
@@ -1028,27 +1123,32 @@ export function MenuStudioEditor({
           </section>
 
           <section className={styles.librarySection}>
-            <h3>Categorieën <span>{new Set(products.map((product) => product.category)).size}</span></h3>
-            <div className={styles.categoryLibrary}>
-              {Array.from(new Set(products.map((product) => product.category))).map((categoryName) => (
-                <button
-                  disabled={Boolean(findCategory(page.blocks, categoryName))}
-                  draggable={!findCategory(page.blocks, categoryName)}
-                  key={categoryName}
-                  onClick={() => void placeCategory(categoryName)}
-                  onDragStart={(event) => setMenuStudioDragPayload(event, { categoryName, kind: "category" })}
-                  type="button"
-                >
-                  <Layers3 aria-hidden="true" />
-                  <span>{categoryName}</span>
-                  <small>{findCategory(page.blocks, categoryName) ? "Geplaatst" : "Sleep of voeg toe"}</small>
-                </button>
-              ))}
-            </div>
+            <h3>Categorieën <span>{productCategories.length}</span></h3>
+            <button
+              className={styles.libraryLauncher}
+              onClick={() => setCategoryPickerOpen(true)}
+              type="button"
+            >
+              <Layers3 aria-hidden="true" />
+              <span><strong>Categorieën kiezen</strong><small>Selecteer één of meerdere categorieblokken in een pop-up.</small></span>
+              <Plus aria-hidden="true" />
+            </button>
           </section>
 
           <section className={styles.librarySection}>
-            <h3>Producten <span>{products.length}</span></h3>
+            <h3>Producten <span>{visibleProducts.length} / {products.length}</span></h3>
+            <label className={styles.productFilter}>
+              <span>Filter op categorie</span>
+              <select
+                onChange={(event) => setProductCategoryFilter(event.currentTarget.value)}
+                value={productCategoryFilter}
+              >
+                <option value="all">Alle categorieën</option>
+                {productCategories.map((categoryName) => (
+                  <option key={categoryName} value={categoryName}>{categoryName}</option>
+                ))}
+              </select>
+            </label>
             {selectedGroup ? (
               <div className={styles.activeGroupBar} role="status">
                 <span><strong>Actieve productgroep</strong><small>{selectedGroup.group.title}</small></span>
@@ -1056,7 +1156,7 @@ export function MenuStudioEditor({
               </div>
             ) : null}
             <div className={styles.productLibrary}>
-              {products.map((product) => {
+              {visibleProducts.map((product) => {
                 const selected = Boolean(
                   findProduct(page.blocks, product.id) || findGroupedProduct(page.blocks, product.id)
                 );
@@ -1097,46 +1197,294 @@ export function MenuStudioEditor({
               <h3>Media <span>{media.length}</span></h3>
               <Link href="/dashboard/media">Beheren <ExternalLink aria-hidden="true" /></Link>
             </div>
-            <div className={styles.mediaGrid}>
-              {mediaEnabled ? media.map((asset) => (
-                <article key={asset.id}>
-                  <button
-                    draggable
-                    onClick={() => void addMediaBlock(asset)}
-                    onDragStart={(event) => setMenuStudioDragPayload(event, {
-                      assetId: asset.id,
-                      kind: "media",
-                      placement: "media"
-                    })}
-                    type="button"
-                  >
-                    {asset.kind === "video" ? <Video aria-hidden="true" /> : <ImageIcon aria-hidden="true" />}
-                    <span>{asset.name}</span>
-                    <small>{asset.kind === "video" ? "Video plaatsen" : "Afbeelding plaatsen"}</small>
-                  </button>
-                  {asset.kind !== "video" ? (
-                    <div>
-                      <button
-                        draggable
-                        onClick={() => void addMediaBlock(asset, "logo")}
-                        onDragStart={(event) => setMenuStudioDragPayload(event, {
-                          assetId: asset.id,
-                          kind: "media",
-                          placement: "logo"
-                        })}
-                        type="button"
-                      >Als logoblok</button>
-                      <button onClick={() => void setHeaderLogo(asset)} type="button">Als menulogo</button>
-                    </div>
-                  ) : null}
-                </article>
-              )) : null}
-            </div>
-            {!mediaEnabled ? <p className={styles.emptyCopy}>Media-elementen staan voor deze tenant nog uit.</p> : !media.length ? <p className={styles.emptyCopy}>Upload eerst gevalideerde media in de mediabibliotheek.</p> : null}
+            {mediaEnabled && media.length ? (
+              <button
+                className={styles.libraryLauncher}
+                onClick={() => setMediaPickerOpen(true)}
+                type="button"
+              >
+                <Images aria-hidden="true" />
+                <span><strong>Media kiezen</strong><small>Zoek afbeeldingen, video’s en logo’s en voeg ze gericht toe.</small></span>
+                <Plus aria-hidden="true" />
+              </button>
+            ) : (
+              <p className={styles.emptyCopy}>{mediaEnabled
+                ? "Upload eerst gevalideerde media in de mediabibliotheek."
+                : "Media-elementen staan voor deze tenant nog uit."}</p>
+            )}
           </section>
         </aside>
       </div>
+      <CategoryPickerDialog
+        busy={isPending || status === "saving"}
+        categories={productCategories}
+        onAdd={addCategories}
+        onOpenChange={setCategoryPickerOpen}
+        open={categoryPickerOpen}
+        placedCategories={new Set(page.blocks.flatMap((block) => block.type === "category"
+          ? [block.source.sourceName]
+          : []))}
+        products={products}
+      />
+      <MediaPickerDialog
+        busy={isPending || status === "saving"}
+        media={media}
+        onAdd={addMediaSelection}
+        onOpenChange={setMediaPickerOpen}
+        open={mediaPickerOpen}
+      />
     </div>
+  );
+}
+
+function CategoryPickerDialog({
+  busy,
+  categories,
+  onAdd,
+  onOpenChange,
+  open,
+  placedCategories,
+  products
+}: {
+  busy: boolean;
+  categories: string[];
+  onAdd: (categoryNames: string[]) => Promise<void>;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+  placedCategories: Set<string>;
+  products: MenuStudioProductOption[];
+}) {
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const normalizedQuery = query.trim().toLocaleLowerCase("nl-NL");
+  const visibleCategories = categories.filter((categoryName) =>
+    !normalizedQuery || categoryName.toLocaleLowerCase("nl-NL").includes(normalizedQuery)
+  );
+
+  useEffect(() => {
+    if (!open) {
+      setQuery("");
+      setSelected([]);
+    }
+  }, [open]);
+
+  const toggle = (categoryName: string) => setSelected((current) => current.includes(categoryName)
+    ? current.filter((candidate) => candidate !== categoryName)
+    : [...current, categoryName]);
+
+  const submit = async () => {
+    if (!selected.length || submitting || busy) return;
+    setSubmitting(true);
+    await onAdd(selected);
+    setSubmitting(false);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog
+      onOpenChange={(nextOpen) => {
+        if (!submitting) onOpenChange(nextOpen);
+      }}
+      open={open}
+    >
+      <DialogContent className={styles.pickerDialog} closeLabel="Categorieën sluiten">
+        <DialogHeader>
+          <DialogTitle>Categorieën toevoegen</DialogTitle>
+          <DialogDescription>
+            Kies één of meerdere categorieblokken. Producten voeg je daarna vanuit de productlijst toe.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody className={styles.pickerBody}>
+          <label className={styles.pickerSearch}>
+            <Search aria-hidden="true" />
+            <span>Categorieën zoeken</span>
+            <input
+              onChange={(event) => setQuery(event.currentTarget.value)}
+              placeholder="Zoek op categorienaam"
+              type="search"
+              value={query}
+            />
+          </label>
+          {visibleCategories.length ? (
+            <div className={styles.categoryPickerGrid}>
+              {visibleCategories.map((categoryName) => {
+                const placed = placedCategories.has(categoryName);
+                const productCount = products.filter((product) => product.category === categoryName).length;
+                return (
+                  <label data-placed={placed || undefined} key={categoryName}>
+                    <input
+                      checked={selected.includes(categoryName)}
+                      disabled={placed || submitting || busy}
+                      onChange={() => toggle(categoryName)}
+                      type="checkbox"
+                    />
+                    <Layers3 aria-hidden="true" />
+                    <span><strong>{categoryName}</strong><small>{placed ? "Al toegevoegd" : `${productCount} ${productCount === 1 ? "product" : "producten"}`}</small></span>
+                  </label>
+                );
+              })}
+            </div>
+          ) : (
+            <p className={styles.emptyCopy}>Geen categorieën gevonden. Pas je zoekopdracht aan.</p>
+          )}
+        </DialogBody>
+        <DialogFooter aside={`${selected.length} geselecteerd`}>
+          <Button disabled={submitting} onClick={() => onOpenChange(false)} type="button" variant="secondary">Annuleren</Button>
+          <Button disabled={!selected.length || submitting || busy} onClick={() => void submit()} type="button">
+            <Plus aria-hidden="true" /> {submitting ? "Toevoegen…" : `${selected.length || ""} ${selected.length === 1 ? "categorie" : "categorieën"} toevoegen`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type MediaPlacement = "logo" | "media" | "menu-logo";
+
+function MediaPickerDialog({
+  busy,
+  media,
+  onAdd,
+  onOpenChange,
+  open
+}: {
+  busy: boolean;
+  media: MenuStudioMediaOption[];
+  onAdd: (assetIds: string[], placement: MediaPlacement) => Promise<void>;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+}) {
+  const [kind, setKind] = useState<"all" | "image" | "video">("all");
+  const [placement, setPlacement] = useState<MediaPlacement>("media");
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const normalizedQuery = query.trim().toLocaleLowerCase("nl-NL");
+  const compatibleMedia = media.filter((asset) => placement === "media" ||
+    asset.kind === "image" || asset.kind === "logo");
+  const visibleMedia = compatibleMedia.filter((asset) => {
+    const matchesQuery = !normalizedQuery || asset.name.toLocaleLowerCase("nl-NL").includes(normalizedQuery);
+    const matchesKind = kind === "all" || (kind === "video"
+      ? asset.kind === "video" || asset.kind === "animation"
+      : asset.kind !== "video" && asset.kind !== "animation");
+    return matchesQuery && matchesKind;
+  });
+
+  useEffect(() => {
+    if (!open) {
+      setKind("all");
+      setPlacement("media");
+      setQuery("");
+      setSelected([]);
+    }
+  }, [open]);
+
+  const choosePlacement = (nextPlacement: MediaPlacement) => {
+    setPlacement(nextPlacement);
+    setKind(nextPlacement === "media" ? kind : "image");
+    setSelected((current) => {
+      const allowed = current.filter((assetId) => {
+        const asset = media.find((candidate) => candidate.id === assetId);
+        return asset && (nextPlacement === "media" || asset.kind === "image" || asset.kind === "logo");
+      });
+      return nextPlacement === "menu-logo" ? allowed.slice(0, 1) : allowed;
+    });
+  };
+
+  const toggle = (assetId: string) => setSelected((current) => {
+    if (current.includes(assetId)) return current.filter((candidate) => candidate !== assetId);
+    return placement === "menu-logo" ? [assetId] : [...current, assetId];
+  });
+
+  const submit = async () => {
+    if (!selected.length || submitting || busy) return;
+    setSubmitting(true);
+    await onAdd(selected, placement);
+    setSubmitting(false);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog
+      onOpenChange={(nextOpen) => {
+        if (!submitting) onOpenChange(nextOpen);
+      }}
+      open={open}
+    >
+      <DialogContent className={styles.pickerDialog} closeLabel="Media sluiten">
+        <DialogHeader>
+          <DialogTitle>Media toevoegen</DialogTitle>
+          <DialogDescription>
+            Zoek gevalideerde media en kies hoe deze in het menu wordt geplaatst.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody className={styles.pickerBody}>
+          <fieldset className={styles.placementPicker}>
+            <legend>Plaatsing</legend>
+            <div>
+              {(["media", "logo", "menu-logo"] as const).map((option) => (
+                <button
+                  aria-pressed={placement === option}
+                  key={option}
+                  onClick={() => choosePlacement(option)}
+                  type="button"
+                >{option === "media" ? "Op het canvas" : option === "logo" ? "Als logoblok" : "Als menulogo"}</button>
+              ))}
+            </div>
+          </fieldset>
+          <div className={styles.pickerToolbar}>
+            <label className={styles.pickerSearch}>
+              <Search aria-hidden="true" />
+              <span>Media zoeken</span>
+              <input
+                onChange={(event) => setQuery(event.currentTarget.value)}
+                placeholder="Zoek op medianaam"
+                type="search"
+                value={query}
+              />
+            </label>
+            <label className={styles.pickerFilter}>Type
+              <select
+                disabled={placement !== "media"}
+                onChange={(event) => setKind(event.currentTarget.value as typeof kind)}
+                value={kind}
+              >
+                <option value="all">Alle media</option>
+                <option value="image">Afbeeldingen</option>
+                <option value="video">Video en animatie</option>
+              </select>
+            </label>
+          </div>
+          {visibleMedia.length ? (
+            <div className={styles.mediaPickerGrid}>
+              {visibleMedia.map((asset) => (
+                <label data-selected={selected.includes(asset.id) || undefined} key={asset.id}>
+                  <input
+                    checked={selected.includes(asset.id)}
+                    disabled={submitting || busy}
+                    onChange={() => toggle(asset.id)}
+                    type={placement === "menu-logo" ? "radio" : "checkbox"}
+                  />
+                  {asset.kind === "video" || asset.kind === "animation"
+                    ? <Video aria-hidden="true" />
+                    : <ImageIcon aria-hidden="true" />}
+                  <span><strong>{asset.name}</strong><small>{mediaKindLabel(asset.kind)}</small></span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyCopy}>Geen passende media gevonden. Pas je zoekopdracht of plaatsing aan.</p>
+          )}
+        </DialogBody>
+        <DialogFooter aside={`${selected.length} geselecteerd`}>
+          <Button disabled={submitting} onClick={() => onOpenChange(false)} type="button" variant="secondary">Annuleren</Button>
+          <Button disabled={!selected.length || submitting || busy} onClick={() => void submit()} type="button">
+            <Plus aria-hidden="true" /> {submitting ? "Toevoegen…" : `${selected.length || ""} ${selected.length === 1 ? "item" : "items"} toevoegen`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1632,10 +1980,15 @@ function PanelHeading({ icon, title }: { icon: React.ReactNode; title: string })
   return <header className={styles.panelHeading}>{icon}<div><span>Menu Studio</span><h2>{title}</h2></div></header>;
 }
 
-function categoryBlock(product: MenuStudioProductOption, blocks: MenuBlock[]): Extract<MenuBlock, { type: "category" }> {
+function categoryBlock(
+  product: MenuStudioProductOption,
+  blocks: MenuBlock[],
+  explicitPortraitColumns?: 1 | 2
+): Extract<MenuBlock, { type: "category" }> {
   const categories = blocks.filter((block) => block.type === "category");
   const useLeft = categories.filter((block) => block.layout.landscape.x < 960).length <=
     categories.filter((block) => block.layout.landscape.x >= 960).length;
+  const useTwoPortraitColumns = portraitColumnCount(blocks, explicitPortraitColumns) === 2;
   const source = product.sourceKind === "twelve_excel"
     ? {
         providerConnectionId: product.sourceId,
@@ -1652,7 +2005,9 @@ function categoryBlock(product: MenuStudioProductOption, blocks: MenuBlock[]): E
     id: crypto.randomUUID(),
     layout: {
       landscape: { h: 704, rotation: 0, w: 846, x: useLeft ? 96 : 978, y: 248 },
-      portrait: { h: 1388, rotation: 0, w: 936, x: 72, y: 348 }
+      portrait: useTwoPortraitColumns
+        ? { h: 1388, rotation: 0, w: 458, x: useLeft ? 72 : 550, y: 348 }
+        : { h: 1388, rotation: 0, w: 936, x: 72, y: 348 }
     },
     order: blocks.length,
     productNodes: [],
@@ -1693,6 +2048,13 @@ function findCategory(blocks: MenuBlock[], name: string) {
     (block): block is Extract<MenuBlock, { type: "category" }> =>
       block.type === "category" && block.source.sourceName === name
   );
+}
+
+function portraitColumnCount(blocks: MenuBlock[], explicit?: 1 | 2): 1 | 2 {
+  if (explicit) return explicit;
+  return blocks.some((block) =>
+    (block.type === "category" || block.type === "product-group") && block.layout.portrait.w < 700
+  ) ? 2 : 1;
 }
 
 function findProduct(blocks: MenuBlock[], productId: string) {
@@ -1844,6 +2206,13 @@ function blockDetail(block: MenuBlock) {
 
 function formatPrice(cents: number, currency: string) {
   return new Intl.NumberFormat("nl-NL", { currency, style: "currency" }).format(cents / 100);
+}
+
+function mediaKindLabel(kind: MenuStudioMediaOption["kind"]) {
+  if (kind === "video") return "Video";
+  if (kind === "animation") return "Animatie";
+  if (kind === "logo") return "Logo";
+  return "Afbeelding";
 }
 
 function samePrice(

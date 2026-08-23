@@ -370,7 +370,8 @@ export const menuPageSchema = z.object({
   blocks: z.array(menuBlockSchema).max(100),
   durationMs: z.number().int().min(6_000).max(120_000).optional(),
   id: menuStudioIdSchema,
-  order: z.number().int().min(0).max(10_000)
+  order: z.number().int().min(0).max(10_000),
+  portraitColumns: z.union([z.literal(1), z.literal(2)]).optional()
 }).strict();
 
 export const menuDocumentV2Schema = z.object({

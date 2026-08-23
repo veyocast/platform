@@ -9,6 +9,10 @@
   overflow: auto;
 }
 
+.viewport[data-alignment="top"] {
+  align-items: flex-start;
+}
+
 .displayFrame {
   position: relative;
   flex: 0 0 auto;
@@ -217,7 +221,7 @@
 
 .product > b,
 .productGroup > b {
-  color: var(--vc-theme-accent);
+  color: var(--vc-theme-text);
   font-size: 26px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -343,6 +347,10 @@
 .canvas[data-orientation="portrait"] .columns {
   grid-template-columns: minmax(0, 1fr);
   gap: 20px;
+}
+
+.canvas[data-orientation="portrait"] .columns[data-column-count="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .canvas[data-orientation="portrait"] .column {

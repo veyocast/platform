@@ -78,6 +78,35 @@ describe("MenuScene", () => {
     )).toEqual([19, 3]);
   });
 
+  it("verdeelt expliciet smalle portraitcategorieën over twee zichtbare kolommen", () => {
+    const twoColumns = document("editorial", "dark");
+    const left = twoColumns.pages[0]!.blocks[0];
+    if (left?.type !== "category") throw new Error("category fixture missing");
+    left.layout.portrait = { h: 1388, rotation: 0, w: 458, x: 72, y: 348 };
+    left.productNodes = [product(0), product(1)];
+    twoColumns.pages[0]!.blocks.push({
+      ...structuredClone(left),
+      id: "category-2",
+      layout: {
+        ...left.layout,
+        portrait: { h: 1388, rotation: 0, w: 458, x: 550, y: 348 }
+      },
+      order: 1,
+      productNodes: [product(2), product(3)],
+      source: { source: "manual", sourceCategoryId: "warm", sourceName: "Warm" }
+    });
+
+    const [page] = resolveMenuScenePages(twoColumns, "portrait");
+    expect(page?.columnCount).toBe(2);
+    expect(page?.columns.left.some((row) => row.kind === "category" && row.label === "Dranken")).toBe(true);
+    expect(page?.columns.right.some((row) => row.kind === "category" && row.label === "Warm")).toBe(true);
+
+    twoColumns.pages[0]!.portraitColumns = 1;
+    const [forcedOneColumn] = resolveMenuScenePages(twoColumns, "portrait");
+    expect(forcedOneColumn?.columnCount).toBe(1);
+    expect(forcedOneColumn?.columns.right).toEqual([]);
+  });
+
   it("reserveert ruimte voor keep-together media en markeert echte underfill", () => {
     const candidate = document("editorial", "light");
     const category = candidate.pages[0]!.blocks[0];

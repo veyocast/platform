@@ -66,6 +66,7 @@ type MenuFlowBlock = Extract<MenuBlock, { type: "category" | "product-group" }>;
 type MenuFloatingBlock = Exclude<MenuBlock, MenuFlowBlock>;
 
 export type ResolvedMenuScenePage = {
+  columnCount: 1 | 2;
   columns: { left: MenuSceneRow[]; right: MenuSceneRow[] };
   durationMs: number;
   floatingBlocks: MenuFloatingBlock[];
@@ -94,7 +95,10 @@ export function resolveMenuScenePages(
       (block): block is MenuFloatingBlock =>
         block.type !== "category" && block.type !== "product-group"
     );
-    const byColumn = orientation === "portrait"
+    const columnCount = orientation === "landscape"
+      ? 2
+      : page.portraitColumns ?? (usesTwoPortraitColumns(flowing) ? 2 : 1);
+    const byColumn = orientation === "portrait" && columnCount === 1
       ? { left: flowing, right: [] }
       : {
           left: flowing.filter((block) => blockColumn(block, orientation) === "left"),
@@ -116,6 +120,7 @@ export function resolveMenuScenePages(
         ? floatingBlocks.filter((block) => !block.hidden)
         : [];
       result.push({
+        columnCount,
         columns: { left: left[index] ?? [], right: right[index] ?? [] },
         durationMs: page.durationMs ?? 8_000,
         floatingBlocks: index === 0 ? floatingBlocks : [],
@@ -134,6 +139,7 @@ export function resolveMenuScenePages(
 }
 
 export function MenuScene({
+  alignment = "center",
   assets,
   document,
   onContentFit,
@@ -142,6 +148,7 @@ export function MenuScene({
   pageIndex = 0,
   zoom = 1
 }: {
+  alignment?: "center" | "top";
   assets: Record<string, MenuSceneAsset>;
   document: MenuDocumentV2;
   onContentFit?: (overflow: boolean) => void;
@@ -203,7 +210,7 @@ export function MenuScene({
   }, [onReady, scale]);
 
   return (
-    <div className={styles.viewport} ref={viewportRef}>
+    <div className={styles.viewport} data-alignment={alignment} ref={viewportRef}>
       {page ? (
         <div
           className={styles.displayFrame}
@@ -325,7 +332,11 @@ export function MenuSceneCanvas({
         ) : null}
       </header>
       <main className={styles.body} style={rectStyle(zones.body)}>
-        <div className={styles.columns} data-underfilled={page.underfilled || undefined}>
+        <div
+          className={styles.columns}
+          data-column-count={page.columnCount}
+          data-underfilled={page.underfilled || undefined}
+        >
           <MenuColumn assets={assets} label={orientation === "portrait" ? "Menu-inhoud" : "Linkerkolom"} rows={page.columns.left} />
           {page.columns.right.length ? (
             <MenuColumn assets={assets} label="Rechterkolom" rows={page.columns.right} />
@@ -816,6 +827,10 @@ function blockColumn(
   return layout.x + layout.w / 2 <= menuSceneCanvases[orientation].width / 2
     ? "left"
     : "right";
+}
+
+function usesTwoPortraitColumns(blocks: MenuFlowBlock[]) {
+  return blocks.some((block) => block.layout.portrait.w < 700);
 }
 
 function separator(value: MenuProductGroupPlacement["display"]["separator"]) {

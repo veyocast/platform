@@ -405,7 +405,11 @@
 }
 
 .previewPanel {
+  position: sticky;
+  top: calc(4.75rem + var(--vc-space-16));
+  align-self: start;
   display: grid;
+  max-height: calc(100dvh - 6rem);
   grid-template-rows: auto minmax(0, 1fr) auto auto auto;
   padding: var(--vc-space-12);
   background:
@@ -451,11 +455,39 @@
 }
 
 .previewToolbar {
+  flex-wrap: wrap;
   justify-content: space-between;
   padding: 0 0 var(--vc-space-12);
   color: var(--vc-brand-paper-white);
   font-size: .82rem;
   font-weight: 800;
+}
+
+.previewToolbar .portraitColumnPicker {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) repeat(2, auto);
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-8);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: var(--vc-radius-md);
+  background: rgb(255 255 255 / 6%);
+}
+
+.portraitColumnPicker > span {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.portraitColumnPicker > span svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--vc-action);
+}
+
+.previewToolbar .portraitColumnPicker button {
+  min-height: 2.75rem;
 }
 
 .previewToolbar button {
@@ -554,6 +586,258 @@
   color: var(--vc-text-muted);
   font-family: var(--vc-font-body);
   font-size: .72rem;
+}
+
+.libraryLauncher {
+  display: grid;
+  width: 100%;
+  min-height: 4.5rem;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+  align-items: center;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-8);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface-muted);
+  color: var(--vc-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.libraryLauncher:hover {
+  border-color: var(--vc-border-strong);
+  background: var(--vc-surface);
+}
+
+.libraryLauncher > svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  justify-self: center;
+  color: var(--vc-action);
+}
+
+.libraryLauncher > svg:last-child {
+  width: 1rem;
+  height: 1rem;
+  color: var(--vc-text-muted);
+}
+
+.libraryLauncher span,
+.libraryLauncher strong,
+.libraryLauncher small {
+  display: block;
+  min-width: 0;
+}
+
+.libraryLauncher strong {
+  font-size: .8rem;
+}
+
+.libraryLauncher small {
+  margin-top: .16rem;
+  color: var(--vc-text-muted);
+  font-size: .69rem;
+  line-height: 1.35;
+}
+
+.productFilter {
+  display: grid;
+  gap: .3rem;
+  color: var(--vc-text-muted);
+  font-size: .72rem;
+  font-weight: 750;
+}
+
+.productFilter select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: .5rem .7rem;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface);
+  color: var(--vc-text);
+  font: inherit;
+}
+
+.pickerDialog {
+  width: min(calc(100vw - var(--vc-space-32)), 64rem);
+  overflow: hidden;
+}
+
+.pickerBody {
+  display: grid;
+  min-height: 0;
+  gap: var(--vc-space-16);
+  overflow: auto;
+}
+
+.pickerToolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(11rem, .32fr);
+  gap: var(--vc-space-12);
+}
+
+.pickerSearch,
+.pickerFilter {
+  display: grid;
+  min-width: 0;
+  gap: .3rem;
+  color: var(--vc-text-muted);
+  font-size: .75rem;
+  font-weight: 750;
+}
+
+.pickerSearch {
+  position: relative;
+}
+
+.pickerSearch > svg {
+  position: absolute;
+  bottom: .82rem;
+  left: .8rem;
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+  color: var(--vc-text-muted);
+}
+
+.pickerSearch input,
+.pickerFilter select {
+  width: 100%;
+  min-height: 2.75rem;
+  box-sizing: border-box;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface);
+  color: var(--vc-text);
+  font: inherit;
+}
+
+.pickerSearch input {
+  padding: .55rem .75rem .55rem 2.35rem;
+}
+
+.pickerFilter select {
+  padding: .55rem .7rem;
+}
+
+.categoryPickerGrid,
+.mediaPickerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--vc-space-8);
+}
+
+.categoryPickerGrid > label,
+.mediaPickerGrid > label {
+  display: grid;
+  min-width: 0;
+  min-height: 4.25rem;
+  grid-template-columns: 1.25rem 1.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-8) var(--vc-space-12);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface);
+  color: var(--vc-text);
+  cursor: pointer;
+}
+
+.categoryPickerGrid > label:has(input:focus-visible),
+.mediaPickerGrid > label:has(input:focus-visible) {
+  border-color: var(--vc-focus);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--vc-focus) 24%, transparent);
+}
+
+.categoryPickerGrid > label:has(input:checked),
+.mediaPickerGrid > label[data-selected="true"] {
+  border-color: var(--vc-action);
+  background: color-mix(in srgb, var(--vc-action) 7%, var(--vc-surface));
+}
+
+.categoryPickerGrid > label[data-placed="true"] {
+  cursor: default;
+  opacity: .62;
+}
+
+.categoryPickerGrid input,
+.mediaPickerGrid input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--vc-action);
+}
+
+.categoryPickerGrid svg,
+.mediaPickerGrid svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--vc-text-muted);
+}
+
+.categoryPickerGrid span,
+.categoryPickerGrid strong,
+.categoryPickerGrid small,
+.mediaPickerGrid span,
+.mediaPickerGrid strong,
+.mediaPickerGrid small {
+  display: block;
+  min-width: 0;
+}
+
+.categoryPickerGrid strong,
+.mediaPickerGrid strong {
+  overflow: hidden;
+  font-size: .8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoryPickerGrid small,
+.mediaPickerGrid small {
+  margin-top: .14rem;
+  color: var(--vc-text-muted);
+  font-size: .69rem;
+}
+
+.placementPicker {
+  display: grid;
+  gap: var(--vc-space-8);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.placementPicker legend {
+  color: var(--vc-text-muted);
+  font-size: .75rem;
+  font-weight: 750;
+}
+
+.placementPicker > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--vc-space-8);
+}
+
+.placementPicker button {
+  min-height: 2.75rem;
+  padding: .5rem .7rem;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface-muted);
+  color: var(--vc-text);
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.placementPicker button[aria-pressed="true"] {
+  border-color: var(--vc-action);
+  background: color-mix(in srgb, var(--vc-action) 10%, var(--vc-surface));
 }
 
 .themeGrid {
@@ -1125,6 +1409,11 @@
     border-top: 0;
     border-left: 1px solid var(--vc-border);
   }
+
+  .categoryPickerGrid,
+  .mediaPickerGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
@@ -1169,7 +1458,9 @@
 
   .panel,
   .previewPanel {
+    position: static;
     display: none;
+    max-height: none;
     min-height: calc(100dvh - 14rem);
     border-radius: var(--vc-radius-lg);
   }
@@ -1202,6 +1493,13 @@
 
   .saveStatus {
     margin-right: auto;
+  }
+
+  .pickerToolbar,
+  .placementPicker > div,
+  .categoryPickerGrid,
+  .mediaPickerGrid {
+    grid-template-columns: 1fr;
   }
 }
 

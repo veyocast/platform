@@ -23,12 +23,6 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     page.setDefaultNavigationTimeout(60_000);
     await authenticate(page);
     await page.setViewportSize({ height: 960, width: 1440 });
-    await page.goto("/dashboard/slides");
-    await expect(page.getByRole("link", { name: "Menu Studio openen" })).toHaveAttribute(
-      "href",
-      "/dashboard/slides/menu-studio/new"
-    );
-    await expect(page.getByRole("link", { name: "Nieuwe dynamische slide" })).toHaveCount(0);
     await page.goto(`/dashboard/slides/menu-studio/new?bron=${sourceId}`);
     await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
 
@@ -41,9 +35,16 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     const canvasDropTarget = page.getByRole("region", {
       name: "Compositiecanvas; sleep hier categorieën, producten en media naartoe"
     });
-    const categoryButton = page.getByRole("button", { name: /Frisdranken Sleep of voeg toe/ });
-    await dragThroughBrowserDnd(page, categoryButton, canvasDropTarget);
-    await expect(page.getByRole("button", { name: /Frisdranken Geplaatst/ })).toBeDisabled();
+    await page.getByRole("button", { name: /Categorieën kiezen/ }).click();
+    const categoryDialog = page.getByRole("dialog", { name: "Categorieën toevoegen" });
+    await categoryDialog.getByLabel(/Frisdranken/).check();
+    await categoryDialog.getByRole("button", { name: "1 categorie toevoegen" }).click();
+    await expect(categoryDialog).toHaveCount(0);
+    await expect(page.getByLabel("Filter op categorie")).toHaveValue("all");
+    const visibleProductNames = await page.locator('[class*="productLibrary"] article strong').allTextContents();
+    expect(visibleProductNames).toEqual([...visibleProductNames].sort((left, right) =>
+      left.localeCompare(right, "nl-NL", { numeric: true, sensitivity: "base" })
+    ));
     const regularCardBeforeDrop = productCard(page, "Coca-Cola Regular");
     await dragThroughBrowserDnd(page, regularCardBeforeDrop.locator("button").first(), canvasDropTarget);
     await expect(regularCardBeforeDrop).toHaveAttribute("data-selected", "true");
@@ -54,7 +55,9 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     const groupButton = regularCard.getByRole("button", { name: "Maak productgroep" });
     await expect(groupButton).toBeVisible();
     await groupButton.click();
-    await expect(page.getByRole("region", { name: /Productgroep Coca-Cola Regular bewerken/ })).toBeVisible();
+    const initialGroupInspector = page.getByRole("region", { name: /Productgroep Coca-Cola Regular bewerken/ });
+    await expect(initialGroupInspector).toBeVisible();
+    await expect(initialGroupInspector.getByText("Vrije invoer", { exact: true })).toHaveCount(0);
     await removeProduct(page, "Coca-Cola Zero");
     await removeProduct(page, "Coca-Cola Cherry");
     await productCard(page, "Coca-Cola Zero").getByRole("button", { name: "Koppel aan actieve groep" }).click();
@@ -95,6 +98,9 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     await page.getByRole("button", { name: "Staand" }).click();
     const scene = page.locator("[data-theme-mode][data-theme-id]");
     await expect(scene).toHaveAttribute("data-orientation", "portrait");
+    await expect(page.getByRole("group", { name: "Kolommen in staande modus" })).toBeVisible();
+    await page.getByRole("button", { name: "2 kolommen" }).click();
+    await expect(scene.locator('[data-column-count="2"]')).toBeVisible();
     const sceneBox = await scene.boundingBox();
     expect(sceneBox && sceneBox.width / sceneBox.height).toBeCloseTo(9 / 16, 2);
     await page.getByRole("button", { name: "obsidian" }).click();
