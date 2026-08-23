@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ListPlus, RefreshCw } from "lucide-react";
+import { ListPlus, PencilLine, RefreshCw } from "lucide-react";
 import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 
@@ -15,6 +15,9 @@ import {
   addDynamicSlideToPlaylist,
   refreshDynamicSlide
 } from "../actions";
+import { createOrResumeDynamicSlideVersion } from "../version-actions";
+import { loadDynamicSlideVersionState } from "../version-data";
+import { VersionHistory } from "../version-history";
 
 type PageProps = {
   params: Promise<{ slideId: string }>;
@@ -33,14 +36,35 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
     ? await loadSlide(slideId, session.tenantId!)
     : null;
   if (!data) notFound();
+  const versionState = session.isLive
+    ? await loadDynamicSlideVersionState(session.tenantId!, slideId)
+    : null;
   const canWrite = hasCapability(session.capabilities, "tenant.dynamic_slide.write");
+  const isVersionedSportlink = isSportlinkConfiguration(data.slide.configuration_json);
+  const activeVersion = versionState?.versions.find((version) =>
+    version.id === versionState.activeDraftVersionId
+  );
   const canAdd = data.slide.status === "ready" &&
     hasCapability(session.capabilities, "tenant.playlist.write");
 
   return (
     <>
       <PageHeader
-        actions={<div className={styles.heroActions}><Button asChild variant="ghost"><Link href="/dashboard/slides">Terug</Link></Button>{canWrite ? <form action={refreshDynamicSlide}><input name="slideId" type="hidden" value={slideId} /><Button type="submit" variant="secondary"><RefreshCw aria-hidden="true" />Nieuwe snapshot</Button></form> : null}</div>}
+        actions={<div className={styles.heroActions}>
+          <Button asChild variant="ghost"><Link href="/dashboard/slides">Terug</Link></Button>
+          {canWrite && isVersionedSportlink && activeVersion?.status === "draft" ? (
+            <Button asChild variant="secondary"><Link href={`/dashboard/slides/${slideId}/edit`}><PencilLine aria-hidden="true" />Concept verder bewerken</Link></Button>
+          ) : canWrite && isVersionedSportlink && activeVersion?.status === "publishing" ? (
+            <Button disabled variant="secondary"><RefreshCw aria-hidden="true" />Nieuwe versie wordt gepubliceerd</Button>
+          ) : canWrite && isVersionedSportlink && versionState?.currentVersionId ? (
+            <form action={createOrResumeDynamicSlideVersion}>
+              <input name="editor" type="hidden" value="sportlink" />
+              <input name="slideId" type="hidden" value={slideId} />
+              <Button type="submit" variant="secondary"><PencilLine aria-hidden="true" />Nieuwe versie maken</Button>
+            </form>
+          ) : null}
+          {canWrite && !versionState?.activeDraftVersionId ? <form action={refreshDynamicSlide}><input name="slideId" type="hidden" value={slideId} /><Button type="submit" variant="secondary"><RefreshCw aria-hidden="true" />Nieuwe snapshot</Button></form> : null}
+        </div>}
         description="Controleer de huidige immutable output en voeg die bewust toe aan een playlistconcept."
         eyebrow={session.tenant}
         status={slideStatus(data.slide.status)}
@@ -173,6 +197,7 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
           ) : <p className="notice notice--warning">{data.slide.status === "ready" ? "Maak eerst een playlistconcept of vraag schrijfrechten." : "Wacht tot de snapshot gereed is."}</p>}
         </aside>
       </div>
+      {versionState ? <VersionHistory canWrite={canWrite} editor="sportlink" slideId={slideId} versions={versionState.versions} /> : null}
     </>
   );
 }
@@ -185,6 +210,18 @@ async function loadSlide(slideId: string, tenantId: string) {
     supabase.from("playlists").select("id, name, revision").eq("tenant_id", tenantId).neq("status", "archived").order("name")
   ]);
   if (!slideResult.data || slideResult.error) return null;
+  const currentVersion = slideResult.data.current_published_version_id
+    ? await supabase
+      .from("dynamic_slide_versions")
+      .select("name,slide_type,orientation,selection_mode,configuration_json,template_version_id,data_source_id")
+      .eq("tenant_id", tenantId)
+      .eq("id", slideResult.data.current_published_version_id)
+      .maybeSingle()
+    : null;
+  const slide = currentVersion?.data ? {
+    ...slideResult.data,
+    ...currentVersion.data
+  } : slideResult.data;
   let previewUrl: string | null = null;
   let newsPreview: {
     articleTitle: string;
@@ -205,8 +242,8 @@ async function loadSlide(slideId: string, tenantId: string) {
     competition: string | null;
     team: string | null;
   } | null = null;
-  if (slideResult.data.current_snapshot_id) {
-    const snapshot = await supabase.from("dynamic_slide_snapshots").select("output_media_asset_id, snapshot_data_json").eq("id", slideResult.data.current_snapshot_id).maybeSingle();
+  if (slide.current_snapshot_id) {
+    const snapshot = await supabase.from("dynamic_slide_snapshots").select("output_media_asset_id, snapshot_data_json").eq("id", slide.current_snapshot_id).maybeSingle();
     if (snapshot.data?.output_media_asset_id) {
       const variant = await supabase.from("media_variants").select("storage_path").eq("asset_id", snapshot.data.output_media_asset_id).eq("variant_type", "original").maybeSingle();
       if (variant.data?.storage_path) {
@@ -214,7 +251,7 @@ async function loadSlide(slideId: string, tenantId: string) {
         previewUrl = signed.data?.signedUrl ?? null;
       }
     }
-    if (slideResult.data.slide_type === "news" && snapshot.data) {
+    if (slide.slide_type === "news" && snapshot.data) {
       const snapshotData = readRecord(snapshot.data.snapshot_data_json);
       const news = readRecord(snapshotData?.news);
       const brand = readRecord(snapshotData?.brand);
@@ -254,7 +291,7 @@ async function loadSlide(slideId: string, tenantId: string) {
         };
       }
     }
-    if (slideResult.data.slide_type.startsWith("sport_") && snapshot.data) {
+    if (slide.slide_type.startsWith("sport_") && snapshot.data) {
       const snapshotData = readRecord(snapshot.data.snapshot_data_json);
       const sport = readRecord(snapshotData?.sport);
       const selection = readRecord(sport?.selection);
@@ -285,7 +322,7 @@ async function loadSlide(slideId: string, tenantId: string) {
     newsPreview,
     playlists: playlistsResult.data ?? [],
     previewUrl,
-    slide: slideResult.data,
+    slide,
     sportSelection
   };
 }
@@ -312,6 +349,12 @@ function readRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? value as Record<string, unknown>
     : null;
+}
+
+function isSportlinkConfiguration(value: unknown) {
+  const configuration = readRecord(value);
+  return typeof configuration?.blueprintKey === "string" &&
+    configuration.blueprintKey.startsWith("sportlink.");
 }
 
 function safeString(value: unknown) {

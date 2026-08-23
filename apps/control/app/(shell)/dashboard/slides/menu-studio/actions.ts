@@ -209,15 +209,26 @@ export async function publishMenuStudio(input: {
   }
   const supabase = await createControlSupabaseClient();
   if (!supabase) return failure("MENU_STUDIO_UNAVAILABLE", "Menu Studio is momenteel niet beschikbaar.");
-  const result = await supabase.rpc("publish_menu_studio_document_v2", {
+  const slide = await supabase
+    .from("dynamic_slides")
+    .select("active_draft_version_id")
+    .eq("id", input.slideId)
+    .maybeSingle();
+  if (slide.error || !slide.data?.active_draft_version_id) {
+    return failure("MENU_VERSION_NOT_FOUND", "Maak eerst een nieuwe conceptversie van dit menu.");
+  }
+  const result = await supabase.rpc("publish_dynamic_slide_version_v1", {
     p_expected_revision: input.expectedRevision,
-    p_operation_id: operationId,
-    p_slide_id: input.slideId
+    p_slide_id: input.slideId,
+    p_version_id: slide.data.active_draft_version_id
   });
   if (result.error) return rpcFailure(result.error.code, "publiceren");
   const response = record(result.data);
-  const revision = number(response?.revision);
-  if (!revision) return failure("MENU_STUDIO_RESPONSE_INVALID", "De server bevestigde de publicatie niet.");
+  if (response?.outcome === "conflict") {
+    return failure("MENU_VERSION_CONFLICT", "Deze conceptversie is intussen gewijzigd. Vernieuw de pagina voordat je publiceert.");
+  }
+  const revision = input.expectedRevision;
+  if (!response?.versionId) return failure("MENU_STUDIO_RESPONSE_INVALID", "De server bevestigde de publicatie niet.");
   revalidatePath(`/dashboard/slides/menu-studio/${input.slideId}`);
   revalidatePath(`/dashboard/slides/${input.slideId}`);
   revalidatePath("/dashboard/slides");
@@ -258,11 +269,6 @@ function record(value: unknown) {
 
 function string(value: unknown) {
   return typeof value === "string" ? value : null;
-}
-
-function number(value: unknown) {
-  const candidate = Number(value);
-  return Number.isInteger(candidate) && candidate >= 1 ? candidate : null;
 }
 
 const uuidPattern =

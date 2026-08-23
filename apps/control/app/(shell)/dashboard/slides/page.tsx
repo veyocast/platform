@@ -63,6 +63,7 @@ export default async function SlidesPage({ searchParams }: PageProps) {
                   <div className={styles.cardTop}>
                     <StatusPill {...slideStatus(slide.status)} />
                     <StatusPill {...dataHealthStatus(slide)} />
+                    {slide.currentVersionNumber ? <StatusPill label={`v${slide.currentVersionNumber} · Huidig`} tone="neutral" /> : null}
                   </div>
                   <div>
                     <h3 className={styles.cardTitle}>{slide.name}</h3>
@@ -94,7 +95,7 @@ async function loadSlides(tenantId: string) {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("dynamic_slides")
-    .select("id, name, slide_type, orientation, selection_mode, status, current_snapshot_id, data_source_id, last_error_code, updated_at, configuration_json")
+    .select("id, name, slide_type, orientation, selection_mode, status, current_snapshot_id, current_published_version_id, active_draft_version_id, data_source_id, last_error_code, updated_at, configuration_json")
     .eq("tenant_id", tenantId)
     .neq("status", "archived")
     .order("updated_at", { ascending: false });
@@ -105,6 +106,16 @@ async function loadSlides(tenantId: string) {
   const snapshotIds = (data ?? []).flatMap((slide) =>
     slide.current_snapshot_id ? [slide.current_snapshot_id] : []
   );
+  const currentVersionIds = (data ?? []).flatMap((slide) =>
+    slide.current_published_version_id ? [slide.current_published_version_id] : []
+  );
+  const versions = currentVersionIds.length
+    ? await supabase
+      .from("dynamic_slide_versions")
+      .select("id,version_number,name,slide_type,orientation,selection_mode,configuration_json,template_version_id,data_source_id")
+      .in("id", currentVersionIds)
+    : { data: [], error: null };
+  const versionById = new Map((versions.data ?? []).map((version) => [version.id, version]));
   const snapshots = snapshotIds.length
     ? await supabase
       .from("dynamic_slide_snapshots")
@@ -137,9 +148,26 @@ async function loadSlides(tenantId: string) {
   const snapshotById = new Map(
     (snapshots.data ?? []).map((snapshot) => [snapshot.id, snapshot])
   );
-  return (data ?? []).map((slide) => ({
-    ...slide,
-    menuStudio: object(slide.configuration_json)?.schemaVersion === "menu-document.v2",
+  return (data ?? []).map((slide) => {
+    const currentVersion = slide.current_published_version_id
+      ? versionById.get(slide.current_published_version_id)
+      : null;
+    const visibleSlide = currentVersion ? {
+      ...slide,
+      configuration_json: currentVersion.configuration_json,
+      data_source_id: currentVersion.data_source_id,
+      name: currentVersion.name,
+      orientation: currentVersion.orientation,
+      selection_mode: currentVersion.selection_mode,
+      slide_type: currentVersion.slide_type,
+      template_version_id: currentVersion.template_version_id
+    } : slide;
+    return {
+    ...visibleSlide,
+    currentVersionNumber: slide.current_published_version_id
+      ? currentVersion?.version_number ?? null
+      : null,
+    menuStudio: object(visibleSlide.configuration_json)?.schemaVersion === "menu-document.v2",
     itemCount: snapshotItemCount(
       slide.current_snapshot_id
         ? snapshotById.get(slide.current_snapshot_id)?.snapshot_data_json
@@ -154,7 +182,8 @@ async function loadSlides(tenantId: string) {
     snapshotErrorCode: slide.current_snapshot_id
       ? snapshotById.get(slide.current_snapshot_id)?.error_code ?? null
       : null
-  }));
+  };
+  });
 }
 
 function slideStatus(status: string) {

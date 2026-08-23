@@ -235,6 +235,7 @@ async function loadMedia(
     .select("id, title, kind, mime_type, checksum_sha256, tintable")
     .eq("tenant_id", tenantId)
     .eq("status", "ready")
+    .eq("source_kind", "user")
     .is("deleted_at", null)
     .not("checksum_sha256", "is", null)
     .order("created_at", { ascending: false })
