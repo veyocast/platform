@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(52);
+select plan(56);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -409,6 +409,103 @@ select is(
   2,
   'the canonical team retains both competition and cup choices'
 );
+
+insert into public.sports_teams(
+  tenant_id, source_connection_id, external_id, name, metadata
+) values (
+  '10000000-0000-4000-8000-000000000b01',
+  current_setting('test.sportlink_connection_id')::uuid,
+  '20', 'Testclub 2',
+  '{"competitionOptions":[{"externalId":"competition-a","name":"Reguliere competitie","period":"Fase 1","poolExternalId":"701","poolName":"Poule A"}]}'::jsonb
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000b01',true);
+select is(
+  (
+    with combinations(team_id, team_name, blueprint_key, slide_type, theme_id) as (
+      values
+        ('10', 'Testclub 1', 'sportlink.pool_schedule_next_7_days', 'sport_program', 'atelier'),
+        ('10', 'Testclub 1', 'sportlink.pool_results_previous_7_days', 'sport_results', 'atelier'),
+        ('10', 'Testclub 1', 'sportlink.pool_standings', 'sport_standing', 'atelier'),
+        ('20', 'Testclub 2', 'sportlink.pool_schedule_next_7_days', 'sport_program', 'atelier'),
+        ('20', 'Testclub 2', 'sportlink.pool_results_previous_7_days', 'sport_results', 'atelier'),
+        ('20', 'Testclub 2', 'sportlink.pool_standings', 'sport_standing', 'obsidian')
+    ), drafts as (
+      select jsonb_agg(jsonb_build_object(
+        'blueprintKey', combination.blueprint_key,
+        'context', jsonb_build_object(
+          'competitionId', 'competition-a',
+          'competitionSelectionMode', 'pinned',
+          'phaseId', 'Fase 1',
+          'poolId', '701',
+          'providerTeamId', combination.team_id,
+          'seasonId', '2026/2027'
+        ),
+        'display', jsonb_build_object(
+          'columns', 'two', 'showDressingRoom', false, 'showField', true,
+          'showHomeAway', true, 'showReferee', false
+        ),
+        'name', 'Bulk ' || combination.team_name || ' · ' || combination.blueprint_key,
+        'orientation', 'landscape',
+        'templateVersionId', (
+          select template.current_published_version_id
+          from public.dynamic_templates template
+          where template.slide_type = combination.slide_type
+            and template.orientation = 'landscape'
+            and template.status = 'published'
+          limit 1
+        ),
+        'themeSelection', jsonb_build_object(
+          'ref', jsonb_build_object('catalog', 'v2', 'id', combination.theme_id, 'version', '1.0.0'),
+          'modePolicy', jsonb_build_object('kind', 'fixed', 'mode', 'light'),
+          'accent', null, 'support', null, 'categoryOverrides', '[]'::jsonb
+        ),
+        'title', combination.blueprint_key
+      ) order by combination.team_id, combination.blueprint_key) as value
+      from combinations combination
+    )
+    select (public.create_sportlink_slide_batch_v2(
+      '10000000-0000-4000-8000-000000000b01',
+      (select data_source_id from public.sportlink_connections limit 1),
+      drafts.value,
+      '60000000-0000-4000-8000-000000000b01'
+    ) ->> 'count')::integer
+    from drafts
+  ),
+  6,
+  'two teams times three slide types atomically creates six logical slides'
+);
+select is(
+  (select count(*) from public.dynamic_slide_versions
+   where name like 'Bulk %'
+     and theme_selection_json #>> '{ref,id}' = 'atelier'),
+  5::bigint,
+  'the bulk theme applies to five slides'
+);
+select is(
+  (select count(*) from public.dynamic_slide_versions
+   where name like 'Bulk %'
+     and theme_selection_json #>> '{ref,id}' = 'obsidian'),
+  1::bigint,
+  'one slide can override the shared bulk theme'
+);
+select is(
+  (select count(*)
+   from public.dynamic_slide_snapshots snapshot
+   join public.dynamic_slides slide on slide.id = snapshot.dynamic_slide_id
+   join public.dynamic_slide_versions version
+     on version.id = snapshot.dynamic_slide_version_id
+   where slide.name like 'Bulk %'
+     and snapshot.snapshot_data_json #>> '{themePresentation,selection,ref,id}' =
+       version.theme_selection_json #>> '{ref,id}'),
+  6::bigint,
+  'every typed Sportlink snapshot freezes the selected version theme for Player rendering'
+);
+reset role;
+update public.dynamic_slides
+set status = 'archived'
+where name like 'Bulk %';
 
 insert into public.sports_standings(
   tenant_id,source_connection_id,external_id,pool_external_id,

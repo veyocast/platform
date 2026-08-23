@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(19);
+select plan(20);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -95,6 +95,14 @@ select is(
 select ok(
   (select current_published_version_id is not null and active_draft_version_id is null from public.dynamic_slides where id = '30000000-0000-4000-8000-000000001221'),
   'logical slide points only at the ready current version'
+);
+select throws_ok(
+  $$update public.dynamic_slides
+    set configuration_json = jsonb_set(configuration_json, '{title}', '"Unsafe edit"'::jsonb)
+    where id = '30000000-0000-4000-8000-000000001221'$$,
+  '55000',
+  'published slide design requires an active draft version',
+  'published design cannot be mutated outside a version draft'
 );
 
 set local role authenticated;

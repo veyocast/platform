@@ -307,7 +307,11 @@ begin
       selection_mode = new.selection_mode,
       configuration_json = new.configuration_json,
       theme_selection_json = private.dynamic_slide_theme_selection_v1(new.configuration_json),
-      edit_revision = greatest(version.edit_revision, new.revision)
+      edit_revision = case
+        when new.configuration_json ->> 'schemaVersion' = 'menu-document.v2'
+          then coalesce((new.configuration_json ->> 'revision')::bigint, version.edit_revision)
+        else greatest(version.edit_revision, new.revision)
+      end
   where version.id = new.active_draft_version_id
     and version.dynamic_slide_id = new.id
     and version.status = 'draft';
@@ -324,6 +328,44 @@ after update of name, slide_type, orientation, template_id,
   revision
 on public.dynamic_slides
 for each row execute function private.mirror_dynamic_slide_draft_v1();
+
+create or replace function private.guard_dynamic_slide_design_mutation_v1()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  candidate public.dynamic_slide_versions%rowtype;
+begin
+  if old.current_published_version_id is null then return new; end if;
+  select * into candidate from public.dynamic_slide_versions
+  where id = new.active_draft_version_id
+    and dynamic_slide_id = new.id;
+  if candidate.status = 'draft' then return new; end if;
+  if candidate.status = 'publishing'
+    and new.name is not distinct from candidate.name
+    and new.slide_type is not distinct from candidate.slide_type
+    and new.orientation is not distinct from candidate.orientation
+    and new.template_id is not distinct from candidate.template_id
+    and new.template_version_id is not distinct from candidate.template_version_id
+    and new.data_source_id is not distinct from candidate.data_source_id
+    and new.selection_mode is not distinct from candidate.selection_mode
+    and new.configuration_json is not distinct from candidate.configuration_json
+  then return new; end if;
+  raise exception 'published slide design requires an active draft version'
+    using errcode = '55000';
+end;
+$$;
+
+revoke all on function private.guard_dynamic_slide_design_mutation_v1()
+  from public, anon, authenticated;
+
+create trigger dynamic_slides_guard_versioned_design
+before update of name, slide_type, orientation, template_id,
+  template_version_id, data_source_id, selection_mode, configuration_json
+on public.dynamic_slides
+for each row execute function private.guard_dynamic_slide_design_mutation_v1();
 
 create or replace function private.assign_dynamic_snapshot_version_v1()
 returns trigger
@@ -482,7 +524,24 @@ begin
     end,
     basis.id, actor_id
   ) returning * into draft;
-  update public.dynamic_slides set active_draft_version_id = draft.id
+  update public.dynamic_slides
+  set active_draft_version_id = draft.id,
+      name = draft.name,
+      slide_type = draft.slide_type,
+      orientation = draft.orientation,
+      template_id = draft.template_id,
+      template_version_id = draft.template_version_id,
+      data_source_id = draft.data_source_id,
+      selection_mode = draft.selection_mode,
+      configuration_json = draft.configuration_json,
+      menu_document_revision = case
+        when draft.configuration_json ->> 'schemaVersion' = 'menu-document.v2'
+          then coalesce((draft.configuration_json ->> 'revision')::bigint, 1)
+        else menu_document_revision
+      end,
+      revision = revision + 1,
+      updated_by = actor_id,
+      updated_at = now()
   where id = slide.id;
 
   perform private.audit_event(
@@ -635,6 +694,10 @@ begin
   if slide.id is null or version.id is null
     or slide.active_draft_version_id is distinct from version.id
   then raise exception 'active dynamic slide draft not found' using errcode = 'P0002'; end if;
+  if actor_id is null or not private.has_tenant_capability(
+    slide.tenant_id, 'tenant.dynamic_slide.write'
+  ) then raise exception 'actor cannot publish dynamic slide version' using errcode = '42501'; end if;
+  perform private.require_active_tenant_command(slide.tenant_id);
   if version.status = 'publishing' then
     return jsonb_build_object(
       'outcome', 'publishing', 'slideId', slide.id,
@@ -644,10 +707,6 @@ begin
   if version.status <> 'draft' or version.edit_revision <> p_expected_revision then
     return jsonb_build_object('outcome', 'conflict', 'actualRevision', version.edit_revision);
   end if;
-  if actor_id is null or not private.has_tenant_capability(
-    slide.tenant_id, 'tenant.dynamic_slide.write'
-  ) then raise exception 'actor cannot publish dynamic slide version' using errcode = '42501'; end if;
-  perform private.require_active_tenant_command(slide.tenant_id);
   if version.configuration_json ->> 'schemaVersion' = 'menu-document.v2' then
     perform private.validate_menu_document_v2(
       slide.tenant_id, version.data_source_id, version.configuration_json
@@ -947,7 +1006,6 @@ set search_path = ''
 as $$
 declare
   slide_record public.dynamic_slides%rowtype;
-  current_version public.dynamic_slide_versions%rowtype;
 begin
   if new.status <> 'failed' or old.status = 'failed' then return new; end if;
   select * into slide_record from public.dynamic_slides
@@ -956,18 +1014,8 @@ begin
   then return new; end if;
 
   if slide_record.current_published_version_id is not null then
-    select * into current_version from public.dynamic_slide_versions
-    where id = slide_record.current_published_version_id;
     update public.dynamic_slides
-    set name = current_version.name,
-        slide_type = current_version.slide_type,
-        orientation = current_version.orientation,
-        template_id = current_version.template_id,
-        template_version_id = current_version.template_version_id,
-        data_source_id = current_version.data_source_id,
-        selection_mode = current_version.selection_mode,
-        configuration_json = current_version.configuration_json,
-        status = 'ready',
+    set status = 'ready',
         last_error_code = coalesce(new.error_code, 'VERSION_RENDER_FAILED')
     where id = slide_record.id;
   end if;
