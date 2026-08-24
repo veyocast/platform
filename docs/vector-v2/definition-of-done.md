@@ -325,12 +325,12 @@ Codex maakt in de repository een traceerbare kopie met per item:
   - Trace: Status=DONE; Implementation=UI/copy noemt uitsluitend Excel-export/import; Evidence=Integratiescatalogus + productwaarheidaudit; Gate owner/date=—
 - [x] RSS/Atom setup, mapping, refresh, stale/error en fallback werken.
   - Trace: Status=DONE; Implementation=begrensde feedfetch, snapshots, lokale media/QR en LKG; Evidence=RSS 23 tests, live RSS journey en phase-6/8 audit; Gate owner/date=—
-- [ ] YouTube gebruikt alleen officiële API/playback en voldoet aan actuele Terms.
-  - Trace: Status=IN_PROGRESS; Implementation=officiële Data/IFrame adapter gereed; immutable Playerbinding volgt fase 10; Evidence=YouTube 7 unit + phase-8 officiële bronlinks; Gate owner/date=Google API-key + Player acceptance
+- [x] YouTube gebruikt alleen officiële API/playback en voldoet aan actuele Terms.
+  - Trace: Status=DONE; Implementation=Data API-adapter + immutable privacy-enhanced IFramebinding; Evidence=phase-8 officiële bronlinks, phase-10 CSP/Player E2E en cachetest; Gate owner/date=Google API-key/cohort blijft rolloutgate
 - [x] YouTube download/transcode/cache is afwezig.
   - Trace: Status=DONE; Implementation=metadata-only source, `online_only` DB-constraint en geen media-ingestpad; Evidence=migration/RLS 21 + source audit; Gate owner/date=—
-- [ ] YouTube is online-only met preflight, fallback en feature flag.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] YouTube is online-only met preflight, fallback en feature flag.
+  - Trace: Status=DONE; Implementation=`youtube_sources`, revision-guarded playlistcommand, immutable releasevelden en lokale fallback; Evidence=38/38 pgTAP, Player cacheunit en E2E; Gate owner/date=—
 - [x] Sponsor Hub sponsors/campaigns/rotation/placements/approvals zijn coherent.
   - Trace: Status=DONE; Implementation=bestaande S115 Sponsor Hub + immutable plan/Playerzones; Evidence=Sponsor RLS/domain/Player regressies en phase-8 audit; Gate owner/date=—
 - [x] Proof of play wordt niet als gegarandeerde menselijke impressie verkocht.
@@ -339,12 +339,12 @@ Codex maakt in de repository een traceerbare kopie met per item:
   - Trace: Status=DONE; Implementation=forced-RLS campaign/options/votes/audit + guarded Control authoring; Evidence=pgTAP 21, domain 2 en Control build; Gate owner/date=—
 - [x] Engage publieke stemroute is mobile-first, toegankelijk en rate-limited.
   - Trace: Status=DONE; Implementation=publieke responsive route, HMAC-identiteit, cookie-idempotency en netwerkvenster; Evidence=identity unit 3 + pgTAP vote/RPC ACL + live browser/Axe 2/2; Gate owner/date=—
-- [ ] Engage QR/deeplink, realtime result, screen slide en final result werken.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] Engage QR/deeplink, realtime result, screen slide en final result werken.
+  - Trace: Status=DONE; Implementation=immutable campaignbinding, bounded Player projection, lokale QR en responsive resultaatscene; Evidence=phase-10, 38/38 pgTAP en Player E2E; Gate owner/date=—
 - [ ] Engage abuse/privacy/retention/analytics zijn gedocumenteerd en getest.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Engage blijft flag/noindex totdat production gates groen zijn.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] Engage blijft flag/noindex totdat production gates groen zijn.
+  - Trace: Status=DONE; Implementation=tenantflag default-off + marketing proposed-product noindex; Evidence=featureflag-RLS en marketing sitemapunit; Gate owner/date=—
 
 ## L. Native beheerapp
 
@@ -375,32 +375,32 @@ Codex maakt in de repository een traceerbare kopie met per item:
 
 ## M. Player, pairing en casting shells
 
-- [ ] Splash/boot is branded, snel en reduced-motion compatible.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Install, pair, claim, wait, sync, download, verify, switch, ready en play zijn distinct.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Pairing ondersteunt code en QR/deeplink met tekstalternatief.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Pairingcodes zijn bounded, expireerbaar en device secrets blijven verborgen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Geen-content/wait-release/download/offline/error tonen passende informatie en actie.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] LKG blijft lokaal spelen bij netwerkverlies.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Storagepressure en corrupte download herstellen veilig.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Diagnostics lekken niet publiek tijdens normale playback.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Android PWA en native Android/TV/Google TV shell delen hosted Playercontract.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] LG route/shell blijft compatibel; fysieke claim blijft extern tot getest.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] Splash/boot is branded, snel en reduced-motion compatible.
+  - Trace: Status=DONE; Implementation=bestaande locked Player setupscene en motionmediaquery; Evidence=pairing/motion Playerregressies; Gate owner/date=—
+- [x] Install, pair, claim, wait, sync, download, verify, switch, ready en play zijn distinct.
+  - Trace: Status=DONE; Implementation=Player runtime state machine, heartbeat en atomic cache; Evidence=158 unit + Player browser/offline; Gate owner/date=—
+- [x] Pairing ondersteunt code en QR/deeplink met tekstalternatief.
+  - Trace: Status=DONE; Implementation=lokale pairing-QR, `/mobile/pair` en guided Control-prefill; Evidence=QR unit + pairing E2E; Gate owner/date=—
+- [x] Pairingcodes zijn bounded, expireerbaar en device secrets blijven verborgen.
+  - Trace: Status=DONE; Implementation=bestaand rate/expiry/idempotencycontract; QR bevat uitsluitend public code; Evidence=pairing unit/browser/RLS; Gate owner/date=—
+- [x] Geen-content/wait-release/download/offline/error tonen passende informatie en actie.
+  - Trace: Status=DONE; Implementation=distinct runtime panels en recoverymenu; Evidence=Player unit/browser; Gate owner/date=—
+- [x] LKG blijft lokaal spelen bij netwerkverlies.
+  - Trace: Status=DONE; Implementation=checksumcache + active/previous release; Evidence=offline 7/7 en phase-10 integration fallback; Gate owner/date=—
+- [x] Storagepressure en corrupte download herstellen veilig.
+  - Trace: Status=DONE; Implementation=reservepreflight, pending verify en active-safe GC; Evidence=cacheunit en offline corrupt-asset E2E; Gate owner/date=—
+- [x] Diagnostics lekken niet publiek tijdens normale playback.
+  - Trace: Status=DONE; Implementation=hidden diagnostics en secondary recovery; Evidence=Player presentation E2E; Gate owner/date=—
+- [x] Android PWA en native Android/TV/Google TV shell delen hosted Playercontract.
+  - Trace: Status=DONE; Implementation=`apps/android-tv` host uitsluitend de hosted Player; Evidence=bestaande shell/unit/buildcontracts + phase-10 audit; Gate owner/date=fysieke Play/hardwareacceptatie extern
+- [x] LG route/shell blijft compatibel; fysieke claim blijft extern tot getest.
+  - Trace: Status=DONE; Implementation=modern LG + legacy fallback negeren online metadata veilig; Evidence=Player build webOS6-guard, legacy tests en fallbackcontract; Gate owner/date=Player owner fysieke gate
 - [ ] Touch, keyboard, D-pad, focus, immersive fullscreen en restart zijn getest.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] 16:9 en 9:16 templates/playerstates zijn afstandsleesbaar.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Nieuwe release schakelt pas na verify en veilige grens.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] 16:9 en 9:16 templates/playerstates zijn afstandsleesbaar.
+  - Trace: Status=DONE; Implementation=responsive Player/setup/dynamic renderers inclusief Engage; Evidence=Player visual matrices en phase-10 E2E; Gate owner/date=fysieke schermreadback extern
+- [x] Nieuwe release schakelt pas na verify en veilige grens.
+  - Trace: Status=DONE; Implementation=pending cache, checksumverify en loop-boundary switch; Evidence=offline/periodic manifest tests; Gate owner/date=—
 
 ## N. Billing, Mollie en entitlements
 

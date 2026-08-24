@@ -124,6 +124,8 @@ import {
 } from "../_lib/player-storage";
 import styles from "./player-playback.module.css";
 import { DynamicTemplateMedia } from "./dynamic-template-media";
+import { EngagePlaybackMedia } from "./engage-playback-media";
+import { YouTubePlaybackMedia } from "./youtube-playback-media";
 import { PlayerRecoveryMenu } from "./player-recovery-menu";
 
 const demoPairingCode = "VYO 482";
@@ -2280,6 +2282,27 @@ export function PlaybackMedia({
   passive?: boolean;
   watchdogTimeoutMs: number;
 }) {
+  if (item.onlinePlayback?.kind === "engage") {
+    return (
+      <EngagePlaybackMedia
+        item={item}
+        onFailure={onFailure}
+        onReady={onReady}
+        passive={passive}
+      />
+    );
+  }
+  if (item.onlinePlayback?.kind === "youtube") {
+    return (
+      <YouTubePlaybackMedia
+        item={item}
+        onEnded={onEnded}
+        onFailure={onFailure}
+        onReady={onReady}
+        passive={passive}
+      />
+    );
+  }
   if (item.dynamicTemplate) {
     return (
       <DynamicTemplateMedia
@@ -2601,6 +2624,8 @@ function PairingPanel({
 }: {
   pairingCode?: string;
 }) {
+  const displayedPairingCode = pairingCode ?? demoPairingCode;
+  const qrCode = displayedPairingCode.replace(/[^A-Z0-9]/gi, "");
   const [connectionLabel, setConnectionLabel] = useState("Internet controleren…");
   const [deviceLabel, setDeviceLabel] = useState("Web Player");
 
@@ -2634,11 +2659,16 @@ function PairingPanel({
           </div>
           <div className="pairing-code-group">
             <span className="pairing-code-label">Koppelcode</span>
-            <div className="player-pairing-code" aria-label="Pairingcode">{pairingCode ?? demoPairingCode}</div>
+            <div className="player-pairing-code" aria-label="Pairingcode">{displayedPairingCode}</div>
             <p>De code is tijdelijk en alleen bruikbaar voor dit scherm.</p>
           </div>
         </div>
         <aside className="pairing-stage__status" aria-label="Device setupstatus">
+          <div className="pairing-qr">
+            {/* Pairing SVG is local and contains only the expiring public code. */}
+            <img alt="QR-code met tijdelijke VeyoCast-koppelcode" src={`/api/player/pairing/qr?code=${encodeURIComponent(qrCode)}`} />
+            <span>Scan met VeyoCast Control</span>
+          </div>
           <div className="pairing-signal" aria-hidden="true"><span /><span /><span /><i /></div>
           <div>
             <p className="pairing-status-eyebrow">Schermstatus</p>

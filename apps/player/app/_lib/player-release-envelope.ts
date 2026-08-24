@@ -47,6 +47,9 @@ type ReleaseItemRow = {
   duration_seconds: number;
   dynamic_snapshot_id: string | null;
   enabled: boolean;
+  engage_public_id: string | null;
+  engage_question: string | null;
+  engage_title: string | null;
   file_size_bytes: number;
   fit_mode: "contain" | "cover";
   id: string;
@@ -63,6 +66,9 @@ type ReleaseItemRow = {
   visible_from: string | null;
   visible_until: string | null;
   volume_percent: number;
+  youtube_online_only: boolean | null;
+  youtube_title: string | null;
+  youtube_video_id: string | null;
 };
 
 export type PlayerReleaseDevice = {
@@ -92,7 +98,7 @@ export async function loadPlayerReleaseEnvelope({
       .single(),
     admin
       .from("playlist_release_items")
-      .select("id, asset_kind, asset_title, display_title, duration_seconds, fit_mode, muted, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, section_source_id, section_name, section_position_key, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, dynamic_snapshot_id")
+      .select("id, asset_kind, asset_title, display_title, duration_seconds, fit_mode, muted, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, section_source_id, section_name, section_position_key, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, dynamic_snapshot_id, youtube_video_id, youtube_title, youtube_online_only, engage_public_id, engage_title, engage_question")
       .eq("release_id", releaseId)
       .eq("tenant_id", tenantId)
       .order("sort_order", { ascending: true })
@@ -135,6 +141,25 @@ export async function loadPlayerReleaseEnvelope({
         durationSeconds: item.duration_seconds,
         ...(dynamicTemplates.get(item.id)
           ? { dynamicTemplate: dynamicTemplates.get(item.id) }
+          : {}),
+        ...(item.engage_public_id && item.engage_title && item.engage_question
+          ? {
+              onlinePlayback: {
+                kind: "engage" as const,
+                publicId: item.engage_public_id,
+                question: item.engage_question,
+                title: item.engage_title
+              }
+            }
+          : item.youtube_video_id && item.youtube_title && item.youtube_online_only
+          ? {
+              onlinePlayback: {
+                kind: "youtube" as const,
+                privacyEnhanced: true as const,
+                title: item.youtube_title,
+                videoId: item.youtube_video_id
+              }
+            }
           : {}),
         enabled: item.enabled,
         fitMode: item.fit_mode,

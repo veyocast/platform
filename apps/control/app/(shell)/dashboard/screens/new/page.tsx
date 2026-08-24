@@ -10,12 +10,13 @@ import { loadScreenDetail, loadScreenFleet } from "../data";
 import { OnboardingStatusRefresh } from "./onboarding-status-refresh";
 
 type NewScreenPageProps = {
-  searchParams: Promise<{ fout?: string; screen?: string; succes?: string }>;
+  searchParams: Promise<{ code?: string; fout?: string; screen?: string; succes?: string }>;
 };
 
 export default async function NewScreenPage({ searchParams }: NewScreenPageProps) {
   const session = await requireTenantControlSession("tenant.screen.read");
   const query = await searchParams;
+  const pairingCode = query.code?.toUpperCase().replace(/[^A-Z0-9]/g, "") ?? "";
   const fleet = session.isLive && session.tenantId
     ? await loadScreenFleet(session.tenantId)
     : null;
@@ -73,6 +74,7 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
         </div>
         {limitReached ? <p className="notice notice--warning" role="status">De schermlimiet is bereikt. Er wordt niets aangemaakt; vraag een platformbeheerder om de limiet te verhogen.</p> : null}
         <form action={createScreenOnboarding} className="playlist-form onboarding-form">
+          {pairingCode ? <input name="pairingCode" type="hidden" value={pairingCode} /> : null}
           <div className="field">
             <label htmlFor="screen-name">Schermnaam</label>
             <input disabled={!canManage || limitReached} id="screen-name" maxLength={120} name="name" placeholder="Bijvoorbeeld kantine hoofdscherm" required type="text" />
@@ -124,7 +126,7 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
             <input name="screenId" type="hidden" value={selectedScreen.id} />
             <div className="field">
               <label htmlFor="pairing-code">Koppelcode</label>
-              <input autoCapitalize="characters" autoComplete="one-time-code" disabled={!canManage || selectedScreen.status !== "active"} id="pairing-code" inputMode="text" maxLength={7} name="pairingCode" pattern="[A-Za-z2-9]{3}[ -]?[A-Za-z2-9]{3}" placeholder="ABC DEF" required type="text" />
+              <input autoCapitalize="characters" autoComplete="one-time-code" defaultValue={pairingCode} disabled={!canManage || selectedScreen.status !== "active"} id="pairing-code" inputMode="text" maxLength={7} name="pairingCode" pattern="[A-Za-z2-9]{3}[ -]?[A-Za-z2-9]{3}" placeholder="ABC DEF" required type="text" />
               <p>De code verloopt na tien minuten, is eenmalig en wordt begrensd tegen herhaalde pogingen.</p>
             </div>
             <div className="field">

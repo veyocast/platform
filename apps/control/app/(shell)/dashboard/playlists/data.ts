@@ -9,8 +9,10 @@ import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import type {
   PlaylistStudioAsset,
   PlaylistStudioDynamicSlide,
+  PlaylistStudioEngageCampaign,
   PlaylistStudioItem,
   PlaylistStudioSection,
+  PlaylistStudioYouTubeSource,
   PlaylistStudioVariant
 } from "./playlist-studio-contract";
 import {
@@ -45,6 +47,7 @@ export type PlaylistListRow = {
 export type PlaylistStudioData = {
   assets: PlaylistStudioAsset[];
   dynamicSlides: PlaylistStudioDynamicSlide[];
+  engageCampaigns: PlaylistStudioEngageCampaign[];
   error: string | null;
   items: PlaylistStudioItem[];
   playlist: {
@@ -84,6 +87,7 @@ export type PlaylistStudioData = {
     name: string;
     orientation: string;
   }>;
+  youtubeSources: PlaylistStudioYouTubeSource[];
 };
 
 const pageSize = 20;
@@ -227,11 +231,11 @@ export async function loadPlaylistStudio(
   playlistId: string,
   signPreviews = true
 ): Promise<PlaylistStudioData> {
-  const empty: PlaylistStudioData = { assets: [], dynamicSlides: [], error: null, items: [], playlist: null, readiness: null, releases: [], sections: [], screens: [] };
+  const empty: PlaylistStudioData = { assets: [], dynamicSlides: [], engageCampaigns: [], error: null, items: [], playlist: null, readiness: null, releases: [], sections: [], screens: [], youtubeSources: [] };
   const supabase = await createControlSupabaseClient();
   if (!supabase) return { ...empty, error: "De beveiligde datasessie ontbreekt." };
 
-  const [playlistResult, itemsResult, sectionsResult, assetsResult, releasesResult, screensResult, devicesResult, dynamicSlidesResult] = await Promise.all([
+  const [playlistResult, itemsResult, sectionsResult, assetsResult, releasesResult, screensResult, devicesResult, dynamicSlidesResult, youtubeSourcesResult, engageCampaignsResult] = await Promise.all([
     supabase.from("playlists").select("id, tenant_id, name, description, status, revision, archived_at, updated_at, updated_by, default_image_duration_seconds, default_transition, default_fit_mode, default_background_color, default_video_muted, loop_enabled").eq("tenant_id", tenantId).eq("id", playlistId).maybeSingle(),
     supabase.from("playlist_items").select("id, media_asset_id, section_id, sort_order, duration_seconds, fit_mode, muted, display_title, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, dynamic_slide_id, dynamic_snapshot_id").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
     supabase.from("playlist_sections").select("id, name, position_key, enabled, default_duration_seconds, default_transition").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
@@ -239,9 +243,11 @@ export async function loadPlaylistStudio(
     supabase.from("playlist_releases").select("id, version, item_count, total_duration_seconds, total_bytes, published_at, published_by").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("version", { ascending: false }),
     supabase.from("screens").select("id, name, orientation, assigned_playlist_id").eq("tenant_id", tenantId).is("deleted_at", null).eq("status", "active").order("name"),
     supabase.from("player_devices").select("screen_id, active_release_id, desired_release_id, last_seen_at").eq("tenant_id", tenantId).eq("status", "paired").order("paired_at", { ascending: false }),
-    supabase.from("dynamic_slides").select("id, name, slide_type, orientation, selection_mode, status, current_snapshot_id").eq("tenant_id", tenantId).eq("status", "ready").order("updated_at", { ascending: false })
+    supabase.from("dynamic_slides").select("id, name, slide_type, orientation, selection_mode, status, current_snapshot_id").eq("tenant_id", tenantId).eq("status", "ready").order("updated_at", { ascending: false }),
+    supabase.from("youtube_sources").select("id, video_id, title, channel_title, fallback_media_asset_id").eq("tenant_id", tenantId).eq("status", "active").eq("validation_status", "verified").eq("embeddable", true).order("updated_at", { ascending: false }),
+    supabase.from("engage_campaigns").select("id, public_id, title, question, status").eq("tenant_id", tenantId).in("status", ["scheduled", "live", "closed"]).order("updated_at", { ascending: false })
   ]);
-  const error = [playlistResult.error, itemsResult.error, sectionsResult.error, assetsResult.error, releasesResult.error, screensResult.error, devicesResult.error, dynamicSlidesResult.error].find(Boolean);
+  const error = [playlistResult.error, itemsResult.error, sectionsResult.error, assetsResult.error, releasesResult.error, screensResult.error, devicesResult.error, dynamicSlidesResult.error, youtubeSourcesResult.error, engageCampaignsResult.error].find(Boolean);
   if (error) {
     console.error("Playlist Studio laden mislukt", error);
     return { ...empty, error: "De playlisteditor kon niet volledig worden geladen. Vernieuw de pagina." };
@@ -276,7 +282,8 @@ export async function loadPlaylistStudio(
   const dynamicSnapshots = dynamicSnapshotResults.flatMap(({ data }) => data ?? []);
   const requiredAssetIds = [
     ...(itemsResult.data ?? []).map(({ media_asset_id }) => media_asset_id),
-    ...dynamicSnapshots.map(({ output_media_asset_id }) => output_media_asset_id)
+    ...dynamicSnapshots.map(({ output_media_asset_id }) => output_media_asset_id),
+    ...(youtubeSourcesResult.data ?? []).map(({ fallback_media_asset_id }) => fallback_media_asset_id)
   ];
   const scopedAssetResults = await Promise.all(
     chunkPlaylistStudioIds(requiredAssetIds).map((ids) =>
@@ -390,6 +397,31 @@ export async function loadPlaylistStudio(
       }];
     }
   );
+  const youtubeSources = (youtubeSourcesResult.data ?? []).flatMap(
+    (source): PlaylistStudioYouTubeSource[] => {
+      const fallbackAsset = allAssets.find(
+        (asset) => asset.id === source.fallback_media_asset_id
+      );
+      return fallbackAsset?.variant && fallbackAsset.status === "ready" && !fallbackAsset.deletedAt
+        ? [{
+            channelTitle: source.channel_title,
+            fallbackAsset,
+            id: source.id,
+            title: source.title,
+            videoId: source.video_id
+          }]
+        : [];
+    }
+  );
+  const engageCampaigns = (engageCampaignsResult.data ?? []).map(
+    (campaign): PlaylistStudioEngageCampaign => ({
+      id: campaign.id,
+      publicId: campaign.public_id,
+      question: campaign.question,
+      status: campaign.status as PlaylistStudioEngageCampaign["status"],
+      title: campaign.title
+    })
+  );
   const items = (itemsResult.data ?? []).map((item): PlaylistStudioItem => ({
     accessibilityName: item.accessibility_name,
     asset: allAssets.find((asset) => asset.id === item.media_asset_id) ?? null,
@@ -475,6 +507,7 @@ export async function loadPlaylistStudio(
   return {
     assets,
     dynamicSlides,
+    engageCampaigns,
     error: profilesResult.error ? "De namen van bewerkers konden niet volledig worden geladen." : null,
     items,
     playlist: {
@@ -505,7 +538,8 @@ export async function loadPlaylistStudio(
       version: release.version
     })),
     sections,
-    screens
+    screens,
+    youtubeSources
   };
 }
 

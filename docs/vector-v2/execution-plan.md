@@ -98,9 +98,9 @@ mag deze grenzen niet dupliceren.
 | 5 | Media en Unified Resource Picker | fase 1 | DONE |
 | 6 | Studio en dynamische slideflows | fase 1, 5 | DONE |
 | 7 | Publisher, planning, preflight en releases | fase 1, 5–6 | DONE |
-| 8 | Sportlink, Twelve, RSS, YouTube, Sponsor Hub en Engage | fase 4–7 | IN_PROGRESS |
+| 8 | Sportlink, Twelve, RSS, YouTube, Sponsor Hub en Engage | fase 4–7 | DONE |
 | 9 | Native mobile | gedeelde contracts en fases 4–8 | DONE (billingdeeplink volgt fase 11) |
-| 10 | Player, pairing, casting shells en fysieke signage states | contracts uit 7–9 | TODO |
+| 10 | Player, pairing, casting shells en fysieke signage states | contracts uit 7–9 | DONE (fysieke acceptatie blijft external gate) |
 | 11 | Billing/Mollie, entitlements en Player-enforcement | schema/RLS, 2–4, 10 | TODO |
 | 12 | Accessibility, responsive, performance en observability hardening | alle productfasen | TODO |
 | 13 | Volledige regressie, screenshots, soak/hardwaregates en docs | alle eerdere fasen | TODO |
@@ -181,8 +181,8 @@ opnieuw aan de repositorywaarheid getoetst en de ontbrekende Engage- en
 YouTube-grenzen additive gebouwd. Engage beschikt over RLS, lifecycle,
 pseudonieme rate-limited voting, QR en live resultaatprojecties. YouTube
 gebruikt uitsluitend de officiële Data/IFrame API, is structureel online-only
-en vereist lokale fallbackmedia. De immutable Playerbindingen blijven bewust
-onder fase 10 `IN_PROGRESS`; zie
+en vereist lokale fallbackmedia. De immutable Playerbindingen zijn in fase 10
+voltooid; zie
 `docs/vector-v2/evidence/phase-8-integrations-engage-youtube.md`.
 
 Fase 9 heeft de bestaande echte Expo/React Native-cockpit opnieuw tegen de
@@ -194,3 +194,13 @@ typecheck en tests, configvalidatie, Hermes Android-export en clientsecretcheck
 zijn groen. De op 24 augustus gepubliceerde volgende Expo-patches blijven door
 de minimum-release-agepolicy geblokkeerd en zijn niet geallowlist; zie
 `docs/vector-v2/evidence/phase-9-native-mobile.md`.
+
+Fase 10 heeft de bestaande gedeelde hosted Player-, Android/Google TV- en
+LG-contracten behouden en de ontbrekende online-only grens gesloten. YouTube
+speelt uitsluitend via de officiële privacy-enhanced IFrame API; alleen de
+verplichte lokale fallback gaat door cache en verify. Engage bevriest
+campagneconfiguratie in de release maar haalt stemtotalen als runtimeprojection
+op, inclusief QR, live- en eindresultaat. Pairing ondersteunt nu code én lokale
+QR/deeplink zonder secrets. Verse migraties, 1.198 RLS-assertions, builds,
+Playerunit/offline en gerichte browseracceptatie zijn groen; zie
+`docs/vector-v2/evidence/phase-10-player-casting.md`.

@@ -47,8 +47,16 @@ export const engageVoteResultSchema = z.object({
   reason: z.enum(["accepted", "already_voted", "closed", "invalid"])
 }).strict();
 
+export const playerEngagePlaybackSchema = z.object({
+  kind: z.literal("engage"),
+  publicId: idSchema,
+  question: safeLabelSchema,
+  title: safeLabelSchema
+}).strict();
+
 export type EngageCampaignKind = (typeof engageCampaignKinds)[number];
 export type EngageCampaignStatus = (typeof engageCampaignStatuses)[number];
 export type EngageResultVisibility = (typeof engageResultVisibilities)[number];
 export type EngagePublicCampaign = z.infer<typeof engagePublicCampaignSchema>;
 export type EngageVoteResult = z.infer<typeof engageVoteResultSchema>;
+export type PlayerEngagePlayback = z.infer<typeof playerEngagePlaybackSchema>;

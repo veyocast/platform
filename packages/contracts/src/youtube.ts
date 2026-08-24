@@ -18,5 +18,17 @@ export const youtubeMetadataSchema = z.object({
   videoId: youtubeVideoIdSchema
 }).strict();
 
+/**
+ * Immutable release metadata for online-only playback. The Player must always
+ * keep a normal, verified local source on the same manifest item as fallback.
+ */
+export const playerYouTubePlaybackSchema = z.object({
+  kind: z.literal("youtube"),
+  privacyEnhanced: z.literal(true),
+  title: z.string().trim().min(2).max(160),
+  videoId: youtubeVideoIdSchema
+}).strict();
+
 export type YouTubeMetadata = z.infer<typeof youtubeMetadataSchema>;
 export type YouTubeSource = z.infer<typeof youtubeSourceSchema>;
+export type PlayerYouTubePlayback = z.infer<typeof playerYouTubePlaybackSchema>;

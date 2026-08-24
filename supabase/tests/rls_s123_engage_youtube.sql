@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(28);
+select plan(38);
 
 insert into auth.users(id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,raw_app_meta_data,raw_user_meta_data) values
  ('00000000-0000-4000-8000-000000001251','authenticated','authenticated','engage-admin@veyocast.test','test',now(),now(),now(),'{}','{}'),
@@ -26,6 +26,10 @@ insert into public.tenant_feature_flags(tenant_id,flag_key,enabled,rollout_reaso
  ('10000000-0000-4000-8000-000000001251','youtube_integration',true,'Gecontroleerde YouTube pilot');
 insert into public.media_assets(id,tenant_id,created_by,kind,title,original_file_name,mime_type,status,storage_bucket,storage_path,file_size_bytes,checksum_sha256,width,height,processed_at) values
  ('20000000-0000-4000-8000-000000001251','10000000-0000-4000-8000-000000001251','00000000-0000-4000-8000-000000001251','image','Offline fallback','fallback.webp','image/webp','ready','tenant-media','tenants/10000000-0000-4000-8000-000000001251/assets/20000000-0000-4000-8000-000000001251/original/fallback.webp',2048,repeat('a',64),1920,1080,now());
+insert into public.media_variants(id,tenant_id,asset_id,variant_type,storage_bucket,storage_path,mime_type,file_size_bytes,checksum_sha256,width,height) values
+ ('21000000-0000-4000-8000-000000001251','10000000-0000-4000-8000-000000001251','20000000-0000-4000-8000-000000001251','original','tenant-media','tenants/10000000-0000-4000-8000-000000001251/assets/20000000-0000-4000-8000-000000001251/original/fallback.webp','image/webp',2048,repeat('a',64),1920,1080);
+insert into public.playlists(id,tenant_id,name,status,created_by,updated_by) values
+ ('22000000-0000-4000-8000-000000001251','10000000-0000-4000-8000-000000001251','YouTube scherm','draft','00000000-0000-4000-8000-000000001251','00000000-0000-4000-8000-000000001251');
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000001251',true);
@@ -48,6 +52,25 @@ select ok(public.save_youtube_source_v1(
  '20000000-0000-4000-8000-000000001251',true,'verified',null) is not null,
  'admin saves verified online-only YouTube metadata with local fallback');
 select is((select online_only from public.youtube_sources),true,'YouTube source is structurally online-only');
+select is((public.add_youtube_source_to_playlist_v1(
+  '22000000-0000-4000-8000-000000001251',
+  (select id from public.youtube_sources where tenant_id='10000000-0000-4000-8000-000000001251'),
+  0,30,'23000000-0000-4000-8000-000000001251'
+)->>'outcome'),'applied','verified YouTube source is added through an idempotent playlist command');
+select is((select media_asset_id from public.playlist_items
+  where playlist_id='22000000-0000-4000-8000-000000001251'),
+  '20000000-0000-4000-8000-000000001251'::uuid,
+  'playlist item keeps the ready local fallback as its cacheable media source');
+select is((public.add_engage_campaign_to_playlist_v1(
+  '22000000-0000-4000-8000-000000001251',
+  (select id from public.engage_campaigns where tenant_id='10000000-0000-4000-8000-000000001251'),
+  '20000000-0000-4000-8000-000000001251',1,30,
+  '23000000-0000-4000-8000-000000001253'
+)->>'outcome'),'applied','live Engage campaign is bound through an idempotent playlist command');
+select is((select count(*) from public.playlist_items
+  where playlist_id='22000000-0000-4000-8000-000000001251'
+    and engage_campaign_id is not null),1::bigint,
+  'Engage playlist item keeps a runtime campaign binding beside its local fallback');
 select throws_ok($$select public.save_youtube_source_v1(
  '10000000-0000-4000-8000-000000001251',null,'dQw4w9WgXcQ','Geen fallback','Club',
  '20000000-0000-4000-8000-000000009999',true,'verified',null)$$,
@@ -66,6 +89,57 @@ select throws_ok($$select public.save_engage_campaign_v1(
  '10000000-0000-4000-8000-000000001251',null,'poll','Cross tenant','Should fail',
  'live',null,null,'[{"label":"One"},{"label":"Two"}]'::jsonb)$$,
  '42501','engage rollout and write capability required','cross-tenant Engage writes fail closed');
+select throws_ok($$select public.add_youtube_source_to_playlist_v1(
+ '22000000-0000-4000-8000-000000001251',
+ (select id from public.youtube_sources limit 1),1,30,
+ '23000000-0000-4000-8000-000000001252')$$,
+ '42501','youtube rollout and playlist write capability required',
+ 'cross-tenant users cannot bind YouTube sources to a playlist');
+
+reset role;
+insert into public.playlist_releases(
+  id,tenant_id,playlist_id,version,manifest_hash,manifest_json,item_count,
+  total_duration_seconds,total_bytes,published_by
+) values (
+  '24000000-0000-4000-8000-000000001251','10000000-0000-4000-8000-000000001251',
+  '22000000-0000-4000-8000-000000001251',1,repeat('d',64),'{}',2,60,4096,
+  '00000000-0000-4000-8000-000000001251'
+);
+insert into public.playlist_release_items(
+  tenant_id,playlist_id,release_id,source_item_id,media_asset_id,media_variant_id,
+  sort_order,duration_seconds,fit_mode,muted,asset_kind,asset_title,storage_bucket,
+  storage_path,mime_type,file_size_bytes,checksum_sha256,width,height
+) select item.tenant_id,item.playlist_id,'24000000-0000-4000-8000-000000001251',item.id,
+  item.media_asset_id,'21000000-0000-4000-8000-000000001251',item.sort_order,30,'cover',true,
+  'image','Offline fallback','tenant-media',
+  'tenants/10000000-0000-4000-8000-000000001251/assets/20000000-0000-4000-8000-000000001251/original/fallback.webp',
+  'image/webp',2048,repeat('a',64),1920,1080
+from public.playlist_items item where item.playlist_id='22000000-0000-4000-8000-000000001251';
+select is((select youtube_video_id from public.playlist_release_items
+  where release_id='24000000-0000-4000-8000-000000001251'
+    and youtube_source_id is not null),'dQw4w9WgXcQ',
+  'published release materializes the immutable provider video ID');
+select is((select youtube_title from public.playlist_release_items
+  where release_id='24000000-0000-4000-8000-000000001251'
+    and youtube_source_id is not null),'Clubvideo',
+  'published release materializes the immutable provider title');
+select is((select engage_public_id from public.playlist_release_items
+  where release_id='24000000-0000-4000-8000-000000001251'
+    and engage_campaign_id is not null),
+  (select public_id from public.engage_campaigns where tenant_id='10000000-0000-4000-8000-000000001251'),
+  'published release freezes the campaign binding while vote totals stay live');
+update public.youtube_sources set title='Nieuwere bronnaam'
+where tenant_id='10000000-0000-4000-8000-000000001251';
+select is((select youtube_title from public.playlist_release_items
+  where release_id='24000000-0000-4000-8000-000000001251'
+    and youtube_source_id is not null),'Clubvideo',
+  'historical release metadata does not mutate when the source changes');
+update public.engage_campaigns set question='Een later aangepaste vraag'
+where tenant_id='10000000-0000-4000-8000-000000001251';
+select is((select engage_question from public.playlist_release_items
+  where release_id='24000000-0000-4000-8000-000000001251'
+    and engage_campaign_id is not null),'Wie was vandaag de uitblinker?',
+  'historical Engage release configuration stays immutable after campaign edits');
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000001251',true);
