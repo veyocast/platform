@@ -36,6 +36,7 @@ with expected(oid) as (
     ('public.create_pairing_session_v4(text,text,text,text)'::regprocedure),
     ('public.create_pairing_session_v5(text,text,text,text)'::regprocedure),
     ('public.get_player_device_bootstrap(text)'::regprocedure),
+    ('public.get_engage_campaign_public_v1(uuid)'::regprocedure),
     ('public.inspect_player_device_credential_v1(text)'::regprocedure),
     ('public.poll_player_commands_v1(text)'::regprocedure),
     ('public.record_sponsor_play_events_v1(text,jsonb)'::regprocedure),
@@ -78,7 +79,7 @@ difference(oid) as (
 select is(
   (select count(*) from difference),
   0::bigint,
-  'anon can execute exactly the credential-bound Player RPC allowlist'
+  'anon can execute exactly the credential-bound Player and bounded public audience RPC allowlist'
 );
 
 with human_command(oid) as (

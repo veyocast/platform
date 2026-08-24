@@ -1,0 +1,18 @@
+.page { background: var(--vc-brand-ink-black); color: var(--vc-brand-paper-white); min-height: 100svh; padding: max(24px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom)); }
+.shell { margin: 0 auto; max-width: 560px; }
+.brand { align-items: center; color: var(--vc-brand-electric-orange); display: flex; font-weight: 800; gap: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.hero { padding: 64px 0 28px; }
+.eyebrow { color: var(--vc-brand-electric-orange); font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.hero h1 { font-size: clamp(42px, 12vw, 72px); letter-spacing: -.06em; line-height: .92; margin: 10px 0 22px; }
+.hero p { color: var(--vc-neutral-300); font-size: 19px; line-height: 1.5; }
+.options { display: grid; gap: 12px; }
+.option { background: var(--vc-neutral-900); border: 1px solid var(--vc-neutral-700); border-radius: 14px; color: var(--vc-brand-paper-white); cursor: pointer; display: grid; font: inherit; font-size: 18px; font-weight: 700; gap: 8px; min-height: 64px; padding: 16px 18px; text-align: left; width: 100%; }
+.option:hover, .option:focus-visible { border-color: var(--vc-brand-electric-orange); outline: 3px solid color-mix(in srgb, var(--vc-brand-electric-orange) 25%, transparent); outline-offset: 2px; }
+.option:disabled { cursor: wait; opacity: .6; }
+.bar { background: var(--vc-neutral-700); border-radius: 999px; height: 6px; overflow: hidden; }
+.fill { background: var(--vc-brand-electric-orange); display: block; height: 100%; }
+.meta { color: var(--vc-neutral-300); font-size: 14px; }
+.notice { border-top: 1px solid var(--vc-neutral-800); color: var(--vc-neutral-400); font-size: 13px; line-height: 1.5; margin-top: 32px; padding-top: 20px; }
+.status { background: var(--vc-neutral-900); border: 1px solid var(--vc-neutral-700); border-radius: 12px; margin-bottom: 18px; padding: 14px 16px; }
+.error { border-color: var(--vc-semantic-critical-solid); }
+@media (prefers-reduced-motion: no-preference) { .option { transition: border-color 160ms ease, transform 160ms ease; } .option:hover { transform: translateY(-1px); } }

@@ -1,0 +1,24 @@
+.shell { display: grid; gap: var(--vc-space-24); }
+.hero { background: linear-gradient(135deg, var(--vc-surface-strong), var(--vc-surface)); border: 1px solid var(--vc-border); border-radius: var(--vc-radius-xl); padding: clamp(24px, 4vw, 48px); }
+.hero h1 { font-family: var(--vc-font-display); font-size: clamp(32px, 4vw, 52px); line-height: 1; margin: 10px 0 16px; }
+.eyebrow { color: var(--vc-brand-electric-orange); font-size: 12px; font-weight: 750; letter-spacing: .08em; margin: 0; text-transform: uppercase; }
+.hero p:last-child { color: var(--vc-text-muted); margin: 0; max-width: 72ch; }
+.grid { display: grid; gap: var(--vc-space-20); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.panel { background: var(--vc-surface); border: 1px solid var(--vc-border); border-radius: var(--vc-radius-lg); padding: var(--vc-space-20); }
+.panel h2 { margin: 0; }
+.meta { color: var(--vc-text-muted); }
+.form { display: grid; gap: var(--vc-space-16); margin-top: var(--vc-space-16); }
+.formGrid { display: grid; gap: var(--vc-space-16); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.field { display: grid; gap: 8px; font-weight: 650; }
+.field input, .field select, .field textarea { background: var(--vc-surface-muted); border: 1px solid var(--vc-border); border-radius: var(--vc-radius-md); color: var(--vc-text); min-height: 44px; padding: 10px 12px; }
+.field input, .field select, .field textarea { font-weight: 450; }
+.field textarea { min-height: 132px; resize: vertical; }
+.list { display: grid; gap: 12px; list-style: none; margin: 18px 0 0; padding: 0; }
+.campaign { align-items: flex-start; background: var(--vc-surface-muted); border: 1px solid var(--vc-border); border-radius: var(--vc-radius-md); display: flex; gap: 16px; justify-content: space-between; padding: 16px; }
+.campaign strong, .campaign small { display: block; }
+.campaign small { color: var(--vc-text-muted); margin-top: 4px; }
+.actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
+.qr { background: white; border-radius: var(--vc-radius-md); height: 112px; padding: 8px; width: 112px; }
+.banner { border: 1px solid var(--vc-border); border-radius: var(--vc-radius-md); padding: 12px 16px; }
+.gate { border-left: 4px solid var(--vc-accent); }
+@media (max-width: 780px) { .grid, .formGrid { grid-template-columns: 1fr; } .campaign { flex-direction: column; } }

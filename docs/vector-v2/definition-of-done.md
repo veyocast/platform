@@ -313,32 +313,32 @@ Codex maakt in de repository een traceerbare kopie met per item:
 
 ## K. Integraties, sponsors en Engage
 
-- [ ] Sportlink setup/status/sync/teams/competitions/phase/data selectie werken.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Sportlink programma/uitslagen/standen/next match/visitor info zijn datagedreven.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Providercredentials en fysieke acceptatie blijven expliciete gates waar nodig.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Twelve gebruikt gecontroleerde normale XLSX-import, mapping, validation, preview en re-import.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Geen live Twelve-API wordt zonder echte adapter geclaimd.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] RSS/Atom setup, mapping, refresh, stale/error en fallback werken.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] Sportlink setup/status/sync/teams/competitions/phase/data selectie werken.
+  - Trace: Status=DONE; Implementation=bestaande server-only Club.Dataservice + vijfstaps Studio-wizard; Evidence=Sportlink RLS/integrations/worker/Control regressies en phase-8 audit; Gate owner/date=providerproductiedata blijft productowner-gate
+- [x] Sportlink programma/uitslagen/standen/next match/visitor info zijn datagedreven.
+  - Trace: Status=DONE; Implementation=versioned configs + runtime snapshots voor negen blueprints; Evidence=bestaande dynamic/Sportlink RLS en Playercontracts; Gate owner/date=—
+- [x] Providercredentials en fysieke acceptatie blijven expliciete gates waar nodig.
+  - Trace: Status=DONE; Implementation=server secret references, default-off providerflags en evidence gates; Evidence=phase-8 evidence/execution-plan external gates; Gate owner/date=Productowner + Player release owner
+- [x] Twelve gebruikt gecontroleerde normale XLSX-import, mapping, validation, preview en re-import.
+  - Trace: Status=DONE; Implementation=bestaande Twelve Producten importworkspace en immutable broninformatie; Evidence=live Twelve/Menu proof + integration tests; Gate owner/date=—
+- [x] Geen live Twelve-API wordt zonder echte adapter geclaimd.
+  - Trace: Status=DONE; Implementation=UI/copy noemt uitsluitend Excel-export/import; Evidence=Integratiescatalogus + productwaarheidaudit; Gate owner/date=—
+- [x] RSS/Atom setup, mapping, refresh, stale/error en fallback werken.
+  - Trace: Status=DONE; Implementation=begrensde feedfetch, snapshots, lokale media/QR en LKG; Evidence=RSS 23 tests, live RSS journey en phase-6/8 audit; Gate owner/date=—
 - [ ] YouTube gebruikt alleen officiële API/playback en voldoet aan actuele Terms.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] YouTube download/transcode/cache is afwezig.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=officiële Data/IFrame adapter gereed; immutable Playerbinding volgt fase 10; Evidence=YouTube 7 unit + phase-8 officiële bronlinks; Gate owner/date=Google API-key + Player acceptance
+- [x] YouTube download/transcode/cache is afwezig.
+  - Trace: Status=DONE; Implementation=metadata-only source, `online_only` DB-constraint en geen media-ingestpad; Evidence=migration/RLS 21 + source audit; Gate owner/date=—
 - [ ] YouTube is online-only met preflight, fallback en feature flag.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Sponsor Hub sponsors/campaigns/rotation/placements/approvals zijn coherent.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Proof of play wordt niet als gegarandeerde menselijke impressie verkocht.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Engage heeft tenant-isolatie, campaign/poll/MOTM lifecycle en authoring.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Engage publieke stemroute is mobile-first, toegankelijk en rate-limited.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] Sponsor Hub sponsors/campaigns/rotation/placements/approvals zijn coherent.
+  - Trace: Status=DONE; Implementation=bestaande S115 Sponsor Hub + immutable plan/Playerzones; Evidence=Sponsor RLS/domain/Player regressies en phase-8 audit; Gate owner/date=—
+- [x] Proof of play wordt niet als gegarandeerde menselijke impressie verkocht.
+  - Trace: Status=DONE; Implementation=UI noemt technisch afgemelde plays en expliciet geen bereik; Evidence=Sponsor Hub rapportagecopy; Gate owner/date=—
+- [x] Engage heeft tenant-isolatie, campaign/poll/MOTM lifecycle en authoring.
+  - Trace: Status=DONE; Implementation=forced-RLS campaign/options/votes/audit + guarded Control authoring; Evidence=pgTAP 21, domain 2 en Control build; Gate owner/date=—
+- [x] Engage publieke stemroute is mobile-first, toegankelijk en rate-limited.
+  - Trace: Status=DONE; Implementation=publieke responsive route, HMAC-identiteit, cookie-idempotency en netwerkvenster; Evidence=identity unit 3 + pgTAP vote/RPC ACL + live browser/Axe 2/2; Gate owner/date=—
 - [ ] Engage QR/deeplink, realtime result, screen slide en final result werken.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Engage abuse/privacy/retention/analytics zijn gedocumenteerd en getest.

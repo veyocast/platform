@@ -141,6 +141,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "tenant"
   },
   {
+    description: "Polls, publieksstemmen en live resultaten",
+    href: "/dashboard/engage",
+    label: "Engage",
+    requiredCapability: "tenant.dynamic_slide.read",
+    section: "workspace",
+    scope: "tenant"
+  },
+  {
     description: "Bibliotheek, verwerking en gebruik",
     href: "/dashboard/media",
     label: "Media",

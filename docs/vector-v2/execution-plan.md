@@ -175,3 +175,12 @@ zichtbaar. Release Center vergelijkt nu ook overgang, crop, achtergrond, label,
 enabled-state, trim, volume en zichtvenster. Workspace/build, 1.160 RLS-
 assertions en een echte Supabase publicatiejourney zijn groen. Zie
 `docs/vector-v2/evidence/phase-7-publisher-releases.md`.
+
+Fase 8 heeft de bestaande Sportlink-, Twelve-, RSS- en Sponsor Hub-contracten
+opnieuw aan de repositorywaarheid getoetst en de ontbrekende Engage- en
+YouTube-grenzen additive gebouwd. Engage beschikt over RLS, lifecycle,
+pseudonieme rate-limited voting, QR en live resultaatprojecties. YouTube
+gebruikt uitsluitend de officiële Data/IFrame API, is structureel online-only
+en vereist lokale fallbackmedia. De immutable Playerbindingen blijven bewust
+onder fase 10 `IN_PROGRESS`; zie
+`docs/vector-v2/evidence/phase-8-integrations-engage-youtube.md`.
