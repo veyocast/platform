@@ -3,6 +3,8 @@ import {
   mobileCockpitEnvelopeSchema,
   mobileContentEnvelopeSchema,
   mobileDeletionRequestsEnvelopeSchema,
+  mobileEngageTransitionResultSchema,
+  mobileEngageWorkspaceEnvelopeSchema,
   mobileNotificationPreferencesEnvelopeSchema,
   mobilePairingClaimSchema,
   mobilePlayerCommandSchema,
@@ -11,6 +13,7 @@ import {
   type MobilePairingClaimRequest,
   type MobilePlayerCommandRequest,
   type MobileDeviceRegistration,
+  type MobileEngageTransitionRequest,
   type MobileNotificationPreferences,
   type MobileCreatePlaylistRequest,
   type MobileCreateScreenRequest,
@@ -80,6 +83,23 @@ export const mobileApi = {
     return request(
       "/api/mobile/v1/account/deletion",
       mobileDeletionRequestsEnvelopeSchema
+    ).then((response) => response.data);
+  },
+  engage(tenantId: string) {
+    return request(
+      "/api/mobile/v1/engage",
+      mobileEngageWorkspaceEnvelopeSchema,
+      { tenantId }
+    ).then((response) => response.data);
+  },
+  transitionEngage(
+    tenantId: string,
+    input: MobileEngageTransitionRequest
+  ) {
+    return request(
+      "/api/mobile/v1/engage",
+      dataEnvelope(mobileEngageTransitionResultSchema),
+      { body: input, method: "POST", tenantId }
     ).then((response) => response.data);
   },
   notificationPreferences(tenantId: string) {

@@ -132,7 +132,8 @@ export async function createMediaFolder(formData: FormData) {
     name,
     parentFolderId: optionalId(formData, "parentFolderId")
   });
-  completeLibrary("De mediamap is gemaakt.");
+  revalidatePath("/dashboard/media");
+  return "De mediamap is gemaakt.";
 }
 
 export async function createMediaTag(formData: FormData) {
@@ -141,7 +142,61 @@ export async function createMediaTag(formData: FormData) {
   if (name.length < 1 || name.length > 48) fail(null, "Gebruik een tagnaam van maximaal 48 tekens.");
   if (color && !/^#[0-9a-f]{6}$/i.test(color)) fail(null, "Gebruik een geldige hexkleur voor de tag.");
   await organizeMedia(formData, "create_tag", { color: color || null, name });
-  completeLibrary("De mediatag is gemaakt.");
+  revalidatePath("/dashboard/media");
+  return "De mediatag is gemaakt.";
+}
+
+export async function createMediaCollection(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  if (name.length < 2 || name.length > 80) fail(null, "Gebruik een collectienaam van 2 tot en met 80 tekens.");
+  if (description.length > 240) fail(null, "Gebruik een collectieomschrijving van maximaal 240 tekens.");
+  const { session, supabase } = await requireMediaWriter();
+  const { error } = await supabase.rpc("mutate_media_collection_v1", {
+    p_collection_id: null,
+    p_expected_revision: 0,
+    p_idempotency_key: idempotencyValue(formData),
+    p_operation: "create",
+    p_payload: { description: description || null, name },
+    p_tenant_id: session.tenantId
+  });
+  if (error) {
+    console.error("Mediacollectie maken mislukt", { code: error.code });
+    fail(null, error.code === "23505"
+      ? "Er bestaat al een actieve collectie met deze naam."
+      : "De mediacollectie kon niet veilig worden gemaakt. Probeer opnieuw.");
+  }
+  revalidatePath("/dashboard/media");
+  return "De mediacollectie is gemaakt.";
+}
+
+export async function bulkOrganizeMediaAssets(formData: FormData) {
+  const assetIds = parseAssetIds(formData.get("assetIds"));
+  const command = parseBulkCommand(String(formData.get("bulkCommand") ?? ""));
+  if (!assetIds || !command) fail(null, "Selecteer media en een geldige bulkactie.");
+  const { session, supabase } = await requireMediaWriter();
+  const { data, error } = await supabase.rpc("bulk_organize_media_assets_v1", {
+    p_asset_ids: assetIds,
+    p_idempotency_key: idempotencyValue(formData),
+    p_operation: command.operation,
+    p_target_id: command.targetId,
+    p_tenant_id: session.tenantId
+  });
+  if (error || !data || typeof data !== "object" || Array.isArray(data)) {
+    console.error("Bulkorganisatie van media mislukt", { code: error?.code ?? "INVALID_RESULT" });
+    fail(null, "De bulkactie kon niet veilig worden uitgevoerd. Je media is niet buiten de gekozen tenant gewijzigd.");
+  }
+  const result = data as Record<string, unknown>;
+  const succeeded = Number(result.succeededCount ?? 0);
+  const failed = Number(result.failedCount ?? 0);
+  revalidatePath("/dashboard/media");
+  return failed > 0
+    ? `${succeeded} media bijgewerkt; ${failed} item${failed === 1 ? " was" : "s waren"} niet beschikbaar en zijn overgeslagen.`
+    : `${succeeded} media succesvol bijgewerkt.`;
+}
+
+export async function bulkOrganizeMediaAssetsAndRedirect(formData: FormData) {
+  completeLibrary(await bulkOrganizeMediaAssets(formData));
 }
 
 export async function moveMediaAsset(formData: FormData) {
@@ -334,6 +389,38 @@ function optionalId(formData: FormData, key: string) {
 function idempotencyValue(formData: FormData) {
   const value = String(formData.get("idempotencyKey") ?? "");
   return uuidPattern.test(value) ? value : randomUUID();
+}
+
+function parseAssetIds(value: FormDataEntryValue | null) {
+  try {
+    const parsed: unknown = JSON.parse(String(value ?? ""));
+    if (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > 100) return null;
+    const ids = [...new Set(parsed)];
+    return ids.every((id): id is string => typeof id === "string" && uuidPattern.test(id))
+      ? ids
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function parseBulkCommand(value: string) {
+  if (value === "favorite" || value === "unfavorite") {
+    return { operation: value, targetId: null };
+  }
+  if (value === "move:root") return { operation: "move", targetId: null };
+  const match = /^(move|tag:add|tag:remove|collection:add|collection:remove):([0-9a-f-]{36})$/i.exec(value);
+  const commandType = match?.[1];
+  const targetId = match?.[2];
+  if (!commandType || !targetId || !uuidPattern.test(targetId)) return null;
+  const operation = ({
+    "collection:add": "add_collection",
+    "collection:remove": "remove_collection",
+    move: "move",
+    "tag:add": "assign_tag",
+    "tag:remove": "remove_tag"
+  } as Record<string, string>)[commandType];
+  return operation ? { operation, targetId } : null;
 }
 
 function organizationError(code: string | undefined) {

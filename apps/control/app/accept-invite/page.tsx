@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 
+import { AuthBrand } from "../_components/auth-brand";
 import {
   accountInvitationCookieName,
   invitationContextCookieName,
@@ -44,6 +45,7 @@ export default async function AcceptInvitePage({
   return (
     <main className="auth-shell">
       <section className="auth-panel" aria-labelledby="invite-title">
+        <AuthBrand />
         <div>
           <p className="auth-kicker">Nieuwe gebruiker</p>
           <h1 className="auth-title" id="invite-title">

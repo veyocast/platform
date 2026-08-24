@@ -3,15 +3,24 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
+  ChartNoAxesColumn,
   CloudOff,
+  DatabaseZap,
   FolderOpen,
   LayoutList,
   MonitorCheck,
+  PlugZap,
+  Radio,
   ShieldCheck,
   Smartphone,
   Sparkles
 } from "lucide-react";
 import Link from "next/link";
+
+import {
+  VEYOCAST_SCREEN_PRICE_GROSS_CENTS,
+  VEYOCAST_TRIAL_DURATION_HOURS
+} from "@veyocast/domain";
 
 import { JsonLd } from "./_components/json-ld";
 import {
@@ -28,6 +37,7 @@ import {
   ReliabilityDiagram
 } from "./_components/product-showcase";
 import { canonicalUrl } from "./_lib/site-config";
+import { VenueSetupBuilder } from "./_components/venue-setup-builder";
 
 export const metadata: Metadata = {
   alternates: { canonical: canonicalUrl("/") },
@@ -41,7 +51,7 @@ export const metadata: Metadata = {
     type: "website",
     url: canonicalUrl("/")
   },
-  title: "ClubTV en narrowcasting voor sportverenigingen | VeyoCast"
+  title: "Living Venue OS voor ieder scherm | VeyoCast"
 };
 
 const featureCards = [
@@ -72,12 +82,32 @@ const featureCards = [
 ] as const;
 
 const trustSegments = [
-  "Voetbalclubs",
-  "Hockeyclubs",
-  "Tennis & padel",
-  "Zwemverenigingen",
-  "Sportlocaties"
+  "Sportlink",
+  "Twelve XLSX",
+  "RSS & nieuws",
+  "Sponsor Hub",
+  "Eigen media"
 ] as const;
+
+const livingVenueJourney = [
+  ["Create", "Studio en dynamische slides"],
+  ["Connect", "Schermen, zones en bronnen"],
+  ["Publish", "Preflight en veilige release"],
+  ["Manage", "System Pulse en Screen 360"],
+  ["Engage", "Polls en publieksactie · in voorbereiding"],
+  ["Measure", "Status en bewijs van vertoning"]
+] as const;
+
+const integrationCards = [
+  ["Sportlink", "Teams, programma, uitslagen, standen en bezoekersinformatie.", "Beschikbaar"],
+  ["Twelve XLSX", "Normale .xlsx-import met mapping, validatie en bronversie.", "Import"],
+  ["RSS & nieuws", "Bronstatus, stale data, fallback en portrait/landscape-output.", "Beschikbaar"],
+  ["YouTube", "Officiële online-only playback en preflight worden nog gevalideerd.", "In voorbereiding"]
+] as const;
+
+function formatGrossCents(cents: number) {
+  return `€ ${Math.floor(cents / 100)},${String(cents % 100).padStart(2, "0")}`;
+}
 
 const heroBenefits = [
   { icon: Sparkles, label: "Alles-in-één" },
@@ -145,17 +175,15 @@ export default function HomePage() {
         <section className="home-hero">
           <div className="marketing-container home-hero__grid">
             <Reveal className="home-hero__copy">
-              <p className="eyebrow">Narrowcasting, eenvoudig geregeld</p>
-              <h1>
-                Breng jouw club tot leven op <span>ieder</span> scherm.
-              </h1>
+              <p className="eyebrow">VeyoCast Living Venue OS</p>
+              <h1>Elk scherm. Elk bericht. Elk moment.</h1>
               <p className="home-hero__lead">
-                Beheer schermen, playlists, sponsors en clubnieuws vanuit één
-                krachtige omgeving.
+                Creëer, verbind, publiceer en beheer iedere schermervaring in
+                je locatie vanuit één betrouwbaar platform.
               </p>
               <div className="hero-actions">
-                <CtaLink href="/demo" label="Plan een demo" />
-                <CtaLink href="/product" label="Bekijk VeyoCast" secondary />
+                <CtaLink href="#opstelling" label="Bouw je opstelling" />
+                <CtaLink href="/demo" label="Plan een demo" secondary />
               </div>
               <ul className="hero-benefits">
                 {heroBenefits.map(({ icon: Icon, label }) => (
@@ -173,9 +201,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section aria-label="Gebouwd voor sportclubs en organisaties" className="trust-strip-wrap">
+        <section aria-label="Beschikbare bronnen en integraties" className="trust-strip-wrap">
           <div className="marketing-container trust-strip">
-            <p>Gebouwd voor sportclubs en organisaties</p>
+            <p>Werkt met je bestaande content</p>
             <ul>
               {trustSegments.map((segment, index) => (
                 <li key={segment}>
@@ -184,6 +212,27 @@ export default function HomePage() {
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+
+        <VenueSetupBuilder />
+
+        <section className="living-journey marketing-section" aria-label="VeyoCast productjourney">
+          <div className="marketing-container">
+            <SectionHeading
+              description="Van eerste ontwerp tot aantoonbare schermstatus: iedere stap gebruikt dezelfde locatie-, tenant- en releasecontext."
+              eyebrow="Eén operationele keten"
+              title="Create. Connect. Publish. Manage. Engage. Measure."
+            />
+            <ol className="living-journey__steps">
+              {livingVenueJourney.map(([title, body], index) => (
+                <li key={title}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{title}</strong>
+                  <small>{body}</small>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
@@ -233,18 +282,19 @@ export default function HomePage() {
         <section className="platform-section marketing-section">
           <div className="marketing-container platform-section__grid">
             <Reveal className="platform-section__copy">
-              <p className="eyebrow">Cloud-first beheer</p>
-              <h2>Publiceren met overzicht en controle.</h2>
+              <p className="eyebrow">System Pulse</p>
+              <h2>Zie eerst waar actie nodig is.</h2>
               <p>
-                Zie wat gereed is, welke release gewenst is en wat een Player
-                daadwerkelijk actief meldt.
+                Online, synchroniseert, wacht op een release, offline en aandacht
+                blijven verschillende statussen. Zo begint beheer bij afwijkingen,
+                niet bij vanitycijfers.
               </p>
               <div className="platform-feature-list">
                 {[
-                  ["Cloud-based", "Veilige toegang tot je organisatieomgeving."],
-                  ["Realtime synchronisatie", "Nieuwe releases worden op de achtergrond voorbereid."],
+                  ["Schermgezondheid", "Heartbeat, Player-versie en actuele release in context."],
+                  ["Releasevoortgang", "Gewenst, downloaden, verifiëren en actief blijven onderscheiden."],
                   ["Veilige publicaties", "De actieve release blijft staan tot de nieuwe compleet is."],
-                  ["Integraties", "Koppelingen krijgen pas een status na aantoonbare validatie."]
+                  ["Bronstatus", "Laatste sync, stale data en fouten vragen gericht aandacht."]
                 ].map(([title, body]) => (
                   <div key={title}>
                     <Check aria-hidden size={17} />
@@ -253,12 +303,32 @@ export default function HomePage() {
                 ))}
               </div>
               <Link className="text-link" href="/publisher">
-                Ontdek VeyoCast Publisher <ArrowRight aria-hidden size={16} />
+                Ontdek schermbeheer <ArrowRight aria-hidden size={16} />
               </Link>
             </Reveal>
             <Reveal className="platform-section__visual" delay={0.08}>
               <DeviceShowcase />
             </Reveal>
+          </div>
+        </section>
+
+        <section className="integration-world marketing-section" aria-label="Bronnen en integraties">
+          <div className="marketing-container">
+            <SectionHeading
+              description="Beschikbare modules worden als beschikbaar benoemd; nieuwe sporen blijven in voorbereiding tot hun technische en commerciële gates groen zijn."
+              eyebrow="Bronnen met een eerlijke status"
+              title="Sportlink, prijslijsten, nieuws en eigen media."
+            />
+            <div className="integration-world__grid">
+              {integrationCards.map(([title, body, status], index) => (
+                <article key={title}>
+                  <span aria-hidden>{index === 0 ? <Radio /> : index === 1 ? <DatabaseZap /> : index === 2 ? <PlugZap /> : <ChartNoAxesColumn />}</span>
+                  <div><h3>{title}</h3><p>{body}</p></div>
+                  <small>{status}</small>
+                </article>
+              ))}
+            </div>
+            <Link className="text-link" href="/integraties">Bekijk alle bronstatussen <ArrowRight aria-hidden size={16} /></Link>
           </div>
         </section>
 
@@ -346,6 +416,36 @@ export default function HomePage() {
                   <span>{proof.body}</span>
                 </Reveal>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mobile-engage marketing-section">
+          <div className="marketing-container mobile-engage__grid">
+            <div>
+              <p className="eyebrow">Bediening op locatie</p>
+              <h2>Pair, publiceer en herstel vanaf mobiel.</h2>
+              <p>De beheerapp richt zich op snelle operationele acties: camera-upload, QR-pairing, schermstatus, playlistvolgorde, publicatie en recovery. De vrije desktopcanvas blijft bewust in Studio.</p>
+              <Link className="text-link text-link--inverse" href="/product">Bekijk de productfamilie <ArrowRight aria-hidden size={16} /></Link>
+            </div>
+            <aside>
+              <span className="status-chip">In voorbereiding</span>
+              <h3>Engage</h3>
+              <p>Mobile-first polls, Man of the Match en live schermresultaten worden pas vrijgegeven na tenantisolatie, privacy-, rate-limit- en abusegates.</p>
+            </aside>
+          </div>
+        </section>
+
+        <section className="home-price marketing-section">
+          <div className="marketing-container home-price__grid">
+            <div>
+              <p className="eyebrow">Transparant vanaf het eerste scherm</p>
+              <h2>{VEYOCAST_TRIAL_DURATION_HOURS / 24} dagen gratis.</h2>
+              <p>Daarna <strong>{formatGrossCents(VEYOCAST_SCREEN_PRICE_GROSS_CENTS)} inclusief btw</strong> per actief scherm per maand. Geen verborgen schermtoeslag.</p>
+            </div>
+            <div className="hero-actions">
+              <CtaLink href="/#opstelling" label="Bereken je opstelling" />
+              <CtaLink href="/prijzen" label="Bekijk de prijs" secondary />
             </div>
           </div>
         </section>

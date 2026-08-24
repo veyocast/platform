@@ -14,7 +14,7 @@
 }
 
 .hero {
-  align-items: start;
+  align-items: flex-start;
   display: flex;
   gap: var(--vc-space-24);
   justify-content: space-between;
@@ -60,7 +60,7 @@
 
 .sectionHeading,
 .sectionHeader {
-  align-items: start;
+  align-items: flex-start;
   display: flex;
   gap: var(--vc-space-16);
   justify-content: space-between;
@@ -339,7 +339,7 @@
 }
 
 .confirmation {
-  align-items: start;
+  align-items: flex-start;
   display: flex;
   gap: var(--vc-space-8);
   margin-top: var(--vc-space-16);

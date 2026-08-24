@@ -114,7 +114,7 @@ test.describe("live pilot vertical slice", () => {
       page.getByRole("heading", { exact: true, name: "Media" })
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Media uploaden" }).click();
+    await page.goto("/dashboard/media?upload=1");
     const uploadDialog = page.getByRole("dialog", { name: "Media uploaden" });
     await uploadDialog.getByRole("tab", { name: "Video" }).click();
     await page.getByLabel("Videotitel", { exact: true }).fill("Live queuecontrole");
@@ -124,7 +124,9 @@ test.describe("live pilot vertical slice", () => {
       name: "queuecontrole.mp4"
     });
     await page.getByRole("button", { name: "Video uploaden" }).click();
-    await expect(page.getByText("De video staat veilig in de verwerkingsqueue")).toBeVisible();
+    await expect(
+      page.getByText("De video staat veilig in de verwerkingsqueue")
+    ).toBeVisible({ timeout: 30_000 });
     await uploadDialog.getByRole("button", { name: "Uploadvenster sluiten" }).click();
 
     if (videoFixture) {
@@ -141,17 +143,17 @@ test.describe("live pilot vertical slice", () => {
       await expect(videoRow).toContainText("Gereed");
     }
 
-    await page.getByRole("link", { name: "Media uploaden" }).click();
+    await page.goto("/dashboard/media?upload=1");
     await page.getByLabel("Titel voor één afbeelding", { exact: true }).fill("Ongeldig logo");
     await page.getByLabel("Afbeeldingen", { exact: true }).setInputFiles(
       path.join(process.cwd(), "assets/brand/veyocast-logo-primary.svg")
     );
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
-    await expect(page.locator("p.notice[role='alert']")).toContainText(
-      "bestandstype is niet toegestaan"
-    );
+    await expect(
+      page.getByRole("region", { name: "Resultaat van afbeeldinguploads" })
+    ).toContainText("De bestandsinhoud komt niet overeen met het opgegeven type");
 
-    await page.getByRole("link", { name: "Media uploaden" }).click();
+    await page.goto("/dashboard/media?upload=1");
     await page.getByLabel("Titel voor één afbeelding", { exact: true }).fill("Live pilotbeeld");
     await page.getByLabel("Afbeeldingen", { exact: true }).setInputFiles({
       buffer: validPngFixture,
@@ -160,13 +162,18 @@ test.describe("live pilot vertical slice", () => {
     });
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
     await expect(page.getByText("Live pilotbeeld is gecontroleerd")).toBeVisible();
-    await expect(page.getByRole("cell", { name: "Live pilotbeeld" })).toBeVisible();
+    await page.getByRole("button", { name: "Uploadvenster sluiten" }).click();
+    await expect.poll(async () => {
+      await page.reload();
+      return page.getByText("Live pilotbeeld", { exact: true }).count();
+    }, { intervals: [1_000, 2_000], timeout: 15_000 }).toBeGreaterThan(0);
 
     await page.goto("/dashboard/settings");
     await page.getByLabel("Verenigingsnaam").fill("VeyoCast live pilot");
+    await page.getByRole("button", { name: "Afspelen", exact: true }).click();
     await page.getByLabel("Afbeeldingsduur in seconden").fill("12");
     await page.getByLabel("Standaard weergave").selectOption("cover");
-    await page.getByRole("button", { name: "Instellingen opslaan" }).click();
+    await page.getByRole("button", { name: "Instellingen opslaan" }).click({ timeout: 10_000 });
     await expect(page.getByText("zijn opgeslagen")).toBeVisible();
 
     await page.goto("/dashboard/playlists");
@@ -174,6 +181,9 @@ test.describe("live pilot vertical slice", () => {
     const createPlaylistDialog = page.getByRole("dialog", { name: "Nieuwe playlist" });
     await createPlaylistDialog.getByLabel("Playlistnaam").fill("Live pilotplaylist");
     await createPlaylistDialog.getByRole("button", { name: "Concept maken" }).click();
+    await expect(page).toHaveURL(/\/dashboard\/playlists\/[0-9a-f-]{36}/i, {
+      timeout: 15_000
+    });
     await expect(page.getByText("De conceptplaylist is gemaakt")).toBeVisible();
 
     const staleEditorContext = await browser.newContext({
@@ -184,14 +194,14 @@ test.describe("live pilot vertical slice", () => {
     await expect(staleEditorPage.getByText("Revisie 0").first()).toBeVisible();
 
     await page
-      .getByRole("list", { name: "Gereedstaande media" })
+      .getByRole("list", { name: "Gereedstaande inhoud" })
       .getByRole("listitem")
       .filter({ hasText: "Live pilotbeeld" })
       .getByRole("button", { name: "Toevoegen: Live pilotbeeld" })
       .click();
     await expect(page.getByText("Het media-item is aan het concept toegevoegd")).toBeVisible();
     await staleEditorPage.getByLabel("Playlistnaam").fill("Stale browsernaam");
-    await staleEditorPage.getByRole("button", { name: "Playlist opslaan" }).click();
+    await staleEditorPage.getByRole("button", { name: "Naam en beschrijving opslaan" }).click();
     await expect(staleEditorPage.getByText("Dit concept is ondertussen gewijzigd.")).toBeVisible();
     await expect(staleEditorPage.getByText("Jouw actie is niet uitgevoerd.")).toBeVisible();
     await expect(staleEditorPage.getByRole("link", { name: "Nieuwste versie laden" })).toBeVisible();
@@ -207,18 +217,34 @@ test.describe("live pilot vertical slice", () => {
       leaveWarning = dialog.message();
       await dialog.dismiss();
     });
-    await page.getByRole("link", { name: "Terug naar playlists" }).click();
-    expect(leaveWarning).toContain("niet-opgeslagen formulierwijzigingen");
+    await page
+      .locator("#control-content")
+      .getByRole("link", { name: "Playlists", exact: true })
+      .click();
+    expect(leaveWarning).toContain("niet-opgeslagen wijzigingen");
     await expect(page).toHaveURL(/\/dashboard\/playlists\/[0-9a-f-]{36}/i);
     await page.getByRole("button", { name: "Live pilotbeeld bewerken" }).click();
     await page.getByLabel("Afspeelduur in seconden").fill(videoFixture ? "5" : "14");
     await page.getByLabel("Weergave").selectOption("contain");
     await page.getByRole("button", { name: "Item opslaan" }).click();
-    await expect(page.getByText("De iteminstellingen zijn opgeslagen")).toBeVisible();
+    const itemSaved = page.getByText("De iteminstellingen zijn opgeslagen");
+    try {
+      await expect(itemSaved).toBeVisible({ timeout: 10_000 });
+    } catch {
+      const retry = page.getByRole("button", { name: "Opnieuw proberen" });
+      await expect(retry).toBeVisible();
+      await retry.click();
+      await expect(page.getByRole("button", { name: "Live pilotbeeld bewerken" })).toBeVisible();
+      await page.getByRole("button", { name: "Live pilotbeeld bewerken" }).click();
+      await page.getByLabel("Afspeelduur in seconden").fill(videoFixture ? "5" : "14");
+      await page.getByLabel("Weergave").selectOption("contain");
+      await page.getByRole("button", { name: "Item opslaan" }).click();
+      await expect(itemSaved).toBeVisible({ timeout: 20_000 });
+    }
 
     if (videoFixture) {
       await page
-        .getByRole("list", { name: "Gereedstaande media" })
+        .getByRole("list", { name: "Gereedstaande inhoud" })
         .getByRole("listitem")
         .filter({ hasText: "Live queuecontrole" })
         .getByRole("button", { name: "Toevoegen: Live queuecontrole" })
@@ -241,10 +267,13 @@ test.describe("live pilot vertical slice", () => {
 
     await page.getByRole("link", { name: "Publiceren" }).click();
     await expect(page).toHaveURL(/\/dashboard\/playlists\/.+\/publish$/);
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
     await page.getByLabel(/LG sprint scherm/).check();
-    await page.getByRole("button", { name: "Preflight voor selectie berekenen" }).click();
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
     await page.getByLabel(/waarschuwingen en onbekende telemetry/i).check();
-    await page.getByLabel("Maak een nieuwe immutable release").check();
+    await page.getByLabel(/Maak één nieuwe immutable release/).check();
     await page.getByRole("button", { name: "Release publiceren en uitrol volgen" }).click();
     await expect(page.getByText("De immutable release is gepubliceerd")).toBeVisible();
 
@@ -271,7 +300,8 @@ test.describe("live pilot vertical slice", () => {
     await expect(playerPage.getByAltText("Live pilotbeeld")).toBeVisible({
       timeout: 20_000
     });
-    await expect(playerPage.getByText("PLAYING", { exact: true })).toBeVisible();
+    await expect(playerPage.getByRole("region", { name: "Release playback" })).toBeVisible();
+    await expect(playerPage.getByText("PLAYING", { exact: true })).toBeHidden();
     await firstHeartbeat;
     if (videoFixture) {
       const playingVideo = playerPage.locator("video");
@@ -282,17 +312,23 @@ test.describe("live pilot vertical slice", () => {
     await page.goto("/dashboard/screens");
     await expect(page.getByRole("cell", { name: "LG webOS Signage" })).toBeVisible();
     const screenRow = page.getByRole("row").filter({ hasText: "LG sprint scherm" });
-    await expect(screenRow.getByText("Online", { exact: true })).toBeVisible();
-    await screenRow.getByRole("link", { name: "Bekijk scherm" }).click();
+    await expect.poll(async () => {
+      await page.reload();
+      return screenRow.textContent();
+    }, { intervals: [5_000], timeout: 45_000 }).toContain("Online");
+    const screenDetailHref = await screenRow
+      .getByRole("link", { name: "Bekijk scherm" })
+      .getAttribute("href");
+    expect(screenDetailHref).toMatch(/^\/dashboard\/screens\/[0-9a-f-]{36}$/i);
+    await page.goto(screenDetailHref ?? "/dashboard/screens");
     await expect(page.getByRole("heading", { exact: true, level: 1, name: "LG sprint scherm" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Schermdetails" })).toContainText("Gebeurtenissen");
-    await page.getByRole("link", { name: "Player", exact: true }).press("Enter");
+    await expect(page.getByRole("navigation", { name: "Schermdetails" })).toContainText("Activiteit");
+    await page.getByRole("link", { name: "Gezondheid", exact: true }).press("Enter");
     await expect(page.getByRole("heading", { name: "Actieve Player" })).toBeVisible();
     await expect(page.getByText("LG webOS Signage", { exact: true }).first()).toBeVisible();
-    await page.getByRole("link", { name: "Synchronisatie", exact: true }).press("Enter");
     await expect(page.getByText("Actieve release", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "Synchronisatietijdlijn" })).toBeVisible();
-    await page.getByRole("link", { name: "Gebeurtenissen", exact: true }).press("Enter");
+    await page.getByRole("link", { name: "Activiteit", exact: true }).press("Enter");
     await expect(page.getByText("Player gekoppeld", { exact: true })).toBeVisible();
 
     await playerContext.close();

@@ -77,6 +77,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "platform"
   },
   {
+    description: "Shadowfacturen, providerhealth en reconciliation",
+    href: "/platform/billing",
+    label: "Billing",
+    requiredCapability: "platform.system.read",
+    section: "overview",
+    scope: "platform"
+  },
+  {
     description: "Verenigingen, status en limieten",
     href: "/platform/tenants",
     label: "Tenants",
@@ -137,6 +145,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/sponsors",
     label: "Sponsor Hub",
     requiredCapability: "tenant.sponsor.read",
+    section: "workspace",
+    scope: "tenant"
+  },
+  {
+    description: "Polls, publieksstemmen en live resultaten",
+    href: "/dashboard/engage",
+    label: "Engage",
+    requiredCapability: "tenant.dynamic_slide.read",
     section: "workspace",
     scope: "tenant"
   },

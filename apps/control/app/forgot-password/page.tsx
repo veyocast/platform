@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AuthBrand } from "../_components/auth-brand";
 import { requestPasswordReset } from "./actions";
 
 type ForgotPasswordPageProps = Readonly<{
@@ -14,6 +15,7 @@ export default async function ForgotPasswordPage({
   return (
     <main className="auth-shell">
       <section className="auth-panel" aria-labelledby="forgot-password-title">
+        <AuthBrand />
         <div>
           <p className="auth-kicker">Account herstellen</p>
           <h1 className="auth-title" id="forgot-password-title">

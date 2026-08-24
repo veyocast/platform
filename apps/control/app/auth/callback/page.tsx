@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AuthBrand } from "../../_components/auth-brand";
 import {
   getControlLandingPath,
   getControlSession
@@ -16,6 +17,7 @@ export default async function AuthCallbackPage() {
   return (
     <main className="auth-shell">
       <section className="auth-panel" aria-labelledby="callback-title">
+        <AuthBrand />
         <div className="status-row">
           <span className="status-pill status-pill--success">
             <span className="status-pill__dot" aria-hidden="true" />

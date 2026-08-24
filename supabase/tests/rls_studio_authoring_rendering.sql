@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(89);
+select plan(95);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -164,6 +164,46 @@ values
     1080
   );
 
+insert into public.media_assets (
+  id, tenant_id, created_by, kind, title, original_file_name, mime_type,
+  status, storage_path, file_size_bytes, checksum_sha256, width, height,
+  duration_seconds, processed_at
+)
+values (
+  '20000000-0000-4000-8000-000000000843',
+  '10000000-0000-4000-8000-000000000841',
+  '00000000-0000-4000-8000-000000000841',
+  'video',
+  'Studio sfeerbron',
+  'studio-venue.mp4',
+  'video/mp4',
+  'ready',
+  'tenants/10000000-0000-4000-8000-000000000841/assets/20000000-0000-4000-8000-000000000843/original/studio-venue.mp4',
+  4096,
+  repeat('c', 64),
+  1920,
+  1080,
+  12.000,
+  now()
+);
+
+insert into public.media_variants (
+  tenant_id, asset_id, variant_type, storage_path, mime_type,
+  file_size_bytes, checksum_sha256, width, height, duration_seconds
+)
+values (
+  '10000000-0000-4000-8000-000000000841',
+  '20000000-0000-4000-8000-000000000843',
+  'player_1080p',
+  'tenants/10000000-0000-4000-8000-000000000841/assets/20000000-0000-4000-8000-000000000843/variants/player-1080p.mp4',
+  'video/mp4',
+  4096,
+  repeat('d', 64),
+  1920,
+  1080,
+  12.000
+);
+
 create temporary table studio_test_documents (
   name text primary key,
   document jsonb not null,
@@ -216,6 +256,48 @@ values
       }
     }'::jsonb,
     '{}'::uuid[]
+  ),
+  (
+    'video',
+    '{
+      "schemaVersion":1,
+      "artboard":{
+        "width":1920,
+        "height":1080,
+        "orientation":"landscape",
+        "background":{"kind":"transparent"},
+        "safeArea":{"top":64,"right":64,"bottom":64,"left":64}
+      },
+      "motion":{"enabled":true,"durationMs":10000,"fps":30},
+      "elements":[{
+        "id":"venue-video",
+        "name":"Sfeer · achtergrond",
+        "type":"video",
+        "mediaAssetId":"20000000-0000-4000-8000-000000000843",
+        "variant":"player_1080p",
+        "objectFit":"cover",
+        "focusX":0.5,
+        "focusY":0.5,
+        "muted":true,
+        "loop":true,
+        "startOffsetMs":500,
+        "alt":"Stadionpubliek",
+        "x":0,
+        "y":0,
+        "width":1920,
+        "height":1080,
+        "rotation":0,
+        "opacity":1,
+        "visible":true,
+        "locked":true,
+        "zIndex":0
+      }],
+      "metadata":{
+        "fontRegistryVersion":"2026-07-24.1",
+        "tenantBrandApplied":false
+      }
+    }'::jsonb,
+    array['20000000-0000-4000-8000-000000000843'::uuid]
   );
 
 create temporary table studio_test_results (
@@ -368,7 +450,7 @@ select throws_ok(
     '90000000-0000-4000-8000-000000000842'
   )$$,
   '23514',
-  'Studio document media manifest does not match its image elements',
+  'Studio document media manifest does not match its media elements',
   'every image element must be represented in the guarded media manifest'
 );
 
@@ -1809,6 +1891,95 @@ select ok(
     'EXECUTE'
   ),
   'only the service worker contract can complete Studio media creation'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000841',
+  true
+);
+
+insert into studio_test_results (name, result)
+select
+  'create-video',
+  public.create_studio_project_v1(
+    '10000000-0000-4000-8000-000000000841',
+    'Sfeerachtergrond',
+    'landscape',
+    document,
+    asset_ids,
+    'design',
+    '90000000-0000-4000-8000-000000000869'
+  )
+from studio_test_documents
+where name = 'video';
+
+select is(
+  (select result ->> 'outcome' from studio_test_results where name = 'create-video'),
+  'created',
+  'editor can create a bounded Studio project with tenant-owned source video'
+);
+
+insert into studio_test_results (name, result)
+select
+  'render-video',
+  public.request_studio_render_v1(
+    (select (result ->> 'projectId')::uuid
+      from studio_test_results where name = 'create-video'),
+    0,
+    'mp4',
+    '90000000-0000-4000-8000-000000000870'
+  );
+
+select is(
+  (select result ->> 'outcome' from studio_test_results where name = 'render-video'),
+  'queued',
+  'source-video Studio project queues an immutable MP4 render'
+);
+reset role;
+
+select is(
+  (
+    select revision_asset.usage_kind
+    from public.studio_revision_assets revision_asset
+    join public.studio_render_jobs job
+      on job.tenant_id = revision_asset.tenant_id
+      and job.revision_id = revision_asset.revision_id
+    where job.id = (
+      select (result ->> 'renderJobId')::uuid
+      from studio_test_results where name = 'render-video'
+    )
+  ),
+  'video',
+  'immutable revision manifest records source video semantically'
+);
+
+delete from studio_claims;
+set local role service_role;
+insert into studio_claims
+select * from public.claim_studio_render_job_v1('worker:source-video', 900, 3);
+reset role;
+
+select is(
+  (select assets_json #>> '{0,mimeType}' from studio_claims),
+  'video/mp4',
+  'service claim exposes the validated video MIME contract'
+);
+
+select is(
+  (select assets_json #>> '{0,path}' from studio_claims),
+  'tenants/10000000-0000-4000-8000-000000000841/assets/20000000-0000-4000-8000-000000000843/variants/player-1080p.mp4',
+  'service claim selects only the normalized player_1080p source variant'
+);
+
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'private.set_studio_revision_asset_usage_kind()',
+    'EXECUTE'
+  ),
+  'authenticated clients cannot invoke the source-manifest trigger function'
 );
 
 select * from finish();

@@ -16,6 +16,7 @@ import {
 } from "@veyocast/domain";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import {
   getControlSessionRoles,
@@ -64,7 +65,13 @@ const demoControlSession = {
   userName: "Daan Operator"
 } satisfies ControlSession;
 
-export async function getControlSession(): Promise<ControlSession | null> {
+type ControlSupabaseClient = NonNullable<
+  Awaited<ReturnType<typeof createControlSupabaseClient>>
+>;
+
+async function resolveControlSession(
+  authenticatedClient?: ControlSupabaseClient
+): Promise<ControlSession | null> {
   const runtimeMode = getControlRuntimeMode();
 
   if (runtimeMode === "demo") {
@@ -75,7 +82,7 @@ export async function getControlSession(): Promise<ControlSession | null> {
     return null;
   }
 
-  const supabase = await createControlSupabaseClient();
+  const supabase = authenticatedClient ?? await createControlSupabaseClient();
 
   if (!supabase) {
     return null;
@@ -105,6 +112,11 @@ export async function getControlSession(): Promise<ControlSession | null> {
   ]);
 
   if (tenantResult.error || platformResult.error || assuranceResult.error) {
+    console.error("Control session role loading failed", {
+      assuranceCode: assuranceResult.error?.code ?? null,
+      platformCode: platformResult.error?.code ?? null,
+      tenantCode: tenantResult.error?.code ?? null
+    });
     throw new Error("De rollen voor deze sessie konden niet worden geladen.");
   }
 
@@ -217,6 +229,14 @@ export async function getControlSession(): Promise<ControlSession | null> {
   };
 }
 
+const getCachedControlSession = cache(() => resolveControlSession());
+
+export function getControlSession(authenticatedClient?: ControlSupabaseClient) {
+  return authenticatedClient
+    ? resolveControlSession(authenticatedClient)
+    : getCachedControlSession();
+}
+
 const tenantRoleLabel = {
   tenant_admin: "Beheerder",
   tenant_editor: "Editor",
@@ -262,7 +282,7 @@ export async function requireControlSession() {
   }
 
   if (session.roles.length === 0 && session.tenantMemberships.length === 0) {
-    redirect("/login?reden=geen-toegang");
+    redirect("/onboarding");
   }
 
   return session;
@@ -358,5 +378,5 @@ export function getControlPostMfaLandingPath(session: ControlSession) {
     return "/platform";
   }
 
-  return "/login?reden=geen-toegang";
+  return session.isLive ? "/onboarding" : "/login?reden=geen-toegang";
 }

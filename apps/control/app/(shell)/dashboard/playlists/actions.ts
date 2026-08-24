@@ -150,6 +150,70 @@ export async function addDynamicPlaylistSlide(formData: FormData) {
   );
 }
 
+export async function addYouTubePlaylistSource(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const youtubeSourceId = idValue(formData, "youtubeSourceId");
+  const durationSeconds = integerValue(formData, "durationSeconds");
+  if (durationSeconds < 5 || durationSeconds > 3600) {
+    fail(playlistId, "Kies een afspeelduur tussen 5 seconden en 60 minuten.");
+  }
+  const revision = expectedRevision(formData);
+  const { supabase } = await requirePlaylistWriter();
+  const { data, error } = await supabase.rpc("add_youtube_source_to_playlist_v1", {
+    p_duration_seconds: durationSeconds,
+    p_expected_revision: revision,
+    p_idempotency_key: idempotencyValue(formData),
+    p_playlist_id: playlistId,
+    p_youtube_source_id: youtubeSourceId
+  });
+  if (error) {
+    console.error("YouTube-bron aan playlist toevoegen mislukt", { code: error.code });
+    fail(
+      playlistId,
+      error.code === "23514"
+        ? "Deze YouTube-bron of lokale fallback is niet meer publiceerbaar. Valideer de bron opnieuw."
+        : "De YouTube-bron kon niet worden toegevoegd. Er is niets gewijzigd."
+    );
+  }
+  const result = data as GuardedMutationResult | null;
+  if (!result) fail(playlistId, "De wijziging gaf geen bevestiging. Laad de playlisteditor opnieuw.");
+  if (result.outcome === "conflict") {
+    conflict(playlistId, revision, Number(result.actualRevision), "add_youtube_source");
+  }
+  revalidatePlaylistPaths(playlistId);
+  redirect(`/dashboard/playlists/${playlistId}?succes=${encodeURIComponent("De online video is toegevoegd met een gecontroleerde lokale fallback.")}`);
+}
+
+export async function addEngagePlaylistCampaign(formData: FormData) {
+  const playlistId = idValue(formData, "playlistId");
+  const campaignId = idValue(formData, "campaignId");
+  const fallbackMediaAssetId = idValue(formData, "fallbackMediaAssetId");
+  const durationSeconds = integerValue(formData, "durationSeconds");
+  const revision = expectedRevision(formData);
+  const { supabase } = await requirePlaylistWriter();
+  const { data, error } = await supabase.rpc("add_engage_campaign_to_playlist_v1", {
+    p_campaign_id: campaignId,
+    p_duration_seconds: durationSeconds,
+    p_expected_revision: revision,
+    p_fallback_media_asset_id: fallbackMediaAssetId,
+    p_idempotency_key: idempotencyValue(formData),
+    p_playlist_id: playlistId
+  });
+  if (error) {
+    console.error("Engage-campagne aan playlist toevoegen mislukt", { code: error.code });
+    fail(playlistId, error.code === "23514"
+      ? "De campagne of lokale fallback is niet publiceerbaar. Kies actieve content en probeer opnieuw."
+      : "De publieksactie kon niet worden toegevoegd. Er is niets gewijzigd.");
+  }
+  const result = data as GuardedMutationResult | null;
+  if (!result) fail(playlistId, "De wijziging gaf geen bevestiging. Laad de playlisteditor opnieuw.");
+  if (result.outcome === "conflict") {
+    conflict(playlistId, revision, Number(result.actualRevision), "add_engage_campaign");
+  }
+  revalidatePlaylistPaths(playlistId);
+  redirect(`/dashboard/playlists/${playlistId}?succes=${encodeURIComponent("De live publieksactie is toegevoegd; stemdata blijft runtime-data.")}`);
+}
+
 export async function updatePlaylistItem(formData: FormData) {
   const playlistId = idValue(formData, "playlistId");
   const itemId = idValue(formData, "itemId");

@@ -1,7 +1,10 @@
 import type {
   PlayerDynamicTemplatePayload,
+  PlayerEngagePlayback,
   PlayerPlaybackItem,
-  PlayerSponsorPlan
+  PlayerSponsorPlan,
+  SignedPlayerEntitlement,
+  PlayerYouTubePlayback
 } from "@veyocast/contracts";
 
 import { localStorageDeviceTokenKey } from "./player-storage";
@@ -60,6 +63,7 @@ export type PlayerManifestPresentationDefaults = {
 
 export type PlayerManifestItem = PlayerPlaybackItem & {
   dynamicTemplate?: PlayerDynamicTemplatePayload;
+  onlinePlayback?: PlayerEngagePlayback | PlayerYouTubePlayback;
   source: {
     url: string;
     fallbackUrl?: string;
@@ -104,6 +108,8 @@ export type PlayerManifestEnvelope = {
     lastSuccessfulSyncAt: string;
     nextSyncReason: string;
   };
+  entitlement?: SignedPlayerEntitlement;
+  entitlementVerified?: boolean;
 };
 
 export type PlayerWaitingContentEnvelope = {

@@ -56,7 +56,13 @@ import {
   type StudioElement,
   type StudioElementTiming
 } from "@veyocast/studio";
-import { Button, Progress, StatusPill } from "@veyocast/ui";
+import {
+  Button,
+  Progress,
+  ResourcePicker,
+  type ResourcePickerItem,
+  StatusPill
+} from "@veyocast/ui";
 
 import { FloatingPanel } from "../../../_components/floating-panel";
 import {
@@ -891,11 +897,6 @@ function ElementLibrary({
   state: StudioEditorState;
   tenantBrand: WorkspaceProps["tenantBrand"];
 }) {
-  const [query, setQuery] = useState("");
-  const filteredAssets = assets.filter((asset) =>
-    asset.title.toLocaleLowerCase("nl-NL").includes(query.toLocaleLowerCase("nl-NL"))
-  );
-
   function add(
     kind: "text" | "rectangle" | "ellipse" | "icon" | "line" | "qr"
   ) {
@@ -970,6 +971,7 @@ function ElementLibrary({
   }
 
   function addImage(asset: StudioMediaAsset) {
+    if (asset.kind !== "image") return;
     dispatch({
       element: {
         alt: asset.title,
@@ -996,6 +998,88 @@ function ElementLibrary({
     });
   }
 
+  function addBackgroundVideo(asset: StudioMediaAsset) {
+    if (asset.kind !== "video") return;
+    dispatch({
+      element: {
+        alt: asset.title,
+        focusX: 0.5,
+        focusY: 0.5,
+        height: state.document.artboard.height,
+        id: `video-${crypto.randomUUID().slice(0, 8)}`,
+        locked: true,
+        loop: true,
+        mediaAssetId: asset.id,
+        muted: true,
+        name: `${asset.title} · achtergrond`,
+        objectFit: "cover",
+        opacity: 1,
+        rotation: 0,
+        startOffsetMs: 0,
+        type: "video",
+        variant: "player_1080p",
+        visible: true,
+        width: state.document.artboard.width,
+        x: 0,
+        y: 0,
+        zIndex: 0
+      },
+      type: "document/background-video"
+    });
+  }
+
+  const elementResources: ResourcePickerItem[] = [
+    { description: "Bewerkbare tekstlaag", id: "element:text", kind: "element", name: "Tekst", preview: <Type aria-hidden="true" /> },
+    { description: "Gevuld rechthoekig vlak", id: "element:rectangle", kind: "element", name: "Vlak", preview: <Square aria-hidden="true" /> },
+    { description: "Bewerkbare cirkel", id: "element:ellipse", kind: "element", name: "Cirkel", preview: <Circle aria-hidden="true" /> },
+    { description: "Scheidings- of accentlijn", id: "element:line", kind: "element", name: "Lijn", preview: <Minus aria-hidden="true" /> },
+    { description: "Scanbare link voor bezoekers", id: "element:qr", kind: "element", name: "QR-code", preview: <QrCode aria-hidden="true" /> },
+    { description: "Bewerkbaar signage-icoon", id: "element:icon", kind: "element", name: "Icoon", preview: <Star aria-hidden="true" /> }
+  ];
+  const mediaResources: ResourcePickerItem[] = assets.map((asset) => ({
+    description:
+      asset.kind === "video"
+        ? "Gereedstaande video · vaste canvasachtergrond"
+        : "Gereedstaande afbeelding uit Media",
+    id: `media:${asset.id}`,
+    kind: "media",
+    name: asset.title,
+    preview: asset.previewUrl ? (
+      // Signed URLs come from the tenant-scoped server read.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img alt="" src={asset.previewUrl} />
+    ) : (
+      asset.kind === "video" ? (
+        <Film aria-hidden="true" />
+      ) : (
+        <ImageIcon aria-hidden="true" />
+      )
+    ),
+    status: { label: "Gereed", tone: "success" }
+  }));
+
+  function addResource(item: ResourcePickerItem) {
+    if (!canEdit) return;
+    if (item.kind === "media") {
+      const asset = assets.find((candidate) => `media:${candidate.id}` === item.id);
+      if (asset?.kind === "video") addBackgroundVideo(asset);
+      else if (asset) addImage(asset);
+      return;
+    }
+    if (item.kind !== "element") return;
+    const kind = item.id.replace("element:", "");
+    if (
+      kind === "text" ||
+      kind === "rectangle" ||
+      kind === "ellipse" ||
+      kind === "line" ||
+      kind === "qr" ||
+      kind === "icon"
+    ) {
+      add(kind);
+    }
+  }
+
   return (
     <div className={styles.library}>
       <div className={styles.panelTitle}>
@@ -1004,32 +1088,19 @@ function ElementLibrary({
           <p>Voeg bewerkbare lagen toe.</p>
         </div>
       </div>
-      <div className={styles.elementButtons}>
-        <button disabled={!canEdit} onClick={() => add("text")} type="button">
-          <Type aria-hidden="true" />
-          Tekst
-        </button>
-        <button disabled={!canEdit} onClick={() => add("rectangle")} type="button">
-          <Square aria-hidden="true" />
-          Vlak
-        </button>
-        <button disabled={!canEdit} onClick={() => add("ellipse")} type="button">
-          <Circle aria-hidden="true" />
-          Cirkel
-        </button>
-        <button disabled={!canEdit} onClick={() => add("line")} type="button">
-          <Minus aria-hidden="true" />
-          Lijn
-        </button>
-        <button disabled={!canEdit} onClick={() => add("qr")} type="button">
-          <QrCode aria-hidden="true" />
-          QR-code
-        </button>
-        <button disabled={!canEdit} onClick={() => add("icon")} type="button">
-          <Star aria-hidden="true" />
-          Icoon
-        </button>
-      </div>
+      <ResourcePicker
+        description="Kies een bewerkbaar element, afbeelding of bronvideo. Video wordt veilig als vergrendelde canvasachtergrond geplaatst."
+        items={[...elementResources, ...mediaResources]}
+        kinds={["element", "media"]}
+        onSelect={addResource}
+        title="Element of media toevoegen"
+        trigger={
+          <Button disabled={!canEdit} variant="secondary">
+            <Sparkles aria-hidden="true" />
+            Element of media toevoegen
+          </Button>
+        }
+      />
       {tenantBrand ? (
         <section className={styles.brandKit} aria-label={`${tenantBrand.name} huisstijl`}>
           <div className={styles.panelTitle}>
@@ -1078,39 +1149,9 @@ function ElementLibrary({
       <div className={styles.panelTitle}>
         <div>
           <h2>Media</h2>
-          <p>Alleen gereedstaande afbeeldingen.</p>
+          <p>{assets.length} gereedstaande media-items beschikbaar via de bronkiezer.</p>
         </div>
         <Link href="/dashboard/media?upload=1">Uploaden</Link>
-      </div>
-      <input
-        aria-label="Media zoeken"
-        className={styles.compactInput}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Zoek media"
-        type="search"
-        value={query}
-      />
-      <div className={styles.assetGrid}>
-        {filteredAssets.map((asset) => (
-          <button
-            disabled={!canEdit}
-            key={asset.id}
-            onClick={() => addImage(asset)}
-            type="button"
-          >
-            {asset.previewUrl ? (
-              // Signed URLs come from the tenant-scoped server read.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img alt="" src={asset.previewUrl} />
-            ) : (
-              <ImageIcon aria-hidden="true" />
-            )}
-            <span>{asset.title}</span>
-          </button>
-        ))}
-        {!filteredAssets.length ? (
-          <p className={styles.mutedText}>Geen passende media gevonden.</p>
-        ) : null}
       </div>
     </div>
   );
@@ -1343,7 +1384,7 @@ function ElementInspector({
                 }
                 value={element.mediaAssetId}
               >
-                {assets.map((asset) => (
+                {assets.filter((asset) => asset.kind === "image").map((asset) => (
                   <option key={asset.id} value={asset.id}>
                     {asset.title}
                   </option>
@@ -1407,17 +1448,71 @@ function ElementInspector({
             </label>
           </>
         ) : null}
+        {element.type === "video" ? (
+          <>
+            <label>
+              <span>Bronvideo</span>
+              <select
+                disabled={!canEdit}
+                onChange={(event) => patch({ mediaAssetId: event.target.value })}
+                value={element.mediaAssetId}
+              >
+                {assets.filter((asset) => asset.kind === "video").map((asset) => (
+                  <option key={asset.id} value={asset.id}>{asset.title}</option>
+                ))}
+              </select>
+            </label>
+            <div className={styles.fieldRow}>
+              <label>
+                <span>Weergave</span>
+                <select
+                  disabled={!canEdit}
+                  onChange={(event) => patch({
+                    objectFit: event.target.value === "contain" ? "contain" : "cover"
+                  })}
+                  value={element.objectFit}
+                >
+                  <option value="cover">Canvas vullen</option>
+                  <option value="contain">Volledig zichtbaar</option>
+                </select>
+              </label>
+              <label>
+                <span>Startpunt (seconden)</span>
+                <input
+                  disabled={!canEdit}
+                  max={30}
+                  min={0}
+                  onChange={(event) => patch({
+                    startOffsetMs: Math.round(Number(event.target.value) * 1_000)
+                  })}
+                  step={0.5}
+                  type="number"
+                  value={element.startOffsetMs / 1_000}
+                />
+              </label>
+            </div>
+            <label>
+              <span>Beschrijving</span>
+              <input
+                disabled={!canEdit}
+                maxLength={240}
+                onChange={(event) => patch({ alt: event.target.value })}
+                value={element.alt}
+              />
+            </label>
+          </>
+        ) : null}
         {element.type === "placeholder" ? (
           <label>
             <span>Beeldslot vervangen</span>
             <select
               defaultValue=""
-              disabled={!canEdit || !assets.length}
+              disabled={!canEdit || !assets.some((asset) => asset.kind === "image")}
               onChange={(event) => {
                 const asset = assets.find(
                   (candidate) => candidate.id === event.target.value
                 );
-                if (!asset) return;
+                if (!asset || asset.kind !== "image") return;
                 dispatch({
                   element: {
                     alt: asset.title,
@@ -1446,7 +1541,7 @@ function ElementInspector({
               }}
             >
               <option value="">Kies een afbeelding</option>
-              {assets.map((asset) => (
+              {assets.filter((asset) => asset.kind === "image").map((asset) => (
                 <option key={asset.id} value={asset.id}>
                   {asset.title}
                 </option>
@@ -1605,16 +1700,18 @@ function ElementInspector({
           </div>
         ) : null}
       </div>
-      <MotionInspector
-        canEdit={canEdit}
-        dispatch={dispatch}
-        documentDurationMs={documentDurationMs}
-        element={element}
-      />
+      {element.type === "video" ? null : (
+        <MotionInspector
+          canEdit={canEdit}
+          dispatch={dispatch}
+          documentDurationMs={documentDurationMs}
+          element={element}
+        />
+      )}
       <div className={styles.inspectorActions}>
         <Button
           aria-label="Laag omhoog"
-          disabled={!canEdit}
+          disabled={!canEdit || element.type === "video"}
           onClick={() =>
             dispatch({
               elementId: element.id,
@@ -1629,7 +1726,7 @@ function ElementInspector({
         </Button>
         <Button
           aria-label="Laag omlaag"
-          disabled={!canEdit}
+          disabled={!canEdit || element.type === "video"}
           onClick={() =>
             dispatch({
               elementId: element.id,
@@ -1643,7 +1740,7 @@ function ElementInspector({
           <ArrowDown aria-hidden="true" />
         </Button>
         <Button
-          disabled={!canEdit}
+          disabled={!canEdit || element.type === "video"}
           onClick={() =>
             dispatch({
               elementId: element.id,
@@ -1657,7 +1754,7 @@ function ElementInspector({
           Voorgrond
         </Button>
         <Button
-          disabled={!canEdit}
+          disabled={!canEdit || element.type === "video"}
           onClick={() =>
             dispatch({
               elementId: element.id,
@@ -1671,7 +1768,7 @@ function ElementInspector({
           Achtergrond
         </Button>
         <Button
-          disabled={!canEdit}
+          disabled={!canEdit || element.type === "video"}
           onClick={() =>
             dispatch({ elementId: element.id, type: "element/duplicate" })
           }
@@ -2512,6 +2609,7 @@ function MobileQuickEdit({
           (element) =>
             element.type === "text" ||
             element.type === "image" ||
+            element.type === "video" ||
             element.type === "placeholder"
         )
         .map((element) => (
@@ -2538,19 +2636,23 @@ function MobileQuickEdit({
               />
             ) : (
               <select
-                disabled={!canEdit || !assets.length}
+                disabled={!canEdit || !assets.some((asset) =>
+                  asset.kind === (element.type === "video" ? "video" : "image")
+                )}
                 onChange={(event) => {
                   const asset = assets.find(
                     (candidate) => candidate.id === event.target.value
                   );
                   if (!asset) return;
                   if (element.type === "image") {
+                    if (asset.kind !== "image") return;
                     dispatch({
                       elementId: element.id,
                       patch: { mediaAssetId: asset.id },
                       type: "element/update"
                     });
                   } else if (element.type === "placeholder") {
+                    if (asset.kind !== "image") return;
                     dispatch({
                       element: {
                         alt: asset.title,
@@ -2576,12 +2678,27 @@ function MobileQuickEdit({
                       elementId: element.id,
                       type: "element/replace"
                     });
+                  } else if (element.type === "video") {
+                    if (asset.kind !== "video") return;
+                    dispatch({
+                      elementId: element.id,
+                      patch: { mediaAssetId: asset.id },
+                      type: "element/update"
+                    });
                   }
                 }}
-                value={element.type === "image" ? element.mediaAssetId : ""}
+                value={
+                  element.type === "image" || element.type === "video"
+                    ? element.mediaAssetId
+                    : ""
+                }
               >
-                <option value="">Kies een afbeelding</option>
-                {assets.map((asset) => (
+                <option value="">
+                  {element.type === "video" ? "Kies een video" : "Kies een afbeelding"}
+                </option>
+                {assets.filter((asset) =>
+                  asset.kind === (element.type === "video" ? "video" : "image")
+                ).map((asset) => (
                   <option key={asset.id} value={asset.id}>
                     {asset.title}
                   </option>
@@ -2614,6 +2731,11 @@ function PreviewDialog({
   open: boolean;
   state: StudioEditorState;
 }) {
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, [open]);
   useEffect(() => {
     if (!open) return;
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -2650,13 +2772,23 @@ function PreviewDialog({
             dispatch={dispatch}
             document={state.document}
             playheadMs={state.playheadMs}
+            reducedMotion={reducedMotion}
             selectedIds={[]}
             zoom={1}
           />
         </div>
         <footer>
+          <label className={styles.previewMotionToggle}>
+            <input
+              checked={reducedMotion}
+              onChange={(event) => setReducedMotion(event.target.checked)}
+              type="checkbox"
+            />
+            Beweging beperken
+          </label>
           <Button
             aria-label={state.playing ? "Voorbeeld pauzeren" : "Voorbeeld afspelen"}
+            disabled={reducedMotion}
             onClick={() => dispatch({ type: "playback/toggle" })}
             size="sm"
             variant="secondary"
@@ -2665,6 +2797,7 @@ function PreviewDialog({
             {state.playing ? "Pauzeren" : "Afspelen"}
           </Button>
           <Button
+            disabled={reducedMotion}
             onClick={() => dispatch({ type: "playback/reset" })}
             size="sm"
             variant="ghost"
@@ -2674,6 +2807,7 @@ function PreviewDialog({
           </Button>
           <Button
             aria-pressed={state.looping}
+            disabled={reducedMotion}
             onClick={() => dispatch({ type: "playback/loop" })}
             size="sm"
             variant={state.looping ? "secondary" : "ghost"}
@@ -2992,6 +3126,7 @@ function ElementTypeIcon({ element }: { element: StudioElement }) {
   if (element.type === "image" || element.type === "placeholder") {
     return <ImageIcon aria-hidden="true" />;
   }
+  if (element.type === "video") return <Film aria-hidden="true" />;
   if (element.type === "shape") return <Square aria-hidden="true" />;
   if (element.type === "group") return <Layers3 aria-hidden="true" />;
   return <Sparkles aria-hidden="true" />;
@@ -3005,7 +3140,8 @@ function elementTypeLabel(type: StudioElement["type"]) {
     placeholder: "Beeldslot",
     qr: "QR-code",
     shape: "Vorm",
-    text: "Tekst"
+    text: "Tekst",
+    video: "Achtergrondvideo"
   };
   return labels[type];
 }

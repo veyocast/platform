@@ -300,9 +300,15 @@ importers:
       '@radix-ui/react-navigation-menu':
         specifier: ^1.2.20
         version: 1.2.20(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@veyocast/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@veyocast/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@veyocast/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@19.2.7)
@@ -389,12 +395,19 @@ importers:
       next:
         specifier: ^15.4.1
         version: 15.5.20(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      qrcode:
+        specifier: ^1.5.4
+        version: 1.5.4
       react:
         specifier: ^19.1.0
         version: 19.2.7
       react-dom:
         specifier: ^19.1.0
         version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@types/qrcode':
+        specifier: ^1.5.6
+        version: 1.5.6
 
   packages/auth:
     dependencies:
@@ -451,6 +464,10 @@ importers:
         version: 4.4.3
 
   packages/mobile-design-system:
+    dependencies:
+      '@veyocast/tokens':
+        specifier: workspace:*
+        version: link:../tokens
     devDependencies:
       '@types/react':
         specifier: ~19.2.2

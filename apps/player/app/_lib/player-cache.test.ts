@@ -82,6 +82,25 @@ describe("player cache contract", () => {
     );
   });
 
+  it("cachet voor online YouTube alleen de lokale fallback en nooit providercontent", () => {
+    const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);
+    if (!lookup.ok) throw new Error("expected demo manifest");
+    const item = lookup.body.manifest.items[0]!;
+    item.onlinePlayback = {
+      kind: "youtube",
+      privacyEnhanced: true,
+      title: "Clubvideo",
+      videoId: "dQw4w9WgXcQ"
+    };
+
+    const assets = getCacheableAssets(lookup.body.manifest);
+
+    expect(assets.find((asset) => asset.itemId === item.id)?.url).toBe(
+      item.source.url
+    );
+    expect(assets.some((asset) => asset.url.includes("youtube"))).toBe(false);
+  });
+
   it("neemt checksum-gebonden dynamische video en poster mee in dezelfde offline releasecache", () => {
     const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);
     if (!lookup.ok) throw new Error("expected demo manifest");

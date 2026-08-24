@@ -1631,7 +1631,9 @@ test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release"
 
   await page.goto(`${playerURL}/lg/legacy`);
 
-  await expect(page.locator("#media-root > img")).toBeVisible();
+  await expect(
+    page.locator("#media-root > img.visible:not(.retiring)")
+  ).toBeVisible();
   await expect(page.locator("#offline")).toHaveClass("visible");
   await expect(page.locator("#status")).toBeHidden();
   await expect(page.locator("#media-root > *")).toHaveCount(1);

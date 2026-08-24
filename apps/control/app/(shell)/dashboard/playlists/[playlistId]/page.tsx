@@ -34,13 +34,15 @@ export default async function PlaylistStudioPage({
       : {
           assets: [],
           dynamicSlides: [],
+          engageCampaigns: [],
           error: null,
           items: [],
           playlist: null,
           readiness: null,
           releases: [],
           sections: [],
-          screens: []
+          screens: [],
+          youtubeSources: []
         };
   if (session.isLive && !data.playlist && !data.error) notFound();
 
@@ -158,6 +160,7 @@ export default async function PlaylistStudioPage({
           canManage={canManage}
           canWrite={canWrite}
           dynamicSlides={data.dynamicSlides}
+          engageCampaigns={data.engageCampaigns}
           items={data.items}
           latestReleaseVersion={data.releases[0]?.version ?? null}
           playlist={playlist}
@@ -181,6 +184,7 @@ export default async function PlaylistStudioPage({
           screenStatus={playlistScreenStatus(data.screens, playlist.id)}
           serverAcknowledged={Boolean(query.succes)}
           serverConflict={Boolean(query.conflict)}
+          youtubeSources={data.youtubeSources}
         />
       ) : null}
     </>

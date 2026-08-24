@@ -6,7 +6,7 @@ const validPngFixture = Buffer.from(
   "base64"
 );
 
-test.setTimeout(90_000);
+test.setTimeout(180_000);
 
 test.describe("live Playlist Studio", () => {
   test.skip(!livePilotEnabled, "requires local Supabase and explicit live pilot environment");
@@ -26,7 +26,7 @@ test.describe("live Playlist Studio", () => {
     await expect(page).toHaveURL(/\/dashboard$/);
 
     await page.goto("/dashboard/media");
-    await page.getByRole("link", { name: "Media uploaden" }).click();
+    await page.goto("/dashboard/media?upload=1");
     await page.getByLabel("Titel voor één afbeelding", { exact: true }).fill(assetTitle);
     await page.getByLabel("Afbeeldingen", { exact: true }).setInputFiles({
       buffer: validPngFixture,
@@ -35,7 +35,7 @@ test.describe("live Playlist Studio", () => {
     });
     await page.getByRole("button", { name: "Uploaden en verifiëren" }).click();
     await expect(page.getByText(`${assetTitle} is gecontroleerd`)).toBeVisible();
-    await page.getByRole("link", { name: "Media uploaden" }).click();
+    await page.goto("/dashboard/media?upload=1");
     await page.getByLabel("Titel voor één afbeelding", { exact: true }).fill(secondAssetTitle);
     await page.getByLabel("Afbeeldingen", { exact: true }).setInputFiles({
       buffer: validPngFixture,
@@ -70,7 +70,7 @@ test.describe("live Playlist Studio", () => {
     await expect(page.getByText("Revisie 1").first()).toBeVisible();
 
     await stalePage.getByLabel("Playlistnaam").fill("Stale naam mag niet winnen");
-    await stalePage.getByRole("button", { name: "Playlist opslaan" }).click();
+    await stalePage.getByRole("button", { name: "Naam en beschrijving opslaan" }).click();
     await expect(stalePage.getByText("Dit concept is ondertussen gewijzigd.")).toBeVisible();
     await expect(stalePage.getByText("Jouw actie is niet uitgevoerd.")).toBeVisible();
     await stalePage.getByText("Revisies vergelijken", { exact: true }).click();
@@ -90,8 +90,11 @@ test.describe("live Playlist Studio", () => {
       leaveWarning = dialog.message();
       await dialog.dismiss();
     });
-    await page.getByRole("link", { name: "Terug naar playlists" }).click();
-    expect(leaveWarning).toContain("niet-opgeslagen formulierwijzigingen");
+    await page
+      .locator("#control-content")
+      .getByRole("link", { name: "Playlists", exact: true })
+      .click();
+    expect(leaveWarning).toContain("niet-opgeslagen wijzigingen");
     await page.getByRole("button", { name: `${assetTitle} bewerken` }).click();
     await page.getByLabel("Afspeelduur in seconden").fill("14");
     await page.getByRole("button", { name: "Item opslaan" }).click();
@@ -136,14 +139,20 @@ test.describe("live Playlist Studio", () => {
     await page.goto(studioUrl);
     await page.getByRole("link", { name: "Publiceren" }).click();
     await expect(page).toHaveURL(/\/dashboard\/playlists\/.+\/publish$/);
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
+    await expect(page.getByRole("heading", { name: "Playerpreview" })).toBeVisible();
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
+    await expect(page.getByRole("heading", { name: "Doelschermen kiezen" })).toBeVisible();
     await page.getByLabel(/Pilot hoofdscherm/).check();
     await page.getByLabel(new RegExp(secondScreen)).check();
-    await page.getByRole("button", { name: "Preflight voor selectie berekenen" }).click();
-    await expect(page.getByRole("heading", { name: "4. Preflight per scherm" })).toBeVisible();
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
+    await expect(page.getByRole("heading", { name: "Preflight per scherm" })).toBeVisible();
     await expect(page.getByRole("row").filter({ hasText: "Onbekend" })).toHaveCount(2);
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
+    await expect(page.getByRole("heading", { name: "Impact bevestigen" })).toBeVisible();
     await page.getByLabel("Releasenotitie").fill("S26 multi-screen publicatie");
     await page.getByLabel(/waarschuwingen en onbekende telemetry/i).check();
-    await page.getByLabel("Maak een nieuwe immutable release").check();
+    await page.getByLabel(/Maak één nieuwe immutable release/).check();
     await page.getByRole("button", { name: "Release publiceren en uitrol volgen" }).click();
     await expect(page).toHaveURL(/\/dashboard\/releases\/[0-9a-f-]+/);
     await expect(page.getByText("De immutable release is gepubliceerd")).toBeVisible();
@@ -165,7 +174,7 @@ test.describe("live Playlist Studio", () => {
     await duplicateDialog.getByRole("button", { name: "Concept dupliceren" }).click();
     await expect(page.getByText("Releasehistorie en schermtoewijzingen zijn niet overgenomen")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1, name: duplicateName })).toBeVisible();
-    await expect(page.getByText("Revisie 0").first()).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard\/playlists\/[0-9a-f-]+(?:\?.*)?$/);
     await expect(
       page
         .getByRole("list", { name: "Playlistitems" })

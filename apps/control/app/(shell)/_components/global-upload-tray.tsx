@@ -1,7 +1,7 @@
 "use client";
 
 import { StatusPill } from "@veyocast/ui";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export type GlobalUploadTrayItem = {
@@ -19,7 +19,9 @@ const queuePreferenceKey = "veyocast:media-upload-queue:open:v1";
 const refreshIntervalMilliseconds = 5_000;
 
 export function GlobalUploadTray({ items }: GlobalUploadTrayProps) {
+  const pathname = usePathname();
   const router = useRouter();
+  const previousPathname = useRef(pathname);
   const previousCount = useRef(items.length);
   const [open, setOpen] = useState(items.length > 0);
 
@@ -36,6 +38,12 @@ export function GlobalUploadTray({ items }: GlobalUploadTrayProps) {
     if (items.length > previousCount.current) setOpen(true);
     previousCount.current = items.length;
   }, [items.length]);
+
+  useEffect(() => {
+    if (pathname === previousPathname.current) return;
+    previousPathname.current = pathname;
+    setOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (items.length === 0) return;

@@ -12,6 +12,7 @@ import {
 describe("opgeslagen mediaweergaven", () => {
   it("bewaart alleen de ondersteunde, gevalideerde URL-status", () => {
     expect(mediaViewStateFromSearch({
+      collection: "10000000-0000-4000-8000-000000000452",
       favorite: "true",
       folder: "10000000-0000-4000-8000-000000000451",
       from: "2026-07-01",
@@ -24,6 +25,7 @@ describe("opgeslagen mediaweergaven", () => {
       usage: "used",
       view: "grid"
     })).toEqual({
+      collection: "10000000-0000-4000-8000-000000000452",
       favorite: "true",
       folder: "10000000-0000-4000-8000-000000000451",
       from: "2026-07-01",
@@ -39,6 +41,7 @@ describe("opgeslagen mediaweergaven", () => {
 
   it("zet de persoonlijke weergave verliesloos om naar het versiecontract", () => {
     const state = mediaViewStateFromSearch({
+      collection: "10000000-0000-4000-8000-000000000452",
       favorite: "true",
       folder: "root",
       q: "kantine",
@@ -49,6 +52,7 @@ describe("opgeslagen mediaweergaven", () => {
 
     expect(stored.filterJson).toMatchObject({
       favoritesOnly: true,
+      collectionId: "10000000-0000-4000-8000-000000000452",
       layout: "grid",
       query: "kantine",
       rootOnly: true,

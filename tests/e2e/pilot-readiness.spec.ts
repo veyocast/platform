@@ -14,7 +14,7 @@ test("keeps the documented local demo pilot traceable across product planes", as
     page.getByRole("heading", {
       exact: true,
       level: 1,
-      name: "Breng jouw club tot leven op ieder scherm."
+      name: "Elk scherm. Elk bericht. Elk moment."
     })
   ).toBeVisible();
   await expect(

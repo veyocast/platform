@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(18);
+select plan(20);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -72,6 +72,37 @@ select ok(
     ]::text[]
   ) is not null,
   'tenant owner can create a tenant-scoped custom role'
+);
+
+select lives_ok(
+  $$select public.create_tenant_custom_role_v1(
+    '10000000-0000-4000-8000-000000000951',
+    'Product- en factuurbeheer',
+    'Gecombineerde additive capabilities',
+    array[
+      'tenant.media.write',
+      'tenant.product.write',
+      'tenant.playlist.write',
+      'tenant.billing.manage'
+    ]::text[]
+  )$$,
+  'additive product and billing capabilities survive custom-role normalization'
+);
+
+select is(
+  (
+    select capabilities
+    from public.tenant_custom_roles
+    where tenant_id = '10000000-0000-4000-8000-000000000951'
+      and name = 'Product- en factuurbeheer'
+  ),
+  array[
+    'tenant.billing.manage',
+    'tenant.media.write',
+    'tenant.playlist.write',
+    'tenant.product.write'
+  ]::text[],
+  'custom-role capabilities are stored once in deterministic order'
 );
 
 select throws_ok(

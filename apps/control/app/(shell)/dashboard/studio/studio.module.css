@@ -1569,6 +1569,21 @@
   margin-left: auto;
 }
 
+.previewMotionToggle {
+  align-items: center;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: var(--vc-space-6);
+  min-height: 44px;
+  padding-inline: var(--vc-space-4);
+}
+
+.previewMotionToggle input {
+  block-size: 18px;
+  inline-size: 18px;
+}
+
 .previewStage {
   background: var(--vc-brand-ink-black);
   min-height: 0;

@@ -43,6 +43,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Search,
+  Sparkles,
   ServerCog,
   Settings2,
   ShieldCheck,
@@ -104,6 +105,7 @@ const navigationIcons: Record<string, LucideIcon> = {
   Databronnen: ServerCog,
   Slides: Layers3,
   "Sponsor Hub": Handshake,
+  Engage: Sparkles,
   Tenants: Building2
 };
 const sidebarStorageKey = "veyocast-control-sidebar-collapsed";

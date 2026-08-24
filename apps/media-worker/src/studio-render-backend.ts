@@ -24,7 +24,7 @@ export type ClaimedStudioSourceAsset = {
   checksumSha256: string;
   durationSeconds: number | null;
   height: number | null;
-  mimeType: "image/jpeg" | "image/png" | "image/webp";
+  mimeType: "image/jpeg" | "image/png" | "image/webp" | "video/mp4";
   path: string;
   width: number | null;
 };
@@ -390,7 +390,7 @@ export function parseClaimedStudioRenderJob(
   const document = parsedDocument.data;
   const assetsById = new Map(sourceAssets.map((asset) => [asset.assetId, asset]));
   const assetManifest = document.elements.flatMap((element) => {
-    if (element.type !== "image") return [];
+    if (element.type !== "image" && element.type !== "video") return [];
     const asset = assetsById.get(element.mediaAssetId);
     return asset
       ? [{
@@ -417,12 +417,14 @@ export function parseClaimedStudioRenderJob(
   const height = Number(value.height);
   const durationMs = Number(value.duration_ms);
   const fps = Number(value.fps);
-  const allImagesResolved = document.elements.every(
-    (element) => element.type !== "image" || assetsById.has(element.mediaAssetId)
+  const allAssetsResolved = document.elements.every(
+    (element) =>
+      (element.type !== "image" && element.type !== "video") ||
+      assetsById.has(element.mediaAssetId)
   );
   if (
     !request.success ||
-    !allImagesResolved ||
+    !allAssetsResolved ||
     !Number.isSafeInteger(attemptCount) ||
     attemptCount < 1 ||
     width !== document.artboard.width ||
@@ -451,7 +453,8 @@ function parseSourceAssets(value: unknown): ClaimedStudioSourceAsset[] {
       entry.path.length > 1_024 ||
       (mimeType !== "image/jpeg" &&
         mimeType !== "image/png" &&
-        mimeType !== "image/webp") ||
+        mimeType !== "image/webp" &&
+        mimeType !== "video/mp4") ||
       typeof checksumSha256 !== "string" ||
       !/^[a-f0-9]{64}$/.test(checksumSha256)
     ) {
@@ -459,14 +462,20 @@ function parseSourceAssets(value: unknown): ClaimedStudioSourceAsset[] {
     }
     const width = nullableInteger(entry.width);
     const height = nullableInteger(entry.height);
-    if ((width !== null && width <= 0) || (height !== null && height <= 0)) {
+    const durationSeconds = nullableNumber(entry.durationSeconds);
+    if (
+      (width !== null && width <= 0) ||
+      (height !== null && height <= 0) ||
+      (mimeType === "video/mp4" &&
+        (width === null || height === null || durationSeconds === null || durationSeconds <= 0))
+    ) {
       throw invalidClaim();
     }
     return {
       assetId: entry.assetId,
       bucket: entry.bucket,
       checksumSha256,
-      durationSeconds: nullableNumber(entry.durationSeconds),
+      durationSeconds,
       height,
       mimeType,
       path: entry.path,

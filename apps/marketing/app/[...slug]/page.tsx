@@ -4,9 +4,14 @@ import { notFound } from "next/navigation";
 import { marketingPages, getMarketingPage } from "../_content/pages";
 import { SeoPageShell } from "../_components/seo-page";
 import { canonicalUrl, isPublicIndexEnvironment } from "../_lib/site-config";
+import {
+  verifySetupIntentToken
+} from "../_lib/setup-intent";
+import { setupIntentSigningSecret } from "../_lib/setup-intent.server";
 
 type RouteProps = {
   params: Promise<{ slug: string[] }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 function pathnameFromSlug(slug: string[]) {
@@ -47,11 +52,28 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
   };
 }
 
-export default async function MarketingContentPage({ params }: RouteProps) {
+export default async function MarketingContentPage({ params, searchParams }: RouteProps) {
   const { slug } = await params;
+  const query = await searchParams;
   const page = getMarketingPage(pathnameFromSlug(slug));
 
   if (!page) notFound();
 
-  return <SeoPageShell page={page} />;
+  const rawToken = page.kind === "demo" && typeof query.setup === "string" ? query.setup : null;
+  const secret = rawToken ? setupIntentSigningSecret() : null;
+  const setupIntent = rawToken && secret ? await verifySetupIntentToken(rawToken, secret) : null;
+  const setupStatus =
+    page.kind === "demo" &&
+    (query.setup_status === "unavailable" || (rawToken && !setupIntent))
+      ? "unavailable"
+      : null;
+
+  return (
+    <SeoPageShell
+      page={page}
+      setupIntent={setupIntent}
+      setupIntentToken={setupIntent ? rawToken : null}
+      setupStatus={setupStatus}
+    />
+  );
 }

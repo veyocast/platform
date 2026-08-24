@@ -37,6 +37,27 @@ export type OperationalSource = {
     runtime_state: string;
     screen_id: string;
   }>;
+  integrations: {
+    dynamicSources: Array<{
+      id: string;
+      kind: string;
+      last_attempt_at: string | null;
+      last_error_code: string | null;
+      last_successful_sync_at: string | null;
+      name: string;
+      provider_status: string;
+      status: string;
+    }>;
+    sportlinkConnections: Array<{
+      detected_club_name: string | null;
+      id: string;
+      last_attempt_at: string | null;
+      last_error_code: string | null;
+      last_success_at: string | null;
+      stale_after: string | null;
+      status: string;
+    }>;
+  };
   invitations: Array<{
     email: string;
     expires_at: string;
@@ -215,6 +236,45 @@ export function deriveOperationalDashboard(
     }
   }
 
+  for (const integration of source.integrations.dynamicSources) {
+    if (integration.status === "error" || integration.provider_status === "error") {
+      signals.push(signal({
+        cause: integration.last_error_code
+          ? `${integration.name} meldt foutcode ${integration.last_error_code}.`
+          : `${integration.name} meldt een providerfout.`,
+        effect: "Bestaande snapshots blijven beschikbaar, maar nieuwe brondata is niet bevestigd.",
+        href: "/dashboard/data-sources",
+        id: `integration-error:${integration.id}`,
+        label: "Integratie vraagt aandacht",
+        occurredAt: integration.last_attempt_at ?? integration.last_successful_sync_at ?? now.toISOString(),
+        recovery: "Open de databron, controleer de oorzaak en start pas daarna een toegestane retry.",
+        resource: integration.name,
+        severity: "critical"
+      }, nowMs));
+    }
+  }
+  for (const connection of source.integrations.sportlinkConnections) {
+    const staleAt = timestamp(connection.stale_after);
+    const stale = staleAt > 0 && staleAt <= nowMs;
+    if (connection.status === "error" || connection.last_error_code || stale) {
+      signals.push(signal({
+        cause: connection.last_error_code
+          ? `Sportlink meldt foutcode ${connection.last_error_code}.`
+          : stale
+            ? "De laatste succesvolle Sportlink-sync is ouder dan de ingestelde versheidsgrens."
+            : "De Sportlink-verbinding staat in foutstatus.",
+        effect: "Schermen gebruiken de laatst geldige snapshot; actuele programma- of uitslagdata kan ontbreken.",
+        href: "/dashboard/data-sources/sportlink",
+        id: `sportlink-health:${connection.id}`,
+        label: stale ? "Sportlink-data is verouderd" : "Sportlink-sync mislukt",
+        occurredAt: connection.last_attempt_at ?? connection.last_success_at ?? now.toISOString(),
+        recovery: "Controleer de verbinding en syncstatus, herstel de oorzaak en verifieer een nieuwe succesvolle sync.",
+        resource: connection.detected_club_name ?? "Sportlink",
+        severity: connection.status === "error" || connection.last_error_code ? "critical" : "warning"
+      }, nowMs));
+    }
+  }
+
   if (source.screenLimit > 0 && source.screens.length / source.screenLimit >= 0.8) {
     signals.push(signal({
       cause: `${source.screens.length} van de ${source.screenLimit} beschikbare schermplaatsen zijn in gebruik.`,
@@ -246,6 +306,7 @@ export function deriveOperationalDashboard(
 
   return {
     activePlaybackCount,
+    integrationHealth: deriveIntegrationHealth(source.integrations, nowMs),
     onboarding: [
       step("organization", "Organisatie actief", true, "/dashboard/settings"),
       step("team", "Team ingericht", source.memberCount > 1, "/dashboard/team"),
@@ -263,6 +324,35 @@ export function deriveOperationalDashboard(
     processingMediaCount: source.media.filter((asset) => ["uploading", "processing"].includes(asset.status)).length,
     readyMediaCount,
     signals: signals.sort(compareSignals)
+  };
+}
+
+function deriveIntegrationHealth(
+  integrations: OperationalSource["integrations"],
+  nowMs: number
+) {
+  const sourceErrors = integrations.dynamicSources.filter((source) =>
+    source.status === "error" || source.provider_status === "error"
+  ).length;
+  const sportlinkErrors = integrations.sportlinkConnections.filter((connection) =>
+    connection.status === "error" || Boolean(connection.last_error_code)
+  ).length;
+  const stale = integrations.sportlinkConnections.filter((connection) => {
+    const staleAt = timestamp(connection.stale_after);
+    return staleAt > 0 && staleAt <= nowMs;
+  }).length;
+  const total = integrations.dynamicSources.length + integrations.sportlinkConnections.length;
+  return {
+    errorCount: sourceErrors + sportlinkErrors,
+    staleCount: stale,
+    status: sourceErrors + sportlinkErrors > 0
+      ? "error" as const
+      : stale > 0
+        ? "stale" as const
+        : total > 0
+          ? "fresh" as const
+          : "disabled" as const,
+    total
   };
 }
 

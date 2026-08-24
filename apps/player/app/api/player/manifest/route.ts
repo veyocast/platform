@@ -8,6 +8,7 @@ import {
   type PlayerWaitingContentEnvelope
 } from "../../../_lib/player-manifest";
 import { loadPlayerReleaseEnvelope } from "../../../_lib/player-release-envelope";
+import { signPlayerEntitlement } from "../../../_lib/player-entitlement-server";
 import {
   createPlayerAnonClient,
   isLivePlayerConfigured
@@ -70,6 +71,8 @@ type BootstrapRow = {
   screen_status: string;
   tenant_id: string;
 };
+
+type EntitlementRow = { billing_state:string; capabilities_json:Record<string,boolean>; device_id:string; hard_stop_at:string|null; issued_at:string; playback_mode:"tenant_content"|"tenant_content_with_warning"|"veyocast_billing_splash"|"system_suspended"; reason:string; revision:number; screen_id:string; tenant_id:string; valid_until:string };
 
 async function getLiveManifest(request: Request, token: string | null) {
   if (!token?.trim()) {
@@ -177,6 +180,13 @@ async function getLiveManifest(request: Request, token: string | null) {
       releaseId: bootstrap.desired_release_id,
       tenantId: bootstrap.tenant_id
     });
+    const { data: entitlementData, error: entitlementError } = await anon.rpc("get_player_entitlement_v1", { p_token_hash: createHash("sha256").update(token.trim()).digest("hex") });
+    const entitlementRow = (entitlementData?.[0] ?? null) as EntitlementRow | null;
+    if (entitlementError) throw new Error("entitlement unavailable");
+    if (entitlementRow) {
+      const capabilities = entitlementRow.capabilities_json;
+      body.entitlement = signPlayerEntitlement({ billingState: entitlementRow.billing_state as never, canActivateNetNewScreen:Boolean(capabilities.canActivateNetNewScreen), canManageBilling:Boolean(capabilities.canManageBilling), canPairReplacement:Boolean(capabilities.canPairReplacement), canPublish:Boolean(capabilities.canPublish), canRecoverPlayer:Boolean(capabilities.canRecoverPlayer), deviceId:entitlementRow.device_id, hardStopAt:entitlementRow.hard_stop_at, issuedAt:entitlementRow.issued_at, playbackMode:entitlementRow.playback_mode, reason:entitlementRow.reason, revision:Number(entitlementRow.revision), screenId:entitlementRow.screen_id, tenantId:entitlementRow.tenant_id, validUntil:entitlementRow.valid_until });
+    }
     const etag = deliveryEtag(body.manifest.releaseId, body.manifest.sponsorPlan?.revisionId);
     if (requestHasEtag(request, etag)) {
       return new NextResponse(null, {

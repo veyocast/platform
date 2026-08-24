@@ -9,14 +9,25 @@ import {
 
 const itemA: ReleaseComparisonItem = {
   assetTitle: "Welkom",
+  backgroundColor: null,
   checksumSha256: "a".repeat(64),
+  cropFocusX: 0.5,
+  cropFocusY: 0.5,
+  displayTitle: null,
   durationSeconds: 10,
+  enabled: true,
   fileSizeBytes: 100,
   fitMode: "contain",
   mediaAssetId: "20000000-0000-4000-8000-000000000001",
   muted: true,
   sortOrder: 0,
-  sourceItemId: "30000000-0000-4000-8000-000000000001"
+  sourceItemId: "30000000-0000-4000-8000-000000000001",
+  transition: "cut",
+  trimEndSeconds: null,
+  trimStartSeconds: 0,
+  visibleFrom: null,
+  visibleUntil: null,
+  volumePercent: 100
 };
 
 const itemB: ReleaseComparisonItem = {
@@ -61,6 +72,32 @@ describe("immutable release comparison", () => {
       moved: [["Programma", 1, 0]],
       removed: ["Welkom"]
     });
+  });
+
+  it("compares the complete immutable presentation contract", () => {
+    const changed = {
+      ...itemA,
+      backgroundColor: "#101820",
+      cropFocusX: 0.25,
+      displayTitle: "Welkom vanavond",
+      enabled: false,
+      transition: "crossfade",
+      trimEndSeconds: 8,
+      trimStartSeconds: 1,
+      visibleFrom: "2026-08-24T18:00:00.000Z",
+      volumePercent: 60
+    };
+
+    expect(compareReleaseItems([itemA], [changed]).changed[0]?.fields).toEqual([
+      "background",
+      "crop",
+      "label",
+      "enabled",
+      "transition",
+      "trim",
+      "visibility",
+      "volume"
+    ]);
   });
 });
 

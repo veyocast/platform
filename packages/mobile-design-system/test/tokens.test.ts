@@ -1,3 +1,4 @@
+import { veyocastVectorTokens } from "@veyocast/tokens";
 import { describe, expect, it } from "vitest";
 import {
   minimumTouchTarget,
@@ -8,18 +9,22 @@ import {
   mobileType
 } from "../src/tokens";
 
-describe("Atelier Ivory Native tokens", () => {
+describe("Vector v2 native tokens", () => {
   it("uses the canonical VeyoCast action colour and safe touch target", () => {
-    expect(mobilePalette.brand.action).toBe("#FF5C20");
-    expect(minimumTouchTarget).toBeGreaterThanOrEqual(44);
+    expect(mobilePalette.brand.action).toBe(
+      veyocastVectorTokens.semantic.action.default
+    );
+    expect(minimumTouchTarget).toBe(
+      veyocastVectorTokens.touch.minimumTargetPx
+    );
     expect(mobileFontFamily.regular).toBe("Roboto_400Regular");
   });
 
   it("keeps spacing and radii on the governed grids", () => {
     expect(Object.values(mobileSpacing).every((value) => value % 4 === 0)).toBe(true);
     expect(Object.values(mobileRadius).slice(0, -1).every((value) => value % 2 === 0)).toBe(true);
-    expect(mobileRadius.card).toBe(10);
-    expect(mobileRadius.hero).toBe(14);
+    expect(mobileRadius.card).toBe(14);
+    expect(mobileRadius.hero).toBe(18);
   });
 
   it("keeps the native interface compact without using 12 px primary body copy", () => {

@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   CalendarDays,
   Check,
   FileCheck2,
@@ -11,7 +10,8 @@ import {
 import Link from "next/link";
 
 import type { MarketingPageDefinition } from "../_content/pages";
-import { canonicalUrl } from "../_lib/site-config";
+import type { SetupIntentPayload } from "../_lib/setup-intent";
+import { canonicalUrl, siteConfig } from "../_lib/site-config";
 import { FaqAccordion } from "./faq";
 import { JsonLd } from "./json-ld";
 import { LeadForm } from "./lead-form";
@@ -23,6 +23,7 @@ import {
 } from "./marketing-primitives";
 import { Reveal } from "./motion";
 import { ProductScreenshotFrame } from "./product-showcase";
+import { MarketingPriceCalculator } from "./marketing-price-calculator";
 
 const demoCta = { href: "/demo", label: "Plan een demo" } as const;
 
@@ -56,51 +57,49 @@ function breadcrumbsFor(page: MarketingPageDefinition) {
   return items;
 }
 
-function PricingCards() {
-  const packages = [
-    {
-      description: "Voor een compacte eerste locatie en essentiële schermcontent.",
-      features: ["Eerste schermflow", "Media en playlists", "Gecontroleerde publicatie", "Basis schermstatus"],
-      name: "Start"
-    },
-    {
-      description: "Voor meerdere schermen, teamleden en terugkerende clubcontent.",
-      features: ["Meerdere schermen", "Team en eigen werkrollen", "Templates en planning", "Release Center"],
-      name: "Club"
-    },
-    {
-      description: "Voor grotere organisaties met meerdere locaties en uitgebreid beheer.",
-      features: ["Locatiebrede schermvloot", "Uitgebreide beheercontext", "Onboarding op maat", "Integratieverkenning"],
-      name: "Network"
-    }
-  ] as const;
+function formatGrossCents(cents: number) {
+  return `€ ${Math.floor(cents / 100).toLocaleString("nl-NL")},${String(cents % 100).padStart(2, "0")}`;
+}
 
+const setupBranchLabels = {
+  hospitality: "Horeca & sportlocatie",
+  organization: "Organisatie",
+  sportclub: "Sportvereniging"
+} as const;
+
+function SetupIntentSummary({ intent, token }: { intent: SetupIntentPayload; token?: string | null }) {
+  const registrationUrl = token
+    ? `${siteConfig.controlOrigin}/register?setup=${encodeURIComponent(token)}`
+    : null;
   return (
-    <div className="pricing-grid">
-      {packages.map((item) => (
-        <article className="pricing-card" key={item.name}>
-          <p className="pricing-card__label">Voorstel op maat</p>
-          <h3>{item.name}</h3>
-          <p>{item.description}</p>
-          <ul>
-            {item.features.map((feature) => (
-              <li key={feature}>
-                <Check aria-hidden size={16} />
-                {feature}
-              </li>
-            ))}
-          </ul>
-          <Link className="button button--secondary button--full" href="/contact">
-            Vraag een voorstel aan
-            <ArrowRight aria-hidden size={18} />
-          </Link>
-        </article>
-      ))}
-    </div>
+    <aside className="setup-intent-summary" aria-labelledby="setup-intent-summary-title">
+      <div>
+        <p className="eyebrow">Meegenomen uit de setup builder</p>
+        <h3 id="setup-intent-summary-title">Je opstelling staat klaar.</h3>
+        <p>{setupBranchLabels[intent.branch]} · {intent.screenCount} {intent.screenCount === 1 ? "scherm" : "schermen"} · {intent.modules.length} bronnen</p>
+      </div>
+      <div>
+        <span>14 dagen gratis</span>
+        <strong>{formatGrossCents(intent.grossMonthlyCents)} per maand daarna</strong>
+        <small>incl. btw</small>
+        {registrationUrl ? (
+          <a className="button button--primary" href={registrationUrl}>
+            Account maken met deze opstelling
+          </a>
+        ) : null}
+      </div>
+    </aside>
   );
 }
 
-export function SeoPageShell({ page }: { page: MarketingPageDefinition }) {
+type SeoPageShellProps = {
+  page: MarketingPageDefinition;
+  setupIntent?: SetupIntentPayload | null;
+  setupIntentToken?: string | null;
+  setupStatus?: "unavailable" | null;
+};
+
+export function SeoPageShell({ page, setupIntent, setupIntentToken, setupStatus }: SeoPageShellProps) {
   const breadcrumbs = breadcrumbsFor(page);
   const faqSchema = {
     "@context": "https://schema.org",
@@ -248,11 +247,11 @@ export function SeoPageShell({ page }: { page: MarketingPageDefinition }) {
             <div className="marketing-container">
               <SectionHeading
                 align="center"
-                description="Pakketnamen geven schaalrichting. Definitieve bedragen en contractinhoud volgen uitsluitend in een bevestigd voorstel."
-                eyebrow="Drie heldere vertrekpunten"
-                title="Kies de omvang die bij jouw organisatie past."
+                description="Je betaalt voor het aantal actieve schermen. De calculator gebruikt uitsluitend hele centen en toont het bruto maandbedrag."
+                eyebrow="14 dagen gratis"
+                title="Eén prijs per actief scherm."
               />
-              <PricingCards />
+              <MarketingPriceCalculator />
             </div>
           </section>
         ) : null}
@@ -295,7 +294,19 @@ export function SeoPageShell({ page }: { page: MarketingPageDefinition }) {
                     : "Waar kunnen we bij helpen?"
                 }
               />
-              <LeadForm kind={page.kind} />
+              <div>
+                {setupIntent ? <SetupIntentSummary intent={setupIntent} token={setupIntentToken} /> : null}
+                {setupStatus === "unavailable" ? (
+                  <div className="form-message form-message--unavailable" role="status">
+                    De opstelling kon niet veilig worden meegenomen. Je kunt het formulier wel handmatig invullen of de setup builder opnieuw openen.
+                  </div>
+                ) : null}
+                <LeadForm
+                  kind={page.kind}
+                  setupIntent={setupIntent}
+                  setupIntentToken={setupIntentToken}
+                />
+              </div>
             </div>
           </section>
         ) : null}

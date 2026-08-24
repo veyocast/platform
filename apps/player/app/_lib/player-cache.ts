@@ -6,6 +6,7 @@ import type {
   PlayerManifestItem,
   PlayerReleaseManifest
 } from "./player-manifest";
+import { resolveMonotonicPlayerEntitlement } from "./player-entitlement";
 import { createPlayerMediaStore, type PlayerMediaStore } from "./player-media-store";
 
 export const playerAssetCacheName = "veyocast-player-assets-v1";
@@ -658,9 +659,22 @@ export function refreshHydratedReleaseEnvelope({
   const cachedItems = new Map(
     cachedEnvelope.manifest.items.map((item) => [item.id, item])
   );
+  const entitlement = resolveMonotonicPlayerEntitlement(
+    cachedEnvelope.entitlement,
+    freshEnvelope.entitlement
+  );
+  const usesCachedEntitlement = entitlement === cachedEnvelope.entitlement;
 
   return {
     ...freshEnvelope,
+    ...(entitlement
+      ? {
+          entitlement,
+          entitlementVerified: usesCachedEntitlement
+            ? cachedEnvelope.entitlementVerified
+            : freshEnvelope.entitlementVerified
+        }
+      : {}),
     manifest: {
       ...freshEnvelope.manifest,
       ...(freshEnvelope.manifest.sponsorPlan

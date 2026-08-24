@@ -70,7 +70,9 @@ import {
 import { FloatingPanel } from "../../../_components/floating-panel";
 import {
   addDynamicPlaylistSlide,
+  addEngagePlaylistCampaign,
   addPlaylistItem,
+  addYouTubePlaylistSource,
   archivePlaylist,
   assignPlaylistItemSection,
   createPlaylistSection,
@@ -89,8 +91,10 @@ import type { PlaylistPreviewItem } from "../playlist-preview";
 import type {
   PlaylistStudioAsset,
   PlaylistStudioDynamicSlide,
+  PlaylistStudioEngageCampaign,
   PlaylistStudioItem,
-  PlaylistStudioSection
+  PlaylistStudioSection,
+  PlaylistStudioYouTubeSource
 } from "../playlist-studio-contract";
 import { resolveMediaPreviewGeometry } from "./media-preview-geometry";
 import { PublisherStudioPreview } from "./publisher-studio-preview";
@@ -139,6 +143,7 @@ type PublisherStudioWorkspaceProps = {
   canManage: boolean;
   canWrite: boolean;
   dynamicSlides: PlaylistStudioDynamicSlide[];
+  engageCampaigns: PlaylistStudioEngageCampaign[];
   latestReleaseVersion: number | null;
   playlist: Playlist;
   previewItems: PlaylistPreviewItem[];
@@ -163,6 +168,7 @@ type PublisherStudioWorkspaceProps = {
   };
   serverAcknowledged: boolean;
   serverConflict: boolean;
+  youtubeSources: PlaylistStudioYouTubeSource[];
 };
 
 type SaveState =
@@ -183,6 +189,7 @@ export function PublisherStudioWorkspace({
   canManage,
   canWrite,
   dynamicSlides,
+  engageCampaigns,
   latestReleaseVersion,
   items,
   playlist,
@@ -192,7 +199,8 @@ export function PublisherStudioWorkspace({
   sections,
   screenStatus,
   serverAcknowledged,
-  serverConflict
+  serverConflict,
+  youtubeSources
 }: PublisherStudioWorkspaceProps & { items: PlaylistStudioItem[] }) {
   const [orderedItems, setOrderedItems] = useState(items);
   const [selectedId, setSelectedId] = useState<string | null>(
@@ -339,6 +347,24 @@ export function PublisherStudioWorkspace({
         !query || slide.name.toLocaleLowerCase("nl-NL").includes(query)
     );
   }, [dynamicSlides, mediaKind, mediaQuery]);
+  const availableYouTubeSources = useMemo(() => {
+    const query = mediaQuery.trim().toLocaleLowerCase("nl-NL");
+    if (mediaKind !== "all" && mediaKind !== "video") return [];
+    return youtubeSources.filter((source) =>
+      !query || `${source.title} ${source.channelTitle ?? ""}`
+        .toLocaleLowerCase("nl-NL")
+        .includes(query)
+    );
+  }, [mediaKind, mediaQuery, youtubeSources]);
+  const availableEngageCampaigns = useMemo(() => {
+    const query = mediaQuery.trim().toLocaleLowerCase("nl-NL");
+    if (mediaKind !== "all" && mediaKind !== "dynamic") return [];
+    return engageCampaigns.filter((campaign) =>
+      !query || `${campaign.title} ${campaign.question}`
+        .toLocaleLowerCase("nl-NL")
+        .includes(query)
+    );
+  }, [engageCampaigns, mediaKind, mediaQuery]);
 
   useEffect(() => {
     if (
@@ -736,12 +762,15 @@ export function PublisherStudioWorkspace({
       assets={availableAssets}
       canWrite={canWrite && saveState !== "saving"}
       dynamicSlides={availableDynamicSlides}
+      engageCampaigns={availableEngageCampaigns}
+      fallbackAssets={assets.filter((asset) => !asset.deletedAt && asset.status === "ready" && Boolean(asset.variant))}
       mediaKind={mediaKind}
       mediaQuery={mediaQuery}
       onKindChange={setMediaKind}
       onQueryChange={setMediaQuery}
       playlistId={playlist.id}
       revision={playlist.revision}
+      youtubeSources={availableYouTubeSources}
     />
   );
 
@@ -1090,22 +1119,28 @@ function MediaLibrary({
   assets,
   canWrite,
   dynamicSlides,
+  engageCampaigns,
+  fallbackAssets,
   mediaKind,
   mediaQuery,
   onKindChange,
   onQueryChange,
   playlistId,
-  revision
+  revision,
+  youtubeSources
 }: {
   assets: PlaylistStudioAsset[];
   canWrite: boolean;
   dynamicSlides: PlaylistStudioDynamicSlide[];
+  engageCampaigns: PlaylistStudioEngageCampaign[];
+  fallbackAssets: PlaylistStudioAsset[];
   mediaKind: "all" | "dynamic" | "image" | "video";
   mediaQuery: string;
   onKindChange: (kind: "all" | "dynamic" | "image" | "video") => void;
   onQueryChange: (query: string) => void;
   playlistId: string;
   revision: number;
+  youtubeSources: PlaylistStudioYouTubeSource[];
 }) {
   return (
     <div className={styles.library}>
@@ -1144,7 +1179,7 @@ function MediaLibrary({
           </button>
         ))}
       </div>
-      {assets.length || dynamicSlides.length ? (
+      {assets.length || dynamicSlides.length || youtubeSources.length || engageCampaigns.length ? (
         <ul aria-label="Gereedstaande inhoud" className={styles.mediaGrid}>
           {dynamicSlides.map((slide) => (
             <DraggableDynamicSlideCard
@@ -1153,6 +1188,25 @@ function MediaLibrary({
               playlistId={playlistId}
               revision={revision}
               slide={slide}
+            />
+          ))}
+          {youtubeSources.map((source) => (
+            <YouTubeSourceCard
+              canWrite={canWrite}
+              key={source.id}
+              playlistId={playlistId}
+              revision={revision}
+              source={source}
+            />
+          ))}
+          {engageCampaigns.map((campaign) => (
+            <EngageCampaignCard
+              campaign={campaign}
+              canWrite={canWrite}
+              fallbackAssets={fallbackAssets}
+              key={campaign.id}
+              playlistId={playlistId}
+              revision={revision}
             />
           ))}
           {assets.map((asset) => (
@@ -1177,6 +1231,59 @@ function MediaLibrary({
         <span>Open de veilige uploadflow</span>
       </Link>
     </div>
+  );
+}
+
+function EngageCampaignCard({ campaign, canWrite, fallbackAssets, playlistId, revision }: {
+  campaign: PlaylistStudioEngageCampaign;
+  canWrite: boolean;
+  fallbackAssets: PlaylistStudioAsset[];
+  playlistId: string;
+  revision: number;
+}) {
+  return (
+    <li className={`${styles.mediaCard} ${styles.dynamicSlideCard}`}>
+      <span className={styles.mediaDragTarget}>
+        <span className={styles.dynamicSlideThumb}><Sparkles aria-hidden="true" /><span className={styles.dynamicTypeBadge}>Live</span></span>
+        <span><strong>{campaign.title}</strong><small>{campaign.question} · stemdata live</small></span>
+      </span>
+      <form action={addEngagePlaylistCampaign} data-online-required>
+        <RevisionFields playlistId={playlistId} revision={revision} />
+        <input name="campaignId" type="hidden" value={campaign.id} />
+        <input name="durationSeconds" type="hidden" value="30" />
+        <label className="sr-only" htmlFor={`fallback-${campaign.id}`}>Lokale fallback voor {campaign.title}</label>
+        <select id={`fallback-${campaign.id}`} name="fallbackMediaAssetId" required defaultValue="">
+          <option disabled value="">Fallback</option>
+          {fallbackAssets.map((asset) => <option key={asset.id} value={asset.id}>{asset.title}</option>)}
+        </select>
+        <button aria-label={`Publieksactie toevoegen: ${campaign.title}`} disabled={!canWrite || !fallbackAssets.length} type="submit"><Plus aria-hidden="true" /></button>
+      </form>
+    </li>
+  );
+}
+
+function YouTubeSourceCard({ canWrite, playlistId, revision, source }: {
+  canWrite: boolean;
+  playlistId: string;
+  revision: number;
+  source: PlaylistStudioYouTubeSource;
+}) {
+  return (
+    <li className={`${styles.mediaCard} ${styles.dynamicSlideCard}`}>
+      <span className={styles.mediaDragTarget}>
+        <span className={styles.dynamicSlideThumb}>
+          <MediaThumb asset={source.fallbackAsset} className={styles.mediaThumb ?? ""} />
+          <span className={styles.dynamicTypeBadge}><Film aria-hidden="true" />Online</span>
+        </span>
+        <span><strong>{source.title}</strong><small>YouTube · {source.channelTitle ?? "gevalideerde bron"} · lokale fallback</small></span>
+      </span>
+      <form action={addYouTubePlaylistSource} data-online-required>
+        <RevisionFields playlistId={playlistId} revision={revision} />
+        <input name="youtubeSourceId" type="hidden" value={source.id} />
+        <input name="durationSeconds" type="hidden" value="30" />
+        <button aria-label={`YouTube-video toevoegen: ${source.title}`} disabled={!canWrite} type="submit"><Plus aria-hidden="true" /></button>
+      </form>
+    </li>
   );
 }
 

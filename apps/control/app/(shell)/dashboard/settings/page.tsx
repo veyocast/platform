@@ -285,6 +285,18 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </div>
         </section>
 
+        <section className="data-surface" aria-labelledby="billing-settings-title" id="abonnement">
+          <div className="work-panel__header">
+            <div>
+              <h2 className="work-panel__title" id="billing-settings-title">Abonnement & facturatie</h2>
+              <p className="work-panel__meta">Bekijk welke actieve schermen meetellen, de prijs na trial, facturen en de veilige betaalmethode bij Mollie.</p>
+            </div>
+          </div>
+          <div className="settings-security-actions">
+            <Button asChild variant="secondary"><Link href="/dashboard/settings/billing">Abonnement openen</Link></Button>
+          </div>
+        </section>
+
         <section className="data-surface" aria-labelledby="security-settings-title" id="beveiliging">
           <div className="work-panel__header">
             <div>

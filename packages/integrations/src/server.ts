@@ -3,3 +3,4 @@ export * from "./safe-image-fetch";
 export * from "./sportlink-client";
 export * from "./sportlink-mappers";
 export * from "./sportlink-secret";
+export * from "./mollie";

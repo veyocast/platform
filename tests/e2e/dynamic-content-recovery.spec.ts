@@ -18,7 +18,15 @@ test("stuurt de oude slideflow door naar de Unified Studio", async ({ page }) =>
 
   await expect(page).toHaveURL(/\/dashboard\/studio\/new$/);
   await expect(page.getByRole("heading", { level: 1, name: "Nieuwe slide" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Openen" })).toHaveCount(3);
+  await expect(page.getByRole("link", { name: "Openen" })).toHaveCount(4);
+  for (const destination of [
+    "/dashboard/studio/new?family=free",
+    "/dashboard/slides/menu-studio/new",
+    "/dashboard/slides/new?family=news",
+    "/dashboard/studio/sportlink/new"
+  ]) {
+    await expect(page.locator(`a[href="${destination}"]`)).toBeVisible();
+  }
   await expect(page.getByRole("heading", { name: "Sportlink" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Dynamische slide maken" })).toHaveCount(0);
 });
@@ -52,7 +60,7 @@ test("houdt de dynamische-slide lege staat vrij van de containerrand", async ({
 test("toont de Sportlink-bulkwizard als Studio-familie", async ({ page }) => {
   await page.goto("/dashboard/studio/sportlink/new", { waitUntil: "networkidle" });
 
-  await expect(page.getByRole("heading", { level: 1, name: "Sportlink-slides maken" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Wat wil je tonen?" })).toBeVisible();
   for (const step of [
     "Wat wil je tonen?",
     "Teams & slides",

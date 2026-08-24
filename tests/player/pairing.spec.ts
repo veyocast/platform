@@ -10,8 +10,9 @@ test("player starts in unpaired pairing mode", async ({ page }) => {
     page.getByRole("heading", { name: "Koppel dit scherm aan VeyoCast" })
   ).toBeVisible();
   await expect(page.getByLabel("Pairingcode")).toContainText("VYO 482");
+  await expect(page.getByRole("img", { name: "QR-code met tijdelijke VeyoCast-koppelcode" })).toBeVisible();
   await expect(page.getByLabel("Device setupstatus")).toContainText("Wachten op VeyoCast Control");
-  const logo = page.getByRole("img", { name: "VeyoCast" });
+  const logo = page.getByRole("img", { exact: true, name: "VeyoCast" });
   await expect(logo).toBeVisible();
   const logoBox = await logo.boundingBox();
   expect(logoBox?.height).toBeGreaterThanOrEqual(64);

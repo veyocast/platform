@@ -35,6 +35,22 @@ export type PlaylistStudioDynamicSlide = {
   snapshotId: string;
 };
 
+export type PlaylistStudioYouTubeSource = {
+  channelTitle: string | null;
+  fallbackAsset: PlaylistStudioAsset;
+  id: string;
+  title: string;
+  videoId: string;
+};
+
+export type PlaylistStudioEngageCampaign = {
+  id: string;
+  publicId: string;
+  question: string;
+  status: "closed" | "live" | "scheduled";
+  title: string;
+};
+
 export type PlaylistStudioSection = {
   defaultDurationSeconds: number | null;
   defaultTransition: "crossfade" | "cut" | "wipe" | null;

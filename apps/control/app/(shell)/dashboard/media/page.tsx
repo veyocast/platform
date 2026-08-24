@@ -1,21 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 import { randomUUID } from "node:crypto";
 
-import {
-  FileWarning,
-  Grid2X2,
-  Image as ImageIcon,
-  List,
-  Star,
-  Upload,
-  Video
-} from "lucide-react";
+import { Grid2X2, List, Star, Upload, Video } from "lucide-react";
 import Link from "next/link";
 
 import { hasCapability } from "@veyocast/auth";
 import {
   Button,
-  DataTable,
   FilterBar,
   IconButton,
   PageHeader,
@@ -34,6 +25,7 @@ import {
 } from "../../_components/shell-primitives";
 import {
   assignMediaTag,
+  bulkOrganizeMediaAssetsAndRedirect,
   moveMediaAsset,
   renameMediaAsset,
   removeMediaTag,
@@ -48,6 +40,7 @@ import {
   MediaUploadDialog,
   SavedMediaViewsDialog
 } from "./media-overlays";
+import { MediaLibraryWorkspace } from "./media-library-workspace";
 import {
   mediaViewHref,
   mediaViewStateFromSearch,
@@ -61,6 +54,7 @@ const mediaPageSize = 48;
 type MediaPageProps = {
   searchParams: Promise<{
     asset?: string;
+    collection?: string;
     favorite?: string;
     folder?: string;
     fout?: string;
@@ -81,6 +75,7 @@ type MediaPageProps = {
 
 type MediaAsset = {
   checksumSha256: string | null;
+  collectionIds: string[];
   createdAt: string;
   draftCount: number;
   fileName: string;
@@ -116,6 +111,7 @@ type MediaUsage = {
 type MediaAssetRow = {
   asset_id: string;
   checksum_sha256: string | null;
+  collections: unknown;
   created_at: string;
   draft_usage_count: number | string;
   duration_seconds: number | string | null;
@@ -161,6 +157,13 @@ type MediaFolder = {
 
 type MediaTag = {
   color: string | null;
+  id: string;
+  name: string;
+  revision: number;
+};
+
+type MediaCollection = {
+  description: string | null;
   id: string;
   name: string;
   revision: number;
@@ -266,6 +269,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
   const {
     assets,
     activity,
+    collections,
     failedCount,
     folders,
     loadError,
@@ -309,10 +313,10 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
       <PageHeader
         actions={canUpload ? (
           <Button asChild>
-            <Link href={mediaHref(params, { upload: "1" })}>
+            <a href={mediaHref(params, { upload: "1" })}>
               <Upload aria-hidden="true" />
               Media uploaden
-            </Link>
+            </a>
           </Button>
         ) : null}
         description="Beheer afbeeldingen en video's voor je playlists."
@@ -453,6 +457,10 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             <option value="all">Alle tags</option>
             {tags.map((tag) => <option key={tag.id} value={tag.id}>{tag.name}</option>)}
           </select>
+          <select aria-label="Filter media op collectie" className="toolbar-select" defaultValue={params.collection ?? "all"} name="collection">
+            <option value="all">Alle collecties</option>
+            {collections.map((collection) => <option key={collection.id} value={collection.id}>{collection.name}</option>)}
+          </select>
           <select aria-label="Sorteer media" className="toolbar-select" defaultValue={params.sort ?? "newest"} name="sort">
             <option value="newest">Nieuwste eerst</option>
             <option value="oldest">Oudste eerst</option>
@@ -504,71 +512,28 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             </div>
             <StatusPill label={`${totalCount} items`} tone="neutral" />
           </div>
-          {visibleAssets.length > 0 && params.view === "grid" ? (
-            <div className="media-library-grid">
-              {visibleAssets.map((asset) => (
-                <article className="media-library-card" key={asset.id}>
-                  <MediaPreview asset={asset} compact />
-                  <div className="media-library-card__body">
-                    <div className="work-panel__header"><div><h3>{asset.title}</h3><p className="work-panel__meta">{asset.fileName}</p></div><MediaStatus status={asset.status} /></div>
-                    <p className="work-panel__meta">{asset.isFavorite ? "Favoriet · " : ""}{mediaDetails(asset)} · {usageSummary(asset)}</p>
-                    <Button asChild size="sm" variant="ghost">
-                      <Link href={mediaHref(params, { asset: asset.id })}>
-                        Beheren en verwijderen
-                      </Link>
-                    </Button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : visibleAssets.length > 0 ? (
-            <DataTable caption="Media binnen de actieve vereniging." tableKey="media">
-                <thead>
-                  <tr>
-                    <th data-column="type" scope="col">Type</th>
-                    <th data-column="name" scope="col">Media</th>
-                    <th data-column="details" scope="col">Details</th>
-                    <th data-column="status" scope="col">Status</th>
-                    <th data-column="usage" scope="col">Gebruik</th>
-                    <th data-column="created" scope="col">Toegevoegd</th>
-                    <th data-column="actions" scope="col">Actie</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleAssets.map((asset) => (
-                    <tr key={asset.id}>
-                      <td data-column="type" data-label="Type">
-                        <MediaType kind={asset.kind} status={asset.status} />
-                      </td>
-                      <td data-column="name" data-label="Media">
-                        <span className="table-primary">{asset.isFavorite ? "★ " : ""}{asset.title}</span>
-                        <span className="table-secondary">{asset.fileName}</span>
-                      </td>
-                      <td data-column="details" data-label="Details">{mediaDetails(asset)}</td>
-                      <td data-column="status" data-label="Status">
-                        <MediaStatus status={asset.status} />
-                      </td>
-                      <td data-column="usage" data-label="Gebruik">
-                        {usageSummary(asset)}
-                      </td>
-                      <td data-column="created" data-label="Toegevoegd">{formatDate(asset.createdAt)}</td>
-                      <td data-column="actions" data-label="Actie">
-                        <Button asChild size="sm" variant="ghost">
-                          <Link href={mediaHref(params, { asset: asset.id })}>
-                            Beheren
-                          </Link>
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-            </DataTable>
-          ) : (
-            <div className="notice" role="status">
-              <strong>Nog geen media.</strong>{" "}
-              Upload een afbeelding of video om je bibliotheek te vullen.
-            </div>
-          )}
+          <MediaLibraryWorkspace
+            assets={visibleAssets.map((asset) => ({
+              createdLabel: formatDate(asset.createdAt),
+              details: mediaDetails(asset),
+              fileName: asset.fileName,
+              id: asset.id,
+              isFavorite: asset.isFavorite,
+              kind: asset.kind,
+              manageHref: mediaHref(params, { asset: asset.id }),
+              previewUrl: asset.previewUrl,
+              status: asset.status,
+              statusLabel: statusLabel(asset.status),
+              statusTone: mediaStatusTone(asset.status),
+              title: asset.title,
+              usage: usageSummary(asset)
+            }))}
+            canBulk={canMutateSelected}
+            collections={collections}
+            folders={folders}
+            tags={tags}
+            view={params.view === "grid" ? "grid" : "list"}
+          />
           {totalCount > mediaPageSize ? (
             <nav aria-label="Paginering mediabibliotheek" className="pagination">
               <Button asChild size="sm" variant="secondary">
@@ -676,13 +641,14 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             <div><dt>Validatie</dt><dd>{validationSummary(selectedAsset.validationError)}</dd></div>
             <div><dt>Map</dt><dd>{folders.find((folder) => folder.id === selectedAsset.folderId)?.name ?? "Hoofdniveau"}</dd></div>
             <div><dt>Tags</dt><dd>{selectedAsset.tagIds.length ? selectedAsset.tagIds.map((id) => tags.find((tag) => tag.id === id)?.name).filter(Boolean).join(", ") : "Geen tags"}</dd></div>
+            <div><dt>Collecties</dt><dd>{selectedAsset.collectionIds.length ? selectedAsset.collectionIds.map((id) => collections.find((collection) => collection.id === id)?.name).filter(Boolean).join(", ") : "Geen collecties"}</dd></div>
           </dl>
 
           <section aria-labelledby="media-organization-title" className="media-usage">
             <div className="work-panel__header">
               <div>
                 <h3 id="media-organization-title">Organisatie</h3>
-                <p className="work-panel__meta">Persoonlijke favoriet, tenantmap en herbruikbare tags.</p>
+                <p className="work-panel__meta">Persoonlijke favoriet, tenantmap, herbruikbare tags en samengestelde collecties.</p>
               </div>
               <StatusPill label={selectedAsset.isFavorite ? "Favoriet" : "Niet favoriet"} tone={selectedAsset.isFavorite ? "info" : "neutral"} />
             </div>
@@ -730,6 +696,32 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
                 </select>
               </div>
               <Button disabled={!canMutateSelected || tags.every((tag) => selectedAsset.tagIds.includes(tag.id))} size="sm" type="submit" variant="secondary">Tag toevoegen</Button>
+            </form>
+            {selectedAsset.collectionIds.length ? <ul className="media-usage__list" aria-label="Actieve collecties">
+              {selectedAsset.collectionIds.map((collectionId) => {
+                const collection = collections.find((candidate) => candidate.id === collectionId);
+                return collection ? <li key={collection.id}>
+                  <strong>{collection.name}</strong>
+                  <form action={bulkOrganizeMediaAssetsAndRedirect}>
+                    <input name="assetIds" type="hidden" value={JSON.stringify([selectedAsset.id])} />
+                    <input name="bulkCommand" type="hidden" value={`collection:remove:${collection.id}`} />
+                    <input name="idempotencyKey" type="hidden" value={randomUUID()} />
+                    <Button disabled={!canMutateSelected} size="sm" type="submit" variant="ghost">Uit collectie</Button>
+                  </form>
+                </li> : null;
+              })}
+            </ul> : null}
+            <form action={bulkOrganizeMediaAssetsAndRedirect} className="playlist-form">
+              <input name="assetIds" type="hidden" value={JSON.stringify([selectedAsset.id])} />
+              <input name="idempotencyKey" type="hidden" value={randomUUID()} />
+              <div className="field">
+                <label htmlFor="media-collection-select">Aan collectie toevoegen</label>
+                <select disabled={!canMutateSelected || collections.every((collection) => selectedAsset.collectionIds.includes(collection.id))} id="media-collection-select" name="bulkCommand" required>
+                  <option value="">Kies een collectie</option>
+                  {collections.filter((collection) => !selectedAsset.collectionIds.includes(collection.id)).map((collection) => <option key={collection.id} value={`collection:add:${collection.id}`}>{collection.name}</option>)}
+                </select>
+              </div>
+              <Button disabled={!canMutateSelected || collections.every((collection) => selectedAsset.collectionIds.includes(collection.id))} size="sm" type="submit" variant="secondary">Aan collectie toevoegen</Button>
             </form>
           </section>
 
@@ -860,6 +852,7 @@ function mediaFilterCount(params: Awaited<MediaPageProps["searchParams"]>) {
     Boolean(params.usage && params.usage !== "all"),
     Boolean(params.folder && params.folder !== "all"),
     Boolean(params.tag && params.tag !== "all"),
+    Boolean(params.collection && params.collection !== "all"),
     params.favorite === "true",
     Boolean(params.sort && params.sort !== "newest"),
     Boolean(params.from),
@@ -878,6 +871,7 @@ async function loadMediaData(
     return {
       activity: [] as MediaActivity[],
       assets: [] as MediaAsset[],
+      collections: [] as MediaCollection[],
       failedCount: 0,
       folders: [] as MediaFolder[],
       loadError: null,
@@ -897,6 +891,7 @@ async function loadMediaData(
     return {
       activity: [] as MediaActivity[],
       assets: [],
+      collections: [] as MediaCollection[],
       failedCount: 0,
       folders: [] as MediaFolder[],
       loadError: "Er is geen actieve tenant. Kies een tenant en laad de pagina opnieuw.",
@@ -917,6 +912,7 @@ async function loadMediaData(
     return {
       activity: [] as MediaActivity[],
       assets: [],
+      collections: [] as MediaCollection[],
       failedCount: 0,
       folders: [] as MediaFolder[],
       loadError: "De beveiligde datasessie ontbreekt. Log opnieuw in en probeer het daarna nogmaals.",
@@ -940,6 +936,7 @@ async function loadMediaData(
 
   const folderId = uuidOrNull(params.folder);
   const tagId = uuidOrNull(params.tag);
+  const collectionId = uuidOrNull(params.collection);
   const sort = ["name", "newest", "oldest", "size"].includes(params.sort ?? "") ? params.sort! : "newest";
   const assetRequest = archivedOnly
     ? supabase.rpc("list_publisher_archived_media_assets_v1", {
@@ -955,7 +952,8 @@ async function loadMediaData(
         p_tag_id: tagId,
         p_tenant_id: tenantId
       })
-    : supabase.rpc("list_publisher_media_assets_v1", {
+    : supabase.rpc("list_publisher_media_assets_v2", {
+        p_collection_id: collectionId,
         p_created_from: dateBoundary(params.from, false),
         p_created_until: dateBoundary(params.to, true),
         p_favorites_only: params.favorite === "true",
@@ -979,6 +977,7 @@ async function loadMediaData(
     storageResult,
     folderResult,
     tagResult,
+    collectionResult,
     savedViewResult
   ] = await Promise.all([
     assetRequest,
@@ -988,6 +987,7 @@ async function loadMediaData(
     supabase.rpc("get_media_storage_usage", { p_tenant_id: tenantId }),
     supabase.from("media_folders").select("id, name, parent_folder_id, revision").eq("tenant_id", tenantId).order("name"),
     supabase.from("media_tags").select("id, name, color, revision").eq("tenant_id", tenantId).order("name"),
+    supabase.from("media_collections").select("id, name, description, revision").eq("tenant_id", tenantId).eq("status", "active").order("name"),
     supabase
       .from("publisher_saved_views")
       .select("id, name, filter_json, sort_json, revision, updated_at")
@@ -997,11 +997,12 @@ async function loadMediaData(
       .order("updated_at", { ascending: false })
   ]);
 
-  if (assetResult.error || readyResult.error || processingResult.error || failedResult.error || storageResult.error || folderResult.error || tagResult.error) {
-    console.error("Mediabibliotheek laden mislukt", assetResult.error ?? readyResult.error ?? processingResult.error ?? failedResult.error ?? storageResult.error ?? folderResult.error ?? tagResult.error);
+  if (assetResult.error || readyResult.error || processingResult.error || failedResult.error || storageResult.error || folderResult.error || tagResult.error || collectionResult.error) {
+    console.error("Mediabibliotheek laden mislukt", assetResult.error ?? readyResult.error ?? processingResult.error ?? failedResult.error ?? storageResult.error ?? folderResult.error ?? tagResult.error ?? collectionResult.error);
     return {
       activity: [] as MediaActivity[],
       assets: [],
+      collections: [] as MediaCollection[],
       failedCount: 0,
       folders: [] as MediaFolder[],
       loadError: "Tenantmedia kon niet worden gelezen. Er is niets gewijzigd; vernieuw de pagina of log opnieuw in.",
@@ -1055,6 +1056,7 @@ async function loadMediaData(
 
   const assets: MediaAsset[] = rows.map((asset) => ({
     checksumSha256: asset.checksum_sha256,
+    collectionIds: parseRelationIds(asset.collections),
     createdAt: asset.created_at,
     draftCount: Number(asset.draft_usage_count),
     durationSeconds: asset.duration_seconds === null ? null : Number(asset.duration_seconds),
@@ -1132,6 +1134,12 @@ async function loadMediaData(
   return {
     activity,
     assets,
+    collections: (collectionResult.data ?? []).map((collection) => ({
+      description: collection.description,
+      id: collection.id,
+      name: collection.name,
+      revision: Number(collection.revision)
+    })),
     failedCount: failedResult.count ?? 0,
     folders: (folderResult.data ?? []).map((folder) => ({
       id: folder.id,
@@ -1163,6 +1171,7 @@ function emptyMediaData(loadError: string | null) {
   return {
     activity: [] as MediaActivity[],
     assets: [] as MediaAsset[],
+    collections: [] as MediaCollection[],
     failedCount: 0,
     folders: [] as MediaFolder[],
     loadError,
@@ -1191,16 +1200,6 @@ function mediaLibraryWarning(previewFailed: boolean, savedViewsFailed: boolean) 
   return null;
 }
 
-function MediaType({ kind, status }: Pick<MediaAsset, "kind" | "status">) {
-  if (["validation_failed", "quarantined"].includes(status)) {
-    return <span className="media-type media-type--failed" aria-label="Afgewezen media"><FileWarning aria-hidden="true" /></span>;
-  }
-  if (kind === "video") {
-    return <span className="media-type media-type--video" aria-label="Video"><Video aria-hidden="true" /></span>;
-  }
-  return <span className="media-type" aria-label="Afbeelding"><ImageIcon aria-hidden="true" /></span>;
-}
-
 function MediaPreview({ asset, compact = false }: { asset: MediaAsset; compact?: boolean }) {
   if (!asset.previewUrl) {
     return <div className="media-card__preview" data-kind={asset.kind}>{asset.status === "ready" ? "Voorbeeld niet beschikbaar" : statusLabel(asset.status)}</div>;
@@ -1212,10 +1211,6 @@ function MediaPreview({ asset, compact = false }: { asset: MediaAsset; compact?:
     return <video className="media-inspector-preview" controls data-preview-mode={compact ? "compact" : "inspector"} muted preload="metadata" src={asset.previewUrl}><track kind="captions" /></video>;
   }
   return <img alt={`Voorbeeld van ${asset.title}`} className="media-inspector-preview" data-preview-mode={compact ? "compact" : "inspector"} src={asset.previewUrl} />;
-}
-
-function MediaStatus({ status }: { status: string }) {
-  return <StatusPill label={statusLabel(status)} tone={mediaStatusTone(status)} />;
 }
 
 function mediaStatusTone(status: string) {
@@ -1304,6 +1299,10 @@ function uuidOrNull(value: string | undefined) {
 }
 
 function parseTagIds(value: unknown) {
+  return parseRelationIds(value);
+}
+
+function parseRelationIds(value: unknown) {
   if (!Array.isArray(value)) return [];
   return value.flatMap((tag) => {
     if (!tag || typeof tag !== "object" || Array.isArray(tag)) return [];

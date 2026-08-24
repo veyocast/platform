@@ -1,6 +1,7 @@
 import { VEYOCAST_APPS } from "@veyocast/config";
 import Link from "next/link";
 
+import { AuthBrand } from "../_components/auth-brand";
 import {
   getControlRuntimeMode,
   getSupabasePublicConfig
@@ -28,6 +29,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         />
       ) : null}
       <section className="auth-panel" aria-labelledby="login-title">
+        <AuthBrand />
         <div>
           <p className="auth-kicker">
             {demo ? "Lokale demoomgeving" : "Beveiligde beheeromgeving"}
@@ -103,6 +105,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               <Link href="/forgot-password">Wachtwoord vergeten?</Link>
             </p>
             <p>
+              Nog geen account?{" "}
+              <Link className="button-link button-link--primary" href="/register">
+                Start 14 dagen gratis
+              </Link>
+            </p>
+            <p>
               Uitgenodigd?{" "}
               <Link className="button-link button-link--secondary" href="/accept-invite">
                 Invite accepteren
@@ -122,7 +130,7 @@ const loginErrors: Record<string, string> = {
 };
 
 const loginReasons: Record<string, string> = {
-  "geen-toegang": "Dit account heeft nog geen toegang tot VeyoCast Control. Vraag een beheerder om een rol toe te wijzen.",
+  "geen-toegang": "Dit account heeft nog geen werkcontext. Hervat de onboarding of vraag een beheerder om toegang.",
   "wachtwoord-gewijzigd": "Je wachtwoord is gewijzigd. Log opnieuw in met je nieuwe wachtwoord.",
   sessie: "Je sessie ontbreekt of is verlopen. Log opnieuw in.",
   uitgenodigd: "Je account is ingesteld. Log in met je nieuwe wachtwoord."

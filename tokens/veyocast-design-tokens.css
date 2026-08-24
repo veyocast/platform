@@ -131,3 +131,144 @@
   --vc-focus-ring-width: 2px;
   --vc-focus-ring-offset: 2px;
 }
+
+:root, [data-theme="light"] {
+  --vc-vector-canvas: #F6F3ED;
+  --vc-vector-surface: #FFFEFB;
+  --vc-vector-surface-raised: #FFFFFF;
+  --vc-vector-surface-muted: #EFEBE4;
+  --vc-vector-surface-strong: #E5E0D8;
+  --vc-vector-ink: #0A0A0A;
+  --vc-vector-ink-muted: #575651;
+  --vc-vector-ink-subtle: #77746D;
+  --vc-vector-line: #D8D3CA;
+  --vc-vector-line-strong: #B9B3A9;
+  --vc-vector-focus: #315CFF;
+}
+
+[data-theme="dark"] {
+  --vc-vector-canvas: #08090A;
+  --vc-vector-surface: #0F1112;
+  --vc-vector-surface-raised: #151819;
+  --vc-vector-surface-muted: #111415;
+  --vc-vector-surface-strong: #1B1F21;
+  --vc-vector-ink: #FAFAF7;
+  --vc-vector-ink-muted: #B9BAB5;
+  --vc-vector-ink-subtle: #858985;
+  --vc-vector-line: #292D2F;
+  --vc-vector-line-strong: #3C4245;
+  --vc-vector-focus: #7590FF;
+}
+
+:root {
+  --vc-vector-brand-ink: #0A0A0A;
+  --vc-vector-brand-paper: #FAFAF7;
+  --vc-vector-brand-orange: #FF5C20;
+  --vc-vector-brand-blue: #315CFF;
+  --vc-vector-brand-soft-grey: #E8E8E3;
+  --vc-vector-action-default: #FF5C20;
+  --vc-vector-action-hover: #E94C12;
+  --vc-vector-action-pressed: #CC3F0C;
+  --vc-vector-action-on-action: #0A0A0A;
+  --vc-vector-success-default: #2FAD68;
+  --vc-vector-success-surface: #123521;
+  --vc-vector-success-on-surface: #A8F0C4;
+  --vc-vector-warning-default: #F0A12A;
+  --vc-vector-warning-surface: #3A2810;
+  --vc-vector-warning-on-surface: #FFD89A;
+  --vc-vector-danger-default: #E85252;
+  --vc-vector-danger-surface: #3B1717;
+  --vc-vector-danger-on-surface: #FFC0C0;
+  --vc-vector-info-default: #315CFF;
+  --vc-vector-info-surface: #14204D;
+  --vc-vector-info-on-surface: #C7D2FF;
+  --vc-vector-offline-default: #C97843;
+  --vc-vector-offline-surface: #352018;
+  --vc-vector-offline-on-surface: #FFD0B4;
+  --vc-vector-syncing-default: #315CFF;
+  --vc-vector-syncing-surface: #14204D;
+  --vc-vector-syncing-on-surface: #C7D2FF;
+  --vc-vector-tenant-accent-fallback: #315CFF;
+  --vc-vector-font-ui: Geist, Inter, ui-sans-serif, system-ui, sans-serif;
+  --vc-vector-font-display: Manrope, Geist, ui-sans-serif, system-ui, sans-serif;
+  --vc-vector-font-mono: Geist Mono, ui-monospace, SFMono-Regular, monospace;
+  --vc-vector-font-weight-regular: 400;
+  --vc-vector-font-weight-medium: 500;
+  --vc-vector-font-weight-semibold: 600;
+  --vc-vector-font-weight-bold: 700;
+  --vc-vector-font-size-caption: 12px;
+  --vc-vector-font-size-body-sm: 14px;
+  --vc-vector-font-size-body: 16px;
+  --vc-vector-font-size-title-sm: 18px;
+  --vc-vector-font-size-title: 24px;
+  --vc-vector-font-size-headline: 36px;
+  --vc-vector-font-size-display-sm: 52px;
+  --vc-vector-font-size-display: 72px;
+  --vc-vector-font-size-display-lg: 96px;
+  --vc-vector-line-height-tight: 1.05;
+  --vc-vector-line-height-heading: 1.15;
+  --vc-vector-line-height-body: 1.5;
+  --vc-vector-space-0: 0px;
+  --vc-vector-space-2: 2px;
+  --vc-vector-space-4: 4px;
+  --vc-vector-space-8: 8px;
+  --vc-vector-space-12: 12px;
+  --vc-vector-space-16: 16px;
+  --vc-vector-space-20: 20px;
+  --vc-vector-space-24: 24px;
+  --vc-vector-space-32: 32px;
+  --vc-vector-space-40: 40px;
+  --vc-vector-space-48: 48px;
+  --vc-vector-space-64: 64px;
+  --vc-vector-space-80: 80px;
+  --vc-vector-space-96: 96px;
+  --vc-vector-space-128: 128px;
+  --vc-vector-space-160: 160px;
+  --vc-vector-radius-control: 8px;
+  --vc-vector-radius-field: 10px;
+  --vc-vector-radius-card: 14px;
+  --vc-vector-radius-panel: 18px;
+  --vc-vector-radius-dialog: 22px;
+  --vc-vector-radius-marketing: 28px;
+  --vc-vector-radius-pill: 999px;
+  --vc-vector-border-hairline: 1px;
+  --vc-vector-border-selected: 1px;
+  --vc-vector-border-focus-ring: 2px;
+  --vc-vector-elevation-flat: none;
+  --vc-vector-elevation-raised: 0 8px 24px rgba(0,0,0,.10);
+  --vc-vector-elevation-floating: 0 18px 56px rgba(0,0,0,.20);
+  --vc-vector-elevation-dark-raised: 0 18px 54px rgba(0,0,0,.42);
+  --vc-vector-motion-instant: 80ms;
+  --vc-vector-motion-micro: 140ms;
+  --vc-vector-motion-control: 200ms;
+  --vc-vector-motion-panel: 280ms;
+  --vc-vector-motion-page: 360ms;
+  --vc-vector-motion-venue: 520ms;
+  --vc-vector-easing-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --vc-vector-easing-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --vc-vector-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  --vc-vector-touch-minimum-target-px: 44px;
+  --vc-vector-touch-preferred-primary-target-px: 48px;
+  --vc-vector-layout-marketing-max-width-px: 1600px;
+  --vc-vector-layout-content-max-width-px: 1360px;
+  --vc-vector-layout-rail-expanded-px: 248px;
+  --vc-vector-layout-rail-collapsed-px: 72px;
+  --vc-vector-layout-topbar-px: 64px;
+  --vc-vector-layout-mobile-tabbar-px: 72px;
+  --vc-vector-layout-editor-minimum-width-px: 1180px;
+  --vc-vector-z-base: 0;
+  --vc-vector-z-sticky: 20;
+  --vc-vector-z-popover: 40;
+  --vc-vector-z-sheet: 50;
+  --vc-vector-z-dialog: 60;
+  --vc-vector-z-toast: 70;
+  --vc-vector-z-critical: 80;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --vc-vector-motion-venue: 0ms;
+    --vc-vector-motion-page: 0ms;
+    --vc-vector-motion-panel: 80ms;
+  }
+}

@@ -1,4 +1,4 @@
-import type { VeyoCastDesignTokens } from "./schema";
+import type { VeyoCastDesignTokens, VeyoCastVectorTokens } from "./schema";
 
 export function toKebabCase(value: string) {
   return value
@@ -71,6 +71,68 @@ export function createCssVariables(tokens: VeyoCastDesignTokens) {
   lines.push("}");
 
   return `${lines.join("\n")}\n`;
+}
+
+function formatCubicBezier(points: number[]) {
+  return `cubic-bezier(${points.join(", ")})`;
+}
+
+export function createVectorCssVariables(tokens: VeyoCastVectorTokens) {
+  const lines: string[] = [];
+  const writeTheme = (selector: string, theme: VeyoCastVectorTokens["themes"]["light"]) => {
+    lines.push(`${selector} {`);
+    for (const [name, value] of Object.entries(theme)) {
+      lines.push(`  --vc-vector-${toKebabCase(name)}: ${value};`);
+    }
+    lines.push("}");
+  };
+
+  writeTheme(':root, [data-theme="light"]', tokens.themes.light);
+  lines.push("");
+  writeTheme('[data-theme="dark"]', tokens.themes.dark);
+  lines.push("");
+  lines.push(":root {");
+  for (const [name, value] of Object.entries(tokens.brand)) {
+    lines.push(`  --vc-vector-brand-${toKebabCase(name)}: ${value};`);
+  }
+  for (const [groupName, group] of Object.entries(tokens.semantic)) {
+    for (const [name, value] of Object.entries(group)) {
+      lines.push(`  --vc-vector-${toKebabCase(groupName)}-${toKebabCase(name)}: ${value};`);
+    }
+  }
+  lines.push(`  --vc-vector-tenant-accent-fallback: ${tokens.tenantAccent.fallback};`);
+  lines.push(`  --vc-vector-font-ui: ${tokens.typography.uiFamily};`);
+  lines.push(`  --vc-vector-font-display: ${tokens.typography.displayFamily};`);
+  lines.push(`  --vc-vector-font-mono: ${tokens.typography.monoFamily};`);
+  for (const [name, value] of Object.entries(tokens.typography.weights)) {
+    lines.push(`  --vc-vector-font-weight-${toKebabCase(name)}: ${value};`);
+  }
+  for (const [name, value] of Object.entries(tokens.typography.sizesPx)) {
+    lines.push(`  --vc-vector-font-size-${toKebabCase(name)}: ${value}px;`);
+  }
+  for (const [name, value] of Object.entries(tokens.typography.lineHeights)) {
+    lines.push(`  --vc-vector-line-height-${toKebabCase(name)}: ${value};`);
+  }
+  for (const spacing of tokens.spacingPx) lines.push(`  --vc-vector-space-${spacing}: ${spacing}px;`);
+  for (const [name, value] of Object.entries(tokens.radiiPx)) lines.push(`  --vc-vector-radius-${toKebabCase(name)}: ${value}px;`);
+  for (const [name, value] of Object.entries(tokens.bordersPx)) lines.push(`  --vc-vector-border-${toKebabCase(name)}: ${value}px;`);
+  for (const [name, value] of Object.entries(tokens.elevation)) lines.push(`  --vc-vector-elevation-${toKebabCase(name)}: ${value};`);
+  for (const [name, value] of Object.entries(tokens.motion.durationsMs)) lines.push(`  --vc-vector-motion-${toKebabCase(name)}: ${value}ms;`);
+  for (const [name, value] of Object.entries(tokens.motion.easing)) lines.push(`  --vc-vector-easing-${toKebabCase(name)}: ${formatCubicBezier(value)};`);
+  for (const [name, value] of Object.entries(tokens.touch)) lines.push(`  --vc-vector-touch-${toKebabCase(name)}: ${value}px;`);
+  for (const [name, value] of Object.entries(tokens.layout)) lines.push(`  --vc-vector-layout-${toKebabCase(name)}: ${value}px;`);
+  for (const [name, value] of Object.entries(tokens.zIndex)) lines.push(`  --vc-vector-z-${toKebabCase(name)}: ${value};`);
+  lines.push("}", "", "@media (prefers-reduced-motion: reduce) {", "  :root {", "    --vc-vector-motion-venue: 0ms;", "    --vc-vector-motion-page: 0ms;", "    --vc-vector-motion-panel: 80ms;", "  }", "}");
+  return `${lines.join("\n")}\n`;
+}
+
+export function createVectorTokenModuleSource(tokens: VeyoCastVectorTokens) {
+  return `import type { VeyoCastVectorTokens } from "../schema";
+
+export const veyocastVectorTokens = ${JSON.stringify(tokens, null, 2)} as const satisfies VeyoCastVectorTokens;
+
+export default veyocastVectorTokens;
+`;
 }
 
 export function createTailwindPresetSource(tokens: VeyoCastDesignTokens) {

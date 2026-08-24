@@ -24,8 +24,9 @@ export async function createScreen(formData: FormData) {
 export async function createScreenOnboarding(formData: FormData) {
   const context = await requireScreenManagement("mutate");
   const screenId = await runCreateScreen(context, formData);
+  const pairingCode = normalizePairingCode(String(formData.get("pairingCode") ?? ""));
   complete(
-    `/dashboard/screens/new?screen=${screenId}`,
+    `/dashboard/screens/new?screen=${screenId}${pairingCode.length === 6 ? `&code=${encodeURIComponent(pairingCode)}` : ""}`,
     "Schermdetails zijn opgeslagen. Voeg nu de fysieke Player toe.",
     screenId
   );

@@ -41,3 +41,47 @@ export type VeyoCastDesignTokens = {
   zIndex: Record<string, number>;
   componentHeightPx: Record<string, Record<string, number> | number>;
 };
+
+export type VeyoCastVectorThemeTokens = {
+  canvas: string;
+  surface: string;
+  surfaceRaised: string;
+  surfaceMuted: string;
+  surfaceStrong: string;
+  ink: string;
+  inkMuted: string;
+  inkSubtle: string;
+  line: string;
+  lineStrong: string;
+  focus: string;
+};
+
+export type VeyoCastVectorTokens = {
+  $schema?: string;
+  meta: { name: string; version: string; rule: string };
+  brand: Record<string, string>;
+  themes: { light: VeyoCastVectorThemeTokens; dark: VeyoCastVectorThemeTokens };
+  semantic: Record<string, Record<string, string>>;
+  tenantAccent: { rule: string; fallback: string };
+  typography: {
+    uiFamily: string;
+    displayFamily: string;
+    monoFamily: string;
+    weights: Record<string, number>;
+    sizesPx: Record<string, number>;
+    lineHeights: Record<string, number>;
+    rules: string[];
+  };
+  spacingPx: number[];
+  radiiPx: Record<string, number>;
+  bordersPx: Record<string, number>;
+  elevation: Record<string, string>;
+  motion: {
+    durationsMs: Record<string, number>;
+    easing: Record<string, number[]>;
+    reducedMotion: string;
+  };
+  touch: Record<string, number>;
+  layout: Record<string, number>;
+  zIndex: Record<string, number>;
+};

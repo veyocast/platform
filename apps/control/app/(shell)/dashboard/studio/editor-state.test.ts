@@ -224,4 +224,57 @@ describe("studioEditorReducer", () => {
     expect(selected.selectedIds).toEqual(["headline"]);
     expect(selected.past).toHaveLength(0);
   });
+
+  it("plaatst en vervangt een bronvideo atomair als canvasachtergrond", () => {
+    const document = parseStudioDocument({
+      ...createEmptyStudioDocument(),
+      elements: [headline]
+    });
+    const state = createStudioEditorState(document, 0);
+    const withVideo = studioEditorReducer(state, {
+      element: {
+        alt: "Publiek op de tribune",
+        focusX: 0.5,
+        focusY: 0.5,
+        height: 1080,
+        id: "venue-video",
+        locked: true,
+        loop: true,
+        mediaAssetId: "10000000-0000-4000-8000-000000000001",
+        muted: true,
+        name: "Sfeer · achtergrond",
+        objectFit: "cover",
+        opacity: 1,
+        rotation: 0,
+        startOffsetMs: 0,
+        type: "video",
+        variant: "player_1080p",
+        visible: true,
+        width: 1920,
+        x: 0,
+        y: 0,
+        zIndex: 0
+      },
+      type: "document/background-video"
+    });
+    expect(withVideo.document.artboard.background).toEqual({
+      kind: "transparent"
+    });
+    expect(withVideo.document.elements.map((element) => element.type)).toEqual([
+      "video",
+      "text"
+    ]);
+    expect(withVideo.past).toHaveLength(1);
+
+    const withColor = studioEditorReducer(withVideo, {
+      background: { color: "#0A0A0A", kind: "solid" },
+      type: "document/background"
+    });
+    expect(withColor.document.elements.some((element) => element.type === "video"))
+      .toBe(false);
+    expect(withColor.document.artboard.background).toEqual({
+      color: "#0A0A0A",
+      kind: "solid"
+    });
+  });
 });

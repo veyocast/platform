@@ -9,6 +9,7 @@ const categories = [
   { id: "tijdzone", label: "Tijd en planning" },
   { id: "afspelen", label: "Afspelen" },
   { id: "schermen", label: "Schermen" },
+  { id: "abonnement", label: "Abonnement & facturatie" },
   { id: "beveiliging", label: "Beveiliging" }
 ] as const;
 

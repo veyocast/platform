@@ -344,7 +344,7 @@ export async function loadStudioBrandResources(
     logoMediaAssetId ? [logoMediaAssetId] : []
   );
   return {
-    assets: assetData.assets,
+    assets: assetData.assets.filter((asset) => asset.kind === "image"),
     brandKit: mapBrandKit(
       brandRow,
       assetData.assets.find((asset) => asset.id === logoMediaAssetId)
@@ -367,7 +367,7 @@ async function loadStudioMediaAssets(
     .from("media_assets")
     .select("id, title, kind, status, deleted_at")
     .eq("tenant_id", tenantId)
-    .eq("kind", "image")
+    .in("kind", ["image", "video"])
     .eq("status", "ready")
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
@@ -391,7 +391,7 @@ async function loadStudioMediaAssets(
       .from("media_assets")
       .select("id, title, kind, status, deleted_at")
       .eq("tenant_id", tenantId)
-      .eq("kind", "image")
+      .in("kind", ["image", "video"])
       .eq("status", "ready")
       .is("deleted_at", null)
       .in("id", missingIds);
@@ -409,10 +409,10 @@ async function loadStudioMediaAssets(
   }
   const variantsResult = await supabase
     .from("media_variants")
-    .select("asset_id, variant_type, storage_path, width, height")
+    .select("asset_id, variant_type, storage_path, width, height, mime_type")
     .eq("tenant_id", tenantId)
     .in("asset_id", assetIds)
-    .in("variant_type", ["thumbnail", "original"]);
+    .in("variant_type", ["thumbnail", "original", "player_1080p"]);
   if (variantsResult.error) {
     console.error("Studio-mediavarianten laden mislukt", variantsResult.error);
     return {
@@ -420,38 +420,52 @@ async function loadStudioMediaAssets(
       error: "De Studio-mediavoorbeelden konden niet worden geladen."
     };
   }
-  const previewVariants = new Map<string, UnknownRow>();
+  const variantsByAsset = new Map<string, UnknownRow[]>();
   for (const variant of (variantsResult.data ?? []) as UnknownRow[]) {
     if (typeof variant.asset_id !== "string") continue;
-    const current = previewVariants.get(variant.asset_id);
-    if (
-      !current ||
-      variant.variant_type === "thumbnail" ||
-      current.variant_type !== "thumbnail"
-    ) {
-      previewVariants.set(variant.asset_id, variant);
-    }
+    variantsByAsset.set(variant.asset_id, [
+      ...(variantsByAsset.get(variant.asset_id) ?? []),
+      variant
+    ]);
   }
   const mapped = await Promise.all(
     assetRows.map(async (asset): Promise<StudioMediaAsset | null> => {
       if (typeof asset.id !== "string" || typeof asset.title !== "string") {
         return null;
       }
-      const variant = previewVariants.get(asset.id);
+      if (asset.kind !== "image" && asset.kind !== "video") return null;
+      const variants = variantsByAsset.get(asset.id) ?? [];
+      const previewVariant =
+        variants.find((variant) => variant.variant_type === "thumbnail") ??
+        (asset.kind === "image"
+          ? variants.find((variant) => variant.variant_type === "original")
+          : undefined);
+      const sourceVariant = asset.kind === "video"
+        ? variants.find((variant) => variant.variant_type === "player_1080p") ??
+          variants.find((variant) => variant.variant_type === "original")
+        : previewVariant;
       let previewUrl: string | null = null;
-      if (variant && typeof variant.storage_path === "string") {
+      if (previewVariant && typeof previewVariant.storage_path === "string") {
         const signed = await supabase.storage
           .from("tenant-media")
-          .createSignedUrl(variant.storage_path, 600);
+          .createSignedUrl(previewVariant.storage_path, 600);
         previewUrl = signed.data?.signedUrl ?? null;
       }
+      let sourceUrl: string | null = null;
+      if (sourceVariant && typeof sourceVariant.storage_path === "string") {
+        const signed = await supabase.storage
+          .from("tenant-media")
+          .createSignedUrl(sourceVariant.storage_path, 600);
+        sourceUrl = signed.data?.signedUrl ?? null;
+      }
       return {
-        height: finiteNumberOrNull(variant?.height),
+        height: finiteNumberOrNull(sourceVariant?.height ?? previewVariant?.height),
         id: asset.id,
-        kind: "image",
+        kind: asset.kind,
         previewUrl,
+        sourceUrl,
         title: asset.title,
-        width: finiteNumberOrNull(variant?.width)
+        width: finiteNumberOrNull(sourceVariant?.width ?? previewVariant?.width)
       };
     })
   );

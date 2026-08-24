@@ -7,6 +7,7 @@
     "start": "expo start",
     "android": "expo run:android",
     "build": "expo export --platform android --output-dir dist --source-maps external",
+    "sdk:validate": "node scripts/validate-expo-sdk.mjs",
     "prebuild:android": "expo prebuild --clean --platform android --no-install",
     "bundle:android": "pnpm prebuild:android && ./android/gradlew -p android app:bundleRelease --no-daemon",
     "config:validate": "tsx scripts/validate-config.ts",

@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+// These route-level checks share one lazily compiling Next.js development
+// server. Keeping this file serial prevents concurrent first-load compiles
+// from replacing one route with another route's loading boundary.
+test.describe.configure({ mode: "serial" });
+
 test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   await page.goto("/dashboard");
 
@@ -155,12 +160,14 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
     "/dashboard/screens",
     "/dashboard/sponsors",
     "/dashboard/settings",
+    "/dashboard/settings/billing",
     "/dashboard/studio",
     "/dashboard/studio/new",
     "/dashboard/team",
     "/dashboard/templates",
     "/dashboard/auditlog",
     "/platform",
+    "/platform/billing",
     "/platform/tenants",
     "/platform/system"
   ];
@@ -520,6 +527,34 @@ test("settings route exposes real defaults with safe permission state", async ({
   }).toPass();
   await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toHaveCount(0);
   await expect(page.getByRole("status")).toContainText("Configureer Supabase");
+});
+
+test("billing surfaces explain shadow mode and remain usable on mobile", async ({ page }) => {
+  for (const route of ["/dashboard/settings/billing", "/platform/billing"]) {
+    await page.setViewportSize({ height: 844, width: 390 });
+    await page.goto(route);
+
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
+      )
+    ).toBe(true);
+  }
+
+  await page.goto("/dashboard/settings/billing");
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Abonnement & facturatie" })
+  ).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Shadowmodus" })).toBeVisible();
+  await expect(page.getByText("€ 5,95 incl. btw", { exact: false })).toBeVisible();
+
+  await page.goto("/platform/billing");
+  await expect(
+    page.getByRole("heading", { exact: true, level: 1, name: "Billing health" })
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pipeline" })).toBeVisible();
+  await expect(page.getByText("Gezondheid van de billingpipeline.")).toBeVisible();
 });
 
 test("team route exposes roles and a safely disabled invitation flow", async ({ page }) => {

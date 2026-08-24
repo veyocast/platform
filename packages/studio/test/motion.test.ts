@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { interpolateStudioElement, type StudioElement } from "../src";
+import {
+  createEmptyStudioDocument,
+  evaluateStudioReducedMotionFrame,
+  interpolateStudioElement,
+  parseStudioDocument,
+  type StudioElement
+} from "../src";
 
 const element: StudioElement = {
   id: "headline",
@@ -74,5 +80,28 @@ describe("Studio-motionmath", () => {
 
   it("verbergt een laag buiten de eigen tijdspanne", () => {
     expect(interpolateStudioElement(element, 10_001, 12_000).opacity).toBe(0);
+  });
+
+  it("toont de volledige compositie zonder entry-, exit- of continue motion", () => {
+    const empty = createEmptyStudioDocument("landscape-hd", {
+      motionEnabled: true
+    });
+    const document = parseStudioDocument({ ...empty, elements: [element] });
+
+    expect(evaluateStudioReducedMotionFrame(document)).toEqual([
+      expect.objectContaining({
+        element,
+        transform: {
+          clipProgress: 1,
+          opacity: 1,
+          scaleX: 1,
+          scaleY: 1,
+          textProgress: 1,
+          x: 100,
+          y: 200
+        },
+        visibleText: "Wedstrijddag"
+      })
+    ]);
   });
 });

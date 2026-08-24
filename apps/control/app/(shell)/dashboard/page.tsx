@@ -8,6 +8,7 @@ import {
 import {
   ArrowRight,
   PackageCheck,
+  PlugZap,
   Radio,
   RefreshCw,
   Server
@@ -238,6 +239,26 @@ function LiveDashboard({
           value={unsyncedScreenCount ? `${unsyncedScreenCount} open` : "Actueel"}
         />
         <StatusCard
+          detail={integrationDetail(operations.integrationHealth)}
+          href="/dashboard/data-sources"
+          icon={<PlugZap aria-hidden="true" />}
+          label="Integraties"
+          tone={operations.integrationHealth.status === "error"
+            ? "warning"
+            : operations.integrationHealth.status === "stale"
+              ? "warning"
+              : operations.integrationHealth.status === "fresh"
+                ? "success"
+                : "neutral"}
+          value={operations.integrationHealth.status === "error"
+            ? `${operations.integrationHealth.errorCount} fout`
+            : operations.integrationHealth.status === "stale"
+              ? `${operations.integrationHealth.staleCount} verouderd`
+              : operations.integrationHealth.status === "fresh"
+                ? "Actueel"
+                : "Niet actief"}
+        />
+        <StatusCard
           href="/dashboard/media"
           icon={<Server aria-hidden="true" />}
           label="Opslag"
@@ -398,4 +419,11 @@ function targetTypeLabel(value: string) {
 
 function firstName(value: string) {
   return value.trim().split(/\s+/)[0] || value;
+}
+
+function integrationDetail(health: ReturnType<typeof deriveOperationalDashboard>["integrationHealth"]) {
+  if (health.status === "error") return "bronfout; laatst geldige snapshot blijft beschikbaar";
+  if (health.status === "stale") return "brondata is ouder dan de versheidsgrens";
+  if (health.status === "fresh") return `${health.total} actieve ${health.total === 1 ? "bron" : "bronnen"}`;
+  return "nog geen gekoppelde databronnen";
 }

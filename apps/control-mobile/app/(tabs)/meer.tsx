@@ -12,7 +12,9 @@ import {
   Building2,
   CircleHelp,
   LogOut,
+  ReceiptEuro,
   ShieldCheck,
+  Sparkles,
   UserRound
 } from "lucide-react-native";
 import { Alert, Linking, StyleSheet, View } from "react-native";
@@ -76,6 +78,14 @@ export default function MeerScreen() {
               icon={<UserRound color={theme.colors.ink} size={21} />}
               label="Account"
               onPress={() => router.push("/more/account")}
+              showDivider
+            />
+            <SettingsRow
+              description="Bekijk schermtelling en herstel je betaalmethode veilig in Control."
+              grouped
+              icon={<ReceiptEuro color={theme.colors.ink} size={21} />}
+              label="Abonnement & facturatie"
+              onPress={() => void Linking.openURL(`${process.env.EXPO_PUBLIC_CONTROL_URL ?? "https://control.veyocast.nl"}/dashboard/settings/billing`)}
             />
           </SurfaceCard>
         </View>
@@ -84,6 +94,14 @@ export default function MeerScreen() {
             Meldingen en support
           </AppText>
           <SurfaceCard style={styles.settingsGroup}>
+            <SettingsRow
+              description="Start, volg en sluit voorbereide livecampagnes."
+              grouped
+              icon={<Sparkles color={theme.colors.ink} size={21} />}
+              label="Engage livebediening"
+              onPress={() => router.push("/more/engage")}
+              showDivider
+            />
             <SettingsRow
               description="Pushmeldingen worden alleen gevraagd wanneer je ze hier inschakelt."
               grouped

@@ -3,7 +3,9 @@ import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import {
   Grid3X3,
+  HeartPulse,
   List,
+  Map as MapIcon,
   MapPin,
   Monitor,
   TriangleAlert
@@ -21,6 +23,7 @@ import { hasCapability } from "@veyocast/auth";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { formatTenantDateTime } from "../../../../lib/tenant-time";
+import { deriveScreenHealth } from "../../../../lib/screen-health";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import {
   loadScreenFleet,
@@ -35,6 +38,8 @@ import {
   requestBulkScreenSyncRetry
 } from "./actions";
 import { ScreenBulkForm } from "./screen-bulk-form";
+import { HealthView } from "./health-view";
+import { VenueView } from "./venue-view";
 import styles from "./screens-overview.module.css";
 
 type ScreensPageProps = {
@@ -61,10 +66,17 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
         automation: {} as Record<string, ScreenAutomationSummary>,
         devices: [],
         error: null,
+        features: { healthView: false, venueTwin: false },
+        floorplans: [],
+        floorplanAssets: [],
         groups: [],
         limit: 0,
         releases: [],
-        screens: []
+        screens: [],
+        settings: { height: 1080, orientation: "landscape", width: 1920 },
+        venuePlacements: [],
+        venues: [],
+        zones: []
       };
   const devicesByScreen = new Map(
     data.devices.filter((device) => device.status === "paired").map((device) => [device.screenId, device])
@@ -73,7 +85,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const statuses = data.screens.map((screen) => screenStatus(screen, devicesByScreen.get(screen.id)));
   const normalizedQuery = query.q?.trim().toLocaleLowerCase("nl-NL") ?? "";
   const requestedStatus = query.sync === "pending" ? "syncing" : query.status;
-  const statusFilter = new Set(["online", "offline", "syncing", "unpaired", "maintenance", "disabled"]).has(requestedStatus ?? "")
+  const statusFilter = new Set(["online", "stale", "offline", "unknown", "syncing", "unpaired", "maintenance", "disabled"]).has(requestedStatus ?? "")
     ? requestedStatus!
     : "all";
   const filteredScreens = data.screens
@@ -90,8 +102,10 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       return priorityDifference || left.name.localeCompare(right.name, "nl-NL");
     });
   const syncing = statuses.filter((status) => status.kind === "syncing").length;
-  const attention = statuses.filter((status) => ["maintenance", "offline", "unpaired"].includes(status.kind)).length;
-  const view = query.view === "cards" ? "cards" : "list";
+  const attention = statuses.filter((status) => ["maintenance", "stale", "offline", "unknown", "unpaired"].includes(status.kind)).length;
+  const view = new Set(["cards", "venue", "health"]).has(query.view ?? "")
+    ? query.view as "cards" | "health" | "venue"
+    : "list";
   const canManage =
     session.isLive &&
     session.tenantStatus === "active" &&
@@ -170,6 +184,22 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
                 <Grid3X3 aria-hidden="true" />
               </Link>
             </IconButton>
+            <IconButton asChild aria-label="Schermen in Venue Twin tonen" title="Venue">
+              <Link
+                aria-current={view === "venue" ? "page" : undefined}
+                href={screenViewHref(query, "venue")}
+              >
+                <MapIcon aria-hidden="true" />
+              </Link>
+            </IconButton>
+            <IconButton asChild aria-label="Gezondheid van schermen tonen" title="Health">
+              <Link
+                aria-current={view === "health" ? "page" : undefined}
+                href={screenViewHref(query, "health")}
+              >
+                <HeartPulse aria-hidden="true" />
+              </Link>
+            </IconButton>
             <div className="screens-filter-desktop-options">
               <TablePreferences
                 columns={screenColumns}
@@ -187,7 +217,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
           ? `${data.screens.length} ${data.screens.length === 1 ? "scherm" : "schermen"}`
           : `${filteredScreens.length} van ${data.screens.length}`}
       >
-        <label className="toolbar-field"><span>Status</span><select className="toolbar-select" defaultValue={statusFilter} name="status"><option value="all">Alle statussen</option><option value="online">Online</option><option value="offline">Offline</option><option value="syncing">Synchroniseren</option><option value="unpaired">Niet gekoppeld</option><option value="maintenance">Onderhoud</option><option value="disabled">Uitgeschakeld</option></select></label>
+        <label className="toolbar-field"><span>Status</span><select className="toolbar-select" defaultValue={statusFilter} name="status"><option value="all">Alle statussen</option><option value="online">Online</option><option value="stale">Status verouderd</option><option value="offline">Offline</option><option value="unknown">Status onbekend</option><option value="syncing">Synchroniseren</option><option value="unpaired">Niet gekoppeld</option><option value="maintenance">Onderhoud</option><option value="disabled">Uitgeschakeld</option></select></label>
         <Button type="submit" variant="secondary">Vloot filteren</Button>
         <div className="screens-filter-mobile-options">
           <TablePreferences
@@ -200,7 +230,8 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       </FilterBar>
     </form>
 
-    <ScreenBulkForm
+    {view === "venue" ? <VenueView canManage={canManage} data={data} /> :
+    view === "health" ? <HealthView data={data} /> : <ScreenBulkForm
       addToGroupAction={addBulkScreensToGroup}
       assignReleaseAction={assignBulkScreenRelease}
       canPublish={canPublish}
@@ -223,7 +254,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
             const status = screenStatus(screen, device);
             const releaseId = device?.activeReleaseId ?? screen.assignedReleaseId;
             const release = releaseId ? releaseById.get(releaseId) : undefined;
-            const hasWarning = ["maintenance", "offline", "unpaired"].includes(status.kind);
+            const hasWarning = ["maintenance", "stale", "offline", "unknown", "unpaired"].includes(status.kind);
             return (
               <article className={styles.screenCard} data-status={status.kind} key={screen.id}>
                 <label className={styles.screenSelect}>
@@ -286,17 +317,18 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
         </tr>;
       })}</tbody></DataTable> : <p className="notice" role="status">{data.screens.length ? "Geen schermen passen bij deze filters. Pas je zoekopdracht of statusfilter aan." : "Er zijn nog geen schermen. Start de begeleide onboarding om het eerste scherm transactioneel aan te maken."}</p>}
     </section>
-    </ScreenBulkForm>
+    </ScreenBulkForm>}
   </>;
 }
 
 function screenStatus(screen: FleetScreen, device?: FleetDevice) {
-  if (screen.status === "disabled") return { kind: "disabled", label: "Uitgeschakeld", tone: "critical" as const };
-  if (screen.status === "maintenance") return { kind: "maintenance", label: "Onderhoud", tone: "warning" as const };
-  if (!device) return { kind: "unpaired", label: "Niet gekoppeld", tone: "warning" as const };
-  if (device.desiredReleaseId && device.desiredReleaseId !== device.activeReleaseId) return { kind: "syncing", label: "Synchroniseren", tone: "info" as const };
-  if (device.lastSeenAt && Date.now() - new Date(device.lastSeenAt).getTime() < 5 * 60_000) return { kind: "online", label: "Online", tone: "success" as const };
-  return { kind: "offline", label: "Offline", tone: "warning" as const };
+  return deriveScreenHealth({
+    activeReleaseId: device?.activeReleaseId,
+    desiredReleaseId: device?.desiredReleaseId,
+    deviceStatus: device?.status,
+    lastSeenAt: device?.lastSeenAt,
+    screenStatus: screen.status
+  });
 }
 
 function syncLabel(
@@ -334,10 +366,12 @@ function screenPriority(kind: string) {
   return {
     unpaired: 0,
     offline: 1,
-    maintenance: 2,
-    syncing: 3,
-    online: 4,
-    disabled: 5
+    unknown: 2,
+    stale: 3,
+    maintenance: 4,
+    syncing: 5,
+    online: 6,
+    disabled: 7
   }[kind] ?? 6;
 }
 
@@ -357,13 +391,13 @@ function orientationLabel(value: string) { return value === "portrait" ? "Staand
 
 function screenViewHref(
   query: Awaited<ScreensPageProps["searchParams"]>,
-  view: "cards" | "list"
+  view: "cards" | "health" | "list" | "venue"
 ) {
   const next = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
     if (value && !["view", "fout", "succes"].includes(key)) next.set(key, value);
   }
-  if (view === "cards") next.set("view", view);
+  if (view !== "list") next.set("view", view);
   const suffix = next.toString();
   return suffix ? `/dashboard/screens?${suffix}` : "/dashboard/screens";
 }

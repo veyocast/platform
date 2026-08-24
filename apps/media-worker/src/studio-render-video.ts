@@ -37,6 +37,14 @@ export type StudioVideoProbe = {
   width: number;
 };
 
+export type StudioBackgroundVideo = {
+  focusX: number;
+  focusY: number;
+  objectFit: "contain" | "cover";
+  path: string;
+  startOffsetMs: number;
+};
+
 export type StudioSpawn = (
   executable: string,
   args: readonly string[],
@@ -67,27 +75,50 @@ export function studioFrameCount(durationMs: number) {
 }
 
 export function buildStudioMp4Arguments({
+  backgroundVideo,
   frameCount,
   height,
   outputPath,
   width
 }: {
+  backgroundVideo?: StudioBackgroundVideo;
   frameCount: number;
   height: number;
   outputPath: string;
   width: number;
 }) {
+  const input = backgroundVideo
+    ? [
+        "-stream_loop", "-1",
+        "-ss", seconds(backgroundVideo.startOffsetMs),
+        "-i", backgroundVideo.path,
+        "-f", "rawvideo",
+        "-pix_fmt", "rgba",
+        "-video_size", `${width}x${height}`,
+        "-framerate", String(studioFps),
+        "-i", "pipe:0"
+      ]
+    : [
+        "-f", "rawvideo",
+        "-pix_fmt", "rgba",
+        "-video_size", `${width}x${height}`,
+        "-framerate", String(studioFps),
+        "-i", "pipe:0"
+      ];
+  const mapping = backgroundVideo
+    ? [
+        "-filter_complex",
+        backgroundVideoFilter(backgroundVideo, width, height),
+        "-map", "[studio_out]"
+      ]
+    : ["-map", "0:v:0"];
   return [
     "-hide_banner",
     "-loglevel", "error",
     "-y",
-    "-f", "rawvideo",
-    "-pix_fmt", "rgba",
-    "-video_size", `${width}x${height}`,
-    "-framerate", String(studioFps),
-    "-i", "pipe:0",
+    ...input,
     "-frames:v", String(frameCount),
-    "-map", "0:v:0",
+    ...mapping,
     "-an",
     "-c:v", "libx264",
     "-profile:v", "main",
@@ -109,6 +140,7 @@ export function buildStudioMp4Arguments({
 
 export async function encodeStudioMp4({
   assetSources,
+  backgroundVideo,
   document,
   onFrame,
   outputPath,
@@ -118,6 +150,7 @@ export async function encodeStudioMp4({
   timeoutMs = maximumStudioEncodingTimeMs
 }: {
   assetSources?: StudioSvgAssetSources;
+  backgroundVideo?: StudioBackgroundVideo;
   document: StudioDocument;
   onFrame?: (frameIndex: number, frameCount: number) => Promise<void> | void;
   outputPath: string;
@@ -132,7 +165,13 @@ export async function encodeStudioMp4({
   const expectedFrameBytes = width * height * 4;
   const child = spawnProcess(
     "ffmpeg",
-    buildStudioMp4Arguments({ frameCount, height, outputPath, width }),
+    buildStudioMp4Arguments({
+      backgroundVideo,
+      frameCount,
+      height,
+      outputPath,
+      width
+    }),
     { shell: false, stdio: ["pipe", "pipe", "pipe"] }
   );
   const completion = waitForEncoder(child, timeoutMs, signal);
@@ -181,6 +220,125 @@ export async function encodeStudioMp4({
   } finally {
     child.stdin.destroy();
   }
+}
+
+export async function renderStudioVideoPoster({
+  assetSources,
+  backgroundVideo,
+  document,
+  outputPath,
+  renderer,
+  signal,
+  spawnProcess = spawn as StudioSpawn,
+  timeoutMs = maximumStudioEncodingTimeMs
+}: {
+  assetSources?: StudioSvgAssetSources;
+  backgroundVideo: StudioBackgroundVideo;
+  document: StudioDocument;
+  outputPath: string;
+  renderer: StudioExternalRenderer;
+  signal?: AbortSignal;
+  spawnProcess?: StudioSpawn;
+  timeoutMs?: number;
+}) {
+  throwIfAborted(signal);
+  const { height, width } = document.artboard;
+  const svg = renderStudioSvg({ assetSources, document, timeMs: 0 });
+  const frame = Buffer.from(await renderer.renderRgba({
+    height,
+    signal,
+    svg,
+    width
+  }));
+  if (frame.byteLength !== width * height * 4) {
+    throw new StudioVideoRenderError(
+      "frame_invalid",
+      "De achtergrondvideoposter bevat geen exact RGBA-overlayframe."
+    );
+  }
+  const child = spawnProcess(
+    "ffmpeg",
+    buildStudioPosterArguments({ backgroundVideo, height, outputPath, width }),
+    { shell: false, stdio: ["pipe", "pipe", "pipe"] }
+  );
+  const completion = waitForEncoder(child, timeoutMs, signal);
+  try {
+    child.stdin.end(frame);
+    await completion;
+    return outputPath;
+  } catch (error) {
+    child.kill("SIGKILL");
+    await completion.catch(() => undefined);
+    if (signal?.aborted) {
+      throw new StudioVideoRenderError(
+        "render_cancelled",
+        "Studio-videoposter is geannuleerd."
+      );
+    }
+    if (error instanceof StudioVideoRenderError) throw error;
+    throw new StudioVideoRenderError(
+      "encoding_failed",
+      error instanceof Error
+        ? safeCommandMessage(error.message)
+        : "FFmpeg kon de Studio-videoposter niet maken."
+    );
+  } finally {
+    child.stdin.destroy();
+  }
+}
+
+export function buildStudioPosterArguments({
+  backgroundVideo,
+  height,
+  outputPath,
+  width
+}: {
+  backgroundVideo: StudioBackgroundVideo;
+  height: number;
+  outputPath: string;
+  width: number;
+}) {
+  return [
+    "-hide_banner", "-loglevel", "error", "-y",
+    "-stream_loop", "-1",
+    "-ss", seconds(backgroundVideo.startOffsetMs),
+    "-i", backgroundVideo.path,
+    "-f", "rawvideo",
+    "-pix_fmt", "rgba",
+    "-video_size", `${width}x${height}`,
+    "-framerate", String(studioFps),
+    "-i", "pipe:0",
+    "-filter_complex", backgroundVideoFilter(backgroundVideo, width, height),
+    "-map", "[studio_out]",
+    "-frames:v", "1",
+    "-an",
+    "-map_metadata", "-1",
+    "-f", "image2",
+    outputPath
+  ] as const;
+}
+
+function backgroundVideoFilter(
+  backgroundVideo: StudioBackgroundVideo,
+  width: number,
+  height: number
+) {
+  const background = backgroundVideo.objectFit === "cover"
+    ? `[0:v]scale=${width}:${height}:force_original_aspect_ratio=increase,` +
+      `crop=${width}:${height}:` +
+      `(in_w-out_w)*${decimal(backgroundVideo.focusX)}:` +
+      `(in_h-out_h)*${decimal(backgroundVideo.focusY)},setsar=1[studio_bg]`
+    : `[0:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,` +
+      `pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1[studio_bg]`;
+  return `${background};[studio_bg][1:v]overlay=0:0:shortest=1:format=auto[studio_out]`;
+}
+
+function seconds(milliseconds: number) {
+  return (Math.max(0, milliseconds) / 1_000).toFixed(3);
+}
+
+function decimal(value: number) {
+  return Math.max(0, Math.min(1, value)).toFixed(4);
 }
 
 export async function probeAndValidateStudioMp4({

@@ -8,7 +8,7 @@ export async function loadTenantOverview(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return tenantOverviewFailure();
 
-  const [screens, devices, playlists, playlistItems, media, releases, audit, invitations, members, tenant, heartbeats] = await Promise.all([
+  const [screens, devices, playlists, playlistItems, media, releases, audit, invitations, members, tenant, heartbeats, dynamicSources, sportlinkConnections] = await Promise.all([
     supabase
       .from("screens")
       .select("id, name, location, status, assigned_playlist_id, assigned_release_id, created_at")
@@ -65,10 +65,20 @@ export async function loadTenantOverview(tenantId: string) {
       .select("screen_id, active_release_id, runtime_state, created_at")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
-      .limit(250)
+      .limit(250),
+    supabase
+      .from("dynamic_data_sources")
+      .select("id, name, kind, status, provider_status, last_successful_sync_at, last_attempt_at, last_error_code")
+      .eq("tenant_id", tenantId)
+      .neq("status", "archived"),
+    supabase
+      .from("sportlink_connections")
+      .select("id, status, detected_club_name, last_attempt_at, last_success_at, stale_after, last_error_code")
+      .eq("tenant_id", tenantId)
+      .neq("status", "revoked")
   ]);
 
-  if ([screens.error, devices.error, playlists.error, playlistItems.error, media.error, releases.error, audit.error, invitations.error, members.error, tenant.error, heartbeats.error].some(Boolean)) {
+  if ([screens.error, devices.error, playlists.error, playlistItems.error, media.error, releases.error, audit.error, invitations.error, members.error, tenant.error, heartbeats.error, dynamicSources.error, sportlinkConnections.error].some(Boolean)) {
     return tenantOverviewFailure();
   }
 
@@ -123,6 +133,10 @@ export async function loadTenantOverview(tenantId: string) {
     })),
     heartbeats: heartbeats.data ?? [],
     invitations: invitations.data ?? [],
+    integrations: {
+      dynamicSources: dynamicSources.data ?? [],
+      sportlinkConnections: sportlinkConnections.data ?? []
+    },
     memberCount: members.count ?? 0,
     mediaStorageLimitBytes: tenant.data?.media_storage_limit_bytes === null
       ? null
@@ -389,6 +403,7 @@ function tenantOverviewFailure() {
     devices: [],
     error: true,
     heartbeats: [],
+    integrations: { dynamicSources: [], sportlinkConnections: [] },
     invitations: [],
     media: [],
     memberCount: 0,

@@ -94,7 +94,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Validate Expo dependency set and public config
+        # Validate the frozen, reviewed SDK bundle. Expo's online version map can
+        # move after checkout and must not override pnpm's release-age quarantine.
+        env:
+          EXPO_OFFLINE: "1"
         run: |
+          pnpm --filter @veyocast/control-mobile sdk:validate
           pnpm --filter @veyocast/control-mobile exec expo install --check
           pnpm --filter @veyocast/control-mobile config:validate
 

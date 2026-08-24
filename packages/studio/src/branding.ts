@@ -116,6 +116,8 @@ function applyBrandToElement(
       };
     case "image":
       return { ...element, ...brandStyle(element, replaceColor) };
+    case "video":
+      return element;
     case "group":
       return element;
   }

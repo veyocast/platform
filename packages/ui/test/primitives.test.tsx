@@ -7,6 +7,7 @@ import {
   Badge,
   BulkActionBar,
   Button,
+  CommandBar,
   CompactStats,
   DataTable,
   Dialog,
@@ -15,9 +16,14 @@ import {
   FilterBar,
   IconButton,
   Inspector,
+  JourneyShell,
   PageHeader,
   Progress,
   ResourceState,
+  ResourcePicker,
+  ScreenSnapshot,
+  SegmentedControl,
+  StickyActionBar,
   TextInput,
   Toolbar,
   getTablePreferencesStorageKey,
@@ -221,6 +227,72 @@ describe("@veyocast/ui primitives", () => {
     expect(stale).toContain("vc-alert--warning");
   });
 
+  it("renders Vector workflow primitives with explicit accessible semantics", () => {
+    const html = renderToStaticMarkup(
+      <JourneyShell
+        actions={<Button variant="secondary">Opslaan en sluiten</Button>}
+        aside={<ScreenSnapshot label="Preview hal-scherm" orientation="portrait" />}
+        currentStep="content"
+        description="Maak een publiceerbare schermervaring."
+        steps={[
+          { id: "goal", label: "Doel" },
+          { id: "content", label: "Content" },
+          { id: "review", label: "Controleren" }
+        ]}
+        title="Nieuwe schermreis"
+      >
+        <CommandBar
+          primary={<input aria-label="Bronnen zoeken" />}
+          status="12 bronnen beschikbaar"
+        />
+        <SegmentedControl
+          label="Weergave"
+          onChange={() => undefined}
+          options={[
+            { label: "Lijst", value: "list" },
+            { label: "Raster", value: "grid" }
+          ]}
+          value="grid"
+        />
+        <StickyActionBar aside="Concept automatisch opgeslagen">
+          <Button>Verder</Button>
+        </StickyActionBar>
+      </JourneyShell>
+    );
+
+    expect(html).toContain('aria-label="Voortgang"');
+    expect(html).toContain('aria-current="step"');
+    expect(html).toContain('role="radiogroup"');
+    expect(html).toContain('aria-checked="true"');
+    expect(html).toContain('data-orientation="portrait"');
+    expect(html).toContain("Concept automatisch opgeslagen");
+  });
+
+  it("exposes one shared resource-picker trigger for every resource family", () => {
+    const html = renderToStaticMarkup(
+      <ResourcePicker
+        items={[
+          { id: "media-1", kind: "media", name: "Welkom.png" },
+          { id: "dynamic-1", kind: "dynamic", name: "Programma vandaag" }
+        ]}
+        onSelect={() => undefined}
+      />
+    );
+
+    expect(html).toContain("Bron toevoegen");
+    expect(html).toContain('aria-haspopup="dialog"');
+  });
+
+  it("supports one shared multi-select contract with source and category facets", async () => {
+    const source = await readFile(new URL("../src/components/resource-picker.tsx", import.meta.url), "utf8");
+
+    expect(source).toContain('selectionMode?: "multiple" | "single"');
+    expect(source).toContain("Alle bronnen");
+    expect(source).toContain("Alle categorieën");
+    expect(source).toContain("aria-pressed={selectedIds.has(item.id)}");
+    expect(source).toContain("onSelectMany");
+  });
+
   it("uses css variables instead of hardcoded hex colors in component styles", async () => {
     const styles = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
 
@@ -230,6 +302,9 @@ describe("@veyocast/ui primitives", () => {
     expect(styles).toContain(".vc-summary-strip");
     expect(styles).toContain("min-height: 5rem");
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(styles).toContain("var(--vc-vector-surface-raised");
+    expect(styles).toContain(".vc-resource-picker__grid");
+    expect(styles).toContain(".vc-journey-shell__layout--with-aside");
   });
 
   it("keeps a confirmation dialog above an open sheet", async () => {

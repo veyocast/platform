@@ -1,4 +1,5 @@
 export type MediaViewState = {
+  collection?: string;
   favorite?: "true";
   folder?: string;
   from?: string;
@@ -53,6 +54,7 @@ export function mediaViewStateFromSearch(
     state.folder = input.folder;
   }
   if (input.tag && uuidPattern.test(input.tag)) state.tag = input.tag;
+  if (input.collection && uuidPattern.test(input.collection)) state.collection = input.collection;
   if (input.favorite === "true") state.favorite = "true";
   if (isCalendarDate(input.from)) state.from = input.from;
   if (isCalendarDate(input.to)) state.to = input.to;
@@ -92,6 +94,7 @@ export function mediaViewStateToStorage(state: MediaViewState): MediaViewStorage
     filterJson: {
       createdFrom: normalized.from ?? null,
       createdUntil: normalized.to ?? null,
+      collectionId: normalized.collection ?? null,
       favoritesOnly: normalized.favorite === "true",
       folderId: normalized.folder && normalized.folder !== "root"
         ? normalized.folder
@@ -118,6 +121,7 @@ export function mediaViewStateFromStorage(
   if (filters.schemaVersion !== 1) return null;
 
   const raw: Record<string, string | undefined> = {
+    collection: typeof filters.collectionId === "string" ? filters.collectionId : undefined,
     favorite: filters.favoritesOnly === true ? "true" : undefined,
     folder: filters.rootOnly === true
       ? "root"

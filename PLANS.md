@@ -131,6 +131,7 @@ tests en exitcriteria staan in
 | S120 | Menu Studio bibliotheek- en portrait-UX | Preview bovenaan verankeren, categorieën en media via modale pickers toevoegen, producten alfabetisch filterbaar maken, vrije groepsinvoer optioneel houden en één of twee portraitkolommen expliciet kiezen |
 | S121 | Dynamische slides schermvullend | Gelijk georiënteerde dynamische slides zonder letterboxing over de volledige viewport tonen en de Menu Studio-preview exact in het gekozen canvasformaat weergeven |
 | S122 | Dynamic slide versioning, thema en Sportlink-wizard | Eén logische menu-/Sportlink-slide met immutable ontwerpversies, creation-default thema per tenant, gedeelde visuele themakiezer en een overzichtelijke vijfstaps bulkflow |
+| S123 | Vector v2 — Living Venue OS | Productfamiliebrede premium upgrade met compatibele design-systemlaag, echte nieuwe feature-domeinen achter flags, billing/entitlements en volledige release-evidence |
 
 ### Programmagates
 

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "meta": {
+    "name": "VeyoCast Vector v2",
+    "version": "1.0.0",
+    "rule": "Semantic tokens only in components; official logo colors remain embedded in locked assets."
+  },
+  "brand": {
+    "ink": "#0A0A0A",
+    "paper": "#FAFAF7",
+    "orange": "#FF5C20",
+    "blue": "#315CFF",
+    "softGrey": "#E8E8E3"
+  },
+  "themes": {
+    "light": {
+      "canvas": "#F6F3ED",
+      "surface": "#FFFEFB",
+      "surfaceRaised": "#FFFFFF",
+      "surfaceMuted": "#EFEBE4",
+      "surfaceStrong": "#E5E0D8",
+      "ink": "#0A0A0A",
+      "inkMuted": "#575651",
+      "inkSubtle": "#77746D",
+      "line": "#D8D3CA",
+      "lineStrong": "#B9B3A9",
+      "focus": "#315CFF"
+    },
+    "dark": {
+      "canvas": "#08090A",
+      "surface": "#0F1112",
+      "surfaceRaised": "#151819",
+      "surfaceMuted": "#111415",
+      "surfaceStrong": "#1B1F21",
+      "ink": "#FAFAF7",
+      "inkMuted": "#B9BAB5",
+      "inkSubtle": "#858985",
+      "line": "#292D2F",
+      "lineStrong": "#3C4245",
+      "focus": "#7590FF"
+    }
+  },
+  "semantic": {
+    "action": { "default": "#FF5C20", "hover": "#E94C12", "pressed": "#CC3F0C", "onAction": "#0A0A0A" },
+    "success": { "default": "#2FAD68", "surface": "#123521", "onSurface": "#A8F0C4" },
+    "warning": { "default": "#F0A12A", "surface": "#3A2810", "onSurface": "#FFD89A" },
+    "danger": { "default": "#E85252", "surface": "#3B1717", "onSurface": "#FFC0C0" },
+    "info": { "default": "#315CFF", "surface": "#14204D", "onSurface": "#C7D2FF" },
+    "offline": { "default": "#C97843", "surface": "#352018", "onSurface": "#FFD0B4" },
+    "syncing": { "default": "#315CFF", "surface": "#14204D", "onSurface": "#C7D2FF" }
+  },
+  "tenantAccent": {
+    "rule": "Allowed inside content previews and tenant-authored signage only; never replaces VeyoCast navigation, focus, billing or system-status colors.",
+    "fallback": "#315CFF"
+  },
+  "typography": {
+    "uiFamily": "Geist, Inter, ui-sans-serif, system-ui, sans-serif",
+    "displayFamily": "Manrope, Geist, ui-sans-serif, system-ui, sans-serif",
+    "monoFamily": "Geist Mono, ui-monospace, SFMono-Regular, monospace",
+    "weights": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 },
+    "sizesPx": { "caption": 12, "bodySm": 14, "body": 16, "titleSm": 18, "title": 24, "headline": 36, "displaySm": 52, "display": 72, "displayLg": 96 },
+    "lineHeights": { "tight": 1.05, "heading": 1.15, "body": 1.5 },
+    "rules": [
+      "Never render critical operational text below 12px on desktop or below 13px on mobile.",
+      "Use tabular numerals for times, versions, prices, counts and heartbeat values.",
+      "Do not use all caps for sentences or long labels."
+    ]
+  },
+  "spacingPx": [0, 2, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80, 96, 128, 160],
+  "radiiPx": { "control": 8, "field": 10, "card": 14, "panel": 18, "dialog": 22, "marketing": 28, "pill": 999 },
+  "bordersPx": { "hairline": 1, "selected": 1, "focusRing": 2 },
+  "elevation": {
+    "flat": "none",
+    "raised": "0 8px 24px rgba(0,0,0,.10)",
+    "floating": "0 18px 56px rgba(0,0,0,.20)",
+    "darkRaised": "0 18px 54px rgba(0,0,0,.42)"
+  },
+  "motion": {
+    "durationsMs": { "instant": 80, "micro": 140, "control": 200, "panel": 280, "page": 360, "venue": 520 },
+    "easing": {
+      "standard": [0.2, 0.8, 0.2, 1],
+      "enter": [0.16, 1, 0.3, 1],
+      "exit": [0.4, 0, 1, 1]
+    },
+    "reducedMotion": "Replace spatial transforms and continuous pulses with opacity, immediate state changes and static status icons."
+  },
+  "touch": { "minimumTargetPx": 44, "preferredPrimaryTargetPx": 48 },
+  "layout": {
+    "marketingMaxWidthPx": 1600,
+    "contentMaxWidthPx": 1360,
+    "railExpandedPx": 248,
+    "railCollapsedPx": 72,
+    "topbarPx": 64,
+    "mobileTabbarPx": 72,
+    "editorMinimumWidthPx": 1180
+  },
+  "zIndex": { "base": 0, "sticky": 20, "popover": 40, "sheet": 50, "dialog": 60, "toast": 70, "critical": 80 }
+}
+
