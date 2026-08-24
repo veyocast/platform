@@ -2616,6 +2616,11 @@ function PreviewDialog({
   open: boolean;
   state: StudioEditorState;
 }) {
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, [open]);
   useEffect(() => {
     if (!open) return;
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -2652,13 +2657,23 @@ function PreviewDialog({
             dispatch={dispatch}
             document={state.document}
             playheadMs={state.playheadMs}
+            reducedMotion={reducedMotion}
             selectedIds={[]}
             zoom={1}
           />
         </div>
         <footer>
+          <label className={styles.previewMotionToggle}>
+            <input
+              checked={reducedMotion}
+              onChange={(event) => setReducedMotion(event.target.checked)}
+              type="checkbox"
+            />
+            Beweging beperken
+          </label>
           <Button
             aria-label={state.playing ? "Voorbeeld pauzeren" : "Voorbeeld afspelen"}
+            disabled={reducedMotion}
             onClick={() => dispatch({ type: "playback/toggle" })}
             size="sm"
             variant="secondary"
@@ -2667,6 +2682,7 @@ function PreviewDialog({
             {state.playing ? "Pauzeren" : "Afspelen"}
           </Button>
           <Button
+            disabled={reducedMotion}
             onClick={() => dispatch({ type: "playback/reset" })}
             size="sm"
             variant="ghost"
@@ -2676,6 +2692,7 @@ function PreviewDialog({
           </Button>
           <Button
             aria-pressed={state.looping}
+            disabled={reducedMotion}
             onClick={() => dispatch({ type: "playback/loop" })}
             size="sm"
             variant={state.looping ? "secondary" : "ghost"}

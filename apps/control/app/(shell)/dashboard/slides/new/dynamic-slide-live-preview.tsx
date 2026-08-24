@@ -64,6 +64,7 @@ export function DynamicSlideLivePreview({
                   data-orientation={orientation}
                 >
                   <EditorialArenaRenderer
+                    embedded
                     item={{
                       accessibilityName: `Preview ${view.title} ${orientation}`,
                       durationSeconds: Math.max(5, view.pages.length * 5),

@@ -1,6 +1,3 @@
-import Link from "next/link";
-
-import { Button, PageHeader } from "@veyocast/ui";
 import { themeSelectionSchema } from "@veyocast/contracts";
 import { platformDefaultThemeSelection } from "@veyocast/content-templates/theme-catalog";
 
@@ -19,12 +16,6 @@ export default async function SportlinkNewPage({ searchParams }: PageProps) {
     : { defaultThemeSelection: platformDefaultThemeSelection, media: [], sources: [], teams: [], templates: [] };
   return (
     <>
-      <PageHeader
-        actions={<Button asChild variant="secondary"><Link href="/dashboard/studio/new">Annuleren</Link></Button>}
-        breadcrumbs={[{ href: "/dashboard/studio", label: "Studio" }, { href: "/dashboard/studio/new", label: "Nieuwe slide" }, { label: "Sportlink" }]}
-        description="Selecteer meerdere teams en slidetypen. De wizard maakt pas na je eindcontrole één veilige batch."
-        title="Sportlink-slides maken"
-      />
       {params.fout ? <p className="notice notice--critical" role="alert"><strong>Slides niet gemaakt.</strong> {params.fout}</p> : null}
       <SportlinkBulkWizard action={createSportlinkSlideBatch} {...data} />
     </>

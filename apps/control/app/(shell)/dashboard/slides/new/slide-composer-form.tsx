@@ -17,13 +17,15 @@ import {
   Sparkles
 } from "lucide-react";
 
-import { Button } from "@veyocast/ui";
+import { Button, JourneyShell } from "@veyocast/ui";
 import {
   freezeThemePresentation,
+  themeCatalog,
   themeToEditorialTokens
 } from "@veyocast/content-templates/theme-catalog";
 import type {
   EditorialThemeConfig,
+  SelectableThemeId,
   ThemeMode,
   ThemeSelection
 } from "@veyocast/contracts";
@@ -35,6 +37,7 @@ import {
   type DynamicSlidePreviewResult
 } from "../actions";
 import { DynamicSlideLivePreview } from "./dynamic-slide-live-preview";
+import { ThemePicker } from "../_components/theme-picker";
 import {
   EditorialPriceEditor,
   type EditorialPriceProductOption
@@ -131,7 +134,6 @@ export function SlideComposerForm({
   const formRef = useRef<HTMLFormElement>(null);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const [furthestStep, setFurthestStep] = useState(0);
   const [name, setName] = useState("");
   const [slideType, setSlideType] = useState(initialTemplate.slideType);
   const [templateVersionId, setTemplateVersionId] = useState(
@@ -335,7 +337,6 @@ export function SlideComposerForm({
 
     const nextStep = Math.min(currentStep + 1, wizardSteps.length - 1);
     setCurrentStep(nextStep);
-    setFurthestStep((value) => Math.max(value, nextStep));
   }
 
   function selectSlideType(value: string) {
@@ -358,54 +359,44 @@ export function SlideComposerForm({
     setPriceListConfiguration("");
   }
 
-  return (
-    <form
-      action={createDynamicSlide}
-      className={`${styles.form} ${styles.wizard}`}
-      onSubmit={(event) => {
-        if (currentStep < wizardSteps.length - 1) {
-          event.preventDefault();
-          goToNextStep();
-        }
-      }}
-      ref={formRef}
-    >
-      <nav aria-label="Voortgang dynamische slide">
-        <ol className={styles.wizardSteps}>
-          {wizardSteps.map((step, index) => {
-            const complete = index < currentStep;
-            const available = index <= furthestStep;
-            return (
-              <li
-                className={styles.wizardStep}
-                data-complete={complete}
-                data-current={index === currentStep}
-                key={step.label}
-              >
-                <button
-                  aria-current={index === currentStep ? "step" : undefined}
-                  disabled={!available}
-                  onClick={() => setCurrentStep(index)}
-                  type="button"
-                >
-                  <span aria-hidden="true" className={styles.wizardStepNumber}>
-                    {complete ? <Check /> : index + 1}
-                  </span>
-                  <span>{step.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-      </nav>
+  function selectThemeId(themeId: SelectableThemeId) {
+    const nextSelection: ThemeSelection = {
+      ...themeSelection,
+      ref: {
+        catalog: "v2",
+        id: themeId,
+        version: themeCatalog[themeId].version
+      }
+    };
+    setThemeSelection(nextSelection);
+    setTheme({
+      dark: editorialTokensFor(nextSelection, "dark"),
+      light: editorialTokensFor(nextSelection, "light"),
+      mode: theme.mode
+    });
+  }
 
-      <div className={styles.wizardStatus}>
-        <span>
-          Stap {currentStep + 1} van {wizardSteps.length}
-        </span>
-        <strong>{wizardSteps[currentStep]!.label}</strong>
-        <p>{wizardSteps[currentStep]!.description}</p>
-      </div>
+  return (
+    <JourneyShell
+      actions={<Button asChild variant="secondary"><Link href="/dashboard/studio/new">Annuleren</Link></Button>}
+      aside={<DynamicSlideLivePreview loading={isPreviewPending} result={previewResult} />}
+      currentStep={String(currentStep)}
+      description={wizardSteps[currentStep]!.description}
+      eyebrow={`Studio · stap ${currentStep + 1} van ${wizardSteps.length}`}
+      steps={wizardSteps.map((step, index) => ({ id: String(index), label: step.label }))}
+      title="Nieuwsslide maken"
+    >
+      <form
+        action={createDynamicSlide}
+        className={`${styles.form} ${styles.wizard}`}
+        onSubmit={(event) => {
+          if (currentStep < wizardSteps.length - 1) {
+            event.preventDefault();
+            goToNextStep();
+          }
+        }}
+        ref={formRef}
+      >
 
       <section
         className={styles.formSection}
@@ -905,6 +896,16 @@ export function SlideComposerForm({
         <h2 ref={currentStep === 4 ? stepHeadingRef : undefined} tabIndex={-1}>
           Kies kleuren en uitstraling
         </h2>
+        <ThemePicker
+          defaultThemeId={themePickerId(defaultThemeSelection)}
+          label="Thema voor deze nieuwsslide"
+          onChange={selectThemeId}
+          value={themePickerId(themeSelection)}
+        />
+        <p className={styles.muted}>
+          Kies eerst een bestaand VeyoCast-thema. Gebruik de geavanceerde
+          instellingen hieronder alleen voor een bewuste afwijking op deze versie.
+        </p>
         <EditorialThemeEditor
           defaults={tenantThemeDefaults}
           onChange={setTheme}
@@ -1052,8 +1053,9 @@ export function SlideComposerForm({
             </Button>
           )}
         </div>
-      </footer>
-    </form>
+        </footer>
+      </form>
+    </JourneyShell>
   );
 }
 
@@ -1440,6 +1442,10 @@ function editorialTokensFor(selection: ThemeSelection, mode: ThemeMode) {
     selection: { ...selection, modePolicy: { kind: "fixed", mode } },
     timezone: "Europe/Amsterdam"
   }));
+}
+
+function themePickerId(selection: ThemeSelection): SelectableThemeId {
+  return selection.ref.catalog === "v2" ? selection.ref.id : "editorial";
 }
 
 function templateThemeLabel(template: SlideTemplateOption) {

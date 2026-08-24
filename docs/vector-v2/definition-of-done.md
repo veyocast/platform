@@ -250,35 +250,35 @@ Codex maakt in de repository een traceerbare kopie met per item:
 ## I. Studio en dynamische content
 
 - [ ] Studio overview/new/editor zijn volledig Vector v2.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=Vector shell, Studio workspace en gedeelde Journey Shell; Evidence=`phase-6-studio-dynamic.md`, demo browser 6/6; Gate owner/date=routebrede visualmatrix volgt fase 13
 - [ ] Landscape/portrait canvas, safe zones en zoom werken.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`studio-konva-canvas.tsx`, bestaande artboard/safe-area/zoomcontracts; Evidence=Studio unit + desktop/mobile browsermatrix; Gate owner/date=—
 - [ ] Tools, media/elements, layers, inspector, slide strip/timeline en preview zijn coherent.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`studio-editor-workspace.tsx`, Resource Picker en mobiele quick edit; Evidence=Studio demo browser 6/6 en Media phase-5 pickerbewijs; Gate owner/date=—
 - [ ] Tekst, image, video, shape, logo, icon en QR werken volgens contracts.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=strict text/image/shape/placeholder-logo/icon/QR-schema en renderer; Evidence=Studio 15 + worker 85 tests; Gate owner/date=vrije canvasvideo ontbreekt nog, Menu-video en MP4-output zijn afzonderlijk wel actief
 - [ ] Theme, data en motion controls gebruiken gedeelde patterns.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=shared ThemePicker/Journey Shell, dataflows en motiontab; Evidence=Journey 2/2, RSS live 1/1 en Studio browser; Gate owner/date=—
 - [ ] Undo/redo, autosave, revisions, conflict en recovery zijn getest.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=editor reducer, guarded autosave/revisions en conflict/recovery UI; Evidence=Control editorstate 7/7 en Studio desktop/mobile E2E; Gate owner/date=—
 - [ ] Keyboard/screenreaderbediening voor essentiële authoringacties is aanwezig.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=native controls, layer arrows, focusable Journey progress en picker focusreturn; Evidence=Studio Axe/keyboardbrowser groen; Gate owner/date=—
 - [ ] Reduced-motion preview bestaat.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`evaluateStudioReducedMotionFrame` plus previewtoggle/OS-default; Evidence=Studio motionunit 3/3 en browserassertie; Gate owner/date=—
 - [ ] Bestaande Studio documents blijven compatibel of zijn gemigreerd/versioned.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=ongewijzigd schemaVersion/revisioncontract; Evidence=Studio schema/branding/documenttests en production build; Gate owner/date=—
 - [ ] Render bevriest immutable source revision.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=bestaande renderrequest met revisionId en document snapshot; Evidence=worker studio-render tests en security boundary; Gate owner/date=—
 - [ ] PNG/MP4 queue, progress, error, retry en media-ingest werken.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=Studio renderqueue en media-worker ingest; Evidence=worker 85 tests en build; Gate owner/date=—
 - [ ] Player importeert geen Studio runtimecode.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=media-outputboundary; Evidence=package-boundarytest plus Player 153 tests/build; Gate owner/date=—
 - [ ] Sportlink, RSS/nieuws en Menu/Twelve flows delen Journey Shell.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=shared `JourneyShell` in alle drie authoringroutes; Evidence=Journey browser 2/2 en live RSS 1/1; Gate owner/date=—
 - [ ] Menu Studio toont correcte category/product/availability/price preview uit XLSX-data.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=bestaande MenuDocument/Twelve resolver en shared Menu Journey; Evidence=contracts/domain/templates/worker groen; Gate owner/date=live XLSX-catalogusreadback volgt in fase 6
 - [ ] Dynamische templates renderen op landscape én portrait binnen grenzen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=shared Editorial Arena/Menu renderer en orientation-aware viewportfit; Evidence=templates 40, Player 153 en desktop/mobile previewcaptures; Gate owner/date=—
 
 ## J. Publisher, planning en releases
 

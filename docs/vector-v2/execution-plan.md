@@ -96,7 +96,7 @@ mag deze grenzen niet dupliceren.
 | 3 | Auth en hervatbare onboarding | fase 1–2 | DONE |
 | 4 | Dashboard, screens, Screen 360, health en Venue Twin | fase 1, schema/RLS | DONE |
 | 5 | Media en Unified Resource Picker | fase 1 | DONE |
-| 6 | Studio en dynamische slideflows | fase 1, 5 | TODO |
+| 6 | Studio en dynamische slideflows | fase 1, 5 | IN_PROGRESS |
 | 7 | Publisher, planning, preflight en releases | fase 1, 5–6 | TODO |
 | 8 | Sportlink, Twelve, RSS, YouTube, Sponsor Hub en Engage | fase 4–7 | TODO |
 | 9 | Native mobile | gedeelde contracts en fases 4–8 | TODO |
@@ -158,3 +158,10 @@ categoriezoeking plus multi-select, en die picker voor echte Venue Twin-
 plattegronden hergebruikt. Een verse reset, 1.154 RLS-assertions, alle workspace-
 gates en twee production-build-E2E's inclusief desktop/mobile Axe zijn groen.
 Zie `docs/vector-v2/evidence/phase-5-media-resource-picker.md`.
+
+Fase 6 heeft de gedeelde Journey Shell voor Menu, Sportlink en RSS, de weer
+bereikbare echte RSS-authoringroute, gedeelde themekeuze en een expliciete
+reduced-motion Studio-preview opgeleverd. Workspacegates, zes demo-browserflows
+en één echte Supabase-RSS-flow zijn groen. Vrije canvasvideo en de live
+Twelve-readback blijven binnen deze fase open. Zie
+`docs/vector-v2/evidence/phase-6-studio-dynamic.md`.

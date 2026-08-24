@@ -28,7 +28,12 @@ test("Studio overview and creation journey use real responsive controls", async 
   await expect(async () => {
     if (/\/dashboard\/studio\/new$/.test(page.url())) return;
     await page.getByRole("link", { name: "Nieuwe slide" }).click();
-    await expect(page).toHaveURL(/\/dashboard\/studio\/new$/);
+  await expect(page).toHaveURL(/\/dashboard\/studio\/new$/);
+  await expect(
+    page.locator("article").filter({
+      has: page.getByRole("heading", { name: "Nieuws & RSS" })
+    })
+  ).toBeVisible();
   }).toPass({ timeout: 20_000 });
   await page.locator("article").filter({
     has: page.getByRole("heading", { name: "Vrij ontwerp" })
@@ -101,9 +106,14 @@ test("desktop Studio editor supports editing, preview and revision inspection", 
   await expect(page.locator('input[value="Nieuwe tekst"]')).toBeVisible();
 
   await page.getByRole("button", { name: "Voorbeeld" }).click();
-  await expect(
-    page.getByRole("dialog").getByRole("heading", { name: "Voorbeeld" })
-  ).toBeVisible();
+  const previewDialog = page.getByRole("dialog");
+  await expect(previewDialog.getByRole("heading", { name: "Voorbeeld" })).toBeVisible();
+  const reducedMotion = previewDialog.getByRole("checkbox", {
+    name: "Beweging beperken"
+  });
+  await reducedMotion.check();
+  await expect(reducedMotion).toBeChecked();
+  await expect(previewDialog.getByRole("button", { name: "Voorbeeld afspelen" })).toBeDisabled();
   await expect(async () => {
     const dialog = page.getByRole("dialog");
     if (!(await dialog.isVisible())) return;

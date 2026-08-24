@@ -194,7 +194,6 @@ export async function saveStudioDraftAction(input: {
     studioCapabilities.editOwn,
     studioCapabilities.editAll
   ]);
-  const projectId = safeUuid(input.projectId);
   const expectedRevision = safeRevision(input.expectedRevision);
   const document = parseStudioDocument(input.document);
   const idempotencyKey = safeIdempotencyKey(input.idempotencyKey);
@@ -206,6 +205,7 @@ export async function saveStudioDraftAction(input: {
       revision: expectedRevision + 1
     };
   }
+  const projectId = safeUuid(input.projectId);
 
   const { data, error } = await writer.supabase.rpc("save_studio_draft_v1", {
     p_document: document,

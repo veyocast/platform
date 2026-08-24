@@ -61,11 +61,13 @@ export type EditorialArenaItem = {
 };
 
 export function EditorialArenaRenderer({
+  embedded = false,
   item,
   onReady = () => undefined,
   pageIndex: controlledPageIndex,
   passive = false
 }: {
+  embedded?: boolean;
   item: EditorialArenaItem;
   onReady?: (itemId: string) => void;
   pageIndex?: number;
@@ -81,6 +83,7 @@ export function EditorialArenaRenderer({
   const [viewportFit, setViewportFit] = useState<EditorialArenaViewportFit | null>(null);
   const pageCount = view?.pages.length ?? 0;
   const canvas = editorialArenaCanvas[view?.orientation ?? "landscape"];
+  const ContentElement = embedded ? "div" : "main";
 
   useEffect(() => {
     setInternalPageIndex(0);
@@ -208,7 +211,7 @@ export function EditorialArenaRenderer({
         ) : (
           <>
             <ArenaHeader view={view} />
-            <main
+            <ContentElement
               className={styles.arenaContent}
               data-page-count={pageCount}
               data-page-index={pageIndex}
@@ -222,7 +225,7 @@ export function EditorialArenaRenderer({
               {view.emptyState && pageIsEmpty(page) ? (
                 <div className={styles.arenaEmpty}>{view.emptyState}</div>
               ) : null}
-            </main>
+            </ContentElement>
             <ArenaFooter
               pageCount={pageCount}
               pageIndex={pageIndex}

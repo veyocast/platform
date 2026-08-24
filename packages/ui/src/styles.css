@@ -1779,7 +1779,7 @@
 }
 
 .vc-journey-shell__eyebrow {
-  color: var(--vc-vector-action-default, var(--vc-action));
+  color: var(--vc-vector-ink, var(--vc-text));
   font-size: var(--vc-vector-font-size-caption, 0.75rem);
   font-weight: var(--vc-vector-font-weight-bold, 700);
   letter-spacing: 0.08em;
@@ -1820,7 +1820,7 @@
 .vc-journey-shell__steps li {
   align-items: center;
   border-bottom: 2px solid var(--vc-vector-line, var(--vc-border));
-  color: var(--vc-vector-ink-subtle, var(--vc-text-subtle));
+  color: var(--vc-vector-ink, var(--vc-text));
   display: grid;
   gap: var(--vc-vector-space-8, var(--vc-space-8));
   grid-template-columns: auto 1fr;
@@ -1851,7 +1851,7 @@
 }
 
 .vc-journey-shell__optional {
-  color: var(--vc-vector-ink-subtle, var(--vc-text-subtle));
+  color: var(--vc-vector-ink, var(--vc-text));
   font-size: var(--vc-vector-font-size-caption, 0.75rem);
   grid-column: 2;
 }

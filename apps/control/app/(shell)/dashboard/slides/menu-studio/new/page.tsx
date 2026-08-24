@@ -2,10 +2,9 @@ import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { Database, Flag, LayoutTemplate } from "lucide-react";
 
-import { Button } from "@veyocast/ui";
+import { Button, JourneyShell } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
-import { PageHeader } from "../../../../_components/shell-primitives";
 import {
   initialMenuDocument,
   loadMenuStudioOptions,
@@ -26,13 +25,18 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
     : null;
 
   return (
-    <>
-      <PageHeader
-        actions={<Button asChild variant="ghost"><Link href="/dashboard/slides">Annuleren</Link></Button>}
-        description="Bouw één strikt menudocument voor liggende en staande schermen. Productdata blijft gekoppeld; de visuele publicatie wordt immutable vastgezet."
-        eyebrow={session.tenant}
-        title="Menu Studio"
-      />
+    <JourneyShell
+      actions={<Button asChild variant="secondary"><Link href="/dashboard/studio/new">Annuleren</Link></Button>}
+      currentStep={data?.sources.length && data.source && data.templates.length ? "compose" : "source"}
+      description="Productdata blijft gekoppeld tijdens het ontwerpen. Publicatie bevriest daarna een veilige, immutable versie voor Player en offline fallback."
+      eyebrow={`${session.tenant} · Studio`}
+      steps={[
+        { id: "source", label: "Bron" },
+        { id: "compose", label: "Samenstellen" },
+        { id: "publish", label: "Voorbeeld & publiceren" }
+      ]}
+      title="Menu & prijzen"
+    >
       {!data ? (
         <State icon={<Flag aria-hidden="true" />} title="Menu Studio niet beschikbaar">
           De tenantinstellingen konden niet veilig worden geladen. Bestaande slides en releases zijn niet gewijzigd.
@@ -84,7 +88,7 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
           />
         </>
       )}
-    </>
+    </JourneyShell>
   );
 }
 

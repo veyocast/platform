@@ -15,10 +15,13 @@ test("Studio exposes named controls, status and keyboard alternatives", async ({
   await expect(page.getByRole("button", { name: "Opnieuw uitvoeren" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Revisiegeschiedenis openen" })).toBeVisible();
 
-  const textButton = page.getByRole("button", { exact: true, name: "Tekst" });
+  await page.getByRole("button", { name: "Element of media toevoegen" }).click();
+  const picker = page.getByRole("dialog", { name: "Element of media toevoegen" });
+  const textButton = picker.getByRole("button", { exact: true, name: /Tekst/ });
   await textButton.focus();
   await expect(textButton).toBeFocused();
   await page.keyboard.press("Enter");
+  await expect(picker).not.toBeVisible();
   await expect(page.locator('input[value="Nieuwe tekst"]')).toBeVisible({
     timeout: 10_000
   });

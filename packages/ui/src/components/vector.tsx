@@ -141,7 +141,7 @@ export function JourneyShell({
         </div>
         {actions ? <div className="vc-journey-shell__header-actions">{actions}</div> : null}
       </header>
-      <nav aria-label="Voortgang" className="vc-journey-shell__steps">
+      <nav aria-label="Voortgang" className="vc-journey-shell__steps" tabIndex={0}>
         <ol>
           {steps.map((step, index) => {
             const state = index < currentIndex ? "complete" : index === currentIndex ? "current" : "upcoming";

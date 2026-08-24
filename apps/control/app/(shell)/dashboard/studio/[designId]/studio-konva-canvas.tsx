@@ -16,6 +16,7 @@ import {
 
 import {
   evaluateStudioFrame,
+  evaluateStudioReducedMotionFrame,
   layoutStudioText,
   type StudioDocument,
   type StudioElement
@@ -33,6 +34,7 @@ type CanvasProps = {
   onScaleChange?: (scale: number) => void;
   panEnabled?: boolean;
   playheadMs: number;
+  reducedMotion?: boolean;
   selectedIds: string[];
   zoom: number;
 };
@@ -45,12 +47,15 @@ export function StudioKonvaCanvas({
   onScaleChange,
   panEnabled = false,
   playheadMs,
+  reducedMotion = false,
   selectedIds,
   zoom
 }: CanvasProps) {
   const frame = useMemo(
-    () => evaluateStudioFrame(document, playheadMs),
-    [document, playheadMs]
+    () => reducedMotion
+      ? evaluateStudioReducedMotionFrame(document)
+      : evaluateStudioFrame(document, playheadMs),
+    [document, playheadMs, reducedMotion]
   );
   const wrapRef = useRef<HTMLDivElement>(null);
   const transformerRef = useRef<Konva.Transformer>(null);

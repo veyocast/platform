@@ -118,6 +118,25 @@ export function evaluateStudioFrame(document: StudioDocument, timeMs: number) {
     });
 }
 
+export function evaluateStudioReducedMotionFrame(document: StudioDocument) {
+  return document.elements
+    .filter((element) => element.visible)
+    .sort((left, right) => left.zIndex - right.zIndex)
+    .map((element) => ({
+      element,
+      transform: {
+        clipProgress: 1,
+        opacity: element.opacity,
+        scaleX: 1,
+        scaleY: 1,
+        textProgress: 1,
+        x: element.x,
+        y: element.y
+      } satisfies StudioFrameTransform,
+      visibleText: element.type === "text" ? element.text : undefined
+    }));
+}
+
 function applyPreset(
   value: StudioFrameTransform,
   preset: StudioAnimationPreset,
