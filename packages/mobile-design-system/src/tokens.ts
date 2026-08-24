@@ -1,63 +1,75 @@
+import { veyocastVectorTokens } from "@veyocast/tokens";
+
+const vector = veyocastVectorTokens;
+
 export const mobilePalette = {
   brand: {
-    action: "#FF5C20",
-    actionPressed: "#E94D14",
+    action: vector.semantic.action.default,
+    actionPressed: vector.semantic.action.pressed,
+    onAction: vector.semantic.action.onAction,
+    paper: vector.brand.paper,
     lockedLogoOrange: "#EC622C",
     lockedLogoBlack: "#121212"
   },
   light: {
-    canvas: "#F7F3EC",
-    surface: "#FFFCF8",
-    raised: "#FFFFFF",
-    ink: "#1A1917",
-    secondaryInk: "#6C6861",
-    mutedInk: "#817B72",
-    line: "#E7DED2",
-    strongLine: "#C9BCAA",
-    focus: "#315CFF"
+    canvas: vector.themes.light.canvas,
+    surface: vector.themes.light.surface,
+    raised: vector.themes.light.surfaceRaised,
+    ink: vector.themes.light.ink,
+    secondaryInk: vector.themes.light.inkMuted,
+    mutedInk: vector.themes.light.inkSubtle,
+    line: vector.themes.light.line,
+    strongLine: vector.themes.light.lineStrong,
+    focus: vector.themes.light.focus
   },
   dark: {
-    canvas: "#10100F",
-    surface: "#181816",
-    raised: "#201F1D",
-    ink: "#F8F3EB",
-    secondaryInk: "#BEB7AD",
-    mutedInk: "#979087",
-    line: "#302E2A",
-    strongLine: "#4A4640",
-    focus: "#8FA4FF"
+    canvas: vector.themes.dark.canvas,
+    surface: vector.themes.dark.surface,
+    raised: vector.themes.dark.surfaceRaised,
+    ink: vector.themes.dark.ink,
+    secondaryInk: vector.themes.dark.inkMuted,
+    mutedInk: vector.themes.dark.inkSubtle,
+    line: vector.themes.dark.line,
+    strongLine: vector.themes.dark.lineStrong,
+    focus: vector.themes.dark.focus
   },
   status: {
-    success: "#18794E",
+    success: vector.semantic.success.default,
     successSurface: "#E8F7EF",
-    warning: "#B95C00",
+    warning: vector.semantic.warning.default,
     warningSurface: "#FFF0E2",
-    critical: "#C7322B",
+    critical: vector.semantic.danger.default,
     criticalSurface: "#FDEDEC",
-    info: "#315CFF",
+    info: vector.semantic.info.default,
     infoSurface: "#EEF1FF"
+  },
+  darkStatus: {
+    criticalSurface: vector.semantic.danger.surface,
+    infoSurface: vector.semantic.info.surface,
+    successSurface: vector.semantic.success.surface,
+    warningSurface: vector.semantic.warning.surface
   }
 } as const;
 
 export const mobileSpacing = {
-  micro: 4,
-  compact: 8,
-  inline: 12,
-  default: 16,
-  card: 16,
-  section: 20,
-  major: 24,
-  large: 32
+  micro: vector.spacingPx[2],
+  compact: vector.spacingPx[3],
+  inline: vector.spacingPx[4],
+  default: vector.spacingPx[5],
+  card: vector.spacingPx[5],
+  section: vector.spacingPx[6],
+  major: vector.spacingPx[7],
+  large: vector.spacingPx[8]
 } as const;
 
 export const mobileRadius = {
   chip: 6,
-  control: 8,
-  card: 10,
-  hero: 14,
-  sheet: 20,
-  prominent: 24,
-  full: 999
+  control: vector.radiiPx.control,
+  card: vector.radiiPx.card,
+  hero: vector.radiiPx.panel,
+  sheet: vector.radiiPx.dialog,
+  prominent: vector.radiiPx.marketing,
+  full: vector.radiiPx.pill
 } as const;
 
 export const mobileType = {
@@ -90,7 +102,7 @@ export function mobileFontFamilyForWeight(
   return mobileFontFamily.regular;
 }
 
-export const minimumTouchTarget = 44;
+export const minimumTouchTarget = vector.touch.minimumTargetPx;
 
 export type MobileThemeMode = "dark" | "light";
 export type MobileStatusTone = "critical" | "info" | "neutral" | "success" | "warning";

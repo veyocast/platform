@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import {
   minimumTouchTarget,
+  mobilePalette,
   mobileRadius,
   mobileSpacing
 } from "./tokens";
@@ -50,7 +51,7 @@ export function Button({
     danger: {
       background: theme.colors.critical,
       border: theme.colors.critical,
-      foreground: "#FFFFFF"
+      foreground: mobilePalette.brand.paper
     },
     dangerQuiet: {
       background: theme.colors.criticalSurface,
@@ -65,7 +66,7 @@ export function Button({
     primary: {
       background: theme.colors.action,
       border: theme.colors.action,
-      foreground: "#0A0A0A"
+      foreground: mobilePalette.brand.onAction
     },
     secondary: {
       background: theme.colors.raised,

@@ -451,6 +451,10 @@ importers:
         version: 4.4.3
 
   packages/mobile-design-system:
+    dependencies:
+      '@veyocast/tokens':
+        specifier: workspace:*
+        version: link:../tokens
     devDependencies:
       '@types/react':
         specifier: ~19.2.2

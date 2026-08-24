@@ -56,7 +56,13 @@ import {
   type StudioElement,
   type StudioElementTiming
 } from "@veyocast/studio";
-import { Button, Progress, StatusPill } from "@veyocast/ui";
+import {
+  Button,
+  Progress,
+  ResourcePicker,
+  type ResourcePickerItem,
+  StatusPill
+} from "@veyocast/ui";
 
 import { FloatingPanel } from "../../../_components/floating-panel";
 import {
@@ -891,11 +897,6 @@ function ElementLibrary({
   state: StudioEditorState;
   tenantBrand: WorkspaceProps["tenantBrand"];
 }) {
-  const [query, setQuery] = useState("");
-  const filteredAssets = assets.filter((asset) =>
-    asset.title.toLocaleLowerCase("nl-NL").includes(query.toLocaleLowerCase("nl-NL"))
-  );
-
   function add(
     kind: "text" | "rectangle" | "ellipse" | "icon" | "line" | "qr"
   ) {
@@ -996,6 +997,50 @@ function ElementLibrary({
     });
   }
 
+  const elementResources: ResourcePickerItem[] = [
+    { description: "Bewerkbare tekstlaag", id: "element:text", kind: "element", name: "Tekst", preview: <Type aria-hidden="true" /> },
+    { description: "Gevuld rechthoekig vlak", id: "element:rectangle", kind: "element", name: "Vlak", preview: <Square aria-hidden="true" /> },
+    { description: "Bewerkbare cirkel", id: "element:ellipse", kind: "element", name: "Cirkel", preview: <Circle aria-hidden="true" /> },
+    { description: "Scheidings- of accentlijn", id: "element:line", kind: "element", name: "Lijn", preview: <Minus aria-hidden="true" /> },
+    { description: "Scanbare link voor bezoekers", id: "element:qr", kind: "element", name: "QR-code", preview: <QrCode aria-hidden="true" /> },
+    { description: "Bewerkbaar signage-icoon", id: "element:icon", kind: "element", name: "Icoon", preview: <Star aria-hidden="true" /> }
+  ];
+  const mediaResources: ResourcePickerItem[] = assets.map((asset) => ({
+    description: "Gereedstaande afbeelding uit Media",
+    id: `media:${asset.id}`,
+    kind: "media",
+    name: asset.title,
+    preview: asset.previewUrl ? (
+      // Signed URLs come from the tenant-scoped server read.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img alt="" src={asset.previewUrl} />
+    ) : (
+      <ImageIcon aria-hidden="true" />
+    ),
+    status: { label: "Gereed", tone: "success" }
+  }));
+
+  function addResource(item: ResourcePickerItem) {
+    if (!canEdit) return;
+    if (item.kind === "media") {
+      const asset = assets.find((candidate) => `media:${candidate.id}` === item.id);
+      if (asset) addImage(asset);
+      return;
+    }
+    if (item.kind !== "element") return;
+    const kind = item.id.replace("element:", "");
+    if (
+      kind === "text" ||
+      kind === "rectangle" ||
+      kind === "ellipse" ||
+      kind === "line" ||
+      kind === "qr" ||
+      kind === "icon"
+    ) {
+      add(kind);
+    }
+  }
+
   return (
     <div className={styles.library}>
       <div className={styles.panelTitle}>
@@ -1004,32 +1049,19 @@ function ElementLibrary({
           <p>Voeg bewerkbare lagen toe.</p>
         </div>
       </div>
-      <div className={styles.elementButtons}>
-        <button disabled={!canEdit} onClick={() => add("text")} type="button">
-          <Type aria-hidden="true" />
-          Tekst
-        </button>
-        <button disabled={!canEdit} onClick={() => add("rectangle")} type="button">
-          <Square aria-hidden="true" />
-          Vlak
-        </button>
-        <button disabled={!canEdit} onClick={() => add("ellipse")} type="button">
-          <Circle aria-hidden="true" />
-          Cirkel
-        </button>
-        <button disabled={!canEdit} onClick={() => add("line")} type="button">
-          <Minus aria-hidden="true" />
-          Lijn
-        </button>
-        <button disabled={!canEdit} onClick={() => add("qr")} type="button">
-          <QrCode aria-hidden="true" />
-          QR-code
-        </button>
-        <button disabled={!canEdit} onClick={() => add("icon")} type="button">
-          <Star aria-hidden="true" />
-          Icoon
-        </button>
-      </div>
+      <ResourcePicker
+        description="Kies een bewerkbaar element of een gereedstaande afbeelding. Eén zoek- en filterpatroon werkt in heel Studio."
+        items={[...elementResources, ...mediaResources]}
+        kinds={["element", "media"]}
+        onSelect={addResource}
+        title="Element of media toevoegen"
+        trigger={
+          <Button disabled={!canEdit} variant="secondary">
+            <Sparkles aria-hidden="true" />
+            Element of media toevoegen
+          </Button>
+        }
+      />
       {tenantBrand ? (
         <section className={styles.brandKit} aria-label={`${tenantBrand.name} huisstijl`}>
           <div className={styles.panelTitle}>
@@ -1078,39 +1110,9 @@ function ElementLibrary({
       <div className={styles.panelTitle}>
         <div>
           <h2>Media</h2>
-          <p>Alleen gereedstaande afbeeldingen.</p>
+          <p>{assets.length} gereedstaande afbeeldingen beschikbaar via de bronkiezer.</p>
         </div>
         <Link href="/dashboard/media?upload=1">Uploaden</Link>
-      </div>
-      <input
-        aria-label="Media zoeken"
-        className={styles.compactInput}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Zoek media"
-        type="search"
-        value={query}
-      />
-      <div className={styles.assetGrid}>
-        {filteredAssets.map((asset) => (
-          <button
-            disabled={!canEdit}
-            key={asset.id}
-            onClick={() => addImage(asset)}
-            type="button"
-          >
-            {asset.previewUrl ? (
-              // Signed URLs come from the tenant-scoped server read.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img alt="" src={asset.previewUrl} />
-            ) : (
-              <ImageIcon aria-hidden="true" />
-            )}
-            <span>{asset.title}</span>
-          </button>
-        ))}
-        {!filteredAssets.length ? (
-          <p className={styles.mutedText}>Geen passende media gevonden.</p>
-        ) : null}
       </div>
     </div>
   );

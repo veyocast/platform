@@ -16,6 +16,9 @@ Control, Marketing and Player setup states.
   `CardContent`.
 - Resource pages: `PageHeader`, `Toolbar`, `FilterBar`, `DataTable`, `Inspector`,
   `ResourceState` and the compatibility `StatusPill`.
+- Vector workflows: `CommandBar`, `SegmentedControl`, `JourneyShell`,
+  `StickyActionBar`, `HealthBadge`, `ScreenSnapshot`, `UnifiedFilterDock` and
+  `ResourcePicker`.
 
 ## Usage
 
@@ -65,6 +68,26 @@ because color and dots must never be the only status signal.
 The Control auditlog is the first production route using this complete shared
 table/state contract. Media, Playlist and Screen workspaces adopt it in S24-S27
 rather than maintaining local forks.
+
+## Vector v2 workflow contract
+
+- `UnifiedFilterDock` is the Vector name for the established URL-backed
+  `FilterBar`; it deliberately wraps that contract during the incremental
+  rollout.
+- `ResourcePicker` is the only nieuwe discoverydialog voor media, slides,
+  templates, elementen, dynamische bronnen en integratieassets. Editors leveren
+  uitsluitend tenant-scoped, server-authorized items aan de picker.
+- `JourneyShell` houdt stapstatus, hoofdinhoud, acties en een eventuele live
+  preview bijeen. Op mobiel verhuist de preview boven de stapinhoud.
+- `CommandBar` groepeert zoeken, status en routeacties zonder capabilities te
+  verlenen; de server blijft verantwoordelijk voor autorisatie.
+- `ScreenSnapshot` heeft expliciete landscape/portraitgeometrie en een
+  tekstfallback wanneer nog geen beeld beschikbaar is.
+
+Compatibilityverwijderpad: `FilterBar`, bestaande `Toolbar` en `StatusPill`
+blijven ondersteund totdat alle Control-, Media-, Studio- en Publisherroutes de
+Vectornamen gebruiken en hun volledige E2E/visual matrix groen is. Daarna volgt
+een afzonderlijke deprecatie-PR; deze sprint verwijdert geen werkend contract.
 
 ## Local Checks
 

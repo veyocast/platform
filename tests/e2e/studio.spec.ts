@@ -88,7 +88,15 @@ test("desktop Studio editor supports editing, preview and revision inspection", 
   await expect(layerMenu).not.toBeVisible();
   await expect(layerActionTrigger).toBeFocused();
 
-  await page.getByRole("button", { exact: true, name: "Tekst" }).click();
+  await page.getByRole("button", { name: "Element of media toevoegen" }).click();
+  const resourcePicker = page.getByRole("dialog", {
+    name: "Element of media toevoegen"
+  });
+  await expect(resourcePicker).toBeVisible();
+  await expect(resourcePicker.getByRole("tab", { name: /Elementen/ })).toBeVisible();
+  await expect(resourcePicker.getByRole("tab", { name: /Media/ })).toBeVisible();
+  await resourcePicker.getByRole("button", { name: /Tekst/ }).click();
+  await expect(resourcePicker).not.toBeVisible();
   await expect(page.getByRole("button", { name: "Ongedaan maken" })).toBeEnabled();
   await expect(page.locator('input[value="Nieuwe tekst"]')).toBeVisible();
 

@@ -68,14 +68,18 @@ a {
 
 .control-shell {
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns:
+    var(--vc-vector-layout-rail-expanded-px, 248px)
+    minmax(0, 1fr);
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
 }
 
 .control-shell--collapsed {
-  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-columns:
+    var(--vc-vector-layout-rail-collapsed-px, 72px)
+    minmax(0, 1fr);
 }
 
 .control-nav-backdrop {

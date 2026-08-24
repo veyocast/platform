@@ -39,10 +39,10 @@ function createTheme(mode: MobileThemeMode): MobileTheme {
   const statusSurfaces =
     mode === "dark"
       ? {
-          critical: "#2A1716",
-          info: "#18203D",
-          success: "#13261D",
-          warning: "#2A2015"
+          critical: mobilePalette.darkStatus.criticalSurface,
+          info: mobilePalette.darkStatus.infoSurface,
+          success: mobilePalette.darkStatus.successSurface,
+          warning: mobilePalette.darkStatus.warningSurface
         }
       : {
           critical: mobilePalette.status.criticalSurface,
