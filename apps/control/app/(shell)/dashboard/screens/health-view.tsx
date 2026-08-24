@@ -3,7 +3,7 @@ import { Activity, HardDrive, Monitor, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 
 import { deriveScreenHealth } from "../../../../lib/screen-health";
-import type { ScreenFleetData } from "./data";
+import type { ScreenFleetData } from "./screen-types";
 import styles from "./venue-view.module.css";
 
 export function HealthView({ data }: { data: ScreenFleetData }) {

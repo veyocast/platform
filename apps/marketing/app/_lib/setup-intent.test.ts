@@ -21,12 +21,12 @@ const validInput = {
 } as const;
 
 describe("venue setup intent", () => {
-  it("roundtrips a signed, price-derived intent", () => {
+  it("roundtrips a signed, price-derived intent", async () => {
     const input = parseSetupIntentInput(validInput);
     expect(input).not.toBeNull();
 
-    const payload = verifySetupIntentToken(
-      createSetupIntentToken(input!, secret, now),
+    const payload = await verifySetupIntentToken(
+      await createSetupIntentToken(input!, secret, now),
       secret,
       now
     );
@@ -40,20 +40,22 @@ describe("venue setup intent", () => {
     });
   });
 
-  it("rejects tampering, expiry and a different secret", () => {
+  it("rejects tampering, expiry and a different secret", async () => {
     const input = parseSetupIntentInput(validInput)!;
-    const token = createSetupIntentToken(input, secret, now);
+    const token = await createSetupIntentToken(input, secret, now);
     const [payload, signature] = token.split(".");
 
-    expect(verifySetupIntentToken(`${payload}x.${signature}`, secret, now)).toBeNull();
+    await expect(verifySetupIntentToken(`${payload}x.${signature}`, secret, now)).resolves.toBeNull();
     expect(
-      verifySetupIntentToken(
+      await verifySetupIntentToken(
         token,
         "another-test-only-secret-that-is-long-enough-123",
         now
       )
     ).toBeNull();
-    expect(verifySetupIntentToken(token, secret, now + 24 * 60 * 60 * 1_000 + 1_000)).toBeNull();
+    await expect(
+      verifySetupIntentToken(token, secret, now + 24 * 60 * 60 * 1_000 + 1_000)
+    ).resolves.toBeNull();
   });
 
   it("rejects fractional counts, duplicate zones and empty venues", () => {
@@ -79,14 +81,16 @@ describe("venue setup intent", () => {
     ).toBeNull();
   });
 
-  it("rejects a token whose signed derived price was forged", () => {
+  it("rejects a token whose signed derived price was forged", async () => {
     const input = parseSetupIntentInput(validInput)!;
-    const token = createSetupIntentToken(input, secret, now);
+    const token = await createSetupIntentToken(input, secret, now);
     const [encoded] = token.split(".");
     const payload = JSON.parse(Buffer.from(encoded!, "base64url").toString("utf8"));
     payload.grossMonthlyCents = 1;
 
     const forgedPayload = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
-    expect(verifySetupIntentToken(`${forgedPayload}.${token.split(".")[1]}`, secret, now)).toBeNull();
+    await expect(
+      verifySetupIntentToken(`${forgedPayload}.${token.split(".")[1]}`, secret, now)
+    ).resolves.toBeNull();
   });
 });

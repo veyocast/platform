@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Button, ResourcePicker, type ResourcePickerItem } from "@veyocast/ui";
 
-import type { ScreenFleetData } from "./data";
+import type { ScreenFleetData } from "./screen-types";
 import { createVenueFloorplan } from "./venue-actions";
 import styles from "./venue-view.module.css";
 

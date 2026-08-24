@@ -5,9 +5,9 @@ import { marketingPages, getMarketingPage } from "../_content/pages";
 import { SeoPageShell } from "../_components/seo-page";
 import { canonicalUrl, isPublicIndexEnvironment } from "../_lib/site-config";
 import {
-  setupIntentSigningSecret,
   verifySetupIntentToken
 } from "../_lib/setup-intent";
+import { setupIntentSigningSecret } from "../_lib/setup-intent.server";
 
 type RouteProps = {
   params: Promise<{ slug: string[] }>;
@@ -61,7 +61,7 @@ export default async function MarketingContentPage({ params, searchParams }: Rou
 
   const rawToken = page.kind === "demo" && typeof query.setup === "string" ? query.setup : null;
   const secret = rawToken ? setupIntentSigningSecret() : null;
-  const setupIntent = rawToken && secret ? verifySetupIntentToken(rawToken, secret) : null;
+  const setupIntent = rawToken && secret ? await verifySetupIntentToken(rawToken, secret) : null;
   const setupStatus =
     page.kind === "demo" &&
     (query.setup_status === "unavailable" || (rawToken && !setupIntent))

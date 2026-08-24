@@ -8,7 +8,7 @@ import {
   onboardingSetupCookieName,
   validateRegistrationInput
 } from "../../lib/onboarding-contract";
-import { setupIntentSigningSecret } from "@veyocast/auth/setup-intent";
+import { setupIntentSigningSecret } from "../../lib/setup-intent.server";
 import { getControlRuntimeMode } from "../../lib/supabase/config";
 import { createControlSupabaseClient } from "../../lib/supabase/server";
 
@@ -30,7 +30,7 @@ export async function registerAccount(formData: FormData) {
   const setupToken = String(formData.get("setup") ?? "").trim();
   const signingSecret = setupIntentSigningSecret();
   if (setupToken) {
-    if (!signingSecret || !verifySetupIntentToken(setupToken, signingSecret)) {
+    if (!signingSecret || !await verifySetupIntentToken(setupToken, signingSecret)) {
       redirect("/register?fout=opstelling");
     }
     cookieStore.set(onboardingSetupCookieName, setupToken, {

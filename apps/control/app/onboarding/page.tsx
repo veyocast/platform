@@ -9,7 +9,8 @@ import {
   onboardingSetupCookieName,
   onboardingSourceKeys
 } from "../../lib/onboarding-contract";
-import { setupIntentSigningSecret, verifySetupIntentToken } from "@veyocast/auth/setup-intent";
+import { verifySetupIntentToken } from "@veyocast/auth/setup-intent";
+import { setupIntentSigningSecret } from "../../lib/setup-intent.server";
 import { createControlSupabaseClient } from "../../lib/supabase/server";
 import {
   provisionOnboardingTenant,
@@ -114,7 +115,7 @@ async function OrganizationClaim({ error }: Readonly<{ error?: string }>) {
   const cookieStore = await cookies();
   const setupToken = cookieStore.get(onboardingSetupCookieName)?.value;
   const secret = setupIntentSigningSecret();
-  const setup = setupToken && secret ? verifySetupIntentToken(setupToken, secret) : null;
+  const setup = setupToken && secret ? await verifySetupIntentToken(setupToken, secret) : null;
   const defaultOrganizationType = setup?.branch ?? "sportclub";
   const defaultUseCase = defaultOrganizationType === "sportclub"
     ? "club_communication"

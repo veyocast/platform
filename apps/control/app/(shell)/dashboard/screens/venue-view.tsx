@@ -3,7 +3,7 @@ import { Button, StatusPill } from "@veyocast/ui";
 import { Building2, MapPin, Monitor, Plus, ScanLine } from "lucide-react";
 import Link from "next/link";
 
-import type { ScreenFleetData } from "./data";
+import type { ScreenFleetData } from "./screen-types";
 import {
   createVenue,
   createVenueZone,

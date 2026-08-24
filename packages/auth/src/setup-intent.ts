@@ -1,5 +1,3 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 import {
   calculateMonthlyScreenPriceGrossCents,
   VEYOCAST_SCREEN_PRICE_GROSS_CENTS
@@ -96,18 +94,38 @@ export function parseSetupIntentJson(value: string) {
 }
 
 function assertSigningSecret(secret: string) {
-  if (Buffer.byteLength(secret, "utf8") < 32) {
+  if (new TextEncoder().encode(secret).byteLength < 32) {
     throw new Error("Setup intent signing secret must contain at least 32 bytes");
   }
 }
 
-function signatureFor(encodedPayload: string, secret: string) {
-  return createHmac("sha256", secret)
-    .update(`veyocast-setup-intent-v1.${encodedPayload}`)
-    .digest("base64url");
+function encodeBase64Url(bytes: Uint8Array) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/u, "");
 }
 
-export function createSetupIntentToken(
+function decodeBase64Url(value: string) {
+  const padding = "=".repeat((4 - value.length % 4) % 4);
+  const binary = atob(value.replaceAll("-", "+").replaceAll("_", "/") + padding);
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+}
+
+async function signingKey(secret: string, usage: "sign" | "verify") {
+  return globalThis.crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { hash: "SHA-256", name: "HMAC" },
+    false,
+    [usage]
+  );
+}
+
+function signedMessage(encodedPayload: string) {
+  return new TextEncoder().encode(`veyocast-setup-intent-v1.${encodedPayload}`);
+}
+
+export async function createSetupIntentToken(
   input: SetupIntentInput,
   secret: string,
   now = Date.now()
@@ -124,24 +142,33 @@ export function createSetupIntentToken(
     screenCount,
     version: 1
   };
-  const encodedPayload = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
-  return `${encodedPayload}.${signatureFor(encodedPayload, secret)}`;
+  const encodedPayload = encodeBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
+  const signature = await globalThis.crypto.subtle.sign(
+    "HMAC",
+    await signingKey(secret, "sign"),
+    signedMessage(encodedPayload)
+  );
+  return `${encodedPayload}.${encodeBase64Url(new Uint8Array(signature))}`;
 }
 
-export function verifySetupIntentToken(
+export async function verifySetupIntentToken(
   token: string,
   secret: string,
   now = Date.now()
-): SetupIntentPayload | null {
+): Promise<SetupIntentPayload | null> {
   try {
     assertSigningSecret(secret);
     const [encodedPayload, encodedSignature, extra] = token.split(".");
     if (!encodedPayload || !encodedSignature || extra) return null;
-    const expected = Buffer.from(signatureFor(encodedPayload, secret));
-    const received = Buffer.from(encodedSignature);
-    if (expected.length !== received.length || !timingSafeEqual(expected, received)) return null;
+    const validSignature = await globalThis.crypto.subtle.verify(
+      "HMAC",
+      await signingKey(secret, "verify"),
+      decodeBase64Url(encodedSignature),
+      signedMessage(encodedPayload)
+    );
+    if (!validSignature) return null;
 
-    const raw = JSON.parse(Buffer.from(encodedPayload, "base64url").toString("utf8")) as unknown;
+    const raw = JSON.parse(new TextDecoder().decode(decodeBase64Url(encodedPayload))) as unknown;
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
     const payload = raw as Record<string, unknown>;
     const input = parseSetupIntentInput(payload);
@@ -178,11 +205,4 @@ export function verifySetupIntentToken(
   } catch {
     return null;
   }
-}
-
-export function setupIntentSigningSecret() {
-  const value =
-    process.env.VEYOCAST_SETUP_INTENT_SIGNING_SECRET ??
-    process.env.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY;
-  return value && Buffer.byteLength(value, "utf8") >= 32 ? value : null;
 }

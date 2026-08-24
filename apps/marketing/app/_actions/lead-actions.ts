@@ -1,9 +1,9 @@
 "use server";
 
 import {
-  setupIntentSigningSecret,
   verifySetupIntentToken
 } from "../_lib/setup-intent";
+import { setupIntentSigningSecret } from "../_lib/setup-intent.server";
 
 export type LeadFormState = {
   errors: Record<string, string>;
@@ -49,7 +49,7 @@ export async function submitLeadForm(
   }
   if (setupIntentToken) {
     const secret = setupIntentSigningSecret();
-    if (!secret || !verifySetupIntentToken(setupIntentToken, secret)) {
+    if (!secret || !await verifySetupIntentToken(setupIntentToken, secret)) {
       errors.form = "De meegenomen opstelling is verlopen of ongeldig. Bouw de opstelling opnieuw.";
     }
   }

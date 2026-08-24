@@ -15,7 +15,7 @@ import {
 } from "../../lib/onboarding-contract";
 import { tenantContextCookieName } from "../../lib/tenant-context";
 import { createControlSupabaseClient } from "../../lib/supabase/server";
-import { setupIntentSigningSecret } from "@veyocast/auth/setup-intent";
+import { setupIntentSigningSecret } from "../../lib/setup-intent.server";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -38,7 +38,7 @@ export async function provisionOnboardingTenant(formData: FormData) {
   const setupToken = cookieStore.get(onboardingSetupCookieName)?.value;
   const signingSecret = setupIntentSigningSecret();
   const setupIntent = setupToken && signingSecret
-    ? verifySetupIntentToken(setupToken, signingSecret)
+    ? await verifySetupIntentToken(setupToken, signingSecret)
     : null;
   const sourceKeys = setupIntent?.modules ?? [];
   const { data, error } = await supabase.rpc("provision_self_service_tenant_v1", {
