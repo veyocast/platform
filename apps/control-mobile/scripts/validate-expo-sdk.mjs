@@ -1,6 +1,7 @@
 import { createRequire } from "node:module";
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
@@ -42,10 +43,10 @@ for (const [name, declared] of Object.entries(dependencies)) {
 }
 
 if (failures.length) {
-  console.error("Expo SDK-lockset wijkt af:\n- " + failures.join("\n- "));
+  process.stderr.write("Expo SDK-lockset wijkt af:\n- " + failures.join("\n- ") + "\n");
   process.exit(1);
 }
 
-console.log(
-  `Expo SDK-lockset gevalideerd: expo ${expoManifest.version}, ${Object.keys(bundledModules).length} canonieke moduleversies.`
+process.stdout.write(
+  `Expo SDK-lockset gevalideerd: expo ${expoManifest.version}, ${Object.keys(bundledModules).length} canonieke moduleversies.\n`
 );
