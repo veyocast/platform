@@ -43,6 +43,7 @@ Status: `IN_PROGRESS`
 | `pnpm build` | 18/18 taken groen; Control auth- en secretbundleguards groen |
 | Studio demo browsermatrix | 6/6 groen; desktop, mobiel, keyboard, reduced motion, Journey Shell en RSS-prerequisite |
 | Live RSS production-build | 1/1 groen tegen echte lokale Supabasebron; desktop/mobile Axe nul violations |
+| Live Menu/Twelve production-build | 1/1 groen; categorydialog, alfabetische producten, productgroep, optionele vrije regel, portrait 2-koloms, theme, revisionconflict, immutable publish en mobile Axe |
 
 ## Visueel bewijs
 
@@ -51,6 +52,8 @@ Status: `IN_PROGRESS`
 - `docs/screenshots/vector-v2/studio/sportlink-journey-390x844.png`
 - `docs/screenshots/vector-v2/studio/rss-journey-live-1440x900.png`
 - `docs/screenshots/vector-v2/studio/rss-journey-live-390x844.png`
+- `docs/screenshots/vector-v2/studio/menu-twelve-live-1440x960.png`
+- `docs/screenshots/vector-v2/studio/menu-twelve-live-390x844.png`
 
 De captures zijn handmatig gelezen. De mobiele preview staat bewust vóór het
 formulier, er is geen horizontale overflow, Playerdata is echte fixturedata en
@@ -62,6 +65,6 @@ geen screenshot bevat geheimen of klantdata.
   documentschema en de frame-renderbackend. Bestaande Menu Studio-video en
   gegenereerde Studio-MP4-output werken wel; deze twee capabilities worden niet
   ten onrechte als vrije canvasvideo gepresenteerd.
-- De Menu/Twelve Journey heeft nog een live XLSX-catalogusreadback nodig in de
-  Vector-bewijsmatrix. De bestaande resolver-/Playertests blijven groen.
-
+- De live Twelve-readback is groen. De test herlaadt de desktoprevision na een
+  mobiele wijziging voordat hij publiceert; daarmee wordt de revisionguard
+  bewezen in plaats van omzeild.

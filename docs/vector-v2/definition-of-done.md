@@ -276,7 +276,7 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Sportlink, RSS/nieuws en Menu/Twelve flows delen Journey Shell.
   - Trace: Status=DONE; Implementation=shared `JourneyShell` in alle drie authoringroutes; Evidence=Journey browser 2/2 en live RSS 1/1; Gate owner/date=—
 - [ ] Menu Studio toont correcte category/product/availability/price preview uit XLSX-data.
-  - Trace: Status=IN_PROGRESS; Implementation=bestaande MenuDocument/Twelve resolver en shared Menu Journey; Evidence=contracts/domain/templates/worker groen; Gate owner/date=live XLSX-catalogusreadback volgt in fase 6
+  - Trace: Status=DONE; Implementation=MenuDocument/Twelve resolver en shared Menu Journey; Evidence=live category/product/group/price/portrait/theme/mobile/publishflow en `menu-twelve-live-*`; Gate owner/date=—
 - [ ] Dynamische templates renderen op landscape én portrait binnen grenzen.
   - Trace: Status=DONE; Implementation=shared Editorial Arena/Menu renderer en orientation-aware viewportfit; Evidence=templates 40, Player 153 en desktop/mobile previewcaptures; Gate owner/date=—
 

@@ -162,6 +162,6 @@ Zie `docs/vector-v2/evidence/phase-5-media-resource-picker.md`.
 Fase 6 heeft de gedeelde Journey Shell voor Menu, Sportlink en RSS, de weer
 bereikbare echte RSS-authoringroute, gedeelde themekeuze en een expliciete
 reduced-motion Studio-preview opgeleverd. Workspacegates, zes demo-browserflows
-en één echte Supabase-RSS-flow zijn groen. Vrije canvasvideo en de live
-Twelve-readback blijven binnen deze fase open. Zie
+en echte Supabase-RSS- en Twelve/Menu-flows zijn groen. Vrije canvasvideo blijft
+binnen deze fase open. Zie
 `docs/vector-v2/evidence/phase-6-studio-dynamic.md`.

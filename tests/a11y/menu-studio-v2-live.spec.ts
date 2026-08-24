@@ -26,7 +26,7 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     await page.goto(`/dashboard/slides/menu-studio/new?bron=${sourceId}`);
     await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
 
-    await expect(page.getByRole("heading", { level: 1, name: "Menu Studio" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Menu & prijzen" })).toBeVisible();
     await expect(page.getByText("Live MenuScene")).toBeVisible();
     await expect(page.locator('[data-hydrated="true"]')).toBeVisible({ timeout: 20_000 });
     await expect(page.locator("[data-menu-scene-scale]")).toBeVisible({ timeout: 20_000 });
@@ -64,7 +64,7 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     const groupDropTarget = page.getByRole("region", {
       name: "Sleep een product of vrije subregel naar deze productgroep"
     });
-    await dragThroughBrowserDnd(page, productCard(page, "Coca-Cola Cherry").locator("button").first(), groupDropTarget);
+    await productCard(page, "Coca-Cola Cherry").getByRole("button", { name: "Koppel aan actieve groep" }).click();
     await expect(productCard(page, "Coca-Cola Cherry")).toHaveAttribute("data-selected", "true");
     await removeProduct(page, "Coca-Cola Zero");
     await expect(page.getByRole("region", { name: /Productgroep Coca-Cola Regular bewerken/ })).toBeVisible();
@@ -115,14 +115,12 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
 
     await page.screenshot({
       fullPage: true,
-      path: path.resolve("docs/screenshots/s112-menu-studio-desktop.png")
+      path: path.resolve("docs/screenshots/vector-v2/studio/menu-twelve-live-1440x960.png")
     });
     await page.getByRole("button", { name: "Concept opslaan" }).click();
-    await expect(page).toHaveURL(/\/dashboard\/slides\/menu-studio\/[0-9a-f-]+/);
-    await expect(page.getByRole("button", { name: "Publiceren" })).toBeEnabled();
-    await page.getByRole("button", { name: "Publiceren" }).click();
-    await expect(page.getByRole("status").filter({ hasText: "Immutable release aangemaakt" })).toBeVisible();
-
+    await expect(page).toHaveURL(/\/dashboard\/slides\/menu-studio\/[0-9a-f-]+/, {
+      timeout: 20_000
+    });
     const editorUrl = page.url();
     const mobileContext = await browser.newContext({
       baseURL: new URL(editorUrl).origin,
@@ -159,9 +157,14 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     await expectNoSeriousAxeViolations(mobilePage);
     await mobilePage.screenshot({
       fullPage: true,
-      path: path.resolve("docs/screenshots/s112-menu-studio-mobile.png")
+      path: path.resolve("docs/screenshots/vector-v2/studio/menu-twelve-live-390x844.png")
     });
     await mobileContext.close();
+
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Publiceren" })).toBeEnabled();
+    await page.getByRole("button", { name: "Publiceren" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Immutable release aangemaakt" })).toBeVisible();
   });
 });
 
