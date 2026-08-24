@@ -299,6 +299,7 @@ export function StudioKonvaCanvas({
                   documentWidth={document.artboard.width}
                   element={element}
                   key={element.id}
+                  playheadMs={reducedMotion ? 0 : playheadMs}
                   transform={transform}
                   visibleText={visibleText}
                 />
@@ -344,6 +345,7 @@ function CanvasElement({
   documentHeight,
   documentWidth,
   element,
+  playheadMs,
   transform,
   visibleText
 }: {
@@ -353,6 +355,7 @@ function CanvasElement({
   documentHeight: number;
   documentWidth: number;
   element: Exclude<StudioElement, { type: "group" }>;
+  playheadMs: number;
   transform: ReturnType<typeof evaluateStudioFrame>[number]["transform"];
   visibleText: string | undefined;
 }) {
@@ -482,6 +485,18 @@ function CanvasElement({
         focusY={element.focusY}
         objectFit={element.objectFit}
         url={asset?.previewUrl ?? null}
+      />
+    );
+  }
+  if (element.type === "video") {
+    return (
+      <RemoteVideo
+        common={common}
+        focusX={element.focusX}
+        focusY={element.focusY}
+        objectFit={element.objectFit}
+        timeMs={element.startOffsetMs + playheadMs}
+        url={asset?.sourceUrl ?? null}
       />
     );
   }
@@ -637,11 +652,102 @@ function RemoteImage({
   );
 }
 
+function RemoteVideo({
+  common,
+  focusX,
+  focusY,
+  objectFit,
+  timeMs,
+  url
+}: {
+  common: Record<string, unknown>;
+  focusX: number;
+  focusY: number;
+  objectFit: "contain" | "cover";
+  timeMs: number;
+  url: string | null;
+}) {
+  const imageRef = useRef<Konva.Image>(null);
+  const [ready, setReady] = useState(false);
+  const [video, setVideo] = useState<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    if (!url) {
+      setReady(false);
+      setVideo(null);
+      return;
+    }
+    const next = document.createElement("video");
+    next.crossOrigin = "anonymous";
+    next.muted = true;
+    next.playsInline = true;
+    next.preload = "auto";
+    next.src = url;
+    setReady(false);
+    const draw = () => {
+      setReady(true);
+      imageRef.current?.getLayer()?.batchDraw();
+    };
+    next.addEventListener("loadeddata", draw);
+    next.addEventListener("seeked", draw);
+    setVideo(next);
+    return () => {
+      next.removeEventListener("loadeddata", draw);
+      next.removeEventListener("seeked", draw);
+      next.pause();
+      next.removeAttribute("src");
+      next.load();
+    };
+  }, [url]);
+  useEffect(() => {
+    if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
+    const target = (timeMs / 1_000) % video.duration;
+    if (Math.abs(video.currentTime - target) > 0.04) video.currentTime = target;
+  }, [ready, timeMs, video]);
+  if (!ready || !video || !video.videoWidth || !video.videoHeight) {
+    return <Rect {...common} fill="#222222" stroke="#666666" />;
+  }
+  const width = Number(common.width);
+  const height = Number(common.height);
+  const scale = objectFit === "cover"
+    ? Math.max(width / video.videoWidth, height / video.videoHeight)
+    : Math.min(width / video.videoWidth, height / video.videoHeight);
+  if (objectFit === "contain") {
+    const fittedWidth = video.videoWidth * scale;
+    const fittedHeight = video.videoHeight * scale;
+    return (
+      <KonvaImage
+        {...common}
+        height={fittedHeight}
+        image={video}
+        offsetX={fittedWidth / 2}
+        offsetY={fittedHeight / 2}
+        ref={imageRef}
+        width={fittedWidth}
+      />
+    );
+  }
+  const cropWidth = width / scale;
+  const cropHeight = height / scale;
+  return (
+    <KonvaImage
+      {...common}
+      crop={{
+        height: cropHeight,
+        width: cropWidth,
+        x: (video.videoWidth - cropWidth) * focusX,
+        y: (video.videoHeight - cropHeight) * focusY
+      }}
+      image={video}
+      ref={imageRef}
+    />
+  );
+}
+
 function assetForElement(
   assets: StudioMediaAsset[],
   element: StudioElement
 ) {
-  return element.type === "image"
+  return element.type === "image" || element.type === "video"
     ? assets.find((asset) => asset.id === element.mediaAssetId) ?? null
     : null;
 }

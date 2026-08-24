@@ -22,6 +22,7 @@ import {
 } from "../src/studio-render-runner";
 import {
   buildStudioMp4Arguments,
+  buildStudioPosterArguments,
   inspectMp4FastStart,
   parseStudioVideoProbe,
   validateStudioVideoProbe
@@ -57,6 +58,43 @@ describe("Studio render validators and safety bounds", () => {
       "/tmp/output with spaces.mp4"
     ]));
     expect(args).not.toContain("-nostdin");
+  });
+
+  it("composes a local muted source video beneath the RGBA overlay", () => {
+    const backgroundVideo = {
+      focusX: 0.25,
+      focusY: 0.75,
+      objectFit: "cover" as const,
+      path: "/tmp/source with spaces.mp4",
+      startOffsetMs: 1_500
+    };
+    const args = buildStudioMp4Arguments({
+      backgroundVideo,
+      frameCount: 300,
+      height: 1080,
+      outputPath: "/tmp/output.mp4",
+      width: 1920
+    });
+    expect(args).toEqual(expect.arrayContaining([
+      "-stream_loop", "-1",
+      "-ss", "1.500",
+      "-i", backgroundVideo.path,
+      "-filter_complex",
+      expect.stringContaining("[studio_bg][1:v]overlay"),
+      "-map", "[studio_out]",
+      "-an"
+    ]));
+    expect(args.join(" ")).not.toContain("http");
+    expect(buildStudioPosterArguments({
+      backgroundVideo,
+      height: 1080,
+      outputPath: "/tmp/poster.png",
+      width: 1920
+    })).toEqual(expect.arrayContaining([
+      "-frames:v", "1",
+      "-f", "image2",
+      "/tmp/poster.png"
+    ]));
   });
 
   it("validates exact codec, dimensions, fps, duration and frame count", () => {

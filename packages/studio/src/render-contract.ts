@@ -31,7 +31,7 @@ export const studioRenderRequestSchema = z.object({
     mediaAssetId: z.string().uuid(),
     storagePath: z.string().min(1).max(1_024),
     checksumSha256: z.string().regex(/^[a-f0-9]{64}$/),
-    mimeType: z.enum(["image/jpeg", "image/png", "image/webp"])
+    mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "video/mp4"])
   })).max(200)
 });
 

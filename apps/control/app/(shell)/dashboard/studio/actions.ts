@@ -635,7 +635,9 @@ function referencedAssetIds(document: StudioDocument) {
   return [
     ...new Set(
       document.elements.flatMap((element) =>
-        element.type === "image" ? [element.mediaAssetId] : []
+        element.type === "image" || element.type === "video"
+          ? [element.mediaAssetId]
+          : []
       )
     )
   ];

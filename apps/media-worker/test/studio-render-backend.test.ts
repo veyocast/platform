@@ -96,6 +96,79 @@ describe("Studio render backend", () => {
     }]);
   });
 
+  it("maps a validated player video variant to the immutable background element", () => {
+    const sourceAssetId = "60000000-0000-4000-8000-000000000006";
+    const withVideo = parseStudioDocument({
+      ...document,
+      artboard: {
+        ...document.artboard,
+        background: { kind: "transparent" }
+      },
+      elements: [{
+        alt: "Stadionpubliek",
+        focusX: 0.5,
+        focusY: 0.5,
+        height: 1080,
+        id: "venue-video",
+        locked: true,
+        loop: true,
+        mediaAssetId: sourceAssetId,
+        muted: true,
+        name: "Stadion · achtergrond",
+        objectFit: "cover",
+        opacity: 1,
+        rotation: 0,
+        startOffsetMs: 1_000,
+        type: "video",
+        variant: "player_1080p",
+        visible: true,
+        width: 1920,
+        x: 0,
+        y: 0,
+        zIndex: 0
+      }]
+    });
+    const path =
+      `tenants/${ids.tenant}/assets/${sourceAssetId}/variants/player-1080p.mp4`;
+    const parsed = parseClaimedStudioRenderJob({
+      ...claimPayload(),
+      assets_json: [{
+        assetId: sourceAssetId,
+        bucket: "tenant-media",
+        checksumSha256: "d".repeat(64),
+        durationSeconds: 12,
+        height: 1080,
+        mimeType: "video/mp4",
+        path,
+        width: 1920
+      }],
+      document_json: withVideo
+    });
+    expect(parsed.assetManifest).toEqual([{
+      checksumSha256: "d".repeat(64),
+      elementId: "venue-video",
+      mediaAssetId: sourceAssetId,
+      mimeType: "video/mp4",
+      storagePath: path
+    }]);
+    expect(() => parseClaimedStudioRenderJob({
+      ...claimPayload(),
+      assets_json: [{
+        assetId: sourceAssetId,
+        bucket: "tenant-media",
+        checksumSha256: "d".repeat(64),
+        durationSeconds: null,
+        height: 1080,
+        mimeType: "video/mp4",
+        path,
+        width: 1920
+      }],
+      document_json: withVideo
+    })).toThrowError(expect.objectContaining({
+      code: "studio_claim_payload_invalid"
+    }));
+  });
+
   it("uses the exact claim and monotone status RPC contracts", async () => {
     const rpc = vi.fn<StudioRenderRpcClient["rpc"]>()
       .mockResolvedValueOnce({ data: [claimPayload()], error: null })

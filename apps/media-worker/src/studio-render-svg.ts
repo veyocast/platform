@@ -175,6 +175,7 @@ function renderElementDefinitions(element: StudioElement) {
       "</clipPath>"
     ].join(""));
   }
+  if (element.type === "video") return definitions;
   return definitions;
 }
 
@@ -188,6 +189,8 @@ function renderElement(
       return renderText(element, textProgress);
     case "image":
       return renderImage(element, requireSafeAssetSource(element, assetSource));
+    case "video":
+      return "";
     case "shape":
       return renderShape(element);
     case "icon":

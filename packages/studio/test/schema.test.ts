@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createEmptyStudioDocument,
   getStudioSystemTemplate,
+  parseStudioDocument,
   safeParseStudioDocument,
   studioSystemTemplates
 } from "../src";
@@ -76,5 +77,52 @@ describe("Studio-documentcontract", () => {
       ]
     };
     expect(safeParseStudioDocument(grouped).success).toBe(true);
+  });
+
+  it("begrenst bronvideo tot één vergrendelde full-canvas achtergrond", () => {
+    const empty = createEmptyStudioDocument("portrait-hd");
+    const video = {
+      alt: "Sfeerbeeld clubhuis",
+      focusX: 0.5,
+      focusY: 0.5,
+      height: 1920,
+      id: "venue-video",
+      locked: true,
+      loop: true,
+      mediaAssetId: "10000000-0000-4000-8000-000000000001",
+      muted: true,
+      name: "Clubhuis · achtergrond",
+      objectFit: "cover",
+      opacity: 1,
+      rotation: 0,
+      startOffsetMs: 500,
+      type: "video",
+      variant: "player_1080p",
+      visible: true,
+      width: 1080,
+      x: 0,
+      y: 0,
+      zIndex: 0
+    } as const;
+    const document = parseStudioDocument({
+      ...empty,
+      artboard: { ...empty.artboard, background: { kind: "transparent" } },
+      elements: [video]
+    });
+    expect(document.elements[0]).toMatchObject({
+      mediaAssetId: video.mediaAssetId,
+      type: "video"
+    });
+    expect(safeParseStudioDocument({
+      ...document,
+      elements: [video, { ...video, id: "second-video", zIndex: 1 }]
+    }).success).toBe(false);
+    expect(safeParseStudioDocument({
+      ...document,
+      artboard: {
+        ...document.artboard,
+        background: { color: "#0A0A0A", kind: "solid" }
+      }
+    }).success).toBe(false);
   });
 });

@@ -256,11 +256,11 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Tools, media/elements, layers, inspector, slide strip/timeline en preview zijn coherent.
   - Trace: Status=DONE; Implementation=`studio-editor-workspace.tsx`, Resource Picker en mobiele quick edit; Evidence=Studio demo browser 6/6 en Media phase-5 pickerbewijs; Gate owner/date=—
 - [ ] Tekst, image, video, shape, logo, icon en QR werken volgens contracts.
-  - Trace: Status=IN_PROGRESS; Implementation=strict text/image/shape/placeholder-logo/icon/QR-schema en renderer; Evidence=Studio 15 + worker 85 tests; Gate owner/date=vrije canvasvideo ontbreekt nog, Menu-video en MP4-output zijn afzonderlijk wel actief
+  - Trace: Status=DONE; Implementation=strict text/image/video/shape/placeholder-logo/icon/QR-schema, signed preview en lokale workercompositor; Evidence=Studio 16 + worker 87 tests, verse reset en 1.160 RLS-assertions; Gate owner/date=production-image FFmpeg-smoke herhaald in fase 13
 - [ ] Theme, data en motion controls gebruiken gedeelde patterns.
   - Trace: Status=DONE; Implementation=shared ThemePicker/Journey Shell, dataflows en motiontab; Evidence=Journey 2/2, RSS live 1/1 en Studio browser; Gate owner/date=—
 - [ ] Undo/redo, autosave, revisions, conflict en recovery zijn getest.
-  - Trace: Status=DONE; Implementation=editor reducer, guarded autosave/revisions en conflict/recovery UI; Evidence=Control editorstate 7/7 en Studio desktop/mobile E2E; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=editor reducer, guarded autosave/revisions en conflict/recovery UI; Evidence=Control editorstate 8/8 en Studio desktop/mobile E2E; Gate owner/date=—
 - [ ] Keyboard/screenreaderbediening voor essentiële authoringacties is aanwezig.
   - Trace: Status=DONE; Implementation=native controls, layer arrows, focusable Journey progress en picker focusreturn; Evidence=Studio Axe/keyboardbrowser groen; Gate owner/date=—
 - [ ] Reduced-motion preview bestaat.
@@ -270,7 +270,7 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Render bevriest immutable source revision.
   - Trace: Status=DONE; Implementation=bestaande renderrequest met revisionId en document snapshot; Evidence=worker studio-render tests en security boundary; Gate owner/date=—
 - [ ] PNG/MP4 queue, progress, error, retry en media-ingest werken.
-  - Trace: Status=DONE; Implementation=Studio renderqueue en media-worker ingest; Evidence=worker 85 tests en build; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=Studio renderqueue, source-video compositor en media-worker ingest; Evidence=worker 87 tests, build en video variantclaim-RLS; Gate owner/date=—
 - [ ] Player importeert geen Studio runtimecode.
   - Trace: Status=DONE; Implementation=media-outputboundary; Evidence=package-boundarytest plus Player 153 tests/build; Gate owner/date=—
 - [ ] Sportlink, RSS/nieuws en Menu/Twelve flows delen Journey Shell.

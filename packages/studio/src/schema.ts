@@ -102,6 +102,19 @@ const imageElementSchema = baseElementSchema.extend({
   alt: z.string().trim().max(240).default("")
 });
 
+const videoElementSchema = baseElementSchema.extend({
+  type: z.literal("video"),
+  mediaAssetId: uuidSchema,
+  variant: z.literal("player_1080p").default("player_1080p"),
+  objectFit: z.enum(["cover", "contain"]).default("cover"),
+  focusX: z.number().min(0).max(1).default(0.5),
+  focusY: z.number().min(0).max(1).default(0.5),
+  muted: z.literal(true).default(true),
+  loop: z.literal(true).default(true),
+  startOffsetMs: z.number().int().min(0).max(studioLimits.maxDocumentDurationMs).default(0),
+  alt: z.string().trim().max(240).default("")
+});
+
 const fillSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("solid"), color: colorSchema }),
   z.object({
@@ -165,6 +178,7 @@ const groupElementSchema = baseElementSchema.extend({
 export const studioElementSchema = z.discriminatedUnion("type", [
   textElementSchema,
   imageElementSchema,
+  videoElementSchema,
   shapeElementSchema,
   iconElementSchema,
   qrElementSchema,
@@ -267,6 +281,34 @@ export const studioDocumentSchema = z.object({
         code: "custom",
         message: "De groepsleden en laagkoppelingen komen niet overeen.",
         path: ["elements", index, "childIds"]
+      });
+    }
+  }
+  const videos = document.elements.flatMap((element, index) =>
+    element.type === "video" ? [{ element, index }] : []
+  );
+  if (videos.length > 1) {
+    context.addIssue({
+      code: "custom",
+      message: "Studio ondersteunt maximaal één deterministische achtergrondvideo.",
+      path: ["elements"]
+    });
+  }
+  for (const { element, index } of videos) {
+    if (
+      element.x !== 0 ||
+      element.y !== 0 ||
+      element.width !== document.artboard.width ||
+      element.height !== document.artboard.height ||
+      element.rotation !== 0 ||
+      element.zIndex !== 0 ||
+      !element.locked ||
+      document.artboard.background.kind !== "transparent"
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "Een achtergrondvideo vult en vergrendelt het transparante canvas op laag 0.",
+        path: ["elements", index]
       });
     }
   }

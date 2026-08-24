@@ -11,6 +11,7 @@ import {
 import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
 import { pipeline } from "node:stream/promises";
+import sharp from "sharp";
 
 import {
   studioFps,
@@ -36,6 +37,8 @@ import {
 import {
   encodeStudioMp4,
   probeAndValidateStudioMp4,
+  renderStudioVideoPoster,
+  type StudioBackgroundVideo,
   StudioVideoRenderError
 } from "./studio-render-video";
 import { maxUploadBytes } from "./media-processing";
@@ -105,7 +108,7 @@ export async function runStudioRenderOnce({
 
   try {
     return await withStudioRenderTempDirectory(async (workingDirectory) => {
-      const assetSources = await prepareStudioAssets({
+      const preparedAssets = await prepareStudioAssets({
         backend,
         config,
         job,
@@ -113,6 +116,7 @@ export async function runStudioRenderOnce({
         signal,
         workingDirectory
       });
+      const { assetSources, backgroundVideo } = preparedAssets;
       const paths = studioRenderArtifactPaths(job);
       const outputPath = join(
         workingDirectory,
@@ -131,12 +135,21 @@ export async function runStudioRenderOnce({
 
       let durationMs = 0;
       if (job.outputType === "png") {
-        const png = await renderStudioPng({
-          assetSources,
-          document: job.document,
-          renderer,
-          signal
-        });
+        const png = backgroundVideo
+          ? await renderAndNormalizeStudioVideoPoster({
+              assetSources,
+              backgroundVideo,
+              document: job.document,
+              renderer,
+              signal,
+              workingDirectory
+            })
+          : await renderStudioPng({
+              assetSources,
+              document: job.document,
+              renderer,
+              signal
+            });
         await Promise.all([
           writeFile(outputPath, png, { flag: "wx" }),
           writeFile(posterPath, png, { flag: "wx" })
@@ -144,6 +157,7 @@ export async function runStudioRenderOnce({
       } else {
         const encoded = await encodeMp4({
           assetSources,
+          backgroundVideo,
           document: job.document,
           onFrame: async (frameIndex, frameCount) => {
             if (frameIndex % studioFps !== 0) return;
@@ -171,12 +185,21 @@ export async function runStudioRenderOnce({
           expectedWidth: job.document.artboard.width,
           inputPath: outputPath
         });
-        const poster = await renderStudioPng({
-          assetSources,
-          document: job.document,
-          renderer,
-          signal
-        });
+        const poster = backgroundVideo
+          ? await renderAndNormalizeStudioVideoPoster({
+              assetSources,
+              backgroundVideo,
+              document: job.document,
+              renderer,
+              signal,
+              workingDirectory
+            })
+          : await renderStudioPng({
+              assetSources,
+              document: job.document,
+              renderer,
+              signal
+            });
         await writeFile(posterPath, poster, { flag: "wx" });
       }
 
@@ -378,6 +401,7 @@ async function prepareStudioAssets({
     workerId: config.workerId
   }));
   const sources: Record<string, StudioSvgAssetSource> = {};
+  let backgroundVideo: StudioBackgroundVideo | undefined;
   let inlineAssetBytes = 0;
   for (const [index, asset] of job.sourceAssets.entries()) {
     if (signal?.aborted) {
@@ -409,16 +433,6 @@ async function prepareStudioAssets({
         `Checksum van Studio-bron ${asset.assetId} wijkt af.`
       );
     }
-    inlineAssetBytes += downloaded.size;
-    if (inlineAssetBytes > maximumStudioInlineAssetBytes) {
-      throw new StudioRenderJobError(
-        "studio_assets_too_large",
-        false,
-        "Studio-bronnen zijn samen te groot voor een veilige render."
-      );
-    }
-    const source =
-      `data:${asset.mimeType};base64,${(await readFile(destination)).toString("base64")}`;
     if (asset.width === null || asset.height === null) {
       throw new StudioRenderJobError(
         "studio_asset_dimensions_missing",
@@ -426,13 +440,44 @@ async function prepareStudioAssets({
         "Studio-bronbestand mist gevalideerde afbeeldingsafmetingen."
       );
     }
-    for (const element of job.document.elements) {
-      if (element.type === "image" && element.mediaAssetId === asset.assetId) {
-        sources[element.id] = {
-          height: asset.height,
-          href: source,
-          width: asset.width
-        };
+    if (asset.mimeType === "video/mp4") {
+      const element = job.document.elements.find(
+        (candidate) =>
+          candidate.type === "video" && candidate.mediaAssetId === asset.assetId
+      );
+      if (!element || element.type !== "video") {
+        throw new StudioRenderJobError(
+          "studio_asset_binding_invalid",
+          false,
+          "Studio-videobron is niet aan de documentachtergrond gekoppeld."
+        );
+      }
+      backgroundVideo = {
+        focusX: element.focusX,
+        focusY: element.focusY,
+        objectFit: element.objectFit,
+        path: destination,
+        startOffsetMs: element.startOffsetMs
+      };
+    } else {
+      inlineAssetBytes += downloaded.size;
+      if (inlineAssetBytes > maximumStudioInlineAssetBytes) {
+        throw new StudioRenderJobError(
+          "studio_assets_too_large",
+          false,
+          "Studio-afbeeldingsbronnen zijn samen te groot voor een veilige render."
+        );
+      }
+      const source =
+        `data:${asset.mimeType};base64,${(await readFile(destination)).toString("base64")}`;
+      for (const element of job.document.elements) {
+        if (element.type === "image" && element.mediaAssetId === asset.assetId) {
+          sources[element.id] = {
+            height: asset.height,
+            href: source,
+            width: asset.width
+          };
+        }
       }
     }
     await assertLease(await backend.updateJob({
@@ -458,7 +503,47 @@ async function prepareStudioAssets({
       value: element.value
     });
   }
-  return sources;
+  return { assetSources: sources, backgroundVideo };
+}
+
+async function renderAndNormalizeStudioVideoPoster({
+  assetSources,
+  backgroundVideo,
+  document,
+  renderer,
+  signal,
+  workingDirectory
+}: {
+  assetSources: Record<string, StudioSvgAssetSource>;
+  backgroundVideo: StudioBackgroundVideo;
+  document: ClaimedStudioRenderJob["document"];
+  renderer: StudioExternalRenderer;
+  signal?: AbortSignal;
+  workingDirectory: string;
+}) {
+  const rawPath = join(
+    workingDirectory,
+    "studio-video-poster-raw.png"
+  );
+  await renderStudioVideoPoster({
+    assetSources,
+    backgroundVideo,
+    document,
+    outputPath: rawPath,
+    renderer,
+    signal
+  });
+  const normalized = await sharp(rawPath, { failOn: "error" })
+    .withIccProfile("srgb")
+    .png({
+      adaptiveFiltering: false,
+      compressionLevel: 9,
+      palette: false,
+      progressive: false
+    })
+    .toBuffer();
+  await rm(rawPath, { force: true });
+  return normalized;
 }
 
 function assertLease(
@@ -512,13 +597,14 @@ function safeAssetExtension(mimeType: string, storagePath: string) {
   const expected = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
-    "image/webp": ".webp"
+    "image/webp": ".webp",
+    "video/mp4": ".mp4"
   }[mimeType];
   if (!expected) {
     throw new StudioRenderJobError(
       "studio_asset_mime_unsupported",
       false,
-      "Studio-bron gebruikt een niet-ondersteund afbeeldingstype."
+      "Studio-bron gebruikt een niet-ondersteund mediatype."
     );
   }
   const sourceExtension = extname(storagePath).toLowerCase();
@@ -529,13 +615,15 @@ function safeAssetExtension(mimeType: string, storagePath: string) {
 
 async function assertStudioAssetMagic(
   path: string,
-  mimeType: "image/jpeg" | "image/png" | "image/webp"
+  mimeType: "image/jpeg" | "image/png" | "image/webp" | "video/mp4"
 ) {
   const handle = await open(path, "r");
   try {
     const header = Buffer.alloc(12);
     const { bytesRead } = await handle.read(header, 0, header.length, 0);
-    const valid = mimeType === "image/png"
+    const valid = mimeType === "video/mp4"
+      ? bytesRead >= 12 && header.toString("ascii", 4, 8) === "ftyp"
+      : mimeType === "image/png"
       ? bytesRead >= 8 &&
         header.subarray(0, 8).equals(
           Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])

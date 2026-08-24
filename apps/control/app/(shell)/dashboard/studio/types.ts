@@ -28,8 +28,9 @@ export type StudioProjectSummary = {
 export type StudioMediaAsset = {
   height: number | null;
   id: string;
-  kind: "image";
+  kind: "image" | "video";
   previewUrl: string | null;
+  sourceUrl: string | null;
   title: string;
   width: number | null;
 };

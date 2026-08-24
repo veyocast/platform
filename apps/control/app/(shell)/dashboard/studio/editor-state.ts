@@ -56,6 +56,10 @@ export type StudioEditorAction =
       background: StudioDocument["artboard"]["background"];
       type: "document/background";
     }
+  | {
+      element: Extract<StudioElement, { type: "video" }>;
+      type: "document/background-video";
+    }
   | { durationMs: number; type: "document/duration" }
   | {
       alignment: "bottom" | "center" | "left" | "middle" | "right" | "top";
@@ -289,8 +293,34 @@ export function studioEditorReducer(
           artboard: {
             ...state.document.artboard,
             background: action.background
-          }
+          },
+          elements:
+            action.background.kind === "transparent"
+              ? state.document.elements
+              : normalizeStudioElementOrder(
+                  state.document.elements.filter(
+                    (element) => element.type !== "video"
+                  )
+                )
         })
+      );
+    case "document/background-video":
+      return commitDocument(
+        state,
+        parseStudioDocument({
+          ...state.document,
+          artboard: {
+            ...state.document.artboard,
+            background: { kind: "transparent" }
+          },
+          elements: normalizeStudioElementOrder([
+            { ...action.element, zIndex: 0 },
+            ...state.document.elements.filter(
+              (element) => element.type !== "video"
+            )
+          ])
+        }),
+        [action.element.id]
       );
     case "document/duration": {
       const durationMs = Math.max(
