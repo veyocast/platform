@@ -107,43 +107,43 @@ Codex maakt in de repository een traceerbare kopie met per item:
 ## D. Marketing en SEO
 
 - [ ] Homepage positioneert VeyoCast als operating platform, niet als simpele playlisttool.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`apps/marketing/app/page.tsx`; Evidence=`phase-2-marketing.md`, homepage E2E en viewportcaptures; Gate owner/date=—
 - [ ] Hero, productworld, operating loop, modules, use-cases, integrations, reliability, app, Engage en CTA vormen één verhaal.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`apps/marketing/app/page.tsx`, `globals.css`; Evidence=axe 0 violations, E2E en 5-viewport visual readback; Gate owner/date=—
 - [ ] Venue Twin Setup Builder werkt met echte states, mobile stepper en accessible listfallback.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`venue-setup-builder.tsx`; Evidence=desktop signed-intent E2E, mobiele stepper E2E en axe; Gate owner/date=—
 - [ ] Setupresultaat toont screen count, groups, modules en correcte maandprijs na trial.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`venue-setup-builder.tsx`, `packages/domain/src/billing.ts`; Evidence=zone/group-, module- en schermtelling plus €11,90 E2E; Gate owner/date=—
 - [ ] Setupintent gaat veilig mee naar demo/trial/onboarding.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=signed intent naar `/demo`, route- en actieherverificatie; Evidence=4 intenttests en demo E2E; Gate owner/date=trial/onboardingkoppeling volgt in fase 3
 - [ ] Pricing toont 14 dagen gratis en daarna € 5,95 incl. btw per actief scherm per maand.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`billing.ts`, `marketing-price-calculator.tsx`, `/prijzen`; Evidence=domain unit, marketing build en pricingcaptures; Gate owner/date=—
 - [ ] Geen verborgen fee, vooraf aangevinkte toestemming of misleidende trialcopy.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=setup- en pricingcopy; Evidence=claimsunit en visual readback; Gate owner/date=—
 - [ ] Sportvereniging-/ClubTV-/Sportlink-/Twelve-/RSS-/YouTube-/sponsor-/Engage-clusters bestaan volgens status.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`pages.ts` detailroutes en bestaande sectorroutes; Evidence=contentcanonunit, route-E2E en build; Gate owner/date=—
 - [ ] PROPOSED-producten zijn noindex/coming-soon tot production gates groen zijn.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`/integraties/youtube`, `/engage`, `pages.ts`; Evidence=sitemapunit bewijst beide uitgesloten en UI labelt `In voorbereiding`; Gate owner/date=—
 - [ ] Iedere indexeerbare pagina heeft unieke title, description, H1, intro en canonical.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=marketing contentregistry en catch-all metadata; Evidence=contentcanon uniqueness en route metadata E2E; Gate owner/date=—
 - [ ] Sitemap en robots bevatten alleen bedoelde routes.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`sitemap.ts`, route metadata en `index` flags; Evidence=sitemapunit inclusief live/proposed integraties; Gate owner/date=—
 - [ ] JSON-LD is feitelijk, valide en zichtbaar onderbouwd.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Interne links verbinden pillar, cluster, pricing, demo en use-cases.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=page registry related/CTA-links; Evidence=known-route canonunit; Gate owner/date=—
 - [ ] Geen kerncopy of prijs staat alleen in een afbeelding.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=HTML hero, builder, pricing en detailcontent; Evidence=Playwright role/text assertions; Gate owner/date=—
 - [ ] Meegeleverde beelden gebruiken juiste srcset/sizes/focal point/alt/caption.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Geen pseudoletters, verkeerd merk of gebroken afbeelding is zichtbaar.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=locked repositorybrandassets en feitelijke copy; Evidence=15 privacyveilige visual captures handmatig gecontroleerd; Gate owner/date=—
 - [ ] Broken-linkcrawl en heading-outline zijn groen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=route registry; Evidence=known-route linkunit, representative route-E2E en exact één H1 per template; Gate owner/date=—
 - [ ] Marketing haalt afgesproken LCP, CLS en INP budgets op representatieve mobile.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Contact/demo/trialformulieren hebben validatie, consent, success/error en anti-abuse.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=contact/demo servervalidatie, honeypot, privacycopy en eerlijke unavailable-state; Evidence=4 actiontests en demo E2E; Gate owner/date=trialflow volgt fase 3/11
 - [ ] Privacy, voorwaarden, verwerkersinformatie, support/status en accessibilityroutes zijn coherent.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 
@@ -525,4 +525,3 @@ Codex maakt in de repository een traceerbare kopie met per item:
 ## Finale stopregel
 
 Finaliseer uitsluitend wanneer alle items `DONE` zijn of aantoonbaar `EXTERNAL_GATE`. Een `EXTERNAL_GATE` bevat altijd eigenaar, reden, afhankelijkheid, voorbereide code/testmodus, exact verificatieprotocol en impact op marketingclaim/feature flag. Externe gates worden nooit gebruikt om lokaal uitvoerbaar werk uit te stellen.
-

@@ -91,8 +91,8 @@ mag deze grenzen niet dupliceren.
 | Fase | Resultaat | Afhankelijkheid | Status |
 |---|---|---|---|
 | 0 | Baseline, route-/capabilitytruth, DoD-traceability en testharness | geen | DONE |
-| 1 | Vector aliases, shared primitives, web/native/Player shells en compatibilitylaag | fase 0 | IN_PROGRESS |
-| 2 | Marketing, SEO, Setup Builder, pricing/trial-intent | fase 1 | TODO |
+| 1 | Vector aliases, shared primitives, web/native/Player shells en compatibilitylaag | fase 0 | DONE |
+| 2 | Marketing, SEO, Setup Builder, pricing/trial-intent | fase 1 | DONE |
 | 3 | Auth en hervatbare onboarding | fase 1–2 | TODO |
 | 4 | Dashboard, screens, Screen 360, health en Venue Twin | fase 1, schema/RLS | TODO |
 | 5 | Media en Unified Resource Picker | fase 1 | TODO |

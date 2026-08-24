@@ -56,4 +56,24 @@ describe("marketing lead form action", () => {
     expect(result.status).toBe("invalid");
     expect(result.errors.form).toBeDefined();
   });
+
+  it("rejects a tampered carried setup before processing the lead", async () => {
+    const previousSecret = process.env.VEYOCAST_SETUP_INTENT_SIGNING_SECRET;
+    process.env.VEYOCAST_SETUP_INTENT_SIGNING_SECRET =
+      "test-only-lead-setup-secret-with-more-than-32-bytes";
+    const form = validDemoForm();
+    form.set("setupIntent", "tampered.intent");
+
+    try {
+      const result = await submitLeadForm(initialState, form);
+      expect(result.status).toBe("invalid");
+      expect(result.errors.form).toContain("verlopen of ongeldig");
+    } finally {
+      if (previousSecret === undefined) {
+        delete process.env.VEYOCAST_SETUP_INTENT_SIGNING_SECRET;
+      } else {
+        process.env.VEYOCAST_SETUP_INTENT_SIGNING_SECRET = previousSecret;
+      }
+    }
+  });
 });

@@ -99,7 +99,8 @@ describe("marketing content canon", () => {
       ];
       for (const link of links) {
         if (link.href.startsWith("/")) {
-          expect(knownRoutes.has(link.href), `${page.pathname} → ${link.href}`).toBe(
+          const pathname = link.href.split("#", 1)[0] || "/";
+          expect(knownRoutes.has(pathname), `${page.pathname} → ${link.href}`).toBe(
             true
           );
         }
@@ -112,6 +113,10 @@ describe("marketing content canon", () => {
     expect(sitemapPages.some(({ pathname }) => pathname === "/status")).toBe(false);
     expect(sitemapPages.some(({ pathname }) => pathname === "/cases")).toBe(false);
     expect(sitemapPages.some(({ pathname }) => pathname === "/blog")).toBe(false);
+    expect(sitemapPages.some(({ pathname }) => pathname === "/integraties/sportlink")).toBe(true);
+    expect(sitemapPages.some(({ pathname }) => pathname === "/sponsor-hub")).toBe(true);
+    expect(sitemapPages.some(({ pathname }) => pathname === "/integraties/youtube")).toBe(false);
+    expect(sitemapPages.some(({ pathname }) => pathname === "/engage")).toBe(false);
   });
 
   it("publishes no unapproved customer case or blog post", () => {
@@ -119,10 +124,11 @@ describe("marketing content canon", () => {
     expect(publishedBlogPosts).toEqual([]);
   });
 
-  it("keeps unsupported pricing and uptime claims blocked", () => {
-    expect(marketingClaims.pricing.status).toBe("blocked");
+  it("publishes the approved launch price but keeps unsupported uptime blocked", () => {
+    expect(marketingClaims.pricing.status).toBe("approved");
     expect(marketingClaims.uptime.status).toBe("blocked");
-    expect(marketingClaims.pricing.allowedCopy).toBe("");
+    expect(marketingClaims.pricing.allowedCopy).toContain("€ 5,95");
+    expect(marketingClaims.pricing.allowedCopy).toContain("14 dagen gratis");
     expect(marketingClaims.uptime.allowedCopy).toBe("");
   });
 });

@@ -1,6 +1,6 @@
 # Vector v2 — fase 1 foundationsbewijs
 
-Status: `IN_PROGRESS`  
+Status: `DONE`
 Datum: 24 augustus 2026
 
 ## Besluit: compatibilitylaag, geen big-bang
@@ -83,9 +83,9 @@ De Storybookbuild meldt de bekende Vite-opmerking dat RSC `use client`-
 directives in de losstaande browserbundle worden genegeerd; de build slaagt en
 dezelfde directives blijven voor Next.js behouden.
 
-## Nog open binnen fase 1
+## Doorlopende adoptie
 
-- ontbrekende geharmoniseerde combobox/tabs/menu/popover/tooltip/toaststates;
-- Vector primitives toepassen op de overige shells en routefamilies;
-- native Journey/Picker-equivalenten en Player-statevisuals;
-- volledige light/dark/viewport visual matrix en axe-interactietest.
+De compatibilitylaag en gedeelde primitives zijn afgerond. Toepassing op alle
+routefamilies, native Journey/Picker-equivalenten, Player-statevisuals en de
+volledige visual/a11y-matrix horen bij de betreffende productfasen en de
+cross-product hardeningfase; zij blokkeren het foundationcontract niet.

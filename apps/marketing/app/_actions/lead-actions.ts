@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  setupIntentSigningSecret,
+  verifySetupIntentToken
+} from "../_lib/setup-intent";
+
 export type LeadFormState = {
   errors: Record<string, string>;
   message: string;
@@ -28,6 +33,7 @@ export async function submitLeadForm(
   const screens = textValue(formData, "screens", 40);
   const organizationType = textValue(formData, "organizationType", 80);
   const honeypot = textValue(formData, "website", 160);
+  const setupIntentToken = textValue(formData, "setupIntent", 8_000);
   const errors: Record<string, string> = {};
 
   if (honeypot) {
@@ -40,6 +46,12 @@ export async function submitLeadForm(
 
   if (kind !== "contact" && kind !== "demo") {
     errors.form = "Het formulierdoel is niet geldig.";
+  }
+  if (setupIntentToken) {
+    const secret = setupIntentSigningSecret();
+    if (!secret || !verifySetupIntentToken(setupIntentToken, secret)) {
+      errors.form = "De meegenomen opstelling is verlopen of ongeldig. Bouw de opstelling opnieuw.";
+    }
   }
   if (name.length < 2) errors.name = "Vul je naam in.";
   if (!validEmail(email)) errors.email = "Vul een geldig e-mailadres in.";

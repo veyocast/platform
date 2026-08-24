@@ -36,10 +36,10 @@ export const marketingClaims = {
   },
   integrations: {
     allowedCopy:
-      "Bespreek welke databron voor jouw organisatie onderzocht of voorbereid kan worden.",
+      "Gebruik Sportlink, een gecontroleerde Twelve XLSX-import, RSS/nieuws, eigen media en Sponsor Hub volgens de beschikbare tenantmodules.",
     routes: ["/integraties", "/oplossingen"],
-    source: "docs/canon-alignment-product-roadmap.md S33-S34",
-    status: "provisional"
+    source: "apps/control integraties, packages/sports, XLSX-import en Sponsor Hub",
+    status: "approved"
   },
   uptime: {
     allowedCopy: "",
@@ -48,9 +48,10 @@ export const marketingClaims = {
     status: "blocked"
   },
   pricing: {
-    allowedCopy: "",
-    routes: ["/prijzen"],
-    source: "Definitieve prijsstructuur nog niet goedgekeurd",
-    status: "blocked"
+    allowedCopy:
+      "14 dagen gratis, daarna € 5,95 inclusief btw per actief scherm per maand.",
+    routes: ["/", "/prijzen"],
+    source: "Vector v2 billingcanon en packages/domain/src/billing.ts",
+    status: "approved"
   }
 } as const satisfies Record<string, MarketingClaim>;

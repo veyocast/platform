@@ -158,6 +158,195 @@ function sectorPage(input: {
   };
 }
 
+function integrationDetailPage(input: {
+  benefits: ContentCard[];
+  description: string;
+  examples: string[];
+  faqs: ContentCard[];
+  index: boolean;
+  lead: string;
+  pathname: string;
+  status: string;
+  steps: ContentCard[];
+  summary: string;
+  title: string;
+}): MarketingPageDefinition {
+  return {
+    benefits: input.benefits,
+    description: input.description,
+    eyebrow: `Integratie · ${input.status}`,
+    examples: input.examples,
+    faqs: input.faqs,
+    imageId: "product-publisher-desktop",
+    index: input.index,
+    kind: "integration",
+    lead: input.lead,
+    pathname: input.pathname,
+    primaryCta: input.index ? demoCta : { href: "/contact", label: "Vraag naar de status" },
+    related: [
+      { href: "/integraties", label: "Alle integraties" },
+      { href: "/prijzen", label: "Prijs per scherm" }
+    ],
+    secondaryCta: { href: "/product", label: "Bekijk het platform" },
+    steps: input.steps,
+    summary: input.summary,
+    title: input.title
+  };
+}
+
+const integrationDetailPages = [
+  integrationDetailPage({
+    benefits: [
+      { title: "Bestaande providergrens", body: "Sync, tenantcontext en providercredentials blijven in de bestaande server-only integratiemodule." },
+      { title: "Dynamische sportslides", body: "Programma, uitslagen, standen en bezoekersinformatie gebruiken versioned ontwerpconfiguratie met actuele snapshots." },
+      { title: "Last-known-good", body: "Tijdelijke provideruitval maakt een geldige actieve Playerrelease niet zwart of incompleet." }
+    ],
+    description: "Gebruik de bestaande VeyoCast Sportlink-module voor teams, competities, programma, uitslagen, standen en bezoekersinformatie op clubschermen.",
+    examples: ["Programma vandaag en week", "Uitslagen en poulestand", "Bezoekers welkom", "Teams en competitiecontext"],
+    faqs: [
+      { title: "Is Sportlink geïntegreerd?", body: "Ja. De module gebruikt de bestaande server-side sync- en sportslidecontracten en toont uitsluitend data die voor de tenant beschikbaar is." },
+      { title: "Blijft providerdata actueel?", body: "Datasynchronisatie vernieuwt snapshots zonder daarvoor iedere keer een nieuwe slideversie te maken." },
+      { title: "Wat gebeurt er zonder wedstrijddata?", body: "De slide toont een passende lege of skipstate; onbekende scores worden niet als 0–0 ingevuld." }
+    ],
+    index: true,
+    lead: "Maak wedstrijd- en bezoekersinformatie zichtbaar zonder providerjargon in de editor en zonder live requests vanuit de Player.",
+    pathname: "/integraties/sportlink",
+    status: "Beschikbaar",
+    steps: [
+      { title: "Verbind Sportlink", body: "Een bevoegde beheerder activeert de tenantmodule en controleert de syncstatus." },
+      { title: "Kies de context", body: "Selecteer teams, slidetype, competitie, fase of poule met menselijke labels." },
+      { title: "Publiceer", body: "Preview de slide en neem de concrete versie op in een onveranderlijke release." }
+    ],
+    summary: "Sportlink-data blijft dynamisch terwijl thema, layout en competitiecontext versioned en reproduceerbaar blijven.",
+    title: "Sportlink op ieder relevant clubscherm"
+  }),
+  integrationDetailPage({
+    benefits: [
+      { title: "Normale .xlsx", body: "De launchflow gebruikt een gewone export en import; er wordt geen live Twelve-API beloofd." },
+      { title: "Mapping en validatie", body: "Kolommen, categorieën, prijzen en beschikbaarheid worden vóór import gecontroleerd en gepreviewd." },
+      { title: "Bronversie behouden", body: "Herkomst en importversie blijven immutable traceerbaar bij latere updates." }
+    ],
+    description: "Importeer een normale Twelve .xlsx-export in VeyoCast met kolommapping, validatie, prijslijstpreview en traceerbare broninformatie.",
+    examples: ["Productnaam en omschrijving", "Categorie en beschikbaarheid", "Prijs in hele centen", "Herimport met preview"],
+    faqs: [
+      { title: "Is dit een live API-koppeling?", body: "Nee. Bij launch is dit bewust een gecontroleerde normale .xlsx-export en -import." },
+      { title: "Worden fouten direct gepubliceerd?", body: "Nee. Mapping en validatie tonen problemen vóór producten of slides worden bijgewerkt." },
+      { title: "Kan ik opnieuw importeren?", body: "Ja. Een herimport krijgt opnieuw validatie en preview en bewaart de broninformatie." }
+    ],
+    index: true,
+    lead: "Werk prijslijsten bij vanuit een herkenbaar bestand zonder een niet-bestaande live API of oncontroleerbare achtergrondmutaties.",
+    pathname: "/integraties/twelve-xlsx",
+    status: "Beschikbaar als import",
+    steps: [
+      { title: "Exporteer", body: "Maak in Twelve een normale .xlsx-export volgens de ondersteunde kolommen." },
+      { title: "Map en controleer", body: "Koppel kolommen en beoordeel fouten, waarschuwingen en de prijslijstpreview." },
+      { title: "Importeer", body: "Bevestig de gevalideerde bronversie en gebruik producten daarna in Menu Studio." }
+    ],
+    summary: "Twelve XLSX is een beheerste importjourney met expliciete validatie, geen pseudo-live integratie.",
+    title: "Twelve-prijslijsten via gecontroleerde XLSX-import"
+  }),
+  integrationDetailPage({
+    benefits: [
+      { title: "Bronstatus", body: "Laatste refresh, stale data en verwerkingsfouten blijven zichtbaar voor beheerders." },
+      { title: "Veilige verwerking", body: "Feedcontent wordt server-side begrensd, genormaliseerd en naar een snapshot vertaald." },
+      { title: "Twee oriëntaties", body: "Nieuwsoutput ondersteunt zowel landscape als portrait zonder de Player van de feed afhankelijk te maken." }
+    ],
+    description: "Toon RSS- en nieuwsfeeds op VeyoCast met bronstatus, mapping, veilige verwerking, stale-indicatie en landscape- of portraitoutput.",
+    examples: ["Clubnieuws", "Gemeentenieuws", "Branchefeed", "Portrait en landscape"],
+    faqs: [
+      { title: "Wat gebeurt er bij een feedfout?", body: "De bron krijgt een fout- of stalestatus en de Player gebruikt waar mogelijk de laatst geldige snapshot." },
+      { title: "Wordt alle HTML uit een feed getoond?", body: "Nee. Content wordt server-side beperkt en genormaliseerd volgens de bestaande nieuwsverwerking." },
+      { title: "Kan nieuws op een staand scherm?", body: "Ja. De bestaande output ondersteunt expliciet landscape en portrait." }
+    ],
+    index: true,
+    lead: "Laat actuele berichten zien met een begrijpelijke bronstatus en een fallback wanneer de feed tijdelijk niet ververst.",
+    pathname: "/integraties/rss-nieuws",
+    status: "Beschikbaar",
+    steps: [
+      { title: "Voeg de bron toe", body: "Configureer de feed server-side en controleer de eerste verwerking." },
+      { title: "Kies de weergave", body: "Selecteer relevante velden, thema en landscape- of portraitlayout." },
+      { title: "Bewaak actualiteit", body: "Gebruik syncstatus en stale-indicatie om een fout gericht te herstellen." }
+    ],
+    summary: "RSS/nieuws combineert actuele verwerking met Player-continuïteit en een expliciete stale- en fouttoestand.",
+    title: "RSS en nieuws met zichtbare bronstatus"
+  }),
+  integrationDetailPage({
+    benefits: [
+      { title: "Alleen officiële playback", body: "Het ontwerp voorziet uitsluitend de officiële YouTube IFrame Player; downloaden of transcoderen is uitgesloten." },
+      { title: "Online-only preflight", body: "Content moet vóór publicatie als online-only herkenbaar zijn met capabilitycheck en fallback." },
+      { title: "Releasegate", body: "De module blijft uit tot API-, quota-, Terms-, privacy- en Playercontinuïteit aantoonbaar zijn gevalideerd." }
+    ],
+    description: "Bekijk de eerlijke voorbereidingsstatus van de toekomstige VeyoCast YouTube-integratie met officiële online-only playback, preflight en fallback.",
+    examples: ["Officiële IFrame Player", "Online-only label", "Capability preflight", "Veilige fallback"],
+    faqs: [
+      { title: "Kan ik YouTube nu activeren?", body: "Nog niet als vrijgegeven productie-integratie. De feature flag blijft gesloten tot de releasegates groen zijn." },
+      { title: "Slaat VeyoCast video's offline op?", body: "Nee. YouTube-content wordt niet gedownload, getranscodeerd of gecachet." },
+      { title: "Wat gebeurt er zonder internet?", body: "De uiteindelijke flow moet een vooraf gekozen fallback gebruiken en mag last-known-good tenantcontent niet onderbreken." }
+    ],
+    index: false,
+    lead: "YouTube blijft een afzonderlijk, online-only integratiespoor en wordt niet als beschikbaar verkocht voordat de officiële contracten en fallback bewezen zijn.",
+    pathname: "/integraties/youtube",
+    status: "In voorbereiding",
+    steps: [
+      { title: "Valideer officiële API's", body: "Controleer IFrame Player, Data API, quota en actuele Terms via primaire bronnen." },
+      { title: "Bouw preflight en fallback", body: "Maak online-only capability en herstelgedrag zichtbaar vóór publicatie." },
+      { title: "Open gecontroleerd", body: "Activeer pas na tests op Playercontinuïteit, privacy, quota en rollback." }
+    ],
+    summary: "De architectuurrichting is vastgelegd, maar productiegebruik blijft bewust geblokkeerd tot externe en technische gates zijn afgerond.",
+    title: "YouTube in VeyoCast: online-only en in voorbereiding"
+  }),
+  integrationDetailPage({
+    benefits: [
+      { title: "Sponsorprofielen", body: "Beheer assets en sponsorcontext binnen dezelfde tenantgrens als campagnes en plaatsingen." },
+      { title: "Gecontroleerde campagnes", body: "Rotatie, placements en approvals gebruiken de bestaande Sponsor Hub-contracten." },
+      { title: "Bewijs van vertoning", body: "Proof of Play maakt aantoonbaar welke plaatsing volgens het plan is uitgevoerd." }
+    ],
+    description: "Beheer sponsors, campagnes, rotatie, plaatsingen, approvals en bewijs van vertoning met de bestaande VeyoCast Sponsor Hub.",
+    examples: ["Sponsorprofielen", "Campagnes en rotatie", "Placements", "Proof of Play"],
+    faqs: [
+      { title: "Is Sponsor Hub beschikbaar?", body: "Ja, volgens de bestaande tenant- en vier-ogencontracten waar de module voor de tenant is geactiveerd." },
+      { title: "Is een vertoning hetzelfde als een factuur?", body: "Nee. Proof of Play is operationeel bewijs; financiële afspraken blijven een apart contract." },
+      { title: "Kunnen sponsors zelf publiceren?", body: "Alleen wanneer bestaande rollen, approvals en server-side capabilities dat expliciet toestaan." }
+    ],
+    index: true,
+    lead: "Maak sponsorzichtbaarheid planbaar en controleerbaar zonder approvals, tenantrechten of publicatiehistorie te omzeilen.",
+    pathname: "/sponsor-hub",
+    status: "Beschikbaar",
+    steps: [
+      { title: "Leg sponsors vast", body: "Voeg goedgekeurde sponsorassets en context tenantveilig toe." },
+      { title: "Plan plaatsingen", body: "Maak campagne, rotatie en plaatsingen met de vereiste approvals." },
+      { title: "Controleer vertoning", body: "Gebruik Proof of Play en auditinformatie voor operationele rapportage." }
+    ],
+    summary: "Sponsor Hub verbindt sponsorbeheer met gecontroleerde publicatie en bewijs van vertoning.",
+    title: "Sponsor Hub voor campagnes en zichtbaarheid"
+  }),
+  integrationDetailPage({
+    benefits: [
+      { title: "Publiek mobile-first", body: "De voorgestelde stemervaring gebruikt een korte QR-route zonder beheeraccount voor bezoekers." },
+      { title: "Abusebegrenzing", body: "Rate limiting, lifecycle, privacy en misbruikdetectie zijn releasevoorwaarden, geen latere polish." },
+      { title: "Schermresultaat", body: "Realtime tussenstand en eindresultaat krijgen een eigen tenantveilige dynamische slide." }
+    ],
+    description: "Bekijk de voorbereidingsstatus van VeyoCast Engage voor polls, Man of the Match, QR-deeplinks, live schermresultaten en privacyveilige analytics.",
+    examples: ["Publieksvraag", "Man of the Match", "QR-deeplink", "Live resultaat"],
+    faqs: [
+      { title: "Kan ik Engage al kopen?", body: "Nee. Engage wordt pas verkocht nadat tenantisolatie, abusepreventie, privacy, lifecycle en Playeroutput productie-groen zijn." },
+      { title: "Moeten bezoekers inloggen?", body: "De voorgestelde publieke flow is mobile-first en begrensd; het definitieve anti-abusecontract bepaalt welke verificatie passend is." },
+      { title: "Worden persoonsgegevens gebruikt?", body: "Het ontwerp minimaliseert persoonsgegevens en vereist expliciete privacy- en bewaartermijnvalidatie vóór vrijgave." }
+    ],
+    index: false,
+    lead: "Engage is een premium subproduct in voorbereiding en wordt niet als live functie gepresenteerd voordat privacy- en abusegates aantoonbaar groen zijn.",
+    pathname: "/engage",
+    status: "In voorbereiding",
+    steps: [
+      { title: "Maak een campagne", body: "Definieer poll of Man of the Match met start-, sluit- en resultaatmoment." },
+      { title: "Deel veilig", body: "Toon een tenantveilige QR-deeplink met rate limiting en abusebegrenzing." },
+      { title: "Toon het resultaat", body: "Publiceer realtime status en eindresultaat als gecontroleerde schermslide." }
+    ],
+    summary: "De productgrens en releasevoorwaarden zijn duidelijk; de route blijft noindex tot de implementatie en productiegates afgerond zijn.",
+    title: "VeyoCast Engage voor interactie op locatie"
+  })
+] as const;
+
 const featurePages = [
   featurePage({
     benefits: [
@@ -830,25 +1019,25 @@ const corePages: MarketingPageDefinition[] = [
   },
   {
     benefits: [
-      { title: "Providerstatus zichtbaar", body: "Beschikbaar, pilot, in ontwikkeling of verkenning krijgt altijd een expliciet label." },
-      { title: "Server-side adaptergrens", body: "Credentials en providerlogica horen niet in browser- of Playercode." },
-      { title: "Immutable snapshots", body: "Externe data wordt voor offline playback als gecontroleerde release-inhoud voorbereid." },
-      { title: "Geen stille claims", body: "Een logo of providernaam verschijnt pas wanneer status en gebruik aantoonbaar zijn." }
+      { title: "Sportlink", body: "Teams, competities, programma, uitslagen, standen en bezoekersinformatie worden via de bestaande sync- en snapshotarchitectuur gebruikt." },
+      { title: "Twelve XLSX", body: "Een normale .xlsx-export wordt gecontroleerd geïmporteerd met mapping, validatie, preview en onveranderlijke broninformatie." },
+      { title: "RSS & nieuws", body: "Nieuwsbronnen tonen syncstatus, fouten en stale data en leveren landschap- en portretoutput." },
+      { title: "Sponsors", body: "Sponsor Hub beheert sponsors, campagnes, plaatsingen en rotatie binnen de tenantcontext." }
     ],
     description:
-      "Lees hoe VeyoCast integraties veilig voorbereidt en welke databronnen pas na technische en commerciële validatie beschikbaar worden.",
+      "Koppel Sportlink, Twelve XLSX, RSS/nieuws en sponsors aan VeyoCast en zie helder welke bron beschikbaar, verouderd of in voorbereiding is.",
     eyebrow: "Integraties",
-    examples: ["Sportdata — verkenning", "Planningdata — verkenning", "Server-side API-adapter — roadmap", "Beheerde imports — op aanvraag"],
+    examples: ["Sportlink — geïntegreerd", "Twelve — gecontroleerde XLSX-import", "RSS & nieuws — geïntegreerd", "YouTube — in voorbereiding"],
     faqs: [
-      { title: "Is Sportlink al beschikbaar?", body: "Nee, niet als publiek bevestigde productie-integratie. De status blijft verkenning tot officiële toegang, techniek en afspraken zijn gevalideerd." },
-      { title: "Kan de Player live externe data ophalen?", body: "De voorkeursarchitectuur maakt eerst een veilig snapshot in een release, zodat offline playback niet van een providerrequest afhankelijk wordt." },
-      { title: "Kan ik een databron aanvragen?", body: "Ja. Neem contact op met de gewenste gegevens, gebruikscontext en provider. Dat is een aanvraag, geen beschikbaarheidsbelofte." }
+      { title: "Is Sportlink beschikbaar?", body: "Ja, binnen de bestaande Sportlink-module en de voor de tenant beschikbare providerdata. De interface toont syncstatus, laatste synchronisatie en ontbrekende context expliciet." },
+      { title: "Hoe werkt Twelve?", body: "Bij launch via een normale .xlsx-export en -import met kolommapping, validatie en preview. VeyoCast claimt geen live Twelve-API." },
+      { title: "Is YouTube al beschikbaar?", body: "Nog niet als vrijgegeven productie-integratie. Officiële online-only playback, quota, preflight en fallback worden eerst aantoonbaar gevalideerd." }
     ],
     imageId: "product-publisher-desktop",
     index: true,
     kind: "integration",
     lead:
-      "Koppelingen moeten schermcommunicatie eenvoudiger maken zonder betrouwbaarheid, privacy of offline playback op te offeren.",
+      "Gebruik bestaande bronnen zonder hun status te verbergen. VeyoCast houdt providercredentials server-side en bewaakt sync, snapshots en Player-continuïteit.",
     pathname: "/integraties",
     primaryCta: { href: "/contact", label: "Bespreek een databron" },
     related: [
@@ -858,35 +1047,36 @@ const corePages: MarketingPageDefinition[] = [
     ],
     secondaryCta: { href: "/contact", label: "Neem contact op" },
     steps: [
-      { title: "Valideer de bron", body: "Controleer officiële toegang, voorwaarden, datakwaliteit en privacy." },
-      { title: "Bouw de adapter", body: "Houd credentials server-side en begrens fouten, retries en logging." },
-      { title: "Maak een snapshot", body: "Vertaal gegevens naar gecontroleerde content voor een immutable release." },
-      { title: "Bewijs de werking", body: "Publiceer een status pas na tests op synchronisatie en offline gedrag." }
+      { title: "Verbind de bron", body: "Een bevoegde beheerder configureert de beschikbare tenantmodule; geheimen blijven server-side." },
+      { title: "Controleer de sync", body: "Bekijk laatste synchronisatie, fouten en stale status voordat content wordt gebruikt." },
+      { title: "Kies de output", body: "Maak een dynamische slide of beheerde import met de juiste broncontext en preview." },
+      { title: "Publiceer veilig", body: "De Player blijft op last-known-good wanneer actuele brondata tijdelijk niet bereikbaar is." }
     ],
     summary:
-      "De integratiepagina is bewust transparant: op dit moment worden geen specifieke sportproviders als live partner of productie-integratie geclaimd.",
+      "Beschikbare modules en bronnen worden feitelijk benoemd. Nieuwe sporen zoals YouTube blijven zichtbaar in voorbereiding tot hun releasegates groen zijn.",
     title: "Koppel VeyoCast aan informatie die je al gebruikt"
   },
+  ...integrationDetailPages,
   {
     benefits: [
-      { title: "Start", body: "Een voorstel voor een compacte eerste locatie en essentiële schermcontent." },
-      { title: "Club", body: "Een voorstel voor meerdere schermen, teamleden en terugkerende clubcontent." },
-      { title: "Network", body: "Een voorstel voor grotere organisaties, meerdere locaties en uitgebreid beheer." }
+      { title: "14 dagen gratis", body: "De proefperiode duurt 14 × 24 uur vanaf de eerste succesvolle billable schermactivatie na acceptatie." },
+      { title: "Per actief scherm", body: "Je betaalt € 5,95 inclusief btw per actief scherm per maand; inactieve schermrecords tellen niet als actief scherm." },
+      { title: "Bedragen in hele centen", body: "Prijsberekeningen gebruiken integer cents, zodat totalen voorspelbaar en controleerbaar blijven." }
     ],
     description:
-      "Vraag een helder VeyoCast-voorstel aan op basis van het aantal schermen, locaties, beheerteam en gewenste ondersteuning.",
+      "Bereken de VeyoCast-maandprijs op basis van € 5,95 inclusief btw per actief scherm, na 14 dagen gratis proberen.",
     eyebrow: "Prijzen",
-    examples: ["Aantal schermen en locaties", "Beheer- en teambehoefte", "Onboarding en ondersteuning", "Eventuele maatwerkvraag"],
+    examples: ["1 scherm: € 5,95 per maand", "2 schermen: € 11,90 per maand", "6 schermen: € 35,70 per maand", "14 dagen gratis proberen"],
     faqs: [
-      { title: "Waarom staan er nog geen eurobedragen?", body: "De definitieve abonnements- en contractstructuur is nog niet formeel goedgekeurd. VeyoCast publiceert daarom geen verzonnen vanafprijs." },
-      { title: "Waar hangt een voorstel van af?", body: "Vooral van schermen, locaties, beheerbehoefte, onboarding en eventuele aantoonbaar beschikbare aanvullende diensten." },
-      { title: "Kan ik eerst een demo krijgen?", body: "Ja. Een demo helpt om de relevante journey en een realistische eerste omvang vast te stellen." }
+      { title: "Wat kost VeyoCast?", body: "€ 5,95 inclusief btw per actief scherm per maand, na een proefperiode van 14 dagen." },
+      { title: "Wanneer begint de proefperiode?", body: "Bij de eerste succesvolle activering van een billable scherm nadat de voorwaarden zijn geaccepteerd. Een juridische billingaccount krijgt één proefperiode." },
+      { title: "Kan btw afwijken?", body: "Voor Nederland rekent de calculator met 21% btw. Afwijkende grensoverschrijdende fiscale behandeling wordt vóór contractering bevestigd." }
     ],
     imageId: "product-screen-status",
     index: true,
     kind: "pricing",
     lead:
-      "Geen verborgen aannames en geen verzonnen vanafprijs. We brengen eerst jouw schermen, locaties en beheervraag in kaart.",
+      "Eén transparant tarief per actief scherm. Kies het aantal schermen en zie direct het bruto maandbedrag na de proefperiode.",
     pathname: "/prijzen",
     primaryCta: { href: "/demo", label: "Plan een demo" },
     related: [
@@ -894,14 +1084,14 @@ const corePages: MarketingPageDefinition[] = [
       { href: "/veelgestelde-vragen", label: "Veelgestelde vragen" },
       { href: "/contact", label: "Vraag een voorstel aan" }
     ],
-    secondaryCta: { href: "/contact", label: "Vraag een voorstel aan" },
+    secondaryCta: { href: "/#opstelling", label: "Bouw je opstelling" },
     steps: [
-      { title: "Vertel over je locaties", body: "Noem organisatie, aantal schermen en het belangrijkste communicatiemoment." },
-      { title: "Bekijk de juiste flow", body: "We demonstreren alleen de functies die jouw beheerteam nodig heeft." },
-      { title: "Ontvang een voorstel", body: "Na afstemming volgt een voorstel met bevestigde inhoud en voorwaarden." }
+      { title: "Start je proefperiode", body: "Accepteer de voorwaarden en activeer het eerste billable scherm; vanaf dat moment loopt 14 × 24 uur." },
+      { title: "Activeer alleen wat je gebruikt", body: "De facturatie volgt het aantal billable actieve schermen en maakt de ingangsdatum per scherm inzichtelijk." },
+      { title: "Betaal per maand", body: "Na de proefperiode wordt € 5,95 inclusief btw per actief scherm per maand berekend." }
     ],
     summary:
-      "De pakketnamen geven richting aan de schaal, niet aan reeds vastgestelde prijzen of contractvoorwaarden.",
+      "De prijs groeit lineair mee met het aantal actieve schermen. Bestaande billing- en entitlementgates bepalen wanneer een scherm billable wordt.",
     title: "Duidelijke prijzen voor ieder scherm"
   },
   {

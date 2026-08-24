@@ -42,6 +42,11 @@ export default defineConfig({
           controlWebServer,
           {
             command: `pnpm --filter @veyocast/marketing exec next dev --port ${marketingPort} --hostname 127.0.0.1`,
+            env: {
+              VEYOCAST_SETUP_INTENT_SIGNING_SECRET:
+                process.env.VEYOCAST_SETUP_INTENT_SIGNING_SECRET ??
+                "veyocast-test-only-setup-intent-secret-2026"
+            },
             reuseExistingServer: !process.env.CI,
             timeout: 180_000,
             url: marketingURL

@@ -8,16 +8,35 @@ import {
   type LeadFormState,
   submitLeadForm
 } from "../_actions/lead-actions";
+import type { SetupIntentPayload } from "../_lib/setup-intent";
 
 type LeadFormProps = {
   kind: "contact" | "demo";
+  setupIntent?: SetupIntentPayload | null;
+  setupIntentToken?: string | null;
 };
 
 function FieldError({ error, id }: { error?: string; id: string }) {
   return error ? <span className="field-error" id={id}>{error}</span> : null;
 }
 
-export function LeadForm({ kind }: LeadFormProps) {
+function organizationTypeForSetup(setupIntent?: SetupIntentPayload | null) {
+  if (setupIntent?.branch === "sportclub") return "Sportvereniging";
+  if (setupIntent?.branch === "hospitality") return "Horeca of kantine";
+  if (setupIntent?.branch === "organization") return "Andere organisatie";
+  return "";
+}
+
+function screenBandForSetup(setupIntent?: SetupIntentPayload | null) {
+  const count = setupIntent?.screenCount;
+  if (!count) return "";
+  if (count === 1) return "1 scherm";
+  if (count <= 5) return "2–5 schermen";
+  if (count <= 15) return "6–15 schermen";
+  return "Meer dan 15 schermen";
+}
+
+export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps) {
   const initialLeadFormState: LeadFormState = {
     errors: {},
     message: "",
@@ -32,6 +51,7 @@ export function LeadForm({ kind }: LeadFormProps) {
   return (
     <form action={action} className="lead-form" noValidate>
       <input name="kind" type="hidden" value={kind} />
+      {setupIntentToken ? <input name="setupIntent" type="hidden" value={setupIntentToken} /> : null}
       <div aria-hidden className="lead-form__honeypot">
         <label htmlFor={`${kind}-website`}>Website</label>
         <input autoComplete="off" id={`${kind}-website`} name="website" tabIndex={-1} />
@@ -118,7 +138,7 @@ export function LeadForm({ kind }: LeadFormProps) {
                     : undefined
                 }
                 aria-invalid={Boolean(state.errors.organizationType)}
-                defaultValue=""
+                defaultValue={organizationTypeForSetup(setupIntent)}
                 id={`${kind}-organization-type`}
                 name="organizationType"
                 required
@@ -142,7 +162,7 @@ export function LeadForm({ kind }: LeadFormProps) {
               <select
                 aria-describedby={state.errors.screens ? `${kind}-screens-error` : undefined}
                 aria-invalid={Boolean(state.errors.screens)}
-                defaultValue=""
+                defaultValue={screenBandForSetup(setupIntent)}
                 id={`${kind}-screens`}
                 name="screens"
                 required
