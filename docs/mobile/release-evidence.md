@@ -90,7 +90,7 @@ grote uploads en dataverbruik vereisen profiler- en hardwaremetingen.
 | Definitieve privacy/Data Safety/legal retention | open | privacy/legal |
 | Accountdeletion execution worker | open | privacy/legal + operations |
 | Push provider delivery/incident producer | open | backend operations |
-| Expo SDK 57 patches gepubliceerd op 24-08-2026 | tijdelijk geblokkeerd | supply-chain policy; herhaal `pnpm --filter @veyocast/control-mobile exec expo install --check` na de minimum release age |
+| Expo SDK 57 patches gepubliceerd op 24-08-2026 | tijdelijk geblokkeerd | supply-chain policy; de release valideert reproduceerbaar de frozen SDK-bundel met `EXPO_OFFLINE=1`; review de nieuwere patches pas na de minimum release age |
 
 Daarom is de app nog niet als “Play Store-ready” of “gepubliceerd” aan te
 merken, ondanks de aanwezige releaseketen.

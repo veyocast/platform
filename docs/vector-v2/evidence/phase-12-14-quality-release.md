@@ -20,6 +20,7 @@ Branch: `veyocast/s123-vector-v2-living-venue-os`
 | `pnpm test:a11y` | 36 groen; 1 gedocumenteerde live-only suite conditioneel overgeslagen |
 | `pnpm test:e2e -- --project=chromium` | 168 groen; 18 expliciete live/provider/hardware-opt-ins conditioneel overgeslagen |
 | Lighthouse op marketing production build | Performance 94, accessibility 100, best practices 100; FCP 0,9 s, LCP 3,0 s, TBT 80 ms, CLS 0 |
+| Reproduceerbare Expo SDK-check | Groen tegen de frozen, reeds gereviewde SDK-57-bundel; online patchdrift kan de immutable build niet meer na checkout wijzigen |
 
 De conditionele tests zijn niet uitgezet of gequarantined. Ze vereisen bewust
 een echte lokale Supabase-state, providerfixture of fysiek apparaat en zijn
@@ -27,6 +28,16 @@ afzonderlijk geactiveerd waar dat lokaal kan. De live suites voor Menu/Twelve,
 RSS, Media, Engage, onboarding, Venue Twin, Publisher en de pilotverticale zijn
 alle groen. De pilot bewijst in 2,4 minuten: upload, Studio, playlist,
 preflight/publicatie, pairing en geverifieerde playback.
+
+De native CI gebruikte eerder Expo's bewegende online compatibilitymap. Toen
+op dezelfde dag nieuwe SDK-57-patches verschenen, werd een verder ongewijzigde
+frozen build rood terwijl pnpm die artifacts terecht nog in de release-age-
+quarantaine hield. CI en Play-internal valideren nu met `EXPO_OFFLINE=1` tegen
+de daadwerkelijk geïnstalleerde lockfilebundel. Een eigen fail-closed validator
+vergelijkt daarnaast ieder Expo-modulebereik met `bundledNativeModules.json`
+uit exact die geïnstalleerde Expo-release. Dit slaat geen test over: Expo
+controleert de lokale SDK-map, config/build/AAB/16-KB-gates blijven actief en
+de nieuwe online patches vereisen nog steeds een afzonderlijke dependencyreview.
 
 ## Traceability
 
