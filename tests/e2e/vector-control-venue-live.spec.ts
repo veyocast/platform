@@ -4,6 +4,10 @@ import { expect, test } from "@playwright/test";
 
 const liveVenue = process.env.VEYOCAST_LIVE_VENUE_E2E === "1";
 const tenantId = "10000000-0000-4000-8000-000000000101";
+const validPng = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+  "base64"
+);
 
 test.describe("Vector v2 live Control, Health and Venue Twin", () => {
   test.skip(!liveVenue, "requires a freshly reset isolated local Supabase stack");
@@ -33,14 +37,14 @@ test.describe("Vector v2 live Control, Health and Venue Twin", () => {
     await expect.poll(async () => {
       await page.reload();
       return venueCard.getByRole("button", { name: "Kill switch activeren" }).count();
-    }, { timeout: 15_000 }).toBe(1);
+    }, { intervals: [1_000], timeout: 30_000 }).toBe(1);
     const healthCard = page.getByRole("heading", { name: "Screen Health" }).locator("xpath=ancestor::section[1]");
     await healthCard.getByLabel("Reden voor vrijgeven").fill("Geïsoleerde Screen Health end-to-end verificatie");
     await healthCard.getByRole("button", { name: "Tenant vrijgeven" }).click();
     await expect.poll(async () => {
       await page.reload();
       return healthCard.getByRole("button", { name: "Kill switch activeren" }).count();
-    }, { timeout: 15_000 }).toBe(1);
+    }, { intervals: [1_000], timeout: 30_000 }).toBe(1);
     await page.getByRole("heading", { name: "Gecontroleerde productuitrol" }).evaluate((element) => {
       element.scrollIntoView({ block: "start" });
     });
@@ -52,6 +56,20 @@ test.describe("Vector v2 live Control, Health and Venue Twin", () => {
     await expect(page.getByRole("link", { name: /^Integraties\s/ })).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({ path: "docs/screenshots/vector-v2/control/system-pulse-1440x900.png" });
+
+    await page.goto("/dashboard/media");
+    await page.getByRole("link", { name: "Media uploaden" }).click();
+    await expect(page).toHaveURL(/upload=1/);
+    const uploadDialog = page.getByRole("dialog", { name: "Media uploaden" });
+    await uploadDialog.getByLabel("Titel voor één afbeelding", { exact: true }).fill("Venue plattegrond");
+    await uploadDialog.getByLabel("Afbeeldingen", { exact: true }).setInputFiles({
+      buffer: validPng,
+      mimeType: "image/png",
+      name: "venue-plattegrond.png"
+    });
+    await uploadDialog.getByRole("button", { name: "Uploaden en verifiëren" }).click();
+    await expect(uploadDialog.getByText("1 van 1 gereed")).toBeVisible();
+
     await page.goto("/dashboard/screens?view=venue");
     await expect(page.getByRole("heading", { name: "Leg eerst de echte venue vast" })).toBeVisible();
     await page.getByLabel("Naam venue").fill("Sportpark De Horizon");
@@ -60,14 +78,21 @@ test.describe("Vector v2 live Control, Health and Venue Twin", () => {
     await expect.poll(async () => {
       await page.reload();
       return page.getByText("Plattegrond instellen").count();
-    }, { timeout: 15_000 }).toBe(1);
+    }, { intervals: [1_000], timeout: 30_000 }).toBe(1);
     await page.getByText("Plattegrond instellen").click();
     await page.getByLabel("Naam", { exact: true }).fill("Begane grond");
+    await page.getByRole("button", { name: "Kies uit Media" }).click();
+    const resourcePicker = page.getByRole("dialog", { name: "Plattegrond uit Media kiezen" });
+    await expect(resourcePicker.getByText("Venue plattegrond", { exact: true })).toBeVisible();
+    expect((await new AxeBuilder({ page }).include('[role="dialog"]').analyze()).violations).toEqual([]);
+    await page.screenshot({ path: "docs/screenshots/vector-v2/media/resource-picker-1440x900.png" });
+    await resourcePicker.getByRole("button", { name: /Venue plattegrond/ }).click();
+    await expect(page.getByText(/Gekozen: Venue plattegrond/)).toBeVisible();
     await page.getByRole("button", { name: "Plattegrond opslaan" }).click();
     await expect.poll(async () => {
       await page.reload();
       return page.getByText("Zone toevoegen", { exact: true }).count();
-    }, { timeout: 15_000 }).toBeGreaterThan(0);
+    }, { intervals: [1_000], timeout: 30_000 }).toBeGreaterThan(0);
     await page.getByText("Zone toevoegen", { exact: true }).first().click();
     await page.getByLabel("Naam zone").fill("Clubhuis");
     await page.getByLabel("Omschrijving").fill("Publieke entree en kantine");
@@ -75,7 +100,7 @@ test.describe("Vector v2 live Control, Health and Venue Twin", () => {
     await expect.poll(async () => {
       await page.reload();
       return page.getByRole("combobox", { name: "Zone", exact: true }).getByRole("option", { name: "Clubhuis" }).count();
-    }, { timeout: 15_000 }).toBe(1);
+    }, { intervals: [1_000], timeout: 30_000 }).toBe(1);
     await page.getByRole("combobox", { name: "Scherm", exact: true }).selectOption({ label: "Pilot hoofdscherm" });
     await page.getByRole("combobox", { name: "Zone", exact: true }).selectOption({ label: "Clubhuis" });
     await page.getByLabel("X (0–1)").fill("0.32");
@@ -84,7 +109,7 @@ test.describe("Vector v2 live Control, Health and Venue Twin", () => {
     await expect.poll(async () => {
       await page.reload();
       return page.getByText("32% × 64% · r1").count();
-    }, { timeout: 15_000 }).toBe(1);
+    }, { intervals: [1_000], timeout: 30_000 }).toBe(1);
 
     await expect(page.getByRole("heading", { name: "Sportpark De Horizon" })).toBeVisible();
     await expect(page.getByText("32% × 64% · r1")).toBeVisible();

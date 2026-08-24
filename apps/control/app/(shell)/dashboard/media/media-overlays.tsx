@@ -4,12 +4,12 @@ import {
   Bookmark,
   FolderPlus,
   Image as ImageIcon,
+  Layers3,
   Tags,
   Trash2,
   Video
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import {
@@ -34,6 +34,7 @@ import {
 
 import {
   archiveMediaAsset,
+  createMediaCollection,
   createMediaFolder,
   createMediaTag,
   deleteMediaView,
@@ -100,7 +101,6 @@ export function MediaUploadDialog({
   open,
   supabaseUrl
 }: MediaUploadDialogProps) {
-  const router = useRouter();
   const [kind, setKind] = useState<"image" | "video">("image");
   const [dialogOpen, setDialogOpen] = useState(open);
   const dialogReadyRef = useRef(false);
@@ -119,7 +119,7 @@ export function MediaUploadDialog({
         if (!dialogReadyRef.current && !nextOpen) return;
         setDialogOpen(nextOpen);
         if (dialogOpen && !nextOpen) {
-          router.replace(closeHref, { scroll: false });
+          window.location.assign(closeHref);
         }
       }}
       open={dialogOpen}
@@ -214,7 +214,6 @@ export function MediaInspectorSheet({
   status,
   title
 }: MediaInspectorSheetProps) {
-  const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(open);
   const sheetReadyRef = useRef(false);
 
@@ -232,7 +231,7 @@ export function MediaInspectorSheet({
         if (!sheetReadyRef.current && !nextOpen) return;
         setSheetOpen(nextOpen);
         if (sheetOpen && !nextOpen) {
-          router.replace(closeHref, { scroll: false });
+          window.location.assign(closeHref);
         }
       }}
       open={sheetOpen}
@@ -342,6 +341,7 @@ export function MediaOrganizationDialog({
   folders: MediaFolderOption[];
 }) {
   const folderKey = useRef<HTMLInputElement>(null);
+  const collectionKey = useRef<HTMLInputElement>(null);
   const tagKey = useRef<HTMLInputElement>(null);
 
   return (
@@ -361,7 +361,7 @@ export function MediaOrganizationDialog({
         </DialogHeader>
         <DialogBody>
           <form
-            action={createMediaFolder}
+            action={async (formData) => completeMediaOrganization(await createMediaFolder(formData))}
             className="playlist-form"
             onSubmit={() => ensureIdempotencyKey(folderKey.current)}
           >
@@ -382,7 +382,7 @@ export function MediaOrganizationDialog({
           </form>
 
           <form
-            action={createMediaTag}
+            action={async (formData) => completeMediaOrganization(await createMediaTag(formData))}
             className="playlist-form"
             onSubmit={() => ensureIdempotencyKey(tagKey.current)}
           >
@@ -398,10 +398,32 @@ export function MediaOrganizationDialog({
             </div>
             <DialogFooter><Button type="submit">Tag maken</Button></DialogFooter>
           </form>
+
+          <form
+            action={async (formData) => completeMediaOrganization(await createMediaCollection(formData))}
+            className="playlist-form"
+            onSubmit={() => ensureIdempotencyKey(collectionKey.current)}
+          >
+            <input name="idempotencyKey" ref={collectionKey} type="hidden" />
+            <h3><Layers3 aria-hidden="true" /> Nieuwe collectie</h3>
+            <div className="field">
+              <label htmlFor="new-media-collection-name">Collectienaam</label>
+              <input id="new-media-collection-name" maxLength={80} minLength={2} name="name" required type="text" />
+            </div>
+            <div className="field">
+              <label htmlFor="new-media-collection-description">Omschrijving <span>(optioneel)</span></label>
+              <textarea id="new-media-collection-description" maxLength={240} name="description" rows={3} />
+            </div>
+            <DialogFooter><Button type="submit">Collectie maken</Button></DialogFooter>
+          </form>
         </DialogBody>
       </DialogContent>
     </Dialog>
   );
+}
+
+function completeMediaOrganization(message: string) {
+  window.location.assign(`/dashboard/media?succes=${encodeURIComponent(message)}`);
 }
 
 export function SavedMediaViewsDialog({

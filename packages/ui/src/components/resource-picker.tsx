@@ -28,11 +28,15 @@ export type ResourceKind =
   | "template";
 
 export type ResourcePickerItem = Readonly<{
+  category?: string;
   description?: string;
+  disabledReason?: string;
   id: string;
   kind: ResourceKind;
+  keywords?: readonly string[];
   name: string;
   preview?: ReactNode;
+  source?: string;
   status?: Readonly<{ label: string; tone: BadgeStatus }>;
 }>;
 
@@ -51,6 +55,8 @@ export type ResourcePickerProps = {
   items: readonly ResourcePickerItem[];
   kinds?: readonly ResourceKind[];
   onSelect: (item: ResourcePickerItem) => void;
+  onSelectMany?: (items: readonly ResourcePickerItem[]) => void;
+  selectionMode?: "multiple" | "single";
   title?: string;
   trigger?: ReactNode;
 };
@@ -61,21 +67,36 @@ export function ResourcePicker({
   items,
   kinds,
   onSelect,
+  onSelectMany,
+  selectionMode = "single",
   title = "Bron toevoegen",
   trigger
 }: ResourcePickerProps) {
+  const [category, setCategory] = useState("all");
   const [kind, setKind] = useState<ResourceKind | "all">("all");
   const [query, setQuery] = useState("");
+  const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set());
+  const [source, setSource] = useState("all");
+  const categories = useMemo(
+    () => [...new Set(items.flatMap((item) => item.category ? [item.category] : []))].sort((a, b) => a.localeCompare(b, "nl")),
+    [items]
+  );
+  const sources = useMemo(
+    () => [...new Set(items.flatMap((item) => item.source ? [item.source] : []))].sort((a, b) => a.localeCompare(b, "nl")),
+    [items]
+  );
   const visibleItems = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("nl");
     return items.filter((item) => {
       if (kind !== "all" && item.kind !== kind) return false;
+      if (category !== "all" && item.category !== category) return false;
+      if (source !== "all" && item.source !== source) return false;
       if (!normalizedQuery) return true;
-      return `${item.name} ${item.description ?? ""}`
+      return `${item.name} ${item.description ?? ""} ${(item.keywords ?? []).join(" ")}`
         .toLocaleLowerCase("nl")
         .includes(normalizedQuery);
     });
-  }, [items, kind, query]);
+  }, [category, items, kind, query, source]);
   const availableKinds = useMemo(
     () => kinds ?? [...new Set(items.map((item) => item.kind))],
     [items, kinds]
@@ -99,6 +120,28 @@ export function ResourcePicker({
               value={query}
             />
           </div>
+          {categories.length > 0 || sources.length > 0 ? (
+            <div className="vc-resource-picker__facets">
+              {sources.length > 0 ? (
+                <label>
+                  <span>Bron</span>
+                  <select onChange={(event) => setSource(event.currentTarget.value)} value={source}>
+                    <option value="all">Alle bronnen</option>
+                    {sources.map((availableSource) => <option key={availableSource} value={availableSource}>{availableSource}</option>)}
+                  </select>
+                </label>
+              ) : null}
+              {categories.length > 0 ? (
+                <label>
+                  <span>Categorie</span>
+                  <select onChange={(event) => setCategory(event.currentTarget.value)} value={category}>
+                    <option value="all">Alle categorieën</option>
+                    {categories.map((availableCategory) => <option key={availableCategory} value={availableCategory}>{availableCategory}</option>)}
+                  </select>
+                </label>
+              ) : null}
+            </div>
+          ) : null}
           <div aria-label="Brontype" className="vc-resource-picker__kinds" role="tablist">
             <button
               aria-selected={kind === "all"}
@@ -130,10 +173,34 @@ export function ResourcePicker({
             <div className="vc-resource-picker__grid" role="list">
               {visibleItems.map((item) => (
                 <div key={item.id} role="listitem">
-                  <DialogClose asChild>
-                    <button
+                  {selectionMode === "single" ? <DialogClose asChild><button
+                    className="vc-resource-picker__item"
+                    disabled={Boolean(item.disabledReason)}
+                    onClick={() => onSelect(item)}
+                    type="button"
+                  >
+                      <span className={cn("vc-resource-picker__preview", !item.preview && "vc-resource-picker__preview--empty")}>
+                        {item.preview ?? kindLabels[item.kind]}
+                      </span>
+                      <span className="vc-resource-picker__item-copy">
+                        <strong>{item.name}</strong>
+                        {item.description ? <span>{item.description}</span> : null}
+                        <span className="vc-resource-picker__item-meta">
+                          <span>{kindLabels[item.kind]}</span>
+                          {item.status ? <Badge status={item.status.tone}>{item.status.label}</Badge> : null}
+                        </span>
+                        {item.disabledReason ? <span className="vc-resource-picker__reason">{item.disabledReason}</span> : null}
+                      </span>
+                    </button></DialogClose> : <button
+                      aria-pressed={selectedIds.has(item.id)}
                       className="vc-resource-picker__item"
-                      onClick={() => onSelect(item)}
+                      disabled={Boolean(item.disabledReason)}
+                      onClick={() => setSelectedIds((current) => {
+                        const next = new Set(current);
+                        if (next.has(item.id)) next.delete(item.id);
+                        else next.add(item.id);
+                        return next;
+                      })}
                       type="button"
                     >
                       <span className={cn("vc-resource-picker__preview", !item.preview && "vc-resource-picker__preview--empty")}>
@@ -146,9 +213,9 @@ export function ResourcePicker({
                           <span>{kindLabels[item.kind]}</span>
                           {item.status ? <Badge status={item.status.tone}>{item.status.label}</Badge> : null}
                         </span>
+                        {item.disabledReason ? <span className="vc-resource-picker__reason">{item.disabledReason}</span> : null}
                       </span>
-                    </button>
-                  </DialogClose>
+                    </button>}
                 </div>
               ))}
             </div>
@@ -156,10 +223,25 @@ export function ResourcePicker({
             <p className="vc-resource-picker__empty">{emptyLabel}</p>
           )}
         </DialogBody>
-        <DialogFooter aside="De gekozen bron wordt aan je huidige werk toegevoegd.">
+        <DialogFooter aside={selectionMode === "multiple" ? `${selectedIds.size} geselecteerd` : "De gekozen bron wordt aan je huidige werk toegevoegd."}>
           <DialogClose asChild>
             <Button variant="secondary">Annuleren</Button>
           </DialogClose>
+          {selectionMode === "multiple" ? (
+            <DialogClose asChild>
+              <Button
+                disabled={selectedIds.size === 0}
+                onClick={() => {
+                  const selected = items.filter((item) => selectedIds.has(item.id));
+                  if (onSelectMany) onSelectMany(selected);
+                  else for (const item of selected) onSelect(item);
+                  setSelectedIds(new Set());
+                }}
+              >
+                {selectedIds.size === 1 ? "1 bron toevoegen" : `${selectedIds.size} bronnen toevoegen`}
+              </Button>
+            </DialogClose>
+          ) : null}
         </DialogFooter>
       </DialogContent>
     </Dialog>

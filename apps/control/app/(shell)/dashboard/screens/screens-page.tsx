@@ -68,6 +68,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
         error: null,
         features: { healthView: false, venueTwin: false },
         floorplans: [],
+        floorplanAssets: [],
         groups: [],
         limit: 0,
         releases: [],

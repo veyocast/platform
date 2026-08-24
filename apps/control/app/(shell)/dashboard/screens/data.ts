@@ -112,6 +112,7 @@ export type ScreenFleetData = {
   error: string | null;
   features: { healthView: boolean; venueTwin: boolean };
   floorplans: VenueFloorplan[];
+  floorplanAssets: Array<{ height: number | null; id: string; title: string; width: number | null }>;
   groups: Array<{
     id: string;
     memberIds: string[];
@@ -139,6 +140,7 @@ export type VenueFloorplan = {
   id: string;
   mediaAssetId: string | null;
   name: string;
+  previewUrl: string | null;
   revision: number;
   venueId: string;
   width: number;
@@ -196,6 +198,7 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     error: null,
     features: { healthView: false, venueTwin: false },
     floorplans: [],
+    floorplanAssets: [],
     groups: [],
     limit: 0,
     releases: [],
@@ -223,7 +226,8 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     venues,
     floorplans,
     zones,
-    venuePlacements
+    venuePlacements,
+    floorplanAssets
   ] = await Promise.all([
     supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, default_playlist_id, default_release_id, active_assignment_source, active_schedule_id, active_target_snapshot_id, created_at").eq("tenant_id", tenantId).is("deleted_at", null).order("created_at"),
     supabase.from("player_devices").select("id, screen_id, device_name, status, app_version, platform, capabilities, storage_quota_bytes, storage_used_bytes, active_release_id, desired_release_id, last_seen_at, paired_at, revoked_at, last_error_code, last_error_at, sync_retry_requested_at").eq("tenant_id", tenantId).order("paired_at", { ascending: false }),
@@ -239,7 +243,8 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     supabase.from("venues").select("id, name, address_label, status").eq("tenant_id", tenantId).eq("status", "active").order("name"),
     supabase.from("venue_floorplans").select("id, venue_id, media_asset_id, name, width, height, revision").eq("tenant_id", tenantId).eq("status", "active").order("name"),
     supabase.from("venue_zones").select("id, venue_id, floorplan_id, name, description").eq("tenant_id", tenantId).eq("status", "active").order("name"),
-    supabase.from("venue_screen_placements").select("id, screen_id, venue_id, floorplan_id, zone_id, x_normalized, y_normalized, orientation, wall_angle_degrees, revision").eq("tenant_id", tenantId)
+    supabase.from("venue_screen_placements").select("id, screen_id, venue_id, floorplan_id, zone_id, x_normalized, y_normalized, orientation, wall_angle_degrees, revision").eq("tenant_id", tenantId),
+    supabase.from("media_assets").select("id, title, width, height, storage_path").eq("tenant_id", tenantId).eq("source_kind", "user").eq("kind", "image").eq("status", "ready").is("deleted_at", null).order("title").limit(100)
   ]);
   const error = [
     screens.error,
@@ -256,7 +261,8 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     venues.error,
     floorplans.error,
     zones.error,
-    venuePlacements.error
+    venuePlacements.error,
+    floorplanAssets.error
   ].find(Boolean);
   if (error) {
     console.error("Schermvloot laden mislukt", error);
@@ -264,6 +270,26 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
   }
 
   const playlistNames = new Map((playlists.data ?? []).map((playlist) => [playlist.id, playlist.name]));
+  const floorplanPathByAsset = new Map((floorplanAssets.data ?? []).map((asset) => [asset.id, asset.storage_path]));
+  const floorplanPreviewByAsset = new Map<string, string>();
+  const floorplanPreviewPaths = (floorplans.data ?? []).flatMap((floorplan) => {
+    const path = floorplan.media_asset_id ? floorplanPathByAsset.get(floorplan.media_asset_id) : null;
+    return floorplan.media_asset_id && path ? [{ assetId: floorplan.media_asset_id, path }] : [];
+  });
+  if (floorplanPreviewPaths.length) {
+    const signed = await supabase.storage.from("tenant-media").createSignedUrls(
+      floorplanPreviewPaths.map((entry) => entry.path),
+      600
+    );
+    if (signed.error) {
+      console.error("Venueplattegrondvoorbeelden laden mislukt", { code: signed.error.name });
+    } else {
+      signed.data.forEach((preview, index) => {
+        const assetId = floorplanPreviewPaths[index]?.assetId;
+        if (assetId && preview.signedUrl) floorplanPreviewByAsset.set(assetId, preview.signedUrl);
+      });
+    }
+  }
   const enabledFlags = new Set((featureFlags.data ?? [])
     .filter((flag) => flag.enabled)
     .map((flag) => flag.flag_key));
@@ -283,9 +309,16 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
       id: floorplan.id,
       mediaAssetId: floorplan.media_asset_id,
       name: floorplan.name,
+      previewUrl: floorplan.media_asset_id ? floorplanPreviewByAsset.get(floorplan.media_asset_id) ?? null : null,
       revision: Number(floorplan.revision),
       venueId: floorplan.venue_id,
       width: Number(floorplan.width)
+    })),
+    floorplanAssets: (floorplanAssets.data ?? []).map((asset) => ({
+      height: asset.height,
+      id: asset.id,
+      title: asset.title,
+      width: asset.width
     })),
     groups: (groups.data ?? []).map((group) => ({
       id: group.id,

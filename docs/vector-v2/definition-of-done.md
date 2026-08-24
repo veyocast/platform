@@ -61,7 +61,7 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Unified Filter Dock wordt door relevante resources gedeeld.
   - Trace: Status=IN_PROGRESS; Implementation=`packages/ui/src/components/vector.tsx`; Evidence=componenttest en Storybookstory groen, routemigratie loopt; Gate owner/date=—
 - [ ] Unified Resource Picker wordt door relevante editors gedeeld.
-  - Trace: Status=IN_PROGRESS; Implementation=`packages/ui/src/components/resource-picker.tsx`, Studio Element Library-integratie; Evidence=UI 17/17 tests en Studio-E2E-checkpoint; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=`packages/ui/src/components/resource-picker.tsx`, Studio Element Library en Venue Twin-plattegrondselectie; Evidence=UI 18/18, live Venue-picker/Axe en `resource-picker-1440x900.png`; Gate owner/date=Publisher/Menu/dynamic migreren in fases 6–8
 - [ ] Journey Shell wordt door multi-step flows gedeeld.
   - Trace: Status=IN_PROGRESS; Implementation=`packages/ui/src/components/vector.tsx`; Evidence=componenttest en `vector-workflows.stories.tsx`; Gate owner/date=—
 - [ ] Storybook/componentcatalogus toont iedere relevante state en mode.
@@ -69,7 +69,7 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Oude compatibility wrappers hebben een gedocumenteerd verwijderpad.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Nieuwe componenten hebben unit/interaction/accessibilitytests.
-  - Trace: Status=IN_PROGRESS; Implementation=`packages/ui/test/primitives.test.tsx`, `tests/e2e/studio.spec.ts`; Evidence=17/17 componenttests groen; browserinteractiecheckpoint loopt; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=`packages/ui/test/primitives.test.tsx`, Resource Picker- en route-E2E; Evidence=18/18 componenttests plus Media/Venue live Axe groen; routebrede dekking loopt; Gate owner/date=—
 
 ## C. Accessibility, responsive en motion
 
@@ -204,7 +204,7 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Venue Twin heeft persistent datamodel, migratie, RLS en audit.
   - Trace: Status=DONE; Implementation=`20260824170000_s123_venue_twin_foundation.sql`; Evidence=verse reset, 25/25 pgTAP en live mutaties; Gate owner/date=—
 - [ ] Floorplan/venue asset en zones zijn veilig te uploaden/configureren.
-  - Trace: Status=IN_PROGRESS; Implementation=tenant/media-FK, floorplan- en zone-RPC; Evidence=RLS en live configuratie; Gate owner/date=Unified Resource Picker volgt fase 5
+  - Trace: Status=DONE; Implementation=tenant/media-FK, `venue-floorplan-form.tsx`, gedeelde Resource Picker, floorplan- en zone-RPC; Evidence=live upload/picker/save, Axe, screenshot en 1.154 RLS-assertions; Gate owner/date=—
 - [ ] Screen placement gebruikt normalized coordinates en valide orientation.
   - Trace: Status=DONE; Implementation=`venue_screen_placements`, `save_venue_screen_placement_v1`; Evidence=constraints, pgTAP en 32% × 64% live readback; Gate owner/date=—
 - [ ] Venue Twin sync met list/grid/group/screen detail is consistent.
@@ -227,21 +227,21 @@ Codex maakt in de repository een traceerbare kopie met per item:
 ## H. Media en resourcekeuze
 
 - [ ] Media ondersteunt folders/collections, tags, favourites, saved views, search en filters.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`media-library-workspace.tsx`, saved-viewcontract, `media_collections` en listing-RPC v2; Evidence=live create/bulk/filter/readback en desktop/mobile captures; Gate owner/date=—
 - [ ] Grid/list en inspector zijn consistent, snel en accessible.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=selecteerbare DataTable/grid, gedeelde inspector en statusrollen; Evidence=desktop/mobile Axe 0 violations, geen horizontale overflow; Gate owner/date=—
 - [ ] Upload is resumable waar bestaand, toont echte progress en herstelt veilig.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=bestaande image/video uploadpipeline en herstelde documentnavigatie voor uploadoverlay; Evidence=production-build E2E upload 2/2 plus bestaande TUS/RLS-regressies; Gate owner/date=—
 - [ ] Processing, quarantine, retry en failurecopy zijn duidelijk.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Metadata, preview/crop en usage impact kloppen.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Bulkacties hebben juiste tenant/capabilitychecks.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`bulk_organize_media_assets_v1`, server action en sticky bulkbar; Evidence=26/26 gerichte pgTAP, cross-tenant/partial-result en live 2/2 readback; Gate owner/date=—
 - [ ] Unified Resource Picker ondersteunt toepasselijke media/slides/templates/elements/data/integratiebronnen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=shared kind/source/categorycontract voor media/slides/templates/elements/data/integratie; Studio en Venue integraties; Evidence=18/18 componenttests en live Venue-selectie; Gate owner/date=Publisher/Menu/dynamic datasets volgen fases 6–8
 - [ ] Picker ondersteunt keyboard, multiselect, search/filter en focusreturn.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=native buttonsemantiek, single/multiple confirmflow, bron/categoriefacets en Radix focusgrens; Evidence=componentinteractietests plus live Axe/focusdialog; Gate owner/date=—
 - [ ] Mobile picker gebruikt doelgerichte sheet/fullscreen experience.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Studio/Publisher/Menu/dynamic flows gebruiken geen afwijkende legacy media popup.

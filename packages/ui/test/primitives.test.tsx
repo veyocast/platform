@@ -283,6 +283,16 @@ describe("@veyocast/ui primitives", () => {
     expect(html).toContain('aria-haspopup="dialog"');
   });
 
+  it("supports one shared multi-select contract with source and category facets", async () => {
+    const source = await readFile(new URL("../src/components/resource-picker.tsx", import.meta.url), "utf8");
+
+    expect(source).toContain('selectionMode?: "multiple" | "single"');
+    expect(source).toContain("Alle bronnen");
+    expect(source).toContain("Alle categorieën");
+    expect(source).toContain("aria-pressed={selectedIds.has(item.id)}");
+    expect(source).toContain("onSelectMany");
+  });
+
   it("uses css variables instead of hardcoded hex colors in component styles", async () => {
     const styles = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
 

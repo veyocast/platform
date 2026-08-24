@@ -95,7 +95,7 @@ mag deze grenzen niet dupliceren.
 | 2 | Marketing, SEO, Setup Builder, pricing/trial-intent | fase 1 | DONE |
 | 3 | Auth en hervatbare onboarding | fase 1–2 | DONE |
 | 4 | Dashboard, screens, Screen 360, health en Venue Twin | fase 1, schema/RLS | DONE |
-| 5 | Media en Unified Resource Picker | fase 1 | TODO |
+| 5 | Media en Unified Resource Picker | fase 1 | DONE |
 | 6 | Studio en dynamische slideflows | fase 1, 5 | TODO |
 | 7 | Publisher, planning, preflight en releases | fase 1, 5–6 | TODO |
 | 8 | Sportlink, Twelve, RSS, YouTube, Sponsor Hub en Engage | fase 4–7 | TODO |
@@ -151,3 +151,10 @@ Fase 4 heeft de default-off rolloutgrens, het tenantveilige Venue Twin-datamodel
 echte Screen Health-semantiek en de integratiepulse opgeleverd. Gerichte en
 brede RLS-, workspace-, production-build-, Axe- en live browsergates zijn groen.
 Zie `docs/vector-v2/evidence/phase-4-control-screens-venue.md`.
+
+Fase 5 heeft collecties en geaudite bulkorganisatie aan de bestaande Media-
+workspace toegevoegd, de gedeelde Resource Picker uitgebreid met bron- en
+categoriezoeking plus multi-select, en die picker voor echte Venue Twin-
+plattegronden hergebruikt. Een verse reset, 1.154 RLS-assertions, alle workspace-
+gates en twee production-build-E2E's inclusief desktop/mobile Axe zijn groen.
+Zie `docs/vector-v2/evidence/phase-5-media-resource-picker.md`.

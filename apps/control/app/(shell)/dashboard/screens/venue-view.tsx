@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { Button, StatusPill } from "@veyocast/ui";
 import { Building2, MapPin, Monitor, Plus, ScanLine } from "lucide-react";
 import Link from "next/link";
@@ -5,10 +6,10 @@ import Link from "next/link";
 import type { ScreenFleetData } from "./data";
 import {
   createVenue,
-  createVenueFloorplan,
   createVenueZone,
   saveVenueScreenPlacement
 } from "./venue-actions";
+import { VenueFloorplanForm } from "./venue-floorplan-form";
 import styles from "./venue-view.module.css";
 
 export function VenueView({ canManage, data }: { canManage: boolean; data: ScreenFleetData }) {
@@ -77,6 +78,7 @@ export function VenueView({ canManage, data }: { canManage: boolean; data: Scree
             <StatusPill label={floorplan ? "Plattegrond actief" : "Lijstfallback"} tone={floorplan ? "success" : "info"} />
           </div>
           <div className={styles.map} data-has-floorplan={Boolean(floorplan)}>
+            {floorplan?.previewUrl ? <img alt="" className={styles.mapImage} src={floorplan.previewUrl} /> : null}
             <div className={styles.mapGrid} aria-hidden="true" />
             {placements.map((placement) => {
               const screen = screenById.get(placement.screenId);
@@ -102,7 +104,7 @@ export function VenueView({ canManage, data }: { canManage: boolean; data: Scree
           <h3>Inrichting</h3>
           {!canManage ? <p className={styles.readOnly}>Alleen lezen. Een schermbeheerder kan zones en posities aanpassen.</p> : (
             <>
-              {!floorplan ? <FloorplanForm venueId={venue.id} /> : null}
+              {!floorplan ? <VenueFloorplanForm assets={data.floorplanAssets} venueId={venue.id} /> : null}
               <ZoneForm floorplanId={floorplan?.id ?? null} venueId={venue.id} />
               {data.screens.length ? <PlacementForm data={data} floorplanId={floorplan?.id ?? null} venueId={venue.id} zones={zones} /> : (
                 <Button asChild variant="secondary"><Link href="/dashboard/screens/new">Eerste scherm toevoegen</Link></Button>
@@ -131,10 +133,6 @@ export function VenueView({ canManage, data }: { canManage: boolean; data: Scree
       </section>
     </div>
   );
-}
-
-function FloorplanForm({ venueId }: { venueId: string }) {
-  return <details><summary>Plattegrond instellen</summary><form action={createVenueFloorplan} className={styles.stackForm}><input name="venueId" type="hidden" value={venueId} /><label><span>Naam</span><input maxLength={120} name="name" placeholder="Begane grond" required /></label><div className={styles.formRow}><label><span>Breedte</span><input defaultValue={1600} max={16000} min={320} name="width" required type="number" /></label><label><span>Hoogte</span><input defaultValue={900} max={16000} min={240} name="height" required type="number" /></label></div><p>Een bestaand veilig media-asset kan later via de Resource Picker worden gekoppeld. Zonder asset gebruikt VeyoCast deze code-native kaart.</p><Button type="submit">Plattegrond opslaan</Button></form></details>;
 }
 
 function ZoneForm({ floorplanId, venueId }: { floorplanId: string | null; venueId: string }) {

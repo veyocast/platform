@@ -1959,6 +1959,31 @@
   margin-bottom: var(--vc-vector-space-16, var(--vc-space-16));
 }
 
+.vc-resource-picker__facets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-vector-space-12, var(--vc-space-12));
+  margin-bottom: var(--vc-vector-space-16, var(--vc-space-16));
+}
+
+.vc-resource-picker__facets label {
+  color: var(--vc-vector-ink-muted, var(--vc-text-muted));
+  display: grid;
+  font-size: var(--vc-vector-font-size-caption, 0.75rem);
+  gap: var(--vc-vector-space-4, var(--vc-space-4));
+  min-width: min(100%, 14rem);
+}
+
+.vc-resource-picker__facets select {
+  background: var(--vc-vector-surface, var(--vc-surface));
+  border: 1px solid var(--vc-vector-line-strong, var(--vc-border-strong));
+  border-radius: var(--vc-vector-radius-control, var(--vc-radius-md));
+  color: var(--vc-vector-ink, var(--vc-text));
+  font: inherit;
+  min-height: var(--vc-vector-touch-minimum-target-px, 44px);
+  padding-inline: var(--vc-vector-space-12, var(--vc-space-12));
+}
+
 .vc-resource-picker__kinds {
   display: flex;
   gap: var(--vc-vector-space-8, var(--vc-space-8));
@@ -2024,6 +2049,17 @@
   transform: translateY(-1px);
 }
 
+.vc-resource-picker__item[aria-pressed="true"] {
+  border-color: var(--vc-vector-accent, var(--vc-brand-electric-orange));
+  box-shadow: inset 0 0 0 1px var(--vc-vector-accent, var(--vc-brand-electric-orange));
+}
+
+.vc-resource-picker__item:disabled {
+  cursor: not-allowed;
+  opacity: .62;
+  transform: none;
+}
+
 .vc-resource-picker__preview {
   align-items: center;
   aspect-ratio: 16 / 9;
@@ -2058,9 +2094,14 @@
   font-size: var(--vc-vector-font-size-body-sm, 0.875rem);
 }
 
+.vc-resource-picker__reason {
+  color: var(--vc-semantic-danger-text) !important;
+  font-weight: var(--vc-vector-font-weight-semibold, 600);
+}
+
 .vc-resource-picker__item-meta {
   align-items: center;
-  color: var(--vc-vector-ink-subtle, var(--vc-text-subtle));
+  color: var(--vc-vector-ink-muted, var(--vc-text-muted));
   display: flex;
   font-size: var(--vc-vector-font-size-caption, 0.75rem);
   gap: var(--vc-vector-space-8, var(--vc-space-8));
