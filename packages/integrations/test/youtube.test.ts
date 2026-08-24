@@ -29,14 +29,14 @@ describe("YouTube official playback boundary", () => {
   });
 
   it("leest alleen begrensde officiële Data API metadata", async () => {
-    const fetchMock = vi.fn(async (
-      _input: Parameters<typeof fetch>[0],
-      _init?: Parameters<typeof fetch>[1]
-    ) => new Response(JSON.stringify({ items: [{
-      id: "dQw4w9WgXcQ",
-      snippet: { channelTitle: "Kanaal", title: "Video" },
-      status: { embeddable: true, privacyStatus: "public" }
-    }] }), { status: 200 }));
+    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
+      void args;
+      return new Response(JSON.stringify({ items: [{
+        id: "dQw4w9WgXcQ",
+        snippet: { channelTitle: "Kanaal", title: "Video" },
+        status: { embeddable: true, privacyStatus: "public" }
+      }] }), { status: 200 });
+    });
     const fetchImpl = fetchMock as unknown as typeof fetch;
     await expect(fetchYouTubeMetadata({ apiKey: "test-key", fetchImpl, videoId: "dQw4w9WgXcQ" }))
       .resolves.toMatchObject({ embeddable: true, title: "Video" });

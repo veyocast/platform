@@ -43,6 +43,8 @@ export const capabilities = [
   "tenant.team.manage",
   "tenant.settings.read",
   "tenant.settings.manage",
+  "tenant.billing.read",
+  "tenant.billing.manage",
   "tenant.audit.read",
   "tenant.support.export",
   "tenant.ticket.read",
@@ -68,6 +70,7 @@ export const tenantReadCapabilities = [
   "tenant.screen.read",
   "tenant.team.read",
   "tenant.settings.read",
+  "tenant.billing.read",
   "tenant.ticket.read",
   "tenant.sponsor.read",
   "tenant.sponsor.report"
@@ -111,6 +114,7 @@ const tenantManageCapabilities = [
   "tenant.screen.manage",
   "tenant.team.manage",
   "tenant.settings.manage",
+  "tenant.billing.manage",
   "tenant.audit.read",
   "tenant.support.export"
 ] as const satisfies readonly Capability[];

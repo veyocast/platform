@@ -404,89 +404,89 @@ Codex maakt in de repository een traceerbare kopie met per item:
 
 ## N. Billing, Mollie en entitlements
 
-- [ ] Price version is immutable: EUR 595 cents gross, VAT versioned.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Trial start is atomair, éénmalig en exact 336 uur.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Billable screen definitie en interval lifecycle zijn geïmplementeerd.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Hardware replacement veroorzaakt geen dubbele charge.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Mid-cycle add/remove proration is reproduceerbaar en cent-exact.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Month-end, leap year, UTC/DST en credit rounding propertytests zijn groen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Billing account, plan, price, subscription, usage, invoice, line en credit ledger bestaan.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Payment attempts, provider events, outbox, reconciliation, overrides en audit bestaan.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Financial history is append-only; correctie via reversal/credit.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Iedere nieuwe billingtabel heeft tenant/RLS/capabilitytests.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] Price version is immutable: EUR 595 cents gross, VAT versioned.
+  - Trace: Status=DONE; Implementation=s123 billingmigratie en domain billing; Evidence=pgTAP 60/60, domain billing-core 10/10; Gate owner/date=—
+- [x] Trial start is atomair, éénmalig en exact 336 uur.
+  - Trace: Status=DONE; Implementation=Player-activationtrigger; Evidence=pgTAP trial/replacementasserties; Gate owner/date=—
+- [x] Billable screen definitie en interval lifecycle zijn geïmplementeerd.
+  - Trace: Status=DONE; Implementation=screen_billing_intervals plus disabletrigger; Evidence=pgTAP open/close/restricted; Gate owner/date=—
+- [x] Hardware replacement veroorzaakt geen dubbele charge.
+  - Trace: Status=DONE; Implementation=logisch-screeninterval; Evidence=pgTAP replacement blijft één interval en start trial niet opnieuw; Gate owner/date=—
+- [x] Mid-cycle add/remove proration is reproduceerbaar en cent-exact.
+  - Trace: Status=DONE; Implementation=immutable usage snapshot en exact-second proration; Evidence=domain 28/29/30/31-dagen en databasefactuur; Gate owner/date=—
+- [x] Month-end, leap year, UTC/DST en credit rounding propertytests zijn groen.
+  - Trace: Status=DONE; Implementation=packages/domain/src/billing.ts; Evidence=month-clamp, leap-month, 3.500+ btw-invarianten en uurlijkse prorationproperty groen; Gate owner/date=—
+- [x] Billing account, plan, price, subscription, usage, invoice, line en credit ledger bestaan.
+  - Trace: Status=DONE; Implementation=s123 billingmigratie; Evidence=verse reset en factuur 595/492/103; Gate owner/date=—
+- [x] Payment attempts, provider events, outbox, reconciliation, overrides en audit bestaan.
+  - Trace: Status=DONE; Implementation=s123 billingmigratie en interne workers; Evidence=pgTAP plus Control 188 tests; Gate owner/date=—
+- [x] Financial history is append-only; correctie via reversal/credit.
+  - Trace: Status=DONE; Implementation=immutabilitytriggers en semantic credit ledger; Evidence=update/delete geweigerd en chargeback exact één reversal; Gate owner/date=—
+- [x] Iedere nieuwe billingtabel heeft tenant/RLS/capabilitytests.
+  - Trace: Status=DONE; Implementation=forced RLS-loop en guarded commands; Evidence=geaggregeerde alle-tabellenassertie, cross-tenant read/write en AAL2; Gate owner/date=—
 - [ ] Mollie Customer/first payment/mandate flow werkt in testmode.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Browserredirect kan paymentstatus niet autoritatief wijzigen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Recurring Payment gebruikt juiste customer/mandate/sequence en bedrag.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Lokale semantic idempotency overleeft retries langer dan providercache.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Classic webhook verwerkt hetzelfde payment-ID bij statusupdates correct.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Duplicate/out-of-order webhook veroorzaakt geen dubbel financieel effect.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Reconciliation detecteert en herstelt provider/local mismatch veilig.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Reversal/chargeback brengt invoice/entitlement naar correcte state.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Dunning D0/D1/D3/D6, pending timeouts en retryguards werken.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Billing portal toont profiel, plan, period, screens, invoices, credits, method en recovery.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Platform support overrides zijn tijdgebonden, AAL2 en geaudit.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Entitlement snapshot is signed, monotonic, scoped en expiry-bounded.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Trial/active Player toont geen billingoverlay.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Grace Player toont toegankelijke countdownchip gedurende maximaal 168 uur.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Grace behoudt tenantcontent en LKG.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Restricted Player toont lokale VeyoCast-betalingssplash zonder factuurdetails.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Restricted wist contentcache/releasehistory niet.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Beheer, betaling, support, recovery en atomische replacement blijven mogelijk.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Netto nieuwe billable activatie is restricted of pending.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Serverbevestigde betaling herstelt playback zonder republish.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Offline lease, stale clock en clock rollback zijn getest.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Test/live Mollie IDs, keys, webhook URLs en ledgers zijn strikt gescheiden.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Provider- en billinglogs zijn geredigeerd en correlation-aware.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Shadow/cohort/chip/restricted flags en kill switches zijn getest.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=EXTERNAL_GATE; Implementation=server-only Mollie-adapter, outbox, return en mandate-sync; Evidence=adapter 4/4 en boundary 3/3; Gate owner/date=Productowner, testkey en Mollie-dashboardreadback
+- [x] Browserredirect kan paymentstatus niet autoritatief wijzigen.
+  - Trace: Status=DONE; Implementation=billing return serverpage en gedeelde verifier; Evidence=tenant-bound boundarytest en provider-GET; Gate owner/date=—
+- [x] Recurring Payment gebruikt juiste customer/mandate/sequence en bedrag.
+  - Trace: Status=DONE; Implementation=cycle/outbox en Mollie-adapter; Evidence=pgTAP recurring attempt plus requestcontract; Gate owner/date=—
+- [x] Lokale semantic idempotency overleeft retries langer dan providercache.
+  - Trace: Status=DONE; Implementation=permanente unique semantic keys; Evidence=cycle/dunning replayasserties; Gate owner/date=—
+- [x] Classic webhook verwerkt hetzelfde payment-ID bij statusupdates correct.
+  - Trace: Status=DONE; Implementation=strikte classic webhook plus provider-GET; Evidence=paid→chargeback met hetzelfde payment-ID; Gate owner/date=—
+- [x] Duplicate/out-of-order webhook veroorzaakt geen dubbel financieel effect.
+  - Trace: Status=DONE; Implementation=semantic financieel effect; Evidence=duplicate chargeback blijft één reversal; Gate owner/date=—
+- [x] Reconciliation detecteert en herstelt provider/local mismatch veilig.
+  - Trace: Status=DONE; Implementation=reconcile worker en reconciliation-items; Evidence=server-only GET, veilige mismatchhash/status en supportdashboard; Gate owner/date=live providerreadback volgt externe gate
+- [x] Reversal/chargeback brengt invoice/entitlement naar correcte state.
+  - Trace: Status=DONE; Implementation=dedicated Mollie chargebackread + verified command; Evidence=invoice payment_reversed, subscription grace en nieuwe revision; Gate owner/date=—
+- [x] Dunning D0/D1/D3/D6, pending timeouts en retryguards werken.
+  - Trace: Status=DONE; Implementation=billing_notifications en mailworker; Evidence=10 persisted notices, replay 0, exponential backoff; Gate owner/date=mailrelaybezorging extern
+- [x] Billing portal toont profiel, plan, period, screens, invoices, credits, method en recovery.
+  - Trace: Status=DONE; Implementation=/dashboard/settings/billing; Evidence=capability/AAL2, transparante screenintervallen en notices; Gate owner/date=—
+- [x] Platform support overrides zijn tijdgebonden, AAL2 en geaudit.
+  - Trace: Status=DONE; Implementation=/platform/billing en create_billing_override_v1; Evidence=AAL1 geweigerd, expiry publiceert restricted revision; Gate owner/date=—
+- [x] Entitlement snapshot is signed, monotonic, scoped en expiry-bounded.
+  - Trace: Status=DONE; Implementation=Ed25519 server signer, manifest en Playerverify; Evidence=echte sign/verify, key mismatch, stale revision en lease tests; Gate owner/date=production key secret extern
+- [x] Trial/active Player toont geen billingoverlay.
+  - Trace: Status=DONE; Implementation=Player entitlement resolver/runtime; Evidence=Player 164 tests; Gate owner/date=—
+- [x] Grace Player toont toegankelijke countdownchip gedurende maximaal 168 uur.
+  - Trace: Status=DONE; Implementation=billing-warning-chip en grace hard stop; Evidence=Player resolver/CSS portrait-landscape; Gate owner/date=—
+- [x] Grace behoudt tenantcontent en LKG.
+  - Trace: Status=DONE; Implementation=tenant_content_with_warning boven bestaande cache; Evidence=resolver en LKG runtimecontract; Gate owner/date=—
+- [x] Restricted Player toont lokale VeyoCast-betalingssplash zonder factuurdetails.
+  - Trace: Status=DONE; Implementation=BillingSystemSplash; Evidence=privacyveilige copy en Player tests; Gate owner/date=—
+- [x] Restricted wist contentcache/releasehistory niet.
+  - Trace: Status=DONE; Implementation=overlaystate buiten immutable release/cache; Evidence=cachecode ongewijzigd en Player LKG tests; Gate owner/date=—
+- [x] Beheer, betaling, support, recovery en atomische replacement blijven mogelijk.
+  - Trace: Status=DONE; Implementation=AAL2 portals, bounded override en screen-bound replacement; Evidence=pgTAP en Control tests; Gate owner/date=—
+- [x] Netto nieuwe billable activatie is restricted of pending.
+  - Trace: Status=DONE; Implementation=before-insert activationguard; Evidence=restricted net-new insert SQLSTATE 55000; Gate owner/date=—
+- [x] Serverbevestigde betaling herstelt playback zonder republish.
+  - Trace: Status=DONE; Implementation=verified payment command en monotone entitlement; Evidence=grace/restricted→active test en manifest polling; Gate owner/date=—
+- [x] Offline lease, stale clock en clock rollback zijn getest.
+  - Trace: Status=DONE; Implementation=Player resolver/monotone cache; Evidence=expired lease, hard stop, five-minute rollbacktolerance en stale-revision tests; Gate owner/date=—
+- [x] Test/live Mollie IDs, keys, webhook URLs en ledgers zijn strikt gescheiden.
+  - Trace: Status=DONE; Implementation=provider_mode constraints en key-prefixguard; Evidence=adapter/boundary en pgTAP testmode; Gate owner/date=live key readback extern
+- [x] Provider- en billinglogs zijn geredigeerd en correlation-aware.
+  - Trace: Status=DONE; Implementation=hashed event bodies, request IDs en foutcodes; Evidence=geen providerpayload/key in UI of structured workerresultaat; Gate owner/date=—
+- [x] Shadow/cohort/chip/restricted flags en kill switches zijn getest.
+  - Trace: Status=DONE; Implementation=vier afzonderlijke tenantflags en system resolver; Evidence=engine/enforcement/collection plus LKG kill-switch pgTAP; Gate owner/date=—
 - [ ] Accountant/jurist heeft btw, factuur, creditnota en incassotekst extern gevalideerd of staat als expliciete gate.
   - Trace: Status=EXTERNAL_GATE; Implementation=`docs/vector-v2/execution-plan.md#externe-gates`; Evidence=Protocol/owner vastgelegd; uitvoering vereist externe bevoegdheid of hardware; Gate owner/date=Accountant/jurist
 
 ## O. Kwaliteitsgates, performance en release
 
 - [ ] `pnpm lint` of actuele repo-equivalent is groen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=workspace Turbo-gate; Evidence=30/30 groen; Gate owner/date=—
 - [ ] `pnpm typecheck` of actuele repo-equivalent is groen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=workspace Turbo-gate; Evidence=30/30 groen; Gate owner/date=—
 - [ ] Alle unit/integrationtests zijn groen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=workspace Turbo-gate; Evidence=30/30 groen; Gate owner/date=—
 - [ ] Database/RLS gates zijn groen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=verse reset en volledige pgTAP; Evidence=59 bestanden/1.262 assertions; Gate owner/date=—
 - [ ] Alle relevante apps/packages builden groen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=workspace productionbuild; Evidence=18/18 inclusief Control, Marketing, Player en Hermes Android-export; Gate owner/date=—
 - [ ] Kern-E2E voor marketing→trial→pair→create→publish→play is groen.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Billing testmode→grace→restricted→payment→recover E2E is groen.
@@ -514,7 +514,7 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Rollback en feature-flag kill switches zijn daadwerkelijk geoefend.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Runbooks voor billing, webhook/reconcile, Player restricted en entitlement recovery bestaan.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=docs/runbooks/billing-mollie-entitlements.md en ADR 0015; Evidence=commands, rollout, incident en rollback vastgelegd; Gate owner/date=—
 - [ ] Release evidence, ADR’s, changelog en traceability zijn compleet.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Geen ongeautoriseerde skipped/quarantined test resteert.

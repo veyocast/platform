@@ -13,3 +13,4 @@ export * from "./sponsor";
 export * from "./sport";
 export * from "./sportlink-slide-blueprints";
 export * from "./youtube";
+export * from "./billing";

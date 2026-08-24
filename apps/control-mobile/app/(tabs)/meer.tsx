@@ -12,6 +12,7 @@ import {
   Building2,
   CircleHelp,
   LogOut,
+  ReceiptEuro,
   ShieldCheck,
   Sparkles,
   UserRound
@@ -77,6 +78,14 @@ export default function MeerScreen() {
               icon={<UserRound color={theme.colors.ink} size={21} />}
               label="Account"
               onPress={() => router.push("/more/account")}
+              showDivider
+            />
+            <SettingsRow
+              description="Bekijk schermtelling en herstel je betaalmethode veilig in Control."
+              grouped
+              icon={<ReceiptEuro color={theme.colors.ink} size={21} />}
+              label="Abonnement & facturatie"
+              onPress={() => void Linking.openURL(`${process.env.EXPO_PUBLIC_CONTROL_URL ?? "https://control.veyocast.nl"}/dashboard/settings/billing`)}
             />
           </SurfaceCard>
         </View>

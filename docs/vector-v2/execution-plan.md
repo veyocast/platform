@@ -101,7 +101,7 @@ mag deze grenzen niet dupliceren.
 | 8 | Sportlink, Twelve, RSS, YouTube, Sponsor Hub en Engage | fase 4–7 | DONE |
 | 9 | Native mobile | gedeelde contracts en fases 4–8 | DONE (billingdeeplink volgt fase 11) |
 | 10 | Player, pairing, casting shells en fysieke signage states | contracts uit 7–9 | DONE (fysieke acceptatie blijft external gate) |
-| 11 | Billing/Mollie, entitlements en Player-enforcement | schema/RLS, 2–4, 10 | TODO |
+| 11 | Billing/Mollie, entitlements en Player-enforcement | schema/RLS, 2–4, 10 | DONE (live provider/legal/cohort blijven external gates) |
 | 12 | Accessibility, responsive, performance en observability hardening | alle productfasen | TODO |
 | 13 | Volledige regressie, screenshots, soak/hardwaregates en docs | alle eerdere fasen | TODO |
 | 14 | Immutable stagingrelease, verificatie en production-promotie | alle niet-externe DoD groen | TODO |
@@ -204,3 +204,15 @@ op, inclusief QR, live- en eindresultaat. Pairing ondersteunt nu code én lokale
 QR/deeplink zonder secrets. Verse migraties, 1.198 RLS-assertions, builds,
 Playerunit/offline en gerichte browseracceptatie zijn groen; zie
 `docs/vector-v2/evidence/phase-10-player-casting.md`.
+
+Fase 11 heeft een eigen immutable schermusage-/factuurledger, permanente
+provideroutbox, reconciliation, D0/D1/D3/D6, AAL2-portals en tijdgebonden
+supportoverrides toegevoegd. Mollie blijft uitsluitend betaalrail: webhook en
+browserreturn doen altijd een server-side GET en chargebacks gebruiken het
+afzonderlijke providerresource. De Player gebruikt device-gebonden Ed25519-
+entitlements met monotone revision, bounded lease, clock-rollbackbescherming,
+grace/LKG en lokale restricted-state. Een verse reset, 64/64 gerichte billing-
+asserties, de volledige RLS-suite (59 bestanden/1.262 assertions) en alle
+workspace lint/typecheck/test/buildgates zijn groen.
+Live credentials, mailrelay, finance/legal en cohortactivatie blijven expliciete
+external gates; zie `docs/vector-v2/evidence/phase-11-billing-entitlements.md`.

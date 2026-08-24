@@ -77,6 +77,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "platform"
   },
   {
+    description: "Shadowfacturen, providerhealth en reconciliation",
+    href: "/platform/billing",
+    label: "Billing",
+    requiredCapability: "platform.system.read",
+    section: "overview",
+    scope: "platform"
+  },
+  {
     description: "Verenigingen, status en limieten",
     href: "/platform/tenants",
     label: "Tenants",

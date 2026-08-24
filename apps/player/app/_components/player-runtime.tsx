@@ -73,6 +73,7 @@ import {
   resolvePersistedPairingDelay
 } from "../_lib/player-pairing-recovery";
 import { parsePlayerTimestamp } from "../_lib/player-time";
+import { entitlementRemainingDays, resolvePlayerEntitlementMode, verifyPlayerEntitlement } from "../_lib/player-entitlement";
 import {
   appendSponsorProof,
   removeAcceptedSponsorProof,
@@ -466,6 +467,9 @@ export function PlayerRuntime() {
     if (!deviceToken) return false;
     const cachedRelease = await readActiveRelease(deviceToken);
     if (!cachedRelease) return false;
+    cachedRelease.envelope.entitlementVerified = cachedRelease.envelope.entitlement
+      ? await verifyPlayerEntitlement(cachedRelease.envelope.entitlement)
+      : true;
 
     try {
       const hydratedRelease = await hydrateCachedRelease({
@@ -1064,6 +1068,9 @@ export function PlayerRuntime() {
       if (!cachedRelease || cancelled) {
         return false;
       }
+      cachedRelease.envelope.entitlementVerified = cachedRelease.envelope.entitlement
+        ? await verifyPlayerEntitlement(cachedRelease.envelope.entitlement)
+        : true;
 
       let offlineRelease: HydratedPlayerRelease;
       try {
@@ -1175,6 +1182,10 @@ export function PlayerRuntime() {
           handleManifestProblem(body as PlayerManifestProblem);
           return;
         }
+
+        body.entitlementVerified = body.entitlement
+          ? await verifyPlayerEntitlement(body.entitlement)
+          : true;
 
         const currentRuntime = runtimeRef.current;
         const releaseId = body.manifest.releaseId;
@@ -1937,6 +1948,13 @@ function PlaybackView({
   watchdogTimeoutMs: number;
 }) {
   const manifest = runtime.release.envelope.manifest;
+  const entitlement = runtime.release.envelope.entitlement;
+  const entitlementMode = runtime.release.envelope.entitlementVerified === false
+    ? "veyocast_verification_splash"
+    : resolvePlayerEntitlementMode(entitlement);
+  if (entitlementMode === "veyocast_billing_splash" || entitlementMode === "veyocast_verification_splash" || entitlementMode === "system_suspended") {
+    return <BillingSystemSplash mode={entitlementMode} screenName={runtime.release.envelope.device.screenName} />;
+  }
   const activeItem = manifest.items[runtime.activeIndex] ?? manifest.items[0];
 
   if (!activeItem || !isPlayerManifestItemPlayable(activeItem)) {
@@ -1990,6 +2008,7 @@ function PlaybackView({
           data-testid="player-brand-mark"
           src="/brand/veyocast-logo-inverse.svg"
         />
+        {entitlement && entitlementMode === "tenant_content_with_warning" ? <BillingWarningChip entitlement={entitlement} /> : null}
       </section>
       <aside hidden aria-label="Player diagnostics">
         <span>{runtime.state}</span>
@@ -2000,6 +2019,20 @@ function PlaybackView({
       </aside>
     </main>
   );
+}
+
+function BillingWarningChip({ entitlement }: { entitlement: NonNullable<PlayerManifestEnvelope["entitlement"]> }) {
+  const days = entitlementRemainingDays(entitlement);
+  return <aside className="billing-warning-chip" role="status"><span aria-hidden="true">!</span><div><strong>Betaling vereist</strong><small>{days > 1 ? `Nog ${days} dagen` : days === 1 ? "Vandaag oplossen" : "Herstel nu"}</small></div></aside>;
+}
+
+function BillingSystemSplash({ mode, screenName }: { mode: "system_suspended" | "veyocast_billing_splash" | "veyocast_verification_splash"; screenName: string }) {
+  const verification = mode === "veyocast_verification_splash";
+  const suspended = mode === "system_suspended";
+  return <main className="billing-system-splash" aria-label={verification ? "Abonnement verifiëren" : suspended ? "Player gepauzeerd" : "Betaling herstellen"}>
+    <img alt="VeyoCast" className="billing-system-splash__logo" src="/brand/veyocast-logo-inverse.svg"/>
+    <div className="billing-system-splash__copy"><span className="billing-system-splash__signal" aria-hidden="true">{verification ? "↻" : suspended ? "‖" : "!"}</span><p>{verification ? "VERIFICATIE NODIG" : suspended ? "PLAYER GEPAUZEERD" : "BETALING HERSTELLEN"}</p><h1>{verification ? "Verbind om het abonnement veilig te controleren." : suspended ? "Dit scherm is tijdelijk door VeyoCast gepauzeerd." : "De content is veilig bewaard."}</h1><p>{verification ? "Dit is geen melding van wanbetaling. Zodra de verbinding terug is, controleert de Player automatisch de geldige entitlement." : suspended ? "Neem contact op met de beheerder of VeyoCast Support." : "Een beheerder kan de betaalmethode in Control herstellen. Publiceren of opnieuw downloaden is daarna niet nodig."}</p><p className="billing-system-splash__support">Scherm: {screenName} · control.veyocast.nl/dashboard/settings/billing</p></div>
+  </main>;
 }
 
 const sponsorProofStorageKey = "veyocast-player-sponsor-proof-v1";

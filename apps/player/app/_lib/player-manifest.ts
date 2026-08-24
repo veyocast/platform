@@ -3,6 +3,7 @@ import type {
   PlayerEngagePlayback,
   PlayerPlaybackItem,
   PlayerSponsorPlan,
+  SignedPlayerEntitlement,
   PlayerYouTubePlayback
 } from "@veyocast/contracts";
 
@@ -107,6 +108,8 @@ export type PlayerManifestEnvelope = {
     lastSuccessfulSyncAt: string;
     nextSyncReason: string;
   };
+  entitlement?: SignedPlayerEntitlement;
+  entitlementVerified?: boolean;
 };
 
 export type PlayerWaitingContentEnvelope = {
