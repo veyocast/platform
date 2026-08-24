@@ -12,6 +12,7 @@ import { switchTenantContext } from "../../../context/actions";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import {
   resendProvisioningInvitation,
+  updateTenantFeatureFlag,
   updateTenantLifecycle,
   updateTenantScreenLimit
 } from "./actions";
@@ -37,6 +38,7 @@ export default async function PlatformTenantDetailPage({
         <p className="notice notice--critical" role="alert">Controleer je platformrechten en probeer opnieuw. Er is niets gewijzigd.</p>
         <Link className="button-link button-link--secondary" href="/platform/tenants">Terug naar verenigingen</Link>
       </div>
+
     );
   }
 
@@ -118,6 +120,17 @@ export default async function PlatformTenantDetailPage({
         </section>
       </div>
 
+      <section className="workspace-section" id="productuitrol" aria-labelledby="feature-rollout-title">
+        <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="feature-rollout-title">Gecontroleerde productuitrol</h2><p className="work-panel__meta">Flags sturen alleen ontdekking en presentatie. Capabilities, RLS en tenantstatus blijven server-side leidend.</p></div><StatusPill label="AAL2 + audit" tone="info" /></div>
+        <div className="work-grid">
+          {featureDefinitions.map((definition) => {
+            const stored = data.featureFlags.find((flag) => flag.flag_key === definition.key);
+            const enabled = stored?.enabled === true;
+            return <section className="work-panel" key={definition.key}><div className="work-panel__header"><div><p className="eyebrow">{definition.status}</p><h3>{definition.label}</h3></div><StatusPill label={enabled ? "Vrijgegeven" : "Uit"} tone={enabled ? "success" : "neutral"} /></div><p>{definition.description}</p>{stored ? <p className="work-panel__meta">Laatste reden: {stored.rollout_reason}</p> : <p className="work-panel__meta">Geen cohortbesluit: canonieke default is uit.</p>}<form action={updateTenantFeatureFlag} className="auth-form"><input name="tenantId" type="hidden" value={tenant.id} /><input name="flagKey" type="hidden" value={definition.key} /><input name="enabled" type="hidden" value={enabled ? "no" : "yes"} /><div className="field"><label htmlFor={`flag-reason-${definition.key}`}>Reden voor {enabled ? "uitschakelen" : "vrijgeven"}</label><textarea disabled={!canMutate} id={`flag-reason-${definition.key}`} maxLength={500} minLength={8} name="reason" placeholder="Cohort, eigenaar en verificatiepad" required /></div><button className={enabled ? "button-link button-link--secondary" : "button-link button-link--primary"} disabled={!canMutate} type="submit">{enabled ? "Kill switch activeren" : "Tenant vrijgeven"}</button></form></section>;
+          })}
+        </div>
+      </section>
+
       <section className="workspace-section" id="uitnodigingen" aria-labelledby="invitation-title">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="invitation-title">Uitnodigingen</h2><p className="work-panel__meta">Een nieuwe verzending roteert de acceptance-token; de vorige link wordt direct ongeldig.</p></div><StatusPill label={`${data.invitations.length} totaal`} tone="neutral" /></div>
         {data.invitations.length ? <div className="data-table-frame"><table className="data-table data-table--responsive"><caption>Uitnodigingen voor deze vereniging.</caption><thead><tr><th scope="col">E-mail</th><th scope="col">Rol</th><th scope="col">Status</th><th scope="col">Bezorging</th><th scope="col">Actie</th></tr></thead><tbody>{data.invitations.map((invitation) => { const effectiveStatus = invitation.status === "pending" && new Date(invitation.expires_at) <= new Date() ? "expired" : invitation.status; return <tr key={invitation.id}><td data-label="E-mail"><span className="table-primary">{invitation.email}</span></td><td data-label="Rol">{roleLabel(invitation.role)}</td><td data-label="Status">{invitationStatusLabel(effectiveStatus)}</td><td data-label="Bezorging"><span className="table-primary">{invitationDeliveryLabel(invitation.delivery_status, invitation.last_delivery_error_code)}</span>{invitation.delivery_status === "failed" ? <span className="work-panel__meta">{invitationDeliveryRecovery(invitation.last_delivery_error_code)}</span> : null}</td><td data-label="Actie">{invitation.status === "pending" ? <form action={resendProvisioningInvitation}><input name="tenantId" type="hidden" value={tenant.id} /><input name="invitationId" type="hidden" value={invitation.id} /><button className="table-action" disabled={!canMutate} type="submit">Nieuwe link versturen</button></form> : <span>Geen actie</span>}</td></tr>; })}</tbody></table></div> : <p className="notice" role="status">Geen uitnodigingen gevonden.</p>}
@@ -143,6 +156,7 @@ function LifecycleForm({ disabled, status, tenantId }: Readonly<{ disabled: bool
 const tenantErrors: Record<string, string> = {
   bevestiging: "Bevestig eerst dat je de impact begrijpt.",
   configuratie: "De beveiligde datasessie ontbreekt. Log opnieuw in en probeer opnieuw.",
+  featureflag: "Het cohortbesluit is ongeldig of kon niet veilig worden geaudit.",
   invoer: "De aangeleverde wijziging is ongeldig.",
   lifecycle: "De lifecycle kon niet veilig worden gewijzigd. Controleer de huidige status.",
   "limiet-in-gebruik": "De limiet is lager dan het actuele aantal schermen. Verwijder geen data; kies minimaal het huidige gebruik.",
@@ -157,6 +171,7 @@ const successMessage: Record<string, string> = {
   bestaand: "Deze opdracht was al verwerkt; het bestaande resultaat is geladen.",
   lifecycle: "De lifecycle-status is gewijzigd en geaudit.",
   limiet: "De schermlimiet is gewijzigd en geaudit.",
+  featureflag: "De productuitrol is gewijzigd en met reden geaudit.",
   uitnodiging: "Een nieuwe uitnodigingslink is verstuurd; de vorige link is ingetrokken."
 };
 
@@ -167,3 +182,8 @@ function invitationStatusLabel(value: string) { return value === "pending" ? "In
 function formatDate(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium" }).format(new Date(value)); }
 function formatDateTime(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
 function formatBytes(value: number) { if (value < 1024) return `${value} B`; if (value < 1024 ** 2) return `${(value / 1024).toFixed(1)} KB`; if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(1)} MB`; return `${(value / 1024 ** 3).toFixed(1)} GB`; }
+
+const featureDefinitions = [
+  { description: "Persistente venues, zones, plattegronden en genormaliseerde schermposities met toegankelijke lijstfallback.", key: "venue_twin", label: "Venue Twin", status: "PROPOSED PRODUCT" },
+  { description: "Samengestelde vlootgezondheid boven bestaande heartbeat-, sync-, error- en opslagtelemetry.", key: "screen_health_view", label: "Screen Health", status: "PROPOSED UI" }
+] as const;

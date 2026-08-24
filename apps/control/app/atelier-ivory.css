@@ -14,7 +14,7 @@ html[data-design-system="atelier-ivory"] {
   --ai-surface-muted: #f0ece4;
   --ai-ink: #171714;
   --ai-ink-soft: #5f5a52;
-  --ai-ink-muted: #8b857a;
+  --ai-ink-muted: #6f695f;
   --ai-ink-inverse: #fffdfc;
   --ai-border: #ded8cc;
   --ai-border-strong: #c9c0b2;
@@ -22,6 +22,7 @@ html[data-design-system="atelier-ivory"] {
   --ai-sidebar-raised: #151411;
   --ai-sidebar-active: #24211c;
   --ai-sidebar-border: #2d2a25;
+  --ai-sidebar-text-muted: #b7b0a4;
   --ai-brand: var(--vc-brand-electric-orange);
   --ai-focus: #3977b8;
   --ai-success: #2e9b4b;
@@ -725,6 +726,16 @@ html[data-design-system="atelier-ivory"] .control-shell[data-navigation-scope="t
 
 html[data-design-system="atelier-ivory"] .control-sidebar__footer {
   border-color: var(--ai-sidebar-border);
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .control-legal-link {
+  color: var(--ai-sidebar-text-muted);
+}
+
+html[data-design-system="atelier-ivory"] .control-sidebar .control-legal-link:hover,
+html[data-design-system="atelier-ivory"] .control-sidebar .control-legal-link:focus-visible {
+  background: var(--ai-sidebar-raised);
+  color: var(--ai-ink-inverse);
 }
 
 html[data-design-system="atelier-ivory"] .control-main {

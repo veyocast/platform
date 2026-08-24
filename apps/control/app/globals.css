@@ -4934,7 +4934,12 @@ body .vc-dialog__content {
   .media-filter-bar .vc-filter-bar__meta,
   .screens-filter-bar .vc-filter-bar__meta {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .media-filter-bar .vc-filter-bar__results,
+  .screens-filter-bar .vc-filter-bar__results {
+    grid-column: 1 / -1;
   }
 
   .media-filter-bar .vc-filter-bar__actions,
@@ -4942,6 +4947,7 @@ body .vc-dialog__content {
     display: flex;
     flex: 0 0 auto;
     grid-template-columns: none;
+    justify-content: flex-end;
     margin-left: 0;
     width: auto;
   }

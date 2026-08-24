@@ -6,6 +6,7 @@ import { SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
+import { deriveScreenHealth } from "../../../../../lib/screen-health";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import {
   renamePlayerDevice,
@@ -92,6 +93,7 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
         releases={data.releases}
         schedules={data.schedules}
         screen={screen}
+        venueContext={data.venueContext}
       /> : null}
       {activeTab === "content" ? <ContentTab releases={data.releases} screen={screen} /> : null}
       {activeTab === "planning" ? (
@@ -142,13 +144,15 @@ function OverviewTab({
   latestHeartbeat,
   releases,
   schedules,
-  screen
+  screen,
+  venueContext
 }: {
   device: FleetDevice | null;
   latestHeartbeat: { createdAt: string; runtimeState: string } | null;
   releases: FleetRelease[];
   schedules: ScreenSchedule[];
   screen: NonNullable<Awaited<ReturnType<typeof loadScreenDetail>>["screen"]>;
+  venueContext: Awaited<ReturnType<typeof loadScreenDetail>>["venueContext"];
 }) {
   const activeRelease = releases.find((release) => release.id === screen.assignedReleaseId) ?? null;
   const nextSchedule = schedules
@@ -179,7 +183,18 @@ function OverviewTab({
         <SummaryItem label="Eerstvolgende planning" value={nextSchedule ? `${nextSchedule.name} · ${formatDate(nextSchedule.startsAt)}` : "Geen aankomende planning"} />
         <SummaryItem label="Player" value={device?.deviceName || "Niet gekoppeld"} />
         <SummaryItem label="Laatste contact" value={latestHeartbeat ? relativeDate(latestHeartbeat.createdAt) : "Nog nooit"} />
+        <SummaryItem
+          label="Venue Twin"
+          value={venueContext
+            ? `${venueContext.venue.name} · ${venueContext.zone?.name ?? "Geen zone"} · positie ${Math.round(venueContext.placement.xNormalized * 100)}% × ${Math.round(venueContext.placement.yNormalized * 100)}%`
+            : "Nog niet ruimtelijk geplaatst"}
+        />
       </dl>
+      <div className="page-action-group">
+        <Link className="button-link button-link--secondary" href="/dashboard/screens?view=venue">
+          Venue Twin openen
+        </Link>
+      </div>
     </section>
   </>;
 }
@@ -434,7 +449,15 @@ function assignmentExplanation(screen: NonNullable<Awaited<ReturnType<typeof loa
   }
   return "Actief via standaardplaylist van het scherm";
 }
-function screenStatus(status: string | undefined, device: FleetDevice | null, lastSeenAt: string | null) { if (status === "disabled") return { label: "Uitgeschakeld", tone: "critical" as const }; if (status === "maintenance") return { label: "Onderhoud", tone: "warning" as const }; if (!device) return { label: "Niet gekoppeld", tone: "warning" as const }; if (lastSeenAt && Date.now() - Date.parse(lastSeenAt) <= 5 * 60_000) return { label: "Online", tone: "success" as const }; return { label: "Offline", tone: "warning" as const }; }
+function screenStatus(status: string | undefined, device: FleetDevice | null, lastSeenAt: string | null) {
+  return deriveScreenHealth({
+    activeReleaseId: device?.activeReleaseId,
+    desiredReleaseId: device?.desiredReleaseId,
+    deviceStatus: device?.status,
+    lastSeenAt,
+    screenStatus: status ?? "active"
+  });
+}
 function screenStatusLabel(status: string) { return status === "maintenance" ? "Onderhoud" : status === "disabled" ? "Uitgeschakeld" : "Actief"; }
 function lifecycleExplanation(status: string) { return status === "maintenance" ? "Lokale playback blijft behouden; nieuwe sync en pairing wachten." : status === "disabled" ? "Device toegang is ingetrokken zodra de serverstatus bekend is." : "Pairing, heartbeat en synchronisatie zijn toegestaan."; }
 function orientationLabel(value: string) { return value === "portrait" ? "Staand" : "Liggend"; }

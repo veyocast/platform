@@ -94,7 +94,7 @@ mag deze grenzen niet dupliceren.
 | 1 | Vector aliases, shared primitives, web/native/Player shells en compatibilitylaag | fase 0 | DONE |
 | 2 | Marketing, SEO, Setup Builder, pricing/trial-intent | fase 1 | DONE |
 | 3 | Auth en hervatbare onboarding | fase 1–2 | DONE |
-| 4 | Dashboard, screens, Screen 360, health en Venue Twin | fase 1, schema/RLS | TODO |
+| 4 | Dashboard, screens, Screen 360, health en Venue Twin | fase 1, schema/RLS | DONE |
 | 5 | Media en Unified Resource Picker | fase 1 | TODO |
 | 6 | Studio en dynamische slideflows | fase 1, 5 | TODO |
 | 7 | Publisher, planning, preflight en releases | fase 1, 5–6 | TODO |
@@ -146,3 +146,8 @@ idempotente self-service tenantclaim, resumable Journey Shell en echte
 scherm-/pairing-/releaseprogressie toegevoegd. De financiële activering blijft
 bewust fase 11: onboarding toont daar geen fictieve betaalstatus. Zie
 `docs/vector-v2/evidence/phase-3-auth-onboarding.md`.
+
+Fase 4 heeft de default-off rolloutgrens, het tenantveilige Venue Twin-datamodel,
+echte Screen Health-semantiek en de integratiepulse opgeleverd. Gerichte en
+brede RLS-, workspace-, production-build-, Axe- en live browsergates zijn groen.
+Zie `docs/vector-v2/evidence/phase-4-control-screens-venue.md`.

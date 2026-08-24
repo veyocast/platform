@@ -34,7 +34,9 @@ export async function signIn(formData: FormData) {
     redirect("/login?fout=inloggen");
   }
 
-  const session = await getControlSession();
+  // Reuse the client that performed the login. Creating a second SSR client in
+  // the same server action can observe an intermediate cookie-chunk state.
+  const session = await getControlSession(supabase);
 
   if (!session) {
     await supabase.auth.signOut();

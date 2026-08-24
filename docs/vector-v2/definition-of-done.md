@@ -175,11 +175,11 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Alle platformadminroutes gebruiken dezelfde familie met duidelijke autoriteitsgrens.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] System Pulse toont echte online/sync/release/offline/aandachtstatus.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`control-overview.ts`, `control-operations.ts`, dashboard; Evidence=`phase-4-control-screens-venue.md`, live screenshot en Axe; Gate owner/date=—
 - [ ] Dashboard prioriteert actie boven vanity metrics.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=operationele alerts, nu-actief, readiness en pulse; Evidence=`system-pulse-1440x900.png`; Gate owner/date=—
 - [ ] Integratiestatus onderscheidt fresh, stale, error, disabled en unknown.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`apps/control/lib/control-operations.ts`; Evidence=unitregressie plus live System Pulse; Gate owner/date=—
 - [ ] Snelle acties respecteren servercapabilities.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Team, settings, audit, support, data sources, groups en templates zijn gemigreerd.
@@ -189,7 +189,7 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Geen legacy header/sidebar/button/dialog/filter resteert op in-scope routes.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Platform support-/AAL2-acties zijn geaudit en begrensd.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`set_tenant_feature_flag_v1`, platform tenantactions; Evidence=25/25 gerichte RLS, live MFA/rolloutflow; Gate owner/date=—
 
 ## G. Schermen, Screen 360 en Venue Twin
 
@@ -200,21 +200,21 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Bulkacties tonen impact, confirmation en partial-failure-resultaat.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Health view gebruikt echte telemetry en toont unknown/stale correct.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`screen-health.ts`, `health-view.tsx`; Evidence=unitmatrix, Axe en `screen-health-1440x900.png`; Gate owner/date=—
 - [ ] Venue Twin heeft persistent datamodel, migratie, RLS en audit.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`20260824170000_s123_venue_twin_foundation.sql`; Evidence=verse reset, 25/25 pgTAP en live mutaties; Gate owner/date=—
 - [ ] Floorplan/venue asset en zones zijn veilig te uploaden/configureren.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=tenant/media-FK, floorplan- en zone-RPC; Evidence=RLS en live configuratie; Gate owner/date=Unified Resource Picker volgt fase 5
 - [ ] Screen placement gebruikt normalized coordinates en valide orientation.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`venue_screen_placements`, `save_venue_screen_placement_v1`; Evidence=constraints, pgTAP en 32% × 64% live readback; Gate owner/date=—
 - [ ] Venue Twin sync met list/grid/group/screen detail is consistent.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=fleet venue/list en Screen 360 venuecontext; Evidence=desktop/mobile captures; Gate owner/date=screen groups worden in Publisherfase gekoppeld
 - [ ] Venue Twin werkt zonder 3D/motion via listfallback.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`venue-view.tsx`; Evidence=Axe en 390×844 zonder horizontale overflow; Gate owner/date=—
 - [ ] Screen onboarding en pairing zijn guided, bounded en idempotent.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Screen 360 dekt overview, content, planning, automation, health, settings en activity.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=bestaande Screen 360-routes plus venuecontext/healthsemantiek; Evidence=unit en live fleetflow; Gate owner/date=routebrede visual matrix volgt fase 13
 - [ ] Heartbeat, version, resolution, network, storage, desired/active release en sync zijn correct.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Rename, deactivate/archive, revoke, re-pair, retry en recovery respecteren capabilities/AAL2.
@@ -222,7 +222,7 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Deactivation/archive bewaart immutable release/audit history.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Offline en stale telemetry worden niet als online/healthy gepresenteerd.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`deriveScreenHealth`; Evidence=grenswaardetests 5/30 minuten en Health live readback; Gate owner/date=—
 
 ## H. Media en resourcekeuze
 

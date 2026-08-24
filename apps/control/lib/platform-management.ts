@@ -7,7 +7,7 @@ export async function loadPlatformTenantDetail(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return platformTenantFailure();
 
-  const [tenant, memberships, invitations, screens, media, audit] = await Promise.all([
+  const [tenant, memberships, invitations, screens, media, audit, featureFlags] = await Promise.all([
     supabase
       .from("tenants")
       .select("id, name, slug, status, screen_limit, locale, timezone, provisioning_status, created_at")
@@ -34,12 +34,17 @@ export async function loadPlatformTenantDetail(tenantId: string) {
       .select("id, action, target_type, result, created_at")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
-      .limit(12)
+      .limit(12),
+    supabase
+      .from("tenant_feature_flags")
+      .select("flag_key, enabled, rollout_reason, updated_at")
+      .eq("tenant_id", tenantId)
+      .order("flag_key")
   ]);
 
   if (
     tenant.error || !tenant.data || memberships.error || invitations.error ||
-    screens.error || media.error || audit.error
+    screens.error || media.error || audit.error || featureFlags.error
   ) return platformTenantFailure();
 
   const userIds = (memberships.data ?? []).map((membership) => membership.user_id);
@@ -52,6 +57,7 @@ export async function loadPlatformTenantDetail(tenantId: string) {
   return {
     auditEvents: audit.data ?? [],
     error: false as const,
+    featureFlags: featureFlags.data ?? [],
     invitations: invitations.data ?? [],
     members: (memberships.data ?? []).map((membership) => ({
       ...membership,
@@ -106,6 +112,7 @@ function platformTenantFailure() {
   return {
     auditEvents: [],
     error: true as const,
+    featureFlags: [],
     invitations: [],
     members: [],
     screenCount: 0,

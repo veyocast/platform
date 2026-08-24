@@ -60,6 +60,34 @@ export async function updateTenantScreenLimit(formData: FormData) {
   redirect(`/platform/tenants/${tenantId}?succes=limiet#limieten`);
 }
 
+export async function updateTenantFeatureFlag(formData: FormData) {
+  const tenantId = idValue(formData, "tenantId");
+  const flagKey = String(formData.get("flagKey") ?? "");
+  const allowedFlags = new Set(["venue_twin", "screen_health_view"]);
+  const reason = String(formData.get("reason") ?? "").trim();
+  if (!allowedFlags.has(flagKey) || reason.length < 8 || reason.length > 500) {
+    fail(tenantId, "featureflag");
+  }
+
+  await requireControlCapability("platform.tenant.lifecycle", {
+    aal2: true,
+    returnTo: `/platform/tenants/${tenantId}#productuitrol`
+  });
+  const supabase = await createControlSupabaseClient();
+  if (!supabase) fail(tenantId, "configuratie");
+  const { error } = await supabase.rpc("set_tenant_feature_flag_v1", {
+    p_enabled: formData.get("enabled") === "yes",
+    p_flag_key: flagKey,
+    p_reason: reason,
+    p_tenant_id: tenantId
+  });
+  if (error) fail(tenantId, error.code === "42501" ? "rechten" : "featureflag");
+
+  revalidateTenant(tenantId);
+  revalidatePath("/dashboard/screens");
+  redirect(`/platform/tenants/${tenantId}?succes=featureflag#productuitrol`);
+}
+
 export async function resendProvisioningInvitation(formData: FormData) {
   const tenantId = idValue(formData, "tenantId");
   const invitationId = idValue(formData, "invitationId");

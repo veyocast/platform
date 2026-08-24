@@ -11,6 +11,7 @@ function source(overrides: Partial<OperationalSource> = {}): OperationalSource {
   return {
     devices: [],
     heartbeats: [],
+    integrations: { dynamicSources: [], sportlinkConnections: [] },
     invitations: [],
     media: [],
     memberCount: 1,
@@ -79,5 +80,34 @@ describe("deriveOperationalDashboard", () => {
     expect(result.activePlaybackCount).toBe(1);
     expect(result.onlineScreenCount).toBe(1);
     expect(result.signals).toHaveLength(0);
+  });
+
+  it("distinguishes fresh, stale, error and disabled integrations", () => {
+    const result = deriveOperationalDashboard(source({
+      integrations: {
+        dynamicSources: [{
+          id: "rss-1", kind: "rss", last_attempt_at: now.toISOString(),
+          last_error_code: "feed_unreachable", last_successful_sync_at: null,
+          name: "Clubnieuws", provider_status: "error", status: "error"
+        }],
+        sportlinkConnections: [{
+          detected_club_name: "De Horizon", id: "sportlink-1",
+          last_attempt_at: now.toISOString(), last_error_code: null,
+          last_success_at: "2026-07-19T10:00:00.000Z",
+          stale_after: "2026-07-20T11:00:00.000Z", status: "active"
+        }]
+      }
+    }), now);
+
+    expect(result.integrationHealth).toEqual({
+      errorCount: 1,
+      staleCount: 1,
+      status: "error",
+      total: 2
+    });
+    expect(result.signals.map((signal) => signal.id)).toEqual(expect.arrayContaining([
+      "integration-error:rss-1",
+      "sportlink-health:sportlink-1"
+    ]));
   });
 });
