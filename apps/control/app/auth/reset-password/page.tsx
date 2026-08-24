@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { AuthBrand } from "../../_components/auth-brand";
 import { createControlSupabaseClient } from "../../../lib/supabase/server";
 import { updateRecoveredPassword } from "./actions";
 
@@ -23,6 +24,7 @@ export default async function ResetPasswordPage({
   return (
     <main className="auth-shell">
       <section className="auth-panel" aria-labelledby="reset-password-title">
+        <AuthBrand />
         <div>
           <p className="auth-kicker">Beveiligd accountherstel</p>
           <h1 className="auth-title" id="reset-password-title">

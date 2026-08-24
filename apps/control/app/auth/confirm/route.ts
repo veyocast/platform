@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("account") === "platform";
   const isPasswordRecovery =
     request.nextUrl.searchParams.get("recovery") === "password";
+  const isAccountRegistration =
+    request.nextUrl.searchParams.get("registration") === "account";
   const redirectTo = controlRedirectUrl(request);
 
   redirectTo.search = "";
@@ -50,6 +52,30 @@ export async function GET(request: NextRequest) {
       ? await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
       : { error: new Error("unavailable") };
 
+    if (!error) return response;
+  }
+
+  if (tokenHash && type === "signup" && isAccountRegistration) {
+    const config = getSupabasePublicConfig();
+    redirectTo.pathname = "/onboarding";
+    const response = NextResponse.redirect(redirectTo);
+    const supabase = config
+      ? createServerClient(config.url, config.anonKey, {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, options, value }) => {
+                response.cookies.set(name, value, options);
+              });
+            }
+          }
+        })
+      : null;
+    const { error } = supabase
+      ? await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
+      : { error: new Error("unavailable") };
     if (!error) return response;
   }
 

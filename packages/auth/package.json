@@ -7,6 +7,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./setup-intent": {
+      "types": "./src/setup-intent.ts",
+      "default": "./src/setup-intent.ts"
     }
   },
   "scripts": {

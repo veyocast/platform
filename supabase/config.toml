@@ -34,10 +34,18 @@ additional_redirect_urls = [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3002",
-  "http://127.0.0.1:3103/auth/confirm"
+  "http://127.0.0.1:3100/auth/confirm",
+  "http://127.0.0.1:3103/auth/confirm",
+  "https://control.veyocast.nl/auth/confirm",
+  "https://control-staging.veyocast.nl/auth/confirm"
 ]
 jwt_expiry = 3600
-enable_signup = false
+enable_signup = true
+
+[auth.email]
+enable_confirmations = true
+double_confirm_changes = true
+max_frequency = "1m"
 
 [auth.email.template.invite]
 subject = "Je bent uitgenodigd voor VeyoCast"
@@ -46,6 +54,10 @@ content_path = "./supabase/templates/invite.html"
 [auth.email.template.recovery]
 subject = "Herstel je VeyoCast-wachtwoord"
 content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.confirmation]
+subject = "Bevestig je VeyoCast-account"
+content_path = "./supabase/templates/confirmation.html"
 
 [auth.mfa]
 max_enrolled_factors = 10

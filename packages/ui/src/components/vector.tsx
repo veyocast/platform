@@ -158,7 +158,7 @@ export function JourneyShell({
         </ol>
       </nav>
       <div className={cn("vc-journey-shell__layout", aside && "vc-journey-shell__layout--with-aside")}>
-        <main className="vc-journey-shell__content">{children}</main>
+        <div className="vc-journey-shell__content">{children}</div>
         {aside ? <aside className="vc-journey-shell__aside">{aside}</aside> : null}
       </div>
     </section>

@@ -93,7 +93,7 @@ mag deze grenzen niet dupliceren.
 | 0 | Baseline, route-/capabilitytruth, DoD-traceability en testharness | geen | DONE |
 | 1 | Vector aliases, shared primitives, web/native/Player shells en compatibilitylaag | fase 0 | DONE |
 | 2 | Marketing, SEO, Setup Builder, pricing/trial-intent | fase 1 | DONE |
-| 3 | Auth en hervatbare onboarding | fase 1–2 | TODO |
+| 3 | Auth en hervatbare onboarding | fase 1–2 | DONE |
 | 4 | Dashboard, screens, Screen 360, health en Venue Twin | fase 1, schema/RLS | TODO |
 | 5 | Media en Unified Resource Picker | fase 1 | TODO |
 | 6 | Studio en dynamische slideflows | fase 1, 5 | TODO |
@@ -140,3 +140,9 @@ De item-voor-itemstatus wordt bijgehouden in
 releasebewijs worden per fase onder `docs/vector-v2/evidence/` gekoppeld.
 Een item wordt pas `DONE` na implementatie én readbackbewijs; hardware,
 credentials of juridische besluiten krijgen uitsluitend `EXTERNAL_GATE`.
+
+Fase 3 heeft publieke registratie, verplichte e-mailbevestiging, een
+idempotente self-service tenantclaim, resumable Journey Shell en echte
+scherm-/pairing-/releaseprogressie toegevoegd. De financiële activering blijft
+bewust fase 11: onboarding toont daar geen fictieve betaalstatus. Zie
+`docs/vector-v2/evidence/phase-3-auth-onboarding.md`.

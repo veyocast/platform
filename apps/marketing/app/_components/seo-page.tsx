@@ -11,7 +11,7 @@ import Link from "next/link";
 
 import type { MarketingPageDefinition } from "../_content/pages";
 import type { SetupIntentPayload } from "../_lib/setup-intent";
-import { canonicalUrl } from "../_lib/site-config";
+import { canonicalUrl, siteConfig } from "../_lib/site-config";
 import { FaqAccordion } from "./faq";
 import { JsonLd } from "./json-ld";
 import { LeadForm } from "./lead-form";
@@ -67,7 +67,10 @@ const setupBranchLabels = {
   sportclub: "Sportvereniging"
 } as const;
 
-function SetupIntentSummary({ intent }: { intent: SetupIntentPayload }) {
+function SetupIntentSummary({ intent, token }: { intent: SetupIntentPayload; token?: string | null }) {
+  const registrationUrl = token
+    ? `${siteConfig.controlOrigin}/register?setup=${encodeURIComponent(token)}`
+    : null;
   return (
     <aside className="setup-intent-summary" aria-labelledby="setup-intent-summary-title">
       <div>
@@ -79,6 +82,11 @@ function SetupIntentSummary({ intent }: { intent: SetupIntentPayload }) {
         <span>14 dagen gratis</span>
         <strong>{formatGrossCents(intent.grossMonthlyCents)} per maand daarna</strong>
         <small>incl. btw</small>
+        {registrationUrl ? (
+          <a className="button button--primary" href={registrationUrl}>
+            Account maken met deze opstelling
+          </a>
+        ) : null}
       </div>
     </aside>
   );
@@ -287,7 +295,7 @@ export function SeoPageShell({ page, setupIntent, setupIntentToken, setupStatus 
                 }
               />
               <div>
-                {setupIntent ? <SetupIntentSummary intent={setupIntent} /> : null}
+                {setupIntent ? <SetupIntentSummary intent={setupIntent} token={setupIntentToken} /> : null}
                 {setupStatus === "unavailable" ? (
                   <div className="form-message form-message--unavailable" role="status">
                     De opstelling kon niet veilig worden meegenomen. Je kunt het formulier wel handmatig invullen of de setup builder opnieuw openen.

@@ -1,7 +1,7 @@
 "use client";
 
 import { CloudOff, RefreshCw, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import styles from "./control-pwa-runtime.module.css";
 
@@ -11,6 +11,7 @@ export function ControlPwaRuntime() {
   const [isOnline, setIsOnline] = useState(true);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
   const [updateState, setUpdateState] = useState<UpdateState>("idle");
+  const reloadAfterActivation = useRef(false);
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
@@ -52,13 +53,14 @@ export function ControlPwaRuntime() {
 
   useEffect(() => {
     function handleControllerChange() {
-      window.location.reload();
+      if (reloadAfterActivation.current) window.location.reload();
     }
     navigator.serviceWorker?.addEventListener("controllerchange", handleControllerChange);
     return () => navigator.serviceWorker?.removeEventListener("controllerchange", handleControllerChange);
   }, []);
 
   function activateUpdate() {
+    reloadAfterActivation.current = true;
     registration?.waiting?.postMessage({ type: "VEYOCAST_CONTROL_SKIP_WAITING" });
   }
 

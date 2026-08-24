@@ -115,7 +115,7 @@ Codex maakt in de repository een traceerbare kopie met per item:
 - [ ] Setupresultaat toont screen count, groups, modules en correcte maandprijs na trial.
   - Trace: Status=DONE; Implementation=`venue-setup-builder.tsx`, `packages/domain/src/billing.ts`; Evidence=zone/group-, module- en schermtelling plus €11,90 E2E; Gate owner/date=—
 - [ ] Setupintent gaat veilig mee naar demo/trial/onboarding.
-  - Trace: Status=IN_PROGRESS; Implementation=signed intent naar `/demo`, route- en actieherverificatie; Evidence=4 intenttests en demo E2E; Gate owner/date=trial/onboardingkoppeling volgt in fase 3
+  - Trace: Status=DONE; Implementation=`@veyocast/auth/setup-intent`, `/demo`, `/register`, `/onboarding`; Evidence=4 intenttests, marketing demo E2E en live signup/onboarding E2E; Gate owner/date=—
 - [ ] Pricing toont 14 dagen gratis en daarna € 5,95 incl. btw per actief scherm per maand.
   - Trace: Status=DONE; Implementation=`billing.ts`, `marketing-price-calculator.tsx`, `/prijzen`; Evidence=domain unit, marketing build en pricingcaptures; Gate owner/date=—
 - [ ] Geen verborgen fee, vooraf aangevinkte toestemming of misleidende trialcopy.
@@ -150,23 +150,23 @@ Codex maakt in de repository een traceerbare kopie met per item:
 ## E. Auth, context en onboarding
 
 - [ ] Login, forgot/reset, callback/confirm, MFA, invite en errors delen Vector-shell.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`auth-shell`, `AuthBrand`, bestaande serveracties plus `/register`; Evidence=Control lint/typecheck/build en auth-route readback; Gate owner/date=—
 - [ ] Authroutes lekken geen tenant- of accountinformatie.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=generieke signup/recovery/login errors, server-only Supabase; Evidence=live signup E2E, authboundary- en secretbundlecheck; Gate owner/date=—
 - [ ] Session expiry en recovery zijn begrijpelijk en getest.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=login reasons, recovery route/template en session redirects; Evidence=Control authboundary/recovery unit en build; Gate owner/date=—
 - [ ] Tenantcontext en role/capabilitygrenzen zijn duidelijk.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`control-session.ts`, contextpicker en onboarding claim-RPC; Evidence=20 onboarding-RLS plus volledige 1103 RLS assertions; Gate owner/date=—
 - [ ] Onboarding is hervatbaar en server-authoritative.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=DONE; Implementation=`tenant_onboarding_states`, validated RPC's en `/onboarding`; Evidence=verse migration, RLS, live confirm/claim/reload E2E en Axe; Gate owner/date=—
 - [ ] Organisatie, venue, doelen, brand/content, integraties, app/player, pairing, eerste release en billing zijn opgenomen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=organisatie/use-case/bronnen/scherm/pairing/release Journey; Evidence=live bronstap en resource-reconciliatie; Gate owner/date=billingdomein volgt fase 11, Venue Twin fase 4
 - [ ] Retry/back voorkomt duplicaat tenant, screen, trial of billingaccount.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=advisory-lock en unique owner/idempotency tenantclaim; Evidence=20 RLS assertions; Gate owner/date=trial/billing-idempotency volgt fase 11
 - [ ] Paused/archived/forbidden states zijn getest.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
 - [ ] Onboarding eindigt met een bruikbaar eerste scherm of concrete herstelactie.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+  - Trace: Status=IN_PROGRESS; Implementation=guided links plus echte screen/pairing/release-reconciliatie; Evidence=RLS progressassertion; Gate owner/date=complete-status volgt entitlementactivatie in fase 11
 
 ## F. Control en platformroutes
 

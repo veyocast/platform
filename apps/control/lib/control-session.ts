@@ -262,7 +262,7 @@ export async function requireControlSession() {
   }
 
   if (session.roles.length === 0 && session.tenantMemberships.length === 0) {
-    redirect("/login?reden=geen-toegang");
+    redirect("/onboarding");
   }
 
   return session;
@@ -358,5 +358,5 @@ export function getControlPostMfaLandingPath(session: ControlSession) {
     return "/platform";
   }
 
-  return "/login?reden=geen-toegang";
+  return session.isLive ? "/onboarding" : "/login?reden=geen-toegang";
 }
