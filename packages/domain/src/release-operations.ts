@@ -1,13 +1,24 @@
 export type ReleaseComparisonItem = Readonly<{
   assetTitle: string;
+  backgroundColor: string | null;
   checksumSha256: string;
+  cropFocusX: number;
+  cropFocusY: number;
+  displayTitle: string | null;
   durationSeconds: number;
+  enabled: boolean;
   fileSizeBytes: number;
   fitMode: string;
   mediaAssetId: string;
   muted: boolean;
   sortOrder: number;
   sourceItemId: string | null;
+  transition: string;
+  trimEndSeconds: number | null;
+  trimStartSeconds: number;
+  visibleFrom: string | null;
+  visibleUntil: string | null;
+  volumePercent: number;
 }>;
 
 export type ReleaseItemChange = Readonly<{
@@ -15,11 +26,19 @@ export type ReleaseItemChange = Readonly<{
   before: ReleaseComparisonItem;
   fields: readonly (
     | "asset"
+    | "background"
     | "checksum"
+    | "crop"
     | "duration"
+    | "enabled"
     | "fit"
+    | "label"
     | "muted"
     | "size"
+    | "transition"
+    | "trim"
+    | "visibility"
+    | "volume"
   )[];
 }>;
 
@@ -70,6 +89,14 @@ export function compareReleaseItems(
     if (beforeItem.fitMode !== afterItem.fitMode) fields.push("fit");
     if (beforeItem.muted !== afterItem.muted) fields.push("muted");
     if (beforeItem.fileSizeBytes !== afterItem.fileSizeBytes) fields.push("size");
+    if (beforeItem.backgroundColor !== afterItem.backgroundColor) fields.push("background");
+    if (beforeItem.cropFocusX !== afterItem.cropFocusX || beforeItem.cropFocusY !== afterItem.cropFocusY) fields.push("crop");
+    if (beforeItem.displayTitle !== afterItem.displayTitle) fields.push("label");
+    if (beforeItem.enabled !== afterItem.enabled) fields.push("enabled");
+    if (beforeItem.transition !== afterItem.transition) fields.push("transition");
+    if (beforeItem.trimStartSeconds !== afterItem.trimStartSeconds || beforeItem.trimEndSeconds !== afterItem.trimEndSeconds) fields.push("trim");
+    if (beforeItem.visibleFrom !== afterItem.visibleFrom || beforeItem.visibleUntil !== afterItem.visibleUntil) fields.push("visibility");
+    if (beforeItem.volumePercent !== afterItem.volumePercent) fields.push("volume");
     if (fields.length) changed.push({ after: afterItem, before: beforeItem, fields });
   }
 

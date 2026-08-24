@@ -241,10 +241,13 @@ test.describe("live pilot vertical slice", () => {
 
     await page.getByRole("link", { name: "Publiceren" }).click();
     await expect(page).toHaveURL(/\/dashboard\/playlists\/.+\/publish$/);
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
     await page.getByLabel(/LG sprint scherm/).check();
-    await page.getByRole("button", { name: "Preflight voor selectie berekenen" }).click();
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
+    await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
     await page.getByLabel(/waarschuwingen en onbekende telemetry/i).check();
-    await page.getByLabel("Maak een nieuwe immutable release").check();
+    await page.getByLabel(/Maak één nieuwe immutable release/).check();
     await page.getByRole("button", { name: "Release publiceren en uitrol volgen" }).click();
     await expect(page.getByText("De immutable release is gepubliceerd")).toBeVisible();
 

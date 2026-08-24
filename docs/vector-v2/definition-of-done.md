@@ -282,34 +282,34 @@ Codex maakt in de repository een traceerbare kopie met per item:
 
 ## J. Publisher, planning en releases
 
-- [ ] Playlistlist/editor/timeline zijn volledig Vector v2.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] DnD én pijlacties leveren dezelfde ordering.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Duration, crop/fit, transitions en ondersteunde video/audio-instellingen werken.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Autosave, offline recovery en revision conflicts zijn getest.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Draft, scheduled, published, release en live zijn eenduidig.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Planning toont timezone/DST correct.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Guided publish volgt readiness, preview, targets, preflight en confirm.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Preflight controleert capability, assets, compatibility, storage en telemetry freshness.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Confirm toont target-/contentimpact en maakt immutable release.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Release Center toont history, compare, desired/download/verify/switch/active.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Partial failure en retry veroorzaken geen dubbele/onjuiste release.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Huidige content blijft actief tot nieuwe release volledig verified is.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Loop-boundary switch en LKG zijn regressievrij.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Activity/audit toont begrijpelijke publicatiegebeurtenissen.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] Playlistlist/editor/timeline zijn volledig Vector v2.
+  - Trace: Status=DONE; Implementation=Vector playlistoverzicht, desktop driepanelenstudio, mobiele sequentiële editor en gedeelde primitives; Evidence=`phase-7-publisher-releases.md`, Control build en bestaande browser/a11ycontracten; Gate owner/date=routebrede goldens worden in fase 13 herhaald
+- [x] DnD én pijlacties leveren dezelfde ordering.
+  - Trace: Status=DONE; Implementation=één guarded reordercommand voor DnD, keyboard-sensor en omhoog/omlaagmenu; Evidence=publisher state unit, RLS drag/order en live publisherregressies; Gate owner/date=—
+- [x] Duration, crop/fit, transitions en ondersteunde video/audio-instellingen werken.
+  - Trace: Status=DONE; Implementation=iteminspector, inline duration, immutable manifestvelden en volledige releasediff; Evidence=Domain releasecompare 7/7, Control 182 en 1.160 RLS-assertions; Gate owner/date=—
+- [x] Autosave, offline recovery en revision conflicts zijn getest.
+  - Trace: Status=DONE; Implementation=debounced guarded mutations, local recoveryrecord en conflictpanel; Evidence=publisher recovery/state unit en RLS concurrency/guarded commands; Gate owner/date=—
+- [x] Draft, scheduled, published, release en live zijn eenduidig.
+  - Trace: Status=DONE; Implementation=gescheiden playliststatus, schedule-runtime, immutable release en telemetry-afgeleide livefase; Evidence=planning/release UI, RLS scheduling runtime en Release Center; Gate owner/date=—
+- [x] Planning toont timezone/DST correct.
+  - Trace: Status=DONE; Implementation=tenanttime-zone conversie plus recurrence/conflictcalculator; Evidence=planning time/calendar 12/12 tests en RLS scheduling; Gate owner/date=—
+- [x] Guided publish volgt readiness, preview, targets, preflight en confirm.
+  - Trace: Status=DONE; Implementation=`publish-journey.tsx` met gedeelde Journey Shell en vaste impactkolom; Evidence=live guided publish 1/1; Gate owner/date=—
+- [x] Preflight controleert capability, assets, compatibility, storage en telemetry freshness.
+  - Trace: Status=DONE; Implementation=centrale readiness plus `evaluateReleasePreflight`; Evidence=Domain preflight, Release Center en 1.160 RLS-assertions; Gate owner/date=—
+- [x] Confirm toont target-/contentimpact en maakt immutable release.
+  - Trace: Status=DONE; Implementation=vaste impactsummary plus server-side hercontrole en `publish_playlist_to_targets_v3`; Evidence=live E2E maakte één release en toonde `Huidig gewenst`; Gate owner/date=—
+- [x] Release Center toont history, compare, desired/download/verify/switch/active.
+  - Trace: Status=DONE; Implementation=release list/detail, volledige presentationdiff en per-screen syncfase; Evidence=Domain compare 7/7, Control build en live E2E; Gate owner/date=—
+- [x] Partial failure en retry veroorzaken geen dubbele/onjuiste release.
+  - Trace: Status=DONE; Implementation=duurzame commandreceipts en append-only reassignment; Evidence=RLS guarded publish/reassign/replay assertions; Gate owner/date=—
+- [x] Huidige content blijft actief tot nieuwe release volledig verified is.
+  - Trace: Status=DONE; Implementation=desired/pending naast active/LKG en expliciete Journey-copy; Evidence=Player 153 unit, RLS Player sync en phase-7 bewijs; Gate owner/date=—
+- [x] Loop-boundary switch en LKG zijn regressievrij.
+  - Trace: Status=DONE; Implementation=verified pending activation op loopgrens en previous-releasecache; Evidence=Player unit 153/153 en bestaande periodic/offline browsercontracts; Gate owner/date=fysieke LG/soak blijft afzonderlijke fase-13 external gate
+- [x] Activity/audit toont begrijpelijke publicatiegebeurtenissen.
+  - Trace: Status=DONE; Implementation=transactionele `private.audit_event` bij publish/restore/reassign plus tenant Auditlog; Evidence=RLS release/restore/guarded commandtests en Control Auditlog build; Gate owner/date=—
 
 ## K. Integraties, sponsors en Engage
 

@@ -3609,6 +3609,38 @@ kbd {
   max-width: 720px;
 }
 
+.publish-journey-step {
+  min-width: 0;
+}
+
+.publish-journey-summary {
+  display: grid;
+  gap: var(--vc-space-12);
+}
+
+.publish-journey-summary > div {
+  border-bottom: 1px solid var(--vc-border);
+  display: grid;
+  gap: var(--vc-space-4);
+  padding-bottom: var(--vc-space-12);
+}
+
+.publish-journey-summary span,
+.publish-journey-summary p {
+  color: var(--vc-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.publish-journey-summary strong {
+  color: var(--vc-text);
+  font-size: 0.95rem;
+}
+
+.publish-journey-summary p {
+  margin: 0;
+}
+
 @media (max-width: 900px) {
   .impact-chain,
   .release-diff-grid {

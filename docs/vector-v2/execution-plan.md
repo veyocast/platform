@@ -97,8 +97,8 @@ mag deze grenzen niet dupliceren.
 | 4 | Dashboard, screens, Screen 360, health en Venue Twin | fase 1, schema/RLS | DONE |
 | 5 | Media en Unified Resource Picker | fase 1 | DONE |
 | 6 | Studio en dynamische slideflows | fase 1, 5 | DONE |
-| 7 | Publisher, planning, preflight en releases | fase 1, 5–6 | IN_PROGRESS |
-| 8 | Sportlink, Twelve, RSS, YouTube, Sponsor Hub en Engage | fase 4–7 | TODO |
+| 7 | Publisher, planning, preflight en releases | fase 1, 5–6 | DONE |
+| 8 | Sportlink, Twelve, RSS, YouTube, Sponsor Hub en Engage | fase 4–7 | IN_PROGRESS |
 | 9 | Native mobile | gedeelde contracts en fases 4–8 | TODO |
 | 10 | Player, pairing, casting shells en fysieke signage states | contracts uit 7–9 | TODO |
 | 11 | Billing/Mollie, entitlements en Player-enforcement | schema/RLS, 2–4, 10 | TODO |
@@ -167,3 +167,11 @@ revision en composeert lokaal onder de RGBA-render zonder audio. Workspace,
 build, verse reset, 1.160 RLS-assertions, zes demo-browserflows en echte
 Supabase-RSS- en Twelve/Menu-flows zijn groen. Zie
 `docs/vector-v2/evidence/phase-6-studio-dynamic.md`.
+
+Fase 7 heeft de bestaande guarded/immutable Publisher-architectuur behouden en
+de begeleide publicatie als echte vijfstaps Journey Shell opgeleverd. De vaste
+impactkolom en per-target preflight maken risico en LKG-gedrag continu
+zichtbaar. Release Center vergelijkt nu ook overgang, crop, achtergrond, label,
+enabled-state, trim, volume en zichtvenster. Workspace/build, 1.160 RLS-
+assertions en een echte Supabase publicatiejourney zijn groen. Zie
+`docs/vector-v2/evidence/phase-7-publisher-releases.md`.

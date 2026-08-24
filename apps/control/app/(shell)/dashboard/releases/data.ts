@@ -257,30 +257,52 @@ export async function loadDraftPreflight(
 
 function releaseItemsQuery(supabase: Awaited<ReturnType<typeof createControlSupabaseClient>>, tenantId: string) {
   if (!supabase) throw new Error("Supabase client ontbreekt");
-  return supabase.from("playlist_release_items").select("release_id, source_item_id, media_asset_id, sort_order, duration_seconds, fit_mode, muted, asset_title, file_size_bytes, checksum_sha256").eq("tenant_id", tenantId);
+  return supabase.from("playlist_release_items").select("release_id, source_item_id, media_asset_id, sort_order, duration_seconds, fit_mode, muted, asset_title, file_size_bytes, checksum_sha256, display_title, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled").eq("tenant_id", tenantId);
 }
 
 function mapReleaseItem(item: {
   asset_title: string;
+  background_color: string | null;
   checksum_sha256: string;
+  crop_focus_x: number;
+  crop_focus_y: number;
+  display_title: string | null;
   duration_seconds: number;
+  enabled: boolean;
   file_size_bytes: number;
   fit_mode: string;
   media_asset_id: string;
   muted: boolean;
   sort_order: number;
   source_item_id: string | null;
+  transition: string;
+  trim_end_seconds: number | null;
+  trim_start_seconds: number;
+  visible_from: string | null;
+  visible_until: string | null;
+  volume_percent: number;
 }): ReleaseComparisonItem {
   return {
     assetTitle: item.asset_title,
+    backgroundColor: item.background_color,
     checksumSha256: item.checksum_sha256,
+    cropFocusX: Number(item.crop_focus_x),
+    cropFocusY: Number(item.crop_focus_y),
+    displayTitle: item.display_title,
     durationSeconds: item.duration_seconds,
+    enabled: item.enabled,
     fileSizeBytes: Number(item.file_size_bytes),
     fitMode: item.fit_mode,
     mediaAssetId: item.media_asset_id,
     muted: item.muted,
     sortOrder: item.sort_order,
-    sourceItemId: item.source_item_id
+    sourceItemId: item.source_item_id,
+    transition: item.transition,
+    trimEndSeconds: item.trim_end_seconds === null ? null : Number(item.trim_end_seconds),
+    trimStartSeconds: Number(item.trim_start_seconds),
+    visibleFrom: item.visible_from,
+    visibleUntil: item.visible_until,
+    volumePercent: item.volume_percent
   };
 }
 
