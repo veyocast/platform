@@ -1088,4 +1088,10 @@ html[data-design-system="atelier-ivory"] .control-mobile-sheet-close {
   html[data-design-system="atelier-ivory"] .media-upload-tray {
     bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   }
+
+  html[data-design-system="atelier-ivory"]
+    .control-shell:has(.settings-savebar[data-visible])
+    .media-upload-tray {
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px) + 168px);
+  }
 }

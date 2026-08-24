@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveEngageVoterHashes } from "./engage-voter-identity";
+import {
+  deriveEngageVoterHashes,
+  getEngageVisitorCookieOptions
+} from "./engage-voter-identity";
 
 const secret = "s".repeat(48);
 describe("Engage voter pseudonymisation", () => {
@@ -17,5 +20,14 @@ describe("Engage voter pseudonymisation", () => {
   });
   it("fails closed without a deployment secret", () => {
     expect(() => deriveEngageVoterHashes({ campaignId: "a", forwardedFor: null, secret: "short", userAgent: null, visitorId: "v" })).toThrow(/ontbreekt/);
+  });
+  it("scopes the HttpOnly visitor identity to both public and API routes", () => {
+    expect(getEngageVisitorCookieOptions(false)).toMatchObject({
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      secure: false
+    });
+    expect(getEngageVisitorCookieOptions(true).secure).toBe(true);
   });
 });

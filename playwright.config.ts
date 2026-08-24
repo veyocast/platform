@@ -11,6 +11,12 @@ const externalServers = process.env.PLAYWRIGHT_EXTERNAL_SERVERS === "1";
 
 const controlWebServer = {
   command: `pnpm --filter @veyocast/control exec next dev --port ${controlPort} --hostname 127.0.0.1`,
+  env: {
+    ENGAGE_ABUSE_SIGNING_SECRET:
+      process.env.ENGAGE_ABUSE_SIGNING_SECRET ??
+      "veyocast-test-only-engage-abuse-signing-secret-2026",
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? baseURL
+  },
   reuseExistingServer: !process.env.CI,
   timeout: 180_000,
   url: `${baseURL}/login`
@@ -21,6 +27,11 @@ export default defineConfig({
     timeout: 5_000
   },
   fullyParallel: true,
+  // Three Next.js applications share this bounded CI host. A single browser
+  // worker keeps lazy route compilation below Next.js' restart threshold and
+  // makes the cross-app release gate deterministic. Individual tests still
+  // exercise concurrency explicitly with multiple pages/contexts where needed.
+  workers: Number(process.env.PLAYWRIGHT_WORKERS ?? "1"),
   projects: [
     {
       name: "chromium",

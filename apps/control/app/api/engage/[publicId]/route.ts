@@ -4,7 +4,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import {
   createEngageVisitorId,
   deriveEngageVoterHashes,
-  getEngageVisitorCookieName
+  getEngageVisitorCookieName,
+  getEngageVisitorCookieOptions
 } from "../../../../lib/engage-voter-identity";
 import { createControlAdminClient } from "../../../../lib/supabase/admin";
 
@@ -46,6 +47,12 @@ async function handle(request: NextRequest, context: RouteContext, optionId: str
   const parsed = optionId ? engageVoteResultSchema.safeParse(result.data) : engagePublicCampaignSchema.safeParse(result.data);
   if (!parsed.success) return NextResponse.json({ error: "Campagnedata is ongeldig." }, { status: 502 });
   const response = NextResponse.json(parsed.data, { headers: { "cache-control": "private, no-store" } });
-  if (!existingVisitor) response.cookies.set(cookieName, visitorId, { httpOnly: true, maxAge: 60 * 60 * 24 * 180, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/engage" });
+  if (!existingVisitor) {
+    response.cookies.set(
+      cookieName,
+      visitorId,
+      getEngageVisitorCookieOptions(process.env.NODE_ENV === "production")
+    );
+  }
   return response;
 }

@@ -4,6 +4,16 @@ const cookieName = "vc_engage_visitor";
 
 export function getEngageVisitorCookieName() { return cookieName; }
 
+export function getEngageVisitorCookieOptions(isProduction: boolean) {
+  return {
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 180,
+    path: "/",
+    sameSite: "lax" as const,
+    secure: isProduction
+  };
+}
+
 export function createEngageVisitorId() { return randomUUID(); }
 
 export function deriveEngageVoterHashes({

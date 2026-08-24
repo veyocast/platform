@@ -4916,6 +4916,16 @@ body .vc-dialog__content {
   z-index: var(--vc-z-toast);
 }
 
+.control-shell:has(.settings-savebar[data-visible]) .media-upload-tray {
+  bottom: calc(var(--vc-space-16) + 96px);
+}
+
+@media (min-width: 768px) {
+  .control-shell:has(.media-upload-tray) .settings-savebar[data-visible] {
+    margin-right: calc(min(380px, 32vw) + var(--vc-space-16));
+  }
+}
+
 .media-upload-tray > details {
   background: var(--vc-surface);
   border: 1px solid var(--vc-border-strong);
@@ -5047,6 +5057,10 @@ body .vc-dialog__content {
     max-width: none;
     right: var(--vc-space-8);
     width: auto;
+  }
+
+  .control-shell:has(.settings-savebar[data-visible]) .media-upload-tray {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px) + 168px);
   }
 
   .media-filter-bar .vc-filter-bar__meta,

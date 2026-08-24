@@ -35,8 +35,8 @@ test.describe("Vector v2 live account and onboarding journey", () => {
     await page.getByRole("button", { name: "Account aanmaken" }).click();
     await expect(page.getByText("Controleer je inbox", { exact: false })).toBeVisible();
 
-    const confirmationUrl = await waitForConfirmationUrl(request, email);
-    await page.goto(confirmationUrl);
+    const confirmationUrl = new URL(await waitForConfirmationUrl(request, email));
+    await page.goto(`${confirmationUrl.pathname}${confirmationUrl.search}`);
     await expect(page).toHaveURL(/\/onboarding/);
     await expect(page.getByRole("heading", { name: "Welkom bij VeyoCast" })).toBeVisible();
     await expect(page.getByText("Organisatie", { exact: true }).first()).toBeVisible();

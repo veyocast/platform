@@ -99,12 +99,12 @@ mag deze grenzen niet dupliceren.
 | 6 | Studio en dynamische slideflows | fase 1, 5 | DONE |
 | 7 | Publisher, planning, preflight en releases | fase 1, 5–6 | DONE |
 | 8 | Sportlink, Twelve, RSS, YouTube, Sponsor Hub en Engage | fase 4–7 | DONE |
-| 9 | Native mobile | gedeelde contracts en fases 4–8 | DONE (billingdeeplink volgt fase 11) |
+| 9 | Native mobile | gedeelde contracts en fases 4–8 | DONE |
 | 10 | Player, pairing, casting shells en fysieke signage states | contracts uit 7–9 | DONE (fysieke acceptatie blijft external gate) |
 | 11 | Billing/Mollie, entitlements en Player-enforcement | schema/RLS, 2–4, 10 | DONE (live provider/legal/cohort blijven external gates) |
-| 12 | Accessibility, responsive, performance en observability hardening | alle productfasen | TODO |
-| 13 | Volledige regressie, screenshots, soak/hardwaregates en docs | alle eerdere fasen | TODO |
-| 14 | Immutable stagingrelease, verificatie en production-promotie | alle niet-externe DoD groen | TODO |
+| 12 | Accessibility, responsive, performance en observability hardening | alle productfasen | DONE |
+| 13 | Volledige regressie, screenshots, soak/hardwaregates en docs | alle eerdere fasen | DONE (hardware/soak external gates) |
+| 14 | Immutable stagingrelease, verificatie en production-promotie | alle niet-externe DoD groen | IN_PROGRESS |
 
 ## Test- en screenshotmatrix
 
@@ -128,6 +128,7 @@ relevant. Screenshots bevatten uitsluitend privacyveilige, consistente data.
 | BTW/factuur/incasso en juridische copy | Accountant/jurist | Wettelijke goedkeuring | Documentreview van billingcanon plus ondertekend besluit in release-evidence |
 | Sportlink/providerrechten | Productowner/provider | Contract en sandboxdata extern | Provider-sandbox sync + dataveldenmatrix + no-secret logs |
 | Marketingklantbewijs/logo's | Productowner/klant | Toestemming en merkrecht | Consentregister met bron, datum en scope |
+| VoiceOver/TalkBack handacceptatie | Mobile/release owner | Echte iOS/Android-hardware en assistive-technologybediening | `docs/mobile/release-evidence.md` uitvoeren op getekende releasebuild; focusvolgorde, labels, acties en errors vastleggen |
 | Android/Google TV | Mobile/release owner | Play Console, signing en fysieke hardware | Exact internal-track artifact installeren; pairing/publish/recovery-matrix uitvoeren |
 | LG webOS | Player/release owner | Fysiek ondersteund model vereist | `docs/player/lg-physical-test-protocol.md` op productie-IPK en 16:9/9:16 |
 | 24-uurs mixed-media soak | Player/release owner | Langdurige fysieke betrouwbaarheid | Bestaand soakprotocol met memory/FPS/cache/errorlog en artifact-SHA |
@@ -212,7 +213,14 @@ browserreturn doen altijd een server-side GET en chargebacks gebruiken het
 afzonderlijke providerresource. De Player gebruikt device-gebonden Ed25519-
 entitlements met monotone revision, bounded lease, clock-rollbackbescherming,
 grace/LKG en lokale restricted-state. Een verse reset, 64/64 gerichte billing-
-asserties, de volledige RLS-suite (59 bestanden/1.262 assertions) en alle
+asserties, de volledige RLS-suite (59 bestanden/1.264 assertions) en alle
 workspace lint/typecheck/test/buildgates zijn groen.
 Live credentials, mailrelay, finance/legal en cohortactivatie blijven expliciete
 external gates; zie `docs/vector-v2/evidence/phase-11-billing-entitlements.md`.
+
+Fases 12–13 hebben de volledige workspace-, database/RLS-, Player-, offline-,
+axe-, browser-, live-pilot- en visualmatrix gesloten. De laatste pilot bewijst
+de echte keten van upload tot geverifieerde playback. De enige resterende
+productgates vragen beschermde providerbevoegdheid, juridische goedkeuring of
+fysieke hardware. Zie
+`docs/vector-v2/evidence/phase-12-14-quality-release.md`.
