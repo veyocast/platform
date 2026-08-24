@@ -101,6 +101,7 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="more/organizations" options={{ title: "Organisaties" }} />
         <Stack.Screen name="more/security" options={{ title: "Beveiliging" }} />
         <Stack.Screen name="more/account" options={{ title: "Account" }} />
+        <Stack.Screen name="more/engage" options={{ title: "Engage" }} />
         <Stack.Screen name="more/notifications" options={{ title: "Meldingen" }} />
       </Stack>
       <NotificationRouter />

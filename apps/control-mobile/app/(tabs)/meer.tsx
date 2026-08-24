@@ -13,6 +13,7 @@ import {
   CircleHelp,
   LogOut,
   ShieldCheck,
+  Sparkles,
   UserRound
 } from "lucide-react-native";
 import { Alert, Linking, StyleSheet, View } from "react-native";
@@ -84,6 +85,14 @@ export default function MeerScreen() {
             Meldingen en support
           </AppText>
           <SurfaceCard style={styles.settingsGroup}>
+            <SettingsRow
+              description="Start, volg en sluit voorbereide livecampagnes."
+              grouped
+              icon={<Sparkles color={theme.colors.ink} size={21} />}
+              label="Engage livebediening"
+              onPress={() => router.push("/more/engage")}
+              showDivider
+            />
             <SettingsRow
               description="Pushmeldingen worden alleen gevraagd wanneer je ze hier inschakelt."
               grouped

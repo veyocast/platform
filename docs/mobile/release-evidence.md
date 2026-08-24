@@ -17,6 +17,11 @@ Datum: 29 juli 2026
   environmentvariabelen;
 - GitHub Action-syntax en pinned actions zijn lokaal gevalideerd;
 - globale native crashfallback voorkomt een generiek leeg Expo-scherm.
+- Engage livebediening gebruikt een begrensde bearer-endpoint, read-only
+  metricsprojectie en duurzame idempotency receipts; 58 pgTAP-bestanden met
+  1.188 assertions zijn na een verse reset groen.
+- de Android Hermes-export bevat de native Engage-route en is opnieuw op
+  clientsecrets gecontroleerd.
 
 ## Dichtheids- en viewport-evidence
 
@@ -85,6 +90,7 @@ grote uploads en dataverbruik vereisen profiler- en hardwaremetingen.
 | Definitieve privacy/Data Safety/legal retention | open | privacy/legal |
 | Accountdeletion execution worker | open | privacy/legal + operations |
 | Push provider delivery/incident producer | open | backend operations |
+| Expo SDK 57 patches gepubliceerd op 24-08-2026 | tijdelijk geblokkeerd | supply-chain policy; herhaal `pnpm --filter @veyocast/control-mobile exec expo install --check` na de minimum release age |
 
 Daarom is de app nog niet als “Play Store-ready” of “gepubliceerd” aan te
 merken, ondanks de aanwezige releaseketen.

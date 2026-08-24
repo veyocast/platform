@@ -99,7 +99,7 @@ mag deze grenzen niet dupliceren.
 | 6 | Studio en dynamische slideflows | fase 1, 5 | DONE |
 | 7 | Publisher, planning, preflight en releases | fase 1, 5–6 | DONE |
 | 8 | Sportlink, Twelve, RSS, YouTube, Sponsor Hub en Engage | fase 4–7 | IN_PROGRESS |
-| 9 | Native mobile | gedeelde contracts en fases 4–8 | TODO |
+| 9 | Native mobile | gedeelde contracts en fases 4–8 | DONE (billingdeeplink volgt fase 11) |
 | 10 | Player, pairing, casting shells en fysieke signage states | contracts uit 7–9 | TODO |
 | 11 | Billing/Mollie, entitlements en Player-enforcement | schema/RLS, 2–4, 10 | TODO |
 | 12 | Accessibility, responsive, performance en observability hardening | alle productfasen | TODO |
@@ -184,3 +184,13 @@ gebruikt uitsluitend de officiële Data/IFrame API, is structureel online-only
 en vereist lokale fallbackmedia. De immutable Playerbindingen blijven bewust
 onder fase 10 `IN_PROGRESS`; zie
 `docs/vector-v2/evidence/phase-8-integrations-engage-youtube.md`.
+
+Fase 9 heeft de bestaande echte Expo/React Native-cockpit opnieuw tegen de
+Vector-canon geaudit en Engage als doelgerichte livebediening toegevoegd. De
+mobiele API exposeert alleen campaignmetrics en idempotente lifecyclecommands;
+tenantcapabilities, featureflag, RLS en audit blijven server-side leidend. Een
+verse reset en 1.188 RLS-assertions, native/design-system/Control lint,
+typecheck en tests, configvalidatie, Hermes Android-export en clientsecretcheck
+zijn groen. De op 24 augustus gepubliceerde volgende Expo-patches blijven door
+de minimum-release-agepolicy geblokkeerd en zijn niet geallowlist; zie
+`docs/vector-v2/evidence/phase-9-native-mobile.md`.

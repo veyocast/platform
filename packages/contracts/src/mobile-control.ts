@@ -333,6 +333,52 @@ export const mobileContentEnvelopeSchema = z
   })
   .strict();
 
+export const mobileEngageCampaignSchema = z
+  .object({
+    endsAt: instant.nullable(),
+    id: uuid,
+    kind: z.enum(["poll", "motm"]),
+    optionCount: z.number().int().min(2).max(24),
+    publicId: uuid,
+    question: z.string().min(2).max(160),
+    startsAt: instant.nullable(),
+    status: z.enum(["draft", "scheduled", "live", "closed", "archived"]),
+    title: z.string().min(2).max(160),
+    totalVotes: z.number().int().nonnegative(),
+    updatedAt: instant
+  })
+  .strict();
+
+export const mobileEngageWorkspaceSchema = z
+  .object({
+    campaigns: z.array(mobileEngageCampaignSchema).readonly(),
+    enabled: z.boolean()
+  })
+  .strict();
+
+export const mobileEngageWorkspaceEnvelopeSchema = z
+  .object({
+    data: mobileEngageWorkspaceSchema,
+    meta: mobileApiMetaSchema
+  })
+  .strict();
+
+export const mobileEngageTransitionRequestSchema = z
+  .object({
+    campaignId: uuid,
+    idempotencyKey: uuid,
+    targetStatus: z.enum(["live", "closed"])
+  })
+  .strict();
+
+export const mobileEngageTransitionResultSchema = z
+  .object({
+    campaignId: uuid,
+    outcome: z.enum(["applied", "already_applied", "replayed"]),
+    status: z.enum(["live", "closed"])
+  })
+  .strict();
+
 export const mobileDeletionRequestSchema = z
   .object({
     executedAt: instant.nullable(),
@@ -389,6 +435,12 @@ export type MobileApiErrorEnvelope = z.infer<
 export type MobileCockpit = z.infer<typeof mobileCockpitSchema>;
 export type MobileDeviceRegistration = z.infer<
   typeof mobileDeviceRegistrationSchema
+>;
+export type MobileEngageTransitionRequest = z.infer<
+  typeof mobileEngageTransitionRequestSchema
+>;
+export type MobileEngageWorkspace = z.infer<
+  typeof mobileEngageWorkspaceSchema
 >;
 export type MobileCreatePlaylistRequest = z.infer<
   typeof mobileCreatePlaylistRequestSchema

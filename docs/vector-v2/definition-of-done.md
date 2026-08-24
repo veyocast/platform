@@ -348,30 +348,30 @@ Codex maakt in de repository een traceerbare kopie met per item:
 
 ## L. Native beheerapp
 
-- [ ] Native tokens/primitives matchen Vector-semantiek.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Today/aandacht, screens, make/upload, content en more zijn gemigreerd.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Mobile Screen 360 en quick recovery zijn bruikbaar.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Camera/QR/code pairing heeft permission/error/retry.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Upload/camera processing en offline retry werken.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Playlist edit/reorder/publish werkt met impact en confirm.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Alerts/notifications en preferences werken.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Engage operationele acties zijn doelgericht.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] Native tokens/primitives matchen Vector-semantiek.
+  - Trace: Status=DONE; Implementation=`packages/mobile-design-system` gebruikt gedeelde Vector-tokens en native primitives; Evidence=design-system lint/typecheck/3 tests + mobile canon; Gate owner/date=—
+- [x] Today/aandacht, screens, make/upload, content en more zijn gemigreerd.
+  - Trace: Status=DONE; Implementation=bestaande vijf-tab/rail native cockpit met tenantcache; Evidence=phase-9 audit + Android Hermes-export; Gate owner/date=—
+- [x] Mobile Screen 360 en quick recovery zijn bruikbaar.
+  - Trace: Status=DONE; Implementation=schermdetail met status/release en auditable reload/recover/cache/unpair commands; Evidence=mobile API/RLS + 9 mobile unit tests; Gate owner/date=—
+- [x] Camera/QR/code pairing heeft permission/error/retry.
+  - Trace: Status=DONE; Implementation=just-in-time Expo Camera, codeparser en guarded claim; Evidence=pairing unit + mobile RLS/release-evidence; Gate owner/date=—
+- [x] Upload/camera processing en offline retry werken.
+  - Trace: Status=DONE; Implementation=private filecopy, SQLite queue en servervalidatie; Evidence=upload retry unit + native architecture audit; Gate owner/date=—
+- [x] Playlist edit/reorder/publish werkt met impact en confirm.
+  - Trace: Status=DONE; Implementation=position-key mutation, expliciete pijlen/drag, targetpreflight en immutable publish RPC; Evidence=mobile unit + Publisher RLS regressie; Gate owner/date=—
+- [x] Alerts/notifications en preferences werken.
+  - Trace: Status=DONE; Implementation=opt-in pushdevice/preference endpoints en cockpit signalen; Evidence=notification unit + config/build; Gate owner/date=—
+- [x] Engage operationele acties zijn doelgericht.
+  - Trace: Status=DONE; Implementation=native start/close/public-link route + idempotente serverreceipt; Evidence=phase-9, Engage pgTAP 26/26; Gate owner/date=—
 - [ ] Billingstatus deeplinkt veilig naar webcheckout/portal.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Biometrics/session/account deletion blijven correct.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] Biometrics/session/account deletion blijven correct.
+  - Trace: Status=DONE; Implementation=SecureStore app-lock/session, tenantcachepurge en auditable deletion intake; Evidence=mobile security/release-evidence + build; Gate owner/date=—
 - [ ] iOS/Android VoiceOver/TalkBack en real-device viewports zijn getest.
   - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
-- [ ] Geen vrije desktop-Studio is als mini-canvas op mobiel gebouwd.
-  - Trace: Status=TODO; Implementation=—; Evidence=—; Gate owner/date=—
+- [x] Geen vrije desktop-Studio is als mini-canvas op mobiel gebouwd.
+  - Trace: Status=DONE; Implementation=operationele native journeys zonder DOM/WebView/canvaseditor; Evidence=mobile package-importaudit + phase-9; Gate owner/date=—
 
 ## M. Player, pairing en casting shells
 

@@ -106,6 +106,10 @@ with human_command(oid) as (
     ('public.deactivate_screen_v1(uuid,uuid)'::regprocedure),
     ('public.publish_dynamic_template_version_v1(uuid)'::regprocedure),
     (
+      'public.transition_engage_campaign_v2(uuid,uuid,text,uuid)'
+        ::regprocedure
+    ),
+    (
       'public.queue_player_command_v1(uuid,uuid,text,uuid,integer,jsonb)'
         ::regprocedure
     ),

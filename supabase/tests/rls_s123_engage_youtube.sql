@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(21);
+select plan(28);
 
 insert into auth.users(id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,raw_app_meta_data,raw_user_meta_data) values
  ('00000000-0000-4000-8000-000000001251','authenticated','authenticated','engage-admin@veyocast.test','test',now(),now(),now(),'{}','{}'),
@@ -96,6 +96,39 @@ select is((public.get_engage_campaign_for_identity_v1(
  'trusted identity projection reveals after-vote results to that participant');
 select is((select count(*) from public.engage_votes where tenant_id='10000000-0000-4000-8000-000000001251'),1::bigint,'duplicate vote remains idempotent');
 select is((select count(*) from public.engage_audit_events where tenant_id='10000000-0000-4000-8000-000000001251'),2::bigint,'management lifecycle is append-only audited');
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000001251',true);
+select is((public.transition_engage_campaign_v2(
+  '10000000-0000-4000-8000-000000001251',
+  (select id from public.engage_campaigns where tenant_id='10000000-0000-4000-8000-000000001251'),
+  'closed','40000000-0000-4000-8000-000000001251'
+)->>'outcome'),'applied','mobile lifecycle command applies once');
+select is((public.transition_engage_campaign_v2(
+  '10000000-0000-4000-8000-000000001251',
+  (select id from public.engage_campaigns where tenant_id='10000000-0000-4000-8000-000000001251'),
+  'closed','40000000-0000-4000-8000-000000001251'
+)->>'outcome'),'replayed','mobile lifecycle command replays the durable receipt');
+select is((select status from public.engage_campaigns
+  where tenant_id='10000000-0000-4000-8000-000000001251'),'closed',
+  'mobile lifecycle closes the intended tenant campaign');
+select throws_ok($$select public.transition_engage_campaign_v2(
+  '10000000-0000-4000-8000-000000001251',
+  (select id from public.engage_campaigns where tenant_id='10000000-0000-4000-8000-000000001251'),
+  'live','40000000-0000-4000-8000-000000001251')$$,
+  '22023','idempotency key belongs to another engage command',
+  'an Engage idempotency key cannot be reused for another payload');
+select is((select count(*) from public.engage_audit_events
+  where tenant_id='10000000-0000-4000-8000-000000001251'),3::bigint,
+  'a replay does not duplicate lifecycle audit events');
+select is((select total_votes from public.get_engage_campaign_metrics_v1(
+  '10000000-0000-4000-8000-000000001251')),1::bigint,
+  'bounded campaign metrics expose only the tenant vote total');
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000001253',true);
+select throws_ok($$select * from public.get_engage_campaign_metrics_v1(
+  '10000000-0000-4000-8000-000000001251')$$,
+  '42501','engage rollout and read capability required',
+  'another tenant cannot request campaign metrics');
 
 select * from finish();
 rollback;

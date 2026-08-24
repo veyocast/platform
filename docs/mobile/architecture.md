@@ -40,6 +40,7 @@ React Native app
 | `/more/security` | biometrische app-lock |
 | `/more/notifications` | push opt-in en categorievoorkeuren |
 | `/more/account` | account en verwijderingsverzoek |
+| `/more/engage` | live poll/MOTM volgen, starten, sluiten en stemroute openen |
 
 Telefoons gebruiken vijf tabs; bredere vensters gebruiken een adaptieve rail.
 Playlistcreatie en -detail zijn genest onder de Content-tab, waardoor dock of
@@ -78,6 +79,7 @@ fouten bevatten oorzaak, gevolg en herstelactie zonder stacktrace.
 - `GET|POST /account/deletion`
 - `GET|PUT /notifications/preferences`
 - `POST|DELETE /notifications/device`
+- `GET|POST /engage`
 
 Contracts staan in `packages/contracts/src/mobile-control.ts`. De app parseert
 ook succesvolle reacties; een server/app-versiemismatch wordt veilig als
@@ -97,6 +99,11 @@ contractfout getoond.
 - Tenantwisseling en logout verwijderen tenantgebonden lokale data.
 - Publiceren, pairing en remote commands worden nooit lokaal als geslaagd
   beschouwd zonder serverbevestiging.
+
+Engage-lifecycleacties volgen hetzelfde contract: een mobiele start/stop krijgt
+een UUID-idempotency key, wordt server-side op tenant en capability
+gecontroleerd en schrijft één duurzame receipt plus audit event. De app maakt
+geen campagne-inhoud en blijft daarmee een doelgerichte operationele cockpit.
 
 ## Belangrijke productbeslissingen
 
