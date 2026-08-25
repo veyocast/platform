@@ -9,6 +9,7 @@ import {
 } from "../../../../../lib/invitations";
 import { requireControlCapability } from "../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
+import { vectorTenantFeatureKeys } from "../../../_lib/vector-features";
 
 export async function updateTenantLifecycle(formData: FormData) {
   const tenantId = idValue(formData, "tenantId");
@@ -63,7 +64,7 @@ export async function updateTenantScreenLimit(formData: FormData) {
 export async function updateTenantFeatureFlag(formData: FormData) {
   const tenantId = idValue(formData, "tenantId");
   const flagKey = String(formData.get("flagKey") ?? "");
-  const allowedFlags = new Set(["venue_twin", "screen_health_view"]);
+  const allowedFlags = new Set<string>(vectorTenantFeatureKeys);
   const reason = String(formData.get("reason") ?? "").trim();
   if (!allowedFlags.has(flagKey) || reason.length < 8 || reason.length > 500) {
     fail(tenantId, "featureflag");
@@ -84,6 +85,7 @@ export async function updateTenantFeatureFlag(formData: FormData) {
   if (error) fail(tenantId, error.code === "42501" ? "rechten" : "featureflag");
 
   revalidateTenant(tenantId);
+  revalidatePath("/dashboard");
   revalidatePath("/dashboard/screens");
   redirect(`/platform/tenants/${tenantId}?succes=featureflag#productuitrol`);
 }

@@ -1,0 +1,201 @@
+name: Vector v2 pilot rollout
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Omgeving met de pilottenant
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      tenant_name:
+        description: Exacte zichtbare tenantnaam
+        required: true
+        type: string
+      action:
+        description: Volledig pilotprofiel aan- of uitzetten
+        required: true
+        type: choice
+        options:
+          - enable
+          - disable
+      release_sha:
+        description: Volledige reeds gedeployde main-SHA
+        required: true
+        type: string
+      reason:
+        description: Auditreden van 10 tot 240 tekens
+        required: true
+        type: string
+      confirmation:
+        description: Typ VECTOR PILOT
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vector-v2-pilot-${{ inputs.target_environment }}-${{ inputs.tenant_name }}
+  cancel-in-progress: false
+
+jobs:
+  rollout:
+    name: Apply audited Vector pilot profile
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: ${{ inputs.target_environment }}
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - veyocast
+      - ${{ inputs.target_environment }}
+    timeout-minutes: 10
+    steps:
+      - name: Checkout trusted release tooling
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          clean: true
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Remove stale workspace files
+        shell: bash
+        run: git clean -ffdx
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+          cache: true
+
+      - name: Install pinned database tooling
+        run: pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1 --network-concurrency=8 --package-import-method=copy
+
+      - name: Verify release and apply guarded profile
+        shell: bash
+        env:
+          ACTION: ${{ inputs.action }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          EXPECTED_RELEASE_SHA: ${{ inputs.release_sha }}
+          OPERATOR: github:${{ github.actor }}
+          REASON: ${{ inputs.reason }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+          TENANT_NAME: ${{ inputs.tenant_name }}
+          WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+
+          if [[ ${CONFIRMATION} != "VECTOR PILOT" ]]; then
+            echo "De expliciete bevestiging VECTOR PILOT ontbreekt." >&2
+            exit 1
+          fi
+          if [[ ! ${EXPECTED_RELEASE_SHA} =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Een volledige release-SHA is verplicht." >&2
+            exit 1
+          fi
+          if [[ ${EXPECTED_RELEASE_SHA} != "${WORKFLOW_SHA}" ]]; then
+            echo "Alleen de actuele main-SHA mag voor een pilot worden geactiveerd." >&2
+            exit 1
+          fi
+          if [[ ${#TENANT_NAME} -lt 2 || ${#TENANT_NAME} -gt 120 || ${TENANT_NAME} == *$'\n'* || ${TENANT_NAME} == *$'\r'* ]]; then
+            echo "De tenantnaam is ongeldig." >&2
+            exit 1
+          fi
+          if [[ ${#REASON} -lt 10 || ${#REASON} -gt 240 || ${REASON} == *$'\n'* || ${REASON} == *$'\r'* ]]; then
+            echo "De auditreden is ongeldig." >&2
+            exit 1
+          fi
+          if [[ ${ACTION} == enable ]]; then
+            enabled=true
+          else
+            enabled=false
+          fi
+
+          if [[ ${TARGET_ENVIRONMENT} == production ]]; then
+            health_url="https://control.veyocast.nl/api/health"
+          else
+            health_url="https://staging-control.veyocast.nl/api/health"
+          fi
+          health_payload="$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "${health_url}")"
+          if ! grep --fixed-strings --quiet "\"environment\":\"${TARGET_ENVIRONMENT}\"" <<<"${health_payload}" \
+            || ! grep --fixed-strings --quiet "\"revision\":\"${EXPECTED_RELEASE_SHA}\"" <<<"${health_payload}" \
+            || ! grep --fixed-strings --quiet '"status":"ok"' <<<"${health_payload}"
+          then
+            echo "De doelomgeving draait niet op de bevestigde release-SHA." >&2
+            exit 1
+          fi
+          unset health_payload
+
+          encode_base64() {
+            printf '%s' "$1" | base64 | tr -d '\n'
+          }
+          tenant_name_b64="$(encode_base64 "${TENANT_NAME}")"
+          reason_b64="$(encode_base64 "${REASON}")"
+          operator_b64="$(encode_base64 "${OPERATOR}")"
+          run_url_b64="$(encode_base64 "${RUN_URL}")"
+
+          pnpm exec supabase db query \
+            --db-url "${SUPABASE_DB_URL}" \
+            --output json \
+            "do \$vector_rollout\$
+            declare
+              requested_tenant_name constant text := convert_from(decode('${tenant_name_b64}', 'base64'), 'UTF8');
+              requested_enabled constant boolean := ${enabled};
+              requested_reason constant text := convert_from(decode('${reason_b64}', 'base64'), 'UTF8');
+              requested_operator constant text := convert_from(decode('${operator_b64}', 'base64'), 'UTF8');
+              requested_run_url constant text := convert_from(decode('${run_url_b64}', 'base64'), 'UTF8');
+              change_result jsonb;
+              verified_count integer;
+              verified_enabled boolean;
+            begin
+              if (
+                select count(*)
+                from supabase_migrations.schema_migrations
+                where version = '20260825174328'
+              ) <> 1 then
+                raise exception 'Vector pilot migration is missing';
+              end if;
+
+              change_result := private.set_vector_pilot_profile_v1(
+                requested_tenant_name,
+                requested_enabled,
+                requested_reason,
+                requested_operator,
+                requested_run_url
+              );
+
+              select count(*), bool_and(flag.enabled = requested_enabled)
+              into strict verified_count, verified_enabled
+              from public.tenant_feature_flags flag
+              join public.tenants tenant on tenant.id = flag.tenant_id
+              where lower(btrim(tenant.name)) = lower(btrim(requested_tenant_name))
+                and flag.flag_key = any(array[
+                  'vector_v2_design_system', 'vector_v2_control_shell',
+                  'unified_resource_picker', 'unified_filter_dock', 'venue_twin',
+                  'screen_health_view', 'engage'
+                ]::text[]);
+
+              if verified_count <> 7
+                or verified_enabled is distinct from true
+                or (change_result ->> 'enabled')::boolean is distinct from requested_enabled
+                or (change_result ->> 'flagCount')::integer <> 7
+              then
+                raise exception 'Vector pilot readback differs from the requested profile';
+              end if;
+            end
+            \$vector_rollout\$;"
+
+          unset tenant_name_b64 reason_b64 operator_b64 run_url_b64
+          echo "Het Vector-pilotprofiel en de atomische readback zijn bevestigd."

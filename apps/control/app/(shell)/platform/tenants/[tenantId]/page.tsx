@@ -184,6 +184,12 @@ function formatDateTime(value: string) { return new Intl.DateTimeFormat("nl-NL",
 function formatBytes(value: number) { if (value < 1024) return `${value} B`; if (value < 1024 ** 2) return `${(value / 1024).toFixed(1)} KB`; if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(1)} MB`; return `${(value / 1024 ** 3).toFixed(1)} GB`; }
 
 const featureDefinitions = [
-  { description: "Persistente venues, zones, plattegronden en genormaliseerde schermposities met toegankelijke lijstfallback.", key: "venue_twin", label: "Venue Twin", status: "PROPOSED PRODUCT" },
-  { description: "Samengestelde vlootgezondheid boven bestaande heartbeat-, sync-, error- en opslagtelemetry.", key: "screen_health_view", label: "Screen Health", status: "PROPOSED UI" }
+  { description: "Semantische Vector-tokens, compacte geometrie en consistente light/dark componenttaal.", key: "vector_v2_design_system", label: "Vector-designsysteem", status: "STABIELE BASIS" },
+  { description: "Living Venue-rail, commandbar, System Pulse en zichtbare operationele context in Control.", key: "vector_v2_control_shell", label: "Vector Control-shell", status: "PILOT" },
+  { description: "Eén toegankelijke bronkiezer voor media, slides, templates en ondersteunde integratieassets.", key: "unified_resource_picker", label: "Unified Resource Picker", status: "PILOT" },
+  { description: "Eén samenhangende zoek- en filterervaring voor operationele resourcepagina's.", key: "unified_filter_dock", label: "Unified Filter Dock", status: "PILOT" },
+  { description: "Persistente venues, zones, plattegronden en genormaliseerde schermposities met toegankelijke lijstfallback.", key: "venue_twin", label: "Venue Twin", status: "PILOTPRODUCT" },
+  { description: "Samengestelde vlootgezondheid boven bestaande heartbeat-, sync-, error- en opslagtelemetry.", key: "screen_health_view", label: "Screen Health", status: "PILOT UI" },
+  { description: "Polls en publieksstemmen met QR, lifecycle, misbruikbeperking en live resultaten.", key: "engage", label: "Engage", status: "PILOTPRODUCT" },
+  { description: "Officiële online-only playback met Data/IFrame API en verplichte lokale fallback.", key: "youtube_integration", label: "YouTube", status: "PROVIDER GATED" }
 ] as const;
