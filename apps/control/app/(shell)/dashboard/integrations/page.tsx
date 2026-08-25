@@ -60,6 +60,21 @@ export default async function IntegrationsPage() {
             <Link className={styles.link} href="/dashboard/data-sources">Nieuwsbronnen beheren <ArrowRight aria-hidden="true" /></Link>
           </article>
           <article className={styles.card}>
+            <div className={styles.cardHeader}>
+              <span className={styles.icon} aria-hidden="true"><FileSpreadsheet /></span>
+              <StatusPill label="Beschikbaar" tone="success" />
+            </div>
+            <div className={styles.cardBody}>
+              <div><p className={styles.provider}>Twelve</p><h3>Twelve Producten</h3></div>
+              <p>Importeer een Twelve Excel-export, koppel kolommen en beheer productnamen, prijzen en shortcodes voor Studio.</p>
+            </div>
+            <dl className={styles.meta}>
+              <div><dt>Werkwijze</dt><dd>Gecontroleerde Excel-snapshot</dd></div>
+              <div><dt>Automatische synchronisatie</dt><dd><RefreshCw aria-hidden="true" /> Niet actief</dd></div>
+            </dl>
+            <Link className={styles.link} href="/dashboard/integrations/twelve-products">Twelve Producten openen <ArrowRight aria-hidden="true" /></Link>
+          </article>
+          <article className={styles.card}>
             <div className={styles.cardHeader}><span className={styles.icon} aria-hidden="true"><Video /></span><StatusPill label={enabled.has("youtube_integration") ? "Pilot actief" : "Gecontroleerde pilot"} tone={enabled.has("youtube_integration") ? "success" : "warning"} /></div>
             <div className={styles.cardBody}><div><p className={styles.provider}>YouTube</p><h3>Officiële online playback</h3></div><p>Insluitbare video's via de officiële Player API, altijd met lokale fallback en zonder download of offline videovoorraad.</p></div>
             <dl className={styles.meta}><div><dt>Werkwijze</dt><dd>Online-only</dd></div><div><dt>Fallback</dt><dd>Lokale VeyoCast-media</dd></div></dl>
@@ -76,38 +91,6 @@ export default async function IntegrationsPage() {
             <div className={styles.cardBody}><div><p className={styles.provider}>Engage</p><h3>Polls & publieksstemmen</h3></div><p>Mobile-first stemmen, QR-deeplink, resultaatprivacy, misbruikbeperking en live resultaatupdates.</p></div>
             <dl className={styles.meta}><div><dt>Privacy</dt><dd>Pseudoniem</dd></div><div><dt>Rollout</dt><dd>Per tenant</dd></div></dl>
             <Link className={styles.link} href="/dashboard/engage">Engage openen <ArrowRight aria-hidden="true" /></Link>
-          </article>
-          <article className={styles.card}>
-            <div className={styles.cardHeader}>
-              <span className={styles.icon} aria-hidden="true">
-                <FileSpreadsheet />
-              </span>
-              <StatusPill label="Beschikbaar" tone="success" />
-            </div>
-            <div className={styles.cardBody}>
-              <div>
-                <p className={styles.provider}>Twelve</p>
-                <h3>Twelve Producten</h3>
-              </div>
-              <p>
-                Importeer een Twelve Excel-export, koppel kolommen en beheer
-                productnamen, prijzen en shortcodes voor Studio.
-              </p>
-            </div>
-            <dl className={styles.meta}>
-              <div>
-                <dt>Werkwijze</dt>
-                <dd>Gecontroleerde Excel-snapshot</dd>
-              </div>
-              <div>
-                <dt>Automatische synchronisatie</dt>
-                <dd><RefreshCw aria-hidden="true" /> Niet actief</dd>
-              </div>
-            </dl>
-            <Link className={styles.link} href="/dashboard/integrations/twelve-products">
-              Twelve Producten openen
-              <ArrowRight aria-hidden="true" />
-            </Link>
           </article>
         </div>
       </section>

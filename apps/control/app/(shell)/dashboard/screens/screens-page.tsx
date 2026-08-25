@@ -15,7 +15,6 @@ import {
   Button,
   DataTable,
   FilterBar,
-  IconButton,
   SummaryStrip,
   TablePreferences
 } from "@veyocast/ui";
@@ -66,7 +65,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
         automation: {} as Record<string, ScreenAutomationSummary>,
         devices: [],
         error: null,
-        features: { healthView: false, venueTwin: false },
+        features: { healthView: true, venueTwin: true },
         floorplans: [],
         floorplanAssets: [],
         groups: [],
@@ -162,44 +161,31 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       />
     ) : null}
 
+    <nav aria-label="Weergave van de schermvloot" className="screens-view-switcher">
+      <Link aria-current={view === "list" ? "page" : undefined} href={screenViewHref(query, "list")}>
+        <List aria-hidden="true" /><span>Lijst</span>
+      </Link>
+      <Link aria-current={view === "cards" ? "page" : undefined} href={screenViewHref(query, "cards")}>
+        <Grid3X3 aria-hidden="true" /><span>Kaarten</span>
+      </Link>
+      {data.features.venueTwin ? (
+        <Link aria-current={view === "venue" ? "page" : undefined} href={screenViewHref(query, "venue")}>
+          <MapIcon aria-hidden="true" /><span>Venue Twin</span>
+        </Link>
+      ) : null}
+      {data.features.healthView ? (
+        <Link aria-current={view === "health" ? "page" : undefined} href={screenViewHref(query, "health")}>
+          <HeartPulse aria-hidden="true" /><span>Gezondheid</span>
+        </Link>
+      ) : null}
+    </nav>
+
     <form method="get" role="search">
       <FilterBar
         className="screens-filter-bar"
         activeCount={Number(Boolean(normalizedQuery)) + Number(statusFilter !== "all")}
         actions={(
           <>
-            <IconButton asChild aria-label="Schermen als compacte lijst tonen" title="Lijst">
-              <Link
-                aria-current={view === "list" ? "page" : undefined}
-                href={screenViewHref(query, "list")}
-              >
-                <List aria-hidden="true" />
-              </Link>
-            </IconButton>
-            <IconButton asChild aria-label="Schermen als kaarten tonen" title="Kaarten">
-              <Link
-                aria-current={view === "cards" ? "page" : undefined}
-                href={screenViewHref(query, "cards")}
-              >
-                <Grid3X3 aria-hidden="true" />
-              </Link>
-            </IconButton>
-            <IconButton asChild aria-label="Schermen in Venue Twin tonen" title="Venue">
-              <Link
-                aria-current={view === "venue" ? "page" : undefined}
-                href={screenViewHref(query, "venue")}
-              >
-                <MapIcon aria-hidden="true" />
-              </Link>
-            </IconButton>
-            <IconButton asChild aria-label="Gezondheid van schermen tonen" title="Health">
-              <Link
-                aria-current={view === "health" ? "page" : undefined}
-                href={screenViewHref(query, "health")}
-              >
-                <HeartPulse aria-hidden="true" />
-              </Link>
-            </IconButton>
             <div className="screens-filter-desktop-options">
               <TablePreferences
                 columns={screenColumns}

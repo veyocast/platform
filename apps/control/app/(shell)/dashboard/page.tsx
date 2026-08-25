@@ -6,7 +6,10 @@ import {
   StatusPill
 } from "@veyocast/ui";
 import {
+  Activity,
   ArrowRight,
+  CircleCheck,
+  Monitor,
   PackageCheck,
   PlugZap,
   Radio,
@@ -22,6 +25,7 @@ import {
   type TenantOverview
 } from "../../../lib/control-overview";
 import { formatTenantDateTime } from "../../../lib/tenant-time";
+import { loadVectorTenantFeatures } from "../../../lib/vector-features";
 import { OperationalActionInbox } from "../_components/operational-action-inbox";
 import { DashboardCreateMenu } from "./dashboard-create-menu";
 import styles from "./publisher-overview.module.css";
@@ -35,6 +39,10 @@ export default async function DashboardPage() {
 
   const data = await loadTenantOverview(session.tenantId!);
   const operations = deriveOperationalDashboard(data);
+  const vectorFeatures = await loadVectorTenantFeatures(
+    session.tenantId,
+    session.isLive
+  );
   return (
     <LiveDashboard
       canCreateMedia={hasCapability(session.capabilities, "tenant.media.write")}
@@ -46,6 +54,10 @@ export default async function DashboardPage() {
       operations={operations}
       tenant={session.tenant}
       userName={session.userName}
+      vectorEnabled={
+        vectorFeatures.vector_v2_design_system &&
+        vectorFeatures.vector_v2_control_shell
+      }
     />
   );
 }
@@ -59,7 +71,8 @@ function LiveDashboard({
   data,
   operations,
   tenant,
-  userName
+  userName,
+  vectorEnabled
 }: {
   canCreateMedia: boolean;
   canCreatePlaylist: boolean;
@@ -70,6 +83,7 @@ function LiveDashboard({
   operations: ReturnType<typeof deriveOperationalDashboard>;
   tenant: string;
   userName: string;
+  vectorEnabled: boolean;
 }) {
   const devices = new Map(data.devices.map((device) => [device.screen_id, device]));
   const actionableSignals = operations.signals.filter((signal) => signal.severity !== "info");
@@ -129,6 +143,10 @@ function LiveDashboard({
           signalen en aantallen kunnen ontbreken. Herstel: vernieuw de pagina of
           meld je opnieuw aan.
         </Alert>
+      ) : null}
+
+      {vectorEnabled ? (
+        <VectorSystemPulse data={data} operations={operations} />
       ) : null}
 
       <OperationalActionInbox
@@ -308,6 +326,69 @@ function LiveDashboard({
   );
 }
 
+function VectorSystemPulse({
+  data,
+  operations
+}: {
+  data: TenantOverview;
+  operations: ReturnType<typeof deriveOperationalDashboard>;
+}) {
+  const critical = operations.signals.filter(
+    (signal) => signal.severity === "critical"
+  ).length;
+  const warning = operations.signals.filter(
+    (signal) => signal.severity === "warning"
+  ).length;
+  const attention = critical + warning;
+  const sourceHealth = operations.integrationHealth;
+
+  return (
+    <section aria-labelledby="vector-system-pulse-title" className={styles.systemPulse}>
+      <div className={styles.systemPulseHeading}>
+        <span className={styles.systemPulseIcon} aria-hidden="true">
+          <Activity />
+        </span>
+        <div>
+          <p>System Pulse</p>
+          <h2 id="vector-system-pulse-title">
+            {critical
+              ? "Direct ingrijpen nodig"
+              : warning
+                ? "Er zijn aandachtspunten"
+                : "De venue draait stabiel"}
+          </h2>
+          <span>
+            Echte scherm-, publicatie- en bronstatus. Onbekende telemetry wordt
+            nooit als online gepresenteerd.
+          </span>
+        </div>
+        <StatusPill
+          label={attention ? `${attention} aandacht` : "Operationeel"}
+          tone={critical ? "critical" : warning ? "warning" : "success"}
+        />
+      </div>
+      <div className={styles.systemPulseMetrics}>
+        <Link href="/dashboard/screens?view=health">
+          <Monitor aria-hidden="true" />
+          <span><small>Schermen online</small><strong>{operations.onlineScreenCount} / {data.screens.length}</strong></span>
+        </Link>
+        <Link href="/dashboard/releases">
+          <Radio aria-hidden="true" />
+          <span><small>Playback bevestigd</small><strong>{operations.activePlaybackCount}</strong></span>
+        </Link>
+        <Link href="/dashboard/integrations">
+          <PlugZap aria-hidden="true" />
+          <span><small>Bronnen</small><strong>{sourceHealth.status === "fresh" ? "Actueel" : sourceHealth.status === "disabled" ? "Nog koppelen" : "Controleren"}</strong></span>
+        </Link>
+        <Link href={attention ? operations.signals[0]?.href ?? "/dashboard/screens" : "/dashboard/screens?view=venue"}>
+          {attention ? <Activity aria-hidden="true" /> : <CircleCheck aria-hidden="true" />}
+          <span><small>Volgende actie</small><strong>{attention ? "Bekijk signaal" : "Open Venue"}</strong></span>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function StatusCard({
   detail,
   href,
@@ -376,6 +457,23 @@ function DemoDashboardPage({ userName }: { userName: string }) {
         status={{ label: "Geen live tenantdata", tone: "info" }}
         title="Overzicht"
       />
+      <section aria-labelledby="vector-demo-pulse-title" className={styles.systemPulse}>
+        <div className={styles.systemPulseHeading}>
+          <span className={styles.systemPulseIcon} aria-hidden="true"><Activity /></span>
+          <div>
+            <p>System Pulse</p>
+            <h2 id="vector-demo-pulse-title">System Pulse wacht op live data</h2>
+            <span>Scherm-, publicatie- en bronstatus verschijnen hier uitsluitend na een tenantgebonden servercontrole.</span>
+          </div>
+          <StatusPill label="Geen live data" tone="info" />
+        </div>
+        <div className={styles.systemPulseMetrics}>
+          <Link href="/dashboard/screens"><Monitor aria-hidden="true" /><span><small>Schermen</small><strong>Nog verbinden</strong></span></Link>
+          <Link href="/dashboard/releases"><Radio aria-hidden="true" /><span><small>Publicaties</small><strong>Niet gesimuleerd</strong></span></Link>
+          <Link href="/dashboard/integrations"><PlugZap aria-hidden="true" /><span><small>Bronnen</small><strong>Nog koppelen</strong></span></Link>
+          <Link href="/dashboard/screens?view=venue"><CircleCheck aria-hidden="true" /><span><small>Volgende stap</small><strong>Richt Venue in</strong></span></Link>
+        </div>
+      </section>
       <section className="empty-dashboard" aria-labelledby="demo-dashboard-title">
         <StatusPill label="Veilige lege staat" tone="info" />
         <h2 id="demo-dashboard-title">Verbind een live omgeving voor operationeel inzicht</h2>

@@ -4,6 +4,43 @@
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 
+@media (max-width: 960px) {
+  .systemPulseMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .systemPulseMetrics a:nth-child(3) {
+    border-left: 0;
+  }
+
+  .systemPulseMetrics a:nth-child(n + 3) {
+    border-top: 1px solid var(--vc-neutral-800);
+  }
+}
+
+@media (max-width: 620px) {
+  .systemPulseHeading {
+    align-items: start;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: var(--vc-space-16);
+  }
+
+  .systemPulseHeading > :last-child {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .systemPulseMetrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .systemPulseMetrics a + a,
+  .systemPulseMetrics a:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--vc-neutral-800);
+  }
+}
+
 .statusCard {
   align-items: center;
   background: var(--vc-surface);
@@ -464,4 +501,117 @@
   .quickAction {
     min-height: 44px;
   }
+}
+.systemPulse {
+  background: var(--vc-neutral-900);
+  border: 1px solid var(--vc-neutral-800);
+  border-radius: var(--vc-radius-lg);
+  color: var(--vc-brand-paper-white);
+  overflow: hidden;
+}
+
+.systemPulseHeading {
+  align-items: center;
+  display: grid;
+  gap: var(--vc-space-16);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: var(--vc-space-20) var(--vc-space-24);
+}
+
+.systemPulseIcon {
+  align-items: center;
+  background: var(--vc-action);
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-on-action);
+  display: flex;
+  height: 46px;
+  justify-content: center;
+  width: 46px;
+}
+
+.systemPulseIcon svg {
+  height: 24px;
+  width: 24px;
+}
+
+.systemPulseHeading > div {
+  display: grid;
+  gap: var(--vc-space-2);
+}
+
+.systemPulseHeading p,
+.systemPulseHeading h2,
+.systemPulseHeading span {
+  margin: 0;
+}
+
+.systemPulseHeading p {
+  color: var(--vc-action);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.systemPulseHeading h2 {
+  font-family: var(--vc-font-display);
+  font-size: 22px;
+  letter-spacing: -.02em;
+  line-height: 28px;
+}
+
+.systemPulseHeading > div > span {
+  color: var(--vc-neutral-400);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.systemPulseMetrics {
+  border-top: 1px solid var(--vc-neutral-800);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.systemPulseMetrics a {
+  align-items: center;
+  color: var(--vc-brand-paper-white);
+  display: grid;
+  gap: var(--vc-space-10);
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 76px;
+  padding: var(--vc-space-12) var(--vc-space-20);
+  text-decoration: none;
+}
+
+.systemPulseMetrics a + a {
+  border-left: 1px solid var(--vc-neutral-800);
+}
+
+.systemPulseMetrics a:hover {
+  background: var(--vc-neutral-850);
+}
+
+.systemPulseMetrics svg {
+  color: var(--vc-action);
+  height: 19px;
+  width: 19px;
+}
+
+.systemPulseMetrics span {
+  display: grid;
+  min-width: 0;
+}
+
+.systemPulseMetrics small {
+  color: var(--vc-neutral-400);
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.systemPulseMetrics strong {
+  font-size: 14px;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

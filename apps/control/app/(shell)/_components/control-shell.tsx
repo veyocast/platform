@@ -64,6 +64,10 @@ import {
   getNavigationGroupsForPathname,
   isImmersiveEditorPath
 } from "../_lib/control-navigation";
+import {
+  isVectorControlEnabled,
+  type VectorTenantFeatures
+} from "../_lib/vector-features";
 import type { ControlSearchResult } from "../_lib/control-search-contract";
 import { clearTenantScopedLocalData } from "../_lib/tenant-local-data";
 import { switchTenantContext } from "../context/actions";
@@ -83,6 +87,7 @@ type ControlShellProps = {
   navigationGroups: ControlNavigationGroup[];
   session: ControlSession;
   uploadQueue: GlobalUploadTrayItem[];
+  vectorFeatures: VectorTenantFeatures;
 };
 
 const navigationIcons: Record<string, LucideIcon> = {
@@ -122,7 +127,8 @@ export function ControlShell({
   children,
   navigationGroups,
   session,
-  uploadQueue
+  uploadQueue,
+  vectorFeatures
 }: ControlShellProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -162,6 +168,8 @@ export function ControlShell({
     ? session.tenant
     : session.organization;
   const isImmersiveEditor = isImmersiveEditorPath(pathname);
+  const vectorEnabled = hasTenantNavigationContext &&
+    isVectorControlEnabled(vectorFeatures);
   const topbarStatusTone = !session.isLive
     ? "info"
     : hasTenantNavigationContext && session.tenantStatus === "paused"
@@ -342,6 +350,7 @@ export function ControlShell({
       <div
         className={`control-shell control-shell--motion${isSidebarCollapsed ? " control-shell--collapsed" : ""}`}
         data-navigation-scope={activeNavigationScope}
+        data-vector={vectorEnabled ? "enabled" : "legacy"}
       >
       <a className="skip-link" href="#control-content">
         Naar inhoud
@@ -403,7 +412,9 @@ export function ControlShell({
                 {hasTenantNavigationContext
                   ? pathname.startsWith("/dashboard/sponsors")
                     ? "Sponsor Hub"
-                    : "Publisher"
+                    : vectorEnabled
+                      ? "Living Venue OS"
+                      : "Publisher"
                   : "Control"}
               </p>
             </div>
@@ -618,7 +629,7 @@ export function ControlShell({
       </aside>
 
       <main
-        className={`control-main${isImmersiveEditor ? " control-main--editor" : ""}`}
+        className={`control-main${vectorEnabled && !isImmersiveEditor ? " control-main--vector" : ""}${isImmersiveEditor ? " control-main--editor" : ""}`}
       >
         {!isImmersiveEditor ? (
         <header className="control-topbar" aria-label="Control status">
@@ -662,7 +673,7 @@ export function ControlShell({
                 type="button"
               >
                 <Search aria-hidden="true" />
-                <span>Snel naar</span>
+                <span>{vectorEnabled ? "Zoek of voer actie uit" : "Snel naar"}</span>
                 <kbd>Ctrl K</kbd>
               </button>
             </DialogTrigger>
@@ -681,6 +692,32 @@ export function ControlShell({
             ) : null}
           </div>
         </header>
+        ) : null}
+        {vectorEnabled && !isImmersiveEditor ? (
+          <nav aria-label="Living Venue snelkoppelingen" className="vector-context-rail">
+            <span className="vector-context-rail__identity">
+              <Activity aria-hidden="true" />
+              <span>
+                <small>Living Venue</small>
+                <strong>Operationele cockpit</strong>
+              </span>
+            </span>
+            <span className="vector-context-rail__links">
+              <Link aria-current={pathname === "/dashboard" ? "page" : undefined} href="/dashboard">
+                System Pulse
+              </Link>
+              <Link aria-current={pathname.startsWith("/dashboard/screens") ? "page" : undefined} href="/dashboard/screens?view=venue">
+                Venue
+              </Link>
+              <Link aria-current={pathname.startsWith("/dashboard/integrations") ? "page" : undefined} href="/dashboard/integrations">
+                Bronnen
+              </Link>
+            </span>
+            <span className="vector-context-rail__status">
+              <StatusDot status={session.tenantStatus === "active" ? "success" : "warning"} />
+              {session.tenantStatus === "active" ? "Tenant actief" : "Alleen lezen"}
+            </span>
+          </nav>
         ) : null}
         <div
           className={`control-content${isImmersiveEditor ? " control-content--editor" : ""}`}
