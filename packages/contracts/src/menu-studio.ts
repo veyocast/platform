@@ -243,6 +243,8 @@ const baseBlockFields = {
 
 export const menuCategoryBlockSchema = z.object({
   ...baseBlockFields,
+  flowAcrossColumns: z.boolean().optional(),
+  headingVisible: z.boolean().optional(),
   labelOverride: z.string().trim().min(1).max(56).nullable().optional(),
   productNodes: z.array(z.discriminatedUnion("kind", [
     menuProductPlacementSchema,
@@ -575,6 +577,13 @@ function validateMenuDocumentInvariants(
         registerGroup(block.group, blockPath, register, registerProduct, requireAsset);
       }
       if (block.type !== "category") continue;
+      if (block.flowAcrossColumns && block.headingVisible !== false) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Een productstroom over kolommen mag geen categoriekop tonen.",
+          path: [...blockPath, "headingVisible"]
+        });
+      }
       const nodeOrders = new Set<number>();
       for (const [nodeIndex, node] of block.productNodes.entries()) {
         const nodePath = [...blockPath, "productNodes", nodeIndex];

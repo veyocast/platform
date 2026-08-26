@@ -103,6 +103,7 @@ const dutchProductCollator = new Intl.Collator("nl-NL", {
   numeric: true,
   sensitivity: "base"
 });
+const looseProductsTarget = "loose-products";
 
 export type MenuStudioProductOption = {
   available: boolean;
@@ -175,7 +176,9 @@ export function MenuStudioEditor({
   const [mobilePanel, setMobilePanel] = useState<"build" | "preview" | "library">("preview");
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [productCategoryFilter, setProductCategoryFilter] = useState("all");
+  const [productTargetCategoryId, setProductTargetCategoryId] = useState(looseProductsTarget);
   const [status, setStatus] = useState<"error" | "published" | "saved" | "saving" | "unsaved">(
     mode === "edit" ? "saved" : "unsaved"
   );
@@ -185,6 +188,10 @@ export function MenuStudioEditor({
   const stageRef = useRef<HTMLDivElement>(null);
   const document = history.present;
   const page = document.pages[0]!;
+  const targetCategories = useMemo(() => page.blocks.filter(
+    (block): block is Extract<MenuBlock, { type: "category" }> =>
+      block.type === "category" && block.headingVisible !== false
+  ), [page.blocks]);
   const productCategories = useMemo(() => Array.from(
     new Set(products.map((product) => product.category))
   ).sort(dutchProductCollator.compare), [products]);
@@ -219,6 +226,13 @@ export function MenuStudioEditor({
   );
 
   useEffect(() => setHydrated(true), []);
+
+  useEffect(() => {
+    if (productTargetCategoryId === looseProductsTarget) return;
+    if (!targetCategories.some((category) => category.id === productTargetCategoryId)) {
+      setProductTargetCategoryId(looseProductsTarget);
+    }
+  }, [productTargetCategoryId, targetCategories]);
 
   const setHistory = (next: MenuStudioHistory) => {
     historyRef.current = next;
@@ -354,9 +368,14 @@ export function MenuStudioEditor({
       }
       return;
     }
-    let category = findCategory(currentPage.blocks, product.category);
+    let category = productTargetCategoryId === looseProductsTarget
+      ? findLooseProductsCategory(currentPage.blocks)
+      : currentPage.blocks.find(
+          (block): block is Extract<MenuBlock, { type: "category" }> =>
+            block.type === "category" && block.id === productTargetCategoryId
+        );
     if (!category) {
-      const block = categoryBlock(product, currentPage.blocks, currentPage.portraitColumns);
+      const block = looseProductsBlock(currentPage.blocks, currentPage.portraitColumns);
       const next = await executeOperation({ block, kind: "add-block", pageId: currentPage.id });
       if (!next) return;
       category = next.pages[0]!.blocks.find(
@@ -399,6 +418,68 @@ export function MenuStudioEditor({
     });
   }
 
+  async function createCustomCategory() {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    const currentPage = historyRef.current.present.pages[0]!;
+    if (currentPage.blocks.some((block) => block.type === "category" &&
+      (block.labelOverride ?? block.source.sourceName).toLocaleLowerCase("nl-NL") ===
+      name.toLocaleLowerCase("nl-NL"))) {
+      setMessage(`De categorie ${name} bestaat al.`);
+      setStatus("error");
+      return;
+    }
+    const block = customCategoryBlock(name, currentPage.blocks, currentPage.portraitColumns);
+    const next = await executeOperation({ block, kind: "add-block", pageId: currentPage.id });
+    if (!next) return;
+    setNewCategoryName("");
+    setProductTargetCategoryId(block.id);
+    setMessage(`${name} is gemaakt en gekozen als doel voor nieuwe producten.`);
+  }
+
+  async function mergeCategoriesAsLooseProducts() {
+    const current = historyRef.current.present;
+    const nextPages = structuredClone(current.pages);
+    const nextPage = nextPages[0]!;
+    const categories = nextPage.blocks
+      .filter((block): block is Extract<MenuBlock, { type: "category" }> => block.type === "category")
+      .sort((left, right) => left.order - right.order);
+    const productNodes = categories.flatMap((category) =>
+      [...category.productNodes].sort((left, right) => left.order - right.order)
+    );
+    if (!productNodes.length) {
+      setMessage("Er zijn nog geen producten om samen te voegen.");
+      return;
+    }
+    const remainingBlocks = nextPage.blocks
+      .filter((block) => block.type !== "category")
+      .sort((left, right) => left.order - right.order);
+    const looseBlocks: Extract<MenuBlock, { type: "category" }>[] = [];
+    for (let offset = 0; offset < productNodes.length; offset += 100) {
+      const loose = looseProductsBlock(
+        [...remainingBlocks, ...looseBlocks],
+        nextPage.portraitColumns
+      );
+      loose.productNodes = productNodes.slice(offset, offset + 100)
+        .map((node, order) => ({ ...node, order }));
+      looseBlocks.push(loose);
+    }
+    nextPage.blocks = [...looseBlocks, ...remainingBlocks]
+      .map((block, order) => ({ ...block, order }));
+    const result = await executeOperation({
+      assets: current.assets,
+      kind: "restore-content",
+      pages: nextPages,
+      providerSnapshot: current.providerSnapshot ?? null,
+      theme: current.theme,
+      title: current.title ?? null
+    });
+    if (!result) return;
+    setProductTargetCategoryId(looseProductsTarget);
+    setSelectedBlockId(null);
+    setMessage(`${productNodes.length} ${productNodes.length === 1 ? "product" : "producten"} samengevoegd zonder categoriekoppen. Je kunt dit ongedaan maken.`);
+  }
+
   async function makeGroup(product: MenuStudioProductOption) {
     const currentPage = historyRef.current.present.pages[0]!;
     const existing = findProduct(currentPage.blocks, product.id);
@@ -409,7 +490,7 @@ export function MenuStudioEditor({
         hideUnavailableLinkedProducts: true,
         keepFreeTextWhenLinkedUnavailable: true
       },
-      display: { maxLines: 2, separator: "dot" },
+      display: { maxLines: 1, separator: "dot" },
       id: crypto.randomUUID(),
       kind: "product-group",
       order: existing.node.order,
@@ -635,10 +716,58 @@ export function MenuStudioEditor({
     });
   }
 
-  async function addCategories(categoryNames: string[]) {
-    for (const categoryName of categoryNames) {
-      await placeCategory(categoryName);
+  async function addCategories(
+    categoryNames: string[],
+    placement: "category-blocks" | "loose-products"
+  ) {
+    if (placement === "category-blocks") {
+      for (const categoryName of categoryNames) {
+        await placeCategory(categoryName);
+      }
+      return;
     }
+    const selectedNames = new Set(categoryNames);
+    const selectedProducts = products.filter((product) => selectedNames.has(product.category));
+    const current = historyRef.current.present;
+    const nextPages = structuredClone(current.pages);
+    const nextPage = nextPages[0]!;
+    const placedIds = new Set(nextPage.blocks.flatMap((block) => block.type === "category"
+      ? block.productNodes.flatMap((node) => node.kind === "product"
+        ? [node.productRef.productId]
+        : node.secondaryLineItems.flatMap((line) =>
+            line.kind === "linked-product" ? [line.productRef.productId] : []
+          ))
+      : []));
+    const additions = selectedProducts.filter((product) => !placedIds.has(product.id));
+    if (!additions.length) {
+      setMessage("Alle producten uit deze selectie staan al in het menu.");
+      return;
+    }
+    let offset = 0;
+    while (offset < additions.length) {
+      let loose = findLooseProductsCategory(nextPage.blocks);
+      if (!loose) {
+        loose = looseProductsBlock(nextPage.blocks, nextPage.portraitColumns);
+        nextPage.blocks.push(loose);
+      }
+      const availableSlots = 100 - loose.productNodes.length;
+      const chunk = additions.slice(offset, offset + availableSlots);
+      loose.productNodes.push(...chunk.map((product, index) =>
+        productPlacement(product, loose!.productNodes.length + index)
+      ));
+      offset += chunk.length;
+    }
+    const result = await executeOperation({
+      assets: current.assets,
+      kind: "restore-content",
+      pages: nextPages,
+      providerSnapshot: current.providerSnapshot ?? null,
+      theme: current.theme,
+      title: current.title ?? null
+    });
+    if (!result) return;
+    setProductTargetCategoryId(looseProductsTarget);
+    setMessage(`${additions.length} ${additions.length === 1 ? "product" : "producten"} los toegevoegd, zonder automatische categoriekoppen.`);
   }
 
   async function addMediaSelection(
@@ -955,6 +1084,10 @@ export function MenuStudioEditor({
                       labelOverride,
                       pageId: page.id
                     })}
+                    onSetCategoryHeading={(headingVisible) => {
+                      if (block.type !== "category") return;
+                      void replaceBlock({ ...block, flowAcrossColumns: headingVisible ? undefined : block.flowAcrossColumns, headingVisible });
+                    }}
                     onSelect={() => {
                       setSelectedBlockId(block.id);
                       setSelectedGroupId(null);
@@ -1122,16 +1255,41 @@ export function MenuStudioEditor({
           </section>
 
           <section className={styles.librarySection}>
-            <h3>Categorieën <span>{productCategories.length}</span></h3>
+            <h3>Categorieën <span>optioneel</span></h3>
             <button
               className={styles.libraryLauncher}
               onClick={() => setCategoryPickerOpen(true)}
               type="button"
             >
               <Layers3 aria-hidden="true" />
-              <span><strong>Categorieën kiezen</strong><small>Selecteer één of meerdere categorieblokken in een pop-up.</small></span>
+              <span><strong>Selecteren via Twelve-categorie</strong><small>Voeg producten standaard los toe, of kies bewust voor broncategorieblokken.</small></span>
               <Plus aria-hidden="true" />
             </button>
+            <div className={styles.customCategoryComposer}>
+              <label>
+                <span>Eigen categorie</span>
+                <input
+                  maxLength={56}
+                  onChange={(event) => setNewCategoryName(event.currentTarget.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      void createCustomCategory();
+                    }
+                  }}
+                  placeholder="Bijvoorbeeld Warme snacks"
+                  value={newCategoryName}
+                />
+              </label>
+              <button disabled={!newCategoryName.trim() || status === "saving"} onClick={() => void createCustomCategory()} type="button">
+                <Plus aria-hidden="true" /> Maken
+              </button>
+            </div>
+            {targetCategories.some((category) => category.productNodes.length > 0) ? (
+              <button className={styles.inspectorAction} onClick={() => void mergeCategoriesAsLooseProducts()} type="button">
+                <Layers3 aria-hidden="true" /> Bestaande indeling samenvoegen
+              </button>
+            ) : null}
           </section>
 
           <section className={styles.librarySection}>
@@ -1147,6 +1305,21 @@ export function MenuStudioEditor({
                   <option key={categoryName} value={categoryName}>{categoryName}</option>
                 ))}
               </select>
+            </label>
+            <label className={styles.productFilter}>
+              <span>Nieuwe producten plaatsen in</span>
+              <select
+                onChange={(event) => setProductTargetCategoryId(event.currentTarget.value)}
+                value={productTargetCategoryId}
+              >
+                <option value={looseProductsTarget}>Losse producten · geen categoriekop</option>
+                {targetCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.labelOverride ?? category.source.sourceName}
+                  </option>
+                ))}
+              </select>
+              <small>Deze keuze geldt alleen voor producten die je hierna toevoegt.</small>
             </label>
             {selectedGroup ? (
               <div className={styles.activeGroupBar} role="status">
@@ -1220,7 +1393,7 @@ export function MenuStudioEditor({
         onAdd={addCategories}
         onOpenChange={setCategoryPickerOpen}
         open={categoryPickerOpen}
-        placedCategories={new Set(page.blocks.flatMap((block) => block.type === "category"
+        placedCategories={new Set(page.blocks.flatMap((block) => block.type === "category" && block.headingVisible !== false
           ? [block.source.sourceName]
           : []))}
         products={products}
@@ -1247,13 +1420,17 @@ function CategoryPickerDialog({
 }: {
   busy: boolean;
   categories: string[];
-  onAdd: (categoryNames: string[]) => Promise<void>;
+  onAdd: (
+    categoryNames: string[],
+    placement: "category-blocks" | "loose-products"
+  ) => Promise<void>;
   onOpenChange: (open: boolean) => void;
   open: boolean;
   placedCategories: Set<string>;
   products: MenuStudioProductOption[];
 }) {
   const [query, setQuery] = useState("");
+  const [placement, setPlacement] = useState<"category-blocks" | "loose-products">("loose-products");
   const [selected, setSelected] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const normalizedQuery = query.trim().toLocaleLowerCase("nl-NL");
@@ -1264,6 +1441,7 @@ function CategoryPickerDialog({
   useEffect(() => {
     if (!open) {
       setQuery("");
+      setPlacement("loose-products");
       setSelected([]);
     }
   }, [open]);
@@ -1275,7 +1453,7 @@ function CategoryPickerDialog({
   const submit = async () => {
     if (!selected.length || submitting || busy) return;
     setSubmitting(true);
-    await onAdd(selected);
+    await onAdd(selected, placement);
     setSubmitting(false);
     onOpenChange(false);
   };
@@ -1287,14 +1465,24 @@ function CategoryPickerDialog({
       }}
       open={open}
     >
-      <DialogContent className={styles.pickerDialog} closeLabel="Categorieën sluiten">
+      <DialogContent className={styles.pickerDialog} closeLabel="Productselectie sluiten">
         <DialogHeader>
-          <DialogTitle>Categorieën toevoegen</DialogTitle>
+          <DialogTitle>Producten via categorie selecteren</DialogTitle>
           <DialogDescription>
-            Kies één of meerdere categorieblokken. Producten voeg je daarna vanuit de productlijst toe.
+            Kies broncategorieën en bepaal zelf of de producten los of onder zichtbare categoriekoppen komen.
           </DialogDescription>
         </DialogHeader>
         <DialogBody className={styles.pickerBody}>
+          <label className={styles.pickerFilter}>
+            <span>Toevoegen als</span>
+            <select
+              onChange={(event) => setPlacement(event.currentTarget.value as typeof placement)}
+              value={placement}
+            >
+              <option value="loose-products">Losse producten, zonder categoriekoppen</option>
+              <option value="category-blocks">Afzonderlijke Twelve-categorieblokken</option>
+            </select>
+          </label>
           <label className={styles.pickerSearch}>
             <Search aria-hidden="true" />
             <span>Categorieën zoeken</span>
@@ -1308,7 +1496,7 @@ function CategoryPickerDialog({
           {visibleCategories.length ? (
             <div className={styles.categoryPickerGrid}>
               {visibleCategories.map((categoryName) => {
-                const placed = placedCategories.has(categoryName);
+                const placed = placement === "category-blocks" && placedCategories.has(categoryName);
                 const productCount = products.filter((product) => product.category === categoryName).length;
                 return (
                   <label data-placed={placed || undefined} key={categoryName}>
@@ -1331,7 +1519,9 @@ function CategoryPickerDialog({
         <DialogFooter aside={`${selected.length} geselecteerd`}>
           <Button disabled={submitting} onClick={() => onOpenChange(false)} type="button" variant="secondary">Annuleren</Button>
           <Button disabled={!selected.length || submitting || busy} onClick={() => void submit()} type="button">
-            <Plus aria-hidden="true" /> {submitting ? "Toevoegen…" : `${selected.length || ""} ${selected.length === 1 ? "categorie" : "categorieën"} toevoegen`}
+            <Plus aria-hidden="true" /> {submitting ? "Toevoegen…" : placement === "loose-products"
+              ? "Producten toevoegen"
+              : `${selected.length || ""} ${selected.length === 1 ? "categorie" : "categorieën"} toevoegen`}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1493,6 +1683,7 @@ function SortableBlock({
   onMove,
   onRemove,
   onRenameCategory,
+  onSetCategoryHeading,
   onSelect,
   onSelectGroup,
   selected,
@@ -1503,6 +1694,7 @@ function SortableBlock({
   onMove: (direction: "down" | "up") => void;
   onRemove: () => void;
   onRenameCategory: (labelOverride: string | null) => void;
+  onSetCategoryHeading: (headingVisible: boolean) => void;
   onSelect: () => void;
   onSelectGroup: (groupId: string) => void;
   selected: boolean;
@@ -1544,6 +1736,14 @@ function SortableBlock({
                 onRenameCategory(value && value !== block.source.sourceName ? value : null);
               }}
             />
+            <span className={styles.inlineCheck}>
+              <input
+                checked={block.headingVisible !== false}
+                onChange={(event) => onSetCategoryHeading(event.currentTarget.checked)}
+                type="checkbox"
+              />
+              Categoriekop op het scherm tonen
+            </span>
             <small>Bron: {block.source.sourceName} · {block.source.sourceCategoryId}</small>
           </label>
         ) : null}
@@ -1984,10 +2184,6 @@ function categoryBlock(
   blocks: MenuBlock[],
   explicitPortraitColumns?: 1 | 2
 ): Extract<MenuBlock, { type: "category" }> {
-  const categories = blocks.filter((block) => block.type === "category");
-  const useLeft = categories.filter((block) => block.layout.landscape.x < 960).length <=
-    categories.filter((block) => block.layout.landscape.x >= 960).length;
-  const useTwoPortraitColumns = portraitColumnCount(blocks, explicitPortraitColumns) === 2;
   const source = product.sourceKind === "twelve_excel"
     ? {
         providerConnectionId: product.sourceId,
@@ -2000,6 +2196,53 @@ function categoryBlock(
         sourceCategoryId: slugId(product.category),
         sourceName: product.category
       };
+  return categoryBlockForSource(source, blocks, explicitPortraitColumns);
+}
+
+function customCategoryBlock(
+  name: string,
+  blocks: MenuBlock[],
+  explicitPortraitColumns?: 1 | 2
+): Extract<MenuBlock, { type: "category" }> {
+  return categoryBlockForSource({
+    source: "manual",
+    sourceCategoryId: `custom-${slugId(name)}-${crypto.randomUUID()}`,
+    sourceName: name
+  }, blocks, explicitPortraitColumns);
+}
+
+function looseProductsBlock(
+  blocks: MenuBlock[],
+  explicitPortraitColumns?: 1 | 2
+): Extract<MenuBlock, { type: "category" }> {
+  const sequence = blocks.filter((block) =>
+    block.type === "category" && block.source.sourceCategoryId.startsWith(looseProductsTarget)
+  ).length;
+  const block = categoryBlockForSource({
+    source: "manual",
+    sourceCategoryId: sequence === 0 ? looseProductsTarget : `${looseProductsTarget}-${sequence + 1}`,
+    sourceName: "Losse producten"
+  }, blocks, explicitPortraitColumns);
+  return {
+    ...block,
+    flowAcrossColumns: true,
+    headingVisible: false,
+    layout: {
+      landscape: { h: 704, rotation: 0, w: 1728, x: 96, y: 248 },
+      portrait: { h: 1388, rotation: 0, w: 936, x: 72, y: 348 }
+    }
+  };
+}
+
+function categoryBlockForSource(
+  source: Extract<MenuBlock, { type: "category" }>["source"],
+  blocks: MenuBlock[],
+  explicitPortraitColumns?: 1 | 2
+): Extract<MenuBlock, { type: "category" }> {
+  const categories = blocks.filter((block) => block.type === "category" && !block.flowAcrossColumns);
+  const useLeft = categories.filter((block) => block.layout.landscape.x < 960).length <=
+    categories.filter((block) => block.layout.landscape.x >= 960).length;
+  const useTwoPortraitColumns = portraitColumnCount(blocks, explicitPortraitColumns) === 2;
   return {
     id: crypto.randomUUID(),
     layout: {
@@ -2046,6 +2289,15 @@ function findCategory(blocks: MenuBlock[], name: string) {
   return blocks.find(
     (block): block is Extract<MenuBlock, { type: "category" }> =>
       block.type === "category" && block.source.sourceName === name
+  );
+}
+
+function findLooseProductsCategory(blocks: MenuBlock[]) {
+  return blocks.find(
+    (block): block is Extract<MenuBlock, { type: "category" }> =>
+      block.type === "category" && block.flowAcrossColumns === true &&
+      block.headingVisible === false && block.productNodes.length < 100 &&
+      block.source.sourceCategoryId.startsWith(looseProductsTarget)
   );
 }
 

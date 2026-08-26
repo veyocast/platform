@@ -35,23 +35,20 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     const canvasDropTarget = page.getByRole("region", {
       name: "Compositiecanvas; sleep hier categorieën, producten en media naartoe"
     });
-    await page.getByRole("button", { name: /Categorieën kiezen/ }).click();
-    const categoryDialog = page.getByRole("dialog", { name: "Categorieën toevoegen" });
+    await page.getByRole("button", { name: /Selecteren via Twelve-categorie/ }).click();
+    const categoryDialog = page.getByRole("dialog", { name: "Producten via categorie selecteren" });
+    await expect(categoryDialog.getByLabel("Toevoegen als")).toHaveValue("loose-products");
     await categoryDialog.getByLabel(/Frisdranken/).check();
-    await categoryDialog.getByRole("button", { name: "1 categorie toevoegen" }).click();
+    await categoryDialog.getByRole("button", { name: "Producten toevoegen" }).click();
     await expect(categoryDialog).toHaveCount(0);
     await expect(page.getByLabel("Filter op categorie")).toHaveValue("all");
+    await expect(page.getByRole("heading", { name: "Frisdranken", exact: true })).toHaveCount(0);
     const visibleProductNames = await page.locator('[class*="productLibrary"] article strong').allTextContents();
     expect(visibleProductNames).toEqual([...visibleProductNames].sort((left, right) =>
       left.localeCompare(right, "nl-NL", { numeric: true, sensitivity: "base" })
     ));
-    const regularCardBeforeDrop = productCard(page, "Coca-Cola Regular");
-    await dragThroughBrowserDnd(page, regularCardBeforeDrop.locator("button").first(), canvasDropTarget);
-    await expect(regularCardBeforeDrop).toHaveAttribute("data-selected", "true");
-    await addProduct(page, "Coca-Cola Zero");
-    await addProduct(page, "Coca-Cola Cherry");
-
     const regularCard = productCard(page, "Coca-Cola Regular");
+    await expect(regularCard).toHaveAttribute("data-selected", "true");
     const groupButton = regularCard.getByRole("button", { name: "Maak productgroep" });
     await expect(groupButton).toBeVisible();
     await groupButton.click();
@@ -88,7 +85,7 @@ test.describe("Menu Studio v2 live toegankelijkheids- en interactiepad", () => {
     await menuName.press("Enter");
     await expect(menuName).toHaveValue("Avondmenu kantine");
 
-    const dragHandle = page.getByRole("button", { name: /Versleep Frisdranken/ });
+    const dragHandle = page.getByRole("button", { name: /Versleep Losse producten/ });
     await dragHandle.focus();
     await page.keyboard.press("Space");
     await page.keyboard.press("ArrowDown");
@@ -192,12 +189,6 @@ async function dragThroughBrowserDnd(
 
 function productCard(page: Page, name: string) {
   return page.locator("article").filter({ has: page.getByText(name, { exact: true }) }).last();
-}
-
-async function addProduct(page: Page, name: string) {
-  const card = productCard(page, name);
-  await card.locator("button").first().click();
-  await expect(card).toHaveAttribute("data-selected", "true");
 }
 
 async function removeProduct(page: Page, name: string) {

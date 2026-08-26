@@ -97,12 +97,15 @@ export function resolveMenuScenePages(
     );
     const columnCount = orientation === "landscape"
       ? 2
-      : page.portraitColumns ?? (usesTwoPortraitColumns(flowing) ? 2 : 1);
+      : page.portraitColumns ?? (flowing.some(
+          (block) => block.type === "category" && block.flowAcrossColumns
+        ) || usesTwoPortraitColumns(flowing) ? 2 : 1);
+    const columnFlow = distributeColumnFlow(flowing, orientation, columnCount);
     const byColumn = orientation === "portrait" && columnCount === 1
-      ? { left: flowing, right: [] }
+      ? { left: columnFlow, right: [] }
       : {
-          left: flowing.filter((block) => blockColumn(block, orientation) === "left"),
-          right: flowing.filter((block) => blockColumn(block, orientation) === "right")
+          left: columnFlow.filter((block) => blockColumn(block, orientation) === "left"),
+          right: columnFlow.filter((block) => blockColumn(block, orientation) === "right")
         };
     const left = paginateColumn(
       byColumn.left,
@@ -719,24 +722,27 @@ function paginateColumn(
     if (!nodes.length) continue;
     let offset = 0;
     let continuation = false;
+    const headingVisible = block.headingVisible !== false;
     while (offset < nodes.length) {
       const remaining = pageCapacity - used;
       const minimumNodeCount = Math.min(3, nodes.length - offset);
-      const minimumCost = headingCost + nodes
+      const minimumCost = (headingVisible ? headingCost : 0) + nodes
         .slice(offset, offset + minimumNodeCount)
         .reduce((total, node) => total + nodeCost(node), 0);
       if (used > 0 && remaining < minimumCost) {
         flush();
         continue;
       }
-      current.push({
-        continuation,
-        id: `${block.id}:${continuation ? "continuation" : "category"}:${pages.length}`,
-        kind: "category",
-        label: block.labelOverride ?? block.source.sourceName,
-        subtitle: block.subtitle ?? ""
-      });
-      used += headingCost;
+      if (headingVisible) {
+        current.push({
+          continuation,
+          id: `${block.id}:${continuation ? "continuation" : "category"}:${pages.length}`,
+          kind: "category",
+          label: block.labelOverride ?? block.source.sourceName,
+          subtitle: block.subtitle ?? ""
+        });
+        used += headingCost;
+      }
       const startOffset = offset;
       while (offset < nodes.length) {
         const node = nodes[offset]!;
@@ -763,6 +769,61 @@ function paginateColumn(
   }
   flush();
   return pages;
+}
+
+function distributeColumnFlow(
+  blocks: MenuFlowBlock[],
+  orientation: keyof typeof menuSceneCanvases,
+  columnCount: 1 | 2
+): MenuFlowBlock[] {
+  if (columnCount === 1) return blocks;
+  return blocks.flatMap((block) => {
+    if (block.type !== "category" || !block.flowAcrossColumns) return [block];
+    const nodes = [...block.productNodes].sort(
+      (left, right) => left.order - right.order || left.id.localeCompare(right.id)
+    );
+    if (nodes.length < 2) return [{
+      ...block,
+      layout: columnFlowLayout(block.layout, orientation, "left")
+    }];
+    const totalCost = nodes.reduce((total, node) => total + nodeCost(node), 0);
+    let leftCost = 0;
+    let splitIndex = 1;
+    for (let index = 0; index < nodes.length - 1; index += 1) {
+      leftCost += nodeCost(nodes[index]!);
+      splitIndex = index + 1;
+      if (leftCost >= totalCost / 2) break;
+    }
+    return [
+      {
+        ...block,
+        id: `${block.id}:left`,
+        layout: columnFlowLayout(block.layout, orientation, "left"),
+        productNodes: nodes.slice(0, splitIndex)
+      },
+      {
+        ...block,
+        id: `${block.id}:right`,
+        layout: columnFlowLayout(block.layout, orientation, "right"),
+        productNodes: nodes.slice(splitIndex)
+      }
+    ];
+  });
+}
+
+function columnFlowLayout(
+  layout: MenuFlowBlock["layout"],
+  orientation: keyof typeof menuSceneCanvases,
+  column: "left" | "right"
+) {
+  const body = menuSceneZones[orientation];
+  const gap = orientation === "portrait" ? 20 : 36;
+  const width = (body.body.w - gap) / 2;
+  const x = body.body.x + (column === "right" ? width + gap : 0);
+  return {
+    ...layout,
+    [orientation]: { ...layout[orientation], w: width, x }
+  };
 }
 
 function firstPageCapacity(

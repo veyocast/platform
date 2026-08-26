@@ -175,6 +175,57 @@ test("portrait start een korte prijslijst altijd bovenaan", async ({ page }) => 
   expect(geometry.firstRowTop - geometry.columnTop).toBeLessThan(30);
 });
 
+test("losse Twelve-producten vullen twee kolommen zonder categoriekoppen", async ({ page }) => {
+  await page.setViewportSize({ height: 1920, width: 1080 });
+  const payload = buildPayload("editorial", "dark", "portrait");
+  const menu = buildDocument("editorial", "dark");
+  const loose = category("loose", "Losse producten", 0, "left");
+  loose.flowAcrossColumns = true;
+  loose.headingVisible = false;
+  loose.layout.landscape = { h: 704, rotation: 0, w: 1728, x: 96, y: 248 };
+  loose.layout.portrait = { h: 1388, rotation: 0, w: 936, x: 72, y: 348 };
+  loose.productNodes = Array.from({ length: 8 }, (_, index) => product("loose", "Product", index));
+  menu.assets = [];
+  menu.pages[0]!.blocks = [loose];
+  payload.assets = {};
+  payload.data = { menuDocument: menu };
+
+  await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+  await expect.poll(async () => page.evaluate(
+    () => document.documentElement.dataset.thumbnailReady === "true"
+  )).toBe(true);
+  const columns = page.locator("[data-menu-column]");
+  await expect(columns).toHaveCount(2);
+  await expect(page.locator("[data-menu-row]").filter({ has: page.locator("h2") })).toHaveCount(0);
+  await expect(columns.nth(0).locator("[data-menu-row]")).toHaveCount(4);
+  await expect(columns.nth(1).locator("[data-menu-row]")).toHaveCount(4);
+  await page.screenshot({ path: "docs/screenshots/s125-menu-loose-portrait.png" });
+});
+
+test("productgroep en product delen dezelfde rijstijl en hoogte", async ({ page }) => {
+  await page.setViewportSize({ height: 1080, width: 1920 });
+  await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(
+    buildPayload("editorial", "light", "landscape")
+  )}`);
+  await expect.poll(async () => page.evaluate(
+    () => document.documentElement.dataset.thumbnailReady === "true"
+  )).toBe(true);
+  const regular = page.locator("article").filter({ hasText: "Espresso" }).first();
+  const group = page.locator("article").filter({ hasText: "Koffieproeverij" }).first();
+  const style = async (locator: typeof regular) => locator.evaluate((element) => {
+    const computed = getComputedStyle(element);
+    const bounds = element.getBoundingClientRect();
+    return {
+      backgroundColor: computed.backgroundColor,
+      borderBottom: computed.borderBottom,
+      height: bounds.height,
+      paddingBlockEnd: computed.paddingBlockEnd,
+      paddingBlockStart: computed.paddingBlockStart
+    };
+  });
+  expect(await style(group)).toEqual(await style(regular));
+});
+
 test("Menu Studio-video bewaakt poster, muted autoplay en het ingestelde fragment", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const payload = buildPayload("editorial", "light", "landscape");

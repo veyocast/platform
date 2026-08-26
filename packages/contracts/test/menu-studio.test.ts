@@ -181,6 +181,34 @@ describe("MenuDocument.v2", () => {
     expect(menuDocumentV2Schema.safeParse(candidate).success).toBe(false);
   });
 
+  it("staat een koploze productstroom over kolommen toe, maar nooit met een zichtbare kop", () => {
+    const candidate = document();
+    candidate.pages[0]!.blocks.push({
+      flowAcrossColumns: true,
+      headingVisible: false,
+      id: "loose-products",
+      layout: {
+        landscape: { h: 704, rotation: 0, w: 1728, x: 96, y: 248 },
+        portrait: { h: 1388, rotation: 0, w: 936, x: 72, y: 348 }
+      },
+      order: 0,
+      productNodes: [],
+      source: {
+        source: "manual",
+        sourceCategoryId: "loose-products",
+        sourceName: "Losse producten"
+      },
+      type: "category"
+    });
+    expect(menuDocumentV2Schema.safeParse(candidate).success).toBe(true);
+
+    const withVisibleHeading = structuredClone(candidate);
+    const category = withVisibleHeading.pages[0]!.blocks[0];
+    if (category?.type !== "category") throw new Error("category fixture ontbreekt");
+    category.headingVisible = true;
+    expect(menuDocumentV2Schema.safeParse(withVisibleHeading).success).toBe(false);
+  });
+
   it("typeert history restore als expliciete commandoperatie", () => {
     const candidate = document();
     expect(menuStudioCommandSchema.safeParse({

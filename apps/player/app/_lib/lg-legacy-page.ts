@@ -243,8 +243,6 @@ export function renderLgLegacyHtml() {
     .menu-studio-v2 .legacy-price-copy strong{font-size:26px}
     .menu-studio-v2 .legacy-price-copy small{font-size:18px}
     .menu-studio-v2 .legacy-price-product>b{color:currentColor;font-size:26px}
-    .legacy-menu-group{background:var(--editorial-row)}
-    .legacy-menu-free{color:var(--accent)}
     .editorial-arena.dark .dynamic-team-mark{background:var(--accent);color:#fff}
     .editorial-news{display:grid;grid-template-columns:1.02fr .98fr;gap:1.6%;height:100%}
     .editorial-news-art,.editorial-news-copy{position:relative;overflow:hidden;border:1px solid rgba(23,32,42,.13);border-radius:24px;background:#fffefa;box-shadow:0 24px 80px rgba(0,0,0,.24)}
@@ -307,7 +305,6 @@ export function renderLgLegacyHtml() {
     .menu-studio-v2.portrait .legacy-price-column{display:flex;padding:22px 28px;flex-direction:column;justify-content:flex-start}
     .menu-studio-v2.portrait .legacy-price-category{height:auto;min-height:76px;align-items:flex-end;margin:0 0 10px;padding:0 0 13px;font-size:34px;line-height:38px;white-space:normal}
     .menu-studio-v2.portrait .legacy-price-product{height:auto;min-height:62px;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;padding:5px 4px}
-    .menu-studio-v2.portrait .legacy-menu-group{min-height:72px}
     .menu-studio-v2.portrait .legacy-price-media{width:48px;height:48px}
     .menu-studio-v2.portrait .legacy-price-copy{height:auto}
     .menu-studio-v2.portrait .legacy-price-copy strong{font-size:26px;line-height:30px;white-space:normal}
@@ -2284,9 +2281,8 @@ export function renderLgLegacyHtml() {
       var sourcePages = templateArray(document.pages);
       var capacity = orientation === "portrait" ? 14 : 8;
       var pages = [];
-      function groupCost(group) {
-        var display = templateRecord(group.display) || {};
-        return Number(display.maxLines) === 2 ? 2 : 1;
+      function groupCost() {
+        return 1;
       }
       function paginate(blocks, column, portraitTwoColumns) {
         var result = [];
@@ -2306,10 +2302,12 @@ export function renderLgLegacyHtml() {
           var block = templateRecord(blocks[blockIndex]) || {};
           var layout = templateRecord((templateRecord(block.layout) || {})[orientation]) || {};
           var midpoint = Number(layout.x || 0) + Number(layout.w || 0) / 2;
+          var flowAcrossColumns = block.type === "category" && block.flowAcrossColumns === true &&
+            (orientation !== "portrait" || portraitTwoColumns);
           var isLeft = orientation === "portrait"
             ? !portraitTwoColumns || midpoint <= 540
             : midpoint <= 960;
-          if ((column === "left") !== isLeft) continue;
+          if (!flowAcrossColumns && (column === "left") !== isLeft) continue;
           if (block.type === "product-group") {
             var standalone = templateRecord(block.group) || {};
             var standaloneCost = groupCost(standalone);
@@ -2324,11 +2322,36 @@ export function renderLgLegacyHtml() {
             return Number(left.order || 0) - Number(right.order || 0) ||
               templateText(left.id, "").localeCompare(templateText(right.id, ""));
           });
+          if (flowAcrossColumns && nodes.length > 1) {
+            var totalCost = 0;
+            var leftCost = 0;
+            var splitIndex = 1;
+            var costIndex;
+            for (costIndex = 0; costIndex < nodes.length; costIndex += 1) {
+              totalCost += nodes[costIndex].kind === "product-group"
+                ? groupCost(nodes[costIndex])
+                : 1;
+            }
+            for (costIndex = 0; costIndex < nodes.length - 1; costIndex += 1) {
+              leftCost += nodes[costIndex].kind === "product-group"
+                ? groupCost(nodes[costIndex])
+                : 1;
+              splitIndex = costIndex + 1;
+              if (leftCost >= totalCost / 2) break;
+            }
+            nodes = column === "left"
+              ? nodes.slice(0, splitIndex)
+              : nodes.slice(splitIndex);
+          } else if (flowAcrossColumns && column === "right") {
+            nodes = [];
+          }
+          if (!nodes.length) continue;
           var offset = 0;
           var continuation = false;
+          var headingVisible = block.headingVisible !== false;
           while (offset < nodes.length) {
             var minimumCount = Math.min(2, nodes.length - offset);
-            var minimumCost = 1;
+            var minimumCost = headingVisible ? 1 : 0;
             var minimumIndex;
             for (minimumIndex = 0; minimumIndex < minimumCount; minimumIndex += 1) {
               minimumCost += nodes[offset + minimumIndex].kind === "product-group"
@@ -2339,12 +2362,14 @@ export function renderLgLegacyHtml() {
               flush();
               continue;
             }
-            current.push({
-              continuation: continuation,
-              kind: "category",
-              name: templateText(block.labelOverride, templateText((templateRecord(block.source) || {}).sourceName, "Categorie"))
-            });
-            used += 1;
+            if (headingVisible) {
+              current.push({
+                continuation: continuation,
+                kind: "category",
+                name: templateText(block.labelOverride, templateText((templateRecord(block.source) || {}).sourceName, "Categorie"))
+              });
+              used += 1;
+            }
             while (offset < nodes.length) {
               var node = templateRecord(nodes[offset]) || {};
               var cost = node.kind === "product-group" ? groupCost(node) : 1;
@@ -2372,6 +2397,7 @@ export function renderLgLegacyHtml() {
         if (orientation === "portrait" && portraitColumnSetting !== 1) {
           for (var flowIndex = 0; flowIndex < flowBlocks.length; flowIndex += 1) {
             var flowLayout = templateRecord((templateRecord(flowBlocks[flowIndex].layout) || {}).portrait) || {};
+            if (flowBlocks[flowIndex].flowAcrossColumns === true) portraitTwoColumns = true;
             if (Number(flowLayout.w || 0) > 0 && Number(flowLayout.w) < 700) portraitTwoColumns = true;
           }
         }
@@ -2471,7 +2497,7 @@ export function renderLgLegacyHtml() {
             grid.appendChild(column);
           }
           appendColumn("left");
-          if (orientation !== "portrait") appendColumn("right");
+          if (orientation !== "portrait" || page.portraitTwoColumns) appendColumn("right");
           body.appendChild(grid);
         }
       };
