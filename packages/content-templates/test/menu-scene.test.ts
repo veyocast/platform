@@ -107,6 +107,49 @@ describe("MenuScene", () => {
     expect(forcedOneColumn?.columns.right).toEqual([]);
   });
 
+  it("verdeelt losse producten zonder broncategoriekoppen over beide kolommen", () => {
+    for (const orientation of ["landscape", "portrait"] as const) {
+      const candidate = document("editorial", "dark");
+      const category = candidate.pages[0]!.blocks[0];
+      if (category?.type !== "category") throw new Error("category fixture missing");
+      category.flowAcrossColumns = true;
+      category.headingVisible = false;
+      category.layout.landscape = { h: 704, rotation: 0, w: 1728, x: 96, y: 248 };
+      category.layout.portrait = { h: 1388, rotation: 0, w: 936, x: 72, y: 348 };
+      category.productNodes = Array.from({ length: 8 }, (_, index) => product(index));
+
+      const [page] = resolveMenuScenePages(candidate, orientation);
+      expect(page?.columnCount).toBe(2);
+      expect(page?.columns.left.some((row) => row.kind === "category")).toBe(false);
+      expect(page?.columns.right.some((row) => row.kind === "category")).toBe(false);
+      expect(page?.columns.left.filter((row) => row.kind === "product")).toHaveLength(4);
+      expect(page?.columns.right.filter((row) => row.kind === "product")).toHaveLength(4);
+    }
+  });
+
+  it("behoudt meer dan honderd losse producten verliesvrij over interne blokken", () => {
+    const candidate = document("editorial", "light");
+    const first = candidate.pages[0]!.blocks[0];
+    if (first?.type !== "category") throw new Error("category fixture missing");
+    first.flowAcrossColumns = true;
+    first.headingVisible = false;
+    first.layout.landscape = { h: 704, rotation: 0, w: 1728, x: 96, y: 248 };
+    first.layout.portrait = { h: 1388, rotation: 0, w: 936, x: 72, y: 348 };
+    first.productNodes = Array.from({ length: 100 }, (_, index) => product(index));
+    candidate.pages[0]!.blocks.push({
+      ...structuredClone(first),
+      id: "loose-products-2",
+      order: 1,
+      productNodes: Array.from({ length: 37 }, (_, index) => product(index + 100)),
+      source: { source: "manual", sourceCategoryId: "loose-products-2", sourceName: "Losse producten" }
+    });
+
+    const pages = resolveMenuScenePages(candidate, "portrait");
+    const rows = pages.flatMap((page) => [...page.columns.left, ...page.columns.right]);
+    expect(rows.filter((row) => row.kind === "product")).toHaveLength(137);
+    expect(rows.some((row) => row.kind === "category")).toBe(false);
+  });
+
   it("reserveert ruimte voor keep-together media en markeert echte underfill", () => {
     const candidate = document("editorial", "light");
     const category = candidate.pages[0]!.blocks[0];

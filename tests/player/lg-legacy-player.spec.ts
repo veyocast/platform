@@ -385,7 +385,7 @@ async function mockEditorialPriceListLegacyApis(page: Page) {
   }));
 }
 
-async function mockMenuStudioPortraitLegacyApis(page: Page) {
+async function mockMenuStudioPortraitLegacyApis(page: Page, { loose = false } = {}) {
   await page.route("**/api/player/installation", (route) => route.fulfill({
     contentType: "application/json",
     body: JSON.stringify({ bound: true, installationCredential, ok: true })
@@ -415,6 +415,7 @@ async function mockMenuStudioPortraitLegacyApis(page: Page) {
               id: "page-portrait",
               order: 0,
               blocks: [{
+                ...(loose ? { flowAcrossColumns: true, headingVisible: false } : {}),
                 id: "category-hardloper",
                 layout: {
                   landscape: { h: 320, rotation: 0, w: 800, x: 1010, y: 248 },
@@ -422,17 +423,41 @@ async function mockMenuStudioPortraitLegacyApis(page: Page) {
                 },
                 labelOverride: "Hardloper, frisdrank",
                 order: 0,
-                productNodes: [{
-                  id: "product-aa-drink",
-                  kind: "product",
-                  order: 0,
-                  snapshotFallback: {
-                    available: true,
-                    name: "AA Drink",
-                    price: { amountMinor: 250, currency: "EUR" },
-                    variantLabel: "AA Drink · Naar keuze"
-                  }
-                }],
+                productNodes: Array.from({ length: loose ? 8 : 1 }, (_, index) =>
+                  loose && index === 1
+                    ? {
+                        display: { maxLines: 2 },
+                        id: "product-group-cola",
+                        kind: "product-group",
+                        order: index,
+                        pricePolicy: "shared",
+                        secondaryLineItems: [
+                          {
+                            id: "group-line-regular",
+                            kind: "linked-product",
+                            snapshotFallback: {
+                              available: true,
+                              name: "Cola regular",
+                              price: { amountMinor: 275, currency: "EUR" }
+                            }
+                          },
+                          { id: "group-line-zero", kind: "free-text", label: "Cola zero" }
+                        ],
+                        sharedPrice: { amountMinor: 275, currency: "EUR" },
+                        title: "Cola naar keuze"
+                      }
+                    : {
+                        id: `product-aa-drink-${index}`,
+                        kind: "product",
+                        order: index,
+                        snapshotFallback: {
+                          available: true,
+                          name: index === 0 ? "AA Drink" : `Product ${index + 1}`,
+                          price: { amountMinor: 250 + index * 10, currency: "EUR" },
+                          variantLabel: index === 0 ? "AA Drink · Naar keuze" : null
+                        }
+                      }
+                ),
                 source: { sourceName: "Hardloper, frisdrank" },
                 type: "category"
               }]
@@ -827,6 +852,51 @@ test("LG Legacy toont Menu Studio v2 portrait als één brede bovenuitgelijnde k
       path: "docs/screenshots/s118-menu-studio-lg-legacy-portrait.png"
     });
   }
+  await context.close();
+});
+
+test("LG Legacy verdeelt losse Menu Studio-producten zonder categoriekop over twee gelijke kolommen", async ({
+  browser
+}) => {
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+    viewport: { height: 1920, width: 1080 }
+  });
+  const page = await context.newPage();
+  await mockMenuStudioPortraitLegacyApis(page, { loose: true });
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem("veyocast.player.installationCredential", credential);
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+  const slide = page.locator(".dynamic-template.menu-studio-v2.portrait");
+  await expect(slide).toBeVisible();
+  await expect(slide.locator(".legacy-price-grid")).toHaveClass(/legacy-price-grid-two/);
+  await expect(slide.locator(".legacy-price-column")).toHaveCount(2);
+  await expect(slide.locator(".legacy-price-category")).toHaveCount(0);
+  await expect(slide.locator(".legacy-price-column").nth(0).locator(".legacy-price-product")).toHaveCount(4);
+  await expect(slide.locator(".legacy-price-column").nth(1).locator(".legacy-price-product")).toHaveCount(4);
+  const styles = await slide.locator(".legacy-price-product").evaluateAll((rows) => rows.slice(0, 2).map((row) => {
+    const computed = getComputedStyle(row);
+    return {
+      backgroundColor: computed.backgroundColor,
+      height: row.getBoundingClientRect().height,
+      paddingBlockEnd: computed.paddingBlockEnd,
+      paddingBlockStart: computed.paddingBlockStart
+    };
+  }));
+  expect(styles).toHaveLength(2);
+  expect(styles[1]).toEqual(styles[0]);
+  await page.screenshot({ path: "docs/screenshots/s125-lg-menu-loose-portrait.png" });
   await context.close();
 });
 

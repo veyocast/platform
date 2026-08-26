@@ -386,6 +386,20 @@
   font-weight: 750;
 }
 
+.inlineCheck {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: var(--vc-space-8);
+  color: var(--vc-text);
+}
+
+.inlineCheck input {
+  width: 1.1rem;
+  min-height: 1.1rem;
+  accent-color: var(--vc-action);
+}
+
 .groupPolicy > button {
   min-height: 2.75rem;
   padding: .35rem .5rem;
@@ -897,6 +911,62 @@
 
 .modeToggle {
   width: 100%;
+}
+
+.customCategoryComposer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--vc-space-8);
+  margin-top: var(--vc-space-8);
+}
+
+.customCategoryComposer label {
+  display: grid;
+  min-width: 0;
+  gap: .25rem;
+  color: var(--vc-text-muted);
+  font-size: .7rem;
+  font-weight: 750;
+}
+
+.customCategoryComposer input {
+  width: 100%;
+  min-height: 2.75rem;
+  box-sizing: border-box;
+  padding: .5rem .6rem;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-sm);
+  background: var(--vc-surface);
+  color: var(--vc-text);
+  font: inherit;
+}
+
+.customCategoryComposer button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-self: end;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  padding: .45rem .7rem;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-sm);
+  background: var(--vc-surface-muted);
+  color: var(--vc-text);
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.customCategoryComposer button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.customCategoryComposer svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .categoryLibrary {

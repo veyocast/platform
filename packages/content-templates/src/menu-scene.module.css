@@ -170,13 +170,6 @@
   border-bottom: 1px solid var(--vc-theme-line);
 }
 
-.productGroup {
-  min-height: 96px;
-  border-radius: calc(var(--vc-theme-radius) * .66);
-  background: var(--vc-theme-surface-alt);
-  padding-inline: 12px;
-}
-
 .product[data-available="false"],
 .productGroup[data-available="false"] {
   opacity: .58;
@@ -309,8 +302,7 @@
   font-size: 22px;
 }
 
-.canvas[data-theme-id="velocity"] .column,
-.canvas[data-theme-id="tactical"] .productGroup {
+.canvas[data-theme-id="velocity"] .column {
   clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
 }
 
@@ -375,10 +367,6 @@
   grid-template-columns: 48px minmax(0, 1fr) auto;
   gap: 12px;
   padding-block: 5px;
-}
-
-.canvas[data-orientation="portrait"] .productGroup {
-  min-height: 72px;
 }
 
 .canvas[data-orientation="portrait"] .mediaThumb {
