@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, StatusPill } from "@veyocast/ui";
 
 import { updateProduct } from "./actions";
+import { ProductLogoControl } from "./product-logo-control";
 import styles from "./products.module.css";
 import type { ProductView } from "./types";
 
@@ -19,9 +20,11 @@ type OptionalColumn = (typeof allColumns)[number][0];
 
 export function ProductTable({
   canWrite,
+  canUploadLogo,
   products
 }: {
   canWrite: boolean;
+  canUploadLogo: boolean;
   products: ProductView[];
 }) {
   const [query, setQuery] = useState("");
@@ -130,6 +133,14 @@ export function ProductTable({
                   />
                 </div>
                 <span>{product.externalId ?? product.slug}</span>
+                <ProductLogoControl
+                  canRemove={canWrite}
+                  canUpload={canUploadLogo}
+                  logoUrl={product.logoUrl}
+                  productId={product.id}
+                  productName={product.name}
+                  revision={product.revision}
+                />
                 <div className={styles.shortcodes}>
                   <button onClick={() => void copyShortcode(nameShortcode)} type="button">
                     Naamcode kopiëren

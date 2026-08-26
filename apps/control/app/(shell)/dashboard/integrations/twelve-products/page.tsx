@@ -22,6 +22,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.product.write");
+  const canUploadLogo =
+    canWrite && hasCapability(session.capabilities, "tenant.media.write");
   const activeCount = data.products.filter((product) => product.active).length;
   const categories = new Set(
     data.products.flatMap((product) => product.category ? [product.category] : [])
@@ -80,7 +82,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           <StatusPill label={`${data.products.length} totaal`} tone="neutral" />
         </div>
         {data.products.length ? (
-          <ProductTable canWrite={canWrite} products={data.products} />
+          <ProductTable
+            canUploadLogo={canUploadLogo}
+            canWrite={canWrite}
+            products={data.products}
+          />
         ) : (
           <div className={styles.empty}>
             <h3>Nog geen producten</h3>

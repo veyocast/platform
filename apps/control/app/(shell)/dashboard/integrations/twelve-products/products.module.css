@@ -71,6 +71,73 @@
   min-width: 0;
 }
 
+.productLogo {
+  border-top: 1px solid var(--vc-border);
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 10px;
+}
+
+.logoHeading,
+.logoActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.logoHeading > span,
+.logoFile > span {
+  color: var(--vc-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.logoPreview,
+.logoPlaceholder {
+  background: var(--vc-surface-muted);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  height: 88px;
+  object-fit: contain;
+  padding: 8px;
+  width: 100%;
+}
+
+.logoPlaceholder {
+  align-items: center;
+  color: var(--vc-text-subtle);
+  display: flex;
+  font-size: 12px;
+  justify-content: center;
+}
+
+.logoFile {
+  display: grid;
+  gap: 6px;
+}
+
+.logoFile input {
+  font-size: 12px;
+  max-width: 100%;
+}
+
+.productLogo small {
+  color: var(--vc-text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.productLogo .logoError {
+  color: var(--vc-semantic-critical-text);
+}
+
+.productLogo .logoSuccess {
+  color: var(--vc-semantic-success-text);
+}
+
 .identity > span {
   color: var(--vc-text-muted);
   font-size: 12px;
