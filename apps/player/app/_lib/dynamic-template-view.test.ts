@@ -569,6 +569,70 @@ describe("trusted dynamic template view", () => {
     })).toBe(true);
   });
 
+  it("filtert en pagineert verjaardagen opnieuw op lokale Player-datum", () => {
+    const payload = {
+      ...base,
+      data: { sport: {
+        birthdays: [
+          { age: 14, day: 31, displayName: "Sophie met een uitzonderlijk lange Nederlandse achternaam", id: "birthday-1", month: 12, role: "Speler", teamIds: ["team-1"], teams: [{ externalId: "team-1", name: "JO15-1" }] },
+          { age: null, day: 1, displayName: "Milan van Dijk", id: "birthday-2", month: 1, role: null, teams: [] },
+          { age: 40, day: 8, displayName: "Verlopen Persoon", id: "birthday-3", month: 1, role: "Trainer", teams: [] }
+        ],
+        configuration: {
+          emptyBehavior: "skip", period: { days: 7, mode: "next_7_days" }, schemaVersion: 1,
+          presentation: { backgroundColor: "#111827", backgroundMediaAssetId: null, cardStyle: "glass", confetti: true, gradientOverlay: true, layout: "auto", logoPosition: "top_left", maxPerLandscapePage: 1, maxPerPortraitPage: 1, motion: true, pageDurationSeconds: 8, radius: "lg", textAlign: "left", themeMode: "dark", useTenantTheme: true },
+          selection: { emphasizeToday: true, includeUnknownRoles: true, nameMode: "full", roleFilter: "all", selectedRoles: [], selectedTeamIds: [], showAge: true, showDate: true, showDayOfWeek: true, showPhoto: true, showRole: true, showTeam: true },
+          title: "Verjaardagen"
+        }, fetchedAt: "2026-12-30T20:00:00.000Z", timezone: "Europe/Amsterdam", title: "Verjaardagen"
+      }, type: "sport_birthdays" },
+      slideType: "sport_birthdays",
+      templateSlug: "editorial-arena-sport-birthdays-dark-landscape"
+    } as const;
+    const view = createDynamicTemplateView(payload, new Date("2026-12-31T23:30:00.000Z"));
+    expect(view?.pages).toHaveLength(1);
+    expect(view?.pages[0]).toMatchObject({
+      items: [{ age: null, displayName: "Milan van Dijk", isToday: true }],
+      kind: "birthday", layout: "spotlight"
+    });
+    expect(view?.pageDurationMs).toBe(8_000);
+  });
+
+  it("slaat lege en verlopen verjaardagssnapshots zonder zwart frame over", () => {
+    const payload = {
+      ...base,
+      data: { sport: {
+        birthdays: [],
+        configuration: {
+          emptyBehavior: "skip", period: { days: 1, mode: "today" }, schemaVersion: 1,
+          presentation: { backgroundColor: "#111827", backgroundMediaAssetId: null, cardStyle: "glass", confetti: false, gradientOverlay: true, layout: "auto", logoPosition: "top_left", maxPerLandscapePage: 4, maxPerPortraitPage: 3, motion: false, pageDurationSeconds: 8, radius: "lg", textAlign: "left", themeMode: "dark", useTenantTheme: true },
+          selection: { emphasizeToday: true, includeUnknownRoles: true, nameMode: "first", roleFilter: "all", selectedRoles: [], selectedTeamIds: [], showAge: false, showDate: true, showDayOfWeek: true, showPhoto: false, showRole: false, showTeam: false },
+          title: "Verjaardagen"
+        }, fetchedAt: new Date().toISOString(), timezone: "Europe/Amsterdam"
+      }, type: "sport_birthdays" },
+      slideType: "sport_birthdays", templateSlug: "editorial-arena-sport-birthdays-dark-landscape"
+    } as const;
+    expect(createDynamicTemplateView(payload)?.pages).toEqual([]);
+    expect(dynamicTemplateShouldSkip(payload)).toBe(true);
+  });
+
+  it("kiest Spotlight, Celebration Grid en Birthday Roll en toont iedere pagina", () => {
+    for (const [count, pages, layout] of [
+      [1, 1, "spotlight"], [2, 1, "celebration_grid"],
+      [4, 1, "celebration_grid"], [5, 1, "birthday_roll"],
+      [8, 1, "birthday_roll"], [9, 2, "birthday_roll"]
+    ] as const) {
+      const view = createDynamicTemplateView(birthdayFixture(count), new Date("2026-06-15T10:00:00.000Z"));
+      expect(view?.pages, `${count} personen`).toHaveLength(pages);
+      expect(view?.pages[0], `${count} personen`).toMatchObject({ kind: "birthday", layout });
+      expect(view?.pages.flatMap((page) => page.kind === "birthday" ? page.items : []), `${count} personen`).toHaveLength(count);
+    }
+    const portrait = createDynamicTemplateView({
+      ...birthdayFixture(8), orientation: "portrait",
+      templateSlug: "editorial-arena-sport-birthdays-dark-portrait"
+    }, new Date("2026-06-15T10:00:00.000Z"));
+    expect(portrait?.pages).toHaveLength(3);
+  });
+
   it("activeert geen type zonder complete databron", () => {
     expect(createDynamicTemplateView({
       ...base,
@@ -583,3 +647,25 @@ describe("trusted dynamic template view", () => {
     })).toBeNull();
   });
 });
+
+function birthdayFixture(count: number) {
+  return {
+    ...base,
+    data: { sport: {
+      birthdays: Array.from({ length: count }, (_, index) => ({
+        age: index % 2 ? null : 12 + index, day: 15,
+        displayName: index === 0 ? "Een uitzonderlijk lange Nederlandse productiewaardige naam" : `Persoon ${index + 1}`,
+        id: `birthday-${index}`, month: 6, role: index % 2 ? null : "Speler",
+        teamIds: [], teams: []
+      })),
+      configuration: {
+        emptyBehavior: "skip", period: { days: 7, mode: "next_7_days" }, schemaVersion: 1,
+        presentation: { backgroundColor: "#111827", backgroundMediaAssetId: null, cardStyle: "glass", confetti: true, gradientOverlay: true, layout: "auto", logoPosition: "top_left", maxPerLandscapePage: 8, maxPerPortraitPage: 3, motion: true, pageDurationSeconds: 8, radius: "lg", textAlign: "left", themeMode: "dark", useTenantTheme: true },
+        selection: { emphasizeToday: true, includeUnknownRoles: true, nameMode: "full", roleFilter: "all", selectedRoles: [], selectedTeamIds: [], showAge: true, showDate: true, showDayOfWeek: true, showPhoto: true, showRole: true, showTeam: true },
+        title: "Verjaardagen"
+      }, fetchedAt: "2026-06-15T09:00:00.000Z", timezone: "Europe/Amsterdam"
+    }, type: "sport_birthdays" },
+    slideType: "sport_birthdays",
+    templateSlug: "editorial-arena-sport-birthdays-dark-landscape"
+  } as const;
+}

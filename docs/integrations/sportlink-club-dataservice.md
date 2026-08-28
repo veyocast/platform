@@ -60,6 +60,22 @@ conditional statistics are availability states, not destructive sync failures.
 
 ## Capability boundary
 
+### Verjaardagen
+
+Het officiële `verjaardagen`-artikel accepteert `aantaldagen` tot en met 21 en
+levert de publieke velden `verjaardag` en `volledigenaam`. VeyoCast vraagt altijd
+het maximale venster server-side op en selecteert het ingestelde kortere venster
+op afspeeltijd. De Client ID is voldoende; deze capability hangt niet af van een
+Token Club.Data. Het artikel bevat geen gedocumenteerd betrouwbaar geboortejaar.
+Leeftijd komt daarom uitsluitend uit tenantveilige importprovenance en nooit uit
+naam, teamcategorie of rol.
+
+Team en rol komen alleen uit exact gekoppelde `team-indeling`-records. Eén
+lidcode mag meerdere teamtoewijzingen verenigen; dubbele namen zonder unieke
+identiteit blijven onverrijkt en verschijnen in een handmatige conflictlijst.
+Toegestane foto's gebruiken de private providerassetcache en worden alleen
+gekoppeld wanneer dezelfde identiteit bewezen is.
+
 Club, teams, competitions, matches, results, standings, cancellations and
 activities are synchronized by the production worker. Match information is
 refreshed through the bounded upcoming-match group. Facilities and sponsors

@@ -8,13 +8,16 @@ import {
   type MenuDocumentV2,
   type PlayerDynamicTemplatePayload,
   type SelectableThemeId,
+  sportlinkBirthdayConfigurationSchema,
+  type SportlinkBirthdayConfiguration,
   type SportlinkArrivalMotionPreset,
   type ThemePresentationSnapshot
 } from "@veyocast/contracts";
 
 import {
   activeEditorialTokens,
-  parseEditorialArenaConfiguration
+  parseEditorialArenaConfiguration,
+  resolveEditorialThemeConfig
 } from "./editorial-arena-theme";
 import {
   paginateEditorialRows,
@@ -108,6 +111,20 @@ export type DynamicTemplateStandingItem = {
 
 export type DynamicTemplateStandingForm = "draw" | "loss" | "win";
 
+export type DynamicTemplateBirthdayItem = {
+  age: number | null;
+  dateLabel: string;
+  day: number;
+  displayName: string;
+  id: string;
+  isToday: boolean;
+  meta: string;
+  month: number;
+  photoUrl: string;
+  role: string;
+  teams: string[];
+};
+
 export type DynamicTemplatePage =
   | {
       columns: [DynamicTemplatePriceEntry[], DynamicTemplatePriceEntry[]];
@@ -132,12 +149,21 @@ export type DynamicTemplatePage =
       kind: "match";
     }
   | { items: DynamicTemplateStandingItem[]; kind: "standing" }
+  | {
+      items: DynamicTemplateBirthdayItem[];
+      kind: "birthday";
+      layout: Exclude<SportlinkBirthdayConfiguration["presentation"]["layout"], "auto">;
+    }
   | { items: DynamicTemplateListItem[]; kind: "arrivals" }
   | { items: DynamicTemplateListItem[]; kind: "sport-list" };
 
 export type DynamicTemplateView = {
   accentColor: string;
   arrivalMotionPreset?: SportlinkArrivalMotionPreset;
+  birthday?: {
+    backgroundUrl: string;
+    configuration: SportlinkBirthdayConfiguration;
+  };
   clubLogoUrl: string;
   clubName: string;
   emptyState: string;
@@ -199,21 +225,24 @@ const snapshotHashPattern = /^[a-f0-9]{64}$/;
 const templateSlugPattern = /^[a-z0-9][a-z0-9-]{0,119}$/;
 
 export function createDynamicTemplateView(
-  value: unknown
+  value: unknown,
+  now = new Date()
 ): DynamicTemplateView | null {
-  return createDynamicTemplateViewInternal(value, false);
+  return createDynamicTemplateViewInternal(value, false, now);
 }
 
 /** Fixture-only entrypoint for typed families without a live provider gate. */
 export function createDynamicTemplateFixtureView(
-  value: unknown
+  value: unknown,
+  now = new Date()
 ): DynamicTemplateView | null {
-  return createDynamicTemplateViewInternal(value, true);
+  return createDynamicTemplateViewInternal(value, true, now);
 }
 
 function createDynamicTemplateViewInternal(
   value: unknown,
-  allowFixtureOnly: boolean
+  allowFixtureOnly: boolean,
+  now: Date
 ): DynamicTemplateView | null {
   const payload = parseDynamicTemplatePayload(value);
   if (!payload) return null;
@@ -402,6 +431,76 @@ function createDynamicTemplateViewInternal(
     ? ""
     : sportEmptyState(safeText(sport?.emptyStateCode, ""));
 
+  if (payload.slideType === "sport_birthdays") {
+    const parsedConfiguration = sportlinkBirthdayConfigurationSchema.safeParse(
+      readRecord(sport?.configuration) ?? {}
+    );
+    const configuration = parsedConfiguration.success
+      ? parsedConfiguration.data
+      : sportlinkBirthdayConfigurationSchema.parse({});
+    const birthdays = resolveBirthdayItems({
+      configuration,
+      now,
+      payload,
+      sport
+    });
+    const pageSize = payload.orientation === "portrait"
+      ? configuration.presentation.maxPerPortraitPage
+      : configuration.presentation.maxPerLandscapePage;
+    const birthdayPages = (birthdays.length ? paginate(birthdays, pageSize) : []).map((page) => ({
+      items: page,
+      kind: "birthday" as const,
+      layout: resolveBirthdayLayout(configuration.presentation.layout, page.length)
+    }));
+    if (!birthdayPages.length && configuration.emptyBehavior === "neutral") {
+      birthdayPages.push({
+        items: [],
+        kind: "birthday",
+        layout: "spotlight"
+      });
+    }
+    const birthdayThemeTokens = configuration.presentation.useTenantTheme
+      ? themeTokens
+      : activeEditorialTokens(resolveEditorialThemeConfig({
+        accent: accentColor,
+        mode: configuration.presentation.themeMode
+      }));
+    return {
+      accentColor: birthdayThemeTokens.accent,
+      birthday: {
+        backgroundUrl: dynamicAssetUrl(
+          configuration.presentation.backgroundMediaAssetId,
+          payload
+        ),
+        configuration
+      },
+      clubLogoUrl,
+      clubName,
+      emptyState: birthdays.length
+        ? ""
+        : configuration.emptyBehavior === "neutral"
+          ? "Vandaag staat de vereniging centraal."
+          : "",
+      orientation: payload.orientation,
+      pageDurationMs: configuration.presentation.pageDurationSeconds * 1_000,
+      pages: birthdayPages,
+      newsVariant: editorial.newsVariant,
+      pricePhotoMode: editorial.pricePhotoMode,
+      priceCategoryPhotoModes: {},
+      providerLogoUrl: "",
+      slideType: payload.slideType,
+      snapshotId: payload.snapshotId,
+      sourceLabel: "Van harte namens de vereniging",
+      templateStyle: "default",
+      theme: configuration.presentation.useTenantTheme
+        ? theme
+        : configuration.presentation.themeMode,
+      ...themeIdentity,
+      themeTokens: birthdayThemeTokens,
+      title: configuration.title
+    };
+  }
+
   if (matchSlideTypes.has(payload.slideType)) {
     const item = items[0] ?? null;
     const [homeTeam, awayTeam] = splitTeams(item?.primary ?? "");
@@ -531,6 +630,163 @@ function createDynamicTemplateViewInternal(
     themeTokens,
     title
   };
+}
+
+function resolveBirthdayItems({
+  configuration,
+  now,
+  payload,
+  sport
+}: {
+  configuration: SportlinkBirthdayConfiguration;
+  now: Date;
+  payload: PlayerDynamicTemplatePayload;
+  sport: Record<string, unknown> | null;
+}): DynamicTemplateBirthdayItem[] {
+  const timezone = safeText(sport?.timezone, "Europe/Amsterdam");
+  const fetchedAt = new Date(safeText(sport?.fetchedAt, ""));
+  if (!Number.isFinite(fetchedAt.valueOf()) ||
+    now.valueOf() - fetchedAt.valueOf() > 21 * 86_400_000) return [];
+  const today = localDateParts(now, timezone);
+  const maximumDays = configuration.emptyBehavior === "today_only"
+    ? 0
+    : configuration.period.days - 1;
+  return readArray(sport?.birthdays ?? sport?.items).flatMap((value) => {
+    const birthday = readRecord(value);
+    const displayName = safeText(birthday?.displayName ?? birthday?.primary, "");
+    const month = safeInteger(birthday?.month, 1, 12, 0);
+    const day = safeInteger(birthday?.day, 1, 31, 0);
+    if (!birthday || !displayName || !month || !day) return [];
+    const distance = nextBirthdayDistance(today, month, day);
+    if (distance < 0 || distance > maximumDays) return [];
+    const occurrence = nextBirthdayDate(today, month, day);
+    const role = safeText(birthday.role, "");
+    const teams = readArray(birthday.teams).flatMap((team) => {
+      const value = readRecord(team);
+      const name = safeText(value?.name ?? team, "");
+      return name ? [name] : [];
+    });
+    const teamIds = readArray(birthday.teamIds ?? birthday.teams).flatMap((team) => {
+      const value = readRecord(team);
+      const id = safeText(value?.externalId ?? team, "");
+      return id ? [id] : [];
+    });
+    if (configuration.selection.selectedTeamIds.length &&
+      !teamIds.some((id) => configuration.selection.selectedTeamIds.includes(id))) {
+      return [];
+    }
+    const normalizedRole = role.toLocaleLowerCase("nl-NL");
+    const isPlayer = ["speler", "player"].includes(normalizedRole);
+    const isStaff = [
+      "trainer", "coach", "leider", "staf", "staff", "verzorger", "teammanager"
+    ].includes(normalizedRole);
+    if (!role && !configuration.selection.includeUnknownRoles) return [];
+    if (configuration.selection.roleFilter === "players" && !isPlayer) return [];
+    if (configuration.selection.roleFilter === "staff" && !isStaff) return [];
+    if (configuration.selection.roleFilter === "selected" &&
+      !configuration.selection.selectedRoles.some((selected) =>
+        selected.toLocaleLowerCase("nl-NL") === normalizedRole
+      )) return [];
+    return [{
+      age: configuration.selection.showAge
+        ? safeNullableInteger(birthday.age)
+        : null,
+      dateLabel: configuration.selection.showDate
+        ? formatBirthdayDate(occurrence, configuration.selection.showDayOfWeek)
+        : "",
+      day,
+      displayName: formatBirthdayName(displayName, configuration.selection.nameMode),
+      id: safeText(birthday.id ?? birthday.externalId, `${month}-${day}-${displayName}`),
+      isToday: distance === 0,
+      meta: [
+        configuration.selection.showRole ? role : "",
+        configuration.selection.showTeam ? teams.join(", ") : ""
+      ].filter(Boolean).join(" · "),
+      month,
+      photoUrl: configuration.selection.showPhoto
+        ? dynamicAssetUrl(birthday.photoMediaAssetId, payload)
+        : "",
+      role,
+      teams
+    }];
+  }).sort((left, right) => {
+    const leftDistance = nextBirthdayDistance(today, left.month, left.day);
+    const rightDistance = nextBirthdayDistance(today, right.month, right.day);
+    return Number(right.isToday) - Number(left.isToday) ||
+      leftDistance - rightDistance ||
+      left.displayName.localeCompare(right.displayName, "nl-NL");
+  });
+}
+
+function resolveBirthdayLayout(
+  configured: SportlinkBirthdayConfiguration["presentation"]["layout"],
+  count: number
+) {
+  if (configured !== "auto") return configured;
+  if (count <= 1) return "spotlight" as const;
+  if (count <= 4) return "celebration_grid" as const;
+  return "birthday_roll" as const;
+}
+
+function localDateParts(value: Date, timezone: string) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      day: "2-digit", month: "2-digit", timeZone: timezone, year: "numeric"
+    }).formatToParts(value);
+    const read = (type: Intl.DateTimeFormatPartTypes) =>
+      Number(parts.find((part) => part.type === type)?.value);
+    return { day: read("day"), month: read("month"), year: read("year") };
+  } catch {
+    return { day: value.getUTCDate(), month: value.getUTCMonth() + 1, year: value.getUTCFullYear() };
+  }
+}
+
+function nextBirthdayDate(
+  today: { day: number; month: number; year: number },
+  month: number,
+  day: number
+) {
+  const current = Date.UTC(today.year, today.month - 1, today.day);
+  for (let year = today.year; year <= today.year + 8; year += 1) {
+    const candidate = new Date(Date.UTC(year, month - 1, day));
+    if (candidate.getUTCMonth() + 1 === month && candidate.getUTCDate() === day &&
+      candidate.valueOf() >= current) return candidate;
+  }
+  return new Date(NaN);
+}
+
+function nextBirthdayDistance(
+  today: { day: number; month: number; year: number },
+  month: number,
+  day: number
+) {
+  const candidate = nextBirthdayDate(today, month, day);
+  if (!Number.isFinite(candidate.valueOf())) return -1;
+  return Math.round((candidate.valueOf() - Date.UTC(
+    today.year, today.month - 1, today.day
+  )) / 86_400_000);
+}
+
+function formatBirthdayDate(value: Date, showWeekday: boolean) {
+  if (!Number.isFinite(value.valueOf())) return "";
+  return new Intl.DateTimeFormat("nl-NL", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+    ...(showWeekday ? { weekday: "long" as const } : {})
+  }).format(value);
+}
+
+function formatBirthdayName(
+  value: string,
+  mode: SportlinkBirthdayConfiguration["selection"]["nameMode"]
+) {
+  const parts = value.trim().split(/\s+/u);
+  if (mode === "first") return parts[0] ?? value;
+  if (mode === "first_last_initial" && parts.length > 1) {
+    return `${parts[0]} ${parts.at(-1)?.[0]?.toLocaleUpperCase("nl-NL")}.`;
+  }
+  return value;
 }
 
 export const welcomeMotionPresets = [
@@ -849,7 +1105,11 @@ export function dynamicTemplateMinimumPlaybackMs(value: unknown) {
 
 export function dynamicTemplateShouldSkip(value: unknown) {
   const payload = parseDynamicTemplatePayload(value);
-  if (!payload || !["sport_visitor_arrivals", "sport_referee_arrivals"].includes(payload.slideType)) {
+  if (!payload) return false;
+  if (payload.slideType === "sport_birthdays") {
+    return createDynamicTemplateView(payload)?.pages.length === 0;
+  }
+  if (!["sport_visitor_arrivals", "sport_referee_arrivals"].includes(payload.slideType)) {
     return false;
   }
   const sport = readRecord(payload.data.sport);
@@ -995,6 +1255,7 @@ function safeNumber(
 }
 
 function safeNullableInteger(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
   const numeric = Number(value);
   return Number.isInteger(numeric) && numeric >= -999 && numeric <= 999
     ? numeric

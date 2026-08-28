@@ -2136,6 +2136,7 @@ export function renderLgLegacyHtml() {
       "price_list",
       "news",
       "sport_activities",
+      "sport_birthdays",
       "sport_cancellations",
       "sport_dressing_rooms",
       "sport_match_of_the_day",
@@ -2980,18 +2981,60 @@ export function renderLgLegacyHtml() {
     }
     function renderSportTemplate(body, snapshot, slideType, orientation) {
       var sport = templateRecord(snapshot.sport) || {};
-      var items = templateArray(sport.items);
+      var birthday = slideType === "sport_birthdays";
+      var items = templateArray(birthday ? (sport.birthdays || sport.items) : sport.items);
+      var birthdayConfiguration = templateRecord(sport.configuration) || {};
+      var birthdayPresentation = templateRecord(birthdayConfiguration.presentation) || {};
+      var birthdayPeriod = templateRecord(birthdayConfiguration.period) || {};
+      if (birthday) {
+        var fetchedAt = new Date(templateText(sport.fetchedAt, "")).getTime();
+        var localNow = new Date();
+        var timezone = templateText(sport.timezone, "Europe/Amsterdam");
+        try {
+          var localParts = new Intl.DateTimeFormat("en-CA", {
+            day: "2-digit", month: "2-digit", timeZone: timezone, year: "numeric"
+          }).formatToParts(localNow);
+          var localPart = function (type) {
+            var found = localParts.filter(function (entry) { return entry.type === type; })[0];
+            return Number(found && found.value);
+          };
+          localNow = new Date(Date.UTC(localPart("year"), localPart("month") - 1, localPart("day")));
+        } catch (error) {
+          localNow = new Date(Date.UTC(localNow.getFullYear(), localNow.getMonth(), localNow.getDate()));
+        }
+        var maximumDays = templateText(birthdayConfiguration.emptyBehavior, "skip") === "today_only"
+          ? 0 : Math.max(0, Math.min(20, Number(birthdayPeriod.days || 7) - 1));
+        items = !isFinite(fetchedAt) || new Date().getTime() - fetchedAt > 21 * 86400000
+          ? []
+          : items.filter(function (candidate) {
+            var entry = templateRecord(candidate) || {};
+            var month = Number(entry.month);
+            var day = Number(entry.day);
+            var year = localNow.getUTCFullYear();
+            var occurrence = new Date(Date.UTC(year, month - 1, day));
+            if (occurrence.getTime() < localNow.getTime()) occurrence = new Date(Date.UTC(year + 1, month - 1, day));
+            var distance = Math.round((occurrence.getTime() - localNow.getTime()) / 86400000);
+            return isFinite(distance) && distance >= 0 && distance <= maximumDays;
+          });
+      }
       var arrival = slideType === "sport_visitor_arrivals" || slideType === "sport_referee_arrivals";
       var arrivalConfiguration = templateRecord(sport.arrivalConfig) || {};
       var cardsPerPage = Math.max(1, Math.min(4, Number(arrivalConfiguration.cardCount) || 4));
       var match = slideType === "sport_match_of_the_day" || slideType === "sport_next_match";
-      var pages = match ? [items.length ? items[0] : null] : templatePages(
-        items,
-        arrival ? cardsPerPage : orientation === "portrait" ? 6 : 8
-      );
+      var pages = match ? [items.length ? items[0] : null] :
+        birthday && !items.length ? [] : templatePages(
+          items,
+          birthday
+            ? Math.max(1, Math.min(8, Number(orientation === "portrait"
+              ? birthdayPresentation.maxPerPortraitPage
+              : birthdayPresentation.maxPerLandscapePage) || (orientation === "portrait" ? 3 : 4)))
+            : arrival ? cardsPerPage : orientation === "portrait" ? 6 : 8
+        );
       return {
         pages: pages,
-        pageDuration: arrival
+        pageDuration: birthday
+          ? Math.max(6000, Math.min(20000, (Number(birthdayPresentation.pageDurationSeconds) || 8) * 1000))
+          : arrival
           ? Math.max(5000, Math.min(120000, (Number(sport.pageDurationSeconds) || 12) * 1000))
           : undefined,
         render: function (page, activePageIndex) {
@@ -3291,6 +3334,11 @@ export function renderLgLegacyHtml() {
       root.appendChild(header);
       root.appendChild(body);
       root.appendChild(footer);
+      if (payload.slideType === "sport_birthdays" && !renderer.pages.length) {
+        log("LEGACY_TEMPLATE_SKIPPED", "sport_birthdays empty_or_expired");
+        window.setTimeout(nextItem, 0);
+        return;
+      }
       renderer.render(renderer.pages[0], 0);
       fitDynamicTemplateCanvas(root, payload.orientation);
       beginPendingMedia(root, objectUrls);

@@ -77,7 +77,8 @@ describe("Sportlink sync worker", () => {
           encryption_iv: "initialization",
           encryption_tag: "authentication",
           run_id: "40000000-0000-4000-8000-000000000001",
-          tenant_id: "10000000-0000-4000-8000-000000000001"
+          tenant_id: "10000000-0000-4000-8000-000000000001",
+          timezone: "Europe/Amsterdam"
         }],
         error: null
       })
@@ -100,7 +101,7 @@ describe("Sportlink sync worker", () => {
       status: "failed"
     });
 
-    expect(rpc).toHaveBeenNthCalledWith(1, "claim_due_sportlink_sync_v1", {
+    expect(rpc).toHaveBeenNthCalledWith(1, "claim_due_sportlink_sync_v2", {
       p_lock_timeout_seconds: 900,
       p_worker_id: "worker:sportlink"
     });
@@ -151,9 +152,12 @@ describe("Sportlink sync worker", () => {
       encryptionIv: "initialization",
       encryptionTag: "authentication",
       runId: "40000000-0000-4000-8000-000000000001",
-      tenantId: "10000000-0000-4000-8000-000000000001"
+      tenantId: "10000000-0000-4000-8000-000000000001",
+      timezone: "Europe/Amsterdam"
     }, "worker:sportlink", {
       activities: [],
+      birthdayFetchedAt: null,
+      birthdays: [],
       club: {
         city: "Den Haag",
         clubCode: "DUIN",
@@ -179,7 +183,9 @@ describe("Sportlink sync worker", () => {
         width: 100
       },
       matches: [],
+      personPhotos: [],
       standings: [],
+      teamMembers: [],
       teamLogos: [],
       teams: []
     })).resolves.toBe(1);
@@ -203,19 +209,60 @@ describe("Sportlink sync worker", () => {
     }));
   });
 
+  it("completes birthdays through the minimized birthday RPC without credentials", async () => {
+    const rpc = vi.fn()
+      .mockResolvedValueOnce({ data: { readCount: 2 }, error: null })
+      .mockResolvedValueOnce({ data: null, error: null });
+    const backend = new SupabaseSportlinkSyncBackend(
+      "https://project.supabase.co", "service-secret", { rpc }
+    );
+    const fetchedAt = "2026-08-28T12:00:00.000Z";
+    await expect(backend.complete({
+      connectionId: "20000000-0000-4000-8000-000000000001",
+      dataSourceId: "30000000-0000-4000-8000-000000000001",
+      datasetGroup: "public_people", encryptedClientId: "ciphertext",
+      encryptionIv: "initialization", encryptionTag: "authentication",
+      runId: "40000000-0000-4000-8000-000000000001",
+      tenantId: "10000000-0000-4000-8000-000000000001",
+      timezone: "Europe/Amsterdam"
+    }, "worker:sportlink", {
+      activities: [], birthdayFetchedAt: fetchedAt,
+      birthdays: [{
+        day: 29, displayName: "Testpersoon", externalId: "b".repeat(40),
+        matchStatus: "unmatched", memberIdentityKey: null, month: 8,
+        nextOccurrence: "2026-08-29", normalizedName: "testpersoon",
+        role: null, teamAssignments: []
+      }], club: null, clubLogo: null, matches: [], personPhotos: [],
+      standings: [], teamLogos: [], teamMembers: [], teams: []
+    })).resolves.toBe(2);
+    expect(rpc).toHaveBeenNthCalledWith(1, "complete_sportlink_birthdays_v1", {
+      p_birthdays: [expect.objectContaining({ externalId: "b".repeat(40) })],
+      p_fetched_at: fetchedAt, p_person_photos: [],
+      p_run_id: "40000000-0000-4000-8000-000000000001",
+      p_team_members: [], p_worker_id: "worker:sportlink"
+    });
+    expect(rpc).toHaveBeenNthCalledWith(2, "refresh_sportlink_time_sensitive_slides_v1", {
+      p_connection_id: "20000000-0000-4000-8000-000000000001"
+    });
+  });
+
   it("renews the lease while a provider dataset is still being fetched", async () => {
     vi.useFakeTimers();
     let finishDataset: ((value: {
       activities: [];
+      birthdayFetchedAt: null;
+      birthdays: [];
       club: null;
       clubLogo: null;
       matches: [];
+      personPhotos: [];
       standings: [];
+      teamMembers: [];
       teamLogos: [];
       teams: [];
     }) => void) | undefined;
     const rpc = vi.fn(async (functionName: string) => {
-      if (functionName === "claim_due_sportlink_sync_v1") {
+      if (functionName === "claim_due_sportlink_sync_v2") {
         return {
           data: [{
             connection_id: "20000000-0000-4000-8000-000000000001",
@@ -225,7 +272,8 @@ describe("Sportlink sync worker", () => {
             encryption_iv: "initialization",
             encryption_tag: "authentication",
             run_id: "40000000-0000-4000-8000-000000000001",
-            tenant_id: "10000000-0000-4000-8000-000000000001"
+            tenant_id: "10000000-0000-4000-8000-000000000001",
+            timezone: "Europe/Amsterdam"
           }],
           error: null
         };
@@ -263,10 +311,14 @@ describe("Sportlink sync worker", () => {
 
     finishDataset?.({
       activities: [],
+      birthdayFetchedAt: null,
+      birthdays: [],
       club: null,
       clubLogo: null,
       matches: [],
+      personPhotos: [],
       standings: [],
+      teamMembers: [],
       teamLogos: [],
       teams: []
     });

@@ -2340,6 +2340,7 @@ export function PlaybackMedia({
     return (
       <DynamicTemplateMedia
         item={item}
+        onEnded={onEnded}
         onReady={onReady}
         passive={passive}
       />

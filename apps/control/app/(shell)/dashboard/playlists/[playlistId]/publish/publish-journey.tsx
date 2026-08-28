@@ -31,6 +31,13 @@ type PreflightState = {
 };
 
 type PublishJourneyProps = {
+  birthdayTimingChecks: Array<{
+    actualDurationSeconds: number;
+    itemId: string;
+    minimumDurationSeconds: number;
+    name: string;
+    pageCount: number;
+  }>;
   canPublish: boolean;
   idempotencyKey: string;
   nextVersion: number;
@@ -48,6 +55,7 @@ type PublishJourneyProps = {
 };
 
 export function PublishJourney({
+  birthdayTimingChecks,
   canPublish,
   idempotencyKey,
   nextVersion,
@@ -64,7 +72,12 @@ export function PublishJourney({
     [preflightStates, selectedIds]
   );
   const hasBlocked = selectedStates.some((state) => state.preflight.status === "blocked");
-  const hasRisk = selectedStates.some((state) => state.preflight.status === "warning" || state.preflight.status === "unknown");
+  const hasBirthdayTimingRisk = birthdayTimingChecks.some(
+    (check) => check.actualDurationSeconds < check.minimumDurationSeconds
+  );
+  const hasRisk = hasBirthdayTimingRisk || selectedStates.some(
+    (state) => state.preflight.status === "warning" || state.preflight.status === "unknown"
+  );
   const currentStep = steps[stepIndex] ?? steps[0];
   const canContinue = stepIndex < 2 || selectedIds.length > 0;
 
@@ -110,7 +123,7 @@ export function PublishJourney({
         ) : null}
 
         {currentStep.id === "preflight" ? (
-          <section aria-labelledby="publish-preflight-title" className="workspace-section"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="publish-preflight-title">Preflight per scherm</h2><p className="work-panel__meta">Capability, manifestcompatibiliteit, actuele telemetry en opslag worden per doel beoordeeld. Onbekend blijft onbekend.</p></div><StatusPill label={hasBlocked ? "Geblokkeerd" : hasRisk ? "Bevestiging nodig" : "Alle doelen gereed"} tone={hasBlocked ? "critical" : hasRisk ? "warning" : "success"} /></div><PreflightTable states={selectedStates} /></section>
+          <section aria-labelledby="publish-preflight-title" className="workspace-section"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="publish-preflight-title">Preflight per scherm</h2><p className="work-panel__meta">Capability, manifestcompatibiliteit, actuele telemetry, opslag en dynamische paginaduur worden per doel beoordeeld. Onbekend blijft onbekend.</p></div><StatusPill label={hasBlocked ? "Geblokkeerd" : hasRisk ? "Bevestiging nodig" : "Alle doelen gereed"} tone={hasBlocked ? "critical" : hasRisk ? "warning" : "success"} /></div>{birthdayTimingChecks.length ? <BirthdayTimingPreflight checks={birthdayTimingChecks} playlistId={playlist.id} /> : null}<PreflightTable states={selectedStates} /></section>
         ) : null}
 
         {currentStep.id === "confirm" ? (
@@ -123,6 +136,30 @@ export function PublishJourney({
         {stepIndex < steps.length - 1 ? <Button disabled={!canContinue || (stepIndex === 3 && hasBlocked)} onClick={() => setStepIndex((index) => index + 1)} type="button">Volgende</Button> : null}
       </StickyActionBar>
     </JourneyShell>
+  );
+}
+
+function BirthdayTimingPreflight({
+  checks,
+  playlistId
+}: {
+  checks: PublishJourneyProps["birthdayTimingChecks"];
+  playlistId: string;
+}) {
+  const insufficient = checks.filter(
+    (check) => check.actualDurationSeconds < check.minimumDurationSeconds
+  );
+  return insufficient.length ? (
+    <div className="notice notice--warning" role="alert">
+      <strong>De verjaardagspaginering heeft meer zichtbaarheidstijd nodig.</strong>
+      <ul>{insufficient.map((check) => <li key={check.itemId}>{check.name}: minimaal {check.minimumDurationSeconds} sec. voor {check.pageCount} pagina&apos;s; nu {check.actualDurationSeconds} sec.</li>)}</ul>
+      <Link href={`/dashboard/playlists/${playlistId}`}>Duur automatisch aanpassen in Playlist Studio</Link>
+    </div>
+  ) : (
+    <div className="notice" role="status">
+      <strong>Duur automatisch aanpassen is actief.</strong>
+      <ul>{checks.map((check) => <li key={check.itemId}>{check.name}: {check.pageCount} {check.pageCount === 1 ? "pagina" : "pagina's"} · minimaal {check.minimumDurationSeconds} sec. · ingesteld op {check.actualDurationSeconds} sec.</li>)}</ul>
+    </div>
   );
 }
 

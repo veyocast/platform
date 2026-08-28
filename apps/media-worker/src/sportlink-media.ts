@@ -12,7 +12,7 @@ export type SportlinkMediaArtifact = {
   fileSizeBytes: number;
   height: number;
   mimeType: "image/webp";
-  role: "club_logo" | "team_logo";
+  role: "club_logo" | "person_photo" | "team_logo";
   storagePath: string;
   title: string;
   width: number;
@@ -23,13 +23,18 @@ export type SportlinkTeamLogoArtifact = SportlinkMediaArtifact & {
   sourceUrl: string;
 };
 
+export type SportlinkPersonPhotoArtifact = SportlinkMediaArtifact & {
+  role: "person_photo";
+  sourceUrl: string;
+};
+
 export async function prepareSportlinkClubLogo(
   job: ClaimedSportlinkSync,
   externalId: string,
   clubName: string,
   input: Uint8Array
 ): Promise<SportlinkMediaArtifact> {
-  return prepareSportlinkLogo(job, externalId, clubName, input, "club_logo");
+  return prepareSportlinkImage(job, externalId, clubName, input, "club_logo");
 }
 
 export async function prepareSportlinkTeamLogo(
@@ -40,18 +45,37 @@ export async function prepareSportlinkTeamLogo(
   input: Uint8Array
 ): Promise<SportlinkTeamLogoArtifact> {
   return {
-    ...await prepareSportlinkLogo(job, externalId, teamName, input, "team_logo"),
+    ...await prepareSportlinkImage(job, externalId, teamName, input, "team_logo"),
     role: "team_logo",
     sourceUrl
   };
 }
 
-async function prepareSportlinkLogo(
+export async function prepareSportlinkPersonPhoto(
+  job: ClaimedSportlinkSync,
+  externalId: string,
+  sourceUrl: string,
+  input: Uint8Array
+): Promise<SportlinkPersonPhotoArtifact> {
+  return {
+    ...await prepareSportlinkImage(
+      job,
+      externalId,
+      "Sportlink profielfoto",
+      input,
+      "person_photo"
+    ),
+    role: "person_photo",
+    sourceUrl
+  };
+}
+
+async function prepareSportlinkImage(
   _job: ClaimedSportlinkSync,
   externalId: string,
   name: string,
   input: Uint8Array,
-  role: "club_logo" | "team_logo"
+  role: "club_logo" | "person_photo" | "team_logo"
 ): Promise<SportlinkMediaArtifact> {
   const output = await sharp(input, {
     failOn: "warning",
@@ -90,8 +114,9 @@ async function prepareSportlinkLogo(
     mimeType: "image/webp",
     role,
     storagePath: `providers/sportlink/${role}/${checksumSha256}.webp`,
-    title: `${name} ${role === "club_logo" ? "clublogo" : "teamlogo"}`
-      .slice(0, 160),
+    title: role === "person_photo"
+      ? "Sportlink profielfoto"
+      : `${name} ${role === "club_logo" ? "clublogo" : "teamlogo"}`.slice(0, 160),
     width: output.info.width
   };
 }

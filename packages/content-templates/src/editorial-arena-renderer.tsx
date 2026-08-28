@@ -15,6 +15,7 @@ import {
   createDynamicTemplateView,
   dynamicTemplatePageDurationMs,
   resolveWelcomeMotionPreset,
+  type DynamicTemplateBirthdayItem,
   type DynamicTemplateListItem,
   type DynamicTemplatePage,
   type DynamicTemplatePriceEntry,
@@ -152,7 +153,7 @@ export function EditorialArenaRenderer({
     return () => window.clearInterval(interval);
   }, [controlledPageIndex, item.durationSeconds, pageCount, passive, view]);
 
-  if (!view) return null;
+  if (!view || view.pages.length === 0) return null;
   const pageIndex = controlledPageIndex === undefined
     ? internalPageIndex
     : Math.min(Math.max(0, controlledPageIndex), Math.max(pageCount - 1, 0));
@@ -189,9 +190,11 @@ export function EditorialArenaRenderer({
       <section
         aria-label={item.accessibilityName ?? item.title}
         className={styles.arenaRoot}
+        data-birthday-radius={view.birthday?.configuration.presentation.radius}
         data-canvas-height={canvas.height}
         data-canvas-width={canvas.width}
         data-orientation={view.orientation}
+        data-logo-position={view.birthday?.configuration.presentation.logoPosition}
         data-passive={passive || undefined}
         data-slide-type={view.slideType}
         data-theme={view.theme}
@@ -200,6 +203,7 @@ export function EditorialArenaRenderer({
         data-viewport-fit={viewportFit?.mode}
         style={style}
       >
+        {view.birthday ? <BirthdayBackdrop view={view} /> : null}
         {page.kind === "menu-v2" ? (
           <MenuSceneCanvas
             assets={page.assets}
@@ -259,7 +263,7 @@ function ArenaHeader({ view }: { view: DynamicTemplateView }) {
       </div>
       <div className={styles.arenaContext}>
         <strong>{view.sourceLabel}</strong>
-        <span><i aria-hidden="true" /> VeyoCast</span>
+        <span><i aria-hidden="true" /> {view.birthday ? "Verjaardagen" : "VeyoCast"}</span>
       </div>
     </header>
   );
@@ -402,6 +406,10 @@ function ArenaPage({
     return <ArenaStanding items={page.items} view={view} />;
   }
 
+  if (page.kind === "birthday") {
+    return <BirthdayPage items={page.items} layout={page.layout} view={view} />;
+  }
+
   if (page.kind === "arrivals") {
     const pageSize = Math.max(1, ...view.pages.map((candidate) =>
       candidate.kind === "arrivals" ? candidate.items.length : 0));
@@ -532,6 +540,98 @@ function ArenaPage({
       view={view}
     />
   );
+}
+
+function BirthdayBackdrop({ view }: { view: DynamicTemplateView }) {
+  const configuration = view.birthday?.configuration;
+  return (
+    <div
+      aria-hidden="true"
+      className={styles.birthdayBackdrop}
+      data-gradient={configuration?.presentation.gradientOverlay || undefined}
+      style={{
+        backgroundColor: configuration?.presentation.backgroundColor,
+        backgroundImage: view.birthday?.backgroundUrl
+          ? `url(${view.birthday.backgroundUrl})`
+          : undefined
+      }}
+    >
+      {configuration?.presentation.confetti ? (
+        <span className={styles.birthdayParticles}>
+          {Array.from({ length: 12 }, (_, index) => <i key={index} />)}
+        </span>
+      ) : null}
+      {configuration?.presentation.logoPosition === "bottom_left" ? (
+        <span className={styles.birthdayPlacedLogo}>
+          {view.clubLogoUrl
+            ? <img alt="" src={view.clubLogoUrl} />
+            : initialsFor(view.clubName)}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function BirthdayPage({
+  items,
+  layout,
+  view
+}: {
+  items: DynamicTemplateBirthdayItem[];
+  layout: "birthday_roll" | "celebration_grid" | "spotlight";
+  view: DynamicTemplateView;
+}) {
+  const configuration = view.birthday?.configuration;
+  if (!items.length) return null;
+  return (
+    <div
+      className={styles.birthdayLayout}
+      data-align={configuration?.presentation.textAlign ?? "left"}
+      data-card-style={configuration?.presentation.cardStyle ?? "glass"}
+      data-layout={layout}
+      data-motion={configuration?.presentation.motion || undefined}
+    >
+      {items.map((birthday, index) => (
+        <article
+          className={styles.birthdayCard}
+          data-today={birthday.isToday || undefined}
+          key={birthday.id}
+          style={{ "--birthday-delay": `${index * 90}ms` } as CSSProperties}
+        >
+          <BirthdayPortrait birthday={birthday} />
+          <div className={styles.birthdayCopy}>
+            <span className={styles.birthdayEyebrow}>
+              {birthday.isToday ? "Vandaag jarig" : birthday.dateLabel || "Binnenkort jarig"}
+            </span>
+            <h2>{birthday.displayName}</h2>
+            {birthday.dateLabel && !birthday.isToday ? <time>{birthday.dateLabel}</time> : null}
+            <p>
+              {birthday.age !== null
+                ? `${firstName(birthday.displayName)} wordt ${birthday.isToday ? "vandaag " : ""}${birthday.age} jaar`
+                : `${firstName(birthday.displayName)} is ${birthday.isToday ? "vandaag " : "binnenkort "}jarig`}
+            </p>
+            {birthday.meta ? <strong>{birthday.meta}</strong> : null}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function BirthdayPortrait({ birthday }: { birthday: DynamicTemplateBirthdayItem }) {
+  return (
+    <div aria-hidden="true" className={styles.birthdayPortrait}>
+      {birthday.photoUrl ? (
+        <img alt="" src={birthday.photoUrl} />
+      ) : (
+        <span>{initialsFor(birthday.displayName)}</span>
+      )}
+    </div>
+  );
+}
+
+function firstName(value: string) {
+  return value.trim().split(/\s+/u)[0] || value;
 }
 
 function SportListColumns({

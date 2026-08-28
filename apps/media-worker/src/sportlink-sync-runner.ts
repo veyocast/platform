@@ -11,19 +11,24 @@ import {
   decryptSportlinkClientId,
   extractSportlinkRecords,
   fetchSafeRssImage,
+  mapSportlinkBirthdays,
   mapSportlinkActivities,
   mapSportlinkClub,
   mapSportlinkMatches,
   mapSportlinkStandings,
   mapSportlinkTeams,
+  mapSportlinkTeamMembers,
+  matchSportlinkBirthdays,
   stableSportlinkExternalId
 } from "@veyocast/integrations/server";
 import { createClient } from "@supabase/supabase-js";
 
 import {
   prepareSportlinkClubLogo,
+  prepareSportlinkPersonPhoto,
   prepareSportlinkTeamLogo,
   type SportlinkMediaArtifact,
+  type SportlinkPersonPhotoArtifact,
   type SportlinkTeamLogoArtifact
 } from "./sportlink-media";
 
@@ -36,6 +41,7 @@ export type ClaimedSportlinkSync = {
   encryptionTag: string;
   runId: string;
   tenantId: string;
+  timezone: string;
 };
 
 export type SportlinkSyncRunResult =
@@ -66,10 +72,14 @@ type RpcClient = {
 
 type NormalizedSportlinkBatch = {
   activities: SportActivity[];
+  birthdayFetchedAt: string | null;
+  birthdays: Array<Record<string, unknown>>;
   club: SportClub | null;
   clubLogo: SportlinkMediaArtifact | null;
   matches: SportMatch[];
+  personPhotos: SportlinkPersonPhotoArtifact[];
   standings: SportStanding[];
+  teamMembers: Array<Record<string, unknown>>;
   teamLogos: SportlinkTeamLogoArtifact[];
   teams: SportTeam[];
 };
@@ -95,10 +105,14 @@ type SportlinkSyncBackend = {
 
 const emptyBatch = (): NormalizedSportlinkBatch => ({
   activities: [],
+  birthdayFetchedAt: null,
+  birthdays: [],
   club: null,
   clubLogo: null,
   matches: [],
+  personPhotos: [],
   standings: [],
+  teamMembers: [],
   teamLogos: [],
   teams: []
 });
@@ -117,7 +131,7 @@ export class SupabaseSportlinkSyncBackend {
   }
 
   async claim(workerId: string, lockTimeoutSeconds: number) {
-    const result = await this.client.rpc("claim_due_sportlink_sync_v1", {
+    const result = await this.client.rpc("claim_due_sportlink_sync_v2", {
       p_lock_timeout_seconds: lockTimeoutSeconds,
       p_worker_id: workerId
     });
@@ -131,7 +145,7 @@ export class SupabaseSportlinkSyncBackend {
     workerId: string,
     batch: NormalizedSportlinkBatch
   ) {
-    const media = [batch.clubLogo, ...batch.teamLogos]
+    const media = [batch.clubLogo, ...batch.teamLogos, ...batch.personPhotos]
       .filter(
         (artifact): artifact is SportlinkMediaArtifact => Boolean(artifact)
       );
@@ -150,7 +164,16 @@ export class SupabaseSportlinkSyncBackend {
         if (upload.error) throw new Error("sportlink_media_upload_failed");
       }
     }
-    const result = await this.client.rpc("complete_sportlink_sync_v4", {
+    const result = job.datasetGroup === "public_people"
+      ? await this.client.rpc("complete_sportlink_birthdays_v1", {
+        p_birthdays: batch.birthdays,
+        p_fetched_at: batch.birthdayFetchedAt,
+        p_person_photos: batch.personPhotos.map(toMediaPayload),
+        p_run_id: job.runId,
+        p_team_members: batch.teamMembers,
+        p_worker_id: workerId
+      })
+      : await this.client.rpc("complete_sportlink_sync_v4", {
       p_activities: batch.activities,
       p_club: batch.club ?? {},
       p_club_logo: batch.clubLogo ? toMediaPayload(batch.clubLogo) : {},
@@ -421,6 +444,10 @@ async function fetchSportlinkDataset(
     return batch;
   }
 
+  if (datasetGroup === "public_people") {
+    return fetchSportlinkBirthdays(client, job, batch);
+  }
+
   if (datasetGroup === "competitions") {
     const result = await fetchStandings(client, job);
     batch.standings = result.standings;
@@ -432,6 +459,139 @@ async function fetchSportlinkDataset(
     "SPORTLINK_DATASET_DISABLED",
     "Deze Sportlink-dataset is niet geactiveerd."
   );
+}
+
+async function fetchSportlinkBirthdays(
+  client: SportlinkClient,
+  job: ClaimedSportlinkSync,
+  batch: NormalizedSportlinkBatch
+) {
+  const fetchedAt = new Date();
+  const [birthdayResponse, teamResponse] = await Promise.all([
+    client.fetchArticle("verjaardagen", { aantaldagen: 21 }),
+    client.fetchArticle("teams")
+  ]);
+  const birthdays = mapSportlinkBirthdays(birthdayResponse.payload, {
+    maxDays: 21,
+    now: fetchedAt,
+    timezone: job.timezone
+  });
+  const teams = mapSportlinkTeams(teamResponse.payload).slice(0, 50);
+  const memberAssignments = [];
+  for (const team of teams) {
+    try {
+      const response = await client.fetchArticle("team-indeling", {
+        teamcode: team.externalId,
+        toonlidfoto: "JA"
+      });
+      memberAssignments.push(...mapSportlinkTeamMembers(response.payload, {
+        externalId: team.externalId,
+        name: team.name
+      }));
+    } catch (error) {
+      if (error instanceof SportlinkClientError && [
+        "SPORTLINK_CONDITION_ERROR",
+        "SPORTLINK_SCOPE_INSUFFICIENT"
+      ].includes(error.code)) continue;
+      throw error;
+    }
+  }
+
+  const members = new Map<string, {
+    displayName: string;
+    externalMemberCode: string | null;
+    identityKey: string;
+    normalizedName: string;
+    photoProviderAssetVersionId: string | null;
+    photoUrl: string | null;
+    role: string | null;
+    teamAssignments: Array<{ externalId: string; name: string }>;
+  }>();
+  const memberIdentity = new Map<typeof memberAssignments[number], string>();
+  for (const assignment of memberAssignments) {
+    const identityKey = stableSportlinkExternalId(
+      assignment.externalMemberCode
+        ? "birthday-member-code"
+        : "birthday-member-unlinked",
+      assignment.externalMemberCode ?? assignment.normalizedName,
+      assignment.externalMemberCode ? "" : assignment.teamExternalId
+    ).slice(0, 40);
+    memberIdentity.set(assignment, identityKey);
+    const existing = members.get(identityKey);
+    if (existing) {
+      if (!existing.teamAssignments.some(
+        (team) => team.externalId === assignment.teamExternalId
+      )) {
+        existing.teamAssignments.push({
+          externalId: assignment.teamExternalId,
+          name: assignment.teamName
+        });
+      }
+      existing.photoUrl ??= assignment.photoUrl;
+      existing.role ??= assignment.role;
+      continue;
+    }
+    members.set(identityKey, {
+      displayName: assignment.displayName,
+      externalMemberCode: assignment.externalMemberCode,
+      identityKey,
+      normalizedName: assignment.normalizedName,
+      photoProviderAssetVersionId: null,
+      photoUrl: assignment.photoUrl,
+      role: assignment.role,
+      teamAssignments: [{
+        externalId: assignment.teamExternalId,
+        name: assignment.teamName
+      }]
+    });
+  }
+
+  for (const member of [...members.values()].filter(
+    (candidate) => candidate.photoUrl
+  ).slice(0, 40)) {
+    try {
+      const image = await fetchSafeRssImage(member.photoUrl!);
+      const artifact = await prepareSportlinkPersonPhoto(
+        job,
+        member.identityKey,
+        member.photoUrl!,
+        image.body
+      );
+      batch.personPhotos.push(artifact);
+      member.photoProviderAssetVersionId = artifact.assetId;
+    } catch {
+      // A remote photo is optional. Identity data remains usable without it.
+    }
+  }
+
+  const matched = matchSportlinkBirthdays(birthdays, memberAssignments);
+  batch.birthdayFetchedAt = fetchedAt.toISOString();
+  batch.teamMembers = [...members.values()].map((member) => ({
+    displayName: member.displayName,
+    externalMemberCode: member.externalMemberCode,
+    identityKey: member.identityKey,
+    normalizedName: member.normalizedName,
+    photoProviderAssetVersionId: member.photoProviderAssetVersionId,
+    role: member.role,
+    teamAssignments: member.teamAssignments
+  }));
+  batch.birthdays = matched.map((match) => {
+    const memberKey = match.member ? memberIdentity.get(match.member) ?? null : null;
+    const matchedMember = memberKey ? members.get(memberKey) : null;
+    return {
+      day: match.birthday.day,
+      displayName: match.birthday.displayName,
+      externalId: match.birthday.externalId,
+      matchStatus: match.status,
+      memberIdentityKey: memberKey,
+      month: match.birthday.month,
+      nextOccurrence: match.birthday.nextOccurrence,
+      normalizedName: match.birthday.normalizedName,
+      role: matchedMember?.role ?? null,
+      teamAssignments: match.teamAssignments
+    };
+  });
+  return batch;
 }
 
 function toMediaPayload(artifact: SportlinkMediaArtifact) {
@@ -722,7 +882,8 @@ function parseClaim(value: unknown): ClaimedSportlinkSync {
     typeof value.dataset_group !== "string" ||
     typeof value.encrypted_client_id !== "string" ||
     typeof value.encryption_iv !== "string" ||
-    typeof value.encryption_tag !== "string"
+    typeof value.encryption_tag !== "string" ||
+    typeof value.timezone !== "string"
   ) {
     throw new Error("sportlink_sync_claim_invalid");
   }
@@ -734,7 +895,8 @@ function parseClaim(value: unknown): ClaimedSportlinkSync {
     encryptionIv: value.encryption_iv,
     encryptionTag: value.encryption_tag,
     runId: value.run_id,
-    tenantId: value.tenant_id
+    tenantId: value.tenant_id,
+    timezone: value.timezone
   };
 }
 

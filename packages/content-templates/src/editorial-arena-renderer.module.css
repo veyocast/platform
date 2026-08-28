@@ -1527,6 +1527,147 @@
   }
 }
 
+.birthdayBackdrop {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+}
+
+.birthdayBackdrop::after {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--arena-accent) 34%, transparent), transparent 36%),
+    linear-gradient(115deg, color-mix(in srgb, var(--vc-theme-canvas) 96%, transparent) 8%, color-mix(in srgb, var(--vc-theme-canvas) 62%, transparent) 58%, color-mix(in srgb, var(--vc-theme-canvas) 88%, transparent));
+  content: "";
+}
+
+.birthdayBackdrop:not([data-gradient])::after {
+  background: color-mix(in srgb, var(--vc-theme-canvas) 44%, transparent);
+}
+
+.birthdayParticles i {
+  position: absolute;
+  z-index: 1;
+  top: calc(8% + (var(--particle-index, 1) * 6%));
+  left: calc(5% + (var(--particle-index, 1) * 7%));
+  width: 8px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--arena-accent);
+  opacity: .2;
+  transform: rotate(24deg);
+}
+
+.birthdayParticles i:nth-child(2n) { background: var(--vc-theme-support); transform: rotate(-32deg); }
+.birthdayParticles i:nth-child(1) { --particle-index: 1; }
+.birthdayParticles i:nth-child(2) { --particle-index: 2; }
+.birthdayParticles i:nth-child(3) { --particle-index: 3; }
+.birthdayParticles i:nth-child(4) { --particle-index: 4; }
+.birthdayParticles i:nth-child(5) { --particle-index: 5; }
+.birthdayParticles i:nth-child(6) { --particle-index: 6; }
+.birthdayParticles i:nth-child(7) { --particle-index: 7; }
+.birthdayParticles i:nth-child(8) { --particle-index: 8; }
+.birthdayParticles i:nth-child(9) { --particle-index: 9; }
+.birthdayParticles i:nth-child(10) { --particle-index: 10; }
+.birthdayParticles i:nth-child(11) { --particle-index: 11; }
+.birthdayParticles i:nth-child(12) { --particle-index: 12; }
+
+.birthdayLayout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  height: 100%;
+}
+
+.birthdayLayout[data-layout="spotlight"] { grid-template-columns: 1fr; }
+.birthdayLayout[data-layout="birthday_roll"] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+.birthdayCard {
+  display: grid;
+  grid-template-columns: minmax(150px, .8fr) minmax(0, 1.7fr);
+  align-items: center;
+  gap: 34px;
+  min-width: 0;
+  padding: 32px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--vc-theme-text) 18%, transparent);
+  border-radius: var(--vc-theme-card-radius, 28px);
+  background: color-mix(in srgb, var(--vc-theme-surface) 82%, transparent);
+  box-shadow: 0 28px 80px color-mix(in srgb, var(--vc-theme-canvas) 56%, transparent);
+  backdrop-filter: blur(18px);
+}
+.arenaRoot[data-birthday-radius="md"] .birthdayCard { border-radius: 18px; }
+.arenaRoot[data-birthday-radius="lg"] .birthdayCard { border-radius: 28px; }
+.arenaRoot[data-birthday-radius="xl"] .birthdayCard { border-radius: 40px; }
+.arenaRoot[data-slide-type="sport_birthdays"][data-logo-position="top_right"] .arenaMasthead { grid-template-columns:330px minmax(0,1fr) 112px; }
+.arenaRoot[data-slide-type="sport_birthdays"][data-logo-position="top_right"] .arenaCrest { grid-column:3; }
+.arenaRoot[data-slide-type="sport_birthdays"][data-logo-position="top_right"] .arenaHeading { grid-column:2; grid-row:1; }
+.arenaRoot[data-slide-type="sport_birthdays"][data-logo-position="top_right"] .arenaContext { grid-column:1; grid-row:1; }
+.arenaRoot[data-slide-type="sport_birthdays"][data-logo-position="bottom_left"] .arenaCrest { visibility: hidden; }
+.birthdayPlacedLogo { position:absolute; z-index:5; bottom:24px; left:52px; display:grid; width:72px; height:72px; place-items:center; border:1px solid color-mix(in srgb,var(--vc-theme-text) 18%,transparent); border-radius:18px; background:color-mix(in srgb,var(--vc-theme-surface) 88%,transparent); color:var(--vc-theme-text); font-size:22px; font-weight:900; backdrop-filter:blur(12px); }
+.birthdayPlacedLogo img { width:80%; height:80%; object-fit:contain; }
+.arenaRoot[data-orientation="portrait"] .birthdayPlacedLogo { bottom:20px; left:38px; width:62px; height:62px; }
+
+.birthdayLayout[data-card-style="solid"] .birthdayCard { backdrop-filter: none; background: var(--vc-theme-surface); }
+.birthdayLayout[data-card-style="outline"] .birthdayCard { background: color-mix(in srgb, var(--vc-theme-canvas) 24%, transparent); box-shadow: none; }
+.birthdayLayout[data-align="center"] .birthdayCopy { align-items: center; text-align: center; }
+
+.birthdayLayout[data-layout="spotlight"] .birthdayCard {
+  grid-template-columns: minmax(320px, .8fr) minmax(0, 1.25fr);
+  padding: 48px 70px;
+}
+
+.birthdayLayout[data-layout="birthday_roll"] .birthdayCard {
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 24px;
+  padding: 20px 28px;
+}
+
+.birthdayPortrait {
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 2px solid color-mix(in srgb, var(--arena-accent) 56%, transparent);
+  border-radius: 50%;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--arena-accent) 88%, white 12%), color-mix(in srgb, var(--vc-theme-surface) 76%, black));
+  box-shadow: 0 18px 50px color-mix(in srgb, var(--arena-accent) 28%, transparent);
+}
+
+.birthdayPortrait img { width: 100%; height: 100%; object-fit: cover; }
+.birthdayPortrait span { display: grid; height: 100%; place-items: center; color: var(--vc-theme-canvas); font-size: clamp(42px, 5cqw, 96px); font-weight: 900; letter-spacing: -.07em; }
+
+.birthdayCopy { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; }
+.birthdayEyebrow { color: var(--arena-accent); font-size: 21px; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
+.birthdayCopy h2 { max-width: 100%; margin: 14px 0 10px; overflow-wrap: anywhere; color: var(--vc-theme-text); font-size: clamp(50px, 5.8cqw, 112px); line-height: .9; text-wrap: balance; }
+.birthdayLayout:not([data-layout="spotlight"]) .birthdayCopy h2 { font-size: clamp(38px, 3.4cqw, 66px); }
+.birthdayLayout[data-layout="birthday_roll"] .birthdayCopy h2 { margin-block: 7px; font-size: clamp(31px, 2.55cqw, 48px); }
+.birthdayCopy time { color: var(--vc-theme-text-muted); font-size: 25px; text-transform: capitalize; }
+.birthdayCopy p { margin: 15px 0 0; color: var(--vc-theme-text); font-size: 27px; font-weight: 650; }
+.birthdayCopy strong { margin-top: 16px; color: var(--vc-theme-text-muted); font-size: 21px; }
+
+.birthdayLayout[data-motion] .birthdayCard {
+  animation: birthdayReveal 720ms calc(var(--birthday-delay, 0ms) + 120ms) cubic-bezier(.16, 1, .3, 1) both;
+}
+
+@keyframes birthdayReveal {
+  from { opacity: 0; transform: translate3d(0, 32px, 0) scale(.975); }
+  to { opacity: 1; transform: none; }
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout { grid-template-columns: 1fr; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.arenaRoot[data-orientation="portrait"] .birthdayCard,
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-layout="spotlight"] .birthdayCard { grid-template-columns: 190px minmax(0, 1fr); padding: 34px; }
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-layout="spotlight"] .birthdayCard { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; text-align: center; }
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-layout="spotlight"] .birthdayPortrait { justify-self: center; width: min(70%, 520px); }
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-layout="spotlight"] .birthdayCopy { align-items: center; }
+.arenaRoot[data-orientation="portrait"] .birthdayCopy h2 { font-size: clamp(52px, 7cqw, 100px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .birthdayLayout[data-motion] .birthdayCard { animation: none; }
+}
+
 .arenaArrivalGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
