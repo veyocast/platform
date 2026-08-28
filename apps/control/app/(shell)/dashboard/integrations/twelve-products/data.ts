@@ -10,7 +10,7 @@ export async function loadProductsWorkspace(tenantId: string) {
     supabase
       .from("tenant_products")
       .select(
-        "id, slug, name, description, category, price_cents, vat_rate, unit, barcode, source_external_id, custom_fields, active, revision, updated_at"
+        "id, slug, name, description, category, price_cents, vat_rate, unit, barcode, source_external_id, custom_fields, image_media_asset_id, active, revision, updated_at"
       )
       .eq("tenant_id", tenantId)
       .order("active", { ascending: false })
@@ -26,6 +26,13 @@ export async function loadProductsWorkspace(tenantId: string) {
       .order("created_at", { ascending: false })
       .limit(20)
   ]);
+  const logoUrls = await loadProductLogoUrls(
+    supabase,
+    tenantId,
+    (productsResult.data ?? []).flatMap((row) =>
+      row.image_media_asset_id ? [row.image_media_asset_id] : []
+    )
+  );
   return {
     error: Boolean(productsResult.error || importsResult.error),
     imports: (importsResult.data ?? []).map((row) => ({
@@ -47,6 +54,10 @@ export async function loadProductsWorkspace(tenantId: string) {
       description: row.description,
       externalId: row.source_external_id,
       id: row.id,
+      logoAssetId: row.image_media_asset_id,
+      logoUrl: row.image_media_asset_id
+        ? logoUrls.get(row.image_media_asset_id) ?? null
+        : null,
       name: row.name,
       priceCents: row.price_cents,
       revision: Number(row.revision),
@@ -56,6 +67,54 @@ export async function loadProductsWorkspace(tenantId: string) {
       vatRate: row.vat_rate === null ? null : Number(row.vat_rate)
     })) as ProductView[]
   };
+}
+
+async function loadProductLogoUrls(
+  supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
+  tenantId: string,
+  assetIds: string[]
+) {
+  const urls = new Map<string, string>();
+  const uniqueAssetIds = [...new Set(assetIds)];
+  if (!uniqueAssetIds.length) return urls;
+
+  const variants = await supabase
+    .from("media_variants")
+    .select("asset_id, variant_type, storage_path")
+    .eq("tenant_id", tenantId)
+    .in("asset_id", uniqueAssetIds);
+  if (variants.error) {
+    console.error("Productlogovarianten laden mislukt", {
+      code: variants.error.code
+    });
+    return urls;
+  }
+
+  const paths = new Map<string, string>();
+  for (const variant of variants.data ?? []) {
+    const current = paths.get(variant.asset_id);
+    if (variant.variant_type === "thumbnail" || !current) {
+      paths.set(variant.asset_id, variant.storage_path);
+    }
+  }
+  const entries = [...paths.entries()];
+  if (!entries.length) return urls;
+
+  const signed = await supabase.storage
+    .from("tenant-media")
+    .createSignedUrls(entries.map(([, path]) => path), 600);
+  if (signed.error) {
+    console.error("Productlogovoorbeelden ondertekenen mislukt", {
+      code: signed.error.message
+    });
+    return urls;
+  }
+  const assetByPath = new Map(entries.map(([assetId, path]) => [path, assetId]));
+  for (const item of signed.data ?? []) {
+    const assetId = assetByPath.get(item.path ?? "");
+    if (assetId && item.signedUrl) urls.set(assetId, item.signedUrl);
+  }
+  return urls;
 }
 
 export async function loadProductImport(tenantId: string, importId: string) {

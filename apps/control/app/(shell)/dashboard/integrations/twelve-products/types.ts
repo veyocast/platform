@@ -6,6 +6,8 @@ export type ProductView = Readonly<{
   description: string | null;
   externalId: string | null;
   id: string;
+  logoAssetId: string | null;
+  logoUrl: string | null;
   name: string;
   priceCents: number | null;
   revision: number;
