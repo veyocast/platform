@@ -423,7 +423,7 @@ async function mockMenuStudioPortraitLegacyApis(page: Page, { loose = false } = 
                 },
                 labelOverride: "Hardloper, frisdrank",
                 order: 0,
-                productNodes: Array.from({ length: loose ? 8 : 1 }, (_, index) =>
+                productNodes: Array.from({ length: loose ? 8 : 3 }, (_, index) =>
                   loose && index === 1
                     ? {
                         display: { maxLines: 2 },
@@ -452,7 +452,13 @@ async function mockMenuStudioPortraitLegacyApis(page: Page, { loose = false } = 
                         order: index,
                         snapshotFallback: {
                           available: true,
-                          name: index === 0 ? "AA Drink" : `Product ${index + 1}`,
+                          name: index === 0
+                            ? "AA Drink"
+                            : index === 1
+                              ? "Chaudfontaine mineraalwater bruisend"
+                              : index === 2
+                                ? "Verse ambachtelijke vegetarische clubsandwich deluxe"
+                                : `Product ${index + 1}`,
                           price: { amountMinor: 250 + index * 10, currency: "EUR" },
                           variantLabel: index === 0 ? "AA Drink · Naar keuze" : null
                         }
@@ -771,6 +777,9 @@ test("LG Legacy toont de prijslijst één-op-één in het portraitcanvas", async
   await expect(slide.locator(".legacy-price-column")).toHaveCount(2);
   await expect(slide.locator(".legacy-price-product")).toHaveCount(16);
   await expect(slide.locator(".legacy-price-media")).toHaveCount(16);
+  expect(await slide.locator(".legacy-price-copy strong").first().evaluate(
+    (element) => getComputedStyle(element).fontSize
+  )).toBe("28px");
   const slideBox = await slide.boundingBox();
   expect(slideBox).toEqual(expect.objectContaining({ height: 1920, width: 1080 }));
   if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
@@ -812,8 +821,8 @@ test("LG Legacy toont Menu Studio v2 portrait als één brede bovenuitgelijnde k
   await expect(slide.locator(".legacy-price-column")).toHaveCount(1);
   await expect(slide.locator(".legacy-price-category"))
     .toHaveText("Hardloper, frisdrank");
-  await expect(slide.locator(".legacy-price-copy strong")).toHaveText("AA Drink");
-  await expect(slide.locator(".legacy-price-product > b")).toHaveText("€ 2,50");
+  await expect(slide.locator(".legacy-price-copy strong").first()).toHaveText("AA Drink");
+  await expect(slide.locator(".legacy-price-product > b").first()).toHaveText("€ 2,50");
   await expect(slide.locator("footer > span").first()).toHaveText("Prijslijst");
   await expect(slide.locator(".dynamic-page-number")).toHaveText("1 / 1");
 
@@ -844,8 +853,15 @@ test("LG Legacy toont Menu Studio v2 portrait als één brede bovenuitgelijnde k
   expect(geometry.categoryFontSize).toBe("34px");
   expect(geometry.footerFontSize).toBe("20px");
   expect(geometry.headerBorderColor).toBe("rgb(48, 188, 237)");
-  expect(geometry.productFontSize).toBe("26px");
+  expect(geometry.productFontSize).toBe("32px");
   expect(geometry.titleFontSize).toBe("72px");
+
+  const productNames = slide.locator(".legacy-price-copy strong");
+  await expect(productNames.nth(1)).toHaveClass(/legacy-price-title-compact/);
+  await expect(productNames.nth(2)).toHaveClass(/legacy-price-title-dense/);
+  expect(await productNames.evaluateAll((elements) => elements.slice(0, 3).map(
+    (element) => getComputedStyle(element).fontSize
+  ))).toEqual(["32px", "28px", "24px"]);
 
   if (process.env.CAPTURE_MENU_STUDIO_LG === "1") {
     await page.screenshot({

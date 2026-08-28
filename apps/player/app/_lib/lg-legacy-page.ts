@@ -224,7 +224,9 @@ export function renderLgLegacyHtml() {
     .legacy-price-media img{display:block;width:100%;height:100%;object-fit:cover}
     .legacy-price-copy{display:grid;grid-template-rows:1fr 1fr;align-items:center;min-width:0;height:64px}
     .legacy-price-copy strong,.legacy-price-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .legacy-price-copy strong{align-self:end;font-size:26px;line-height:1}
+    .legacy-price-copy strong{align-self:end;font-size:36px;line-height:1}
+    .legacy-price-copy strong.legacy-price-title-compact{font-size:32px}
+    .legacy-price-copy strong.legacy-price-title-dense{font-size:28px}
     .legacy-price-copy small{align-self:start;padding-top:5px;color:#9aa2ac;font-size:17px;line-height:22px}
     .legacy-price-product>b{justify-self:end;overflow:hidden;max-width:120px;color:var(--accent);font-size:32px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     .editorial-arena:not(.dark) .legacy-price-category,.editorial-arena:not(.dark) .legacy-price-product{border-color:rgba(23,32,42,.12)}
@@ -240,7 +242,9 @@ export function renderLgLegacyHtml() {
     .menu-studio-v2 .legacy-price-category{height:70px;border-bottom:3px solid var(--accent);font-family:var(--vc-theme-display-font),Arial,sans-serif;font-size:36px}
     .menu-studio-v2 .legacy-price-category:before{display:none}
     .menu-studio-v2 .legacy-price-product{height:78px;grid-template-columns:64px minmax(0,1fr) 120px;padding:8px 4px}
-    .menu-studio-v2 .legacy-price-copy strong{font-size:26px}
+    .menu-studio-v2 .legacy-price-copy strong{font-size:34px}
+    .menu-studio-v2 .legacy-price-copy strong.legacy-price-title-compact{font-size:30px}
+    .menu-studio-v2 .legacy-price-copy strong.legacy-price-title-dense{font-size:26px}
     .menu-studio-v2 .legacy-price-copy small{font-size:18px}
     .menu-studio-v2 .legacy-price-product>b{color:currentColor;font-size:26px}
     .editorial-arena.dark .dynamic-team-mark{background:var(--accent);color:#fff}
@@ -293,7 +297,9 @@ export function renderLgLegacyHtml() {
     .portrait .legacy-price-category{gap:16px;font-size:22px}
     .portrait .legacy-price-category:before{flex-basis:7px}
     .portrait .legacy-price-product{grid-template-columns:64px minmax(0,1fr) 92px;gap:12px;padding:16px 0}
-    .portrait .legacy-price-copy strong{font-size:20px}
+    .portrait .legacy-price-copy strong{font-size:28px}
+    .portrait .legacy-price-copy strong.legacy-price-title-compact{font-size:25px}
+    .portrait .legacy-price-copy strong.legacy-price-title-dense{font-size:22px}
     .portrait .legacy-price-copy small{padding-top:4px;font-size:14px;line-height:19px}
     .portrait .legacy-price-product>b{max-width:92px;font-size:24px}
     .dynamic-template.editorial-arena.menu-studio-v2.portrait[data-slide-type="price_list"]>header{top:96px;right:72px;left:72px;height:228px;grid-template-columns:1fr auto;align-items:flex-end;padding:0 0 40px;border-bottom:4px solid var(--accent);gap:48px}
@@ -307,7 +313,9 @@ export function renderLgLegacyHtml() {
     .menu-studio-v2.portrait .legacy-price-product{height:auto;min-height:62px;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;padding:5px 4px}
     .menu-studio-v2.portrait .legacy-price-media{width:48px;height:48px}
     .menu-studio-v2.portrait .legacy-price-copy{height:auto}
-    .menu-studio-v2.portrait .legacy-price-copy strong{font-size:26px;line-height:30px;white-space:normal}
+    .menu-studio-v2.portrait .legacy-price-copy strong{font-size:32px;line-height:34px;white-space:normal}
+    .menu-studio-v2.portrait .legacy-price-copy strong.legacy-price-title-compact{font-size:28px;line-height:31px}
+    .menu-studio-v2.portrait .legacy-price-copy strong.legacy-price-title-dense{font-size:24px;line-height:28px}
     .menu-studio-v2.portrait .legacy-price-copy small{padding-top:0;font-size:17px;line-height:20px;white-space:normal}
     .menu-studio-v2.portrait .legacy-price-product>b{max-width:none;font-size:26px;line-height:30px}
     .legacy-standing-card{box-sizing:border-box;height:100%;overflow:hidden;padding:1.35%;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:#0d1218;box-shadow:0 24px 80px rgba(0,0,0,.24)}
@@ -2153,6 +2161,12 @@ export function renderLgLegacyHtml() {
       normalized = value.replace(/\\s+/g, " ").replace(/^\\s+|\\s+$/g, "");
       return normalized ? normalized.slice(0, 500) : fallback || "";
     }
+    function templateProductTitleClass(value) {
+      var length = templateText(value, "").length;
+      if (length > 36) return "legacy-price-title-dense";
+      if (length > 24) return "legacy-price-title-compact";
+      return "";
+    }
     function templateNode(tagName, className, text) {
       var element = document.createElement(tagName);
       if (className) element.className = className;
@@ -2429,9 +2443,10 @@ export function renderLgLegacyHtml() {
         var snapshotFallback = templateRecord(product.snapshotFallback) || {};
         var money = templateRecord(snapshotFallback.price) || {};
         var article = templateNode("article", "legacy-price-product");
+        var title = templateText(product.nameOverride, templateText(snapshotFallback.name, "Product"));
         appendMedia(article, product.mediaOverrideAssetId || snapshotFallback.imageAssetId, snapshotFallback.name);
         var copy = templateNode("span", "legacy-price-copy");
-        copy.appendChild(templateNode("strong", "", templateText(product.nameOverride, templateText(snapshotFallback.name, "Product"))));
+        copy.appendChild(templateNode("strong", templateProductTitleClass(title), title));
         copy.appendChild(templateNode("small", "", templateText(snapshotFallback.variantLabel, "\u00a0")));
         article.appendChild(copy);
         article.appendChild(templateNode("b", "", templatePrice(money.amountMinor, templateText(money.currency, "EUR"))));
@@ -2450,9 +2465,10 @@ export function renderLgLegacyHtml() {
             : templateText(line.labelOverride, templateText((templateRecord(line.snapshotFallback) || {}).variantLabel, templateText((templateRecord(line.snapshotFallback) || {}).name, ""))));
         }
         var article = templateNode("article", "legacy-price-product legacy-menu-group");
-        appendMedia(article, group.imageAssetId, group.title);
+        var title = templateText(group.title, "Productgroep");
+        appendMedia(article, group.imageAssetId, title);
         var copy = templateNode("span", "legacy-price-copy");
-        copy.appendChild(templateNode("strong", "", templateText(group.title, "Productgroep")));
+        copy.appendChild(templateNode("strong", templateProductTitleClass(title), title));
         copy.appendChild(templateNode("small", "legacy-menu-free", labels.join(" · ")));
         article.appendChild(copy);
         var price = "";
@@ -2579,6 +2595,7 @@ export function renderLgLegacyHtml() {
               } else {
                 var product = templateRecord(row.product) || {};
                 var article = templateNode("article", "legacy-price-product");
+                var title = templateText(product.name, "Product");
                 var media = templateNode("span", "legacy-price-media");
                 var mediaUrl = product.photoVisible === true
                   ? templateAssetUrl(payload, templateText(product.imageMediaAssetId, ""))
@@ -2591,7 +2608,7 @@ export function renderLgLegacyHtml() {
                   media.appendChild(image);
                 }
                 var copy = templateNode("span", "legacy-price-copy");
-                copy.appendChild(templateNode("strong", "", templateText(product.name, "Product")));
+                copy.appendChild(templateNode("strong", templateProductTitleClass(title), title));
                 copy.appendChild(templateNode("small", "", templateText(product.description, "\u00a0")));
                 article.appendChild(media);
                 article.appendChild(copy);
