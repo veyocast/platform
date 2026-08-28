@@ -11,9 +11,15 @@ import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import styles from "../../dynamic-content.module.css";
 import {
   connectSportlink,
+  deleteBirthdayEnrichments,
+  requestBirthdaySync,
   requestSportlinkSync,
+  resolveBirthdayConflict,
+  rollbackBirthdayImport,
+  setSportlinkBirthdays,
   updateSportlinkPolicy
 } from "./actions";
+import { BirthdayIntegrationPanel } from "./birthday-integration-panel";
 import { SportlinkSyncRefresh } from "./sportlink-sync-refresh";
 
 type Props = { searchParams: Promise<{ fout?: string; succes?: string }> };
@@ -93,6 +99,19 @@ export default async function SportlinkPage({ searchParams }: Props) {
           <Button type="submit" variant="secondary">Nu synchroniseren</Button>
         </form>
       ) : null}
+      <BirthdayIntegrationPanel
+        activateAction={setSportlinkBirthdays}
+        canManage={canManage}
+        conflicts={data?.birthdayConflicts ?? []}
+        connection={connection}
+        deleteAction={deleteBirthdayEnrichments}
+        imports={data?.birthdayImports ?? []}
+        members={data?.birthdayMembers ?? []}
+        resolveAction={resolveBirthdayConflict}
+        rollbackAction={rollbackBirthdayImport}
+        status={data?.birthdayStatus ?? emptyBirthdayStatus()}
+        syncAction={requestBirthdaySync}
+      />
       <div className={styles.grid}>
         {policies.map((policy) => (
           <form action={updateSportlinkPolicy} className={styles.card} key={policy.id}>
@@ -168,10 +187,10 @@ async function loadConnection(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return null;
   const result = await supabase.from("sportlink_connections")
-    .select("id,status,detected_club_name,client_id_suffix,last_tested_at,last_success_at,last_error_code")
+    .select("id,status,detected_club_name,client_id_suffix,last_tested_at,last_success_at,last_error_code,privacy_birthdays_enabled")
     .eq("tenant_id", tenantId).neq("status", "revoked").maybeSingle();
   if (!result.data) return null;
-  const [policiesResult, runsResult] = await Promise.all([
+  const [policiesResult, runsResult, birthdayStatusResult, birthdayConflictsResult, birthdayMembersResult, birthdayImportsResult] = await Promise.all([
     supabase.from("sportlink_sync_policies")
     .select("id,dataset_group,frequency,enabled,next_sync_at,last_success_at")
     .eq("connection_id", result.data.id).order("dataset_group"),
@@ -180,6 +199,11 @@ async function loadConnection(tenantId: string) {
       .eq("connection_id", result.data.id)
       .order("started_at", { ascending: false })
       .limit(100)
+    ,
+    supabase.rpc("get_sportlink_birthday_status_v1", { p_connection_id: result.data.id }),
+    supabase.from("sportlink_birthdays").select("id,display_name,normalized_name").eq("tenant_id", tenantId).eq("connection_id", result.data.id).eq("active", true).eq("match_status", "ambiguous").order("display_name").limit(100),
+    supabase.from("sportlink_team_members").select("id,display_name,normalized_name,role,team_assignments").eq("tenant_id", tenantId).eq("connection_id", result.data.id).eq("active", true).order("display_name").limit(500),
+    supabase.from("sportlink_birthday_imports").select("id,source_file_name,status,valid_count,invalid_count,duplicate_count,conflict_count,created_at").eq("tenant_id", tenantId).eq("connection_id", result.data.id).order("created_at", { ascending: false }).limit(10)
   ]);
   const latestRunByGroup = new Map<string, {
     errorCode: string | null;
@@ -193,6 +217,10 @@ async function loadConnection(tenantId: string) {
     });
   }
   return {
+    birthdayConflicts: birthdayConflictsResult.data ?? [],
+    birthdayImports: birthdayImportsResult.data ?? [],
+    birthdayMembers: birthdayMembersResult.data ?? [],
+    birthdayStatus: birthdayStatus(birthdayStatusResult.data),
     connection: result.data,
     policies: (policiesResult.data ?? []).map((policy) => {
       const latestRun = latestRunByGroup.get(policy.dataset_group);
@@ -204,6 +232,24 @@ async function loadConnection(tenantId: string) {
     })
   };
 }
+
+function birthdayStatus(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return emptyBirthdayStatus();
+  const status = value as Record<string, unknown>;
+  const counts = status.counts && typeof status.counts === "object" && !Array.isArray(status.counts)
+    ? status.counts as Record<string, unknown> : {};
+  return {
+    active: status.active === true,
+    counts: { ambiguous: Number(counts.ambiguous ?? 0), birthdays: Number(counts.birthdays ?? 0), knownAge: Number(counts.knownAge ?? 0), matched: Number(counts.matched ?? 0), withPhoto: Number(counts.withPhoto ?? 0) },
+    featureEnabled: status.featureEnabled === true,
+    freshness: String(status.freshness ?? "never"),
+    lastErrorCode: typeof status.lastErrorCode === "string" ? status.lastErrorCode : null,
+    lastSuccessAt: typeof status.lastSuccessAt === "string" ? status.lastSuccessAt : null,
+    nextSyncAt: typeof status.nextSyncAt === "string" ? status.nextSyncAt : null
+  };
+}
+
+function emptyBirthdayStatus() { return { active: false, counts: { ambiguous: 0, birthdays: 0, knownAge: 0, matched: 0, withPhoto: 0 }, featureEnabled: false, freshness: "never", lastErrorCode: null, lastSuccessAt: null, nextSyncAt: null }; }
 function errorCopy(code: string) {
   const copy: Record<string, string> = {
     SPORTLINK_CLIENT_ID_INVALID: "De Client ID is ongeldig.",
@@ -211,6 +257,10 @@ function errorCopy(code: string) {
     CLUB_NOT_FOUND: "Sportlink gaf geen bruikbare clubidentiteit terug.",
     POLICY_INVALID: "De synchronisatie-instelling is ongeldig.",
     POLICY_SAVE_FAILED: "Het synchronisatiebeleid kon niet worden opgeslagen.",
+    BIRTHDAYS_ACTIVATION_FAILED: "De verjaardagmodule kon niet worden gewijzigd. Controleer je rechten en de actieve Client ID.",
+    BIRTHDAYS_MATCH_FAILED: "De handmatige koppeling kon niet worden opgeslagen. Controleer of beide personen nog actueel zijn.",
+    BIRTHDAYS_ROLLBACK_FAILED: "De laatste import kon niet veilig worden teruggedraaid.",
+    BIRTHDAYS_SYNC_COOLDOWN: "Er is recent al vernieuwd. De rate limit beschermt Sportlink; probeer het over vijftien minuten opnieuw.",
     PRIVACY_OPT_IN_REQUIRED: "Persoonsfeeds vereisen eerst een expliciete privacy-activering.",
     SAVE_FAILED: "De geteste verbinding kon niet veilig worden opgeslagen.",
     SPORTLINK_WORKER_LEASE_EXPIRED: "De synchronisatieworker werd onderbroken. De dataset is automatisch opnieuw ingepland; de laatste goede inhoud blijft beschikbaar.",

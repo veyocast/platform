@@ -43,6 +43,23 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
     hasCapability(session.capabilities, "tenant.playlist.publish") &&
     studio?.readiness?.canPublish
   );
+  const birthdayTimingChecks = studio?.items.flatMap((item) => {
+    const sectionEnabled = item.sectionId === null || enabledSections.has(item.sectionId);
+    const slide = item.dynamicSlideId
+      ? studio.dynamicSlides.find((candidate) =>
+          candidate.id === item.dynamicSlideId &&
+          candidate.slideType === "sport_birthdays"
+        )
+      : null;
+    if (!item.enabled || !sectionEnabled || !slide) return [];
+    return [{
+      actualDurationSeconds: item.durationSeconds,
+      itemId: item.id,
+      minimumDurationSeconds: slide.durationSeconds,
+      name: slide.name,
+      pageCount: slide.slideCount
+    }];
+  }) ?? [];
   const previewItems: PlaylistPreviewItem[] = studio?.items.flatMap((item) => {
     if (!item.asset?.variant?.previewUrl) return [];
     return [{
@@ -88,6 +105,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
           preflight: state.preflight,
           screen: state.screen
         }))}
+        birthdayTimingChecks={birthdayTimingChecks}
         previewItems={previewItems}
         readiness={{
           canPublish: studio.readiness?.canPublish ?? false,

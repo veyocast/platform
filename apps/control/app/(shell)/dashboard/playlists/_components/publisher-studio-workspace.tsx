@@ -1345,7 +1345,9 @@ function DraggableDynamicSlideCard({
             {slide.orientation === "portrait" ? "Portrait" : "Landscape"}
             {slide.slideType === "news"
               ? ` · ${slide.slideCount} nieuwsslides`
-              : ""}
+              : slide.slideType === "sport_birthdays"
+                ? ` · ${slide.slideCount} ${slide.slideCount === 1 ? "pagina" : "pagina's"} · ${slide.durationSeconds} sec automatisch`
+                : ""}
           </small>
         </span>
       </button>

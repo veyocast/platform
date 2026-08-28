@@ -24,7 +24,8 @@ describe("Sportlink clublogo", () => {
       encryptionIv: "initialization",
       encryptionTag: "authentication",
       runId: "40000000-0000-4000-8000-000000000001",
-      tenantId: "10000000-0000-4000-8000-000000000001"
+      tenantId: "10000000-0000-4000-8000-000000000001",
+      timezone: "Europe/Amsterdam"
     }, "club-1", "Duindorp sv", input);
 
     expect(artifact).toMatchObject({
@@ -58,7 +59,8 @@ describe("Sportlink clublogo", () => {
       encryptionIv: "initialization",
       encryptionTag: "authentication",
       runId: "40000000-0000-4000-8000-000000000001",
-      tenantId: "10000000-0000-4000-8000-000000000001"
+      tenantId: "10000000-0000-4000-8000-000000000001",
+      timezone: "Europe/Amsterdam"
     }, "team-1", "Bezoekers 1", "https://cdn.sportlink.com/bezoekers.png", input);
 
     expect(artifact).toMatchObject({

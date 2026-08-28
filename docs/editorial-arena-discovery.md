@@ -57,7 +57,7 @@ selecteerbaar. De vertrouwde Player-runtime kiest uitsluitend op gevalideerd
 | Teamsponsor | `sport_sponsor` | registry kent `team-sponsors`; worker synchroniseert deze capability niet | geen genormaliseerde sponsorflow | verborgen |
 | Teamvoorstelling | `sport_team` | alleen teamrecords; geen roster/deelnemerssync | geen complete spelersflow | verborgen |
 | Trainingsoverzicht | `sport_trainings` | registry kent trainingen; worker synchroniseert alleen verenigingsactiviteiten | geen gevalideerde trainingsflow | verborgen |
-| Jarigen | `sport_birthdays` | privacyvelden en mapper bestaan; worker voert `public_people` niet uit | geen werkende privacygebonden sync | verborgen |
+| Jarigen | `sport_birthdays` | officieel `verjaardagen`-artikel → tenantgebonden 21-dagen-LKG met exacte teamverrijking | expliciete verjaardagactivatie en eerste succesvolle dagelijkse sync | actief |
 | Volgende wedstrijd | `sport_next_match` | toekomstig programma → `sports_matches` | `matches` en `teams` geslaagd | actief |
 | Vrijwilligers | `sport_volunteers` | registry kent vrijwilligers; worker voert `volunteers` niet uit | geen werkende vrijwilligerssync | verborgen |
 | Scheidsrechtersaanstellingen | `sport_officials` | wedstrijdinformatie → `sports_matches.officials` | `match_details` en `teams` geslaagd | actief |
@@ -88,11 +88,11 @@ bestaat.
 ### Sportlink
 
 De Player doet geen Sportlink-calls. De server-only client gebruikt uitsluitend
-de geregistreerde Club.Dataservice-artikelen. De worker implementeert momenteel
-alleen `club_profile`, `teams`, `competitions`, `matches`, `match_details` en
-`activities`; `public_people` en `volunteers` eindigen bewust met
-`SPORTLINK_DATASET_DISABLED`. Daarom gelden een databasepolicy of registry-item
-zonder workerpad niet als capability.
+de geregistreerde Club.Dataservice-artikelen. De worker implementeert
+`club_profile`, `teams`, `competitions`, `matches`, `match_details`,
+`activities` en het geminimaliseerde verjaardagspad binnen `public_people`;
+`volunteers` blijft bewust uitgeschakeld. Het verjaardagspad heeft een eigen
+privacy-activatie en vereist geen Token Club.Data.
 
 Teamlogo-URL's worden wel gevalideerd in de mapper, maar nog niet als canonical
 providerasset opgeslagen. De Editorial Arena-renderer gebruikt daarom het

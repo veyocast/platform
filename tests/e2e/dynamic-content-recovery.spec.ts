@@ -14,20 +14,25 @@ test("maakt Sportlink vindbaar vanuit databronnen", async ({
 });
 
 test("stuurt de oude slideflow door naar de Unified Studio", async ({ page }) => {
-  await page.goto("/dashboard/slides/new", { waitUntil: "networkidle" });
+  await page.goto("/dashboard/slides/new", { waitUntil: "domcontentloaded" });
 
-  await expect(page).toHaveURL(/\/dashboard\/studio\/new$/);
+  await expect(page).toHaveURL(/\/dashboard\/studio\/new$/, {
+    timeout: 30_000
+  });
   await expect(page.getByRole("heading", { level: 1, name: "Nieuwe slide" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Openen" })).toHaveCount(4);
+  await expect(page.getByRole("link", { name: "Openen" })).toHaveCount(5);
   for (const destination of [
     "/dashboard/studio/new?family=free",
     "/dashboard/slides/menu-studio/new",
     "/dashboard/slides/new?family=news",
-    "/dashboard/studio/sportlink/new"
+    "/dashboard/studio/sportlink/new",
+    "/dashboard/studio/sportlink/birthdays/new"
   ]) {
     await expect(page.locator(`a[href="${destination}"]`)).toBeVisible();
   }
-  await expect(page.getByRole("heading", { name: "Sportlink" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Sportlink", exact: true })
+  ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Dynamische slide maken" })).toHaveCount(0);
 });
 

@@ -545,6 +545,29 @@ export async function loadPlaylistStudio(
 
 function dynamicSlidePlayback(value: unknown) {
   const root = recordValue(value);
+  const sport = recordValue(root?.sport);
+  if (sport && Array.isArray(sport.birthdays)) {
+    const configuration = recordValue(sport.configuration);
+    const presentation = recordValue(configuration?.presentation);
+    const requestedLandscapeSize = Number(presentation?.maxPerLandscapePage);
+    const requestedPortraitSize = Number(presentation?.maxPerPortraitPage);
+    const landscapeSize = Number.isInteger(requestedLandscapeSize)
+      ? Math.min(8, Math.max(1, requestedLandscapeSize))
+      : 4;
+    const portraitSize = Number.isInteger(requestedPortraitSize)
+      ? Math.min(8, Math.max(1, requestedPortraitSize))
+      : 3;
+    const pageSize = Math.min(landscapeSize, portraitSize);
+    const pageCount = Math.max(1, Math.ceil(sport.birthdays.length / pageSize));
+    const requestedSeconds = Number(presentation?.pageDurationSeconds);
+    const secondsPerPage = Number.isInteger(requestedSeconds)
+      ? Math.min(20, Math.max(6, requestedSeconds))
+      : 8;
+    return {
+      durationSeconds: pageCount * secondsPerPage,
+      slideCount: pageCount
+    };
+  }
   const news = recordValue(root?.news);
   if (!news) return { durationSeconds: 10, slideCount: 1 };
   const articles = Array.isArray(news.articles) ? news.articles : [];

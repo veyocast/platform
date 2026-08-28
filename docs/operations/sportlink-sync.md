@@ -45,8 +45,11 @@ Dependency order:
 6. the bounded upcoming-match refresh;
 7. activities.
 
-Public-person and volunteer groups are in the allowlisted registry but default
-off. The worker refuses them until the separate privacy activation is present.
+Public-person and volunteer groups are in the allowlisted registry and default
+off. De birthday-submodule van `public_people` draait na de afzonderlijke
+`privacy_birthdays_enabled`-activatie dagelijks via Client ID; een ontbrekende
+of ongeldige Token Club.Data blokkeert dit pad niet. Vrijwilligers en overige
+persoonsfeeds blijven uitgeschakeld zonder hun eigen privacygrondslag.
 
 Retry only transport, 429 and 5xx failures with bounded exponential backoff and
 jitter. Never retry 4001/4002/4012/4031/4041 as transient failures. Record safe
@@ -56,7 +59,9 @@ containing `client_id`.
 
 Stale data remains visible in Control. It is not deleted from Player releases.
 Program items expire after their configured window; cancellation, dressing-room
-and official data expire after match day; birthdays after their date.
+and official data expire after match day. Birthday snapshots are retained as
+Last Known Good for at most 21 days, while the Player filters expired birthday
+dates again at local playback time and skips an empty result without a frame.
 
 For match-driven slides, Control may persist a bounded canonical
 `sportTeamExternalId` and `sportCompetitionExternalId`. Both identities are

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Database, LayoutDashboard, Newspaper, Palette } from "lucide-react";
+import { CakeSlice, Database, LayoutDashboard, Newspaper, Palette } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { hasCapability } from "@veyocast/auth";
@@ -38,6 +38,7 @@ export default async function NewStudioPage({
           <StudioFamilyCard description="Bouw menu's en prijslijsten vanuit gekoppelde producten." href="/dashboard/slides/menu-studio/new" icon={<LayoutDashboard aria-hidden="true" />} title="Menu & prijzen" />
           <StudioFamilyCard description="Maak een datagedreven nieuwsslide vanuit een gecontroleerde RSS- of Atom-bron." href="/dashboard/slides/new?family=news" icon={<Newspaper aria-hidden="true" />} title="Nieuws & RSS" />
           <StudioFamilyCard description="Maak in één wizard club-, poule- en aankomstslides vanuit Sportlink." href="/dashboard/studio/sportlink/new" icon={<Database aria-hidden="true" />} title="Sportlink" />
+          <StudioFamilyCard description="Toon automatisch de juiste jarigen vanuit Sportlink, met veilige team- en leeftijdsverrijking." href="/dashboard/studio/sportlink/birthdays/new" icon={<CakeSlice aria-hidden="true" />} title="Sportlink — Verjaardagen" />
         </div>
         <style>{`.studio-family-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}.studio-family-card{display:flex;min-height:210px;flex-direction:column;justify-content:space-between;padding:1.5rem;border:1px solid var(--border);border-radius:18px;background:var(--surface)}.studio-family-card svg{width:32px;height:32px;color:var(--accent)}.studio-family-card h2{margin:.9rem 0 .4rem}.studio-family-card p{color:var(--muted-foreground);max-width:34ch}`}</style>
       </>

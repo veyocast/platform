@@ -63,12 +63,11 @@ select is(
         'sport_sponsor',
         'sport_team',
         'sport_trainings',
-        'sport_birthdays',
         'sport_volunteers'
       )
   ),
   0::bigint,
-  'types without a complete data flow stay inactive'
+  'remaining types without a complete data flow stay inactive'
 );
 
 select ok(

@@ -1,6 +1,7 @@
 export * from "./safe-rss-fetch";
 export * from "./safe-image-fetch";
 export * from "./sportlink-client";
+export * from "./sportlink-birthdays";
 export * from "./sportlink-mappers";
 export * from "./sportlink-secret";
 export * from "./mollie";

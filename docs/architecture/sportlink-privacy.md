@@ -7,7 +7,10 @@ embedded base64 logos. Logo bytes use a separate bounded PNG path.
 
 Person records contain at most display name, public role and an allowed photo.
 Person, birthday and volunteer groups default off. Birthdays are limited to 21
-days and never expose birth year or age. Expired date-bound records do not enter
+days. Een gericht importpad mag een betrouwbaar geboortejaar in een afzonderlijke
+private RLS-tabel bewaren; Playerpayloads bevatten nooit dat jaar of een
+volledige geboortedatum, alleen de voor het verjaardagsmoment berekende leeftijd
+wanneer de slide die werkelijk toont. Expired date-bound records do not enter
 new snapshots.
 
 Sportlink visibility is respected but is not by itself permission to publish

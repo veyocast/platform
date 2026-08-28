@@ -2,8 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { createHash } from "node:crypto";
 
 import {
+  guessBirthdayImportMapping,
+  normalizeBirthdayImportRows,
+  parseBirthdayImportFile,
   SportlinkClient, SportlinkClientError, encryptSportlinkClientId,
   mapSportlinkClub
 } from "@veyocast/integrations/server";
@@ -100,6 +104,126 @@ export async function requestSportlinkSync(formData: FormData) {
   revalidatePath("/dashboard/data-sources/sportlink");
   revalidatePath("/dashboard/slides/new");
   redirect("/dashboard/data-sources/sportlink?succes=Synchronisatie+ingepland.+De+status+wordt+automatisch+bijgewerkt.");
+}
+
+export async function setSportlinkBirthdays(formData: FormData) {
+  await requireTenantControlSession("tenant.data_source.manage");
+  const connectionId = String(formData.get("connectionId") ?? "");
+  const enabled = formData.get("enabled") === "on";
+  const supabase = await createControlSupabaseClient();
+  const result = supabase && /^[0-9a-f-]{36}$/iu.test(connectionId)
+    ? await supabase.rpc("activate_sportlink_birthdays_v1", {
+      p_connection_id: connectionId, p_enabled: enabled
+    }) : null;
+  if (!result || result.error) {
+    redirect("/dashboard/data-sources/sportlink?fout=BIRTHDAYS_ACTIVATION_FAILED#verjaardagen");
+  }
+  revalidatePath("/dashboard/data-sources/sportlink");
+  redirect(`/dashboard/data-sources/sportlink?succes=Verjaardagen+zijn+${enabled ? "geactiveerd" : "gepauzeerd"}.#verjaardagen`);
+}
+
+export async function requestBirthdaySync(formData: FormData) {
+  await requireTenantControlSession("tenant.data_source.manage");
+  const connectionId = String(formData.get("connectionId") ?? "");
+  const supabase = await createControlSupabaseClient();
+  const result = supabase && /^[0-9a-f-]{36}$/iu.test(connectionId)
+    ? await supabase.rpc("request_sportlink_birthday_sync_v1", { p_connection_id: connectionId })
+    : null;
+  if (!result || result.error) {
+    redirect("/dashboard/data-sources/sportlink?fout=BIRTHDAYS_SYNC_COOLDOWN#verjaardagen");
+  }
+  revalidatePath("/dashboard/data-sources/sportlink");
+  redirect("/dashboard/data-sources/sportlink?succes=De+verjaardagen+worden+veilig+ververst.#verjaardagen");
+}
+
+export async function previewBirthdayImport(formData: FormData) {
+  await requireTenantControlSession("tenant.data_source.manage");
+  const file = formData.get("file");
+  if (!(file instanceof File)) return { error: "Kies een CSV- of XLSX-bestand." };
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const parsed = await parseBirthdayImportFile(file.name, bytes);
+    const mapping = guessBirthdayImportMapping(parsed.headers);
+    return {
+      checksum: createHash("sha256").update(bytes).digest("hex"),
+      fileName: parsed.fileName, headers: parsed.headers, mapping,
+      normalized: normalizeBirthdayImportRows(parsed.rows, mapping), rows: parsed.rows
+    };
+  } catch {
+    return { error: "Het bestand kon niet veilig worden gelezen. Gebruik CSV of XLSX, maximaal 8 MB en 10.000 regels." };
+  }
+}
+
+export async function applyBirthdayImport(input: {
+  checksum: string; connectionId: string; fileName: string; idempotencyKey: string;
+  mapping: Record<string, string | null>; rows: Array<Record<string, boolean | number | string | null>>;
+}) {
+  const session = await requireTenantControlSession("tenant.data_source.manage");
+  if (!session.tenantId || !/^[0-9a-f-]{36}$/iu.test(input.connectionId) ||
+    !/^[0-9a-f-]{36}$/iu.test(input.idempotencyKey) ||
+    !/^[a-f0-9]{64}$/u.test(input.checksum) || input.rows.length > 10_000) {
+    return { error: "De importpreview is verlopen of ongeldig." };
+  }
+  const normalized = normalizeBirthdayImportRows(input.rows, input.mapping as never);
+  const supabase = await createControlSupabaseClient();
+  const result = supabase ? await supabase.rpc("apply_sportlink_birthday_import_v1", {
+    p_connection_id: input.connectionId, p_idempotency_key: input.idempotencyKey,
+    p_rows: normalized, p_source_checksum_sha256: input.checksum,
+    p_source_file_name: input.fileName, p_tenant_id: session.tenantId
+  }) : null;
+  if (!result || result.error) return { error: "De verrijking kon niet worden toegepast. Bestaande betrouwbare waarden zijn ongewijzigd." };
+  revalidatePath("/dashboard/data-sources/sportlink");
+  return { data: result.data };
+}
+
+export async function remapBirthdayImport(input: {
+  mapping: Record<string, string | null>;
+  rows: Array<Record<string, boolean | number | string | null>>;
+}) {
+  await requireTenantControlSession("tenant.data_source.manage");
+  if (!Array.isArray(input.rows) || input.rows.length > 10_000) return [];
+  return normalizeBirthdayImportRows(input.rows, input.mapping as never);
+}
+
+export async function rollbackBirthdayImport(formData: FormData) {
+  await requireTenantControlSession("tenant.data_source.manage");
+  const importId = String(formData.get("importId") ?? "");
+  const supabase = await createControlSupabaseClient();
+  const result = supabase && /^[0-9a-f-]{36}$/iu.test(importId)
+    ? await supabase.rpc("rollback_sportlink_birthday_import_v1", { p_import_id: importId })
+    : null;
+  if (!result || result.error) redirect("/dashboard/data-sources/sportlink?fout=BIRTHDAYS_ROLLBACK_FAILED#verjaardagen");
+  revalidatePath("/dashboard/data-sources/sportlink");
+  redirect("/dashboard/data-sources/sportlink?succes=De+laatste+geboortejaarimport+is+veilig+teruggedraaid.#verjaardagen");
+}
+
+export async function resolveBirthdayConflict(formData: FormData) {
+  await requireTenantControlSession("tenant.data_source.manage");
+  const birthdayId = String(formData.get("birthdayId") ?? "");
+  const memberId = String(formData.get("memberId") ?? "");
+  const supabase = await createControlSupabaseClient();
+  const result = supabase && [birthdayId, memberId].every((value) => /^[0-9a-f-]{36}$/iu.test(value))
+    ? await supabase.rpc("resolve_sportlink_birthday_match_v1", { p_birthday_id: birthdayId, p_team_member_id: memberId })
+    : null;
+  if (!result || result.error) redirect("/dashboard/data-sources/sportlink?fout=BIRTHDAYS_MATCH_FAILED#verjaardagen");
+  revalidatePath("/dashboard/data-sources/sportlink");
+  redirect("/dashboard/data-sources/sportlink?succes=De+persoon+is+handmatig+en+controleerbaar+gekoppeld.#verjaardagen");
+}
+
+export async function deleteBirthdayEnrichments(formData: FormData) {
+  await requireTenantControlSession("tenant.data_source.manage");
+  const connectionId = String(formData.get("connectionId") ?? "");
+  const confirmed = formData.get("confirm") === "VERWIJDEREN";
+  const supabase = await createControlSupabaseClient();
+  const result = confirmed && supabase && /^[0-9a-f-]{36}$/iu.test(connectionId)
+    ? await supabase.rpc("delete_sportlink_birthday_enrichments_v1", {
+      p_connection_id: connectionId
+    }) : null;
+  if (!result || result.error) {
+    redirect("/dashboard/data-sources/sportlink?fout=BIRTHDAYS_DELETE_FAILED#verjaardagen");
+  }
+  revalidatePath("/dashboard/data-sources/sportlink");
+  redirect("/dashboard/data-sources/sportlink?succes=Alle+verjaardagsverrijkingen+zijn+verwijderd.#verjaardagen");
 }
 
 const syncGroups = [

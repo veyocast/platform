@@ -37,6 +37,7 @@ export const editorialArenaActiveSlideTypes = [
   "price_list",
   "news",
   "sport_activities",
+  "sport_birthdays",
   "sport_cancellations",
   "sport_dressing_rooms",
   "sport_match_of_the_day",

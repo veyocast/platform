@@ -12,5 +12,6 @@ export * from "./screen-automation";
 export * from "./sponsor";
 export * from "./sport";
 export * from "./sportlink-slide-blueprints";
+export * from "./sportlink-birthdays";
 export * from "./youtube";
 export * from "./billing";

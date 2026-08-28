@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 import { themeSelectionSchema } from "@veyocast/contracts";
 import { platformDefaultThemeSelection } from "@veyocast/content-templates/theme-catalog";
+import { Button } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../../lib/supabase/server";
@@ -17,6 +20,10 @@ export default async function SportlinkNewPage({ searchParams }: PageProps) {
   return (
     <>
       {params.fout ? <p className="notice notice--critical" role="alert"><strong>Slides niet gemaakt.</strong> {params.fout}</p> : null}
+      <p className="notice" role="note"><strong>Automatische verjaardagsslide nodig?</strong>{" "}
+        De aparte verjaardagswizard gebruikt de dagelijkse Sportlink-snapshot, betrouwbare leeftijdsverrijking en automatische paginering.{" "}
+        <Button asChild size="sm" variant="secondary"><Link href="/dashboard/studio/sportlink/birthdays/new">Sportlink — Verjaardagen openen</Link></Button>
+      </p>
       <SportlinkBulkWizard action={createSportlinkSlideBatch} {...data} />
     </>
   );

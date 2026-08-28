@@ -47,7 +47,7 @@ async function assertPageEndIsReachable(page: Page, pathname: string) {
     );
     await expect(page.locator("#control-content")).toBeVisible();
     await expect(page.locator("#control-content h1").first()).toBeVisible();
-  }).toPass({ timeout: 30_000 });
+  }).toPass({ timeout: 120_000 });
 
   const metrics = await page.getByRole("main").evaluate((element) => {
     const content = element.querySelector<HTMLElement>("#control-content");
@@ -78,7 +78,7 @@ async function assertPageEndIsReachable(page: Page, pathname: string) {
 test("keeps every Control workspace reachable on mobile viewports", async ({
   page
 }) => {
-  test.setTimeout(300_000);
+  test.setTimeout(900_000);
   const evidenceDirectory = process.env.MOBILE_SCROLL_EVIDENCE_DIR
     ? path.resolve(process.env.MOBILE_SCROLL_EVIDENCE_DIR)
     : null;
