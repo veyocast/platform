@@ -35,7 +35,13 @@ export async function routeEditorialPriceListManifest(
       formattedPrice: `€ ${(index + 2).toFixed(2).replace(".", ",")}`,
       id: `${column}-product-${index + 1}`,
       imageMediaAssetId: index % 2 === 0 ? imageId : null,
-      name: column === "left" ? `Clubdrank ${index + 1}` : `Snack ${index + 1}`,
+      name: index === 0
+        ? "AddMoore Sportwater"
+        : index === 1
+          ? "Chaudfontaine mineraalwater bruisend"
+          : index === 2
+            ? "Verse ambachtelijke vegetarische clubsandwich deluxe"
+            : column === "left" ? `Clubdrank ${index + 1}` : `Snack ${index + 1}`,
       photoVisible: index % 4 !== 3
     }))
   }));

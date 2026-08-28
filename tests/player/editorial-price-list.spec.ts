@@ -73,6 +73,18 @@ for (const orientation of ["landscape", "portrait"] as const) {
         await anchoredLayout(productWithPhoto)
       );
 
+      const productTitles = slide.locator("main article strong");
+      await expect(productTitles.nth(0)).toHaveAttribute("data-title-density", "default");
+      await expect(productTitles.nth(1)).toHaveAttribute("data-title-density", "compact");
+      await expect(productTitles.nth(2)).toHaveAttribute("data-title-density", "dense");
+      expect(await productTitles.evaluateAll((titles) => titles.slice(0, 3).map(
+        (title) => getComputedStyle(title).fontSize
+      ))).toEqual(
+        orientation === "portrait"
+          ? ["28px", "25px", "22px"]
+          : ["36px", "32px", "28px"]
+      );
+
       if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
         await page.screenshot({
           path: `docs/screenshots/s103-editorial-arena-price-list-${theme}-${orientation}.png`

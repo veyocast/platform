@@ -5,12 +5,20 @@ import type { MenuDocumentV2, MenuProductPlacement } from "@veyocast/contracts";
 import {
   menuSceneCanvases,
   menuSceneZones,
+  resolveProductTitleDensity,
   resolveMenuGroupPrice,
   resolveMenuScenePages,
   resolveMenuSceneScale
 } from "../src/menu-scene";
 
 describe("MenuScene", () => {
+  it("schaalt producttitels voorspelbaar op zichtbare naamlengte", () => {
+    expect(resolveProductTitleDensity("AddMoore Sportwater")).toBe("default");
+    expect(resolveProductTitleDensity("A".repeat(25))).toBe("compact");
+    expect(resolveProductTitleDensity("A".repeat(37))).toBe("dense");
+    expect(resolveProductTitleDensity(`  ${"A".repeat(24)}  `)).toBe("default");
+  });
+
   it("verankert de bindende portrait-canvas en veilige zones exact", () => {
     expect(menuSceneCanvases.portrait).toEqual({ height: 1920, width: 1080 });
     expect(menuSceneZones.portrait).toEqual({
@@ -62,20 +70,21 @@ describe("MenuScene", () => {
     }
   });
 
-  it("plaatst twintig eenvoudige portraitregels in één body en bewaakt drie regels na een breuk", () => {
+  it("pagineert twintig grotere portraittitels en bewaakt drie regels na een breuk", () => {
     const twenty = document("editorial", "light");
     const category = twenty.pages[0]!.blocks[0];
     if (category?.type !== "category") throw new Error("category fixture missing");
     category.productNodes = Array.from({ length: 20 }, (_, index) => product(index));
     const onePage = resolveMenuScenePages(twenty, "portrait");
-    expect(onePage).toHaveLength(1);
-    expect(onePage[0]!.columns.left.filter((row) => row.kind === "product")).toHaveLength(20);
+    expect(onePage.map((page) =>
+      page.columns.left.filter((row) => row.kind === "product").length
+    )).toEqual([17, 3]);
 
     category.productNodes = Array.from({ length: 22 }, (_, index) => product(index));
     const split = resolveMenuScenePages(twenty, "portrait");
     expect(split.map((page) =>
       page.columns.left.filter((row) => row.kind === "product").length
-    )).toEqual([19, 3]);
+    )).toEqual([18, 4]);
   });
 
   it("verdeelt expliciet smalle portraitcategorieën over twee zichtbare kolommen", () => {

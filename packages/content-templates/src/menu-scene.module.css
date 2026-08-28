@@ -200,9 +200,17 @@
 }
 
 .productCopy > strong {
-  font-size: 26px;
+  font-size: 34px;
   line-height: 1.05;
   overflow-wrap: anywhere;
+}
+
+.productCopy > strong[data-title-density="compact"] {
+  font-size: 30px;
+}
+
+.productCopy > strong[data-title-density="dense"] {
+  font-size: 26px;
 }
 
 .productCopy > small {
@@ -374,7 +382,21 @@
   height: 48px;
 }
 
-.canvas[data-orientation="portrait"] .productCopy > strong,
+.canvas[data-orientation="portrait"] .productCopy > strong {
+  font-size: 32px;
+  line-height: 34px;
+}
+
+.canvas[data-orientation="portrait"] .productCopy > strong[data-title-density="compact"] {
+  font-size: 28px;
+  line-height: 31px;
+}
+
+.canvas[data-orientation="portrait"] .productCopy > strong[data-title-density="dense"] {
+  font-size: 24px;
+  line-height: 28px;
+}
+
 .canvas[data-orientation="portrait"] .product > b,
 .canvas[data-orientation="portrait"] .productGroup > b {
   font-size: 26px;

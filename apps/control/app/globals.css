@@ -576,7 +576,7 @@ a {
 }
 
 .control-main--vector {
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(min-content, 1fr);
 }
 
 .control-topbar {

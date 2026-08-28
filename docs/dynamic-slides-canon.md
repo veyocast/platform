@@ -340,6 +340,15 @@ uitgeschakeld. Nieuws ondersteunt `hero_split`, `fullscreen_gradient`,
 tot tien regels, exact twee landschapkolommen vanaf elf en één portretkolom tot
 twintig; boven twintig ontstaat deterministisch een volgende pagina.
 
+Producttitels in prijslijsten gebruiken een leesbare standaardgrootte van 34 px
+op landscape en 32 px op portrait. Alleen op basis van de genormaliseerde
+titellengte kiest de gedeelde renderer deterministisch een begrensde
+`compact`- of `dense`-grootte. Browser en LG Legacy gebruiken dezelfde
+drempels; portrait pagineert eerder en verkleint nooit de volledige scène om
+meer producten in beeld te persen. Tenants kiezen letterfamilies uitsluitend
+via de gecureerde themacatalogus, niet via vrije fontuploads of onbegrensde
+typografie-instellingen.
+
 De migratie verrijkt nieuwe en mutable legacy snapshots met veilige volledige
 defaults zonder oude content te verwijderen. Reeds gepubliceerde releases
 worden niet herschreven. De bestaande RSS-, Sportlink- en Twelve/Excel-

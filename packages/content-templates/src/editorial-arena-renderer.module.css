@@ -1436,9 +1436,17 @@
 .arenaPriceListCopy strong {
   align-self: end;
   font-family: "Arial Narrow", Arial, sans-serif;
-  font-size: 26px;
+  font-size: 36px;
   font-weight: 800;
   line-height: 1;
+}
+
+.arenaPriceListCopy strong[data-title-density="compact"] {
+  font-size: 32px;
+}
+
+.arenaPriceListCopy strong[data-title-density="dense"] {
+  font-size: 28px;
 }
 
 .arenaPriceListCopy small {
@@ -1484,7 +1492,15 @@
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaPriceListCopy strong {
-  font-size: 20px;
+  font-size: 28px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaPriceListCopy strong[data-title-density="compact"] {
+  font-size: 25px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaPriceListCopy strong[data-title-density="dense"] {
+  font-size: 22px;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaPriceListCopy small {

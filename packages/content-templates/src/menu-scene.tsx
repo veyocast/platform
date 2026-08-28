@@ -41,6 +41,15 @@ export const menuSceneZones = {
   }
 } as const;
 
+export type ProductTitleDensity = "default" | "compact" | "dense";
+
+export function resolveProductTitleDensity(value: string): ProductTitleDensity {
+  const length = Array.from(value.trim()).length;
+  if (length > 36) return "dense";
+  if (length > 24) return "compact";
+  return "default";
+}
+
 export function resolveMenuSceneScale(
   stage: { height: number; width: number },
   orientation: keyof typeof menuSceneCanvases
@@ -403,11 +412,12 @@ function ProductRow({
 }) {
   const assetId = product.mediaOverrideAssetId ?? product.snapshotFallback.imageAssetId;
   const asset = assetId ? assets[assetId] : null;
+  const title = product.nameOverride ?? product.snapshotFallback.name;
   return (
     <article className={styles.product} data-available={product.snapshotFallback.available} data-menu-row>
       <MediaThumb asset={asset ?? null} label={product.snapshotFallback.name} />
       <span className={styles.productCopy}>
-        <strong>{product.nameOverride ?? product.snapshotFallback.name}</strong>
+        <strong data-title-density={resolveProductTitleDensity(title)}>{title}</strong>
         {product.snapshotFallback.variantLabel ? (
           <small>{product.snapshotFallback.variantLabel}</small>
         ) : <small aria-hidden="true">&nbsp;</small>}
@@ -440,7 +450,7 @@ function ProductGroup({
     <article className={styles.productGroup} data-available={!unavailable} data-menu-row>
       <MediaThumb asset={asset ?? null} label={group.title} />
       <span className={styles.productCopy}>
-        <strong>{group.title}</strong>
+        <strong data-title-density={resolveProductTitleDensity(group.title)}>{group.title}</strong>
         <small className={styles.groupLines} data-lines={group.display.maxLines}>
           {visibleLines.map((line, index) => (
             <span key={line.id}>
@@ -693,7 +703,7 @@ function paginateColumn(
   orientation: keyof typeof menuSceneCanvases,
   reservedFirstPageCapacity?: number
 ) {
-  const capacity = orientation === "portrait" ? 22 : 8;
+  const capacity = orientation === "portrait" ? 20 : 8;
   const headingCost = orientation === "portrait" ? 2 : 1;
   const pages: MenuSceneRow[][] = [];
   let current: MenuSceneRow[] = [];
@@ -848,22 +858,22 @@ function firstPageCapacity(
     return Math.min(top, layout.y - body.y);
   }, body.h);
   if (firstBlockTop >= body.h) return base;
-  const rowHeight = orientation === "portrait" ? 62 : 78;
+  const rowHeight = orientation === "portrait" ? 70 : 78;
   const reserved = Math.floor(Math.max(0, firstBlockTop - 24) / rowHeight);
   return Math.max(3, Math.min(base, reserved));
 }
 
 function groupCost(group: MenuProductGroupPlacement) {
-  const titleLines = Math.max(1, Math.ceil(group.title.length / 40));
+  const titleLines = Math.max(1, Math.ceil(group.title.length / 36));
   return Math.max(group.display.maxLines, titleLines + group.display.maxLines - 1);
 }
 
 function nodeCost(node: MenuProductPlacement | MenuProductGroupPlacement) {
   if (node.kind === "product-group") return groupCost(node);
   const name = node.nameOverride ?? node.snapshotFallback.name;
-  const nameLines = Math.max(1, Math.ceil(name.length / 42));
+  const nameLines = Math.max(1, Math.ceil(name.length / 36));
   const metaLines = node.snapshotFallback.variantLabel ? 1 : 0;
-  return Math.max(1, Math.ceil((nameLines * 30 + metaLines * 20 + 12) / 62));
+  return Math.max(1, Math.ceil((nameLines * 36 + metaLines * 20 + 14) / 70));
 }
 
 function rowCost(

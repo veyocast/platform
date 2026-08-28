@@ -34,7 +34,7 @@ import type {
   ResolvedPriceListItem,
   ResolvedPriceListRow
 } from "./price-list";
-import { MenuSceneCanvas } from "./menu-scene";
+import { MenuSceneCanvas, resolveProductTitleDensity } from "./menu-scene";
 import styles from "./editorial-arena-renderer.module.css";
 import {
   resolveThemeTransition,
@@ -613,7 +613,12 @@ function PriceListProduct({ item }: { item: ResolvedPriceListItem }) {
         ) : null}
       </span>
       <span className={styles.arenaPriceListCopy}>
-        <strong title={item.name}>{item.name}</strong>
+        <strong
+          data-title-density={resolveProductTitleDensity(item.name)}
+          title={item.name}
+        >
+          {item.name}
+        </strong>
         <small title={item.description}>{item.description || "\u00a0"}</small>
       </span>
       <b>{item.formattedPrice}</b>

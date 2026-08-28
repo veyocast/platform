@@ -96,7 +96,7 @@ test("Menu Studio bewaakt 40 goldens voor thema, modus en oriëntatie", async ({
   }
 });
 
-test("portrait meet twintig echte DOM-productregels na font-ready zonder crop", async ({ page }) => {
+test("portrait pagineert twintig productregels voor de grotere titels zonder crop", async ({ page }) => {
   await page.setViewportSize({ height: 1920, width: 1080 });
   const payload = buildPayload("editorial", "light", "portrait");
   const menu = buildDocument("editorial", "light");
@@ -117,7 +117,8 @@ test("portrait meet twintig echte DOM-productregels na font-ready zonder crop", 
   const scene = page.locator("[data-theme-mode][data-theme-id]");
   await expect(scene).toHaveAttribute("data-menu-content-measured", "true");
   await expect(scene).toHaveAttribute("data-menu-content-overflow", "false");
-  await expect(scene.locator("[data-menu-row]")).toHaveCount(21);
+  await expect(scene.locator("[data-menu-row]")).toHaveCount(18);
+  await expect(scene.getByText("1 / 2", { exact: true })).toBeVisible();
 
   const geometry = await scene.evaluate((element) => {
     const root = element.getBoundingClientRect();
@@ -224,6 +225,54 @@ test("productgroep en product delen dezelfde rijstijl en hoogte", async ({ page 
     };
   });
   expect(await style(group)).toEqual(await style(regular));
+});
+
+test("producttitels zijn groter en schalen automatisch voor lange namen", async ({ page }) => {
+  for (const orientation of ["landscape", "portrait"] as const) {
+    await page.setViewportSize(
+      orientation === "landscape"
+        ? { height: 1080, width: 1920 }
+        : { height: 1920, width: 1080 }
+    );
+    const payload = buildPayload("editorial", "light", orientation);
+    const menu = buildDocument("editorial", "light");
+    const categoryBlock = menu.pages[0]!.blocks.find(
+      (block) => block.type === "category"
+    );
+    if (!categoryBlock || categoryBlock.type !== "category") {
+      throw new Error("Menu Studio-categorie ontbreekt");
+    }
+    const names = [
+      "AddMoore Sportwater",
+      "Chaudfontaine mineraalwater bruisend",
+      "Verse ambachtelijke vegetarische clubsandwich deluxe"
+    ];
+    const products = categoryBlock.productNodes.filter(
+      (node): node is MenuProductPlacement => node.kind === "product"
+    ).slice(0, 3);
+    if (products.length !== 3) throw new Error("Productfixture ontbreekt");
+    products.forEach((node, index) => {
+      node.nameOverride = names[index]!;
+    });
+    payload.data = { menuDocument: menu };
+
+    await page.goto("about:blank");
+    await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+    await expect.poll(async () => page.evaluate(
+      () => document.documentElement.dataset.thumbnailReady === "true"
+    )).toBe(true);
+    const titles = names.map((name) => page.getByText(name, { exact: true }));
+    await expect(titles[0]!).toHaveAttribute("data-title-density", "default");
+    await expect(titles[1]!).toHaveAttribute("data-title-density", "compact");
+    await expect(titles[2]!).toHaveAttribute("data-title-density", "dense");
+    expect(await Promise.all(titles.map((title) => title.evaluate(
+      (element) => getComputedStyle(element).fontSize
+    )))).toEqual(
+      orientation === "portrait"
+        ? ["32px", "28px", "24px"]
+        : ["34px", "30px", "26px"]
+    );
+  }
 });
 
 test("Menu Studio-video bewaakt poster, muted autoplay en het ingestelde fragment", async ({ page }) => {
