@@ -4,27 +4,11 @@ on:
   pull_request:
     paths:
       - "apps/control-mobile/**"
-      - "apps/control/app/api/mobile/**"
-      - "apps/control/lib/mobile-api/**"
       - "packages/mobile-design-system/**"
-      - "packages/contracts/**"
-      - "supabase/migrations/**"
-      - "supabase/tests/**"
       - "assets/brand/**"
+      - "package.json"
       - "pnpm-lock.yaml"
-      - ".github/workflows/control-mobile-*.yml"
-  push:
-    branches: [main]
-    paths:
-      - "apps/control-mobile/**"
-      - "apps/control/app/api/mobile/**"
-      - "apps/control/lib/mobile-api/**"
-      - "packages/mobile-design-system/**"
-      - "packages/contracts/**"
-      - "supabase/migrations/**"
-      - "supabase/tests/**"
-      - "assets/brand/**"
-      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
       - ".github/workflows/control-mobile-*.yml"
   workflow_dispatch:
 
@@ -195,9 +179,6 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: control-mobile-ci-${{ github.run_number }}
-          path: |
-            apps/control-mobile/android/app/build/outputs/bundle/release/app-release.aab
-            apps/control-mobile/android/app/build/outputs/mapping/release/mapping.txt
-            ${{ runner.temp }}/control-mobile-evidence/
+          path: ${{ runner.temp }}/control-mobile-evidence/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3

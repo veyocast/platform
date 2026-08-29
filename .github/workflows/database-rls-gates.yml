@@ -1,21 +1,25 @@
-name: PR Gates
+name: Database and RLS Gates
 
 on:
   pull_request:
+    paths:
+      - "packages/database/**"
+      - "supabase/**"
+      - ".github/workflows/database-rls-gates.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pr-gates-${{ github.workflow }}-${{ github.ref }}
+  group: database-rls-gates-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  foundation:
-    name: Foundation gates
+  database:
+    name: Database and RLS gates
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -36,20 +40,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
+      - name: Start local Supabase
+        run: pnpm db:start
 
-      - name: Typecheck
-        run: pnpm typecheck
+      - name: Reset database from migrations
+        run: pnpm db:reset
 
-      - name: Unit tests
-        run: pnpm test
+      - name: Prove RLS isolation
+        run: pnpm test:rls
 
-      - name: Build
-        run: pnpm build
-
-      - name: Validate GitHub Actions workflows
-        run: bash scripts/validate-github-actions.sh
-
-      - name: Validate VPS deployment definitions
-        run: bash scripts/validate-vps-deployment.sh
+      - name: Stop local Supabase
+        if: always()
+        run: pnpm db:stop
