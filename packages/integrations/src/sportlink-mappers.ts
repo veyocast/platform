@@ -126,7 +126,10 @@ export function mapSportlinkMatches(
         name: homeName,
         score: scores?.[0] ?? null
       },
-      isHomeMatch: /thuis|home|1|ja/i.test(string(value.eigenteam ?? value.teamvolgorde) ?? ""),
+      // `eigenteam` marks that the club occurs in a result/pool row; it does
+      // not say on which side that team plays. Only Programma's explicit
+      // `teamvolgorde` is authoritative for a home/away decision.
+      isHomeMatch: isExplicitHomeOrder(value.teamvolgorde),
       officials: splitPeople(value.scheidsrechters ?? value.scheidsrechter, "Scheidsrechter"),
       pool: mapMatchPool(value, competition?.externalId ?? null),
       startsAt,
@@ -139,6 +142,11 @@ export function mapSportlinkMatches(
       }
     };
   });
+}
+
+function isExplicitHomeOrder(value: unknown) {
+  const normalized = string(value)?.trim().toLocaleLowerCase("nl-NL") ?? "";
+  return ["1", "home", "t", "thuis", "thuisteam"].includes(normalized);
 }
 
 export function mapSportlinkStandings(

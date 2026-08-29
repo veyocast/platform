@@ -306,6 +306,89 @@ async function mockEditorialStandingLegacyApis(page: Page) {
   });
 }
 
+async function mockVisitorArrivalsLegacyApis(page: Page) {
+  const awayLogoId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+  await page.route("**/api/player/installation", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ bound: true, installationCredential, ok: true })
+  }));
+  await page.route(`**${legacyImagePath}`, (route) => route.fulfill({
+    contentType: "image/svg+xml",
+    body: legacyImageSvg
+  }));
+  await page.route("**/api/player/manifest?legacy=*", (route) => {
+    const envelope = legacyEnvelope({
+      bytes: legacyImageBytes,
+      checksumSha256: legacyImageChecksum,
+      id: "visitor-arrivals",
+      kind: "image",
+      mimeType: "image/svg+xml",
+      title: "Bezoekers welkom",
+      url: legacyImagePath
+    });
+    Object.assign(envelope.manifest.items[0]!, {
+      dynamicTemplate: {
+        assets: {
+          [awayLogoId]: {
+            bytes: legacyImageBytes,
+            checksumSha256: legacyImageChecksum,
+            mimeType: "image/svg+xml",
+            url: legacyImagePath
+          }
+        },
+        data: {
+          brand: { clubName: "Duindorp sv", primaryColor: "#ff5a1f" },
+          sport: {
+            arrivalConfig: { cardCount: 4, emptyBehavior: "skip", motionPreset: "auto" },
+            items: [
+              {
+                homeMatch: true,
+                id: "home-fixture",
+                logoMediaAssetId: awayLogoId,
+                meta: "Kleedkamer 2 · Veld 1",
+                primary: "Bezoekers FC",
+                secondary: "Aankomst 13:00 · Aanvang 14:30",
+                status: "Welkom bij {{club}}"
+              },
+              {
+                homeMatch: false,
+                id: "away-fixture",
+                logoMediaAssetId: awayLogoId,
+                meta: "Uitwedstrijd",
+                primary: "Duindorp sv 1",
+                secondary: "Aanvang 15:00",
+                status: "Welkom bij {{club}}"
+              }
+            ],
+            pageDurationSeconds: 12,
+            title: "Welkom op ons sportpark"
+          },
+          type: "sport_visitor_arrivals"
+        },
+        orientation: "landscape",
+        schemaVersion: 1,
+        slideType: "sport_visitor_arrivals",
+        snapshotHash: "c".repeat(64),
+        snapshotId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        templateSlug: "editorial-arena-bezoekers-aankomst-light-landscape",
+        templateVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+      }
+    });
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(envelope)
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ automation: null, ok: true })
+  }));
+  await page.route("**/api/player/commands", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ commands: [], ok: true, serverTime: new Date().toISOString() })
+  }));
+}
+
 async function mockEditorialPriceListLegacyApis(page: Page) {
   const imageId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
   await page.route("**/api/player/installation", (route) => route.fulfill({
@@ -743,6 +826,43 @@ test("LG Legacy toont de stand als één Editorial Arena-canvas met begrensde lo
       path: "docs/screenshots/s102-lg-standing-single-canvas.png"
     });
   }
+  await context.close();
+});
+
+test("LG Legacy heet alleen bezoekers van thuiswedstrijden welkom en toont hun logo", async ({
+  browser
+}) => {
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+    viewport: { height: 1080, width: 1920 }
+  });
+  const page = await context.newPage();
+  await mockVisitorArrivalsLegacyApis(page);
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem("veyocast.player.installationCredential", credential);
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+  await expect.poll(() => page.evaluate(() =>
+    localStorage.getItem("veyocast.player.lgLegacyDiagnostics.v1") ?? ""
+  )).toContain("LEGACY_TEMPLATE_READY");
+  const slide = page.locator(".dynamic-template.editorial-arena");
+  await expect(slide).toBeVisible();
+  await expect(slide.locator(".legacy-arrival-grid")).toHaveAttribute("data-cards", "1");
+  await expect(slide.locator(".legacy-arrival-card")).toHaveCount(1);
+  await expect(slide.getByText("Bezoekers FC", { exact: true })).toBeVisible();
+  await expect(slide.getByText("Duindorp sv 1", { exact: true })).toHaveCount(0);
+  await expect(slide.locator(".legacy-arrival-logo-mark img")).toHaveCount(1);
+  await expect(slide.locator(".legacy-arrival-logo-backdrop")).toHaveCSS("opacity", "0.3");
   await context.close();
 });
 

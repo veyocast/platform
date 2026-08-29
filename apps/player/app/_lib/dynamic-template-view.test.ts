@@ -540,7 +540,8 @@ describe("trusted dynamic template view", () => {
       data: { sport: {
         arrivalConfig: { cardCount: 2, emptyBehavior: "skip" },
         items: Array.from({ length: 5 }, (_, index) => ({
-          id: `arrival-${index}`, primary: `Team ${index}`, secondary: "Aanvang 14:30", meta: "Kleedkamer 4"
+          homeMatch: true, id: `arrival-${index}`, primary: `Team ${index}`,
+          secondary: "Aanvang 14:30", meta: "Kleedkamer 4"
         })),
         pageDurationSeconds: 9,
         title: "Welkom"
@@ -563,6 +564,16 @@ describe("trusted dynamic template view", () => {
     expect(resolveWelcomeMotionPreset("grand-flip", 8, 3, 4))
       .toBe("grand-flip");
     expect(dynamicTemplateShouldSkip(payload)).toBe(false);
+    expect(dynamicTemplateShouldSkip({
+      ...payload,
+      data: {
+        ...payload.data,
+        sport: {
+          ...payload.data.sport,
+          items: [{ homeMatch: false, id: "away", primary: "Eigen uitteam" }]
+        }
+      }
+    })).toBe(true);
     expect(dynamicTemplateShouldSkip({
       ...payload,
       data: { ...payload.data, sport: { ...payload.data.sport, items: [] } }

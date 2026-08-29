@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type {
-  ClaimedDynamicRenderJob,
-  DynamicRenderBackend
+import {
+  collectDynamicRenderAssetIds,
+  type ClaimedDynamicRenderJob,
+  type DynamicRenderBackend
 } from "../src/dynamic-render-backend";
 import { runDynamicRenderOnce } from "../src/dynamic-render-runner";
 
@@ -29,6 +30,15 @@ const job: ClaimedDynamicRenderJob = {
 };
 
 describe("dynamic render worker", () => {
+  it("neemt bezoekerlogo's mee in de echte snapshotthumbnail", () => {
+    const logoId = "50000000-0000-5000-8000-000000001291";
+    expect(collectDynamicRenderAssetIds({
+      sport: {
+        items: [{ logoMediaAssetId: logoId, primary: "Bezoekers FC" }]
+      }
+    })).toContain(logoId);
+  });
+
   it("rendert, uploadt en voltooit exact één immutable PNG", async () => {
     const backend = backendMock(job);
     const renderer = {

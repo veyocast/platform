@@ -50,9 +50,11 @@ export type DynamicTemplateListItem = {
   competition: string;
   date: string;
   homeRoom: string;
+  homeMatch: boolean;
   homeScore: number | null;
   homeTeam: string;
   id: string;
+  logoUrl: string;
   meta: string;
   officials: string[];
   primary: string;
@@ -423,9 +425,12 @@ function createDynamicTemplateViewInternal(
   }
 
   const sport = readRecord(data.sport);
-  const items = readArray(sport?.items)
-    .map(toListItem)
+  const mappedItems = readArray(sport?.items)
+    .map((item) => toListItem(item, payload))
     .filter((item): item is DynamicTemplateListItem => item !== null);
+  const items = payload.slideType === "sport_visitor_arrivals"
+    ? mappedItems.filter((item) => item.homeMatch)
+    : mappedItems;
   const title = safeText(sport?.title, sportTitle(payload.slideType));
   const emptyState = items.length
     ? ""
@@ -1114,7 +1119,11 @@ export function dynamicTemplateShouldSkip(value: unknown) {
   }
   const sport = readRecord(payload.data.sport);
   const arrivalConfig = readRecord(sport?.arrivalConfig);
-  return arrivalConfig?.emptyBehavior === "skip" && readArray(sport?.items).length === 0;
+  const items = readArray(sport?.items);
+  const renderableItems = payload.slideType === "sport_visitor_arrivals"
+    ? items.filter((value) => readRecord(value)?.homeMatch === true)
+    : items;
+  return arrivalConfig?.emptyBehavior === "skip" && renderableItems.length === 0;
 }
 
 function toMenuItem(
@@ -1262,7 +1271,10 @@ function safeNullableInteger(value: unknown) {
     : null;
 }
 
-function toListItem(value: unknown): DynamicTemplateListItem | null {
+function toListItem(
+  value: unknown,
+  payload: PlayerDynamicTemplatePayload
+): DynamicTemplateListItem | null {
   const item = readRecord(value);
   if (!item) return null;
   const primary = safeText(item.primary, "");
@@ -1274,9 +1286,11 @@ function toListItem(value: unknown): DynamicTemplateListItem | null {
     competition: safeText(item.competition, ""),
     date: safeText(item.date, ""),
     homeRoom: safeText(item.homeRoom, ""),
+    homeMatch: item.homeMatch === true,
     homeScore: safeNullableScore(item.homeScore),
     homeTeam: safeText(item.homeTeam, ""),
     id: safeText(item.id, primary),
+    logoUrl: dynamicAssetUrl(item.logoMediaAssetId, payload),
     meta: safeText(item.meta, ""),
     officials: readArray(item.officials)
       .flatMap((value) => {

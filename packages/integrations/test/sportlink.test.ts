@@ -133,6 +133,44 @@ describe("Sportlink server-only adapter", () => {
     expect(match?.homeTeam.externalId).toBe("10");
   });
 
+  it("derives home fixtures only from the explicit team order", () => {
+    const matches = mapSportlinkMatches([
+      {
+        eigenteam: "JA",
+        teamvolgorde: "UIT",
+        thuisteam: "Andere vereniging 1",
+        uitteam: "Testclub 1",
+        wedstrijdcode: 73,
+        wedstrijddatum: "2026-08-30T12:00:00+02:00"
+      },
+      {
+        eigenteam: "JA",
+        teamvolgorde: "thuis",
+        thuisteam: "Testclub 2",
+        uitteam: "Bezoekers FC",
+        uitteamlogo: "https://cdn.sportlink.nl/logos/bezoekers-fc.png",
+        wedstrijdcode: 74,
+        wedstrijddatum: "2026-08-30T14:30:00+02:00"
+      },
+      {
+        eigenteam: 1,
+        thuisteam: "Testclub 3",
+        uitteam: "Onbekende tegenstander",
+        wedstrijdcode: 75,
+        wedstrijddatum: "2026-08-30T16:30:00+02:00"
+      }
+    ]);
+
+    expect(matches.map((match) => match.isHomeMatch)).toEqual([
+      false,
+      true,
+      false
+    ]);
+    expect(matches[1]?.awayTeam.logoUrl).toBe(
+      "https://cdn.sportlink.nl/logos/bezoekers-fc.png"
+    );
+  });
+
   it("normalizes Europe/Amsterdam wall-clock dates across daylight saving time", () => {
     const matches = mapSportlinkMatches([
       {
