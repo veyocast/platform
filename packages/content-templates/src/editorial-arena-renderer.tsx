@@ -429,11 +429,24 @@ function ArenaPage({
             key={entry.id}
             style={{ "--arrival-delay": `${index * 110}ms` } as CSSProperties}
           >
+            {entry.logoUrl ? (
+              <>
+                <img
+                  alt=""
+                  aria-hidden="true"
+                  className={styles.arenaArrivalLogoBackdrop}
+                  src={entry.logoUrl}
+                />
+                <div className={styles.arenaArrivalLogoMark}>
+                  <img alt={`Logo ${entry.primary}`} src={entry.logoUrl} />
+                </div>
+              </>
+            ) : null}
             <span>{entry.status
               .replaceAll("{{club}}", view.clubName)
               .replaceAll("{{team}}", entry.primary) ||
               (view.slideType === "sport_visitor_arrivals" ? "Welkom" : "Wedstrijdofficial")}</span>
-            <b>{String(index + 1).padStart(2, "0")}</b>
+            {!entry.logoUrl ? <b>{String(index + 1).padStart(2, "0")}</b> : null}
             <h2>{entry.primary}</h2>
             <p>{entry.secondary}</p>
             <strong>{entry.meta}</strong>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 360" role="img" aria-label="Testclublogo">
+  <path d="M160 12 296 60v116c0 82-50 139-136 172C74 315 24 258 24 176V60L160 12Z" fill="#f7f3eb" stroke="#111315" stroke-width="12"/>
+  <path d="M160 34 274 75v97c0 68-39 116-114 149-75-33-114-81-114-149V75L160 34Z" fill="#315cff"/>
+  <path d="M160 34v287c75-33 114-81 114-149V75L160 34Z" fill="#ff5c20"/>
+  <circle cx="160" cy="148" r="72" fill="#f7f3eb" stroke="#111315" stroke-width="8"/>
+  <text x="160" y="165" fill="#111315" font-family="Arial, sans-serif" font-size="54" font-weight="800" text-anchor="middle">FC</text>
+</svg>

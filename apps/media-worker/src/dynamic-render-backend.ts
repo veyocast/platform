@@ -98,20 +98,43 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
 
   async resolveAssets(job: ClaimedDynamicRenderJob) {
     if (!this.assetClient) return {};
-    const ids = collectAssetIds(job.snapshotData);
+    const ids = collectDynamicRenderAssetIds(job.snapshotData);
     if (!ids.length) return {};
-    const variants = await this.assetClient
-      .from("media_variants")
-      .select("asset_id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
-      .eq("tenant_id", job.tenantId)
-      .eq("variant_type", "original")
-      .in("asset_id", ids);
-    if (variants.error) throw new DynamicRenderBackendError(
+    const [variants, providerVersions] = await Promise.all([
+      this.assetClient
+        .from("media_variants")
+        .select("asset_id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
+        .eq("tenant_id", job.tenantId)
+        .eq("variant_type", "original")
+        .in("asset_id", ids),
+      this.assetClient
+        .from("provider_asset_versions")
+        .select("id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
+        .in("id", ids)
+    ]);
+    if (variants.error || providerVersions.error) throw new DynamicRenderBackendError(
       "dynamic_asset_resolution_failed",
       true,
       "Thumbnailassets konden tijdelijk niet worden opgelost."
     );
-    const rows = (variants.data ?? []) as unknown as Array<{
+    const rows = [
+      ...((variants.data ?? []) as unknown as Array<{
+        asset_id: string;
+        checksum_sha256: string;
+        file_size_bytes: number;
+        mime_type: string;
+        storage_bucket: string;
+        storage_path: string;
+      }>),
+      ...((providerVersions.data ?? []) as unknown as Array<{
+        id: string;
+        checksum_sha256: string;
+        file_size_bytes: number;
+        mime_type: string;
+        storage_bucket: string;
+        storage_path: string;
+      }>).map((version) => ({ ...version, asset_id: version.id }))
+    ] as Array<{
       asset_id: string;
       checksum_sha256: string;
       file_size_bytes: number;
@@ -302,7 +325,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function collectAssetIds(snapshot: unknown) {
+export function collectDynamicRenderAssetIds(snapshot: unknown) {
   if (!isRecord(snapshot)) return [];
   const ids = new Set<string>();
   const add = (value: unknown) => {
@@ -322,5 +345,19 @@ function collectAssetIds(snapshot: unknown) {
       add(item.qrMediaAssetId);
     }
   }
+  const sport = isRecord(snapshot.sport) ? snapshot.sport : null;
+  if (Array.isArray(sport?.items)) {
+    for (const item of sport.items) if (isRecord(item)) {
+      add(item.logoMediaAssetId);
+      add(item.photoMediaAssetId);
+    }
+  }
+  const sportConfiguration = isRecord(sport?.configuration)
+    ? sport.configuration
+    : null;
+  const sportPresentation = isRecord(sportConfiguration?.presentation)
+    ? sportConfiguration.presentation
+    : null;
+  add(sportPresentation?.backgroundMediaAssetId);
   return [...ids].slice(0, 51);
 }

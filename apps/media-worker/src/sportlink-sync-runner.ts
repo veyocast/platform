@@ -398,6 +398,7 @@ async function fetchSportlinkDataset(
       ...mapSportlinkMatches(cancellations.payload, "cancellations"),
       ...poolMatches
     ];
+    batch.teamLogos = await fetchMatchTeamLogos(job, batch.matches);
     return batch;
   }
 
@@ -430,9 +431,13 @@ async function fetchSportlinkDataset(
         throw error;
       }
     }
-    batch.matches = baseMatches.map((match) =>
-      details.get(match.externalId) ?? match
-    );
+    batch.matches = baseMatches.map((match) => {
+      const detail = details.get(match.externalId);
+      return detail
+        ? { ...detail, isHomeMatch: match.isHomeMatch }
+        : match;
+    });
+    batch.teamLogos = await fetchMatchTeamLogos(job, batch.matches);
     return batch;
   }
 
@@ -737,6 +742,32 @@ async function fetchStandingTeamLogos(
     }
     if (unique.size >= 100) break;
   }
+  return fetchTeamLogos(job, unique);
+}
+
+async function fetchMatchTeamLogos(
+  job: ClaimedSportlinkSync,
+  matches: SportMatch[]
+) {
+  const unique = new Map<string, { externalId: string; teamName: string }>();
+  for (const match of matches) {
+    if (!match.isHomeMatch) continue;
+    const team = match.awayTeam;
+    if (team.logoUrl && team.externalId && !unique.has(team.logoUrl)) {
+      unique.set(team.logoUrl, {
+        externalId: team.externalId,
+        teamName: team.name
+      });
+    }
+    if (unique.size >= 100) break;
+  }
+  return fetchTeamLogos(job, unique);
+}
+
+async function fetchTeamLogos(
+  job: ClaimedSportlinkSync,
+  unique: Map<string, { externalId: string; teamName: string }>
+) {
   const entries = [...unique];
   const artifacts: SportlinkTeamLogoArtifact[] = [];
   for (let offset = 0; offset < entries.length; offset += 6) {
@@ -754,7 +785,7 @@ async function fetchStandingTeamLogos(
           );
         } catch {
           // A temporarily unavailable provider image must not invalidate the
-          // standings dataset. The initials fallback remains deterministic.
+          // dataset. The initials fallback remains deterministic.
           return null;
         }
       })

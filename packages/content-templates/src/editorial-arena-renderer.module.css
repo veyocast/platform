@@ -1676,6 +1676,21 @@
   height: 100%;
 }
 
+.arenaArrivalGrid[data-cards="1"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.arenaArrivalGrid[data-cards="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.arenaArrivalGrid[data-cards="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+}
+
 .arenaArrivalCard {
   position: relative;
   display: flex;
@@ -1719,6 +1734,42 @@
 
 .arenaArrivalCard[data-motion] > * {
   z-index: 1;
+}
+
+.arenaArrivalLogoBackdrop {
+  position: absolute;
+  z-index: 0 !important;
+  top: 50%;
+  right: -34%;
+  width: 150%;
+  height: 150%;
+  object-fit: contain;
+  object-position: center;
+  opacity: .3;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.arenaArrivalLogoMark {
+  position: absolute;
+  z-index: 2;
+  top: 22px;
+  right: 24px;
+  display: grid;
+  width: 92px;
+  height: 92px;
+  place-items: center;
+  border: 1px solid var(--vc-border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--vc-surface) 90%, transparent);
+  box-shadow: 0 12px 34px var(--vc-shadow);
+  backdrop-filter: blur(12px);
+}
+
+.arenaArrivalLogoMark img {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
 }
 
 .arenaArrivalCard[data-motion="aurora-rise"] {
@@ -1884,6 +1935,50 @@
   line-height: .98;
 }
 
+.arenaArrivalGrid[data-cards="1"] .arenaArrivalCard {
+  padding: 64px;
+}
+
+.arenaArrivalGrid[data-cards="1"] .arenaArrivalCard h2 {
+  max-width: 74%;
+  margin-top: 64px;
+  font-size: 84px;
+}
+
+.arenaArrivalGrid[data-cards="1"] .arenaArrivalLogoMark {
+  top: 42px;
+  right: 46px;
+  width: 154px;
+  height: 154px;
+  border-radius: 30px;
+}
+
+.arenaArrivalGrid[data-cards="2"] .arenaArrivalCard {
+  padding: 48px;
+}
+
+.arenaArrivalGrid[data-cards="2"] .arenaArrivalCard h2 {
+  max-width: 72%;
+  margin-top: 54px;
+  font-size: 64px;
+}
+
+.arenaArrivalGrid[data-cards="3"] .arenaArrivalCard {
+  padding: 32px;
+}
+
+.arenaArrivalGrid[data-cards="3"] .arenaArrivalCard h2 {
+  max-width: 70%;
+  margin-top: 44px;
+  font-size: 46px;
+}
+
+.arenaArrivalGrid[data-cards="3"] .arenaArrivalLogoMark {
+  width: 78px;
+  height: 78px;
+  border-radius: 18px;
+}
+
 .arenaArrivalCard p {
   margin: 0 0 18px;
   color: var(--vc-text-muted);
@@ -1904,6 +1999,25 @@
   gap: 14px;
 }
 
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="1"] {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="2"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="3"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
 .arenaRoot[data-orientation="portrait"] .arenaArrivalCard {
   padding: 30px 34px;
 }
@@ -1913,9 +2027,22 @@
   font-size: 46px;
 }
 
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="1"] .arenaArrivalCard h2 {
+  max-width: 100%;
+  margin-top: 120px;
+  font-size: 92px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="2"] .arenaArrivalCard h2,
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="3"] .arenaArrivalCard h2 {
+  max-width: 72%;
+  margin-top: 42px;
+  font-size: 52px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .arenaArrivalCard[data-motion],
-  .arenaArrivalCard[data-motion] > *,
+  .arenaArrivalCard[data-motion] > *:not(.arenaArrivalLogoBackdrop),
   .arenaArrivalCard[data-motion]::after {
     animation: none;
     clip-path: none;
