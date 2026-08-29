@@ -120,6 +120,22 @@ export function activeEditorialTokens(
   return safeTheme[safeTheme.mode];
 }
 
+export function editorialThemeHasValidContrast(
+  theme: EditorialThemeConfig,
+  minimumRatio = 4.5
+) {
+  return (["light", "dark"] as const).every((mode) => {
+    const tokens = theme[mode];
+    return [
+      contrastRatio(tokens.text, tokens.surface, tokens.canvas),
+      contrastRatio(tokens.textOnAccent, tokens.accent),
+      contrastRatio(tokens.textOnSelected, tokens.rowSelected),
+      contrastRatio(tokens.qrSurface, tokens.imageOverlayStart),
+      contrastRatio(tokens.qrInk, tokens.qrSurface)
+    ].every((ratio) => ratio !== null && ratio >= minimumRatio);
+  });
+}
+
 export function editorialThemeCssVariables(
   tokens: EditorialColorTokens
 ): Record<`--vc-${string}`, string> {
@@ -153,11 +169,21 @@ export function editorialThemeCssVariables(
   };
 }
 
-export function contrastRatio(foreground: string, background: string) {
+export function contrastRatio(
+  foreground: string,
+  background: string,
+  underlay?: string
+) {
   const foregroundRgba = parseColor(foreground);
   const backgroundRgba = parseColor(background);
-  if (!foregroundRgba || !backgroundRgba) return null;
-  const backgroundRgb = composite(backgroundRgba, [255, 255, 255]);
+  const underlayRgba = underlay ? parseColor(underlay) : null;
+  if (!foregroundRgba || !backgroundRgba || (underlay && !underlayRgba)) {
+    return null;
+  }
+  const underlayRgb = underlayRgba
+    ? composite(underlayRgba, [255, 255, 255])
+    : [255, 255, 255] as [number, number, number];
+  const backgroundRgb = composite(backgroundRgba, underlayRgb);
   const foregroundRgb = composite(foregroundRgba, backgroundRgb);
   const foregroundLuminance = relativeLuminance(foregroundRgb);
   const backgroundLuminance = relativeLuminance(backgroundRgb);

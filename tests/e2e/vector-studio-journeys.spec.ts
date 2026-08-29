@@ -54,5 +54,14 @@ test.describe("Vector Studio journeys", () => {
       page.getByRole("heading", { level: 1, name: "Nieuwsslide maken" })
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Eerst een RSS- of Atom-bron nodig" })).toBeVisible();
+
+    const message = "De slide kon tijdelijk niet worden gemaakt.";
+    await page.goto(
+      `/dashboard/slides/new?family=news&fout=${encodeURIComponent(message)}`
+    );
+    await expect(page).toHaveURL(/family=news&fout=/);
+    await expect(page.locator(".notice--critical[role=alert]")).toContainText(
+      message
+    );
   });
 });

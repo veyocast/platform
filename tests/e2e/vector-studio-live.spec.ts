@@ -50,4 +50,40 @@ test.describe("Vector v2 live Studio journeys", () => {
       path: "docs/screenshots/vector-v2/studio/rss-journey-live-390x844.png"
     });
   });
+
+  test("persists a real news slide from the final review step", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByLabel("E-mailadres").fill("pilot-admin@veyocast.test");
+    await page.getByLabel("Wachtwoord").fill("veyocast-local");
+    await page.getByRole("button", { name: "Doorgaan" }).click();
+    await page.waitForURL(/\/context/, { timeout: 15_000 });
+    await page.getByRole("button", { name: "Open vereniging" }).click();
+    await page.waitForURL(/\/dashboard$/);
+
+    await page.goto("/dashboard/slides/new?family=news");
+    await page.getByLabel("Naam van de slide").fill("Clubnieuws opslagtest");
+    for (const heading of [
+      "Kies een template",
+      "Kies een databron",
+      "Configureer de inhoud",
+      "Kies kleuren en uitstraling",
+      "Controleer en maak de slide"
+    ]) {
+      await page.getByRole("button", { name: /Volgende/ }).click();
+      await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+    }
+
+    const create = page.getByRole("button", { name: "Slide maken" });
+    await expect(create).toBeEnabled({ timeout: 15_000 });
+    await create.click();
+    await page.waitForURL(/\/dashboard\/slides\/[0-9a-f-]+\?succes=/, {
+      timeout: 30_000
+    });
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Clubnieuws opslagtest" })
+    ).toBeVisible();
+    await expect(page.getByRole("status")).toContainText(
+      "De eerste immutable snapshot wordt gerenderd."
+    );
+  });
 });

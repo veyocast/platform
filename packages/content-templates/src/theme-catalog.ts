@@ -14,6 +14,7 @@ import {
 } from "@veyocast/contracts";
 
 import manifestSource from "./THEME-MANIFEST.v1.json";
+import { contrastRatio } from "./editorial-arena-theme";
 
 export const themeManifest = themeManifestSchema.parse(manifestSource);
 
@@ -157,7 +158,7 @@ export function themeToEditorialTokens(
     qrSurface: "#f8f6f0",
     row: palette.surface,
     rowSelected: palette.text,
-    shadow: palette.shadow,
+    shadow: editorialShadowColor(palette.shadow, dark),
     success: dark ? "#46d18c" : "#257b59",
     surface: palette.surface,
     surfaceRaised: palette.surface,
@@ -242,15 +243,14 @@ function hexAlpha(hex: string, alpha: number) {
 }
 
 function contrastText(hex: string) {
-  const value = hex.replace("#", "");
-  const channels = [0, 2, 4].map((index) =>
-    Number.parseInt(value.slice(index, index + 2), 16) / 255
-  );
-  const luminance = channels.reduce((sum, channel, index) => {
-    const linear = channel <= 0.03928
-      ? channel / 12.92
-      : ((channel + 0.055) / 1.055) ** 2.4;
-    return sum + linear * [0.2126, 0.7152, 0.0722][index]!;
-  }, 0);
-  return luminance > 0.46 ? "#111315" : "#fffaf2";
+  const dark = "#090a0b";
+  const light = "#fffaf2";
+  return (contrastRatio(dark, hex) ?? 0) >= (contrastRatio(light, hex) ?? 0)
+    ? dark
+    : light;
+}
+
+function editorialShadowColor(value: string, dark: boolean) {
+  return value.match(/rgba?\([0-9.,%\s]+\)/i)?.[0] ??
+    (dark ? "rgba(0,0,0,.34)" : "rgba(66,55,41,.14)");
 }

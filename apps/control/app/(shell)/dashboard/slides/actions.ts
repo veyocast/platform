@@ -16,14 +16,17 @@ import {
   type PlayerDynamicTemplateAsset,
   type PlayerDynamicTemplatePayload
 } from "@veyocast/contracts";
+import { priceRowsThatFit } from "@veyocast/content-templates";
 import {
-  contrastRatio,
   resolveEditorialThemeConfig
 } from "@veyocast/content-templates/editorial-arena-theme";
-import { priceRowsThatFit } from "@veyocast/content-templates";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import {
+  slideComposerErrorPath,
+  validateEditorialSlideTheme
+} from "./new/slide-composer-validation";
 
 export type DynamicSlidePreviewResult =
   | {
@@ -50,6 +53,7 @@ export async function previewDynamicSlide(
   const name = String(formData.get("name") ?? "Voorbeeld").trim();
   const templateVersionId = String(formData.get("templateVersionId") ?? "");
   const dataSourceId = String(formData.get("dataSourceId") ?? "");
+  const requestedSlideType = String(formData.get("slideType") ?? "");
   const configuration = dynamicSlideConfiguration(formData);
   if (!configuration) {
     return {
@@ -58,6 +62,13 @@ export async function previewDynamicSlide(
       ok: false
     };
   }
+  const themeValidation = validateEditorialSlideTheme({
+    rawTheme: parseJson(formData.get("editorialThemeJson")),
+    rawThemeSelection: parseJson(formData.get("themeSelectionJson")),
+    resolvedTheme: editorialThemeFromConfiguration(configuration),
+    slideType: requestedSlideType
+  });
+  if (!themeValidation.ok) return themeValidation;
   const supabase = await createControlSupabaseClient();
   if (
     !supabase ||
@@ -181,35 +192,26 @@ export async function createDynamicSlide(formData: FormData) {
     Math.max(5, Number(formData.get("secondsPerSlide")) || 5)
   );
   const requestedSlideType = String(formData.get("slideType") ?? "");
-  if (
-    requestedSlideType !== "price_list" &&
-    !editorialColorsAreValid(formData)
-  ) {
-    redirect(
-      "/dashboard/slides/new?fout=Een+of+meer+Editorial+Arena-kleuren+zijn+ongeldig.+Gebruik+geldige+hexkleuren."
-    );
-  }
   const configuration = dynamicSlideConfiguration(formData);
   if (!configuration) {
-    redirect(
-      "/dashboard/slides/new?fout=Selecteer+minimaal+een+beschikbaar+product+en+controleer+de+kolomindeling."
+    redirectToSlideComposerError(
+      requestedSlideType,
+      "Selecteer minimaal een beschikbaar product en controleer de kolomindeling."
     );
+  }
+  const themeValidation = validateEditorialSlideTheme({
+    rawTheme: parseJson(formData.get("editorialThemeJson")),
+    rawThemeSelection: parseJson(formData.get("themeSelectionJson")),
+    resolvedTheme: editorialThemeFromConfiguration(configuration),
+    slideType: requestedSlideType
+  });
+  if (!themeValidation.ok) {
+    redirectToSlideComposerError(requestedSlideType, themeValidation.message);
   }
   const editorialConfiguration = "editorial" in configuration &&
     isRecord(configuration.editorial)
     ? configuration.editorial
     : null;
-  const theme = editorialConfiguration
-    ? editorialThemeConfigSchema.safeParse(editorialConfiguration.theme)
-    : null;
-  if (
-    requestedSlideType !== "price_list" &&
-    (!theme?.success || !editorialThemeHasValidContrast(theme.data))
-  ) {
-    redirect(
-      "/dashboard/slides/new?fout=De+gekozen+tekst-+en+paneelkleuren+hebben+onvoldoende+contrast.+Kies+duidelijker+kleuren."
-    );
-  }
   const supabase = await createControlSupabaseClient();
   if (
     !supabase ||
@@ -219,7 +221,10 @@ export async function createDynamicSlide(formData: FormData) {
     !uuidPattern.test(dataSourceId) ||
     (selectionMode !== "latest" && selectionMode !== "pinned")
   ) {
-    redirect("/dashboard/slides/new?fout=Controleer+de+naam,+template+en+databron.");
+    redirectToSlideComposerError(
+      requestedSlideType,
+      "Controleer de naam, het template en de databron."
+    );
   }
   const [templateResult, sourceResult] = await Promise.all([
     supabase
@@ -239,18 +244,21 @@ export async function createDynamicSlide(formData: FormData) {
   const templateSlideType = templateResult.data?.slide_type;
   const sourceKind = sourceResult.data?.kind;
   if (templateResult.error || !templateSlideType) {
-    redirect(
-      "/dashboard/slides/new?fout=Het+gekozen+template+is+niet+meer+gepubliceerd.+Kies+een+ander+template."
+    redirectToSlideComposerError(
+      requestedSlideType,
+      "Het gekozen template is niet meer gepubliceerd. Kies een ander template."
     );
   }
   if (sourceResult.error || !sourceKind) {
-    redirect(
-      "/dashboard/slides/new?fout=De+gekozen+databron+is+niet+meer+beschikbaar."
+    redirectToSlideComposerError(
+      requestedSlideType,
+      "De gekozen databron is niet meer beschikbaar."
     );
   }
   if (!sourceMatchesSlideType(sourceKind, templateSlideType)) {
-    redirect(
-      "/dashboard/slides/new?fout=Template+en+databron+horen+niet+bij+hetzelfde+slidetype.+Kies+de+combinatie+opnieuw."
+    redirectToSlideComposerError(
+      requestedSlideType,
+      "Template en databron horen niet bij hetzelfde slidetype. Kies de combinatie opnieuw."
     );
   }
   if (
@@ -261,8 +269,9 @@ export async function createDynamicSlide(formData: FormData) {
       sportSeason === false
     )
   ) {
-    redirect(
-      "/dashboard/slides/new?fout=De+gekozen+Sportlink-selectie+is+ongeldig.+Kies+team+en+competitie+opnieuw."
+    redirectToSlideComposerError(
+      requestedSlideType,
+      "De gekozen Sportlink-selectie is ongeldig. Kies team en competitie opnieuw."
     );
   }
   const priceList = editorialConfiguration
@@ -273,8 +282,9 @@ export async function createDynamicSlide(formData: FormData) {
       )
     : null;
   if (templateSlideType === "menu" && !priceList?.success) {
-    redirect(
-      "/dashboard/slides/new?fout=Selecteer+en+orden+eerst+de+producten+voor+beide+prijskolommen."
+    redirectToSlideComposerError(
+      requestedSlideType,
+      "Selecteer en orden eerst de producten voor beide prijskolommen."
     );
   }
   if (templateSlideType === "menu" && priceList?.success) {
@@ -292,8 +302,9 @@ export async function createDynamicSlide(formData: FormData) {
         tenantId: session.tenantId!
       }))
     ) {
-      redirect(
-        "/dashboard/slides/new?fout=De+prijslijstindeling+is+ongeldig,+loopt+over+of+bevat+producten+buiten+de+gekozen+tenantbron."
+      redirectToSlideComposerError(
+        requestedSlideType,
+        "De prijslijstindeling is ongeldig, loopt over of bevat producten buiten de gekozen tenantbron."
       );
     }
   }
@@ -352,7 +363,7 @@ export async function createDynamicSlide(formData: FormData) {
       : error?.code === "42501"
         ? "Je hebt geen toestemming om deze dynamische slide te maken."
         : "De slide kon tijdelijk niet worden gemaakt. Je bestaande slides en publicaties zijn niet gewijzigd.";
-    redirect(`/dashboard/slides/new?fout=${encodeURIComponent(message)}`);
+    redirectToSlideComposerError(requestedSlideType, message);
   }
   revalidatePath("/dashboard/slides");
   redirect(`/dashboard/slides/${slideId}?succes=De+eerste+immutable+snapshot+wordt+gerenderd.`);
@@ -453,14 +464,6 @@ function dynamicSlideConfiguration(formData: FormData) {
   };
 }
 
-function editorialColorsAreValid(formData: FormData) {
-  return editorialThemeConfigSchema.safeParse(
-    parseJson(formData.get("editorialThemeJson"))
-  ).success && themeSelectionSchema.safeParse(
-    parseJson(formData.get("themeSelectionJson"))
-  ).success;
-}
-
 function themeSelectionFromForm(formData: FormData) {
   const parsed = themeSelectionSchema.safeParse(
     parseJson(formData.get("themeSelectionJson"))
@@ -487,19 +490,15 @@ function editorialThemeFromForm(formData: FormData) {
   return resolveEditorialThemeConfig({ mode: "light" });
 }
 
-function editorialThemeHasValidContrast(
-  theme: ReturnType<typeof editorialThemeFromForm>
-) {
-  return (["light", "dark"] as const).every((mode) => {
-    const tokens = theme[mode];
-    return [
-      contrastRatio(tokens.text, tokens.surface),
-      contrastRatio(tokens.textOnAccent, tokens.accent),
-      contrastRatio(tokens.textOnSelected, tokens.rowSelected),
-      contrastRatio(tokens.qrSurface, tokens.imageOverlayStart),
-      contrastRatio(tokens.qrInk, tokens.qrSurface)
-    ].every((ratio) => ratio !== null && ratio >= 4.5);
-  });
+function editorialThemeFromConfiguration(configuration: unknown) {
+  if (!isRecord(configuration) || !isRecord(configuration.editorial)) {
+    return null;
+  }
+  return configuration.editorial.theme;
+}
+
+function redirectToSlideComposerError(slideType: string, message: string): never {
+  redirect(slideComposerErrorPath(slideType, message));
 }
 
 function parseJson(value: FormDataEntryValue | null) {
