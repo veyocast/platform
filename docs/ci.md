@@ -8,8 +8,11 @@ The baseline GitHub Actions workflow lives in
 It runs on:
 
 - pull requests;
-- pushes to `main`;
-- pushes to `veyocast/**` task branches.
+- an explicit manual dispatch for diagnosis.
+
+Task-branch pushes and the merge push to `main` do not repeat this paid hosted
+workflow. The self-hosted immutable deployment runs the same workspace gates
+again before it can build and activate a release.
 
 ## Foundation Gates
 
@@ -24,10 +27,23 @@ pnpm build
 ```
 
 These match the S00 local gates and keep the empty-repo foundation honest before
-domain work starts. A parallel databasejob starts local Supabase, rebuilds het
-schema uitsluitend uit migraties en voert alle RLS-isolatietests uit. Een
-deployment kan daardoor pas automatisch naar staging nadat zowel foundation als
-databasejob groen zijn.
+domain work starts.
+
+## Scoped gates
+
+`.github/workflows/database-rls-gates.yml` starts only for pull requests that
+change `supabase/**`, `packages/database/**` or the database workflow itself. It
+starts local Supabase, rebuilds the schema exclusively from migrations and runs
+all RLS-isolation tests. Control Mobile, Android Player and LG webOS use the
+same path-scoped PR-only rule plus an explicit manual dispatch. Their expensive
+native or packaging jobs are not repeated after merge: the protected release
+workflows remain the source for actual distribution artifacts.
+
+Superseded PR jobs are cancelled. Generic Control Mobile API, contracts and
+database changes remain covered by the workspace lint, typecheck, unit and
+build gates; only changes that can alter the native application trigger the
+full Android AAB and 16 KB validation. Generic native CI retains small evidence
+for three days and does not store its unreleased AAB.
 
 ## Later Gates
 

@@ -50,6 +50,7 @@ describe("structured observability", () => {
     expect(isObservabilityEvent("dynamic.render.queue_polled")).toBe(true);
     expect(isObservabilityEvent("dynamic.render.completed")).toBe(true);
     expect(isObservabilityEvent("dynamic.render.failed")).toBe(true);
+    expect(isObservabilityEvent("led_scores.live_image.requested")).toBe(true);
   });
 });
 

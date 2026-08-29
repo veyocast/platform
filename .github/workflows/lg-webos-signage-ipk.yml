@@ -9,16 +9,6 @@ on:
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/lg-webos-signage-ipk.yml"
-      - "apps/lg-webos-signage/**"
-      - "apps/player/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
   workflow_dispatch:
     inputs:
       publish_https:
@@ -37,7 +27,7 @@ permissions:
 
 concurrency:
   group: lg-webos-signage-ipk-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -89,7 +79,7 @@ jobs:
 
   release:
     name: Inspect immutable release IPK
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch'
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 20

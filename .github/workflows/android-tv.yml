@@ -9,16 +9,6 @@ on:
       - ".github/workflows/android-tv.yml"
       - ".github/workflows/android-tv-play-internal.yml"
       - ".github/workflows/android-google-tv-play-internal.yml"
-  push:
-    branches:
-      - main
-    paths:
-      - "apps/android-tv/**"
-      - "apps/player/**"
-      - "assets/brand/**"
-      - ".github/workflows/android-tv.yml"
-      - ".github/workflows/android-tv-play-internal.yml"
-      - ".github/workflows/android-google-tv-play-internal.yml"
   workflow_dispatch:
 
 permissions:
@@ -121,4 +111,4 @@ jobs:
             ${{ runner.temp }}/general-compatibility-evidence/
             ${{ runner.temp }}/tv-launcher-evidence/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3

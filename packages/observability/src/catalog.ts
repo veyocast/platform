@@ -26,6 +26,7 @@ export const observabilityEvents = [
   "dynamic.rss.completed",
   "dynamic.rss.failed",
   "dynamic.rss.queue_polled",
+  "led_scores.live_image.requested",
   "sportlink.sync.completed",
   "sportlink.sync.failed",
   "sportlink.sync.queue_polled",
