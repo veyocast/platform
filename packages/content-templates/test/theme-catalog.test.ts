@@ -15,6 +15,9 @@ import {
   createDynamicTemplateView
 } from "../src/dynamic-template-view";
 import {
+  editorialThemeHasValidContrast
+} from "../src/editorial-arena-theme";
+import {
   freezeThemePresentation,
   resolveThemeTransition,
   themeCatalog,
@@ -98,6 +101,33 @@ describe("theme catalog v2", () => {
       expect(resolveThemeTransition(snapshot, "news", false).durationMs).toBeLessThanOrEqual(560);
       expect(resolveThemeTransition(snapshot, "news", true).durationMs).toBeLessThanOrEqual(120);
       expect(resolveThemeTransition(snapshot, "news", false).translatePercent).toBeLessThanOrEqual(2.5);
+    }
+  });
+
+  it("keeps every catalog theme AA-readable in light and dark mode", () => {
+    for (const id of selectableThemeIds) {
+      const selection = {
+        accent: null,
+        categoryOverrides: [],
+        modePolicy: { kind: "fixed" as const, mode: "light" as const },
+        ref: { catalog: "v2" as const, id, version: themeCatalog[id].version },
+        support: null
+      };
+      const tokens = (mode: "dark" | "light") => themeToEditorialTokens(
+        freezeThemePresentation({
+          instant: "2026-08-20T12:00:00.000Z",
+          selection: {
+            ...selection,
+            modePolicy: { kind: "fixed", mode }
+          },
+          timezone: "Europe/Amsterdam"
+        })
+      );
+      expect(editorialThemeHasValidContrast({
+        dark: tokens("dark"),
+        light: tokens("light"),
+        mode: "light"
+      }), id).toBe(true);
     }
   });
 
