@@ -211,8 +211,8 @@ een cleanupfout blokkeert nooit live verbindingclaims.
 - connectorleases, timeouts, write-throttling, reconnect en dispatch:
   94 media-workertests totaal;
 - RLS/end-to-end databasecontract: 54 gerichte pgTAP-assertions met drie
-  unieke schermen via groepen A, B en A∩B; volledige matrix 64 bestanden en
-  1.397 assertions;
+  unieke schermen via groepen A, B en A∩B; volledige matrix 65 bestanden en
+  1.404 assertions;
 - Playerprotocol, signed assets en ack-route: unit-regressies;
 - realtime overlay, underlay-pauze en gelijke planning op drie Players:
   Playwright;
