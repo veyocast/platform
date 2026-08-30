@@ -667,6 +667,99 @@ describe("trusted dynamic template view", () => {
     expect(view?.pageDurationMs).toBe(8_000);
   });
 
+  it("behoudt teamfiltering wanneer teamnamen niet worden getoond", () => {
+    const fixture = birthdayFixture(1);
+    const payload = {
+      ...fixture,
+      data: { ...fixture.data, sport: {
+        ...fixture.data.sport,
+        birthdays: [{
+          ...fixture.data.sport.birthdays[0],
+          teamIds: ["team-1"],
+          teams: []
+        }],
+        configuration: {
+          ...fixture.data.sport.configuration,
+          selection: {
+            ...fixture.data.sport.configuration.selection,
+            includeWithoutTeam: false,
+            selectedTeamIds: ["team-1"],
+            showTeam: false,
+            teamSelectionMode: "selected"
+          }
+        }
+      } }
+    } as const;
+
+    const view = createDynamicTemplateView(
+      payload,
+      new Date("2026-06-15T10:00:00.000Z")
+    );
+
+    expect(view?.pages).toHaveLength(1);
+    expect(view?.pages[0]).toMatchObject({
+      items: [{ displayName: expect.any(String), teams: [] }],
+      kind: "birthday"
+    });
+  });
+
+  it("combineert geselecteerde teams met overige personen zonder team", () => {
+    const fixture = birthdayFixture(3);
+    const payload = {
+      ...fixture,
+      data: { ...fixture.data, sport: {
+        ...fixture.data.sport,
+        birthdays: [
+          { ...fixture.data.sport.birthdays[0], id: "selected", teamIds: ["team-1"] },
+          { ...fixture.data.sport.birthdays[1], id: "without-team", teamIds: [] },
+          { ...fixture.data.sport.birthdays[2], id: "other-team", teamIds: ["team-2"] }
+        ],
+        configuration: {
+          ...fixture.data.sport.configuration,
+          selection: {
+            ...fixture.data.sport.configuration.selection,
+            includeWithoutTeam: true,
+            selectedTeamIds: ["team-1"],
+            teamSelectionMode: "selected"
+          }
+        }
+      } }
+    } as const;
+
+    const view = createDynamicTemplateView(
+      payload,
+      new Date("2026-06-15T10:00:00.000Z")
+    );
+
+    expect(view?.pages.flatMap((page) =>
+      page.kind === "birthday" ? page.items.map((item) => item.id) : []
+    )).toEqual(["selected", "without-team"]);
+  });
+
+  it("blijft bestaande verborgen-team-snapshots afspelen", () => {
+    const fixture = birthdayFixture(1);
+    const payload = {
+      ...fixture,
+      data: { ...fixture.data, sport: {
+        ...fixture.data.sport,
+        birthdays: [{ ...fixture.data.sport.birthdays[0], teamIds: [], teams: [] }],
+        configuration: {
+          ...fixture.data.sport.configuration,
+          selection: {
+            ...fixture.data.sport.configuration.selection,
+            selectedTeamIds: ["team-1"],
+            showTeam: false
+          }
+        }
+      } }
+    } as const;
+
+    expect(createDynamicTemplateView(
+      payload,
+      new Date("2026-06-15T10:00:00.000Z")
+    )?.pages).toHaveLength(1);
+  });
+
   it("slaat lege en verlopen verjaardagssnapshots zonder zwart frame over", () => {
     const payload = {
       ...base,
