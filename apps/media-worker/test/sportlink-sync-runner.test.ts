@@ -65,6 +65,107 @@ describe("Sportlink sync worker", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(3);
   });
 
+  it("normalizes abbreviated provider birthday dates", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-30T12:00:00.000Z"));
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname === "/verjaardagen") {
+        return new Response(JSON.stringify([{
+          verjaardag: "30 aug",
+          volledigenaam: "Testpersoon"
+        }]), { headers: { "content-type": "application/json" } });
+      }
+      if (url.pathname === "/teams") {
+        return new Response("[]", {
+          headers: { "content-type": "application/json" }
+        });
+      }
+      return new Response("not found", { status: 404 });
+    });
+
+    await expect(fetchSportlinkDataset(
+      "public_people",
+      new SportlinkClient("client-id", {
+        fetchImpl: fetchImpl as typeof fetch,
+        maxAttempts: 1
+      }),
+      {
+        connectionId: "20000000-0000-4000-8000-000000000001",
+        dataSourceId: "30000000-0000-4000-8000-000000000001",
+        datasetGroup: "public_people",
+        encryptedClientId: "ciphertext",
+        encryptionIv: "initialization",
+        encryptionTag: "authentication",
+        runId: "40000000-0000-4000-8000-000000000001",
+        tenantId: "10000000-0000-4000-8000-000000000001",
+        timezone: "Europe/Amsterdam"
+      }
+    )).resolves.toMatchObject({
+      birthdays: [{ day: 30, displayName: "Testpersoon", month: 8 }]
+    });
+  });
+
+  it("fails closed when provider birthdays cannot be normalized", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname === "/verjaardagen") {
+        return new Response(JSON.stringify([{
+          verjaardag: "30 onbekend",
+          volledigenaam: "Testpersoon"
+        }]), { headers: { "content-type": "application/json" } });
+      }
+      if (url.pathname === "/teams") {
+        return new Response("[]", {
+          headers: { "content-type": "application/json" }
+        });
+      }
+      return new Response("not found", { status: 404 });
+    });
+    const job = {
+      connectionId: "20000000-0000-4000-8000-000000000001",
+      dataSourceId: "30000000-0000-4000-8000-000000000001",
+      datasetGroup: "public_people",
+      encryptedClientId: "ciphertext",
+      encryptionIv: "initialization",
+      encryptionTag: "authentication",
+      runId: "40000000-0000-4000-8000-000000000001",
+      tenantId: "10000000-0000-4000-8000-000000000001",
+      timezone: "Europe/Amsterdam"
+    };
+    const complete = vi.fn().mockResolvedValue(0);
+    const fail = vi.fn().mockResolvedValue(undefined);
+    const client = new SportlinkClient("client-id", {
+      fetchImpl: fetchImpl as typeof fetch,
+      maxAttempts: 1
+    });
+
+    await expect(runSportlinkSyncOnce({
+      backend: {
+        claim: vi.fn().mockResolvedValue(job),
+        complete,
+        fail,
+        renew: vi.fn().mockResolvedValue(true)
+      },
+      encryptionKey: "x".repeat(32),
+      executeDataset: () => fetchSportlinkDataset("public_people", client, job),
+      lockTimeoutSeconds: 900,
+      workerId: "worker:sportlink"
+    })).resolves.toEqual({
+      datasetGroup: "public_people",
+      errorCode: "SPORTLINK_BIRTHDAY_NORMALIZATION_EMPTY",
+      runId: job.runId,
+      status: "failed"
+    });
+    expect(complete).not.toHaveBeenCalled();
+    expect(fail).toHaveBeenCalledWith(
+      job,
+      "worker:sportlink",
+      "SPORTLINK_BIRTHDAY_NORMALIZATION_EMPTY",
+      expect.stringContaining("bestaande verjaardagen blijven behouden")
+    );
+  });
+
   it("derives bounded club pools without an incomplete team-pool request", () => {
     expect(collectSportlinkPoolIds(
       [

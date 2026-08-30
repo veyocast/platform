@@ -218,3 +218,10 @@ S135 registreert het nieuwe LED Scores-backend expliciet als server-only
 media-workerbestand binnen de bestaande fail-closed service-role-test. De
 clientbundel- en importgraafcontroles blijven ongewijzigd; de schone VPS-build
 moet de volledige securitysuite opnieuw groen bewijzen voordat staging wijzigt.
+
+S137 herstelt de Sportlink-verjaardagsnormalisatie voor de door de provider
+gebruikte Nederlandse drielettermaanden. Wanneer Sportlink records levert maar
+geen enkel record veilig normaliseert, faalt de worker vóór databasecompletion
+en blijft de bestaande last-known-good snapshot behouden. Een aantoonbaar lege
+providerrespons blijft een geldige lege dag. De wijziging raakt geen RLS,
+immutable releases, Player- of offlinecontracten.
