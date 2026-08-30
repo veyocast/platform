@@ -40,7 +40,7 @@ for (const orientation of ["landscape", "portrait"] as const) {
     )).toBe("#315CFF");
     await expect(slide.locator("canvas")).toHaveCount(0);
     const standingRows = slide.locator("[data-standing-row]");
-    expect(await standingRows.count()).toBe(20);
+    expect(await standingRows.count()).toBe(10);
     const standingHead = slide.getByTestId("standing-head").first();
     const firstRow = standingRows.first();
     const selectedRow = standingRows.filter({ hasText: "Duindorp sv" });
@@ -58,7 +58,21 @@ for (const orientation of ["landscape", "portrait"] as const) {
     expect(selectedRank!.x).toBeCloseTo(firstRank!.x, 1);
     expect(Number.parseFloat(await selectedRow.evaluate(
       (element) => getComputedStyle(element).fontSize
-    ))).toBeGreaterThanOrEqual(orientation === "portrait" ? 25 : 28);
+    ))).toBe(orientation === "portrait" ? 37.5 : 42);
+    expect(Number.parseFloat(await standingHead.evaluate(
+      (element) => getComputedStyle(element).fontSize
+    ))).toBe(21);
+    expect(await slide.evaluate((element) => ({
+      clientHeight: element.clientHeight,
+      clientWidth: element.clientWidth,
+      scrollHeight: element.scrollHeight,
+      scrollWidth: element.scrollWidth
+    }))).toEqual({
+      clientHeight: orientation === "portrait" ? 1920 : 1080,
+      clientWidth: orientation === "portrait" ? 1080 : 1920,
+      scrollHeight: orientation === "portrait" ? 1920 : 1080,
+      scrollWidth: orientation === "portrait" ? 1080 : 1920
+    });
     if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
       await page.emulateMedia({ reducedMotion: "reduce" });
       await page.screenshot({

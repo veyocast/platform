@@ -339,9 +339,9 @@ export function renderLgLegacyHtml() {
     .menu-studio-v2.portrait .legacy-price-product>b{max-width:none;font-size:26px;line-height:30px}
     .legacy-standing-card{box-sizing:border-box;height:100%;overflow:hidden;padding:1.35%;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:#0d1218;box-shadow:0 24px 80px rgba(0,0,0,.24)}
     .legacy-standing-columns,.legacy-standing-row{box-sizing:border-box;display:grid;grid-template-columns:4% 1fr repeat(6,5.7%) 15%;align-items:center;gap:.7%}
-    .legacy-standing-columns{height:7%;padding:0 .7%;border-bottom:2px solid var(--accent);color:var(--accent);font-size:22px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+    .legacy-standing-columns{height:7%;padding:0 .7%;border-bottom:2px solid var(--accent);color:var(--accent);font-size:33px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
     .legacy-standing-rows{height:87%;overflow:hidden}
-    .legacy-standing-row{height:10%;padding:0 .7%;border-bottom:1px solid rgba(255,255,255,.12);font-size:28px;font-weight:800}
+    .legacy-standing-row{height:10%;padding:0 .7%;border-bottom:1px solid rgba(255,255,255,.12);font-size:42px;font-weight:800}
     .legacy-standing-row.selected{border-radius:12px;background:rgba(241,90,36,.18);box-shadow:inset 7px 0 0 var(--accent),inset 0 0 0 1px var(--accent)}
     .legacy-standing-columns>span,.legacy-standing-row>span,.legacy-standing-row>strong{text-align:center}
     .legacy-standing-columns>span:nth-child(2){text-align:left}
@@ -356,13 +356,17 @@ export function renderLgLegacyHtml() {
     .legacy-standing-form i.win{background:#1f9d63}
     .legacy-standing-form i.loss{background:#cb3f49}
     .legacy-standing-form b{color:rgba(246,244,238,.55)}
-    .legacy-standing-context{height:6%;margin:.6% 0 0;color:#9aa2ac;font-size:13px;text-align:right}
+    .legacy-standing-context{height:6%;margin:.6% 0 0;color:#9aa2ac;font-size:19.5px;text-align:right}
     .portrait .legacy-standing-card{padding:2%}
     .portrait .legacy-standing-columns,.portrait .legacy-standing-row{grid-template-columns:5% 1fr repeat(6,6.3%) 16%}
-    .portrait .legacy-standing-columns{height:5%;font-size:18px}
+    .portrait .legacy-standing-columns{height:7%;font-size:27px}
     .portrait .legacy-standing-rows{height:90%}
-    .portrait .legacy-standing-row{height:5.5556%;font-size:26px}
-    .portrait .legacy-standing-context{height:5%;margin-top:.3%;font-size:13px}
+    .portrait .legacy-standing-row{height:10%;font-size:39px}
+    .portrait .legacy-standing-context{height:3%;margin-top:.3%;font-size:19.5px}
+    .editorial-arena[data-slide-type="sport_results"] .dynamic-row>span{font-size:clamp(28.5px,2.4vw,46.5px)}
+    .editorial-arena[data-slide-type="sport_results"] .dynamic-row h2{font-size:clamp(34.5px,3vw,58.5px)}
+    .editorial-arena[data-slide-type="sport_results"] .dynamic-row p{font-size:clamp(21px,1.65vw,33px)}
+    .editorial-arena[data-slide-type="sport_results"] .dynamic-row strong{font-size:clamp(28.5px,2.1vw,43.5px)}
     .editorial-arena:not(.dark) .legacy-standing-card{border-color:rgba(23,32,42,.13);background:#fffefa}
     .editorial-arena:not(.dark) .legacy-standing-row{border-color:rgba(23,32,42,.09)}
     .editorial-arena:not(.dark) .legacy-standing-context{color:#6f7882}
@@ -2910,7 +2914,7 @@ export function renderLgLegacyHtml() {
       var competition = templateRecord(sport.competition) || {};
       var pool = templateRecord(sport.pool) || {};
       var items = templateArray(sport.items);
-      var pages = templatePages(items, 20);
+      var pages = templatePages(items, 10);
       return {
         pages: pages,
         render: function (page) {
@@ -3053,7 +3057,9 @@ export function renderLgLegacyHtml() {
             ? Math.max(1, Math.min(8, Number(orientation === "portrait"
               ? birthdayPresentation.maxPerPortraitPage
               : birthdayPresentation.maxPerLandscapePage) || (orientation === "portrait" ? 3 : 4)))
-            : arrival ? cardsPerPage : orientation === "portrait" ? 6 : 8
+            : arrival ? cardsPerPage
+            : slideType === "sport_results" ? (orientation === "portrait" ? 5 : 6)
+            : orientation === "portrait" ? 6 : 8
         );
       return {
         pages: pages,

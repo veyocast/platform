@@ -1356,6 +1356,73 @@
   font-size: 18px;
 }
 
+/* S136: primary pool standings/results data is exactly 50% larger. */
+.arenaRoot[data-slide-type="sport_results"] .arenaResultRow {
+  font-size: 30px;
+}
+
+.arenaRoot[data-slide-type="sport_results"] .arenaResultRow > strong {
+  font-size: 46.5px;
+}
+
+.arenaRoot[data-slide-type="sport_results"] .arenaTeamMini,
+.arenaRoot[data-slide-type="sport_standing"] .arenaStandingTeam i {
+  width: 57px;
+  height: 57px;
+  font-size: 18px;
+}
+
+.arenaRoot[data-slide-type="sport_standing"] .arenaStandingTeam > img {
+  width: 57px;
+  height: 57px;
+}
+
+.arenaRoot[data-slide-type="sport_standing"] .arenaStandingHead,
+.arenaRoot[data-slide-type="sport_standing"] .arenaStandingRows > article {
+  grid-template-columns: 60px minmax(260px, 1fr) repeat(6, 51px) 69px 174px 66px 78px;
+  gap: 12px;
+}
+
+.arenaRoot[data-slide-type="sport_standing"] .arenaStandingHead {
+  font-size: 21px;
+}
+
+.arenaRoot[data-slide-type="sport_standing"] .arenaStandingRows > article {
+  font-size: 42px;
+}
+
+.arenaRoot[data-slide-type="sport_standing"] .arenaForm {
+  gap: 7.5px;
+}
+
+.arenaRoot[data-slide-type="sport_standing"] .arenaForm i {
+  width: 40.5px;
+  height: 40.5px;
+  font-size: 16.5px;
+}
+
+.arenaRoot[data-slide-type="sport_standing"] .arenaStandingZone {
+  font-size: 16.5px;
+}
+
+.arenaRoot[data-slide-type="sport_standing"] .arenaStandingContext {
+  font-size: 21px;
+}
+
+.arenaRoot[data-orientation="portrait"][data-slide-type="sport_results"] .arenaResultRow {
+  font-size: 27px;
+}
+
+.arenaRoot[data-orientation="portrait"][data-slide-type="sport_standing"] .arenaStandingHead,
+.arenaRoot[data-orientation="portrait"][data-slide-type="sport_standing"] .arenaStandingRows > article {
+  grid-template-columns: 45px minmax(190px, 1fr) repeat(6, 44px) 55px 130px 55px 64px;
+  gap: 10px;
+}
+
+.arenaRoot[data-orientation="portrait"][data-slide-type="sport_standing"] .arenaStandingRows > article {
+  font-size: 37.5px;
+}
+
 .arenaRoot[data-orientation="portrait"] .arenaMatchLayout {
   grid-template-rows: 1.25fr .75fr;
 }

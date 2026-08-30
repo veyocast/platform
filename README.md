@@ -219,6 +219,14 @@ media-workerbestand binnen de bestaande fail-closed service-role-test. De
 clientbundel- en importgraafcontroles blijven ongewijzigd; de schone VPS-build
 moet de volledige securitysuite opnieuw groen bewijzen voordat staging wijzigt.
 
+S136 houdt de providerbrede Sportlink-poulefeed intact en vult ontbrekende
+poulecontext van eigen clubuitslagen aan via de gevalideerde teamcode. Standen
+en uitslagen krijgen exact 50% grotere primaire Playertekst en pagineren eerder
+in browser en LG Legacy. De aankomstwizard accepteert daarnaast een venster in
+minuten, uren of dagen tot 42 dagen; `10.000` minuten blijft compatibel als
+minutenwaarde opgeslagen. Zie
+[`docs/s136-sportlink-slides-release-evidence.md`](docs/s136-sportlink-slides-release-evidence.md).
+
 S137 herstelt de Sportlink-verjaardagsnormalisatie voor de door de provider
 gebruikte Nederlandse drielettermaanden. Wanneer Sportlink records levert maar
 geen enkel record veilig normaliseert, faalt de worker vóór databasecompletion

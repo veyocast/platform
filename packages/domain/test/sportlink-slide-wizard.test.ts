@@ -91,4 +91,15 @@ describe("aankomstslides", () => {
     expect(cards.map((card) => card.dressingRoom)).toEqual(["S", "S"]);
     expect(paginateSportlinkArrivals([...cards, ...cards, ...cards], 2)).toHaveLength(3);
   });
+
+  it("neemt een wedstrijd binnen 10.000 minuten vooruit mee", () => {
+    const cards = resolveSportlinkArrivalCards({
+      config: { ...config, minutesBefore: 10_000 },
+      kind: "visitor",
+      matches: [{ ...match, startsAt: "2026-08-30T09:00:00.000Z" }],
+      now: new Date("2026-08-23T12:00:00.000Z")
+    });
+
+    expect(cards).toHaveLength(1);
+  });
 });

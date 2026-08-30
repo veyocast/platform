@@ -46,6 +46,20 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(picker).toContain("Standaard voor deze vereniging");
   });
 
+  it("laat een aankomstperiode als minuten, uren of dagen invoeren", async () => {
+    const [fields, action] = await Promise.all([
+      source("app/(shell)/dashboard/slides/_components/sportlink-arrival-fields.tsx"),
+      source("app/(shell)/dashboard/studio/sportlink/new/actions.ts")
+    ]);
+
+    expect(fields).toContain("Vooruitkijken vóór aanvang");
+    expect(fields).toContain('label: "Minuten"');
+    expect(fields).toContain('label: "Uren"');
+    expect(fields).toContain('label: "Dagen"');
+    expect(fields).toContain("sportlinkArrivalWindowMaxMinutes");
+    expect(action).toContain("Kies een waarde van 0 minuten tot en met 42 dagen");
+  });
+
   it("maakt versioning en menunaam expliciet zonder historische libraryduplicaten", async () => {
     const [menu, detail, history, library] = await Promise.all([
       source("app/(shell)/dashboard/slides/menu-studio/menu-studio-editor.tsx"),

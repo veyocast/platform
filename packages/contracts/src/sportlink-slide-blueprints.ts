@@ -31,6 +31,8 @@ export const sportlinkArrivalMotionPresets = [
   "grand-flip"
 ] as const;
 
+export const sportlinkArrivalWindowMaxMinutes = 42 * 24 * 60;
+
 export const sportlinkSlideContextSchema = z.object({
   competitionId: z.string().trim().min(1).max(200).nullable(),
   competitionSelectionMode: z.enum(sportlinkCompetitionSelectionModes),
@@ -45,8 +47,8 @@ export const sportlinkArrivalConfigSchema = z.object({
   dutyDeskText: z.string().trim().max(120).nullable().default(null),
   emptyBehavior: z.enum(["skip", "placeholder"]).default("skip"),
   highlightRecentMinutes: z.number().int().min(0).max(180).default(15),
-  minutesAfter: z.number().int().min(0).max(360).default(30),
-  minutesBefore: z.number().int().min(0).max(720).default(90),
+  minutesAfter: z.number().int().min(0).max(sportlinkArrivalWindowMaxMinutes).default(30),
+  minutesBefore: z.number().int().min(0).max(sportlinkArrivalWindowMaxMinutes).default(90),
   motionPreset: z.enum(sportlinkArrivalMotionPresets).default("auto"),
   pageDurationSeconds: z.number().int().min(5).max(120).default(12),
   placeholderText: z.string().trim().min(1).max(160).default("Er worden nu geen teams verwacht."),

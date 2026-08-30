@@ -219,6 +219,81 @@ describe("Sportlink sync worker", () => {
     });
   });
 
+  it("keeps provider-wide pool fixtures and enriches own results without pool metadata", async () => {
+    const poolRequests: string[] = [];
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname === "/teams") {
+        return Response.json([{
+          competitie: "Vierde klasse",
+          poule: "4C",
+          poulecode: 701,
+          teamcode: 10,
+          teamnaam: "Duindorp 1"
+        }]);
+      }
+      if (url.pathname === "/uitslagen") {
+        return Response.json([{
+          aanvangstijd: "14:30",
+          thuisteam: "Duindorp 1",
+          thuisteamid: 10,
+          uitteam: "Vereniging Uit 1",
+          uitslag: "2-1",
+          wedstrijddatum: "2026-08-29",
+          wedstrijdcode: 7002
+        }]);
+      }
+      if (url.pathname === "/poule-programma" || url.pathname === "/pouleuitslagen") {
+        poolRequests.push(`${url.pathname}:${url.searchParams.get("eigenwedstrijden")}`);
+        if (url.pathname === "/pouleuitslagen") return Response.json([]);
+        return Response.json([{
+          aanvangstijd: "14:30",
+          thuisteam: "Pouleclub 1",
+          uitteam: "Pouleclub 2",
+          wedstrijddatum: "2026-08-29",
+          wedstrijdcode: 7001
+        }]);
+      }
+      return Response.json([]);
+    });
+
+    const batch = await fetchSportlinkDataset(
+      "matches",
+      new SportlinkClient("client-id", {
+        fetchImpl: fetchImpl as typeof fetch,
+        maxAttempts: 1
+      }),
+      {
+        connectionId: "20000000-0000-4000-8000-000000000001",
+        dataSourceId: "30000000-0000-4000-8000-000000000001",
+        datasetGroup: "matches",
+        encryptedClientId: "ciphertext",
+        encryptionIv: "initialization",
+        encryptionTag: "authentication",
+        runId: "40000000-0000-4000-8000-000000000001",
+        tenantId: "10000000-0000-4000-8000-000000000001",
+        timezone: "Europe/Amsterdam"
+      }
+    );
+
+    expect(poolRequests).toEqual([
+      "/poule-programma:NEE",
+      "/pouleuitslagen:NEE"
+    ]);
+    expect(batch.matches).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        externalId: "7001",
+        pool: expect.objectContaining({ externalId: "701" }),
+        status: "scheduled"
+      }),
+      expect.objectContaining({
+        externalId: "7002",
+        pool: expect.objectContaining({ externalId: "701" }),
+        status: "finished"
+      })
+    ]));
+  });
+
   it("claims a command once and reports missing encryption configuration safely", async () => {
     const rpc = vi.fn()
       .mockResolvedValueOnce({

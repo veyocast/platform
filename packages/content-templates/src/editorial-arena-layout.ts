@@ -62,6 +62,13 @@ export const editorialArenaFrameMetrics = {
   }
 } as const;
 
+export const sportStandingRowsPerPage = 10;
+
+export const sportResultsRowsPerPage = {
+  landscape: 6,
+  portrait: 5
+} as const;
+
 export const priceLayoutMetrics = {
   landscape: {
     columns: 2,

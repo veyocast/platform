@@ -12,7 +12,13 @@ export async function createSportlinkSlideBatch(formData: FormData) {
   const parsedJson = safeJson(String(formData.get("payload") ?? ""));
   const parsed = createSportlinkSlideBatchSchema.safeParse(parsedJson);
   if (!parsed.success) {
-    redirect("/dashboard/studio/sportlink/new?fout=Controleer+de+geselecteerde+teams,+slidetypen+en+competitiecontext.");
+    const durationInvalid = parsed.error.issues.some((issue) =>
+      issue.path.includes("minutesBefore") || issue.path.includes("minutesAfter")
+    );
+    const message = durationInvalid
+      ? "De gekozen periode is niet geldig. Kies een waarde van 0 minuten tot en met 42 dagen en probeer opnieuw."
+      : "De selectie is niet meer volledig. Kies opnieuw ten minste één team en slidetype en controleer de competitiecontext.";
+    redirect(`/dashboard/studio/sportlink/new?fout=${encodeURIComponent(message)}`);
   }
   const supabase = await createControlSupabaseClient();
   if (!supabase || !session.tenantId) {

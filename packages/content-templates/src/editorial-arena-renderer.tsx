@@ -925,7 +925,7 @@ function ResultRow({ item }: { item: DynamicTemplateListItem }) {
   const home = item.homeTeam || fallbackHome;
   const away = item.awayTeam || fallbackAway;
   return (
-    <article className={styles.arenaResultRow}>
+    <article className={styles.arenaResultRow} data-result-row="">
       <span>{home} <TeamMini name={home} /></span>
       <strong>
         <i>{item.homeScore ?? "–"}</i><b>–</b><i>{item.awayScore ?? "–"}</i>

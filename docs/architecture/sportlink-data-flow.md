@@ -37,9 +37,13 @@ laat dus geen gedeeltelijke slides achter. Iedere slide bewaart een eigen
 
 De centrale blueprintregistry bevat de clubvensters vandaag/zeven dagen, de
 pouleprogramma- en pouleuitslagvensters, de officiële poulestand en de twee
-aankomstfamilies. Poolwedstrijden komen uit de allowlisted
-`poule-programma`/`pouleuitslagen`-artikelen met `eigenwedstrijden=NEE`; zo
-blijven tegenstanders onderdeel van het poulebeeld. Ontbrekende scores blijven
+aankomstfamilies. Poolwedstrijden komen providerbreed uit de allowlisted
+`poule-programma`/`pouleuitslagen`-artikelen met `eigenwedstrijden=NEE`. De
+algemene clubfeed levert de eigen wedstrijden; wanneer Sportlink bij een
+uitslag geen pouleobject meestuurt, koppelt de worker deze via de gevalideerde
+teamcode aan de gesynchroniseerde poulecontext. Daarna dedupliceert hij gelijke
+wedstrijdcodes. Zo blijven overige poulewedstrijden behouden en kunnen eigen
+wedstrijden niet buiten de pouleslide vallen. Ontbrekende scores blijven
 `null` en worden nooit als 0–0 gepubliceerd.
 
 Bezoeker- en scheidsrechteraankomsten gebruiken dezelfde klokgestuurde engine,
