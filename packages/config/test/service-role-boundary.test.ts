@@ -28,6 +28,7 @@ const serverServiceRolePatterns = [
 const allowedServerOnlyFiles = new Set([
   "apps/media-worker/src/dynamic-render-backend.ts",
   "apps/media-worker/src/index.ts",
+  "apps/media-worker/src/ledscores-connector-runner.ts",
   "apps/media-worker/src/rss-sync-runner.ts",
   "apps/media-worker/src/sportlink-sync-runner.ts",
   "apps/media-worker/src/studio-render-backend.ts",

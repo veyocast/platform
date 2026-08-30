@@ -137,6 +137,7 @@ tests en exitcriteria staan in
 | S132 | LED Scores realtime Goal Alert | Default-off read-only scoreconnector, immutable Studio-alerts, many-to-many targeting en device-geauthenticeerde realtime Playeroverlay zonder de offline releaseketen te wijzigen |
 | S133 | Sportlink providerasset-sync hotfix | De foutieve v4-padvalidatie forward-only herstellen, service-role-only completion end-to-end bewijzen en via de bestaande VPS-releaseflow veilig uitrollen |
 | S134 | Sportlink verjaardag-teamfilter hotfix | De officiële dubbele teamreferentie inclusief `-1`-sentinel valideren en versturen, zodat de dagelijkse publieke-personensync niet meer op providerfout 4002 stopt |
+| S135 | LED Scores service-role-boundary hotfix | Het nieuwe server-only workerbackend expliciet in de fail-closed secretgrens registreren en daarna dezelfde volledige VPS-release opnieuw bewijzen |
 
 ### Programmagates
 
