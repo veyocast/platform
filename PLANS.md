@@ -135,6 +135,7 @@ tests en exitcriteria staan in
 | S128 | Dynamische Sportlink-verjaardagen | Dagelijkse 21-dagensnapshot, exacte team-/rolverrijking, private geboortejaarimport, premium wizard/renderer, LKG/offline skipgedrag en tenantveilige uitrol |
 | S129 | Thuiswedstrijdgebonden bezoekerswelkomstscherm | Alleen bezoekers van expliciete thuiswedstrijden tonen, een responsief 1–4-raster gebruiken en het gevalideerde uitteamlogo offline-safe in kaart en achtergrond verwerken |
 | S133 | Sportlink providerasset-sync hotfix | De foutieve v4-padvalidatie forward-only herstellen, service-role-only completion end-to-end bewijzen en via de bestaande VPS-releaseflow veilig uitrollen |
+| S134 | Sportlink verjaardag-teamfilter hotfix | De officiële dubbele teamreferentie inclusief `-1`-sentinel valideren en versturen, zodat de dagelijkse publieke-personensync niet meer op providerfout 4002 stopt |
 
 ### Programmagates
 

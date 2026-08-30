@@ -7,6 +7,10 @@ export const sportlinkSyncGroups = [
 export type SportlinkSyncGroup = typeof sportlinkSyncGroups[number];
 
 const code = z.union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)]);
+const teamReferenceCode = z.union([
+  z.number().int().min(-1),
+  z.string().regex(/^(?:-1|\d+)$/)
+]);
 const integer = (min: number, max: number) =>
   z.coerce.number().int().min(min).max(max).optional();
 const text = z.string().trim().min(1).max(80).optional();
@@ -97,7 +101,7 @@ export const sportlinkArticleRegistry = {
   verenigingsactiviteiten: def("activities", "activities", "mapActivities",
     z.object({ aantaldagen: integer(1, 365), kalendersoort: text }).strict()),
   "team-indeling": people("team_members", "teams",
-    z.object({ teamcode: code.optional(), lokaleteamcode: code.optional(),
+    z.object({ teamcode: teamReferenceCode, lokaleteamcode: teamReferenceCode,
       teampersoonrol: text, toonlidfoto: yesNo }).strict()),
   "wedstrijd-deelnemers": people("match_participants", "match_details", match),
   "wedstrijd-thuisteam": people("match_home_team", "match_details",

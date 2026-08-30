@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { SportlinkClient } from "@veyocast/integrations/server";
 
 import {
   collectSportlinkPoolContexts,
   collectSportlinkPoolIds,
   enrichSportlinkPoolMatches,
+  fetchSportlinkDataset,
   runSportlinkSyncOnce,
   SupabaseSportlinkSyncBackend
 } from "../src/sportlink-sync-runner";
@@ -13,6 +15,56 @@ afterEach(() => {
 });
 
 describe("Sportlink sync worker", () => {
+  it("uses both provider team identifiers for birthday enrichment", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname === "/teams") {
+        return new Response(JSON.stringify([{
+          lokaleteamcode: -1,
+          teamcode: 123456,
+          teamnaam: "Duindorp 1"
+        }]), { headers: { "content-type": "application/json" } });
+      }
+      if (url.pathname === "/team-indeling") {
+        expect(url.searchParams.get("teamcode")).toBe("123456");
+        expect(url.searchParams.get("lokaleteamcode")).toBe("-1");
+        expect(url.searchParams.get("toonlidfoto")).toBe("JA");
+        return new Response("[]", {
+          headers: { "content-type": "application/json" }
+        });
+      }
+      if (url.pathname === "/verjaardagen") {
+        return new Response("[]", {
+          headers: { "content-type": "application/json" }
+        });
+      }
+      return new Response("not found", { status: 404 });
+    });
+
+    await expect(fetchSportlinkDataset(
+      "public_people",
+      new SportlinkClient("client-id", {
+        fetchImpl: fetchImpl as typeof fetch,
+        maxAttempts: 1
+      }),
+      {
+        connectionId: "20000000-0000-4000-8000-000000000001",
+        dataSourceId: "30000000-0000-4000-8000-000000000001",
+        datasetGroup: "public_people",
+        encryptedClientId: "ciphertext",
+        encryptionIv: "initialization",
+        encryptionTag: "authentication",
+        runId: "40000000-0000-4000-8000-000000000001",
+        tenantId: "10000000-0000-4000-8000-000000000001",
+        timezone: "Europe/Amsterdam"
+      }
+    )).resolves.toMatchObject({
+      birthdays: [],
+      teamMembers: []
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
+
   it("derives bounded club pools without an incomplete team-pool request", () => {
     expect(collectSportlinkPoolIds(
       [

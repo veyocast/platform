@@ -198,3 +198,10 @@ content-addressed club- en teamlogo's passeren opnieuw de padvalidatie en de
 ondubbelzinnige private service-role-upsert, met een echte database-regressietest
 en zonder Player-, release- of last-known-good-data te wijzigen. De hotfix wordt
 via de bestaande immutable VPS-releaseflow uitgerold.
+
+S134 herstelt de afzonderlijke dagelijkse verjaardagssync. De worker gebruikt
+voor `team-indeling` voortaan zowel de officiële `teamcode` als
+`lokaleteamcode`, inclusief de door Sportlink geretourneerde `-1`-sentinel voor
+bondsteams. De wijziging blijft server-only en verwerkt of logt geen extra
+persoonsgegevens; bestaande last-known-good data en immutable releases blijven
+onaangeraakt.
