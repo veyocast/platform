@@ -128,6 +128,11 @@ import { DynamicTemplateMedia } from "./dynamic-template-media";
 import { EngagePlaybackMedia } from "./engage-playback-media";
 import { YouTubePlaybackMedia } from "./youtube-playback-media";
 import { PlayerRecoveryMenu } from "./player-recovery-menu";
+import {
+  LedScoresGoalOverlay,
+  useLedScoresRealtime,
+  type ActiveLedScoresGoal
+} from "./ledscores-goal-overlay";
 
 const demoPairingCode = "VYO 482";
 const waitingContentSyncIntervalMs = 5_000;
@@ -206,6 +211,7 @@ export function PlayerRuntime() {
   const [playbackAttempt, setPlaybackAttempt] = useState(0);
   const [visibilityRevision, setVisibilityRevision] = useState(0);
   const [watchdogTimeoutMs, setWatchdogTimeoutMs] = useState(defaultWatchdogTimeoutMs);
+  const realtimeGoal = useLedScoresRealtime(isPlaybackRuntime(runtime));
   const runtimeRef = useRef<RuntimeView>(runtime);
   const advancingRef = useRef(false);
   const applicationReloadPendingRef = useRef(false);
@@ -216,6 +222,11 @@ export function PlayerRuntime() {
   const sendHeartbeatRef = useRef<(() => void) | null>(null);
   const playbackReadyRef = useRef(false);
   const pairingMachineRef = useRef<PairingMachineSnapshot>(pairingMachine);
+  const playbackTimerStateRef = useRef<{
+    key: string;
+    remainingMs: number;
+    startedAt: number | null;
+  } | null>(null);
   runtimeRef.current = runtime;
   pairingMachineRef.current = pairingMachine;
 
@@ -1728,23 +1739,50 @@ export function PlayerRuntime() {
     }
     if (!isPlayerManifestItemPlayable(activeItem)) return;
 
+    const timerKey = `${playbackRuntime.release.envelope.manifest.releaseId}:${activeItem.id}:${playbackAttempt}`;
+    const durationMs = getPlayerItemPlaybackDurationMs(activeItem, durationOverrideMs);
+    if (playbackTimerStateRef.current?.key !== timerKey) {
+      playbackTimerStateRef.current = {
+        key: timerKey,
+        remainingMs: durationMs,
+        startedAt: null
+      };
+    }
+    const timerState = playbackTimerStateRef.current;
+    if (realtimeGoal.pauseUnderlay) {
+      timerState.startedAt = null;
+      return;
+    }
+    timerState.startedAt = Date.now();
     const timer = window.setTimeout(() => {
+      if (playbackTimerStateRef.current?.key === timerKey) {
+        playbackTimerStateRef.current = null;
+      }
       if (activeItem.kind === "video" && !playbackReadyRef.current) {
         void handlePlaybackFailure(activeItem.id, "VIDEO_START_TIMEOUT");
         return;
       }
       void advancePlayback(activeItem.id);
-    }, getPlayerItemPlaybackDurationMs(activeItem, durationOverrideMs));
+    }, Math.max(1, timerState.remainingMs));
 
     return () => {
       window.clearTimeout(timer);
+      const current = playbackTimerStateRef.current;
+      if (current?.key === timerKey && current.startedAt !== null) {
+        current.remainingMs = Math.max(
+          1,
+          current.remainingMs - (Date.now() - current.startedAt)
+        );
+        current.startedAt = null;
+      }
     };
   }, [
     advancePlayback,
     durationOverrideMs,
     handlePlaybackFailure,
     playbackAttempt,
-    playbackScheduleKey
+    playbackScheduleKey,
+    realtimeGoal.pauseUnderlay
   ]);
 
   useEffect(() => {
@@ -1883,11 +1921,13 @@ export function PlayerRuntime() {
   if (isPlaybackRuntime(runtime)) {
     playerView = (
       <PlaybackView
+        goal={realtimeGoal.active}
         onFailure={handlePlaybackFailure}
         onEnded={handlePlaybackEnded}
         onReady={handlePlaybackReady}
         playbackAttempt={playbackAttempt}
         runtime={runtime}
+        underlayPaused={realtimeGoal.pauseUnderlay}
         watchdogTimeoutMs={watchdogTimeoutMs}
       />
     );
@@ -1933,18 +1973,22 @@ export function PlayerRuntime() {
 }
 
 function PlaybackView({
+  goal,
   onFailure,
   onEnded,
   onReady,
   playbackAttempt,
   runtime,
+  underlayPaused,
   watchdogTimeoutMs
 }: {
+  goal: ActiveLedScoresGoal | null;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onEnded: (itemId: string) => void;
   onReady: (itemId: string) => void;
   playbackAttempt: number;
   runtime: PlaybackRuntime;
+  underlayPaused: boolean;
   watchdogTimeoutMs: number;
 }) {
   const manifest = runtime.release.envelope.manifest;
@@ -1993,6 +2037,7 @@ function PlaybackView({
           onFailure={onFailure}
           onReady={onReady}
           playbackAttempt={playbackAttempt}
+          paused={underlayPaused}
           watchdogTimeoutMs={watchdogTimeoutMs}
         />
         <SponsorLayer
@@ -2001,6 +2046,7 @@ function PlaybackView({
           screenId={runtime.release.envelope.device.screenId}
           showFullscreen={activeItem.id === manifest.items[0]?.id}
         />
+        <LedScoresGoalOverlay goal={goal} />
         <img
           alt=""
           aria-hidden="true"
@@ -2160,6 +2206,7 @@ function PlaybackScene({
   onFailure,
   onReady,
   playbackAttempt,
+  paused,
   watchdogTimeoutMs
 }: {
   item: PlayerManifestItem;
@@ -2167,6 +2214,7 @@ function PlaybackScene({
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onReady: (itemId: string) => void;
   playbackAttempt: number;
+  paused: boolean;
   watchdogTimeoutMs: number;
 }) {
   const requestedKey = `${item.id}:${playbackAttempt}`;
@@ -2249,7 +2297,7 @@ function PlaybackScene({
     : styles.pending;
 
   return (
-    <div className={styles.transitionStack}>
+    <div className={`${styles.transitionStack} ${paused ? styles.paused : ""}`} data-underlay-paused={paused ? "true" : "false"}>
       {scene.outgoing ? (
         <div
           aria-hidden="true"
@@ -2267,6 +2315,7 @@ function PlaybackScene({
             onFailure={onFailure}
             onReady={onReady}
             passive
+            paused={paused}
             watchdogTimeoutMs={watchdogTimeoutMs}
           />
         </div>
@@ -2291,6 +2340,7 @@ function PlaybackScene({
                 : currentScene
             );
           }}
+          paused={paused}
           watchdogTimeoutMs={watchdogTimeoutMs}
         />
       </div>
@@ -2305,6 +2355,7 @@ export function PlaybackMedia({
   onPlaybackStateChange,
   onReady,
   passive = false,
+  paused = false,
   watchdogTimeoutMs
 }: {
   item: PlayerManifestItem;
@@ -2313,6 +2364,7 @@ export function PlaybackMedia({
   onPlaybackStateChange?: (state: "ended" | "paused" | "playing") => void;
   onReady: (itemId: string) => void;
   passive?: boolean;
+  paused?: boolean;
   watchdogTimeoutMs: number;
 }) {
   if (item.onlinePlayback?.kind === "engage") {
@@ -2322,6 +2374,7 @@ export function PlaybackMedia({
         onFailure={onFailure}
         onReady={onReady}
         passive={passive}
+        paused={paused}
       />
     );
   }
@@ -2333,6 +2386,7 @@ export function PlaybackMedia({
         onFailure={onFailure}
         onReady={onReady}
         passive={passive}
+        paused={paused}
       />
     );
   }
@@ -2343,6 +2397,7 @@ export function PlaybackMedia({
         onEnded={onEnded}
         onReady={onReady}
         passive={passive}
+        paused={paused}
       />
     );
   }
@@ -2355,6 +2410,7 @@ export function PlaybackMedia({
       onPlaybackStateChange={onPlaybackStateChange}
       onReady={onReady}
       passive={passive}
+      paused={paused}
       watchdogTimeoutMs={watchdogTimeoutMs}
     />
   );
@@ -2367,6 +2423,7 @@ function BinaryPlaybackMedia({
   onPlaybackStateChange,
   onReady,
   passive = false,
+  paused = false,
   watchdogTimeoutMs
 }: {
   item: PlayerManifestItem;
@@ -2375,6 +2432,7 @@ function BinaryPlaybackMedia({
   onPlaybackStateChange?: (state: "ended" | "paused" | "playing") => void;
   onReady: (itemId: string) => void;
   passive?: boolean;
+  paused?: boolean;
   watchdogTimeoutMs: number;
 }) {
   const presentation = resolvePlayerItemPresentation(item);
@@ -2394,6 +2452,8 @@ function BinaryPlaybackMedia({
   const lastSignalRef = useRef<"stalled" | "waiting" | null>(null);
   const fallbackAttemptedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const externallyPausedRef = useRef(paused);
+  externallyPausedRef.current = paused;
   const readyFrameRef = useRef<number | null>(null);
   const readyFrameSecondRef = useRef<number | null>(null);
   const readyReportedRef = useRef(false);
@@ -2444,7 +2504,7 @@ function BinaryPlaybackMedia({
     const interval = window.setInterval(() => {
       const now = Date.now();
       if (hasEndedRef.current) return;
-      if (isPausedRef.current) return;
+      if (isPausedRef.current || externallyPausedRef.current) return;
       if (!hasStartedRef.current && now - startedAt >= watchdogTimeoutMs) {
         reportFailure("VIDEO_START_TIMEOUT");
         return;
@@ -2499,6 +2559,23 @@ function BinaryPlaybackMedia({
   useEffect(() => {
     const video = videoRef.current;
     if (item.kind !== "video" || !video || passive) return;
+    if (paused) {
+      isPausedRef.current = true;
+      safelyPauseVideo(video);
+      return;
+    }
+    isPausedRef.current = false;
+    if (video.readyState >= 2 && !hasEndedRef.current) {
+      const playResult = video.play();
+      if (playResult && typeof playResult.catch === "function") {
+        void playResult.catch(() => undefined);
+      }
+    }
+  }, [item.kind, passive, paused]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (item.kind !== "video" || !video || passive) return;
 
     hasEndedRef.current = false;
     isPausedRef.current = false;
@@ -2509,7 +2586,7 @@ function BinaryPlaybackMedia({
 
     try {
       video.load();
-      const playResult = video.play();
+      const playResult = externallyPausedRef.current ? null : video.play();
       if (playResult && typeof playResult.catch === "function") {
         void playResult.catch(() => {
           // De startwatchdog probeert fallback/herstel gecontroleerd; een

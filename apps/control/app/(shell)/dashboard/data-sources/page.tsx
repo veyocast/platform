@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   Database,
   FileSpreadsheet,
+  RadioTower,
   Rss,
   ShieldCheck,
   Trophy
@@ -47,6 +48,12 @@ export default async function DataSourcesPage({ searchParams }: PageProps) {
       <PageHeader
         actions={(
           <div className={styles.heroActions}>
+            <Button asChild variant="secondary">
+              <Link href="/dashboard/data-sources/led-scores">
+                <RadioTower aria-hidden="true" />
+                LED Scores
+              </Link>
+            </Button>
             <Button asChild variant="secondary">
               <Link href="/dashboard/data-sources/sportlink">
                 <Trophy aria-hidden="true" />

@@ -1,6 +1,9 @@
 import { hostname } from "node:os";
 
 export type MediaWorkerConfig = {
+  ledScoresClaimIntervalMs: number;
+  ledScoresLeaseSeconds: number;
+  ledScoresMaxConnections: number;
   lockTimeoutSeconds: number;
   maxAttempts: number;
   pollIntervalMs: number;
@@ -27,6 +30,27 @@ export function readMediaWorkerConfig(
   }
 
   return {
+    ledScoresClaimIntervalMs: readInteger(
+      environment.LEDSCORES_CLAIM_INTERVAL_MS,
+      5_000,
+      1_000,
+      60_000,
+      "LEDSCORES_CLAIM_INTERVAL_MS"
+    ),
+    ledScoresLeaseSeconds: readInteger(
+      environment.LEDSCORES_LEASE_SECONDS,
+      45,
+      15,
+      120,
+      "LEDSCORES_LEASE_SECONDS"
+    ),
+    ledScoresMaxConnections: readInteger(
+      environment.LEDSCORES_MAX_CONNECTIONS,
+      25,
+      1,
+      50,
+      "LEDSCORES_MAX_CONNECTIONS"
+    ),
     lockTimeoutSeconds: readInteger(
       environment.MEDIA_WORKER_LOCK_TIMEOUT_SECONDS,
       900,

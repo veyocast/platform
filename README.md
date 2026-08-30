@@ -192,3 +192,11 @@ Zie [`docs/studio/integration-matrix.md`](docs/studio/integration-matrix.md) en
 [`docs/studio/operations.md`](docs/studio/operations.md). De volledige lokale
 bewijsstatus, open releasegates en invloedrijke vervolgkeuzes staan in
 [`docs/studio/release-evidence.md`](docs/studio/release-evidence.md).
+
+S132 voegt een default-off LED Scores-pilot toe. Een server-only worker volgt
+meerdere vaste read-only websockets met leases, detecteert uitsluitend verse
+exacte goals en levert een device-geauthenticeerde realtime overlay boven de
+ongewijzigde last-known-good Playerrelease. Studio publiceert immutable eigen-
+en tegenstandervarianten naar de unie van meerdere schermgroepen. Architectuur,
+operatorflow, metingen en rollback staan in
+[`docs/integrations/ledscores-realtime-goal-alert.md`](docs/integrations/ledscores-realtime-goal-alert.md).

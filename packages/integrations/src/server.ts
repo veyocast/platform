@@ -5,3 +5,4 @@ export * from "./sportlink-birthdays";
 export * from "./sportlink-mappers";
 export * from "./sportlink-secret";
 export * from "./mollie";
+export * from "./ledscores";

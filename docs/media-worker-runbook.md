@@ -34,6 +34,9 @@ MEDIA_WORKER_MAX_ATTEMPTS             standaard 3, bereik 1–10
 MEDIA_WORKER_LOCK_TIMEOUT_SECONDS     standaard 900, bereik 60–3600
 SPORTLINK_CONFIG_ENCRYPTION_KEY       server-only, stabiel en minimaal 32 tekens
 PUBLISHER_SCHEDULE_POLL_INTERVAL_MS   standaard 15000, bereik 5000–300000
+LEDSCORES_CLAIM_INTERVAL_MS           standaard 5000, bereik 1000–60000
+LEDSCORES_LEASE_SECONDS               standaard 45, bereik 15–120
+LEDSCORES_MAX_CONNECTIONS             standaard 25, bereik 1–50
 ```
 
 De configuratielader weigert publishable keys, anon-JWT's, placeholders,
@@ -58,8 +61,9 @@ daemon logt per iteratie één event uit de vaste catalogus met een jobgebonden
 correlation ID. Tokens, URLs, databaseconnecties en persoonlijke velden worden
 recursief geredigeerd; stacktraces en credentials worden niet geschreven.
 
-Dezelfde daemon verwerkt drie onafhankelijke loops: media-normalisatie,
-Studio-rendering en Publisher-planning. Per proces loopt maximaal één
+Dezelfde daemon verwerkt vier onafhankelijke loops: media-normalisatie,
+Studio-rendering, Publisher-planning en de default-off LED Scores-connector.
+Per proces loopt maximaal één
 Studio-render tegelijk. De media- en Studio-loop kunnen wel gelijktijdig actief
 zijn en delen dus CPU en geheugen. De daemon roept met de server-only
 service-role iedere vijftien seconden
@@ -68,6 +72,16 @@ deterministisch de hoogste geldige planning en valt na afloop terug op de
 standaardrelease. Een evaluatiefout stopt de mediaqueue niet; de volgende
 begrensde poll probeert opnieuw. Deze evaluator hoort per omgeving als één
 workerinstantie te draaien.
+
+De LED Scores-loop claimt uitsluitend verbindingen van actieve tenants met de
+featureflag `ledscores_realtime`. Iedere claim heeft een databaselease en de
+worker opent alleen het vaste read-only `wss.ledscores.score.tel`-endpoint.
+Websocketfouten gebruiken begrensde back-off; ze stoppen de mediaqueue niet.
+Connect is na tien seconden begrensd en 45 seconden bronstilte forceert een
+gecontroleerde reconnect. Klokticks blijven vluchtig; health wordt hooguit eens
+per vijftien seconden geschreven. Iedere zes uur loopt de niet-blokkerende
+service-retentie voor deliveries en eventhistorie.
+Zie [`integrations/ledscores-realtime-goal-alert.md`](integrations/ledscores-realtime-goal-alert.md).
 
 Een onverwachte fatale fout in één parallelle loop zet de volledige daemon
 direct in drain, annuleert de overige loops en laat de oorspronkelijke fout na

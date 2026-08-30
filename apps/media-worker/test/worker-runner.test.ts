@@ -26,6 +26,9 @@ const job: ClaimedMediaJob = {
   tenantId: "10000000-0000-4000-8000-000000000001"
 };
 const config: MediaWorkerConfig = {
+  ledScoresClaimIntervalMs: 5_000,
+  ledScoresLeaseSeconds: 45,
+  ledScoresMaxConnections: 25,
   lockTimeoutSeconds: 900,
   maxAttempts: 3,
   pollIntervalMs: 2_000,

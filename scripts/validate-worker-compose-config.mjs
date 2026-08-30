@@ -29,6 +29,9 @@ if (
 const environmentNames = Object.keys(service.environment ?? {}).sort();
 const expectedEnvironmentNames = [
   "DEPLOYMENT_SHA",
+  "LEDSCORES_CLAIM_INTERVAL_MS",
+  "LEDSCORES_LEASE_SECONDS",
+  "LEDSCORES_MAX_CONNECTIONS",
   "MEDIA_WORKER_LOCK_TIMEOUT_SECONDS",
   "MEDIA_WORKER_MAX_ATTEMPTS",
   "MEDIA_WORKER_POLL_INTERVAL_MS",
@@ -48,6 +51,9 @@ if (JSON.stringify(environmentNames) !== JSON.stringify(expectedEnvironmentNames
 if (
   service.environment.DEPLOYMENT_SHA !== revision ||
   service.environment.VEYOCAST_ENVIRONMENT !== environment ||
+  service.environment.LEDSCORES_CLAIM_INTERVAL_MS !== "5000" ||
+  service.environment.LEDSCORES_LEASE_SECONDS !== "45" ||
+  service.environment.LEDSCORES_MAX_CONNECTIONS !== "25" ||
   service.environment.MEDIA_WORKER_POLL_INTERVAL_MS !== "500" ||
   service.environment.PUBLISHER_SCHEDULE_POLL_INTERVAL_MS !== "15000" ||
   service.environment.MONITOR_CONTROL_URL !==

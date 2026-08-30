@@ -134,6 +134,7 @@ tests en exitcriteria staan in
 | S123 | Vector v2 — Living Venue OS | Productfamiliebrede premium upgrade met compatibele design-systemlaag, echte nieuwe feature-domeinen achter flags, billing/entitlements en volledige release-evidence |
 | S128 | Dynamische Sportlink-verjaardagen | Dagelijkse 21-dagensnapshot, exacte team-/rolverrijking, private geboortejaarimport, premium wizard/renderer, LKG/offline skipgedrag en tenantveilige uitrol |
 | S129 | Thuiswedstrijdgebonden bezoekerswelkomstscherm | Alleen bezoekers van expliciete thuiswedstrijden tonen, een responsief 1–4-raster gebruiken en het gevalideerde uitteamlogo offline-safe in kaart en achtergrond verwerken |
+| S132 | LED Scores realtime Goal Alert | Default-off read-only scoreconnector, immutable Studio-alerts, many-to-many targeting en device-geauthenticeerde realtime Playeroverlay zonder de offline releaseketen te wijzigen |
 
 ### Programmagates
 

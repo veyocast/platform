@@ -93,6 +93,35 @@ export async function updateScreen(formData: FormData) {
   complete(`/dashboard/screens/${screenId}?tab=overview`, message, screenId);
 }
 
+export async function updateScreenGroupMemberships(formData: FormData) {
+  const { session, supabase } = await requireScreenManagement("mutate");
+  const screenId = requiredUuid(formData, "screenId");
+  const returnPath = `/dashboard/screens/${screenId}?tab=settings`;
+  const rawGroupIds = formData.getAll("groupIds").map(String);
+  const groupIds = [...new Set(rawGroupIds.filter(isUuid))];
+  if (rawGroupIds.length !== groupIds.length || groupIds.length > 100) {
+    fail(returnPath, "De gekozen schermgroepen zijn ongeldig. Vernieuw de pagina en probeer opnieuw.");
+  }
+  const { data, error } = await supabase.rpc("set_screen_group_memberships_v1", {
+    p_group_ids: groupIds,
+    p_screen_id: screenId,
+    p_tenant_id: session.tenantId
+  });
+  if (error || Number(data) !== groupIds.length) {
+    console.error("Schermgroepen opslaan mislukt", error);
+    fail(returnPath, "De schermgroepen konden niet atomair worden opgeslagen. De bestaande indeling is behouden.");
+  }
+  revalidatePath("/dashboard/screen-groups");
+  revalidatePath("/dashboard/planning");
+  complete(
+    returnPath,
+    groupIds.length === 0
+      ? "Het scherm is uit alle schermgroepen verwijderd."
+      : `Het scherm is opgeslagen in ${groupIds.length} ${groupIds.length === 1 ? "schermgroep" : "schermgroepen"}.`,
+    screenId
+  );
+}
+
 export async function deactivateScreen(formData: FormData) {
   const { session, supabase } = await requireScreenManagement("mutate");
   const screenId = requiredUuid(formData, "screenId");

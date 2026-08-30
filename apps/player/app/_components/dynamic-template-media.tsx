@@ -12,12 +12,14 @@ export function DynamicTemplateMedia({
   item,
   onEnded,
   onReady,
-  passive = false
+  passive = false,
+  paused = false
 }: {
   item: EditorialArenaItem;
   onEnded: (itemId: string) => void;
   onReady: (itemId: string) => void;
   passive?: boolean;
+  paused?: boolean;
 }) {
   const skippedRef = useRef("");
   const view = useMemo(
@@ -27,12 +29,12 @@ export function DynamicTemplateMedia({
   const shouldSkip = view?.slideType === "sport_birthdays" && view.pages.length === 0;
 
   useEffect(() => {
-    if (!shouldSkip || passive || skippedRef.current === item.id) return;
+    if (!shouldSkip || passive || paused || skippedRef.current === item.id) return;
     skippedRef.current = item.id;
     onReady(item.id);
     const frame = window.requestAnimationFrame(() => onEnded(item.id));
     return () => window.cancelAnimationFrame(frame);
-  }, [item.id, onEnded, onReady, passive, shouldSkip]);
+  }, [item.id, onEnded, onReady, passive, paused, shouldSkip]);
 
   if (shouldSkip) return null;
   return <EditorialArenaRenderer item={item} onReady={onReady} passive={passive} />;
