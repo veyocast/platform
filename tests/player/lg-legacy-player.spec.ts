@@ -805,6 +805,15 @@ test("LG Legacy toont de stand als één Editorial Arena-canvas met begrensde lo
   await expect(slide.locator(".legacy-standing-card")).toHaveCount(1);
   await expect(slide.locator(".legacy-standing-header")).toHaveCount(0);
   await expect(slide.locator(".legacy-standing-row")).toHaveCount(4);
+  expect(await slide.locator(".legacy-standing-columns").evaluate(
+    (element) => Number.parseFloat(getComputedStyle(element).fontSize)
+  )).toBe(27);
+  expect(await slide.locator(".legacy-standing-row").first().evaluate(
+    (element) => Number.parseFloat(getComputedStyle(element).fontSize)
+  )).toBe(39);
+  expect(await slide.locator(".legacy-standing-context").evaluate(
+    (element) => Number.parseFloat(getComputedStyle(element).fontSize)
+  )).toBe(19.5);
 
   const crestBox = await slide.locator(".editorial-crest img").boundingBox();
   expect(crestBox).not.toBeNull();

@@ -21,7 +21,9 @@ import {
 } from "./editorial-arena-theme";
 import {
   paginateEditorialRows,
-  priceRowsThatFit
+  priceRowsThatFit,
+  sportResultsRowsPerPage,
+  sportStandingRowsPerPage
 } from "./editorial-arena-layout";
 import {
   paginatePriceList,
@@ -547,7 +549,10 @@ function createDynamicTemplateViewInternal(
       clubName,
       emptyState,
       orientation: payload.orientation,
-      pages: paginateEditorialRows(standingItems).map((page) => ({
+      pages: paginateEditorialRows(
+        standingItems,
+        sportStandingRowsPerPage
+      ).map((page) => ({
         items: page,
         kind: "standing" as const
       })),
@@ -609,9 +614,11 @@ function createDynamicTemplateViewInternal(
     };
   }
 
-  const perPage = ["sport_program", "sport_results"].includes(
-    payload.slideType
-  ) ? 20 : payload.orientation === "portrait" ? 6 : 8;
+  const perPage = payload.slideType === "sport_results"
+    ? sportResultsRowsPerPage[payload.orientation]
+    : payload.slideType === "sport_program"
+      ? 20
+      : payload.orientation === "portrait" ? 6 : 8;
   return {
     accentColor: themeTokens.accent,
     clubLogoUrl,

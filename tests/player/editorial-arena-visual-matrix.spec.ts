@@ -70,6 +70,21 @@ test("volledige Editorial Arena-matrix van 48 cellen", async ({ page }) => {
           expect(geometry.scrollHeight).toBe(geometry.clientHeight);
           expect(geometry.footerClearsContent).toBe(true);
           expect(geometry.allImagesComplete).toBe(true);
+          if (variant.startsWith("results-")) {
+            const rows = slide.locator("[data-result-row]");
+            await expect(rows).toHaveCount(
+              Math.min(
+                countForVariant(variant),
+                orientation === "portrait" ? 5 : 6
+              )
+            );
+            expect(await rows.first().evaluate(
+              (element) => Number.parseFloat(getComputedStyle(element).fontSize)
+            )).toBe(orientation === "portrait" ? 27 : 30);
+            expect(await rows.first().locator(":scope > strong").evaluate(
+              (element) => Number.parseFloat(getComputedStyle(element).fontSize)
+            )).toBe(46.5);
+          }
           if (variant === "news-fullscreen") {
             const composition = await page.locator(
               '[data-news-variant="fullscreen_gradient"]'
@@ -302,4 +317,8 @@ function newsVariant(variant: typeof fixtureVariants[number]): EditorialNewsVari
 
 function encodePayload(payload: PlayerDynamicTemplatePayload) {
   return Buffer.from(JSON.stringify(payload)).toString("base64url");
+}
+
+function countForVariant(variant: typeof fixtureVariants[number]) {
+  return variant.endsWith("-5") ? 5 : variant.endsWith("-10") ? 10 : 20;
 }

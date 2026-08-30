@@ -392,12 +392,22 @@ export async function fetchSportlinkDataset(
         }
       }
     }
-    batch.matches = [
-      ...mapSportlinkMatches(program.payload, "program"),
-      ...mapSportlinkMatches(results.payload, "results"),
-      ...mapSportlinkMatches(cancellations.payload, "cancellations"),
-      ...poolMatches
-    ];
+    const ownProgram = enrichSportlinkOwnMatchesWithPoolContexts(
+      mapSportlinkMatches(program.payload, "program"),
+      teams.payload,
+      pools.payload
+    );
+    const ownResults = enrichSportlinkOwnMatchesWithPoolContexts(
+      mapSportlinkMatches(results.payload, "results"),
+      teams.payload,
+      pools.payload
+    );
+    batch.matches = dedupeSportlinkMatches([
+      ...poolMatches,
+      ...ownProgram,
+      ...ownResults,
+      ...mapSportlinkMatches(cancellations.payload, "cancellations")
+    ]);
     batch.teamLogos = await fetchMatchTeamLogos(job, batch.matches);
     return batch;
   }
@@ -887,6 +897,43 @@ export function collectSportlinkPoolContexts(
   }
 
   return [...contexts.values()];
+}
+
+export function enrichSportlinkOwnMatchesWithPoolContexts(
+  matches: SportMatch[],
+  teamsPayload: unknown,
+  poolsPayload: unknown
+) {
+  const contexts = new Map(
+    collectSportlinkPoolContexts(teamsPayload, poolsPayload)
+      .map((context) => [context.poolExternalId, context])
+  );
+  const teamPools = new Map<string, string>();
+  const mapTeamPool = (record: Record<string, unknown>) => {
+    const poolId = scalar(record.poulecode);
+    if (!poolId || !contexts.has(poolId)) return;
+    for (const value of [record.teamcode, record.lokaleteamcode]) {
+      const teamId = scalar(value);
+      if (teamId) teamPools.set(teamId, poolId);
+    }
+  };
+  for (const team of extractSportlinkRecords(teamsPayload)) mapTeamPool(team);
+  for (const pool of extractSportlinkRecords(poolsPayload)) mapTeamPool(pool);
+
+  return matches.map((match) => {
+    if (match.pool?.externalId) return match;
+    const poolId = [match.homeTeam.externalId, match.awayTeam.externalId]
+      .flatMap((teamId) => teamId ? [teamPools.get(teamId)] : [])
+      .find((value): value is string => Boolean(value));
+    const context = poolId ? contexts.get(poolId) : null;
+    return context ? enrichSportlinkPoolMatches([match], context)[0]! : match;
+  });
+}
+
+function dedupeSportlinkMatches(matches: SportMatch[]) {
+  const unique = new Map<string, SportMatch>();
+  for (const match of matches) unique.set(match.externalId, match);
+  return [...unique.values()];
 }
 
 export function enrichSportlinkPoolMatches(

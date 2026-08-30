@@ -351,7 +351,7 @@ describe("trusted dynamic template view", () => {
     });
   });
 
-  it("toont maximaal twintig standregels per portraitpagina", () => {
+  it("pagineert negentien portraitstandregels als tien plus negen", () => {
     const view = createDynamicTemplateView({
       ...base,
       data: {
@@ -381,8 +381,14 @@ describe("trusted dynamic template view", () => {
       templateSlug: "editorial-arena-competitiestand-dark-portrait"
     });
 
-    expect(view?.pages).toHaveLength(1);
+    expect(view?.pages).toHaveLength(2);
     expect(view?.pages[0]).toMatchObject({
+      items: expect.arrayContaining([
+        expect.objectContaining({ teamName: "Vereniging 10" })
+      ]),
+      kind: "standing"
+    });
+    expect(view?.pages[1]).toMatchObject({
       items: expect.arrayContaining([
         expect.objectContaining({ teamName: "Vereniging 19" })
       ]),
@@ -390,7 +396,7 @@ describe("trusted dynamic template view", () => {
     });
   });
 
-  it("houdt elf standregels op één landscape-pagina voor tweekolomsweergave", () => {
+  it("pagineert elf landscapestandregels als tien plus één", () => {
     const view = createDynamicTemplateView({
       ...base,
       data: {
@@ -407,14 +413,67 @@ describe("trusted dynamic template view", () => {
       templateSlug: "editorial-arena-competitiestand-dark-landscape"
     });
 
-    expect(view?.pages).toHaveLength(1);
+    expect(view?.pages).toHaveLength(2);
     expect(view?.pages[0]).toMatchObject({
       items: expect.arrayContaining([
-        expect.objectContaining({ teamName: "Vereniging 10" }),
-        expect.objectContaining({ teamName: "Vereniging 11" })
+        expect.objectContaining({ teamName: "Vereniging 10" })
       ]),
       kind: "standing"
     });
+    expect(view?.pages[1]).toMatchObject({
+      items: [expect.objectContaining({ teamName: "Vereniging 11" })],
+      kind: "standing"
+    });
+  });
+
+  it("pagineert pouleuitslagen voor de 50% grotere tekst", () => {
+    const resultItems = Array.from({ length: 13 }, (_, index) => ({
+      awayScore: index % 2,
+      awayTeam: `Uit ${index + 1}`,
+      homeScore: 3,
+      homeTeam: `Thuis ${index + 1}`,
+      id: `result-${index + 1}`,
+      primary: `Thuis ${index + 1} – Uit ${index + 1}`
+    }));
+    const payload = {
+      ...base,
+      data: {
+        sport: { items: resultItems, title: "Uitslagen" },
+        type: "sport_results" as const
+      },
+      slideType: "sport_results" as const,
+      templateSlug: "editorial-arena-uitslagen-dark-landscape"
+    };
+
+    const landscape = createDynamicTemplateView(payload);
+    const portrait = createDynamicTemplateView({
+      ...payload,
+      orientation: "portrait"
+    });
+
+    expect(landscape?.pages).toHaveLength(3);
+    expect(landscape?.pages).toMatchObject([
+      { items: expect.any(Array), kind: "sport-list" },
+      { items: expect.any(Array), kind: "sport-list" },
+      { items: [expect.objectContaining({ homeTeam: "Thuis 13" })], kind: "sport-list" }
+    ]);
+    expect(portrait?.pages).toHaveLength(3);
+    expect(portrait?.pages).toMatchObject([
+      { items: expect.any(Array), kind: "sport-list" },
+      { items: expect.any(Array), kind: "sport-list" },
+      {
+        items: expect.arrayContaining([
+          expect.objectContaining({ homeTeam: "Thuis 13" })
+        ]),
+        kind: "sport-list"
+      }
+    ]);
+    expect(landscape?.pages[0]?.kind === "sport-list"
+      ? landscape.pages[0].items.length
+      : 0).toBe(6);
+    expect(portrait?.pages[0]?.kind === "sport-list"
+      ? portrait.pages[0].items.length
+      : 0).toBe(5);
   });
 
   it("bouwt een prijslijst met vaste fotovakken en negen landscaperijen", () => {

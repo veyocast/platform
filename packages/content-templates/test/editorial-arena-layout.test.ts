@@ -4,9 +4,11 @@ import {
   paginateEditorialRows,
   priceRowsThatFit,
   resolveEditorialArenaViewportFit,
+  sportResultsRowsPerPage,
   sportColumnCount,
   sportRowHeight,
-  sportRowsPerColumn
+  sportRowsPerColumn,
+  sportStandingRowsPerPage
 } from "../src/editorial-arena-layout";
 import {
   contrastRatio,
@@ -52,6 +54,26 @@ describe("Editorial Arena v2 layout", () => {
   it("pagineert pas boven twintig regels", () => {
     expect(paginateEditorialRows(Array.from({ length: 20 }))).toHaveLength(1);
     expect(paginateEditorialRows(Array.from({ length: 21 }))).toHaveLength(2);
+  });
+
+  it("pagineert de 50% grotere poulestand op tien leesbare regels", () => {
+    expect(sportStandingRowsPerPage).toBe(10);
+    expect(paginateEditorialRows(
+      Array.from({ length: 20 }),
+      sportStandingRowsPerPage
+    )).toHaveLength(2);
+  });
+
+  it("pagineert 50% grotere pouleuitslagen per schermoriëntatie", () => {
+    expect(sportResultsRowsPerPage).toEqual({ landscape: 6, portrait: 5 });
+    expect(paginateEditorialRows(
+      Array.from({ length: 20 }),
+      sportResultsRowsPerPage.landscape
+    )).toHaveLength(4);
+    expect(paginateEditorialRows(
+      Array.from({ length: 20 }),
+      sportResultsRowsPerPage.portrait
+    )).toHaveLength(4);
   });
 });
 
