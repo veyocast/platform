@@ -331,7 +331,7 @@ async function executeSportlinkDataset(
   );
 }
 
-async function fetchSportlinkDataset(
+export async function fetchSportlinkDataset(
   datasetGroup: string,
   client: SportlinkClient,
   job: ClaimedSportlinkSync
@@ -484,8 +484,10 @@ async function fetchSportlinkBirthdays(
   const teams = mapSportlinkTeams(teamResponse.payload).slice(0, 50);
   const memberAssignments = [];
   for (const team of teams) {
+    if (!team.localExternalId) continue;
     try {
       const response = await client.fetchArticle("team-indeling", {
+        lokaleteamcode: team.localExternalId,
         teamcode: team.externalId,
         toonlidfoto: "JA"
       });

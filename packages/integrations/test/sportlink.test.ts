@@ -30,6 +30,19 @@ describe("Sportlink server-only adapter", () => {
     expect(() => parseSportlinkArguments("teampoulelijst", {
       teamcode: 4
     })).toThrow();
+    expect(parseSportlinkArguments("team-indeling", {
+      lokaleteamcode: -1,
+      teamcode: 4,
+      toonlidfoto: "JA"
+    })).toEqual({
+      lokaleteamcode: -1,
+      teamcode: 4,
+      toonlidfoto: "JA"
+    });
+    expect(() => parseSportlinkArguments("team-indeling", {
+      teamcode: 4,
+      toonlidfoto: "JA"
+    })).toThrow();
   });
 
   it("redacts credentials in URLs", () => {
