@@ -1,3 +1,663 @@
-.shell{display:grid;gap:1rem}.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.6rem}.steps button{display:flex;align-items:center;gap:.65rem;padding:.8rem;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--muted-foreground);text-align:left}.steps button[aria-current="step"]{border-color:var(--accent);color:var(--foreground);box-shadow:inset 0 -2px var(--accent)}.steps button span{display:grid;width:2rem;height:2rem;place-items:center;border-radius:50%;background:var(--muted)}.steps svg{width:1rem}.workspace{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(340px,.75fr);gap:1rem;align-items:start}.panel,.previewRail{border:1px solid var(--border);border-radius:20px;background:var(--surface);box-shadow:0 18px 50px rgba(0,0,0,.06)}.panel{padding:1.5rem}.heading{display:flex;gap:1rem;margin-bottom:1.4rem}.heading>span{display:grid;width:3rem;height:3rem;flex:none;place-items:center;border-radius:14px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}.heading h2{margin:0}.heading p{max-width:70ch;margin:.35rem 0 0;color:var(--muted-foreground)}.choiceGrid,.toggleGrid,.fieldGrid,.statusGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}.choiceGrid>label,.toggleGrid>label{display:flex;gap:.7rem;padding:1rem;border:1px solid var(--border);border-radius:14px;background:var(--background)}.choiceGrid>label[data-selected]{border-color:var(--accent);box-shadow:inset 3px 0 var(--accent)}.choiceGrid span,.toggleGrid span{display:flex;min-width:0;flex-direction:column}.choiceGrid small,.toggleGrid small,.fieldGrid small,.resourcePicker small,.emptyBehavior small{color:var(--muted-foreground)}.statusGrid{margin:1rem 0}.statusGrid>div,.reviewMetrics>div{padding:1rem;border-radius:14px;background:var(--muted)}.statusGrid span,.reviewMetrics dt{display:block;color:var(--muted-foreground);font-size:.8rem}.statusGrid strong,.reviewMetrics dd{margin:.25rem 0 0;font-size:1rem}.fieldGrid>label,.emptyBehavior{display:flex;flex-direction:column;gap:.4rem}.fieldGrid input,.fieldGrid select,.emptyBehavior select,.resourcePicker input{min-height:42px;padding:.55rem .7rem;border:1px solid var(--border);border-radius:10px;background:var(--background);color:var(--foreground)}.teamPicker{margin:1rem 0;padding:1rem;border:1px solid var(--border);border-radius:14px}.teamPicker p{color:var(--muted-foreground)}.teamPicker label{display:inline-flex;gap:.4rem;margin:.25rem 1rem .25rem 0}.toggleGrid label[data-disabled]{opacity:.58}.resourcePicker{margin-top:1rem;border:1px solid var(--border);border-radius:16px;overflow:hidden}.resourcePicker header{display:flex;justify-content:space-between;gap:1rem;padding:1rem;background:var(--muted)}.resourcePicker header>div{display:flex;flex-direction:column}.mediaGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;max-height:360px;padding:1rem;overflow:auto}.mediaGrid button{display:flex;min-width:0;flex-direction:column;gap:.45rem;padding:.4rem;border:2px solid transparent;border-radius:12px;background:var(--background);color:var(--foreground);text-align:left}.mediaGrid button[data-selected]{border-color:var(--accent)}.mediaGrid img,.abstractMedia{display:block;width:100%;aspect-ratio:16/9;border-radius:8px;object-fit:cover}.abstractMedia{background:radial-gradient(circle at 75% 25%,color-mix(in srgb,var(--accent) 50%,transparent),transparent 40%),linear-gradient(135deg,#111827,#172554)}.actions{display:flex;justify-content:space-between;gap:1rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)}.previewRail{position:sticky;top:1rem;padding:1rem}.previewRail>header,.previewControls{display:flex;justify-content:space-between;gap:1rem;align-items:center}.previewRail>header{margin-bottom:.8rem}.previewCanvas{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:12px;background:#090b12}.previewCanvas[data-orientation="portrait"]{max-width:310px;margin-inline:auto;aspect-ratio:9/16}.previewControls{margin-top:.7rem;color:var(--muted-foreground);font-size:.8rem}.orientationTabs{display:flex;gap:.5rem;margin-bottom:1rem}.orientationTabs button{padding:.65rem 1rem;border:1px solid var(--border);border-radius:999px;background:var(--background);color:var(--foreground)}.orientationTabs button[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--background))}.reviewMetrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin:0 0 1rem}.allPages{display:flex;gap:.4rem;margin:1rem 0}.allPages div{padding:.45rem .65rem;border-radius:8px;background:var(--muted);font-size:.8rem}.emptyBehavior{margin-top:1rem}.previewRail :global(.arenaViewport){position:absolute}
-@media(max-width:960px){.workspace{grid-template-columns:1fr}.previewRail{position:relative;top:auto;order:-1}.previewCanvas{max-height:42vh}.steps{grid-template-columns:1fr 1fr}.steps button{font-size:.82rem}.reviewMetrics{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.panel{padding:1rem}.steps{display:flex;overflow:auto}.steps button{min-width:150px}.choiceGrid,.toggleGrid,.fieldGrid,.statusGrid,.reviewMetrics{grid-template-columns:1fr}.mediaGrid{grid-template-columns:1fr 1fr}.resourcePicker header{flex-direction:column}.actions{position:sticky;bottom:0;z-index:2;margin-inline:-1rem;padding:1rem;background:var(--surface)}}
+.shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .6rem;
+}
+
+.steps button {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  gap: .65rem;
+  padding: .75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted-foreground);
+  text-align: left;
+}
+
+.steps button[aria-current="step"] {
+  border-color: var(--accent);
+  color: var(--foreground);
+  box-shadow: inset 0 -2px var(--accent);
+}
+
+.steps button span {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.steps svg {
+  width: 1rem;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(340px, .75fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.panel,
+.previewRail {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(10 10 10 / 4%);
+}
+
+.panel {
+  padding: 1.5rem;
+}
+
+.heading {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.heading > span {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  flex: none;
+  place-items: center;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.heading h2 {
+  margin: 0;
+}
+
+.heading h2:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--focus, var(--accent));
+  outline-offset: 3px;
+}
+
+.heading p {
+  max-width: 70ch;
+  margin: .35rem 0 0;
+  color: var(--muted-foreground);
+}
+
+.choiceGrid,
+.toggleGrid,
+.fieldGrid,
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.choiceGrid > label,
+.toggleGrid > label {
+  display: flex;
+  min-height: 3.5rem;
+  gap: .7rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+}
+
+.choiceGrid > label[data-selected] {
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 var(--accent);
+}
+
+.choiceGrid span,
+.toggleGrid span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.choiceGrid small,
+.toggleGrid small,
+.fieldGrid small,
+.resourcePicker small,
+.emptyBehavior small,
+.teamField > small {
+  color: var(--muted-foreground);
+}
+
+.statusGrid {
+  margin: 1rem 0;
+}
+
+.statusGrid > div,
+.reviewMetrics > div {
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 8px;
+  background: var(--muted);
+}
+
+.statusGrid span,
+.reviewMetrics dt {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: .8rem;
+}
+
+.statusGrid strong,
+.reviewMetrics dd {
+  margin: .25rem 0 0;
+  font-size: 1rem;
+}
+
+.fieldGrid > label,
+.emptyBehavior,
+.teamField {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.fieldGrid input,
+.fieldGrid select,
+.emptyBehavior select,
+.resourcePicker input {
+  min-height: 44px;
+  padding: .55rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.fieldLabel {
+  font-weight: 600;
+}
+
+.teamField {
+  margin: 1rem 0;
+}
+
+.teamPickerTrigger {
+  width: 100%;
+  min-height: 4rem;
+  justify-content: space-between;
+  padding: .65rem .8rem;
+  text-align: left;
+}
+
+.teamPickerTrigger > span {
+  display: grid;
+  min-width: 0;
+  gap: .15rem;
+}
+
+.teamPickerTrigger strong,
+.teamPickerTrigger small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamPickerTrigger small {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.teamDialog {
+  width: min(calc(100vw - 2rem), 54rem);
+  max-height: min(46rem, calc(100dvh - 2rem));
+  overflow: hidden;
+}
+
+.teamDialogBody {
+  display: grid;
+  min-height: 0;
+  gap: 1rem;
+  overflow: auto;
+}
+
+.teamSearch {
+  display: grid;
+  gap: .35rem;
+  color: var(--muted-foreground);
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+.teamSearch > span:last-child {
+  position: relative;
+  display: block;
+}
+
+.teamSearch svg {
+  position: absolute;
+  top: .85rem;
+  left: .8rem;
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+}
+
+.teamSearch input {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: .55rem .75rem .55rem 2.35rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.teamOptions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
+}
+
+.teamOptions > label {
+  display: grid;
+  min-width: 0;
+  min-height: 4rem;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: .7rem;
+  padding: .65rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.teamOptions > label:has(input:focus-visible) {
+  border-color: var(--focus, var(--accent));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus, var(--accent)) 24%, transparent);
+}
+
+.teamOptions > label:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.teamOptions > .teamOptionFeatured {
+  grid-template-columns: 1.25rem 1.25rem minmax(0, 1fr);
+  background: var(--muted);
+}
+
+.teamOptions input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.teamOptions svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--muted-foreground);
+}
+
+.teamOptions span,
+.teamOptions strong,
+.teamOptions small {
+  display: block;
+  min-width: 0;
+}
+
+.teamOptions strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamOptions small {
+  margin-top: .12rem;
+  color: var(--muted-foreground);
+}
+
+.emptyCopy {
+  margin: 0;
+  padding: 1rem;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.rolePicker {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.rolePicker label {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: .4rem;
+  margin-right: 1rem;
+}
+
+.toggleGrid label[data-disabled] {
+  opacity: .58;
+}
+
+.orientationPicker {
+  display: grid;
+  gap: .5rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 0;
+}
+
+.orientationPicker legend {
+  font-weight: 650;
+}
+
+.orientationPicker > p {
+  margin: 0 0 .25rem;
+  color: var(--muted-foreground);
+}
+
+.orientationPicker > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.orientationPicker label {
+  display: grid;
+  min-height: 4.75rem;
+  grid-template-columns: 1.25rem 1.5rem minmax(0, 1fr) 1.25rem;
+  align-items: center;
+  gap: .7rem;
+  padding: .75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  cursor: pointer;
+}
+
+.orientationPicker label[data-selected] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--background));
+  box-shadow: inset 3px 0 var(--accent);
+}
+
+.orientationPicker label:has(input:focus-visible) {
+  outline: 2px solid var(--focus, var(--accent));
+  outline-offset: 2px;
+}
+
+.orientationPicker label:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: .62;
+}
+
+.orientationPicker input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.orientationPicker svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.orientationPicker span,
+.orientationPicker strong,
+.orientationPicker small {
+  display: block;
+  min-width: 0;
+}
+
+.orientationPicker small {
+  margin-top: .15rem;
+  color: var(--muted-foreground);
+}
+
+.resourcePicker {
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.resourcePicker header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--muted);
+}
+
+.resourcePicker header > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  max-height: 360px;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.mediaGrid button {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: .45rem;
+  padding: .4rem;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--foreground);
+  text-align: left;
+}
+
+.mediaGrid button[data-selected] {
+  border-color: var(--accent);
+}
+
+.mediaGrid img,
+.abstractMedia {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.abstractMedia {
+  background:
+    radial-gradient(circle at 75% 25%, color-mix(in srgb, var(--accent) 50%, transparent), transparent 40%),
+    linear-gradient(135deg, #111827, #172554);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.readiness {
+  margin-top: 1rem;
+}
+
+.readiness p {
+  margin: .35rem 0 0;
+}
+
+.readiness ul {
+  display: grid;
+  gap: .4rem;
+  margin: .5rem 0 0;
+  padding-left: 1.15rem;
+}
+
+.previewRail {
+  position: sticky;
+  top: 1rem;
+  padding: 1rem;
+}
+
+.previewRail > header,
+.previewControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.previewRail > header {
+  margin-bottom: .8rem;
+}
+
+.previewCanvas {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  background: #090b12;
+}
+
+.previewCanvas[data-orientation="portrait"] {
+  max-width: 310px;
+  margin-inline: auto;
+  aspect-ratio: 9 / 16;
+}
+
+.previewControls {
+  margin-top: .7rem;
+  color: var(--muted-foreground);
+  font-size: .8rem;
+}
+
+.reviewMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .7rem;
+  margin: 0 0 1rem;
+}
+
+.allPages {
+  display: flex;
+  gap: .4rem;
+  margin: 1rem 0;
+}
+
+.allPages div {
+  padding: .45rem .65rem;
+  border-radius: 6px;
+  background: var(--muted);
+  font-size: .8rem;
+}
+
+.emptyBehavior {
+  margin-top: 1rem;
+}
+
+.previewRail :global(.arenaViewport) {
+  position: absolute;
+}
+
+@media (max-width: 960px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .previewRail {
+    position: relative;
+    top: auto;
+    order: -1;
+  }
+
+  .previewCanvas {
+    max-height: 42vh;
+  }
+
+  .steps {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .steps button {
+    font-size: .82rem;
+  }
+
+  .reviewMetrics {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .teamDialog {
+    width: 100vw;
+    max-height: 100dvh;
+  }
+
+  .teamOptions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .panel {
+    padding: 1rem;
+  }
+
+  .steps {
+    display: flex;
+    overflow: auto;
+  }
+
+  .steps button {
+    min-width: 150px;
+  }
+
+  .choiceGrid,
+  .toggleGrid,
+  .fieldGrid,
+  .statusGrid,
+  .reviewMetrics,
+  .orientationPicker > div {
+    grid-template-columns: 1fr;
+  }
+
+  .mediaGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .resourcePicker header {
+    flex-direction: column;
+  }
+
+  .actions {
+    position: sticky;
+    z-index: 2;
+    bottom: 0;
+    margin-inline: -1rem;
+    padding: 1rem;
+    background: var(--surface);
+  }
+}

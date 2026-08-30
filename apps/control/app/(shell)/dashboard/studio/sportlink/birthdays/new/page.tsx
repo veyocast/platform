@@ -25,8 +25,10 @@ export default async function BirthdayNewPage({ searchParams }: Props) {
     />
     {params.fout ? <p className="notice notice--critical" role="alert"><strong>Actie niet uitgevoerd.</strong> {params.fout}</p> : null}
     {params.succes ? <p className="notice notice--success" role="status">{params.succes}</p> : null}
-    {!data.connection ? <p className="notice notice--warning"><strong>Sportlink is nog niet gekoppeld.</strong> Koppel eerst een geldige Client ID onder Databronnen. <Link href="/dashboard/data-sources/sportlink">Sportlink openen</Link></p> : null}
-    {data.connection && !data.status.active ? <p className="notice notice--warning"><strong>Verjaardagen zijn nog niet geactiveerd.</strong> Activeer de module onder de Sportlink-integratie; een Club.Data-token is hiervoor niet nodig. <Link href="/dashboard/data-sources/sportlink#verjaardagen">Instellingen openen</Link></p> : null}
+    {!data.availability.connectionLoaded ? <p className="notice notice--warning"><strong>De Sportlink-koppeling kon niet worden gecontroleerd.</strong> Er wordt niets over activering aangenomen. Laad de pagina opnieuw.</p> : null}
+    {data.availability.connectionLoaded && !data.connection ? <p className="notice notice--warning"><strong>Sportlink is nog niet gekoppeld.</strong> Koppel eerst een geldige Client ID onder Databronnen. <Link href="/dashboard/data-sources/sportlink">Sportlink openen</Link></p> : null}
+    {data.connection && data.availability.statusLoaded && data.status.featureEnabled && !data.status.active ? <p className="notice notice--warning"><strong>De verjaardagmodule staat gepauzeerd.</strong> Activeer de module onder de Sportlink-integratie; een Club.Data-token is hiervoor niet nodig. <Link href="/dashboard/data-sources/sportlink#verjaardagen">Instellingen openen</Link></p> : null}
+    {data.connection && data.availability.statusLoaded && !data.status.featureEnabled ? <p className="notice notice--warning"><strong>Verjaardagen zijn voor deze vereniging niet beschikbaar.</strong> Controleer de beschikbare Sportlink-functies onder Databronnen. <Link href="/dashboard/data-sources/sportlink#verjaardagen">Instellingen openen</Link></p> : null}
     <BirthdayWizard
       action={createBirthdaySlide}
       canManage={hasCapability(session.capabilities, "tenant.data_source.manage")}
@@ -38,12 +40,13 @@ export default async function BirthdayNewPage({ searchParams }: Props) {
 
 async function loadBirthdayWizardData(tenantId: string) {
   const supabase = await createControlSupabaseClient();
-  if (!supabase) return emptyData();
+  if (!supabase) return emptyData(false);
   const connectionResult = await supabase.from("sportlink_connections")
     .select("id,data_source_id,detected_club_name,timezone,privacy_birthdays_enabled")
     .eq("tenant_id", tenantId).eq("status", "active").maybeSingle();
   const connection = connectionResult.data;
-  if (!connection) return emptyData();
+  if (connectionResult.error) return emptyData(false);
+  if (!connection) return emptyData(true);
   const [statusResult, birthdaysResult, teamsResult, templatesResult, mediaResult] = await Promise.all([
     supabase.rpc("get_sportlink_birthday_status_v1", { p_connection_id: connection.id }),
     supabase.rpc("get_sportlink_birthday_preview_v1", { p_connection_id: connection.id }),
@@ -51,6 +54,18 @@ async function loadBirthdayWizardData(tenantId: string) {
     supabase.from("dynamic_templates").select("orientation,current_published_version_id").eq("slide_type", "sport_birthdays").eq("status", "published"),
     supabase.from("media_assets").select("id,title,width,height,media_variants(storage_bucket,storage_path,mime_type,file_size_bytes,checksum_sha256,kind,status)").eq("tenant_id", tenantId).eq("kind", "image").eq("source_kind", "user").eq("status", "ready").is("deleted_at", null).order("title").limit(100)
   ]);
+  const templateVersionIds = (templatesResult.data ?? []).flatMap((template) =>
+    template.current_published_version_id ? [template.current_published_version_id] : []
+  );
+  const templateVersionsResult = templateVersionIds.length
+    ? await supabase.from("dynamic_template_versions")
+      .select("id")
+      .in("id", templateVersionIds)
+      .eq("status", "published")
+    : { data: [], error: null };
+  const publishedTemplateVersionIds = new Set(
+    (templateVersionsResult.data ?? []).map((version) => version.id)
+  );
   const media = await Promise.all((mediaResult.data ?? []).flatMap((asset) => {
     const variants = Array.isArray(asset.media_variants) ? asset.media_variants : [];
     const variant = variants.find((candidate) => candidate.status === "ready" && ["display", "source", "thumbnail"].includes(candidate.kind));
@@ -64,6 +79,14 @@ async function loadBirthdayWizardData(tenantId: string) {
     };
   }));
   return {
+    availability: {
+      birthdaysLoaded: !birthdaysResult.error,
+      connectionLoaded: true,
+      mediaLoaded: !mediaResult.error,
+      statusLoaded: !statusResult.error,
+      teamsLoaded: !teamsResult.error,
+      templatesLoaded: !templatesResult.error && !templateVersionsResult.error
+    },
     birthdays: normalizeBirthdayPreview(birthdaysResult.data),
     connection: {
       clubName: connection.detected_club_name, dataSourceId: connection.data_source_id,
@@ -72,7 +95,8 @@ async function loadBirthdayWizardData(tenantId: string) {
     media: media.filter((asset) => asset.url && asset.checksumSha256 && asset.bytes > 0),
     status: normalizeStatus(statusResult.data),
     teams: teamsResult.data ?? [],
-    templates: (templatesResult.data ?? []).flatMap((template) => template.current_published_version_id
+    templates: (templatesResult.data ?? []).flatMap((template) => template.current_published_version_id &&
+      publishedTemplateVersionIds.has(template.current_published_version_id)
       ? [{ orientation: template.orientation as "landscape" | "portrait", versionId: template.current_published_version_id }]
       : [])
   };
@@ -115,14 +139,17 @@ function normalizeStatus(value: unknown) {
       ambiguous: Number(counts.ambiguous ?? 0), birthdays: Number(counts.birthdays ?? 0),
       knownAge: Number(counts.knownAge ?? 0), matched: Number(counts.matched ?? 0),
       withPhoto: Number(counts.withPhoto ?? 0)
-    }, freshness: String(status.freshness ?? "never"),
+    }, featureEnabled: status.featureEnabled === true,
+    freshness: String(status.freshness ?? "never"),
+    lastErrorCode: typeof status.lastErrorCode === "string" ? status.lastErrorCode : null,
     lastSuccessAt: typeof status.lastSuccessAt === "string" ? status.lastSuccessAt : null,
     nextSyncAt: typeof status.nextSyncAt === "string" ? status.nextSyncAt : null
   };
 }
 
-function emptyData() { return {
+function emptyData(connectionLoaded = true) { return {
+  availability: { birthdaysLoaded: true, connectionLoaded, mediaLoaded: true, statusLoaded: true, teamsLoaded: true, templatesLoaded: true },
   birthdays: [], connection: null,
-  media: [], status: { active: false, counts: { ambiguous: 0, birthdays: 0, knownAge: 0, matched: 0, withPhoto: 0 }, freshness: "never", lastSuccessAt: null, nextSyncAt: null },
+  media: [], status: { active: false, counts: { ambiguous: 0, birthdays: 0, knownAge: 0, matched: 0, withPhoto: 0 }, featureEnabled: false, freshness: "never", lastErrorCode: null, lastSuccessAt: null, nextSyncAt: null },
   teams: [], templates: []
 }; }

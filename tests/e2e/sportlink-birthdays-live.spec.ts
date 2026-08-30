@@ -37,12 +37,20 @@ test.describe("Sportlink-verjaardagen", () => {
       p_connection_id: connectionId, p_enabled: true
     });
     if (activated.error) throw activated.error;
+    const pausedBirthdays = await user.rpc("update_sportlink_sync_policy_v1", {
+      p_connection_id: connectionId,
+      p_dataset_group: "public_people",
+      p_enabled: false,
+      p_frequency: "daily"
+    });
+    if (pausedBirthdays.error) throw pausedBirthdays.error;
     for (const datasetGroup of [
       "club_profile", "teams", "competitions", "matches", "match_details", "activities", "volunteers"
     ]) {
       const disabled = await user.rpc("update_sportlink_sync_policy_v1", {
         p_connection_id: connectionId, p_dataset_group: datasetGroup,
-        p_enabled: false, p_frequency: datasetGroup === "matches" || datasetGroup === "match_details" ? "hourly" : "daily"
+        p_enabled: datasetGroup === "teams",
+        p_frequency: datasetGroup === "matches" || datasetGroup === "match_details" ? "hourly" : "daily"
       });
       if (disabled.error) throw disabled.error;
     }
@@ -51,10 +59,48 @@ test.describe("Sportlink-verjaardagen", () => {
     const run = await service.rpc("claim_due_sportlink_sync_v2", {
       p_lock_timeout_seconds: 900, p_worker_id: "e2e:birthdays"
     });
-    const claimed = Array.isArray(run.data) ? run.data.find((item) =>
+    const teamClaim = Array.isArray(run.data) ? run.data.find((item) =>
+      item.connection_id === connectionId && item.dataset_group === "teams"
+    ) : null;
+    if (run.error || !teamClaim) {
+      throw run.error ?? new Error("Sportlink team run fixture failed");
+    }
+    const completedTeams = await service.rpc("complete_sportlink_sync_v4", {
+      p_activities: [],
+      p_club: {},
+      p_club_logo: {},
+      p_matches: [],
+      p_run_id: teamClaim.run_id,
+      p_standings: [],
+      p_team_logos: [],
+      p_teams: [{ externalId: "jo17-1", localExternalId: "-1", name: "JO17-1" }],
+      p_worker_id: "e2e:birthdays"
+    });
+    if (completedTeams.error) throw completedTeams.error;
+    const disabledTeams = await user.rpc("update_sportlink_sync_policy_v1", {
+      p_connection_id: connectionId,
+      p_dataset_group: "teams",
+      p_enabled: false,
+      p_frequency: "daily"
+    });
+    if (disabledTeams.error) throw disabledTeams.error;
+    const enabledBirthdays = await user.rpc("update_sportlink_sync_policy_v1", {
+      p_connection_id: connectionId,
+      p_dataset_group: "public_people",
+      p_enabled: true,
+      p_frequency: "daily"
+    });
+    if (enabledBirthdays.error) throw enabledBirthdays.error;
+    const birthdayRun = await service.rpc("claim_due_sportlink_sync_v2", {
+      p_lock_timeout_seconds: 900,
+      p_worker_id: "e2e:birthdays"
+    });
+    const claimed = Array.isArray(birthdayRun.data) ? birthdayRun.data.find((item) =>
       item.connection_id === connectionId && item.dataset_group === "public_people"
     ) : null;
-    if (run.error || !claimed) throw run.error ?? new Error("Birthday run fixture failed");
+    if (birthdayRun.error || !claimed) {
+      throw birthdayRun.error ?? new Error("Birthday run fixture failed");
+    }
     const today = tenantDate(0);
     const tomorrow = tenantDate(1);
     const identityKey = createHash("sha256").update("code:M1").digest("hex").slice(0, 40);
@@ -110,7 +156,7 @@ test.describe("Sportlink-verjaardagen", () => {
     await expect(integration).toContainText("Actueel");
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({
-      fullPage: true, path: "docs/screenshots/s128-sportlink-birthdays/integratiestatus.png"
+      fullPage: true, path: "docs/screenshots/s138-birthday-wizard/integratiestatus.png"
     });
 
     await page.goto("/dashboard/studio/sportlink/birthdays/new");
@@ -121,15 +167,38 @@ test.describe("Sportlink-verjaardagen", () => {
     await page.getByRole("button", { exact: true, name: "Volgende" }).click();
     await expect(page.getByRole("heading", { name: "Selectie en informatie" })).toBeVisible();
     await expect(page.getByText("Leeftijd tonen")).toBeVisible();
+    await page.getByRole("button", { name: /Alle teams en overige/ }).click();
+    await expect(page.getByRole("heading", { name: "Teams en overige selecteren" })).toBeVisible();
+    await expect(page.getByRole("checkbox", { name: /Alle/ })).toBeChecked();
+    await page.getByRole("checkbox", { name: /Overige \(zonder team\)/ }).check();
+    await page.getByRole("checkbox", { name: /JO17-1/ }).check();
+    await expect(page.getByRole("checkbox", { name: /Overige \(zonder team\)/ })).toBeChecked();
+    await expect(page.getByRole("checkbox", { name: /JO17-1/ })).toBeChecked();
+    await page.getByRole("button", { name: "Keuze toepassen" }).click();
+    await expect(page.getByRole("button", { name: /2 selecties/ })).toBeVisible();
+    await page.setViewportSize({ height: 844, width: 390 });
+    await page.getByRole("button", { name: /2 selecties/ }).click();
+    await expect(page.getByRole("heading", { name: "Teams en overige selecteren" })).toBeVisible();
+    await expect(page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
+    )).resolves.toBe(true);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.getByRole("button", { name: "Annuleren" }).click();
+    await page.setViewportSize({ height: 900, width: 1440 });
     await page.getByRole("button", { exact: true, name: "Volgende" }).click();
     await expect(page.getByRole("heading", { name: "Vormgeving" })).toBeVisible();
+    await expect(page.getByRole("radio", { name: /Liggend/ })).toBeChecked();
+    await page.getByRole("radio", { name: /Staand/ }).check();
+    await expect(page.getByRole("radio", { name: /Staand/ })).toBeChecked();
+    await expect(page.getByText(/9:16 · pagina/)).toBeVisible();
     await page.getByRole("button", { exact: true, name: "Volgende" }).click();
     await expect(page.getByRole("heading", { name: "Preview en publiceren" })).toBeVisible();
+    await expect(page.getByRole("radio", { name: /Staand/ })).toBeChecked();
     await expect(page.getByText("Duur automatisch aanpassen is actief.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Slide aanmaken" })).toBeEnabled();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({
-      fullPage: true, path: "docs/screenshots/s128-sportlink-birthdays/wizard.png"
+      fullPage: true, path: "docs/screenshots/s138-birthday-wizard/wizard.png"
     });
 
     await page.setViewportSize({ height: 844, width: 390 });
@@ -137,7 +206,7 @@ test.describe("Sportlink-verjaardagen", () => {
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
     )).resolves.toBe(true);
     await page.screenshot({
-      fullPage: true, path: "docs/screenshots/s128-sportlink-birthdays/wizard-mobile.png"
+      fullPage: true, path: "docs/screenshots/s138-birthday-wizard/wizard-mobile.png"
     });
     await page.getByRole("button", { name: "Slide aanmaken" }).click();
     await page.waitForURL(/\/dashboard\/slides\?succes=/, { timeout: 20_000 });

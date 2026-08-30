@@ -683,8 +683,26 @@ function resolveBirthdayItems({
       const id = safeText(value?.externalId ?? team, "");
       return id ? [id] : [];
     });
-    if (configuration.selection.selectedTeamIds.length &&
-      !teamIds.some((id) => configuration.selection.selectedTeamIds.includes(id))) {
+    const teamSelectionMode = configuration.selection.teamSelectionMode ?? (
+      configuration.selection.selectedTeamIds.length ? "selected" : "all"
+    );
+    const includeWithoutTeam = configuration.selection.includeWithoutTeam ??
+      teamSelectionMode === "all";
+    const selectedTeamMatches = teamIds.some((id) =>
+      configuration.selection.selectedTeamIds.includes(id)
+    );
+    const legacyServerFilteredSnapshot =
+      !configuration.selection.showTeam &&
+      configuration.selection.selectedTeamIds.length > 0 &&
+      configuration.selection.teamSelectionMode === undefined &&
+      configuration.selection.includeWithoutTeam === undefined;
+    if (teamSelectionMode === "all") {
+      if (!includeWithoutTeam && !teamIds.length) return [];
+    } else if (
+      !selectedTeamMatches &&
+      !(includeWithoutTeam && !teamIds.length) &&
+      !legacyServerFilteredSnapshot
+    ) {
       return [];
     }
     const normalizedRole = role.toLocaleLowerCase("nl-NL");

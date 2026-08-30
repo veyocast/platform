@@ -51,6 +51,7 @@ export const sportlinkBirthdayConfigurationSchema = z.object({
   schemaVersion: z.literal(1).default(1),
   selection: z.object({
     emphasizeToday: z.boolean().default(true),
+    includeWithoutTeam: z.boolean().optional(),
     includeUnknownRoles: z.boolean().default(true),
     nameMode: z.enum(sportlinkBirthdayNameModes).default("full"),
     roleFilter: z.enum(["all", "players", "staff", "selected"]).default("all"),
@@ -61,12 +62,14 @@ export const sportlinkBirthdayConfigurationSchema = z.object({
     showDayOfWeek: z.boolean().default(true),
     showPhoto: z.boolean().default(true),
     showRole: z.boolean().default(true),
-    showTeam: z.boolean().default(true)
+    showTeam: z.boolean().default(true),
+    teamSelectionMode: z.enum(["all", "selected"]).optional()
   }).strict().default({
-    emphasizeToday: true, includeUnknownRoles: true, nameMode: "full",
+    emphasizeToday: true, includeWithoutTeam: true, includeUnknownRoles: true,
+    nameMode: "full",
     roleFilter: "all", selectedRoles: [], selectedTeamIds: [], showAge: true,
     showDate: true, showDayOfWeek: true, showPhoto: true, showRole: true,
-    showTeam: true
+    showTeam: true, teamSelectionMode: "all"
   }),
   themeSelection: themeSelectionSchema.optional(),
   title: z.string().trim().min(1).max(160).default("Verjaardagen")

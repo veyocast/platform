@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(42);
+select plan(48);
 
 select ok((select bool_and(relrowsecurity and relforcerowsecurity)
   from pg_catalog.pg_class where oid=any(array[
@@ -47,6 +47,23 @@ select ok((select privacy_birthdays_enabled and not privacy_people_enabled
   'birthday privacy switch is independent from people token scope');
 select is((select frequency from public.sportlink_sync_policies where tenant_id='10000000-0000-4000-8000-000000001281' and dataset_group='public_people'),'daily',
   'birthday synchronization is daily');
+reset role;
+update public.sportlink_sync_policies set last_success_at=now()
+where tenant_id='10000000-0000-4000-8000-000000001281' and dataset_group='public_people';
+set local role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000001281',true);
+select ok(public.get_sportlink_birthday_status_v1(
+  (select id from public.sportlink_connections where tenant_id='10000000-0000-4000-8000-000000001281')
+)#>'{lastSuccessAt}'='null'::jsonb,
+  'generic public_people success is not reported as birthday success');
+select throws_ok($$select public.create_sportlink_birthday_slide_v1(
+  '10000000-0000-4000-8000-000000001281',
+  (select data_source_id from public.sportlink_connections where tenant_id='10000000-0000-4000-8000-000000001281'),
+  'Te vroeg',
+  (select current_published_version_id from public.dynamic_templates where slide_type='sport_birthdays' and status='published' and orientation='landscape'),
+  '{"schemaVersion":1,"title":"Verjaardagen","emptyBehavior":"skip","period":{"mode":"next_7_days","days":7},"selection":{"emphasizeToday":true,"includeWithoutTeam":true,"includeUnknownRoles":true,"nameMode":"full","roleFilter":"all","selectedRoles":[],"selectedTeamIds":[],"showAge":true,"showDate":true,"showDayOfWeek":true,"showPhoto":true,"showRole":true,"showTeam":true,"teamSelectionMode":"all"},"presentation":{"backgroundColor":"#111827","backgroundMediaAssetId":null,"cardStyle":"glass","confetti":true,"gradientOverlay":true,"layout":"auto","logoPosition":"top_left","maxPerLandscapePage":4,"maxPerPortraitPage":3,"motion":true,"pageDurationSeconds":8,"radius":"lg","textAlign":"left","themeMode":"dark","useTenantTheme":true}}')$$,
+  '55000','sportlink_birthdays_sync_required',
+  'server rejects a birthday slide before the first successful sync');
 
 reset role;
 update public.sportlink_sync_policies set enabled=(dataset_group='public_people'),next_sync_at=now()
@@ -86,7 +103,7 @@ select is((public.complete_sportlink_birthdays_v1(
     jsonb_build_object('externalId',repeat('c',40),'displayName','Alex Jansen','normalizedName','alex jansen','month',extract(month from current_date+2)::integer,'day',extract(day from current_date+2)::integer,'nextOccurrence',(current_date+2)::text,'matchStatus','ambiguous','teamAssignments','[]'::jsonb)
   ),jsonb_build_array(
     jsonb_build_object('identityKey',repeat('a',40),'externalMemberCode','M1','displayName','Sam de Wit','normalizedName','sam de wit','role','Speler','teamAssignments','[]'::jsonb),
-    jsonb_build_object('identityKey',repeat('d',40),'externalMemberCode','M2','displayName','Alex Jansen','normalizedName','alex jansen','role','Trainer','teamAssignments','[]'::jsonb),
+    jsonb_build_object('identityKey',repeat('d',40),'externalMemberCode','M2','displayName','Alex Jansen','normalizedName','alex jansen','role','Trainer','teamAssignments',jsonb_build_array(jsonb_build_object('externalId','team-2','name','1e elftal'))),
     jsonb_build_object('identityKey',repeat('e',40),'externalMemberCode','M3','displayName','Alex Jansen','normalizedName','alex jansen','role','Leider','teamAssignments','[]'::jsonb)
   ),'[]'::jsonb,now())->>'outcome'),'succeeded','retry batch upserts idempotently');
 reset role;
@@ -229,6 +246,39 @@ select lives_ok($$select public.rollback_sportlink_birthday_import_v1((select id
 select is((select count(*) from public.sportlink_birthday_enrichments),0::bigint,'rollback removes only imported enrichment');
 select ok((select coalesce(bool_and(event.metadata::text not like '%Sam de Wit%' and event.metadata::text not like '%Alex Jansen%'),true) from public.audit_events event where event.action like 'sportlink.birthdays.%'),
   'technical birthday audit metadata contains no names');
+
+select lives_ok($$select public.create_sportlink_birthday_slide_v1(
+  '10000000-0000-4000-8000-000000001281',
+  (select data_source_id from public.sportlink_connections limit 1),'Verjaardagen zonder team',
+  (select current_published_version_id from public.dynamic_templates where slide_type='sport_birthdays' and status='published' and orientation='landscape'),
+  '{"schemaVersion":1,"title":"Verjaardagen","emptyBehavior":"skip","period":{"mode":"next_7_days","days":7},"selection":{"emphasizeToday":true,"includeWithoutTeam":true,"includeUnknownRoles":true,"nameMode":"full","roleFilter":"all","selectedRoles":[],"selectedTeamIds":[],"showAge":true,"showDate":true,"showDayOfWeek":true,"showPhoto":true,"showRole":true,"showTeam":false,"teamSelectionMode":"selected"},"presentation":{"backgroundColor":"#111827","backgroundMediaAssetId":null,"cardStyle":"glass","confetti":true,"gradientOverlay":true,"layout":"auto","logoPosition":"top_left","maxPerLandscapePage":4,"maxPerPortraitPage":3,"motion":true,"pageDurationSeconds":8,"radius":"lg","textAlign":"left","themeMode":"dark","useTenantTheme":true}}')$$,
+  'manager creates a birthday slide for people without a team');
+select ok((select
+    jsonb_array_length(snapshot.snapshot_data_json#>'{sport,birthdays}')=1
+    and snapshot.snapshot_data_json#>>'{sport,birthdays,0,displayName}'='Sam de Wit'
+    and snapshot.snapshot_data_json#>'{sport,birthdays,0,teamIds}'='[]'::jsonb
+  from public.dynamic_slide_snapshots snapshot
+  join public.dynamic_slides slide on slide.id=snapshot.dynamic_slide_id
+  where slide.name='Verjaardagen zonder team'
+  order by snapshot.created_at desc limit 1),
+  'without-team selection contains only unassigned people and explicit metadata');
+
+select lives_ok($$select public.create_sportlink_birthday_slide_v1(
+  '10000000-0000-4000-8000-000000001281',
+  (select data_source_id from public.sportlink_connections limit 1),'Verjaardagen team verborgen',
+  (select current_published_version_id from public.dynamic_templates where slide_type='sport_birthdays' and status='published' and orientation='landscape'),
+  '{"schemaVersion":1,"title":"Verjaardagen","emptyBehavior":"skip","period":{"mode":"next_7_days","days":7},"selection":{"emphasizeToday":true,"includeWithoutTeam":false,"includeUnknownRoles":true,"nameMode":"full","roleFilter":"all","selectedRoles":[],"selectedTeamIds":["team-2"],"showAge":true,"showDate":true,"showDayOfWeek":true,"showPhoto":true,"showRole":true,"showTeam":false,"teamSelectionMode":"selected"},"presentation":{"backgroundColor":"#111827","backgroundMediaAssetId":null,"cardStyle":"glass","confetti":true,"gradientOverlay":true,"layout":"auto","logoPosition":"top_left","maxPerLandscapePage":4,"maxPerPortraitPage":3,"motion":true,"pageDurationSeconds":8,"radius":"lg","textAlign":"left","themeMode":"dark","useTenantTheme":true}}')$$,
+  'manager creates a selected-team birthday slide with hidden labels');
+select ok((select
+    jsonb_array_length(snapshot.snapshot_data_json#>'{sport,birthdays}')=1
+    and snapshot.snapshot_data_json#>>'{sport,birthdays,0,displayName}'='Alex Jansen'
+    and snapshot.snapshot_data_json#>'{sport,birthdays,0,teamIds}'='["team-2"]'::jsonb
+    and snapshot.snapshot_data_json#>'{sport,birthdays,0,teams}'='[]'::jsonb
+  from public.dynamic_slide_snapshots snapshot
+  join public.dynamic_slides slide on slide.id=snapshot.dynamic_slide_id
+  where slide.name='Verjaardagen team verborgen'
+  order by snapshot.created_at desc limit 1),
+  'hidden team labels retain private-free filter metadata for Player');
 
 select * from finish();
 rollback;
