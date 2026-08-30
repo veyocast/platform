@@ -192,3 +192,9 @@ Zie [`docs/studio/integration-matrix.md`](docs/studio/integration-matrix.md) en
 [`docs/studio/operations.md`](docs/studio/operations.md). De volledige lokale
 bewijsstatus, open releasegates en invloedrijke vervolgkeuzes staan in
 [`docs/studio/release-evidence.md`](docs/studio/release-evidence.md).
+
+S133 herstelt forward-only de Sportlink-providerassetcompletion: geldige
+content-addressed club- en teamlogo's passeren opnieuw de padvalidatie en de
+ondubbelzinnige private service-role-upsert, met een echte database-regressietest
+en zonder Player-, release- of last-known-good-data te wijzigen. De hotfix wordt
+via de bestaande immutable VPS-releaseflow uitgerold.
