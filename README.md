@@ -200,3 +200,9 @@ ongewijzigde last-known-good Playerrelease. Studio publiceert immutable eigen-
 en tegenstandervarianten naar de unie van meerdere schermgroepen. Architectuur,
 operatorflow, metingen en rollback staan in
 [`docs/integrations/ledscores-realtime-goal-alert.md`](docs/integrations/ledscores-realtime-goal-alert.md).
+
+S133 herstelt forward-only de Sportlink-providerassetcompletion: geldige
+content-addressed club- en teamlogo's passeren opnieuw de padvalidatie en de
+ondubbelzinnige private service-role-upsert, met een echte database-regressietest
+en zonder Player-, release- of last-known-good-data te wijzigen. De hotfix wordt
+via de bestaande immutable VPS-releaseflow uitgerold.
