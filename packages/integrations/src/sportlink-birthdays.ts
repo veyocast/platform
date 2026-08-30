@@ -5,9 +5,18 @@ import ExcelJS from "exceljs";
 import { extractSportlinkRecords } from "./sportlink-client";
 
 const dutchMonths: Record<string, number> = {
-  april: 4, augustus: 8, december: 12, februari: 2, januari: 1,
-  juli: 7, juni: 6, maart: 3, mei: 5, november: 11, oktober: 10,
-  september: 9
+  april: 4, apr: 4,
+  augustus: 8, aug: 8,
+  december: 12, dec: 12,
+  februari: 2, feb: 2,
+  januari: 1, jan: 1,
+  juli: 7, jul: 7,
+  juni: 6, jun: 6,
+  maart: 3, mrt: 3,
+  mei: 5,
+  november: 11, nov: 11,
+  oktober: 10, okt: 10,
+  september: 9, sep: 9, sept: 9
 };
 
 export type SportlinkBirthday = {
