@@ -213,3 +213,8 @@ voor `team-indeling` voortaan zowel de officiële `teamcode` als
 bondsteams. De wijziging blijft server-only en verwerkt of logt geen extra
 persoonsgegevens; bestaande last-known-good data en immutable releases blijven
 onaangeraakt.
+
+S135 registreert het nieuwe LED Scores-backend expliciet als server-only
+media-workerbestand binnen de bestaande fail-closed service-role-test. De
+clientbundel- en importgraafcontroles blijven ongewijzigd; de schone VPS-build
+moet de volledige securitysuite opnieuw groen bewijzen voordat staging wijzigt.
