@@ -9,7 +9,7 @@ data, immutable releases of last-known-good playback te muteren.
 
 ## Ownership
 
-- `supabase/migrations/20260830133913_s133_sportlink_provider_asset_completion_hotfix.sql`;
+- `supabase/migrations/20260830103000_s133_sportlink_provider_asset_completion_hotfix.sql`;
 - `supabase/tests/rls_s133_sportlink_sync_completion.sql`;
 - S133-taakdocumentatie en production-readback;
 - uitsluitend wanneer production-evidence dit vereist: veilige foutclassificatie
