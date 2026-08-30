@@ -40,6 +40,11 @@ import {
   runSportlinkSyncOnce,
   type SportlinkSyncRunResult
 } from "./sportlink-sync-runner";
+import {
+  SupabaseLedScoresConnectorBackend,
+  runLedScoresConnectorLoop,
+  type LedScoresConnectorEvent
+} from "./ledscores-connector-runner";
 
 export {
   createMediaProcessingPlan,
@@ -135,6 +140,15 @@ export {
   runSportlinkSyncLoop,
   runSportlinkSyncOnce
 } from "./sportlink-sync-runner";
+export {
+  SupabaseLedScoresConnectorBackend,
+  runLedScoresConnectorLoop
+} from "./ledscores-connector-runner";
+export type {
+  ClaimedLedScoresConnection,
+  LedScoresConnectorBackend,
+  LedScoresConnectorEvent
+} from "./ledscores-connector-runner";
 export type {
   ClaimedSportlinkSync,
   SportlinkSyncRunResult
@@ -186,6 +200,10 @@ async function main() {
     config.serviceRoleKey
   );
   const sportlinkBackend = new SupabaseSportlinkSyncBackend(
+    config.supabaseUrl,
+    config.serviceRoleKey
+  );
+  const ledScoresBackend = new SupabaseLedScoresConnectorBackend(
     config.supabaseUrl,
     config.serviceRoleKey
   );
@@ -325,6 +343,15 @@ async function main() {
           signal: controller.signal,
           workerId: config.workerId
         }),
+        runLedScoresConnectorLoop({
+          backend: ledScoresBackend,
+          claimIntervalMs: config.ledScoresClaimIntervalMs,
+          leaseSeconds: config.ledScoresLeaseSeconds,
+          maxConnections: config.ledScoresMaxConnections,
+          onEvent: (event) => logLedScoresConnectorEvent(logger, event),
+          signal: controller.signal,
+          workerId: config.workerId
+        }),
         ...serviceMonitorTasks(controller.signal, logger)
       ]
     });
@@ -333,6 +360,26 @@ async function main() {
     process.removeListener("SIGTERM", stop);
     await closeServer(healthServer);
     logger.info("media.worker.stopped");
+  }
+}
+
+function logLedScoresConnectorEvent(
+  logger: ReturnType<typeof createStructuredLogger>,
+  event: LedScoresConnectorEvent
+) {
+  const eventLogger = logger.withCorrelation(event.connectionId);
+  const metadata = {
+    connectionId: event.connectionId,
+    deliveryCount: event.deliveryCount,
+    errorCode: event.errorCode,
+    outcome: event.outcome
+  };
+  if (event.outcome === "invalid_message" || event.outcome === "reconnecting") {
+    eventLogger.warn(`ledscores.connector.${event.outcome}`, metadata);
+  } else if (event.outcome === "disconnected" || event.outcome === "lease_lost") {
+    eventLogger.error(`ledscores.connector.${event.outcome}`, metadata);
+  } else {
+    eventLogger.info(`ledscores.connector.${event.outcome}`, metadata);
   }
 }
 

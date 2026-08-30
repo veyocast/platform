@@ -1,0 +1,25 @@
+.actions, .inlineForm { display: flex; flex-wrap: wrap; gap: var(--vc-space-12); }
+.grid { display: grid; gap: var(--vc-space-20); grid-template-columns: repeat(auto-fit, minmax(min(100%, 34rem), 1fr)); }
+.card { background: var(--vc-surface); border: 1px solid var(--vc-border); border-radius: var(--vc-radius-xl); box-shadow: 0 8px 24px rgb(10 10 10 / 6%); display: grid; gap: var(--vc-space-20); padding: var(--vc-space-24); }
+.cardHeader { align-items: flex-start; display: flex; gap: var(--vc-space-16); justify-content: space-between; }
+.cardHeader h3, .mappingForm h4 { margin: 0; }
+.eyebrow { color: var(--vc-text-muted); font-size: .875rem; font-weight: 700; letter-spacing: .08em; margin: 0 0 var(--vc-space-4); text-transform: uppercase; }
+.details { display: grid; gap: var(--vc-space-12); grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+.details div { border-left: 3px solid var(--vc-border-strong); padding-left: var(--vc-space-12); }
+.details dt { color: var(--vc-text-muted); font-size: .875rem; }
+.details dd { font-weight: 650; margin: var(--vc-space-4) 0 0; }
+.meta, .mappingForm p { color: var(--vc-text-muted); margin: 0; }
+.form, .createForm { display: grid; gap: var(--vc-space-16); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.form label, .createForm label, .mappingRow label { display: grid; gap: var(--vc-space-8); }
+.form label span, .createForm label span, .mappingRow label span { font-size: .875rem; font-weight: 700; }
+.mappingForm { border-top: 1px solid var(--vc-border); display: grid; gap: var(--vc-space-16); padding-top: var(--vc-space-20); }
+.mappingRow { display: grid; gap: var(--vc-space-12); grid-template-columns: 1fr 1.2fr 1.3fr 1fr; }
+.eventList { display: grid; gap: var(--vc-space-12); }
+.eventList article { align-items: center; background: var(--vc-surface); border: 1px solid var(--vc-border); border-radius: var(--vc-radius-lg); display: grid; gap: var(--vc-space-12); grid-template-columns: 1fr minmax(12rem, 2fr) auto; padding: var(--vc-space-16); }
+.eventList article div { display: grid; gap: var(--vc-space-4); }
+.eventList article span, .eventList article p { color: var(--vc-text-muted); margin: 0; }
+@media (max-width: 48rem) {
+  .details, .form, .createForm, .mappingRow { grid-template-columns: 1fr; }
+  .eventList article { align-items: flex-start; grid-template-columns: 1fr; }
+  .card { padding: var(--vc-space-16); }
+}

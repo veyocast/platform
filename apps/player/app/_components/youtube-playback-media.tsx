@@ -7,6 +7,7 @@ import type { PlayerManifestItem } from "../_lib/player-manifest";
 type YouTubePlayer = {
   destroy(): void;
   mute(): void;
+  pauseVideo(): void;
   playVideo(): void;
 };
 
@@ -70,15 +71,21 @@ export function YouTubePlaybackMedia({
   onEnded,
   onFailure,
   onReady,
-  passive
+  passive,
+  paused = false
 }: {
   item: PlayerManifestItem;
   onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: "VIDEO_ERROR") => void;
   onReady: (itemId: string) => void;
   passive: boolean;
+  paused?: boolean;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<YouTubePlayer | null>(null);
+  const fallbackVideoRef = useRef<HTMLVideoElement>(null);
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
   const binding = item.onlinePlayback?.kind === "youtube"
     ? item.onlinePlayback
     : null;
@@ -103,7 +110,9 @@ export function YouTubePlaybackMedia({
             },
             onReady: ({ target }) => {
               target.mute();
-              target.playVideo();
+              playerRef.current = target;
+              if (pausedRef.current) target.pauseVideo();
+              else target.playVideo();
             },
             onStateChange: ({ data }) => {
               if (data === YT.PlayerState.PLAYING) {
@@ -137,8 +146,22 @@ export function YouTubePlaybackMedia({
       disposed = true;
       window.clearTimeout(timeout);
       player?.destroy();
+      playerRef.current = null;
     };
   }, [binding, fallback, item.id, onEnded, onReady, passive]);
+
+  useEffect(() => {
+    const player = playerRef.current;
+    if (player) {
+      if (paused) player.pauseVideo();
+      else player.playVideo();
+    }
+    const fallbackVideo = fallbackVideoRef.current;
+    if (fallbackVideo) {
+      if (paused) fallbackVideo.pause();
+      else void fallbackVideo.play().catch(() => undefined);
+    }
+  }, [paused]);
 
   useEffect(() => {
     const offline = () => setFallback(true);
@@ -151,11 +174,12 @@ export function YouTubePlaybackMedia({
       return (
         <video
           aria-label={item.accessibilityName ?? item.title}
-          autoPlay={!passive}
+          autoPlay={!passive && !paused}
           className={`playback-media playback-media--${item.fitMode}`}
           controls={false}
           disablePictureInPicture
           muted
+          ref={fallbackVideoRef}
           onEnded={() => onEnded(item.id)}
           onError={() => onFailure(item.id, "VIDEO_ERROR")}
           onPlaying={() => onReady(item.id)}

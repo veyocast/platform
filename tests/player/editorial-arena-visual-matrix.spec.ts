@@ -70,6 +70,43 @@ test("volledige Editorial Arena-matrix van 48 cellen", async ({ page }) => {
           expect(geometry.scrollHeight).toBe(geometry.clientHeight);
           expect(geometry.footerClearsContent).toBe(true);
           expect(geometry.allImagesComplete).toBe(true);
+          if (variant === "news-fullscreen") {
+            const composition = await page.locator(
+              '[data-news-variant="fullscreen_gradient"]'
+            ).evaluate((layout) => {
+              const layoutBox = layout.getBoundingClientRect();
+              const hero = layout.querySelector<HTMLElement>(":scope > section");
+              const story = layout.querySelector<HTMLElement>(":scope > article");
+              const intro = story?.querySelector<HTMLElement>(":scope > p");
+              const storyBox = story?.getBoundingClientRect();
+              return {
+                introFontSize: intro
+                  ? Number.parseFloat(getComputedStyle(intro).fontSize)
+                  : 0,
+                overlay: hero
+                  ? getComputedStyle(hero, "::after").backgroundImage
+                  : "none",
+                storyHeightRatio: storyBox ? storyBox.height / layoutBox.height : 0,
+                storyTopRatio: storyBox
+                  ? (storyBox.top - layoutBox.top) / layoutBox.height
+                  : 0,
+                storyWidthRatio: storyBox ? storyBox.width / layoutBox.width : 0
+              };
+            });
+            expect(composition.overlay).not.toBe("none");
+            if (orientation === "landscape") {
+              expect(composition.introFontSize).toBeGreaterThanOrEqual(30);
+              expect(composition.storyWidthRatio).toBeGreaterThanOrEqual(0.6);
+              expect(composition.storyWidthRatio).toBeLessThanOrEqual(0.64);
+              expect(composition.storyTopRatio).toBeLessThan(0.01);
+            } else {
+              expect(composition.introFontSize).toBeGreaterThanOrEqual(32);
+              expect(composition.storyHeightRatio).toBeGreaterThanOrEqual(0.49);
+              expect(composition.storyHeightRatio).toBeLessThanOrEqual(0.51);
+              expect(composition.storyTopRatio).toBeGreaterThanOrEqual(0.49);
+              expect(composition.storyTopRatio).toBeLessThanOrEqual(0.51);
+            }
+          }
           await expect(page).toHaveScreenshot(
             `${variant}-${orientation}-${themeMode}.png`,
             { animations: "disabled", caret: "hide", maxDiffPixelRatio: 0.002 }

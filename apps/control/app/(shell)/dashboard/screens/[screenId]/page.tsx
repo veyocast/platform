@@ -12,7 +12,8 @@ import {
   renamePlayerDevice,
   requestScreenSyncRetry,
   revokePlayerDevice,
-  updateScreen
+  updateScreen,
+  updateScreenGroupMemberships
 } from "../actions";
 import {
   loadScreenDetail,
@@ -133,7 +134,7 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
         syncEvents={data.syncEvents}
         />
       </> : null}
-      {activeTab === "settings" ? <SettingsTab canManage={canManage} screen={screen} /> : null}
+      {activeTab === "settings" ? <SettingsTab canManage={canManage} groups={data.groups} screen={screen} /> : null}
       {activeTab === "activity" ? <EventsTab events={data.auditEvents} /> : null}
     </> : null}
   </>;
@@ -201,9 +202,11 @@ function OverviewTab({
 
 function SettingsTab({
   canManage,
+  groups,
   screen
 }: {
   canManage: boolean;
+  groups: Awaited<ReturnType<typeof loadScreenDetail>>["groups"];
   screen: NonNullable<Awaited<ReturnType<typeof loadScreenDetail>>["screen"]>;
 }) {
   return <>
@@ -230,6 +233,29 @@ function SettingsTab({
           ? <p className="notice"><strong>Heractiveren.</strong> Sla lifecycle ‘Actief’ op en koppel daarna bewust een nieuwe Player; een ingetrokken device-identiteit wordt nooit hergebruikt.</p>
           : <p className="notice notice--warning"><strong>Deactiveren is een aparte beheeractie.</strong> Gebruik de beveiligde actie onderaan; daar wordt het offline gevolg expliciet bevestigd.</p>}
         <button className="button-link button-link--primary" disabled={!canManage} type="submit">Scherminstellingen opslaan</button>
+      </form>
+    </section>
+    <section className="data-surface" aria-labelledby="screen-groups-title">
+      <div className="workspace-section__header">
+        <div>
+          <h2 className="workspace-section__title" id="screen-groups-title">Schermgroepen</h2>
+          <p className="work-panel__meta">Een scherm mag tegelijk in meerdere groepen staan. Goal Alerts gebruiken de unie van alle gekozen groepen en leveren per gebeurtenis maximaal één overlay aan dit scherm.</p>
+        </div>
+        <StatusPill label={`${groups.filter((group) => group.selected).length} gekozen`} tone="info" />
+      </div>
+      <form action={updateScreenGroupMemberships} className="playlist-form onboarding-form">
+        <input name="screenId" type="hidden" value={screen.id} />
+        {groups.length ? <fieldset className="check-list" disabled={!canManage}>
+          <legend>Groepen voor {screen.name}</legend>
+          {groups.map((group) => <label className="check-row" key={group.id}>
+            <input defaultChecked={group.selected} name="groupIds" type="checkbox" value={group.id} />
+            <span><strong>{group.name}</strong><span className="work-panel__meta">Meervoudige selectie is toegestaan.</span></span>
+          </label>)}
+        </fieldset> : <p className="notice">Er zijn nog geen actieve schermgroepen. Maak eerst een schermgroep aan.</p>}
+        <div className="page-action-group">
+          <button className="button-link button-link--primary" disabled={!canManage} type="submit">Schermgroepen opslaan</button>
+          <Link className="button-link button-link--secondary" href="/dashboard/screen-groups">Schermgroepen beheren</Link>
+        </div>
       </form>
     </section>
     <ScreenLifecycleActions

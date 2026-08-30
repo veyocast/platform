@@ -340,6 +340,14 @@ uitgeschakeld. Nieuws ondersteunt `hero_split`, `fullscreen_gradient`,
 tot tien regels, exact twee landschapkolommen vanaf elf en één portretkolom tot
 twintig; boven twintig ontstaat deterministisch een volgende pagina.
 
+`fullscreen_gradient` houdt de foto over het volledige canvas. In landscape
+blijft de linkerhelft achter titel en intro circa twintig procent zichtbaar en
+loopt de verduistering naar rechts weg. In portrait blijft de bovenste helft
+beeldgedragen; vanaf het midden loopt de afbeelding naar een circa tachtig
+procent donkere ondergrond onder titel en intro. De intro is in deze variant
+groter dan in de overige nieuwsvarianten, zonder de immutable thematokens of
+tenantkleurcascade te omzeilen.
+
 Producttitels in prijslijsten gebruiken een leesbare standaardgrootte van 34 px
 op landscape en 32 px op portrait. Alleen op basis van de genormaliseerde
 titellengte kiest de gedeelde renderer deterministisch een begrensde

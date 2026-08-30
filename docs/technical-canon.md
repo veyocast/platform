@@ -128,6 +128,17 @@ playlist draft -> publish review -> playlist_release vN -> player manifest -> pl
 
 Een mediaasset dat in een release zit wordt niet stilzwijgend vervangen. Nieuwe content vereist nieuwe asset/variant en herpublicatie.
 
+### Realtime eventoverlay
+
+Een transient operationeel event mag buiten de playlisttijdlijn verschijnen
+wanneer het ontwerp, de targetset en alle media als immutable versie zijn
+gepubliceerd. Het event zelf is canoniek, idempotent, tenant- en schermgebonden.
+De Player haalt nooit providerdata op en laat de last-known-good release onder
+de overlay staan. Pauzeren bewaart de resterende itemtijd; een tijdelijk
+netwerkprobleem of een verlopen event veroorzaakt geen zwart scherm. Het
+contract en de eerste LED Scores-implementatie staan in
+[`integrations/ledscores-realtime-goal-alert.md`](integrations/ledscores-realtime-goal-alert.md).
+
 ## 8. MVP-scope
 
 In scope:

@@ -12,12 +12,14 @@ import type { PlayerManifestItem } from "../_lib/player-manifest";
 export function EngagePlaybackMedia({
   item,
   onReady,
-  passive
+  passive,
+  paused = false
 }: {
   item: PlayerManifestItem;
   onFailure: (itemId: string, code: "VIDEO_ERROR") => void;
   onReady: (itemId: string) => void;
   passive: boolean;
+  paused?: boolean;
 }) {
   const [campaign, setCampaign] = useState<EngagePublicCampaign | null>(null);
   const binding = item.onlinePlayback?.kind === "engage"
@@ -25,7 +27,7 @@ export function EngagePlaybackMedia({
     : null;
 
   useEffect(() => {
-    if (!binding || passive || navigator.onLine === false) return;
+    if (!binding || passive || paused || navigator.onLine === false) return;
     let disposed = false;
     const load = async () => {
       try {
@@ -50,7 +52,7 @@ export function EngagePlaybackMedia({
       disposed = true;
       window.clearInterval(interval);
     };
-  }, [binding, item.id, onReady, passive]);
+  }, [binding, item.id, onReady, passive, paused]);
 
   if (!campaign || !binding) {
     // eslint-disable-next-line @next/next/no-img-element

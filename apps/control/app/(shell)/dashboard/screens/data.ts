@@ -177,6 +177,7 @@ export type ScreenDetailData = {
   auditEvents: ScreenAuditEvent[];
   devices: FleetDevice[];
   error: string | null;
+  groups: Array<{ id: string; name: string; selected: boolean }>;
   heartbeats: ScreenHeartbeat[];
   playerCommands: ScreenPlayerCommand[];
   releases: FleetRelease[];
@@ -385,6 +386,11 @@ export async function loadScreenDetail(
     auditEvents: [],
     devices: [],
     error: fleet.error,
+    groups: fleet.groups.map((group) => ({
+      id: group.id,
+      name: group.name,
+      selected: group.memberIds.includes(screenId)
+    })),
     heartbeats: [],
     playerCommands: [],
     releases: fleet.releases,
@@ -447,6 +453,11 @@ export async function loadScreenDetail(
       })),
     devices: screenDevices,
     error: null,
+    groups: (groups.data ?? []).map((group) => ({
+      id: group.id,
+      name: group.name,
+      selected: groupIds.has(group.id)
+    })),
     heartbeats: (heartbeats.data ?? []).map((heartbeat) => ({
       activeReleaseId: heartbeat.active_release_id,
       appVersion: heartbeat.app_version,

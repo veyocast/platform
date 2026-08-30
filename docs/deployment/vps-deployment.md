@@ -165,6 +165,69 @@ docker compose -p veyocast-staging --env-file ... -f infra/vps/compose.yaml up -
 docker compose -p veyocast-production --env-file ... -f infra/vps/compose.yaml --profile production up -d --no-build --remove-orphans
 ```
 
+### Handmatige VPS-route wanneer GitHub Actions niet beschikbaar is
+
+Een release mag ook rechtstreeks op de VPS worden uitgevoerd, maar alleen met
+dezelfde immutable scripts en grenzen. Voer dit uit als gebruiker `deploy`, met
+diens Rootless Docker-daemon, vanuit een schone detached checkout van de actuele
+gereviewde `main`-SHA. Gebruik geen `git pull` in een draaiende runtimefolder en
+bouw production nooit opnieuw.
+
+Bewaar de staging- en productionwaarden uit het overeenkomstige GitHub
+Environment of de centrale secretstore in twee afzonderlijke bestanden buiten
+de repository, mode `0600`. Ieder bestand bevat exact de variabelen die
+`infra/vps/app.env.example` voor die omgeving noemt; staging bevat geen
+Marketingwaarden. Laad zo'n bestand in de huidige shell zonder de inhoud af te
+drukken:
+
+```bash
+set -a
+. /absoluut/beveiligd/pad/veyocast-staging-release.env
+set +a
+```
+
+Controleer in de schone checkout eerst dat de SHA exact de actuele remote
+`main` is. Bouw daarna eenmaal en deploy staging:
+
+```bash
+release_sha=$(git rev-parse HEAD)
+test "${release_sha}" = "$(git rev-parse origin/main)"
+export RELEASE_SHA="${release_sha}"
+
+bash scripts/deploy-vps.sh staging preflight
+bash scripts/deploy-vps.sh staging build-release
+bash scripts/deploy-vps.sh staging deploy
+bash scripts/deploy-vps.sh staging verify
+
+NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL}" \
+PLAYER_ORIGIN=https://staging-player.veyocast.nl \
+SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY}" \
+  bash scripts/smoke-player-pairing-recovery.sh
+```
+
+Wis daarna de stagingvariabelen door die beheershell te sluiten. Open voor
+production een nieuwe shell, laad het afzonderlijke productionbestand en zet
+dezelfde `RELEASE_SHA`. Controleer vóór de mutatie dat staging exact die SHA
+draait en vraag de normale expliciete productieautorisatie. De deployguard
+verifieert bovendien de vier lokale image-ID's tegen de immutable
+releasemetadata en het stagingmanifest:
+
+```bash
+test "$(< /srv/apps/veyocast/staging/REVISION)" = "${RELEASE_SHA}"
+bash scripts/deploy-vps.sh production preflight
+bash scripts/deploy-vps.sh production deploy
+bash scripts/deploy-vps.sh production verify
+
+NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL}" \
+PLAYER_ORIGIN=https://player.veyocast.nl \
+SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY}" \
+  bash scripts/smoke-player-pairing-recovery.sh
+```
+
+Bij een rode stagingcheck stopt de release daar. Gebruik voor een
+applicatierollback uitsluitend `bash scripts/deploy-vps.sh <omgeving> rollback`;
+voer geen database-downmigratie uit en verwijder geen releasestate handmatig.
+
 De preflight weigert onder meer:
 
 - een andere environment, host, poort, project-ref of Supabase-URL;

@@ -193,6 +193,14 @@ Zie [`docs/studio/integration-matrix.md`](docs/studio/integration-matrix.md) en
 bewijsstatus, open releasegates en invloedrijke vervolgkeuzes staan in
 [`docs/studio/release-evidence.md`](docs/studio/release-evidence.md).
 
+S132 voegt een default-off LED Scores-pilot toe. Een server-only worker volgt
+meerdere vaste read-only websockets met leases, detecteert uitsluitend verse
+exacte goals en levert een device-geauthenticeerde realtime overlay boven de
+ongewijzigde last-known-good Playerrelease. Studio publiceert immutable eigen-
+en tegenstandervarianten naar de unie van meerdere schermgroepen. Architectuur,
+operatorflow, metingen en rollback staan in
+[`docs/integrations/ledscores-realtime-goal-alert.md`](docs/integrations/ledscores-realtime-goal-alert.md).
+
 S133 herstelt forward-only de Sportlink-providerassetcompletion: geldige
 content-addressed club- en teamlogo's passeren opnieuw de padvalidatie en de
 ondubbelzinnige private service-role-upsert, met een echte database-regressietest

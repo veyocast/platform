@@ -14,6 +14,9 @@ describe("media worker configuration", () => {
       SUPABASE_URL: "http://127.0.0.1:54321/",
       MEDIA_WORKER_ID: "worker:test-1"
     })).toEqual({
+      ledScoresClaimIntervalMs: 5_000,
+      ledScoresLeaseSeconds: 45,
+      ledScoresMaxConnections: 25,
       lockTimeoutSeconds: 900,
       maxAttempts: 3,
       pollIntervalMs: 2_000,

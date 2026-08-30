@@ -7,6 +7,7 @@ import {
   Image as ImageIcon,
   List,
   Plus,
+  RadioTower,
   Sparkles
 } from "lucide-react";
 
@@ -93,6 +94,14 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
       <PageHeader
         actions={
           <>
+            {hasCapability(session.capabilities, "tenant.dynamic_slide.read") ? (
+              <Button asChild variant="secondary">
+                <Link href="/dashboard/studio/led-scores">
+                  <RadioTower aria-hidden="true" />
+                  LED Scores Goal Alerts
+                </Link>
+              </Button>
+            ) : null}
             {hasCapability(session.capabilities, "tenant.dynamic_slide.read") ? (
               <Button asChild variant="secondary">
                 <Link href="/dashboard/slides">Datagedreven slides</Link>

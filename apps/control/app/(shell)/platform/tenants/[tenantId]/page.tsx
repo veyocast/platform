@@ -191,5 +191,6 @@ const featureDefinitions = [
   { description: "Persistente venues, zones, plattegronden en genormaliseerde schermposities met toegankelijke lijstfallback.", key: "venue_twin", label: "Venue Twin", status: "PILOTPRODUCT" },
   { description: "Samengestelde vlootgezondheid boven bestaande heartbeat-, sync-, error- en opslagtelemetry.", key: "screen_health_view", label: "Screen Health", status: "PILOT UI" },
   { description: "Polls en publieksstemmen met QR, lifecycle, misbruikbeperking en live resultaten.", key: "engage", label: "Engage", status: "PILOTPRODUCT" },
-  { description: "Officiële online-only playback met Data/IFrame API en verplichte lokale fallback.", key: "youtube_integration", label: "YouTube", status: "PROVIDER GATED" }
+  { description: "Officiële online-only playback met Data/IFrame API en verplichte lokale fallback.", key: "youtube_integration", label: "YouTube", status: "PROVIDER GATED" },
+  { description: "Read-only LED Scores-websocketconnector met immutable Goal Alerts en gesynchroniseerde Player-overlays.", key: "ledscores_realtime", label: "LED Scores realtime", status: "EXPERIMENTELE PILOT" }
 ] as const;
