@@ -21,7 +21,17 @@ describe("Sportlink birthday contract", () => {
     expect(parseSportlinkBirthdayDate("15-05", { now })?.month).toBe(5);
     expect(parseSportlinkBirthdayDate("2026-05-15T00:00:00", { now })?.day).toBe(15);
     expect(parseSportlinkBirthdayDate("20260515", { now })?.day).toBe(15);
+    expect(parseSportlinkBirthdayDate("30 aug", { now })?.month).toBe(8);
+    expect(parseSportlinkBirthdayDate("2 sep.", { now })?.month).toBe(9);
     expect(parseSportlinkBirthdayDate("31 februari", { now })).toBeNull();
+  });
+
+  it.each([
+    ["jan", 1], ["feb", 2], ["mrt", 3], ["apr", 4],
+    ["mei", 5], ["jun", 6], ["jul", 7], ["aug", 8],
+    ["sep", 9], ["okt", 10], ["nov", 11], ["dec", 12]
+  ])("parses the abbreviated Sportlink month %s", (monthName, month) => {
+    expect(parseSportlinkBirthdayDate(`1 ${monthName}.`, { now })?.month).toBe(month);
   });
 
   it("handles December/January rollover in the tenant date", () => {

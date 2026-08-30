@@ -491,6 +491,13 @@ async function fetchSportlinkBirthdays(
     now: fetchedAt,
     timezone: job.timezone
   });
+  if (birthdayResponse.recordCount > 0 && birthdays.length === 0) {
+    throw new SportlinkWorkerError(
+      "SPORTLINK_BIRTHDAY_NORMALIZATION_EMPTY",
+      "Sportlink leverde verjaardagen, maar geen record kon veilig worden verwerkt. " +
+      "De bestaande verjaardagen blijven behouden; controleer het providercontract en synchroniseer opnieuw."
+    );
+  }
   const teams = mapSportlinkTeams(teamResponse.payload).slice(0, 50);
   const memberAssignments = [];
   for (const team of teams) {

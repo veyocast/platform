@@ -139,6 +139,7 @@ tests en exitcriteria staan in
 | S134 | Sportlink verjaardag-teamfilter hotfix | De officiële dubbele teamreferentie inclusief `-1`-sentinel valideren en versturen, zodat de dagelijkse publieke-personensync niet meer op providerfout 4002 stopt |
 | S135 | LED Scores service-role-boundary hotfix | Het nieuwe server-only workerbackend expliciet in de fail-closed secretgrens registreren en daarna dezelfde volledige VPS-release opnieuw bewijzen |
 | S136 | Sportlink pouleslides en aankomstvenster | Eigen uitslagen via teamcode aan de juiste poule koppelen, poulestand-/uitslagtekst 50% vergroten en de aankomstperiode als minuten, uren of dagen tot 42 dagen invoerbaar maken |
+| S137 | Sportlink verjaardagsnormalisatie hotfix | Drieletterige Nederlandse providermaanden veilig verwerken en een niet-lege providerrespons die tot nul verjaardagen normaliseert vóór databasecompletion fail-closed stoppen |
 
 ### Programmagates
 

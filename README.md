@@ -226,3 +226,10 @@ in browser en LG Legacy. De aankomstwizard accepteert daarnaast een venster in
 minuten, uren of dagen tot 42 dagen; `10.000` minuten blijft compatibel als
 minutenwaarde opgeslagen. Zie
 [`docs/s136-sportlink-slides-release-evidence.md`](docs/s136-sportlink-slides-release-evidence.md).
+
+S137 herstelt de Sportlink-verjaardagsnormalisatie voor de door de provider
+gebruikte Nederlandse drielettermaanden. Wanneer Sportlink records levert maar
+geen enkel record veilig normaliseert, faalt de worker vóór databasecompletion
+en blijft de bestaande last-known-good snapshot behouden. Een aantoonbaar lege
+providerrespons blijft een geldige lege dag. De wijziging raakt geen RLS,
+immutable releases, Player- of offlinecontracten.
