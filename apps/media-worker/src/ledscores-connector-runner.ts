@@ -666,14 +666,12 @@ function schedulePlayerAssetHydration({
   connection,
   persistence,
   players,
-  sourceObservedAt,
   workerId
 }: {
   backend: LedScoresConnectorBackend;
   connection: ClaimedLedScoresConnection;
   persistence: ConnectorPersistence;
   players: readonly LedScoresPlayerSnapshot[];
-  sourceObservedAt: string;
   workerId: string;
 }) {
   const hydratePlayerAssets = backend.hydratePlayerAssets?.bind(backend);
@@ -711,7 +709,7 @@ function schedulePlayerAssetHydration({
         const accepted = await backend.syncPlayers({
           connectionId: connection.connectionId,
           players: hydrated,
-          sourceObservedAt,
+          sourceObservedAt: new Date().toISOString(),
           workerId
         });
         const acceptedKeys = new Set(accepted.map((player) =>
@@ -1318,6 +1316,10 @@ async function handleMessage({
     status
   });
   const now = Date.now();
+  // Provider timestamps describe when LED Scores changed the match. The RPC
+  // freshness guard needs when VeyoCast actually observed this websocket
+  // snapshot. A reconnect can legitimately start with an older baseline.
+  const sourceObservedAt = new Date(now).toISOString();
   const semanticEvents = observation.kind === "events" ? observation.events : [];
   const goalEvents = semanticEvents.filter(
     (item): item is Extract<LedScoresSemanticEvent, { kind: "goal" }> =>
@@ -1359,7 +1361,7 @@ async function handleMessage({
     const accepted = await backend.syncPlayers({
       connectionId: connection.connectionId,
       players,
-      sourceObservedAt: status.updatedAt,
+      sourceObservedAt,
       workerId
     });
     persistence.acceptedPlayerKeys = new Set(
@@ -1377,7 +1379,6 @@ async function handleMessage({
     connection,
     persistence,
     players: priorityPhotoPlayers(status, acceptedPlayers),
-    sourceObservedAt: status.updatedAt,
     workerId
   });
 
@@ -1460,7 +1461,7 @@ async function handleMessage({
   ) {
     await backend.upsertLiveState({
       connectionId: connection.connectionId,
-      sourceObservedAt: status.updatedAt,
+      sourceObservedAt,
       state: createLedScoresLiveMatchState({
         acceptedPlayers,
         connection,

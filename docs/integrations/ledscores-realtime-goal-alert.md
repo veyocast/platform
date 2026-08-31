@@ -372,8 +372,8 @@ planning op drie moderne Players en zichtbare Goal Alerts op de statische
 LG-route zonder Next.js-clientchunks. De volledige S140-uitvoer staat in
 [`../s140-ledscores-delivery-reliability-evidence.md`](../s140-ledscores-delivery-reliability-evidence.md).
 
-S141 is lokaal bewezen met een verse database-reset, 71/71 gerichte pgTAP-
-assertions en de volledige RLS-matrix van 1.552 assertions. De actuele totals
+S141 is lokaal bewezen met een verse database-reset, 75/75 gerichte pgTAP-
+assertions en de volledige RLS-matrix van 1.556 assertions. De actuele totals
 zijn 108 integrations-, 114 worker-, 278 Control- en 214 Player-unittests plus
 109/109 Player-browserchecks. Workspace lint, typecheck en test zijn ieder
 30/30 packages groen; de build is 18/18. Accessibility is 36 groen met één

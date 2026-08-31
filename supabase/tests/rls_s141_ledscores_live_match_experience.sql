@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(71);
+select plan(75);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -329,6 +329,34 @@ select is((public.upsert_ledscores_live_match_state_v1(
   current_setting('test.s141_connection_id')::uuid,'worker:s141',
   jsonb_build_object(
     'schemaVersion',1,'connectionId',current_setting('test.s141_connection_id'),
+    'sourceUpdateId','state-old-baseline','stateRevision','old-baseline',
+    'matchKey','match-s141-old','status','finished',
+    'homeTeamKey','duindorp-1','awayTeamKey','bezoekers-1',
+    'home',jsonb_build_object('teamKey','duindorp-1','name','Duindorp SV 1','score',1),
+    'away',jsonb_build_object('teamKey','bezoekers-1','name','Bezoekers 1','score',0),
+    'periodLabel','Afgelopen','clock',null,'timeline','[]'::jsonb,
+    'sourceUpdatedAt',clock_timestamp() - interval '2 days','staleAfter',30
+  ),clock_timestamp()
+)->>'outcome'),'stored',
+  'a freshly observed provider baseline remains valid after a long idle period');
+select throws_ok($$select public.upsert_ledscores_live_match_state_v1(
+  current_setting('test.s141_connection_id')::uuid,'worker:s141',
+  jsonb_build_object(
+    'schemaVersion',1,'connectionId',current_setting('test.s141_connection_id'),
+    'sourceUpdateId','state-invalid-time','stateRevision','invalid-time',
+    'matchKey','match-s141-invalid','status','unknown',
+    'homeTeamKey','duindorp-1','awayTeamKey','bezoekers-1',
+    'home',jsonb_build_object('teamKey','duindorp-1','name','Duindorp SV 1','score',0),
+    'away',jsonb_build_object('teamKey','bezoekers-1','name','Bezoekers 1','score',0),
+    'periodLabel','Onbekend','clock',null,'timeline','[]'::jsonb,
+    'sourceUpdatedAt','-infinity','staleAfter',30
+  ),clock_timestamp()
+)$$,'22023',null,'non-finite provider timestamps remain invalid');
+
+select is((public.upsert_ledscores_live_match_state_v1(
+  current_setting('test.s141_connection_id')::uuid,'worker:s141',
+  jsonb_build_object(
+    'schemaVersion',1,'connectionId',current_setting('test.s141_connection_id'),
     'sourceUpdateId','state-1','stateRevision','1',
     'matchKey','match-s141','status','live',
     'homeTeamKey','duindorp-1','awayTeamKey','bezoekers-1',
@@ -339,7 +367,7 @@ select is((public.upsert_ledscores_live_match_state_v1(
       'direction','up','maxSeconds',null
     ),'timeline','[]'::jsonb,'sourceUpdatedAt',clock_timestamp(),'staleAfter',30
   ),clock_timestamp()
-)->>'outcome'),'stored','first bounded live state is stored');
+)->>'outcome'),'stored','a current provider update replaces the stale LKG state');
 select is((public.upsert_ledscores_live_match_state_v1(
   current_setting('test.s141_connection_id')::uuid,'worker:s141',
   jsonb_build_object(
@@ -381,7 +409,27 @@ select is((public.upsert_ledscores_live_match_state_v1(
       )
     ),'sourceUpdatedAt',clock_timestamp(),'staleAfter',30
   ),clock_timestamp()
-)->>'stateSequence')::bigint,2::bigint,'a newer provider update advances the monotonic sequence');
+)->>'stateSequence')::bigint,3::bigint,'a newer provider update advances the monotonic sequence');
+select is((public.upsert_ledscores_live_match_state_v1(
+  current_setting('test.s141_connection_id')::uuid,'worker:s141',
+  jsonb_build_object(
+    'schemaVersion',1,'connectionId',current_setting('test.s141_connection_id'),
+    'sourceUpdateId','state-delayed','stateRevision','delayed',
+    'matchKey','match-s141-old','status','finished',
+    'homeTeamKey','duindorp-1','awayTeamKey','bezoekers-1',
+    'home',jsonb_build_object('teamKey','duindorp-1','name','Duindorp SV 1','score',9),
+    'away',jsonb_build_object('teamKey','bezoekers-1','name','Bezoekers 1','score',9),
+    'periodLabel','Afgelopen','clock',null,'timeline','[]'::jsonb,
+    'sourceUpdatedAt',clock_timestamp() - interval '1 day','staleAfter',30
+  ),clock_timestamp()
+)->>'outcome'),'duplicate',
+  'a later received but older provider snapshot cannot replace newer state');
+select ok((select source_update_id='state-2'
+    and state_sequence=3
+    and state_json #>> '{home,score}'='2'
+  from public.ledscores_live_match_states
+  where connection_id=current_setting('test.s141_connection_id')::uuid),
+  'provider update order preserves the last-known-good match state');
 select throws_ok($$select public.upsert_ledscores_live_match_state_v1(
   current_setting('test.s141_connection_id')::uuid,'worker:s141',
   (select state_json || '{"rosters":[],"debugUrl":"https://provider.invalid"}'::jsonb
