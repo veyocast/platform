@@ -253,6 +253,24 @@ describe("zelfstandige LG Legacy Player", () => {
     );
   });
 
+  it("ankert Legacy live match stale en wedstrijdklok op de gevalideerde SSE-servertijd", () => {
+    const html = renderLgLegacyHtml();
+
+    expect(html).toContain(
+      "storeLedScoresMatchState(record.matchBindings[bindingIndex],"
+    );
+    expect(html).toContain("record.serverTime");
+    expect(html).toContain("serverTimeOffsetMs: serverTimeOffsetMs");
+    expect(html).toContain(
+      "effectiveNow = Math.min(ledScoresMatchServerNow(state), state.staleAfter)"
+    );
+    expect(html).toContain(
+      "stale = state.staleAfter <= ledScoresMatchServerNow(state)"
+    );
+    expect(html).toContain("Math.abs(state.serverTimeOffsetMs) <= 3162240000000");
+    expect(html).not.toContain("stale = state.staleAfter <= now()");
+  });
+
   it("pauzeert en hervat de legacy-onderlaag met resterende itemtijd", () => {
     const html = renderLgLegacyHtml();
 
@@ -275,6 +293,53 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("schedulePlaybackAdvance(templateDuration)");
     expect(html).toContain("schedulePlaybackAdvance(itemDurationMs(item))");
     expect(html).toContain("hideGoalOverlay(true)");
+  });
+
+  it("rendert LED Scores wedstrijdmomenten en live slides met Legacy-LKG", () => {
+    const html = renderLgLegacyHtml();
+
+    expect(html).toContain('event === "goal_enrichment"');
+    expect(html).toContain('event === "match_overlay"');
+    expect(html).toContain('event === "match_state"');
+    expect(html).toContain('"lineup_clear"');
+    expect(html).toContain("updateActiveGoalPlayer");
+    expect(html).toContain("renderMatchOverlay");
+    expect(html).toContain("playLedScoresLiveMatchTemplate");
+    expect(html).toContain('payload.slideType === "ledscores_live_match"');
+    expect(html).toContain("veyocast-player-ledscores-match-states-v1");
+    expect(html).toContain("runtime.ledScoresMatchStates");
+    expect(html).toContain(
+      "state.staleAfter <= ledScoresMatchServerNow(state)"
+    );
+    expect(html).toContain("window.clearInterval(runtime.ledScoresLiveMatchTimer)");
+    expect(html).toContain("higher_priority_overlay_active");
+    expect(html).toContain("scheduled_goal_enriched");
+    expect(html).toContain("currentTime = enrichment.serverTime");
+    expect(html).toContain("enrichment.sequence <= latestSequence");
+    expect(html).toContain("runtime.goalEnrichmentSequences");
+    expect(html).toContain("goalText(candidate.matchKey, 300)");
+    expect(html).toContain("match-lineup-grid");
+    expect(html).toContain("lineupPageDurationMs");
+    expect(html).toContain("? 8 : 11");
+    expect(html).toContain("runtime.goalLineupPageTimer");
+    expect(html).toContain("live-match-timeline");
+    expect(html).toContain('root.setAttribute("data-accent", config.accentMode)');
+    expect(html).toContain('overlay.setAttribute("data-logo-scale", match.design.logoScale)');
+    expect(html).toContain("payload.ownTeamKeys");
+    expect(html).toContain("logoMediaAssetId = goalUuid(payload.logoMediaAssetId)");
+    expect(html).toContain("home.logoUrl = logoUrl");
+    expect(html).toContain("away.logoUrl = logoUrl");
+    expect(html).toContain('match.design.showPreviousScore');
+    expect(html).toContain('match.design.showScorer');
+
+    const enrichmentHandler = html.slice(
+      html.indexOf("function handleGoalEnrichmentDelivery"),
+      html.indexOf("function parseGoalSseBlock")
+    );
+    expect(enrichmentHandler).toContain('"superseded_enrichment"');
+    expect(enrichmentHandler.indexOf('"superseded_enrichment"')).toBeLessThan(
+      enrichmentHandler.indexOf("runtime.goalPendingEnrichment = enrichment")
+    );
   });
 
   it("houdt de inline runtime compatibel met oude webOS syntax", () => {

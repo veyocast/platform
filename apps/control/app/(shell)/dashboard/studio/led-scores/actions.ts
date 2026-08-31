@@ -6,11 +6,20 @@ import { redirect } from "next/navigation";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
+import { lineupBehaviorFromForm } from "./live-match-ux";
 
 const returnPath = "/dashboard/studio/led-scores";
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const palettes = new Set(["electric-orange", "ink-black", "signal-red", "white"]);
 const animations = new Set(["impact", "pulse", "slide", "none"]);
+const overlayTemplates = {
+  halfTime: new Set(["score-focus"]),
+  lineupAway: new Set(["team-grid"]),
+  lineupHome: new Set(["team-grid"]),
+  matchEnd: new Set(["final-score"]),
+  matchStart: new Set(["matchday-impact"])
+} as const;
+type OverlayDesignKey = keyof typeof overlayTemplates;
 
 export async function saveLedScoresGoalAlert(formData: FormData) {
   const session = await requireTenantControlSession("tenant.dynamic_slide.write");
@@ -35,6 +44,23 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
   const unknownDesign = designFrom(formData, "unknown");
   const triggerOwn = formData.get("triggerOwn") === "on";
   const triggerOpponent = formData.get("triggerOpponent") === "on";
+  const overlayTriggers = {
+    end: formData.get("triggerEnd") === "on",
+    halfTime: formData.get("triggerHalfTime") === "on",
+    lineup: formData.get("triggerLineup") === "on",
+    start: formData.get("triggerStart") === "on"
+  };
+  const overlayDesigns = {
+    halfTime: overlayDesignFrom(formData, "halfTime", 8_000),
+    lineupAway: overlayDesignFrom(formData, "lineupAway", 12_000),
+    lineupHome: overlayDesignFrom(formData, "lineupHome", 12_000),
+    matchEnd: overlayDesignFrom(formData, "matchEnd", 12_000),
+    matchStart: overlayDesignFrom(formData, "matchStart", 8_000)
+  };
+  const lineupBehavior = lineupBehaviorFromForm(
+    formData,
+    integer(formData, "lineupPageDurationMs", 4_000, 10_000)
+  );
   const unknownPolicy = String(formData.get("unknownPolicy") ?? "suppress");
   const ownTeamKeys = uniqueTexts(formData.getAll("ownTeamKeys"), 200, 50);
   const activeFrom = utcDateTimeOrNull(formData, "activeFrom");
@@ -43,7 +69,11 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
   const opponentSoundVolume = integer(formData, "opponentSoundVolume", 0, 100);
   if (
     !["generic", "suppress"].includes(unknownPolicy)
-    || (!triggerOwn && !triggerOpponent && unknownPolicy === "suppress")
+    || (
+      !triggerOwn
+      && !triggerOpponent
+      && !Object.values(overlayTriggers).some(Boolean)
+    )
     || (activeFrom && activeUntil && Date.parse(activeFrom) >= Date.parse(activeUntil))
   ) fail("Kies minimaal één trigger en controleer het optionele actieve tijdvenster.");
   const sponsorCreativeId = optionalUuid(formData, "sponsorCreativeId");
@@ -73,6 +103,7 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
     activeFrom,
     activeUntil,
     logoMediaAssetId: optionalUuid(formData, "logoMediaAssetId"),
+    lineupBehavior,
     opponentDesign,
     opponentMediaAssetId: optionalUuid(formData, "opponentMediaAssetId"),
     opponentSoundMediaAssetId: optionalUuid(formData, "opponentSoundMediaAssetId"),
@@ -82,6 +113,8 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
     ownSoundMediaAssetId: optionalUuid(formData, "ownSoundMediaAssetId"),
     ownSoundVolume,
     ownTeamKeys,
+    overlayDesigns,
+    overlayTriggers,
     schemaVersion: 1,
     sponsorCreativeId,
     sponsorMediaAssetId,
@@ -113,7 +146,7 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
     ? result.data.alertId
     : alertId;
   complete(
-    alertId ? "Goal Alert-concept is bijgewerkt." : "Goal Alert-concept is gemaakt.",
+    alertId ? "Overlay experienceconcept is bijgewerkt." : "Overlay experienceconcept is gemaakt.",
     savedId ?? undefined
   );
 }
@@ -136,7 +169,7 @@ export async function publishLedScoresGoalAlert(formData: FormData) {
     fail("Het concept is sinds het openen gewijzigd. Vernieuw voordat je publiceert.");
   }
   const version = isRecord(result.data) ? result.data.version : null;
-  complete(`Immutable Goal Alert-versie ${String(version ?? "")} is gepubliceerd.`);
+  complete(`Immutable overlay experienceversie ${String(version ?? "")} is gepubliceerd.`);
 }
 
 export async function setLedScoresGoalAlertStatus(formData: FormData) {
@@ -158,7 +191,7 @@ export async function setLedScoresGoalAlertStatus(formData: FormData) {
   if (isRecord(result.data) && result.data.outcome === "conflict") {
     fail("De alertstatus is al gewijzigd. Vernieuw de pagina.");
   }
-  complete(status === "published" ? "Goal Alert is hervat." : status === "paused" ? "Goal Alert is gepauzeerd." : "Goal Alert is gearchiveerd.");
+  complete(status === "published" ? "Overlay experience is hervat." : status === "paused" ? "Overlay experience is gepauzeerd." : "Overlay experience is gearchiveerd.");
 }
 
 export async function testLedScoresGoalAlert(formData: FormData) {
@@ -201,6 +234,55 @@ export async function testLedScoresGoalAlert(formData: FormData) {
   );
 }
 
+export async function createLedScoresLiveMatchSlide(formData: FormData) {
+  const session = await requireTenantControlSession("tenant.dynamic_slide.write");
+  const connectionId = requiredUuid(formData, "connectionId");
+  const idempotencyKey = requiredUuid(formData, "idempotencyKey");
+  const name = String(formData.get("name") ?? "").trim();
+  const orientation = String(formData.get("orientation") ?? "landscape");
+  const template = String(formData.get("template") ?? "match_center");
+  const timelineLimit = integer(formData, "timelineLimit", 0, 10);
+  const outsideMatchBehavior = String(formData.get("outsideMatchBehavior") ?? "last_known");
+  const accentMode = String(formData.get("accentMode") ?? "club");
+  if (
+    name.length < 2
+    || name.length > 120
+    || !["landscape", "portrait"].includes(orientation)
+    || !["match_center", "scoreboard"].includes(template)
+    || !["last_known", "skip"].includes(outsideMatchBehavior)
+    || !["club", "contrast", "neutral"].includes(accentMode)
+  ) {
+    fail("Controleer de naam, schermstand en instellingen van de live wedstrijdslide.");
+  }
+  const supabase = await createControlSupabaseClient();
+  const result = supabase
+    ? await supabase.rpc("create_ledscores_live_match_slide_v1", {
+        p_configuration: {
+          liveMatch: {
+            accentMode,
+            outsideMatchBehavior,
+            showClock: formData.get("showClock") === "on",
+            showTimeline: formData.get("showTimeline") === "on",
+            staleBehavior: "freeze",
+            template,
+            timelineLimit
+          }
+        },
+        p_connection_id: connectionId,
+        p_idempotency_key: idempotencyKey,
+        p_name: name,
+        p_orientation: orientation,
+        p_tenant_id: session.tenantId!
+      })
+    : null;
+  if (!result || result.error || !isRecord(result.data) || typeof result.data.slideId !== "string") {
+    fail(liveSlideError(result?.error?.code));
+  }
+  revalidatePath("/dashboard/slides");
+  revalidatePath(returnPath);
+  redirect(`/dashboard/slides/${result.data.slideId}?succes=${encodeURIComponent("Live wedstrijdslide is aangemaakt. De slide volgt voortaan de laatst gevalideerde wedstrijdinformatie.")}`);
+}
+
 function designFrom(formData: FormData, prefix: "opponent" | "own" | "unknown") {
   const palette = String(formData.get(`${prefix}Palette`) ?? "ink-black");
   const animation = String(formData.get(`${prefix}Animation`) ?? "impact");
@@ -229,6 +311,48 @@ function designFrom(formData: FormData, prefix: "opponent" | "own" | "unknown") 
     showPreviousScore: formData.get(`${prefix}ShowPreviousScore`) === "on",
     showScorer: formData.get(`${prefix}ShowScorer`) === "on",
     typography: String(formData.get(`${prefix}Typography`) ?? "display") === "body" ? "body" : "display"
+  };
+}
+
+function overlayDesignFrom(
+  formData: FormData,
+  prefix: OverlayDesignKey,
+  durationMs: number
+) {
+  const template = String(formData.get(`${prefix}Template`) ?? "");
+  const palette = String(formData.get(`${prefix}Palette`) ?? "ink-black");
+  const animation = String(formData.get(`${prefix}Animation`) ?? "impact");
+  const headline = String(formData.get(`${prefix}Headline`) ?? "").trim();
+  const secondaryText = String(formData.get(`${prefix}SecondaryText`) ?? "").trim();
+  const logoPosition = String(formData.get(`${prefix}LogoPosition`) ?? "left");
+  const logoScale = String(formData.get(`${prefix}LogoScale`) ?? "medium");
+  const typography = String(formData.get(`${prefix}Typography`) ?? "display");
+  if (
+    !overlayTemplates[prefix].has(template)
+    || !palettes.has(palette)
+    || !animations.has(animation)
+    || !["left", "center"].includes(logoPosition)
+    || !["small", "medium", "large"].includes(logoScale)
+    || !["body", "display"].includes(typography)
+    || headline.length < 1
+    || headline.length > 80
+    || secondaryText.length > 160
+  ) {
+    fail("Controleer de tekst, animatie en vormgeving van de wedstrijdoverlays.");
+  }
+  return {
+    animation,
+    durationMs,
+    headline,
+    logoPosition,
+    logoScale,
+    palette,
+    secondaryText,
+    showClock: formData.get(`${prefix}ShowClock`) === "on",
+    showPreviousScore: formData.get(`${prefix}ShowPreviousScore`) === "on",
+    showScorer: formData.get(`${prefix}ShowScorer`) === "on",
+    template,
+    typography
   };
 }
 
@@ -261,7 +385,7 @@ function hasControlCharacter(value: string) {
 }
 function requiredUuid(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "");
-  if (!uuidPattern.test(value)) fail("De gekozen Goal Alert is ongeldig.");
+  if (!uuidPattern.test(value)) fail("De gekozen resource is ongeldig.");
   return value;
 }
 function optionalUuid(formData: FormData, key: string) {
@@ -286,12 +410,18 @@ function utcDateTimeOrNull(formData: FormData, key: string) {
   return parsed.toISOString();
 }
 function alertError(code: string | undefined) {
-  if (code === "42501") return "Je rol, tenantstatus of featureflag staat deze Goal Alert-actie niet toe.";
-  if (code === "23505") return "Er bestaat al een Goal Alert met deze naam.";
+  if (code === "42501") return "Je rol, tenantstatus of featureflag staat deze overlay experience-actie niet toe.";
+  if (code === "23505") return "Er bestaat al een overlay experience met deze naam.";
   if (code === "23514") return "Een doelgroep, verbinding, media-item of ontwerpinstelling is niet meer geldig.";
-  if (code === "P0002") return "De Goal Alert of verbinding bestaat niet meer.";
+  if (code === "P0002") return "De overlay experience of verbinding bestaat niet meer.";
   if (code === "55000") return "Een immutable publicatie kan niet worden gewijzigd. Maak een nieuwe versie.";
-  return "De Goal Alert kon niet transactioneel worden opgeslagen.";
+  return "De overlay experience kon niet transactioneel worden opgeslagen.";
+}
+function liveSlideError(code: string | undefined) {
+  if (code === "42501") return "Je rol, tenantstatus of featureflag staat het maken van deze live wedstrijdslide niet toe.";
+  if (code === "P0002") return "De actieve LED Scores-verbinding of ingebouwde live template is niet meer beschikbaar.";
+  if (code === "23505") return "Er bestaat al een slide met deze naam. Kies een herkenbare andere naam.";
+  return "De live wedstrijdslide kon niet veilig worden aangemaakt. Controleer de bronstatus en probeer opnieuw.";
 }
 function complete(message: string, edit?: string, resultEventId?: string): never {
   revalidatePath(returnPath);

@@ -3,11 +3,14 @@ import { describe, expect, it } from "vitest";
 import {
   classifyScheduledGoal,
   drainTerminalAcknowledgementQueue,
+  isGoalEnrichmentExpiredAtServerTime,
   ledScoresScoringTeam,
   parseGoalMessage,
   parseSseBlock,
   parseTerminalAcknowledgements,
-  runLedScoresRealtimeConnectionLoop
+  runLedScoresRealtimeConnectionLoop,
+  scheduledGoalEnrichmentCompletion,
+  shouldApplyGoalEnrichmentSequence
 } from "./ledscores-goal-overlay";
 
 const deliveryId = "11111111-1111-4111-8111-111111111111";
@@ -69,6 +72,10 @@ describe("LED Scores Player protocol", () => {
   it("parseert complete SSE-blokken en negeert keepalives of kapotte JSON", () => {
     expect(parseSseBlock('event: goal\ndata: {"ok":true}')).toEqual({
       event: "goal",
+      value: { ok: true }
+    });
+    expect(parseSseBlock('event: match_state\ndata: {"ok":true}')).toEqual({
+      event: "match_state",
       value: { ok: true }
     });
     expect(parseSseBlock(": keepalive 1")).toBeNull();
@@ -139,6 +146,40 @@ describe("LED Scores Player protocol", () => {
       deliveryId: "44444444-4444-4444-8444-444444444444",
       eventId: "55555555-5555-4555-8555-555555555555"
     })).toBe("replace");
+  });
+
+  it("houdt scorerrevisies monotone en bevestigt vooraf toegepaste verrijking terminaal", () => {
+    const enrichment = {
+      deliveryId: "44444444-4444-4444-8444-444444444444",
+      eventId,
+      executeAt: "2026-08-31T18:00:01.000Z",
+      expiresAt: "2026-08-31T18:01:00.000Z",
+      player: {
+        id: "player-10",
+        name: "D. Jansen",
+        number: "10",
+        photoUrl: null
+      },
+      sequence: 2,
+      serverTime: "2026-08-31T18:00:02.000Z"
+    };
+
+    expect(shouldApplyGoalEnrichmentSequence(null, 2)).toBe(true);
+    expect(shouldApplyGoalEnrichmentSequence(2, 1)).toBe(false);
+    expect(shouldApplyGoalEnrichmentSequence(2, 2)).toBe(false);
+    expect(isGoalEnrichmentExpiredAtServerTime(
+      enrichment,
+      Date.parse("2036-08-31T18:00:00.000Z")
+    )).toBe(false);
+    expect(isGoalEnrichmentExpiredAtServerTime({
+      ...enrichment,
+      serverTime: "2026-08-31T18:01:01.000Z"
+    }, Date.parse("2016-08-31T18:00:00.000Z"))).toBe(true);
+    expect(scheduledGoalEnrichmentCompletion(enrichment)).toMatchObject({
+      delivery: enrichment,
+      detail: "scheduled_goal_enriched",
+      status: "rendered"
+    });
   });
 
   it("leest de gedeelde terminale ACK-outbox begrensd en first-terminal-wins", () => {

@@ -11,6 +11,21 @@ export const ledScoresSseHeaders = {
   "X-Accel-Buffering": "no"
 } as const;
 
+export const ledScoresConfigAssetRefreshMs = 45 * 60 * 1_000;
+
+export function createSerializedLedScoresStreamQueue(
+  onFailure?: (error: unknown) => void
+) {
+  let tail = Promise.resolve();
+  return (operation: () => void | Promise<void>) => {
+    const current = tail.then(operation);
+    tail = current.catch((error) => {
+      try { onFailure?.(error); } catch { /* diagnostics must not stop the queue */ }
+    });
+    return tail;
+  };
+}
+
 export function readPlayerBearerToken(request: Request) {
   const authorization = request.headers.get("authorization");
   const token = authorization?.toLowerCase().startsWith("bearer ")
@@ -74,8 +89,74 @@ export async function loadLedScoresPlayerBootstrap(
   };
 }
 
+export async function loadLedScoresMatchPlayerBootstrap(
+  admin: ReturnType<typeof createPlayerAdminClient>,
+  tokenHash: string
+) {
+  const result = await admin.rpc("get_ledscores_match_player_bootstrap_v1", {
+    p_token_hash: tokenHash
+  });
+  if (result.error || !isRecord(result.data)) {
+    throw new Error("LEDSCORES_MATCH_BOOTSTRAP_UNAVAILABLE");
+  }
+  if (result.data.authorized !== true) {
+    return { authorized: false as const, enabled: false as const };
+  }
+  const screenId = uuid(result.data.screenId);
+  const tenantId = uuid(result.data.tenantId);
+  if (!screenId || !tenantId) {
+    throw new Error("LEDSCORES_MATCH_BOOTSTRAP_INVALID");
+  }
+  if (result.data.enabled !== true) {
+    return {
+      authorized: true as const,
+      bindings: [],
+      enabled: false as const,
+      pendingDeliveries: [],
+      screenId,
+      tenantId
+    };
+  }
+  const bindings = Array.isArray(result.data.bindings)
+    ? result.data.bindings.slice(0, 50).flatMap((binding) => {
+        const parsed = normalizeLedScoresMatchBinding(binding);
+        return parsed ? [parsed] : [];
+      })
+    : [];
+  const pendingDeliveries = Array.isArray(result.data.pendingDeliveries)
+    ? result.data.pendingDeliveries.slice(0, 10)
+      .map(normalizeLedScoresDelivery)
+      .filter((delivery): delivery is NonNullable<typeof delivery> =>
+        delivery?.kind === "goal_enrichment" ||
+        delivery?.kind === "match_overlay"
+      )
+    : [];
+  return {
+    authorized: true as const,
+    bindings,
+    enabled: true as const,
+    pendingDeliveries,
+    screenId,
+    tenantId
+  };
+}
+
 export function encodeSseEvent(event: string, value: unknown) {
   return `event: ${event}\ndata: ${JSON.stringify(value)}\n\n`;
+}
+
+export function ledScoresRealtimeBootstrapPayload({
+  configs,
+  matchBindings,
+  screenId,
+  serverTime
+}: {
+  configs: readonly unknown[];
+  matchBindings: readonly unknown[];
+  screenId: string;
+  serverTime: string;
+}) {
+  return { configs, matchBindings, screenId, serverTime };
 }
 
 export function normalizeLedScoresDelivery(value: unknown) {
@@ -90,7 +171,12 @@ export function normalizeLedScoresDelivery(value: unknown) {
     || !screenId
     || !executeAt
     || !expiresAt
-    || !["configuration", "goal"].includes(String(value.message_kind))
+    || ![
+      "configuration",
+      "goal",
+      "goal_enrichment",
+      "match_overlay"
+    ].includes(String(value.message_kind))
     || !isRecord(value.payload)
   ) return null;
   return {
@@ -98,10 +184,182 @@ export function normalizeLedScoresDelivery(value: unknown) {
     executeAt,
     expiresAt,
     id,
-    kind: String(value.message_kind) as "configuration" | "goal",
+    kind: String(value.message_kind) as
+      | "configuration"
+      | "goal"
+      | "goal_enrichment"
+      | "match_overlay",
     payload: value.payload,
     screenId
   };
+}
+
+export function orderLedScoresPendingDeliveries(
+  ...groups: ReadonlyArray<
+    ReadonlyArray<NonNullable<ReturnType<typeof normalizeLedScoresDelivery>>>
+  >
+) {
+  return groups.flatMap((group) => group).map((delivery, index) => ({
+    delivery,
+    index
+  })).sort((left, right) =>
+    Date.parse(left.delivery.executeAt) - Date.parse(right.delivery.executeAt)
+    || left.index - right.index
+  ).map(({ delivery }) => delivery);
+}
+
+export function shouldAttachLedScoresConfigAssets(
+  kind: NonNullable<ReturnType<typeof normalizeLedScoresDelivery>>["kind"]
+) {
+  return kind === "goal" || kind === "match_overlay";
+}
+
+export function shouldRefreshLedScoresConfigAssets(
+  lastRefreshAt: number,
+  now = Date.now()
+) {
+  return !Number.isFinite(lastRefreshAt) ||
+    now - lastRefreshAt >= ledScoresConfigAssetRefreshMs;
+}
+
+export function normalizeLedScoresMatchStateRow(value: unknown) {
+  if (!isRecord(value) || !isRecord(value.state_json)) return null;
+  const connectionId = uuid(value.connection_id);
+  const stateSequence = boundedInteger(value.state_sequence, 1, Number.MAX_SAFE_INTEGER);
+  const sourceObservedAt = timestamp(value.source_observed_at);
+  const staleAfterSeconds = boundedInteger(value.stale_after_seconds, 3, 120);
+  if (!connectionId || stateSequence === null || !sourceObservedAt ||
+    staleAfterSeconds === null) return null;
+  return {
+    connectionId,
+    sourceObservedAt,
+    staleAfterSeconds,
+    state: value.state_json,
+    stateSequence
+  };
+}
+
+export async function hydrateLedScoresDeliveryProviderPhotos(
+  admin: ReturnType<typeof createPlayerAdminClient>,
+  delivery: NonNullable<ReturnType<typeof normalizeLedScoresDelivery>>
+) {
+  if (delivery.kind !== "goal" && delivery.kind !== "goal_enrichment" &&
+    delivery.kind !== "match_overlay") return delivery;
+  const requestedIds = collectProviderPhotoIds(delivery.payload);
+  if (!requestedIds.length) return delivery;
+  let result;
+  try {
+    result = await admin
+      .from("provider_asset_versions")
+      .select("id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, provider_asset_cache!inner(provider, entity_type, asset_role)")
+      .in("id", requestedIds);
+  } catch {
+    return stripProviderPhotoIds(delivery);
+  }
+  if (result.error) return stripProviderPhotoIds(delivery);
+  const signedById = new Map<string, string>();
+  await Promise.all((result.data ?? []).map(async (row) => {
+    const id = uuid(row.id);
+    const path = safeProviderStoragePath(row.storage_path);
+    const mimeType = safeProviderPhotoMimeType(row.mime_type);
+    const checksum = hash(row.checksum_sha256);
+    const bytes = boundedInteger(row.file_size_bytes, 1, 8_000_000);
+    const cache = isRecord(row.provider_asset_cache)
+      ? row.provider_asset_cache
+      : null;
+    if (!id || !requestedIds.includes(id) || row.storage_bucket !== "provider-assets" ||
+      !path || !mimeType || !checksum || bytes === null || !cache ||
+      cache.provider !== "ledscores" || cache.entity_type !== "player" ||
+      cache.asset_role !== "player_photo") return;
+    let signed;
+    try {
+      signed = await admin.storage.from("provider-assets")
+        .createSignedUrl(path, 3_600);
+    } catch {
+      return;
+    }
+    if (!signed.error && signed.data?.signedUrl &&
+      /^https?:\/\//.test(signed.data.signedUrl)) {
+      signedById.set(id, signed.data.signedUrl);
+    }
+  }));
+  return {
+    ...delivery,
+    payload: hydratePayloadPlayers(delivery.payload, signedById)
+  };
+}
+
+function normalizeLedScoresMatchBinding(value: unknown) {
+  if (!isRecord(value)) return null;
+  const connectionId = uuid(value.connectionId);
+  const dynamicSnapshotId = uuid(value.dynamicSnapshotId);
+  const stateSequence = boundedInteger(value.stateSequence, 0, Number.MAX_SAFE_INTEGER);
+  const sourceObservedAt = value.sourceObservedAt === null
+    ? null
+    : timestamp(value.sourceObservedAt);
+  const staleAfterSeconds = boundedInteger(value.staleAfterSeconds, 3, 120);
+  if (!connectionId || !dynamicSnapshotId || stateSequence === null ||
+    staleAfterSeconds === null || !isRecord(value.state) ||
+    (value.sourceObservedAt !== null && !sourceObservedAt)) return null;
+  return {
+    configuration: isRecord(value.configuration) ? value.configuration : {},
+    connectionId,
+    dynamicSnapshotId,
+    sourceObservedAt,
+    staleAfterSeconds,
+    state: value.state,
+    stateSequence
+  };
+}
+
+function collectProviderPhotoIds(payload: Record<string, unknown>) {
+  const values = [payload.player, payload.scorer];
+  if (Array.isArray(payload.lineup)) values.push(...payload.lineup.slice(0, 24));
+  if (Array.isArray(payload.players)) values.push(...payload.players.slice(0, 24));
+  const ids = new Set<string>();
+  for (const value of values) {
+    if (!isRecord(value)) continue;
+    const id = uuid(value.photoProviderAssetVersionId);
+    if (id) ids.add(id);
+  }
+  return [...ids].slice(0, 24);
+}
+
+function stripProviderPhotoIds(
+  delivery: NonNullable<ReturnType<typeof normalizeLedScoresDelivery>>
+) {
+  return { ...delivery, payload: hydratePayloadPlayers(delivery.payload, new Map()) };
+}
+
+function hydratePayloadPlayers(
+  payload: Record<string, unknown>,
+  signedById: ReadonlyMap<string, string>
+) {
+  const next = { ...payload };
+  for (const key of ["player", "scorer"] as const) {
+    if (isRecord(payload[key])) next[key] = hydratePlayer(payload[key], signedById);
+  }
+  if (Array.isArray(payload.lineup)) {
+    next.lineup = payload.lineup.slice(0, 24).map((player) =>
+      isRecord(player) ? hydratePlayer(player, signedById) : player
+    );
+  }
+  if (Array.isArray(payload.players)) {
+    next.players = payload.players.slice(0, 24).map((player) =>
+      isRecord(player) ? hydratePlayer(player, signedById) : player
+    );
+  }
+  return next;
+}
+
+function hydratePlayer(
+  player: Record<string, unknown>,
+  signedById: ReadonlyMap<string, string>
+) {
+  const { photoProviderAssetVersionId: _privateVersionId, ...publicPlayer } = player;
+  const id = uuid(_privateVersionId);
+  const photoUrl = id ? signedById.get(id) ?? null : null;
+  return { ...publicPlayer, ...(photoUrl ? { photoUrl } : {}) };
 }
 
 async function normalizeAndSignConfig(
@@ -155,6 +413,20 @@ function safeStoragePath(value: unknown) {
     && value.length <= 500
     && /^tenants\/[0-9a-f-]{36}\/assets\/[0-9a-f-]{36}\/[A-Za-z0-9._/-]+$/i.test(value)
     && !value.includes("..")
+    ? value
+    : null;
+}
+function safeProviderStoragePath(value: unknown) {
+  return typeof value === "string"
+    && value.length <= 500
+    && /^[A-Za-z0-9][A-Za-z0-9._/-]{0,499}$/.test(value)
+    && !value.includes("..")
+    && !value.includes("//")
+    ? value
+    : null;
+}
+function safeProviderPhotoMimeType(value: unknown) {
+  return typeof value === "string" && /^(image\/(jpeg|png|webp))$/.test(value)
     ? value
     : null;
 }
