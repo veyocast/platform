@@ -1,0 +1,31 @@
+.link[aria-disabled="true"] {
+  cursor: wait;
+  pointer-events: auto;
+}
+
+.iconSlot {
+  align-items: center;
+  display: inline-flex;
+  height: 1.125rem;
+  justify-content: center;
+  width: 1.125rem;
+}
+
+.iconSlot svg {
+  height: 100%;
+  width: 100%;
+}
+
+.spinner {
+  animation: pending-navigation-spin 800ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+@keyframes pending-navigation-spin {
+  to { transform: rotate(360deg); }
+}

@@ -9,6 +9,10 @@ import styles from "./ledscores-goal-overlay.module.css";
 
 const dedupeStorageKey = "veyocast-player-ledscores-dedupe-v1";
 const maximumDedupeEntries = 200;
+const maximumTerminalAcknowledgements = 200;
+const maximumTerminalAcknowledgementRetries = 6;
+const terminalAcknowledgementRetentionMs = 7 * 24 * 60 * 60 * 1_000;
+const terminalAcknowledgementStorageKey = "veyocast-player-ledscores-terminal-acks-v1";
 
 type OverlayAsset = {
   checksum: string;
@@ -53,11 +57,112 @@ export type ActiveLedScoresGoal = {
   underlayPolicy: "continue" | "pause";
 };
 
+type ScheduledGoalIdentity = Pick<ActiveLedScoresGoal, "deliveryId" | "eventId">;
+type ScheduledGoalDelivery = ScheduledGoalIdentity & { expiresAt: number };
+type TerminalAcknowledgementStatus = "failed" | "rendered" | "skipped";
+export type TerminalAcknowledgement = {
+  createdAt: number;
+  deliveryId: string;
+  detail: string | null;
+  eventId: string;
+  expiresAt: number;
+  status: TerminalAcknowledgementStatus;
+};
+type TerminalAcknowledgementDeliveryResult = "credential" | "done" | "retry";
+
+export async function drainTerminalAcknowledgementQueue({
+  deliver,
+  maximumBatchSize = 25,
+  maximumRetries = maximumTerminalAcknowledgementRetries,
+  read,
+  shouldStop = () => false,
+  waitForRetry = async () => undefined
+}: {
+  deliver: (entry: TerminalAcknowledgement) => Promise<TerminalAcknowledgementDeliveryResult>;
+  maximumBatchSize?: number;
+  maximumRetries?: number;
+  read: () => TerminalAcknowledgement[];
+  shouldStop?: () => boolean;
+  waitForRetry?: (attempt: number) => Promise<void>;
+}) {
+  let retryAttempt = 0;
+  while (!shouldStop()) {
+    const pending = read();
+    if (!pending.length) return "done" as const;
+    const outcomes = await Promise.all(
+      pending.slice(0, maximumBatchSize).map((entry) => deliver(entry))
+    );
+    if (shouldStop()) return "cancelled" as const;
+    if (outcomes.some((outcome) => outcome === "credential")) {
+      return "credential" as const;
+    }
+    if (outcomes.some((outcome) => outcome === "retry")) {
+      retryAttempt += 1;
+      if (retryAttempt > maximumRetries) return "retry_exhausted" as const;
+      await waitForRetry(retryAttempt);
+      continue;
+    }
+    retryAttempt = 0;
+  }
+  return "cancelled" as const;
+}
+
+export function classifyScheduledGoal(
+  current: ScheduledGoalIdentity | null,
+  next: ScheduledGoalIdentity
+) {
+  if (!current) return "schedule" as const;
+  if (current.deliveryId === next.deliveryId) return "same_delivery" as const;
+  if (current.eventId === next.eventId) return "same_event" as const;
+  return "replace" as const;
+}
+
+type RealtimeConnectionLoopOptions = {
+  fetchStream?: typeof fetch;
+  onEvent: (event: string, value: unknown) => void;
+  random?: () => number;
+  signal: AbortSignal;
+  token: string;
+  wait?: (milliseconds: number, signal: AbortSignal) => Promise<void>;
+};
+
+export async function runLedScoresRealtimeConnectionLoop({
+  fetchStream = fetch,
+  onEvent,
+  random = Math.random,
+  signal,
+  token,
+  wait = waitForReconnect
+}: RealtimeConnectionLoopOptions) {
+  let reconnectAttempt = 0;
+  while (!signal.aborted) {
+    try {
+      const response = await fetchStream("/api/player/realtime", {
+        cache: "no-store",
+        headers: { Authorization: `Bearer ${token}` },
+        signal
+      });
+      if (response.status === 401 || response.status === 403) return;
+      if (response.status !== 204) {
+        if (!response.ok || !response.body) throw new Error("REALTIME_STREAM_UNAVAILABLE");
+        reconnectAttempt = 0;
+        await consumeSseStream(response.body, onEvent, () => signal.aborted);
+      }
+    } catch {
+      if (signal.aborted) return;
+    }
+    if (signal.aborted) return;
+    reconnectAttempt += 1;
+    await wait(reconnectDelayMs(reconnectAttempt, random), signal);
+  }
+}
+
 export function useLedScoresRealtime(enabled: boolean) {
   const [active, setActive] = useState<ActiveLedScoresGoal | null>(null);
   const activeRef = useRef<ActiveLedScoresGoal | null>(null);
   const activationTimerRef = useRef<number | null>(null);
   const expiryTimerRef = useRef<number | null>(null);
+  const scheduledRef = useRef<ScheduledGoalDelivery | null>(null);
   activeRef.current = active;
 
   useEffect(() => {
@@ -65,11 +170,61 @@ export function useLedScoresRealtime(enabled: boolean) {
       setActive(null);
       return;
     }
-    const token = readDeviceToken();
+    const token = readDeviceToken() ?? "";
     if (!token) return;
     let cancelled = false;
-    let reconnectAttempt = 0;
-    let connectionController: AbortController | null = null;
+    let terminalRetryTimer: number | null = null;
+    let terminalFlushInFlight = false;
+    const connectionController = new AbortController();
+    function scheduleTerminalFlush(delayMs: number) {
+      if (cancelled) return;
+      if (terminalRetryTimer !== null) window.clearTimeout(terminalRetryTimer);
+      terminalRetryTimer = window.setTimeout(() => {
+        terminalRetryTimer = null;
+        void flushTerminalAcknowledgements();
+      }, Math.max(0, delayMs));
+    }
+    async function flushTerminalAcknowledgements() {
+      if (cancelled || terminalFlushInFlight) return;
+      terminalFlushInFlight = true;
+      try {
+        await drainTerminalAcknowledgementQueue({
+          deliver: (entry) => deliverTerminalAcknowledgement(token, entry),
+          read: () => readTerminalAcknowledgements(Date.now()),
+          shouldStop: () => cancelled,
+          waitForRetry: (attempt) => waitForReconnect(
+            reconnectDelayMs(attempt, Math.random),
+            connectionController.signal
+          )
+        });
+      } finally {
+        terminalFlushInFlight = false;
+      }
+    }
+    function acknowledgeTerminal(
+      delivery: ScheduledGoalIdentity,
+      status: TerminalAcknowledgementStatus,
+      detail: string | null,
+      expiresAt: number
+    ) {
+      const entry = {
+        createdAt: Date.now(),
+        deliveryId: delivery.deliveryId,
+        detail,
+        eventId: delivery.eventId,
+        expiresAt,
+        status
+      } satisfies TerminalAcknowledgement;
+      if (!enqueueTerminalAcknowledgement(entry)) {
+        void acknowledge(token, entry.deliveryId, entry.status, entry.detail);
+      }
+      scheduleTerminalFlush(0);
+    }
+    const handleOnline = () => {
+      scheduleTerminalFlush(0);
+    };
+    window.addEventListener("online", handleOnline);
+    scheduleTerminalFlush(0);
     const clearGoalTimers = () => {
       if (activationTimerRef.current !== null) window.clearTimeout(activationTimerRef.current);
       if (expiryTimerRef.current !== null) window.clearTimeout(expiryTimerRef.current);
@@ -77,39 +232,90 @@ export function useLedScoresRealtime(enabled: boolean) {
       expiryTimerRef.current = null;
     };
     const handleGoal = (value: unknown) => {
+      const possibleDeliveryId = isRecord(value) ? safeUuid(value.id) : null;
       const message = parseGoalMessage(value);
-      if (!message) return;
+      if (!message) {
+        if (possibleDeliveryId) {
+          void acknowledge(token, possibleDeliveryId, "failed", "invalid_goal_payload");
+        }
+        return;
+      }
       void acknowledge(token, message.goal.deliveryId, "received", null);
       const serverOffsetMs = Date.parse(message.serverTime) - Date.now();
       const serverNow = Date.now() + serverOffsetMs;
       const expiresAt = Date.parse(message.expiresAt);
-      if (expiresAt <= serverNow || hasSeenGoal(message.goal.eventId, serverNow)) {
-        void acknowledge(token, message.goal.deliveryId, "skipped", "expired_or_duplicate");
+      if (findTerminalAcknowledgement(
+        message.goal.deliveryId,
+        message.goal.eventId,
+        Date.now()
+      )) {
+        scheduleTerminalFlush(0);
         return;
+      }
+      if (activeRef.current?.eventId === message.goal.eventId) return;
+      if (expiresAt <= serverNow || hasSeenGoal(message.goal.eventId, serverNow)) {
+        acknowledgeTerminal(message.goal, "skipped", "expired_or_duplicate", expiresAt);
+        return;
+      }
+      const activateIn = Math.max(0, Date.parse(message.executeAt) - serverNow);
+      if (activateIn > 30_000) {
+        acknowledgeTerminal(message.goal, "skipped", "execute_time_too_far", expiresAt);
+        return;
+      }
+      const scheduling = classifyScheduledGoal(scheduledRef.current, message.goal);
+      if (scheduling === "same_delivery") return;
+      if (scheduling === "same_event") {
+        acknowledgeTerminal(
+          message.goal,
+          "skipped",
+          "duplicate_event_before_activation",
+          expiresAt
+        );
+        return;
+      }
+      if (scheduling === "replace" && scheduledRef.current) {
+        acknowledgeTerminal(
+          scheduledRef.current,
+          "skipped",
+          "replaced_before_activation",
+          scheduledRef.current.expiresAt
+        );
       }
       clearGoalTimers();
       const replaced = activeRef.current;
       if (replaced && replaced.eventId !== message.goal.eventId) {
         setActive(null);
       }
-      const activateIn = Math.max(0, Date.parse(message.executeAt) - serverNow);
+      scheduledRef.current = {
+        deliveryId: message.goal.deliveryId,
+        eventId: message.goal.eventId,
+        expiresAt
+      };
       activationTimerRef.current = window.setTimeout(() => {
+        if (scheduledRef.current?.deliveryId === message.goal.deliveryId) {
+          scheduledRef.current = null;
+        }
         if (cancelled) return;
         const currentServerNow = Date.now() + serverOffsetMs;
         if (expiresAt <= currentServerNow) {
-          void acknowledge(token, message.goal.deliveryId, "skipped", "execute_window_expired");
+          acknowledgeTerminal(
+            message.goal,
+            "skipped",
+            "execute_window_expired",
+            expiresAt
+          );
           return;
         }
-        rememberGoal(message.goal.eventId, expiresAt);
         activeRef.current = message.goal;
         setActive(message.goal);
         window.requestAnimationFrame(() => {
-          void acknowledge(
-            token,
-            message.goal.deliveryId,
+          acknowledgeTerminal(
+            message.goal,
             "rendered",
-            `render_latency_ms:${Math.max(0, Date.now() + serverOffsetMs - Date.parse(message.executeAt))}`
+            `render_latency_ms:${Math.max(0, Date.now() + serverOffsetMs - Date.parse(message.executeAt))}`,
+            expiresAt
           );
+          rememberGoal(message.goal.eventId, expiresAt);
         });
         expiryTimerRef.current = window.setTimeout(() => {
           if (activeRef.current?.eventId === message.goal.eventId) {
@@ -117,7 +323,7 @@ export function useLedScoresRealtime(enabled: boolean) {
             setActive(null);
           }
         }, Math.max(1, Math.min(message.goal.durationMs, expiresAt - currentServerNow)));
-      }, Math.min(30_000, activateIn));
+      }, activateIn);
     };
     const handleStreamEvent = (event: string, value: unknown) => {
       if (!isRecord(value)) return;
@@ -130,35 +336,18 @@ export function useLedScoresRealtime(enabled: boolean) {
         handleGoal(value);
       }
     };
-    const connect = async () => {
-      while (!cancelled) {
-        connectionController = new AbortController();
-        try {
-          const response = await fetch("/api/player/realtime", {
-            cache: "no-store",
-            headers: { Authorization: `Bearer ${token}` },
-            signal: connectionController.signal
-          });
-          if (response.status === 204 || response.status === 401 || response.status === 403) return;
-          if (!response.ok || !response.body) throw new Error("REALTIME_STREAM_UNAVAILABLE");
-          reconnectAttempt = 0;
-          await consumeSseStream(response.body, handleStreamEvent, () => cancelled);
-        } catch {
-          if (cancelled) return;
-        }
-        reconnectAttempt += 1;
-        await delay(
-          Math.min(30_000, 1_000 * 2 ** Math.min(5, reconnectAttempt - 1))
-            + Math.floor(Math.random() * 500),
-          () => cancelled
-        );
-      }
-    };
-    void connect();
+    void runLedScoresRealtimeConnectionLoop({
+      onEvent: handleStreamEvent,
+      signal: connectionController.signal,
+      token
+    });
     return () => {
       cancelled = true;
-      connectionController?.abort();
+      connectionController.abort();
+      window.removeEventListener("online", handleOnline);
+      if (terminalRetryTimer !== null) window.clearTimeout(terminalRetryTimer);
       clearGoalTimers();
+      scheduledRef.current = null;
       activeRef.current = null;
     };
   }, [enabled]);
@@ -346,8 +535,111 @@ function preloadAssets(configs: unknown[]) {
   }
 }
 async function acknowledge(token: string, deliveryId: string, status: string, detail: string | null) {
-  try { await fetch("/api/player/realtime/ack", { body: JSON.stringify({ deliveryId, detail, status }), cache: "no-store", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, method: "POST" }); }
-  catch { /* acknowledgements are diagnostic and never block playback */ }
+  try {
+    return await fetch("/api/player/realtime/ack", {
+      body: JSON.stringify({ deliveryId, detail, status }),
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      method: "POST"
+    });
+  } catch {
+    return null;
+  }
+}
+async function deliverTerminalAcknowledgement(
+  token: string,
+  entry: TerminalAcknowledgement
+): Promise<TerminalAcknowledgementDeliveryResult> {
+  const response = await acknowledge(
+    token,
+    entry.deliveryId,
+    entry.status,
+    entry.detail
+  );
+  if (
+    response?.ok || response?.status === 400 || response?.status === 404
+    || response?.status === 413 || response?.status === 422
+  ) {
+    removeTerminalAcknowledgement(entry.deliveryId);
+    return "done";
+  }
+  if (response?.status === 401 || response?.status === 403) return "credential";
+  return "retry";
+}
+function enqueueTerminalAcknowledgement(entry: TerminalAcknowledgement) {
+  const now = Date.now();
+  const entries = readTerminalAcknowledgements(now);
+  if (entries.some((value) => value.deliveryId === entry.deliveryId)) return true;
+  entries.push({
+    ...entry,
+    detail: typeof entry.detail === "string"
+      ? entry.detail.replace(/[\r\n]+/g, " ").slice(0, 300)
+      : null
+  });
+  return writeTerminalAcknowledgements(entries);
+}
+function findTerminalAcknowledgement(deliveryId: string, eventId: string, now: number) {
+  return readTerminalAcknowledgements(now).find((entry) =>
+    entry.deliveryId === deliveryId && entry.eventId === eventId
+  ) ?? null;
+}
+function removeTerminalAcknowledgement(deliveryId: string) {
+  const entries = readTerminalAcknowledgements(Date.now()).filter((entry) =>
+    entry.deliveryId !== deliveryId
+  );
+  writeTerminalAcknowledgements(entries);
+}
+function readTerminalAcknowledgements(now: number) {
+  try {
+    return parseTerminalAcknowledgements(
+      JSON.parse(window.localStorage.getItem(terminalAcknowledgementStorageKey) ?? "[]") as unknown,
+      now
+    );
+  } catch {
+    return [];
+  }
+}
+function writeTerminalAcknowledgements(entries: TerminalAcknowledgement[]) {
+  try {
+    window.localStorage.setItem(
+      terminalAcknowledgementStorageKey,
+      JSON.stringify(entries.slice(-maximumTerminalAcknowledgements))
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+export function parseTerminalAcknowledgements(value: unknown, now = Date.now()) {
+  if (!Array.isArray(value)) return [] as TerminalAcknowledgement[];
+  const seen = new Set<string>();
+  const parsed: TerminalAcknowledgement[] = [];
+  for (const candidate of value) {
+    if (!isRecord(candidate)) continue;
+    const deliveryId = safeUuid(candidate.deliveryId);
+    const eventId = safeUuid(candidate.eventId);
+    const status = candidate.status === "rendered"
+      || candidate.status === "skipped"
+      || candidate.status === "failed"
+      ? candidate.status
+      : null;
+    const detail = candidate.detail === null
+      ? null
+      : typeof candidate.detail === "string" && candidate.detail.length <= 300
+        ? candidate.detail
+        : null;
+    const expiresAt = Number(candidate.expiresAt);
+    const createdAt = Number(candidate.createdAt);
+    if (
+      !deliveryId || !eventId || !status || seen.has(deliveryId)
+      || !Number.isFinite(expiresAt) || !Number.isFinite(createdAt)
+      || createdAt < now - terminalAcknowledgementRetentionMs
+      || createdAt > now + terminalAcknowledgementRetentionMs
+    ) continue;
+    seen.add(deliveryId);
+    parsed.push({ createdAt, deliveryId, detail, eventId, expiresAt, status });
+  }
+  return parsed.slice(-maximumTerminalAcknowledgements);
 }
 function readDeviceToken() { try { const value = window.localStorage.getItem(localStorageDeviceTokenKey); return value && /^[A-Za-z0-9_-]{20,200}$/.test(value) ? value : null; } catch { return null; } }
 function hasSeenGoal(eventId: string, now: number) { return readDedupeEntries(now).some((entry) => entry.eventId === eventId); }
@@ -362,4 +654,21 @@ function safeTimestamp(value: unknown) { return typeof value === "string" && Num
 function safeText(value: unknown, maximum: number) { return typeof value === "string" && value.trim() && value.length <= maximum ? value.trim() : null; }
 function boundedInteger(value: unknown, minimum: number, maximum: number) { const number = Number(value); return Number.isInteger(number) && number >= minimum && number <= maximum ? number : null; }
 function isRecord(value: unknown): value is Record<string, unknown> { return Boolean(value) && typeof value === "object" && !Array.isArray(value); }
-async function delay(milliseconds: number, cancelled: () => boolean) { const end = Date.now() + milliseconds; while (!cancelled() && Date.now() < end) await new Promise((resolve) => window.setTimeout(resolve, Math.min(1_000, end - Date.now()))); }
+function reconnectDelayMs(attempt: number, random: () => number) {
+  const exponentialDelay = 1_000 * 2 ** Math.min(5, Math.max(0, attempt - 1));
+  return Math.max(1_000, Math.min(30_000, exponentialDelay) - Math.floor(random() * 500));
+}
+async function waitForReconnect(milliseconds: number, signal: AbortSignal) {
+  if (signal.aborted) return;
+  await new Promise<void>((resolve) => {
+    const timer = window.setTimeout(finish, milliseconds);
+    const onAbort = () => finish();
+    function finish() {
+      window.clearTimeout(timer);
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }
+    signal.addEventListener("abort", onAbort, { once: true });
+    if (signal.aborted) finish();
+  });
+}

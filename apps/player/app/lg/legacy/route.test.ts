@@ -179,6 +179,104 @@ describe("zelfstandige LG Legacy Player", () => {
     );
   });
 
+  it("ontvangt Goal Alerts via geauthenticeerde XHR-SSE zonder de LKG-scene te wissen", () => {
+    const html = renderLgLegacyHtml();
+
+    expect(html).toContain('id="goal-overlay"');
+    expect(html).toContain(
+      'xhr.open("GET", "/api/player/realtime", true)'
+    );
+    expect(html).toContain(
+      'xhr.setRequestHeader("Authorization", "Bearer " + token)'
+    );
+    expect(html).toContain('xhr.setRequestHeader("Accept", "text/event-stream")');
+    expect(html).toContain("xhr.onprogress = function ()");
+    expect(html).toContain("responseText.slice(runtime.goalStreamOffset)");
+    expect(html).toContain(
+      "runtime.goalStreamOffset >= CONFIG.goalStreamRecycleCharacters"
+    );
+    expect(html).toContain("armGoalStreamWatchdog(xhr, generation)");
+    expect(html).toContain('"goalStreamSilenceMs":45000');
+    expect(html).toContain("parseGoalSseBlock");
+    expect(html).toContain('status === 204');
+    expect(html).toContain(
+      "scheduleGoalReconnect(CONFIG.goalDisabledRetryMs, generation)"
+    );
+    expect(html).toContain("goalReconnectDelay(runtime.goalReconnectAttempt)");
+    expect(html).not.toContain("new EventSource(");
+
+    expect(html).toContain(
+      'xhr.open("POST", "/api/player/realtime/ack", true)'
+    );
+    expect(html).toContain(
+      '["received", "rendered", "skipped", "failed"].indexOf(status)'
+    );
+    expect(html).toContain('"configuration_prefetched"');
+    expect(html).toContain('"expired_or_duplicate"');
+    expect(html).toContain('"replaced_before_activation"');
+    expect(html).toContain('"legacy_overlay_render_failed"');
+    expect(html).toContain('"render_latency_ms:"');
+    expect(html).toContain(
+      '"goalTerminalAckOutboxKey":"veyocast-player-ledscores-terminal-acks-v1"'
+    );
+    expect(html).toContain('"goalTerminalAckRetentionMs":604800000');
+    expect(html).toContain("findGoalTerminalOutcome(");
+    expect(html).toContain("flushGoalTerminalOutbox(token)");
+    expect(html).toContain("responseStatus === 400 || responseStatus === 404");
+    expect(html).toContain("attempts <= CONFIG.goalTerminalAckMaximumRetries");
+    expect(html).toContain("goalTerminalAcknowledge(");
+    const renderedCompletion = html.slice(
+      html.indexOf('renderDetail = "render_latency_ms:"'),
+      html.indexOf("visibleFor =", html.indexOf('renderDetail = "render_latency_ms:"'))
+    );
+    expect(renderedCompletion.indexOf("goalTerminalAcknowledge(")).toBeLessThan(
+      renderedCompletion.indexOf("rememberGoal(")
+    );
+
+    expect(html).toContain("goalMaximumDedupeEntries");
+    expect(html).toContain(
+      '"goalDedupeKey":"veyocast-player-ledscores-dedupe-v1"'
+    );
+    expect(html).toContain("CONFIG.goalReconnectMaximumMs + 500");
+    expect(html).toContain("runtime.goalPendingDeliveryId");
+    expect(html).toContain("cancelPendingGoal(\"replaced_before_activation\")");
+    expect(html).toContain("rememberGoal(");
+    expect(html).toContain('node.textContent = value || ""');
+    expect(html).toContain('metadata.appendChild(goalTextNode("span", "", "LIVE-TEST"))');
+    expect(html).toContain("clearGoalElement()");
+    expect(html).toContain(
+      '#goal-overlay[data-palette="electric-orange"] .goal-scrim'
+    );
+    expect(html).toContain("byId(\"media-root\").innerHTML = \"\"");
+    expect(html).not.toContain(
+      'byId("media-root").innerHTML = renderGoalOverlay'
+    );
+  });
+
+  it("pauzeert en hervat de legacy-onderlaag met resterende itemtijd", () => {
+    const html = renderLgLegacyHtml();
+
+    expect(html).toContain(
+      "remaining = Math.max(1, runtime.playbackDeadlineAt - now())"
+    );
+    expect(html).toContain("runtime.playbackRemainingMs = remaining");
+    expect(html).toContain('element.tagName === "VIDEO" && !element.paused');
+    expect(html).toContain("schedulePlaybackAdvance(remaining)");
+    expect(html).toContain(
+      "remaining = Math.max(1, runtime.templateDeadlineAt - now())"
+    );
+    expect(html).toContain(
+      "scheduleTemplateAdvance(templateCallback, templateRemaining)"
+    );
+    expect(html).toContain(
+      "scheduleTemplateAdvance(advanceTemplatePage, templatePageDuration)"
+    );
+    expect(html).toContain("if (runtime.goalPauseApplied) return");
+    expect(html).toContain("schedulePlaybackAdvance(templateDuration)");
+    expect(html).toContain("schedulePlaybackAdvance(itemDurationMs(item))");
+    expect(html).toContain("hideGoalOverlay(true)");
+  });
+
   it("houdt de inline runtime compatibel met oude webOS syntax", () => {
     const html = renderLgLegacyHtml();
     const inlineScript = html.slice(

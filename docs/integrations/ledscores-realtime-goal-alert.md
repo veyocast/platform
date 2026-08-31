@@ -17,6 +17,14 @@ actieve globale kill switch faalt gesloten. De globale switch is standaard uit
 en staat los van de per-tenantactie `Tenant uitschakelen`. Zie
 [`../s139-ledscores-feature-rollout-evidence.md`](../s139-ledscores-feature-rollout-evidence.md).
 
+S140 behandelt de tenantvrijgave als een dynamische toestand. Een Player die
+vóór vrijgave een lege `204`-response kreeg, probeert met begrensde back-off
+opnieuw te verbinden en hoeft dus niet handmatig te worden herladen. Dezelfde
+device-geauthenticeerde Goal Alert-keten is ook aanwezig in de statische
+LG/webOS Legacy-runtime. Control toont sindsdien per event en doelscherm het
+afleverbewijs; een heartbeat wordt alleen als Playercontact getoond en niet als
+bewijs van een actieve realtimeverbinding.
+
 Op 30 augustus 2026 is de read-only verbinding naar
 `wss://wss.ledscores.score.tel/clubs/duindorp-sv/scores/` met de productieparser
 getest. Het eerste geldige statusbericht arriveerde in 271 ms. De bron meldde
@@ -145,6 +153,26 @@ publication toe. De Next.js Player-server:
   exponential back-off opnieuw verbindt;
 - accepteert acknowledgements van maximaal 512 bytes.
 
+Zolang de tenantfeature niet effectief is, antwoordt de server met `204`. Voor
+de Player is dat tijdelijk: hij verbindt opnieuw met exponential back-off en
+jitter, begrensd op 30 seconden. Alleen `401` en `403` zijn terminaal en vragen
+om herstel van de devicecredential. De moderne Player gebruikt streaming
+`fetch`; de statische LG/webOS-route verwerkt dezelfde SSE met een
+Chromium 79-compatibele XHR-client. Beide runtimes dedupliceren event-ID's,
+respecteren `executeAt` en `expiresAt`, houden last-known-good playback in de
+DOM en sturen `received` plus een terminale `rendered`, `skipped` of `failed`
+acknowledgement.
+
+Een terminale acknowledgement wordt vóór verzending in dezelfde begrensde
+lokale outbox opgeslagen. Moderne en Legacy-Players gebruiken hiervoor exact
+dezelfde versiekey en payload: maximaal 200 receipts, zeven dagen retentie en
+één eerste terminale uitkomst per delivery. Tijdelijke netwerk- en serverfouten
+starten begrensde retry; een reload of terugkerende netwerkverbinding leegt de
+outbox opnieuw. Alleen een geslaagde of definitief ongeldige request verwijdert
+de receipt. Een credentialfout houdt het bewijs lokaal vast zonder een
+ongecontroleerde retrylus. Zo kan een kort netwerkprobleem na zichtbare
+weergave niet meer leiden tot de onterechte Control-status `Klaargezet`.
+
 Een goal wordt standaard gepland op `detectedAt + 750 ms`. De Player berekent
 zijn klokoffset uit `serverTime`, prefetcht de configuratie-assets al bij
 bootstrap/publicatie en rendert pas op `executeAt`. De expiry is duur plus 2,75
@@ -173,7 +201,14 @@ alleen allowlisted, geredigeerde events:
 Playerdeliveries registreren `received`, `rendered`, `skipped` of `failed`, met
 een begrensde detailtekst. Control aggregeert per goal targets, ontvangen,
 getoond, overgeslagen, mislukt en gemiddelde bron→renderlatency zonder N+1-
-query. Providerpayloads, signed URL's,
+query. Het detailoverzicht koppelt die deliveries in batch aan schermnaam,
+Playerplatform, appversie en laatste heartbeat. Een nog geldige delivery heet
+`Klaargezet`; na `expiresAt` zonder Playerreceipt heet die `Verlopen zonder
+ontvangst`; na ontvangst maar zonder terminale receipt heet die `Verlopen na
+ontvangst`. `Getoond` wordt uitsluitend gebruikt wanneer `rendered_at` door de
+doel-Player is bevestigd. De synthetische live-test bevriest de doelgroepen uit
+de gepubliceerde immutable alertversie en noemt een database-dispatch daarom
+alleen `klaargezet`. Providerpayloads, signed URL's,
 credentials, IP-adressen en user agents worden niet als connector-event
 opgeslagen.
 
@@ -226,6 +261,13 @@ een cleanupfout blokkeert nooit live verbindingclaims.
   Playwright;
 - schone `pnpm db:reset` en Supabase database-lint;
 - volledige workspace-, a11y-, E2E-, Player- en offlinegates volgens AGENTS.md.
+
+S140 voegt daar 11 moderne overlay-/outboxtests en 10 Legacy-routeregressies
+aan toe. De browsergate bewijst apart 204-herverbinding, een vervangen alert,
+retry van een tijdelijk geweigerde terminale acknowledgement, dezelfde
+planning op drie moderne Players en zichtbare Goal Alerts op de statische
+LG-route zonder Next.js-clientchunks. De volledige S140-uitvoer staat in
+[`../s140-ledscores-delivery-reliability-evidence.md`](../s140-ledscores-delivery-reliability-evidence.md).
 
 Hosted staging volgt pas na merge naar `main`. Wanneer GitHub Actions niet
 beschikbaar is, gebruikt Platform operations de handmatige, immutable VPS-route

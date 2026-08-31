@@ -654,6 +654,98 @@ test("LG Legacy Player gebruikt een statische shell en lokale afbeelding", async
   expect(requestedUrls.some((url) => url.includes("/_next/"))).toBe(false);
 });
 
+test("LG Legacy Player toont een Goal Alert en bevestigt de weergave per scherm", async ({
+  page
+}) => {
+  const acknowledgements: Array<{ deliveryId?: string; status?: string }> = [];
+  let rejectedRenderedAcknowledgement = false;
+  let realtimeAuthorization: string | undefined;
+  let realtimeRequests = 0;
+  await mockLegacyApis(page);
+  await page.route("**/api/player/realtime/ack", async (route) => {
+    const acknowledgement = JSON.parse(route.request().postData() ?? "{}") as {
+      deliveryId?: string;
+      status?: string;
+    };
+    acknowledgements.push(acknowledgement);
+    if (acknowledgement.status === "rendered" && !rejectedRenderedAcknowledgement) {
+      rejectedRenderedAcknowledgement = true;
+      await route.fulfill({ status: 503 });
+      return;
+    }
+    await route.fulfill({
+      body: JSON.stringify({ ok: true }),
+      contentType: "application/json"
+    });
+  });
+  await page.route("**/api/player/realtime", async (route) => {
+    realtimeRequests += 1;
+    realtimeAuthorization = route.request().headers().authorization;
+    if (realtimeRequests > 1) {
+      await route.fulfill({ status: 401 });
+      return;
+    }
+    const now = Date.now();
+    await route.fulfill({
+      body: legacyGoalSse({
+        deliveryId: "99999999-9999-4999-8999-999999999999",
+        eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        executeAt: new Date(now + 250).toISOString(),
+        expiresAt: new Date(now + 4_000).toISOString(),
+        serverTime: new Date(now).toISOString()
+      }),
+      contentType: "text/event-stream; charset=utf-8",
+      headers: { "Cache-Control": "no-cache, no-store, no-transform" }
+    });
+  });
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+
+  const image = page.locator("#media-root > img");
+  const overlay = page.locator("#goal-overlay");
+  await expect(image).toBeVisible();
+  await image.evaluate((element) => {
+    element.setAttribute("data-playback-instance", "legacy-goal-underlay");
+  });
+  await expect(overlay).toBeVisible();
+  await expect(overlay).toContainText("LEGACY GOAL!");
+  await expect(overlay).toContainText("1–0");
+  await expect(image).toBeVisible();
+  expect(realtimeAuthorization).toBe(`Bearer ${deviceToken}`);
+  await expect.poll(() => acknowledgements.some((item) =>
+    item.deliveryId === "99999999-9999-4999-8999-999999999999"
+      && item.status === "received"
+  )).toBe(true);
+  await expect.poll(() => acknowledgements.some((item) =>
+    item.deliveryId === "99999999-9999-4999-8999-999999999999"
+      && item.status === "rendered"
+  )).toBe(true);
+  await expect.poll(() => acknowledgements.filter((item) =>
+    item.deliveryId === "99999999-9999-4999-8999-999999999999"
+      && item.status === "rendered"
+  ).length).toBeGreaterThanOrEqual(2);
+  await expect(overlay).toBeHidden({ timeout: 4_000 });
+  await expect(image).toHaveAttribute(
+    "data-playback-instance",
+    "legacy-goal-underlay"
+  );
+  await expect(page.locator("#media-root > *")).toHaveCount(1);
+});
+
 test("LG webOS wordt zonder Next.js-chunks naar zichtbare Editorial Arena HTML/CSS geleid", async ({
   browser
 }) => {
@@ -1706,6 +1798,57 @@ function imageReleaseEnvelope({
   envelope.manifest.manifestHash = checksumSha256;
   envelope.manifest.items[0]!.durationSeconds = 1;
   return envelope;
+}
+
+function legacyGoalSse({
+  deliveryId,
+  eventId,
+  executeAt,
+  expiresAt,
+  serverTime
+}: {
+  deliveryId: string;
+  eventId: string;
+  executeAt: string;
+  expiresAt: string;
+  serverTime: string;
+}) {
+  return `event: goal\ndata: ${JSON.stringify({
+    alertVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    assets: [],
+    executeAt,
+    expiresAt,
+    id: deliveryId,
+    kind: "goal",
+    payload: {
+      awayScore: 0,
+      awayTeam: "Tegenstander",
+      design: {
+        animation: "none",
+        headline: "LEGACY GOAL!",
+        logoPosition: "left",
+        palette: "electric-orange",
+        scorerFallback: "Doelpunt!",
+        secondaryText: "Kantinescherm",
+        showClock: false,
+        showPreviousScore: true,
+        showScorer: true,
+        typography: "display"
+      },
+      durationMs: 2_000,
+      eventId,
+      eventKind: "synthetic_test",
+      homeScore: 1,
+      homeTeam: "Duindorp sv 1",
+      previousAwayScore: 0,
+      previousHomeScore: 0,
+      scorerName: "Legacy Player",
+      scoringSide: "own",
+      underlayPolicy: "pause"
+    },
+    screenId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    serverTime
+  })}\n\n`;
 }
 
 test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release", async ({
