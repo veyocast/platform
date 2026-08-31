@@ -233,3 +233,12 @@ geen enkel record veilig normaliseert, faalt de worker vóór databasecompletion
 en blijft de bestaande last-known-good snapshot behouden. Een aantoonbaar lege
 providerrespons blijft een geldige lege dag. De wijziging raakt geen RLS,
 immutable releases, Player- of offlinecontracten.
+
+S139 herstelt de platformvrijgave van LED Scores realtime. De tenantkaart en
+serveractie gebruiken voortaan één canonieke featurecatalogus; een geldige
+reden bereikt daardoor de AAL2-beveiligde databaseopdracht. De forward-only
+v2-opdracht voegt revisioncontrole, idempotente requestreceipts, een private
+featuredefinitieseed en een standaard uitgeschakelde globale noodstop toe.
+Flag, audit en receipt blijven atomisch en uitsluitend de gekozen tenant
+wijzigt. Zie
+[`docs/s139-ledscores-feature-rollout-evidence.md`](docs/s139-ledscores-feature-rollout-evidence.md).

@@ -140,6 +140,7 @@ tests en exitcriteria staan in
 | S135 | LED Scores service-role-boundary hotfix | Het nieuwe server-only workerbackend expliciet in de fail-closed secretgrens registreren en daarna dezelfde volledige VPS-release opnieuw bewijzen |
 | S136 | Sportlink pouleslides en aankomstvenster | Eigen uitslagen via teamcode aan de juiste poule koppelen, poulestand-/uitslagtekst 50% vergroten en de aankomstperiode als minuten, uren of dagen tot 42 dagen invoerbaar maken |
 | S137 | Sportlink verjaardagsnormalisatie hotfix | Drieletterige Nederlandse providermaanden veilig verwerken en een niet-lege providerrespons die tot nul verjaardagen normaliseert vóór databasecompletion fail-closed stoppen |
+| S139 | LED Scores feature-rollout recovery | De verborgen Vector-only allowlist herstellen en tenantvrijgave via revision-, idempotency-, audit- en kill-switchveilige v2-command voor uitsluitend het gekozen cohort laten verlopen |
 
 ### Programmagates
 

@@ -9,6 +9,14 @@ Duindorp sv; andere tenants en clubslugs vereisen een afzonderlijk besluit en
 een eigen mapping. Uitspraken over commerciële providerondersteuning vallen
 buiten deze implementatie.
 
+S139 laat die vrijgave via `set_tenant_feature_flag_v2` verlopen. Control en de
+servervalidator delen één catalogus; iedere opdracht bevat de actuele revision
+en een idempotency-UUID. Flag, auditrecord en receipt worden atomair opgeslagen.
+Een ontbrekende private featuredefinitie, stale revision, niet-actieve tenant of
+actieve globale kill switch faalt gesloten. De globale switch is standaard uit
+en staat los van de per-tenantactie `Tenant uitschakelen`. Zie
+[`../s139-ledscores-feature-rollout-evidence.md`](../s139-ledscores-feature-rollout-evidence.md).
+
 Op 30 augustus 2026 is de read-only verbinding naar
 `wss://wss.ledscores.score.tel/clubs/duindorp-sv/scores/` met de productieparser
 getest. Het eerste geldige statusbericht arriveerde in 271 ms. De bron meldde

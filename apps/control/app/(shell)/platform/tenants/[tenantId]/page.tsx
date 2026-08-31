@@ -16,10 +16,21 @@ import {
   updateTenantLifecycle,
   updateTenantScreenLimit
 } from "./actions";
+import {
+  deriveTenantFeatureRolloutDisplay,
+  platformTenantFeatureDefinitions,
+  safeFeatureRolloutReference,
+  tenantFeatureRolloutErrorMessages
+} from "./feature-rollout";
 
 type PlatformTenantDetailPageProps = Readonly<{
   params: Promise<{ tenantId: string }>;
-  searchParams: Promise<{ fout?: string; succes?: string; waarschuwing?: string }>;
+  searchParams: Promise<{
+    fout?: string;
+    referentie?: string;
+    succes?: string;
+    waarschuwing?: string;
+  }>;
 }>;
 
 export default async function PlatformTenantDetailPage({
@@ -47,6 +58,7 @@ export default async function PlatformTenantDetailPage({
   const aal2Ready = !session.isLive || session.assuranceLevel === "aal2";
   const canMutate = canManage && aal2Ready;
   const membership = session.tenantMemberships.find((item) => item.id === tenant.id);
+  const errorReference = safeFeatureRolloutReference(query.referentie);
 
   return (
     <>
@@ -61,9 +73,9 @@ export default async function PlatformTenantDetailPage({
       />
 
       {!aal2Ready && canManage ? (
-        <p className="notice notice--warning" role="status"><strong>Extra verificatie nodig.</strong> Lifecycle- en limietwijzigingen blijven geblokkeerd tot je <Link href={`/auth/mfa?reden=aal2&terug=${encodeURIComponent(`/platform/tenants/${tenant.id}`)}`}>AAL2 bevestigt</Link>.</p>
+        <p className="notice notice--warning" role="status"><strong>Extra verificatie nodig.</strong> Lifecycle-, limiet- en uitrolwijzigingen blijven geblokkeerd tot je <Link href={`/auth/mfa?reden=aal2&terug=${encodeURIComponent(`/platform/tenants/${tenant.id}`)}`}>AAL2 bevestigt</Link>.</p>
       ) : null}
-      {query.fout ? <p className="notice notice--critical" role="alert"><strong>Wijziging niet uitgevoerd.</strong> {tenantErrors[query.fout] ?? tenantErrors.onverwacht}</p> : null}
+      {query.fout ? <p className="notice notice--critical" role="alert"><strong>Wijziging niet uitgevoerd.</strong> {tenantErrors[query.fout] ?? tenantErrors.onverwacht}{errorReference ? <> Referentie: <code>{errorReference}</code>.</> : null}</p> : null}
       {query.waarschuwing === "uitnodiging" ? <p className="notice notice--warning" role="status"><strong>Vereniging veilig aangemaakt.</strong> De eigenaaruitnodiging kon nog niet worden bezorgd. De tenant blijft zichtbaar als ‘e-mailactie nodig’; verstuur hieronder een nieuwe link.</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{successMessage[query.succes] ?? "De wijziging is opgeslagen en geaudit."}</p> : null}
 
@@ -123,10 +135,107 @@ export default async function PlatformTenantDetailPage({
       <section className="workspace-section" id="productuitrol" aria-labelledby="feature-rollout-title">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="feature-rollout-title">Gecontroleerde productuitrol</h2><p className="work-panel__meta">Flags sturen alleen ontdekking en presentatie. Capabilities, RLS en tenantstatus blijven server-side leidend.</p></div><StatusPill label="AAL2 + audit" tone="info" /></div>
         <div className="work-grid">
-          {featureDefinitions.map((definition) => {
+          {platformTenantFeatureDefinitions.map((definition) => {
             const stored = data.featureFlags.find((flag) => flag.flag_key === definition.key);
-            const enabled = stored?.enabled === true;
-            return <section className="work-panel" key={definition.key}><div className="work-panel__header"><div><p className="eyebrow">{definition.status}</p><h3>{definition.label}</h3></div><StatusPill label={enabled ? "Vrijgegeven" : "Uit"} tone={enabled ? "success" : "neutral"} /></div><p>{definition.description}</p>{stored ? <p className="work-panel__meta">Laatste reden: {stored.rollout_reason}</p> : <p className="work-panel__meta">Geen cohortbesluit: canonieke default is uit.</p>}<form action={updateTenantFeatureFlag} className="auth-form"><input name="tenantId" type="hidden" value={tenant.id} /><input name="flagKey" type="hidden" value={definition.key} /><input name="enabled" type="hidden" value={enabled ? "no" : "yes"} /><div className="field"><label htmlFor={`flag-reason-${definition.key}`}>Reden voor {enabled ? "uitschakelen" : "vrijgeven"}</label><textarea disabled={!canMutate} id={`flag-reason-${definition.key}`} maxLength={500} minLength={8} name="reason" placeholder="Cohort, eigenaar en verificatiepad" required /></div><button className={enabled ? "button-link button-link--secondary" : "button-link button-link--primary"} disabled={!canMutate} type="submit">{enabled ? "Kill switch activeren" : "Tenant vrijgeven"}</button></form></section>;
+            const isLedScores = definition.key === "ledscores_realtime";
+            const configuredEnabled = isLedScores
+              ? data.ledScoresEffectiveState.configuredEnabled
+              : stored?.enabled === true;
+            const revision = isLedScores
+              ? data.ledScoresEffectiveState.revision
+              : stored?.revision ?? 0;
+            const display = isLedScores
+              ? deriveTenantFeatureRolloutDisplay({
+                  definitionAvailable:
+                    data.ledScoresEffectiveState.definitionAvailable,
+                  effectiveEnabled: data.ledScoresEffectiveState.enabled,
+                  killSwitchActive:
+                    data.ledScoresEffectiveState.killSwitchActive,
+                  storedEnabled: configuredEnabled,
+                  tenantActive: tenant.status === "active"
+                })
+              : {
+                  detail: null,
+                  label: configuredEnabled ? "Vrijgegeven" : "Uit",
+                  tone: configuredEnabled ? "success" as const : "neutral" as const
+                };
+            const rolloutBlocked =
+              !canMutate ||
+              tenant.status !== "active" ||
+              (isLedScores && (
+                !data.ledScoresEffectiveState.definitionAvailable ||
+                (data.ledScoresEffectiveState.killSwitchActive &&
+                  !configuredEnabled)
+              ));
+
+            return (
+              <section className="work-panel" key={definition.key}>
+                <div className="work-panel__header">
+                  <div>
+                    <p className="eyebrow">{definition.status}</p>
+                    <h3>{definition.label}</h3>
+                  </div>
+                  <StatusPill label={display.label} tone={display.tone} />
+                </div>
+                <p>{definition.description}</p>
+                {display.detail ? (
+                  <p className="notice notice--warning" role="status">
+                    {display.detail}
+                  </p>
+                ) : null}
+                {stored ? (
+                  <p className="work-panel__meta">
+                    Laatste reden: {stored.rollout_reason}
+                  </p>
+                ) : isLedScores && configuredEnabled ? (
+                  <p className="work-panel__meta">
+                    Vrijgavebesluit aanwezig; de reden is met deze platformrol niet zichtbaar.
+                  </p>
+                ) : (
+                  <p className="work-panel__meta">
+                    Geen cohortbesluit: canonieke default is uit.
+                  </p>
+                )}
+                <form action={updateTenantFeatureFlag} className="auth-form">
+                  <input name="tenantId" type="hidden" value={tenant.id} />
+                  <input name="flagKey" type="hidden" value={definition.key} />
+                  <input
+                    name="enabled"
+                    type="hidden"
+                    value={configuredEnabled ? "no" : "yes"}
+                  />
+                  <input name="revision" type="hidden" value={revision} />
+                  <input
+                    name="requestId"
+                    type="hidden"
+                    value={crypto.randomUUID()}
+                  />
+                  <div className="field">
+                    <label htmlFor={`flag-reason-${definition.key}`}>
+                      Reden voor {configuredEnabled ? "uitschakelen" : "vrijgeven"}
+                    </label>
+                    <textarea
+                      disabled={rolloutBlocked}
+                      id={`flag-reason-${definition.key}`}
+                      maxLength={500}
+                      minLength={8}
+                      name="reason"
+                      placeholder="Cohort, eigenaar en verificatiepad"
+                      required
+                    />
+                  </div>
+                  <button
+                    className={configuredEnabled
+                      ? "button-link button-link--secondary"
+                      : "button-link button-link--primary"}
+                    disabled={rolloutBlocked}
+                    type="submit"
+                  >
+                    {configuredEnabled ? "Tenant uitschakelen" : "Tenant vrijgeven"}
+                  </button>
+                </form>
+              </section>
+            );
           })}
         </div>
       </section>
@@ -156,7 +265,7 @@ function LifecycleForm({ disabled, status, tenantId }: Readonly<{ disabled: bool
 const tenantErrors: Record<string, string> = {
   bevestiging: "Bevestig eerst dat je de impact begrijpt.",
   configuratie: "De beveiligde datasessie ontbreekt. Log opnieuw in en probeer opnieuw.",
-  featureflag: "Het cohortbesluit is ongeldig of kon niet veilig worden geaudit.",
+  ...tenantFeatureRolloutErrorMessages,
   invoer: "De aangeleverde wijziging is ongeldig.",
   lifecycle: "De lifecycle kon niet veilig worden gewijzigd. Controleer de huidige status.",
   "limiet-in-gebruik": "De limiet is lager dan het actuele aantal schermen. Verwijder geen data; kies minimaal het huidige gebruik.",
@@ -172,6 +281,7 @@ const successMessage: Record<string, string> = {
   lifecycle: "De lifecycle-status is gewijzigd en geaudit.",
   limiet: "De schermlimiet is gewijzigd en geaudit.",
   featureflag: "De productuitrol is gewijzigd en met reden geaudit.",
+  "featureflag-ongewijzigd": "De productuitrol stond al in deze stand; er is niets gewijzigd en geen extra auditevent aangemaakt.",
   uitnodiging: "Een nieuwe uitnodigingslink is verstuurd; de vorige link is ingetrokken."
 };
 
@@ -182,15 +292,3 @@ function invitationStatusLabel(value: string) { return value === "pending" ? "In
 function formatDate(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium" }).format(new Date(value)); }
 function formatDateTime(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
 function formatBytes(value: number) { if (value < 1024) return `${value} B`; if (value < 1024 ** 2) return `${(value / 1024).toFixed(1)} KB`; if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(1)} MB`; return `${(value / 1024 ** 3).toFixed(1)} GB`; }
-
-const featureDefinitions = [
-  { description: "Semantische Vector-tokens, compacte geometrie en consistente light/dark componenttaal.", key: "vector_v2_design_system", label: "Vector-designsysteem", status: "STABIELE BASIS" },
-  { description: "Living Venue-rail, commandbar, System Pulse en zichtbare operationele context in Control.", key: "vector_v2_control_shell", label: "Vector Control-shell", status: "PILOT" },
-  { description: "Eén toegankelijke bronkiezer voor media, slides, templates en ondersteunde integratieassets.", key: "unified_resource_picker", label: "Unified Resource Picker", status: "PILOT" },
-  { description: "Eén samenhangende zoek- en filterervaring voor operationele resourcepagina's.", key: "unified_filter_dock", label: "Unified Filter Dock", status: "PILOT" },
-  { description: "Persistente venues, zones, plattegronden en genormaliseerde schermposities met toegankelijke lijstfallback.", key: "venue_twin", label: "Venue Twin", status: "PILOTPRODUCT" },
-  { description: "Samengestelde vlootgezondheid boven bestaande heartbeat-, sync-, error- en opslagtelemetry.", key: "screen_health_view", label: "Screen Health", status: "PILOT UI" },
-  { description: "Polls en publieksstemmen met QR, lifecycle, misbruikbeperking en live resultaten.", key: "engage", label: "Engage", status: "PILOTPRODUCT" },
-  { description: "Officiële online-only playback met Data/IFrame API en verplichte lokale fallback.", key: "youtube_integration", label: "YouTube", status: "PROVIDER GATED" },
-  { description: "Read-only LED Scores-websocketconnector met immutable Goal Alerts en gesynchroniseerde Player-overlays.", key: "ledscores_realtime", label: "LED Scores realtime", status: "EXPERIMENTELE PILOT" }
-] as const;

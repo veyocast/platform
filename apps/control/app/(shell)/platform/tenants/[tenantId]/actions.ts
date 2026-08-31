@@ -9,7 +9,11 @@ import {
 } from "../../../../../lib/invitations";
 import { requireControlCapability } from "../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
-import { vectorTenantFeatureKeys } from "../../../_lib/vector-features";
+import {
+  classifyTenantFeatureRolloutError,
+  isTenantFeatureRolloutResult,
+  parseTenantFeatureRolloutCommand
+} from "./feature-rollout";
 
 export async function updateTenantLifecycle(formData: FormData) {
   const tenantId = idValue(formData, "tenantId");
@@ -63,12 +67,14 @@ export async function updateTenantScreenLimit(formData: FormData) {
 
 export async function updateTenantFeatureFlag(formData: FormData) {
   const tenantId = idValue(formData, "tenantId");
-  const flagKey = String(formData.get("flagKey") ?? "");
-  const allowedFlags = new Set<string>(vectorTenantFeatureKeys);
-  const reason = String(formData.get("reason") ?? "").trim();
-  if (!allowedFlags.has(flagKey) || reason.length < 8 || reason.length > 500) {
-    fail(tenantId, "featureflag");
-  }
+  const command = parseTenantFeatureRolloutCommand({
+    enabled: String(formData.get("enabled") ?? ""),
+    flagKey: String(formData.get("flagKey") ?? ""),
+    reason: String(formData.get("reason") ?? ""),
+    requestId: String(formData.get("requestId") ?? ""),
+    revision: String(formData.get("revision") ?? "")
+  });
+  if (!command.ok) fail(tenantId, command.error);
 
   await requireControlCapability("platform.tenant.lifecycle", {
     aal2: true,
@@ -76,18 +82,42 @@ export async function updateTenantFeatureFlag(formData: FormData) {
   });
   const supabase = await createControlSupabaseClient();
   if (!supabase) fail(tenantId, "configuratie");
-  const { error } = await supabase.rpc("set_tenant_feature_flag_v1", {
-    p_enabled: formData.get("enabled") === "yes",
-    p_flag_key: flagKey,
-    p_reason: reason,
+  const { data, error } = await supabase.rpc("set_tenant_feature_flag_v2", {
+    p_enabled: command.data.enabled,
+    p_expected_revision: command.data.expectedRevision,
+    p_flag_key: command.data.flagKey,
+    p_reason: command.data.reason,
+    p_request_id: command.data.requestId,
     p_tenant_id: tenantId
   });
-  if (error) fail(tenantId, error.code === "42501" ? "rechten" : "featureflag");
+  if (error) {
+    console.error("Tenant-featurevrijgave mislukt", {
+      code: error.code ?? "unknown",
+      featureKey: command.data.flagKey,
+      requestId: command.data.requestId
+    });
+    fail(
+      tenantId,
+      classifyTenantFeatureRolloutError(error.code),
+      command.data.requestId
+    );
+  }
+  if (!isTenantFeatureRolloutResult(data, command.data, tenantId)) {
+    console.error("Tenant-featurevrijgave gaf een ongeldig antwoord", {
+      code: "invalid_response",
+      featureKey: command.data.flagKey,
+      requestId: command.data.requestId
+    });
+    fail(tenantId, "feature-uitkomst-onzeker", command.data.requestId);
+  }
 
   revalidateTenant(tenantId);
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/screens");
-  redirect(`/platform/tenants/${tenantId}?succes=featureflag#productuitrol`);
+  const successCode = data.outcome === "applied"
+    ? "featureflag"
+    : "featureflag-ongewijzigd";
+  redirect(`/platform/tenants/${tenantId}?succes=${successCode}#productuitrol`);
 }
 
 export async function resendProvisioningInvitation(formData: FormData) {
@@ -149,6 +179,8 @@ function isTenantStatus(value: string): value is "active" | "paused" | "archived
   return value === "active" || value === "paused" || value === "archived";
 }
 
-function fail(tenantId: string, code: string): never {
-  redirect(`/platform/tenants/${tenantId}?fout=${encodeURIComponent(code)}`);
+function fail(tenantId: string, code: string, reference?: string): never {
+  const query = new URLSearchParams({ fout: code });
+  if (reference) query.set("referentie", reference);
+  redirect(`/platform/tenants/${tenantId}?${query.toString()}`);
 }

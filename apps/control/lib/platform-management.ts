@@ -1,5 +1,6 @@
 import "server-only";
 
+import { parseLedScoresEffectiveState } from "./ledscores-feature-state";
 import { createControlAdminClient } from "./supabase/admin";
 import { createControlSupabaseClient } from "./supabase/server";
 
@@ -7,7 +8,16 @@ export async function loadPlatformTenantDetail(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return platformTenantFailure();
 
-  const [tenant, memberships, invitations, screens, media, audit, featureFlags] = await Promise.all([
+  const [
+    tenant,
+    memberships,
+    invitations,
+    screens,
+    media,
+    audit,
+    featureFlags,
+    ledScoresEffectiveState
+  ] = await Promise.all([
     supabase
       .from("tenants")
       .select("id, name, slug, status, screen_limit, locale, timezone, provisioning_status, created_at")
@@ -37,15 +47,25 @@ export async function loadPlatformTenantDetail(tenantId: string) {
       .limit(12),
     supabase
       .from("tenant_feature_flags")
-      .select("flag_key, enabled, rollout_reason, updated_at")
+      .select("flag_key, enabled, rollout_reason, revision, updated_at")
       .eq("tenant_id", tenantId)
-      .order("flag_key")
+      .order("flag_key"),
+    supabase.rpc("get_ledscores_feature_effective_state_v1", {
+      p_tenant_id: tenantId
+    })
   ]);
 
   if (
     tenant.error || !tenant.data || memberships.error || invitations.error ||
-    screens.error || media.error || audit.error || featureFlags.error
+    screens.error || media.error || audit.error || featureFlags.error ||
+    ledScoresEffectiveState.error
   ) return platformTenantFailure();
+
+  const parsedLedScoresEffectiveState = parseLedScoresEffectiveState(
+    ledScoresEffectiveState.data,
+    tenantId
+  );
+  if (!parsedLedScoresEffectiveState) return platformTenantFailure();
 
   const userIds = (memberships.data ?? []).map((membership) => membership.user_id);
   const profiles = userIds.length
@@ -59,6 +79,7 @@ export async function loadPlatformTenantDetail(tenantId: string) {
     error: false as const,
     featureFlags: featureFlags.data ?? [],
     invitations: invitations.data ?? [],
+    ledScoresEffectiveState: parsedLedScoresEffectiveState,
     members: (memberships.data ?? []).map((membership) => ({
       ...membership,
       display_name: names.get(membership.user_id) ?? null
@@ -114,6 +135,7 @@ function platformTenantFailure() {
     error: true as const,
     featureFlags: [],
     invitations: [],
+    ledScoresEffectiveState: null,
     members: [],
     screenCount: 0,
     storageBytes: 0,

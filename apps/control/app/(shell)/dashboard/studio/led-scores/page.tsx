@@ -5,6 +5,12 @@ import { hasCapability } from "@veyocast/auth";
 import { Button, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
+import {
+  deriveLedScoresFeatureAvailability,
+  ledScoresFeatureAvailabilityMessages,
+  parseLedScoresEffectiveState,
+  type LedScoresFeatureAvailability
+} from "../../../../../lib/ledscores-feature-state";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
@@ -39,7 +45,7 @@ export default async function LedScoresStudioPage({ searchParams }: Props) {
     />
     {params.fout ? <p className="notice notice--critical" role="alert"><strong>Goal Alert-actie mislukt.</strong> {params.fout}</p> : null}
     {params.succes ? <p className="notice notice--success" role="status">{params.succes}</p> : null}
-    {!data.enabled ? <p className="notice notice--warning" role="status"><strong>Experimentele pilot niet vrijgegeven.</strong> Laat een platformbeheerder de tenantfeature LED Scores realtime inschakelen.</p> : !data.connections.length ? <p className="notice notice--warning" role="status"><strong>Eerst een databron koppelen.</strong> Voeg een actieve LED Scores-verbinding toe voordat je een Goal Alert ontwerpt. <Link href="/dashboard/data-sources/led-scores">Open databronbeheer</Link>.</p> : <>
+    {!data.enabled ? <p className="notice notice--warning" role="status"><strong>{availabilityMessage(data.availability).title}</strong>{" "}{availabilityMessage(data.availability).detail}</p> : !data.connections.length ? <p className="notice notice--warning" role="status"><strong>Eerst een databron koppelen.</strong> Voeg een actieve LED Scores-verbinding toe voordat je een Goal Alert ontwerpt. <Link href="/dashboard/data-sources/led-scores">Open databronbeheer</Link>.</p> : <>
       <SummaryStrip items={[
         { label: "Goal Alerts", value: data.alerts.length },
         { label: "Gepubliceerd", value: data.alerts.filter((alert) => alert.status === "published").length, tone: "success" },
@@ -88,8 +94,23 @@ export default async function LedScoresStudioPage({ searchParams }: Props) {
 async function loadStudioData(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return emptyData();
-  const flag = await supabase.from("tenant_feature_flags").select("enabled").eq("tenant_id", tenantId).eq("flag_key", "ledscores_realtime").maybeSingle();
-  if (flag.data?.enabled !== true) return emptyData();
+  const featureStateResult = await supabase.rpc(
+    "get_ledscores_feature_effective_state_v1",
+    { p_tenant_id: tenantId }
+  );
+  const featureState = parseLedScoresEffectiveState(
+    featureStateResult.data,
+    tenantId
+  );
+  const availability = featureStateResult.error
+    ? "unavailable" as const
+    : deriveLedScoresFeatureAvailability(featureState);
+  if (featureStateResult.error || availability === "unavailable") {
+    console.error("LED Scores Studio-vrijgavestatus laden mislukt", {
+      code: featureStateResult.error?.code ?? "invalid_response"
+    });
+  }
+  if (availability !== "available") return { ...emptyData(), availability };
   const [connections, mappings, groups, memberships, screens, devices, assets, sponsors, alerts, draftGroups] = await Promise.all([
     supabase.from("ledscores_connections").select("id,name").eq("tenant_id", tenantId).eq("status", "active").order("name"),
     supabase.from("ledscores_team_mappings").select("connection_id,provider_team_key,provider_team_name,scoring_side").eq("tenant_id", tenantId).order("created_at"),
@@ -106,6 +127,7 @@ async function loadStudioData(tenantId: string) {
   if (error) { console.error("LED Scores Studio laden mislukt", { code: error.code }); return { ...emptyData(), enabled: true }; }
   return {
     alerts: alerts.data ?? [], assets: (assets.data ?? []).map((asset) => ({ ...asset, kind: String(asset.kind) })),
+    availability: "available" as const,
     connections: connections.data ?? [], draftGroups: draftGroups.data ?? [], enabled: true,
     groups: (groups.data ?? []).map((group) => ({ id: group.id, name: group.name, screenIds: (memberships.data ?? []).filter((item) => item.screen_group_id === group.id).map((item) => item.screen_id) })),
     mappings: mappings.data ?? [],
@@ -119,7 +141,8 @@ async function loadStudioData(tenantId: string) {
 }
 
 function editorValue(alert: Awaited<ReturnType<typeof loadStudioData>>["alerts"][number] | null, connectionId: string, groups: Array<{ alert_id: string; screen_group_id: string }>): AlertEditorValue { return alert ? { config: isRecord(alert.draft_config) ? alert.draft_config : {}, connectionId: alert.connection_id, durationMs: alert.duration_ms, groupIds: groups.filter((item) => item.alert_id === alert.id).map((item) => item.screen_group_id), id: alert.id, name: alert.name, priority: alert.priority, revision: alert.revision, underlayPolicy: alert.underlay_policy } : { config: {}, connectionId, durationMs: 8000, groupIds: [], id: null, name: "", priority: 100, revision: 0, underlayPolicy: "continue" }; }
-function emptyData() { return { alerts: [] as Array<{ id: string; connection_id: string; name: string; status: string; priority: number; duration_ms: number; underlay_policy: string; draft_config: unknown; revision: number; current_published_version_id: string | null; updated_at: string }>, assets: [] as Array<{ id: string; kind: string; title: string }>, connections: [] as Array<{ id: string; name: string }>, draftGroups: [] as Array<{ alert_id: string; screen_group_id: string }>, enabled: false, groups: [] as Array<{ id: string; name: string; screenIds: string[] }>, mappings: [] as Array<{ connection_id: string; provider_team_key: string; provider_team_name: string; scoring_side: string }>, screens: [] as Array<{ id: string; name: string; status: "offline" | "online" | "stale" }>, sponsors: [] as Array<{ id: string; label: string }> }; }
+function emptyData() { return { alerts: [] as Array<{ id: string; connection_id: string; name: string; status: string; priority: number; duration_ms: number; underlay_policy: string; draft_config: unknown; revision: number; current_published_version_id: string | null; updated_at: string }>, assets: [] as Array<{ id: string; kind: string; title: string }>, availability: "not_released" as LedScoresFeatureAvailability, connections: [] as Array<{ id: string; name: string }>, draftGroups: [] as Array<{ alert_id: string; screen_group_id: string }>, enabled: false, groups: [] as Array<{ id: string; name: string; screenIds: string[] }>, mappings: [] as Array<{ connection_id: string; provider_team_key: string; provider_team_name: string; scoring_side: string }>, screens: [] as Array<{ id: string; name: string; status: "offline" | "online" | "stale" }>, sponsors: [] as Array<{ id: string; label: string }> }; }
+function availabilityMessage(value: LedScoresFeatureAvailability) { return ledScoresFeatureAvailabilityMessages[value === "available" ? "unavailable" : value]; }
 function screenUnion(groups: Array<{ id: string; screenIds: string[] }>, selected: string[]) { return [...new Set(groups.filter((group) => selected.includes(group.id)).flatMap((group) => group.screenIds))]; }
 function uniqueTargetCount(groups: Array<{ id: string; screenIds: string[] }>, targets: Array<{ screen_group_id: string }>) { return screenUnion(groups, targets.map((target) => target.screen_group_id)).length; }
 function alertStatus(status: string) { if (status === "published") return { label: "Actief gepubliceerd", tone: "success" as const }; if (status === "paused") return { label: "Gepauzeerd", tone: "warning" as const }; return { label: "Concept", tone: "neutral" as const }; }

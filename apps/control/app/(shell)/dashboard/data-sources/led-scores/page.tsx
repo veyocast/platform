@@ -5,6 +5,12 @@ import { hasCapability } from "@veyocast/auth";
 import { Button, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
+import {
+  deriveLedScoresFeatureAvailability,
+  ledScoresFeatureAvailabilityMessages,
+  parseLedScoresEffectiveState,
+  type LedScoresFeatureAvailability
+} from "../../../../../lib/ledscores-feature-state";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
@@ -41,7 +47,8 @@ export default async function LedScoresPage({ searchParams }: Props) {
     {params.succes ? <p className="notice notice--success" role="status">{params.succes}</p> : null}
     {!data.enabled ? <section className="workspace-section">
       <div className="notice notice--warning" role="status">
-        <strong>Niet vrijgegeven voor deze tenant.</strong> Een platformbeheerder moet de experimentele featureflag eerst met reden en AAL2 inschakelen. Bestaande playback blijft ongewijzigd.
+        <strong>{availabilityMessage(data.availability).title}</strong>{" "}
+        {availabilityMessage(data.availability).detail}
       </div>
     </section> : <>
       <SummaryStrip items={[
@@ -132,9 +139,23 @@ export default async function LedScoresPage({ searchParams }: Props) {
 async function loadLedScores(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return emptyData();
-  const flag = await supabase.from("tenant_feature_flags").select("enabled")
-    .eq("tenant_id", tenantId).eq("flag_key", "ledscores_realtime").maybeSingle();
-  if (flag.data?.enabled !== true) return emptyData();
+  const featureStateResult = await supabase.rpc(
+    "get_ledscores_feature_effective_state_v1",
+    { p_tenant_id: tenantId }
+  );
+  const featureState = parseLedScoresEffectiveState(
+    featureStateResult.data,
+    tenantId
+  );
+  const availability = featureStateResult.error
+    ? "unavailable" as const
+    : deriveLedScoresFeatureAvailability(featureState);
+  if (featureStateResult.error || availability === "unavailable") {
+    console.error("LED Scores-vrijgavestatus laden mislukt", {
+      code: featureStateResult.error?.code ?? "invalid_response"
+    });
+  }
+  if (availability !== "available") return { ...emptyData(), availability };
   const since = new Date(Date.now() - 86_400_000).toISOString();
   const [connections, mappings, sportsTeams, events, eventCount, deliveries] = await Promise.all([
     supabase.from("ledscores_connections").select("id,name,club_slug,status,health_status,health_detail,revision,baseline_json,last_source_message_at,last_connected_at,last_disconnected_at,last_test_at,last_test_status,last_test_detail,reconnect_count,invalid_message_count").eq("tenant_id", tenantId).order("created_at"),
@@ -150,13 +171,19 @@ async function loadLedScores(tenantId: string) {
     return { ...emptyData(), enabled: true };
   }
   return {
+    availability: "available" as const,
     connections: connections.data ?? [], enabled: true,
     deliveries: deliveries.data ?? [], eventCount: eventCount.count ?? 0, events: events.data ?? [],
     mappings: mappings.data ?? [], sportsTeams: sportsTeams.data ?? []
   };
 }
 
-function emptyData() { return { connections: [], deliveries: [], enabled: false, eventCount: 0, events: [], mappings: [], sportsTeams: [] }; }
+function emptyData() { return { availability: "not_released" as LedScoresFeatureAvailability, connections: [], deliveries: [], enabled: false, eventCount: 0, events: [], mappings: [], sportsTeams: [] }; }
+function availabilityMessage(value: LedScoresFeatureAvailability) {
+  return ledScoresFeatureAvailabilityMessages[
+    value === "available" ? "unavailable" : value
+  ];
+}
 function readBaseline(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const item = value as Record<string, unknown>;

@@ -9,7 +9,7 @@ const validPng = Buffer.from(
   "base64"
 );
 
-test.describe("Vector v2 live Control, Health and Venue Twin", () => {
+test.describe("live tenant rollouts, Control, Health and Venue Twin", () => {
   test.skip(!liveVenue, "requires a freshly reset isolated local Supabase stack");
   test.setTimeout(90_000);
 
@@ -36,15 +36,48 @@ test.describe("Vector v2 live Control, Health and Venue Twin", () => {
     await venueCard.getByRole("button", { name: "Tenant vrijgeven" }).click();
     await expect.poll(async () => {
       await page.reload();
-      return venueCard.getByRole("button", { name: "Kill switch activeren" }).count();
+      return venueCard.getByRole("button", { name: "Tenant uitschakelen" }).count();
     }, { intervals: [1_000], timeout: 30_000 }).toBe(1);
     const healthCard = page.getByRole("heading", { name: "Screen Health" }).locator("xpath=ancestor::section[1]");
     await healthCard.getByLabel("Reden voor vrijgeven").fill("Geïsoleerde Screen Health end-to-end verificatie");
     await healthCard.getByRole("button", { name: "Tenant vrijgeven" }).click();
     await expect.poll(async () => {
       await page.reload();
-      return healthCard.getByRole("button", { name: "Kill switch activeren" }).count();
+      return healthCard.getByRole("button", { name: "Tenant uitschakelen" }).count();
     }, { intervals: [1_000], timeout: 30_000 }).toBe(1);
+
+    const ledScoresCard = page.getByRole("heading", { name: "LED Scores realtime" }).locator("xpath=ancestor::section[1]");
+    await ledScoresCard.locator("form").evaluate((form) => {
+      form.noValidate = true;
+    });
+    await ledScoresCard.getByLabel("Reden voor vrijgeven").fill("kort");
+    await ledScoresCard.getByRole("button", { name: "Tenant vrijgeven" }).click();
+    await page.waitForURL(/fout=feature-reden/, { timeout: 30_000 });
+    const rolloutAlert = page.locator('.notice[role="alert"]');
+    await expect(rolloutAlert).toContainText("minimaal 8 en maximaal 500 tekens");
+
+    await page.reload();
+    await ledScoresCard.getByLabel("Reden voor vrijgeven").fill(
+      "Geïsoleerde LED Scores end-to-end verificatie met rollbackpad"
+    );
+    await ledScoresCard.locator('input[name="revision"]').evaluate((input) => {
+      (input as HTMLInputElement).value = "99";
+    });
+    await ledScoresCard.getByRole("button", { name: "Tenant vrijgeven" }).click();
+    await page.waitForURL(/fout=feature-conflict/, { timeout: 30_000 });
+    await expect(rolloutAlert).toContainText("ondertussen gewijzigd");
+    await expect(rolloutAlert).toContainText("Referentie:");
+
+    await page.reload();
+    await ledScoresCard.getByLabel("Reden voor vrijgeven").fill(
+      "Geïsoleerde LED Scores end-to-end verificatie met rollbackpad"
+    );
+    await ledScoresCard.getByRole("button", { name: "Tenant vrijgeven" }).click();
+    await expect.poll(async () => {
+      await page.reload();
+      return ledScoresCard.getByRole("button", { name: "Tenant uitschakelen" }).count();
+    }, { intervals: [1_000], timeout: 30_000 }).toBe(1);
+    await expect(ledScoresCard.getByText("Vrijgegeven", { exact: true })).toBeVisible();
     await page.getByRole("heading", { name: "Gecontroleerde productuitrol" }).evaluate((element) => {
       element.scrollIntoView({ block: "start" });
     });
@@ -56,6 +89,11 @@ test.describe("Vector v2 live Control, Health and Venue Twin", () => {
     await expect(page.getByRole("link", { name: /^Integraties\s/ })).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({ path: "docs/screenshots/vector-v2/control/system-pulse-1440x900.png" });
+
+    await page.goto("/dashboard/data-sources/led-scores");
+    await expect(page.getByRole("heading", { name: "LED Scores realtime" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Nog geen LED Scores-verbinding" })).toBeVisible();
+    await expect(page.getByText("Niet vrijgegeven voor deze tenant.")).toHaveCount(0);
 
     await page.goto("/dashboard/media");
     await page.getByRole("link", { name: "Media uploaden" }).click();
