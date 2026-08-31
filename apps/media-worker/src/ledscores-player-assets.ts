@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 
 const LED_SCORES_PLAYER_MEDIA_HOST = "api.ledscores.score.tel";
@@ -14,7 +14,7 @@ const PLAYER_PHOTO_MIME_TYPES = new Set([
   "image/webp"
 ]);
 
-type ProviderAssetDatabase = {
+export type LedScoresPlayerAssetDatabase = {
   public: {
     Functions: Record<string, never>;
     Tables: {
@@ -147,12 +147,10 @@ export class LedScoresPlayerAssetImporter {
 }
 
 export class SupabaseLedScoresPlayerAssetRegistry implements LedScoresPlayerAssetRegistry {
-  private readonly client: SupabaseClient<ProviderAssetDatabase>;
+  private readonly client: SupabaseClient<LedScoresPlayerAssetDatabase>;
 
-  constructor(supabaseUrl: string, serviceRoleKey: string) {
-    this.client = createClient<ProviderAssetDatabase>(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
+  constructor(client: SupabaseClient<LedScoresPlayerAssetDatabase>) {
+    this.client = client;
   }
 
   async findCurrent(externalId: string, sourceUrl: string) {

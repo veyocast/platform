@@ -18,7 +18,8 @@ import {
 import {
   LED_SCORES_PLAYER_PHOTO_REVALIDATE_MS,
   LedScoresPlayerAssetImporter,
-  SupabaseLedScoresPlayerAssetRegistry
+  SupabaseLedScoresPlayerAssetRegistry,
+  type LedScoresPlayerAssetDatabase
 } from "./ledscores-player-assets";
 
 export type ClaimedLedScoresConnection = {
@@ -166,7 +167,11 @@ export class SupabaseLedScoresConnectorBackend implements LedScoresConnectorBack
       ? client
         ? null
         : new LedScoresPlayerAssetImporter(
-            new SupabaseLedScoresPlayerAssetRegistry(supabaseUrl, serviceRoleKey)
+            new SupabaseLedScoresPlayerAssetRegistry(
+              createClient<LedScoresPlayerAssetDatabase>(supabaseUrl, serviceRoleKey, {
+                auth: { autoRefreshToken: false, persistSession: false }
+              })
+            )
           )
       : playerAssetImporter;
   }
