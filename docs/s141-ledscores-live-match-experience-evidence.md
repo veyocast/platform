@@ -134,14 +134,20 @@ fallback. Iedere delivery gebruikt dezelfde duurzame `received` plus precies
 één terminale `rendered`, `skipped` of `failed` acknowledgement-outbox als
 S140.
 
+Een provider-baseline kan ouder zijn dan het moment waarop VeyoCast hem via de
+websocket ontvangt. Daarom blijft `sourceUpdatedAt` de echte providerklok en is
+`sourceObservedAt` de actuele ontvangsttijd. De database ordent LKG primair op
+de providerklok en gebruikt ontvangsttijd alleen als tie-break; een vertraagde
+oude snapshot kan zo nooit een nieuwere tussenstand terugzetten.
+
 ## Testbewijs
 
 Bewezen op een verse lokale database en de actuele S141-worktree:
 
 - `supabase db reset` groen;
 - database-lint zonder nieuwe S141-bevindingen;
-- gerichte S141-pgTAP: 71/71;
-- volledige RLS-matrix: 68 bestanden, 1.552 assertions;
+- gerichte S141-pgTAP: 75/75;
+- volledige RLS-matrix: 68 bestanden, 1.556 assertions;
 - `@veyocast/integrations`: 108 tests;
 - `@veyocast/media-worker`: 114 tests;
 - Control: 278 tests;

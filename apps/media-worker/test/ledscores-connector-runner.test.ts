@@ -415,9 +415,10 @@ describe("LED Scores connector loop", () => {
     });
   });
 
-  it("persists a baseline but not every clock-only source update", async () => {
+  it("accepts an older provider baseline using its current observation time", async () => {
     const controller = new AbortController();
     const now = Date.now();
+    const providerBaselineAt = now - 20 * 60_000;
     let claimed = false;
     const backend = fakeBackend({
       claim: vi.fn(async () => {
@@ -437,8 +438,8 @@ describe("LED Scores connector loop", () => {
       webSocketFactory: () => {
         queueMicrotask(() => {
           socket.emit("open", new Event("open"));
-          socket.message(scoreMessage(3, null, now - 1_000, "baseline"));
-          socket.message(scoreMessage(3, null, now - 500, "clock-only"));
+          socket.message(scoreMessage(3, null, providerBaselineAt, "baseline"));
+          socket.message(scoreMessage(3, null, providerBaselineAt + 500, "clock-only"));
           setTimeout(() => controller.abort(), 10);
         });
         return socket as unknown as WebSocket;
@@ -449,6 +450,20 @@ describe("LED Scores connector loop", () => {
     expect(backend.touch).toHaveBeenCalledOnce();
     expect(backend.upsertLiveState).toHaveBeenCalledOnce();
     expect(backend.dispatch).not.toHaveBeenCalled();
+    const playerObservation = vi.mocked(backend.syncPlayers).mock.calls[0]?.[0]
+      .sourceObservedAt;
+    const stateObservation = vi.mocked(backend.upsertLiveState).mock.calls[0]?.[0]
+      .sourceObservedAt;
+    expect(Date.parse(playerObservation ?? "")).toBeGreaterThanOrEqual(now);
+    expect(Date.parse(stateObservation ?? "")).toBeGreaterThanOrEqual(now);
+    expect(vi.mocked(backend.upsertLiveState).mock.calls[0]?.[0].state.sourceUpdatedAt)
+      .toBe(new Date(providerBaselineAt).toISOString());
+    expect(backend.touch).toHaveBeenCalledWith(
+      connection.connectionId,
+      "worker:test",
+      expect.any(Object),
+      new Date(providerBaselineAt).toISOString()
+    );
   });
 
   it("publishes a detected countdown direction immediately and then resumes throttling", async () => {
