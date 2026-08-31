@@ -458,12 +458,23 @@ describe("LED Scores connector loop", () => {
     expect(Date.parse(stateObservation ?? "")).toBeGreaterThanOrEqual(now);
     expect(vi.mocked(backend.upsertLiveState).mock.calls[0]?.[0].state.sourceUpdatedAt)
       .toBe(new Date(providerBaselineAt).toISOString());
-    expect(backend.touch).toHaveBeenCalledWith(
+    const touchCall = vi.mocked(backend.touch).mock.calls[0];
+    expect(touchCall?.slice(0, 3)).toEqual([
       connection.connectionId,
       "worker:test",
-      expect.any(Object),
-      new Date(providerBaselineAt).toISOString()
-    );
+      expect.objectContaining({
+        updatedAt: new Date(providerBaselineAt).toISOString()
+      })
+    ]);
+    expect(Date.parse(touchCall?.[3] ?? "")).toBeGreaterThanOrEqual(now);
+    const baselineRecord = vi.mocked(backend.recordState).mock.calls
+      .map(([input]) => input)
+      .find((input) => input.eventType === "baseline_established");
+    expect(baselineRecord?.baseline).toMatchObject({
+      updatedAt: new Date(providerBaselineAt).toISOString()
+    });
+    expect(Date.parse(baselineRecord?.sourceMessageAt ?? ""))
+      .toBeGreaterThanOrEqual(now);
   });
 
   it("publishes a detected countdown direction immediately and then resumes throttling", async () => {
