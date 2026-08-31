@@ -129,10 +129,11 @@ import { EngagePlaybackMedia } from "./engage-playback-media";
 import { YouTubePlaybackMedia } from "./youtube-playback-media";
 import { PlayerRecoveryMenu } from "./player-recovery-menu";
 import {
-  LedScoresGoalOverlay,
+  LedScoresExperienceOverlay,
   useLedScoresRealtime,
-  type ActiveLedScoresGoal
+  type ActiveLedScoresOverlay
 } from "./ledscores-goal-overlay";
+import type { LedScoresMatchState } from "../_lib/ledscores-match-experience";
 
 const demoPairingCode = "VYO 482";
 const waitingContentSyncIntervalMs = 5_000;
@@ -211,7 +212,12 @@ export function PlayerRuntime() {
   const [playbackAttempt, setPlaybackAttempt] = useState(0);
   const [visibilityRevision, setVisibilityRevision] = useState(0);
   const [watchdogTimeoutMs, setWatchdogTimeoutMs] = useState(defaultWatchdogTimeoutMs);
-  const realtimeGoal = useLedScoresRealtime(isPlaybackRuntime(runtime));
+  const realtimeGoal = useLedScoresRealtime(
+    isPlaybackRuntime(runtime),
+    isPlaybackRuntime(runtime)
+      ? runtime.release.envelope.manifest.releaseId
+      : ""
+  );
   const runtimeRef = useRef<RuntimeView>(runtime);
   const advancingRef = useRef(false);
   const applicationReloadPendingRef = useRef(false);
@@ -1922,6 +1928,7 @@ export function PlayerRuntime() {
     playerView = (
       <PlaybackView
         goal={realtimeGoal.active}
+        liveMatchStates={realtimeGoal.matchStates}
         onFailure={handlePlaybackFailure}
         onEnded={handlePlaybackEnded}
         onReady={handlePlaybackReady}
@@ -1974,6 +1981,7 @@ export function PlayerRuntime() {
 
 function PlaybackView({
   goal,
+  liveMatchStates,
   onFailure,
   onEnded,
   onReady,
@@ -1982,7 +1990,8 @@ function PlaybackView({
   underlayPaused,
   watchdogTimeoutMs
 }: {
-  goal: ActiveLedScoresGoal | null;
+  goal: ActiveLedScoresOverlay | null;
+  liveMatchStates: ReadonlyMap<string, LedScoresMatchState>;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onEnded: (itemId: string) => void;
   onReady: (itemId: string) => void;
@@ -2033,6 +2042,7 @@ function PlaybackView({
       >
         <PlaybackScene
           item={activeItem}
+          liveMatchStates={liveMatchStates}
           onEnded={onEnded}
           onFailure={onFailure}
           onReady={onReady}
@@ -2046,7 +2056,7 @@ function PlaybackView({
           screenId={runtime.release.envelope.device.screenId}
           showFullscreen={activeItem.id === manifest.items[0]?.id}
         />
-        <LedScoresGoalOverlay goal={goal} />
+        <LedScoresExperienceOverlay overlay={goal} />
         <img
           alt=""
           aria-hidden="true"
@@ -2202,6 +2212,7 @@ type PlaybackSceneState = {
 
 function PlaybackScene({
   item,
+  liveMatchStates,
   onEnded,
   onFailure,
   onReady,
@@ -2210,6 +2221,7 @@ function PlaybackScene({
   watchdogTimeoutMs
 }: {
   item: PlayerManifestItem;
+  liveMatchStates: ReadonlyMap<string, LedScoresMatchState>;
   onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onReady: (itemId: string) => void;
@@ -2311,6 +2323,7 @@ function PlaybackScene({
         >
           <PlaybackMedia
             item={scene.outgoing.item}
+            liveMatchStates={liveMatchStates}
             onEnded={onEnded}
             onFailure={onFailure}
             onReady={onReady}
@@ -2330,6 +2343,7 @@ function PlaybackScene({
       >
         <PlaybackMedia
           item={scene.current.item}
+          liveMatchStates={liveMatchStates}
           onEnded={onEnded}
           onFailure={onFailure}
           onReady={(itemId) => {
@@ -2350,6 +2364,7 @@ function PlaybackScene({
 
 export function PlaybackMedia({
   item,
+  liveMatchStates = new Map(),
   onEnded,
   onFailure,
   onPlaybackStateChange,
@@ -2359,6 +2374,7 @@ export function PlaybackMedia({
   watchdogTimeoutMs
 }: {
   item: PlayerManifestItem;
+  liveMatchStates?: ReadonlyMap<string, LedScoresMatchState>;
   onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onPlaybackStateChange?: (state: "ended" | "paused" | "playing") => void;
@@ -2394,6 +2410,7 @@ export function PlaybackMedia({
     return (
       <DynamicTemplateMedia
         item={item}
+        liveMatchStates={liveMatchStates}
         onEnded={onEnded}
         onReady={onReady}
         passive={passive}

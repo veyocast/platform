@@ -25,6 +25,21 @@ LG/webOS Legacy-runtime. Control toont sindsdien per event en doelscherm het
 afleverbewijs; een heartbeat wordt alleen als Playercontact getoond en niet als
 bewijs van een actieve realtimeverbinding.
 
+S141 maakt van deze eventketen één volledige live wedstrijdervaring. De stand,
+klok en het wedstrijdverloop zijn een echte `ledscores_live_match`-slide in de
+playlist: het ontwerp en de offlinefallback worden immutable gepubliceerd,
+terwijl de Player uitsluitend de begrensde laatst bekende status ververst.
+Goal, thuis-/uitopstelling, wedstrijdstart, rust en wedstrijdeinde blijven
+tijdelijke overlays boven last-known-good playback. Zie
+[`../s141-ledscores-live-match-experience-evidence.md`](../s141-ledscores-live-match-experience-evidence.md).
+
+Een provider-goal bevat niet noodzakelijk meteen een speler. Het veld
+`scoreboard.scored.id` is de scoreknop-ID en mag nooit als speler-ID worden
+gebruikt. Wanneer de gebruiker daarna een scorer kiest, correleert de adapter
+die keuze via de scorerpositie bij de resulterende score. De actieve goal wordt
+dan via een hogere enrichment-sequence aangevuld met naam, rugnummer en een
+optionele gevalideerde foto; de animatie hoeft daarvoor niet opnieuw te starten.
+
 Op 30 augustus 2026 is de read-only verbinding naar
 `wss://wss.ledscores.score.tel/clubs/duindorp-sv/scores/` met de productieparser
 getest. Het eerste geldige statusbericht arriveerde in 271 ms. De bron meldde
@@ -36,13 +51,13 @@ bewust alleen baselinebewijs: een oud eerste bericht activeert nooit een alert.
 ```text
 LED Scores websocket (read-only)
   -> media-worker lease + reconnect
-  -> strikt schema + statusnormalisatie
-  -> baseline / exact +1 goal-detectie
-  -> canoniek goal-event + tenantmapping
-  -> deterministische screen delivery in Postgres
+  -> strikt volledig matchschema + statusnormalisatie
+  -> baseline / semantische goal-, scorer-, opstellings- en fase-detectie
+  -> canonieke events + stabiele team-/speleridentiteit
+  -> bounded live match state + deterministische screen deliveries
   -> Supabase Realtime naar de server-side Player-SSE
   -> device-geauthenticeerde Player
-  -> transient overlay boven last-known-good playback
+  -> live slide of transient overlay boven last-known-good playback
 ```
 
 Browsers en Players verbinden nooit rechtstreeks met LED Scores. Alleen de
@@ -56,6 +71,13 @@ release-tijdlijn, niet op de immutable- of offlinegrens. Ontwerp, doelgroep en
 media worden als immutable Goal Alert-versie gepubliceerd. Het vluchtige event
 wijst naar die versie. De onderliggende playlistrelease wordt niet gewijzigd,
 gedownload of opnieuw geactiveerd.
+
+De live tussenstand is geen uitzondering op immutable publiceren. De
+playlistrelease blijft verwijzen naar één vast snapshot met templateversie,
+configuratie en fallbackstatus. Alleen de door die snapshot allowlisted
+connection-ID mag een bounded live status ontvangen. Bij netwerkuitval bevriest
+de Player herkenbaar op de laatste geldige status en blijft de immutable
+fallback lokaal beschikbaar.
 
 ## Connectorcontract
 
@@ -79,6 +101,16 @@ gedownload of opnieuw geactiveerd.
 - Klokupdates blijven in workergeheugen. Alleen baseline, goal, relevante
   onderdrukking en maximaal eens per 15 seconden health worden gepersisteerd;
   er ontstaat dus geen databaserij of -write per scorebordtick.
+- `displayTeam=home|away` wordt als een verse opstellingskeuze behandeld; een
+  lege waarde wist de actieve opstelling. `lineup[side].players` is de volledige
+  roster en `lineups[side]` bevat de geselecteerde speler-ID's.
+- Start, rust en einde komen alleen voort uit een verse
+  statusovergang. De eerste status na reconnect is baseline en speelt oude
+  wedstrijdanimaties nooit opnieuw af.
+- Eén bounded live-state-upsert per relevante providerrevision bewaart score,
+  klokanker, periode en maximaal 30 genormaliseerde tijdlijnitems. De
+  slideconfiguratie toont daarvan maximaal 0–10 items; duplicates verhogen de
+  sequence niet.
 
 De daemon claimt iedere vijf seconden maximaal 25 verbindingen per instance.
 Database en configuratielader begrenzen één claim op maximaal 50. Meerdere
@@ -112,9 +144,39 @@ Twee snelle verschillende goals zijn geen duplicate. De nieuwere delivery
 vervangt een nog zichtbare lagere eventoverlay. Billing-/emergencysplash blijft
 buiten deze laag en houdt voorrang.
 
+S141 bewaart spelers afzonderlijk per tenant, verbinding, providerteam en
+providerspeler. Naam en rugnummer kunnen wijzigen zonder de stabiele identiteit
+te verliezen. Een foto-URL is alleen workerinput van de vaste HTTPS-host
+`api.ledscores.score.tel`; de worker weigert redirects en te grote of ongeldige
+beelden, decodeert maximaal 4.096 pixels, normaliseert content-addressed naar
+WebP en bewaart die in private `provider-assets` onder
+`tenants/{tenant_id}/assets/{asset_version_id}/player.webp`. Tenantbrowser en
+Player zien nooit de provider-URL, alleen een kortlevende signed VeyoCast-URL.
+
+Het eigen roster is de standaard en wordt ook zonder tegenstanderconfiguratie
+volledig bruikbaar. Een tegenstanderroster wordt alleen geaccepteerd wanneer de
+gepubliceerde configuratie daar expliciet toestemming voor geeft. De worker
+verrijkt eerst geselecteerde spelers en daarna alleen een begrensde actieve
+fallback; volledig rauwe rosters en bron-URL's verlaten de servergrens niet.
+Bij een late opstellingslijst volgt maximaal één gerichte refresh.
+
+Wanneer de toestemming voor tegenstanders wordt ingetrokken, redigeert of
+verwijdert de server tenant-zichtbare tegenstanderspelers, historische
+verrijkingen, lineupdeliveries en identities. Reeds opgeslagen binaire
+fotobytes kunnen als bekende beperking in de private, uitsluitend service-role
+toegankelijke providercache blijven staan tot een latere transactionele
+cleanup. Ze worden niet meer in nieuwe tenantpayloads gebruikt en zijn nooit
+rechtstreeks browser- of Player-zichtbaar.
+
+Opstelling, start, rust en einde krijgen ieder een SHA-256-key over verbinding,
+match, eventtype en semantische bronstatus. Databaseconstraints dedupliceren
+daarnaast per event en scherm. Een late scorer is append-only per goalrevision;
+een herhaald providerbericht maakt geen tweede enrichmentdelivery.
+
 ## Studio en schermgroepen
 
-Studio biedt één sequentiële vijfstappenflow voor desktop en mobiel:
+De oorspronkelijke S132 Goal Alert-authoring bood één sequentiële
+vijfstappenflow voor desktop en mobiel:
 
 1. verbinding, eigen/tegenstander/onbekend-triggerbeleid, teamfilter, optioneel
    UTC-venster, naam, prioriteit, duur en playlistgedrag;
@@ -137,10 +199,31 @@ Schermgroepen blijven many-to-many via `screen_group_memberships`. Het
 schermdetail heeft een echte multiselect. Targeting gebruikt de unie van alle
 gekozen groepen. Overlap geeft per goal en scherm precies één delivery.
 
+S141 ordent die authoring opnieuw als twee begrijpelijke producten:
+
+1. `Wedstrijdanimaties` gebruikt een responsive vijfstappenwizard voor momenten,
+   ontwerp/databinding, mediafallback, schermgroepen en controle. Goal bindt
+   automatisch spelernaam, rugnummer en foto zodra die beschikbaar zijn.
+   Thuis- en uitopstelling hebben een eigen ontwerp; uit en het bewaren van
+   tegenstanderspelers blijven expliciet optioneel.
+2. `Live tussenstand` maakt een echte slide. De gebruiker kiest expliciet
+   liggend of staand, scorebord of wedstrijdcentrum, klok, tijdlijnlimiet,
+   accentstijl en gedrag buiten een actieve wedstrijd. Desktop toont een
+   sticky preview; mobiel blijft een sequentiële flow zonder horizontale
+   overflow.
+
+Gecureerde templates (`team-grid`, `matchday-impact`, `score-focus` en
+`final-score`) begrenzen typografie, motion en compositie. Palet, typografie,
+logopositie en -schaal, score/klok en relevante goalvelden blijven doelgericht
+instelbaar. Alle controles tonen Nederlandse zinskapitalisatie en fouten noemen
+oorzaak, gevolg en herstelactie.
+
 ## Realtime Playercontract
 
-De database voegt alleen `ledscores_player_deliveries` aan de Realtime-
-publication toe. De Next.js Player-server:
+S132 voegt `ledscores_player_deliveries` aan de Realtime-publication toe; S141
+voegt daarnaast uitsluitend de publieke, RLS-beveiligde
+`ledscores_live_match_states` toe. Het `realtime`-schema zelf wordt niet
+gewijzigd. De Next.js Player-server:
 
 - valideert de bearer device credential via een service-only RPC;
 - filtert de Realtime-subscriptie op één `screen_id`;
@@ -186,6 +269,26 @@ waargenomen uitvoer op 30 augustus 2026 was respectievelijk 6, 11 en 11 ms na
 `pause` de resterende itemtijd bewaart,
 de onderlaag zichtbaar houdt en daarna exact hervat. Geen goalpad wist de
 last-known-good release of maakt een zwart tussenframe.
+
+S141 voegt een aanvullende, service-only matchbootstrap toe. Die levert alleen
+live-slidebindings uit de actieve of gewenste immutable release en maximaal de
+vijf nieuwste nog geldige matchoverlay-/scorerdeliveries voor het gekoppelde
+scherm. Daarna ontvangt de server bounded statusupdates met een tenantfilter en
+controleert hij de connection-ID tegen die releasebindings. Providerassets
+worden server-side gesigneerd.
+
+Bootstrap en reconnect-catch-up sorteren match- en goaldeliveries op
+`executeAt`. De SSE-server serialiseert hydratie en output, zodat bijvoorbeeld
+een trage lineup nooit een latere `lineup_clear` kan inhalen. Beide runtimes
+berekenen uit de gevalideerde `serverTime` dezelfde offset voor eventplanning,
+de lopende wedstrijdklok, stale-detectie en geldige last-known state.
+
+De weergaveprioriteit is goal/scorerverrijking boven wedstrijdmoment of
+opstelling boven de live slide en gewone playlist. `lineup_clear` sluit alleen
+de opstelling. Een scorerverrijking werkt de bestaande goal in-place bij.
+Moderne en Chromium-79-compatibele Legacy-runtime gebruiken dezelfde
+gesaneerde semantiek, portrait/landscapecompositie, reduced-motionfallback en
+duurzame acknowledgement-outbox.
 
 ## Observability en operatorflow
 
@@ -268,6 +371,16 @@ retry van een tijdelijk geweigerde terminale acknowledgement, dezelfde
 planning op drie moderne Players en zichtbare Goal Alerts op de statische
 LG-route zonder Next.js-clientchunks. De volledige S140-uitvoer staat in
 [`../s140-ledscores-delivery-reliability-evidence.md`](../s140-ledscores-delivery-reliability-evidence.md).
+
+S141 is lokaal bewezen met een verse database-reset, 71/71 gerichte pgTAP-
+assertions en de volledige RLS-matrix van 1.552 assertions. De actuele totals
+zijn 108 integrations-, 114 worker-, 278 Control- en 214 Player-unittests plus
+109/109 Player-browserchecks. Workspace lint, typecheck en test zijn ieder
+30/30 packages groen; de build is 18/18. Accessibility is 36 groen met één
+bewuste live-fixtureskip, brede Chromium-E2E 182 groen met 21 bewuste
+live/visual-skips en de afzonderlijke offlinegate 7/7. Alleen hosted
+VPS-readback blijft op dit documentatiemoment ongeclaimd; het volledige bewijs staat in
+[`../s141-ledscores-live-match-experience-evidence.md`](../s141-ledscores-live-match-experience-evidence.md).
 
 Hosted staging volgt pas na merge naar `main`. Wanneer GitHub Actions niet
 beschikbaar is, gebruikt Platform operations de handmatige, immutable VPS-route

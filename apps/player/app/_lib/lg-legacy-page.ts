@@ -127,16 +127,23 @@ export function renderLgLegacyHtml() {
     .goal-metadata{display:flex;flex-wrap:wrap;gap:24px;font-size:clamp(14px,1.4vw,24px);font-weight:700;text-transform:uppercase}
     .goal-sponsor{position:absolute;z-index:3;right:4vw;bottom:4vh;display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:8px;background:rgba(250,250,247,.92);color:#0a0a0a}
     .goal-sponsor span{font-size:12px;font-weight:700;text-transform:uppercase}.goal-sponsor img{max-width:160px;max-height:56px;object-fit:contain}
+    .goal-player{position:absolute;z-index:3;right:5vw;bottom:7vh;display:grid;grid-template-columns:clamp(112px,17vw,288px) minmax(160px,320px);align-items:end;gap:clamp(14px,1.8vw,30px)}
+    .goal-player-photo{display:flex;align-items:center;justify-content:center;overflow:hidden;aspect-ratio:4/5;border:clamp(3px,.35vw,7px) solid currentColor;border-radius:clamp(18px,2vw,34px);background:#1b1b19;font-size:clamp(38px,6vw,96px);font-weight:900}
+    .goal-player-photo img{display:block;width:100%;height:100%;object-fit:cover}.goal-player-copy{display:grid;gap:4px;padding-bottom:16px;text-transform:uppercase}.goal-player-copy span{color:#ff5c20;font-size:clamp(38px,5vw,88px);font-weight:900;line-height:.8}.goal-player-copy strong{font-size:clamp(28px,3.6vw,64px);line-height:.92}.goal-player-copy small{font-weight:800;letter-spacing:.12em;opacity:.72}
+    .match-overlay-backdrop{position:absolute;top:0;right:0;bottom:0;left:0;background:radial-gradient(circle at 84% 18%,rgba(255,92,32,.32),transparent 34%),linear-gradient(135deg,#080908 0%,#171613 100%)}
+    .match-overlay-content{position:relative;z-index:2;width:88vw;display:grid;align-content:center;gap:2vh}.match-overlay-kicker{margin:0;color:#ff5c20;font-size:clamp(18px,1.5vw,30px);font-weight:900;letter-spacing:.14em;text-transform:uppercase}.match-overlay-title{font-size:clamp(68px,9vw,168px);font-weight:900;line-height:.82;text-transform:uppercase}.match-scoreboard{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:3vw}.match-team{display:grid;justify-items:start;gap:1vh}.match-team.away{justify-items:end;text-align:right}.match-team-mark{display:flex;width:clamp(76px,9vw,144px);height:clamp(76px,9vw,144px);align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.28);border-radius:50%;background:#20211e;font-size:clamp(28px,3vw,52px);font-weight:900}.match-team-mark img{width:78%;height:78%;object-fit:contain}.match-team strong{font-size:clamp(24px,2.4vw,46px)}.match-score{font-size:clamp(92px,14vw,240px);font-weight:900;line-height:.75}.match-lineup{position:relative;z-index:2;width:90vw}.match-lineup-header{display:flex;align-items:center;gap:2vw;margin-bottom:4vh}.match-lineup-header h2{margin:0;font-size:clamp(56px,6vw,112px);line-height:.86;text-transform:uppercase}.match-lineup-page{margin-left:auto;padding:10px 14px;border:1px solid rgba(255,255,255,.25);font-weight:900}.match-lineup-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.2vw}.match-player{display:grid;grid-template-columns:clamp(58px,5.5vw,94px) minmax(0,1fr);align-items:center;gap:1vw;padding:1.1vw;border:1px solid rgba(255,255,255,.18);border-radius:18px;background:rgba(255,255,255,.08)}.match-player-photo{display:flex;align-items:center;justify-content:center;overflow:hidden;aspect-ratio:1;border-radius:14px;background:#242520;font-weight:900}.match-player-photo img{width:100%;height:100%;object-fit:cover}.match-player b{display:block;color:#ff5c20;font-size:clamp(21px,2vw,36px)}.match-player strong{display:block;font-size:clamp(17px,1.4vw,27px)}
+    .match-scoreboard[data-show-score="false"]{grid-template-columns:repeat(2,minmax(0,1fr))}.match-lineup-lead{margin:1vh 0 0;font-size:clamp(16px,1.4vw,28px);opacity:.72}.match-lineup-score,.match-lineup-clock{padding:10px 14px;border:1px solid rgba(255,255,255,.25);font-size:clamp(20px,2vw,38px);font-weight:900}.match-lineup-page{margin-left:0}.match-lineup-team-only{display:grid;align-content:center;justify-items:center;gap:2vh;height:60vh;text-align:center}.match-lineup-team-only .match-team-mark{width:clamp(160px,22vw,340px);height:clamp(160px,22vw,340px)}.match-lineup-team-only>strong{font-size:clamp(42px,6vw,110px)}#goal-overlay[data-logo-position="center"] .match-overlay-content{justify-items:center;text-align:center}#goal-overlay[data-logo-position="center"] .match-lineup-header{justify-content:center;text-align:center}#goal-overlay[data-logo-position="center"] .match-lineup-page{position:absolute;right:0}#goal-overlay[data-logo-scale="small"] .match-team-mark{width:clamp(54px,6vw,98px);height:clamp(54px,6vw,98px)}#goal-overlay[data-logo-scale="large"] .match-team-mark{width:clamp(104px,12vw,196px);height:clamp(104px,12vw,196px)}#goal-overlay[data-typography="display"] .match-overlay-title,#goal-overlay[data-typography="display"] .match-lineup-header h2,#goal-overlay[data-typography="display"] .goal-headline{font-family:Arial Black,Arial,Helvetica,sans-serif}#goal-overlay[data-typography="body"] .match-overlay-title,#goal-overlay[data-typography="body"] .match-lineup-header h2,#goal-overlay[data-typography="body"] .goal-headline{font-family:Arial,Helvetica,sans-serif;letter-spacing:-.025em}
     #goal-overlay[data-animation="impact"] .goal-content{animation:legacy-goal-impact 520ms cubic-bezier(.2,.9,.2,1) both}
     #goal-overlay[data-animation="pulse"] .goal-score{animation:legacy-goal-pulse 800ms ease-in-out 2}
     #goal-overlay[data-animation="slide"] .goal-content{animation:legacy-goal-slide 550ms cubic-bezier(.2,.8,.2,1) both}
     @keyframes legacy-goal-impact{from{opacity:0;transform:scale(.72)}70%{opacity:1;transform:scale(1.05)}to{transform:scale(1)}}
     @keyframes legacy-goal-pulse{50%{transform:scale(1.08)}}
     @keyframes legacy-goal-slide{from{opacity:0;transform:translateX(-12vw)}to{opacity:1;transform:translateX(0)}}
-    @media(orientation:portrait){.goal-content{align-content:start;max-width:84vw;padding-top:15vh}.goal-headline{font-size:clamp(56px,15vw,144px);line-height:.84}.goal-score{font-size:clamp(96px,24vw,208px)}.goal-scrim{background:linear-gradient(180deg,var(--goal-scrim-start),var(--goal-scrim-end))}}
+    @media(orientation:portrait){.goal-content{align-content:start;max-width:84vw;padding-top:10vh}.goal-headline{font-size:clamp(56px,15vw,144px);line-height:.84}.goal-score{font-size:clamp(96px,24vw,208px)}.goal-scrim{background:linear-gradient(180deg,var(--goal-scrim-start),var(--goal-scrim-end))}.goal-player{right:8vw;bottom:7vh;left:8vw;grid-template-columns:minmax(128px,40vw) 1fr}.match-overlay-content{width:84vw}.match-scoreboard{grid-template-columns:1fr 1fr}.match-score{grid-column:1/-1;grid-row:1;text-align:center}.match-team{grid-row:2}.match-lineup-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:1.4vh}.match-lineup-header{margin-bottom:3vh}}
     @media(prefers-reduced-motion:reduce){#goal-overlay *{animation:none!important}}
     .dynamic-template{--accent:#ff5c20;position:absolute;top:0;right:0;bottom:0;left:0;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;padding:5vh 5vw 4vh;background:#f4efe6;color:#11110f;font-family:Arial,Helvetica,sans-serif}
     .dynamic-template.dark{background:#080908;color:#fffdf7}
+    .ledscores-live-match{--live-accent:#ff5c20;background:#080908;color:#fffdf7}.ledscores-live-match .live-match-shell{position:absolute;top:0;right:0;bottom:0;left:0;display:grid;grid-template-rows:auto 1fr auto;padding:6vh 5vw 4vh;background:radial-gradient(circle at 12% 12%,rgba(255,92,32,.28),transparent 32%),linear-gradient(145deg,#080908,#151511)}.ledscores-live-match[data-accent="club"] .live-match-shell{box-shadow:inset 0 10px var(--live-accent)}.ledscores-live-match[data-accent="contrast"] .live-match-shell{box-shadow:inset 0 0 0 10px var(--live-accent)}.ledscores-live-match[data-accent="neutral"]{--live-accent:#c8c6bf}.ledscores-live-match[data-accent="neutral"] .live-match-shell{background:#242522}.live-match-top,.live-match-footer{display:flex;align-items:center;justify-content:space-between}.live-match-top p{margin:0;color:var(--live-accent);font-size:clamp(16px,1.4vw,28px);font-weight:900;letter-spacing:.13em;text-transform:uppercase}.live-match-top h1{margin:.6vh 0 0;font-size:clamp(44px,5vw,90px)}.live-match-status{padding:10px 16px;border:1px solid rgba(255,255,255,.2);border-radius:999px;font-weight:800}.live-match-body{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);align-items:center;gap:4vw}.live-match-body.no-timeline{grid-template-columns:1fr}.live-match-body .match-scoreboard{padding:4vh 3vw;border:1px solid rgba(255,255,255,.14);border-radius:28px;background:rgba(255,255,255,.055)}.live-match-clock{text-align:center;color:var(--live-accent);font-size:clamp(48px,6vw,110px);font-weight:900}.live-match-period{text-align:center;font-size:clamp(18px,1.5vw,28px);font-weight:800}.live-match-timeline{margin:0;padding:2vh 1vw;list-style:none;border-left:1px solid rgba(255,255,255,.18)}.live-match-timeline li{display:grid;grid-template-columns:4.5em minmax(0,1fr) auto;gap:1vw;padding:1.2vh 1vw;border-bottom:1px solid rgba(255,255,255,.1)}.live-match-timeline time{color:var(--live-accent);font-weight:900}.live-match-timeline strong{font-size:clamp(17px,1.25vw,24px)}.live-match-footer{border-top:1px solid rgba(255,255,255,.15);padding-top:2vh;font-weight:800}.ledscores-live-match.portrait .live-match-body{grid-template-columns:1fr;align-content:center}.ledscores-live-match.portrait .live-match-timeline{border-left:0;border-top:1px solid rgba(255,255,255,.18)}
     .dynamic-template header{border-bottom:2px solid rgba(98,95,87,.3);padding:1.8vh 0 2.8vh}
     .dynamic-template header p,.dynamic-news-meta{margin:0 0 1vh;color:var(--accent);font-size:clamp(17px,1.45vw,30px);font-weight:800;letter-spacing:.14em;text-transform:uppercase}
     .dynamic-template h1{margin:0;max-width:90%;font-size:clamp(44px,5vw,96px);line-height:.94;letter-spacing:-.045em}
@@ -507,12 +514,19 @@ export function renderLgLegacyHtml() {
       goalAckRetryAttempts: {},
       goalActivationTimer: null,
       goalActiveEventId: null,
+      goalActiveKind: null,
+      goalActiveModel: null,
       goalExpiryTimer: null,
+      goalEnrichmentSequences: {},
+      goalLineupPageIndex: 0,
+      goalLineupPageTimer: null,
       goalPauseApplied: false,
       goalPausedVideo: null,
       goalPendingDeliveryId: null,
       goalPendingEventId: null,
       goalPendingExpiresAt: null,
+      goalPendingEnrichment: null,
+      goalPendingKind: null,
       goalPendingToken: null,
       goalReconnectAttempt: 0,
       goalReconnectTimer: null,
@@ -528,6 +542,9 @@ export function renderLgLegacyHtml() {
       lastClockSkewLoggedAt: 0,
       lastGoalDisabledLoggedAt: 0,
       lastProgressAt: 0,
+      ledScoresLiveMatchRender: null,
+      ledScoresLiveMatchTimer: null,
+      ledScoresMatchStates: {},
       offline: false,
       pendingElement: null,
       pendingObjectUrls: [],
@@ -708,6 +725,375 @@ export function renderLgLegacyHtml() {
       normalized = value.replace(/\\s+/g, " ").replace(/^\\s+|\\s+$/g, "");
       return normalized || null;
     }
+    function goalSafeUrl(value) {
+      return typeof value === "string" && value.length <= 2000 &&
+        /^https?:\\/\\//.test(value)
+        ? value
+        : null;
+    }
+    function parseGoalPlayer(value) {
+      var record = goalRecord(value);
+      var name;
+      var number;
+      if (!record) return null;
+      name = goalText(record.name, 160);
+      if (!name) return null;
+      number = typeof record.number === "number"
+        ? String(record.number)
+        : goalText(record.number, 16);
+      return {
+        id: goalText(record.id || record.providerPlayerId, 200),
+        name: name,
+        number: number,
+        photoUrl: goalSafeUrl(record.photoUrl)
+      };
+    }
+    function parseMatchTeam(payload, side) {
+      var record = goalRecord(payload && payload[side]);
+      var name = goalText(record && record.name, 160);
+      var score = goalInteger(record && record.score, 0, 999);
+      return name && score !== null
+        ? { name: name, score: score, logoUrl: goalSafeUrl(record.logoUrl) }
+        : null;
+    }
+    function parseMatchOverlayDesign(value, kind) {
+      var record = goalRecord(value) || {};
+      var defaults = {
+        half_time: ["Rust", "score-focus"],
+        lineup: ["Opstelling", "team-grid"],
+        lineup_clear: ["Opstelling sluiten", "team-grid"],
+        match_end: ["Eindstand", "final-score"],
+        match_start: ["De wedstrijd begint", "matchday-impact"]
+      };
+      var fallback = defaults[kind];
+      var animation = ["impact", "pulse", "slide", "none"]
+        .indexOf(String(record.animation)) !== -1 ? String(record.animation) : "impact";
+      var palette = ["electric-orange", "ink-black", "signal-red", "white"]
+        .indexOf(String(record.palette)) !== -1 ? String(record.palette) : "ink-black";
+      var logoScale = ["small", "medium", "large"]
+        .indexOf(String(record.logoScale)) !== -1 ? String(record.logoScale) : "medium";
+      return {
+        animation: animation,
+        headline: goalText(record.headline, 80) || fallback[0],
+        logoPosition: record.logoPosition === "center" ? "center" : "left",
+        logoScale: logoScale,
+        palette: palette,
+        secondaryText: goalText(record.secondaryText, 160) || "",
+        showClock: kind === "lineup" ? false : record.showClock !== false,
+        showPreviousScore: kind === "lineup" ? false : record.showPreviousScore === true,
+        showScorer: kind === "lineup",
+        templateId: goalText(record.templateId || record.template, 80) || fallback[1],
+        typography: record.typography === "body" ? "body" : "display"
+      };
+    }
+    function parseMatchOverlayMessage(value) {
+      var record = goalRecord(value);
+      var payload = record && goalRecord(record.payload);
+      var kind;
+      var deliveryId;
+      var eventId;
+      var executeAt;
+      var expiresAt;
+      var serverTime;
+      var durationMs;
+      var home;
+      var away;
+      var side;
+      var lineup = [];
+      var ownTeamKeys = {};
+      var logoMediaAssetId;
+      var logoUrl = null;
+      var assetValues;
+      var parsedAsset;
+      var homeTeamKey;
+      var awayTeamKey;
+      var index;
+      var player;
+      if (!record || !payload) return null;
+      kind = ["lineup", "lineup_clear", "match_start", "half_time", "match_end"]
+        .indexOf(String(payload.overlayKind)) !== -1
+        ? String(payload.overlayKind)
+        : null;
+      deliveryId = goalUuid(record.id);
+      eventId = goalUuid(payload.eventId);
+      executeAt = parsePlayerTimestamp(record.executeAt);
+      expiresAt = parsePlayerTimestamp(record.expiresAt);
+      serverTime = parsePlayerTimestamp(record.serverTime);
+      durationMs = goalInteger(payload.durationMs, 2000, 30000);
+      home = parseMatchTeam(payload, "home");
+      away = parseMatchTeam(payload, "away");
+      if (Array.isArray(payload.ownTeamKeys)) {
+        for (index = 0; index < Math.min(50, payload.ownTeamKeys.length); index += 1) {
+          var ownTeamKey = goalText(payload.ownTeamKeys[index], 200);
+          if (ownTeamKey) ownTeamKeys[ownTeamKey.toLowerCase()] = true;
+        }
+      }
+      logoMediaAssetId = goalUuid(payload.logoMediaAssetId);
+      assetValues = Array.isArray(record.assets) ? record.assets.slice(0, 10) : [];
+      for (index = 0; index < assetValues.length; index += 1) {
+        parsedAsset = parseGoalAsset(assetValues[index]);
+        if (parsedAsset && parsedAsset.mediaAssetId === logoMediaAssetId &&
+          parsedAsset.mimeType.indexOf("image/") === 0) {
+          logoUrl = parsedAsset.url;
+        }
+      }
+      homeTeamKey = goalText(payload.homeTeamKey ||
+        (goalRecord(payload.home) && goalRecord(payload.home).teamKey), 200);
+      awayTeamKey = goalText(payload.awayTeamKey ||
+        (goalRecord(payload.away) && goalRecord(payload.away).teamKey), 200);
+      if (home && logoUrl && homeTeamKey &&
+        ownTeamKeys[homeTeamKey.toLowerCase()] === true) home.logoUrl = logoUrl;
+      if (away && logoUrl && awayTeamKey &&
+        ownTeamKeys[awayTeamKey.toLowerCase()] === true) away.logoUrl = logoUrl;
+      side = payload.side === "home" || payload.side === "away"
+        ? payload.side
+        : null;
+      if (Array.isArray(payload.lineup)) {
+        for (index = 0; index < Math.min(24, payload.lineup.length); index += 1) {
+          player = parseGoalPlayer(payload.lineup[index]);
+          if (player) lineup.push(player);
+        }
+      }
+      if (!deliveryId || !eventId || executeAt === null || expiresAt === null ||
+        serverTime === null || durationMs === null || !kind || !home || !away ||
+        (kind === "lineup" && (!side || !lineup.length))) return null;
+      return {
+        executeAt: executeAt,
+        expiresAt: expiresAt,
+        serverTime: serverTime,
+        goal: {
+          away: away,
+          deliveryId: deliveryId,
+          design: parseMatchOverlayDesign(payload.design, kind),
+          durationMs: durationMs,
+          eventId: eventId,
+          eventKind: payload.eventKind === "synthetic_test" ? "synthetic_test" : "live",
+          home: home,
+          kind: kind,
+          lineup: lineup,
+          lineupPageDurationMs: goalInteger(
+            payload.lineupPageDurationMs,
+            4000,
+            10000
+          ) === null ? 6000 : goalInteger(
+            payload.lineupPageDurationMs,
+            4000,
+            10000
+          ),
+          matchClock: goalText(payload.matchClock, 40),
+          periodLabel: goalText(payload.periodLabel, 80),
+          side: side,
+          underlayPolicy: payload.underlayPolicy === "continue" ? "continue" : "pause"
+        }
+      };
+    }
+    function parseGoalEnrichmentMessage(value) {
+      var record = goalRecord(value);
+      var payload = record && goalRecord(record.payload);
+      var player = payload && parseGoalPlayer(payload.player);
+      var deliveryId = record && goalUuid(record.id);
+      var eventId = payload && goalUuid(payload.eventId);
+      var expiresAt = record && parsePlayerTimestamp(record.expiresAt);
+      var sequence = payload && goalInteger(payload.sequence || record.sequence,
+        1, 9007199254740991);
+      var serverTime = record && parsePlayerTimestamp(record.serverTime);
+      return deliveryId && eventId && expiresAt !== null && player &&
+        sequence !== null && serverTime !== null
+        ? {
+            deliveryId: deliveryId,
+            eventId: eventId,
+            expiresAt: expiresAt,
+            player: player,
+            sequence: sequence,
+            serverTime: serverTime
+          }
+        : null;
+    }
+    function parseLedScoresTimestamp(value) {
+      return typeof value === "number" && isFinite(value) && value > 0
+        ? value
+        : parsePlayerTimestamp(value);
+    }
+    function parseLedScoresMatchState(value, inheritedServerTime) {
+      var envelope = goalRecord(value);
+      var candidate;
+      var connectionId;
+      var matchKey;
+      var revision;
+      var status;
+      var home;
+      var away;
+      var sourceUpdatedAt;
+      var sourceObservedAt;
+      var staleAfter;
+      var staleSeconds;
+      var serverTime;
+      var storedServerTimeOffset;
+      var serverTimeOffsetMs;
+      var clock = null;
+      var clockRecord;
+      var timeline = [];
+      var timelineValues;
+      var item;
+      var index;
+      if (!envelope) return null;
+      candidate = goalRecord(envelope.state_json) || goalRecord(envelope.state) ||
+        goalRecord(envelope.payload) || envelope;
+      if (candidate.schemaVersion !== 1) return null;
+      connectionId = goalUuid(candidate.connectionId || envelope.connectionId ||
+        envelope.connection_id);
+      matchKey = goalText(candidate.matchKey, 300);
+      revision = goalText(candidate.stateRevision || candidate.revision ||
+        String(envelope.stateSequence || envelope.state_sequence || ""), 160);
+      status = ["pre_match", "live", "paused", "half_time", "finished", "unknown"]
+        .indexOf(String(candidate.status)) !== -1 ? String(candidate.status) : null;
+      home = parseMatchTeam(candidate, "home");
+      away = parseMatchTeam(candidate, "away");
+      sourceUpdatedAt = parseLedScoresTimestamp(candidate.sourceUpdatedAt ||
+        envelope.sourceObservedAt || envelope.source_observed_at);
+      sourceObservedAt = parseLedScoresTimestamp(envelope.sourceObservedAt ||
+        envelope.source_observed_at || candidate.sourceUpdatedAt);
+      staleAfter = typeof candidate.staleAfter === "string"
+        ? parseLedScoresTimestamp(candidate.staleAfter)
+        : typeof candidate.staleAfter === "number" && candidate.staleAfter > 120
+          ? candidate.staleAfter
+          : null;
+      staleSeconds = goalInteger(envelope.staleAfterSeconds ||
+        envelope.stale_after_seconds || candidate.staleAfter, 3, 120);
+      if (staleAfter === null && staleSeconds !== null && sourceObservedAt !== null) {
+        staleAfter = sourceObservedAt + staleSeconds * 1000;
+      }
+      if (!connectionId || !matchKey || !revision || !status || !home || !away ||
+        sourceUpdatedAt === null || staleAfter === null) return null;
+      serverTime = parseLedScoresTimestamp(envelope.serverTime ||
+        candidate.serverTime || inheritedServerTime);
+      storedServerTimeOffset = typeof candidate.serverTimeOffsetMs === "number"
+        ? candidate.serverTimeOffsetMs
+        : envelope.serverTimeOffsetMs;
+      serverTimeOffsetMs = serverTime !== null
+        ? serverTime - now()
+        : typeof storedServerTimeOffset === "number" &&
+          isFinite(storedServerTimeOffset) &&
+          Math.floor(storedServerTimeOffset) === storedServerTimeOffset &&
+          Math.abs(storedServerTimeOffset) <= 3162240000000
+          ? storedServerTimeOffset
+          : null;
+      if (serverTimeOffsetMs !== null &&
+        Math.abs(serverTimeOffsetMs) > 3162240000000) {
+        serverTimeOffsetMs = null;
+      }
+      clockRecord = goalRecord(candidate.clock);
+      if (clockRecord) {
+        var anchorAt = parseLedScoresTimestamp(clockRecord.anchorAt);
+        var anchorSeconds = goalInteger(clockRecord.anchorSeconds, 0, 359999);
+        var maxSeconds = clockRecord.maxSeconds === null ||
+          typeof clockRecord.maxSeconds === "undefined"
+          ? null
+          : goalInteger(clockRecord.maxSeconds, 1, 359999);
+        if (anchorAt === null || anchorSeconds === null ||
+          ["up", "down"].indexOf(String(clockRecord.direction)) === -1 ||
+          (clockRecord.maxSeconds !== null &&
+            typeof clockRecord.maxSeconds !== "undefined" && maxSeconds === null)) {
+          return null;
+        }
+        clock = {
+          anchorAt: anchorAt,
+          anchorSeconds: anchorSeconds,
+          direction: String(clockRecord.direction),
+          maxSeconds: maxSeconds,
+          running: clockRecord.running === true
+        };
+      }
+      timelineValues = Array.isArray(candidate.timeline)
+        ? candidate.timeline.slice(0, 30)
+        : [];
+      for (index = 0; index < timelineValues.length; index += 1) {
+        var timelineRecord = goalRecord(timelineValues[index]);
+        if (!timelineRecord) continue;
+        item = {
+          awayScore: timelineRecord.awayScore === null ||
+            typeof timelineRecord.awayScore === "undefined"
+            ? null
+            : goalInteger(timelineRecord.awayScore, 0, 999),
+          clockLabel: goalText(timelineRecord.clockLabel, 40),
+          homeScore: timelineRecord.homeScore === null ||
+            typeof timelineRecord.homeScore === "undefined"
+            ? null
+            : goalInteger(timelineRecord.homeScore, 0, 999),
+          id: goalText(timelineRecord.id, 200),
+          kind: ["goal", "period", "score_correction", "status"]
+            .indexOf(String(timelineRecord.kind)) !== -1
+            ? String(timelineRecord.kind)
+            : null,
+          label: goalText(timelineRecord.label, 200),
+          occurredAt: parseLedScoresTimestamp(timelineRecord.occurredAt),
+          playerName: goalText(timelineRecord.playerName, 160),
+          side: timelineRecord.side === "home" || timelineRecord.side === "away"
+            ? timelineRecord.side
+            : null
+        };
+        if (item.id && item.kind && item.label && item.occurredAt !== null) {
+          timeline.push(item);
+        }
+      }
+      return {
+        away: away,
+        clock: clock,
+        connectionId: connectionId,
+        home: home,
+        matchKey: matchKey,
+        periodLabel: goalText(candidate.periodLabel, 80),
+        revision: revision,
+        schemaVersion: 1,
+        serverTimeOffsetMs: serverTimeOffsetMs,
+        sourceUpdatedAt: sourceUpdatedAt,
+        staleAfter: staleAfter,
+        status: status,
+        timeline: timeline
+      };
+    }
+    function readStoredLedScoresMatchStates() {
+      var parsed = parseJson(safeRead("veyocast-player-ledscores-match-states-v1") || "[]");
+      var states = {};
+      var index;
+      var state;
+      if (!Array.isArray(parsed)) return states;
+      for (index = Math.max(0, parsed.length - 16); index < parsed.length; index += 1) {
+        state = parseLedScoresMatchState(parsed[index]);
+        if (!state || state.sourceUpdatedAt < ledScoresMatchServerNow(state) -
+          7 * 24 * 60 * 60 * 1000) continue;
+        states[state.connectionId] = state;
+      }
+      return states;
+    }
+    function persistLedScoresMatchStates() {
+      var values = [];
+      var connectionId;
+      for (connectionId in runtime.ledScoresMatchStates) {
+        if (runtime.ledScoresMatchStates.hasOwnProperty(connectionId)) {
+          values.push(runtime.ledScoresMatchStates[connectionId]);
+        }
+      }
+      safeWrite("veyocast-player-ledscores-match-states-v1",
+        JSON.stringify(values.slice(-8)));
+    }
+    function storeLedScoresMatchState(value, inheritedServerTime) {
+      var state = parseLedScoresMatchState(value, inheritedServerTime);
+      var previous;
+      if (!state) return false;
+      previous = runtime.ledScoresMatchStates[state.connectionId];
+      if (previous && previous.sourceUpdatedAt > state.sourceUpdatedAt) return false;
+      if (previous && previous.sourceUpdatedAt === state.sourceUpdatedAt &&
+        previous.revision === state.revision &&
+        (state.serverTimeOffsetMs === null ||
+          state.serverTimeOffsetMs === previous.serverTimeOffsetMs)) return false;
+      runtime.ledScoresMatchStates[state.connectionId] = state;
+      persistLedScoresMatchStates();
+      if (typeof runtime.ledScoresLiveMatchRender === "function") {
+        runtime.ledScoresLiveMatchRender(state.connectionId);
+      }
+      return true;
+    }
     function parseGoalAsset(value) {
       var record = goalRecord(value);
       var mediaAssetId;
@@ -791,6 +1177,7 @@ export function renderLgLegacyHtml() {
       var awayScore;
       var previousHomeScore;
       var previousAwayScore;
+      var player;
       var assets = {};
       var assetValues;
       var parsedAsset;
@@ -813,6 +1200,7 @@ export function renderLgLegacyHtml() {
       awayScore = goalInteger(payload.awayScore, 0, 999);
       previousHomeScore = goalInteger(payload.previousHomeScore, 0, 999);
       previousAwayScore = goalInteger(payload.previousAwayScore, 0, 999);
+      player = parseGoalPlayer(payload.player || payload.scorer);
       if (
         !deliveryId || executeAt === null || expiresAt === null ||
         serverTime === null || !eventId || !scoringSide || !design ||
@@ -841,12 +1229,14 @@ export function renderLgLegacyHtml() {
             : "live",
           homeScore: homeScore,
           homeTeam: goalText(payload.homeTeam, 160) || "Thuisteam",
+          kind: "goal",
           logoMediaAssetId: goalOptionalUuid(payload.logoMediaAssetId),
           matchClock: goalText(payload.matchClock, 40),
           mediaAssetId: goalOptionalUuid(payload.mediaAssetId),
           previousAwayScore: previousAwayScore,
           previousHomeScore: previousHomeScore,
-          scorerName: goalText(payload.scorerName, 160),
+          player: player,
+          scorerName: player ? player.name : goalText(payload.scorerName, 160),
           scoringSide: scoringSide,
           soundMediaAssetId: goalOptionalUuid(payload.soundMediaAssetId),
           soundVolume: goalInteger(payload.soundVolume, 0, 100) === null
@@ -1152,11 +1542,64 @@ export function renderLgLegacyHtml() {
       node.textContent = value || "";
       return node;
     }
+    function goalInitials(value) {
+      var parts = String(value || "").replace(/^\\s+|\\s+$/g, "").split(/\\s+/);
+      var result = "";
+      var index;
+      for (index = 0; index < Math.min(2, parts.length); index += 1) {
+        if (parts[index]) result += parts[index].charAt(0).toUpperCase();
+      }
+      return result || "VC";
+    }
+    function createGoalPlayerCard(player) {
+      var card = document.createElement("aside");
+      var portrait = document.createElement("div");
+      var image;
+      var copy = document.createElement("div");
+      card.className = "goal-player";
+      portrait.className = "goal-player-photo";
+      if (player.photoUrl) {
+        image = document.createElement("img");
+        image.alt = "";
+        image.setAttribute("aria-hidden", "true");
+        image.src = player.photoUrl;
+        portrait.appendChild(image);
+      } else {
+        portrait.appendChild(goalTextNode("span", "", goalInitials(player.name)));
+      }
+      copy.className = "goal-player-copy";
+      if (player.number) copy.appendChild(goalTextNode("span", "", "#" + player.number));
+      copy.appendChild(goalTextNode("strong", "", player.name));
+      copy.appendChild(goalTextNode("small", "", "Doelpuntenmaker"));
+      card.appendChild(portrait);
+      card.appendChild(copy);
+      return card;
+    }
+    function updateActiveGoalPlayer(player) {
+      var overlay = byId("goal-overlay");
+      var scorer = overlay.querySelector("[data-goal-scorer]");
+      var existing = overlay.querySelector(".goal-player");
+      if (runtime.goalActiveKind !== "goal" || !runtime.goalActiveModel) return false;
+      runtime.goalActiveModel.player = player;
+      runtime.goalActiveModel.scorerName = player.name;
+      if (scorer) scorer.textContent = player.name;
+      if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+      if (runtime.goalActiveModel.design.showScorer) {
+        overlay.appendChild(createGoalPlayerCard(player));
+      }
+      return true;
+    }
     function clearGoalElement() {
       var overlay = byId("goal-overlay");
       var media;
       var mediaElements = overlay.querySelectorAll("video,audio");
       var mediaIndex;
+      if (runtime.goalActiveKind === "goal" && runtime.goalActiveEventId) {
+        delete runtime.goalEnrichmentSequences[runtime.goalActiveEventId];
+      }
+      window.clearInterval(runtime.goalLineupPageTimer);
+      runtime.goalLineupPageTimer = null;
+      runtime.goalLineupPageIndex = 0;
       for (mediaIndex = 0; mediaIndex < mediaElements.length; mediaIndex += 1) {
         media = mediaElements[mediaIndex];
         try { media.pause(); } catch (error) {}
@@ -1169,9 +1612,14 @@ export function renderLgLegacyHtml() {
       }
       overlay.hidden = true;
       overlay.removeAttribute("data-animation");
+      overlay.removeAttribute("data-logo-position");
+      overlay.removeAttribute("data-logo-scale");
       overlay.removeAttribute("data-palette");
+      overlay.removeAttribute("data-typography");
       overlay.removeAttribute("aria-label");
       runtime.goalActiveEventId = null;
+      runtime.goalActiveKind = null;
+      runtime.goalActiveModel = null;
     }
     function pauseGoalUnderlay() {
       var remaining;
@@ -1349,11 +1797,13 @@ export function renderLgLegacyHtml() {
       metadata = document.createElement("div");
       metadata.className = "goal-metadata";
       if (goal.design.showScorer) {
-        metadata.appendChild(goalTextNode(
+        var scorerNode = goalTextNode(
           "span",
           "",
           goal.scorerName || goal.design.scorerFallback
-        ));
+        );
+        scorerNode.setAttribute("data-goal-scorer", "true");
+        metadata.appendChild(scorerNode);
       }
       if (goal.design.showClock && goal.matchClock) {
         metadata.appendChild(goalTextNode("span", "", goal.matchClock));
@@ -1363,6 +1813,9 @@ export function renderLgLegacyHtml() {
       }
       content.appendChild(metadata);
       overlay.appendChild(content);
+      if (goal.design.showScorer && goal.player) {
+        overlay.appendChild(createGoalPlayerCard(goal.player));
+      }
       if (sponsorAsset && sponsorAsset.mimeType.indexOf("image/") === 0) {
         sponsor = document.createElement("aside");
         sponsor.className = "goal-sponsor";
@@ -1387,7 +1840,10 @@ export function renderLgLegacyHtml() {
         } catch (error) {}
       }
       overlay.setAttribute("data-animation", goal.design.animation);
+      overlay.setAttribute("data-logo-position", goal.design.logoPosition);
+      overlay.setAttribute("data-logo-scale", goal.design.logoScale);
       overlay.setAttribute("data-palette", goal.design.palette);
+      overlay.setAttribute("data-typography", goal.design.typography);
       overlay.setAttribute(
         "aria-label",
         goal.scoringSide === "own"
@@ -1398,11 +1854,202 @@ export function renderLgLegacyHtml() {
       );
       overlay.hidden = false;
       runtime.goalActiveEventId = goal.eventId;
+      runtime.goalActiveKind = "goal";
+      runtime.goalActiveModel = goal;
+      return true;
+    }
+    function createMatchTeamMark(team) {
+      var mark = document.createElement("div");
+      var image;
+      mark.className = "match-team-mark";
+      if (team.logoUrl) {
+        image = document.createElement("img");
+        image.alt = "";
+        image.setAttribute("aria-hidden", "true");
+        image.src = team.logoUrl;
+        mark.appendChild(image);
+      } else {
+        mark.appendChild(goalTextNode("span", "", goalInitials(team.name)));
+      }
+      return mark;
+    }
+    function createMatchScoreboard(match, showScore) {
+      var board = document.createElement("div");
+      var home = document.createElement("div");
+      var away = document.createElement("div");
+      var score = document.createElement("div");
+      board.className = "match-scoreboard";
+      board.setAttribute("data-show-score", showScore === false ? "false" : "true");
+      home.className = "match-team home";
+      away.className = "match-team away";
+      score.className = "match-score";
+      home.appendChild(createMatchTeamMark(match.home));
+      home.appendChild(goalTextNode("strong", "", match.home.name));
+      away.appendChild(createMatchTeamMark(match.away));
+      away.appendChild(goalTextNode("strong", "", match.away.name));
+      score.textContent = String(match.home.score) + "–" + String(match.away.score);
+      score.setAttribute("aria-label", "Stand " + match.home.name + " " +
+        String(match.home.score) + ", " + match.away.name + " " +
+        String(match.away.score));
+      board.appendChild(home);
+      if (showScore !== false) board.appendChild(score);
+      board.appendChild(away);
+      return board;
+    }
+    function renderMatchOverlay(match) {
+      var overlay = byId("goal-overlay");
+      var backdrop = document.createElement("div");
+      var content;
+      var header;
+      var grid;
+      var team;
+      var player;
+      var card;
+      var photo;
+      var copy;
+      var image;
+      var index;
+      var pageSize;
+      var pageCount;
+      var pageLabel;
+      clearGoalElement();
+      backdrop.className = "match-overlay-backdrop";
+      backdrop.setAttribute("aria-hidden", "true");
+      overlay.appendChild(backdrop);
+      if (match.kind === "lineup") {
+        pageSize = (window.innerHeight || 0) > (window.innerWidth || 0) ? 8 : 11;
+        pageCount = Math.max(1, Math.ceil(match.lineup.length / pageSize));
+        team = match.side === "away" ? match.away : match.home;
+        content = document.createElement("div");
+        content.className = "match-lineup";
+        header = document.createElement("div");
+        header.className = "match-lineup-header";
+        header.appendChild(createMatchTeamMark(team));
+        copy = document.createElement("div");
+        copy.appendChild(goalTextNode("p", "match-overlay-kicker",
+          match.side === "home" ? "Thuisteam" : "Uitteam"));
+        copy.appendChild(goalTextNode("h2", "", match.design.headline));
+        copy.appendChild(goalTextNode("strong", "", team.name));
+        if (match.design.secondaryText) {
+          copy.appendChild(goalTextNode("p", "match-lineup-lead",
+            match.design.secondaryText));
+        }
+        header.appendChild(copy);
+        if (match.design.showPreviousScore) {
+          header.appendChild(goalTextNode("span", "match-lineup-score",
+            String(match.home.score) + "–" + String(match.away.score)));
+        }
+        if (match.design.showClock && match.matchClock) {
+          header.appendChild(goalTextNode("time", "match-lineup-clock",
+            match.matchClock));
+        }
+        if (match.design.showScorer && pageCount > 1) {
+          pageLabel = goalTextNode("span", "match-lineup-page",
+            "1 / " + String(pageCount));
+          pageLabel.setAttribute("data-lineup-page", "true");
+          header.appendChild(pageLabel);
+        }
+        content.appendChild(header);
+        if (match.design.showScorer) {
+          grid = document.createElement("div");
+          grid.className = "match-lineup-grid";
+          for (index = 0; index < match.lineup.length; index += 1) {
+            player = match.lineup[index];
+            card = document.createElement("article");
+            card.className = "match-player";
+            card.setAttribute("data-lineup-index", String(index));
+            if (index >= pageSize) card.style.display = "none";
+            photo = document.createElement("div");
+            photo.className = "match-player-photo";
+            if (player.photoUrl) {
+              image = document.createElement("img");
+              image.alt = "";
+              image.src = player.photoUrl;
+              photo.appendChild(image);
+            } else {
+              photo.appendChild(goalTextNode("span", "", goalInitials(player.name)));
+            }
+            copy = document.createElement("div");
+            copy.appendChild(goalTextNode("b", "", player.number || "—"));
+            copy.appendChild(goalTextNode("strong", "", player.name));
+            card.appendChild(photo);
+            card.appendChild(copy);
+            grid.appendChild(card);
+          }
+          content.appendChild(grid);
+        } else {
+          grid = document.createElement("div");
+          grid.className = "match-lineup-team-only";
+          grid.appendChild(createMatchTeamMark(team));
+          grid.appendChild(goalTextNode("strong", "", team.name));
+          content.appendChild(grid);
+        }
+      } else {
+        content = document.createElement("div");
+        content.className = "match-overlay-content";
+        content.appendChild(goalTextNode("p", "match-overlay-kicker",
+          match.periodLabel || (match.kind === "match_start" ? "Aftrap" :
+            match.kind === "half_time" ? "Halverwege" : "Afgelopen")));
+        content.appendChild(goalTextNode("strong", "match-overlay-title",
+          match.design.headline));
+        if (match.design.secondaryText) {
+          content.appendChild(goalTextNode("p", "goal-secondary",
+            match.design.secondaryText));
+        }
+        content.appendChild(createMatchScoreboard(
+          match,
+          match.design.showPreviousScore
+        ));
+        if (match.design.showClock && match.matchClock) {
+          content.appendChild(goalTextNode("p", "match-overlay-kicker",
+            match.matchClock));
+        }
+      }
+      overlay.appendChild(content);
+      overlay.setAttribute("data-animation", match.design.animation);
+      overlay.setAttribute("data-logo-position", match.design.logoPosition);
+      overlay.setAttribute("data-logo-scale", match.design.logoScale);
+      overlay.setAttribute("data-palette", match.design.palette);
+      overlay.setAttribute("data-typography", match.design.typography);
+      overlay.setAttribute("aria-label", match.kind === "lineup"
+        ? "Opstelling " + team.name
+        : match.design.headline);
+      overlay.hidden = false;
+      runtime.goalActiveEventId = match.eventId;
+      runtime.goalActiveKind = match.kind;
+      runtime.goalActiveModel = match;
+      if (match.kind === "lineup" && match.design.showScorer && pageCount > 1) {
+        runtime.goalLineupPageTimer = window.setInterval(function () {
+          var cards = overlay.querySelectorAll(".match-player");
+          var cardIndex;
+          var indicator = overlay.querySelector("[data-lineup-page]");
+          runtime.goalLineupPageIndex = (runtime.goalLineupPageIndex + 1) % pageCount;
+          for (cardIndex = 0; cardIndex < cards.length; cardIndex += 1) {
+            cards[cardIndex].style.display =
+              Math.floor(cardIndex / pageSize) === runtime.goalLineupPageIndex
+                ? ""
+                : "none";
+          }
+          if (indicator) indicator.textContent =
+            String(runtime.goalLineupPageIndex + 1) + " / " + String(pageCount);
+        }, match.lineupPageDurationMs);
+      }
       return true;
     }
     function cancelPendingGoal(detail) {
       window.clearTimeout(runtime.goalActivationTimer);
       runtime.goalActivationTimer = null;
+      if (runtime.goalPendingEnrichment &&
+        validCredential(runtime.goalPendingEnrichment.token)) {
+        goalTerminalAcknowledge(
+          runtime.goalPendingEnrichment.token,
+          runtime.goalPendingEnrichment.deliveryId,
+          runtime.goalPendingEnrichment.eventId,
+          "skipped",
+          detail,
+          runtime.goalPendingEnrichment.expiresAt
+        );
+      }
       if (
         goalUuid(runtime.goalPendingDeliveryId) &&
         goalUuid(runtime.goalPendingEventId) &&
@@ -1418,12 +2065,17 @@ export function renderLgLegacyHtml() {
           runtime.goalPendingExpiresAt
         );
       }
+      if (runtime.goalPendingEventId) {
+        delete runtime.goalEnrichmentSequences[runtime.goalPendingEventId];
+      }
       runtime.goalPendingDeliveryId = null;
       runtime.goalPendingEventId = null;
       runtime.goalPendingExpiresAt = null;
+      runtime.goalPendingKind = null;
+      runtime.goalPendingEnrichment = null;
       runtime.goalPendingToken = null;
     }
-    function handleGoalDelivery(value, token) {
+    function handleGoalDelivery(value, token, deliveryKind) {
       var deliveryId = goalUuid(value && value.id);
       var invalidPayload;
       var invalidEventId;
@@ -1434,7 +2086,9 @@ export function renderLgLegacyHtml() {
       var serverNow;
       var activateIn;
       if (deliveryId) goalAcknowledge(token, deliveryId, "received", null);
-      message = parseGoalMessage(value);
+      message = deliveryKind === "match_overlay"
+        ? parseMatchOverlayMessage(value)
+        : parseGoalMessage(value);
       if (!message) {
         if (deliveryId) {
           invalidPayload = goalRecord(value && value.payload);
@@ -1446,11 +2100,16 @@ export function renderLgLegacyHtml() {
               deliveryId,
               invalidEventId,
               "failed",
-              "invalid_goal_payload",
+              deliveryKind === "match_overlay"
+                ? "invalid_match_overlay_payload"
+                : "invalid_goal_payload",
               invalidExpiresAt
             );
           } else {
-            goalAcknowledge(token, deliveryId, "failed", "invalid_goal_payload");
+            goalAcknowledge(token, deliveryId, "failed",
+              deliveryKind === "match_overlay"
+                ? "invalid_match_overlay_payload"
+                : "invalid_goal_payload");
           }
         }
         return;
@@ -1469,9 +2128,20 @@ export function renderLgLegacyHtml() {
       }
       serverOffset = message.serverTime - now();
       serverNow = now() + serverOffset;
+      if (runtime.goalActiveKind === "goal" && message.goal.kind !== "goal") {
+        goalTerminalAcknowledge(
+          token,
+          message.goal.deliveryId,
+          message.goal.eventId,
+          "skipped",
+          "higher_priority_overlay_active",
+          message.expiresAt
+        );
+        return;
+      }
       if (
         message.expiresAt <= serverNow ||
-        hasSeenGoal(message.goal.eventId, serverNow)
+        (message.goal.kind === "goal" && hasSeenGoal(message.goal.eventId, serverNow))
       ) {
         goalTerminalAcknowledge(
           token,
@@ -1502,6 +2172,17 @@ export function renderLgLegacyHtml() {
         return;
       }
       if (runtime.goalActivationTimer !== null) {
+        if (runtime.goalPendingKind === "goal" && message.goal.kind !== "goal") {
+          goalTerminalAcknowledge(
+            token,
+            message.goal.deliveryId,
+            message.goal.eventId,
+            "skipped",
+            "higher_priority_overlay_scheduled",
+            message.expiresAt
+          );
+          return;
+        }
         cancelPendingGoal("replaced_before_activation");
       }
       if (
@@ -1513,15 +2194,19 @@ export function renderLgLegacyHtml() {
       runtime.goalPendingDeliveryId = message.goal.deliveryId;
       runtime.goalPendingEventId = message.goal.eventId;
       runtime.goalPendingExpiresAt = message.expiresAt;
+      runtime.goalPendingKind = message.goal.kind;
       runtime.goalPendingToken = token;
       runtime.goalActivationTimer = window.setTimeout(function () {
         var currentServerNow = now() + serverOffset;
+        var pendingEnrichment = runtime.goalPendingEnrichment;
         var renderDetail;
         var visibleFor;
         runtime.goalActivationTimer = null;
         runtime.goalPendingDeliveryId = null;
         runtime.goalPendingEventId = null;
         runtime.goalPendingExpiresAt = null;
+        runtime.goalPendingKind = null;
+        runtime.goalPendingEnrichment = null;
         runtime.goalPendingToken = null;
         if (message.expiresAt <= currentServerNow) {
           goalTerminalAcknowledge(
@@ -1535,8 +2220,18 @@ export function renderLgLegacyHtml() {
           return;
         }
         try {
-          if (message.goal.underlayPolicy === "pause") pauseGoalUnderlay();
-          renderGoalOverlay(message.goal);
+          if (message.goal.kind === "lineup_clear") {
+            hideGoalOverlay(true);
+          } else {
+            if (pendingEnrichment && message.goal.kind === "goal" &&
+              pendingEnrichment.eventId === message.goal.eventId) {
+              message.goal.player = pendingEnrichment.player;
+              message.goal.scorerName = pendingEnrichment.player.name;
+            }
+            if (message.goal.underlayPolicy === "pause") pauseGoalUnderlay();
+            if (message.goal.kind === "goal") renderGoalOverlay(message.goal);
+            else renderMatchOverlay(message.goal);
+          }
         } catch (error) {
           hideGoalOverlay(true);
           goalTerminalAcknowledge(
@@ -1559,11 +2254,25 @@ export function renderLgLegacyHtml() {
           renderDetail,
           message.expiresAt
         );
-        rememberGoal(
-          message.goal.eventId,
-          message.expiresAt,
-          currentServerNow
-        );
+        if (pendingEnrichment && message.goal.kind === "goal" &&
+          pendingEnrichment.eventId === message.goal.eventId) {
+          goalTerminalAcknowledge(
+            pendingEnrichment.token,
+            pendingEnrichment.deliveryId,
+            pendingEnrichment.eventId,
+            "rendered",
+            "scheduled_goal_enriched",
+            pendingEnrichment.expiresAt
+          );
+        }
+        if (message.goal.kind === "goal") {
+          rememberGoal(
+            message.goal.eventId,
+            message.expiresAt,
+            currentServerNow
+          );
+        }
+        if (message.goal.kind === "lineup_clear") return;
         visibleFor = Math.max(
           1,
           Math.min(
@@ -1577,6 +2286,71 @@ export function renderLgLegacyHtml() {
           }
         }, visibleFor);
       }, activateIn);
+    }
+    function handleGoalEnrichmentDelivery(value, token) {
+      var deliveryId = goalUuid(value && value.id);
+      var enrichment;
+      var currentTime;
+      var latestSequence;
+      if (deliveryId) goalAcknowledge(token, deliveryId, "received", null);
+      enrichment = parseGoalEnrichmentMessage(value);
+      if (!enrichment) {
+        if (deliveryId) goalAcknowledge(
+          token,
+          deliveryId,
+          "failed",
+          "invalid_goal_enrichment_payload"
+        );
+        return;
+      }
+      currentTime = enrichment.serverTime;
+      if (enrichment.expiresAt <= currentTime) {
+        goalTerminalAcknowledge(token, enrichment.deliveryId,
+          enrichment.eventId, "skipped", "enrichment_expired",
+          enrichment.expiresAt);
+        return;
+      }
+      latestSequence = Number(
+        runtime.goalEnrichmentSequences[enrichment.eventId] || 0
+      );
+      if (enrichment.sequence <= latestSequence) {
+        goalTerminalAcknowledge(token, enrichment.deliveryId,
+          enrichment.eventId, "skipped", "superseded_enrichment",
+          enrichment.expiresAt);
+        return;
+      }
+      if (runtime.goalActiveKind === "goal" &&
+        runtime.goalActiveEventId === enrichment.eventId &&
+        updateActiveGoalPlayer(enrichment.player)) {
+        runtime.goalEnrichmentSequences[enrichment.eventId] =
+          enrichment.sequence;
+        goalTerminalAcknowledge(token, enrichment.deliveryId,
+          enrichment.eventId, "rendered", "active_goal_enriched",
+          enrichment.expiresAt);
+        return;
+      }
+      if (runtime.goalPendingKind === "goal" &&
+        runtime.goalPendingEventId === enrichment.eventId) {
+        if (runtime.goalPendingEnrichment &&
+          validCredential(runtime.goalPendingEnrichment.token)) {
+          goalTerminalAcknowledge(
+            runtime.goalPendingEnrichment.token,
+            runtime.goalPendingEnrichment.deliveryId,
+            runtime.goalPendingEnrichment.eventId,
+            "skipped",
+            "superseded_enrichment",
+            runtime.goalPendingEnrichment.expiresAt
+          );
+        }
+        enrichment.token = token;
+        runtime.goalEnrichmentSequences[enrichment.eventId] =
+          enrichment.sequence;
+        runtime.goalPendingEnrichment = enrichment;
+        return;
+      }
+      goalTerminalAcknowledge(token, enrichment.deliveryId,
+        enrichment.eventId, "skipped", "goal_not_active",
+        enrichment.expiresAt);
     }
     function parseGoalSseBlock(value) {
       var event = "message";
@@ -1594,7 +2368,7 @@ export function renderLgLegacyHtml() {
           data.push(lines[index].slice(6));
         }
       }
-      if (!data.length || !/^[a-z]+$/.test(event)) return null;
+      if (!data.length || !/^[a-z][a-z_]{0,39}$/.test(event)) return null;
       parsed = parseJson(data.join("\\n"));
       return parsed === null ? null : { event: event, value: parsed };
     }
@@ -1604,6 +2378,14 @@ export function renderLgLegacyHtml() {
       if (!record) return;
       if (event === "bootstrap" || event === "configuration") {
         preloadGoalAssets(record.configs);
+        if (Array.isArray(record.matchBindings)) {
+          for (var bindingIndex = 0;
+            bindingIndex < Math.min(50, record.matchBindings.length);
+            bindingIndex += 1) {
+            storeLedScoresMatchState(record.matchBindings[bindingIndex],
+              record.serverTime);
+          }
+        }
         deliveryId = goalUuid(record.deliveryId);
         if (event === "configuration" && deliveryId) {
           goalAcknowledge(
@@ -1614,7 +2396,13 @@ export function renderLgLegacyHtml() {
           );
         }
       } else if (event === "goal") {
-        handleGoalDelivery(record, token);
+        handleGoalDelivery(record, token, "goal");
+      } else if (event === "goal_enrichment") {
+        handleGoalEnrichmentDelivery(record, token);
+      } else if (event === "match_overlay") {
+        handleGoalDelivery(record, token, "match_overlay");
+      } else if (event === "match_state") {
+        storeLedScoresMatchState(record);
       }
     }
     function consumeGoalSseProgress(xhr, token) {
@@ -3018,6 +3806,7 @@ export function renderLgLegacyHtml() {
       window.clearTimeout(runtime.watchdogTimer);
       window.clearInterval(runtime.progressTimer);
       window.clearTimeout(runtime.templateTimer);
+      window.clearInterval(runtime.ledScoresLiveMatchTimer);
       runtime.playbackTimer = null;
       runtime.playbackDeadlineAt = 0;
       if (!runtime.goalPauseApplied) runtime.playbackRemainingMs = null;
@@ -3027,6 +3816,8 @@ export function renderLgLegacyHtml() {
       runtime.templateRemainingMs = null;
       runtime.templateResumeCallback = null;
       runtime.templateTimer = null;
+      runtime.ledScoresLiveMatchTimer = null;
+      runtime.ledScoresLiveMatchRender = null;
     }
     function schedulePlaybackAdvance(delay) {
       var boundedDelay = Math.max(1, Math.min(3600000, Number(delay) || 1));
@@ -4484,8 +5275,197 @@ export function renderLgLegacyHtml() {
         }
       }
     }
+    function parseLedScoresLiveMatchConfig(payload) {
+      var snapshot = templateRecord(payload && payload.data) || {};
+      var live = templateRecord(snapshot.liveMatch);
+      var configuration = live && (templateRecord(live.configuration) || live);
+      var connectionId = live && goalUuid(live.connectionId ||
+        (configuration && configuration.connectionId));
+      var fallback;
+      if (!live || !configuration || !connectionId) return null;
+      fallback = live.state
+        ? parseLedScoresMatchState({
+            connectionId: connectionId,
+            staleAfterSeconds: 10,
+            state: live.state
+          })
+        : null;
+      return {
+        accentMode: configuration.accentMode === "contrast" ||
+          configuration.accentMode === "neutral"
+          ? configuration.accentMode
+          : "club",
+        connectionId: connectionId,
+        fallbackState: fallback,
+        outsideMatchBehavior: configuration.outsideMatchBehavior === "skip"
+          ? "skip"
+          : "last_known",
+        showClock: configuration.showClock !== false,
+        showStatus: configuration.showStatus !== false,
+        showTimeline: configuration.showTimeline !== false,
+        template: configuration.template === "scoreboard"
+          ? "scoreboard"
+          : "match_center",
+        timelineLimit: goalInteger(configuration.timelineLimit, 0, 10) === null
+          ? 5
+          : goalInteger(configuration.timelineLimit, 0, 10),
+        title: goalText(configuration.title || live.connectionName, 120) ||
+          "Live wedstrijd"
+      };
+    }
+    function ledScoresClockSeconds(state) {
+      var clock = state && state.clock;
+      var effectiveNow;
+      var elapsed;
+      var result;
+      var maximum;
+      if (!clock) return null;
+      effectiveNow = Math.min(ledScoresMatchServerNow(state), state.staleAfter);
+      elapsed = clock.running
+        ? Math.max(0, Math.floor((effectiveNow - clock.anchorAt) / 1000))
+        : 0;
+      result = clock.direction === "down"
+        ? clock.anchorSeconds - elapsed
+        : clock.anchorSeconds + elapsed;
+      maximum = clock.maxSeconds === null ? 359999 : clock.maxSeconds;
+      return Math.max(0, Math.min(maximum, result));
+    }
+    function ledScoresMatchServerNow(state) {
+      var offset = state && typeof state.serverTimeOffsetMs === "number" &&
+        isFinite(state.serverTimeOffsetMs) &&
+        Math.abs(state.serverTimeOffsetMs) <= 3162240000000
+        ? state.serverTimeOffsetMs
+        : 0;
+      return now() + offset;
+    }
+    function ledScoresClockLabel(seconds) {
+      var safeSeconds;
+      var minutes;
+      var remainder;
+      if (seconds === null || !isFinite(seconds)) return "--:--";
+      safeSeconds = Math.max(0, Math.floor(seconds));
+      minutes = Math.floor(safeSeconds / 60);
+      remainder = safeSeconds % 60;
+      return (minutes < 10 ? "0" : "") + String(minutes) + ":" +
+        (remainder < 10 ? "0" : "") + String(remainder);
+    }
+    function ledScoresStatusLabel(status) {
+      return status === "live" ? "Live wedstrijd" :
+        status === "half_time" ? "Ruststand" :
+          status === "finished" ? "Eindstand" :
+            status === "paused" ? "Wedstrijd onderbroken" :
+              status === "pre_match" ? "Wedstrijd staat klaar" :
+                "Laatste wedstrijdstand";
+    }
+    function playLedScoresLiveMatchTemplate(item, objectUrls, generation) {
+      var payload = item.dynamicTemplate;
+      var config = parseLedScoresLiveMatchConfig(payload);
+      var state = config && (runtime.ledScoresMatchStates[config.connectionId] ||
+        config.fallbackState);
+      var root;
+      var render;
+      if (!config || !state ||
+        (config.outsideMatchBehavior === "skip" &&
+          ["finished", "pre_match", "unknown"].indexOf(state.status) !== -1)) {
+        log("LEGACY_TEMPLATE_SKIPPED", "ledscores_live_match unavailable");
+        window.setTimeout(nextItem, 0);
+        return;
+      }
+      root = templateNode("section", "dynamic-template ledscores-live-match" +
+        (payload.orientation === "portrait" ? " portrait" : ""));
+      root.setAttribute("data-slide-type", "ledscores_live_match");
+      root.setAttribute("data-accent", config.accentMode);
+      render = function (changedConnectionId) {
+        var shell;
+        var top;
+        var heading;
+        var status;
+        var body;
+        var scorePanel;
+        var timeline;
+        var values;
+        var timelineItem;
+        var row;
+        var index;
+        var footer;
+        var stale;
+        if (changedConnectionId && changedConnectionId !== config.connectionId) return;
+        if (runtime.currentElement !== root && runtime.pendingElement !== root) return;
+        state = runtime.ledScoresMatchStates[config.connectionId] || state ||
+          config.fallbackState;
+        if (!state) return;
+        stale = state.staleAfter <= ledScoresMatchServerNow(state);
+        while (root.firstChild) root.removeChild(root.firstChild);
+        shell = templateNode("div", "live-match-shell");
+        top = templateNode("header", "live-match-top");
+        heading = templateNode("div", "");
+        heading.appendChild(templateNode("p", "", config.title));
+        heading.appendChild(templateNode("h1", "", ledScoresStatusLabel(state.status)));
+        top.appendChild(heading);
+        if (config.showStatus) {
+          status = templateNode("div", "live-match-status",
+            stale ? "Laatste stand" : state.status === "live" ? "Live" :
+              ledScoresStatusLabel(state.status));
+          top.appendChild(status);
+        }
+        shell.appendChild(top);
+        body = templateNode("div", "live-match-body");
+        if (!(config.template === "match_center" && config.showTimeline &&
+          config.timelineLimit > 0 && state.timeline.length)) {
+          body.className += " no-timeline";
+        }
+        scorePanel = templateNode("section", "");
+        scorePanel.appendChild(createMatchScoreboard(state));
+        if (config.showClock) scorePanel.appendChild(templateNode("div",
+          "live-match-clock", ledScoresClockLabel(ledScoresClockSeconds(state))));
+        if (state.periodLabel) scorePanel.appendChild(templateNode("div",
+          "live-match-period", state.periodLabel));
+        body.appendChild(scorePanel);
+        if (config.template === "match_center" && config.showTimeline &&
+          config.timelineLimit > 0 && state.timeline.length) {
+          timeline = templateNode("ol", "live-match-timeline");
+          values = state.timeline.slice(-config.timelineLimit).reverse();
+          for (index = 0; index < values.length; index += 1) {
+            timelineItem = values[index];
+            row = templateNode("li", "");
+            row.appendChild(templateNode("time", "", timelineItem.clockLabel || "•"));
+            row.appendChild(templateNode("strong", "",
+              timelineItem.playerName || timelineItem.label));
+            if (timelineItem.homeScore !== null && timelineItem.awayScore !== null) {
+              row.appendChild(templateNode("b", "",
+                String(timelineItem.homeScore) + "–" + String(timelineItem.awayScore)));
+            }
+            timeline.appendChild(row);
+          }
+          body.appendChild(timeline);
+        }
+        shell.appendChild(body);
+        footer = templateNode("footer", "live-match-footer");
+        footer.appendChild(templateNode("span", "", state.home.name));
+        footer.appendChild(templateNode("span", "",
+          stale ? "De klok is veilig bevroren" : "Live wedstrijdinformatie"));
+        footer.appendChild(templateNode("span", "", state.away.name));
+        shell.appendChild(footer);
+        root.appendChild(shell);
+      };
+      beginPendingMedia(root, objectUrls);
+      render(null);
+      fitDynamicTemplateCanvas(root, payload.orientation);
+      if (!commitPendingMedia(root, objectUrls, generation)) return;
+      runtime.ledScoresLiveMatchRender = render;
+      window.clearInterval(runtime.ledScoresLiveMatchTimer);
+      runtime.ledScoresLiveMatchTimer = window.setInterval(function () {
+        render(config.connectionId);
+      }, 1000);
+      schedulePlaybackAdvance(itemDurationMs(item));
+      log("LEGACY_TEMPLATE_READY", "ledscores_live_match " + payload.templateSlug);
+    }
     function playDynamicTemplate(item, fallbackUrl, objectUrls, generation) {
       var payload = item.dynamicTemplate;
+      if (payload.slideType === "ledscores_live_match") {
+        playLedScoresLiveMatchTemplate(item, objectUrls, generation);
+        return;
+      }
       var snapshot = templateRecord(payload.data) || {};
       var root = templateNode("section", "dynamic-template");
       var header = templateNode("header", "");
@@ -5189,6 +6169,7 @@ export function renderLgLegacyHtml() {
       runtime.bootGeneration += 1;
       generation = runtime.bootGeneration;
       runtime.installationId = ensureInstallationId();
+      runtime.ledScoresMatchStates = readStoredLedScoresMatchStates();
       runtime.installationCredential = safeRead(CONFIG.installationCredentialKey);
       if (!validCredential(runtime.installationCredential)) {
         runtime.installationCredential = null;
@@ -5273,7 +6254,13 @@ export function renderLgLegacyHtml() {
       stopGoalRealtime(false);
       restoreLastKnownGood(function () {});
     });
-    window.addEventListener("resize", refitDynamicTemplates);
+    window.addEventListener("resize", function () {
+      var activeLineup = runtime.goalActiveKind === "lineup"
+        ? runtime.goalActiveModel
+        : null;
+      refitDynamicTemplates();
+      if (activeLineup) renderMatchOverlay(activeLineup);
+    });
     notifyLgWrapperReady();
     boot();
   }());

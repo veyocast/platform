@@ -5,10 +5,24 @@
 import { useEffect, useRef, useState } from "react";
 
 import { localStorageDeviceTokenKey } from "../_lib/player-manifest";
+import {
+  chooseLatestLedScoresMatchState,
+  parseLedScoresGoalEnrichmentMessage,
+  parseLedScoresMatchOverlayMessage,
+  parseLedScoresMatchStateMessage,
+  readStoredLedScoresMatchStates,
+  writeStoredLedScoresMatchStates,
+  type ActiveLedScoresMatchOverlay,
+  type LedScoresGoalEnrichment,
+  type LedScoresMatchState,
+  type LedScoresPlayerViewModel
+} from "../_lib/ledscores-match-experience";
+import { LedScoresMatchOverlay } from "./ledscores-match-experience";
 import styles from "./ledscores-goal-overlay.module.css";
 
 const dedupeStorageKey = "veyocast-player-ledscores-dedupe-v1";
 const maximumDedupeEntries = 200;
+const maximumEnrichmentSequences = 200;
 const maximumTerminalAcknowledgements = 200;
 const maximumTerminalAcknowledgementRetries = 6;
 const terminalAcknowledgementRetentionMs = 7 * 24 * 60 * 60 * 1_000;
@@ -44,11 +58,13 @@ export type ActiveLedScoresGoal = {
   eventId: string;
   homeScore: number;
   homeTeam: string;
+  kind: "goal";
   logoMediaAssetId: string | null;
   matchClock: string | null;
   mediaAssetId: string | null;
   previousAwayScore: number;
   previousHomeScore: number;
+  player: LedScoresPlayerViewModel | null;
   scorerName: string | null;
   scoringSide: "opponent" | "own" | "unknown";
   soundMediaAssetId: string | null;
@@ -57,8 +73,16 @@ export type ActiveLedScoresGoal = {
   underlayPolicy: "continue" | "pause";
 };
 
+export type ActiveLedScoresOverlay =
+  | ActiveLedScoresGoal
+  | ActiveLedScoresMatchOverlay;
+
 type ScheduledGoalIdentity = Pick<ActiveLedScoresGoal, "deliveryId" | "eventId">;
-type ScheduledGoalDelivery = ScheduledGoalIdentity & { expiresAt: number };
+type ScheduledOverlayDelivery = ScheduledGoalIdentity & {
+  expiresAt: number;
+  kind: ActiveLedScoresOverlay["kind"];
+  priority: number;
+};
 type TerminalAcknowledgementStatus = "failed" | "rendered" | "skipped";
 export type TerminalAcknowledgement = {
   createdAt: number;
@@ -117,6 +141,32 @@ export function classifyScheduledGoal(
   return "replace" as const;
 }
 
+export function shouldApplyGoalEnrichmentSequence(
+  latestSequence: number | null,
+  nextSequence: number
+) {
+  return latestSequence === null || nextSequence > latestSequence;
+}
+
+export function isGoalEnrichmentExpiredAtServerTime(
+  enrichment: Pick<LedScoresGoalEnrichment, "expiresAt" | "serverTime">,
+  clientNow = Date.now()
+) {
+  const serverOffsetMs = Date.parse(enrichment.serverTime) - clientNow;
+  return Date.parse(enrichment.expiresAt) <= clientNow + serverOffsetMs;
+}
+
+export function scheduledGoalEnrichmentCompletion(
+  enrichment: LedScoresGoalEnrichment
+) {
+  return {
+    delivery: enrichment,
+    detail: "scheduled_goal_enriched",
+    expiresAt: Date.parse(enrichment.expiresAt),
+    status: "rendered" as const
+  };
+}
+
 type RealtimeConnectionLoopOptions = {
   fetchStream?: typeof fetch;
   onEvent: (event: string, value: unknown) => void;
@@ -157,12 +207,24 @@ export async function runLedScoresRealtimeConnectionLoop({
   }
 }
 
-export function useLedScoresRealtime(enabled: boolean) {
-  const [active, setActive] = useState<ActiveLedScoresGoal | null>(null);
-  const activeRef = useRef<ActiveLedScoresGoal | null>(null);
+export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
+  const [active, setActive] = useState<ActiveLedScoresOverlay | null>(null);
+  const [matchStates, setMatchStates] = useState<ReadonlyMap<string, LedScoresMatchState>>(
+    () => {
+      if (typeof window === "undefined") return new Map();
+      return new Map(readStoredLedScoresMatchStates(window.localStorage).map(
+        (state) => [state.connectionId, state]
+      ));
+    }
+  );
+  const activeRef = useRef<ActiveLedScoresOverlay | null>(null);
   const activationTimerRef = useRef<number | null>(null);
   const expiryTimerRef = useRef<number | null>(null);
-  const scheduledRef = useRef<ScheduledGoalDelivery | null>(null);
+  const scheduledRef = useRef<ScheduledOverlayDelivery | null>(null);
+  const pendingEnrichmentsRef = useRef(
+    new Map<string, LedScoresGoalEnrichment>()
+  );
+  const enrichmentSequencesRef = useRef(new Map<string, number>());
   activeRef.current = active;
 
   useEffect(() => {
@@ -220,60 +282,118 @@ export function useLedScoresRealtime(enabled: boolean) {
       }
       scheduleTerminalFlush(0);
     }
+    function skipPendingEnrichment(eventId: string, detail: string) {
+      const pending = pendingEnrichmentsRef.current.get(eventId);
+      if (!pending) return;
+      pendingEnrichmentsRef.current.delete(eventId);
+      acknowledgeTerminal(
+        pending,
+        "skipped",
+        detail,
+        Date.parse(pending.expiresAt)
+      );
+    }
+    function rememberEnrichmentSequence(eventId: string, sequence: number) {
+      enrichmentSequencesRef.current.delete(eventId);
+      enrichmentSequencesRef.current.set(eventId, sequence);
+      while (enrichmentSequencesRef.current.size > maximumEnrichmentSequences) {
+        const oldest = enrichmentSequencesRef.current.keys().next().value;
+        if (typeof oldest !== "string") break;
+        enrichmentSequencesRef.current.delete(oldest);
+      }
+    }
     const handleOnline = () => {
       scheduleTerminalFlush(0);
     };
     window.addEventListener("online", handleOnline);
     scheduleTerminalFlush(0);
-    const clearGoalTimers = () => {
+    const clearOverlayTimers = () => {
       if (activationTimerRef.current !== null) window.clearTimeout(activationTimerRef.current);
       if (expiryTimerRef.current !== null) window.clearTimeout(expiryTimerRef.current);
       activationTimerRef.current = null;
       expiryTimerRef.current = null;
     };
-    const handleGoal = (value: unknown) => {
-      const possibleDeliveryId = isRecord(value) ? safeUuid(value.id) : null;
-      const message = parseGoalMessage(value);
-      if (!message) {
-        if (possibleDeliveryId) {
-          void acknowledge(token, possibleDeliveryId, "failed", "invalid_goal_payload");
-        }
-        return;
-      }
-      void acknowledge(token, message.goal.deliveryId, "received", null);
-      const serverOffsetMs = Date.parse(message.serverTime) - Date.now();
+    const storeMatchState = (value: unknown, serverTime?: unknown) => {
+      const state = parseLedScoresMatchStateMessage(
+        isRecord(value) && serverTime !== undefined
+          ? { ...value, serverTime }
+          : value
+      );
+      if (!state) return;
+      setMatchStates((current) => {
+        const previous = current.get(state.connectionId) ?? null;
+        const selected = chooseLatestLedScoresMatchState(previous, state);
+        if (selected === previous) return current;
+        const next = new Map(current);
+        next.set(state.connectionId, selected);
+        writeStoredLedScoresMatchStates(window.localStorage, [...next.values()]);
+        return next;
+      });
+    };
+    const scheduleOverlay = ({
+      executeAt,
+      expiresAt: expiresAtValue,
+      overlay,
+      serverTime
+    }: {
+      executeAt: string;
+      expiresAt: string;
+      overlay: ActiveLedScoresOverlay;
+      serverTime: string;
+    }) => {
+      const serverOffsetMs = Date.parse(serverTime) - Date.now();
       const serverNow = Date.now() + serverOffsetMs;
-      const expiresAt = Date.parse(message.expiresAt);
+      const expiresAt = Date.parse(expiresAtValue);
+      const priority = overlayPriority(overlay.kind);
       if (findTerminalAcknowledgement(
-        message.goal.deliveryId,
-        message.goal.eventId,
+        overlay.deliveryId,
+        overlay.eventId,
         Date.now()
       )) {
         scheduleTerminalFlush(0);
         return;
       }
-      if (activeRef.current?.eventId === message.goal.eventId) return;
-      if (expiresAt <= serverNow || hasSeenGoal(message.goal.eventId, serverNow)) {
-        acknowledgeTerminal(message.goal, "skipped", "expired_or_duplicate", expiresAt);
+      if (
+        activeRef.current?.eventId === overlay.eventId &&
+        activeRef.current.kind === overlay.kind
+      ) return;
+      if (
+        expiresAt <= serverNow ||
+        (overlay.kind === "goal" && hasSeenGoal(overlay.eventId, serverNow))
+      ) {
+        acknowledgeTerminal(overlay, "skipped", "expired_or_duplicate", expiresAt);
         return;
       }
-      const activateIn = Math.max(0, Date.parse(message.executeAt) - serverNow);
+      const activateIn = Math.max(0, Date.parse(executeAt) - serverNow);
       if (activateIn > 30_000) {
-        acknowledgeTerminal(message.goal, "skipped", "execute_time_too_far", expiresAt);
+        acknowledgeTerminal(overlay, "skipped", "execute_time_too_far", expiresAt);
         return;
       }
-      const scheduling = classifyScheduledGoal(scheduledRef.current, message.goal);
+      if (activeRef.current && overlayPriority(activeRef.current.kind) > priority) {
+        acknowledgeTerminal(overlay, "skipped", "higher_priority_overlay_active", expiresAt);
+        return;
+      }
+      const scheduling = classifyScheduledGoal(scheduledRef.current, overlay);
       if (scheduling === "same_delivery") return;
       if (scheduling === "same_event") {
-        acknowledgeTerminal(
-          message.goal,
-          "skipped",
-          "duplicate_event_before_activation",
-          expiresAt
-        );
+        acknowledgeTerminal(overlay, "skipped", "duplicate_event_before_activation", expiresAt);
+        return;
+      }
+      if (
+        scheduling === "replace" && scheduledRef.current &&
+        scheduledRef.current.priority > priority
+      ) {
+        acknowledgeTerminal(overlay, "skipped", "higher_priority_overlay_scheduled", expiresAt);
         return;
       }
       if (scheduling === "replace" && scheduledRef.current) {
+        if (scheduledRef.current.kind === "goal") {
+          skipPendingEnrichment(
+            scheduledRef.current.eventId,
+            "goal_replaced_before_enrichment_render"
+          );
+          enrichmentSequencesRef.current.delete(scheduledRef.current.eventId);
+        }
         acknowledgeTerminal(
           scheduledRef.current,
           "skipped",
@@ -281,59 +401,192 @@ export function useLedScoresRealtime(enabled: boolean) {
           scheduledRef.current.expiresAt
         );
       }
-      clearGoalTimers();
-      const replaced = activeRef.current;
-      if (replaced && replaced.eventId !== message.goal.eventId) {
+      clearOverlayTimers();
+      if (activeRef.current?.eventId !== overlay.eventId) {
+        if (activeRef.current?.kind === "goal") {
+          enrichmentSequencesRef.current.delete(activeRef.current.eventId);
+        }
+        activeRef.current = null;
         setActive(null);
       }
       scheduledRef.current = {
-        deliveryId: message.goal.deliveryId,
-        eventId: message.goal.eventId,
-        expiresAt
+        deliveryId: overlay.deliveryId,
+        eventId: overlay.eventId,
+        expiresAt,
+        kind: overlay.kind,
+        priority
       };
       activationTimerRef.current = window.setTimeout(() => {
-        if (scheduledRef.current?.deliveryId === message.goal.deliveryId) {
+        if (scheduledRef.current?.deliveryId === overlay.deliveryId) {
           scheduledRef.current = null;
         }
         if (cancelled) return;
         const currentServerNow = Date.now() + serverOffsetMs;
         if (expiresAt <= currentServerNow) {
-          acknowledgeTerminal(
-            message.goal,
-            "skipped",
-            "execute_window_expired",
-            expiresAt
-          );
+          if (overlay.kind === "goal") {
+            skipPendingEnrichment(overlay.eventId, "goal_execute_window_expired");
+            enrichmentSequencesRef.current.delete(overlay.eventId);
+          }
+          acknowledgeTerminal(overlay, "skipped", "execute_window_expired", expiresAt);
           return;
         }
-        activeRef.current = message.goal;
-        setActive(message.goal);
-        window.requestAnimationFrame(() => {
-          acknowledgeTerminal(
-            message.goal,
-            "rendered",
-            `render_latency_ms:${Math.max(0, Date.now() + serverOffsetMs - Date.parse(message.executeAt))}`,
-            expiresAt
-          );
-          rememberGoal(message.goal.eventId, expiresAt);
-        });
-        expiryTimerRef.current = window.setTimeout(() => {
-          if (activeRef.current?.eventId === message.goal.eventId) {
+        if (overlay.kind === "lineup_clear") {
+          if (activeRef.current?.kind === "lineup") {
             activeRef.current = null;
             setActive(null);
           }
-        }, Math.max(1, Math.min(message.goal.durationMs, expiresAt - currentServerNow)));
+          window.requestAnimationFrame(() => acknowledgeTerminal(
+            overlay,
+            "rendered",
+            "lineup_closed",
+            expiresAt
+          ));
+          return;
+        }
+        let activated = overlay;
+        let appliedEnrichment: LedScoresGoalEnrichment | null = null;
+        if (overlay.kind === "goal") {
+          const pending = pendingEnrichmentsRef.current.get(overlay.eventId);
+          if (pending) {
+            activated = enrichGoal(overlay, pending.player);
+            appliedEnrichment = pending;
+            pendingEnrichmentsRef.current.delete(overlay.eventId);
+          }
+        }
+        activeRef.current = activated;
+        setActive(activated);
+        window.requestAnimationFrame(() => {
+          acknowledgeTerminal(
+            overlay,
+            "rendered",
+            `render_latency_ms:${Math.max(0, Date.now() + serverOffsetMs - Date.parse(executeAt))}`,
+            expiresAt
+          );
+          if (appliedEnrichment) {
+            const completion = scheduledGoalEnrichmentCompletion(appliedEnrichment);
+            acknowledgeTerminal(
+              completion.delivery,
+              completion.status,
+              completion.detail,
+              completion.expiresAt
+            );
+          }
+          if (overlay.kind === "goal") rememberGoal(overlay.eventId, expiresAt);
+        });
+        expiryTimerRef.current = window.setTimeout(() => {
+          if (activeRef.current?.deliveryId === overlay.deliveryId) {
+            activeRef.current = null;
+            setActive(null);
+            if (overlay.kind === "goal") {
+              enrichmentSequencesRef.current.delete(overlay.eventId);
+            }
+          }
+        }, Math.max(1, Math.min(overlay.durationMs, expiresAt - currentServerNow)));
       }, activateIn);
+    };
+    const handleGoal = (value: unknown) => {
+      const possibleDeliveryId = isRecord(value) ? safeUuid(value.id) : null;
+      const message = parseGoalMessage(value);
+      if (!message) {
+        if (possibleDeliveryId) void acknowledge(
+          token,
+          possibleDeliveryId,
+          "failed",
+          "invalid_goal_payload"
+        );
+        return;
+      }
+      void acknowledge(token, message.goal.deliveryId, "received", null);
+      scheduleOverlay({ ...message, overlay: message.goal });
+    };
+    const handleMatchOverlay = (value: unknown) => {
+      const possibleDeliveryId = isRecord(value) ? safeUuid(value.id) : null;
+      const message = parseLedScoresMatchOverlayMessage(value);
+      if (!message) {
+        if (possibleDeliveryId) void acknowledge(
+          token,
+          possibleDeliveryId,
+          "failed",
+          "invalid_match_overlay_payload"
+        );
+        return;
+      }
+      void acknowledge(token, message.overlay.deliveryId, "received", null);
+      scheduleOverlay(message);
+    };
+    const handleGoalEnrichment = (value: unknown) => {
+      const possibleDeliveryId = isRecord(value) ? safeUuid(value.id) : null;
+      const enrichment = parseLedScoresGoalEnrichmentMessage(value);
+      if (!enrichment) {
+        if (possibleDeliveryId) void acknowledge(
+          token,
+          possibleDeliveryId,
+          "failed",
+          "invalid_goal_enrichment_payload"
+        );
+        return;
+      }
+      void acknowledge(token, enrichment.deliveryId, "received", null);
+      const expiresAt = Date.parse(enrichment.expiresAt);
+      if (isGoalEnrichmentExpiredAtServerTime(enrichment, Date.now())) {
+        acknowledgeTerminal(enrichment, "skipped", "enrichment_expired", expiresAt);
+        return;
+      }
+      const latestSequence = enrichmentSequencesRef.current.get(
+        enrichment.eventId
+      ) ?? null;
+      if (!shouldApplyGoalEnrichmentSequence(latestSequence, enrichment.sequence)) {
+        acknowledgeTerminal(
+          enrichment,
+          "skipped",
+          "superseded_enrichment",
+          expiresAt
+        );
+        return;
+      }
+      if (activeRef.current?.kind === "goal" &&
+        activeRef.current.eventId === enrichment.eventId) {
+        rememberEnrichmentSequence(enrichment.eventId, enrichment.sequence);
+        const updated = enrichGoal(activeRef.current, enrichment.player);
+        activeRef.current = updated;
+        setActive(updated);
+        window.requestAnimationFrame(() => acknowledgeTerminal(
+          enrichment,
+          "rendered",
+          "active_goal_enriched",
+          expiresAt
+        ));
+        return;
+      }
+      if (scheduledRef.current?.kind === "goal" &&
+        scheduledRef.current.eventId === enrichment.eventId) {
+        skipPendingEnrichment(enrichment.eventId, "superseded_enrichment");
+        rememberEnrichmentSequence(enrichment.eventId, enrichment.sequence);
+        pendingEnrichmentsRef.current.set(enrichment.eventId, enrichment);
+        return;
+      }
+      acknowledgeTerminal(enrichment, "skipped", "goal_not_active", expiresAt);
     };
     const handleStreamEvent = (event: string, value: unknown) => {
       if (!isRecord(value)) return;
       if (event === "bootstrap" || event === "configuration") {
         if (Array.isArray(value.configs)) preloadAssets(value.configs);
+        if (Array.isArray(value.matchBindings)) {
+          for (const binding of value.matchBindings) {
+            storeMatchState(binding, value.serverTime);
+          }
+        }
         if (event === "configuration" && typeof value.deliveryId === "string") {
           void acknowledge(token, value.deliveryId, "received", "configuration_prefetched");
         }
       } else if (event === "goal") {
         handleGoal(value);
+      } else if (event === "goal_enrichment") {
+        handleGoalEnrichment(value);
+      } else if (event === "match_overlay") {
+        handleMatchOverlay(value);
+      } else if (event === "match_state") {
+        storeMatchState(value);
       }
     };
     void runLedScoresRealtimeConnectionLoop({
@@ -346,16 +599,33 @@ export function useLedScoresRealtime(enabled: boolean) {
       connectionController.abort();
       window.removeEventListener("online", handleOnline);
       if (terminalRetryTimer !== null) window.clearTimeout(terminalRetryTimer);
-      clearGoalTimers();
+      clearOverlayTimers();
       scheduledRef.current = null;
+      pendingEnrichmentsRef.current.clear();
+      enrichmentSequencesRef.current.clear();
       activeRef.current = null;
     };
-  }, [enabled]);
+  }, [enabled, subscriptionKey]);
 
   return {
     active,
+    matchStates,
     pauseUnderlay: active?.underlayPolicy === "pause"
   };
+}
+
+function overlayPriority(kind: ActiveLedScoresOverlay["kind"]) {
+  if (kind === "goal") return 100;
+  if (kind === "lineup_clear") return 90;
+  if (kind === "lineup") return 50;
+  return 40;
+}
+
+function enrichGoal(
+  goal: ActiveLedScoresGoal,
+  player: LedScoresPlayerViewModel
+): ActiveLedScoresGoal {
+  return { ...goal, player, scorerName: player.name };
 }
 
 export function LedScoresGoalOverlay({ goal }: { goal: ActiveLedScoresGoal | null }) {
@@ -393,9 +663,31 @@ export function LedScoresGoalOverlay({ goal }: { goal: ActiveLedScoresGoal | nul
         {goal.eventKind === "synthetic_test" ? <span>LIVE-TEST</span> : null}
       </div>
     </div>
+    {goal.design.showScorer && goal.player ? <aside className={styles.playerReveal}>
+      <div className={styles.playerPortrait}>
+        {goal.player.photoUrl
+          ? <img alt="" aria-hidden="true" src={goal.player.photoUrl} />
+          : <span aria-hidden="true">{initials(goal.player.name)}</span>}
+      </div>
+      <div>
+        {goal.player.number ? <span>#{goal.player.number}</span> : null}
+        <strong>{goal.player.name}</strong>
+        <small>Doelpuntenmaker</small>
+      </div>
+    </aside> : null}
     {sponsor ? <aside className={styles.sponsor}><span>Mede mogelijk gemaakt door</span><img alt="Sponsor" src={sponsor.url} /></aside> : null}
     {sound ? <GoalSound asset={sound} volume={goal.soundVolume} /> : null}
   </section>;
+}
+
+export function LedScoresExperienceOverlay({
+  overlay
+}: {
+  overlay: ActiveLedScoresOverlay | null;
+}) {
+  return overlay?.kind === "goal"
+    ? <LedScoresGoalOverlay goal={overlay} />
+    : <LedScoresMatchOverlay overlay={overlay} />;
 }
 
 export function ledScoresScoringTeam(goal: Pick<
@@ -429,6 +721,7 @@ export function parseGoalMessage(value: unknown) {
   const awayScore = boundedInteger(payload.awayScore, 0, 999);
   const previousHomeScore = boundedInteger(payload.previousHomeScore, 0, 999);
   const previousAwayScore = boundedInteger(payload.previousAwayScore, 0, 999);
+  const player = parseGoalPlayer(payload.player ?? payload.scorer);
   if (!deliveryId || !executeAt || !expiresAt || !serverTime || !eventId || !scoringSide || !design || durationMs === null || homeScore === null || awayScore === null || previousHomeScore === null || previousAwayScore === null) return null;
   const assets = new Map<string, OverlayAsset>();
   for (const asset of value.assets.slice(0, 10)) {
@@ -449,12 +742,14 @@ export function parseGoalMessage(value: unknown) {
       eventKind: payload.eventKind === "synthetic_test" ? "synthetic_test" as const : "live" as const,
       homeScore,
       homeTeam: safeText(payload.homeTeam, 160) ?? "Thuisteam",
+      kind: "goal" as const,
       logoMediaAssetId: safeOptionalUuid(payload.logoMediaAssetId),
       matchClock: safeText(payload.matchClock, 40),
       mediaAssetId: safeOptionalUuid(payload.mediaAssetId),
       previousAwayScore,
       previousHomeScore,
-      scorerName: safeText(payload.scorerName, 160),
+      player,
+      scorerName: player?.name ?? safeText(payload.scorerName, 160),
       scoringSide,
       soundMediaAssetId: safeOptionalUuid(payload.soundMediaAssetId),
       soundVolume: boundedInteger(payload.soundVolume, 0, 100) ?? 70,
@@ -509,7 +804,7 @@ export function parseSseBlock(value: string) {
     if (line.startsWith("event: ")) event = line.slice(7).trim();
     if (line.startsWith("data: ")) data.push(line.slice(6));
   }
-  if (!data.length || !/^[a-z]+$/.test(event)) return null;
+  if (!data.length || !/^[a-z][a-z_]{0,39}$/.test(event)) return null;
   try { return { event, value: JSON.parse(data.join("\n")) as unknown }; }
   catch { return null; }
 }
@@ -647,6 +942,9 @@ function rememberGoal(eventId: string, expiresAt: number) { try { const entries 
 function readDedupeEntries(now: number): Array<{ eventId: string; expiresAt: number }> { try { const parsed = JSON.parse(window.localStorage.getItem(dedupeStorageKey) ?? "[]") as unknown; return Array.isArray(parsed) ? parsed.flatMap((entry) => isRecord(entry) && safeUuid(entry.eventId) && typeof entry.expiresAt === "number" && entry.expiresAt > now ? [{ eventId: String(entry.eventId), expiresAt: entry.expiresAt }] : []).slice(-maximumDedupeEntries) : []; } catch { return []; } }
 function assetFor(assets: Map<string, OverlayAsset>, id: string | null) { return id ? assets.get(id) ?? null : null; }
 function parseAsset(value: unknown): OverlayAsset | null { if (!isRecord(value)) return null; const mediaAssetId = safeUuid(value.mediaAssetId); const checksum = typeof value.checksum === "string" && /^[a-f0-9]{64}$/.test(value.checksum) ? value.checksum : null; const mimeType = typeof value.mimeType === "string" && /^(image\/(jpeg|png|webp)|video\/mp4)$/.test(value.mimeType) ? value.mimeType : null; const url = typeof value.url === "string" && /^https?:\/\//.test(value.url) && value.url.length <= 2_000 ? value.url : null; return mediaAssetId && checksum && mimeType && url ? { checksum, mediaAssetId, mimeType, url } : null; }
+function parseGoalPlayer(value: unknown): LedScoresPlayerViewModel | null { if (!isRecord(value)) return null; const name = safeText(value.name, 160); if (!name) return null; const rawNumber = typeof value.number === "number" ? String(value.number) : value.number; return { id: safeText(value.id ?? value.providerPlayerId, 200), name, number: safeText(rawNumber, 16), photoUrl: safeWebUrl(value.photoUrl) }; }
+function safeWebUrl(value: unknown) { return typeof value === "string" && value.length <= 2_000 && /^https?:\/\//.test(value) ? value : null; }
+function initials(value: string) { return value.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("") || "VC"; }
 function parseDesign(value: unknown): OverlayDesign | null { if (!isRecord(value)) return null; const headline = safeText(value.headline, 80); const secondaryText = safeText(value.secondaryText, 160) ?? ""; const scorerFallback = safeText(value.scorerFallback, 120) ?? "Doelpunt!"; const palette = ["electric-orange", "ink-black", "signal-red", "white"].includes(String(value.palette)) ? String(value.palette) as OverlayDesign["palette"] : null; const animation = ["impact", "pulse", "slide", "none"].includes(String(value.animation)) ? String(value.animation) as OverlayDesign["animation"] : null; const logoScale = ["small", "medium", "large"].includes(String(value.logoScale)) ? String(value.logoScale) as OverlayDesign["logoScale"] : "medium"; if (!headline || !palette || !animation) return null; return { animation, headline, logoPosition: value.logoPosition === "center" ? "center" : "left", logoScale, palette, scorerFallback, secondaryText, showClock: value.showClock === true, showPreviousScore: value.showPreviousScore === true, showScorer: value.showScorer !== false, typography: value.typography === "body" ? "body" : "display" }; }
 function safeUuid(value: unknown) { return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value) ? value : null; }
 function safeOptionalUuid(value: unknown) { return value === null || value === undefined || value === "" ? null : safeUuid(value); }

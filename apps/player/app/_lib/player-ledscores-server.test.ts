@@ -1,14 +1,83 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  createSerializedLedScoresStreamQueue,
   encodeSseEvent,
   hashPlayerCredential,
+  hydrateLedScoresDeliveryProviderPhotos,
+  ledScoresRealtimeBootstrapPayload,
+  loadLedScoresMatchPlayerBootstrap,
   loadLedScoresPlayerBootstrap,
   normalizeLedScoresDelivery,
-  readPlayerBearerToken
+  normalizeLedScoresMatchStateRow,
+  orderLedScoresPendingDeliveries,
+  readPlayerBearerToken,
+  shouldAttachLedScoresConfigAssets,
+  shouldRefreshLedScoresConfigAssets
 } from "./player-ledscores-server";
 
 describe("LED Scores Player server boundary", () => {
+  it("serialiseert trage deliveryhydratie zodat lineup-clear nooit wordt ingehaald", async () => {
+    let releaseLineup: (() => void) | undefined;
+    const lineupHydrated = new Promise<void>((resolve) => {
+      releaseLineup = resolve;
+    });
+    const rendered: string[] = [];
+    const enqueue = createSerializedLedScoresStreamQueue();
+    const lineup = enqueue(async () => {
+      await lineupHydrated;
+      rendered.push("lineup");
+    });
+    const clear = enqueue(() => {
+      rendered.push("lineup_clear");
+    });
+
+    await Promise.resolve();
+    expect(rendered).toEqual([]);
+    releaseLineup?.();
+    await Promise.all([lineup, clear]);
+    expect(rendered).toEqual(["lineup", "lineup_clear"]);
+  });
+
+  it("isoleert een deliveryfout en behoudt databasevolgorde bij gecombineerde catch-up", async () => {
+    const failed = vi.fn();
+    const rendered: string[] = [];
+    const enqueue = createSerializedLedScoresStreamQueue(failed);
+    await Promise.all([
+      enqueue(() => { throw new Error("photo signing unavailable"); }),
+      enqueue(() => { rendered.push("next"); })
+    ]);
+    expect(failed).toHaveBeenCalledOnce();
+    expect(rendered).toEqual(["next"]);
+
+    const delivery = (
+      id: string,
+      kind: "goal" | "match_overlay",
+      executeAt: string
+    ) => normalizeLedScoresDelivery({
+      alert_version_id: "11111111-1111-4111-8111-111111111111",
+      execute_at: executeAt,
+      expires_at: "2026-08-31T18:01:00.000Z",
+      id,
+      message_kind: kind,
+      payload: kind === "match_overlay" ? { overlayKind: "lineup" } : {},
+      screen_id: "44444444-4444-4444-8444-444444444444"
+    });
+    const clear = delivery(
+      "33333333-3333-4333-8333-333333333333",
+      "match_overlay",
+      "2026-08-31T18:00:03.000Z"
+    );
+    const goal = delivery(
+      "22222222-2222-4222-8222-222222222222",
+      "goal",
+      "2026-08-31T18:00:02.000Z"
+    );
+    if (!clear || !goal) throw new Error("Expected valid deliveries");
+    expect(orderLedScoresPendingDeliveries([clear], [goal]).map((item) => item.id))
+      .toEqual([goal.id, clear.id]);
+  });
+
   it("accepteert alleen begrensde bearer credentials en hasht ze voor databasegebruik", () => {
     const token = "device_credential_1234567890";
     const request = new Request("https://player.test/api/player/realtime", {
@@ -40,6 +109,164 @@ describe("LED Scores Player server boundary", () => {
       payload: {},
       screen_id: "44444444-4444-4444-8444-444444444444"
     })).toBeNull();
+    expect(normalizeLedScoresDelivery({
+      execute_at: "2026-08-30T12:00:00.750Z",
+      expires_at: "2026-08-30T12:00:10.750Z",
+      id: "22222222-2222-4222-8222-222222222222",
+      message_kind: "match_overlay",
+      payload: { overlayKind: "match_start" },
+      screen_id: "44444444-4444-4444-8444-444444444444"
+    }))?.toMatchObject({ kind: "match_overlay" });
+    expect(shouldAttachLedScoresConfigAssets("goal")).toBe(true);
+    expect(shouldAttachLedScoresConfigAssets("match_overlay")).toBe(true);
+    expect(shouldAttachLedScoresConfigAssets("goal_enrichment")).toBe(false);
+    expect(shouldRefreshLedScoresConfigAssets(1_000, 45 * 60 * 1_000)).toBe(false);
+    expect(shouldRefreshLedScoresConfigAssets(
+      1_000,
+      45 * 60 * 1_000 + 1_000
+    )).toBe(true);
+  });
+
+  it("normaliseert live state zonder tenantdetails naar de Player-envelope", () => {
+    expect(normalizeLedScoresMatchStateRow({
+      connection_id: "11111111-1111-4111-8111-111111111111",
+      source_observed_at: "2026-08-31T18:00:00.000Z",
+      stale_after_seconds: 10,
+      state_json: { schemaVersion: 1, matchKey: "match-1" },
+      state_sequence: 4,
+      tenant_id: "99999999-9999-4999-8999-999999999999"
+    })).toEqual({
+      connectionId: "11111111-1111-4111-8111-111111111111",
+      sourceObservedAt: "2026-08-31T18:00:00.000Z",
+      staleAfterSeconds: 10,
+      state: { schemaVersion: 1, matchKey: "match-1" },
+      stateSequence: 4
+    });
+  });
+
+  it("stuurt bij subscribe-catch-up de opnieuw gelezen matchbinding mee", () => {
+    const refreshedBinding = {
+      connectionId: "11111111-1111-4111-8111-111111111111",
+      state: { schemaVersion: 1, stateRevision: 2 }
+    };
+    expect(ledScoresRealtimeBootstrapPayload({
+      configs: [],
+      matchBindings: [refreshedBinding],
+      screenId: "44444444-4444-4444-8444-444444444444",
+      serverTime: "2026-08-31T18:00:02.000Z"
+    })).toMatchObject({
+      matchBindings: [refreshedBinding],
+      screenId: "44444444-4444-4444-8444-444444444444"
+    });
+  });
+
+  it("laadt alleen release-gebonden live match states en overlaydeliveries", async () => {
+    const admin = {
+      rpc: vi.fn().mockResolvedValue({
+        data: {
+          authorized: true,
+          bindings: [{
+            configuration: { template: "match_center" },
+            connectionId: "11111111-1111-4111-8111-111111111111",
+            dynamicSnapshotId: "22222222-2222-4222-8222-222222222222",
+            sourceObservedAt: "2026-08-31T18:00:00.000Z",
+            staleAfterSeconds: 10,
+            state: { schemaVersion: 1, matchKey: "match-1" },
+            stateSequence: 4
+          }],
+          enabled: true,
+          pendingDeliveries: [{
+            alert_version_id: "33333333-3333-4333-8333-333333333333",
+            execute_at: "2026-08-31T18:00:00.100Z",
+            expires_at: "2026-08-31T18:00:20.000Z",
+            id: "44444444-4444-4444-8444-444444444444",
+            message_kind: "goal_enrichment",
+            payload: { eventId: "55555555-5555-4555-8555-555555555555" },
+            screen_id: "66666666-6666-4666-8666-666666666666"
+          }],
+          screenId: "66666666-6666-4666-8666-666666666666",
+          tenantId: "77777777-7777-4777-8777-777777777777"
+        },
+        error: null
+      })
+    };
+    const bootstrap = await loadLedScoresMatchPlayerBootstrap(
+      admin as never,
+      "a".repeat(64)
+    );
+    expect(bootstrap).toMatchObject({
+      authorized: true,
+      bindings: [expect.objectContaining({ stateSequence: 4 })],
+      enabled: true,
+      pendingDeliveries: [expect.objectContaining({ kind: "goal_enrichment" })]
+    });
+  });
+
+  it("tekent providerfoto's service-only en verwijdert interne versie-ID's", async () => {
+    const photoId = "88888888-8888-4888-8888-888888888888";
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: { signedUrl: "https://storage.test/signed-player.webp" },
+      error: null
+    });
+    const admin = {
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          in: vi.fn().mockResolvedValue({
+            data: [{
+              checksum_sha256: "a".repeat(64),
+              file_size_bytes: 12_000,
+              id: photoId,
+              mime_type: "image/webp",
+              provider_asset_cache: {
+                asset_role: "player_photo",
+                entity_type: "player",
+                provider: "ledscores"
+              },
+              storage_bucket: "provider-assets",
+              storage_path: "ledscores/player/88/photo.webp"
+            }],
+            error: null
+          })
+        }))
+      })),
+      storage: { from: vi.fn(() => ({ createSignedUrl })) }
+    };
+    const delivery = normalizeLedScoresDelivery({
+      execute_at: "2026-08-31T18:00:00.100Z",
+      expires_at: "2026-08-31T18:00:20.000Z",
+      id: "44444444-4444-4444-8444-444444444444",
+      message_kind: "goal_enrichment",
+      payload: {
+        eventId: "55555555-5555-4555-8555-555555555555",
+        player: {
+          name: "D. Jansen",
+          photoProviderAssetVersionId: photoId
+        }
+      },
+      screen_id: "66666666-6666-4666-8666-666666666666"
+    });
+    if (!delivery) throw new Error("Expected delivery");
+    const hydrated = await hydrateLedScoresDeliveryProviderPhotos(
+      admin as never,
+      delivery
+    );
+    expect(hydrated.payload.player).toEqual({
+      name: "D. Jansen",
+      photoUrl: "https://storage.test/signed-player.webp"
+    });
+    expect(createSignedUrl).toHaveBeenCalledWith(
+      "ledscores/player/88/photo.webp",
+      3_600
+    );
+
+    const fallback = await hydrateLedScoresDeliveryProviderPhotos({
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          in: vi.fn().mockRejectedValue(new Error("storage lookup unavailable"))
+        }))
+      }))
+    } as never, delivery);
+    expect(fallback.payload.player).toEqual({ name: "D. Jansen" });
   });
 
   it("tekent uitsluitend tenant assetpaden uit de geautoriseerde bootstrap", async () => {

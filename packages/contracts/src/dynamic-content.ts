@@ -27,6 +27,10 @@ export const dynamicSlideTypes = [
   "news",
   ...sportDynamicSlideTypes
 ] as const;
+export const dynamicTemplateSlideTypes = [
+  ...dynamicSlideTypes,
+  "ledscores_live_match"
+] as const;
 
 /**
  * The only Editorial Arena types backed by a complete, tested data flow in
@@ -64,6 +68,7 @@ export const editorialArenaPricePhotoModes = [
 ] as const;
 export const dynamicSlideOrientations = ["landscape", "portrait"] as const;
 export const dynamicDataSourceKinds = [
+  "ledscores",
   "manual_products",
   "twelve_excel",
   "rss",
@@ -71,6 +76,7 @@ export const dynamicDataSourceKinds = [
 ] as const;
 
 export const dynamicSlideTypeSchema = z.enum(dynamicSlideTypes);
+export const dynamicTemplateSlideTypeSchema = z.enum(dynamicTemplateSlideTypes);
 export const dynamicSlideOrientationSchema = z.enum(dynamicSlideOrientations);
 export const dynamicDataSourceKindSchema = z.enum(dynamicDataSourceKinds);
 
@@ -312,7 +318,7 @@ export const dynamicTemplateManifestSchema = z.object({
   engine: z.literal("veyocast-safe-template-v1"),
   maxCollectionItems: z.number().int().min(1).max(100).default(40),
   schemaVersion: z.literal(1),
-  slideType: dynamicSlideTypeSchema
+  slideType: dynamicTemplateSlideTypeSchema
 });
 
 export const playerDynamicTemplateAssetSchema = z
@@ -357,7 +363,7 @@ export const playerDynamicTemplatePayloadSchema = z
     data: z.record(z.string(), z.unknown()),
     orientation: dynamicSlideOrientationSchema,
     schemaVersion: z.literal(1),
-    slideType: dynamicSlideTypeSchema,
+    slideType: dynamicTemplateSlideTypeSchema,
     snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
     snapshotId: idSchema,
     templateSlug: z
@@ -369,6 +375,10 @@ export const playerDynamicTemplatePayloadSchema = z
   .strict();
 
 export const dynamicSnapshotDataSchema = z.discriminatedUnion("type", [
+  z.object({
+    liveMatch: z.record(z.string(), z.unknown()),
+    type: z.literal("ledscores_live_match")
+  }),
   z.object({
     data: canonicalMenuSchema,
     type: z.literal("menu")

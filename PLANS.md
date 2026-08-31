@@ -142,6 +142,7 @@ tests en exitcriteria staan in
 | S137 | Sportlink verjaardagsnormalisatie hotfix | Drieletterige Nederlandse providermaanden veilig verwerken en een niet-lege providerrespons die tot nul verjaardagen normaliseert vóór databasecompletion fail-closed stoppen |
 | S139 | LED Scores feature-rollout recovery | De verborgen Vector-only allowlist herstellen en tenantvrijgave via revision-, idempotency-, audit- en kill-switchveilige v2-command voor uitsluitend het gekozen cohort laten verlopen |
 | S140 | LED Scores Playerbetrouwbaarheid en afleverbewijs | Moderne Players na een tijdelijk uitgeschakelde feature opnieuw laten verbinden, LG Legacy dezelfde device-geauthenticeerde Goal Alert laten tonen en Control per doelscherm de echte ontvangst-/renderuitkomst laten verklaren |
+| S141 | LED Scores live wedstrijdervaring | Een echte live tussenstandslide combineren met goal-, opstellings-, start-, rust- en eindoverlays, stabiele speleridentiteit, veilige fotoverrijking en één premium responsive Studioflow |
 
 ### Programmagates
 

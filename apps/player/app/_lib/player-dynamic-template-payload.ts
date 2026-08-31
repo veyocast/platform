@@ -1,7 +1,7 @@
 import {
   playerDynamicTemplatePayloadSchema,
   type dynamicSlideOrientations,
-  type dynamicSlideTypes,
+  type dynamicTemplateSlideTypes,
   type PlayerDynamicTemplatePayload
 } from "@veyocast/contracts";
 
@@ -20,7 +20,7 @@ export type DynamicTemplatePayloadVersionRow = {
 export type DynamicTemplatePayloadRow = {
   id: string;
   orientation: (typeof dynamicSlideOrientations)[number];
-  slide_type: (typeof dynamicSlideTypes)[number];
+  slide_type: (typeof dynamicTemplateSlideTypes)[number];
   slug: string;
 };
 
