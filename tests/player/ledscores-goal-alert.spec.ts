@@ -12,7 +12,7 @@ test("toont één realtime Goal Alert boven last-known-good playback en pauzeert
     `${playerURL}/api/player/manifest?deviceToken=demo-online`
   );
   const manifest = (await manifestResponse.json()) as PlayerManifestEnvelope;
-  const acknowledgements: Array<{ status?: string }> = [];
+  const acknowledgements: Array<{ deliveryId?: string; status?: string }> = [];
   let realtimeAuthorization: string | undefined;
 
   await page.route("**/api/player/manifest", (route) => route.fulfill({
@@ -32,7 +32,7 @@ test("toont één realtime Goal Alert boven last-known-good playback en pauzeert
     contentType: "application/json"
   }));
   await page.route("**/api/player/realtime/ack", async (route) => {
-    acknowledgements.push(JSON.parse(route.request().postData() ?? "{}") as { status?: string });
+    acknowledgements.push(JSON.parse(route.request().postData() ?? "{}") as { deliveryId?: string; status?: string });
     await route.fulfill({ body: JSON.stringify({ ok: true }), contentType: "application/json" });
   });
   await page.route("**/api/player/realtime", async (route) => {
@@ -99,6 +99,100 @@ test("toont één realtime Goal Alert boven last-known-good playback en pauzeert
   await expect.poll(() => acknowledgements.some((item) => item.status === "rendered")).toBe(true);
   await expect(overlay).toHaveCount(0, { timeout: 4_000 });
   expect(acknowledgements.filter((item) => item.status === "rendered")).toHaveLength(1);
+});
+
+test("verbindt opnieuw wanneer LED Scores bij Player-start nog niet is vrijgegeven", async ({ page }) => {
+  const manifestResponse = await page.request.get(
+    `${playerURL}/api/player/manifest?deviceToken=demo-online`
+  );
+  const manifest = (await manifestResponse.json()) as PlayerManifestEnvelope;
+  const acknowledgements: Array<{ deliveryId?: string; status?: string }> = [];
+  let rejectedRenderedAcknowledgement = false;
+  let realtimeRequests = 0;
+
+  await page.route("**/api/player/manifest", (route) => route.fulfill({
+    body: JSON.stringify(manifest),
+    contentType: "application/json"
+  }));
+  await page.route("**/api/player/installation", (route) => route.fulfill({
+    body: JSON.stringify({ bound: true, installationCredential: "i".repeat(48), ok: true }),
+    contentType: "application/json"
+  }));
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    body: JSON.stringify({ automation: null, ok: true }),
+    contentType: "application/json"
+  }));
+  await page.route("**/api/player/commands", (route) => route.fulfill({
+    body: JSON.stringify({ commands: [], ok: true, serverTime: new Date().toISOString() }),
+    contentType: "application/json"
+  }));
+  await page.route("**/api/player/realtime/ack", async (route) => {
+    const acknowledgement = JSON.parse(route.request().postData() ?? "{}") as {
+      deliveryId?: string;
+      status?: string;
+    };
+    acknowledgements.push(acknowledgement);
+    if (acknowledgement.status === "rendered" && !rejectedRenderedAcknowledgement) {
+      rejectedRenderedAcknowledgement = true;
+      await route.fulfill({ status: 503 });
+      return;
+    }
+    await route.fulfill({ body: JSON.stringify({ ok: true }), contentType: "application/json" });
+  });
+  await page.route("**/api/player/realtime", async (route) => {
+    realtimeRequests += 1;
+    if (realtimeRequests === 1) {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    if (realtimeRequests > 2) {
+      await route.fulfill({ status: 401 });
+      return;
+    }
+    const now = Date.now();
+    const expiresAt = new Date(now + 4_000).toISOString();
+    await route.fulfill({
+      body: [
+        sse("goal", goalEventPayload({
+          deliveryId: "55555555-5555-4555-8555-555555555555",
+          eventId: "66666666-6666-4666-8666-666666666666",
+          executeAt: new Date(now + 1_500).toISOString(),
+          expiresAt,
+          secondaryText: "Wordt vervangen",
+          serverTime: new Date(now).toISOString()
+        })),
+        sse("goal", goalEventPayload({
+          deliveryId: "77777777-7777-4777-8777-777777777777",
+          eventId: "88888888-8888-4888-8888-888888888888",
+          executeAt: new Date(now + 250).toISOString(),
+          expiresAt,
+          secondaryText: "Na tijdelijke 204",
+          serverTime: new Date(now).toISOString()
+        }))
+      ].join(""),
+      contentType: "text/event-stream; charset=utf-8"
+    });
+  });
+
+  await page.goto(`${playerURL}/?deviceToken=${deviceToken}&durationMs=400`);
+
+  await expect(page.getByTestId("ledscores-goal-overlay")).toContainText(
+    "Na tijdelijke 204",
+    { timeout: 5_000 }
+  );
+  await expect.poll(() => realtimeRequests).toBeGreaterThanOrEqual(2);
+  await expect.poll(() => acknowledgements.some((item) =>
+    item.deliveryId === "55555555-5555-4555-8555-555555555555"
+      && item.status === "skipped"
+  )).toBe(true);
+  await expect.poll(() => acknowledgements.some((item) =>
+    item.deliveryId === "77777777-7777-4777-8777-777777777777"
+      && item.status === "rendered"
+  )).toBe(true);
+  await expect.poll(() => acknowledgements.filter((item) =>
+    item.deliveryId === "77777777-7777-4777-8777-777777777777"
+      && item.status === "rendered"
+  ).length).toBeGreaterThanOrEqual(2);
 });
 
 test("plant hetzelfde goal-event op drie Players met begrensde renderskew", async ({ browser, request }) => {
@@ -189,4 +283,56 @@ test("plant hetzelfde goal-event op drie Players met begrensde renderskew", asyn
 
 function sse(event: string, value: unknown) {
   return `event: ${event}\ndata: ${JSON.stringify(value)}\n\n`;
+}
+
+function goalEventPayload({
+  deliveryId,
+  eventId: goalEventId,
+  executeAt,
+  expiresAt,
+  secondaryText,
+  serverTime
+}: {
+  deliveryId: string;
+  eventId: string;
+  executeAt: string;
+  expiresAt: string;
+  secondaryText: string;
+  serverTime: string;
+}) {
+  return {
+    alertVersionId: "44444444-4444-4444-8444-444444444444",
+    assets: [],
+    executeAt,
+    expiresAt,
+    id: deliveryId,
+    kind: "goal",
+    payload: {
+      awayScore: 0,
+      awayTeam: "Tegenstander",
+      design: {
+        animation: "none",
+        headline: "GOAL!",
+        logoPosition: "left",
+        palette: "electric-orange",
+        scorerFallback: "Doelpunt!",
+        secondaryText,
+        showClock: false,
+        showPreviousScore: false,
+        showScorer: false,
+        typography: "display"
+      },
+      durationMs: 2_000,
+      eventId: goalEventId,
+      eventKind: "live",
+      homeScore: 1,
+      homeTeam: "Duindorp sv 1",
+      previousAwayScore: 0,
+      previousHomeScore: 0,
+      scoringSide: "own",
+      underlayPolicy: "continue"
+    },
+    screenId: "33333333-3333-4333-8333-333333333333",
+    serverTime
+  };
 }

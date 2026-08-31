@@ -190,7 +190,15 @@ export async function testLedScoresGoalAlert(formData: FormData) {
     fail(alertError(result?.error?.code));
   }
   const count = isRecord(result.data) ? Number(result.data.deliveryCount ?? 0) : 0;
-  complete(`Synthetische ${scoringSide === "own" ? "eigen" : "tegenstander"}-goal is naar ${count} uniek${count === 1 ? " scherm" : "e schermen"} gestuurd.`);
+  const eventId = isRecord(result.data) && typeof result.data.eventId === "string"
+    && uuidPattern.test(result.data.eventId)
+    ? result.data.eventId
+    : undefined;
+  complete(
+    `Synthetische ${scoringSide === "own" ? "eigen" : "tegenstander"}-goal is voor ${count} uniek${count === 1 ? " scherm" : "e schermen"} klaargezet. Ontvangst en weergave volgen afzonderlijk.`,
+    undefined,
+    eventId
+  );
 }
 
 function designFrom(formData: FormData, prefix: "opponent" | "own" | "unknown") {
@@ -285,10 +293,11 @@ function alertError(code: string | undefined) {
   if (code === "55000") return "Een immutable publicatie kan niet worden gewijzigd. Maak een nieuwe versie.";
   return "De Goal Alert kon niet transactioneel worden opgeslagen.";
 }
-function complete(message: string, edit?: string): never {
+function complete(message: string, edit?: string, resultEventId?: string): never {
   revalidatePath(returnPath);
   revalidatePath("/dashboard/studio");
-  redirect(`${returnPath}?succes=${encodeURIComponent(message)}${edit ? `&edit=${edit}` : ""}`);
+  revalidatePath("/dashboard/data-sources/led-scores");
+  redirect(`${returnPath}?succes=${encodeURIComponent(message)}${edit ? `&edit=${edit}` : ""}${resultEventId ? `&resultaat=${resultEventId}` : ""}`);
 }
 function fail(message: string): never { redirect(`${returnPath}?fout=${encodeURIComponent(message)}`); }
 function isRecord(value: unknown): value is Record<string, unknown> { return Boolean(value) && typeof value === "object" && !Array.isArray(value); }

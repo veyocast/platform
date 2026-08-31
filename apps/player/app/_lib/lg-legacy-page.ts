@@ -37,6 +37,16 @@ const legacyConfig = {
   databaseVersion: 2,
   deviceTokenKey: "veyocast.player.deviceToken",
   executedCommandsKey: "veyocast.player.executedCommands.v1",
+  goalDedupeKey: "veyocast-player-ledscores-dedupe-v1",
+  goalDisabledRetryMs: 30_000,
+  goalMaximumDedupeEntries: 200,
+  goalReconnectMaximumMs: 30_000,
+  goalStreamRecycleCharacters: 1_048_576,
+  goalStreamSilenceMs: 45_000,
+  goalTerminalAckMaximumEntries: 200,
+  goalTerminalAckMaximumRetries: 6,
+  goalTerminalAckOutboxKey: "veyocast-player-ledscores-terminal-acks-v1",
+  goalTerminalAckRetentionMs: 7 * 24 * 60 * 60 * 1000,
   heartbeatIntervalMs: 30_000,
   installationCredentialKey: "veyocast.player.installationCredential",
   installationIdKey: "veyocast.player.instanceId",
@@ -91,6 +101,40 @@ export function renderLgLegacyHtml() {
     #watermark.visible{display:block}
     #offline{position:absolute;right:2vw;bottom:2vh;display:none;padding:8px 12px;border-radius:999px;background:rgba(7,7,7,.76);color:#f4c15d;font-size:16px;font-weight:700}
     #offline.visible{display:block}
+    #goal-overlay{position:absolute;z-index:70;top:0;right:0;bottom:0;left:0;display:grid;align-items:center;justify-items:center;overflow:hidden;background:#0a0a0a;color:#fafaf7}
+    #goal-overlay[hidden]{display:none}
+    #goal-overlay[data-palette="electric-orange"]{background:#ff5c20;color:#0a0a0a}
+    #goal-overlay[data-palette="signal-red"]{background:#c7322b;color:#fafaf7}
+    #goal-overlay[data-palette="white"]{background:#fafaf7;color:#0a0a0a}
+    .goal-media,.goal-scrim,.goal-fallback{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%}
+    .goal-media img,.goal-media video{display:block;width:100%;height:100%;object-fit:cover}
+    .goal-scrim{--goal-scrim-start:rgba(10,10,10,.88);--goal-scrim-end:rgba(10,10,10,.28);background:linear-gradient(100deg,var(--goal-scrim-start),var(--goal-scrim-end))}
+    #goal-overlay[data-palette="electric-orange"] .goal-scrim,#goal-overlay[data-palette="white"] .goal-scrim{--goal-scrim-start:rgba(250,250,247,.88);--goal-scrim-end:rgba(250,250,247,.38)}
+    .goal-fallback{overflow:hidden;opacity:.36}
+    .goal-fallback span{position:absolute;top:-25%;width:14%;height:150%;background:#ff5c20;transform:rotate(18deg)}
+    .goal-fallback span:nth-child(1){left:6%}.goal-fallback span:nth-child(2){left:44%}.goal-fallback span:nth-child(3){right:5%}
+    .goal-content{position:relative;z-index:2;display:grid;align-content:center;justify-items:start;width:100%;max-width:82vw;gap:clamp(8px,1.2vw,20px)}
+    .goal-content.center{justify-items:center;text-align:center}
+    .goal-identity{display:flex;align-items:center;gap:16px;font-size:clamp(14px,1.2vw,24px);font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    .goal-logo{width:clamp(48px,8vw,128px);height:clamp(48px,8vw,128px);object-fit:contain}
+    .goal-content.logo-small .goal-logo{width:clamp(36px,5vw,80px);height:clamp(36px,5vw,80px)}
+    .goal-content.logo-large .goal-logo{width:clamp(72px,12vw,192px);height:clamp(72px,12vw,192px)}
+    .goal-headline{font-size:clamp(48px,10vw,160px);font-weight:900;letter-spacing:-.055em;line-height:.78;text-transform:uppercase}
+    .goal-score{display:flex;align-items:center;gap:clamp(16px,3vw,48px);font-size:clamp(80px,14vw,240px);font-weight:900;line-height:.75}
+    .goal-score small{font-size:.32em;opacity:.7}
+    .goal-previous,.goal-secondary{margin:0;font-size:clamp(16px,2vw,35px)}
+    .goal-previous{opacity:.72}
+    .goal-metadata{display:flex;flex-wrap:wrap;gap:24px;font-size:clamp(14px,1.4vw,24px);font-weight:700;text-transform:uppercase}
+    .goal-sponsor{position:absolute;z-index:3;right:4vw;bottom:4vh;display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:8px;background:rgba(250,250,247,.92);color:#0a0a0a}
+    .goal-sponsor span{font-size:12px;font-weight:700;text-transform:uppercase}.goal-sponsor img{max-width:160px;max-height:56px;object-fit:contain}
+    #goal-overlay[data-animation="impact"] .goal-content{animation:legacy-goal-impact 520ms cubic-bezier(.2,.9,.2,1) both}
+    #goal-overlay[data-animation="pulse"] .goal-score{animation:legacy-goal-pulse 800ms ease-in-out 2}
+    #goal-overlay[data-animation="slide"] .goal-content{animation:legacy-goal-slide 550ms cubic-bezier(.2,.8,.2,1) both}
+    @keyframes legacy-goal-impact{from{opacity:0;transform:scale(.72)}70%{opacity:1;transform:scale(1.05)}to{transform:scale(1)}}
+    @keyframes legacy-goal-pulse{50%{transform:scale(1.08)}}
+    @keyframes legacy-goal-slide{from{opacity:0;transform:translateX(-12vw)}to{opacity:1;transform:translateX(0)}}
+    @media(orientation:portrait){.goal-content{align-content:start;max-width:84vw;padding-top:15vh}.goal-headline{font-size:clamp(56px,15vw,144px);line-height:.84}.goal-score{font-size:clamp(96px,24vw,208px)}.goal-scrim{background:linear-gradient(180deg,var(--goal-scrim-start),var(--goal-scrim-end))}}
+    @media(prefers-reduced-motion:reduce){#goal-overlay *{animation:none!important}}
     .dynamic-template{--accent:#ff5c20;position:absolute;top:0;right:0;bottom:0;left:0;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;padding:5vh 5vw 4vh;background:#f4efe6;color:#11110f;font-family:Arial,Helvetica,sans-serif}
     .dynamic-template.dark{background:#080908;color:#fffdf7}
     .dynamic-template header{border-bottom:2px solid rgba(98,95,87,.3);padding:1.8vh 0 2.8vh}
@@ -425,6 +469,7 @@ export function renderLgLegacyHtml() {
 </head>
 <body>
   <main id="media-root" aria-label="VeyoCast afspeeloppervlak"></main>
+  <section id="goal-overlay" aria-live="assertive" hidden></section>
   <img id="watermark" src="/brand/veyocast-logo-inverse.svg" alt="">
   <div id="offline" role="status">Offline · lokale release</div>
   <section id="status" aria-live="polite">
@@ -457,16 +502,39 @@ export function renderLgLegacyHtml() {
       deviceToken: null,
       envelope: null,
       forceManifestRefresh: false,
+      goalAckFlushTimer: null,
+      goalAckInFlight: false,
+      goalAckRetryAttempts: {},
+      goalActivationTimer: null,
+      goalActiveEventId: null,
+      goalExpiryTimer: null,
+      goalPauseApplied: false,
+      goalPausedVideo: null,
+      goalPendingDeliveryId: null,
+      goalPendingEventId: null,
+      goalPendingExpiresAt: null,
+      goalPendingToken: null,
+      goalReconnectAttempt: 0,
+      goalReconnectTimer: null,
+      goalStreamBuffer: "",
+      goalStreamGeneration: 0,
+      goalStreamOffset: 0,
+      goalStreamWatchdogTimer: null,
+      goalStreamWatchdogXhr: null,
+      goalStreamXhr: null,
       installationCredential: null,
       installationId: null,
       itemFailures: {},
       lastClockSkewLoggedAt: 0,
+      lastGoalDisabledLoggedAt: 0,
       lastProgressAt: 0,
       offline: false,
       pendingElement: null,
       pendingObjectUrls: [],
       pendingRelease: null,
+      playbackDeadlineAt: 0,
       playbackGeneration: 0,
+      playbackRemainingMs: null,
       playbackTimer: null,
       progressTimer: null,
       releaseSource: "online",
@@ -475,6 +543,9 @@ export function renderLgLegacyHtml() {
       syncInFlight: false,
       syncFailures: 0,
       syncPhase: null,
+      templateDeadlineAt: 0,
+      templateRemainingMs: null,
+      templateResumeCallback: null,
       templateTimer: null,
       watchdogTimer: null
     };
@@ -608,6 +679,1124 @@ export function renderLgLegacyHtml() {
       xhr.ontimeout = function () { finish("TIMEOUT"); };
       try { xhr.send(body || null); } catch (error) { finish("XHR_EXCEPTION"); }
     }
+    function goalUuid(value) {
+      return typeof value === "string" &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+        ? value
+        : null;
+    }
+    function goalOptionalUuid(value) {
+      return value === null || typeof value === "undefined" || value === ""
+        ? null
+        : goalUuid(value);
+    }
+    function goalRecord(value) {
+      return value && typeof value === "object" && !Array.isArray(value)
+        ? value
+        : null;
+    }
+    function goalInteger(value, minimum, maximum) {
+      var number = Number(value);
+      return isFinite(number) && Math.floor(number) === number &&
+        number >= minimum && number <= maximum
+        ? number
+        : null;
+    }
+    function goalText(value, maximum) {
+      var normalized;
+      if (typeof value !== "string" || value.length > maximum) return null;
+      normalized = value.replace(/\\s+/g, " ").replace(/^\\s+|\\s+$/g, "");
+      return normalized || null;
+    }
+    function parseGoalAsset(value) {
+      var record = goalRecord(value);
+      var mediaAssetId;
+      var checksum;
+      var mimeType;
+      var url;
+      if (!record) return null;
+      mediaAssetId = goalUuid(record.mediaAssetId);
+      checksum = typeof record.checksum === "string" &&
+        /^[a-f0-9]{64}$/.test(record.checksum)
+        ? record.checksum
+        : null;
+      mimeType = typeof record.mimeType === "string" &&
+        /^(image\\/(jpeg|png|webp)|video\\/mp4)$/.test(record.mimeType)
+        ? record.mimeType
+        : null;
+      url = typeof record.url === "string" &&
+        /^https?:\\/\\//.test(record.url) && record.url.length <= 2000
+        ? record.url
+        : null;
+      return mediaAssetId && checksum && mimeType && url
+        ? {
+            checksum: checksum,
+            mediaAssetId: mediaAssetId,
+            mimeType: mimeType,
+            url: url
+          }
+        : null;
+    }
+    function parseGoalDesign(value) {
+      var record = goalRecord(value);
+      var headline;
+      var secondaryText;
+      var scorerFallback;
+      var palette;
+      var animation;
+      var logoScale;
+      if (!record) return null;
+      headline = goalText(record.headline, 80);
+      secondaryText = goalText(record.secondaryText, 160) || "";
+      scorerFallback = goalText(record.scorerFallback, 120) || "Doelpunt!";
+      palette = ["electric-orange", "ink-black", "signal-red", "white"]
+        .indexOf(String(record.palette)) !== -1
+        ? String(record.palette)
+        : null;
+      animation = ["impact", "pulse", "slide", "none"]
+        .indexOf(String(record.animation)) !== -1
+        ? String(record.animation)
+        : null;
+      logoScale = ["small", "medium", "large"]
+        .indexOf(String(record.logoScale)) !== -1
+        ? String(record.logoScale)
+        : "medium";
+      if (!headline || !palette || !animation) return null;
+      return {
+        animation: animation,
+        headline: headline,
+        logoPosition: record.logoPosition === "center" ? "center" : "left",
+        logoScale: logoScale,
+        palette: palette,
+        scorerFallback: scorerFallback,
+        secondaryText: secondaryText,
+        showClock: record.showClock === true,
+        showPreviousScore: record.showPreviousScore === true,
+        showScorer: record.showScorer !== false,
+        typography: record.typography === "body" ? "body" : "display"
+      };
+    }
+    function parseGoalMessage(value) {
+      var record = goalRecord(value);
+      var payload;
+      var deliveryId;
+      var executeAt;
+      var expiresAt;
+      var serverTime;
+      var eventId;
+      var scoringSide;
+      var design;
+      var durationMs;
+      var homeScore;
+      var awayScore;
+      var previousHomeScore;
+      var previousAwayScore;
+      var assets = {};
+      var assetValues;
+      var parsedAsset;
+      var index;
+      if (!record || !Array.isArray(record.assets)) return null;
+      payload = goalRecord(record.payload);
+      if (!payload) return null;
+      deliveryId = goalUuid(record.id);
+      executeAt = parsePlayerTimestamp(record.executeAt);
+      expiresAt = parsePlayerTimestamp(record.expiresAt);
+      serverTime = parsePlayerTimestamp(record.serverTime);
+      eventId = goalUuid(payload.eventId);
+      scoringSide = ["own", "opponent", "unknown"]
+        .indexOf(String(payload.scoringSide)) !== -1
+        ? String(payload.scoringSide)
+        : null;
+      design = parseGoalDesign(payload.design);
+      durationMs = goalInteger(payload.durationMs, 2000, 30000);
+      homeScore = goalInteger(payload.homeScore, 0, 999);
+      awayScore = goalInteger(payload.awayScore, 0, 999);
+      previousHomeScore = goalInteger(payload.previousHomeScore, 0, 999);
+      previousAwayScore = goalInteger(payload.previousAwayScore, 0, 999);
+      if (
+        !deliveryId || executeAt === null || expiresAt === null ||
+        serverTime === null || !eventId || !scoringSide || !design ||
+        durationMs === null || homeScore === null || awayScore === null ||
+        previousHomeScore === null || previousAwayScore === null
+      ) return null;
+      assetValues = record.assets.slice(0, 10);
+      for (index = 0; index < assetValues.length; index += 1) {
+        parsedAsset = parseGoalAsset(assetValues[index]);
+        if (parsedAsset) assets[parsedAsset.mediaAssetId] = parsedAsset;
+      }
+      return {
+        executeAt: executeAt,
+        expiresAt: expiresAt,
+        serverTime: serverTime,
+        goal: {
+          assets: assets,
+          awayScore: awayScore,
+          awayTeam: goalText(payload.awayTeam, 160) || "Uitteam",
+          deliveryId: deliveryId,
+          design: design,
+          durationMs: durationMs,
+          eventId: eventId,
+          eventKind: payload.eventKind === "synthetic_test"
+            ? "synthetic_test"
+            : "live",
+          homeScore: homeScore,
+          homeTeam: goalText(payload.homeTeam, 160) || "Thuisteam",
+          logoMediaAssetId: goalOptionalUuid(payload.logoMediaAssetId),
+          matchClock: goalText(payload.matchClock, 40),
+          mediaAssetId: goalOptionalUuid(payload.mediaAssetId),
+          previousAwayScore: previousAwayScore,
+          previousHomeScore: previousHomeScore,
+          scorerName: goalText(payload.scorerName, 160),
+          scoringSide: scoringSide,
+          soundMediaAssetId: goalOptionalUuid(payload.soundMediaAssetId),
+          soundVolume: goalInteger(payload.soundVolume, 0, 100) === null
+            ? 70
+            : goalInteger(payload.soundVolume, 0, 100),
+          sponsorMediaAssetId: goalOptionalUuid(payload.sponsorMediaAssetId),
+          underlayPolicy: payload.underlayPolicy === "pause"
+            ? "pause"
+            : "continue"
+        }
+      };
+    }
+    function goalAssetFor(goal, assetId) {
+      return assetId && goal && goal.assets
+        ? goal.assets[assetId] || null
+        : null;
+    }
+    function goalScoringTeam(goal) {
+      if (goal.homeScore === goal.previousHomeScore + 1) return goal.homeTeam;
+      if (goal.awayScore === goal.previousAwayScore + 1) return goal.awayTeam;
+      if (goal.scoringSide === "own") return "Eigen team";
+      if (goal.scoringSide === "opponent") return "Tegenstander";
+      return "Doelpunt";
+    }
+    function readGoalDedupe(serverNow) {
+      var values = parseJson(safeRead(CONFIG.goalDedupeKey));
+      if (!Array.isArray(values)) return [];
+      return values.filter(function (entry) {
+        return entry && goalUuid(entry.eventId) &&
+          typeof entry.expiresAt === "number" &&
+          isFinite(entry.expiresAt) && entry.expiresAt > serverNow;
+      }).slice(-CONFIG.goalMaximumDedupeEntries);
+    }
+    function hasSeenGoal(eventId, serverNow) {
+      return readGoalDedupe(serverNow).some(function (entry) {
+        return entry.eventId === eventId;
+      });
+    }
+    function rememberGoal(eventId, expiresAt, serverNow) {
+      var values = readGoalDedupe(serverNow).filter(function (entry) {
+        return entry.eventId !== eventId;
+      });
+      values.push({ eventId: eventId, expiresAt: expiresAt });
+      safeWrite(
+        CONFIG.goalDedupeKey,
+        JSON.stringify(values.slice(-CONFIG.goalMaximumDedupeEntries))
+      );
+    }
+    function goalTerminalStatus(value) {
+      return ["rendered", "skipped", "failed"].indexOf(value) !== -1
+        ? value
+        : null;
+    }
+    function readGoalTerminalOutbox(referenceNow) {
+      var values = parseJson(safeRead(CONFIG.goalTerminalAckOutboxKey));
+      var cutoff = referenceNow - CONFIG.goalTerminalAckRetentionMs;
+      var normalized = [];
+      var seen = {};
+      var entry;
+      var deliveryId;
+      var eventId;
+      var status;
+      var createdAt;
+      var expiresAt;
+      var detail;
+      var index;
+      if (!Array.isArray(values)) return [];
+      for (index = 0; index < values.length; index += 1) {
+        entry = goalRecord(values[index]);
+        deliveryId = entry && goalUuid(entry.deliveryId);
+        eventId = entry && goalUuid(entry.eventId);
+        status = entry && goalTerminalStatus(entry.status);
+        createdAt = entry && Number(entry.createdAt);
+        expiresAt = entry && Number(entry.expiresAt);
+        detail = entry && typeof entry.detail === "string"
+          ? entry.detail.replace(/[\\r\\n]+/g, " ").slice(0, 300)
+          : null;
+        if (
+          !deliveryId || !eventId || !status || seen[deliveryId] ||
+          !isFinite(createdAt) || createdAt < cutoff ||
+          createdAt > referenceNow + CONFIG.goalTerminalAckRetentionMs ||
+          !isFinite(expiresAt)
+        ) continue;
+        seen[deliveryId] = true;
+        normalized.push({
+          createdAt: createdAt,
+          deliveryId: deliveryId,
+          detail: detail,
+          eventId: eventId,
+          expiresAt: expiresAt,
+          status: status
+        });
+      }
+      return normalized.slice(-CONFIG.goalTerminalAckMaximumEntries);
+    }
+    function writeGoalTerminalOutbox(entries) {
+      return safeWrite(
+        CONFIG.goalTerminalAckOutboxKey,
+        JSON.stringify(entries.slice(-CONFIG.goalTerminalAckMaximumEntries))
+      );
+    }
+    function findGoalTerminalOutcome(deliveryId, eventId, referenceNow) {
+      var entries = readGoalTerminalOutbox(referenceNow);
+      var index;
+      for (index = 0; index < entries.length; index += 1) {
+        if (
+          entries[index].deliveryId === deliveryId &&
+          entries[index].eventId === eventId
+        ) return entries[index];
+      }
+      return null;
+    }
+    function removeGoalTerminalOutcome(deliveryId) {
+      var entries = readGoalTerminalOutbox(now()).filter(function (entry) {
+        return entry.deliveryId !== deliveryId;
+      });
+      writeGoalTerminalOutbox(entries);
+      delete runtime.goalAckRetryAttempts[deliveryId];
+    }
+    function goalTerminalRetryDelay(attempt) {
+      return Math.min(
+        CONFIG.goalReconnectMaximumMs,
+        1000 * Math.pow(2, Math.min(5, Math.max(0, attempt - 1)))
+      ) + Math.floor(Math.random() * 500);
+    }
+    function scheduleGoalTerminalFlush(token, delay) {
+      if (!validCredential(token) || window.navigator.onLine === false) return;
+      window.clearTimeout(runtime.goalAckFlushTimer);
+      runtime.goalAckFlushTimer = window.setTimeout(function () {
+        runtime.goalAckFlushTimer = null;
+        flushGoalTerminalOutbox(token);
+      }, Math.max(0, Math.min(CONFIG.goalReconnectMaximumMs + 500, delay)));
+    }
+    function flushGoalTerminalOutbox(token) {
+      var entries;
+      var entry;
+      var xhr;
+      var completed = false;
+      if (
+        runtime.goalAckInFlight || !validCredential(token) ||
+        window.navigator.onLine === false
+      ) return;
+      entries = readGoalTerminalOutbox(now());
+      writeGoalTerminalOutbox(entries);
+      if (!entries.length) return;
+      entry = entries[0];
+      runtime.goalAckInFlight = true;
+      xhr = new XMLHttpRequest();
+      function finish(transportFailed) {
+        var responseStatus;
+        var attempts;
+        var nextToken;
+        if (completed) return;
+        completed = true;
+        runtime.goalAckInFlight = false;
+        responseStatus = xhr.status || 0;
+        if (
+          (!transportFailed && responseStatus >= 200 && responseStatus < 300) ||
+          responseStatus === 400 || responseStatus === 404 ||
+          responseStatus === 413 || responseStatus === 422
+        ) {
+          removeGoalTerminalOutcome(entry.deliveryId);
+          nextToken = validCredential(runtime.deviceToken)
+            ? runtime.deviceToken
+            : token;
+          scheduleGoalTerminalFlush(nextToken, 0);
+          return;
+        }
+        if (responseStatus === 401 || responseStatus === 403) {
+          if (
+            validCredential(runtime.deviceToken) &&
+            runtime.deviceToken !== token
+          ) scheduleGoalTerminalFlush(runtime.deviceToken, 0);
+          return;
+        }
+        attempts = Number(runtime.goalAckRetryAttempts[entry.deliveryId]) || 0;
+        attempts += 1;
+        runtime.goalAckRetryAttempts[entry.deliveryId] = attempts;
+        if (attempts <= CONFIG.goalTerminalAckMaximumRetries) {
+          scheduleGoalTerminalFlush(
+            validCredential(runtime.deviceToken) ? runtime.deviceToken : token,
+            goalTerminalRetryDelay(attempts)
+          );
+        }
+      }
+      try {
+        xhr.open("POST", "/api/player/realtime/ack", true);
+        xhr.timeout = CONFIG.requestTimeoutMs;
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("Authorization", "Bearer " + token);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onload = function () { finish(false); };
+        xhr.onerror = function () { finish(true); };
+        xhr.ontimeout = function () { finish(true); };
+        xhr.onabort = function () { finish(true); };
+        xhr.send(JSON.stringify({
+          deliveryId: entry.deliveryId,
+          detail: entry.detail,
+          status: entry.status
+        }));
+      } catch (error) {
+        finish(true);
+      }
+    }
+    function goalTerminalAcknowledge(
+      token,
+      deliveryId,
+      eventId,
+      status,
+      detail,
+      expiresAt
+    ) {
+      var entries;
+      var existing;
+      var safeDetail;
+      var currentNow = now();
+      if (
+        !validCredential(token) || !goalUuid(deliveryId) ||
+        !goalUuid(eventId) || !goalTerminalStatus(status) ||
+        typeof expiresAt !== "number" || !isFinite(expiresAt)
+      ) return;
+      entries = readGoalTerminalOutbox(currentNow);
+      existing = findGoalTerminalOutcome(deliveryId, eventId, currentNow);
+      if (!existing) {
+        safeDetail = typeof detail === "string"
+          ? detail.replace(/[\\r\\n]+/g, " ").slice(0, 300)
+          : null;
+        entries.push({
+          createdAt: currentNow,
+          deliveryId: deliveryId,
+          detail: safeDetail,
+          eventId: eventId,
+          expiresAt: expiresAt,
+          status: status
+        });
+        if (!writeGoalTerminalOutbox(entries)) {
+          goalAcknowledge(token, deliveryId, status, safeDetail);
+          return;
+        }
+      }
+      scheduleGoalTerminalFlush(
+        validCredential(runtime.deviceToken) ? runtime.deviceToken : token,
+        0
+      );
+    }
+    function goalAcknowledge(token, deliveryId, status, detail) {
+      var xhr;
+      var safeDetail;
+      if (!validCredential(token) || !goalUuid(deliveryId) ||
+        ["received", "rendered", "skipped", "failed"].indexOf(status) === -1) {
+        return;
+      }
+      safeDetail = typeof detail === "string"
+        ? detail.replace(/[\\r\\n]+/g, " ").slice(0, 300)
+        : null;
+      xhr = new XMLHttpRequest();
+      try {
+        xhr.open("POST", "/api/player/realtime/ack", true);
+        xhr.timeout = CONFIG.requestTimeoutMs;
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("Authorization", "Bearer " + token);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify({
+          deliveryId: deliveryId,
+          detail: safeDetail,
+          status: status
+        }));
+      } catch (error) {
+        log("LEGACY_GOAL_ACK_FAILED", status + " " + deliveryId);
+      }
+    }
+    function preloadGoalAssets(configs) {
+      var configIndex;
+      var assetIndex;
+      var config;
+      var values;
+      var asset;
+      var image;
+      var video;
+      if (!Array.isArray(configs)) return;
+      for (configIndex = 0; configIndex < Math.min(50, configs.length); configIndex += 1) {
+        config = goalRecord(configs[configIndex]);
+        values = config && Array.isArray(config.assets) ? config.assets : [];
+        for (assetIndex = 0; assetIndex < Math.min(10, values.length); assetIndex += 1) {
+          asset = parseGoalAsset(values[assetIndex]);
+          if (!asset) continue;
+          if (asset.mimeType.indexOf("image/") === 0) {
+            image = new Image();
+            image.src = asset.url;
+          } else {
+            video = document.createElement("video");
+            video.muted = true;
+            video.preload = "auto";
+            video.src = asset.url;
+            try { video.load(); } catch (error) {}
+          }
+        }
+      }
+    }
+    function goalTextNode(tagName, className, value) {
+      var node = document.createElement(tagName);
+      if (className) node.className = className;
+      node.textContent = value || "";
+      return node;
+    }
+    function clearGoalElement() {
+      var overlay = byId("goal-overlay");
+      var media;
+      var mediaElements = overlay.querySelectorAll("video,audio");
+      var mediaIndex;
+      for (mediaIndex = 0; mediaIndex < mediaElements.length; mediaIndex += 1) {
+        media = mediaElements[mediaIndex];
+        try { media.pause(); } catch (error) {}
+        media.removeAttribute("src");
+        try { media.load(); } catch (error) {}
+      }
+      while (overlay.firstChild) {
+        media = overlay.firstChild;
+        overlay.removeChild(media);
+      }
+      overlay.hidden = true;
+      overlay.removeAttribute("data-animation");
+      overlay.removeAttribute("data-palette");
+      overlay.removeAttribute("aria-label");
+      runtime.goalActiveEventId = null;
+    }
+    function pauseGoalUnderlay() {
+      var remaining;
+      var element;
+      if (runtime.goalPauseApplied) return;
+      runtime.goalPauseApplied = true;
+      if (runtime.playbackTimer !== null && runtime.playbackDeadlineAt > 0) {
+        remaining = Math.max(1, runtime.playbackDeadlineAt - now());
+        window.clearTimeout(runtime.playbackTimer);
+        runtime.playbackTimer = null;
+        runtime.playbackDeadlineAt = 0;
+        runtime.playbackRemainingMs = remaining;
+      }
+      if (runtime.templateTimer !== null && runtime.templateDeadlineAt > 0) {
+        remaining = Math.max(1, runtime.templateDeadlineAt - now());
+        window.clearTimeout(runtime.templateTimer);
+        runtime.templateTimer = null;
+        runtime.templateDeadlineAt = 0;
+        runtime.templateRemainingMs = remaining;
+      }
+      element = runtime.currentElement;
+      if (element && element.tagName === "VIDEO" && !element.paused) {
+        runtime.goalPausedVideo = element;
+        try { element.pause(); } catch (error) {}
+      }
+    }
+    function resumeGoalUnderlay() {
+      var remaining;
+      var templateCallback;
+      var templateRemaining;
+      var video;
+      if (!runtime.goalPauseApplied) return;
+      runtime.goalPauseApplied = false;
+      video = runtime.goalPausedVideo;
+      runtime.goalPausedVideo = null;
+      if (video && runtime.currentElement === video) {
+        startVideo(video, runtime.playbackGeneration);
+      }
+      if (
+        runtime.pendingElement &&
+        runtime.pendingElement.tagName === "VIDEO"
+      ) {
+        startVideo(runtime.pendingElement, runtime.playbackGeneration);
+      }
+      remaining = runtime.playbackRemainingMs;
+      runtime.playbackRemainingMs = null;
+      templateCallback = runtime.templateResumeCallback;
+      templateRemaining = runtime.templateRemainingMs;
+      runtime.templateRemainingMs = null;
+      if (
+        typeof templateCallback === "function" &&
+        typeof templateRemaining === "number" &&
+        isFinite(templateRemaining) && templateRemaining > 0
+      ) {
+        scheduleTemplateAdvance(templateCallback, templateRemaining);
+      }
+      if (typeof remaining === "number" && isFinite(remaining) && remaining > 0) {
+        schedulePlaybackAdvance(remaining);
+      }
+    }
+    function hideGoalOverlay(resumeUnderlay) {
+      window.clearTimeout(runtime.goalExpiryTimer);
+      runtime.goalExpiryTimer = null;
+      clearGoalElement();
+      if (resumeUnderlay) resumeGoalUnderlay();
+    }
+    function renderGoalOverlay(goal) {
+      var overlay = byId("goal-overlay");
+      var mediaAsset = goalAssetFor(goal, goal.mediaAssetId);
+      var logoAsset = goalAssetFor(goal, goal.logoMediaAssetId);
+      var soundAsset = goalAssetFor(goal, goal.soundMediaAssetId);
+      var sponsorAsset = goalAssetFor(goal, goal.sponsorMediaAssetId);
+      var fallback = document.createElement("div");
+      var media;
+      var mediaElement;
+      var scrim;
+      var content;
+      var identity;
+      var logo;
+      var score;
+      var metadata;
+      var sponsor;
+      var audio;
+      var playResult;
+      var index;
+      clearGoalElement();
+      fallback.className = "goal-fallback";
+      fallback.setAttribute("aria-hidden", "true");
+      for (index = 0; index < 3; index += 1) {
+        fallback.appendChild(document.createElement("span"));
+      }
+      overlay.appendChild(fallback);
+      if (mediaAsset) {
+        media = document.createElement("div");
+        media.className = "goal-media";
+        media.setAttribute("aria-hidden", "true");
+        mediaElement = mediaAsset.mimeType.indexOf("video/") === 0
+          ? document.createElement("video")
+          : document.createElement("img");
+        mediaElement.onerror = function () {
+          log("LEGACY_GOAL_MEDIA_FALLBACK", goal.deliveryId);
+          if (media.parentNode) media.parentNode.removeChild(media);
+        };
+        if (mediaElement.tagName === "VIDEO") {
+          mediaElement.autoplay = false;
+          mediaElement.controls = false;
+          mediaElement.loop = true;
+          mediaElement.muted = true;
+          mediaElement.defaultMuted = true;
+          mediaElement.preload = "auto";
+          mediaElement.setAttribute("playsinline", "");
+          mediaElement.setAttribute("webkit-playsinline", "");
+        } else {
+          mediaElement.alt = "";
+        }
+        mediaElement.src = mediaAsset.url;
+        media.appendChild(mediaElement);
+        overlay.appendChild(media);
+        if (mediaElement.tagName === "VIDEO") {
+          try {
+            mediaElement.load();
+            playResult = mediaElement.play();
+            if (playResult && typeof playResult.catch === "function") {
+              playResult.catch(function () {});
+            }
+          } catch (error) {}
+        }
+      }
+      scrim = document.createElement("div");
+      scrim.className = "goal-scrim";
+      scrim.setAttribute("aria-hidden", "true");
+      overlay.appendChild(scrim);
+      content = document.createElement("div");
+      content.className = "goal-content" +
+        (goal.design.logoPosition === "center" ? " center" : "") +
+        " logo-" + goal.design.logoScale;
+      identity = document.createElement("div");
+      identity.className = "goal-identity";
+      if (logoAsset && logoAsset.mimeType.indexOf("image/") === 0) {
+        logo = document.createElement("img");
+        logo.className = "goal-logo";
+        logo.alt = "";
+        logo.setAttribute("aria-hidden", "true");
+        logo.src = logoAsset.url;
+        identity.appendChild(logo);
+      }
+      identity.appendChild(goalTextNode("span", "", goalScoringTeam(goal)));
+      content.appendChild(identity);
+      content.appendChild(goalTextNode("strong", "goal-headline", goal.design.headline));
+      score = document.createElement("div");
+      score.className = "goal-score";
+      score.setAttribute(
+        "aria-label",
+        "Score " + String(goal.homeScore) + " tegen " + String(goal.awayScore)
+      );
+      score.appendChild(goalTextNode("span", "", String(goal.homeScore)));
+      score.appendChild(goalTextNode("small", "", "–"));
+      score.appendChild(goalTextNode("span", "", String(goal.awayScore)));
+      content.appendChild(score);
+      if (goal.design.showPreviousScore) {
+        content.appendChild(goalTextNode(
+          "p",
+          "goal-previous",
+          "Vorige stand " + String(goal.previousHomeScore) + "–" +
+            String(goal.previousAwayScore)
+        ));
+      }
+      if (goal.design.secondaryText) {
+        content.appendChild(goalTextNode(
+          "p",
+          "goal-secondary",
+          goal.design.secondaryText
+        ));
+      }
+      metadata = document.createElement("div");
+      metadata.className = "goal-metadata";
+      if (goal.design.showScorer) {
+        metadata.appendChild(goalTextNode(
+          "span",
+          "",
+          goal.scorerName || goal.design.scorerFallback
+        ));
+      }
+      if (goal.design.showClock && goal.matchClock) {
+        metadata.appendChild(goalTextNode("span", "", goal.matchClock));
+      }
+      if (goal.eventKind === "synthetic_test") {
+        metadata.appendChild(goalTextNode("span", "", "LIVE-TEST"));
+      }
+      content.appendChild(metadata);
+      overlay.appendChild(content);
+      if (sponsorAsset && sponsorAsset.mimeType.indexOf("image/") === 0) {
+        sponsor = document.createElement("aside");
+        sponsor.className = "goal-sponsor";
+        sponsor.appendChild(goalTextNode("span", "", "Mede mogelijk gemaakt door"));
+        logo = document.createElement("img");
+        logo.alt = "Sponsor";
+        logo.src = sponsorAsset.url;
+        sponsor.appendChild(logo);
+        overlay.appendChild(sponsor);
+      }
+      if (soundAsset && soundAsset.mimeType === "video/mp4") {
+        audio = document.createElement("audio");
+        audio.preload = "auto";
+        audio.volume = goal.soundVolume / 100;
+        audio.src = soundAsset.url;
+        overlay.appendChild(audio);
+        try {
+          playResult = audio.play();
+          if (playResult && typeof playResult.catch === "function") {
+            playResult.catch(function () {});
+          }
+        } catch (error) {}
+      }
+      overlay.setAttribute("data-animation", goal.design.animation);
+      overlay.setAttribute("data-palette", goal.design.palette);
+      overlay.setAttribute(
+        "aria-label",
+        goal.scoringSide === "own"
+          ? "Doelpunt voor eigen team"
+          : goal.scoringSide === "opponent"
+            ? "Doelpunt tegenstander"
+            : "Doelpunt van onbekend team"
+      );
+      overlay.hidden = false;
+      runtime.goalActiveEventId = goal.eventId;
+      return true;
+    }
+    function cancelPendingGoal(detail) {
+      window.clearTimeout(runtime.goalActivationTimer);
+      runtime.goalActivationTimer = null;
+      if (
+        goalUuid(runtime.goalPendingDeliveryId) &&
+        goalUuid(runtime.goalPendingEventId) &&
+        typeof runtime.goalPendingExpiresAt === "number" &&
+        validCredential(runtime.goalPendingToken)
+      ) {
+        goalTerminalAcknowledge(
+          runtime.goalPendingToken,
+          runtime.goalPendingDeliveryId,
+          runtime.goalPendingEventId,
+          "skipped",
+          detail,
+          runtime.goalPendingExpiresAt
+        );
+      }
+      runtime.goalPendingDeliveryId = null;
+      runtime.goalPendingEventId = null;
+      runtime.goalPendingExpiresAt = null;
+      runtime.goalPendingToken = null;
+    }
+    function handleGoalDelivery(value, token) {
+      var deliveryId = goalUuid(value && value.id);
+      var invalidPayload;
+      var invalidEventId;
+      var invalidExpiresAt;
+      var message;
+      var terminalOutcome;
+      var serverOffset;
+      var serverNow;
+      var activateIn;
+      if (deliveryId) goalAcknowledge(token, deliveryId, "received", null);
+      message = parseGoalMessage(value);
+      if (!message) {
+        if (deliveryId) {
+          invalidPayload = goalRecord(value && value.payload);
+          invalidEventId = invalidPayload && goalUuid(invalidPayload.eventId);
+          invalidExpiresAt = parsePlayerTimestamp(value && value.expiresAt);
+          if (invalidEventId && invalidExpiresAt !== null) {
+            goalTerminalAcknowledge(
+              token,
+              deliveryId,
+              invalidEventId,
+              "failed",
+              "invalid_goal_payload",
+              invalidExpiresAt
+            );
+          } else {
+            goalAcknowledge(token, deliveryId, "failed", "invalid_goal_payload");
+          }
+        }
+        return;
+      }
+      terminalOutcome = findGoalTerminalOutcome(
+        message.goal.deliveryId,
+        message.goal.eventId,
+        now()
+      );
+      if (terminalOutcome) {
+        scheduleGoalTerminalFlush(
+          validCredential(runtime.deviceToken) ? runtime.deviceToken : token,
+          0
+        );
+        return;
+      }
+      serverOffset = message.serverTime - now();
+      serverNow = now() + serverOffset;
+      if (
+        message.expiresAt <= serverNow ||
+        hasSeenGoal(message.goal.eventId, serverNow)
+      ) {
+        goalTerminalAcknowledge(
+          token,
+          message.goal.deliveryId,
+          message.goal.eventId,
+          "skipped",
+          "expired_or_duplicate",
+          message.expiresAt
+        );
+        return;
+      }
+      activateIn = Math.max(0, message.executeAt - serverNow);
+      if (activateIn > 30000) {
+        goalTerminalAcknowledge(
+          token,
+          message.goal.deliveryId,
+          message.goal.eventId,
+          "skipped",
+          "execute_time_too_far",
+          message.expiresAt
+        );
+        return;
+      }
+      if (
+        runtime.goalPendingEventId === message.goal.eventId &&
+        runtime.goalPendingDeliveryId === message.goal.deliveryId
+      ) {
+        return;
+      }
+      if (runtime.goalActivationTimer !== null) {
+        cancelPendingGoal("replaced_before_activation");
+      }
+      if (
+        runtime.goalActiveEventId &&
+        runtime.goalActiveEventId !== message.goal.eventId
+      ) {
+        hideGoalOverlay(true);
+      }
+      runtime.goalPendingDeliveryId = message.goal.deliveryId;
+      runtime.goalPendingEventId = message.goal.eventId;
+      runtime.goalPendingExpiresAt = message.expiresAt;
+      runtime.goalPendingToken = token;
+      runtime.goalActivationTimer = window.setTimeout(function () {
+        var currentServerNow = now() + serverOffset;
+        var renderDetail;
+        var visibleFor;
+        runtime.goalActivationTimer = null;
+        runtime.goalPendingDeliveryId = null;
+        runtime.goalPendingEventId = null;
+        runtime.goalPendingExpiresAt = null;
+        runtime.goalPendingToken = null;
+        if (message.expiresAt <= currentServerNow) {
+          goalTerminalAcknowledge(
+            token,
+            message.goal.deliveryId,
+            message.goal.eventId,
+            "skipped",
+            "execute_window_expired",
+            message.expiresAt
+          );
+          return;
+        }
+        try {
+          if (message.goal.underlayPolicy === "pause") pauseGoalUnderlay();
+          renderGoalOverlay(message.goal);
+        } catch (error) {
+          hideGoalOverlay(true);
+          goalTerminalAcknowledge(
+            token,
+            message.goal.deliveryId,
+            message.goal.eventId,
+            "failed",
+            "legacy_overlay_render_failed",
+            message.expiresAt
+          );
+          return;
+        }
+        renderDetail = "render_latency_ms:" +
+          String(Math.max(0, now() + serverOffset - message.executeAt));
+        goalTerminalAcknowledge(
+          token,
+          message.goal.deliveryId,
+          message.goal.eventId,
+          "rendered",
+          renderDetail,
+          message.expiresAt
+        );
+        rememberGoal(
+          message.goal.eventId,
+          message.expiresAt,
+          currentServerNow
+        );
+        visibleFor = Math.max(
+          1,
+          Math.min(
+            message.goal.durationMs,
+            message.expiresAt - currentServerNow
+          )
+        );
+        runtime.goalExpiryTimer = window.setTimeout(function () {
+          if (runtime.goalActiveEventId === message.goal.eventId) {
+            hideGoalOverlay(true);
+          }
+        }, visibleFor);
+      }, activateIn);
+    }
+    function parseGoalSseBlock(value) {
+      var event = "message";
+      var data = [];
+      var lines;
+      var index;
+      var parsed;
+      if (!value || value.charAt(0) === ":") return null;
+      lines = value.split("\\n");
+      for (index = 0; index < lines.length; index += 1) {
+        if (lines[index].indexOf("event: ") === 0) {
+          event = lines[index].slice(7).replace(/^\\s+|\\s+$/g, "");
+        }
+        if (lines[index].indexOf("data: ") === 0) {
+          data.push(lines[index].slice(6));
+        }
+      }
+      if (!data.length || !/^[a-z]+$/.test(event)) return null;
+      parsed = parseJson(data.join("\\n"));
+      return parsed === null ? null : { event: event, value: parsed };
+    }
+    function handleGoalStreamEvent(event, value, token) {
+      var record = goalRecord(value);
+      var deliveryId;
+      if (!record) return;
+      if (event === "bootstrap" || event === "configuration") {
+        preloadGoalAssets(record.configs);
+        deliveryId = goalUuid(record.deliveryId);
+        if (event === "configuration" && deliveryId) {
+          goalAcknowledge(
+            token,
+            deliveryId,
+            "received",
+            "configuration_prefetched"
+          );
+        }
+      } else if (event === "goal") {
+        handleGoalDelivery(record, token);
+      }
+    }
+    function consumeGoalSseProgress(xhr, token) {
+      var responseText;
+      var chunk;
+      var boundary;
+      var block;
+      var parsed;
+      try { responseText = xhr.responseText || ""; } catch (error) { return; }
+      if (responseText.length < runtime.goalStreamOffset) {
+        runtime.goalStreamOffset = 0;
+        runtime.goalStreamBuffer = "";
+      }
+      chunk = responseText.slice(runtime.goalStreamOffset);
+      runtime.goalStreamOffset = responseText.length;
+      runtime.goalStreamBuffer += chunk;
+      boundary = runtime.goalStreamBuffer.indexOf("\\n\\n");
+      while (boundary !== -1) {
+        block = runtime.goalStreamBuffer.slice(0, boundary);
+        runtime.goalStreamBuffer = runtime.goalStreamBuffer.slice(boundary + 2);
+        parsed = parseGoalSseBlock(block);
+        if (parsed) handleGoalStreamEvent(parsed.event, parsed.value, token);
+        boundary = runtime.goalStreamBuffer.indexOf("\\n\\n");
+      }
+      if (runtime.goalStreamBuffer.length > 131072) {
+        runtime.goalStreamBuffer = "";
+      }
+    }
+    function goalReconnectDelay(attempt) {
+      return Math.min(
+        CONFIG.goalReconnectMaximumMs,
+        1000 * Math.pow(2, Math.min(5, Math.max(0, attempt - 1)))
+      ) + Math.floor(Math.random() * 500);
+    }
+    function scheduleGoalReconnect(delay, generation) {
+      if (
+        generation !== runtime.goalStreamGeneration ||
+        !validCredential(runtime.deviceToken) ||
+        window.navigator.onLine === false
+      ) return;
+      window.clearTimeout(runtime.goalReconnectTimer);
+      runtime.goalReconnectTimer = window.setTimeout(function () {
+        runtime.goalReconnectTimer = null;
+        connectGoalRealtime(generation);
+      }, Math.max(
+        1000,
+        Math.min(CONFIG.goalReconnectMaximumMs + 500, delay)
+      ));
+    }
+    function armGoalStreamWatchdog(xhr, generation) {
+      window.clearTimeout(runtime.goalStreamWatchdogTimer);
+      runtime.goalStreamWatchdogXhr = xhr;
+      runtime.goalStreamWatchdogTimer = window.setTimeout(function () {
+        if (runtime.goalStreamWatchdogXhr !== xhr) return;
+        runtime.goalStreamWatchdogTimer = null;
+        runtime.goalStreamWatchdogXhr = null;
+        if (
+          generation !== runtime.goalStreamGeneration ||
+          runtime.goalStreamXhr !== xhr
+        ) return;
+        log("LEGACY_GOAL_STREAM_STALLED", "SSE keepalive bleef uit");
+        try { xhr.abort(); } catch (error) {}
+      }, CONFIG.goalStreamSilenceMs);
+    }
+    function connectGoalRealtime(generation) {
+      var xhr;
+      var token;
+      var completed = false;
+      if (
+        generation !== runtime.goalStreamGeneration ||
+        !validCredential(runtime.deviceToken) ||
+        window.navigator.onLine === false
+      ) return;
+      token = runtime.deviceToken;
+      xhr = new XMLHttpRequest();
+      runtime.goalStreamXhr = xhr;
+      runtime.goalStreamBuffer = "";
+      runtime.goalStreamOffset = 0;
+      function finish(transportCode) {
+        var status;
+        if (completed) return;
+        completed = true;
+        if (runtime.goalStreamWatchdogXhr === xhr) {
+          window.clearTimeout(runtime.goalStreamWatchdogTimer);
+          runtime.goalStreamWatchdogTimer = null;
+          runtime.goalStreamWatchdogXhr = null;
+        }
+        status = xhr.status || 0;
+        if (runtime.goalStreamXhr === xhr) runtime.goalStreamXhr = null;
+        if (generation !== runtime.goalStreamGeneration) return;
+        if (status === 204) {
+          runtime.goalReconnectAttempt = 0;
+          if (now() - runtime.lastGoalDisabledLoggedAt > 600000) {
+            runtime.lastGoalDisabledLoggedAt = now();
+            log("LEGACY_GOAL_DISABLED", "GET /api/player/realtime");
+          }
+          scheduleGoalReconnect(CONFIG.goalDisabledRetryMs, generation);
+          return;
+        }
+        if (status === 401 || status === 403) {
+          log("LEGACY_GOAL_AUTH_REJECTED", "HTTP_" + String(status));
+          return;
+        }
+        runtime.goalReconnectAttempt = Math.min(
+          runtime.goalReconnectAttempt + 1,
+          8
+        );
+        log(
+          transportCode || "LEGACY_GOAL_STREAM_CLOSED",
+          "HTTP_" + String(status)
+        );
+        scheduleGoalReconnect(
+          goalReconnectDelay(runtime.goalReconnectAttempt),
+          generation
+        );
+      }
+      xhr.open("GET", "/api/player/realtime", true);
+      xhr.setRequestHeader("Accept", "text/event-stream");
+      xhr.setRequestHeader("Authorization", "Bearer " + token);
+      xhr.onprogress = function () {
+        if (xhr.status < 200 || xhr.status >= 300) return;
+        runtime.goalReconnectAttempt = 0;
+        armGoalStreamWatchdog(xhr, generation);
+        consumeGoalSseProgress(xhr, token);
+        if (
+          !completed &&
+          runtime.goalStreamOffset >= CONFIG.goalStreamRecycleCharacters
+        ) {
+          completed = true;
+          if (runtime.goalStreamWatchdogXhr === xhr) {
+            window.clearTimeout(runtime.goalStreamWatchdogTimer);
+            runtime.goalStreamWatchdogTimer = null;
+            runtime.goalStreamWatchdogXhr = null;
+          }
+          if (runtime.goalStreamXhr === xhr) runtime.goalStreamXhr = null;
+          try { xhr.abort(); } catch (error) {}
+          log("LEGACY_GOAL_STREAM_RECYCLED", "bounded XHR response");
+          scheduleGoalReconnect(1000, generation);
+        }
+      };
+      xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          consumeGoalSseProgress(xhr, token);
+        }
+        finish(null);
+      };
+      xhr.onerror = function () { finish("LEGACY_GOAL_NETWORK_ERROR"); };
+      xhr.ontimeout = function () { finish("LEGACY_GOAL_TIMEOUT"); };
+      xhr.onabort = function () { finish("LEGACY_GOAL_ABORTED"); };
+      armGoalStreamWatchdog(xhr, generation);
+      try { xhr.send(null); } catch (error) {
+        finish("LEGACY_GOAL_XHR_EXCEPTION");
+      }
+    }
+    function stopGoalRealtime(clearOverlay) {
+      runtime.goalStreamGeneration += 1;
+      window.clearTimeout(runtime.goalReconnectTimer);
+      runtime.goalReconnectTimer = null;
+      window.clearTimeout(runtime.goalStreamWatchdogTimer);
+      runtime.goalStreamWatchdogTimer = null;
+      runtime.goalStreamWatchdogXhr = null;
+      runtime.goalReconnectAttempt = 0;
+      if (runtime.goalStreamXhr) {
+        var xhr = runtime.goalStreamXhr;
+        runtime.goalStreamXhr = null;
+        try { xhr.abort(); } catch (error) {}
+      }
+      runtime.goalStreamBuffer = "";
+      runtime.goalStreamOffset = 0;
+      if (clearOverlay) {
+        cancelPendingGoal("device_credential_removed");
+        hideGoalOverlay(true);
+      }
+    }
+    function restartGoalRealtime() {
+      var generation;
+      stopGoalRealtime(false);
+      if (!validCredential(runtime.deviceToken)) return;
+      generation = runtime.goalStreamGeneration;
+      scheduleGoalTerminalFlush(runtime.deviceToken, 0);
+      connectGoalRealtime(generation);
+    }
     function createIdentifier() {
       var bytes = [];
       var index;
@@ -643,6 +1832,7 @@ export function renderLgLegacyHtml() {
       hidePairing();
     }
     function clearInvalidDeviceCredential() {
+      stopGoalRealtime(true);
       runtime.deviceToken = null;
       safeRemove(CONFIG.deviceTokenKey);
       safeRemove(CONFIG.previousDeviceTokenKey);
@@ -814,6 +2004,7 @@ export function renderLgLegacyHtml() {
           if (!transport && status >= 200 && status < 300 && body && body.ok === true) {
             clearTemporaryPairing();
             setState("SYNCING");
+            restartGoalRealtime();
             syncManifest();
             return;
           }
@@ -1826,11 +3017,51 @@ export function renderLgLegacyHtml() {
       window.clearTimeout(runtime.playbackTimer);
       window.clearTimeout(runtime.watchdogTimer);
       window.clearInterval(runtime.progressTimer);
-      window.clearInterval(runtime.templateTimer);
+      window.clearTimeout(runtime.templateTimer);
       runtime.playbackTimer = null;
+      runtime.playbackDeadlineAt = 0;
+      if (!runtime.goalPauseApplied) runtime.playbackRemainingMs = null;
       runtime.watchdogTimer = null;
       runtime.progressTimer = null;
+      runtime.templateDeadlineAt = 0;
+      runtime.templateRemainingMs = null;
+      runtime.templateResumeCallback = null;
       runtime.templateTimer = null;
+    }
+    function schedulePlaybackAdvance(delay) {
+      var boundedDelay = Math.max(1, Math.min(3600000, Number(delay) || 1));
+      window.clearTimeout(runtime.playbackTimer);
+      runtime.playbackTimer = null;
+      runtime.playbackDeadlineAt = 0;
+      if (runtime.goalPauseApplied) {
+        runtime.playbackRemainingMs = boundedDelay;
+        return;
+      }
+      runtime.playbackRemainingMs = null;
+      runtime.playbackDeadlineAt = now() + boundedDelay;
+      runtime.playbackTimer = window.setTimeout(function () {
+        runtime.playbackTimer = null;
+        runtime.playbackDeadlineAt = 0;
+        nextItem();
+      }, boundedDelay);
+    }
+    function scheduleTemplateAdvance(callback, delay) {
+      var boundedDelay = Math.max(1, Math.min(3600000, Number(delay) || 1));
+      window.clearTimeout(runtime.templateTimer);
+      runtime.templateTimer = null;
+      runtime.templateDeadlineAt = 0;
+      runtime.templateResumeCallback = callback;
+      if (runtime.goalPauseApplied) {
+        runtime.templateRemainingMs = boundedDelay;
+        return;
+      }
+      runtime.templateRemainingMs = null;
+      runtime.templateDeadlineAt = now() + boundedDelay;
+      runtime.templateTimer = window.setTimeout(function () {
+        runtime.templateTimer = null;
+        runtime.templateDeadlineAt = 0;
+        callback();
+      }, boundedDelay);
     }
     function revokeObjectUrls(urls) {
       var index;
@@ -3266,6 +4497,7 @@ export function renderLgLegacyHtml() {
       var pageIndex = 0;
       var accent = "#ff5c20";
       var templateDuration;
+      var templatePageDuration;
       var brand = templateRecord(snapshot.brand);
       var editorialConfiguration = templateRecord(snapshot.editorial) || {};
       var editorialTheme = templateRecord(editorialConfiguration.theme) || {};
@@ -3287,6 +4519,18 @@ export function renderLgLegacyHtml() {
       var editorialArena =
         templateText(payload.templateSlug, "").indexOf("editorial-arena-") === 0;
       var menuStudioV2 = false;
+      function advanceTemplatePage() {
+        var number;
+        if (runtime.currentElement !== root) return;
+        pageIndex = (pageIndex + 1) % renderer.pages.length;
+        renderer.render(renderer.pages[pageIndex], pageIndex);
+        number = root.querySelector(".dynamic-page-number");
+        if (number) {
+          number.textContent = String(pageIndex + 1) + " / " +
+            String(renderer.pages.length);
+        }
+        scheduleTemplateAdvance(advanceTemplatePage, templatePageDuration);
+      }
       if (brand && typeof brand.primaryColor === "string" && /^#[0-9a-f]{6}$/i.test(brand.primaryColor)) {
         accent = brand.primaryColor;
       }
@@ -3401,16 +4645,11 @@ export function renderLgLegacyHtml() {
         renderer.pages.length * (renderer.pageDuration || 5000)
       );
       if (renderer.pages.length > 1) {
-        runtime.templateTimer = window.setInterval(function () {
-          var number;
-          if (runtime.currentElement !== root) return;
-          pageIndex = (pageIndex + 1) % renderer.pages.length;
-          renderer.render(renderer.pages[pageIndex], pageIndex);
-          number = root.querySelector(".dynamic-page-number");
-          if (number) number.textContent = String(pageIndex + 1) + " / " + String(renderer.pages.length);
-        }, renderer.pageDuration || Math.floor(templateDuration / renderer.pages.length));
+        templatePageDuration = renderer.pageDuration ||
+          Math.floor(templateDuration / renderer.pages.length);
+        scheduleTemplateAdvance(advanceTemplatePage, templatePageDuration);
       }
-      runtime.playbackTimer = window.setTimeout(nextItem, templateDuration);
+      schedulePlaybackAdvance(templateDuration);
       log("LEGACY_TEMPLATE_READY", payload.slideType + " " + payload.templateSlug);
     }
     function playImage(item, sourceUrl, objectUrls, generation) {
@@ -3429,10 +4668,7 @@ export function renderLgLegacyHtml() {
         };
         frame(function () {
           if (!commitPendingMedia(image, objectUrls, generation)) return;
-          runtime.playbackTimer = window.setTimeout(
-            nextItem,
-            itemDurationMs(item)
-          );
+          schedulePlaybackAdvance(itemDurationMs(item));
         });
       }
       image = document.createElement("img");
@@ -3540,6 +4776,10 @@ export function renderLgLegacyHtml() {
             generation
           );
         }
+        if (committed && runtime.goalPauseApplied) {
+          runtime.goalPausedVideo = video;
+          try { video.pause(); } catch (error) {}
+        }
       };
       video.ontimeupdate = function () {
         if (!committed || runtime.currentElement !== video) return;
@@ -3593,6 +4833,7 @@ export function renderLgLegacyHtml() {
           runtime.currentElement !== video
         )
       ) return;
+      if (runtime.goalPauseApplied) return;
       try {
         video.muted = true;
         result = video.play();
@@ -3814,6 +5055,7 @@ export function renderLgLegacyHtml() {
           if (command.commandType === "RECOVER_PAIRING" && validCredential(body && body.deviceToken)) {
             persistDeviceToken(body.deviceToken);
             clearTemporaryPairing();
+            restartGoalRealtime();
             syncManifest();
           } else if (command.commandType === "FORCE_UNPAIR") {
             clearInvalidDeviceCredential();
@@ -3976,6 +5218,7 @@ export function renderLgLegacyHtml() {
             ensurePairing();
             return;
           }
+          restartGoalRealtime();
           readCachedRelease(runtime.deviceToken, function (cached) {
             if (generation !== runtime.bootGeneration) return;
             if (cached) {
@@ -4023,9 +5266,11 @@ export function renderLgLegacyHtml() {
     window.setInterval(pollCommands, CONFIG.commandIntervalMs);
     window.addEventListener("online", function () {
       runtime.offline = false;
+      restartGoalRealtime();
       syncManifest();
     });
     window.addEventListener("offline", function () {
+      stopGoalRealtime(false);
       restoreLastKnownGood(function () {});
     });
     window.addEventListener("resize", refitDynamicTemplates);

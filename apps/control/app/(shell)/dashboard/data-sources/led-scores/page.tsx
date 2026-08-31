@@ -19,9 +19,39 @@ import {
   saveLedScoresMappings,
   testLedScoresSource
 } from "./actions";
+import {
+  deliveryDisplayState,
+  deliveryLatencyMs,
+  formatDeliveryLatency,
+  heartbeatDisplayState,
+  safeDeliveryDetail,
+  type GoalDeliveryRow
+} from "./delivery-visibility";
 import styles from "./led-scores.module.css";
 
 type Props = { searchParams: Promise<{ fout?: string; succes?: string }> };
+
+type LedScoresDelivery = GoalDeliveryRow & {
+  created_at: string;
+  goal_event_id: string;
+  id: string;
+  screen_id: string;
+};
+
+type LedScoresScreen = {
+  deleted_at: string | null;
+  id: string;
+  name: string;
+  status: string;
+};
+
+type LedScoresDevice = {
+  app_version: string | null;
+  last_seen_at: string | null;
+  platform: string | null;
+  screen_id: string;
+  status: string;
+};
 
 export default async function LedScoresPage({ searchParams }: Props) {
   const session = await requireTenantControlSession("tenant.data_source.read");
@@ -32,6 +62,8 @@ export default async function LedScoresPage({ searchParams }: Props) {
     && hasCapability(session.capabilities, "tenant.data_source.manage");
   const formatDate = (value: string | null) =>
     formatTenantDateTime(value, session.timezoneName);
+  const screensById = new Map(data.screens.map((screen) => [screen.id, screen]));
+  const devicesByScreen = latestDevicesByScreen(data.devices);
 
   return <>
     <PageHeader
@@ -45,6 +77,8 @@ export default async function LedScoresPage({ searchParams }: Props) {
     />
     {params.fout ? <p className="notice notice--critical" role="alert"><strong>LED Scores-actie mislukt.</strong> {params.fout}</p> : null}
     {params.succes ? <p className="notice notice--success" role="status">{params.succes}</p> : null}
+    {data.loadError ? <p className="notice notice--critical" role="alert"><strong>Afleverdetails konden niet volledig worden geladen.</strong> Goal Alerts en bestaande Playerweergave blijven ongewijzigd. Vernieuw deze pagina; blijft dit terugkomen, controleer dan de databronstatus.</p> : null}
+    {data.deliveriesTruncated ? <p className="notice notice--warning" role="status"><strong>Niet alle afleverregels passen in dit overzicht.</strong> De nieuwste {data.deliveries.length} afleverregels van de getoonde events zijn geladen; totalen bij oudere events kunnen daardoor onvolledig zijn.</p> : null}
     {!data.enabled ? <section className="workspace-section">
       <div className="notice notice--warning" role="status">
         <strong>{availabilityMessage(data.availability).title}</strong>{" "}
@@ -53,7 +87,7 @@ export default async function LedScoresPage({ searchParams }: Props) {
     </section> : <>
       <SummaryStrip items={[
         { label: "Verbindingen", value: data.connections.length },
-        { label: "Realtime verbonden", value: data.connections.filter((item) => item.health_status === "connected").length, tone: data.connections.some((item) => item.health_status === "connected") ? "success" : "warning" },
+        { label: "Provider verbonden", value: data.connections.filter((item) => item.health_status === "connected").length, tone: data.connections.some((item) => item.health_status === "connected") ? "success" : "warning" },
         { label: "Goal-events (24 uur)", value: data.eventCount }
       ]} />
 
@@ -129,8 +163,29 @@ export default async function LedScoresPage({ searchParams }: Props) {
       </section> : null}
 
       <section className="workspace-section" aria-labelledby="event-history">
-        <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="event-history">Beperkte eventhistorie</h2><p className="work-panel__meta">Geen onbeperkte providerpayloads; alleen status, dedupe-uitkomst en delivery-aantallen.</p></div></div>
-        {data.events.length ? <div className={styles.eventList}>{data.events.map((event) => { const delivery = deliverySummary(data.deliveries.filter((item) => item.goal_event_id === event.id), event.source_observed_at); return <article key={event.id}><div><strong>{event.event_kind === "synthetic_test" ? "Synthetische test" : "Goal-event"}</strong><span>{formatDate(event.detected_at)}</span></div><p>{event.home_team} {event.home_score}–{event.away_score} {event.away_team} · {event.scoring_side === "own" ? "Eigen team" : event.scoring_side === "opponent" ? "Tegenstander" : "Onbekend team"}</p><p>{delivery.total} uniek{delivery.total === 1 ? " scherm" : "e schermen"} · {delivery.received} ontvangen · {delivery.rendered} getoond · {delivery.skipped} overgeslagen · {delivery.failed} mislukt{delivery.renderLatencyMs === null ? "" : ` · bron→render gemiddeld ${delivery.renderLatencyMs} ms`}</p><StatusPill {...dispatchStatus(event.dispatch_status)} /></article>; })}</div> : <p className="notice">Nog geen goal-events geregistreerd.</p>}
+        <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="event-history">Beperkte eventhistorie</h2><p className="work-panel__meta">Per test of goal zie je welke Player hem ontving en werkelijk toonde. Een recente heartbeat bewijst alleen Playercontact, niet dat de Goal Alert-stream verbonden is.</p></div></div>
+        {data.events.length ? <div className={styles.eventList}>{data.events.map((event, index) => {
+          const eventDeliveries = data.deliveries.filter((item) => item.goal_event_id === event.id);
+          const delivery = deliverySummary(eventDeliveries, event.source_observed_at);
+          return <article id={`event-${event.id}`} key={event.id}>
+            <div className={styles.eventHeading}>
+              <div><strong>{event.event_kind === "synthetic_test" ? "Synthetische test" : "Goal-event"}</strong><span>{formatDate(event.detected_at)}</span></div>
+              <StatusPill {...dispatchStatus(event.dispatch_status)} />
+            </div>
+            <p>{event.home_team} {event.home_score}–{event.away_score} {event.away_team} · {event.scoring_side === "own" ? "Eigen team" : event.scoring_side === "opponent" ? "Tegenstander" : "Onbekend team"}</p>
+            <p>{delivery.total} uniek{delivery.total === 1 ? " scherm" : "e schermen"} · {delivery.received} ontvangen · {delivery.rendered} getoond · {delivery.skipped} overgeslagen · {delivery.failed} mislukt · {delivery.expired} verlopen zonder weergave{delivery.renderLatencyMs === null ? "" : ` · bron→render gemiddeld ${formatDeliveryLatency(delivery.renderLatencyMs)}`}</p>
+            {eventDeliveries.length ? <details className={styles.deliveryDisclosure} open={index === 0 ? true : undefined}>
+              <summary>Aflevering per scherm <span>{eventDeliveries.length}</span></summary>
+              <DeliveryTable
+                deliveries={eventDeliveries}
+                devicesByScreen={devicesByScreen}
+                formatDate={formatDate}
+                screensById={screensById}
+                sourceObservedAt={event.source_observed_at}
+              />
+            </details> : <p className={styles.noDeliveries}>Voor dit event zijn geen schermleveringen klaargezet.</p>}
+          </article>;
+        })}</div> : <p className="notice">Nog geen goal-events geregistreerd.</p>}
       </section>
     </>}
   </>;
@@ -157,28 +212,57 @@ async function loadLedScores(tenantId: string) {
   }
   if (availability !== "available") return { ...emptyData(), availability };
   const since = new Date(Date.now() - 86_400_000).toISOString();
-  const [connections, mappings, sportsTeams, events, eventCount, deliveries] = await Promise.all([
+  const [connections, mappings, sportsTeams, events, eventCount, screens, devices] = await Promise.all([
     supabase.from("ledscores_connections").select("id,name,club_slug,status,health_status,health_detail,revision,baseline_json,last_source_message_at,last_connected_at,last_disconnected_at,last_test_at,last_test_status,last_test_detail,reconnect_count,invalid_message_count").eq("tenant_id", tenantId).order("created_at"),
     supabase.from("ledscores_team_mappings").select("id,connection_id,provider_team_key,provider_team_name,sports_team_id,scoring_side").eq("tenant_id", tenantId).order("created_at"),
     supabase.from("sports_teams").select("id,name").eq("tenant_id", tenantId).eq("active", true).order("name").limit(250),
     supabase.from("ledscores_goal_events").select("id,connection_id,event_kind,source_observed_at,detected_at,home_team,away_team,home_score,away_score,scoring_side,dispatch_status").eq("tenant_id", tenantId).order("detected_at", { ascending: false }).limit(25),
     supabase.from("ledscores_goal_events").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("detected_at", since),
-    supabase.from("ledscores_player_deliveries").select("goal_event_id,status,received_at,rendered_at,skipped_at,failed_at").eq("tenant_id", tenantId).eq("message_kind", "goal").gte("created_at", since).order("created_at", { ascending: false }).limit(1000)
+    supabase.from("screens").select("id,name,status,deleted_at").eq("tenant_id", tenantId).order("name").limit(500),
+    supabase.from("player_devices").select("screen_id,status,platform,app_version,last_seen_at").eq("tenant_id", tenantId).order("last_seen_at", { ascending: false }).limit(500)
   ]);
-  const error = [connections.error, mappings.error, sportsTeams.error, events.error, eventCount.error, deliveries.error].find(Boolean);
-  if (error) {
-    console.error("LED Scores-beheer laden mislukt", { code: error.code });
-    return { ...emptyData(), enabled: true };
+  const coreError = [connections.error, mappings.error, sportsTeams.error, events.error, eventCount.error].find(Boolean);
+  if (coreError) {
+    console.error("LED Scores-beheer laden mislukt", { code: coreError.code });
+    return { ...emptyData(), enabled: true, loadError: true };
   }
+  const diagnosticsError = [screens.error, devices.error].find(Boolean);
+  if (diagnosticsError) {
+    console.error("LED Scores-schermdiagnostiek laden mislukt", { code: diagnosticsError.code });
+  }
+
+  const eventIds = (events.data ?? []).map((event) => event.id);
+  const deliveryLimit = 2_500;
+  const deliveries = eventIds.length
+    ? await supabase
+      .from("ledscores_player_deliveries")
+      .select("id,goal_event_id,screen_id,status,execute_at,expires_at,dispatched_at,received_at,rendered_at,skipped_at,failed_at,outcome_detail,created_at", { count: "exact" })
+      .eq("tenant_id", tenantId)
+      .eq("message_kind", "goal")
+      .in("goal_event_id", eventIds)
+      .order("created_at", { ascending: false })
+      .limit(deliveryLimit)
+    : { count: 0, data: [] as LedScoresDelivery[], error: null };
+  if (deliveries.error) {
+    console.error("LED Scores-afleverdetails laden mislukt", { code: deliveries.error.code });
+  }
+  const deliveryRows = deliveries.error
+    ? []
+    : (deliveries.data ?? []) as LedScoresDelivery[];
   return {
     availability: "available" as const,
-    connections: connections.data ?? [], enabled: true,
-    deliveries: deliveries.data ?? [], eventCount: eventCount.count ?? 0, events: events.data ?? [],
-    mappings: mappings.data ?? [], sportsTeams: sportsTeams.data ?? []
+    connections: connections.data ?? [], deliveries: deliveryRows,
+    deliveriesTruncated: (deliveries.count ?? 0) > deliveryRows.length,
+    devices: (devices.error ? [] : devices.data ?? []) as LedScoresDevice[],
+    enabled: true, eventCount: eventCount.count ?? 0, events: events.data ?? [],
+    loadError: Boolean(diagnosticsError || deliveries.error),
+    mappings: mappings.data ?? [],
+    screens: (screens.error ? [] : screens.data ?? []) as LedScoresScreen[],
+    sportsTeams: sportsTeams.data ?? []
   };
 }
 
-function emptyData() { return { availability: "not_released" as LedScoresFeatureAvailability, connections: [], deliveries: [], enabled: false, eventCount: 0, events: [], mappings: [], sportsTeams: [] }; }
+function emptyData() { return { availability: "not_released" as LedScoresFeatureAvailability, connections: [], deliveries: [] as LedScoresDelivery[], deliveriesTruncated: false, devices: [] as LedScoresDevice[], enabled: false, eventCount: 0, events: [], loadError: false, mappings: [], screens: [] as LedScoresScreen[], sportsTeams: [] }; }
 function availabilityMessage(value: LedScoresFeatureAvailability) {
   return ledScoresFeatureAvailabilityMessages[
     value === "available" ? "unavailable" : value
@@ -200,26 +284,95 @@ function healthStatus(status: string, value: string, lastSourceMessageAt: string
   return { label: "Niet verbonden", tone: "neutral" as const };
 }
 function dispatchStatus(value: string) {
-  if (value === "dispatched") return { label: "Verzonden", tone: "success" as const };
+  if (value === "dispatched") return { label: "Klaargezet", tone: "info" as const };
   if (value === "suppressed_unknown_side") return { label: "Veilig onderdrukt", tone: "warning" as const };
   return { label: "Geen doelgroepen", tone: "neutral" as const };
 }
+
+function DeliveryTable({
+  deliveries,
+  devicesByScreen,
+  formatDate,
+  screensById,
+  sourceObservedAt
+}: {
+  deliveries: LedScoresDelivery[];
+  devicesByScreen: Map<string, LedScoresDevice>;
+  formatDate: (value: string | null) => string;
+  screensById: Map<string, LedScoresScreen>;
+  sourceObservedAt: string;
+}) {
+  return <div className={styles.deliveryTableWrapper}>
+    <table className={styles.deliveryTable}>
+      <caption className="vc-visually-hidden">Afleverresultaat per doelscherm</caption>
+      <thead><tr><th scope="col">Scherm</th><th scope="col">Player en heartbeat</th><th scope="col">Afleverstatus</th><th scope="col">Tijd en latency</th><th scope="col">Detail</th></tr></thead>
+      <tbody>{deliveries.map((delivery) => {
+        const screen = screensById.get(delivery.screen_id);
+        const device = devicesByScreen.get(delivery.screen_id);
+        const heartbeat = heartbeatDisplayState(device?.last_seen_at ?? null);
+        const outcome = deliveryDisplayState(delivery);
+        const latency = formatDeliveryLatency(deliveryLatencyMs(delivery, sourceObservedAt));
+        const detail = safeDeliveryDetail(delivery.outcome_detail);
+        return <tr key={delivery.id}>
+          <td data-label="Scherm"><strong>{screen?.name ?? "Onbekend scherm"}</strong>{screen && (screen.status !== "active" || screen.deleted_at) ? <small>{screen.deleted_at ? "Scherm verwijderd" : `Scherm ${screen.status}`}</small> : null}</td>
+          <td data-label="Player en heartbeat"><span>{device ? playerLabel(device) : "Geen gekoppelde Player"}</span><StatusPill label={heartbeat.label} tone={heartbeat.tone} />{device?.last_seen_at ? <small>Laatst gezien {formatDate(device.last_seen_at)}</small> : null}</td>
+          <td data-label="Afleverstatus"><StatusPill label={outcome.label} tone={outcome.tone} /></td>
+          <td data-label="Tijd en latency"><span>{formatDate(outcome.occurredAt)}</span>{latency ? <small>Bron → {outcome.label.toLowerCase()}: {latency}</small> : outcome.key === "pending" ? <small>Uitvoering gepland {formatDate(delivery.execute_at)}</small> : null}</td>
+          <td data-label="Detail">{detail ?? "—"}</td>
+        </tr>;
+      })}</tbody>
+    </table>
+  </div>;
+}
+
+function latestDevicesByScreen(devices: LedScoresDevice[]) {
+  const result = new Map<string, LedScoresDevice>();
+  for (const device of devices) {
+    const current = result.get(device.screen_id);
+    if (!current || timestamp(device.last_seen_at) > timestamp(current.last_seen_at)) {
+      result.set(device.screen_id, device);
+    }
+  }
+  return result;
+}
+
+function timestamp(value: string | null) {
+  const parsed = value ? Date.parse(value) : 0;
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function playerLabel(device: LedScoresDevice) {
+  const platform = device.platform
+    ? device.platform.toLowerCase().includes("android")
+      ? "Android"
+      : device.platform.toLowerCase().includes("webos")
+        ? "LG webOS"
+        : device.platform.toLowerCase().includes("browser")
+          ? "Browser"
+          : device.platform
+    : "Platform onbekend";
+  const lifecycle = device.status === "paired" ? "" : ` · ${device.status}`;
+  return `${platform}${device.app_version ? ` · ${device.app_version}` : ""}${lifecycle}`;
+}
+
 function deliverySummary(
-  deliveries: Array<{ failed_at: string | null; received_at: string | null; rendered_at: string | null; skipped_at: string | null; status: string }>,
+  deliveries: LedScoresDelivery[],
   sourceObservedAt: string
 ) {
   const sourceTime = Date.parse(sourceObservedAt);
+  const states = deliveries.map((delivery) => deliveryDisplayState(delivery));
   const latencies = deliveries.flatMap((delivery) => delivery.rendered_at
     ? [Math.max(0, Date.parse(delivery.rendered_at) - sourceTime)]
     : []);
   return {
-    failed: deliveries.filter((delivery) => delivery.status === "failed").length,
+    expired: states.filter((state) => state.key === "expired").length,
+    failed: states.filter((state) => state.key === "failed").length,
     received: deliveries.filter((delivery) => delivery.received_at).length,
-    rendered: deliveries.filter((delivery) => delivery.rendered_at).length,
+    rendered: states.filter((state) => state.key === "rendered").length,
     renderLatencyMs: latencies.length
       ? Math.round(latencies.reduce((total, value) => total + value, 0) / latencies.length)
       : null,
-    skipped: deliveries.filter((delivery) => delivery.skipped_at).length,
+    skipped: states.filter((state) => state.key === "skipped").length,
     total: deliveries.length
   };
 }

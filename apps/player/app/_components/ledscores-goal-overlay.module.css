@@ -5,6 +5,7 @@
 .media, .media :is(img, video), .scrim, .fallbackMotion { height: 100%; inset: 0; position: absolute; width: 100%; }
 .media :is(img, video) { object-fit: cover; }
 .scrim { background: linear-gradient(100deg, color-mix(in srgb, var(--vc-brand-ink-black) 88%, transparent), color-mix(in srgb, var(--vc-brand-ink-black) 28%, transparent)); }
+.overlay[data-palette="electric-orange"] .scrim, .overlay[data-palette="white"] .scrim { background: linear-gradient(100deg, color-mix(in srgb, var(--vc-brand-paper-white) 78%, transparent), color-mix(in srgb, var(--vc-brand-paper-white) 22%, transparent)); }
 .fallbackMotion { opacity: .36; }
 .fallbackMotion span { background: var(--vc-brand-electric-orange); height: 150%; position: absolute; top: -25%; transform: rotate(18deg); width: 14%; }
 .fallbackMotion span:nth-child(1) { left: 6%; }.fallbackMotion span:nth-child(2) { left: 44%; }.fallbackMotion span:nth-child(3) { right: 5%; }
@@ -26,5 +27,5 @@
 @keyframes goal-impact { from { opacity: 0; transform: scale(.72); } 70% { opacity: 1; transform: scale(1.05); } to { transform: scale(1); } }
 @keyframes goal-pulse { 50% { transform: scale(1.08); } }
 @keyframes goal-slide { from { opacity: 0; transform: translateX(-12vw); } to { opacity: 1; transform: translateX(0); } }
-@media (orientation: portrait) { .content { align-content: start; max-width: 84vw; padding-top: 15vh; } .displayHeadline, .bodyHeadline { font-size: clamp(3.5rem, 15vw, 9rem); line-height: .84; } .score { font-size: clamp(6rem, 24vw, 13rem); } .scrim { background: linear-gradient(180deg, color-mix(in srgb, var(--vc-brand-ink-black) 82%, transparent), color-mix(in srgb, var(--vc-brand-ink-black) 36%, transparent)); } }
+@media (orientation: portrait) { .content { align-content: start; max-width: 84vw; padding-top: 15vh; } .displayHeadline, .bodyHeadline { font-size: clamp(3.5rem, 15vw, 9rem); line-height: .84; } .score { font-size: clamp(6rem, 24vw, 13rem); } .scrim { background: linear-gradient(180deg, color-mix(in srgb, var(--vc-brand-ink-black) 82%, transparent), color-mix(in srgb, var(--vc-brand-ink-black) 36%, transparent)); } .overlay[data-palette="electric-orange"] .scrim, .overlay[data-palette="white"] .scrim { background: linear-gradient(180deg, color-mix(in srgb, var(--vc-brand-paper-white) 74%, transparent), color-mix(in srgb, var(--vc-brand-paper-white) 28%, transparent)); } }
 @media (prefers-reduced-motion: reduce) { .overlay *, .overlay::before { animation: none !important; } }

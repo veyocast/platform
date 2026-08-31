@@ -22,6 +22,7 @@ import {
   createRssSource,
   syncRssSource
 } from "./actions";
+import { PendingNavigationLink } from "./pending-navigation-link";
 
 type PageProps = {
   searchParams: Promise<{ fout?: string; succes?: string }>;
@@ -48,12 +49,12 @@ export default async function DataSourcesPage({ searchParams }: PageProps) {
       <PageHeader
         actions={(
           <div className={styles.heroActions}>
-            <Button asChild variant="secondary">
-              <Link href="/dashboard/data-sources/led-scores">
-                <RadioTower aria-hidden="true" />
-                LED Scores
-              </Link>
-            </Button>
+            <PendingNavigationLink
+              href="/dashboard/data-sources/led-scores"
+              icon={<RadioTower />}
+            >
+              LED Scores
+            </PendingNavigationLink>
             <Button asChild variant="secondary">
               <Link href="/dashboard/data-sources/sportlink">
                 <Trophy aria-hidden="true" />
