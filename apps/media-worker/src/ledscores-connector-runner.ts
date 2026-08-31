@@ -1438,7 +1438,7 @@ async function handleMessage({
       connection.connectionId,
       workerId,
       safeBaseline(status),
-      status.updatedAt
+      sourceObservedAt
     );
     if (!owned) throw new LeaseLostError();
     persistence.lastTouchAt = now;
@@ -1490,7 +1490,7 @@ async function handleMessage({
       eventType: "baseline_established",
       healthStatus: "connected",
       severity: "info",
-      sourceMessageAt: status.updatedAt,
+      sourceMessageAt: sourceObservedAt,
       workerId
     });
     return;
@@ -1510,7 +1510,7 @@ async function handleMessage({
         eventType: "goal_suppressed",
         healthStatus: "connected",
         severity: "warning",
-        sourceMessageAt: status.updatedAt,
+        sourceMessageAt: sourceObservedAt,
         workerId
       });
       onEvent({ connectionId: connection.connectionId, outcome: "goal_suppressed" });
