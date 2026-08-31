@@ -35,9 +35,9 @@ Staging en productie draaiden tijdens de reproductie dezelfde immutable SHA
 `05995c81a947…`; publieke healthchecks waren groen. Beide omgevingen bevatten
 volgens de laatste succesvolle migration dry-run de S132-migratie die de
 canonieke LED Scores-sleutel al accepteert. Een verse geauthenticeerde
-database-readback was tijdens het onderzoek nog niet mogelijk doordat
-Tailscale opnieuw interactieve authenticatie vroeg; daarom is daaruit geen
-ongeverifieerde flagstatus afgeleid.
+database-readback was tijdens het eerste onderzoek nog niet mogelijk doordat
+Tailscale opnieuw interactieve authenticatie vroeg. Na herstel van die toegang
+is de hosted status hieronder alsnog privacyveilig en read-only vastgesteld.
 
 ## Hersteld Control-contract
 
@@ -119,9 +119,20 @@ vastgelegd.
 | A11y | groen; 36 geslaagd, 1 conditionele live-skip |
 | Live Control-rolloutjourney | groen; login, AAL2, redenvalidatie, HTTP 409-conflict, vrijgave, platformreadback en tenant-eigen beheerreadback in Chromium |
 | Volledige Chromium-E2E | 179 geslaagd, 21 bewuste live/visual-skips; één algemene mobiele test time-outte tijdens een automatische Next-devserverherstart en slaagde direct geïsoleerd 1/1 |
-| Immutable VPS staging en smoke | nog uit te voeren |
-| Immutable VPS productie en smoke | nog uit te voeren |
-| Duindorp SV vrijgave en tenantisolatie-readback | nog uit te voeren |
+| Immutable VPS staging en smoke | groen op `e9c7bfc80ce9…`; migratie toegepast, Control/Player HTTP 200 op de release-SHA, worker healthy en pairing/LG-recovery geslaagd |
+| Immutable VPS productie en smoke | groen op exact dezelfde vier image-digests en `e9c7bfc80ce9…`; Marketing/Control/Player HTTP 200, worker healthy en pairing/LG-recovery geslaagd |
+| Duindorp SV vrijgave en tenantisolatie-readback | productie-readback vindt exact één actieve tenant; definitie aanwezig, kill switch uit, maar de flag is nog afwezig/uit op revision 0. Vrijgave blijft bewust via de gewone AAL2-Control-actie; eigen-tenant- en cross-tenantgrenzen zijn lokaal in pgTAP en live Chromium bewezen |
+
+## Hosted readback
+
+De forward-only migratie `20260831095437` staat op staging en productie. Beide
+omgevingen draaien commit `e9c7bfc80ce9cabfa182071ae7a38f14e40a514c` met
+overeenkomende immutable manifests. De productiecontrole bevestigde uitsluitend
+booleans: de LED Scores-definitie en beide authenticated RPC-rechten bestaan,
+de globale kill switch staat uit, Duindorp SV is actief en de effectieve flag
+staat nog uit. Er is geen directe databasewrite of service-role-activatie
+uitgevoerd; zo blijven AAL2, actoridentiteit, reden, audit en idempotencyreceipt
+verplicht voor de daadwerkelijke tenantvrijgave.
 
 ## Rollback
 
