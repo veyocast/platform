@@ -788,7 +788,7 @@ function scheduleGoalPhotoEnrichment({
 
 function goalEnrichment(
   goal: LedScoresGoal,
-  status: LedScoresStatus
+  sourceObservedAt: string
 ): LedScoresGoalScorerEnrichment {
   const scorer = goal.scorer;
   if (!scorer) throw new Error("ledscores_goal_scorer_missing");
@@ -800,7 +800,7 @@ function goalEnrichment(
     scoreboardSide: goal.scoreboardSide,
     scorer,
     scoringTeamKey: normalizeLedScoresTeamKey(goal.scoringTeamKey),
-    sourceObservedAt: status.updatedAt,
+    sourceObservedAt,
     sourceUpdateId: goal.sourceUpdateId
   };
 }
@@ -1310,16 +1310,18 @@ async function handleMessage({
     }
     return;
   }
-  const observation = detector.observe({
-    connectionId: connection.connectionId,
-    mappings: connection.mappings,
-    status
-  });
   const now = Date.now();
   // Provider timestamps describe when LED Scores changed the match. The RPC
   // freshness guard needs when VeyoCast actually observed this websocket
   // snapshot. A reconnect can legitimately start with an older baseline.
   const sourceObservedAt = new Date(now).toISOString();
+  const observation = detector.observe({
+    connectionId: connection.connectionId,
+    mappings: connection.mappings,
+    now: new Date(now),
+    sourceObservedAt,
+    status
+  });
   const semanticEvents = observation.kind === "events" ? observation.events : [];
   const goalEvents = semanticEvents.filter(
     (item): item is Extract<LedScoresSemanticEvent, { kind: "goal" }> =>
@@ -1385,7 +1387,7 @@ async function handleMessage({
   const scorerEnrichments = semanticEvents.flatMap((event) => {
     if (event.kind === "goal_scorer_enriched") return [event.enrichment];
     if (event.kind !== "goal" || !event.goal.scorer) return [];
-    return [goalEnrichment(event.goal, status)];
+    return [goalEnrichment(event.goal, sourceObservedAt)];
   });
   for (const enrichment of scorerEnrichments) {
     const accepted = persistence.acceptedPlayerKeys.has(playerAssetKey(
