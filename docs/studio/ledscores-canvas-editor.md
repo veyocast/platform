@@ -71,10 +71,26 @@ maximaal 24 unieke media-assets.
 
 ## Mediaflow
 
-Control leest maximaal de recente gereedstaande tenantbeelden en -video's en
-laadt daarnaast media die een bestaand canvas al gebruikt. Voor preview kiest
-Control een thumbnail/original van een beeld en de `player_1080p`-variant van
-een video. Storage levert signed URL's met een levensduur van tien minuten.
+Control leest maximaal de recente gereedstaande uploads met
+`source_kind = user` en laadt daarnaast exact media die een bestaand canvas of
+legacyveld al gebruikt. Die aanvullende technische referenties blijven voor
+veilige preview en compatibiliteit beschikbaar, maar worden niet opnieuw als
+menselijke bibliotheekkeuze aangeboden. Voor preview kiest Control een
+thumbnail/original van een beeld en de `player_1080p`-variant van een video.
+Storage levert signed URL's met een levensduur van tien minuten.
+
+Het legacyveld `Clublogo` is geen algemene mediakiezer: alleen het
+`logo_media_asset_id` uit de tenanthuisstijl en logo's van actieve
+clubkoppelingen zijn nieuwe keuzes. Gewone foto's, video's en gegenereerde
+slideoutputs blijven buiten die lijst. Fallbackbeelden en -video's komen alleen
+uit de eigen uploadbibliotheek. De serveraction past dezelfde rolcontrole toe;
+alleen een exact ongewijzigde technische selectie uit hetzelfde bestaande
+concept mag voor achterwaartse compatibiliteit behouden blijven.
+
+De omliggende vijfstapswizard gebruikt tot en met 48 rem één actieve stap.
+Formcontrols hebben een begrensde inlinebreedte en minimaal 44 px hoogte, zodat
+lange bestandsnamen de Media-stap ook op 320–768 px niet buiten de viewport
+drukken.
 
 Uploaden gebruikt de bestaande tenantmediaflows en vereist zowel
 `tenant.dynamic_slide.write` als `tenant.media.write`. Een upload verschijnt pas

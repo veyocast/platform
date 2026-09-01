@@ -224,6 +224,8 @@
 .triggerFields label:has(select) {
   display: grid;
   gap: var(--vc-space-8);
+  max-inline-size: 100%;
+  min-inline-size: 0;
 }
 
 .liveTestForm label > span,
@@ -235,6 +237,28 @@
   font-weight: 750;
 }
 
+.liveTestForm label > :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.fieldGrid > label > :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.wizardStage > section > label > :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.optionPanel label:has(select) > select,
+.triggerFields label:has(select) > select {
+  background: var(--vc-surface);
+  border: 1px solid var(--vc-border-strong);
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-text);
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-block-size: 2.75rem;
+  min-inline-size: 0;
+  padding: var(--vc-space-10) var(--vc-space-12);
+}
+
+.fieldHelp {
+  color: var(--vc-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
 .experienceEditor {
   align-items: start;
   display: grid;
@@ -243,6 +267,8 @@
     "nav stage preview"
     "save save save";
   grid-template-columns: 13.5rem minmax(31rem, 1fr) minmax(19rem, 23rem);
+  max-inline-size: 100%;
+  min-inline-size: 0;
 }
 
 .experienceEditor[data-canvas-mode="true"] {
@@ -354,6 +380,8 @@
 .wizardStage > section {
   display: grid;
   gap: var(--vc-space-24);
+  max-inline-size: 100%;
+  min-inline-size: 0;
 }
 
 .wizardStage > section[hidden] {
@@ -409,6 +437,9 @@
   display: grid;
   gap: var(--vc-space-16);
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
 }
 
 .subsectionHeading h3 {
@@ -1681,7 +1712,7 @@
   .orientationChoices,
   .templateChoices,
   .fallbackFlow ol {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .momentCard:first-child {
@@ -1785,9 +1816,7 @@
   .scoreboardPreview {
     max-width: 100%;
   }
-}
 
-@media (max-width: 32rem) {
   .wizardNav ol {
     display: block;
   }
@@ -1796,7 +1825,7 @@
     display: none;
   }
 
-  .wizardNav li:has(button[aria-current="step"]) {
+  .wizardNav li[data-current="true"] {
     display: block;
   }
 

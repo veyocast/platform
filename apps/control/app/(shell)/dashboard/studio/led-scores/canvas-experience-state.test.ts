@@ -190,6 +190,6 @@ describe("LED Scores canvaseditor state", () => {
     expect(css).toMatch(/@media \(max-width: 60rem\)[\s\S]*\.desktopEditor\s*\{[^}]*display:\s*none/s);
     expect(css).toMatch(/@media \(max-width: 60rem\)[\s\S]*\.mobileEditor\s*\{[^}]*display:\s*grid/s);
     expect(page).toContain('key={initial.id ?? "new"}');
-    expect(alertEditor).toContain('asset.kind === "image" && asset.canvasCompatible');
+    expect(alertEditor).toContain("asset.logoSelectable");
   });
 });

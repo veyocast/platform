@@ -56,10 +56,12 @@ describe("LED Scores live match authoring", () => {
   });
 
   it("scheidt tijdelijke overlays van een responsive latest-bound playlistslide", async () => {
-    const [editor, liveSlide, css] = await Promise.all([
+    const [editor, liveSlide, css, page, actions] = await Promise.all([
       readFile(new URL("./alert-editor.tsx", import.meta.url), "utf8"),
       readFile(new URL("./live-match-slide-editor.tsx", import.meta.url), "utf8"),
-      readFile(new URL("./led-scores-studio.module.css", import.meta.url), "utf8")
+      readFile(new URL("./led-scores-studio.module.css", import.meta.url), "utf8"),
+      readFile(new URL("./page.tsx", import.meta.url), "utf8"),
+      readFile(new URL("./actions.ts", import.meta.url), "utf8")
     ]);
 
     expect(editor).toContain("Goal");
@@ -82,12 +84,22 @@ describe("LED Scores live match authoring", () => {
     expect(editor).toContain("data-typography");
     expect(editor).toContain("missingDesignHeadline");
     expect(editor).toContain("Een actief moment mist een hoofdtekst.");
-    expect(editor).toContain('assets.filter((asset) => asset.kind === "image" && asset.canvasCompatible)');
+    expect(editor).toContain("asset.logoSelectable");
+    expect(editor).toContain("Andere media en gegenereerde slides worden uitgesloten.");
+    expect(page).toContain('.eq("source_kind", "user")');
+    expect(page).toContain('from("studio_tenant_brand_kits")');
+    expect(actions).toContain("assertLedScoresLibrarySelections");
+    expect(actions).toContain('from("media_variants")');
+    expect(actions).toContain('eq("status", "active")');
+    expect(actions).toContain("purposeApproved");
     expect(css).toMatch(/\.experiencePreview\[data-orientation="portrait"\][^{]*\{[^}]*aspect-ratio:\s*9 \/ 16/s);
     expect(css).toContain("@media (max-width: 48rem)");
-    expect(css).toContain('.wizardNav li:has(button[aria-current="step"])');
+    expect(css).toContain('.wizardNav li[data-current="true"]');
+    expect(css).toMatch(/\.fieldGrid > label > :is\([^{]+\)[^{]*\{[^}]*max-inline-size:\s*100%[^}]*min-inline-size:\s*0/s);
+    expect(css).toMatch(/@media \(max-width: 48rem\)[\s\S]*\.fieldGrid,[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\)/s);
     expect(css).toContain('.experiencePreview[data-logo-position="center"]');
     expect(css).toContain('.experiencePreview[data-typography="body"]');
     expect(css).not.toMatch(/\.wizardNav ol\s*\{[^}]*overflow-x:\s*auto/s);
+    expect(css).not.toContain('.wizardNav li:has(button[aria-current="step"])');
   });
 });
