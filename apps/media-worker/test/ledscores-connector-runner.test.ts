@@ -440,6 +440,11 @@ describe("LED Scores connector loop", () => {
           socket.emit("open", new Event("open"));
           socket.message(scoreMessage(3, null, providerBaselineAt, "baseline"));
           socket.message(scoreMessage(3, null, providerBaselineAt + 500, "clock-only"));
+          socket.message(providerMessage(providerBaselineAt + 1_000, "rest-started", {
+            period: 2,
+            rest: true,
+            scoreboard: { away: 2, home: 3, scored: null }
+          }));
           setTimeout(() => controller.abort(), 10);
         });
         return socket as unknown as WebSocket;
@@ -448,7 +453,7 @@ describe("LED Scores connector loop", () => {
     });
     await loop;
     expect(backend.touch).toHaveBeenCalledOnce();
-    expect(backend.upsertLiveState).toHaveBeenCalledOnce();
+    expect(backend.upsertLiveState).toHaveBeenCalledTimes(2);
     expect(backend.dispatch).not.toHaveBeenCalled();
     const playerObservation = vi.mocked(backend.syncPlayers).mock.calls[0]?.[0]
       .sourceObservedAt;
@@ -475,6 +480,15 @@ describe("LED Scores connector loop", () => {
     });
     expect(Date.parse(baselineRecord?.sourceMessageAt ?? ""))
       .toBeGreaterThanOrEqual(now);
+    expect(backend.dispatchOverlay).toHaveBeenCalledOnce();
+    const overlay = vi.mocked(backend.dispatchOverlay).mock.calls[0]?.[0];
+    expect(overlay).toMatchObject({
+      eventType: "half_time",
+      payload: {
+        sourceUpdatedAt: new Date(providerBaselineAt + 1_000).toISOString()
+      }
+    });
+    expect(Date.parse(overlay?.sourceObservedAt ?? "")).toBeGreaterThanOrEqual(now);
   });
 
   it("publishes a detected countdown direction immediately and then resumes throttling", async () => {
@@ -843,19 +857,19 @@ describe("LED Scores connector loop", () => {
       webSocketFactory: () => {
         queueMicrotask(() => {
           socket.emit("open", new Event("open"));
-          socket.message(providerMessage(now - 1_000, "baseline", {
+          socket.message(providerMessage(now - 90_000, "baseline", {
             lineup,
             lineups: { home: ["home-7"] },
             scoreboard: { away: 0, home: 0, scored: null }
           }));
-          socket.message(providerMessage(now - 500, "goal-with-scorer", {
+          socket.message(providerMessage(now - 89_500, "goal-with-scorer", {
             lineup,
             lineups: { home: ["home-7"] },
             scoreboard: {
               away: 0,
               home: 1,
               scored: {
-                date: new Date(now - 550).toISOString(),
+                date: new Date(now - 89_400).toISOString(),
                 id: "goal-button",
                 side: "home"
               }
@@ -876,6 +890,11 @@ describe("LED Scores connector loop", () => {
     expect(calls.indexOf("goal")).toBeLessThan(calls.indexOf("goal-touch"));
     expect(calls.indexOf("goal")).toBeLessThan(calls.indexOf("goal-state"));
     expect(calls.indexOf("goal")).toBeLessThan(calls.indexOf("scorer"));
+    const scorerEnrichment = vi.mocked(backend.enrichGoal).mock.calls[0]?.[0].enrichment;
+    expect(Date.parse(scorerEnrichment?.sourceObservedAt ?? ""))
+      .toBeGreaterThanOrEqual(now);
+    expect(scorerEnrichment?.sourceObservedAt)
+      .not.toBe(new Date(now - 89_500).toISOString());
     const persistedBaselines = vi.mocked(backend.recordState).mock.calls
       .flatMap(([input]) => input.baseline ? [input.baseline] : []);
     const touchedBaselines = vi.mocked(backend.touch).mock.calls.map((call) => call[2]);

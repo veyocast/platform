@@ -296,7 +296,11 @@ describe("LED Scores semantic event detection", () => {
       updatedAt: "2026-08-30T12:00:21.500Z"
     });
     const enrichmentObservation = detector.observe({
-      connectionId: "connection-1", mappings, now, status: enrichedStatus
+      connectionId: "connection-1",
+      mappings,
+      now,
+      sourceObservedAt: "2026-08-30T12:00:30.000Z",
+      status: enrichedStatus
     });
     expect(enrichmentObservation.kind).toBe("events");
     if (enrichmentObservation.kind !== "events") return;
@@ -307,7 +311,8 @@ describe("LED Scores semantic event detection", () => {
       .toMatchObject({
         resultingScore: 1,
         scorer: { id: "provider-player-7", name: "Speler Zeven" },
-        scoreboardSide: "home"
+        scoreboardSide: "home",
+        sourceObservedAt: "2026-08-30T12:00:30.000Z"
       });
 
     expect(detector.observe({
@@ -333,6 +338,7 @@ describe("LED Scores semantic event detection", () => {
       connectionId: "connection-1",
       mappings,
       now,
+      sourceObservedAt: "2026-08-30T12:00:31.000Z",
       status: { ...lineupState, displayTeam: "home", updateId: "show-home" }
     });
     expect(singleEvent(requested)).toMatchObject({
@@ -343,7 +349,8 @@ describe("LED Scores semantic event detection", () => {
         teamKey: "23603",
         unresolvedPlayerIds: []
       },
-      kind: "lineup_display_requested"
+      kind: "lineup_display_requested",
+      sourceObservedAt: "2026-08-30T12:00:31.000Z"
     });
 
     const switched = detector.observe({
@@ -490,8 +497,16 @@ describe("LED Scores semantic event detection", () => {
       updateId: "match-started"
     };
     expect(singleEvent(detector.observe({
-      connectionId: "connection-1", mappings, now, status: running
-    }))).toMatchObject({ kind: "match_started", state: { matchState: "running" } });
+      connectionId: "connection-1",
+      mappings,
+      now,
+      sourceObservedAt: "2026-08-30T12:00:32.000Z",
+      status: running
+    }))).toMatchObject({
+      kind: "match_started",
+      sourceObservedAt: "2026-08-30T12:00:32.000Z",
+      state: { matchState: "running" }
+    });
 
     const resting = {
       ...running,

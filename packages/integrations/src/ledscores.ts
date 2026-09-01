@@ -488,6 +488,7 @@ export class LedScoresSemanticEventDetector {
     connectionId: string;
     mappings: LedScoresTeamMapping[];
     now?: Date;
+    sourceObservedAt?: string;
     status: LedScoresStatus;
   }): LedScoresEventObservation {
     const previous = this.previous;
@@ -506,14 +507,23 @@ export class LedScoresSemanticEventDetector {
 
     const events: LedScoresSemanticEvent[] = [];
     const matchIdentity = createLedScoresMatchIdentity(input.status);
-    this.appendMatchEvents(events, input.connectionId, matchIdentity, previous, input.status);
+    const sourceObservedAt = input.sourceObservedAt ?? input.status.updatedAt;
+    this.appendMatchEvents(
+      events,
+      input.connectionId,
+      matchIdentity,
+      previous,
+      input.status,
+      sourceObservedAt
+    );
     this.appendLineupDisplayEvent(
       events,
       input.connectionId,
       input.mappings,
       matchIdentity,
       previous,
-      input.status
+      input.status,
+      sourceObservedAt
     );
 
     if (goalObservation.kind === "goal") {
@@ -536,7 +546,8 @@ export class LedScoresSemanticEventDetector {
         events,
         input.connectionId,
         matchIdentity,
-        input.status
+        input.status,
+        sourceObservedAt
       );
     }
 
@@ -551,20 +562,45 @@ export class LedScoresSemanticEventDetector {
     connectionId: string,
     matchIdentity: string,
     previous: LedScoresStatus,
-    status: LedScoresStatus
+    status: LedScoresStatus,
+    sourceObservedAt: string
   ) {
     if (!previous.endedAt && status.endedAt) {
-      events.push(matchTransitionEvent("match_ended", connectionId, matchIdentity, status));
+      events.push(matchTransitionEvent(
+        "match_ended",
+        connectionId,
+        matchIdentity,
+        status,
+        sourceObservedAt
+      ));
       return;
     }
     if (!previous.startedAt && status.startedAt) {
-      events.push(matchTransitionEvent("match_started", connectionId, matchIdentity, status));
+      events.push(matchTransitionEvent(
+        "match_started",
+        connectionId,
+        matchIdentity,
+        status,
+        sourceObservedAt
+      ));
     }
     if (!previous.rest && status.rest) {
-      events.push(matchTransitionEvent("match_rest_started", connectionId, matchIdentity, status));
+      events.push(matchTransitionEvent(
+        "match_rest_started",
+        connectionId,
+        matchIdentity,
+        status,
+        sourceObservedAt
+      ));
     }
     if (previous.rest && !status.rest) {
-      events.push(matchTransitionEvent("match_rest_ended", connectionId, matchIdentity, status));
+      events.push(matchTransitionEvent(
+        "match_rest_ended",
+        connectionId,
+        matchIdentity,
+        status,
+        sourceObservedAt
+      ));
     }
   }
 
@@ -574,7 +610,8 @@ export class LedScoresSemanticEventDetector {
     mappings: LedScoresTeamMapping[],
     matchIdentity: string,
     previous: LedScoresStatus,
-    status: LedScoresStatus
+    status: LedScoresStatus,
+    sourceObservedAt: string
   ) {
     if (previous.displayTeam === status.displayTeam) {
       const pending = this.pendingLineupRefresh;
@@ -594,7 +631,7 @@ export class LedScoresSemanticEventDetector {
         ...semanticEventBase(connectionId, matchIdentity, status, [
           "late-lineup-refresh",
           status.displayTeam
-        ]),
+        ], sourceObservedAt),
         display,
         kind: "lineup_display_requested"
       });
@@ -604,7 +641,7 @@ export class LedScoresSemanticEventDetector {
     const source = semanticEventBase(connectionId, matchIdentity, status, [
       previous.displayTeam ?? "none",
       status.displayTeam ?? "none"
-    ]);
+    ], sourceObservedAt);
     if (!status.displayTeam && previous.displayTeam) {
       events.push({
         ...source,
@@ -634,7 +671,8 @@ export class LedScoresSemanticEventDetector {
     events: LedScoresSemanticEvent[],
     connectionId: string,
     matchIdentity: string,
-    status: LedScoresStatus
+    status: LedScoresStatus,
+    sourceObservedAt: string
   ) {
     const activeGoal = this.activeGoal;
     if (!activeGoal || activeGoal.matchIdentity !== matchIdentity) {
@@ -676,7 +714,7 @@ export class LedScoresSemanticEventDetector {
       scoreboardSide: activeGoal.scoreboardSide,
       scorer: scorer.player,
       scoringTeamKey: activeGoal.scoringTeamKey,
-      sourceObservedAt: status.updatedAt,
+      sourceObservedAt,
       sourceUpdateId: status.updateId
     };
     events.push({ enrichment, kind: "goal_scorer_enriched" });
@@ -926,10 +964,11 @@ function matchTransitionEvent(
     | "match_started",
   connectionId: string,
   matchIdentity: string,
-  status: LedScoresStatus
+  status: LedScoresStatus,
+  sourceObservedAt: string
 ): Extract<LedScoresSemanticEvent, { state: LedScoresMatchEventState }> {
   return {
-    ...semanticEventBase(connectionId, matchIdentity, status, [kind]),
+    ...semanticEventBase(connectionId, matchIdentity, status, [kind], sourceObservedAt),
     kind,
     state: {
       awayScore: status.awayScore,
@@ -949,7 +988,8 @@ function semanticEventBase(
   connectionId: string,
   matchIdentity: string,
   status: LedScoresStatus,
-  details: string[]
+  details: string[],
+  sourceObservedAt: string
 ): LedScoresEventBase {
   return {
     canonicalKey: hashParts(
@@ -960,7 +1000,7 @@ function semanticEventBase(
       ...details
     ),
     matchIdentity,
-    sourceObservedAt: status.updatedAt,
+    sourceObservedAt,
     sourceUpdateId: status.updateId
   };
 }
