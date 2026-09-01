@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 
+import { createDefaultLedScoresCanvasExperience } from "@veyocast/contracts";
+
 import {
   chooseLatestLedScoresMatchState,
   formatLedScoresClock,
   isLedScoresMatchStateStale,
   ledScoresMatchServerNow,
+  parseLedScoresCanvasScenePair,
   parseLedScoresGoalEnrichmentMessage,
   parseLedScoresLiveMatchConfig,
   parseLedScoresMatchOverlayMessage,
   parseLedScoresMatchStateMessage,
+  parseLedScoresOverlayAssets,
   readStoredLedScoresMatchStates,
   resolveLedScoresClockSeconds,
   writeStoredLedScoresMatchStates
@@ -20,7 +24,47 @@ const eventId = "33333333-3333-4333-8333-333333333333";
 const logoId = "44444444-4444-4444-8444-444444444444";
 
 describe("LED Scores match experience contract", () => {
+  it("valideert beide canvasoriëntaties en valt veilig terug bij een ongeldige pair", () => {
+    const pair = createDefaultLedScoresCanvasExperience().scenes.lineupHome;
+    expect(parseLedScoresCanvasScenePair(pair)).toEqual(pair);
+    expect(parseLedScoresCanvasScenePair({
+      landscape: pair.landscape,
+      portrait: pair.landscape
+    })).toBeNull();
+
+    const missingAssetPair = structuredClone(pair);
+    missingAssetPair.landscape.background = {
+      focusX: 0.5,
+      focusY: 0.5,
+      kind: "media",
+      mediaAssetId: "99999999-9999-4999-8999-999999999999",
+      objectFit: "cover",
+      overlayColor: "#0a0a0a",
+      overlayOpacity: 0.2
+    };
+    expect(parseLedScoresCanvasScenePair(missingAssetPair)).toBeNull();
+    const signedAssets = parseLedScoresOverlayAssets([{
+      checksum: "a".repeat(64),
+      mediaAssetId: "99999999-9999-4999-8999-999999999999",
+      mimeType: "video/mp4",
+      url: "https://storage.test/signed-background.mp4"
+    }]);
+    expect(parseLedScoresCanvasScenePair(missingAssetPair, signedAssets))
+      .not.toBeNull();
+  });
+
+  it("begrensd de signed immutable assetmap op 24 canvasassets", () => {
+    const assets = Array.from({ length: 25 }, (_, index) => ({
+      checksum: "a".repeat(64),
+      mediaAssetId: `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+      mimeType: "image/webp",
+      url: `https://storage.test/scene-${index}.webp`
+    }));
+    expect(parseLedScoresOverlayAssets(assets).size).toBe(24);
+  });
+
   it("normaliseert een expliciet geselecteerde thuisopstelling en veilige spelersfoto's", () => {
+    const scene = createDefaultLedScoresCanvasExperience().scenes.lineupHome;
     const message = {
       assets: [{
         checksum: "a".repeat(64),
@@ -62,6 +106,7 @@ describe("LED Scores match experience contract", () => {
         logoMediaAssetId: logoId,
         ownTeamKeys: ["home-key", "away-key"],
         overlayKind: "lineup",
+        scene,
         side: "home"
       },
       serverTime: "2026-08-31T18:00:00.000Z"
@@ -80,6 +125,7 @@ describe("LED Scores match experience contract", () => {
       kind: "lineup",
       lineupPageDurationMs: 5_000,
       side: "home",
+      scene,
       underlayPolicy: "pause"
     });
     expect(parsed?.overlay.lineup).toEqual([

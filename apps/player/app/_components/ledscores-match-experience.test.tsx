@@ -2,14 +2,18 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
+import { createDefaultLedScoresCanvasExperience } from "@veyocast/contracts";
+
 import type {
   ActiveLedScoresMatchOverlay,
   LedScoresLiveMatchConfig,
-  LedScoresMatchState
+  LedScoresMatchState,
+  LedScoresOverlayAsset
 } from "../_lib/ledscores-match-experience";
 import {
   LedScoresLiveMatchSlide,
-  LedScoresMatchOverlay
+  LedScoresMatchOverlay,
+  LedScoresMatchOverlayContent
 } from "./ledscores-match-experience";
 import { DynamicTemplateMedia } from "./dynamic-template-media";
 
@@ -41,6 +45,69 @@ describe("LED Scores responsive match renderers", () => {
     expect(html).toContain('data-logo-position="left"');
     expect(html).toContain('data-logo-scale="medium"');
     expect(html).toContain('data-typography="display"');
+  });
+
+  it("rendert een gepubliceerde canvasopstelling via bindings", () => {
+    const html = renderToStaticMarkup(
+      <LedScoresMatchOverlay overlay={{
+        ...overlay,
+        design: {
+          ...overlay.design,
+          headline: "Alleen legacy opstelling",
+          secondaryText: "Alleen legacy subtekst"
+        },
+        scene: createDefaultLedScoresCanvasExperience().scenes.lineupHome
+      }} />
+    );
+    expect(html).toContain('data-testid="ledscores-match-canvas"');
+    expect(html).toContain("D. Jansen");
+    expect(html).toContain("Duindorp sv 1");
+    expect(html).toContain("Onze opstelling");
+    expect(html).not.toContain("Alleen legacy");
+    expect(html).not.toContain('data-testid="ledscores-match-overlay"');
+  });
+
+  it("valt bij een mislukte canvasachtergrond terug op de vaste matchoverlay", () => {
+    const mediaAssetId = "66666666-6666-4666-8666-666666666666";
+    const defaults = createDefaultLedScoresCanvasExperience().scenes.lineupHome;
+    const scene = {
+      ...defaults,
+      landscape: {
+        ...defaults.landscape,
+        background: {
+          focusX: 0.5,
+          focusY: 0.5,
+          kind: "media" as const,
+          mediaAssetId,
+          objectFit: "cover" as const,
+          overlayColor: "#0a0a0a",
+          overlayOpacity: 0.25
+        }
+      }
+    };
+    const assets = new Map<string, LedScoresOverlayAsset>([[mediaAssetId, {
+      checksum: "a".repeat(64),
+      mediaAssetId,
+      mimeType: "video/mp4",
+      url: "https://storage.test/failed-match-background.mp4"
+    }]]);
+    const html = renderToStaticMarkup(
+      <LedScoresMatchOverlayContent
+        canvasBackgroundFailed
+        lineupPagination={{
+          pageCount: 1,
+          pageIndex: 0,
+          players: overlay.lineup
+        }}
+        onCanvasBackgroundError={() => undefined}
+        overlay={{ ...overlay, assets, scene }}
+      />
+    );
+
+    expect(html).toContain('data-testid="ledscores-match-overlay"');
+    expect(html).not.toContain('data-testid="ledscores-match-canvas"');
+    expect(html).toContain("Opstelling");
+    expect(html).toContain("D. Jansen");
   });
 
   it("verbergt de score zonder teamidentiteit te verliezen", () => {
@@ -168,6 +235,7 @@ const config: LedScoresLiveMatchConfig = {
 };
 
 const overlay: ActiveLedScoresMatchOverlay = {
+  assets: new Map(),
   away: state.away,
   deliveryId: "22222222-2222-4222-8222-222222222222",
   design: {
@@ -195,6 +263,7 @@ const overlay: ActiveLedScoresMatchOverlay = {
   lineupPageDurationMs: 6_000,
   matchClock: null,
   periodLabel: null,
+  scene: null,
   side: "home",
   underlayPolicy: "pause"
 };

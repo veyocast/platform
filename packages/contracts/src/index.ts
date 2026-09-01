@@ -3,6 +3,7 @@ export * from "./dynamic-content";
 export * from "./engage";
 export * from "./errors";
 export * from "./identity";
+export * from "./ledscores-scene";
 export * from "./menu-studio";
 export * from "./mobile-control";
 export * from "./playlist";

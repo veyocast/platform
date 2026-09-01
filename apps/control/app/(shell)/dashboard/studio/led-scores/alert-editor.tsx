@@ -19,9 +19,17 @@ import {
   UsersRound
 } from "lucide-react";
 
+import {
+  createDefaultLedScoresCanvasExperience,
+  safeParseLedScoresCanvasExperience,
+  type LedScoresCanvasExperience,
+  type LedScoresCanvasMomentKey
+} from "@veyocast/contracts";
 import { Badge, Button } from "@veyocast/ui";
 
 import { saveLedScoresGoalAlert } from "./actions";
+import { LedScoresCanvasExperienceEditor } from "./canvas-experience-editor";
+import { CanvasMediaUploadDialog } from "./canvas-media-upload-dialog";
 import {
   enabledMomentCount,
   normalizeProviderTeamKey,
@@ -48,7 +56,16 @@ export type AlertEditorValue = {
 };
 
 type Group = { id: string; name: string; screenIds: string[] };
-type Asset = { id: string; kind: string; title: string };
+type Asset = {
+  canvasCompatible: boolean;
+  height: number | null;
+  id: string;
+  kind: "image" | "video";
+  mimeType: string | null;
+  previewUrl: string | null;
+  title: string;
+  width: number | null;
+};
 type ExistingAlert = { groupIds: string[]; id: string; name: string; priority: number; status: string };
 type Connection = {
   id: string;
@@ -76,7 +93,8 @@ export function LedScoresAlertEditor({
   groups,
   initial,
   screens,
-  sponsors
+  sponsors,
+  uploadConfig
 }: {
   alerts: ExistingAlert[];
   assets: Asset[];
@@ -85,6 +103,11 @@ export function LedScoresAlertEditor({
   initial: AlertEditorValue;
   screens: Screen[];
   sponsors: Array<{ id: string; label: string }>;
+  uploadConfig: {
+    anonKey: string;
+    canUpload: boolean;
+    supabaseUrl: string;
+  } | null;
 }) {
   const initialTriggers = readOverlayTriggers(initial.config);
   const initialLineup = readLineupBehavior(initial.config);
@@ -97,6 +120,12 @@ export function LedScoresAlertEditor({
   const [underlayPolicy, setUnderlayPolicy] = useState(initial.underlayPolicy);
   const [previewKind, setPreviewKind] = useState<PreviewKind>("own");
   const [orientation, setOrientation] = useState<"landscape" | "portrait">("landscape");
+  const [activeCanvasMoment, setActiveCanvasMoment] = useState<LedScoresCanvasMomentKey>("goalOwn");
+  const [canvasExperience, setCanvasExperience] = useState<LedScoresCanvasExperience>(() => {
+    const parsed = safeParseLedScoresCanvasExperience(initial.config.canvasExperience);
+    return parsed.success ? parsed.data : createDefaultLedScoresCanvasExperience();
+  });
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [triggerOwn, setTriggerOwn] = useState(readBoolean(initial.config.triggerOwn, true));
   const [triggerOpponent, setTriggerOpponent] = useState(readBoolean(initial.config.triggerOpponent, true));
   const [triggers, setTriggers] = useState(initialTriggers);
@@ -162,10 +191,15 @@ export function LedScoresAlertEditor({
     setPreviewKind(key);
   }
 
-  return (
-    <form action={saveLedScoresGoalAlert} className={styles.experienceEditor}>
+  return <>
+    <form
+      action={saveLedScoresGoalAlert}
+      className={styles.experienceEditor}
+      data-canvas-mode={activeStep === "design" || undefined}
+    >
       {initial.id ? <input name="alertId" type="hidden" value={initial.id} /> : null}
       <input name="expectedRevision" type="hidden" value={initial.revision} />
+      <input name="canvasExperience" type="hidden" value={JSON.stringify(canvasExperience)} />
       {!triggerOwn ? <HiddenDesignFields design={goalDesigns.own} prefix="own" withScorerFallback /> : null}
       {!triggerOpponent ? <HiddenDesignFields design={goalDesigns.opponent} prefix="opponent" withScorerFallback /> : null}
       {!triggerOwn && !triggerOpponent ? <HiddenDesignFields design={goalDesigns.unknown} prefix="unknown" withScorerFallback /> : null}
@@ -293,11 +327,27 @@ export function LedScoresAlertEditor({
 
         <section aria-labelledby="experience-design" hidden={activeStep !== "design"}>
           <StepHeading
-            description="Elk moment heeft een veilige standaard. Live velden worden door VeyoCast gebonden; je hoeft geen spelersnamen in het ontwerp te zetten."
+            description="Plaats teksten, scorevelden, spelerfoto's, vormen en eigen media vrij op twee afzonderlijke schermstanden. De Player rendert alleen veilige databindingen."
             icon={<Sparkles aria-hidden="true" />}
             number={2}
-            title="Vormgeving en databinding"
+            title="Geavanceerde canvaseditor"
           />
+          <LedScoresCanvasExperienceEditor
+            activeMoment={activeCanvasMoment}
+            canUpload={uploadConfig?.canUpload ?? false}
+            experience={canvasExperience}
+            onActiveMomentChange={setActiveCanvasMoment}
+            onChange={setCanvasExperience}
+            onUpload={() => setUploadOpen(true)}
+            tenantMedia={assets.filter((asset) => asset.canvasCompatible)}
+          />
+          <details className={styles.designDisclosure}>
+            <summary>
+              <span className={styles.momentIcon}><MonitorPlay aria-hidden="true" /></span>
+              <span><strong>Compatibiliteitsfallback</strong><small>Alleen gebruikt door oudere Players die het veilige canvascontract nog niet ondersteunen.</small></span>
+              <Badge status="info">Automatische fallback</Badge>
+            </summary>
+            <div>
           <div className={styles.bindingStrip}>
             <span><CircleUserRound aria-hidden="true" />Spelerfoto</span>
             <span># Rugnummer</span>
@@ -334,6 +384,8 @@ export function LedScoresAlertEditor({
           {triggers.start ? <OverlayDisclosure design={overlayDesigns.matchStart} designKey="matchStart" description="Teamnamen, clublogo's en startstatus in één krachtige matchdayintro." icon={<Flag aria-hidden="true" />} label="Start wedstrijd" onChange={updateOverlayDesign} /> : null}
           {triggers.halfTime ? <OverlayDisclosure design={overlayDesigns.halfTime} designKey="halfTime" description="Rustige scorefocus met de laatst bevestigde stand en klokstatus." icon={<Timer aria-hidden="true" />} label="Rust" onChange={updateOverlayDesign} /> : null}
           {triggers.end ? <OverlayDisclosure design={overlayDesigns.matchEnd} designKey="matchEnd" description="Eindstand met een duidelijke afsluiting zonder oude wedstrijddata te verzinnen." icon={<Trophy aria-hidden="true" />} label="Einde wedstrijd" onChange={updateOverlayDesign} /> : null}
+            </div>
+          </details>
         </section>
 
         <section aria-labelledby="experience-media" hidden={activeStep !== "media"}>
@@ -344,7 +396,7 @@ export function LedScoresAlertEditor({
             title="Media en fallback"
           />
           <div className={styles.fieldGrid}>
-            <AssetSelect assets={assets.filter((asset) => asset.kind === "image")} defaultValue={readString(initial.config.logoMediaAssetId)} label="Clublogo" name="logoMediaAssetId" />
+            <AssetSelect assets={assets.filter((asset) => asset.kind === "image" && asset.canvasCompatible)} defaultValue={readString(initial.config.logoMediaAssetId)} label="Clublogo" name="logoMediaAssetId" />
             <AssetSelect assets={assets} defaultValue={readString(initial.config.ownMediaAssetId)} label="Fallback eigen goal" name="ownMediaAssetId" />
             <AssetSelect assets={assets} defaultValue={readString(initial.config.opponentMediaAssetId)} label="Fallback tegenstander" name="opponentMediaAssetId" />
             <AssetSelect assets={assets} defaultValue={readString(initial.config.unknownMediaAssetId)} label="Fallback onbekend team" name="unknownMediaAssetId" />
@@ -411,7 +463,7 @@ export function LedScoresAlertEditor({
         </div>
       </main>
 
-      <aside className={styles.previewPanel} aria-label="Live voorbeeld">
+      {activeStep !== "design" ? <aside className={styles.previewPanel} aria-label="Live voorbeeld">
         <div className={styles.previewToolbar}>
           <div><Eye aria-hidden="true" /><strong>Live voorbeeld</strong></div>
           <div role="group" aria-label="Schermstand"><button aria-pressed={orientation === "landscape"} onClick={() => setOrientation("landscape")} type="button">16:9</button><button aria-pressed={orientation === "portrait"} onClick={() => setOrientation("portrait")} type="button">9:16</button></div>
@@ -419,14 +471,21 @@ export function LedScoresAlertEditor({
         <PreviewKindPicker choices={previewChoices} current={effectivePreviewKind} onChange={setPreviewKind} />
         <ExperiencePreview design={previewDesign} kind={effectivePreviewKind} orientation={orientation} />
         <p><strong>{orientation === "landscape" ? "Liggende compositie" : "Staande compositie"}.</strong> De Player kiest automatisch op basis van de opgeslagen schermstand.</p>
-      </aside>
+      </aside> : null}
 
       <div className={styles.saveBar}>
         <div><strong>{initial.id ? "Experienceconcept wijzigen" : "Nieuwe wedstrijdexperience"}</strong><span>{momentCount} momenten · {selection.screenIds.length} schermen · publiceren gebeurt daarna apart.</span></div>
         <ExperienceSubmit disabled={!experienceName.trim() || missingDesignHeadline || !selectedGroups.length || !connections.length || !momentCount} />
       </div>
     </form>
-  );
+    {uploadConfig ? <CanvasMediaUploadDialog
+      anonKey={uploadConfig.anonKey}
+      canUpload={uploadConfig.canUpload}
+      onOpenChange={setUploadOpen}
+      open={uploadOpen}
+      supabaseUrl={uploadConfig.supabaseUrl}
+    /> : null}
+  </>;
 }
 
 function ExperienceSubmit({ disabled }: { disabled: boolean }) {

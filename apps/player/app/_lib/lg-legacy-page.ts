@@ -97,7 +97,7 @@ export function renderLgLegacyHtml() {
     #pairing-code{display:inline-block;padding:18px 26px;border:2px solid #ff5a1f;border-radius:14px;color:#fff;font-size:clamp(42px,7vw,84px);font-weight:800;letter-spacing:.12em}
     #error-code{margin:18px 0 0;color:#ffb28f;font:700 clamp(14px,1.4vw,20px)/1.4 monospace}
     #diagnostics{margin:18px 0 0;color:#aaa69d;font:400 clamp(12px,1.2vw,17px)/1.45 monospace;white-space:pre-wrap}
-    #watermark{position:absolute;left:2.2vw;bottom:2.2vh;display:none;width:clamp(100px,9vw,180px);height:auto;opacity:.4;pointer-events:none}
+    #watermark{position:absolute;z-index:90;left:2.2vw;bottom:2.2vh;display:none;width:clamp(100px,9vw,180px);height:auto;opacity:.4;pointer-events:none}
     #watermark.visible{display:block}
     #offline{position:absolute;right:2vw;bottom:2vh;display:none;padding:8px 12px;border-radius:999px;background:rgba(7,7,7,.76);color:#f4c15d;font-size:16px;font-weight:700}
     #offline.visible{display:block}
@@ -128,10 +128,20 @@ export function renderLgLegacyHtml() {
     .goal-sponsor{position:absolute;z-index:3;right:4vw;bottom:4vh;display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:8px;background:rgba(250,250,247,.92);color:#0a0a0a}
     .goal-sponsor span{font-size:12px;font-weight:700;text-transform:uppercase}.goal-sponsor img{max-width:160px;max-height:56px;object-fit:contain}
     .goal-player{position:absolute;z-index:3;right:5vw;bottom:7vh;display:grid;grid-template-columns:clamp(112px,17vw,288px) minmax(160px,320px);align-items:end;gap:clamp(14px,1.8vw,30px)}
-    .goal-player-photo{display:flex;align-items:center;justify-content:center;overflow:hidden;aspect-ratio:4/5;border:clamp(3px,.35vw,7px) solid currentColor;border-radius:clamp(18px,2vw,34px);background:#1b1b19;font-size:clamp(38px,6vw,96px);font-weight:900}
+    .goal-player-photo{display:flex;width:clamp(112px,17vw,288px);height:clamp(140px,21.25vw,360px);align-items:center;justify-content:center;overflow:hidden;border:clamp(3px,.35vw,7px) solid currentColor;border-radius:clamp(18px,2vw,34px);background:#1b1b19;font-size:clamp(38px,6vw,96px);font-weight:900}
     .goal-player-photo img{display:block;width:100%;height:100%;object-fit:cover}.goal-player-copy{display:grid;gap:4px;padding-bottom:16px;text-transform:uppercase}.goal-player-copy span{color:#ff5c20;font-size:clamp(38px,5vw,88px);font-weight:900;line-height:.8}.goal-player-copy strong{font-size:clamp(28px,3.6vw,64px);line-height:.92}.goal-player-copy small{font-weight:800;letter-spacing:.12em;opacity:.72}
     .match-overlay-backdrop{position:absolute;top:0;right:0;bottom:0;left:0;background:radial-gradient(circle at 84% 18%,rgba(255,92,32,.32),transparent 34%),linear-gradient(135deg,#080908 0%,#171613 100%)}
-    .match-overlay-content{position:relative;z-index:2;width:88vw;display:grid;align-content:center;gap:2vh}.match-overlay-kicker{margin:0;color:#ff5c20;font-size:clamp(18px,1.5vw,30px);font-weight:900;letter-spacing:.14em;text-transform:uppercase}.match-overlay-title{font-size:clamp(68px,9vw,168px);font-weight:900;line-height:.82;text-transform:uppercase}.match-scoreboard{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:3vw}.match-team{display:grid;justify-items:start;gap:1vh}.match-team.away{justify-items:end;text-align:right}.match-team-mark{display:flex;width:clamp(76px,9vw,144px);height:clamp(76px,9vw,144px);align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.28);border-radius:50%;background:#20211e;font-size:clamp(28px,3vw,52px);font-weight:900}.match-team-mark img{width:78%;height:78%;object-fit:contain}.match-team strong{font-size:clamp(24px,2.4vw,46px)}.match-score{font-size:clamp(92px,14vw,240px);font-weight:900;line-height:.75}.match-lineup{position:relative;z-index:2;width:90vw}.match-lineup-header{display:flex;align-items:center;gap:2vw;margin-bottom:4vh}.match-lineup-header h2{margin:0;font-size:clamp(56px,6vw,112px);line-height:.86;text-transform:uppercase}.match-lineup-page{margin-left:auto;padding:10px 14px;border:1px solid rgba(255,255,255,.25);font-weight:900}.match-lineup-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.2vw}.match-player{display:grid;grid-template-columns:clamp(58px,5.5vw,94px) minmax(0,1fr);align-items:center;gap:1vw;padding:1.1vw;border:1px solid rgba(255,255,255,.18);border-radius:18px;background:rgba(255,255,255,.08)}.match-player-photo{display:flex;align-items:center;justify-content:center;overflow:hidden;aspect-ratio:1;border-radius:14px;background:#242520;font-weight:900}.match-player-photo img{width:100%;height:100%;object-fit:cover}.match-player b{display:block;color:#ff5c20;font-size:clamp(21px,2vw,36px)}.match-player strong{display:block;font-size:clamp(17px,1.4vw,27px)}
+    .match-overlay-content{position:relative;z-index:2;width:88vw;display:grid;align-content:center;gap:2vh}.match-overlay-kicker{margin:0;color:#ff5c20;font-size:clamp(18px,1.5vw,30px);font-weight:900;letter-spacing:.14em;text-transform:uppercase}.match-overlay-title{font-size:clamp(68px,9vw,168px);font-weight:900;line-height:.82;text-transform:uppercase}.match-scoreboard{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:3vw}.match-team{display:grid;justify-items:start;gap:1vh}.match-team.away{justify-items:end;text-align:right}.match-team-mark{display:flex;width:clamp(76px,9vw,144px);height:clamp(76px,9vw,144px);align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.28);border-radius:50%;background:#20211e;font-size:clamp(28px,3vw,52px);font-weight:900}.match-team-mark img{width:78%;height:78%;object-fit:contain}.match-team strong{font-size:clamp(24px,2.4vw,46px)}.match-score{font-size:clamp(92px,14vw,240px);font-weight:900;line-height:.75}.match-lineup{position:relative;z-index:2;width:90vw}.match-lineup-header{display:flex;align-items:center;gap:2vw;margin-bottom:4vh}.match-lineup-header h2{margin:0;font-size:clamp(56px,6vw,112px);line-height:.86;text-transform:uppercase}.match-lineup-page{margin-left:auto;padding:10px 14px;border:1px solid rgba(255,255,255,.25);font-weight:900}.match-lineup-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.2vw}.match-player{display:grid;grid-template-columns:clamp(58px,5.5vw,94px) minmax(0,1fr);align-items:center;gap:1vw;padding:1.1vw;border:1px solid rgba(255,255,255,.18);border-radius:18px;background:rgba(255,255,255,.08)}.match-player-photo{display:flex;width:clamp(58px,5.5vw,94px);height:clamp(58px,5.5vw,94px);align-items:center;justify-content:center;overflow:hidden;border-radius:14px;background:#242520;font-weight:900}.match-player-photo img{width:100%;height:100%;object-fit:cover}.match-player b{display:block;color:#ff5c20;font-size:clamp(21px,2vw,36px)}.match-player strong{display:block;font-size:clamp(17px,1.4vw,27px)}
+    .goal-canvas-scene{position:absolute;z-index:1;top:0;left:0;overflow:hidden;background:#0a0a0a;color:#fafaf7;font-family:Arial,Helvetica,sans-serif;transform-origin:0 0}
+    .goal-canvas-background,.goal-canvas-background-media,.goal-canvas-background-overlay{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%}
+    .goal-canvas-background-media{display:block;object-fit:cover}.goal-canvas-background-overlay{pointer-events:none}
+    .goal-canvas-layer{position:absolute;box-sizing:border-box}.goal-canvas-layer-content{position:absolute;top:0;right:0;bottom:0;left:0;box-sizing:border-box}
+    .goal-canvas-text{display:flex;flex-direction:column;overflow:hidden;white-space:pre-wrap;word-break:break-word}
+    .goal-canvas-image{display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(255,255,255,.08);font-weight:900}
+    .goal-canvas-image img{position:absolute;top:0;right:0;bottom:0;left:0;display:block;width:100%;height:100%}.goal-canvas-image span{position:relative;z-index:0}
+    .goal-canvas-lineup{display:grid;overflow:hidden}.goal-canvas-lineup-card{display:grid;min-width:0;min-height:0;align-items:center;overflow:hidden}.goal-canvas-lineup-photo{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(255,255,255,.1);font-weight:900}.goal-canvas-lineup-photo img{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover}.goal-canvas-lineup-copy{min-width:0;overflow:hidden}.goal-canvas-lineup-copy b,.goal-canvas-lineup-copy strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.goal-canvas-lineup-page{position:absolute;z-index:3;right:12px;bottom:12px;padding:7px 10px;border-radius:999px;background:rgba(10,10,10,.82);color:#fafaf7;font-size:20px;font-weight:900}
+    .goal-canvas-animation-fade{animation:legacy-canvas-fade 420ms ease-out both}.goal-canvas-animation-rise{animation:legacy-canvas-rise 520ms cubic-bezier(.2,.8,.2,1) both}.goal-canvas-animation-zoom{animation:legacy-canvas-zoom 480ms cubic-bezier(.2,.8,.2,1) both}.goal-canvas-animation-wipe{animation:legacy-canvas-wipe 560ms ease-out both}
+    @keyframes legacy-canvas-fade{from{opacity:0}to{opacity:1}}@keyframes legacy-canvas-rise{from{opacity:0;transform:translateY(42px)}to{opacity:1;transform:translateY(0)}}@keyframes legacy-canvas-zoom{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:scale(1)}}@keyframes legacy-canvas-wipe{from{opacity:0;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
     .match-scoreboard[data-show-score="false"]{grid-template-columns:repeat(2,minmax(0,1fr))}.match-lineup-lead{margin:1vh 0 0;font-size:clamp(16px,1.4vw,28px);opacity:.72}.match-lineup-score,.match-lineup-clock{padding:10px 14px;border:1px solid rgba(255,255,255,.25);font-size:clamp(20px,2vw,38px);font-weight:900}.match-lineup-page{margin-left:0}.match-lineup-team-only{display:grid;align-content:center;justify-items:center;gap:2vh;height:60vh;text-align:center}.match-lineup-team-only .match-team-mark{width:clamp(160px,22vw,340px);height:clamp(160px,22vw,340px)}.match-lineup-team-only>strong{font-size:clamp(42px,6vw,110px)}#goal-overlay[data-logo-position="center"] .match-overlay-content{justify-items:center;text-align:center}#goal-overlay[data-logo-position="center"] .match-lineup-header{justify-content:center;text-align:center}#goal-overlay[data-logo-position="center"] .match-lineup-page{position:absolute;right:0}#goal-overlay[data-logo-scale="small"] .match-team-mark{width:clamp(54px,6vw,98px);height:clamp(54px,6vw,98px)}#goal-overlay[data-logo-scale="large"] .match-team-mark{width:clamp(104px,12vw,196px);height:clamp(104px,12vw,196px)}#goal-overlay[data-typography="display"] .match-overlay-title,#goal-overlay[data-typography="display"] .match-lineup-header h2,#goal-overlay[data-typography="display"] .goal-headline{font-family:Arial Black,Arial,Helvetica,sans-serif}#goal-overlay[data-typography="body"] .match-overlay-title,#goal-overlay[data-typography="body"] .match-lineup-header h2,#goal-overlay[data-typography="body"] .goal-headline{font-family:Arial,Helvetica,sans-serif;letter-spacing:-.025em}
     #goal-overlay[data-animation="impact"] .goal-content{animation:legacy-goal-impact 520ms cubic-bezier(.2,.9,.2,1) both}
     #goal-overlay[data-animation="pulse"] .goal-score{animation:legacy-goal-pulse 800ms ease-in-out 2}
@@ -731,6 +741,342 @@ export function renderLgLegacyHtml() {
         ? value
         : null;
     }
+    function goalCanvasHasOnlyKeys(record, allowed) {
+      var key;
+      if (!record) return false;
+      for (key in record) {
+        if (Object.prototype.hasOwnProperty.call(record, key) &&
+          allowed.indexOf(key) === -1) return false;
+      }
+      return true;
+    }
+    function goalCanvasNumber(value, minimum, maximum, integer) {
+      return typeof value === "number" && isFinite(value) &&
+        (!integer || Math.floor(value) === value) &&
+        value >= minimum && value <= maximum
+        ? value
+        : null;
+    }
+    function goalCanvasBoolean(value, fallback) {
+      if (typeof value === "undefined") return fallback;
+      return typeof value === "boolean" ? value : null;
+    }
+    function goalCanvasColor(value) {
+      return typeof value === "string" &&
+        /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value)
+        ? value
+        : null;
+    }
+    function goalCanvasTrimmedText(value, minimum, maximum) {
+      var normalized;
+      if (typeof value !== "string") return null;
+      normalized = value.replace(/^\\s+|\\s+$/g, "");
+      return normalized.length >= minimum && normalized.length <= maximum
+        ? normalized
+        : null;
+    }
+    function parseGoalCanvasLayerBase(record) {
+      var animation = typeof record.animation === "undefined"
+        ? "none"
+        : ["none", "fade", "rise", "zoom", "wipe"]
+          .indexOf(record.animation) !== -1 ? record.animation : null;
+      var height = goalCanvasNumber(record.height, 8, 3840, false);
+      var id = typeof record.id === "string" &&
+        /^[a-z][a-z0-9-]{0,63}$/.test(record.id) ? record.id : null;
+      var locked = goalCanvasBoolean(record.locked, false);
+      var name = goalCanvasTrimmedText(record.name, 1, 80);
+      var opacity = typeof record.opacity === "undefined"
+        ? 1
+        : goalCanvasNumber(record.opacity, 0, 1, false);
+      var rotation = typeof record.rotation === "undefined"
+        ? 0
+        : goalCanvasNumber(record.rotation, -180, 180, false);
+      var visible = goalCanvasBoolean(record.visible, true);
+      var width = goalCanvasNumber(record.width, 8, 3840, false);
+      var x = goalCanvasNumber(record.x, -1920, 3840, false);
+      var y = goalCanvasNumber(record.y, -1920, 3840, false);
+      var zIndex = goalCanvasNumber(record.zIndex, 0, 15, true);
+      if (!animation || height === null || !id || locked === null || !name ||
+        opacity === null || rotation === null || visible === null ||
+        width === null || x === null || y === null || zIndex === null) return null;
+      return {
+        animation: animation,
+        height: height,
+        id: id,
+        locked: locked,
+        name: name,
+        opacity: opacity,
+        rotation: rotation,
+        visible: visible,
+        width: width,
+        x: x,
+        y: y,
+        zIndex: zIndex
+      };
+    }
+    function parseGoalCanvasTextLayer(record) {
+      var base;
+      var align;
+      var backgroundColor;
+      var binding;
+      var cornerRadius;
+      var letterSpacing;
+      var lineHeight;
+      var padding;
+      var verticalAlign;
+      if (!goalCanvasHasOnlyKeys(record, [
+        "align", "animation", "backgroundColor", "binding", "cornerRadius",
+        "fill", "fontFamily", "fontSize", "fontWeight", "height", "id",
+        "letterSpacing", "lineHeight", "locked", "name", "opacity", "padding",
+        "rotation", "text", "type", "verticalAlign", "visible", "width", "x",
+        "y", "zIndex"
+      ])) return null;
+      base = parseGoalCanvasLayerBase(record);
+      align = typeof record.align === "undefined" ? "left" :
+        ["left", "center", "right"].indexOf(record.align) !== -1
+          ? record.align : null;
+      backgroundColor = typeof record.backgroundColor === "undefined"
+        ? null : record.backgroundColor;
+      binding = typeof record.binding === "undefined" ? null : record.binding;
+      cornerRadius = typeof record.cornerRadius === "undefined" ? 0 :
+        goalCanvasNumber(record.cornerRadius, 0, 240, false);
+      letterSpacing = typeof record.letterSpacing === "undefined" ? 0 :
+        goalCanvasNumber(record.letterSpacing, -10, 40, false);
+      lineHeight = typeof record.lineHeight === "undefined" ? 1 :
+        goalCanvasNumber(record.lineHeight, 0.8, 2, false);
+      padding = typeof record.padding === "undefined" ? 0 :
+        goalCanvasNumber(record.padding, 0, 160, false);
+      verticalAlign = typeof record.verticalAlign === "undefined" ? "middle" :
+        ["top", "middle", "bottom"].indexOf(record.verticalAlign) !== -1
+          ? record.verticalAlign : null;
+      if (!base || !align ||
+        !(backgroundColor === null || goalCanvasColor(backgroundColor)) ||
+        !(binding === null || [
+          "headline", "secondaryText", "homeTeam", "awayTeam", "homeScore",
+          "awayScore", "score", "previousScore", "clock", "period",
+          "scoringTeam", "scorerName", "scorerNumber", "eventLabel"
+        ].indexOf(binding) !== -1) || cornerRadius === null ||
+        !goalCanvasColor(record.fill) ||
+        ["Inter", "Inter Tight"].indexOf(record.fontFamily) === -1 ||
+        goalCanvasNumber(record.fontSize, 16, 360, false) === null ||
+        [400, 500, 600, 700, 800, 900].indexOf(record.fontWeight) === -1 ||
+        letterSpacing === null || lineHeight === null || padding === null ||
+        typeof record.text !== "string" || record.text.length > 240 ||
+        !verticalAlign || (binding === null &&
+          record.text.replace(/^\\s+|\\s+$/g, "") === "")) return null;
+      base.align = align;
+      base.backgroundColor = backgroundColor;
+      base.binding = binding;
+      base.cornerRadius = cornerRadius;
+      base.fill = record.fill;
+      base.fontFamily = record.fontFamily;
+      base.fontSize = record.fontSize;
+      base.fontWeight = record.fontWeight;
+      base.letterSpacing = letterSpacing;
+      base.lineHeight = lineHeight;
+      base.padding = padding;
+      base.text = record.text;
+      base.type = "text";
+      base.verticalAlign = verticalAlign;
+      return base;
+    }
+    function parseGoalCanvasImageLayer(record) {
+      var base;
+      var binding = typeof record.binding === "undefined" ? null : record.binding;
+      var mediaAssetId = typeof record.mediaAssetId === "undefined"
+        ? null : record.mediaAssetId;
+      var cornerRadius = typeof record.cornerRadius === "undefined" ? 0 :
+        goalCanvasNumber(record.cornerRadius, 0, 960, false);
+      var focusX = typeof record.focusX === "undefined" ? 0.5 :
+        goalCanvasNumber(record.focusX, 0, 1, false);
+      var focusY = typeof record.focusY === "undefined" ? 0.5 :
+        goalCanvasNumber(record.focusY, 0, 1, false);
+      var objectFit = typeof record.objectFit === "undefined" ? "cover" :
+        ["cover", "contain"].indexOf(record.objectFit) !== -1
+          ? record.objectFit : null;
+      if (!goalCanvasHasOnlyKeys(record, [
+        "animation", "binding", "cornerRadius", "focusX", "focusY", "height",
+        "id", "locked", "mediaAssetId", "name", "objectFit", "opacity",
+        "rotation", "type", "visible", "width", "x", "y", "zIndex"
+      ])) return null;
+      base = parseGoalCanvasLayerBase(record);
+      if (!base || !(binding === null || [
+        "scorerPhoto", "homeLogo", "awayLogo", "scoringTeamLogo"
+      ].indexOf(binding) !== -1) ||
+        !(mediaAssetId === null || goalUuid(mediaAssetId)) ||
+        cornerRadius === null || focusX === null || focusY === null || !objectFit ||
+        (!binding && !mediaAssetId) || (binding && mediaAssetId)) return null;
+      base.binding = binding;
+      base.cornerRadius = cornerRadius;
+      base.focusX = focusX;
+      base.focusY = focusY;
+      base.mediaAssetId = mediaAssetId;
+      base.objectFit = objectFit;
+      base.type = "image";
+      return base;
+    }
+    function parseGoalCanvasShapeLayer(record) {
+      var base;
+      var cornerRadius = typeof record.cornerRadius === "undefined" ? 0 :
+        goalCanvasNumber(record.cornerRadius, 0, 960, false);
+      var stroke = typeof record.stroke === "undefined" ? null : record.stroke;
+      var strokeWidth = typeof record.strokeWidth === "undefined" ? 0 :
+        goalCanvasNumber(record.strokeWidth, 0, 32, false);
+      if (!goalCanvasHasOnlyKeys(record, [
+        "animation", "cornerRadius", "fill", "height", "id", "locked", "name",
+        "opacity", "rotation", "shape", "stroke", "strokeWidth", "type",
+        "visible", "width", "x", "y", "zIndex"
+      ])) return null;
+      base = parseGoalCanvasLayerBase(record);
+      if (!base || cornerRadius === null || !goalCanvasColor(record.fill) ||
+        ["rectangle", "ellipse", "line"].indexOf(record.shape) === -1 ||
+        !(stroke === null || goalCanvasColor(stroke)) || strokeWidth === null) {
+        return null;
+      }
+      base.cornerRadius = cornerRadius;
+      base.fill = record.fill;
+      base.shape = record.shape;
+      base.stroke = stroke;
+      base.strokeWidth = strokeWidth;
+      base.type = "shape";
+      return base;
+    }
+    function parseGoalCanvasLineupLayer(record) {
+      var base;
+      var gap = typeof record.gap === "undefined" ? 24 :
+        goalCanvasNumber(record.gap, 0, 96, false);
+      var showName = goalCanvasBoolean(record.showName, true);
+      var showNumber = goalCanvasBoolean(record.showNumber, true);
+      var showPhoto = goalCanvasBoolean(record.showPhoto, true);
+      if (!goalCanvasHasOnlyKeys(record, [
+        "accentColor", "animation", "cardColor", "columns", "gap", "height",
+        "id", "locked", "name", "opacity", "rotation", "showName",
+        "showNumber", "showPhoto", "textColor", "type", "visible", "width",
+        "x", "y", "zIndex"
+      ])) return null;
+      base = parseGoalCanvasLayerBase(record);
+      if (!base || !goalCanvasColor(record.accentColor) ||
+        !goalCanvasColor(record.cardColor) ||
+        goalCanvasNumber(record.columns, 1, 6, true) === null || gap === null ||
+        showName === null || showNumber === null || showPhoto === null ||
+        !goalCanvasColor(record.textColor)) return null;
+      base.accentColor = record.accentColor;
+      base.cardColor = record.cardColor;
+      base.columns = record.columns;
+      base.gap = gap;
+      base.showName = showName;
+      base.showNumber = showNumber;
+      base.showPhoto = showPhoto;
+      base.textColor = record.textColor;
+      base.type = "lineup";
+      return base;
+    }
+    function parseGoalCanvasLayer(value) {
+      var record = goalRecord(value);
+      if (!record) return null;
+      if (record.type === "text") return parseGoalCanvasTextLayer(record);
+      if (record.type === "image") return parseGoalCanvasImageLayer(record);
+      if (record.type === "shape") return parseGoalCanvasShapeLayer(record);
+      if (record.type === "lineup") return parseGoalCanvasLineupLayer(record);
+      return null;
+    }
+    function parseGoalCanvasBackground(value) {
+      var record = goalRecord(value);
+      var angle;
+      var focusX;
+      var focusY;
+      var objectFit;
+      var overlayOpacity;
+      if (!record) return null;
+      if (record.kind === "solid") {
+        return goalCanvasHasOnlyKeys(record, ["color", "kind"]) &&
+          goalCanvasColor(record.color)
+          ? { color: record.color, kind: "solid" }
+          : null;
+      }
+      if (record.kind === "gradient") {
+        angle = goalCanvasNumber(record.angle, 0, 360, false);
+        return goalCanvasHasOnlyKeys(record, ["angle", "from", "kind", "to"]) &&
+          angle !== null && goalCanvasColor(record.from) && goalCanvasColor(record.to)
+          ? { angle: angle, from: record.from, kind: "gradient", to: record.to }
+          : null;
+      }
+      if (record.kind === "media") {
+        focusX = typeof record.focusX === "undefined" ? 0.5 :
+          goalCanvasNumber(record.focusX, 0, 1, false);
+        focusY = typeof record.focusY === "undefined" ? 0.5 :
+          goalCanvasNumber(record.focusY, 0, 1, false);
+        objectFit = typeof record.objectFit === "undefined" ? "cover" :
+          ["cover", "contain"].indexOf(record.objectFit) !== -1
+            ? record.objectFit : null;
+        overlayOpacity = typeof record.overlayOpacity === "undefined" ? 0 :
+          goalCanvasNumber(record.overlayOpacity, 0, 1, false);
+        if (!goalCanvasHasOnlyKeys(record, [
+          "focusX", "focusY", "kind", "mediaAssetId", "objectFit",
+          "overlayColor", "overlayOpacity"
+        ]) || focusX === null || focusY === null || !goalUuid(record.mediaAssetId) ||
+          !objectFit ||
+          !(typeof record.overlayColor === "undefined" ||
+            goalCanvasColor(record.overlayColor)) || overlayOpacity === null) return null;
+        return {
+          focusX: focusX,
+          focusY: focusY,
+          kind: "media",
+          mediaAssetId: record.mediaAssetId,
+          objectFit: objectFit,
+          overlayColor: typeof record.overlayColor === "undefined"
+            ? "#0a0a0a" : record.overlayColor,
+          overlayOpacity: overlayOpacity
+        };
+      }
+      return null;
+    }
+    function parseGoalCanvasScene(value) {
+      var record = goalRecord(value);
+      var background;
+      var layers = [];
+      var ids = [];
+      var zIndexes = [];
+      var orientation;
+      var canvasWidth;
+      var canvasHeight;
+      var index;
+      var layer;
+      if (!record || !goalCanvasHasOnlyKeys(record, [
+        "background", "layers", "orientation"
+      ]) || !Array.isArray(record.layers) || record.layers.length > 16) return null;
+      orientation = ["landscape", "portrait"].indexOf(record.orientation) !== -1
+        ? record.orientation : null;
+      background = parseGoalCanvasBackground(record.background);
+      if (!orientation || !background) return null;
+      canvasWidth = orientation === "landscape" ? 1920 : 1080;
+      canvasHeight = orientation === "landscape" ? 1080 : 1920;
+      for (index = 0; index < record.layers.length; index += 1) {
+        layer = parseGoalCanvasLayer(record.layers[index]);
+        if (!layer || ids.indexOf(layer.id) !== -1 ||
+          zIndexes.indexOf(layer.zIndex) !== -1 ||
+          layer.x < -canvasWidth || layer.x > canvasWidth * 2 ||
+          layer.y < -canvasHeight || layer.y > canvasHeight * 2) return null;
+        ids.push(layer.id);
+        zIndexes.push(layer.zIndex);
+        layers.push(layer);
+      }
+      return { background: background, layers: layers, orientation: orientation };
+    }
+    function parseGoalCanvasScenePair(value) {
+      var record = goalRecord(value);
+      var landscape;
+      var portrait;
+      if (!record || !goalCanvasHasOnlyKeys(record, ["landscape", "portrait"])) {
+        return null;
+      }
+      landscape = parseGoalCanvasScene(record.landscape);
+      portrait = parseGoalCanvasScene(record.portrait);
+      return landscape && landscape.orientation === "landscape" &&
+        portrait && portrait.orientation === "portrait"
+        ? { landscape: landscape, portrait: portrait }
+        : null;
+    }
     function parseGoalPlayer(value) {
       var record = goalRecord(value);
       var name;
@@ -800,9 +1146,11 @@ export function renderLgLegacyHtml() {
       var away;
       var side;
       var lineup = [];
+      var assets = {};
       var ownTeamKeys = {};
       var logoMediaAssetId;
       var logoUrl = null;
+      var scenePair;
       var assetValues;
       var parsedAsset;
       var homeTeamKey;
@@ -829,9 +1177,10 @@ export function renderLgLegacyHtml() {
         }
       }
       logoMediaAssetId = goalUuid(payload.logoMediaAssetId);
-      assetValues = Array.isArray(record.assets) ? record.assets.slice(0, 10) : [];
+      assetValues = Array.isArray(record.assets) ? record.assets.slice(0, 24) : [];
       for (index = 0; index < assetValues.length; index += 1) {
         parsedAsset = parseGoalAsset(assetValues[index]);
+        if (parsedAsset) assets[parsedAsset.mediaAssetId] = parsedAsset;
         if (parsedAsset && parsedAsset.mediaAssetId === logoMediaAssetId &&
           parsedAsset.mimeType.indexOf("image/") === 0) {
           logoUrl = parsedAsset.url;
@@ -854,6 +1203,9 @@ export function renderLgLegacyHtml() {
           if (player) lineup.push(player);
         }
       }
+      scenePair = kind === "lineup_clear"
+        ? null
+        : parseGoalCanvasScenePair(payload.scene);
       if (!deliveryId || !eventId || executeAt === null || expiresAt === null ||
         serverTime === null || durationMs === null || !kind || !home || !away ||
         (kind === "lineup" && (!side || !lineup.length))) return null;
@@ -862,6 +1214,7 @@ export function renderLgLegacyHtml() {
         expiresAt: expiresAt,
         serverTime: serverTime,
         goal: {
+          assets: assets,
           away: away,
           deliveryId: deliveryId,
           design: parseMatchOverlayDesign(payload.design, kind),
@@ -882,6 +1235,7 @@ export function renderLgLegacyHtml() {
           ),
           matchClock: goalText(payload.matchClock, 40),
           periodLabel: goalText(payload.periodLabel, 80),
+          scenePair: scenePair,
           side: side,
           underlayPolicy: payload.underlayPolicy === "continue" ? "continue" : "pause"
         }
@@ -1181,6 +1535,7 @@ export function renderLgLegacyHtml() {
       var assets = {};
       var assetValues;
       var parsedAsset;
+      var scenePair;
       var index;
       if (!record || !Array.isArray(record.assets)) return null;
       payload = goalRecord(record.payload);
@@ -1207,11 +1562,12 @@ export function renderLgLegacyHtml() {
         durationMs === null || homeScore === null || awayScore === null ||
         previousHomeScore === null || previousAwayScore === null
       ) return null;
-      assetValues = record.assets.slice(0, 10);
+      assetValues = record.assets.slice(0, 24);
       for (index = 0; index < assetValues.length; index += 1) {
         parsedAsset = parseGoalAsset(assetValues[index]);
         if (parsedAsset) assets[parsedAsset.mediaAssetId] = parsedAsset;
       }
+      scenePair = parseGoalCanvasScenePair(payload.scene);
       return {
         executeAt: executeAt,
         expiresAt: expiresAt,
@@ -1229,6 +1585,9 @@ export function renderLgLegacyHtml() {
             : "live",
           homeScore: homeScore,
           homeTeam: goalText(payload.homeTeam, 160) || "Thuisteam",
+          homeLogoUrl: goalSafeUrl(payload.homeLogoUrl) ||
+            goalSafeUrl(goalRecord(payload.home) &&
+              goalRecord(payload.home).logoUrl),
           kind: "goal",
           logoMediaAssetId: goalOptionalUuid(payload.logoMediaAssetId),
           matchClock: goalText(payload.matchClock, 40),
@@ -1236,6 +1595,10 @@ export function renderLgLegacyHtml() {
           previousAwayScore: previousAwayScore,
           previousHomeScore: previousHomeScore,
           player: player,
+          awayLogoUrl: goalSafeUrl(payload.awayLogoUrl) ||
+            goalSafeUrl(goalRecord(payload.away) &&
+              goalRecord(payload.away).logoUrl),
+          scenePair: scenePair,
           scorerName: player ? player.name : goalText(payload.scorerName, 160),
           scoringSide: scoringSide,
           soundMediaAssetId: goalOptionalUuid(payload.soundMediaAssetId),
@@ -1520,7 +1883,7 @@ export function renderLgLegacyHtml() {
       for (configIndex = 0; configIndex < Math.min(50, configs.length); configIndex += 1) {
         config = goalRecord(configs[configIndex]);
         values = config && Array.isArray(config.assets) ? config.assets : [];
-        for (assetIndex = 0; assetIndex < Math.min(10, values.length); assetIndex += 1) {
+        for (assetIndex = 0; assetIndex < Math.min(24, values.length); assetIndex += 1) {
           asset = parseGoalAsset(values[assetIndex]);
           if (!asset) continue;
           if (asset.mimeType.indexOf("image/") === 0) {
@@ -1551,6 +1914,581 @@ export function renderLgLegacyHtml() {
       }
       return result || "VC";
     }
+    function goalCanvasSceneForViewport(pair) {
+      var portrait;
+      if (!pair) return null;
+      portrait = (window.innerHeight || document.documentElement.clientHeight || 0) >
+        (window.innerWidth || document.documentElement.clientWidth || 0);
+      return portrait ? pair.portrait : pair.landscape;
+    }
+    function fitGoalCanvasScene(root, orientation) {
+      var viewportWidth = window.innerWidth ||
+        document.documentElement.clientWidth || 1920;
+      var viewportHeight = window.innerHeight ||
+        document.documentElement.clientHeight || 1080;
+      var logicalWidth = orientation === "portrait" ? 1080 : 1920;
+      var logicalHeight = orientation === "portrait" ? 1920 : 1080;
+      var scale = Math.min(
+        viewportWidth / logicalWidth,
+        viewportHeight / logicalHeight
+      );
+      var offsetX = (viewportWidth - logicalWidth * scale) / 2;
+      var offsetY = (viewportHeight - logicalHeight * scale) / 2;
+      root.style.width = String(logicalWidth) + "px";
+      root.style.height = String(logicalHeight) + "px";
+      root.style.transform = "translate(" + String(offsetX) + "px," +
+        String(offsetY) + "px) scale(" + String(scale) + ")";
+      root.setAttribute("data-canvas-width", String(logicalWidth));
+      root.setAttribute("data-canvas-height", String(logicalHeight));
+      root.setAttribute("data-orientation", orientation);
+    }
+    function goalCanvasEventLabel(model) {
+      if (model.kind === "goal") {
+        var label = model.scoringSide === "opponent"
+          ? "TEGENDOELPUNT"
+          : "DOELPUNT";
+        return model.eventKind === "synthetic_test"
+          ? "LIVE-TEST · " + label
+          : label;
+      }
+      if (model.kind === "lineup") {
+        return model.side === "away" ? "UITTEAM" : "THUISTEAM";
+      }
+      if (model.kind === "match_start") return "AFTRAP";
+      if (model.kind === "half_time") return "RUST";
+      if (model.kind === "match_end") return "EINDSTAND";
+      return "WEDSTRIJD";
+    }
+    function goalCanvasValues(model) {
+      var isGoal = model.kind === "goal";
+      var home = isGoal
+        ? { logoUrl: model.homeLogoUrl, name: model.homeTeam, score: model.homeScore }
+        : model.home;
+      var away = isGoal
+        ? { logoUrl: model.awayLogoUrl, name: model.awayTeam, score: model.awayScore }
+        : model.away;
+      var player = isGoal ? model.player : null;
+      var lineup = Array.isArray(model.lineup) ? model.lineup.slice(0, 24) : [];
+      var homeLogo = home && home.logoUrl ? home.logoUrl : null;
+      var awayLogo = away && away.logoUrl ? away.logoUrl : null;
+      var clubLogoAsset = isGoal
+        ? goalAssetFor(model, model.logoMediaAssetId)
+        : null;
+      var scoringHome = isGoal
+        ? model.homeScore === model.previousHomeScore + 1
+        : model.side === "home";
+      var scoringAway = isGoal
+        ? model.awayScore === model.previousAwayScore + 1
+        : model.side === "away";
+      var selectedTeam = !isGoal && model.side === "away"
+        ? away
+        : !isGoal && model.side === "home" ? home : null;
+      var ownTeamLogo = clubLogoAsset &&
+        clubLogoAsset.mimeType.indexOf("image/") === 0
+        ? clubLogoAsset.url
+        : null;
+      var ownTeamIsHome = isGoal && (
+        model.scoringSide === "own"
+          ? scoringHome
+          : model.scoringSide === "opponent" ? scoringAway : false
+      );
+      var ownTeamIsAway = isGoal && (
+        model.scoringSide === "own"
+          ? scoringAway
+          : model.scoringSide === "opponent" ? scoringHome : false
+      );
+      var scoringTeam;
+      var scoringTeamLogo;
+      var text = {
+        awayScore: away ? String(away.score) : "0",
+        awayTeam: away ? away.name : "Uitteam",
+        eventLabel: goalCanvasEventLabel(model),
+        homeScore: home ? String(home.score) : "0",
+        homeTeam: home ? home.name : "Thuisteam",
+        score: home && away
+          ? String(home.score) + " – " + String(away.score)
+          : "0 – 0"
+      };
+      if (isGoal) {
+        homeLogo = ownTeamIsHome ? ownTeamLogo : null;
+        awayLogo = ownTeamIsAway ? ownTeamLogo : null;
+      }
+      scoringTeam = isGoal
+        ? goalScoringTeam(model)
+        : selectedTeam ? selectedTeam.name : null;
+      scoringTeamLogo = isGoal
+        ? scoringHome ? homeLogo : scoringAway ? awayLogo : null
+        : selectedTeam ? selectedTeam.logoUrl : null;
+      if (scoringTeam) text.scoringTeam = scoringTeam;
+      if (model.matchClock) text.clock = model.matchClock;
+      if (isGoal) {
+        text.previousScore = String(model.previousHomeScore) + " – " +
+          String(model.previousAwayScore);
+        if (player && player.name) text.scorerName = player.name;
+        else if (model.scorerName) text.scorerName = model.scorerName;
+        if (player && player.number) text.scorerNumber = "#" + player.number;
+      } else {
+        text.period = model.periodLabel ||
+          (model.kind === "half_time" ? "Halverwege" :
+            model.kind === "match_end" ? "Afgelopen" :
+              model.kind === "match_start" ? "Aftrap" : "Team");
+        text.previousScore = String(home.score) + " – " + String(away.score);
+      }
+      return {
+        images: {
+          awayLogo: awayLogo,
+          homeLogo: homeLogo,
+          scorerPhoto: player && player.photoUrl ? player.photoUrl : null,
+          scoringTeamLogo: scoringTeamLogo
+        },
+        lineup: lineup,
+        lineupPageDurationMs: model.lineupPageDurationMs || 6000,
+        lineupPageSize: (window.innerHeight || 0) > (window.innerWidth || 0)
+          ? 8 : 11,
+        text: text
+      };
+    }
+    function goalCanvasTextValue(layer, values) {
+      var value = layer.binding ? values.text[layer.binding] : null;
+      return typeof value === "string" ? value : layer.text;
+    }
+    function goalCanvasImageFallback(binding, values) {
+      if (binding === "scorerPhoto") return goalInitials(values.text.scorerName);
+      if (binding === "homeLogo") return goalInitials(values.text.homeTeam);
+      if (binding === "awayLogo") return goalInitials(values.text.awayTeam);
+      if (binding === "scoringTeamLogo") {
+        return goalInitials(values.text.scoringTeam);
+      }
+      return "";
+    }
+    function fillGoalCanvasImage(container, url, fallback, layer) {
+      var child;
+      var image;
+      while (container.firstChild) {
+        child = container.firstChild;
+        container.removeChild(child);
+      }
+      if (fallback) container.appendChild(goalTextNode("span", "", fallback));
+      if (!goalSafeUrl(url)) return;
+      image = document.createElement("img");
+      image.alt = "";
+      image.setAttribute("aria-hidden", "true");
+      image.style.objectFit = layer.objectFit;
+      image.style.objectPosition = String(layer.focusX * 100) + "% " +
+        String(layer.focusY * 100) + "%";
+      image.onerror = function () {
+        if (image.parentNode) image.parentNode.removeChild(image);
+      };
+      image.src = url;
+      container.appendChild(image);
+    }
+    function goalCanvasAssetsReady(scene, model) {
+      var asset;
+      var index;
+      var layer;
+      if (scene.background.kind === "media") {
+        asset = goalAssetFor(model, scene.background.mediaAssetId);
+        if (!asset || !(asset.mimeType.indexOf("image/") === 0 ||
+          asset.mimeType === "video/mp4")) return false;
+      }
+      for (index = 0; index < scene.layers.length; index += 1) {
+        layer = scene.layers[index];
+        if (layer.type === "image" && layer.mediaAssetId) {
+          asset = goalAssetFor(model, layer.mediaAssetId);
+          if (!asset || asset.mimeType.indexOf("image/") !== 0) return false;
+        }
+      }
+      return true;
+    }
+    function goalCanvasScenePairAssetsReady(pair, model) {
+      return pair && goalCanvasAssetsReady(pair.landscape, model) &&
+        goalCanvasAssetsReady(pair.portrait, model);
+    }
+    function createGoalCanvasBackground(scene, model) {
+      var background = document.createElement("div");
+      var asset;
+      var media;
+      var overlay;
+      background.className = "goal-canvas-background";
+      background.setAttribute("aria-hidden", "true");
+      if (scene.background.kind === "solid") {
+        background.style.backgroundColor = scene.background.color;
+        return background;
+      }
+      if (scene.background.kind === "gradient") {
+        background.style.backgroundImage = "linear-gradient(" +
+          String(scene.background.angle) + "deg," + scene.background.from +
+          "," + scene.background.to + ")";
+        return background;
+      }
+      asset = goalAssetFor(model, scene.background.mediaAssetId);
+      if (!asset) return null;
+      media = asset.mimeType.indexOf("video/") === 0
+        ? document.createElement("video")
+        : asset.mimeType.indexOf("image/") === 0
+          ? document.createElement("img")
+          : null;
+      if (!media) return null;
+      background.style.backgroundColor = "#0a0a0a";
+      media.className = "goal-canvas-background-media";
+      media.style.objectFit = scene.background.objectFit;
+      media.style.objectPosition = String(scene.background.focusX * 100) + "% " +
+        String(scene.background.focusY * 100) + "%";
+      media.onerror = function () {
+        log("LEGACY_CANVAS_BACKGROUND_FALLBACK", model.deliveryId);
+        if (runtime.goalActiveModel === model && model.scenePair) {
+          model.scenePair = null;
+          if (model.kind === "goal") renderGoalOverlay(model);
+          else renderMatchOverlay(model);
+          return;
+        }
+        if (media.parentNode) media.parentNode.removeChild(media);
+      };
+      if (media.tagName === "VIDEO") {
+        media.autoplay = true;
+        media.controls = false;
+        media.loop = true;
+        media.muted = true;
+        media.defaultMuted = true;
+        media.preload = "auto";
+        media.playsInline = true;
+        media.setAttribute("playsinline", "");
+        media.setAttribute("webkit-playsinline", "");
+      } else {
+        media.alt = "";
+      }
+      media.src = asset.url;
+      background.appendChild(media);
+      if (scene.background.overlayOpacity > 0) {
+        overlay = document.createElement("div");
+        overlay.className = "goal-canvas-background-overlay";
+        overlay.style.backgroundColor = scene.background.overlayColor;
+        overlay.style.opacity = String(scene.background.overlayOpacity);
+        background.appendChild(overlay);
+      }
+      return background;
+    }
+    function createGoalCanvasLineup(layer, values) {
+      var grid = document.createElement("div");
+      var players = values.lineup.slice(0, 24);
+      var pageSize = Math.min(values.lineupPageSize, Math.max(1, players.length));
+      var pageCount = Math.max(1, Math.ceil(players.length / pageSize));
+      var rows = Math.max(1, Math.ceil(
+        Math.min(pageSize, players.length) / layer.columns
+      ));
+      var photoSize = Math.max(34, Math.min(
+        96,
+        (layer.height - layer.gap * Math.max(0, rows - 1)) / rows - 24
+      ));
+      var index;
+      var player;
+      var card;
+      var photo;
+      var copy;
+      var image;
+      var indicator;
+      grid.className = "goal-canvas-layer-content goal-canvas-lineup " +
+        "goal-canvas-animation-" + layer.animation;
+      grid.style.gridTemplateColumns = "repeat(" + String(layer.columns) +
+        ",minmax(0,1fr))";
+      grid.style.gridTemplateRows = "repeat(" + String(rows) + ",minmax(0,1fr))";
+      grid.style.gap = String(layer.gap) + "px";
+      grid.setAttribute("data-canvas-lineup-page-count", String(pageCount));
+      grid.setAttribute("data-canvas-lineup-page-size", String(pageSize));
+      for (index = 0; index < players.length; index += 1) {
+        player = players[index];
+        card = document.createElement("article");
+        card.className = "goal-canvas-lineup-card";
+        card.setAttribute("data-canvas-lineup-index", String(index));
+        if (index >= pageSize) card.style.display = "none";
+        card.style.backgroundColor = layer.cardColor;
+        card.style.borderLeft = "8px solid " + layer.accentColor;
+        card.style.borderRadius = "14px";
+        card.style.color = layer.textColor;
+        card.style.gap = "16px";
+        card.style.padding = "12px 16px";
+        if (layer.showPhoto) {
+          card.style.gridTemplateColumns = String(photoSize) + "px minmax(0,1fr)";
+          photo = document.createElement("div");
+          photo.className = "goal-canvas-lineup-photo";
+          photo.style.width = String(photoSize) + "px";
+          photo.style.height = String(photoSize) + "px";
+          photo.appendChild(goalTextNode("span", "", goalInitials(player.name)));
+          if (player.photoUrl) {
+            image = document.createElement("img");
+            image.alt = "";
+            image.setAttribute("aria-hidden", "true");
+            image.onerror = function () {
+              if (this.parentNode) this.parentNode.removeChild(this);
+            };
+            image.src = player.photoUrl;
+            photo.appendChild(image);
+          }
+          card.appendChild(photo);
+        } else {
+          card.style.gridTemplateColumns = "minmax(0,1fr)";
+        }
+        copy = document.createElement("div");
+        copy.className = "goal-canvas-lineup-copy";
+        if (layer.showNumber) {
+          copy.appendChild(goalTextNode("b", "", player.number || "—"));
+          copy.lastChild.style.color = layer.accentColor;
+          copy.lastChild.style.fontSize = "26px";
+        }
+        if (layer.showName) {
+          copy.appendChild(goalTextNode("strong", "", player.name));
+          copy.lastChild.style.fontSize = "24px";
+        }
+        card.appendChild(copy);
+        grid.appendChild(card);
+      }
+      if (pageCount > 1) {
+        indicator = goalTextNode(
+          "span",
+          "goal-canvas-lineup-page",
+          "1 / " + String(pageCount)
+        );
+        indicator.setAttribute("data-canvas-lineup-page", "true");
+        grid.appendChild(indicator);
+      }
+      return grid;
+    }
+    function createGoalCanvasLayer(layer, values, model) {
+      var wrapper = document.createElement("div");
+      var content;
+      var asset;
+      var url;
+      var fallback;
+      wrapper.className = "goal-canvas-layer";
+      wrapper.style.left = String(layer.x) + "px";
+      wrapper.style.top = String(layer.y) + "px";
+      wrapper.style.width = String(layer.width) + "px";
+      wrapper.style.height = String(layer.height) + "px";
+      wrapper.style.opacity = String(layer.opacity);
+      wrapper.style.transform = "rotate(" + String(layer.rotation) + "deg)";
+      wrapper.style.zIndex = String(layer.zIndex + 2);
+      wrapper.setAttribute("data-canvas-layer-id", layer.id);
+      if (layer.type === "text") {
+        content = document.createElement("div");
+        content.className = "goal-canvas-layer-content goal-canvas-text " +
+          "goal-canvas-animation-" + layer.animation;
+        content.style.alignItems = layer.align === "center"
+          ? "center" : layer.align === "right" ? "flex-end" : "flex-start";
+        content.style.justifyContent = layer.verticalAlign === "top"
+          ? "flex-start" : layer.verticalAlign === "bottom"
+            ? "flex-end" : "center";
+        content.style.backgroundColor = layer.backgroundColor || "transparent";
+        content.style.borderRadius = String(layer.cornerRadius) + "px";
+        content.style.color = layer.fill;
+        content.style.fontFamily = layer.fontFamily === "Inter Tight"
+          ? "Arial Black,Arial,Helvetica,sans-serif"
+          : "Arial,Helvetica,sans-serif";
+        content.style.fontSize = String(layer.fontSize) + "px";
+        content.style.fontWeight = String(layer.fontWeight);
+        content.style.letterSpacing = String(layer.letterSpacing) + "px";
+        content.style.lineHeight = String(layer.lineHeight);
+        content.style.padding = String(layer.padding) + "px";
+        content.style.textAlign = layer.align;
+        content.textContent = goalCanvasTextValue(layer, values);
+        if (layer.binding) {
+          content.setAttribute("data-goal-canvas-text-binding", layer.binding);
+        }
+      } else if (layer.type === "image") {
+        content = document.createElement("div");
+        content.className = "goal-canvas-layer-content goal-canvas-image " +
+          "goal-canvas-animation-" + layer.animation;
+        content.style.borderRadius = String(layer.cornerRadius) + "px";
+        content._goalCanvasLayer = layer;
+        if (layer.binding) {
+          url = values.images[layer.binding];
+          fallback = goalCanvasImageFallback(layer.binding, values);
+          content.setAttribute("data-goal-canvas-image-binding", layer.binding);
+        } else {
+          asset = goalAssetFor(model, layer.mediaAssetId);
+          url = asset && asset.mimeType.indexOf("image/") === 0 ? asset.url : null;
+          fallback = "";
+        }
+        fillGoalCanvasImage(content, url, fallback, layer);
+      } else if (layer.type === "shape") {
+        content = document.createElement("div");
+        content.className = "goal-canvas-layer-content " +
+          "goal-canvas-animation-" + layer.animation;
+        content.setAttribute("aria-hidden", "true");
+        content.setAttribute("data-canvas-shape", layer.shape);
+        if (layer.shape === "line") {
+          content.style.top = "50%";
+          content.style.bottom = "auto";
+          content.style.height = "0";
+          content.style.backgroundColor = "transparent";
+          content.style.borderTop = String(Math.max(2, layer.strokeWidth)) +
+            "px solid " + (layer.stroke || layer.fill);
+        } else {
+          content.style.backgroundColor = layer.fill;
+          content.style.borderRadius = layer.shape === "ellipse"
+            ? "50%" : String(layer.cornerRadius) + "px";
+        }
+        if (layer.shape !== "line" && layer.stroke && layer.strokeWidth > 0) {
+          content.style.border = String(layer.strokeWidth) + "px solid " +
+            layer.stroke;
+        }
+      } else {
+        content = createGoalCanvasLineup(layer, values);
+      }
+      wrapper.appendChild(content);
+      return wrapper;
+    }
+    function startGoalCanvasLineupPagination(root, durationMs) {
+      var grids = root.querySelectorAll("[data-canvas-lineup-page-count]");
+      var maximumPageCount = 1;
+      var gridIndex;
+      var pageCount;
+      if (!grids.length) return;
+      for (gridIndex = 0; gridIndex < grids.length; gridIndex += 1) {
+        pageCount = goalInteger(
+          grids[gridIndex].getAttribute("data-canvas-lineup-page-count"),
+          1,
+          24
+        );
+        if (pageCount !== null) {
+          maximumPageCount = Math.max(maximumPageCount, pageCount);
+        }
+      }
+      if (maximumPageCount <= 1) return;
+      runtime.goalLineupPageIndex = 0;
+      runtime.goalLineupPageTimer = window.setInterval(function () {
+        var grid;
+        var cards;
+        var cardIndex;
+        var pageSize;
+        var localPage;
+        var indicator;
+        runtime.goalLineupPageIndex =
+          (runtime.goalLineupPageIndex + 1) % maximumPageCount;
+        for (gridIndex = 0; gridIndex < grids.length; gridIndex += 1) {
+          grid = grids[gridIndex];
+          pageCount = goalInteger(
+            grid.getAttribute("data-canvas-lineup-page-count"),
+            1,
+            24
+          ) || 1;
+          pageSize = goalInteger(
+            grid.getAttribute("data-canvas-lineup-page-size"),
+            1,
+            24
+          ) || 1;
+          localPage = runtime.goalLineupPageIndex % pageCount;
+          cards = grid.querySelectorAll("[data-canvas-lineup-index]");
+          for (cardIndex = 0; cardIndex < cards.length; cardIndex += 1) {
+            cards[cardIndex].style.display =
+              Math.floor(cardIndex / pageSize) === localPage ? "" : "none";
+          }
+          indicator = grid.querySelector("[data-canvas-lineup-page]");
+          if (indicator) {
+            indicator.textContent = String(localPage + 1) + " / " +
+              String(pageCount);
+          }
+        }
+      }, durationMs);
+    }
+    function goalCanvasAriaLabel(model) {
+      if (model.kind === "goal") {
+        return model.scoringSide === "own"
+          ? "Doelpunt voor eigen team"
+          : model.scoringSide === "opponent"
+            ? "Doelpunt tegenstander"
+            : "Doelpunt van onbekend team";
+      }
+      if (model.kind === "lineup") {
+        return "Opstelling " +
+          (model.side === "away" ? model.away.name : model.home.name);
+      }
+      return model.design.headline;
+    }
+    function startGoalCanvasMedia(root) {
+      var videos = root.querySelectorAll("video");
+      var index;
+      var playResult;
+      for (index = 0; index < videos.length; index += 1) {
+        try {
+          videos[index].load();
+          playResult = videos[index].play();
+          if (playResult && typeof playResult.catch === "function") {
+            playResult.catch(function () {});
+          }
+        } catch (error) {}
+      }
+    }
+    function startGoalCanvasSound(model, overlay) {
+      var asset = model.kind === "goal"
+        ? goalAssetFor(model, model.soundMediaAssetId)
+        : null;
+      var audio;
+      var playResult;
+      if (!asset || asset.mimeType !== "video/mp4") return;
+      audio = document.createElement("audio");
+      audio.preload = "auto";
+      audio.volume = model.soundVolume / 100;
+      audio.src = asset.url;
+      overlay.appendChild(audio);
+      try {
+        playResult = audio.play();
+        if (playResult && typeof playResult.catch === "function") {
+          playResult.catch(function () {});
+        }
+      } catch (error) {}
+    }
+    function renderGoalCanvasOverlay(model) {
+      var overlay = byId("goal-overlay");
+      var scene = goalCanvasSceneForViewport(model.scenePair);
+      var background;
+      var root;
+      var values;
+      var layers;
+      var index;
+      if (!scene || !goalCanvasScenePairAssetsReady(model.scenePair, model)) {
+        return false;
+      }
+      background = createGoalCanvasBackground(scene, model);
+      if (!background) return false;
+      try {
+        values = goalCanvasValues(model);
+        root = document.createElement("div");
+        root.className = "goal-canvas-scene";
+        root.appendChild(background);
+        layers = scene.layers.slice().sort(function (left, right) {
+          return left.zIndex - right.zIndex ||
+            (left.id < right.id ? -1 : left.id > right.id ? 1 : 0);
+        });
+        for (index = 0; index < layers.length; index += 1) {
+          if (layers[index].visible) {
+            root.appendChild(createGoalCanvasLayer(layers[index], values, model));
+          }
+        }
+        clearGoalElement();
+        fitGoalCanvasScene(root, scene.orientation);
+        overlay.appendChild(root);
+        overlay.setAttribute("data-renderer", "canvas");
+        overlay.setAttribute("aria-label", goalCanvasAriaLabel(model));
+        overlay.hidden = false;
+        byId("watermark").className = "visible";
+        runtime.goalActiveEventId = model.eventId;
+        runtime.goalActiveKind = model.kind;
+        runtime.goalActiveModel = model;
+        startGoalCanvasMedia(root);
+        startGoalCanvasSound(model, overlay);
+        if (model.kind === "lineup") {
+          startGoalCanvasLineupPagination(
+            root,
+            model.lineupPageDurationMs || 6000
+          );
+        }
+        return true;
+      } catch (error) {
+        clearGoalElement();
+        log("LEGACY_CANVAS_RENDER_FALLBACK", model.deliveryId);
+        return false;
+      }
+    }
     function createGoalPlayerCard(player) {
       var card = document.createElement("aside");
       var portrait = document.createElement("div");
@@ -1579,9 +2517,43 @@ export function renderLgLegacyHtml() {
       var overlay = byId("goal-overlay");
       var scorer = overlay.querySelector("[data-goal-scorer]");
       var existing = overlay.querySelector(".goal-player");
+      var canvasTexts;
+      var canvasImages;
+      var values;
+      var binding;
+      var layer;
+      var index;
       if (runtime.goalActiveKind !== "goal" || !runtime.goalActiveModel) return false;
       runtime.goalActiveModel.player = player;
       runtime.goalActiveModel.scorerName = player.name;
+      if (overlay.getAttribute("data-renderer") === "canvas") {
+        values = goalCanvasValues(runtime.goalActiveModel);
+        canvasTexts = overlay.querySelectorAll("[data-goal-canvas-text-binding]");
+        for (index = 0; index < canvasTexts.length; index += 1) {
+          binding = canvasTexts[index].getAttribute(
+            "data-goal-canvas-text-binding"
+          );
+          if ((binding === "scorerName" || binding === "scorerNumber") &&
+            typeof values.text[binding] === "string") {
+            canvasTexts[index].textContent = values.text[binding];
+          }
+        }
+        canvasImages = overlay.querySelectorAll(
+          '[data-goal-canvas-image-binding="scorerPhoto"]'
+        );
+        for (index = 0; index < canvasImages.length; index += 1) {
+          layer = canvasImages[index]._goalCanvasLayer;
+          if (layer) {
+            fillGoalCanvasImage(
+              canvasImages[index],
+              values.images.scorerPhoto,
+              goalCanvasImageFallback("scorerPhoto", values),
+              layer
+            );
+          }
+        }
+        return true;
+      }
       if (scorer) scorer.textContent = player.name;
       if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
       if (runtime.goalActiveModel.design.showScorer) {
@@ -1615,6 +2587,7 @@ export function renderLgLegacyHtml() {
       overlay.removeAttribute("data-logo-position");
       overlay.removeAttribute("data-logo-scale");
       overlay.removeAttribute("data-palette");
+      overlay.removeAttribute("data-renderer");
       overlay.removeAttribute("data-typography");
       overlay.removeAttribute("aria-label");
       runtime.goalActiveEventId = null;
@@ -1705,7 +2678,9 @@ export function renderLgLegacyHtml() {
       var audio;
       var playResult;
       var index;
+      if (goal.scenePair && renderGoalCanvasOverlay(goal)) return true;
       clearGoalElement();
+      byId("watermark").className = "visible";
       fallback.className = "goal-fallback";
       fallback.setAttribute("aria-hidden", "true");
       for (index = 0; index < 3; index += 1) {
@@ -1912,7 +2887,9 @@ export function renderLgLegacyHtml() {
       var pageSize;
       var pageCount;
       var pageLabel;
+      if (match.scenePair && renderGoalCanvasOverlay(match)) return true;
       clearGoalElement();
+      byId("watermark").className = "visible";
       backdrop.className = "match-overlay-backdrop";
       backdrop.setAttribute("aria-hidden", "true");
       overlay.appendChild(backdrop);

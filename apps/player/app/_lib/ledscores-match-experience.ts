@@ -1,3 +1,9 @@
+import {
+  ledScoresCanvasMaximumAssets,
+  ledScoresCanvasSceneSchema,
+  type LedScoresCanvasScene
+} from "@veyocast/contracts";
+
 export const ledScoresLiveMatchSlideType = "ledscores_live_match" as const;
 export const ledScoresMatchStateStorageKey =
   "veyocast-player-ledscores-match-states-v1";
@@ -38,6 +44,18 @@ export type LedScoresPlayerViewModel = {
   number: string | null;
   photoUrl: string | null;
 };
+
+export type LedScoresOverlayAsset = {
+  checksum: string;
+  mediaAssetId: string;
+  mimeType: "image/jpeg" | "image/png" | "image/webp" | "video/mp4";
+  url: string;
+};
+
+export type LedScoresCanvasScenePair = Readonly<{
+  landscape: LedScoresCanvasScene;
+  portrait: LedScoresCanvasScene;
+}>;
 
 export type LedScoresClockAnchor = {
   anchorAt: string;
@@ -91,6 +109,7 @@ export type LedScoresOverlayDesign = {
 };
 
 export type ActiveLedScoresMatchOverlay = {
+  assets: ReadonlyMap<string, LedScoresOverlayAsset>;
   away: LedScoresTeamViewModel;
   deliveryId: string;
   design: LedScoresOverlayDesign;
@@ -103,6 +122,7 @@ export type ActiveLedScoresMatchOverlay = {
   lineupPageDurationMs: number;
   matchClock: string | null;
   periodLabel: string | null;
+  scene: LedScoresCanvasScenePair | null;
   side: LedScoresSide | null;
   underlayPolicy: "continue" | "pause";
 };
@@ -140,6 +160,7 @@ export function parseLedScoresMatchOverlayMessage(value: unknown) {
   const eventId = safeUuid(payload.eventId);
   const kind = parseOverlayKind(payload.overlayKind);
   const durationMs = boundedInteger(payload.durationMs, 2_000, 30_000);
+  const assets = parseLedScoresOverlayAssets(value.assets);
   let home = parseTeam(payload, "home");
   let away = parseTeam(payload, "away");
   if (
@@ -149,7 +170,7 @@ export function parseLedScoresMatchOverlayMessage(value: unknown) {
 
   const ownTeamKeys = parseOwnTeamKeys(payload.ownTeamKeys);
   const configuredLogoUrl = resolveConfiguredTeamLogo(
-    value.assets,
+    assets,
     payload.logoMediaAssetId
   );
   if (configuredLogoUrl && ownTeamKeys.has(teamKeyFor(payload, "home"))) {
@@ -174,6 +195,7 @@ export function parseLedScoresMatchOverlayMessage(value: unknown) {
     executeAt,
     expiresAt,
     overlay: {
+      assets,
       away,
       deliveryId,
       design: parseOverlayDesign(payload.design, kind),
@@ -192,6 +214,7 @@ export function parseLedScoresMatchOverlayMessage(value: unknown) {
       ) ?? 6_000,
       matchClock: safeText(payload.matchClock, 40),
       periodLabel: safeText(payload.periodLabel, 80),
+      scene: parseLedScoresCanvasScenePair(payload.scene, assets),
       side,
       underlayPolicy: payload.underlayPolicy === "continue"
         ? "continue" as const
@@ -199,6 +222,54 @@ export function parseLedScoresMatchOverlayMessage(value: unknown) {
     } satisfies ActiveLedScoresMatchOverlay,
     serverTime
   };
+}
+
+export function parseLedScoresCanvasScenePair(
+  value: unknown,
+  assets: ReadonlyMap<string, LedScoresOverlayAsset> = new Map()
+): LedScoresCanvasScenePair | null {
+  if (!isRecord(value)) return null;
+  const landscape = ledScoresCanvasSceneSchema.safeParse(value.landscape);
+  const portrait = ledScoresCanvasSceneSchema.safeParse(value.portrait);
+  if (
+    !landscape.success || !portrait.success ||
+    landscape.data.orientation !== "landscape" ||
+    portrait.data.orientation !== "portrait"
+  ) return null;
+  const pair = {
+    landscape: landscape.data,
+    portrait: portrait.data
+  } satisfies LedScoresCanvasScenePair;
+  return canvasSceneAssetsAreRenderable(pair, assets) ? pair : null;
+}
+
+export function parseLedScoresOverlayAsset(
+  value: unknown
+): LedScoresOverlayAsset | null {
+  if (!isRecord(value)) return null;
+  const mediaAssetId = safeUuid(value.mediaAssetId);
+  const checksum = typeof value.checksum === "string" &&
+    /^[a-f0-9]{64}$/.test(value.checksum)
+    ? value.checksum
+    : null;
+  const mimeType = typeof value.mimeType === "string" &&
+    /^(image\/(jpeg|png|webp)|video\/mp4)$/.test(value.mimeType)
+    ? value.mimeType as LedScoresOverlayAsset["mimeType"]
+    : null;
+  const url = safeUrl(value.url);
+  return mediaAssetId && checksum && mimeType && url
+    ? { checksum, mediaAssetId, mimeType, url }
+    : null;
+}
+
+export function parseLedScoresOverlayAssets(value: unknown) {
+  const assets = new Map<string, LedScoresOverlayAsset>();
+  if (!Array.isArray(value)) return assets;
+  for (const candidate of value.slice(0, ledScoresCanvasMaximumAssets)) {
+    const asset = parseLedScoresOverlayAsset(candidate);
+    if (asset) assets.set(asset.mediaAssetId, asset);
+  }
+  return assets;
 }
 
 export function parseLedScoresGoalEnrichmentMessage(
@@ -476,21 +547,32 @@ function normalizedTeamKey(value: unknown) {
   return key?.toLowerCase() ?? "";
 }
 
-function resolveConfiguredTeamLogo(assets: unknown, logoMediaAssetId: unknown) {
+function resolveConfiguredTeamLogo(
+  assets: ReadonlyMap<string, LedScoresOverlayAsset>,
+  logoMediaAssetId: unknown
+) {
   const expectedId = safeUuid(logoMediaAssetId);
-  if (!expectedId || !Array.isArray(assets)) return null;
-  for (const candidate of assets.slice(0, 10)) {
-    if (!isRecord(candidate) || safeUuid(candidate.mediaAssetId) !== expectedId) {
-      continue;
+  if (!expectedId) return null;
+  const asset = assets.get(expectedId);
+  return asset?.mimeType.startsWith("image/") ? asset.url : null;
+}
+
+function canvasSceneAssetsAreRenderable(
+  pair: LedScoresCanvasScenePair,
+  assets: ReadonlyMap<string, LedScoresOverlayAsset>
+) {
+  for (const scene of [pair.landscape, pair.portrait]) {
+    if (
+      scene.background.kind === "media" &&
+      !assets.has(scene.background.mediaAssetId)
+    ) return false;
+    for (const layer of scene.layers) {
+      if (layer.type !== "image" || !layer.mediaAssetId) continue;
+      const asset = assets.get(layer.mediaAssetId);
+      if (!asset?.mimeType.startsWith("image/")) return false;
     }
-    const checksum = typeof candidate.checksum === "string" &&
-      /^[a-f0-9]{64}$/.test(candidate.checksum);
-    const image = typeof candidate.mimeType === "string" &&
-      /^image\/(jpeg|png|webp)$/.test(candidate.mimeType);
-    const url = safeUrl(candidate.url);
-    if (checksum && image && url) return url;
   }
-  return null;
+  return true;
 }
 
 function parsePlayer(value: unknown): LedScoresPlayerViewModel | null {

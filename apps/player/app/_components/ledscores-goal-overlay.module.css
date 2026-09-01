@@ -30,6 +30,7 @@
 .playerReveal strong { font-family: var(--vc-font-display); font-size: clamp(1.8rem, 3.6vw, 4rem); line-height: .92; }
 .playerReveal small { font-size: clamp(.7rem, 1vw, 1.05rem); font-weight: 800; letter-spacing: .12em; opacity: .72; }
 .sponsor { align-items: center; background: color-mix(in srgb, var(--vc-brand-paper-white) 92%, transparent); border-radius: var(--vc-radius-lg); bottom: 4vh; color: var(--vc-brand-ink-black); display: flex; gap: 1rem; padding: .75rem 1rem; position: absolute; right: 4vw; z-index: 3; }
+.canvasSponsor { z-index: 80; }
 .sponsor span { font-size: .7rem; font-weight: 750; text-transform: uppercase; }.sponsor img { max-height: 3.5rem; max-width: 10rem; object-fit: contain; }
 .overlay[data-animation="impact"] .content { animation: goal-impact .52s cubic-bezier(.2,.9,.2,1) both; }.overlay[data-animation="pulse"] .score { animation: goal-pulse .8s ease-in-out 2; }.overlay[data-animation="slide"] .content { animation: goal-slide .55s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes goal-impact { from { opacity: 0; transform: scale(.72); } 70% { opacity: 1; transform: scale(1.05); } to { transform: scale(1); } }

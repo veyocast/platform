@@ -1,11 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { createDefaultLedScoresCanvasExperience } from "@veyocast/contracts";
+
 import {
+  attachLedScoresCanvasSceneToDelivery,
   createSerializedLedScoresStreamQueue,
   encodeSseEvent,
   hashPlayerCredential,
   hydrateLedScoresDeliveryProviderPhotos,
   ledScoresRealtimeBootstrapPayload,
+  ledScoresCanvasMomentForDelivery,
   loadLedScoresMatchPlayerBootstrap,
   loadLedScoresPlayerBootstrap,
   normalizeLedScoresDelivery,
@@ -17,6 +21,75 @@ import {
 } from "./player-ledscores-server";
 
 describe("LED Scores Player server boundary", () => {
+  it("selecteert de canvas-scene uitsluitend uit de bijbehorende immutable alertversie", () => {
+    const experience = createDefaultLedScoresCanvasExperience();
+    const delivery = normalizeLedScoresDelivery({
+      alert_version_id: "11111111-1111-4111-8111-111111111111",
+      execute_at: "2026-08-31T18:00:00.000Z",
+      expires_at: "2026-08-31T18:00:10.000Z",
+      id: "22222222-2222-4222-8222-222222222222",
+      message_kind: "goal",
+      payload: {
+        scene: { injected: true },
+        scoringSide: "opponent"
+      },
+      screen_id: "33333333-3333-4333-8333-333333333333"
+    });
+    if (!delivery) throw new Error("Expected valid delivery");
+
+    const hydrated = attachLedScoresCanvasSceneToDelivery(delivery, [{
+      alertVersionId: "99999999-9999-4999-8999-999999999999",
+      config: { canvasExperience: createDefaultLedScoresCanvasExperience() }
+    }, {
+      alertVersionId: delivery.alertVersionId,
+      config: { canvasExperience: experience }
+    }]);
+
+    expect(hydrated.payload.scene).toEqual(
+      experience.scenes.goalOpponent
+    );
+    expect(attachLedScoresCanvasSceneToDelivery(delivery, []).payload)
+      .not.toHaveProperty("scene");
+
+    const missingAssetExperience = structuredClone(experience);
+    missingAssetExperience.scenes.goalOpponent.landscape.background = {
+      focusX: 0.5,
+      focusY: 0.5,
+      kind: "media",
+      mediaAssetId: "88888888-8888-4888-8888-888888888888",
+      objectFit: "cover",
+      overlayColor: "#0a0a0a",
+      overlayOpacity: 0.2
+    };
+    expect(attachLedScoresCanvasSceneToDelivery(delivery, [{
+      alertVersionId: delivery.alertVersionId,
+      assets: [],
+      config: { canvasExperience: missingAssetExperience }
+    }]).payload).not.toHaveProperty("scene");
+  });
+
+  it.each([
+    ["goal", { scoringSide: "own" }, "goalOwn"],
+    ["goal", { scoringSide: "unknown" }, "goalUnknown"],
+    ["match_overlay", { overlayKind: "lineup", side: "home" }, "lineupHome"],
+    ["match_overlay", { overlayKind: "lineup", side: "away" }, "lineupAway"],
+    ["match_overlay", { overlayKind: "match_start" }, "matchStart"],
+    ["match_overlay", { overlayKind: "half_time" }, "halfTime"],
+    ["match_overlay", { overlayKind: "match_end" }, "matchEnd"]
+  ] as const)("mapt %s naar canvasmoment %s", (kind, payload, expected) => {
+    const delivery = normalizeLedScoresDelivery({
+      alert_version_id: "11111111-1111-4111-8111-111111111111",
+      execute_at: "2026-08-31T18:00:00.000Z",
+      expires_at: "2026-08-31T18:00:10.000Z",
+      id: "22222222-2222-4222-8222-222222222222",
+      message_kind: kind,
+      payload,
+      screen_id: "33333333-3333-4333-8333-333333333333"
+    });
+    if (!delivery) throw new Error("Expected valid delivery");
+    expect(ledScoresCanvasMomentForDelivery(delivery)).toBe(expected);
+  });
+
   it("serialiseert trage deliveryhydratie zodat lineup-clear nooit wordt ingehaald", async () => {
     let releaseLineup: (() => void) | undefined;
     const lineupHydrated = new Promise<void>((resolve) => {
@@ -326,6 +399,57 @@ describe("LED Scores Player server boundary", () => {
     expect(bootstrap.configs[0]?.assets).toHaveLength(1);
     expect(bootstrap.pendingDeliveries).toHaveLength(1);
     expect(createSignedUrl).toHaveBeenCalledTimes(1);
+  });
+
+  it("tekent maximaal de canvascontractlimiet van 24 immutable assets", async () => {
+    const assets = Array.from({ length: 25 }, (_, index) => {
+      const mediaAssetId = `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`;
+      return {
+        bucket: "tenant-media",
+        checksum: "a".repeat(64),
+        mediaAssetId,
+        mimeType: index === 0 ? "video/mp4" : "image/webp",
+        path: `tenants/10000000-0000-4000-8000-000000001321/assets/${mediaAssetId}/scene-${index}.webp`
+      };
+    });
+    const createSignedUrl = vi.fn(async (path: string) => ({
+      data: { signedUrl: `https://storage.test/${encodeURIComponent(path)}` },
+      error: null
+    }));
+    const admin = {
+      rpc: vi.fn().mockResolvedValue({
+        data: {
+          authorized: true,
+          configs: [{
+            alertId: "11111111-1111-4111-8111-111111111111",
+            alertVersionId: "22222222-2222-4222-8222-222222222222",
+            assets,
+            checksum: "c".repeat(64),
+            config: { schemaVersion: "1" },
+            durationMs: 8_000,
+            priority: 300,
+            underlayPolicy: "pause"
+          }],
+          deviceId: "40000000-0000-4000-8000-000000001321",
+          enabled: true,
+          pendingDeliveries: [],
+          screenId: "30000000-0000-4000-8000-000000001321",
+          tenantId: "10000000-0000-4000-8000-000000001321"
+        },
+        error: null
+      }),
+      storage: { from: vi.fn(() => ({ createSignedUrl })) }
+    };
+
+    const bootstrap = await loadLedScoresPlayerBootstrap(
+      admin as never,
+      "a".repeat(64)
+    );
+    if (!bootstrap.authorized || !bootstrap.enabled) {
+      throw new Error("Expected enabled bootstrap");
+    }
+    expect(bootstrap.configs[0]?.assets).toHaveLength(24);
+    expect(createSignedUrl).toHaveBeenCalledTimes(24);
   });
 
   it("encodeert ieder realtime bericht als één SSE-event", () => {
