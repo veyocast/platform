@@ -96,8 +96,14 @@ fallback lokaal beschikbaar.
 - Reconnect gebruikt exponentiële back-off met jitter. Een databaselease van
   45 seconden voorkomt dubbele actieve workers; de eigenaar vernieuwt die
   tijdens de socketverbinding.
-- Een connectpoging is op 10 seconden begrensd. Na 45 seconden zonder bericht
-  sluit de worker de socket gecontroleerd en start back-off/reconnect.
+- Een connectpoging is op 10 seconden begrensd en na `open` moet binnen 45
+  seconden één eerste geldig bronbericht volgen. Daarna mag de change-driven
+  bron uren geen applicatiebericht sturen. WebSocket ping/pong wordt door de
+  WebSocket-runtime afgehandeld en latere bronstilte is daarom geen transportfout.
+  Alleen een native `close`/`error`, een ontbrekend eerste bericht, een mislukte
+  connectpoging of leaseverlies start back-off/reconnect.
+  `last_source_message_at` blijft de laatste echte bronontvangst tonen en wordt
+  niet door leaseverlenging vervalst.
 - Klokupdates blijven in workergeheugen. Alleen baseline, goal, relevante
   onderdrukking en maximaal eens per 15 seconden health worden gepersisteerd;
   er ontstaat dus geen databaserij of -write per scorebordtick.

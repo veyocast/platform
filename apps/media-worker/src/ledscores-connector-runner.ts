@@ -95,6 +95,10 @@ type ConnectorPersistence = {
   scheduledGoalPhotoKeys: Set<string>;
 };
 
+type DecodedLedScoresMessage =
+  | { ok: true; status: LedScoresStatus }
+  | { error: unknown; ok: false };
+
 export interface LedScoresConnectorBackend {
   claim(workerId: string, leaseSeconds: number, limit: number): Promise<ClaimedLedScoresConnection[]>;
   cleanup?(): Promise<void>;
@@ -384,7 +388,7 @@ export async function runLedScoresConnectorLoop({
   backend,
   claimIntervalMs,
   connectTimeoutMs = 10_000,
-  inactivityTimeoutMs = 45_000,
+  initialMessageTimeoutMs = 45_000,
   leaseSeconds,
   maxConnections,
   onEvent = () => undefined,
@@ -397,7 +401,7 @@ export async function runLedScoresConnectorLoop({
   backend: LedScoresConnectorBackend;
   claimIntervalMs: number;
   connectTimeoutMs?: number;
-  inactivityTimeoutMs?: number;
+  initialMessageTimeoutMs?: number;
   leaseSeconds: number;
   maxConnections: number;
   onEvent?: (event: LedScoresConnectorEvent) => void;
@@ -428,7 +432,7 @@ export async function runLedScoresConnectorLoop({
             backend,
             connectTimeoutMs,
             connection,
-            inactivityTimeoutMs,
+            initialMessageTimeoutMs,
             leaseSeconds,
             onEvent,
             persistIntervalMs,
@@ -452,7 +456,7 @@ async function runClaimedConnection({
   backend,
   connectTimeoutMs,
   connection,
-  inactivityTimeoutMs,
+  initialMessageTimeoutMs,
   leaseSeconds,
   onEvent,
   persistIntervalMs,
@@ -464,7 +468,7 @@ async function runClaimedConnection({
   backend: LedScoresConnectorBackend;
   connectTimeoutMs: number;
   connection: ClaimedLedScoresConnection;
-  inactivityTimeoutMs: number;
+  initialMessageTimeoutMs: number;
   leaseSeconds: number;
   onEvent: (event: LedScoresConnectorEvent) => void;
   persistIntervalMs: number;
@@ -510,7 +514,7 @@ async function runClaimedConnection({
           connectTimeoutMs,
           connection,
           detector,
-          inactivityTimeoutMs,
+          initialMessageTimeoutMs,
           isReconnect: attempt > 0,
           leaseSeconds,
           onEvent,
@@ -1153,7 +1157,7 @@ async function consumeSocket({
   connectTimeoutMs,
   connection,
   detector,
-  inactivityTimeoutMs,
+  initialMessageTimeoutMs,
   isReconnect,
   leaseSeconds,
   onEvent,
@@ -1167,7 +1171,7 @@ async function consumeSocket({
   connectTimeoutMs: number;
   connection: ClaimedLedScoresConnection;
   detector: LedScoresSemanticEventDetector;
-  inactivityTimeoutMs: number;
+  initialMessageTimeoutMs: number;
   isReconnect: boolean;
   leaseSeconds: number;
   onEvent: (event: LedScoresConnectorEvent) => void;
@@ -1181,30 +1185,28 @@ async function consumeSocket({
   let messageQueue = Promise.resolve();
   let settled = false;
   await new Promise<void>((resolve, reject) => {
-    let inactivityTimer: ReturnType<typeof setTimeout> | null = null;
+    let initialMessageTimer: ReturnType<typeof setTimeout> | null = null;
     const connectTimer = setTimeout(() => {
       finish(new Error("ledscores_connect_timeout"));
       try { socket.close(4000, "connect timeout"); } catch { /* noop */ }
     }, Math.max(25, connectTimeoutMs));
-    const resetInactivityTimer = () => {
-      if (inactivityTimer) clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(() => {
-        finish(new Error("ledscores_message_timeout"));
-        try { socket.close(4000, "message timeout"); } catch { /* noop */ }
-      }, Math.max(50, inactivityTimeoutMs));
-    };
+    // LED Scores must establish readiness with one bounded first message, but
+    // is change-driven and may then legitimately stay silent for hours.
+    // WebSocket ping/pong frames are handled below this API, so later message
+    // silence cannot prove a dead transport. Native close/error events drive
+    // reconnect while the database lease still proves ownership.
     const finish = (error?: Error) => {
       if (settled) return;
       settled = true;
       clearTimeout(connectTimer);
-      if (inactivityTimer) clearTimeout(inactivityTimer);
+      if (initialMessageTimer) clearTimeout(initialMessageTimer);
       clearInterval(leaseTimer);
       signal.removeEventListener("abort", abort);
       void messageQueue.finally(() => error ? reject(error) : resolve());
     };
     const abort = () => {
-      try { socket.close(1000, "worker draining"); } catch { /* noop */ }
       finish();
+      try { socket.close(1000, "worker draining"); } catch { /* noop */ }
     };
     const leaseTimer = setInterval(() => {
       void backend.renew(connection.connectionId, workerId, leaseSeconds)
@@ -1220,8 +1222,12 @@ async function consumeSocket({
         });
     }, Math.max(5_000, Math.floor(leaseSeconds * 500)));
     socket.addEventListener("open", () => {
+      if (settled) return;
       clearTimeout(connectTimer);
-      resetInactivityTimer();
+      initialMessageTimer = setTimeout(() => {
+        finish(new Error("ledscores_initial_message_timeout"));
+        try { socket.close(4000, "initial message timeout"); } catch { /* noop */ }
+      }, Math.max(50, initialMessageTimeoutMs));
       messageQueue = messageQueue.then(async () => {
         const owned = await backend.recordState({
           connectionId: connection.connectionId,
@@ -1238,13 +1244,18 @@ async function consumeSocket({
       }).catch((error) => finish(asError(error)));
     }, { once: true });
     socket.addEventListener("message", (event) => {
-      resetInactivityTimer();
+      if (settled) return;
+      const decoded = decodeLedScoresMessage(event);
+      if (decoded.ok && initialMessageTimer) {
+        clearTimeout(initialMessageTimer);
+        initialMessageTimer = null;
+      }
       messageQueue = messageQueue
         .then(() => handleMessage({
           backend,
           connection,
+          decoded,
           detector,
-          event,
           onEvent,
           persistIntervalMs,
           persistence,
@@ -1253,10 +1264,12 @@ async function consumeSocket({
         .catch((error) => finish(asError(error)));
     });
     socket.addEventListener("close", () => {
+      if (settled) return;
       onEvent({ connectionId: connection.connectionId, outcome: "disconnected" });
       finish();
     }, { once: true });
     socket.addEventListener("error", () => {
+      finish(new Error("ledscores_transport_error"));
       try { socket.close(1011, "transport error"); } catch { /* noop */ }
     }, { once: true });
     signal.addEventListener("abort", abort, { once: true });
@@ -1266,8 +1279,8 @@ async function consumeSocket({
 async function handleMessage({
   backend,
   connection,
+  decoded,
   detector,
-  event,
   onEvent,
   persistIntervalMs,
   persistence,
@@ -1275,25 +1288,15 @@ async function handleMessage({
 }: {
   backend: LedScoresConnectorBackend;
   connection: ClaimedLedScoresConnection;
+  decoded: DecodedLedScoresMessage;
   detector: LedScoresSemanticEventDetector;
-  event: MessageEvent;
   onEvent: (event: LedScoresConnectorEvent) => void;
   persistIntervalMs: number;
   persistence: ConnectorPersistence;
   workerId: string;
 }) {
-  let status: LedScoresStatus;
-  try {
-    if (typeof event.data === "string" || event.data instanceof ArrayBuffer) {
-      status = parseLedScoresMessage(event.data);
-    } else {
-      throw new LedScoresProtocolError(
-        "LEDSCORES_MESSAGE_INVALID",
-        "LED Scores gaf een niet-ondersteund berichttype terug."
-      );
-    }
-  } catch (error) {
-    const code = safeErrorCode(error);
+  if (!decoded.ok) {
+    const code = safeErrorCode(decoded.error);
     const now = Date.now();
     if (now - persistence.lastInvalidAt >= 30_000) {
       persistence.lastInvalidAt = now;
@@ -1310,6 +1313,7 @@ async function handleMessage({
     }
     return;
   }
+  const status = decoded.status;
   const now = Date.now();
   // Provider timestamps describe when LED Scores changed the match. The RPC
   // freshness guard needs when VeyoCast actually observed this websocket
@@ -1518,6 +1522,20 @@ async function handleMessage({
       onEvent({ connectionId: connection.connectionId, outcome: "goal_suppressed" });
     }
     return;
+  }
+}
+
+function decodeLedScoresMessage(event: MessageEvent): DecodedLedScoresMessage {
+  try {
+    if (typeof event.data === "string" || event.data instanceof ArrayBuffer) {
+      return { ok: true, status: parseLedScoresMessage(event.data) };
+    }
+    throw new LedScoresProtocolError(
+      "LEDSCORES_MESSAGE_INVALID",
+      "LED Scores gaf een niet-ondersteund berichttype terug."
+    );
+  } catch (error) {
+    return { error, ok: false };
   }
 }
 

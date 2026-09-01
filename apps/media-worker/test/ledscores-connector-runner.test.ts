@@ -904,6 +904,148 @@ describe("LED Scores connector loop", () => {
       .not.toContain("api.ledscores.score.tel");
   });
 
+  it("keeps a change-driven socket open during valid source silence", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let loop: Promise<void> | null = null;
+    try {
+      vi.setSystemTime(new Date("2026-09-01T08:00:00.000Z"));
+      let claimed = false;
+      const backend = fakeBackend({
+        claim: vi.fn(async () => {
+          if (claimed) return [];
+          claimed = true;
+          return [connection];
+        })
+      });
+      const webSocketFactory = vi.fn(() => {
+        const socket = new FakeWebSocket();
+        queueMicrotask(() => {
+          socket.emit("open", new Event("open"));
+          socket.message(providerMessage(Date.now(), "quiet-baseline"));
+        });
+        return socket as unknown as WebSocket;
+      });
+      loop = runLedScoresConnectorLoop({
+        backend,
+        claimIntervalMs: 1_000,
+        leaseSeconds: 45,
+        maxConnections: 1,
+        signal: controller.signal,
+        webSocketFactory,
+        workerId: "worker:test"
+      });
+
+      await vi.advanceTimersByTimeAsync(120_000);
+
+      expect(webSocketFactory).toHaveBeenCalledOnce();
+      expect(backend.renew).toHaveBeenCalled();
+      expect(vi.mocked(backend.recordState).mock.calls.map(([input]) => input.eventType))
+        .not.toContain("connection_error");
+    } finally {
+      controller.abort();
+      try {
+        if (loop) await loop;
+      } finally {
+        vi.useRealTimers();
+      }
+    }
+  });
+
+  it("requires a valid first message before accepting a quiet connection", async () => {
+    const controller = new AbortController();
+    let claimed = false;
+    const recordState = vi.fn(async (
+      input: Parameters<LedScoresConnectorBackend["recordState"]>[0]
+    ) => {
+      if (input.eventType === "connection_error") controller.abort();
+      return true;
+    });
+    const backend = fakeBackend({
+      claim: vi.fn(async () => {
+        if (claimed) return [];
+        claimed = true;
+        return [connection];
+      }),
+      recordState
+    });
+
+    await runLedScoresConnectorLoop({
+      backend,
+      claimIntervalMs: 100,
+      initialMessageTimeoutMs: 25,
+      leaseSeconds: 45,
+      maxConnections: 1,
+      random: () => 0,
+      signal: controller.signal,
+      webSocketFactory: () => {
+        const socket = new FakeWebSocket();
+        queueMicrotask(() => {
+          socket.emit("open", new Event("open"));
+          socket.message("{");
+        });
+        return socket as unknown as WebSocket;
+      },
+      workerId: "worker:test"
+    });
+
+    expect(recordState).toHaveBeenCalledWith(expect.objectContaining({
+      eventType: "invalid_message",
+      invalidMessage: true
+    }));
+    expect(recordState).toHaveBeenCalledWith(expect.objectContaining({
+      detail: expect.objectContaining({ code: "ledscores_initial_message_timeout" }),
+      eventType: "connection_error"
+    }));
+  });
+
+  it("reconnects after an explicit websocket transport error", async () => {
+    const controller = new AbortController();
+    let claimed = false;
+    let socketNumber = 0;
+    const backend = fakeBackend({
+      claim: vi.fn(async () => {
+        if (claimed) return [];
+        claimed = true;
+        return [connection];
+      })
+    });
+    const webSocketFactory = vi.fn(() => {
+      socketNumber += 1;
+      const currentSocket = socketNumber;
+      const socket = new FakeWebSocket();
+      queueMicrotask(() => {
+        socket.emit("open", new Event("open"));
+        socket.message(providerMessage(Date.now(), `baseline-${currentSocket}`));
+        setTimeout(() => {
+          if (currentSocket === 1) {
+            socket.emit("error", new Event("error"));
+          } else {
+            controller.abort();
+          }
+        }, 5);
+      });
+      return socket as unknown as WebSocket;
+    });
+
+    await runLedScoresConnectorLoop({
+      backend,
+      claimIntervalMs: 100,
+      leaseSeconds: 45,
+      maxConnections: 1,
+      random: () => 0,
+      signal: controller.signal,
+      webSocketFactory,
+      workerId: "worker:test"
+    });
+
+    expect(webSocketFactory).toHaveBeenCalledTimes(2);
+    expect(backend.recordState).toHaveBeenCalledWith(expect.objectContaining({
+      detail: expect.objectContaining({ code: "ledscores_transport_error" }),
+      eventType: "connection_error"
+    }));
+  });
+
   it("bounds a connection attempt and records a reconnectable timeout", async () => {
     const controller = new AbortController();
     let claimed = false;
