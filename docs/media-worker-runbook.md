@@ -77,10 +77,13 @@ De LED Scores-loop claimt uitsluitend verbindingen van actieve tenants met de
 featureflag `ledscores_realtime`. Iedere claim heeft een databaselease en de
 worker opent alleen het vaste read-only `wss.ledscores.score.tel`-endpoint.
 Websocketfouten gebruiken begrensde back-off; ze stoppen de mediaqueue niet.
-Connect is na tien seconden begrensd en 45 seconden bronstilte forceert een
-gecontroleerde reconnect. Klokticks blijven vluchtig; health wordt hooguit eens
-per vijftien seconden geschreven. Iedere zes uur loopt de niet-blokkerende
-service-retentie voor deliveries en eventhistorie.
+Connect is na tien seconden begrensd en het eerste bronbericht na `open` op 45
+seconden. De change-driven bron mag na die baseline lang stil blijven:
+transport-`close`/`error` of leaseverlies veroorzaakt een gecontroleerde
+reconnect, maar latere applicatieberichtstilte niet. De laatste echte
+bronontvangst blijft afzonderlijk zichtbaar. Klokticks blijven vluchtig; health
+wordt hooguit eens per vijftien seconden geschreven. Iedere zes uur loopt de
+niet-blokkerende service-retentie voor deliveries en eventhistorie.
 Zie [`integrations/ledscores-realtime-goal-alert.md`](integrations/ledscores-realtime-goal-alert.md).
 
 Een onverwachte fatale fout in één parallelle loop zet de volledige daemon

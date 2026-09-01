@@ -20,6 +20,10 @@ import {
   testLedScoresSource
 } from "./actions";
 import {
+  isLedScoresProviderConnected,
+  ledScoresConnectionHealth
+} from "./connection-health";
+import {
   deliveryDisplayState,
   deliveryLatencyMs,
   formatDeliveryLatency,
@@ -64,6 +68,12 @@ export default async function LedScoresPage({ searchParams }: Props) {
     formatTenantDateTime(value, session.timezoneName);
   const screensById = new Map(data.screens.map((screen) => [screen.id, screen]));
   const devicesByScreen = latestDevicesByScreen(data.devices);
+  const connectedProviderCount = data.connections.filter((connection) =>
+    isLedScoresProviderConnected(
+      connection.health_status,
+      connection.lease_expires_at
+    )
+  ).length;
 
   return <>
     <PageHeader
@@ -87,7 +97,7 @@ export default async function LedScoresPage({ searchParams }: Props) {
     </section> : <>
       <SummaryStrip items={[
         { label: "Verbindingen", value: data.connections.length },
-        { label: "Provider verbonden", value: data.connections.filter((item) => item.health_status === "connected").length, tone: data.connections.some((item) => item.health_status === "connected") ? "success" : "warning" },
+        { label: "Provider verbonden", value: connectedProviderCount, tone: connectedProviderCount > 0 ? "success" : "warning" },
         { label: "Goal-events (24 uur)", value: data.eventCount }
       ]} />
 
@@ -104,7 +114,13 @@ export default async function LedScoresPage({ searchParams }: Props) {
             return <article className={styles.card} key={connection.id}>
               <div className={styles.cardHeader}>
                 <div><p className={styles.eyebrow}>{connection.club_slug}</p><h3>{connection.name}</h3></div>
-                <StatusPill {...healthStatus(connection.status, connection.health_status, connection.last_source_message_at)} />
+                <StatusPill {...ledScoresConnectionHealth({
+                  connectionStatus: connection.status,
+                  healthStatus: connection.health_status,
+                  lastConnectedAt: connection.last_connected_at,
+                  lastSourceMessageAt: connection.last_source_message_at,
+                  leaseExpiresAt: connection.lease_expires_at
+                })} />
               </div>
               <dl className={styles.details}>
                 <div><dt>Laatste geldig bericht</dt><dd>{formatDate(connection.last_source_message_at)}</dd></div>
@@ -213,7 +229,7 @@ async function loadLedScores(tenantId: string) {
   if (availability !== "available") return { ...emptyData(), availability };
   const since = new Date(Date.now() - 86_400_000).toISOString();
   const [connections, mappings, sportsTeams, events, eventCount, screens, devices] = await Promise.all([
-    supabase.from("ledscores_connections").select("id,name,club_slug,status,health_status,health_detail,revision,baseline_json,last_source_message_at,last_connected_at,last_disconnected_at,last_test_at,last_test_status,last_test_detail,reconnect_count,invalid_message_count").eq("tenant_id", tenantId).order("created_at"),
+    supabase.from("ledscores_connections").select("id,name,club_slug,status,health_status,health_detail,revision,baseline_json,last_source_message_at,last_connected_at,last_disconnected_at,lease_expires_at,last_test_at,last_test_status,last_test_detail,reconnect_count,invalid_message_count").eq("tenant_id", tenantId).order("created_at"),
     supabase.from("ledscores_team_mappings").select("id,connection_id,provider_team_key,provider_team_name,sports_team_id,scoring_side").eq("tenant_id", tenantId).order("created_at"),
     supabase.from("sports_teams").select("id,name").eq("tenant_id", tenantId).eq("active", true).order("name").limit(250),
     supabase.from("ledscores_goal_events").select("id,connection_id,event_kind,source_observed_at,detected_at,home_team,away_team,home_score,away_score,scoring_side,dispatch_status").eq("tenant_id", tenantId).order("detected_at", { ascending: false }).limit(25),
@@ -273,15 +289,6 @@ function readBaseline(value: unknown) {
   const item = value as Record<string, unknown>;
   if (typeof item.homeTeamId !== "string" || typeof item.awayTeamId !== "string" || typeof item.homeScore !== "number" || typeof item.awayScore !== "number") return null;
   return { awayScore: item.awayScore, awayTeamId: item.awayTeamId, homeScore: item.homeScore, homeTeamId: item.homeTeamId };
-}
-function healthStatus(status: string, value: string, lastSourceMessageAt: string | null) {
-  if (status === "paused") return { label: "Uitgeschakeld", tone: "neutral" as const };
-  if (value === "connected" && (!lastSourceMessageAt || Date.parse(lastSourceMessageAt) < Date.now() - 60_000)) return { label: "Verouderd", tone: "warning" as const };
-  if (value === "connected") return { label: "Verbonden", tone: "success" as const };
-  if (value === "pending") return { label: "Verbinden", tone: "info" as const };
-  if (value === "reconnecting" || value === "disconnected") return { label: "Opnieuw verbinden", tone: "warning" as const };
-  if (value === "error") return { label: "Verbindingsfout", tone: "critical" as const };
-  return { label: "Niet verbonden", tone: "neutral" as const };
 }
 function dispatchStatus(value: string) {
   if (value === "dispatched") return { label: "Klaargezet", tone: "info" as const };
