@@ -42,6 +42,7 @@ import {
   activePublishedGroupIds,
   publishedGroupIds
 } from "./published-targets";
+import { isLedScoresMediaEligible } from "./media-policy";
 import styles from "./led-scores-studio.module.css";
 
 type Props = { searchParams: Promise<{ edit?: string; fout?: string; resultaat?: string; succes?: string }> };
@@ -188,30 +189,43 @@ async function loadStudioData(tenantId: string) {
     });
   }
   if (availability !== "available") return { ...emptyData(), availability };
-  const [connections, mappings, groups, memberships, screens, devices, assets, sponsors, alerts, draftGroups, publishedGroups, liveSlides] = await Promise.all([
+  const [connections, mappings, groups, memberships, screens, devices, assets, sponsors, alerts, draftGroups, publishedGroups, liveSlides, brandKit, sportsClubs, sportlinkConnections] = await Promise.all([
     supabase.from("ledscores_connections").select("id,name").eq("tenant_id", tenantId).eq("status", "active").order("name"),
     supabase.from("ledscores_team_mappings").select("connection_id,provider_team_key,provider_team_name,scoring_side").eq("tenant_id", tenantId).order("created_at"),
     supabase.from("screen_groups").select("id,name,status").eq("tenant_id", tenantId).order("name"),
     supabase.from("screen_group_memberships").select("screen_group_id,screen_id").eq("tenant_id", tenantId),
     supabase.from("screens").select("id,name,status").eq("tenant_id", tenantId).is("deleted_at", null).order("name"),
     supabase.from("player_devices").select("screen_id,status,last_seen_at").eq("tenant_id", tenantId).eq("status", "paired"),
-    supabase.from("media_assets").select("id,title,kind,mime_type,width,height,storage_bucket,storage_path").eq("tenant_id", tenantId).in("kind", ["image", "video"]).eq("status", "ready").is("deleted_at", null).order("created_at", { ascending: false }).limit(100),
+    supabase.from("media_assets").select("id,title,kind,mime_type,width,height,storage_bucket,storage_path,source_kind").eq("tenant_id", tenantId).eq("source_kind", "user").in("kind", ["image", "video"]).eq("status", "ready").is("deleted_at", null).order("created_at", { ascending: false }).limit(100),
     supabase.from("sponsor_creatives").select("id,position_key,orientation").eq("tenant_id", tenantId).eq("status", "approved").order("created_at", { ascending: false }).limit(100),
     supabase.from("ledscores_goal_alerts").select("id,connection_id,name,status,priority,duration_ms,underlay_policy,draft_config,revision,current_published_version_id,updated_at").eq("tenant_id", tenantId).neq("status", "archived").order("updated_at", { ascending: false }),
     supabase.from("ledscores_goal_alert_draft_groups").select("alert_id,screen_group_id").eq("tenant_id", tenantId),
     supabase.from("ledscores_goal_alert_version_groups").select("alert_version_id,screen_group_id").eq("tenant_id", tenantId),
-    supabase.from("dynamic_slides").select("id,name,orientation,status,updated_at").eq("tenant_id", tenantId).eq("slide_type", "ledscores_live_match").neq("status", "archived").order("updated_at", { ascending: false })
+    supabase.from("dynamic_slides").select("id,name,orientation,status,updated_at").eq("tenant_id", tenantId).eq("slide_type", "ledscores_live_match").neq("status", "archived").order("updated_at", { ascending: false }),
+    supabase.from("studio_tenant_brand_kits").select("logo_media_asset_id").eq("tenant_id", tenantId).maybeSingle(),
+    supabase.from("sports_clubs").select("logo_media_asset_id,source_connection_id").eq("tenant_id", tenantId).eq("active", true).not("logo_media_asset_id", "is", null),
+    supabase.from("sportlink_connections").select("id").eq("tenant_id", tenantId).eq("status", "active")
   ]);
-  const error = [connections.error, mappings.error, groups.error, memberships.error, screens.error, devices.error, assets.error, sponsors.error, alerts.error, draftGroups.error, publishedGroups.error, liveSlides.error].find(Boolean);
+  const error = [connections.error, mappings.error, groups.error, memberships.error, screens.error, devices.error, assets.error, sponsors.error, alerts.error, draftGroups.error, publishedGroups.error, liveSlides.error, brandKit.error, sportsClubs.error, sportlinkConnections.error].find(Boolean);
   if (error) { console.error("LED Scores Studio laden mislukt", { code: error.code }); return { ...emptyData(), enabled: true }; }
   const activeScreenIds = new Set((screens.data ?? []).filter((screen) => screen.status === "active").map((screen) => screen.id));
+  const activeSportlinkConnectionIds = new Set((sportlinkConnections.data ?? []).map((connection) => connection.id));
+  const canonicalLogoIds = new Set([
+    brandKit.data?.logo_media_asset_id,
+    ...(sportsClubs.data ?? [])
+      .filter((club) => activeSportlinkConnectionIds.has(club.source_connection_id))
+      .map((club) => club.logo_media_asset_id)
+  ].filter((assetId): assetId is string => typeof assetId === "string"));
   const assetRows = [...(assets.data ?? [])];
-  const referencedIds = canvasReferencedAssetIds(alerts.data ?? []);
+  const referencedIds = [...new Set([
+    ...canvasReferencedAssetIds(alerts.data ?? []),
+    ...canonicalLogoIds
+  ])];
   const loadedAssetIds = new Set(assetRows.map((asset) => asset.id));
   const missingAssetIds = referencedIds.filter((assetId) => !loadedAssetIds.has(assetId));
   if (missingAssetIds.length) {
     const missingAssets = await supabase.from("media_assets")
-      .select("id,title,kind,mime_type,width,height,storage_bucket,storage_path")
+      .select("id,title,kind,mime_type,width,height,storage_bucket,storage_path,source_kind")
       .eq("tenant_id", tenantId)
       .in("kind", ["image", "video"])
       .eq("status", "ready")
@@ -236,7 +250,12 @@ async function loadStudioData(tenantId: string) {
       code: assetVariants.error.code
     });
   }
-  const signedAssets = await signCanvasAssets(supabase, assetRows, assetVariants.data ?? []);
+  const signedAssets = await signCanvasAssets(
+    supabase,
+    assetRows,
+    assetVariants.data ?? [],
+    canonicalLogoIds
+  );
   return {
     alerts: alerts.data ?? [], assets: signedAssets,
     availability: "available" as const,
@@ -260,6 +279,7 @@ type CanvasAssetRow = {
   id: string;
   kind: string;
   mime_type: string;
+  source_kind: string;
   storage_bucket: string;
   storage_path: string;
   title: string;
@@ -305,7 +325,8 @@ function canvasReferencedAssetIds(alerts: Array<{ draft_config: unknown }>) {
 async function signCanvasAssets(
   supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
   assetRows: CanvasAssetRow[],
-  variantRows: CanvasVariantRow[]
+  variantRows: CanvasVariantRow[],
+  canonicalLogoIds: Set<string>
 ) {
   const selections = assetRows.flatMap((asset) => {
     if (asset.kind !== "image" && asset.kind !== "video") return [];
@@ -350,6 +371,26 @@ async function signCanvasAssets(
       height,
       id: asset.id,
       kind: asset.kind as "image" | "video",
+      librarySelectable: isLedScoresMediaEligible({
+        canvasCompatible: asset.kind === "image"
+          ? ["image/jpeg", "image/png", "image/webp"].includes(asset.mime_type)
+          : variantRows.some((variant) =>
+              variant.asset_id === asset.id
+              && variant.variant_type === "player_1080p"
+              && variant.mime_type === "video/mp4"
+            ),
+        kind: asset.kind,
+        mimeType,
+        sourceKind: asset.source_kind
+      }, "fallback"),
+      logoSelectable: isLedScoresMediaEligible({
+        canvasCompatible: asset.kind === "image"
+          && ["image/jpeg", "image/png", "image/webp"].includes(asset.mime_type),
+        kind: asset.kind,
+        mimeType: asset.mime_type,
+        purposeApproved: canonicalLogoIds.has(asset.id),
+        sourceKind: asset.source_kind
+      }, "logo"),
       mimeType,
       previewUrl: signedByPath.get(path) ?? null,
       title: asset.title,
@@ -359,7 +400,7 @@ async function signCanvasAssets(
 }
 
 function editorValue(alert: Awaited<ReturnType<typeof loadStudioData>>["alerts"][number] | null, connectionId: string, groups: Array<{ alert_id: string; screen_group_id: string }>): AlertEditorValue { return alert ? { config: isRecord(alert.draft_config) ? alert.draft_config : {}, connectionId: alert.connection_id, durationMs: alert.duration_ms, groupIds: groups.filter((item) => item.alert_id === alert.id).map((item) => item.screen_group_id), id: alert.id, name: alert.name, priority: alert.priority, revision: alert.revision, underlayPolicy: alert.underlay_policy } : { config: {}, connectionId, durationMs: 8000, groupIds: [], id: null, name: "Wedstrijdexperience", priority: 100, revision: 0, underlayPolicy: "continue" }; }
-function emptyData() { return { alerts: [] as Array<{ id: string; connection_id: string; name: string; status: string; priority: number; duration_ms: number; underlay_policy: string; draft_config: unknown; revision: number; current_published_version_id: string | null; updated_at: string }>, assets: [] as Array<{ canvasCompatible: boolean; height: number | null; id: string; kind: "image" | "video"; mimeType: string; previewUrl: string | null; title: string; width: number | null }>, availability: "not_released" as LedScoresFeatureAvailability, connections: [] as Array<{ id: string; name: string }>, draftGroups: [] as Array<{ alert_id: string; screen_group_id: string }>, enabled: false, groups: [] as Array<{ id: string; name: string; screenIds: string[] }>, liveSlides: [] as Array<{ id: string; name: string; orientation: string; status: string; updated_at: string }>, mappings: [] as Array<{ connection_id: string; provider_team_key: string; provider_team_name: string; scoring_side: string }>, publishedGroups: [] as Array<{ alert_version_id: string; screen_group_id: string }>, screens: [] as Array<{ id: string; name: string; status: "offline" | "online" | "stale" }>, sponsors: [] as Array<{ id: string; label: string }>, targetGroups: [] as Array<{ id: string; screenIds: string[] }> }; }
+function emptyData() { return { alerts: [] as Array<{ id: string; connection_id: string; name: string; status: string; priority: number; duration_ms: number; underlay_policy: string; draft_config: unknown; revision: number; current_published_version_id: string | null; updated_at: string }>, assets: [] as Array<{ canvasCompatible: boolean; height: number | null; id: string; kind: "image" | "video"; librarySelectable: boolean; logoSelectable: boolean; mimeType: string; previewUrl: string | null; title: string; width: number | null }>, availability: "not_released" as LedScoresFeatureAvailability, connections: [] as Array<{ id: string; name: string }>, draftGroups: [] as Array<{ alert_id: string; screen_group_id: string }>, enabled: false, groups: [] as Array<{ id: string; name: string; screenIds: string[] }>, liveSlides: [] as Array<{ id: string; name: string; orientation: string; status: string; updated_at: string }>, mappings: [] as Array<{ connection_id: string; provider_team_key: string; provider_team_name: string; scoring_side: string }>, publishedGroups: [] as Array<{ alert_version_id: string; screen_group_id: string }>, screens: [] as Array<{ id: string; name: string; status: "offline" | "online" | "stale" }>, sponsors: [] as Array<{ id: string; label: string }>, targetGroups: [] as Array<{ id: string; screenIds: string[] }> }; }
 function availabilityMessage(value: LedScoresFeatureAvailability) { return ledScoresFeatureAvailabilityMessages[value === "available" ? "unavailable" : value]; }
 function screenUnion(groups: Array<{ id: string; screenIds: string[] }>, selected: string[]) { return [...new Set(groups.filter((group) => selected.includes(group.id)).flatMap((group) => group.screenIds))]; }
 function alertStatus(status: string) { if (status === "published") return { label: "Actief gepubliceerd", tone: "success" as const }; if (status === "paused") return { label: "Gepauzeerd", tone: "warning" as const }; return { label: "Concept", tone: "neutral" as const }; }

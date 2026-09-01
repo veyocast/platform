@@ -14,6 +14,11 @@ import {
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import { lineupBehaviorFromForm } from "./live-match-ux";
+import {
+  isLedScoresMediaEligible,
+  resolveLedScoresPlaybackMime,
+  type LedScoresMediaSlot
+} from "./media-policy";
 
 const returnPath = "/dashboard/studio/led-scores";
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -85,15 +90,26 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
   ) fail("Kies minimaal één trigger en controleer het optionele actieve tijdvenster.");
   const sponsorCreativeId = optionalUuid(formData, "sponsorCreativeId");
   const canvasExperience = canvasExperienceFrom(formData);
+  const mediaSelections = {
+    logoMediaAssetId: optionalUuid(formData, "logoMediaAssetId"),
+    opponentMediaAssetId: optionalUuid(formData, "opponentMediaAssetId"),
+    opponentSoundMediaAssetId: optionalUuid(formData, "opponentSoundMediaAssetId"),
+    ownMediaAssetId: optionalUuid(formData, "ownMediaAssetId"),
+    ownSoundMediaAssetId: optionalUuid(formData, "ownSoundMediaAssetId"),
+    unknownMediaAssetId: optionalUuid(formData, "unknownMediaAssetId")
+  };
   const assetIds = uniqueUuids([
-    ...optionalAssetValues(formData, [
-      "logoMediaAssetId", "ownMediaAssetId", "opponentMediaAssetId",
-      "unknownMediaAssetId", "ownSoundMediaAssetId", "opponentSoundMediaAssetId"
-    ]),
+    ...Object.values(mediaSelections).filter((value): value is string => Boolean(value)),
     ...(canvasExperience ? ledScoresCanvasAssetIds(canvasExperience) : [])
   ]);
   const supabase = await createControlSupabaseClient();
   if (!supabase) fail("De beveiligde datasessie ontbreekt. Er is niets opgeslagen.");
+  await assertLedScoresLibrarySelections(
+    supabase,
+    session.tenantId!,
+    alertId,
+    mediaSelections
+  );
   let sponsorMediaAssetId: string | null = null;
   if (sponsorCreativeId) {
     const creative = await supabase.from("sponsor_creatives")
@@ -115,15 +131,15 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
     activeFrom,
     activeUntil,
     ...(canvasExperience ? { canvasExperience } : {}),
-    logoMediaAssetId: optionalUuid(formData, "logoMediaAssetId"),
+    logoMediaAssetId: mediaSelections.logoMediaAssetId,
     lineupBehavior,
     opponentDesign,
-    opponentMediaAssetId: optionalUuid(formData, "opponentMediaAssetId"),
-    opponentSoundMediaAssetId: optionalUuid(formData, "opponentSoundMediaAssetId"),
+    opponentMediaAssetId: mediaSelections.opponentMediaAssetId,
+    opponentSoundMediaAssetId: mediaSelections.opponentSoundMediaAssetId,
     opponentSoundVolume,
     ownDesign,
-    ownMediaAssetId: optionalUuid(formData, "ownMediaAssetId"),
-    ownSoundMediaAssetId: optionalUuid(formData, "ownSoundMediaAssetId"),
+    ownMediaAssetId: mediaSelections.ownMediaAssetId,
+    ownSoundMediaAssetId: mediaSelections.ownSoundMediaAssetId,
     ownSoundVolume,
     ownTeamKeys,
     overlayDesigns,
@@ -135,7 +151,7 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
     triggerOpponent,
     triggerOwn,
     unknownDesign,
-    unknownMediaAssetId: optionalUuid(formData, "unknownMediaAssetId"),
+    unknownMediaAssetId: mediaSelections.unknownMediaAssetId,
     unknownPolicy
   };
   const result = await supabase.rpc("save_ledscores_goal_alert_v1", {
@@ -162,6 +178,106 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
     alertId ? "Overlay experienceconcept is bijgewerkt." : "Overlay experienceconcept is gemaakt.",
     savedId ?? undefined
   );
+}
+
+async function assertLedScoresLibrarySelections(
+  supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
+  tenantId: string,
+  alertId: string | null,
+  selections: Record<string, string | null>
+) {
+  const selectedIds = [...new Set(Object.values(selections).filter((value): value is string => Boolean(value)))];
+  if (!selectedIds.length) return;
+  const [result, variants, brandKit, sportsClubs, sportlinkConnections] = await Promise.all([
+    supabase.from("media_assets")
+      .select("id,kind,mime_type,source_kind")
+      .eq("tenant_id", tenantId)
+      .eq("status", "ready")
+      .is("deleted_at", null)
+      .in("id", selectedIds),
+    supabase.from("media_variants")
+      .select("asset_id,mime_type")
+      .eq("tenant_id", tenantId)
+      .eq("variant_type", "player_1080p")
+      .in("asset_id", selectedIds),
+    supabase.from("studio_tenant_brand_kits")
+      .select("logo_media_asset_id")
+      .eq("tenant_id", tenantId)
+      .maybeSingle(),
+    supabase.from("sports_clubs")
+      .select("logo_media_asset_id,source_connection_id")
+      .eq("tenant_id", tenantId)
+      .eq("active", true)
+      .not("logo_media_asset_id", "is", null),
+    supabase.from("sportlink_connections")
+      .select("id")
+      .eq("tenant_id", tenantId)
+      .eq("status", "active")
+  ]);
+  if (
+    result.error
+    || variants.error
+    || brandKit.error
+    || sportsClubs.error
+    || sportlinkConnections.error
+  ) {
+    fail("De gekozen clubmedia kon niet veilig worden gecontroleerd. Probeer het opnieuw.");
+  }
+  const assets = new Map((result.data ?? []).map((asset) => [asset.id, asset]));
+  const playerVariantMimes = new Map((variants.data ?? []).map((variant) => [
+    variant.asset_id,
+    variant.mime_type
+  ]));
+  const activeSportlinkConnectionIds = new Set(
+    (sportlinkConnections.data ?? []).map((connection) => connection.id)
+  );
+  const canonicalLogoIds = new Set([
+    brandKit.data?.logo_media_asset_id,
+    ...(sportsClubs.data ?? [])
+      .filter((club) => activeSportlinkConnectionIds.has(club.source_connection_id))
+      .map((club) => club.logo_media_asset_id)
+  ].filter((assetId): assetId is string => typeof assetId === "string"));
+  const slots: Record<string, LedScoresMediaSlot> = {
+    logoMediaAssetId: "logo",
+    opponentMediaAssetId: "fallback",
+    opponentSoundMediaAssetId: "sound",
+    ownMediaAssetId: "fallback",
+    ownSoundMediaAssetId: "sound",
+    unknownMediaAssetId: "fallback"
+  };
+  const rejected = Object.entries(selections).filter(([field, assetId]) => {
+    if (!assetId) return false;
+    const asset = assets.get(assetId);
+    const resolvedMime = asset
+      ? resolveLedScoresPlaybackMime(
+          asset.kind,
+          asset.mime_type,
+          playerVariantMimes.get(asset.id) ?? null
+        )
+      : null;
+    return !asset || !isLedScoresMediaEligible({
+      canvasCompatible: asset.kind !== "video" || resolvedMime === "video/mp4",
+      kind: asset.kind,
+      mimeType: resolvedMime,
+      purposeApproved: slots[field] === "logo" && canonicalLogoIds.has(asset.id),
+      sourceKind: asset.source_kind
+    }, slots[field] ?? "fallback");
+  });
+  if (!rejected.length) return;
+  const existing = alertId
+    ? await supabase.from("ledscores_goal_alerts")
+        .select("draft_config")
+        .eq("tenant_id", tenantId)
+        .eq("id", alertId)
+        .maybeSingle()
+    : null;
+  if (
+    existing?.error
+    || rejected.some(([field, assetId]) => !isRecord(existing?.data?.draft_config)
+      || existing.data.draft_config[field] !== assetId)
+  ) {
+    fail("Een gekozen media-item hoort niet bij je uploadbibliotheek of past niet bij dit veld. Kies opnieuw een geldige afbeelding of video.");
+  }
 }
 
 function canvasExperienceFrom(formData: FormData): LedScoresCanvasExperience | null {
@@ -388,14 +504,6 @@ function overlayDesignFrom(
   };
 }
 
-function optionalAssetValues(formData: FormData, keys: string[]) {
-  return keys.flatMap((key) => {
-    const value = String(formData.get(key) ?? "");
-    if (!value) return [];
-    if (!uuidPattern.test(value)) fail("Een gekozen media-item is ongeldig.");
-    return [value];
-  });
-}
 function uniqueUuids(values: FormDataEntryValue[] | string[]) {
   const result = [...new Set(values.map(String).filter(Boolean))];
   if (result.some((value) => !uuidPattern.test(value))) fail("Een gekozen doelgroep of media-item is ongeldig.");

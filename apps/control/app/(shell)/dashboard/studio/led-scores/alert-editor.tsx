@@ -61,6 +61,8 @@ type Asset = {
   height: number | null;
   id: string;
   kind: "image" | "video";
+  librarySelectable: boolean;
+  logoSelectable: boolean;
   mimeType: string | null;
   previewUrl: string | null;
   title: string;
@@ -218,7 +220,7 @@ export function LedScoresAlertEditor({
         <p className={styles.wizardNavTitle}>Overlay experience</p>
         <ol>
           {overlaySteps.map((step, index) => (
-            <li key={step.id}>
+            <li data-current={activeStep === step.id || undefined} key={step.id}>
               <button
                 aria-current={activeStep === step.id ? "step" : undefined}
                 onClick={() => setActiveStep(step.id)}
@@ -396,13 +398,13 @@ export function LedScoresAlertEditor({
             title="Media en fallback"
           />
           <div className={styles.fieldGrid}>
-            <AssetSelect assets={assets.filter((asset) => asset.kind === "image" && asset.canvasCompatible)} defaultValue={readString(initial.config.logoMediaAssetId)} label="Clublogo" name="logoMediaAssetId" />
-            <AssetSelect assets={assets} defaultValue={readString(initial.config.ownMediaAssetId)} label="Fallback eigen goal" name="ownMediaAssetId" />
-            <AssetSelect assets={assets} defaultValue={readString(initial.config.opponentMediaAssetId)} label="Fallback tegenstander" name="opponentMediaAssetId" />
-            <AssetSelect assets={assets} defaultValue={readString(initial.config.unknownMediaAssetId)} label="Fallback onbekend team" name="unknownMediaAssetId" />
-            <AssetSelect assets={assets.filter((asset) => asset.kind === "video")} defaultValue={readString(initial.config.ownSoundMediaAssetId)} label="Geluid eigen goal (audio uit MP4)" name="ownSoundMediaAssetId" />
+            <AssetSelect assets={mediaOptions(assets, readString(initial.config.logoMediaAssetId), (asset) => asset.logoSelectable)} defaultValue={readString(initial.config.logoMediaAssetId)} helpText="Alleen het logo uit je huisstijl en actieve clubkoppelingen. Andere media en gegenereerde slides worden uitgesloten." label="Clublogo" name="logoMediaAssetId" />
+            <AssetSelect assets={mediaOptions(assets, readString(initial.config.ownMediaAssetId), (asset) => asset.librarySelectable)} defaultValue={readString(initial.config.ownMediaAssetId)} label="Fallback eigen goal" name="ownMediaAssetId" />
+            <AssetSelect assets={mediaOptions(assets, readString(initial.config.opponentMediaAssetId), (asset) => asset.librarySelectable)} defaultValue={readString(initial.config.opponentMediaAssetId)} label="Fallback tegenstander" name="opponentMediaAssetId" />
+            <AssetSelect assets={mediaOptions(assets, readString(initial.config.unknownMediaAssetId), (asset) => asset.librarySelectable)} defaultValue={readString(initial.config.unknownMediaAssetId)} label="Fallback onbekend team" name="unknownMediaAssetId" />
+            <AssetSelect assets={mediaOptions(assets, readString(initial.config.ownSoundMediaAssetId), (asset) => asset.librarySelectable && asset.kind === "video")} defaultValue={readString(initial.config.ownSoundMediaAssetId)} label="Geluid eigen goal (audio uit MP4)" name="ownSoundMediaAssetId" />
             <label><span>Volume eigen goal</span><input defaultValue={readNumber(initial.config.ownSoundVolume, 70)} max={100} min={0} name="ownSoundVolume" type="number" /></label>
-            <AssetSelect assets={assets.filter((asset) => asset.kind === "video")} defaultValue={readString(initial.config.opponentSoundMediaAssetId)} label="Geluid tegenstander (audio uit MP4)" name="opponentSoundMediaAssetId" />
+            <AssetSelect assets={mediaOptions(assets, readString(initial.config.opponentSoundMediaAssetId), (asset) => asset.librarySelectable && asset.kind === "video")} defaultValue={readString(initial.config.opponentSoundMediaAssetId)} label="Geluid tegenstander (audio uit MP4)" name="opponentSoundMediaAssetId" />
             <label><span>Volume tegenstander</span><input defaultValue={readNumber(initial.config.opponentSoundVolume, 45)} max={100} min={0} name="opponentSoundVolume" type="number" /></label>
             <label><span>Bestaand sponsorblok</span><select defaultValue={readString(initial.config.sponsorCreativeId)} name="sponsorCreativeId"><option value="">Geen sponsorblok</option>{sponsors.map((sponsor) => <option key={sponsor.id} value={sponsor.id}>{sponsor.label}</option>)}</select></label>
           </div>
@@ -632,8 +634,18 @@ function ReviewCard({ detail, label, value }: { detail: string; label: string; v
   return <article><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>;
 }
 
-function AssetSelect({ assets, defaultValue, label, name }: { assets: Asset[]; defaultValue: string; label: string; name: string }) {
-  return <label><span>{label}</span><select defaultValue={defaultValue} name={name}><option value="">Geen</option>{assets.map((asset) => <option key={asset.id} value={asset.id}>{asset.title} · {asset.kind === "video" ? "Video" : "Afbeelding"}</option>)}</select></label>;
+function AssetSelect({ assets, defaultValue, helpText, label, name }: { assets: Asset[]; defaultValue: string; helpText?: string; label: string; name: string }) {
+  const helpId = helpText ? `${name}-help` : undefined;
+  return <label><span>{label}</span><select aria-describedby={helpId} defaultValue={defaultValue} name={name}><option value="">Geen</option>{assets.map((asset) => <option key={asset.id} value={asset.id}>{asset.title} · {assetOptionLabel(asset)}</option>)}</select>{helpText ? <small className={styles.fieldHelp} id={helpId}>{helpText}</small> : null}</label>;
+}
+
+function assetOptionLabel(asset: Asset) {
+  if (!asset.librarySelectable && !asset.logoSelectable) return "Huidige technische selectie";
+  return asset.kind === "video" ? "Video" : "Afbeelding";
+}
+
+function mediaOptions(assets: Asset[], currentId: string, predicate: (asset: Asset) => boolean) {
+  return assets.filter((asset) => predicate(asset) || asset.id === currentId);
 }
 
 function summarizeSelection(groups: Group[], selected: string[]) {
