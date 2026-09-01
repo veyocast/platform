@@ -1,9 +1,20 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+
+import {
+  compileLedScoresCanvasScene,
+  createDefaultLedScoresCanvasExperience
+} from "@veyocast/contracts";
 
 import {
   classifyScheduledGoal,
   drainTerminalAcknowledgementQueue,
+  enrichGoal,
+  goalCanvasValues,
   isGoalEnrichmentExpiredAtServerTime,
+  LedScoresGoalOverlay,
+  LedScoresGoalOverlayContent,
   ledScoresScoringTeam,
   parseGoalMessage,
   parseSseBlock,
@@ -16,8 +27,23 @@ import {
 const deliveryId = "11111111-1111-4111-8111-111111111111";
 const eventId = "22222222-2222-4222-8222-222222222222";
 const mediaAssetId = "33333333-3333-4333-8333-333333333333";
+const sponsorMediaAssetId = "44444444-4444-4444-8444-444444444444";
+const soundMediaAssetId = "55555555-5555-4555-8555-555555555555";
 
 describe("LED Scores Player protocol", () => {
+  it("behoudt de legacy-goal bij een ongeldige scene en accepteert een geldige pair", () => {
+    const pair = createDefaultLedScoresCanvasExperience().scenes.goalOwn;
+    const valid = parseGoalMessage(goalMessage({ payload: { scene: pair } }));
+    const invalid = parseGoalMessage(goalMessage({
+      payload: {
+        scene: { landscape: pair.landscape, portrait: pair.landscape }
+      }
+    }));
+    expect(valid?.goal.scene).toEqual(pair);
+    expect(invalid?.goal).not.toBeNull();
+    expect(invalid?.goal.scene).toBeNull();
+  });
+
   it("normaliseert een begrensd doelpuntbericht en alleen veilige signed media", () => {
     const parsed = parseGoalMessage(goalMessage({
       assets: [
@@ -67,6 +93,164 @@ describe("LED Scores Player protocol", () => {
       previousHomeScore: 1,
       scoringSide: "own"
     })).toBe("Duindorp sv 1");
+  });
+
+  it.each([
+    ["own", 2, 1, 1, 1, { awayLogo: null, homeLogo: "https://storage.test/club.webp", scoringTeamLogo: "https://storage.test/club.webp" }],
+    ["own", 1, 2, 1, 1, { awayLogo: "https://storage.test/club.webp", homeLogo: null, scoringTeamLogo: "https://storage.test/club.webp" }],
+    ["opponent", 2, 1, 1, 1, { awayLogo: "https://storage.test/club.webp", homeLogo: null, scoringTeamLogo: null }],
+    ["opponent", 1, 2, 1, 1, { awayLogo: null, homeLogo: "https://storage.test/club.webp", scoringTeamLogo: null }]
+  ] as const)(
+    "koppelt het eigen clublogo veilig bij %s met stand %i-%i",
+    (scoringSide, homeScore, awayScore, previousHomeScore, previousAwayScore, expected) => {
+      const parsed = parseGoalMessage(goalMessage({
+        payload: {
+          awayScore,
+          homeScore,
+          previousAwayScore,
+          previousHomeScore,
+          scoringSide
+        }
+      }));
+      if (!parsed) throw new Error("Expected canvas goal");
+
+      expect(goalCanvasValues(
+        parsed.goal,
+        undefined,
+        "https://storage.test/club.webp"
+      ).images).toMatchObject(expected);
+    }
+  );
+
+  it.each([
+    ["own", "live", "DOELPUNT"],
+    ["opponent", "live", "TEGENDOELPUNT"],
+    ["unknown", "live", "DOELPUNT"],
+    ["opponent", "synthetic_test", "LIVE-TEST · TEGENDOELPUNT"]
+  ] as const)(
+    "bindt voor %s/%s het juiste wedstrijdlabel",
+    (scoringSide, eventKind, expected) => {
+      const parsed = parseGoalMessage(goalMessage({
+        payload: { eventKind, scoringSide }
+      }));
+      if (!parsed) throw new Error("Expected canvas goal");
+
+      expect(goalCanvasValues(parsed.goal).text.eventLabel).toBe(expected);
+    }
+  );
+
+  it("laat canvasinhoud winnen van legacy-copy en gebruikt alleen echte scorerdata", () => {
+    const pair = createDefaultLedScoresCanvasExperience().scenes.goalOwn;
+    const parsed = parseGoalMessage(goalMessage({ payload: { scene: pair } }));
+    if (!parsed) throw new Error("Expected canvas goal");
+    const goal = {
+      ...parsed.goal,
+      design: {
+        ...parsed.goal.design,
+        headline: "ALLEEN LEGACY HEADLINE",
+        scorerFallback: "ALLEEN LEGACY SCORER",
+        secondaryText: "ALLEEN LEGACY SUBTEKST"
+      },
+      player: null,
+      scorerName: null
+    };
+    const resolvedText = compileLedScoresCanvasScene(
+      pair.landscape,
+      goalCanvasValues(goal)
+    ).flatMap((layer) => layer.type === "text" ? [layer.resolvedText] : []);
+
+    expect(resolvedText).toContain("GOAAAL!");
+    expect(resolvedText).toContain("D. Jansen");
+    expect(resolvedText.join(" ")).not.toContain("ALLEEN LEGACY");
+    expect(goalCanvasValues(goal).text.scorerName).toBeUndefined();
+  });
+
+  it("toont de sponsorbadge ook boven een moderne canvasscene", () => {
+    const pair = createDefaultLedScoresCanvasExperience().scenes.goalOwn;
+    const parsed = parseGoalMessage(goalMessage({
+      assets: [{
+        checksum: "c".repeat(64),
+        mediaAssetId: sponsorMediaAssetId,
+        mimeType: "image/webp",
+        url: "https://storage.test/sponsor.webp"
+      }],
+      payload: {
+        scene: pair,
+        sponsorMediaAssetId
+      }
+    }));
+    if (!parsed) throw new Error("Expected canvas goal");
+
+    const html = renderToStaticMarkup(createElement(LedScoresGoalOverlay, {
+      goal: parsed.goal
+    }));
+
+    expect(html).toContain('data-testid="ledscores-goal-canvas"');
+    expect(html).toContain('data-testid="ledscores-goal-sponsor"');
+    expect(html).toContain("canvasSponsor");
+    expect(html).toContain("https://storage.test/sponsor.webp");
+  });
+
+  it("valt bij een mislukte canvasachtergrond terug op de vaste goaloverlay", () => {
+    const defaults = createDefaultLedScoresCanvasExperience().scenes.goalOwn;
+    const scene = {
+      ...defaults,
+      landscape: {
+        ...defaults.landscape,
+        background: {
+          focusX: 0.5,
+          focusY: 0.5,
+          kind: "media" as const,
+          mediaAssetId,
+          objectFit: "cover" as const,
+          overlayColor: "#0a0a0a",
+          overlayOpacity: 0.25
+        }
+      }
+    };
+    const parsed = parseGoalMessage(goalMessage({
+      assets: [
+        {
+          checksum: "a".repeat(64),
+          mediaAssetId,
+          mimeType: "video/mp4",
+          url: "https://storage.test/failed-canvas-background.mp4"
+        },
+        {
+          checksum: "b".repeat(64),
+          mediaAssetId: sponsorMediaAssetId,
+          mimeType: "image/webp",
+          url: "https://storage.test/sponsor.webp"
+        },
+        {
+          checksum: "c".repeat(64),
+          mediaAssetId: soundMediaAssetId,
+          mimeType: "video/mp4",
+          url: "https://storage.test/goal-sound.mp4"
+        }
+      ],
+      payload: {
+        scene,
+        soundMediaAssetId,
+        sponsorMediaAssetId
+      }
+    }));
+    if (!parsed) throw new Error("Expected canvas goal");
+
+    const html = renderToStaticMarkup(createElement(
+      LedScoresGoalOverlayContent,
+      {
+        canvasBackgroundFailed: true,
+        goal: parsed.goal,
+        onCanvasBackgroundError: () => undefined
+      }
+    ));
+
+    expect(html).toContain('data-testid="ledscores-goal-overlay"');
+    expect(html).not.toContain('data-testid="ledscores-goal-canvas"');
+    expect(html).toContain("GOAL!");
+    expect(html).toContain("https://storage.test/sponsor.webp");
+    expect(html).toContain("https://storage.test/goal-sound.mp4");
   });
 
   it("parseert complete SSE-blokken en negeert keepalives of kapotte JSON", () => {
@@ -179,6 +363,16 @@ describe("LED Scores Player protocol", () => {
       delivery: enrichment,
       detail: "scheduled_goal_enriched",
       status: "rendered"
+    });
+
+    const pair = createDefaultLedScoresCanvasExperience().scenes.goalOwn;
+    const parsed = parseGoalMessage(goalMessage({ payload: { scene: pair } }));
+    if (!parsed) throw new Error("Expected canvas goal");
+    const enriched = enrichGoal(parsed.goal, enrichment.player);
+    expect(enriched.scene).toBe(parsed.goal.scene);
+    expect(goalCanvasValues(enriched).text).toMatchObject({
+      scorerName: "D. Jansen",
+      scorerNumber: "#10"
     });
   });
 

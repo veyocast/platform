@@ -245,6 +245,13 @@
   grid-template-columns: 13.5rem minmax(31rem, 1fr) minmax(19rem, 23rem);
 }
 
+.experienceEditor[data-canvas-mode="true"] {
+  grid-template-areas:
+    "nav stage stage"
+    "save save save";
+  grid-template-columns: 13.5rem minmax(0, 1fr);
+}
+
 .wizardNav,
 .wizardStage,
 .previewPanel {
@@ -1555,6 +1562,13 @@
     grid-template-columns: 12.5rem minmax(0, 1fr);
   }
 
+  .experienceEditor[data-canvas-mode="true"] {
+    grid-template-areas:
+      "nav stage"
+      "save save";
+    grid-template-columns: 12.5rem minmax(0, 1fr);
+  }
+
   .previewPanel {
     grid-template-columns: minmax(15rem, 24rem) minmax(15rem, 1fr);
     position: static;
@@ -1588,6 +1602,14 @@
       "nav"
       "stage"
       "preview"
+      "save";
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .experienceEditor[data-canvas-mode="true"] {
+    grid-template-areas:
+      "nav"
+      "stage"
       "save";
     grid-template-columns: minmax(0, 1fr);
   }

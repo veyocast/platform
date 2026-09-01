@@ -14,6 +14,10 @@ import {
 } from "lucide-react";
 
 import { hasCapability } from "@veyocast/auth";
+import {
+  ledScoresCanvasAssetIds,
+  safeParseLedScoresCanvasExperience
+} from "@veyocast/contracts";
 import { Badge, Button, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
@@ -24,6 +28,7 @@ import {
   type LedScoresFeatureAvailability
 } from "../../../../../lib/ledscores-feature-state";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
+import { getSupabasePublicConfig } from "../../../../../lib/supabase/config";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import { LedScoresAlertEditor, type AlertEditorValue } from "./alert-editor";
@@ -49,6 +54,10 @@ export default async function LedScoresStudioPage({ searchParams }: Props) {
     && session.tenantStatus === "active"
     && hasCapability(session.capabilities, "tenant.dynamic_slide.write");
   const canPublish = canWrite && hasCapability(session.capabilities, "tenant.playlist.publish");
+  const publicConfig = getSupabasePublicConfig();
+  const canUploadMedia = canWrite
+    && hasCapability(session.capabilities, "tenant.media.write")
+    && Boolean(publicConfig);
   const edited = data.alerts.find((alert) => alert.id === params.edit) ?? null;
   const initial = editorValue(edited, data.connections[0]?.id ?? "", data.draftGroups);
   const formatDate = (value: string) => formatTenantDateTime(value, session.timezoneName);
@@ -145,8 +154,14 @@ export default async function LedScoresStudioPage({ searchParams }: Props) {
           }))}
           groups={data.groups}
           initial={initial}
+          key={initial.id ?? "new"}
           screens={data.screens}
           sponsors={data.sponsors}
+          uploadConfig={publicConfig ? {
+            anonKey: publicConfig.anonKey,
+            canUpload: canUploadMedia,
+            supabaseUrl: publicConfig.url
+          } : null}
         />
       </section> : null}
     </>}
@@ -180,7 +195,7 @@ async function loadStudioData(tenantId: string) {
     supabase.from("screen_group_memberships").select("screen_group_id,screen_id").eq("tenant_id", tenantId),
     supabase.from("screens").select("id,name,status").eq("tenant_id", tenantId).is("deleted_at", null).order("name"),
     supabase.from("player_devices").select("screen_id,status,last_seen_at").eq("tenant_id", tenantId).eq("status", "paired"),
-    supabase.from("media_assets").select("id,title,kind").eq("tenant_id", tenantId).eq("status", "ready").is("deleted_at", null).order("title").limit(250),
+    supabase.from("media_assets").select("id,title,kind,mime_type,width,height,storage_bucket,storage_path").eq("tenant_id", tenantId).in("kind", ["image", "video"]).eq("status", "ready").is("deleted_at", null).order("created_at", { ascending: false }).limit(100),
     supabase.from("sponsor_creatives").select("id,position_key,orientation").eq("tenant_id", tenantId).eq("status", "approved").order("created_at", { ascending: false }).limit(100),
     supabase.from("ledscores_goal_alerts").select("id,connection_id,name,status,priority,duration_ms,underlay_policy,draft_config,revision,current_published_version_id,updated_at").eq("tenant_id", tenantId).neq("status", "archived").order("updated_at", { ascending: false }),
     supabase.from("ledscores_goal_alert_draft_groups").select("alert_id,screen_group_id").eq("tenant_id", tenantId),
@@ -190,8 +205,40 @@ async function loadStudioData(tenantId: string) {
   const error = [connections.error, mappings.error, groups.error, memberships.error, screens.error, devices.error, assets.error, sponsors.error, alerts.error, draftGroups.error, publishedGroups.error, liveSlides.error].find(Boolean);
   if (error) { console.error("LED Scores Studio laden mislukt", { code: error.code }); return { ...emptyData(), enabled: true }; }
   const activeScreenIds = new Set((screens.data ?? []).filter((screen) => screen.status === "active").map((screen) => screen.id));
+  const assetRows = [...(assets.data ?? [])];
+  const referencedIds = canvasReferencedAssetIds(alerts.data ?? []);
+  const loadedAssetIds = new Set(assetRows.map((asset) => asset.id));
+  const missingAssetIds = referencedIds.filter((assetId) => !loadedAssetIds.has(assetId));
+  if (missingAssetIds.length) {
+    const missingAssets = await supabase.from("media_assets")
+      .select("id,title,kind,mime_type,width,height,storage_bucket,storage_path")
+      .eq("tenant_id", tenantId)
+      .in("kind", ["image", "video"])
+      .eq("status", "ready")
+      .is("deleted_at", null)
+      .in("id", missingAssetIds);
+    if (missingAssets.error) {
+      console.error("Gerefereerde LED Scores-canvasmedia laden mislukt", {
+        code: missingAssets.error.code
+      });
+    } else {
+      assetRows.push(...(missingAssets.data ?? []));
+    }
+  }
+  const assetVariants = assetRows.length ? await supabase.from("media_variants")
+    .select("asset_id,variant_type,mime_type,width,height,storage_bucket,storage_path")
+    .eq("tenant_id", tenantId)
+    .in("asset_id", assetRows.map((asset) => asset.id))
+    .in("variant_type", ["thumbnail", "original", "player_1080p"])
+    .limit(750) : { data: [] as CanvasVariantRow[], error: null };
+  if (assetVariants.error) {
+    console.error("LED Scores-canvasvarianten laden mislukt", {
+      code: assetVariants.error.code
+    });
+  }
+  const signedAssets = await signCanvasAssets(supabase, assetRows, assetVariants.data ?? []);
   return {
-    alerts: alerts.data ?? [], assets: (assets.data ?? []).map((asset) => ({ ...asset, kind: String(asset.kind) })),
+    alerts: alerts.data ?? [], assets: signedAssets,
     availability: "available" as const,
     connections: connections.data ?? [], draftGroups: draftGroups.data ?? [], enabled: true,
     groups: (groups.data ?? []).filter((group) => group.status === "active").map((group) => ({ id: group.id, name: group.name, screenIds: (memberships.data ?? []).filter((item) => item.screen_group_id === group.id && activeScreenIds.has(item.screen_id)).map((item) => item.screen_id) })),
@@ -208,8 +255,111 @@ async function loadStudioData(tenantId: string) {
   };
 }
 
+type CanvasAssetRow = {
+  height: number | null;
+  id: string;
+  kind: string;
+  mime_type: string;
+  storage_bucket: string;
+  storage_path: string;
+  title: string;
+  width: number | null;
+};
+type CanvasVariantRow = {
+  asset_id: string;
+  height: number | null;
+  mime_type: string;
+  storage_bucket: string;
+  storage_path: string;
+  variant_type: string;
+  width: number | null;
+};
+
+function canvasReferencedAssetIds(alerts: Array<{ draft_config: unknown }>) {
+  const ids = new Set<string>();
+  const legacyKeys = [
+    "logoMediaAssetId",
+    "ownMediaAssetId",
+    "opponentMediaAssetId",
+    "unknownMediaAssetId",
+    "ownSoundMediaAssetId",
+    "opponentSoundMediaAssetId",
+    "sponsorMediaAssetId"
+  ];
+  for (const alert of alerts) {
+    if (!isRecord(alert.draft_config)) continue;
+    for (const key of legacyKeys) {
+      const value = alert.draft_config[key];
+      if (typeof value === "string") ids.add(value);
+    }
+    const canvas = safeParseLedScoresCanvasExperience(
+      alert.draft_config.canvasExperience
+    );
+    if (canvas.success) {
+      for (const assetId of ledScoresCanvasAssetIds(canvas.data)) ids.add(assetId);
+    }
+  }
+  return [...ids];
+}
+
+async function signCanvasAssets(
+  supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
+  assetRows: CanvasAssetRow[],
+  variantRows: CanvasVariantRow[]
+) {
+  const selections = assetRows.flatMap((asset) => {
+    if (asset.kind !== "image" && asset.kind !== "video") return [];
+    const variants = variantRows.filter((variant) => variant.asset_id === asset.id);
+    const selected = asset.kind === "video"
+      ? variants.find((variant) => variant.variant_type === "player_1080p")
+      : variants.find((variant) => variant.variant_type === "thumbnail")
+        ?? variants.find((variant) => variant.variant_type === "original");
+    return [{
+      asset,
+      height: selected?.height ?? asset.height,
+      mimeType: selected?.mime_type ?? asset.mime_type,
+      path: selected?.storage_path ?? asset.storage_path,
+      width: selected?.width ?? asset.width
+    }];
+  });
+  const paths = [...new Set(selections.map((selection) => selection.path))];
+  const signedByPath = new Map<string, string>();
+  if (paths.length) {
+    const signed = await supabase.storage.from("tenant-media").createSignedUrls(paths, 600);
+    if (signed.error) {
+      console.error("LED Scores-canvasvoorbeelden ondertekenen mislukt", {
+        code: signed.error.name
+      });
+    } else {
+      for (const preview of signed.data ?? []) {
+        if (preview.path && preview.signedUrl) {
+          signedByPath.set(preview.path, preview.signedUrl);
+        }
+      }
+    }
+  }
+  return selections
+    .map(({ asset, height, mimeType, path, width }) => ({
+      canvasCompatible: asset.kind === "image"
+        ? ["image/jpeg", "image/png", "image/webp"].includes(asset.mime_type)
+        : variantRows.some((variant) =>
+            variant.asset_id === asset.id
+            && variant.variant_type === "player_1080p"
+            && variant.mime_type === "video/mp4"
+          ),
+      height,
+      id: asset.id,
+      kind: asset.kind as "image" | "video",
+      mimeType,
+      previewUrl: signedByPath.get(path) ?? null,
+      title: asset.title,
+      width
+    }))
+    .sort((left, right) => left.title.localeCompare(right.title, "nl-NL"));
+}
+
 function editorValue(alert: Awaited<ReturnType<typeof loadStudioData>>["alerts"][number] | null, connectionId: string, groups: Array<{ alert_id: string; screen_group_id: string }>): AlertEditorValue { return alert ? { config: isRecord(alert.draft_config) ? alert.draft_config : {}, connectionId: alert.connection_id, durationMs: alert.duration_ms, groupIds: groups.filter((item) => item.alert_id === alert.id).map((item) => item.screen_group_id), id: alert.id, name: alert.name, priority: alert.priority, revision: alert.revision, underlayPolicy: alert.underlay_policy } : { config: {}, connectionId, durationMs: 8000, groupIds: [], id: null, name: "Wedstrijdexperience", priority: 100, revision: 0, underlayPolicy: "continue" }; }
-function emptyData() { return { alerts: [] as Array<{ id: string; connection_id: string; name: string; status: string; priority: number; duration_ms: number; underlay_policy: string; draft_config: unknown; revision: number; current_published_version_id: string | null; updated_at: string }>, assets: [] as Array<{ id: string; kind: string; title: string }>, availability: "not_released" as LedScoresFeatureAvailability, connections: [] as Array<{ id: string; name: string }>, draftGroups: [] as Array<{ alert_id: string; screen_group_id: string }>, enabled: false, groups: [] as Array<{ id: string; name: string; screenIds: string[] }>, liveSlides: [] as Array<{ id: string; name: string; orientation: string; status: string; updated_at: string }>, mappings: [] as Array<{ connection_id: string; provider_team_key: string; provider_team_name: string; scoring_side: string }>, publishedGroups: [] as Array<{ alert_version_id: string; screen_group_id: string }>, screens: [] as Array<{ id: string; name: string; status: "offline" | "online" | "stale" }>, sponsors: [] as Array<{ id: string; label: string }>, targetGroups: [] as Array<{ id: string; screenIds: string[] }> }; }
+function emptyData() { return { alerts: [] as Array<{ id: string; connection_id: string; name: string; status: string; priority: number; duration_ms: number; underlay_policy: string; draft_config: unknown; revision: number; current_published_version_id: string | null; updated_at: string }>, assets: [] as Array<{ canvasCompatible: boolean; height: number | null; id: string; kind: "image" | "video"; mimeType: string; previewUrl: string | null; title: string; width: number | null }>, availability: "not_released" as LedScoresFeatureAvailability, connections: [] as Array<{ id: string; name: string }>, draftGroups: [] as Array<{ alert_id: string; screen_group_id: string }>, enabled: false, groups: [] as Array<{ id: string; name: string; screenIds: string[] }>, liveSlides: [] as Array<{ id: string; name: string; orientation: string; status: string; updated_at: string }>, mappings: [] as Array<{ connection_id: string; provider_team_key: string; provider_team_name: string; scoring_side: string }>, publishedGroups: [] as Array<{ alert_version_id: string; screen_group_id: string }>, screens: [] as Array<{ id: string; name: string; status: "offline" | "online" | "stale" }>, sponsors: [] as Array<{ id: string; label: string }>, targetGroups: [] as Array<{ id: string; screenIds: string[] }> }; }
 function availabilityMessage(value: LedScoresFeatureAvailability) { return ledScoresFeatureAvailabilityMessages[value === "available" ? "unavailable" : value]; }
 function screenUnion(groups: Array<{ id: string; screenIds: string[] }>, selected: string[]) { return [...new Set(groups.filter((group) => selected.includes(group.id)).flatMap((group) => group.screenIds))]; }
 function alertStatus(status: string) { if (status === "published") return { label: "Actief gepubliceerd", tone: "success" as const }; if (status === "paused") return { label: "Gepauzeerd", tone: "warning" as const }; return { label: "Concept", tone: "neutral" as const }; }

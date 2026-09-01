@@ -4,6 +4,13 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import {
+  ledScoresCanvasAssetIds,
+  ledScoresCanvasExperienceSchema,
+  ledScoresCanvasMaximumAssets,
+  type LedScoresCanvasExperience
+} from "@veyocast/contracts";
+
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import { lineupBehaviorFromForm } from "./live-match-ux";
@@ -77,11 +84,13 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
     || (activeFrom && activeUntil && Date.parse(activeFrom) >= Date.parse(activeUntil))
   ) fail("Kies minimaal één trigger en controleer het optionele actieve tijdvenster.");
   const sponsorCreativeId = optionalUuid(formData, "sponsorCreativeId");
+  const canvasExperience = canvasExperienceFrom(formData);
   const assetIds = uniqueUuids([
     ...optionalAssetValues(formData, [
       "logoMediaAssetId", "ownMediaAssetId", "opponentMediaAssetId",
       "unknownMediaAssetId", "ownSoundMediaAssetId", "opponentSoundMediaAssetId"
-    ])
+    ]),
+    ...(canvasExperience ? ledScoresCanvasAssetIds(canvasExperience) : [])
   ]);
   const supabase = await createControlSupabaseClient();
   if (!supabase) fail("De beveiligde datasessie ontbreekt. Er is niets opgeslagen.");
@@ -99,9 +108,13 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
     sponsorMediaAssetId = creative.data.media_asset_id;
     assetIds.push(creative.data.media_asset_id);
   }
+  if (new Set(assetIds).size > ledScoresCanvasMaximumAssets) {
+    fail(`Deze experience gebruikt meer dan ${ledScoresCanvasMaximumAssets} media-items. Verwijder ongebruikte canvasmedia en probeer opnieuw.`);
+  }
   const config = {
     activeFrom,
     activeUntil,
+    ...(canvasExperience ? { canvasExperience } : {}),
     logoMediaAssetId: optionalUuid(formData, "logoMediaAssetId"),
     lineupBehavior,
     opponentDesign,
@@ -149,6 +162,25 @@ export async function saveLedScoresGoalAlert(formData: FormData) {
     alertId ? "Overlay experienceconcept is bijgewerkt." : "Overlay experienceconcept is gemaakt.",
     savedId ?? undefined
   );
+}
+
+function canvasExperienceFrom(formData: FormData): LedScoresCanvasExperience | null {
+  const serialized = String(formData.get("canvasExperience") ?? "").trim();
+  if (!serialized) return null;
+  if (Buffer.byteLength(serialized, "utf8") > 240_000) {
+    fail("Het canvasdocument is te groot. Verwijder ongebruikte lagen of media en probeer opnieuw.");
+  }
+  let input: unknown;
+  try {
+    input = JSON.parse(serialized);
+  } catch {
+    fail("Het canvasdocument kon niet veilig worden gelezen. Vernieuw de editor en probeer opnieuw.");
+  }
+  const parsed = ledScoresCanvasExperienceSchema.safeParse(input);
+  if (!parsed.success) {
+    fail("Een canvascompositie is onvolledig. Controleer liggend én staand en herstel de gemarkeerde laag.");
+  }
+  return parsed.data;
 }
 
 export async function publishLedScoresGoalAlert(formData: FormData) {

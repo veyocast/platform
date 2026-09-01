@@ -1,0 +1,1165 @@
+.editor {
+  --editor-panel-width: 18.5rem;
+  overflow: hidden;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-xl);
+  background: var(--vc-surface);
+  color: var(--vc-text);
+  box-shadow: 0 1.25rem 3.5rem color-mix(in srgb, var(--vc-brand-ink-black) 8%, transparent);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--vc-space-24);
+  padding: var(--vc-space-20) var(--vc-space-24);
+  border-bottom: 1px solid var(--vc-border);
+  background:
+    radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--vc-action) 14%, transparent), transparent 34%),
+    var(--vc-surface);
+}
+
+.header h2,
+.panelHeading h3 {
+  margin: 0;
+  font-family: var(--vc-font-display);
+  color: var(--vc-text);
+}
+
+.header h2 {
+  margin-top: var(--vc-space-6);
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  line-height: 1.1;
+}
+
+.header p,
+.panelHeading p,
+.fieldHelp,
+.emptyState,
+.notice,
+.canvasHint,
+.selectionEmpty p {
+  color: var(--vc-text-muted);
+}
+
+.header p {
+  max-width: 48rem;
+  margin: var(--vc-space-8) 0 0;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-6);
+  color: var(--vc-action);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eyebrow svg,
+.panelHeading > span svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.headerStatus {
+  display: grid;
+  min-width: 13rem;
+  gap: var(--vc-space-4);
+  padding: var(--vc-space-12) var(--vc-space-16);
+  border: 1px solid color-mix(in srgb, var(--vc-success) 30%, var(--vc-border));
+  border-radius: var(--vc-radius-lg);
+  background: color-mix(in srgb, var(--vc-success) 7%, var(--vc-surface));
+  font-size: 0.8rem;
+}
+
+.headerStatus span {
+  color: var(--vc-text-muted);
+}
+
+.headerStatus strong {
+  color: var(--vc-text);
+}
+
+.desktopEditor {
+  display: grid;
+  grid-template-columns: var(--editor-panel-width) minmax(28rem, 1fr) var(--editor-panel-width);
+  min-height: 47rem;
+  max-height: min(73vh, 58rem);
+}
+
+.library,
+.inspector {
+  overflow-y: auto;
+  background: var(--vc-surface);
+  scrollbar-width: thin;
+}
+
+.library {
+  border-right: 1px solid var(--vc-border);
+}
+
+.inspector {
+  border-left: 1px solid var(--vc-border);
+}
+
+.panelStack {
+  display: grid;
+  align-content: start;
+  gap: var(--vc-space-12);
+  padding: var(--vc-space-16);
+}
+
+.panelHeading {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--vc-space-10);
+  margin-top: var(--vc-space-4);
+}
+
+.panelHeading > span {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--vc-action) 25%, var(--vc-border));
+  border-radius: var(--vc-radius-md);
+  background: color-mix(in srgb, var(--vc-action) 9%, var(--vc-surface));
+  color: var(--vc-action);
+}
+
+.panelHeading h3 {
+  font-size: 0.95rem;
+}
+
+.panelHeading p {
+  margin: var(--vc-space-4) 0 0;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.panelDivider {
+  height: 1px;
+  margin-block: var(--vc-space-4);
+  background: var(--vc-border);
+}
+
+.momentList {
+  display: grid;
+  gap: var(--vc-space-4);
+}
+
+.momentList button,
+.mobileMomentTask > button {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid transparent;
+  border-radius: var(--vc-radius-md);
+  background: transparent;
+  color: var(--vc-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.momentList button {
+  display: grid;
+  gap: 0.15rem;
+  padding: var(--vc-space-8) var(--vc-space-10);
+}
+
+.momentList button:hover {
+  background: var(--vc-surface-muted);
+}
+
+.momentList button[aria-current="true"] {
+  border-color: color-mix(in srgb, var(--vc-action) 36%, var(--vc-border));
+  background: color-mix(in srgb, var(--vc-action) 10%, var(--vc-surface));
+  box-shadow: inset 0.1875rem 0 var(--vc-action);
+}
+
+.momentList span,
+.mobileMomentTask span {
+  font-weight: 750;
+}
+
+.momentList small {
+  color: var(--vc-text-muted);
+  font-size: 0.7rem;
+}
+
+.addGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--vc-space-8);
+}
+
+.addGrid button {
+  display: flex;
+  min-height: 4rem;
+  align-items: flex-start;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-10);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface);
+  color: var(--vc-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.addGrid button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--vc-action) 44%, var(--vc-border));
+  background: color-mix(in srgb, var(--vc-action) 6%, var(--vc-surface));
+}
+
+.addGrid button:disabled,
+.iconTool:disabled,
+.textTool:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.addGrid svg {
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  color: var(--vc-action);
+}
+
+.addGrid span {
+  display: grid;
+  gap: var(--vc-space-2);
+  min-width: 0;
+}
+
+.addGrid strong {
+  font-size: 0.78rem;
+}
+
+.addGrid small {
+  color: var(--vc-text-muted);
+  font-size: 0.66rem;
+  line-height: 1.2;
+}
+
+.field,
+.colorField {
+  display: grid;
+  gap: var(--vc-space-6);
+  min-width: 0;
+  color: var(--vc-text);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.field input,
+.field select,
+.field textarea,
+.colorField input[type="text"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.5rem;
+  padding: var(--vc-space-8) var(--vc-space-10);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface);
+  color: var(--vc-text);
+  font: inherit;
+  font-weight: 500;
+}
+
+.field textarea {
+  min-height: 4.75rem;
+  resize: vertical;
+}
+
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible,
+.colorField input:focus-visible,
+.colorField button:focus-visible,
+.momentList button:focus-visible,
+.addGrid button:focus-visible,
+.iconTool:focus-visible,
+.textTool:focus-visible,
+.toggleButton:focus-visible,
+.layerSelect:focus-visible,
+.segmented button:focus-visible,
+.mobileMomentTask button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--vc-focus) 50%, transparent);
+  outline-offset: 2px;
+}
+
+.notice,
+.emptyState,
+.fieldHelp {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.notice {
+  padding: var(--vc-space-10);
+  border-left: 0.1875rem solid var(--vc-warning);
+  background: color-mix(in srgb, var(--vc-warning) 8%, var(--vc-surface));
+}
+
+.mediaPreview {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  min-height: 7rem;
+  place-items: center;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-lg);
+  background:
+    linear-gradient(45deg, color-mix(in srgb, var(--vc-border) 50%, transparent) 25%, transparent 25%) 0 0 / 1rem 1rem,
+    linear-gradient(-45deg, color-mix(in srgb, var(--vc-border) 50%, transparent) 25%, transparent 25%) 0 0 / 1rem 1rem,
+    var(--vc-surface-muted);
+}
+
+.mediaPreview > img,
+.mediaPreview > video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mediaPreview > span {
+  position: absolute;
+  right: var(--vc-space-8);
+  bottom: var(--vc-space-8);
+  left: var(--vc-space-8);
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-6);
+  overflow: hidden;
+  padding: var(--vc-space-6) var(--vc-space-8);
+  border-radius: var(--vc-radius-md);
+  background: color-mix(in srgb, var(--vc-brand-ink-black) 80%, transparent);
+  color: var(--vc-brand-signal-white);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mediaPreview > span svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.inlineActions,
+.toolGroup,
+.checkList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--vc-space-8);
+}
+
+.workspace {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: color-mix(in srgb, var(--vc-brand-ink-black) 92%, var(--vc-surface));
+}
+
+.canvasToolbar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vc-space-12);
+  padding: var(--vc-space-8) var(--vc-space-12);
+  border-bottom: 1px solid color-mix(in srgb, var(--vc-brand-signal-white) 12%, transparent);
+  background: color-mix(in srgb, var(--vc-brand-ink-black) 94%, transparent);
+  color: var(--vc-brand-signal-white);
+}
+
+.segmented {
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface);
+}
+
+.canvasToolbar .segmented {
+  border-color: color-mix(in srgb, var(--vc-brand-signal-white) 20%, transparent);
+  background: color-mix(in srgb, var(--vc-brand-signal-white) 7%, transparent);
+}
+
+.segmented button {
+  display: inline-flex;
+  min-width: 2.5rem;
+  min-height: 2.4rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vc-space-6);
+  padding: var(--vc-space-6) var(--vc-space-10);
+  border: 0;
+  border-right: 1px solid var(--vc-border);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.canvasToolbar .segmented button {
+  border-color: color-mix(in srgb, var(--vc-brand-signal-white) 20%, transparent);
+}
+
+.segmented button:last-child {
+  border-right: 0;
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--vc-action);
+  color: var(--vc-on-action);
+}
+
+.segmented svg,
+.iconTool svg,
+.textTool svg,
+.toggleButton svg,
+.layerList svg,
+.canvasHint svg,
+.mobileHeader svg,
+.mobileFooter svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.iconTool,
+.textTool,
+.toggleButton {
+  display: inline-flex;
+  min-height: 2.4rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vc-space-6);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface);
+  color: var(--vc-text);
+  cursor: pointer;
+}
+
+.iconTool {
+  min-width: 2.4rem;
+  padding: var(--vc-space-6);
+}
+
+.textTool,
+.toggleButton {
+  padding: var(--vc-space-6) var(--vc-space-10);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.canvasToolbar .iconTool,
+.canvasToolbar .textTool {
+  border-color: color-mix(in srgb, var(--vc-brand-signal-white) 20%, transparent);
+  background: color-mix(in srgb, var(--vc-brand-signal-white) 7%, transparent);
+  color: var(--vc-brand-signal-white);
+}
+
+.safeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-6);
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.safeToggle input,
+.checkList input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--vc-action);
+}
+
+.zoomValue {
+  width: 3rem;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.canvasViewport {
+  position: relative;
+  overflow: auto;
+  min-height: 24rem;
+  padding: 1.75rem;
+  touch-action: none;
+}
+
+.canvasFrame {
+  position: relative;
+  margin: auto;
+  box-shadow: 0 1.5rem 4rem color-mix(in srgb, var(--vc-brand-ink-black) 65%, transparent);
+}
+
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  transform-origin: top left;
+  background: var(--vc-brand-ink-black);
+  isolation: isolate;
+  user-select: none;
+}
+
+.sceneBackground,
+.sceneBackground > img,
+.sceneBackground > video,
+.sceneBackground > span {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sceneBackground > img,
+.sceneBackground > video {
+  display: block;
+}
+
+.missingMedia {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  align-content: center;
+  gap: 1rem;
+  background: var(--vc-brand-ink-black);
+  color: color-mix(in srgb, var(--vc-brand-signal-white) 56%, transparent);
+  font-size: 2rem;
+}
+
+.missingMedia svg {
+  width: 5rem;
+  height: 5rem;
+}
+
+.safeArea {
+  position: absolute;
+  z-index: 40;
+  inset: 5%;
+  border: 3px dashed color-mix(in srgb, var(--vc-brand-signal-white) 55%, transparent);
+  pointer-events: none;
+}
+
+.safeArea[data-orientation="portrait"] {
+  inset: 6%;
+}
+
+.guideVertical,
+.guideHorizontal {
+  position: absolute;
+  z-index: 60;
+  background: var(--vc-action);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--vc-brand-ink-black) 45%, transparent);
+  pointer-events: none;
+}
+
+.guideVertical {
+  top: 0;
+  bottom: 0;
+  width: 2px;
+}
+
+.guideHorizontal {
+  right: 0;
+  left: 0;
+  height: 2px;
+}
+
+.canvasLayer {
+  position: absolute;
+  cursor: move;
+  outline: 0 solid transparent;
+  transform-origin: center;
+}
+
+.canvasLayer[data-locked] {
+  cursor: default;
+}
+
+.canvasLayer[data-selected] {
+  outline: 4px solid var(--vc-action);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--vc-brand-ink-black) 45%, transparent);
+}
+
+.canvasLayer:focus-visible {
+  outline: 6px solid var(--vc-action);
+}
+
+.textLayerPreview,
+.shapeLayerPreview,
+.imageLayerPreview,
+.bindingImagePreview,
+.hiddenLayerPreview,
+.lineupPreview {
+  width: 100%;
+  height: 100%;
+}
+
+.textLayerPreview {
+  display: flex;
+  overflow: hidden;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+}
+
+.textLayerPreview span {
+  overflow-wrap: anywhere;
+}
+
+.shapeLayerPreview,
+.imageLayerPreview {
+  display: block;
+  box-sizing: border-box;
+}
+
+.shapeLayerPreview[data-shape="line"] {
+  border: 0 !important;
+  position: relative;
+}
+
+.shapeLayerPreview[data-shape="line"]::before {
+  border-top: var(--editor-line-width) solid var(--editor-line-color);
+  content: "";
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.imageLayerPreview {
+  object-fit: cover;
+}
+
+.bindingImagePreview,
+.hiddenLayerPreview {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1.2rem;
+  border: 4px dashed color-mix(in srgb, var(--vc-brand-signal-white) 50%, transparent);
+  background: color-mix(in srgb, var(--vc-brand-ink-black) 58%, transparent);
+  color: var(--vc-brand-signal-white);
+  text-align: center;
+}
+
+.bindingImagePreview svg,
+.hiddenLayerPreview svg {
+  width: min(30%, 8rem);
+  height: auto;
+}
+
+.bindingImagePreview strong {
+  font-size: clamp(2rem, 5vw, 5rem);
+}
+
+.bindingImagePreview span,
+.hiddenLayerPreview span {
+  font-size: clamp(1rem, 2vw, 2rem);
+  opacity: 0.72;
+}
+
+.lineupPreview {
+  display: grid;
+  overflow: hidden;
+}
+
+.lineupPreview > div {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  align-content: center;
+  gap: 0.5rem;
+  border-radius: 1.5rem;
+  font-size: clamp(1rem, 2vw, 2.5rem);
+}
+
+.lineupPreview svg {
+  width: min(35%, 6rem);
+  height: auto;
+}
+
+.lineupPreview b {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+}
+
+.resizeHandle {
+  position: absolute;
+  right: -18px;
+  bottom: -18px;
+  z-index: 80;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 4px solid var(--vc-action);
+  border-radius: 50%;
+  background: var(--vc-surface);
+  color: var(--vc-text);
+  cursor: nwse-resize;
+}
+
+.resizeHandle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.layerLabel {
+  position: absolute;
+  top: -42px;
+  left: -4px;
+  max-width: 22rem;
+  overflow: hidden;
+  padding: 8px 12px;
+  border-radius: 8px 8px 8px 0;
+  background: var(--vc-action);
+  color: var(--vc-on-action);
+  font-size: 20px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.canvasHint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vc-space-8);
+  min-height: 2.5rem;
+  margin: 0;
+  padding: var(--vc-space-8);
+  border-top: 1px solid color-mix(in srgb, var(--vc-brand-signal-white) 12%, transparent);
+  color: color-mix(in srgb, var(--vc-brand-signal-white) 70%, transparent);
+  font-size: 0.72rem;
+}
+
+.numericGrid,
+.twoColumns,
+.colorPair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--vc-space-8);
+}
+
+.colorField > div {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface);
+}
+
+.colorField input[type="color"] {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.25rem;
+  border: 0;
+  border-right: 1px solid var(--vc-border);
+  background: transparent;
+  cursor: pointer;
+}
+
+.colorField input[type="text"] {
+  min-height: 2.5rem;
+  padding-inline: var(--vc-space-8);
+  border: 0;
+  border-radius: 0;
+  font-family: monospace;
+  font-size: 0.68rem;
+}
+
+.colorField button {
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  border: 0;
+  border-left: 1px solid var(--vc-border);
+  background: transparent;
+  color: var(--vc-text-muted);
+  cursor: pointer;
+}
+
+.fieldset {
+  display: grid;
+  gap: var(--vc-space-10);
+  min-width: 0;
+  margin: 0;
+  padding: var(--vc-space-12);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-lg);
+  background: var(--vc-surface-muted);
+}
+
+.fieldset legend {
+  padding-inline: var(--vc-space-6);
+  font-family: var(--vc-font-display);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.checkList label {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: var(--vc-space-6);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.selectionEmpty {
+  display: grid;
+  min-height: 8rem;
+  place-items: center;
+  align-content: center;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-16);
+  border: 1px dashed var(--vc-border);
+  border-radius: var(--vc-radius-lg);
+  background: var(--vc-surface-muted);
+  text-align: center;
+}
+
+.selectionEmpty svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--vc-action);
+}
+
+.selectionEmpty p {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.layerList {
+  display: grid;
+  gap: var(--vc-space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.layerList li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--vc-space-4);
+  padding: var(--vc-space-4);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-surface);
+}
+
+.layerList li[data-selected] {
+  border-color: color-mix(in srgb, var(--vc-action) 48%, var(--vc-border));
+  background: color-mix(in srgb, var(--vc-action) 7%, var(--vc-surface));
+}
+
+.layerSelect {
+  display: grid;
+  min-width: 0;
+  min-height: 2.5rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--vc-space-8);
+  padding: var(--vc-space-6);
+  border: 0;
+  background: transparent;
+  color: var(--vc-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.layerSelect > span {
+  display: grid;
+  min-width: 0;
+  gap: var(--vc-space-2);
+}
+
+.layerSelect strong,
+.layerSelect small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layerSelect strong {
+  font-size: 0.74rem;
+}
+
+.layerSelect small {
+  color: var(--vc-text-muted);
+  font-size: 0.65rem;
+}
+
+.mobileNudge {
+  display: none;
+}
+
+.mobileLayerPicker {
+  display: none;
+}
+
+.mobileEditor {
+  display: none;
+}
+
+@media (max-width: 78rem) {
+  .editor {
+    --editor-panel-width: 16.5rem;
+  }
+
+  .desktopEditor {
+    grid-template-columns: var(--editor-panel-width) minmax(24rem, 1fr) var(--editor-panel-width);
+  }
+
+  .canvasToolbar {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 60rem) {
+  .header {
+    display: grid;
+    padding: var(--vc-space-16);
+  }
+
+  .headerStatus {
+    min-width: 0;
+  }
+
+  .desktopEditor {
+    display: none;
+  }
+
+  .mobileEditor {
+    display: grid;
+    min-height: 42rem;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    background: var(--vc-surface-muted);
+  }
+
+  .mobileHeader {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    display: grid;
+    grid-template-columns: minmax(5rem, auto) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--vc-space-8);
+    padding: var(--vc-space-12);
+    border-bottom: 1px solid var(--vc-border);
+    background: color-mix(in srgb, var(--vc-surface) 96%, transparent);
+    backdrop-filter: blur(0.75rem);
+  }
+
+  .mobileHeader > div:first-child {
+    display: grid;
+    gap: var(--vc-space-2);
+  }
+
+  .mobileHeader > div:first-child span {
+    color: var(--vc-text-muted);
+    font-size: 0.68rem;
+  }
+
+  .mobileHeader > div:first-child strong {
+    font-family: var(--vc-font-display);
+    font-size: 0.86rem;
+  }
+
+  .mobileHeader .segmented button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .mobilePreview {
+    height: min(23rem, 42vh);
+    padding: var(--vc-space-8);
+    background: color-mix(in srgb, var(--vc-brand-ink-black) 94%, var(--vc-surface));
+  }
+
+  .mobilePreview .canvasViewport {
+    min-height: 0;
+    height: 100%;
+    padding: var(--vc-space-12);
+  }
+
+  .mobileTask {
+    overflow: visible;
+    padding: var(--vc-space-12);
+  }
+
+  .mobileTask .panelStack {
+    padding: 0;
+  }
+
+  .mobileTask .field input,
+  .mobileTask .field select,
+  .mobileTask .field textarea,
+  .mobileTask .colorField input[type="text"],
+  .mobileTask .colorField input[type="color"],
+  .mobileTask .colorField button,
+  .mobileTask .checkList label {
+    min-height: 2.75rem;
+  }
+
+  .mobileLayerPicker {
+    display: grid;
+    gap: var(--vc-space-6);
+    color: var(--vc-text);
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  .mobileLayerPicker select {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: var(--vc-space-8) var(--vc-space-10);
+    border: 1px solid var(--vc-border);
+    border-radius: var(--vc-radius-md);
+    background: var(--vc-surface);
+    color: var(--vc-text);
+    font: inherit;
+  }
+
+  .mobileTask .momentList {
+    display: none;
+  }
+
+  .mobileTask .panelStack > .panelHeading:first-child,
+  .mobileTask .panelStack > .panelHeading:first-child + .momentList {
+    display: none;
+  }
+
+  .mobileMomentTask {
+    display: grid;
+    gap: var(--vc-space-8);
+  }
+
+  .mobileMomentTask > button {
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--vc-space-12) var(--vc-space-16);
+    border-color: var(--vc-border);
+    background: var(--vc-surface);
+  }
+
+  .mobileMomentTask > button[aria-pressed="true"] {
+    border-color: var(--vc-action);
+    background: color-mix(in srgb, var(--vc-action) 9%, var(--vc-surface));
+    box-shadow: inset 0.1875rem 0 var(--vc-action);
+  }
+
+  .mobileFooter {
+    position: sticky;
+    bottom: 0;
+    z-index: 90;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--vc-space-8);
+    padding: var(--vc-space-12);
+    border-top: 1px solid var(--vc-border);
+    background: color-mix(in srgb, var(--vc-surface) 96%, transparent);
+    backdrop-filter: blur(0.75rem);
+  }
+
+  .mobileFooter button {
+    min-height: 2.75rem;
+  }
+
+  .mobileFooter button:last-child {
+    justify-self: end;
+  }
+
+  .mobileFooter > span {
+    color: var(--vc-text-muted);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mobileNudge {
+    display: grid;
+    gap: var(--vc-space-8);
+    padding: var(--vc-space-10);
+    border: 1px solid var(--vc-border);
+    border-radius: var(--vc-radius-md);
+  }
+
+  .mobileNudge > span {
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+
+  .mobileNudge > div {
+    display: flex;
+    gap: var(--vc-space-8);
+  }
+
+  .mobileNudge .iconTool,
+  .toggleButton,
+  .addGrid button,
+  .layerList .iconTool {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
+@media (max-width: 38rem) {
+  .headerStatus {
+    display: none;
+  }
+
+  .mobileHeader {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .mobileHeader > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .numericGrid,
+  .twoColumns,
+  .colorPair {
+    grid-template-columns: 1fr;
+  }
+
+  .addGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvasLayer {
+    transition: none;
+  }
+}

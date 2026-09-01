@@ -2,21 +2,29 @@
 
 /* eslint-disable @next/next/no-img-element -- Signed Player media is rendered directly and expires quickly. */
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { localStorageDeviceTokenKey } from "../_lib/player-manifest";
 import {
   chooseLatestLedScoresMatchState,
+  parseLedScoresCanvasScenePair,
   parseLedScoresGoalEnrichmentMessage,
   parseLedScoresMatchOverlayMessage,
   parseLedScoresMatchStateMessage,
+  parseLedScoresOverlayAssets,
   readStoredLedScoresMatchStates,
   writeStoredLedScoresMatchStates,
   type ActiveLedScoresMatchOverlay,
+  type LedScoresCanvasScenePair,
   type LedScoresGoalEnrichment,
   type LedScoresMatchState,
+  type LedScoresOverlayAsset,
   type LedScoresPlayerViewModel
 } from "../_lib/ledscores-match-experience";
+import {
+  LedScoresCanvasSceneRenderer,
+  type LedScoresCanvasRendererValues
+} from "./ledscores-canvas-scene";
 import { LedScoresMatchOverlay } from "./ledscores-match-experience";
 import styles from "./ledscores-goal-overlay.module.css";
 
@@ -28,12 +36,7 @@ const maximumTerminalAcknowledgementRetries = 6;
 const terminalAcknowledgementRetentionMs = 7 * 24 * 60 * 60 * 1_000;
 const terminalAcknowledgementStorageKey = "veyocast-player-ledscores-terminal-acks-v1";
 
-type OverlayAsset = {
-  checksum: string;
-  mediaAssetId: string;
-  mimeType: string;
-  url: string;
-};
+type OverlayAsset = LedScoresOverlayAsset;
 type OverlayDesign = {
   animation: "impact" | "none" | "pulse" | "slide";
   headline: string;
@@ -65,6 +68,7 @@ export type ActiveLedScoresGoal = {
   previousAwayScore: number;
   previousHomeScore: number;
   player: LedScoresPlayerViewModel | null;
+  scene: LedScoresCanvasScenePair | null;
   scorerName: string | null;
   scoringSide: "opponent" | "own" | "unknown";
   soundMediaAssetId: string | null;
@@ -621,7 +625,7 @@ function overlayPriority(kind: ActiveLedScoresOverlay["kind"]) {
   return 40;
 }
 
-function enrichGoal(
+export function enrichGoal(
   goal: ActiveLedScoresGoal,
   player: LedScoresPlayerViewModel
 ): ActiveLedScoresGoal {
@@ -629,55 +633,95 @@ function enrichGoal(
 }
 
 export function LedScoresGoalOverlay({ goal }: { goal: ActiveLedScoresGoal | null }) {
+  const [failedCanvasDeliveryId, setFailedCanvasDeliveryId] = useState<string | null>(null);
+  return <LedScoresGoalOverlayContent
+    canvasBackgroundFailed={failedCanvasDeliveryId === goal?.deliveryId}
+    goal={goal}
+    onCanvasBackgroundError={() => {
+      if (!goal) return;
+      setFailedCanvasDeliveryId((current) => current === goal.deliveryId
+        ? current
+        : goal.deliveryId);
+    }}
+  />;
+}
+
+export function LedScoresGoalOverlayContent({
+  canvasBackgroundFailed,
+  goal,
+  onCanvasBackgroundError
+}: {
+  canvasBackgroundFailed: boolean;
+  goal: ActiveLedScoresGoal | null;
+  onCanvasBackgroundError: () => void;
+}) {
   if (!goal) return null;
   const scoringTeam = ledScoresScoringTeam(goal);
   const media = assetFor(goal.assets, goal.mediaAssetId);
   const logo = assetFor(goal.assets, goal.logoMediaAssetId);
   const sound = assetFor(goal.assets, goal.soundMediaAssetId);
   const sponsor = assetFor(goal.assets, goal.sponsorMediaAssetId);
-  return <section
-    aria-label={goal.scoringSide === "own" ? "Doelpunt voor eigen team" : goal.scoringSide === "opponent" ? "Doelpunt tegenstander" : "Doelpunt van onbekend team"}
-    className={styles.overlay}
-    data-animation={goal.design.animation}
-    data-palette={goal.design.palette}
-    data-testid="ledscores-goal-overlay"
-  >
-    {media ? <div className={styles.media} aria-hidden="true">
-      {media.mimeType.startsWith("video/")
-        ? <video autoPlay controls={false} disablePictureInPicture loop muted playsInline preload="auto" src={media.url} />
-        : <img alt="" src={media.url} />}
-    </div> : <div aria-hidden="true" className={styles.fallbackMotion}><span /><span /><span /></div>}
-    <div className={styles.scrim} aria-hidden="true" />
-    <div className={styles.content} data-logo-position={goal.design.logoPosition} data-logo-scale={goal.design.logoScale}>
-      <div className={styles.identity}>
-        {logo ? <img alt="" aria-hidden="true" className={styles.logo} src={logo.url} /> : null}
-        <span>{scoringTeam}</span>
-      </div>
-      <strong className={goal.design.typography === "body" ? styles.bodyHeadline : styles.displayHeadline}>{goal.design.headline}</strong>
-      <div className={styles.score} aria-label={`Score ${goal.homeScore} tegen ${goal.awayScore}`}><span>{goal.homeScore}</span><small>–</small><span>{goal.awayScore}</span></div>
-      {goal.design.showPreviousScore ? <p className={styles.previous}>Vorige stand {goal.previousHomeScore}–{goal.previousAwayScore}</p> : null}
-      {goal.design.secondaryText ? <p className={styles.secondary}>{goal.design.secondaryText}</p> : null}
-      <div className={styles.metadata}>
-        {goal.design.showScorer ? <span>{goal.scorerName ?? goal.design.scorerFallback}</span> : null}
-        {goal.design.showClock && goal.matchClock ? <span>{goal.matchClock}</span> : null}
-        {goal.eventKind === "synthetic_test" ? <span>LIVE-TEST</span> : null}
-      </div>
-    </div>
-    {goal.design.showScorer && goal.player ? <aside className={styles.playerReveal}>
-      <div className={styles.playerPortrait}>
-        {goal.player.photoUrl
-          ? <img alt="" aria-hidden="true" src={goal.player.photoUrl} />
-          : <span aria-hidden="true">{initials(goal.player.name)}</span>}
-      </div>
-      <div>
-        {goal.player.number ? <span>#{goal.player.number}</span> : null}
-        <strong>{goal.player.name}</strong>
-        <small>Doelpuntenmaker</small>
-      </div>
-    </aside> : null}
-    {sponsor ? <aside className={styles.sponsor}><span>Mede mogelijk gemaakt door</span><img alt="Sponsor" src={sponsor.url} /></aside> : null}
+  const renderCanvas = Boolean(goal.scene) && !canvasBackgroundFailed;
+  return <>
+    {renderCanvas && goal.scene ? (
+      <LedScoresCanvasSceneRenderer
+        ariaLabel={goal.scoringSide === "own"
+          ? "Doelpunt voor eigen team"
+          : goal.scoringSide === "opponent"
+            ? "Doelpunt tegenstander"
+            : "Doelpunt van onbekend team"}
+        assets={goal.assets}
+        onBackgroundMediaError={onCanvasBackgroundError}
+        scene={goal.scene}
+        testId="ledscores-goal-canvas"
+        values={goalCanvasValues(goal, scoringTeam, logo?.url ?? null)}
+      />
+    ) : (
+      <section
+        aria-label={goal.scoringSide === "own" ? "Doelpunt voor eigen team" : goal.scoringSide === "opponent" ? "Doelpunt tegenstander" : "Doelpunt van onbekend team"}
+        className={styles.overlay}
+        data-animation={goal.design.animation}
+        data-palette={goal.design.palette}
+        data-testid="ledscores-goal-overlay"
+      >
+        {media ? <div className={styles.media} aria-hidden="true">
+          {media.mimeType.startsWith("video/")
+            ? <video autoPlay controls={false} disablePictureInPicture loop muted playsInline preload="auto" src={media.url} />
+            : <img alt="" src={media.url} />}
+        </div> : <div aria-hidden="true" className={styles.fallbackMotion}><span /><span /><span /></div>}
+        <div className={styles.scrim} aria-hidden="true" />
+        <div className={styles.content} data-logo-position={goal.design.logoPosition} data-logo-scale={goal.design.logoScale}>
+          <div className={styles.identity}>
+            {logo ? <img alt="" aria-hidden="true" className={styles.logo} src={logo.url} /> : null}
+            <span>{scoringTeam}</span>
+          </div>
+          <strong className={goal.design.typography === "body" ? styles.bodyHeadline : styles.displayHeadline}>{goal.design.headline}</strong>
+          <div className={styles.score} aria-label={`Score ${goal.homeScore} tegen ${goal.awayScore}`}><span>{goal.homeScore}</span><small>–</small><span>{goal.awayScore}</span></div>
+          {goal.design.showPreviousScore ? <p className={styles.previous}>Vorige stand {goal.previousHomeScore}–{goal.previousAwayScore}</p> : null}
+          {goal.design.secondaryText ? <p className={styles.secondary}>{goal.design.secondaryText}</p> : null}
+          <div className={styles.metadata}>
+            {goal.design.showScorer ? <span>{goal.scorerName ?? goal.design.scorerFallback}</span> : null}
+            {goal.design.showClock && goal.matchClock ? <span>{goal.matchClock}</span> : null}
+            {goal.eventKind === "synthetic_test" ? <span>LIVE-TEST</span> : null}
+          </div>
+        </div>
+        {goal.design.showScorer && goal.player ? <aside className={styles.playerReveal}>
+          <div className={styles.playerPortrait}>
+            {goal.player.photoUrl
+              ? <img alt="" aria-hidden="true" src={goal.player.photoUrl} />
+              : <span aria-hidden="true">{initials(goal.player.name)}</span>}
+          </div>
+          <div>
+            {goal.player.number ? <span>#{goal.player.number}</span> : null}
+            <strong>{goal.player.name}</strong>
+            <small>Doelpuntenmaker</small>
+          </div>
+        </aside> : null}
+      </section>
+    )}
+    {sponsor ? <GoalSponsor asset={sponsor} aboveCanvas /> : null}
     {sound ? <GoalSound asset={sound} volume={goal.soundVolume} /> : null}
-  </section>;
+  </>;
 }
 
 export function LedScoresExperienceOverlay({
@@ -703,6 +747,56 @@ export function ledScoresScoringTeam(goal: Pick<
       : "Doelpunt";
 }
 
+export function goalCanvasValues(
+  goal: ActiveLedScoresGoal,
+  scoringTeam = ledScoresScoringTeam(goal),
+  ownTeamLogo: string | null = null
+): LedScoresCanvasRendererValues {
+  const homeScored = goal.homeScore === goal.previousHomeScore + 1;
+  const awayScored = goal.awayScore === goal.previousAwayScore + 1;
+  const ownTeamIsHome = goal.scoringSide === "own"
+    ? homeScored
+    : goal.scoringSide === "opponent"
+      ? awayScored
+      : false;
+  const ownTeamIsAway = goal.scoringSide === "own"
+    ? awayScored
+    : goal.scoringSide === "opponent"
+      ? homeScored
+      : false;
+  const homeLogo = ownTeamIsHome ? ownTeamLogo : null;
+  const awayLogo = ownTeamIsAway ? ownTeamLogo : null;
+  const eventLabel = goal.scoringSide === "opponent"
+    ? "TEGENDOELPUNT"
+    : "DOELPUNT";
+  return {
+    images: {
+      awayLogo,
+      homeLogo,
+      scorerPhoto: goal.player?.photoUrl ?? null,
+      scoringTeamLogo: homeScored ? homeLogo : awayScored ? awayLogo : null
+    },
+    lineup: [],
+    text: {
+      awayScore: String(goal.awayScore),
+      awayTeam: goal.awayTeam,
+      clock: goal.matchClock ?? undefined,
+      eventLabel: goal.eventKind === "synthetic_test"
+        ? `LIVE-TEST · ${eventLabel}`
+        : eventLabel,
+      homeScore: String(goal.homeScore),
+      homeTeam: goal.homeTeam,
+      previousScore: `${goal.previousHomeScore} – ${goal.previousAwayScore}`,
+      score: `${goal.homeScore} – ${goal.awayScore}`,
+      scorerName: goal.player?.name ?? goal.scorerName ?? undefined,
+      scorerNumber: goal.player?.number
+        ? `#${goal.player.number}`
+        : undefined,
+      scoringTeam
+    }
+  };
+}
+
 export function parseGoalMessage(value: unknown) {
   if (!isRecord(value) || !isRecord(value.payload) || !Array.isArray(value.assets)) return null;
   const payload = value.payload;
@@ -723,11 +817,7 @@ export function parseGoalMessage(value: unknown) {
   const previousAwayScore = boundedInteger(payload.previousAwayScore, 0, 999);
   const player = parseGoalPlayer(payload.player ?? payload.scorer);
   if (!deliveryId || !executeAt || !expiresAt || !serverTime || !eventId || !scoringSide || !design || durationMs === null || homeScore === null || awayScore === null || previousHomeScore === null || previousAwayScore === null) return null;
-  const assets = new Map<string, OverlayAsset>();
-  for (const asset of value.assets.slice(0, 10)) {
-    const parsed = parseAsset(asset);
-    if (parsed) assets.set(parsed.mediaAssetId, parsed);
-  }
+  const assets = parseLedScoresOverlayAssets(value.assets);
   return {
     executeAt,
     expiresAt,
@@ -749,6 +839,7 @@ export function parseGoalMessage(value: unknown) {
       previousAwayScore,
       previousHomeScore,
       player,
+      scene: parseLedScoresCanvasScenePair(payload.scene, assets),
       scorerName: player?.name ?? safeText(payload.scorerName, 160),
       scoringSide,
       soundMediaAssetId: safeOptionalUuid(payload.soundMediaAssetId),
@@ -766,6 +857,24 @@ function GoalSound({ asset, volume }: { asset: OverlayAsset; volume: number }) {
     if (audioRef.current) audioRef.current.volume = volume / 100;
   }, [volume]);
   return <audio autoPlay preload="auto" ref={audioRef} src={asset.url} />;
+}
+
+function GoalSponsor({
+  aboveCanvas = false,
+  asset
+}: {
+  aboveCanvas?: boolean;
+  asset: OverlayAsset;
+}) {
+  return <aside
+    className={aboveCanvas
+      ? `${styles.sponsor} ${styles.canvasSponsor}`
+      : styles.sponsor}
+    data-testid="ledscores-goal-sponsor"
+  >
+    <span>Mede mogelijk gemaakt door</span>
+    <img alt="Sponsor" src={asset.url} />
+  </aside>;
 }
 
 async function consumeSseStream(
@@ -812,9 +921,7 @@ export function parseSseBlock(value: string) {
 function preloadAssets(configs: unknown[]) {
   for (const config of configs.slice(0, 50)) {
     if (!isRecord(config) || !Array.isArray(config.assets)) continue;
-    for (const value of config.assets.slice(0, 10)) {
-      const asset = parseAsset(value);
-      if (!asset) continue;
+    for (const asset of parseLedScoresOverlayAssets(config.assets).values()) {
       if (asset.mimeType.startsWith("image/")) {
         const image = new Image();
         image.decoding = "async";
@@ -941,7 +1048,6 @@ function hasSeenGoal(eventId: string, now: number) { return readDedupeEntries(no
 function rememberGoal(eventId: string, expiresAt: number) { try { const entries = readDedupeEntries(Date.now()).filter((entry) => entry.eventId !== eventId); entries.push({ eventId, expiresAt }); window.localStorage.setItem(dedupeStorageKey, JSON.stringify(entries.slice(-maximumDedupeEntries))); } catch { /* in-memory delivery replacement still prevents current-session repeats */ } }
 function readDedupeEntries(now: number): Array<{ eventId: string; expiresAt: number }> { try { const parsed = JSON.parse(window.localStorage.getItem(dedupeStorageKey) ?? "[]") as unknown; return Array.isArray(parsed) ? parsed.flatMap((entry) => isRecord(entry) && safeUuid(entry.eventId) && typeof entry.expiresAt === "number" && entry.expiresAt > now ? [{ eventId: String(entry.eventId), expiresAt: entry.expiresAt }] : []).slice(-maximumDedupeEntries) : []; } catch { return []; } }
 function assetFor(assets: Map<string, OverlayAsset>, id: string | null) { return id ? assets.get(id) ?? null : null; }
-function parseAsset(value: unknown): OverlayAsset | null { if (!isRecord(value)) return null; const mediaAssetId = safeUuid(value.mediaAssetId); const checksum = typeof value.checksum === "string" && /^[a-f0-9]{64}$/.test(value.checksum) ? value.checksum : null; const mimeType = typeof value.mimeType === "string" && /^(image\/(jpeg|png|webp)|video\/mp4)$/.test(value.mimeType) ? value.mimeType : null; const url = typeof value.url === "string" && /^https?:\/\//.test(value.url) && value.url.length <= 2_000 ? value.url : null; return mediaAssetId && checksum && mimeType && url ? { checksum, mediaAssetId, mimeType, url } : null; }
 function parseGoalPlayer(value: unknown): LedScoresPlayerViewModel | null { if (!isRecord(value)) return null; const name = safeText(value.name, 160); if (!name) return null; const rawNumber = typeof value.number === "number" ? String(value.number) : value.number; return { id: safeText(value.id ?? value.providerPlayerId, 200), name, number: safeText(rawNumber, 16), photoUrl: safeWebUrl(value.photoUrl) }; }
 function safeWebUrl(value: unknown) { return typeof value === "string" && value.length <= 2_000 && /^https?:\/\//.test(value) ? value : null; }
 function initials(value: string) { return value.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("") || "VC"; }

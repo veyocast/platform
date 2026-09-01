@@ -745,7 +745,7 @@ video.playback-media::-webkit-media-controls-start-playback-button {
   pointer-events: none;
   position: absolute;
   width: clamp(104px, 9vw, 168px);
-  z-index: 2;
+  z-index: 90;
 }
 
 .sponsor-layer { inset: 0; pointer-events: none; position: absolute; z-index: 1; }

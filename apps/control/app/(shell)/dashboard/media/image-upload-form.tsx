@@ -26,7 +26,13 @@ const initialState: MediaImageUploadState = {
   results: []
 };
 
-export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
+export function ImageUploadForm({
+  canUpload,
+  canvasCompatibleOnly = false
+}: {
+  canUpload: boolean;
+  canvasCompatibleOnly?: boolean;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -59,6 +65,18 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
     const results: MediaImageUploadState["results"] = [];
     try {
       for (const file of files) {
+        if (
+          canvasCompatibleOnly &&
+          !["image/jpeg", "image/png", "image/webp"].includes(file.type)
+        ) {
+          results.push({
+            fileName: file.name,
+            message: "De live canvaseditor gebruikt JPEG, PNG of WebP. Zet dit bestand eerst om en probeer opnieuw.",
+            status: "critical"
+          });
+          setState({ completedAt: null, results: [...results] });
+          continue;
+        }
         const policyFailure = validateImageUploadFile(file);
         if (policyFailure) {
           results.push({
@@ -157,7 +175,9 @@ export function ImageUploadForm({ canUpload }: { canUpload: boolean }) {
       <div className="field">
         <label htmlFor="media-file">Afbeeldingen</label>
         <input
-          accept="image/gif,image/jpeg,image/png,image/svg+xml,image/webp,.gif,.jpg,.jpeg,.png,.svg,.webp"
+          accept={canvasCompatibleOnly
+            ? "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+            : "image/gif,image/jpeg,image/png,image/svg+xml,image/webp,.gif,.jpg,.jpeg,.png,.svg,.webp"}
           disabled={!canUpload || pending}
           id="media-file"
           multiple

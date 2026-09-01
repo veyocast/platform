@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import {
+  attachLedScoresCanvasSceneToDelivery,
   createSerializedLedScoresStreamQueue,
   encodeSseEvent,
   hashPlayerCredential,
@@ -107,8 +108,12 @@ export async function GET(request: Request) {
         const config = currentBootstrap.configs.find(
           (item) => item.alertVersionId === delivery.alertVersionId
         );
+        const withCanvasScene = attachLedScoresCanvasSceneToDelivery(
+          hydrated,
+          currentBootstrap.configs
+        );
         send(delivery.kind, {
-          ...hydrated,
+          ...withCanvasScene,
           ...(shouldAttachLedScoresConfigAssets(delivery.kind)
             ? { assets: config?.assets ?? [] }
             : {}),

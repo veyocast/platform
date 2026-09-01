@@ -2,6 +2,13 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
+import {
+  ledScoresCanvasAssetIds,
+  ledScoresCanvasMaximumAssets,
+  safeParseLedScoresCanvasExperience,
+  type LedScoresCanvasMomentKey
+} from "@veyocast/contracts";
+
 import type { createPlayerAdminClient } from "./player-supabase";
 
 export const ledScoresSseHeaders = {
@@ -222,6 +229,73 @@ export function shouldRefreshLedScoresConfigAssets(
     now - lastRefreshAt >= ledScoresConfigAssetRefreshMs;
 }
 
+export function attachLedScoresCanvasSceneToDelivery(
+  delivery: NonNullable<ReturnType<typeof normalizeLedScoresDelivery>>,
+  configs: readonly unknown[]
+) {
+  const safePayload = { ...delivery.payload };
+  delete safePayload.scene;
+  const sanitized = { ...delivery, payload: safePayload };
+  if (!delivery.alertVersionId) return sanitized;
+  const config = configs.find((candidate) =>
+    isRecord(candidate) &&
+    uuid(candidate.alertVersionId) === delivery.alertVersionId
+  );
+  if (!isRecord(config) || !isRecord(config.config)) return sanitized;
+  const experience = safeParseLedScoresCanvasExperience(
+    config.config.canvasExperience
+  );
+  if (!experience.success) return sanitized;
+  const availableAssetIds = new Set(
+    Array.isArray(config.assets)
+      ? config.assets.flatMap((asset) =>
+          isRecord(asset) && uuid(asset.mediaAssetId)
+            ? [String(asset.mediaAssetId)]
+            : []
+        )
+      : []
+  );
+  if (ledScoresCanvasAssetIds(experience.data).some(
+    (mediaAssetId) => !availableAssetIds.has(mediaAssetId)
+  )) return sanitized;
+  const moment = ledScoresCanvasMomentForDelivery(delivery);
+  return moment
+    ? {
+        ...sanitized,
+        payload: {
+          ...safePayload,
+          scene: experience.data.scenes[moment]
+        }
+      }
+    : sanitized;
+}
+
+export function ledScoresCanvasMomentForDelivery(
+  delivery: NonNullable<ReturnType<typeof normalizeLedScoresDelivery>>
+): LedScoresCanvasMomentKey | null {
+  if (delivery.kind === "goal") {
+    return delivery.payload.scoringSide === "own"
+      ? "goalOwn"
+      : delivery.payload.scoringSide === "opponent"
+        ? "goalOpponent"
+        : delivery.payload.scoringSide === "unknown"
+          ? "goalUnknown"
+          : null;
+  }
+  if (delivery.kind !== "match_overlay") return null;
+  if (delivery.payload.overlayKind === "lineup") {
+    return delivery.payload.side === "home"
+      ? "lineupHome"
+      : delivery.payload.side === "away"
+        ? "lineupAway"
+        : null;
+  }
+  if (delivery.payload.overlayKind === "half_time") return "halfTime";
+  if (delivery.payload.overlayKind === "match_end") return "matchEnd";
+  if (delivery.payload.overlayKind === "match_start") return "matchStart";
+  return null;
+}
+
 export function normalizeLedScoresMatchStateRow(value: unknown) {
   if (!isRecord(value) || !isRecord(value.state_json)) return null;
   const connectionId = uuid(value.connection_id);
@@ -372,7 +446,7 @@ async function normalizeAndSignConfig(
   const checksum = hash(value.checksum);
   if (!alertVersionId || !alertId || !checksum || !isRecord(value.config)) return null;
   const assets = Array.isArray(value.assets)
-    ? value.assets.slice(0, 10)
+    ? value.assets.slice(0, ledScoresCanvasMaximumAssets)
     : [];
   const signedAssets = await Promise.all(assets.map(async (asset) => {
     if (!isRecord(asset)) return null;

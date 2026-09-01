@@ -17,6 +17,10 @@ import {
   type LedScoresSide,
   type LedScoresTeamViewModel
 } from "../_lib/ledscores-match-experience";
+import {
+  LedScoresCanvasSceneRenderer,
+  type LedScoresCanvasRendererValues
+} from "./ledscores-canvas-scene";
 import styles from "./ledscores-match-experience.module.css";
 
 export function LedScoresMatchOverlay({
@@ -25,8 +29,53 @@ export function LedScoresMatchOverlay({
   overlay: ActiveLedScoresMatchOverlay | null;
 }) {
   const lineupPagination = useLineupPagination(overlay);
+  const [failedCanvasDeliveryId, setFailedCanvasDeliveryId] = useState<string | null>(null);
+  return <LedScoresMatchOverlayContent
+    canvasBackgroundFailed={failedCanvasDeliveryId === overlay?.deliveryId}
+    lineupPagination={lineupPagination}
+    onCanvasBackgroundError={() => {
+      if (!overlay) return;
+      setFailedCanvasDeliveryId((current) => current === overlay.deliveryId
+        ? current
+        : overlay.deliveryId);
+    }}
+    overlay={overlay}
+  />;
+}
+
+export function LedScoresMatchOverlayContent({
+  canvasBackgroundFailed,
+  lineupPagination,
+  onCanvasBackgroundError,
+  overlay
+}: {
+  canvasBackgroundFailed: boolean;
+  lineupPagination: {
+    pageCount: number;
+    pageIndex: number;
+    players: readonly LedScoresPlayerViewModel[];
+  };
+  onCanvasBackgroundError: () => void;
+  overlay: ActiveLedScoresMatchOverlay | null;
+}) {
   if (!overlay) return null;
   if (overlay.kind === "lineup_clear") return null;
+  if (overlay.scene && !canvasBackgroundFailed) {
+    return (
+      <LedScoresCanvasSceneRenderer
+        ariaLabel={overlay.kind === "lineup"
+          ? `Opstelling ${overlay.side === "away"
+            ? overlay.away.name
+            : overlay.home.name}`
+          : overlayAccessibilityLabel(overlay.kind)}
+        assets={overlay.assets}
+        onBackgroundMediaError={onCanvasBackgroundError}
+        scene={overlay.scene}
+        testId="ledscores-match-canvas"
+        values={matchOverlayCanvasValues(overlay, lineupPagination.players)}
+      />
+    );
+  }
   if (overlay.kind === "lineup") {
     const team = overlay.side === "away" ? overlay.away : overlay.home;
     return (
@@ -109,6 +158,44 @@ export function LedScoresMatchOverlay({
       <OverlayFooter overlay={overlay} />
     </section>
   );
+}
+
+export function matchOverlayCanvasValues(
+  overlay: ActiveLedScoresMatchOverlay,
+  lineup: readonly LedScoresPlayerViewModel[] = overlay.lineup
+): LedScoresCanvasRendererValues {
+  const selectedTeam = overlay.side === "away"
+    ? overlay.away
+    : overlay.side === "home"
+      ? overlay.home
+      : null;
+  return {
+    images: {
+      awayLogo: overlay.away.logoUrl,
+      homeLogo: overlay.home.logoUrl,
+      scorerPhoto: null,
+      scoringTeamLogo: selectedTeam?.logoUrl ?? null
+    },
+    lineup,
+    text: {
+      awayScore: String(overlay.away.score),
+      awayTeam: overlay.away.name,
+      clock: overlay.matchClock ?? undefined,
+      eventLabel: overlay.kind === "lineup"
+        ? overlay.side === "away" ? "UITTEAM" : "THUISTEAM"
+        : overlay.kind === "half_time"
+          ? "RUST"
+        : overlay.kind === "match_end"
+            ? "EINDSTAND"
+            : "AFTRAP",
+      homeScore: String(overlay.home.score),
+      homeTeam: overlay.home.name,
+      period: overlay.periodLabel ?? momentKicker(overlay.kind),
+      previousScore: `${overlay.home.score} – ${overlay.away.score}`,
+      score: `${overlay.home.score} – ${overlay.away.score}`,
+      scoringTeam: selectedTeam?.name ?? undefined
+    }
+  };
 }
 
 function useLineupPagination(overlay: ActiveLedScoresMatchOverlay | null) {

@@ -1,3 +1,5 @@
+import { Script } from "node:vm";
+
 import { describe, expect, it } from "vitest";
 
 import { renderLgLegacyHtml } from "../../_lib/lg-legacy-page";
@@ -340,6 +342,49 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(enrichmentHandler.indexOf('"superseded_enrichment"')).toBeLessThan(
       enrichmentHandler.indexOf("runtime.goalPendingEnrichment = enrichment")
     );
+  });
+
+  it("rendert strikte S142-sceneparen met 24 assets en veilige webOS-fallback", () => {
+    const html = renderLgLegacyHtml();
+    const inlineScript = html.slice(
+      html.indexOf("<script>") + "<script>".length,
+      html.indexOf("</script>")
+    );
+
+    expect(html).toContain("parseGoalCanvasScenePair(payload.scene)");
+    expect(html).toContain('record.assets.slice(0, 24)');
+    expect(html).toContain("Math.min(24, values.length)");
+    expect(html).toContain("goalCanvasSceneForViewport");
+    expect(html).toContain('orientation === "portrait" ? 1080 : 1920');
+    expect(html).toContain("goalCanvasScenePairAssetsReady(model.scenePair, model)");
+    expect(html).toContain("createGoalCanvasBackground");
+    expect(html).toContain('media.autoplay = true');
+    expect(html).toContain("media.muted = true");
+    expect(html).toContain("media.loop = true");
+    expect(html).toContain('media.setAttribute("playsinline", "")');
+    expect(html).toContain("createGoalCanvasLineup");
+    expect(html).toContain('content.setAttribute("data-canvas-shape", layer.shape)');
+    expect(html).toContain('content.style.top = "50%"');
+    expect(html).toContain('content.style.backgroundColor = "transparent"');
+    expect(html).toContain("Math.max(2, layer.strokeWidth)");
+    expect(html).toContain("startGoalCanvasLineupPagination");
+    expect(html).toContain('data-canvas-lineup-page-count');
+    const canvasValues = html.slice(
+      html.indexOf("function goalCanvasValues"),
+      html.indexOf("function goalCanvasTextValue")
+    );
+    expect(canvasValues).not.toContain("headline: model.design.headline");
+    expect(canvasValues).not.toContain("text.secondaryText");
+    expect(canvasValues).not.toContain("model.design.scorerFallback");
+    expect(html).toContain(
+      "if (goal.scenePair && renderGoalCanvasOverlay(goal)) return true"
+    );
+    expect(html).toContain(
+      "if (match.scenePair && renderGoalCanvasOverlay(match)) return true"
+    );
+    expect(html).toContain("#watermark{position:absolute;z-index:90");
+    expect(html).not.toContain("aspect-ratio");
+    expect(() => new Script(inlineScript)).not.toThrow();
   });
 
   it("houdt de inline runtime compatibel met oude webOS syntax", () => {

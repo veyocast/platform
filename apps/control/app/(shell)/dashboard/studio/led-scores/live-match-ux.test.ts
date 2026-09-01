@@ -82,7 +82,7 @@ describe("LED Scores live match authoring", () => {
     expect(editor).toContain("data-typography");
     expect(editor).toContain("missingDesignHeadline");
     expect(editor).toContain("Een actief moment mist een hoofdtekst.");
-    expect(editor).toContain('assets.filter((asset) => asset.kind === "image")');
+    expect(editor).toContain('assets.filter((asset) => asset.kind === "image" && asset.canvasCompatible)');
     expect(css).toMatch(/\.experiencePreview\[data-orientation="portrait"\][^{]*\{[^}]*aspect-ratio:\s*9 \/ 16/s);
     expect(css).toContain("@media (max-width: 48rem)");
     expect(css).toContain('.wizardNav li:has(button[aria-current="step"])');

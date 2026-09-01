@@ -692,6 +692,7 @@ test("LG Legacy Player toont een Goal Alert en bevestigt de weergave per scherm"
         eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
         executeAt: new Date(now + 250).toISOString(),
         expiresAt: new Date(now + 4_000).toISOString(),
+        scene: { landscape: {}, portrait: {} },
         serverTime: new Date(now).toISOString()
       }),
       contentType: "text/event-stream; charset=utf-8",
@@ -722,6 +723,7 @@ test("LG Legacy Player toont een Goal Alert en bevestigt de weergave per scherm"
     element.setAttribute("data-playback-instance", "legacy-goal-underlay");
   });
   await expect(overlay).toBeVisible();
+  await expect(overlay).not.toHaveAttribute("data-renderer", "canvas");
   await expect(overlay).toContainText("LEGACY GOAL!");
   await expect(overlay).toContainText("1–0");
   await expect(image).toBeVisible();
@@ -744,6 +746,390 @@ test("LG Legacy Player toont een Goal Alert en bevestigt de weergave per scherm"
     "legacy-goal-underlay"
   );
   await expect(page.locator("#media-root > *")).toHaveCount(1);
+});
+
+test("LG Legacy kiest de portrait S142-scene met video en dynamische speler", async ({
+  page
+}) => {
+  const backgroundAssetId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+  const logoAssetId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+  let realtimeRequests = 0;
+  await page.setViewportSize({ height: 1280, width: 720 });
+  await mockLegacyApis(page);
+  await page.route("**/api/player/realtime/ack", (route) => route.fulfill({
+    body: JSON.stringify({ ok: true }),
+    contentType: "application/json"
+  }));
+  await page.route("**/api/player/realtime", async (route) => {
+    realtimeRequests += 1;
+    if (realtimeRequests > 1) {
+      await route.fulfill({ status: 401 });
+      return;
+    }
+    const currentTime = Date.now();
+    await route.fulfill({
+      body: legacyGoalSse({
+        assets: [
+          {
+            checksum: legacyVideoChecksum,
+            mediaAssetId: backgroundAssetId,
+            mimeType: "video/mp4",
+            url: playerURL + legacyVideoPath
+          },
+          {
+            checksum: legacyImageChecksum,
+            mediaAssetId: logoAssetId,
+            mimeType: "image/png",
+            url: playerURL + legacyImagePath
+          }
+        ],
+        deliveryId: "99999999-9999-4999-8999-999999999998",
+        eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaab",
+        executeAt: new Date(currentTime + 250).toISOString(),
+        expiresAt: new Date(currentTime + 4_000).toISOString(),
+        logoMediaAssetId: logoAssetId,
+        player: {
+          id: "speler-9",
+          name: "Dynamische Speler",
+          number: "9",
+          photoUrl: playerURL + legacyImagePath
+        },
+        scene: legacyCanvasScenePair(backgroundAssetId),
+        serverTime: new Date(currentTime).toISOString()
+      }),
+      contentType: "text/event-stream; charset=utf-8",
+      headers: { "Cache-Control": "no-cache, no-store, no-transform" }
+    });
+  });
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(playerURL + "/lg/legacy");
+
+  const overlay = page.locator("#goal-overlay");
+  const scene = overlay.locator(".goal-canvas-scene");
+  const background = scene.locator("video.goal-canvas-background-media");
+  await expect(scene).toBeVisible();
+  await expect(scene).toHaveAttribute("data-orientation", "portrait");
+  await expect(scene).toHaveAttribute("data-canvas-width", "1080");
+  await expect(scene).toHaveAttribute("data-canvas-height", "1920");
+  await expect(scene).toContainText("PORTRAIT CANVAS");
+  await expect(scene).toContainText("EIGEN CANVAS HEADLINE");
+  await expect(scene).toContainText("Eigen canvas subtekst");
+  await expect(scene).toContainText("Dynamische Speler");
+  await expect(scene).not.toContainText("LEGACY GOAL!");
+  await expect(scene).not.toContainText("Kantinescherm");
+  await expect(scene).not.toContainText("LANDSCAPE CANVAS");
+  await expect(scene.locator('[data-canvas-layer-id="accent-shape"]'))
+    .toBeVisible();
+  expect(await scene.locator('[data-canvas-shape="line"]').evaluate(
+    (element) => ({
+      backgroundColor: element.style.backgroundColor,
+      borderTopWidth: element.style.borderTopWidth,
+      height: element.style.height,
+      top: element.style.top
+    })
+  )).toEqual({
+    backgroundColor: "transparent",
+    borderTopWidth: "6px",
+    height: "0px",
+    top: "50%"
+  });
+  await expect(
+    scene.locator('[data-goal-canvas-image-binding="scorerPhoto"] img')
+  ).toBeVisible();
+  await expect(
+    scene.locator('[data-goal-canvas-image-binding="homeLogo"] img')
+  ).toBeVisible();
+  await expect(background).toBeVisible();
+  expect(await background.evaluate((element) => ({
+    autoplay: element.autoplay,
+    loop: element.loop,
+    muted: element.muted,
+    playsInline: element.playsInline
+  }))).toEqual({
+    autoplay: true,
+    loop: true,
+    muted: true,
+    playsInline: true
+  });
+  const stacking = await page.evaluate(() => ({
+    overlay: Number(window.getComputedStyle(
+      document.querySelector("#goal-overlay")!
+    ).zIndex),
+    watermark: Number(window.getComputedStyle(
+      document.querySelector("#watermark")!
+    ).zIndex)
+  }));
+  expect(stacking.watermark).toBeGreaterThan(stacking.overlay);
+  await expect(page.locator("#watermark")).toHaveClass("visible");
+  await expect(page.locator("#media-root > img")).toBeVisible();
+  await expect(overlay).toBeHidden({ timeout: 4_000 });
+});
+
+for (const scenario of [
+  {
+    awayScore: 1,
+    eventKind: "synthetic_test" as const,
+    expectedAwayLogo: true,
+    expectedEventLabel: "LIVE-TEST · TEGENDOELPUNT",
+    expectedHomeLogo: false,
+    expectedScoringTeamLogo: false,
+    homeScore: 2,
+    name: "plaatst het eigen logo bij het uitteam na een tegendoelpunt thuis",
+    previousAwayScore: 1,
+    previousHomeScore: 1,
+    scoringSide: "opponent" as const
+  },
+  {
+    awayScore: 2,
+    eventKind: "live" as const,
+    expectedAwayLogo: false,
+    expectedEventLabel: "TEGENDOELPUNT",
+    expectedHomeLogo: true,
+    expectedScoringTeamLogo: false,
+    homeScore: 1,
+    name: "plaatst het eigen logo bij het thuisteam na een tegendoelpunt uit",
+    previousAwayScore: 1,
+    previousHomeScore: 1,
+    scoringSide: "opponent" as const
+  },
+  {
+    awayScore: 2,
+    eventKind: "live" as const,
+    expectedAwayLogo: true,
+    expectedEventLabel: "DOELPUNT",
+    expectedHomeLogo: false,
+    expectedScoringTeamLogo: true,
+    homeScore: 1,
+    name: "gebruikt het eigen logo ook als scorerlogo bij een eigen uitgoal",
+    previousAwayScore: 1,
+    previousHomeScore: 1,
+    scoringSide: "own" as const
+  },
+  {
+    awayScore: 1,
+    eventKind: "live" as const,
+    expectedAwayLogo: false,
+    expectedEventLabel: "DOELPUNT",
+    expectedHomeLogo: false,
+    expectedScoringTeamLogo: false,
+    homeScore: 2,
+    name: "wijst het eigen logo niet toe bij een onbekende scorerende ploeg",
+    previousAwayScore: 1,
+    previousHomeScore: 1,
+    scoringSide: "unknown" as const
+  }
+]) {
+  test(`LG Legacy canvas ${scenario.name}`, async ({ page }) => {
+    const logoAssetId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+    let realtimeRequests = 0;
+    await page.setViewportSize({ height: 720, width: 1280 });
+    await mockLegacyApis(page);
+    await page.route("**/api/player/realtime/ack", (route) => route.fulfill({
+      body: JSON.stringify({ ok: true }),
+      contentType: "application/json"
+    }));
+    await page.route("**/api/player/realtime", async (route) => {
+      realtimeRequests += 1;
+      if (realtimeRequests > 1) {
+        await route.fulfill({ status: 401 });
+        return;
+      }
+      const currentTime = Date.now();
+      await route.fulfill({
+        body: legacyGoalSse({
+          assets: [{
+            checksum: legacyImageChecksum,
+            mediaAssetId: logoAssetId,
+            mimeType: "image/png",
+            url: playerURL + legacyImagePath
+          }],
+          awayScore: scenario.awayScore,
+          deliveryId: "99999999-9999-4999-8999-999999999995",
+          eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaae",
+          eventKind: scenario.eventKind,
+          executeAt: new Date(currentTime + 250).toISOString(),
+          expiresAt: new Date(currentTime + 4_000).toISOString(),
+          homeScore: scenario.homeScore,
+          logoMediaAssetId: logoAssetId,
+          previousAwayScore: scenario.previousAwayScore,
+          previousHomeScore: scenario.previousHomeScore,
+          scene: legacyCanvasLogoParityScenePair(),
+          scoringSide: scenario.scoringSide,
+          serverTime: new Date(currentTime).toISOString()
+        }),
+        contentType: "text/event-stream; charset=utf-8",
+        headers: { "Cache-Control": "no-cache, no-store, no-transform" }
+      });
+    });
+    await page.addInitScript(
+      ({ credential, token }) => {
+        localStorage.setItem("veyocast.player.deviceToken", token);
+        localStorage.setItem(
+          "veyocast.player.installationCredential",
+          credential
+        );
+        localStorage.setItem(
+          "veyocast.player.instanceId",
+          "12345678-1234-4123-8123-123456789abc"
+        );
+      },
+      { credential: installationCredential, token: deviceToken }
+    );
+
+    await page.goto(playerURL + "/lg/legacy");
+
+    const scene = page.locator("#goal-overlay .goal-canvas-scene");
+    await expect(scene).toBeVisible();
+    await expect(
+      scene.locator('[data-goal-canvas-text-binding="eventLabel"]')
+    ).toHaveText(scenario.expectedEventLabel);
+    await expect(
+      scene.locator('[data-goal-canvas-image-binding="homeLogo"] img')
+    ).toHaveCount(scenario.expectedHomeLogo ? 1 : 0);
+    await expect(
+      scene.locator('[data-goal-canvas-image-binding="awayLogo"] img')
+    ).toHaveCount(scenario.expectedAwayLogo ? 1 : 0);
+    await expect(
+      scene.locator('[data-goal-canvas-image-binding="scoringTeamLogo"] img')
+    ).toHaveCount(scenario.expectedScoringTeamLogo ? 1 : 0);
+  });
+}
+
+test("LG Legacy canvas behoudt auteurs-tekst wanneer scorerdata ontbreekt", async ({
+  page
+}) => {
+  let realtimeRequests = 0;
+  await page.setViewportSize({ height: 720, width: 1280 });
+  await mockLegacyApis(page);
+  await page.route("**/api/player/realtime/ack", (route) => route.fulfill({
+    body: JSON.stringify({ ok: true }),
+    contentType: "application/json"
+  }));
+  await page.route("**/api/player/realtime", async (route) => {
+    realtimeRequests += 1;
+    if (realtimeRequests > 1) {
+      await route.fulfill({ status: 401 });
+      return;
+    }
+    const currentTime = Date.now();
+    await route.fulfill({
+      body: legacyGoalSse({
+        deliveryId: "99999999-9999-4999-8999-999999999996",
+        eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaad",
+        executeAt: new Date(currentTime + 250).toISOString(),
+        expiresAt: new Date(currentTime + 4_000).toISOString(),
+        scene: legacyCanvasAuthoredTextScenePair(),
+        scorerName: null,
+        serverTime: new Date(currentTime).toISOString()
+      }),
+      contentType: "text/event-stream; charset=utf-8",
+      headers: { "Cache-Control": "no-cache, no-store, no-transform" }
+    });
+  });
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(playerURL + "/lg/legacy");
+
+  const scene = page.locator("#goal-overlay .goal-canvas-scene");
+  await expect(scene).toBeVisible();
+  await expect(scene).toContainText("EIGEN CANVAS HEADLINE");
+  await expect(scene).toContainText("Eigen canvas subtekst");
+  await expect(scene).toContainText("Onbekende scorer uit canvas");
+  await expect(scene).not.toContainText("LEGACY GOAL!");
+  await expect(scene).not.toContainText("Kantinescherm");
+  await expect(scene).not.toContainText("Doelpunt!");
+});
+
+test("LG Legacy pagineert een canvasopstelling zonder de scene te herbouwen", async ({
+  page
+}) => {
+  let realtimeRequests = 0;
+  await page.setViewportSize({ height: 720, width: 1280 });
+  await mockLegacyApis(page);
+  await page.route("**/api/player/realtime/ack", (route) => route.fulfill({
+    body: JSON.stringify({ ok: true }),
+    contentType: "application/json"
+  }));
+  await page.route("**/api/player/realtime", async (route) => {
+    realtimeRequests += 1;
+    if (realtimeRequests > 1) {
+      await route.fulfill({ status: 401 });
+      return;
+    }
+    const currentTime = Date.now();
+    await route.fulfill({
+      body: legacyCanvasLineupSse({
+        deliveryId: "99999999-9999-4999-8999-999999999997",
+        eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaac",
+        executeAt: new Date(currentTime + 250).toISOString(),
+        expiresAt: new Date(currentTime + 12_000).toISOString(),
+        serverTime: new Date(currentTime).toISOString()
+      }),
+      contentType: "text/event-stream; charset=utf-8",
+      headers: { "Cache-Control": "no-cache, no-store, no-transform" }
+    });
+  });
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem(
+        "veyocast.player.installationCredential",
+        credential
+      );
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(playerURL + "/lg/legacy");
+
+  const overlay = page.locator("#goal-overlay");
+  const scene = overlay.locator(".goal-canvas-scene");
+  const cards = scene.locator("[data-canvas-lineup-index]");
+  await expect(scene).toBeVisible();
+  await expect(scene).toHaveAttribute("data-orientation", "landscape");
+  await expect(scene).toContainText("LANDSCAPE LINEUP");
+  await expect(cards).toHaveCount(12);
+  await expect(scene.locator("[data-canvas-lineup-index]:visible")).toHaveCount(11);
+  await scene.evaluate((element) => element.setAttribute("data-scene-stable", "yes"));
+  await expect(scene.locator("[data-canvas-lineup-page]")).toHaveText("1 / 2");
+
+  await expect(scene.locator("[data-canvas-lineup-page]"))
+    .toHaveText("2 / 2", { timeout: 5_000 });
+  await expect(cards.first()).toBeHidden();
+  await expect(cards.last()).toBeVisible();
+  await expect(scene).toHaveAttribute("data-scene-stable", "yes");
+  await expect(overlay).toBeVisible();
 });
 
 test("LG webOS wordt zonder Next.js-chunks naar zichtbare Editorial Arena HTML/CSS geleid", async ({
@@ -1801,6 +2187,357 @@ function imageReleaseEnvelope({
 }
 
 function legacyGoalSse({
+  assets = [],
+  awayScore = 0,
+  deliveryId,
+  eventId,
+  eventKind = "synthetic_test",
+  executeAt,
+  expiresAt,
+  homeScore = 1,
+  logoMediaAssetId,
+  player,
+  previousAwayScore = 0,
+  previousHomeScore = 0,
+  scorerName = "Legacy Player",
+  scoringSide = "own",
+  scene,
+  serverTime
+}: {
+  assets?: Array<Record<string, unknown>>;
+  awayScore?: number;
+  deliveryId: string;
+  eventId: string;
+  eventKind?: "live" | "synthetic_test";
+  executeAt: string;
+  expiresAt: string;
+  homeScore?: number;
+  logoMediaAssetId?: string;
+  player?: Record<string, unknown>;
+  previousAwayScore?: number;
+  previousHomeScore?: number;
+  scorerName?: string | null;
+  scoringSide?: "opponent" | "own" | "unknown";
+  scene?: Record<string, unknown>;
+  serverTime: string;
+}) {
+  const payload: Record<string, unknown> = {
+    awayScore,
+    awayTeam: "Tegenstander",
+    design: {
+      animation: "none",
+      headline: "LEGACY GOAL!",
+      logoPosition: "left",
+      palette: "electric-orange",
+      scorerFallback: "Doelpunt!",
+      secondaryText: "Kantinescherm",
+      showClock: false,
+      showPreviousScore: true,
+      showScorer: true,
+      typography: "display"
+    },
+    durationMs: 2_000,
+    eventId,
+    eventKind,
+    homeScore,
+    homeTeam: "Duindorp sv 1",
+    previousAwayScore,
+    previousHomeScore,
+    scoringSide,
+    underlayPolicy: "pause"
+  };
+  if (logoMediaAssetId) payload.logoMediaAssetId = logoMediaAssetId;
+  if (player) payload.player = player;
+  if (scorerName) payload.scorerName = scorerName;
+  if (scene) payload.scene = scene;
+  return `event: goal\ndata: ${JSON.stringify({
+    alertVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    assets,
+    executeAt,
+    expiresAt,
+    id: deliveryId,
+    kind: "goal",
+    payload,
+    screenId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    serverTime
+  })}\n\n`;
+}
+
+function legacyCanvasScenePair(backgroundAssetId: string) {
+  return {
+    landscape: {
+      background: {
+        angle: 90,
+        from: "#0a0a0a",
+        kind: "gradient",
+        to: "#315cff"
+      },
+      layers: [
+        legacyCanvasTextLayer({
+          id: "landscape-marker",
+          text: "LANDSCAPE CANVAS",
+          x: 120,
+          y: 120
+        })
+      ],
+      orientation: "landscape"
+    },
+    portrait: {
+      background: {
+        kind: "media",
+        mediaAssetId: backgroundAssetId,
+        objectFit: "cover",
+        overlayColor: "#0a0a0a",
+        overlayOpacity: 0.35
+      },
+      layers: [
+        {
+          fill: "#ff5c20",
+          height: 520,
+          id: "accent-shape",
+          name: "Accentvlak",
+          shape: "rectangle",
+          type: "shape",
+          width: 1080,
+          x: 0,
+          y: 0,
+          zIndex: 0
+        },
+        legacyCanvasTextLayer({
+          id: "portrait-marker",
+          text: "PORTRAIT CANVAS",
+          x: 72,
+          y: 100,
+          zIndex: 1
+        }),
+        legacyCanvasTextLayer({
+          binding: "scorerName",
+          id: "scorer-name",
+          text: "Onbekende scorer",
+          x: 72,
+          y: 350,
+          zIndex: 2
+        }),
+        {
+          binding: "scorerPhoto",
+          height: 760,
+          id: "scorer-photo",
+          name: "Spelersfoto",
+          objectFit: "cover",
+          type: "image",
+          width: 936,
+          x: 72,
+          y: 720,
+          zIndex: 3
+        },
+        {
+          binding: "homeLogo",
+          height: 220,
+          id: "home-logo",
+          name: "Thuisteamlogo",
+          objectFit: "contain",
+          type: "image",
+          width: 220,
+          x: 72,
+          y: 1540,
+          zIndex: 4
+        },
+        {
+          fill: "#ff5c20",
+          height: 80,
+          id: "center-line",
+          name: "Scheidingslijn",
+          shape: "line",
+          stroke: "#fafaf7",
+          strokeWidth: 6,
+          type: "shape",
+          width: 936,
+          x: 72,
+          y: 1780,
+          zIndex: 5
+        },
+        legacyCanvasTextLayer({
+          binding: "headline",
+          id: "authored-headline",
+          text: "EIGEN CANVAS HEADLINE",
+          x: 72,
+          y: 500,
+          zIndex: 6
+        }),
+        legacyCanvasTextLayer({
+          binding: "secondaryText",
+          id: "authored-secondary",
+          text: "Eigen canvas subtekst",
+          x: 72,
+          y: 620,
+          zIndex: 7
+        })
+      ],
+      orientation: "portrait"
+    }
+  };
+}
+
+function legacyCanvasAuthoredTextScenePair() {
+  function authoredScene(orientation: "landscape" | "portrait") {
+    return {
+      background: { color: "#0a0a0a", kind: "solid" },
+      layers: [
+        legacyCanvasTextLayer({
+          binding: "headline",
+          id: orientation + "-headline",
+          text: "EIGEN CANVAS HEADLINE",
+          x: 72,
+          y: 120,
+          zIndex: 0
+        }),
+        legacyCanvasTextLayer({
+          binding: "secondaryText",
+          id: orientation + "-secondary",
+          text: "Eigen canvas subtekst",
+          x: 72,
+          y: 340,
+          zIndex: 1
+        }),
+        legacyCanvasTextLayer({
+          binding: "scorerName",
+          id: orientation + "-scorer",
+          text: "Onbekende scorer uit canvas",
+          x: 72,
+          y: 560,
+          zIndex: 2
+        })
+      ],
+      orientation
+    };
+  }
+  return {
+    landscape: authoredScene("landscape"),
+    portrait: authoredScene("portrait")
+  };
+}
+
+function legacyCanvasLogoParityScenePair() {
+  function imageLayer(
+    binding: "awayLogo" | "homeLogo" | "scoringTeamLogo",
+    index: number
+  ) {
+    return {
+      binding,
+      height: 220,
+      id: binding.replace(/[A-Z]/g, (match) => "-" + match.toLowerCase()),
+      name: binding,
+      objectFit: "contain",
+      type: "image",
+      width: 220,
+      x: 72 + index * 280,
+      y: 360,
+      zIndex: index + 1
+    };
+  }
+  function scene(orientation: "landscape" | "portrait") {
+    return {
+      background: { color: "#0a0a0a", kind: "solid" },
+      layers: [
+        legacyCanvasTextLayer({
+          binding: "eventLabel",
+          id: orientation + "-event-label",
+          text: "DOELPUNT",
+          x: 72,
+          y: 100,
+          zIndex: 0
+        }),
+        imageLayer("homeLogo", 0),
+        imageLayer("awayLogo", 1),
+        imageLayer("scoringTeamLogo", 2)
+      ],
+      orientation
+    };
+  }
+  return {
+    landscape: scene("landscape"),
+    portrait: scene("portrait")
+  };
+}
+
+function legacyCanvasTextLayer({
+  binding,
+  id,
+  text,
+  x,
+  y,
+  zIndex = 0
+}: {
+  binding?: string;
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  zIndex?: number;
+}) {
+  return {
+    ...(binding ? { binding } : {}),
+    fill: "#fafaf7",
+    fontFamily: "Inter Tight",
+    fontSize: 96,
+    fontWeight: 900,
+    height: 180,
+    id,
+    name: id,
+    text,
+    type: "text",
+    width: 936,
+    x,
+    y,
+    zIndex
+  };
+}
+
+function legacyCanvasLineupScenePair() {
+  function lineupScene(
+    orientation: "landscape" | "portrait",
+    marker: string,
+    columns: number
+  ) {
+    const portrait = orientation === "portrait";
+    return {
+      background: { color: "#0a0a0a", kind: "solid" },
+      layers: [
+        legacyCanvasTextLayer({
+          id: orientation + "-lineup-marker",
+          text: marker,
+          x: portrait ? 56 : 72,
+          y: portrait ? 60 : 44
+        }),
+        {
+          accentColor: "#ff5c20",
+          cardColor: "#151719",
+          columns,
+          gap: 18,
+          height: portrait ? 1460 : 760,
+          id: "lineup-grid",
+          name: "Opstelling",
+          showName: true,
+          showNumber: true,
+          showPhoto: true,
+          textColor: "#fafaf7",
+          type: "lineup",
+          width: portrait ? 968 : 1776,
+          x: portrait ? 56 : 72,
+          y: portrait ? 300 : 250,
+          zIndex: 1
+        }
+      ],
+      orientation
+    };
+  }
+  return {
+    landscape: lineupScene("landscape", "LANDSCAPE LINEUP", 4),
+    portrait: lineupScene("portrait", "PORTRAIT LINEUP", 2)
+  };
+}
+
+function legacyCanvasLineupSse({
   deliveryId,
   eventId,
   executeAt,
@@ -1813,42 +2550,42 @@ function legacyGoalSse({
   expiresAt: string;
   serverTime: string;
 }) {
-  return `event: goal\ndata: ${JSON.stringify({
+  const lineup = Array.from({ length: 12 }, (_, index) => ({
+    id: "speler-" + String(index + 1),
+    name: "Speler " + String(index + 1),
+    number: String(index + 1),
+    photoUrl: null
+  }));
+  return "event: match_overlay\ndata: " + JSON.stringify({
     alertVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     assets: [],
     executeAt,
     expiresAt,
     id: deliveryId,
-    kind: "goal",
+    kind: "match_overlay",
     payload: {
-      awayScore: 0,
-      awayTeam: "Tegenstander",
+      away: { name: "Uitteam", score: 0, teamKey: "away-1" },
       design: {
         animation: "none",
-        headline: "LEGACY GOAL!",
-        logoPosition: "left",
-        palette: "electric-orange",
-        scorerFallback: "Doelpunt!",
-        secondaryText: "Kantinescherm",
-        showClock: false,
-        showPreviousScore: true,
-        showScorer: true,
-        typography: "display"
+        headline: "Onze opstelling",
+        palette: "ink-black",
+        template: "team-grid"
       },
-      durationMs: 2_000,
+      durationMs: 9_000,
       eventId,
       eventKind: "synthetic_test",
-      homeScore: 1,
-      homeTeam: "Duindorp sv 1",
-      previousAwayScore: 0,
-      previousHomeScore: 0,
-      scorerName: "Legacy Player",
-      scoringSide: "own",
+      home: { name: "Duindorp sv 1", score: 0, teamKey: "home-1" },
+      lineup,
+      lineupPageDurationMs: 4_000,
+      overlayKind: "lineup",
+      ownTeamKeys: ["home-1"],
+      scene: legacyCanvasLineupScenePair(),
+      side: "home",
       underlayPolicy: "pause"
     },
     screenId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
     serverTime
-  })}\n\n`;
+  }) + "\n\n";
 }
 
 test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release", async ({
