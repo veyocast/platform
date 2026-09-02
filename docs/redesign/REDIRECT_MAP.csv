@@ -1,0 +1,23 @@
+source,target,type,query_preserved,hash_preserved,capability,status,test,rollback
+/dashboard/auditlog,/dashboard/activity,server_307,yes,client_after_server_navigation,tenant.audit.read,IN_PROGRESS,redirect contract plus destination auth,retain source route
+/dashboard/data-sources,/dashboard/sources,server_307,yes,client_after_server_navigation,tenant.data_source.read,IN_PROGRESS,redirect contract plus destination auth,retain source route
+/dashboard/data-sources/sportlink,/dashboard/sources/sportlink,server_307,yes,client_after_server_navigation,tenant.data_source.read,IN_PROGRESS,redirect contract plus destination auth,retain source route
+/dashboard/data-sources/led-scores,/dashboard/sources/led-scores,server_307,yes,client_after_server_navigation,tenant.data_source.read,IN_PROGRESS,redirect contract plus destination auth,retain source route
+/dashboard/integrations,/dashboard/sources,server_307,yes,client_after_server_navigation,tenant.data_source.read,IN_PROGRESS,redirect contract plus destination auth,retain source route
+/dashboard/integrations/youtube,/dashboard/sources/youtube,server_307,yes,client_after_server_navigation,tenant.data_source.read,IN_PROGRESS,redirect contract plus destination auth,retain source route
+/dashboard/integrations/twelve-products,/dashboard/sources/twelve/products,server_307,yes,client_after_server_navigation,tenant.product.read,IN_PROGRESS,redirect contract plus destination auth,retain source route
+/dashboard/integrations/twelve-products/imports/[importId],/dashboard/sources/twelve/imports/[importId],server_307,yes,client_after_server_navigation,tenant.product.read,IN_PROGRESS,redirect contract plus destination auth,retain source route
+/dashboard/products,/dashboard/sources/twelve/products,server_307,yes,client_after_server_navigation,tenant.product.read,IN_PROGRESS,existing redirect retarget test,restore current target
+/dashboard/products/imports/[importId],/dashboard/sources/twelve/imports/[importId],server_307,yes,client_after_server_navigation,tenant.product.read,IN_PROGRESS,existing redirect retarget test,restore current target
+/dashboard/releases,/dashboard/publications,server_307,yes,client_after_server_navigation,tenant.release.read,IN_PROGRESS,redirect contract plus immutable destination,retain source route
+/dashboard/releases/[releaseId],/dashboard/publications/[releaseId],server_307,yes,client_after_server_navigation,tenant.release.read,IN_PROGRESS,redirect contract plus immutable destination,retain source route
+/dashboard/screen-groups,/dashboard/screens/groups,server_307,yes,client_after_server_navigation,tenant.screen.read,IN_PROGRESS,redirect contract plus destination auth,retain source route
+/dashboard/screens?view=health,/dashboard/screens/health,server_or_canonical_link,yes,client_after_server_navigation,tenant.screen.read,IN_PROGRESS,view compatibility test,retain query view
+/dashboard/screens?view=venue,/dashboard/screens/locations,server_or_canonical_link,yes,client_after_server_navigation,tenant.screen.read,IN_PROGRESS,view compatibility test,retain query view
+/dashboard/templates,/dashboard/playlist-templates,server_307,yes,client_after_server_navigation,tenant.playlist.read,IN_PROGRESS,redirect contract plus destination auth,retain source route
+/dashboard/account,/dashboard/account,canonical,yes,yes,authenticated,IN_PROGRESS,auth account route E2E,remove new nav link
+/dashboard/account/mfa,/dashboard/account/mfa,canonical,yes,yes,authenticated,IN_PROGRESS,AAL route E2E,restore direct auth MFA link
+/auth/mfa,/dashboard/account/mfa,compatibility_after_auth_flow,yes,client_after_server_navigation,authenticated,IN_PROGRESS,MFA challenge and account-entry paths,retain auth route for challenge
+/platform/users,/platform/access/users,server_307,yes,client_after_server_navigation,platform.user.manage,IN_PROGRESS,platform capability test,retain source route
+/mobile/pair,/dashboard/screens/new,server_307,yes,client_after_server_navigation,tenant.screen.write,COMPLETE,existing redirect test,retain source route
+/inloggen,CONTROL_ORIGIN/login,server_307,yes,client_after_server_navigation,public,COMPLETE,marketing route test,retain source route

@@ -37,7 +37,7 @@ additional_redirect_urls = [
   "http://127.0.0.1:3100/auth/confirm",
   "http://127.0.0.1:3103/auth/confirm",
   "https://control.veyocast.nl/auth/confirm",
-  "https://control-staging.veyocast.nl/auth/confirm"
+  "https://staging-control.veyocast.nl/auth/confirm"
 ]
 jwt_expiry = 3600
 enable_signup = true

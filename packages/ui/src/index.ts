@@ -17,5 +17,5 @@ export * from "./components/sheet";
 export * from "./components/states";
 export * from "./components/summary-strip";
 export * from "./components/table-preferences";
-export * from "./components/vector";
+export * from "./components/fieldflow";
 export * from "./utils";

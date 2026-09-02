@@ -130,7 +130,6 @@ export function editorialThemeHasValidContrast(
       contrastRatio(tokens.text, tokens.surface, tokens.canvas),
       contrastRatio(tokens.textOnAccent, tokens.accent),
       contrastRatio(tokens.textOnSelected, tokens.rowSelected),
-      contrastRatio(tokens.qrSurface, tokens.imageOverlayStart),
       contrastRatio(tokens.qrInk, tokens.qrSurface)
     ].every((ratio) => ratio !== null && ratio >= minimumRatio);
   });

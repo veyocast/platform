@@ -346,9 +346,13 @@ export function collectDynamicRenderAssetIds(snapshot: unknown) {
     }
   }
   const sport = isRecord(snapshot.sport) ? snapshot.sport : null;
+  const arrivalConfig = isRecord(sport?.arrivalConfig) ? sport.arrivalConfig : null;
+  if (arrivalConfig?.showSponsor === true) add(arrivalConfig.sponsorMediaAssetId);
   if (Array.isArray(sport?.items)) {
     for (const item of sport.items) if (isRecord(item)) {
       add(item.logoMediaAssetId);
+      add(item.homeLogoMediaAssetId);
+      add(item.awayLogoMediaAssetId);
       add(item.photoMediaAssetId);
     }
   }

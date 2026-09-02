@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(14);
+select plan(15);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -91,7 +91,7 @@ select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000001091
 
 select is(
   public.update_tenant_theme_settings_v1(
-    '10000000-0000-4000-8000-000000001091', 0, 'obsidian', '1.0.0',
+    '10000000-0000-4000-8000-000000001091', 0, 'fieldflow', '1.0.0',
     '{"kind":"fixed","mode":"dark"}'::jsonb, '#315CFF', null
   ) ->> 'outcome',
   'applied',
@@ -101,8 +101,18 @@ select is(
 select is(
   (select default_theme_id from public.tenant_settings
    where tenant_id = '10000000-0000-4000-8000-000000001091'),
-  'obsidian',
+  'fieldflow',
   'theme setting is persisted on the correct tenant'
+);
+
+select throws_ok(
+  $$select public.update_tenant_theme_settings_v1(
+    '10000000-0000-4000-8000-000000001091', 1, 'obsidian', '1.0.0',
+    '{"kind":"fixed","mode":"dark"}'::jsonb, null, null
+  )$$,
+  '23514',
+  'new tenant theme settings must use FieldFlow 1.0.0',
+  'legacy themes stay renderable but cannot become a new tenant default'
 );
 
 select throws_ok(

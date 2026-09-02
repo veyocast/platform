@@ -37,7 +37,7 @@ import {
   type DynamicSlidePreviewResult
 } from "../actions";
 import { DynamicSlideLivePreview } from "./dynamic-slide-live-preview";
-import { ThemePicker } from "../_components/theme-picker";
+import { FieldFlowStyleStep } from "../_components/fieldflow-style-step";
 import {
   EditorialPriceEditor,
   type EditorialPriceProductOption
@@ -155,17 +155,21 @@ export function SlideComposerForm({
   const [pricePhotoMode, setPricePhotoMode] = useState("show");
   const initialThemeMode =
     initialTemplate.slug.includes("-dark-") ? "dark" : "light"
+  const fieldflowDefaultSelection = useMemo(
+    () => withFieldflowTheme(defaultThemeSelection),
+    [defaultThemeSelection]
+  );
   const tenantThemeDefaults = useMemo<EditorialThemeConfig>(() => ({
-    dark: editorialTokensFor(defaultThemeSelection, "dark"),
-    light: editorialTokensFor(defaultThemeSelection, "light"),
+    dark: editorialTokensFor(fieldflowDefaultSelection, "dark"),
+    light: editorialTokensFor(fieldflowDefaultSelection, "light"),
     mode: initialThemeMode
-  }), [defaultThemeSelection, initialThemeMode]);
+  }), [fieldflowDefaultSelection, initialThemeMode]);
   const [theme, setTheme] = useState<EditorialThemeConfig>(tenantThemeDefaults);
   const [themeSelection, setThemeSelection] = useState<ThemeSelection>(() => ({
-    ...defaultThemeSelection,
-    modePolicy: defaultThemeSelection.modePolicy.kind === "fixed"
-      ? { ...defaultThemeSelection.modePolicy, mode: initialThemeMode }
-      : defaultThemeSelection.modePolicy
+    ...fieldflowDefaultSelection,
+    modePolicy: fieldflowDefaultSelection.modePolicy.kind === "fixed"
+      ? { ...fieldflowDefaultSelection.modePolicy, mode: initialThemeMode }
+      : fieldflowDefaultSelection.modePolicy
   }));
   const [priceListJson, setPriceListJson] = useState("");
   const [newsFocalPoint, setNewsFocalPoint] = useState({ x: 0.5, y: 0.5 });
@@ -896,14 +900,13 @@ export function SlideComposerForm({
         <h2 ref={currentStep === 4 ? stepHeadingRef : undefined} tabIndex={-1}>
           Kies kleuren en uitstraling
         </h2>
-        <ThemePicker
-          defaultThemeId={themePickerId(defaultThemeSelection)}
-          label="Thema voor deze nieuwsslide"
-          onChange={selectThemeId}
+        <FieldFlowStyleStep
+          label="FieldFlow-stijl voor deze slide"
+          onActivate={() => selectThemeId("fieldflow")}
           value={themePickerId(themeSelection)}
         />
         <p className={styles.muted}>
-          Kies eerst een bestaand VeyoCast-thema. Gebruik de geavanceerde
+          FieldFlow is de vaste stijl voor nieuwe inhoud. Gebruik de gecontroleerde
           instellingen hieronder alleen voor een bewuste afwijking op deze versie.
         </p>
         <EditorialThemeEditor
@@ -1444,8 +1447,19 @@ function editorialTokensFor(selection: ThemeSelection, mode: ThemeMode) {
   }));
 }
 
+function withFieldflowTheme(selection: ThemeSelection): ThemeSelection {
+  return {
+    ...selection,
+    ref: {
+      catalog: "v2",
+      id: "fieldflow",
+      version: themeCatalog.fieldflow.version
+    }
+  };
+}
+
 function themePickerId(selection: ThemeSelection): SelectableThemeId {
-  return selection.ref.catalog === "v2" ? selection.ref.id : "editorial";
+  return selection.ref.catalog === "v2" ? selection.ref.id : "fieldflow";
 }
 
 function templateThemeLabel(template: SlideTemplateOption) {

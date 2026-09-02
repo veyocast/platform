@@ -6,12 +6,18 @@ import { describe, expect, it } from "vitest";
 
 import {
   createCssVariables,
+  createFieldflowCssVariables,
+  createFieldflowTokenModuleSource,
   createTailwindPresetSource,
   createVectorCssVariables,
   createVectorTokenModuleSource,
   toKebabCase
 } from "../src/builders";
-import type { VeyoCastDesignTokens, VeyoCastVectorTokens } from "../src/schema";
+import type {
+  VeyoCastDesignTokens,
+  VeyoCastFieldflowTokens,
+  VeyoCastVectorTokens
+} from "../src/schema";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(testDir, "../../..");
@@ -24,6 +30,14 @@ async function readTokens() {
 async function readVectorTokens() {
   const source = await readFile(resolve(repoRoot, "tokens/veyocast-vector-v2-tokens.json"), "utf8");
   return JSON.parse(source) as VeyoCastVectorTokens;
+}
+
+async function readFieldflowTokens() {
+  const source = await readFile(
+    resolve(repoRoot, "tokens/veyocast-fieldflow-v3-tokens.json"),
+    "utf8"
+  );
+  return JSON.parse(source) as VeyoCastFieldflowTokens;
 }
 
 describe("VeyoCast token builders", () => {
@@ -73,5 +87,19 @@ describe("VeyoCast token builders", () => {
     expect(moduleSource).toContain("satisfies VeyoCastVectorTokens");
     expect(moduleSource).toContain('"minimumTargetPx": 44');
     expect(moduleSource).toContain('"railExpandedPx": 248');
+  });
+
+  it("projects FieldFlow semantic tokens to web, native and legacy aliases", async () => {
+    const tokens = await readFieldflowTokens();
+    const css = createFieldflowCssVariables(tokens);
+    const moduleSource = createFieldflowTokenModuleSource(tokens);
+
+    expect(css).toContain("--ff-canvas: #F4F7F5;");
+    expect(css).toContain("--ff-action-default: #FF5C20;");
+    expect(css).toContain("--vc-background: var(--ff-canvas);");
+    expect(css).toContain('[data-contrast="high"]');
+    expect(css).toContain("--ff-touch-minimum-target-px: 44px;");
+    expect(moduleSource).toContain("export const veyocastFieldflowTokens");
+    expect(moduleSource).toContain("satisfies VeyoCastFieldflowTokens");
   });
 });

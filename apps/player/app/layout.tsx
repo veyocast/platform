@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: "dark",
   initialScale: 1,
-  themeColor: "#0A0A0A",
+  themeColor: "#071C1B",
   width: "device-width",
   viewportFit: "cover"
 };
@@ -34,7 +34,7 @@ export default function RootLayout({
   children
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html data-veyocast-player-stage="document" lang="nl">
+    <html data-design-system="fieldflow" data-veyocast-player-stage="document" lang="nl">
       <body>
         <script
           dangerouslySetInnerHTML={{ __html: playerClientFallbackScript }}

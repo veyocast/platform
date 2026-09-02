@@ -69,7 +69,7 @@ function createTemplateDocument(
   copy: Readonly<{ category: StudioTemplateCategory; eyebrow: string; title: string; subtitle: string }>
 ): StudioDocument {
   const document = createEmptyStudioDocument(formatId, {
-    background: studioPalette.inkBlack,
+    background: studioPalette.fieldflowPetrol,
     templateId: `system-${copy.category}-${formatId}-v1`
   });
   const landscape = formatId === "landscape-hd";
@@ -92,7 +92,7 @@ function createTemplateDocument(
       locked: false,
       zIndex: 0,
       shape: "rectangle",
-      fill: { kind: "solid", color: studioPalette.electricOrange },
+      fill: { kind: "solid", color: studioPalette.fieldflowOrange },
       cornerRadius: 7
     },
     {
@@ -114,7 +114,7 @@ function createTemplateDocument(
       fontSize: landscape ? 30 : 34,
       lineHeight: 1.1,
       letterSpacing: 4,
-      fill: studioPalette.warmOrange,
+      fill: studioPalette.fieldflowGreen,
       align: "left",
       verticalAlign: "top",
       autoFit: false,
@@ -135,12 +135,12 @@ function createTemplateDocument(
       locked: false,
       zIndex: 2,
       text: copy.title,
-      fontFamily: "Inter Tight Variable",
+      fontFamily: "Manrope Variable",
       fontWeight: 800,
       fontSize: landscape ? 112 : 128,
       lineHeight: 0.98,
       letterSpacing: -3,
-      fill: studioPalette.paperWhite,
+      fill: studioPalette.fieldflowCloud,
       align: "left",
       verticalAlign: "top",
       autoFit: true,
@@ -166,7 +166,7 @@ function createTemplateDocument(
       fontSize: landscape ? 38 : 44,
       lineHeight: 1.25,
       letterSpacing: 0,
-      fill: studioPalette.paperWhite,
+      fill: studioPalette.fieldflowCloud,
       align: "left",
       verticalAlign: "top",
       autoFit: false,
@@ -188,8 +188,8 @@ function createTemplateDocument(
       zIndex: 4,
       slot: "photo",
       label: "Vervang door een clubfoto",
-      fill: studioPalette.surfaceDark,
-      stroke: "#505050"
+      fill: studioPalette.fieldflowDarkPetrol,
+      stroke: studioPalette.fieldflowGreen
     },
     {
       id: "brand-mark",
@@ -207,7 +207,7 @@ function createTemplateDocument(
       slot: "tenant-logo",
       label: "Clublogo",
       fill: studioPalette.paperWhite,
-      stroke: studioPalette.electricOrange
+      stroke: studioPalette.fieldflowOrange
     }
   ];
 
@@ -217,8 +217,8 @@ function createTemplateDocument(
       ...document.artboard,
       background: {
         kind: "linear-gradient",
-        from: studioPalette.inkBlack,
-        to: studioPalette.surfaceWarm,
+        from: studioPalette.fieldflowPetrol,
+        to: studioPalette.fieldflowDarkPetrol,
         angle: landscape ? 0 : 90
       }
     },

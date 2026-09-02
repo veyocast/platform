@@ -27,7 +27,8 @@ export type RenderStudioSvgInput = {
 
 const rendererFontFamilies: Record<StudioFontFamily, string> = {
   "Inter Tight Variable": "Inter Tight",
-  "Inter Variable": "Inter"
+  "Inter Variable": "Inter",
+  "Manrope Variable": "Manrope"
 };
 
 export class StudioSvgRenderError extends Error {

@@ -1,0 +1,39 @@
+feature,domain,current_location,target_location,classification,capability,data_contract,status,evidence,rollback
+daily_cockpit,tenant,/dashboard,/dashboard,REPLACE,tenant.overview.read,read-only aggregate,VERIFIED_LOCAL,real operational cards only,restore prior dashboard composition
+studio,content,/dashboard/studio,/dashboard/studio,RETAIN,tenant.studio.read,versioned design document,VERIFIED_LOCAL,desktop editor plus mobile quick edit,disable FieldFlow shell alias
+media_library,content,/dashboard/media,/dashboard/media,RETAIN,tenant.media.read,tenant media lifecycle,VERIFIED_LOCAL,upload processing archive usage,disable new presentation layer
+playlists,content,/dashboard/playlists,/dashboard/playlists,RETAIN,tenant.playlist.read,revisioned draft,VERIFIED_LOCAL,search create edit duplicate,disable new presentation layer
+slides_formats,content,/dashboard/slides,/dashboard/slides,RENAME,tenant.dynamic_slide.read,frozen dynamic snapshot,VERIFIED_LOCAL,theme compatibility and FieldFlow output,retain hidden legacy renderer
+playlist_templates,content,/dashboard/templates,/dashboard/playlist-templates,MOVE,tenant.playlist.read,tenant template,VERIFIED_LOCAL,one-hop redirect,restore old entry temporarily
+screens,broadcast,/dashboard/screens,/dashboard/screens,RETAIN,tenant.screen.read,screen and device identity,VERIFIED_LOCAL,overview health groups locations,disable child-route aliases
+screen_groups,broadcast,/dashboard/screen-groups,/dashboard/screens/groups,MOVE,tenant.screen.read,tenant group membership,VERIFIED_LOCAL,contextualized under Screens,restore old page temporarily
+locations,broadcast,/dashboard/screens?view=venue,/dashboard/screens/locations,CONTEXTUALIZE,tenant.screen.read,venue twin,VERIFIED_LOCAL,contextual route and query compatibility,restore query view
+planning,broadcast,/dashboard/planning,/dashboard/planning,RETAIN,tenant.playlist.read,timezone-safe immutable target snapshot,VERIFIED_LOCAL,conflict and DST handling,disable new presentation layer
+publications,broadcast,/dashboard/releases,/dashboard/publications,RENAME,tenant.release.read,immutable playlist release,VERIFIED_LOCAL,user copy says Publicaties,restore route alias
+sources,sources,/dashboard/integrations + /dashboard/data-sources,/dashboard/sources,MERGE,tenant.data_source.read,dynamic source and provider connection,VERIFIED_LOCAL,one source workspace with guarded detail routes,retain old aliases
+twelve_products,sources,/dashboard/integrations/twelve-products,/dashboard/sources/twelve/products,CONTEXTUALIZE,tenant.product.read,versioned product import,VERIFIED_LOCAL,under Twelve source,retain old aliases
+sponsor_hub,growth,/dashboard/sponsors,/dashboard/sponsors,RENAME,tenant.sponsor.read,sponsor plan and proof,VERIFIED_LOCAL,navigation label Sponsor,disable new presentation layer
+engage,growth,/dashboard/engage,/dashboard/engage,RETAIN,tenant.dynamic_slide.read,campaign plus bounded live projection,VERIFIED_LOCAL,poll results and MOTM,disable new presentation layer
+team,organization,/dashboard/team,/dashboard/team,RETAIN,tenant.team.read,membership invitation custom role,VERIFIED_LOCAL,server guarded,disable new presentation layer
+settings,organization,/dashboard/settings,/dashboard/settings,RETAIN,tenant.settings.read,tenant settings,VERIFIED_LOCAL,account split from tenant settings,disable new presentation layer
+account,organization,missing,/dashboard/account,REPLACE,authenticated human,user identity,VERIFIED_LOCAL,repair broken settings link,remove route after link rollback
+mfa,organization,/auth/mfa,/dashboard/account/mfa,MOVE,authenticated human,AAL identity,VERIFIED_LOCAL,canonical account security entry with auth compatibility,restore direct auth link
+billing,organization,/dashboard/settings/billing,/dashboard/settings/billing,RETAIN,tenant.billing.read,billing shadow and entitlement,VERIFIED_LOCAL,honest live state,disable new presentation layer
+activity,organization,/dashboard/auditlog,/dashboard/activity,RENAME,tenant.audit.read,append-only audit,VERIFIED_LOCAL,one-hop route alias,retain old alias
+support,organization,/dashboard/support,/dashboard/support,RETAIN,tenant.ticket.read,tenant ticket,VERIFIED_LOCAL,route complete states,disable new presentation layer
+platform_operations,platform,/platform + /platform/system,/platform + /platform/system,REPLACE,platform.system.read,health and operational signals,VERIFIED_LOCAL,task-first grouping,disable new platform navigation
+platform_customers,platform,/platform/tenants,/platform/tenants,RENAME,platform.tenant.read,tenant lifecycle,VERIFIED_LOCAL,Klanten navigation label,disable new platform navigation
+platform_access,platform,/platform/users,/platform/access/users,MOVE,platform.user.manage,platform membership and custom role,VERIFIED_LOCAL,governance context,retain old alias
+platform_support,platform,/platform/support,/platform/support,RETAIN,platform.ticket.read,support routing,VERIFIED_LOCAL,department and assignment,disable new presentation layer
+platform_product,platform,/platform/templates + /platform/integrations/sportlink,/platform/templates + /platform/integrations/sportlink,CONTEXTUALIZE,platform.dynamic_template.read,versioned templates and provider operations,VERIFIED_LOCAL,Product grouping,disable new platform navigation
+control_mobile,mobile,Expo routes,same routes with reordered task tabs,REPLACE,mobile session capabilities,mobile v1 API,VERIFIED_LOCAL,Vandaag Schermen Content Maken Meer,rollback JS bundle
+player_system,player,modern and static LG system screens,same routes with FieldFlow system skin,REPLACE,device credential,installation pairing release,VERIFIED_LOCAL,no playback contract change,rollback presentation only
+slide_theme,output,ten public v2 themes,fieldflow public plus ten hidden legacy themes,REPLACE,tenant.dynamic_slide.write,immutable theme presentation snapshot,VERIFIED_LOCAL,additive schema no backfill,select legacy renderer by frozen ref
+raw_media,output,modern and LG playback,same,RETAIN,device release access,immutable media item,VERIFIED_LOCAL,pixels untouched and fit preserved,use current media renderer
+menu_output,output,menu and MenuDocument v2,FieldFlow menu family,REPLACE,tenant.dynamic_slide.read,frozen menu snapshot,VERIFIED_LOCAL,all seven block types modern and LG,legacy renderer by frozen ref
+news_output,output,four modern variants and one LG layout,four FieldFlow variants both renderers,REPLACE,tenant.dynamic_slide.read,frozen news snapshot,VERIFIED_LOCAL,QR focal point pagination parity,legacy renderer by frozen ref
+sport_output,output,15 active plus five dormant contracts,20 explicit FieldFlow viewmodels,REPLACE,tenant.dynamic_slide.read,frozen sport snapshot,VERIFIED_LOCAL,dual logos and no unknown generic fallback,legacy renderer by frozen ref
+led_output,output,live plus eight scene pairs,FieldFlow live and compatible authored scenes,REPLACE,tenant.ledscores.read,immutable alert version plus bounded latest state,VERIFIED_LOCAL,title status assets and fallbacks,legacy renderer by frozen ref
+engage_output,output,generic live projection,FieldFlow poll results MOTM,REPLACE,device engage token,bounded live plus immutable fallback,VERIFIED_LOCAL,deterministic poster fallback,use current fallback asset
+sponsor_output,output,modern absolute overlays,semantically reserved six positions both renderers,REPLACE,device sponsor plan,immutable sponsor plan plus proof,VERIFIED_LOCAL,collision-safe context matching,disable sponsor plan if unsafe
+studio_templates,studio,22 generic system templates,22 category-specific FieldFlow versions,REPLACE,tenant.studio.read,versioned design templates,VERIFIED_LOCAL,no mutation of user designs,retain historical templates hidden

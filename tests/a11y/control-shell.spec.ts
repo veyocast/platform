@@ -20,14 +20,14 @@ test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   await expect(page.getByText("Deze route simuleert daarom geen klant")).toBeVisible();
 });
 
-test("fixed Publisher navigation remains keyboard reachable", async ({ page }) => {
+test("fixed FieldFlow tenant navigation remains keyboard reachable", async ({ page }) => {
   await page.setViewportSize({ height: 900, width: 1280 });
   await page.goto("/dashboard");
   await page.waitForLoadState("networkidle");
 
   const sidebar = page.getByLabel("Control navigatie");
-  const overview = sidebar.getByRole("link", { name: /Overzicht/ });
-  await expect(sidebar).toHaveCSS("width", "232px");
+  const overview = sidebar.getByRole("link", { name: "Vandaag", exact: true });
+  await expect(sidebar).toHaveCSS("width", "248px");
   await expect(sidebar.locator(".control-brand__logo--inverse")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Navigatie (in|uit)klappen/ })
@@ -62,7 +62,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
       });
       await expect(mobileNavigation).toBeVisible();
       await expect(
-        mobileNavigation.getByRole("link", { name: "Overzicht" })
+        mobileNavigation.getByRole("link", { name: "Vandaag", exact: true })
       ).toHaveAttribute("aria-current", "page");
 
       for (const control of await mobileNavigation
@@ -99,12 +99,12 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
 
       await menuButton.click();
       const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
-      await expect(navigation.getByRole("heading", { name: "Werkplek" })).toBeAttached();
+      await expect(navigation.getByRole("heading", { name: "Content" })).toBeAttached();
       await expect(navigation.getByRole("link", { name: /Instellingen/ })).toBeVisible();
       await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
     } else {
       const sidebar = page.getByLabel("Control navigatie");
-      await expect(sidebar).toHaveCSS("width", "232px");
+      await expect(sidebar).toHaveCSS("width", "248px");
       await expect(
         page.getByRole("navigation", { name: "Hoofdnavigatie" })
       ).toBeVisible();
@@ -124,7 +124,7 @@ test("mobile navigation never mixes tenant and platform destinations", async ({
   });
   await expect(mobileNavigation).toBeVisible();
   await expect(mobileNavigation.getByRole("link", { name: "Playlists" })).toBeVisible();
-  await expect(mobileNavigation.getByRole("link", { name: "Tenants" })).toHaveCount(0);
+  await expect(mobileNavigation.getByRole("link", { name: "Klanten" })).toHaveCount(0);
 
   const platformPage = await page.context().newPage();
   await platformPage.setViewportSize({ height: 844, width: 390 });
@@ -140,7 +140,7 @@ test("mobile navigation never mixes tenant and platform destinations", async ({
   const platformNavigation = platformPage.getByRole("navigation", {
     name: "Hoofdnavigatie"
   });
-  await expect(platformNavigation.getByRole("link", { name: /Tenants/ })).toBeVisible();
+  await expect(platformNavigation.getByRole("link", { name: /Klanten/ })).toBeVisible();
   await expect(platformNavigation.getByRole("link", { name: /Playlists/ })).toHaveCount(0);
   await platformPage.close();
 });
@@ -226,20 +226,20 @@ test("dynamic content workspaces remain usable on mobile and desktop", async ({
   }
 });
 
-test("Integraties exposes Twelve Producten as a responsive secondary journey", async ({
+test("Bronnen exposes Twelve Producten as a responsive secondary journey", async ({
   page
 }) => {
   for (const width of [390, 1280]) {
     await page.setViewportSize({ height: 900, width });
-    await page.goto("/dashboard/integrations");
+    await page.goto("/dashboard/sources");
 
     await expect(
-      page.getByRole("heading", { exact: true, level: 1, name: "Integraties" })
+      page.getByRole("heading", { exact: true, level: 1, name: "Databronnen" })
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Twelve Producten" })
+      page.getByRole("link", { name: "Twelve-import" })
     ).toBeVisible();
-    await expect(page.getByText("Gecontroleerde Excel-snapshot")).toBeVisible();
+    await expect(page.getByText("Nog geen databronnen")).toBeVisible();
     await expect
       .poll(() =>
         page.evaluate(
@@ -251,10 +251,10 @@ test("Integraties exposes Twelve Producten as a responsive secondary journey", a
       .toBe(true);
 
     await expect(async () => {
-      if (!/\/dashboard\/integrations\/twelve-products$/.test(page.url())) {
-        await page.getByRole("link", { name: "Twelve Producten openen" }).click();
+      if (!/\/dashboard\/sources\/twelve\/products$/.test(page.url())) {
+        await page.getByRole("link", { name: "Twelve-import" }).click();
       }
-      await expect(page).toHaveURL(/\/dashboard\/integrations\/twelve-products$/);
+      await expect(page).toHaveURL(/\/dashboard\/sources\/twelve\/products$/);
     }).toPass({ timeout: 20_000 });
     await expect(
       page.getByRole("heading", {

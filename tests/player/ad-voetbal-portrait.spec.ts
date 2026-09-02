@@ -85,7 +85,8 @@ test("toont de portrait RSS-slide als dynamische HTML/CSS Playercontent", async 
   ]);
   expect(qrBox).not.toBeNull();
   expect(finalMetaBox).not.toBeNull();
-  expect(qrBox!.width).toBeLessThanOrEqual(120);
+  expect(qrBox!.width).toBeGreaterThanOrEqual(220);
+  expect(qrBox!.width).toBeLessThanOrEqual(280);
   expect(finalMetaBox!.x + finalMetaBox!.width).toBeLessThan(qrBox!.x);
 
   const longTitle = page.getByRole("heading", { name: longNewsTitle });

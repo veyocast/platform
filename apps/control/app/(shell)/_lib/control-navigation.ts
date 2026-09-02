@@ -8,11 +8,17 @@ export type ControlRole = HumanRole;
 export type ControlScope = "platform" | "tenant";
 
 export type ControlNavigationSection =
-  | "overview"
-  | "workspace"
-  | "management"
+  | "access"
+  | "broadcast"
+  | "content"
+  | "customers"
+  | "growth"
+  | "operations"
+  | "product"
+  | "sources"
   | "support"
-  | "organization";
+  | "organization"
+  | "today";
 
 export type ControlNavigationItem = {
   description: string;
@@ -65,7 +71,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/platform",
     label: "Platform",
     requiredCapability: "platform.system.read",
-    section: "overview",
+    section: "operations",
     scope: "platform"
   },
   {
@@ -73,7 +79,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/platform/system",
     label: "Systeem",
     requiredCapability: "platform.system.read",
-    section: "overview",
+    section: "operations",
     scope: "platform"
   },
   {
@@ -81,23 +87,23 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/platform/billing",
     label: "Billing",
     requiredCapability: "platform.system.read",
-    section: "overview",
+    section: "operations",
     scope: "platform"
   },
   {
     description: "Verenigingen, status en limieten",
     href: "/platform/tenants",
-    label: "Tenants",
+    label: "Klanten",
     requiredCapability: "platform.tenant.read",
-    section: "organization",
+    section: "customers",
     scope: "platform"
   },
   {
     description: "Platformrollen en MFA-status",
-    href: "/platform/users",
+    href: "/platform/access/users",
     label: "Platformgebruikers",
     requiredCapability: "platform.user.manage",
-    section: "organization",
+    section: "access",
     scope: "platform"
   },
   {
@@ -105,15 +111,15 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/platform/support",
     label: "Supportdesk",
     requiredCapability: "platform.ticket.read",
-    section: "organization",
+    section: "support",
     scope: "platform"
   },
   {
     description: "Vaste dynamische vormgeving en versies",
     href: "/platform/templates",
-    label: "Dynamische templates",
+    label: "Renderformats",
     requiredCapability: "platform.dynamic_template.read",
-    section: "organization",
+    section: "product",
     scope: "platform"
   },
   {
@@ -121,15 +127,15 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/platform/integrations/sportlink",
     label: "Sportlink",
     requiredCapability: "platform.tenant.read",
-    section: "organization",
+    section: "product",
     scope: "platform"
   },
   {
     description: "Dagelijkse operatie en aandachtspunten",
     href: "/dashboard",
-    label: "Overzicht",
+    label: "Vandaag",
     requiredCapability: "tenant.overview.read",
-    section: "workspace",
+    section: "today",
     scope: "tenant"
   },
   {
@@ -137,7 +143,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/studio",
     label: "Studio",
     requiredCapability: "tenant.studio.read",
-    section: "workspace",
+    section: "content",
     scope: "tenant"
   },
   {
@@ -145,7 +151,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/sponsors",
     label: "Sponsor Hub",
     requiredCapability: "tenant.sponsor.read",
-    section: "workspace",
+    section: "growth",
     scope: "tenant"
   },
   {
@@ -153,7 +159,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/engage",
     label: "Engage",
     requiredCapability: "tenant.dynamic_slide.read",
-    section: "workspace",
+    section: "growth",
     scope: "tenant"
   },
   {
@@ -161,7 +167,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/media",
     label: "Media",
     requiredCapability: "tenant.media.read",
-    section: "workspace",
+    section: "content",
     scope: "tenant"
   },
   {
@@ -169,7 +175,15 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/playlists",
     label: "Playlists",
     requiredCapability: "tenant.playlist.read",
-    section: "workspace",
+    section: "content",
+    scope: "tenant"
+  },
+  {
+    description: "Datagestuurde slides, versies en renderstatus",
+    href: "/dashboard/slides",
+    label: "Slides & formats",
+    requiredCapability: "tenant.dynamic_slide.read",
+    section: "content",
     scope: "tenant"
   },
   {
@@ -177,7 +191,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/screens",
     label: "Schermen",
     requiredCapability: "tenant.screen.read",
-    section: "workspace",
+    section: "broadcast",
     scope: "tenant"
   },
   {
@@ -185,47 +199,39 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/planning",
     label: "Planning",
     requiredCapability: "tenant.playlist.read",
-    section: "workspace",
+    section: "broadcast",
     scope: "tenant"
   },
   {
     description: "Schermen logisch organiseren",
-    href: "/dashboard/screen-groups",
+    href: "/dashboard/screens/groups",
     label: "Schermgroepen",
     requiredCapability: "tenant.screen.read",
-    section: "management",
+    section: "broadcast",
     scope: "tenant"
   },
   {
     description: "Herbruikbare contentvormen",
-    href: "/dashboard/templates",
-    label: "Templates",
+    href: "/dashboard/playlist-templates",
+    label: "Playlist-sjablonen",
     requiredCapability: "tenant.playlist.read",
-    section: "management",
+    section: "content",
     scope: "tenant"
   },
   {
     description: "Immutable historie, uitrol en preflight",
-    href: "/dashboard/releases",
-    label: "Releases",
+    href: "/dashboard/publications",
+    label: "Publicaties",
     requiredCapability: "tenant.release.read",
-    section: "management",
+    section: "broadcast",
     scope: "tenant"
   },
   {
     description: "Twelve-producten en toekomstige gegevensbronnen",
-    href: "/dashboard/integrations",
-    label: "Integraties",
-    requiredCapability: "tenant.product.read",
-    section: "management",
-    scope: "tenant"
-  },
-  {
-    description: "Product-, RSS- en providerdata beheren",
-    href: "/dashboard/data-sources",
-    label: "Databronnen",
+    href: "/dashboard/sources",
+    label: "Bronnen",
     requiredCapability: "tenant.data_source.read",
-    section: "management",
+    section: "sources",
     scope: "tenant"
   },
   {
@@ -233,15 +239,15 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/team",
     label: "Team",
     requiredCapability: "tenant.team.read",
-    section: "management",
+    section: "organization",
     scope: "tenant"
   },
   {
     description: "Wijzigingen en publicaties volgen",
-    href: "/dashboard/auditlog",
+    href: "/dashboard/activity",
     label: "Activiteit",
     requiredCapability: "tenant.audit.read",
-    section: "management",
+    section: "organization",
     scope: "tenant"
   },
   {
@@ -249,7 +255,15 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/settings",
     label: "Instellingen",
     requiredCapability: "tenant.settings.read",
-    section: "management",
+    section: "organization",
+    scope: "tenant"
+  },
+  {
+    description: "Je eigen profiel, sessie en tweestapsverificatie",
+    href: "/dashboard/account",
+    label: "Account",
+    requiredCapability: "tenant.settings.read",
+    section: "organization",
     scope: "tenant"
   },
   {
@@ -257,7 +271,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/support",
     label: "Support",
     requiredCapability: "tenant.ticket.read",
-    section: "support",
+    section: "organization",
     scope: "tenant"
   }
 ];
@@ -275,13 +289,19 @@ const navigationScopeMeta = {
 
 const navigationSectionMeta = {
   platform: [
-    { section: "overview", title: "Overzicht" },
-    { section: "organization", title: "Organisatie" }
+    { section: "operations", title: "Operatie" },
+    { section: "customers", title: "Klanten" },
+    { section: "support", title: "Support" },
+    { section: "product", title: "Product" },
+    { section: "access", title: "Toegang & governance" }
   ],
   tenant: [
-    { section: "workspace", title: "Werkplek" },
-    { section: "management", title: "Beheer" },
-    { section: "support", title: "Support" }
+    { section: "today", title: "Vandaag" },
+    { section: "content", title: "Content" },
+    { section: "broadcast", title: "Uitzenden" },
+    { section: "sources", title: "Bronnen" },
+    { section: "growth", title: "Groei" },
+    { section: "organization", title: "Organisatie" }
   ]
 } satisfies Record<
   ControlScope,

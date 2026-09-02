@@ -13,7 +13,7 @@ Control beheerd.
 
 ## Vooraf
 
-1. Selecteer in Supabase production project `uuyelumptrfwuqwzkwsd`.
+1. Selecteer in Supabase production project `csrakhciqvehitplvale`.
 2. Open **Authentication → Users**.
 3. Controleer dat het persoonlijke beheeraccount bestaat en het juiste
    e-mailadres heeft.

@@ -32,10 +32,7 @@ export const dynamicTemplateSlideTypes = [
   "ledscores_live_match"
 ] as const;
 
-/**
- * The only Editorial Arena types backed by a complete, tested data flow in
- * the current repository. Control and Player share this capability gate.
- */
+/** All typed dynamic families supported by both modern and static players. */
 export const editorialArenaActiveSlideTypes = [
   "menu",
   "price_list",
@@ -47,11 +44,16 @@ export const editorialArenaActiveSlideTypes = [
   "sport_match_of_the_day",
   "sport_next_match",
   "sport_officials",
+  "sport_period_standing",
   "sport_program",
   "sport_referee_arrivals",
   "sport_results",
   "sport_standing",
-  "sport_visitor_arrivals"
+  "sport_sponsor",
+  "sport_team",
+  "sport_trainings",
+  "sport_visitor_arrivals",
+  "sport_volunteers"
 ] as const satisfies readonly (typeof dynamicSlideTypes)[number][];
 
 export const editorialArenaThemeId = "editorial-arena" as const;

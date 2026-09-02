@@ -5,33 +5,37 @@
   --color-brand-orange: var(--vc-action);
   --color-brand-ink: var(--mk-ink);
   --color-brand-paper: var(--mk-paper);
-  --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
-  --font-display: var(--font-inter-tight), Inter, system-ui, sans-serif;
+  --font-sans: var(--ff-font-ui);
+  --font-display: var(--ff-font-display);
 }
 
 :root {
   color-scheme: dark;
-  --mk-ink: #080808;
-  --mk-ink-raised: #121212;
-  --mk-paper: #fafaf7;
-  --mk-surface: #ffffff;
-  --mk-muted: #676764;
-  --mk-line: #e7e4df;
-  --mk-line-dark: #2a2a2a;
-  --mk-orange-hover: #e94b12;
-  --mk-orange-soft: #fff0e7;
-  --mk-orange-text: #a93408;
-  --mk-container: 1280px;
+  --mk-ink: var(--ff-brand-petrol);
+  --mk-ink-raised: var(--ff-secondary-action-hover);
+  --mk-paper: var(--ff-canvas);
+  --mk-surface: var(--ff-surface);
+  --mk-muted: var(--ff-ink-muted);
+  --mk-line: var(--ff-line);
+  --mk-line-dark: var(--ff-line-strong);
+  --mk-orange-hover: var(--ff-action-hover);
+  --mk-orange-soft: var(--ff-offline-surface);
+  --mk-orange-text: var(--ff-brand-warm-ink);
+  --mk-on-action: var(--ff-action-on-action);
+  --mk-on-dark: var(--ff-secondary-action-on-action);
+  --mk-on-dark-muted: color-mix(in srgb, var(--ff-secondary-action-on-action) 84%, var(--ff-secondary-action-default));
+  --mk-on-dark-subtle: color-mix(in srgb, var(--ff-secondary-action-on-action) 72%, var(--ff-secondary-action-default));
+  --mk-container: var(--ff-layout-marketing-max-width-px);
   --mk-wide: 1440px;
   --mk-header-height: 72px;
   --mk-gutter: clamp(1.25rem, 4vw, 4rem);
   --mk-section-y: clamp(4.5rem, 8vw, 8.5rem);
-  --mk-radius-card: 18px;
-  --mk-radius-panel: 28px;
+  --mk-radius-card: var(--ff-radius-card);
+  --mk-radius-panel: var(--ff-radius-marketing);
   --mk-shadow-panel: 0 24px 80px rgb(8 8 8 / 11%);
   --mk-shadow-device: 0 40px 100px rgb(0 0 0 / 44%);
   --mk-ease: cubic-bezier(0.2, 0, 0, 1);
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--ff-font-ui);
   scroll-behavior: smooth;
   text-rendering: optimizeLegibility;
 }
@@ -59,7 +63,7 @@ button,
 input,
 select,
 textarea {
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--ff-font-ui);
 }
 
 a {
@@ -710,7 +714,7 @@ h2 {
 }
 
 .mobile-engage p {
-  color: var(--vc-vector-ink-on-dark-muted, #aaa9a4);
+  color: var(--mk-on-dark-muted);
   line-height: var(--vc-vector-line-height-body, 1.5);
   max-width: 62ch;
 }
@@ -730,7 +734,7 @@ h2 {
 
 .mobile-engage .status-chip {
   border-color: var(--vc-vector-line-on-dark, var(--mk-line-dark));
-  color: var(--vc-vector-ink-on-dark-muted, #aaa9a4);
+  color: var(--mk-on-dark-muted);
   display: inline-flex;
 }
 
@@ -896,7 +900,7 @@ h2 {
 
 .button--primary {
   background: var(--vc-action);
-  color: var(--mk-ink);
+  color: var(--mk-on-action);
 }
 
 .button--primary:hover {
@@ -1279,6 +1283,21 @@ h2 {
 
 .home-hero__visual {
   min-width: 0;
+  position: relative;
+}
+
+.fieldflow-hero-photo {
+  border-radius: var(--ff-radius-marketing);
+  filter: saturate(.86) contrast(1.04);
+  inset: 2% 0 8% 7% !important;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 100%);
+  object-fit: cover;
+  opacity: .5;
+}
+
+.home-hero__visual .hero-product-stage {
+  position: relative;
+  z-index: 2;
 }
 
 .hero-product-stage {
@@ -1416,7 +1435,7 @@ h2 {
 
 .clubtv-card > div {
   background: var(--vc-action);
-  color: var(--mk-ink);
+  color: var(--mk-on-action);
   display: flex;
   font-size: 0.62rem;
   gap: 0.5rem;
@@ -2914,7 +2933,7 @@ h2 {
 }
 
 .marketing-footer__brand p {
-  color: #b0afa9;
+  color: var(--mk-on-dark-muted);
   font-size: 0.82rem;
   line-height: 1.55;
   margin: 0;
@@ -2922,12 +2941,12 @@ h2 {
 }
 
 .marketing-footer__brand span {
-  color: #85847e;
+  color: var(--mk-on-dark-subtle);
   font-size: 0.72rem;
 }
 
 .marketing-footer__group h2 {
-  color: #dddcd6;
+  color: var(--mk-on-dark);
   font-size: 0.75rem;
   margin: 0 0 0.9rem;
 }
@@ -2941,7 +2960,7 @@ h2 {
 }
 
 .marketing-footer__group a {
-  color: #999892;
+  color: var(--mk-on-dark-subtle);
   display: inline-flex;
   font-size: 0.75rem;
   min-height: 30px;
@@ -2964,7 +2983,7 @@ h2 {
 }
 
 .marketing-footer__legal p {
-  color: #85847e;
+  color: var(--mk-on-dark-subtle);
   font-size: 0.68rem;
   margin: 0;
 }
@@ -2976,7 +2995,7 @@ h2 {
 }
 
 .marketing-footer__legal a {
-  color: #8d8c87;
+  color: var(--mk-on-dark-subtle);
   font-size: 0.68rem;
   min-height: 30px;
   padding-block: 0.35rem;

@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(20);
+select plan(22);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -44,7 +44,7 @@ select
   '10000000-0000-4000-8000-000000001221',
   'JO17 stand', 'sport_standing', 'landscape', template.id, version.id,
   '20000000-0000-4000-8000-000000001221', 'latest', 'draft',
-  '{"schemaVersion":1,"blueprintKey":"sportlink.pool_standings","title":"Poulestand","context":{"competitionId":null,"competitionSelectionMode":"auto_current","phaseId":null,"poolId":null,"providerTeamId":"jo17","seasonId":null},"display":{"columns":"two","showDressingRoom":false,"showField":true,"showHomeAway":true,"showReferee":false},"editorial":{"schemaVersion":2,"themeSelection":{"ref":{"catalog":"v2","id":"editorial","version":"1.0.0"},"modePolicy":{"kind":"fixed","mode":"light"},"accent":null,"support":null,"categoryOverrides":[]}},"maxItems":40}'::jsonb
+  '{"schemaVersion":1,"blueprintKey":"sportlink.pool_standings","title":"Poulestand","context":{"competitionId":null,"competitionSelectionMode":"auto_current","phaseId":null,"poolId":null,"providerTeamId":"jo17","seasonId":null},"display":{"columns":"two","showDressingRoom":false,"showField":true,"showHomeAway":true,"showReferee":false},"editorial":{"schemaVersion":2,"themeSelection":{"ref":{"catalog":"v2","id":"fieldflow","version":"1.0.0"},"modePolicy":{"kind":"fixed","mode":"light"},"accent":null,"support":null,"categoryOverrides":[]}},"maxItems":40}'::jsonb
 from public.dynamic_templates template
 join public.dynamic_template_versions version
   on version.id = template.current_published_version_id
@@ -66,6 +66,25 @@ select is(
 select ok(
   (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid = 'public.dynamic_slide_versions'::regclass),
   'configuration versions force RLS'
+);
+select is(
+  (select private.build_dynamic_snapshot_data(slide) #>> '{sport,displayConfig,columns}'
+   from public.dynamic_slides slide
+   where slide.id = '30000000-0000-4000-8000-000000001221'),
+  'two',
+  'Sportlink display configuration reaches the immutable snapshot builder'
+);
+select throws_ok(
+  $$update public.dynamic_slides
+    set configuration_json = jsonb_set(
+      configuration_json,
+      '{editorial,themeSelection,ref,id}',
+      '"editorial"'::jsonb
+    )
+    where id = '30000000-0000-4000-8000-000000001221'$$,
+  '23514',
+  'new or changed dynamic content must use FieldFlow 1.0.0',
+  'the database rejects a hidden legacy theme for changed authoring'
 );
 select ok(
   has_table_privilege('authenticated', 'public.dynamic_slide_versions', 'SELECT')
@@ -115,7 +134,7 @@ select is(public.create_or_resume_dynamic_slide_version_v1('30000000-0000-4000-8
 select is((select count(*) from public.dynamic_slide_versions where dynamic_slide_id = '30000000-0000-4000-8000-000000001221'), 2::bigint, 'idempotent draft creation prevents v3/v4 clutter');
 select is((select version_number from public.dynamic_slide_versions where id = (select active_draft_version_id from public.dynamic_slides where id = '30000000-0000-4000-8000-000000001221')), 2, 'new draft has the next user-facing version number');
 select is((select configuration_json #>> '{context,providerTeamId}' from public.dynamic_slide_versions where version_number = 2 and dynamic_slide_id = '30000000-0000-4000-8000-000000001221'), 'jo17', 'dynamic provider binding is cloned instead of frozen snapshot data');
-select is((select theme_selection_json #>> '{ref,id}' from public.dynamic_slide_versions where version_number = 2 and dynamic_slide_id = '30000000-0000-4000-8000-000000001221'), 'editorial', 'theme is cloned as versioned configuration');
+select is((select theme_selection_json #>> '{ref,id}' from public.dynamic_slide_versions where version_number = 2 and dynamic_slide_id = '30000000-0000-4000-8000-000000001221'), 'fieldflow', 'FieldFlow theme is cloned as versioned configuration');
 reset role;
 select throws_ok(
   $$update public.dynamic_slide_versions set name = 'Tampered history' where dynamic_slide_id = '30000000-0000-4000-8000-000000001221' and version_number = 1$$,

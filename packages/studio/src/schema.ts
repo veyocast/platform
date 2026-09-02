@@ -4,7 +4,7 @@ import {
   studioAnimationPresets,
   studioFonts,
   studioFps,
-  studioFontRegistryVersion,
+  studioFontRegistryVersions,
   studioLimits,
   studioSchemaVersion
 } from "./constants";
@@ -237,7 +237,7 @@ export const studioDocumentSchema = z.object({
   metadata: z.object({
     templateId: z.string().trim().max(120).optional(),
     createdFromRevisionId: uuidSchema.optional(),
-    fontRegistryVersion: z.literal(studioFontRegistryVersion),
+    fontRegistryVersion: z.enum(studioFontRegistryVersions),
     tenantBrandApplied: z.boolean().default(false)
   })
 }).superRefine((document, context) => {

@@ -425,12 +425,12 @@ select is(
   (
     with combinations(team_id, team_name, blueprint_key, slide_type, theme_id) as (
       values
-        ('10', 'Testclub 1', 'sportlink.pool_schedule_next_7_days', 'sport_program', 'atelier'),
-        ('10', 'Testclub 1', 'sportlink.pool_results_previous_7_days', 'sport_results', 'atelier'),
-        ('10', 'Testclub 1', 'sportlink.pool_standings', 'sport_standing', 'atelier'),
-        ('20', 'Testclub 2', 'sportlink.pool_schedule_next_7_days', 'sport_program', 'atelier'),
-        ('20', 'Testclub 2', 'sportlink.pool_results_previous_7_days', 'sport_results', 'atelier'),
-        ('20', 'Testclub 2', 'sportlink.pool_standings', 'sport_standing', 'obsidian')
+        ('10', 'Testclub 1', 'sportlink.pool_schedule_next_7_days', 'sport_program', 'fieldflow'),
+        ('10', 'Testclub 1', 'sportlink.pool_results_previous_7_days', 'sport_results', 'fieldflow'),
+        ('10', 'Testclub 1', 'sportlink.pool_standings', 'sport_standing', 'fieldflow'),
+        ('20', 'Testclub 2', 'sportlink.pool_schedule_next_7_days', 'sport_program', 'fieldflow'),
+        ('20', 'Testclub 2', 'sportlink.pool_results_previous_7_days', 'sport_results', 'fieldflow'),
+        ('20', 'Testclub 2', 'sportlink.pool_standings', 'sport_standing', 'fieldflow')
     ), drafts as (
       select jsonb_agg(jsonb_build_object(
         'blueprintKey', combination.blueprint_key,
@@ -479,16 +479,16 @@ select is(
 select is(
   (select count(*) from public.dynamic_slide_versions
    where name like 'Bulk %'
-     and theme_selection_json #>> '{ref,id}' = 'atelier'),
-  5::bigint,
-  'the bulk theme applies to five slides'
+     and theme_selection_json #>> '{ref,id}' = 'fieldflow'),
+  6::bigint,
+  'the bulk authoring path applies FieldFlow to every slide'
 );
 select is(
   (select count(*) from public.dynamic_slide_versions
    where name like 'Bulk %'
-     and theme_selection_json #>> '{ref,id}' = 'obsidian'),
-  1::bigint,
-  'one slide can override the shared bulk theme'
+     and theme_selection_json #>> '{ref,id}' in ('editorial', 'obsidian', 'atelier')),
+  0::bigint,
+  'the bulk authoring path cannot persist a hidden legacy theme'
 );
 select is(
   (select count(*)

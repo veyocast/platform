@@ -136,6 +136,17 @@
   box-shadow: inset 7.8cqw 0 0 -7.72cqw var(--vc-theme-accent);
 }
 
+.arenaRoot[data-theme-id="fieldflow"]::after {
+  background:
+    radial-gradient(circle at 86% 14%, color-mix(in srgb, var(--vc-theme-support) 16%, transparent), transparent 30%),
+    linear-gradient(color-mix(in srgb, var(--vc-theme-line) 34%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--vc-theme-line) 34%, transparent) 1px, transparent 1px),
+    linear-gradient(118deg, transparent 0 74%, color-mix(in srgb, var(--vc-theme-accent) 11%, transparent) 100%);
+  background-size: auto, 6cqw 6cqw, 6cqw 6cqw, auto;
+  box-shadow: inset 7.8cqw 0 0 -7.72cqw var(--vc-theme-accent);
+  opacity: .92;
+}
+
 .arenaRoot[data-theme-id="obsidian"]::after {
   background:
     radial-gradient(circle at 82% 15%, color-mix(in srgb, var(--vc-theme-accent) 24%, transparent), transparent 31%),
@@ -428,11 +439,216 @@
 .arenaAgendaLayout,
 .arenaAlertLayout,
 .arenaGroundLayout,
-.arenaMatchLayout {
+.arenaMatchLayout,
+.arenaVolunteerLayout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
   height: 100%;
+}
+
+.arenaTeamRoster {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  height: 100%;
+}
+
+.arenaTeamCard {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  padding: 18px;
+}
+
+.arenaTeamPortrait {
+  display: grid;
+  min-height: 0;
+  overflow: hidden;
+  place-items: center;
+  border-radius: calc(var(--vc-radius) * .8);
+  background: var(--vc-panel);
+}
+
+.arenaTeamPortrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.arenaTeamPortrait span {
+  color: var(--vc-accent);
+  font-size: 72px;
+  font-weight: 850;
+}
+
+.arenaTeamCard > div:last-child {
+  padding: 18px 4px 4px;
+}
+
+.arenaTeamCard span,
+.arenaSponsorCopy > span,
+.arenaTrainingRow span,
+.arenaVolunteerCard span,
+.arenaVolunteerCallout span {
+  color: var(--vc-accent);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.arenaTeamCard h2,
+.arenaSponsorCard h2,
+.arenaTrainingRow h2,
+.arenaVolunteerCard h2 {
+  margin: 8px 0 4px;
+  font-size: 30px;
+  line-height: 1.04;
+}
+
+.arenaTeamCard p,
+.arenaSponsorCard p,
+.arenaTrainingRow p,
+.arenaVolunteerCard p {
+  margin: 0;
+  color: var(--vc-text-muted);
+  font-size: 19px;
+  line-height: 1.25;
+}
+
+.arenaTeamCard strong,
+.arenaSponsorCard strong,
+.arenaVolunteerCard strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+.arenaSponsorLayout {
+  display: grid;
+  gap: 18px;
+  height: 100%;
+}
+
+.arenaSponsorLayout:not([data-items="1"]) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.arenaSponsorCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  align-items: center;
+  gap: 48px;
+  padding: 54px;
+}
+
+.arenaSponsorLayout:not([data-items="1"]) .arenaSponsorCard {
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 26px;
+  padding: 32px;
+}
+
+.arenaSponsorPlate {
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  padding: 42px;
+  place-items: center;
+  border: 1px solid var(--vc-border-soft);
+  border-radius: calc(var(--vc-radius) * .8);
+  background: var(--vc-qr-surface);
+}
+
+.arenaSponsorPlate img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.arenaSponsorPlate span {
+  color: var(--vc-qr-ink);
+  font-size: 96px;
+  font-weight: 850;
+}
+
+.arenaSponsorCard h2 {
+  font-size: 58px;
+}
+
+.arenaTrainingSchedule {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: stretch;
+  gap: 14px;
+  height: 100%;
+}
+
+.arenaTrainingRow {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 22px;
+  padding: 24px;
+}
+
+.arenaTrainingRow > b {
+  color: var(--vc-accent);
+  font-size: 30px;
+}
+
+.arenaTrainingRow > strong {
+  max-width: 190px;
+  font-size: 22px;
+  text-align: right;
+}
+
+.arenaVolunteerLayout {
+  grid-template-columns: .7fr 1.3fr;
+}
+
+.arenaVolunteerCallout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 38px;
+  text-align: center;
+}
+
+.arenaVolunteerCallout strong {
+  margin: 24px 0;
+  color: var(--vc-accent);
+  font-size: 150px;
+  line-height: .8;
+}
+
+.arenaVolunteerCallout p {
+  max-width: 80%;
+  margin: 0;
+  color: var(--vc-text-muted);
+  font-size: 24px;
+}
+
+.arenaVolunteerCards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.arenaVolunteerCard {
+  padding: 28px;
+}
+
+.arenaUnsupported {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: var(--vc-text-muted);
+  font-size: 28px;
 }
 
 .arenaPriceColumn {
@@ -606,7 +822,7 @@
 .arenaNewsMeta {
   display: flex;
   gap: 42px;
-  margin-right: 135px;
+  margin-right: 286px;
   margin-top: auto;
   padding: 18px 0 0;
   border-top: 1px solid var(--vc-divider);
@@ -635,7 +851,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  width: 110px;
+  width: 252px;
   color: var(--vc-text-muted);
   font-size: 14px;
   font-weight: 700;
@@ -643,10 +859,20 @@
 }
 
 .arenaNewsQr img {
-  width: 110px;
-  height: 110px;
+  width: 220px;
+  height: 220px;
   border-radius: 8px;
   background: var(--vc-qr-surface);
+}
+
+.arenaNewsQr small {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 550;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: none;
 }
 
 .arenaNewsLayout[data-news-variant="fullscreen_gradient"] {
@@ -675,8 +901,8 @@
   inset: 0;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--vc-image-overlay-start) 84%, transparent) 0 50%,
-    color-mix(in srgb, var(--vc-image-overlay-mid) 84%, transparent) 70%,
+    var(--vc-image-overlay-start) 0 50%,
+    var(--vc-image-overlay-mid) 70%,
     var(--vc-image-overlay-end) 100%
   );
   content: "";
@@ -850,6 +1076,19 @@
   font-style: normal;
 }
 
+.arenaProgramRow em,
+.arenaResultRow > span em {
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: var(--vc-accent-soft);
+  color: var(--vc-accent);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
 .arenaStandingLayout {
   position: relative;
   padding-bottom: 32px;
@@ -955,6 +1194,13 @@
   width: 38px;
   height: 38px;
   flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.arenaTeamMini > img,
+.arenaTeamLarge > img {
+  width: 82%;
+  height: 82%;
   object-fit: contain;
 }
 
@@ -1287,17 +1533,17 @@
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsMeta {
-  margin-right: 145px;
+  margin-right: 286px;
   padding-right: 0;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsQr {
-  width: 115px;
+  width: 252px;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsQr img {
-  width: 115px;
-  height: 115px;
+  width: 220px;
+  height: 220px;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsLayout[data-news-variant="fullscreen_gradient"] .arenaNewsHero::after {
@@ -1332,8 +1578,30 @@
 .arenaRoot[data-orientation="portrait"] .arenaAgendaLayout,
 .arenaRoot[data-orientation="portrait"] .arenaAlertLayout,
 .arenaRoot[data-orientation="portrait"] .arenaGroundLayout,
-.arenaRoot[data-orientation="portrait"] .arenaMatchLayout {
+.arenaRoot[data-orientation="portrait"] .arenaMatchLayout,
+.arenaRoot[data-orientation="portrait"] .arenaVolunteerLayout {
   grid-template-columns: 1fr;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaTeamRoster,
+.arenaRoot[data-orientation="portrait"] .arenaTrainingSchedule {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaSponsorLayout,
+.arenaRoot[data-orientation="portrait"] .arenaSponsorLayout:not([data-items="1"]) {
+  grid-template-columns: 1fr;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaSponsorCard {
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 28px;
+  padding: 40px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaVolunteerLayout {
+  grid-template-rows: .55fr 1.45fr;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaStandingHead,
@@ -2093,6 +2361,24 @@
   border-top: 1px solid var(--vc-divider);
   color: var(--vc-text);
   font-size: 23px;
+}
+
+.arenaArrivalCard > .arenaArrivalSponsor {
+  position: absolute;
+  z-index: 2;
+  right: 28px;
+  bottom: 24px;
+  width: 156px;
+  height: 64px;
+  padding: 8px;
+  border: 1px solid var(--vc-border);
+  border-radius: 12px;
+  background: var(--vc-qr-surface);
+  object-fit: contain;
+}
+
+.arenaArrivalCard[data-sponsor="visible"] > strong {
+  margin-right: 178px;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaArrivalGrid {

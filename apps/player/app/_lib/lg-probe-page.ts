@@ -35,29 +35,29 @@ export function renderLgProbeHtml() {
   <title>VeyoCast LG diagnose</title>
   <style>
     * { box-sizing: border-box; }
-    html, body { min-height: 100%; margin: 0; background: #090a0c; color: #f8f6f1; font-family: Arial, Helvetica, sans-serif; }
+    html, body { min-height: 100%; margin: 0; background: #071c1b; color: #f4f7f5; font-family: Arial, Helvetica, sans-serif; }
     body { padding: 4vh 4vw; }
     button, a { font: inherit; }
     .shell { width: 100%; max-width: 1500px; margin: 0 auto; }
     .brand { display: block; width: 230px; max-width: 40vw; height: auto; margin-bottom: 3vh; }
     .eyebrow { margin: 0 0 10px; color: #ff5a1f; font-size: 16px; font-weight: bold; letter-spacing: .11em; text-transform: uppercase; }
     h1 { max-width: 920px; margin: 0; font-size: clamp(38px, 5vw, 76px); line-height: .98; letter-spacing: -.045em; }
-    .lead { max-width: 1050px; margin: 18px 0 0; color: #c8c8c4; font-size: clamp(18px, 1.65vw, 28px); line-height: 1.45; }
+    .lead { max-width: 1050px; margin: 18px 0 0; color: #c9d8d3; font-size: clamp(18px, 1.65vw, 28px); line-height: 1.45; }
     .layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(360px, .75fr); gap: 24px; margin-top: 4vh; }
-    .panel { overflow: hidden; border: 1px solid #383b41; border-radius: 20px; background: #14161a; box-shadow: 0 20px 70px rgba(0,0,0,.25); }
-    .panel-heading { padding: 22px 26px; border-bottom: 1px solid #34373c; }
+    .panel { overflow: hidden; border: 1px solid #47706a; border-radius: 20px; background: #0d2927; box-shadow: 0 20px 70px rgba(0,0,0,.25); }
+    .panel-heading { padding: 22px 26px; border-bottom: 1px solid #2b4b47; }
     .panel-heading h2 { margin: 0; font-size: 25px; }
-    .panel-heading p { margin: 7px 0 0; color: #aeb0b3; font-size: 16px; line-height: 1.45; }
+    .panel-heading p { margin: 7px 0 0; color: #9fb5ae; font-size: 16px; line-height: 1.45; }
     .steps { margin: 0; padding: 0; list-style: none; }
-    .step { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 14px; min-height: 92px; padding: 18px 26px; border-bottom: 1px solid #2f3237; }
+    .step { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 14px; min-height: 92px; padding: 18px 26px; border-bottom: 1px solid #2b4b47; }
     .step:last-child { border-bottom: 0; }
     .mark { padding-top: 2px; color: #aeb0b3; font-size: 17px; font-weight: bold; letter-spacing: .04em; }
-    .step-running .mark { color: #6daaff; }
-    .step-pass .mark { color: #48dc86; }
+    .step-running .mark { color: #76b4e1; }
+    .step-pass .mark { color: #237453; }
     .step-warn .mark { color: #ffc04b; }
     .step-fail .mark { color: #ff6f69; }
     .step h3 { margin: 0; font-size: 20px; line-height: 1.25; }
-    .step p { margin: 6px 0 0; color: #b8b9bc; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+    .step p { margin: 6px 0 0; color: #c9d8d3; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
     .media-stage { position: relative; min-height: 310px; padding: 22px; display: flex; align-items: center; justify-content: center; background: #050607; border-bottom: 1px solid #34373c; }
     .media-stage img, .media-stage video { display: none; width: 100%; max-height: 42vh; object-fit: contain; background: #000; }
     .media-stage .visible { display: block; }
@@ -70,9 +70,9 @@ export function renderLgProbeHtml() {
     summary { cursor: pointer; font-size: 16px; font-weight: bold; }
     pre { max-height: 280px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; margin: 14px 0 0; padding: 16px; border-radius: 10px; background: #08090b; color: #bfc5cd; font: 13px/1.5 monospace; }
     .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
-    .button { min-height: 48px; padding: 13px 19px; border: 1px solid #51545a; border-radius: 10px; color: #f8f6f1; background: #191b20; text-decoration: none; cursor: pointer; }
+    .button { min-height: 48px; padding: 13px 19px; border: 1px solid #47706a; border-radius: 12px; color: #f4f7f5; background: #163a37; text-decoration: none; cursor: pointer; }
     .button-primary { border-color: #ff5a1f; background: #ff5a1f; color: #090a0c; font-weight: bold; }
-    .button:focus { outline: 3px solid #74a9ff; outline-offset: 3px; }
+    .button:focus { outline: 3px solid #76b4e1; outline-offset: 3px; }
     .note { margin: 18px 0 0; color: #9fa2a5; font-size: 14px; line-height: 1.5; }
     @media (max-width: 900px) {
       body { padding: 24px 18px 40px; }

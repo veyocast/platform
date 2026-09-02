@@ -89,8 +89,15 @@ describe("dynamic template release payload", () => {
         ]
       },
       sport: {
+        arrivalConfig: {
+          showSponsor: true,
+          sponsorMediaAssetId: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+        },
         items: [{
-          logoMediaAssetId: "88888888-8888-4888-8888-888888888888"
+          awayLogoMediaAssetId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+          homeLogoMediaAssetId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+          logoMediaAssetId: "88888888-8888-4888-8888-888888888888",
+          photoMediaAssetId: "12121212-1212-4212-8212-121212121212"
         }]
       },
       news: {
@@ -109,7 +116,11 @@ describe("dynamic template release payload", () => {
       "66666666-6666-4666-8666-666666666666",
       "99999999-9999-4999-8999-999999999999",
       "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
       "88888888-8888-4888-8888-888888888888",
+      "12121212-1212-4212-8212-121212121212",
+      "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
       "44444444-4444-4444-8444-444444444444",
       "33333333-3333-4333-8333-333333333333",
       "77777777-7777-4777-8777-777777777777"

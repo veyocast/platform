@@ -1,0 +1,20 @@
+legacy_or_local,current_paths,fieldflow_target,scope,migration_rule,status,exception_or_deadline
+Button and local button-link,@veyocast/ui plus route CSS,Button,all web,semantic variant and size only,VERIFIED_LOCAL,remove local visual aliases before S144 merge
+raw input/select/textarea,97 Control TSX files plus marketing,Field and typed controls,forms,keep native semantic element inside shared accessible wrapper,VERIFIED_LOCAL,editor-canvas numeric hotpaths require measured exception
+raw checkbox entity walls,Menu Studio; Sportlink; Publisher,Combobox; MultiSelect; HierarchyPicker,pickers,server pagination include/exclude and selected summary,VERIFIED_LOCAL,no new checkbox walls
+route modal/dialog,Control route components,Dialog or Sheet,all web,focus trap escape return and labelled structure,VERIFIED_LOCAL,canvas popovers may use FloatingPanel
+local badges/status dots,Control; Marketing; Player,StatusPill,status,status always text plus icon/color,VERIFIED_LOCAL,playback content remains watermark-only
+local tables,Control resources,DataTable plus responsive cards,resources,sort/preferences/selection preserved,VERIFIED_LOCAL,canvas timelines remain editor-specific
+Vector CommandBar,packages/ui/src/components/vector.tsx,FieldFlowCommandBar,Control,rename API and retain temporary deprecated export,VERIFIED_LOCAL,vector alias owner S144 deadline merge
+Vector JourneyShell,packages/ui/src/components/vector.tsx,FieldFlowJourneyShell,wizards,shared sequential mobile flow,VERIFIED_LOCAL,vector alias owner S144 deadline merge
+Vector StickyActionBar,packages/ui/src/components/vector.tsx,FieldFlowStickyActionBar,forms,one primary action and safe inset,VERIFIED_LOCAL,vector alias owner S144 deadline merge
+Atelier root layer,apps/control/app/atelier-ivory.css,FieldFlow root and semantic tokens,Control,replace root selector and remove cascade after route parity,VERIFIED_LOCAL,compatibility styles deadline S144 merge
+ControlShell local nav,apps/control/app/(shell)/_components/control-shell.tsx,FieldFlowShell,Control,task IA and capability-filtered groups,VERIFIED_LOCAL,none
+marketing local components,apps/marketing/app/_components,FieldFlow marketing primitives,Marketing,dark editorial marketing with approved photos,VERIFIED_LOCAL,no unverified customer proof
+mobile design system,packages/mobile-design-system,FieldFlow native primitives,Control Mobile,shared semantics not desktop layout,VERIFIED_LOCAL,React Native target-specific implementation
+Player status components,apps/player/app/_components,FieldFlowPlayerSystem,modern Player,change management chrome only,VERIFIED_LOCAL,normal playback pixels follow output renderer
+LG static HTML/CSS,apps/player/app/_lib/lg-legacy-page.ts,FieldFlow legacy primitives,static LG,ES5 and Chrome79-safe second renderer,VERIFIED_LOCAL,no React or unsupported CSS
+Android native layout,apps/android-tv/app/src/main,FieldFlow Android management chrome,Android,retain WebView and D-pad lifecycle,VERIFIED_LOCAL,XML/Kotlin target-specific
+LG wrapper HTML,apps/lg-webos-signage,FieldFlow LG wrapper chrome,webOS wrapper,retain startup and recovery bootstrap,VERIFIED_LOCAL,physical hardware EXTERNAL
+EditorialArenaRenderer,packages/content-templates,FieldFlowSlideRenderer,slide output,select by frozen theme ref and share resolved viewmodel,VERIFIED_LOCAL,historical releases retain legacy branch indefinitely
+legacy LG dynamic renderer,apps/player/app/_lib/lg-legacy-page.ts,FieldFlowLegacyRenderer,slide output,explicit family mapping no unknown generic fallback,VERIFIED_LOCAL,Chrome79 constraint permanent

@@ -1,5 +1,5 @@
 import {
-  selectableThemeIds,
+  authorableThemeIds,
   themeManifestSchema,
   themePresentationSnapshotSchema,
   themeSelectionSchema,
@@ -24,7 +24,7 @@ export const themeCatalog = Object.freeze(
   ) as Record<SelectableThemeId, ThemeManifestTheme>
 );
 
-export const themeCatalogOptions = selectableThemeIds.map((id) => ({
+export const themeCatalogOptions = authorableThemeIds.map((id) => ({
   id,
   name: themeCatalog[id].name,
   version: themeCatalog[id].version
@@ -36,8 +36,8 @@ export const platformDefaultThemeSelection: ThemeSelection = {
   modePolicy: { kind: "fixed", mode: "light" },
   ref: {
     catalog: "v2",
-    id: "editorial",
-    version: themeCatalog.editorial.version
+    id: "fieldflow",
+    version: themeCatalog.fieldflow.version
   },
   support: null
 };
@@ -45,7 +45,7 @@ export const platformDefaultThemeSelection: ThemeSelection = {
 export function parseThemeSelection(value: unknown): ThemeSelection {
   const parsed = themeSelectionSchema.safeParse(value);
   if (parsed.success) return parsed.data;
-  return platformDefaultThemeSelection;
+  throw new Error("Theme selection is invalid or references an unknown theme.");
 }
 
 export function parseThemePresentationSnapshot(
@@ -61,6 +61,9 @@ export function resolveThemeDefinition(
   if (selection.ref.catalog === "v2") {
     const current = themeCatalog[selection.ref.id];
     if (current && current.version === selection.ref.version) return current;
+    throw new Error(
+      `Theme ${selection.ref.id}@${selection.ref.version} is not available in this renderer.`
+    );
   }
   return themeCatalog.editorial;
 }
@@ -141,6 +144,7 @@ export function themeToEditorialTokens(
   const palette = theme[snapshot.resolvedMode.mode];
   const accent = selection.accent ?? theme.accentDefault;
   const dark = snapshot.resolvedMode.mode === "dark";
+  const fieldflow = theme.id === "fieldflow";
   return {
     accent,
     accentSoft: hexAlpha(accent, dark ? 0.2 : 0.14),
@@ -149,9 +153,9 @@ export function themeToEditorialTokens(
     canvas: palette.canvas,
     danger: dark ? "#ff716b" : "#d55656",
     divider: palette.line,
-    imageOverlayEnd: "rgba(6,8,10,.10)",
-    imageOverlayMid: "rgba(6,8,10,.74)",
-    imageOverlayStart: "rgba(6,8,10,.97)",
+    imageOverlayEnd: fieldflow ? "rgba(4,47,45,.08)" : "rgba(6,8,10,.10)",
+    imageOverlayMid: fieldflow ? "rgba(4,47,45,.36)" : "rgba(6,8,10,.74)",
+    imageOverlayStart: fieldflow ? "rgba(4,47,45,.55)" : "rgba(6,8,10,.97)",
     neutral: dark ? "#8d9095" : "#777b7e",
     panel: palette.surfaceAlt,
     qrInk: "#111315",

@@ -89,7 +89,7 @@ import {
   DialogTitle
 } from "@veyocast/ui";
 
-import { ThemePicker } from "../_components/theme-picker";
+import { FieldFlowStyleStep } from "../_components/fieldflow-style-step";
 
 import {
   createMenuStudioDraft,
@@ -136,7 +136,6 @@ export type MenuStudioMediaOption = {
 
 export function MenuStudioEditor({
   initialDocument,
-  defaultThemeId,
   initialOrientation,
   linkedGroupsEnabled,
   media,
@@ -149,7 +148,6 @@ export function MenuStudioEditor({
   sourceName,
   templateVersionIds
 }: {
-  defaultThemeId: MenuDocumentV2["theme"]["themeId"];
   initialDocument: MenuDocumentV2;
   initialOrientation: "landscape" | "portrait";
   linkedGroupsEnabled: boolean;
@@ -164,7 +162,10 @@ export function MenuStudioEditor({
   templateVersionIds: Partial<Record<"landscape" | "portrait", string>>;
 }) {
   const router = useRouter();
-  const [history, setHistoryState] = useState(() => createMenuStudioHistory(initialDocument));
+  const [history, setHistoryState] = useState(() => createMenuStudioHistory({
+    ...initialDocument,
+    theme: { ...initialDocument.theme, themeId: "fieldflow" }
+  }));
   const historyRef = useRef(history);
   const [orientation, setOrientation] = useState<"landscape" | "portrait">(initialOrientation);
   const [pageIndex, setPageIndex] = useState(0);
@@ -1235,12 +1236,11 @@ export function MenuStudioEditor({
           <PanelHeading icon={<PackagePlus aria-hidden="true" />} title="Bibliotheek" />
           <section className={styles.librarySection}>
             <h3>Art direction</h3>
-            <ThemePicker
-              defaultThemeId={defaultThemeId}
-              label="Thema voor deze menuversie"
-              onChange={(themeId) => void executeOperation({
+            <FieldFlowStyleStep
+              label="FieldFlow-stijl voor deze menuversie"
+              onActivate={() => void executeOperation({
                 kind: "set-theme",
-                theme: { ...document.theme, themeId }
+                theme: { ...document.theme, themeId: "fieldflow" }
               })}
               value={document.theme.themeId}
             />

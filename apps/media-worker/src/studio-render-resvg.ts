@@ -41,9 +41,24 @@ const studioFontFiles = [
   ),
   require.resolve(
     "@expo-google-fonts/inter-tight/800ExtraBold/InterTight_800ExtraBold.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/manrope/400Regular/Manrope_400Regular.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/manrope/500Medium/Manrope_500Medium.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/manrope/600SemiBold/Manrope_600SemiBold.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/manrope/700Bold/Manrope_700Bold.ttf"
+  ),
+  require.resolve(
+    "@expo-google-fonts/manrope/800ExtraBold/Manrope_800ExtraBold.ttf"
   )
 ];
-const studioFontFamilies = ["Inter", "Inter Tight"] as const;
+const studioFontFamilies = ["Inter", "Inter Tight", "Manrope"] as const;
 let studioFontsValidated = false;
 
 export class ResvgSharpStudioRenderer implements StudioExternalRenderer {

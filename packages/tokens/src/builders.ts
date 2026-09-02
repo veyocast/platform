@@ -1,4 +1,8 @@
-import type { VeyoCastDesignTokens, VeyoCastVectorTokens } from "./schema";
+import type {
+  VeyoCastDesignTokens,
+  VeyoCastFieldflowTokens,
+  VeyoCastVectorTokens
+} from "./schema";
 
 export function toKebabCase(value: string) {
   return value
@@ -132,6 +136,119 @@ export function createVectorTokenModuleSource(tokens: VeyoCastVectorTokens) {
 export const veyocastVectorTokens = ${JSON.stringify(tokens, null, 2)} as const satisfies VeyoCastVectorTokens;
 
 export default veyocastVectorTokens;
+`;
+}
+
+export function createFieldflowCssVariables(tokens: VeyoCastFieldflowTokens) {
+  const lines: string[] = [];
+  const writeTheme = (
+    selector: string,
+    theme: VeyoCastFieldflowTokens["themes"]["light"]
+  ) => {
+    lines.push(`${selector} {`);
+    for (const [name, value] of Object.entries(theme)) {
+      const tokenName = toKebabCase(name);
+      lines.push(`  --ff-${tokenName}: ${value};`);
+      lines.push(`  --vc-vector-${tokenName}: var(--ff-${tokenName});`);
+    }
+    lines.push("  --vc-background: var(--ff-canvas);");
+    lines.push("  --vc-surface: var(--ff-surface);");
+    lines.push("  --vc-surface-muted: var(--ff-surface-muted);");
+    lines.push("  --vc-surface-strong: var(--ff-surface-strong);");
+    lines.push("  --vc-text: var(--ff-ink);");
+    lines.push("  --vc-text-muted: var(--ff-ink-muted);");
+    lines.push("  --vc-text-subtle: var(--ff-ink-subtle);");
+    lines.push("  --vc-border: var(--ff-line);");
+    lines.push("  --vc-border-strong: var(--ff-line-strong);");
+    lines.push("  --vc-focus: var(--ff-focus);");
+    lines.push("}");
+  };
+
+  writeTheme(':root, [data-theme="light"]', tokens.themes.light);
+  lines.push("");
+  writeTheme('[data-theme="dark"]', tokens.themes.dark);
+  lines.push("");
+  writeTheme('[data-contrast="high"]', tokens.themes.highContrast);
+  lines.push("", ":root {");
+  for (const [name, value] of Object.entries(tokens.brand)) {
+    const tokenName = toKebabCase(name);
+    lines.push(`  --ff-brand-${tokenName}: ${value};`);
+    lines.push(`  --vc-vector-brand-${tokenName}: var(--ff-brand-${tokenName});`);
+  }
+  for (const [groupName, group] of Object.entries(tokens.semantic)) {
+    for (const [name, value] of Object.entries(group)) {
+      const tokenName = `${toKebabCase(groupName)}-${toKebabCase(name)}`;
+      lines.push(`  --ff-${tokenName}: ${value};`);
+      lines.push(`  --vc-vector-${tokenName}: var(--ff-${tokenName});`);
+    }
+  }
+  lines.push("  --vc-action: var(--ff-action-default);");
+  lines.push("  --vc-on-action: var(--ff-action-on-action);");
+  lines.push("  --vc-link: var(--ff-info-default);");
+  lines.push(`  --ff-font-ui: ${tokens.typography.uiFamily};`);
+  lines.push(`  --ff-font-display: ${tokens.typography.displayFamily};`);
+  lines.push("  --vc-font-ui: var(--ff-font-ui);");
+  lines.push("  --vc-font-display: var(--ff-font-display);");
+  lines.push("  --vc-semantic-success-solid: var(--ff-success-default);");
+  lines.push("  --vc-semantic-success-surface: var(--ff-success-surface);");
+  lines.push("  --vc-semantic-success-text: var(--ff-success-on-surface);");
+  lines.push("  --vc-semantic-warning-solid: var(--ff-warning-default);");
+  lines.push("  --vc-semantic-warning-surface: var(--ff-warning-surface);");
+  lines.push("  --vc-semantic-warning-text: var(--ff-warning-on-surface);");
+  lines.push("  --vc-semantic-critical-solid: var(--ff-danger-default);");
+  lines.push("  --vc-semantic-critical-surface: var(--ff-danger-surface);");
+  lines.push("  --vc-semantic-critical-text: var(--ff-danger-on-surface);");
+  lines.push("  --vc-semantic-info-solid: var(--ff-info-default);");
+  lines.push("  --vc-semantic-info-surface: var(--ff-info-surface);");
+  lines.push("  --vc-semantic-info-text: var(--ff-info-on-surface);");
+  lines.push("  --vc-component-height-button-compact: 36px;");
+  lines.push("  --vc-component-height-button-standard: 44px;");
+  lines.push("  --vc-component-height-button-touch: 48px;");
+  lines.push("  --vc-component-height-input-compact: 36px;");
+  lines.push("  --vc-component-height-input-standard: 44px;");
+  lines.push("  --vc-component-height-input-touch: 48px;");
+  lines.push("  --vc-radius-lg: var(--ff-radius-control);");
+  lines.push("  --vc-radius-xl: var(--ff-radius-card);");
+  for (const spacing of tokens.spacingPx) {
+    lines.push(`  --ff-space-${spacing}: ${spacing}px;`);
+  }
+  for (const [name, value] of Object.entries(tokens.radiiPx)) {
+    lines.push(`  --ff-radius-${toKebabCase(name)}: ${value}px;`);
+  }
+  for (const [name, value] of Object.entries(tokens.motion.durationsMs)) {
+    lines.push(`  --ff-motion-${toKebabCase(name)}: ${value}ms;`);
+  }
+  for (const [name, value] of Object.entries(tokens.touch)) {
+    lines.push(`  --ff-touch-${toKebabCase(name)}: ${value}px;`);
+  }
+  for (const [name, value] of Object.entries(tokens.layout)) {
+    lines.push(`  --ff-layout-${toKebabCase(name)}: ${value}px;`);
+  }
+  for (const [name, value] of Object.entries(tokens.zIndex)) {
+    lines.push(`  --ff-z-${toKebabCase(name)}: ${value};`);
+  }
+  lines.push(
+    "}",
+    "",
+    "@media (prefers-reduced-motion: reduce) {",
+    "  :root {",
+    "    --ff-motion-quick: 0ms;",
+    "    --ff-motion-standard: 80ms;",
+    "    --ff-motion-deliberate: 80ms;",
+    "  }",
+    "}"
+  );
+  return `${lines.join("\n")}\n`;
+}
+
+export function createFieldflowTokenModuleSource(
+  tokens: VeyoCastFieldflowTokens
+) {
+  return `import type { VeyoCastFieldflowTokens } from "../schema";
+
+export const veyocastFieldflowTokens = ${JSON.stringify(tokens, null, 2)} as const satisfies VeyoCastFieldflowTokens;
+
+export default veyocastFieldflowTokens;
 `;
 }
 

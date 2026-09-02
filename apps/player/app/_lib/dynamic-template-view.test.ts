@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { editorialArenaDefaultTheme } from "@veyocast/content-templates";
 
 import {
   createDynamicTemplateView,
@@ -260,12 +261,111 @@ describe("trusted dynamic template view", () => {
     });
   });
 
-  it("bouwt Match Centre alleen uit genormaliseerde tekstvelden", () => {
+  it("pagineert de FieldFlow nieuwsgrid per drie leesbare artikelen", () => {
     const view = createDynamicTemplateView({
       ...base,
       data: {
+        editorial: {
+          newsVariant: "news_grid",
+          pricePhotoMode: "show",
+          schemaVersion: 2,
+          theme: editorialArenaDefaultTheme
+        },
+        news: {
+          articles: Array.from({ length: 7 }, (_, index) => ({
+            externalId: `news-${index + 1}`,
+            title: `Nieuwsbericht ${index + 1}`
+          })),
+          sourceName: "Clubnieuws"
+        },
+        type: "news"
+      },
+      slideType: "news",
+      templateSlug: "editorial-arena-nieuws-dark-landscape"
+    });
+
+    expect(view).toMatchObject({ newsVariant: "news_grid" });
+    expect(view?.pages).toHaveLength(3);
+    expect(view?.pages[0]).toMatchObject({
+      item: { title: "Nieuwsbericht 1" },
+      kind: "news",
+      secondaryItems: [
+        { title: "Nieuwsbericht 2" },
+        { title: "Nieuwsbericht 3" }
+      ]
+    });
+  });
+
+  it("verbindt Sportlink-display en aankomstsponsor met de view", () => {
+    const sponsorId = "77777777-7777-4777-8777-777777777779";
+    const view = createDynamicTemplateView({
+      ...base,
+      assets: {
+        [sponsorId]: {
+          bytes: 512,
+          checksumSha256: "7".repeat(64),
+          mimeType: "image/webp",
+          url: "/__veyocast-player-cache/sponsor"
+        }
+      },
+      data: {
+        sport: {
+          arrivalConfig: {
+            cardCount: 1,
+            showSponsor: true,
+            sponsorMediaAssetId: sponsorId
+          },
+          displayConfig: {
+            columns: "one",
+            showDressingRoom: true,
+            showField: false,
+            showHomeAway: false,
+            showReferee: true
+          },
+          items: [{ homeMatch: true, id: "arrival-1", primary: "Bezoekers FC" }]
+        },
+        type: "sport_visitor_arrivals"
+      },
+      slideType: "sport_visitor_arrivals",
+      templateSlug: "editorial-arena-bezoekers-dark-landscape"
+    });
+
+    expect(view).toMatchObject({
+      arrivalSponsorUrl: "/__veyocast-player-cache/sponsor",
+      sportDisplay: {
+        columns: "one",
+        showDressingRoom: true,
+        showField: false,
+        showHomeAway: false,
+        showReferee: true
+      }
+    });
+  });
+
+  it("bouwt Match Centre alleen uit genormaliseerde tekstvelden", () => {
+    const homeLogoId = "99999999-9999-4999-8999-999999999991";
+    const awayLogoId = "99999999-9999-4999-8999-999999999992";
+    const view = createDynamicTemplateView({
+      ...base,
+      assets: {
+        [homeLogoId]: {
+          bytes: 512,
+          checksumSha256: "1".repeat(64),
+          mimeType: "image/webp",
+          url: "/__veyocast-player-cache/home-logo"
+        },
+        [awayLogoId]: {
+          bytes: 512,
+          checksumSha256: "2".repeat(64),
+          mimeType: "image/webp",
+          url: "/__veyocast-player-cache/away-logo"
+        }
+      },
+      data: {
         sport: {
           items: [{
+            awayLogoMediaAssetId: awayLogoId,
+            homeLogoMediaAssetId: homeLogoId,
             id: "match-1",
             meta: "Veld 1",
             primary: "VeyoCast 1 – Bezoekers",
@@ -283,6 +383,10 @@ describe("trusted dynamic template view", () => {
     expect(view?.pages[0]).toMatchObject({
       awayTeam: "Bezoekers",
       homeTeam: "VeyoCast 1",
+      item: {
+        awayLogoUrl: "/__veyocast-player-cache/away-logo",
+        homeLogoUrl: "/__veyocast-player-cache/home-logo"
+      },
       kind: "match"
     });
   });
@@ -796,7 +900,7 @@ describe("trusted dynamic template view", () => {
     expect(portrait?.pages).toHaveLength(3);
   });
 
-  it("activeert geen type zonder complete databron", () => {
+  it("activeert de voorheen verborgen teamtemplate via het normale renderpad", () => {
     expect(createDynamicTemplateView({
       ...base,
       data: {
@@ -807,7 +911,50 @@ describe("trusted dynamic template view", () => {
       },
       slideType: "sport_team",
       templateSlug: "editorial-arena-teamvoorstelling-dark-landscape"
-    })).toBeNull();
+    })).toMatchObject({
+      pages: [{ kind: "team", items: [{ primary: "Voorbeeldspeler" }] }],
+      slideType: "sport_team"
+    });
+  });
+
+  it("geeft elk eerder dormant sporttype een eigen renderfamilie zonder generieke fallback", () => {
+    for (const [slideType, kind] of [
+      ["sport_team", "team"],
+      ["sport_sponsor", "sponsor"],
+      ["sport_trainings", "trainings"],
+      ["sport_volunteers", "volunteers"]
+    ] as const) {
+      const photoId = "77777777-7777-4777-8777-777777777777";
+      const view = createDynamicTemplateView({
+        ...base,
+        assets: {
+          [photoId]: {
+            bytes: 512,
+            checksumSha256: "7".repeat(64),
+            mimeType: "image/webp",
+            url: "/__veyocast-player-cache/sport-photo"
+          }
+        },
+        data: {
+          sport: {
+            items: [{
+              id: `${slideType}-1`,
+              photoMediaAssetId: photoId,
+              primary: "Veilige fixture",
+              secondary: "Zonder generieke kaart"
+            }]
+          },
+          type: slideType
+        },
+        slideType,
+        templateSlug: `editorial-arena-${slideType.replaceAll("_", "-")}-dark-landscape`
+      });
+
+      expect(view?.pages[0]).toMatchObject({
+        items: [{ photoUrl: "/__veyocast-player-cache/sport-photo" }],
+        kind
+      });
+    }
   });
 });
 

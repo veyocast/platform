@@ -46,6 +46,7 @@ import {
 export type DynamicTemplateTheme = "dark" | "light";
 
 export type DynamicTemplateListItem = {
+  awayLogoUrl: string;
   awayRoom: string;
   awayScore: number | null;
   awayTeam: string;
@@ -53,12 +54,14 @@ export type DynamicTemplateListItem = {
   date: string;
   homeRoom: string;
   homeMatch: boolean;
+  homeLogoUrl: string;
   homeScore: number | null;
   homeTeam: string;
   id: string;
   logoUrl: string;
   meta: string;
   officials: string[];
+  photoUrl: string;
   primary: string;
   selected: boolean;
   secondary: string;
@@ -159,11 +162,16 @@ export type DynamicTemplatePage =
       layout: Exclude<SportlinkBirthdayConfiguration["presentation"]["layout"], "auto">;
     }
   | { items: DynamicTemplateListItem[]; kind: "arrivals" }
-  | { items: DynamicTemplateListItem[]; kind: "sport-list" };
+  | { items: DynamicTemplateListItem[]; kind: "sport-list" }
+  | { items: DynamicTemplateListItem[]; kind: "team" }
+  | { items: DynamicTemplateListItem[]; kind: "sponsor" }
+  | { items: DynamicTemplateListItem[]; kind: "trainings" }
+  | { items: DynamicTemplateListItem[]; kind: "volunteers" };
 
 export type DynamicTemplateView = {
   accentColor: string;
   arrivalMotionPreset?: SportlinkArrivalMotionPreset;
+  arrivalSponsorUrl?: string;
   birthday?: {
     backgroundUrl: string;
     configuration: SportlinkBirthdayConfiguration;
@@ -188,6 +196,13 @@ export type DynamicTemplateView = {
     competition: string;
     pool: string;
     season: string;
+  };
+  sportDisplay?: {
+    columns: "one" | "two";
+    showDressingRoom: boolean;
+    showField: boolean;
+    showHomeAway: boolean;
+    showReferee: boolean;
   };
   templateStyle: "default" | "standing-club-edition";
   theme: DynamicTemplateTheme;
@@ -427,6 +442,14 @@ function createDynamicTemplateViewInternal(
   }
 
   const sport = readRecord(data.sport);
+  const displayConfig = readRecord(sport?.displayConfig);
+  const sportDisplay = displayConfig ? {
+    columns: displayConfig.columns === "one" ? "one" as const : "two" as const,
+    showDressingRoom: displayConfig.showDressingRoom === true,
+    showField: displayConfig.showField !== false,
+    showHomeAway: displayConfig.showHomeAway !== false,
+    showReferee: displayConfig.showReferee === true
+  } : undefined;
   const mappedItems = readArray(sport?.items)
     .map((item) => toListItem(item, payload))
     .filter((item): item is DynamicTemplateListItem => item !== null);
@@ -525,6 +548,7 @@ function createDynamicTemplateViewInternal(
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
       sourceLabel: "Match centre",
+      sportDisplay,
       templateStyle: "default",
       theme,
       ...themeIdentity,
@@ -534,7 +558,8 @@ function createDynamicTemplateViewInternal(
   }
 
   if (
-    payload.slideType === "sport_standing"
+    payload.slideType === "sport_standing" ||
+    payload.slideType === "sport_period_standing"
   ) {
     const standingItems = readArray(sport?.items)
       .map((item) => toStandingItem(item, payload))
@@ -568,6 +593,7 @@ function createDynamicTemplateViewInternal(
         pool: safeText(pool?.name, ""),
         season: safeText(sport?.season, "")
       },
+      sportDisplay,
       templateStyle: "standing-club-edition",
       theme,
       ...themeIdentity,
@@ -583,6 +609,9 @@ function createDynamicTemplateViewInternal(
     return {
       accentColor: themeTokens.accent,
       arrivalMotionPreset: safeArrivalMotionPreset(arrivalConfig?.motionPreset),
+      arrivalSponsorUrl: arrivalConfig?.showSponsor === true
+        ? dynamicAssetUrl(arrivalConfig.sponsorMediaAssetId, payload)
+        : "",
       clubLogoUrl,
       clubName,
       emptyState: items.length ? "" : safeText(
@@ -606,6 +635,7 @@ function createDynamicTemplateViewInternal(
       sourceLabel: payload.slideType === "sport_visitor_arrivals"
         ? "Welkom op ons sportpark"
         : "Ontvangst wedstrijdofficials",
+      sportDisplay,
       templateStyle: "default",
       theme,
       ...themeIdentity,
@@ -614,11 +644,21 @@ function createDynamicTemplateViewInternal(
     };
   }
 
+  const columnMultiplier = sportDisplay?.columns === "two" ? 2 : 1;
   const perPage = payload.slideType === "sport_results"
-    ? sportResultsRowsPerPage[payload.orientation]
+    ? sportResultsRowsPerPage[payload.orientation] * columnMultiplier
     : payload.slideType === "sport_program"
-      ? 20
+      ? (payload.orientation === "portrait" ? 7 : 8) * columnMultiplier
       : payload.orientation === "portrait" ? 6 : 8;
+  const listPageKind = payload.slideType === "sport_team"
+    ? "team"
+    : payload.slideType === "sport_sponsor"
+      ? "sponsor"
+      : payload.slideType === "sport_trainings"
+        ? "trainings"
+        : payload.slideType === "sport_volunteers"
+          ? "volunteers"
+          : "sport-list";
   return {
     accentColor: themeTokens.accent,
     clubLogoUrl,
@@ -627,7 +667,7 @@ function createDynamicTemplateViewInternal(
     orientation: payload.orientation,
     pages: paginate(items, perPage).map((page) => ({
       items: page,
-      kind: "sport-list" as const
+      kind: listPageKind
     })),
     newsVariant: editorial.newsVariant,
     pricePhotoMode: editorial.pricePhotoMode,
@@ -636,6 +676,7 @@ function createDynamicTemplateViewInternal(
     slideType: payload.slideType,
     snapshotId: payload.snapshotId,
     sourceLabel: sportLabel(payload.slideType),
+    sportDisplay,
     templateStyle: "default",
     theme,
     ...themeIdentity,
@@ -1305,6 +1346,7 @@ function toListItem(
   const primary = safeText(item.primary, "");
   if (!primary) return null;
   return {
+    awayLogoUrl: dynamicAssetUrl(item.awayLogoMediaAssetId, payload),
     awayRoom: safeText(item.awayRoom, ""),
     awayScore: safeNullableScore(item.awayScore),
     awayTeam: safeText(item.awayTeam, ""),
@@ -1312,6 +1354,7 @@ function toListItem(
     date: safeText(item.date, ""),
     homeRoom: safeText(item.homeRoom, ""),
     homeMatch: item.homeMatch === true,
+    homeLogoUrl: dynamicAssetUrl(item.homeLogoMediaAssetId, payload),
     homeScore: safeNullableScore(item.homeScore),
     homeTeam: safeText(item.homeTeam, ""),
     id: safeText(item.id, primary),
@@ -1324,6 +1367,7 @@ function toListItem(
         return name ? [name] : [];
       })
       .slice(0, 8),
+    photoUrl: dynamicAssetUrl(item.photoMediaAssetId, payload),
     primary,
     selected: item.selected === true,
     secondary: safeText(item.secondary, ""),

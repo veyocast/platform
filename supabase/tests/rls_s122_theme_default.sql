@@ -33,7 +33,7 @@ select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000001225
 
 select is(
   public.update_tenant_theme_settings_v1(
-    '10000000-0000-4000-8000-000000001225', 0, 'atelier', '1.0.0',
+    '10000000-0000-4000-8000-000000001225', 0, 'fieldflow', '1.0.0',
     '{"kind":"fixed","mode":"light"}'::jsonb, null, null
   ) ->> 'outcome',
   'applied',
@@ -42,8 +42,8 @@ select is(
 select is(
   (select default_theme_id from public.tenant_settings
    where tenant_id = '10000000-0000-4000-8000-000000001225'),
-  'atelier',
-  'the explicit tenant default persists'
+  'fieldflow',
+  'the FieldFlow tenant default persists'
 );
 
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000001226', true);

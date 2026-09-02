@@ -768,19 +768,24 @@ async function fetchMatchTeamLogos(
   job: ClaimedSportlinkSync,
   matches: SportMatch[]
 ) {
+  return fetchTeamLogos(job, collectSportlinkMatchLogoCandidates(matches));
+}
+
+export function collectSportlinkMatchLogoCandidates(matches: SportMatch[]) {
   const unique = new Map<string, { externalId: string; teamName: string }>();
   for (const match of matches) {
-    if (!match.isHomeMatch) continue;
-    const team = match.awayTeam;
-    if (team.logoUrl && team.externalId && !unique.has(team.logoUrl)) {
-      unique.set(team.logoUrl, {
-        externalId: team.externalId,
-        teamName: team.name
-      });
+    for (const team of [match.homeTeam, match.awayTeam]) {
+      if (team.logoUrl && team.externalId && !unique.has(team.logoUrl)) {
+        unique.set(team.logoUrl, {
+          externalId: team.externalId,
+          teamName: team.name
+        });
+      }
+      if (unique.size >= 100) break;
     }
     if (unique.size >= 100) break;
   }
-  return fetchTeamLogos(job, unique);
+  return unique;
 }
 
 async function fetchTeamLogos(

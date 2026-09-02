@@ -2,14 +2,12 @@
 
 import type {
   EditorialThemeConfig,
-  SelectableThemeId,
   ThemeMode,
   ThemeSelection
 } from "@veyocast/contracts";
 import {
   freezeThemePresentation,
   themeCatalog,
-  themeCatalogOptions,
   themeToEditorialTokens
 } from "@veyocast/content-templates/theme-catalog";
 import { Button } from "@veyocast/ui";
@@ -31,21 +29,19 @@ export function EditorialThemeEditor({
   selection: ThemeSelection;
   theme: EditorialThemeConfig;
 }) {
-  const selectedId = selection.ref.catalog === "v2"
-    ? selection.ref.id
-    : "editorial";
-  const selected = themeCatalog[selectedId];
+  const selected = themeCatalog.fieldflow;
 
   function updateSelection(next: ThemeSelection) {
-    onSelectionChange(next);
-    onChange(legacyThemeBridge(next));
-  }
-
-  function setThemeId(id: SelectableThemeId) {
-    updateSelection({
-      ...selection,
-      ref: { catalog: "v2", id, version: themeCatalog[id].version }
-    });
+    const fieldflowSelection: ThemeSelection = {
+      ...next,
+      ref: {
+        catalog: "v2",
+        id: "fieldflow",
+        version: themeCatalog.fieldflow.version
+      }
+    };
+    onSelectionChange(fieldflowSelection);
+    onChange(legacyThemeBridge(fieldflowSelection));
   }
 
   function setPolicy(kind: "auto" | "fixed" | "schedule") {
@@ -73,41 +69,6 @@ export function EditorialThemeEditor({
 
   return (
     <div className={styles.editorialThemeEditor}>
-      <fieldset className={styles.editorialTokenGroup}>
-        <legend>Premium thema</legend>
-        <div className={styles.grid} data-testid="theme-catalog-v2">
-          {themeCatalogOptions.map((option) => {
-            const definition = themeCatalog[option.id];
-            return (
-              <label className={styles.choiceCard} key={option.id}>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    background: `linear-gradient(135deg, ${definition.light.canvas} 0 49%, ${definition.dark.canvas} 50% 100%)`,
-                    border: `8px solid ${definition.accentDefault}`,
-                    borderRadius: 18,
-                    display: "block",
-                    height: 88,
-                    width: 132
-                  }}
-                />
-                <input
-                  checked={selectedId === option.id}
-                  name="selectableThemeId"
-                  onChange={() => setThemeId(option.id)}
-                  type="radio"
-                  value={option.id}
-                />
-                <span>
-                  <strong>{option.name}</strong>
-                  <small>{option.id} · v{option.version}</small>
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </fieldset>
-
       <div className={styles.fieldGrid}>
         <label className={styles.field}>
           <span>Licht/donker-beleid</span>
@@ -204,8 +165,8 @@ export function EditorialThemeEditor({
               modePolicy: { kind: "fixed", mode: defaults.mode },
               ref: {
                 catalog: "v2",
-                id: "editorial",
-                version: themeCatalog.editorial.version
+                id: "fieldflow",
+                version: themeCatalog.fieldflow.version
               },
               support: null
             };

@@ -42,7 +42,7 @@
                 android:gravity="center"
                 android:text="@string/connection_error_title"
                 android:textColor="@color/vc_paper_white"
-                android:textSize="32sp"
+                android:textSize="40sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -54,7 +54,7 @@
                 android:lineSpacingExtra="4dp"
                 android:text="@string/connection_error_message"
                 android:textColor="@color/vc_text_muted"
-                android:textSize="20sp" />
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/retry_button"
@@ -67,7 +67,7 @@
                 android:text="@string/retry"
                 android:textAllCaps="false"
                 android:textColor="@color/vc_ink_black"
-                android:textSize="18sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </FrameLayout>
@@ -110,7 +110,7 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/panel_title"
                     android:textColor="@color/vc_paper_white"
-                    android:textSize="32sp"
+                    android:textSize="40sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -120,7 +120,7 @@
                     android:lineSpacingExtra="2dp"
                     android:text="@string/panel_hint"
                     android:textColor="@color/vc_text_muted"
-                    android:textSize="15sp" />
+                    android:textSize="22sp" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -134,7 +134,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/connection_status"
                     android:textColor="@color/vc_text_muted"
-                    android:textSize="15sp"
+                    android:textSize="22sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -144,7 +144,7 @@
                     android:layout_marginTop="4dp"
                     android:text="@string/connection_checking"
                     android:textColor="@color/vc_paper_white"
-                    android:textSize="22sp"
+                    android:textSize="28sp"
                     android:textStyle="bold" />
 
                 <Button
@@ -157,7 +157,7 @@
                     android:text="@string/refresh_player"
                     android:textAllCaps="false"
                     android:textColor="@color/vc_ink_black"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -167,7 +167,7 @@
                     android:lineSpacingExtra="2dp"
                     android:text="@string/refresh_player_summary"
                     android:textColor="@color/vc_text_muted"
-                    android:textSize="14sp" />
+                    android:textSize="22sp" />
 
                 <Button
                     android:id="@+id/update_button"
@@ -179,7 +179,7 @@
                     android:text="@string/manage_updates"
                     android:textAllCaps="false"
                     android:textColor="@color/vc_paper_white"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -190,7 +190,7 @@
                     android:lineSpacingExtra="2dp"
                     android:text="@string/manage_updates_summary"
                     android:textColor="@color/vc_text_muted"
-                    android:textSize="14sp" />
+                    android:textSize="22sp" />
 
                 <Button
                     android:id="@+id/demo_button"
@@ -202,7 +202,7 @@
                     android:text="@string/demo_start"
                     android:textAllCaps="false"
                     android:textColor="@color/vc_paper_white"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
 
@@ -214,7 +214,7 @@
                     android:lineSpacingExtra="2dp"
                     android:text="@string/demo_summary"
                     android:textColor="@color/vc_text_muted"
-                    android:textSize="14sp"
+                    android:textSize="22sp"
                     android:visibility="gone" />
 
                 <TextView
@@ -235,7 +235,7 @@
                     android:paddingRight="0dp"
                     android:text="@string/autostart"
                     android:textColor="@color/vc_paper_white"
-                    android:textSize="19sp" />
+                    android:textSize="24sp" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -243,7 +243,7 @@
                     android:lineSpacingExtra="2dp"
                     android:text="@string/autostart_summary"
                     android:textColor="@color/vc_text_muted"
-                    android:textSize="14sp" />
+                    android:textSize="22sp" />
 
                 <TextView
                     android:id="@+id/autostart_status"
@@ -253,7 +253,7 @@
                     android:lineSpacingExtra="2dp"
                     android:text="@string/autostart_status_not_tested"
                     android:textColor="@color/vc_electric_orange"
-                    android:textSize="14sp"
+                    android:textSize="22sp"
                     android:textStyle="bold" />
 
                 <Button
@@ -266,7 +266,7 @@
                     android:text="@string/open_app_settings"
                     android:textAllCaps="false"
                     android:textColor="@color/vc_paper_white"
-                    android:textSize="17sp"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
 
                 <Switch
@@ -279,7 +279,7 @@
                     android:gravity="center_vertical"
                     android:text="@string/keep_awake"
                     android:textColor="@color/vc_paper_white"
-                    android:textSize="19sp" />
+                    android:textSize="24sp" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -287,7 +287,7 @@
                     android:lineSpacingExtra="2dp"
                     android:text="@string/keep_awake_summary"
                     android:textColor="@color/vc_text_muted"
-                    android:textSize="14sp" />
+                    android:textSize="22sp" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -308,14 +308,14 @@
                         android:layout_weight="1"
                         android:text="@string/orientation"
                         android:textColor="@color/vc_text_muted"
-                        android:textSize="15sp" />
+                        android:textSize="22sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/orientation_landscape"
                         android:textColor="@color/vc_paper_white"
-                        android:textSize="17sp"
+                        android:textSize="24sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -332,14 +332,14 @@
                         android:layout_weight="1"
                         android:text="@string/environment"
                         android:textColor="@color/vc_text_muted"
-                        android:textSize="15sp" />
+                        android:textSize="22sp" />
 
                     <TextView
                         android:id="@+id/environment_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/vc_paper_white"
-                        android:textSize="17sp"
+                        android:textSize="24sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -356,14 +356,14 @@
                         android:layout_weight="1"
                         android:text="@string/version"
                         android:textColor="@color/vc_text_muted"
-                        android:textSize="15sp" />
+                        android:textSize="22sp" />
 
                     <TextView
                         android:id="@+id/version_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/vc_paper_white"
-                        android:textSize="17sp"
+                        android:textSize="24sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -377,7 +377,7 @@
                     android:text="@string/privacy_policy"
                     android:textAllCaps="false"
                     android:textColor="@color/vc_paper_white"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -387,7 +387,7 @@
                     android:lineSpacingExtra="2dp"
                     android:text="@string/privacy_policy_summary"
                     android:textColor="@color/vc_text_muted"
-                    android:textSize="14sp" />
+                    android:textSize="22sp" />
 
                 <Button
                     android:id="@+id/return_home_button"
@@ -399,7 +399,7 @@
                     android:text="@string/return_home"
                     android:textAllCaps="false"
                     android:textColor="@color/vc_paper_white"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -409,7 +409,7 @@
                     android:lineSpacingExtra="2dp"
                     android:text="@string/return_home_summary"
                     android:textColor="@color/vc_text_muted"
-                    android:textSize="14sp" />
+                    android:textSize="22sp" />
             </LinearLayout>
         </ScrollView>
     </LinearLayout>

@@ -23,20 +23,20 @@ export function renderLgHtmlDebugHtml() {
   <title>VeyoCast LG HTML/CSS-renderdiagnose</title>
   <style>
 ${legacyPlayerCss}
-    html,body{min-height:100%;height:auto;overflow:auto;background:#07090c;color:#f7f5f0;font-family:Arial,Helvetica,sans-serif}
+    html,body{min-height:100%;height:auto;overflow:auto;background:#071c1b;color:#f4f7f5;font-family:Arial,Helvetica,sans-serif}
     body{padding:26px}
     .debug-shell{width:100%;max-width:1600px;margin:0 auto}
     .debug-brand{display:block;width:190px;height:auto;margin:0 0 18px}
     .debug-kicker{margin:0 0 8px;color:#ff5a1f;font-size:16px;font-weight:bold;letter-spacing:.1em;text-transform:uppercase}
     .debug-title{margin:0;max-width:1100px;font-size:48px;line-height:1;letter-spacing:-.03em}
-    .debug-lead{max-width:1050px;margin:14px 0 0;color:#bec2c8;font-size:20px;line-height:1.4}
-    .debug-code{margin:22px 0 0;padding:16px 20px;border:2px solid #ff5a1f;background:#15191f;color:#fff;font:700 24px/1.2 monospace;overflow-wrap:anywhere}
+    .debug-lead{max-width:1050px;margin:14px 0 0;color:#c9d8d3;font-size:20px;line-height:1.4}
+    .debug-code{margin:22px 0 0;padding:16px 20px;border:2px solid #ff5a1f;background:#123332;color:#f4f7f5;font:700 24px/1.2 monospace;overflow-wrap:anywhere}
     .debug-columns{margin-top:22px}
-    .debug-checks,.debug-preview{display:inline-block;vertical-align:top;border:1px solid #383d46;border-radius:14px;background:#11151a;overflow:hidden}
+    .debug-checks,.debug-preview{display:inline-block;vertical-align:top;border:1px solid #47706a;border-radius:20px;background:#0d2927;overflow:hidden}
     .debug-checks{width:38%;margin-right:2%}
     .debug-preview{width:59%}
-    .debug-panel-title{margin:0;padding:16px 18px;border-bottom:1px solid #343942;font-size:22px}
-    .debug-row{min-height:69px;padding:13px 18px;border-bottom:1px solid #2e333b}
+    .debug-panel-title{margin:0;padding:16px 18px;border-bottom:1px solid #2b4b47;font-size:22px}
+    .debug-row{min-height:69px;padding:13px 18px;border-bottom:1px solid #2b4b47}
     .debug-row:last-child{border-bottom:0}
     .debug-mark{display:inline-block;width:76px;vertical-align:top;color:#abb1b9;font:700 14px/1.4 monospace}
     .debug-copy{display:inline-block;width:calc(100% - 84px);vertical-align:top}
@@ -48,11 +48,11 @@ ${legacyPlayerCss}
     .debug-stage{position:relative;width:100%;height:0;padding-bottom:56.25%;overflow:hidden;background:#000}
     .debug-stage>.dynamic-template{position:absolute;top:0;right:auto;bottom:auto;left:0;width:100vw;height:100vh;transform-origin:top left}
     .debug-stage-note{padding:13px 18px;color:#aeb4bd;font-size:14px;line-height:1.4}
-    .debug-technical{margin-top:20px;padding:16px 18px;border:1px solid #383d46;border-radius:12px;background:#101419}
+    .debug-technical{margin-top:20px;padding:16px 18px;border:1px solid #47706a;border-radius:12px;background:#0d2927}
     .debug-technical summary{cursor:pointer;font-weight:bold}
     .debug-technical pre{max-height:220px;overflow:auto;margin:12px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;color:#bdc5d0;font:13px/1.45 monospace}
     .debug-actions{margin-top:18px}
-    .debug-button{display:inline-block;margin:0 10px 10px 0;padding:12px 16px;border:1px solid #555d68;border-radius:8px;background:#171c22;color:#fff;font-size:16px;text-decoration:none}
+    .debug-button{display:inline-block;margin:0 10px 10px 0;padding:12px 16px;border:1px solid #47706a;border-radius:12px;background:#163a37;color:#f4f7f5;font-size:16px;text-decoration:none}
     .debug-button-primary{border-color:#ff5a1f;background:#ff5a1f;color:#090a0c;font-weight:bold}
     .debug-probe-parent{position:absolute;top:-10000px;left:-10000px;width:137px;height:91px}
     #inset-probe{position:absolute;inset:0}

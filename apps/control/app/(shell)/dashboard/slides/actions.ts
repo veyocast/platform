@@ -22,6 +22,7 @@ import {
 } from "@veyocast/content-templates/editorial-arena-theme";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
+import { createControlAdminClient } from "../../../../lib/supabase/admin";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import {
   slideComposerErrorPath,
@@ -475,7 +476,7 @@ function themeSelectionFromForm(formData: FormData) {
     modePolicy: { kind: "fixed" as const, mode: "light" as const },
     ref: {
       catalog: "v2" as const,
-      id: "editorial" as const,
+      id: "fieldflow" as const,
       version: "1.0.0"
     },
     support: null
@@ -612,6 +613,18 @@ function collectPreviewMediaAssetIds(snapshot: Record<string, unknown>) {
       add(article?.qrMediaAssetId);
     }
   }
+  const sport = isRecord(snapshot.sport) ? snapshot.sport : null;
+  const arrivalConfig = isRecord(sport?.arrivalConfig) ? sport.arrivalConfig : null;
+  if (arrivalConfig?.showSponsor === true) add(arrivalConfig.sponsorMediaAssetId);
+  if (Array.isArray(sport?.items)) {
+    for (const candidate of sport.items.slice(0, 100)) {
+      const item = isRecord(candidate) ? candidate : null;
+      add(item?.logoMediaAssetId);
+      add(item?.homeLogoMediaAssetId);
+      add(item?.awayLogoMediaAssetId);
+      add(item?.photoMediaAssetId);
+    }
+  }
   return [...ids];
 }
 
@@ -636,6 +649,8 @@ async function loadPreviewAssets(
     .in("id", mediaAssetIds);
   if (assetKinds.error) return assets;
   const kindById = new Map((assetKinds.data ?? []).map((asset) => [asset.id, asset.kind]));
+  const tenantAssetIds = new Set((assetKinds.data ?? []).map((asset) => asset.id));
+  const providerAssetIds = mediaAssetIds.filter((id) => !tenantAssetIds.has(id));
   const preferred = (variants.data ?? []).filter((variant) =>
     kindById.get(variant.asset_id) === "video"
       ? variant.variant_type === "player_1080p"
@@ -653,6 +668,28 @@ async function loadPreviewAssets(
     });
     if (parsed.success) assets.set(variant.asset_id, parsed.data);
   }));
+  if (providerAssetIds.length) {
+    const admin = createControlAdminClient();
+    const providers = await admin
+      .from("provider_asset_versions")
+      .select("id, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256")
+      .eq("storage_bucket", "provider-assets")
+      .in("id", providerAssetIds);
+    if (!providers.error) {
+      await Promise.all((providers.data ?? []).map(async (provider) => {
+        const signed = await admin.storage
+          .from("provider-assets")
+          .createSignedUrl(provider.storage_path, 600);
+        const parsed = playerDynamicTemplateAssetSchema.safeParse({
+          bytes: Number(provider.file_size_bytes),
+          checksumSha256: provider.checksum_sha256,
+          mimeType: provider.mime_type,
+          url: signed.data?.signedUrl
+        });
+        if (!signed.error && parsed.success) assets.set(provider.id, parsed.data);
+      }));
+    }
+  }
   return assets;
 }
 

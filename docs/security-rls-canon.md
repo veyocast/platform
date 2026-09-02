@@ -77,3 +77,17 @@ event-trigger zelf blijven intact.
 - Service role is not used for normal user queries.
 - De volledige set anoniem uitvoerbare `SECURITY DEFINER`-functies komt exact
   overeen met de credential-beveiligde Player-allowlist.
+
+## FieldFlow authoringgrens
+
+S144 voegt geen tenanttabel of nieuwe Data API-rechten toe. De forward-only
+migraties voegen alleen compatibele kolommen, foreign keys, validatie en
+authoringtriggers toe aan bestaande tenant-scoped modellen. `fieldflow` is de
+enige geaccepteerde expliciete theme-ID voor nieuwe/muteerbare content; de
+historische allowlist blijft uitsluitend bestaan om immutable snapshots en
+releases te kunnen lezen en afspelen. Serveracties blijven capability- en
+tenantgevalideerd, terwijl de databasegrens directe omzeiling afwijst.
+
+Nieuwe mediareferenties worden tenant-aware opgeslagen en via de bestaande
+private assetpipeline verzameld. Geen service-role-materiaal, providersecret of
+menselijke Supabase Auth-sessie wordt aan een Player/device gegeven.

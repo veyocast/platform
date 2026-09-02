@@ -62,7 +62,7 @@ function expectCanonicalGeometry(
   for (const fields of geometry.grids) {
     for (const field of fields) {
       expect(Math.abs(field.controlWidth - field.fieldWidth)).toBeLessThanOrEqual(1);
-      expect(field.controlHeight).toBe(44);
+      expect(field.controlHeight).toBe(48);
     }
 
     const rows = new Map<number, typeof fields>();
@@ -181,6 +181,6 @@ test("dashboard forms and surfaces share canonical alignment", async ({ page }) 
     await navigate(page, "/dashboard/media");
     const search = page.getByLabel("Zoeken in media");
     await expect(search).toBeVisible();
-    expect((await search.boundingBox())?.height).toBe(viewport.width < 768 ? 44 : 40);
+    expect((await search.boundingBox())?.height).toBe(44);
   }
 });

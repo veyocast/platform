@@ -1,6 +1,6 @@
-import { veyocastVectorTokens } from "@veyocast/tokens";
+import { veyocastFieldflowTokens } from "@veyocast/tokens";
 
-const vector = veyocastVectorTokens;
+const vector = veyocastFieldflowTokens;
 
 export const mobilePalette = {
   brand: {

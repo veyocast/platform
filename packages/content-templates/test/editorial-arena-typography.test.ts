@@ -34,4 +34,11 @@ describe("Editorial Arena pooltypografie", () => {
       /\[data-slide-type="sport_standing"\] \.arenaStandingContext \{\s*font-size: 21px;/u
     );
   });
+
+  it("houdt de nieuws-QR scanbaar op minimaal 220 logische pixels", () => {
+    expect(css).toMatch(
+      /\.arenaNewsQr img \{\s*width: 220px;\s*height: 220px;/u
+    );
+    expect(css).toContain(".arenaNewsQr small");
+  });
 });

@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 import {
+  authorableThemeIds,
   dynamicSlideTypes,
   editorialArenaActiveSlideTypes,
   selectableThemeIds
@@ -19,6 +20,7 @@ import {
 } from "../src/editorial-arena-theme";
 import {
   freezeThemePresentation,
+  parseThemeSelection,
   resolveThemeTransition,
   themeCatalog,
   themeManifest,
@@ -35,9 +37,20 @@ import {
 } from "../src/theme-visual-matrix";
 
 describe("theme catalog v2", () => {
-  it("contains exactly the approved ten selectable themes", () => {
+  it("keeps FieldFlow authorable and all eleven renderable themes available", () => {
     expect(Object.keys(themeCatalog)).toEqual([...selectableThemeIds]);
-    expect(themeManifest.themes).toHaveLength(10);
+    expect(themeManifest.themes).toHaveLength(11);
+    expect(authorableThemeIds).toEqual(["fieldflow"]);
+  });
+
+  it("fails explicitly for unknown authoring themes", () => {
+    expect(() => parseThemeSelection({
+      accent: null,
+      categoryOverrides: [],
+      modePolicy: { kind: "fixed", mode: "light" },
+      ref: { catalog: "v2", id: "unknown", version: "1.0.0" },
+      support: null
+    })).toThrow("unknown theme");
   });
 
   it("locks every manifest font reference to local bytes", async () => {
@@ -131,6 +144,24 @@ describe("theme catalog v2", () => {
     }
   });
 
+  it("begrensd de FieldFlow fullscreen-fotogradient op 55 procent", () => {
+    const tokens = themeToEditorialTokens(freezeThemePresentation({
+      instant: "2026-09-02T12:00:00.000Z",
+      selection: {
+        accent: null,
+        categoryOverrides: [],
+        modePolicy: { kind: "fixed", mode: "dark" },
+        ref: { catalog: "v2", id: "fieldflow", version: themeCatalog.fieldflow.version },
+        support: null
+      },
+      timezone: "Europe/Amsterdam"
+    }));
+
+    expect(tokens.imageOverlayStart).toBe("rgba(4,47,45,.55)");
+    expect(tokens.imageOverlayMid).toBe("rgba(4,47,45,.36)");
+    expect(tokens.imageOverlayEnd).toBe("rgba(4,47,45,.08)");
+  });
+
   it("starts ACTIVE dwell only after ENTERING completes and fixes posters at 900 ms", () => {
     const entering = reduceThemeMotion(initialThemeMotionFrame, { type: "ACTIVATE" });
     expect(entering).toEqual({ activeDwellStarted: false, state: "ENTERING" });
@@ -159,7 +190,8 @@ describe("theme catalog v2", () => {
       selectableThemeIds.length * 2 * 2 * themeVisualFamilies.length
     );
     expect(themeVisualMatrix.filter((cell) => cell.fixtureOnly).length).toBe(
-      (dynamicSlideTypes.length - editorialArenaActiveSlideTypes.length + 1) * 40
+      (dynamicSlideTypes.length - editorialArenaActiveSlideTypes.length + 1) *
+        selectableThemeIds.length * 4
     );
   });
 

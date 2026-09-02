@@ -54,7 +54,6 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
       />
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
       {draftVersion?.status === "draft" ? <MenuStudioEditor
-        defaultThemeId={data.theme.themeId}
         initialOrientation={data.slide.orientation === "portrait" ? "portrait" : "landscape"}
         initialDocument={data.document}
         linkedGroupsEnabled={data.flags.linkedGroups}

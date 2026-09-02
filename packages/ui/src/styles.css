@@ -1,5 +1,38 @@
 @import "../../../tokens/veyocast-design-tokens.css";
 
+.vc-fieldflow,
+.vc-fieldflow-shell {
+  color: var(--vc-text);
+  font-family: var(--ff-font-ui, var(--vc-font-ui));
+}
+
+.vc-fieldflow {
+  background: var(--vc-background);
+  min-height: 100%;
+}
+
+.vc-fieldflow-shell {
+  isolation: isolate;
+  min-inline-size: 0;
+}
+
+.vc-fieldflow-shell[data-shell="app"],
+.vc-fieldflow-shell[data-shell="platform"] {
+  margin-inline: auto;
+  max-inline-size: var(--ff-layout-content-max-width-px, 1360px);
+}
+
+.vc-fieldflow-shell[data-shell="marketing"] {
+  margin-inline: auto;
+  max-inline-size: var(--ff-layout-marketing-max-width-px, 1280px);
+}
+
+.vc-fieldflow-shell[data-shell="immersive-editor"],
+.vc-fieldflow-shell[data-shell="tv"] {
+  block-size: 100%;
+  inline-size: 100%;
+}
+
 .vc-button {
   align-items: center;
   border: 1px solid transparent;

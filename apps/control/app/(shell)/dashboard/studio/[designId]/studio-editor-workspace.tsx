@@ -52,6 +52,7 @@ import {
 
 import {
   studioAnimationPresets,
+  studioFonts,
   studioLimits,
   type StudioElement,
   type StudioElementTiming
@@ -933,7 +934,7 @@ function ElementLibrary({
             autoFit: false,
             cornerRadius: 0,
             fill: "#FAFAF7",
-            fontFamily: "Inter Tight Variable",
+            fontFamily: "Manrope Variable",
             fontSize: 72,
             fontWeight: 700,
             letterSpacing: 0,
@@ -1311,16 +1312,16 @@ function ElementInspector({
                   disabled={!canEdit}
                   onChange={(event) =>
                     patch({
-                      fontFamily:
-                        event.target.value === "Inter Variable"
-                          ? "Inter Variable"
-                          : "Inter Tight Variable"
+                      fontFamily: studioFonts.find(
+                        (font) => font.family === event.target.value
+                      )?.family ?? "Manrope Variable"
                     })
                   }
                   value={element.fontFamily}
                 >
                   <option value="Inter Variable">Inter</option>
                   <option value="Inter Tight Variable">Inter Tight</option>
+                  <option value="Manrope Variable">Manrope</option>
                 </select>
               </label>
               <label>

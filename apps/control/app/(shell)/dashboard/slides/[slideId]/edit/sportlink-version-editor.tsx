@@ -14,7 +14,7 @@ import {
 import { themeCatalog } from "@veyocast/content-templates/theme-catalog";
 import { Button, Field } from "@veyocast/ui";
 
-import { ThemePicker } from "../../_components/theme-picker";
+import { FieldFlowStyleStep } from "../../_components/fieldflow-style-step";
 import { SportlinkArrivalFields, type SportlinkMediaOption } from "../../_components/sportlink-arrival-fields";
 import { publishDynamicSlideVersion } from "../../version-actions";
 import { saveSportlinkSlideVersion } from "./actions";
@@ -22,9 +22,8 @@ import { saveSportlinkSlideVersion } from "./actions";
 type Team = { contexts: Array<{ competitionId: string; label: string; phaseId: string | null; poolId: string | null; seasonId: string | null }>; externalId: string; name: string };
 type Template = { orientation: "landscape" | "portrait"; slideType: string; versionId: string };
 
-export function SportlinkVersionEditor({ dataSourceId, defaultThemeId, initialDraft, initialRevision, media, slideId, teams, templates, versionId, versionNumber }: {
+export function SportlinkVersionEditor({ dataSourceId, initialDraft, initialRevision, media, slideId, teams, templates, versionId, versionNumber }: {
   dataSourceId: string;
-  defaultThemeId: SelectableThemeId;
   initialDraft: SportlinkSlideDraft;
   initialRevision: number;
   media: SportlinkMediaOption[];
@@ -35,7 +34,10 @@ export function SportlinkVersionEditor({ dataSourceId, defaultThemeId, initialDr
   versionNumber: number;
 }) {
   const router = useRouter();
-  const [draft, setDraft] = useState(initialDraft);
+  const [draft, setDraft] = useState(() => ({
+    ...initialDraft,
+    themeSelection: fieldflowThemeSelection(initialDraft.themeSelection)
+  }));
   const [revision, setRevision] = useState(initialRevision);
   const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -43,10 +45,17 @@ export function SportlinkVersionEditor({ dataSourceId, defaultThemeId, initialDr
   const templateMap = useMemo(() => Object.fromEntries(templates.map((template) => [`${template.orientation}:${template.slideType}`, template.versionId])), [templates]);
   const team = teams.find((candidate) => candidate.externalId === draft.context.providerTeamId) ?? teams[0];
   const blueprintKeys = Object.keys(sportlinkSlideBlueprints) as SportlinkSlideBlueprintKey[];
-  const themeId = draft.themeSelection.ref.catalog === "v2" ? draft.themeSelection.ref.id : "editorial";
+  const themeId = draft.themeSelection.ref.catalog === "v2" ? draft.themeSelection.ref.id : "fieldflow";
   const theme = themeCatalog[themeId];
 
-  const update = (next: SportlinkSlideDraft) => { setDraft(next); setDirty(true); setMessage(null); };
+  const update = (next: SportlinkSlideDraft) => {
+    setDraft({
+      ...next,
+      themeSelection: fieldflowThemeSelection(next.themeSelection)
+    });
+    setDirty(true);
+    setMessage(null);
+  };
   const setBlueprint = (blueprintKey: SportlinkSlideBlueprintKey) => {
     const blueprint = sportlinkSlideBlueprints[blueprintKey];
     const templateVersionId = templateMap[`${draft.orientation}:${blueprint.slideType}`];
@@ -86,8 +95,7 @@ export function SportlinkVersionEditor({ dataSourceId, defaultThemeId, initialDr
         <fieldset><legend>Wat wil je tonen?</legend><div className="sve-blueprints">{blueprintKeys.map((key) => <button aria-pressed={draft.blueprintKey === key} key={key} onClick={() => setBlueprint(key)} type="button">{shortLabel(key)}</button>)}</div></fieldset>
         <div className="sve-fields"><Field label="Team"><select onChange={(event) => { const nextTeam = teams.find((candidate) => candidate.externalId === event.target.value); const context = nextTeam?.contexts[0]; if (nextTeam) update({ ...draft, context: context ? contextFromOption(nextTeam.externalId, context) : { competitionId: null, competitionSelectionMode: "auto_current", phaseId: null, poolId: null, providerTeamId: nextTeam.externalId, seasonId: null } }); }} value={draft.context.providerTeamId}>{teams.map((option) => <option key={option.externalId} value={option.externalId}>{option.name}</option>)}</select></Field><Field label="Competitiekeuze"><select onChange={(event) => update({ ...draft, context: event.target.value === "auto_current" ? { ...draft.context, competitionId: null, competitionSelectionMode: "auto_current", phaseId: null, poolId: null, seasonId: null } : team?.contexts[0] ? contextFromOption(draft.context.providerTeamId, team.contexts[0]) : draft.context })} value={draft.context.competitionSelectionMode}><option value="auto_current">Gebruik actuele competitie</option><option value="pinned">Zelf competitie kiezen</option></select></Field>{draft.context.competitionSelectionMode === "pinned" ? <Field label="Competitie · fase · poule"><select onChange={(event) => { const context = team?.contexts[Number(event.target.value)]; if (context) update({ ...draft, context: contextFromOption(draft.context.providerTeamId, context) }); }} value={Math.max(0, team?.contexts.findIndex((context) => context.competitionId === draft.context.competitionId && context.poolId === draft.context.poolId) ?? 0)}>{team?.contexts.map((context, index) => <option key={`${context.competitionId}:${context.poolId}:${index}`} value={index}>{context.label}</option>)}</select></Field> : null}</div>
         <fieldset><legend>Schermformaat</legend><div className="sve-orientation">{(["landscape", "portrait"] as const).map((orientation) => <button aria-pressed={draft.orientation === orientation} key={orientation} onClick={() => setOrientation(orientation)} type="button"><strong>{orientation === "portrait" ? "Staand" : "Liggend"}</strong><small>{orientation === "portrait" ? "1080 × 1920" : "1920 × 1080"}</small></button>)}</div></fieldset>
-        <ThemePicker defaultThemeId={defaultThemeId} label="Thema voor versie" legacySelected={draft.themeSelection.ref.catalog === "legacy"} onChange={setTheme} value={themeId} />
-        {draft.themeSelection.ref.catalog === "legacy" ? <p className="notice notice--warning">De bestaande Editorial Arena-stijl blijft pixelvast behouden. Kies alleen een ander thema wanneer deze nieuwe versie bewust een nieuw uiterlijk mag krijgen.</p> : null}
+        <FieldFlowStyleStep label="FieldFlow-stijl voor deze versie" legacySelected={draft.themeSelection.ref.catalog === "legacy"} onActivate={() => setTheme("fieldflow")} value={themeId} />
         <fieldset><legend>Weergave</legend><div className="sve-options"><label><input checked={draft.display.columns === "two"} onChange={(event) => update({ ...draft, display: { ...draft.display, columns: event.target.checked ? "two" : "one" } })} type="checkbox" /> Twee kolommen</label>{sportlinkSlideBlueprints[draft.blueprintKey].slideType !== "sport_standing" ? <><label><input checked={draft.display.showHomeAway} onChange={(event) => update({ ...draft, display: { ...draft.display, showHomeAway: event.target.checked } })} type="checkbox" /> Thuis / uit</label><label><input checked={draft.display.showField} onChange={(event) => update({ ...draft, display: { ...draft.display, showField: event.target.checked } })} type="checkbox" /> Veld</label><label><input checked={draft.display.showDressingRoom} onChange={(event) => update({ ...draft, display: { ...draft.display, showDressingRoom: event.target.checked } })} type="checkbox" /> Kleedkamer</label><label><input checked={draft.display.showReferee} onChange={(event) => update({ ...draft, display: { ...draft.display, showReferee: event.target.checked } })} type="checkbox" /> Scheidsrechter</label></> : <p>Voor een poulestand zijn alleen de kolommen relevant.</p>}</div></fieldset>
         {draft.arrival && draft.blueprintKey.endsWith("arrivals") ? <fieldset><legend>Aankomstinstellingen</legend><SportlinkArrivalFields media={media} onChange={(arrival) => update({ ...draft, arrival })} value={draft.arrival} /></fieldset> : null}
         <footer><Button disabled={!dirty || pending} onClick={save} type="button" variant="secondary"><Save aria-hidden="true" />Concept opslaan</Button><Button disabled={dirty || pending} onClick={publish} type="button"><Send aria-hidden="true" />Versie publiceren</Button></footer>
@@ -100,3 +108,4 @@ export function SportlinkVersionEditor({ dataSourceId, defaultThemeId, initialDr
 
 function contextFromOption(teamId: string, option: Team["contexts"][number]) { return { competitionId: option.competitionId, competitionSelectionMode: "pinned" as const, phaseId: option.phaseId, poolId: option.poolId, providerTeamId: teamId, seasonId: option.seasonId }; }
 function shortLabel(key: SportlinkSlideBlueprintKey) { return sportlinkSlideBlueprints[key].label.replace(/^Club/u, "").trim(); }
+function fieldflowThemeSelection(selection: SportlinkSlideDraft["themeSelection"]): SportlinkSlideDraft["themeSelection"] { return { ...selection, ref: { catalog: "v2", id: "fieldflow", version: themeCatalog.fieldflow.version } }; }

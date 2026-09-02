@@ -2,7 +2,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
         <shape android:shape="rectangle">
-            <corners android:radius="6dp" />
+            <corners android:radius="12dp" />
             <solid android:color="@color/vc_surface_strong" />
             <stroke android:width="3dp" android:color="@color/vc_signal_blue" />
             <padding android:left="12dp" android:top="4dp" android:right="12dp" android:bottom="4dp" />
