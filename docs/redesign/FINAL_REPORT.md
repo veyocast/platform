@@ -5,6 +5,8 @@ Branch: `veyocast/s144-fieldflow-platform-redesign`
 Nulmeting: `6fe477a332ab6565a6bb3205959ebfe7766e9a2c`
 Implementatiestatus: `VERIFIED_LOCAL`
 Releasestatus: `BLOCKED_EXTERNAL`
+Implementatiecommit: `f277e5d4488ee6b7b2db44162c67751955eb1ae7`
+Pull request: `https://github.com/veyocast/platform/pull/163`
 
 ## Uitkomst
 
@@ -75,9 +77,14 @@ Zie `GOLDEN_INDEX.md`, `VISUAL_QA.md`, `ASSET_MANIFEST.csv`,
 
 ## Niet omzeilde externe gates
 
-1. GitHub Actions weigert jobs vóór jobstart met `startup_failure` wegens de
-   account-billing/spending limit. Voorbeeldrun:
-   `https://github.com/veyocast/platform/actions/runs/33544777826`.
+1. GitHub Actions weigert alle vijf PR-workflows vóór de eerste stap. De
+   check-annotations melden expliciet dat het account wegens een billingissue
+   is geblokkeerd. Bewijs op de implementatiecommit:
+   - PR Gates: `https://github.com/veyocast/platform/actions/runs/33647096532`
+   - Database/RLS: `https://github.com/veyocast/platform/actions/runs/33647096531`
+   - Android Player: `https://github.com/veyocast/platform/actions/runs/33647096541`
+   - LG webOS: `https://github.com/veyocast/platform/actions/runs/33647096808`
+   - Control Mobile: `https://github.com/veyocast/platform/actions/runs/33647096743`
 2. De twee self-hosted runners zijn online, maar kunnen door die GitHub-gate
    geen officiële preflight of deployjob ontvangen.
 3. Deze host heeft geen deploy-user, `/srv/apps/veyocast`, SSH-private key,
