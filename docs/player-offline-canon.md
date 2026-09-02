@@ -83,3 +83,18 @@ Diagnostics are not public playback. They show:
 - last error;
 - app version;
 - device session.
+
+## FieldFlow rendererpariteit
+
+FieldFlow verandert de update-state-machine niet. Modern Player en Static LG
+lezen dezelfde resolved `themePresentation`, contentprojectie en assetmanifest
+uit de immutable release. Static LG is een zelfstandige Chrome-79-veilige
+renderer; pariteit wordt per renderfamilie getest en niet uit moderne DOM/CSS
+afgeleid. Historische theme-ID's blijven renderbaar, maar nieuwe authoring
+bevriest altijd FieldFlow.
+
+Een rendererfout, ontbrekende dynamische payload of niet-ondersteunde
+browserfeature activeert de checksum-geverifieerde poster/PNG-fallback van
+dezelfde snapshot. Online synchronisatie blijft non-blocking zolang een geldige
+lokale release bestaat; geen FieldFlow-surface mag pairing-, recovery- of
+diagnostiek automatisch over geldige publieke content leggen.

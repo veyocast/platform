@@ -192,3 +192,18 @@ Player blijft offline doorspelen
 Nieuwe release wordt pending gedownload
 Player switcht pas na volledige verificatie
 ```
+
+## 10. FieldFlow outputcontract
+
+Vanaf S144 is `fieldflow` de enige authoringkeuze voor nieuwe en muteerbare
+dynamische content. De tien oudere theme-ID's blijven geldige input voor reeds
+gepubliceerde immutable snapshots en releases; migraties herschrijven deze data
+niet. De authoringgrens wordt zowel in serveracties als in PostgreSQL-triggers
+afgedwongen.
+
+De resolved presentatie in de immutable snapshot is de enige bron voor modern
+Player, Static LG, preview, thumbnail en renderfallback. Live tenantdefaults of
+providerdata worden na publicatie niet opnieuw geraadpleegd. Assetcollectors
+nemen alle in die snapshot gerefereerde club-, tegenstander-, sponsor- en
+contentmedia mee. Een ontbrekend of corrupt pending asset houdt de nieuwe
+release in pending en laat de actieve last-known-good release spelen.

@@ -61,12 +61,21 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("renderPriceListTemplate");
     expect(html).toContain("renderMenuStudioTemplate");
     expect(html).toContain("menu-studio-v2");
+    expect(html).toContain("appendFloatingBlock");
+    expect(html).toContain("legacy-menu-floating");
+    expect(html).toContain('block.type === "video"');
+    expect(html).toContain('block.type === "logo"');
+    expect(html).toContain('block.type === "promo"');
+    expect(html).toContain('block.type === "text"');
     expect(html).toContain(".menu-studio-v2 .legacy-price-product>b{color:currentColor");
     expect(html).toContain("legacy-price-grid-two");
     expect(html).toContain("portraitTwoColumns");
     expect(html).toContain('snapshot.menuDocument');
-    expect(html).toContain('orientation === "portrait" ? 14 : 8');
+    expect(html).toContain('orientation === "portrait" ? 20 : 8');
+    expect(html).toContain("firstPageCapacity(floatingBlocks");
     expect(html).toContain("renderSportTemplate");
+    expect(html).toContain("item.homeLogoMediaAssetId");
+    expect(html).toContain("item.awayLogoMediaAssetId");
     expect(html).toContain("renderEditorialStandingTemplate");
     expect(html).toContain("legacy-standing-card");
     expect(html).toContain("var pages = templatePages(items, 10)");
@@ -81,6 +90,12 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("editorialArenaSlideTypes");
     expect(html).toContain("editorial-news");
     expect(html).toContain("editorial-news-qr");
+    expect(html).toContain("width:220px;height:220px");
+    expect(html).toContain("templateReadableNewsUrl");
+    expect(html).toContain('data-news-variant", newsVariant');
+    expect(html).toContain('"hero_split", "fullscreen_gradient", "news_grid", "text_only"');
+    expect(html).toContain("editorial-news-grid");
+    expect(html).toContain("Scan voor het artikel");
     expect(html).toContain("legacy-price-grid");
     expect(html).toContain("legacy-price-media");
     expect(html).toContain('payload.slideType === "price_list"');
@@ -107,6 +122,18 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain('"sport_visitor_arrivals"');
     expect(html).toContain('"sport_referee_arrivals"');
     expect(html).toContain('templateNode("div", "legacy-arrival-grid")');
+    expect(html).toContain("legacy-arrival-sponsor");
+    expect(html).toContain("arrivalConfiguration.sponsorMediaAssetId");
+    expect(html).toContain('fixtureList.setAttribute("data-columns", displayColumns)');
+    expect(html).toContain('resultList.setAttribute("data-columns", displayColumns)');
+    expect(html).toContain('data-render-family", "team-roster"');
+    expect(html).toContain('data-render-family", "sponsor-spotlight"');
+    expect(html).toContain('data-render-family", "training-schedule"');
+    expect(html).toContain('data-render-family", "volunteer-call"');
+    expect(html).toContain('data-render-family", typedKind + "-list"');
+    expect(html).toContain("renderLegacyTeamMini");
+    expect(html).toContain("item.photoMediaAssetId");
+    expect(html).toContain("rgba(4,47,45,.55)");
     expect(html).toContain("LEGACY_TEMPLATE_READY");
     expect(html).toContain('"sport_match_of_the_day"');
     expect(html).toContain("element.textContent = text");
@@ -114,7 +141,7 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).not.toContain("new Function(");
   });
 
-  it("resolveert exact de tien goedgekeurde Theme Engine v2-thema's in Legacy", () => {
+  it("resolveert FieldFlow plus tien historische renderthema's in Legacy", () => {
     const html = renderLgLegacyHtml();
     const ids = [
       "editorial",
@@ -126,7 +153,8 @@ describe("zelfstandige LG Legacy Player", () => {
       "swiss",
       "pavilion",
       "tactical",
-      "terrace"
+      "terrace",
+      "fieldflow"
     ];
 
     expect(html).toContain('themeManifestVersion":"1.0.0"');

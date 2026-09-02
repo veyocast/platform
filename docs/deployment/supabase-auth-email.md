@@ -15,7 +15,7 @@ een foutcode en laat de tenant herstelbaar bestaan.
 ## Production instellen
 
 Selecteer in Supabase expliciet production project
-`uuyelumptrfwuqwzkwsd`.
+`csrakhciqvehitplvale`.
 
 1. Open **Authentication → URL Configuration**.
 2. Zet **Site URL** op `https://control.veyocast.nl`.

@@ -12,7 +12,7 @@ import { Button } from "@veyocast/ui";
 import { requireControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import { PageHeader } from "../../_components/shell-primitives";
-import { ThemePickerField } from "../slides/_components/theme-picker";
+import { FieldFlowStyleField } from "../slides/_components/fieldflow-style-step";
 import { PrimaryColorField } from "./primary-color-field";
 import { updateTenantSettings } from "./actions";
 import { SettingsCategoryWorkspace } from "./settings-category-workspace";
@@ -53,7 +53,7 @@ const defaults: TenantSettings = {
   name: "",
   primaryColor: "#FF5C20",
   themeAccent: null,
-  themeId: "editorial",
+  themeId: "fieldflow",
   themeModePolicy: { kind: "fixed", mode: "light" },
   themeSettingsRevision: 0,
   themeSupport: null,
@@ -125,11 +125,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               disabled={!canManage}
             />
             <div className="field field--full">
-              <ThemePickerField
-                defaultThemeId={safeThemeId(data.themeId)}
+              <FieldFlowStyleField
                 disabled={!canManage}
                 initialThemeId={safeThemeId(data.themeId)}
-                label="Standaard slidethema"
+                label="Standaard FieldFlow-stijl"
               />
               <p className="field__help">Dit thema wordt voorgeselecteerd voor nieuwe slides. Bestaande gepubliceerde versies veranderen niet.</p>
             </div>
@@ -318,7 +317,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
 function safeThemeId(value: string): SelectableThemeId {
   const parsed = selectableThemeIdSchema.safeParse(value);
-  return parsed.success ? parsed.data : "editorial";
+  return parsed.success ? parsed.data : "fieldflow";
 }
 
 async function loadSettings(tenantId: string | null, isLive: boolean, tenantName: string) {

@@ -67,7 +67,6 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
             </nav>
           ) : null}
           <MenuStudioEditor
-            defaultThemeId={data.theme.themeId}
             initialOrientation={data.templates.some((template) => template.orientation === "landscape")
               ? "landscape"
               : "portrait"}

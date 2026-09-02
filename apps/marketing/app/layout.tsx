@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
+
+import "@fontsource-variable/inter/wght.css";
+import "@fontsource-variable/manrope/wght.css";
 
 import { JsonLd } from "./_components/json-ld";
 import { MarketingHeader } from "./_components/marketing-header";
@@ -12,18 +14,6 @@ import {
 } from "./_lib/site-config";
 
 import "./globals.css";
-
-const inter = Inter({
-  display: "swap",
-  subsets: ["latin"],
-  variable: "--font-inter"
-});
-
-const interTight = Inter_Tight({
-  display: "swap",
-  subsets: ["latin"],
-  variable: "--font-inter-tight"
-});
 
 export const metadata: Metadata = {
   applicationName: "VeyoCast",
@@ -41,9 +31,9 @@ export const metadata: Metadata = {
     images: [
       {
         alt: "VeyoCast",
-        height: 1024,
-        url: "/brand/veyocast-social-avatar-1024.png",
-        width: 1024
+        height: 630,
+        url: "/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-og-1200x630.webp",
+        width: 1200
       }
     ],
     locale: "nl_NL",
@@ -61,13 +51,13 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/brand/veyocast-social-avatar-1024.png"]
+    images: ["/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-og-1200x630.webp"]
   }
 };
 
 export const viewport: Viewport = {
   colorScheme: "dark",
-  themeColor: "#080808",
+  themeColor: "#123332",
   width: "device-width"
 };
 
@@ -75,7 +65,7 @@ export default function RootLayout({
   children
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html className={`${inter.variable} ${interTight.variable}`} lang="nl-NL">
+    <html data-design-system="fieldflow" lang="nl-NL">
       <body>
         <a className="skip-link" href="#main-content">
           Naar de inhoud

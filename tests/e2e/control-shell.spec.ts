@@ -30,21 +30,21 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
 
   const nav = page.getByRole("navigation", { name: "Hoofdnavigatie" });
   await expect(nav.getByRole("link", { name: /Platform/ })).toHaveCount(0);
-  await expect(nav.getByRole("link", { name: /Overzicht/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Vandaag", exact: true })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Sponsor Hub/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
   await expect(async () => {
-    const expandButton = nav.getByRole("button", { name: "Beheer uitklappen" });
+    const expandButton = nav.getByRole("button", { name: "Organisatie uitklappen" });
     if (await expandButton.count()) await expandButton.click();
-    await expect(nav.getByRole("link", { name: /Integraties/ })).toBeVisible();
+    await expect(nav.getByRole("link", { name: /Bronnen/ })).toBeVisible();
   }).toPass();
-  await expect(nav.getByRole("link", { name: /Integraties/ })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /Releases/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Bronnen/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Publicaties/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Schermen/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
-  await expect(nav.getByRole("heading", { name: "Werkplek" })).toBeAttached();
-  await expect(nav.getByRole("heading", { name: "Beheer" })).toBeVisible();
+  await expect(nav.getByRole("heading", { name: "Content" })).toBeAttached();
+  await expect(nav.getByRole("heading", { name: "Organisatie" })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
 
   await follow(
@@ -82,17 +82,17 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
 
   await follow(
     page,
-    () => nav.getByRole("link", { name: /Integraties/ }),
-    /\/dashboard\/integrations$/
+    () => nav.getByRole("link", { name: /Bronnen/ }),
+    /\/dashboard\/sources$/
   );
   await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Integraties" })
+    page.getByRole("heading", { exact: true, level: 1, name: "Databronnen" })
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Twelve Producten" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Twelve-import" })).toBeVisible();
   await follow(
     page,
-    () => page.getByRole("link", { name: "Twelve Producten openen" }),
-    /\/dashboard\/integrations\/twelve-products$/
+    () => page.getByRole("link", { name: "Twelve-import" }),
+    /\/dashboard\/sources\/twelve\/products$/
   );
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Twelve Producten" })
@@ -101,8 +101,8 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
 
   await follow(
     page,
-    () => nav.getByRole("link", { name: /Releases/ }),
-    /\/dashboard\/releases$/
+    () => nav.getByRole("link", { name: /Publicaties/ }),
+    /\/dashboard\/publications$/
   );
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Release Center" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Immutable historie" })).toBeVisible();
@@ -135,7 +135,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("link", { name: /Media/ })).toHaveCount(0);
   await follow(
     page,
-    () => nav.getByRole("link", { name: /Tenants/ }),
+    () => nav.getByRole("link", { name: /Klanten/ }),
     /\/platform\/tenants$/
   );
   await expect(
@@ -153,11 +153,8 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   ).toBeDisabled();
 
   await page.goto("/dashboard/auditlog");
-  await follow(
-    page,
-    () => nav.getByRole("link", { name: /Activiteit/ }),
-    /\/dashboard\/auditlog$/
-  );
+  await expect(page).toHaveURL(/\/dashboard\/activity$/);
+  await expect(nav.getByRole("link", { name: /Activiteit/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Activiteit" })).toBeVisible();
 });
 
@@ -257,9 +254,9 @@ test("supports the canonical expanded and compact Publisher sidebar", async ({
   await page.reload();
 
   const sidebar = page.getByLabel("Control navigatie");
-  await expect(sidebar).toHaveCSS("width", "80px");
+  await expect(sidebar).toHaveCSS("width", "72px");
   await expect(
-    sidebar.getByRole("link", { name: /Overzicht/ })
+    sidebar.getByRole("link", { name: "Vandaag", exact: true })
   ).toBeVisible();
   await expect(sidebar.locator(".control-brand__icon")).toBeVisible();
   await expect(
@@ -296,7 +293,7 @@ test("keeps the sidebar logo fixed while navigation and content scroll independe
   await expect(sidebar).toHaveCSS("overflow", "hidden");
   await expect(navigation).toHaveCSS("overflow-y", "auto");
   await expect(main).toHaveCSS("overflow-y", "auto");
-  await navigation.getByRole("button", { name: "Beheer uitklappen" }).click();
+  await navigation.getByRole("button", { name: "Organisatie uitklappen" }).click();
   await main.evaluate((element) => {
     const content = element.querySelector<HTMLElement>("#control-content");
     if (content) content.style.minHeight = "1400px";

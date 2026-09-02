@@ -1,4 +1,8 @@
-import { menuDocumentV2Schema, type MenuDocumentV2 } from "@veyocast/contracts";
+import {
+  menuDocumentV2Schema,
+  selectableThemeIdSchema,
+  type MenuDocumentV2
+} from "@veyocast/contracts";
 
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import type {
@@ -338,12 +342,8 @@ function optionalColor(value: unknown) {
 }
 
 function themeId(value: unknown): MenuDocumentV2["theme"]["themeId"] {
-  return [
-    "editorial", "obsidian", "atelier", "velocity", "heritage",
-    "halo", "swiss", "pavilion", "tactical", "terrace"
-  ].includes(String(value))
-    ? value as MenuDocumentV2["theme"]["themeId"]
-    : "editorial";
+  const parsed = selectableThemeIdSchema.safeParse(value);
+  return parsed.success ? parsed.data : "fieldflow";
 }
 
 function version(value: unknown) {

@@ -45,6 +45,10 @@ describe("Studio-documentcontract", () => {
     expect(studioSystemTemplates).toHaveLength(22);
     for (const template of studioSystemTemplates) {
       expect(safeParseStudioDocument(template.document).success).toBe(true);
+      expect(template.document.metadata.fontRegistryVersion).toBe("2026-09-02.1");
+      expect(template.document.elements.some(
+        (element) => element.type === "text" && element.fontFamily === "Manrope Variable"
+      )).toBe(true);
     }
   });
 

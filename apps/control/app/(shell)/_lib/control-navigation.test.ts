@@ -21,16 +21,17 @@ describe("control navigation", () => {
       "/dashboard/engage",
       "/dashboard/media",
       "/dashboard/playlists",
+      "/dashboard/slides",
       "/dashboard/screens",
       "/dashboard/planning",
-      "/dashboard/screen-groups",
-      "/dashboard/templates",
-      "/dashboard/releases",
-      "/dashboard/integrations",
-      "/dashboard/data-sources",
+      "/dashboard/screens/groups",
+      "/dashboard/playlist-templates",
+      "/dashboard/publications",
+      "/dashboard/sources",
       "/dashboard/team",
-      "/dashboard/auditlog",
+      "/dashboard/activity",
       "/dashboard/settings",
+      "/dashboard/account",
       "/dashboard/support"
     ]);
   });
@@ -42,34 +43,43 @@ describe("control navigation", () => {
     ]);
 
     expect(groups.map((group) => group.id)).toStrictEqual([
-      "platform-overview",
-      "platform-organization",
-      "tenant-workspace",
-      "tenant-management",
-      "tenant-support"
+      "platform-operations",
+      "platform-customers",
+      "platform-support",
+      "platform-product",
+      "tenant-today",
+      "tenant-content",
+      "tenant-broadcast",
+      "tenant-sources",
+      "tenant-growth",
+      "tenant-organization"
     ]);
     expect(groups.filter((group) => group.scope === "tenant").map((group) => group.title)).toStrictEqual([
-      "Werkplek",
-      "Beheer",
-      "Support"
+      "Vandaag",
+      "Content",
+      "Uitzenden",
+      "Bronnen",
+      "Groei",
+      "Organisatie"
     ]);
     expect(groups.flatMap((group) => group.items).filter((item) => item.scope === "tenant").map((item) => item.href)).toStrictEqual([
       "/dashboard",
       "/dashboard/studio",
-      "/dashboard/sponsors",
-      "/dashboard/engage",
       "/dashboard/media",
       "/dashboard/playlists",
+      "/dashboard/slides",
+      "/dashboard/playlist-templates",
       "/dashboard/screens",
       "/dashboard/planning",
-      "/dashboard/screen-groups",
-      "/dashboard/templates",
-      "/dashboard/releases",
-      "/dashboard/integrations",
-      "/dashboard/data-sources",
+      "/dashboard/screens/groups",
+      "/dashboard/publications",
+      "/dashboard/sources",
+      "/dashboard/sponsors",
+      "/dashboard/engage",
       "/dashboard/team",
-      "/dashboard/auditlog",
+      "/dashboard/activity",
       "/dashboard/settings",
+      "/dashboard/account",
       "/dashboard/support"
     ]);
     expect(groups.flatMap((group) => group.items).some((item) => item.href === "/dashboard/pilot")).toBe(false);
@@ -105,7 +115,7 @@ describe("control navigation", () => {
       "/dashboard",
       "/dashboard/media",
       "/dashboard/screens",
-      "/dashboard/screen-groups"
+      "/dashboard/screens/groups"
     ]);
   });
 
@@ -126,11 +136,18 @@ describe("control navigation", () => {
     expect(
       getNavigationGroupsForPathname(groups, "/platform/tenants", "tenant")
         .map((group) => group.scope)
-    ).toStrictEqual(["platform", "platform"]);
+    ).toStrictEqual(["platform", "platform", "platform", "platform"]);
     expect(
       getNavigationGroupsForPathname(groups, "/dashboard/media", "platform")
         .map((group) => group.scope)
-    ).toStrictEqual(["tenant", "tenant", "tenant"]);
+    ).toStrictEqual([
+      "tenant",
+      "tenant",
+      "tenant",
+      "tenant",
+      "tenant",
+      "tenant"
+    ]);
     expect(
       getNavigationGroupsForPathname(groups, "/context", "tenant")
         .every((group) => group.scope === "tenant")

@@ -79,15 +79,15 @@ export function renderLgRecoveryHtml() {
   <title>VeyoCast Player herstellen</title>
   <style>
     :root {
-      --vc-ink: #0a0a0a;
-      --vc-paper: #fafaf7;
+      --vc-ink: #071c1b;
+      --vc-paper: #f4f7f5;
       --vc-orange: #ff5c20;
-      --vc-blue: #315cff;
-      --vc-muted: #c9c9c4;
-      --vc-surface: #171717;
-      --vc-border: #3d3d39;
-      --vc-success: #46d18c;
-      --vc-warning: #ffad66;
+      --vc-blue: #76b4e1;
+      --vc-muted: #c9d8d3;
+      --vc-surface: #0d2927;
+      --vc-border: #2b4b47;
+      --vc-success: #237453;
+      --vc-warning: #e98a4a;
     }
     * { box-sizing: border-box; }
     html, body { min-height: 100%; margin: 0; }
@@ -177,7 +177,7 @@ export function renderLgRecoveryHtml() {
       margin: 0 12px 12px 0;
       padding: 11px 20px;
       border: 1px solid var(--vc-border);
-      border-radius: 6px;
+      border-radius: 12px;
       background: transparent;
       color: var(--vc-paper);
       font: inherit;
@@ -242,7 +242,7 @@ export function renderLgRecoveryHtml() {
     .diagnostics {
       margin-top: 20px;
       border: 1px solid var(--vc-border);
-      border-radius: 6px;
+      border-radius: 12px;
       background: var(--vc-surface);
     }
     .diagnostics summary {

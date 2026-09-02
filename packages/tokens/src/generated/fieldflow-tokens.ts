@@ -1,0 +1,235 @@
+import type { VeyoCastFieldflowTokens } from "../schema";
+
+export const veyocastFieldflowTokens = {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "meta": {
+    "name": "VeyoCast FieldFlow v3",
+    "version": "3.0.0",
+    "rule": "Semantic tokens only; locked logo colors and the Electric Orange primary action remain governed by the VeyoCast design canon."
+  },
+  "brand": {
+    "ink": "#0A0A0A",
+    "paper": "#FAFAF7",
+    "orange": "#FF5C20",
+    "petrol": "#123332",
+    "field": "#2F7D5C",
+    "sky": "#397DB6",
+    "warm": "#E98A4A",
+    "warmInk": "#9B461C"
+  },
+  "themes": {
+    "light": {
+      "canvas": "#F4F7F5",
+      "surface": "#FFFFFF",
+      "surfaceRaised": "#FFFFFF",
+      "surfaceMuted": "#EAF0ED",
+      "surfaceStrong": "#DDE7E2",
+      "ink": "#17201E",
+      "inkMuted": "#5D6B67",
+      "inkSubtle": "#687772",
+      "line": "#D7E0DC",
+      "lineStrong": "#B8C6C0",
+      "focus": "#397DB6"
+    },
+    "dark": {
+      "canvas": "#071C1B",
+      "surface": "#0D2927",
+      "surfaceRaised": "#123332",
+      "surfaceMuted": "#163A37",
+      "surfaceStrong": "#1C4844",
+      "ink": "#F4F7F5",
+      "inkMuted": "#C9D8D3",
+      "inkSubtle": "#9FB5AE",
+      "line": "#2B4B47",
+      "lineStrong": "#47706A",
+      "focus": "#76B4E1"
+    },
+    "highContrast": {
+      "canvas": "#FFFFFF",
+      "surface": "#FFFFFF",
+      "surfaceRaised": "#FFFFFF",
+      "surfaceMuted": "#F0F0F0",
+      "surfaceStrong": "#E0E0E0",
+      "ink": "#000000",
+      "inkMuted": "#202020",
+      "inkSubtle": "#303030",
+      "line": "#000000",
+      "lineStrong": "#000000",
+      "focus": "#005A9C"
+    }
+  },
+  "semantic": {
+    "action": {
+      "default": "#FF5C20",
+      "hover": "#E94C12",
+      "pressed": "#CC3F0C",
+      "onAction": "#0A0A0A"
+    },
+    "secondaryAction": {
+      "default": "#123332",
+      "hover": "#1B4744",
+      "pressed": "#0C2927",
+      "onAction": "#F4F7F5"
+    },
+    "success": {
+      "default": "#237453",
+      "surface": "#E4F2EB",
+      "onSurface": "#174E38"
+    },
+    "warning": {
+      "default": "#9A650C",
+      "surface": "#FFF2D8",
+      "onSurface": "#654205"
+    },
+    "danger": {
+      "default": "#B33A3A",
+      "surface": "#FBE9E9",
+      "onSurface": "#7B2727"
+    },
+    "info": {
+      "default": "#397DB6",
+      "surface": "#E7F0F8",
+      "onSurface": "#235C89"
+    },
+    "offline": {
+      "default": "#9B461C",
+      "surface": "#FBEBDD",
+      "onSurface": "#713114"
+    },
+    "syncing": {
+      "default": "#397DB6",
+      "surface": "#E7F0F8",
+      "onSurface": "#235C89"
+    }
+  },
+  "tenantAccent": {
+    "rule": "Tenant accent is confined to authored signage and previews and never replaces product navigation, focus, billing or system statuses.",
+    "fallback": "#2F7D5C"
+  },
+  "typography": {
+    "uiFamily": "Inter Variable, Inter, ui-sans-serif, system-ui, sans-serif",
+    "displayFamily": "Manrope Variable, Manrope, Inter, ui-sans-serif, system-ui, sans-serif",
+    "monoFamily": "Geist Mono, ui-monospace, SFMono-Regular, monospace",
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "sizesPx": {
+      "caption": 12,
+      "label": 14,
+      "bodySm": 14,
+      "body": 16,
+      "titleSm": 18,
+      "title": 24,
+      "headline": 36,
+      "displaySm": 48,
+      "display": 64,
+      "displayLg": 72
+    },
+    "lineHeights": {
+      "tight": 1.05,
+      "heading": 1.15,
+      "body": 1.55
+    },
+    "rules": [
+      "Never render essential text below 12px or primary body copy below 14px.",
+      "Use tabular numerals for times, prices, versions, counts and health values.",
+      "Use Dutch sentence case; do not use all caps for sentences or long labels."
+    ]
+  },
+  "spacingPx": [
+    0,
+    2,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    32,
+    40,
+    48,
+    64,
+    80,
+    112,
+    128,
+    160
+  ],
+  "radiiPx": {
+    "control": 12,
+    "field": 12,
+    "card": 16,
+    "panel": 20,
+    "dialog": 24,
+    "marketing": 24,
+    "pill": 999
+  },
+  "bordersPx": {
+    "hairline": 1,
+    "selected": 1,
+    "focusRing": 2
+  },
+  "elevation": {
+    "flat": "none",
+    "raised": "0 8px 24px rgba(18,51,50,.08)",
+    "floating": "0 20px 56px rgba(18,51,50,.14)",
+    "darkRaised": "0 20px 56px rgba(0,0,0,.34)"
+  },
+  "motion": {
+    "durationsMs": {
+      "instant": 100,
+      "quick": 160,
+      "standard": 220,
+      "deliberate": 320,
+      "process": 520
+    },
+    "easing": {
+      "standard": [
+        0.2,
+        0.8,
+        0.2,
+        1
+      ],
+      "enter": [
+        0.16,
+        1,
+        0.3,
+        1
+      ],
+      "exit": [
+        0.4,
+        0,
+        1,
+        1
+      ]
+    },
+    "reducedMotion": "Remove spatial transforms and continuous animation while preserving immediate opacity and semantic state feedback."
+  },
+  "touch": {
+    "minimumTargetPx": 44,
+    "preferredPrimaryTargetPx": 48
+  },
+  "layout": {
+    "marketingMaxWidthPx": 1280,
+    "contentMaxWidthPx": 1360,
+    "formMaxWidthPx": 760,
+    "railExpandedPx": 248,
+    "railCollapsedPx": 72,
+    "topbarPx": 64,
+    "mobileTabbarPx": 72,
+    "editorMinimumWidthPx": 1180
+  },
+  "zIndex": {
+    "base": 0,
+    "sticky": 20,
+    "popover": 40,
+    "sheet": 50,
+    "dialog": 60,
+    "toast": 70,
+    "critical": 80
+  }
+} as const satisfies VeyoCastFieldflowTokens;
+
+export default veyocastFieldflowTokens;

@@ -18,8 +18,8 @@ correcties uitgevoerd; secrets zijn niet gewijzigd.
 | `PLAYER_BIND_PORT` | ja: `13001` | ja: `23001` | exact en uniek | workflow, preflight, deployscript, Compose | correct | behouden |
 | `MARKETING_HOST` | nee | ja: `veyocast.nl` | verboden in staging, verplicht in production | productionworkflow, preflight, deployscript, Compose | correct | behouden |
 | `MARKETING_BIND_PORT` | nee | ja: `23002` | verboden in staging, verplicht in production | productionworkflow, preflight, deployscript, Compose | correct | behouden |
-| `SUPABASE_PROJECT_REF` | ja: `zljenodtbylnueubnobf` | ja: `uuyelumptrfwuqwzkwsd` | 20 tekens, verschillend per omgeving | workflow, preflight, migrations | correct | behouden |
-| `NEXT_PUBLIC_SUPABASE_URL` | ja: `https://zljenodtbylnueubnobf.supabase.co` | ja: `https://uuyelumptrfwuqwzkwsd.supabase.co` | exact eigen project-ref | workflow, preflight, Control/Player runtime | correct | behouden |
+| `SUPABASE_PROJECT_REF` | ja: `jibbtdicrptsyftobavq` | ja: `csrakhciqvehitplvale` | 20 tekens, verschillend per omgeving | workflow, preflight, migrations | correct op 2026-09-02 | behouden en bij rotatie opnieuw auditen |
+| `NEXT_PUBLIC_SUPABASE_URL` | ja: `https://jibbtdicrptsyftobavq.supabase.co` | ja: `https://csrakhciqvehitplvale.supabase.co` | exact eigen project-ref | workflow, preflight, Control/Player runtime | correct op 2026-09-02 | behouden en bij rotatie opnieuw auditen |
 | `REVERSE_PROXY_NETWORK` | nee; was `veyocast-staging-internal` | nee; was `veyocast-production-internal` | hoort afwezig te zijn bij host-Caddy | niet meer gebruikt | correct na audit | beide variables verwijderd |
 
 De values bevatten geen host van de voormalige merknaam, productionwaarde in staging,

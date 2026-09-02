@@ -5,7 +5,6 @@ import { Check, ChevronDown, Eye, LayoutGrid, Users } from "lucide-react";
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 
 import {
-  selectableThemeIdSchema,
   sportlinkArrivalConfigSchema,
   sportlinkSlideBlueprints,
   type SelectableThemeId,
@@ -16,11 +15,11 @@ import {
   type SportlinkSlideDraft,
   type ThemeSelection
 } from "@veyocast/contracts";
-import { themeCatalog, themeCatalogOptions } from "@veyocast/content-templates/theme-catalog";
+import { themeCatalog } from "@veyocast/content-templates/theme-catalog";
 import { buildSportlinkSlideDrafts } from "@veyocast/domain";
 import { Button, Field, JourneyShell } from "@veyocast/ui";
 
-import { ThemePicker } from "../../../slides/_components/theme-picker";
+import { FieldFlowStyleStep } from "../../../slides/_components/fieldflow-style-step";
 import { SportlinkArrivalFields, type SportlinkMediaOption } from "../../../slides/_components/sportlink-arrival-fields";
 
 type TeamContext = {
@@ -42,7 +41,7 @@ const steps = [
   "Wat wil je tonen?",
   "Teams & slides",
   "Competitie & poule",
-  "Thema & weergave",
+  "Stijl & weergave",
   "Controleren & aanmaken"
 ];
 const blueprintKeys = Object.keys(sportlinkSlideBlueprints) as SportlinkSlideBlueprintKey[];
@@ -71,8 +70,9 @@ export function SportlinkBulkWizard({
   const [teamContexts, setTeamContexts] = useState<Record<string, SportlinkSlideContext>>({});
   const [contextOverrides, setContextOverrides] = useState<Record<string, SportlinkSlideContext>>({});
   const [orientation, setOrientation] = useState<"landscape" | "portrait">("landscape");
-  const [themeSelection, setThemeSelection] = useState(defaultThemeSelection);
-  const [themeOverrides, setThemeOverrides] = useState<Record<string, SelectableThemeId>>({});
+  const [themeSelection, setThemeSelection] = useState(() =>
+    withThemeId(defaultThemeSelection, "fieldflow")
+  );
   const [display, setDisplay] = useState<SportlinkDisplayConfig>({
     columns: "two",
     showDressingRoom: false,
@@ -100,21 +100,17 @@ export function SportlinkBulkWizard({
         teams: [{ context, name: team.name }],
         templateVersionIdBySlideType: templateMap,
         themeSelection
-      }).map((draft) => {
-        const key = draftKey(draft);
-        const themeId = themeOverrides[key];
-        return {
-          ...draft,
-          arrival: draft.blueprintKey.endsWith("arrivals") ? arrivalConfig : undefined,
-          context: contextOverrides[key] ?? draft.context,
-          display,
-          themeSelection: themeId ? withThemeId(themeSelection, themeId) : themeSelection
-        };
-      });
+      }).map((draft) => ({
+        ...draft,
+        arrival: draft.blueprintKey.endsWith("arrivals") ? arrivalConfig : undefined,
+        context: contextOverrides[draftKey(draft)] ?? draft.context,
+        display,
+        themeSelection
+      }));
     } catch {
       return [];
     }
-  }), [arrivalConfig, contextOverrides, display, orientation, selectedTeams, teamContexts, teamSelections, templateMap, themeOverrides, themeSelection]);
+  }), [arrivalConfig, contextOverrides, display, orientation, selectedTeams, teamContexts, teamSelections, templateMap, themeSelection]);
 
   const requiredSlideTypes = [...new Set(selectedBlueprints.map((key) => sportlinkSlideBlueprints[key].slideType))];
   const missingTemplates = requiredSlideTypes.filter((type) => !templateMap[type]);
@@ -200,7 +196,6 @@ export function SportlinkBulkWizard({
           {step === 3 ? (
             <ThemeDisplayStep
               arrivalConfig={arrivalConfig}
-              defaultThemeId={themeId(defaultThemeSelection)}
               display={display}
               drafts={drafts}
               media={media}
@@ -208,9 +203,7 @@ export function SportlinkBulkWizard({
               setArrivalConfig={setArrivalConfig}
               setDisplay={setDisplay}
               setOrientation={setOrientation}
-              setThemeOverrides={setThemeOverrides}
               setThemeSelection={setThemeSelection}
-              themeOverrides={themeOverrides}
               themeSelection={themeSelection}
             />
           ) : null}
@@ -311,9 +304,8 @@ function ContextSelect({ contexts, onChange, teamId, value }: { contexts: TeamCo
   return <Field label="Competitie · fase · poule"><select onChange={(event) => { const option = contexts[Number(event.target.value)]; if (option) onChange(contextFromOption(teamId, option)); }} value={index}>{contexts.map((option, optionIndex) => <option key={`${option.competitionId}:${option.poolId}:${optionIndex}`} value={optionIndex}>{option.label}</option>)}</select></Field>;
 }
 
-function ThemeDisplayStep({ arrivalConfig, defaultThemeId, display, drafts, media, orientation, setArrivalConfig, setDisplay, setOrientation, setThemeOverrides, setThemeSelection, themeOverrides, themeSelection }: {
+function ThemeDisplayStep({ arrivalConfig, display, drafts, media, orientation, setArrivalConfig, setDisplay, setOrientation, setThemeSelection, themeSelection }: {
   arrivalConfig: SportlinkArrivalConfig;
-  defaultThemeId: SelectableThemeId;
   display: SportlinkDisplayConfig;
   drafts: SportlinkSlideDraft[];
   media: SportlinkMediaOption[];
@@ -321,21 +313,18 @@ function ThemeDisplayStep({ arrivalConfig, defaultThemeId, display, drafts, medi
   setArrivalConfig: Dispatch<SetStateAction<SportlinkArrivalConfig>>;
   setDisplay: Dispatch<SetStateAction<SportlinkDisplayConfig>>;
   setOrientation: (value: "landscape" | "portrait") => void;
-  setThemeOverrides: Dispatch<SetStateAction<Record<string, SelectableThemeId>>>;
   setThemeSelection: Dispatch<SetStateAction<ThemeSelection>>;
-  themeOverrides: Record<string, SelectableThemeId>;
   themeSelection: ThemeSelection;
 }) {
   const hasArrivals = drafts.some((draft) => draft.blueprintKey.endsWith("arrivals"));
   const hasFixtureInfo = drafts.some((draft) => ["sport_program", "sport_results", "sport_visitor_arrivals", "sport_referee_arrivals"].includes(sportlinkSlideBlueprints[draft.blueprintKey].slideType));
   return (
     <>
-      <StepHeading description="Het verenigingsthema is voorgeselecteerd. Deze keuze wordt expliciet op iedere nieuwe versie opgeslagen." title="Thema & weergave" />
-      <ThemePicker defaultThemeId={defaultThemeId} label="Thema voor deze slides" onChange={(id) => setThemeSelection((current) => withThemeId(current, id))} value={themeId(themeSelection)} />
+      <StepHeading description="FieldFlow en de gekozen weergave worden expliciet op iedere nieuwe versie opgeslagen." title="Stijl & weergave" />
+      <FieldFlowStyleStep label="FieldFlow-stijl voor deze slides" onActivate={() => setThemeSelection((current) => withThemeId(current, "fieldflow"))} value={themeId(themeSelection)} />
       <section className="slw-display-section"><h3>Schermformaat</h3><div className="slw-format-grid">{(["landscape", "portrait"] as const).map((value) => <button aria-pressed={orientation === value} key={value} onClick={() => setOrientation(value)} type="button"><strong>{value === "portrait" ? "Staand" : "Liggend"}</strong><span>{value === "portrait" ? "1080 × 1920" : "1920 × 1080"}</span></button>)}</div></section>
       <section className="slw-display-section"><h3>Kolommen en wedstrijdinformatie</h3><div className="slw-inline-options"><label><input checked={display.columns === "two"} onChange={(event) => setDisplay((current) => ({ ...current, columns: event.target.checked ? "two" : "one" }))} type="checkbox" /> Twee kolommen {orientation === "portrait" ? "(aanbevolen voor staand)" : ""}</label>{hasFixtureInfo ? <><label><input checked={display.showHomeAway} onChange={(event) => setDisplay((current) => ({ ...current, showHomeAway: event.target.checked }))} type="checkbox" /> Thuis / uit tonen</label><label><input checked={display.showField} onChange={(event) => setDisplay((current) => ({ ...current, showField: event.target.checked }))} type="checkbox" /> Veld tonen</label><label><input checked={display.showDressingRoom} onChange={(event) => setDisplay((current) => ({ ...current, showDressingRoom: event.target.checked }))} type="checkbox" /> Kleedkamer tonen</label><label><input checked={display.showReferee} onChange={(event) => setDisplay((current) => ({ ...current, showReferee: event.target.checked }))} type="checkbox" /> Scheidsrechter tonen</label></> : <p>Voor een poulestand zijn alleen kolommen relevant.</p>}</div></section>
       {hasArrivals ? <section className="slw-display-section"><h3>Bezoekers en scheidsrechters</h3><SportlinkArrivalFields media={media} onChange={setArrivalConfig} value={arrivalConfig} /></section> : null}
-      <details className="slw-theme-overrides"><summary>Individueel thema aanpassen <ChevronDown aria-hidden="true" /></summary>{drafts.map((draft) => { const key = draftKey(draft); return <label key={key}><span>{draft.name}</span><select onChange={(event) => setThemeOverrides((all) => { const next = { ...all }; const value = selectableThemeIdSchema.safeParse(event.target.value); if (!value.success || value.data === themeId(themeSelection)) delete next[key]; else next[key] = value.data; return next; })} value={themeOverrides[key] ?? themeId(themeSelection)}>{themeCatalogOptions.map((option) => <option key={option.id} value={option.id}>{option.name}{option.id === themeId(themeSelection) ? " · voor alle slides" : ""}</option>)}</select></label>; })}</details>
     </>
   );
 }
@@ -359,7 +348,7 @@ function initialContext(team: Team): SportlinkSlideContext { const first = team.
 function pinnedContext(team: Team, current: SportlinkSlideContext) { return team.contexts.length ? contextFromOption(team.externalId, team.contexts.find((option) => option.competitionId === current.competitionId) ?? team.contexts[0]!) : { ...current, competitionSelectionMode: "auto_current" as const }; }
 function contextFromOption(teamId: string, option: TeamContext): SportlinkSlideContext { return { competitionId: option.competitionId, competitionSelectionMode: "pinned", phaseId: option.phaseId, poolId: option.poolId, providerTeamId: teamId, seasonId: option.seasonId }; }
 function contextLabel(context: SportlinkSlideContext) { return [context.seasonId, context.competitionId, context.phaseId, context.poolId].filter(Boolean).join(" · ") || "Handmatig gekozen"; }
-function themeId(selection: ThemeSelection): SelectableThemeId { return selection.ref.catalog === "v2" ? selection.ref.id : "editorial"; }
+function themeId(selection: ThemeSelection): SelectableThemeId { return selection.ref.catalog === "v2" ? selection.ref.id : "fieldflow"; }
 function withThemeId(selection: ThemeSelection, id: SelectableThemeId): ThemeSelection { return { ...selection, ref: { catalog: "v2", id, version: themeCatalog[id].version } }; }
 function draftKey(draft: SportlinkSlideDraft) { return `${draft.context.providerTeamId}:${draft.blueprintKey}`; }
 function shortBlueprintLabel(key: SportlinkSlideBlueprintKey) { const labels: Record<SportlinkSlideBlueprintKey, string> = { "sportlink.club_schedule_today": "Programma vandaag", "sportlink.club_schedule_next_7_days": "Programma komende 7 dagen", "sportlink.club_results_today": "Uitslagen vandaag", "sportlink.club_results_previous_7_days": "Uitslagen afgelopen 7 dagen", "sportlink.pool_schedule_next_7_days": "Programma poule", "sportlink.pool_results_previous_7_days": "Uitslagen poule", "sportlink.pool_standings": "Poulestand", "sportlink.visitor_arrivals": "Bezoekers welkom", "sportlink.referee_arrivals": "Scheidsrechters welkom" }; return labels[key]; }

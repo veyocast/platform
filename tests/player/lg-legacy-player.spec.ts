@@ -207,6 +207,129 @@ async function mockEditorialArenaLegacyApis(
   });
 }
 
+type FieldFlowSportSlideType =
+  | "sport_sponsor"
+  | "sport_team"
+  | "sport_trainings"
+  | "sport_volunteers";
+
+const fieldFlowSportFamilies: Record<FieldFlowSportSlideType, string> = {
+  sport_sponsor: "sponsor-spotlight",
+  sport_team: "team-roster",
+  sport_trainings: "training-schedule",
+  sport_volunteers: "volunteer-call"
+};
+
+async function mockFieldFlowSportLegacyApis(
+  page: Page,
+  slideType: FieldFlowSportSlideType,
+  orientation: "landscape" | "portrait",
+  mode: "dark" | "light"
+) {
+  const imageAssetId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+  await page.route("**/api/player/installation", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ bound: true, installationCredential, ok: true })
+  }));
+  await page.route(`**${legacyImagePath}`, (route) => route.fulfill({
+    contentType: "image/svg+xml",
+    body: legacyImageSvg
+  }));
+  await page.route("**/api/player/manifest?legacy=*", (route) => {
+    const envelope = legacyEnvelope({
+      bytes: legacyImageBytes,
+      checksumSha256: legacyImageChecksum,
+      id: `fieldflow-${slideType}`,
+      kind: "image",
+      mimeType: "image/svg+xml",
+      title: `FieldFlow ${fieldFlowSportFamilies[slideType]}`,
+      url: legacyImagePath
+    });
+    const items = Array.from({ length: 8 }, (_, index) => ({
+      id: `${slideType}-${index + 1}`,
+      logoMediaAssetId: slideType === "sport_sponsor" ? imageAssetId : null,
+      photoMediaAssetId: slideType === "sport_team" ? imageAssetId : null,
+      primary: slideType === "sport_team"
+        ? `Selectiespeler met lange naam ${index + 1}`
+        : slideType === "sport_sponsor"
+          ? `Clubpartner ${index + 1}`
+          : slideType === "sport_trainings"
+            ? `Team onder ${11 + index}`
+            : `Vrijwilligersrol ${index + 1}`,
+      secondary: slideType === "sport_trainings"
+        ? "Dinsdag en donderdag · 19:30"
+        : slideType === "sport_volunteers"
+          ? "Gastheer of gastvrouw op wedstrijddagen"
+          : "Eerste selectie",
+      status: slideType === "sport_volunteers" ? "Open rol" : "Gepubliceerd",
+      meta: slideType === "sport_sponsor"
+        ? "Samen sterk voor de vereniging"
+        : "Sportpark FieldFlow"
+    }));
+    Object.assign(envelope.manifest.items[0]!, {
+      dynamicTemplate: {
+        assets: {
+          [imageAssetId]: {
+            bytes: legacyImageBytes,
+            checksumSha256: legacyImageChecksum,
+            mimeType: "image/svg+xml",
+            url: legacyImagePath
+          }
+        },
+        data: {
+          brand: {
+            clubName: "Sportvereniging FieldFlow",
+            primaryColor: "#169B62"
+          },
+          sport: {
+            competition: { name: "Vierde klasse" },
+            items,
+            pool: { name: "Poule A" },
+            season: "2026/2027",
+            title: slideType === "sport_team"
+              ? "Ons team"
+              : slideType === "sport_sponsor"
+                ? "Clubpartners"
+                : slideType === "sport_trainings"
+                  ? "Trainingen"
+                  : "Vrijwilligers"
+          },
+          themePresentation: {
+            resolvedMode: { mode, reason: "fixed" },
+            selection: {
+              accent: null,
+              categoryOverrides: [],
+              modePolicy: { kind: "fixed", mode },
+              ref: { catalog: "v2", id: "fieldflow", version: "3.0.0" },
+              support: null
+            }
+          },
+          type: slideType
+        },
+        orientation,
+        schemaVersion: 1,
+        slideType,
+        snapshotHash: "f".repeat(64),
+        snapshotId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        templateSlug: `editorial-arena-${slideType.replaceAll("_", "-")}-${mode}-${orientation}`,
+        templateVersionId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+      }
+    });
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(envelope)
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ automation: null, ok: true })
+  }));
+  await page.route("**/api/player/commands", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ commands: [], ok: true, serverTime: new Date().toISOString() })
+  }));
+}
+
 async function mockEditorialStandingLegacyApis(page: Page) {
   const logoId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
   await page.route("**/api/player/installation", async (route) => {
@@ -1246,6 +1369,69 @@ test("LG Legacy schaalt ieder logisch portraitcanvas binnen een landscapeviewpor
     .toBeLessThan(45);
 
   await context.close();
+});
+
+test("Static LG bewaakt de zestien FieldFlow-goldens voor de nieuwe sportfamilies", async ({
+  browser
+}) => {
+  test.setTimeout(180_000);
+  for (const [slideType, family] of Object.entries(fieldFlowSportFamilies) as Array<
+    [FieldFlowSportSlideType, string]
+  >) {
+    for (const orientation of ["landscape", "portrait"] as const) {
+      for (const mode of ["light", "dark"] as const) {
+        await test.step(`${family} · ${orientation} · ${mode}`, async () => {
+          const context = await browser.newContext({
+            reducedMotion: "reduce",
+            userAgent:
+              "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+            viewport: orientation === "landscape"
+              ? { height: 1080, width: 1920 }
+              : { height: 1920, width: 1080 }
+          });
+          const page = await context.newPage();
+          const pageErrors: string[] = [];
+          page.on("pageerror", (error) => pageErrors.push(error.message));
+          await mockFieldFlowSportLegacyApis(page, slideType, orientation, mode);
+          await page.addInitScript(
+            ({ credential, token }) => {
+              localStorage.setItem("veyocast.player.deviceToken", token);
+              localStorage.setItem("veyocast.player.installationCredential", credential);
+              localStorage.setItem(
+                "veyocast.player.instanceId",
+                "12345678-1234-4123-8123-123456789abc"
+              );
+            },
+            { credential: installationCredential, token: deviceToken }
+          );
+
+          await page.goto(`${playerURL}/lg/legacy`);
+          const slide = page.locator(".dynamic-template.editorial-arena");
+          await expect(slide).toBeVisible();
+          await expect(slide).toHaveAttribute("data-theme-id", "fieldflow");
+          await expect(slide).toHaveAttribute("data-slide-type", slideType);
+          await expect(slide.locator(`[data-render-family="${family}"]`)).toBeVisible();
+          const geometry = await slide.evaluate((element) => ({
+            allImagesComplete: Array.from(element.querySelectorAll("img"))
+              .every((image) => image.complete),
+            clientHeight: element.clientHeight,
+            clientWidth: element.clientWidth,
+            scrollHeight: element.scrollHeight,
+            scrollWidth: element.scrollWidth
+          }));
+          expect(geometry.scrollWidth).toBe(geometry.clientWidth);
+          expect(geometry.scrollHeight).toBe(geometry.clientHeight);
+          expect(geometry.allImagesComplete).toBe(true);
+          expect(pageErrors).toEqual([]);
+          await expect(page).toHaveScreenshot(
+            `fieldflow-lg-${family}-${orientation}-${mode}.png`,
+            { animations: "disabled", caret: "hide", maxDiffPixelRatio: 0.002 }
+          );
+          await context.close();
+        });
+      }
+    }
+  }
 });
 
 test("LG Legacy toont de stand als één Editorial Arena-canvas met begrensde logo's", async ({

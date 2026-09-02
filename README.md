@@ -242,3 +242,13 @@ featuredefinitieseed en een standaard uitgeschakelde globale noodstop toe.
 Flag, audit en receipt blijven atomisch en uitsluitend de gekozen tenant
 wijzigt. Zie
 [`docs/s139-ledscores-feature-rollout-evidence.md`](docs/s139-ledscores-feature-rollout-evidence.md).
+
+S144 introduceert FieldFlow als de samenhangende product- en outputtaal. Nieuwe
+en muteerbare slides authoren uitsluitend `fieldflow`; de tien historische
+thema-ID's blijven intern renderbaar voor immutable releases en worden niet
+gebackfilld. De moderne en Static-LG-renderers projecteren dezelfde bevroren
+snapshot, inclusief dubbele teamlogo's, weergavetoggles en assets. Programma,
+bewijs, rollout en rollback staan onder [`docs/redesign/`](docs/redesign/PROGRAM.md).
+De lokale kwaliteitsgates zijn groen; merge en staging/production blijven
+geblokkeerd totdat de externe GitHub Actions-billinggate is hersteld. Er wordt
+geen beschermde environmentapproval of handmatige VPS-route omzeild.

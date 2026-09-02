@@ -85,3 +85,11 @@ export type VeyoCastVectorTokens = {
   layout: Record<string, number>;
   zIndex: Record<string, number>;
 };
+
+export type VeyoCastFieldflowTokens = Omit<VeyoCastVectorTokens, "themes"> & {
+  themes: {
+    light: VeyoCastVectorThemeTokens;
+    dark: VeyoCastVectorThemeTokens;
+    highContrast: VeyoCastVectorThemeTokens;
+  };
+};

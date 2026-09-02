@@ -70,7 +70,7 @@ select throws_ok(
     (select version.id from public.dynamic_template_versions version join public.dynamic_templates template on template.id = version.template_id where template.slide_type = 'price_list' and version.status = 'published' limit 1),
     (select id from menu_test_state where name = 'source'),
     'latest',
-    '{"schemaVersion":"menu-document.v2","id":"draft","tenantId":"draft","revision":1,"createdAt":"2026-08-21T12:00:00.000Z","updatedAt":"2026-08-21T12:00:00.000Z","title":"Lunch","theme":{"themeId":"editorial","themeVersion":"1.0.0","mode":"light","brand":{"accent":"#FF5C20"}},"assets":[],"pages":[{"id":"page-1","order":0,"blocks":[]}]}'::jsonb,
+    '{"schemaVersion":"menu-document.v2","id":"draft","tenantId":"draft","revision":1,"createdAt":"2026-08-21T12:00:00.000Z","updatedAt":"2026-08-21T12:00:00.000Z","title":"Lunch","theme":{"themeId":"fieldflow","themeVersion":"1.0.0","mode":"light","brand":{"accent":"#FF5C20"}},"assets":[],"pages":[{"id":"page-1","order":0,"blocks":[]}]}'::jsonb,
     '20000000-0000-4000-8000-000000001121'
   )$$,
   '42501',
@@ -112,7 +112,7 @@ select 'created', public.create_menu_studio_draft_v2(
   version.id,
   (select id from menu_test_state where name = 'source'),
   'latest',
-  '{"schemaVersion":"menu-document.v2","id":"draft","tenantId":"draft","revision":1,"createdAt":"2026-08-21T12:00:00.000Z","updatedAt":"2026-08-21T12:00:00.000Z","title":"Lunch","theme":{"themeId":"editorial","themeVersion":"1.0.0","mode":"light","brand":{"accent":"#FF5C20"}},"assets":[],"pages":[{"id":"page-1","order":0,"blocks":[]}]}'::jsonb,
+  '{"schemaVersion":"menu-document.v2","id":"draft","tenantId":"draft","revision":1,"createdAt":"2026-08-21T12:00:00.000Z","updatedAt":"2026-08-21T12:00:00.000Z","title":"Lunch","theme":{"themeId":"fieldflow","themeVersion":"1.0.0","mode":"light","brand":{"accent":"#FF5C20"}},"assets":[],"pages":[{"id":"page-1","order":0,"blocks":[]}]}'::jsonb,
   '20000000-0000-4000-8000-000000001122'
 )
 from public.dynamic_template_versions version

@@ -110,3 +110,31 @@ Every Control UI PR must complete
 `docs/control-enterprise-ux-checklist.md`, render the relevant desktop and
 mobile routes, and include an accessibility test for changed flows. The
 checklist is a concise execution guide; the complete canon remains normative.
+
+## FieldFlow v3 delta
+
+FieldFlow v3 is vanaf S144 de semantische productlaag voor marketing, Control,
+mobiel beheer en beheerchrome op Playerhosts. Deze delta wijzigt geen locked
+merkasset, primaire Electric-Orange/Ink-actie, securitygrens of offlinecontract.
+
+- Surfaces zijn taakgericht en mogen 16–24 px radius gebruiken voor een
+  inhoudelijk paneel, herhaald item of begrensde tool. Navigatie, losse labels
+  en normale playback krijgen geen decoratieve kaartenlaag.
+- De achtergrond gebruikt petrol/clubgroen, cloud/wit en een subtiel
+  abstract-flow-raster. Oranje is accent/actie; blauw blijft beperkt tot
+  semantische informatie of focus.
+- Slidecanvassen gebruiken een vaste 12-koloms landscape- en 6-koloms
+  portrait-safe grid. Copy start linksboven, dense data pagineert en primaire
+  tekst blijft boven de familiegebonden minimumramp.
+- Manrope is het lokale displayfont, Inter het lokale interface/bodyfont;
+  Arial/Helvetica/system sans zijn deterministische LG- en capturefallbacks.
+- Light, dark en high contrast zijn expliciete tokensets. Reduced motion maakt
+  inhoud direct zichtbaar en schakelt decoratieve transities uit.
+- Fullscreenbeeld gebruikt een orientation-specifieke focal point en begrensde
+  leesoverlay: maximaal 55% aan de tekstzijde, circa 36% midden en 8% aan het
+  beelduiteinde. Sponsorcreative gebruikt contain op een rustige plaat en wordt
+  nooit automatisch gerecolourd of gecropt.
+
+De gereviewde voorbeelden en reproduceerbare matrix staan in
+`docs/redesign/GOLDEN_INDEX.md`; de tokenbron staat in
+`tokens/veyocast-fieldflow-v3-tokens.json`.

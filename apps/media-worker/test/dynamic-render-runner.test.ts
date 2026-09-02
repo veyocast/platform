@@ -32,11 +32,40 @@ const job: ClaimedDynamicRenderJob = {
 describe("dynamic render worker", () => {
   it("neemt bezoekerlogo's mee in de echte snapshotthumbnail", () => {
     const logoId = "50000000-0000-5000-8000-000000001291";
+    const homeLogoId = "50000000-0000-5000-8000-000000001292";
+    const awayLogoId = "50000000-0000-5000-8000-000000001293";
     expect(collectDynamicRenderAssetIds({
       sport: {
-        items: [{ logoMediaAssetId: logoId, primary: "Bezoekers FC" }]
+        items: [{
+          awayLogoMediaAssetId: awayLogoId,
+          homeLogoMediaAssetId: homeLogoId,
+          logoMediaAssetId: logoId,
+          primary: "Bezoekers FC"
+        }]
       }
-    })).toContain(logoId);
+    })).toEqual(expect.arrayContaining([logoId, homeLogoId, awayLogoId]));
+  });
+
+  it("neemt een zichtbare aankomstsponsor op in de renderassets", () => {
+    const sponsorId = "50000000-0000-5000-8000-000000001294";
+    expect(collectDynamicRenderAssetIds({
+      sport: {
+        arrivalConfig: {
+          showSponsor: true,
+          sponsorMediaAssetId: sponsorId
+        },
+        items: []
+      }
+    })).toContain(sponsorId);
+    expect(collectDynamicRenderAssetIds({
+      sport: {
+        arrivalConfig: {
+          showSponsor: false,
+          sponsorMediaAssetId: sponsorId
+        },
+        items: []
+      }
+    })).not.toContain(sponsorId);
   });
 
   it("rendert, uploadt en voltooit exact één immutable PNG", async () => {

@@ -107,6 +107,11 @@
     "panel-reveal": { "durationMs": 560, "easing": "cubic-bezier(.16,1,.3,1)", "translatePercent": 0 }
   },
   "decorationRecipes": {
+    "fieldflow-pitch": {
+      "background": { "type": "linear-gradient", "angleDeg": 118, "accentStartPercent": 74, "accentMixLightPercent": 9, "accentMixDarkPercent": 13 },
+      "grid": { "sizeCqw": 6, "lineCqw": 0.06, "opacity": 0.22, "maxVisualProminencePercent": 12 },
+      "keyline": { "xCqw": 4.5, "widthCqw": 0.08 }
+    },
     "editorial-rail": {
       "background": { "type": "linear-gradient", "angleDeg": 112, "accentStartPercent": 68, "accentMixLightPercent": 12, "accentMixDarkPercent": 17 },
       "keyline": { "xCqw": 4.4, "widthCqw": 0.08 }
@@ -159,6 +164,44 @@
     }
   },
   "themes": [
+    {
+      "id": "fieldflow",
+      "name": "FieldFlow",
+      "version": "1.0.0",
+      "accentDefault": "#ff7a1a",
+      "supportDefault": "#169b62",
+      "displayFontRef": "vc-manrope-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 750,
+      "displayLetterSpacingEm": -0.045,
+      "radiusCqw": 1.8,
+      "densityScale": 1.0,
+      "light": {
+        "canvas": "#f4f7f4",
+        "surface": "rgba(255,255,255,.94)",
+        "surfaceAlt": "#e5eee9",
+        "text": "#042f2d",
+        "muted": "#50706b",
+        "line": "rgba(6,63,59,.16)",
+        "shadow": "0 1.6cqw 4.4cqw rgba(4,47,45,.14)"
+      },
+      "dark": {
+        "canvas": "#042f2d",
+        "surface": "rgba(6,63,59,.94)",
+        "surfaceAlt": "#0c514b",
+        "text": "#f4f7f4",
+        "muted": "#b7ccc5",
+        "line": "rgba(244,247,244,.16)",
+        "shadow": "0 2cqw 5cqw rgba(0,0,0,.34)"
+      },
+      "decoration": { "id": "fieldflow-pitch", "intensity": 0.18, "dataDenseMultiplier": 0.52 },
+      "primitiveModifiers": ["fieldflow-pitch-grid", "fieldflow-keyline", "calm-broadcast-surface"],
+      "motion": {
+        "default": "arena-dissolve",
+        "overrides": { "hero": "editorial-shift", "operational-live": "instant-cut" },
+        "overrideUsageCapPercent": 24
+      }
+    },
     {
       "id": "editorial",
       "name": "Editorial Arena",

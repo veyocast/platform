@@ -91,33 +91,35 @@ type ControlShellProps = {
 };
 
 const navigationIcons: Record<string, LucideIcon> = {
+  Account: BadgeCheck,
   Activiteit: Activity,
+  Bronnen: ServerCog,
   Instellingen: Settings2,
   Media: FileImage,
-  Overzicht: Home,
+  Vandaag: Home,
   Platform: MonitorSmartphone,
   Platformgebruikers: Users,
   Planning: CalendarDays,
   Playlists: ListVideo,
-  Releases: PackageCheck,
+  Publicaties: PackageCheck,
   Schermgroepen: FolderKanban,
   Schermen: MonitorSmartphone,
   Studio: PanelsTopLeft,
   Systeem: ServerCog,
   Team: Users,
-  Templates: FileStack,
-  "Dynamische templates": FileStack,
+  "Playlist-sjablonen": FileStack,
+  Renderformats: FileStack,
   Databronnen: ServerCog,
-  Slides: Layers3,
+  "Slides & formats": Layers3,
   "Sponsor Hub": Handshake,
   Engage: Sparkles,
-  Tenants: Building2
+  Klanten: Building2
 };
 const sidebarStorageKey = "veyocast-control-sidebar-collapsed";
 const managementStorageKey = "veyocast-control-management-open";
 const previousSidebarStorageKey = `${String.fromCharCode(99, 97, 115, 116, 105, 118, 111)}-control-sidebar-collapsed`;
 const mobilePrimaryLabels = [
-  "Overzicht",
+  "Vandaag",
   "Schermen",
   "Playlists",
   "Studio"
@@ -349,6 +351,7 @@ export function ControlShell({
       <ControlThemeBootstrap />
       <div
         className={`control-shell control-shell--motion${isSidebarCollapsed ? " control-shell--collapsed" : ""}`}
+        data-fieldflow="v3"
         data-navigation-scope={activeNavigationScope}
         data-vector={vectorEnabled ? "enabled" : "legacy"}
       >
@@ -513,7 +516,7 @@ export function ControlShell({
               aria-labelledby={`control-nav-${group.id}`}
               className="control-nav__group"
               data-collapsed={
-                group.section === "management" &&
+                group.section === "organization" &&
                 !isManagementOpen &&
                 !group.items.some((item) => isActive(pathname, item))
                   ? "true"
@@ -532,7 +535,7 @@ export function ControlShell({
                 <h2 className="control-nav__heading" id={`control-nav-${group.id}`}>
                   {group.title}
                 </h2>
-                {group.section === "management" ? (
+                {group.section === "organization" ? (
                   <button
                     aria-controls={`control-nav-list-${group.id}`}
                     aria-expanded={

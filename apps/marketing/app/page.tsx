@@ -16,6 +16,7 @@ import {
   Sparkles
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 import {
   VEYOCAST_SCREEN_PRICE_GROSS_CENTS,
@@ -196,6 +197,14 @@ export default function HomePage() {
             </Reveal>
 
             <Reveal className="home-hero__visual" delay={0.08}>
+              <Image
+                alt="Clubhuis met sportveld in de avond"
+                className="fieldflow-hero-photo"
+                fill
+                priority
+                sizes="(max-width: 960px) 100vw, 58vw"
+                src="/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp"
+              />
               <HeroProductStage />
             </Reveal>
           </div>

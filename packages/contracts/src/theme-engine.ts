@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export const selectableThemeIds = [
+export const authorableThemeIds = ["fieldflow"] as const;
+
+export const legacyRenderableThemeIds = [
   "editorial",
   "obsidian",
   "atelier",
@@ -12,6 +14,14 @@ export const selectableThemeIds = [
   "tactical",
   "terrace"
 ] as const;
+
+export const renderableThemeIds = [
+  ...authorableThemeIds,
+  ...legacyRenderableThemeIds
+] as const;
+
+/** @deprecated Use authorableThemeIds for UI and renderableThemeIds for playback. */
+export const selectableThemeIds = renderableThemeIds;
 
 export const themeModes = ["light", "dark"] as const;
 export const themeTransitionKeys = [
@@ -28,6 +38,7 @@ export const themeMotionStates = [
 ] as const;
 
 export const selectableThemeIdSchema = z.enum(selectableThemeIds);
+export const authorableThemeIdSchema = z.enum(authorableThemeIds);
 export const themeModeSchema = z.enum(themeModes);
 export const themeTransitionKeySchema = z.enum(themeTransitionKeys);
 export const themeMotionStateSchema = z.enum(themeMotionStates);
@@ -181,7 +192,7 @@ export const themeManifestSchema = z.object({
     surfaceBorderCqw: z.number().positive()
   }).strict(),
   status: z.literal("approved"),
-  themes: z.array(themeManifestThemeSchema).length(selectableThemeIds.length),
+  themes: z.array(themeManifestThemeSchema).length(renderableThemeIds.length),
   transitions: z.record(themeTransitionKeySchema, z.object({
     durationMs: z.number().int().min(0).max(560),
     easing: z.string().trim().min(1),
@@ -198,7 +209,7 @@ export const themeManifestSchema = z.object({
   }).strict()
 }).strict().superRefine((manifest, context) => {
   const ids = manifest.themes.map((theme) => theme.id);
-  for (const requiredId of selectableThemeIds) {
+  for (const requiredId of renderableThemeIds) {
     if (ids.filter((id) => id === requiredId).length !== 1) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -228,6 +239,7 @@ export const themeManifestSchema = z.object({
 });
 
 export type PersistedThemeRef = z.infer<typeof persistedThemeRefSchema>;
+export type AuthorableThemeId = z.infer<typeof authorableThemeIdSchema>;
 export type ResolvedModeSnapshot = z.infer<typeof resolvedModeSnapshotSchema>;
 export type SelectableThemeId = z.infer<typeof selectableThemeIdSchema>;
 export type SourceCategoryIdentity = z.infer<typeof sourceCategoryIdentitySchema>;

@@ -25,12 +25,13 @@ const themeIds: MenuDocumentV2["theme"]["themeId"][] = [
   "swiss",
   "pavilion",
   "tactical",
-  "terrace"
+  "terrace",
+  "fieldflow"
 ];
 
 test.use({ serviceWorkers: "block" });
 
-test("Menu Studio bewaakt 40 goldens voor thema, modus en oriëntatie", async ({ page }) => {
+test("Menu Studio bewaakt 44 compatibility- en FieldFlow-goldens", async ({ page }) => {
   test.setTimeout(240_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   const pageErrors: string[] = [];

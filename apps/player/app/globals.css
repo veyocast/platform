@@ -5,6 +5,30 @@
   font-family: var(--vc-font-ui);
 }
 
+.runtime-shell,
+.player-recovery-menu {
+  --vc-brand-ink-black: #071c1b;
+  --vc-brand-paper-white: #f4f7f5;
+  --vc-brand-signal-blue: #76b4e1;
+  --vc-neutral-900: #0d2927;
+  --vc-neutral-850: #123332;
+  --vc-neutral-700: #2b4b47;
+  --vc-neutral-400: #9fb5ae;
+  --vc-neutral-300: #c9d8d3;
+  --vc-surface-muted: #0d2927;
+  --vc-border: #2b4b47;
+  --vc-border-strong: #47706a;
+  --vc-text-muted: #c9d8d3;
+  --vc-semantic-success-dark: #237453;
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.runtime-shell .runtime-title,
+.runtime-shell .pairing-stage__status h2,
+.player-recovery-menu h1 {
+  font-family: "Manrope Variable", Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -461,9 +485,9 @@ body {
 .pairing-qr img {
   background: var(--vc-brand-paper-white);
   border-radius: var(--vc-radius-md);
-  height: clamp(82px, 12vh, 112px);
-  padding: 5px;
-  width: clamp(82px, 12vh, 112px);
+  height: clamp(144px, 20vh, 196px);
+  padding: 8px;
+  width: clamp(144px, 20vh, 196px);
 }
 
 .pairing-qr span {

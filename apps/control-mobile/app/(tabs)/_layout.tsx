@@ -31,15 +31,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="maken"
-        options={{
-          title: "Maken"
-        }}
-      />
-      <Tabs.Screen
         name="content"
         options={{
           title: "Content"
+        }}
+      />
+      <Tabs.Screen
+        name="maken"
+        options={{
+          title: "Maken"
         }}
       />
       <Tabs.Screen

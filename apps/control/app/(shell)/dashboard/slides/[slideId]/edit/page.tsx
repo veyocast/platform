@@ -58,7 +58,7 @@ async function loadEditorData(tenantId: string, slideId: string) {
   const defaultTheme = selectableThemeIdSchema.safeParse(settingsResult.data?.default_theme_id);
   return {
     dataSourceId: slideResult.data.data_source_id,
-    defaultThemeId: defaultTheme.success ? defaultTheme.data : "editorial" as const,
+    defaultThemeId: defaultTheme.success ? defaultTheme.data : "fieldflow" as const,
     initialDraft: draft.data,
     initialRevision: Number(version.edit_revision),
     media: (mediaResult.data ?? []).map((asset) => ({ id: asset.id, name: asset.title })),

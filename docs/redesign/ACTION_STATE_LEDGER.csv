@@ -1,0 +1,14 @@
+pattern,actions,required_states,authorization,fieldflow_component,status,test_evidence
+resource_list,search;filter;sort;paginate;select;bulk,filled;first_empty;no_results;loading;partial;error;permission;offline;archived,server filtered plus capability,FieldFlowDataTable,VERIFIED_LOCAL,a11y and route E2E matrix
+resource_create,open;validate;submit;cancel,idle;invalid;submitting;success;retryable_error;fatal_error;permission;conflict,server action capability plus RLS,FieldFlowDialog or FieldFlowWizard,VERIFIED_LOCAL,unit plus journey E2E
+resource_edit,load;change;autosave;save;discard,loading;clean;dirty;saving;saved;conflict;error;read_only;permission,revision or ETag server guard,FieldFlowFormStatus,VERIFIED_LOCAL,conflict recovery E2E
+destructive_action,review_impact;confirm;execute;recover,idle;impact_loading;blocked;submitting;success;error;permission,AAL2 reason impact audit where required,FieldFlowDangerDialog,VERIFIED_LOCAL,server action and audit tests
+media_upload,select;drop;resume;retry;cancel;archive,queued;uploading;processing;ready;quarantined;failed;offline,guarded signed upload and tenant path,FieldFlowUploadQueue,VERIFIED_LOCAL,upload lifecycle E2E
+picker,open;search;filter;select;exclude;clear,loading;filled;empty;no_results;partial;error;permission,server-paginated tenant query,FieldFlowResourcePicker,VERIFIED_LOCAL,keyboard and cross-tenant tests
+wizard,next;back;save_draft;review;submit,incomplete;validating;ready;submitting;success;conflict;error;offline,server validation on every final action,FieldFlowWizard,VERIFIED_LOCAL,mobile and desktop journey E2E
+publish,preflight;review;publish;retry,checking;blocked;ready;publishing;success;conflict;error;offline,tenant.release.publish immutable RPC,FieldFlowPublicationFlow,VERIFIED_LOCAL,release and Player offline E2E
+pairing,request;claim;refresh;recover;unpair,setup;waiting;claiming;paired;expired;rate_limited;offline;error,installation/device credential separate from Auth,FieldFlowPairing,VERIFIED_LOCAL,modern LG and mobile E2E
+sync,refresh;retry;inspect,idle;syncing;fresh;stale;partial;offline;error,server-only adapter and lease,FieldFlowSyncStatus,VERIFIED_LOCAL,worker contract tests
+live_control,start;pause;stop;retry,idle;connecting;live;stale;reconnecting;stopped;error,server guarded bounded command,FieldFlowLiveStatus,VERIFIED_LOCAL,modern and LG delivery tests
+platform_elevated,review;reason;confirm;execute;rollback,idle;impact;review;submitting;success;conflict;error;permission,AAL2 plus platform capability and audit,FieldFlowElevatedAction,VERIFIED_LOCAL,RLS and elevated E2E
+player_release,download;verify;activate;fallback,waiting;downloading;verified;active;offline_lkg;corrupt_pending;recovery,device credential and immutable manifest,FieldFlowPlayerStatus,VERIFIED_LOCAL,Player 116 and offline 7 baseline

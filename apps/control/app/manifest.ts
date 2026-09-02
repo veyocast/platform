@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
 
-const atelierIvoryPwaColors = {
-  background: "#F5F1E8",
-  theme: "#151411"
+const fieldflowPwaColors = {
+  background: "#F4F7F5",
+  theme: "#123332"
 } as const;
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    background_color: atelierIvoryPwaColors.background,
+    background_color: fieldflowPwaColors.background,
     description: "Beheer schermen, media en publicaties met VeyoCast Publisher.",
     display: "standalone",
     icons: [
@@ -42,6 +42,6 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     short_name: "VeyoCast",
     start_url: "/dashboard",
-    theme_color: atelierIvoryPwaColors.theme
+    theme_color: fieldflowPwaColors.theme
   };
 }

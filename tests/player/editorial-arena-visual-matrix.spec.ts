@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { editorialArenaDefaultTheme } from "@veyocast/content-templates/editorial-arena-theme";
+import { freezeThemePresentation, themeCatalog } from "@veyocast/content-templates/theme-catalog";
 import type {
   EditorialNewsVariant,
   PlayerDynamicTemplatePayload
@@ -22,10 +23,14 @@ const fixtureVariants = [
   "program-5",
   "program-20",
   "results-5",
-  "results-20"
+  "results-20",
+  "team-roster",
+  "sponsor-spotlight",
+  "training-schedule",
+  "volunteer-call"
 ] as const;
 
-test("volledige Editorial Arena-matrix van 48 cellen", async ({ page }) => {
+test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
   test.setTimeout(180_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
 
@@ -50,6 +55,7 @@ test("volledige Editorial Arena-matrix van 48 cellen", async ({ page }) => {
           await expect(slide).toBeVisible();
           await expect(slide).toHaveAttribute("data-orientation", orientation);
           await expect(slide).toHaveAttribute("data-theme", themeMode);
+          await expect(slide).toHaveAttribute("data-theme-id", "fieldflow");
           const geometry = await slide.evaluate((element) => {
             const content = element.querySelector("main");
             const footer = element.querySelector("footer");
@@ -152,7 +158,15 @@ function buildPayload(
         ? "sport_standing"
         : variant.startsWith("program-")
           ? "sport_program"
-          : "sport_results";
+          : variant === "team-roster"
+            ? "sport_team"
+            : variant === "sponsor-spotlight"
+              ? "sport_sponsor"
+              : variant === "training-schedule"
+                ? "sport_trainings"
+                : variant === "volunteer-call"
+                  ? "sport_volunteers"
+                  : "sport_results";
   return {
     assets: {
       [imageId]: {
@@ -162,7 +176,24 @@ function buildPayload(
         url: `${playerURL}/editorial-arena-fixture.svg`
       }
     },
-    data,
+    data: {
+      ...data,
+      themePresentation: freezeThemePresentation({
+        instant: "2026-09-02T12:00:00.000Z",
+        selection: {
+          accent: null,
+          categoryOverrides: [],
+          modePolicy: { kind: "fixed", mode: themeMode },
+          ref: {
+            catalog: "v2",
+            id: "fieldflow",
+            version: themeCatalog.fieldflow.version
+          },
+          support: null
+        },
+        timezone: "Europe/Amsterdam"
+      })
+    },
     orientation,
     schemaVersion: 1,
     slideType,
@@ -198,7 +229,7 @@ function priceData(withPhoto: boolean, theme: typeof editorialArenaDefaultTheme)
     }))
   ];
   return {
-    brand: { clubName: "Sportvereniging Editorial", primaryColor: "#315CFF" },
+    brand: { clubName: "Sportvereniging FieldFlow", primaryColor: "#169B62" },
     editorial: {
       newsVariant: "hero_split",
       priceList: {
@@ -220,7 +251,7 @@ function priceData(withPhoto: boolean, theme: typeof editorialArenaDefaultTheme)
 
 function newsData(variant: EditorialNewsVariant, theme: typeof editorialArenaDefaultTheme) {
   return {
-    brand: { clubName: "Sportvereniging Editorial", primaryColor: "#315CFF" },
+    brand: { clubName: "Sportvereniging FieldFlow", primaryColor: "#169B62" },
     editorial: {
       newsFocalPoint: { x: 0.68, y: 0.36 },
       newsVariant: variant,
@@ -253,12 +284,28 @@ function sportData(
   variant: typeof fixtureVariants[number],
   theme: typeof editorialArenaDefaultTheme
 ) {
-  const count = variant.endsWith("-5") ? 5 : variant.endsWith("-10") ? 10 : 20;
+  const special = [
+    "team-roster",
+    "sponsor-spotlight",
+    "training-schedule",
+    "volunteer-call"
+  ].includes(variant);
+  const count = special
+    ? 8
+    : variant.endsWith("-5") ? 5 : variant.endsWith("-10") ? 10 : 20;
   const standing = variant.startsWith("standing-");
   const results = variant.startsWith("results-");
-  const slideType = standing
-    ? "sport_standing"
-    : results ? "sport_results" : "sport_program";
+  const slideType = variant === "team-roster"
+    ? "sport_team"
+    : variant === "sponsor-spotlight"
+      ? "sport_sponsor"
+      : variant === "training-schedule"
+        ? "sport_trainings"
+        : variant === "volunteer-call"
+          ? "sport_volunteers"
+          : standing
+            ? "sport_standing"
+            : results ? "sport_results" : "sport_program";
   const items = Array.from({ length: count }, (_, index) => standing ? ({
     drawn: index % 4,
     form: ["win", index % 2 ? "draw" : "loss", "win"],
@@ -274,6 +321,26 @@ function sportData(
     teamName: index === 6 ? "Sportvereniging Editorial Lange Clubnaam" : `Vereniging ${index + 1}`,
     won: 10 - (index % 4),
     zone: index < 2 ? "promotion" : index >= count - 2 ? "relegation" : ""
+  }) : special ? ({
+    id: `${slideType}-${index}`,
+    logoMediaAssetId: variant === "sponsor-spotlight" ? imageId : null,
+    photoMediaAssetId: variant === "team-roster" ? imageId : null,
+    primary: variant === "team-roster"
+      ? `Selectiespeler met lange naam ${index + 1}`
+      : variant === "sponsor-spotlight"
+        ? `Clubpartner ${index + 1}`
+        : variant === "training-schedule"
+          ? `Team onder ${11 + index}`
+          : `Vrijwilligersrol ${index + 1}`,
+    secondary: variant === "training-schedule"
+      ? "Dinsdag en donderdag · 19:30"
+      : variant === "volunteer-call"
+        ? "Gastheer of gastvrouw op wedstrijddagen"
+        : "Eerste selectie",
+    status: variant === "volunteer-call" ? "Open rol" : "Gepubliceerd",
+    meta: variant === "sponsor-spotlight"
+      ? "Samen sterk voor de vereniging"
+      : "Sportpark FieldFlow"
   }) : ({
     awayScore: results ? index % 3 : null,
     awayTeam: `Uitclub ${index + 1}`,
@@ -290,7 +357,7 @@ function sportData(
     venue: "Sportpark De Arena"
   }));
   return {
-    brand: { clubName: "Sportvereniging Editorial", primaryColor: "#315CFF" },
+    brand: { clubName: "Sportvereniging FieldFlow", primaryColor: "#169B62" },
     editorial: {
       newsVariant: "hero_split",
       pricePhotoMode: "show",
@@ -302,7 +369,19 @@ function sportData(
       items,
       pool: { name: "Poule A" },
       season: "2026/2027",
-      title: standing ? "Stand" : results ? "Uitslagen" : "Programma"
+      title: standing
+        ? "Stand"
+        : results
+          ? "Uitslagen"
+          : variant === "team-roster"
+            ? "Ons team"
+            : variant === "sponsor-spotlight"
+              ? "Clubpartners"
+              : variant === "training-schedule"
+                ? "Trainingen"
+                : variant === "volunteer-call"
+                  ? "Vrijwilligers"
+                  : "Programma"
     },
     type: slideType
   };

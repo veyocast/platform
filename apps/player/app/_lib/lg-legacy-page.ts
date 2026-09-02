@@ -85,9 +85,9 @@ export function renderLgLegacyHtml() {
     .legacy-media-layer{position:absolute;top:0;right:0;bottom:0;left:0;z-index:1;opacity:0;visibility:hidden;transition:opacity 180ms ease}
     .legacy-media-layer.visible{opacity:1;visibility:visible}
     .legacy-media-layer.retiring{opacity:0;visibility:visible}
-    #status{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;padding:5vh 5vw;background:#080908}
+    #status{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;padding:5vh 5vw;background:#071c1b}
     #status[hidden]{display:none}
-    .panel{width:min(860px,90vw);padding:clamp(28px,4vw,58px);border:1px solid rgba(255,255,255,.22);border-radius:24px;background:#101110}
+    .panel{width:min(860px,90vw);padding:clamp(28px,4vw,58px);border:1px solid #47706a;border-radius:24px;background:#0d2927}
     .logo{display:block;width:min(290px,48vw);height:auto;margin:0 0 42px}
     .kicker{margin:0 0 14px;color:#ff5a1f;font-size:clamp(15px,1.5vw,22px);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
     h1{margin:0;font-size:clamp(42px,6vw,82px);line-height:.98;letter-spacing:-.045em}
@@ -174,6 +174,7 @@ export function renderLgLegacyHtml() {
     .dynamic-team{display:grid;justify-items:center;gap:2vh;min-width:0}
     .dynamic-team-mark{display:flex;align-items:center;justify-content:center;width:min(25vw,32vh);height:min(25vw,32vh);border:9px solid var(--accent);background:#fffdf7;color:#11110f;font-size:clamp(52px,7vw,126px);font-weight:900}
     .dark .dynamic-team-mark{background:#141512;color:#fffdf7}
+    .dynamic-team-mark img{display:block;width:82%;height:82%;object-fit:contain}
     .dynamic-team h2{margin:0;font-size:clamp(34px,3.5vw,70px);line-height:1}
     .dynamic-match-meta{display:grid;justify-items:center;gap:1.3vh;min-width:18vw}
     .dynamic-match-meta small{color:var(--accent);font-size:clamp(15px,1.2vw,25px);font-weight:900;letter-spacing:.1em;text-transform:uppercase}
@@ -181,12 +182,69 @@ export function renderLgLegacyHtml() {
     .dynamic-match-meta p{margin:0;color:#625f57;font-size:clamp(18px,1.5vw,29px)}
     .dark .dynamic-match-meta p{color:#c9c4b9}
     .dynamic-list{display:grid}
+    .dynamic-list[data-columns="two"]{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:2vw}
     .dynamic-row{display:grid;grid-template-columns:50px minmax(0,1fr) minmax(130px,1.15fr);align-items:center;gap:1.4vw;min-height:8.5vh;padding:1vh 1vw;border-top:1px solid rgba(98,95,87,.3)}
     .dynamic-row>span{color:var(--accent);font-size:clamp(19px,1.6vw,31px);font-weight:900}
     .dynamic-row h2{margin:0;font-size:clamp(23px,2vw,39px);line-height:1.05}
     .dynamic-row p{margin:.4vh 0 0;color:#625f57;font-size:clamp(14px,1.1vw,22px)}
     .dark .dynamic-row p{color:#c9c4b9}
     .dynamic-row strong{justify-self:end;font-size:clamp(19px,1.4vw,29px);text-align:right}
+    .legacy-fixture-list,.legacy-result-list,.legacy-typed-list{display:grid;box-sizing:border-box;height:100%;padding:2.8%;overflow:hidden;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 24px 80px var(--editorial-shadow)}
+    .legacy-fixture-list[data-columns="two"],.legacy-result-list[data-columns="two"]{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px}
+    .legacy-fixture-row,.legacy-result-row,.legacy-typed-row{display:grid;align-items:center;gap:14px;box-sizing:border-box;min-height:12.5%;border-bottom:1px solid var(--editorial-border-soft)}
+    .legacy-fixture-row{grid-template-columns:150px minmax(0,1fr) 220px 90px}
+    .legacy-fixture-row>strong{font-size:20px}
+    .legacy-fixture-teams{display:flex;align-items:center;gap:10px;min-width:0;font-size:20px;font-weight:750}
+    .legacy-fixture-teams b{color:var(--editorial-muted);font-size:13px;font-weight:800;text-transform:uppercase}
+    .legacy-team-mini{display:inline-grid;flex:0 0 auto;width:38px;height:38px;place-items:center;overflow:hidden;border:1px solid var(--editorial-border);border-radius:50%;background:var(--editorial-surface-alt);color:var(--accent);font-size:11px;font-style:normal;font-weight:900}
+    .legacy-team-mini img{width:80%;height:80%;object-fit:contain}
+    .legacy-fixture-row>small{overflow:hidden;color:var(--editorial-muted);font-size:16px;text-overflow:ellipsis;white-space:nowrap}
+    .legacy-fixture-row>time{font-size:20px;font-weight:900;text-align:right}
+    .legacy-fixture-list[data-columns="two"] .legacy-fixture-row{grid-template-columns:100px minmax(0,1fr) 64px}
+    .legacy-fixture-list[data-columns="two"] .legacy-fixture-row>small{grid-column:2}
+    .legacy-result-row{grid-template-columns:minmax(0,1fr) 170px minmax(0,1fr) 112px;font-size:22px}
+    .legacy-result-team{display:flex;align-items:center;gap:10px;min-width:0;font-weight:750}
+    .legacy-result-team.away{justify-content:flex-end;text-align:right}
+    .legacy-result-score{font-size:32px;font-weight:900;text-align:center;font-variant-numeric:tabular-nums}
+    .legacy-result-row>small{color:var(--editorial-muted);font-size:16px;text-align:right}
+    .legacy-result-list[data-columns="two"] .legacy-result-row{grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr)}
+    .legacy-result-list[data-columns="two"] .legacy-result-row>small{grid-column:1/-1}
+    .legacy-typed-row{grid-template-columns:130px minmax(0,1fr) auto;padding:0 8px}
+    .legacy-typed-row>time{font-size:20px;font-weight:800}
+    .legacy-typed-row h2{margin:0 0 4px;font-size:23px}
+    .legacy-typed-row p{margin:0;color:var(--editorial-muted);font-size:17px}
+    .legacy-typed-row>strong{max-width:320px;font-size:18px;text-align:right}
+    .legacy-typed-row[data-kind="cancellation"]>strong{padding:8px 12px;border-radius:999px;background:var(--editorial-danger);color:#fff}
+    .legacy-typed-row[data-kind="dressing"]>strong{color:var(--accent)}
+    .legacy-typed-row[data-kind="official"]{grid-template-columns:130px minmax(0,1fr) minmax(260px,.7fr)}
+    .legacy-team-roster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;height:100%}
+    .legacy-team-card{display:grid;grid-template-rows:minmax(0,1fr) auto;box-sizing:border-box;min-height:0;padding:18px;overflow:hidden;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 18px 58px var(--editorial-shadow)}
+    .legacy-team-photo{display:grid;min-height:0;overflow:hidden;place-items:center;border-radius:18px;background:var(--editorial-surface-alt)}
+    .legacy-team-photo img{width:100%;height:100%;object-fit:cover}
+    .legacy-team-photo span{color:var(--accent);font-size:72px;font-weight:900}
+    .legacy-team-copy{padding:18px 4px 4px}
+    .legacy-team-copy i,.legacy-sponsor-copy i,.legacy-training-row i,.legacy-volunteer-card i,.legacy-volunteer-callout i{color:var(--accent);font-size:14px;font-style:normal;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+    .legacy-team-copy h2,.legacy-sponsor-copy h2,.legacy-training-row h2,.legacy-volunteer-card h2{margin:8px 0 4px;font-size:30px;line-height:1.04}
+    .legacy-team-copy p,.legacy-sponsor-copy p,.legacy-training-row p,.legacy-volunteer-card p{margin:0;color:var(--editorial-muted);font-size:19px;line-height:1.25}
+    .legacy-team-copy strong,.legacy-sponsor-copy strong,.legacy-volunteer-card strong{display:block;margin-top:10px;font-size:16px}
+    .legacy-sponsor-layout{display:grid;gap:18px;height:100%}
+    .legacy-sponsor-layout:not([data-items="1"]){grid-template-columns:repeat(2,minmax(0,1fr))}
+    .legacy-sponsor-card{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:center;gap:48px;box-sizing:border-box;padding:54px;overflow:hidden;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 18px 58px var(--editorial-shadow)}
+    .legacy-sponsor-layout:not([data-items="1"]) .legacy-sponsor-card{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:26px;padding:32px}
+    .legacy-sponsor-plate{display:grid;box-sizing:border-box;width:100%;height:100%;min-height:260px;padding:42px;place-items:center;border:1px solid var(--editorial-border-soft);border-radius:18px;background:#f8f6f0}
+    .legacy-sponsor-plate img{width:100%;height:100%;object-fit:contain}
+    .legacy-sponsor-plate span{color:#111315;font-size:96px;font-weight:900}
+    .legacy-sponsor-copy h2{font-size:58px}
+    .legacy-training-schedule{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:stretch;gap:14px;height:100%}
+    .legacy-training-row{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:22px;box-sizing:border-box;padding:24px;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 18px 58px var(--editorial-shadow)}
+    .legacy-training-row>b{color:var(--accent);font-size:30px}
+    .legacy-training-row>strong{max-width:190px;font-size:22px;text-align:right}
+    .legacy-volunteer-layout{display:grid;grid-template-columns:.7fr 1.3fr;gap:18px;height:100%}
+    .legacy-volunteer-callout{display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;padding:38px;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 18px 58px var(--editorial-shadow);text-align:center}
+    .legacy-volunteer-callout strong{margin:24px 0;color:var(--accent);font-size:150px;line-height:.8}
+    .legacy-volunteer-callout p{max-width:80%;margin:0;color:var(--editorial-muted);font-size:24px}
+    .legacy-volunteer-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .legacy-volunteer-card{box-sizing:border-box;padding:28px;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 18px 58px var(--editorial-shadow)}
     .legacy-arrival-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:18px;height:100%}
     .legacy-arrival-grid[data-cards="1"]{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
     .legacy-arrival-grid[data-cards="2"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
@@ -201,6 +259,8 @@ export function renderLgLegacyHtml() {
     .legacy-arrival-card h2{max-width:86%;margin:38px 0 14px;color:var(--editorial-text);font-size:52px;line-height:.98}
     .legacy-arrival-card p{margin:0 0 18px;color:#9aa2ac;font-size:25px}
     .legacy-arrival-card strong{margin-top:auto;padding-top:20px;border-top:1px solid var(--editorial-border-soft);color:var(--editorial-text);font-size:23px}
+    .legacy-arrival-sponsor{position:absolute;z-index:2;right:28px;bottom:24px;box-sizing:border-box;width:156px;height:64px;padding:8px;border:1px solid var(--editorial-border);border-radius:12px;background:#fff;object-fit:contain}
+    .legacy-arrival-card[data-sponsor="visible"]>strong{margin-right:178px}
     .legacy-arrival-grid[data-cards="1"] .legacy-arrival-card{padding:64px}
     .legacy-arrival-grid[data-cards="1"] .legacy-arrival-card h2{max-width:74%;margin-top:64px;font-size:84px}
     .legacy-arrival-grid[data-cards="1"] .legacy-arrival-logo-mark{top:42px;right:46px;width:154px;height:154px;border-radius:30px}
@@ -243,12 +303,19 @@ export function renderLgLegacyHtml() {
     .portrait .dynamic-match-meta{width:100%;padding:2vh 0;border-top:1px solid rgba(98,95,87,.3);border-bottom:1px solid rgba(98,95,87,.3)}
     .portrait .dynamic-row{grid-template-columns:44px minmax(0,1fr);min-height:10.5vh}
     .portrait .dynamic-row strong{grid-column:2;justify-self:start;text-align:left}
+    .portrait .legacy-fixture-row{grid-template-columns:126px minmax(0,1fr) 76px}
+    .portrait .legacy-fixture-row>small{grid-column:2}
+    .portrait .legacy-result-row{grid-template-columns:minmax(0,1fr) 140px minmax(0,1fr)}
+    .portrait .legacy-result-row>small{grid-column:1/-1}
+    .portrait .legacy-typed-row,.portrait .legacy-typed-row[data-kind="official"]{grid-template-columns:110px minmax(0,1fr)}
+    .portrait .legacy-typed-row>strong{grid-column:2;justify-self:start;text-align:left}
     .dynamic-template.editorial-arena{display:block;padding:0;background:#f3f1ec;color:#17202a}
     .dynamic-template.editorial-arena.dark{background:#070a0e;color:#f3f0e9}
     .dynamic-template.editorial-arena{background:var(--editorial-canvas);color:var(--editorial-text)}
     .dynamic-template.editorial-arena[data-theme-id]{font-family:var(--vc-theme-body-font),Arial,Helvetica,sans-serif}
     .dynamic-template.editorial-arena[data-theme-id] h1,.dynamic-template.editorial-arena[data-theme-id] h2{font-family:var(--vc-theme-display-font),Arial,Helvetica,sans-serif;font-weight:var(--vc-theme-display-weight);letter-spacing:var(--vc-theme-display-spacing)}
     .dynamic-template.editorial-arena[data-theme-id="editorial"]{background-image:linear-gradient(112deg,transparent 0,transparent 68%,rgba(255,90,31,.10) 100%)}
+    .dynamic-template.editorial-arena[data-theme-id="fieldflow"]{background-image:radial-gradient(circle at 86% 14%,rgba(22,155,98,.14),transparent 30%),linear-gradient(rgba(244,247,244,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(244,247,244,.035) 1px,transparent 1px),linear-gradient(118deg,transparent 0,transparent 74%,rgba(255,122,26,.10) 100%);background-size:auto,96px 96px,96px 96px,auto;box-shadow:inset 8px 0 0 var(--accent)}
     .dynamic-template.editorial-arena[data-theme-id="obsidian"]{background-image:radial-gradient(circle at 82% 15%,rgba(48,188,237,.18),transparent 32%),linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:auto,80px 80px,80px 80px}
     .dynamic-template.editorial-arena[data-theme-id="atelier"]{background-image:radial-gradient(circle at 90% 100%,rgba(215,91,42,.12),transparent 38%),repeating-linear-gradient(90deg,transparent 0,transparent 28px,rgba(255,255,255,.035) 29px)}
     .dynamic-template.editorial-arena[data-theme-id="velocity"]{background-image:linear-gradient(118deg,transparent 0,transparent 64%,rgba(255,61,0,.15) 64%,rgba(255,61,0,.05) 72%,transparent 72%)}
@@ -327,6 +394,13 @@ export function renderLgLegacyHtml() {
     .menu-studio-v2 .legacy-price-copy strong.legacy-price-title-dense{font-size:26px}
     .menu-studio-v2 .legacy-price-copy small{font-size:18px}
     .menu-studio-v2 .legacy-price-product>b{color:currentColor;font-size:26px}
+    .menu-studio-v2 .legacy-menu-floating{position:absolute;z-index:2;box-sizing:border-box;margin:0;overflow:hidden;border-radius:20px}
+    .menu-studio-v2 .legacy-menu-floating>img,.menu-studio-v2 video.legacy-menu-floating{display:block;width:100%;height:100%}
+    .menu-studio-v2 .legacy-menu-floating figcaption{position:absolute;right:0;bottom:0;left:0;padding:12px 18px;background:rgba(4,47,45,.84);color:#f4f7f4;font-size:18px}
+    .menu-studio-v2 .legacy-menu-logo{object-fit:contain}
+    .menu-studio-v2 .legacy-menu-text,.menu-studio-v2 .legacy-menu-promo{padding:24px;border:2px solid var(--editorial-border);background:var(--editorial-surface);color:var(--editorial-text)}
+    .menu-studio-v2 .legacy-menu-text[data-role="heading"],.menu-studio-v2 .legacy-menu-promo strong{font-family:var(--vc-theme-display-font),Arial,sans-serif;font-size:34px;font-weight:var(--vc-theme-display-weight)}
+    .menu-studio-v2 .legacy-menu-promo p{margin:12px 0 0;color:#6f7882;font-size:22px}
     .editorial-arena.dark .dynamic-team-mark{background:var(--accent);color:#fff}
     .editorial-news{display:grid;grid-template-columns:1.02fr .98fr;gap:1.6%;height:100%}
     .editorial-news-art,.editorial-news-copy{position:relative;overflow:hidden;border:1px solid rgba(23,32,42,.13);border-radius:24px;background:#fffefa;box-shadow:0 24px 80px rgba(0,0,0,.24)}
@@ -343,12 +417,35 @@ export function renderLgLegacyHtml() {
     .editorial-news-copy h2.dense{font-size:clamp(36px,3.12vw,60px);line-height:1}
     .editorial-news-copy p{max-width:92%;margin:4% 0 0;color:#6f7882;font-size:clamp(24px,1.67vw,32px);line-height:1.45;animation:editorial-copy-in 300ms 520ms ease-out both}
     .dark .editorial-news-copy p{color:#9aa2ac}
-    .editorial-news-meta{display:flex;gap:6%;margin-top:auto;margin-right:135px;padding-top:2.6%;padding-right:0;border-top:1px solid rgba(23,32,42,.13);animation:editorial-copy-in 280ms 760ms ease-out both}
+    .editorial-news-meta{display:flex;gap:6%;margin-top:auto;margin-right:286px;padding-top:2.6%;padding-right:0;border-top:1px solid rgba(23,32,42,.13);animation:editorial-copy-in 280ms 760ms ease-out both}
     .dark .editorial-news-meta{border-color:rgba(255,255,255,.12)}
     .editorial-news-meta small{min-width:0;font-size:clamp(13px,1vw,19px)}
     .editorial-news-meta b{display:block;margin-bottom:.4em;color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
-    .editorial-news-qr{position:absolute;right:5%;bottom:4.5%;display:flex;flex-direction:column;align-items:center;gap:10px;width:110px;color:#6f7882;font-size:12px;font-weight:800;letter-spacing:.05em;text-align:center;text-transform:uppercase}
-    .editorial-news-qr img{display:block;width:110px;height:110px;border-radius:8px;background:#fff}
+    .editorial-news-qr{position:absolute;right:5%;bottom:4.5%;display:flex;flex-direction:column;align-items:center;gap:8px;width:252px;color:#6f7882;font-size:14px;font-weight:800;letter-spacing:.05em;text-align:center;text-transform:uppercase}
+    .editorial-news-qr img{display:block;width:220px;height:220px;border-radius:8px;background:#fff}
+    .editorial-news-qr small{max-width:100%;overflow-wrap:anywhere;font-size:13px;font-weight:550;letter-spacing:0;line-height:1.2;text-transform:none}
+    .editorial-news[data-news-variant="fullscreen_gradient"]{position:relative;display:block}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;border:0;border-radius:24px}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:before{display:none}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art>img{object-fit:cover}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:after{position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg,rgba(4,47,45,.55) 0%,rgba(4,47,45,.55) 50%,rgba(4,47,45,.36) 72%,rgba(4,47,45,.08) 100%);content:""}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-source{right:4%;left:auto}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy{position:absolute;z-index:3;top:0;right:38%;bottom:0;left:0;border-color:rgba(255,255,255,.16);background:transparent;color:#fff;box-shadow:none}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy p,.editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-meta,.editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-qr{color:#fff}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy p{max-width:90%;font-size:30px;line-height:1.3}
+    .editorial-news[data-news-variant="text_only"]{display:block}
+    .editorial-news[data-news-variant="text_only"] .editorial-news-art{display:none}
+    .editorial-news[data-news-variant="text_only"] .editorial-news-copy{box-sizing:border-box;width:100%;height:100%}
+    .editorial-news[data-news-variant="text_only"] .editorial-news-copy h2{max-width:82%}
+    .editorial-news[data-news-variant="text_only"] .editorial-news-copy p{max-width:76%}
+    .editorial-news[data-news-variant="news_grid"]{grid-template-columns:1.15fr .85fr;grid-template-rows:1fr}
+    .editorial-news[data-news-variant="news_grid"] .editorial-news-art{display:none}
+    .editorial-news-grid{display:grid;grid-template-rows:repeat(2,minmax(0,1fr));gap:18px}
+    .editorial-news-grid article{box-sizing:border-box;overflow:hidden;padding:30px;border:1px solid rgba(23,32,42,.13);border-radius:24px;background:#fffefa;box-shadow:0 24px 80px rgba(0,0,0,.24)}
+    .dark .editorial-news-grid article{border-color:rgba(255,255,255,.12);background:#0d1218}
+    .editorial-news-grid article>span{color:var(--accent);font-size:18px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+    .editorial-news-grid h3{margin:18px 0;font-size:34px;line-height:1.04}
+    .editorial-news-grid small{color:#6f7882;font-size:16px}
     @keyframes editorial-photo-in{from{opacity:0;transform:scale(1.025)}}
     @keyframes editorial-copy-in{from{opacity:0;transform:translateY(18px)}}
     @media (prefers-reduced-motion:reduce){.editorial-news-art,.editorial-news-copy>span,.editorial-news-copy h2,.editorial-news-copy p,.editorial-news-meta{animation:none}}
@@ -361,10 +458,16 @@ export function renderLgLegacyHtml() {
     .editorial-arena.portrait .editorial-news-copy h2{font-size:clamp(52px,6.67vw,72px);line-height:.96}
     .editorial-arena.portrait .editorial-news-copy h2.dense{font-size:clamp(42px,5.37vw,58px)}
     .editorial-arena.portrait .editorial-news-copy p{max-width:100%;font-size:34px;line-height:1.45}
-    .editorial-arena.portrait .editorial-news-meta{margin-right:145px;padding-right:0}
+    .editorial-arena.portrait .editorial-news-meta{margin-right:286px;padding-right:0}
     .editorial-arena.portrait .editorial-news-meta small{font-size:24px}
-    .editorial-arena.portrait .editorial-news-qr{width:115px}
-    .editorial-arena.portrait .editorial-news-qr img{width:115px;height:115px}
+    .editorial-arena.portrait .editorial-news-qr{width:252px}
+    .editorial-arena.portrait .editorial-news-qr img{width:220px;height:220px}
+    .editorial-arena.portrait .editorial-news[data-news-variant="news_grid"]{grid-template-columns:1fr;grid-template-rows:minmax(0,1.25fr) minmax(0,.75fr)}
+    .editorial-arena.portrait .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy{right:0;top:38%}
+    .editorial-arena.portrait .legacy-team-roster,.editorial-arena.portrait .legacy-training-schedule{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .editorial-arena.portrait .legacy-sponsor-layout,.editorial-arena.portrait .legacy-sponsor-layout:not([data-items="1"]){grid-template-columns:1fr}
+    .editorial-arena.portrait .legacy-sponsor-card{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:28px;padding:40px}
+    .editorial-arena.portrait .legacy-volunteer-layout{grid-template-columns:1fr;grid-template-rows:.55fr 1.45fr}
     .editorial-arena[data-slide-type="news"]>header{height:13%}
     .editorial-arena[data-slide-type="news"] .dynamic-body{top:15.4%}
     .editorial-arena.portrait[data-slide-type="news"]>header{height:9.5%}
@@ -5164,10 +5267,15 @@ export function renderLgLegacyHtml() {
       "sport_match_of_the_day",
       "sport_next_match",
       "sport_officials",
+      "sport_period_standing",
       "sport_program",
       "sport_referee_arrivals",
       "sport_results",
       "sport_standing",
+      "sport_sponsor",
+      "sport_team",
+      "sport_trainings",
+      "sport_volunteers",
       "sport_visitor_arrivals"
     ];
     function templateRecord(value) {
@@ -5316,20 +5424,61 @@ export function renderLgLegacyHtml() {
     function renderMenuStudioTemplate(body, snapshot, orientation, payload) {
       var document = templateRecord(snapshot.menuDocument) || {};
       var sourcePages = templateArray(document.pages);
-      var capacity = orientation === "portrait" ? 14 : 8;
+      var capacity = orientation === "portrait" ? 20 : 8;
       var pages = [];
-      function groupCost() {
-        return 1;
+      sourcePages.sort(function (left, right) {
+        return Number(left.order || 0) - Number(right.order || 0) ||
+          templateText(left.id, "").localeCompare(templateText(right.id, ""));
+      });
+      function groupCost(groupValue) {
+        var group = templateRecord(groupValue) || {};
+        var display = templateRecord(group.display) || {};
+        var titleLines = Math.max(1, Math.ceil(templateText(group.title, "").length / 36));
+        var detailLines = Math.max(1, Math.min(2, Number(display.maxLines) || 1));
+        return Math.max(detailLines, titleLines + detailLines - 1);
       }
-      function paginate(blocks, column, portraitTwoColumns) {
+      function nodeCost(nodeValue) {
+        var node = templateRecord(nodeValue) || {};
+        if (node.kind === "product-group") return groupCost(node);
+        var fallback = templateRecord(node.snapshotFallback) || {};
+        var name = templateText(node.nameOverride, templateText(fallback.name, ""));
+        var nameLines = Math.max(1, Math.ceil(name.length / 36));
+        var metaLines = fallback.variantLabel ? 1 : 0;
+        return Math.max(1, Math.ceil((nameLines * 36 + metaLines * 20 + 14) / 70));
+      }
+      function firstPageCapacity(blocks, column) {
+        var bodyX = orientation === "portrait" ? 72 : 96;
+        var bodyY = orientation === "portrait" ? 348 : 248;
+        var bodyWidth = orientation === "portrait" ? 936 : 1728;
+        var bodyHeight = orientation === "portrait" ? 1388 : 704;
+        var columnWidth = orientation === "portrait" ? bodyWidth : (bodyWidth - 36) / 2;
+        var columnLeft = orientation === "portrait" || column === "left"
+          ? bodyX : bodyX + columnWidth + 36;
+        var columnRight = columnLeft + columnWidth;
+        var firstTop = bodyHeight;
+        for (var index = 0; index < blocks.length; index += 1) {
+          var block = templateRecord(blocks[index]) || {};
+          var layout = templateRecord((templateRecord(block.layout) || {})[orientation]) || {};
+          var blockRight = Number(layout.x || 0) + Number(layout.w || 0);
+          if (block.hidden === true || blockRight <= columnLeft || Number(layout.x || 0) >= columnRight) continue;
+          firstTop = Math.min(firstTop, Number(layout.y || bodyY) - bodyY);
+        }
+        if (firstTop >= bodyHeight) return capacity;
+        return Math.max(3, Math.min(capacity, Math.floor(Math.max(0, firstTop - 24) /
+          (orientation === "portrait" ? 70 : 78))));
+      }
+      function paginate(blocks, column, portraitTwoColumns, reservedFirstPageCapacity) {
         var result = [];
         var current = [];
         var used = 0;
+        var headingCost = orientation === "portrait" ? 2 : 1;
+        var pageCapacity = Math.min(capacity, reservedFirstPageCapacity || capacity);
         var blockIndex;
         function flush() {
           if (current.length) result.push(current);
           current = [];
           used = 0;
+          pageCapacity = capacity;
         }
         blocks.sort(function (left, right) {
           return Number(left.order || 0) - Number(right.order || 0) ||
@@ -5348,7 +5497,7 @@ export function renderLgLegacyHtml() {
           if (block.type === "product-group") {
             var standalone = templateRecord(block.group) || {};
             var standaloneCost = groupCost(standalone);
-            if (used + standaloneCost > capacity) flush();
+            if (used + standaloneCost > pageCapacity) flush();
             current.push({ kind: "group", group: standalone });
             used += standaloneCost;
             continue;
@@ -5364,17 +5513,17 @@ export function renderLgLegacyHtml() {
             var leftCost = 0;
             var splitIndex = 1;
             var costIndex;
-            for (costIndex = 0; costIndex < nodes.length; costIndex += 1) {
-              totalCost += nodes[costIndex].kind === "product-group"
-                ? groupCost(nodes[costIndex])
-                : 1;
-            }
-            for (costIndex = 0; costIndex < nodes.length - 1; costIndex += 1) {
-              leftCost += nodes[costIndex].kind === "product-group"
-                ? groupCost(nodes[costIndex])
-                : 1;
-              splitIndex = costIndex + 1;
-              if (leftCost >= totalCost / 2) break;
+            if (block.headingVisible === false) {
+              splitIndex = Math.ceil(nodes.length / 2);
+            } else {
+              for (costIndex = 0; costIndex < nodes.length; costIndex += 1) {
+                totalCost += nodeCost(nodes[costIndex]);
+              }
+              for (costIndex = 0; costIndex < nodes.length - 1; costIndex += 1) {
+                leftCost += nodeCost(nodes[costIndex]);
+                splitIndex = costIndex + 1;
+                if (leftCost >= totalCost / 2) break;
+              }
             }
             nodes = column === "left"
               ? nodes.slice(0, splitIndex)
@@ -5387,15 +5536,13 @@ export function renderLgLegacyHtml() {
           var continuation = false;
           var headingVisible = block.headingVisible !== false;
           while (offset < nodes.length) {
-            var minimumCount = Math.min(2, nodes.length - offset);
-            var minimumCost = headingVisible ? 1 : 0;
+            var minimumCount = Math.min(3, nodes.length - offset);
+            var minimumCost = headingVisible ? headingCost : 0;
             var minimumIndex;
             for (minimumIndex = 0; minimumIndex < minimumCount; minimumIndex += 1) {
-              minimumCost += nodes[offset + minimumIndex].kind === "product-group"
-                ? groupCost(nodes[offset + minimumIndex])
-                : 1;
+              minimumCost += nodeCost(nodes[offset + minimumIndex]);
             }
-            if (used > 0 && capacity - used < minimumCost) {
+            if (used > 0 && pageCapacity - used < minimumCost) {
               flush();
               continue;
             }
@@ -5405,12 +5552,12 @@ export function renderLgLegacyHtml() {
                 kind: "category",
                 name: templateText(block.labelOverride, templateText((templateRecord(block.source) || {}).sourceName, "Categorie"))
               });
-              used += 1;
+              used += headingCost;
             }
             while (offset < nodes.length) {
               var node = templateRecord(nodes[offset]) || {};
-              var cost = node.kind === "product-group" ? groupCost(node) : 1;
-              if (used + cost > capacity) break;
+              var cost = nodeCost(node);
+              if (used + cost > pageCapacity) break;
               current.push(node.kind === "product-group"
                 ? { kind: "group", group: node }
                 : { kind: "product", product: node });
@@ -5429,6 +5576,9 @@ export function renderLgLegacyHtml() {
       for (var sourceIndex = 0; sourceIndex < sourcePages.length; sourceIndex += 1) {
         var sourcePage = templateRecord(sourcePages[sourceIndex]) || {};
         var flowBlocks = templateArray(sourcePage.blocks);
+        var floatingBlocks = flowBlocks.filter(function (block) {
+          return block.type !== "category" && block.type !== "product-group";
+        });
         var portraitColumnSetting = Number(sourcePage.portraitColumns);
         var portraitTwoColumns = orientation === "portrait" && portraitColumnSetting === 2;
         if (orientation === "portrait" && portraitColumnSetting !== 1) {
@@ -5438,13 +5588,20 @@ export function renderLgLegacyHtml() {
             if (Number(flowLayout.w || 0) > 0 && Number(flowLayout.w) < 700) portraitTwoColumns = true;
           }
         }
-        var left = paginate(flowBlocks.slice(0), "left", portraitTwoColumns);
+        var left = paginate(
+          flowBlocks.slice(0), "left", portraitTwoColumns,
+          firstPageCapacity(floatingBlocks, "left")
+        );
         var right = orientation === "portrait" && !portraitTwoColumns
           ? []
-          : paginate(flowBlocks.slice(0), "right", portraitTwoColumns);
+          : paginate(
+              flowBlocks.slice(0), "right", portraitTwoColumns,
+              firstPageCapacity(floatingBlocks, "right")
+            );
         var count = Math.max(left.length, right.length, 1);
         for (var pageIndex = 0; pageIndex < count; pageIndex += 1) {
           pages.push({
+            floatingBlocks: pageIndex === 0 ? floatingBlocks : [],
             left: left[pageIndex] || [],
             portraitTwoColumns: portraitTwoColumns,
             right: right[pageIndex] || []
@@ -5511,6 +5668,88 @@ export function renderLgLegacyHtml() {
         article.appendChild(templateNode("b", "", price));
         column.appendChild(article);
       }
+      function appendFloatingBlock(container, block) {
+        if (block.hidden === true) return;
+        var layout = templateRecord((templateRecord(block.layout) || {})[orientation]) || {};
+        var bodyX = orientation === "portrait" ? 72 : 96;
+        var bodyY = orientation === "portrait" ? 348 : 248;
+        var node;
+        var assetUrl;
+        var image;
+        var appearance;
+        var orientationAppearance;
+        var focalPoint;
+        var fit;
+        if (block.type === "text") {
+          node = templateNode("p", "legacy-menu-floating legacy-menu-text", templateText(block.text, ""));
+          node.setAttribute("data-role", templateText(block.role, "body"));
+        } else if (block.type === "promo") {
+          node = templateNode("aside", "legacy-menu-floating legacy-menu-promo");
+          node.appendChild(templateNode("strong", "", templateText(block.title, "Aanbieding")));
+          if (block.body) node.appendChild(templateNode("p", "", templateText(block.body, "")));
+        } else {
+          assetUrl = templateAssetUrl(payload, templateText(block.assetId, ""));
+          if (!assetUrl) return;
+          orientationAppearance = templateRecord(block.orientationAppearance) || {};
+          appearance = templateRecord(orientationAppearance[orientation]) ||
+            templateRecord(block.appearance) || {};
+          fit = ["contain", "cover", "fill"].indexOf(appearance.fit) >= 0
+            ? appearance.fit : "contain";
+          focalPoint = templateRecord(appearance.focalPoint) || {};
+          if (block.type === "video") {
+            var playback = templateRecord(block.playback) || {};
+            node = templateNode("video", "legacy-menu-floating");
+            node.autoplay = playback.autoplay === true;
+            node.loop = playback.loop === true;
+            node.muted = true;
+            node.controls = false;
+            node.setAttribute("muted", "");
+            node.setAttribute("playsinline", "");
+            node.preload = "auto";
+            node.poster = templateAssetUrl(payload, templateText(playback.posterAssetId, ""));
+            node.src = assetUrl;
+            (function (video, startMs, endMs, shouldLoop) {
+              video.addEventListener("loadedmetadata", function () {
+                if (startMs > 0) video.currentTime = startMs / 1000;
+              });
+              if (endMs > startMs) video.addEventListener("timeupdate", function () {
+                if (video.currentTime * 1000 < endMs) return;
+                if (shouldLoop) {
+                  video.currentTime = startMs / 1000;
+                  video.play();
+                } else video.pause();
+              });
+            })(node, Number(playback.startMs) || 0, Number(playback.endMs) || 0, playback.loop === true);
+          } else if (block.type === "logo") {
+            node = templateNode("img", "legacy-menu-floating legacy-menu-logo");
+            node.alt = "";
+            node.src = assetUrl;
+          } else {
+            node = templateNode("figure", "legacy-menu-floating");
+            image = templateNode("img", "");
+            image.alt = templateText(block.alt, "");
+            image.src = assetUrl;
+            image.style.objectFit = fit;
+            image.style.objectPosition = String(Math.max(0, Math.min(1, Number(focalPoint.x) || 0.5)) * 100) + "% " +
+              String(Math.max(0, Math.min(1, Number(focalPoint.y) || 0.5)) * 100) + "%";
+            var opacity = Number(appearance.opacity);
+            image.style.opacity = String(isFinite(opacity) ? Math.max(0, Math.min(1, opacity)) : 1);
+            node.appendChild(image);
+            if (block.caption) node.appendChild(templateNode("figcaption", "", templateText(block.caption, "")));
+          }
+          if (block.type === "video") {
+            node.style.objectFit = fit;
+            node.style.objectPosition = String(Math.max(0, Math.min(1, Number(focalPoint.x) || 0.5)) * 100) + "% " +
+              String(Math.max(0, Math.min(1, Number(focalPoint.y) || 0.5)) * 100) + "%";
+          }
+        }
+        node.style.left = String(Number(layout.x || 0) - bodyX) + "px";
+        node.style.top = String(Number(layout.y || 0) - bodyY) + "px";
+        node.style.width = String(Math.max(1, Number(layout.w) || 1)) + "px";
+        node.style.height = String(Math.max(1, Number(layout.h) || 1)) + "px";
+        node.style.transform = "rotate(" + String(Number(layout.rotation) || 0) + "deg)";
+        container.appendChild(node);
+      }
       return {
         pages: pages.length ? pages : [{ left: [], right: [] }],
         render: function (page) {
@@ -5538,6 +5777,10 @@ export function renderLgLegacyHtml() {
           appendColumn("left");
           if (orientation !== "portrait" || page.portraitTwoColumns) appendColumn("right");
           body.appendChild(grid);
+          var floatingBlocks = templateArray(page.floatingBlocks);
+          for (var floatingIndex = 0; floatingIndex < floatingBlocks.length; floatingIndex += 1) {
+            appendFloatingBlock(body, templateRecord(floatingBlocks[floatingIndex]) || {});
+          }
         }
       };
     }
@@ -5681,6 +5924,19 @@ export function renderLgLegacyHtml() {
         return "";
       }
     }
+    function templateReadableNewsUrl(value) {
+      var parsed;
+      var path;
+      var readable;
+      try {
+        parsed = new URL(templateText(value, ""));
+        path = parsed.pathname === "/" ? "" : parsed.pathname.replace(/\\/$/, "");
+        readable = parsed.hostname.replace(/^www\\./, "") + path;
+        return readable.length > 52 ? readable.slice(0, 49) + "…" : readable;
+      } catch (error) {
+        return "";
+      }
+    }
     function templateUniqueNewsArticles(values) {
       var seen = {};
       return values.filter(function (value) {
@@ -5694,6 +5950,11 @@ export function renderLgLegacyHtml() {
     function renderNewsTemplate(body, snapshot, payload, root) {
       var news = templateRecord(snapshot.data) || templateRecord(snapshot.news) || {};
       var articles = templateUniqueNewsArticles(templateArray(news.articles));
+      var editorial = templateRecord(snapshot.editorial) || {};
+      var newsVariant = templateText(editorial.newsVariant, "hero_split");
+      if (["hero_split", "fullscreen_gradient", "news_grid", "text_only"].indexOf(newsVariant) < 0) {
+        newsVariant = "hero_split";
+      }
       var usesArena =
         templateText(payload.templateSlug, "").indexOf("editorial-arena-") === 0;
       var usesEditorialLayout =
@@ -5711,11 +5972,16 @@ export function renderLgLegacyHtml() {
           ? " rss-news-portrait"
           : " rss-news-landscape";
       }
+      var arenaPages = newsVariant === "news_grid" ? templatePages(articles, 3) : articles;
       return {
-        pages: articles.length ? articles : [null],
+        pages: usesArena
+          ? (arenaPages.length ? arenaPages : [null])
+          : (articles.length ? articles : [null]),
         pageDuration: seconds * 1000,
         render: function (articleValue) {
-          var article = templateRecord(articleValue);
+          var articlePage = usesArena && Array.isArray(articleValue) ? articleValue : [articleValue];
+          var article = templateRecord(articlePage[0]);
+          var secondaryArticles = articlePage.slice(1);
           var wrapper;
           body.innerHTML = "";
           if (!article) {
@@ -5724,6 +5990,7 @@ export function renderLgLegacyHtml() {
           }
           if (usesArena) {
             var arenaPage = templateNode("div", "editorial-news");
+            arenaPage.setAttribute("data-news-variant", newsVariant);
             var arenaHero = templateNode("section", "editorial-news-art");
             var arenaHeroUrl = templateAssetUrl(
               payload,
@@ -5802,10 +6069,42 @@ export function renderLgLegacyHtml() {
               arenaQrImage.src = arenaQrUrl;
               arenaQr.appendChild(arenaQrImage);
               arenaQr.appendChild(templateNode("span", "", "Scan voor het artikel"));
+              var arenaReadableUrl = templateReadableNewsUrl(article.link);
+              if (arenaReadableUrl) {
+                arenaQr.appendChild(templateNode("small", "", arenaReadableUrl));
+              }
               arenaCopy.appendChild(arenaQr);
             }
             arenaPage.appendChild(arenaHero);
             arenaPage.appendChild(arenaCopy);
+            if (secondaryArticles.length) {
+              var arenaGrid = templateNode("aside", "editorial-news-grid");
+              var arenaGridIndex;
+              for (arenaGridIndex = 0; arenaGridIndex < secondaryArticles.length; arenaGridIndex += 1) {
+                var secondaryArticle = templateRecord(secondaryArticles[arenaGridIndex]) || {};
+                var secondaryCard = templateNode("article", "");
+                secondaryCard.appendChild(templateNode(
+                  "span",
+                  "",
+                  templateText(
+                    secondaryArticle.sourceName,
+                    templateText(news.sourceName, "Clubnieuws")
+                  )
+                ));
+                secondaryCard.appendChild(templateNode(
+                  "h3",
+                  "",
+                  templateText(secondaryArticle.title, "Clubnieuws")
+                ));
+                secondaryCard.appendChild(templateNode(
+                  "small",
+                  "",
+                  templateDate(secondaryArticle.publishedAt)
+                ));
+                arenaGrid.appendChild(secondaryCard);
+              }
+              arenaPage.appendChild(arenaGrid);
+            }
             body.appendChild(arenaPage);
             return;
           }
@@ -5897,11 +6196,32 @@ export function renderLgLegacyHtml() {
       var parts = templateText(value, "").split(/\\s+[–—-]\\s+/);
       return [parts[0] || "Thuisteam", parts.slice(1).join(" – ") || "Uitteam"];
     }
-    function renderMatchTeam(name) {
+    function renderMatchTeam(name, logoAssetId, payload) {
       var team = templateNode("article", "dynamic-team");
-      team.appendChild(templateNode("div", "dynamic-team-mark", templateInitials(name)));
+      var mark = templateNode("div", "dynamic-team-mark", templateInitials(name));
+      var logoUrl = templateAssetUrl(payload, templateText(logoAssetId, ""));
+      if (logoUrl) {
+        mark.textContent = "";
+        var logo = templateNode("img", "");
+        logo.alt = "";
+        logo.src = logoUrl;
+        mark.appendChild(logo);
+      }
+      team.appendChild(mark);
       team.appendChild(templateNode("h2", "", name));
       return team;
+    }
+    function renderLegacyTeamMini(name, logoAssetId, payload) {
+      var mark = templateNode("i", "legacy-team-mini", templateInitials(name));
+      var logoUrl = templateAssetUrl(payload, templateText(logoAssetId, ""));
+      if (logoUrl) {
+        mark.textContent = "";
+        var logo = templateNode("img", "");
+        logo.alt = "";
+        logo.src = logoUrl;
+        mark.appendChild(logo);
+      }
+      return mark;
     }
     function standingValue(value) {
       return value === null || typeof value === "undefined" || value === ""
@@ -6041,6 +6361,9 @@ export function renderLgLegacyHtml() {
       }
       var arrival = slideType === "sport_visitor_arrivals" || slideType === "sport_referee_arrivals";
       var arrivalConfiguration = templateRecord(sport.arrivalConfig) || {};
+      var displayConfiguration = templateRecord(sport.displayConfig);
+      var displayColumns = displayConfiguration && templateText(displayConfiguration.columns, "one") === "two"
+        ? "two" : "one";
       if (slideType === "sport_visitor_arrivals") {
         items = items.filter(function (candidate) {
           return (templateRecord(candidate) || {}).homeMatch === true;
@@ -6057,7 +6380,9 @@ export function renderLgLegacyHtml() {
               ? birthdayPresentation.maxPerPortraitPage
               : birthdayPresentation.maxPerLandscapePage) || (orientation === "portrait" ? 3 : 4)))
             : arrival ? cardsPerPage
-            : slideType === "sport_results" ? (orientation === "portrait" ? 5 : 6)
+            : slideType === "sport_results" ? (orientation === "portrait" ? 5 : 6) * (displayColumns === "two" ? 2 : 1)
+            : slideType === "sport_program" ? (orientation === "portrait" ? 7 : 8) * (displayColumns === "two" ? 2 : 1)
+            : slideType === "sport_sponsor" ? 1
             : orientation === "portrait" ? 6 : 8
         );
       return {
@@ -6072,10 +6397,7 @@ export function renderLgLegacyHtml() {
           var teams;
           var centre;
           var meta;
-          var list;
           var index;
-          var row;
-          var copy;
           body.innerHTML = "";
           if (match) {
             item = templateRecord(page);
@@ -6088,7 +6410,9 @@ export function renderLgLegacyHtml() {
               templateText(item.awayTeam, splitTemplateTeams(templateText(item.primary, ""))[1])
             ];
             centre = templateNode("div", "dynamic-match");
-            centre.appendChild(renderMatchTeam(teams[0]));
+            centre.appendChild(renderMatchTeam(
+              teams[0], item.homeLogoMediaAssetId, payload
+            ));
             meta = templateNode("div", "dynamic-match-meta");
             meta.appendChild(templateNode("small", "", templateText(item.status, "Programma")));
             meta.appendChild(templateNode(
@@ -6102,7 +6426,9 @@ export function renderLgLegacyHtml() {
               templateText(item.venue, templateText(item.meta, "Locatie volgt"))
             ));
             centre.appendChild(meta);
-            centre.appendChild(renderMatchTeam(teams[1]));
+            centre.appendChild(renderMatchTeam(
+              teams[1], item.awayLogoMediaAssetId, payload
+            ));
             body.appendChild(centre);
             return;
           }
@@ -6123,6 +6449,12 @@ export function renderLgLegacyHtml() {
                 ? configuredMotion
                 : motionPresets[((Number(activePageIndex) || 0) * cardsPerPage + index) % motionPresets.length];
               var arrivalCard = templateNode("article", "legacy-arrival-card");
+              var arrivalSponsorUrl = arrivalConfiguration.showSponsor === true
+                ? templateAssetUrl(
+                  payload,
+                  templateText(arrivalConfiguration.sponsorMediaAssetId, "")
+                )
+                : "";
               if (slideType === "sport_visitor_arrivals") {
                 arrivalCard.setAttribute("data-motion", motion);
                 arrivalCard.style.setProperty("--arrival-delay", String(index * 110) + "ms");
@@ -6159,45 +6491,259 @@ export function renderLgLegacyHtml() {
               arrivalCard.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
               arrivalCard.appendChild(templateNode("p", "", templateText(item.secondary, "")));
               arrivalCard.appendChild(templateNode("strong", "", templateText(item.meta, "")));
+              if (arrivalSponsorUrl) {
+                arrivalCard.setAttribute("data-sponsor", "visible");
+                var arrivalSponsor = templateNode("img", "legacy-arrival-sponsor");
+                arrivalSponsor.alt = "Sponsor";
+                arrivalSponsor.src = arrivalSponsorUrl;
+                arrivalCard.appendChild(arrivalSponsor);
+              }
               arrivalGrid.appendChild(arrivalCard);
             }
             body.appendChild(arrivalGrid);
             return;
           }
-          list = templateNode("div", "dynamic-list");
-          for (index = 0; index < page.length; index += 1) {
-            item = templateRecord(page[index]) || {};
-            if (!templateText(item.primary, "")) continue;
-            row = templateNode("article", "dynamic-row");
-            row.appendChild(templateNode("span", "", String(index + 1)));
-            copy = templateNode("div", "");
-            copy.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
-            if (item.secondary) copy.appendChild(templateNode("p", "", templateText(item.secondary, "")));
-            row.appendChild(copy);
-            var rowMeta = templateText(
-              item.venue,
-              templateText(item.meta, templateText(item.status, ""))
-            );
-            if (
-              slideType === "sport_results" &&
-              isFinite(Number(item.homeScore)) &&
-              isFinite(Number(item.awayScore))
-            ) {
-              rowMeta = String(Number(item.homeScore)) + " – " +
-                String(Number(item.awayScore));
-            } else if (item.time) {
-              rowMeta = templateText(item.time, rowMeta);
-            } else if (slideType === "sport_dressing_rooms") {
-              rowMeta = [
-                item.homeRoom ? "Thuis " + templateText(item.homeRoom, "") : "",
-                item.awayRoom ? "Uit " + templateText(item.awayRoom, "") : ""
-              ].filter(function (value) { return Boolean(value); }).join(" · ") ||
-                rowMeta;
+          if (slideType === "sport_team") {
+            var teamRoster = templateNode("div", "legacy-team-roster");
+            teamRoster.setAttribute("data-render-family", "team-roster");
+            for (index = 0; index < page.length; index += 1) {
+              item = templateRecord(page[index]) || {};
+              if (!templateText(item.primary, "")) continue;
+              var teamCard = templateNode("article", "legacy-team-card");
+              var teamPhoto = templateNode("div", "legacy-team-photo");
+              var teamPhotoUrl = templateAssetUrl(
+                payload,
+                templateText(item.photoMediaAssetId, templateText(item.logoMediaAssetId, ""))
+              );
+              if (teamPhotoUrl) {
+                var teamImage = templateNode("img", "");
+                teamImage.alt = "";
+                teamImage.src = teamPhotoUrl;
+                teamPhoto.appendChild(teamImage);
+              } else {
+                teamPhoto.appendChild(templateNode(
+                  "span", "", templateInitials(templateText(item.primary, "Team"))
+                ));
+              }
+              var teamCopy = templateNode("div", "legacy-team-copy");
+              teamCopy.appendChild(templateNode("i", "", templateText(item.status, "Team")));
+              teamCopy.appendChild(templateNode("h2", "", templateText(item.primary, "Team")));
+              if (item.secondary) teamCopy.appendChild(templateNode("p", "", templateText(item.secondary, "")));
+              if (item.meta) teamCopy.appendChild(templateNode("strong", "", templateText(item.meta, "")));
+              teamCard.appendChild(teamPhoto);
+              teamCard.appendChild(teamCopy);
+              teamRoster.appendChild(teamCard);
             }
-            row.appendChild(templateNode("strong", "", rowMeta));
-            list.appendChild(row);
+            body.appendChild(teamRoster);
+            return;
           }
-          body.appendChild(list);
+          if (slideType === "sport_sponsor") {
+            var sponsorLayout = templateNode("div", "legacy-sponsor-layout");
+            sponsorLayout.setAttribute("data-items", String(page.length));
+            sponsorLayout.setAttribute("data-render-family", "sponsor-spotlight");
+            for (index = 0; index < page.length; index += 1) {
+              item = templateRecord(page[index]) || {};
+              if (!templateText(item.primary, "")) continue;
+              var sponsorCard = templateNode("article", "legacy-sponsor-card");
+              var sponsorPlate = templateNode("div", "legacy-sponsor-plate");
+              var sponsorLogoUrl = templateAssetUrl(
+                payload,
+                templateText(item.photoMediaAssetId, templateText(item.logoMediaAssetId, ""))
+              );
+              if (sponsorLogoUrl) {
+                var sponsorImage = templateNode("img", "");
+                sponsorImage.alt = "Logo " + templateText(item.primary, "partner");
+                sponsorImage.src = sponsorLogoUrl;
+                sponsorPlate.appendChild(sponsorImage);
+              } else {
+                sponsorPlate.appendChild(templateNode(
+                  "span", "", templateInitials(templateText(item.primary, "Partner"))
+                ));
+              }
+              var sponsorCopy = templateNode("div", "legacy-sponsor-copy");
+              sponsorCopy.appendChild(templateNode("i", "", "Partner van de club"));
+              sponsorCopy.appendChild(templateNode("h2", "", templateText(item.primary, "Partner")));
+              if (item.meta) sponsorCopy.appendChild(templateNode("p", "", templateText(item.meta, "")));
+              if (item.secondary) sponsorCopy.appendChild(templateNode("strong", "", templateText(item.secondary, "")));
+              sponsorCard.appendChild(sponsorPlate);
+              sponsorCard.appendChild(sponsorCopy);
+              sponsorLayout.appendChild(sponsorCard);
+            }
+            body.appendChild(sponsorLayout);
+            return;
+          }
+          if (slideType === "sport_trainings") {
+            var trainingSchedule = templateNode("div", "legacy-training-schedule");
+            trainingSchedule.setAttribute("data-render-family", "training-schedule");
+            for (index = 0; index < page.length; index += 1) {
+              item = templateRecord(page[index]) || {};
+              if (!templateText(item.primary, "")) continue;
+              var trainingRow = templateNode("article", "legacy-training-row");
+              trainingRow.appendChild(templateNode(
+                "b", "", (index + 1 < 10 ? "0" : "") + String(index + 1)
+              ));
+              var trainingCopy = templateNode("div", "");
+              trainingCopy.appendChild(templateNode("i", "", templateText(item.status, "Training")));
+              trainingCopy.appendChild(templateNode("h2", "", templateText(item.primary, "Team")));
+              if (item.secondary) trainingCopy.appendChild(templateNode("p", "", templateText(item.secondary, "")));
+              trainingRow.appendChild(trainingCopy);
+              trainingRow.appendChild(templateNode(
+                "strong", "", templateText(item.time, templateText(item.meta, templateText(item.venue, "")))
+              ));
+              trainingSchedule.appendChild(trainingRow);
+            }
+            body.appendChild(trainingSchedule);
+            return;
+          }
+          if (slideType === "sport_volunteers") {
+            var volunteerLayout = templateNode("div", "legacy-volunteer-layout");
+            volunteerLayout.setAttribute("data-render-family", "volunteer-call");
+            var volunteerCallout = templateNode("aside", "legacy-volunteer-callout");
+            volunteerCallout.appendChild(templateNode("i", "", "Samen maken we de club"));
+            volunteerCallout.appendChild(templateNode("strong", "", String(page.length)));
+            volunteerCallout.appendChild(templateNode("p", "", "vrijwilligersrollen in deze selectie"));
+            volunteerLayout.appendChild(volunteerCallout);
+            var volunteerCards = templateNode("section", "legacy-volunteer-cards");
+            for (index = 0; index < page.length; index += 1) {
+              item = templateRecord(page[index]) || {};
+              if (!templateText(item.primary, "")) continue;
+              var volunteerCard = templateNode("article", "legacy-volunteer-card");
+              volunteerCard.appendChild(templateNode("i", "", templateText(item.status, "Vrijwilliger")));
+              volunteerCard.appendChild(templateNode("h2", "", templateText(item.primary, "Vrijwilliger")));
+              if (item.secondary) volunteerCard.appendChild(templateNode("p", "", templateText(item.secondary, "")));
+              if (item.meta) volunteerCard.appendChild(templateNode("strong", "", templateText(item.meta, "")));
+              volunteerCards.appendChild(volunteerCard);
+            }
+            volunteerLayout.appendChild(volunteerCards);
+            body.appendChild(volunteerLayout);
+            return;
+          }
+          if (slideType === "sport_program") {
+            var fixtureList = templateNode("div", "legacy-fixture-list");
+            fixtureList.setAttribute("data-columns", displayColumns);
+            fixtureList.setAttribute("data-render-family", "fixture-list");
+            for (index = 0; index < page.length; index += 1) {
+              item = templateRecord(page[index]) || {};
+              if (!templateText(item.primary, "")) continue;
+              teams = [
+                templateText(item.homeTeam, splitTemplateTeams(templateText(item.primary, ""))[0]),
+                templateText(item.awayTeam, splitTemplateTeams(templateText(item.primary, ""))[1])
+              ];
+              var fixtureRow = templateNode("article", "legacy-fixture-row");
+              fixtureRow.appendChild(templateNode("strong", "", templateText(item.date, templateText(item.secondary, ""))));
+              var fixtureTeams = templateNode("div", "legacy-fixture-teams");
+              fixtureTeams.appendChild(renderLegacyTeamMini(teams[0], item.homeLogoMediaAssetId, payload));
+              if (displayConfiguration && displayConfiguration.showHomeAway === true) {
+                fixtureTeams.appendChild(templateNode("b", "", "Thuis"));
+              }
+              fixtureTeams.appendChild(document.createTextNode(teams[0] + " · " + teams[1]));
+              if (displayConfiguration && displayConfiguration.showHomeAway === true) {
+                fixtureTeams.appendChild(templateNode("b", "", "Uit"));
+              }
+              fixtureTeams.appendChild(renderLegacyTeamMini(teams[1], item.awayLogoMediaAssetId, payload));
+              fixtureRow.appendChild(fixtureTeams);
+              var fixtureDetails = [];
+              if (!displayConfiguration || displayConfiguration.showField !== false) {
+                if (item.venue || item.meta) fixtureDetails.push(templateText(item.venue, templateText(item.meta, "")));
+              }
+              if (displayConfiguration && displayConfiguration.showDressingRoom === true) {
+                if (item.homeRoom) fixtureDetails.push("Thuis " + templateText(item.homeRoom, ""));
+                if (item.awayRoom) fixtureDetails.push("Uit " + templateText(item.awayRoom, ""));
+              }
+              if (displayConfiguration && displayConfiguration.showReferee === true) {
+                var fixtureOfficials = templateArray(item.officials).map(function (officialValue) {
+                  var official = templateRecord(officialValue);
+                  return templateText(official && official.displayName, "");
+                }).filter(Boolean);
+                if (fixtureOfficials.length) fixtureDetails.push(fixtureOfficials.join(" · "));
+              }
+              fixtureRow.appendChild(templateNode("small", "", fixtureDetails.join(" · ")));
+              fixtureRow.appendChild(templateNode("time", "", templateText(item.time, "")));
+              fixtureList.appendChild(fixtureRow);
+            }
+            body.appendChild(fixtureList);
+            return;
+          }
+          if (slideType === "sport_results") {
+            var resultList = templateNode("div", "legacy-result-list");
+            resultList.setAttribute("data-columns", displayColumns);
+            resultList.setAttribute("data-render-family", "result-list");
+            for (index = 0; index < page.length; index += 1) {
+              item = templateRecord(page[index]) || {};
+              if (!templateText(item.primary, "")) continue;
+              teams = [
+                templateText(item.homeTeam, splitTemplateTeams(templateText(item.primary, ""))[0]),
+                templateText(item.awayTeam, splitTemplateTeams(templateText(item.primary, ""))[1])
+              ];
+              var resultRow = templateNode("article", "legacy-result-row");
+              var resultHome = templateNode("span", "legacy-result-team");
+              resultHome.appendChild(renderLegacyTeamMini(teams[0], item.homeLogoMediaAssetId, payload));
+              resultHome.appendChild(document.createTextNode(teams[0]));
+              var resultAway = templateNode("span", "legacy-result-team away");
+              resultAway.appendChild(document.createTextNode(teams[1]));
+              resultAway.appendChild(renderLegacyTeamMini(teams[1], item.awayLogoMediaAssetId, payload));
+              resultRow.appendChild(resultHome);
+              resultRow.appendChild(templateNode(
+                "strong",
+                "legacy-result-score",
+                (isFinite(Number(item.homeScore)) ? String(Number(item.homeScore)) : "–") +
+                  " – " +
+                  (isFinite(Number(item.awayScore)) ? String(Number(item.awayScore)) : "–")
+              ));
+              resultRow.appendChild(resultAway);
+              resultRow.appendChild(templateNode("small", "", templateText(item.date, templateText(item.secondary, ""))));
+              resultList.appendChild(resultRow);
+            }
+            body.appendChild(resultList);
+            return;
+          }
+          if ([
+            "sport_activities",
+            "sport_cancellations",
+            "sport_dressing_rooms",
+            "sport_officials"
+          ].indexOf(slideType) !== -1) {
+            var typedKind = slideType === "sport_activities" ? "activity"
+              : slideType === "sport_cancellations" ? "cancellation"
+              : slideType === "sport_dressing_rooms" ? "dressing"
+              : "official";
+            var typedList = templateNode("div", "legacy-typed-list");
+            typedList.setAttribute("data-render-family", typedKind + "-list");
+            for (index = 0; index < page.length; index += 1) {
+              item = templateRecord(page[index]) || {};
+              if (!templateText(item.primary, "")) continue;
+              var typedRow = templateNode("article", "legacy-typed-row");
+              typedRow.setAttribute("data-kind", typedKind);
+              typedRow.appendChild(templateNode("time", "", templateText(item.time, templateText(item.date, templateText(item.secondary, "")))));
+              var typedCopy = templateNode("div", "");
+              typedCopy.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
+              typedCopy.appendChild(templateNode("p", "", templateText(item.venue, templateText(item.meta, ""))));
+              typedRow.appendChild(typedCopy);
+              var typedMeta = "";
+              if (typedKind === "cancellation") {
+                typedMeta = templateText(item.status, "Afgelast");
+              } else if (typedKind === "dressing") {
+                typedMeta = [
+                  item.homeRoom ? "Thuis " + templateText(item.homeRoom, "") : "",
+                  item.awayRoom ? "Uit " + templateText(item.awayRoom, "") : ""
+                ].filter(Boolean).join(" · ") || templateText(item.meta, "");
+              } else if (typedKind === "official") {
+                typedMeta = templateArray(item.officials).map(function (officialValue) {
+                  var official = templateRecord(officialValue);
+                  return templateText(official && official.displayName, "");
+                }).filter(Boolean).join(" · ") || templateText(item.meta, "Nog niet bekend");
+              }
+              if (typedMeta) typedRow.appendChild(templateNode("strong", "", typedMeta));
+              typedList.appendChild(typedRow);
+            }
+            body.appendChild(typedList);
+            return;
+          }
+          body.appendChild(templateNode(
+            "div",
+            "dynamic-empty",
+            "Dit schermtype kan niet veilig worden weergegeven."
+          ));
         }
       };
     }
@@ -6507,8 +7053,11 @@ export function renderLgLegacyHtml() {
       root.style.setProperty("--vc-theme-display-spacing", String(Number(manifestTheme.displayLetterSpacingEm) || 0) + "em");
       root.style.setProperty("--editorial-canvas", templateText(editorialTokens.canvas, editorialMode === "dark" ? "#090B0E" : "#D7D2C8"));
       root.style.setProperty("--editorial-surface", templateText(editorialTokens.surface, editorialMode === "dark" ? "#0D1116" : "#F3F0E9"));
+      root.style.setProperty("--editorial-surface-alt", templateText(editorialTokens.surfaceAlt, editorialMode === "dark" ? "#11161C" : "#FBF9F4"));
       root.style.setProperty("--editorial-row", templateText(editorialTokens.row, editorialMode === "dark" ? "#11161C" : "#FBF9F4"));
       root.style.setProperty("--editorial-text", templateText(editorialTokens.text, editorialMode === "dark" ? "#F7F3EB" : "#111315"));
+      root.style.setProperty("--editorial-muted", templateText(editorialTokens.muted, editorialMode === "dark" ? "#C9C4B9" : "#625F57"));
+      root.style.setProperty("--editorial-danger", templateText(editorialTokens.danger, editorialMode === "dark" ? "#FF716B" : "#D55656"));
       root.style.setProperty("--editorial-border", templateText(editorialTokens.border, editorialMode === "dark" ? "rgba(250,250,247,.15)" : "rgba(17,19,21,.12)"));
       root.style.setProperty("--editorial-border-soft", templateText(editorialTokens.borderSoft, editorialMode === "dark" ? "rgba(250,250,247,.09)" : "rgba(17,19,21,.075)"));
       root.style.setProperty("--editorial-shadow", templateText(editorialTokens.shadow, editorialMode === "dark" ? "rgba(0,0,0,.34)" : "rgba(66,55,41,.14)"));
@@ -6536,7 +7085,8 @@ export function renderLgLegacyHtml() {
       } else {
         sourceLabel = payload.slideType.indexOf("standing") !== -1 ? "Competitie" : "Match centre";
         title = templateText((templateRecord(snapshot.sport) || {}).title, sportTemplateTitle(payload.slideType));
-        renderer = payload.slideType === "sport_standing"
+        renderer = payload.slideType === "sport_standing" ||
+          payload.slideType === "sport_period_standing"
           ? renderEditorialStandingTemplate(body, snapshot, payload)
           : renderSportTemplate(body, snapshot, payload.slideType, payload.orientation, payload);
       }

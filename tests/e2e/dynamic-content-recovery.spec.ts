@@ -70,7 +70,7 @@ test("toont de Sportlink-bulkwizard als Studio-familie", async ({ page }) => {
     "Wat wil je tonen?",
     "Teams & slides",
     "Competitie & poule",
-    "Thema & weergave",
+    "Stijl & weergave",
     "Controleren & aanmaken"
   ]) {
     await expect(page.getByLabel("Voortgang")).toContainText(step);

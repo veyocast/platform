@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { themeModePolicySchema } from "@veyocast/contracts";
+import {
+  authorableThemeIdSchema,
+  themeModePolicySchema
+} from "@veyocast/contracts";
 
 import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
@@ -29,6 +32,7 @@ export async function updateTenantSettings(formData: FormData) {
   const defaultTransition = String(formData.get("defaultTransition") ?? "cut");
   const defaultBackgroundColor = String(formData.get("defaultBackgroundColor") ?? "").trim();
   const themeId = String(formData.get("themeId") ?? "");
+  const authorableThemeId = authorableThemeIdSchema.safeParse(themeId);
   const themeExpectedRevision = integerValue(formData, "themeSettingsRevision");
   const themeAccent = optionalHex(formData.get("themeAccent"));
   const themeSupport = optionalHex(formData.get("themeSupport"));
@@ -81,10 +85,7 @@ export async function updateTenantSettings(formData: FormData) {
   if (defaultBackgroundColor && !/^#[0-9a-f]{6}$/i.test(defaultBackgroundColor)) {
     fail("De standaardachtergrondkleur is ongeldig.");
   }
-  if (![
-    "editorial", "obsidian", "atelier", "velocity", "heritage",
-    "halo", "swiss", "pavilion", "tactical", "terrace"
-  ].includes(themeId) || !themeModePolicy.success || themeExpectedRevision < 0) {
+  if (!authorableThemeId.success || !themeModePolicy.success || themeExpectedRevision < 0) {
     fail("De themastandaard of het licht/donker-beleid is ongeldig.");
   }
   if (themeAccent === false || themeSupport === false) {
@@ -104,7 +105,7 @@ export async function updateTenantSettings(formData: FormData) {
     p_primary_color: primaryColor,
     p_theme_accent: themeAccent,
     p_theme_expected_revision: themeExpectedRevision,
-    p_theme_id: themeId,
+    p_theme_id: authorableThemeId.data,
     p_theme_mode_policy: themeModePolicy.data,
     p_theme_support: themeSupport,
     p_theme_version: "1.0.0",

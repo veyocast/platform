@@ -4,6 +4,7 @@ import { SportlinkClient } from "@veyocast/integrations/server";
 import {
   collectSportlinkPoolContexts,
   collectSportlinkPoolIds,
+  collectSportlinkMatchLogoCandidates,
   enrichSportlinkPoolMatches,
   fetchSportlinkDataset,
   runSportlinkSyncOnce,
@@ -15,6 +16,37 @@ afterEach(() => {
 });
 
 describe("Sportlink sync worker", () => {
+  it("verzamelt beide wedstrijdlogo's voor een immutable snapshot", () => {
+    const candidates = collectSportlinkMatchLogoCandidates([{
+      awayTeam: {
+        externalId: "away",
+        logoUrl: "https://provider.test/away.png",
+        name: "Uit",
+        score: null
+      },
+      cancellationReason: null,
+      competition: null,
+      dressingRooms: { away: null, home: null, official: null },
+      externalId: "fixture",
+      homeTeam: {
+        externalId: "home",
+        logoUrl: "https://provider.test/home.png",
+        name: "Thuis",
+        score: null
+      },
+      isHomeMatch: false,
+      officials: [],
+      pool: null,
+      startsAt: "2026-09-02T18:00:00.000Z",
+      status: "scheduled",
+      venue: { city: null, field: null, name: null, routeUrl: null }
+    }]);
+    expect([...candidates]).toEqual([
+      ["https://provider.test/home.png", { externalId: "home", teamName: "Thuis" }],
+      ["https://provider.test/away.png", { externalId: "away", teamName: "Uit" }]
+    ]);
+  });
+
   it("uses both provider team identifiers for birthday enrichment", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = new URL(input instanceof Request ? input.url : input);

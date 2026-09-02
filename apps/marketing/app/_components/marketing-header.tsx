@@ -15,11 +15,18 @@ const productLinks = [
   { description: "Betrouwbare lokale playback.", href: "/functies/offline-afspelen", label: "Offline afspelen" }
 ] as const;
 
-const solutionLinks = [
+const clubLinks = [
   { description: "Wedstrijden, clubnieuws, sponsors en kantine.", href: "/clubtv", label: "ClubTV" },
   { description: "Voor voetbal, hockey, tennis, padel en meer.", href: "/oplossingen/sportverenigingen", label: "Sportverenigingen" },
   { description: "Menu, acties en locatie-informatie.", href: "/oplossingen/horeca-en-kantines", label: "Horeca & kantines" },
   { description: "Interne communicatie op de werkvloer.", href: "/oplossingen/bedrijven", label: "Bedrijven" }
+] as const;
+
+const inspirationLinks = [
+  { description: "Praktische uitleg over ClubTV en narrowcasting.", href: "/kennisbank", label: "Kennisbank" },
+  { description: "Veelgestelde vragen met heldere antwoorden.", href: "/veelgestelde-vragen", label: "Veelgestelde vragen" },
+  { description: "Bekijk de beschikbare databronnen en koppelingen.", href: "/integraties", label: "Integraties" },
+  { description: "Lees wie VeyoCast bouwt en waarom.", href: "/over-ons", label: "Over ons" }
 ] as const;
 
 type MarketingHeaderProps = {
@@ -84,17 +91,23 @@ export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
             </NavigationMenu.Item>
             <NavigationMenu.Item>
               <NavigationMenu.Trigger className="desktop-navigation__trigger">
-                Oplossingen <ChevronDown aria-hidden size={14} />
+                Voor clubs <ChevronDown aria-hidden size={14} />
               </NavigationMenu.Trigger>
               <NavigationMenu.Content>
-                <MenuPanel links={solutionLinks} />
+                <MenuPanel links={clubLinks} />
+              </NavigationMenu.Content>
+            </NavigationMenu.Item>
+            <NavigationMenu.Item>
+              <NavigationMenu.Trigger className="desktop-navigation__trigger">
+                Inspiratie <ChevronDown aria-hidden size={14} />
+              </NavigationMenu.Trigger>
+              <NavigationMenu.Content>
+                <MenuPanel links={inspirationLinks} />
               </NavigationMenu.Content>
             </NavigationMenu.Item>
             {[
-              { href: "/integraties", label: "Integraties" },
               { href: "/prijzen", label: "Prijzen" },
-              { href: "/over-ons", label: "Over ons" },
-              { href: "/contact", label: "Contact" }
+              { href: "/support", label: "Support" }
             ].map((link) => (
               <NavigationMenu.Item key={link.href}>
                 <NavigationMenu.Link asChild active={isCurrent(link.href)}>
@@ -139,18 +152,21 @@ export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
                       {link.label}
                     </Link>
                   ))}
-                  <p>Oplossingen</p>
-                  {solutionLinks.map((link) => (
+                  <p>Voor clubs</p>
+                  {clubLinks.map((link) => (
+                    <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
+                      {link.label}
+                    </Link>
+                  ))}
+                  <p>Inspiratie</p>
+                  {inspirationLinks.map((link) => (
                     <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
                       {link.label}
                     </Link>
                   ))}
                   {[
-                    { href: "/integraties", label: "Integraties" },
                     { href: "/prijzen", label: "Prijzen" },
-                    { href: "/kennisbank", label: "Kennisbank" },
-                    { href: "/over-ons", label: "Over ons" },
-                    { href: "/contact", label: "Contact" }
+                    { href: "/support", label: "Support" }
                   ].map((link) => (
                     <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
                       {link.label}

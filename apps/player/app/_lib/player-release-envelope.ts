@@ -440,6 +440,14 @@ export function collectDynamicSnapshotMediaAssetIds(snapshot: unknown) {
     }
   }
   const sport = isRecord(snapshot.sport) ? snapshot.sport : null;
+  const arrivalConfig = isRecord(sport?.arrivalConfig) ? sport.arrivalConfig : null;
+  if (
+    arrivalConfig?.showSponsor === true &&
+    typeof arrivalConfig.sponsorMediaAssetId === "string" &&
+    uuidPattern.test(arrivalConfig.sponsorMediaAssetId)
+  ) {
+    ids.add(arrivalConfig.sponsorMediaAssetId);
+  }
   if (Array.isArray(sport?.items)) {
     for (const value of sport.items.slice(0, 100)) {
       const item = isRecord(value) ? value : null;
@@ -449,6 +457,18 @@ export function collectDynamicSnapshotMediaAssetIds(snapshot: unknown) {
         uuidPattern.test(item.logoMediaAssetId)
       ) {
         ids.add(item.logoMediaAssetId);
+      }
+      if (
+        item &&
+        typeof item.photoMediaAssetId === "string" &&
+        uuidPattern.test(item.photoMediaAssetId)
+      ) {
+        ids.add(item.photoMediaAssetId);
+      }
+      for (const key of ["homeLogoMediaAssetId", "awayLogoMediaAssetId"] as const) {
+        if (typeof item?.[key] === "string" && uuidPattern.test(item[key])) {
+          ids.add(item[key]);
+        }
       }
     }
   }

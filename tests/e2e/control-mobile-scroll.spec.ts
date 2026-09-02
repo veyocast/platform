@@ -19,14 +19,14 @@ const routes = [
   "/dashboard/media",
   "/dashboard/planning",
   "/dashboard/studio",
-  "/dashboard/screen-groups",
-  "/dashboard/releases",
-  "/dashboard/templates",
-  "/dashboard/integrations",
+  "/dashboard/screens/groups",
+  "/dashboard/publications",
+  "/dashboard/playlist-templates",
+  "/dashboard/sources",
   "/dashboard/settings",
   "/dashboard/team",
   "/dashboard/support",
-  "/dashboard/auditlog",
+  "/dashboard/activity",
   "/platform"
 ] as const;
 

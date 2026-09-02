@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import "@fontsource-variable/inter/wght.css";
-import "@fontsource-variable/inter-tight/wght.css";
+import "@fontsource-variable/manrope/wght.css";
 import "@veyocast/ui/styles.css";
 import "./globals.css";
-import "./atelier-ivory.css";
+import "./fieldflow.css";
 import { ControlPwaRuntime } from "./_components/control-pwa-runtime";
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html
-      data-design-system="atelier-ivory"
+      data-design-system="fieldflow"
       lang="nl"
       suppressHydrationWarning
     >

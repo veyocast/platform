@@ -14,7 +14,7 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(wizard).toContain('"Wat wil je tonen?"');
     expect(wizard).toContain('"Teams & slides"');
     expect(wizard).toContain('"Competitie & poule"');
-    expect(wizard).toContain('"Thema & weergave"');
+    expect(wizard).toContain('"Stijl & weergave"');
     expect(wizard).toContain('"Controleren & aanmaken"');
     expect(wizard).toContain("slides geselecteerd");
     expect(wizard).toContain("slw-matrix");
@@ -31,19 +31,20 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(wizard).toContain(".slw-matrix__row{display:grid;min-width:0");
   });
 
-  it("gebruikt dezelfde visuele themakiezer voor instellingen, menu en Sportlink", async () => {
-    const [settings, menu, wizard, picker] = await Promise.all([
+  it("gebruikt dezelfde vaste FieldFlow Style Step zonder publieke themakiezer", async () => {
+    const [settings, menu, wizard, styleStep] = await Promise.all([
       source("app/(shell)/dashboard/settings/page.tsx"),
       source("app/(shell)/dashboard/slides/menu-studio/menu-studio-editor.tsx"),
       source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx"),
-      source("app/(shell)/dashboard/slides/_components/theme-picker.tsx")
+      source("app/(shell)/dashboard/slides/_components/fieldflow-style-step.tsx")
     ]);
 
-    expect(settings).toContain("Standaard slidethema");
+    expect(settings).toContain("Standaard FieldFlow-stijl");
     expect(settings).toContain("Bestaande gepubliceerde versies veranderen niet");
-    expect(menu).toContain("<ThemePicker");
-    expect(wizard).toContain("<ThemePicker");
-    expect(picker).toContain("Standaard voor deze vereniging");
+    expect(menu).toContain("<FieldFlowStyleStep");
+    expect(wizard).toContain("<FieldFlowStyleStep");
+    expect(styleStep).toContain("Vaste premium stijl voor nieuwe inhoud");
+    expect(styleStep).not.toContain("themeCatalogOptions");
   });
 
   it("laat een aankomstperiode als minuten, uren of dagen invoeren", async () => {

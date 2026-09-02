@@ -61,6 +61,18 @@ export type EditorialArenaItem = {
   title: string;
 };
 
+function readableNewsUrl(value: string) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    const path = url.pathname === "/" ? "" : url.pathname.replace(/\/$/, "");
+    const readable = `${url.hostname.replace(/^www\./, "")}${path}`;
+    return readable.length > 52 ? `${readable.slice(0, 49)}…` : readable;
+  } catch {
+    return "";
+  }
+}
+
 export function EditorialArenaRenderer({
   embedded = false,
   item,
@@ -382,6 +394,7 @@ function ArenaPage({
                 <div className={styles.arenaNewsQr} data-testid="news-qr">
                   <img alt={`QR-code naar ${article.title}`} src={article.qrUrl} />
                   <span>Scan voor het artikel</span>
+                  {article.link ? <small>{readableNewsUrl(article.link)}</small> : null}
                 </div>
               ) : null}
             </>
@@ -418,6 +431,7 @@ function ArenaPage({
         {page.items.map((entry, index) => (
           <article
             className={styles.arenaArrivalCard}
+            data-sponsor={view.arrivalSponsorUrl ? "visible" : undefined}
             data-motion={view.slideType === "sport_visitor_arrivals"
               ? resolveWelcomeMotionPreset(
                 view.arrivalMotionPreset,
@@ -450,6 +464,13 @@ function ArenaPage({
             <h2>{entry.primary}</h2>
             <p>{entry.secondary}</p>
             <strong>{entry.meta}</strong>
+            {view.arrivalSponsorUrl ? (
+              <img
+                alt="Sponsor"
+                className={styles.arenaArrivalSponsor}
+                src={view.arrivalSponsorUrl}
+              />
+            ) : null}
           </article>
         ))}
       </div>
@@ -458,6 +479,97 @@ function ArenaPage({
 
   if (page.kind === "match") {
     return <ArenaNextMatch item={page.item} view={view} />;
+  }
+
+  if (page.kind === "team") {
+    return (
+      <div className={styles.arenaTeamRoster} data-render-family="team-roster">
+        {page.items.map((entry) => (
+          <article className={`${styles.arenaPanel} ${styles.arenaTeamCard}`} key={entry.id}>
+            <div className={styles.arenaTeamPortrait}>
+              {entry.photoUrl || entry.logoUrl ? (
+                <img
+                  alt=""
+                  src={entry.photoUrl || entry.logoUrl}
+                />
+              ) : <span aria-hidden="true">{initialsFor(entry.primary)}</span>}
+            </div>
+            <div>
+              <span>{entry.status || "Team"}</span>
+              <h2>{entry.primary}</h2>
+              {entry.secondary ? <p>{entry.secondary}</p> : null}
+              {entry.meta ? <strong>{entry.meta}</strong> : null}
+            </div>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
+  if (page.kind === "sponsor") {
+    return (
+      <div
+        className={styles.arenaSponsorLayout}
+        data-items={page.items.length}
+        data-render-family="sponsor-spotlight"
+      >
+        {page.items.map((entry) => (
+          <article className={`${styles.arenaPanel} ${styles.arenaSponsorCard}`} key={entry.id}>
+            <div className={styles.arenaSponsorPlate}>
+              {entry.photoUrl || entry.logoUrl ? (
+                <img alt={`Logo ${entry.primary}`} src={entry.photoUrl || entry.logoUrl} />
+              ) : <span aria-hidden="true">{initialsFor(entry.primary)}</span>}
+            </div>
+            <div className={styles.arenaSponsorCopy}>
+              <span>Partner van de club</span>
+              <h2>{entry.primary}</h2>
+              {entry.meta ? <p>{entry.meta}</p> : null}
+              {entry.secondary ? <strong>{entry.secondary}</strong> : null}
+            </div>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
+  if (page.kind === "trainings") {
+    return (
+      <div className={styles.arenaTrainingSchedule} data-render-family="training-schedule">
+        {page.items.map((entry, index) => (
+          <article className={`${styles.arenaPanel} ${styles.arenaTrainingRow}`} key={entry.id}>
+            <b>{String(index + 1).padStart(2, "0")}</b>
+            <div>
+              <span>{entry.status || "Training"}</span>
+              <h2>{entry.primary}</h2>
+              {entry.secondary ? <p>{entry.secondary}</p> : null}
+            </div>
+            <strong>{entry.time || entry.meta || entry.venue}</strong>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
+  if (page.kind === "volunteers") {
+    return (
+      <div className={styles.arenaVolunteerLayout} data-render-family="volunteer-call">
+        <aside className={`${styles.arenaPanel} ${styles.arenaVolunteerCallout}`}>
+          <span>Samen maken we de club</span>
+          <strong>{page.items.length}</strong>
+          <p>vrijwilligersrollen in deze selectie</p>
+        </aside>
+        <section className={styles.arenaVolunteerCards}>
+          {page.items.map((entry) => (
+            <article className={`${styles.arenaPanel} ${styles.arenaVolunteerCard}`} key={entry.id}>
+              <span>{entry.status || "Vrijwilliger"}</span>
+              <h2>{entry.primary}</h2>
+              {entry.secondary ? <p>{entry.secondary}</p> : null}
+              {entry.meta ? <strong>{entry.meta}</strong> : null}
+            </article>
+          ))}
+        </section>
+      </div>
+    );
   }
 
   if (view.slideType === "sport_activities") {
@@ -500,7 +612,9 @@ function ArenaPage({
     const midpoint = Math.ceil(page.items.length / 2);
     return (
       <div className={styles.arenaGroundLayout}>
-        {[page.items.slice(0, midpoint), page.items.slice(midpoint)].map(
+        {(view.sportDisplay?.columns === "one"
+          ? [page.items]
+          : [page.items.slice(0, midpoint), page.items.slice(midpoint)]).map(
           (items, index) => (
             <section className={`${styles.arenaPanel} ${styles.arenaListPanel}`} key={index}>
               <PanelTitle label={`Indeling ${index + 1}`} title="Veld & kleedkamers" />
@@ -519,7 +633,7 @@ function ArenaPage({
       <SportListColumns
         items={page.items}
         label="Laatste speelronde"
-        renderRow={(entry) => <ResultRow item={entry} key={entry.id} />}
+        renderRow={(entry) => <ResultRow display={view.sportDisplay} item={entry} key={entry.id} />}
         title="Uitslagen"
         view={view}
       />
@@ -544,15 +658,19 @@ function ArenaPage({
     );
   }
 
-  return (
-    <SportListColumns
-      items={page.items}
-      label="Aankomende wedstrijden"
-      renderRow={(entry) => <ProgramRow item={entry} key={entry.id} />}
-      title="Programma"
-      view={view}
-    />
-  );
+  if (view.slideType === "sport_program") {
+    return (
+      <SportListColumns
+        items={page.items}
+        label="Aankomende wedstrijden"
+        renderRow={(entry) => <ProgramRow display={view.sportDisplay} item={entry} key={entry.id} />}
+        title="Programma"
+        view={view}
+      />
+    );
+  }
+
+  return <div className={styles.arenaUnsupported}>Dit schermtype kan niet veilig worden weergegeven.</div>;
 }
 
 function BirthdayBackdrop({ view }: { view: DynamicTemplateView }) {
@@ -660,7 +778,11 @@ function SportListColumns({
   title: string;
   view: DynamicTemplateView;
 }) {
-  const columns = splitIntoColumns(items, view.orientation);
+  const columns = splitIntoColumns(
+    items,
+    view.orientation,
+    view.sportDisplay?.columns
+  );
   return (
     <div className={styles.arenaSportColumns} data-columns={columns.length}>
       {columns.map((column, index) => (
@@ -751,7 +873,11 @@ function ArenaStanding({
   items: DynamicTemplateStandingItem[];
   view: DynamicTemplateView;
 }) {
-  const columns = splitIntoColumns(items, view.orientation);
+  const columns = splitIntoColumns(
+    items,
+    view.orientation,
+    view.sportDisplay?.columns
+  );
   return (
     <section className={styles.arenaStandingLayout} data-columns={columns.length}>
       {columns.map((column, columnIndex) => (
@@ -884,14 +1010,14 @@ function ArenaNextMatch({
       <section className={`${styles.arenaPanel} ${styles.arenaMatchMain}`}>
         <div className={styles.arenaMatchMeta}>{item?.competition || view.sourceLabel}</div>
         <div className={styles.arenaVersus}>
-          <TeamBadge name={home} />
+          <TeamBadge logoUrl={item?.homeLogoUrl} name={home} />
           <div>
             <span>{item?.date || item?.secondary}</span>
             <strong>{item?.time || "Tijd volgt"}</strong>
             <i>VS</i>
             <small>{item?.venue || item?.meta || "Locatie volgt"}</small>
           </div>
-          <TeamBadge name={away} />
+          <TeamBadge logoUrl={item?.awayLogoUrl} name={away} />
         </div>
       </section>
       <aside className={`${styles.arenaPanel} ${styles.arenaMatchSide}`}>
@@ -906,31 +1032,53 @@ function ArenaNextMatch({
   );
 }
 
-function ProgramRow({ item }: { item: DynamicTemplateListItem }) {
+function ProgramRow({
+  display,
+  item
+}: {
+  display: DynamicTemplateView["sportDisplay"];
+  item: DynamicTemplateListItem;
+}) {
   const [fallbackHome, fallbackAway] = splitTeams(item.primary);
   const home = item.homeTeam || fallbackHome;
   const away = item.awayTeam || fallbackAway;
   return (
     <article className={styles.arenaProgramRow}>
       <strong>{item.date || item.secondary}</strong>
-      <span><TeamMini name={home} /> {home} <i>VS</i> <TeamMini name={away} /> {away}</span>
-      <small>{item.venue || item.meta}</small>
+      <span>
+        <TeamMini logoUrl={item.homeLogoUrl} name={home} />
+        {display?.showHomeAway ? <em>Thuis</em> : null} {home} <i>VS</i>
+        <TeamMini logoUrl={item.awayLogoUrl} name={away} />
+        {display?.showHomeAway ? <em>Uit</em> : null} {away}
+      </span>
+      <small>{[
+        display?.showField ? item.venue || item.meta : "",
+        display?.showDressingRoom && item.homeRoom ? `Thuis ${item.homeRoom}` : "",
+        display?.showDressingRoom && item.awayRoom ? `Uit ${item.awayRoom}` : "",
+        display?.showReferee ? item.officials.join(" · ") : ""
+      ].filter(Boolean).join(" · ")}</small>
       <b>{item.time}</b>
     </article>
   );
 }
 
-function ResultRow({ item }: { item: DynamicTemplateListItem }) {
+function ResultRow({
+  display,
+  item
+}: {
+  display: DynamicTemplateView["sportDisplay"];
+  item: DynamicTemplateListItem;
+}) {
   const [fallbackHome, fallbackAway] = splitTeams(item.primary);
   const home = item.homeTeam || fallbackHome;
   const away = item.awayTeam || fallbackAway;
   return (
     <article className={styles.arenaResultRow} data-result-row="">
-      <span>{home} <TeamMini name={home} /></span>
+      <span>{display?.showHomeAway ? <em>Thuis</em> : null} {home} <TeamMini logoUrl={item.homeLogoUrl} name={home} /></span>
       <strong>
         <i>{item.homeScore ?? "–"}</i><b>–</b><i>{item.awayScore ?? "–"}</i>
       </strong>
-      <span><TeamMini name={away} /> {away}</span>
+      <span><TeamMini logoUrl={item.awayLogoUrl} name={away} /> {display?.showHomeAway ? <em>Uit</em> : null} {away}</span>
       <small>{item.date || item.secondary}</small>
     </article>
   );
@@ -972,19 +1120,27 @@ function PanelTitle({ label, title }: { label: string; title: string }) {
   );
 }
 
-function TeamBadge({ name }: { name: string }) {
+function TeamBadge({ logoUrl = "", name }: { logoUrl?: string; name: string }) {
   return (
     <article className={styles.arenaTeamBadge}>
-      <TeamMini name={name} large />
+      <TeamMini logoUrl={logoUrl} name={name} large />
       <h2>{name}</h2>
     </article>
   );
 }
 
-function TeamMini({ large = false, name }: { large?: boolean; name: string }) {
+function TeamMini({
+  large = false,
+  logoUrl = "",
+  name
+}: {
+  large?: boolean;
+  logoUrl?: string;
+  name: string;
+}) {
   return (
     <i aria-hidden="true" className={large ? styles.arenaTeamLarge : styles.arenaTeamMini}>
-      {initialsFor(name)}
+      {logoUrl ? <img alt="" src={logoUrl} /> : initialsFor(name)}
     </i>
   );
 }
@@ -1006,9 +1162,14 @@ function pageIsEmpty(page: DynamicTemplatePage) {
 
 function splitIntoColumns<T>(
   items: T[],
-  orientation: DynamicTemplateView["orientation"]
+  orientation: DynamicTemplateView["orientation"],
+  configuredColumns?: "one" | "two"
 ) {
-  const columns = sportColumnCount(orientation, items.length);
+  const columns = configuredColumns === "one"
+    ? 1
+    : configuredColumns === "two"
+      ? Math.min(2, items.length || 1)
+      : sportColumnCount(orientation, items.length);
   if (columns === 1) return [items];
   const midpoint = Math.ceil(items.length / 2);
   return [items.slice(0, midpoint), items.slice(midpoint)];

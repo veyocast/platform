@@ -6,6 +6,7 @@ Studio gebruikt uitsluitend de lokaal meegebouwde variabele fonts:
 |---|---|---|---|
 | `Inter Variable` | `@fontsource-variable/inter@5.3.0` | 100–900 | SIL Open Font License 1.1 |
 | `Inter Tight Variable` | `@fontsource-variable/inter-tight@5.3.0` | 100–900 | SIL Open Font License 1.1 |
+| `Manrope Variable` | `@fontsource-variable/manrope@5.3.0` | 200–800 | SIL Open Font License 1.1 |
 
 De packages bevatten hun eigen `LICENSE` en metadata. Control importeert de
 lokale `wght.css`; de worker laadt de Latin WOFF2-buffer rechtstreeks in
@@ -21,3 +22,4 @@ Bronnen:
 - <https://fontsource.org/fonts/inter/install>
 - <https://fontsource.org/fonts/inter-tight/install>
 - <https://github.com/rsms/inter/blob/master/LICENSE.txt>
+- <https://github.com/sharanda/manrope/blob/master/OFL.txt>

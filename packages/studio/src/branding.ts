@@ -13,7 +13,9 @@ export function applyStudioBrandKit(
 ): StudioDocument {
   const colors = new Map([
     [studioPalette.electricOrange.toUpperCase(), brand.primaryColor.toUpperCase()],
-    [studioPalette.warmOrange.toUpperCase(), brand.secondaryColor.toUpperCase()]
+    [studioPalette.fieldflowOrange.toUpperCase(), brand.primaryColor.toUpperCase()],
+    [studioPalette.warmOrange.toUpperCase(), brand.secondaryColor.toUpperCase()],
+    [studioPalette.fieldflowGreen.toUpperCase(), brand.secondaryColor.toUpperCase()]
   ]);
   const replaceColor = (color: string) =>
     colors.get(color.toUpperCase()) ?? color.toUpperCase();

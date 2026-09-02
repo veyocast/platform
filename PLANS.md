@@ -143,6 +143,12 @@ tests en exitcriteria staan in
 | S139 | LED Scores feature-rollout recovery | De verborgen Vector-only allowlist herstellen en tenantvrijgave via revision-, idempotency-, audit- en kill-switchveilige v2-command voor uitsluitend het gekozen cohort laten verlopen |
 | S140 | LED Scores Playerbetrouwbaarheid en afleverbewijs | Moderne Players na een tijdelijk uitgeschakelde feature opnieuw laten verbinden, LG Legacy dezelfde device-geauthenticeerde Goal Alert laten tonen en Control per doelscherm de echte ontvangst-/renderuitkomst laten verklaren |
 | S141 | LED Scores live wedstrijdervaring | Een echte live tussenstandslide combineren met goal-, opstellings-, start-, rust- en eindoverlays, stabiele speleridentiteit, veilige fotoverrijking en één premium responsive Studioflow |
+| S144 | FieldFlow productplatform en slide-output | De complete marketing-, Control-, Publisher-, Studio-, mobile-, platform- en beheerervaring herontwerpen en tegelijk alle dynamische slides via één compatibele FieldFlow-outputketen naar moderne en statische LG-Players brengen |
+
+S144 is lokaal geïmplementeerd en geaccepteerd. De release blijft
+`BLOCKED_EXTERNAL`: GitHub Actions stopt vóór jobstart door de
+account-billing/spending limit; er is geen veilige handmatige deploycredential
+op de uitvoerhost. Zie `docs/redesign/FINAL_REPORT.md`.
 
 ### Programmagates
 
