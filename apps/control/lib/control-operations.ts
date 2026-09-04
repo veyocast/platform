@@ -18,7 +18,42 @@ export type OnboardingStep = {
   label: string;
 };
 
+export type OperationalStateId =
+  | "loading"
+  | "empty-unconfigured"
+  | "healthy"
+  | "degraded"
+  | "partial-error"
+  | "full-error"
+  | "stale"
+  | "offline"
+  | "unknown";
+
+export type OperationalState = Readonly<{
+  cause: string | null;
+  effect: string;
+  id: OperationalStateId;
+  label: string;
+  recovery: string;
+  title: string;
+  tone: "critical" | "info" | "neutral" | "success" | "warning";
+  unavailable: readonly string[];
+}>;
+
+export type OperationalDataAvailability = Readonly<{
+  audit: boolean;
+  devices: boolean;
+  integrations: boolean;
+  media: boolean;
+  members: boolean;
+  playlists: boolean;
+  screens: boolean;
+  telemetry: boolean;
+  tenant: boolean;
+}>;
+
 export type OperationalSource = {
+  availability?: OperationalDataAvailability;
   devices: Array<{
     active_release_id: string | null;
     desired_release_id: string | null;
@@ -98,6 +133,17 @@ export type OperationalSource = {
 const offlineAfterMs = 5 * 60_000;
 const syncTimeoutMs = 15 * 60_000;
 const invitationWarningMs = 72 * 60 * 60_000;
+const completeAvailability = {
+  audit: true,
+  devices: true,
+  integrations: true,
+  media: true,
+  members: true,
+  playlists: true,
+  screens: true,
+  telemetry: true,
+  tenant: true
+} satisfies OperationalDataAvailability;
 
 export function deriveOperationalDashboard(
   source: OperationalSource,
@@ -243,7 +289,7 @@ export function deriveOperationalDashboard(
           ? `${integration.name} meldt foutcode ${integration.last_error_code}.`
           : `${integration.name} meldt een providerfout.`,
         effect: "Bestaande snapshots blijven beschikbaar, maar nieuwe brondata is niet bevestigd.",
-        href: "/dashboard/data-sources",
+        href: "/dashboard/sources",
         id: `integration-error:${integration.id}`,
         label: "Integratie vraagt aandacht",
         occurredAt: integration.last_attempt_at ?? integration.last_successful_sync_at ?? now.toISOString(),
@@ -264,7 +310,7 @@ export function deriveOperationalDashboard(
             ? "De laatste succesvolle Sportlink-sync is ouder dan de ingestelde versheidsgrens."
             : "De Sportlink-verbinding staat in foutstatus.",
         effect: "Schermen gebruiken de laatst geldige snapshot; actuele programma- of uitslagdata kan ontbreken.",
-        href: "/dashboard/data-sources/sportlink",
+        href: "/dashboard/sources/sportlink",
         id: `sportlink-health:${connection.id}`,
         label: stale ? "Sportlink-data is verouderd" : "Sportlink-sync mislukt",
         occurredAt: connection.last_attempt_at ?? connection.last_success_at ?? now.toISOString(),
@@ -303,27 +349,40 @@ export function deriveOperationalDashboard(
   ).length;
   const readyMediaCount = source.media.filter((asset) => asset.status === "ready").length;
   const playlistsWithItems = new Set(source.playlistItems.map((item) => item.playlist_id));
+  const integrationHealth = deriveIntegrationHealth(source.integrations, nowMs);
+  const onlineScreenCount = source.screens.filter((screen) => {
+    const device = devicesByScreen.get(screen.id);
+    return screen.status === "active" && Boolean(device?.last_seen_at) && nowMs - timestamp(device?.last_seen_at ?? null) < offlineAfterMs;
+  }).length;
+  const sortedSignals = signals.sort(compareSignals);
+  const status = deriveOperationalState({
+    activePlaybackCount,
+    availability: source.availability ?? completeAvailability,
+    integrationHealth,
+    onlineScreenCount,
+    pairedDeviceCount: pairedDevices.length,
+    signals: sortedSignals,
+    source
+  });
 
   return {
     activePlaybackCount,
-    integrationHealth: deriveIntegrationHealth(source.integrations, nowMs),
+    integrationHealth,
     onboarding: [
       step("organization", "Organisatie actief", true, "/dashboard/settings"),
       step("team", "Team ingericht", source.memberCount > 1, "/dashboard/team"),
       step("media", "Eerste media gereed", readyMediaCount > 0, "/dashboard/media"),
       step("playlist", "Playlist met content", playlistsWithItems.size > 0, "/dashboard/playlists"),
-      step("release", "Eerste release gepubliceerd", source.releases.length > 0, "/dashboard/releases"),
+      step("release", "Eerste release gepubliceerd", source.releases.length > 0, "/dashboard/publications"),
       step("screen", "Eerste scherm aangemaakt", source.screens.length > 0, "/dashboard/screens/new"),
       step("paired", "Player gekoppeld", pairedDevices.length > 0, "/dashboard/screens"),
       step("playback", "Actieve playback bevestigd", activePlaybackCount > 0, "/dashboard/screens")
     ],
-    onlineScreenCount: source.screens.filter((screen) => {
-      const device = devicesByScreen.get(screen.id);
-      return screen.status === "active" && Boolean(device?.last_seen_at) && nowMs - timestamp(device?.last_seen_at ?? null) < offlineAfterMs;
-    }).length,
+    onlineScreenCount,
     processingMediaCount: source.media.filter((asset) => ["uploading", "processing"].includes(asset.status)).length,
     readyMediaCount,
-    signals: signals.sort(compareSignals)
+    signals: sortedSignals,
+    status
   };
 }
 
@@ -356,6 +415,156 @@ function deriveIntegrationHealth(
   };
 }
 
+
+function deriveOperationalState({
+  activePlaybackCount,
+  availability,
+  integrationHealth,
+  onlineScreenCount,
+  pairedDeviceCount,
+  signals,
+  source
+}: {
+  activePlaybackCount: number;
+  availability: OperationalDataAvailability;
+  integrationHealth: ReturnType<typeof deriveIntegrationHealth>;
+  onlineScreenCount: number;
+  pairedDeviceCount: number;
+  signals: readonly OperationalSignal[];
+  source: OperationalSource;
+}): OperationalState {
+  const unavailable = Object.entries(availability)
+    .filter(([, available]) => !available)
+    .map(([domain]) => domain);
+
+  if (unavailable.length === Object.keys(availability).length) {
+    return operationalState(
+      "full-error",
+      "critical",
+      "Niet beschikbaar",
+      "De actuele status kan niet worden vastgesteld",
+      "Geen operationele waarde kan nu veilig worden bevestigd.",
+      "Vernieuw de pagina of meld je opnieuw aan. Blijft dit zo, open dan Support.",
+      unavailable,
+      "Alle statusbronnen konden niet worden geladen."
+    );
+  }
+
+  if (unavailable.length > 0) {
+    return operationalState(
+      "partial-error",
+      "critical",
+      "Deels beschikbaar",
+      "Een deel van de actuele status ontbreekt",
+      "Getroffen waarden staan op —; geldige deeldata blijft zichtbaar.",
+      "Vernieuw de pagina. Blijft een bron ontbreken, open dan Support met de genoemde onderdelen.",
+      unavailable,
+      `Niet geladen: ${unavailable.map(domainLabel).join(", ")}.`
+    );
+  }
+
+  if (source.screens.length === 0) {
+    return operationalState(
+      "empty-unconfigured",
+      "info",
+      "Nog inrichten",
+      "Koppel je eerste scherm",
+      "Zonder scherm kan geen live playback of bereikbaarheid worden bevestigd.",
+      "Maak een scherm aan, koppel de Player en publiceer daarna de eerste release.",
+      unavailable
+    );
+  }
+
+  if (pairedDeviceCount > 0 && onlineScreenCount === 0) {
+    return operationalState(
+      "offline",
+      "critical",
+      "Offline",
+      "Geen gekoppeld scherm meldt zich online",
+      "De laatst geldige lokale release kan blijven spelen, maar nieuwe publicaties zijn niet bevestigd.",
+      "Controleer voeding en netwerk op locatie en open daarna Schermgezondheid.",
+      unavailable
+    );
+  }
+
+  if (integrationHealth.status === "stale") {
+    return operationalState(
+      "stale",
+      "warning",
+      "Verouderde data",
+      "Een bron is niet meer actueel",
+      "Schermen kunnen de laatst geldige snapshot tonen terwijl nieuwe brondata ontbreekt.",
+      "Open Bronnen, herstel de sync en controleer het tijdstip van de volgende bevestiging.",
+      unavailable
+    );
+  }
+
+  if (signals.some((item) => item.severity === "critical" || item.severity === "warning")) {
+    return operationalState(
+      "degraded",
+      "warning",
+      "Aandacht nodig",
+      "De omgeving werkt met aandachtspunten",
+      "Geldige playback blijft waar mogelijk actief; één of meer onderdelen vragen herstel.",
+      "Open het belangrijkste signaal en volg de genoemde herstelactie.",
+      unavailable,
+      signals[0]?.cause ?? null
+    );
+  }
+
+  if (pairedDeviceCount === 0 || activePlaybackCount === 0) {
+    return operationalState(
+      "unknown",
+      "neutral",
+      "Nog niet bevestigd",
+      "Playbackstatus is nog onbekend",
+      pairedDeviceCount === 0
+        ? "Er is wel een scherm ingericht, maar nog geen gekoppelde Player die actuele status kan melden."
+        : "De Player is gekoppeld, maar actuele playback is nog niet bevestigd.",
+      pairedDeviceCount === 0
+        ? "Open Schermen en rond de veilige koppeling af."
+        : "Open Schermgezondheid en controleer heartbeat, actieve release en runtime-status.",
+      unavailable
+    );
+  }
+
+  return operationalState(
+    "healthy",
+    "success",
+    "Actueel",
+    "De omgeving is operationeel",
+    "Scherm-, publicatie- en bronstatus zijn met actuele gegevens bevestigd.",
+    "Er is nu geen herstelactie nodig.",
+    unavailable
+  );
+}
+
+function operationalState(
+  id: OperationalStateId,
+  tone: OperationalState["tone"],
+  label: string,
+  title: string,
+  effect: string,
+  recovery: string,
+  unavailable: readonly string[],
+  cause: string | null = null
+): OperationalState {
+  return { cause, effect, id, label, recovery, title, tone, unavailable };
+}
+
+function domainLabel(domain: string) {
+  return ({
+    audit: "activiteit",
+    devices: "Playerstatus",
+    integrations: "bronnen",
+    media: "media",
+    members: "team",
+    playlists: "playlists en publicaties",
+    screens: "schermen",
+    telemetry: "telemetrie",
+    tenant: "organisatielimieten"
+  } as Record<string, string>)[domain] ?? domain;
+}
 function signal(
   value: Omit<OperationalSignal, "ageLabel">,
   nowMs: number

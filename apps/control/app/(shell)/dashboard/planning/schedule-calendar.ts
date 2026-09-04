@@ -5,6 +5,15 @@ import {
 
 export type PlanningView = "agenda" | "month" | "week";
 
+export type PlanningHrefOptions = {
+  content?: string;
+  date?: string;
+  period?: string;
+  target?: string;
+  view: PlanningView;
+  visual?: string;
+};
+
 export type CalendarSchedule = {
   enabled: boolean;
   endsAt: string | null;
@@ -45,6 +54,23 @@ export type CalendarDay = {
 
 export function normalizePlanningView(value: string | undefined): PlanningView {
   return value === "week" || value === "month" ? value : "agenda";
+}
+
+export function planningHref({
+  content,
+  date,
+  period,
+  target,
+  view,
+  visual
+}: PlanningHrefOptions) {
+  const params = new URLSearchParams({ view });
+  if (date) params.set("date", date);
+  if (target) params.set("target", target);
+  if (content) params.set("content", content);
+  if (period && period !== "day") params.set("period", period);
+  if (visual) params.set("visual", visual);
+  return `/dashboard/planning?${params.toString()}`;
 }
 
 export function normalizeReferenceDate(
@@ -103,6 +129,32 @@ export function isScheduleActiveAt(
     atIso >= occurrence.startsAt &&
     (!occurrence.endsAt || atIso < occurrence.endsAt)
   );
+}
+
+export function nextScheduleOccurrence(
+  schedule: CalendarSchedule,
+  after: Date,
+  timeZone: string,
+  horizonDays = 370
+) {
+  if (!schedule.enabled) return null;
+  const afterIso = after.toISOString();
+  if (schedule.scheduleKind === "once") {
+    return schedule.startsAt > afterIso
+      ? toOccurrence(schedule, schedule.startsAt, schedule.endsAt)
+      : null;
+  }
+
+  const firstDate = zonedDateKey(after, timeZone);
+  for (let dayOffset = 0; dayOffset <= horizonDays; dayOffset += 1) {
+    const occurrence = occurrenceForDate(
+      schedule,
+      addDays(firstDate, dayOffset),
+      timeZone
+    ).find((candidate) => candidate.startsAt > afterIso);
+    if (occurrence) return occurrence;
+  }
+  return null;
 }
 
 export function scheduleMatchesPlanningTarget(

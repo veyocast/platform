@@ -504,7 +504,7 @@ function conflictMessage(actualRevision: unknown) {
 function complete(message: string): never {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/planning");
-  revalidatePath("/dashboard/screen-groups");
+  revalidatePath("/dashboard/screens/groups");
   revalidatePath("/dashboard/screens");
   redirect(`/dashboard/planning?succes=${encodeURIComponent(message)}`);
 }

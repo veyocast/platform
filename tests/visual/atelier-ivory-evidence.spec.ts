@@ -28,7 +28,7 @@ const allRoutes = [
   },
   {
     name: "screen-groups",
-    pathname: "/dashboard/screen-groups",
+    pathname: "/dashboard/screens/groups",
     supplemental: true
   },
   { name: "releases", pathname: "/dashboard/releases", supplemental: true },

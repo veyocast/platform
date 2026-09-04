@@ -38,3 +38,29 @@ of spending limit. Geen joblog of runnerpreflight kan daardoor bestaan. Deze
 host heeft geen deploy-user, `/srv/apps/veyocast`, SSH-private key of
 environmentsecrets. De veilige herstelactie is billing laten herstellen,
 daarna de officiële workflow opnieuw dispatchen; handmatige bypass is verboden.
+
+## S145-correctie op 4 september 2026
+
+S145 bevat presentatie-, state-afleiding-, navigatie-, lokale goedgekeurde
+foto-afgeleiden, test- en evidencewijzigingen plus één later expliciet
+toegewezen forward-only functiereparatie. De migratie wijzigt geen tabel,
+RLS-policy, snapshot of release; zij behoudt alle zes bestaande signatures en
+maakt legacygedrag weer uitvoerbaar of expliciet fail-closed. Zij wordt na
+uitrol niet gedownmigreerd. Applicatierollback gebruikt de vorige bekende groene
+app-SHA; de vooruit gemigreerde functies blijven compatibel met zowel de
+pre-v2 RSS-worker als de actuele RSS-/Sportlinkworkers. Player last-known-good
+blijft onaangeraakt.
+
+De menselijke S145-gates zijn op 4 september 2026 opgelost: reviewbladen en
+assetkeuzes zijn geaccepteerd, de vijf historische PNG's zijn expliciet voor
+opname geaccepteerd en de fysieke LG blijft eerlijk `EXTERNAL_UNTESTED` met
+uitsluitend een `WAIVED_BY_USER_2026-09-04`-releasegate. Dit is geen
+hardwarebewijs.
+
+Stop vóór promotie wanneer één van deze technische S145-gates openstaat:
+
+- verplichte PR-/CI-gates of merge zijn niet groen;
+- exact-SHA stagingdeployment, migratie, health of pairing/recovery-smoke faalt;
+- productieapproval ontbreekt of exact dezelfde vier stagingdigests kunnen
+  niet worden bewezen;
+- productionreadback op de uiteindelijke merge-SHA faalt.

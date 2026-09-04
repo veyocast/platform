@@ -144,11 +144,27 @@ tests en exitcriteria staan in
 | S140 | LED Scores Playerbetrouwbaarheid en afleverbewijs | Moderne Players na een tijdelijk uitgeschakelde feature opnieuw laten verbinden, LG Legacy dezelfde device-geauthenticeerde Goal Alert laten tonen en Control per doelscherm de echte ontvangst-/renderuitkomst laten verklaren |
 | S141 | LED Scores live wedstrijdervaring | Een echte live tussenstandslide combineren met goal-, opstellings-, start-, rust- en eindoverlays, stabiele speleridentiteit, veilige fotoverrijking en één premium responsive Studioflow |
 | S144 | FieldFlow productplatform en slide-output | De complete marketing-, Control-, Publisher-, Studio-, mobile-, platform- en beheerervaring herontwerpen en tegelijk alle dynamische slides via één compatibele FieldFlow-outputketen naar moderne en statische LG-Players brengen |
+| S145 | FieldFlow v1.6 releasecorrectie | De visueel afgekeurde S144-uitvoering vervangen door de vijf laatst aangeleverde leidende referenties voor Overzicht, Planning, Schermen, Studio en Marketing, zonder security-, RLS-, locked-asset-, toegankelijkheids-, immutable-release- of Player/offlinegrenzen te verlagen |
 
-S144 is lokaal geïmplementeerd en geaccepteerd. De release blijft
-`BLOCKED_EXTERNAL`: GitHub Actions stopt vóór jobstart door de
-account-billing/spending limit; er is geen veilige handmatige deploycredential
-op de uitvoerhost. Zie `docs/redesign/FINAL_REPORT.md`.
+S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
+vervangen. S145 staat lokaal op
+`veyocast/s145-fieldflow-release-completion`, baseline
+`19e665cdcf6a2613f70332cb616e87514938d655`. De brede Chromium-run is groen met
+192 tests en 22 conditionele skips in 21,3 minuten; de finale evidence-run
+levert 71 primaire plus twee opstellingsdetailcaptures. Alle negen reviewbladen
+zijn op 4 september 2026 expliciet door de gebruiker goedgekeurd. Het huidige
+officiële VeyoCast-icon blijft behouden en FF-PHOTO-01/06/05/04 zijn de
+geaccepteerde vervangers voor ontbrekende targetfotobronnen. De fysieke LG
+blijft `EXTERNAL_UNTESTED`, maar uitsluitend de S145-releasegate is op
+4 september 2026 expliciet geaccepteerd als `WAIVED_BY_USER_2026-09-04`. De
+vijf historische gewijzigde PNG's zijn door de gebruiker geaccepteerd voor
+opname (`ACCEPTED_FOR_INCLUSION_BY_USER_2026-09-04`) en blijven buiten de
+90 S145-evidencebeelden. De zes eerder bestaande Supabase-linterrors zijn na
+expliciete scope-uitbreiding opgelost met één forward-only migratie en 38
+regressieasserties; verse reset, volledige RLS en error-level db-lint zijn
+groen. De release is geautoriseerd; PR/CI, merge en de beschermde exact-SHA
+staging-/productionreadbacks staan nog open. Zie
+`docs/redesign/FINAL_REPORT.md`.
 
 ### Programmagates
 

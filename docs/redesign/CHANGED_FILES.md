@@ -1,4 +1,115 @@
-# S144 gewijzigd-bestandenmanifest
+# FieldFlow gewijzigd-bestandenmanifest
+
+## S145 v1.6-correctie
+
+Het geautoriseerde commitmanifest bevat op 4 september 2026 exact `175` paden:
+`68` tracked en `107` nieuw, waarvan `95` PNG's en `80` overige paden. De
+S145-evidenceset blijft exact `90` PNG's: `73` current captures, vijf targets,
+drie negatieve baselines en negen contact sheets. `VISUAL_QA.csv` registreert
+alle 76 negatieve/current bewijsregels; de negen sheets en checksums staan in
+`GOLDEN_INDEX.md`.
+
+De vijf overige PNG's zijn historische screenshotdiffs. De gebruiker heeft ze
+expliciet geaccepteerd voor opname als
+`ACCEPTED_FOR_INCLUSION_BY_USER_2026-09-04`; zij krijgen geen nieuw S145-
+evidencelabel en geen bewezen provenanceclaim:
+
+- `docs/screenshots/s125-lg-menu-loose-portrait.png`
+- `docs/screenshots/s125-menu-loose-portrait.png`
+- `docs/screenshots/vector-v2/studio/menu-journey-1440x900.png`
+- `docs/screenshots/vector-v2/studio/sportlink-journey-1440x900.png`
+- `docs/screenshots/vector-v2/studio/sportlink-journey-390x844.png`
+
+- `PLANS.md`
+- `README.md`
+- `TASK_LEDGER.md`
+- `apps/control/app/(shell)/_components/control-shell.tsx`
+- `apps/control/app/(shell)/_components/operational-action-inbox.tsx`
+- `apps/control/app/(shell)/_lib/control-navigation.test.ts`
+- `apps/control/app/(shell)/_lib/control-navigation.ts`
+- `apps/control/app/(shell)/dashboard/page.tsx`
+- `apps/control/app/(shell)/dashboard/planning/actions.ts`
+- `apps/control/app/(shell)/dashboard/planning/page.tsx`
+- `apps/control/app/(shell)/dashboard/planning/planning-calendar.tsx`
+- `apps/control/app/(shell)/dashboard/planning/planning-dialogs.tsx`
+- `apps/control/app/(shell)/dashboard/planning/planning.module.css`
+- `apps/control/app/(shell)/dashboard/planning/schedule-calendar.test.ts`
+- `apps/control/app/(shell)/dashboard/planning/schedule-calendar.ts`
+- `apps/control/app/(shell)/dashboard/publisher-overview.module.css`
+- `apps/control/app/(shell)/dashboard/screen-groups/actions.ts`
+- `apps/control/app/(shell)/dashboard/screens/[screenId]/page.tsx`
+- `apps/control/app/(shell)/dashboard/screens/actions.ts`
+- `apps/control/app/(shell)/dashboard/screens/screens-overview.module.css`
+- `apps/control/app/(shell)/dashboard/screens/screens-page.tsx`
+- `apps/control/app/(shell)/dashboard/studio/[designId]/studio-editor-workspace.tsx`
+- `apps/control/app/(shell)/dashboard/studio/[designId]/studio-konva-canvas.tsx`
+- `apps/control/app/(shell)/dashboard/studio/demo-data.ts`
+- `apps/control/app/(shell)/dashboard/studio/new/page.tsx`
+- `apps/control/app/(shell)/dashboard/studio/new/studio-new-form.tsx`
+- `apps/control/app/(shell)/dashboard/studio/studio.module.css`
+- `apps/control/app/(shell)/layout.tsx`
+- `apps/control/app/(shell)/platform/tenants/[tenantId]/feature-rollout.ts`
+- `apps/control/app/fieldflow.css`
+- `apps/control/app/globals.css`
+- `apps/control/app/onboarding/page.tsx`
+- `apps/control/lib/control-operations.test.ts`
+- `apps/control/lib/control-operations.ts`
+- `apps/control/lib/control-overview.ts`
+- `apps/marketing/app/_components/marketing-header.tsx`
+- `apps/marketing/app/_components/motion.tsx`
+- `apps/marketing/app/_components/site-chrome.tsx`
+- `apps/marketing/app/globals.css`
+- `apps/marketing/app/page.tsx`
+- `docs/redesign/ACCEPTANCE_CHECKLIST.md`
+- `docs/redesign/ASSET_PROVENANCE.md`
+- `docs/redesign/CHANGED_FILES.md`
+- `docs/redesign/DECISIONS.md`
+- `docs/redesign/FINAL_REPORT.md`
+- `docs/redesign/GOLDEN_INDEX.md`
+- `docs/redesign/PROGRAM.md`
+- `docs/redesign/ROLLBACK.md`
+- `docs/redesign/VISUAL_QA.md`
+- `tests/a11y/control-shell.spec.ts`
+- `tests/a11y/marketing-home.spec.ts`
+- `tests/a11y/screens-mobile.spec.ts`
+- `tests/e2e/control-mobile-scroll.spec.ts`
+- `tests/e2e/control-shell.spec.ts`
+- `tests/e2e/dynamic-content-recovery.spec.ts`
+- `tests/e2e/floating-panels.spec.ts`
+- `tests/e2e/marketing-home.spec.ts`
+- `tests/e2e/marketing-routes.spec.ts`
+- `tests/e2e/pilot-readiness.spec.ts`
+- `tests/e2e/studio.spec.ts`
+- `tests/e2e/vector-control-venue-live.spec.ts`
+- `tests/e2e/vector-pilot-visible.spec.ts`
+- `tests/visual/atelier-ivory-evidence.spec.ts`
+- `apps/control/app/(shell)/dashboard/loading.tsx`
+- `apps/control/app/(shell)/dashboard/visual-qa-fixtures.ts`
+- `apps/control/public/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp`
+- `apps/control/public/fieldflow/photos/FF-PHOTO-04-matchday-live-3840x2160-web.webp`
+- `apps/control/public/fieldflow/photos/FF-PHOTO-05-sponsor-hub-3840x2160-web.webp`
+- `apps/control/public/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp`
+- `apps/control/scripts/generate-fieldflow-contact-sheets.mjs`
+- `apps/marketing/app/_components/resilient-marketing-image.tsx`
+- `docs/redesign/ASSET_GAPS.csv`
+- `docs/redesign/OUTPUT_ASSET_MANIFEST.csv`
+- `docs/redesign/REFERENCE_SOURCE_MATRIX.md`
+- `docs/redesign/SLIDE_COMPONENT_PATH_MAP.csv`
+- `docs/redesign/VISUAL_QA.csv`
+- `prompts/sprints/S145-fieldflow-release-completion.md`
+- `supabase/migrations/20260904190700_s145_supabase_lint_recovery.sql`
+- `supabase/tests/rls_s145_supabase_lint_recovery.sql`
+- `tests/visual/fieldflow-release-evidence.spec.ts`
+
+De S145 high-conflictdiff is beperkt tot de na expliciete gebruikersopdracht
+toegewezen forward-only migratie en bijbehorende pgTAP-test. Er is geen andere
+package-/lockfile-, migration-/RLS-, Player-, Android-, LG-bron-, workflow-,
+token-, databasepackage-, UI-index-, service-worker- of locked-branddiff. De
+vijf afzonderlijk genoemde historische PNG-diffs zijn uitsluitend na de
+expliciete gebruikersacceptatie in dit commitmanifest opgenomen en blijven
+buiten het S145-evidencecorpus.
+
+## S144 historisch manifest
 
 Dit manifest bevat de exacte repositorypaden in de lokaal geverifieerde
 S144-wijziging vóór de eerste commit. Totaal: `271` bestanden.

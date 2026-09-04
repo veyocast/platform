@@ -62,7 +62,7 @@ function expectCanonicalGeometry(
   for (const fields of geometry.grids) {
     for (const field of fields) {
       expect(Math.abs(field.controlWidth - field.fieldWidth)).toBeLessThanOrEqual(1);
-      expect(field.controlHeight).toBe(48);
+      expect(field.controlHeight).toBe(44);
     }
 
     const rows = new Map<number, typeof fields>();

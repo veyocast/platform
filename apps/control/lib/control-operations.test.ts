@@ -80,6 +80,135 @@ describe("deriveOperationalDashboard", () => {
     expect(result.activePlaybackCount).toBe(1);
     expect(result.onlineScreenCount).toBe(1);
     expect(result.signals).toHaveLength(0);
+    expect(result.status.id).toBe("healthy");
+  });
+
+
+  it("never treats an empty 0/0 environment as healthy", () => {
+    const result = deriveOperationalDashboard(source(), now);
+
+    expect(result.status).toMatchObject({
+      id: "empty-unconfigured",
+      label: "Nog inrichten",
+      tone: "info"
+    });
+  });
+
+  it("marks unavailable domains as partial without discarding valid data", () => {
+    const result = deriveOperationalDashboard(source({
+      availability: {
+        audit: true,
+        devices: true,
+        integrations: false,
+        media: true,
+        members: true,
+        playlists: true,
+        screens: true,
+        telemetry: true,
+        tenant: true
+      },
+      devices: [{
+        active_release_id: null, desired_release_id: null, id: "device-1",
+        last_error_at: null, last_error_code: null, last_seen_at: "2026-07-20T11:59:00.000Z",
+        screen_id: "screen-1", status: "paired", storage_quota_bytes: null, storage_used_bytes: null
+      }],
+      screens: [{ assigned_release_id: null, created_at: "2026-07-20T10:00:00.000Z", id: "screen-1", name: "Entree", status: "active" }]
+    }), now);
+
+    expect(result.status).toMatchObject({
+      id: "partial-error",
+      label: "Deels beschikbaar",
+      unavailable: ["integrations"]
+    });
+    expect(result.onlineScreenCount).toBe(1);
+  });
+
+  it("distinguishes unknown and offline player state", () => {
+    const unknown = deriveOperationalDashboard(source({
+      screens: [{ assigned_release_id: null, created_at: "2026-07-20T10:00:00.000Z", id: "screen-1", name: "Entree", status: "active" }]
+    }), now);
+    const offline = deriveOperationalDashboard(source({
+      devices: [{
+        active_release_id: "release-1", desired_release_id: "release-1", id: "device-1",
+        last_error_at: null, last_error_code: null, last_seen_at: "2026-07-20T10:00:00.000Z",
+        screen_id: "screen-1", status: "paired", storage_quota_bytes: null, storage_used_bytes: null
+      }],
+      screens: [{ assigned_release_id: "release-1", created_at: "2026-07-20T09:00:00.000Z", id: "screen-1", name: "Entree", status: "active" }]
+    }), now);
+
+    expect(unknown.status.id).toBe("unknown");
+    expect(offline.status.id).toBe("offline");
+  });
+  it("derives degraded, stale and full-error states without claiming health", () => {
+    const onlineDevice = {
+      active_release_id: "release-1",
+      desired_release_id: "release-1",
+      id: "device-1",
+      last_error_at: null,
+      last_error_code: null,
+      last_seen_at: "2026-07-20T11:59:00.000Z",
+      screen_id: "screen-1",
+      status: "paired",
+      storage_quota_bytes: null,
+      storage_used_bytes: null
+    };
+    const onlineHeartbeat = {
+      active_release_id: "release-1",
+      created_at: "2026-07-20T11:59:30.000Z",
+      runtime_state: "PLAYING",
+      screen_id: "screen-1"
+    };
+    const activeScreen = {
+      assigned_release_id: "release-1",
+      created_at: "2026-07-20T10:00:00.000Z",
+      id: "screen-1",
+      name: "Entree",
+      status: "active"
+    };
+    const degraded = deriveOperationalDashboard(source({
+      devices: [onlineDevice],
+      heartbeats: [onlineHeartbeat],
+      playlists: [{
+        id: "playlist-1",
+        name: "Leeg",
+        status: "draft",
+        updated_at: "2026-07-20T11:50:00.000Z"
+      }],
+      screens: [activeScreen]
+    }), now);
+    const stale = deriveOperationalDashboard(source({
+      devices: [onlineDevice],
+      heartbeats: [onlineHeartbeat],
+      integrations: {
+        dynamicSources: [],
+        sportlinkConnections: [{
+          detected_club_name: "De Horizon",
+          id: "sportlink-1",
+          last_attempt_at: now.toISOString(),
+          last_error_code: null,
+          last_success_at: "2026-07-19T10:00:00.000Z",
+          stale_after: "2026-07-20T11:00:00.000Z",
+          status: "active"
+        }]
+      },
+      screens: [activeScreen]
+    }), now);
+    const unavailable = {
+      audit: false,
+      devices: false,
+      integrations: false,
+      media: false,
+      members: false,
+      playlists: false,
+      screens: false,
+      telemetry: false,
+      tenant: false
+    };
+    const failed = deriveOperationalDashboard(source({ availability: unavailable }), now);
+
+    expect(degraded.status.id).toBe("degraded");
+    expect(stale.status.id).toBe("stale");
+    expect(failed.status.id).toBe("full-error");
   });
 
   it("distinguishes fresh, stale, error and disabled integrations", () => {

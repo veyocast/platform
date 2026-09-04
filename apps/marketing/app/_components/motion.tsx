@@ -16,12 +16,12 @@ export function Reveal({
 
   return (
     <motion.div
-      animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       className={className}
       initial={false}
       transition={{
         delay,
-        duration: 0.2,
+        duration: reduceMotion ? 0 : 0.2,
         ease: [0.2, 0, 0, 1]
       }}
     >
@@ -41,7 +41,7 @@ export function FloatStage({
 
   return (
     <motion.div
-      animate={reduceMotion ? undefined : { y: [0, -5, 0] }}
+      animate={reduceMotion ? { y: 0 } : { y: [0, -5, 0] }}
       className={className}
       transition={{
         duration: 8,

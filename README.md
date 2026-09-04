@@ -243,12 +243,33 @@ Flag, audit en receipt blijven atomisch en uitsluitend de gekozen tenant
 wijzigt. Zie
 [`docs/s139-ledscores-feature-rollout-evidence.md`](docs/s139-ledscores-feature-rollout-evidence.md).
 
-S144 introduceert FieldFlow als de samenhangende product- en outputtaal. Nieuwe
+S144 introduceerde FieldFlow als de samenhangende product- en outputtaal. Nieuwe
 en muteerbare slides authoren uitsluitend `fieldflow`; de tien historische
 thema-ID's blijven intern renderbaar voor immutable releases en worden niet
 gebackfilld. De moderne en Static-LG-renderers projecteren dezelfde bevroren
-snapshot, inclusief dubbele teamlogo's, weergavetoggles en assets. Programma,
-bewijs, rollout en rollback staan onder [`docs/redesign/`](docs/redesign/PROGRAM.md).
-De lokale kwaliteitsgates zijn groen; merge en staging/production blijven
-geblokkeerd totdat de externe GitHub Actions-billinggate is hersteld. Er wordt
-geen beschermde environmentapproval of handmatige VPS-route omzeild.
+snapshot, inclusief dubbele teamlogo's, weergavetoggles en assets. De zichtbare
+S144-uitvoering is op 4 september 2026 afgekeurd en voor visuele acceptatie
+vervangen door S145; de security-, RLS-, immutable-release-, locked-asset-,
+toegankelijkheids- en Player/offline-invarianten blijven ongewijzigd.
+
+S145 corrigeert Control en Marketing op branch
+`veyocast/s145-fieldflow-release-completion`, vanaf baseline
+`19e665cdcf6a2613f70332cb616e87514938d655`. De vijf laatst aangeleverde
+referenties zijn leidend voor de zichtbare uitvoering van Overzicht, Planning,
+Schermen, Studio en Marketing. De lokale brede Chromium-run is groen met 192
+tests en 22 conditionele skips; de finale visual-QA-set bevat 73 actuele
+captures en negen reviewbladen. De gebruiker heeft alle negen bladen op
+4 september 2026 expliciet geaccepteerd, met behoud van het huidige officiële
+VeyoCast-icon en FF-PHOTO-01/06/05/04 als geaccepteerde vervangers voor de
+ontbrekende targetfotobronnen. De fysieke LG blijft feitelijk
+`EXTERNAL_UNTESTED`; uitsluitend de S145-releasegate is op 4 september 2026
+expliciet door de gebruiker geaccepteerd als `WAIVED_BY_USER_2026-09-04`. Zes
+bestaande Supabase-linterrors zijn na expliciete scope-uitbreiding forward-only
+opgelost en gedekt door 38 gerichte pgTAP-asserties; verse reset, de volledige
+suite van 70 bestanden/1.624 assertions en error-level db-lint zijn groen. De
+vijf historische gewijzigde PNG's zijn voor opname geaccepteerd als
+`ACCEPTED_FOR_INCLUSION_BY_USER_2026-09-04`, zonder ze als nieuw S145-bewijs of
+bewezen provenance te presenteren. Push en uitrol zijn geautoriseerd; PR/CI,
+merge en de beschermde exact-SHA staging- en productionreadbacks lopen via de
+officiële workflow. Programma, bewijs, rollout en rollback staan onder
+[`docs/redesign/`](docs/redesign/PROGRAM.md).

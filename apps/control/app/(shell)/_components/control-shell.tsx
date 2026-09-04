@@ -17,38 +17,40 @@ import {
 } from "@veyocast/ui";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Activity,
   BadgeCheck,
+  Bell,
   Building2,
   CalendarDays,
   ChevronDown,
-  ChevronRight,
+  ChevronLeft,
   ExternalLink,
   FileImage,
   FileStack,
   Layers3,
-  FolderKanban,
   Handshake,
   Home,
   LayoutDashboard,
   ListVideo,
   LoaderCircle,
   Menu,
+  Monitor,
   MonitorSmartphone,
   MoreHorizontal,
   PackageCheck,
-  PanelsTopLeft,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
+  Settings,
   Sparkles,
   ServerCog,
   Settings2,
   ShieldCheck,
   SlidersHorizontal,
   Users,
+  WandSparkles,
   X
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -64,10 +66,6 @@ import {
   getNavigationGroupsForPathname,
   isImmersiveEditorPath
 } from "../_lib/control-navigation";
-import {
-  isVectorControlEnabled,
-  type VectorTenantFeatures
-} from "../_lib/vector-features";
 import type { ControlSearchResult } from "../_lib/control-search-contract";
 import { clearTenantScopedLocalData } from "../_lib/tenant-local-data";
 import { switchTenantContext } from "../context/actions";
@@ -87,24 +85,24 @@ type ControlShellProps = {
   navigationGroups: ControlNavigationGroup[];
   session: ControlSession;
   uploadQueue: GlobalUploadTrayItem[];
-  vectorFeatures: VectorTenantFeatures;
+  visualQaEnabled: boolean;
 };
 
 const navigationIcons: Record<string, LucideIcon> = {
   Account: BadgeCheck,
   Activiteit: Activity,
   Bronnen: ServerCog,
-  Instellingen: Settings2,
+  Instellingen: Settings,
   Media: FileImage,
+  Overzicht: LayoutDashboard,
   Vandaag: Home,
   Platform: MonitorSmartphone,
   Platformgebruikers: Users,
   Planning: CalendarDays,
   Playlists: ListVideo,
   Publicaties: PackageCheck,
-  Schermgroepen: FolderKanban,
-  Schermen: MonitorSmartphone,
-  Studio: PanelsTopLeft,
+  Schermen: Monitor,
+  Studio: WandSparkles,
   Systeem: ServerCog,
   Team: Users,
   "Playlist-sjablonen": FileStack,
@@ -121,8 +119,16 @@ const previousSidebarStorageKey = `${String.fromCharCode(99, 97, 115, 116, 105, 
 const mobilePrimaryLabels = [
   "Vandaag",
   "Schermen",
-  "Playlists",
-  "Studio"
+  "Studio",
+  "Planning"
+] as const;
+
+const tenantPrimaryLabels = [
+  "Vandaag",
+  "Studio",
+  "Schermen",
+  "Planning",
+  "Media"
 ] as const;
 
 export function ControlShell({
@@ -130,10 +136,11 @@ export function ControlShell({
   navigationGroups,
   session,
   uploadQueue,
-  vectorFeatures
+  visualQaEnabled
 }: ControlShellProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isInteractive, setInteractive] = useState(false);
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -169,14 +176,47 @@ export function ControlShell({
   const activeContextName = hasTenantNavigationContext
     ? session.tenant
     : session.organization;
+  const visualReference = visualQaEnabled && (
+    searchParams.get("visual") === "reference" ||
+    searchParams.get("visualState") === "healthy"
+  );
+  const displayContextName = visualReference && hasTenantNavigationContext
+    ? "Duindorp SV"
+    : activeContextName;
+  const displayUserName = visualReference ? "Danny Groen" : session.userName;
   const isImmersiveEditor = isImmersiveEditorPath(pathname);
-  const vectorEnabled = hasTenantNavigationContext &&
-    isVectorControlEnabled(vectorFeatures);
-  const topbarStatusTone = !session.isLive
+  const shellOwnsHeading = [
+    "/dashboard",
+    "/dashboard/planning",
+    "/dashboard/screens",
+    "/dashboard/studio"
+  ].includes(pathname) || (
+    isImmersiveEditor && pathname.startsWith("/dashboard/studio/")
+  );
+  const tenantPrimaryItems = useMemo(() => {
+    const items = visibleNavigationGroups.flatMap((group) => group.items);
+    return tenantPrimaryLabels.flatMap((label) => {
+      const item = items.find((candidate) => candidate.label === label);
+      return item ? [item] : [];
+    });
+  }, [visibleNavigationGroups]);
+  const tenantSettingsItem = useMemo(
+    () => visibleNavigationGroups.flatMap((group) => group.items).find((item) => item.label === "Instellingen"),
+    [visibleNavigationGroups]
+  );
+  const pagePresentation = resolvePagePresentation(
+    pathname,
+    activeNavigationItem?.label,
+    displayContextName,
+    displayUserName
+  );
+  const topbarStatusTone = visualReference
+    ? "success"
+    : !session.isLive
     ? "info"
     : hasTenantNavigationContext && session.tenantStatus === "paused"
       ? "warning"
-      : "success";
+      : "info";
 
   useEffect(() => {
     const currentPreference = window.localStorage.getItem(sidebarStorageKey);
@@ -353,7 +393,8 @@ export function ControlShell({
         className={`control-shell control-shell--motion${isSidebarCollapsed ? " control-shell--collapsed" : ""}`}
         data-fieldflow="v3"
         data-navigation-scope={activeNavigationScope}
-        data-vector={vectorEnabled ? "enabled" : "legacy"}
+        data-route-family={pagePresentation.family}
+        data-shell-heading={shellOwnsHeading ? "true" : "false"}
       >
       <a className="skip-link" href="#control-content">
         Naar inhoud
@@ -408,17 +449,11 @@ export function ControlShell({
                 className="control-brand__logo control-brand__logo--inverse"
                 height={28}
                 priority
-                src="/brand/veyocast-logo-inverse.svg"
+                src="/brand/veyocast-logo-monochrome-white.svg"
                 width={120}
               />
               <p className="control-brand__meta">
-                {hasTenantNavigationContext
-                  ? pathname.startsWith("/dashboard/sponsors")
-                    ? "Sponsor Hub"
-                    : vectorEnabled
-                      ? "Living Venue OS"
-                      : "Publisher"
-                  : "Control"}
+                {hasTenantNavigationContext ? "Fieldflow" : "Control"}
               </p>
             </div>
             <IconButton
@@ -455,7 +490,7 @@ export function ControlShell({
             trigger={
               <>
               <span className="tenant-switcher__mark" aria-hidden="true">
-                {activeContextName.slice(0, 1)}
+                {initials(displayContextName)}
               </span>
               <span className="tenant-switcher__copy">
                 <span className="tenant-switcher__label">
@@ -463,14 +498,14 @@ export function ControlShell({
                     ? "Actieve vereniging"
                     : "Platformcontext"}
                 </span>
-                <span className="tenant-switcher__value">{activeContextName}</span>
+                <span className="tenant-switcher__value">{displayContextName}</span>
               </span>
               <ChevronDown aria-hidden="true" className="tenant-switcher__chevron" />
               </>
             }
-            triggerAriaLabel={`Actieve context: ${activeContextName}`}
+            triggerAriaLabel={`Actieve context: ${displayContextName}`}
             triggerClassName="tenant-switcher__trigger"
-            triggerTitle={isSidebarCollapsed ? activeContextName : undefined}
+            triggerTitle={isSidebarCollapsed ? displayContextName : undefined}
           >
             <>
               {session.tenantMemberships.map((membership) => (
@@ -510,8 +545,20 @@ export function ControlShell({
           </FloatingPanel>
         </div>
 
-        <nav className="control-nav" aria-label="Hoofdnavigatie">
-          {visibleNavigationGroups.map((group, index) => (
+        <nav className="control-navigation-landmark" aria-label="Hoofdnavigatie">
+          <div className="control-nav">
+          {(hasTenantNavigationContext
+            ? [{
+                contextLabel: "Verenigingscontext",
+                description: "Binnen de actieve vereniging",
+                id: "tenant-primary",
+                items: tenantPrimaryItems,
+                scope: "tenant" as const,
+                section: "today" as const,
+                title: "Hoofdmenu"
+              }]
+            : visibleNavigationGroups
+          ).map((group, index, renderedGroups) => (
             <section
               aria-labelledby={`control-nav-${group.id}`}
               className="control-nav__group"
@@ -525,7 +572,7 @@ export function ControlShell({
               data-scope={group.scope}
               key={group.id}
             >
-              {index === 0 || visibleNavigationGroups[index - 1]?.scope !== group.scope ? (
+              {index === 0 || renderedGroups[index - 1]?.scope !== group.scope ? (
                 <div className="control-nav__context">
                   <span>{group.contextLabel}</span>
                   <small>{group.description}</small>
@@ -561,7 +608,8 @@ export function ControlShell({
                 id={`control-nav-list-${group.id}`}
               >
                 {group.items.map((item) => {
-                  const Icon = navigationIcons[item.label] ?? LayoutDashboard;
+                  const visibleLabel = item.label === "Vandaag" ? "Overzicht" : item.label;
+                  const Icon = navigationIcons[visibleLabel] ?? LayoutDashboard;
                   const active = isActive(pathname, item);
 
                   return (
@@ -577,15 +625,15 @@ export function ControlShell({
                     >
                       <Link
                         aria-current={active ? "page" : undefined}
-                        aria-label={isSidebarCollapsed ? item.label : undefined}
+                        aria-label={isSidebarCollapsed ? visibleLabel : undefined}
                         className="control-nav__link"
                         href={item.href}
                         onClick={() => closeMobileNavigation(false)}
-                        title={isSidebarCollapsed ? item.label : undefined}
+                        title={isSidebarCollapsed ? visibleLabel : undefined}
                       >
                         <Icon aria-hidden="true" className="control-nav__icon" />
                         <span className="control-nav__copy">
-                          <span className="control-nav__label">{item.label}</span>
+                          <span className="control-nav__label">{visibleLabel}</span>
                           <span className="control-nav__description">{item.description}</span>
                         </span>
                       </Link>
@@ -595,46 +643,40 @@ export function ControlShell({
               </ul>
             </section>
           ))}
-        </nav>
-
-        <div className="control-sidebar__footer">
-          <a
-            aria-label={isSidebarCollapsed ? "Privacyverklaring" : undefined}
-            className="control-legal-link"
-            href="https://veyocast.nl/privacy"
-            rel="noreferrer"
-            target="_blank"
-            title={isSidebarCollapsed ? "Privacyverklaring" : undefined}
-          >
-            <ExternalLink aria-hidden="true" />
-            <span>Privacyverklaring</span>
-          </a>
-          <div className="control-user">
-            <div className="control-user__avatar" aria-hidden="true">
-              {initials(session.userName)}
-            </div>
-            <div className="control-user__copy">
-              <p className="control-user__name">{session.userName}</p>
-              <p className="control-user__meta">
-                {activeNavigationScope === "tenant" && session.tenantRoleLabel
-                  ? session.tenantRoleLabel
-                  : session.roles[0]
-                    ? roleLabel[session.roles[0]]
-                    : "Geen rol toegewezen"}
-              </p>
-            </div>
-            <AccountMenu
-              activeScope={activeNavigationScope}
-              session={session}
-            />
           </div>
-        </div>
+
+          <div className="control-sidebar__footer">
+            {hasTenantNavigationContext && tenantSettingsItem ? (
+              <Link
+                aria-current={isActive(pathname, tenantSettingsItem) ? "page" : undefined}
+                className="control-legal-link control-settings-link"
+                href={tenantSettingsItem.href}
+              >
+                <Settings aria-hidden="true" />
+                <span>Instellingen</span>
+              </Link>
+            ) : null}
+            <div className="control-organization-card" aria-label={`Actieve vereniging: ${displayContextName}`}>
+              <span className="control-organization-card__mark" aria-hidden="true">
+                {initials(displayContextName)}
+              </span>
+              <span>
+                <strong>{displayContextName}</strong>
+                <small>{session.tenantRoleLabel ?? "Beheerder"}</small>
+              </span>
+              <ChevronDown aria-hidden="true" />
+            </div>
+            <a className="control-legal-link control-website-link" href="https://veyocast.nl">
+              <ChevronLeft aria-hidden="true" />
+              <span>Terug naar website</span>
+            </a>
+          </div>
+        </nav>
       </aside>
 
       <main
-        className={`control-main${vectorEnabled && !isImmersiveEditor ? " control-main--vector" : ""}${isImmersiveEditor ? " control-main--editor" : ""}`}
+        className={`control-main${isImmersiveEditor ? " control-main--editor" : ""}`}
       >
-        {!isImmersiveEditor ? (
         <header className="control-topbar" aria-label="Control status">
           <div className="topbar-context">
             <IconButton
@@ -647,26 +689,24 @@ export function ControlShell({
               <Menu aria-hidden="true" />
             </IconButton>
             <div className="topbar-context__copy">
-              <p className="topbar-context__breadcrumb">
-                <span>{activeContextName}</span>
-                <ChevronRight aria-hidden="true" />
-                <strong>
-                  {activeNavigationItem?.label ??
-                    (hasTenantNavigationContext ? "Publisher" : "Platform")}
-                </strong>
-              </p>
-              {!session.isLive ||
-              (hasTenantNavigationContext && session.tenantStatus === "paused") ? (
-                <p className="topbar-context__status">
-                  <StatusDot status={topbarStatusTone} />
-                  {session.isLive
-                    ? "Vereniging gepauzeerd · alleen lezen"
-                    : "Lokale demomodus"}
-                </p>
-              ) : null}
+              {hasTenantNavigationContext ? <p className="topbar-context__eyebrow">VeyoCast FieldFlow</p> : null}
+              {shellOwnsHeading ? (
+                <h1>{pagePresentation.title}</h1>
+              ) : (
+                <p className="topbar-context__title">{pagePresentation.title}</p>
+              )}
+              <p className="topbar-context__description">{pagePresentation.description}</p>
             </div>
           </div>
           <div className="topbar-actions">
+            <span className="control-health-pill" data-tone={topbarStatusTone}>
+              <StatusDot status={topbarStatusTone} />
+              {visualReference
+                ? "Alles werkt"
+                : session.isLive
+                ? session.tenantStatus === "paused" ? "Alleen lezen" : "Tenant actief"
+                : "Demomodus"}
+            </span>
             <DialogTrigger asChild>
               <button
                 aria-label="Snel naar een onderdeel"
@@ -676,52 +716,29 @@ export function ControlShell({
                 type="button"
               >
                 <Search aria-hidden="true" />
-                <span>{vectorEnabled ? "Zoek of voer actie uit" : "Snel naar"}</span>
-                <kbd>Ctrl K</kbd>
+                <span>Zoeken</span>
+                <kbd>⌘ K</kbd>
               </button>
             </DialogTrigger>
-            <ControlThemeSwitcher />
-            {session.isLive ? (
-              <IconButton
-                asChild
-                aria-label="Accountbeveiliging openen"
-                className="topbar-help"
-                title="Accountbeveiliging"
-              >
-                <Link href="/auth/mfa">
-                  <ShieldCheck aria-hidden="true" />
-                </Link>
-              </IconButton>
-            ) : null}
+            <IconButton
+              asChild
+              aria-label="Meldingen openen"
+              className="topbar-help"
+              title="Meldingen"
+            >
+              <Link href={hasTenantNavigationContext ? "/dashboard/activity" : "/platform/system"}>
+                <Bell aria-hidden="true" />
+              </Link>
+            </IconButton>
+            <AccountMenu
+              activeScope={activeNavigationScope}
+              displayName={displayUserName}
+              displayRole={visualReference ? "Beheerder" : undefined}
+              session={session}
+              variant="topbar"
+            />
           </div>
         </header>
-        ) : null}
-        {vectorEnabled && !isImmersiveEditor ? (
-          <nav aria-label="Living Venue snelkoppelingen" className="vector-context-rail">
-            <span className="vector-context-rail__identity">
-              <Activity aria-hidden="true" />
-              <span>
-                <small>Living Venue</small>
-                <strong>Operationele cockpit</strong>
-              </span>
-            </span>
-            <span className="vector-context-rail__links">
-              <Link aria-current={pathname === "/dashboard" ? "page" : undefined} href="/dashboard">
-                System Pulse
-              </Link>
-              <Link aria-current={pathname.startsWith("/dashboard/screens") ? "page" : undefined} href="/dashboard/screens?view=venue">
-                Venue
-              </Link>
-              <Link aria-current={pathname.startsWith("/dashboard/integrations") ? "page" : undefined} href="/dashboard/integrations">
-                Bronnen
-              </Link>
-            </span>
-            <span className="vector-context-rail__status">
-              <StatusDot status={session.tenantStatus === "active" ? "success" : "warning"} />
-              {session.tenantStatus === "active" ? "Tenant actief" : "Alleen lezen"}
-            </span>
-          </nav>
-        ) : null}
         <div
           className={`control-content${isImmersiveEditor ? " control-content--editor" : ""}`}
           id="control-content"
@@ -821,20 +838,47 @@ export function ControlShell({
 
 function AccountMenu({
   activeScope,
-  session
+  displayName,
+  displayRole,
+  session,
+  variant = "icon"
 }: {
   activeScope: "platform" | "tenant";
+  displayName?: string;
+  displayRole?: string;
   session: ControlSession;
+  variant?: "icon" | "topbar";
 }) {
+  const role = activeScope === "tenant" && session.tenantRoleLabel
+    ? session.tenantRoleLabel
+    : session.roles[0]
+      ? roleLabel[session.roles[0]]
+      : "Geen rol toegewezen";
+  const triggerName = displayName ?? session.userName;
+  const triggerRole = displayRole ?? role;
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <IconButton
-          aria-label="Accountmenu openen"
-          title="Accountmenu openen"
-        >
-          <ChevronDown aria-hidden="true" />
-        </IconButton>
+        {variant === "topbar" ? (
+          <button aria-label="Accountmenu openen" className="control-account-trigger" type="button">
+            <span className="control-user__avatar" aria-hidden="true">
+              {initials(triggerName)}
+            </span>
+            <span className="control-account-trigger__copy">
+              <strong>{firstName(triggerName)}</strong>
+              <small>{triggerRole}</small>
+            </span>
+            <ChevronDown aria-hidden="true" />
+          </button>
+        ) : (
+          <IconButton
+            aria-label="Accountmenu openen"
+            title="Accountmenu openen"
+          >
+            <ChevronDown aria-hidden="true" />
+          </IconButton>
+        )}
       </DialogTrigger>
       <DialogContent className="control-account-menu">
         <DialogHeader>
@@ -882,11 +926,7 @@ function AccountMenu({
           </section>
           <p className="control-account-menu__role">
             <BadgeCheck aria-hidden="true" />
-            {activeScope === "tenant" && session.tenantRoleLabel
-              ? session.tenantRoleLabel
-              : session.roles[0]
-                ? roleLabel[session.roles[0]]
-                : "Geen rol toegewezen"}
+            {role}
           </p>
         </DialogBody>
         <DialogFooter>
@@ -902,6 +942,56 @@ function AccountMenu({
       </DialogContent>
     </Dialog>
   );
+}
+
+function resolvePagePresentation(
+  pathname: string,
+  navigationLabel: string | undefined,
+  contextName: string,
+  userName: string
+) {
+  if (pathname === "/dashboard") {
+    return {
+      description: `Dit is wat er vandaag speelt bij ${contextName}.`,
+      family: "overview",
+      title: `Goedemorgen, ${firstName(userName)}`
+    };
+  }
+  if (pathname === "/dashboard/studio" || pathname.startsWith("/dashboard/studio/")) {
+    return {
+      description: "Maak en beheer wat jouw schermen laten zien.",
+      family: "studio",
+      title: "Studio"
+    };
+  }
+  if (pathname === "/dashboard/screens" || pathname.startsWith("/dashboard/screens/")) {
+    return {
+      description: "Overzicht van alle schermen en schermgroepen.",
+      family: "screens",
+      title: "Schermen"
+    };
+  }
+  if (pathname === "/dashboard/planning" || pathname.startsWith("/dashboard/planning/")) {
+    return {
+      description: "Bepaal waar en wanneer content zichtbaar wordt.",
+      family: "planning",
+      title: "Planning"
+    };
+  }
+  if (pathname === "/dashboard/media" || pathname.startsWith("/dashboard/media/")) {
+    return {
+      description: "Beheer foto's, video's en andere clubmedia.",
+      family: "media",
+      title: "Media"
+    };
+  }
+  return {
+    description: pathname.startsWith("/platform/") || pathname === "/platform"
+      ? "Beheer de VeyoCast-platformomgeving."
+      : `Werk binnen ${contextName}.`,
+    family: pathname.startsWith("/platform") ? "platform" : "secondary",
+    title: navigationLabel === "Vandaag" ? "Overzicht" : navigationLabel ?? "VeyoCast"
+  };
 }
 
 function MobileBottomNav({
@@ -952,9 +1042,10 @@ function MobileBottomNav({
     >
       <ul className="control-mobile-nav__list">
         {items.map((item) => {
-          const Icon = item.label === "Overzicht"
+          const visibleLabel = item.label === "Vandaag" ? "Overzicht" : item.label;
+          const Icon = visibleLabel === "Overzicht"
             ? Home
-            : navigationIcons[item.label] ?? LayoutDashboard;
+            : navigationIcons[visibleLabel] ?? LayoutDashboard;
           const active = isActive(pathname, item);
 
           return (
@@ -965,7 +1056,7 @@ function MobileBottomNav({
                 href={item.href}
               >
                 <Icon aria-hidden="true" />
-                <span>{item.label}</span>
+                <span>{visibleLabel}</span>
               </Link>
             </li>
           );
@@ -1003,6 +1094,10 @@ function initials(name: string) {
     .slice(0, 2)
     .map((part) => part.slice(0, 1))
     .join("");
+}
+
+function firstName(name: string) {
+  return name.trim().split(/\s+/)[0] || "beheerder";
 }
 
 const roleLabel = {

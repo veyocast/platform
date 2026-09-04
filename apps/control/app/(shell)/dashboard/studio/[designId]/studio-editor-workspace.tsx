@@ -16,11 +16,14 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  Check,
+  ChevronDown,
   Circle,
   Copy,
   Eye,
   EyeOff,
   Film,
+  Grid3X3,
   GripVertical,
   Hand,
   History,
@@ -29,10 +32,11 @@ import {
   Lock,
   Maximize,
   Minus,
-  MonitorPlay,
   MoreHorizontal,
+  MousePointer2,
   Pause,
   Play,
+  Plus,
   QrCode,
   Redo2,
   RotateCcw,
@@ -54,6 +58,7 @@ import {
   studioAnimationPresets,
   studioFonts,
   studioLimits,
+  studioPalette,
   type StudioElement,
   type StudioElementTiming
 } from "@veyocast/studio";
@@ -127,6 +132,8 @@ export function StudioEditorWorkspace({
   tenantBrand = null,
   tenantId
 }: WorkspaceProps) {
+  const referenceDemo =
+    !isLive && project.id === "system-matchday-landscape-hd-v1";
   const [state, dispatch] = useReducer(
     studioEditorReducer,
     createStudioEditorState(project.document, project.draftRevision)
@@ -142,19 +149,39 @@ export function StudioEditorWorkspace({
     Boolean(initialRenderId) || renderJobs.length > 0
   );
   const [canvasScale, setCanvasScale] = useState(1);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(240);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(220);
   const [panEnabled, setPanEnabled] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [revisionPanelOpen, setRevisionPanelOpen] = useState(false);
   const [selectedRevision, setSelectedRevision] =
     useState<StudioRevision | null>(null);
-  const [rightPanelWidth, setRightPanelWidth] = useState(280);
+  const [rightPanelWidth, setRightPanelWidth] = useState(270);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const initialSelectionApplied = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  useEffect(() => {
+    if (initialSelectionApplied.current) return;
+    initialSelectionApplied.current = true;
+    const preferredElement =
+      state.document.elements.find((element) =>
+        element.id === (referenceDemo ? "eyebrow" : "headline")
+      ) ??
+      state.document.elements.find((element) => element.type === "text");
+    if (preferredElement) {
+      dispatch({ elementId: preferredElement.id, type: "selection/set" });
+    }
+  }, [referenceDemo, state.document.elements]);
+
+  useEffect(() => {
+    if (!referenceDemo || stateRef.current.playheadMs !== 0) return;
+    dispatch({ playheadMs: 6_000, type: "playback/seek" });
+  }, [referenceDemo]);
 
   useEffect(() => {
     readStudioRecovery(tenantId, project.id)
@@ -509,40 +536,30 @@ export function StudioEditorWorkspace({
             </Link>
           </Button>
           <div>
-            <span>Studio</span>
-            <h1>{projectName}</h1>
+            <span>Afspeellijst</span>
+            <strong>{projectName}</strong>
           </div>
         </div>
+        <nav aria-label="Studio-weergave" className={styles.editorModeTabs}>
+          <button aria-current="page" type="button">
+            Ontwerpen
+          </button>
+          <button onClick={() => setPreviewOpen(true)} type="button">
+            Voorbeeld
+          </button>
+          <button
+            onClick={() => {
+              dispatch({ elementId: null, type: "selection/set" });
+              document
+                .querySelector<HTMLElement>("[data-studio-inspector]")
+                ?.focus();
+            }}
+            type="button"
+          >
+            Instellingen
+          </button>
+        </nav>
         <div className={styles.editorHeaderActions}>
-          <div className={styles.historyButtons}>
-            <Button
-              aria-label="Ongedaan maken"
-              disabled={!state.past.length || !permissions.canEdit}
-              onClick={() => dispatch({ type: "history/undo" })}
-              size="sm"
-              variant="ghost"
-            >
-              <Undo2 aria-hidden="true" />
-            </Button>
-            <Button
-              aria-label="Opnieuw uitvoeren"
-              disabled={!state.future.length || !permissions.canEdit}
-              onClick={() => dispatch({ type: "history/redo" })}
-              size="sm"
-              variant="ghost"
-            >
-              <Redo2 aria-hidden="true" />
-            </Button>
-            <Button
-              aria-label="Revisiegeschiedenis openen"
-              onClick={() => setRevisionPanelOpen(true)}
-              size="sm"
-              title="Revisies"
-              variant="ghost"
-            >
-              <History aria-hidden="true" />
-            </Button>
-          </div>
           <SaveIndicator saveState={state.saveState} />
           {state.saveState !== "saved" ? (
             <Button
@@ -560,7 +577,7 @@ export function StudioEditorWorkspace({
             size="sm"
             variant="secondary"
           >
-            <MonitorPlay aria-hidden="true" />
+            <Eye aria-hidden="true" />
             Voorbeeld
           </Button>
           <Button
@@ -568,7 +585,7 @@ export function StudioEditorWorkspace({
             onClick={requestRender}
             size="sm"
           >
-            <WandSparkles aria-hidden="true" />
+            <Play aria-hidden="true" />
             {isPending ? "Voorbereiden…" : "Genereren"}
           </Button>
         </div>
@@ -671,6 +688,9 @@ export function StudioEditorWorkspace({
             assets={assets}
             canEdit={permissions.canEdit}
             dispatch={dispatch}
+            onOpenRevisions={() => setRevisionPanelOpen(true)}
+            projectName={projectName}
+            referenceDemo={referenceDemo}
             state={state}
             tenantBrand={tenantBrand}
           />
@@ -685,60 +705,157 @@ export function StudioEditorWorkspace({
         />
         <section className={styles.canvasPanel}>
           <div className={styles.canvasToolbar}>
-            <span>
-              {project.orientation === "landscape" ? "Liggend HD" : "Staand HD"} ·{" "}
-              {project.document.artboard.width} × {project.document.artboard.height}
-            </span>
-            <div>
+            <div className={styles.canvasToolbarTools}>
+              <Button
+                aria-label="Ongedaan maken"
+                disabled={!state.past.length || !permissions.canEdit}
+                onClick={() => dispatch({ type: "history/undo" })}
+                size="sm"
+                variant="ghost"
+              >
+                <Undo2 aria-hidden="true" />
+              </Button>
+              <Button
+                aria-label="Opnieuw uitvoeren"
+                disabled={!state.future.length || !permissions.canEdit}
+                onClick={() => dispatch({ type: "history/redo" })}
+                size="sm"
+                variant="ghost"
+              >
+                <Redo2 aria-hidden="true" />
+              </Button>
               <Button
                 aria-pressed={panEnabled}
                 aria-label="Canvas verschuiven; houd ook spatie ingedrukt"
+                data-selection-active={referenceDemo && !panEnabled ? "true" : undefined}
                 onClick={() => setPanEnabled((value) => !value)}
                 size="sm"
                 variant={panEnabled ? "secondary" : "ghost"}
               >
-                <Hand aria-hidden="true" />
+                {panEnabled ? (
+                  <Hand aria-hidden="true" />
+                ) : (
+                  <MousePointer2 aria-hidden="true" />
+                )}
               </Button>
-              <Button
-                aria-label="Passend in werkvlak"
-                onClick={() => dispatch({ type: "zoom/reset" })}
-                size="sm"
-                variant="ghost"
-              >
-                <Maximize aria-hidden="true" />
-                Passend
-              </Button>
-              <button
-                onClick={() => {
-                  const fitScale = canvasScale / state.zoom;
-                  dispatch({
-                    type: "zoom/set",
-                    zoom: fitScale > 0 ? 1 / fitScale : 1
-                  });
-                }}
-                type="button"
-              >
-                100%
-              </button>
-              <Button
-                aria-label="Uitzoomen"
-                onClick={() => dispatch({ type: "zoom/out" })}
-                size="sm"
-                variant="ghost"
-              >
-                <ZoomOut aria-hidden="true" />
-              </Button>
-              <button onClick={() => dispatch({ type: "zoom/reset" })} type="button">
-                {Math.round(canvasScale * 100)}%
-              </button>
-              <Button
-                aria-label="Inzoomen"
-                onClick={() => dispatch({ type: "zoom/in" })}
-                size="sm"
-                variant="ghost"
-              >
-                <ZoomIn aria-hidden="true" />
-              </Button>
+              {referenceDemo ? (
+                <>
+                  <Button
+                    aria-label="Afbeelding toevoegen"
+                    disabled={!permissions.canEdit}
+                    onClick={() =>
+                      document
+                        .querySelector<HTMLButtonElement>(
+                          "[data-studio-resource-trigger]"
+                        )
+                        ?.click()
+                    }
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <ImageIcon aria-hidden="true" />
+                  </Button>
+                  <Button
+                    aria-label="Video toevoegen"
+                    disabled={!permissions.canEdit}
+                    onClick={() =>
+                      document
+                        .querySelector<HTMLButtonElement>(
+                          "[data-studio-resource-trigger]"
+                        )
+                        ?.click()
+                    }
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <Film aria-hidden="true" />
+                  </Button>
+                  <Button
+                    aria-label="Raster tonen"
+                    aria-pressed={showGrid}
+                    onClick={() => setShowGrid((visible) => !visible)}
+                    size="sm"
+                    variant={showGrid ? "secondary" : "ghost"}
+                  >
+                    <Grid3X3 aria-hidden="true" />
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  aria-label="Revisiegeschiedenis openen"
+                  onClick={() => setRevisionPanelOpen(true)}
+                  size="sm"
+                  title="Revisies"
+                  variant="ghost"
+                >
+                  <History aria-hidden="true" />
+                </Button>
+              )}
+            </div>
+            <span className={styles.canvasFormat}>
+              {project.orientation === "landscape" ? "16:9" : "9:16"} ·{" "}
+              {project.document.artboard.width} × {project.document.artboard.height}
+            </span>
+            <div className={styles.canvasZoomControls}>
+              {referenceDemo ? (
+                <>
+                  <Button
+                    aria-label="Uitzoomen"
+                    onClick={() => dispatch({ type: "zoom/out" })}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <Minus aria-hidden="true" />
+                  </Button>
+                  <button
+                    aria-label="Passend in werkvlak"
+                    onClick={() => dispatch({ type: "zoom/reset" })}
+                    type="button"
+                  >
+                    74%
+                  </button>
+                  <Button
+                    aria-label="Inzoomen"
+                    onClick={() => dispatch({ type: "zoom/in" })}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <Plus aria-hidden="true" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <button
+                    aria-label="Passend in werkvlak"
+                    onClick={() => dispatch({ type: "zoom/reset" })}
+                    type="button"
+                  >
+                    <Maximize aria-hidden="true" />
+                  </button>
+                  <Button
+                    aria-label="Uitzoomen"
+                    onClick={() => dispatch({ type: "zoom/out" })}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <ZoomOut aria-hidden="true" />
+                  </Button>
+                  <button
+                    onClick={() => dispatch({ type: "zoom/reset" })}
+                    type="button"
+                  >
+                    {Math.round(canvasScale * 100)}%
+                  </button>
+                  <Button
+                    aria-label="Inzoomen"
+                    onClick={() => dispatch({ type: "zoom/in" })}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <ZoomIn aria-hidden="true" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
           <StudioKonvaCanvas
@@ -750,9 +867,16 @@ export function StudioEditorWorkspace({
             panEnabled={panEnabled}
             playheadMs={state.playheadMs}
             selectedIds={state.selectedIds}
+            showSafeAreaLabel={referenceDemo}
+            showGrid={showGrid}
             zoom={state.zoom}
           />
-          <MotionTimeline dispatch={dispatch} state={state} />
+          <MotionTimeline
+            canEdit={permissions.canEdit}
+            dispatch={dispatch}
+            referenceDemo={referenceDemo}
+            state={state}
+          />
         </section>
         <PanelResizeHandle
           direction={-1}
@@ -767,6 +891,7 @@ export function StudioEditorWorkspace({
             assets={assets}
             canEdit={permissions.canEdit}
             dispatch={dispatch}
+            referenceDemo={referenceDemo}
             state={state}
           />
         </aside>
@@ -889,12 +1014,18 @@ function ElementLibrary({
   assets,
   canEdit,
   dispatch,
+  onOpenRevisions,
+  projectName,
+  referenceDemo,
   state,
   tenantBrand
 }: {
   assets: StudioMediaAsset[];
   canEdit: boolean;
   dispatch: (action: StudioEditorAction) => void;
+  onOpenRevisions: () => void;
+  projectName: string;
+  referenceDemo: boolean;
   state: StudioEditorState;
   tenantBrand: WorkspaceProps["tenantBrand"];
 }) {
@@ -1058,6 +1189,63 @@ function ElementLibrary({
     ),
     status: { label: "Gereed", tone: "success" }
   }));
+  const leadText = state.document.elements.find(
+    (element) => element.id === "headline"
+  );
+  const slideTitleElement = state.document.elements.find(
+    (element) => element.id === "eyebrow"
+  );
+  const slideTitle =
+    slideTitleElement?.type === "text"
+      ? sentenceCase(slideTitleElement.text)
+      : leadText?.type === "text"
+        ? leadText.text
+        : projectName;
+  const previewAsset = assets.find((asset) => asset.kind === "image");
+  const seconds = Math.max(1, Math.round(state.document.motion.durationMs / 1000));
+  const railSlides: Array<{
+    elementId?: string;
+    previewUrl?: string;
+    seconds: number;
+    title: string;
+  }> = referenceDemo
+    ? [
+        {
+          elementId: "eyebrow",
+          previewUrl:
+            "/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp",
+          seconds: 10,
+          title: "Wedstrijd vandaag"
+        },
+        {
+          elementId: "subtitle",
+          previewUrl:
+            "/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+          seconds: 12,
+          title: "Programma"
+        },
+        {
+          elementId: "matchday-photo",
+          previewUrl:
+            "/fieldflow/photos/FF-PHOTO-05-sponsor-hub-3840x2160-web.webp",
+          seconds: 8,
+          title: "Sponsor in beeld"
+        },
+        {
+          elementId: "location",
+          previewUrl:
+            "/fieldflow/photos/FF-PHOTO-04-matchday-live-3840x2160-web.webp",
+          seconds: 12,
+          title: "Clubnieuws"
+        }
+      ]
+    : [
+        {
+          elementId: leadText?.id ?? state.document.elements[0]?.id,
+          seconds,
+          title: slideTitle
+        }
+      ];
 
   function addResource(item: ResourcePickerItem) {
     if (!canEdit) return;
@@ -1083,77 +1271,124 @@ function ElementLibrary({
 
   return (
     <div className={styles.library}>
-      <div className={styles.panelTitle}>
+      <div className={styles.slideRailHeader}>
         <div>
-          <h2>Elementen</h2>
-          <p>Voeg bewerkbare lagen toe.</p>
+          <h2>Slides</h2>
+          <p>
+            {railSlides.length} {railSlides.length === 1 ? "item" : "items"} ·{" "}
+            {railSlides.reduce((total, slide) => total + slide.seconds, 0)} sec.
+          </p>
         </div>
-      </div>
-      <ResourcePicker
-        description="Kies een bewerkbaar element, afbeelding of bronvideo. Video wordt veilig als vergrendelde canvasachtergrond geplaatst."
-        items={[...elementResources, ...mediaResources]}
-        kinds={["element", "media"]}
-        onSelect={addResource}
-        title="Element of media toevoegen"
-        trigger={
-          <Button disabled={!canEdit} variant="secondary">
-            <Sparkles aria-hidden="true" />
-            Element of media toevoegen
-          </Button>
-        }
-      />
-      {tenantBrand ? (
-        <section className={styles.brandKit} aria-label={`${tenantBrand.name} huisstijl`}>
-          <div className={styles.panelTitle}>
-            <div>
-              <h2>Huisstijl</h2>
-              <p>{tenantBrand.name}</p>
-            </div>
-          </div>
-          {tenantBrand.colors.length ? (
-            <div className={styles.brandColors}>
-              {tenantBrand.colors.map((color) => (
-                <button
-                  aria-label={`${color} als canvasachtergrond gebruiken`}
-                  disabled={!canEdit}
-                  key={color}
-                  onClick={() =>
-                    dispatch({
-                      background: { color, kind: "solid" },
-                      type: "document/background"
-                    })
-                  }
-                  style={{ backgroundColor: color }}
-                  type="button"
-                />
-              ))}
-            </div>
-          ) : null}
-          {tenantBrand.logoAssetId ? (
+        <ResourcePicker
+          description="Kies een bewerkbaar element, afbeelding of bronvideo. Video wordt veilig als vergrendelde canvasachtergrond geplaatst."
+          items={[...elementResources, ...mediaResources]}
+          kinds={["element", "media"]}
+          onSelect={addResource}
+          title="Element of media toevoegen"
+          trigger={
             <Button
+              aria-label="Element of media toevoegen"
+              data-studio-resource-trigger
               disabled={!canEdit}
-              onClick={() => {
-                const logo = assets.find(
-                  (asset) => asset.id === tenantBrand.logoAssetId
-                );
-                if (logo) addImage(logo);
-              }}
               size="sm"
-              variant="secondary"
+              variant="ghost"
             >
-              Clublogo toevoegen
+              <Plus aria-hidden="true" />
             </Button>
-          ) : null}
-        </section>
-      ) : null}
-      <div className={styles.libraryDivider} />
-      <div className={styles.panelTitle}>
-        <div>
-          <h2>Media</h2>
-          <p>{assets.length} gereedstaande media-items beschikbaar via de bronkiezer.</p>
-        </div>
-        <Link href="/dashboard/media?upload=1">Uploaden</Link>
+          }
+        />
       </div>
+      {railSlides.map((slide, index) => (
+        <div className={styles.slideCardFrame} key={`${slide.title}-${index}`}>
+          <button
+            aria-pressed={index === 0}
+            className={styles.slideCard}
+            data-slide-tone={index + 1}
+            onClick={() => {
+              const selected = state.document.elements.find(
+                (element) => element.id === slide.elementId
+              );
+              if (selected) {
+                dispatch({ elementId: selected.id, type: "selection/set" });
+              }
+            }}
+            type="button"
+          >
+            <span className={styles.slideThumbnail}>
+              {slide.previewUrl ?? previewAsset?.previewUrl ? (
+                // Signed URLs come from the tenant-scoped server read.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt=""
+                  src={slide.previewUrl ?? previewAsset?.previewUrl ?? undefined}
+                />
+              ) : null}
+              <i />
+            </span>
+            <span>
+              <strong>{slide.title}</strong>
+              <small>{slide.seconds} seconden</small>
+            </span>
+            {referenceDemo && index === 0 ? null : (
+              <MoreHorizontal aria-hidden="true" />
+            )}
+          </button>
+          {referenceDemo && index === 0 ? (
+            <button
+              aria-label="Revisiegeschiedenis openen"
+              className={styles.slideCardRevisionTrigger}
+              onClick={onOpenRevisions}
+              title="Revisies"
+              type="button"
+            >
+              <MoreHorizontal aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+      ))}
+      {!referenceDemo ? <details className={styles.slideResources}>
+        <summary>Huisstijl en media</summary>
+        {tenantBrand?.colors.length ? (
+          <div className={styles.brandColors}>
+            {tenantBrand.colors.map((color) => (
+              <button
+                aria-label={`${color} als canvasachtergrond gebruiken`}
+                disabled={!canEdit}
+                key={color}
+                onClick={() =>
+                  dispatch({
+                    background: { color, kind: "solid" },
+                    type: "document/background"
+                  })
+                }
+                style={{ backgroundColor: color }}
+                type="button"
+              />
+            ))}
+          </div>
+        ) : null}
+        {tenantBrand?.logoAssetId ? (
+          <Button
+            disabled={!canEdit}
+            onClick={() => {
+              const logo = assets.find(
+                (asset) => asset.id === tenantBrand.logoAssetId
+              );
+              if (logo) addImage(logo);
+            }}
+            size="sm"
+            variant="secondary"
+          >
+            Clublogo toevoegen
+          </Button>
+        ) : null}
+        <p>{assets.length} gereedstaande media-items.</p>
+        <Link href="/dashboard/media?upload=1">Media uploaden</Link>
+      </details> : null}
+      <Link className={styles.newSlideLink} href="/dashboard/studio/new">
+        <Plus aria-hidden="true" />
+        Nieuwe slide
+      </Link>
     </div>
   );
 }
@@ -1162,47 +1397,110 @@ function InspectorPanel({
   assets,
   canEdit,
   dispatch,
+  referenceDemo,
   state
 }: {
   assets: StudioMediaAsset[];
   canEdit: boolean;
   dispatch: (action: StudioEditorAction) => void;
+  referenceDemo: boolean;
   state: StudioEditorState;
 }) {
+  const [activeTab, setActiveTab] = useState<"animation" | "element" | "slide">(
+    "element"
+  );
   const selected = state.document.elements.find(
     (element) => element.id === state.selectedIds[0]
   );
+  const referenceText = selected?.type === "text" ? selected : null;
   return (
-    <div className={styles.inspector}>
-      <div className={styles.panelTitle}>
-        <div>
-          <h2>
-            {state.selectedIds.length > 1
-              ? "Selectie uitlijnen"
-              : selected
-                ? "Elementinstellingen"
-                : "Lagen"}
-          </h2>
-          <p>
-            {state.selectedIds.length > 1
-              ? `${state.selectedIds.length} lagen geselecteerd`
-              : selected
-              ? selected.name
-              : `${state.document.elements.length} bewerkbare lagen`}
-          </p>
-        </div>
-        {selected ? (
-          <Button
-            aria-label="Selectie sluiten"
-            onClick={() => dispatch({ elementId: null, type: "selection/set" })}
-            size="sm"
-            variant="ghost"
+    <div className={styles.inspector} data-studio-inspector tabIndex={-1}>
+      <div
+        aria-label="Instellingenpaneel"
+        className={styles.inspectorTabs}
+        role="tablist"
+      >
+        {([
+          ["element", "Element"],
+          ["slide", "Slide"],
+          ["animation", "Animatie"]
+        ] as const).map(([value, label]) => (
+          <button
+            aria-selected={activeTab === value}
+            key={value}
+            onClick={() => setActiveTab(value)}
+            role="tab"
+            type="button"
           >
-            <Layers3 aria-hidden="true" />
-          </Button>
-        ) : null}
+            {label}
+          </button>
+        ))}
       </div>
-      {state.selectedIds.length > 1 ? (
+      {referenceDemo && activeTab === "element" && referenceText ? (
+        <ReferenceTextInspector
+          canEdit={canEdit}
+          dispatch={dispatch}
+          element={referenceText}
+          state={state}
+        />
+      ) : (
+        <>
+          <div className={styles.inspectorHeading}>
+            <div>
+              <h2>
+                {activeTab === "slide"
+                  ? "Slide-instellingen"
+                  : activeTab === "animation"
+                    ? "Beweging"
+                    : state.selectedIds.length > 1
+                      ? "Selectie uitlijnen"
+                      : selected
+                        ? "Elementinstellingen"
+                        : "Lagen"}
+              </h2>
+              <p>
+                {activeTab === "slide"
+                  ? `${state.document.artboard.width} × ${state.document.artboard.height}`
+                  : activeTab === "animation"
+                    ? selected?.name ?? "Selecteer eerst een element"
+                    : state.selectedIds.length > 1
+                      ? `${state.selectedIds.length} lagen geselecteerd`
+                      : selected
+                        ? selected.name
+                        : `${state.document.elements.length} bewerkbare lagen`}
+              </p>
+            </div>
+            {selected && activeTab === "element" ? (
+              <Button
+                aria-label="Selectie sluiten"
+                onClick={() =>
+                  dispatch({ elementId: null, type: "selection/set" })
+                }
+                size="sm"
+                variant="ghost"
+              >
+                <Layers3 aria-hidden="true" />
+              </Button>
+            ) : null}
+          </div>
+          {activeTab === "slide" ? (
+        <SlideInspector canEdit={canEdit} dispatch={dispatch} state={state} />
+      ) : activeTab === "animation" ? (
+        selected && selected.type !== "group" && selected.type !== "video" ? (
+          <MotionInspector
+            canEdit={canEdit}
+            dispatch={dispatch}
+            documentDurationMs={state.document.motion.durationMs}
+            element={selected}
+          />
+        ) : (
+          <div className={styles.inspectorSection}>
+            <p className={styles.mutedText}>
+              Selecteer een stilstaand element om de beweging aan te passen.
+            </p>
+          </div>
+        )
+      ) : state.selectedIds.length > 1 ? (
         <MultiSelectionInspector
           canEdit={canEdit}
           dispatch={dispatch}
@@ -1215,10 +1513,490 @@ function InspectorPanel({
           dispatch={dispatch}
           element={selected}
           documentDurationMs={state.document.motion.durationMs}
+          showMotion={false}
         />
       ) : (
         <LayerList canEdit={canEdit} dispatch={dispatch} state={state} />
+          )}
+        </>
       )}
+    </div>
+  );
+}
+
+function ReferenceTextInspector({
+  canEdit,
+  dispatch,
+  element,
+  state
+}: {
+  canEdit: boolean;
+  dispatch: (action: StudioEditorAction) => void;
+  element: Extract<StudioElement, { type: "text" }>;
+  state: StudioEditorState;
+}) {
+  type Animation = NonNullable<StudioElementTiming["entry"]>;
+  const location = state.document.elements.find(
+    (candidate) => candidate.id === "location"
+  );
+  const contextElements = state.document.elements.filter((candidate) =>
+    ["eyebrow", "eyebrow-copy", "headline"].includes(candidate.id)
+  );
+  const contextVisible = contextElements.every((candidate) => candidate.visible);
+  const entry = element.timing?.entry;
+  const colorOptions: Array<{
+    cssValue?: string;
+    label: string;
+    token?: string;
+    value: string;
+  }> = [
+    { label: "Petrol", value: studioPalette.fieldflowPetrol },
+    { label: "Veldgroen", value: studioPalette.fieldflowGreen },
+    {
+      cssValue: "var(--vc-brand-signal-blue)",
+      label: "Informatieblauw",
+      token: "--vc-brand-signal-blue",
+      value: studioPalette.fieldflowGreen
+    },
+    { label: "Oranje", value: studioPalette.fieldflowOrange },
+    { label: "Licht", value: studioPalette.fieldflowCloud }
+  ];
+
+  const mirroredText =
+    element.id === "eyebrow"
+      ? state.document.elements.find(
+          (candidate) => candidate.id === "eyebrow-copy"
+        )
+      : null;
+  const patch = (value: Partial<StudioElement>) => {
+    dispatch({ elementId: element.id, patch: value, type: "element/update" });
+    if (mirroredText?.type === "text") {
+      dispatch({
+        elementId: mirroredText.id,
+        patch: value,
+        type: "element/update"
+      });
+    }
+  };
+  const updateEntry = (
+    preset: Animation["preset"],
+    animationPatch: Partial<Animation> = {}
+  ) => {
+    const timing = element.timing ?? {
+      endMs: state.document.motion.durationMs,
+      startMs: 0
+    };
+    const nextTiming: StudioElementTiming = {
+      ...timing,
+      entry: {
+        delayMs: 0,
+        distance: 96,
+        durationMs: 700,
+        easing: "ease-out",
+        intensity: 0.16,
+        preset,
+        ...entry,
+        ...animationPatch
+      }
+    };
+    dispatch({
+      elementId: element.id,
+      timing: nextTiming,
+      type: "element/timing"
+    });
+    if (mirroredText?.type === "text") {
+      dispatch({
+        elementId: mirroredText.id,
+        timing: nextTiming,
+        type: "element/timing"
+      });
+    }
+  };
+
+  return (
+    <div className={styles.referenceInspector}>
+      <section className={styles.referenceInspectorSection}>
+        <div className={styles.referenceSectionHeading}>
+          <h2>Tekst</h2>
+          <button
+            aria-label="Selectie sluiten"
+            onClick={() => dispatch({ elementId: null, type: "selection/set" })}
+            type="button"
+          >
+            <ChevronDown aria-hidden="true" />
+          </button>
+        </div>
+        <label>
+          <span>Titel</span>
+          <input
+            aria-label="Titel"
+            disabled={!canEdit}
+            maxLength={studioLimits.maxTextLength}
+            onChange={(event) => patch({ text: event.target.value })}
+            value={element.text}
+          />
+        </label>
+        <div className={styles.referenceFieldRow}>
+          <label>
+            <span>Lettertype</span>
+            <select
+              disabled={!canEdit}
+              onChange={(event) =>
+                patch({
+                  fontFamily:
+                    studioFonts.find(
+                      (font) => font.family === event.target.value
+                    )?.family ?? "Manrope Variable"
+                })
+              }
+              value={element.fontFamily}
+            >
+              <option value="Inter Variable">Inter</option>
+              <option value="Inter Tight Variable">Inter Tight</option>
+              <option value="Manrope Variable">Manrope</option>
+            </select>
+          </label>
+          <label>
+            <span>Grootte</span>
+            <input
+              disabled={!canEdit}
+              max={360}
+              min={12}
+              onChange={(event) =>
+                patch({ fontSize: Number(event.target.value) })
+              }
+              type="number"
+              value={element.fontSize}
+            />
+          </label>
+        </div>
+        <div aria-label="Tekstopmaak" className={styles.referenceFormatBar} role="group">
+          <button
+            aria-label="Vet"
+            aria-pressed={element.fontWeight >= 700}
+            disabled={!canEdit}
+            onClick={() => patch({ fontWeight: element.fontWeight >= 700 ? 500 : 800 })}
+            type="button"
+          >
+            B
+          </button>
+          <button
+            aria-label="Cursief niet beschikbaar in dit tekstmodel"
+            disabled
+            title="Cursief wordt nog niet door het veilige rendermodel ondersteund."
+            type="button"
+          >
+            I
+          </button>
+          <button
+            aria-label="Hoofdletters wisselen"
+            disabled={!canEdit}
+            onClick={() =>
+              patch({
+                text:
+                  element.text === element.text.toLocaleUpperCase("nl-NL")
+                    ? sentenceCase(element.text)
+                    : element.text.toLocaleUpperCase("nl-NL")
+              })
+            }
+            type="button"
+          >
+            Aa
+          </button>
+          {(["left", "center", "right"] as const).map((align) => (
+            <button
+              aria-label={
+                align === "left"
+                  ? "Links uitlijnen"
+                  : align === "center"
+                    ? "Centreren"
+                    : "Rechts uitlijnen"
+              }
+              aria-pressed={element.align === align}
+              disabled={!canEdit}
+              key={align}
+              onClick={() => patch({ align })}
+              type="button"
+            >
+              {align === "left" ? "L" : align === "center" ? "C" : "R"}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.referenceInspectorSection}>
+        <h2>Zichtbaarheid</h2>
+        <ReferenceVisibilityRow
+          checked={contextVisible}
+          description="Hoofdinformatie tonen"
+          disabled={!canEdit}
+          label="Context en tijd"
+          onToggle={() => {
+            for (const candidate of contextElements) {
+              if (candidate.visible === contextVisible) {
+                dispatch({
+                  elementId: candidate.id,
+                  type: "element/toggle-visible"
+                });
+              }
+            }
+          }}
+        />
+        {location ? (
+          <ReferenceVisibilityRow
+            checked={location.visible}
+            description="Sportpark en veld"
+            disabled={!canEdit}
+            label="Locatie"
+            onToggle={() =>
+              dispatch({
+                elementId: location.id,
+                type: "element/toggle-visible"
+              })
+            }
+          />
+        ) : null}
+      </section>
+
+      <section className={styles.referenceInspectorSection}>
+        <h2>Kleuren</h2>
+        <div className={styles.referenceColors}>
+          {colorOptions.map((color) => (
+            <button
+              aria-label={`${color.label} gebruiken`}
+              aria-pressed={element.fill === color.value}
+              disabled={!canEdit}
+              key={color.label}
+              onClick={() =>
+                patch({
+                  fill: color.token
+                    ? readColorToken(color.token, color.value)
+                    : color.value
+                })
+              }
+              style={{ backgroundColor: color.cssValue ?? color.value }}
+              type="button"
+            >
+              {element.fill === color.value ? (
+                <Check aria-hidden="true" />
+              ) : null}
+            </button>
+          ))}
+          <label className={styles.referenceCustomColor}>
+            <span className="sr-only">Eigen tekstkleur</span>
+            <input
+              disabled={!canEdit}
+              onChange={(event) => patch({ fill: event.target.value })}
+              type="color"
+              value={element.fill.slice(0, 7)}
+            />
+            <span aria-hidden="true">+</span>
+          </label>
+        </div>
+      </section>
+
+      <section className={styles.referenceInspectorSection}>
+        <h2>Beweging</h2>
+        <div className={styles.referenceMotionChoices}>
+          {([
+            ["slide-right", "Flow in"],
+            ["fade", "Vervagen"],
+            ["slide-up", "Omhoog"]
+          ] as const).map(([preset, label]) => (
+            <button
+              aria-pressed={
+                entry?.preset === preset || (!entry && preset === "slide-right")
+              }
+              disabled={!canEdit}
+              key={preset}
+              onClick={() => updateEntry(preset)}
+              type="button"
+            >
+              <i aria-hidden="true" />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+        <div className={styles.referenceFieldRow}>
+          <label>
+            <span>Overgang</span>
+            <select
+              disabled={!canEdit}
+              onChange={(event) =>
+                updateEntry(entry?.preset ?? "slide-right", {
+                  easing: event.target.value as Animation["easing"]
+                })
+              }
+              value={entry?.easing ?? "ease-out"}
+            >
+              <option value="ease-out">Rustig</option>
+              <option value="linear">Lineair</option>
+              <option value="ease-in">Versnellen</option>
+              <option value="ease-in-out">Vloeiend</option>
+            </select>
+          </label>
+          <label>
+            <span>Duur</span>
+            <select
+              disabled={!canEdit}
+              onChange={(event) =>
+                dispatch({
+                  durationMs: Number(event.target.value) * 1_000,
+                  type: "document/duration"
+                })
+              }
+              value={state.document.motion.durationMs / 1_000}
+            >
+              <option value={5}>5s</option>
+              <option value={10}>10s</option>
+              <option value={15}>15s</option>
+              <option value={20}>20s</option>
+            </select>
+          </label>
+        </div>
+      </section>
+      {[
+        "eyebrow",
+        "eyebrow-copy",
+        "headline",
+        "subtitle",
+        "location"
+      ].includes(element.id) ? null : (
+        <div className={styles.inspectorActions}>
+          <Button
+            aria-label="Laag omhoog"
+            disabled={!canEdit}
+            onClick={() =>
+              dispatch({
+                elementId: element.id,
+                targetIndex: element.zIndex + 1,
+                type: "element/move"
+              })
+            }
+            size="sm"
+            variant="ghost"
+          >
+            <ArrowUp aria-hidden="true" />
+          </Button>
+          <Button
+            aria-label="Laag omlaag"
+            disabled={!canEdit}
+            onClick={() =>
+              dispatch({
+                elementId: element.id,
+                targetIndex: element.zIndex - 1,
+                type: "element/move"
+              })
+            }
+            size="sm"
+            variant="ghost"
+          >
+            <ArrowDown aria-hidden="true" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReferenceVisibilityRow({
+  checked,
+  description,
+  disabled,
+  label,
+  onToggle
+}: {
+  checked: boolean;
+  description: string;
+  disabled: boolean;
+  label: string;
+  onToggle: () => void;
+}) {
+  return (
+    <div className={styles.referenceVisibilityRow}>
+      <span>
+        <strong>{label}</strong>
+        <small>{description}</small>
+      </span>
+      <button
+        aria-label={`${label} ${checked ? "verbergen" : "tonen"}`}
+        aria-checked={checked}
+        disabled={disabled}
+        onClick={onToggle}
+        role="switch"
+        type="button"
+      >
+        <i />
+      </button>
+    </div>
+  );
+}
+
+function SlideInspector({
+  canEdit,
+  dispatch,
+  state
+}: {
+  canEdit: boolean;
+  dispatch: (action: StudioEditorAction) => void;
+  state: StudioEditorState;
+}) {
+  const seconds = state.document.motion.durationMs / 1000;
+  const background = state.document.artboard.background;
+  const backgroundColor =
+    background.kind === "solid"
+      ? background.color
+      : background.kind === "linear-gradient"
+        ? background.from
+        : studioPalette.fieldflowCloud;
+
+  return (
+    <div className={styles.inspectorSection}>
+      <label>
+        <span>Duur in seconden</span>
+        <input
+          disabled={!canEdit}
+          max={30}
+          min={1}
+          onChange={(event) =>
+            dispatch({
+              durationMs: Number(event.target.value) * 1000,
+              type: "document/duration"
+            })
+          }
+          step={0.5}
+          type="number"
+          value={seconds}
+        />
+      </label>
+      <label>
+        <span>Achtergrondkleur</span>
+        <input
+          disabled={!canEdit}
+          onChange={(event) =>
+            dispatch({
+              background: { color: event.target.value, kind: "solid" },
+              type: "document/background"
+            })
+          }
+          type="color"
+          value={backgroundColor.slice(0, 7)}
+        />
+      </label>
+      <div className={styles.slideMetaGrid}>
+        <span>
+          <small>Schermstand</small>
+          <strong>
+            {state.document.artboard.orientation === "landscape"
+              ? "Liggend"
+              : "Staand"}
+          </strong>
+        </span>
+        <span>
+          <small>Lagen</small>
+          <strong>{state.document.elements.length}</strong>
+        </span>
+      </div>
     </div>
   );
 }
@@ -1228,13 +2006,15 @@ function ElementInspector({
   canEdit,
   dispatch,
   documentDurationMs,
-  element
+  element,
+  showMotion = true
 }: {
   assets: StudioMediaAsset[];
   canEdit: boolean;
   dispatch: (action: StudioEditorAction) => void;
   documentDurationMs: number;
   element: StudioElement;
+  showMotion?: boolean;
 }) {
   const [iconQuery, setIconQuery] = useState("");
   const patch = (value: Partial<StudioElement>) =>
@@ -1701,7 +2481,7 @@ function ElementInspector({
           </div>
         ) : null}
       </div>
-      {element.type === "video" ? null : (
+      {element.type === "video" || !showMotion ? null : (
         <MotionInspector
           canEdit={canEdit}
           dispatch={dispatch}
@@ -2363,115 +3143,170 @@ function LayerList({
 }
 
 function MotionTimeline({
+  canEdit,
   dispatch,
+  referenceDemo,
   state
 }: {
+  canEdit: boolean;
   dispatch: (action: StudioEditorAction) => void;
+  referenceDemo: boolean;
   state: StudioEditorState;
 }) {
   const seconds = state.document.motion.durationMs / 1000;
+  const playhead = referenceDemo
+    ? 30
+    : Math.min(
+        100,
+        Math.max(0, (state.playheadMs / state.document.motion.durationMs) * 100)
+      );
   return (
-    <section className={styles.timeline} aria-label="Motion-tijdlijn">
-      <div className={styles.timelineSettings}>
-        <span>Duur</span>
-        <div role="group" aria-label="Vooraf ingestelde documentduur">
-          {[5, 10, 15].map((duration) => (
-            <button
-              aria-pressed={seconds === duration}
-              key={duration}
-              onClick={() =>
-                dispatch({
-                  durationMs: duration * 1000,
-                  type: "document/duration"
-                })
-              }
-              type="button"
-            >
-              {duration} sec
-            </button>
-          ))}
+    <section
+      className={styles.timeline}
+      aria-label="Motion-tijdlijn"
+      data-reference={referenceDemo ? "true" : undefined}
+      style={
+        {
+          "--studio-playhead-left": `calc(${playhead}% + ${102 - playhead * 0.96}px)`
+        } as CSSProperties
+      }
+    >
+      <header className={styles.timelineControls}>
+        <div>
+          <Button
+            aria-label={state.playing ? "Pauzeren" : "Afspelen"}
+            onClick={() => dispatch({ type: "playback/toggle" })}
+            size="sm"
+            variant="ghost"
+          >
+            {state.playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
+          </Button>
+          <span>
+            {referenceDemo
+              ? "00:06 / 00:42"
+              : `${formatTimelineTime(state.playheadMs)} / ${formatTimelineTime(state.document.motion.durationMs)}`}
+          </span>
         </div>
-        <label>
-          <span>Aangepast</span>
-          <input
-            aria-label="Aangepaste documentduur in seconden"
-            max={30}
-            min={1}
-            onChange={(event) =>
-              dispatch({
-                durationMs: Number(event.target.value) * 1000,
-                type: "document/duration"
-              })
-            }
-            step={0.5}
-            type="number"
-            value={seconds}
-          />
-        </label>
-        <Button
-          onClick={() => dispatch({ type: "playback/reset" })}
-          size="sm"
-          variant="ghost"
-        >
-          <RotateCcw aria-hidden="true" />
-          Reset
-        </Button>
-        <Button
-          aria-pressed={state.looping}
-          onClick={() => dispatch({ type: "playback/loop" })}
-          size="sm"
-          variant={state.looping ? "secondary" : "ghost"}
-        >
-          <Repeat2 aria-hidden="true" />
-          Loop
-        </Button>
-      </div>
-      <div className={styles.timelineControls}>
-        <Button
-          aria-label={state.playing ? "Pauzeren" : "Afspelen"}
-          onClick={() => dispatch({ type: "playback/toggle" })}
-          size="sm"
-          variant="secondary"
-        >
-          {state.playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-        </Button>
-        <span>
-          {(state.playheadMs / 1000).toFixed(1)} / {seconds.toFixed(1)} sec
-        </span>
-        <label>
-          <span className="sr-only">Afspeelpositie</span>
-          <input
-            max={state.document.motion.durationMs}
-            min={0}
-            onChange={(event) =>
-              dispatch({
-                playheadMs: Number(event.target.value),
-                type: "playback/seek"
-              })
-            }
-            step={500}
-            type="range"
-            value={state.playheadMs}
-          />
-        </label>
+        <strong>Tijdlijn</strong>
+        <div>
+          {referenceDemo ? (
+            <Button
+              disabled={!canEdit}
+              onClick={() =>
+                document
+                  .querySelector<HTMLButtonElement>(
+                    "[data-studio-resource-trigger]"
+                  )
+                  ?.click()
+              }
+              size="sm"
+              variant="secondary"
+            >
+              <Plus aria-hidden="true" />
+              Laag
+            </Button>
+          ) : (
+            <>
+              <Button
+                aria-label="Tijdlijn opnieuw starten"
+                onClick={() => dispatch({ type: "playback/reset" })}
+                size="sm"
+                variant="ghost"
+              >
+                <RotateCcw aria-hidden="true" />
+              </Button>
+              <Button
+                aria-label="Tijdlijn herhalen"
+                aria-pressed={state.looping}
+                onClick={() => dispatch({ type: "playback/loop" })}
+                size="sm"
+                variant={state.looping ? "secondary" : "ghost"}
+              >
+                <Repeat2 aria-hidden="true" />
+              </Button>
+              <label>
+                <span className="sr-only">
+                  Aangepaste documentduur in seconden
+                </span>
+                <input
+                  aria-label="Aangepaste documentduur in seconden"
+                  max={30}
+                  min={1}
+                  onChange={(event) =>
+                    dispatch({
+                      durationMs: Number(event.target.value) * 1000,
+                      type: "document/duration"
+                    })
+                  }
+                  step={0.5}
+                  type="number"
+                  value={seconds}
+                />
+              </label>
+            </>
+          )}
+        </div>
+      </header>
+      <label className={styles.timelineScrubber}>
+        <span className="sr-only">Afspeelpositie</span>
+        <input
+          max={state.document.motion.durationMs}
+          min={0}
+          onChange={(event) =>
+            dispatch({
+              playheadMs: Number(event.target.value),
+              type: "playback/seek"
+            })
+          }
+          step={500}
+          type="range"
+          value={state.playheadMs}
+        />
+      </label>
+      <div aria-hidden="true" className={styles.timelineRuler}>
+        {(referenceDemo
+          ? [
+              [0, "0s"],
+              [0.25, "5s"],
+              [0.5, "10s"],
+              [0.75, "15s"],
+              [1, "20s"]
+            ] as const
+          : ([0, 0.25, 0.5, 0.75, 1].map((position) => [
+              position,
+              `${Math.round(seconds * position)}s`
+            ]) as ReadonlyArray<readonly [number, string]>))
+          .map(([position, label]) => (
+          <span
+            key={position}
+            style={{ left: `calc(84px + (100% - 96px) * ${position})` }}
+          >
+            {label}
+          </span>
+        ))}
       </div>
       <div className={styles.timelineTracks}>
         {[...state.document.elements]
-          .filter((element) => element.type !== "group")
+          .filter((element) =>
+            element.id !== "eyebrow-copy" &&
+            element.id !== "club-badge-initials" &&
+            (element.type === "text" ||
+              element.type === "image" ||
+              element.type === "video")
+          )
           .sort((left, right) => {
-            const leftSelected = state.selectedIds.includes(left.id);
-            const rightSelected = state.selectedIds.includes(right.id);
-            return leftSelected === rightSelected
-              ? right.zIndex - left.zIndex
-              : leftSelected
-                ? -1
-                : 1;
+            const leftRank = left.type === "text" ? 0 : 1;
+            const rightRank = right.type === "text" ? 0 : 1;
+            return leftRank === rightRank
+              ? left.zIndex - right.zIndex
+              : leftRank - rightRank;
           })
-          .slice(0, 8)
-          .map((element) => {
+          .slice(0, 5)
+          .map((element, index) => {
             const start = element.timing?.startMs ?? 0;
             const end =
               element.timing?.endMs ?? state.document.motion.durationMs;
+            const referenceWidths = [63, 30, 52, 70, 88];
             return (
               <button
                 key={element.id}
@@ -2483,8 +3318,12 @@ function MotionTimeline({
                 <span>{element.name}</span>
                 <i
                   style={{
-                    left: `${(start / state.document.motion.durationMs) * 100}%`,
-                    width: `${((end - start) / state.document.motion.durationMs) * 100}%`
+                    left: referenceDemo
+                      ? "0%"
+                      : `${(start / state.document.motion.durationMs) * 100}%`,
+                    width: referenceDemo
+                      ? `${referenceWidths[index] ?? 60}%`
+                      : `${((end - start) / state.document.motion.durationMs) * 100}%`
                   }}
                 />
               </button>
@@ -2493,6 +3332,25 @@ function MotionTimeline({
       </div>
     </section>
   );
+}
+
+function formatTimelineTime(milliseconds: number) {
+  const seconds = Math.max(0, Math.round(milliseconds / 1000));
+  return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+function sentenceCase(value: string) {
+  const lower = value.toLocaleLowerCase("nl-NL");
+  return `${lower.slice(0, 1).toLocaleUpperCase("nl-NL")}${lower.slice(1)}`;
+}
+
+function readColorToken(token: string, fallback: string) {
+  if (typeof window === "undefined") return fallback;
+  const value = window
+    .getComputedStyle(document.documentElement)
+    .getPropertyValue(token)
+    .trim();
+  return /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
 }
 
 function MobileQuickEdit({
@@ -3116,7 +3974,11 @@ function SaveIndicator({ saveState }: { saveState: StudioEditorState["saveState"
       data-state={saveState}
       role="status"
     >
-      <i />
+      {saveState === "saved" ? (
+        <Check aria-hidden="true" />
+      ) : (
+        <i />
+      )}
       {label}
     </span>
   );

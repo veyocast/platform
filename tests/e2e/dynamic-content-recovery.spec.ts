@@ -20,7 +20,12 @@ test("stuurt de oude slideflow door naar de Unified Studio", async ({ page }) =>
     timeout: 30_000
   });
   await expect(page.getByRole("heading", { level: 1, name: "Nieuwe slide" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Openen" })).toHaveCount(5);
+  await expect(
+    page.locator("#control-content").getByRole("link", {
+      exact: true,
+      name: "Openen"
+    })
+  ).toHaveCount(5);
   for (const destination of [
     "/dashboard/studio/new?family=free",
     "/dashboard/slides/menu-studio/new",

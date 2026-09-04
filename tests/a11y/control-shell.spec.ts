@@ -15,9 +15,9 @@ test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   await expect(
     page.getByRole("navigation", { name: "Hoofdnavigatie" })
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Overzicht" })).toBeVisible();
-  await expect(page.getByText("Veilige lege staat")).toBeVisible();
-  await expect(page.getByText("Deze route simuleert daarom geen klant")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Goedemorgen,/ })).toBeVisible();
+  await expect(page.getByText("Schermen online", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Nog niets actief" })).toBeVisible();
 });
 
 test("fixed FieldFlow tenant navigation remains keyboard reachable", async ({ page }) => {
@@ -26,7 +26,7 @@ test("fixed FieldFlow tenant navigation remains keyboard reachable", async ({ pa
   await page.waitForLoadState("networkidle");
 
   const sidebar = page.getByLabel("Control navigatie");
-  const overview = sidebar.getByRole("link", { name: "Vandaag", exact: true });
+  const overview = sidebar.getByRole("link", { name: "Overzicht", exact: true });
   await expect(sidebar).toHaveCSS("width", "248px");
   await expect(sidebar.locator(".control-brand__logo--inverse")).toBeVisible();
   await expect(
@@ -62,7 +62,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
       });
       await expect(mobileNavigation).toBeVisible();
       await expect(
-        mobileNavigation.getByRole("link", { name: "Vandaag", exact: true })
+        mobileNavigation.getByRole("link", { name: "Overzicht", exact: true })
       ).toHaveAttribute("aria-current", "page");
 
       for (const control of await mobileNavigation
@@ -99,7 +99,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
 
       await menuButton.click();
       const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
-      await expect(navigation.getByRole("heading", { name: "Content" })).toBeAttached();
+      await expect(navigation.getByRole("link", { name: "Studio", exact: true })).toBeVisible();
       await expect(navigation.getByRole("link", { name: /Instellingen/ })).toBeVisible();
       await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
     } else {
@@ -123,7 +123,7 @@ test("mobile navigation never mixes tenant and platform destinations", async ({
     name: "Mobiele hoofdnavigatie"
   });
   await expect(mobileNavigation).toBeVisible();
-  await expect(mobileNavigation.getByRole("link", { name: "Playlists" })).toBeVisible();
+  await expect(mobileNavigation.getByRole("link", { name: "Planning" })).toBeVisible();
   await expect(mobileNavigation.getByRole("link", { name: "Klanten" })).toHaveCount(0);
 
   const platformPage = await page.context().newPage();
@@ -156,7 +156,7 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
     "/dashboard/planning",
     "/dashboard/playlists",
     "/dashboard/releases",
-    "/dashboard/screen-groups",
+    "/dashboard/screens/groups",
     "/dashboard/screens",
     "/dashboard/sponsors",
     "/dashboard/settings",
@@ -213,15 +213,15 @@ test("dynamic content workspaces remain usable on mobile and desktop", async ({
         }
         await expect(page.locator("#control-content")).toBeVisible();
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+        expect(
+          await page.evaluate(
+            () =>
+              document.documentElement.scrollWidth <=
+              document.documentElement.clientWidth
+          ),
+          `${route} heeft geen horizontale overflow op ${width}px`
+        ).toBe(true);
       }).toPass({ timeout: 20_000 });
-      expect.soft(
-        await page.evaluate(
-          () =>
-            document.documentElement.scrollWidth <=
-            document.documentElement.clientWidth
-        ),
-        `${route} heeft geen horizontale overflow op ${width}px`
-      ).toBe(true);
     }
   }
 });
@@ -362,7 +362,7 @@ test("tenant context selection is explicit and keyboard reachable", async ({ pag
     } catch (error) {
       if (!String(error).includes("ERR_ABORTED")) throw error;
     }
-    await expect(page.getByRole("heading", { name: "Overzicht" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Goedemorgen,/ })).toBeVisible();
   }).toPass({ timeout: 20_000 });
 
   const switcher = page.getByRole("button", {
@@ -631,7 +631,9 @@ test("pilot route exposes a sequential and fully labelled flow", async ({ page }
   await expect(page.getByLabel("Gereedstaande media")).toBeVisible();
   await expect(page.getByLabel("Conceptplaylist")).toBeVisible();
   await expect(page.getByLabel("Koppelcode")).toBeVisible();
-  await expect(page.getByText("Demomodus", { exact: true })).toBeVisible();
+  await expect(
+    page.locator("#control-content").getByText("Demomodus", { exact: true })
+  ).toBeVisible();
 });
 
 test("public auth routes have clear headings and forms", async ({ context, page }) => {
