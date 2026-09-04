@@ -20,7 +20,7 @@ async function openDashboard(page: Page) {
     await page.waitForLoadState("networkidle");
 
     await expect(
-      page.getByRole("heading", { exact: true, level: 1, name: "Overzicht" })
+      page.getByRole("heading", { level: 1, name: /Goedemorgen,/ })
     ).toBeVisible();
 
     const contextTrigger = page.getByRole("button", {

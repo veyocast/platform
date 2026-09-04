@@ -1,16 +1,16 @@
 export const platformTenantFeatureDefinitions = [
   {
     description:
-      "Semantische Vector-tokens, compacte geometrie en consistente light/dark componenttaal.",
+      "Semantische Fieldflow-tokens, rustige geometrie en consistente light/dark componenttaal.",
     key: "vector_v2_design_system",
-    label: "Vector-designsysteem",
+    label: "Fieldflow-designsysteem",
     status: "STABIELE BASIS"
   },
   {
     description:
-      "Living Venue-rail, commandbar, System Pulse en zichtbare operationele context in Control.",
+      "Eén Fieldflow-shell, commandbar en zichtbare actuele operationele context in Control.",
     key: "vector_v2_control_shell",
-    label: "Vector Control-shell",
+    label: "Fieldflow Control-shell",
     status: "PILOT"
   },
   {

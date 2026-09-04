@@ -1,5 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
+
+import { ResilientMarketingImage } from "./resilient-marketing-image";
 
 const footerGroups = [
   {
@@ -43,10 +44,31 @@ const footerGroups = [
 export function MarketingFooter() {
   return (
     <footer className="marketing-footer">
+      <div className="marketing-container marketing-footer__compact">
+        <div className="marketing-footer__compact-brand">
+          <Link aria-label="VeyoCast homepage" className="footer-logo" href="/">
+            <ResilientMarketingImage
+              alt="VeyoCast"
+              height={32}
+              src="/brand/veyocast-logo-inverse.svg"
+              width={127}
+            />
+          </Link>
+          <p>Verenigingscommunicatie die vanzelf stroomt.</p>
+        </div>
+        <nav aria-label="Footer hoofdnavigatie">
+          <Link href="/product">Platform</Link>
+          <Link href="/functies">Mogelijkheden</Link>
+          <Link href="/prijzen">Prijzen</Link>
+          <Link href="/demo">Demo</Link>
+        </nav>
+        <p>© {new Date().getFullYear()} VeyoCast</p>
+      </div>
+
       <div className="marketing-container marketing-footer__grid">
         <div className="marketing-footer__brand">
           <Link aria-label="VeyoCast homepage" className="footer-logo" href="/">
-            <Image
+            <ResilientMarketingImage
               alt="VeyoCast"
               height={32}
               src="/brand/veyocast-logo-inverse.svg"

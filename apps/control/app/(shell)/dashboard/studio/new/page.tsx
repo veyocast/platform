@@ -64,51 +64,31 @@ export default async function NewStudioPage({
   ]);
 
   return (
-    <>
-      <PageHeader
-        actions={
-          <Button asChild variant="secondary">
-            <Link href="/dashboard/studio">Annuleren</Link>
-          </Button>
-        }
-        breadcrumbs={[
-          { href: "/dashboard/studio", label: "Studio" },
-          { label: "Nieuw ontwerp" }
-        ]}
-        description="Kies een passend formaat en start leeg of vanuit een gecontroleerd systeemtemplate."
-        status={
-          !session.isLive
-            ? { label: "Demomodus", tone: "warning" }
-            : undefined
-        }
-        title="Nieuw ontwerp"
-      />
-      <NewStudioForm
-        action={createStudioProject}
-        canCreate={canCreate}
-        canManageTemplates={hasCapability(
-          session.capabilities,
-          "tenant.studio.template.manage"
-        )}
-        categories={studioTemplateCategories}
-        tenantBrand={brandResources.brandKit}
-        tenantTemplates={tenantTemplateData.projects.flatMap((project) =>
-          project.document
-            ? [{
-                description: "Herbruikbaar template van deze vereniging.",
-                document: project.document,
-                formatId:
-                  project.orientation === "portrait"
-                    ? "portrait-hd" as const
-                    : "landscape-hd" as const,
-                id: project.id,
-                name: project.name
-              }]
-            : []
-        )}
-        templates={studioSystemTemplates}
-      />
-    </>
+    <NewStudioForm
+      action={createStudioProject}
+      canCreate={canCreate}
+      canManageTemplates={hasCapability(
+        session.capabilities,
+        "tenant.studio.template.manage"
+      )}
+      categories={studioTemplateCategories}
+      tenantBrand={brandResources.brandKit}
+      tenantTemplates={tenantTemplateData.projects.flatMap((project) =>
+        project.document
+          ? [{
+              description: "Herbruikbaar template van deze vereniging.",
+              document: project.document,
+              formatId:
+                project.orientation === "portrait"
+                  ? "portrait-hd" as const
+                  : "landscape-hd" as const,
+              id: project.id,
+              name: project.name
+            }]
+          : []
+      )}
+      templates={studioSystemTemplates}
+    />
   );
 }
 

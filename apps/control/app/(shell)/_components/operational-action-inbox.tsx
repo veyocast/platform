@@ -16,13 +16,15 @@ import {
 import { ArrowRight, CheckCircle2, Clock3 } from "lucide-react";
 import Link from "next/link";
 
-import type { OperationalSignal } from "../../../lib/control-operations";
+import type { OperationalSignal, OperationalState } from "../../../lib/control-operations";
 
 export function OperationalActionInbox({
   signals,
+  status,
   totalCount
 }: {
   signals: readonly OperationalSignal[];
+  status: OperationalState;
   totalCount: number;
 }) {
   const inboxTone = signals.some((signal) => signal.severity === "critical")
@@ -34,15 +36,23 @@ export function OperationalActionInbox({
         : "success";
 
   if (!signals.length && totalCount === 0) {
+    const confirmedHealthy = status.id === "healthy";
     return (
       <section
         aria-labelledby="action-inbox-title"
         className="dashboard-health-line control-motion-enter"
+        data-state={status.id}
       >
-        <CheckCircle2 aria-hidden="true" />
+        {confirmedHealthy ? <CheckCircle2 aria-hidden="true" /> : <Clock3 aria-hidden="true" />}
         <div>
-          <h2 id="action-inbox-title">Alles werkt normaal</h2>
-          <p>Er zijn geen operationele signalen die nu aandacht vragen.</p>
+          <h2 id="action-inbox-title">
+            {confirmedHealthy ? "Geen open acties" : "Nog geen bevestigd actiesignaal"}
+          </h2>
+          <p>
+            {confirmedHealthy
+              ? "De beschikbare statusbronnen melden nu geen aandachtspunt."
+              : status.effect}
+          </p>
         </div>
       </section>
     );

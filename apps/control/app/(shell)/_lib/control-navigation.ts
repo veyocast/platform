@@ -203,14 +203,6 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "tenant"
   },
   {
-    description: "Schermen logisch organiseren",
-    href: "/dashboard/screens/groups",
-    label: "Schermgroepen",
-    requiredCapability: "tenant.screen.read",
-    section: "broadcast",
-    scope: "tenant"
-  },
-  {
     description: "Herbruikbare contentvormen",
     href: "/dashboard/playlist-templates",
     label: "Playlist-sjablonen",

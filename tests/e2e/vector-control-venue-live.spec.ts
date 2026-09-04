@@ -85,7 +85,7 @@ test.describe("live tenant rollouts, Control, Health and Venue Twin", () => {
 
     await page.getByRole("button", { name: "Open vereniging" }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByRole("heading", { name: "Overzicht" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Goedemorgen,/ })).toBeVisible();
     await expect(page.getByRole("link", { name: /^Integraties\s/ })).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({ path: "docs/screenshots/vector-v2/control/system-pulse-1440x900.png" });

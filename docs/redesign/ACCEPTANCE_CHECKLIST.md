@@ -1,12 +1,60 @@
 # FieldFlow Acceptance Checklist
 
+## S145 v1.6 release-override
+
+De gedetailleerde S144-vinkjes hieronder zijn historisch technisch
+implementatiebewijs en vormen geen automatische releasegoedkeuring voor S145.
+De gebruiker heeft de zichtbare S144-uitvoering afgekeurd; de vijf laatst
+aangeleverde referenties zijn leidend voor Overzicht, Planning, Schermen,
+Studio en Marketing. Security/RLS, locked assets, toegankelijkheid, immutable
+releases en Player/offlinegedrag blijven de hogere technische grenzen.
+
+- [x] Handoffs, losse prompts, checksum-gevalideerde pakketten en de vijf later aangeleverde exacte PNG-referenties zijn geconsolideerd in `REFERENCE_SOURCE_MATRIX.md`.
+- [x] De drie meegeleverde mislukte screenshots staan bytegelijk als negatieve baseline in `docs/screenshots/fieldflow/negative-baseline/`.
+- [x] De vijf exacte targets staan bytegelijk onder `docs/screenshots/fieldflow/reference-targets/`.
+- [x] De dubbele rail, dubbele hoofdbestemming en oude zichtbare System Pulse-copy zijn uit de tenant-shell verwijderd.
+- [x] Dashboardstatus wordt centraal afgeleid en unitgetest; `0/0` en onbekende waarden claimen geen gezondheid.
+- [x] Studio Nieuw gebruikt één vierstapswizard; required state, samenvatting en CTA delen dezelfde validatie.
+- [x] Marketinghome gebruikt één 12-kolomsgrid, vier tonale hoofdstukken en goedgekeurde generieke fotografie zonder klantclaim.
+- [x] De exact vereiste ledgerbestanden bestaan, inclusief `VISUAL_QA.csv`, `SLIDE_COMPONENT_PATH_MAP.csv`, `OUTPUT_ASSET_MANIFEST.csv` en `ASSET_GAPS.csv`.
+- [x] Alle lokaal uitvoerbare S145-testgates zijn groen en met actuele output vastgelegd; fysieke en hosted gates staan afzonderlijk hieronder.
+- [x] Alle 73 current-state captures uit `VISUAL_QA.csv` bestaan: 71 primaire state-/routecaptures plus twee opstellingsdetailcaptures. De evidence-test controleert contracten, runtimefouten, DOM/overflow/shell, controlhoogtes en de expliciet gemelde geometrie.
+- [x] De generator heeft vier matrixbladen en vijf exacte side-by-sidebladen gemaakt; de negen SHA-256-hashes staan in `GOLDEN_INDEX.md`.
+- [x] De gebruiker heeft de negen actuele FieldFlow-reviewbladen op 4 september 2026 expliciet als “Perfect” geaccepteerd; zie `GOLDEN_INDEX.md` en D018.
+- [x] De vijf gewijzigde historische PNG's zijn door de gebruiker expliciet
+  geaccepteerd voor opname als `ACCEPTED_FOR_INCLUSION_BY_USER_2026-09-04`;
+  zij blijven buiten de 90 S145-evidencebeelden en krijgen geen nieuwe
+  provenanceclaim. [D020]
+- [x] De fysieke LG blijft eerlijk `EXTERNAL_UNTESTED`; uitsluitend de
+  S145-releasegate is door de gebruiker geaccepteerd als
+  `WAIVED_BY_USER_2026-09-04`. Dit vinkje is geen toestelbewijs. [D020]
+- [ ] Branch, PR, merge-SHA, staging en production zijn zonder feature- of productiedatamutatie teruggelezen.
+
+Actuele gate-uitkomst op 4 september 2026: lint/typecheck/unit/build, verse
+database-reset met 108 migraties, gerichte S145-pgTAP 38/38, volledige RLS
+70/1.624 en error-level Supabase db-lint met nul resultaten zijn groen. Ook
+a11y 36+1 skip, brede Chromium 192+22 skips in 21,3 minuten, Player 117,
+offline 7, finale evidence 1/1 in 4,2 minuten en LG-bron/tests/IPK-inspectie
+zijn groen. De evidence-run maakte 73 current captures; met vijf targets, drie
+negatieve baselines en negen sheets zijn er 90 evidence-PNG's. Deze technische
+run voert geen automatische pixelvergelijking uit. De vijf aanvullende
+historische PNG-diffs zijn door de gebruiker geaccepteerd voor opname en de
+fysieke LG-releasegate is expliciet waived, zonder beide als nieuw bewijs te
+presenteren. Alleen de beschermde PR/CI/merge- en exact-SHA
+staging-/productionreadbacks staan nog open. De menselijke visual review en
+assetkeuze zijn op 4 september 2026 expliciet afgerond: huidig officieel
+VeyoCast-icon plus FF-PHOTO-01/06/05/04.
+
+
 Geen sectie mag impliciet worden goedgekeurd. Voeg bij elk afgevinkt item een testnaam, screenshot/golden, commit of reviewbewijs toe. `N/A` vereist een geschreven reden. Fysieke LG-controle blijft `UNTESTED` tot een echt toestel is gebruikt.
 
 ## Bewijsregister
 
-- **E1 governance:** branch `veyocast/s144-fieldflow-platform-redesign`,
-  nulmeting `6fe477a332ab6565a6bb3205959ebfe7766e9a2c`, sprintprompt en alle ledgers in
-  `docs/redesign/`.
+- **E1 governance:** S145-branch
+  `veyocast/s145-fieldflow-release-completion`, correctiebaseline
+  `19e665cdcf6a2613f70332cb616e87514938d655`, sprintprompt en alle ledgers in
+  `docs/redesign/`. De S144-branch en nulmeting blijven uitsluitend historisch
+  spoor.
 - **E2 inventory:** `SLIDE_COVERAGE.csv` (64 rijen), `ROUTE_LEDGER.csv` (173),
   `fieldflow-coverage.test.ts` en de contracttests.
 - **E3 theme compatibility:** `theme-catalog.test.ts`, Control authoringtests,
@@ -15,22 +63,31 @@ Geen sectie mag impliciet worden goedgekeurd. Voeg bij elk afgevinkt item een te
   no-orphan-/exact-contracttest in `fieldflow-coverage.test.ts`.
 - **E5 tokens/fonts:** FieldFlow v3 JSON/CSS/TypeScript-build, token- en
   typografietests, lokale Manrope/Inter en de designcanon-delta.
-- **E6 visual:** `GOLDEN_INDEX.md`, 64 moderne, 44 Menu Studio- en 16 nieuwe
-  Static-LG-goldens met overflow- en image-readinessasserties.
+- **E6 visual:** `GOLDEN_INDEX.md`, 73 S145-currentcaptures en negen door de
+  gebruiker op 4 september 2026 geaccepteerde reviewbladen, plus 64 moderne,
+  44 Menu Studio- en 16 nieuwe Static-LG-goldens met overflow- en
+  image-readinessasserties. De S145-side-by-sidebladen zijn technisch bewijs;
+  de acceptatiestatus komt uit de expliciete menselijke beslissing en niet uit
+  een automatische pixeldiff.
 - **E7 output:** content-template-, Player-, release-envelope- en Static-LG-
   tests voor alle actieve/dormante contracttypen en expliciete renderfamilies.
 - **E8 menu/studio:** Menu Document v2-, Studio-schema/render- en
   media-worker-tests; exact 22 systeemtemplates.
 - **E9 offline:** Player- en offline-suites voor LKG, atomaire activatie,
   fallback, reconnect en no-black-screen.
-- **E10 database/security:** verse database-reset, volledige RLS-suite en
-  Supabase db-lint; alleen reeds bestaande lintadviezen blijven over.
+- **E10 database/security:** de expliciet toegewezen forward-only
+  `20260904190700_s145_supabase_lint_recovery.sql` behoudt signatures,
+  `SECURITY DEFINER`, lege `search_path` en nauw begrensde ACL's. De gerichte
+  S145-pgTAP levert 38/38; verse reset, volledige RLS 70/1.624 en error-level
+  db-lint met `results: []` zijn groen.
 - **E11 eindgates:** lint 30/30, typecheck 30/30, unit/integratie 30/30,
-  build 18/18, database-reset 107 migraties, RLS 69 bestanden/1.586 checks,
-  a11y 36 groen + 1 live skip, brede Chromium 191 groen + 21 conditionele
-  live/evidence-skips, Player 117/117, offline 7/7, LG 14/14 plus IPK. De
-  exacte opdrachten en PR-SHA staan in `FINAL_REPORT.md`;
-  externe CI/deploy is geen lokaal groen vinkje.
+  build 18/18, database-reset 108 migraties, RLS 70 bestanden/1.624 checks,
+  a11y 36 groen + 1 live skip, brede Chromium 192 groen + 22 conditionele
+  live/evidence-skips in 21,3 minuten, Player 117/117, offline 7/7,
+  S145-evidence 1/1 in 4,2 minuten met 73 current captures, LG 14/14 plus IPK.
+  De exacte opdrachten, branch en baseline staan in `FINAL_REPORT.md`;
+  commit/PR/merge en externe deployreadback worden pas na feitelijke observatie
+  ingevuld. Externe CI/deploy is geen lokaal groen vinkje.
 - **E12 assets:** `ASSET_REGISTER.csv`, `ASSET_PROVENANCE.md`, bytevergelijking
   van 23 aangeleverde derivatives en assetcollector-regressies.
 
@@ -352,11 +409,21 @@ O → E7/E9/E11; P → E3/E4/E6/E11; Q → E10/E12; R → E6/E10/E11/E12.
   min/nominal/max-composities. [E2, E6]
 - [x] Light/dark, landscape/portrait en min/nominal/max data zijn gedekt.
 - [x] 1080p/4K en orientation mismatch zijn gedekt.
-- [x] Long strings, missing/broken assets, empty/stale/error/offline zijn gedekt.
-- [x] Visual diffs blijven binnen de geldende drempel of hebben expliciet goedgekeurde nieuwe goldens.
-- [x] Voor elke golden update bestaat een contact sheet/reviewoverzicht.
+- [x] Long strings, missing/broken assets, empty/stale/error/offline zijn technisch gedekt; de totale marketing-image-failure blijft structureel schoon, maar image-based header-/footer-lock-ups hebben zonder het officiële locked targetasset nog geen complete merkfallback (P2).
+- [x] De actuele S145-visual diffs zijn op 4 september 2026 expliciet door de gebruiker geaccepteerd; S144-bewijs blijft geen v1.6-goedkeuring. [E6, D018]
+- [x] Voor iedere actuele S145-surface bestaat na code-freeze een nieuw matrix- of exact vergelijkingsblad.
+- [x] De gebruiker heeft de negen actuele S145-reviewbladen op 4 september 2026 expliciet goedgekeurd. [E6, D018]
+- [x] De afwijking is op 4 september 2026 expliciet menselijk geaccepteerd: behoud huidig officieel VeyoCast-icon; gebruik FF-PHOTO-01/06/05/04 als beschikbare, approved vervangers; accepteer de schone lege image-based lock-ups bij synthetische totale image-failure als P2. [E6, E12, D018]
+- [x] De vijf historische screenshotdiffs zijn voor commit door de gebruiker
+  geaccepteerd voor opname, zonder evidence- of provenanceclaim. [D020]
+- [x] Studio noemt de echte renderactie `Genereren` en beweert niet dat deze stap al immutable publiceert.
 - [x] Bundle/performance/offline regressies zijn gemeten.
-- [x] Fysieke LG-status is eerlijk `UNTESTED`, `BLOCKED` of voorzien van toestelbewijs.
+- [x] Fysieke LG-status blijft eerlijk `EXTERNAL_UNTESTED`; alleen de
+  S145-releasegate is `WAIVED_BY_USER_2026-09-04`, niet de hardware-uitkomst.
+  [D020]
 - [x] Canon-, migration-, rollout- en rollbackdocumentatie is bijgewerkt.
-- [x] Eindrapport noemt exact gewijzigde bestanden, tests, screenshots, bekende beperkingen en vervolgstappen.
-- [x] Er is niet gedeployed tenzij de bovenliggende opdracht dit expliciet autoriseerde.
+- [x] Het exacte gewijzigde-bestandenmanifest omvat alle 175 paden; de vijf
+  historische PNG's zijn afzonderlijk gelabeld als door de gebruiker
+  geaccepteerde non-evidencewijzigingen. [D020]
+- [x] De gebruiker heeft push en protected deployment geautoriseerd; de
+  officiële PR/CI-, staging- en productiongates blijven onverkort verplicht.

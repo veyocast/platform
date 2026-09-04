@@ -111,7 +111,7 @@ export async function updateScreenGroupMemberships(formData: FormData) {
     console.error("Schermgroepen opslaan mislukt", error);
     fail(returnPath, "De schermgroepen konden niet atomair worden opgeslagen. De bestaande indeling is behouden.");
   }
-  revalidatePath("/dashboard/screen-groups");
+  revalidatePath("/dashboard/screens/groups");
   revalidatePath("/dashboard/planning");
   complete(
     returnPath,
@@ -372,7 +372,7 @@ export async function addBulkScreensToGroup(formData: FormData) {
     );
   }
   revalidatePath("/dashboard/screens");
-  revalidatePath("/dashboard/screen-groups");
+  revalidatePath("/dashboard/screens/groups");
   revalidatePath("/dashboard/planning");
   redirect(withMessage(
     "/dashboard/screens",

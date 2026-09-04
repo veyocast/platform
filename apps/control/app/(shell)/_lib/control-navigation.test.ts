@@ -24,7 +24,6 @@ describe("control navigation", () => {
       "/dashboard/slides",
       "/dashboard/screens",
       "/dashboard/planning",
-      "/dashboard/screens/groups",
       "/dashboard/playlist-templates",
       "/dashboard/publications",
       "/dashboard/sources",
@@ -71,7 +70,6 @@ describe("control navigation", () => {
       "/dashboard/playlist-templates",
       "/dashboard/screens",
       "/dashboard/planning",
-      "/dashboard/screens/groups",
       "/dashboard/publications",
       "/dashboard/sources",
       "/dashboard/sponsors",
@@ -114,8 +112,7 @@ describe("control navigation", () => {
     expect(links).toStrictEqual([
       "/dashboard",
       "/dashboard/media",
-      "/dashboard/screens",
-      "/dashboard/screens/groups"
+      "/dashboard/screens"
     ]);
   });
 

@@ -2,11 +2,12 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
-import { ChevronDown, Menu, X } from "lucide-react";
-import Image from "next/image";
+import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+
+import { ResilientMarketingImage } from "./resilient-marketing-image";
 
 const productLinks = [
   { description: "Het volledige systeem van content tot scherm.", href: "/product", label: "Platform" },
@@ -27,6 +28,13 @@ const inspirationLinks = [
   { description: "Veelgestelde vragen met heldere antwoorden.", href: "/veelgestelde-vragen", label: "Veelgestelde vragen" },
   { description: "Bekijk de beschikbare databronnen en koppelingen.", href: "/integraties", label: "Integraties" },
   { description: "Lees wie VeyoCast bouwt en waarom.", href: "/over-ons", label: "Over ons" }
+] as const;
+
+const homeLinks = [
+  { href: "/product", label: "Platform" },
+  { href: "/functies", label: "Mogelijkheden" },
+  { href: "/oplossingen/sportverenigingen", label: "Voor verenigingen" },
+  { href: "/prijzen", label: "Prijzen" }
 ] as const;
 
 type MarketingHeaderProps = {
@@ -57,6 +65,7 @@ function MenuPanel({
 export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isHome = pathname === "/";
 
   const isCurrent = (href: string) => (
     href === "/" ? pathname === "/" : pathname.startsWith(href)
@@ -66,11 +75,11 @@ export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
     <header className="marketing-header">
       <div className="marketing-container marketing-header__inner">
         <Link aria-label="VeyoCast homepage" className="marketing-header__logo" href="/">
-          <Image
+          <ResilientMarketingImage
             alt="VeyoCast"
             height={30}
             priority
-            src="/brand/veyocast-logo-inverse.svg"
+            src={pathname === "/" ? "/brand/veyocast-logo-primary.svg" : "/brand/veyocast-logo-inverse.svg"}
             width={119}
           />
         </Link>
@@ -81,40 +90,50 @@ export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
           delayDuration={120}
         >
           <NavigationMenu.List className="desktop-navigation__list">
-            <NavigationMenu.Item>
-              <NavigationMenu.Trigger className="desktop-navigation__trigger">
-                Product <ChevronDown aria-hidden size={14} />
-              </NavigationMenu.Trigger>
-              <NavigationMenu.Content>
-                <MenuPanel links={productLinks} />
-              </NavigationMenu.Content>
-            </NavigationMenu.Item>
-            <NavigationMenu.Item>
-              <NavigationMenu.Trigger className="desktop-navigation__trigger">
-                Voor clubs <ChevronDown aria-hidden size={14} />
-              </NavigationMenu.Trigger>
-              <NavigationMenu.Content>
-                <MenuPanel links={clubLinks} />
-              </NavigationMenu.Content>
-            </NavigationMenu.Item>
-            <NavigationMenu.Item>
-              <NavigationMenu.Trigger className="desktop-navigation__trigger">
-                Inspiratie <ChevronDown aria-hidden size={14} />
-              </NavigationMenu.Trigger>
-              <NavigationMenu.Content>
-                <MenuPanel links={inspirationLinks} />
-              </NavigationMenu.Content>
-            </NavigationMenu.Item>
-            {[
-              { href: "/prijzen", label: "Prijzen" },
-              { href: "/support", label: "Support" }
-            ].map((link) => (
+            {isHome ? homeLinks.map((link) => (
               <NavigationMenu.Item key={link.href}>
                 <NavigationMenu.Link asChild active={isCurrent(link.href)}>
                   <Link href={link.href}>{link.label}</Link>
                 </NavigationMenu.Link>
               </NavigationMenu.Item>
-            ))}
+            )) : (
+              <>
+                <NavigationMenu.Item>
+                  <NavigationMenu.Trigger className="desktop-navigation__trigger">
+                    Product <ChevronDown aria-hidden size={14} />
+                  </NavigationMenu.Trigger>
+                  <NavigationMenu.Content>
+                    <MenuPanel links={productLinks} />
+                  </NavigationMenu.Content>
+                </NavigationMenu.Item>
+                <NavigationMenu.Item>
+                  <NavigationMenu.Trigger className="desktop-navigation__trigger">
+                    Voor clubs <ChevronDown aria-hidden size={14} />
+                  </NavigationMenu.Trigger>
+                  <NavigationMenu.Content>
+                    <MenuPanel links={clubLinks} />
+                  </NavigationMenu.Content>
+                </NavigationMenu.Item>
+                <NavigationMenu.Item>
+                  <NavigationMenu.Trigger className="desktop-navigation__trigger">
+                    Inspiratie <ChevronDown aria-hidden size={14} />
+                  </NavigationMenu.Trigger>
+                  <NavigationMenu.Content>
+                    <MenuPanel links={inspirationLinks} />
+                  </NavigationMenu.Content>
+                </NavigationMenu.Item>
+                {[
+                  { href: "/prijzen", label: "Prijzen" },
+                  { href: "/support", label: "Support" }
+                ].map((link) => (
+                  <NavigationMenu.Item key={link.href}>
+                    <NavigationMenu.Link asChild active={isCurrent(link.href)}>
+                      <Link href={link.href}>{link.label}</Link>
+                    </NavigationMenu.Link>
+                  </NavigationMenu.Item>
+                ))}
+              </>
+            )}
             <NavigationMenu.Indicator />
           </NavigationMenu.List>
           <NavigationMenu.Viewport className="desktop-navigation__viewport" />
@@ -125,7 +144,7 @@ export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
             Inloggen
           </a>
           <Link className="button button--primary button--header" href="/demo">
-            Plan een demo
+            Plan een demo <ArrowRight aria-hidden size={16} />
           </Link>
 
           <Dialog.Root onOpenChange={setMobileOpen} open={mobileOpen}>
@@ -146,32 +165,40 @@ export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
                   </Dialog.Close>
                 </div>
                 <nav aria-label="Mobiele hoofdnavigatie">
-                  <p>Product</p>
-                  {productLinks.map((link) => (
+                  {isHome ? homeLinks.map((link) => (
                     <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
                       {link.label}
                     </Link>
-                  ))}
-                  <p>Voor clubs</p>
-                  {clubLinks.map((link) => (
-                    <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
-                      {link.label}
-                    </Link>
-                  ))}
-                  <p>Inspiratie</p>
-                  {inspirationLinks.map((link) => (
-                    <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
-                      {link.label}
-                    </Link>
-                  ))}
-                  {[
-                    { href: "/prijzen", label: "Prijzen" },
-                    { href: "/support", label: "Support" }
-                  ].map((link) => (
-                    <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
-                      {link.label}
-                    </Link>
-                  ))}
+                  )) : (
+                    <>
+                      <p>Product</p>
+                      {productLinks.map((link) => (
+                        <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
+                          {link.label}
+                        </Link>
+                      ))}
+                      <p>Voor clubs</p>
+                      {clubLinks.map((link) => (
+                        <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
+                          {link.label}
+                        </Link>
+                      ))}
+                      <p>Inspiratie</p>
+                      {inspirationLinks.map((link) => (
+                        <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
+                          {link.label}
+                        </Link>
+                      ))}
+                      {[
+                        { href: "/prijzen", label: "Prijzen" },
+                        { href: "/support", label: "Support" }
+                      ].map((link) => (
+                        <Link href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>
+                          {link.label}
+                        </Link>
+                      ))}
+                    </>
+                  )}
                 </nav>
                 <div className="mobile-menu-sheet__actions">
                   <a className="button button--secondary button--full" href={controlOrigin}>

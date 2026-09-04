@@ -4,6 +4,18 @@ import { createControlSupabaseClient } from "./supabase/server";
 
 export type TenantOverview = Awaited<ReturnType<typeof loadTenantOverview>>;
 
+export type TenantOverviewAvailability = Readonly<{
+  audit: boolean;
+  devices: boolean;
+  integrations: boolean;
+  media: boolean;
+  members: boolean;
+  playlists: boolean;
+  screens: boolean;
+  telemetry: boolean;
+  tenant: boolean;
+}>;
+
 export async function loadTenantOverview(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return tenantOverviewFailure();
@@ -78,10 +90,6 @@ export async function loadTenantOverview(tenantId: string) {
       .neq("status", "revoked")
   ]);
 
-  if ([screens.error, devices.error, playlists.error, playlistItems.error, media.error, releases.error, audit.error, invitations.error, members.error, tenant.error, heartbeats.error, dynamicSources.error, sportlinkConnections.error].some(Boolean)) {
-    return tenantOverviewFailure();
-  }
-
   const overviewAudit = audit.data ?? [];
   const actorIds = [...new Set(overviewAudit.flatMap((event) =>
     event.actor_user_id ? [event.actor_user_id] : []
@@ -121,6 +129,22 @@ export async function loadTenantOverview(tenantId: string) {
     ...(auditGroups.data ?? []).map((row) => [`screen_groups:${row.id}`, row.name] as const)
   ]);
 
+  const availability = {
+    audit: !audit.error && !auditProfiles.error && !auditScreens.error &&
+      !auditSchedules.error && !auditGroups.error,
+    devices: !devices.error,
+    integrations: !dynamicSources.error && !sportlinkConnections.error,
+    media: !media.error,
+    members: !invitations.error && !members.error,
+    playlists: !playlists.error && !playlistItems.error && !releases.error,
+    screens: !screens.error,
+    telemetry: !heartbeats.error,
+    tenant: !tenant.error
+  } satisfies TenantOverviewAvailability;
+  const unavailable = Object.entries(availability)
+    .filter(([, available]) => !available)
+    .map(([domain]) => domain);
+
   return {
     auditEvents: overviewAudit.map((event) => ({
       ...event,
@@ -131,6 +155,7 @@ export async function loadTenantOverview(tenantId: string) {
         ? auditTargets.get(`${event.target_type}:${event.target_id}`) ?? null
         : null
     })),
+    availability,
     heartbeats: heartbeats.data ?? [],
     invitations: invitations.data ?? [],
     integrations: {
@@ -141,14 +166,20 @@ export async function loadTenantOverview(tenantId: string) {
     mediaStorageLimitBytes: tenant.data?.media_storage_limit_bytes === null
       ? null
       : Number(tenant.data?.media_storage_limit_bytes ?? 0),
-    error: false,
+    error: unavailable.length > 0,
+    loadState: unavailable.length === 0
+      ? "complete" as const
+      : unavailable.length === Object.keys(availability).length
+        ? "failed" as const
+        : "partial" as const,
     media: media.data ?? [],
     playlistItems: playlistItems.data ?? [],
     playlists: playlists.data ?? [],
     releases: releases.data ?? [],
     screenLimit: tenant.data?.screen_limit ?? 0,
     devices: devices.data ?? [],
-    screens: screens.data ?? []
+    screens: screens.data ?? [],
+    unavailable
   };
 }
 
@@ -398,13 +429,27 @@ export async function loadTenantAuditEvents(
 }
 
 function tenantOverviewFailure() {
+  const availability = {
+    audit: false,
+    devices: false,
+    integrations: false,
+    media: false,
+    members: false,
+    playlists: false,
+    screens: false,
+    telemetry: false,
+    tenant: false
+  } satisfies TenantOverviewAvailability;
+
   return {
     auditEvents: [],
+    availability,
     devices: [],
     error: true,
     heartbeats: [],
     integrations: { dynamicSources: [], sportlinkConnections: [] },
     invitations: [],
+    loadState: "failed" as const,
     media: [],
     memberCount: 0,
     mediaStorageLimitBytes: null,
@@ -412,7 +457,8 @@ function tenantOverviewFailure() {
     playlists: [],
     releases: [],
     screenLimit: 0,
-    screens: []
+    screens: [],
+    unavailable: Object.keys(availability)
   };
 }
 

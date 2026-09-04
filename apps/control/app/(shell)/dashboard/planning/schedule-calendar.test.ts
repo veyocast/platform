@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCalendarDays,
   isScheduleActiveAt,
+  nextScheduleOccurrence,
   normalizeReferenceDate,
   planningRangeLabel,
   scheduleMatchesPlanningTarget,
@@ -101,6 +102,24 @@ describe("Publisher planning calendar", () => {
       new Date("2026-07-20T12:00:00.000Z"),
       "Europe/Amsterdam"
     )).toBe(false);
+  });
+
+  it("vindt het volgende concrete moment van een terugkerende planning", () => {
+    expect(nextScheduleOccurrence(
+      baseSchedule,
+      new Date("2026-07-20T17:30:00.000Z"),
+      "Europe/Amsterdam"
+    )?.startsAt).toBe("2026-07-21T16:00:00.000Z");
+
+    expect(nextScheduleOccurrence(
+      {
+        ...baseSchedule,
+        recurrence: { endTime: "21:00", startTime: "18:00", weekdays: [4] },
+        scheduleKind: "weekly"
+      },
+      new Date("2026-07-20T17:30:00.000Z"),
+      "Europe/Amsterdam"
+    )?.startsAt).toBe("2026-07-23T16:00:00.000Z");
   });
 
   it("filtert een scherm zowel direct als via zijn schermgroep", () => {

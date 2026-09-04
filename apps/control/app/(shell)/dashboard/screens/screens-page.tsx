@@ -2,34 +2,38 @@ import { randomUUID } from "node:crypto";
 
 import Link from "next/link";
 import {
+  ChevronRight,
+  CircleCheck,
   Grid3X3,
-  HeartPulse,
   List,
   Map as MapIcon,
   MapPin,
   Monitor,
-  TriangleAlert
+  MoreHorizontal,
+  Play,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  TriangleAlert,
+  UsersRound,
+  Wifi
 } from "lucide-react";
+import type { CSSProperties, ReactNode } from "react";
 
-import {
-  Button,
-  DataTable,
-  FilterBar,
-  SummaryStrip,
-  TablePreferences
-} from "@veyocast/ui";
 import { hasCapability } from "@veyocast/auth";
+import { Button, StatusPill } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import { deriveScreenHealth } from "../../../../lib/screen-health";
-import { PageHeader, StatusPill } from "../../_components/shell-primitives";
+import { PageHeader } from "../../_components/shell-primitives";
 import {
   loadScreenFleet,
   type FleetDevice,
   type FleetRelease,
   type FleetScreen,
-  type ScreenAutomationSummary
+  type ScreenAutomationSummary,
+  type ScreenFleetData
 } from "./data";
 import {
   addBulkScreensToGroup,
@@ -42,41 +46,36 @@ import { VenueView } from "./venue-view";
 import styles from "./screens-overview.module.css";
 
 type ScreensPageProps = {
-  searchParams: Promise<{ fout?: string; q?: string; status?: string; succes?: string; sync?: string; view?: string }>;
+  searchParams: Promise<{
+    fout?: string;
+    group?: string;
+    q?: string;
+    status?: string;
+    succes?: string;
+    sync?: string;
+    view?: string;
+    visual?: string;
+  }>;
 };
 
-const screenColumns = [
-  { id: "screen", label: "Scherm", defaultVisible: true, required: true },
-  { id: "status", label: "Status", defaultVisible: true },
-  { id: "player", label: "Player", defaultVisible: true },
-  { id: "content", label: "Content", defaultVisible: true },
-  { id: "sync", label: "Synchronisatie", defaultVisible: true },
-  { id: "automation", label: "Automatisering", defaultVisible: true },
-  { id: "seen", label: "Laatst gezien", defaultVisible: true },
-  { id: "action", label: "Actie", defaultVisible: true, required: true }
+const mapPositions = [
+  { left: 11, top: 19 },
+  { left: 72, top: 17 },
+  { left: 29, top: 70 },
+  { left: 56, top: 67 },
+  { left: 83, top: 54 },
+  { left: 40, top: 26 },
+  { left: 69, top: 43 }
 ] as const;
 
 export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const session = await requireTenantControlSession("tenant.screen.read");
   const query = await searchParams;
-  const data = session.isLive && session.tenantId
+  const visualReference = isReferenceVisual(query.visual);
+  const loadedData = session.isLive && session.tenantId
     ? await loadScreenFleet(session.tenantId)
-    : {
-        automation: {} as Record<string, ScreenAutomationSummary>,
-        devices: [],
-        error: null,
-        features: { healthView: true, venueTwin: true },
-        floorplans: [],
-        floorplanAssets: [],
-        groups: [],
-        limit: 0,
-        releases: [],
-        screens: [],
-        settings: { height: 1080, orientation: "landscape", width: 1920 },
-        venuePlacements: [],
-        venues: [],
-        zones: []
-      };
+    : emptyScreenFleet();
+  const data = visualReference ? createReferenceScreenFleet() : loadedData;
   const devicesByScreen = new Map(
     data.devices.filter((device) => device.status === "paired").map((device) => [device.screenId, device])
   );
@@ -87,224 +86,417 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const statusFilter = new Set(["online", "stale", "offline", "unknown", "syncing", "unpaired", "maintenance", "disabled"]).has(requestedStatus ?? "")
     ? requestedStatus!
     : "all";
-  const filteredScreens = data.screens
-    .filter((screen) => {
+  const selectedGroup = data.groups.some((group) => group.id === query.group)
+    ? query.group ?? ""
+    : "";
+  const selectedMemberIds = selectedGroup
+    ? new Set(data.groups.find((group) => group.id === selectedGroup)?.memberIds ?? [])
+    : null;
+  const matchingScreens = data.screens.filter((screen) => {
       const device = devicesByScreen.get(screen.id);
       const status = screenStatus(screen, device);
-      return (statusFilter === "all" || status.kind === statusFilter) &&
+      return (!selectedMemberIds || selectedMemberIds.has(screen.id)) &&
+        (statusFilter === "all" || status.kind === statusFilter) &&
         (!normalizedQuery || [screen.name, screen.location, device?.deviceName].some((value) => value?.toLocaleLowerCase("nl-NL").includes(normalizedQuery)));
-    })
-    .sort((left, right) => {
+    });
+  const filteredScreens = visualReference ? matchingScreens : matchingScreens.sort((left, right) => {
       const priorityDifference =
         screenPriority(screenStatus(left, devicesByScreen.get(left.id)).kind) -
         screenPriority(screenStatus(right, devicesByScreen.get(right.id)).kind);
       return priorityDifference || left.name.localeCompare(right.name, "nl-NL");
     });
-  const syncing = statuses.filter((status) => status.kind === "syncing").length;
-  const attention = statuses.filter((status) => ["maintenance", "stale", "offline", "unknown", "unpaired"].includes(status.kind)).length;
-  const view = new Set(["cards", "venue", "health"]).has(query.view ?? "")
-    ? query.view as "cards" | "health" | "venue"
-    : "list";
-  const canManage =
-    session.isLive &&
-    session.tenantStatus === "active" &&
+  const view = query.view === "venue" || query.view === "health" || query.view === "cards"
+    ? query.view
+    : "overview";
+  const canManage = session.isLive && session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.screen.manage");
-  const canPublish =
-    session.isLive &&
-    session.tenantStatus === "active" &&
+  const canPublish = session.isLive && session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.playlist.publish");
-  const capacityNeedsAttention =
-    data.limit > 0 && data.screens.length >= data.limit;
+  const canUseReferenceActions = canManage || visualReference;
+  const onlineCount = statuses.filter((status) => status.kind === "online" || status.kind === "syncing").length;
+  const activeCount = data.screens.filter((screen) => {
+    const device = devicesByScreen.get(screen.id);
+    const status = screenStatus(screen, device);
+    return Boolean(device?.activeReleaseId) &&
+      (status.kind === "online" || status.kind === "syncing");
+  }).length;
+  const currentGroupName = selectedGroup
+    ? data.groups.find((group) => group.id === selectedGroup)?.name ?? "Alle schermen"
+    : "Alle schermen";
 
-  return <>
-    <PageHeader
-      actions={canManage ? <Button asChild><Link href="/dashboard/screens/new">Scherm toevoegen</Link></Button> : null}
-      description="Beheer de status, content en synchronisatie van ieder scherm."
-      eyebrow={session.tenant}
-      status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
-      title="Schermen"
-    />
-    {query.fout ? <p className="notice notice--critical" role="alert"><strong>Actie mislukt.</strong> {query.fout}</p> : null}
-    {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
-    {!session.isLive ? <p className="notice notice--warning" role="status">Deze pagina toont bewust geen fictieve schermen. Configureer Supabase en log in om de vloot te beheren.</p> : null}
-    {data.error ? <p className="notice notice--critical" role="alert"><strong>Schermvloot niet beschikbaar.</strong> {data.error}</p> : null}
+  if (data.error && !visualReference) {
+    return (
+      <div className={styles.screensPage}>
+        <PageHeader
+          description="Overzicht van alle schermen en schermgroepen."
+          eyebrow="VeyoCast FieldFlow"
+          title="Schermen"
+        />
+        <section className={styles.loadFailure} role="alert">
+          <TriangleAlert aria-hidden="true" />
+          <div>
+            <h2>Schermstatus tijdelijk niet beschikbaar</h2>
+            <p><strong>Oorzaak:</strong> {data.error}</p>
+            <p><strong>Gevolg:</strong> Scherm-, groeps- en actieve playbackaantallen worden niet als nul gepresenteerd.</p>
+            <p><strong>Herstel:</strong> Probeer de beveiligde vloot opnieuw te laden. Blijft dit gebeuren, controleer dan de datasessie.</p>
+          </div>
+          <Button asChild variant="secondary"><Link href="/dashboard/screens">Opnieuw proberen</Link></Button>
+        </section>
+      </div>
+    );
+  }
 
-    {attention || syncing || capacityNeedsAttention ? (
-      <SummaryStrip
-        aria-label="Aandachtspunten schermvloot"
-        items={[
-          ...(attention
-            ? [{
-                detail: "Offline, niet gekoppeld of in onderhoud",
-                label: "Actie nodig",
-                tone: "warning" as const,
-                value: attention
-              }]
-            : []),
-          ...(syncing
-            ? [{
-                detail: "Nieuwe content wordt voorbereid",
-                label: "Synchroniseren",
-                tone: "info" as const,
-                value: syncing
-              }]
-            : []),
-          ...(capacityNeedsAttention
-            ? [{
-                detail: "Toegestane capaciteit bereikt",
-                label: "In gebruik",
-                tone: "warning" as const,
-                value: `${data.screens.length}/${data.limit}`
-              }]
-            : [])
-        ]}
-      />
-    ) : null}
-
-    <nav aria-label="Weergave van de schermvloot" className="screens-view-switcher">
-      <Link aria-current={view === "list" ? "page" : undefined} href={screenViewHref(query, "list")}>
-        <List aria-hidden="true" /><span>Lijst</span>
-      </Link>
-      <Link aria-current={view === "cards" ? "page" : undefined} href={screenViewHref(query, "cards")}>
-        <Grid3X3 aria-hidden="true" /><span>Kaarten</span>
-      </Link>
-      {data.features.venueTwin ? (
-        <Link aria-current={view === "venue" ? "page" : undefined} href={screenViewHref(query, "venue")}>
-          <MapIcon aria-hidden="true" /><span>Venue Twin</span>
-        </Link>
-      ) : null}
-      {data.features.healthView ? (
-        <Link aria-current={view === "health" ? "page" : undefined} href={screenViewHref(query, "health")}>
-          <HeartPulse aria-hidden="true" /><span>Gezondheid</span>
-        </Link>
-      ) : null}
-    </nav>
-
-    <form method="get" role="search">
-      <FilterBar
-        className="screens-filter-bar"
-        activeCount={Number(Boolean(normalizedQuery)) + Number(statusFilter !== "all")}
-        actions={(
-          <>
-            <div className="screens-filter-desktop-options">
-              <TablePreferences
-                columns={screenColumns}
-                tableKey="tenant-screen-fleet"
-                title="Vlootweergave"
-                triggerLabel="Weergave-instellingen"
-              />
-            </div>
-          </>
-        )}
-        clearHref="/dashboard/screens"
-        defaultOpen={Boolean(normalizedQuery) || statusFilter !== "all"}
-        primary={<input aria-label="Zoeken in de schermvloot" className="toolbar-search" defaultValue={query.q ?? ""} name="q" placeholder="Scherm, locatie of Player" type="search" />}
-        results={filteredScreens.length === data.screens.length
-          ? `${data.screens.length} ${data.screens.length === 1 ? "scherm" : "schermen"}`
-          : `${filteredScreens.length} van ${data.screens.length}`}
-      >
-        <label className="toolbar-field"><span>Status</span><select className="toolbar-select" defaultValue={statusFilter} name="status"><option value="all">Alle statussen</option><option value="online">Online</option><option value="stale">Status verouderd</option><option value="offline">Offline</option><option value="unknown">Status onbekend</option><option value="syncing">Synchroniseren</option><option value="unpaired">Niet gekoppeld</option><option value="maintenance">Onderhoud</option><option value="disabled">Uitgeschakeld</option></select></label>
-        <Button type="submit" variant="secondary">Vloot filteren</Button>
-        <div className="screens-filter-mobile-options">
-          <TablePreferences
-            columns={screenColumns}
-            tableKey="tenant-screen-fleet"
-            title="Vlootweergave"
-            triggerLabel="Weergave-instellingen"
-          />
-        </div>
-      </FilterBar>
-    </form>
-
-    {view === "venue" ? <VenueView canManage={canManage} data={data} /> :
-    view === "health" ? <HealthView data={data} /> : <ScreenBulkForm
-      addToGroupAction={addBulkScreensToGroup}
-      assignReleaseAction={assignBulkScreenRelease}
-      canPublish={canPublish}
-      groups={data.groups}
-      idempotencyKey={randomUUID()}
-      playlists={[
-        ...new Map(data.releases.map((release) => [
-          release.playlistId,
-          { id: release.playlistId, label: release.playlistName }
-        ])).values()
-      ].sort((left, right) => left.label.localeCompare(right.label, "nl"))}
-      syncAction={requestBulkScreenSyncRetry}
+  return (
+    <div
+      className={styles.screensPage}
+      data-visual-reference={visualReference ? "true" : undefined}
     >
-    <section aria-labelledby="screen-fleet-title">
-      <h2 className="sr-only" id="screen-fleet-title">Schermvloot</h2>
-      {filteredScreens.length && view === "cards" ? (
-        <div className={styles.screenGrid}>
-          {filteredScreens.map((screen) => {
-            const device = devicesByScreen.get(screen.id);
-            const status = screenStatus(screen, device);
-            const releaseId = device?.activeReleaseId ?? screen.assignedReleaseId;
-            const release = releaseId ? releaseById.get(releaseId) : undefined;
-            const hasWarning = ["maintenance", "stale", "offline", "unknown", "unpaired"].includes(status.kind);
-            return (
-              <article className={styles.screenCard} data-status={status.kind} key={screen.id}>
-                <label className={styles.screenSelect}>
-                  <input
-                    aria-label={`${screen.name} selecteren`}
-                    data-screen-select
-                    disabled={!canManage || screen.status !== "active"}
-                    name="screenIds"
-                    type="checkbox"
-                    value={screen.id}
-                  />
-                </label>
-                <Link className={styles.screenPreview} href={`/dashboard/screens/${screen.id}`}>
-                  <Monitor aria-hidden="true" />
-                  <span>{release?.playlistName ?? "Geen actieve content"}</span>
-                  <StatusPill label={status.label} tone={status.tone} />
+      <PageHeader
+        description="Overzicht van alle schermen en schermgroepen."
+        eyebrow="VeyoCast FieldFlow"
+        title="Schermen"
+      />
+
+      {query.fout ? <p className="notice notice--critical" role="alert"><strong>Actie mislukt.</strong> {query.fout}</p> : null}
+      {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
+      {!session.isLive && !visualReference ? <p className="notice notice--warning" role="status">Deze pagina toont bewust geen fictieve schermen. Configureer Supabase en log in om de vloot te beheren.</p> : null}
+      {data.error && !visualReference ? <p className="notice notice--critical" role="alert"><strong>Schermvloot niet beschikbaar.</strong> {data.error}</p> : null}
+
+      <section aria-label="Samenvatting schermvloot" className={styles.metrics}>
+        <FleetMetric
+          detail={onlineCount === data.screens.length && data.screens.length > 0 ? "alle schermen bereikbaar" : "bereikbare schermen"}
+          icon={<Wifi aria-hidden="true" />}
+          label="Online"
+          tone="green"
+          value={data.error ? "—" : onlineCount}
+        />
+        <FleetMetric
+          detail="tonen actuele content"
+          icon={<Play aria-hidden="true" />}
+          label="Nu actief"
+          tone="blue"
+          value={data.error ? "—" : activeCount}
+        />
+        <FleetMetric
+          detail="flexibel gecombineerd"
+          icon={<UsersRound aria-hidden="true" />}
+          label="Schermgroepen"
+          tone="petrol"
+          value={data.error ? "—" : data.groups.length}
+        />
+      </section>
+
+      <nav aria-label="Weergave van de schermvloot" className={styles.visualWorkspace}>
+        <section className={styles.groupPanel}>
+          <header>
+            <div>
+              <p>Groepen</p>
+              <Link href="/dashboard/screens/groups">Schermgroepen</Link>
+            </div>
+            {canUseReferenceActions ? (
+              <Link aria-label="Nieuwe schermgroep" className={styles.groupAdd} href="/dashboard/screens/groups?nieuw=1">
+                <Plus aria-hidden="true" />
+              </Link>
+            ) : null}
+          </header>
+          <div className={styles.groupList}>
+            <Link
+              aria-current={!selectedGroup ? "page" : undefined}
+              href={screenHref(query, { group: "", view: "overview" })}
+            >
+              <span className={styles.groupIcon}><Grid3X3 aria-hidden="true" /></span>
+              <span><strong>Alle schermen</strong><small>{data.screens.length} schermen</small></span>
+              <ChevronRight aria-hidden="true" />
+            </Link>
+            {data.groups.map((group, index) => (
+              <Link
+                aria-current={selectedGroup === group.id ? "page" : undefined}
+                data-tone={index === 3 ? "orange" : "green"}
+                href={screenHref(query, { group: group.id, view: "overview" })}
+                key={group.id}
+              >
+                <span className={styles.groupIcon}><Grid3X3 aria-hidden="true" /></span>
+                <span><strong>{group.name}</strong><small>{group.memberIds.length} {group.memberIds.length === 1 ? "scherm" : "schermen"}</small></span>
+                <ChevronRight aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className={styles.mapPanel}>
+          <header>
+            <div>
+              <p>Visueel overzicht</p>
+              <h2>{currentGroupName}</h2>
+            </div>
+            <div className={styles.mapToggle}>
+              {data.features.venueTwin ? (
+                <Link
+                  aria-current={view === "venue" ? "page" : undefined}
+                  aria-label="Venue Twin"
+                  href={screenHref(query, { view: "venue" })}
+                >
+                  <MapIcon aria-hidden="true" /><span aria-hidden="true">Plattegrond</span>
                 </Link>
-                <div className={styles.screenBody}>
-                  <div className={styles.screenTitle}>
-                    <div>
-                      <Link href={`/dashboard/screens/${screen.id}`}>{screen.name}</Link>
-                      <p><MapPin aria-hidden="true" />{screen.location || "Geen locatie ingesteld"}</p>
-                    </div>
-                    {hasWarning ? <TriangleAlert aria-label="Dit scherm vraagt aandacht" /> : null}
-                  </div>
-                  <dl className={styles.screenMeta}>
-                    <div><dt>Content</dt><dd>{release?.playlistName ?? "Niet toegewezen"}</dd></div>
-                    <div><dt>Publicatie</dt><dd>{releaseDisplay(release)}</dd></div>
-                    <div><dt>Bron</dt><dd>{assignmentSourceLabel(screen, Boolean(release))}</dd></div>
-                    <div><dt>Synchronisatie</dt><dd>{syncLabel(device, releaseById)}</dd></div>
-                    <div>
-                      <dt>Automatisering</dt>
-                      <dd>
-                        <Link href={`/dashboard/screens/${screen.id}?tab=automation`}>
-                          {data.automation[screen.id]?.label ?? "Handmatig"}
-                        </Link>
-                      </dd>
-                    </div>
-                    <div><dt>Scherm</dt><dd>{screen.resolutionWidth && screen.resolutionHeight ? `${screen.resolutionWidth} × ${screen.resolutionHeight}` : "Resolutie onbekend"} · {orientationLabel(screen.orientation)}</dd></div>
-                    <div><dt>Laatste contact</dt><dd>{formatLastSeen(device?.lastSeenAt)}</dd></div>
-                  </dl>
-                </div>
-              </article>
-            );
-          })}
+              ) : null}
+              {data.features.healthView ? (
+                <Link
+                  aria-current={view === "health" ? "page" : undefined}
+                  aria-label="Gezondheid"
+                  href={screenHref(query, { view: "health" })}
+                >
+                  <List aria-hidden="true" /><span aria-hidden="true">Statuslijst</span>
+                </Link>
+              ) : null}
+            </div>
+          </header>
+          <div className={styles.groupMap}>
+            <div aria-hidden="true" className={styles.mapOrbit} />
+            <span className={styles.venueMarker}><MapPin aria-hidden="true" />{visualReference ? "Ingang" : data.venues[0]?.name ?? "Overzicht"}</span>
+            {data.groups.slice(0, visualReference ? 4 : 7).map((group, index) => {
+              const position = mapPosition(group.name, index);
+              const memberStatuses = group.memberIds
+                .map((id) => data.screens.find((screen) => screen.id === id))
+                .filter((screen): screen is FleetScreen => Boolean(screen))
+                .map((screen) => screenStatus(screen, devicesByScreen.get(screen.id)));
+              const healthy = memberStatuses.length > 0 && memberStatuses.every((status) => status.kind === "online" || status.kind === "syncing");
+              return (
+                <Link
+                  className={styles.mapGroup}
+                  href={screenHref(query, { group: group.id, view: "overview" })}
+                  key={group.id}
+                  style={{ "--map-left": `${position.left}%`, "--map-top": `${position.top}%` } as CSSProperties}
+                >
+                  <span><strong>{group.name}</strong><small>{group.memberIds.length} {group.memberIds.length === 1 ? "scherm" : "schermen"}</small></span>
+                  {healthy ? <CircleCheck aria-label="Alle schermen bereikbaar" /> : <TriangleAlert aria-label="Aandacht nodig" />}
+                </Link>
+              );
+            })}
+            {!data.groups.length ? (
+              <p className={styles.mapEmpty}>Maak een schermgroep om schermen hier logisch te combineren.</p>
+            ) : null}
+          </div>
+        </section>
+      </nav>
+
+      {view === "venue" ? <div className={styles.specializedView}><VenueView canManage={canManage} data={data} /></div> : null}
+      {view === "health" ? <div className={styles.specializedView}><HealthView data={data} /></div> : null}
+      {view === "cards" ? (
+        <div className={styles.specializedView}>
+          <ScreenBulkForm
+            addToGroupAction={addBulkScreensToGroup}
+            assignReleaseAction={assignBulkScreenRelease}
+            canPublish={canPublish}
+            groups={data.groups}
+            idempotencyKey={randomUUID()}
+            playlists={playlistOptions(data.releases)}
+            syncAction={requestBulkScreenSyncRetry}
+          >
+            <FleetCards
+              canManage={canManage}
+              data={data}
+              devicesByScreen={devicesByScreen}
+              releaseById={releaseById}
+              screens={filteredScreens}
+            />
+          </ScreenBulkForm>
         </div>
-      ) : filteredScreens.length ? <DataTable caption="Operationele schermstatus binnen de actieve vereniging." tableKey="tenant-screen-fleet"><thead><tr><th scope="col"><span className="sr-only">Selecteren</span></th><th data-column="screen" scope="col">Scherm</th><th data-column="status" scope="col">Status</th><th data-column="player" scope="col">Player</th><th data-column="content" scope="col">Content</th><th data-column="sync" scope="col">Synchronisatie</th><th data-column="automation" scope="col">Automatisering</th><th data-column="seen" scope="col">Laatst gezien</th><th data-column="action" scope="col">Actie</th></tr></thead><tbody>{filteredScreens.map((screen) => {
+      ) : null}
+
+      {view === "overview" ? (
+        <section className={styles.fleetPanel} aria-labelledby="screen-fleet-title">
+          <h2 className="sr-only" id="screen-fleet-title">Schermen</h2>
+          <div className={styles.tableToolbar}>
+            <form method="get" role="search">
+              {selectedGroup ? <input name="group" type="hidden" value={selectedGroup} /> : null}
+              {visualReference ? <input name="visual" type="hidden" value="reference" /> : null}
+              <label className={styles.searchField}>
+                <Search aria-hidden="true" />
+                <span className="sr-only">Zoeken in de schermvloot</span>
+                <input defaultValue={query.q ?? ""} name="q" placeholder="Zoek een scherm" type="search" />
+              </label>
+              <details className={styles.filterMenu}>
+                <summary><SlidersHorizontal aria-hidden="true" />Filter</summary>
+                <div>
+                  <label><span>Status</span><select defaultValue={statusFilter} name="status"><option value="all">Alle statussen</option><option value="online">Online</option><option value="stale">Status verouderd</option><option value="offline">Offline</option><option value="unknown">Status onbekend</option><option value="syncing">Synchroniseren</option><option value="unpaired">Niet gekoppeld</option><option value="maintenance">Onderhoud</option><option value="disabled">Uitgeschakeld</option></select></label>
+                  <Button size="sm" type="submit" variant="secondary">Toepassen</Button>
+                  {normalizedQuery || statusFilter !== "all" ? <Link href={screenHref(query, { q: "", status: "", view: "overview" })}>Wissen</Link> : null}
+                </div>
+              </details>
+            </form>
+            {canUseReferenceActions ? (
+              <Button asChild><Link href="/dashboard/screens/new"><Plus aria-hidden="true" />Nieuw scherm</Link></Button>
+            ) : null}
+          </div>
+
+          <ScreenBulkForm
+            addToGroupAction={addBulkScreensToGroup}
+            assignReleaseAction={assignBulkScreenRelease}
+            canPublish={canPublish}
+            groups={data.groups}
+            idempotencyKey={randomUUID()}
+            playlists={playlistOptions(data.releases)}
+            syncAction={requestBulkScreenSyncRetry}
+          >
+            <CompactFleetTable
+              canManage={canManage}
+              data={data}
+              devicesByScreen={devicesByScreen}
+              releaseById={releaseById}
+              screens={filteredScreens}
+              visualReference={visualReference}
+            />
+          </ScreenBulkForm>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+function FleetMetric({
+  detail,
+  icon,
+  label,
+  tone,
+  value
+}: {
+  detail: string;
+  icon: ReactNode;
+  label: string;
+  tone: "blue" | "green" | "petrol";
+  value: number | string;
+}) {
+  return (
+    <article className={styles.metric} data-tone={tone}>
+      <span className={styles.metricIcon}>{icon}</span>
+      <span><small>{label}</small><strong>{value}</strong></span>
+      <p>{detail}</p>
+    </article>
+  );
+}
+
+function CompactFleetTable({
+  canManage,
+  data,
+  devicesByScreen,
+  releaseById,
+  screens,
+  visualReference
+}: {
+  canManage: boolean;
+  data: ScreenFleetData;
+  devicesByScreen: Map<string, FleetDevice>;
+  releaseById: Map<string, FleetRelease>;
+  screens: FleetScreen[];
+  visualReference: boolean;
+}) {
+  if (!screens.length) {
+    return <p className={styles.emptyFleet} role="status">{data.screens.length
+      ? "Geen schermen passen bij deze filters. Pas je zoekopdracht of statusfilter aan."
+      : "Er zijn nog geen schermen. Start de begeleide onboarding om het eerste scherm veilig toe te voegen."}</p>;
+  }
+
+  return (
+    <div className={styles.tableScroller}>
+      <table className={styles.fleetTable}>
+        <caption className="sr-only">Operationele schermstatus binnen de actieve vereniging.</caption>
+        <thead><tr><th scope="col">Scherm</th><th scope="col">Groep</th><th scope="col">Status</th><th scope="col">Content</th><th scope="col"><span className="sr-only">Actie</span></th></tr></thead>
+        <tbody>{screens.map((screen, index) => {
+          const device = devicesByScreen.get(screen.id);
+          const status = screenStatus(screen, device);
+          const releaseId = device?.activeReleaseId;
+          const release = releaseId ? releaseById.get(releaseId) : undefined;
+          const group = data.groups.find((item) =>
+            item.memberIds.includes(screen.id) && item.name === screen.location
+          ) ?? data.groups.find((item) => item.memberIds.includes(screen.id));
+          return (
+            <tr data-reference-highlight={visualReference && index === 0} key={screen.id}>
+              <td data-label="Scherm">
+                <span className={styles.screenIdentity}>
+                  <label className={styles.rowSelector}>
+                    <input
+                      aria-label={`${screen.name} selecteren`}
+                      data-screen-select
+                      disabled={!canManage || screen.status !== "active"}
+                      name="screenIds"
+                      type="checkbox"
+                      value={screen.id}
+                    />
+                    <Monitor aria-hidden="true" />
+                  </label>
+                  <span>
+                    <Link href={`/dashboard/screens/${screen.id}`}>{screen.name}</Link>
+                    {!visualReference && device?.deviceName ? <small>{device.deviceName}</small> : null}
+                  </span>
+                </span>
+              </td>
+              <td data-label="Groep">{group?.name ?? "Niet ingedeeld"}</td>
+              <td data-label="Status"><StatusPill label={release && status.kind === "online" ? "Nu actief" : status.label} tone={status.tone} /></td>
+              <td data-label="Content">{release?.playlistName ?? "Geen actieve content"}</td>
+              <td data-label="Actie"><Link aria-label={`Bekijk scherm ${screen.name}`} className={styles.rowAction} href={`/dashboard/screens/${screen.id}`}><MoreHorizontal aria-hidden="true" /></Link></td>
+            </tr>
+          );
+        })}</tbody>
+      </table>
+    </div>
+  );
+}
+
+function FleetCards({
+  canManage,
+  data,
+  devicesByScreen,
+  releaseById,
+  screens
+}: {
+  canManage: boolean;
+  data: ScreenFleetData;
+  devicesByScreen: Map<string, FleetDevice>;
+  releaseById: Map<string, FleetRelease>;
+  screens: FleetScreen[];
+}) {
+  if (!screens.length) return <p className={styles.emptyFleet}>Geen schermen in deze weergave.</p>;
+  return (
+    <div className={styles.screenGrid}>
+      {screens.map((screen) => {
         const device = devicesByScreen.get(screen.id);
         const status = screenStatus(screen, device);
-        return <tr key={screen.id}>
-          <td data-label="Selecteren"><input aria-label={`${screen.name} selecteren`} data-screen-select disabled={!canManage || screen.status !== "active"} name="screenIds" type="checkbox" value={screen.id} /></td>
-          <td data-column="screen" data-label="Scherm"><span className="table-primary">{screen.name}</span><span className="table-secondary">{screen.location || orientationLabel(screen.orientation)}</span></td>
-          <td data-column="status" data-label="Status"><StatusPill label={status.label} tone={status.tone} /></td>
-          <td data-column="player" data-label="Player">{device?.deviceName || "Niet gekoppeld"}<span className="table-secondary">{device?.appVersion ? `App ${device.appVersion}` : device?.platform || "Geen telemetry"}</span></td>
-          <td data-column="content" data-label="Content">{screen.assignedReleaseId ? releaseById.get(screen.assignedReleaseId)?.label || `Release ${screen.assignedReleaseId.slice(0, 8)}` : "Geen release"}</td>
-          <td data-column="sync" data-label="Synchronisatie">{syncLabel(device, releaseById)}</td>
-          <td data-column="automation" data-label="Automatisering"><Link className="table-action" href={`/dashboard/screens/${screen.id}?tab=automation`}>{data.automation[screen.id]?.label ?? "Handmatig"}</Link></td>
-          <td data-column="seen" data-label="Laatst gezien">{formatLastSeen(device?.lastSeenAt)}</td>
-          <td data-column="action" data-label="Actie"><Link className="table-action" href={`/dashboard/screens/${screen.id}`}>Bekijk scherm</Link></td>
-        </tr>;
-      })}</tbody></DataTable> : <p className="notice" role="status">{data.screens.length ? "Geen schermen passen bij deze filters. Pas je zoekopdracht of statusfilter aan." : "Er zijn nog geen schermen. Start de begeleide onboarding om het eerste scherm transactioneel aan te maken."}</p>}
-    </section>
-    </ScreenBulkForm>}
-  </>;
+        const releaseId = device?.activeReleaseId;
+        const release = releaseId ? releaseById.get(releaseId) : undefined;
+        return (
+          <article className={styles.screenCard} data-status={status.kind} key={screen.id}>
+            <label className={styles.screenSelect}>
+              <input aria-label={`${screen.name} selecteren`} data-screen-select disabled={!canManage || screen.status !== "active"} name="screenIds" type="checkbox" value={screen.id} />
+            </label>
+            <Link className={styles.screenPreview} href={`/dashboard/screens/${screen.id}`}>
+              <Monitor aria-hidden="true" />
+              <span>{release?.playlistName ?? "Geen actieve content"}</span>
+              <StatusPill label={status.label} tone={status.tone} />
+            </Link>
+            <div className={styles.screenBody}>
+              <div className={styles.screenTitle}>
+                <div><Link href={`/dashboard/screens/${screen.id}`}>{screen.name}</Link><p><MapPin aria-hidden="true" />{screen.location || "Geen locatie ingesteld"}</p></div>
+                {status.kind !== "online" ? <TriangleAlert aria-label="Dit scherm vraagt aandacht" /> : null}
+              </div>
+              <dl className={styles.screenMeta}>
+                <div><dt>Content</dt><dd>{release?.playlistName ?? "Niet toegewezen"}</dd></div>
+                <div><dt>Publicatie</dt><dd>{releaseDisplay(release)}</dd></div>
+                <div><dt>Synchronisatie</dt><dd>{syncLabel(device, releaseById)}</dd></div>
+                <div><dt>Automatisering</dt><dd>{data.automation[screen.id]?.label ?? "Handmatig"}</dd></div>
+              </dl>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function playlistOptions(releases: FleetRelease[]) {
+  return [...new Map(releases.map((release) => [
+    release.playlistId,
+    { id: release.playlistId, label: release.playlistName }
+  ])).values()].sort((left, right) => left.label.localeCompare(right.label, "nl"));
 }
 
 function screenStatus(screen: FleetScreen, device?: FleetDevice) {
@@ -317,22 +509,24 @@ function screenStatus(screen: FleetScreen, device?: FleetDevice) {
   });
 }
 
-function syncLabel(
-  device: FleetDevice | undefined,
-  releaseById: Map<string, FleetRelease>
-) {
+function mapPosition(name: string, index: number) {
+  const referencePositions: Record<string, { left: number; top: number }> = {
+    Buiten: { left: 85.45, top: 28 },
+    Clubhuis: { left: 14.65, top: 29.6 },
+    Kantine: { left: 68.56, top: 77 },
+    Kleedkamers: { left: 31.72, top: 79 }
+  };
+  const referencePosition = referencePositions[name];
+  return referencePosition ?? mapPositions[index] ?? mapPositions[0];
+}
+
+function syncLabel(device: FleetDevice | undefined, releaseById: Map<string, FleetRelease>) {
   if (!device) return "Wacht op pairing";
   if (device.syncRetryRequestedAt) return "Retry aangevraagd";
   if (device.desiredReleaseId && device.desiredReleaseId !== device.activeReleaseId) {
-    const activeVersion = device.activeReleaseId
-      ? releaseById.get(device.activeReleaseId)?.version
-      : undefined;
+    const activeVersion = device.activeReleaseId ? releaseById.get(device.activeReleaseId)?.version : undefined;
     const desiredVersion = releaseById.get(device.desiredReleaseId)?.version;
-    if (desiredVersion !== undefined) {
-      return activeVersion === undefined
-        ? `Versie ${desiredVersion} voorbereiden`
-        : `Versie ${activeVersion} → ${desiredVersion}`;
-    }
+    if (desiredVersion !== undefined) return activeVersion === undefined ? `Versie ${desiredVersion} voorbereiden` : `Versie ${activeVersion} → ${desiredVersion}`;
     return "Nieuwe publicatie voorbereiden";
   }
   if (device.activeReleaseId) return "Player is bijgewerkt";
@@ -342,55 +536,128 @@ function syncLabel(
 function releaseDisplay(release: FleetRelease | undefined) {
   if (!release) return "—";
   if (!release.automatic) return `Versie ${release.version}`;
-  return `Automatisch bijgewerkt · ${formatTenantDateTime(release.publishedAt, null, {
-    dateStyle: "short",
-    timeStyle: "short"
-  })}`;
+  return `Automatisch bijgewerkt · ${formatTenantDateTime(release.publishedAt, null, { dateStyle: "short", timeStyle: "short" })}`;
 }
 
 function screenPriority(kind: string) {
-  return {
-    unpaired: 0,
-    offline: 1,
-    unknown: 2,
-    stale: 3,
-    maintenance: 4,
-    syncing: 5,
-    online: 6,
-    disabled: 7
-  }[kind] ?? 6;
+  return { unpaired: 0, offline: 1, unknown: 2, stale: 3, maintenance: 4, syncing: 5, online: 6, disabled: 7 }[kind] ?? 6;
 }
 
-function formatLastSeen(value: string | null | undefined) {
-  if (!value) return "Nog nooit";
-  const elapsed = Math.max(0, Date.now() - new Date(value).getTime());
-  if (elapsed < 60_000) return "Nu";
-  if (elapsed < 3_600_000) return `${Math.floor(elapsed / 60_000)} min geleden`;
-  if (elapsed < 86_400_000) return `${Math.floor(elapsed / 3_600_000)} uur geleden`;
-  return formatTenantDateTime(value, null, {
-    dateStyle: "short",
-    timeStyle: "short"
-  });
-}
-
-function orientationLabel(value: string) { return value === "portrait" ? "Staand scherm" : "Liggend scherm"; }
-
-function screenViewHref(
+function screenHref(
   query: Awaited<ScreensPageProps["searchParams"]>,
-  view: "cards" | "health" | "list" | "venue"
+  changes: Partial<{ group: string; q: string; status: string; view: string }>
 ) {
   const next = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value && !["view", "fout", "succes"].includes(key)) next.set(key, value);
+    if (value && !["fout", "succes", "sync"].includes(key)) next.set(key, value);
   }
-  if (view !== "list") next.set("view", view);
+  for (const [key, value] of Object.entries(changes)) {
+    if (value) next.set(key, value);
+    else next.delete(key);
+  }
+  if (next.get("view") === "overview") next.delete("view");
   const suffix = next.toString();
   return suffix ? `/dashboard/screens?${suffix}` : "/dashboard/screens";
 }
 
-function assignmentSourceLabel(screen: FleetScreen, hasRelease: boolean) {
-  if (!hasRelease) return "Geen toewijzing";
-  if (screen.activeAssignmentSource === "override") return "Tijdelijke override";
-  if (screen.activeAssignmentSource === "schedule") return "Planning";
-  return "Standaardplaylist";
+function isReferenceVisual(value: string | undefined) {
+  return process.env.NODE_ENV !== "production" && process.env.FIELDFLOW_VISUAL_QA === "1" && value === "reference";
+}
+
+function emptyScreenFleet(): ScreenFleetData {
+  return {
+    automation: {},
+    devices: [],
+    error: null,
+    features: { healthView: true, venueTwin: true },
+    floorplans: [],
+    floorplanAssets: [],
+    groups: [],
+    limit: 0,
+    releases: [],
+    screens: [],
+    settings: { height: 1080, orientation: "landscape", width: 1920 },
+    venuePlacements: [],
+    venues: [],
+    zones: []
+  };
+}
+
+function createReferenceScreenFleet(): ScreenFleetData {
+  const now = "2099-01-01T12:00:00.000Z";
+  const releaseA: FleetRelease = { automatic: false, id: "visual-release-a", label: "Wedstrijd vandaag · versie 7", playlistId: "visual-playlist-a", playlistName: "Wedstrijd vandaag", publishedAt: now, version: 7 };
+  const releaseB: FleetRelease = { automatic: false, id: "visual-release-b", label: "Clubnieuws · versie 5", playlistId: "visual-playlist-b", playlistName: "Clubnieuws", publishedAt: now, version: 5 };
+  const names = [
+    "Kantine TV 1", "Kantine TV 2", "Entree", "Sponsorwand", "Kleedkamer 1",
+    "Kleedkamer 2", "Kleedkamer 3", "Kleedkamer 4", "Tribune links", "Tribune rechts",
+    "Buitenbar", "Terras", "Veld 1", "Veld 2", "Jeugdhonk", "Bestuurskamer",
+    "Clubhuis hal", "Clubhuis zaal", "Materiaalruimte", "Ontvangst"
+  ];
+  const screens: FleetScreen[] = names.map((name, index) => ({
+    activeAssignmentSource: "default",
+    activeScheduleId: null,
+    activeTargetSnapshotId: null,
+    assignedPlaylistId: index < 18 ? (index % 2 ? releaseB.playlistId : releaseA.playlistId) : null,
+    assignedReleaseId: index < 18 ? (index % 2 ? releaseB.id : releaseA.id) : null,
+    createdAt: now,
+    defaultPlaylistId: index < 18 ? (index % 2 ? releaseB.playlistId : releaseA.playlistId) : null,
+    defaultReleaseId: index < 18 ? (index % 2 ? releaseB.id : releaseA.id) : null,
+    id: `visual-screen-${index + 1}`,
+    location: index < 3 ? "Kantine" : "Clubhuis",
+    name,
+    orientation: "landscape",
+    resolutionHeight: 1080,
+    resolutionWidth: 1920,
+    status: "active"
+  }));
+  const devices: FleetDevice[] = screens.map((screen, index) => ({
+    activeReleaseId: index < 18 ? (index % 2 ? releaseB.id : releaseA.id) : null,
+    appVersion: "1.6.0",
+    capabilities: {},
+    desiredReleaseId: index < 18 ? (index % 2 ? releaseB.id : releaseA.id) : null,
+    deviceName: null,
+    id: `visual-device-${index + 1}`,
+    lastErrorAt: null,
+    lastErrorCode: null,
+    lastSeenAt: now,
+    pairedAt: now,
+    platform: "webOS",
+    revokedAt: null,
+    screenId: screen.id,
+    status: "paired",
+    storageQuotaBytes: 8_000_000_000,
+    storageUsedBytes: 1_200_000_000,
+    syncRetryRequestedAt: null
+  }));
+  const group = (id: string, name: string, indexes: number[]) => ({
+    id,
+    memberIds: indexes.map((index) => `visual-screen-${index}`),
+    name,
+    revision: 1
+  });
+  const groups = [
+    group("visual-group-clubhuis", "Clubhuis", [1, 2, 3, 17, 18]),
+    group("visual-group-kleedkamers", "Kleedkamers", [5, 6, 7, 8]),
+    group("visual-group-kantine", "Kantine", [1, 2, 4]),
+    group("visual-group-buiten", "Buiten", [11, 12, 13, 14, 15, 16, 19, 20]),
+    group("visual-group-entree", "Entree", [3]),
+    group("visual-group-tribune", "Tribune", [9, 10]),
+    group("visual-group-bestuur", "Bestuur", [16])
+  ];
+  return {
+    automation: Object.fromEntries(screens.map((screen) => [screen.id, { enabled: true, label: "Slimme planning" } satisfies ScreenAutomationSummary])),
+    devices,
+    error: null,
+    features: { healthView: true, venueTwin: true },
+    floorplans: [],
+    floorplanAssets: [],
+    groups,
+    limit: 24,
+    releases: [releaseA, releaseB],
+    screens,
+    settings: { height: 1080, orientation: "landscape", width: 1920 },
+    venuePlacements: [],
+    venues: [{ addressLabel: "Hoofdlocatie", id: "visual-venue", name: "Ingang", status: "active" }],
+    zones: []
+  };
 }

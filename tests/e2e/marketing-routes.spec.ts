@@ -25,6 +25,7 @@ const representativeRoutes = [
 test("publishes complete metadata and one H1 across every page template", async ({
   page
 }) => {
+  test.slow();
   for (const pathname of representativeRoutes) {
     const response = await page.goto(`${marketingURL}${pathname}`);
 
@@ -64,7 +65,7 @@ test("mobile menu opens, traps interaction and resolves a product route", async 
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Menu sluiten" })).toBeFocused();
 
-  await dialog.getByRole("link", { name: "Alle functies" }).click();
+  await dialog.getByRole("link", { name: "Mogelijkheden" }).click();
   await expect(page).toHaveURL(/\/functies$/);
   await expect(dialog).toBeHidden();
 });

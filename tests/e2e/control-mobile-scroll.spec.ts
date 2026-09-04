@@ -46,7 +46,9 @@ async function assertPageEndIsReachable(page: Page, pathname: string) {
       new RegExp(`${pathname.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`)
     );
     await expect(page.locator("#control-content")).toBeVisible();
-    await expect(page.locator("#control-content h1").first()).toBeVisible();
+    await expect(
+      page.getByRole("main").getByRole("heading", { level: 1 }).first()
+    ).toBeVisible();
   }).toPass({ timeout: 120_000 });
 
   const metrics = await page.getByRole("main").evaluate((element) => {

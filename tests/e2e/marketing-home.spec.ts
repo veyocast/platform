@@ -6,24 +6,64 @@ test("renders the marketing homepage with canon-safe messaging", async ({ page }
   await page.goto(marketingURL);
 
   await expect(page).toHaveTitle(
-    "Living Venue OS voor ieder scherm | VeyoCast"
+    "Van clubverhaal naar ieder scherm | VeyoCast"
   );
   await expect(
     page.getByRole("heading", {
       exact: true,
       level: 1,
-      name: "Elk scherm. Elk bericht. Elk moment."
+      name: "Van clubverhaal naar ieder scherm."
     })
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Plan een demo" }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Bouw je opstelling" }).first()).toBeVisible();
-  await expect(page.getByText("Immutable releases", { exact: true })).toBeVisible();
-  await expect(page.getByText("Last-known-good", { exact: true })).toBeVisible();
-  await expect(page.getByText("Server-side bevoegdheden", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Bekijk hoe het werkt" }).first()).toBeVisible();
+  await expect(page.getByText("Binnen minuten live", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Direct zien wat er speelt." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ieder moment voelt als maatwerk." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Eén platform voor de hele club." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Meer clubgevoel. Minder beheer." })).toBeVisible();
+  await expect(
+    page.locator(".prototype-price__card").getByText("€ 5,95", { exact: true })
+  ).toBeVisible();
+  await expect(page.getByText("Verenigingscommunicatie die vanzelf stroomt.", { exact: true })).toBeVisible();
 
-  await page.getByRole("link", { name: "Bouw je opstelling" }).first().click();
+  await page.getByRole("link", { name: "Bekijk hoe het werkt" }).first().click();
   await expect(page).toHaveURL(/#opstelling$/);
   await expect(page.getByRole("heading", { name: "Bouw je VeyoCast-opstelling." })).toBeVisible();
+});
+
+test("keeps hero overlays in front and separates the setup columns", async ({ page }) => {
+  await page.setViewportSize({ height: 900, width: 1440 });
+  await page.goto(`${marketingURL}/#opstelling`);
+
+  const geometry = await page.evaluate(() => {
+    const stage = document.querySelector<HTMLElement>(".prototype-hero__stage");
+    const media = document.querySelector<HTMLElement>(".prototype-hero__media");
+    const chip = document.querySelector<HTMLElement>(".prototype-stage-chip--top");
+    const player = document.querySelector<HTMLElement>(".prototype-player-bar");
+    const map = document.querySelector<HTMLElement>(".setup-builder__venue-map");
+    const zones = document.querySelector<HTMLElement>(".setup-builder__zone-list");
+
+    if (!stage || !media || !chip || !player || !map || !zones) return null;
+
+    const mapRect = map.getBoundingClientRect();
+    const zonesRect = zones.getBoundingClientRect();
+
+    return {
+      chipZIndex: Number.parseInt(getComputedStyle(chip).zIndex, 10),
+      columnGap: zonesRect.left - mapRect.right,
+      mediaOverflow: getComputedStyle(media).overflow,
+      playerZIndex: Number.parseInt(getComputedStyle(player).zIndex, 10),
+      stageOverflow: getComputedStyle(stage).overflow
+    };
+  });
+
+  expect(geometry).not.toBeNull();
+  expect(geometry?.stageOverflow).toBe("visible");
+  expect(geometry?.mediaOverflow).toBe("hidden");
+  expect(geometry?.chipZIndex).toBeGreaterThanOrEqual(2);
+  expect(geometry?.playerZIndex).toBeGreaterThanOrEqual(2);
+  expect(geometry?.columnGap).toBeGreaterThanOrEqual(32);
 });
 
 test("calculates and securely carries a venue setup into the demo journey", async ({ page }) => {

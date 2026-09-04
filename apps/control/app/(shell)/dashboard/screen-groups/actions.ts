@@ -168,14 +168,14 @@ function conflictMessage(actualRevision: unknown) {
 
 function complete(message: string): never {
   revalidatePath("/dashboard");
-  revalidatePath("/dashboard/screen-groups");
+  revalidatePath("/dashboard/screens/groups");
   revalidatePath("/dashboard/planning");
   revalidatePath("/dashboard/screens");
-  redirect(`/dashboard/screen-groups?succes=${encodeURIComponent(message)}`);
+  redirect(`/dashboard/screens/groups?succes=${encodeURIComponent(message)}`);
 }
 
 function fail(message: string): never {
-  redirect(`/dashboard/screen-groups?fout=${encodeURIComponent(message)}`);
+  redirect(`/dashboard/screens/groups?fout=${encodeURIComponent(message)}`);
 }
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

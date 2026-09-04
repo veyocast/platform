@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useRef, useState } from "react";
-import { CalendarPlus, Pencil, Power, PowerOff } from "lucide-react";
+import { Pencil, Plus, Power, PowerOff } from "lucide-react";
 
 import {
   Button,
@@ -52,6 +52,7 @@ export function ContentScheduleDialog({
   releases,
   schedule,
   screens,
+  triggerLabel,
   timezoneName
 }: {
   defaultOpen?: boolean;
@@ -62,6 +63,7 @@ export function ContentScheduleDialog({
   releases: ReleaseOption[];
   schedule?: ContentScheduleListItem;
   screens: { disabled: boolean; id: string; name: string; status: string }[];
+  triggerLabel?: string;
   timezoneName: string;
 }) {
   const idempotencyKey = useRef<HTMLInputElement>(null);
@@ -151,8 +153,8 @@ export function ContentScheduleDialog({
     <Dialog defaultOpen={defaultOpen}>
       <DialogTrigger asChild>
         <Button disabled={disabled || releases.length === 0 || targetOptions.every((target) => target.disabled)} size={isEditing ? "sm" : "md"} variant={isEditing ? "secondary" : "primary"}>
-          {isEditing ? <Pencil aria-hidden="true" /> : <CalendarPlus aria-hidden="true" />}
-          {isEditing ? "Bewerken" : "Planning maken"}
+          {isEditing ? <Pencil aria-hidden="true" /> : <Plus aria-hidden="true" />}
+          {isEditing ? "Bewerken" : triggerLabel ?? "Planning maken"}
         </Button>
       </DialogTrigger>
       <DialogContent className={styles.dialog}>

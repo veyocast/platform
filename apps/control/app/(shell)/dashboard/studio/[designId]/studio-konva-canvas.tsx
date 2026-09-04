@@ -18,6 +18,7 @@ import {
   evaluateStudioFrame,
   evaluateStudioReducedMotionFrame,
   layoutStudioText,
+  studioPalette,
   type StudioDocument,
   type StudioElement
 } from "@veyocast/studio";
@@ -36,6 +37,8 @@ type CanvasProps = {
   playheadMs: number;
   reducedMotion?: boolean;
   selectedIds: string[];
+  showSafeAreaLabel?: boolean;
+  showGrid?: boolean;
   zoom: number;
 };
 
@@ -49,6 +52,8 @@ export function StudioKonvaCanvas({
   playheadMs,
   reducedMotion = false,
   selectedIds,
+  showSafeAreaLabel = false,
+  showGrid = true,
   zoom
 }: CanvasProps) {
   const frame = useMemo(
@@ -63,6 +68,9 @@ export function StudioKonvaCanvas({
   const [viewport, setViewport] = useState({ height: 620, width: 920 });
   const [spacePanning, setSpacePanning] = useState(false);
   const [dragPanning, setDragPanning] = useState(false);
+  const [selectionColor, setSelectionColor] = useState<string>(
+    studioPalette.electricOrange
+  );
   const [marquee, setMarquee] = useState<{
     additive: boolean;
     height: number;
@@ -83,11 +91,16 @@ export function StudioKonvaCanvas({
   useEffect(() => {
     const node = wrapRef.current;
     if (!node) return;
+    const tokenColor = window
+      .getComputedStyle(node)
+      .getPropertyValue("--ff-info")
+      .trim();
+    if (tokenColor) setSelectionColor(tokenColor);
     const observer = new ResizeObserver(([entry]) => {
       if (!entry) return;
       setViewport({
-        height: Math.max(240, entry.contentRect.height - 32),
-        width: Math.max(280, entry.contentRect.width - 32)
+        height: Math.max(240, entry.contentRect.height - 16),
+        width: Math.max(280, entry.contentRect.width - 16)
       });
     });
     observer.observe(node);
@@ -150,6 +163,7 @@ export function StudioKonvaCanvas({
     <div
       aria-label="Studio-artboard"
       className={styles.canvasViewport}
+      data-grid={showGrid ? "visible" : "hidden"}
       data-panning={activePan || dragPanning}
       onPointerDown={(event) => {
         if (!activePan) return;
@@ -253,7 +267,7 @@ export function StudioKonvaCanvas({
                 background.kind === "solid"
                   ? background.color
                   : background.kind === "transparent"
-                    ? "#FFFFFF"
+                    ? studioPalette.paperWhite
                     : undefined
               }
               fillLinearGradientColorStops={
@@ -279,7 +293,7 @@ export function StudioKonvaCanvas({
               }
               listening={false}
               opacity={0.32}
-              stroke="#FFAE72"
+              stroke={studioPalette.warmOrange}
               strokeWidth={2}
               width={
                 document.artboard.width -
@@ -308,10 +322,11 @@ export function StudioKonvaCanvas({
             {marquee ? (
               <Rect
                 dash={[10, 6]}
-                fill="rgba(255, 92, 32, 0.12)"
+                fill={selectionColor}
                 height={marquee.height}
                 listening={false}
-                stroke="#FF5C20"
+                opacity={0.16}
+                stroke={selectionColor}
                 strokeWidth={2 / scale}
                 width={marquee.width}
                 x={marquee.x}
@@ -320,19 +335,25 @@ export function StudioKonvaCanvas({
             ) : null}
             {canEdit ? (
               <Transformer
-                anchorFill="#FAFAF7"
-                anchorSize={12 / scale}
-                anchorStroke="#FF5C20"
-                borderDash={[8 / scale, 4 / scale]}
-                borderStroke="#FF5C20"
+                anchorFill={studioPalette.paperWhite}
+                anchorSize={2.5 / scale}
+                anchorStroke={selectionColor}
+                anchorStrokeWidth={0.5 / scale}
+                borderDash={[2 / scale, 2 / scale]}
+                borderStroke={selectionColor}
+                borderStrokeWidth={0.5 / scale}
                 flipEnabled={false}
                 keepRatio={false}
+                opacity={0.78}
                 ref={transformerRef}
                 rotateAnchorOffset={28 / scale}
               />
             ) : null}
           </Layer>
         </Stage>
+        {showSafeAreaLabel ? (
+          <span className={styles.canvasSafeAreaBadge}>Veilige zone</span>
+        ) : null}
       </div>
     </div>
   );

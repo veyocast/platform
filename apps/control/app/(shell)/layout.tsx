@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import { requireControlSession } from "../../lib/control-session";
 import { createControlSupabaseClient } from "../../lib/supabase/server";
-import { loadVectorTenantFeatures } from "../../lib/vector-features";
 import { ControlShell } from "./_components/control-shell";
 import type { GlobalUploadTrayItem } from "./_components/global-upload-tray";
 import { getNavigationGroupsForRoles } from "./_lib/control-navigation";
@@ -22,18 +21,16 @@ export default async function ShellLayout({
     session.tenantId,
     session.isLive
   );
-  const vectorFeatures = await loadVectorTenantFeatures(
-    session.tenantId,
-    session.isLive
-  );
-
   return (
     <ControlShell
       key={session.tenantId ?? "platform"}
       navigationGroups={navigationGroups}
       session={session}
       uploadQueue={uploadQueue}
-      vectorFeatures={vectorFeatures}
+      visualQaEnabled={
+        process.env.NODE_ENV !== "production" &&
+        process.env.FIELDFLOW_VISUAL_QA === "1"
+      }
     >
       {children}
     </ControlShell>

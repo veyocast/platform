@@ -254,7 +254,7 @@ function SettingsTab({
         </fieldset> : <p className="notice">Er zijn nog geen actieve schermgroepen. Maak eerst een schermgroep aan.</p>}
         <div className="page-action-group">
           <button className="button-link button-link--primary" disabled={!canManage} type="submit">Schermgroepen opslaan</button>
-          <Link className="button-link button-link--secondary" href="/dashboard/screen-groups">Schermgroepen beheren</Link>
+          <Link className="button-link button-link--secondary" href="/dashboard/screens/groups">Schermgroepen beheren</Link>
         </div>
       </form>
     </section>
@@ -318,7 +318,7 @@ function PlanningTab({
       ) : null}
       <div className="page-action-group">
         <Link className="button-link button-link--primary" href={`/dashboard/planning?target=screen:${screen.id}`}>Planning beheren</Link>
-        <Link className="button-link button-link--secondary" href="/dashboard/screen-groups">Schermgroepen bekijken</Link>
+        <Link className="button-link button-link--secondary" href="/dashboard/screens/groups">Schermgroepen bekijken</Link>
       </div>
     </section>
     <section className="workspace-section" aria-labelledby="screen-schedule-list-title">
