@@ -330,8 +330,11 @@ cascade is platformdefault → tenantaccent → slideoverride. Publicatie bevrie
 de opgeloste maps, zodat een latere brandingwijziging geen bestaande release
 verandert. Component-CSS mag alleen semantische `--vc-*`-variabelen gebruiken;
 een broncodeguard bewaakt hex-, rgb-, hsl- en oklch-drift. Control blokkeert
-ongeldige kleuren, tekst/paneelcontrast onder 4,5:1 en onvoldoende QR-contrast
-ook server-side.
+ongeldige kleuren, tekst/paneelcontrast onder 4,5:1, onvoldoende contrast op de
+foto-overlay en onvoldoende QR-contrast ook server-side. De slidewizard toont
+de belangrijkste kleuren direct en maakt in een geavanceerde light/dark-editor
+ieder semantisch kleurtoken afzonderlijk instelbaar. Moderne en Static
+LG-playback gebruiken exact die in het snapshot opgeslagen tokenkaart.
 
 Prijslijsten renderen twee kolommen, tellen categorieën als volledige rijen en
 houden het vierkante mediavak leeg én maatvast wanneer een foto ontbreekt of is
@@ -346,7 +349,10 @@ loopt de verduistering naar rechts weg. In portrait blijft de bovenste helft
 beeldgedragen; vanaf het midden loopt de afbeelding naar een circa tachtig
 procent donkere ondergrond onder titel en intro. De intro is in deze variant
 groter dan in de overige nieuwsvarianten, zonder de immutable thematokens of
-tenantkleurcascade te omzeilen.
+tenantkleurcascade te omzeilen. De FieldFlow-standaard gebruikt hiervoor een
+neutrale Ink-overlay van circa 84% aan de tekstzijde, 58% in het midden en 8%
+aan het beelduiteinde; iedere waarde blijft als semantisch slidetoken
+aanpasbaar.
 
 Producttitels in prijslijsten gebruiken een leesbare standaardgrootte van 34 px
 op landscape en 32 px op portrait. Alleen op basis van de genormaliseerde

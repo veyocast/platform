@@ -146,6 +146,7 @@ tests en exitcriteria staan in
 | S144 | FieldFlow productplatform en slide-output | De complete marketing-, Control-, Publisher-, Studio-, mobile-, platform- en beheerervaring herontwerpen en tegelijk alle dynamische slides via één compatibele FieldFlow-outputketen naar moderne en statische LG-Players brengen |
 | S145 | FieldFlow v1.6 releasecorrectie | De visueel afgekeurde S144-uitvoering vervangen door de vijf laatst aangeleverde leidende referenties voor Overzicht, Planning, Schermen, Studio en Marketing, zonder security-, RLS-, locked-asset-, toegankelijkheids-, immutable-release- of Player/offlinegrenzen te verlagen |
 | S146 | Studio- en Publisherrecovery | Sportlink-welkomstcontent als één gekoppeld meerteamscomponent beheren, scherm- en releasekeuzes bounded én gepagineerd laden, automatische dynamische releases coalescen met Player-backpressure en monotone provenance, publicatiedoelen bij gedegradeerde telemetry behouden en overige Control-routes naar FieldFlow herstellen |
+| S148 | Instelbare slidekleuren en leesgradient | Alle semantische light/dark-kleuren in de nieuwsslidewizard instelbaar maken, opgeslagen tokenkaarten in moderne en Static LG-playback respecteren en de fullscreen-gradient neutraal donker achter tekst renderen |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op

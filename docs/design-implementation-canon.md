@@ -120,9 +120,10 @@ merkasset, primaire Electric-Orange/Ink-actie, securitygrens of offlinecontract.
 - Surfaces zijn taakgericht en mogen 16–24 px radius gebruiken voor een
   inhoudelijk paneel, herhaald item of begrensde tool. Navigatie, losse labels
   en normale playback krijgen geen decoratieve kaartenlaag.
-- De achtergrond gebruikt petrol/clubgroen, cloud/wit en een subtiel
-  abstract-flow-raster. Oranje is accent/actie; blauw blijft beperkt tot
-  semantische informatie of focus.
+- De slideachtergrond gebruikt de in het immutable snapshot opgeloste
+  semantische light/dark-tokenkaart en mag daardoor de clubhuisstijl volgen.
+  FieldFlow-decoratie ontleent kleur aan dezelfde slideaccenten en voegt niet
+  zelfstandig een conflicterende petrol- of clubgroentint toe.
 - Slidecanvassen gebruiken een vaste 12-koloms landscape- en 6-koloms
   portrait-safe grid. Copy start linksboven, dense data pagineert en primaire
   tekst blijft boven de familiegebonden minimumramp.
@@ -130,10 +131,11 @@ merkasset, primaire Electric-Orange/Ink-actie, securitygrens of offlinecontract.
   Arial/Helvetica/system sans zijn deterministische LG- en capturefallbacks.
 - Light, dark en high contrast zijn expliciete tokensets. Reduced motion maakt
   inhoud direct zichtbaar en schakelt decoratieve transities uit.
-- Fullscreenbeeld gebruikt een orientation-specifieke focal point en begrensde
-  leesoverlay: maximaal 55% aan de tekstzijde, circa 36% midden en 8% aan het
-  beelduiteinde. Sponsorcreative gebruikt contain op een rustige plaat en wordt
-  nooit automatisch gerecolourd of gecropt.
+- Fullscreenbeeld gebruikt een orientation-specifieke focal point en een
+  semantische leesoverlay: voor `fullscreen_gradient` circa 84% aan de
+  tekstzijde, 58% midden en 8% aan het beelduiteinde. Sponsorcreative gebruikt
+  contain op een rustige plaat en wordt nooit automatisch gerecolourd of
+  gecropt.
 
 De gereviewde voorbeelden en reproduceerbare matrix staan in
 `docs/redesign/GOLDEN_INDEX.md`; de tokenbron staat in
