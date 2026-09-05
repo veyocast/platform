@@ -147,6 +147,7 @@ tests en exitcriteria staan in
 | S145 | FieldFlow v1.6 releasecorrectie | De visueel afgekeurde S144-uitvoering vervangen door de vijf laatst aangeleverde leidende referenties voor Overzicht, Planning, Schermen, Studio en Marketing, zonder security-, RLS-, locked-asset-, toegankelijkheids-, immutable-release- of Player/offlinegrenzen te verlagen |
 | S146 | Studio- en Publisherrecovery | Sportlink-welkomstcontent als één gekoppeld meerteamscomponent beheren, scherm- en releasekeuzes bounded én gepagineerd laden, automatische dynamische releases coalescen met Player-backpressure en monotone provenance, publicatiedoelen bij gedegradeerde telemetry behouden en overige Control-routes naar FieldFlow herstellen |
 | S148 | Instelbare slidekleuren en leesgradient | Alle semantische light/dark-kleuren in de nieuwsslidewizard instelbaar maken, opgeslagen tokenkaarten in moderne en Static LG-playback respecteren en de fullscreen-gradient neutraal donker achter tekst renderen |
+| S149 | Centrale tenantstijl en volledige poulevensters | De FieldFlow-kleuren uit afzonderlijke slides naar één tenantbrede Settings-editor verplaatsen en pouleprogramma/-uitslagen voor thuis, uit en overige pouleteams samenstellen |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op
@@ -222,6 +223,18 @@ met behouden pending record en audit. Diffcheck, changed-file secretscan en
 ownership zijn groen. S146 is `NOT_DEPLOYED`: PR/CI, hosted advisors en
 exact-SHA staging- en productionreadbacks blijven de releasefase. Zie
 `docs/s146-studio-publisher-control-recovery-evidence.md`.
+
+S149 vervangt de in S148 geïntroduceerde lokale kleur-authoring forward-only
+door één tenantbrede FieldFlow-authority in Instellingen. Alleen de momenteel
+authorable theme-ID `fieldflow` heeft een volledige centrale light/dark-map;
+het opslagcontract is al per theme gestructureerd. Nieuwe `latest`-snapshots
+bevriezen die tenantkleuren, terwijl bestaande snapshots en gepubliceerde
+releases bytegelijk en immutable blijven. De nieuwsslidewizard kiest geen
+kleuren meer. Voor pouleprogramma en pouleuitslagen verenigt de worker zowel
+`eigenwedstrijden=NEE` als `JA`, plus de algemene clubfeed, en dedupliceert hij
+veldbehoudend op wedstrijdcode. Daardoor bevatten de exacte zeven-dagenvensters
+eigen thuis- en uitwedstrijden én wedstrijden tussen andere teams uit de poule.
+Zie `docs/s149-tenant-theme-poulevensters-evidence.md`.
 
 ### Programmagates
 

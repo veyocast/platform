@@ -172,13 +172,17 @@ release and the Player activates it only at a safe boundary. When content is
 unchanged, no snapshot, render job, fallback object, release, desired-release
 change or Player download is created.
 
-`tenant_settings.primary_color` is the single tenant-owned accent for news
-templates. It is normalized to an uppercase six-digit hex value and frozen
-into `snapshot_data_json.brand.primaryColor`. Changing it increments only the
-relevant active RSS source revisions, so mutable latest-mode slides receive a
-new immutable snapshot while existing releases and pinned history remain
-unchanged. Control previews use that same value; the Control product skin does
-not inherit tenant branding.
+`tenant_settings.theme_color_overrides` is de centrale tenant-owned
+kleurauthority voor authorable themes. De actuele vorm bevat één volledige,
+server-side gevalideerde 26-token light/dark-map onder `fieldflow`; het
+per-theme objectcontract kan later alleen via een versioned schema worden
+uitgebreid. Alleen Instellingen schrijft deze map. Slidewizards bieden geen
+lokale kleuroverride en preview/create-actions laden dezelfde authority
+server-side. Een wijziging zet uitsluitend nieuwe `latest`-snapshots klaar;
+bestaande snapshots, pinned historie en gepubliceerde releases blijven
+ongewijzigd. `tenant_settings.primary_color` blijft alleen compatibele
+merkmetadata voor oudere templates. De Control-productskin erft geen
+tenantbranding.
 
 The new output becomes current only after upload, checksum creation and
 transactionally registering a ready PNG. A latest-mode item in a mutable
@@ -326,15 +330,16 @@ de vaste metrics uit `@veyocast/content-templates`.
 
 Het `editorial`-snapshotdeel heeft `schemaVersion: 2`, vier nieuwsvarianten,
 een prijslijst-fotomodus en volledige expliciete light- én dark-tokenmaps. De
-cascade is platformdefault → tenantaccent → slideoverride. Publicatie bevriest
-de opgeloste maps, zodat een latere brandingwijziging geen bestaande release
-verandert. Component-CSS mag alleen semantische `--vc-*`-variabelen gebruiken;
-een broncodeguard bewaakt hex-, rgb-, hsl- en oklch-drift. Control blokkeert
-ongeldige kleuren, tekst/paneelcontrast onder 4,5:1, onvoldoende contrast op de
-foto-overlay en onvoldoende QR-contrast ook server-side. De slidewizard toont
-de belangrijkste kleuren direct en maakt in een geavanceerde light/dark-editor
-ieder semantisch kleurtoken afzonderlijk instelbaar. Moderne en Static
-LG-playback gebruiken exact die in het snapshot opgeslagen tokenkaart.
+cascade is platformdefault → centrale tenant-theme-map. Er bestaat geen
+slidekleurlaag. Publicatie bevriest de opgeloste maps, zodat een latere
+brandingwijziging geen bestaande release verandert. Component-CSS mag alleen
+semantische `--vc-*`-variabelen gebruiken; een broncodeguard bewaakt hex-, rgb-,
+hsl- en oklch-drift. Control blokkeert ongeldige kleuren,
+tekst/paneelcontrast onder 4,5:1, onvoldoende contrast op de foto-overlay en
+onvoldoende QR-contrast zowel client- als server-side. Instellingen biedt voor
+FieldFlow één centrale light/dark-editor waarin ieder semantisch kleurtoken
+afzonderlijk instelbaar is. Moderne en Static LG-playback gebruiken exact de in
+het snapshot opgeslagen tokenkaart.
 
 Prijslijsten renderen twee kolommen, tellen categorieën als volledige rijen en
 houden het vierkante mediavak leeg én maatvast wanneer een foto ontbreekt of is
@@ -351,8 +356,8 @@ procent donkere ondergrond onder titel en intro. De intro is in deze variant
 groter dan in de overige nieuwsvarianten, zonder de immutable thematokens of
 tenantkleurcascade te omzeilen. De FieldFlow-standaard gebruikt hiervoor een
 neutrale Ink-overlay van circa 84% aan de tekstzijde, 58% in het midden en 8%
-aan het beelduiteinde; iedere waarde blijft als semantisch slidetoken
-aanpasbaar.
+aan het beelduiteinde; iedere waarde blijft centraal als semantisch
+tenant-themetoken aanpasbaar.
 
 Producttitels in prijslijsten gebruiken een leesbare standaardgrootte van 34 px
 op landscape en 32 px op portrait. Alleen op basis van de genormaliseerde

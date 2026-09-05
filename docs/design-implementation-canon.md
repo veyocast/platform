@@ -124,6 +124,10 @@ merkasset, primaire Electric-Orange/Ink-actie, securitygrens of offlinecontract.
   semantische light/dark-tokenkaart en mag daardoor de clubhuisstijl volgen.
   FieldFlow-decoratie ontleent kleur aan dezelfde slideaccenten en voegt niet
   zelfstandig een conflicterende petrol- of clubgroentint toe.
+- De volledige FieldFlow light/dark-tokenkaart wordt één keer per tenant in
+  Instellingen beheerd. Slide-editors mogen geen afzonderlijke kleurwaarden
+  opslaan; zij gebruiken voor preview en nieuwe snapshots dezelfde server-side
+  tenant-authority. Historische snapshots en releases blijven immutable.
 - Slidecanvassen gebruiken een vaste 12-koloms landscape- en 6-koloms
   portrait-safe grid. Copy start linksboven, dense data pagineert en primaire
   tekst blijft boven de familiegebonden minimumramp.

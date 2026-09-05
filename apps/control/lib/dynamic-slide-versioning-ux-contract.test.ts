@@ -36,16 +36,19 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(css).toMatch(/\.matrixRow\s*\{[\s\S]*?display:\s*grid;[\s\S]*?min-width:\s*0;/u);
   });
 
-  it("gebruikt dezelfde vaste FieldFlow Style Step zonder publieke themakiezer", async () => {
-    const [settings, menu, wizard, styleStep] = await Promise.all([
+  it("beheert kleuren centraal en houdt FieldFlow vast", async () => {
+    const [settings, composer, menu, wizard, styleStep] = await Promise.all([
       source("app/(shell)/dashboard/settings/page.tsx"),
+      source("app/(shell)/dashboard/slides/new/slide-composer-form.tsx"),
       source("app/(shell)/dashboard/slides/menu-studio/menu-studio-editor.tsx"),
       source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx"),
       source("app/(shell)/dashboard/slides/_components/fieldflow-style-step.tsx")
     ]);
 
-    expect(settings).toContain("Standaard FieldFlow-stijl");
-    expect(settings).toContain("Bestaande gepubliceerde versies veranderen niet");
+    expect(settings).toContain("één tenantbrede FieldFlow-stijl");
+    expect(settings).toContain("<TenantThemeEditor");
+    expect(composer).not.toContain("<EditorialThemeEditor");
+    expect(composer).not.toContain("editorialThemeJson");
     expect(menu).toContain("<FieldFlowStyleStep");
     expect(wizard).toContain("<FieldFlowStyleStep");
     expect(styleStep).toContain("Vaste premium stijl voor nieuwe inhoud");
