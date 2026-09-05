@@ -58,6 +58,24 @@ describe("nieuwsslide-validatie", () => {
     });
   });
 
+  it("weigert een te lichte foto-overlay achter witte tekst", () => {
+    const theme = validTheme();
+    const invalid = {
+      ...theme,
+      dark: { ...theme.dark, imageOverlayStart: "rgba(255, 255, 255, 0.7)" },
+      light: { ...theme.light, imageOverlayStart: "rgba(255, 255, 255, 0.7)" }
+    };
+    expect(validateEditorialSlideTheme({
+      rawTheme: invalid,
+      rawThemeSelection: platformDefaultThemeSelection,
+      resolvedTheme: invalid,
+      slideType: "news"
+    })).toMatchObject({
+      code: "EDITORIAL_THEME_CONTRAST_LOW",
+      ok: false
+    });
+  });
+
   it("behoudt de nieuwsfamilie en foutmelding in de wizardroute", () => {
     const path = slideComposerErrorPath(
       "news",

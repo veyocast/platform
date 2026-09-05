@@ -133,7 +133,12 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain('data-render-family", typedKind + "-list"');
     expect(html).toContain("renderLegacyTeamMini");
     expect(html).toContain("item.photoMediaAssetId");
-    expect(html).toContain("rgba(4,47,45,.55)");
+    expect(html).toContain("var(--editorial-image-overlay-start)");
+    expect(html).toContain("var(--editorial-image-overlay-mid)");
+    expect(html).toContain("var(--editorial-image-overlay-end)");
+    expect(html).toContain("configuredEditorialTokens");
+    expect(html).toContain("linear-gradient(180deg,var(--editorial-image-overlay-end)");
+    expect(html).not.toContain("linear-gradient(90deg,rgba(4,47,45,.55)");
     expect(html).toContain("LEGACY_TEMPLATE_READY");
     expect(html).toContain('"sport_match_of_the_day"');
     expect(html).toContain("element.textContent = text");

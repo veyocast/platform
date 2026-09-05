@@ -107,7 +107,7 @@
   left: 50%;
   box-sizing: border-box;
   overflow: hidden;
-  background: var(--vc-theme-canvas, var(--vc-canvas));
+  background: var(--vc-canvas);
   color: var(--vc-text);
   font-family: var(--vc-theme-body-font, "Inter"), system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
@@ -138,12 +138,12 @@
 
 .arenaRoot[data-theme-id="fieldflow"]::after {
   background:
-    radial-gradient(circle at 86% 14%, color-mix(in srgb, var(--vc-theme-support) 16%, transparent), transparent 30%),
-    linear-gradient(color-mix(in srgb, var(--vc-theme-line) 34%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--vc-theme-line) 34%, transparent) 1px, transparent 1px),
-    linear-gradient(118deg, transparent 0 74%, color-mix(in srgb, var(--vc-theme-accent) 11%, transparent) 100%);
+    radial-gradient(circle at 86% 14%, var(--vc-accent-soft), transparent 30%),
+    linear-gradient(var(--vc-border-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--vc-border-soft) 1px, transparent 1px),
+    linear-gradient(118deg, transparent 0 74%, var(--vc-accent-soft) 100%);
   background-size: auto, 6cqw 6cqw, 6cqw 6cqw, auto;
-  box-shadow: inset 7.8cqw 0 0 -7.72cqw var(--vc-theme-accent);
+  box-shadow: inset 7.8cqw 0 0 -7.72cqw var(--vc-accent);
   opacity: .92;
 }
 
@@ -1550,8 +1550,8 @@
   background: linear-gradient(
     180deg,
     var(--vc-image-overlay-end) 0 34%,
-    color-mix(in srgb, var(--vc-image-overlay-mid) 72%, transparent) 44%,
-    color-mix(in srgb, var(--vc-image-overlay-start) 84%, transparent) 54% 100%
+    var(--vc-image-overlay-mid) 44%,
+    var(--vc-image-overlay-start) 54% 100%
   );
 }
 

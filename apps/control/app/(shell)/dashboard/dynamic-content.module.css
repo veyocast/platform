@@ -1231,6 +1231,12 @@
   font-weight: 650;
 }
 
+.editorialThemeEditor > .editorialTokenGroup,
+.editorialTokenGroups .editorialTokenGroup {
+  display: grid;
+  gap: var(--vc-space-16);
+}
+
 .editorialTokenField {
   display: grid;
   align-items: end;
@@ -1242,14 +1248,30 @@
   display: grid;
   align-items: center;
   gap: var(--vc-space-8);
-  grid-template-columns: 1.75rem minmax(0, 1fr);
+  grid-template-columns: 2.75rem minmax(0, 1fr);
 }
 
-.editorialColorInput i {
-  width: 1.75rem;
-  height: 1.75rem;
+.editorialColorInput input[type="color"],
+.editorialColorPicker input[type="color"] {
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0.2rem;
   border: 1px solid var(--vc-border);
   border-radius: var(--vc-radius-sm);
+  background: var(--vc-surface);
+  cursor: pointer;
+}
+
+.editorialColorPicker {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-8);
+}
+
+.editorialColorPicker output {
+  color: var(--vc-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
 }
 
 .editorialContrastGrid {
@@ -1270,6 +1292,27 @@
 
 .editorialContrastGrid > div[data-valid="true"] {
   border-left-color: var(--vc-semantic-success-solid);
+}
+
+@media (max-width: 56rem) {
+  .editorialContrastGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 36rem) {
+  .editorialContrastGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .editorialTokenField {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .editorialTokenField > button {
+    justify-self: start;
+  }
 }
 
 .editorialPriceEditor > header,

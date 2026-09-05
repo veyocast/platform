@@ -65,6 +65,10 @@ daarom publiceert CI niet een later herbouwd bestand, maar exact het
 geïnspecteerde immutable bestand uit
 `apps/marketing/public/ipk/`.
 
+Ook de bron van smoketest 1.0.2 blijft bytegelijk aan dat immutable artifact.
+Visuele of functionele wijzigingen vereisen een nieuw versienummer en fysieke
+LG-validatie; wijzig nooit stilzwijgend de bron van een bestaande IPK-versie.
+
 Publiceer de bytegelijk gevalideerde set naar Marketing:
 
 ```bash

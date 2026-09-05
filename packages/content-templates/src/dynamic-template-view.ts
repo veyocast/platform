@@ -1,5 +1,6 @@
 import {
   editorialArenaActiveSlideTypes,
+  editorialArenaConfigurationSchema,
   type EditorialColorTokens,
   type EditorialFocalPoint,
   type EditorialNewsVariant,
@@ -282,26 +283,36 @@ function createDynamicTemplateViewInternal(
   const theme: DynamicTemplateTheme = payload.templateSlug.includes("dark")
     ? "dark"
     : "light";
-  const editorial = parseEditorialArenaConfiguration(data.editorial, {
-    accent: accentColor,
-    mode: theme
-  });
+  const configuredEditorial = editorialArenaConfigurationSchema.safeParse(
+    data.editorial
+  );
+  const editorial = configuredEditorial.success
+    ? configuredEditorial.data
+    : parseEditorialArenaConfiguration(data.editorial, {
+        accent: accentColor,
+        mode: theme
+      });
   const frozenPresentation = parseThemePresentationSnapshot(data.themePresentation);
   const themePresentation = frozenPresentation ?? freezeThemePresentation({
     instant: "1970-01-01T00:00:00.000Z",
     selection: {
       accent: accentColor,
       categoryOverrides: [],
-      modePolicy: { kind: "fixed", mode: theme },
+      modePolicy: {
+        kind: "fixed",
+        mode: configuredEditorial.success ? editorial.theme.mode : theme
+      },
       ref: { catalog: "v2", id: "editorial", version: "1.0.0" },
       support: null
     },
     timezone: "UTC"
   });
   const themeDefinition = resolveThemeDefinition(themePresentation.selection);
-  const themeTokens = frozenPresentation
-    ? themeToEditorialTokens(themePresentation)
-    : activeEditorialTokens(editorial.theme);
+  const themeTokens = configuredEditorial.success
+    ? editorial.theme[themePresentation.resolvedMode.mode]
+    : frozenPresentation
+      ? themeToEditorialTokens(themePresentation)
+      : activeEditorialTokens(editorial.theme);
   const themeIdentity = {
     themeId: themeDefinition.id,
     themePresentation

@@ -22,7 +22,7 @@ export function validateEditorialSlideTheme(input: {
     return {
       code: "EDITORIAL_THEME_INVALID",
       message:
-        "Een of meer Editorial Arena-kleuren zijn ongeldig. Gebruik geldige hexkleuren.",
+        "Een of meer slidekleuren zijn ongeldig. Gebruik een geldige hex-, rgb- of hsl-kleur.",
       ok: false
     };
   }
@@ -35,7 +35,7 @@ export function validateEditorialSlideTheme(input: {
     return {
       code: "EDITORIAL_THEME_CONTRAST_LOW",
       message:
-        "De gekozen tekst- en paneelkleuren hebben onvoldoende contrast. Kies duidelijker kleuren.",
+        "De gekozen tekst-, paneel- of fotokleuren hebben onvoldoende contrast. Kies duidelijker kleuren.",
       ok: false
     };
   }

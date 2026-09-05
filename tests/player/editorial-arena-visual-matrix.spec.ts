@@ -1,9 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-import { editorialArenaDefaultTheme } from "@veyocast/content-templates/editorial-arena-theme";
-import { freezeThemePresentation, themeCatalog } from "@veyocast/content-templates/theme-catalog";
+import {
+  freezeThemePresentation,
+  themeCatalog,
+  themeToEditorialTokens
+} from "@veyocast/content-templates/theme-catalog";
 import type {
   EditorialNewsVariant,
+  EditorialThemeConfig,
   PlayerDynamicTemplatePayload
 } from "@veyocast/contracts";
 import { playerDynamicTemplatePayloadSchema } from "@veyocast/contracts";
@@ -143,8 +147,35 @@ function buildPayload(
   orientation: "landscape" | "portrait",
   themeMode: "dark" | "light"
 ): PlayerDynamicTemplatePayload {
-  const theme = structuredClone(editorialArenaDefaultTheme);
-  theme.mode = themeMode;
+  const selection = {
+    accent: null,
+    categoryOverrides: [],
+    modePolicy: { kind: "fixed" as const, mode: themeMode },
+    ref: {
+      catalog: "v2" as const,
+      id: "fieldflow" as const,
+      version: themeCatalog.fieldflow.version
+    },
+    support: null
+  };
+  const themePresentation = freezeThemePresentation({
+    instant: "2026-09-02T12:00:00.000Z",
+    selection,
+    timezone: "Europe/Amsterdam"
+  });
+  const theme: EditorialThemeConfig = {
+    dark: themeToEditorialTokens(freezeThemePresentation({
+      instant: "2026-09-02T12:00:00.000Z",
+      selection: { ...selection, modePolicy: { kind: "fixed", mode: "dark" } },
+      timezone: "Europe/Amsterdam"
+    })),
+    light: themeToEditorialTokens(freezeThemePresentation({
+      instant: "2026-09-02T12:00:00.000Z",
+      selection: { ...selection, modePolicy: { kind: "fixed", mode: "light" } },
+      timezone: "Europe/Amsterdam"
+    })),
+    mode: themeMode
+  };
   const data = variant.startsWith("price-")
     ? priceData(variant === "price-with-photo", theme)
     : variant.startsWith("news-")
@@ -178,21 +209,7 @@ function buildPayload(
     },
     data: {
       ...data,
-      themePresentation: freezeThemePresentation({
-        instant: "2026-09-02T12:00:00.000Z",
-        selection: {
-          accent: null,
-          categoryOverrides: [],
-          modePolicy: { kind: "fixed", mode: themeMode },
-          ref: {
-            catalog: "v2",
-            id: "fieldflow",
-            version: themeCatalog.fieldflow.version
-          },
-          support: null
-        },
-        timezone: "Europe/Amsterdam"
-      })
+      themePresentation
     },
     orientation,
     schemaVersion: 1,
@@ -204,7 +221,7 @@ function buildPayload(
   };
 }
 
-function priceData(withPhoto: boolean, theme: typeof editorialArenaDefaultTheme) {
+function priceData(withPhoto: boolean, theme: EditorialThemeConfig) {
   const products = Array.from({ length: 12 }, (_, index) => ({
     active: true,
     available: true,
@@ -249,7 +266,7 @@ function priceData(withPhoto: boolean, theme: typeof editorialArenaDefaultTheme)
   };
 }
 
-function newsData(variant: EditorialNewsVariant, theme: typeof editorialArenaDefaultTheme) {
+function newsData(variant: EditorialNewsVariant, theme: EditorialThemeConfig) {
   return {
     brand: { clubName: "Sportvereniging FieldFlow", primaryColor: "#169B62" },
     editorial: {
@@ -282,7 +299,7 @@ function newsData(variant: EditorialNewsVariant, theme: typeof editorialArenaDef
 
 function sportData(
   variant: typeof fixtureVariants[number],
-  theme: typeof editorialArenaDefaultTheme
+  theme: EditorialThemeConfig
 ) {
   const special = [
     "team-roster",

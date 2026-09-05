@@ -144,7 +144,7 @@ describe("theme catalog v2", () => {
     }
   });
 
-  it("begrensd de FieldFlow fullscreen-fotogradient op 55 procent", () => {
+  it("maakt de FieldFlow fullscreen-fotogradient neutraal en donker achter tekst", () => {
     const tokens = themeToEditorialTokens(freezeThemePresentation({
       instant: "2026-09-02T12:00:00.000Z",
       selection: {
@@ -157,9 +157,67 @@ describe("theme catalog v2", () => {
       timezone: "Europe/Amsterdam"
     }));
 
-    expect(tokens.imageOverlayStart).toBe("rgba(4,47,45,.55)");
-    expect(tokens.imageOverlayMid).toBe("rgba(4,47,45,.36)");
-    expect(tokens.imageOverlayEnd).toBe("rgba(4,47,45,.08)");
+    expect(tokens.imageOverlayStart).toBe("rgba(6,8,10,.84)");
+    expect(tokens.imageOverlayMid).toBe("rgba(6,8,10,.58)");
+    expect(tokens.imageOverlayEnd).toBe("rgba(6,8,10,.08)");
+  });
+
+  it("geeft een opgeslagen slidekleurkaart voorrang boven de themacatalogus", () => {
+    const selection = {
+      accent: "#315CFF",
+      categoryOverrides: [],
+      modePolicy: { kind: "fixed" as const, mode: "light" as const },
+      ref: {
+        catalog: "v2" as const,
+        id: "fieldflow" as const,
+        version: themeCatalog.fieldflow.version
+      },
+      support: null
+    };
+    const presentation = freezeThemePresentation({
+      instant: "2026-09-05T12:00:00.000Z",
+      selection,
+      timezone: "Europe/Amsterdam"
+    });
+    const light = themeToEditorialTokens(presentation);
+    const dark = themeToEditorialTokens(freezeThemePresentation({
+      instant: "2026-09-05T12:00:00.000Z",
+      selection: { ...selection, modePolicy: { kind: "fixed", mode: "dark" } },
+      timezone: "Europe/Amsterdam"
+    }));
+    const view = createDynamicTemplateView({
+      data: {
+        brand: { clubName: "Testclub", primaryColor: "#315CFF" },
+        editorial: {
+          newsVariant: "fullscreen_gradient",
+          pricePhotoMode: "show",
+          schemaVersion: 2,
+          theme: {
+            dark,
+            light: {
+              ...light,
+              canvas: "#EAF0FF",
+              imageOverlayStart: "rgba(5, 20, 65, 0.88)"
+            },
+            mode: "light"
+          },
+          themeSelection: selection
+        },
+        news: { articles: [], title: "Nieuws" },
+        themePresentation: presentation
+      },
+      orientation: "landscape",
+      schemaVersion: 1,
+      slideType: "news",
+      snapshotHash: "a".repeat(64),
+      snapshotId: "00000000-0000-4000-8000-000000000109",
+      templateSlug: "editorial-arena-news-light-landscape",
+      templateVersionId: "00000000-0000-4000-8000-000000000110"
+    });
+
+    expect(view?.themeTokens.canvas).toBe("#EAF0FF");
+    expect(view?.themeTokens.imageOverlayStart).toBe("rgba(5, 20, 65, 0.88)");
+    expect(view?.themeTokens.canvas).not.toBe(themeCatalog.fieldflow.light.canvas);
   });
 
   it("starts ACTIVE dwell only after ENTERING completes and fixes posters at 900 ms", () => {
