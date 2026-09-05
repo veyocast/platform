@@ -73,7 +73,7 @@ export const sportlinkSlideTeamContextsSchema = z.array(sportlinkSlideContextSch
   });
 
 export const sportlinkArrivalConfigSchema = z.object({
-  cardCount: z.number().int().min(1).max(4).default(4),
+  cardCount: z.number().int().min(1).max(4).default(2),
   dutyDeskText: z.string().trim().max(120).nullable().default(null),
   emptyBehavior: z.enum(["skip", "placeholder"]).default("skip"),
   highlightRecentMinutes: z.number().int().min(0).max(180).default(15),
@@ -82,7 +82,7 @@ export const sportlinkArrivalConfigSchema = z.object({
   motionPreset: z.enum(sportlinkArrivalMotionPresets).default("auto"),
   pageDurationSeconds: z.number().int().min(5).max(120).default(12),
   placeholderText: z.string().trim().min(1).max(160).default("Er worden nu geen teams verwacht."),
-  showArrivalTime: z.boolean().default(true),
+  showArrivalTime: z.boolean().default(false),
   showClubLogo: z.boolean().default(true),
   showCompetition: z.boolean().default(false),
   showDressingRoom: z.boolean().default(true),

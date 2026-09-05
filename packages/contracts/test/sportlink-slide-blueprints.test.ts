@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createSportlinkSlideBatchSchema,
+  sportlinkArrivalConfigSchema,
   sportlinkSlideBatchMaxDrafts,
   sportlinkSlideContextSchema,
   sportlinkSlideDraftSchema,
@@ -59,6 +60,15 @@ describe("Sportlink slidecontext", () => {
 });
 
 describe("Sportlink aggregate teamcontexten", () => {
+  it("gebruikt twee wedstrijden per slide zonder legacyconfiguraties te breken", () => {
+    expect(sportlinkArrivalConfigSchema.parse({})).toMatchObject({
+      cardCount: 2,
+      showArrivalTime: false
+    });
+    expect(sportlinkArrivalConfigSchema.safeParse({ cardCount: 4 }).success)
+      .toBe(true);
+  });
+
   it("accepteert maximaal honderd unieke teams", () => {
     expect(sportlinkSlideTeamContextsSchema.safeParse(
       Array.from({ length: 100 }, (_, index) => context(`team-${index}`))

@@ -27,12 +27,14 @@ test("welkomstslides bieden vijf motionpresets met een stabiel eindbeeld", async
       await expect(card).toHaveAttribute("data-motion", preset);
       expect(await card.evaluate((element) => getComputedStyle(element).animationName))
         .not.toBe("none");
-      await page.waitForTimeout(1_650);
+      await page.waitForTimeout(850);
       const geometry = await card.evaluate((element) => {
         const box = element.getBoundingClientRect();
         const style = getComputedStyle(element);
         return {
+          animationDuration: style.animationDuration,
           bottom: box.bottom,
+          filter: style.filter,
           opacity: style.opacity,
           overflow: style.overflow,
           right: box.right,
@@ -41,6 +43,8 @@ test("welkomstslides bieden vijf motionpresets met een stabiel eindbeeld", async
         };
       });
       expect(geometry.opacity).toBe("1");
+      expect(geometry.animationDuration).toBe("0.68s");
+      expect(geometry.filter).toBe("none");
       expect(geometry.right).toBeLessThanOrEqual(geometry.viewportWidth);
       expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewportHeight);
       expect(geometry.overflow).toBe("hidden");
@@ -60,7 +64,7 @@ test("welkomstmotion respecteert verminderde beweging", async ({ page }) => {
     .toBe("none");
 });
 
-test("welkomstraster benut de ruimte voor één tot vier thuiswedstrijden", async ({ page }) => {
+test("welkomstraster toont maximaal twee thuiswedstrijden half om half", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ height: 1080, width: 1920 });
 
@@ -72,30 +76,57 @@ test("welkomstraster benut de ruimte voor één tot vier thuiswedstrijden", asyn
         () => document.documentElement.dataset.thumbnailReady === "true"
       );
       const grid = page.locator("[data-cards]");
-      await expect(grid).toHaveAttribute("data-cards", String(count));
+      const visibleCount = Math.min(count, 2);
+      await expect(grid).toHaveAttribute("data-cards", String(visibleCount));
+      await expect(page.getByRole("heading", { name: "Welkom op ons sportpark" }))
+        .toBeVisible();
       const geometry = await grid.evaluate((element) => {
         const style = getComputedStyle(element);
+        const gridBox = element.getBoundingClientRect();
         const cards = Array.from(element.children).map((child) => {
           const box = child.getBoundingClientRect();
           return { height: box.height, width: box.width };
         });
         return {
           cards,
+          bottom: gridBox.bottom,
           columns: style.gridTemplateColumns.split(" ").filter(Boolean).length,
-          rows: style.gridTemplateRows.split(" ").filter(Boolean).length
+          rows: style.gridTemplateRows.split(" ").filter(Boolean).length,
+          top: gridBox.top,
+          viewportHeight: window.innerHeight
         };
       });
-      expect(geometry.columns).toBe(count === 4 ? 2 : count);
-      expect(geometry.rows).toBe(count === 4 ? 2 : 1);
+      expect(geometry.columns).toBe(visibleCount);
+      expect(geometry.rows).toBe(1);
+      expect(geometry.top).toBeGreaterThan(150);
+      expect(geometry.bottom).toBeLessThan(geometry.viewportHeight - 60);
       if (count === 1) {
         expect(geometry.cards[0]?.width).toBeGreaterThan(1_500);
         expect(geometry.cards[0]?.height).toBeGreaterThan(700);
       }
-      await expect(page.locator('img[aria-hidden="true"]')).toHaveCount(count);
-      await expect(page.locator(`img[alt^="Logo "]`)).toHaveCount(count);
+      await expect(page.locator('img[aria-hidden="true"]')).toHaveCount(visibleCount);
+      await expect(page.locator(`img[alt^="Logo "]`)).toHaveCount(visibleCount);
       expect(await page.locator('img[aria-hidden="true"]').first().evaluate(
         (element) => getComputedStyle(element).opacity
       )).toBe("0.3");
+      const backdropGeometry = await page.locator('img[aria-hidden="true"]')
+        .first()
+        .evaluate((element) => {
+          const backdrop = element.getBoundingClientRect();
+          const card = element.parentElement!.getBoundingClientRect();
+          return {
+            heightDelta: Math.abs(backdrop.height - card.height),
+            widthDelta: Math.abs(backdrop.width - card.width)
+          };
+        });
+      expect(backdropGeometry.heightDelta).toBeLessThan(1);
+      expect(backdropGeometry.widthDelta).toBeLessThan(1);
+      expect(await page.locator(`img[alt^="Logo "]`).first().evaluate(
+        (element) => getComputedStyle(element.parentElement!).backgroundColor
+      )).toBe("rgb(255, 255, 255)");
+      await expect(page.getByText(/Aankomst \d{2}:00/)).toHaveCount(0);
+      await expect(page.getByText("Aanvang 14:30 · Kleedkamer 2", { exact: true }))
+        .toBeVisible();
       await expect(page).toHaveScreenshot(`welkomstgrid-${count}-landscape.png`, {
         animations: "disabled",
         caret: "hide",
@@ -119,14 +150,26 @@ test("staand welkomstraster blijft leesbaar zonder horizontale overflow", async 
       () => document.documentElement.dataset.thumbnailReady === "true"
     );
     const grid = page.locator("[data-cards]");
+    const visibleCount = Math.min(count, 2);
+    await expect(grid).toHaveAttribute("data-cards", String(visibleCount));
     const geometry = await grid.evaluate((element) => ({
       clientWidth: element.clientWidth,
       columns: getComputedStyle(element).gridTemplateColumns
         .split(" ").filter(Boolean).length,
+      rows: getComputedStyle(element).gridTemplateRows
+        .split(" ").filter(Boolean).length,
       scrollWidth: element.scrollWidth
     }));
-    expect(geometry.columns).toBe(count === 4 ? 2 : 1);
+    expect(geometry.columns).toBe(1);
+    expect(geometry.rows).toBe(visibleCount);
     expect(geometry.scrollWidth).toBe(geometry.clientWidth);
+    if (count === 2) {
+      await expect(page).toHaveScreenshot("welkomstgrid-2-portrait.png", {
+        animations: "disabled",
+        caret: "hide",
+        maxDiffPixelRatio: 0.002
+      });
+    }
   }
 });
 
@@ -146,7 +189,7 @@ function payload(
     data: {
       brand: { clubName: "VeyoCast United", primaryColor: "#FF5C20" },
       sport: {
-        arrivalConfig: { cardCount: count, emptyBehavior: "skip", motionPreset },
+        arrivalConfig: { cardCount: 4, emptyBehavior: "skip", motionPreset },
         items: Array.from({ length: count }, (_, index) => ({
           homeMatch: true,
           id: `visitor-${index + 1}`,

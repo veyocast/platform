@@ -245,19 +245,18 @@ export function renderLgLegacyHtml() {
     .legacy-volunteer-callout p{max-width:80%;margin:0;color:var(--editorial-muted);font-size:24px}
     .legacy-volunteer-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
     .legacy-volunteer-card{box-sizing:border-box;padding:28px;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 18px 58px var(--editorial-shadow)}
-    .legacy-arrival-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:18px;height:100%}
+    .legacy-arrival-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:18px;height:100%}
     .legacy-arrival-grid[data-cards="1"]{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
     .legacy-arrival-grid[data-cards="2"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
-    .legacy-arrival-grid[data-cards="3"]{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
-    .legacy-arrival-card{position:relative;display:flex;flex-direction:column;justify-content:flex-start;box-sizing:border-box;min-height:0;padding:38px;overflow:hidden;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 18px 58px var(--editorial-shadow);animation-delay:var(--arrival-delay,0ms);animation-duration:1400ms;animation-fill-mode:both;animation-timing-function:cubic-bezier(.16,1,.3,1);will-change:filter,opacity,transform}
-    .legacy-arrival-logo-backdrop{position:absolute;z-index:0;top:50%;right:-34%;width:150%;height:150%;object-fit:contain;object-position:center;opacity:.3;transform:translateY(-50%);pointer-events:none}
-    .legacy-arrival-logo-mark{position:absolute;z-index:2;top:22px;right:24px;display:grid;width:92px;height:92px;place-items:center;border:1px solid var(--editorial-border);border-radius:20px;background:var(--editorial-surface);box-shadow:0 12px 34px var(--editorial-shadow)}
+    .legacy-arrival-card{position:relative;display:flex;flex-direction:column;justify-content:flex-start;box-sizing:border-box;min-height:0;padding:38px;overflow:hidden;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 18px 58px var(--editorial-shadow);animation-delay:var(--arrival-delay,0ms);animation-duration:680ms;animation-fill-mode:both;animation-timing-function:cubic-bezier(.2,0,0,1);backface-visibility:hidden;will-change:opacity,transform}
+    .legacy-arrival-logo-backdrop{position:absolute;z-index:0;top:-1px;right:-1px;bottom:-1px;left:-1px;width:calc(100% + 2px);height:calc(100% + 2px);object-fit:contain;object-position:center;opacity:.3;pointer-events:none}
+    .legacy-arrival-logo-mark{position:absolute;z-index:2;top:22px;right:24px;display:grid;width:92px;height:92px;place-items:center;border:1px solid var(--editorial-border);border-radius:20px;background:#fff;box-shadow:0 12px 34px var(--editorial-shadow)}
     .legacy-arrival-logo-mark img{width:78%;height:78%;object-fit:contain}
     .legacy-arrival-card>i,.legacy-arrival-card>b,.legacy-arrival-card>h2,.legacy-arrival-card>p,.legacy-arrival-card>strong{position:relative;z-index:1}
     .legacy-arrival-card>i{color:var(--accent);font-size:18px;font-style:normal;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
     .legacy-arrival-card>b{position:absolute;top:26px;right:30px;color:#8c929a;font-size:28px}
     .legacy-arrival-card h2{max-width:86%;margin:38px 0 14px;color:var(--editorial-text);font-size:52px;line-height:.98}
-    .legacy-arrival-card p{margin:0 0 18px;color:#9aa2ac;font-size:25px}
+    .legacy-arrival-card p{margin:0 0 18px;color:var(--editorial-text);font-size:34px;font-weight:800}
     .legacy-arrival-card strong{margin-top:auto;padding-top:20px;border-top:1px solid var(--editorial-border-soft);color:var(--editorial-text);font-size:23px}
     .legacy-arrival-sponsor{position:absolute;z-index:2;right:28px;bottom:24px;box-sizing:border-box;width:156px;height:64px;padding:8px;border:1px solid var(--editorial-border);border-radius:12px;background:#fff;object-fit:contain}
     .legacy-arrival-card[data-sponsor="visible"]>strong{margin-right:178px}
@@ -266,26 +265,21 @@ export function renderLgLegacyHtml() {
     .legacy-arrival-grid[data-cards="1"] .legacy-arrival-logo-mark{top:42px;right:46px;width:154px;height:154px;border-radius:30px}
     .legacy-arrival-grid[data-cards="2"] .legacy-arrival-card{padding:48px}
     .legacy-arrival-grid[data-cards="2"] .legacy-arrival-card h2{max-width:72%;margin-top:54px;font-size:64px}
-    .legacy-arrival-grid[data-cards="3"] .legacy-arrival-card{padding:32px}
-    .legacy-arrival-grid[data-cards="3"] .legacy-arrival-card h2{max-width:70%;margin-top:44px;font-size:46px}
-    .legacy-arrival-grid[data-cards="3"] .legacy-arrival-logo-mark{width:78px;height:78px;border-radius:18px}
     .legacy-arrival-card[data-motion="aurora-rise"]{animation-name:legacy-arrival-aurora}
     .legacy-arrival-card[data-motion="spotlight-bloom"]{animation-name:legacy-arrival-spotlight}
     .legacy-arrival-card[data-motion="kinetic-split"]{animation-name:legacy-arrival-kinetic;transform-origin:left center}
     .legacy-arrival-card[data-motion="prism-swipe"]{animation-name:legacy-arrival-prism}
     .legacy-arrival-card[data-motion="grand-flip"]{animation-name:legacy-arrival-flip;backface-visibility:hidden;transform-origin:left center}
-    .editorial-arena.portrait .legacy-arrival-grid{grid-template-columns:1fr;grid-template-rows:repeat(4,minmax(0,1fr));gap:14px}
+    .editorial-arena.portrait .legacy-arrival-grid{grid-template-columns:1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:14px}
     .editorial-arena.portrait .legacy-arrival-grid[data-cards="1"]{grid-template-rows:minmax(0,1fr)}
     .editorial-arena.portrait .legacy-arrival-grid[data-cards="2"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
-    .editorial-arena.portrait .legacy-arrival-grid[data-cards="3"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(3,minmax(0,1fr))}
-    .editorial-arena.portrait .legacy-arrival-grid[data-cards="4"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
     .editorial-arena.portrait .legacy-arrival-card{padding:30px 34px}
     .editorial-arena.portrait .legacy-arrival-card h2{margin-top:24px;font-size:46px}
-    @keyframes legacy-arrival-aurora{0%{opacity:0;filter:blur(18px) saturate(1.8);transform:translateY(88px) scale(.9)}58%{opacity:1;filter:blur(0) saturate(1.28);transform:translateY(-8px) scale(1.015)}100%{opacity:1;filter:none;transform:none}}
-    @keyframes legacy-arrival-spotlight{0%{opacity:0;filter:brightness(2.2) blur(10px);transform:scale(.72)}62%{opacity:1;filter:brightness(1.18);transform:scale(1.025)}100%{opacity:1;filter:none;transform:none}}
-    @keyframes legacy-arrival-kinetic{0%{opacity:0;filter:blur(7px);transform:translateX(-125px) skewX(-8deg) scaleX(.82)}68%{opacity:1;filter:none;transform:translateX(10px) skewX(1deg) scaleX(1.015)}100%{opacity:1;filter:none;transform:none}}
-    @keyframes legacy-arrival-prism{0%{opacity:0;filter:hue-rotate(-24deg) saturate(1.9);transform:translateX(110px) rotate(2.5deg) scale(.94)}64%{opacity:1;filter:hue-rotate(5deg) saturate(1.2);transform:translateX(-7px) rotate(-.25deg) scale(1.01)}100%{opacity:1;filter:none;transform:none}}
-    @keyframes legacy-arrival-flip{0%{opacity:0;filter:blur(9px);transform:perspective(1400px) rotateY(-72deg) translateX(-55px) scale(.9)}70%{opacity:1;filter:none;transform:perspective(1400px) rotateY(5deg) translateX(5px) scale(1.01)}100%{opacity:1;filter:none;transform:perspective(1400px) rotateY(0) translateX(0) scale(1)}}
+    @keyframes legacy-arrival-aurora{from{opacity:0;transform:translateY(32px) scale(.98)}to{opacity:1;transform:none}}
+    @keyframes legacy-arrival-spotlight{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+    @keyframes legacy-arrival-kinetic{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+    @keyframes legacy-arrival-prism{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+    @keyframes legacy-arrival-flip{from{opacity:0;transform:perspective(1400px) rotateY(-12deg) translateX(-24px) scale(.98)}to{opacity:1;transform:none}}
     @media(prefers-reduced-motion:reduce){.legacy-arrival-card[data-motion]{animation:none;filter:none;opacity:1;transform:none}}
     .dynamic-empty{padding:3vh 3vw;border-left:8px solid var(--accent);background:#fffdf7;font-size:clamp(25px,2.4vw,47px);font-weight:800}
     .dark .dynamic-empty{background:#141512}
@@ -6369,7 +6363,7 @@ export function renderLgLegacyHtml() {
           return (templateRecord(candidate) || {}).homeMatch === true;
         });
       }
-      var cardsPerPage = Math.max(1, Math.min(4, Number(arrivalConfiguration.cardCount) || 4));
+      var cardsPerPage = Math.max(1, Math.min(2, Number(arrivalConfiguration.cardCount) || 2));
       var match = slideType === "sport_match_of_the_day" || slideType === "sport_next_match";
       var pages = match ? [items.length ? items[0] : null] :
         birthday && !items.length ? [] :
@@ -6457,7 +6451,7 @@ export function renderLgLegacyHtml() {
                 : "";
               if (slideType === "sport_visitor_arrivals") {
                 arrivalCard.setAttribute("data-motion", motion);
-                arrivalCard.style.setProperty("--arrival-delay", String(index * 110) + "ms");
+                arrivalCard.style.setProperty("--arrival-delay", String(index * 80) + "ms");
               }
               var arrivalLogoUrl = templateAssetUrl(
                 payload,
@@ -6489,8 +6483,23 @@ export function renderLgLegacyHtml() {
                 ));
               }
               arrivalCard.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
-              arrivalCard.appendChild(templateNode("p", "", templateText(item.secondary, "")));
-              arrivalCard.appendChild(templateNode("strong", "", templateText(item.meta, "")));
+              var arrivalSecondaryParts = templateText(item.secondary, "").split(" · ");
+              var arrivalMetaParts = templateText(item.meta, "").split(" · ");
+              var arrivalDetails = [];
+              var arrivalSupporting = [];
+              var arrivalPartIndex;
+              for (arrivalPartIndex = 0; arrivalPartIndex < arrivalSecondaryParts.length; arrivalPartIndex += 1) {
+                var arrivalSecondaryPart = arrivalSecondaryParts[arrivalPartIndex].replace(/^\\s+|\\s+$/g, "");
+                if (arrivalSecondaryPart.indexOf("Aanvang ") === 0) arrivalDetails.push(arrivalSecondaryPart);
+                else if (arrivalSecondaryPart && arrivalSecondaryPart.indexOf("Aankomst ") !== 0) arrivalSupporting.push(arrivalSecondaryPart);
+              }
+              for (arrivalPartIndex = 0; arrivalPartIndex < arrivalMetaParts.length; arrivalPartIndex += 1) {
+                var arrivalMetaPart = arrivalMetaParts[arrivalPartIndex].replace(/^\\s+|\\s+$/g, "");
+                if (arrivalMetaPart.indexOf("Kleedkamer ") === 0) arrivalDetails.push(arrivalMetaPart);
+                else if (arrivalMetaPart) arrivalSupporting.push(arrivalMetaPart);
+              }
+              if (arrivalDetails.length) arrivalCard.appendChild(templateNode("p", "", arrivalDetails.join(" · ")));
+              if (arrivalSupporting.length) arrivalCard.appendChild(templateNode("strong", "", arrivalSupporting.join(" · ")));
               if (arrivalSponsorUrl) {
                 arrivalCard.setAttribute("data-sponsor", "visible");
                 var arrivalSponsor = templateNode("img", "legacy-arrival-sponsor");

@@ -474,6 +474,24 @@ async function mockVisitorArrivalsLegacyApis(page: Page) {
                 status: "Welkom bij {{club}}"
               },
               {
+                homeMatch: true,
+                id: "home-fixture-2",
+                logoMediaAssetId: awayLogoId,
+                meta: "Kleedkamer 4 · Veld 2",
+                primary: "Sporting Noord O17-2",
+                secondary: "Aankomst 13:30 · Aanvang 15:00",
+                status: "Welkom bij {{club}}"
+              },
+              {
+                homeMatch: true,
+                id: "home-fixture-3",
+                logoMediaAssetId: awayLogoId,
+                meta: "Kleedkamer 6 · Veld 3",
+                primary: "Olympia '28 O16-1",
+                secondary: "Aankomst 14:00 · Aanvang 15:30",
+                status: "Welkom bij {{club}}"
+              },
+              {
                 homeMatch: false,
                 id: "away-fixture",
                 logoMediaAssetId: awayLogoId,
@@ -1530,12 +1548,19 @@ test("LG Legacy heet alleen bezoekers van thuiswedstrijden welkom en toont hun l
   )).toContain("LEGACY_TEMPLATE_READY");
   const slide = page.locator(".dynamic-template.editorial-arena");
   await expect(slide).toBeVisible();
-  await expect(slide.locator(".legacy-arrival-grid")).toHaveAttribute("data-cards", "1");
-  await expect(slide.locator(".legacy-arrival-card")).toHaveCount(1);
+  await expect(slide.locator(".legacy-arrival-grid")).toHaveAttribute("data-cards", "2");
+  await expect(slide.locator(".legacy-arrival-card")).toHaveCount(2);
   await expect(slide.getByText("Bezoekers FC", { exact: true })).toBeVisible();
   await expect(slide.getByText("Duindorp sv 1", { exact: true })).toHaveCount(0);
-  await expect(slide.locator(".legacy-arrival-logo-mark img")).toHaveCount(1);
-  await expect(slide.locator(".legacy-arrival-logo-backdrop")).toHaveCSS("opacity", "0.3");
+  await expect(slide.getByText("Olympia '28 O16-1", { exact: true })).toHaveCount(0);
+  await expect(slide.getByText(/Aankomst 13:00/)).toHaveCount(0);
+  await expect(slide.getByText("Aanvang 14:30 · Kleedkamer 2", { exact: true }))
+    .toBeVisible();
+  await expect(slide.locator(".legacy-arrival-logo-mark img")).toHaveCount(2);
+  await expect(slide.locator(".legacy-arrival-logo-mark").first())
+    .toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(slide.locator(".legacy-arrival-logo-backdrop").first())
+    .toHaveCSS("opacity", "0.3");
   await context.close();
 });
 

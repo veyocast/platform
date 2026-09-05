@@ -604,7 +604,7 @@ function createDynamicTemplateViewInternal(
 
   if (["sport_visitor_arrivals", "sport_referee_arrivals"].includes(payload.slideType)) {
     const arrivalConfig = readRecord(sport?.arrivalConfig);
-    const cardsPerPage = safeInteger(arrivalConfig?.cardCount, 1, 4, 4);
+    const cardsPerPage = safeInteger(arrivalConfig?.cardCount, 1, 2, 2);
     const pageDurationSeconds = safeInteger(sport?.pageDurationSeconds, 5, 120, 12);
     return {
       accentColor: themeTokens.accent,
