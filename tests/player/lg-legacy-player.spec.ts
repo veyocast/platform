@@ -1506,6 +1506,7 @@ test("LG Legacy heet alleen bezoekers van thuiswedstrijden welkom en toont hun l
   browser
 }) => {
   const context = await browser.newContext({
+    reducedMotion: "reduce",
     userAgent:
       "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
     viewport: { height: 1080, width: 1920 }
@@ -1530,12 +1531,47 @@ test("LG Legacy heet alleen bezoekers van thuiswedstrijden welkom en toont hun l
   )).toContain("LEGACY_TEMPLATE_READY");
   const slide = page.locator(".dynamic-template.editorial-arena");
   await expect(slide).toBeVisible();
+  await expect(slide.getByRole("heading", { level: 1 }))
+    .toHaveText("Welkom bezoekende teams");
+  await expect(slide.locator(".legacy-arrival-grid"))
+    .toHaveAttribute("data-arrival-kind", "visitor");
   await expect(slide.locator(".legacy-arrival-grid")).toHaveAttribute("data-cards", "1");
   await expect(slide.locator(".legacy-arrival-card")).toHaveCount(1);
   await expect(slide.getByText("Bezoekers FC", { exact: true })).toBeVisible();
+  await expect(slide.getByText("Aanvang: 14:30 | Veld 1", { exact: true })).toBeVisible();
+  await expect(slide.getByText("Kleedkamer: 2", { exact: true })).toBeVisible();
+  await expect(slide.getByText(/Aankomst/)).toHaveCount(0);
   await expect(slide.getByText("Duindorp sv 1", { exact: true })).toHaveCount(0);
+  await expect(slide.locator(
+    ".legacy-arrival-card > i, .legacy-arrival-card > b, .legacy-arrival-card > strong"
+  )).toHaveCount(0);
   await expect(slide.locator(".legacy-arrival-logo-mark img")).toHaveCount(1);
   await expect(slide.locator(".legacy-arrival-logo-backdrop")).toHaveCSS("opacity", "0.3");
+  await expect(slide.locator(".legacy-arrival-logo-backdrop"))
+    .toHaveCSS("object-fit", "cover");
+  await expect(slide.locator(".legacy-arrival-logo-mark"))
+    .toHaveCSS("background-color", "rgb(255, 255, 255)");
+  const welcomeGeometry = await slide.locator(".legacy-arrival-grid").evaluate((grid) => {
+    const card = grid.querySelector<HTMLElement>(".legacy-arrival-card")!;
+    const details = Array.from(card.querySelectorAll<HTMLElement>("p"));
+    return {
+      cardWidth: card.getBoundingClientRect().width,
+      columns: getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length,
+      detailSizes: details.map((detail) => parseFloat(getComputedStyle(detail).fontSize)),
+      detailWeights: details.map((detail) => getComputedStyle(detail).fontWeight),
+      gridWidth: grid.getBoundingClientRect().width,
+      logoWidth: card.querySelector<HTMLElement>(".legacy-arrival-logo-mark")!
+        .getBoundingClientRect().width,
+      titleSize: parseFloat(getComputedStyle(card.querySelector("h2")!).fontSize)
+    };
+  });
+  expect(welcomeGeometry.columns).toBe(2);
+  expect(welcomeGeometry.cardWidth).toBeGreaterThan(welcomeGeometry.gridWidth * 0.45);
+  expect(welcomeGeometry.cardWidth).toBeLessThan(welcomeGeometry.gridWidth * 0.52);
+  expect(welcomeGeometry.logoWidth / welcomeGeometry.cardWidth).toBeCloseTo(0.32, 2);
+  expect(welcomeGeometry.detailSizes.map((size) => size / welcomeGeometry.titleSize))
+    .toEqual([0.8, 0.8]);
+  expect(welcomeGeometry.detailWeights).toEqual(["400", "400"]);
   await context.close();
 });
 

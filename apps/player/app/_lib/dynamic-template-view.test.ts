@@ -296,7 +296,7 @@ describe("trusted dynamic template view", () => {
     });
   });
 
-  it("verbindt Sportlink-display en aankomstsponsor met de view", () => {
+  it("verbindt Sportlink-display maar verbergt irrelevante bezoekerssponsors", () => {
     const sponsorId = "77777777-7777-4777-8777-777777777779";
     const view = createDynamicTemplateView({
       ...base,
@@ -331,7 +331,7 @@ describe("trusted dynamic template view", () => {
     });
 
     expect(view).toMatchObject({
-      arrivalSponsorUrl: "/__veyocast-player-cache/sponsor",
+      arrivalSponsorUrl: "",
       sportDisplay: {
         columns: "one",
         showDressingRoom: true,
@@ -697,25 +697,88 @@ describe("trusted dynamic template view", () => {
     })).toBeNull();
   });
 
-  it("pagineert aankomsten deterministisch en respecteert lege-skip", () => {
+  it("zet de eerstvolgende bezoekerswedstrijd vooraan in pagina's van twee", () => {
     const payload = {
       ...base,
       data: { sport: {
-        arrivalConfig: { cardCount: 2, emptyBehavior: "skip" },
-        items: Array.from({ length: 5 }, (_, index) => ({
-          homeMatch: true, id: `arrival-${index}`, primary: `Team ${index}`,
-          secondary: "Aanvang 14:30", meta: "Kleedkamer 4"
-        })),
+        arrivalConfig: { cardCount: 4, emptyBehavior: "skip" },
+        items: [
+          {
+            homeMatch: true,
+            id: "recent",
+            kickoffAt: "2026-09-05T11:00:00.000Z",
+            meta: "Kleedkamer 8 · Veld veld 4 · Competitie",
+            primary: "Team recent",
+            secondary: "Aankomst 09:30 · Aanvang 13:00"
+          },
+          {
+            dressingRoom: "Kleedkamer 6",
+            field: "Veld 3",
+            homeMatch: true,
+            id: "later",
+            kickoffAt: "2026-09-05T15:00:00.000Z",
+            kickoffTime: "17:00",
+            primary: "Team later"
+          },
+          {
+            dressingRoom: "2",
+            field: "veld 1",
+            homeMatch: true,
+            id: "next",
+            kickoffAt: "2026-09-05T13:00:00.000Z",
+            primary: "Team eerstvolgend",
+            secondary: "Aankomst 13:30 · Aanvang 15:00"
+          },
+          {
+            homeMatch: true,
+            id: "unknown",
+            meta: "Kleedkamer 9 · Veld 5",
+            primary: "Team zonder datum",
+            secondary: "Aanvang 18:00"
+          },
+          {
+            dressingRoom: "4",
+            field: "2",
+            homeMatch: true,
+            id: "second",
+            kickoffAt: "2026-09-05T14:00:00.000Z",
+            kickoffTime: "16:00",
+            primary: "Team tweede"
+          }
+        ],
         pageDurationSeconds: 9,
-        title: "Welkom"
+        title: "Aankomst bezoekende teams"
       }, type: "sport_visitor_arrivals" },
       slideType: "sport_visitor_arrivals",
       templateSlug: "editorial-arena-bezoekers-aankomst-light-landscape"
     } as const;
-    const view = createDynamicTemplateView(payload);
+    const view = createDynamicTemplateView(
+      payload,
+      new Date("2026-09-05T12:00:00.000Z")
+    );
     expect(view?.pages).toHaveLength(3);
     expect(view?.pageDurationMs).toBe(9_000);
     expect(view?.arrivalMotionPreset).toBe("auto");
+    expect(view?.title).toBe("Welkom bezoekende teams");
+    expect(view?.pages).toMatchObject([
+      {
+        items: [
+          {
+            id: "next",
+            meta: "Kleedkamer: 2",
+            secondary: "Aanvang: 15:00 | Veld 1"
+          },
+          {
+            id: "second",
+            meta: "Kleedkamer: 4",
+            secondary: "Aanvang: 16:00 | Veld 2"
+          }
+        ],
+        kind: "arrivals"
+      },
+      { items: [{ id: "later" }, { id: "recent" }], kind: "arrivals" },
+      { items: [{ id: "unknown" }], kind: "arrivals" }
+    ]);
     expect(Array.from({ length: 5 }, (_, index) =>
       resolveWelcomeMotionPreset("auto", 0, index, 5))).toEqual([
       "aurora-rise",

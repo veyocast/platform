@@ -60,11 +60,11 @@ test("welkomstmotion respecteert verminderde beweging", async ({ page }) => {
     .toBe("none");
 });
 
-test("welkomstraster benut de ruimte voor één tot vier thuiswedstrijden", async ({ page }) => {
+test("welkomstraster gebruikt maximaal twee vaste halve slots", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ height: 1080, width: 1920 });
 
-  for (const count of [1, 2, 3, 4]) {
+  for (const count of [1, 2, 4]) {
     await test.step(`${count} wedstrijd${count === 1 ? "" : "en"}`, async () => {
       await page.goto("about:blank");
       await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload("auto", count))}`);
@@ -72,43 +72,92 @@ test("welkomstraster benut de ruimte voor één tot vier thuiswedstrijden", asyn
         () => document.documentElement.dataset.thumbnailReady === "true"
       );
       const grid = page.locator("[data-cards]");
-      await expect(grid).toHaveAttribute("data-cards", String(count));
+      const visibleCards = Math.min(count, 2);
+      await expect(grid).toHaveAttribute("data-arrival-kind", "visitor");
+      await expect(grid).toHaveAttribute("data-cards", String(visibleCards));
+      await expect(page.locator("[data-page-count]"))
+        .toHaveAttribute("data-page-count", String(Math.ceil(count / 2)));
       const geometry = await grid.evaluate((element) => {
+        const gridBox = element.getBoundingClientRect();
         const style = getComputedStyle(element);
         const cards = Array.from(element.children).map((child) => {
           const box = child.getBoundingClientRect();
-          return { height: box.height, width: box.width };
+          return {
+            height: box.height,
+            left: box.left - gridBox.left,
+            top: box.top - gridBox.top,
+            width: box.width
+          };
         });
         return {
           cards,
           columns: style.gridTemplateColumns.split(" ").filter(Boolean).length,
-          rows: style.gridTemplateRows.split(" ").filter(Boolean).length
+          height: gridBox.height,
+          rows: style.gridTemplateRows.split(" ").filter(Boolean).length,
+          width: gridBox.width
         };
       });
-      expect(geometry.columns).toBe(count === 4 ? 2 : count);
-      expect(geometry.rows).toBe(count === 4 ? 2 : 1);
+      expect(geometry.columns).toBe(2);
+      expect(geometry.rows).toBe(1);
+      expect(geometry.cards).toHaveLength(visibleCards);
+      expect(geometry.cards[0]?.left).toBeLessThan(2);
+      expect(geometry.cards[0]?.top).toBeLessThan(2);
+      expect(geometry.cards[0]?.width).toBeGreaterThan(geometry.width * 0.45);
+      expect(geometry.cards[0]?.width).toBeLessThan(geometry.width * 0.52);
+      expect(geometry.cards[0]?.height).toBeGreaterThan(geometry.height * 0.98);
       if (count === 1) {
-        expect(geometry.cards[0]?.width).toBeGreaterThan(1_500);
-        expect(geometry.cards[0]?.height).toBeGreaterThan(700);
+        expect(geometry.cards).toHaveLength(1);
+      } else {
+        expect(geometry.cards[1]?.left).toBeGreaterThan(geometry.width * 0.48);
       }
-      await expect(page.locator('img[aria-hidden="true"]')).toHaveCount(count);
-      await expect(page.locator(`img[alt^="Logo "]`)).toHaveCount(count);
+      await expect(page.getByRole("heading", { level: 1 }))
+        .toHaveText("Welkom bezoekende teams");
+      await expect(page.locator('img[aria-hidden="true"]')).toHaveCount(visibleCards);
+      await expect(page.locator(`img[alt^="Logo "]`)).toHaveCount(visibleCards);
       expect(await page.locator('img[aria-hidden="true"]').first().evaluate(
-        (element) => getComputedStyle(element).opacity
-      )).toBe("0.3");
-      await expect(page).toHaveScreenshot(`welkomstgrid-${count}-landscape.png`, {
-        animations: "disabled",
-        caret: "hide",
-        maxDiffPixelRatio: 0.002
+        (element) => ({
+          objectFit: getComputedStyle(element).objectFit,
+          opacity: getComputedStyle(element).opacity
+        })
+      )).toEqual({ objectFit: "cover", opacity: "0.3" });
+      const firstCard = grid.locator("article").first();
+      await expect(firstCard).toContainText("Bezoekers FC");
+      await expect(firstCard).toContainText("Aanvang: 14:30 | Veld 1");
+      await expect(firstCard).toContainText("Kleedkamer: 2");
+      await expect(firstCard).not.toContainText("Aankomst");
+      await expect(firstCard.locator(":scope > span, :scope > b, :scope > strong"))
+        .toHaveCount(0);
+      const typography = await firstCard.evaluate((element) => {
+        const title = element.querySelector("h2");
+        const details = Array.from(element.querySelectorAll("p"));
+        return {
+          detailSizes: details.map((detail) => parseFloat(getComputedStyle(detail).fontSize)),
+          detailWeights: details.map((detail) => getComputedStyle(detail).fontWeight),
+          titleSize: title ? parseFloat(getComputedStyle(title).fontSize) : 0
+        };
       });
+      expect(typography.detailSizes).toHaveLength(2);
+      expect(typography.detailSizes[0]! / typography.titleSize).toBeCloseTo(0.8, 3);
+      expect(typography.detailSizes[1]! / typography.titleSize).toBeCloseTo(0.8, 3);
+      expect(typography.detailWeights).toEqual(["400", "400"]);
+      expect(await page.locator(`img[alt^="Logo "]`).first().locator("..").evaluate(
+        (element) => getComputedStyle(element).backgroundColor
+      )).toBe("rgb(255, 255, 255)");
+      if (count <= 2) {
+        await expect(page).toHaveScreenshot(`welkomstgrid-${count}-landscape.png`, {
+          animations: "disabled",
+          caret: "hide",
+          maxDiffPixelRatio: 0.002
+        });
+      }
     });
   }
 });
 
-test("staand welkomstraster blijft leesbaar zonder horizontale overflow", async ({ page }) => {
+test("staand welkomstraster gebruikt boven en onder", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ height: 1920, width: 1080 });
-  for (const count of [1, 2, 3, 4]) {
+  for (const count of [1, 2]) {
     await page.goto("about:blank");
     await page.goto(`${playerURL}/thumbnail#payload=${encodePayload({
       ...payload("auto", count),
@@ -119,14 +168,39 @@ test("staand welkomstraster blijft leesbaar zonder horizontale overflow", async 
       () => document.documentElement.dataset.thumbnailReady === "true"
     );
     const grid = page.locator("[data-cards]");
-    const geometry = await grid.evaluate((element) => ({
-      clientWidth: element.clientWidth,
-      columns: getComputedStyle(element).gridTemplateColumns
-        .split(" ").filter(Boolean).length,
-      scrollWidth: element.scrollWidth
-    }));
-    expect(geometry.columns).toBe(count === 4 ? 2 : 1);
+    const geometry = await grid.evaluate((element) => {
+      const gridBox = element.getBoundingClientRect();
+      const cards = Array.from(element.children).map((child) => {
+        const box = child.getBoundingClientRect();
+        return { height: box.height, top: box.top - gridBox.top };
+      });
+      return {
+        cards,
+        clientWidth: element.clientWidth,
+        columns: getComputedStyle(element).gridTemplateColumns
+          .split(" ").filter(Boolean).length,
+        height: gridBox.height,
+        rows: getComputedStyle(element).gridTemplateRows
+          .split(" ").filter(Boolean).length,
+        scrollWidth: element.scrollWidth
+      };
+    });
+    expect(geometry.columns).toBe(1);
+    expect(geometry.rows).toBe(2);
     expect(geometry.scrollWidth).toBe(geometry.clientWidth);
+    expect(geometry.cards[0]?.top).toBeLessThan(2);
+    expect(geometry.cards[0]?.height).toBeGreaterThan(geometry.height * 0.45);
+    expect(geometry.cards[0]?.height).toBeLessThan(geometry.height * 0.52);
+    if (count === 1) {
+      expect(geometry.cards).toHaveLength(1);
+    } else {
+      expect(geometry.cards[1]?.top).toBeGreaterThan(geometry.height * 0.48);
+    }
+    await expect(page).toHaveScreenshot(`welkomstgrid-${count}-portrait.png`, {
+      animations: "disabled",
+      caret: "hide",
+      maxDiffPixelRatio: 0.002
+    });
   }
 });
 

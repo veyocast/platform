@@ -424,15 +424,22 @@ function ArenaPage({
   }
 
   if (page.kind === "arrivals") {
+    const visitorArrivals = view.slideType === "sport_visitor_arrivals";
     const pageSize = Math.max(1, ...view.pages.map((candidate) =>
       candidate.kind === "arrivals" ? candidate.items.length : 0));
     return (
-      <div className={styles.arenaArrivalGrid} data-cards={page.items.length}>
+      <div
+        className={styles.arenaArrivalGrid}
+        data-arrival-kind={visitorArrivals ? "visitor" : "referee"}
+        data-cards={page.items.length}
+      >
         {page.items.map((entry, index) => (
           <article
             className={styles.arenaArrivalCard}
+            data-arrival-kind={visitorArrivals ? "visitor" : "referee"}
+            data-logo={entry.logoUrl ? "visible" : "missing"}
             data-sponsor={view.arrivalSponsorUrl ? "visible" : undefined}
-            data-motion={view.slideType === "sport_visitor_arrivals"
+            data-motion={visitorArrivals
               ? resolveWelcomeMotionPreset(
                 view.arrivalMotionPreset,
                 pageIndex,
@@ -456,14 +463,23 @@ function ArenaPage({
                 </div>
               </>
             ) : null}
-            <span>{entry.status
-              .replaceAll("{{club}}", view.clubName)
-              .replaceAll("{{team}}", entry.primary) ||
-              (view.slideType === "sport_visitor_arrivals" ? "Welkom" : "Wedstrijdofficial")}</span>
-            {!entry.logoUrl ? <b>{String(index + 1).padStart(2, "0")}</b> : null}
-            <h2>{entry.primary}</h2>
-            <p>{entry.secondary}</p>
-            <strong>{entry.meta}</strong>
+            {visitorArrivals ? (
+              <div className={styles.arenaVisitorArrivalCopy}>
+                <h2>{entry.primary}</h2>
+                <p>{entry.secondary}</p>
+                <p>{entry.meta}</p>
+              </div>
+            ) : (
+              <>
+                <span>{entry.status
+                  .replaceAll("{{club}}", view.clubName)
+                  .replaceAll("{{team}}", entry.primary) || "Wedstrijdofficial"}</span>
+                {!entry.logoUrl ? <b>{String(index + 1).padStart(2, "0")}</b> : null}
+                <h2>{entry.primary}</h2>
+                <p>{entry.secondary}</p>
+                <strong>{entry.meta}</strong>
+              </>
+            )}
             {view.arrivalSponsorUrl ? (
               <img
                 alt="Sponsor"

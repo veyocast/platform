@@ -206,6 +206,26 @@ Sportlink rows are split into deterministic pages by the trusted runtime.
 Single-match templates stay limited to one match. Each page receives enough
 playback time to remain readable before the next item or page.
 
+### Bezoekerswelkomstkaart
+
+`sport_visitor_arrivals` is een vaste uitzondering op vrij instelbare
+kaartdichtheid. Een pagina bevat maximaal twee thuiswedstrijdgebonden
+bezoekers: links/rechts op landscape en boven/onder op portrait. Met één
+bezoeker blijft uitsluitend het eerste halve slot gevuld. De eerstvolgende
+wedstrijd staat vooraan; latere wedstrijden volgen oplopend en nog renderbare
+recente wedstrijden pas daarna.
+
+Iedere kaart toont exact drie inhoudsregels: `[clubnaam] [team]`,
+`Aanvang: [tijd] | Veld [nummer]` en `Kleedkamer: [nummer]`. De laatste twee
+regels zijn exact 80% van regel één en hebben regulier gewicht. Aankomsttijd,
+welkomstkicker, competitie, duty-desktekst en sponsor zijn niet zichtbaar. Het
+checksumgebonden uitteamlogo vult de kaart als 30%-achtergrond en staat tevens
+groot op een witte rechterplaat; ontbrekende logo-assets worden nooit extern
+opgehaald of gereconstrueerd. De moderne en Static LG-renderers normaliseren
+ook oudere veilige snapshots naar dit contract. Nieuwe `latest`-snapshots
+worden via de bestaande queue gepubliceerd zonder een snapshot, fallback of
+release mutable te maken.
+
 ## Reference templates
 
 The original light menu/news templates remain available. S84 adds responsive

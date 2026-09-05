@@ -2428,7 +2428,178 @@
   font-size: 52px;
 }
 
+.arenaArrivalGrid[data-arrival-kind="visitor"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.arenaArrivalGrid[data-arrival-kind="visitor"][data-cards="1"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"] {
+  justify-content: center;
+  padding: 48px;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"]::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    var(--vc-surface) 0%,
+    var(--vc-surface) 48%,
+    transparent 78%
+  );
+  opacity: .9;
+  pointer-events: none;
+  content: "";
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"][data-motion] {
+  animation-duration: 900ms;
+  will-change: opacity, transform;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"][data-motion]::after {
+  display: none;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"][data-motion] > * {
+  animation: none;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"][data-motion="aurora-rise"] {
+  animation-name: visitorArrivalRise;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"][data-motion="spotlight-bloom"] {
+  animation-name: visitorArrivalBloom;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"][data-motion="kinetic-split"] {
+  animation-name: visitorArrivalSplit;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"][data-motion="prism-swipe"] {
+  animation-name: visitorArrivalSwipe;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"][data-motion="grand-flip"] {
+  animation-name: visitorArrivalFlip;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaArrivalLogoBackdrop {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: .3;
+  transform: none;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaArrivalLogoMark {
+  z-index: 3;
+  top: 0;
+  right: 0;
+  width: 32%;
+  height: 100%;
+  border: 0;
+  border-left: 1px solid var(--vc-border);
+  border-radius: 0;
+  background: white;
+  box-shadow: -18px 0 48px var(--vc-shadow);
+  backdrop-filter: none;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaArrivalLogoMark img {
+  width: 84%;
+  height: 84%;
+  object-fit: contain;
+}
+
+.arenaVisitorArrivalCopy {
+  position: relative;
+  z-index: 2 !important;
+  display: flex;
+  width: 64%;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"][data-logo="missing"] .arenaVisitorArrivalCopy {
+  width: 100%;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorArrivalCopy h2 {
+  max-width: none;
+  margin: 0;
+  color: var(--vc-text);
+  font-size: clamp(38px, 2.7083vw, 52px);
+  line-height: 1;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorArrivalCopy p {
+  margin: 0;
+  color: var(--vc-text);
+  font-size: clamp(30.4px, 2.1667vw, 41.6px);
+  font-weight: 400;
+  line-height: 1.08;
+  white-space: nowrap;
+}
+
+@keyframes visitorArrivalRise {
+  from { opacity: 0; transform: translate3d(0, 52px, 0) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes visitorArrivalBloom {
+  from { opacity: 0; transform: scale(.93); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes visitorArrivalSplit {
+  from { opacity: 0; transform: translate3d(-72px, 0, 0) skewX(-4deg); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes visitorArrivalSwipe {
+  from { opacity: 0; transform: translate3d(72px, 0, 0) rotate(1deg); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes visitorArrivalFlip {
+  from { opacity: 0; transform: perspective(1400px) rotateY(-38deg) translate3d(-32px, 0, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-arrival-kind="visitor"],
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-arrival-kind="visitor"][data-cards="1"],
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-arrival-kind="visitor"][data-cards="2"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] {
+  padding: 54px;
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorArrivalCopy h2 {
+  max-width: none;
+  margin: 0;
+  font-size: clamp(44px, 5.5556vw, 60px);
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorArrivalCopy p {
+  font-size: clamp(35.2px, 4.4444vw, 48px);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .arenaArrivalCard[data-arrival-kind="visitor"][data-motion],
   .arenaArrivalCard[data-motion],
   .arenaArrivalCard[data-motion] > *:not(.arenaArrivalLogoBackdrop),
   .arenaArrivalCard[data-motion]::after {
