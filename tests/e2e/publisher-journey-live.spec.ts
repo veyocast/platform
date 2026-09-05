@@ -67,7 +67,7 @@ test.describe("guided Publisher journey", () => {
     await page.getByLabel(/Maak één nieuwe immutable release/).check();
     await page.getByRole("button", { name: "Release publiceren en uitrol volgen" }).click();
 
-    await expect(page).toHaveURL(/\/dashboard\/releases\/[0-9a-f-]+/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/dashboard\/publications\/[0-9a-f-]+/, { timeout: 15_000 });
     await expect(page.getByText("De immutable release is gepubliceerd")).toBeVisible();
     await expect(page.getByText("Huidig gewenst", { exact: true })).toBeVisible();
   });

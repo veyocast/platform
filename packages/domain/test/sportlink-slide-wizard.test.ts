@@ -61,6 +61,99 @@ describe("Sportlink bulk wizard", () => {
     expect(copied[1]!.context.poolId).toBe("pool-1");
     expect(copied[1]!.context.providerTeamId).toBe("b");
   });
+
+  it("bundelt ieder aankomsttype tot één logisch concept met alle teams", () => {
+    const teams = Array.from({ length: 22 }, (_, index) => team(`team-${index}`));
+    const drafts = buildSportlinkSlideDrafts({
+      blueprintKeys: [
+        "sportlink.visitor_arrivals",
+        "sportlink.referee_arrivals"
+      ],
+      orientation: "landscape",
+      teams,
+      templateVersionIdBySlideType: {
+        sport_referee_arrivals: templateVersionId,
+        sport_visitor_arrivals: templateVersionId
+      },
+      themeSelection
+    });
+
+    expect(drafts).toHaveLength(2);
+    expect(drafts.map((draft) => draft.blueprintKey)).toEqual([
+      "sportlink.visitor_arrivals",
+      "sportlink.referee_arrivals"
+    ]);
+    for (const draft of drafts) {
+      expect(draft.teamContexts).toHaveLength(22);
+      expect(draft.teamContexts?.map((context) => context.providerTeamId))
+        .toEqual(teams.map((candidate) => candidate.context.providerTeamId));
+      expect(draft.name).not.toContain("team-0 ·");
+    }
+  });
+
+  it("behoudt team × type voor gewone slides naast aggregate aankomsten", () => {
+    const drafts = buildSportlinkSlideDrafts({
+      blueprintKeys: [
+        "sportlink.club_schedule_today",
+        "sportlink.visitor_arrivals"
+      ],
+      orientation: "portrait",
+      teams: [team("a"), team("b"), team("c")],
+      templateVersionIdBySlideType: {
+        sport_program: templateVersionId,
+        sport_visitor_arrivals: templateVersionId
+      },
+      themeSelection
+    });
+
+    expect(drafts.filter((draft) =>
+      draft.blueprintKey === "sportlink.club_schedule_today"
+    )).toHaveLength(3);
+    expect(drafts.filter((draft) =>
+      draft.blueprintKey === "sportlink.visitor_arrivals"
+    )).toHaveLength(1);
+    expect(drafts).toHaveLength(4);
+  });
+
+  it("maakt onafhankelijke kopieën van aggregate teamcontexten", () => {
+    const [draft] = buildSportlinkSlideDrafts({
+      blueprintKeys: ["sportlink.visitor_arrivals"],
+      orientation: "landscape",
+      teams: [team("a"), team("b")],
+      templateVersionIdBySlideType: {
+        sport_visitor_arrivals: templateVersionId
+      },
+      themeSelection
+    });
+
+    expect(draft).toBeDefined();
+    draft!.context.poolId = "primary-changed";
+    expect(draft!.teamContexts?.[0]?.poolId).toBe("pool-1");
+    draft!.teamContexts![0]!.poolId = "aggregate-changed";
+    expect(draft!.teamContexts?.[1]?.poolId).toBe("pool-1");
+  });
+
+  it("weigert onbegrensde of dubbele aggregate teamselecties", () => {
+    const input = {
+      blueprintKeys: ["sportlink.visitor_arrivals"] as const,
+      orientation: "landscape" as const,
+      templateVersionIdBySlideType: {
+        sport_visitor_arrivals: templateVersionId
+      },
+      themeSelection
+    };
+
+    expect(() => buildSportlinkSlideDrafts({
+      ...input,
+      blueprintKeys: [...input.blueprintKeys],
+      teams: Array.from({ length: 101 }, (_, index) => team(`team-${index}`))
+    })).toThrow();
+    expect(() => buildSportlinkSlideDrafts({
+      ...input,
+      blueprintKeys: [...input.blueprintKeys],
+      teams: [team("dubbel"), team("dubbel")]
+    })).toThrow();
+  });
 });
 
 describe("aankomstslides", () => {

@@ -34,7 +34,7 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
   const currentScreens = data?.screenStates.filter((state) => state.screen.assignedReleaseId === releaseId) ?? [];
 
   return <>
-    <Link className="breadcrumb-link" href="/dashboard/releases">← Terug naar Release Center</Link>
+    <Link className="breadcrumb-link" href="/dashboard/publications">← Terug naar Publicaties</Link>
     <PageHeader
       actions={release ? <div className="page-action-group"><Link className="button-link button-link--secondary" href={`/dashboard/playlists/${release.playlistId}`}>Open playlist</Link><a className="button-link button-link--primary" href="#opnieuw-toewijzen">Opnieuw toewijzen</a></div> : null}
       description={release ? `${release.itemCount} items · ${formatBytes(release.totalBytes)} · gepubliceerd door ${release.publishedBy} op ${formatDate(release.publishedAt)}.` : "De release kon niet worden geladen."}
@@ -58,7 +58,7 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
 
       <section className="workspace-section" aria-labelledby="sync-title">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="sync-title">Uitrol per scherm</h2><p className="work-panel__meta">Desired, downloaden, verifiëren en actief worden afzonderlijk getoond. Onbekend blijft onbekend.</p></div><StatusPill label="Live telemetry" tone="info" /></div>
-        <div className="data-table-frame"><table className="data-table data-table--responsive"><caption>Preflight en synchronisatiefase per scherm.</caption><thead><tr><th scope="col">Scherm</th><th scope="col">Toewijzing</th><th scope="col">Voortgang</th><th scope="col">Preflight</th><th scope="col">Ontbrekend</th><th scope="col">Heartbeat</th></tr></thead><tbody>{data.screenStates.map((state) => <tr key={state.screen.id}>
+        <div aria-label="Preflight en synchronisatiefase per scherm" className="data-table-frame" tabIndex={0}><table className="data-table data-table--responsive"><caption>Preflight en synchronisatiefase per scherm.</caption><thead><tr><th scope="col">Scherm</th><th scope="col">Toewijzing</th><th scope="col">Voortgang</th><th scope="col">Preflight</th><th scope="col">Ontbrekend</th><th scope="col">Heartbeat</th></tr></thead><tbody>{data.screenStates.map((state) => <tr key={state.screen.id}>
           <td data-label="Scherm"><span className="table-primary">{state.screen.name}</span><span className="table-secondary">{state.screen.location || "Geen locatie"} · {state.screen.status}</span></td>
           <td data-label="Toewijzing"><StatusPill label={state.screen.assignedReleaseId === releaseId ? "Huidig gewenst" : "Niet toegewezen"} tone={state.screen.assignedReleaseId === releaseId ? "success" : "neutral"} /></td>
           <td data-label="Voortgang"><StatusPill {...progressStatus(state.activeReleaseId, state.desiredReleaseId ?? state.screen.assignedReleaseId, state.latestPhase, releaseId)} /></td>

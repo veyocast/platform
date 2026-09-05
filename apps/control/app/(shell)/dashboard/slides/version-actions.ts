@@ -74,11 +74,15 @@ export async function publishDynamicSlideVersion(input: {
     p_version_id: input.versionId
   });
   if (result.error) {
+    const linkedSelectionRequired = result.error.code === "23514" &&
+      result.error.message.includes("linked team selection");
     return {
       code: result.error.code ?? "VERSION_PUBLISH_FAILED",
       message: result.error.code === "42501"
         ? "Je hebt geen toestemming om deze versie te publiceren."
-        : result.error.code === "40001"
+        : linkedSelectionRequired
+          ? "Sla de gekoppelde teamselectie eerst op voordat je deze versie publiceert."
+          : result.error.code === "40001"
           ? "Deze conceptversie is intussen gewijzigd. Vernieuw de pagina."
           : "De versie kon niet worden gepubliceerd. De huidige versie blijft actief.",
       ok: false

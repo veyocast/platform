@@ -39,6 +39,43 @@ export type ControlNavigationGroup = {
   title: string;
 };
 
+export type ControlRouteFamily =
+  | "account"
+  | "activity"
+  | "engage"
+  | "integrations"
+  | "media"
+  | "overview"
+  | "planning"
+  | "platform"
+  | "playlists"
+  | "publications"
+  | "publish"
+  | "screens"
+  | "secondary"
+  | "settings"
+  | "slides"
+  | "sources"
+  | "sponsors"
+  | "studio"
+  | "support"
+  | "team"
+  | "templates";
+
+export type ControlRouteLayout =
+  | "journey"
+  | "platform"
+  | "reference"
+  | "resource"
+  | "secondary";
+
+export type ControlRoutePresentation = {
+  description: string;
+  family: ControlRouteFamily;
+  layout: ControlRouteLayout;
+  title: string;
+};
+
 export type ControlSession = {
   assuranceLevel: "aal1" | "aal2";
   capabilities: readonly Capability[];
@@ -368,11 +405,201 @@ export function getControlSessionRoles(
   ];
 }
 
+/**
+ * Keeps the shell context specific to the route family, including aliases that
+ * intentionally render the same workspace. Page components still own their
+ * task-level heading and all business state.
+ */
+export function getControlRoutePresentation(
+  pathname: string,
+  navigationLabel: string | undefined,
+  contextName: string,
+  userName: string
+): ControlRoutePresentation {
+  const normalizedPathname = normalizePathname(pathname);
+
+  if (normalizedPathname === "/dashboard") {
+    return {
+      description: `Dit is wat er vandaag speelt bij ${contextName}.`,
+      family: "overview",
+      layout: "reference",
+      title: `Goedemorgen, ${firstName(userName)}`
+    };
+  }
+
+  if (/^\/dashboard\/playlists\/[^/]+\/publish(?:\/|$)/.test(normalizedPathname)) {
+    return {
+      description: "Controleer inhoud, kies doelschermen en publiceer veilig.",
+      family: "publish",
+      layout: "journey",
+      title: "Playlist publiceren"
+    };
+  }
+
+  const routePresentations: readonly Readonly<{
+    description: string;
+    family: ControlRouteFamily;
+    paths: readonly string[];
+    title: string;
+  }>[] = [
+    {
+      description: "Maak en beheer wat jouw schermen laten zien.",
+      family: "studio",
+      paths: ["/dashboard/studio"],
+      title: "Studio"
+    },
+    {
+      description: "Overzicht van alle schermen en schermgroepen.",
+      family: "screens",
+      paths: ["/dashboard/screens", "/dashboard/screen-groups"],
+      title: "Schermen"
+    },
+    {
+      description: "Bepaal waar en wanneer content zichtbaar wordt.",
+      family: "planning",
+      paths: ["/dashboard/planning"],
+      title: "Planning"
+    },
+    {
+      description: "Beheer foto's, video's en andere clubmedia.",
+      family: "media",
+      paths: ["/dashboard/media"],
+      title: "Media"
+    },
+    {
+      description: "Bouw, orden en publiceer wat jouw schermen afspelen.",
+      family: "playlists",
+      paths: ["/dashboard/playlists"],
+      title: "Playlists"
+    },
+    {
+      description: "Beheer herbruikbare vormen voor nieuwe playlists.",
+      family: "templates",
+      paths: ["/dashboard/playlist-templates", "/dashboard/templates"],
+      title: "Playlist-sjablonen"
+    },
+    {
+      description: "Volg publicatieversies, uitrol en synchronisatie per scherm.",
+      family: "publications",
+      paths: ["/dashboard/publications", "/dashboard/releases"],
+      title: "Publicaties"
+    },
+    {
+      description: "Beheer herbruikbare slides, formats en dynamische inhoud.",
+      family: "slides",
+      paths: ["/dashboard/slides"],
+      title: "Slides & formats"
+    },
+    {
+      description: "Verbind en bewaak gegevensbronnen voor actuele clubcontent.",
+      family: "sources",
+      paths: ["/dashboard/sources", "/dashboard/data-sources"],
+      title: "Bronnen"
+    },
+    {
+      description: "Beheer koppelingen die data en content beschikbaar maken.",
+      family: "integrations",
+      paths: ["/dashboard/integrations", "/dashboard/products"],
+      title: "Integraties"
+    },
+    {
+      description: "Beheer sponsors, campagnes, posities en vertoningsbewijs.",
+      family: "sponsors",
+      paths: ["/dashboard/sponsors"],
+      title: "Sponsor Hub"
+    },
+    {
+      description: "Maak publieksinteractie en volg live resultaten.",
+      family: "engage",
+      paths: ["/dashboard/engage"],
+      title: "Engage"
+    },
+    {
+      description: "Beheer mensen, rollen en uitnodigingen binnen de vereniging.",
+      family: "team",
+      paths: ["/dashboard/team"],
+      title: "Team"
+    },
+    {
+      description: "Beheer verenigingsgegevens, voorkeuren en abonnement.",
+      family: "settings",
+      paths: ["/dashboard/settings"],
+      title: "Instellingen"
+    },
+    {
+      description: "Beheer je profiel, sessie en tweestapsverificatie.",
+      family: "account",
+      paths: ["/dashboard/account"],
+      title: "Account"
+    },
+    {
+      description: "Stel vragen en volg hulpverzoeken en antwoorden.",
+      family: "support",
+      paths: ["/dashboard/support"],
+      title: "Support"
+    },
+    {
+      description: "Volg wijzigingen, publicaties en beheeracties.",
+      family: "activity",
+      paths: ["/dashboard/activity", "/dashboard/auditlog"],
+      title: "Activiteit"
+    }
+  ];
+
+  const routePresentation = routePresentations.find(({ paths }) =>
+    paths.some((path) => isRouteOrDescendant(normalizedPathname, path))
+  );
+
+  if (routePresentation) {
+    const referenceFamilies: readonly ControlRouteFamily[] = [
+      "media",
+      "planning",
+      "screens",
+      "studio"
+    ];
+
+    return {
+      description: routePresentation.description,
+      family: routePresentation.family,
+      layout: referenceFamilies.includes(routePresentation.family)
+        ? "reference"
+        : "resource",
+      title: routePresentation.title
+    };
+  }
+
+  const platformRoute = isRouteOrDescendant(normalizedPathname, "/platform");
+
+  return {
+    description: platformRoute
+      ? "Beheer de VeyoCast-platformomgeving."
+      : `Werk binnen ${contextName}.`,
+    family: platformRoute ? "platform" : "secondary",
+    layout: platformRoute ? "platform" : "secondary",
+    title: navigationLabel === "Vandaag"
+      ? "Overzicht"
+      : navigationLabel ?? "VeyoCast"
+  };
+}
+
 export function isImmersiveEditorPath(pathname: string) {
   return (
     /^\/dashboard\/playlists\/[^/]+\/?$/.test(pathname) ||
-    /^\/dashboard\/studio\/(?!new(?:\/|$)|templates(?:\/|$))[^/]+\/?$/.test(
+    /^\/dashboard\/studio\/(?!led-scores(?:\/|$)|new(?:\/|$)|sportlink(?:\/|$)|templates(?:\/|$))[^/]+\/?$/.test(
       pathname
     )
   );
+}
+
+function firstName(name: string) {
+  return name.trim().split(/\s+/)[0] || "daar";
+}
+
+function isRouteOrDescendant(pathname: string, route: string) {
+  return pathname === route || pathname.startsWith(`${route}/`);
+}
+
+function normalizePathname(pathname: string) {
+  if (pathname === "/") return pathname;
+  return pathname.replace(/\/+$/, "");
 }

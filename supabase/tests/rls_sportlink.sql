@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(56);
+select plan(88);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -25,6 +25,7 @@ insert into public.tenant_memberships(tenant_id,user_id,role) values
 ('10000000-0000-4000-8000-000000000b02','00000000-0000-4000-8000-000000000b02','tenant_owner');
 
 set local role authenticated;
+select set_config('request.jwt.claim.role','authenticated',true);
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000b01',true);
 select lives_ok($$select public.upsert_sportlink_connection_v1(
   '10000000-0000-4000-8000-000000000b01','Sportlink · Testclub','Testclub',
@@ -417,6 +418,517 @@ insert into public.sports_teams(
   current_setting('test.sportlink_connection_id')::uuid,
   '20', 'Testclub 2',
   '{"competitionOptions":[{"externalId":"competition-a","name":"Reguliere competitie","period":"Fase 1","poolExternalId":"701","poolName":"Poule A"}]}'::jsonb
+);
+
+insert into public.sports_matches(
+  tenant_id, source_connection_id, external_id, starts_at, status,
+  home_team, away_team, competition, pool, venue, dressing_rooms, officials,
+  scores_published, is_home_match
+) values
+(
+  '10000000-0000-4000-8000-000000000b01',
+  current_setting('test.sportlink_connection_id')::uuid,
+  'arrival-selected-10', now() + interval '45 minutes', 'scheduled',
+  '{"externalId":"10","name":"Testclub 1"}',
+  '{"externalId":"arrival-away-10","name":"Bezoekers A"}',
+  '{"externalId":"competition-a","name":"Reguliere competitie","period":"Fase 1"}',
+  '{"externalId":"701","name":"Poule A"}',
+  '{"field":"Veld 1"}', '{"away":"Kleedkamer 4","official":"Bestuurskamer"}',
+  '[{"displayName":"Scheidsrechter A"}]', false, true
+),
+(
+  '10000000-0000-4000-8000-000000000b01',
+  current_setting('test.sportlink_connection_id')::uuid,
+  'arrival-selected-20', now() + interval '55 minutes', 'scheduled',
+  '{"externalId":"20","name":"Testclub 2"}',
+  '{"externalId":"arrival-away-20","name":"Bezoekers B"}',
+  '{"externalId":"competition-a","name":"Reguliere competitie","period":"Fase 1"}',
+  '{"externalId":"701","name":"Poule A"}',
+  '{"field":"Veld 2"}', '{"away":"Kleedkamer 6","official":"Bestuurskamer"}',
+  '[{"displayName":"Scheidsrechter B"}]', false, true
+),
+(
+  '10000000-0000-4000-8000-000000000b01',
+  current_setting('test.sportlink_connection_id')::uuid,
+  'arrival-later-competition-10', now() + interval '75 minutes', 'scheduled',
+  '{"externalId":"10","name":"Testclub 1"}',
+  '{"externalId":"arrival-away-cup-10","name":"Bekerbezoekers"}',
+  '{"externalId":"competition-b","name":"Districtsbeker","period":"Groep 3"}',
+  '{"externalId":"702","name":"Poule B"}',
+  '{"field":"Veld 4"}', '{"away":"Kleedkamer 9","official":"Bestuurskamer"}',
+  '[{"displayName":"Scheidsrechter beker"}]', false, true
+),
+(
+  '10000000-0000-4000-8000-000000000b01',
+  current_setting('test.sportlink_connection_id')::uuid,
+  'arrival-pinned-other-competition-20', now() + interval '70 minutes', 'scheduled',
+  '{"externalId":"20","name":"Testclub 2"}',
+  '{"externalId":"arrival-away-cup-20","name":"Andere bekerbezoekers"}',
+  '{"externalId":"competition-b","name":"Districtsbeker","period":"Groep 3"}',
+  '{"externalId":"702","name":"Poule B"}',
+  '{"field":"Veld 5"}', '{"away":"Kleedkamer 10","official":"Bestuurskamer"}',
+  '[{"displayName":"Scheidsrechter andere competitie"}]', false, true
+),
+(
+  '10000000-0000-4000-8000-000000000b01',
+  current_setting('test.sportlink_connection_id')::uuid,
+  'arrival-not-selected', now() + interval '65 minutes', 'scheduled',
+  '{"externalId":"30","name":"Niet geselecteerd"}',
+  '{"externalId":"arrival-away-30","name":"Bezoekers buiten selectie"}',
+  '{"externalId":"competition-c","name":"Andere competitie","period":"Fase 1"}',
+  '{"externalId":"703","name":"Poule C"}',
+  '{"field":"Veld 3"}', '{"away":"Kleedkamer 8","official":"Bestuurskamer"}',
+  '[{"displayName":"Scheidsrechter buiten selectie"}]', false, true
+);
+
+select set_config(
+  'test.s146_arrival_drafts',
+  (
+    with blueprints(blueprint_key, slide_type, slide_name, slide_title) as (
+      values
+        ('sportlink.visitor_arrivals', 'sport_visitor_arrivals',
+          'Welkom bezoekers gekoppeld', 'Bezoekers welkom'),
+        ('sportlink.referee_arrivals', 'sport_referee_arrivals',
+          'Welkom scheidsrechters gekoppeld', 'Scheidsrechters welkom')
+    )
+    select jsonb_agg(jsonb_build_object(
+      'blueprintKey', blueprint.blueprint_key,
+      'context', jsonb_build_object(
+        'competitionId', null,
+        'competitionSelectionMode', 'auto_current',
+        'phaseId', null,
+        'poolId', null,
+        'providerTeamId', '10',
+        'seasonId', null
+      ),
+      'teamContexts', jsonb_build_array(
+        jsonb_build_object(
+          'competitionId', null,
+          'competitionSelectionMode', 'auto_current',
+          'phaseId', null,
+          'poolId', null,
+          'providerTeamId', '10',
+          'seasonId', null
+        ),
+        jsonb_build_object(
+          'competitionId', 'competition-a',
+          'competitionSelectionMode', 'pinned',
+          'phaseId', 'Fase 1',
+          'poolId', '701',
+          'providerTeamId', '20',
+          'seasonId', null
+        )
+      ),
+      'arrival', jsonb_build_object(
+        'cardCount', 4,
+        'emptyBehavior', 'skip',
+        'minutesBefore', 90,
+        'minutesAfter', 30
+      ),
+      'display', jsonb_build_object(
+        'columns', 'two', 'showDressingRoom', true, 'showField', true,
+        'showHomeAway', true, 'showReferee', true
+      ),
+      'name', blueprint.slide_name,
+      'orientation', 'landscape',
+      'templateVersionId', (
+        select template.current_published_version_id
+        from public.dynamic_templates template
+        where template.slide_type = blueprint.slide_type
+          and template.orientation = 'landscape'
+          and template.status = 'published'
+        limit 1
+      ),
+      'themeSelection', jsonb_build_object(
+        'ref', jsonb_build_object(
+          'catalog', 'v2', 'id', 'fieldflow', 'version', '1.0.0'
+        ),
+        'modePolicy', jsonb_build_object('kind', 'fixed', 'mode', 'light'),
+        'accent', null, 'support', null, 'categoryOverrides', '[]'::jsonb
+      ),
+      'title', blueprint.slide_title
+    ) order by blueprint.blueprint_key)::text
+    from blueprints blueprint
+  ),
+  true
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000b01',true);
+select is(
+  (
+    public.create_sportlink_slide_batch_v3(
+      '10000000-0000-4000-8000-000000000b01',
+      (select data_source_id from public.sportlink_connections limit 1),
+      current_setting('test.s146_arrival_drafts')::jsonb,
+      '60000000-0000-4000-8000-000000000b46'
+    ) ->> 'count'
+  )::integer,
+  2,
+  'two welcome purposes create two linked components rather than four team slides'
+);
+select is(
+  (select count(*) from public.dynamic_slides
+   where name in ('Welkom bezoekers gekoppeld', 'Welkom scheidsrechters gekoppeld')),
+  2::bigint,
+  'each selected welcome purpose is persisted exactly once'
+);
+select is(
+  (select count(*) from public.dynamic_slide_versions
+   where name in ('Welkom bezoekers gekoppeld', 'Welkom scheidsrechters gekoppeld')
+     and jsonb_array_length(configuration_json -> 'teamContexts') = 2),
+  2::bigint,
+  'both linked welcome components retain the complete two-team selection'
+);
+select is(
+  (select count(*) from public.dynamic_slide_versions
+   where name in ('Welkom bezoekers gekoppeld', 'Welkom scheidsrechters gekoppeld')
+     and configuration_json #>> '{teamContexts,0,competitionSelectionMode}' = 'auto_current'
+     and configuration_json #>> '{teamContexts,1,competitionSelectionMode}' = 'pinned'),
+  2::bigint,
+  'current competition is the default while one team can be pinned independently'
+);
+select is(
+  (select jsonb_array_length(snapshot.snapshot_data_json #> '{sport,items}')
+   from public.dynamic_slide_snapshots snapshot
+   join public.dynamic_slides slide on slide.id = snapshot.dynamic_slide_id
+   where slide.name = 'Welkom bezoekers gekoppeld'
+   order by snapshot.created_at desc limit 1),
+  2,
+  'the visitor component aggregates only arrivals for both selected teams'
+);
+select is(
+  (select jsonb_array_length(snapshot.snapshot_data_json #> '{sport,items}')
+   from public.dynamic_slide_snapshots snapshot
+   join public.dynamic_slides slide on slide.id = snapshot.dynamic_slide_id
+   where slide.name = 'Welkom scheidsrechters gekoppeld'
+   order by snapshot.created_at desc limit 1),
+  2,
+  'the referee component aggregates officials for both selected teams'
+);
+select is(
+  (select jsonb_agg(item ->> 'id' order by item ->> 'id')
+   from public.dynamic_slide_snapshots snapshot
+   join public.dynamic_slides slide on slide.id = snapshot.dynamic_slide_id
+   cross join lateral jsonb_array_elements(snapshot.snapshot_data_json #> '{sport,items}') item
+   where slide.name = 'Welkom bezoekers gekoppeld'),
+  '["arrival-selected-10", "arrival-selected-20"]'::jsonb,
+  'auto-current chooses the nearest competition and pinned selection excludes other competitions and teams'
+);
+select is(
+  (select jsonb_agg(item ->> 'primary' order by item ->> 'primary')
+   from public.dynamic_slide_snapshots snapshot
+   join public.dynamic_slides slide on slide.id = snapshot.dynamic_slide_id
+   cross join lateral jsonb_array_elements(snapshot.snapshot_data_json #> '{sport,items}') item
+   where slide.name = 'Welkom scheidsrechters gekoppeld'),
+  '["Scheidsrechter A", "Scheidsrechter B"]'::jsonb,
+  'an unselected team never enters the referee component snapshot'
+);
+select is(
+  (select (snapshot.snapshot_data_json #>> '{sport,selectedTeamCount}')::integer
+   from public.dynamic_slide_snapshots snapshot
+   join public.dynamic_slides slide on slide.id = snapshot.dynamic_slide_id
+   where slide.name = 'Welkom bezoekers gekoppeld'
+   order by snapshot.created_at desc limit 1),
+  2,
+  'the immutable snapshot records the selected-team count'
+);
+reset role;
+update public.sports_matches
+set officials = (
+  select jsonb_agg(
+    jsonb_build_object('displayName', 'Scheidsrechter ' || official_index)
+    order by official_index
+  )
+  from generate_series(1, 45) official_index
+)
+where external_id = 'arrival-selected-10';
+set local role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000b01',true);
+select lives_ok(
+  $$select set_config(
+    'test.s146_referee_snapshot_id',
+    public.refresh_dynamic_slide_v1(
+      (select id from public.dynamic_slides
+       where name = 'Welkom scheidsrechters gekoppeld')
+    ) ->> 'snapshotId',
+    true
+  )$$,
+  'the linked referee component refreshes after a large officials payload'
+);
+select is(
+  (select jsonb_array_length(snapshot.snapshot_data_json #> '{sport,items}')
+   from public.dynamic_slide_snapshots snapshot
+   where snapshot.id = current_setting(
+     'test.s146_referee_snapshot_id'
+   )::uuid),
+  40,
+  'the linked referee component is capped at forty deterministic cards'
+);
+select is(
+  (
+    public.create_sportlink_slide_batch_v3(
+      '10000000-0000-4000-8000-000000000b01',
+      (select data_source_id from public.sportlink_connections limit 1),
+      current_setting('test.s146_arrival_drafts')::jsonb,
+      '60000000-0000-4000-8000-000000000b46'
+    ) ->> 'count'
+  )::integer,
+  2,
+  'retrying the same welcome batch returns the original result'
+);
+select is(
+  (select count(*) from public.dynamic_slides
+   where name in ('Welkom bezoekers gekoppeld', 'Welkom scheidsrechters gekoppeld')),
+  2::bigint,
+  'an idempotent retry creates no duplicate welcome components'
+);
+select throws_ok(
+  $$select public.create_sportlink_slide_batch_v3(
+    '10000000-0000-4000-8000-000000000b01',
+    (select data_source_id from public.sportlink_connections limit 1),
+    jsonb_set(
+      current_setting('test.s146_arrival_drafts')::jsonb,
+      '{0,title}',
+      '"Gewijzigde titel"'::jsonb
+    ),
+    '60000000-0000-4000-8000-000000000b46'
+  )$$,
+  '22023', null,
+  'an idempotency key cannot be replayed with a different request payload'
+);
+select throws_ok(
+  $$select public.create_sportlink_slide_batch_v3(
+    '10000000-0000-4000-8000-000000000b01',
+    (select data_source_id from public.sportlink_connections limit 1),
+    (
+      current_setting('test.s146_arrival_drafts')::jsonb
+        #- '{0,context,competitionSelectionMode}'
+        #- '{0,teamContexts,0,competitionSelectionMode}'
+    ),
+    '60000000-0000-4000-8000-000000000b50'
+  )$$,
+  '22023', null,
+  'every selected team requires an explicit competition selection mode'
+);
+select throws_ok(
+  $$select public.create_sportlink_slide_batch_v3(
+    '10000000-0000-4000-8000-000000000b01',
+    (select data_source_id from public.sportlink_connections limit 1),
+    jsonb_set(
+      current_setting('test.s146_arrival_drafts')::jsonb,
+      '{0,arrival,minutesBefore}',
+      '999999999999999999999999999999999999'::jsonb
+    ),
+    '60000000-0000-4000-8000-000000000b53'
+  )$$,
+  '22023', null,
+  'oversized numeric arrival input is rejected as a controlled validation error'
+);
+select throws_ok(
+  $$select public.create_sportlink_slide_batch_v3(
+    '10000000-0000-4000-8000-000000000b01',
+    (select data_source_id from public.sportlink_connections limit 1),
+    jsonb_set(
+      current_setting('test.s146_arrival_drafts')::jsonb,
+      '{0,teamContexts,1,providerTeamId}',
+      '"10"'::jsonb
+    ),
+    '60000000-0000-4000-8000-000000000b51'
+  )$$,
+  '22023', null,
+  'one linked welcome component cannot contain the same team twice'
+);
+select throws_ok(
+  $$select public.create_sportlink_slide_batch_v3(
+    '10000000-0000-4000-8000-000000000b01',
+    (select data_source_id from public.sportlink_connections limit 1),
+    jsonb_set(
+      current_setting('test.s146_arrival_drafts')::jsonb,
+      '{0,context,providerTeamId}',
+      '"20"'::jsonb
+    ),
+    '60000000-0000-4000-8000-000000000b52'
+  )$$,
+  '22023', null,
+  'the canonical context must stay equal to the first selected team'
+);
+select throws_ok(
+  $$select public.create_sportlink_slide_batch_v3(
+    '10000000-0000-4000-8000-000000000b01',
+    (select data_source_id from public.sportlink_connections limit 1),
+    jsonb_set(
+      jsonb_set(
+        current_setting('test.s146_arrival_drafts')::jsonb,
+        '{0,context,providerTeamId}',
+        '"tenant-b-team"'::jsonb
+      ),
+      '{0,teamContexts,0,providerTeamId}',
+      '"tenant-b-team"'::jsonb
+    ),
+    '60000000-0000-4000-8000-000000000b47'
+  )$$,
+  '22023', null,
+  'an unavailable team cannot enter a welcome selection'
+);
+select throws_ok(
+  $$select public.create_sportlink_slide_batch_v3(
+    '10000000-0000-4000-8000-000000000b01',
+    (select data_source_id from public.sportlink_connections limit 1),
+    jsonb_build_array(
+      current_setting('test.s146_arrival_drafts')::jsonb -> 0,
+      current_setting('test.s146_arrival_drafts')::jsonb -> 0
+    ),
+    '60000000-0000-4000-8000-000000000b48'
+  )$$,
+  '22023', null,
+  'one batch cannot fan one welcome purpose out into duplicate team slides'
+);
+select throws_ok(
+  $$select public.create_sportlink_slide_batch_v1(
+    '10000000-0000-4000-8000-000000000b01',
+    (select data_source_id from public.sportlink_connections limit 1),
+    current_setting('test.s146_arrival_drafts')::jsonb,
+    '60000000-0000-4000-8000-000000000b53'
+  )$$,
+  '22023', 'linked arrival components require Sportlink batch v3',
+  'legacy Sportlink v1 cannot recreate one welcome slide per team'
+);
+select throws_ok(
+  $$select public.create_sportlink_slide_batch_v2(
+    '10000000-0000-4000-8000-000000000b01',
+    (select data_source_id from public.sportlink_connections limit 1),
+    current_setting('test.s146_arrival_drafts')::jsonb,
+    '60000000-0000-4000-8000-000000000b54'
+  )$$,
+  '22023', 'linked arrival components require Sportlink batch v3',
+  'legacy Sportlink v2 cannot recreate one welcome slide per team'
+);
+
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000b02',true);
+select throws_ok(
+  $$select public.create_sportlink_slide_batch_v3(
+    '10000000-0000-4000-8000-000000000b01',
+    (select data_source_id from public.sportlink_connections limit 1),
+    current_setting('test.s146_arrival_drafts')::jsonb,
+    '60000000-0000-4000-8000-000000000b49'
+  )$$,
+  '42501', null,
+  'another tenant cannot create or replay a linked welcome batch'
+);
+reset role;
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.create_sportlink_slide_batch_v3(uuid,uuid,jsonb,uuid)',
+    'execute'
+  ),
+  'anonymous users cannot execute the linked welcome batch RPC'
+);
+select ok(
+  not has_function_privilege(
+    'service_role',
+    'public.create_sportlink_slide_batch_v3(uuid,uuid,jsonb,uuid)',
+    'execute'
+  ),
+  'the browser batch RPC is not exposed to the service role'
+);
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'private.sportlink_team_contexts_are_valid_v1(uuid,uuid,jsonb)',
+    'execute'
+  ),
+  'authenticated users cannot call the private team validator directly'
+);
+select ok(
+  not has_function_privilege(
+    'service_role',
+    'private.sportlink_team_contexts_are_valid_v1(uuid,uuid,jsonb)',
+    'execute'
+  ),
+  'the private team validator is not exposed to the service role'
+);
+select throws_ok(
+  $$update public.dynamic_slide_versions
+    set configuration_json = jsonb_set(
+      configuration_json,
+      '{context,providerTeamId}',
+      '"20"'::jsonb
+    )
+    where name = 'Welkom bezoekers gekoppeld'$$,
+  '23514', null,
+  'the persistence trigger rejects a primary context that diverges from the first selected team'
+);
+select throws_ok(
+  $$update public.dynamic_slide_versions
+    set configuration_json = configuration_json - 'teamContexts'
+    where name = 'Welkom bezoekers gekoppeld'$$,
+  '23514', null,
+  'a linked welcome version cannot silently lose its aggregate team selection'
+);
+select is(
+  (select count(*)
+   from public.dynamic_slide_versions
+   where name in ('Welkom bezoekers gekoppeld', 'Welkom scheidsrechters gekoppeld')
+     and configuration_json -> 'context'
+       is not distinct from configuration_json #> '{teamContexts,0}'),
+  2::bigint,
+  'rejected direct updates leave both linked welcome versions unchanged'
+);
+
+select set_config(
+  'test.s146_arrival_configuration',
+  (
+    select configuration_json::text
+    from public.dynamic_slide_versions
+    where name = 'Welkom bezoekers gekoppeld'
+  ),
+  true
+);
+select set_config(
+  'test.s146_arrival_status',
+  (
+    select status::text
+    from public.dynamic_slide_versions
+    where name = 'Welkom bezoekers gekoppeld'
+  ),
+  true
+);
+alter table public.dynamic_slide_versions
+  disable trigger dynamic_slide_versions_validate_arrival_team_contexts;
+update public.dynamic_slide_versions
+set configuration_json = configuration_json - 'teamContexts'
+where name = 'Welkom bezoekers gekoppeld';
+alter table public.dynamic_slide_versions
+  enable trigger dynamic_slide_versions_validate_arrival_team_contexts;
+
+select throws_ok(
+  $$update public.dynamic_slide_versions
+    set status = 'publishing'
+    where name = 'Welkom bezoekers gekoppeld'$$,
+  '23514', null,
+  'a legacy welcome draft cannot publish before its linked team selection is saved'
+);
+select is(
+  (
+    select status::text
+    from public.dynamic_slide_versions
+    where name = 'Welkom bezoekers gekoppeld'
+  ),
+  current_setting('test.s146_arrival_status'),
+  'a rejected legacy publication leaves the existing version status unchanged'
+);
+
+update public.dynamic_slide_versions
+set configuration_json =
+  current_setting('test.s146_arrival_configuration')::jsonb
+where name = 'Welkom bezoekers gekoppeld';
+
+delete from public.sports_matches
+where external_id in (
+  'arrival-later-competition-10',
+  'arrival-pinned-other-competition-20'
 );
 
 set local role authenticated;

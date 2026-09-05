@@ -3,7 +3,100 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(71);
+select plan(124);
+
+select is(
+  (
+    select field.is_nullable
+    from information_schema.columns field
+    where field.table_schema = 'public'
+      and field.table_name = 'dynamic_slide_snapshots'
+      and field.column_name = 'snapshot_sequence'
+  ),
+  'YES',
+  'legacy immutable snapshots can remain untouched without a sequence backfill'
+);
+
+select has_trigger(
+  'public',
+  'dynamic_slide_snapshots',
+  'dynamic_snapshots_assign_sequence',
+  'new snapshots receive their monotone sequence from a database trigger'
+);
+
+select has_trigger(
+  'public',
+  'dynamic_slide_snapshots',
+  'dynamic_snapshots_reject_sequence_update',
+  'snapshot ordering metadata is immutable throughout the render lifecycle'
+);
+
+select ok(
+  not has_sequence_privilege(
+    'authenticated',
+    'private.dynamic_slide_snapshot_sequence_v1',
+    'USAGE'
+  )
+  and not has_sequence_privilege(
+    'service_role',
+    'private.dynamic_slide_snapshot_sequence_v1',
+    'USAGE'
+  )
+  and not has_function_privilege(
+    'authenticated',
+    'private.assign_dynamic_snapshot_sequence_v1()',
+    'EXECUTE'
+  )
+  and not has_function_privilege(
+    'service_role',
+    'private.assign_dynamic_snapshot_sequence_v1()',
+    'EXECUTE'
+  ),
+  'browser and worker roles cannot control snapshot ordering metadata'
+);
+
+select ok(
+  not has_table_privilege(
+    'authenticated',
+    'private.dynamic_release_refresh_queue',
+    'SELECT'
+  ),
+  'browser roles cannot inspect the private dynamic release queue'
+);
+
+select ok(
+  has_function_privilege(
+    'authenticated',
+    'public.list_screen_fleet_releases_v1(uuid)',
+    'EXECUTE'
+  ) and not has_function_privilege(
+    'anon',
+    'public.list_screen_fleet_releases_v1(uuid)',
+    'EXECUTE'
+  ),
+  'only authenticated Control users can call the fleet release projection'
+);
+
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'private.enqueue_dynamic_release_refresh_v1()',
+    'EXECUTE'
+  ) and not has_function_privilege(
+    'service_role',
+    'private.process_due_dynamic_release_refresh_v1(text)',
+    'EXECUTE'
+  ) and not has_function_privilege(
+    'service_role',
+    'private.process_dynamic_release_refresh_v1(uuid,uuid,text)',
+    'EXECUTE'
+  ) and not has_function_privilege(
+    'service_role',
+    'private.publish_queued_dynamic_release_v1(uuid,uuid)',
+    'EXECUTE'
+  ),
+  'browser and worker roles cannot invoke private queue internals directly'
+);
 
 select ok(
   (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class
@@ -102,6 +195,70 @@ create temporary table dynamic_test_ids (
   id uuid not null
 );
 grant select on dynamic_test_ids to service_role;
+
+-- Later queue tests need to finish one exact fixture render. Using the global
+-- worker claim there would make the suite race with other pgTAP files that
+-- deliberately exercise the same shared worker command.
+create function pg_temp.claim_dynamic_render_for_slide_v1(
+  p_slide_id uuid,
+  p_worker_id text
+)
+returns table (
+  job_id uuid,
+  tenant_id uuid,
+  snapshot_id uuid,
+  output_media_asset_id uuid
+)
+language plpgsql
+set search_path = ''
+as $$
+declare
+  selected_job_id uuid;
+begin
+  select job.id
+  into selected_job_id
+  from public.dynamic_render_jobs job
+  join public.dynamic_slide_snapshots snapshot
+    on snapshot.tenant_id = job.tenant_id
+   and snapshot.id = job.snapshot_id
+  where snapshot.dynamic_slide_id = p_slide_id
+    and job.status = 'queued'
+  order by
+    snapshot.snapshot_sequence desc nulls last,
+    snapshot.created_at desc,
+    snapshot.id desc,
+    job.id
+  for update of job skip locked
+  limit 1;
+
+  if selected_job_id is null then
+    return;
+  end if;
+
+  update public.dynamic_render_jobs job
+  set status = 'rendering',
+      attempt_count = attempt_count + 1,
+      locked_at = clock_timestamp(),
+      locked_by = left(p_worker_id, 120),
+      started_at = coalesce(started_at, clock_timestamp()),
+      error_code = null,
+      error_detail = null
+  where job.id = selected_job_id;
+
+  update public.dynamic_slide_snapshots snapshot
+  set status = 'rendering'
+  from public.dynamic_render_jobs job
+  where job.id = selected_job_id
+    and snapshot.tenant_id = job.tenant_id
+    and snapshot.id = job.snapshot_id
+    and snapshot.status = 'queued';
+
+  return query
+  select job.id, job.tenant_id, job.snapshot_id, job.output_media_asset_id
+  from public.dynamic_render_jobs job
+  where job.id = selected_job_id;
+end;
+$$;
 
 insert into dynamic_test_ids values (
   'source',
@@ -403,6 +560,9 @@ select ok(
   (
     select
       item.dynamic_slide_id is not null
+      and item.dynamic_slide_id = (
+        select id from dynamic_test_ids where name = 'slide'
+      )
       and item.dynamic_snapshot_id is not null
       and item.dynamic_selection_mode = 'latest'
       and asset.status = 'ready'
@@ -588,12 +748,14 @@ select is(
   'menu source refresh creates one new immutable snapshot'
 );
 
+reset role;
 create temporary table dynamic_refresh_claim as
-select * from public.claim_dynamic_render_job_v1(
-  'dynamic-refresh-worker',
-  120,
-  3
+select * from pg_temp.claim_dynamic_render_for_slide_v1(
+  (select id from dynamic_test_ids where name = 'slide'),
+  'dynamic-refresh-worker'
 );
+grant select on dynamic_refresh_claim to service_role;
+set local role service_role;
 
 select lives_ok(
   $$select public.complete_dynamic_render_job_v1(
@@ -641,11 +803,183 @@ select is(
     from public.playlist_releases release
     where release.playlist_id = '30000000-0000-4000-8000-000000000a51'
   ),
-  2::bigint,
-  'one changed latest snapshot creates exactly one new immutable release'
+  1::bigint,
+  'a completed render does not synchronously create another release'
 );
 
 reset role;
+select ok(
+  (
+    select pending and not_before > last_requested_at
+    from private.dynamic_release_refresh_queue
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'changed dynamic content enters the durable coalescing queue'
+);
+update private.dynamic_release_refresh_queue
+set not_before = clock_timestamp() - interval '1 second'
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and playlist_id = '30000000-0000-4000-8000-000000000a51';
+update public.player_devices
+set active_release_id = null
+where id = '50000000-0000-4000-8000-000000000a51';
+
+set local role service_role;
+select lives_ok(
+  $$select * from public.claim_dynamic_render_job_v1(
+    'dynamic-release-worker', 120, 3
+  )$$,
+  'the render-worker poll safely defers while the Player has not acknowledged its current release'
+);
+
+reset role;
+select ok(
+  (
+    select pending
+    from private.dynamic_release_refresh_queue
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'the newest dynamic change remains pending behind Player backpressure'
+);
+select is(
+  (
+    select count(*)
+    from public.playlist_releases release
+    where release.playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  1::bigint,
+  'an offline or unacknowledged Player cannot generate release history'
+);
+update public.player_devices
+set active_release_id = (
+      select id from dynamic_test_ids where name = 'base_release'
+    ),
+    desired_release_id = (
+      select id from dynamic_test_ids where name = 'base_release'
+    )
+where id = '50000000-0000-4000-8000-000000000a51';
+update private.dynamic_release_refresh_queue
+set not_before = clock_timestamp() - interval '1 second'
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and playlist_id = '30000000-0000-4000-8000-000000000a51';
+
+select lives_ok(
+  $$select private.process_dynamic_release_refresh_v1(
+    '10000000-0000-4000-8000-000000000a51',
+    '30000000-0000-4000-8000-000000000a51',
+    'dynamic-release-worker'
+  )$$,
+  'an acknowledged Player allows one due coalesced release to publish'
+);
+
+reset role;
+select ok(
+  not (
+    select pending
+    from private.dynamic_release_refresh_queue
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'a successful coalesced publication clears the pending queue state'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000a51',
+  true
+);
+select is(
+  (
+    select count(*)
+    from public.playlist_releases release
+    where release.playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  2::bigint,
+  'one due coalesced batch creates exactly one new immutable release'
+);
+
+select is(
+  (
+    select count(*)
+    from public.list_screen_fleet_releases_v1(
+      '10000000-0000-4000-8000-000000000a51'
+    )
+  ),
+  2::bigint,
+  'fleet projection returns the latest release plus the older last-known-good reference'
+);
+
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000a53',
+  true
+);
+select is(
+  (
+    select count(*)
+    from public.list_screen_fleet_releases_v1(
+      '10000000-0000-4000-8000-000000000a51'
+    )
+  ),
+  0::bigint,
+  'fleet projection cannot expose another tenant through its argument'
+);
+
+reset role;
+update public.player_devices
+set status = 'revoked', revoked_at = clock_timestamp()
+where id = '50000000-0000-4000-8000-000000000a51';
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000a51',
+  true
+);
+select ok(
+  (
+    select count(*) = 1
+      and bool_and(fleet_release.id = (
+        select release.id
+        from public.playlist_releases release
+        where release.tenant_id =
+          '10000000-0000-4000-8000-000000000a51'
+          and release.playlist_id =
+            '30000000-0000-4000-8000-000000000a51'
+        order by release.version desc
+        limit 1
+      ))
+    from public.list_screen_fleet_releases_v1(
+      '10000000-0000-4000-8000-000000000a51'
+    ) fleet_release
+  ),
+  'revoked Player pointers do not retain old release history in the fleet projection'
+);
+
+reset role;
+update public.player_devices
+set status = 'paired', revoked_at = null
+where id = '50000000-0000-4000-8000-000000000a51';
+
+update public.tenants
+set screen_limit = greatest(screen_limit, 2)
+where id = '10000000-0000-4000-8000-000000000a51';
+insert into public.screens (
+  id, tenant_id, name, orientation, status, assigned_playlist_id,
+  assigned_release_id, active_assignment_source, created_by
+) values (
+  '40000000-0000-4000-8000-000000000a52',
+  '10000000-0000-4000-8000-000000000a51',
+  'Ongekoppelde oudere tak',
+  'landscape',
+  'active',
+  '30000000-0000-4000-8000-000000000a51',
+  (select id from dynamic_test_ids where name = 'base_release'),
+  'default',
+  '00000000-0000-4000-8000-000000000a51'
+);
 set local role service_role;
 
 select lives_ok(
@@ -734,6 +1068,615 @@ select is(
   ),
   1::bigint,
   'automatic dynamic publication remains auditable'
+);
+
+reset role;
+update public.tenant_products
+set name = 'Cola light'
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and slug = 'cola';
+set local role service_role;
+select lives_ok(
+  $$update public.dynamic_data_sources
+    set revision = revision + 1
+    where id = (select id from dynamic_test_ids where name = 'source')$$,
+  'a first changed provider payload queues one burst snapshot'
+);
+reset role;
+create temporary table dynamic_burst_claim_one as
+select * from pg_temp.claim_dynamic_render_for_slide_v1(
+  (select id from dynamic_test_ids where name = 'slide'),
+  'dynamic-burst-worker-one'
+);
+grant select on dynamic_burst_claim_one to service_role;
+set local role service_role;
+select lives_ok(
+  $$select public.complete_dynamic_render_job_v1(
+    (select job_id from dynamic_burst_claim_one),
+    'dynamic-burst-worker-one',
+    'tenants/' || (select tenant_id from dynamic_burst_claim_one)::text ||
+      '/assets/' ||
+      (select output_media_asset_id from dynamic_burst_claim_one)::text ||
+      '/dynamic-slide.png',
+    4097,
+    repeat('e', 64),
+    1920,
+    1080
+  )$$,
+  'the first burst snapshot renders into the coalescing queue'
+);
+
+reset role;
+select set_config(
+  'test.dynamic_burst_first_requested_at',
+  (
+    select first_requested_at::text
+    from private.dynamic_release_refresh_queue
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  true
+);
+update public.tenant_products
+set name = 'Cola max'
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and slug = 'cola';
+set local role service_role;
+select lives_ok(
+  $$update public.dynamic_data_sources
+    set revision = revision + 1
+    where id = (select id from dynamic_test_ids where name = 'source')$$,
+  'a second changed provider payload joins the same pending batch'
+);
+reset role;
+create temporary table dynamic_burst_claim_two as
+select * from pg_temp.claim_dynamic_render_for_slide_v1(
+  (select id from dynamic_test_ids where name = 'slide'),
+  'dynamic-burst-worker-two'
+);
+grant select on dynamic_burst_claim_two to service_role;
+set local role service_role;
+select lives_ok(
+  $$select public.complete_dynamic_render_job_v1(
+    (select job_id from dynamic_burst_claim_two),
+    'dynamic-burst-worker-two',
+    'tenants/' || (select tenant_id from dynamic_burst_claim_two)::text ||
+      '/assets/' ||
+      (select output_media_asset_id from dynamic_burst_claim_two)::text ||
+      '/dynamic-slide.png',
+    4098,
+    repeat('f', 64),
+    1920,
+    1080
+  )$$,
+  'the second burst snapshot renders without publishing another release'
+);
+
+reset role;
+select is(
+  (
+    select count(*)
+    from public.playlist_releases
+    where playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  2::bigint,
+  'two rapid changes create zero immediate immutable release versions'
+);
+select ok(
+  (
+    select pending
+      and first_requested_at =
+        current_setting('test.dynamic_burst_first_requested_at')::timestamptz
+      and last_requested_at >= first_requested_at
+      and not_before >= last_published_at + interval '5 minutes'
+      and not_before <= first_requested_at + interval '5 minutes'
+    from private.dynamic_release_refresh_queue
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'burst requests preserve one queue row and the five-minute publication bound'
+);
+
+-- A paired but unacknowledged screen on a static-only release of the same
+-- playlist is not a dynamic publication branch and must not hold back the
+-- relevant acknowledged Player.
+insert into dynamic_test_ids values (
+  'static_release',
+  '30000000-0000-4000-8000-000000000a63'
+);
+insert into public.playlist_releases (
+  id, tenant_id, playlist_id, version, release_notes, manifest_hash,
+  manifest_json, item_count, total_duration_seconds, total_bytes,
+  published_by, published_at
+)
+select
+  (select id from dynamic_test_ids where name = 'static_release'),
+  release.tenant_id,
+  release.playlist_id,
+  3,
+  'Static branch regression fixture',
+  repeat('7', 64),
+  release.manifest_json || jsonb_build_object('version', 3),
+  release.item_count,
+  release.total_duration_seconds,
+  release.total_bytes,
+  release.published_by,
+  release.published_at - interval '1 hour'
+from public.playlist_releases release
+where release.id = (select id from dynamic_test_ids where name = 'base_release');
+insert into public.playlist_release_items
+select (
+  jsonb_populate_record(
+    null::public.playlist_release_items,
+    to_jsonb(release_item) || jsonb_build_object(
+      'id', '31000000-0000-4000-8000-000000000a63',
+      'release_id', (select id from dynamic_test_ids where name = 'static_release'),
+      'source_item_id', null,
+      'dynamic_snapshot_id', null
+    )
+  )
+).*
+from public.playlist_release_items release_item
+where release_item.release_id = (
+  select id from dynamic_test_ids where name = 'base_release'
+)
+order by release_item.sort_order
+limit 1;
+update public.screens
+set assigned_playlist_id = '30000000-0000-4000-8000-000000000a51',
+    assigned_release_id = (
+      select id from dynamic_test_ids where name = 'static_release'
+    ),
+    default_playlist_id = '30000000-0000-4000-8000-000000000a51',
+    default_release_id = (
+      select id from dynamic_test_ids where name = 'static_release'
+    ),
+    active_assignment_source = 'default'
+where id = '40000000-0000-4000-8000-000000000a52';
+insert into public.player_devices (
+  id, tenant_id, screen_id, device_name, token_hash, status,
+  active_release_id, desired_release_id
+) values (
+  '50000000-0000-4000-8000-000000000a52',
+  '10000000-0000-4000-8000-000000000a51',
+  '40000000-0000-4000-8000-000000000a52',
+  'Static branch player',
+  repeat('7', 64),
+  'paired',
+  null,
+  (select id from dynamic_test_ids where name = 'static_release')
+);
+select ok(
+  (
+    select device.active_release_id is distinct from screen.default_release_id
+      and not exists (
+        select 1
+        from public.playlist_release_items release_item
+        where release_item.release_id = screen.default_release_id
+          and release_item.dynamic_snapshot_id is not null
+      )
+    from public.screens screen
+    join public.player_devices device
+      on device.tenant_id = screen.tenant_id
+     and device.screen_id = screen.id
+    where screen.id = '40000000-0000-4000-8000-000000000a52'
+  ),
+  'an unacknowledged paired static branch is explicitly outside dynamic backpressure'
+);
+
+select set_config(
+  'test.dynamic_burst_latest_snapshot',
+  (
+    select current_snapshot_id::text
+    from public.dynamic_slides
+    where id = (select id from dynamic_test_ids where name = 'slide')
+  ),
+  true
+);
+insert into public.dynamic_slide_snapshots (
+  id,
+  tenant_id,
+  dynamic_slide_id,
+  template_version_id,
+  data_source_id,
+  source_revision_hash,
+  snapshot_data_json,
+  status,
+  created_by,
+  created_at
+)
+select
+  '40000000-0000-4000-8000-000000000a63',
+  snapshot.tenant_id,
+  snapshot.dynamic_slide_id,
+  snapshot.template_version_id,
+  snapshot.data_source_id,
+  repeat('9', 64),
+  snapshot.snapshot_data_json,
+  'rendering',
+  snapshot.created_by,
+  snapshot.created_at - interval '1 second'
+from public.dynamic_slide_snapshots snapshot
+where snapshot.id =
+  current_setting('test.dynamic_burst_latest_snapshot')::uuid;
+insert into public.dynamic_render_jobs (
+  id,
+  tenant_id,
+  snapshot_id,
+  output_media_asset_id,
+  status,
+  attempt_count,
+  max_attempts,
+  locked_at,
+  locked_by,
+  started_at,
+  created_at
+)
+values (
+  '41000000-0000-4000-8000-000000000a63',
+  '10000000-0000-4000-8000-000000000a51',
+  '40000000-0000-4000-8000-000000000a63',
+  '42000000-0000-4000-8000-000000000a63',
+  'rendering',
+  3,
+  3,
+  clock_timestamp() - interval '10 minutes',
+  'dead-final-worker',
+  clock_timestamp() - interval '11 minutes',
+  clock_timestamp() - interval '11 minutes'
+);
+set local role service_role;
+create temporary table dynamic_expired_lease_claim as
+select * from public.claim_dynamic_render_job_v1(
+  'lease-reaper-test',
+  30,
+  3
+);
+reset role;
+select is(
+  (
+    select count(*)
+    from dynamic_expired_lease_claim
+    where snapshot_id = '40000000-0000-4000-8000-000000000a63'
+  ),
+  0::bigint,
+  'a final-attempt expired lease is terminalized instead of claimed again'
+);
+select is(
+  (
+    select job.status || ':' || job.error_code || ':' || snapshot.status ||
+      ':' || snapshot.error_code
+    from public.dynamic_render_jobs job
+    join public.dynamic_slide_snapshots snapshot
+      on snapshot.tenant_id = job.tenant_id
+     and snapshot.id = job.snapshot_id
+    where job.id = '41000000-0000-4000-8000-000000000a63'
+  ),
+  'failed:render_lease_expired:failed:render_lease_expired',
+  'an exhausted lease records a bounded terminal job and snapshot failure'
+);
+select ok(
+  (
+    select current_snapshot_id =
+        current_setting('test.dynamic_burst_latest_snapshot')::uuid
+      and status = 'ready'
+    from public.dynamic_slides
+    where id = (select id from dynamic_test_ids where name = 'slide')
+  ),
+  'lease expiry preserves the newer ready snapshot and live slide status'
+);
+select set_config(
+  'test.dynamic_acknowledged_release',
+  (
+    select desired_release_id::text
+    from public.player_devices
+    where id = '50000000-0000-4000-8000-000000000a51'
+  ),
+  true
+);
+update public.player_devices
+set active_release_id = desired_release_id
+where id = '50000000-0000-4000-8000-000000000a51';
+update private.dynamic_release_refresh_queue
+set not_before = clock_timestamp() - interval '1 second'
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and playlist_id = '30000000-0000-4000-8000-000000000a51';
+select lives_ok(
+  $$select private.process_dynamic_release_refresh_v1(
+    '10000000-0000-4000-8000-000000000a51',
+    '30000000-0000-4000-8000-000000000a51',
+    'dynamic-burst-release-worker'
+  )$$,
+  'one due worker poll publishes the complete two-change burst'
+);
+
+reset role;
+select is(
+  (
+    select count(*)
+    from public.playlist_releases
+    where playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  4::bigint,
+  'two rapid changed snapshots coalesce into exactly one immutable release despite an unacknowledged static branch'
+);
+select is(
+  (
+    select default_release_id
+    from public.screens
+    where id = '40000000-0000-4000-8000-000000000a52'
+  ),
+  (select id from dynamic_test_ids where name = 'static_release'),
+  'an unacknowledged static release branch is not cloned or reassigned automatically'
+);
+update public.screens
+set status = 'disabled'
+where id = '40000000-0000-4000-8000-000000000a52';
+select ok(
+  (
+    select bool_and(
+      release_item.dynamic_snapshot_id = slide.current_snapshot_id
+    )
+    from public.player_devices device
+    join public.playlist_release_items release_item
+      on release_item.tenant_id = device.tenant_id
+     and release_item.release_id = device.desired_release_id
+    join public.dynamic_slide_snapshots released_snapshot
+      on released_snapshot.tenant_id = release_item.tenant_id
+     and released_snapshot.id = release_item.dynamic_snapshot_id
+    join public.dynamic_slides slide
+      on slide.tenant_id = released_snapshot.tenant_id
+     and slide.id = released_snapshot.dynamic_slide_id
+    where device.id = '50000000-0000-4000-8000-000000000a51'
+  ),
+  'the coalesced release freezes the newest snapshot, not an intermediate one'
+);
+select ok(
+  (
+    select active_release_id::text =
+        current_setting('test.dynamic_acknowledged_release')
+      and desired_release_id is distinct from active_release_id
+    from public.player_devices
+    where id = '50000000-0000-4000-8000-000000000a51'
+  ),
+  'automatic publication advances desired state without mutating Player last-known-good'
+);
+select is(
+  (
+    select count(*)
+    from public.audit_events event
+    where event.tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and event.action = 'dynamic.release.auto_published'
+  ),
+  2::bigint,
+  'each coalesced publication batch remains independently auditable'
+);
+
+update public.tenant_products
+set name = 'Cola failure proof'
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and slug = 'cola';
+set local role service_role;
+select lives_ok(
+  $$update public.dynamic_data_sources
+    set revision = revision + 1
+    where id = (select id from dynamic_test_ids where name = 'source')$$,
+  'a later changed provider payload queues the failure-path snapshot'
+);
+reset role;
+create temporary table dynamic_failure_claim as
+select * from pg_temp.claim_dynamic_render_for_slide_v1(
+  (select id from dynamic_test_ids where name = 'slide'),
+  'dynamic-failure-render-worker'
+);
+grant select on dynamic_failure_claim to service_role;
+set local role service_role;
+select lives_ok(
+  $$select public.complete_dynamic_render_job_v1(
+    (select job_id from dynamic_failure_claim),
+    'dynamic-failure-render-worker',
+    'tenants/' || (select tenant_id from dynamic_failure_claim)::text ||
+      '/assets/' ||
+      (select output_media_asset_id from dynamic_failure_claim)::text ||
+      '/dynamic-slide.png',
+    4099,
+    repeat('1', 64),
+    1920,
+    1080
+  )$$,
+  'the failure-path snapshot completes before publication is attempted'
+);
+
+reset role;
+update public.player_devices
+set active_release_id = desired_release_id
+where id = '50000000-0000-4000-8000-000000000a51';
+select set_config(
+  'test.dynamic_failure_release',
+  (
+    select desired_release_id::text
+    from public.player_devices
+    where id = '50000000-0000-4000-8000-000000000a51'
+  ),
+  true
+);
+update private.dynamic_release_refresh_queue
+set not_before = clock_timestamp() - interval '1 second'
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and playlist_id = '30000000-0000-4000-8000-000000000a51';
+create function private.test_s146_reject_auto_assignment()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  raise exception 'injected assignment failure' using errcode = 'P0001';
+end;
+$$;
+create trigger test_s146_reject_auto_assignment
+before insert on public.release_screen_assignments
+for each row
+when (new.assigned_by is null)
+execute function private.test_s146_reject_auto_assignment();
+
+select lives_ok(
+  $$select private.process_dynamic_release_refresh_v1(
+    '10000000-0000-4000-8000-000000000a51',
+    '30000000-0000-4000-8000-000000000a51',
+    'dynamic-failure-release-worker'
+  )$$,
+  'a publication failure is isolated from the render-worker poll'
+);
+
+reset role;
+select is(
+  (
+    select count(*)
+    from public.playlist_releases
+    where playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  4::bigint,
+  'a failed coalesced publication rolls back its partial immutable release'
+);
+select ok(
+  (
+    select pending and attempt_count = 1 and last_error_code = 'P0001'
+    from private.dynamic_release_refresh_queue
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'a failed publication remains pending with sanitized durable backoff state'
+);
+select ok(
+  (
+    select device.active_release_id::text =
+        current_setting('test.dynamic_failure_release')
+      and device.desired_release_id::text =
+        current_setting('test.dynamic_failure_release')
+      and screen.default_release_id::text =
+        current_setting('test.dynamic_failure_release')
+    from public.player_devices device
+    join public.screens screen
+      on screen.tenant_id = device.tenant_id
+     and screen.id = device.screen_id
+    where device.id = '50000000-0000-4000-8000-000000000a51'
+  ),
+  'failed publication preserves default, desired and active last-known-good pointers'
+);
+select set_config(
+  'test.dynamic_failure_retry_not_before',
+  (
+    select not_before::text
+    from private.dynamic_release_refresh_queue
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  true
+);
+select set_config(
+  'test.dynamic_latest_snapshot',
+  (
+    select current_snapshot_id::text
+    from public.dynamic_slides
+    where id = (select id from dynamic_test_ids where name = 'slide')
+  ),
+  true
+);
+update public.dynamic_slides slide
+set current_snapshot_id = (
+  select snapshot.id
+  from public.dynamic_slide_snapshots snapshot
+  where snapshot.dynamic_slide_id = slide.id
+    and snapshot.status = 'ready'
+    and snapshot.id <> slide.current_snapshot_id
+  order by snapshot.created_at desc, snapshot.id desc
+  limit 1
+)
+where slide.id = (select id from dynamic_test_ids where name = 'slide');
+update public.dynamic_slides
+set current_snapshot_id =
+  current_setting('test.dynamic_latest_snapshot')::uuid
+where id = (select id from dynamic_test_ids where name = 'slide');
+select ok(
+  (
+    select attempt_count = 1
+      and last_error_code = 'P0001'
+      and not_before >=
+        current_setting('test.dynamic_failure_retry_not_before')::timestamptz
+    from private.dynamic_release_refresh_queue
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'a later enqueue preserves publication retry backoff and sanitized failure state'
+);
+drop trigger test_s146_reject_auto_assignment
+  on public.release_screen_assignments;
+drop function private.test_s146_reject_auto_assignment();
+update private.dynamic_release_refresh_queue
+set not_before = clock_timestamp() - interval '1 second'
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and playlist_id = '30000000-0000-4000-8000-000000000a51';
+
+select lives_ok(
+  $$select private.process_dynamic_release_refresh_v1(
+    '10000000-0000-4000-8000-000000000a51',
+    '30000000-0000-4000-8000-000000000a51',
+    'dynamic-recovery-release-worker'
+  )$$,
+  'the retained queue request publishes normally after a transient failure'
+);
+
+reset role;
+select ok(
+  (
+    select count(*) = 5
+    from public.playlist_releases
+    where playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ) and not (
+    select pending
+    from private.dynamic_release_refresh_queue
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'a retry creates one release and clears the queue without duplication'
+);
+
+update public.screens
+set status = 'disabled'
+where id = '40000000-0000-4000-8000-000000000a51';
+update private.dynamic_release_refresh_queue
+set pending = true,
+    first_requested_at = clock_timestamp() - interval '1 minute',
+    last_requested_at = clock_timestamp() - interval '1 minute',
+    not_before = clock_timestamp() - interval '1 second',
+    updated_at = clock_timestamp()
+where tenant_id = '10000000-0000-4000-8000-000000000a51'
+  and playlist_id = '30000000-0000-4000-8000-000000000a51';
+create temporary table dynamic_terminal_cleanup_claim as
+select private.process_dynamic_release_refresh_v1(
+  '10000000-0000-4000-8000-000000000a51',
+  '30000000-0000-4000-8000-000000000a51',
+  'dynamic-terminal-cleanup-worker'
+);
+reset role;
+select ok(
+  not (
+    select pending
+    from private.dynamic_release_refresh_queue
+    where tenant_id = '10000000-0000-4000-8000-000000000a51'
+      and playlist_id = '30000000-0000-4000-8000-000000000a51'
+  ),
+  'a disabled final screen clears terminal queue work instead of polling forever'
+);
+update public.screens
+set status = 'active'
+where id = '40000000-0000-4000-8000-000000000a51';
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-4000-8000-000000000a51',
+  true
 );
 
 insert into dynamic_test_ids values (
@@ -1256,7 +2199,7 @@ select is(
       select id from dynamic_test_ids where name = 'manual_price_slide'
     )
   ),
-  'Cola zero,Broodje gezond',
+  'Cola failure proof,Broodje gezond',
   'immutable menu snapshot resolves exactly the manually ordered product set'
 );
 
@@ -1310,6 +2253,272 @@ select throws_ok(
 );
 
 reset role;
+
+-- Render completion order is not guaranteed. Prove that a slower older
+-- snapshot can finish after a newer one without regressing the latest pointer.
+insert into public.dynamic_slides (
+  id,
+  tenant_id,
+  name,
+  slide_type,
+  orientation,
+  template_id,
+  template_version_id,
+  data_source_id,
+  selection_mode,
+  status,
+  configuration_json,
+  created_by,
+  updated_by
+)
+select
+  '40000000-0000-4000-8000-000000000a60',
+  slide.tenant_id,
+  'Render-volgorde regressietest',
+  slide.slide_type,
+  slide.orientation,
+  slide.template_id,
+  slide.template_version_id,
+  slide.data_source_id,
+  'latest',
+  'rendering',
+  slide.configuration_json,
+  slide.created_by,
+  slide.updated_by
+from public.dynamic_slides slide
+where slide.id = (select id from dynamic_test_ids where name = 'slide');
+
+insert into public.dynamic_slide_snapshots (
+  id,
+  tenant_id,
+  dynamic_slide_id,
+  dynamic_slide_version_id,
+  template_version_id,
+  data_source_id,
+  source_revision_hash,
+  snapshot_data_json,
+  status,
+  created_by,
+  created_at
+)
+select
+  fixture.id,
+  base.tenant_id,
+  '40000000-0000-4000-8000-000000000a60',
+  base.dynamic_slide_version_id,
+  base.template_version_id,
+  base.data_source_id,
+  fixture.revision_hash,
+  base.snapshot_data_json,
+  'queued',
+  base.created_by,
+  fixture.created_at
+from public.dynamic_slides slide
+join public.dynamic_slide_snapshots base
+  on base.tenant_id = slide.tenant_id
+ and base.id = slide.current_snapshot_id
+cross join (
+  values
+    (
+      '40000000-0000-4000-8000-000000000a61'::uuid,
+      repeat('c', 64),
+      now(),
+      1
+    ),
+    (
+      '40000000-0000-4000-8000-000000000a62'::uuid,
+      repeat('d', 64),
+      now(),
+      2
+    )
+) as fixture(id, revision_hash, created_at, insertion_order)
+where slide.id = (select id from dynamic_test_ids where name = 'slide')
+order by fixture.insertion_order;
+
+select throws_ok(
+  $$insert into public.dynamic_slide_snapshots (
+      id,
+      tenant_id,
+      dynamic_slide_id,
+      dynamic_slide_version_id,
+      template_version_id,
+      data_source_id,
+      source_revision_hash,
+      snapshot_data_json,
+      status,
+      created_by,
+      created_at,
+      snapshot_sequence
+    )
+    select
+      '40000000-0000-4000-8000-000000000a64',
+      snapshot.tenant_id,
+      snapshot.dynamic_slide_id,
+      snapshot.dynamic_slide_version_id,
+      snapshot.template_version_id,
+      snapshot.data_source_id,
+      repeat('e', 64),
+      snapshot.snapshot_data_json,
+      'queued',
+      snapshot.created_by,
+      now(),
+      63
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.id = '40000000-0000-4000-8000-000000000a61'$$,
+  '23514',
+  'dynamic snapshot sequence is database-owned',
+  'callers cannot provide snapshot ordering metadata explicitly'
+);
+
+select throws_ok(
+  $$update public.dynamic_slide_snapshots
+      set snapshot_sequence = snapshot_sequence + 100
+    where id = '40000000-0000-4000-8000-000000000a61'$$,
+  '55000',
+  'dynamic snapshot records are immutable',
+  'snapshot order cannot be rewritten while a render is still queued'
+);
+
+-- Simulate immutable rows that already existed when S146 was installed. The
+-- production migration leaves these values NULL instead of rewriting history.
+set local session_replication_role = replica;
+update public.dynamic_slide_snapshots
+set snapshot_sequence = null
+where id in (
+  '40000000-0000-4000-8000-000000000a61',
+  '40000000-0000-4000-8000-000000000a62'
+);
+set local session_replication_role = origin;
+
+select is(
+  (
+    select count(*)
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.id in (
+      '40000000-0000-4000-8000-000000000a61',
+      '40000000-0000-4000-8000-000000000a62'
+    )
+      and snapshot.snapshot_sequence is null
+  ),
+  2::bigint,
+  'legacy in-flight snapshots keep NULL ordering metadata'
+);
+
+insert into public.dynamic_render_jobs (
+  id,
+  tenant_id,
+  snapshot_id,
+  output_media_asset_id,
+  created_at
+)
+values
+  (
+    '41000000-0000-4000-8000-000000000a61',
+    '10000000-0000-4000-8000-000000000a51',
+    '40000000-0000-4000-8000-000000000a61',
+    '42000000-0000-4000-8000-000000000a61',
+    clock_timestamp() - interval '2 seconds'
+  ),
+  (
+    '41000000-0000-4000-8000-000000000a62',
+    '10000000-0000-4000-8000-000000000a51',
+    '40000000-0000-4000-8000-000000000a62',
+    '42000000-0000-4000-8000-000000000a62',
+    clock_timestamp() - interval '1 second'
+  );
+
+create temporary table reverse_newer_claim as
+select * from pg_temp.claim_dynamic_render_for_slide_v1(
+  '40000000-0000-4000-8000-000000000a60',
+  'reverse-newer-worker'
+);
+grant select on reverse_newer_claim to service_role;
+set local role service_role;
+select is(
+  (select snapshot_id from reverse_newer_claim),
+  '40000000-0000-4000-8000-000000000a62'::uuid,
+  'the newest queued snapshot is claimed first'
+);
+select lives_ok(
+  $$select public.complete_dynamic_render_job_v1(
+    (select job_id from reverse_newer_claim),
+    'reverse-newer-worker',
+    'tenants/' || (select tenant_id from reverse_newer_claim)::text ||
+      '/assets/' ||
+      (select output_media_asset_id from reverse_newer_claim)::text ||
+      '/dynamic-slide.png',
+    4162,
+    repeat('e', 64),
+    1920,
+    1080
+  )$$,
+  'the newer snapshot can finish before its older sibling'
+);
+
+reset role;
+create temporary table reverse_older_claim as
+select * from pg_temp.claim_dynamic_render_for_slide_v1(
+  '40000000-0000-4000-8000-000000000a60',
+  'reverse-older-worker'
+);
+grant select on reverse_older_claim to service_role;
+set local role service_role;
+select is(
+  (select snapshot_id from reverse_older_claim),
+  '40000000-0000-4000-8000-000000000a61'::uuid,
+  'the older queued snapshot remains independently renderable'
+);
+select lives_ok(
+  $$select public.complete_dynamic_render_job_v1(
+    (select job_id from reverse_older_claim),
+    'reverse-older-worker',
+    'tenants/' || (select tenant_id from reverse_older_claim)::text ||
+      '/assets/' ||
+      (select output_media_asset_id from reverse_older_claim)::text ||
+      '/dynamic-slide.png',
+    4161,
+    repeat('f', 64),
+    1920,
+    1080
+  )$$,
+  'the older snapshot may complete safely after the newer snapshot'
+);
+
+reset role;
+select is(
+  (
+    select current_snapshot_id
+    from public.dynamic_slides
+    where id = '40000000-0000-4000-8000-000000000a60'
+  ),
+  '40000000-0000-4000-8000-000000000a62'::uuid,
+  'late older completion cannot regress the latest snapshot pointer'
+);
+
+select ok(
+  not exists (
+    select 1
+    from public.dynamic_slide_snapshots snapshot
+    where snapshot.snapshot_sequence is null
+      and snapshot.id not in (
+        '40000000-0000-4000-8000-000000000a61',
+        '40000000-0000-4000-8000-000000000a62'
+      )
+  ),
+  'every snapshot created after the migration receives a sequence'
+);
+
+select is(
+  (
+    select count(snapshot.snapshot_sequence)
+    from public.dynamic_slide_snapshots snapshot
+  ),
+  (
+    select count(distinct snapshot.snapshot_sequence)
+    from public.dynamic_slide_snapshots snapshot
+  ),
+  'post-migration snapshot sequences remain unique'
+);
 
 select * from finish();
 rollback;

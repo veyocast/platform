@@ -1837,6 +1837,7 @@
 
 .vc-journey-shell__steps {
   overflow-x: auto;
+  scroll-snap-type: x proximity;
   scrollbar-width: thin;
 }
 
@@ -1859,6 +1860,7 @@
   grid-template-columns: auto 1fr;
   min-height: var(--vc-vector-touch-minimum-target-px, 44px);
   padding: var(--vc-vector-space-8, var(--vc-space-8)) 0;
+  scroll-snap-align: center;
 }
 
 .vc-journey-shell__steps li[data-state="current"] {

@@ -63,6 +63,7 @@ import type {
   ControlSession
 } from "../_lib/control-navigation";
 import {
+  getControlRoutePresentation,
   getNavigationGroupsForPathname,
   isImmersiveEditorPath
 } from "../_lib/control-navigation";
@@ -204,7 +205,7 @@ export function ControlShell({
     () => visibleNavigationGroups.flatMap((group) => group.items).find((item) => item.label === "Instellingen"),
     [visibleNavigationGroups]
   );
-  const pagePresentation = resolvePagePresentation(
+  const pagePresentation = getControlRoutePresentation(
     pathname,
     activeNavigationItem?.label,
     displayContextName,
@@ -394,7 +395,9 @@ export function ControlShell({
         data-fieldflow="v3"
         data-navigation-scope={activeNavigationScope}
         data-route-family={pagePresentation.family}
+        data-route-layout={pagePresentation.layout}
         data-shell-heading={shellOwnsHeading ? "true" : "false"}
+        data-shell-mode={isImmersiveEditor ? "immersive" : "standard"}
       >
       <a className="skip-link" href="#control-content">
         Naar inhoud
@@ -942,56 +945,6 @@ function AccountMenu({
       </DialogContent>
     </Dialog>
   );
-}
-
-function resolvePagePresentation(
-  pathname: string,
-  navigationLabel: string | undefined,
-  contextName: string,
-  userName: string
-) {
-  if (pathname === "/dashboard") {
-    return {
-      description: `Dit is wat er vandaag speelt bij ${contextName}.`,
-      family: "overview",
-      title: `Goedemorgen, ${firstName(userName)}`
-    };
-  }
-  if (pathname === "/dashboard/studio" || pathname.startsWith("/dashboard/studio/")) {
-    return {
-      description: "Maak en beheer wat jouw schermen laten zien.",
-      family: "studio",
-      title: "Studio"
-    };
-  }
-  if (pathname === "/dashboard/screens" || pathname.startsWith("/dashboard/screens/")) {
-    return {
-      description: "Overzicht van alle schermen en schermgroepen.",
-      family: "screens",
-      title: "Schermen"
-    };
-  }
-  if (pathname === "/dashboard/planning" || pathname.startsWith("/dashboard/planning/")) {
-    return {
-      description: "Bepaal waar en wanneer content zichtbaar wordt.",
-      family: "planning",
-      title: "Planning"
-    };
-  }
-  if (pathname === "/dashboard/media" || pathname.startsWith("/dashboard/media/")) {
-    return {
-      description: "Beheer foto's, video's en andere clubmedia.",
-      family: "media",
-      title: "Media"
-    };
-  }
-  return {
-    description: pathname.startsWith("/platform/") || pathname === "/platform"
-      ? "Beheer de VeyoCast-platformomgeving."
-      : `Werk binnen ${contextName}.`,
-    family: pathname.startsWith("/platform") ? "platform" : "secondary",
-    title: navigationLabel === "Vandaag" ? "Overzicht" : navigationLabel ?? "VeyoCast"
-  };
 }
 
 function MobileBottomNav({

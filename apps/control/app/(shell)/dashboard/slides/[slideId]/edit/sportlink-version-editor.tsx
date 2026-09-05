@@ -1,30 +1,76 @@
 "use client";
 
-import { Eye, Save, Send } from "lucide-react";
-import { useMemo, useState, useTransition } from "react";
+import {
+  Check,
+  ChevronDown,
+  Eye,
+  LayoutGrid,
+  Save,
+  Search,
+  Send,
+  Users,
+  X
+} from "lucide-react";
+import { useId, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import {
-  sportlinkArrivalConfigSchema,
   sportlinkSlideBlueprints,
+  sportlinkSlideTeamContextsMax,
   type SelectableThemeId,
   type SportlinkSlideBlueprintKey,
+  type SportlinkSlideContext,
   type SportlinkSlideDraft
 } from "@veyocast/contracts";
 import { themeCatalog } from "@veyocast/content-templates/theme-catalog";
-import { Button, Field } from "@veyocast/ui";
+import { Button, Field, StatusPill } from "@veyocast/ui";
 
 import { FieldFlowStyleStep } from "../../_components/fieldflow-style-step";
-import { SportlinkArrivalFields, type SportlinkMediaOption } from "../../_components/sportlink-arrival-fields";
+import {
+  SportlinkArrivalFields,
+  type SportlinkMediaOption
+} from "../../_components/sportlink-arrival-fields";
 import { publishDynamicSlideVersion } from "../../version-actions";
 import { saveSportlinkSlideVersion } from "./actions";
+import styles from "./sportlink-version-editor.module.css";
+import {
+  autoCompetitionContext,
+  competitionContextFromOption,
+  isArrivalBlueprint,
+  pinnedCompetitionContext,
+  replaceArrivalTeamContext,
+  replaceArrivalTeamSelection,
+  switchSportlinkBlueprint,
+  type SportlinkVersionEditorTeam
+} from "./sportlink-version-editor-state";
 
-type Team = { contexts: Array<{ competitionId: string; label: string; phaseId: string | null; poolId: string | null; seasonId: string | null }>; externalId: string; name: string };
-type Template = { orientation: "landscape" | "portrait"; slideType: string; versionId: string };
+type Team = SportlinkVersionEditorTeam;
+type Template = {
+  orientation: "landscape" | "portrait";
+  slideType: string;
+  versionId: string;
+};
+type EditorMessage = { text: string; tone: "critical" | "success" | "warning" };
 
-export function SportlinkVersionEditor({ dataSourceId, initialDraft, initialRevision, media, slideId, teams, templates, versionId, versionNumber }: {
+const blueprintKeys = Object.keys(
+  sportlinkSlideBlueprints
+) as SportlinkSlideBlueprintKey[];
+
+export function SportlinkVersionEditor({
+  dataSourceId,
+  initialDraft,
+  initialDirty,
+  initialRevision,
+  media,
+  slideId,
+  teams,
+  templates,
+  versionId,
+  versionNumber
+}: {
   dataSourceId: string;
   initialDraft: SportlinkSlideDraft;
+  initialDirty: boolean;
   initialRevision: number;
   media: SportlinkMediaOption[];
   slideId: string;
@@ -39,73 +85,782 @@ export function SportlinkVersionEditor({ dataSourceId, initialDraft, initialRevi
     themeSelection: fieldflowThemeSelection(initialDraft.themeSelection)
   }));
   const [revision, setRevision] = useState(initialRevision);
-  const [dirty, setDirty] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(initialDirty);
+  const [message, setMessage] = useState<EditorMessage | null>(() =>
+    initialDirty
+      ? {
+          text: "Deze conceptversie is veilig omgezet naar de gekoppelde FieldFlow-opbouw. Sla de selectie eerst op voordat je publiceert.",
+          tone: "warning"
+        }
+      : null
+  );
   const [pending, startTransition] = useTransition();
-  const templateMap = useMemo(() => Object.fromEntries(templates.map((template) => [`${template.orientation}:${template.slideType}`, template.versionId])), [templates]);
-  const team = teams.find((candidate) => candidate.externalId === draft.context.providerTeamId) ?? teams[0];
-  const blueprintKeys = Object.keys(sportlinkSlideBlueprints) as SportlinkSlideBlueprintKey[];
-  const themeId = draft.themeSelection.ref.catalog === "v2" ? draft.themeSelection.ref.id : "fieldflow";
+  const templateMap = useMemo(
+    () => Object.fromEntries(templates.map((template) => [
+      `${template.orientation}:${template.slideType}`,
+      template.versionId
+    ])),
+    [templates]
+  );
+  const arrival = isArrivalBlueprint(draft.blueprintKey);
+  const themeId = draft.themeSelection.ref.catalog === "v2"
+    ? draft.themeSelection.ref.id
+    : "fieldflow";
   const theme = themeCatalog[themeId];
 
-  const update = (next: SportlinkSlideDraft) => {
+  function update(next: SportlinkSlideDraft) {
     setDraft({
       ...next,
       themeSelection: fieldflowThemeSelection(next.themeSelection)
     });
     setDirty(true);
     setMessage(null);
-  };
-  const setBlueprint = (blueprintKey: SportlinkSlideBlueprintKey) => {
+  }
+
+  function setBlueprint(blueprintKey: SportlinkSlideBlueprintKey) {
     const blueprint = sportlinkSlideBlueprints[blueprintKey];
-    const templateVersionId = templateMap[`${draft.orientation}:${blueprint.slideType}`];
-    if (!templateVersionId) return;
+    const templateVersionId = templateMap[
+      `${draft.orientation}:${blueprint.slideType}`
+    ];
+    if (!templateVersionId) {
+      setMessage({
+        text: "Dit type heeft nog geen template voor het gekozen schermformaat. Kies een ander formaat en probeer opnieuw.",
+        tone: "warning"
+      });
+      return;
+    }
+    update(switchSportlinkBlueprint(
+      draft,
+      blueprintKey,
+      templateVersionId
+    ));
+  }
+
+  function setOrientation(orientation: "landscape" | "portrait") {
+    const slideType = sportlinkSlideBlueprints[draft.blueprintKey].slideType;
+    const templateVersionId = templateMap[`${orientation}:${slideType}`];
+    if (!templateVersionId) {
+      setMessage({
+        text: "Voor dit onderdeel ontbreekt een template in dat schermformaat. De huidige keuze is behouden.",
+        tone: "warning"
+      });
+      return;
+    }
+    update({ ...draft, orientation, templateVersionId });
+  }
+
+  function setTheme(id: SelectableThemeId) {
     update({
       ...draft,
-      blueprintKey,
-      templateVersionId,
-      title: blueprint.label,
-      ...(blueprintKey.endsWith("arrivals") && !draft.arrival
-        ? { arrival: sportlinkArrivalConfigSchema.parse({}) }
-        : {})
+      themeSelection: {
+        ...draft.themeSelection,
+        ref: { catalog: "v2", id, version: themeCatalog[id].version }
+      }
     });
-  };
-  const setOrientation = (orientation: "landscape" | "portrait") => {
-    const templateVersionId = templateMap[`${orientation}:${sportlinkSlideBlueprints[draft.blueprintKey].slideType}`];
-    if (templateVersionId) update({ ...draft, orientation, templateVersionId });
-  };
-  const setTheme = (id: SelectableThemeId) => update({ ...draft, themeSelection: { ...draft.themeSelection, ref: { catalog: "v2", id, version: themeCatalog[id].version } } });
-  const save = () => startTransition(async () => {
-    const result = await saveSportlinkSlideVersion({ dataSourceId, draft, expectedRevision: revision, slideId, versionId });
-    if (!result.ok) { setMessage(result.message ?? "Opslaan is mislukt."); return; }
-    setRevision(result.editRevision); setDirty(false); setMessage("Conceptversie opgeslagen."); router.refresh();
-  });
-  const publish = () => startTransition(async () => {
-    const result = await publishDynamicSlideVersion({ expectedRevision: revision, slideId, versionId });
-    if (!result.ok) { setMessage(result.message ?? "Publiceren is mislukt."); return; }
-    router.push(`/dashboard/slides/${slideId}?succes=Versie+${versionNumber}+wordt+veilig+gerenderd.+De+huidige+versie+blijft+actief+tot+de+nieuwe+gereed+is.`);
-  });
+  }
+
+  function save() {
+    startTransition(async () => {
+      const result = await saveSportlinkSlideVersion({
+        dataSourceId,
+        draft,
+        expectedRevision: revision,
+        slideId,
+        versionId
+      });
+      if (!result.ok) {
+        setMessage({
+          text: result.message ?? "Opslaan is mislukt. De gepubliceerde versie is niet aangepast; controleer de invoer en probeer opnieuw.",
+          tone: "critical"
+        });
+        return;
+      }
+      setRevision(result.editRevision);
+      setDirty(false);
+      setMessage({ text: "Conceptversie opgeslagen.", tone: "success" });
+      router.refresh();
+    });
+  }
+
+  function publish() {
+    startTransition(async () => {
+      const result = await publishDynamicSlideVersion({
+        expectedRevision: revision,
+        slideId,
+        versionId
+      });
+      if (!result.ok) {
+        setMessage({
+          text: result.message ?? "Publiceren is mislukt. De huidige versie blijft actief; probeer opnieuw.",
+          tone: "critical"
+        });
+        return;
+      }
+      router.push(
+        `/dashboard/slides/${slideId}?succes=Versie+${versionNumber}+wordt+veilig+gerenderd.+De+huidige+versie+blijft+actief+tot+de+nieuwe+gereed+is.`
+      );
+    });
+  }
 
   return (
-    <div className="sve">
-      <section className="sve-form data-surface">
-        <header><div><h2>Conceptversie v{versionNumber}</h2><p>Alle instellingen zijn gekopieerd. Wijzig alleen wat voor deze versie anders moet.</p></div><span>{dirty ? "Niet opgeslagen" : "Opgeslagen"}</span></header>
-        {message ? <p className={message.includes("mislukt") || message.includes("geen toestemming") ? "notice notice--critical" : "notice notice--success"} role="status">{message}</p> : null}
-        <Field label="Naam in Slides en playlists"><input maxLength={120} minLength={2} onChange={(event) => update({ ...draft, name: event.target.value })} value={draft.name} /></Field>
-        <fieldset><legend>Wat wil je tonen?</legend><div className="sve-blueprints">{blueprintKeys.map((key) => <button aria-pressed={draft.blueprintKey === key} key={key} onClick={() => setBlueprint(key)} type="button">{shortLabel(key)}</button>)}</div></fieldset>
-        <div className="sve-fields"><Field label="Team"><select onChange={(event) => { const nextTeam = teams.find((candidate) => candidate.externalId === event.target.value); const context = nextTeam?.contexts[0]; if (nextTeam) update({ ...draft, context: context ? contextFromOption(nextTeam.externalId, context) : { competitionId: null, competitionSelectionMode: "auto_current", phaseId: null, poolId: null, providerTeamId: nextTeam.externalId, seasonId: null } }); }} value={draft.context.providerTeamId}>{teams.map((option) => <option key={option.externalId} value={option.externalId}>{option.name}</option>)}</select></Field><Field label="Competitiekeuze"><select onChange={(event) => update({ ...draft, context: event.target.value === "auto_current" ? { ...draft.context, competitionId: null, competitionSelectionMode: "auto_current", phaseId: null, poolId: null, seasonId: null } : team?.contexts[0] ? contextFromOption(draft.context.providerTeamId, team.contexts[0]) : draft.context })} value={draft.context.competitionSelectionMode}><option value="auto_current">Gebruik actuele competitie</option><option value="pinned">Zelf competitie kiezen</option></select></Field>{draft.context.competitionSelectionMode === "pinned" ? <Field label="Competitie · fase · poule"><select onChange={(event) => { const context = team?.contexts[Number(event.target.value)]; if (context) update({ ...draft, context: contextFromOption(draft.context.providerTeamId, context) }); }} value={Math.max(0, team?.contexts.findIndex((context) => context.competitionId === draft.context.competitionId && context.poolId === draft.context.poolId) ?? 0)}>{team?.contexts.map((context, index) => <option key={`${context.competitionId}:${context.poolId}:${index}`} value={index}>{context.label}</option>)}</select></Field> : null}</div>
-        <fieldset><legend>Schermformaat</legend><div className="sve-orientation">{(["landscape", "portrait"] as const).map((orientation) => <button aria-pressed={draft.orientation === orientation} key={orientation} onClick={() => setOrientation(orientation)} type="button"><strong>{orientation === "portrait" ? "Staand" : "Liggend"}</strong><small>{orientation === "portrait" ? "1080 × 1920" : "1920 × 1080"}</small></button>)}</div></fieldset>
-        <FieldFlowStyleStep label="FieldFlow-stijl voor deze versie" legacySelected={draft.themeSelection.ref.catalog === "legacy"} onActivate={() => setTheme("fieldflow")} value={themeId} />
-        <fieldset><legend>Weergave</legend><div className="sve-options"><label><input checked={draft.display.columns === "two"} onChange={(event) => update({ ...draft, display: { ...draft.display, columns: event.target.checked ? "two" : "one" } })} type="checkbox" /> Twee kolommen</label>{sportlinkSlideBlueprints[draft.blueprintKey].slideType !== "sport_standing" ? <><label><input checked={draft.display.showHomeAway} onChange={(event) => update({ ...draft, display: { ...draft.display, showHomeAway: event.target.checked } })} type="checkbox" /> Thuis / uit</label><label><input checked={draft.display.showField} onChange={(event) => update({ ...draft, display: { ...draft.display, showField: event.target.checked } })} type="checkbox" /> Veld</label><label><input checked={draft.display.showDressingRoom} onChange={(event) => update({ ...draft, display: { ...draft.display, showDressingRoom: event.target.checked } })} type="checkbox" /> Kleedkamer</label><label><input checked={draft.display.showReferee} onChange={(event) => update({ ...draft, display: { ...draft.display, showReferee: event.target.checked } })} type="checkbox" /> Scheidsrechter</label></> : <p>Voor een poulestand zijn alleen de kolommen relevant.</p>}</div></fieldset>
-        {draft.arrival && draft.blueprintKey.endsWith("arrivals") ? <fieldset><legend>Aankomstinstellingen</legend><SportlinkArrivalFields media={media} onChange={(arrival) => update({ ...draft, arrival })} value={draft.arrival} /></fieldset> : null}
-        <footer><Button disabled={!dirty || pending} onClick={save} type="button" variant="secondary"><Save aria-hidden="true" />Concept opslaan</Button><Button disabled={dirty || pending} onClick={publish} type="button"><Send aria-hidden="true" />Versie publiceren</Button></footer>
+    <div className={styles.editor}>
+      <section className={styles.formPanel}>
+        <header className={styles.panelHeader}>
+          <div>
+            <span className={styles.kicker}>Sportlink-versie</span>
+            <h2>Conceptversie v{versionNumber}</h2>
+            <p>
+              Pas dit gekoppelde onderdeel aan. De huidige publicatie blijft
+              spelen totdat deze versie volledig gereed is.
+            </p>
+          </div>
+          <StatusPill
+            label={dirty ? "Niet opgeslagen" : "Opgeslagen"}
+            tone={dirty ? "warning" : "success"}
+          />
+        </header>
+
+        {message ? (
+          <p
+            className={`notice notice--${message.tone}`}
+            role={message.tone === "critical" ? "alert" : "status"}
+          >
+            {message.text}
+          </p>
+        ) : null}
+
+        <Field
+          description="Deze naam blijft herkenbaar in Slides en playlists."
+          label="Naam van het onderdeel"
+        >
+          {({ controlProps }) => (
+            <input
+              {...controlProps}
+              maxLength={120}
+              minLength={2}
+              onChange={(event) => update({ ...draft, name: event.target.value })}
+              value={draft.name}
+            />
+          )}
+        </Field>
+
+        <fieldset className={styles.section}>
+          <legend>Wat wil je tonen?</legend>
+          <p className={styles.sectionDescription}>
+            Welkomsttypen blijven één dynamisch onderdeel, ook wanneer meerdere
+            teams eraan gekoppeld zijn.
+          </p>
+          <div className={styles.blueprintGrid}>
+            {blueprintKeys.map((key) => {
+              const active = draft.blueprintKey === key;
+              return (
+                <button
+                  aria-pressed={active}
+                  key={key}
+                  onClick={() => setBlueprint(key)}
+                  type="button"
+                >
+                  <span className={styles.choiceIcon}>
+                    <LayoutGrid aria-hidden="true" />
+                  </span>
+                  <span>
+                    <strong>{shortLabel(key)}</strong>
+                    <small>{blueprintDescription(key)}</small>
+                  </span>
+                  <span className={styles.choiceCheck} aria-hidden="true">
+                    {active ? <Check /> : null}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        {arrival ? (
+          <ArrivalTeamEditor
+            draft={draft}
+            onChange={update}
+            teams={teams}
+          />
+        ) : (
+          <SingleTeamEditor draft={draft} onChange={update} teams={teams} />
+        )}
+
+        <fieldset className={styles.section}>
+          <legend>Schermformaat</legend>
+          <div className={styles.orientationGrid}>
+            {(["landscape", "portrait"] as const).map((orientation) => (
+              <button
+                aria-pressed={draft.orientation === orientation}
+                key={orientation}
+                onClick={() => setOrientation(orientation)}
+                type="button"
+              >
+                <strong>{orientation === "portrait" ? "Staand" : "Liggend"}</strong>
+                <small>{orientation === "portrait" ? "1080 × 1920" : "1920 × 1080"}</small>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <FieldFlowStyleStep
+          label="FieldFlow-stijl voor deze versie"
+          legacySelected={draft.themeSelection.ref.catalog === "legacy"}
+          onActivate={() => setTheme("fieldflow")}
+          value={themeId}
+        />
+
+        <fieldset className={styles.section}>
+          <legend>Weergave</legend>
+          <div className={styles.inlineOptions}>
+            <label>
+              <input
+                checked={draft.display.columns === "two"}
+                onChange={(event) => update({
+                  ...draft,
+                  display: {
+                    ...draft.display,
+                    columns: event.target.checked ? "two" : "one"
+                  }
+                })}
+                type="checkbox"
+              />
+              Twee kolommen
+            </label>
+            {sportlinkSlideBlueprints[draft.blueprintKey].slideType !== "sport_standing" ? (
+              <>
+                <DisplayToggle
+                  checked={draft.display.showHomeAway}
+                  label="Thuis / uit tonen"
+                  onChange={(checked) => update({ ...draft, display: { ...draft.display, showHomeAway: checked } })}
+                />
+                <DisplayToggle
+                  checked={draft.display.showField}
+                  label="Veld tonen"
+                  onChange={(checked) => update({ ...draft, display: { ...draft.display, showField: checked } })}
+                />
+                <DisplayToggle
+                  checked={draft.display.showDressingRoom}
+                  label="Kleedkamer tonen"
+                  onChange={(checked) => update({ ...draft, display: { ...draft.display, showDressingRoom: checked } })}
+                />
+                <DisplayToggle
+                  checked={draft.display.showReferee}
+                  label="Scheidsrechter tonen"
+                  onChange={(checked) => update({ ...draft, display: { ...draft.display, showReferee: checked } })}
+                />
+              </>
+            ) : (
+              <p>Voor een poulestand zijn alleen de kolommen relevant.</p>
+            )}
+          </div>
+        </fieldset>
+
+        {draft.arrival && arrival ? (
+          <fieldset className={styles.section}>
+            <legend>Bezoekers en scheidsrechters</legend>
+            <SportlinkArrivalFields
+              media={media}
+              onChange={(nextArrival) => update({ ...draft, arrival: nextArrival })}
+              value={draft.arrival}
+            />
+          </fieldset>
+        ) : null}
+
+        <footer className={styles.actions}>
+          <Button
+            disabled={!dirty || pending}
+            onClick={save}
+            type="button"
+            variant="secondary"
+          >
+            <Save aria-hidden="true" />
+            Concept opslaan
+          </Button>
+          <Button disabled={dirty || pending} onClick={publish} type="button">
+            <Send aria-hidden="true" />
+            Versie publiceren
+          </Button>
+        </footer>
       </section>
-      <aside className="sve-preview data-surface"><header><Eye aria-hidden="true" /><strong>Preview</strong></header><div data-orientation={draft.orientation} style={{ "--sve-accent": draft.themeSelection.accent ?? theme.accentDefault, "--sve-canvas": theme.light.canvas, "--sve-line": theme.light.line, "--sve-muted": theme.light.muted, "--sve-surface": theme.light.surface, "--sve-text": theme.light.text } as React.CSSProperties}><span>SPORTLINK</span><h2>{draft.title}</h2><p>{team?.name}</p><i /><i /><i /><small>{theme.name} · {draft.display.columns === "two" ? "2 kolommen" : "1 kolom"}</small></div><p>De actuele providerdata blijft dynamisch. Deze preview toont de versie-instellingen zonder een score te bevriezen.</p></aside>
-      <style>{`.sve{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,34%);gap:1rem;align-items:start}.sve-form{display:grid;gap:1.25rem}.sve-form>header{display:flex;justify-content:space-between;gap:1rem}.sve-form h2,.sve-form p{margin:0}.sve-form>header span{align-self:start;padding:.3rem .5rem;background:var(--accent-soft);border-radius:6px;font-size:.78rem}.sve fieldset{margin:0;padding:0;border:0}.sve legend{margin-bottom:.55rem;font-weight:750}.sve-blueprints{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.5rem}.sve-blueprints button,.sve-orientation button{min-height:52px;padding:.55rem;background:var(--surface);border:1px solid var(--border);border-radius:8px}.sve-blueprints button[aria-pressed=true],.sve-orientation button[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent)}.sve-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}.sve-orientation{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}.sve-orientation button{display:grid}.sve-options{display:flex;flex-wrap:wrap;gap:.5rem}.sve-options label{display:flex;align-items:center;gap:.4rem;min-height:44px;padding:.5rem .65rem;border:1px solid var(--border);border-radius:8px}.sve-form>footer{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:.5rem;padding:.7rem;background:var(--surface);border-top:1px solid var(--border)}.sve-preview{position:sticky;top:1rem;display:grid;gap:.7rem}.sve-preview>header{display:flex;align-items:center;gap:.5rem}.sve-preview>div{display:flex;flex-direction:column;aspect-ratio:16/9;padding:8%;color:var(--sve-text);background:var(--sve-canvas);border:1px solid var(--sve-line);border-radius:8px}.sve-preview>div[data-orientation=portrait]{width:min(75%,230px);justify-self:center;aspect-ratio:9/16}.sve-preview>div>span{color:var(--sve-accent);font-size:.55rem;font-weight:800}.sve-preview h2{margin:.4rem 0 .2rem}.sve-preview>div>p{margin:0;color:var(--sve-muted)}.sve-preview i{display:block;height:1.1rem;margin-top:.4rem;background:var(--sve-surface);border-left:3px solid var(--sve-accent)}.sve-preview small{margin-top:auto;padding-top:.5rem;border-top:1px solid var(--sve-line)}.sve-preview>p{color:var(--muted-foreground);font-size:.82rem}@media(max-width:900px){.sve{grid-template-columns:1fr}.sve-preview{position:relative;top:auto;order:-1}}@media(max-width:640px){.sve-fields{grid-template-columns:1fr}.sve-form>footer{padding-bottom:calc(.7rem + env(safe-area-inset-bottom))}}`}</style>
+
+      <VersionPreview draft={draft} teams={teams} theme={theme} themeId={themeId} />
     </div>
   );
 }
 
-function contextFromOption(teamId: string, option: Team["contexts"][number]) { return { competitionId: option.competitionId, competitionSelectionMode: "pinned" as const, phaseId: option.phaseId, poolId: option.poolId, providerTeamId: teamId, seasonId: option.seasonId }; }
-function shortLabel(key: SportlinkSlideBlueprintKey) { return sportlinkSlideBlueprints[key].label.replace(/^Club/u, "").trim(); }
-function fieldflowThemeSelection(selection: SportlinkSlideDraft["themeSelection"]): SportlinkSlideDraft["themeSelection"] { return { ...selection, ref: { catalog: "v2", id: "fieldflow", version: themeCatalog.fieldflow.version } }; }
+function ArrivalTeamEditor({ draft, onChange, teams }: {
+  draft: SportlinkSlideDraft;
+  onChange: (draft: SportlinkSlideDraft) => void;
+  teams: Team[];
+}) {
+  const inputId = useId();
+  const headingId = `${inputId}-heading`;
+  const [query, setQuery] = useState("");
+  const contexts = draft.teamContexts ?? [draft.context];
+  const selectedIds = contexts.map((context) => context.providerTeamId);
+  const selectedIdSet = new Set(selectedIds);
+  const normalizedQuery = normalizeSearch(query);
+  const filteredTeams = teams.filter((team) =>
+    !normalizedQuery || normalizeSearch(team.name).includes(normalizedQuery)
+  );
+  const selectableTeams = teams.slice(0, sportlinkSlideTeamContextsMax);
+  const selectionLimitReached = selectedIds.length >= sportlinkSlideTeamContextsMax;
+  const allCurrentTeamsSelected = selectableTeams.length > 0 && selectableTeams.every((team) =>
+    selectedIdSet.has(team.externalId)
+  );
+  const exactlyAllCurrentTeams = allCurrentTeamsSelected &&
+    contexts.length === selectableTeams.length;
+
+  function toggleTeam(teamId: string) {
+    const selected = selectedIdSet.has(teamId);
+    if (selected && selectedIds.length === 1) return;
+    onChange(replaceArrivalTeamSelection(
+      draft,
+      selected
+        ? selectedIds.filter((candidate) => candidate !== teamId)
+        : [...selectedIds, teamId],
+      teams
+    ));
+  }
+
+  return (
+    <section className={styles.teamSection} aria-labelledby={headingId}>
+      <header>
+        <div>
+          <span className={styles.kicker}>Gekoppeld welkomstcomponent</span>
+          <h3 id={headingId}>Teams in dit onderdeel</h3>
+          <p>
+            De selectie voedt één dynamische slide. VeyoCast verdeelt de
+            actuele aankomsten automatisch over schermpagina&apos;s.
+          </p>
+        </div>
+        <StatusPill
+          label={`${contexts.length} ${contexts.length === 1 ? "team" : "teams"}`}
+          tone="success"
+        />
+      </header>
+
+      <div className={styles.tags} aria-live="polite">
+        {contexts.map((context) => {
+          const team = teams.find((candidate) =>
+            candidate.externalId === context.providerTeamId
+          );
+          const label = team?.name ?? `Team ${context.providerTeamId}`;
+          const onlyTeam = contexts.length === 1;
+          return (
+            <button
+              aria-label={`${label} verwijderen`}
+              disabled={onlyTeam}
+              key={context.providerTeamId}
+              onClick={() => toggleTeam(context.providerTeamId)}
+              title={onlyTeam ? "Een welkomstcomponent heeft minimaal één team nodig." : undefined}
+              type="button"
+            >
+              <span>{label}</span>
+              <X aria-hidden="true" />
+            </button>
+          );
+        })}
+      </div>
+
+      {teams.length ? (
+        <details className={styles.teamDropdown}>
+          <summary>
+            <span><Users aria-hidden="true" />Teams toevoegen</span>
+            <span>{contexts.length} geselecteerd</span>
+            <ChevronDown aria-hidden="true" />
+          </summary>
+          <div className={styles.teamDropdownPanel}>
+            <label className={styles.searchField} htmlFor={inputId}>
+              <Search aria-hidden="true" />
+              <span className="sr-only">Zoek een team</span>
+              <input
+                autoComplete="off"
+                id={inputId}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Zoek op teamnaam"
+                type="search"
+                value={query}
+              />
+            </label>
+            <button
+              aria-pressed={exactlyAllCurrentTeams}
+              className={styles.selectAll}
+              disabled={exactlyAllCurrentTeams}
+              onClick={() => onChange(replaceArrivalTeamSelection(
+                draft,
+                selectableTeams.map((team) => team.externalId),
+                teams
+              ))}
+              type="button"
+            >
+              <span className={styles.checkboxVisual}>
+                {allCurrentTeamsSelected ? <Check aria-hidden="true" /> : null}
+              </span>
+              <span>
+                <strong>{teams.length > sportlinkSlideTeamContextsMax
+                  ? `Eerste ${sportlinkSlideTeamContextsMax} teams`
+                  : "Alle teams"}</strong>
+                <small>{teams.length > sportlinkSlideTeamContextsMax
+                  ? `Een gekoppeld onderdeel ondersteunt maximaal ${sportlinkSlideTeamContextsMax} teams.`
+                  : "Voegt alle huidige Sportlink-teams toe."}</small>
+              </span>
+            </button>
+            <div
+              aria-label="Beschikbare teams"
+              className={styles.teamOptions}
+              role="group"
+            >
+              {filteredTeams.map((team) => {
+                const checked = selectedIdSet.has(team.externalId);
+                return (
+                  <label key={team.externalId}>
+                    <input
+                      checked={checked}
+                      disabled={(checked && selectedIds.length === 1) ||
+                        (!checked && selectionLimitReached)}
+                      onChange={() => toggleTeam(team.externalId)}
+                      type="checkbox"
+                    />
+                    <span>
+                      <strong>{team.name}</strong>
+                      <small>Actuele competitie als standaard</small>
+                    </span>
+                  </label>
+                );
+              })}
+              {!filteredTeams.length ? (
+                <p>Geen teams gevonden voor “{query}”.</p>
+              ) : null}
+            </div>
+            {teams.length > sportlinkSlideTeamContextsMax ? (
+              <p className="notice notice--warning" role="status">
+                Maximaal {sportlinkSlideTeamContextsMax} teams per gekoppeld
+                welkomstonderdeel. Verwijder eerst een team om een ander team
+                toe te voegen.
+              </p>
+            ) : null}
+          </div>
+        </details>
+      ) : (
+        <p className="notice notice--warning">
+          Er zijn geen actuele teams geladen. De bestaande koppeling blijft
+          behouden; synchroniseer Sportlink voordat je de selectie wijzigt.
+        </p>
+      )}
+
+      <div className={styles.contextList}>
+        <header>
+          <div>
+            <h3>Competitie per team</h3>
+            <p>
+              Standaard volgt ieder team automatisch de actuele competitie.
+              Alleen afwijkingen hoef je vast te zetten.
+            </p>
+          </div>
+        </header>
+        {contexts.map((context) => {
+          const team = teams.find((candidate) =>
+            candidate.externalId === context.providerTeamId
+          );
+          return team ? (
+            <TeamCompetitionCard
+              context={context}
+              key={context.providerTeamId}
+              onChange={(nextContext) => onChange(
+                replaceArrivalTeamContext(draft, nextContext)
+              )}
+              team={team}
+            />
+          ) : (
+            <section className={styles.unavailableTeam} key={context.providerTeamId}>
+              <strong>Team {context.providerTeamId}</strong>
+              <p>
+                Dit eerder gekoppelde team staat niet meer in de actuele
+                Sportlink-lijst. Verwijder het team of synchroniseer de bron.
+              </p>
+            </section>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function SingleTeamEditor({ draft, onChange, teams }: {
+  draft: SportlinkSlideDraft;
+  onChange: (draft: SportlinkSlideDraft) => void;
+  teams: Team[];
+}) {
+  const team = teams.find((candidate) =>
+    candidate.externalId === draft.context.providerTeamId
+  );
+  return (
+    <section className={styles.singleTeamSection}>
+      <header>
+        <span className={styles.kicker}>Teamcontext</span>
+        <h3>Eén team voor dit onderdeel</h3>
+        <p>Gewone programma-, uitslag- en pouleslides blijven teamgebonden.</p>
+      </header>
+      <Field label="Team">
+        {({ controlProps }) => (
+          <select
+            {...controlProps}
+            onChange={(event) => {
+              const nextTeam = teams.find((candidate) =>
+                candidate.externalId === event.target.value
+              );
+              if (nextTeam) {
+                onChange({
+                  ...draft,
+                  context: autoCompetitionContext(nextTeam.externalId)
+                });
+              }
+            }}
+            value={draft.context.providerTeamId}
+          >
+            {!team ? (
+              <option value={draft.context.providerTeamId}>
+                Opgeslagen team · niet meer beschikbaar
+              </option>
+            ) : null}
+            {teams.map((option) => (
+              <option key={option.externalId} value={option.externalId}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </Field>
+      {team ? (
+        <TeamCompetitionCard
+          context={draft.context}
+          onChange={(context) => onChange({ ...draft, context })}
+          team={team}
+        />
+      ) : (
+        <p className="notice notice--warning">
+          Het opgeslagen team staat niet meer in Sportlink. Kies een actueel
+          team om deze versie veilig te kunnen bijwerken.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function TeamCompetitionCard({ context, onChange, team }: {
+  context: SportlinkSlideContext;
+  onChange: (context: SportlinkSlideContext) => void;
+  team: Team;
+}) {
+  const groupName = useId();
+  const selectedIndex = team.contexts.findIndex((option) =>
+    option.competitionId === context.competitionId &&
+    option.phaseId === context.phaseId &&
+    option.poolId === context.poolId &&
+    option.seasonId === context.seasonId
+  );
+  const missingPinnedContext = context.competitionSelectionMode === "pinned" &&
+    selectedIndex < 0;
+  return (
+    <section className={styles.contextCard}>
+      <header>
+        <div>
+          <h4>{team.name}</h4>
+          <p>
+            {context.competitionSelectionMode === "auto_current"
+              ? "Beweegt automatisch mee met de actuele Sportlink-competitie."
+              : "Gebruikt alleen de hieronder vastgezette competitiecontext."}
+          </p>
+        </div>
+        <StatusPill
+          label={context.competitionSelectionMode === "auto_current" ? "Actuele competitie" : "Vastgezet"}
+          tone={context.competitionSelectionMode === "auto_current" ? "success" : "info"}
+        />
+      </header>
+      <fieldset className={styles.contextModes}>
+        <legend className="sr-only">Competitiekeuze voor {team.name}</legend>
+        <label data-selected={context.competitionSelectionMode === "auto_current"}>
+          <input
+            checked={context.competitionSelectionMode === "auto_current"}
+            name={`${groupName}-competition`}
+            onChange={() => onChange(autoCompetitionContext(team.externalId))}
+            type="radio"
+          />
+          <span>
+            <strong>Actuele competitie</strong>
+            <small>Blijft automatisch met Sportlink meebewegen.</small>
+          </span>
+        </label>
+        <label data-selected={context.competitionSelectionMode === "pinned"}>
+          <input
+            checked={context.competitionSelectionMode === "pinned"}
+            disabled={!team.contexts.length}
+            name={`${groupName}-competition`}
+            onChange={() => onChange(pinnedCompetitionContext(team, context))}
+            type="radio"
+          />
+          <span>
+            <strong>Zelf kiezen</strong>
+            <small>{team.contexts.length ? "Voor een specifieke competitie, fase of poule." : "Geen alternatieven beschikbaar."}</small>
+          </span>
+        </label>
+      </fieldset>
+      {context.competitionSelectionMode === "pinned" ? (
+        <Field
+          error={missingPinnedContext ? "Deze opgeslagen keuze is niet meer beschikbaar. Kies een actuele optie." : undefined}
+          label="Competitie · fase · poule"
+        >
+          {({ controlProps }) => (
+            <select
+              {...controlProps}
+              onChange={(event) => {
+                const option = team.contexts[Number(event.target.value)];
+                if (option) {
+                  onChange(competitionContextFromOption(team.externalId, option));
+                }
+              }}
+              value={selectedIndex >= 0 ? selectedIndex : "missing"}
+            >
+              {missingPinnedContext ? (
+                <option disabled value="missing">Opgeslagen keuze niet meer beschikbaar</option>
+              ) : null}
+              {team.contexts.map((option, optionIndex) => (
+                <option
+                  key={`${option.competitionId}:${option.phaseId}:${option.poolId}:${option.seasonId}:${optionIndex}`}
+                  value={optionIndex}
+                >
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
+      ) : null}
+    </section>
+  );
+}
+
+function DisplayToggle({ checked, label, onChange }: {
+  checked: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label>
+      <input
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        type="checkbox"
+      />
+      {label}
+    </label>
+  );
+}
+
+function VersionPreview({ draft, teams, theme, themeId }: {
+  draft: SportlinkSlideDraft;
+  teams: Team[];
+  theme: (typeof themeCatalog)[SelectableThemeId];
+  themeId: SelectableThemeId;
+}) {
+  const contexts = isArrivalBlueprint(draft.blueprintKey)
+    ? draft.teamContexts ?? [draft.context]
+    : [draft.context];
+  const names = contexts.map((context) =>
+    teams.find((team) => team.externalId === context.providerTeamId)?.name ??
+    `Team ${context.providerTeamId}`
+  );
+  return (
+    <aside className={styles.preview}>
+      <header>
+        <Eye aria-hidden="true" />
+        <span>
+          <strong>Live stijlpreview</strong>
+          <small>{draft.orientation === "portrait" ? "Staand" : "Liggend"}</small>
+        </span>
+      </header>
+      <div
+        className={styles.previewViewport}
+        data-orientation={draft.orientation}
+        style={{
+          "--preview-accent": draft.themeSelection.accent ?? theme.accentDefault,
+          "--preview-canvas": theme.light.canvas,
+          "--preview-line": theme.light.line,
+          "--preview-muted": theme.light.muted,
+          "--preview-surface": theme.light.surface,
+          "--preview-text": theme.light.text
+        } as React.CSSProperties}
+      >
+        <span>SPORTLINK</span>
+        <h2>{shortLabel(draft.blueprintKey)}</h2>
+        <p>
+          {isArrivalBlueprint(draft.blueprintKey)
+            ? `${contexts.length} ${contexts.length === 1 ? "team" : "teams"} gekoppeld`
+            : names[0]}
+        </p>
+        <div><i /><i /><i /></div>
+        <footer>{themeCatalog[themeId].name}</footer>
+      </div>
+      {isArrivalBlueprint(draft.blueprintKey) ? (
+        <div className={styles.previewTeams}>
+          {names.slice(0, 4).map((name, index) => (
+            <span key={`${name}:${index}`}>{name}</span>
+          ))}
+          {names.length > 4 ? <span>+{names.length - 4} meer</span> : null}
+        </div>
+      ) : null}
+      <p>
+        De actuele providerdata blijft dynamisch. Er worden geen fictieve
+        scores of aankomsttijden in de preview gezet.
+      </p>
+    </aside>
+  );
+}
+
+function normalizeSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/gu, "")
+    .trim()
+    .toLocaleLowerCase("nl-NL");
+}
+
+function blueprintDescription(key: SportlinkSlideBlueprintKey) {
+  if (isArrivalBlueprint(key)) return "Eén component · meerdere teams";
+  const window = sportlinkSlideBlueprints[key].window;
+  if (window === "today") return "Vandaag";
+  if (window === "next_7_days") return "Komende 7 dagen";
+  if (window === "previous_7_days") return "Afgelopen 7 dagen";
+  if (window === "ranking") return "Actuele stand";
+  return "Actuele Sportlink-data";
+}
+
+function shortLabel(key: SportlinkSlideBlueprintKey) {
+  const labels: Record<SportlinkSlideBlueprintKey, string> = {
+    "sportlink.club_schedule_today": "Programma vandaag",
+    "sportlink.club_schedule_next_7_days": "Programma komende 7 dagen",
+    "sportlink.club_results_today": "Uitslagen vandaag",
+    "sportlink.club_results_previous_7_days": "Uitslagen afgelopen 7 dagen",
+    "sportlink.pool_schedule_next_7_days": "Programma poule",
+    "sportlink.pool_results_previous_7_days": "Uitslagen poule",
+    "sportlink.pool_standings": "Poulestand",
+    "sportlink.visitor_arrivals": "Bezoekers welkom",
+    "sportlink.referee_arrivals": "Scheidsrechters welkom"
+  };
+  return labels[key];
+}
+
+function fieldflowThemeSelection(
+  selection: SportlinkSlideDraft["themeSelection"]
+): SportlinkSlideDraft["themeSelection"] {
+  return {
+    ...selection,
+    ref: {
+      catalog: "v2",
+      id: "fieldflow",
+      version: themeCatalog.fieldflow.version
+    }
+  };
+}

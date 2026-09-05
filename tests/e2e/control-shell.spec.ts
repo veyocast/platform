@@ -102,7 +102,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page.getByRole("heading", { name: "Nog geen producten" })).toBeVisible();
 
   await openFromCommand(page, "Publicaties", /\/dashboard\/publications$/);
-  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Release Center" })).toBeVisible();
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Publicaties" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Immutable historie" })).toBeVisible();
   await expect(page.getByText("Nog geen releases")).toBeVisible();
 

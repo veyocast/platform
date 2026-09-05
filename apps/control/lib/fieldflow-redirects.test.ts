@@ -22,4 +22,5 @@ describe("FieldFlow one-hop redirects", () => {
     expect(resolveFieldflowRedirect("/auth/mfa")).toBeNull();
     expect(resolveFieldflowRedirect("/api/health")).toBeNull();
   });
+
 });

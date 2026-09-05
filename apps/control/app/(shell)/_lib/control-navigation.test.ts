@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getControlRoutePresentation,
   getControlSessionRoles,
   getNavigationGroupsForPathname,
   getNavigationForRoles,
@@ -85,11 +86,83 @@ describe("control navigation", () => {
 
   it("reserveert de immersieve shell alleen voor echte editorroutes", () => {
     expect(isImmersiveEditorPath("/dashboard/playlists/playlist-id")).toBe(true);
+    expect(isImmersiveEditorPath("/dashboard/playlists/playlist-id/")).toBe(true);
+    expect(isImmersiveEditorPath("/dashboard/playlists/playlist-id/publish")).toBe(false);
+    expect(isImmersiveEditorPath("/dashboard/publications/release-id")).toBe(false);
+    expect(isImmersiveEditorPath("/dashboard/releases/release-id")).toBe(false);
+    expect(isImmersiveEditorPath("/dashboard/slides/slide-id")).toBe(false);
+    expect(isImmersiveEditorPath("/dashboard/sources/sportlink")).toBe(false);
+    expect(isImmersiveEditorPath("/dashboard/integrations/youtube")).toBe(false);
     expect(isImmersiveEditorPath("/dashboard/studio/design-id")).toBe(true);
     expect(isImmersiveEditorPath("/dashboard/studio")).toBe(false);
+    expect(isImmersiveEditorPath("/dashboard/studio/led-scores")).toBe(false);
     expect(isImmersiveEditorPath("/dashboard/studio/new")).toBe(false);
+    expect(isImmersiveEditorPath("/dashboard/studio/sportlink")).toBe(false);
     expect(isImmersiveEditorPath("/dashboard/studio/templates")).toBe(false);
     expect(isImmersiveEditorPath("/dashboard/studio/design-id/renders/job-id")).toBe(false);
+  });
+
+  it.each([
+    ["/dashboard/playlists", "playlists", "resource", "Playlists"],
+    ["/dashboard/playlists/playlist-id", "playlists", "resource", "Playlists"],
+    ["/dashboard/playlists/playlist-id/publish", "publish", "journey", "Playlist publiceren"],
+    ["/dashboard/publications/release-id", "publications", "resource", "Publicaties"],
+    ["/dashboard/releases/release-id", "publications", "resource", "Publicaties"],
+    ["/dashboard/slides/slide-id", "slides", "resource", "Slides & formats"],
+    ["/dashboard/sources/sportlink", "sources", "resource", "Bronnen"],
+    ["/dashboard/data-sources/sportlink", "sources", "resource", "Bronnen"],
+    ["/dashboard/integrations/youtube", "integrations", "resource", "Integraties"],
+    ["/dashboard/sponsors", "sponsors", "resource", "Sponsor Hub"],
+    ["/dashboard/engage", "engage", "resource", "Engage"],
+    ["/dashboard/team", "team", "resource", "Team"],
+    ["/dashboard/settings/billing", "settings", "resource", "Instellingen"],
+    ["/dashboard/account/mfa", "account", "resource", "Account"],
+    ["/dashboard/support/ticket-id", "support", "resource", "Support"],
+    ["/dashboard/auditlog", "activity", "resource", "Activiteit"],
+    ["/dashboard/playlist-templates", "templates", "resource", "Playlist-sjablonen"]
+  ] as const)(
+    "geeft %s een routespecifieke FieldFlow-presentatie",
+    (pathname, family, layout, title) => {
+      const presentation = getControlRoutePresentation(
+        pathname,
+        undefined,
+        "Duindorp SV",
+        "Danny Groen"
+      );
+
+      expect(presentation).toMatchObject({ family, layout, title });
+      expect(presentation.description).not.toBe("Werk binnen Duindorp SV.");
+    }
+  );
+
+  it("houdt de goedgekeurde overzichtspresentatie en platformfallback stabiel", () => {
+    expect(
+      getControlRoutePresentation(
+        "/dashboard/",
+        "Vandaag",
+        "Duindorp SV",
+        "Danny Groen"
+      )
+    ).toStrictEqual({
+      description: "Dit is wat er vandaag speelt bij Duindorp SV.",
+      family: "overview",
+      layout: "reference",
+      title: "Goedemorgen, Danny"
+    });
+
+    expect(
+      getControlRoutePresentation(
+        "/platform/system",
+        "Systeem",
+        "VeyoCast",
+        "Danny Groen"
+      )
+    ).toStrictEqual({
+      description: "Beheer de VeyoCast-platformomgeving.",
+      family: "platform",
+      layout: "platform",
+      title: "Systeem"
+    });
   });
 
   it("combines platform roles with only the active tenant role", () => {

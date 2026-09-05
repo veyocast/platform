@@ -35,7 +35,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
     : []) ?? [];
   const preflight = session.isLive && session.tenantId && playlist
     ? await loadDraftPreflight(session.tenantId, targetItems)
-    : { error: null, screenStates: [] };
+    : { error: null, screenStates: [], warning: null };
   const canPublish = Boolean(
     session.isLive &&
     session.tenantStatus === "active" &&
@@ -89,7 +89,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
 
   return <>
     {query.fout ? <p className="notice notice--critical" role="alert"><strong>Publicatie niet uitgevoerd.</strong> {query.fout}</p> : null}
-    {studio?.error || preflight.error ? <p className="notice notice--critical" role="alert"><strong>Publicatiecontrole onvolledig.</strong> {studio?.error ?? preflight.error}</p> : null}
+    {studio?.error || preflight.error ? <p className="notice notice--critical" role="alert"><strong>Publicatiecontrole niet beschikbaar.</strong> {studio?.error ?? preflight.error}</p> : null}
     {playlist && studio ? (
       <PublishJourney
         canPublish={canPublish}
@@ -100,11 +100,13 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
           name: playlist.name,
           revision: playlist.revision
         }}
+        preflightError={preflight.error}
         preflightStates={preflight.screenStates.map((state) => ({
           heartbeatAt: state.heartbeatAt,
           preflight: state.preflight,
           screen: state.screen
         }))}
+        preflightWarning={preflight.warning}
         birthdayTimingChecks={birthdayTimingChecks}
         previewItems={previewItems}
         readiness={{

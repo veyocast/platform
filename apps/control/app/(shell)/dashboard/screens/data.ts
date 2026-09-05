@@ -2,6 +2,8 @@ import "server-only";
 
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
+import { latestAssignableScreenReleases } from "./screen-release-selection";
+
 export type FleetScreen = {
   activeAssignmentSource: "default" | "override" | "schedule";
   activeScheduleId: string | null;
@@ -66,6 +68,14 @@ export type FleetRelease = {
   version: number;
 };
 
+type FleetReleaseRow = {
+  id: string;
+  playlist_id: string;
+  published_at: string;
+  release_notes: string | null;
+  version: number;
+};
+
 export type ScreenHeartbeat = {
   activeReleaseId: string | null;
   appVersion: string | null;
@@ -107,6 +117,7 @@ export type ScreenPlayerCommand = {
 };
 
 export type ScreenFleetData = {
+  assignableReleases: FleetRelease[];
   automation: Record<string, ScreenAutomationSummary>;
   devices: FleetDevice[];
   error: string | null;
@@ -194,6 +205,7 @@ export type ScreenDetailData = {
 
 export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData> {
   const empty: ScreenFleetData = {
+    assignableReleases: [],
     automation: {},
     devices: [],
     error: null,
@@ -230,21 +242,21 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     venuePlacements,
     floorplanAssets
   ] = await Promise.all([
-    supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, default_playlist_id, default_release_id, active_assignment_source, active_schedule_id, active_target_snapshot_id, created_at").eq("tenant_id", tenantId).is("deleted_at", null).order("created_at"),
-    supabase.from("player_devices").select("id, screen_id, device_name, status, app_version, platform, capabilities, storage_quota_bytes, storage_used_bytes, active_release_id, desired_release_id, last_seen_at, paired_at, revoked_at, last_error_code, last_error_at, sync_retry_requested_at").eq("tenant_id", tenantId).order("paired_at", { ascending: false }),
-    supabase.from("playlist_releases").select("id, playlist_id, version, published_at, release_notes").eq("tenant_id", tenantId).order("published_at", { ascending: false }),
-    supabase.from("playlists").select("id, name").eq("tenant_id", tenantId),
+    loadAllPages((from, to) => supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, default_playlist_id, default_release_id, active_assignment_source, active_schedule_id, active_target_snapshot_id, created_at").eq("tenant_id", tenantId).is("deleted_at", null).order("created_at").order("id").range(from, to)),
+    loadAllPages((from, to) => supabase.from("player_devices").select("id, screen_id, device_name, status, app_version, platform, capabilities, storage_quota_bytes, storage_used_bytes, active_release_id, desired_release_id, last_seen_at, paired_at, revoked_at, last_error_code, last_error_at, sync_retry_requested_at").eq("tenant_id", tenantId).order("paired_at", { ascending: false }).order("id").range(from, to)),
+    loadAllPages<FleetReleaseRow>((from, to) => supabase.rpc("list_screen_fleet_releases_v1", { p_tenant_id: tenantId }).order("playlist_id").order("version", { ascending: false }).order("id").range(from, to)),
+    loadAllPages((from, to) => supabase.from("playlists").select("id, name, status").eq("tenant_id", tenantId).order("id").range(from, to)),
     supabase.from("tenants").select("screen_limit").eq("id", tenantId).maybeSingle(),
     supabase.from("tenant_settings").select("default_screen_orientation, default_resolution_width, default_resolution_height").eq("tenant_id", tenantId).maybeSingle(),
-    supabase.from("screen_groups").select("id, name, revision").eq("tenant_id", tenantId).eq("status", "active").order("name"),
-    supabase.from("screen_group_memberships").select("screen_group_id, screen_id").eq("tenant_id", tenantId),
-    supabase.from("screen_automation_settings").select("screen_id, enabled, schedule_mode, temporary_override, temporary_override_until").eq("tenant_id", tenantId),
-    supabase.from("screen_automation_periods").select("screen_id, weekday, start_local_time, enabled").eq("tenant_id", tenantId).order("weekday").order("start_local_time"),
+    loadAllPages((from, to) => supabase.from("screen_groups").select("id, name, revision").eq("tenant_id", tenantId).eq("status", "active").order("name").order("id").range(from, to)),
+    loadAllPages((from, to) => supabase.from("screen_group_memberships").select("screen_group_id, screen_id").eq("tenant_id", tenantId).order("screen_group_id").order("screen_id").range(from, to)),
+    loadAllPages((from, to) => supabase.from("screen_automation_settings").select("screen_id, enabled, schedule_mode, temporary_override, temporary_override_until").eq("tenant_id", tenantId).order("screen_id").range(from, to)),
+    loadAllPages((from, to) => supabase.from("screen_automation_periods").select("screen_id, weekday, start_local_time, enabled").eq("tenant_id", tenantId).order("screen_id").order("weekday").order("start_local_time").range(from, to)),
     supabase.from("tenant_feature_flags").select("flag_key, enabled").eq("tenant_id", tenantId).in("flag_key", ["venue_twin", "screen_health_view"]),
-    supabase.from("venues").select("id, name, address_label, status").eq("tenant_id", tenantId).eq("status", "active").order("name"),
-    supabase.from("venue_floorplans").select("id, venue_id, media_asset_id, name, width, height, revision").eq("tenant_id", tenantId).eq("status", "active").order("name"),
-    supabase.from("venue_zones").select("id, venue_id, floorplan_id, name, description").eq("tenant_id", tenantId).eq("status", "active").order("name"),
-    supabase.from("venue_screen_placements").select("id, screen_id, venue_id, floorplan_id, zone_id, x_normalized, y_normalized, orientation, wall_angle_degrees, revision").eq("tenant_id", tenantId),
+    loadAllPages((from, to) => supabase.from("venues").select("id, name, address_label, status").eq("tenant_id", tenantId).eq("status", "active").order("name").order("id").range(from, to)),
+    loadAllPages((from, to) => supabase.from("venue_floorplans").select("id, venue_id, media_asset_id, name, width, height, revision").eq("tenant_id", tenantId).eq("status", "active").order("name").order("id").range(from, to)),
+    loadAllPages((from, to) => supabase.from("venue_zones").select("id, venue_id, floorplan_id, name, description").eq("tenant_id", tenantId).eq("status", "active").order("name").order("id").range(from, to)),
+    loadAllPages((from, to) => supabase.from("venue_screen_placements").select("id, screen_id, venue_id, floorplan_id, zone_id, x_normalized, y_normalized, orientation, wall_angle_degrees, revision").eq("tenant_id", tenantId).order("screen_id").order("id").range(from, to)),
     supabase.from("media_assets").select("id, title, width, height, storage_path").eq("tenant_id", tenantId).eq("source_kind", "user").eq("kind", "image").eq("status", "ready").is("deleted_at", null).order("title").limit(100)
   ]);
   const error = [
@@ -271,6 +283,15 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
   }
 
   const playlistNames = new Map((playlists.data ?? []).map((playlist) => [playlist.id, playlist.name]));
+  const mappedReleases: FleetRelease[] = (releases.data ?? []).map((release: FleetReleaseRow) => ({
+    automatic: release.release_notes === "Automatische dynamische vernieuwing",
+    id: release.id,
+    label: `${playlistNames.get(release.playlist_id) ?? "Verwijderde playlist"} · versie ${release.version}`,
+    playlistId: release.playlist_id,
+    playlistName: playlistNames.get(release.playlist_id) ?? "Verwijderde playlist",
+    publishedAt: release.published_at,
+    version: release.version
+  }));
   const floorplanPathByAsset = new Map((floorplanAssets.data ?? []).map((asset) => [asset.id, asset.storage_path]));
   const floorplanPreviewByAsset = new Map<string, string>();
   const floorplanPreviewPaths = (floorplans.data ?? []).flatMap((floorplan) => {
@@ -295,6 +316,10 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     .filter((flag) => flag.enabled)
     .map((flag) => flag.flag_key));
   return {
+    assignableReleases: latestAssignableScreenReleases(
+      mappedReleases,
+      playlists.data ?? []
+    ),
     automation: automationSummaries(
       automationSettings.data ?? [],
       automationPeriods.data ?? []
@@ -330,15 +355,7 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
       revision: Number(group.revision)
     })),
     limit: tenant.data?.screen_limit ?? 0,
-    releases: (releases.data ?? []).map((release) => ({
-      automatic: release.release_notes === "Automatische dynamische vernieuwing",
-      id: release.id,
-      label: `${playlistNames.get(release.playlist_id) ?? "Verwijderde playlist"} · versie ${release.version}`,
-      playlistId: release.playlist_id,
-      playlistName: playlistNames.get(release.playlist_id) ?? "Verwijderde playlist",
-      publishedAt: release.published_at,
-      version: release.version
-    })),
+    releases: mappedReleases,
     screens: (screens.data ?? []).map(mapScreen),
     settings: settings.data
       ? {
@@ -585,6 +602,23 @@ function objectValue(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
+}
+
+async function loadAllPages<Row>(
+  loadPage: (
+    from: number,
+    to: number
+  ) => PromiseLike<{ data: Row[] | null; error: unknown }>,
+  pageSize = 1_000
+): Promise<{ data: Row[]; error: unknown | null }> {
+  const data: Row[] = [];
+  for (let from = 0; ; from += pageSize) {
+    const page = await loadPage(from, from + pageSize - 1);
+    if (page.error) return { data: [], error: page.error };
+    const rows = page.data ?? [];
+    data.push(...rows);
+    if (rows.length < pageSize) return { data, error: null };
+  }
 }
 
 function automationSummaries(

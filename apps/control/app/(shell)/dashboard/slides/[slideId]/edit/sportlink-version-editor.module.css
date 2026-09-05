@@ -1,0 +1,706 @@
+.editor {
+  align-items: start;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  min-width: 0;
+}
+
+.formPanel,
+.preview {
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border);
+  border-radius: 20px;
+  box-shadow: var(--ff-shadow-2);
+}
+
+.formPanel {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+  padding: clamp(20px, 3vw, 32px);
+}
+
+.panelHeader {
+  align-items: flex-start;
+  background:
+    radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--ff-field) 12%, transparent), transparent 13rem),
+    linear-gradient(145deg, var(--ff-surface), var(--ff-bg));
+  border: 1px solid var(--ff-border);
+  border-radius: 17px;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.panelHeader > div,
+.singleTeamSection > header,
+.contextList > header > div {
+  display: grid;
+  gap: 5px;
+}
+
+.panelHeader h2,
+.panelHeader p,
+.sectionDescription,
+.teamSection h3,
+.teamSection p,
+.singleTeamSection h3,
+.singleTeamSection p,
+.contextCard h4,
+.contextCard p,
+.unavailableTeam p,
+.preview p {
+  margin: 0;
+}
+
+.panelHeader h2 {
+  color: var(--ff-heading);
+  font-family: var(--vc-font-display);
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.08;
+}
+
+.panelHeader p,
+.sectionDescription,
+.teamSection > header p,
+.singleTeamSection > header p,
+.contextList > header p,
+.contextCard p,
+.unavailableTeam p,
+.preview > p {
+  color: var(--ff-ink-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.kicker {
+  color: var(--ff-field);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.formPanel :global(.vc-field) {
+  gap: 7px;
+}
+
+.formPanel :global(.vc-field-control),
+.formPanel :global(.vc-field) > input,
+.formPanel :global(.vc-field) > select {
+  background: var(--ff-surface);
+  border-color: var(--ff-border-strong);
+  border-radius: 11px;
+  min-height: 44px;
+}
+
+.section {
+  border: 0;
+  display: grid;
+  gap: 13px;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.section > legend {
+  color: var(--ff-heading);
+  font-size: 17px;
+  font-weight: 800;
+  margin-bottom: 2px;
+  padding: 0;
+}
+
+.blueprintGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+}
+
+.blueprintGrid > button {
+  align-items: start;
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border);
+  border-radius: 14px;
+  color: var(--ff-ink);
+  display: grid;
+  gap: 11px;
+  grid-template-columns: 38px minmax(0, 1fr) 22px;
+  min-height: 86px;
+  padding: 14px;
+  text-align: left;
+  transition: border-color var(--ff-motion-quick), box-shadow var(--ff-motion-quick), transform var(--ff-motion-quick);
+}
+
+.blueprintGrid > button:hover {
+  border-color: var(--ff-border-strong);
+  box-shadow: var(--ff-shadow-2);
+  transform: translateY(-1px);
+}
+
+.blueprintGrid > button:focus-visible,
+.orientationGrid button:focus-visible,
+.tags > button:focus-visible,
+.teamDropdown > summary:focus-visible,
+.selectAll:focus-visible,
+.searchField:focus-within {
+  outline: 2px solid var(--ff-focus);
+  outline-offset: 2px;
+}
+
+.blueprintGrid > button[aria-pressed="true"] {
+  background: linear-gradient(145deg, var(--ff-success-surface), var(--ff-surface));
+  border-color: var(--ff-field);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ff-field) 12%, transparent);
+}
+
+.blueprintGrid > button > span:nth-child(2) {
+  display: grid;
+  gap: 4px;
+}
+
+.blueprintGrid small,
+.orientationGrid small,
+.contextModes small,
+.teamOptions small,
+.selectAll small,
+.preview > header small {
+  color: var(--ff-ink-soft);
+  font-size: 12px;
+}
+
+.choiceIcon,
+.choiceCheck {
+  align-items: center;
+  border-radius: 10px;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.choiceIcon {
+  background: var(--ff-info-surface);
+  color: var(--ff-info);
+  height: 38px;
+  width: 38px;
+}
+
+.choiceIcon svg {
+  height: 18px;
+  width: 18px;
+}
+
+.choiceCheck {
+  background: var(--ff-success-surface);
+  color: var(--ff-success);
+  height: 22px;
+  width: 22px;
+}
+
+.choiceCheck svg {
+  height: 14px;
+  width: 14px;
+}
+
+.teamSection,
+.singleTeamSection {
+  background: linear-gradient(155deg, var(--ff-surface), var(--ff-bg));
+  border: 1px solid var(--ff-border);
+  border-radius: 18px;
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+}
+
+.teamSection > header,
+.contextCard > header {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.teamSection > header > div,
+.contextCard > header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.teamSection h3,
+.singleTeamSection h3 {
+  color: var(--ff-heading);
+  font-size: 19px;
+}
+
+.tags,
+.previewTeams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tags > button,
+.previewTeams > span {
+  align-items: center;
+  background: var(--ff-success-surface);
+  border: 1px solid color-mix(in srgb, var(--ff-success) 30%, var(--ff-border));
+  border-radius: 999px;
+  color: var(--ff-success);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 750;
+  gap: 7px;
+  min-height: 44px;
+  padding: 6px 10px 6px 12px;
+}
+
+.tags > button:hover:not(:disabled) {
+  border-color: var(--ff-success);
+}
+
+.tags > button:disabled {
+  cursor: not-allowed;
+  opacity: .72;
+}
+
+.tags svg {
+  height: 14px;
+  width: 14px;
+}
+
+.teamDropdown {
+  position: relative;
+}
+
+.teamDropdown > summary {
+  align-items: center;
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border-strong);
+  border-radius: 12px;
+  cursor: pointer;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto 18px;
+  list-style: none;
+  min-height: 52px;
+  padding: 10px 14px;
+}
+
+.teamDropdown > summary::-webkit-details-marker {
+  display: none;
+}
+
+.teamDropdown > summary > span:first-child {
+  align-items: center;
+  display: flex;
+  font-weight: 750;
+  gap: 9px;
+}
+
+.teamDropdown > summary > span:nth-child(2) {
+  color: var(--ff-ink-soft);
+  font-size: 13px;
+}
+
+.teamDropdown[open] > summary {
+  border-color: var(--ff-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ff-focus) 15%, transparent);
+}
+
+.teamDropdown[open] > summary > svg {
+  transform: rotate(180deg);
+}
+
+.teamDropdownPanel {
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border);
+  border-radius: 14px;
+  box-shadow: var(--ff-shadow-3);
+  display: grid;
+  gap: 10px;
+  left: 0;
+  margin-top: 8px;
+  max-height: min(460px, 60vh);
+  overflow: auto;
+  padding: 12px;
+  position: absolute;
+  right: 0;
+  z-index: 30;
+}
+
+.searchField {
+  align-items: center;
+  background: var(--ff-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: 11px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  padding: 0 12px;
+}
+
+.searchField svg {
+  color: var(--ff-ink-soft);
+  height: 17px;
+  width: 17px;
+}
+
+.searchField input {
+  background: transparent;
+  border: 0;
+  color: var(--ff-ink);
+  min-height: 44px;
+  outline: 0;
+  width: 100%;
+}
+
+.selectAll,
+.teamOptions label {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: var(--ff-ink);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  min-height: 52px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.selectAll {
+  border-bottom: 1px solid var(--ff-border);
+  border-radius: 10px 10px 0 0;
+}
+
+.selectAll:hover:not(:disabled),
+.teamOptions label:hover {
+  background: var(--ff-bg);
+}
+
+.selectAll:disabled {
+  cursor: default;
+}
+
+.selectAll > span:last-child,
+.teamOptions label > span {
+  display: grid;
+  gap: 2px;
+}
+
+.checkboxVisual {
+  align-items: center;
+  border: 1px solid var(--ff-border-strong);
+  border-radius: 7px;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+
+.selectAll[aria-pressed="true"] .checkboxVisual {
+  background: var(--ff-petrol);
+  border-color: var(--ff-petrol);
+  color: var(--ff-on-petrol);
+}
+
+.checkboxVisual svg {
+  height: 14px;
+  width: 14px;
+}
+
+.teamOptions {
+  display: grid;
+}
+
+.teamOptions label input {
+  height: 18px;
+  width: 18px;
+}
+
+.teamOptions > p {
+  color: var(--ff-ink-soft);
+  padding: 12px;
+}
+
+.contextList {
+  border-top: 1px solid var(--ff-border);
+  display: grid;
+  gap: 14px;
+  padding-top: 18px;
+}
+
+.contextCard,
+.unavailableTeam {
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border);
+  border-radius: 15px;
+  display: grid;
+  gap: 15px;
+  padding: 17px;
+}
+
+.contextCard h4,
+.unavailableTeam strong {
+  color: var(--ff-heading);
+  font-size: 16px;
+}
+
+.unavailableTeam {
+  border-color: var(--ff-warning);
+}
+
+.contextModes {
+  border: 0;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.contextModes label {
+  align-items: start;
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border);
+  border-radius: 13px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  min-height: 78px;
+  padding: 13px;
+}
+
+.contextModes label[data-selected="true"] {
+  background: var(--ff-success-surface);
+  border-color: var(--ff-field);
+}
+
+.contextModes label > span {
+  display: grid;
+  gap: 3px;
+}
+
+.contextModes input {
+  height: 18px;
+  width: 18px;
+}
+
+.orientationGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.orientationGrid button {
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border);
+  border-radius: 13px;
+  color: var(--ff-ink);
+  display: grid;
+  gap: 3px;
+  min-height: 72px;
+  padding: 12px;
+}
+
+.orientationGrid button[aria-pressed="true"] {
+  background: var(--ff-success-surface);
+  border-color: var(--ff-field);
+}
+
+.inlineOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.inlineOptions label {
+  align-items: center;
+  background: var(--ff-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: 11px;
+  display: flex;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 11px;
+}
+
+.inlineOptions input {
+  height: 18px;
+  width: 18px;
+}
+
+.inlineOptions > p {
+  color: var(--ff-ink-soft);
+  margin: 0;
+}
+
+.actions {
+  background: color-mix(in srgb, var(--ff-surface) 94%, transparent);
+  border-top: 1px solid var(--ff-border);
+  bottom: 0;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin: 0 calc(clamp(20px, 3vw, 32px) * -1) calc(clamp(20px, 3vw, 32px) * -1);
+  padding: 14px clamp(20px, 3vw, 32px);
+  position: sticky;
+  z-index: 10;
+}
+
+.preview {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  position: sticky;
+  top: 20px;
+}
+
+.preview > header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.preview > header > span {
+  display: grid;
+}
+
+.previewViewport {
+  aspect-ratio: 16 / 9;
+  background: var(--preview-canvas);
+  border: 1px solid var(--preview-line);
+  border-radius: 13px;
+  color: var(--preview-text);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  padding: 8%;
+}
+
+.previewViewport[data-orientation="portrait"] {
+  aspect-ratio: 9 / 16;
+  justify-self: center;
+  width: min(75%, 230px);
+}
+
+.previewViewport > span {
+  color: var(--preview-accent);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.previewViewport h2 {
+  font-size: clamp(18px, 2.3vw, 27px);
+  line-height: 1.05;
+  margin: 9px 0 4px;
+}
+
+.previewViewport p {
+  color: var(--preview-muted);
+  font-size: 12px;
+}
+
+.previewViewport > div {
+  display: grid;
+  gap: 6px;
+  margin-top: 13px;
+}
+
+.previewViewport i {
+  background: var(--preview-surface);
+  border-left: 3px solid var(--preview-accent);
+  display: block;
+  height: 17px;
+}
+
+.previewViewport footer {
+  border-top: 1px solid var(--preview-line);
+  font-size: 9px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.previewTeams > span {
+  font-size: 11px;
+  min-height: 28px;
+  padding: 4px 9px;
+}
+
+@media (max-width: 980px) {
+  .editor {
+    grid-template-columns: 1fr;
+  }
+
+  .preview {
+    order: initial;
+    position: relative;
+    top: auto;
+  }
+
+  .previewViewport:not([data-orientation="portrait"]) {
+    max-width: 620px;
+  }
+}
+
+@media (max-width: 640px) {
+  .formPanel {
+    border-radius: 16px;
+    padding: 16px;
+  }
+
+  .panelHeader,
+  .teamSection > header,
+  .contextCard > header {
+    display: grid;
+  }
+
+  .blueprintGrid,
+  .contextModes,
+  .orientationGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .teamSection,
+  .singleTeamSection {
+    padding: 16px;
+  }
+
+  .teamDropdown > summary {
+    grid-template-columns: minmax(0, 1fr) 18px;
+  }
+
+  .teamDropdown > summary > span:nth-child(2) {
+    display: none;
+  }
+
+  .teamDropdownPanel {
+    max-height: min(520px, 70vh);
+    position: fixed;
+    inset: auto 12px calc(var(--ff-mobile-nav-height, 72px) + 24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .actions {
+    bottom: calc(var(--ff-mobile-nav-height, 72px) + 24px + env(safe-area-inset-bottom, 0px));
+    display: grid;
+    grid-template-columns: 1fr;
+    margin: 0 -16px -16px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .actions > * {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blueprintGrid > button {
+    transition: none;
+  }
+}

@@ -95,7 +95,7 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
               <label htmlFor="initial-release">Eerste content (optioneel)</label>
               <select defaultValue="" disabled={!canManage || limitReached} id="initial-release" name="initialReleaseId">
                 <option value="">Later kiezen</option>
-                {fleet?.releases.map((release) => <option key={release.id} value={release.id}>{release.label}</option>)}
+                {fleet?.assignableReleases.map((release) => <option key={release.id} value={release.id}>{release.playlistName}</option>)}
               </select>
             </div>
           </div>

@@ -11,24 +11,29 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
   it("houdt de Sportlink-flow bij vijf betekenisvolle stappen met een permanente telling", async () => {
     const wizard = await source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx");
 
-    expect(wizard).toContain('"Wat wil je tonen?"');
-    expect(wizard).toContain('"Teams & slides"');
-    expect(wizard).toContain('"Competitie & poule"');
-    expect(wizard).toContain('"Stijl & weergave"');
-    expect(wizard).toContain('"Controleren & aanmaken"');
-    expect(wizard).toContain("slides geselecteerd");
-    expect(wizard).toContain("slw-matrix");
-    expect(wizard).toContain("Individueel aanpassen");
+    expect(wizard).toContain('"Inhoud kiezen"');
+    expect(wizard).toContain('"Teams selecteren"');
+    expect(wizard).toContain('"Competitie instellen"');
+    expect(wizard).toContain('"Stijl en weergave"');
+    expect(wizard).toContain('"Controleren"');
+    expect(wizard).toContain('<strong>{drafts.length}</strong>');
+    expect(wizard).toContain("<TeamMultiSelect");
+    expect(wizard).toContain("Alle teams");
+    expect(wizard).toContain("Actuele competitie, tenzij jij afwijkt");
   });
 
   it("toont een sticky desktoppreview en een bruikbare mobiele kaartflow", async () => {
-    const wizard = await source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx");
+    const [wizard, css] = await Promise.all([
+      source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx"),
+      source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.module.css")
+    ]);
 
     expect(wizard).toContain("Live stijlpreview");
-    expect(wizard).toMatch(/\.slw-preview\{position:sticky/);
-    expect(wizard).toContain("@media(max-width:640px)");
-    expect(wizard).toContain(".slw-matrix__head{display:none}");
-    expect(wizard).toContain(".slw-matrix__row{display:grid;min-width:0");
+    expect(wizard).toContain("className={styles.preview}");
+    expect(css).toMatch(/\.wizard :global\(\.vc-journey-shell__aside\)\s*\{[\s\S]*?position:\s*sticky;/u);
+    expect(css).toContain("@media (max-width: 640px)");
+    expect(css).toMatch(/\.matrixHead\s*\{\s*display:\s*none;/u);
+    expect(css).toMatch(/\.matrixRow\s*\{[\s\S]*?display:\s*grid;[\s\S]*?min-width:\s*0;/u);
   });
 
   it("gebruikt dezelfde vaste FieldFlow Style Step zonder publieke themakiezer", async () => {
