@@ -965,7 +965,7 @@ export function PublisherStudioWorkspace({
               <span className={styles.onlineDot} aria-hidden="true" />
               {screenStatus.online} / {screenStatus.total} schermen online
             </Link>
-            <Link href="/dashboard/releases">
+            <Link href="/dashboard/publications">
               Versie {latestReleaseVersion ?? "—"}
             </Link>
             <span>

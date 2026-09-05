@@ -17,8 +17,8 @@ test.describe("Vector Studio journeys", () => {
     });
 
     await page.goto("/dashboard/studio/sportlink/new");
-    await expect(page.getByRole("heading", { level: 1, name: "Wat wil je tonen?" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Voortgang" })).toContainText("Stijl & weergave");
+    await expect(page.getByRole("heading", { level: 1, name: "Inhoud kiezen" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Voortgang" })).toContainText("Stijl en weergave");
     await expect(page.getByText("Live stijlpreview")).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({

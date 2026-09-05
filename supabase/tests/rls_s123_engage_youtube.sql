@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(38);
+select plan(40);
 
 insert into auth.users(id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,raw_app_meta_data,raw_user_meta_data) values
  ('00000000-0000-4000-8000-000000001251','authenticated','authenticated','engage-admin@veyocast.test','test',now(),now(),now(),'{}','{}'),
@@ -140,6 +140,39 @@ select is((select engage_question from public.playlist_release_items
   where release_id='24000000-0000-4000-8000-000000001251'
     and engage_campaign_id is not null),'Wie was vandaag de uitblinker?',
   'historical Engage release configuration stays immutable after campaign edits');
+
+insert into public.playlist_releases(
+  id,tenant_id,playlist_id,version,manifest_hash,manifest_json,item_count,
+  total_duration_seconds,total_bytes,published_by
+) values (
+  '24000000-0000-4000-8000-000000001252','10000000-0000-4000-8000-000000001251',
+  '22000000-0000-4000-8000-000000001251',2,repeat('e',64),'{}',2,60,4096,
+  '00000000-0000-4000-8000-000000001251'
+);
+insert into public.playlist_release_items(
+  tenant_id,playlist_id,release_id,source_item_id,media_asset_id,media_variant_id,
+  sort_order,duration_seconds,fit_mode,muted,asset_kind,asset_title,storage_bucket,
+  storage_path,mime_type,file_size_bytes,checksum_sha256,width,height,
+  youtube_source_id,youtube_video_id,youtube_title,youtube_online_only,
+  engage_campaign_id,engage_public_id,engage_title,engage_question
+) select
+  item.tenant_id,item.playlist_id,'24000000-0000-4000-8000-000000001252',null,
+  item.media_asset_id,item.media_variant_id,item.sort_order,item.duration_seconds,
+  item.fit_mode,item.muted,item.asset_kind,item.asset_title,item.storage_bucket,
+  item.storage_path,item.mime_type,item.file_size_bytes,item.checksum_sha256,
+  item.width,item.height,item.youtube_source_id,item.youtube_video_id,
+  item.youtube_title,item.youtube_online_only,item.engage_campaign_id,
+  item.engage_public_id,item.engage_title,item.engage_question
+from public.playlist_release_items item
+where item.release_id='24000000-0000-4000-8000-000000001251';
+select is((select youtube_title from public.playlist_release_items
+  where release_id='24000000-0000-4000-8000-000000001252'
+    and youtube_source_id is not null),'Clubvideo',
+  'an automatic branch clone preserves its exact frozen YouTube metadata');
+select is((select engage_question from public.playlist_release_items
+  where release_id='24000000-0000-4000-8000-000000001252'
+    and engage_campaign_id is not null),'Wie was vandaag de uitblinker?',
+  'an automatic branch clone preserves its exact frozen Engage metadata');
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000001251',true);

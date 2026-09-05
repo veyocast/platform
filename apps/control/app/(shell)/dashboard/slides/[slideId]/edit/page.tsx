@@ -2,13 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { selectableThemeIdSchema, sportlinkSlideDraftSchema, themeSelectionSchema } from "@veyocast/contracts";
-import { platformDefaultThemeSelection } from "@veyocast/content-templates/theme-catalog";
+import { platformDefaultThemeSelection, themeCatalog } from "@veyocast/content-templates/theme-catalog";
 import { Button } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../../lib/supabase/server";
 import { PageHeader } from "../../../../_components/shell-primitives";
 import { SportlinkVersionEditor } from "./sportlink-version-editor";
+import { prepareSportlinkVersionEditorDraft } from "./sportlink-version-editor-state";
 
 type PageProps = { params: Promise<{ slideId: string }>; searchParams: Promise<{ succes?: string }> };
 
@@ -50,16 +51,23 @@ async function loadEditorData(tenantId: string, slideId: string) {
     orientation: version.orientation,
     templateVersionId: version.template_version_id,
     themeSelection: selection.success ? selection.data : platformDefaultThemeSelection,
+    teamContexts: configuration?.teamContexts,
     title: configuration?.title
   });
   if (!draft.success) return null;
   const connectionIds = new Set((connectionsResult.data ?? []).map((connection) => connection.id));
   const teams = (teamsResult.data ?? []).filter((team) => connectionIds.has(team.source_connection_id)).map((team) => ({ contexts: competitionContexts(team.metadata), externalId: team.external_id, name: team.name }));
   const defaultTheme = selectableThemeIdSchema.safeParse(settingsResult.data?.default_theme_id);
+  const prepared = prepareSportlinkVersionEditorDraft(
+    draft.data,
+    teams,
+    themeCatalog.fieldflow.version
+  );
   return {
     dataSourceId: slideResult.data.data_source_id,
     defaultThemeId: defaultTheme.success ? defaultTheme.data : "fieldflow" as const,
-    initialDraft: draft.data,
+    initialDirty: prepared.requiresSave,
+    initialDraft: prepared.draft,
     initialRevision: Number(version.edit_revision),
     media: (mediaResult.data ?? []).map((asset) => ({ id: asset.id, name: asset.title })),
     teams,

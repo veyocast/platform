@@ -32,6 +32,8 @@ export const sportlinkArrivalMotionPresets = [
 ] as const;
 
 export const sportlinkArrivalWindowMaxMinutes = 42 * 24 * 60;
+export const sportlinkSlideBatchMaxDrafts = 25;
+export const sportlinkSlideTeamContextsMax = 100;
 
 export const sportlinkSlideContextSchema = z.object({
   competitionId: z.string().trim().min(1).max(200).nullable(),
@@ -40,7 +42,35 @@ export const sportlinkSlideContextSchema = z.object({
   poolId: z.string().trim().min(1).max(200).nullable(),
   providerTeamId: z.string().trim().min(1).max(200),
   seasonId: z.string().trim().min(1).max(80).nullable()
-}).strict();
+}).strict().superRefine((context, refinement) => {
+  if (context.competitionSelectionMode !== "auto_current") return;
+  for (const key of ["competitionId", "phaseId", "poolId", "seasonId"] as const) {
+    if (context[key] !== null) {
+      refinement.addIssue({
+        code: "custom",
+        message: "Actuele competitie mag geen vastgezette competitiecontext bevatten.",
+        path: [key]
+      });
+    }
+  }
+});
+
+export const sportlinkSlideTeamContextsSchema = z.array(sportlinkSlideContextSchema)
+  .min(1)
+  .max(sportlinkSlideTeamContextsMax)
+  .superRefine((contexts, refinement) => {
+    const teamIds = new Set<string>();
+    for (const [index, context] of contexts.entries()) {
+      if (teamIds.has(context.providerTeamId)) {
+        refinement.addIssue({
+          code: "custom",
+          message: "Ieder team mag maar één keer in de selectie staan.",
+          path: [index, "providerTeamId"]
+        });
+      }
+      teamIds.add(context.providerTeamId);
+    }
+  });
 
 export const sportlinkArrivalConfigSchema = z.object({
   cardCount: z.number().int().min(1).max(4).default(4),
@@ -87,16 +117,62 @@ export const sportlinkSlideDraftSchema = z.object({
   templateVersionId: z.string().uuid(),
   themeSelection: themeSelectionSchema,
   title: z.string().trim().min(1).max(160),
-  arrival: sportlinkArrivalConfigSchema.optional()
-}).strict();
+  arrival: sportlinkArrivalConfigSchema.optional(),
+  teamContexts: sportlinkSlideTeamContextsSchema.optional()
+}).strict().superRefine((draft, refinement) => {
+  const arrival = [
+    "sportlink.visitor_arrivals",
+    "sportlink.referee_arrivals"
+  ].includes(draft.blueprintKey);
+  if (
+    draft.teamContexts &&
+    !arrival
+  ) {
+    refinement.addIssue({
+      code: "custom",
+      message: "Een teamselectie met meerdere contexten is alleen geldig voor welkomstslides.",
+      path: ["teamContexts"]
+    });
+  }
+  const primary = draft.teamContexts?.[0];
+  if (primary && (
+    primary.competitionId !== draft.context.competitionId ||
+    primary.competitionSelectionMode !== draft.context.competitionSelectionMode ||
+    primary.phaseId !== draft.context.phaseId ||
+    primary.poolId !== draft.context.poolId ||
+    primary.providerTeamId !== draft.context.providerTeamId ||
+    primary.seasonId !== draft.context.seasonId
+  )) {
+    refinement.addIssue({
+      code: "custom",
+      message: "De primaire context moet gelijk zijn aan het eerste geselecteerde team.",
+      path: ["context"]
+    });
+  }
+});
 
 export const createSportlinkSlideBatchSchema = z.object({
   dataSourceId: z.string().uuid(),
-  drafts: z.array(sportlinkSlideDraftSchema).min(1).max(25),
+  drafts: z.array(sportlinkSlideDraftSchema).min(1).max(sportlinkSlideBatchMaxDrafts),
   idempotencyKey: z.string().uuid()
-}).strict();
+}).strict().superRefine((command, refinement) => {
+  command.drafts.forEach((draft, index) => {
+    if (
+      ["sportlink.visitor_arrivals", "sportlink.referee_arrivals"].includes(
+        draft.blueprintKey
+      ) && !draft.teamContexts
+    ) {
+      refinement.addIssue({
+        code: "custom",
+        message: "Nieuwe welkomstslides vereisen een expliciete teamselectie.",
+        path: ["drafts", index, "teamContexts"]
+      });
+    }
+  });
+});
 
 export type SportlinkSlideContext = z.infer<typeof sportlinkSlideContextSchema>;
+export type SportlinkSlideTeamContexts = z.infer<typeof sportlinkSlideTeamContextsSchema>;
 export type SportlinkArrivalConfig = z.infer<typeof sportlinkArrivalConfigSchema>;
 export type SportlinkDisplayConfig = z.infer<typeof sportlinkDisplayConfigSchema>;
 export type SportlinkArrivalMotionPreset =

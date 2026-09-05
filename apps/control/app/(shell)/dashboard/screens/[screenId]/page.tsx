@@ -285,8 +285,8 @@ function ContentTab({ releases, screen }: { releases: FleetRelease[]; screen: No
         {assignedRelease ? "Nieuwe versie maken" : "Playlist kiezen"}
       </Link>
       {assignedRelease
-        ? <Link className="button-link button-link--secondary" href={`/dashboard/releases/${assignedRelease.id}`}>Release bekijken</Link>
-        : <Link className="button-link button-link--secondary" href="/dashboard/releases">Release Center openen</Link>}
+        ? <Link className="button-link button-link--secondary" href={`/dashboard/publications/${assignedRelease.id}`}>Publicatie bekijken</Link>
+        : <Link className="button-link button-link--secondary" href="/dashboard/publications">Publicaties openen</Link>}
     </div>
   </section>;
 }

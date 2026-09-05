@@ -97,7 +97,7 @@ export async function searchControlResources(
         return label.toLocaleLowerCase("nl-NL").includes(lowered)
           ? [{
               description: `Immutable release · ${formatDate(release.published_at)}`,
-              href: `/dashboard/releases/${release.id}`,
+              href: `/dashboard/publications/${release.id}`,
               id: `release:${release.id}`,
               kind: "release" as const,
               label

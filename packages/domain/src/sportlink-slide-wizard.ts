@@ -1,5 +1,6 @@
 import {
   sportlinkSlideBlueprints,
+  sportlinkSlideTeamContextsSchema,
   type SportlinkArrivalConfig,
   type SportlinkSlideBlueprintKey,
   type SportlinkSlideContext,
@@ -19,29 +20,53 @@ export function buildSportlinkSlideDrafts(input: {
   teams: SportlinkWizardTeam[];
   themeSelection: ThemeSelection;
 }): SportlinkSlideDraft[] {
-  return input.teams.flatMap((team) => input.blueprintKeys.map((blueprintKey) => {
-    const blueprint = sportlinkSlideBlueprints[blueprintKey];
-    const templateVersionId = input.templateVersionIdBySlideType[blueprint.slideType];
-    if (!templateVersionId) {
-      throw new Error(`Geen template voor ${blueprint.slideType}.`);
+  const aggregatedArrivals = new Set<SportlinkSlideBlueprintKey>();
+  return input.teams.flatMap((team) => input.blueprintKeys.flatMap((blueprintKey) => {
+    if (!isArrivalBlueprint(blueprintKey)) {
+      return [buildDraft(input, blueprintKey, team)];
     }
-    return {
-      blueprintKey,
-      context: { ...team.context },
-      display: {
-        columns: input.orientation === "portrait" ? "two" : "two",
-        showDressingRoom: false,
-        showField: true,
-        showHomeAway: true,
-        showReferee: false
-      },
-      name: `${team.name} · ${blueprint.label}`.slice(0, 120),
-      orientation: input.orientation,
-      templateVersionId,
-      themeSelection: input.themeSelection,
-      title: blueprint.label
-    };
+    if (aggregatedArrivals.has(blueprintKey)) return [];
+    aggregatedArrivals.add(blueprintKey);
+    const teamContexts = sportlinkSlideTeamContextsSchema.parse(
+      input.teams.map((candidate) => ({ ...candidate.context }))
+    );
+    return [buildDraft(input, blueprintKey, team, teamContexts)];
   }));
+}
+
+function buildDraft(
+  input: Parameters<typeof buildSportlinkSlideDrafts>[0],
+  blueprintKey: SportlinkSlideBlueprintKey,
+  team: SportlinkWizardTeam,
+  teamContexts?: SportlinkSlideContext[]
+): SportlinkSlideDraft {
+  const blueprint = sportlinkSlideBlueprints[blueprintKey];
+  const templateVersionId = input.templateVersionIdBySlideType[blueprint.slideType];
+  if (!templateVersionId) {
+    throw new Error(`Geen template voor ${blueprint.slideType}.`);
+  }
+  return {
+    blueprintKey,
+    context: { ...team.context },
+    display: {
+      columns: "two",
+      showDressingRoom: false,
+      showField: true,
+      showHomeAway: true,
+      showReferee: false
+    },
+    name: (teamContexts ? blueprint.label : `${team.name} · ${blueprint.label}`).slice(0, 120),
+    orientation: input.orientation,
+    ...(teamContexts ? { teamContexts } : {}),
+    templateVersionId,
+    themeSelection: input.themeSelection,
+    title: blueprint.label
+  };
+}
+
+function isArrivalBlueprint(blueprintKey: SportlinkSlideBlueprintKey) {
+  return blueprintKey === "sportlink.visitor_arrivals" ||
+    blueprintKey === "sportlink.referee_arrivals";
 }
 
 export function copySportlinkContextToTeam(

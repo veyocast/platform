@@ -5,9 +5,11 @@ import { useMemo, useState } from "react";
 
 import type { ReleasePreflightReasonCode, ReleasePreflightResult } from "@veyocast/domain";
 import { Button, JourneyShell, StatusPill, StickyActionBar } from "@veyocast/ui";
+import { Ban, CheckCheck, MapPin, Monitor, Search, Wrench } from "lucide-react";
 
 import { publishPlaylistGuided } from "../../actions";
 import { PlaylistPreview, type PlaylistPreviewItem } from "../../playlist-preview";
+import styles from "./publish-journey.module.css";
 
 const steps = [
   { id: "readiness", label: "Readiness" },
@@ -42,7 +44,9 @@ type PublishJourneyProps = {
   idempotencyKey: string;
   nextVersion: number;
   playlist: { id: string; name: string; revision: number };
+  preflightError: string | null;
   preflightStates: PreflightState[];
+  preflightWarning: string | null;
   previewItems: PlaylistPreviewItem[];
   readiness: {
     canPublish: boolean;
@@ -60,13 +64,34 @@ export function PublishJourney({
   idempotencyKey,
   nextVersion,
   playlist,
+  preflightError,
   preflightStates,
+  preflightWarning,
   previewItems,
   readiness,
   tenantName
 }: PublishJourneyProps) {
   const [stepIndex, setStepIndex] = useState(0);
+  const [screenQuery, setScreenQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const selectableStates = useMemo(
+    () => preflightStates.filter((state) => state.screen.status !== "disabled"),
+    [preflightStates]
+  );
+  const disabledStates = useMemo(
+    () => preflightStates.filter((state) => state.screen.status === "disabled"),
+    [preflightStates]
+  );
+  const visibleSelectableStates = useMemo(() => {
+    const query = screenQuery.trim().toLocaleLowerCase("nl-NL");
+    if (!query) return selectableStates;
+    return selectableStates.filter((state) => [
+      state.screen.name,
+      state.screen.location ?? "",
+      screenStatusLabel(state.screen.status),
+      state.screen.orientation === "portrait" ? "staand" : "liggend"
+    ].some((value) => value.toLocaleLowerCase("nl-NL").includes(query)));
+  }, [screenQuery, selectableStates]);
   const selectedStates = useMemo(
     () => preflightStates.filter((state) => selectedIds.includes(state.screen.id)),
     [preflightStates, selectedIds]
@@ -86,12 +111,16 @@ export function PublishJourney({
       ? current.filter((id) => id !== screenId)
       : [...current, screenId]);
   };
+  const allSelectableSelected = selectableStates.length > 0 && selectableStates.every(
+    (state) => selectedIds.includes(state.screen.id)
+  );
 
   return (
     <JourneyShell
+      className={styles.journey}
       actions={<Button asChild variant="secondary"><Link href={`/dashboard/playlists/${playlist.id}`}>Terug naar editor</Link></Button>}
       aside={(
-        <div className="publish-journey-summary" aria-label="Publicatie-impact">
+        <div className={`${styles.impactSummary} publish-journey-summary`} aria-label="Publicatie-impact">
           <div><span>Release</span><strong>{playlist.name} · versie {nextVersion}</strong></div>
           <div><span>Inhoud</span><strong>{readiness.itemCount} items · {formatDuration(readiness.totalDurationSeconds)}</strong></div>
           <div><span>Download</span><strong>{formatBytes(readiness.totalBytes)}</strong></div>
@@ -119,7 +148,124 @@ export function PublishJourney({
         ) : null}
 
         {currentStep.id === "targets" ? (
-          <section aria-labelledby="publish-targets-title" className="workspace-section"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="publish-targets-title">Doelschermen kiezen</h2><p className="work-panel__meta">Kies alleen schermen die deze release moeten ontvangen. Uitgeschakelde schermen blijven buiten de uitrol.</p></div><StatusPill label={`${selectedIds.length} gekozen`} tone={selectedIds.length ? "info" : "neutral"} /></div><fieldset className="checkbox-fieldset"><legend>Actieve en onderhoudsschermen</legend>{preflightStates.filter((state) => state.screen.status !== "disabled").map((state) => <label className="check-row" key={state.screen.id}><input checked={selectedIds.includes(state.screen.id)} onChange={() => toggleScreen(state.screen.id)} type="checkbox" /><span><strong>{state.screen.name}</strong><span className="work-panel__meta">{state.screen.location || "Geen locatie"} · {state.screen.orientation === "portrait" ? "staand" : "liggend"} · {screenStatusLabel(state.screen.status)}</span></span></label>)}</fieldset>{!preflightStates.some((state) => state.screen.status !== "disabled") ? <p className="notice" role="status">Er zijn nog geen beschikbare doelschermen. Koppel of activeer eerst een scherm.</p> : null}</section>
+          <section aria-labelledby="publish-targets-title" className={`${styles.targetWorkspace} workspace-section`}>
+            <div className={`${styles.targetHeader} workspace-section__header`}>
+              <div>
+                <p className={styles.sectionEyebrow}>Uitrol bepalen</p>
+                <h2 className="workspace-section__title" id="publish-targets-title">Doelschermen kiezen</h2>
+                <p className="work-panel__meta">Kies de schermen die deze release ontvangen. De bestaande release blijft spelen tot de nieuwe versie volledig is gecontroleerd.</p>
+              </div>
+              <StatusPill label={`${selectedIds.length} gekozen`} tone={selectedIds.length ? "info" : "neutral"} />
+            </div>
+
+            {preflightWarning ? (
+              <div className={styles.degradedNotice} role="status">
+                <Wrench aria-hidden="true" />
+                <div>
+                  <strong>Playercontrole gedeeltelijk beschikbaar</strong>
+                  <p>{preflightWarning}</p>
+                </div>
+              </div>
+            ) : null}
+
+            {selectableStates.length ? (
+              <>
+                <div className={styles.targetToolbar}>
+                  <label className={styles.searchField}>
+                    <span className={styles.visuallyHidden}>Zoek een doelscherm</span>
+                    <Search aria-hidden="true" />
+                    <input
+                      onChange={(event) => setScreenQuery(event.target.value)}
+                      placeholder="Zoek op scherm of locatie"
+                      type="search"
+                      value={screenQuery}
+                    />
+                  </label>
+                  <div className={styles.bulkActions}>
+                    <Button
+                      disabled={allSelectableSelected}
+                      onClick={() => setSelectedIds(selectableStates.map((state) => state.screen.id))}
+                      size="sm"
+                      type="button"
+                      variant="secondary"
+                    >
+                      <CheckCheck aria-hidden="true" />
+                      Alles selecteren
+                    </Button>
+                    <Button
+                      disabled={!selectedIds.length}
+                      onClick={() => setSelectedIds([])}
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      Wissen
+                    </Button>
+                  </div>
+                </div>
+
+                <fieldset className={styles.screenFieldset}>
+                  <legend>Beschikbare schermen</legend>
+                  <p className={styles.resultCount} aria-live="polite">
+                    {visibleSelectableStates.length} van {selectableStates.length} beschikbaar
+                  </p>
+                  {visibleSelectableStates.length ? (
+                    <div className={styles.screenGrid}>
+                      {visibleSelectableStates.map((state) => (
+                        <ScreenChoice
+                          checked={selectedIds.includes(state.screen.id)}
+                          key={state.screen.id}
+                          onChange={() => toggleScreen(state.screen.id)}
+                          state={state}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={styles.filteredEmpty} role="status">
+                      <Search aria-hidden="true" />
+                      <strong>Geen schermen gevonden</strong>
+                      <p>Pas je zoekterm aan om andere schermen te zien.</p>
+                    </div>
+                  )}
+                </fieldset>
+              </>
+            ) : preflightError ? (
+              <div className={styles.targetEmpty} data-tone="critical" role="alert">
+                <span aria-hidden="true"><Wrench /></span>
+                <div>
+                  <strong>Schermlijst niet beschikbaar</strong>
+                  <p>{preflightError}</p>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.targetEmpty} role="status">
+                <span aria-hidden="true"><Monitor /></span>
+                <div>
+                  <strong>Geen actieve doelschermen</strong>
+                  <p>Koppel een nieuw scherm of activeer een bestaand scherm voordat je publiceert.</p>
+                </div>
+                <Button asChild size="sm" variant="secondary"><Link href="/dashboard/screens">Schermen beheren</Link></Button>
+              </div>
+            )}
+
+            {disabledStates.length ? (
+              <section aria-labelledby="disabled-targets-title" className={styles.disabledSection}>
+                <div>
+                  <h3 id="disabled-targets-title">Niet beschikbaar</h3>
+                  <p>Uitgeschakelde schermen ontvangen geen releases.</p>
+                </div>
+                <div className={styles.disabledGrid}>
+                  {disabledStates.map((state) => (
+                    <article className={styles.disabledCard} key={state.screen.id}>
+                      <span aria-hidden="true"><Ban /></span>
+                      <div><strong>{state.screen.name}</strong><small>{state.screen.location || "Geen locatie"}</small></div>
+                      <StatusPill label="Uitgeschakeld" tone="neutral" />
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </section>
         ) : null}
 
         {currentStep.id === "preflight" ? (
@@ -136,6 +282,40 @@ export function PublishJourney({
         {stepIndex < steps.length - 1 ? <Button disabled={!canContinue || (stepIndex === 3 && hasBlocked)} onClick={() => setStepIndex((index) => index + 1)} type="button">Volgende</Button> : null}
       </StickyActionBar>
     </JourneyShell>
+  );
+}
+
+function ScreenChoice({
+  checked,
+  onChange,
+  state
+}: {
+  checked: boolean;
+  onChange: () => void;
+  state: PreflightState;
+}) {
+  return (
+    <label className={styles.screenCard} data-selected={checked ? "true" : "false"}>
+      <input checked={checked} onChange={onChange} type="checkbox" />
+      <span className={styles.screenIcon} data-maintenance={state.screen.status === "maintenance" ? "true" : "false"}>
+        <Monitor aria-hidden="true" />
+      </span>
+      <span className={styles.screenCopy}>
+        <strong>{state.screen.name}</strong>
+        <span>
+          <MapPin aria-hidden="true" />
+          {state.screen.location || "Geen locatie"}
+        </span>
+        <small>{state.screen.orientation === "portrait" ? "Staand" : "Liggend"} · {screenStatusLabel(state.screen.status)}</small>
+      </span>
+      <span className={styles.screenSignals}>
+        <StatusPill
+          label={state.screen.status === "maintenance" ? "Onderhoud" : "Actief"}
+          tone={state.screen.status === "maintenance" ? "warning" : "success"}
+        />
+        <StatusPill {...preflightStatus(state.preflight.status)} />
+      </span>
+    </label>
   );
 }
 
@@ -164,7 +344,7 @@ function BirthdayTimingPreflight({
 }
 
 function PreflightTable({ states }: { states: PreflightState[] }) {
-  return <div className="data-table-frame"><table className="data-table data-table--responsive"><caption>Publicatiepreflight voor de gekozen schermen.</caption><thead><tr><th scope="col">Scherm</th><th scope="col">Status</th><th scope="col">Ontbrekend</th><th scope="col">Vrije opslag</th><th scope="col">Onderbouwing</th></tr></thead><tbody>{states.map((state) => <tr key={state.screen.id}><td data-label="Scherm"><span className="table-primary">{state.screen.name}</span><span className="table-secondary">{state.heartbeatAt ? `Heartbeat ${formatDate(state.heartbeatAt)}` : "Geen heartbeat"}</span></td><td data-label="Status"><StatusPill {...preflightStatus(state.preflight.status)} /></td><td data-label="Ontbrekend">{state.preflight.missingBytes === null ? "Onbekend" : formatBytes(state.preflight.missingBytes)}</td><td data-label="Vrije opslag">{state.preflight.availableBytes === null ? "Onbekend" : formatBytes(state.preflight.availableBytes)}</td><td data-label="Onderbouwing">{state.preflight.reasons.map(reasonLabel).join(" · ") || "Capability, compatibiliteit, telemetry en opslag zijn voldoende."}</td></tr>)}</tbody></table></div>;
+  return <div aria-label="Publicatiepreflight voor de gekozen schermen" className="data-table-frame" tabIndex={0}><table className="data-table data-table--responsive"><caption>Publicatiepreflight voor de gekozen schermen.</caption><thead><tr><th scope="col">Scherm</th><th scope="col">Status</th><th scope="col">Ontbrekend</th><th scope="col">Vrije opslag</th><th scope="col">Onderbouwing</th></tr></thead><tbody>{states.map((state) => <tr key={state.screen.id}><td data-label="Scherm"><span className="table-primary">{state.screen.name}</span><span className="table-secondary">{state.heartbeatAt ? `Heartbeat ${formatDate(state.heartbeatAt)}` : "Geen heartbeat"}</span></td><td data-label="Status"><StatusPill {...preflightStatus(state.preflight.status)} /></td><td data-label="Ontbrekend">{state.preflight.missingBytes === null ? "Onbekend" : formatBytes(state.preflight.missingBytes)}</td><td data-label="Vrije opslag">{state.preflight.availableBytes === null ? "Onbekend" : formatBytes(state.preflight.availableBytes)}</td><td data-label="Onderbouwing">{state.preflight.reasons.map(reasonLabel).join(" · ") || "Capability, compatibiliteit, telemetry en opslag zijn voldoende."}</td></tr>)}</tbody></table></div>;
 }
 
 function formatDate(value: string) { return new Intl.DateTimeFormat("nl-NL", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)); }

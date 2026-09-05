@@ -24,7 +24,10 @@ html[data-design-system="fieldflow"] {
   --ff-sidebar-border: #2b5b56;
   --ff-sidebar-text-muted: #c9d8d3;
   --ff-petrol: #07504a;
+  --ff-on-petrol: #f4f7f5;
+  --ff-heading: var(--ff-petrol);
   --ff-brand: var(--vc-brand-electric-orange);
+  --ff-on-brand: #17201e;
   --ff-focus: #397db6;
   --ff-field: #2f7d5c;
   --ff-warm: #e98a4a;
@@ -67,7 +70,7 @@ html[data-design-system="fieldflow"] {
   --vc-border-strong: var(--ff-border-strong);
   --vc-focus: var(--ff-focus);
   --vc-action: var(--ff-brand);
-  --vc-on-action: var(--ff-ink);
+  --vc-on-action: var(--ff-on-brand);
   --vc-link: var(--ff-info);
   --vc-component-height-input-standard: 44px;
   --vc-component-height-input-touch: 44px;
@@ -98,9 +101,11 @@ html[data-design-system="fieldflow"][data-theme="dark"] {
   --ff-ink-soft: #c9d8d3;
   --ff-ink-muted: #9fb5ae;
   --ff-ink-inverse: #17201e;
+  --ff-heading: var(--ff-ink);
   --ff-border: #2b4b47;
   --ff-border-strong: #47706a;
   --ff-focus: #76b4e1;
+  --ff-field: #65c49a;
   --ff-success: #65c49a;
   --ff-success-surface: #123a2c;
   --ff-warning: #e1b35e;
@@ -804,15 +809,15 @@ html[data-design-system="fieldflow"] .vc-skeleton {
     background:
       radial-gradient(circle at 84% 4%, rgb(124 191 210 / 10%), transparent 24rem),
       radial-gradient(circle at 4% 92%, rgb(48 178 123 / 8%), transparent 28rem),
-      #f4f7f4;
+      var(--ff-bg);
     grid-template-rows: 143px minmax(0, 1fr);
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .control-topbar {
     align-items: center;
     backdrop-filter: blur(14px);
-    background: rgb(247 249 247 / 90%);
-    border-bottom: 1px solid #dce6e1;
+    background: color-mix(in srgb, var(--ff-surface) 90%, transparent);
+    border-bottom: 1px solid var(--ff-border);
     min-height: 143px;
     padding: 24px 60px 22px 44px;
   }
@@ -823,7 +828,7 @@ html[data-design-system="fieldflow"] .vc-skeleton {
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .topbar-context__eyebrow {
-    color: #129264;
+    color: var(--ff-field);
     font-size: 10px;
     font-weight: 800;
     letter-spacing: .12em;
@@ -834,7 +839,7 @@ html[data-design-system="fieldflow"] .vc-skeleton {
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .topbar-context h1,
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .topbar-context__title {
-    color: #0c403d;
+    color: var(--ff-heading);
     font-family: var(--vc-font-display);
     font-size: clamp(30px, 2vw, 36px);
     font-variation-settings: "wght" 440;
@@ -845,7 +850,7 @@ html[data-design-system="fieldflow"] .vc-skeleton {
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .topbar-context__description {
-    color: #697e79;
+    color: var(--ff-ink-soft);
     font-size: 13px;
     line-height: 20px;
     margin: 4px 0 0;
@@ -858,10 +863,10 @@ html[data-design-system="fieldflow"] .vc-skeleton {
 
   html[data-design-system="fieldflow"] .control-health-pill {
     align-items: center;
-    background: #e8f8f0;
-    border: 1px solid #c8ead9;
+    background: var(--ff-success-surface);
+    border: 1px solid color-mix(in srgb, var(--ff-success) 28%, var(--ff-border));
     border-radius: 999px;
-    color: #147a55;
+    color: var(--ff-success);
     display: inline-flex;
     font-size: 12px;
     font-weight: 700;
@@ -871,9 +876,9 @@ html[data-design-system="fieldflow"] .vc-skeleton {
   }
 
   html[data-design-system="fieldflow"] .control-health-pill[data-tone="warning"] {
-    background: #fff1e4;
-    border-color: #f5d5b7;
-    color: #aa5d1d;
+    background: var(--ff-warning-surface);
+    border-color: color-mix(in srgb, var(--ff-warning) 28%, var(--ff-border));
+    color: var(--ff-warning);
   }
 
   html[data-design-system="fieldflow"] .control-health-pill[data-tone="info"] {
@@ -887,8 +892,8 @@ html[data-design-system="fieldflow"] .vc-skeleton {
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .command-search {
-    background: rgb(255 255 255 / 82%);
-    border-color: #dbe4df;
+    background: color-mix(in srgb, var(--ff-surface) 82%, transparent);
+    border-color: var(--ff-border);
     border-radius: 12px;
     height: 44px;
     min-width: 154px;
@@ -896,15 +901,15 @@ html[data-design-system="fieldflow"] .vc-skeleton {
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .command-search kbd {
-    border-color: #dbe4df;
+    border-color: var(--ff-border);
     border-radius: 8px;
     font-size: 10px;
     padding: 4px 6px;
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .topbar-help {
-    background: rgb(255 255 255 / 82%);
-    border-color: #dbe4df;
+    background: color-mix(in srgb, var(--ff-surface) 82%, transparent);
+    border-color: var(--ff-border);
     border-radius: 12px;
     height: 44px;
     width: 44px;
@@ -912,10 +917,10 @@ html[data-design-system="fieldflow"] .vc-skeleton {
 
   html[data-design-system="fieldflow"] .control-account-trigger {
     align-items: center;
-    background: rgb(255 255 255 / 84%);
-    border: 1px solid #dbe4df;
+    background: color-mix(in srgb, var(--ff-surface) 84%, transparent);
+    border: 1px solid var(--ff-border);
     border-radius: 14px;
-    color: #123f3c;
+    color: var(--ff-ink);
     cursor: pointer;
     display: grid;
     gap: 9px;
@@ -928,9 +933,9 @@ html[data-design-system="fieldflow"] .vc-skeleton {
   }
 
   html[data-design-system="fieldflow"] .control-account-trigger .control-user__avatar {
-    background: #07504a;
+    background: var(--ff-petrol);
     border-radius: 11px;
-    color: #fff;
+    color: var(--ff-on-petrol);
     height: 36px;
     width: 36px;
   }
@@ -945,7 +950,7 @@ html[data-design-system="fieldflow"] .vc-skeleton {
   }
 
   html[data-design-system="fieldflow"] .control-account-trigger__copy small {
-    color: #73837f;
+    color: var(--ff-ink-muted);
     font-size: 10px;
     margin-top: 3px;
   }
@@ -992,6 +997,633 @@ html[data-design-system="fieldflow"] .vc-skeleton {
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .command-search {
     min-width: 84px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+ * FieldFlow secondary tenant workspaces (S146)
+ *
+ * These routes keep their existing server behaviour and components, but share
+ * the approved Control frame, work-surface rhythm and responsive task order.
+ * The route metadata is resolved centrally in control-navigation.ts.
+ * -------------------------------------------------------------------------- */
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-shell-mode="standard"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  .control-content {
+  min-width: 0;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="resource"]
+  .control-content
+  > .vc-page-header:first-child,
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="resource"]
+  .control-content
+  > .page-stack
+  > .vc-page-header:first-child {
+  margin-top: 0;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(
+    .workspace-section,
+    .data-surface,
+    .status-panel,
+    .inspector-panel,
+    .publish-workspace,
+    .vc-summary-strip,
+    .vc-filter-bar,
+    .resource-toolbar
+  ) {
+  background: var(--ff-surface);
+  border-color: var(--ff-border);
+  border-radius: var(--ff-radius-card);
+  box-shadow: var(--ff-shadow-1);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(.workspace-section, .data-surface, .status-panel, .inspector-panel) {
+  padding: 20px;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(.workspace-section__header, .work-panel__header) {
+  align-items: center;
+  gap: 20px;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(.workspace-section__title, .work-panel__title) {
+  color: var(--ff-heading);
+  font-family: var(--vc-font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(.work-panel__meta, .table-secondary) {
+  color: var(--ff-ink-soft);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="resource"]
+  .control-content
+  article {
+  background-color: var(--ff-surface);
+  border-color: var(--ff-border);
+  border-radius: var(--ff-radius-card);
+  box-shadow: var(--ff-shadow-1);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(.data-table-frame, .vc-data-table-frame) {
+  background: var(--ff-surface);
+  border-color: var(--ff-border);
+  border-radius: var(--ff-radius-card);
+  box-shadow: none;
+  overflow: auto;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(.data-table, .vc-data-table)
+  thead {
+  background: color-mix(in srgb, var(--ff-surface-muted) 72%, var(--ff-surface));
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(.data-table, .vc-data-table)
+  th {
+  color: var(--ff-ink-soft);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.055em;
+  min-height: 44px;
+  text-transform: uppercase;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(.data-table, .vc-data-table)
+  td {
+  color: var(--ff-ink);
+  min-height: 52px;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(.data-table, .vc-data-table)
+  :is(th, td) {
+  border-color: var(--ff-border);
+  padding: 14px 16px;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  :is(.data-table, .vc-data-table)
+  tbody
+  tr:hover {
+  background: color-mix(in srgb, var(--ff-surface-muted) 58%, transparent);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  .control-content
+  :is(.field, .toolbar-field, .toolbar-date)
+  > :is(input, select, textarea) {
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-compact);
+  color: var(--ff-ink);
+  font: inherit;
+  min-height: 44px;
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  .control-content
+  :is(.field, .toolbar-field, .toolbar-date)
+  > textarea {
+  height: auto;
+  min-height: 112px;
+  resize: vertical;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  .control-content
+  :is(.field, .toolbar-field, .toolbar-date)
+  > :is(input, select, textarea):hover:not(:disabled) {
+  border-color: var(--ff-border-strong);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  .control-content
+  :is(.field, .toolbar-field, .toolbar-date)
+  > :is(input, select, textarea):disabled {
+  background: var(--ff-surface-muted);
+  color: var(--ff-ink-muted);
+  cursor: not-allowed;
+  opacity: 0.76;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  .control-content
+  :is(.field, .toolbar-field, .toolbar-date)
+  > :is(label, span):first-child {
+  color: var(--ff-ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-layout="resource"],
+    [data-route-layout="journey"]
+  )
+  .notice {
+  border-radius: var(--ff-radius-control);
+  box-shadow: none;
+  line-height: 1.5;
+  padding: 14px 16px;
+}
+
+/* Sponsor Hub and Engage predate the shared PageHeader. Their semantic
+ * headers are retained, but presented as calm FieldFlow introduction cards. */
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-family="sponsors"]
+  .control-content
+  > div:first-child
+  > header:first-child,
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-family="engage"]
+  .control-content
+  > div:first-child
+  > header:first-child {
+  background: linear-gradient(
+    135deg,
+    var(--ff-surface) 0%,
+    color-mix(in srgb, var(--ff-success-surface) 42%, var(--ff-surface)) 100%
+  );
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-card);
+  box-shadow: var(--ff-shadow-1);
+  color: var(--ff-ink);
+  padding: clamp(24px, 3vw, 36px);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-family="sponsors"]
+  .control-content
+  > div:first-child
+  > header:first-child::after {
+  background: var(--ff-field);
+  opacity: 0.08;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-family="sponsors"],
+    [data-route-family="engage"]
+  )
+  .control-content
+  > div:first-child
+  > header:first-child
+  :is(h1, p) {
+  color: inherit;
+  max-width: 72ch;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-family="sponsors"],
+    [data-route-family="engage"]
+  )
+  .control-content
+  > div:first-child
+  > header:first-child
+  h1 {
+  font-size: clamp(1.875rem, 3vw, 2.5rem);
+  line-height: 1.08;
+  margin-block: 8px 12px;
+  max-width: 22ch;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-family="sponsors"],
+    [data-route-family="engage"]
+  )
+  .control-content
+  > div:first-child
+  > header:first-child
+  p:first-child {
+  color: var(--ff-field);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"]:is(
+    [data-route-family="sponsors"],
+    [data-route-family="engage"]
+  )
+  .control-content
+  > div:first-child
+  > header:first-child
+  p:last-child {
+  color: var(--ff-ink-soft);
+  margin-bottom: 0;
+}
+
+/* Publishing and other guided journeys use a full-width task canvas. */
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell {
+  gap: 24px;
+  margin-inline: 0;
+  max-width: none;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__header {
+  background: color-mix(in srgb, var(--ff-surface) 94%, transparent);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-card);
+  box-shadow: var(--ff-shadow-1);
+  gap: 24px;
+  padding: 20px 24px;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__eyebrow {
+  color: var(--ff-field);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__title {
+  color: var(--ff-heading);
+  font-size: clamp(1.875rem, 3vw, 2.5rem);
+  line-height: 1.08;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__description {
+  color: var(--ff-ink-soft);
+  font-size: 0.9375rem;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__steps {
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-card);
+  box-shadow: var(--ff-shadow-1);
+  padding: 6px 14px 0;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__steps
+  ol {
+  gap: 14px;
+  padding-bottom: 0;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__steps
+  li {
+  border-bottom-width: 3px;
+  color: var(--ff-ink-soft);
+  padding: 10px 6px 12px;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__steps
+  li[data-state="current"] {
+  border-color: var(--ff-brand);
+  color: var(--ff-ink);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__steps
+  li[data-state="complete"] {
+  border-color: var(--ff-success);
+  color: var(--ff-ink-soft);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__steps
+  li[data-state="current"]
+  .vc-journey-shell__step-index {
+  background: color-mix(in srgb, var(--ff-brand) 16%, var(--ff-surface));
+  color: var(--ff-warm-ink);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__steps
+  li[data-state="complete"]
+  .vc-journey-shell__step-index {
+  background: var(--ff-success-surface);
+  color: var(--ff-success);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__layout {
+  gap: 24px;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-journey-shell__layout--with-aside {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  :is(.vc-journey-shell__content, .vc-journey-shell__aside) {
+  align-content: start;
+  display: grid;
+  gap: 16px;
+}
+
+html[data-design-system="fieldflow"]
+  .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+  .vc-sticky-action-bar {
+  background: color-mix(in srgb, var(--ff-surface) 94%, transparent);
+  border-color: var(--ff-border);
+  border-radius: var(--ff-radius-card);
+  box-shadow: var(--ff-shadow-2);
+}
+
+@media (min-width: 1024px) {
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-shell-mode="standard"]:is(
+      [data-route-layout="resource"],
+      [data-route-layout="journey"]
+    ) {
+    grid-template-columns: var(--ff-sidebar-expanded) minmax(0, 1fr);
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell.control-shell--collapsed[data-navigation-scope="tenant"][data-shell-mode="standard"]:is(
+      [data-route-layout="resource"],
+      [data-route-layout="journey"]
+    ) {
+    grid-template-columns: var(--ff-sidebar-compact) minmax(0, 1fr);
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-shell-mode="standard"]:is(
+      [data-route-layout="resource"],
+      [data-route-layout="journey"]
+    )
+    > .control-sidebar {
+    display: block;
+    transform: none;
+    visibility: visible;
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-shell-mode="standard"]:is(
+      [data-route-layout="resource"],
+      [data-route-layout="journey"]
+    )
+    > .control-main {
+    grid-template-rows: 143px minmax(0, 1fr);
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-shell-mode="standard"]:is(
+      [data-route-layout="resource"],
+      [data-route-layout="journey"]
+    )
+    .control-content {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    max-width: none;
+    padding: 28px 60px 64px 44px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 899px) {
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+    .vc-journey-shell__layout--with-aside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+    .vc-journey-shell__content {
+    order: 0;
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+    .vc-journey-shell__aside {
+    order: 1;
+    position: static;
+  }
+}
+
+@media (max-width: 767px) {
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"]:is(
+      [data-route-layout="resource"],
+      [data-route-layout="journey"]
+    )
+    .control-content {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px 16px calc(var(--ff-mobile-nav-height) + 28px + env(safe-area-inset-bottom, 0px));
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"]:is(
+      [data-route-layout="resource"],
+      [data-route-layout="journey"]
+    )
+    :is(.workspace-section, .data-surface, .status-panel, .inspector-panel) {
+    border-radius: var(--ff-radius-control);
+    padding: 16px;
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"]:is(
+      [data-route-layout="resource"],
+      [data-route-layout="journey"]
+    )
+    :is(.workspace-section__header, .work-panel__header) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"]:is(
+      [data-route-family="sponsors"],
+      [data-route-family="engage"]
+    )
+    .control-content
+    > div:first-child
+    > header:first-child {
+    border-radius: var(--ff-radius-control);
+    padding: 20px;
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+    .vc-journey-shell__header {
+    border-radius: var(--ff-radius-control);
+    gap: 16px;
+    padding: 18px;
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+    .vc-journey-shell__title {
+    font-size: 1.75rem;
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+    .vc-journey-shell__steps {
+    border-radius: var(--ff-radius-control);
+    margin-inline: -2px;
+    padding-inline: 10px;
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+    .vc-journey-shell__steps
+    ol {
+    grid-template-columns: repeat(var(--vc-journey-step-count, 5), minmax(138px, 1fr));
+  }
+
+  html[data-design-system="fieldflow"]
+    .control-shell[data-navigation-scope="tenant"][data-route-layout="journey"]
+    .vc-sticky-action-bar {
+    border-radius: var(--ff-radius-control);
   }
 }
 
@@ -1930,15 +2562,15 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .control-main {
-    background: radial-gradient(circle at 84% 4%, rgb(124 191 210 / 10%), transparent 24rem), radial-gradient(circle at 4% 92%, rgb(48 178 123 / 8%), transparent 28rem), #f4f7f4;
+    background: radial-gradient(circle at 84% 4%, rgb(124 191 210 / 10%), transparent 24rem), radial-gradient(circle at 4% 92%, rgb(48 178 123 / 8%), transparent 28rem), var(--ff-bg);
     grid-template-rows: 143px minmax(0, 1fr);
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .control-topbar {
     align-items: center;
     backdrop-filter: blur(14px);
-    background: rgb(247 249 247 / 90%);
-    border-bottom: 1px solid #dce6e1;
+    background: color-mix(in srgb, var(--ff-surface) 90%, transparent);
+    border-bottom: 1px solid var(--ff-border);
     min-height: 143px;
     padding: 24px 60px 22px 44px;
   }
@@ -1949,7 +2581,7 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .topbar-context__eyebrow {
-    color: #129264;
+    color: var(--ff-field);
     font-size: 10px;
     font-weight: 800;
     letter-spacing: .12em;
@@ -1960,7 +2592,7 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .topbar-context h1,
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .topbar-context__title {
-    color: #0c403d;
+    color: var(--ff-heading);
     font-family: var(--vc-font-display);
     font-size: clamp(30px, 2vw, 36px);
     font-variation-settings: "wght" 440;
@@ -1971,7 +2603,7 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .topbar-context__description {
-    color: #697e79;
+    color: var(--ff-ink-soft);
     font-size: 13px;
     line-height: 20px;
     margin: 4px 0 0;
@@ -1984,10 +2616,10 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
 
   html[data-design-system="fieldflow"] .control-health-pill {
     align-items: center;
-    background: #e8f8f0;
-    border: 1px solid #c8ead9;
+    background: var(--ff-success-surface);
+    border: 1px solid color-mix(in srgb, var(--ff-success) 28%, var(--ff-border));
     border-radius: 999px;
-    color: #147a55;
+    color: var(--ff-success);
     display: inline-flex;
     font-size: 12px;
     font-weight: 700;
@@ -1997,9 +2629,9 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
   }
 
   html[data-design-system="fieldflow"] .control-health-pill[data-tone="warning"] {
-    background: #fff1e4;
-    border-color: #f5d5b7;
-    color: #aa5d1d;
+    background: var(--ff-warning-surface);
+    border-color: color-mix(in srgb, var(--ff-warning) 28%, var(--ff-border));
+    color: var(--ff-warning);
   }
 
   html[data-design-system="fieldflow"] .control-health-pill[data-tone="info"] {
@@ -2013,8 +2645,8 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .command-search {
-    background: rgb(255 255 255 / 82%);
-    border-color: #dbe4df;
+    background: color-mix(in srgb, var(--ff-surface) 82%, transparent);
+    border-color: var(--ff-border);
     border-radius: 12px;
     height: 44px;
     min-width: 154px;
@@ -2022,15 +2654,15 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .command-search kbd {
-    border-color: #dbe4df;
+    border-color: var(--ff-border);
     border-radius: 8px;
     font-size: 10px;
     padding: 4px 6px;
   }
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"] .topbar-help {
-    background: rgb(255 255 255 / 82%);
-    border-color: #dbe4df;
+    background: color-mix(in srgb, var(--ff-surface) 82%, transparent);
+    border-color: var(--ff-border);
     border-radius: 12px;
     height: 44px;
     width: 44px;
@@ -2038,10 +2670,10 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
 
   html[data-design-system="fieldflow"] .control-account-trigger {
     align-items: center;
-    background: rgb(255 255 255 / 84%);
-    border: 1px solid #dbe4df;
+    background: color-mix(in srgb, var(--ff-surface) 84%, transparent);
+    border: 1px solid var(--ff-border);
     border-radius: 14px;
-    color: #123f3c;
+    color: var(--ff-ink);
     cursor: pointer;
     display: grid;
     gap: 9px;
@@ -2054,9 +2686,9 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
   }
 
   html[data-design-system="fieldflow"] .control-account-trigger .control-user__avatar {
-    background: #07504a;
+    background: var(--ff-petrol);
     border-radius: 11px;
-    color: #fff;
+    color: var(--ff-on-petrol);
     height: 36px;
     width: 36px;
   }
@@ -2071,7 +2703,7 @@ html[data-design-system="fieldflow"] .control-mobile-sheet-close {
   }
 
   html[data-design-system="fieldflow"] .control-account-trigger__copy small {
-    color: #73837f;
+    color: var(--ff-ink-muted);
     font-size: 10px;
     margin-top: 3px;
   }

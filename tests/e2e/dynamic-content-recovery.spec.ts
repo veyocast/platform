@@ -70,13 +70,13 @@ test("houdt de dynamische-slide lege staat vrij van de containerrand", async ({
 test("toont de Sportlink-bulkwizard als Studio-familie", async ({ page }) => {
   await page.goto("/dashboard/studio/sportlink/new", { waitUntil: "networkidle" });
 
-  await expect(page.getByRole("heading", { level: 1, name: "Wat wil je tonen?" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Inhoud kiezen" })).toBeVisible();
   for (const step of [
-    "Wat wil je tonen?",
-    "Teams & slides",
-    "Competitie & poule",
-    "Stijl & weergave",
-    "Controleren & aanmaken"
+    "Inhoud kiezen",
+    "Teams selecteren",
+    "Competitie instellen",
+    "Stijl en weergave",
+    "Controleren"
   ]) {
     await expect(page.getByLabel("Voortgang")).toContainText(step);
   }

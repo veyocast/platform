@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
+import { useEffect, useRef, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from "react";
 
 import { cn } from "../utils";
 import { Badge, type BadgeStatus } from "./badge";
@@ -194,6 +194,7 @@ export function JourneyShell({
   title,
   ...props
 }: JourneyShellProps) {
+  const stepsRef = useRef<HTMLElement>(null);
   const currentIndex = Math.max(
     0,
     steps.findIndex((step) => step.id === currentStep)
@@ -203,6 +204,29 @@ export function JourneyShell({
     ...style,
     "--vc-journey-step-count": steps.length
   } as CSSProperties;
+
+  useEffect(() => {
+    const stepsElement = stepsRef.current;
+    const currentElement = stepsElement?.querySelector<HTMLElement>(
+      '[aria-current="step"]'
+    );
+    if (!stepsElement || !currentElement || stepsElement.scrollWidth <= stepsElement.clientWidth) {
+      return;
+    }
+
+    const stepsRect = stepsElement.getBoundingClientRect();
+    const currentRect = currentElement.getBoundingClientRect();
+    const currentCenter =
+      currentRect.left - stepsRect.left + stepsElement.scrollLeft + currentRect.width / 2;
+    const targetLeft = Math.max(0, currentCenter - stepsElement.clientWidth / 2);
+
+    stepsElement.scrollTo({
+      behavior: globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      left: targetLeft
+    });
+  }, [currentStep, steps.length]);
 
   return (
     <section className={cn("vc-journey-shell", className)} style={journeyStyle} {...props}>
@@ -216,7 +240,7 @@ export function JourneyShell({
         </div>
         {actions ? <div className="vc-journey-shell__header-actions">{actions}</div> : null}
       </header>
-      <nav aria-label="Voortgang" className="vc-journey-shell__steps" tabIndex={0}>
+      <nav aria-label="Voortgang" className="vc-journey-shell__steps" ref={stepsRef} tabIndex={0}>
         <ol>
           {steps.map((step, index) => {
             const state = index < currentIndex ? "complete" : index === currentIndex ? "current" : "upcoming";

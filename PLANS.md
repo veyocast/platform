@@ -145,6 +145,7 @@ tests en exitcriteria staan in
 | S141 | LED Scores live wedstrijdervaring | Een echte live tussenstandslide combineren met goal-, opstellings-, start-, rust- en eindoverlays, stabiele speleridentiteit, veilige fotoverrijking en één premium responsive Studioflow |
 | S144 | FieldFlow productplatform en slide-output | De complete marketing-, Control-, Publisher-, Studio-, mobile-, platform- en beheerervaring herontwerpen en tegelijk alle dynamische slides via één compatibele FieldFlow-outputketen naar moderne en statische LG-Players brengen |
 | S145 | FieldFlow v1.6 releasecorrectie | De visueel afgekeurde S144-uitvoering vervangen door de vijf laatst aangeleverde leidende referenties voor Overzicht, Planning, Schermen, Studio en Marketing, zonder security-, RLS-, locked-asset-, toegankelijkheids-, immutable-release- of Player/offlinegrenzen te verlagen |
+| S146 | Studio- en Publisherrecovery | Sportlink-welkomstcontent als één gekoppeld meerteamscomponent beheren, scherm- en releasekeuzes bounded én gepagineerd laden, automatische dynamische releases coalescen met Player-backpressure en monotone provenance, publicatiedoelen bij gedegradeerde telemetry behouden en overige Control-routes naar FieldFlow herstellen |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op
@@ -165,6 +166,61 @@ regressieasserties; verse reset, volledige RLS en error-level db-lint zijn
 groen. De release is geautoriseerd; PR/CI, merge en de beschermde exact-SHA
 staging-/productionreadbacks staan nog open. Zie
 `docs/redesign/FINAL_REPORT.md`.
+
+S146 start vanaf de gemergede S145-baseline
+`6e6cb7221abd4a1c0bbd95baafc76c4b26991e16` op
+`veyocast/s146-studio-publisher-recovery`. Het herstel bewaart bestaande
+immutable releases en snapshots. Schermdata gebruikt één bounded RPC voor de
+nieuwste release per niet-gearchiveerde playlist plus oudere releases die nog
+door een scherm, schermgroep of actieve planning worden gerefereerd; de
+operationele keuze toont daarvan alleen de nieuwste versie en verwijdert geen
+historie. `Welkom bezoekers` en `Welkom scheidsrechters` worden ieder maximaal
+één gekoppeld component met 1–100 unieke teamcontexten; per team geldt standaard
+`auto_current`, met een expliciete vastgezette competitie als uitzondering.
+
+De sinds S96 bestaande generieke `dynamic_slide_auto_publishes_latest`-route is
+een bevestigd mechanisme waarmee iedere gewijzigde gereedstaande
+`latest`-snapshot synchronisch gebruikte default-releasevertakkingen kon klonen.
+S146 vervangt die uitvoering forward-only door één duurzame pending aanvraag per
+tenant en playlist: 30 seconden settletijd, maximaal vijf minuten
+coalescingvenster en maximaal één in aanmerking komende batch per vijf minuten.
+Een batch wacht op render-readiness en op bevestiging van de vorige release door
+de relevante paired default-Players; uitsluitend hun releasevertakkingen worden
+gekloond. Fouten rollen de gedeeltelijke batch terug en blijven met begrensde
+backoff pending. Default en desired schuiven pas na een complete immutable
+release; Player `active_release_id` en last-known-good blijven onaangeraakt. De
+exacte actor-/jobprovenance van bestaande `Testportrait`-productieversies blijft
+een hosted readback, zonder speculatie of historische verwijdering.
+
+Publicatiepreflight laadt doelschermen als harde kern en degradeert ontbrekende
+Player- of cachetelemetry naar een zichtbare waarschuwing. De overige tenant-
+Controlroutes krijgen een routespecifieke FieldFlow-presentatie zonder de vijf
+goedgekeurde S145-referentieroutes of de immersieve editors te wijzigen.
+Schermen, devices, release-items, fleet-RPC en playlistlabels gebruiken stabiele
+PostgREST-paginering; regressies bewijzen de 1.001e rij. Een database-owned
+`snapshot_sequence` op uitsluitend nieuwe snapshots voorkomt dat omgekeerd
+voltooide renderjobs de live pointer terugzetten en bewaart de volledige
+dynamische provenance-tuple. Historische snapshots blijven onaangeroerd met
+`NULL`; de effectieve sortering gebruikt sequence `NULLS LAST` en daarna
+`created_at`/`id`. Een private insert-trigger kent de sequence toe en blokkeert
+expliciete insert of update.
+
+De lokale status is op 5 september 2026 `READY_FOR_RELEASE`. Groen zijn: verse
+database-reset; dynamische pgTAP 124/124 en volledige RLS 70 bestanden/1.720;
+db lint zonder resultaten; workspace lint/typecheck/test elk 30/30 en build 18/18,
+waaronder Control 60 bestanden/346 tests; a11y 36 plus 1 intentionele skip;
+Chromium 191 plus 23 intentionele skips; Player 117/117 en offline 7/7. Eén
+lokale Next-devserver restart-timeout is niet weggemoffeld: de volledige
+betrokken 30-combinatie mobile-scrolltest was daarna in 54,9 seconden
+geïsoleerd 1/1 groen. De 16-shot visualmatrix voor desktop/mobile × light/dark
+was 1/1 groen in 55,4 seconden, inclusief Axe, overflow en zichtbare actieve
+mobiele stap; onafhankelijke visuele review vond geen blocker. De muterende
+Publisher-journey koos in 31,0 seconden een echt doelscherm en maakte exact één
+immutable release; een handmatige playlist-lock bewees de `55P03`-queuebackoff
+met behouden pending record en audit. Diffcheck, changed-file secretscan en
+ownership zijn groen. S146 is `NOT_DEPLOYED`: PR/CI, hosted advisors en
+exact-SHA staging- en productionreadbacks blijven de releasefase. Zie
+`docs/s146-studio-publisher-control-recovery-evidence.md`.
 
 ### Programmagates
 

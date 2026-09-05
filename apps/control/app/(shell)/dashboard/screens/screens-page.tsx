@@ -289,7 +289,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
             canPublish={canPublish}
             groups={data.groups}
             idempotencyKey={randomUUID()}
-            playlists={playlistOptions(data.releases)}
+            playlists={playlistOptions(data.assignableReleases)}
             syncAction={requestBulkScreenSyncRetry}
           >
             <FleetCards
@@ -335,7 +335,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
             canPublish={canPublish}
             groups={data.groups}
             idempotencyKey={randomUUID()}
-            playlists={playlistOptions(data.releases)}
+            playlists={playlistOptions(data.assignableReleases)}
             syncAction={requestBulkScreenSyncRetry}
           >
             <CompactFleetTable
@@ -566,6 +566,7 @@ function isReferenceVisual(value: string | undefined) {
 
 function emptyScreenFleet(): ScreenFleetData {
   return {
+    assignableReleases: [],
     automation: {},
     devices: [],
     error: null,
@@ -645,6 +646,7 @@ function createReferenceScreenFleet(): ScreenFleetData {
     group("visual-group-bestuur", "Bestuur", [16])
   ];
   return {
+    assignableReleases: [releaseA, releaseB],
     automation: Object.fromEntries(screens.map((screen) => [screen.id, { enabled: true, label: "Slimme planning" } satisfies ScreenAutomationSummary])),
     devices,
     error: null,

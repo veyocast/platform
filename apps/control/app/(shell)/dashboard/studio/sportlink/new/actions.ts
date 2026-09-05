@@ -2,7 +2,10 @@
 
 import { redirect } from "next/navigation";
 
-import { createSportlinkSlideBatchSchema } from "@veyocast/contracts";
+import {
+  createSportlinkSlideBatchSchema,
+  sportlinkSlideBatchMaxDrafts
+} from "@veyocast/contracts";
 
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../../lib/supabase/server";
@@ -15,8 +18,13 @@ export async function createSportlinkSlideBatch(formData: FormData) {
     const durationInvalid = parsed.error.issues.some((issue) =>
       issue.path.includes("minutesBefore") || issue.path.includes("minutesAfter")
     );
+    const batchTooLarge = parsed.error.issues.some((issue) =>
+      issue.path[0] === "drafts" && issue.code === "too_big"
+    );
     const message = durationInvalid
       ? "De gekozen periode is niet geldig. Kies een waarde van 0 minuten tot en met 42 dagen en probeer opnieuw."
+      : batchTooLarge
+        ? `Kies maximaal ${sportlinkSlideBatchMaxDrafts} onderdelen per batch. Er is niets aangemaakt.`
       : "De selectie is niet meer volledig. Kies opnieuw ten minste één team en slidetype en controleer de competitiecontext.";
     redirect(`/dashboard/studio/sportlink/new?fout=${encodeURIComponent(message)}`);
   }
@@ -24,7 +32,7 @@ export async function createSportlinkSlideBatch(formData: FormData) {
   if (!supabase || !session.tenantId) {
     redirect("/dashboard/studio/sportlink/new?fout=De+veilige+verbinding+is+niet+beschikbaar.");
   }
-  const { data, error } = await supabase.rpc("create_sportlink_slide_batch_v2", {
+  const { data, error } = await supabase.rpc("create_sportlink_slide_batch_v3", {
     p_data_source_id: parsed.data.dataSourceId,
     p_drafts: parsed.data.drafts,
     p_idempotency_key: parsed.data.idempotencyKey,
@@ -37,7 +45,7 @@ export async function createSportlinkSlideBatch(formData: FormData) {
       : "De+batch+kon+niet+veilig+worden+gemaakt.+Er+zijn+geen+gedeeltelijke+slides+bewaard.";
     redirect(`/dashboard/studio/sportlink/new?fout=${message}`);
   }
-  redirect("/dashboard/slides?succes=De+Sportlink-slides+zijn+gemaakt+en+de+eerste+immutable+snapshots+staan+in+de+renderwachtrij.");
+  redirect("/dashboard/slides?succes=De+Sportlink-onderdelen+zijn+gemaakt.+Welkomstselecties+blijven+gekoppeld+en+de+eerste+immutable+snapshots+staan+in+de+renderwachtrij.");
 }
 
 function safeJson(value: string): unknown {

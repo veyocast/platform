@@ -1,5 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import {
+  assertMutatingPlaywrightUsesLocalSupabase,
+  isMutatingPlaywrightRun
+} from "./tests/helpers/supabase-environment-guard";
+
+assertMutatingPlaywrightUsesLocalSupabase(process.env);
+const mutatingPlaywrightRun = isMutatingPlaywrightRun(process.env);
+
 const controlPort = Number(process.env.CONTROL_PORT ?? 3103);
 const marketingPort = Number(process.env.MARKETING_PORT ?? 3108);
 const playerPort = Number(process.env.PLAYER_PORT ?? 3106);
@@ -17,7 +25,7 @@ const controlWebServer = {
       "veyocast-test-only-engage-abuse-signing-secret-2026",
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? baseURL
   },
-  reuseExistingServer: !process.env.CI,
+  reuseExistingServer: !process.env.CI && !mutatingPlaywrightRun,
   timeout: 180_000,
   url: `${baseURL}/login`
 };
@@ -40,6 +48,7 @@ export default defineConfig({
   ],
   reporter: [["list"]],
   testDir: "./tests",
+  testIgnore: ["**/helpers/**"],
   timeout: 30_000,
   use: {
     baseURL,
@@ -58,7 +67,7 @@ export default defineConfig({
                 process.env.VEYOCAST_SETUP_INTENT_SIGNING_SECRET ??
                 "veyocast-test-only-setup-intent-secret-2026"
             },
-            reuseExistingServer: !process.env.CI,
+            reuseExistingServer: !process.env.CI && !mutatingPlaywrightRun,
             timeout: 180_000,
             url: marketingURL
           },
@@ -74,7 +83,7 @@ export default defineConfig({
               VEYOCAST_ENVIRONMENT:
                 process.env.VEYOCAST_ENVIRONMENT ?? "staging"
             },
-            reuseExistingServer: !process.env.CI,
+            reuseExistingServer: !process.env.CI && !mutatingPlaywrightRun,
             timeout: 180_000,
             url: playerURL
           }

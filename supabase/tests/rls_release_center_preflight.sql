@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(18);
+select plan(27);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
 values
@@ -158,6 +158,125 @@ reset role;
 select ok(not has_function_privilege('anon', 'public.reassign_playlist_release_v2(uuid,uuid[],uuid)', 'EXECUTE'), 'anonymous callers cannot reassign releases');
 select ok(not has_table_privilege('authenticated', 'public.release_screen_assignments', 'INSERT'), 'authenticated clients cannot forge deployment history');
 select is((select count(*) from public.audit_events where action = 'playlist.release.reassigned' and tenant_id = '10000000-0000-4000-8000-000000000261'), 1::bigint, 'successful reassignment is audited exactly once');
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000261', true);
+select throws_ok(
+  $$select public.assign_current_playlist_release_v1(
+    '50000000-0000-4000-8000-000000000261',
+    '70000000-0000-4000-8000-000000000261',
+    array['60000000-0000-4000-8000-000000000261'::uuid],
+    '01000000-0000-4000-8000-000000000266'
+  )$$,
+  '40001', 'current playlist release changed',
+  'fleet assignment rejects a release that stopped being current after preflight'
+);
+reset role;
+update public.screens
+set active_assignment_source = 'override',
+    active_schedule_id = null,
+    active_target_snapshot_id = null,
+    default_playlist_id = '50000000-0000-4000-8000-000000000261',
+    default_release_id = '70000000-0000-4000-8000-000000000261',
+    assigned_playlist_id = '50000000-0000-4000-8000-000000000261',
+    assigned_release_id = '70000000-0000-4000-8000-000000000261'
+where id = '60000000-0000-4000-8000-000000000261';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000261', true);
+select is(
+  (
+    public.assign_current_playlist_release_v1(
+      '50000000-0000-4000-8000-000000000261',
+      '70000000-0000-4000-8000-000000000262',
+      array['60000000-0000-4000-8000-000000000261'::uuid],
+      '01000000-0000-4000-8000-000000000267'
+    ) ->> 'releaseId'
+  )::uuid,
+  '70000000-0000-4000-8000-000000000262'::uuid,
+  'fleet assignment atomically resolves the preflighted current release'
+);
+select ok(
+  (
+    select active_assignment_source = 'default'
+      and active_schedule_id is null
+      and active_target_snapshot_id is not null
+      and default_playlist_id = '50000000-0000-4000-8000-000000000261'
+      and default_release_id = '70000000-0000-4000-8000-000000000262'
+      and assigned_playlist_id = '50000000-0000-4000-8000-000000000261'
+      and assigned_release_id = '70000000-0000-4000-8000-000000000262'
+    from public.screens
+    where id = '60000000-0000-4000-8000-000000000261'
+  ),
+  'fleet assignment leaves override state for one coherent direct target snapshot'
+);
+select throws_ok(
+  $$select public.create_screen_from_current_release_v1(
+    '10000000-0000-4000-8000-000000000261', 'Oud beginscherm', '',
+    'landscape', 1920, 1080, '70000000-0000-4000-8000-000000000261'
+  )$$,
+  '40001', 'initial release is not current',
+  'screen onboarding rejects an older release forged into the form'
+);
+create temporary table current_screen_creation as
+select public.create_screen_from_current_release_v1(
+    '10000000-0000-4000-8000-000000000261',
+    'Actueel beginscherm', '', 'landscape', 1920, 1080,
+    '70000000-0000-4000-8000-000000000262'
+  ) as id;
+select is(
+  (
+    select screen.assigned_release_id
+    from public.screens screen
+    join current_screen_creation created on created.id = screen.id
+  ),
+  '70000000-0000-4000-8000-000000000262'::uuid,
+  'screen onboarding atomically assigns only the current release'
+);
+
+reset role;
+update public.playlists
+set status = 'archived',
+    archived_at = clock_timestamp()
+where id = '50000000-0000-4000-8000-000000000261';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000261', true);
+select throws_ok(
+  $$select public.assign_current_playlist_release_v1(
+    '50000000-0000-4000-8000-000000000261',
+    '70000000-0000-4000-8000-000000000262',
+    array['60000000-0000-4000-8000-000000000261'::uuid],
+    '01000000-0000-4000-8000-000000000268'
+  )$$,
+  '23514', 'current playlist is unavailable',
+  'fleet assignment cannot attach an archived playlist'
+);
+select throws_ok(
+  $$select public.create_screen_from_current_release_v1(
+    '10000000-0000-4000-8000-000000000261', 'Archiefscherm', '',
+    'landscape', 1920, 1080, '70000000-0000-4000-8000-000000000262'
+  )$$,
+  '23514', 'initial release is unavailable',
+  'screen onboarding cannot attach an archived playlist'
+);
+
+reset role;
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.assign_current_playlist_release_v1(uuid,uuid,uuid[],uuid)',
+    'EXECUTE'
+  ),
+  'anonymous callers cannot assign a current playlist release'
+);
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.create_screen_from_current_release_v1(uuid,text,text,text,integer,integer,uuid)',
+    'EXECUTE'
+  ),
+  'anonymous callers cannot create a screen from a current release'
+);
 
 select * from finish();
 rollback;

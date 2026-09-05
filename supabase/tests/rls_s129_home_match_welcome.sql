@@ -96,7 +96,32 @@ select lives_ok($$select public.create_dynamic_slide_v1(
    where slide_type='sport_visitor_arrivals' and orientation='landscape'
      and status='published' order by slug limit 1),
   current_setting('test.s129_data_source_id')::uuid,'latest',
-  '{"blueprintKey":"sportlink.visitor_arrivals","title":"Welkom op ons sportpark","arrival":{"cardCount":4,"emptyBehavior":"skip","minutesBefore":90,"minutesAfter":30}}'
+  '{
+    "blueprintKey":"sportlink.visitor_arrivals",
+    "title":"Welkom op ons sportpark",
+    "context":{
+      "competitionId":null,
+      "competitionSelectionMode":"auto_current",
+      "phaseId":null,
+      "poolId":null,
+      "providerTeamId":"club-team-1",
+      "seasonId":null
+    },
+    "teamContexts":[{
+      "competitionId":null,
+      "competitionSelectionMode":"auto_current",
+      "phaseId":null,
+      "poolId":null,
+      "providerTeamId":"club-team-1",
+      "seasonId":null
+    }],
+    "arrival":{
+      "cardCount":4,
+      "emptyBehavior":"skip",
+      "minutesBefore":90,
+      "minutesAfter":30
+    }
+  }'
 )$$,'owner creates a visitor-arrival slide');
 
 reset role;

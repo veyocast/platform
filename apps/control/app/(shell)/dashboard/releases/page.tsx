@@ -26,9 +26,9 @@ export default async function ReleaseCenterPage({ searchParams }: ReleaseCenterP
       description="Bekijk immutable publicatiehistorie, verschillen, impact en de actuele uitrol per scherm."
       eyebrow={`${session.tenant} · Distributie`}
       status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
-      title="Release Center"
+      title="Publicaties"
     />
-    {query.fout ? <p className="notice notice--critical" role="alert"><strong>Release Center niet geladen.</strong> {query.fout}</p> : null}
+    {query.fout ? <p className="notice notice--critical" role="alert"><strong>Publicatieoverzicht niet geladen.</strong> {query.fout}</p> : null}
     {data.error ? <p className="notice notice--critical" role="alert"><strong>Releasehistorie niet beschikbaar.</strong> {data.error}</p> : null}
     {!session.isLive ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte releasehistorie en schermuitrol te bekijken.</p> : null}
 
@@ -57,7 +57,7 @@ export default async function ReleaseCenterPage({ searchParams }: ReleaseCenterP
           <td data-label="Inhoud">{release.itemCount} items · {formatDuration(release.totalDurationSeconds)} · {formatBytes(release.totalBytes)}</td>
           <td data-label="Hashstatus"><StatusPill label={/^[a-f0-9]{64}$/.test(release.manifestHash) ? "SHA-256 vastgelegd" : "Hash ongeldig"} tone={/^[a-f0-9]{64}$/.test(release.manifestHash) ? "success" : "critical"} /></td>
           <td data-label="Doelschermen"><span className="table-primary">{release.currentScreenCount} huidig</span><span className="table-secondary">{release.deploymentTargetCount} historisch uniek</span></td>
-          <td data-label="Actie"><Link className="table-action" href={`/dashboard/releases/${release.id}`}>Open release</Link></td>
+          <td data-label="Actie"><Link className="table-action" href={`/dashboard/publications/${release.id}`}>Open publicatie</Link></td>
         </tr>)}</tbody>
       </table></div> : <div className="empty-state" role="status"><h2>Nog geen releases</h2><p>Publiceer eerst een gereed concept via de begeleide publicatieflow.</p><Button asChild><Link href="/dashboard/playlists">Playlist kiezen</Link></Button></div>}
     </section>

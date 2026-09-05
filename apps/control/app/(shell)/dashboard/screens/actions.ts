@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 
 import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
-import { loadReleaseDetail } from "../releases/data";
+import { loadReleasePreflight } from "../releases/data";
 
 type ScreenCommandContext = Awaited<ReturnType<typeof requireScreenManagement>>;
 
@@ -407,10 +407,9 @@ export async function assignBulkScreenRelease(formData: FormData) {
     fail("/dashboard/screens", "Deze playlist heeft nog geen geldige publicatie. Publiceer de playlist eerst en probeer het daarna opnieuw.");
   }
   const releaseId = latestRelease.data.id;
-  const detail = await loadReleaseDetail(session.tenantId, releaseId);
-  const targets = detail.screenStates.filter((state) =>
-    screenIds.includes(state.screen.id)
-  );
+  const detail = await loadReleasePreflight(session.tenantId, releaseId, screenIds);
+  if (detail.error) fail("/dashboard/screens", detail.error);
+  const targets = detail.screenStates;
   if (
     targets.length !== screenIds.length ||
     targets.some((state) => state.preflight.status === "blocked")
@@ -421,11 +420,12 @@ export async function assignBulkScreenRelease(formData: FormData) {
     state.preflight.status === "warning" ||
     state.preflight.status === "unknown"
   )) {
-    fail("/dashboard/screens", "Minimaal één scherm heeft een preflightwaarschuwing. Wijs deze release vanuit Release Center toe om de risico's afzonderlijk te beoordelen.");
+    fail("/dashboard/screens", "Minimaal één scherm heeft een preflightwaarschuwing. Wijs deze release vanuit Publicaties toe om de risico's afzonderlijk te beoordelen.");
   }
-  const { data, error } = await supabase.rpc("reassign_playlist_release_v2", {
+  const { data, error } = await supabase.rpc("assign_current_playlist_release_v1", {
+    p_expected_release_id: releaseId,
     p_idempotency_key: requiredUuid(formData, "idempotencyKey"),
-    p_release_id: releaseId,
+    p_playlist_id: playlistId,
     p_screen_ids: screenIds
   });
   const outcome = data && typeof data === "object" && !Array.isArray(data)
@@ -440,7 +440,7 @@ export async function assignBulkScreenRelease(formData: FormData) {
     fail("/dashboard/screens", "De release kon niet atomair aan alle geselecteerde schermen worden toegewezen. Bestaande toewijzingen blijven geldig.");
   }
   revalidatePath("/dashboard");
-  revalidatePath("/dashboard/releases");
+  revalidatePath("/dashboard/publications");
   revalidatePath("/dashboard/screens");
   redirect(withMessage(
     "/dashboard/screens",
@@ -452,7 +452,7 @@ export async function assignBulkScreenRelease(formData: FormData) {
 async function runCreateScreen(context: ScreenCommandContext, formData: FormData) {
   const input = screenInput(formData);
   const initialReleaseId = optionalUuid(formData, "initialReleaseId");
-  const { data, error } = await context.supabase.rpc("create_screen_v1", {
+  const { data, error } = await context.supabase.rpc("create_screen_from_current_release_v1", {
     p_initial_release_id: initialReleaseId,
     p_location: input.location,
     p_name: input.name,

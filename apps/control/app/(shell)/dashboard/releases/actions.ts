@@ -43,10 +43,10 @@ export async function reassignRelease(formData: FormData) {
       : "De release kon niet atomair aan alle schermen worden toegewezen. Geen releasehistorie is gewijzigd.");
   }
 
-  revalidatePath("/dashboard/releases");
-  revalidatePath(`/dashboard/releases/${releaseId}`);
+  revalidatePath("/dashboard/publications");
+  revalidatePath(`/dashboard/publications/${releaseId}`);
   revalidatePath("/dashboard/screens");
-  redirect(`/dashboard/releases/${releaseId}?succes=${encodeURIComponent("De bestaande immutable release is opnieuw toegewezen. Players schakelen pas na volledige download en verificatie.")}`);
+  redirect(`/dashboard/publications/${releaseId}?succes=${encodeURIComponent("De bestaande immutable release is opnieuw toegewezen. Players schakelen pas na volledige download en verificatie.")}`);
 }
 
 export async function restoreReleaseToDraft(formData: FormData) {
@@ -87,7 +87,7 @@ export async function restoreReleaseToDraft(formData: FormData) {
       : "De versie kon niet volledig als concept worden hersteld. Het bestaande concept is ongewijzigd.");
   }
   const result = commandResult(data);
-  if (!result) fail(releaseId, "De herstelactie gaf geen veilige bevestiging. Vernieuw Release Center.");
+  if (!result) fail(releaseId, "De herstelactie gaf geen veilige bevestiging. Vernieuw Publicaties.");
   if (result.outcome === "conflict") {
     fail(releaseId, "Het concept is ondertussen gewijzigd. Vernieuw de release en probeer de herstelactie daarna bewust opnieuw.");
   }
@@ -97,13 +97,13 @@ export async function restoreReleaseToDraft(formData: FormData) {
 
   revalidatePath("/dashboard/playlists");
   revalidatePath(`/dashboard/playlists/${result.playlistId}`);
-  revalidatePath("/dashboard/releases");
+  revalidatePath("/dashboard/publications");
   redirect(`/dashboard/playlists/${result.playlistId}?succes=${encodeURIComponent("De gekozen immutable versie is als nieuw concept hersteld. De releasehistorie en actieve schermtoewijzingen zijn niet gewijzigd.")}`);
 }
 
 function idValue(formData: FormData, name: string) {
   const value = String(formData.get(name) ?? "");
-  if (!isId(value)) redirect("/dashboard/releases?fout=De gekozen release is ongeldig.");
+  if (!isId(value)) redirect("/dashboard/publications?fout=De gekozen release is ongeldig.");
   return value;
 }
 
@@ -126,5 +126,5 @@ function idempotencyValue(formData: FormData) {
 }
 
 function fail(releaseId: string, message: string): never {
-  redirect(`/dashboard/releases/${releaseId}?fout=${encodeURIComponent(message)}`);
+  redirect(`/dashboard/publications/${releaseId}?fout=${encodeURIComponent(message)}`);
 }

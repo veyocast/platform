@@ -522,13 +522,13 @@ export async function publishPlaylistGuided(formData: FormData) {
   const result = data as GuardedPublishResult | null;
   if (!result) failPublish(playlistId, "De publicatie gaf geen bevestiging. De huidige release blijft spelen; probeer opnieuw.");
   if (result.outcome === "conflict") conflict(playlistId, revision, Number(result.actualRevision), "publish");
-  if (!result.releaseId) failPublish(playlistId, "De release-ID ontbreekt in de publicatiebevestiging. Controleer Release Center voordat je opnieuw probeert.");
+  if (!result.releaseId) failPublish(playlistId, "De release-ID ontbreekt in de publicatiebevestiging. Controleer Publicaties voordat je opnieuw probeert.");
 
   revalidatePlaylistPaths(playlistId);
-  revalidatePath("/dashboard/releases");
-  revalidatePath(`/dashboard/releases/${result.releaseId}`);
+  revalidatePath("/dashboard/publications");
+  revalidatePath(`/dashboard/publications/${result.releaseId}`);
   revalidatePath("/dashboard/screens");
-  redirect(`/dashboard/releases/${result.releaseId}?succes=${encodeURIComponent("De immutable release is gepubliceerd. Volg hieronder desired, download, verificatie en activatie per scherm.")}`);
+  redirect(`/dashboard/publications/${result.releaseId}?succes=${encodeURIComponent("De immutable release is gepubliceerd. Volg hieronder desired, download, verificatie en activatie per scherm.")}`);
 }
 
 async function mutateGuarded(
