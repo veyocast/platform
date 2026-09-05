@@ -2041,7 +2041,7 @@
 .arenaArrivalGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
   gap: 18px;
   height: 100%;
 }
@@ -2053,11 +2053,6 @@
 
 .arenaArrivalGrid[data-cards="2"] {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: minmax(0, 1fr);
-}
-
-.arenaArrivalGrid[data-cards="3"] {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: minmax(0, 1fr);
 }
 
@@ -2078,28 +2073,16 @@
 
 .arenaArrivalCard[data-motion] {
   animation-delay: var(--arrival-delay, 0ms);
-  animation-duration: 1400ms;
+  animation-duration: 680ms;
   animation-fill-mode: both;
-  animation-timing-function: cubic-bezier(.16, 1, .3, 1);
+  animation-timing-function: cubic-bezier(.2, 0, 0, 1);
+  backface-visibility: hidden;
   transform-origin: 50% 50%;
-  will-change: clip-path, filter, opacity, transform;
+  will-change: opacity, transform;
 }
 
 .arenaArrivalCard[data-motion]::after {
-  position: absolute;
-  z-index: 0;
-  inset: -45%;
-  border-radius: 50%;
-  background: linear-gradient(
-    112deg,
-    transparent 35%,
-    color-mix(in srgb, var(--vc-accent) 38%, transparent) 48%,
-    color-mix(in srgb, var(--vc-text) 18%, transparent) 52%,
-    transparent 65%
-  );
-  opacity: 0;
-  pointer-events: none;
-  content: "";
+  content: none;
 }
 
 .arenaArrivalCard[data-motion] > * {
@@ -2109,14 +2092,12 @@
 .arenaArrivalLogoBackdrop {
   position: absolute;
   z-index: 0 !important;
-  top: 50%;
-  right: -34%;
-  width: 150%;
-  height: 150%;
+  inset: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
   object-fit: contain;
   object-position: center;
   opacity: .3;
-  transform: translateY(-50%);
   pointer-events: none;
 }
 
@@ -2131,9 +2112,8 @@
   place-items: center;
   border: 1px solid var(--vc-border);
   border-radius: 20px;
-  background: color-mix(in srgb, var(--vc-surface) 90%, transparent);
+  background: var(--vc-neutral-0);
   box-shadow: 0 12px 34px var(--vc-shadow);
-  backdrop-filter: blur(12px);
 }
 
 .arenaArrivalLogoMark img {
@@ -2147,12 +2127,7 @@
 }
 
 .arenaArrivalCard[data-motion="aurora-rise"]::after {
-  animation: arrivalAuroraGlow 1050ms calc(var(--arrival-delay, 0ms) + 220ms) ease-out both;
-  background: radial-gradient(
-    circle at 35% 70%,
-    color-mix(in srgb, var(--vc-accent) 44%, transparent),
-    transparent 48%
-  );
+  content: none;
 }
 
 .arenaArrivalCard[data-motion="spotlight-bloom"] {
@@ -2165,7 +2140,7 @@
 }
 
 .arenaArrivalCard[data-motion="kinetic-split"] > * {
-  animation: arrivalKineticCopy 800ms calc(var(--arrival-delay, 0ms) + 380ms) cubic-bezier(.16, 1, .3, 1) both;
+  animation: none;
 }
 
 .arenaArrivalCard[data-motion="prism-swipe"] {
@@ -2173,8 +2148,7 @@
 }
 
 .arenaArrivalCard[data-motion="prism-swipe"]::after {
-  animation: arrivalPrismBeam 1150ms calc(var(--arrival-delay, 0ms) + 120ms) cubic-bezier(.22, 1, .36, 1) both;
-  opacity: 1;
+  content: none;
 }
 
 .arenaArrivalCard[data-motion="grand-flip"] {
@@ -2184,101 +2158,49 @@
 }
 
 @keyframes arrivalAuroraRise {
-  0% {
+  from {
     opacity: 0;
-    filter: blur(18px) saturate(1.8);
-    transform: translate3d(0, 88px, 0) scale(.9);
+    transform: translate3d(0, 32px, 0) scale(.98);
   }
-  58% {
+  to {
     opacity: 1;
-    filter: blur(0) saturate(1.28);
-    transform: translate3d(0, -8px, 0) scale(1.015);
+    transform: none;
   }
-  100% {
-    opacity: 1;
-    filter: none;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes arrivalAuroraGlow {
-  0% { opacity: 0; transform: translate3d(-18%, 18%, 0) scale(.55); }
-  44% { opacity: .85; }
-  100% { opacity: 0; transform: translate3d(20%, -15%, 0) scale(1.18); }
 }
 
 @keyframes arrivalSpotlightBloom {
-  0% {
+  from {
     opacity: 0;
-    clip-path: circle(3% at 50% 42%);
-    filter: brightness(2.2) blur(10px);
-    transform: scale(.72);
+    transform: scale(.96);
   }
-  62% {
+  to {
     opacity: 1;
-    clip-path: circle(82% at 50% 42%);
-    filter: brightness(1.18) blur(0);
-    transform: scale(1.025);
-  }
-  100% {
-    opacity: 1;
-    clip-path: circle(145% at 50% 42%);
-    filter: none;
-    transform: scale(1);
+    transform: none;
   }
 }
 
 @keyframes arrivalKineticSplit {
-  0% {
+  from {
     opacity: 0;
-    filter: blur(7px);
-    transform: translate3d(-125px, 0, 0) skewX(-8deg) scaleX(.82);
+    transform: translate3d(-40px, 0, 0);
   }
-  68% {
-    opacity: 1;
-    filter: none;
-    transform: translate3d(10px, 0, 0) skewX(1deg) scaleX(1.015);
-  }
-  100% { opacity: 1; filter: none; transform: none; }
-}
-
-@keyframes arrivalKineticCopy {
-  0% { opacity: 0; transform: translate3d(58px, 0, 0); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes arrivalPrismSwipe {
-  0% {
+  from {
     opacity: 0;
-    filter: hue-rotate(-24deg) saturate(1.9);
-    transform: translate3d(110px, 0, 0) rotate(2.5deg) scale(.94);
+    transform: translate3d(40px, 0, 0);
   }
-  64% {
-    opacity: 1;
-    filter: hue-rotate(5deg) saturate(1.2);
-    transform: translate3d(-7px, 0, 0) rotate(-.25deg) scale(1.01);
-  }
-  100% { opacity: 1; filter: none; transform: none; }
-}
-
-@keyframes arrivalPrismBeam {
-  0% { opacity: 0; transform: translate3d(-65%, 0, 0) rotate(8deg); }
-  34% { opacity: .92; }
-  100% { opacity: 0; transform: translate3d(65%, 0, 0) rotate(8deg); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes arrivalGrandFlip {
-  0% {
+  from {
     opacity: 0;
-    filter: blur(9px);
-    transform: perspective(1400px) rotateY(-72deg) translate3d(-55px, 0, 0) scale(.9);
+    transform: perspective(1400px) rotateY(-12deg) translate3d(-24px, 0, 0) scale(.98);
   }
-  70% {
-    opacity: 1;
-    filter: none;
-    transform: perspective(1400px) rotateY(5deg) translate3d(5px, 0, 0) scale(1.01);
-  }
-  100% { opacity: 1; filter: none; transform: perspective(1400px) rotateY(0) translate3d(0, 0, 0) scale(1); }
+  to { opacity: 1; transform: none; }
 }
 
 .arenaArrivalCard > span {
@@ -2333,26 +2255,11 @@
   font-size: 64px;
 }
 
-.arenaArrivalGrid[data-cards="3"] .arenaArrivalCard {
-  padding: 32px;
-}
-
-.arenaArrivalGrid[data-cards="3"] .arenaArrivalCard h2 {
-  max-width: 70%;
-  margin-top: 44px;
-  font-size: 46px;
-}
-
-.arenaArrivalGrid[data-cards="3"] .arenaArrivalLogoMark {
-  width: 78px;
-  height: 78px;
-  border-radius: 18px;
-}
-
 .arenaArrivalCard p {
   margin: 0 0 18px;
-  color: var(--vc-text-muted);
-  font-size: 25px;
+  color: var(--vc-text);
+  font-size: 34px;
+  font-weight: 800;
 }
 
 .arenaArrivalCard strong {
@@ -2383,7 +2290,7 @@
 
 .arenaRoot[data-orientation="portrait"] .arenaArrivalGrid {
   grid-template-columns: 1fr;
-  grid-template-rows: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -2393,16 +2300,6 @@
 
 .arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="2"] {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-}
-
-.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="3"] {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: repeat(3, minmax(0, 1fr));
-}
-
-.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="4"] {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
 }
 
@@ -2421,8 +2318,7 @@
   font-size: 92px;
 }
 
-.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="2"] .arenaArrivalCard h2,
-.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="3"] .arenaArrivalCard h2 {
+.arenaRoot[data-orientation="portrait"] .arenaArrivalGrid[data-cards="2"] .arenaArrivalCard h2 {
   max-width: 72%;
   margin-top: 42px;
   font-size: 52px;

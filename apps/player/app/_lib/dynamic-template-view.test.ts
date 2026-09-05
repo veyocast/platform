@@ -701,7 +701,7 @@ describe("trusted dynamic template view", () => {
     const payload = {
       ...base,
       data: { sport: {
-        arrivalConfig: { cardCount: 2, emptyBehavior: "skip" },
+        arrivalConfig: { cardCount: 4, emptyBehavior: "skip" },
         items: Array.from({ length: 5 }, (_, index) => ({
           homeMatch: true, id: `arrival-${index}`, primary: `Team ${index}`,
           secondary: "Aanvang 14:30", meta: "Kleedkamer 4"
@@ -714,6 +714,8 @@ describe("trusted dynamic template view", () => {
     } as const;
     const view = createDynamicTemplateView(payload);
     expect(view?.pages).toHaveLength(3);
+    expect(view?.pages.every((page) => page.kind !== "arrivals" || page.items.length <= 2))
+      .toBe(true);
     expect(view?.pageDurationMs).toBe(9_000);
     expect(view?.arrivalMotionPreset).toBe("auto");
     expect(Array.from({ length: 5 }, (_, index) =>

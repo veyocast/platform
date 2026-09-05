@@ -38,7 +38,7 @@ export function SportlinkArrivalFields({ media, onChange, value }: {
       <div className="vc-arrival-fields__grid">
         <DurationField label="Vooruitkijken vóór aanvang" minutes={value.minutesBefore} onChange={(minutes) => onChange({ ...value, minutesBefore: minutes })} />
         <DurationField label="Blijven tonen na aanvang" minutes={value.minutesAfter} onChange={(minutes) => onChange({ ...value, minutesAfter: minutes })} />
-        <Field label="Maximaal aantal blokken"><select onChange={(event) => number("cardCount", event.target.value)} value={value.cardCount}>{[1, 2, 3, 4].map((count) => <option key={count}>{count}</option>)}</select></Field>
+        <Field label="Wedstrijden per slide"><select onChange={(event) => number("cardCount", event.target.value)} value={Math.min(value.cardCount, 2)}>{[1, 2].map((count) => <option key={count}>{count}</option>)}</select></Field>
         <Field label="Paginaduur in seconden"><input max="120" min="5" onChange={(event) => number("pageDurationSeconds", event.target.value)} type="number" value={value.pageDurationSeconds} /></Field>
         <Field label="Wijziging markeren (minuten)"><input max="180" min="0" onChange={(event) => number("highlightRecentMinutes", event.target.value)} type="number" value={value.highlightRecentMinutes} /></Field>
         <Field label="Motion animatie"><select onChange={(event) => onChange({ ...value, motionPreset: event.target.value as SportlinkArrivalMotionPreset })} value={value.motionPreset}>{motionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></Field>
@@ -51,14 +51,13 @@ export function SportlinkArrivalFields({ media, onChange, value }: {
       <div className="vc-arrival-fields__toggles">
         <Toggle checked={value.showWelcome} label="Welkomsttekst" onChange={(checked) => toggle("showWelcome", checked)} />
         <Toggle checked={value.showClubLogo} label="Clublogo" onChange={(checked) => toggle("showClubLogo", checked)} />
-        <Toggle checked={value.showArrivalTime} label="Aankomsttijd" onChange={(checked) => toggle("showArrivalTime", checked)} />
         <Toggle checked={value.showKickoffTime} label="Aanvangstijd" onChange={(checked) => toggle("showKickoffTime", checked)} />
         <Toggle checked={value.showCompetition} label="Competitie" onChange={(checked) => toggle("showCompetition", checked)} />
         <Toggle checked={value.showField} label="Veld" onChange={(checked) => toggle("showField", checked)} />
         <Toggle checked={value.showDressingRoom} label="Kleedkamer" onChange={(checked) => toggle("showDressingRoom", checked)} />
         <Toggle checked={value.showSponsor} label="Sponsor" onChange={(checked) => toggle("showSponsor", checked)} />
       </div>
-      <p>De vooruitblik is maximaal 42 dagen. Bij vijf of meer aankomsten maakt de Player automatisch extra pagina's. Providerlogo's blijven buiten deze gebruikersmediakeuze.</p>
+      <p>De vooruitblik is maximaal 42 dagen. Vanaf drie wedstrijden maakt de Player automatisch extra slides. Providerlogo's blijven buiten deze gebruikersmediakeuze.</p>
       <style>{`.vc-arrival-fields{display:grid;gap:.75rem}.vc-arrival-fields__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}.vc-duration-field{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,.55fr);gap:.5rem}.vc-arrival-fields__toggles{display:flex;flex-wrap:wrap;gap:.5rem}.vc-arrival-fields__toggles label{display:flex;align-items:center;gap:.4rem;min-height:44px;padding:.5rem .65rem;border:1px solid var(--border);border-radius:8px}.vc-arrival-fields>p{margin:0;color:var(--muted-foreground);font-size:.8rem}@media(max-width:640px){.vc-arrival-fields__grid{grid-template-columns:1fr}}`}</style>
     </div>
   );

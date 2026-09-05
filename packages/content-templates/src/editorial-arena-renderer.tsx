@@ -73,6 +73,25 @@ function readableNewsUrl(value: string) {
   }
 }
 
+function arrivalCardCopy(entry: DynamicTemplateListItem) {
+  const secondaryParts = entry.secondary.split(" · ")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const metaParts = entry.meta.split(" · ")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const kickoff = secondaryParts.find((part) => part.startsWith("Aanvang ")) ?? "";
+  const dressingRoom = metaParts.find((part) => part.startsWith("Kleedkamer ")) ?? "";
+  return {
+    details: [kickoff, dressingRoom].filter(Boolean).join(" · "),
+    supporting: [
+      ...secondaryParts.filter((part) =>
+        part !== kickoff && !part.startsWith("Aankomst ")),
+      ...metaParts.filter((part) => part !== dressingRoom)
+    ].join(" · ")
+  };
+}
+
 export function EditorialArenaRenderer({
   embedded = false,
   item,
@@ -428,51 +447,54 @@ function ArenaPage({
       candidate.kind === "arrivals" ? candidate.items.length : 0));
     return (
       <div className={styles.arenaArrivalGrid} data-cards={page.items.length}>
-        {page.items.map((entry, index) => (
-          <article
-            className={styles.arenaArrivalCard}
-            data-sponsor={view.arrivalSponsorUrl ? "visible" : undefined}
-            data-motion={view.slideType === "sport_visitor_arrivals"
-              ? resolveWelcomeMotionPreset(
-                view.arrivalMotionPreset,
-                pageIndex,
-                index,
-                pageSize
-              )
-              : undefined}
-            key={entry.id}
-            style={{ "--arrival-delay": `${index * 110}ms` } as CSSProperties}
-          >
-            {entry.logoUrl ? (
-              <>
+        {page.items.map((entry, index) => {
+          const copy = arrivalCardCopy(entry);
+          return (
+            <article
+              className={styles.arenaArrivalCard}
+              data-sponsor={view.arrivalSponsorUrl ? "visible" : undefined}
+              data-motion={view.slideType === "sport_visitor_arrivals"
+                ? resolveWelcomeMotionPreset(
+                  view.arrivalMotionPreset,
+                  pageIndex,
+                  index,
+                  pageSize
+                )
+                : undefined}
+              key={entry.id}
+              style={{ "--arrival-delay": `${index * 80}ms` } as CSSProperties}
+            >
+              {entry.logoUrl ? (
+                <>
+                  <img
+                    alt=""
+                    aria-hidden="true"
+                    className={styles.arenaArrivalLogoBackdrop}
+                    src={entry.logoUrl}
+                  />
+                  <div className={styles.arenaArrivalLogoMark}>
+                    <img alt={`Logo ${entry.primary}`} src={entry.logoUrl} />
+                  </div>
+                </>
+              ) : null}
+              <span>{entry.status
+                .replaceAll("{{club}}", view.clubName)
+                .replaceAll("{{team}}", entry.primary) ||
+                (view.slideType === "sport_visitor_arrivals" ? "Welkom" : "Wedstrijdofficial")}</span>
+              {!entry.logoUrl ? <b>{String(index + 1).padStart(2, "0")}</b> : null}
+              <h2>{entry.primary}</h2>
+              {copy.details ? <p>{copy.details}</p> : null}
+              {copy.supporting ? <strong>{copy.supporting}</strong> : null}
+              {view.arrivalSponsorUrl ? (
                 <img
-                  alt=""
-                  aria-hidden="true"
-                  className={styles.arenaArrivalLogoBackdrop}
-                  src={entry.logoUrl}
+                  alt="Sponsor"
+                  className={styles.arenaArrivalSponsor}
+                  src={view.arrivalSponsorUrl}
                 />
-                <div className={styles.arenaArrivalLogoMark}>
-                  <img alt={`Logo ${entry.primary}`} src={entry.logoUrl} />
-                </div>
-              </>
-            ) : null}
-            <span>{entry.status
-              .replaceAll("{{club}}", view.clubName)
-              .replaceAll("{{team}}", entry.primary) ||
-              (view.slideType === "sport_visitor_arrivals" ? "Welkom" : "Wedstrijdofficial")}</span>
-            {!entry.logoUrl ? <b>{String(index + 1).padStart(2, "0")}</b> : null}
-            <h2>{entry.primary}</h2>
-            <p>{entry.secondary}</p>
-            <strong>{entry.meta}</strong>
-            {view.arrivalSponsorUrl ? (
-              <img
-                alt="Sponsor"
-                className={styles.arenaArrivalSponsor}
-                src={view.arrivalSponsorUrl}
-              />
-            ) : null}
-          </article>
-        ))}
+              ) : null}
+            </article>
+          );
+        })}
       </div>
     );
   }
