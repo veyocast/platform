@@ -38,13 +38,19 @@ laat dus geen gedeeltelijke slides achter. Iedere slide bewaart een eigen
 De centrale blueprintregistry bevat de clubvensters vandaag/zeven dagen, de
 pouleprogramma- en pouleuitslagvensters, de officiële poulestand en de twee
 aankomstfamilies. Poolwedstrijden komen providerbreed uit de allowlisted
-`poule-programma`/`pouleuitslagen`-artikelen met `eigenwedstrijden=NEE`. De
-algemene clubfeed levert de eigen wedstrijden; wanneer Sportlink bij een
-uitslag geen pouleobject meestuurt, koppelt de worker deze via de gevalideerde
-teamcode aan de gesynchroniseerde poulecontext. Daarna dedupliceert hij gelijke
-wedstrijdcodes. Zo blijven overige poulewedstrijden behouden en kunnen eigen
-wedstrijden niet buiten de pouleslide vallen. Ontbrekende scores blijven
-`null` en worden nooit als 0–0 gepubliceerd.
+`poule-programma`/`pouleuitslagen`-artikelen. De worker vraagt per poule beide
+providerselecties `eigenwedstrijden=NEE` én `JA` op en behoudt daarnaast de
+algemene clubfeed. Poulecontextdetectie accepteert een positieve `teamcode` of
+`lokaleteamcode` en negeert nul- en `-1`-sentinels. Wanneer Sportlink bij een
+eigen wedstrijd geen pouleobject meestuurt, koppelt de worker deze via die
+gevalideerde teamcode aan de gesynchroniseerde poulecontext. Gelijke
+wedstrijdcodes worden veldbehoudend samengevoegd, zodat poulemetadata, score,
+thuis/uitstatus, logo en locatie uit verschillende feeds niet verloren gaan.
+Een providerbuffer van veertien dagen voorkomt randverlies; de snapshotquery
+blijft exact begrensd tot de komende of afgelopen zeven lokale kalenderdagen.
+Zo bevatten beide pouleslides eigen thuis- en uitwedstrijden én wedstrijden
+tussen andere pouleteams. Ontbrekende scores blijven `null` en worden nooit als
+0–0 gepubliceerd.
 
 Bezoeker- en scheidsrechteraankomsten gebruiken dezelfde klokgestuurde engine,
 maar respectievelijk de uit- en official-kleedkamer. Een bezoekerswelkomstslide

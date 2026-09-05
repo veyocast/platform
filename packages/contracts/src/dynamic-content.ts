@@ -130,6 +130,10 @@ export const editorialThemeConfigSchema = z.object({
   mode: z.enum(editorialArenaThemeModes)
 }).strict();
 
+export const tenantThemeColorOverridesSchema = z.object({
+  fieldflow: editorialThemeConfigSchema.optional()
+}).strict();
+
 export const editorialFocalPointSchema = z.object({
   x: z.number().min(0).max(1),
   y: z.number().min(0).max(1)
@@ -426,6 +430,9 @@ export type PlayerDynamicTemplatePayload = z.infer<
 export type DynamicSnapshotData = z.infer<typeof dynamicSnapshotDataSchema>;
 export type EditorialColorTokens = z.infer<typeof editorialColorTokensSchema>;
 export type EditorialThemeConfig = z.infer<typeof editorialThemeConfigSchema>;
+export type TenantThemeColorOverrides = z.infer<
+  typeof tenantThemeColorOverridesSchema
+>;
 export type EditorialFocalPoint = z.infer<typeof editorialFocalPointSchema>;
 export type EditorialPriceListConfiguration = z.infer<
   typeof editorialPriceListConfigurationSchema

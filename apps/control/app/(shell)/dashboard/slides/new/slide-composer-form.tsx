@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   useEffect,
   useCallback,
-  useMemo,
   useRef,
   useState,
   useTransition,
@@ -18,17 +17,6 @@ import {
 } from "lucide-react";
 
 import { Button, JourneyShell } from "@veyocast/ui";
-import {
-  freezeThemePresentation,
-  themeCatalog,
-  themeToEditorialTokens
-} from "@veyocast/content-templates/theme-catalog";
-import type {
-  EditorialThemeConfig,
-  SelectableThemeId,
-  ThemeMode,
-  ThemeSelection
-} from "@veyocast/contracts";
 
 import styles from "../../dynamic-content.module.css";
 import {
@@ -37,12 +25,10 @@ import {
   type DynamicSlidePreviewResult
 } from "../actions";
 import { DynamicSlideLivePreview } from "./dynamic-slide-live-preview";
-import { FieldFlowStyleStep } from "../_components/fieldflow-style-step";
 import {
   EditorialPriceEditor,
   type EditorialPriceProductOption
 } from "./editorial-price-editor";
-import { EditorialThemeEditor } from "./editorial-theme-editor";
 import {
   PriceListConfigurator,
   type PriceListProductOption
@@ -80,7 +66,6 @@ export type SlideTemplateOption = {
 };
 
 type Props = {
-  defaultThemeSelection: ThemeSelection;
   primaryColor: string;
   products: PriceListProductOption[];
   sources: SlideSourceOption[];
@@ -109,17 +94,12 @@ const wizardSteps = [
     label: "Inhoud"
   },
   {
-    description: "Kies het thema en controleer de leesbaarheid van de slide.",
-    label: "Kleuren & uitstraling"
-  },
-  {
     description: "Controleer de keuzes voordat VeyoCast de slide maakt.",
     label: "Controleren"
   }
 ] as const;
 
 export function SlideComposerForm({
-  defaultThemeSelection,
   primaryColor,
   products,
   sources,
@@ -153,24 +133,6 @@ export function SlideComposerForm({
   const [secondsPerSlide, setSecondsPerSlide] = useState("5");
   const [newsVariant, setNewsVariant] = useState("hero_split");
   const [pricePhotoMode, setPricePhotoMode] = useState("show");
-  const initialThemeMode =
-    initialTemplate.slug.includes("-dark-") ? "dark" : "light"
-  const fieldflowDefaultSelection = useMemo(
-    () => withFieldflowTheme(defaultThemeSelection),
-    [defaultThemeSelection]
-  );
-  const tenantThemeDefaults = useMemo<EditorialThemeConfig>(() => ({
-    dark: editorialTokensFor(fieldflowDefaultSelection, "dark"),
-    light: editorialTokensFor(fieldflowDefaultSelection, "light"),
-    mode: initialThemeMode
-  }), [fieldflowDefaultSelection, initialThemeMode]);
-  const [theme, setTheme] = useState<EditorialThemeConfig>(tenantThemeDefaults);
-  const [themeSelection, setThemeSelection] = useState<ThemeSelection>(() => ({
-    ...fieldflowDefaultSelection,
-    modePolicy: fieldflowDefaultSelection.modePolicy.kind === "fixed"
-      ? { ...fieldflowDefaultSelection.modePolicy, mode: initialThemeMode }
-      : fieldflowDefaultSelection.modePolicy
-  }));
   const [priceListJson, setPriceListJson] = useState("");
   const [newsFocalPoint, setNewsFocalPoint] = useState({ x: 0.5, y: 0.5 });
   const handlePriceListChange = useCallback((value: string) => {
@@ -287,8 +249,6 @@ export function SlideComposerForm({
       previewFormData.set("secondsPerSlide", secondsPerSlide);
       previewFormData.set("newsVariant", newsVariant);
       previewFormData.set("pricePhotoMode", pricePhotoMode);
-      previewFormData.set("editorialThemeJson", JSON.stringify(theme));
-      previewFormData.set("themeSelectionJson", JSON.stringify(themeSelection));
       previewFormData.set("priceListJson", priceListJson);
       previewFormData.set("newsFocalPointJson", JSON.stringify(newsFocalPoint));
       if (slideType === "price_list") {
@@ -318,8 +278,6 @@ export function SlideComposerForm({
     selectedSportTeamExternalId,
     selectedTemplate,
     slideType,
-    theme,
-    themeSelection,
     newsFocalPoint,
     title
   ]);
@@ -361,23 +319,6 @@ export function SlideComposerForm({
     setPriceListJson("");
     setNewsFocalPoint({ x: 0.5, y: 0.5 });
     setPriceListConfiguration("");
-  }
-
-  function selectThemeId(themeId: SelectableThemeId) {
-    const nextSelection: ThemeSelection = {
-      ...themeSelection,
-      ref: {
-        catalog: "v2",
-        id: themeId,
-        version: themeCatalog[themeId].version
-      }
-    };
-    setThemeSelection(nextSelection);
-    setTheme({
-      dark: editorialTokensFor(nextSelection, "dark"),
-      light: editorialTokensFor(nextSelection, "light"),
-      mode: theme.mode
-    });
   }
 
   return (
@@ -463,15 +404,6 @@ export function SlideComposerForm({
                 key={`${slideType}-${template.versionId}`}
                 name="templateVersionId"
                 onChange={() => setTemplateVersionId(template.versionId)}
-                onClick={() => {
-                  const mode = template.slug.includes("-dark-")
-                    ? "dark"
-                    : "light";
-                  setTheme((current) => ({ ...current, mode }));
-                  setThemeSelection((current) => current.modePolicy.kind === "fixed"
-                    ? { ...current, modePolicy: { kind: "fixed", mode } }
-                    : current);
-                }}
                 type="radio"
                 value={template.versionId}
               />
@@ -898,39 +830,6 @@ export function SlideComposerForm({
         hidden={currentStep !== 4}
       >
         <h2 ref={currentStep === 4 ? stepHeadingRef : undefined} tabIndex={-1}>
-          Kies kleuren en uitstraling
-        </h2>
-        <FieldFlowStyleStep
-          label="FieldFlow-stijl voor deze slide"
-          onActivate={() => selectThemeId("fieldflow")}
-          value={themePickerId(themeSelection)}
-        />
-        <p className={styles.muted}>
-          FieldFlow is de vaste stijl voor nieuwe inhoud. Gebruik de gecontroleerde
-          instellingen hieronder alleen voor een bewuste afwijking op deze versie.
-        </p>
-        <EditorialThemeEditor
-          defaults={tenantThemeDefaults}
-          onChange={setTheme}
-          onSelectionChange={setThemeSelection}
-          selection={themeSelection}
-          theme={theme}
-        />
-        {currentStep === 4 ? (
-          <DynamicSlideLivePreview
-            dualOrientation
-            loading={isPreviewPending}
-            result={previewResult}
-          />
-        ) : null}
-      </section>
-
-      <section
-        className={styles.formSection}
-        data-wizard-step="5"
-        hidden={currentStep !== 5}
-      >
-        <h2 ref={currentStep === 5 ? stepHeadingRef : undefined} tabIndex={-1}>
           Controleer en maak de slide
         </h2>
         <dl className={styles.wizardReview}>
@@ -1000,7 +899,7 @@ export function SlideComposerForm({
           </div>
           <div>
             <dt>Uitstraling</dt>
-            <dd>{theme.mode === "dark" ? "Donker" : "Licht"} · accent {theme[theme.mode].accent}</dd>
+            <dd>Centrale FieldFlow-tenantstijl</dd>
           </div>
         </dl>
         <p className={styles.muted}>
@@ -1008,7 +907,7 @@ export function SlideComposerForm({
           die met de gekozen HTML/CSS-template; de worker bewaart daarnaast
           automatisch een PNG-fallback voor offline en oudere apparaten.
         </p>
-        {currentStep === 5 ? (
+        {currentStep === 4 ? (
           <DynamicSlideLivePreview
             loading={isPreviewPending}
             result={previewResult}
@@ -1437,29 +1336,6 @@ function maxItemsSummary(slideType: string, maxItems: string) {
   if (slideType === "menu") return `${amount} producten`;
   if (isSingleMatchSlide(slideType)) return "1 wedstrijd";
   return `${amount} regels`;
-}
-
-function editorialTokensFor(selection: ThemeSelection, mode: ThemeMode) {
-  return themeToEditorialTokens(freezeThemePresentation({
-    instant: "2026-01-01T12:00:00.000Z",
-    selection: { ...selection, modePolicy: { kind: "fixed", mode } },
-    timezone: "Europe/Amsterdam"
-  }));
-}
-
-function withFieldflowTheme(selection: ThemeSelection): ThemeSelection {
-  return {
-    ...selection,
-    ref: {
-      catalog: "v2",
-      id: "fieldflow",
-      version: themeCatalog.fieldflow.version
-    }
-  };
-}
-
-function themePickerId(selection: ThemeSelection): SelectableThemeId {
-  return selection.ref.catalog === "v2" ? selection.ref.id : "fieldflow";
 }
 
 function templateThemeLabel(template: SlideTemplateOption) {

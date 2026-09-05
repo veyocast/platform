@@ -2,11 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Database, LayoutTemplate } from "lucide-react";
 
-import { themeSelectionSchema } from "@veyocast/contracts";
-import {
-  platformDefaultThemeSelection,
-  resolveThemeDefinition
-} from "@veyocast/content-templates/theme-catalog";
+import { themeCatalog } from "@veyocast/content-templates/theme-catalog";
 import { Button, PageHeader } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
@@ -29,8 +25,7 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
   const data = session.isLive && session.tenantId
     ? await loadNewsOptions(session.tenantId)
     : {
-        defaultThemeSelection: platformDefaultThemeSelection,
-        primaryColor: resolveThemeDefinition(platformDefaultThemeSelection).accentDefault,
+        primaryColor: themeCatalog.fieldflow.accentDefault,
         sources: [] as SlideSourceOption[],
         templates: []
       };
@@ -67,7 +62,6 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
     <>
       {params.fout ? <p className="notice notice--critical" role="alert"><strong>Slide niet gemaakt.</strong> {params.fout}</p> : null}
       <SlideComposerForm
-        defaultThemeSelection={data.defaultThemeSelection}
         primaryColor={data.primaryColor}
         products={[]}
         sources={data.sources}
@@ -81,8 +75,7 @@ async function loadNewsOptions(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) {
     return {
-      defaultThemeSelection: platformDefaultThemeSelection,
-      primaryColor: resolveThemeDefinition(platformDefaultThemeSelection).accentDefault,
+      primaryColor: themeCatalog.fieldflow.accentDefault,
       sources: [] as SlideSourceOption[],
       templates: []
     };
@@ -104,7 +97,7 @@ async function loadNewsOptions(tenantId: string) {
       .order("name"),
     supabase
       .from("tenant_settings")
-      .select("primary_color,default_theme_id,default_theme_version,theme_mode_policy,theme_accent,theme_support")
+      .select("primary_color")
       .eq("tenant_id", tenantId)
       .maybeSingle()
   ]);
@@ -137,12 +130,10 @@ async function loadNewsOptions(tenantId: string) {
       successfulDatasetGroups: []
     };
   }));
-  const defaultThemeSelection = tenantThemeSelection(settingsResult.data);
   return {
-    defaultThemeSelection,
     primaryColor: normalizePrimaryColor(
       settingsResult.data?.primary_color,
-      resolveThemeDefinition(defaultThemeSelection).accentDefault
+      themeCatalog.fieldflow.accentDefault
     ),
     sources,
     templates: (templatesResult.data ?? []).flatMap((template) =>
@@ -158,27 +149,8 @@ async function loadNewsOptions(tenantId: string) {
   };
 }
 
-function tenantThemeSelection(settings: Record<string, unknown> | null) {
-  const parsed = themeSelectionSchema.safeParse({
-    accent: nonEmptyText(settings?.theme_accent),
-    categoryOverrides: [],
-    modePolicy: settings?.theme_mode_policy,
-    ref: {
-      catalog: "v2",
-      id: settings?.default_theme_id,
-      version: settings?.default_theme_version
-    },
-    support: nonEmptyText(settings?.theme_support)
-  });
-  return parsed.success ? parsed.data : platformDefaultThemeSelection;
-}
-
 function normalizePrimaryColor(value: unknown, fallback: string) {
   return typeof value === "string" && /^#[0-9A-Fa-f]{6}$/.test(value)
     ? value.toUpperCase()
     : fallback;
-}
-
-function nonEmptyText(value: unknown) {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
 }

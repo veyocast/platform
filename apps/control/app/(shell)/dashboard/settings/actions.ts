@@ -5,8 +5,10 @@ import { redirect } from "next/navigation";
 
 import {
   authorableThemeIdSchema,
+  tenantThemeColorOverridesSchema,
   themeModePolicySchema
 } from "@veyocast/contracts";
+import { editorialThemeHasValidContrast } from "@veyocast/content-templates/editorial-arena-theme";
 
 import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
@@ -36,6 +38,9 @@ export async function updateTenantSettings(formData: FormData) {
   const themeExpectedRevision = integerValue(formData, "themeSettingsRevision");
   const themeAccent = optionalHex(formData.get("themeAccent"));
   const themeSupport = optionalHex(formData.get("themeSupport"));
+  const themeColorOverrides = tenantThemeColorOverridesSchema.safeParse(
+    parseJson(formData.get("themeColorOverridesJson"))
+  );
   const policyKind = String(formData.get("themeModePolicyKind") ?? "fixed");
   const themeModePolicy = themeModePolicySchema.safeParse(
     policyKind === "auto"
@@ -91,8 +96,15 @@ export async function updateTenantSettings(formData: FormData) {
   if (themeAccent === false || themeSupport === false) {
     fail("Gebruik voor thema-accenten een geldige hexkleur of laat het veld leeg.");
   }
+  if (
+    !themeColorOverrides.success ||
+    !themeColorOverrides.data.fieldflow ||
+    !editorialThemeHasValidContrast(themeColorOverrides.data.fieldflow)
+  ) {
+    fail("De centrale slidekleuren zijn ongeldig of hebben onvoldoende contrast. Controleer tekst, panelen, foto-overlay en QR-code.");
+  }
 
-  const { error } = await supabase.rpc("update_tenant_control_settings_v4", {
+  const { error } = await supabase.rpc("update_tenant_control_settings_v5", {
     p_default_background_color: defaultBackgroundColor || null,
     p_default_fit_mode: fitMode,
     p_default_image_duration_seconds: imageDuration,
@@ -104,6 +116,7 @@ export async function updateTenantSettings(formData: FormData) {
     p_name: name,
     p_primary_color: primaryColor,
     p_theme_accent: themeAccent,
+    p_theme_color_overrides: themeColorOverrides.data,
     p_theme_expected_revision: themeExpectedRevision,
     p_theme_id: authorableThemeId.data,
     p_theme_mode_policy: themeModePolicy.data,
@@ -131,6 +144,15 @@ function optionalHex(value: FormDataEntryValue | null) {
 
 function integerValue(formData: FormData, name: string) {
   return Number.parseInt(String(formData.get(name) ?? ""), 10);
+}
+
+function parseJson(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || value.length > 32_768) return null;
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return null;
+  }
 }
 
 function fail(message: string): never {

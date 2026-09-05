@@ -8,7 +8,7 @@ import {
   replaceColorChannels
 } from "./editorial-theme-editor";
 
-describe("Editorial slidekleur-editor", () => {
+describe("Centrale tenantkleur-editor", () => {
   it("biedt ieder semantisch kleurtoken precies eenmaal aan", () => {
     const editorTokens = editorialThemeTokenGroups
       .flatMap((group) => [...group.tokens])

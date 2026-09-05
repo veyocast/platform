@@ -212,6 +212,16 @@ describe("Sportlink sync worker", () => {
     )).toEqual(["90", "91"]);
   });
 
+  it("matches pool rows through a positive local team code", () => {
+    expect(collectSportlinkPoolIds(
+      [{ lokaleteamcode: 44, teamcode: -1, teamnaam: "Club 4" }],
+      [
+        { lokaleteamcode: -1, poulecode: 93, teamcode: -1 },
+        { lokaleteamcode: 44, poulecode: 94, teamcode: -1 }
+      ]
+    )).toEqual(["94"]);
+  });
+
   it("keeps competition and season with every standings context", () => {
     expect(collectSportlinkPoolContexts(
       [{
@@ -251,7 +261,7 @@ describe("Sportlink sync worker", () => {
     });
   });
 
-  it("keeps provider-wide pool fixtures and enriches own results without pool metadata", async () => {
+  it("combines home, away and other pool fixtures without losing pool metadata", async () => {
     const poolRequests: string[] = [];
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = new URL(input instanceof Request ? input.url : input);
@@ -275,15 +285,60 @@ describe("Sportlink sync worker", () => {
           wedstrijdcode: 7002
         }]);
       }
-      if (url.pathname === "/poule-programma" || url.pathname === "/pouleuitslagen") {
-        poolRequests.push(`${url.pathname}:${url.searchParams.get("eigenwedstrijden")}`);
-        if (url.pathname === "/pouleuitslagen") return Response.json([]);
+      if (url.pathname === "/programma") {
         return Response.json([{
           aanvangstijd: "14:30",
-          thuisteam: "Pouleclub 1",
-          uitteam: "Pouleclub 2",
+          teamvolgorde: "thuis",
+          thuisteam: "Duindorp 1",
+          thuisteamid: 10,
+          uitteam: "Bezoekers 1",
+          uitteamid: 30,
+          veld: "Veld 1",
+          wedstrijddatum: "2026-09-06",
+          wedstrijdcode: 7004
+        }]);
+      }
+      if (url.pathname === "/poule-programma" || url.pathname === "/pouleuitslagen") {
+        poolRequests.push(`${url.pathname}:${url.searchParams.get("eigenwedstrijden")}`);
+        expect(url.searchParams.get("aantaldagen")).toBe("14");
+        const own = url.searchParams.get("eigenwedstrijden") === "JA";
+        if (url.pathname === "/poule-programma") {
+          return Response.json([own ? {
+            aanvangstijd: "12:00",
+            teamvolgorde: "uit",
+            thuisteam: "Pouleclub 3",
+            thuisteamid: 40,
+            uitteam: "Duindorp 1",
+            uitteamid: 10,
+            wedstrijddatum: "2026-09-07",
+            wedstrijdcode: 7003
+          } : {
+            aanvangstijd: "14:30",
+            thuisteam: "Pouleclub 1",
+            thuisteamid: 20,
+            uitteam: "Pouleclub 2",
+            uitteamid: 21,
+            wedstrijddatum: "2026-09-06",
+            wedstrijdcode: 7001
+          }]);
+        }
+        return Response.json([own ? {
+          aanvangstijd: "14:30",
+          teamvolgorde: "thuis",
+          thuisteam: "Duindorp 1",
+          thuisteamid: 10,
+          uitteam: "Vereniging Uit 1",
+          uitteamid: 50,
+          uitslag: "2-1",
           wedstrijddatum: "2026-08-29",
-          wedstrijdcode: 7001
+          wedstrijdcode: 7002
+        } : {
+          aanvangstijd: "11:00",
+          thuisteam: "Pouleclub 5",
+          uitteam: "Pouleclub 6",
+          uitslag: "1-1",
+          wedstrijddatum: "2026-08-30",
+          wedstrijdcode: 7005
         }]);
       }
       return Response.json([]);
@@ -310,7 +365,9 @@ describe("Sportlink sync worker", () => {
 
     expect(poolRequests).toEqual([
       "/poule-programma:NEE",
-      "/pouleuitslagen:NEE"
+      "/poule-programma:JA",
+      "/pouleuitslagen:NEE",
+      "/pouleuitslagen:JA"
     ]);
     expect(batch.matches).toEqual(expect.arrayContaining([
       expect.objectContaining({
@@ -320,10 +377,29 @@ describe("Sportlink sync worker", () => {
       }),
       expect.objectContaining({
         externalId: "7002",
+        homeTeam: expect.objectContaining({ score: 2 }),
+        isHomeMatch: true,
+        pool: expect.objectContaining({ externalId: "701" }),
+        status: "finished"
+      }),
+      expect.objectContaining({
+        externalId: "7003",
+        isHomeMatch: false,
+        pool: expect.objectContaining({ externalId: "701" })
+      }),
+      expect.objectContaining({
+        externalId: "7004",
+        isHomeMatch: true,
+        pool: expect.objectContaining({ externalId: "701" })
+      }),
+      expect.objectContaining({
+        externalId: "7005",
         pool: expect.objectContaining({ externalId: "701" }),
         status: "finished"
       })
     ]));
+    expect(batch.matches.filter((match) => match.externalId === "7002"))
+      .toHaveLength(1);
   });
 
   it("claims a command once and reports missing encryption configuration safely", async () => {

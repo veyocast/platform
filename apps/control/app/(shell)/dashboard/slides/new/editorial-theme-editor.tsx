@@ -85,12 +85,14 @@ const tokenLabels: Record<keyof EditorialColorTokens, string> = {
 
 export function EditorialThemeEditor({
   defaults,
+  disabled = false,
   onChange,
   onSelectionChange,
   selection,
   theme
 }: {
   defaults: EditorialThemeConfig;
+  disabled?: boolean;
   onChange: (theme: EditorialThemeConfig) => void;
   onSelectionChange: (selection: ThemeSelection) => void;
   selection: ThemeSelection;
@@ -194,6 +196,7 @@ export function EditorialThemeEditor({
         <label className={styles.field}>
           <span>Licht/donker-beleid</span>
           <select
+            disabled={disabled}
             name="themeModePolicyKind"
             onChange={(event) => setPolicy(
               event.currentTarget.value === "auto"
@@ -206,7 +209,7 @@ export function EditorialThemeEditor({
           >
             <option value="fixed">Vaste modus</option>
             <option value="schedule">Volgens tijdschema</option>
-            <option value="auto">Automatisch op schermvoorkeur</option>
+            <option value="auto">Automatisch (07:00–18:00 licht)</option>
           </select>
         </label>
 
@@ -214,7 +217,8 @@ export function EditorialThemeEditor({
           <label className={styles.field}>
             <span>Vaste modus</span>
             <select
-              name="themeMode"
+              disabled={disabled}
+              name="themeFixedMode"
               onChange={(event) => setFixedMode(
                 event.currentTarget.value === "dark" ? "dark" : "light"
               )}
@@ -231,6 +235,8 @@ export function EditorialThemeEditor({
             <label className={styles.field}>
               <span>Donker vanaf</span>
               <input
+                disabled={disabled}
+                name="themeScheduleStart"
                 onChange={(event) => updateSchedule(selection, updateSelection, {
                   start: event.currentTarget.value
                 })}
@@ -241,6 +247,8 @@ export function EditorialThemeEditor({
             <label className={styles.field}>
               <span>Licht vanaf</span>
               <input
+                disabled={disabled}
+                name="themeScheduleEnd"
                 onChange={(event) => updateSchedule(selection, updateSelection, {
                   end: event.currentTarget.value
                 })}
@@ -252,6 +260,7 @@ export function EditorialThemeEditor({
         ) : null}
 
         <SelectionColorInput
+          disabled={disabled}
           label="Basisaccent voor beide modi"
           onChange={(value) => updateSelection({
             ...selection,
@@ -260,6 +269,7 @@ export function EditorialThemeEditor({
           value={selection.accent ?? defaults.light.accent}
         />
         <SelectionColorInput
+          disabled={disabled}
           label="Decoratieve steunkleur"
           onChange={(value) => updateSelection({
             ...selection,
@@ -277,6 +287,7 @@ export function EditorialThemeEditor({
           {(["light", "dark"] as const).map((mode) => (
             <Button
               aria-pressed={editingMode === mode}
+              disabled={disabled}
               key={mode}
               onClick={() => setEditingMode(mode)}
               size="sm"
@@ -290,6 +301,7 @@ export function EditorialThemeEditor({
         <div className={styles.fieldGrid}>
           {quickTokens.map((token) => (
             <TokenInput
+              disabled={disabled}
               key={token}
               label={tokenLabels[token]}
               name={`quick-${editingMode}-${token}`}
@@ -304,6 +316,7 @@ export function EditorialThemeEditor({
 
       <div className={styles.editorialThemeActions}>
         <Button
+          disabled={disabled}
           onClick={() => setAdvanced((value) => !value)}
           size="sm"
           type="button"
@@ -312,12 +325,13 @@ export function EditorialThemeEditor({
           {advanced ? "Alle kleuren sluiten" : "Alle kleuren aanpassen"}
         </Button>
         <Button
+          disabled={disabled}
           onClick={resetTheme}
           size="sm"
           type="button"
           variant="ghost"
         >
-          Terug naar tenantstandaard
+          Standaardkleuren herstellen
         </Button>
       </div>
 
@@ -330,6 +344,7 @@ export function EditorialThemeEditor({
                 {group.tokens.map((token) => (
                   <div className={styles.editorialTokenField} key={token}>
                     <TokenInput
+                      disabled={disabled}
                       label={tokenLabels[token]}
                       name={`${editingMode}-${token}`}
                       onChange={(value) => setToken(editingMode, token, value)}
@@ -337,6 +352,7 @@ export function EditorialThemeEditor({
                     />
                     <Button
                       aria-label={`${tokenLabels[token]} resetten`}
+                      disabled={disabled}
                       onClick={() => setToken(
                         editingMode,
                         token,
@@ -356,24 +372,32 @@ export function EditorialThemeEditor({
         </div>
       ) : null}
       <input
-        name="editorialThemeJson"
+        name="themeColorOverridesJson"
         type="hidden"
-        value={JSON.stringify(theme)}
+        value={JSON.stringify({ fieldflow: theme })}
       />
       <input
-        name="themeSelectionJson"
+        name="themeAccent"
         type="hidden"
-        value={JSON.stringify(selection)}
+        value={selection.accent ?? ""}
+      />
+      <input name="themeId" type="hidden" value="fieldflow" />
+      <input
+        name="themeSupport"
+        type="hidden"
+        value={selection.support ?? ""}
       />
     </div>
   );
 }
 
 function SelectionColorInput({
+  disabled,
   label,
   onChange,
   value
 }: {
+  disabled: boolean;
   label: string;
   onChange: (value: string) => void;
   value: string;
@@ -384,6 +408,7 @@ function SelectionColorInput({
       <span className={styles.editorialColorPicker}>
         <input
           aria-label={`${label} kiezen`}
+          disabled={disabled}
           onChange={(event) => onChange(event.currentTarget.value)}
           type="color"
           value={colorPickerValue(value)}
@@ -395,11 +420,13 @@ function SelectionColorInput({
 }
 
 function TokenInput({
+  disabled,
   label,
   name,
   onChange,
   value
 }: {
+  disabled: boolean;
   label: string;
   name: string;
   onChange: (value: string) => void;
@@ -411,6 +438,7 @@ function TokenInput({
       <span className={styles.editorialColorInput}>
         <input
           aria-label={`${label} kiezen`}
+          disabled={disabled}
           onChange={(event) => onChange(
             replaceColorChannels(value, event.currentTarget.value)
           )}
@@ -419,6 +447,7 @@ function TokenInput({
         />
         <input
           aria-label={`${label} als kleurwaarde`}
+          disabled={disabled}
           name={name}
           onChange={(event) => onChange(event.currentTarget.value)}
           pattern="(#[0-9A-Fa-f]{6}|rgba?\([0-9.,%\s]+\)|hsla?\([0-9.,%\s]+\))"

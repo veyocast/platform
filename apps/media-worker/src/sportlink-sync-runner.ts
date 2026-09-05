@@ -376,8 +376,10 @@ export async function fetchSportlinkDataset(
     const poolMatches: SportMatch[] = [];
     for (const context of collectSportlinkPoolContexts(teams.payload, pools.payload)) {
       for (const request of [
-        { article: "poule-programma" as const, mode: "program" as const, args: { poulecode: context.poolExternalId, aantaldagen: 7, eigenwedstrijden: "NEE" as const } },
-        { article: "pouleuitslagen" as const, mode: "results" as const, args: { poulecode: context.poolExternalId, aantaldagen: 7, eigenwedstrijden: "NEE" as const } }
+        { article: "poule-programma" as const, mode: "program" as const, args: { poulecode: context.poolExternalId, aantaldagen: 14, eigenwedstrijden: "NEE" as const } },
+        { article: "poule-programma" as const, mode: "program" as const, args: { poulecode: context.poolExternalId, aantaldagen: 14, eigenwedstrijden: "JA" as const } },
+        { article: "pouleuitslagen" as const, mode: "results" as const, args: { poulecode: context.poolExternalId, aantaldagen: 14, eigenwedstrijden: "NEE" as const } },
+        { article: "pouleuitslagen" as const, mode: "results" as const, args: { poulecode: context.poolExternalId, aantaldagen: 14, eigenwedstrijden: "JA" as const } }
       ]) {
         try {
           const response = await client.fetchArticle(request.article, request.args);
@@ -845,10 +847,9 @@ export function collectSportlinkPoolContexts(
   const poolRecords = extractSportlinkRecords(poolsPayload);
   const teamCodes = new Set(
     teamRecords
-      .map((team) => scalar(team.teamcode))
-      .filter((value): value is string =>
-        Boolean(value && /^\d+$/.test(value))
-      )
+      .flatMap((team) => [team.teamcode, team.lokaleteamcode])
+      .map(positiveSportlinkCode)
+      .filter((value): value is string => Boolean(value))
   );
   const contexts = new Map<string, {
     competition: SportStanding["competition"];
@@ -902,8 +903,10 @@ export function collectSportlinkPoolContexts(
     addPool(team);
   }
   for (const pool of poolRecords) {
-    const teamCode = scalar(pool.teamcode);
-    if (teamCode && teamCodes.has(teamCode)) {
+    const belongsToTenantTeam = [pool.teamcode, pool.lokaleteamcode]
+      .map(positiveSportlinkCode)
+      .some((teamCode) => teamCode !== null && teamCodes.has(teamCode));
+    if (belongsToTenantTeam) {
       addPool(pool);
     }
   }
@@ -925,7 +928,7 @@ export function enrichSportlinkOwnMatchesWithPoolContexts(
     const poolId = scalar(record.poulecode);
     if (!poolId || !contexts.has(poolId)) return;
     for (const value of [record.teamcode, record.lokaleteamcode]) {
-      const teamId = scalar(value);
+      const teamId = positiveSportlinkCode(value);
       if (teamId) teamPools.set(teamId, poolId);
     }
   };
@@ -942,10 +945,67 @@ export function enrichSportlinkOwnMatchesWithPoolContexts(
   });
 }
 
-function dedupeSportlinkMatches(matches: SportMatch[]) {
+export function dedupeSportlinkMatches(matches: SportMatch[]) {
   const unique = new Map<string, SportMatch>();
-  for (const match of matches) unique.set(match.externalId, match);
+  for (const match of matches) {
+    const existing = unique.get(match.externalId);
+    unique.set(
+      match.externalId,
+      existing ? mergeSportlinkMatch(existing, match) : match
+    );
+  }
   return [...unique.values()];
+}
+
+function mergeSportlinkMatch(existing: SportMatch, incoming: SportMatch): SportMatch {
+  return {
+    ...existing,
+    ...incoming,
+    awayTeam: {
+      ...existing.awayTeam,
+      ...incoming.awayTeam,
+      externalId: incoming.awayTeam.externalId ?? existing.awayTeam.externalId,
+      logoUrl: incoming.awayTeam.logoUrl ?? existing.awayTeam.logoUrl,
+      score: incoming.awayTeam.score ?? existing.awayTeam.score
+    },
+    competition: mergeOptionalRecord(existing.competition, incoming.competition),
+    dressingRooms: mergeOptionalFields(
+      existing.dressingRooms,
+      incoming.dressingRooms
+    ),
+    homeTeam: {
+      ...existing.homeTeam,
+      ...incoming.homeTeam,
+      externalId: incoming.homeTeam.externalId ?? existing.homeTeam.externalId,
+      logoUrl: incoming.homeTeam.logoUrl ?? existing.homeTeam.logoUrl,
+      score: incoming.homeTeam.score ?? existing.homeTeam.score
+    },
+    isHomeMatch: existing.isHomeMatch || incoming.isHomeMatch,
+    officials: incoming.officials.length ? incoming.officials : existing.officials,
+    pool: mergeOptionalRecord(existing.pool, incoming.pool),
+    venue: mergeOptionalFields(existing.venue, incoming.venue)
+  };
+}
+
+function mergeOptionalRecord<T extends Record<string, unknown>>(
+  existing: T | null,
+  incoming: T | null
+): T | null {
+  if (!existing) return incoming;
+  if (!incoming) return existing;
+  return mergeOptionalFields(existing, incoming);
+}
+
+function mergeOptionalFields<T extends Record<string, unknown>>(
+  existing: T,
+  incoming: T
+): T {
+  return Object.fromEntries(
+    Object.keys({ ...existing, ...incoming }).map((key) => [
+      key,
+      incoming[key] ?? existing[key]
+    ])
+  ) as T;
 }
 
 export function enrichSportlinkPoolMatches(
@@ -1013,6 +1073,11 @@ function scalar(value: unknown) {
   if (typeof value === "string") return value.trim() || null;
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
   return null;
+}
+
+function positiveSportlinkCode(value: unknown) {
+  const code = scalar(value);
+  return code && /^\d+$/.test(code) && Number(code) > 0 ? code : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

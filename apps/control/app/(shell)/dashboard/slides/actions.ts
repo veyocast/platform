@@ -7,27 +7,23 @@ import { redirect } from "next/navigation";
 import {
   editorialFocalPointSchema,
   editorialPriceListConfigurationSchema,
-  editorialThemeConfigSchema,
   playerDynamicTemplateAssetSchema,
   playerDynamicTemplatePayloadSchema,
   priceListSlideConfigSchema,
-  themeSelectionSchema,
   type EditorialPriceListConfiguration,
   type PlayerDynamicTemplateAsset,
   type PlayerDynamicTemplatePayload
 } from "@veyocast/contracts";
 import { priceRowsThatFit } from "@veyocast/content-templates";
-import {
-  resolveEditorialThemeConfig
-} from "@veyocast/content-templates/editorial-arena-theme";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlAdminClient } from "../../../../lib/supabase/admin";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import {
-  slideComposerErrorPath,
-  validateEditorialSlideTheme
-} from "./new/slide-composer-validation";
+  resolveTenantThemeAuthority,
+  type TenantThemeAuthority
+} from "../../../../lib/tenant-theme";
+import { slideComposerErrorPath } from "./new/slide-composer-validation";
 
 export type DynamicSlidePreviewResult =
   | {
@@ -54,22 +50,6 @@ export async function previewDynamicSlide(
   const name = String(formData.get("name") ?? "Voorbeeld").trim();
   const templateVersionId = String(formData.get("templateVersionId") ?? "");
   const dataSourceId = String(formData.get("dataSourceId") ?? "");
-  const requestedSlideType = String(formData.get("slideType") ?? "");
-  const configuration = dynamicSlideConfiguration(formData);
-  if (!configuration) {
-    return {
-      code: "PREVIEW_CONFIGURATION_INVALID",
-      message: "Selecteer minimaal één beschikbaar product en controleer de kolomindeling.",
-      ok: false
-    };
-  }
-  const themeValidation = validateEditorialSlideTheme({
-    rawTheme: parseJson(formData.get("editorialThemeJson")),
-    rawThemeSelection: parseJson(formData.get("themeSelectionJson")),
-    resolvedTheme: editorialThemeFromConfiguration(configuration),
-    slideType: requestedSlideType
-  });
-  if (!themeValidation.ok) return themeValidation;
   const supabase = await createControlSupabaseClient();
   if (
     !supabase ||
@@ -79,6 +59,20 @@ export async function previewDynamicSlide(
     return {
       code: "PREVIEW_SELECTION_INVALID",
       message: "Kies eerst een geldig template en een beschikbare databron.",
+      ok: false
+    };
+  }
+  const themeAuthority = await loadTenantThemeAuthority(
+    supabase,
+    session.tenantId!
+  );
+  const configuration = themeAuthority
+    ? dynamicSlideConfiguration(formData, themeAuthority)
+    : null;
+  if (!configuration || !themeAuthority) {
+    return {
+      code: "PREVIEW_CONFIGURATION_INVALID",
+      message: "De centrale tenantstijl of inhoudsselectie kon niet veilig worden geladen.",
       ok: false
     };
   }
@@ -193,29 +187,31 @@ export async function createDynamicSlide(formData: FormData) {
     Math.max(5, Number(formData.get("secondsPerSlide")) || 5)
   );
   const requestedSlideType = String(formData.get("slideType") ?? "");
-  const configuration = dynamicSlideConfiguration(formData);
-  if (!configuration) {
+  const supabase = await createControlSupabaseClient();
+  if (!supabase) {
     redirectToSlideComposerError(
       requestedSlideType,
-      "Selecteer minimaal een beschikbaar product en controleer de kolomindeling."
+      "De beveiligde datasessie ontbreekt. Log opnieuw in en probeer het nogmaals."
     );
   }
-  const themeValidation = validateEditorialSlideTheme({
-    rawTheme: parseJson(formData.get("editorialThemeJson")),
-    rawThemeSelection: parseJson(formData.get("themeSelectionJson")),
-    resolvedTheme: editorialThemeFromConfiguration(configuration),
-    slideType: requestedSlideType
-  });
-  if (!themeValidation.ok) {
-    redirectToSlideComposerError(requestedSlideType, themeValidation.message);
+  const themeAuthority = await loadTenantThemeAuthority(
+    supabase,
+    session.tenantId!
+  );
+  const configuration = themeAuthority
+    ? dynamicSlideConfiguration(formData, themeAuthority)
+    : null;
+  if (!configuration || !themeAuthority) {
+    redirectToSlideComposerError(
+      requestedSlideType,
+      "De centrale tenantstijl of inhoudsselectie kon niet veilig worden geladen."
+    );
   }
   const editorialConfiguration = "editorial" in configuration &&
     isRecord(configuration.editorial)
     ? configuration.editorial
     : null;
-  const supabase = await createControlSupabaseClient();
   if (
-    !supabase ||
     name.length < 2 ||
     name.length > 120 ||
     !uuidPattern.test(templateVersionId) ||
@@ -370,7 +366,10 @@ export async function createDynamicSlide(formData: FormData) {
   redirect(`/dashboard/slides/${slideId}?succes=De+eerste+immutable+snapshot+wordt+gerenderd.`);
 }
 
-function dynamicSlideConfiguration(formData: FormData) {
+function dynamicSlideConfiguration(
+  formData: FormData,
+  themeAuthority: TenantThemeAuthority
+) {
   const title = String(formData.get("title") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
   const slideType = String(formData.get("slideType") ?? "");
@@ -396,15 +395,14 @@ function dynamicSlideConfiguration(formData: FormData) {
           newsVariant: "hero_split",
           pricePhotoMode: "show",
           schemaVersion: 2,
-          theme: editorialThemeFromForm(formData),
-          themeSelection: themeSelectionFromForm(formData)
+          theme: themeAuthority.theme,
+          themeSelection: themeAuthority.selection
         }
       };
     } catch {
       return null;
     }
   }
-  const theme = editorialThemeFromForm(formData);
   const priceList = parseJsonField(
     formData.get("priceListJson"),
     editorialPriceListConfigurationSchema
@@ -441,8 +439,8 @@ function dynamicSlideConfiguration(formData: FormData) {
       ...(priceList ? { priceList } : {}),
       pricePhotoMode,
       schemaVersion: 2,
-      theme,
-      themeSelection: themeSelectionFromForm(formData)
+      theme: themeAuthority.theme,
+      themeSelection: themeAuthority.selection
     },
     ...(slideType === "menu" && category ? { category } : {}),
     maxItems,
@@ -465,39 +463,6 @@ function dynamicSlideConfiguration(formData: FormData) {
   };
 }
 
-function themeSelectionFromForm(formData: FormData) {
-  const parsed = themeSelectionSchema.safeParse(
-    parseJson(formData.get("themeSelectionJson"))
-  );
-  if (parsed.success) return parsed.data;
-  return {
-    accent: null,
-    categoryOverrides: [],
-    modePolicy: { kind: "fixed" as const, mode: "light" as const },
-    ref: {
-      catalog: "v2" as const,
-      id: "fieldflow" as const,
-      version: "1.0.0"
-    },
-    support: null
-  };
-}
-
-function editorialThemeFromForm(formData: FormData) {
-  const parsed = editorialThemeConfigSchema.safeParse(
-    parseJson(formData.get("editorialThemeJson"))
-  );
-  if (parsed.success) return parsed.data;
-  return resolveEditorialThemeConfig({ mode: "light" });
-}
-
-function editorialThemeFromConfiguration(configuration: unknown) {
-  if (!isRecord(configuration) || !isRecord(configuration.editorial)) {
-    return null;
-  }
-  return configuration.editorial.theme;
-}
-
 function redirectToSlideComposerError(slideType: string, message: string): never {
   redirect(slideComposerErrorPath(slideType, message));
 }
@@ -509,6 +474,24 @@ function parseJson(value: FormDataEntryValue | null) {
   } catch {
     return null;
   }
+}
+
+async function loadTenantThemeAuthority(
+  supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
+  tenantId: string
+) {
+  const result = await supabase
+    .from("tenant_settings")
+    .select("default_theme_id,default_theme_version,theme_mode_policy,theme_accent,theme_support,theme_color_overrides,timezone_name")
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+  if (result.error || !result.data) {
+    console.error("Centrale tenantstijl laden mislukt", {
+      code: result.error?.code ?? "tenant_theme_missing"
+    });
+    return null;
+  }
+  return resolveTenantThemeAuthority(result.data);
 }
 
 function parseJsonField<T>(
