@@ -281,12 +281,36 @@ export function renderLgLegacyHtml() {
     .editorial-arena.portrait .legacy-arrival-grid[data-cards="4"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
     .editorial-arena.portrait .legacy-arrival-card{padding:30px 34px}
     .editorial-arena.portrait .legacy-arrival-card h2{margin-top:24px;font-size:46px}
+    .legacy-arrival-grid[data-arrival-kind="visitor"],.legacy-arrival-grid[data-arrival-kind="visitor"][data-cards="1"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
+    .legacy-arrival-card[data-arrival-kind="visitor"]{justify-content:center;padding:48px;animation-duration:900ms;will-change:opacity,transform}
+    .legacy-arrival-card[data-arrival-kind="visitor"]:before{position:absolute;z-index:1;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg,var(--editorial-surface) 0,var(--editorial-surface) 48%,transparent 78%);opacity:.9;pointer-events:none;content:""}
+    .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-arrival-logo-backdrop{top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:.3;transform:none}
+    .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-arrival-logo-mark{top:0;right:0;width:32%;height:100%;border:0;border-left:1px solid var(--editorial-border);border-radius:0;background:white;box-shadow:-18px 0 48px var(--editorial-shadow)}
+    .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-arrival-logo-mark img{width:84%;height:84%;object-fit:contain}
+    .legacy-visitor-arrival-copy{position:relative;z-index:2;width:64%}
+    .legacy-arrival-card[data-arrival-kind="visitor"][data-logo="missing"] .legacy-visitor-arrival-copy{width:100%}
+    .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-arrival-copy h2{max-width:none;margin:0 0 18px;color:var(--editorial-text);font-size:52px;line-height:1}
+    .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-arrival-copy p{margin:0 0 18px;color:var(--editorial-text);font-size:41.6px;font-weight:400;line-height:1.08;white-space:nowrap}
+    .legacy-arrival-card[data-arrival-kind="visitor"][data-motion="aurora-rise"]{animation-name:legacy-visitor-arrival-rise}
+    .legacy-arrival-card[data-arrival-kind="visitor"][data-motion="spotlight-bloom"]{animation-name:legacy-visitor-arrival-bloom}
+    .legacy-arrival-card[data-arrival-kind="visitor"][data-motion="kinetic-split"]{animation-name:legacy-visitor-arrival-split}
+    .legacy-arrival-card[data-arrival-kind="visitor"][data-motion="prism-swipe"]{animation-name:legacy-visitor-arrival-swipe}
+    .legacy-arrival-card[data-arrival-kind="visitor"][data-motion="grand-flip"]{animation-name:legacy-visitor-arrival-flip}
+    .editorial-arena.portrait .legacy-arrival-grid[data-arrival-kind="visitor"],.editorial-arena.portrait .legacy-arrival-grid[data-arrival-kind="visitor"][data-cards="1"],.editorial-arena.portrait .legacy-arrival-grid[data-arrival-kind="visitor"][data-cards="2"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:18px}
+    .editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"]{padding:54px}
+    .editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-arrival-copy h2{max-width:none;margin:0 0 18px;font-size:60px}
+    .editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-arrival-copy p{font-size:48px}
+    @keyframes legacy-visitor-arrival-rise{0%{opacity:0;transform:translateY(52px) scale(.97)}100%{opacity:1;transform:none}}
+    @keyframes legacy-visitor-arrival-bloom{0%{opacity:0;transform:scale(.93)}100%{opacity:1;transform:none}}
+    @keyframes legacy-visitor-arrival-split{0%{opacity:0;transform:translateX(-72px) skewX(-4deg)}100%{opacity:1;transform:none}}
+    @keyframes legacy-visitor-arrival-swipe{0%{opacity:0;transform:translateX(72px) rotate(1deg)}100%{opacity:1;transform:none}}
+    @keyframes legacy-visitor-arrival-flip{0%{opacity:0;transform:perspective(1400px) rotateY(-38deg) translateX(-32px)}100%{opacity:1;transform:none}}
     @keyframes legacy-arrival-aurora{0%{opacity:0;filter:blur(18px) saturate(1.8);transform:translateY(88px) scale(.9)}58%{opacity:1;filter:blur(0) saturate(1.28);transform:translateY(-8px) scale(1.015)}100%{opacity:1;filter:none;transform:none}}
     @keyframes legacy-arrival-spotlight{0%{opacity:0;filter:brightness(2.2) blur(10px);transform:scale(.72)}62%{opacity:1;filter:brightness(1.18);transform:scale(1.025)}100%{opacity:1;filter:none;transform:none}}
     @keyframes legacy-arrival-kinetic{0%{opacity:0;filter:blur(7px);transform:translateX(-125px) skewX(-8deg) scaleX(.82)}68%{opacity:1;filter:none;transform:translateX(10px) skewX(1deg) scaleX(1.015)}100%{opacity:1;filter:none;transform:none}}
     @keyframes legacy-arrival-prism{0%{opacity:0;filter:hue-rotate(-24deg) saturate(1.9);transform:translateX(110px) rotate(2.5deg) scale(.94)}64%{opacity:1;filter:hue-rotate(5deg) saturate(1.2);transform:translateX(-7px) rotate(-.25deg) scale(1.01)}100%{opacity:1;filter:none;transform:none}}
     @keyframes legacy-arrival-flip{0%{opacity:0;filter:blur(9px);transform:perspective(1400px) rotateY(-72deg) translateX(-55px) scale(.9)}70%{opacity:1;filter:none;transform:perspective(1400px) rotateY(5deg) translateX(5px) scale(1.01)}100%{opacity:1;filter:none;transform:perspective(1400px) rotateY(0) translateX(0) scale(1)}}
-    @media(prefers-reduced-motion:reduce){.legacy-arrival-card[data-motion]{animation:none;filter:none;opacity:1;transform:none}}
+    @media(prefers-reduced-motion:reduce){.legacy-arrival-card[data-arrival-kind="visitor"][data-motion],.legacy-arrival-card[data-motion]{animation:none;filter:none;opacity:1;transform:none}}
     .dynamic-empty{padding:3vh 3vw;border-left:8px solid var(--accent);background:#fffdf7;font-size:clamp(25px,2.4vw,47px);font-weight:800}
     .dark .dynamic-empty{background:#141512}
     .dynamic-template footer{display:flex;justify-content:space-between;padding-top:1.7vh;border-top:1px solid rgba(98,95,87,.3);color:#625f57;font-size:clamp(12px,.95vw,19px);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
@@ -5289,6 +5313,84 @@ export function renderLgLegacyHtml() {
       normalized = value.replace(/\\s+/g, " ").replace(/^\\s+|\\s+$/g, "");
       return normalized ? normalized.slice(0, 500) : fallback || "";
     }
+    function templateVisitorArrivalValue(value, kind) {
+      var prefix = kind === "field"
+        ? /^\\s*Veld\\s*:?\\s*/i
+        : /^\\s*Kleedkamer\\s*:?\\s*/i;
+      return templateText(value, "").replace(prefix, "").replace(/^\\s+|\\s+$/g, "");
+    }
+    function templateVisitorMetaValue(meta, kind) {
+      var pattern = kind === "field"
+        ? /\\bVeld\\s*:?\\s*([^·|]+)/i
+        : /\\bKleedkamer\\s*:?\\s*([^·|]+)/i;
+      var match = templateText(meta, "").match(pattern);
+      return match && match[1] ? match[1] : "";
+    }
+    function templateVisitorClock(item) {
+      var values = [item.kickoffTime, item.time];
+      var index;
+      var match;
+      for (index = 0; index < values.length; index += 1) {
+        match = templateText(values[index], "").match(/(?:^|\\s)([0-2]?\\d:[0-5]\\d)(?:\\s|$)/);
+        if (match && match[1]) return match[1].length === 4 ? "0" + match[1] : match[1];
+      }
+      match = templateText(item.secondary, "").match(
+        /\\bAanvang\\s*:?\\s*([0-2]?\\d:[0-5]\\d)\\b/i
+      );
+      if (!match || !match[1]) return "";
+      return match[1].length === 4 ? "0" + match[1] : match[1];
+    }
+    function templateVisitorArrivalItems(items) {
+      var currentTime = new Date().getTime();
+      return items.filter(function (candidate) {
+        return (templateRecord(candidate) || {}).homeMatch === true;
+      }).map(function (candidate, index) {
+        var source = templateRecord(candidate) || {};
+        var item = {};
+        var key;
+        var kickoffTime;
+        var field;
+        var dressingRoom;
+        var kickoffMs;
+        for (key in source) {
+          if (Object.prototype.hasOwnProperty.call(source, key)) item[key] = source[key];
+        }
+        kickoffTime = templateVisitorClock(item);
+        field = templateVisitorArrivalValue(
+          templateText(item.field, "") || templateVisitorMetaValue(item.meta, "field"),
+          "field"
+        );
+        dressingRoom = templateVisitorArrivalValue(
+          templateText(item.dressingRoom, "") || templateVisitorMetaValue(item.meta, "dressing-room"),
+          "dressing-room"
+        );
+        kickoffMs = Date.parse(templateText(item.kickoffAt, ""));
+        item.kickoffTime = kickoffTime;
+        item.field = field;
+        item.dressingRoom = dressingRoom;
+        item.secondary = "Aanvang: " + (kickoffTime || "volgt") + " | Veld " + (field || "volgt");
+        item.meta = "Kleedkamer: " + (dressingRoom || "volgt");
+        return {
+          index: index,
+          item: item,
+          kickoffMs: isFinite(kickoffMs) ? kickoffMs : null
+        };
+      }).sort(function (left, right) {
+        var leftUpcoming = left.kickoffMs !== null && left.kickoffMs >= currentTime;
+        var rightUpcoming = right.kickoffMs !== null && right.kickoffMs >= currentTime;
+        if (leftUpcoming !== rightUpcoming) return leftUpcoming ? -1 : 1;
+        if (left.kickoffMs !== null && right.kickoffMs !== null) {
+          return leftUpcoming
+            ? left.kickoffMs - right.kickoffMs
+            : right.kickoffMs - left.kickoffMs;
+        }
+        if (left.kickoffMs !== null) return -1;
+        if (right.kickoffMs !== null) return 1;
+        return left.index - right.index;
+      }).map(function (entry) {
+        return entry.item;
+      });
+    }
     function templateProductTitleClass(value) {
       var length = templateText(value, "").length;
       if (length > 36) return "legacy-price-title-dense";
@@ -6362,11 +6464,11 @@ export function renderLgLegacyHtml() {
       var displayColumns = displayConfiguration && templateText(displayConfiguration.columns, "one") === "two"
         ? "two" : "one";
       if (slideType === "sport_visitor_arrivals") {
-        items = items.filter(function (candidate) {
-          return (templateRecord(candidate) || {}).homeMatch === true;
-        });
+        items = templateVisitorArrivalItems(items);
       }
-      var cardsPerPage = Math.max(1, Math.min(4, Number(arrivalConfiguration.cardCount) || 4));
+      var cardsPerPage = slideType === "sport_visitor_arrivals"
+        ? 2
+        : Math.max(1, Math.min(4, Number(arrivalConfiguration.cardCount) || 4));
       var match = slideType === "sport_match_of_the_day" || slideType === "sport_next_match";
       var pages = match ? [items.length ? items[0] : null] :
         birthday && !items.length ? [] :
@@ -6435,6 +6537,10 @@ export function renderLgLegacyHtml() {
           }
           if (arrival) {
             var arrivalGrid = templateNode("div", "legacy-arrival-grid");
+            arrivalGrid.setAttribute(
+              "data-arrival-kind",
+              slideType === "sport_visitor_arrivals" ? "visitor" : "referee"
+            );
             arrivalGrid.setAttribute("data-cards", String(page.length));
             var configuredMotion = templateText(arrivalConfiguration.motionPreset, "auto");
             var motionPresets = ["aurora-rise", "spotlight-bloom", "kinetic-split", "prism-swipe", "grand-flip"];
@@ -6446,7 +6552,12 @@ export function renderLgLegacyHtml() {
                 ? configuredMotion
                 : motionPresets[((Number(activePageIndex) || 0) * cardsPerPage + index) % motionPresets.length];
               var arrivalCard = templateNode("article", "legacy-arrival-card");
-              var arrivalSponsorUrl = arrivalConfiguration.showSponsor === true
+              arrivalCard.setAttribute(
+                "data-arrival-kind",
+                slideType === "sport_visitor_arrivals" ? "visitor" : "referee"
+              );
+              var arrivalSponsorUrl = slideType !== "sport_visitor_arrivals" &&
+                arrivalConfiguration.showSponsor === true
                 ? templateAssetUrl(
                   payload,
                   templateText(arrivalConfiguration.sponsorMediaAssetId, "")
@@ -6460,6 +6571,7 @@ export function renderLgLegacyHtml() {
                 payload,
                 templateText(item.logoMediaAssetId, "")
               );
+              arrivalCard.setAttribute("data-logo", arrivalLogoUrl ? "visible" : "missing");
               if (arrivalLogoUrl) {
                 var arrivalLogoBackdrop = templateNode("img", "legacy-arrival-logo-backdrop");
                 arrivalLogoBackdrop.alt = "";
@@ -6473,21 +6585,28 @@ export function renderLgLegacyHtml() {
                 arrivalLogoMark.appendChild(arrivalLogo);
                 arrivalCard.appendChild(arrivalLogoMark);
               }
-              var welcome = templateText(
-                item.status,
-                slideType === "sport_visitor_arrivals" ? "Welkom" : "Wedstrijdofficial"
-              ).replace(/\\{\\{club\\}\\}/g, clubName).replace(/\\{\\{team\\}\\}/g, templateText(item.primary, ""));
-              arrivalCard.appendChild(templateNode("i", "", welcome));
-              if (!arrivalLogoUrl) {
-                arrivalCard.appendChild(templateNode(
-                  "b",
-                  "",
-                  (index + 1 < 10 ? "0" : "") + String(index + 1)
-                ));
+              if (slideType === "sport_visitor_arrivals") {
+                var visitorCopy = templateNode("div", "legacy-visitor-arrival-copy");
+                visitorCopy.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
+                visitorCopy.appendChild(templateNode("p", "", templateText(item.secondary, "")));
+                visitorCopy.appendChild(templateNode("p", "", templateText(item.meta, "")));
+                arrivalCard.appendChild(visitorCopy);
+              } else {
+                var welcome = templateText(item.status, "Wedstrijdofficial")
+                  .replace(/\\{\\{club\\}\\}/g, clubName)
+                  .replace(/\\{\\{team\\}\\}/g, templateText(item.primary, ""));
+                arrivalCard.appendChild(templateNode("i", "", welcome));
+                if (!arrivalLogoUrl) {
+                  arrivalCard.appendChild(templateNode(
+                    "b",
+                    "",
+                    (index + 1 < 10 ? "0" : "") + String(index + 1)
+                  ));
+                }
+                arrivalCard.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
+                arrivalCard.appendChild(templateNode("p", "", templateText(item.secondary, "")));
+                arrivalCard.appendChild(templateNode("strong", "", templateText(item.meta, "")));
               }
-              arrivalCard.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
-              arrivalCard.appendChild(templateNode("p", "", templateText(item.secondary, "")));
-              arrivalCard.appendChild(templateNode("strong", "", templateText(item.meta, "")));
               if (arrivalSponsorUrl) {
                 arrivalCard.setAttribute("data-sponsor", "visible");
                 var arrivalSponsor = templateNode("img", "legacy-arrival-sponsor");
@@ -7091,7 +7210,9 @@ export function renderLgLegacyHtml() {
         renderer = renderNewsTemplate(body, snapshot, payload, root);
       } else {
         sourceLabel = payload.slideType.indexOf("standing") !== -1 ? "Competitie" : "Match centre";
-        title = templateText((templateRecord(snapshot.sport) || {}).title, sportTemplateTitle(payload.slideType));
+        title = payload.slideType === "sport_visitor_arrivals"
+          ? sportTemplateTitle(payload.slideType)
+          : templateText((templateRecord(snapshot.sport) || {}).title, sportTemplateTitle(payload.slideType));
         renderer = payload.slideType === "sport_standing" ||
           payload.slideType === "sport_period_standing"
           ? renderEditorialStandingTemplate(body, snapshot, payload)

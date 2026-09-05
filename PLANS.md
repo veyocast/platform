@@ -148,6 +148,7 @@ tests en exitcriteria staan in
 | S146 | Studio- en Publisherrecovery | Sportlink-welkomstcontent als één gekoppeld meerteamscomponent beheren, scherm- en releasekeuzes bounded én gepagineerd laden, automatische dynamische releases coalescen met Player-backpressure en monotone provenance, publicatiedoelen bij gedegradeerde telemetry behouden en overige Control-routes naar FieldFlow herstellen |
 | S148 | Instelbare slidekleuren en leesgradient | Alle semantische light/dark-kleuren in de nieuwsslidewizard instelbaar maken, opgeslagen tokenkaarten in moderne en Static LG-playback respecteren en de fullscreen-gradient neutraal donker achter tekst renderen |
 | S149 | Centrale tenantstijl en volledige poulevensters | De FieldFlow-kleuren uit afzonderlijke slides naar één tenantbrede Settings-editor verplaatsen en pouleprogramma/-uitslagen voor thuis, uit en overige pouleteams samenstellen |
+| S150 | Rustige bezoekerswelkomstkaart | Bezoekerswelkomstslides vastzetten op twee halve slots, drie relevante regels, een 30%-logoachtergrond en een groot logo op wit in moderne en Static LG-playback |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op

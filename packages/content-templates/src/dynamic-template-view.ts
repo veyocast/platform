@@ -53,12 +53,16 @@ export type DynamicTemplateListItem = {
   awayTeam: string;
   competition: string;
   date: string;
+  dressingRoom: string;
+  field: string;
   homeRoom: string;
   homeMatch: boolean;
   homeLogoUrl: string;
   homeScore: number | null;
   homeTeam: string;
   id: string;
+  kickoffAt: string;
+  kickoffTime: string;
   logoUrl: string;
   meta: string;
   officials: string[];
@@ -465,9 +469,14 @@ function createDynamicTemplateViewInternal(
     .map((item) => toListItem(item, payload))
     .filter((item): item is DynamicTemplateListItem => item !== null);
   const items = payload.slideType === "sport_visitor_arrivals"
-    ? mappedItems.filter((item) => item.homeMatch)
+    ? resolveVisitorArrivalItems(
+        mappedItems.filter((item) => item.homeMatch),
+        now
+      )
     : mappedItems;
-  const title = safeText(sport?.title, sportTitle(payload.slideType));
+  const title = payload.slideType === "sport_visitor_arrivals"
+    ? sportTitle(payload.slideType)
+    : safeText(sport?.title, sportTitle(payload.slideType));
   const emptyState = items.length
     ? ""
     : sportEmptyState(safeText(sport?.emptyStateCode, ""));
@@ -615,12 +624,15 @@ function createDynamicTemplateViewInternal(
 
   if (["sport_visitor_arrivals", "sport_referee_arrivals"].includes(payload.slideType)) {
     const arrivalConfig = readRecord(sport?.arrivalConfig);
-    const cardsPerPage = safeInteger(arrivalConfig?.cardCount, 1, 4, 4);
+    const visitorArrivals = payload.slideType === "sport_visitor_arrivals";
+    const cardsPerPage = visitorArrivals
+      ? 2
+      : safeInteger(arrivalConfig?.cardCount, 1, 4, 4);
     const pageDurationSeconds = safeInteger(sport?.pageDurationSeconds, 5, 120, 12);
     return {
       accentColor: themeTokens.accent,
       arrivalMotionPreset: safeArrivalMotionPreset(arrivalConfig?.motionPreset),
-      arrivalSponsorUrl: arrivalConfig?.showSponsor === true
+      arrivalSponsorUrl: !visitorArrivals && arrivalConfig?.showSponsor === true
         ? dynamicAssetUrl(arrivalConfig.sponsorMediaAssetId, payload)
         : "",
       clubLogoUrl,
@@ -1363,12 +1375,16 @@ function toListItem(
     awayTeam: safeText(item.awayTeam, ""),
     competition: safeText(item.competition, ""),
     date: safeText(item.date, ""),
+    dressingRoom: safeText(item.dressingRoom, ""),
+    field: safeText(item.field, ""),
     homeRoom: safeText(item.homeRoom, ""),
     homeMatch: item.homeMatch === true,
     homeLogoUrl: dynamicAssetUrl(item.homeLogoMediaAssetId, payload),
     homeScore: safeNullableScore(item.homeScore),
     homeTeam: safeText(item.homeTeam, ""),
     id: safeText(item.id, primary),
+    kickoffAt: safeText(item.kickoffAt, ""),
+    kickoffTime: safeText(item.kickoffTime, ""),
     logoUrl: dynamicAssetUrl(item.logoMediaAssetId, payload),
     meta: safeText(item.meta, ""),
     officials: readArray(item.officials)
@@ -1386,6 +1402,90 @@ function toListItem(
     time: safeText(item.time, ""),
     venue: safeText(item.venue, "")
   };
+}
+
+function resolveVisitorArrivalItems(
+  items: DynamicTemplateListItem[],
+  now: Date
+) {
+  const nowMs = now.getTime();
+  return items
+    .map((item, index) => ({
+      index,
+      item: normalizeVisitorArrivalItem(item),
+      kickoffMs: visitorKickoffMs(item.kickoffAt)
+    }))
+    .sort((left, right) => {
+      const leftUpcoming = left.kickoffMs !== null && left.kickoffMs >= nowMs;
+      const rightUpcoming = right.kickoffMs !== null && right.kickoffMs >= nowMs;
+      if (leftUpcoming !== rightUpcoming) return leftUpcoming ? -1 : 1;
+      if (left.kickoffMs !== null && right.kickoffMs !== null) {
+        return leftUpcoming
+          ? left.kickoffMs - right.kickoffMs
+          : right.kickoffMs - left.kickoffMs;
+      }
+      if (left.kickoffMs !== null) return -1;
+      if (right.kickoffMs !== null) return 1;
+      return left.index - right.index;
+    })
+    .map(({ item }) => item);
+}
+
+function normalizeVisitorArrivalItem(item: DynamicTemplateListItem) {
+  const kickoffTime = visitorArrivalClock(item);
+  const field = visitorArrivalValue(
+    item.field || visitorMetaValue(item.meta, "field"),
+    "field"
+  );
+  const dressingRoom = visitorArrivalValue(
+    item.dressingRoom || visitorMetaValue(item.meta, "dressing-room"),
+    "dressing-room"
+  );
+  return {
+    ...item,
+    dressingRoom,
+    field,
+    kickoffTime,
+    meta: `Kleedkamer: ${dressingRoom || "volgt"}`,
+    secondary: `Aanvang: ${kickoffTime || "volgt"} | Veld ${field || "volgt"}`
+  };
+}
+
+function visitorArrivalClock(item: DynamicTemplateListItem) {
+  for (const candidate of [item.kickoffTime, item.time]) {
+    const match = candidate.match(/(?:^|\s)([0-2]?\d:[0-5]\d)(?:\s|$)/);
+    if (match?.[1]) return match[1].padStart(5, "0");
+  }
+  const secondaryMatch = item.secondary.match(
+    /\bAanvang\s*:?\s*([0-2]?\d:[0-5]\d)\b/i
+  );
+  return secondaryMatch?.[1]?.padStart(5, "0") ?? "";
+}
+
+function visitorMetaValue(
+  meta: string,
+  kind: "dressing-room" | "field"
+) {
+  const pattern = kind === "field"
+    ? /\bVeld\s*:?\s*([^·|]+)/i
+    : /\bKleedkamer\s*:?\s*([^·|]+)/i;
+  return meta.match(pattern)?.[1] ?? "";
+}
+
+function visitorArrivalValue(
+  value: string,
+  kind: "dressing-room" | "field"
+) {
+  const prefix = kind === "field"
+    ? /^\s*Veld\s*:?\s*/i
+    : /^\s*Kleedkamer\s*:?\s*/i;
+  return value.replace(prefix, "").trim();
+}
+
+function visitorKickoffMs(value: string) {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function buildPriceListPages(
