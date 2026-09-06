@@ -335,21 +335,6 @@
   text-align: center;
 }
 
-.rolePicker {
-  margin: 1rem 0;
-  padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.rolePicker label {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  gap: .4rem;
-  margin-right: 1rem;
-}
-
 .toggleGrid label[data-disabled] {
   opacity: .58;
 }

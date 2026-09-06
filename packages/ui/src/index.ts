@@ -9,6 +9,7 @@ export * from "./components/filter-bar";
 export * from "./components/icon-button";
 export * from "./components/layout";
 export * from "./components/link";
+export * from "./components/multi-select-dropdown";
 export * from "./components/operational-lists";
 export * from "./components/progress";
 export * from "./components/resource";

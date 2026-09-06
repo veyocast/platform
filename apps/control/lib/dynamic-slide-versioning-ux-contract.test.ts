@@ -17,23 +17,50 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(wizard).toContain('"Stijl en weergave"');
     expect(wizard).toContain('"Controleren"');
     expect(wizard).toContain('<strong>{drafts.length}</strong>');
-    expect(wizard).toContain("<TeamMultiSelect");
-    expect(wizard).toContain("Alle teams");
+    expect(wizard).toContain("<MultiSelectDropdown");
+    expect(wizard).toContain("updateRegularSelection");
+    expect(wizard).toContain("Alle teams selecteren");
+    expect(wizard).not.toContain("<TeamMatrix");
     expect(wizard).toContain("Actuele competitie, tenzij jij afwijkt");
   });
 
   it("toont een sticky desktoppreview en een bruikbare mobiele kaartflow", async () => {
-    const [wizard, css] = await Promise.all([
+    const [wizard, css, multiSelect] = await Promise.all([
       source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx"),
-      source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.module.css")
+      source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.module.css"),
+      readFile(new URL("../../../packages/ui/src/components/multi-select-dropdown.tsx", import.meta.url), "utf8")
     ]);
 
     expect(wizard).toContain("Live stijlpreview");
     expect(wizard).toContain("className={styles.preview}");
     expect(css).toMatch(/\.wizard :global\(\.vc-journey-shell__aside\)\s*\{[\s\S]*?position:\s*sticky;/u);
     expect(css).toContain("@media (max-width: 640px)");
-    expect(css).toMatch(/\.matrixHead\s*\{\s*display:\s*none;/u);
-    expect(css).toMatch(/\.matrixRow\s*\{[\s\S]*?display:\s*grid;[\s\S]*?min-width:\s*0;/u);
+    expect(css).toContain(".teamSelectors");
+    expect(css).not.toContain(".matrixHead");
+    expect(multiSelect).toContain("searchable?: boolean");
+    expect(multiSelect).toContain("selectionNoun");
+    expect(multiSelect).toContain('type="hidden"');
+  });
+
+  it("hergebruikt de dropdown voor compacte entiteitskeuzes", async () => {
+    const paths = [
+      "app/(shell)/dashboard/screen-groups/screen-group-dialogs.tsx",
+      "app/(shell)/dashboard/screens/[screenId]/page.tsx",
+      "app/(shell)/dashboard/slides/[slideId]/edit/sportlink-version-editor.tsx",
+      "app/(shell)/dashboard/studio/led-scores/alert-editor.tsx",
+      "app/(shell)/dashboard/studio/sportlink/birthdays/new/birthday-wizard.tsx",
+      "app/(shell)/platform/support/settings/page.tsx"
+    ];
+    const implementations = await Promise.all(paths.map(source));
+
+    for (const implementation of implementations) {
+      expect(implementation).toContain("<MultiSelectDropdown");
+    }
+    expect(implementations.join("\n")).toContain('name="screenIds"');
+    expect(implementations.join("\n")).toContain('name="groupIds"');
+    expect(implementations.join("\n")).toContain('name="targetGroupIds"');
+    expect(implementations.join("\n")).toContain('name="ownTeamKeys"');
+    expect(implementations.join("\n")).toContain('name="roleIds"');
   });
 
   it("beheert kleuren centraal en houdt FieldFlow vast", async () => {

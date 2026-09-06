@@ -694,37 +694,6 @@
   justify-content: center;
 }
 
-.groupGrid {
-  display: grid;
-  gap: var(--vc-space-12);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.groupChoice {
-  align-items: flex-start;
-  border: 1px solid var(--vc-border);
-  border-radius: var(--vc-radius-lg);
-  cursor: pointer;
-  display: flex;
-  gap: var(--vc-space-12);
-  min-height: 4.75rem;
-  padding: var(--vc-space-16);
-}
-
-.groupChoice:has(input:checked) {
-  background: color-mix(in srgb, var(--vc-action) 7%, var(--vc-surface));
-  border-color: color-mix(in srgb, var(--vc-action) 58%, var(--vc-border));
-}
-
-.groupChoice span {
-  display: grid;
-  gap: var(--vc-space-4);
-}
-
-.groupChoice small {
-  color: var(--vc-text-muted);
-}
-
 .unionSummary {
   background: var(--vc-surface-muted);
   border-radius: var(--vc-radius-lg);
@@ -1704,7 +1673,6 @@
   }
 
   .fieldGrid,
-  .groupGrid,
   .liveTestForm,
   .momentGrid,
   .reviewGrid,

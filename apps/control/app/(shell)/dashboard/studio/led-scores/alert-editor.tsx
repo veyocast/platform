@@ -25,7 +25,7 @@ import {
   type LedScoresCanvasExperience,
   type LedScoresCanvasMomentKey
 } from "@veyocast/contracts";
-import { Badge, Button } from "@veyocast/ui";
+import { Badge, Button, MultiSelectDropdown } from "@veyocast/ui";
 
 import { saveLedScoresGoalAlert } from "./actions";
 import { LedScoresCanvasExperienceEditor } from "./canvas-experience-editor";
@@ -116,7 +116,6 @@ export function LedScoresAlertEditor({
   const [activeStep, setActiveStep] = useState<OverlayStepId>("moments");
   const [experienceName, setExperienceName] = useState(initial.name);
   const [selectedGroups, setSelectedGroups] = useState(initial.groupIds);
-  const [groupSearch, setGroupSearch] = useState("");
   const [connectionId, setConnectionId] = useState(initial.connectionId);
   const [priority, setPriority] = useState(initial.priority);
   const [underlayPolicy, setUnderlayPolicy] = useState(initial.underlayPolicy);
@@ -148,7 +147,6 @@ export function LedScoresAlertEditor({
     () => new Set(readStringArray(initial.config.ownTeamKeys).map(normalizeProviderTeamKey)),
     [initial.config]
   );
-  const normalizedGroupSearch = groupSearch.trim().toLocaleLowerCase("nl-NL");
   const selection = useMemo(
     () => summarizeSelection(groups, selectedGroups),
     [groups, selectedGroups]
@@ -317,11 +315,26 @@ export function LedScoresAlertEditor({
             <p>Home en away zijn wedstrijdposities; een eigen clubteam kan dus ook uit spelen.</p>
           </fieldset>
           {ownMappings.length ? (
-            <fieldset className={styles.triggerFields}>
-              <legend>Eigen clubteams</legend>
-              <p>Geen selectie betekent: ieder als eigen geclassificeerd team op deze verbinding.</p>
-              {ownMappings.map((mapping) => <label key={mapping.teamKey}><input defaultChecked={initialOwnTeamKeys.has(normalizeProviderTeamKey(mapping.teamKey))} name="ownTeamKeys" type="checkbox" value={mapping.teamKey} />{mapping.teamName}</label>)}
-            </fieldset>
+            <MultiSelectDropdown
+              defaultValue={ownMappings
+                .filter((mapping) => initialOwnTeamKeys.has(
+                  normalizeProviderTeamKey(mapping.teamKey)
+                ))
+                .map((mapping) => mapping.teamKey)}
+              description="Geen selectie betekent: ieder als eigen geclassificeerd team op deze verbinding."
+              label="Eigen clubteams"
+              name="ownTeamKeys"
+              options={ownMappings.map((mapping) => ({
+                label: mapping.teamName,
+                value: mapping.teamKey
+              }))}
+              placeholder="Alle eigen clubteams"
+              searchLabel="Teams zoeken"
+              searchPlaceholder="Zoek op teamnaam"
+              searchable
+              selectionNoun={{ plural: "teams", singular: "team" }}
+              showSelectedChips={false}
+            />
           ) : (
             <p className="notice notice--warning"><strong>Nog geen eigen teammapping.</strong> Classificeer eerst minimaal één providerteam als eigen clubteam; onbekende goals volgen het gekozen fallbackbeleid.</p>
           )}
@@ -423,13 +436,24 @@ export function LedScoresAlertEditor({
             number={4}
             title="Schermen en bereik"
           />
-          <label><span>Zoek schermgroep</span><input onChange={(event) => setGroupSearch(event.target.value)} placeholder="Zoek op groepsnaam" type="search" value={groupSearch} /></label>
-          <div className={styles.groupGrid}>{groups.map((group) => (
-            <label className={styles.groupChoice} hidden={Boolean(normalizedGroupSearch) && !group.name.toLocaleLowerCase("nl-NL").includes(normalizedGroupSearch)} key={group.id}>
-              <input checked={selectedGroups.includes(group.id)} name="targetGroupIds" onChange={(event) => setSelectedGroups((current) => event.target.checked ? [...current, group.id] : current.filter((id) => id !== group.id))} type="checkbox" value={group.id} />
-              <span><strong>{group.name}</strong><small>{group.screenIds.length} scherm{group.screenIds.length === 1 ? "" : "en"}</small></span>
-            </label>
-          ))}</div>
+          <MultiSelectDropdown
+            description="Overlappende groepen worden automatisch teruggebracht tot één levering per uniek scherm."
+            emptyLabel="Er zijn nog geen schermgroepen beschikbaar."
+            label="Schermgroepen"
+            name="targetGroupIds"
+            onValueChange={setSelectedGroups}
+            options={groups.map((group) => ({
+              description: `${group.screenIds.length} ${group.screenIds.length === 1 ? "scherm" : "schermen"}`,
+              label: group.name,
+              value: group.id
+            }))}
+            placeholder="Kies minimaal één schermgroep"
+            searchLabel="Schermgroepen zoeken"
+            searchPlaceholder="Zoek op groepsnaam"
+            searchable
+            selectionNoun={{ plural: "schermgroepen", singular: "schermgroep" }}
+            value={selectedGroups}
+          />
           <p className={styles.unionSummary}><strong>{selection.screenIds.length} unieke schermen.</strong> {selection.overlapCount ? `${selection.overlapCount} schermen zitten in meerdere gekozen groepen en ontvangen ieder moment één keer.` : "Geen overlap tussen de gekozen groepen."}</p>
           <details className={styles.targetDisclosure}><summary>Definitieve doelschermen bekijken</summary><ul className={styles.screenList}>{selection.screenIds.map((screenId) => { const screen = screens.find((item) => item.id === screenId); return <li key={screenId}><span>{screen?.name ?? "Onbekend scherm"}</span><small>{screen?.status === "online" ? "Online" : screen?.status === "stale" ? "Status verouderd" : "Offline"}</small></li>; })}</ul></details>
           {conflict ? <p className="notice notice--warning" role="status"><AlertTriangle aria-hidden="true" /><strong>Overlappende actieve experience.</strong> ‘{conflict.name}’ raakt dezelfde schermen met prioriteit {conflict.priority}. Per moment en scherm wint hoogste prioriteit; bij gelijkstand de nieuwste publicatie.</p> : null}

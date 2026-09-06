@@ -141,11 +141,7 @@
 }
 
 .blueprintGrid > button:focus-visible,
-.orientationGrid button:focus-visible,
-.tags > button:focus-visible,
-.teamDropdown > summary:focus-visible,
-.selectAll:focus-visible,
-.searchField:focus-within {
+.orientationGrid button:focus-visible {
   outline: 2px solid var(--ff-focus);
   outline-offset: 2px;
 }
@@ -164,8 +160,6 @@
 .blueprintGrid small,
 .orientationGrid small,
 .contextModes small,
-.teamOptions small,
-.selectAll small,
 .preview > header small {
   color: var(--ff-ink-soft);
   font-size: 12px;
@@ -233,14 +227,12 @@
   font-size: 19px;
 }
 
-.tags,
 .previewTeams {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.tags > button,
 .previewTeams > span {
   align-items: center;
   background: var(--ff-success-surface);
@@ -253,176 +245,6 @@
   gap: 7px;
   min-height: 44px;
   padding: 6px 10px 6px 12px;
-}
-
-.tags > button:hover:not(:disabled) {
-  border-color: var(--ff-success);
-}
-
-.tags > button:disabled {
-  cursor: not-allowed;
-  opacity: .72;
-}
-
-.tags svg {
-  height: 14px;
-  width: 14px;
-}
-
-.teamDropdown {
-  position: relative;
-}
-
-.teamDropdown > summary {
-  align-items: center;
-  background: var(--ff-surface);
-  border: 1px solid var(--ff-border-strong);
-  border-radius: 12px;
-  cursor: pointer;
-  display: grid;
-  gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto 18px;
-  list-style: none;
-  min-height: 52px;
-  padding: 10px 14px;
-}
-
-.teamDropdown > summary::-webkit-details-marker {
-  display: none;
-}
-
-.teamDropdown > summary > span:first-child {
-  align-items: center;
-  display: flex;
-  font-weight: 750;
-  gap: 9px;
-}
-
-.teamDropdown > summary > span:nth-child(2) {
-  color: var(--ff-ink-soft);
-  font-size: 13px;
-}
-
-.teamDropdown[open] > summary {
-  border-color: var(--ff-focus);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ff-focus) 15%, transparent);
-}
-
-.teamDropdown[open] > summary > svg {
-  transform: rotate(180deg);
-}
-
-.teamDropdownPanel {
-  background: var(--ff-surface);
-  border: 1px solid var(--ff-border);
-  border-radius: 14px;
-  box-shadow: var(--ff-shadow-3);
-  display: grid;
-  gap: 10px;
-  left: 0;
-  margin-top: 8px;
-  max-height: min(460px, 60vh);
-  overflow: auto;
-  padding: 12px;
-  position: absolute;
-  right: 0;
-  z-index: 30;
-}
-
-.searchField {
-  align-items: center;
-  background: var(--ff-bg);
-  border: 1px solid var(--ff-border);
-  border-radius: 11px;
-  display: grid;
-  gap: 8px;
-  grid-template-columns: 20px minmax(0, 1fr);
-  padding: 0 12px;
-}
-
-.searchField svg {
-  color: var(--ff-ink-soft);
-  height: 17px;
-  width: 17px;
-}
-
-.searchField input {
-  background: transparent;
-  border: 0;
-  color: var(--ff-ink);
-  min-height: 44px;
-  outline: 0;
-  width: 100%;
-}
-
-.selectAll,
-.teamOptions label {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: 10px;
-  color: var(--ff-ink);
-  display: grid;
-  gap: 10px;
-  grid-template-columns: 24px minmax(0, 1fr);
-  min-height: 52px;
-  padding: 8px 10px;
-  text-align: left;
-}
-
-.selectAll {
-  border-bottom: 1px solid var(--ff-border);
-  border-radius: 10px 10px 0 0;
-}
-
-.selectAll:hover:not(:disabled),
-.teamOptions label:hover {
-  background: var(--ff-bg);
-}
-
-.selectAll:disabled {
-  cursor: default;
-}
-
-.selectAll > span:last-child,
-.teamOptions label > span {
-  display: grid;
-  gap: 2px;
-}
-
-.checkboxVisual {
-  align-items: center;
-  border: 1px solid var(--ff-border-strong);
-  border-radius: 7px;
-  display: inline-flex;
-  height: 22px;
-  justify-content: center;
-  width: 22px;
-}
-
-.selectAll[aria-pressed="true"] .checkboxVisual {
-  background: var(--ff-petrol);
-  border-color: var(--ff-petrol);
-  color: var(--ff-on-petrol);
-}
-
-.checkboxVisual svg {
-  height: 14px;
-  width: 14px;
-}
-
-.teamOptions {
-  display: grid;
-}
-
-.teamOptions label input {
-  height: 18px;
-  width: 18px;
-}
-
-.teamOptions > p {
-  color: var(--ff-ink-soft);
-  padding: 12px;
 }
 
 .contextList {
@@ -655,7 +477,6 @@
   }
 
   .panelHeader,
-  .teamSection > header,
   .contextCard > header {
     display: grid;
   }
@@ -669,20 +490,6 @@
   .teamSection,
   .singleTeamSection {
     padding: 16px;
-  }
-
-  .teamDropdown > summary {
-    grid-template-columns: minmax(0, 1fr) 18px;
-  }
-
-  .teamDropdown > summary > span:nth-child(2) {
-    display: none;
-  }
-
-  .teamDropdownPanel {
-    max-height: min(520px, 70vh);
-    position: fixed;
-    inset: auto 12px calc(var(--ff-mobile-nav-height, 72px) + 24px + env(safe-area-inset-bottom, 0px));
   }
 
   .actions {

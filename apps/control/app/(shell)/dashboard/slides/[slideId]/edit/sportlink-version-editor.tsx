@@ -2,14 +2,10 @@
 
 import {
   Check,
-  ChevronDown,
   Eye,
   LayoutGrid,
   Save,
-  Search,
-  Send,
-  Users,
-  X
+  Send
 } from "lucide-react";
 import { useId, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -23,7 +19,12 @@ import {
   type SportlinkSlideDraft
 } from "@veyocast/contracts";
 import { themeCatalog } from "@veyocast/content-templates/theme-catalog";
-import { Button, Field, StatusPill } from "@veyocast/ui";
+import {
+  Button,
+  Field,
+  MultiSelectDropdown,
+  StatusPill
+} from "@veyocast/ui";
 
 import { FieldFlowStyleStep } from "../../_components/fieldflow-style-step";
 import {
@@ -394,161 +395,53 @@ function ArrivalTeamEditor({ draft, onChange, teams }: {
   onChange: (draft: SportlinkSlideDraft) => void;
   teams: Team[];
 }) {
-  const inputId = useId();
-  const headingId = `${inputId}-heading`;
-  const [query, setQuery] = useState("");
   const contexts = draft.teamContexts ?? [draft.context];
   const selectedIds = contexts.map((context) => context.providerTeamId);
-  const selectedIdSet = new Set(selectedIds);
-  const normalizedQuery = normalizeSearch(query);
-  const filteredTeams = teams.filter((team) =>
-    !normalizedQuery || normalizeSearch(team.name).includes(normalizedQuery)
-  );
-  const selectableTeams = teams.slice(0, sportlinkSlideTeamContextsMax);
-  const selectionLimitReached = selectedIds.length >= sportlinkSlideTeamContextsMax;
-  const allCurrentTeamsSelected = selectableTeams.length > 0 && selectableTeams.every((team) =>
-    selectedIdSet.has(team.externalId)
-  );
-  const exactlyAllCurrentTeams = allCurrentTeamsSelected &&
-    contexts.length === selectableTeams.length;
-
-  function toggleTeam(teamId: string) {
-    const selected = selectedIdSet.has(teamId);
-    if (selected && selectedIds.length === 1) return;
-    onChange(replaceArrivalTeamSelection(
-      draft,
-      selected
-        ? selectedIds.filter((candidate) => candidate !== teamId)
-        : [...selectedIds, teamId],
-      teams
-    ));
-  }
+  const currentTeamIds = new Set(teams.map((team) => team.externalId));
+  const unavailableOptions = contexts
+    .filter((context) => !currentTeamIds.has(context.providerTeamId))
+    .map((context) => ({
+      disabled: true,
+      disabledReason: "Niet meer beschikbaar in de actuele Sportlink-lijst.",
+      label: `Team ${context.providerTeamId}`,
+      value: context.providerTeamId
+    }));
 
   return (
-    <section className={styles.teamSection} aria-labelledby={headingId}>
-      <header>
-        <div>
-          <span className={styles.kicker}>Gekoppeld welkomstcomponent</span>
-          <h3 id={headingId}>Teams in dit onderdeel</h3>
-          <p>
-            De selectie voedt één dynamische slide. VeyoCast verdeelt de
-            actuele aankomsten automatisch over schermpagina&apos;s.
-          </p>
-        </div>
-        <StatusPill
-          label={`${contexts.length} ${contexts.length === 1 ? "team" : "teams"}`}
-          tone="success"
-        />
-      </header>
+    <section className={styles.teamSection}>
+      <MultiSelectDropdown
+        description="De selectie voedt één dynamische slide. VeyoCast verdeelt de actuele aankomsten automatisch over schermpagina’s."
+        label="Teams in dit onderdeel"
+        maximumSelected={sportlinkSlideTeamContextsMax}
+        minimumSelected={1}
+        onValueChange={(teamIds) => onChange(
+          replaceArrivalTeamSelection(draft, teamIds, teams)
+        )}
+        options={[
+          ...teams.map((team) => ({
+            description: "Actuele competitie als standaard",
+            label: team.name,
+            value: team.externalId
+          })),
+          ...unavailableOptions
+        ]}
+        placeholder="Kies minimaal één team"
+        searchLabel="Teams zoeken"
+        searchPlaceholder="Zoek op teamnaam"
+        searchable
+        selectAllLabel={teams.length > sportlinkSlideTeamContextsMax
+          ? `Eerste ${sportlinkSlideTeamContextsMax} teams selecteren`
+          : "Alle teams selecteren"}
+        selectionNoun={{ plural: "teams", singular: "team" }}
+        value={selectedIds}
+      />
 
-      <div className={styles.tags} aria-live="polite">
-        {contexts.map((context) => {
-          const team = teams.find((candidate) =>
-            candidate.externalId === context.providerTeamId
-          );
-          const label = team?.name ?? `Team ${context.providerTeamId}`;
-          const onlyTeam = contexts.length === 1;
-          return (
-            <button
-              aria-label={`${label} verwijderen`}
-              disabled={onlyTeam}
-              key={context.providerTeamId}
-              onClick={() => toggleTeam(context.providerTeamId)}
-              title={onlyTeam ? "Een welkomstcomponent heeft minimaal één team nodig." : undefined}
-              type="button"
-            >
-              <span>{label}</span>
-              <X aria-hidden="true" />
-            </button>
-          );
-        })}
-      </div>
-
-      {teams.length ? (
-        <details className={styles.teamDropdown}>
-          <summary>
-            <span><Users aria-hidden="true" />Teams toevoegen</span>
-            <span>{contexts.length} geselecteerd</span>
-            <ChevronDown aria-hidden="true" />
-          </summary>
-          <div className={styles.teamDropdownPanel}>
-            <label className={styles.searchField} htmlFor={inputId}>
-              <Search aria-hidden="true" />
-              <span className="sr-only">Zoek een team</span>
-              <input
-                autoComplete="off"
-                id={inputId}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Zoek op teamnaam"
-                type="search"
-                value={query}
-              />
-            </label>
-            <button
-              aria-pressed={exactlyAllCurrentTeams}
-              className={styles.selectAll}
-              disabled={exactlyAllCurrentTeams}
-              onClick={() => onChange(replaceArrivalTeamSelection(
-                draft,
-                selectableTeams.map((team) => team.externalId),
-                teams
-              ))}
-              type="button"
-            >
-              <span className={styles.checkboxVisual}>
-                {allCurrentTeamsSelected ? <Check aria-hidden="true" /> : null}
-              </span>
-              <span>
-                <strong>{teams.length > sportlinkSlideTeamContextsMax
-                  ? `Eerste ${sportlinkSlideTeamContextsMax} teams`
-                  : "Alle teams"}</strong>
-                <small>{teams.length > sportlinkSlideTeamContextsMax
-                  ? `Een gekoppeld onderdeel ondersteunt maximaal ${sportlinkSlideTeamContextsMax} teams.`
-                  : "Voegt alle huidige Sportlink-teams toe."}</small>
-              </span>
-            </button>
-            <div
-              aria-label="Beschikbare teams"
-              className={styles.teamOptions}
-              role="group"
-            >
-              {filteredTeams.map((team) => {
-                const checked = selectedIdSet.has(team.externalId);
-                return (
-                  <label key={team.externalId}>
-                    <input
-                      checked={checked}
-                      disabled={(checked && selectedIds.length === 1) ||
-                        (!checked && selectionLimitReached)}
-                      onChange={() => toggleTeam(team.externalId)}
-                      type="checkbox"
-                    />
-                    <span>
-                      <strong>{team.name}</strong>
-                      <small>Actuele competitie als standaard</small>
-                    </span>
-                  </label>
-                );
-              })}
-              {!filteredTeams.length ? (
-                <p>Geen teams gevonden voor “{query}”.</p>
-              ) : null}
-            </div>
-            {teams.length > sportlinkSlideTeamContextsMax ? (
-              <p className="notice notice--warning" role="status">
-                Maximaal {sportlinkSlideTeamContextsMax} teams per gekoppeld
-                welkomstonderdeel. Verwijder eerst een team om een ander team
-                toe te voegen.
-              </p>
-            ) : null}
-          </div>
-        </details>
-      ) : (
+      {!teams.length ? (
         <p className="notice notice--warning">
           Er zijn geen actuele teams geladen. De bestaande koppeling blijft
           behouden; synchroniseer Sportlink voordat je de selectie wijzigt.
         </p>
-      )}
+      ) : null}
 
       <div className={styles.contextList}>
         <header>
@@ -817,14 +710,6 @@ function VersionPreview({ draft, teams, theme, themeId }: {
       </p>
     </aside>
   );
-}
-
-function normalizeSearch(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/gu, "")
-    .trim()
-    .toLocaleLowerCase("nl-NL");
 }
 
 function blueprintDescription(key: SportlinkSlideBlueprintKey) {

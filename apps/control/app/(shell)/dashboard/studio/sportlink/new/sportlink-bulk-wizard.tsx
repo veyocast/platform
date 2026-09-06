@@ -3,15 +3,10 @@
 import Link from "next/link";
 import {
   Check,
-  ChevronDown,
   Eye,
-  LayoutGrid,
-  Search,
-  Users,
-  X
+  LayoutGrid
 } from "lucide-react";
 import {
-  useId,
   useMemo,
   useState,
   type Dispatch,
@@ -33,7 +28,13 @@ import {
 } from "@veyocast/contracts";
 import { themeCatalog } from "@veyocast/content-templates/theme-catalog";
 import { buildSportlinkSlideDrafts } from "@veyocast/domain";
-import { Button, Field, JourneyShell, StatusPill } from "@veyocast/ui";
+import {
+  Button,
+  Field,
+  JourneyShell,
+  MultiSelectDropdown,
+  StatusPill
+} from "@veyocast/ui";
 
 import { FieldFlowStyleStep } from "../../../slides/_components/fieldflow-style-step";
 import {
@@ -293,34 +294,33 @@ export function SportlinkBulkWizard({
     });
   }
 
-  function toggleTeam(team: Team) {
-    const available = selectedBlueprints.filter((key) => !isArrivalKey(key));
-    const selected = teamSelections[team.externalId] ?? [];
-    const allSelected = available.length > 0 && available.every((key) =>
-      selected.includes(key)
-    );
-    setTeamSelections((current) => ({
-      ...current,
-      [team.externalId]: allSelected ? [] : available
-    }));
-    setTeamContexts((current) => ({
-      ...current,
-      [team.externalId]: current[team.externalId] ?? initialContext(team)
-    }));
-  }
-
-  function toggleMatrixCell(team: Team, key: SportlinkSlideBlueprintKey) {
-    const current = teamSelections[team.externalId] ?? [];
-    setTeamSelections((all) => ({
-      ...all,
-      [team.externalId]: current.includes(key)
-        ? current.filter((candidate) => candidate !== key)
-        : [...current, key]
-    }));
-    setTeamContexts((all) => ({
-      ...all,
-      [team.externalId]: all[team.externalId] ?? initialContext(team)
-    }));
+  function updateRegularSelection(
+    key: SportlinkSlideBlueprintKey,
+    teamIds: string[]
+  ) {
+    const validIds = new Set(sourceTeams
+      .filter((team) => teamIds.includes(team.externalId))
+      .map((team) => team.externalId));
+    setTeamSelections((current) => {
+      const next = { ...current };
+      for (const team of sourceTeams) {
+        const keys = current[team.externalId] ?? [];
+        const nextKeys = validIds.has(team.externalId)
+          ? [...new Set([...keys, key])]
+          : keys.filter((candidate) => candidate !== key);
+        if (nextKeys.length) next[team.externalId] = nextKeys;
+        else delete next[team.externalId];
+      }
+      return next;
+    });
+    setTeamContexts((current) => {
+      const next = { ...current };
+      for (const teamId of validIds) {
+        const team = sourceTeamById.get(teamId);
+        if (team && !next[teamId]) next[teamId] = initialContext(team);
+      }
+      return next;
+    });
   }
 
   return (
@@ -369,9 +369,8 @@ export function SportlinkBulkWizard({
               selectedBlueprints={selectedBlueprints}
               selections={teamSelections}
               teams={sourceTeams}
-              toggleCell={toggleMatrixCell}
-              toggleTeam={toggleTeam}
               updateArrivalSelection={updateArrivalSelection}
+              updateRegularSelection={updateRegularSelection}
             />
           ) : null}
           {step === 2 ? (
@@ -563,229 +562,76 @@ function TeamStep({
   selectedBlueprints,
   selections,
   teams,
-  toggleCell,
-  toggleTeam,
-  updateArrivalSelection
+  updateArrivalSelection,
+  updateRegularSelection
 }: {
   arrivalSelections: Partial<Record<SportlinkSlideBlueprintKey, string[]>>;
   selectedBlueprints: SportlinkSlideBlueprintKey[];
   selections: Record<string, SportlinkSlideBlueprintKey[]>;
   teams: Team[];
-  toggleCell: (team: Team, key: SportlinkSlideBlueprintKey) => void;
-  toggleTeam: (team: Team) => void;
   updateArrivalSelection: (
     key: SportlinkSlideBlueprintKey,
     teamIds: string[]
   ) => void;
+  updateRegularSelection: (
+    key: SportlinkSlideBlueprintKey,
+    teamIds: string[]
+  ) => void;
 }) {
-  const selectedArrivalKeys = selectedBlueprints.filter(isArrivalKey);
-  const selectedRegularKeys = selectedBlueprints.filter(
-    (key) => !isArrivalKey(key)
-  );
   return (
     <>
       <StepHeading
-        description="Zoek teams, voeg ze in één keer toe en verwijder uitzonderingen als tag. Een welkomsttype blijft altijd één component."
+        description="Kies per onderdeel meerdere teams in één compacte dropdown. Zoek, selecteer alles of verwijder uitzonderingen als tag."
         eyebrow="Selectie"
         title="Welke teams horen erbij?"
       />
-      {selectedArrivalKeys.map((key) => (
-        <TeamMultiSelect
-          key={key}
-          label={shortBlueprintLabel(key)}
-          onChange={(teamIds) => updateArrivalSelection(key, teamIds)}
-          selectedIds={arrivalSelections[key] ?? []}
-          teams={teams}
-        />
-      ))}
-      {selectedRegularKeys.length ? (
-        <TeamMatrix
-          selectedBlueprints={selectedRegularKeys}
-          selections={selections}
-          teams={teams}
-          toggleCell={toggleCell}
-          toggleTeam={toggleTeam}
-        />
-      ) : null}
+      <div className={styles.teamSelectors}>
+        {selectedBlueprints.map((key) => {
+          const arrival = isArrivalKey(key);
+          const selectedIds = arrival
+            ? arrivalSelections[key] ?? []
+            : teams
+                .filter((team) => (selections[team.externalId] ?? []).includes(key))
+                .map((team) => team.externalId);
+          const maximumSelected = arrival
+            ? sportlinkSlideTeamContextsMax
+            : undefined;
+          return (
+            <MultiSelectDropdown
+              description={arrival
+                ? "Eén gekoppeld welkomstcomponent verdeelt deze teams automatisch over schermpagina’s."
+                : "VeyoCast maakt voor ieder gekozen team één afzonderlijk onderdeel."}
+              emptyLabel="Er zijn nog geen gesynchroniseerde teams beschikbaar."
+              key={key}
+              label={shortBlueprintLabel(key)}
+              maximumSelected={maximumSelected}
+              onValueChange={(teamIds) => arrival
+                ? updateArrivalSelection(key, teamIds)
+                : updateRegularSelection(key, teamIds)}
+              options={teams.map((team) => ({
+                description: "Actuele competitie als standaard",
+                label: team.name,
+                value: team.externalId
+              }))}
+              placeholder="Kies minimaal één team"
+              searchLabel="Teams zoeken"
+              searchPlaceholder="Zoek op teamnaam"
+              searchable
+              selectAllLabel={maximumSelected && teams.length > maximumSelected
+                ? `Eerste ${maximumSelected} teams selecteren`
+                : "Alle teams selecteren"}
+              selectionNoun={{ plural: "teams", singular: "team" }}
+              value={selectedIds}
+            />
+          );
+        })}
+      </div>
       {!teams.length ? (
         <p className="notice notice--warning">
           Er zijn nog geen gesynchroniseerde teams beschikbaar.
         </p>
       ) : null}
     </>
-  );
-}
-
-function TeamMultiSelect({ label, onChange, selectedIds, teams }: {
-  label: string;
-  onChange: (teamIds: string[]) => void;
-  selectedIds: string[];
-  teams: Team[];
-}) {
-  const inputId = useId();
-  const [query, setQuery] = useState("");
-  const normalizedQuery = query.trim().toLocaleLowerCase("nl-NL");
-  const filteredTeams = teams.filter((team) =>
-    !normalizedQuery || team.name.toLocaleLowerCase("nl-NL").includes(normalizedQuery)
-  );
-  const selectableTeams = teams.slice(0, sportlinkSlideTeamContextsMax);
-  const allSelected = selectableTeams.length > 0 &&
-    selectableTeams.every((team) => selectedIds.includes(team.externalId));
-  const selectionLimitReached = selectedIds.length >= sportlinkSlideTeamContextsMax;
-  const selectedTeams = teams.filter((team) => selectedIds.includes(team.externalId));
-
-  function toggle(teamId: string) {
-    onChange(selectedIds.includes(teamId)
-      ? selectedIds.filter((candidate) => candidate !== teamId)
-      : [...selectedIds, teamId]
-    );
-  }
-
-  return (
-    <section className={styles.teamPicker} aria-labelledby={`${inputId}-title`}>
-      <header>
-        <div>
-          <span className={styles.kicker}>Gekoppeld welkomstcomponent</span>
-          <h3 id={`${inputId}-title`}>{label}</h3>
-          <p>Selecteer alle teams die dit component automatisch mag vullen.</p>
-        </div>
-        <StatusPill
-          label={`${selectedIds.length}/${teams.length} teams`}
-          tone={selectedIds.length ? "success" : "neutral"}
-        />
-      </header>
-      <div className={styles.tags} aria-live="polite">
-        {selectedTeams.map((team) => (
-          <button
-            aria-label={`${team.name} verwijderen`}
-            key={team.externalId}
-            onClick={() => toggle(team.externalId)}
-            type="button"
-          >
-            <span>{team.name}</span><X aria-hidden="true" />
-          </button>
-        ))}
-        {!selectedTeams.length ? <p>Kies minimaal één team.</p> : null}
-      </div>
-      <details className={styles.teamDropdown}>
-        <summary>
-          <span><Users aria-hidden="true" />Teams toevoegen</span>
-          <span>{selectedIds.length ? `${selectedIds.length} geselecteerd` : "Maak een selectie"}</span>
-          <ChevronDown aria-hidden="true" />
-        </summary>
-        <div className={styles.teamDropdownPanel}>
-          <label className={styles.searchField} htmlFor={inputId}>
-            <Search aria-hidden="true" />
-            <span className="sr-only">Zoek een team</span>
-            <input
-              autoComplete="off"
-              id={inputId}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Zoek op teamnaam"
-              type="search"
-              value={query}
-            />
-          </label>
-          <button
-            aria-pressed={allSelected}
-            className={styles.selectAll}
-            onClick={() => onChange(allSelected
-              ? []
-              : selectableTeams.map((team) => team.externalId)
-            )}
-            type="button"
-          >
-            <span className={styles.checkboxVisual}>{allSelected ? <Check aria-hidden="true" /> : null}</span>
-            <span>
-              <strong>{teams.length > sportlinkSlideTeamContextsMax
-                ? `Eerste ${sportlinkSlideTeamContextsMax} teams`
-                : "Alle teams"}</strong>
-              <small>{teams.length > sportlinkSlideTeamContextsMax
-                ? `Een gekoppeld onderdeel ondersteunt maximaal ${sportlinkSlideTeamContextsMax} teams. Verfijn de selectie indien nodig.`
-                : "Vult de selectie automatisch met alle huidige teams."}</small>
-            </span>
-          </button>
-          <div className={styles.teamOptions} role="group" aria-label="Beschikbare teams">
-            {filteredTeams.map((team) => (
-              <label key={team.externalId}>
-                <input
-                  checked={selectedIds.includes(team.externalId)}
-                  disabled={selectionLimitReached && !selectedIds.includes(team.externalId)}
-                  onChange={() => toggle(team.externalId)}
-                  type="checkbox"
-                />
-                <span><strong>{team.name}</strong><small>Actuele competitie als standaard</small></span>
-              </label>
-            ))}
-            {!filteredTeams.length ? <p>Geen teams gevonden voor “{query}”.</p> : null}
-          </div>
-          {teams.length > sportlinkSlideTeamContextsMax ? (
-            <p className="notice notice--warning" role="status">
-              Maximaal {sportlinkSlideTeamContextsMax} teams per gekoppeld
-              welkomstonderdeel. Verwijder eerst een team om een ander team toe
-              te voegen.
-            </p>
-          ) : null}
-        </div>
-      </details>
-    </section>
-  );
-}
-
-function TeamMatrix({ selectedBlueprints, selections, teams, toggleCell, toggleTeam }: {
-  selectedBlueprints: SportlinkSlideBlueprintKey[];
-  selections: Record<string, SportlinkSlideBlueprintKey[]>;
-  teams: Team[];
-  toggleCell: (team: Team, key: SportlinkSlideBlueprintKey) => void;
-  toggleTeam: (team: Team) => void;
-}) {
-  return (
-    <section className={styles.matrixSection}>
-      <header><div><h3>Overige Sportlink-onderdelen</h3><p>Kies per team welke programma-, uitslag- of pouleslides je wilt maken.</p></div></header>
-      <div
-        className={styles.matrix}
-        role="table"
-        aria-label="Teams en overige slidetypen"
-        style={{ "--matrix-columns": selectedBlueprints.length } as React.CSSProperties}
-      >
-        <div className={styles.matrixHead} role="row">
-          <span role="columnheader">Team</span>
-          {selectedBlueprints.map((key) => (
-            <span key={key} role="columnheader">{shortBlueprintLabel(key)}</span>
-          ))}
-        </div>
-        {teams.map((team) => {
-          const selected = selections[team.externalId] ?? [];
-          return (
-            <div className={styles.matrixRow} key={team.externalId} role="row">
-              <div className={styles.matrixTeamCell} role="rowheader">
-                <button
-                  aria-pressed={selected.length === selectedBlueprints.length}
-                  onClick={() => toggleTeam(team)}
-                  type="button"
-                >
-                  <Users aria-hidden="true" />
-                  <span><strong>{team.name}</strong><small>{selected.length} gekozen</small></span>
-                </button>
-              </div>
-              {selectedBlueprints.map((key) => (
-                <div className={styles.matrixChoiceCell} key={key} role="cell">
-                  <label>
-                    <input
-                      aria-label={`${shortBlueprintLabel(key)} voor ${team.name}`}
-                      checked={selected.includes(key)}
-                      onChange={() => toggleCell(team, key)}
-                      type="checkbox"
-                    />
-                    <span>{shortBlueprintLabel(key)}</span>
-                  </label>
-                </div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-    </section>
   );
 }
 

@@ -67,6 +67,10 @@ Do not hardcode brand colors in components. Use CSS variables and Tailwind token
   transformation where a horizontal table stops being legible.
 - Dense data belongs in a table, list or inspector; a card is reserved for a
   repeated item, modal or genuinely framed tool.
+- Gebruik de gedeelde `MultiSelectDropdown` voor compacte meervoudige keuzes
+  uit gewone entiteiten. Houd per-optie preflight, permissions, volgorde en
+  tabelbulk zichtbaar wanneer verbergen operationele of securitycontext zou
+  kosten; de server valideert verzonden waarden altijd opnieuw.
 - Mobile is a task flow with its own hierarchy, not a shrunken desktop shell.
 
 ## Control calmness patterns

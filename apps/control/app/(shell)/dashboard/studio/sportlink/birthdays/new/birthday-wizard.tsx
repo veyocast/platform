@@ -33,7 +33,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
+  MultiSelectDropdown
 } from "@veyocast/ui";
 
 import {
@@ -465,14 +466,19 @@ function SelectionStep({ birthdays, birthdaysLoaded, configuration, status, team
       update={update}
     />
     {configuration.selection.roleFilter === "selected" ? (
-      <fieldset className={styles.rolePicker}>
-        <legend>Rollen</legend>
-        {roles.map((role) => (
-          <label key={role}>
-            <input checked={configuration.selection.selectedRoles.includes(role)} onChange={(event) => update({ selectedRoles: event.target.checked ? [...configuration.selection.selectedRoles, role] : configuration.selection.selectedRoles.filter((value) => value !== role) })} type="checkbox" />{role}
-          </label>
-        ))}
-      </fieldset>
+      <MultiSelectDropdown
+        description="Alleen personen met één van deze eenduidig gekoppelde Sportlink-rollen komen in beeld."
+        emptyLabel="Er zijn nog geen gekoppelde rollen beschikbaar."
+        label="Rollen"
+        onValueChange={(selectedRoles) => update({ selectedRoles })}
+        options={roles.map((role) => ({ label: role, value: role }))}
+        placeholder="Kies één of meer rollen"
+        searchLabel="Rollen zoeken"
+        searchPlaceholder="Zoek op rolnaam"
+        searchable
+        selectionNoun={{ plural: "rollen", singular: "rol" }}
+        value={configuration.selection.selectedRoles}
+      />
     ) : null}
     <div className={styles.toggleGrid}>
       {[
