@@ -1,8 +1,9 @@
 # S152 — Theme-editor en opslagherstel
 
-Status: `READY_FOR_RELEASE`
+Status: `DEPLOYED`
 
-Deployment: `NOT_DEPLOYED`
+Deployment: productie draait exact `b53fb59` via stagingrun `34006105477` en
+productionrun `34006767619`.
 
 Datum: 6 september 2026
 
@@ -81,5 +82,5 @@ Groen op de actuele werkboom:
 - `git diff --check`, dependency-metadatacontrole en changed-file
   credentialscan.
 
-PR/CI, hosted advisors en exact-SHA staging-/productionreadbacks blijven
-onderdeel van een afzonderlijke releasefase.
+De beschermde staging- en productionflow is afgerond; beide omgevingen gaven de
+verwachte health-readback op exact `b53fb59`.
