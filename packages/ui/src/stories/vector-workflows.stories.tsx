@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
 
 import {
   Button,
@@ -11,6 +12,7 @@ import {
   Container,
   HealthBadge,
   JourneyShell,
+  MultiSelectDropdown,
   ResourcePicker,
   ScreenSnapshot,
   SegmentedControl,
@@ -30,6 +32,25 @@ const meta = {
 export default meta;
 
 type Story = StoryObj<typeof meta>;
+
+function MultiSelectExample() {
+  const [teams, setTeams] = useState(["jo17-1", "jo19-1"]);
+  return (
+    <MultiSelectDropdown
+      description="Zoek teams, voeg alles toe of verwijder een uitzondering als tag."
+      label="Teams voor programma komende week"
+      onValueChange={setTeams}
+      options={[
+        { description: "Actuele competitie", label: "JO17-1", value: "jo17-1" },
+        { description: "Actuele competitie", label: "JO19-1", value: "jo19-1" },
+        { description: "Actuele competitie", label: "MO17-1", value: "mo17-1" }
+      ]}
+      searchable
+      selectionNoun={{ plural: "teams", singular: "team" }}
+      value={teams}
+    />
+  );
+}
 
 const journeySteps = [
   { id: "goal", label: "Wat wil je tonen?" },
@@ -141,6 +162,14 @@ export const UnifiedDiscovery: Story = {
           onSelect={() => undefined}
         />
       </Stack>
+    </Container>
+  )
+};
+
+export const SharedMultiSelection: Story = {
+  render: () => (
+    <Container size="reading" style={{ paddingBlock: "var(--vc-vector-space-32)" }}>
+      <MultiSelectExample />
     </Container>
   )
 };

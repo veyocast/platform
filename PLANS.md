@@ -149,6 +149,7 @@ tests en exitcriteria staan in
 | S148 | Instelbare slidekleuren en leesgradient | Alle semantische light/dark-kleuren in de nieuwsslidewizard instelbaar maken, opgeslagen tokenkaarten in moderne en Static LG-playback respecteren en de fullscreen-gradient neutraal donker achter tekst renderen |
 | S149 | Centrale tenantstijl en volledige poulevensters | De FieldFlow-kleuren uit afzonderlijke slides naar één tenantbrede Settings-editor verplaatsen en pouleprogramma/-uitslagen voor thuis, uit en overige pouleteams samenstellen |
 | S150 | Rustige bezoekerswelkomstkaart | Bezoekerswelkomstslides vastzetten op twee halve slots, drie relevante regels, een 30%-logoachtergrond en een groot logo op wit in moderne en Static LG-playback |
+| S151 | Gedeelde dropdown-multiselect | Eén zoekbare tokengebaseerde meerkeuzecontrol delen voor compacte team-, scherm-, groep- en rolselecties, zonder operationele preflight-, permission-, volgorde- of tabelbulkcontext te verbergen |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op
@@ -236,6 +237,16 @@ kleuren meer. Voor pouleprogramma en pouleuitslagen verenigt de worker zowel
 veldbehoudend op wedstrijdcode. Daardoor bevatten de exacte zeven-dagenvensters
 eigen thuis- en uitwedstrijden én wedstrijden tussen andere teams uit de poule.
 Zie `docs/s149-tenant-theme-poulevensters-evidence.md`.
+
+S151 start vanaf de gemergede en uitgerolde S150-baseline
+`138889a05da8cf3ebaabb425b09aa9d525347e3d`. Eén gedeelde
+`MultiSelectDropdown` in `@veyocast/ui` vervangt de brede Sportlink-team ×
+typematrix en de lokale meerkeuzelijsten voor gewone teams, schermen, groepen en
+rollen. De control bewaart bestaande veldnamen, teamcontextgrenzen en
+servervalidatie. Publicatie-/rollbackpreflight, permissions, weekdagen,
+productvolgorde en tabelbulk blijven bewust zichtbaar in hun gespecialiseerde
+patroon. Er is geen database-, Player-, provider-, immutable-release- of
+LKG-wijziging. Zie `docs/s151-shared-dropdown-multiselect-evidence.md`.
 
 ### Programmagates
 

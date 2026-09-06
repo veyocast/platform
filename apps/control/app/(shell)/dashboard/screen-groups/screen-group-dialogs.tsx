@@ -12,7 +12,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
+  MultiSelectDropdown
 } from "@veyocast/ui";
 
 import type { ScreenGroupListItem } from "./screen-group-types";
@@ -107,25 +108,27 @@ export function ScreenGroupDialog({
               </select>
               <small>Bij opslaan wordt de actuele immutable publicatie van deze playlist vastgelegd.</small>
             </div>
-            <fieldset className={styles.screenPicker}>
-              <legend>Schermen</legend>
-              <p>Een scherm mag veilig in meerdere groepen voorkomen.</p>
-              <div className={styles.screenOptions}>
-                {screens.map((screen) => (
-                  <label data-disabled={screen.disabled} key={screen.id}>
-                    <input
-                      defaultChecked={group?.memberIds.includes(screen.id)}
-                      disabled={screen.disabled}
-                      name="screenIds"
-                      type="checkbox"
-                      value={screen.id}
-                    />
-                    <span><strong>{screen.name}</strong><small>{screenStatus(screen.status)}</small></span>
-                  </label>
-                ))}
-              </div>
-              {!screens.length ? <p>Er zijn nog geen schermen beschikbaar.</p> : null}
-            </fieldset>
+            <MultiSelectDropdown
+              defaultValue={(group?.memberIds ?? []).filter((screenId) =>
+                screens.some((screen) => screen.id === screenId && !screen.disabled)
+              )}
+              description="Een scherm mag veilig in meerdere groepen voorkomen."
+              emptyLabel="Er zijn nog geen schermen beschikbaar."
+              label="Schermen"
+              name="screenIds"
+              options={screens.map((screen) => ({
+                description: screenStatus(screen.status),
+                disabled: screen.disabled,
+                disabledReason: screen.disabled ? "Dit scherm is uitgeschakeld." : undefined,
+                label: screen.name,
+                value: screen.id
+              }))}
+              placeholder="Kies één of meer schermen"
+              searchLabel="Schermen zoeken"
+              searchPlaceholder="Zoek op schermnaam"
+              searchable
+              selectionNoun={{ plural: "schermen", singular: "scherm" }}
+            />
             <DialogFooter>
               <Button type="submit">{isEditing ? "Wijzigingen opslaan" : "Schermgroep maken"}</Button>
             </DialogFooter>

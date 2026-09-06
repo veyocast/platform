@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
-import { SummaryStrip } from "@veyocast/ui";
+import { MultiSelectDropdown, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
@@ -245,13 +245,24 @@ function SettingsTab({
       </div>
       <form action={updateScreenGroupMemberships} className="playlist-form onboarding-form">
         <input name="screenId" type="hidden" value={screen.id} />
-        {groups.length ? <fieldset className="check-list" disabled={!canManage}>
-          <legend>Groepen voor {screen.name}</legend>
-          {groups.map((group) => <label className="check-row" key={group.id}>
-            <input defaultChecked={group.selected} name="groupIds" type="checkbox" value={group.id} />
-            <span><strong>{group.name}</strong><span className="work-panel__meta">Meervoudige selectie is toegestaan.</span></span>
-          </label>)}
-        </fieldset> : <p className="notice">Er zijn nog geen actieve schermgroepen. Maak eerst een schermgroep aan.</p>}
+        <MultiSelectDropdown
+          defaultValue={groups.filter((group) => group.selected).map((group) => group.id)}
+          description={`Kies alle groepen waar ${screen.name} onderdeel van is.`}
+          disabled={!canManage}
+          emptyLabel="Er zijn nog geen actieve schermgroepen. Maak eerst een schermgroep aan."
+          label={`Groepen voor ${screen.name}`}
+          name="groupIds"
+          options={groups.map((group) => ({
+            description: "Meervoudige selectie is toegestaan.",
+            label: group.name,
+            value: group.id
+          }))}
+          placeholder="Kies één of meer schermgroepen"
+          searchLabel="Schermgroepen zoeken"
+          searchPlaceholder="Zoek op groepsnaam"
+          searchable
+          selectionNoun={{ plural: "schermgroepen", singular: "schermgroep" }}
+        />
         <div className="page-action-group">
           <button className="button-link button-link--primary" disabled={!canManage} type="submit">Schermgroepen opslaan</button>
           <Link className="button-link button-link--secondary" href="/dashboard/screens/groups">Schermgroepen beheren</Link>

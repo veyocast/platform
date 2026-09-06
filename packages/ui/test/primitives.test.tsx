@@ -17,6 +17,7 @@ import {
   IconButton,
   Inspector,
   JourneyShell,
+  MultiSelectDropdown,
   PageHeader,
   Progress,
   ResourceState,
@@ -293,6 +294,40 @@ describe("@veyocast/ui primitives", () => {
     expect(source).toContain("onSelectMany");
   });
 
+  it("renders a searchable multi-select dropdown with stable form values", () => {
+    const html = renderToStaticMarkup(
+      <MultiSelectDropdown
+        defaultOpen
+        defaultValue={["jo17-1", "jo19-1"]}
+        description="Kies één of meer teams."
+        label="Teams"
+        name="teamIds"
+        options={[
+          { description: "Hoofdklasse", label: "JO17-1", value: "jo17-1" },
+          { label: "JO19-1", value: "jo19-1" }
+        ]}
+        searchable
+        selectionNoun={{ plural: "teams", singular: "team" }}
+      />
+    );
+
+    expect(html).toContain("vc-multi-select__trigger");
+    expect(html).toContain("2 teams geselecteerd");
+    expect(html).toContain('name="teamIds"');
+    expect(html).toContain('value="jo17-1"');
+    expect(html).toContain('type="search"');
+    expect(html).toContain("JO17-1 verwijderen");
+
+    const empty = renderToStaticMarkup(
+      <MultiSelectDropdown
+        emptyLabel="Nog geen teams beschikbaar."
+        label="Teams"
+        options={[]}
+      />
+    );
+    expect(empty).toContain("Nog geen teams beschikbaar.");
+  });
+
   it("uses css variables instead of hardcoded hex colors in component styles", async () => {
     const styles = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
 
@@ -305,6 +340,7 @@ describe("@veyocast/ui primitives", () => {
     expect(styles).toContain("var(--vc-vector-surface-raised");
     expect(styles).toContain(".vc-resource-picker__grid");
     expect(styles).toContain(".vc-journey-shell__layout--with-aside");
+    expect(styles).toContain(".vc-multi-select__content");
   });
 
   it("keeps a confirmation dialog above an open sheet", async () => {

@@ -126,14 +126,14 @@ test.describe("S146 Studio and Publisher visual evidence", () => {
         await expect(
           studio.getByRole("heading", { name: "Welke teams horen erbij?" })
         ).toBeVisible();
-        const teamPickers = studio.locator("details").filter({ hasText: "Teams toevoegen" });
+        const teamPickers = studio.locator(".vc-multi-select");
         await expect(teamPickers).toHaveCount(2);
         for (let index = 0; index < 2; index += 1) {
-          await teamPickers.nth(index).locator("summary").click();
-          await teamPickers.nth(index).getByRole("button", { name: /Alle teams/ }).click();
-          await teamPickers.nth(index).locator("summary").click();
+          await teamPickers.nth(index).locator(".vc-multi-select__trigger").click();
+          await teamPickers.nth(index).getByRole("button", { name: "Alle teams selecteren" }).click();
+          await teamPickers.nth(index).locator(".vc-multi-select__trigger").click();
         }
-        await expect(studio.getByText(/22\/22 teams/)).toHaveCount(2);
+        await expect(studio.getByText("22 teams geselecteerd")).toHaveCount(2);
         await capture(studio, `sportlink-teams-${suffix}`);
         await studio.close();
 

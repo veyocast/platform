@@ -1,4 +1,9 @@
-import { Button, PageHeader, StatusPill } from "@veyocast/ui";
+import {
+  Button,
+  MultiSelectDropdown,
+  PageHeader,
+  StatusPill
+} from "@veyocast/ui";
 import Link from "next/link";
 
 import { requireControlCapability } from "../../../../../lib/control-session";
@@ -43,7 +48,23 @@ export default async function SupportSettingsPage() {
           <form action={createSupportDepartment} className={styles.form}>
             <label><span>Naam</span><input maxLength={80} name="name" required /></label>
             <label><span>Beschrijving</span><input maxLength={500} name="description" /></label>
-            <fieldset className={styles.wide}><legend>Routeer naar werkrollen</legend>{data.roles.map((role) => <label className={styles.checkbox} key={role.id}><input name="roleIds" type="checkbox" value={role.id} /> {role.name}</label>)}</fieldset>
+            <MultiSelectDropdown
+              className={styles.wide}
+              description="Nieuwe tickets voor deze afdeling worden zichtbaar voor de gekozen supportwerkrollen."
+              emptyLabel="Maak eerst een supportwerkrol aan."
+              label="Routeer naar werkrollen"
+              name="roleIds"
+              options={data.roles.map((role) => ({
+                description: role.description,
+                label: role.name,
+                value: role.id
+              }))}
+              placeholder="Kies één of meer werkrollen"
+              searchLabel="Werkrollen zoeken"
+              searchPlaceholder="Zoek op rolnaam"
+              searchable
+              selectionNoun={{ plural: "werkrollen", singular: "werkrol" }}
+            />
             <Button type="submit">Afdeling toevoegen</Button>
           </form>
         </section>
