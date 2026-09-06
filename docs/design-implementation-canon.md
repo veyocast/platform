@@ -128,6 +128,11 @@ merkasset, primaire Electric-Orange/Ink-actie, securitygrens of offlinecontract.
   Instellingen beheerd. Slide-editors mogen geen afzonderlijke kleurwaarden
   opslaan; zij gebruiken voor preview en nieuwe snapshots dezelfde server-side
   tenant-authority. Historische snapshots en releases blijven immutable.
+- De centrale theme-editor gebruikt de volledige beschikbare instellingenkolom:
+  eerst weergavemodus en live 16:9-voorbeeld, daarna de belangrijkste kleuren
+  en contrastcontrole. De overige semantische tokens en legacy-merkmetadata
+  blijven beschikbaar als ingeklapte vervolgacties; mobiel stapelt deze flow in
+  dezelfde taakvolgorde zonder horizontale tabel of mini-desktopindeling.
 - Slidecanvassen gebruiken een vaste 12-koloms landscape- en 6-koloms
   portrait-safe grid. Copy start linksboven, dense data pagineert en primaire
   tekst blijft boven de familiegebonden minimumramp.

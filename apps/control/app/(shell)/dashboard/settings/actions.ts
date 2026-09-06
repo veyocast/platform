@@ -12,6 +12,7 @@ import { editorialThemeHasValidContrast } from "@veyocast/content-templates/edit
 
 import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { tenantSettingsSaveErrorMessage } from "./settings-save-errors";
 
 export async function updateTenantSettings(formData: FormData) {
   const session = await requireTenantCapability("tenant.settings.manage");
@@ -128,7 +129,7 @@ export async function updateTenantSettings(formData: FormData) {
 
   if (error) {
     console.error("Tenantinstellingen opslaan mislukt", error);
-    fail("De instellingen konden niet veilig worden opgeslagen. Er is niets gedeeltelijk gewijzigd; controleer je rechten en probeer opnieuw.");
+    fail(tenantSettingsSaveErrorMessage(error));
   }
 
   revalidatePath("/dashboard/settings");

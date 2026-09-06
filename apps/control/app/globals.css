@@ -4579,6 +4579,41 @@ body .vc-dialog__content {
   width: min(100%, 1120px);
 }
 
+.settings-theme-editor-field,
+.settings-theme-studio {
+  min-width: 0;
+  width: 100%;
+}
+
+.settings-theme-editor-field {
+  grid-column: 1 / -1;
+}
+
+.settings-theme-studio {
+  display: grid;
+  gap: var(--vc-space-16);
+}
+
+.settings-theme-compatibility {
+  background: var(--vc-surface-muted);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-text-muted);
+  font-size: 0.8125rem;
+}
+
+.settings-theme-compatibility summary {
+  cursor: pointer;
+  font-weight: 650;
+  min-height: 44px;
+  padding: var(--vc-space-12) var(--vc-space-16);
+}
+
+.settings-theme-compatibility > div {
+  border-top: 1px solid var(--vc-border);
+  padding: var(--vc-space-16);
+}
+
 .settings-category-workspace {
   display: grid;
   gap: var(--vc-space-24);

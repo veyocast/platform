@@ -504,14 +504,25 @@ test("settings route exposes real defaults with safe permission state", async ({
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Instellingen" })).toBeVisible();
   await expect(page.getByLabel("Verenigingsnaam")).toBeVisible();
   await expect(page.locator(".settings-category-workspace")).toHaveAttribute("data-hydrated", "true");
-  const primaryColor = page.getByLabel("Primaire kleur", { exact: true });
+  const themePreview = page.getByLabel(/Live voorbeeld van het .* palet/);
   await expect(async () => {
-    if (!(await primaryColor.isVisible())) {
+    if (!(await themePreview.isVisible())) {
       await page.getByRole("button", { name: "Huisstijl", exact: true }).click();
     }
-    await expect(primaryColor).toBeVisible();
+    await expect(themePreview).toBeVisible();
   }).toPass({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Slidehuisstijl" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Licht" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Donker" })).toBeVisible();
+  await page.getByText("Compatibiliteit met oudere slides", { exact: true }).click();
+  const primaryColor = page.getByLabel("Primaire kleur", { exact: true });
+  await expect(primaryColor).toBeVisible();
   await expect(page.getByLabel("Primaire kleur kiezen")).toBeVisible();
+  await expect(async () => {
+    expect(await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth
+    )).toBe(true);
+  }).toPass();
   await expect(async () => {
     if (!(await page.getByLabel("Afbeeldingsduur in seconden").isVisible())) {
       await page.getByRole("button", { name: "Afspelen", exact: true }).click();
