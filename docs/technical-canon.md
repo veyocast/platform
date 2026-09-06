@@ -207,3 +207,11 @@ providerdata worden na publicatie niet opnieuw geraadpleegd. Assetcollectors
 nemen alle in die snapshot gerefereerde club-, tegenstander-, sponsor- en
 contentmedia mee. Een ontbrekend of corrupt pending asset houdt de nieuwe
 release in pending en laat de actieve last-known-good release spelen.
+
+Render- en authoringvalidatie hebben verschillende tijdsgrenzen. Het opnieuw
+opbouwen van een `latest`-snapshot mag een historisch legacy theme-ID blijven
+lezen, ook wanneer dat gebeurt als neveneffect van een tenantbrede stijlwijziging.
+Een insert of wijziging van `dynamic_slides.configuration_json` of
+`dynamic_slide_versions.configuration_json` blijft daarentegen fail-closed en
+accepteert uitsluitend `fieldflow`, inclusief Menu-documenten die hun
+`themeId` rechtstreeks onder `theme` bewaren.

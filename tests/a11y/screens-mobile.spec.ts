@@ -136,6 +136,9 @@ test("playlist authoring and settings remain sequential on mobile", async ({ pag
   const settingsCategory = page.getByRole("combobox", { name: "Categorie" });
   await expect(settingsCategory).toBeVisible();
   await settingsCategory.selectOption("huisstijl");
+  await expect(page.getByRole("heading", { name: "Slidehuisstijl" })).toBeVisible();
+  await expect(page.getByLabel(/Live voorbeeld van het .* palet/)).toBeVisible();
+  await page.getByText("Compatibiliteit met oudere slides", { exact: true }).click();
   await expect(page.getByLabel("Primaire kleur", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toHaveCount(0);
   await expect(async () => {
