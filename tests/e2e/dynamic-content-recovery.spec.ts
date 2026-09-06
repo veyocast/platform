@@ -49,7 +49,7 @@ test("houdt de dynamische-slide lege staat vrij van de containerrand", async ({
 
   const emptyState = page.locator(".empty-state");
   const heading = page.getByRole("heading", {
-    name: "Nog geen dynamische slides"
+    name: "Geen passende slides"
   });
   await expect(emptyState).toBeVisible();
   await expect(heading).toBeVisible();

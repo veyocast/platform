@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  editorialArenaFrameMetrics,
   paginateEditorialRows,
   priceRowsThatFit,
   resolveEditorialArenaViewportFit,
@@ -36,6 +37,17 @@ describe("Editorial Arena v2 layout", () => {
       { height: 1080, width: 1920 },
       "portrait"
     )).toEqual({ insetX: 0, insetY: 0, mode: "contain", scale: 1080 / 1920 });
+  });
+
+  it("houdt de zichtbare buitenmarge aan alle vier viewportzijden gelijk", () => {
+    for (const metrics of Object.values(editorialArenaFrameMetrics)) {
+      expect(metrics.headerTop).toBe(metrics.gutterX);
+      expect(metrics.footerBottom).toBe(metrics.gutterX);
+    }
+    expect(resolveEditorialArenaViewportFit(
+      { height: 1200, width: 1920 },
+      "landscape"
+    ).insetX).toBeGreaterThan(0);
   });
 
   it("telt vaste prijslijstrijen per kolom", () => {

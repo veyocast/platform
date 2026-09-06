@@ -21,6 +21,14 @@ export const sportlinkCompetitionSelectionModes = [
   "auto_current",
   "pinned"
 ] as const;
+export const sportlinkTeamSelectionModes = ["all", "selected"] as const;
+
+export const sportlinkClubAggregateBlueprintKeys = [
+  "sportlink.club_schedule_today",
+  "sportlink.club_schedule_next_7_days",
+  "sportlink.club_results_today",
+  "sportlink.club_results_previous_7_days"
+] as const satisfies readonly SportlinkSlideBlueprintKey[];
 
 export const sportlinkArrivalMotionPresets = [
   "auto",
@@ -33,7 +41,7 @@ export const sportlinkArrivalMotionPresets = [
 
 export const sportlinkArrivalWindowMaxMinutes = 42 * 24 * 60;
 export const sportlinkSlideBatchMaxDrafts = 25;
-export const sportlinkSlideTeamContextsMax = 100;
+export const sportlinkSlideTeamContextsMax = 500;
 
 export const sportlinkSlideContextSchema = z.object({
   competitionId: z.string().trim().min(1).max(200).nullable(),
@@ -72,6 +80,42 @@ export const sportlinkSlideTeamContextsSchema = z.array(sportlinkSlideContextSch
     }
   });
 
+export const sportlinkSlideTeamSelectionSchema = z.object({
+  mode: z.enum(sportlinkTeamSelectionModes),
+  teamContexts: z.array(sportlinkSlideContextSchema)
+    .max(sportlinkSlideTeamContextsMax)
+}).strict().superRefine((selection, refinement) => {
+  if (selection.mode === "selected" && selection.teamContexts.length === 0) {
+    refinement.addIssue({
+      code: "custom",
+      message: "Kies minimaal één team of activeer Alle teams.",
+      path: ["teamContexts"]
+    });
+  }
+  if (selection.mode === "all") {
+    selection.teamContexts.forEach((context, index) => {
+      if (context.competitionSelectionMode !== "pinned") {
+        refinement.addIssue({
+          code: "custom",
+          message: "Alle teams bewaart alleen expliciete competitie-overrides.",
+          path: ["teamContexts", index, "competitionSelectionMode"]
+        });
+      }
+    });
+  }
+  const teamIds = new Set<string>();
+  for (const [index, context] of selection.teamContexts.entries()) {
+    if (teamIds.has(context.providerTeamId)) {
+      refinement.addIssue({
+        code: "custom",
+        message: "Ieder team mag maar één keer in de selectie staan.",
+        path: ["teamContexts", index, "providerTeamId"]
+      });
+    }
+    teamIds.add(context.providerTeamId);
+  }
+});
+
 export const sportlinkArrivalConfigSchema = z.object({
   cardCount: z.number().int().min(1).max(4).default(4),
   dutyDeskText: z.string().trim().max(120).nullable().default(null),
@@ -95,10 +139,11 @@ export const sportlinkArrivalConfigSchema = z.object({
 }).strict();
 
 export const sportlinkDisplayConfigSchema = z.object({
-  columns: z.enum(["one", "two"]).default("two"),
+  columns: z.enum(["one", "two"]).default("one"),
   showDressingRoom: z.boolean().default(false),
   showField: z.boolean().default(true),
   showHomeAway: z.boolean().default(true),
+  showLogo: z.boolean().default(true),
   showReferee: z.boolean().default(false)
 }).strict();
 
@@ -106,10 +151,11 @@ export const sportlinkSlideDraftSchema = z.object({
   blueprintKey: z.enum(sportlinkSlideBlueprintKeys),
   context: sportlinkSlideContextSchema,
   display: sportlinkDisplayConfigSchema.default({
-    columns: "two",
+    columns: "one",
     showDressingRoom: false,
     showField: true,
     showHomeAway: true,
+    showLogo: true,
     showReferee: false
   }),
   name: z.string().trim().min(2).max(120),
@@ -118,23 +164,32 @@ export const sportlinkSlideDraftSchema = z.object({
   themeSelection: themeSelectionSchema,
   title: z.string().trim().min(1).max(160),
   arrival: sportlinkArrivalConfigSchema.optional(),
-  teamContexts: sportlinkSlideTeamContextsSchema.optional()
+  teamContexts: sportlinkSlideTeamContextsSchema.optional(),
+  teamSelection: sportlinkSlideTeamSelectionSchema.optional()
 }).strict().superRefine((draft, refinement) => {
   const arrival = [
     "sportlink.visitor_arrivals",
     "sportlink.referee_arrivals"
   ].includes(draft.blueprintKey);
-  if (
-    draft.teamContexts &&
-    !arrival
-  ) {
+  const clubAggregate = sportlinkClubAggregateBlueprintKeys.includes(
+    draft.blueprintKey as (typeof sportlinkClubAggregateBlueprintKeys)[number]
+  );
+  if (draft.teamContexts && !arrival) {
     refinement.addIssue({
       code: "custom",
       message: "Een teamselectie met meerdere contexten is alleen geldig voor welkomstslides.",
       path: ["teamContexts"]
     });
   }
-  const primary = draft.teamContexts?.[0];
+  if (draft.teamSelection && !clubAggregate) {
+    refinement.addIssue({
+      code: "custom",
+      message: "Een clubbrede teamfilter is alleen geldig voor clubprogramma en clubuitslagen.",
+      path: ["teamSelection"]
+    });
+  }
+  const primary = draft.teamContexts?.[0] ??
+    draft.teamSelection?.teamContexts[0];
   if (primary && (
     primary.competitionId !== draft.context.competitionId ||
     primary.competitionSelectionMode !== draft.context.competitionSelectionMode ||
@@ -173,8 +228,12 @@ export const createSportlinkSlideBatchSchema = z.object({
 
 export type SportlinkSlideContext = z.infer<typeof sportlinkSlideContextSchema>;
 export type SportlinkSlideTeamContexts = z.infer<typeof sportlinkSlideTeamContextsSchema>;
+export type SportlinkSlideTeamSelection = z.infer<
+  typeof sportlinkSlideTeamSelectionSchema
+>;
 export type SportlinkArrivalConfig = z.infer<typeof sportlinkArrivalConfigSchema>;
 export type SportlinkDisplayConfig = z.infer<typeof sportlinkDisplayConfigSchema>;
+export type SportlinkTeamSelectionMode = (typeof sportlinkTeamSelectionModes)[number];
 export type SportlinkArrivalMotionPreset =
   (typeof sportlinkArrivalMotionPresets)[number];
 export type SportlinkSlideDraft = z.infer<typeof sportlinkSlideDraftSchema>;

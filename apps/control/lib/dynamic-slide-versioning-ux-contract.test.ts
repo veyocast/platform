@@ -8,7 +8,7 @@ async function source(path: string) {
 }
 
 describe("dynamic-slideversies en Sportlink-wizard", () => {
-  it("houdt de Sportlink-flow bij vijf betekenisvolle stappen met een permanente telling", async () => {
+  it("houdt de Sportlink-flow bij vijf betekenisvolle stappen met één clubslide", async () => {
     const wizard = await source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx");
 
     expect(wizard).toContain('"Inhoud kiezen"');
@@ -16,12 +16,34 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(wizard).toContain('"Competitie instellen"');
     expect(wizard).toContain('"Stijl en weergave"');
     expect(wizard).toContain('"Controleren"');
-    expect(wizard).toContain('<strong>{drafts.length}</strong>');
+    expect(wizard).toContain("<strong>{drafts.length}</strong>");
     expect(wizard).toContain("<MultiSelectDropdown");
     expect(wizard).toContain("updateRegularSelection");
-    expect(wizard).toContain("Alle teams selecteren");
+    expect(wizard).toContain("Alle teams (ook toekomstige)");
+    expect(wizard).toContain("teamSelectionMode:");
+    expect(wizard).toContain('columns: "one"');
+    expect(wizard).toContain("showLogo: true");
+    expect(wizard).toContain("Logo tonen");
+    expect(wizard).not.toContain("voor ieder gekozen team één afzonderlijk onderdeel");
     expect(wizard).not.toContain("<TeamMatrix");
     expect(wizard).toContain("Actuele competitie, tenzij jij afwijkt");
+    expect(wizard).toContain('label="Team aanpassen"');
+  });
+
+  it("maakt pas na expliciete bevestiging en blijft voor het echte resultaat", async () => {
+    const [wizard, action] = await Promise.all([
+      source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx"),
+      source("app/(shell)/dashboard/studio/sportlink/new/actions.ts")
+    ]);
+
+    expect(wizard).toContain("onSubmit={submitBatch}");
+    expect(wizard).toContain('data-create-sportlink-batch="true"');
+    expect(wizard).toContain("Er is nog niets aangemaakt.");
+    expect(wizard).toContain("creationResult.slides.map");
+    expect(wizard).toContain('href="/dashboard/slides"');
+    expect(action).toContain('"create_sportlink_slide_batch_v4"');
+    expect(action).toContain("parseBatchResult");
+    expect(action).not.toContain("redirect(");
   });
 
   it("toont een sticky desktoppreview en een bruikbare mobiele kaartflow", async () => {
@@ -63,21 +85,52 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(implementations.join("\n")).toContain('name="roleIds"');
   });
 
-  it("beheert kleuren centraal en houdt FieldFlow vast", async () => {
-    const [settings, composer, menu, wizard, styleStep] = await Promise.all([
+  it("beheert FieldFlow theme-scoped en houdt algemene instellingen vrij van de huisstijleditor", async () => {
+    const [
+      settings,
+      settingsCategories,
+      themes,
+      fieldflowTheme,
+      fieldflowAction,
+      composer,
+      menu,
+      wizard,
+      styleStep
+    ] = await Promise.all([
       source("app/(shell)/dashboard/settings/page.tsx"),
+      source("app/(shell)/dashboard/settings/settings-category-workspace.tsx"),
+      source("app/(shell)/dashboard/themes/page.tsx"),
+      source("app/(shell)/dashboard/themes/fieldflow/page.tsx"),
+      source("app/(shell)/dashboard/themes/fieldflow/actions.ts"),
       source("app/(shell)/dashboard/slides/new/slide-composer-form.tsx"),
       source("app/(shell)/dashboard/slides/menu-studio/menu-studio-editor.tsx"),
       source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx"),
       source("app/(shell)/dashboard/slides/_components/fieldflow-style-step.tsx")
     ]);
 
-    expect(settings).toContain("één tenantbrede FieldFlow-stijl");
-    expect(settings).toContain("<TenantThemeEditor");
+    expect(settings).not.toContain("<TenantThemeEditor");
+    expect(settings).not.toContain("tenant_theme_profiles");
+    expect(settingsCategories).not.toContain('{ id: "huisstijl"');
+    expect(themes).toContain('title="Thema\'s"');
+    expect(themes).toContain('href="/dashboard/themes/fieldflow"');
+    expect(themes).toContain("Kleuren, typografie en logo-oppervlakken horen bij het theme");
+    expect(fieldflowTheme).toContain("<TenantThemeEditor");
+    expect(fieldflowTheme).toContain("Veilige live-uitrol");
+    expect(fieldflowTheme).toContain("last-known-good blijft");
+    expect(fieldflowTheme).toContain("tenant_theme_rollouts");
+    expect(fieldflowTheme).toContain("<ThemeRolloutRefresh");
+    expect(fieldflowTheme).toContain("Uitrol opnieuw proberen");
+    expect(fieldflowAction).toContain('"update_tenant_theme_settings_v3"');
+    expect(fieldflowAction).toContain('"retry_tenant_theme_rollout_v1"');
+    expect(fieldflowAction).toContain('revalidatePath("/dashboard/slides")');
+    expect(fieldflowAction).toContain("Nieuwe+immutable+presentaties");
     expect(composer).not.toContain("<EditorialThemeEditor");
     expect(composer).not.toContain("editorialThemeJson");
     expect(menu).toContain("<FieldFlowStyleStep");
     expect(wizard).toContain("<FieldFlowStyleStep");
+    expect(wizard).toContain("Competities per team");
+    expect(wizard).toContain('aria-label="Weergavekeuzes"');
+    expect(wizard).toContain('Logo {draft.display.showLogo ? "aan" : "uit"}');
     expect(styleStep).toContain("Vaste premium stijl voor nieuwe inhoud");
     expect(styleStep).not.toContain("themeCatalogOptions");
   });

@@ -14,6 +14,8 @@ import type { PlayerDynamicTemplatePayload } from "@veyocast/contracts";
 import {
   createDynamicTemplateView,
   dynamicTemplatePageDurationMs,
+  formatMatchCentreClock,
+  formatMatchCentrePageCounter,
   resolveWelcomeMotionPreset,
   type DynamicTemplateBirthdayItem,
   type DynamicTemplateListItem,
@@ -226,7 +228,11 @@ export function EditorialArenaRenderer({
           />
         ) : (
           <>
-            <ArenaHeader view={view} />
+            <ArenaHeader
+              pageCount={pageCount}
+              pageIndex={pageIndex}
+              view={view}
+            />
             <ContentElement
               className={styles.arenaContent}
               data-page-count={pageCount}
@@ -247,7 +253,6 @@ export function EditorialArenaRenderer({
               pageIndex={pageIndex}
               view={view}
             />
-            <VerticalSlideIndex pageIndex={pageIndex} view={view} />
           </>
         )}
       </section>
@@ -255,8 +260,18 @@ export function EditorialArenaRenderer({
   );
 }
 
-function ArenaHeader({ view }: { view: DynamicTemplateView }) {
+function ArenaHeader({
+  pageCount,
+  pageIndex,
+  view
+}: {
+  pageCount: number;
+  pageIndex: number;
+  view: DynamicTemplateView;
+}) {
   const initials = initialsFor(view.clubName);
+  const matchCentre = isMatchCentreSlide(view);
+  const clock = useMatchCentreClock(view);
   return (
     <header className={styles.arenaMasthead}>
       <div aria-hidden="true" className={styles.arenaCrest}>
@@ -273,9 +288,21 @@ function ArenaHeader({ view }: { view: DynamicTemplateView }) {
       <div className={styles.arenaHeading}>
         <h1>{view.title}</h1>
       </div>
-      <div className={styles.arenaContext}>
-        <strong>{view.sourceLabel}</strong>
-        <span><i aria-hidden="true" /> {view.birthday ? "Verjaardagen" : "VeyoCast"}</span>
+      <div className={styles.arenaContext} data-match-centre={matchCentre || undefined}>
+        {matchCentre ? (
+          <>
+            <span className={styles.arenaMatchCentreLabel}>
+              <strong>MATCHCENTRE</strong>
+              <b>{formatMatchCentrePageCounter(pageIndex, pageCount)}</b>
+            </span>
+            <time dateTime={clock.instant}>{clock.label}</time>
+          </>
+        ) : (
+          <>
+            <strong>{view.sourceLabel}</strong>
+            <span><i aria-hidden="true" /> {view.birthday ? "Verjaardagen" : "VeyoCast"}</span>
+          </>
+        )}
       </div>
     </header>
   );
@@ -290,37 +317,42 @@ function ArenaFooter({
   pageIndex: number;
   view: DynamicTemplateView;
 }) {
+  const matchCentre = isMatchCentreSlide(view);
   return (
-    <footer className={styles.arenaFooter}>
+    <footer className={styles.arenaFooter} data-match-centre={matchCentre || undefined}>
       <span className={styles.arenaFooterLine}><i aria-hidden="true" /></span>
-      <span>{view.sourceLabel}</span>
-      <span className={styles.arenaPageDots} aria-label={`Pagina ${pageIndex + 1} van ${pageCount}`}>
-        <b>{pageIndex + 1} / {pageCount}</b>
-        {Array.from({ length: Math.max(1, pageCount) }, (_, index) => (
-          <i data-active={index === pageIndex || undefined} key={index} />
-        ))}
-      </span>
+      {!matchCentre ? <span>{view.sourceLabel}</span> : null}
+      {!matchCentre ? (
+        <span className={styles.arenaPageDots} aria-label={`Pagina ${pageIndex + 1} van ${pageCount}`}>
+          <b>{pageIndex + 1} / {pageCount}</b>
+          {Array.from({ length: Math.max(1, pageCount) }, (_, index) => (
+            <i data-active={index === pageIndex || undefined} key={index} />
+          ))}
+        </span>
+      ) : null}
     </footer>
   );
 }
 
-function VerticalSlideIndex({
-  pageIndex,
-  view
-}: {
-  pageIndex: number;
-  view: DynamicTemplateView;
-}) {
-  const label = view.slideType === "news"
-    ? "EDITORIAL"
-    : view.slideType === "menu"
-      ? "PRIJSLIJST"
-      : "MATCHCENTRE";
-  return (
-    <span aria-hidden="true" className={styles.arenaVerticalIndex}>
-      {label} / {String(pageIndex + 1).padStart(2, "0")}
-    </span>
-  );
+function useMatchCentreClock(view: DynamicTemplateView) {
+  const timezone = view.themePresentation.resolvedMode.timezone;
+  const frozenInstant = view.themePresentation.resolvedMode.resolvedAt;
+  const [instant, setInstant] = useState(frozenInstant);
+  useEffect(() => {
+    const update = () => setInstant(new Date().toISOString());
+    update();
+    const interval = window.setInterval(update, 30_000);
+    return () => window.clearInterval(interval);
+  }, [frozenInstant, timezone]);
+  return {
+    instant,
+    label: formatMatchCentreClock(instant, timezone)
+  };
+}
+
+
+function isMatchCentreSlide(view: DynamicTemplateView) {
+  return view.slideType === "sport_program" || view.slideType === "sport_results";
 }
 
 function ArenaPage({
@@ -648,9 +680,7 @@ function ArenaPage({
     return (
       <SportListColumns
         items={page.items}
-        label="Laatste speelronde"
-        renderRow={(entry) => <ResultRow display={view.sportDisplay} item={entry} key={entry.id} />}
-        title="Uitslagen"
+        renderRow={(entry, index) => <ResultRow display={view.sportDisplay} item={entry} key={entry.id} rowIndex={index} />}
         view={view}
       />
     );
@@ -678,9 +708,7 @@ function ArenaPage({
     return (
       <SportListColumns
         items={page.items}
-        label="Aankomende wedstrijden"
-        renderRow={(entry) => <ProgramRow display={view.sportDisplay} item={entry} key={entry.id} />}
-        title="Programma"
+        renderRow={(entry, index) => <ProgramRow display={view.sportDisplay} item={entry} key={entry.id} rowIndex={index} />}
         view={view}
       />
     );
@@ -783,15 +811,11 @@ function firstName(value: string) {
 
 function SportListColumns({
   items,
-  label,
   renderRow,
-  title,
   view
 }: {
   items: DynamicTemplateListItem[];
-  label: string;
-  renderRow: (item: DynamicTemplateListItem) => ReactNode;
-  title: string;
+  renderRow: (item: DynamicTemplateListItem, index: number) => ReactNode;
   view: DynamicTemplateView;
 }) {
   const columns = splitIntoColumns(
@@ -801,18 +825,19 @@ function SportListColumns({
   );
   return (
     <div className={styles.arenaSportColumns} data-columns={columns.length}>
-      {columns.map((column, index) => (
-        <section
-          className={`${styles.arenaPanel} ${styles.arenaFixturePanel}`}
-          key={index}
-        >
-          <PanelTitle
-            label={columns.length > 1 ? `${label} · ${index + 1}` : label}
-            title={title}
-          />
-          {column.map(renderRow)}
-        </section>
-      ))}
+      {columns.map((column, columnIndex) => {
+        const rowOffset = columns.slice(0, columnIndex)
+          .reduce((count, preceding) => count + preceding.length, 0);
+        return (
+          <section
+            aria-label={`${view.title} kolom ${columnIndex + 1}`}
+            className={styles.arenaFixtureList}
+            key={columnIndex}
+          >
+            {column.map((item, index) => renderRow(item, rowOffset + index))}
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -1050,54 +1075,87 @@ function ArenaNextMatch({
 
 function ProgramRow({
   display,
-  item
+  item,
+  rowIndex
 }: {
   display: DynamicTemplateView["sportDisplay"];
   item: DynamicTemplateListItem;
+  rowIndex: number;
 }) {
   const [fallbackHome, fallbackAway] = splitTeams(item.primary);
   const home = item.homeTeam || fallbackHome;
   const away = item.awayTeam || fallbackAway;
+  const meta = sportRowMeta(display, item);
   return (
-    <article className={styles.arenaProgramRow}>
-      <strong>{item.date || item.secondary}</strong>
-      <span>
-        <TeamMini logoUrl={item.homeLogoUrl} name={home} />
-        {display?.showHomeAway ? <em>Thuis</em> : null} {home} <i>VS</i>
-        <TeamMini logoUrl={item.awayLogoUrl} name={away} />
-        {display?.showHomeAway ? <em>Uit</em> : null} {away}
+    <article
+      className={styles.arenaProgramRow}
+      style={{ "--arena-row-delay": `${360 + rowIndex * 110}ms` } as CSSProperties}
+    >
+      <strong className={styles.arenaMatchDate}>{item.date || item.secondary}</strong>
+      <b className={styles.arenaKickoff}>{item.time || "Tijd volgt"}</b>
+      <span className={styles.arenaHomeLogo}>
+        {display?.showLogo !== false ? (
+          <TeamMini homePlate logoUrl={item.homeLogoUrl} name={home} />
+        ) : null}
       </span>
-      <small>{[
-        display?.showField ? item.venue || item.meta : "",
-        display?.showDressingRoom && item.homeRoom ? `Thuis ${item.homeRoom}` : "",
-        display?.showDressingRoom && item.awayRoom ? `Uit ${item.awayRoom}` : "",
-        display?.showReferee ? item.officials.join(" · ") : ""
-      ].filter(Boolean).join(" · ")}</small>
-      <b>{item.time}</b>
+      <span className={styles.arenaFixtureTeams}>
+        <span>{display?.showHomeAway ? <em>Thuis</em> : null}{home}</span>
+        <i>vs</i>
+        <span>{display?.showHomeAway ? <em>Uit</em> : null}{away}</span>
+      </span>
+      <small className={styles.arenaMatchVenue} title={meta}>{meta}</small>
     </article>
   );
 }
 
 function ResultRow({
   display,
-  item
+  item,
+  rowIndex
 }: {
   display: DynamicTemplateView["sportDisplay"];
   item: DynamicTemplateListItem;
+  rowIndex: number;
 }) {
   const [fallbackHome, fallbackAway] = splitTeams(item.primary);
   const home = item.homeTeam || fallbackHome;
   const away = item.awayTeam || fallbackAway;
+  const meta = sportRowMeta(display, item);
   return (
-    <article className={styles.arenaResultRow} data-result-row="">
-      <span>{display?.showHomeAway ? <em>Thuis</em> : null} {home} <TeamMini logoUrl={item.homeLogoUrl} name={home} /></span>
-      <strong>
-        <i>{item.homeScore ?? "–"}</i><b>–</b><i>{item.awayScore ?? "–"}</i>
-      </strong>
-      <span><TeamMini logoUrl={item.awayLogoUrl} name={away} /> {display?.showHomeAway ? <em>Uit</em> : null} {away}</span>
-      <small>{item.date || item.secondary}</small>
+    <article
+      className={styles.arenaResultRow}
+      data-result-row=""
+      style={{ "--arena-row-delay": `${360 + rowIndex * 110}ms` } as CSSProperties}
+    >
+      <strong className={styles.arenaMatchDate}>{item.date || item.secondary}</strong>
+      <b className={styles.arenaKickoff}>{item.time || "Eindstand"}</b>
+      <span className={styles.arenaHomeLogo}>
+        {display?.showLogo !== false ? (
+          <TeamMini homePlate logoUrl={item.homeLogoUrl} name={home} />
+        ) : null}
+      </span>
+      <span className={styles.arenaFixtureTeams}>
+        <span>{display?.showHomeAway ? <em>Thuis</em> : null}{home}</span>
+        <i className={styles.arenaResultScore}>
+          <b>{item.homeScore ?? "–"}</b><span>–</span><b>{item.awayScore ?? "–"}</b>
+        </i>
+        <span>{display?.showHomeAway ? <em>Uit</em> : null}{away}</span>
+      </span>
+      <small className={styles.arenaMatchVenue} title={meta}>{meta}</small>
     </article>
   );
+}
+
+function sportRowMeta(
+  display: DynamicTemplateView["sportDisplay"],
+  item: DynamicTemplateListItem
+) {
+  return [
+    display?.showField ? item.venue || item.field || item.meta : "",
+    display?.showDressingRoom && item.homeRoom ? `Thuis ${item.homeRoom}` : "",
+    display?.showDressingRoom && item.awayRoom ? `Uit ${item.awayRoom}` : "",
+    display?.showReferee ? item.officials.join(" · ") : ""
+  ].filter(Boolean).join(" · ");
 }
 
 function ArenaRow({
@@ -1146,16 +1204,22 @@ function TeamBadge({ logoUrl = "", name }: { logoUrl?: string; name: string }) {
 }
 
 function TeamMini({
+  homePlate = false,
   large = false,
   logoUrl = "",
   name
 }: {
+  homePlate?: boolean;
   large?: boolean;
   logoUrl?: string;
   name: string;
 }) {
   return (
-    <i aria-hidden="true" className={large ? styles.arenaTeamLarge : styles.arenaTeamMini}>
+    <i
+      aria-hidden="true"
+      className={large ? styles.arenaTeamLarge : styles.arenaTeamMini}
+      data-home-plate={homePlate || undefined}
+    >
       {logoUrl ? <img alt="" src={logoUrl} /> : initialsFor(name)}
     </i>
   );

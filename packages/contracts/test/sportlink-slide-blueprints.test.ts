@@ -5,6 +5,7 @@ import {
   sportlinkSlideBatchMaxDrafts,
   sportlinkSlideContextSchema,
   sportlinkSlideDraftSchema,
+  sportlinkSlideTeamContextsMax,
   sportlinkSlideTeamContextsSchema
 } from "../src/sportlink-slide-blueprints";
 
@@ -59,15 +60,21 @@ describe("Sportlink slidecontext", () => {
 });
 
 describe("Sportlink aggregate teamcontexten", () => {
-  it("accepteert maximaal honderd unieke teams", () => {
+  it("accepteert ruim meer dan 25 en maximaal de servergrens unieke teams", () => {
     expect(sportlinkSlideTeamContextsSchema.safeParse(
-      Array.from({ length: 100 }, (_, index) => context(`team-${index}`))
+      Array.from(
+        { length: sportlinkSlideTeamContextsMax },
+        (_, index) => context(`team-${index}`)
+      )
     ).success).toBe(true);
   });
 
-  it("weigert meer dan honderd teams en dubbele team-ID's", () => {
+  it("weigert meer dan de servergrens en dubbele team-ID's", () => {
     expect(sportlinkSlideTeamContextsSchema.safeParse(
-      Array.from({ length: 101 }, (_, index) => context(`team-${index}`))
+      Array.from(
+        { length: sportlinkSlideTeamContextsMax + 1 },
+        (_, index) => context(`team-${index}`)
+      )
     ).success).toBe(false);
     expect(sportlinkSlideTeamContextsSchema.safeParse([
       context("team-1"),
@@ -82,6 +89,41 @@ describe("Sportlink aggregate teamcontexten", () => {
     expect(sportlinkSlideDraftSchema.safeParse(
       draft("sportlink.pool_standings")
     ).success).toBe(false);
+  });
+
+  it("staat één clubbrede slide met geselecteerde of alle teams toe", () => {
+    const base = {
+      blueprintKey: "sportlink.club_schedule_next_7_days" as const,
+      context: context("team-1"),
+      display: {
+        columns: "one" as const,
+        showDressingRoom: false,
+        showField: true,
+        showHomeAway: true,
+        showLogo: true,
+        showReferee: false
+      },
+      name: "Clubprogramma",
+      orientation: "landscape" as const,
+      templateVersionId,
+      themeSelection,
+      title: "Clubprogramma komende 7 dagen"
+    };
+    expect(sportlinkSlideDraftSchema.safeParse({
+      ...base,
+      teamSelection: {
+        mode: "selected",
+        teamContexts: [context("team-1"), context("team-2")]
+      }
+    }).success).toBe(true);
+    expect(sportlinkSlideDraftSchema.safeParse({
+      ...base,
+      teamSelection: { mode: "all", teamContexts: [] }
+    }).success).toBe(true);
+    expect(sportlinkSlideDraftSchema.safeParse({
+      ...base,
+      teamSelection: { mode: "selected", teamContexts: [] }
+    }).success).toBe(false);
   });
 
   it("behoudt legacy drafts zonder teamContexts", () => {

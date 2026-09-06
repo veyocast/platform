@@ -38,9 +38,12 @@ import {
   autoCompetitionContext,
   competitionContextFromOption,
   isArrivalBlueprint,
+  isClubAggregateBlueprint,
   pinnedCompetitionContext,
   replaceArrivalTeamContext,
   replaceArrivalTeamSelection,
+  replaceClubTeamContext,
+  replaceClubTeamSelection,
   switchSportlinkBlueprint,
   type SportlinkVersionEditorTeam
 } from "./sportlink-version-editor-state";
@@ -56,6 +59,7 @@ type EditorMessage = { text: string; tone: "critical" | "success" | "warning" };
 const blueprintKeys = Object.keys(
   sportlinkSlideBlueprints
 ) as SportlinkSlideBlueprintKey[];
+const allTeamsValue = "__all_teams__";
 
 export function SportlinkVersionEditor({
   dataSourceId,
@@ -104,6 +108,7 @@ export function SportlinkVersionEditor({
     [templates]
   );
   const arrival = isArrivalBlueprint(draft.blueprintKey);
+  const clubAggregate = isClubAggregateBlueprint(draft.blueprintKey);
   const themeId = draft.themeSelection.ref.catalog === "v2"
     ? draft.themeSelection.ref.id
     : "fieldflow";
@@ -283,6 +288,12 @@ export function SportlinkVersionEditor({
             onChange={update}
             teams={teams}
           />
+        ) : clubAggregate ? (
+          <ClubTeamEditor
+            draft={draft}
+            onChange={update}
+            teams={teams}
+          />
         ) : (
           <SingleTeamEditor draft={draft} onChange={update} teams={teams} />
         )}
@@ -334,6 +345,11 @@ export function SportlinkVersionEditor({
                   checked={draft.display.showHomeAway}
                   label="Thuis / uit tonen"
                   onChange={(checked) => update({ ...draft, display: { ...draft.display, showHomeAway: checked } })}
+                />
+                <DisplayToggle
+                  checked={draft.display.showLogo}
+                  label="Logo tonen"
+                  onChange={(checked) => update({ ...draft, display: { ...draft.display, showLogo: checked } })}
                 />
                 <DisplayToggle
                   checked={draft.display.showField}
@@ -390,6 +406,162 @@ export function SportlinkVersionEditor({
   );
 }
 
+function ClubTeamEditor({ draft, onChange, teams }: {
+  draft: SportlinkSlideDraft;
+  onChange: (draft: SportlinkSlideDraft) => void;
+  teams: Team[];
+}) {
+  const selection = draft.teamSelection ?? {
+    mode: "all" as const,
+    teamContexts: []
+  };
+  const [focusedTeamId, setFocusedTeamId] = useState(
+    selection.teamContexts[0]?.providerTeamId ??
+      teams[0]?.externalId ??
+      draft.context.providerTeamId
+  );
+  const selectedIds = selection.teamContexts.map((context) =>
+    context.providerTeamId
+  );
+  const currentTeamIds = new Set(teams.map((team) => team.externalId));
+  const unavailableOptions = selection.teamContexts
+    .filter((context) => !currentTeamIds.has(context.providerTeamId))
+    .map((context) => ({
+      description: "Niet meer beschikbaar; deselecteer om uit de slide te verwijderen.",
+      label: `Team ${context.providerTeamId} · niet meer beschikbaar`,
+      value: context.providerTeamId
+    }));
+  const editableTeamIds = selection.mode === "all"
+    ? teams.map((team) => team.externalId)
+    : selectedIds;
+  const effectiveTeamId = editableTeamIds.includes(focusedTeamId)
+    ? focusedTeamId
+    : editableTeamIds[0];
+  const focusedTeam = teams.find((team) =>
+    team.externalId === effectiveTeamId
+  );
+  const focusedContext = focusedTeam
+    ? selection.teamContexts.find((context) =>
+        context.providerTeamId === focusedTeam.externalId
+      ) ?? autoCompetitionContext(focusedTeam.externalId)
+    : null;
+
+  function changeSelection(values: string[]) {
+    if (values.includes(allTeamsValue)) {
+      if (selection.mode === "all" && values.length > 1) {
+        const explicitIds = values.filter((value) => value !== allTeamsValue);
+        onChange(replaceClubTeamSelection(
+          draft,
+          "selected",
+          explicitIds,
+          teams
+        ));
+        setFocusedTeamId(explicitIds[0] ?? focusedTeamId);
+        return;
+      }
+      onChange(replaceClubTeamSelection(draft, "all", [], teams));
+      setFocusedTeamId(teams[0]?.externalId ?? focusedTeamId);
+      return;
+    }
+    onChange(replaceClubTeamSelection(draft, "selected", values, teams));
+    setFocusedTeamId(values[0] ?? focusedTeamId);
+  }
+
+  return (
+    <section className={styles.teamSection}>
+      <header>
+        <div>
+          <span className={styles.kicker}>Clubbrede teamfilter</span>
+          <h3>Teams in deze ene slide</h3>
+          <p>
+            Actieve teams worden samen in dit onderdeel getoond. “Alle teams”
+            volgt ook teams die later via Sportlink worden toegevoegd.
+          </p>
+        </div>
+        <StatusPill
+          label={selection.mode === "all"
+            ? "Alle teams actief"
+            : `${selection.teamContexts.length} actief`}
+          tone="success"
+        />
+      </header>
+
+      <MultiSelectDropdown
+        allowClear={false}
+        allowSelectAll={false}
+        description="Zoek op teamnaam. Dit filter maakt geen losse slides per team."
+        label="Actieve teams"
+        maximumSelected={sportlinkSlideTeamContextsMax + 1}
+        minimumSelected={1}
+        onValueChange={changeSelection}
+        options={[
+          {
+            description: "Ook alle toekomstige Sportlink-teams automatisch actief.",
+            label: "Alle teams",
+            value: allTeamsValue
+          },
+          ...teams.map((team) => ({
+            description: "Actuele competitie als standaard",
+            label: team.name,
+            value: team.externalId
+          })),
+          ...unavailableOptions
+        ]}
+        placeholder="Kies teams of Alle teams"
+        searchLabel="Teams zoeken"
+        searchPlaceholder="Typ een teamnaam"
+        searchable
+        selectionNoun={{ plural: "keuzes", singular: "keuze" }}
+        value={selection.mode === "all" ? [allTeamsValue] : selectedIds}
+      />
+
+      <div className={styles.contextList}>
+        <header>
+          <div>
+            <h3>Competitie per team</h3>
+            <p>
+              Kies één team om de standaard te controleren of alleen voor dat
+              team een competitie, fase of poule vast te zetten.
+            </p>
+          </div>
+        </header>
+        {editableTeamIds.length ? (
+          <Field label="Team bewerken">
+            {({ controlProps }) => (
+              <select
+                {...controlProps}
+                onChange={(event) => setFocusedTeamId(event.target.value)}
+                value={effectiveTeamId}
+              >
+                {editableTeamIds.map((teamId) => (
+                  <option key={teamId} value={teamId}>
+                    {teams.find((team) => team.externalId === teamId)?.name ??
+                      `Team ${teamId}`}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
+        ) : null}
+        {focusedTeam && focusedContext ? (
+          <TeamCompetitionCard
+            context={focusedContext}
+            onChange={(context) => onChange(
+              replaceClubTeamContext(draft, context)
+            )}
+            team={focusedTeam}
+          />
+        ) : (
+          <p className="notice notice--warning">
+            Er zijn geen actuele teams beschikbaar. Synchroniseer Sportlink
+            voordat je deze selectie wijzigt.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function ArrivalTeamEditor({ draft, onChange, teams }: {
   draft: SportlinkSlideDraft;
   onChange: (draft: SportlinkSlideDraft) => void;
@@ -401,9 +573,8 @@ function ArrivalTeamEditor({ draft, onChange, teams }: {
   const unavailableOptions = contexts
     .filter((context) => !currentTeamIds.has(context.providerTeamId))
     .map((context) => ({
-      disabled: true,
-      disabledReason: "Niet meer beschikbaar in de actuele Sportlink-lijst.",
-      label: `Team ${context.providerTeamId}`,
+      description: "Niet meer beschikbaar; deselecteer om uit de slide te verwijderen.",
+      label: `Team ${context.providerTeamId} · niet meer beschikbaar`,
       value: context.providerTeamId
     }));
 
@@ -658,13 +829,25 @@ function VersionPreview({ draft, teams, theme, themeId }: {
   theme: (typeof themeCatalog)[SelectableThemeId];
   themeId: SelectableThemeId;
 }) {
+  const clubAggregate = isClubAggregateBlueprint(draft.blueprintKey);
+  const clubSelection = draft.teamSelection;
   const contexts = isArrivalBlueprint(draft.blueprintKey)
     ? draft.teamContexts ?? [draft.context]
+    : clubAggregate && clubSelection?.mode === "all"
+      ? teams.map((team) => autoCompetitionContext(team.externalId))
+      : clubAggregate && clubSelection
+        ? clubSelection.teamContexts
     : [draft.context];
   const names = contexts.map((context) =>
     teams.find((team) => team.externalId === context.providerTeamId)?.name ??
     `Team ${context.providerTeamId}`
   );
+  const aggregate = isArrivalBlueprint(draft.blueprintKey) || clubAggregate;
+  const contextLabel = clubAggregate && clubSelection?.mode === "all"
+    ? "Alle huidige en toekomstige teams"
+    : aggregate
+      ? `${contexts.length} ${contexts.length === 1 ? "team" : "teams"} gekoppeld`
+      : names[0];
   return (
     <aside className={styles.preview}>
       <header>
@@ -688,15 +871,11 @@ function VersionPreview({ draft, teams, theme, themeId }: {
       >
         <span>SPORTLINK</span>
         <h2>{shortLabel(draft.blueprintKey)}</h2>
-        <p>
-          {isArrivalBlueprint(draft.blueprintKey)
-            ? `${contexts.length} ${contexts.length === 1 ? "team" : "teams"} gekoppeld`
-            : names[0]}
-        </p>
+        <p>{contextLabel}</p>
         <div><i /><i /><i /></div>
         <footer>{themeCatalog[themeId].name}</footer>
       </div>
-      {isArrivalBlueprint(draft.blueprintKey) ? (
+      {aggregate ? (
         <div className={styles.previewTeams}>
           {names.slice(0, 4).map((name, index) => (
             <span key={`${name}:${index}`}>{name}</span>

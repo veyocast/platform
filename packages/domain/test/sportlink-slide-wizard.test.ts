@@ -4,7 +4,8 @@ import {
   buildSportlinkSlideDrafts,
   copySportlinkContextToTeam,
   paginateSportlinkArrivals,
-  resolveSportlinkArrivalCards
+  resolveSportlinkArrivalCards,
+  type SportlinkWizardTeam
 } from "../src/sportlink-slide-wizard";
 
 const templateVersionId = "00000000-0000-4000-8000-000000000001";
@@ -15,7 +16,7 @@ const themeSelection = {
   ref: { catalog: "v2" as const, id: "editorial" as const, version: "1.0.0" },
   support: null
 };
-const team = (id: string) => ({
+const team = (id: string): SportlinkWizardTeam => ({
   context: {
     competitionId: "competition-1", competitionSelectionMode: "pinned" as const,
     phaseId: "phase-1", poolId: "pool-1", providerTeamId: id, seasonId: "2026"
@@ -24,34 +25,125 @@ const team = (id: string) => ({
 });
 
 describe("Sportlink bulk wizard", () => {
-  for (const [teams, types, total] of [[1, 1, 1], [1, 3, 3], [2, 3, 6], [5, 3, 15]] as const) {
-    it(`maakt ${teams} × ${types} = ${total} onafhankelijke concepten`, () => {
-      const result = buildSportlinkSlideDrafts({
-        blueprintKeys: [
-          "sportlink.club_schedule_today",
-          "sportlink.pool_results_previous_7_days",
-          "sportlink.pool_standings"
-        ].slice(0, types) as never,
-        orientation: "portrait",
-        teams: Array.from({ length: teams }, (_, index) => team(`team-${index}`)),
-        templateVersionIdBySlideType: {
-          sport_program: templateVersionId,
-          sport_results: templateVersionId,
-          sport_standing: templateVersionId
-        },
-        themeSelection
-      });
-      expect(result).toHaveLength(total);
-      if (result.length > 1) {
-        result[0]!.context.poolId = "changed";
-        expect(result[1]?.context.poolId).toBe("pool-1");
-      }
+  it("maakt per clubprogramma of -uitslag precies één slide met meer dan 25 teams", () => {
+    const teams = Array.from({ length: 40 }, (_, index) =>
+      team("team-" + index)
+    );
+    const drafts = buildSportlinkSlideDrafts({
+      blueprintKeys: [
+        "sportlink.club_schedule_today",
+        "sportlink.club_schedule_next_7_days",
+        "sportlink.club_results_today",
+        "sportlink.club_results_previous_7_days"
+      ],
+      orientation: "portrait",
+      teams,
+      templateVersionIdBySlideType: {
+        sport_program: templateVersionId,
+        sport_results: templateVersionId
+      },
+      themeSelection
     });
-  }
+
+    expect(drafts).toHaveLength(4);
+    for (const draft of drafts) {
+      expect(draft.teamSelection).toMatchObject({ mode: "selected" });
+      expect(draft.teamSelection?.teamContexts).toHaveLength(40);
+      expect(draft.teamSelection?.teamContexts.map((context) =>
+        context.providerTeamId
+      )).toEqual(teams.map((candidate) =>
+        candidate.context.providerTeamId
+      ));
+      expect(draft.display).toMatchObject({
+        columns: "one",
+        showLogo: true
+      });
+      expect(draft.name).not.toContain("team-0 ·");
+    }
+
+    drafts[0]!.teamSelection!.teamContexts[0]!.poolId = "changed";
+    expect(drafts[1]!.teamSelection?.teamContexts[0]?.poolId).toBe("pool-1");
+  });
+
+  it("bewaart in Alle teams alleen individuele competitie-overrides", () => {
+    const automatic = team("automatic");
+    automatic.context = {
+      competitionId: null,
+      competitionSelectionMode: "auto_current",
+      phaseId: null,
+      poolId: null,
+      providerTeamId: "automatic",
+      seasonId: null
+    };
+    const pinned = team("pinned");
+    const [draft] = buildSportlinkSlideDrafts({
+      blueprintKeys: ["sportlink.club_schedule_next_7_days"],
+      orientation: "landscape",
+      teamSelectionMode: "all",
+      teams: [automatic, pinned],
+      templateVersionIdBySlideType: {
+        sport_program: templateVersionId
+      },
+      themeSelection
+    });
+
+    expect(draft?.teamSelection).toEqual({
+      mode: "all",
+      teamContexts: [pinned.context]
+    });
+    expect(draft?.context).toEqual(pinned.context);
+
+    const follower = team("follower");
+    follower.context = {
+      competitionId: null,
+      competitionSelectionMode: "auto_current",
+      phaseId: null,
+      poolId: null,
+      providerTeamId: "follower",
+      seasonId: null
+    };
+    const [unfilteredDraft] = buildSportlinkSlideDrafts({
+      blueprintKeys: ["sportlink.club_schedule_next_7_days"],
+      orientation: "landscape",
+      teamSelectionMode: "all",
+      teams: [automatic, follower],
+      templateVersionIdBySlideType: { sport_program: templateVersionId },
+      themeSelection
+    });
+    expect(unfilteredDraft?.teamSelection).toEqual({
+      mode: "all",
+      teamContexts: []
+    });
+    expect(unfilteredDraft?.context).toEqual(automatic.context);
+  });
+
+  it("behoudt team × type voor poulecontent", () => {
+    const drafts = buildSportlinkSlideDrafts({
+      blueprintKeys: [
+        "sportlink.pool_schedule_next_7_days",
+        "sportlink.pool_results_previous_7_days",
+        "sportlink.pool_standings"
+      ],
+      orientation: "portrait",
+      teams: [team("a"), team("b"), team("c"), team("d")],
+      templateVersionIdBySlideType: {
+        sport_program: templateVersionId,
+        sport_results: templateVersionId,
+        sport_standing: templateVersionId
+      },
+      themeSelection
+    });
+
+    expect(drafts).toHaveLength(12);
+    expect(drafts.every((draft) => draft.teamSelection === undefined)).toBe(true);
+    drafts[0]!.context.poolId = "changed";
+    expect(drafts[1]?.context.poolId).toBe("pool-1");
+  });
 
   it("kopieert context als gemak zonder concepten aan elkaar te koppelen", () => {
     const drafts = buildSportlinkSlideDrafts({
-      blueprintKeys: ["sportlink.pool_standings"], orientation: "landscape",
+      blueprintKeys: ["sportlink.pool_standings"],
+      orientation: "landscape",
       teams: [team("a"), team("b")],
       templateVersionIdBySlideType: { sport_standing: templateVersionId },
       themeSelection
@@ -63,7 +155,9 @@ describe("Sportlink bulk wizard", () => {
   });
 
   it("bundelt ieder aankomsttype tot één logisch concept met alle teams", () => {
-    const teams = Array.from({ length: 22 }, (_, index) => team(`team-${index}`));
+    const teams = Array.from({ length: 22 }, (_, index) =>
+      team("team-" + index)
+    );
     const drafts = buildSportlinkSlideDrafts({
       blueprintKeys: [
         "sportlink.visitor_arrivals",
@@ -86,12 +180,14 @@ describe("Sportlink bulk wizard", () => {
     for (const draft of drafts) {
       expect(draft.teamContexts).toHaveLength(22);
       expect(draft.teamContexts?.map((context) => context.providerTeamId))
-        .toEqual(teams.map((candidate) => candidate.context.providerTeamId));
+        .toEqual(teams.map((candidate) =>
+          candidate.context.providerTeamId
+        ));
       expect(draft.name).not.toContain("team-0 ·");
     }
   });
 
-  it("behoudt team × type voor gewone slides naast aggregate aankomsten", () => {
+  it("maakt één clubprogramma naast één aggregate aankomstslide", () => {
     const drafts = buildSportlinkSlideDrafts({
       blueprintKeys: [
         "sportlink.club_schedule_today",
@@ -108,11 +204,11 @@ describe("Sportlink bulk wizard", () => {
 
     expect(drafts.filter((draft) =>
       draft.blueprintKey === "sportlink.club_schedule_today"
-    )).toHaveLength(3);
+    )).toHaveLength(1);
     expect(drafts.filter((draft) =>
       draft.blueprintKey === "sportlink.visitor_arrivals"
     )).toHaveLength(1);
-    expect(drafts).toHaveLength(4);
+    expect(drafts).toHaveLength(2);
   });
 
   it("maakt onafhankelijke kopieën van aggregate teamcontexten", () => {
@@ -133,25 +229,36 @@ describe("Sportlink bulk wizard", () => {
     expect(draft!.teamContexts?.[1]?.poolId).toBe("pool-1");
   });
 
-  it("weigert onbegrensde of dubbele aggregate teamselecties", () => {
-    const input = {
-      blueprintKeys: ["sportlink.visitor_arrivals"] as const,
-      orientation: "landscape" as const,
+  it("weigert meer dan 500 of dubbele aggregate teamselecties", () => {
+    const teams = Array.from({ length: 501 }, (_, index) =>
+      team("team-" + index)
+    );
+    expect(() => buildSportlinkSlideDrafts({
+      blueprintKeys: ["sportlink.club_schedule_today"],
+      orientation: "landscape",
+      teams,
+      templateVersionIdBySlideType: {
+        sport_program: templateVersionId
+      },
+      themeSelection
+    })).toThrow();
+    expect(() => buildSportlinkSlideDrafts({
+      blueprintKeys: ["sportlink.visitor_arrivals"],
+      orientation: "landscape",
+      teams,
       templateVersionIdBySlideType: {
         sport_visitor_arrivals: templateVersionId
       },
       themeSelection
-    };
-
-    expect(() => buildSportlinkSlideDrafts({
-      ...input,
-      blueprintKeys: [...input.blueprintKeys],
-      teams: Array.from({ length: 101 }, (_, index) => team(`team-${index}`))
     })).toThrow();
     expect(() => buildSportlinkSlideDrafts({
-      ...input,
-      blueprintKeys: [...input.blueprintKeys],
-      teams: [team("dubbel"), team("dubbel")]
+      blueprintKeys: ["sportlink.club_schedule_today"],
+      orientation: "landscape",
+      teams: [team("dubbel"), team("dubbel")],
+      templateVersionIdBySlideType: {
+        sport_program: templateVersionId
+      },
+      themeSelection
     })).toThrow();
   });
 });

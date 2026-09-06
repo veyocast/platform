@@ -9,7 +9,9 @@ import {
 import {
   useMemo,
   useState,
+  useTransition,
   type Dispatch,
+  type FormEvent,
   type SetStateAction
 } from "react";
 
@@ -41,6 +43,9 @@ import {
   SportlinkArrivalFields,
   type SportlinkMediaOption
 } from "../../../slides/_components/sportlink-arrival-fields";
+import {
+  type SportlinkSlideBatchActionResult
+} from "./actions";
 import styles from "./sportlink-bulk-wizard.module.css";
 
 type TeamContext = {
@@ -64,6 +69,11 @@ type Template = {
   versionId: string;
 };
 
+type BlueprintTeamSelection = {
+  mode: "all" | "selected";
+  teamIds: string[];
+};
+
 const steps = [
   "Inhoud kiezen",
   "Teams selecteren",
@@ -76,6 +86,7 @@ const blueprintKeys = Object.keys(
 ) as SportlinkSlideBlueprintKey[];
 const arrivalKeys = blueprintKeys.filter(isArrivalKey);
 const regularKeys = blueprintKeys.filter((key) => !isArrivalKey(key));
+const allTeamsValue = "__all_teams__";
 
 export function SportlinkBulkWizard({
   action,
@@ -85,7 +96,7 @@ export function SportlinkBulkWizard({
   teams,
   templates
 }: {
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<SportlinkSlideBatchActionResult>;
   defaultThemeSelection: ThemeSelection;
   media: SportlinkMediaOption[];
   sources: Array<{ id: string; name: string }>;
@@ -98,7 +109,7 @@ export function SportlinkBulkWizard({
     SportlinkSlideBlueprintKey[]
   >([]);
   const [teamSelections, setTeamSelections] = useState<
-    Record<string, SportlinkSlideBlueprintKey[]>
+    Partial<Record<SportlinkSlideBlueprintKey, BlueprintTeamSelection>>
   >({});
   const [arrivalSelections, setArrivalSelections] = useState<
     Partial<Record<SportlinkSlideBlueprintKey, string[]>>
@@ -113,15 +124,20 @@ export function SportlinkBulkWizard({
     withThemeId(defaultThemeSelection, "fieldflow")
   );
   const [display, setDisplay] = useState<SportlinkDisplayConfig>({
-    columns: "two",
+    columns: "one",
     showDressingRoom: false,
     showField: true,
     showHomeAway: true,
+    showLogo: true,
     showReferee: false
   });
   const [arrivalConfig, setArrivalConfig] = useState<SportlinkArrivalConfig>(
     () => sportlinkArrivalConfigSchema.parse({})
   );
+  const [creationResult, setCreationResult] = useState<
+    SportlinkSlideBatchActionResult | null
+  >(null);
+  const [isCreating, startCreating] = useTransition();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   const sourceTeams = useMemo(
@@ -143,12 +159,17 @@ export function SportlinkBulkWizard({
 
   const selectedTeamIds = useMemo(() => {
     const ids = new Set<string>();
-    for (const [teamId, keys] of Object.entries(teamSelections)) {
-      if (keys.some((key) => selectedBlueprints.includes(key))) ids.add(teamId);
-    }
-    for (const key of arrivalKeys) {
-      if (!selectedBlueprints.includes(key)) continue;
-      for (const teamId of arrivalSelections[key] ?? []) ids.add(teamId);
+    for (const key of selectedBlueprints) {
+      if (isArrivalKey(key)) {
+        for (const teamId of arrivalSelections[key] ?? []) ids.add(teamId);
+        continue;
+      }
+      const selection = teamSelections[key];
+      if (selection?.mode === "all") {
+        for (const team of sourceTeams) ids.add(team.externalId);
+        continue;
+      }
+      for (const teamId of selection?.teamIds ?? []) ids.add(teamId);
     }
     return sourceTeams
       .filter((team) => ids.has(team.externalId))
@@ -162,18 +183,29 @@ export function SportlinkBulkWizard({
 
   const drafts = useMemo(() => {
     try {
-      const regularDrafts = sourceTeams.flatMap((team) => {
-        const keys = (teamSelections[team.externalId] ?? []).filter(
-          (key) => selectedBlueprints.includes(key) && !isArrivalKey(key)
-        );
-        if (!keys.length) return [];
+      const regularDrafts = selectedBlueprints.flatMap((key) => {
+        if (isArrivalKey(key)) return [];
+        const selection = teamSelections[key];
+        if (!selection) return [];
+        const selected = (
+          selection.mode === "all"
+            ? sourceTeams
+            : selection.teamIds.flatMap((teamId) => {
+                const team = sourceTeamById.get(teamId);
+                return team ? [team] : [];
+              })
+        ).map((team) => ({
+          context: teamContexts[team.externalId] ?? initialContext(team),
+          name: team.name
+        }));
+        if (!selected.length) return [];
         return buildSportlinkSlideDrafts({
-          blueprintKeys: keys,
+          blueprintKeys: [key],
           orientation,
-          teams: [{
-            context: teamContexts[team.externalId] ?? initialContext(team),
-            name: team.name
-          }],
+          teamSelectionMode: isClubwideMatchKey(key)
+            ? selection.mode
+            : undefined,
+          teams: selected,
           templateVersionIdBySlideType: templateMap,
           themeSelection
         });
@@ -227,13 +259,13 @@ export function SportlinkBulkWizard({
   const missingTemplates = requiredSlideTypes.filter(
     (type) => !templateMap[type]
   );
-  const everyPurposeHasTeams = selectedBlueprints.every((key) =>
-    isArrivalKey(key)
-      ? (arrivalSelections[key]?.length ?? 0) > 0
-      : sourceTeams.some((team) =>
-          (teamSelections[team.externalId] ?? []).includes(key)
-        )
-  );
+  const everyPurposeHasTeams = selectedBlueprints.every((key) => {
+    if (isArrivalKey(key)) return (arrivalSelections[key]?.length ?? 0) > 0;
+    const selection = teamSelections[key];
+    return selection?.mode === "all"
+      ? sourceTeams.length > 0
+      : Boolean(selection?.teamIds.length);
+  });
   const batchTooLarge = drafts.length > sportlinkSlideBatchMaxDrafts;
   const canNext = step === 0
     ? Boolean(sourceId && selectedBlueprints.length)
@@ -244,12 +276,14 @@ export function SportlinkBulkWizard({
         : false;
   const payload = { dataSourceId: sourceId, drafts, idempotencyKey };
   const firstDraft = drafts[0] ?? null;
+  const created = creationResult?.ok === true;
 
   function resetSource(nextSourceId: string) {
     setSourceId(nextSourceId);
     setTeamSelections({});
     setArrivalSelections({});
     setTeamContexts({});
+    setCreationResult(null);
   }
 
   function toggleBlueprint(key: SportlinkSlideBlueprintKey) {
@@ -258,6 +292,7 @@ export function SportlinkBulkWizard({
       ? current.filter((candidate) => candidate !== key)
       : [...current, key]
     );
+    setCreationResult(null);
     if (!selected) return;
     if (isArrivalKey(key)) {
       setArrivalSelections((current) => {
@@ -267,12 +302,11 @@ export function SportlinkBulkWizard({
       });
       return;
     }
-    setTeamSelections((current) => Object.fromEntries(
-      Object.entries(current).map(([teamId, keys]) => [
-        teamId,
-        keys.filter((candidate) => candidate !== key)
-      ])
-    ));
+    setTeamSelections((current) => {
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
   }
 
   function updateArrivalSelection(
@@ -284,38 +318,40 @@ export function SportlinkBulkWizard({
       .map((team) => team.externalId)
       .slice(0, sportlinkSlideTeamContextsMax);
     setArrivalSelections((current) => ({ ...current, [key]: validIds }));
-    setTeamContexts((current) => {
-      const next = { ...current };
-      for (const teamId of validIds) {
-        const team = sourceTeamById.get(teamId);
-        if (team && !next[teamId]) next[teamId] = initialContext(team);
-      }
-      return next;
-    });
+    ensureTeamContexts(validIds);
+    setCreationResult(null);
   }
 
   function updateRegularSelection(
     key: SportlinkSlideBlueprintKey,
-    teamIds: string[]
+    values: string[]
   ) {
-    const validIds = new Set(sourceTeams
-      .filter((team) => teamIds.includes(team.externalId))
-      .map((team) => team.externalId));
-    setTeamSelections((current) => {
-      const next = { ...current };
-      for (const team of sourceTeams) {
-        const keys = current[team.externalId] ?? [];
-        const nextKeys = validIds.has(team.externalId)
-          ? [...new Set([...keys, key])]
-          : keys.filter((candidate) => candidate !== key);
-        if (nextKeys.length) next[team.externalId] = nextKeys;
-        else delete next[team.externalId];
-      }
-      return next;
-    });
+    const validIds = sourceTeams
+      .filter((team) => values.includes(team.externalId))
+      .map((team) => team.externalId)
+      .slice(0, sportlinkSlideTeamContextsMax);
+    const current = teamSelections[key];
+    const selectingSpecificFromAll = current?.mode === "all" &&
+      validIds.length > 0;
+    const nextSelection: BlueprintTeamSelection =
+      isClubwideMatchKey(key) &&
+      values.includes(allTeamsValue) &&
+      !selectingSpecificFromAll
+        ? { mode: "all", teamIds: [] }
+        : { mode: "selected", teamIds: validIds };
+    setTeamSelections((all) => ({ ...all, [key]: nextSelection }));
+    ensureTeamContexts(
+      nextSelection.mode === "all"
+        ? sourceTeams.map((team) => team.externalId)
+        : nextSelection.teamIds
+    );
+    setCreationResult(null);
+  }
+
+  function ensureTeamContexts(teamIds: string[]) {
     setTeamContexts((current) => {
       const next = { ...current };
-      for (const teamId of validIds) {
+      for (const teamId of teamIds) {
         const team = sourceTeamById.get(teamId);
         if (team && !next[teamId]) next[teamId] = initialContext(team);
       }
@@ -323,8 +359,34 @@ export function SportlinkBulkWizard({
     });
   }
 
+  function submitBatch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    if (
+      !(submitter instanceof HTMLElement) ||
+      submitter.dataset.createSportlinkBatch !== "true" ||
+      step !== 4 ||
+      !drafts.length ||
+      batchTooLarge ||
+      missingTemplates.length ||
+      isCreating ||
+      created
+    ) return;
+    const formData = new FormData(event.currentTarget);
+    startCreating(async () => {
+      try {
+        setCreationResult(await action(formData));
+      } catch {
+        setCreationResult({
+          message: "De slides konden niet worden gemaakt. Probeer het opnieuw; je selectie is bewaard.",
+          ok: false
+        });
+      }
+    });
+  }
+
   return (
-    <form action={action} className={styles.wizard}>
+    <form className={styles.wizard} onSubmit={submitBatch}>
       <input name="payload" type="hidden" value={JSON.stringify(payload)} />
       <JourneyShell
         actions={(
@@ -343,13 +405,14 @@ export function SportlinkBulkWizard({
         description={(
           <>
             <strong>{drafts.length}</strong>{" "}
-            {drafts.length === 1 ? "gekoppeld onderdeel" : "gekoppelde onderdelen"}
+            {drafts.length === 1 ? "slide" : "slides"}
             {selectedTeamIds.length
-              ? ` voor ${selectedTeamIds.length} ${selectedTeamIds.length === 1 ? "team" : "teams"}`
+              ? " met " + selectedTeamIds.length + " " +
+                (selectedTeamIds.length === 1 ? "team" : "teams")
               : ""}.
           </>
         )}
-        eyebrow={`Studio · stap ${step + 1} van ${steps.length}`}
+        eyebrow={"Studio · stap " + (step + 1) + " van " + steps.length}
         steps={steps.map((label, index) => ({ id: String(index), label }))}
         title={steps[step]}
       >
@@ -378,11 +441,15 @@ export function SportlinkBulkWizard({
               setTeamContexts={setTeamContexts}
               teamContexts={teamContexts}
               teams={selectedTeams}
-              usage={(teamId) => selectedBlueprints.filter((key) =>
-                isArrivalKey(key)
-                  ? (arrivalSelections[key] ?? []).includes(teamId)
-                  : (teamSelections[teamId] ?? []).includes(key)
-              )}
+              usage={(teamId) => selectedBlueprints.filter((key) => {
+                if (isArrivalKey(key)) {
+                  return (arrivalSelections[key] ?? []).includes(teamId);
+                }
+                const selection = teamSelections[key];
+                return selection?.mode === "all"
+                  ? sourceTeamById.has(teamId)
+                  : selection?.teamIds.includes(teamId);
+              })}
             />
           ) : null}
           {step === 3 ? (
@@ -401,6 +468,7 @@ export function SportlinkBulkWizard({
           ) : null}
           {step === 4 ? (
             <ReviewStep
+              creationResult={creationResult}
               drafts={drafts}
               teamName={(teamId) => sourceTeamById.get(teamId)?.name ?? teamId}
               themeSelection={themeSelection}
@@ -414,7 +482,7 @@ export function SportlinkBulkWizard({
           ) : null}
           {batchTooLarge ? (
             <p className="notice notice--critical" role="alert">
-              Deze selectie maakt {drafts.length} onderdelen. Kies maximaal {sportlinkSlideBatchMaxDrafts} onderdelen per batch; welkomstcomponenten tellen elk maar één keer mee.
+              Deze selectie maakt {drafts.length} slides. Kies maximaal {sportlinkSlideBatchMaxDrafts} slides per batch; één clubbrede slide mag tot {sportlinkSlideTeamContextsMax} teams bevatten.
             </p>
           ) : null}
         </section>
@@ -423,12 +491,15 @@ export function SportlinkBulkWizard({
       <footer className={styles.actions}>
         <div>
           <span>Stap {step + 1} van {steps.length}</span>
-          <strong>{drafts.length} {drafts.length === 1 ? "onderdeel" : "onderdelen"}</strong>
+          <strong>{drafts.length} {drafts.length === 1 ? "slide" : "slides"}</strong>
         </div>
         <div>
           <Button
-            disabled={step === 0}
-            onClick={() => setStep((value) => value - 1)}
+            disabled={step === 0 || isCreating || created}
+            onClick={() => {
+              setCreationResult(null);
+              setStep((value) => value - 1);
+            }}
             type="button"
             variant="secondary"
           >
@@ -442,12 +513,19 @@ export function SportlinkBulkWizard({
             >
               Volgende
             </Button>
+          ) : created ? (
+            <Button asChild>
+              <Link href="/dashboard/slides">Naar Slides</Link>
+            </Button>
           ) : (
             <Button
-              disabled={!drafts.length || batchTooLarge || Boolean(missingTemplates.length)}
+              data-create-sportlink-batch="true"
+              disabled={!drafts.length || batchTooLarge || Boolean(missingTemplates.length) || isCreating}
               type="submit"
             >
-              {drafts.length} {drafts.length === 1 ? "onderdeel" : "onderdelen"} aanmaken
+              {isCreating
+                ? "Slides maken…"
+                : drafts.length + " " + (drafts.length === 1 ? "slide" : "slides") + " aanmaken"}
             </Button>
           )}
         </div>
@@ -504,7 +582,7 @@ function PurposeStep({
         toggle={toggle}
       />
       <ChoiceGroup
-        description="Programma’s, uitslagen en standen met een eigen teamcontext."
+        description="Clubprogramma en -uitslagen worden één slide met teamfilter; poules behouden hun eigen teamcontext."
         keys={regularKeys}
         label="Wedstrijden en poules"
         selected={selected}
@@ -567,7 +645,9 @@ function TeamStep({
 }: {
   arrivalSelections: Partial<Record<SportlinkSlideBlueprintKey, string[]>>;
   selectedBlueprints: SportlinkSlideBlueprintKey[];
-  selections: Record<string, SportlinkSlideBlueprintKey[]>;
+  selections: Partial<
+    Record<SportlinkSlideBlueprintKey, BlueprintTeamSelection>
+  >;
   teams: Team[];
   updateArrivalSelection: (
     key: SportlinkSlideBlueprintKey,
@@ -581,26 +661,47 @@ function TeamStep({
   return (
     <>
       <StepHeading
-        description="Kies per onderdeel meerdere teams in één compacte dropdown. Zoek, selecteer alles of verwijder uitzonderingen als tag."
+        description="Kies per onderdeel meerdere teams in één compacte dropdown. Zoek op teamnaam of kies Alle teams voor een clubbrede slide die toekomstige teams automatisch meeneemt."
         eyebrow="Selectie"
         title="Welke teams horen erbij?"
       />
       <div className={styles.teamSelectors}>
         {selectedBlueprints.map((key) => {
           const arrival = isArrivalKey(key);
+          const clubwide = isClubwideMatchKey(key);
+          const selection = selections[key];
           const selectedIds = arrival
             ? arrivalSelections[key] ?? []
-            : teams
-                .filter((team) => (selections[team.externalId] ?? []).includes(key))
-                .map((team) => team.externalId);
-          const maximumSelected = arrival
-            ? sportlinkSlideTeamContextsMax
-            : undefined;
+            : selection?.mode === "all"
+              ? [allTeamsValue]
+              : selection?.teamIds ?? [];
+          const maximumSelected = clubwide
+            ? sportlinkSlideTeamContextsMax + 1
+            : arrival
+              ? sportlinkSlideTeamContextsMax
+              : sportlinkSlideBatchMaxDrafts;
+          const options = [
+            ...(clubwide ? [{
+              description: "Volgt ook teams die later via Sportlink worden toegevoegd.",
+              label: "Alle teams (ook toekomstige)",
+              value: allTeamsValue
+            }] : []),
+            ...teams.map((team) => ({
+              description: clubwide
+                ? "Team opnemen in deze clubbrede slide"
+                : "Actuele competitie als standaard",
+              label: team.name,
+              value: team.externalId
+            }))
+          ];
           return (
             <MultiSelectDropdown
+              allowSelectAll={!clubwide}
               description={arrival
                 ? "Eén gekoppeld welkomstcomponent verdeelt deze teams automatisch over schermpagina’s."
-                : "VeyoCast maakt voor ieder gekozen team één afzonderlijk onderdeel."}
+                : clubwide
+                  ? "Alle keuzes komen als teamfilter in precies één clubbrede slide; er worden geen losse teamslides gemaakt."
+                  : "Voor poulecontent blijft ieder gekozen team een eigen teamcontext."}
               emptyLabel="Er zijn nog geen gesynchroniseerde teams beschikbaar."
               key={key}
               label={shortBlueprintLabel(key)}
@@ -608,19 +709,16 @@ function TeamStep({
               onValueChange={(teamIds) => arrival
                 ? updateArrivalSelection(key, teamIds)
                 : updateRegularSelection(key, teamIds)}
-              options={teams.map((team) => ({
-                description: "Actuele competitie als standaard",
-                label: team.name,
-                value: team.externalId
-              }))}
-              placeholder="Kies minimaal één team"
+              options={options}
+              placeholder="Kies minimaal één team of Alle teams"
               searchLabel="Teams zoeken"
-              searchPlaceholder="Zoek op teamnaam"
+              searchPlaceholder="Typ een teamnaam"
               searchable
-              selectAllLabel={maximumSelected && teams.length > maximumSelected
-                ? `Eerste ${maximumSelected} teams selecteren`
-                : "Alle teams selecteren"}
+              selectAllLabel={teams.length > maximumSelected
+                ? "Eerste " + maximumSelected + " teams selecteren"
+                : "Alle huidige teams selecteren"}
               selectionNoun={{ plural: "teams", singular: "team" }}
+              showSelectedChips={selectedIds.length <= 24}
               value={selectedIds}
             />
           );
@@ -641,67 +739,136 @@ function CompetitionStep({ setTeamContexts, teamContexts, teams, usage }: {
   teams: Team[];
   usage: (teamId: string) => SportlinkSlideBlueprintKey[];
 }) {
+  const [activeTeamId, setActiveTeamId] = useState(teams[0]?.externalId ?? "");
+  const activeTeam = teams.find((team) => team.externalId === activeTeamId) ??
+    teams[0];
+  const pinnedCount = teams.filter((team) =>
+    (teamContexts[team.externalId] ?? initialContext(team))
+      .competitionSelectionMode === "pinned"
+  ).length;
+
+  if (!activeTeam) {
+    return (
+      <>
+        <StepHeading
+          description="Selecteer eerst minimaal één team."
+          eyebrow="Context"
+          title="Geen teams geselecteerd"
+        />
+        <p className="notice notice--warning">
+          Ga terug naar Teams selecteren en voeg een team of Alle teams toe.
+        </p>
+      </>
+    );
+  }
+
+  const context = teamContexts[activeTeam.externalId] ??
+    initialContext(activeTeam);
+  const usedBy = usage(activeTeam.externalId);
+
   return (
     <>
       <StepHeading
-        description="VeyoCast kiest standaard automatisch de actuele competitie. Zet alleen een team vast wanneer je bewust een andere competitie, fase of poule wilt tonen."
+        description="Alle teams volgen standaard automatisch hun actuele competitie. Kies hieronder alleen het team waarvoor je bewust een andere competitie, fase of poule wilt vastzetten."
         eyebrow="Context"
         title="Actuele competitie, tenzij jij afwijkt"
       />
+      <div className={styles.contextToolbar}>
+        <Field label="Team aanpassen">
+          {({ controlProps }) => (
+            <select
+              {...controlProps}
+              onChange={(event) => setActiveTeamId(event.target.value)}
+              value={activeTeam.externalId}
+            >
+              {teams.map((team) => {
+                const teamContext = teamContexts[team.externalId] ??
+                  initialContext(team);
+                return (
+                  <option key={team.externalId} value={team.externalId}>
+                    {team.name}
+                    {teamContext.competitionSelectionMode === "pinned"
+                      ? " · Vastgezet"
+                      : ""}
+                  </option>
+                );
+              })}
+            </select>
+          )}
+        </Field>
+        <div className={styles.contextSummary} role="status">
+          <strong>{teams.length} {teams.length === 1 ? "team" : "teams"}</strong>
+          <span>
+            {pinnedCount
+              ? pinnedCount + " individueel vastgezet"
+              : "Alle teams volgen de actuele competitie"}
+          </span>
+        </div>
+      </div>
       <div className={styles.contextList}>
-        {teams.map((team) => {
-          const context = teamContexts[team.externalId] ?? initialContext(team);
-          const usedBy = usage(team.externalId);
-          return (
-            <section key={team.externalId}>
-              <header>
-                <div><h3>{team.name}</h3><p>{usedBy.map(shortBlueprintLabel).join(" · ")}</p></div>
-                <StatusPill
-                  label={context.competitionSelectionMode === "auto_current" ? "Actuele competitie" : "Vastgezet"}
-                  tone={context.competitionSelectionMode === "auto_current" ? "success" : "info"}
-                />
-              </header>
-              <div className={styles.contextModes}>
-                <label data-selected={context.competitionSelectionMode === "auto_current"}>
-                  <input
-                    checked={context.competitionSelectionMode === "auto_current"}
-                    name={`competition-${team.externalId}`}
-                    onChange={() => setTeamContexts((all) => ({
-                      ...all,
-                      [team.externalId]: initialContext(team)
-                    }))}
-                    type="radio"
-                  />
-                  <span><strong>Actuele competitie</strong><small>Blijft automatisch met Sportlink meebewegen.</small></span>
-                </label>
-                <label data-selected={context.competitionSelectionMode === "pinned"}>
-                  <input
-                    checked={context.competitionSelectionMode === "pinned"}
-                    disabled={!team.contexts.length}
-                    name={`competition-${team.externalId}`}
-                    onChange={() => setTeamContexts((all) => ({
-                      ...all,
-                      [team.externalId]: pinnedContext(team, context)
-                    }))}
-                    type="radio"
-                  />
-                  <span><strong>Zelf kiezen</strong><small>Voor een beker, fase of specifieke poule.</small></span>
-                </label>
-              </div>
-              {context.competitionSelectionMode === "pinned" ? (
-                <ContextSelect
-                  contexts={team.contexts}
-                  onChange={(next) => setTeamContexts((all) => ({
-                    ...all,
-                    [team.externalId]: next
-                  }))}
-                  teamId={team.externalId}
-                  value={context}
-                />
-              ) : null}
-            </section>
-          );
-        })}
+        <section>
+          <header>
+            <div>
+              <h3>{activeTeam.name}</h3>
+              <p>{usedBy.map(shortBlueprintLabel).join(" · ")}</p>
+            </div>
+            <StatusPill
+              label={context.competitionSelectionMode === "auto_current"
+                ? "Actuele competitie"
+                : "Vastgezet"}
+              tone={context.competitionSelectionMode === "auto_current"
+                ? "success"
+                : "info"}
+            />
+          </header>
+          <fieldset className={styles.contextModes}>
+            <legend className="vc-visually-hidden">
+              Competitiekeuze voor {activeTeam.name}
+            </legend>
+            <label data-selected={context.competitionSelectionMode === "auto_current"}>
+              <input
+                checked={context.competitionSelectionMode === "auto_current"}
+                name={"competition-" + activeTeam.externalId}
+                onChange={() => setTeamContexts((all) => ({
+                  ...all,
+                  [activeTeam.externalId]: initialContext(activeTeam)
+                }))}
+                type="radio"
+              />
+              <span>
+                <strong>Actuele competitie</strong>
+                <small>Blijft automatisch met Sportlink meebewegen.</small>
+              </span>
+            </label>
+            <label data-selected={context.competitionSelectionMode === "pinned"}>
+              <input
+                checked={context.competitionSelectionMode === "pinned"}
+                disabled={!activeTeam.contexts.length}
+                name={"competition-" + activeTeam.externalId}
+                onChange={() => setTeamContexts((all) => ({
+                  ...all,
+                  [activeTeam.externalId]: pinnedContext(activeTeam, context)
+                }))}
+                type="radio"
+              />
+              <span>
+                <strong>Zelf kiezen</strong>
+                <small>Voor een beker, fase of specifieke poule.</small>
+              </span>
+            </label>
+          </fieldset>
+          {context.competitionSelectionMode === "pinned" ? (
+            <ContextSelect
+              contexts={activeTeam.contexts}
+              onChange={(next) => setTeamContexts((all) => ({
+                ...all,
+                [activeTeam.externalId]: next
+              }))}
+              teamId={activeTeam.externalId}
+              value={context}
+            />
+          ) : null}
+        </section>
       </div>
     </>
   );
@@ -806,6 +973,7 @@ function ThemeDisplayStep({
         <h3>Kolommen en wedstrijdinformatie</h3>
         <div className={styles.inlineOptions}>
           <label><input checked={display.columns === "two"} onChange={(event) => setDisplay((current) => ({ ...current, columns: event.target.checked ? "two" : "one" }))} type="checkbox" /> Twee kolommen</label>
+          <label><input checked={display.showLogo} onChange={(event) => setDisplay((current) => ({ ...current, showLogo: event.target.checked }))} type="checkbox" /> Logo tonen</label>
           {hasFixtureInfo ? <>
             <label><input checked={display.showHomeAway} onChange={(event) => setDisplay((current) => ({ ...current, showHomeAway: event.target.checked }))} type="checkbox" /> Thuis / uit tonen</label>
             <label><input checked={display.showField} onChange={(event) => setDisplay((current) => ({ ...current, showField: event.target.checked }))} type="checkbox" /> Veld tonen</label>
@@ -828,7 +996,8 @@ function ThemeDisplayStep({
   );
 }
 
-function ReviewStep({ drafts, teamName, themeSelection }: {
+function ReviewStep({ creationResult, drafts, teamName, themeSelection }: {
+  creationResult: SportlinkSlideBatchActionResult | null;
   drafts: SportlinkSlideDraft[];
   teamName: (teamId: string) => string;
   themeSelection: ThemeSelection;
@@ -836,38 +1005,155 @@ function ReviewStep({ drafts, teamName, themeSelection }: {
   return (
     <>
       <StepHeading
-        description="Controleer wat VeyoCast maakt. Een welkomstcomponent kan meerdere schermpagina’s vullen, maar blijft één gekoppeld onderdeel."
+        description="Controleer de complete selectie. VeyoCast maakt pas slides nadat je onderaan expliciet op Aanmaken klikt; deze pagina blijft daarna staan met het echte resultaat."
         eyebrow="Klaarzetten"
-        title={`${drafts.length} ${drafts.length === 1 ? "onderdeel staat" : "onderdelen staan"} klaar`}
+        title={drafts.length + " " +
+          (drafts.length === 1 ? "slide staat" : "slides staan") + " klaar"}
       />
+      {creationResult ? (
+        <p
+          className={creationResult.ok
+            ? "notice notice--success"
+            : "notice notice--critical"}
+          role={creationResult.ok ? "status" : "alert"}
+        >
+          <strong>
+            {creationResult.ok ? "Slides gemaakt." : "Slides niet gemaakt."}
+          </strong>{" "}
+          {creationResult.ok
+            ? creationResult.count + " " +
+              (creationResult.count === 1 ? "slide is" : "slides zijn") +
+              " als concept aangemaakt en staat in de renderwachtrij."
+            : creationResult.message}
+        </p>
+      ) : (
+        <p className="notice" role="note">
+          Er is nog niets aangemaakt. Controleer de regels hieronder en bevestig
+          daarna één keer met de knop Aanmaken.
+        </p>
+      )}
+      {creationResult?.ok ? (
+        <div className={styles.createdList}>
+          {creationResult.slides.map((slide) => (
+            <Link href={"/dashboard/slides/" + slide.slideId} key={slide.slideId}>
+              <span>{slide.name}</span>
+              <StatusPill label="Concept aangemaakt" tone="success" />
+            </Link>
+          ))}
+        </div>
+      ) : null}
       <div className={styles.reviewList}>
         {drafts.map((draft) => {
-          const contexts = draft.teamContexts ?? [draft.context];
-          const aggregate = isArrivalKey(draft.blueprintKey);
+          const clubSelection = draft.teamSelection;
+          const contexts = clubSelection?.teamContexts ??
+            draft.teamContexts ??
+            [draft.context];
+          const arrival = isArrivalKey(draft.blueprintKey);
+          const clubwide = Boolean(clubSelection);
+          const visibleContexts = contexts.slice(0, 8);
+          const pinnedContexts = contexts.filter((context) =>
+            context.competitionSelectionMode === "pinned"
+          );
           return (
             <section key={draftKey(draft)}>
-              <span className={styles.reviewIcon}><Check aria-hidden="true" /></span>
+              <span className={styles.reviewIcon}>
+                <Check aria-hidden="true" />
+              </span>
               <div>
-                <span className={styles.kicker}>{aggregate ? "Gekoppeld welkomstcomponent" : "Dynamische slide"}</span>
+                <span className={styles.kicker}>
+                  {clubwide
+                    ? "Eén clubbrede slide"
+                    : arrival
+                      ? "Gekoppeld welkomstcomponent"
+                      : "Dynamische teamslide"}
+                </span>
                 <h3>{shortBlueprintLabel(draft.blueprintKey)}</h3>
-                <p>{aggregate
-                  ? `${contexts.length} ${contexts.length === 1 ? "team" : "teams"} · automatisch gepagineerd`
-                  : `${teamName(draft.context.providerTeamId)} · ${draft.context.competitionSelectionMode === "auto_current" ? "actuele competitie" : contextLabel(draft.context)}`}
+                <p>
+                  {clubSelection?.mode === "all"
+                    ? "Alle teams, inclusief later toegevoegde Sportlink-teams"
+                    : clubwide
+                      ? contexts.length + " " +
+                        (contexts.length === 1 ? "team" : "teams") +
+                        " als filter in dezelfde slide"
+                      : arrival
+                        ? contexts.length + " " +
+                          (contexts.length === 1 ? "team" : "teams") +
+                          " · automatisch gepagineerd"
+                        : teamName(draft.context.providerTeamId) + " · " +
+                          (draft.context.competitionSelectionMode === "auto_current"
+                            ? "actuele competitie"
+                            : contextLabel(draft.context))}
                 </p>
-                {aggregate ? (
+                {(clubwide || arrival) &&
+                clubSelection?.mode !== "all" ? (
                   <div className={styles.reviewTags}>
-                    {contexts.map((context) => <span key={context.providerTeamId}>{teamName(context.providerTeamId)}</span>)}
+                    {visibleContexts.map((context) => (
+                      <span key={context.providerTeamId}>
+                        {teamName(context.providerTeamId)}
+                      </span>
+                    ))}
+                    {contexts.length > visibleContexts.length ? (
+                      <span>+{contexts.length - visibleContexts.length} meer</span>
+                    ) : null}
                   </div>
                 ) : null}
+                {clubwide || arrival ? (
+                  <details className={styles.reviewDetails}>
+                    <summary>
+                      Competities per team · {clubSelection?.mode === "all"
+                        ? pinnedContexts.length + " " +
+                          (pinnedContexts.length === 1 ? "afwijking" : "afwijkingen")
+                        : contexts.length + " " +
+                          (contexts.length === 1 ? "team" : "teams")}
+                    </summary>
+                    {contexts.length ? (
+                      <ul>
+                        {contexts.map((context) => (
+                          <li key={context.providerTeamId}>
+                            <strong>{teamName(context.providerTeamId)}</strong>
+                            <span>
+                              {context.competitionSelectionMode === "auto_current"
+                                ? "Actuele competitie"
+                                : contextLabel(context)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>Alle teams volgen automatisch hun actuele competitie.</p>
+                    )}
+                  </details>
+                ) : null}
+                <ul className={styles.reviewOptions} aria-label="Weergavekeuzes">
+                  <li>{draft.display.columns === "one" ? "1 kolom" : "2 kolommen"}</li>
+                  <li>Logo {draft.display.showLogo ? "aan" : "uit"}</li>
+                  <li>Thuis / uit {draft.display.showHomeAway ? "aan" : "uit"}</li>
+                  <li>Veld {draft.display.showField ? "aan" : "uit"}</li>
+                  <li>Kleedkamer {draft.display.showDressingRoom ? "aan" : "uit"}</li>
+                  <li>Scheidsrechter {draft.display.showReferee ? "aan" : "uit"}</li>
+                </ul>
               </div>
-              <StatusPill label={themeCatalog[themeId(draft.themeSelection)].name} tone="success" />
+              <StatusPill
+                label={themeCatalog[themeId(draft.themeSelection)].name}
+                tone="success"
+              />
             </section>
           );
         })}
       </div>
       <dl className={styles.reviewSummary}>
-        <div><dt>Standaardthema</dt><dd>{themeCatalog[themeId(themeSelection)].name}</dd></div>
-        <div><dt>Formaat</dt><dd>{[...new Set(drafts.map((draft) => draft.orientation === "portrait" ? "Staand" : "Liggend"))].join(", ")}</dd></div>
+        <div>
+          <dt>Standaardthema</dt>
+          <dd>{themeCatalog[themeId(themeSelection)].name}</dd>
+        </div>
+        <div>
+          <dt>Formaat</dt>
+          <dd>
+            {[...new Set(drafts.map((draft) =>
+              draft.orientation === "portrait" ? "Staand" : "Liggend"
+            ))].join(", ")}
+          </dd>
+        </div>
         <div><dt>Publicatie</dt><dd>Eerst als bewerkbaar concept</dd></div>
       </dl>
     </>
@@ -881,10 +1167,30 @@ function WizardPreview({ draft, orientation, selection }: {
 }) {
   const definition = themeCatalog[themeId(selection)];
   const palette = definition.light;
-  const contextCount = draft?.teamContexts?.length ?? (draft ? 1 : 0);
+  const contextCount = draft?.teamSelection?.teamContexts.length ??
+    draft?.teamContexts?.length ??
+    (draft ? 1 : 0);
+  const contextCopy = !draft
+    ? "Je eerste selectie verschijnt hier."
+    : draft.teamSelection?.mode === "all"
+      ? "Alle teams in één clubbrede slide"
+      : draft.teamSelection
+        ? contextCount + " " + (contextCount === 1 ? "team" : "teams") +
+          " in één clubbrede slide"
+        : isArrivalKey(draft.blueprintKey)
+          ? contextCount + " " + (contextCount === 1 ? "team" : "teams") +
+            " gekoppeld"
+          : draft.name.split(" · ")[0];
+
   return (
     <aside className={styles.preview}>
-      <header><Eye aria-hidden="true" /><span><strong>Live stijlpreview</strong><small>{orientation === "portrait" ? "Staand" : "Liggend"}</small></span></header>
+      <header>
+        <Eye aria-hidden="true" />
+        <span>
+          <strong>Live stijlpreview</strong>
+          <small>{orientation === "portrait" ? "Staand" : "Liggend"}</small>
+        </span>
+      </header>
       <div
         className={styles.previewViewport}
         data-orientation={orientation}
@@ -898,17 +1204,17 @@ function WizardPreview({ draft, orientation, selection }: {
         } as React.CSSProperties}
       >
         <span>SPORTLINK</span>
-        <h2>{draft ? shortBlueprintLabel(draft.blueprintKey) : "Kies je content"}</h2>
-        <p>{draft
-          ? isArrivalKey(draft.blueprintKey)
-            ? `${contextCount} ${contextCount === 1 ? "team" : "teams"} gekoppeld`
-            : draft.name.split(" · ")[0]
-          : "Je eerste selectie verschijnt hier."}
-        </p>
+        <h2>
+          {draft ? shortBlueprintLabel(draft.blueprintKey) : "Kies je content"}
+        </h2>
+        <p>{contextCopy}</p>
         <div><i /><i /><i /></div>
         <footer>{definition.name}</footer>
       </div>
-      <p>Na aanmaken vult VeyoCast dit onderdeel met actuele providerdata. Er worden geen voorbeeldscores verzonnen.</p>
+      <p>
+        Na aanmaken vult VeyoCast deze slide met actuele providerdata. Er worden
+        geen voorbeeldscores verzonnen.
+      </p>
     </aside>
   );
 }
@@ -983,7 +1289,21 @@ function withThemeId(
 }
 
 function draftKey(draft: SportlinkSlideDraft) {
-  return `${draft.blueprintKey}:${draft.teamContexts?.map((context) => context.providerTeamId).join(",") ?? draft.context.providerTeamId}`;
+  const contexts = draft.teamSelection?.teamContexts ?? draft.teamContexts;
+  return [
+    draft.blueprintKey,
+    draft.teamSelection?.mode,
+    contexts?.map((context) => context.providerTeamId).join(",") ??
+      draft.context.providerTeamId
+  ].filter(Boolean).join(":");
+}
+
+function isClubwideMatchKey(key: SportlinkSlideBlueprintKey) {
+  const blueprint = sportlinkSlideBlueprints[key];
+  return blueprint.scope === "club" && (
+    blueprint.slideType === "sport_program" ||
+    blueprint.slideType === "sport_results"
+  );
 }
 
 function isArrivalKey(key: SportlinkSlideBlueprintKey) {

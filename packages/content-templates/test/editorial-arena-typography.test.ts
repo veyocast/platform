@@ -8,30 +8,38 @@ const css = readFileSync(
 );
 
 describe("Editorial Arena pooltypografie", () => {
-  it("vergroot uitslagtekst en scores exact 50%", () => {
+  it("koppelt uitslagtekst en scores aan de schaalbare thematypografie", () => {
+    expect(css).toContain("font-size: var(--vc-theme-sport-result-size, 33.6px);");
+    expect(css).toContain("font-size: var(--vc-theme-sport-score-size, 52.08px);");
+    expect(css).toContain(
+      "font-size: var(--vc-theme-sport-result-size-portrait, 30.24px);"
+    );
+  });
+
+  it("koppelt ook nieuws-, menu- en bodytekst aan de algemene themeschaal", () => {
     expect(css).toMatch(
-      /\[data-slide-type="sport_results"\] \.arenaResultRow \{\s*font-size: 30px;/u
+      /\.arenaNewsGrid h3 \{[^}]*font-size: var\(--vc-theme-font-34, 34px\);/u
     );
     expect(css).toMatch(
-      /\[data-slide-type="sport_results"\] \.arenaResultRow > strong \{\s*font-size: 46\.5px;/u
+      /\.arenaPriceListCopy small \{[^}]*font-size: var\(--vc-theme-font-17, 17px\);/u
     );
     expect(css).toMatch(
-      /\[data-orientation="portrait"\]\[data-slide-type="sport_results"\] \.arenaResultRow \{\s*font-size: 27px;/u
+      /\.arenaArrivalCard p \{[^}]*font-size: var\(--vc-theme-font-25, 25px\);/u
     );
   });
 
   it("vergroot poulestandkop, rijen en context exact 50%", () => {
     expect(css).toMatch(
-      /\[data-slide-type="sport_standing"\] \.arenaStandingHead \{\s*font-size: 21px;/u
+      /\[data-slide-type="sport_standing"\] \.arenaStandingHead \{\s*font-size: var\(--vc-theme-font-21, 21px\);/u
     );
     expect(css).toMatch(
-      /\[data-slide-type="sport_standing"\] \.arenaStandingRows > article \{\s*font-size: 42px;/u
+      /\[data-slide-type="sport_standing"\] \.arenaStandingRows > article \{\s*font-size: var\(--vc-theme-font-42, 42px\);/u
     );
     expect(css).toMatch(
-      /\[data-orientation="portrait"\]\[data-slide-type="sport_standing"\] \.arenaStandingRows > article \{\s*font-size: 37\.5px;/u
+      /\[data-orientation="portrait"\]\[data-slide-type="sport_standing"\] \.arenaStandingRows > article \{\s*font-size: var\(--vc-theme-font-37-5, 37\.5px\);/u
     );
     expect(css).toMatch(
-      /\[data-slide-type="sport_standing"\] \.arenaStandingContext \{\s*font-size: 21px;/u
+      /\[data-slide-type="sport_standing"\] \.arenaStandingContext \{\s*font-size: var\(--vc-theme-font-21, 21px\);/u
     );
   });
 

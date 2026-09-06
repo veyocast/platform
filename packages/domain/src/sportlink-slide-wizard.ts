@@ -1,10 +1,12 @@
 import {
   sportlinkSlideBlueprints,
   sportlinkSlideTeamContextsSchema,
+  sportlinkSlideTeamSelectionSchema,
   type SportlinkArrivalConfig,
   type SportlinkSlideBlueprintKey,
   type SportlinkSlideContext,
   type SportlinkSlideDraft,
+  type SportlinkSlideTeamSelection,
   type ThemeSelection
 } from "@veyocast/contracts";
 
@@ -17,11 +19,35 @@ export function buildSportlinkSlideDrafts(input: {
   blueprintKeys: SportlinkSlideBlueprintKey[];
   orientation: "landscape" | "portrait";
   templateVersionIdBySlideType: Record<string, string>;
+  teamSelectionMode?: "all" | "selected";
   teams: SportlinkWizardTeam[];
   themeSelection: ThemeSelection;
 }): SportlinkSlideDraft[] {
   const aggregatedArrivals = new Set<SportlinkSlideBlueprintKey>();
+  const aggregatedClubSlides = new Set<SportlinkSlideBlueprintKey>();
   return input.teams.flatMap((team) => input.blueprintKeys.flatMap((blueprintKey) => {
+    if (isClubwideMatchBlueprint(blueprintKey)) {
+      if (aggregatedClubSlides.has(blueprintKey)) return [];
+      aggregatedClubSlides.add(blueprintKey);
+      const teamContexts = input.teams.map((candidate) => ({ ...candidate.context }));
+      const selection: SportlinkSlideTeamSelection =
+        sportlinkSlideTeamSelectionSchema.parse({
+          mode: input.teamSelectionMode ?? "selected",
+          teamContexts: input.teamSelectionMode === "all"
+            ? teamContexts.filter((context) =>
+                context.competitionSelectionMode === "pinned"
+              )
+            : teamContexts
+        });
+      const primaryTeam = selection.teamContexts.length
+        ? input.teams.find((candidate) =>
+            candidate.context.providerTeamId === selection.teamContexts[0]?.providerTeamId
+          ) ?? team
+        : team;
+      return [buildDraft(
+        input, blueprintKey, primaryTeam, undefined, selection
+      )];
+    }
     if (!isArrivalBlueprint(blueprintKey)) {
       return [buildDraft(input, blueprintKey, team)];
     }
@@ -38,7 +64,8 @@ function buildDraft(
   input: Parameters<typeof buildSportlinkSlideDrafts>[0],
   blueprintKey: SportlinkSlideBlueprintKey,
   team: SportlinkWizardTeam,
-  teamContexts?: SportlinkSlideContext[]
+  teamContexts?: SportlinkSlideContext[],
+  teamSelection?: SportlinkSlideTeamSelection
 ): SportlinkSlideDraft {
   const blueprint = sportlinkSlideBlueprints[blueprintKey];
   const templateVersionId = input.templateVersionIdBySlideType[blueprint.slideType];
@@ -49,15 +76,19 @@ function buildDraft(
     blueprintKey,
     context: { ...team.context },
     display: {
-      columns: "two",
+      columns: "one",
       showDressingRoom: false,
       showField: true,
       showHomeAway: true,
+      showLogo: true,
       showReferee: false
     },
-    name: (teamContexts ? blueprint.label : `${team.name} · ${blueprint.label}`).slice(0, 120),
+    name: (teamContexts || teamSelection
+      ? blueprint.label
+      : `${team.name} · ${blueprint.label}`).slice(0, 120),
     orientation: input.orientation,
     ...(teamContexts ? { teamContexts } : {}),
+    ...(teamSelection ? { teamSelection } : {}),
     templateVersionId,
     themeSelection: input.themeSelection,
     title: blueprint.label
@@ -67,6 +98,14 @@ function buildDraft(
 function isArrivalBlueprint(blueprintKey: SportlinkSlideBlueprintKey) {
   return blueprintKey === "sportlink.visitor_arrivals" ||
     blueprintKey === "sportlink.referee_arrivals";
+}
+
+function isClubwideMatchBlueprint(blueprintKey: SportlinkSlideBlueprintKey) {
+  const blueprint = sportlinkSlideBlueprints[blueprintKey];
+  return blueprint.scope === "club" && (
+    blueprint.slideType === "sport_program" ||
+    blueprint.slideType === "sport_results"
+  );
 }
 
 export function copySportlinkContextToTeam(

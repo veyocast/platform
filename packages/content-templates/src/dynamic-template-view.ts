@@ -207,6 +207,7 @@ export type DynamicTemplateView = {
     showDressingRoom: boolean;
     showField: boolean;
     showHomeAway: boolean;
+    showLogo: boolean;
     showReferee: boolean;
   };
   templateStyle: "default" | "standing-club-edition";
@@ -458,14 +459,19 @@ function createDynamicTemplateViewInternal(
 
   const sport = readRecord(data.sport);
   const displayConfig = readRecord(sport?.displayConfig);
-  const sportDisplay = displayConfig ? {
-    columns: displayConfig.columns === "one" ? "one" as const : "two" as const,
-    showDressingRoom: displayConfig.showDressingRoom === true,
-    showField: displayConfig.showField !== false,
-    showHomeAway: displayConfig.showHomeAway !== false,
-    showReferee: displayConfig.showReferee === true
-  } : undefined;
-  const mappedItems = readArray(sport?.items)
+  const sportDisplay = {
+    columns: displayConfig?.columns === "two" ? "two" as const : "one" as const,
+    showDressingRoom: displayConfig?.showDressingRoom === true,
+    showField: displayConfig?.showField !== false,
+    showHomeAway: displayConfig?.showHomeAway !== false,
+    showLogo: displayConfig?.showLogo !== false,
+    showReferee: displayConfig?.showReferee === true
+  };
+  const sportItemLimit = payload.slideType === "sport_program" ||
+    payload.slideType === "sport_results"
+    ? 100
+    : 40;
+  const mappedItems = readArray(sport?.items, sportItemLimit)
     .map((item) => toListItem(item, payload))
     .filter((item): item is DynamicTemplateListItem => item !== null);
   const items = payload.slideType === "sport_visitor_arrivals"
@@ -1170,6 +1176,54 @@ function isDynamicSlideType(
   );
 }
 
+export function formatMatchCentrePageCounter(
+  pageIndex: number,
+  pageCount: number
+) {
+  return `${String(pageIndex + 1).padStart(2, "0")} / ${String(pageCount).padStart(2, "0")}`;
+}
+
+export function formatMatchCentreClock(
+  value: Date | number | string,
+  timezone: string
+) {
+  const instant = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(instant.valueOf())) return "—";
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      hour: "2-digit",
+      hour12: false,
+      minute: "2-digit",
+      month: "2-digit",
+      timeZone: timezone,
+      year: "numeric"
+    }).formatToParts(instant);
+    const read = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find((part) => part.type === type)?.value ?? "";
+    return [
+      `${read("day")}-${read("month")}-${read("year")}`,
+      `${read("hour")}:${read("minute")}`
+    ].join(" | ");
+  } catch {
+    return [
+      [
+        padClockPart(instant.getUTCDate()),
+        padClockPart(instant.getUTCMonth() + 1),
+        String(instant.getUTCFullYear())
+      ].join("-"),
+      [
+        padClockPart(instant.getUTCHours()),
+        padClockPart(instant.getUTCMinutes())
+      ].join(":")
+    ].join(" | ");
+  }
+}
+
+function padClockPart(value: number) {
+  return String(value).padStart(2, "0");
+}
+
 export function dynamicTemplatePageDurationMs(
   durationSeconds: number,
   pageCount: number,
@@ -1667,8 +1721,8 @@ function readRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function readArray(value: unknown): unknown[] {
-  return Array.isArray(value) ? value.slice(0, 40) : [];
+function readArray(value: unknown, maximum = 40): unknown[] {
+  return Array.isArray(value) ? value.slice(0, maximum) : [];
 }
 
 function sportTitle(slideType: PlayerDynamicTemplatePayload["slideType"]) {

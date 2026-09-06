@@ -64,6 +64,11 @@ export function mediaViewStateFromSearch(
     }
   }
   if (input.view === "grid") state.view = "grid";
+  if (state.status === "archived") {
+    delete state.collection;
+    delete state.favorite;
+    delete state.usage;
+  }
   return state;
 }
 

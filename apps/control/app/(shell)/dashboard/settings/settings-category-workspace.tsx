@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 const categories = [
   { id: "clubprofiel", label: "Profiel" },
-  { id: "huisstijl", label: "Huisstijl" },
   { id: "tijdzone", label: "Tijd en planning" },
   { id: "afspelen", label: "Afspelen" },
   { id: "schermen", label: "Schermen" },
