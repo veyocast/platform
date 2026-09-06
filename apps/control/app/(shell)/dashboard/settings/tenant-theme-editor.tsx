@@ -8,15 +8,18 @@ import type {
 } from "@veyocast/contracts";
 
 import { EditorialThemeEditor } from "../slides/new/editorial-theme-editor";
+import { PrimaryColorField } from "./primary-color-field";
 
 export function TenantThemeEditor({
   defaults,
   disabled,
+  initialPrimaryColor,
   initialSelection,
   initialTheme
 }: {
   defaults: EditorialThemeConfig;
   disabled: boolean;
+  initialPrimaryColor: string;
   initialSelection: ThemeSelection;
   initialTheme: EditorialThemeConfig;
 }) {
@@ -36,7 +39,7 @@ export function TenantThemeEditor({
   }, [selection, theme]);
 
   return (
-    <div ref={editorRef}>
+    <div className="settings-theme-studio" ref={editorRef}>
       <EditorialThemeEditor
         defaults={defaults}
         disabled={disabled}
@@ -45,6 +48,15 @@ export function TenantThemeEditor({
         selection={selection}
         theme={theme}
       />
+      <details className="settings-theme-compatibility">
+        <summary>Compatibiliteit met oudere slides</summary>
+        <div>
+          <PrimaryColorField
+            defaultValue={initialPrimaryColor}
+            disabled={disabled}
+          />
+        </div>
+      </details>
     </div>
   );
 }

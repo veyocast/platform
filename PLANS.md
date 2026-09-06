@@ -150,6 +150,7 @@ tests en exitcriteria staan in
 | S149 | Centrale tenantstijl en volledige poulevensters | De FieldFlow-kleuren uit afzonderlijke slides naar één tenantbrede Settings-editor verplaatsen en pouleprogramma/-uitslagen voor thuis, uit en overige pouleteams samenstellen |
 | S150 | Rustige bezoekerswelkomstkaart | Bezoekerswelkomstslides vastzetten op twee halve slots, drie relevante regels, een 30%-logoachtergrond en een groot logo op wit in moderne en Static LG-playback |
 | S151 | Gedeelde dropdown-multiselect | Eén zoekbare tokengebaseerde meerkeuzecontrol delen voor compacte team-, scherm-, groep- en rolselecties, zonder operationele preflight-, permission-, volgorde- of tabelbulkcontext te verbergen |
+| S152 | Theme-editor en opslagherstel | De centrale tenantstijl professioneel en responsive maken en opslaan herstellen wanneer historische Menu Studio-content opnieuw wordt gerenderd |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op
@@ -247,6 +248,14 @@ servervalidatie. Publicatie-/rollbackpreflight, permissions, weekdagen,
 productvolgorde en tabelbulk blijven bewust zichtbaar in hun gespecialiseerde
 patroon. Er is geen database-, Player-, provider-, immutable-release- of
 LKG-wijziging. Zie `docs/s151-shared-dropdown-multiselect-evidence.md`.
+S152 herstelt het centrale FieldFlow-instellingenpad zonder opnieuw per-slide
+stijlkeuzes toe te voegen. De editor gebruikt de volledige werkruimte voor een
+taakgerichte light/dark-flow met live voorbeeld, belangrijkste kleuren,
+contrastcontrole en ingeklapte geavanceerde en legacy-opties. Een tenantwijziging
+mag bestaande legacy Menu Studio-documenten opnieuw renderen, maar iedere nieuwe
+of gewijzigde authoringconfiguratie blijft door de database op `fieldflow`
+begrensd. Historische snapshots en releases blijven immutable. Zie
+`docs/s152-theme-editor-recovery-evidence.md`.
 
 ### Programmagates
 

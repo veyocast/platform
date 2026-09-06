@@ -91,3 +91,9 @@ tenantgevalideerd, terwijl de databasegrens directe omzeiling afwijst.
 Nieuwe mediareferenties worden tenant-aware opgeslagen en via de bestaande
 private assetpipeline verzameld. Geen service-role-materiaal, providersecret of
 menselijke Supabase Auth-sessie wordt aan een Player/device gegeven.
+
+Een compatibele rendervalidator mag historische legacy theme-ID's lezen, maar
+is geen authoringgrens. Nieuwe of gewijzigde dynamische configuraties worden
+afzonderlijk vóór insert/update afgedwongen; ook een root-`theme.themeId` mag
+die trigger niet omzeilen. Daardoor kan een tenantstijlwijziging veilig nieuwe
+snapshots queue-en zonder legacy content muteerbaar te maken.

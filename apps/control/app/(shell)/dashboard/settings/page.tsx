@@ -10,7 +10,6 @@ import {
   type TenantThemeAuthority
 } from "../../../../lib/tenant-theme";
 import { PageHeader } from "../../_components/shell-primitives";
-import { PrimaryColorField } from "./primary-color-field";
 import { updateTenantSettings } from "./actions";
 import { SettingsCategoryWorkspace } from "./settings-category-workspace";
 import { SettingsDirtySavebar } from "./settings-dirty-savebar";
@@ -120,22 +119,14 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </div>
           <div className="form-grid">
-            <PrimaryColorField
-              defaultValue={data.primaryColor}
-              disabled={!canManage}
-            />
-            <div className="field field--full">
+            <div className="settings-theme-editor-field">
               <TenantThemeEditor
                 defaults={data.themeAuthority.defaults}
                 disabled={!canManage}
+                initialPrimaryColor={data.primaryColor}
                 initialSelection={data.themeAuthority.selection}
                 initialTheme={data.themeAuthority.theme}
               />
-              <p className="field__help">
-                Alle dynamische slidefamilies gebruiken deze centrale lichte
-                en donkere kleurensets. Een slide kan deze kleuren niet lokaal
-                overschrijven.
-              </p>
             </div>
             <input
               name="themeSettingsRevision"

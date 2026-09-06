@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, type CSSProperties } from "react";
 
 import type {
   EditorialColorTokens,
@@ -102,6 +102,16 @@ export function EditorialThemeEditor({
   const [editingMode, setEditingMode] = useState<ThemeMode>(theme.mode);
   const selected = themeCatalog.fieldflow;
   const editingTokens = theme[editingMode];
+  const contrastChecks = themeContrastChecks(editingTokens);
+  const passingContrastChecks = contrastChecks.filter((check) => check.ready).length;
+  const advancedGroups = editorialThemeTokenGroups
+    .map((group) => ({
+      ...group,
+      tokens: group.tokens.filter((token) => (
+        !quickTokens.some((quickToken) => quickToken === token)
+      ))
+    }))
+    .filter((group) => group.tokens.length > 0);
 
   function updateSelection(next: ThemeSelection, synchronizeAccent = false) {
     const fieldflowSelection: ThemeSelection = {
@@ -192,113 +202,160 @@ export function EditorialThemeEditor({
 
   return (
     <div className={styles.editorialThemeEditor}>
-      <div className={styles.fieldGrid}>
-        <label className={styles.field}>
-          <span>Licht/donker-beleid</span>
-          <select
-            disabled={disabled}
-            name="themeModePolicyKind"
-            onChange={(event) => setPolicy(
-              event.currentTarget.value === "auto"
-                ? "auto"
-                : event.currentTarget.value === "schedule"
-                  ? "schedule"
-                  : "fixed"
-            )}
-            value={selection.modePolicy.kind}
-          >
-            <option value="fixed">Vaste modus</option>
-            <option value="schedule">Volgens tijdschema</option>
-            <option value="auto">Automatisch (07:00–18:00 licht)</option>
-          </select>
-        </label>
+      <header className={styles.editorialThemeHeader}>
+        <div>
+          <span className={styles.editorialThemeEyebrow}>FieldFlow 1.0</span>
+          <h3>Slidehuisstijl</h3>
+          <p>
+            Eén herkenbare lichte en donkere stijl voor alle nieuwe dynamische
+            slides van deze vereniging.
+          </p>
+        </div>
+        <span className={styles.editorialThemeScope}>Tenantbreed</span>
+      </header>
 
-        {selection.modePolicy.kind === "fixed" ? (
-          <label className={styles.field}>
-            <span>Vaste modus</span>
-            <select
+      <div className={styles.editorialThemeOverview}>
+        <section
+          aria-labelledby="theme-behaviour-title"
+          className={styles.editorialThemeControlCard}
+        >
+          <header className={styles.editorialSectionHeader}>
+            <div>
+              <span className={styles.editorialSectionEyebrow}>Gedrag</span>
+              <h4 id="theme-behaviour-title">Weergavemodus</h4>
+              <p>Kies wanneer de lichte of donkere kleurenset actief is.</p>
+            </div>
+          </header>
+          <div className={styles.fieldGrid}>
+            <label className={styles.field}>
+              <span>Omschakelen</span>
+              <select
+                disabled={disabled}
+                name="themeModePolicyKind"
+                onChange={(event) => setPolicy(
+                  event.currentTarget.value === "auto"
+                    ? "auto"
+                    : event.currentTarget.value === "schedule"
+                      ? "schedule"
+                      : "fixed"
+                )}
+                value={selection.modePolicy.kind}
+              >
+                <option value="fixed">Eén vaste modus</option>
+                <option value="schedule">Volgens tijdschema</option>
+                <option value="auto">Automatisch overdag licht</option>
+              </select>
+            </label>
+
+            {selection.modePolicy.kind === "fixed" ? (
+              <label className={styles.field}>
+                <span>Actieve modus</span>
+                <select
+                  disabled={disabled}
+                  name="themeFixedMode"
+                  onChange={(event) => setFixedMode(
+                    event.currentTarget.value === "dark" ? "dark" : "light"
+                  )}
+                  value={selection.modePolicy.mode}
+                >
+                  <option value="light">Licht</option>
+                  <option value="dark">Donker</option>
+                </select>
+              </label>
+            ) : null}
+
+            {selection.modePolicy.kind === "schedule" ? (
+              <>
+                <label className={styles.field}>
+                  <span>Donker vanaf</span>
+                  <input
+                    disabled={disabled}
+                    name="themeScheduleStart"
+                    onChange={(event) => updateSchedule(selection, updateSelection, {
+                      start: event.currentTarget.value
+                    })}
+                    type="time"
+                    value={selection.modePolicy.entries[0]?.start ?? "18:00"}
+                  />
+                </label>
+                <label className={styles.field}>
+                  <span>Licht vanaf</span>
+                  <input
+                    disabled={disabled}
+                    name="themeScheduleEnd"
+                    onChange={(event) => updateSchedule(selection, updateSelection, {
+                      end: event.currentTarget.value
+                    })}
+                    type="time"
+                    value={selection.modePolicy.entries[0]?.end ?? "07:00"}
+                  />
+                </label>
+              </>
+            ) : null}
+
+            <SelectionColorInput
               disabled={disabled}
-              name="themeFixedMode"
-              onChange={(event) => setFixedMode(
-                event.currentTarget.value === "dark" ? "dark" : "light"
-              )}
-              value={selection.modePolicy.mode}
-            >
-              <option value="light">Licht</option>
-              <option value="dark">Donker</option>
-            </select>
-          </label>
-        ) : null}
+              label="Basisaccent"
+              onChange={(value) => updateSelection({
+                ...selection,
+                accent: value
+              }, true)}
+              value={selection.accent ?? defaults.light.accent}
+            />
+            <SelectionColorInput
+              disabled={disabled}
+              label="Steunkleur"
+              onChange={(value) => updateSelection({
+                ...selection,
+                support: value
+              })}
+              value={selection.support ?? selected.supportDefault}
+            />
+          </div>
+        </section>
 
-        {selection.modePolicy.kind === "schedule" ? (
-          <>
-            <label className={styles.field}>
-              <span>Donker vanaf</span>
-              <input
-                disabled={disabled}
-                name="themeScheduleStart"
-                onChange={(event) => updateSchedule(selection, updateSelection, {
-                  start: event.currentTarget.value
-                })}
-                type="time"
-                value={selection.modePolicy.entries[0]?.start ?? "18:00"}
-              />
-            </label>
-            <label className={styles.field}>
-              <span>Licht vanaf</span>
-              <input
-                disabled={disabled}
-                name="themeScheduleEnd"
-                onChange={(event) => updateSchedule(selection, updateSelection, {
-                  end: event.currentTarget.value
-                })}
-                type="time"
-                value={selection.modePolicy.entries[0]?.end ?? "07:00"}
-              />
-            </label>
-          </>
-        ) : null}
-
-        <SelectionColorInput
-          disabled={disabled}
-          label="Basisaccent voor beide modi"
-          onChange={(value) => updateSelection({
-            ...selection,
-            accent: value
-          }, true)}
-          value={selection.accent ?? defaults.light.accent}
-        />
-        <SelectionColorInput
-          disabled={disabled}
-          label="Decoratieve steunkleur"
-          onChange={(value) => updateSelection({
-            ...selection,
-            support: value
-          })}
-          value={selection.support ?? selected.supportDefault}
-        />
+        <ThemePreview mode={editingMode} tokens={editingTokens} />
       </div>
 
-      <fieldset className={styles.editorialTokenGroup}>
-        <legend>
-          Belangrijkste kleuren · {editingMode === "light" ? "licht" : "donker"}
-        </legend>
-        <div className={styles.editorialModeTabs} role="group" aria-label="Kleurmodus kiezen">
-          {(["light", "dark"] as const).map((mode) => (
-            <Button
-              aria-pressed={editingMode === mode}
-              disabled={disabled}
-              key={mode}
-              onClick={() => setEditingMode(mode)}
-              size="sm"
-              type="button"
-              variant={editingMode === mode ? "primary" : "secondary"}
-            >
-              {mode === "light" ? "Lichte kleuren" : "Donkere kleuren"}
-            </Button>
-          ))}
-        </div>
-        <div className={styles.fieldGrid}>
+      <section
+        aria-labelledby="theme-palette-title"
+        className={styles.editorialPaletteCard}
+      >
+        <header className={styles.editorialPaletteHeader}>
+          <div>
+            <span className={styles.editorialSectionEyebrow}>Kleuren</span>
+            <h4 id="theme-palette-title">
+              {editingMode === "light" ? "Licht palet" : "Donker palet"}
+            </h4>
+            <p>Pas de belangrijkste vlakken en tekstkleuren direct aan.</p>
+          </div>
+          <div
+            aria-label="Kleurmodus bewerken"
+            className={styles.editorialModeTabs}
+            role="tablist"
+          >
+            {(["light", "dark"] as const).map((mode) => (
+              <button
+                aria-controls="theme-palette"
+                aria-selected={editingMode === mode}
+                className={styles.editorialModeTab}
+                disabled={disabled}
+                key={mode}
+                onClick={() => setEditingMode(mode)}
+                role="tab"
+                type="button"
+              >
+                {mode === "light" ? "Licht" : "Donker"}
+              </button>
+            ))}
+          </div>
+        </header>
+        <div
+          aria-label={`${editingMode === "light" ? "Licht" : "Donker"} kleurenpalet`}
+          className={styles.editorialQuickTokenGrid}
+          id="theme-palette"
+          role="tabpanel"
+        >
           {quickTokens.map((token) => (
             <TokenInput
               disabled={disabled}
@@ -310,9 +367,28 @@ export function EditorialThemeEditor({
             />
           ))}
         </div>
-      </fieldset>
+      </section>
 
-      <ContrastMatrix tokens={editingTokens} />
+      <section
+        aria-labelledby="theme-contrast-title"
+        className={styles.editorialContrastCard}
+      >
+        <header className={styles.editorialContrastHeader}>
+          <div>
+            <span className={styles.editorialSectionEyebrow}>Leesbaarheid</span>
+            <h4 id="theme-contrast-title">Contrastcontrole</h4>
+            <p>Tekst en QR-codes moeten ook op afstand duidelijk blijven.</p>
+          </div>
+          <span
+            className={styles.editorialContrastSummary}
+            data-valid={passingContrastChecks === contrastChecks.length}
+            role="status"
+          >
+            {passingContrastChecks}/{contrastChecks.length} in orde
+          </span>
+        </header>
+        <ContrastMatrix checks={contrastChecks} />
+      </section>
 
       <div className={styles.editorialThemeActions}>
         <Button
@@ -322,7 +398,7 @@ export function EditorialThemeEditor({
           type="button"
           variant="secondary"
         >
-          {advanced ? "Alle kleuren sluiten" : "Alle kleuren aanpassen"}
+          {advanced ? "Geavanceerde kleuren sluiten" : "Alle kleuren aanpassen"}
         </Button>
         <Button
           disabled={disabled}
@@ -336,40 +412,55 @@ export function EditorialThemeEditor({
       </div>
 
       {advanced ? (
-        <div className={styles.editorialTokenGroups}>
-          {editorialThemeTokenGroups.map((group) => (
-            <fieldset className={styles.editorialTokenGroup} key={group.label}>
-              <legend>{group.label}</legend>
-              <div className={styles.fieldGrid}>
-                {group.tokens.map((token) => (
-                  <div className={styles.editorialTokenField} key={token}>
-                    <TokenInput
-                      disabled={disabled}
-                      label={tokenLabels[token]}
-                      name={`${editingMode}-${token}`}
-                      onChange={(value) => setToken(editingMode, token, value)}
-                      value={editingTokens[token]}
-                    />
-                    <Button
-                      aria-label={`${tokenLabels[token]} resetten`}
-                      disabled={disabled}
-                      onClick={() => setToken(
-                        editingMode,
-                        token,
-                        defaults[editingMode][token]
-                      )}
-                      size="sm"
-                      type="button"
-                      variant="ghost"
-                    >
-                      Reset
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </fieldset>
-          ))}
-        </div>
+        <section
+          aria-labelledby="theme-advanced-title"
+          className={styles.editorialAdvancedPalette}
+        >
+          <header className={styles.editorialSectionHeader}>
+            <div>
+              <span className={styles.editorialSectionEyebrow}>Geavanceerd</span>
+              <h4 id="theme-advanced-title">Semantische kleuren</h4>
+              <p>
+                Verfijn rijen, statussen, randen, foto-overlays en QR-codes voor
+                het {editingMode === "light" ? "lichte" : "donkere"} palet.
+              </p>
+            </div>
+          </header>
+          <div className={styles.editorialTokenGroups}>
+            {advancedGroups.map((group) => (
+              <fieldset className={styles.editorialTokenGroup} key={group.label}>
+                <legend>{group.label}</legend>
+                <div className={styles.editorialAdvancedTokenGrid}>
+                  {group.tokens.map((token) => (
+                    <div className={styles.editorialTokenField} key={token}>
+                      <TokenInput
+                        disabled={disabled}
+                        label={tokenLabels[token]}
+                        name={`${editingMode}-${token}`}
+                        onChange={(value) => setToken(editingMode, token, value)}
+                        value={editingTokens[token]}
+                      />
+                      <Button
+                        aria-label={`${tokenLabels[token]} resetten`}
+                        disabled={disabled}
+                        onClick={() => setToken(
+                          editingMode,
+                          token,
+                          defaults[editingMode][token]
+                        )}
+                        size="sm"
+                        type="button"
+                        variant="ghost"
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </fieldset>
+            ))}
+          </div>
+        </section>
       ) : null}
       <input
         name="themeColorOverridesJson"
@@ -413,9 +504,67 @@ function SelectionColorInput({
           type="color"
           value={colorPickerValue(value)}
         />
-        <output>{value.toUpperCase()}</output>
+        <input
+          aria-label={`${label} als kleurwaarde`}
+          disabled={disabled}
+          maxLength={7}
+          onChange={(event) => onChange(event.currentTarget.value.toUpperCase())}
+          pattern="^#[0-9A-Fa-f]{6}$"
+          required
+          spellCheck={false}
+          type="text"
+          value={value.toUpperCase()}
+        />
       </span>
     </label>
+  );
+}
+
+function ThemePreview({
+  mode,
+  tokens
+}: {
+  mode: ThemeMode;
+  tokens: EditorialColorTokens;
+}) {
+  const previewStyle = {
+    "--theme-preview-accent": tokens.accent,
+    "--theme-preview-canvas": tokens.canvas,
+    "--theme-preview-divider": tokens.divider,
+    "--theme-preview-overlay-end": tokens.imageOverlayEnd,
+    "--theme-preview-overlay-mid": tokens.imageOverlayMid,
+    "--theme-preview-overlay-start": tokens.imageOverlayStart,
+    "--theme-preview-panel": tokens.panel,
+    "--theme-preview-photo-text": tokens.qrSurface,
+    "--theme-preview-surface": tokens.surface,
+    "--theme-preview-text": tokens.text,
+    "--theme-preview-text-muted": tokens.textMuted,
+    "--theme-preview-text-on-accent": tokens.textOnAccent
+  } as CSSProperties;
+
+  return (
+    <aside
+      aria-label={`Live voorbeeld van het ${mode === "light" ? "lichte" : "donkere"} palet`}
+      className={styles.editorialThemePreview}
+      style={previewStyle}
+    >
+      <header>
+        <span>Live voorbeeld</span>
+        <span>{mode === "light" ? "Licht" : "Donker"}</span>
+      </header>
+      <div className={styles.editorialThemePreviewCanvas}>
+        <div className={styles.editorialThemePreviewCopy}>
+          <span>Clubnieuws</span>
+          <h4>Welkom op ons sportpark</h4>
+          <p>De tekst blijft rustig en duidelijk boven beeld en kleurvlakken.</p>
+        </div>
+        <div className={styles.editorialThemePreviewPanel}>
+          <span>Programma</span>
+          <strong>Vandaag · 14:30</strong>
+          <i>Veld 1</i>
+        </div>
+      </div>
+    </aside>
   );
 }
 
@@ -460,7 +609,16 @@ function TokenInput({
   );
 }
 
-function ContrastMatrix({ tokens }: { tokens: EditorialColorTokens }) {
+type ThemeContrastCheck = {
+  background: string;
+  foreground: string;
+  label: string;
+  minimum: number;
+  ratio: number | null;
+  ready: boolean;
+};
+
+function themeContrastChecks(tokens: EditorialColorTokens): ThemeContrastCheck[] {
   const combinations = [
     ["Gewone tekst", tokens.text, tokens.surface, 4.5],
     ["Tekst op accent", tokens.textOnAccent, tokens.accent, 4.5],
@@ -468,19 +626,43 @@ function ContrastMatrix({ tokens }: { tokens: EditorialColorTokens }) {
     ["Tekst op foto", tokens.qrSurface, tokens.imageOverlayStart, 4.5],
     ["QR-code", tokens.qrInk, tokens.qrSurface, 4.5]
   ] as const;
+  return combinations.map(([label, foreground, background, minimum]) => {
+    const ratio = contrastRatio(foreground, background);
+    return {
+      background,
+      foreground,
+      label,
+      minimum,
+      ratio,
+      ready: ratio !== null && ratio >= minimum
+    };
+  });
+}
+
+function ContrastMatrix({ checks }: { checks: ThemeContrastCheck[] }) {
   return (
     <div className={styles.editorialContrastGrid} aria-label="Contrastcontrole">
-      {combinations.map(([label, foreground, background, minimum]) => {
-        const ratio = contrastRatio(foreground, background);
-        const ready = ratio !== null && ratio >= minimum;
-        return (
-          <div data-valid={ready} key={label} role={ready ? "status" : "alert"}>
-            <strong>{label}</strong>
-            <span>{ratio === null ? "Niet berekenbaar" : `${ratio.toFixed(2)}:1`}</span>
-            <small>{ready ? "Voldoet" : `Minimaal ${minimum}:1`}</small>
-          </div>
-        );
-      })}
+      {checks.map((check) => (
+        <div
+          data-valid={check.ready}
+          key={check.label}
+          role={check.ready ? "status" : "alert"}
+          style={{
+            "--theme-contrast-background": check.background,
+            "--theme-contrast-foreground": check.foreground
+          } as CSSProperties}
+        >
+          <span className={styles.editorialContrastSwatch} aria-hidden="true">Aa</span>
+          <span>
+            <strong>{check.label}</strong>
+            <small>
+              {check.ratio === null
+                ? "Niet berekenbaar"
+                : `${check.ratio.toFixed(2)}:1 · ${check.ready ? "Voldoet" : `Minimaal ${check.minimum}:1`}`}
+            </small>
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

@@ -1,8 +1,12 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
+import type { EditorialThemeConfig, ThemeSelection } from "@veyocast/contracts";
 import { editorialArenaLightTokens } from "@veyocast/content-templates/editorial-arena-theme";
 
 import {
+  EditorialThemeEditor,
   colorPickerValue,
   editorialThemeTokenGroups,
   replaceColorChannels
@@ -29,5 +33,33 @@ describe("Centrale tenantkleur-editor", () => {
     expect(replaceColorChannels("rgba(6, 8, 10, 0.84)", "#315cff"))
       .toBe("rgba(49, 92, 255, 0.84)");
     expect(replaceColorChannels("#ffffff", "#315cff")).toBe("#315CFF");
+  });
+
+  it("toont een taakgerichte preview, paletkeuze en volledige formulierpayload", () => {
+    const theme: EditorialThemeConfig = {
+      dark: editorialArenaLightTokens,
+      light: editorialArenaLightTokens,
+      mode: "light"
+    };
+    const selection: ThemeSelection = {
+      accent: "#315CFF",
+      categoryOverrides: [],
+      modePolicy: { kind: "fixed", mode: "light" },
+      ref: { catalog: "v2", id: "fieldflow", version: "1.0.0" },
+      support: null
+    };
+    const html = renderToStaticMarkup(createElement(EditorialThemeEditor, {
+      defaults: theme,
+      disabled: false,
+      onChange: () => undefined,
+      onSelectionChange: () => undefined,
+      selection,
+      theme
+    }));
+
+    expect(html).toContain("Live voorbeeld");
+    expect(html).toContain('role="tablist"');
+    expect(html).toContain('name="themeColorOverridesJson"');
+    expect(html).toContain("Contrastcontrole");
   });
 });

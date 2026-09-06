@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(41);
+select plan(44);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -42,6 +42,24 @@ create temporary table menu_test_state (
   value jsonb
 );
 grant select, insert, update on menu_test_state to authenticated;
+
+create temporary table menu_theme_palette (value jsonb not null);
+insert into menu_theme_palette(value)
+select jsonb_build_object(
+  'fieldflow',
+  jsonb_build_object('dark', tokens, 'light', tokens, 'mode', 'light')
+)
+from (
+  select jsonb_object_agg(token, '#123456') as tokens
+  from unnest(array[
+    'accent', 'accentSoft', 'border', 'borderSoft', 'canvas', 'danger',
+    'divider', 'imageOverlayEnd', 'imageOverlayMid', 'imageOverlayStart',
+    'neutral', 'panel', 'qrInk', 'qrSurface', 'row', 'rowSelected',
+    'shadow', 'success', 'surface', 'surfaceRaised', 'text', 'textFaint',
+    'textMuted', 'textOnAccent', 'textOnSelected', 'warning'
+  ]::text[]) token
+) palette;
+grant select on menu_theme_palette to authenticated;
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000001121', true);
@@ -126,6 +144,35 @@ limit 1;
 insert into menu_test_state(name, id)
 select 'slide', (value ->> 'slideId')::uuid
 from menu_test_state where name = 'created';
+
+reset role;
+
+select lives_ok(
+  $$select private.validate_menu_document_v2(
+    slide.tenant_id,
+    slide.data_source_id,
+    jsonb_set(slide.configuration_json, '{theme,themeId}', '"halo"'::jsonb)
+  )
+  from public.dynamic_slides slide
+  where slide.id = (select id from menu_test_state where name = 'slide')$$,
+  'historical Menu Studio themes remain valid for rendering and refresh'
+);
+
+select throws_ok(
+  $$update public.dynamic_slides
+    set configuration_json = jsonb_set(
+      configuration_json,
+      '{theme,themeId}',
+      '"halo"'::jsonb
+    )
+    where id = (select id from menu_test_state where name = 'slide')$$,
+  '23514',
+  'new or changed dynamic content must use FieldFlow 1.0.0',
+  'new Menu Studio authoring still rejects a legacy root theme'
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000001121', true);
 
 select is(
   (select value ->> 'outcome' from menu_test_state where name = 'created'),
@@ -468,6 +515,50 @@ select throws_ok(
 );
 
 reset role;
+set local session_replication_role = replica;
+update public.dynamic_slides
+set configuration_json = jsonb_set(
+  configuration_json,
+  '{theme,themeId}',
+  '"halo"'::jsonb
+)
+where id = (select id from menu_test_state where name = 'slide');
+set local session_replication_role = origin;
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000001121', true);
+insert into menu_test_state(name, value)
+values (
+  'theme-save',
+  public.update_tenant_theme_settings_v2(
+    '10000000-0000-4000-8000-000000001121',
+    0,
+    'fieldflow',
+    '1.0.0',
+    '{"kind":"fixed","mode":"light"}'::jsonb,
+    (select value from menu_theme_palette),
+    '#315CFF',
+    '#17324D'
+  )
+);
+select ok(
+  (select value ->> 'outcome' = 'applied'
+    and (value ->> 'queuedSnapshotCount')::integer = 1
+   from menu_test_state where name = 'theme-save'),
+  'tenant theme save queues a historical legacy Menu document without failing'
+);
+
+reset role;
+set local session_replication_role = replica;
+update public.dynamic_slides
+set configuration_json = jsonb_set(
+  configuration_json,
+  '{theme,themeId}',
+  '"fieldflow"'::jsonb
+)
+where id = (select id from menu_test_state where name = 'slide');
+set local session_replication_role = origin;
+
 select hasnt_function('public', 'resolve_menu_document_v2', array['uuid', 'uuid', 'jsonb'], 'private resolver is not exposed through the Data API');
 
 select * from finish();
