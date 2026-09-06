@@ -1,7 +1,10 @@
 import {
+  defaultThemeAppearanceSettings,
   tenantThemeColorOverridesSchema,
+  themeAppearanceSettingsSchema,
   themeSelectionSchema,
   type EditorialThemeConfig,
+  type ThemeAppearanceSettings,
   type ThemeMode,
   type ThemeSelection
 } from "@veyocast/contracts";
@@ -14,6 +17,7 @@ import {
 } from "@veyocast/content-templates/theme-catalog";
 
 export type TenantThemeAuthority = {
+  appearance: ThemeAppearanceSettings;
   defaults: EditorialThemeConfig;
   selection: ThemeSelection;
   theme: EditorialThemeConfig;
@@ -36,7 +40,18 @@ export function resolveTenantThemeAuthority(
     ? { ...configuredTheme, mode: defaults.mode }
     : defaults;
 
-  return { defaults, selection, theme };
+  const appearance = themeAppearanceSettingsSchema.safeParse(
+    settings?.appearance_config ?? settings?.theme_appearance
+  );
+
+  return {
+    appearance: appearance.success
+      ? appearance.data
+      : defaultThemeAppearanceSettings,
+    defaults,
+    selection,
+    theme
+  };
 }
 
 export function tenantThemeSelection(

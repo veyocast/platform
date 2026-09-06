@@ -52,6 +52,7 @@ async function loadEditorData(tenantId: string, slideId: string) {
     templateVersionId: version.template_version_id,
     themeSelection: selection.success ? selection.data : platformDefaultThemeSelection,
     teamContexts: configuration?.teamContexts,
+    teamSelection: configuration?.teamSelection,
     title: configuration?.title
   });
   if (!draft.success) return null;

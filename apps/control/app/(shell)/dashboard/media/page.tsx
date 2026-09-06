@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 
 import { Grid2X2, List, Star, Upload, Video } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
 import {
@@ -77,6 +78,7 @@ type MediaAsset = {
   checksumSha256: string | null;
   collectionIds: string[];
   createdAt: string;
+  updatedAt: string;
   draftCount: number;
   fileName: string;
   fileSizeBytes: number;
@@ -113,6 +115,7 @@ type MediaAssetRow = {
   checksum_sha256: string | null;
   collections: unknown;
   created_at: string;
+  updated_at: string;
   draft_usage_count: number | string;
   duration_seconds: number | string | null;
   file_size_bytes: number | string;
@@ -238,12 +241,11 @@ const mediaRules = [
 
 const mediaColumns = [
   { id: "type", label: "Type", defaultVisible: true },
-  { id: "name", label: "Media", defaultVisible: true, required: true },
-  { id: "details", label: "Details", defaultVisible: true },
+  { id: "name", label: "Naam media", defaultVisible: true, required: true },
   { id: "status", label: "Status", defaultVisible: true },
-  { id: "usage", label: "Gebruik", defaultVisible: true },
-  { id: "created", label: "Toegevoegd", defaultVisible: true },
-  { id: "actions", label: "Actie", defaultVisible: true, required: true }
+  { id: "created", label: "Aangemaakt op", defaultVisible: true },
+  { id: "updated", label: "Bijgewerkt op", defaultVisible: true },
+  { id: "actions", label: "Acties", defaultVisible: true, required: true }
 ] as const;
 
 export default async function MediaPage({ searchParams }: MediaPageProps) {
@@ -251,6 +253,21 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
   const publicConfig = getSupabasePublicConfig();
   const params = await searchParams;
   const { fout, succes } = params;
+  if (
+    params.status === "archived" &&
+    (
+      (params.usage && params.usage !== "all") ||
+      (params.collection && params.collection !== "all") ||
+      params.favorite === "true"
+    )
+  ) {
+    redirect(mediaHref(params, {
+      collection: undefined,
+      favorite: undefined,
+      page: "1",
+      usage: undefined
+    }));
+  }
   const page = positiveInteger(params.page, 1);
   const mediaData = await loadMediaData(
     session.tenantId,
@@ -266,6 +283,10 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
       "De bibliotheekverbinding werd onderbroken. Uploaden blijft beschikbaar; probeer de lijst daarna opnieuw te laden."
     );
   });
+  const playlistOptions = await loadMediaPlaylistOptions(
+    session.tenantId,
+    session.isLive
+  );
   const {
     assets,
     activity,
@@ -286,6 +307,10 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.media.write");
+  const canAddToPlaylist =
+    session.isLive &&
+    session.tenantStatus === "active" &&
+    hasCapability(session.capabilities, "tenant.playlist.write");
   const viewingArchive = params.status === "archived";
   const canMutateSelected = canUpload && !viewingArchive;
   const canSaveViews =
@@ -297,6 +322,9 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
     ? assets.find((asset) => asset.id === params.asset) ?? null
     : null;
   const pageCount = Math.max(1, Math.ceil(totalCount / mediaPageSize));
+  if (totalCount > 0 && page > pageCount) {
+    redirect(mediaHref(params, { asset: undefined, page: String(pageCount) }));
+  }
   const uploadCloseHref = mediaHref(params, { upload: undefined });
   const inspectorCloseHref = mediaHref(params, { asset: undefined });
   const currentViewState = mediaViewStateFromSearch(params);
@@ -426,7 +454,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             </>
           )}
           clearHref={`/dashboard/media?view=${params.view === "grid" ? "grid" : "list"}`}
-          defaultOpen={mediaFilterCount(params) > 0}
+          defaultOpen={false}
           primary={(
             <input
               aria-label="Zoeken in media"
@@ -445,7 +473,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           <select aria-label="Filter media op status" className="toolbar-select" defaultValue={params.status ?? "all"} name="status">
             <option value="all">Alle statussen</option><option value="uploading">Uploaden</option><option value="processing">Verwerken</option><option value="ready">Gereed</option><option value="validation_failed">Validatie mislukt</option><option value="quarantined">In quarantaine</option><option value="archived">Archief</option>
           </select>
-          <select aria-label="Filter media op gebruik" className="toolbar-select" defaultValue={params.usage ?? "all"} name="usage">
+          <select aria-label="Filter media op gebruik" className="toolbar-select" defaultValue={viewingArchive ? "all" : params.usage ?? "all"} disabled={viewingArchive} name="usage">
             <option value="all">Elk gebruik</option><option value="used">In gebruik</option><option value="unused">Niet in gebruik</option>
           </select>
           <select aria-label="Filter media op map" className="toolbar-select" defaultValue={params.folder ?? "all"} name="folder">
@@ -457,7 +485,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             <option value="all">Alle tags</option>
             {tags.map((tag) => <option key={tag.id} value={tag.id}>{tag.name}</option>)}
           </select>
-          <select aria-label="Filter media op collectie" className="toolbar-select" defaultValue={params.collection ?? "all"} name="collection">
+          <select aria-label="Filter media op collectie" className="toolbar-select" defaultValue={viewingArchive ? "all" : params.collection ?? "all"} disabled={viewingArchive} name="collection">
             <option value="all">Alle collecties</option>
             {collections.map((collection) => <option key={collection.id} value={collection.id}>{collection.name}</option>)}
           </select>
@@ -468,7 +496,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
             <option value="size">Bestandsgrootte</option>
           </select>
           <label className="check-row">
-            <input defaultChecked={params.favorite === "true"} name="favorite" type="checkbox" value="true" />
+            <input defaultChecked={!viewingArchive && params.favorite === "true"} disabled={viewingArchive} name="favorite" type="checkbox" value="true" />
             <span><Star aria-hidden="true" /> Alleen favorieten</span>
           </label>
           <label className="toolbar-date"><span>Vanaf</span><input defaultValue={params.from} name="from" type="date" /></label>
@@ -515,22 +543,28 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           <MediaLibraryWorkspace
             assets={visibleAssets.map((asset) => ({
               createdLabel: formatDate(asset.createdAt),
+              updatedLabel: formatDateTime(asset.updatedAt),
               details: mediaDetails(asset),
+              draftCount: asset.draftCount,
               fileName: asset.fileName,
               id: asset.id,
               isFavorite: asset.isFavorite,
               kind: asset.kind,
               manageHref: mediaHref(params, { asset: asset.id }),
               previewUrl: asset.previewUrl,
+              releaseCount: asset.releaseCount,
+              screenCount: asset.screenCount,
               status: asset.status,
               statusLabel: statusLabel(asset.status),
               statusTone: mediaStatusTone(asset.status),
               title: asset.title,
               usage: usageSummary(asset)
             }))}
+            canAddToPlaylist={canAddToPlaylist}
             canBulk={canMutateSelected}
             collections={collections}
             folders={folders}
+            playlists={playlistOptions}
             tags={tags}
             view={params.view === "grid" ? "grid" : "list"}
           />
@@ -845,15 +879,16 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
 }
 
 function mediaFilterCount(params: Awaited<MediaPageProps["searchParams"]>) {
+  const archived = params.status === "archived";
   return [
     Boolean(params.q?.trim()),
     Boolean(params.type && params.type !== "all"),
     Boolean(params.status && params.status !== "all"),
-    Boolean(params.usage && params.usage !== "all"),
+    !archived && Boolean(params.usage && params.usage !== "all"),
     Boolean(params.folder && params.folder !== "all"),
     Boolean(params.tag && params.tag !== "all"),
-    Boolean(params.collection && params.collection !== "all"),
-    params.favorite === "true",
+    !archived && Boolean(params.collection && params.collection !== "all"),
+    !archived && params.favorite === "true",
     Boolean(params.sort && params.sort !== "newest"),
     Boolean(params.from),
     Boolean(params.to)
@@ -938,8 +973,7 @@ async function loadMediaData(
   const tagId = uuidOrNull(params.tag);
   const collectionId = uuidOrNull(params.collection);
   const sort = ["name", "newest", "oldest", "size"].includes(params.sort ?? "") ? params.sort! : "newest";
-  const assetRequest = archivedOnly
-    ? supabase.rpc("list_publisher_archived_media_assets_v1", {
+  const archivedAssetParams = {
         p_created_from: dateBoundary(params.from, false),
         p_created_until: dateBoundary(params.to, true),
         p_folder_id: folderId,
@@ -951,8 +985,8 @@ async function loadMediaData(
         p_sort: sort,
         p_tag_id: tagId,
         p_tenant_id: tenantId
-      })
-    : supabase.rpc("list_publisher_media_assets_v2", {
+      };
+  const activeAssetParams = {
         p_collection_id: collectionId,
         p_created_from: dateBoundary(params.from, false),
         p_created_until: dateBoundary(params.to, true),
@@ -968,7 +1002,10 @@ async function loadMediaData(
         p_tag_id: tagId,
         p_tenant_id: tenantId,
         p_usage: usage
-      });
+      };
+  const assetRequest = archivedOnly
+    ? supabase.rpc("list_publisher_archived_media_assets_v1", archivedAssetParams)
+    : supabase.rpc("list_publisher_media_assets_v2", activeAssetParams);
   const [
     assetResult,
     readyResult,
@@ -1019,9 +1056,27 @@ async function loadMediaData(
   }
 
   const rows = (assetResult.data ?? []) as MediaAssetRow[];
+  let totalCount = Number(rows[0]?.total_count ?? 0);
+  if (!rows.length && page > 1) {
+    const countProbe = archivedOnly
+      ? await supabase.rpc("list_publisher_archived_media_assets_v1", {
+          ...archivedAssetParams,
+          p_offset: 0,
+          p_page_size: 1
+        })
+      : await supabase.rpc("list_publisher_media_assets_v2", {
+          ...activeAssetParams,
+          p_offset: 0,
+          p_page_size: 1
+        });
+    if (!countProbe.error) {
+      const first = (countProbe.data?.[0] ?? null) as MediaAssetRow | null;
+      totalCount = Number(first?.total_count ?? 0);
+    }
+  }
   const assetIds = rows.map((asset) => asset.asset_id);
   const variantResult = assetIds.length > 0
-    ? await supabase.from("media_variants").select("asset_id, variant_type, storage_path").eq("tenant_id", tenantId).in("asset_id", assetIds)
+    ? await supabase.from("media_variants").select("asset_id, variant_type, storage_bucket, storage_path").eq("tenant_id", tenantId).in("asset_id", assetIds)
     : { data: [], error: null };
   if (variantResult.error) {
     console.error("Mediavoorbeelden laden mislukt", variantResult.error);
@@ -1032,32 +1087,59 @@ async function loadMediaData(
     });
   }
 
-  const previewPaths = new Map<string, string>();
+  const previewPaths = new Map<string, {
+    bucket: string;
+    path: string;
+    priority: number;
+  }>();
   for (const variant of variantResult.data ?? []) {
     const asset = rows.find((candidate) => candidate.asset_id === variant.asset_id);
-    const preferredType = asset?.kind === "video" ? "player_1080p" : "original";
-    if (variant.variant_type === preferredType) previewPaths.set(variant.asset_id, variant.storage_path);
+    const priority = asset?.kind === "video"
+      ? variant.variant_type === "player_1080p"
+        ? 2
+        : variant.variant_type === "original"
+          ? 1
+          : 0
+      : variant.variant_type === "original"
+        ? 1
+        : 0;
+    if (priority > (previewPaths.get(variant.asset_id)?.priority ?? 0)) {
+      previewPaths.set(variant.asset_id, {
+        bucket: variant.storage_bucket,
+        path: variant.storage_path,
+        priority
+      });
+    }
   }
 
   const signedPreviews = new Map<string, string>();
-  const previewEntries = [...previewPaths.entries()];
-  if (previewEntries.length) {
+  const previewsByBucket = new Map<string, { assetId: string; path: string }[]>();
+  for (const [assetId, preview] of previewPaths) {
+    const entries = previewsByBucket.get(preview.bucket) ?? [];
+    entries.push({ assetId, path: preview.path });
+    previewsByBucket.set(preview.bucket, entries);
+  }
+  await Promise.all([...previewsByBucket].map(async ([bucket, previews]) => {
     const signed = await supabase.storage
-      .from("tenant-media")
-      .createSignedUrls(previewEntries.map(([, path]) => path), 600);
-    if (!signed.error) {
-      const assetByPath = new Map(previewEntries.map(([assetId, path]) => [path, assetId]));
-      for (const preview of signed.data ?? []) {
-        const assetId = assetByPath.get(preview.path ?? "");
-        if (assetId && preview.signedUrl) signedPreviews.set(assetId, preview.signedUrl);
+      .from(bucket)
+      .createSignedUrls(previews.map((preview) => preview.path), 600);
+    if (signed.error) return;
+    const assetIdsByPath = new Map(
+      previews.map((preview) => [preview.path, preview.assetId])
+    );
+    for (const signedPreview of signed.data ?? []) {
+      const assetId = assetIdsByPath.get(signedPreview.path ?? "");
+      if (assetId && signedPreview.signedUrl) {
+        signedPreviews.set(assetId, signedPreview.signedUrl);
       }
     }
-  }
+  }));
 
   const assets: MediaAsset[] = rows.map((asset) => ({
     checksumSha256: asset.checksum_sha256,
     collectionIds: parseRelationIds(asset.collections),
     createdAt: asset.created_at,
+    updatedAt: asset.updated_at,
     draftCount: Number(asset.draft_usage_count),
     durationSeconds: asset.duration_seconds === null ? null : Number(asset.duration_seconds),
     fileName: asset.original_file_name,
@@ -1163,7 +1245,7 @@ async function loadMediaData(
       name: tag.name,
       revision: Number(tag.revision)
     })),
-    totalCount: Number(rows[0]?.total_count ?? 0)
+    totalCount
   };
 }
 
@@ -1343,6 +1425,28 @@ function activityLabel(action: string) {
     "media.upload.intent_created": "Upload voorbereid",
     "media.upload.quarantined": "Media in quarantaine geplaatst"
   }[action] ?? "Media bijgewerkt";
+}
+
+async function loadMediaPlaylistOptions(tenantId: string | null, isLive: boolean) {
+  if (!isLive || !tenantId) return [];
+  const supabase = await createControlSupabaseClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("playlists")
+    .select("id,name,revision")
+    .eq("tenant_id", tenantId)
+    .neq("status", "archived")
+    .order("name")
+    .limit(250);
+  if (error) {
+    console.error("Playlistopties voor media laden mislukt", { code: error.code });
+    return [];
+  }
+  return (data ?? []).map((playlist) => ({
+    id: playlist.id,
+    name: playlist.name,
+    revision: Number(playlist.revision)
+  }));
 }
 
 function mediaHref(

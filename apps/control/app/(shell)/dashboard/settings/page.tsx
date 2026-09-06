@@ -5,15 +5,10 @@ import { Button } from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
-import {
-  resolveTenantThemeAuthority,
-  type TenantThemeAuthority
-} from "../../../../lib/tenant-theme";
 import { PageHeader } from "../../_components/shell-primitives";
 import { updateTenantSettings } from "./actions";
 import { SettingsCategoryWorkspace } from "./settings-category-workspace";
 import { SettingsDirtySavebar } from "./settings-dirty-savebar";
-import { TenantThemeEditor } from "./tenant-theme-editor";
 
 type SettingsPageProps = {
   searchParams: Promise<{ fout?: string; succes?: string }>;
@@ -30,17 +25,8 @@ type TenantSettings = {
   defaultVideoMuted: boolean;
   name: string;
   primaryColor: string;
-  themeAuthority: TenantThemeAuthority;
-  themeSettingsRevision: number;
   timezoneName: string;
 };
-
-const defaultThemeAuthority = resolveTenantThemeAuthority({
-  default_theme_id: "fieldflow",
-  default_theme_version: "1.0.0",
-  theme_mode_policy: { kind: "fixed", mode: "light" },
-  timezone_name: "Europe/Amsterdam"
-}, "2026-01-01T12:00:00.000Z");
 
 const defaults: TenantSettings = {
   defaultBackgroundColor: null,
@@ -53,8 +39,6 @@ const defaults: TenantSettings = {
   defaultVideoMuted: true,
   name: "",
   primaryColor: "#FF5C20",
-  themeAuthority: defaultThemeAuthority,
-  themeSettingsRevision: 0,
   timezoneName: "Europe/Amsterdam"
 };
 
@@ -65,7 +49,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const canManage =
     session.isLive &&
     session.tenantStatus === "active" &&
-    hasCapability(session.capabilities, "tenant.settings.manage");
+    hasCapability(session.capabilities, "tenant.settings.manage") &&
+    !error;
   return (
     <>
       <PageHeader
@@ -91,6 +76,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       <form action={updateTenantSettings} className="settings-workspace-form">
         <input name="defaultBackgroundColor" type="hidden" value={data.defaultBackgroundColor ?? ""} />
         <input name="defaultTransition" type="hidden" value={data.defaultTransition} />
+        <input name="primaryColor" type="hidden" value={data.primaryColor} />
         <SettingsCategoryWorkspace>
         <section className="data-surface" aria-labelledby="club-profile-title" id="clubprofiel">
           <div className="work-panel__header">
@@ -104,35 +90,6 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               <label htmlFor="settings-name">Verenigingsnaam</label>
               <input defaultValue={data.name} disabled={!canManage} id="settings-name" maxLength={120} minLength={2} name="name" required type="text" />
             </div>
-          </div>
-        </section>
-
-        <section className="data-surface" aria-labelledby="brand-settings-title" id="huisstijl">
-          <div className="work-panel__header">
-            <div>
-              <h2 className="work-panel__title" id="brand-settings-title">Huisstijl</h2>
-              <p className="work-panel__meta">
-                Beheer hier één tenantbrede FieldFlow-stijl. Nieuwe snapshots
-                gebruiken deze kleuren; bestaande gepubliceerde releases blijven
-                ongewijzigd totdat je opnieuw publiceert.
-              </p>
-            </div>
-          </div>
-          <div className="form-grid">
-            <div className="settings-theme-editor-field">
-              <TenantThemeEditor
-                defaults={data.themeAuthority.defaults}
-                disabled={!canManage}
-                initialPrimaryColor={data.primaryColor}
-                initialSelection={data.themeAuthority.selection}
-                initialTheme={data.themeAuthority.theme}
-              />
-            </div>
-            <input
-              name="themeSettingsRevision"
-              type="hidden"
-              value={data.themeSettingsRevision}
-            />
           </div>
         </section>
 
@@ -245,7 +202,7 @@ async function loadSettings(tenantId: string | null, isLive: boolean, tenantName
 
   const [tenantResult, settingsResult] = await Promise.all([
     supabase.from("tenants").select("name").eq("id", tenantId).single(),
-    supabase.from("tenant_settings").select("primary_color, default_image_duration_seconds, default_fit_mode, default_video_muted, default_screen_orientation, default_resolution_width, default_resolution_height, timezone_name, default_transition, default_background_color, default_theme_id, default_theme_version, theme_mode_policy, theme_accent, theme_support, theme_color_overrides, theme_settings_revision").eq("tenant_id", tenantId).maybeSingle()
+    supabase.from("tenant_settings").select("primary_color, default_image_duration_seconds, default_fit_mode, default_video_muted, default_screen_orientation, default_resolution_width, default_resolution_height, timezone_name, default_transition, default_background_color").eq("tenant_id", tenantId).maybeSingle()
   ]);
 
   if (tenantResult.error || settingsResult.error) {
@@ -254,7 +211,6 @@ async function loadSettings(tenantId: string | null, isLive: boolean, tenantName
   }
 
   const row = settingsResult.data;
-  const themeAuthority = resolveTenantThemeAuthority(row);
   return {
     data: {
       defaultBackgroundColor: row?.default_background_color ?? defaults.defaultBackgroundColor,
@@ -267,10 +223,6 @@ async function loadSettings(tenantId: string | null, isLive: boolean, tenantName
       defaultVideoMuted: row?.default_video_muted ?? defaults.defaultVideoMuted,
       name: tenantResult.data.name,
       primaryColor: row?.primary_color ?? defaults.primaryColor,
-      themeAuthority,
-      themeSettingsRevision: Number(
-        row?.theme_settings_revision ?? defaults.themeSettingsRevision
-      ),
       timezoneName: row?.timezone_name ?? defaults.timezoneName
     },
     error: null

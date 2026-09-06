@@ -69,6 +69,19 @@ describe("opgeslagen mediaweergaven", () => {
     expect(parseMediaViewStatePayload('{"q":')).toBeNull();
   });
 
+  it("normaliseert filters die het herstelbare archief niet ondersteunt", () => {
+    expect(mediaViewStateFromSearch({
+      collection: "10000000-0000-4000-8000-000000000452",
+      favorite: "true",
+      folder: "root",
+      status: "archived",
+      usage: "used"
+    })).toEqual({
+      folder: "root",
+      status: "archived"
+    });
+  });
+
   it("maakt uitsluitend een lokale Media-route en een stabiele vergelijkingssleutel", () => {
     const state = { q: "Sponsor", sort: "name" as const, view: "grid" as const };
     expect(mediaViewHref(state)).toBe("/dashboard/media?q=Sponsor&sort=name&view=grid");

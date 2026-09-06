@@ -80,8 +80,8 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("legacy-standing-card");
     expect(html).toContain("var pages = templatePages(items, 10)");
     expect(html).toContain('slideType === "sport_results" ? (orientation === "portrait" ? 5 : 6)');
-    expect(html).toContain("font-size:42px");
-    expect(html).toContain("font-size:clamp(34.5px,3vw,58.5px)");
+    expect(html).toContain("font-size:var(--vc-theme-font-42,42px)");
+    expect(html).toContain("font-size:var(--vc-theme-font-57-6,57.6px)");
     expect(html).not.toContain("standing-club-edition");
     expect(html).not.toContain("legacy-standing-header");
     expect(html).toContain("#media-root>img,#media-root>video");
@@ -434,5 +434,44 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(inlineScript).not.toContain("async ");
     expect(inlineScript).not.toContain("await ");
     expect(inlineScript).not.toContain("fetch(");
+  });
+
+  it("houdt Static LG gelijk aan de Match Centre theme- en layoutcontracten", () => {
+    const html = renderLgLegacyHtml();
+
+    expect(html).toContain("templatePageCounter(pageIndex, pageCount)");
+    expect(html).toContain('"strong", "", "MATCHCENTRE"');
+    expect(html).toContain('"b", "matchcentre-page-number"');
+    expect(html).toContain('"matchcentre-clock"');
+    expect(html).toContain("templateMatchCentreClock(");
+    expect(html).toContain("runtime.matchCentreClockTimer");
+    expect(html).toContain(
+      "top:calc(52px + var(--viewport-inset-y,0px))"
+    );
+    expect(html).toContain(
+      "bottom:calc(52px + var(--viewport-inset-y,0px))"
+    );
+    expect(html).toContain(
+      "grid-template-columns:150px 90px 58px minmax(0,1fr) 300px"
+    );
+    expect(html).toContain("@keyframes legacy-match-row-in");
+    expect(html).toContain("displayConfiguration.showLogo !== false");
+    expect(html).toContain("Number(themePresentation.snapshotVersion) === 2");
+    expect(html).toContain('"--vc-club-logo-background"');
+    expect(html).toContain('"--vc-home-logo-background"');
+    expect(html).toContain('"--vc-theme-body-font"');
+    expect(html).toContain('"--vc-sport-row-size"');
+    expect(html).toContain('"themeFontSizes":[');
+    expect(html).toContain('"--vc-theme-font-" + String(themeFontSize)');
+    expect(html).toContain("themeFontSize * baseScale * 1000");
+    expect(html).toContain("font-size:var(--vc-theme-font-34,34px)");
+    expect(html).toContain(
+      "var limit = Number(maximum) === 100 ? 100 : 40"
+    );
+    expect(html).toContain('slideType === "sport_program" || slideType === "sport_results"');
+    expect(html).not.toContain(
+      'footer.appendChild(templateNode("span", "", sourceLabel))'
+    );
+    expect(html).not.toContain("MATCHCENTRE / 03");
   });
 });

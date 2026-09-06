@@ -59,8 +59,8 @@ test("toont de landscape RSS-slide als eigen dynamische HTML/CSS-compositie", as
     520,
     760,
     760,
-    900,
-    1020
+    80,
+    280
   ]);
   expect(motion.every(({ name }) => name !== "none")).toBe(true);
 

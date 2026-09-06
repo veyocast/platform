@@ -60,7 +60,8 @@ export type ControlRouteFamily =
   | "studio"
   | "support"
   | "team"
-  | "templates";
+  | "templates"
+  | "themes";
 
 export type ControlRouteLayout =
   | "journey"
@@ -220,6 +221,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     href: "/dashboard/slides",
     label: "Slides & formats",
     requiredCapability: "tenant.dynamic_slide.read",
+    section: "content",
+    scope: "tenant"
+  },
+  {
+    description: "Kleuren, typografie en logo-oppervlakken per slide-theme",
+    href: "/dashboard/themes",
+    label: "Thema's",
+    requiredCapability: "tenant.settings.read",
     section: "content",
     scope: "tenant"
   },
@@ -489,6 +498,12 @@ export function getControlRoutePresentation(
       family: "slides",
       paths: ["/dashboard/slides"],
       title: "Slides & formats"
+    },
+    {
+      description: "Beheer kleuren, typografie en oppervlakken per slide-theme.",
+      family: "themes",
+      paths: ["/dashboard/themes"],
+      title: "Thema's"
     },
     {
       description: "Verbind en bewaak gegevensbronnen voor actuele clubcontent.",

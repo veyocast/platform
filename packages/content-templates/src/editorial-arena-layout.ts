@@ -41,19 +41,19 @@ export function resolveEditorialArenaViewportFit(
 
 export const editorialArenaFrameMetrics = {
   landscape: {
-    contentBottom: 92,
-    contentTop: 196,
-    footerBottom: 29,
+    contentBottom: 114,
+    contentTop: 216,
+    footerBottom: 52,
     footerHeight: 44,
     frame: 20,
     gutterX: 52,
     headerHeight: 146,
-    headerTop: 32
+    headerTop: 52
   },
   portrait: {
-    contentBottom: 86,
-    contentTop: 202,
-    footerBottom: 24,
+    contentBottom: 98,
+    contentTop: 200,
+    footerBottom: 38,
     footerHeight: 42,
     frame: 20,
     gutterX: 38,
@@ -114,8 +114,8 @@ export function sportRowHeight(
   orientation: PlayerDynamicTemplatePayload["orientation"],
   itemCount: number
 ) {
-  const availableRowsHeight = orientation === "landscape" ? 696 : 1504;
-  const rowGap = orientation === "landscape" ? 8 : 10;
+  const availableRowsHeight = orientation === "landscape" ? 750 : 1622;
+  const rowGap = 12;
   const minRowHeight = orientation === "landscape" ? 58 : 62;
   const maxRowHeight = orientation === "landscape" ? 116 : 132;
   const rows = Math.max(1, sportRowsPerColumn(orientation, itemCount));

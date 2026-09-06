@@ -498,31 +498,33 @@ test("Publicaties keeps immutable history semantics readable on mobile", async (
   }).toPass({ timeout: 15_000 });
 });
 
-test("settings route exposes real defaults with safe permission state", async ({ page }) => {
+test("settings and theme routes expose real defaults with safe permission state", async ({ page }) => {
   await page.goto("/dashboard/settings");
 
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Instellingen" })).toBeVisible();
   await expect(page.getByLabel("Verenigingsnaam")).toBeVisible();
   await expect(page.locator(".settings-category-workspace")).toHaveAttribute("data-hydrated", "true");
+
+  await page.goto("/dashboard/themes/fieldflow");
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "FieldFlow" })).toBeVisible();
   const themePreview = page.getByLabel(/Live voorbeeld van het .* palet/);
-  await expect(async () => {
-    if (!(await themePreview.isVisible())) {
-      await page.getByRole("button", { name: "Huisstijl", exact: true }).click();
-    }
-    await expect(themePreview).toBeVisible();
-  }).toPass({ timeout: 20_000 });
+  await expect(themePreview).toBeVisible();
   await expect(page.getByRole("heading", { name: "Slidehuisstijl" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Licht" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Donker" })).toBeVisible();
-  await page.getByText("Compatibiliteit met oudere slides", { exact: true }).click();
-  const primaryColor = page.getByLabel("Primaire kleur", { exact: true });
-  await expect(primaryColor).toBeVisible();
-  await expect(page.getByLabel("Primaire kleur kiezen")).toBeVisible();
+  await expect(page.getByLabel("Achtergrond clublogo")).toBeVisible();
+  await expect(page.getByLabel("Achtergrond thuislogo")).toBeVisible();
+  await expect(page.getByLabel("Slideachtergrond als kleurwaarde")).toBeVisible();
+  await expect(page.getByLabel("Slideachtergrond kiezen")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Typografie en logo-oppervlakken" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toHaveCount(0);
   await expect(async () => {
     expect(await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth
     )).toBe(true);
   }).toPass();
+
+  await page.goto("/dashboard/settings");
   await expect(async () => {
     if (!(await page.getByLabel("Afbeeldingsduur in seconden").isVisible())) {
       await page.getByRole("button", { name: "Afspelen", exact: true }).click();

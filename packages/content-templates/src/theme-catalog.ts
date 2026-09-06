@@ -1,5 +1,6 @@
 import {
   authorableThemeIds,
+  defaultThemeAppearanceSettings,
   themeManifestSchema,
   themePresentationSnapshotSchema,
   themeSelectionSchema,
@@ -29,6 +30,17 @@ export const themeCatalogOptions = authorableThemeIds.map((id) => ({
   name: themeCatalog[id].name,
   version: themeCatalog[id].version
 }));
+
+export const themeBaseFontSizes = [
+  10, 11, 11.232, 12, 13, 13.5, 14, 15, 16, 16.5, 17, 18, 18.24,
+  19, 19.2, 19.5, 19.968, 20, 20.16, 21, 21.12, 22, 23, 23.04,
+  23.76, 24, 25, 25.92, 26, 26.88, 27, 27.84, 28, 28.5, 28.8,
+  30, 30.4, 30.72, 31.68, 32, 33, 34, 34.5, 35.2, 36, 37.5, 37.8,
+  38.4, 39, 40.32, 41.6, 42, 42.24, 43.2, 45.12, 46, 46.08, 48,
+  52, 54, 57.6, 57.996, 58, 59.904, 60, 64, 65.28, 67.2, 68, 72,
+  75.6, 76, 80, 82, 84, 90, 92, 96, 100, 111.36, 112, 124.2, 126, 138,
+  140, 150, 151.2, 180, 268.8, 270
+] as const;
 
 export const platformDefaultThemeSelection: ThemeSelection = {
   accent: null,
@@ -116,13 +128,26 @@ export function themeCssVariables(
   const selection = snapshot.selection;
   const theme = resolveThemeDefinition(selection);
   const palette = theme[snapshot.resolvedMode.mode];
+  const appearance = snapshot.snapshotVersion === 2
+    ? snapshot.appearance
+    : defaultThemeAppearanceSettings;
+  const baseScale = appearance.typography.baseScale;
+  const sportScale = baseScale * appearance.typography.sportScale;
   return {
+    ...themeBaseFontVariables(baseScale),
     "--vc-theme-accent": selection.accent ?? theme.accentDefault,
     "--vc-theme-accent-ink": palette.canvas,
-    "--vc-theme-body-font": quoteFont(themeManifest.fontAssets[theme.bodyFontRef]!.family),
+    "--vc-club-logo-background": appearance.surfaces.clubLogoBackground,
+    "--vc-home-logo-background": appearance.surfaces.homeLogoBackground,
+    "--vc-theme-base-scale": baseScale,
+    "--vc-theme-body-font": quoteFont(
+      themeManifest.fontAssets[appearance.typography.bodyFontRef]!.family
+    ),
     "--vc-theme-canvas": palette.canvas,
     "--vc-theme-density": theme.densityScale,
-    "--vc-theme-display-font": quoteFont(themeManifest.fontAssets[theme.displayFontRef]!.family),
+    "--vc-theme-display-font": quoteFont(
+      themeManifest.fontAssets[appearance.typography.displayFontRef]!.family
+    ),
     "--vc-theme-display-letter-spacing": `${theme.displayLetterSpacingEm}em`,
     "--vc-theme-display-weight": theme.displayWeight,
     "--vc-theme-line": palette.line,
@@ -132,7 +157,15 @@ export function themeCssVariables(
     "--vc-theme-support": selection.support ?? theme.supportDefault,
     "--vc-theme-surface": palette.surface,
     "--vc-theme-surface-alt": palette.surfaceAlt,
-    "--vc-theme-text": palette.text
+    "--vc-theme-text": palette.text,
+    "--vc-theme-title-size": cssPixels(64 * baseScale),
+    "--vc-theme-title-size-portrait": cssPixels(49 * baseScale),
+    "--vc-theme-sport-row-size": cssPixels(20 * sportScale),
+    "--vc-theme-sport-row-size-portrait": cssPixels(18 * sportScale),
+    "--vc-theme-sport-result-size": cssPixels(30 * sportScale),
+    "--vc-theme-sport-result-size-portrait": cssPixels(27 * sportScale),
+    "--vc-theme-sport-score-size": cssPixels(46.5 * sportScale),
+    "--vc-theme-sport-scale": appearance.typography.sportScale
   };
 }
 
@@ -236,6 +269,21 @@ function inClockRange(value: number, start: number, end: number) {
 
 function quoteFont(value: string) {
   return `"${value.replaceAll('"', "")}"`;
+}
+
+function themeBaseFontVariables(baseScale: number) {
+  return Object.fromEntries(themeBaseFontSizes.map((fontSize) => [
+    `--vc-theme-font-${fontSizeToken(fontSize)}`,
+    cssPixels(fontSize * baseScale)
+  ]));
+}
+
+function fontSizeToken(fontSize: number) {
+  return String(fontSize).replace(".", "-");
+}
+
+function cssPixels(value: number) {
+  return `${Math.round(value * 1_000) / 1_000}px`;
 }
 
 function hexAlpha(hex: string, alpha: number) {

@@ -40,6 +40,7 @@ import {
   MonitorSmartphone,
   MoreHorizontal,
   PackageCheck,
+  Palette,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
@@ -110,6 +111,7 @@ const navigationIcons: Record<string, LucideIcon> = {
   Renderformats: FileStack,
   Databronnen: ServerCog,
   "Slides & formats": Layers3,
+  "Thema's": Palette,
   "Sponsor Hub": Handshake,
   Engage: Sparkles,
   Klanten: Building2

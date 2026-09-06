@@ -37,6 +37,19 @@ export const themeMotionStates = [
   "EXITING"
 ] as const;
 
+export const curatedThemeFontRefs = [
+  "vc-inter-v1",
+  "vc-newsreader-v1",
+  "vc-space-grotesk-v1",
+  "vc-fraunces-v1",
+  "vc-barlow-condensed-v1",
+  "vc-source-serif-4-v1",
+  "vc-manrope-v1",
+  "vc-cormorant-garamond-v1",
+  "vc-ibm-plex-mono-v1",
+  "vc-anton-v1"
+] as const;
+
 export const selectableThemeIdSchema = z.enum(selectableThemeIds);
 export const authorableThemeIdSchema = z.enum(authorableThemeIds);
 export const themeModeSchema = z.enum(themeModes);
@@ -107,12 +120,54 @@ export const themeSelectionSchema = z.object({
   support: cssHexSchema.nullable().default(null)
 }).strict();
 
-export const themePresentationSnapshotSchema = z.object({
+export const themeAppearanceSettingsSchema = z.object({
+  schemaVersion: z.literal(1),
+  surfaces: z.object({
+    clubLogoBackground: cssHexSchema,
+    homeLogoBackground: cssHexSchema
+  }).strict(),
+  typography: z.object({
+    baseScale: z.number().min(0.85).max(1.25),
+    bodyFontRef: z.enum(curatedThemeFontRefs),
+    displayFontRef: z.enum(curatedThemeFontRefs),
+    sportScale: z.number().min(0.9).max(1.4)
+  }).strict()
+}).strict();
+
+export const defaultThemeAppearanceSettings = {
+  schemaVersion: 1,
+  surfaces: {
+    clubLogoBackground: "#E7F5EE",
+    homeLogoBackground: "#FFFFFF"
+  },
+  typography: {
+    baseScale: 1,
+    bodyFontRef: "vc-inter-v1",
+    displayFontRef: "vc-manrope-v1",
+    sportScale: 1.12
+  }
+} as const satisfies z.infer<typeof themeAppearanceSettingsSchema>;
+
+const themePresentationSnapshotV1Schema = z.object({
   catalogVersion: semverSchema,
   resolvedMode: resolvedModeSnapshotSchema,
   selection: themeSelectionSchema,
   snapshotVersion: z.literal(1)
 }).strict();
+
+const themePresentationSnapshotV2Schema = z.object({
+  appearance: themeAppearanceSettingsSchema,
+  catalogVersion: semverSchema,
+  resolvedMode: resolvedModeSnapshotSchema,
+  selection: themeSelectionSchema,
+  settingsRevision: z.number().int().min(0),
+  snapshotVersion: z.literal(2)
+}).strict();
+
+export const themePresentationSnapshotSchema = z.discriminatedUnion(
+  "snapshotVersion",
+  [themePresentationSnapshotV1Schema, themePresentationSnapshotV2Schema]
+);
 
 const manifestFontAssetSchema = z.object({
   family: z.string().trim().min(1),
@@ -243,6 +298,7 @@ export type AuthorableThemeId = z.infer<typeof authorableThemeIdSchema>;
 export type ResolvedModeSnapshot = z.infer<typeof resolvedModeSnapshotSchema>;
 export type SelectableThemeId = z.infer<typeof selectableThemeIdSchema>;
 export type SourceCategoryIdentity = z.infer<typeof sourceCategoryIdentitySchema>;
+export type ThemeAppearanceSettings = z.infer<typeof themeAppearanceSettingsSchema>;
 export type ThemeCategoryOverride = z.infer<typeof themeCategoryOverrideSchema>;
 export type ThemeManifest = z.infer<typeof themeManifestSchema>;
 export type ThemeManifestTheme = z.infer<typeof themeManifestThemeSchema>;

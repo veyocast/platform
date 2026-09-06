@@ -42,6 +42,7 @@ export async function saveSportlinkSlideVersion(input: {
     blueprintKey: draft.data.blueprintKey,
     context: draft.data.context,
     teamContexts: draft.data.teamContexts,
+    teamSelection: draft.data.teamSelection,
     display: draft.data.display,
     editorial: {
       ...(record(existingConfiguration.editorial) ?? {}),

@@ -222,11 +222,13 @@ const fieldFlowSportFamilies: Record<FieldFlowSportSlideType, string> = {
 
 async function mockFieldFlowSportLegacyApis(
   page: Page,
-  slideType: FieldFlowSportSlideType,
+  slideType: FieldFlowSportSlideType | "sport_program",
   orientation: "landscape" | "portrait",
-  mode: "dark" | "light"
+  mode: "dark" | "light",
+  itemCount = 8
 ) {
   const imageAssetId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+  const family = slideType === "sport_program" ? "fixture-list" : fieldFlowSportFamilies[slideType];
   await page.route("**/api/player/installation", (route) => route.fulfill({
     contentType: "application/json",
     body: JSON.stringify({ bound: true, installationCredential, ok: true })
@@ -242,26 +244,34 @@ async function mockFieldFlowSportLegacyApis(
       id: `fieldflow-${slideType}`,
       kind: "image",
       mimeType: "image/svg+xml",
-      title: `FieldFlow ${fieldFlowSportFamilies[slideType]}`,
+      title: `FieldFlow ${family}`,
       url: legacyImagePath
     });
-    const items = Array.from({ length: 8 }, (_, index) => ({
+    const items = Array.from({ length: itemCount }, (_, index) => ({
+      awayTeam: slideType === "sport_program" ? `Uit ${index + 1}` : undefined,
+      date: slideType === "sport_program" ? "12-09-2026" : undefined,
+      field: slideType === "sport_program" ? `Veld ${index + 1}` : undefined,
+      homeTeam: slideType === "sport_program" ? `Thuis ${index + 1}` : undefined,
       id: `${slideType}-${index + 1}`,
+      time: slideType === "sport_program" ? "08:30" : undefined,
+      venue: slideType === "sport_program" ? `Veld ${index + 1}` : undefined,
       logoMediaAssetId: slideType === "sport_sponsor" ? imageAssetId : null,
       photoMediaAssetId: slideType === "sport_team" ? imageAssetId : null,
-      primary: slideType === "sport_team"
-        ? `Selectiespeler met lange naam ${index + 1}`
-        : slideType === "sport_sponsor"
-          ? `Clubpartner ${index + 1}`
-          : slideType === "sport_trainings"
-            ? `Team onder ${11 + index}`
-            : `Vrijwilligersrol ${index + 1}`,
+      primary: slideType === "sport_program"
+        ? `Thuis ${index + 1} – Uit ${index + 1}`
+        : slideType === "sport_team"
+          ? `Selectiespeler met lange naam ${index + 1}`
+          : slideType === "sport_sponsor"
+            ? `Clubpartner ${index + 1}`
+            : slideType === "sport_trainings"
+              ? `Team onder ${11 + index}`
+              : `Vrijwilligersrol ${index + 1}`,
       secondary: slideType === "sport_trainings"
         ? "Dinsdag en donderdag · 19:30"
         : slideType === "sport_volunteers"
           ? "Gastheer of gastvrouw op wedstrijddagen"
           : "Eerste selectie",
-      status: slideType === "sport_volunteers" ? "Open rol" : "Gepubliceerd",
+      status: slideType === "sport_program" ? "Programma" : slideType === "sport_volunteers" ? "Open rol" : "Gepubliceerd",
       meta: slideType === "sport_sponsor"
         ? "Samen sterk voor de vereniging"
         : "Sportpark FieldFlow"
@@ -286,13 +296,15 @@ async function mockFieldFlowSportLegacyApis(
             items,
             pool: { name: "Poule A" },
             season: "2026/2027",
-            title: slideType === "sport_team"
-              ? "Ons team"
-              : slideType === "sport_sponsor"
-                ? "Clubpartners"
-                : slideType === "sport_trainings"
-                  ? "Trainingen"
-                  : "Vrijwilligers"
+            title: slideType === "sport_program"
+              ? "Clubprogramma komende 7 dagen"
+              : slideType === "sport_team"
+                ? "Ons team"
+                : slideType === "sport_sponsor"
+                  ? "Clubpartners"
+                  : slideType === "sport_trainings"
+                    ? "Trainingen"
+                    : "Vrijwilligers"
           },
           themePresentation: {
             resolvedMode: { mode, reason: "fixed" },
@@ -1432,6 +1444,53 @@ test("Static LG bewaakt de zestien FieldFlow-goldens voor de nieuwe sportfamilie
       }
     }
   }
+});
+
+test("Static LG houdt clubprogramma-item 100 via paginering bereikbaar", async ({
+  browser
+}) => {
+  const context = await browser.newContext({
+    reducedMotion: "reduce",
+    userAgent:
+      "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+    viewport: { height: 1080, width: 1920 }
+  });
+  const page = await context.newPage();
+  await page.clock.install({ time: new Date("2026-09-06T13:33:00.000Z") });
+  await mockFieldFlowSportLegacyApis(
+    page,
+    "sport_program",
+    "landscape",
+    "dark",
+    101
+  );
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem("veyocast.player.installationCredential", credential);
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+  const slide = page.locator(".dynamic-template.editorial-arena");
+  const pageNumber = slide.locator(".matchcentre-page-number");
+  await expect(slide.locator(".legacy-fixture-row")).toHaveCount(8);
+  await expect(pageNumber).toHaveText("01 / 13");
+  await expect(slide.locator("footer")).not.toContainText("Match centre");
+
+  await page.clock.runFor(60_100);
+
+  await expect(pageNumber).toHaveText("13 / 13");
+  await expect(slide.locator(".legacy-fixture-row")).toHaveCount(4);
+  await expect(slide).toContainText("Thuis 100");
+  await expect(slide).toContainText("Uit 100");
+  await expect(slide).not.toContainText("Thuis 101");
+  await context.close();
 });
 
 test("LG Legacy toont de stand als één Editorial Arena-canvas met begrensde logo's", async ({

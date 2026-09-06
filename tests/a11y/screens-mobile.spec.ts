@@ -133,13 +133,13 @@ test("playlist authoring and settings remain sequential on mobile", async ({ pag
   await navigate(page, "/dashboard/settings");
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Instellingen" })).toBeVisible();
   await expect(page.locator(".settings-category-workspace")).toHaveAttribute("data-hydrated", "true");
-  const settingsCategory = page.getByRole("combobox", { name: "Categorie" });
-  await expect(settingsCategory).toBeVisible();
-  await settingsCategory.selectOption("huisstijl");
+
+  await navigate(page, "/dashboard/themes/fieldflow");
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "FieldFlow" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Slidehuisstijl" })).toBeVisible();
   await expect(page.getByLabel(/Live voorbeeld van het .* palet/)).toBeVisible();
-  await page.getByText("Compatibiliteit met oudere slides", { exact: true }).click();
-  await expect(page.getByLabel("Primaire kleur", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Slideachtergrond als kleurwaarde")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Typografie en logo-oppervlakken" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toHaveCount(0);
   await expect(async () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

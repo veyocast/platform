@@ -23,6 +23,7 @@ import {
   parseThemeSelection,
   resolveThemeTransition,
   themeCatalog,
+  themeCssVariables,
   themeManifest,
   themeToEditorialTokens
 } from "../src/theme-catalog";
@@ -96,6 +97,63 @@ describe("theme catalog v2", () => {
     });
     expect(snapshot.resolvedMode.mode).toBe("dark");
     expect(themeToEditorialTokens(snapshot).canvas).toBe(themeCatalog.obsidian.dark.canvas);
+  });
+
+  it("materialiseert v2 appearance en houdt v1-snapshots veilig renderbaar", () => {
+    const legacy = freezeThemePresentation({
+      instant: "2026-09-06T13:33:00.000Z",
+      selection: {
+        accent: null,
+        categoryOverrides: [],
+        modePolicy: { kind: "fixed", mode: "light" },
+        ref: { catalog: "v2", id: "fieldflow", version: "1.0.0" },
+        support: null
+      },
+      timezone: "Europe/Amsterdam"
+    });
+
+    expect(themeCssVariables(legacy)).toMatchObject({
+      "--vc-club-logo-background": "#E7F5EE",
+      "--vc-home-logo-background": "#FFFFFF",
+      "--vc-theme-body-font": '"Inter"',
+      "--vc-theme-font-20": "20px",
+      "--vc-theme-display-font": '"Manrope"',
+      "--vc-theme-sport-row-size": "22.4px"
+    });
+
+    if (legacy.snapshotVersion !== 1) throw new Error("Expected v1 fixture.");
+    const current = {
+      ...legacy,
+      appearance: {
+        schemaVersion: 1 as const,
+        surfaces: {
+          clubLogoBackground: "#102030",
+          homeLogoBackground: "#FEFEFE"
+        },
+        typography: {
+          baseScale: 1.1,
+          bodyFontRef: "vc-source-serif-4-v1" as const,
+          displayFontRef: "vc-anton-v1" as const,
+          sportScale: 1.2
+        }
+      },
+      settingsRevision: 9,
+      snapshotVersion: 2 as const
+    };
+
+    expect(themeCssVariables(current)).toMatchObject({
+      "--vc-club-logo-background": "#102030",
+      "--vc-home-logo-background": "#FEFEFE",
+      "--vc-theme-base-scale": 1.1,
+      "--vc-theme-body-font": '"Source Serif 4"',
+      "--vc-theme-font-20": "22px",
+      "--vc-theme-font-34": "37.4px",
+      "--vc-theme-display-font": '"Anton"',
+      "--vc-theme-sport-result-size": "39.6px",
+      "--vc-theme-sport-row-size": "26.4px",
+      "--vc-theme-sport-score-size": "61.38px",
+      "--vc-theme-title-size": "70.4px"
+    });
   });
 
   it("bounds every transition and applies the reduced-motion ceiling", () => {

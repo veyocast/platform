@@ -36,6 +36,7 @@ const fixtureVariants = [
 
 test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
   test.setTimeout(180_000);
+  await page.clock.setFixedTime(new Date("2026-09-06T13:33:00.000Z"));
   await page.emulateMedia({ reducedMotion: "reduce" });
 
   for (const variant of fixtureVariants) {
@@ -80,6 +81,11 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
           expect(geometry.scrollHeight).toBe(geometry.clientHeight);
           expect(geometry.footerClearsContent).toBe(true);
           expect(geometry.allImagesComplete).toBe(true);
+          if (variant.startsWith("program-") || variant.startsWith("results-")) {
+            await expect(slide.locator("header")).toContainText("MATCHCENTRE");
+            await expect(slide.locator("footer")).not.toContainText(/wedstrijdcentrum/iu);
+          }
+
           if (variant.startsWith("results-")) {
             const rows = slide.locator("[data-result-row]");
             await expect(rows).toHaveCount(
@@ -90,10 +96,12 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
             );
             expect(await rows.first().evaluate(
               (element) => Number.parseFloat(getComputedStyle(element).fontSize)
-            )).toBe(orientation === "portrait" ? 27 : 30);
-            expect(await rows.first().locator(":scope > strong").evaluate(
+            )).toBeCloseTo(orientation === "portrait" ? 30.24 : 33.6, 2);
+            expect(await rows.first().locator(
+              '[class*="arenaResultScore"]'
+            ).evaluate(
               (element) => Number.parseFloat(getComputedStyle(element).fontSize)
-            )).toBe(46.5);
+            )).toBeCloseTo(52.08, 2);
           }
           if (variant === "news-fullscreen") {
             const composition = await page.locator(

@@ -9,10 +9,13 @@ import { platformDefaultThemeSelection } from "@veyocast/content-templates/theme
 import {
   autoCompetitionContext,
   competitionContextFromOption,
+  normalizeLegacyClubAggregateDraft,
   normalizeLegacyArrivalDraft,
   prepareSportlinkVersionEditorDraft,
   replaceArrivalTeamContext,
   replaceArrivalTeamSelection,
+  replaceClubTeamContext,
+  replaceClubTeamSelection,
   switchSportlinkBlueprint,
   type SportlinkVersionEditorTeam
 } from "./sportlink-version-editor-state";
@@ -42,6 +45,7 @@ function regularDraft(): SportlinkSlideDraft {
       showDressingRoom: false,
       showField: true,
       showHomeAway: true,
+      showLogo: true,
       showReferee: false
     },
     name: "Team A · Programma vandaag",
@@ -176,6 +180,97 @@ describe("Sportlink-versie-editorcontext", () => {
     );
 
     expect(selected.teamContexts).toHaveLength(sportlinkSlideTeamContextsMax);
-    expect(selected.teamContexts?.at(-1)?.providerTeamId).toBe("team-99");
+    expect(selected.teamContexts?.at(-1)?.providerTeamId).toBe("team-499");
+  });
+
+  it("normaliseert een legacy clubslide naar één toekomstbestendige alle-teamsfilter", () => {
+    const legacy = regularDraft();
+    const normalized = normalizeLegacyClubAggregateDraft(legacy);
+
+    expect(normalized.teamSelection).toEqual({
+      mode: "all",
+      teamContexts: []
+    });
+    expect(normalizeLegacyClubAggregateDraft(normalized)).toBe(normalized);
+    expect(
+      prepareSportlinkVersionEditorDraft(legacy, teams, "1.0.0").requiresSave
+    ).toBe(true);
+  });
+
+  it("bewaart een expliciete clubselectie als filter op dezelfde slide en behoudt overrides", () => {
+    const normalized = normalizeLegacyClubAggregateDraft(regularDraft());
+    const selected = replaceClubTeamSelection(
+      normalized,
+      "selected",
+      ["team-a", "team-b", "team-a"],
+      teams
+    );
+    const pinned = competitionContextFromOption(
+      "team-a",
+      teams[0]!.contexts[0]!
+    );
+    const overridden = replaceClubTeamContext(selected, pinned);
+    const reordered = replaceClubTeamSelection(
+      overridden,
+      "selected",
+      ["team-b", "team-a"],
+      teams
+    );
+
+    expect(reordered.teamSelection?.mode).toBe("selected");
+    expect(reordered.teamSelection?.teamContexts.map((context) =>
+      context.providerTeamId
+    )).toEqual(["team-b", "team-a"]);
+    expect(reordered.teamSelection?.teamContexts[1]).toEqual(pinned);
+    expect(reordered.context.providerTeamId).toBe("team-b");
+  });
+
+  it("houdt bij alle teams alleen competitieafwijkingen vast en kan die terugzetten", () => {
+    const normalized = normalizeLegacyClubAggregateDraft(regularDraft());
+    const pinned = competitionContextFromOption(
+      "team-a",
+      teams[0]!.contexts[0]!
+    );
+    const withOverride = replaceClubTeamContext(normalized, pinned);
+    const allTeams = replaceClubTeamSelection(
+      withOverride,
+      "all",
+      ["team-a", "team-b"],
+      teams
+    );
+    const reset = replaceClubTeamContext(
+      allTeams,
+      autoCompetitionContext("team-a")
+    );
+
+    expect(allTeams.teamSelection).toEqual({
+      mode: "all",
+      teamContexts: [pinned]
+    });
+    expect(reset.teamSelection).toEqual({
+      mode: "all",
+      teamContexts: []
+    });
+  });
+
+  it("ondersteunt meer dan 25 geselecteerde teams binnen één clubslide", () => {
+    const manyTeams = Array.from(
+      { length: 40 },
+      (_, index): SportlinkVersionEditorTeam => ({
+        contexts: [],
+        externalId: `club-team-${index}`,
+        name: `Clubteam ${index}`
+      })
+    );
+    const selected = replaceClubTeamSelection(
+      normalizeLegacyClubAggregateDraft(regularDraft()),
+      "selected",
+      manyTeams.map((team) => team.externalId),
+      manyTeams
+    );
+
+    expect(selected.teamSelection?.teamContexts).toHaveLength(40);
+    expect(selected.teamSelection?.teamContexts.at(-1)?.providerTeamId)
+      .toBe("club-team-39");
   });
 });
