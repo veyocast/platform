@@ -63,3 +63,49 @@ export function SportlinkMatchLocationField({
     </fieldset>
   );
 }
+
+export function SportlinkMatchLocationsField({
+  onChange,
+  values
+}: {
+  onChange: (values: SportlinkMatchLocation[]) => void;
+  values: readonly SportlinkMatchLocation[];
+}) {
+  const groupName = useId();
+  return (
+    <fieldset className={styles.fieldset}>
+      <legend>Slides maken voor</legend>
+      <p>
+        Iedere gekozen richting wordt één afzonderlijke clubbrede slide. De
+        richting volgt altijd het gekozen eigen team.
+      </p>
+      <div>
+        {options.map((option) => {
+          const selected = values.includes(option.value);
+          return (
+            <label data-selected={selected} key={option.value}>
+              <input
+                checked={selected}
+                disabled={selected && values.length === 1}
+                name={groupName}
+                onChange={(event) => {
+                  const selectedValues = new Set(values);
+                  if (event.target.checked) selectedValues.add(option.value);
+                  else selectedValues.delete(option.value);
+                  onChange(options.flatMap(({ value }) =>
+                    selectedValues.has(value) ? [value] : []));
+                }}
+                type="checkbox"
+                value={option.value}
+              />
+              <span>
+                <strong>{option.label}</strong>
+                <small>{option.description}</small>
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}

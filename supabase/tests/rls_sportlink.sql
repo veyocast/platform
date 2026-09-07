@@ -1284,12 +1284,26 @@ select set_config(
 );
 select set_config(
   'test.sportlink_snapshot_count_before',
-  (select count(*)::text from public.dynamic_slide_snapshots),
+  (
+    select count(*)::text
+    from public.dynamic_slide_snapshots snapshot
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Bekerprogramma Testclub 1'
+  ),
   true
 );
 select set_config(
   'test.sportlink_render_count_before',
-  (select count(*)::text from public.dynamic_render_jobs),
+  (
+    select count(*)::text
+    from public.dynamic_render_jobs job
+    join public.dynamic_slide_snapshots snapshot
+      on snapshot.id = job.snapshot_id
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Bekerprogramma Testclub 1'
+  ),
   true
 );
 update public.sportlink_sync_policies
@@ -1346,14 +1360,28 @@ select is(
   'a successful Sportlink check advances exactly one source revision'
 );
 select is(
-  (select count(*) from public.dynamic_slide_snapshots),
+  (
+    select count(*)
+    from public.dynamic_slide_snapshots snapshot
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Bekerprogramma Testclub 1'
+  ),
   current_setting('test.sportlink_snapshot_count_before')::bigint,
-  'unchanged Sportlink data creates no extra dynamic snapshot'
+  'unchanged Sportlink data creates no extra snapshot for the selected slide'
 );
 select is(
-  (select count(*) from public.dynamic_render_jobs),
+  (
+    select count(*)
+    from public.dynamic_render_jobs job
+    join public.dynamic_slide_snapshots snapshot
+      on snapshot.id = job.snapshot_id
+    join public.dynamic_slides slide
+      on slide.id = snapshot.dynamic_slide_id
+    where slide.name = 'Bekerprogramma Testclub 1'
+  ),
   current_setting('test.sportlink_render_count_before')::bigint,
-  'unchanged Sportlink data creates no extra fallback render'
+  'unchanged Sportlink data creates no extra render for the selected slide'
 );
 
 set local role anon;

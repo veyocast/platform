@@ -69,6 +69,17 @@ export const sportResultsRowsPerPage = {
   portrait: 5
 } as const;
 
+export const sportMatchRowHeight = {
+  program: {
+    landscape: 115,
+    portrait: 221
+  },
+  results: {
+    landscape: 115,
+    portrait: 314
+  }
+} as const;
+
 export const priceLayoutMetrics = {
   landscape: {
     columns: 2,

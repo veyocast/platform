@@ -94,6 +94,26 @@ describe("Sportlink-versie-editorcontext", () => {
     ).toBe(false);
   });
 
+  it("normaliseert een bestaand portraitconcept met twee kolommen naar één", () => {
+    const portrait = {
+      ...regularDraft(),
+      orientation: "portrait" as const
+    };
+
+    const prepared = prepareSportlinkVersionEditorDraft(
+      portrait,
+      teams,
+      "1.0.0"
+    );
+
+    expect(prepared.draft.display.columns).toBe("one");
+    expect(prepared.requiresSave).toBe(true);
+    expect(
+      prepareSportlinkVersionEditorDraft(prepared.draft, teams, "1.0.0")
+        .requiresSave
+    ).toBe(false);
+  });
+
   it("maakt van een gewone teamslide één aggregate welkomstcomponent voor dat team", () => {
     const arrival = switchSportlinkBlueprint(
       regularDraft(),

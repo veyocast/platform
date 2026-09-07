@@ -155,7 +155,15 @@ export function SportlinkVersionEditor({
       });
       return;
     }
-    update({ ...draft, orientation, templateVersionId });
+    update({
+      ...draft,
+      display: {
+        ...draft.display,
+        columns: orientation === "portrait" ? "one" : draft.display.columns
+      },
+      orientation,
+      templateVersionId
+    });
   }
 
   function setTheme(id: SelectableThemeId) {
@@ -330,7 +338,9 @@ export function SportlinkVersionEditor({
           <div className={styles.inlineOptions}>
             <label>
               <input
-                checked={draft.display.columns === "two"}
+                checked={draft.orientation === "landscape" &&
+                  draft.display.columns === "two"}
+                disabled={draft.orientation === "portrait"}
                 onChange={(event) => update({
                   ...draft,
                   display: {
@@ -340,7 +350,7 @@ export function SportlinkVersionEditor({
                 })}
                 type="checkbox"
               />
-              Twee kolommen
+              Twee kolommen (alleen liggend)
             </label>
             {sportlinkSlideBlueprints[draft.blueprintKey].slideType !== "sport_standing" ? (
               <>

@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(26);
+select plan(27);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -130,13 +130,13 @@ insert into public.sports_matches (
     's155-shared-fixture',
     statement_timestamp() + interval '15 minutes',
     'scheduled',
-    '{"externalId":"s155-own-team","name":"Duindorp SV 1"}',
+    '{"externalId":"s155-own-team","name":"Duindorp SV"}',
     '{"externalId":"s155-visitors","name":"Bezoekers FC 1"}',
     '{"externalId":"s155-competition","name":"S155 competitie"}',
     '{"externalId":"s155-pool","name":"S155 poule"}',
     '{"name":"Sportpark Houtrust","field":"Veld 1"}',
     '{"home":"Kleedkamer 4","away":"Kleedkamer: 2"}',
-    '[]',
+    '[{"displayName":"Sam Scheidsrechter","role":"Scheidsrechter"}]',
     false,
     true,
     true
@@ -313,7 +313,14 @@ select is(
 select is(
   (select payload #>> '{sport,items,0,homeTeam}' from s155_snapshot),
   'Duindorp SV 1',
-  'the tenant home team is explicit'
+  'the complete tenant team name replaces a club-only fixture label'
+);
+
+select is(
+  (select payload #>> '{sport,items,0,officials,0,displayName}'
+   from s155_snapshot),
+  'Sam Scheidsrechter',
+  'the tenant-scoped referee is frozen for the welcome detail row'
 );
 
 select is(

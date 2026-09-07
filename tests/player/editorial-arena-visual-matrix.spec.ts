@@ -87,16 +87,49 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
           if (variant.startsWith("program-") || variant.startsWith("results-")) {
             await expect(slide.locator("header")).toContainText("MATCHCENTRE");
             await expect(slide.locator("footer")).not.toContainText(/wedstrijdcentrum/iu);
+            const rows = slide.locator(
+              '[class*="arenaProgramRow"], [data-result-row]'
+            );
+            const rowsPerPage = variant.startsWith("results-")
+              ? orientation === "portrait" ? 5 : 6
+              : orientation === "portrait" ? 7 : 6;
+            await expect(rows).toHaveCount(Math.min(
+              countForVariant(variant),
+              rowsPerPage
+            ));
+            const rowHeights = await rows.evaluateAll((elements) =>
+              elements.map((element) => Number.parseFloat(
+                getComputedStyle(element).height
+              ))
+            );
+            expect(new Set(rowHeights)).toEqual(new Set([
+              expectedMatchRowHeight(variant, orientation)
+            ]));
+            const rowGeometry = await rows.first().evaluate((element) => {
+              const information = element.querySelector<HTMLElement>(
+                '[class*="arenaMatchInformation"]'
+              );
+              const fixture = element.querySelector<HTMLElement>(
+                '[class*="arenaFixtureMain"]'
+              );
+              const informationBox = information?.getBoundingClientRect();
+              const fixtureBox = fixture?.getBoundingClientRect();
+              return {
+                informationAboveFixture: Boolean(
+                  informationBox && fixtureBox &&
+                  informationBox.bottom <= fixtureBox.top + 1
+                ),
+                informationText: information?.textContent?.replace(/\s+/gu, " ").trim()
+              };
+            });
+            expect(rowGeometry.informationAboveFixture).toBe(true);
+            expect(rowGeometry.informationText).toMatch(
+              /za 16 aug\s*\|\s*(?:14:30|FT)\s*\|\s*Sportpark De Arena/u
+            );
           }
 
           if (variant.startsWith("results-")) {
             const rows = slide.locator("[data-result-row]");
-            await expect(rows).toHaveCount(
-              Math.min(
-                countForVariant(variant),
-                orientation === "portrait" ? 5 : 6
-              )
-            );
             expect(await rows.first().evaluate(
               (element) => Number.parseFloat(getComputedStyle(element).fontSize)
             )).toBeCloseTo(orientation === "portrait" ? 30.24 : 33.6, 2);
@@ -105,6 +138,50 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
             ).evaluate(
               (element) => Number.parseFloat(getComputedStyle(element).fontSize)
             )).toBeCloseTo(52.08, 2);
+            const scoreGeometry = await rows.first().evaluate((element) => {
+              const fixture = element.querySelector<HTMLElement>(
+                '[class*="arenaFixtureMain"]'
+              );
+              const score = element.querySelector<HTMLElement>(
+                '[class*="arenaResultScore"]'
+              );
+              const teams = element.querySelector<HTMLElement>(
+                '[class*="arenaFixtureTeams"]'
+              );
+              const fixtureBox = fixture?.getBoundingClientRect();
+              const scoreBox = score?.getBoundingClientRect();
+              const teamsBox = teams?.getBoundingClientRect();
+              return {
+                scoreAfterTeams: Boolean(
+                  scoreBox && teamsBox && scoreBox.left >= teamsBox.right - 1
+                ),
+                scoreRightGap: fixtureBox && scoreBox
+                  ? fixtureBox.right - scoreBox.right
+                  : null
+              };
+            });
+            expect(scoreGeometry.scoreAfterTeams).toBe(true);
+            expect(scoreGeometry.scoreRightGap).not.toBeNull();
+            expect(scoreGeometry.scoreRightGap!).toBeLessThanOrEqual(1);
+          }
+          if (variant === "news-hero" && orientation === "portrait") {
+            const splitSpacing = await page.locator(
+              '[data-news-variant="hero_split"]'
+            ).evaluate((layout) => {
+              const style = getComputedStyle(layout);
+              return {
+                columnGap: style.columnGap,
+                paddingLeft: style.paddingLeft,
+                paddingRight: style.paddingRight,
+                rowGap: style.rowGap
+              };
+            });
+            expect(splitSpacing).toEqual({
+              columnGap: "32px",
+              paddingLeft: "20px",
+              paddingRight: "20px",
+              rowGap: "32px"
+            });
           }
           if (variant === "news-fullscreen") {
             const composition = await page.locator(
@@ -184,6 +261,194 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
       }
     }
   }
+});
+
+test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-09-06T13:33:00.000Z"));
+  await page.emulateMedia({ reducedMotion: "reduce" });
+
+  for (const variant of ["program-20", "results-20"] as const) {
+    for (const orientation of ["landscape", "portrait"] as const) {
+      await test.step(`${variant} · ${orientation}`, async () => {
+        await page.setViewportSize(orientation === "landscape"
+          ? { height: 1080, width: 1920 }
+          : { height: 1920, width: 1080 });
+        const payload = withSportColumns(
+          buildPayload(variant, orientation, "light"),
+          "two"
+        );
+        await page.goto("about:blank");
+        await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+        await page.waitForFunction(
+          () => document.documentElement.dataset.thumbnailReady === "true"
+        );
+
+        const columns = page.locator('[class*="arenaSportColumns"]');
+        const rows = page.locator(
+          '[class*="arenaProgramRow"], [data-result-row]'
+        );
+        await expect(columns).toHaveAttribute(
+          "data-columns",
+          orientation === "landscape" ? "2" : "1"
+        );
+        await expect(rows).toHaveCount(
+          orientation === "landscape"
+            ? 12
+            : variant === "results-20" ? 5 : 7
+        );
+        expect(await rows.evaluateAll((elements) => elements.map((element) =>
+          Number.parseFloat(getComputedStyle(element).height)
+        ))).toEqual(Array.from(
+          { length: await rows.count() },
+          () => expectedMatchRowHeight(variant, orientation)
+        ));
+        const badges = await rows.locator('[class*="arenaFixtureTeams"] em')
+          .evaluateAll((labels) => labels.map((label) => {
+            const box = label.getBoundingClientRect();
+            const parentBox = label.parentElement?.getBoundingClientRect();
+            const text = document.createRange();
+            text.selectNodeContents(label);
+            const textBox = text.getBoundingClientRect();
+            const style = getComputedStyle(label);
+            const padding = Number.parseFloat(style.paddingLeft) +
+              Number.parseFloat(style.paddingRight);
+            return {
+              boxWidth: box.width,
+              containedByParent: Boolean(
+                parentBox && box.left >= parentBox.left - 0.5 &&
+                box.right <= parentBox.right + 0.5
+              ),
+              contentFits: label.scrollWidth <= label.clientWidth,
+              expectedWidth: textBox.width + padding,
+              text: label.textContent?.trim().toLocaleUpperCase("nl-NL")
+            };
+          }));
+        expect(new Set(badges.map((badge) => badge.text)))
+          .toEqual(new Set(["THUIS", "UIT"]));
+        expect(badges.every((badge) =>
+          badge.containedByParent && badge.contentFits &&
+          badge.boxWidth >= badge.expectedWidth - 0.5
+        )).toBe(true);
+        if (orientation === "landscape") {
+          const columnSections = columns.locator(":scope > section");
+          await expect(columnSections).toHaveCount(2);
+          await expect(columnSections.first().locator(
+            '[class*="arenaFixtureTeams"]'
+          ).first()).toContainText("Thuisclub 1");
+          await expect(columnSections.last().locator(
+            '[class*="arenaFixtureTeams"]'
+          ).first()).toContainText("Thuisclub 7");
+          const columnStarts = await columnSections.evaluateAll((sections) =>
+            sections.map((section) => {
+              const box = section.getBoundingClientRect();
+              return { left: box.left, top: box.top };
+            })
+          );
+          expect(columnStarts[0]?.top).toBeCloseTo(columnStarts[1]!.top, 2);
+          expect(columnStarts[0]!.left).toBeLessThan(columnStarts[1]!.left);
+        }
+        const firstRow = rows.first();
+        await expect(firstRow.locator('[class*="arenaMatchInformation"]'))
+          .toContainText(/za 16 aug\s*\|\s*(?:14:30|FT)\s*\|\s*Sportpark De Arena/u);
+        expect(await firstRow.evaluate((element) => {
+          const information = element.querySelector<HTMLElement>(
+            '[class*="arenaMatchInformation"]'
+          )?.getBoundingClientRect();
+          const fixture = element.querySelector<HTMLElement>(
+            '[class*="arenaFixtureMain"]'
+          )?.getBoundingClientRect();
+          return Boolean(information && fixture && information.bottom <= fixture.top + 1);
+        })).toBe(true);
+        if (variant === "results-20") {
+          const score = firstRow.locator('[class*="arenaResultScore"]');
+          await expect(score).toHaveAttribute("aria-label", "Uitslag 3 tegen 0");
+          expect(await firstRow.evaluate((element) => {
+            const fixture = element.querySelector<HTMLElement>(
+              '[class*="arenaFixtureMain"]'
+            )?.getBoundingClientRect();
+            const result = element.querySelector<HTMLElement>(
+              '[class*="arenaResultScore"]'
+            )?.getBoundingClientRect();
+            return fixture && result ? fixture.right - result.right : null;
+          })).toBeCloseTo(0, 2);
+        } else {
+          await expect(firstRow.locator('[class*="arenaResultScore"]')).toHaveCount(0);
+        }
+        if (orientation === "landscape") {
+          await expect(page).toHaveScreenshot(
+            `${variant}-landscape-two-columns-light.png`,
+            { animations: "disabled", caret: "hide", maxDiffPixelRatio: 0.002 }
+          );
+        }
+      });
+    }
+  }
+
+  await test.step("één staande uitslag blijft een vaste rij", async () => {
+    await page.setViewportSize({ height: 1920, width: 1080 });
+    const payload = withSportItemCount(
+      buildPayload("results-5", "portrait", "light"),
+      1
+    );
+    await page.goto("about:blank");
+    await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+    await page.waitForFunction(
+      () => document.documentElement.dataset.thumbnailReady === "true"
+    );
+
+    const row = page.locator("[data-result-row]");
+    await expect(row).toHaveCount(1);
+    const geometry = await row.evaluate((element) => {
+      const rowBox = element.getBoundingClientRect();
+      const contentBox = element.closest("main")?.getBoundingClientRect();
+      return {
+        height: rowBox.height,
+        ratioToContent: contentBox ? rowBox.height / contentBox.height : 1
+      };
+    });
+    expect(geometry.height).toBe(314);
+    expect(geometry.ratioToContent).toBeLessThan(0.25);
+  });
+
+  await test.step("sportpark blijft zichtbaar wanneer alleen veld is uitgeschakeld", async () => {
+    await page.setViewportSize({ height: 1080, width: 1920 });
+    const payload = withHiddenField(
+      buildPayload("program-5", "landscape", "light")
+    );
+    await page.goto("about:blank");
+    await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+    await page.waitForFunction(
+      () => document.documentElement.dataset.thumbnailReady === "true"
+    );
+
+    const information = page.locator('[class*="arenaMatchInformation"]').first();
+    await expect(information).toContainText("Sportpark Houtrust");
+    await expect(information).not.toContainText("Veld 7");
+  });
+});
+
+test("staande splitnieuwsslide houdt 32 px tussenruimte en 20 px zijmarges", async ({ page }) => {
+  await page.setViewportSize({ height: 1920, width: 1080 });
+  await page.clock.setFixedTime(new Date("2026-09-06T13:33:00.000Z"));
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const payload = buildPayload("news-hero", "portrait", "light");
+  await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+  await page.waitForFunction(
+    () => document.documentElement.dataset.thumbnailReady === "true"
+  );
+
+  expect(await page.locator('[data-news-variant="hero_split"]').evaluate((layout) => {
+    const style = getComputedStyle(layout);
+    return {
+      paddingLeft: style.paddingLeft,
+      paddingRight: style.paddingRight,
+      rowGap: style.rowGap
+    };
+  })).toEqual({
+    paddingLeft: "20px",
+    paddingRight: "20px",
+    rowGap: "32px"
+  });
 });
 
 function buildPayload(
@@ -460,6 +725,84 @@ function encodePayload(payload: PlayerDynamicTemplatePayload) {
   return Buffer.from(JSON.stringify(payload)).toString("base64url");
 }
 
+function withSportColumns(
+  payload: PlayerDynamicTemplatePayload,
+  columns: "one" | "two"
+): PlayerDynamicTemplatePayload {
+  const sport = payload.data.sport;
+  if (!sport || typeof sport !== "object" || Array.isArray(sport)) {
+    throw new Error("Sportfixture ontbreekt.");
+  }
+  return {
+    ...payload,
+    data: {
+      ...payload.data,
+      sport: {
+        ...sport,
+        displayConfig: { columns }
+      }
+    }
+  };
+}
+
+function withSportItemCount(
+  payload: PlayerDynamicTemplatePayload,
+  count: number
+): PlayerDynamicTemplatePayload {
+  const sport = payload.data.sport;
+  if (!sport || typeof sport !== "object" || Array.isArray(sport) ||
+    !("items" in sport) || !Array.isArray(sport.items)) {
+    throw new Error("Sportfixture-items ontbreken.");
+  }
+  return {
+    ...payload,
+    data: {
+      ...payload.data,
+      sport: {
+        ...sport,
+        items: sport.items.slice(0, count)
+      }
+    }
+  };
+}
+
+function withHiddenField(
+  payload: PlayerDynamicTemplatePayload
+): PlayerDynamicTemplatePayload {
+  const sport = payload.data.sport;
+  if (!sport || typeof sport !== "object" || Array.isArray(sport) ||
+    !("items" in sport) || !Array.isArray(sport.items)) {
+    throw new Error("Sportfixture-items ontbreken.");
+  }
+  return {
+    ...payload,
+    data: {
+      ...payload.data,
+      sport: {
+        ...sport,
+        displayConfig: { columns: "one", showField: false },
+        items: sport.items.map((item, index) => item && typeof item === "object" &&
+          !Array.isArray(item) && index === 0
+          ? {
+              ...item,
+              field: "Veld 7",
+              venue: "Veld 7",
+              venueName: "Sportpark Houtrust"
+            }
+          : item)
+      }
+    }
+  };
+}
+
 function countForVariant(variant: typeof fixtureVariants[number]) {
   return variant.endsWith("-5") ? 5 : variant.endsWith("-10") ? 10 : 20;
+}
+
+function expectedMatchRowHeight(
+  variant: typeof fixtureVariants[number],
+  orientation: "landscape" | "portrait"
+) {
+  if (orientation === "landscape") return 115;
+  return variant.startsWith("results-") ? 314 : 221;
 }

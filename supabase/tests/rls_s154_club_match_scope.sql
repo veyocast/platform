@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(53);
+select plan(65);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -180,11 +180,11 @@ insert into public.sports_matches (
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
     's154-own-home', statement_timestamp() + interval '1 day 1 minute',
     'scheduled',
-    '{"externalId":"s154-own-home","name":"S154 eigen thuis"}',
+    '{"externalId":"s154-own-home","name":"S154 club"}',
     '{"externalId":"s154-opponent-a","name":"Tegenstander A"}',
     '{"externalId":"s154-competition","name":"S154 competitie"}',
     '{"externalId":"s154-pool","name":"S154 poule"}',
-    '{"field":"Veld 1"}', '{}', '[]', false,
+    '{"name":"Sportpark S154","field":"Veld 1"}', '{}', '[]', false,
     false, -- deliberately wrong: direction must derive from the selected team
     true
   ),
@@ -320,7 +320,8 @@ create function pg_temp.s154_create_club_slide(
   p_location text,
   p_idempotency_key uuid,
   p_include_location boolean default true,
-  p_extra_selection jsonb default '{}'::jsonb
+  p_extra_selection jsonb default '{}'::jsonb,
+  p_display jsonb default '{}'::jsonb
 )
 returns jsonb
 language plpgsql
@@ -381,6 +382,7 @@ begin
       'context', primary_context,
       'name', p_name,
       'orientation', 'landscape',
+      'display', p_display,
       'teamSelection', team_selection,
       'templateVersionId', template_version_id,
       'themeSelection', '{
@@ -399,7 +401,119 @@ $$;
 
 grant execute on function pg_temp.s154_context(text) to authenticated;
 grant execute on function pg_temp.s154_create_club_slide(
-  text, text, text, text, uuid, boolean, jsonb
+  text, text, text, text, uuid, boolean, jsonb, jsonb
+) to authenticated;
+
+create function pg_temp.s156_create_today_variant_batch(
+  p_idempotency_key uuid,
+  p_duplicate_first boolean default false,
+  p_source_name text default 'tenant-a-primary',
+  p_legacy_both_duplicate boolean default false
+)
+returns jsonb
+language plpgsql
+set search_path = ''
+as $$
+declare
+  contexts jsonb;
+  drafts jsonb := '[]'::jsonb;
+  source_record record;
+  template_version_id uuid;
+  variant record;
+begin
+  select source.*
+  into source_record
+  from pg_temp.s154_sources source
+  where source.name = p_source_name;
+
+  contexts := case p_source_name
+    when 'tenant-a-primary' then pg_catalog.jsonb_build_array(
+      pg_temp.s154_context('s154-own-home'),
+      pg_temp.s154_context('s154-own-away')
+    )
+    else pg_catalog.jsonb_build_array(
+      pg_temp.s154_context('s154-tenant-only')
+    )
+  end;
+
+  for variant in
+    select value.*
+    from (values
+      (1, 'sportlink.club_schedule_today', 'both', 'sport_program',
+        'Clubprogramma vandaag · Thuis en uit'),
+      (2, 'sportlink.club_schedule_today', 'home', 'sport_program',
+        'Clubprogramma vandaag · Thuis'),
+      (3, 'sportlink.club_schedule_today', 'away', 'sport_program',
+        'Clubprogramma vandaag · Uit'),
+      (4, 'sportlink.club_results_today', 'both', 'sport_results',
+        'Clubuitslagen vandaag · Thuis en uit'),
+      (5, 'sportlink.club_results_today', 'home', 'sport_results',
+        'Clubuitslagen vandaag · Thuis'),
+      (6, 'sportlink.club_results_today', 'away', 'sport_results',
+        'Clubuitslagen vandaag · Uit')
+    ) value(sort_order, blueprint_key, match_location, slide_type, label)
+    order by value.sort_order
+  loop
+    select version.id
+    into template_version_id
+    from public.dynamic_template_versions version
+    join public.dynamic_templates template
+      on template.id = version.template_id
+    where template.slide_type = variant.slide_type
+      and template.orientation = 'landscape'
+      and template.status = 'published'
+      and version.status = 'published'
+      and template.current_published_version_id = version.id
+    order by template.slug
+    limit 1;
+
+    drafts := drafts || pg_catalog.jsonb_build_array(
+      pg_catalog.jsonb_build_object(
+        'blueprintKey', variant.blueprint_key,
+        'context', contexts -> 0,
+        'name', variant.label,
+        'orientation', 'landscape',
+        'teamSelection', pg_catalog.jsonb_build_object(
+          'matchLocation', variant.match_location,
+          'mode', 'selected',
+          'teamContexts', contexts
+        ),
+        'templateVersionId', template_version_id,
+        'themeSelection', '{
+          "ref":{"catalog":"v2","id":"fieldflow","version":"1.0.0"},
+          "modePolicy":{"kind":"fixed","mode":"light"},
+          "accent":null,
+          "support":null,
+          "categoryOverrides":[]
+        }'::jsonb,
+        'title', variant.label
+      )
+    );
+  end loop;
+
+  if p_duplicate_first then
+    drafts := drafts || pg_catalog.jsonb_build_array(drafts -> 0);
+  end if;
+  if p_legacy_both_duplicate then
+    drafts := drafts || pg_catalog.jsonb_build_array(
+      (drafts -> 0) || pg_catalog.jsonb_build_object(
+        'teamSelection',
+        (drafts #> '{0,teamSelection}') - 'matchLocation'
+      )
+    );
+  end if;
+
+  return public.create_sportlink_slide_batch_v4(
+    source_record.tenant_id,
+    source_record.data_source_id,
+    drafts,
+    p_idempotency_key
+  );
+end;
+$$;
+
+grant execute on function pg_temp.s156_create_today_variant_batch(
+  uuid, boolean, text, boolean
 ) to authenticated;
 
 create function pg_temp.s154_build_with_team_selection(
@@ -758,6 +872,203 @@ select is(
   'every explicit matchLocation is persisted in its one aggregate slide'
 );
 
+-- Exact local-day fixtures prove that every S156 today variant contains the
+-- right home/away subset. Noon-ish fixture times avoid a UTC date boundary.
+reset role;
+insert into public.sports_matches (
+  tenant_id, source_connection_id, external_id, starts_at, status,
+  home_team, away_team, competition, pool, venue, dressing_rooms, officials,
+  scores_published, is_home_match, active
+) values
+  (
+    '10000000-0000-4000-8000-000000001541',
+    (select connection_id from s154_sources where name = 'tenant-a-primary'),
+    's156-today-program-home',
+    (((now() at time zone 'Europe/Amsterdam')::date + time '10:00')
+      at time zone 'Europe/Amsterdam'),
+    'scheduled',
+    '{"externalId":"s154-own-home","name":"S154 club"}',
+    '{"externalId":"s156-program-opponent-home","name":"Programma tegenstander thuis"}',
+    '{"externalId":"s154-competition","name":"S154 competitie"}',
+    '{"externalId":"s154-pool","name":"S154 poule"}',
+    '{"name":"Sportpark S154","field":"Veld P1"}', '{}', '[]', false,
+    false, true
+  ),
+  (
+    '10000000-0000-4000-8000-000000001541',
+    (select connection_id from s154_sources where name = 'tenant-a-primary'),
+    's156-today-program-away',
+    (((now() at time zone 'Europe/Amsterdam')::date + time '11:00')
+      at time zone 'Europe/Amsterdam'),
+    'scheduled',
+    '{"externalId":"s156-program-opponent-away","name":"Programma tegenstander uit"}',
+    '{"externalId":"s154-own-away","name":"S154 eigen uit"}',
+    '{"externalId":"s154-competition","name":"S154 competitie"}',
+    '{"externalId":"s154-pool","name":"S154 poule"}',
+    '{"name":"Sportpark Uit","field":"Veld P2"}', '{}', '[]', false,
+    true, true
+  ),
+  (
+    '10000000-0000-4000-8000-000000001541',
+    (select connection_id from s154_sources where name = 'tenant-a-primary'),
+    's156-today-results-home',
+    (((now() at time zone 'Europe/Amsterdam')::date + time '12:00')
+      at time zone 'Europe/Amsterdam'),
+    'finished',
+    '{"externalId":"s154-own-home","name":"S154 club","score":"2"}',
+    '{"externalId":"s156-results-opponent-home","name":"Uitslag tegenstander thuis","score":"1"}',
+    '{"externalId":"s154-competition","name":"S154 competitie"}',
+    '{"externalId":"s154-pool","name":"S154 poule"}',
+    '{"name":"Sportpark S154","field":"Veld U1"}', '{}', '[]', true,
+    false, true
+  ),
+  (
+    '10000000-0000-4000-8000-000000001541',
+    (select connection_id from s154_sources where name = 'tenant-a-primary'),
+    's156-today-results-away',
+    (((now() at time zone 'Europe/Amsterdam')::date + time '13:00')
+      at time zone 'Europe/Amsterdam'),
+    'finished',
+    '{"externalId":"s156-results-opponent-away","name":"Uitslag tegenstander uit","score":"0"}',
+    '{"externalId":"s154-own-away","name":"S154 eigen uit","score":"3"}',
+    '{"externalId":"s154-competition","name":"S154 competitie"}',
+    '{"externalId":"s154-pool","name":"S154 poule"}',
+    '{"name":"Sportpark Uit","field":"Veld U2"}', '{}', '[]', true,
+    true, true
+  );
+set local role authenticated;
+
+select lives_ok(
+  $$insert into s154_created(name, result)
+    select 's156-today-variants', pg_temp.s156_create_today_variant_batch(
+      '60000000-0000-4000-8000-000000001560'
+    )$$,
+  'one v4 transaction creates all six clubwide today variants'
+);
+
+select is(
+  (
+    select result ->> 'count'
+    from s154_created
+    where name = 's156-today-variants'
+  ),
+  '6',
+  'the today batch returns programme and results for both, home and away'
+);
+
+select is(
+  (
+    select count(distinct pg_catalog.jsonb_build_array(
+      slide.configuration_json ->> 'blueprintKey',
+      slide.configuration_json #>> '{teamSelection,matchLocation}'
+    ))
+    from s154_created batch
+    cross join lateral pg_catalog.jsonb_array_elements(
+      batch.result -> 'slides'
+    ) created(value)
+    join public.dynamic_slides slide
+      on slide.id = (created.value ->> 'slideId')::uuid
+    where slide.configuration_json ->> 'blueprintKey' in (
+      'sportlink.club_schedule_today',
+      'sportlink.club_results_today'
+    )
+      and batch.name = 's156-today-variants'
+  ),
+  6::bigint,
+  'all six exact blueprint and matchLocation pairs are persisted'
+);
+
+select is(
+  (
+    select string_agg(
+      (slide.configuration_json ->> 'blueprintKey') || ':' ||
+      (slide.configuration_json #>> '{teamSelection,matchLocation}') || '=' ||
+      coalesce((
+        select string_agg(item.value ->> 'id', ',' order by item.ordinality)
+        from jsonb_array_elements(
+          snapshot.snapshot_data_json #> '{sport,items}'
+        ) with ordinality item(value, ordinality)
+      ), ''),
+      ';' order by
+        slide.configuration_json ->> 'blueprintKey',
+        slide.configuration_json #>> '{teamSelection,matchLocation}'
+    )
+    from s154_created batch
+    cross join lateral jsonb_array_elements(batch.result -> 'slides') created(value)
+    join public.dynamic_slides slide
+      on slide.id = (created.value ->> 'slideId')::uuid
+    join public.dynamic_slide_snapshots snapshot
+      on snapshot.id = (created.value ->> 'snapshotId')::uuid
+    where batch.name = 's156-today-variants'
+  ),
+  'sportlink.club_results_today:away=s156-today-results-away;' ||
+    'sportlink.club_results_today:both=s156-today-results-away,s156-today-results-home;' ||
+    'sportlink.club_results_today:home=s156-today-results-home;' ||
+    'sportlink.club_schedule_today:away=s156-today-program-away;' ||
+    'sportlink.club_schedule_today:both=s156-today-program-home,s156-today-program-away;' ||
+    'sportlink.club_schedule_today:home=s156-today-program-home',
+  'all six today snapshots contain the correct local-day home/away subset'
+);
+
+select is(
+  pg_temp.s156_create_today_variant_batch(
+    '60000000-0000-4000-8000-000000001560'
+  ),
+  (select result from s154_created where name = 's156-today-variants'),
+  'retrying the aggregate today request returns its original idempotent result'
+);
+
+select ok(
+  (
+    select count(*) = 1
+      and bool_and((event.metadata ->> 'fanOut')::boolean)
+      and bool_and((event.metadata ->> 'variantCount')::integer = 6)
+      and bool_and((event.metadata ->> 'count')::integer = 6)
+    from public.audit_events event
+    join s154_created batch
+      on event.target_id = (batch.result ->> 'batchId')::uuid
+    where batch.name = 's156-today-variants'
+      and event.action = 'sportlink.slide_batch.created'
+  ),
+  'the six-variant command has one correlated master audit event'
+);
+
+select throws_ok(
+  $$select pg_temp.s156_create_today_variant_batch(
+    '60000000-0000-4000-8000-000000001561',
+    true
+  )$$,
+  '22023', null,
+  'an exact duplicate today variant rejects the entire transaction'
+);
+
+select throws_ok(
+  $$select pg_temp.s156_create_today_variant_batch(
+    '60000000-0000-4000-8000-000000001563',
+    false,
+    'tenant-a-primary',
+    true
+  )$$,
+  '22023', null,
+  'legacy missing matchLocation and explicit both are one duplicate variant'
+);
+
+select throws_ok(
+  $$select pg_temp.s156_create_today_variant_batch(
+    '60000000-0000-4000-8000-000000001562',
+    false,
+    'tenant-b-primary'
+  )$$,
+  '42501', null,
+  'tenant A cannot create a six-variant today batch for tenant B'
+);
+
+reset role;
+update public.sports_matches
+set active = false
+where external_id like 's156-today-%';
+set local role authenticated;
+
 select is(
   (
     select string_agg(item.value ->> 'id', ',' order by item.ordinality)
@@ -846,6 +1157,68 @@ select is(
   ),
   's154-own-away,s154-own-own',
   'all away includes only fixtures with an active own team on the away side'
+);
+
+select ok(
+  exists (
+    select 1
+    from s154_created created
+    join public.dynamic_slide_snapshots snapshot
+      on snapshot.id = (created.result #>> '{slides,0,snapshotId}')::uuid
+    cross join lateral pg_catalog.jsonb_array_elements(
+      snapshot.snapshot_data_json #> '{sport,items}'
+    ) item(value)
+    where created.name = 'selected-both'
+      and item.value ->> 'id' = 's154-own-home'
+      and item.value ->> 'homeTeam' = 'S154 eigen thuis'
+      and item.value ->> 'venueName' = 'Sportpark S154'
+      and item.value ->> 'field' = 'Veld 1'
+  ),
+  'club match rows freeze the complete team label and structured location'
+);
+
+insert into s154_created(name, result)
+select 'field-hidden', pg_temp.s154_create_club_slide(
+  'tenant-a-primary',
+  'S154 veld verborgen',
+  'selected',
+  'both',
+  '60000000-0000-4000-8000-000000001564',
+  true,
+  '{}'::jsonb,
+  '{"showField":false}'::jsonb
+);
+
+select is(
+  (
+    select item.value ->> 'venueName'
+    from s154_created created
+    join public.dynamic_slide_snapshots snapshot
+      on snapshot.id = (created.result #>> '{slides,0,snapshotId}')::uuid
+    cross join lateral pg_catalog.jsonb_array_elements(
+      snapshot.snapshot_data_json #> '{sport,items}'
+    ) item(value)
+    where created.name = 'field-hidden'
+      and item.value ->> 'id' = 's154-own-home'
+  ),
+  'Sportpark S154',
+  'sportpark remains visible when the optional field is hidden'
+);
+
+select is(
+  (
+    select item.value ->> 'field'
+    from s154_created created
+    join public.dynamic_slide_snapshots snapshot
+      on snapshot.id = (created.result #>> '{slides,0,snapshotId}')::uuid
+    cross join lateral pg_catalog.jsonb_array_elements(
+      snapshot.snapshot_data_json #> '{sport,items}'
+    ) item(value)
+    where created.name = 'field-hidden'
+      and item.value ->> 'id' = 's154-own-home'
+  ),
+  null,
+  'field stays absent when its display setting is disabled'
 );
 
 reset role;

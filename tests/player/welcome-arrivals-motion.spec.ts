@@ -153,7 +153,8 @@ test("welkomstraster gebruikt maximaal twee vaste halve slots", async ({ page })
       await expect(firstCard).toContainText("Bezoekers FC");
       await expect(firstCard).toContainText("Kleedkamers:");
       await expect(firstCard).toContainText(/Thuis:\s*1\s*\|\s*Uit:\s*2/u);
-      await expect(firstCard).toContainText("Veld: 1");
+      await expect(firstCard).toContainText(/Veld:\s*1/u);
+      await expect(firstCard).toContainText(/Scheidsrechter:\s*Sam Scheidsrechter/u);
       await expect(firstCard).not.toContainText("Aankomst");
       await expect(firstCard.locator(":scope > span, :scope > b, :scope > strong"))
         .toHaveCount(0);
@@ -163,23 +164,58 @@ test("welkomstraster gebruikt maximaal twee vaste halve slots", async ({ page })
         ));
         const teamNames = Array.from(element.querySelectorAll<HTMLElement>("h2 > span"));
         const details = Array.from(element.querySelectorAll<HTMLElement>(
-          '[class*="arenaVisitorDetails"] > strong, [class*="arenaVisitorDetails"] > p'
+          '[class*="arenaVisitorDetails"] dt, [class*="arenaVisitorDetails"] dd'
         ));
+        const detailBlock = element.querySelector<HTMLElement>(
+          '[class*="arenaVisitorDetails"]'
+        );
+        const detailRows = Array.from(detailBlock?.children ?? []);
+        const copy = element.querySelector<HTMLElement>(
+          '[class*="arenaVisitorArrivalCopy"]'
+        );
+        const detailBox = detailBlock?.getBoundingClientRect();
+        const copyBox = copy?.getBoundingClientRect();
         return {
+          detailBottomGap: detailBox && copyBox ? copyBox.bottom - detailBox.bottom : null,
+          detailGridColumns: detailRows.map((row) =>
+            getComputedStyle(row).gridTemplateColumns
+          ),
+          detailLabelLefts: detailRows.map((row) =>
+            row.querySelector("dt")?.getBoundingClientRect().left
+          ),
+          detailLabelValueGaps: detailRows.map((row) => {
+            const label = row.querySelector("dt");
+            const value = row.querySelector("dd");
+            if (!label || !value) {
+              return null;
+            }
+            const labelText = document.createRange();
+            labelText.selectNodeContents(label);
+            return value.getBoundingClientRect().left - labelText.getBoundingClientRect().right;
+          }),
           detailSizes: details.map((detail) => parseFloat(getComputedStyle(detail).fontSize)),
+          detailValueLefts: detailRows.map((row) =>
+            row.querySelector("dd")?.getBoundingClientRect().left
+          ),
+          scheduleLefts: schedule.map((line) => line.getBoundingClientRect().left),
           scheduleSizes: schedule.map((line) => parseFloat(getComputedStyle(line).fontSize)),
+          teamLefts: teamNames.map((team) => team.getBoundingClientRect().left),
           teamSizes: teamNames.map((team) => parseFloat(getComputedStyle(team).fontSize))
         };
       });
-      expect(typography.scheduleSizes).toHaveLength(2);
-      expect(typography.scheduleSizes[0]).toBe(typography.scheduleSizes[1]);
-      expect(typography.teamSizes).toHaveLength(2);
-      expect(typography.teamSizes[0]).toBe(typography.teamSizes[1]);
-      expect(typography.scheduleSizes[0]!).toBeLessThan(typography.teamSizes[0]!);
-      expect(typography.detailSizes).toHaveLength(3);
-      expect(typography.detailSizes.every(
-        (size) => size === typography.scheduleSizes[0]
+      expect(typography.scheduleSizes).toEqual([46, 46]);
+      expect(typography.teamSizes).toEqual([46, 46]);
+      expect(typography.detailSizes).toEqual([23, 23, 23, 23, 23, 23]);
+      expect(typography.scheduleLefts[0]).toBeCloseTo(typography.scheduleLefts[1]!, 2);
+      expect(typography.teamLefts[0]).toBeCloseTo(typography.teamLefts[1]!, 2);
+      expect(new Set(typography.detailLabelLefts).size).toBe(1);
+      expect(new Set(typography.detailValueLefts).size).toBe(1);
+      expect(typography.detailLabelValueGaps.every((gap) => gap !== null && gap >= 11.5))
+        .toBe(true);
+      expect(typography.detailGridColumns.every((columns) =>
+        columns.startsWith("220px ")
       )).toBe(true);
+      expect(typography.detailBottomGap).toBeCloseTo(0, 2);
       expect(await page.locator(`img[alt^="Logo "]`).first().locator("..").evaluate(
         (element) => getComputedStyle(element).backgroundColor
       )).toBe("rgb(255, 255, 255)");
@@ -253,6 +289,58 @@ test("staand welkomstraster gebruikt boven en onder", async ({ page }) => {
     } else {
       expect(geometry.cards[1]?.top).toBeGreaterThan(geometry.height * 0.48);
     }
+    const firstCard = grid.locator("article").first();
+    await expect(firstCard).toContainText("Duindorp sv JO15-1");
+    await expect(firstCard).toContainText("Bezoekers FC");
+    await expect(firstCard).toContainText(/Scheidsrechter:\s*Sam Scheidsrechter/u);
+    const typography = await firstCard.evaluate((element) => {
+      const schedule = Array.from(element.querySelectorAll<HTMLElement>(
+        '[class*="arenaVisitorSchedule"] > time, [class*="arenaVisitorSchedule"] > span'
+      ));
+      const details = Array.from(element.querySelectorAll<HTMLElement>(
+        '[class*="arenaVisitorDetails"] dt, [class*="arenaVisitorDetails"] dd'
+      ));
+      const detailBlock = element.querySelector<HTMLElement>(
+        '[class*="arenaVisitorDetails"]'
+      );
+      const firstDetailRow = detailBlock?.firstElementChild;
+      const detailRows = Array.from(detailBlock?.children ?? []);
+      const copy = element.querySelector<HTMLElement>(
+        '[class*="arenaVisitorArrivalCopy"]'
+      );
+      const detailBox = detailBlock?.getBoundingClientRect();
+      const copyBox = copy?.getBoundingClientRect();
+      return {
+        detailBottomGap: detailBox && copyBox ? copyBox.bottom - detailBox.bottom : null,
+        detailGridColumns: firstDetailRow
+          ? getComputedStyle(firstDetailRow).gridTemplateColumns
+          : "",
+        detailLabelValueGaps: detailRows.map((row) => {
+          const label = row.querySelector("dt");
+          const value = row.querySelector("dd");
+          if (!label || !value) {
+            return null;
+          }
+          const labelText = document.createRange();
+          labelText.selectNodeContents(label);
+          return value.getBoundingClientRect().left - labelText.getBoundingClientRect().right;
+        }),
+        detailSizes: details.map((detail) =>
+          Number.parseFloat(getComputedStyle(detail).fontSize)
+        ),
+        scheduleLefts: schedule.map((line) => line.getBoundingClientRect().left),
+        scheduleSizes: schedule.map((line) =>
+          Number.parseFloat(getComputedStyle(line).fontSize)
+        )
+      };
+    });
+    expect(typography.scheduleSizes).toEqual([52, 52]);
+    expect(typography.scheduleLefts[0]).toBeCloseTo(typography.scheduleLefts[1]!, 2);
+    expect(typography.detailSizes).toEqual([26, 26, 26, 26, 26, 26]);
+    expect(typography.detailLabelValueGaps.every((gap) => gap !== null && gap >= 11.5))
+      .toBe(true);
+    expect(typography.detailGridColumns).toMatch(/^245px /u);
+    expect(typography.detailBottomGap).toBeCloseTo(0, 2);
     await expect(page).toHaveScreenshot(`welkomstgrid-${count}-portrait.png`, {
       animations: "disabled",
       caret: "hide",
@@ -291,6 +379,11 @@ function payload(
           kickoffTime: `${14 + index}:30`,
           logoMediaAssetId: logoId,
           meta: `Kleedkamer ${index + 2} · Veld ${index + 1}`,
+          officials: [{
+            displayName: "Sam Scheidsrechter",
+            externalId: null,
+            role: "Scheidsrechter"
+          }],
           primary: ["Bezoekers FC", "Sporting Noord", "Olympia '28", "SV De Horizon"][index],
           secondary: `Aankomst ${13 + index}:00 · Aanvang ${14 + index}:30`,
           status: "Welkom bij {{club}}",

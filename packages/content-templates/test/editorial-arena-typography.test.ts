@@ -55,4 +55,25 @@ describe("Editorial Arena pooltypografie", () => {
     );
     expect(css).not.toContain(".arenaNewsQr small");
   });
+
+  it("geeft de staande splitnieuwsslide extra tussenruimte en zijmarges", () => {
+    expect(css).toMatch(
+      /\.arenaRoot\[data-orientation="portrait"\] \.arenaNewsLayout\[data-news-variant="hero_split"\] \{\s*box-sizing: border-box;\s*gap: 32px;\s*padding-right: 20px;\s*padding-left: 20px;/u
+    );
+  });
+
+  it("verdubbelt bezoekdatum en aanvang en lijnt de onderste wedstrijddetails uit", () => {
+    expect(css).toMatch(
+      /\.arenaArrivalCard\[data-arrival-kind="visitor"\] \.arenaVisitorSchedule time,[\s\S]*?font-size: var\(--vc-theme-font-46, 46px\);/u
+    );
+    expect(css).toMatch(
+      /\.arenaRoot\[data-orientation="portrait"\][\s\S]*?\.arenaVisitorSchedule span \{\s*font-size: var\(--vc-theme-font-52, 52px\);/u
+    );
+    expect(css).toMatch(
+      /\.arenaVisitorDetails > div \{\s*display: grid;\s*grid-template-columns: 220px minmax\(0, 1fr\);/u
+    );
+    expect(css).toMatch(
+      /\.arenaRoot\[data-orientation="portrait"\] \.arenaVisitorDetails > div \{\s*grid-template-columns: 245px minmax\(0, 1fr\);/u
+    );
+  });
 });
