@@ -152,6 +152,7 @@ tests en exitcriteria staan in
 | S151 | Gedeelde dropdown-multiselect | Eén zoekbare tokengebaseerde meerkeuzecontrol delen voor compacte team-, scherm-, groep- en rolselecties, zonder operationele preflight-, permission-, volgorde- of tabelbulkcontext te verbergen |
 | S152 | Theme-editor en opslagherstel | De centrale tenantstijl professioneel en responsive maken en opslaan herstellen wanneer historische Menu Studio-content opnieuw wordt gerenderd |
 | S154 | Eigen clubwedstrijden en thuis-/uitfilter | Clubprogramma en clubuitslagen strikt tot tenant-eigen teams beperken, per slide thuis/uit/both configureerbaar maken en legacy latest-slides via nieuwe immutable snapshots herstellen |
+| S156 | Wedstrijdregels, welkomsthiërarchie en clubvarianten | Vaste tweeregelige programma-/uitslagkaarten, volledige thuisteam- en wedstrijddetails, ruimere portrait splitnieuwsslides en zes atomische clubvarianten voor vandaag |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op
@@ -278,6 +279,17 @@ donkerdere tekstzone en verkiest grotere RSS-bronbeelden. Bestaande
 `latest`-bezoekersteamslides worden uitsluitend via nieuwe snapshots en de
 bestaande immutable auto-publicatieketen bijgewerkt. Zie
 `prompts/sprints/S155-welcome-news-layout.md`.
+
+S156 maakt clubprogramma en clubuitslagen op beide Player-runtimes tot vaste,
+tweeregelige wedstrijdkaarten. Landschap kan optioneel twee kolommen tonen;
+portrait blijft altijd één kolom en een korte lijst rekt niet meer uit. De
+Sportlink-wizard kan programma en uitslagen voor vandaag in één atomaire actie
+als thuis-, uit- en beide-variant aanmaken. Bezoekerskaarten tonen daarnaast de
+volledige thuisteamnaam, grotere datum en aanvang en onderaan uitgelijnde
+kleedkamer-, veld- en scheidsrechterinformatie. De portrait splitnieuwsslide
+krijgt meer tussen- en zijruimte. De fullscreen-gradient-QR blijft op de reeds
+maximale canonieke 7,5%-safe-area staan. Zie
+`prompts/sprints/S156-slide-layout-completion.md`.
 
 ### Programmagates
 

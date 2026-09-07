@@ -163,6 +163,44 @@ describe("Sportlink aggregate teamcontexten", () => {
     }).success).toBe(true);
   });
 
+  it.each([
+    ["sportlink.club_schedule_today", "home"],
+    ["sportlink.club_schedule_today", "away"],
+    ["sportlink.club_schedule_today", "both"],
+    ["sportlink.club_results_today", "home"],
+    ["sportlink.club_results_today", "away"],
+    ["sportlink.club_results_today", "both"]
+  ] as const)(
+    "accepteert vandaagvariant %s voor locatie %s",
+    (blueprintKey, matchLocation) => {
+      const todayDraft = {
+        blueprintKey,
+        context: context("team-1"),
+        name: blueprintKey.includes("schedule")
+          ? "Clubprogramma vandaag"
+          : "Clubuitslagen vandaag",
+        orientation: "landscape" as const,
+        teamSelection: {
+          matchLocation,
+          mode: "all" as const,
+          teamContexts: []
+        },
+        templateVersionId,
+        themeSelection,
+        title: blueprintKey.includes("schedule")
+          ? "Clubprogramma vandaag"
+          : "Clubuitslagen vandaag"
+      };
+
+      expect(sportlinkSlideDraftSchema.safeParse(todayDraft).success).toBe(true);
+      expect(createSportlinkSlideBatchSchema.safeParse({
+        dataSourceId: "00000000-0000-4000-8000-000000000002",
+        drafts: [todayDraft],
+        idempotencyKey: "00000000-0000-4000-8000-000000000003"
+      }).success).toBe(true);
+    }
+  );
+
   it("behoudt legacy drafts zonder teamContexts", () => {
     const { teamContexts, ...legacyDraft } = draft(
       "sportlink.visitor_arrivals"

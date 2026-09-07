@@ -675,11 +675,12 @@ function createDynamicTemplateViewInternal(
     };
   }
 
-  const columnMultiplier = sportDisplay?.columns === "two" ? 2 : 1;
+  const columnMultiplier = payload.orientation === "landscape" &&
+    sportDisplay?.columns === "two" ? 2 : 1;
   const perPage = payload.slideType === "sport_results"
     ? sportResultsRowsPerPage[payload.orientation] * columnMultiplier
     : payload.slideType === "sport_program"
-      ? (payload.orientation === "portrait" ? 7 : 8) * columnMultiplier
+      ? (payload.orientation === "portrait" ? 7 : 6) * columnMultiplier
       : payload.orientation === "portrait" ? 6 : 8;
   const listPageKind = payload.slideType === "sport_team"
     ? "team"

@@ -85,6 +85,71 @@ describe("Sportlink bulk wizard", () => {
     }
   );
 
+  it.each([
+    ["sportlink.club_schedule_today", "home", "sport_program"],
+    ["sportlink.club_schedule_today", "away", "sport_program"],
+    ["sportlink.club_schedule_today", "both", "sport_program"],
+    ["sportlink.club_results_today", "home", "sport_results"],
+    ["sportlink.club_results_today", "away", "sport_results"],
+    ["sportlink.club_results_today", "both", "sport_results"]
+  ] as const)(
+    "bouwt vandaagvariant %s voor locatie %s",
+    (blueprintKey, matchLocation, slideType) => {
+      const drafts = buildSportlinkSlideDrafts({
+        blueprintKeys: [blueprintKey],
+        matchLocation,
+        orientation: "landscape",
+        teams: [team("team-1"), team("team-2")],
+        templateVersionIdBySlideType: { [slideType]: templateVersionId },
+        themeSelection
+      });
+
+      expect(drafts).toHaveLength(1);
+      expect(drafts[0]).toMatchObject({
+        blueprintKey,
+        teamSelection: {
+          matchLocation,
+          mode: "selected",
+          teamContexts: [
+            { providerTeamId: "team-1" },
+            { providerTeamId: "team-2" }
+          ]
+        }
+      });
+    }
+  );
+
+  it("bouwt programma en uitslagen vandaag als zes benoemde varianten", () => {
+    const drafts = buildSportlinkSlideDrafts({
+      blueprintKeys: [
+        "sportlink.club_schedule_today",
+        "sportlink.club_results_today"
+      ],
+      matchLocations: ["both", "home", "away"],
+      orientation: "landscape",
+      teams: [team("team-1"), team("team-2")],
+      templateVersionIdBySlideType: {
+        sport_program: templateVersionId,
+        sport_results: templateVersionId
+      },
+      themeSelection
+    });
+
+    expect(drafts).toHaveLength(6);
+    expect(drafts.map((draft) => [
+      draft.blueprintKey,
+      draft.teamSelection?.matchLocation,
+      draft.title
+    ])).toEqual([
+      ["sportlink.club_schedule_today", "both", "Clubprogramma vandaag · Thuis en uit"],
+      ["sportlink.club_schedule_today", "home", "Clubprogramma vandaag · Thuis"],
+      ["sportlink.club_schedule_today", "away", "Clubprogramma vandaag · Uit"],
+      ["sportlink.club_results_today", "both", "Clubuitslagen vandaag · Thuis en uit"],
+      ["sportlink.club_results_today", "home", "Clubuitslagen vandaag · Thuis"],
+      ["sportlink.club_results_today", "away", "Clubuitslagen vandaag · Uit"]
+    ]);
+  });
+
   it("bewaart in Alle teams alleen individuele competitie-overrides", () => {
     const automatic = team("automatic");
     automatic.context = {

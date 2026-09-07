@@ -29,6 +29,7 @@ import {
 import {
   editorialArenaCanvas,
   resolveEditorialArenaViewportFit,
+  sportMatchRowHeight,
   sportColumnCount,
   sportRowHeight,
   type EditorialArenaViewportFit
@@ -520,15 +521,24 @@ function ArenaPage({
                     <span>{entry.awayTeam || entry.primary}</span>
                   </h2>
                 </div>
-                <div className={styles.arenaVisitorDetails}>
-                  <strong>Kleedkamers:</strong>
-                  <p className={styles.arenaVisitorRoomLine}>
-                    Thuis: {entry.homeRoom || "volgt"}
-                    <i aria-hidden="true">|</i>
-                    Uit: {entry.awayRoom || entry.dressingRoom || "volgt"}
-                  </p>
-                  <p>Veld: {entry.field || "volgt"}</p>
-                </div>
+                <dl className={styles.arenaVisitorDetails}>
+                  <div>
+                    <dt>Kleedkamers:</dt>
+                    <dd className={styles.arenaVisitorRoomLine}>
+                      <span>Thuis: {entry.homeRoom || "volgt"}</span>
+                      <i aria-hidden="true">|</i>
+                      <span>Uit: {entry.awayRoom || entry.dressingRoom || "volgt"}</span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Veld:</dt>
+                    <dd>{entry.field || "volgt"}</dd>
+                  </div>
+                  <div>
+                    <dt>Scheidsrechter:</dt>
+                    <dd>{entry.officials.join(", ") || "volgt"}</dd>
+                  </div>
+                </dl>
               </div>
             ) : (
               <>
@@ -1115,24 +1125,24 @@ function ProgramRow({
   const home = item.homeTeam || fallbackHome;
   const away = item.awayTeam || fallbackAway;
   const meta = sportRowMeta(display, item);
+  const showLogo = display?.showLogo !== false;
   return (
     <article
       className={styles.arenaProgramRow}
       style={{ "--arena-row-delay": `${360 + rowIndex * 110}ms` } as CSSProperties}
     >
-      <strong className={styles.arenaMatchDate}>{item.date || item.secondary}</strong>
-      <b className={styles.arenaKickoff}>{item.time || "Tijd volgt"}</b>
-      <span className={styles.arenaHomeLogo}>
-        {display?.showLogo !== false ? (
-          <TeamMini homePlate logoUrl={item.homeLogoUrl} name={home} />
+      <MatchInformationLine item={item} meta={meta} />
+      <div
+        className={styles.arenaFixtureMain}
+        data-logo={showLogo ? "visible" : "hidden"}
+      >
+        {showLogo ? (
+          <span className={styles.arenaHomeLogo}>
+            <TeamMini homePlate logoUrl={item.homeLogoUrl} name={home} />
+          </span>
         ) : null}
-      </span>
-      <span className={styles.arenaFixtureTeams}>
-        <span>{display?.showHomeAway ? <em>Thuis</em> : null}{home}</span>
-        <i>vs</i>
-        <span>{display?.showHomeAway ? <em>Uit</em> : null}{away}</span>
-      </span>
-      <small className={styles.arenaMatchVenue} title={meta}>{meta}</small>
+        <FixtureTeams away={away} display={display} home={home} />
+      </div>
     </article>
   );
 }
@@ -1150,28 +1160,76 @@ function ResultRow({
   const home = item.homeTeam || fallbackHome;
   const away = item.awayTeam || fallbackAway;
   const meta = sportRowMeta(display, item);
+  const showLogo = display?.showLogo !== false;
   return (
     <article
       className={styles.arenaResultRow}
       data-result-row=""
       style={{ "--arena-row-delay": `${360 + rowIndex * 110}ms` } as CSSProperties}
     >
-      <strong className={styles.arenaMatchDate}>{item.date || item.secondary}</strong>
-      <b className={styles.arenaKickoff}>{item.time || "Eindstand"}</b>
-      <span className={styles.arenaHomeLogo}>
-        {display?.showLogo !== false ? (
-          <TeamMini homePlate logoUrl={item.homeLogoUrl} name={home} />
+      <MatchInformationLine item={item} meta={meta} />
+      <div
+        className={styles.arenaFixtureMain}
+        data-logo={showLogo ? "visible" : "hidden"}
+      >
+        {showLogo ? (
+          <span className={styles.arenaHomeLogo}>
+            <TeamMini homePlate logoUrl={item.homeLogoUrl} name={home} />
+          </span>
         ) : null}
-      </span>
-      <span className={styles.arenaFixtureTeams}>
-        <span>{display?.showHomeAway ? <em>Thuis</em> : null}{home}</span>
-        <i className={styles.arenaResultScore}>
+        <FixtureTeams away={away} display={display} home={home} />
+        <i
+          aria-label={`Uitslag ${item.homeScore ?? "–"} tegen ${item.awayScore ?? "–"}`}
+          className={styles.arenaResultScore}
+        >
           <b>{item.homeScore ?? "–"}</b><span>–</span><b>{item.awayScore ?? "–"}</b>
         </i>
-        <span>{display?.showHomeAway ? <em>Uit</em> : null}{away}</span>
-      </span>
-      <small className={styles.arenaMatchVenue} title={meta}>{meta}</small>
+      </div>
     </article>
+  );
+}
+
+function MatchInformationLine({
+  item,
+  meta
+}: {
+  item: DynamicTemplateListItem;
+  meta: string;
+}) {
+  return (
+    <div className={styles.arenaMatchInformation}>
+      <strong className={styles.arenaMatchDate}>{item.date || item.secondary}</strong>
+      <i aria-hidden="true">|</i>
+      <b className={styles.arenaKickoff}>{item.time || item.kickoffTime || "Tijd volgt"}</b>
+      {meta ? <>
+        <i aria-hidden="true">|</i>
+        <small className={styles.arenaMatchVenue} title={meta}>{meta}</small>
+      </> : null}
+    </div>
+  );
+}
+
+function FixtureTeams({
+  away,
+  display,
+  home
+}: {
+  away: string;
+  display: DynamicTemplateView["sportDisplay"];
+  home: string;
+}) {
+  return (
+    <span className={styles.arenaFixtureTeams}>
+      <span>
+        {display?.showHomeAway ? <em>Thuis</em> : null}
+        <b title={home}>{home}</b>
+      </span>
+      <i>vs</i>
+      <span>
+        {display?.showHomeAway ? <em>Uit</em> : null}
+        <b title={away}>{away}</b>
+      </span>
+    </span>
   );
 }
 
@@ -1179,8 +1237,12 @@ function sportRowMeta(
   display: DynamicTemplateView["sportDisplay"],
   item: DynamicTemplateListItem
 ) {
+  const locations = [
+    item.venueName,
+    display?.showField ? item.venue || item.field || item.meta : ""
+  ].filter((value, index, values) => value && values.indexOf(value) === index);
   return [
-    display?.showField ? item.venue || item.field || item.meta : "",
+    ...locations,
     display?.showDressingRoom && item.homeRoom ? `Thuis ${item.homeRoom}` : "",
     display?.showDressingRoom && item.awayRoom ? `Uit ${item.awayRoom}` : "",
     display?.showReferee ? item.officials.join(" · ") : ""
@@ -1276,7 +1338,7 @@ function splitIntoColumns<T>(
 ) {
   const columns = configuredColumns === "one"
     ? 1
-    : configuredColumns === "two"
+    : configuredColumns === "two" && orientation === "landscape"
       ? Math.min(2, items.length || 1)
       : sportColumnCount(orientation, items.length);
   if (columns === 1) return [items];
@@ -1288,6 +1350,13 @@ function pageRowHeight(
   page: DynamicTemplatePage,
   view: DynamicTemplateView
 ) {
+  if (page.kind === "sport-list" && (
+    view.slideType === "sport_program" || view.slideType === "sport_results"
+  )) {
+    return sportMatchRowHeight[
+      view.slideType === "sport_results" ? "results" : "program"
+    ][view.orientation];
+  }
   if (page.kind === "standing" || page.kind === "sport-list") {
     return sportRowHeight(view.orientation, page.items.length);
   }

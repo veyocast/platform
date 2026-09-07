@@ -125,18 +125,31 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain('templateNode("div", "legacy-arrival-grid")');
     expect(html).toContain('templateNode("div", "legacy-visitor-schedule")');
     expect(html).toContain('templateNode("div", "legacy-visitor-teams")');
-    expect(html).toContain('templateNode("div", "legacy-visitor-details")');
+    expect(html).toContain('templateNode("dl", "legacy-visitor-details")');
     expect(html).toContain("templateVisitorArrivalDate");
     expect(html).toContain("templateVisitorVenueWelcome");
     expect(html).toContain('"Kleedkamers:"');
+    expect(html).toContain('"Scheidsrechter:"');
     expect(html).toContain("--vc-visitor-title-size-portrait");
+    expect(html).toContain("--vc-theme-font-46,46px");
+    expect(html).toContain("--vc-theme-font-52,52px");
+    expect(html).toContain("--vc-theme-font-23,23px");
+    expect(html).toContain("--vc-theme-font-26,26px");
     expect(html).not.toContain("calc(var(--vc-title-size-portrait,49px) * .86)");
     expect(html).not.toContain(".legacy-visitor-schedule{display:flex;flex-direction:column;gap:");
     expect(html).not.toContain(".legacy-visitor-teams h2 span{overflow-wrap:anywhere");
     expect(html).toContain("legacy-arrival-sponsor");
     expect(html).toContain("arrivalConfiguration.sponsorMediaAssetId");
-    expect(html).toContain('fixtureList.setAttribute("data-columns", displayColumns)');
-    expect(html).toContain('resultList.setAttribute("data-columns", displayColumns)');
+    expect(html).toContain('list.setAttribute("data-columns", columns)');
+    expect(html).toContain("configureLegacyMatchColumns(");
+    expect(html).toContain('orientation === "landscape" && displayConfiguration');
+    expect(html).toContain("renderLegacyMatchInformation(item, fixtureDetails)");
+    expect(html).toContain("renderLegacyMatchInformation(item, resultDetails)");
+    expect(html).toContain("renderLegacyMatchFixture(");
+    expect(html).toContain('templateNode(\n                "i", "legacy-result-score"');
+    expect(html).toContain(
+      '.editorial-arena.portrait .editorial-news[data-news-variant="hero_split"]{box-sizing:border-box;gap:32px;padding-right:20px;padding-left:20px}'
+    );
     expect(html).toContain('data-render-family", "team-roster"');
     expect(html).toContain('data-render-family", "sponsor-spotlight"');
     expect(html).toContain('data-render-family", "training-schedule"');
@@ -467,8 +480,25 @@ describe("zelfstandige LG Legacy Player", () => {
       "bottom:calc(52px + var(--viewport-inset-y,0px))"
     );
     expect(html).toContain(
-      "grid-template-columns:150px 90px 58px minmax(0,1fr) 300px"
+      ".legacy-fixture-list,.legacy-result-list{display:grid;grid-auto-rows:115px;align-content:start"
     );
+    expect(html).toContain(
+      '[data-columns="two"]{grid-auto-flow:column;grid-template-columns:repeat(2,minmax(0,1fr))'
+    );
+    expect(html).toContain(
+      ".legacy-fixture-row,.legacy-result-row{display:grid;grid-template-rows:auto minmax(0,1fr)"
+    );
+    expect(html).toContain(
+      ".portrait .legacy-fixture-list{grid-auto-rows:221px}.portrait .legacy-result-list{grid-auto-rows:314px}"
+    );
+    expect(html).toContain(
+      '.legacy-match-main{display:grid;grid-template-columns:58px minmax(0,1fr) auto'
+    );
+    expect(html).toContain(".legacy-result-score{justify-self:end");
+    expect(html).toContain(
+      'slideType === "sport_program" ? (orientation === "portrait" ? 7 : 6)'
+    );
+    expect(html).toContain('Math.ceil(itemCount / 2) + ",115px)"');
     expect(html).toContain("@keyframes legacy-match-row-in");
     expect(html).toContain("displayConfiguration.showLogo !== false");
     expect(html).toContain("Number(themePresentation.snapshotVersion) === 2");

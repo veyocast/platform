@@ -40,7 +40,7 @@ import {
 } from "@veyocast/ui";
 
 import { FieldFlowStyleStep } from "../../../slides/_components/fieldflow-style-step";
-import { SportlinkMatchLocationField } from "../../../slides/_components/sportlink-match-location-field";
+import { SportlinkMatchLocationsField } from "../../../slides/_components/sportlink-match-location-field";
 import {
   SportlinkArrivalFields,
   type SportlinkMediaOption
@@ -117,7 +117,7 @@ export function SportlinkBulkWizard({
     Partial<Record<SportlinkSlideBlueprintKey, string[]>>
   >({});
   const [matchLocations, setMatchLocations] = useState<
-    Partial<Record<SportlinkSlideBlueprintKey, SportlinkMatchLocation>>
+    Partial<Record<SportlinkSlideBlueprintKey, SportlinkMatchLocation[]>>
   >({});
   const [teamContexts, setTeamContexts] = useState<
     Record<string, SportlinkSlideContext>
@@ -204,15 +204,14 @@ export function SportlinkBulkWizard({
           name: team.name
         }));
         if (!selected.length) return [];
+        const clubwide = isClubwideMatchKey(key);
         return buildSportlinkSlideDrafts({
           blueprintKeys: [key],
-          matchLocation: isClubwideMatchKey(key)
-            ? matchLocations[key] ?? "both"
+          matchLocations: clubwide
+            ? matchLocations[key] ?? ["both"]
             : undefined,
           orientation,
-          teamSelectionMode: isClubwideMatchKey(key)
-            ? selection.mode
-            : undefined,
+          teamSelectionMode: clubwide ? selection.mode : undefined,
           teams: selected,
           templateVersionIdBySlideType: templateMap,
           themeSelection
@@ -671,7 +670,7 @@ function TeamStep({
     Record<SportlinkSlideBlueprintKey, BlueprintTeamSelection>
   >;
   matchLocations: Partial<
-    Record<SportlinkSlideBlueprintKey, SportlinkMatchLocation>
+    Record<SportlinkSlideBlueprintKey, SportlinkMatchLocation[]>
   >;
   teams: Team[];
   updateArrivalSelection: (
@@ -680,7 +679,7 @@ function TeamStep({
   ) => void;
   updateMatchLocation: (
     key: SportlinkSlideBlueprintKey,
-    value: SportlinkMatchLocation
+    value: SportlinkMatchLocation[]
   ) => void;
   updateRegularSelection: (
     key: SportlinkSlideBlueprintKey,
@@ -751,9 +750,9 @@ function TeamStep({
                 value={selectedIds}
               />
               {clubwide ? (
-                <SportlinkMatchLocationField
+                <SportlinkMatchLocationsField
                   onChange={(value) => updateMatchLocation(key, value)}
-                  value={matchLocations[key] ?? "both"}
+                  values={matchLocations[key] ?? ["both"]}
                 />
               ) : null}
             </section>
@@ -996,7 +995,12 @@ function ThemeDisplayStep({
             <button
               aria-pressed={orientation === value}
               key={value}
-              onClick={() => setOrientation(value)}
+              onClick={() => {
+                setOrientation(value);
+                if (value === "portrait") {
+                  setDisplay((current) => ({ ...current, columns: "one" }));
+                }
+              }}
               type="button"
             >
               <strong>{value === "portrait" ? "Staand" : "Liggend"}</strong>
@@ -1008,7 +1012,18 @@ function ThemeDisplayStep({
       <section className={styles.displaySection}>
         <h3>Kolommen en wedstrijdinformatie</h3>
         <div className={styles.inlineOptions}>
-          <label><input checked={display.columns === "two"} onChange={(event) => setDisplay((current) => ({ ...current, columns: event.target.checked ? "two" : "one" }))} type="checkbox" /> Twee kolommen</label>
+          <label>
+            <input
+              checked={orientation === "landscape" && display.columns === "two"}
+              disabled={orientation === "portrait"}
+              onChange={(event) => setDisplay((current) => ({
+                ...current,
+                columns: event.target.checked ? "two" : "one"
+              }))}
+              type="checkbox"
+            />
+            Twee kolommen (alleen liggend)
+          </label>
           <label><input checked={display.showLogo} onChange={(event) => setDisplay((current) => ({ ...current, showLogo: event.target.checked }))} type="checkbox" /> Logo tonen</label>
           {hasFixtureInfo ? <>
             <label><input checked={display.showHomeAway} onChange={(event) => setDisplay((current) => ({ ...current, showHomeAway: event.target.checked }))} type="checkbox" /> Thuis / uit tonen</label>

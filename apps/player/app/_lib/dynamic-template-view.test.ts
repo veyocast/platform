@@ -582,6 +582,54 @@ describe("trusted dynamic template view", () => {
       : 0).toBe(5);
   });
 
+  it("gebruikt twee wedstrijdkolommen alleen liggend en forceert portrait naar één", () => {
+    const matchItems = Array.from({ length: 13 }, (_, index) => ({
+      awayScore: index % 2,
+      awayTeam: `Uit ${index + 1}`,
+      date: "07-09-2026",
+      homeScore: 3,
+      homeTeam: `Thuis ${index + 1}`,
+      id: `wedstrijd-${index + 1}`,
+      primary: `Thuis ${index + 1} – Uit ${index + 1}`,
+      time: "14:30",
+      venueName: "Sportpark De Arena"
+    }));
+
+    for (const slideType of ["sport_program", "sport_results"] as const) {
+      const landscapePayload = {
+        ...base,
+        data: {
+          sport: {
+            displayConfig: { columns: "two" },
+            items: matchItems,
+            title: slideType === "sport_program" ? "Programma" : "Uitslagen"
+          },
+          type: slideType
+        },
+        slideType,
+        templateSlug: `editorial-arena-${slideType.replaceAll("_", "-")}-light-landscape`
+      } as const;
+      const landscape = createDynamicTemplateView(landscapePayload);
+      const portrait = createDynamicTemplateView({
+        ...landscapePayload,
+        orientation: "portrait",
+        templateSlug: `editorial-arena-${slideType.replaceAll("_", "-")}-light-portrait`
+      });
+      const expectedPortraitRows = slideType === "sport_results" ? 5 : 7;
+
+      expect(landscape?.pages[0]?.kind === "sport-list"
+        ? landscape.pages[0].items
+        : []).toHaveLength(12);
+      expect(portrait?.pages[0]?.kind === "sport-list"
+        ? portrait.pages[0].items
+        : []).toHaveLength(expectedPortraitRows);
+      expect(landscape?.pages).toHaveLength(2);
+      expect(portrait?.pages).toHaveLength(
+        slideType === "sport_results" ? 3 : 2
+      );
+    }
+  });
+
   it("bouwt een prijslijst met vaste fotovakken en negen landscaperijen", () => {
     const photoId = "77777777-7777-4777-8777-777777777777";
     const view = createDynamicTemplateView({

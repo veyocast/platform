@@ -54,12 +54,24 @@ const themePresentation = {
 
 function programPayload(
   itemCount: number,
-  slideType: "sport_program" | "sport_team" = "sport_program"
+  slideType: "sport_program" | "sport_team" = "sport_program",
+  options: {
+    columns?: "one" | "two";
+    orientation?: "landscape" | "portrait";
+  } = {}
 ): PlayerDynamicTemplatePayload {
   return {
     data: {
       brand: { clubName: "Duindorp SV", primaryColor: "#315CFF" },
       sport: {
+        displayConfig: {
+          columns: options.columns ?? "one",
+          showDressingRoom: false,
+          showField: true,
+          showHomeAway: true,
+          showLogo: true,
+          showReferee: false
+        },
         items: Array.from({ length: itemCount }, (_, index) => ({
           awayTeam: `Uit ${index + 1}`,
           date: "12-09-2026",
@@ -74,7 +86,7 @@ function programPayload(
       themePresentation,
       type: slideType
     },
-    orientation: "landscape",
+    orientation: options.orientation ?? "landscape",
     schemaVersion: 1,
     slideType,
     snapshotHash: "a".repeat(64),
@@ -112,7 +124,7 @@ describe("Match Centre renderer", () => {
       columns: "one",
       showLogo: true
     });
-    expect(view?.pages).toHaveLength(13);
+    expect(view?.pages).toHaveLength(17);
     expect(items).toHaveLength(100);
     expect(items?.at(-1)?.id).toBe("wedstrijd-100");
     expect(teamItemCount).toBe(40);
@@ -132,7 +144,7 @@ describe("Match Centre renderer", () => {
     )).toBe("06-09-2026 | 15:33");
     expect(
       firstPage?.kind === "sport-list" ? firstPage.items : []
-    ).toHaveLength(8);
+    ).toHaveLength(6);
     expect(renderer).toContain("<strong>MATCHCENTRE</strong>");
     expect(renderer).toContain(
       "<time dateTime={clock.instant}>{clock.label}</time>"
@@ -156,5 +168,42 @@ describe("Match Centre renderer", () => {
     expect(css).toContain("@keyframes matchRowIn");
     expect(css).toContain("var(--arena-row-delay) both");
     expect(css).not.toContain(".arenaVerticalIndex");
+  });
+
+  it("pagineert twee kolommen alleen liggend en houdt portrait op één kolom", () => {
+    const landscape = createDynamicTemplateView(programPayload(
+      20,
+      "sport_program",
+      { columns: "two" }
+    ));
+    const portrait = createDynamicTemplateView(programPayload(
+      20,
+      "sport_program",
+      { columns: "two", orientation: "portrait" }
+    ));
+
+    expect(landscape?.pages).toHaveLength(2);
+    expect(landscape?.pages[0]?.kind === "sport-list"
+      ? landscape.pages[0].items
+      : []).toHaveLength(12);
+    expect(portrait?.pages).toHaveLength(3);
+    expect(portrait?.pages[0]?.kind === "sport-list"
+      ? portrait.pages[0].items
+      : []).toHaveLength(7);
+  });
+
+  it("legt wedstrijdregels vast als twee regels met een afzonderlijke score rechts", () => {
+    expect(css).toMatch(
+      /\.arenaFixtureList \{[^}]*grid-auto-rows: var\(--arena-row-height\);[^}]*align-content: start;/u
+    );
+    expect(css).toMatch(
+      /\.arenaProgramRow,[\s\S]*?grid-template-rows: auto minmax\(0, 1fr\);[\s\S]*?height: var\(--arena-row-height\);/u
+    );
+    expect(css).toMatch(
+      /\.arenaResultScore \{[^}]*justify-self: end;[^}]*font-variant-numeric: tabular-nums;/u
+    );
+    expect(renderer).toContain("<MatchInformationLine item={item} meta={meta} />");
+    expect(renderer).toContain("<FixtureTeams away={away} display={display} home={home} />");
+    expect(renderer).toContain("aria-label={`Uitslag ${item.homeScore ?? \"–\"} tegen ${item.awayScore ?? \"–\"}`}");
   });
 });

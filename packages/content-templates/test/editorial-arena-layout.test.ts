@@ -5,8 +5,9 @@ import {
   paginateEditorialRows,
   priceRowsThatFit,
   resolveEditorialArenaViewportFit,
-  sportResultsRowsPerPage,
   sportColumnCount,
+  sportMatchRowHeight,
+  sportResultsRowsPerPage,
   sportRowHeight,
   sportRowsPerColumn,
   sportStandingRowsPerPage
@@ -86,6 +87,13 @@ describe("Editorial Arena v2 layout", () => {
       Array.from({ length: 20 }),
       sportResultsRowsPerPage.portrait
     )).toHaveLength(4);
+  });
+
+  it("houdt programma- en uitslagkaarten maatvast zonder lege ruimte uit te rekken", () => {
+    expect(sportMatchRowHeight).toEqual({
+      program: { landscape: 115, portrait: 221 },
+      results: { landscape: 115, portrait: 314 }
+    });
   });
 });
 

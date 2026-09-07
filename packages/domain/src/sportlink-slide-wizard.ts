@@ -20,36 +20,53 @@ export function buildSportlinkSlideDrafts(input: {
   blueprintKeys: SportlinkSlideBlueprintKey[];
   orientation: "landscape" | "portrait";
   matchLocation?: SportlinkMatchLocation;
+  matchLocations?: readonly SportlinkMatchLocation[];
   templateVersionIdBySlideType: Record<string, string>;
   teamSelectionMode?: "all" | "selected";
   teams: SportlinkWizardTeam[];
   themeSelection: ThemeSelection;
 }): SportlinkSlideDraft[] {
   const aggregatedArrivals = new Set<SportlinkSlideBlueprintKey>();
-  const aggregatedClubSlides = new Set<SportlinkSlideBlueprintKey>();
+  const aggregatedClubSlides = new Set<string>();
   return input.teams.flatMap((team) => input.blueprintKeys.flatMap((blueprintKey) => {
     if (isClubwideMatchBlueprint(blueprintKey)) {
-      if (aggregatedClubSlides.has(blueprintKey)) return [];
-      aggregatedClubSlides.add(blueprintKey);
-      const teamContexts = input.teams.map((candidate) => ({ ...candidate.context }));
-      const selection: SportlinkSlideTeamSelection =
-        sportlinkSlideTeamSelectionSchema.parse({
-          matchLocation: input.matchLocation ?? "both",
-          mode: input.teamSelectionMode ?? "selected",
-          teamContexts: input.teamSelectionMode === "all"
-            ? teamContexts.filter((context) =>
-                context.competitionSelectionMode === "pinned"
-              )
-            : teamContexts
-        });
-      const primaryTeam = selection.teamContexts.length
-        ? input.teams.find((candidate) =>
-            candidate.context.providerTeamId === selection.teamContexts[0]?.providerTeamId
-          ) ?? team
-        : team;
-      return [buildDraft(
-        input, blueprintKey, primaryTeam, undefined, selection
+      const matchLocations = [...new Set(
+        input.matchLocations?.length
+          ? input.matchLocations
+          : [input.matchLocation ?? "both"]
       )];
+      return matchLocations.flatMap((matchLocation) => {
+        const aggregateKey = `${blueprintKey}:${matchLocation}`;
+        if (aggregatedClubSlides.has(aggregateKey)) return [];
+        aggregatedClubSlides.add(aggregateKey);
+        const teamContexts = input.teams.map((candidate) => ({
+          ...candidate.context
+        }));
+        const selection: SportlinkSlideTeamSelection =
+          sportlinkSlideTeamSelectionSchema.parse({
+            matchLocation,
+            mode: input.teamSelectionMode ?? "selected",
+            teamContexts: input.teamSelectionMode === "all"
+              ? teamContexts.filter((context) =>
+                  context.competitionSelectionMode === "pinned"
+                )
+              : teamContexts
+          });
+        const primaryTeam = selection.teamContexts.length
+          ? input.teams.find((candidate) =>
+              candidate.context.providerTeamId ===
+                selection.teamContexts[0]?.providerTeamId
+            ) ?? team
+          : team;
+        return [buildDraft(
+          input,
+          blueprintKey,
+          primaryTeam,
+          undefined,
+          selection,
+          matchLocation
+        )];
+      });
     }
     if (!isArrivalBlueprint(blueprintKey)) {
       return [buildDraft(input, blueprintKey, team)];
@@ -68,9 +85,20 @@ function buildDraft(
   blueprintKey: SportlinkSlideBlueprintKey,
   team: SportlinkWizardTeam,
   teamContexts?: SportlinkSlideContext[],
-  teamSelection?: SportlinkSlideTeamSelection
+  teamSelection?: SportlinkSlideTeamSelection,
+  matchLocation?: SportlinkMatchLocation
 ): SportlinkSlideDraft {
   const blueprint = sportlinkSlideBlueprints[blueprintKey];
+  const locationSuffix = matchLocation === "home"
+    ? "Thuis"
+    : matchLocation === "away"
+      ? "Uit"
+      : matchLocation === "both"
+        ? "Thuis en uit"
+        : "";
+  const label = locationSuffix
+    ? `${blueprint.label} · ${locationSuffix}`
+    : blueprint.label;
   const templateVersionId = input.templateVersionIdBySlideType[blueprint.slideType];
   if (!templateVersionId) {
     throw new Error(`Geen template voor ${blueprint.slideType}.`);
@@ -87,14 +115,14 @@ function buildDraft(
       showReferee: false
     },
     name: (teamContexts || teamSelection
-      ? blueprint.label
+      ? label
       : `${team.name} · ${blueprint.label}`).slice(0, 120),
     orientation: input.orientation,
     ...(teamContexts ? { teamContexts } : {}),
     ...(teamSelection ? { teamSelection } : {}),
     templateVersionId,
     themeSelection: input.themeSelection,
-    title: blueprint.label
+    title: label.slice(0, 160)
   };
 }
 

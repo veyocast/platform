@@ -6,8 +6,13 @@ const migrationUrl = new URL(
   "../../../../../../supabase/migrations/20260906143000_s153_slide_theme_backoffice.sql",
   import.meta.url
 );
+const variantMigrationUrl = new URL(
+  "../../../../../../supabase/migrations/20260907192942_s156_slide_layout_completion.sql",
+  import.meta.url
+);
 
 let migration = "";
+let variantMigration = "";
 let resourceAction = "";
 
 function publicFunction(name: string) {
@@ -26,8 +31,9 @@ function publicFunction(name: string) {
 
 describe("slide-resource RPC-contract", () => {
   beforeAll(async () => {
-    [migration, resourceAction] = await Promise.all([
+    [migration, variantMigration, resourceAction] = await Promise.all([
       readFile(migrationUrl, "utf8"),
+      readFile(variantMigrationUrl, "utf8"),
       readFile(new URL("./slide-resource-actions.ts", import.meta.url), "utf8")
     ]);
   });
@@ -79,7 +85,7 @@ describe("slide-resource RPC-contract", () => {
     expect(contract).not.toContain("delete from public.dynamic_slide_snapshots");
   });
 
-  it("bewaakt één clubslide per blueprint en canonicaliseert oude v3-fan-out", () => {
+  it("canonicaliseert oude v3-fan-out en bewaakt unieke S156-varianten", () => {
     const v4 = publicFunction("create_sportlink_slide_batch_v4");
     const v3 = publicFunction("create_sportlink_slide_batch_v3");
 
@@ -93,5 +99,27 @@ describe("slide-resource RPC-contract", () => {
     expect(v3).toContain("'mode', 'selected'");
     expect(v3).toContain("'teamContexts', contexts");
     expect(v3).toContain("public.create_sportlink_slide_batch_v4(");
+    expect(variantMigration).toContain(
+      "rename to create_sportlink_slide_batch_v4_before_s156"
+    );
+    expect(variantMigration).toContain(
+      "set schema private"
+    );
+    expect(variantMigration).toContain(
+      "private.create_sportlink_slide_batch_v4_before_s156("
+    );
+    expect(variantMigration).toContain(
+      "duplicate club-wide Sportlink variant"
+    );
+    expect(variantMigration).toContain(
+      "draft.value #>> '{teamSelection,matchLocation}'"
+    );
+    expect(variantMigration).toContain(
+      "pg_catalog.jsonb_build_array(current_draft)"
+    );
+    expect(variantMigration).toContain("existing_request_hash is distinct from request_hash");
+    expect(variantMigration).toContain("'fanOut', true");
+    expect(variantMigration).toContain("'variantCount'");
+    expect(variantMigration).toContain("to authenticated;");
   });
 });

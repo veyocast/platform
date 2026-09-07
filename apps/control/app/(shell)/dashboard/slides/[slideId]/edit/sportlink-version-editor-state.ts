@@ -88,9 +88,16 @@ export function prepareSportlinkVersionEditorDraft(
   teams: SportlinkVersionEditorTeam[],
   fieldflowThemeVersion: string
 ) {
-  const normalizedDraft = normalizeLegacyClubAggregateDraft(
+  const legacyNormalizedDraft = normalizeLegacyClubAggregateDraft(
     normalizeLegacyArrivalDraft(draft)
   );
+  const normalizedDraft = legacyNormalizedDraft.orientation === "portrait" &&
+    legacyNormalizedDraft.display.columns === "two"
+    ? {
+        ...legacyNormalizedDraft,
+        display: { ...legacyNormalizedDraft.display, columns: "one" as const }
+      }
+    : legacyNormalizedDraft;
   const ref = normalizedDraft.themeSelection.ref;
   const themeNeedsNormalization = ref.catalog !== "v2" ||
     ref.id !== "fieldflow" || ref.version !== fieldflowThemeVersion;
