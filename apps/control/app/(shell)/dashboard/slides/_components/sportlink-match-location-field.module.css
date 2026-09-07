@@ -1,0 +1,85 @@
+.fieldset {
+  border: 0;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  min-inline-size: 0;
+  padding: 0;
+}
+
+.fieldset > legend {
+  color: var(--ff-heading);
+  font-size: 15px;
+  font-weight: 750;
+  margin-bottom: 3px;
+}
+
+.fieldset > p {
+  color: var(--ff-ink-soft);
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.fieldset > div {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fieldset label {
+  align-items: start;
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border);
+  border-radius: 13px;
+  color: var(--ff-ink);
+  cursor: pointer;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  min-height: 88px;
+  padding: 13px;
+}
+
+.fieldset label[data-selected="true"] {
+  background: var(--ff-success-surface);
+  border-color: var(--ff-field);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ff-field) 10%, transparent);
+}
+
+.fieldset label:focus-within {
+  outline: 2px solid var(--ff-focus);
+  outline-offset: 2px;
+}
+
+.fieldset input {
+  height: 18px;
+  margin: 1px 0 0;
+  width: 18px;
+}
+
+.fieldset span {
+  display: grid;
+  gap: 4px;
+}
+
+.fieldset strong {
+  color: var(--ff-heading);
+  font-size: 14px;
+}
+
+.fieldset small {
+  color: var(--ff-ink-soft);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+@media (max-width: 760px) {
+  .fieldset > div {
+    grid-template-columns: 1fr;
+  }
+
+  .fieldset label {
+    min-height: 0;
+  }
+}

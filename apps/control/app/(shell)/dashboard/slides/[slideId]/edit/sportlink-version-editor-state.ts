@@ -3,6 +3,7 @@ import {
   sportlinkClubAggregateBlueprintKeys,
   sportlinkSlideBlueprints,
   sportlinkSlideTeamContextsMax,
+  type SportlinkMatchLocation,
   type SportlinkSlideBlueprintKey,
   type SportlinkSlideContext,
   type SportlinkSlideDraft
@@ -64,17 +65,21 @@ export function normalizeLegacyArrivalDraft(
 export function normalizeLegacyClubAggregateDraft(
   draft: SportlinkSlideDraft
 ): SportlinkSlideDraft {
-  if (!isClubAggregateBlueprint(draft.blueprintKey) || draft.teamSelection) {
+  if (!isClubAggregateBlueprint(draft.blueprintKey)) {
     return draft;
   }
+  if (draft.teamSelection?.matchLocation) return draft;
   // Legacy clubprogramma's rendered club-wide already. Preserve that scope
-  // while making its future-proof all-team filter explicit.
+  // while making its future-proof all-team filter and match direction explicit.
   return {
     ...draft,
-    teamSelection: {
-      mode: "all",
-      teamContexts: []
-    }
+    teamSelection: draft.teamSelection
+      ? { ...draft.teamSelection, matchLocation: "both" }
+      : {
+          matchLocation: "both",
+          mode: "all",
+          teamContexts: []
+        }
   };
 }
 
@@ -168,11 +173,13 @@ export function switchSportlinkBlueprint(
       draft.teamSelection
       ? {
           ...draft.teamSelection,
+          matchLocation: draft.teamSelection.matchLocation ?? "both",
           teamContexts: draft.teamSelection.teamContexts.map((context) => ({
             ...context
           }))
         }
       : {
+          matchLocation: "both" as const,
           mode: "selected" as const,
           teamContexts: (draft.teamContexts ?? [draft.context]).map(
             (context) => ({ ...context })
@@ -257,6 +264,7 @@ export function replaceClubTeamSelection(
   teams: SportlinkVersionEditorTeam[]
 ): SportlinkSlideDraft {
   const current = draft.teamSelection ?? {
+    matchLocation: "both" as const,
     mode: "all" as const,
     teamContexts: []
   };
@@ -271,7 +279,12 @@ export function replaceClubTeamSelection(
     return {
       ...draft,
       context: { ...(pinnedOverrides[0] ?? draft.context) },
-      teamSelection: { mode, teamContexts: pinnedOverrides }
+      teamSelection: {
+        ...current,
+        matchLocation: current.matchLocation ?? "both",
+        mode,
+        teamContexts: pinnedOverrides
+      }
     };
   }
   const available = new Set(teams.map((team) => team.externalId));
@@ -285,7 +298,27 @@ export function replaceClubTeamSelection(
   return {
     ...draft,
     context: { ...teamContexts[0]! },
-    teamSelection: { mode, teamContexts }
+    teamSelection: {
+      ...current,
+      matchLocation: current.matchLocation ?? "both",
+      mode,
+      teamContexts
+    }
+  };
+}
+
+export function replaceClubMatchLocation(
+  draft: SportlinkSlideDraft,
+  matchLocation: SportlinkMatchLocation
+): SportlinkSlideDraft {
+  const teamSelection = draft.teamSelection ?? {
+    matchLocation: "both" as const,
+    mode: "all" as const,
+    teamContexts: []
+  };
+  return {
+    ...draft,
+    teamSelection: { ...teamSelection, matchLocation }
   };
 }
 
@@ -294,6 +327,7 @@ export function replaceClubTeamContext(
   context: SportlinkSlideContext
 ): SportlinkSlideDraft {
   const teamSelection = draft.teamSelection ?? {
+    matchLocation: "both" as const,
     mode: "all" as const,
     teamContexts: []
   };

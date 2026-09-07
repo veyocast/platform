@@ -22,6 +22,7 @@ export const sportlinkCompetitionSelectionModes = [
   "pinned"
 ] as const;
 export const sportlinkTeamSelectionModes = ["all", "selected"] as const;
+export const sportlinkMatchLocations = ["both", "home", "away"] as const;
 
 export const sportlinkClubAggregateBlueprintKeys = [
   "sportlink.club_schedule_today",
@@ -81,6 +82,7 @@ export const sportlinkSlideTeamContextsSchema = z.array(sportlinkSlideContextSch
   });
 
 export const sportlinkSlideTeamSelectionSchema = z.object({
+  matchLocation: z.enum(sportlinkMatchLocations).optional(),
   mode: z.enum(sportlinkTeamSelectionModes),
   teamContexts: z.array(sportlinkSlideContextSchema)
     .max(sportlinkSlideTeamContextsMax)
@@ -223,6 +225,24 @@ export const createSportlinkSlideBatchSchema = z.object({
         path: ["drafts", index, "teamContexts"]
       });
     }
+    if (
+      sportlinkClubAggregateBlueprintKeys.includes(
+        draft.blueprintKey as (typeof sportlinkClubAggregateBlueprintKeys)[number]
+      ) && (!draft.teamSelection || !draft.teamSelection.matchLocation)
+    ) {
+      refinement.addIssue({
+        code: "custom",
+        message: !draft.teamSelection
+          ? "Nieuwe clubslides vereisen een expliciete selectie van eigen teams."
+          : "Kies of deze clubslide thuis-, uit- of alle wedstrijden toont.",
+        path: [
+          "drafts",
+          index,
+          "teamSelection",
+          ...(draft.teamSelection ? ["matchLocation"] : [])
+        ]
+      });
+    }
   });
 });
 
@@ -234,6 +254,7 @@ export type SportlinkSlideTeamSelection = z.infer<
 export type SportlinkArrivalConfig = z.infer<typeof sportlinkArrivalConfigSchema>;
 export type SportlinkDisplayConfig = z.infer<typeof sportlinkDisplayConfigSchema>;
 export type SportlinkTeamSelectionMode = (typeof sportlinkTeamSelectionModes)[number];
+export type SportlinkMatchLocation = (typeof sportlinkMatchLocations)[number];
 export type SportlinkArrivalMotionPreset =
   (typeof sportlinkArrivalMotionPresets)[number];
 export type SportlinkSlideDraft = z.infer<typeof sportlinkSlideDraftSchema>;

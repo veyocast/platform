@@ -9,7 +9,10 @@ async function source(path: string) {
 
 describe("dynamic-slideversies en Sportlink-wizard", () => {
   it("houdt de Sportlink-flow bij vijf betekenisvolle stappen met één clubslide", async () => {
-    const wizard = await source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx");
+    const [wizard, matchLocationField] = await Promise.all([
+      source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx"),
+      source("app/(shell)/dashboard/slides/_components/sportlink-match-location-field.tsx")
+    ]);
 
     expect(wizard).toContain('"Inhoud kiezen"');
     expect(wizard).toContain('"Teams selecteren"');
@@ -21,6 +24,14 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(wizard).toContain("updateRegularSelection");
     expect(wizard).toContain("Alle teams (ook toekomstige)");
     expect(wizard).toContain("teamSelectionMode:");
+    expect(wizard).toContain("matchLocation:");
+    expect(wizard).toContain("<SportlinkMatchLocationField");
+    expect(wizard).toContain("matchLocationLabel");
+    expect(matchLocationField).toContain('label: "Thuis en uit"');
+    expect(matchLocationField).toContain('label: "Alleen thuis"');
+    expect(matchLocationField).toContain('label: "Alleen uit"');
+    expect(matchLocationField).toContain('type="radio"');
+    expect(matchLocationField).toContain("useId()");
     expect(wizard).toContain('columns: "one"');
     expect(wizard).toContain("showLogo: true");
     expect(wizard).toContain("Logo tonen");

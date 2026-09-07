@@ -6,6 +6,7 @@ import {
   type SportlinkSlideBlueprintKey,
   type SportlinkSlideContext,
   type SportlinkSlideDraft,
+  type SportlinkMatchLocation,
   type SportlinkSlideTeamSelection,
   type ThemeSelection
 } from "@veyocast/contracts";
@@ -18,6 +19,7 @@ export type SportlinkWizardTeam = {
 export function buildSportlinkSlideDrafts(input: {
   blueprintKeys: SportlinkSlideBlueprintKey[];
   orientation: "landscape" | "portrait";
+  matchLocation?: SportlinkMatchLocation;
   templateVersionIdBySlideType: Record<string, string>;
   teamSelectionMode?: "all" | "selected";
   teams: SportlinkWizardTeam[];
@@ -32,6 +34,7 @@ export function buildSportlinkSlideDrafts(input: {
       const teamContexts = input.teams.map((candidate) => ({ ...candidate.context }));
       const selection: SportlinkSlideTeamSelection =
         sportlinkSlideTeamSelectionSchema.parse({
+          matchLocation: input.matchLocation ?? "both",
           mode: input.teamSelectionMode ?? "selected",
           teamContexts: input.teamSelectionMode === "all"
             ? teamContexts.filter((context) =>

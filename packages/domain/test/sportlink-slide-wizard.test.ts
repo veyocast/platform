@@ -59,11 +59,31 @@ describe("Sportlink bulk wizard", () => {
         showLogo: true
       });
       expect(draft.name).not.toContain("team-0 ·");
+      expect(draft.teamSelection?.matchLocation).toBe("both");
     }
 
     drafts[0]!.teamSelection!.teamContexts[0]!.poolId = "changed";
     expect(drafts[1]!.teamSelection?.teamContexts[0]?.poolId).toBe("pool-1");
   });
+
+  it.each(["both", "home", "away"] as const)(
+    "bewaart wedstrijdlocatie %s alleen op een clubbrede slide",
+    (matchLocation) => {
+      const [clubDraft, poolDraft] = buildSportlinkSlideDrafts({
+        blueprintKeys: [
+          "sportlink.club_schedule_next_7_days",
+          "sportlink.pool_schedule_next_7_days"
+        ],
+        matchLocation,
+        orientation: "landscape",
+        teams: [team("team-1")],
+        templateVersionIdBySlideType: { sport_program: templateVersionId },
+        themeSelection
+      });
+      expect(clubDraft?.teamSelection?.matchLocation).toBe(matchLocation);
+      expect(poolDraft?.teamSelection).toBeUndefined();
+    }
+  );
 
   it("bewaart in Alle teams alleen individuele competitie-overrides", () => {
     const automatic = team("automatic");
@@ -88,6 +108,7 @@ describe("Sportlink bulk wizard", () => {
     });
 
     expect(draft?.teamSelection).toEqual({
+      matchLocation: "both",
       mode: "all",
       teamContexts: [pinned.context]
     });
@@ -111,6 +132,7 @@ describe("Sportlink bulk wizard", () => {
       themeSelection
     });
     expect(unfilteredDraft?.teamSelection).toEqual({
+      matchLocation: "both",
       mode: "all",
       teamContexts: []
     });
