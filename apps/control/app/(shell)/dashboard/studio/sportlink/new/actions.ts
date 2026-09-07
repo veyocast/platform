@@ -42,12 +42,17 @@ export async function createSportlinkSlideBatch(
     const batchTooLarge = parsed.error.issues.some((issue) =>
       issue.path[0] === "drafts" && issue.code === "too_big"
     );
+    const matchLocationInvalid = parsed.error.issues.some((issue) =>
+      issue.path.includes("matchLocation")
+    );
     return {
       message: durationInvalid
         ? "De gekozen periode is niet geldig. Kies een waarde van 0 minuten tot en met 42 dagen en probeer opnieuw."
         : batchTooLarge
           ? "Kies maximaal " + sportlinkSlideBatchMaxDrafts +
             " slides per batch. Er is niets aangemaakt."
+          : matchLocationInvalid
+            ? "Kies voor iedere clubslide Thuis en uit, Alleen thuis of Alleen uit. Er is niets aangemaakt."
           : "De selectie is niet meer volledig. Kies opnieuw minimaal één team of Alle teams en controleer de competitiecontext.",
       ok: false
     };

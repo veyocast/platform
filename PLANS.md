@@ -151,6 +151,7 @@ tests en exitcriteria staan in
 | S150 | Rustige bezoekerswelkomstkaart | Bezoekerswelkomstslides vastzetten op twee halve slots, drie relevante regels, een 30%-logoachtergrond en een groot logo op wit in moderne en Static LG-playback |
 | S151 | Gedeelde dropdown-multiselect | Eén zoekbare tokengebaseerde meerkeuzecontrol delen voor compacte team-, scherm-, groep- en rolselecties, zonder operationele preflight-, permission-, volgorde- of tabelbulkcontext te verbergen |
 | S152 | Theme-editor en opslagherstel | De centrale tenantstijl professioneel en responsive maken en opslaan herstellen wanneer historische Menu Studio-content opnieuw wordt gerenderd |
+| S154 | Eigen clubwedstrijden en thuis-/uitfilter | Clubprogramma en clubuitslagen strikt tot tenant-eigen teams beperken, per slide thuis/uit/both configureerbaar maken en legacy latest-slides via nieuwe immutable snapshots herstellen |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op
@@ -256,6 +257,16 @@ mag bestaande legacy Menu Studio-documenten opnieuw renderen, maar iedere nieuwe
 of gewijzigde authoringconfiguratie blijft door de database op `fieldflow`
 begrensd. Historische snapshots en releases blijven immutable. Zie
 `docs/s152-theme-editor-recovery-evidence.md`.
+
+S154 maakt de grens tussen club- en poulecontent expliciet. Poules mogen
+wedstrijden tussen andere pouleteams bevatten, maar clubprogramma en
+clubuitslagen vereisen altijd een actief of expliciet geselecteerd eigen team aan
+de thuis- of uitzijde. De matchrichting is per clubslide configureerbaar en
+blijft bij latere versie-edits behouden. Een forward-only builderwrapper en
+snapshotqueue herstellen de exacte gepubliceerde versie van legacy
+latest-slides, ook naast een open concept, zonder pinned versies, historische
+releases of Player-LKG te muteren. Zie
+`prompts/sprints/S154-club-match-scope.md`.
 
 ### Programmagates
 

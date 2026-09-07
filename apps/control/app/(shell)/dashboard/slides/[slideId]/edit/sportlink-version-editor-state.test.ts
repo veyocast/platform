@@ -14,6 +14,7 @@ import {
   prepareSportlinkVersionEditorDraft,
   replaceArrivalTeamContext,
   replaceArrivalTeamSelection,
+  replaceClubMatchLocation,
   replaceClubTeamContext,
   replaceClubTeamSelection,
   switchSportlinkBlueprint,
@@ -188,6 +189,7 @@ describe("Sportlink-versie-editorcontext", () => {
     const normalized = normalizeLegacyClubAggregateDraft(legacy);
 
     expect(normalized.teamSelection).toEqual({
+      matchLocation: "both",
       mode: "all",
       teamContexts: []
     });
@@ -244,10 +246,12 @@ describe("Sportlink-versie-editorcontext", () => {
     );
 
     expect(allTeams.teamSelection).toEqual({
+      matchLocation: "both",
       mode: "all",
       teamContexts: [pinned]
     });
     expect(reset.teamSelection).toEqual({
+      matchLocation: "both",
       mode: "all",
       teamContexts: []
     });
@@ -272,5 +276,53 @@ describe("Sportlink-versie-editorcontext", () => {
     expect(selected.teamSelection?.teamContexts).toHaveLength(40);
     expect(selected.teamSelection?.teamContexts.at(-1)?.providerTeamId)
       .toBe("club-team-39");
+  });
+
+  it("normaliseert een ontbrekende wedstrijdlocatie zonder de selectie te verbreden", () => {
+    const selected = {
+      ...regularDraft(),
+      context: autoCompetitionContext("team-b"),
+      teamSelection: {
+        mode: "selected" as const,
+        teamContexts: [autoCompetitionContext("team-b")]
+      }
+    };
+
+    const normalized = normalizeLegacyClubAggregateDraft(selected);
+
+    expect(normalized.teamSelection).toEqual({
+      matchLocation: "both",
+      mode: "selected",
+      teamContexts: [autoCompetitionContext("team-b")]
+    });
+    expect(normalized.context).toEqual(autoCompetitionContext("team-b"));
+    expect(
+      prepareSportlinkVersionEditorDraft(selected, teams, "1.0.0")
+        .requiresSave
+    ).toBe(true);
+  });
+
+  it("behoudt de wedstrijdlocatie bij team-, context- en clubblueprintwijzigingen", () => {
+    const normalized = normalizeLegacyClubAggregateDraft(regularDraft());
+    const away = replaceClubMatchLocation(normalized, "away");
+    const selected = replaceClubTeamSelection(
+      away,
+      "selected",
+      ["team-a", "team-b"],
+      teams
+    );
+    const pinned = replaceClubTeamContext(
+      selected,
+      competitionContextFromOption("team-a", teams[0]!.contexts[0]!)
+    );
+    const nextBlueprint = switchSportlinkBlueprint(
+      pinned,
+      "sportlink.club_results_previous_7_days",
+      templateId
+    );
+
+    expect(selected.teamSelection?.matchLocation).toBe("away");
+    expect(pinned.teamSelection?.matchLocation).toBe("away");
+    expect(nextBlueprint.teamSelection?.matchLocation).toBe("away");
   });
 });

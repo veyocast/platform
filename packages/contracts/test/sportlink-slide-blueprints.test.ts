@@ -112,18 +112,55 @@ describe("Sportlink aggregate teamcontexten", () => {
     expect(sportlinkSlideDraftSchema.safeParse({
       ...base,
       teamSelection: {
+        matchLocation: "both",
         mode: "selected",
         teamContexts: [context("team-1"), context("team-2")]
       }
     }).success).toBe(true);
     expect(sportlinkSlideDraftSchema.safeParse({
       ...base,
-      teamSelection: { mode: "all", teamContexts: [] }
+      teamSelection: { matchLocation: "both", mode: "all", teamContexts: [] }
     }).success).toBe(true);
     expect(sportlinkSlideDraftSchema.safeParse({
       ...base,
       teamSelection: { mode: "selected", teamContexts: [] }
     }).success).toBe(false);
+  });
+
+  it("requires a match location for new club-wide match slides", () => {
+    const clubDraft = {
+      blueprintKey: "sportlink.club_schedule_next_7_days",
+      context: context("team-1"),
+      name: "Clubprogramma",
+      orientation: "landscape",
+      templateVersionId,
+      teamSelection: { mode: "all", teamContexts: [] },
+      themeSelection,
+      title: "Clubprogramma komende 7 dagen"
+    } as const;
+    expect(createSportlinkSlideBatchSchema.safeParse({
+      dataSourceId: "00000000-0000-4000-8000-000000000002",
+      drafts: [clubDraft],
+      idempotencyKey: "00000000-0000-4000-8000-000000000003"
+    }).success).toBe(false);
+    expect(createSportlinkSlideBatchSchema.safeParse({
+      dataSourceId: "00000000-0000-4000-8000-000000000002",
+      drafts: [{
+        ...clubDraft,
+        teamSelection: {
+          ...clubDraft.teamSelection,
+          matchLocation: "home"
+        }
+      }],
+      idempotencyKey: "00000000-0000-4000-8000-000000000003"
+    }).success).toBe(true);
+    expect(sportlinkSlideDraftSchema.safeParse({
+      ...clubDraft,
+      teamSelection: {
+        ...clubDraft.teamSelection,
+        matchLocation: "home"
+      }
+    }).success).toBe(true);
   });
 
   it("behoudt legacy drafts zonder teamContexts", () => {

@@ -23,6 +23,7 @@ import {
   type SelectableThemeId,
   type SportlinkArrivalConfig,
   type SportlinkDisplayConfig,
+  type SportlinkMatchLocation,
   type SportlinkSlideBlueprintKey,
   type SportlinkSlideContext,
   type SportlinkSlideDraft,
@@ -39,6 +40,7 @@ import {
 } from "@veyocast/ui";
 
 import { FieldFlowStyleStep } from "../../../slides/_components/fieldflow-style-step";
+import { SportlinkMatchLocationField } from "../../../slides/_components/sportlink-match-location-field";
 import {
   SportlinkArrivalFields,
   type SportlinkMediaOption
@@ -113,6 +115,9 @@ export function SportlinkBulkWizard({
   >({});
   const [arrivalSelections, setArrivalSelections] = useState<
     Partial<Record<SportlinkSlideBlueprintKey, string[]>>
+  >({});
+  const [matchLocations, setMatchLocations] = useState<
+    Partial<Record<SportlinkSlideBlueprintKey, SportlinkMatchLocation>>
   >({});
   const [teamContexts, setTeamContexts] = useState<
     Record<string, SportlinkSlideContext>
@@ -201,6 +206,9 @@ export function SportlinkBulkWizard({
         if (!selected.length) return [];
         return buildSportlinkSlideDrafts({
           blueprintKeys: [key],
+          matchLocation: isClubwideMatchKey(key)
+            ? matchLocations[key] ?? "both"
+            : undefined,
           orientation,
           teamSelectionMode: isClubwideMatchKey(key)
             ? selection.mode
@@ -241,6 +249,7 @@ export function SportlinkBulkWizard({
     arrivalConfig,
     arrivalSelections,
     display,
+    matchLocations,
     orientation,
     selectedBlueprints,
     sourceTeamById,
@@ -282,6 +291,7 @@ export function SportlinkBulkWizard({
     setSourceId(nextSourceId);
     setTeamSelections({});
     setArrivalSelections({});
+    setMatchLocations({});
     setTeamContexts({});
     setCreationResult(null);
   }
@@ -303,6 +313,11 @@ export function SportlinkBulkWizard({
       return;
     }
     setTeamSelections((current) => {
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+    setMatchLocations((current) => {
       const next = { ...current };
       delete next[key];
       return next;
@@ -431,8 +446,13 @@ export function SportlinkBulkWizard({
               arrivalSelections={arrivalSelections}
               selectedBlueprints={selectedBlueprints}
               selections={teamSelections}
+              matchLocations={matchLocations}
               teams={sourceTeams}
               updateArrivalSelection={updateArrivalSelection}
+              updateMatchLocation={(key, value) => {
+                setMatchLocations((current) => ({ ...current, [key]: value }));
+                setCreationResult(null);
+              }}
               updateRegularSelection={updateRegularSelection}
             />
           ) : null}
@@ -639,8 +659,10 @@ function TeamStep({
   arrivalSelections,
   selectedBlueprints,
   selections,
+  matchLocations,
   teams,
   updateArrivalSelection,
+  updateMatchLocation,
   updateRegularSelection
 }: {
   arrivalSelections: Partial<Record<SportlinkSlideBlueprintKey, string[]>>;
@@ -648,10 +670,17 @@ function TeamStep({
   selections: Partial<
     Record<SportlinkSlideBlueprintKey, BlueprintTeamSelection>
   >;
+  matchLocations: Partial<
+    Record<SportlinkSlideBlueprintKey, SportlinkMatchLocation>
+  >;
   teams: Team[];
   updateArrivalSelection: (
     key: SportlinkSlideBlueprintKey,
     teamIds: string[]
+  ) => void;
+  updateMatchLocation: (
+    key: SportlinkSlideBlueprintKey,
+    value: SportlinkMatchLocation
   ) => void;
   updateRegularSelection: (
     key: SportlinkSlideBlueprintKey,
@@ -695,32 +724,39 @@ function TeamStep({
             }))
           ];
           return (
-            <MultiSelectDropdown
-              allowSelectAll={!clubwide}
-              description={arrival
-                ? "Eén gekoppeld welkomstcomponent verdeelt deze teams automatisch over schermpagina’s."
-                : clubwide
-                  ? "Alle keuzes komen als teamfilter in precies één clubbrede slide; er worden geen losse teamslides gemaakt."
-                  : "Voor poulecontent blijft ieder gekozen team een eigen teamcontext."}
-              emptyLabel="Er zijn nog geen gesynchroniseerde teams beschikbaar."
-              key={key}
-              label={shortBlueprintLabel(key)}
-              maximumSelected={maximumSelected}
-              onValueChange={(teamIds) => arrival
-                ? updateArrivalSelection(key, teamIds)
-                : updateRegularSelection(key, teamIds)}
-              options={options}
-              placeholder="Kies minimaal één team of Alle teams"
-              searchLabel="Teams zoeken"
-              searchPlaceholder="Typ een teamnaam"
-              searchable
-              selectAllLabel={teams.length > maximumSelected
-                ? "Eerste " + maximumSelected + " teams selecteren"
-                : "Alle huidige teams selecteren"}
-              selectionNoun={{ plural: "teams", singular: "team" }}
-              showSelectedChips={selectedIds.length <= 24}
-              value={selectedIds}
-            />
+            <section className={styles.teamSelectorCard} key={key}>
+              <MultiSelectDropdown
+                allowSelectAll={!clubwide}
+                description={arrival
+                  ? "Eén gekoppeld welkomstcomponent verdeelt deze teams automatisch over schermpagina’s."
+                  : clubwide
+                    ? "Alle keuzes komen als teamfilter in precies één clubbrede slide; er worden geen losse teamslides gemaakt."
+                    : "Voor poulecontent blijft ieder gekozen team een eigen teamcontext."}
+                emptyLabel="Er zijn nog geen gesynchroniseerde teams beschikbaar."
+                label={shortBlueprintLabel(key)}
+                maximumSelected={maximumSelected}
+                onValueChange={(teamIds) => arrival
+                  ? updateArrivalSelection(key, teamIds)
+                  : updateRegularSelection(key, teamIds)}
+                options={options}
+                placeholder="Kies minimaal één team of Alle teams"
+                searchLabel="Teams zoeken"
+                searchPlaceholder="Typ een teamnaam"
+                searchable
+                selectAllLabel={teams.length > maximumSelected
+                  ? "Eerste " + maximumSelected + " teams selecteren"
+                  : "Alle huidige teams selecteren"}
+                selectionNoun={{ plural: "teams", singular: "team" }}
+                showSelectedChips={selectedIds.length <= 24}
+                value={selectedIds}
+              />
+              {clubwide ? (
+                <SportlinkMatchLocationField
+                  onChange={(value) => updateMatchLocation(key, value)}
+                  value={matchLocations[key] ?? "both"}
+                />
+              ) : null}
+            </section>
           );
         })}
       </div>
@@ -1128,6 +1164,9 @@ function ReviewStep({ creationResult, drafts, teamName, themeSelection }: {
                   <li>{draft.display.columns === "one" ? "1 kolom" : "2 kolommen"}</li>
                   <li>Logo {draft.display.showLogo ? "aan" : "uit"}</li>
                   <li>Thuis / uit {draft.display.showHomeAway ? "aan" : "uit"}</li>
+                  {clubwide ? (
+                    <li>{matchLocationLabel(clubSelection?.matchLocation)}</li>
+                  ) : null}
                   <li>Veld {draft.display.showField ? "aan" : "uit"}</li>
                   <li>Kleedkamer {draft.display.showDressingRoom ? "aan" : "uit"}</li>
                   <li>Scheidsrechter {draft.display.showReferee ? "aan" : "uit"}</li>
@@ -1274,6 +1313,14 @@ function contextLabel(context: SportlinkSlideContext) {
     .join(" · ") || "Handmatig gekozen";
 }
 
+function matchLocationLabel(
+  value: SportlinkMatchLocation | undefined
+) {
+  if (value === "home") return "Alleen eigen teams thuis";
+  if (value === "away") return "Alleen eigen teams uit";
+  return "Eigen teams thuis en uit";
+}
+
 function themeId(selection: ThemeSelection): SelectableThemeId {
   return selection.ref.catalog === "v2" ? selection.ref.id : "fieldflow";
 }
@@ -1293,6 +1340,7 @@ function draftKey(draft: SportlinkSlideDraft) {
   return [
     draft.blueprintKey,
     draft.teamSelection?.mode,
+    draft.teamSelection?.matchLocation,
     contexts?.map((context) => context.providerTeamId).join(",") ??
       draft.context.providerTeamId
   ].filter(Boolean).join(":");

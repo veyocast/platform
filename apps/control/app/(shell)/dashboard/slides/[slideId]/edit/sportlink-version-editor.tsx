@@ -14,6 +14,7 @@ import {
   sportlinkSlideBlueprints,
   sportlinkSlideTeamContextsMax,
   type SelectableThemeId,
+  type SportlinkMatchLocation,
   type SportlinkSlideBlueprintKey,
   type SportlinkSlideContext,
   type SportlinkSlideDraft
@@ -31,6 +32,7 @@ import {
   SportlinkArrivalFields,
   type SportlinkMediaOption
 } from "../../_components/sportlink-arrival-fields";
+import { SportlinkMatchLocationField } from "../../_components/sportlink-match-location-field";
 import { publishDynamicSlideVersion } from "../../version-actions";
 import { saveSportlinkSlideVersion } from "./actions";
 import styles from "./sportlink-version-editor.module.css";
@@ -42,6 +44,7 @@ import {
   pinnedCompetitionContext,
   replaceArrivalTeamContext,
   replaceArrivalTeamSelection,
+  replaceClubMatchLocation,
   replaceClubTeamContext,
   replaceClubTeamSelection,
   switchSportlinkBlueprint,
@@ -412,6 +415,7 @@ function ClubTeamEditor({ draft, onChange, teams }: {
   teams: Team[];
 }) {
   const selection = draft.teamSelection ?? {
+    matchLocation: "both" as const,
     mode: "all" as const,
     teamContexts: []
   };
@@ -513,6 +517,13 @@ function ClubTeamEditor({ draft, onChange, teams }: {
         searchable
         selectionNoun={{ plural: "keuzes", singular: "keuze" }}
         value={selection.mode === "all" ? [allTeamsValue] : selectedIds}
+      />
+
+      <SportlinkMatchLocationField
+        onChange={(matchLocation) => onChange(
+          replaceClubMatchLocation(draft, matchLocation)
+        )}
+        value={selection.matchLocation ?? "both"}
       />
 
       <div className={styles.contextList}>
@@ -843,11 +854,14 @@ function VersionPreview({ draft, teams, theme, themeId }: {
     `Team ${context.providerTeamId}`
   );
   const aggregate = isArrivalBlueprint(draft.blueprintKey) || clubAggregate;
-  const contextLabel = clubAggregate && clubSelection?.mode === "all"
+  const teamContextLabel = clubAggregate && clubSelection?.mode === "all"
     ? "Alle huidige en toekomstige teams"
     : aggregate
       ? `${contexts.length} ${contexts.length === 1 ? "team" : "teams"} gekoppeld`
       : names[0];
+  const contextLabel = clubAggregate
+    ? `${teamContextLabel} · ${matchLocationLabel(clubSelection?.matchLocation)}`
+    : teamContextLabel;
   return (
     <aside className={styles.preview}>
       <header>
@@ -889,6 +903,12 @@ function VersionPreview({ draft, teams, theme, themeId }: {
       </p>
     </aside>
   );
+}
+
+function matchLocationLabel(matchLocation: SportlinkMatchLocation | undefined) {
+  if (matchLocation === "home") return "Alleen thuis";
+  if (matchLocation === "away") return "Alleen uit";
+  return "Thuis en uit";
 }
 
 function blueprintDescription(key: SportlinkSlideBlueprintKey) {
