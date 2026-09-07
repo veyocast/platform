@@ -61,6 +61,9 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
           await expect(slide).toHaveAttribute("data-orientation", orientation);
           await expect(slide).toHaveAttribute("data-theme", themeMode);
           await expect(slide).toHaveAttribute("data-theme-id", "fieldflow");
+          await expect(slide.locator("header time"))
+            .toHaveText("06-09-2026 | 15:33");
+          await expect(slide.locator("header")).not.toContainText("VeyoCast");
           const geometry = await slide.evaluate((element) => {
             const content = element.querySelector("main");
             const footer = element.querySelector("footer");
@@ -110,7 +113,9 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
               const layoutBox = layout.getBoundingClientRect();
               const hero = layout.querySelector<HTMLElement>(":scope > section");
               const story = layout.querySelector<HTMLElement>(":scope > article");
+              const qr = layout.querySelector<HTMLElement>('[data-testid="news-qr"]');
               const intro = story?.querySelector<HTMLElement>(":scope > p");
+              const qrBox = qr?.getBoundingClientRect();
               const storyBox = story?.getBoundingClientRect();
               return {
                 introFontSize: intro
@@ -119,6 +124,10 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
                 overlay: hero
                   ? getComputedStyle(hero, "::after").backgroundImage
                   : "none",
+                qrBottomGap: qrBox ? layoutBox.bottom - qrBox.bottom : null,
+                qrRightGap: qrBox ? layoutBox.right - qrBox.right : null,
+                qrViewportBottomGap: qrBox ? window.innerHeight - qrBox.bottom : null,
+                qrViewportRightGap: qrBox ? window.innerWidth - qrBox.right : null,
                 storyHeightRatio: storyBox ? storyBox.height / layoutBox.height : 0,
                 storyTopRatio: storyBox
                   ? (storyBox.top - layoutBox.top) / layoutBox.height
@@ -127,13 +136,40 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
               };
             });
             expect(composition.overlay).not.toBe("none");
+            await expect(slide.getByTestId("news-qr")).toBeVisible();
+            await expect(slide.getByTestId("news-qr"))
+              .toContainText("Scan voor het artikel");
+            await expect(slide.getByTestId("news-qr").locator("small"))
+              .toHaveCount(0);
+            await expect(slide).not.toContainText("example.com/nieuws/0");
             if (orientation === "landscape") {
+              expect(composition.overlay).toContain("62%");
+              expect(composition.overlay).toContain("82%");
               expect(composition.introFontSize).toBeGreaterThanOrEqual(30);
+              expect(composition.qrBottomGap).toBeGreaterThanOrEqual(29);
+              expect(composition.qrBottomGap).toBeLessThanOrEqual(31);
+              expect(composition.qrRightGap).toBeGreaterThanOrEqual(91);
+              expect(composition.qrRightGap).toBeLessThanOrEqual(93);
+              expect(composition.qrViewportBottomGap).toBeGreaterThanOrEqual(143);
+              expect(composition.qrViewportBottomGap).toBeLessThanOrEqual(145);
+              expect(composition.qrViewportRightGap).toBeGreaterThanOrEqual(143);
+              expect(composition.qrViewportRightGap).toBeLessThanOrEqual(145);
               expect(composition.storyWidthRatio).toBeGreaterThanOrEqual(0.6);
               expect(composition.storyWidthRatio).toBeLessThanOrEqual(0.64);
               expect(composition.storyTopRatio).toBeLessThan(0.01);
             } else {
+              expect(composition.overlay).toContain("28%");
+              expect(composition.overlay).toContain("40%");
+              expect(composition.overlay).toContain("50%");
               expect(composition.introFontSize).toBeGreaterThanOrEqual(32);
+              expect(composition.qrBottomGap).toBeGreaterThanOrEqual(45);
+              expect(composition.qrBottomGap).toBeLessThanOrEqual(47);
+              expect(composition.qrRightGap).toBeGreaterThanOrEqual(105);
+              expect(composition.qrRightGap).toBeLessThanOrEqual(107);
+              expect(composition.qrViewportBottomGap).toBeGreaterThanOrEqual(143);
+              expect(composition.qrViewportBottomGap).toBeLessThanOrEqual(145);
+              expect(composition.qrViewportRightGap).toBeGreaterThanOrEqual(143);
+              expect(composition.qrViewportRightGap).toBeLessThanOrEqual(145);
               expect(composition.storyHeightRatio).toBeGreaterThanOrEqual(0.49);
               expect(composition.storyHeightRatio).toBeLessThanOrEqual(0.51);
               expect(composition.storyTopRatio).toBeGreaterThanOrEqual(0.49);
@@ -292,6 +328,7 @@ function newsData(variant: EditorialNewsVariant, theme: EditorialThemeConfig) {
         intro: "Een compact bericht met alle relevante informatie voor leden en bezoekers van de vereniging.",
         link: `https://example.com/nieuws/${index}`,
         publishedAt: `2026-08-1${3 - index}T09:00:00.000Z`,
+        qrMediaAssetId: imageId,
         sourceName: "Clubnieuws",
         title: index === 0
           ? "Een lange nieuwstitel die de Editorial Arena-clamp aantoonbaar beproeft"

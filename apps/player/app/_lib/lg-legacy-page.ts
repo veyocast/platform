@@ -295,10 +295,11 @@ export function renderLgLegacyHtml() {
     .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-arrival-logo-backdrop{top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:.3;transform:none}
     .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-arrival-logo-mark{top:0;right:0;width:32%;height:100%;border:0;border-left:1px solid var(--editorial-border);border-radius:0;background:white;box-shadow:-18px 0 48px var(--editorial-shadow)}
     .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-arrival-logo-mark img{width:84%;height:84%;object-fit:contain}
-    .legacy-visitor-arrival-copy{position:relative;z-index:2;width:64%}
+    .legacy-visitor-arrival-copy{position:relative;z-index:2;display:flex;width:64%;height:100%;flex-direction:column}
     .legacy-arrival-card[data-arrival-kind="visitor"][data-logo="missing"] .legacy-visitor-arrival-copy{width:100%}
-    .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-arrival-copy h2{max-width:none;margin:0 0 18px;color:var(--editorial-text);font-size:var(--vc-theme-font-52,52px);line-height:1}
-    .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-arrival-copy p{margin:0 0 18px;color:var(--editorial-text);font-size:var(--vc-theme-font-41-6,41.6px);font-weight:400;line-height:1.08;white-space:nowrap}
+    .legacy-visitor-schedule{display:flex;flex-direction:column}.legacy-visitor-schedule>*+*{margin-top:7px}.legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-schedule time,.legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-schedule span{color:var(--editorial-muted);font-size:var(--vc-theme-font-23,23px);font-weight:650;line-height:1.15}
+    .legacy-visitor-teams{display:flex;min-width:0;flex-direction:column;margin:34px 0}.legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-teams h2{display:flex;max-width:none;margin:0;flex-direction:column}.legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-teams h2 span{overflow-wrap:break-word;word-break:break-word;color:var(--editorial-text);font-size:var(--vc-theme-font-46,46px);font-weight:800;letter-spacing:-.035em;line-height:.98}.legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-teams h2 span+span{margin-top:12px}
+    .legacy-visitor-details{display:flex;flex-direction:column;margin-top:auto;padding-top:20px;border-top:1px solid var(--editorial-divider)}.legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-details strong,.legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-details p{margin:0;padding:0;border:0;color:var(--editorial-text);font-size:var(--vc-theme-font-23,23px);line-height:1.15}.legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-details strong{font-weight:800}.legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-details strong+p,.legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-details p+p{margin-top:9px}.legacy-visitor-room-line{display:flex;flex-wrap:wrap}.legacy-visitor-room-line i{color:var(--editorial-muted);font-style:normal}
     .legacy-arrival-card[data-arrival-kind="visitor"][data-motion="aurora-rise"]{animation-name:legacy-visitor-arrival-rise}
     .legacy-arrival-card[data-arrival-kind="visitor"][data-motion="spotlight-bloom"]{animation-name:legacy-visitor-arrival-bloom}
     .legacy-arrival-card[data-arrival-kind="visitor"][data-motion="kinetic-split"]{animation-name:legacy-visitor-arrival-split}
@@ -306,8 +307,8 @@ export function renderLgLegacyHtml() {
     .legacy-arrival-card[data-arrival-kind="visitor"][data-motion="grand-flip"]{animation-name:legacy-visitor-arrival-flip}
     .editorial-arena.portrait .legacy-arrival-grid[data-arrival-kind="visitor"],.editorial-arena.portrait .legacy-arrival-grid[data-arrival-kind="visitor"][data-cards="1"],.editorial-arena.portrait .legacy-arrival-grid[data-arrival-kind="visitor"][data-cards="2"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:18px}
     .editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"]{padding:54px}
-    .editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-arrival-copy h2{max-width:none;margin:0 0 18px;font-size:var(--vc-theme-font-60,60px)}
-    .editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-arrival-copy p{font-size:var(--vc-theme-font-48,48px)}
+    .editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-teams h2{max-width:none;margin:0}.editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-teams h2 span{font-size:var(--vc-theme-font-50,50px)}
+    .editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-schedule time,.editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-schedule span,.editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-details strong,.editorial-arena.portrait .legacy-arrival-card[data-arrival-kind="visitor"] .legacy-visitor-details p{font-size:var(--vc-theme-font-26,26px)}
     @keyframes legacy-visitor-arrival-rise{0%{opacity:0;transform:translateY(52px) scale(.97)}100%{opacity:1;transform:none}}
     @keyframes legacy-visitor-arrival-bloom{0%{opacity:0;transform:scale(.93)}100%{opacity:1;transform:none}}
     @keyframes legacy-visitor-arrival-split{0%{opacity:0;transform:translateX(-72px) skewX(-4deg)}100%{opacity:1;transform:none}}
@@ -389,8 +390,8 @@ export function renderLgLegacyHtml() {
     .dynamic-template.editorial-arena .editorial-heading h1{max-width:100%;margin:0;overflow:hidden;font-size:var(--vc-title-size,64px);font-weight:900;line-height:.96;text-overflow:ellipsis;text-transform:none;white-space:nowrap}
     .editorial-heading>span{display:block;margin-top:.55em;color:#6f7882;font-size:var(--vc-theme-font-24,24px);font-weight:800;letter-spacing:.1em;text-transform:uppercase}
     .dark .editorial-heading>span{color:#9aa2ac}
-    .editorial-context{display:flex;flex-direction:column;align-items:flex-end;gap:10px;text-align:right}
-    .editorial-context strong{color:var(--editorial-muted);font-size:var(--vc-theme-font-14,14px);font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+    .editorial-context{display:flex;min-width:0;flex-direction:column;align-items:flex-end;gap:10px;text-align:right}
+    .editorial-context strong{max-width:100%;overflow-wrap:break-word;word-break:break-word;color:var(--editorial-muted);font-size:var(--vc-theme-font-14,14px);font-weight:700;letter-spacing:.14em;line-height:1.2;text-transform:uppercase}
     .editorial-context strong:before{display:inline-block;width:8px;height:8px;margin:0 10px 1px 0;border-radius:50%;background:var(--accent);content:""}
     .editorial-context span{color:var(--accent);font-size:var(--vc-theme-font-18,18px);font-weight:900}
     .editorial-context[data-match-centre] strong:before{display:none}.editorial-context-label{display:flex;align-items:baseline;justify-content:flex-end;gap:14px}.editorial-context-label b{color:var(--accent);font-size:var(--vc-theme-font-16,16px);letter-spacing:.08em}.editorial-context time{color:var(--accent);font-size:var(--vc-theme-font-18,18px);font-weight:750;letter-spacing:.03em;white-space:nowrap}
@@ -472,18 +473,18 @@ export function renderLgLegacyHtml() {
     .editorial-news-meta{display:flex;gap:6%;margin-top:auto;margin-right:286px;padding-top:2.6%;padding-right:0;border-top:1px solid var(--editorial-divider);animation:editorial-copy-in 280ms 760ms ease-out both}
     .editorial-news-meta small{min-width:0;font-size:var(--vc-theme-font-19,19px)}
     .editorial-news-meta b{display:block;margin-bottom:.4em;color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
-    .editorial-news-qr{position:absolute;right:5%;bottom:4.5%;display:flex;flex-direction:column;align-items:center;gap:8px;width:252px;color:var(--editorial-muted);font-size:var(--vc-theme-font-14,14px);font-weight:800;letter-spacing:.05em;text-align:center;text-transform:uppercase}
+    .editorial-news-qr{position:absolute;z-index:4;right:5%;bottom:4.5%;display:flex;flex-direction:column;align-items:center;gap:8px;width:252px;color:var(--editorial-muted);font-size:var(--vc-theme-font-14,14px);font-weight:800;letter-spacing:.05em;text-align:center;text-transform:uppercase}
     .editorial-news-qr img{display:block;width:220px;height:220px;border-radius:8px;background:var(--editorial-qr-surface)}
-    .editorial-news-qr small{max-width:100%;overflow-wrap:anywhere;font-size:var(--vc-theme-font-13,13px);font-weight:550;letter-spacing:0;line-height:1.2;text-transform:none}
     .editorial-news[data-news-variant="fullscreen_gradient"]{position:relative;display:block}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;border:0;border-radius:24px}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:before{display:none}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art>img{object-fit:cover}
-    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:after{position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg,var(--editorial-image-overlay-start) 0%,var(--editorial-image-overlay-start) 50%,var(--editorial-image-overlay-mid) 70%,var(--editorial-image-overlay-end) 100%);content:""}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:after{position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg,var(--editorial-image-overlay-start) 0%,var(--editorial-image-overlay-start) 62%,var(--editorial-image-overlay-mid) 82%,var(--editorial-image-overlay-end) 100%);content:""}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-source{right:4%;left:auto}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy{position:absolute;z-index:3;top:0;right:38%;bottom:0;left:0;border-color:var(--editorial-border-soft);background:transparent;color:var(--editorial-qr-surface);box-shadow:none}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy p,.editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-meta,.editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-qr{color:var(--editorial-qr-surface)}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy p{max-width:90%;font-size:var(--vc-theme-font-30,30px);line-height:1.3}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-meta{margin-right:0}
     .editorial-news[data-news-variant="text_only"]{display:block}
     .editorial-news[data-news-variant="text_only"] .editorial-news-art{display:none}
     .editorial-news[data-news-variant="text_only"] .editorial-news-copy{box-sizing:border-box;width:100%;height:100%}
@@ -503,6 +504,7 @@ export function renderLgLegacyHtml() {
     .editorial-arena.portrait .editorial-context{display:flex}
     .editorial-arena.portrait .editorial-crest{width:104px;height:104px}
     .dynamic-template.editorial-arena.portrait .editorial-heading h1{font-size:var(--vc-title-size-portrait,49px)}
+    .dynamic-template.editorial-arena.portrait[data-slide-type="sport_visitor_arrivals"] .editorial-heading h1{font-size:var(--vc-visitor-title-size-portrait,42.14px)}
     .editorial-arena.portrait .dynamic-body{top:calc(200px + var(--viewport-inset-y,0px));right:calc(38px + var(--viewport-inset-x,0px));bottom:calc(98px + var(--viewport-inset-y,0px));left:calc(38px + var(--viewport-inset-x,0px))}
     .dynamic-template.editorial-arena.portrait>footer{right:calc(38px + var(--viewport-inset-x,0px));bottom:calc(38px + var(--viewport-inset-y,0px));left:calc(38px + var(--viewport-inset-x,0px));height:42px;font-size:var(--vc-theme-font-12,12px)}
     .editorial-arena.portrait .editorial-news{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
@@ -514,8 +516,10 @@ export function renderLgLegacyHtml() {
     .editorial-arena.portrait .editorial-news-qr{width:252px}
     .editorial-arena.portrait .editorial-news-qr img{width:220px;height:220px}
     .editorial-arena.portrait .editorial-news[data-news-variant="news_grid"]{grid-template-columns:1fr;grid-template-rows:minmax(0,1.25fr) minmax(0,.75fr)}
-    .editorial-arena.portrait .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:after{background:linear-gradient(180deg,var(--editorial-image-overlay-end) 0%,var(--editorial-image-overlay-end) 34%,var(--editorial-image-overlay-mid) 44%,var(--editorial-image-overlay-start) 54%,var(--editorial-image-overlay-start) 100%)}
+    .editorial-arena.portrait .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:after{background:linear-gradient(180deg,var(--editorial-image-overlay-end) 0%,var(--editorial-image-overlay-end) 28%,var(--editorial-image-overlay-mid) 40%,var(--editorial-image-overlay-start) 50%,var(--editorial-image-overlay-start) 100%)}
     .editorial-arena.portrait .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy{right:0;top:38%}
+    .editorial-news[data-news-variant="fullscreen_gradient"]>.editorial-news-qr{right:92px;bottom:30px}
+    .editorial-arena.portrait .editorial-news[data-news-variant="fullscreen_gradient"]>.editorial-news-qr{right:106px;bottom:46px}
     .editorial-arena.portrait .legacy-team-roster,.editorial-arena.portrait .legacy-training-schedule{grid-template-columns:repeat(2,minmax(0,1fr))}
     .editorial-arena.portrait .legacy-sponsor-layout,.editorial-arena.portrait .legacy-sponsor-layout:not([data-items="1"]){grid-template-columns:1fr}
     .editorial-arena.portrait .legacy-sponsor-card{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:28px;padding:40px}
@@ -5375,7 +5379,54 @@ export function renderLgLegacyHtml() {
       if (!match || !match[1]) return "";
       return match[1].length === 4 ? "0" + match[1] : match[1];
     }
-    function templateVisitorArrivalItems(items) {
+    function templateVisitorArrivalDate(value, timezone) {
+      var instant = new Date(templateText(value, ""));
+      var parts;
+      var read;
+      if (!isFinite(instant.getTime())) return "";
+      try {
+        parts = new Intl.DateTimeFormat("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          timeZone: templateText(timezone, "Europe/Amsterdam"),
+          year: "numeric"
+        }).formatToParts(instant);
+        read = function (type) {
+          var index;
+          for (index = 0; index < parts.length; index += 1) {
+            if (parts[index].type === type) return parts[index].value;
+          }
+          return "";
+        };
+        return read("day") + "-" + read("month") + "-" + read("year");
+      } catch (error) {
+        return templateClockPad(instant.getUTCDate()) + "-" +
+          templateClockPad(instant.getUTCMonth() + 1) + "-" +
+          String(instant.getUTCFullYear());
+      }
+    }
+    function templateVisitorVenueWelcome(page) {
+      var venues = {};
+      var names = [];
+      var index;
+      var item;
+      var venue;
+      var venueCount = 0;
+      for (index = 0; index < (page || []).length; index += 1) {
+        item = templateRecord(page[index]) || {};
+        venue = templateText(item.venueName, "");
+        if (venue) venueCount += 1;
+        if (venue && !venues[venue]) {
+          venues[venue] = true;
+          names.push(venue);
+        }
+      }
+      if (names.length !== 1 || venueCount !== (page || []).length) {
+        return "Welkom op ons sportpark!";
+      }
+      return "Welkom op " + names[0] + "!";
+    }
+    function templateVisitorArrivalItems(items, timezone) {
       var currentTime = new Date().getTime();
       return items.filter(function (candidate) {
         return (templateRecord(candidate) || {}).homeMatch === true;
@@ -5385,7 +5436,8 @@ export function renderLgLegacyHtml() {
         var key;
         var kickoffTime;
         var field;
-        var dressingRoom;
+        var awayRoom;
+        var homeRoom;
         var kickoffMs;
         for (key in source) {
           if (Object.prototype.hasOwnProperty.call(source, key)) item[key] = source[key];
@@ -5395,16 +5447,27 @@ export function renderLgLegacyHtml() {
           templateText(item.field, "") || templateVisitorMetaValue(item.meta, "field"),
           "field"
         );
-        dressingRoom = templateVisitorArrivalValue(
-          templateText(item.dressingRoom, "") || templateVisitorMetaValue(item.meta, "dressing-room"),
+        awayRoom = templateVisitorArrivalValue(
+          templateText(item.awayRoom, templateText(item.dressingRoom, "")) ||
+            templateVisitorMetaValue(item.meta, "dressing-room"),
+          "dressing-room"
+        );
+        homeRoom = templateVisitorArrivalValue(
+          templateText(item.homeRoom, ""),
           "dressing-room"
         );
         kickoffMs = Date.parse(templateText(item.kickoffAt, ""));
+        item.awayRoom = awayRoom;
+        item.date = templateText(
+          item.date,
+          templateVisitorArrivalDate(item.kickoffAt, timezone)
+        );
         item.kickoffTime = kickoffTime;
         item.field = field;
-        item.dressingRoom = dressingRoom;
+        item.homeRoom = homeRoom;
+        item.dressingRoom = awayRoom;
         item.secondary = "Aanvang: " + (kickoffTime || "volgt") + " | Veld " + (field || "volgt");
-        item.meta = "Kleedkamer: " + (dressingRoom || "volgt");
+        item.meta = "Kleedkamer: " + (awayRoom || "volgt");
         return {
           index: index,
           item: item,
@@ -6098,19 +6161,6 @@ export function renderLgLegacyHtml() {
         return "";
       }
     }
-    function templateReadableNewsUrl(value) {
-      var parsed;
-      var path;
-      var readable;
-      try {
-        parsed = new URL(templateText(value, ""));
-        path = parsed.pathname === "/" ? "" : parsed.pathname.replace(/\\/$/, "");
-        readable = parsed.hostname.replace(/^www\\./, "") + path;
-        return readable.length > 52 ? readable.slice(0, 49) + "…" : readable;
-      } catch (error) {
-        return "";
-      }
-    }
     function templateUniqueNewsArticles(values) {
       var seen = {};
       return values.filter(function (value) {
@@ -6181,6 +6231,7 @@ export function renderLgLegacyHtml() {
               payload,
               templateText(article.qrMediaAssetId, "")
             );
+            var fullscreenQr = null;
             if (arenaHeroUrl) {
               var arenaHeroImage = templateNode("img", "");
               arenaHeroImage.alt = "";
@@ -6243,14 +6294,12 @@ export function renderLgLegacyHtml() {
               arenaQrImage.src = arenaQrUrl;
               arenaQr.appendChild(arenaQrImage);
               arenaQr.appendChild(templateNode("span", "", "Scan voor het artikel"));
-              var arenaReadableUrl = templateReadableNewsUrl(article.link);
-              if (arenaReadableUrl) {
-                arenaQr.appendChild(templateNode("small", "", arenaReadableUrl));
-              }
-              arenaCopy.appendChild(arenaQr);
+              if (newsVariant === "fullscreen_gradient") fullscreenQr = arenaQr;
+              else arenaCopy.appendChild(arenaQr);
             }
             arenaPage.appendChild(arenaHero);
             arenaPage.appendChild(arenaCopy);
+            if (fullscreenQr) arenaPage.appendChild(fullscreenQr);
             if (secondaryArticles.length) {
               var arenaGrid = templateNode("aside", "editorial-news-grid");
               var arenaGridIndex;
@@ -6497,6 +6546,7 @@ export function renderLgLegacyHtml() {
     }
     function renderSportTemplate(body, snapshot, slideType, orientation, payload) {
       var sport = templateRecord(snapshot.sport) || {};
+      var sportTimezone = templateText(sport.timezone, "Europe/Amsterdam");
       var birthday = slideType === "sport_birthdays";
       var itemLimit = slideType === "sport_program" || slideType === "sport_results"
         ? 100
@@ -6542,7 +6592,7 @@ export function renderLgLegacyHtml() {
       var displayColumns = displayConfiguration && templateText(displayConfiguration.columns, "one") === "two"
         ? "two" : "one";
       if (slideType === "sport_visitor_arrivals") {
-        items = templateVisitorArrivalItems(items);
+        items = templateVisitorArrivalItems(items, sportTimezone);
       }
       var cardsPerPage = slideType === "sport_visitor_arrivals"
         ? 2
@@ -6665,9 +6715,44 @@ export function renderLgLegacyHtml() {
               }
               if (slideType === "sport_visitor_arrivals") {
                 var visitorCopy = templateNode("div", "legacy-visitor-arrival-copy");
-                visitorCopy.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
-                visitorCopy.appendChild(templateNode("p", "", templateText(item.secondary, "")));
-                visitorCopy.appendChild(templateNode("p", "", templateText(item.meta, "")));
+                var visitorSchedule = templateNode("div", "legacy-visitor-schedule");
+                var visitorDate = templateNode("time", "", templateText(item.date, "Datum volgt"));
+                visitorDate.setAttribute("datetime", templateText(item.kickoffAt, ""));
+                visitorSchedule.appendChild(visitorDate);
+                visitorSchedule.appendChild(templateNode(
+                  "span", "", "Aanvang: " + templateText(item.kickoffTime, "volgt")
+                ));
+                visitorCopy.appendChild(visitorSchedule);
+                var visitorTeams = templateNode("div", "legacy-visitor-teams");
+                var visitorMatchup = templateNode("h2", "");
+                var visitorHomeTeam = templateText(item.homeTeam, clubName);
+                var visitorAwayTeam = templateText(
+                  item.awayTeam,
+                  templateText(item.primary, "Bezoekend team")
+                );
+                visitorMatchup.setAttribute(
+                  "aria-label",
+                  visitorHomeTeam + " tegen " + visitorAwayTeam
+                );
+                visitorMatchup.appendChild(templateNode("span", "", visitorHomeTeam));
+                visitorMatchup.appendChild(templateNode("span", "", visitorAwayTeam));
+                visitorTeams.appendChild(visitorMatchup);
+                visitorCopy.appendChild(visitorTeams);
+                var visitorDetails = templateNode("div", "legacy-visitor-details");
+                visitorDetails.appendChild(templateNode("strong", "", "Kleedkamers:"));
+                var visitorRooms = templateNode("p", "legacy-visitor-room-line");
+                visitorRooms.appendChild(document.createTextNode(
+                  "Thuis: " + templateText(item.homeRoom, "volgt") + " "
+                ));
+                visitorRooms.appendChild(templateNode("i", "", "|"));
+                visitorRooms.appendChild(document.createTextNode(
+                  " Uit: " + templateText(item.awayRoom, templateText(item.dressingRoom, "volgt"))
+                ));
+                visitorDetails.appendChild(visitorRooms);
+                visitorDetails.appendChild(templateNode(
+                  "p", "", "Veld: " + templateText(item.field, "volgt")
+                ));
+                visitorCopy.appendChild(visitorDetails);
                 arrivalCard.appendChild(visitorCopy);
               } else {
                 var welcome = templateText(item.status, "Wedstrijdofficial")
@@ -7215,7 +7300,7 @@ export function renderLgLegacyHtml() {
       var header = templateNode("header", "");
       var body = templateNode("div", "dynamic-body");
       var footer = templateNode("footer", "");
-      var sourceLabel = "VeyoCast ClubTV";
+      var sourceLabel = "Clubinformatie";
       var title = "Clubinformatie";
       var renderer;
       var pageIndex = 0;
@@ -7242,6 +7327,10 @@ export function renderLgLegacyHtml() {
       var themeSelection = templateRecord(themePresentation.selection) || {};
       var themeReference = templateRecord(themeSelection.ref) || {};
       var resolvedThemeMode = templateRecord(themePresentation.resolvedMode) || {};
+      var clockTimezone = templateText(
+        resolvedThemeMode.timezone,
+        templateText((templateRecord(snapshot.sport) || {}).timezone, "Europe/Amsterdam")
+      );
       var manifestTheme = templateRecord(CONFIG.themeCatalog[templateText(themeReference.id, "editorial")]) || templateRecord(CONFIG.themeCatalog.editorial) || {};
       var editorialMode = templateText(
         resolvedThemeMode.mode,
@@ -7258,11 +7347,15 @@ export function renderLgLegacyHtml() {
         templateText(payload.templateSlug, "").indexOf("editorial-arena-") === 0;
       var menuStudioV2 = false;
       var matchCentre = payload.slideType === "sport_program" || payload.slideType === "sport_results";
+      var contextPrimary = null;
       function updateMatchCentreClock() {
         var clock = root.querySelector(".matchcentre-clock");
-        if (clock) clock.textContent = templateMatchCentreClock(
-          templateText(resolvedThemeMode.timezone, "Europe/Amsterdam")
-        );
+        if (clock) clock.textContent = templateMatchCentreClock(clockTimezone);
+      }
+      function updateVisitorVenue(page) {
+        if (contextPrimary && payload.slideType === "sport_visitor_arrivals") {
+          contextPrimary.textContent = templateVisitorVenueWelcome(page);
+        }
       }
       function advanceTemplatePage() {
         var number;
@@ -7270,6 +7363,7 @@ export function renderLgLegacyHtml() {
         if (runtime.currentElement !== root) return;
         pageIndex = (pageIndex + 1) % renderer.pages.length;
         renderer.render(renderer.pages[pageIndex], pageIndex);
+        updateVisitorVenue(renderer.pages[pageIndex]);
         number = root.querySelector(".dynamic-page-number");
         if (number) {
           number.textContent = String(pageIndex + 1) + " / " +
@@ -7317,6 +7411,7 @@ export function renderLgLegacyHtml() {
 
       root.style.setProperty("--vc-title-size", String(64 * baseScale) + "px");
       root.style.setProperty("--vc-title-size-portrait", String(49 * baseScale) + "px");
+      root.style.setProperty("--vc-visitor-title-size-portrait", String(42.14 * baseScale) + "px");
       root.style.setProperty("--vc-sport-row-size", String(20 * baseScale * sportScale) + "px");
       root.style.setProperty("--vc-sport-row-size-portrait", String(18 * baseScale * sportScale) + "px");
       root.style.setProperty("--vc-sport-result-size", String(30 * baseScale * sportScale) + "px");
@@ -7358,7 +7453,11 @@ export function renderLgLegacyHtml() {
         title = "Het laatste nieuws";
         renderer = renderNewsTemplate(body, snapshot, payload, root);
       } else {
-        sourceLabel = payload.slideType.indexOf("standing") !== -1 ? "Competitie" : "Match centre";
+        sourceLabel = payload.slideType === "sport_visitor_arrivals"
+          ? "Welkom op ons sportpark"
+          : payload.slideType.indexOf("standing") !== -1
+            ? "Competitie"
+            : "Match centre";
         title = payload.slideType === "sport_visitor_arrivals"
           ? sportTemplateTitle(payload.slideType)
           : templateText((templateRecord(snapshot.sport) || {}).title, sportTemplateTitle(payload.slideType));
@@ -7402,11 +7501,22 @@ export function renderLgLegacyHtml() {
           context.appendChild(templateNode(
             "time",
             "matchcentre-clock",
-            templateMatchCentreClock(templateText(resolvedThemeMode.timezone, "Europe/Amsterdam"))
+            templateMatchCentreClock(clockTimezone)
           ));
         } else {
-          context.appendChild(templateNode("strong", "", sourceLabel));
-          context.appendChild(templateNode("span", "", "VeyoCast"));
+          contextPrimary = templateNode(
+            "strong",
+            "",
+            payload.slideType === "sport_visitor_arrivals"
+              ? templateVisitorVenueWelcome(renderer.pages[0])
+              : sourceLabel
+          );
+          context.appendChild(contextPrimary);
+          context.appendChild(templateNode(
+            "time",
+            "matchcentre-clock",
+            templateMatchCentreClock(clockTimezone)
+          ));
         }
         header.appendChild(crest);
         header.appendChild(heading);
@@ -7415,8 +7525,10 @@ export function renderLgLegacyHtml() {
         header.appendChild(templateNode("p", "", sourceLabel));
         header.appendChild(templateNode("h1", "", title));
       }
-      footer.appendChild(templateNode("span", "", menuStudioV2 ? "Prijslijst" : "VeyoCast ClubTV"));
       if (!matchCentre) {
+        footer.appendChild(templateNode(
+          "span", "", menuStudioV2 ? "Prijslijst" : sourceLabel
+        ));
         footer.appendChild(templateNode(
           "span",
           "dynamic-page-number",
@@ -7441,7 +7553,7 @@ export function renderLgLegacyHtml() {
       fitDynamicTemplateCanvas(root, payload.orientation);
       beginPendingMedia(root, objectUrls);
       if (!commitPendingMedia(root, objectUrls, generation)) return;
-      if (matchCentre) {
+      if (editorialArena) {
         updateMatchCentreClock();
         window.clearInterval(runtime.matchCentreClockTimer);
         runtime.matchCentreClockTimer = window.setInterval(

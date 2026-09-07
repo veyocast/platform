@@ -6,6 +6,8 @@ import {
   dynamicTemplateMinimumPlaybackMs,
   dynamicTemplatePageDurationMs,
   dynamicTemplateShouldSkip,
+  formatVisitorArrivalDate,
+  formatVisitorVenueWelcome,
   resolveWelcomeMotionPreset
 } from "./dynamic-template-view";
 
@@ -721,13 +723,18 @@ describe("trusted dynamic template view", () => {
             primary: "Team later"
           },
           {
+            awayRoom: "2",
+            awayTeam: "Team eerstvolgend",
             dressingRoom: "2",
             field: "veld 1",
             homeMatch: true,
+            homeRoom: "Kleedkamer 1",
+            homeTeam: "Duindorp sv JO15-1",
             id: "next",
             kickoffAt: "2026-09-05T13:00:00.000Z",
             primary: "Team eerstvolgend",
-            secondary: "Aankomst 13:30 · Aanvang 15:00"
+            secondary: "Aankomst 13:30 · Aanvang 15:00",
+            venueName: "Sportpark Houtrust"
           },
           {
             homeMatch: true,
@@ -737,13 +744,18 @@ describe("trusted dynamic template view", () => {
             secondary: "Aanvang 18:00"
           },
           {
+            awayRoom: "Kleedkamer 4",
+            awayTeam: "Team tweede",
             dressingRoom: "4",
             field: "2",
             homeMatch: true,
+            homeRoom: "Kleedkamer 3",
+            homeTeam: "Duindorp sv JO13-1",
             id: "second",
             kickoffAt: "2026-09-05T14:00:00.000Z",
             kickoffTime: "16:00",
-            primary: "Team tweede"
+            primary: "Team tweede",
+            venueName: "Sportpark Houtrust"
           }
         ],
         pageDurationSeconds: 9,
@@ -764,14 +776,28 @@ describe("trusted dynamic template view", () => {
       {
         items: [
           {
+            awayRoom: "2",
+            awayTeam: "Team eerstvolgend",
+            date: "05-09-2026",
+            field: "1",
+            homeRoom: "1",
+            homeTeam: "Duindorp sv JO15-1",
             id: "next",
             meta: "Kleedkamer: 2",
-            secondary: "Aanvang: 15:00 | Veld 1"
+            secondary: "Aanvang: 15:00 | Veld 1",
+            venueName: "Sportpark Houtrust"
           },
           {
+            awayRoom: "4",
+            awayTeam: "Team tweede",
+            date: "05-09-2026",
+            field: "2",
+            homeRoom: "3",
+            homeTeam: "Duindorp sv JO13-1",
             id: "second",
             meta: "Kleedkamer: 4",
-            secondary: "Aanvang: 16:00 | Veld 2"
+            secondary: "Aanvang: 16:00 | Veld 2",
+            venueName: "Sportpark Houtrust"
           }
         ],
         kind: "arrivals"
@@ -789,6 +815,14 @@ describe("trusted dynamic template view", () => {
     ]);
     expect(resolveWelcomeMotionPreset("grand-flip", 8, 3, 4))
       .toBe("grand-flip");
+    expect(formatVisitorArrivalDate(
+      "2026-09-06T22:15:00.000Z",
+      "Europe/Amsterdam"
+    )).toBe("07-09-2026");
+    expect(formatVisitorVenueWelcome("  Sportpark   Houtrust  "))
+      .toBe("Welkom op Sportpark Houtrust!");
+    expect(formatVisitorVenueWelcome(""))
+      .toBe("Welkom op ons sportpark!");
     expect(dynamicTemplateShouldSkip(payload)).toBe(false);
     expect(dynamicTemplateShouldSkip({
       ...payload,

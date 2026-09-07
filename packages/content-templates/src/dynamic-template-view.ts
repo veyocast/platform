@@ -73,6 +73,7 @@ export type DynamicTemplateListItem = {
   status: string;
   time: string;
   venue: string;
+  venueName: string;
 };
 
 export type DynamicTemplateMenuItem = {
@@ -477,7 +478,8 @@ function createDynamicTemplateViewInternal(
   const items = payload.slideType === "sport_visitor_arrivals"
     ? resolveVisitorArrivalItems(
         mappedItems.filter((item) => item.homeMatch),
-        now
+        now,
+        themePresentation.resolvedMode.timezone
       )
     : mappedItems;
   const title = payload.slideType === "sport_visitor_arrivals"
@@ -1454,19 +1456,21 @@ function toListItem(
     secondary: safeText(item.secondary, ""),
     status: safeText(item.status, ""),
     time: safeText(item.time, ""),
-    venue: safeText(item.venue, "")
+    venue: safeText(item.venue, ""),
+    venueName: safeText(item.venueName, "")
   };
 }
 
 function resolveVisitorArrivalItems(
   items: DynamicTemplateListItem[],
-  now: Date
+  now: Date,
+  timezone: string
 ) {
   const nowMs = now.getTime();
   return items
     .map((item, index) => ({
       index,
-      item: normalizeVisitorArrivalItem(item),
+      item: normalizeVisitorArrivalItem(item, timezone),
       kickoffMs: visitorKickoffMs(item.kickoffAt)
     }))
     .sort((left, right) => {
@@ -1485,24 +1489,60 @@ function resolveVisitorArrivalItems(
     .map(({ item }) => item);
 }
 
-function normalizeVisitorArrivalItem(item: DynamicTemplateListItem) {
+function normalizeVisitorArrivalItem(
+  item: DynamicTemplateListItem,
+  timezone: string
+) {
   const kickoffTime = visitorArrivalClock(item);
   const field = visitorArrivalValue(
     item.field || visitorMetaValue(item.meta, "field"),
     "field"
   );
-  const dressingRoom = visitorArrivalValue(
-    item.dressingRoom || visitorMetaValue(item.meta, "dressing-room"),
+  const awayRoom = visitorArrivalValue(
+    item.awayRoom || item.dressingRoom ||
+      visitorMetaValue(item.meta, "dressing-room"),
     "dressing-room"
   );
+  const homeRoom = visitorArrivalValue(item.homeRoom, "dressing-room");
   return {
     ...item,
-    dressingRoom,
+    awayRoom,
+    date: item.date || formatVisitorArrivalDate(item.kickoffAt, timezone),
+    dressingRoom: awayRoom,
     field,
+    homeRoom,
     kickoffTime,
-    meta: `Kleedkamer: ${dressingRoom || "volgt"}`,
+    meta: `Kleedkamer: ${awayRoom || "volgt"}`,
     secondary: `Aanvang: ${kickoffTime || "volgt"} | Veld ${field || "volgt"}`
   };
+}
+
+export function formatVisitorArrivalDate(value: string, timezone: string) {
+  const instant = new Date(value);
+  if (!Number.isFinite(instant.valueOf())) return "";
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      timeZone: timezone,
+      year: "numeric"
+    }).formatToParts(instant);
+    const read = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find((part) => part.type === type)?.value ?? "";
+    return `${read("day")}-${read("month")}-${read("year")}`;
+  } catch {
+    return [
+      padClockPart(instant.getUTCDate()),
+      padClockPart(instant.getUTCMonth() + 1),
+      String(instant.getUTCFullYear())
+    ].join("-");
+  }
+}
+
+export function formatVisitorVenueWelcome(value: string) {
+  const venue = value.replace(/\s+/gu, " ").trim();
+  if (!venue) return "Welkom op ons sportpark!";
+  return `Welkom op ${venue}!`;
 }
 
 function visitorArrivalClock(item: DynamicTemplateListItem) {

@@ -331,7 +331,13 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
+  min-width: 0;
   text-align: right;
+}
+
+.arenaContext > strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .arenaContext span {
@@ -871,6 +877,7 @@
 
 .arenaNewsQr {
   position: absolute;
+  z-index: 4;
   right: 34px;
   bottom: 30px;
   display: flex;
@@ -889,16 +896,6 @@
   height: 220px;
   border-radius: 8px;
   background: var(--vc-qr-surface);
-}
-
-.arenaNewsQr small {
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  font-size: var(--vc-theme-font-13, 13px);
-  font-weight: 550;
-  letter-spacing: 0;
-  line-height: 1.2;
-  text-transform: none;
 }
 
 .arenaNewsLayout[data-news-variant="fullscreen_gradient"] {
@@ -927,8 +924,8 @@
   inset: 0;
   background: linear-gradient(
     90deg,
-    var(--vc-image-overlay-start) 0 50%,
-    var(--vc-image-overlay-mid) 70%,
+    var(--vc-image-overlay-start) 0 62%,
+    var(--vc-image-overlay-mid) 82%,
     var(--vc-image-overlay-end) 100%
   );
   content: "";
@@ -953,6 +950,15 @@
   max-width: 90%;
   font-size: var(--vc-theme-font-30, 30px);
   line-height: 1.3;
+}
+
+.arenaNewsLayout[data-news-variant="fullscreen_gradient"] .arenaNewsMeta {
+  margin-right: 0;
+}
+
+.arenaNewsLayout[data-news-variant="fullscreen_gradient"] > .arenaNewsQr {
+  right: 92px;
+  bottom: 30px;
 }
 
 .arenaNewsLayout[data-news-variant="text_only"] {
@@ -1554,6 +1560,10 @@
   font-size: var(--vc-theme-title-size-portrait, 49px);
 }
 
+.arenaRoot[data-orientation="portrait"][data-slide-type="sport_visitor_arrivals"] .arenaHeading h1 {
+  font-size: calc(var(--vc-theme-title-size-portrait, 49px) * .86);
+}
+
 .arenaRoot[data-orientation="portrait"] .arenaContext span {
   font-size: var(--vc-theme-font-15, 15px);
 }
@@ -1661,10 +1671,15 @@
 .arenaRoot[data-orientation="portrait"] .arenaNewsLayout[data-news-variant="fullscreen_gradient"] .arenaNewsHero::after {
   background: linear-gradient(
     180deg,
-    var(--vc-image-overlay-end) 0 34%,
-    var(--vc-image-overlay-mid) 44%,
-    var(--vc-image-overlay-start) 54% 100%
+    var(--vc-image-overlay-end) 0 28%,
+    var(--vc-image-overlay-mid) 40%,
+    var(--vc-image-overlay-start) 50% 100%
   );
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaNewsLayout[data-news-variant="fullscreen_gradient"] > .arenaNewsQr {
+  right: 106px;
+  bottom: 46px;
 }
 
 .arenaRoot[data-orientation="portrait"] .arenaNewsLayout[data-news-variant="fullscreen_gradient"] .arenaNewsSource {
@@ -2637,30 +2652,86 @@
   position: relative;
   z-index: 2 !important;
   display: flex;
+  height: 100%;
   width: 64%;
   flex-direction: column;
-  gap: 18px;
 }
 
 .arenaArrivalCard[data-arrival-kind="visitor"][data-logo="missing"] .arenaVisitorArrivalCopy {
   width: 100%;
 }
 
-.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorArrivalCopy h2 {
-  max-width: none;
-  margin: 0;
-  color: var(--vc-text);
-  font-size: var(--vc-theme-font-52, 52px);
-  line-height: 1;
+.arenaVisitorSchedule {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
-.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorArrivalCopy p {
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorSchedule time,
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorSchedule span {
+  color: var(--vc-text-muted);
+  font-size: var(--vc-theme-font-23, 23px);
+  font-weight: 650;
+  line-height: 1.15;
+}
+
+.arenaVisitorTeams {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  margin: 34px 0;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorTeams h2 {
+  display: flex;
+  max-width: none;
   margin: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorTeams h2 span {
+  overflow-wrap: anywhere;
   color: var(--vc-text);
-  font-size: var(--vc-theme-font-41-6, 41.6px);
-  font-weight: 400;
-  line-height: 1.08;
-  white-space: nowrap;
+  font-size: var(--vc-theme-font-46, 46px);
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: .98;
+}
+
+.arenaVisitorDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--vc-divider);
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorDetails strong,
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorDetails p {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--vc-text);
+  font-size: var(--vc-theme-font-23, 23px);
+  line-height: 1.15;
+}
+
+.arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorDetails strong {
+  font-weight: 800;
+}
+
+.arenaVisitorRoomLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.arenaVisitorRoomLine i {
+  color: var(--vc-text-muted);
+  font-style: normal;
 }
 
 @keyframes visitorArrivalRise {
@@ -2700,14 +2771,20 @@
   padding: 54px;
 }
 
-.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorArrivalCopy h2 {
+.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorTeams h2 {
   max-width: none;
   margin: 0;
-  font-size: var(--vc-theme-font-60, 60px);
 }
 
-.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorArrivalCopy p {
-  font-size: var(--vc-theme-font-48, 48px);
+.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorTeams h2 span {
+  font-size: var(--vc-theme-font-50, 50px);
+}
+
+.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorSchedule time,
+.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorSchedule span,
+.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorDetails strong,
+.arenaRoot[data-orientation="portrait"] .arenaArrivalCard[data-arrival-kind="visitor"] .arenaVisitorDetails p {
+  font-size: var(--vc-theme-font-26, 26px);
 }
 
 @media (prefers-reduced-motion: reduce) {

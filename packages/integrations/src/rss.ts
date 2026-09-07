@@ -223,25 +223,205 @@ function rssLink(block: string): string | null {
 }
 
 function rssImageUrl(block: string, sourceUrl: string): string | null {
-  const mediaContent = block.match(
-    /<media:content\b(?=[^>]*\b(?:medium=["']image["']|type=["']image\/[^"']+["']))(?=[^>]*\burl=["']([^"']+)["'])[^>]*\/?>/i
-  )?.[1];
-  const mediaThumbnail = block.match(
-    /<media:thumbnail\b(?=[^>]*\burl=["']([^"']+)["'])[^>]*\/?>/i
-  )?.[1];
-  const enclosure = block.match(
-    /<enclosure\b(?=[^>]*\btype=["']image\/[^"']+["'])(?=[^>]*\burl=["']([^"']+)["'])[^>]*\/?>/i
-  )?.[1];
-  const htmlImage = (
-    firstTag(block, "description") ??
-    firstTag(block, "content:encoded") ??
-    firstTag(block, "content") ??
-    ""
-  ).match(/<img\b(?=[^>]*\bsrc=["']([^"']+)["'])[^>]*>/i)?.[1];
-  return resolveHttpUrl(
-    mediaContent ?? mediaThumbnail ?? enclosure ?? htmlImage,
-    sourceUrl
+  const candidates: RssImageCandidate[] = [];
+  let sourceOrder = 0;
+  const addCandidate = (
+    value: string | null,
+    options: Omit<RssImageCandidate, "sourceOrder" | "url">
+  ) => {
+    if (!value) return;
+    candidates.push({ ...options, sourceOrder, url: value });
+    sourceOrder += 1;
+  };
+
+  for (const tag of allTags(block, "media:content")) {
+    const medium = tagAttribute(tag, "medium")?.toLowerCase();
+    const type = tagAttribute(tag, "type")?.toLowerCase();
+    if (medium && medium !== "image") continue;
+    if (type && !type.startsWith("image/")) continue;
+    addCandidate(tagAttribute(tag, "url"), {
+      density: null,
+      height: positiveImageDimension(tagAttribute(tag, "height")),
+      isThumbnail: false,
+      sourcePriority: 4,
+      width: positiveImageDimension(tagAttribute(tag, "width"))
+    });
+  }
+
+  for (const tag of allTags(block, "enclosure")) {
+    if (!tagAttribute(tag, "type")?.toLowerCase().startsWith("image/")) {
+      continue;
+    }
+    addCandidate(tagAttribute(tag, "url"), {
+      density: null,
+      height: positiveImageDimension(tagAttribute(tag, "height")),
+      isThumbnail: false,
+      sourcePriority: 3,
+      width: positiveImageDimension(tagAttribute(tag, "width"))
+    });
+  }
+
+  const html = [
+    firstTag(block, "description"),
+    firstTag(block, "content:encoded"),
+    firstTag(block, "content")
+  ]
+    .filter((value): value is string => value !== null)
+    .map(decodeEntities)
+    .join("\n");
+  for (const imageTag of allTags(html, "img")) {
+    const width = positiveImageDimension(tagAttribute(imageTag, "width"));
+    const height = positiveImageDimension(tagAttribute(imageTag, "height"));
+    const srcset = tagAttribute(imageTag, "data-srcset") ??
+      tagAttribute(imageTag, "srcset");
+    for (const candidate of parseImageSrcset(srcset, width, height)) {
+      addCandidate(candidate.url, {
+        density: candidate.density,
+        height: candidate.height,
+        isThumbnail: false,
+        sourcePriority: 3,
+        width: candidate.width
+      });
+    }
+    addCandidate(tagAttribute(imageTag, "data-src"), {
+      density: null,
+      height,
+      isThumbnail: false,
+      sourcePriority: 2,
+      width
+    });
+    addCandidate(tagAttribute(imageTag, "src"), {
+      density: null,
+      height,
+      isThumbnail: false,
+      sourcePriority: 1,
+      width
+    });
+  }
+
+  for (const tag of allTags(block, "media:thumbnail")) {
+    addCandidate(tagAttribute(tag, "url"), {
+      density: null,
+      height: positiveImageDimension(tagAttribute(tag, "height")),
+      isThumbnail: true,
+      sourcePriority: 1,
+      width: positiveImageDimension(tagAttribute(tag, "width"))
+    });
+  }
+
+  const validCandidates = candidates.flatMap((candidate) => {
+    const url = resolveHttpUrl(candidate.url, sourceUrl);
+    return url ? [{ ...candidate, url }] : [];
+  });
+  validCandidates.sort(compareRssImageCandidates);
+  return validCandidates[0]?.url ?? null;
+}
+
+type RssImageCandidate = {
+  density: number | null;
+  height: number | null;
+  isThumbnail: boolean;
+  sourceOrder: number;
+  sourcePriority: number;
+  url: string;
+  width: number | null;
+};
+
+function allTags(xml: string, tag: string): string[] {
+  const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return [...xml.matchAll(new RegExp(`<${escaped}\\b[^>]*/?>`, "gi"))]
+    .flatMap((match) => match[0] ? [match[0]] : []);
+}
+
+function tagAttribute(tag: string, name: string): string | null {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = tag.match(
+    new RegExp(`(?:^|\\s)${escaped}\\s*=\\s*(["'])([\\s\\S]*?)\\1`, "i")
   );
+  return match?.[2] ?? null;
+}
+
+function positiveImageDimension(value: string | null): number | null {
+  if (!value || !/^\d+(?:\.\d+)?$/.test(value.trim())) return null;
+  const dimension = Number.parseFloat(value);
+  return Number.isFinite(dimension) && dimension > 0 && dimension <= 100_000
+    ? dimension
+    : null;
+}
+
+function parseImageSrcset(
+  value: string | null,
+  elementWidth: number | null,
+  elementHeight: number | null
+): Array<Pick<RssImageCandidate, "density" | "height" | "url" | "width">> {
+  if (!value) return [];
+  const candidates: Array<
+    Pick<RssImageCandidate, "density" | "height" | "url" | "width">
+  > = [];
+  for (const entry of value.split(",")) {
+    const normalized = entry.trim();
+    if (!normalized) continue;
+    const descriptor = normalized.match(/\s+(\d+(?:\.\d+)?)(w|x)\s*$/i);
+    const url = descriptor
+      ? normalized.slice(0, descriptor.index).trim()
+      : normalized;
+    if (!url) continue;
+    const declared = descriptor
+      ? positiveImageDimension(descriptor[1] ?? null)
+      : null;
+    if (descriptor?.[2]?.toLowerCase() === "w" && declared) {
+      candidates.push({
+        density: null,
+        height: elementWidth && elementHeight
+          ? declared * elementHeight / elementWidth
+          : null,
+        url,
+        width: declared
+      });
+      continue;
+    }
+    if (descriptor?.[2]?.toLowerCase() === "x" && declared) {
+      candidates.push({
+        density: declared,
+        height: elementHeight ? elementHeight * declared : null,
+        url,
+        width: elementWidth ? elementWidth * declared : null
+      });
+      continue;
+    }
+    candidates.push({
+      density: null,
+      height: elementHeight,
+      url,
+      width: elementWidth
+    });
+  }
+  return candidates;
+}
+
+function compareRssImageCandidates(
+  left: RssImageCandidate,
+  right: RssImageCandidate
+): number {
+  if (left.isThumbnail !== right.isThumbnail) {
+    return left.isThumbnail ? 1 : -1;
+  }
+  const dimensionDifference = imageDimensionScore(right) -
+    imageDimensionScore(left);
+  if (dimensionDifference !== 0) return dimensionDifference;
+  if (left.sourcePriority !== right.sourcePriority) {
+    return right.sourcePriority - left.sourcePriority;
+  }
+  return left.sourceOrder - right.sourceOrder;
+}
+
+function imageDimensionScore(candidate: RssImageCandidate): number {
+  if (candidate.width && candidate.height) {
+    return candidate.width * candidate.height;
+  }
+  if (candidate.width) return candidate.width * candidate.width;
+  if (candidate.height) return candidate.height * candidate.height;
+  return candidate.density ? candidate.density * candidate.density : 0;
 }
 
 function resolveHttpUrl(
