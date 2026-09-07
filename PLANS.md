@@ -268,6 +268,17 @@ latest-slides, ook naast een open concept, zonder pinned versies, historische
 releases of Player-LKG te muteren. Zie
 `prompts/sprints/S154-club-match-scope.md`.
 
+S155 maakt de bezoekersteamslide operationeel voor de ontvangst op het
+sportpark. Alleen tenantgebonden thuiswedstrijden leveren kaarten met datum,
+aanvang, beide teams, beide kleedkamers, veld en de exacte
+Sportlink-accommodatienaam. Iedere gewone Editorial Arena-header gebruikt de
+actuele tenanttijd in plaats van een tweede VeyoCast-vermelding. Fullscreen
+nieuws houdt QR en scanlabel rechtsonder zonder geschreven URL, krijgt een
+donkerdere tekstzone en verkiest grotere RSS-bronbeelden. Bestaande
+`latest`-bezoekersteamslides worden uitsluitend via nieuwe snapshots en de
+bestaande immutable auto-publicatieketen bijgewerkt. Zie
+`prompts/sprints/S155-welcome-news-layout.md`.
+
 ### Programmagates
 
 - S20-S22 herstellen eerst trust, context en beheer.

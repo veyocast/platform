@@ -16,9 +16,11 @@ import {
   dynamicTemplatePageDurationMs,
   formatMatchCentreClock,
   formatMatchCentrePageCounter,
+  formatVisitorVenueWelcome,
   resolveWelcomeMotionPreset,
   type DynamicTemplateBirthdayItem,
   type DynamicTemplateListItem,
+  type DynamicTemplateNewsItem,
   type DynamicTemplatePage,
   type DynamicTemplatePriceEntry,
   type DynamicTemplateStandingItem,
@@ -62,18 +64,6 @@ export type EditorialArenaItem = {
   id: string;
   title: string;
 };
-
-function readableNewsUrl(value: string) {
-  if (!value) return "";
-  try {
-    const url = new URL(value);
-    const path = url.pathname === "/" ? "" : url.pathname.replace(/\/$/, "");
-    const readable = `${url.hostname.replace(/^www\./, "")}${path}`;
-    return readable.length > 52 ? `${readable.slice(0, 49)}…` : readable;
-  } catch {
-    return "";
-  }
-}
 
 export function EditorialArenaRenderer({
   embedded = false,
@@ -271,7 +261,8 @@ function ArenaHeader({
 }) {
   const initials = initialsFor(view.clubName);
   const matchCentre = isMatchCentreSlide(view);
-  const clock = useMatchCentreClock(view);
+  const clock = useArenaClock(view);
+  const contextLabel = arenaContextLabel(view, pageIndex);
   return (
     <header className={styles.arenaMasthead}>
       <div aria-hidden="true" className={styles.arenaCrest}>
@@ -299,8 +290,8 @@ function ArenaHeader({
           </>
         ) : (
           <>
-            <strong>{view.sourceLabel}</strong>
-            <span><i aria-hidden="true" /> {view.birthday ? "Verjaardagen" : "VeyoCast"}</span>
+            <strong>{contextLabel}</strong>
+            <time dateTime={clock.instant}>{clock.label}</time>
           </>
         )}
       </div>
@@ -334,7 +325,7 @@ function ArenaFooter({
   );
 }
 
-function useMatchCentreClock(view: DynamicTemplateView) {
+function useArenaClock(view: DynamicTemplateView) {
   const timezone = view.themePresentation.resolvedMode.timezone;
   const frozenInstant = view.themePresentation.resolvedMode.resolvedAt;
   const [instant, setInstant] = useState(frozenInstant);
@@ -353,6 +344,29 @@ function useMatchCentreClock(view: DynamicTemplateView) {
 
 function isMatchCentreSlide(view: DynamicTemplateView) {
   return view.slideType === "sport_program" || view.slideType === "sport_results";
+}
+
+function arenaContextLabel(view: DynamicTemplateView, pageIndex: number) {
+  if (view.slideType !== "sport_visitor_arrivals") return view.sourceLabel;
+  const page = view.pages[pageIndex];
+  if (page?.kind !== "arrivals") return formatVisitorVenueWelcome("");
+  const venueNames = page.items.map((item) => item.venueName).filter(Boolean);
+  const venues = [...new Set(venueNames)];
+  return formatVisitorVenueWelcome(
+    venueNames.length === page.items.length && venues.length === 1
+      ? venues[0]!
+      : ""
+  );
+}
+
+function ArenaNewsQr({ article }: { article: DynamicTemplateNewsItem }) {
+  if (!article.qrUrl) return null;
+  return (
+    <div className={styles.arenaNewsQr} data-testid="news-qr">
+      <img alt={`QR-code naar ${article.title}`} src={article.qrUrl} />
+      <span>Scan voor het artikel</span>
+    </div>
+  );
 }
 
 function ArenaPage({
@@ -422,16 +436,15 @@ function ArenaPage({
                 {article.date ? <small><b>Datum</b>{article.date}</small> : null}
                 <small><b>Door</b>{article.author || article.source}</small>
               </div>
-              {article.qrUrl ? (
-                <div className={styles.arenaNewsQr} data-testid="news-qr">
-                  <img alt={`QR-code naar ${article.title}`} src={article.qrUrl} />
-                  <span>Scan voor het artikel</span>
-                  {article.link ? <small>{readableNewsUrl(article.link)}</small> : null}
-                </div>
-              ) : null}
+              {view.newsVariant !== "fullscreen_gradient"
+                ? <ArenaNewsQr article={article} />
+                : null}
             </>
           ) : null}
         </article>
+        {article && view.newsVariant === "fullscreen_gradient"
+          ? <ArenaNewsQr article={article} />
+          : null}
         {page.secondaryItems.length ? (
           <aside className={styles.arenaNewsGrid}>
             {page.secondaryItems.map((secondary) => (
@@ -491,15 +504,31 @@ function ArenaPage({
                   src={entry.logoUrl}
                 />
                 <div className={styles.arenaArrivalLogoMark}>
-                  <img alt={`Logo ${entry.primary}`} src={entry.logoUrl} />
+                  <img alt={`Logo ${entry.awayTeam || entry.primary}`} src={entry.logoUrl} />
                 </div>
               </>
             ) : null}
             {visitorArrivals ? (
               <div className={styles.arenaVisitorArrivalCopy}>
-                <h2>{entry.primary}</h2>
-                <p>{entry.secondary}</p>
-                <p>{entry.meta}</p>
+                <div className={styles.arenaVisitorSchedule}>
+                  <time dateTime={entry.kickoffAt}>{entry.date || "Datum volgt"}</time>
+                  <span>Aanvang: {entry.kickoffTime || "volgt"}</span>
+                </div>
+                <div className={styles.arenaVisitorTeams}>
+                  <h2 aria-label={`${entry.homeTeam || view.clubName} tegen ${entry.awayTeam || entry.primary}`}>
+                    <span>{entry.homeTeam || view.clubName}</span>
+                    <span>{entry.awayTeam || entry.primary}</span>
+                  </h2>
+                </div>
+                <div className={styles.arenaVisitorDetails}>
+                  <strong>Kleedkamers:</strong>
+                  <p className={styles.arenaVisitorRoomLine}>
+                    Thuis: {entry.homeRoom || "volgt"}
+                    <i aria-hidden="true">|</i>
+                    Uit: {entry.awayRoom || entry.dressingRoom || "volgt"}
+                  </p>
+                  <p>Veld: {entry.field || "volgt"}</p>
+                </div>
               </div>
             ) : (
               <>

@@ -109,10 +109,11 @@ export async function normalizeRssImage(
         .resize({
           fit: "inside",
           height: 1080,
+          kernel: sharp.kernel.lanczos3,
           width: 1920,
           withoutEnlargement: true
         })
-        .webp({ effort: 4, quality: 82 });
+        .webp({ effort: 5, quality: 90, smartSubsample: true });
   const output = await normalized.toBuffer({ resolveWithObject: true });
   if (
     !output.info.width ||

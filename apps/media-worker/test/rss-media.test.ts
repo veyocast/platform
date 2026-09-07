@@ -11,7 +11,7 @@ const job = {
 };
 
 describe("RSS media normalisatie", () => {
-  it("bewaart beeldverhouding en bronresolutie zonder providerbytes uit te voeren", async () => {
+  it("bewaart beeldverhouding en vergroot een kleine bron niet kunstmatig", async () => {
     const input = await sharp({
       create: {
         background: { alpha: 1, b: 35, g: 88, r: 180 },
@@ -79,6 +79,33 @@ describe("RSS media normalisatie", () => {
       width: 720
     });
     expect(artifact.width / artifact.height).toBeCloseTo(2 / 3, 4);
+  });
+
+  it("verkleint brede nieuwsbeelden zonder anisotrope uitrekking", async () => {
+    const input = await sharp({
+      create: {
+        background: { alpha: 1, b: 35, g: 88, r: 180 },
+        channels: 4,
+        height: 1200,
+        width: 3600
+      }
+    }).png().toBuffer();
+
+    const artifact = await normalizeRssImage(
+      job,
+      {
+        externalId: "wide-article",
+        role: "article_hero",
+        title: "Breed nieuwsbeeld"
+      },
+      input
+    );
+
+    expect(artifact).toMatchObject({
+      height: 640,
+      width: 1920
+    });
+    expect(artifact.width / artifact.height).toBeCloseTo(3, 4);
   });
 
   it("maakt QR-invoer verliesvrij en content-addressed beschikbaar", async () => {

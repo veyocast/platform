@@ -131,8 +131,12 @@ async function mockLegacyApis(
 
 async function mockEditorialArenaLegacyApis(
   page: Page,
-  orientation: "landscape" | "portrait" = "landscape"
+  orientation: "landscape" | "portrait" = "landscape",
+  newsVariant: "fullscreen_gradient" | "hero_split" = "hero_split"
 ) {
+  const heroMediaAssetId = "10000000-0000-4000-8000-000000000041";
+  const qrMediaAssetId = "10000000-0000-4000-8000-000000000042";
+  const fullscreen = newsVariant === "fullscreen_gradient";
   await page.route("**/api/player/installation", async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -161,18 +165,36 @@ async function mockEditorialArenaLegacyApis(
     });
     Object.assign(envelope.manifest.items[0]!, {
       dynamicTemplate: {
+        assets: fullscreen ? {
+          [heroMediaAssetId]: {
+            bytes: legacyImageBytes,
+            checksumSha256: legacyImageChecksum,
+            mimeType: "image/svg+xml",
+            url: legacyImagePath
+          },
+          [qrMediaAssetId]: {
+            bytes: legacyImageBytes,
+            checksumSha256: legacyImageChecksum,
+            mimeType: "image/svg+xml",
+            url: legacyImagePath
+          }
+        } : undefined,
         data: {
           data: {
             articles: [{
               author: "VeyoCast redactie",
+              heroMediaAssetId: fullscreen ? heroMediaAssetId : undefined,
               intro: "De volledige HTML/CSS-renderketen werkt ook op de legacy Player.",
+              link: fullscreen ? "https://example.test/nieuws/legacy" : undefined,
               publishedAt: "2026-08-03T18:00:00.000Z",
+              qrMediaAssetId: fullscreen ? qrMediaAssetId : undefined,
               title: "Oos Kesbeke: een fijnproever ben ik niet, ik vind het lekker of niet"
             }],
             generatedAt: "2026-08-03T18:00:00.000Z",
             secondsPerSlide: 5,
-            sourceName: "VeyoCast"
+            sourceName: "Clubnieuws"
           },
+          editorial: { newsVariant },
           type: "news"
         },
         orientation,
@@ -477,13 +499,22 @@ async function mockVisitorArrivalsLegacyApis(page: Page) {
             arrivalConfig: { cardCount: 4, emptyBehavior: "skip", motionPreset: "auto" },
             items: [
               {
+                awayRoom: "2",
+                awayTeam: "Bezoekers FC",
+                date: "07-09-2026",
+                field: "1",
                 homeMatch: true,
+                homeRoom: "1",
+                homeTeam: "Duindorp sv JO15-1",
                 id: "home-fixture",
+                kickoffAt: "2026-09-07T12:30:00.000Z",
+                kickoffTime: "14:30",
                 logoMediaAssetId: awayLogoId,
                 meta: "Kleedkamer 2 · Veld 1",
                 primary: "Bezoekers FC",
                 secondary: "Aankomst 13:00 · Aanvang 14:30",
-                status: "Welkom bij {{club}}"
+                status: "Welkom bij {{club}}",
+                venueName: "Sportpark Houtrust"
               },
               {
                 homeMatch: false,
@@ -496,6 +527,7 @@ async function mockVisitorArrivalsLegacyApis(page: Page) {
               }
             ],
             pageDurationSeconds: 12,
+            timezone: "Europe/Amsterdam",
             title: "Welkom op ons sportpark"
           },
           type: "sport_visitor_arrivals"
@@ -742,7 +774,6 @@ test("LG Legacy Player gebruikt een statische shell en lokale afbeelding", async
     },
     { credential: installationCredential, token: deviceToken }
   );
-
   await page.goto(`${playerURL}/lg/legacy`);
 
   const image = page.locator("#media-root > img");
@@ -1383,6 +1414,71 @@ test("LG Legacy schaalt ieder logisch portraitcanvas binnen een landscapeviewpor
   await context.close();
 });
 
+test("LG Legacy ankert fullscreen nieuws-QR zonder zichtbare URL rechtsonder", async ({
+  browser
+}) => {
+  for (const orientation of ["landscape", "portrait"] as const) {
+    await test.step(orientation, async () => {
+      const context = await browser.newContext({
+        reducedMotion: "reduce",
+        userAgent:
+          "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+        viewport: orientation === "landscape"
+          ? { height: 1080, width: 1920 }
+          : { height: 1920, width: 1080 }
+      });
+      const page = await context.newPage();
+      await page.clock.setFixedTime(new Date("2026-09-07T11:51:00.000Z"));
+      await mockEditorialArenaLegacyApis(page, orientation, "fullscreen_gradient");
+      await page.addInitScript(
+        ({ credential, token }) => {
+          localStorage.setItem("veyocast.player.deviceToken", token);
+          localStorage.setItem("veyocast.player.installationCredential", credential);
+          localStorage.setItem(
+            "veyocast.player.instanceId",
+            "12345678-1234-4123-8123-123456789abc"
+          );
+        },
+        { credential: installationCredential, token: deviceToken }
+      );
+
+      await page.goto(`${playerURL}/lg/legacy`);
+      await expect.poll(() => page.evaluate(() =>
+        localStorage.getItem("veyocast.player.lgLegacyDiagnostics.v1") ?? ""
+      )).toContain("LEGACY_TEMPLATE_READY");
+
+      const layout = page.locator(
+        '.editorial-news[data-news-variant="fullscreen_gradient"]'
+      );
+      const qr = layout.locator(":scope > .editorial-news-qr");
+      await expect(layout).toBeVisible();
+      await expect(page.locator(".editorial-context strong"))
+        .toHaveText("Clubnieuws");
+      await expect(page.locator(".editorial-context time"))
+        .toHaveText("07-09-2026 | 13:51");
+      await expect(page.locator(".editorial-context"))
+        .not.toContainText("VeyoCast");
+      await expect(qr).toHaveCount(1);
+      await expect(qr).toContainText("Scan voor het artikel");
+      await expect(qr.locator("small")).toHaveCount(0);
+      await expect(layout).not.toContainText("example.test/nieuws/legacy");
+      const geometry = await layout.evaluate((element) => {
+        const layoutBox = element.getBoundingClientRect();
+        const qrBox = element.querySelector<HTMLElement>(
+          ":scope > .editorial-news-qr"
+        )!.getBoundingClientRect();
+        return {
+          bottom: layoutBox.bottom - qrBox.bottom,
+          right: layoutBox.right - qrBox.right
+        };
+      });
+      expect(geometry.bottom).toBeCloseTo(orientation === "landscape" ? 30 : 46, 0);
+      expect(geometry.right).toBeCloseTo(orientation === "landscape" ? 92 : 106, 0);
+      await context.close();
+    });
+  }
+});
+
 test("Static LG bewaakt de zestien FieldFlow-goldens voor de nieuwe sportfamilies", async ({
   browser
 }) => {
@@ -1572,6 +1668,7 @@ test("LG Legacy heet alleen bezoekers van thuiswedstrijden welkom en toont hun l
   });
   const page = await context.newPage();
   await mockVisitorArrivalsLegacyApis(page);
+  await page.clock.setFixedTime(new Date("2026-09-07T11:51:00.000Z"));
   await page.addInitScript(
     ({ credential, token }) => {
       localStorage.setItem("veyocast.player.deviceToken", token);
@@ -1596,9 +1693,18 @@ test("LG Legacy heet alleen bezoekers van thuiswedstrijden welkom en toont hun l
     .toHaveAttribute("data-arrival-kind", "visitor");
   await expect(slide.locator(".legacy-arrival-grid")).toHaveAttribute("data-cards", "1");
   await expect(slide.locator(".legacy-arrival-card")).toHaveCount(1);
+  await expect(slide.locator(".editorial-context strong"))
+    .toHaveText("Welkom op Sportpark Houtrust!");
+  await expect(slide.locator(".editorial-context time"))
+    .toHaveText("07-09-2026 | 13:51");
+  await expect(slide.locator(".editorial-context")).not.toContainText("VeyoCast");
+  await expect(slide.getByText("07-09-2026", { exact: true })).toBeVisible();
+  await expect(slide.getByText("Aanvang: 14:30", { exact: true })).toBeVisible();
+  await expect(slide.getByText("Duindorp sv JO15-1", { exact: true })).toBeVisible();
   await expect(slide.getByText("Bezoekers FC", { exact: true })).toBeVisible();
-  await expect(slide.getByText("Aanvang: 14:30 | Veld 1", { exact: true })).toBeVisible();
-  await expect(slide.getByText("Kleedkamer: 2", { exact: true })).toBeVisible();
+  await expect(slide.getByText("Kleedkamers:", { exact: true })).toBeVisible();
+  await expect(slide.getByText(/Thuis:\s*1\s*\|\s*Uit:\s*2/u)).toBeVisible();
+  await expect(slide.getByText("Veld: 1", { exact: true })).toBeVisible();
   await expect(slide.getByText(/Aankomst/)).toHaveCount(0);
   await expect(slide.getByText("Duindorp sv 1", { exact: true })).toHaveCount(0);
   await expect(slide.locator(
@@ -1612,25 +1718,33 @@ test("LG Legacy heet alleen bezoekers van thuiswedstrijden welkom en toont hun l
     .toHaveCSS("background-color", "rgb(255, 255, 255)");
   const welcomeGeometry = await slide.locator(".legacy-arrival-grid").evaluate((grid) => {
     const card = grid.querySelector<HTMLElement>(".legacy-arrival-card")!;
-    const details = Array.from(card.querySelectorAll<HTMLElement>("p"));
+    const details = Array.from(card.querySelectorAll<HTMLElement>(
+      ".legacy-visitor-details > strong, .legacy-visitor-details > p"
+    ));
+    const schedule = Array.from(card.querySelectorAll<HTMLElement>(
+      ".legacy-visitor-schedule > time, .legacy-visitor-schedule > span"
+    ));
+    const teamNames = Array.from(card.querySelectorAll<HTMLElement>(
+      ".legacy-visitor-teams h2 > span"
+    ));
     return {
       cardWidth: card.getBoundingClientRect().width,
       columns: getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length,
       detailSizes: details.map((detail) => parseFloat(getComputedStyle(detail).fontSize)),
-      detailWeights: details.map((detail) => getComputedStyle(detail).fontWeight),
       gridWidth: grid.getBoundingClientRect().width,
       logoWidth: card.querySelector<HTMLElement>(".legacy-arrival-logo-mark")!
         .getBoundingClientRect().width,
-      titleSize: parseFloat(getComputedStyle(card.querySelector("h2")!).fontSize)
+      scheduleSizes: schedule.map((line) => parseFloat(getComputedStyle(line).fontSize)),
+      teamSizes: teamNames.map((team) => parseFloat(getComputedStyle(team).fontSize))
     };
   });
   expect(welcomeGeometry.columns).toBe(2);
   expect(welcomeGeometry.cardWidth).toBeGreaterThan(welcomeGeometry.gridWidth * 0.45);
   expect(welcomeGeometry.cardWidth).toBeLessThan(welcomeGeometry.gridWidth * 0.52);
   expect(welcomeGeometry.logoWidth / welcomeGeometry.cardWidth).toBeCloseTo(0.32, 2);
-  expect(welcomeGeometry.detailSizes.map((size) => size / welcomeGeometry.titleSize))
-    .toEqual([0.8, 0.8]);
-  expect(welcomeGeometry.detailWeights).toEqual(["400", "400"]);
+  expect(welcomeGeometry.scheduleSizes).toEqual([23, 23]);
+  expect(welcomeGeometry.teamSizes).toEqual([46, 46]);
+  expect(welcomeGeometry.detailSizes).toEqual([23, 23, 23]);
   await context.close();
 });
 
