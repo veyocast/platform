@@ -3,13 +3,17 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import type { EditorialThemeConfig, ThemeSelection } from "@veyocast/contracts";
-import { editorialArenaLightTokens } from "@veyocast/content-templates/editorial-arena-theme";
+import {
+  editorialArenaLightTokens,
+  editorialThemeCssVariables
+} from "@veyocast/content-templates/editorial-arena-theme";
 
 import {
   EditorialThemeEditor,
   colorPickerValue,
   editorialThemeTokenGroups,
-  replaceColorChannels
+  replaceColorChannels,
+  resolveThemeDraftDefaults
 } from "./editorial-theme-editor";
 
 describe("Centrale tenantkleur-editor", () => {
@@ -35,8 +39,8 @@ describe("Centrale tenantkleur-editor", () => {
     expect(replaceColorChannels("#ffffff", "#315cff")).toBe("#315CFF");
   });
 
-  it("toont een taakgerichte preview, paletkeuze en volledige formulierpayload", () => {
-    const theme: EditorialThemeConfig = {
+  it("blijft veilig tijdens onvolledige accent- en tijdinvoer", () => {
+    const fallback: EditorialThemeConfig = {
       dark: editorialArenaLightTokens,
       light: editorialArenaLightTokens,
       mode: "light"
@@ -46,20 +50,87 @@ describe("Centrale tenantkleur-editor", () => {
       categoryOverrides: [],
       modePolicy: { kind: "fixed", mode: "light" },
       ref: { catalog: "v2", id: "fieldflow", version: "1.0.0" },
-      support: null
+      support: "#00A989"
     };
-    const html = renderToStaticMarkup(createElement(EditorialThemeEditor, {
-      defaults: theme,
-      disabled: false,
-      onChange: () => undefined,
-      onSelectionChange: () => undefined,
-      selection,
-      theme
-    }));
 
-    expect(html).toContain("Live voorbeeld");
-    expect(html).toContain('role="tablist"');
-    expect(html).toContain('name="themeColorOverridesJson"');
-    expect(html).toContain("Contrastcontrole");
+    expect(resolveThemeDraftDefaults({ ...selection, accent: "#1" }, fallback))
+      .toEqual({ theme: fallback, valid: false });
+    expect(resolveThemeDraftDefaults({
+      ...selection,
+      modePolicy: {
+        entries: [{ days: [0], end: "", mode: "dark", start: "18:00" }],
+        fallback: "light",
+        kind: "schedule",
+        timezone: "Europe/Amsterdam"
+      }
+    }, fallback)).toEqual({ theme: fallback, valid: false });
+    expect(resolveThemeDraftDefaults(selection, fallback).valid).toBe(true);
   });
+
+  it.each(["light", "dark"] as const)(
+    "toont alle kleurvelden en previewrollen voor het %s palet",
+    (mode) => {
+      const theme: EditorialThemeConfig = {
+        dark: editorialArenaLightTokens,
+        light: editorialArenaLightTokens,
+        mode
+      };
+      const selection: ThemeSelection = {
+        accent: "#315CFF",
+        categoryOverrides: [],
+        modePolicy: { kind: "fixed", mode },
+        ref: { catalog: "v2", id: "fieldflow", version: "1.0.0" },
+        support: "#00A989"
+      };
+      const html = renderToStaticMarkup(createElement(EditorialThemeEditor, {
+        defaults: theme,
+        disabled: false,
+        onChange: () => undefined,
+        onSelectionChange: () => undefined,
+        selection,
+        theme
+      }));
+      const contractTokens = Object.keys(editorialArenaLightTokens).sort();
+      const controlTokens = [...html.matchAll(new RegExp(
+        `name="${mode}-([A-Za-z]+)"`,
+        "g"
+      ))].map((match) => match[1]).sort();
+      const previewTokens = [...html.matchAll(/data-theme-tokens="([^"]+)"/g)]
+        .flatMap((match) => match[1]!.split(" "));
+      const payloadInput = html.match(
+        /<input[^>]*name="themeColorOverridesJson"[^>]*>/
+      )?.[0];
+      const serializedPayload = payloadInput
+        ?.match(/value="([^"]+)"/)?.[1]
+        ?.replaceAll("&quot;", '"');
+
+      expect(html).toContain("Live voorbeeld");
+      expect(html).toContain("26/26 rollen");
+      expect(html).toContain('role="tablist"');
+      expect(html).toContain("Contrastcontrole");
+      expect(html).toContain("Kleurrollen in licht en donker herstellen");
+      expect(controlTokens).toEqual(contractTokens);
+      expect(new Set(previewTokens)).toEqual(new Set(contractTokens));
+      expect(html.match(/aria-label="[^"]+ herstellen"/g)).toHaveLength(26);
+      expect(html).not.toContain("Alle kleuren aanpassen");
+      expect(serializedPayload).toBeDefined();
+      expect(Object.keys(JSON.parse(serializedPayload!).fieldflow.light).sort())
+        .toEqual(contractTokens);
+      expect(Object.keys(JSON.parse(serializedPayload!).fieldflow.dark).sort())
+        .toEqual(contractTokens);
+      for (const variable of Object.keys(editorialThemeCssVariables(
+        editorialArenaLightTokens
+      ))) {
+        expect(html).toContain(`${variable}:`);
+      }
+      for (const setting of [
+        "baseAccent",
+        "clubLogoBackground",
+        "homeLogoBackground",
+        "support"
+      ]) {
+        expect(html).toContain(`data-theme-setting="${setting}"`);
+      }
+    }
+  );
 });

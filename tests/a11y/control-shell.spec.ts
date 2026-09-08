@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 // These route-level checks share one lazily compiling Next.js development
 // server. Keeping this file serial prevents concurrent first-load compiles
@@ -509,14 +510,43 @@ test("settings and theme routes expose real defaults with safe permission state"
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "FieldFlow" })).toBeVisible();
   const themePreview = page.getByLabel(/Live voorbeeld van het .* palet/);
   await expect(themePreview).toBeVisible();
+  const previewCanvas = themePreview.locator('[data-theme-tokens~="canvas"]');
+  const previewBox = await previewCanvas.boundingBox();
+  expect(previewBox).not.toBeNull();
+  expect(Math.abs((previewBox!.width / previewBox!.height) - (16 / 9)))
+    .toBeLessThan(0.03);
+  expect(await themePreview.locator("[data-theme-tokens]").evaluateAll((nodes) => (
+    [...new Set(nodes.flatMap((node) => (
+      node.getAttribute("data-theme-tokens")?.split(" ") ?? []
+    )))]
+  ))).toHaveLength(26);
   await expect(page.getByRole("heading", { name: "Slidehuisstijl" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Licht" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Donker" })).toBeVisible();
-  await expect(page.getByLabel("Achtergrond clublogo")).toBeVisible();
-  await expect(page.getByLabel("Achtergrond thuislogo")).toBeVisible();
+  await expect(page.getByLabel("Achtergrond clublogo kiezen")).toBeVisible();
+  await expect(page.getByLabel("Achtergrond clublogo als kleurwaarde")).toBeVisible();
+  await expect(page.getByLabel("Achtergrond thuislogo kiezen")).toBeVisible();
+  await expect(page.getByLabel("Achtergrond thuislogo als kleurwaarde")).toBeVisible();
   await expect(page.getByLabel("Slideachtergrond als kleurwaarde")).toBeVisible();
   await expect(page.getByLabel("Slideachtergrond kiezen")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Typografie en logo-oppervlakken" })).toBeVisible();
+  const accentValue = page.getByLabel("Basisaccent als kleurwaarde");
+  const pageErrors: Error[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error));
+  await accentValue.evaluate((input) => input.removeAttribute("disabled"));
+  await accentValue.fill("#1");
+  await expect(page.getByRole("heading", { name: "Slidehuisstijl" })).toBeVisible();
+  expect(pageErrors).toEqual([]);
+  await expect(page.locator('input[name^="light-"]')).toHaveCount(26);
+  await expect(page.locator("details")).toHaveCount(7);
+  await expect(page.locator("[data-disclosure-indicator]")).toHaveCount(7);
+  const statusGroup = page.locator("details").filter({ hasText: "Accent en status" });
+  await statusGroup.locator("summary").click();
+  await expect(statusGroup).toHaveAttribute("open", "");
+  await expect(page.getByLabel("Succes als kleurwaarde")).toBeVisible();
+  expect((await new AxeBuilder({ page })
+    .include(".settings-theme-form")
+    .analyze()).violations).toEqual([]);
+  await expect(page.getByRole("heading", { name: "Typografie", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toHaveCount(0);
   await expect(async () => {
     expect(await page.evaluate(
