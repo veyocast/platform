@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   createSportlinkSlideBatchSchema,
+  sportlinkDisplayConfigSchema,
+  sportlinkSlideBlueprints,
   sportlinkSlideBatchMaxDrafts,
   sportlinkSlideContextSchema,
   sportlinkSlideDraftSchema,
@@ -56,6 +58,52 @@ describe("Sportlink slidecontext", () => {
   it("accepteert een volledig lege actuele competitiecontext", () => {
     expect(sportlinkSlideContextSchema.safeParse(context("team-1")).success)
       .toBe(true);
+  });
+});
+
+describe("Sportlink wedstrijdweergave", () => {
+  it("normaliseert legacy logo- en kleedkamervelden naar beide zijden", () => {
+    expect(sportlinkDisplayConfigSchema.parse({
+      showDressingRoom: true,
+      showLogo: false
+    })).toMatchObject({
+      showAwayDressingRoom: true,
+      showAwayLogo: false,
+      showDate: true,
+      showHomeDressingRoom: true,
+      showHomeLogo: false,
+      showSportpark: true,
+      showTime: true
+    });
+  });
+
+  it("bewaart alle optionele rijvelden onafhankelijk", () => {
+    expect(sportlinkDisplayConfigSchema.parse({
+      showAwayDressingRoom: true,
+      showAwayLogo: false,
+      showDate: false,
+      showHomeDressingRoom: false,
+      showHomeLogo: true,
+      showSportpark: false,
+      showTime: true
+    })).toMatchObject({
+      showAwayDressingRoom: true,
+      showAwayLogo: false,
+      showDate: false,
+      showDressingRoom: true,
+      showHomeDressingRoom: false,
+      showHomeLogo: true,
+      showLogo: true,
+      showSportpark: false,
+      showTime: true
+    });
+  });
+
+  it("publiceert ook programma en uitslagen van de poule van vandaag", () => {
+    expect(sportlinkSlideBlueprints["sportlink.pool_schedule_today"])
+      .toMatchObject({ scope: "pool", slideType: "sport_program", window: "today" });
+    expect(sportlinkSlideBlueprints["sportlink.pool_results_today"])
+      .toMatchObject({ scope: "pool", slideType: "sport_results", window: "today" });
   });
 });
 
@@ -219,6 +267,31 @@ describe("Sportlink aggregate teamcontexten", () => {
       ...draft("sportlink.visitor_arrivals"),
       context: context("team-2")
     }).success).toBe(false);
+  });
+
+  it("vereist bij een vastgezette pouleslide een exacte poule", () => {
+    const pinnedContext = {
+      competitionId: "competition-1",
+      competitionSelectionMode: "pinned" as const,
+      phaseId: "phase-1",
+      poolId: null,
+      providerTeamId: "team-1",
+      seasonId: "2026"
+    };
+    const poolDraft = {
+      blueprintKey: "sportlink.pool_schedule_today" as const,
+      context: pinnedContext,
+      name: "Pouleprogramma vandaag",
+      orientation: "landscape" as const,
+      templateVersionId,
+      themeSelection,
+      title: "Pouleprogramma vandaag"
+    };
+    expect(sportlinkSlideDraftSchema.safeParse(poolDraft).success).toBe(false);
+    expect(sportlinkSlideDraftSchema.safeParse({
+      ...poolDraft,
+      context: { ...pinnedContext, poolId: "pool-1" }
+    }).success).toBe(true);
   });
 
   it("weigert onbekende velden binnen een teamcontext", () => {

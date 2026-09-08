@@ -34,9 +34,9 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(matchLocationField).toContain('type="checkbox"');
     expect(matchLocationField).toContain("Iedere gekozen richting wordt één");
     expect(matchLocationField).toContain("useId()");
-    expect(wizard).toContain('columns: "one"');
-    expect(wizard).toContain("showLogo: true");
-    expect(wizard).toContain("Logo tonen");
+    expect(wizard).toContain("sportlinkDisplayConfigSchema.parse({})");
+    expect(wizard).toContain("Logo thuisclub tonen");
+    expect(wizard).toContain("Logo uitclub tonen");
     expect(wizard).not.toContain("voor ieder gekozen team één afzonderlijk onderdeel");
     expect(wizard).not.toContain("<TeamMatrix");
     expect(wizard).toContain("Actuele competitie, tenzij jij afwijkt");
@@ -54,7 +54,7 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(wizard).toContain("Er is nog niets aangemaakt.");
     expect(wizard).toContain("creationResult.slides.map");
     expect(wizard).toContain('href="/dashboard/slides"');
-    expect(action).toContain('"create_sportlink_slide_batch_v4"');
+    expect(action).toContain('"create_sportlink_slide_batch_v5"');
     expect(action).toContain("parseBatchResult");
     expect(action).not.toContain("redirect(");
   });
@@ -143,7 +143,8 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(wizard).toContain("<FieldFlowStyleStep");
     expect(wizard).toContain("Competities per team");
     expect(wizard).toContain('aria-label="Weergavekeuzes"');
-    expect(wizard).toContain('Logo {draft.display.showLogo ? "aan" : "uit"}');
+    expect(wizard).toContain('Thuislogo {draft.display.showHomeLogo ? "aan" : "uit"}');
+    expect(wizard).toContain('Uitlogo {draft.display.showAwayLogo ? "aan" : "uit"}');
     expect(styleStep).toContain("Vaste premium stijl voor nieuwe inhoud");
     expect(styleStep).not.toContain("themeCatalogOptions");
   });

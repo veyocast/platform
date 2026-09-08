@@ -15,6 +15,11 @@ describe("tenantSettingsSaveErrorMessage", () => {
     })).toContain("compatibiliteitshotfix");
   });
 
+  it("explains how to recover from a bounded database timeout", () => {
+    expect(tenantSettingsSaveErrorMessage({ code: "57014" }))
+      .toContain("duurde langer dan toegestaan");
+  });
+
   it("does not expose raw database details for unknown failures", () => {
     const message = tenantSettingsSaveErrorMessage({
       code: "XX000",

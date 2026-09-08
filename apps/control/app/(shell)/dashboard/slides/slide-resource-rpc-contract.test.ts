@@ -10,9 +10,14 @@ const variantMigrationUrl = new URL(
   "../../../../../../supabase/migrations/20260907192942_s156_slide_layout_completion.sql",
   import.meta.url
 );
+const matchRowMigrationUrl = new URL(
+  "../../../../../../supabase/migrations/20260908134500_s158_match_row_layout.sql",
+  import.meta.url
+);
 
 let migration = "";
 let variantMigration = "";
+let matchRowMigration = "";
 let resourceAction = "";
 
 function publicFunction(name: string) {
@@ -31,9 +36,10 @@ function publicFunction(name: string) {
 
 describe("slide-resource RPC-contract", () => {
   beforeAll(async () => {
-    [migration, variantMigration, resourceAction] = await Promise.all([
+    [migration, variantMigration, matchRowMigration, resourceAction] = await Promise.all([
       readFile(migrationUrl, "utf8"),
       readFile(variantMigrationUrl, "utf8"),
+      readFile(matchRowMigrationUrl, "utf8"),
       readFile(new URL("./slide-resource-actions.ts", import.meta.url), "utf8")
     ]);
   });
@@ -121,5 +127,20 @@ describe("slide-resource RPC-contract", () => {
     expect(variantMigration).toContain("'fanOut', true");
     expect(variantMigration).toContain("'variantCount'");
     expect(variantMigration).toContain("to authenticated;");
+  });
+
+  it("voegt pool-vandaag atomair toe zonder het V4-compatibiliteitspad te muteren", () => {
+    expect(matchRowMigration).toContain(
+      "create function public.create_sportlink_slide_batch_v5("
+    );
+    expect(matchRowMigration).toContain("security definer");
+    expect(matchRowMigration).toContain("set search_path = ''");
+    expect(matchRowMigration).toContain("sportlink.pool_schedule_today");
+    expect(matchRowMigration).toContain("sportlink.pool_results_today");
+    expect(matchRowMigration).toContain("public.create_sportlink_slide_batch_v4(");
+    expect(matchRowMigration).toContain("existing_request_hash is distinct from request_hash");
+    expect(matchRowMigration).toContain("private.sportlink_team_contexts_are_valid_v2(");
+    expect(matchRowMigration).toContain("private.sportlink_display_config_is_valid_v2(display_config)");
+    expect(matchRowMigration).toContain("grant execute on function public.create_sportlink_slide_batch_v5(");
   });
 });

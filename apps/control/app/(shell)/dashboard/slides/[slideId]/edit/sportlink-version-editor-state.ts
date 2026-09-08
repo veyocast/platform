@@ -1,6 +1,7 @@
 import {
   sportlinkArrivalConfigSchema,
   sportlinkClubAggregateBlueprintKeys,
+  sportlinkDisplayConfigSchema,
   sportlinkSlideBlueprints,
   sportlinkSlideTeamContextsMax,
   type SportlinkMatchLocation,
@@ -91,13 +92,20 @@ export function prepareSportlinkVersionEditorDraft(
   const legacyNormalizedDraft = normalizeLegacyClubAggregateDraft(
     normalizeLegacyArrivalDraft(draft)
   );
+  const normalizedDisplay = sportlinkDisplayConfigSchema.parse(
+    legacyNormalizedDraft.display
+  );
+  const displayNeedsNormalization = JSON.stringify(normalizedDisplay) !==
+    JSON.stringify(legacyNormalizedDraft.display);
   const normalizedDraft = legacyNormalizedDraft.orientation === "portrait" &&
-    legacyNormalizedDraft.display.columns === "two"
+    normalizedDisplay.columns === "two"
     ? {
         ...legacyNormalizedDraft,
-        display: { ...legacyNormalizedDraft.display, columns: "one" as const }
+        display: { ...normalizedDisplay, columns: "one" as const }
       }
-    : legacyNormalizedDraft;
+    : displayNeedsNormalization
+      ? { ...legacyNormalizedDraft, display: normalizedDisplay }
+      : legacyNormalizedDraft;
   const ref = normalizedDraft.themeSelection.ref;
   const themeNeedsNormalization = ref.catalog !== "v2" ||
     ref.id !== "fieldflow" || ref.version !== fieldflowThemeVersion;

@@ -529,7 +529,7 @@ test("settings and theme routes expose real defaults with safe permission state"
   await expect(page.getByLabel("Achtergrond thuislogo als kleurwaarde")).toBeVisible();
   await expect(page.getByLabel("Slideachtergrond als kleurwaarde")).toBeVisible();
   await expect(page.getByLabel("Slideachtergrond kiezen")).toBeVisible();
-  const accentValue = page.getByLabel("Basisaccent als kleurwaarde");
+  const accentValue = page.getByLabel("Hoofdkleur als kleurwaarde");
   const pageErrors: Error[] = [];
   page.on("pageerror", (error) => pageErrors.push(error));
   await accentValue.evaluate((input) => input.removeAttribute("disabled"));

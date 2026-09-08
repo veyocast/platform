@@ -10,6 +10,10 @@ import {
   formatMatchCentreClock,
   formatMatchCentrePageCounter
 } from "../src/dynamic-template-view";
+import {
+  editorialArenaDarkTokens,
+  editorialArenaLightTokens
+} from "../src/editorial-arena-theme";
 
 const css = readFileSync(
   fileURLToPath(new URL("../src/editorial-arena-renderer.module.css", import.meta.url)),
@@ -57,6 +61,21 @@ function programPayload(
   slideType: "sport_program" | "sport_team" = "sport_program",
   options: {
     columns?: "one" | "two";
+    displayConfig?: Partial<Record<
+      | "showAwayDressingRoom"
+      | "showAwayLogo"
+      | "showDate"
+      | "showDressingRoom"
+      | "showField"
+      | "showHomeAway"
+      | "showHomeDressingRoom"
+      | "showHomeLogo"
+      | "showLogo"
+      | "showReferee"
+      | "showSportpark"
+      | "showTime",
+      boolean
+    >>;
     orientation?: "landscape" | "portrait";
   } = {}
 ): PlayerDynamicTemplatePayload {
@@ -70,7 +89,8 @@ function programPayload(
           showField: true,
           showHomeAway: true,
           showLogo: true,
-          showReferee: false
+          showReferee: false,
+          ...options.displayConfig
         },
         items: Array.from({ length: itemCount }, (_, index) => ({
           awayTeam: `Uit ${index + 1}`,
@@ -122,7 +142,14 @@ describe("Match Centre renderer", () => {
 
     expect(view?.sportDisplay).toMatchObject({
       columns: "one",
-      showLogo: true
+      showAwayDressingRoom: false,
+      showAwayLogo: true,
+      showDate: true,
+      showHomeDressingRoom: false,
+      showHomeLogo: true,
+      showLogo: true,
+      showSportpark: true,
+      showTime: true
     });
     expect(view?.pages).toHaveLength(17);
     expect(items).toHaveLength(100);
@@ -192,18 +219,146 @@ describe("Match Centre renderer", () => {
       : []).toHaveLength(7);
   });
 
-  it("legt wedstrijdregels vast als twee regels met een afzonderlijke score rechts", () => {
+  it("projecteert alle optionele wedstrijdvelden onafhankelijk en met legacy fallbacks", () => {
+    const keys = [
+      "showAwayDressingRoom", "showAwayLogo", "showDate",
+      "showDressingRoom", "showField", "showHomeAway",
+      "showHomeDressingRoom", "showHomeLogo", "showLogo",
+      "showReferee", "showSportpark", "showTime"
+    ] as const;
+    const allOff = Object.fromEntries(keys.map((key) => [key, false]));
+    const allOn = Object.fromEntries(keys.map((key) => [key, true]));
+    expect(createDynamicTemplateView(programPayload(
+      1,
+      "sport_program",
+      { displayConfig: allOff }
+    ))?.sportDisplay).toMatchObject(allOff);
+    expect(createDynamicTemplateView(programPayload(
+      1,
+      "sport_program",
+      { displayConfig: allOn }
+    ))?.sportDisplay).toMatchObject(allOn);
+    const legacy = createDynamicTemplateView(programPayload(
+      1,
+      "sport_program",
+      { displayConfig: { showDressingRoom: true, showLogo: false } }
+    ));
+    expect(legacy?.sportDisplay).toMatchObject({
+      showAwayDressingRoom: true,
+      showAwayLogo: false,
+      showHomeDressingRoom: true,
+      showHomeLogo: false
+    });
+  });
+
+  it("ordent programma- en uitslagvelden stabiel zonder thuis-uitbadges", () => {
+    const program = renderer.slice(
+      renderer.indexOf("function ProgramRow"),
+      renderer.indexOf("function ResultRow")
+    );
+    const result = renderer.slice(
+      renderer.indexOf("function ResultRow"),
+      renderer.indexOf("function MatchSecondaryLine")
+    );
+    const secondary = renderer.slice(
+      renderer.indexOf("function MatchSecondaryLine"),
+      renderer.indexOf("function programPrimaryColumns")
+    );
+    const expectOrder = (source: string, fields: string[]) => {
+      let previous = -1;
+      for (const field of fields) {
+        const current = source.indexOf(`data-field="${field}"`);
+        expect(current).toBeGreaterThan(previous);
+        previous = current;
+      }
+    };
+    expectOrder(program, [
+      "date", "time", "home-logo", "home-team", "home-room", "versus",
+      "away-logo", "away-team", "away-room"
+    ]);
+    expectOrder(result, [
+      "date", "time", "home-logo", "home-team", "score", "away-logo",
+      "away-team"
+    ]);
+    expectOrder(secondary, ["referee", "field", "sportpark"]);
+    expect(program).not.toContain("<em>Thuis</em>");
+    expect(program).not.toContain("<em>Uit</em>");
+    expect(renderer).toContain('"Uitslag nog niet bekend"');
+    expect(renderer).toContain("{scoreKnown ? <>");
     expect(css).toMatch(
       /\.arenaFixtureList \{[^}]*grid-auto-rows: var\(--arena-row-height\);[^}]*align-content: start;/u
     );
     expect(css).toMatch(
-      /\.arenaProgramRow,[\s\S]*?grid-template-rows: auto minmax\(0, 1fr\);[\s\S]*?height: var\(--arena-row-height\);/u
+      /\.arenaProgramRow \{[^}]*grid-template-rows: minmax\(0, 1fr\) auto;/u
     );
     expect(css).toMatch(
-      /\.arenaResultScore \{[^}]*justify-self: end;[^}]*font-variant-numeric: tabular-nums;/u
+      /\.arenaMatchSecondary \{[^}]*justify-content: flex-end;[^}]*font-size: \.52em;/u
     );
-    expect(renderer).toContain("<MatchInformationLine item={item} meta={meta} />");
-    expect(renderer).toContain("<FixtureTeams away={away} display={display} home={home} />");
-    expect(renderer).toContain("aria-label={`Uitslag ${item.homeScore ?? \"–\"} tegen ${item.awayScore ?? \"–\"}`}");
+    expect(css).toMatch(
+      /\.arenaResultScore \{[^}]*min-width: 112px;[^}]*justify-content: center;[^}]*font-variant-numeric: tabular-nums;/u
+    );
+  });
+
+  it("laat een onbekende uitslag leeg en accepteert alleen veilige gehele scores", () => {
+    const cases = [
+      { awayScore: null, expectedAway: null, expectedHome: null, homeScore: null },
+      { awayScore: "", expectedAway: null, expectedHome: null, homeScore: "" },
+      { awayScore: 2, expectedAway: 2, expectedHome: 0, homeScore: 0 },
+      { awayScore: 1000, expectedAway: null, expectedHome: null, homeScore: -1 }
+    ] as const;
+
+    for (const scoreCase of cases) {
+      const payload = programPayload(1);
+      const sport = payload.data.sport as Record<string, unknown>;
+      const items = Array.isArray(sport.items) ? sport.items : [];
+      sport.items = items.map((item) => ({
+        ...(item as Record<string, unknown>),
+        awayScore: scoreCase.awayScore,
+        homeScore: scoreCase.homeScore
+      }));
+      const view = createDynamicTemplateView(payload);
+      const firstPage = view?.pages[0];
+      const firstItem = firstPage?.kind === "sport-list"
+        ? firstPage.items[0]
+        : null;
+
+      expect(firstItem?.homeScore).toBe(scoreCase.expectedHome);
+      expect(firstItem?.awayScore).toBe(scoreCase.expectedAway);
+    }
+  });
+
+  it("houdt aangepaste paletkleuren semantisch gekoppeld aan de rijen", () => {
+    const payload = programPayload(1);
+    payload.data.editorial = {
+      newsVariant: "hero_split",
+      pricePhotoMode: "show",
+      schemaVersion: 2,
+      theme: {
+        dark: editorialArenaDarkTokens,
+        light: {
+          ...editorialArenaLightTokens,
+          panel: "#223344",
+          row: "#123456",
+          text: "#FEDCBA",
+          textMuted: "#ABCDEF"
+        },
+        mode: "light"
+      }
+    };
+    const view = createDynamicTemplateView(payload);
+    expect(view?.themeTokens).toMatchObject({
+      panel: "#223344",
+      row: "#123456",
+      text: "#FEDCBA",
+      textMuted: "#ABCDEF"
+    });
+    expect(renderer).toContain(
+      "...editorialThemeCssVariables(view.themeTokens)"
+    );
+    expect(css).toContain("background: var(--vc-row);");
+    expect(css).toContain("color: var(--vc-text-muted);");
+    expect(css).toContain(
+      "background: var(--vc-home-logo-background, var(--vc-panel));"
+    );
   });
 });

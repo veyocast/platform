@@ -7,7 +7,9 @@ export const sportlinkSlideBlueprintKeys = [
   "sportlink.club_schedule_next_7_days",
   "sportlink.club_results_today",
   "sportlink.club_results_previous_7_days",
+  "sportlink.pool_schedule_today",
   "sportlink.pool_schedule_next_7_days",
+  "sportlink.pool_results_today",
   "sportlink.pool_results_previous_7_days",
   "sportlink.pool_standings",
   "sportlink.visitor_arrivals",
@@ -29,6 +31,14 @@ export const sportlinkClubAggregateBlueprintKeys = [
   "sportlink.club_schedule_next_7_days",
   "sportlink.club_results_today",
   "sportlink.club_results_previous_7_days"
+] as const satisfies readonly SportlinkSlideBlueprintKey[];
+
+export const sportlinkPoolBlueprintKeys = [
+  "sportlink.pool_schedule_today",
+  "sportlink.pool_schedule_next_7_days",
+  "sportlink.pool_results_today",
+  "sportlink.pool_results_previous_7_days",
+  "sportlink.pool_standings"
 ] as const satisfies readonly SportlinkSlideBlueprintKey[];
 
 export const sportlinkArrivalMotionPresets = [
@@ -140,26 +150,58 @@ export const sportlinkArrivalConfigSchema = z.object({
   welcomeText: z.string().trim().min(1).max(80).default("Welkom bij {{club}}")
 }).strict();
 
+export const sportlinkDisplayConfigDefaults = {
+  columns: "one",
+  showAwayDressingRoom: false,
+  showAwayLogo: true,
+  showDate: true,
+  showDressingRoom: false,
+  showField: true,
+  showHomeAway: true,
+  showHomeDressingRoom: false,
+  showHomeLogo: true,
+  showLogo: true,
+  showReferee: false,
+  showSportpark: true,
+  showTime: true
+} as const;
+
 export const sportlinkDisplayConfigSchema = z.object({
   columns: z.enum(["one", "two"]).default("one"),
   showDressingRoom: z.boolean().default(false),
   showField: z.boolean().default(true),
   showHomeAway: z.boolean().default(true),
   showLogo: z.boolean().default(true),
-  showReferee: z.boolean().default(false)
-}).strict();
+  showReferee: z.boolean().default(false),
+  showAwayDressingRoom: z.boolean().optional(),
+  showAwayLogo: z.boolean().optional(),
+  showDate: z.boolean().default(true),
+  showHomeDressingRoom: z.boolean().optional(),
+  showHomeLogo: z.boolean().optional(),
+  showSportpark: z.boolean().default(true),
+  showTime: z.boolean().default(true)
+}).strict().transform((display) => {
+  const showAwayDressingRoom = display.showAwayDressingRoom ??
+    display.showDressingRoom;
+  const showAwayLogo = display.showAwayLogo ?? display.showLogo;
+  const showHomeDressingRoom = display.showHomeDressingRoom ??
+    display.showDressingRoom;
+  const showHomeLogo = display.showHomeLogo ?? display.showLogo;
+  return {
+    ...display,
+    showAwayDressingRoom,
+    showAwayLogo,
+    showDressingRoom: showHomeDressingRoom || showAwayDressingRoom,
+    showHomeDressingRoom,
+    showHomeLogo,
+    showLogo: showHomeLogo || showAwayLogo
+  };
+});
 
 export const sportlinkSlideDraftSchema = z.object({
   blueprintKey: z.enum(sportlinkSlideBlueprintKeys),
   context: sportlinkSlideContextSchema,
-  display: sportlinkDisplayConfigSchema.default({
-    columns: "one",
-    showDressingRoom: false,
-    showField: true,
-    showHomeAway: true,
-    showLogo: true,
-    showReferee: false
-  }),
+  display: sportlinkDisplayConfigSchema.default(sportlinkDisplayConfigDefaults),
   name: z.string().trim().min(2).max(120),
   orientation: z.enum(["landscape", "portrait"]),
   templateVersionId: z.string().uuid(),
@@ -188,6 +230,20 @@ export const sportlinkSlideDraftSchema = z.object({
       code: "custom",
       message: "Een clubbrede teamfilter is alleen geldig voor clubprogramma en clubuitslagen.",
       path: ["teamSelection"]
+    });
+  }
+  const poolBlueprint = sportlinkPoolBlueprintKeys.includes(
+    draft.blueprintKey as (typeof sportlinkPoolBlueprintKeys)[number]
+  );
+  if (
+    poolBlueprint &&
+    draft.context.competitionSelectionMode === "pinned" &&
+    !draft.context.poolId
+  ) {
+    refinement.addIssue({
+      code: "custom",
+      message: "Een vastgezette pouleslide vereist een specifieke poule.",
+      path: ["context", "poolId"]
     });
   }
   const primary = draft.teamContexts?.[0] ??
@@ -278,7 +334,9 @@ export const sportlinkSlideBlueprints = {
   "sportlink.club_schedule_next_7_days": { datasetGroups: ["matches"], key: "sportlink.club_schedule_next_7_days", label: "Clubprogramma komende 7 dagen", scope: "club", slideType: "sport_program", window: "next_7_days" },
   "sportlink.club_results_today": { datasetGroups: ["matches"], key: "sportlink.club_results_today", label: "Clubuitslagen vandaag", scope: "club", slideType: "sport_results", window: "today" },
   "sportlink.club_results_previous_7_days": { datasetGroups: ["matches"], key: "sportlink.club_results_previous_7_days", label: "Clubuitslagen afgelopen 7 dagen", scope: "club", slideType: "sport_results", window: "previous_7_days" },
+  "sportlink.pool_schedule_today": { datasetGroups: ["matches", "competitions"], key: "sportlink.pool_schedule_today", label: "Pouleprogramma vandaag", scope: "pool", slideType: "sport_program", window: "today" },
   "sportlink.pool_schedule_next_7_days": { datasetGroups: ["matches", "competitions"], key: "sportlink.pool_schedule_next_7_days", label: "Pouleprogramma komende 7 dagen", scope: "pool", slideType: "sport_program", window: "next_7_days" },
+  "sportlink.pool_results_today": { datasetGroups: ["matches", "competitions"], key: "sportlink.pool_results_today", label: "Pouleuitslagen vandaag", scope: "pool", slideType: "sport_results", window: "today" },
   "sportlink.pool_results_previous_7_days": { datasetGroups: ["matches", "competitions"], key: "sportlink.pool_results_previous_7_days", label: "Pouleuitslagen afgelopen 7 dagen", scope: "pool", slideType: "sport_results", window: "previous_7_days" },
   "sportlink.pool_standings": { datasetGroups: ["competitions"], key: "sportlink.pool_standings", label: "Poulestand", scope: "pool", slideType: "sport_standing", window: "ranking" },
   "sportlink.visitor_arrivals": { datasetGroups: ["matches", "match_details"], key: "sportlink.visitor_arrivals", label: "Aankomst bezoekende teams", scope: "club", slideType: "sport_visitor_arrivals", window: "live_window" },

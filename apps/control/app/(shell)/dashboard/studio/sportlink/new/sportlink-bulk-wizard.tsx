@@ -17,6 +17,7 @@ import {
 
 import {
   sportlinkArrivalConfigSchema,
+  sportlinkDisplayConfigSchema,
   sportlinkSlideBlueprints,
   sportlinkSlideBatchMaxDrafts,
   sportlinkSlideTeamContextsMax,
@@ -128,14 +129,9 @@ export function SportlinkBulkWizard({
   const [themeSelection, setThemeSelection] = useState(() =>
     withThemeId(defaultThemeSelection, "fieldflow")
   );
-  const [display, setDisplay] = useState<SportlinkDisplayConfig>({
-    columns: "one",
-    showDressingRoom: false,
-    showField: true,
-    showHomeAway: true,
-    showLogo: true,
-    showReferee: false
-  });
+  const [display, setDisplay] = useState<SportlinkDisplayConfig>(() =>
+    sportlinkDisplayConfigSchema.parse({})
+  );
   const [arrivalConfig, setArrivalConfig] = useState<SportlinkArrivalConfig>(
     () => sportlinkArrivalConfigSchema.parse({})
   );
@@ -970,12 +966,19 @@ function ThemeDisplayStep({
   themeSelection: ThemeSelection;
 }) {
   const hasArrivals = drafts.some((draft) => isArrivalKey(draft.blueprintKey));
-  const hasFixtureInfo = drafts.some((draft) => [
-    "sport_program",
-    "sport_results",
-    "sport_visitor_arrivals",
-    "sport_referee_arrivals"
-  ].includes(sportlinkSlideBlueprints[draft.blueprintKey].slideType));
+  const hasProgram = drafts.some((draft) =>
+    sportlinkSlideBlueprints[draft.blueprintKey].slideType === "sport_program"
+  );
+  const hasResults = drafts.some((draft) =>
+    sportlinkSlideBlueprints[draft.blueprintKey].slideType === "sport_results"
+  );
+  const hasMatchRows = hasProgram || hasResults;
+  function updateDisplay(patch: Partial<SportlinkDisplayConfig>) {
+    setDisplay((current) => sportlinkDisplayConfigSchema.parse({
+      ...current,
+      ...patch
+    }));
+  }
   return (
     <>
       <StepHeading
@@ -1011,26 +1014,45 @@ function ThemeDisplayStep({
       </section>
       <section className={styles.displaySection}>
         <h3>Kolommen en wedstrijdinformatie</h3>
-        <div className={styles.inlineOptions}>
-          <label>
-            <input
-              checked={orientation === "landscape" && display.columns === "two"}
-              disabled={orientation === "portrait"}
-              onChange={(event) => setDisplay((current) => ({
-                ...current,
-                columns: event.target.checked ? "two" : "one"
-              }))}
-              type="checkbox"
-            />
-            Twee kolommen (alleen liggend)
-          </label>
-          <label><input checked={display.showLogo} onChange={(event) => setDisplay((current) => ({ ...current, showLogo: event.target.checked }))} type="checkbox" /> Logo tonen</label>
-          {hasFixtureInfo ? <>
-            <label><input checked={display.showHomeAway} onChange={(event) => setDisplay((current) => ({ ...current, showHomeAway: event.target.checked }))} type="checkbox" /> Thuis / uit tonen</label>
-            <label><input checked={display.showField} onChange={(event) => setDisplay((current) => ({ ...current, showField: event.target.checked }))} type="checkbox" /> Veld tonen</label>
-            <label><input checked={display.showDressingRoom} onChange={(event) => setDisplay((current) => ({ ...current, showDressingRoom: event.target.checked }))} type="checkbox" /> Kleedkamer tonen</label>
-            <label><input checked={display.showReferee} onChange={(event) => setDisplay((current) => ({ ...current, showReferee: event.target.checked }))} type="checkbox" /> Scheidsrechter tonen</label>
-          </> : <p>Voor een poulestand zijn alleen kolommen relevant.</p>}
+        <div className={styles.displayGroups}>
+          <fieldset className={styles.displayGroup}>
+            <legend>Indeling</legend>
+            <label>
+              <input
+                checked={orientation === "landscape" && display.columns === "two"}
+                disabled={orientation === "portrait"}
+                onChange={(event) => updateDisplay({
+                  columns: event.target.checked ? "two" : "one"
+                })}
+                type="checkbox"
+              />
+              Twee kolommen (alleen liggend)
+            </label>
+          </fieldset>
+          {hasMatchRows ? (
+            <fieldset className={styles.displayGroup}>
+              <legend>Eerste regel</legend>
+              <label><input checked={display.showDate} onChange={(event) => updateDisplay({ showDate: event.target.checked })} type="checkbox" /> Datum tonen</label>
+              <label><input checked={display.showTime} onChange={(event) => updateDisplay({ showTime: event.target.checked })} type="checkbox" /> Tijd tonen</label>
+              <label><input checked={display.showHomeLogo} onChange={(event) => updateDisplay({ showHomeLogo: event.target.checked })} type="checkbox" /> Logo thuisclub tonen</label>
+              <label><input checked={display.showAwayLogo} onChange={(event) => updateDisplay({ showAwayLogo: event.target.checked })} type="checkbox" /> Logo uitclub tonen</label>
+              {hasProgram ? <>
+                <label><input checked={display.showHomeDressingRoom} onChange={(event) => updateDisplay({ showHomeDressingRoom: event.target.checked })} type="checkbox" /> Kleedkamer thuis tonen</label>
+                <label><input checked={display.showAwayDressingRoom} onChange={(event) => updateDisplay({ showAwayDressingRoom: event.target.checked })} type="checkbox" /> Kleedkamer uit tonen</label>
+              </> : null}
+            </fieldset>
+          ) : null}
+          {hasProgram ? (
+            <fieldset className={styles.displayGroup}>
+              <legend>Tweede regel</legend>
+              <label><input checked={display.showReferee} onChange={(event) => updateDisplay({ showReferee: event.target.checked })} type="checkbox" /> Scheidsrechter tonen</label>
+              <label><input checked={display.showField} onChange={(event) => updateDisplay({ showField: event.target.checked })} type="checkbox" /> Veld tonen</label>
+              <label><input checked={display.showSportpark} onChange={(event) => updateDisplay({ showSportpark: event.target.checked })} type="checkbox" /> Sportpark tonen</label>
+            </fieldset>
+          ) : null}
+          {!hasMatchRows ? (
+            <p>Voor een poulestand zijn alleen kolommen relevant.</p>
+          ) : null}
         </div>
       </section>
       {hasArrivals ? (
@@ -1095,6 +1117,9 @@ function ReviewStep({ creationResult, drafts, teamName, themeSelection }: {
       ) : null}
       <div className={styles.reviewList}>
         {drafts.map((draft) => {
+          const slideType = sportlinkSlideBlueprints[draft.blueprintKey].slideType;
+          const matchRows = slideType === "sport_program" ||
+            slideType === "sport_results";
           const clubSelection = draft.teamSelection;
           const contexts = clubSelection?.teamContexts ??
             draft.teamContexts ??
@@ -1177,14 +1202,22 @@ function ReviewStep({ creationResult, drafts, teamName, themeSelection }: {
                 ) : null}
                 <ul className={styles.reviewOptions} aria-label="Weergavekeuzes">
                   <li>{draft.display.columns === "one" ? "1 kolom" : "2 kolommen"}</li>
-                  <li>Logo {draft.display.showLogo ? "aan" : "uit"}</li>
-                  <li>Thuis / uit {draft.display.showHomeAway ? "aan" : "uit"}</li>
+                  {matchRows ? <>
+                    <li>Datum {draft.display.showDate ? "aan" : "uit"}</li>
+                    <li>Tijd {draft.display.showTime ? "aan" : "uit"}</li>
+                    <li>Thuislogo {draft.display.showHomeLogo ? "aan" : "uit"}</li>
+                    <li>Uitlogo {draft.display.showAwayLogo ? "aan" : "uit"}</li>
+                  </> : null}
                   {clubwide ? (
                     <li>{matchLocationLabel(clubSelection?.matchLocation)}</li>
                   ) : null}
-                  <li>Veld {draft.display.showField ? "aan" : "uit"}</li>
-                  <li>Kleedkamer {draft.display.showDressingRoom ? "aan" : "uit"}</li>
-                  <li>Scheidsrechter {draft.display.showReferee ? "aan" : "uit"}</li>
+                  {slideType === "sport_program" ? <>
+                    <li>Kleedkamer thuis {draft.display.showHomeDressingRoom ? "aan" : "uit"}</li>
+                    <li>Kleedkamer uit {draft.display.showAwayDressingRoom ? "aan" : "uit"}</li>
+                    <li>Scheidsrechter {draft.display.showReferee ? "aan" : "uit"}</li>
+                    <li>Veld {draft.display.showField ? "aan" : "uit"}</li>
+                    <li>Sportpark {draft.display.showSportpark ? "aan" : "uit"}</li>
+                  </> : null}
                 </ul>
               </div>
               <StatusPill
@@ -1387,7 +1420,9 @@ function shortBlueprintLabel(key: SportlinkSlideBlueprintKey) {
     "sportlink.club_schedule_next_7_days": "Programma komende 7 dagen",
     "sportlink.club_results_today": "Uitslagen vandaag",
     "sportlink.club_results_previous_7_days": "Uitslagen afgelopen 7 dagen",
+    "sportlink.pool_schedule_today": "Programma poule vandaag",
     "sportlink.pool_schedule_next_7_days": "Programma poule",
+    "sportlink.pool_results_today": "Uitslagen poule vandaag",
     "sportlink.pool_results_previous_7_days": "Uitslagen poule",
     "sportlink.pool_standings": "Poulestand",
     "sportlink.visitor_arrivals": "Bezoekers welkom",

@@ -1504,16 +1504,27 @@ test("LG Legacy ankert fullscreen nieuws-QR zonder zichtbare URL rechtsonder", a
       await expect(layout).not.toContainText("example.test/nieuws/legacy");
       const geometry = await layout.evaluate((element) => {
         const layoutBox = element.getBoundingClientRect();
-        const qrBox = element.querySelector<HTMLElement>(
+        const qr = element.querySelector<HTMLElement>(
           ":scope > .editorial-news-qr"
+        )!;
+        const qrBox = qr.getBoundingClientRect();
+        const qrImageBox = qr.querySelector("img")!.getBoundingClientRect();
+        const sourceBox = element.querySelector<HTMLElement>(
+          ":scope > .editorial-news-art > .editorial-news-source"
         )!.getBoundingClientRect();
         return {
           bottom: layoutBox.bottom - qrBox.bottom,
-          right: layoutBox.right - qrBox.right
+          imageRight: layoutBox.right - qrImageBox.right,
+          right: layoutBox.right - qrBox.right,
+          sourceRight: layoutBox.right - sourceBox.right
         };
       });
       expect(geometry.bottom).toBeCloseTo(orientation === "landscape" ? 30 : 46, 0);
       expect(geometry.right).toBeCloseTo(orientation === "landscape" ? 92 : 106, 0);
+      if (orientation === "landscape") {
+        expect(geometry.imageRight).toBeCloseTo(92, 0);
+        expect(geometry.sourceRight).toBeCloseTo(92, 0);
+      }
       await context.close();
     });
   }
@@ -1671,24 +1682,50 @@ test("Static LG houdt wedstrijdregels op twee vaste regels en forceert portrait 
         orientation === "landscape" ? "two" : "one"
       );
       await expect(list.locator(".legacy-fixture-row")).toHaveCount(7);
-      await expect(firstRow.locator(":scope > .legacy-match-information")).toHaveCount(1);
-      await expect(firstRow.locator(":scope > .legacy-match-main")).toHaveCount(1);
-      await expect(firstRow.locator(".legacy-match-information"))
-        .toContainText("12-09-2026|08:30|Sportpark FieldFlow · Veld 1");
-      await expect(firstRow.locator(".legacy-match-fixture > span").first())
-        .toHaveText("Thuis · Thuis 1");
-      await expect(firstRow.locator(".legacy-match-separator")).toHaveText("vs");
-      await expect(firstRow.locator(".legacy-match-fixture > span").last())
-        .toHaveText("Uit · Uit 1");
+      const primary = firstRow.locator(":scope > .legacy-program-primary");
+      const secondary = firstRow.locator(":scope > .legacy-program-secondary");
+      await expect(primary).toHaveCount(1);
+      await expect(secondary).toHaveCount(1);
+      await expect(primary.locator(".legacy-match-date")).toHaveText("12-09-2026");
+      await expect(primary.locator(".legacy-match-time")).toHaveText("08:30");
+      await expect(primary.locator(".legacy-match-home-team")).toHaveText("Thuis 1");
+      await expect(primary.locator(".legacy-match-separator")).toHaveText("vs.");
+      await expect(primary.locator(".legacy-match-away-team")).toHaveText("Uit 1");
+      await expect(primary.locator(".legacy-match-logo")).toHaveCount(2);
+      await expect(secondary.locator(".legacy-match-field")).toHaveText("Veld: 1");
+      await expect(secondary.locator(".legacy-match-sportpark"))
+        .toHaveText("Sportpark: FieldFlow");
 
       const geometry = await list.evaluate((element) => {
         const rows = Array.from(element.querySelectorAll<HTMLElement>(
           ".legacy-fixture-row"
         ));
+        const firstPrimary = rows[0]?.querySelector<HTMLElement>(
+          ":scope > .legacy-program-primary"
+        );
+        const firstSecondary = rows[0]?.querySelector<HTMLElement>(
+          ":scope > .legacy-program-secondary"
+        );
+        const primaryBox = firstPrimary?.getBoundingClientRect();
+        const secondaryBox = firstSecondary?.getBoundingClientRect();
+        const primarySize = firstPrimary
+          ? Number.parseFloat(getComputedStyle(firstPrimary).fontSize)
+          : 0;
+        const secondaryStyle = firstSecondary
+          ? getComputedStyle(firstSecondary)
+          : null;
         return {
           fifthTop: rows[4]?.getBoundingClientRect().top ?? 0,
           gridAutoRows: getComputedStyle(element).gridAutoRows,
           heights: rows.map((row) => row.getBoundingClientRect().height),
+          primaryAboveSecondary: Boolean(
+            primaryBox && secondaryBox && primaryBox.bottom <= secondaryBox.top + 1
+          ),
+          secondaryFontRatio: secondaryStyle && primarySize
+            ? Number.parseFloat(secondaryStyle.fontSize) / primarySize
+            : 0,
+          secondaryJustification: secondaryStyle?.justifyContent,
+          secondaryTextAlign: secondaryStyle?.textAlign,
           secondTop: rows[1]?.getBoundingClientRect().top ?? 0,
           firstTop: rows[0]?.getBoundingClientRect().top ?? 0
         };
@@ -1697,6 +1734,10 @@ test("Static LG houdt wedstrijdregels op twee vaste regels en forceert portrait 
       expect(geometry.gridAutoRows).toBe(`${expectedHeight}px`);
       expect(geometry.heights.every((height) => Math.abs(height - expectedHeight) < 0.1))
         .toBe(true);
+      expect(geometry.primaryAboveSecondary).toBe(true);
+      expect(geometry.secondaryFontRatio).toBeCloseTo(.52, 2);
+      expect(geometry.secondaryJustification).toBe("flex-end");
+      expect(geometry.secondaryTextAlign).toBe("right");
       if (orientation === "landscape") {
         expect(geometry.secondTop - geometry.firstTop).toBeGreaterThan(expectedHeight);
         expect(Math.abs(geometry.fifthTop - geometry.firstTop)).toBeLessThan(0.1);
@@ -1743,8 +1784,8 @@ test("Static LG ordent uitslagen in twee landscape-kolommen gelijk aan de modern
   const rows = list.locator(".legacy-result-row");
   await expect(list).toHaveAttribute("data-columns", "two");
   await expect(rows).toHaveCount(12);
-  await expect(rows.nth(0).locator(".legacy-match-fixture")).toContainText("Thuis 1");
-  await expect(rows.nth(6).locator(".legacy-match-fixture")).toContainText("Thuis 7");
+  await expect(rows.nth(0).locator(".legacy-match-home-team")).toHaveText("Thuis 1");
+  await expect(rows.nth(6).locator(".legacy-match-home-team")).toHaveText("Thuis 7");
 
   const geometry = await list.evaluate((element) => {
     const rows = Array.from(element.querySelectorAll<HTMLElement>(
@@ -1754,8 +1795,11 @@ test("Static LG ordent uitslagen in twee landscape-kolommen gelijk aan de modern
     const scores = rows.map((row) => row.querySelector<HTMLElement>(
       ".legacy-result-score"
     )!.getBoundingClientRect());
-    const mains = rows.map((row) => row.querySelector<HTMLElement>(
-      ".legacy-match-main"
+    const homeTeams = rows.map((row) => row.querySelector<HTMLElement>(
+      ".legacy-match-home-team"
+    )!.getBoundingClientRect());
+    const awayTeams = rows.map((row) => row.querySelector<HTMLElement>(
+      ".legacy-match-away-team"
     )!.getBoundingClientRect());
     return {
       firstLeft: boxes[0]!.left,
@@ -1764,7 +1808,10 @@ test("Static LG ordent uitslagen in twee landscape-kolommen gelijk aan de modern
       secondTop: boxes[1]!.top,
       seventhLeft: boxes[6]!.left,
       seventhTop: boxes[6]!.top,
-      scoreRightGaps: scores.map((score, index) => mains[index]!.right - score.right),
+      scoresBetweenTeams: scores.map((score, index) =>
+        score.left >= homeTeams[index]!.right - 1 &&
+        score.right <= awayTeams[index]!.left + 1
+      ),
       scrollWidth: element.scrollWidth,
       width: element.clientWidth
     };
@@ -1773,12 +1820,12 @@ test("Static LG ordent uitslagen in twee landscape-kolommen gelijk aan de modern
   expect(geometry.secondTop - geometry.firstTop).toBeGreaterThan(115);
   expect(geometry.seventhTop).toBeCloseTo(geometry.firstTop, 1);
   expect(geometry.seventhLeft).toBeGreaterThan(geometry.firstLeft);
-  expect(geometry.scoreRightGaps.every((gap) => Math.abs(gap) < 0.1)).toBe(true);
+  expect(geometry.scoresBetweenTeams.every(Boolean)).toBe(true);
   expect(geometry.scrollWidth).toBe(geometry.width);
   await context.close();
 });
 
-test("Static LG houdt één uitslag compact op twee regels met de score uiterst rechts", async ({
+test("Static LG houdt één uitslag compact op één regel met de score tussen de teams", async ({
   browser
 }) => {
   for (const orientation of ["landscape", "portrait"] as const) {
@@ -1814,66 +1861,57 @@ test("Static LG houdt één uitslag compact op twee regels met de score uiterst 
       await page.goto(`${playerURL}/lg/legacy`);
       const list = page.locator(".legacy-result-list");
       const row = list.locator(".legacy-result-row");
-      const information = row.locator(":scope > .legacy-match-information");
-      const main = row.locator(":scope > .legacy-match-main");
-      const fixture = main.locator(".legacy-match-fixture");
-      const score = main.locator(".legacy-result-score");
+      const primary = row.locator(":scope > .legacy-result-primary");
+      const score = primary.locator(".legacy-result-score");
 
       await expect(list).toHaveAttribute("data-columns", "one");
       await expect(row).toHaveCount(1);
-      await expect(information).toHaveCount(1);
-      await expect(main).toHaveCount(1);
-      await expect(information)
-        .toContainText("12-09-2026|08:30|Sportpark FieldFlow · Veld 1");
-      await expect(fixture.locator(":scope > span").first()).toHaveText("Thuis · Thuis 1");
-      await expect(fixture.locator(".legacy-match-separator")).toHaveText("vs");
-      await expect(fixture.locator(":scope > span").last()).toHaveText("Uit · Uit 1");
-      await expect(score).toHaveText("2 – 1");
-      await expect(score).toHaveAttribute("aria-label", "Uitslag 2 – 1");
+      await expect(primary).toHaveCount(1);
+      await expect(primary.locator(".legacy-match-date")).toHaveText("12-09-2026");
+      await expect(primary.locator(".legacy-match-time")).toHaveText("08:30");
+      await expect(primary.locator(".legacy-match-home-team")).toHaveText("Thuis 1");
+      await expect(primary.locator(".legacy-match-away-team")).toHaveText("Uit 1");
+      await expect(primary.locator(".legacy-match-logo")).toHaveCount(2);
+      await expect(score).toHaveText(/2\s*–\s*1/u);
+      await expect(score).toHaveAttribute("aria-label", "Uitslag 2 tegen 1");
 
       const geometry = await list.evaluate((element) => {
         const rowElement = element.querySelector<HTMLElement>(".legacy-result-row")!;
-        const informationElement = rowElement.querySelector<HTMLElement>(
-          ":scope > .legacy-match-information"
+        const primaryElement = rowElement.querySelector<HTMLElement>(
+          ":scope > .legacy-result-primary"
         )!;
-        const mainElement = rowElement.querySelector<HTMLElement>(
-          ":scope > .legacy-match-main"
+        const homeElement = primaryElement.querySelector<HTMLElement>(
+          ".legacy-match-home-team"
         )!;
-        const fixtureElement = mainElement.querySelector<HTMLElement>(
-          ".legacy-match-fixture"
+        const awayElement = primaryElement.querySelector<HTMLElement>(
+          ".legacy-match-away-team"
         )!;
-        const scoreElement = mainElement.querySelector<HTMLElement>(
+        const scoreElement = primaryElement.querySelector<HTMLElement>(
           ".legacy-result-score"
         )!;
         const listBox = element.getBoundingClientRect();
         const rowBox = rowElement.getBoundingClientRect();
-        const informationBox = informationElement.getBoundingClientRect();
-        const mainBox = mainElement.getBoundingClientRect();
-        const fixtureBox = fixtureElement.getBoundingClientRect();
+        const primaryBox = primaryElement.getBoundingClientRect();
+        const homeBox = homeElement.getBoundingClientRect();
+        const awayBox = awayElement.getBoundingClientRect();
         const scoreBox = scoreElement.getBoundingClientRect();
-        const scoreStyle = getComputedStyle(scoreElement);
         return {
-          fixtureRight: fixtureBox.right,
           gridAutoRows: getComputedStyle(element).gridAutoRows,
-          informationCenter: informationBox.top + informationBox.height / 2,
           listHeight: listBox.height,
-          mainCenter: mainBox.top + mainBox.height / 2,
+          primaryCenter: primaryBox.top + primaryBox.height / 2,
+          rowCenter: rowBox.top + rowBox.height / 2,
           rowHeight: rowBox.height,
-          scoreJustifySelf: scoreStyle.justifySelf,
-          scoreLeft: scoreBox.left,
-          scoreRightGap: mainBox.right - scoreBox.right,
-          scoreTextAlign: scoreStyle.textAlign
+          scoreBetweenTeams:
+            scoreBox.left >= homeBox.right - 1 &&
+            scoreBox.right <= awayBox.left + 1
         };
       });
       const expectedHeight = orientation === "landscape" ? 115 : 314;
       expect(geometry.gridAutoRows).toBe(`${expectedHeight}px`);
       expect(geometry.rowHeight).toBeCloseTo(expectedHeight, 1);
       expect(geometry.rowHeight).toBeLessThan(geometry.listHeight / 2);
-      expect(geometry.mainCenter).toBeGreaterThan(geometry.informationCenter);
-      expect(geometry.scoreLeft).toBeGreaterThan(geometry.fixtureRight);
-      expect(Math.abs(geometry.scoreRightGap)).toBeLessThan(0.1);
-      expect(geometry.scoreJustifySelf).toBe("end");
-      expect(geometry.scoreTextAlign).toBe("right");
+      expect(geometry.primaryCenter).toBeCloseTo(geometry.rowCenter, 1);
+      expect(geometry.scoreBetweenTeams).toBe(true);
       await context.close();
     });
   }

@@ -207,7 +207,9 @@ describe("Sportlink bulk wizard", () => {
   it("behoudt team × type voor poulecontent", () => {
     const drafts = buildSportlinkSlideDrafts({
       blueprintKeys: [
+        "sportlink.pool_schedule_today",
         "sportlink.pool_schedule_next_7_days",
+        "sportlink.pool_results_today",
         "sportlink.pool_results_previous_7_days",
         "sportlink.pool_standings"
       ],
@@ -221,7 +223,7 @@ describe("Sportlink bulk wizard", () => {
       themeSelection
     });
 
-    expect(drafts).toHaveLength(12);
+    expect(drafts).toHaveLength(20);
     expect(drafts.every((draft) => draft.teamSelection === undefined)).toBe(true);
     drafts[0]!.context.poolId = "changed";
     expect(drafts[1]?.context.poolId).toBe("pool-1");

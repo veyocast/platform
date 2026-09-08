@@ -16,6 +16,8 @@ import {
   contrastRatio,
   editorialArenaDarkTokens,
   editorialArenaLightTokens,
+  editorialThemeContrastChecks,
+  editorialThemeHasValidContrast,
   parseEditorialArenaConfiguration,
   resolveEditorialThemeConfig
 } from "../src/editorial-arena-theme";
@@ -127,5 +129,21 @@ describe("Editorial Arena v2 theme", () => {
     expect(contrastRatio("#111315", "#F3F0E9")).toBeGreaterThan(4.5);
     expect(contrastRatio("rgba(17, 19, 21, 0.92)", "hsl(40, 29%, 93%)"))
       .toBeGreaterThan(4.5);
+  });
+
+  it("gebruikt voor preview en server dezelfde canvas-underlay bij transparante vlakken", () => {
+    const tokens = {
+      ...editorialArenaDarkTokens,
+      canvas: "#000000",
+      surface: "rgba(255, 255, 255, 0.1)",
+      text: "#FFFFFF"
+    };
+    const body = editorialThemeContrastChecks(tokens)
+      .find((check) => check.id === "body");
+
+    expect(body?.underlay).toBe("#000000");
+    expect(body?.ready).toBe(true);
+    expect(editorialThemeHasValidContrast({ dark: tokens, light: tokens, mode: "dark" }))
+      .toBe(true);
   });
 });

@@ -200,20 +200,29 @@ export function renderLgLegacyHtml() {
     .legacy-typed-list{display:grid;box-sizing:border-box;height:100%;padding:2.8%;overflow:hidden;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 24px 80px var(--editorial-shadow)}
     .legacy-fixture-list,.legacy-result-list{display:grid;grid-auto-rows:115px;align-content:start;box-sizing:border-box;height:100%;gap:12px;overflow:hidden}
     .legacy-fixture-list[data-columns="two"],.legacy-result-list[data-columns="two"]{grid-auto-flow:column;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px}
-    .legacy-fixture-row,.legacy-result-row{display:grid;grid-template-rows:auto minmax(0,1fr);align-content:center;gap:8px;box-sizing:border-box;height:115px;min-width:0;padding:12px 22px;overflow:hidden;border:1px solid var(--editorial-border);border-radius:18px;background:var(--editorial-row);box-shadow:0 12px 36px var(--editorial-shadow);font-size:var(--vc-sport-row-size,22.4px);animation:legacy-match-row-in 420ms cubic-bezier(.2,.8,.2,1) var(--match-row-delay,360ms) both}
-    .legacy-result-row{font-size:var(--vc-sport-result-size,33.6px)}
+    .legacy-fixture-row,.legacy-result-row{display:grid;align-content:center;box-sizing:border-box;height:115px;min-width:0;min-height:115px;padding:12px 22px;overflow:hidden;border:1px solid var(--vc-border);border-radius:18px;background:var(--vc-row);box-shadow:0 12px 36px var(--vc-shadow);color:var(--vc-text);font-size:var(--vc-sport-row-size,22.4px);animation:legacy-match-row-in 420ms cubic-bezier(.2,.8,.2,1) var(--match-row-delay,360ms) both}
+    .legacy-fixture-row{grid-template-rows:minmax(0,1fr) auto;gap:8px}
+    .legacy-result-row{grid-template-rows:minmax(0,1fr);font-size:var(--vc-sport-result-size,33.6px)}
     .legacy-fixture-list[data-columns="two"] .legacy-fixture-row,.legacy-result-list[data-columns="two"] .legacy-result-row{padding:10px 14px}
-    .legacy-match-information{display:flex;align-items:center;min-width:0;color:var(--editorial-muted);font-size:var(--vc-theme-font-20,20px);line-height:1}.legacy-match-information>*+*{margin-left:10px}
-    .legacy-match-date,.legacy-match-time,.legacy-match-venue{flex:0 0 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .legacy-match-date{color:var(--editorial-text)}.legacy-match-time{color:var(--accent);text-align:left}.legacy-match-information>i{color:var(--editorial-text-faint);font-style:normal;font-weight:700}
-    .legacy-match-main{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:16px;min-width:0}.legacy-match-main[data-logo="hidden"]{grid-template-columns:minmax(0,1fr) auto}.legacy-fixture-list[data-columns="two"] .legacy-match-main,.legacy-result-list[data-columns="two"] .legacy-match-main{grid-template-columns:48px minmax(0,1fr) auto;gap:10px}.legacy-fixture-list[data-columns="two"] .legacy-match-main[data-logo="hidden"],.legacy-result-list[data-columns="two"] .legacy-match-main[data-logo="hidden"]{grid-template-columns:minmax(0,1fr) auto}
-    .legacy-match-home-logo{display:grid;min-width:0;place-items:center}.legacy-match-home-logo .legacy-team-mini{width:48px;height:48px;border-radius:12px;background:var(--vc-home-logo-background,var(--editorial-surface-alt))}
-    .legacy-fixture-list[data-columns="two"] .legacy-match-home-logo .legacy-team-mini,.legacy-result-list[data-columns="two"] .legacy-match-home-logo .legacy-team-mini{width:42px;height:42px}
-    .legacy-match-fixture{display:flex;align-items:center;min-width:0;font-weight:750}.legacy-match-fixture>*+*{margin-left:14px}
-    .legacy-match-fixture>span{display:block;flex:0 1 auto;min-width:0;overflow:hidden;text-align:left;text-overflow:ellipsis;white-space:nowrap}
-    .legacy-match-separator{color:var(--editorial-muted);font-size:.74em;font-style:normal;font-weight:800;text-transform:uppercase}
-    .legacy-result-score{justify-self:end;color:var(--accent);font-size:var(--vc-sport-score-size,52.08px);font-style:normal;font-weight:900;line-height:1;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-    .legacy-match-venue{flex:1 1 auto;min-width:0;color:var(--editorial-muted);font-size:1em;text-align:left}
+    .legacy-result-list[data-columns="two"] .legacy-result-row{font-size:var(--vc-theme-font-24,24px)}
+    .legacy-program-primary,.legacy-result-primary{display:grid;align-items:center;width:100%;min-width:0;column-gap:12px;line-height:1}
+    .legacy-program-primary{grid-template-columns:var(--legacy-program-columns)}
+    .legacy-result-primary{grid-template-columns:var(--legacy-result-columns)}
+    .legacy-fixture-list[data-columns="two"] .legacy-program-primary,.legacy-result-list[data-columns="two"] .legacy-result-primary{column-gap:8px}
+    .legacy-match-date,.legacy-match-time,.legacy-match-team,.legacy-match-room{display:block;min-width:0;overflow:hidden;text-align:left;text-overflow:ellipsis;white-space:nowrap}
+    .legacy-match-date{color:var(--vc-text);font-variant-numeric:tabular-nums}.legacy-match-time{color:var(--vc-accent);font-variant-numeric:tabular-nums}
+    .legacy-match-team{color:var(--vc-text);font-weight:780}.legacy-match-room{color:var(--vc-text-muted);font-size:.72em;font-weight:700}
+    .legacy-match-logo{display:grid;min-width:0;place-items:center}.legacy-match-logo .legacy-team-mini{border-color:var(--vc-border);border-radius:12px;color:var(--vc-accent)}
+    .legacy-fixture-row .legacy-match-logo .legacy-team-mini{width:48px;height:48px}.legacy-result-row .legacy-match-logo .legacy-team-mini{width:57px;height:57px}
+    .legacy-match-home-logo .legacy-team-mini{background:var(--vc-home-logo-background)}.legacy-match-away-logo .legacy-team-mini{background:var(--vc-panel)}
+    .legacy-fixture-list[data-columns="two"] .legacy-fixture-row .legacy-match-logo .legacy-team-mini{width:42px;height:42px}
+    .legacy-result-list[data-columns="two"] .legacy-result-row .legacy-match-logo .legacy-team-mini{width:48px;height:48px}
+    .legacy-match-separator{color:var(--vc-text-muted);font-size:.72em;font-style:normal;font-weight:800;text-align:center;white-space:nowrap}
+    .legacy-program-secondary{display:flex;align-items:center;justify-content:flex-end;min-width:0;overflow:hidden;color:var(--vc-text-muted);font-size:.52em;line-height:1;text-align:right;white-space:nowrap}
+    .legacy-program-secondary span{min-width:0;overflow:hidden;text-overflow:ellipsis}.legacy-program-secondary span+span{margin-left:12px}.legacy-program-secondary span+span::before{margin-right:12px;color:var(--vc-text-faint);content:"|"}.legacy-program-secondary b{color:var(--vc-text)}
+    .legacy-fixture-list[data-columns="two"] .legacy-program-secondary span+span{margin-left:8px}.legacy-fixture-list[data-columns="two"] .legacy-program-secondary span+span::before{margin-right:8px}
+    .legacy-result-score{display:flex;min-width:112px;min-height:1em;align-items:center;justify-content:center;justify-self:stretch;color:var(--vc-accent);font-size:var(--vc-sport-score-size,52.08px);font-style:normal;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}.legacy-result-score>*+*{margin-left:10px}.legacy-result-score span{color:var(--vc-text-muted);font-size:.64em}
+    .legacy-result-list[data-columns="two"] .legacy-result-score{min-width:88px;font-size:var(--vc-theme-font-42,42px)}
     .legacy-team-mini{display:inline-grid;flex:0 0 auto;width:38px;height:38px;place-items:center;overflow:hidden;border:1px solid var(--editorial-border);border-radius:50%;background:var(--editorial-surface-alt);color:var(--accent);font-size:var(--vc-theme-font-11,11px);font-style:normal;font-weight:900}
     .legacy-team-mini img{width:80%;height:80%;object-fit:contain}
     .legacy-typed-row{display:grid;align-items:center;gap:14px;box-sizing:border-box;min-height:12.5%;border-bottom:1px solid var(--editorial-border-soft)}
@@ -483,7 +492,7 @@ export function renderLgLegacyHtml() {
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:before{display:none}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art>img{object-fit:cover}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:after{position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg,var(--editorial-image-overlay-start) 0%,var(--editorial-image-overlay-start) 62%,var(--editorial-image-overlay-mid) 82%,var(--editorial-image-overlay-end) 100%);content:""}
-    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-source{right:4%;left:auto}
+    .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-source{right:92px;left:auto}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy{position:absolute;z-index:3;top:0;right:38%;bottom:0;left:0;border-color:var(--editorial-border-soft);background:transparent;color:var(--editorial-qr-surface);box-shadow:none}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy p,.editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-meta,.editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-qr{color:var(--editorial-qr-surface)}
     .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy p{max-width:90%;font-size:var(--vc-theme-font-30,30px);line-height:1.3}
@@ -522,8 +531,9 @@ export function renderLgLegacyHtml() {
     .editorial-arena.portrait .editorial-news[data-news-variant="news_grid"]{grid-template-columns:1fr;grid-template-rows:minmax(0,1.25fr) minmax(0,.75fr)}
     .editorial-arena.portrait .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:after{background:linear-gradient(180deg,var(--editorial-image-overlay-end) 0%,var(--editorial-image-overlay-end) 28%,var(--editorial-image-overlay-mid) 40%,var(--editorial-image-overlay-start) 50%,var(--editorial-image-overlay-start) 100%)}
     .editorial-arena.portrait .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy{right:0;top:38%}
-    .editorial-news[data-news-variant="fullscreen_gradient"]>.editorial-news-qr{right:92px;bottom:30px}
-    .editorial-arena.portrait .editorial-news[data-news-variant="fullscreen_gradient"]>.editorial-news-qr{right:106px;bottom:46px}
+    .editorial-news[data-news-variant="fullscreen_gradient"]>.editorial-news-qr{right:92px;bottom:30px;width:220px}
+    .editorial-arena.portrait .editorial-news[data-news-variant="fullscreen_gradient"]>.editorial-news-qr{right:106px;bottom:46px;width:252px}
+    .editorial-arena.portrait .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-source{right:4%;left:auto}
     .editorial-arena.portrait .legacy-team-roster,.editorial-arena.portrait .legacy-training-schedule{grid-template-columns:repeat(2,minmax(0,1fr))}
     .editorial-arena.portrait .legacy-sponsor-layout,.editorial-arena.portrait .legacy-sponsor-layout:not([data-items="1"]){grid-template-columns:1fr}
     .editorial-arena.portrait .legacy-sponsor-card{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:28px;padding:40px}
@@ -6548,66 +6558,212 @@ export function renderLgLegacyHtml() {
         }
       };
     }
-    function templateSportMatchDetails(displayConfiguration, item) {
-      var details = [];
-      var venueName = templateText(item.venueName, "");
-      if (venueName) details.push(venueName);
-      if (!displayConfiguration || displayConfiguration.showField !== false) {
-        var fieldOrVenue = templateText(
-          item.venue,
-          templateText(item.field, templateText(item.meta, ""))
-        );
-        if (fieldOrVenue && details.indexOf(fieldOrVenue) === -1) details.push(fieldOrVenue);
-      }
-      if (displayConfiguration && displayConfiguration.showDressingRoom === true) {
-        if (item.homeRoom) details.push("Thuis " + templateText(item.homeRoom, ""));
-        if (item.awayRoom) details.push("Uit " + templateText(item.awayRoom, ""));
-      }
-      if (displayConfiguration && displayConfiguration.showReferee === true) {
-        var officials = templateArray(item.officials).map(function (officialValue) {
-          var official = templateRecord(officialValue);
-          return templateText(
-            official && (official.displayName || official.name),
-            templateText(officialValue, "")
-          );
-        }).filter(Boolean);
-        if (officials.length) details.push(officials.join(" · "));
-      }
-      return details;
+    function templateSportDisplayConfiguration(value) {
+      var source = templateRecord(value) || {};
+      var legacyShowLogo = source.showLogo !== false;
+      var legacyShowDressingRoom = source.showDressingRoom === true;
+      var showAwayDressingRoom = typeof source.showAwayDressingRoom === "boolean"
+        ? source.showAwayDressingRoom : legacyShowDressingRoom;
+      var showAwayLogo = typeof source.showAwayLogo === "boolean"
+        ? source.showAwayLogo : legacyShowLogo;
+      var showHomeDressingRoom = typeof source.showHomeDressingRoom === "boolean"
+        ? source.showHomeDressingRoom : legacyShowDressingRoom;
+      var showHomeLogo = typeof source.showHomeLogo === "boolean"
+        ? source.showHomeLogo : legacyShowLogo;
+      return {
+        columns: templateText(source.columns, "one") === "two" ? "two" : "one",
+        showAwayDressingRoom: showAwayDressingRoom,
+        showAwayLogo: showAwayLogo,
+        showDate: source.showDate !== false,
+        showDressingRoom: showHomeDressingRoom || showAwayDressingRoom,
+        showField: source.showField !== false,
+        showHomeAway: source.showHomeAway !== false,
+        showHomeDressingRoom: showHomeDressingRoom,
+        showHomeLogo: showHomeLogo,
+        showLogo: showHomeLogo || showAwayLogo,
+        showReferee: source.showReferee === true,
+        showSportpark: source.showSportpark !== false,
+        showTime: source.showTime !== false
+      };
     }
-    function renderLegacyMatchInformation(item, details) {
-      var information = templateNode("div", "legacy-match-information");
-      information.appendChild(templateNode(
+    function templateSportOfficials(item) {
+      return templateArray(item.officials).map(function (officialValue) {
+        var official = templateRecord(officialValue);
+        return templateText(
+          official && (official.displayName || official.name),
+          templateText(officialValue, "")
+        );
+      }).filter(Boolean);
+    }
+    function templateLegacyProgramColumns(displayConfiguration, compact) {
+      var tracks = [];
+      if (displayConfiguration.showDate) tracks.push("minmax(140px,.72fr)");
+      if (displayConfiguration.showTime) tracks.push("minmax(60px,.48fr)");
+      if (displayConfiguration.showHomeLogo) tracks.push(compact ? "42px" : "48px");
+      tracks.push("minmax(0,1.55fr)");
+      if (displayConfiguration.showHomeDressingRoom) tracks.push("minmax(0,.88fr)");
+      tracks.push("36px");
+      if (displayConfiguration.showAwayLogo) tracks.push(compact ? "42px" : "48px");
+      tracks.push("minmax(0,1.55fr)");
+      if (displayConfiguration.showAwayDressingRoom) tracks.push("minmax(0,.88fr)");
+      return tracks.join(" ");
+    }
+    function templateLegacyResultColumns(displayConfiguration) {
+      var tracks = [];
+      if (displayConfiguration.showDate) tracks.push("minmax(190px,.82fr)");
+      if (displayConfiguration.showTime) tracks.push("minmax(70px,.48fr)");
+      if (displayConfiguration.showHomeLogo) tracks.push("57px");
+      tracks.push("minmax(0,1.55fr)", "minmax(112px,.68fr)");
+      if (displayConfiguration.showAwayLogo) tracks.push("57px");
+      tracks.push("minmax(0,1.55fr)");
+      return tracks.join(" ");
+    }
+    function templateLegacyMatchDetailValue(value) {
+      return templateText(value, "")
+        .replace(/^(?:kleedkamer|veld|field|sportpark)\\s*:?\\s*/i, "")
+        .trim() || "volgt";
+    }
+    function renderLegacyMatchDetail(label, value, className) {
+      var detail = templateNode("span", className);
+      detail.appendChild(templateNode("b", "", label + ":"));
+      detail.appendChild(document.createTextNode(" " + value));
+      return detail;
+    }
+    function renderLegacyMatchLogo(team, mediaAssetId, payload, side) {
+      var logo = templateNode(
+        "span",
+        "legacy-match-logo legacy-match-" + side + "-logo"
+      );
+      logo.appendChild(renderLegacyTeamMini(team, mediaAssetId, payload));
+      return logo;
+    }
+    function renderLegacyMatchTeam(team, side) {
+      var node = templateNode(
         "strong",
-        "legacy-match-date",
-        templateText(item.date, templateText(item.secondary, ""))
-      ));
-      information.appendChild(templateNode("i", "", "|"));
-      information.appendChild(templateNode(
-        "b",
-        "legacy-match-time",
-        templateText(item.time, templateText(item.kickoffTime, "Tijd volgt"))
-      ));
-      if (details.length) {
-        information.appendChild(templateNode("i", "", "|"));
-        information.appendChild(templateNode(
-          "small",
-          "legacy-match-venue",
-          details.join(" · ")
+        "legacy-match-team legacy-match-" + side + "-team",
+        team
+      );
+      node.title = team;
+      return node;
+    }
+    function renderLegacyProgramPrimary(item, teams, displayConfiguration, payload) {
+      var primary = templateNode("div", "legacy-program-primary");
+      if (displayConfiguration.showDate) {
+        primary.appendChild(templateNode(
+          "span", "legacy-match-date",
+          templateText(item.date, templateText(item.secondary, "Datum volgt"))
         ));
       }
-      return information;
+      if (displayConfiguration.showTime) {
+        primary.appendChild(templateNode(
+          "span", "legacy-match-time",
+          templateText(item.time, templateText(item.kickoffTime, "Tijd volgt"))
+        ));
+      }
+      if (displayConfiguration.showHomeLogo) {
+        primary.appendChild(renderLegacyMatchLogo(
+          teams[0], item.homeLogoMediaAssetId, payload, "home"
+        ));
+      }
+      primary.appendChild(renderLegacyMatchTeam(teams[0], "home"));
+      if (displayConfiguration.showHomeDressingRoom) {
+        primary.appendChild(templateNode(
+          "span", "legacy-match-room legacy-match-home-room",
+          "Kleedkamer " + templateLegacyMatchDetailValue(item.homeRoom)
+        ));
+      }
+      primary.appendChild(templateNode("i", "legacy-match-separator", "vs."));
+      if (displayConfiguration.showAwayLogo) {
+        primary.appendChild(renderLegacyMatchLogo(
+          teams[1], item.awayLogoMediaAssetId, payload, "away"
+        ));
+      }
+      primary.appendChild(renderLegacyMatchTeam(teams[1], "away"));
+      if (displayConfiguration.showAwayDressingRoom) {
+        primary.appendChild(templateNode(
+          "span", "legacy-match-room legacy-match-away-room",
+          "Kleedkamer " + templateLegacyMatchDetailValue(item.awayRoom)
+        ));
+      }
+      return primary;
     }
-    function renderLegacyMatchFixture(teams, showHomeAway) {
-      var fixture = templateNode("span", "legacy-match-fixture");
-      fixture.appendChild(templateNode(
-        "span", "", (showHomeAway ? "Thuis · " : "") + teams[0]
-      ));
-      fixture.appendChild(templateNode("i", "legacy-match-separator", "vs"));
-      fixture.appendChild(templateNode(
-        "span", "", (showHomeAway ? "Uit · " : "") + teams[1]
-      ));
-      return fixture;
+    function renderLegacyProgramSecondary(item, displayConfiguration) {
+      var secondary = templateNode("div", "legacy-program-secondary");
+      var officials;
+      if (displayConfiguration.showReferee) {
+        officials = templateSportOfficials(item);
+        secondary.appendChild(renderLegacyMatchDetail(
+          "Scheidsrechter", officials.join(" · ") || "volgt", "legacy-match-referee"
+        ));
+      }
+      if (displayConfiguration.showField) {
+        secondary.appendChild(renderLegacyMatchDetail(
+          "Veld",
+          templateLegacyMatchDetailValue(item.field || item.venue || item.meta),
+          "legacy-match-field"
+        ));
+      }
+      if (displayConfiguration.showSportpark) {
+        secondary.appendChild(renderLegacyMatchDetail(
+          "Sportpark", templateLegacyMatchDetailValue(item.venueName),
+          "legacy-match-sportpark"
+        ));
+      }
+      return secondary.children.length ? secondary : null;
+    }
+    function templateLegacyResultScore(value) {
+      var numeric;
+      if (value === null || value === undefined || value === "") return "";
+      numeric = Number(value);
+      return isFinite(numeric) && Math.floor(numeric) === numeric &&
+        numeric >= 0 && numeric <= 999
+        ? String(numeric) : "";
+    }
+    function renderLegacyResultPrimary(item, teams, displayConfiguration, payload) {
+      var primary = templateNode("div", "legacy-result-primary");
+      var homeScore;
+      var awayScore;
+      var score;
+      if (displayConfiguration.showDate) {
+        primary.appendChild(templateNode(
+          "span", "legacy-match-date",
+          templateText(item.date, templateText(item.secondary, "Datum volgt"))
+        ));
+      }
+      if (displayConfiguration.showTime) {
+        primary.appendChild(templateNode(
+          "span", "legacy-match-time",
+          templateText(item.time, templateText(item.kickoffTime, "Tijd volgt"))
+        ));
+      }
+      if (displayConfiguration.showHomeLogo) {
+        primary.appendChild(renderLegacyMatchLogo(
+          teams[0], item.homeLogoMediaAssetId, payload, "home"
+        ));
+      }
+      primary.appendChild(renderLegacyMatchTeam(teams[0], "home"));
+      homeScore = templateLegacyResultScore(item.homeScore);
+      awayScore = templateLegacyResultScore(item.awayScore);
+      score = templateNode("i", "legacy-result-score");
+      if (homeScore && awayScore) {
+        score.appendChild(templateNode("b", "", homeScore));
+        score.appendChild(templateNode("span", "", "–"));
+        score.appendChild(templateNode("b", "", awayScore));
+      }
+      score.setAttribute(
+        "aria-label",
+        homeScore && awayScore
+          ? "Uitslag " + homeScore + " tegen " + awayScore
+          : "Uitslag nog niet bekend"
+      );
+      primary.appendChild(score);
+      if (displayConfiguration.showAwayLogo) {
+        primary.appendChild(renderLegacyMatchLogo(
+          teams[1], item.awayLogoMediaAssetId, payload, "away"
+        ));
+      }
+      primary.appendChild(renderLegacyMatchTeam(teams[1], "away"));
+      return primary;
     }
     function configureLegacyMatchColumns(list, itemCount, displayColumns) {
       var columns = displayColumns === "two" && itemCount > 1 ? "two" : "one";
@@ -6660,10 +6816,9 @@ export function renderLgLegacyHtml() {
       }
       var arrival = slideType === "sport_visitor_arrivals" || slideType === "sport_referee_arrivals";
       var arrivalConfiguration = templateRecord(sport.arrivalConfig) || {};
-      var displayConfiguration = templateRecord(sport.displayConfig);
-      var displayColumns = orientation === "landscape" && displayConfiguration &&
-        templateText(displayConfiguration.columns, "one") === "two"
-        ? "two" : "one";
+      var displayConfiguration = templateSportDisplayConfiguration(sport.displayConfig);
+      var displayColumns = orientation === "landscape" &&
+        displayConfiguration.columns === "two" ? "two" : "one";
       if (slideType === "sport_visitor_arrivals") {
         items = templateVisitorArrivalItems(items, sportTimezone);
       }
@@ -7003,22 +7158,13 @@ export function renderLgLegacyHtml() {
               ];
               var fixtureRow = templateNode("article", "legacy-fixture-row");
               fixtureRow.style.setProperty("--match-row-delay", String(360 + index * 110) + "ms");
-              var fixtureDetails = templateSportMatchDetails(displayConfiguration, item);
-              fixtureRow.appendChild(renderLegacyMatchInformation(item, fixtureDetails));
-              var fixtureMain = templateNode("div", "legacy-match-main");
-              var fixtureLogo = templateNode("span", "legacy-match-home-logo");
-              if (!displayConfiguration || displayConfiguration.showLogo !== false) {
-                fixtureLogo.appendChild(renderLegacyTeamMini(teams[0], item.homeLogoMediaAssetId, payload));
-                fixtureMain.setAttribute("data-logo", "visible");
-                fixtureMain.appendChild(fixtureLogo);
-              } else {
-                fixtureMain.setAttribute("data-logo", "hidden");
-              }
-              fixtureMain.appendChild(renderLegacyMatchFixture(
-                teams,
-                !displayConfiguration || displayConfiguration.showHomeAway !== false
+              fixtureRow.appendChild(renderLegacyProgramPrimary(
+                item, teams, displayConfiguration, payload
               ));
-              fixtureRow.appendChild(fixtureMain);
+              var fixtureSecondary = renderLegacyProgramSecondary(
+                item, displayConfiguration
+              );
+              if (fixtureSecondary) fixtureRow.appendChild(fixtureSecondary);
               fixtureList.appendChild(fixtureRow);
             }
             configureLegacyMatchColumns(
@@ -7026,12 +7172,23 @@ export function renderLgLegacyHtml() {
               fixtureList.children.length,
               displayColumns
             );
+            fixtureList.style.setProperty(
+              "--legacy-program-columns",
+              templateLegacyProgramColumns(
+                displayConfiguration,
+                fixtureList.getAttribute("data-columns") === "two"
+              )
+            );
             body.appendChild(fixtureList);
             return;
           }
           if (slideType === "sport_results") {
             var resultList = templateNode("div", "legacy-result-list");
             resultList.setAttribute("data-render-family", "result-list");
+            resultList.style.setProperty(
+              "--legacy-result-columns",
+              templateLegacyResultColumns(displayConfiguration)
+            );
             for (index = 0; index < page.length; index += 1) {
               item = templateRecord(page[index]) || {};
               if (!templateText(item.primary, "") && !templateText(item.homeTeam, "") && !templateText(item.awayTeam, "")) continue;
@@ -7041,34 +7198,9 @@ export function renderLgLegacyHtml() {
               ];
               var resultRow = templateNode("article", "legacy-result-row");
               resultRow.style.setProperty("--match-row-delay", String(360 + index * 110) + "ms");
-              var resultDetails = templateSportMatchDetails(displayConfiguration, item);
-              resultRow.appendChild(renderLegacyMatchInformation(item, resultDetails));
-              var resultMain = templateNode("div", "legacy-match-main");
-              var resultLogo = templateNode("span", "legacy-match-home-logo");
-              if (!displayConfiguration || displayConfiguration.showLogo !== false) {
-                resultLogo.appendChild(renderLegacyTeamMini(teams[0], item.homeLogoMediaAssetId, payload));
-                resultMain.setAttribute("data-logo", "visible");
-                resultMain.appendChild(resultLogo);
-              } else {
-                resultMain.setAttribute("data-logo", "hidden");
-              }
-              resultMain.appendChild(renderLegacyMatchFixture(
-                teams,
-                !displayConfiguration || displayConfiguration.showHomeAway !== false
+              resultRow.appendChild(renderLegacyResultPrimary(
+                item, teams, displayConfiguration, payload
               ));
-              var homeScore = item.homeScore !== null && item.homeScore !== undefined &&
-                item.homeScore !== "" && isFinite(Number(item.homeScore))
-                ? String(Number(item.homeScore)) : "–";
-              var awayScore = item.awayScore !== null && item.awayScore !== undefined &&
-                item.awayScore !== "" && isFinite(Number(item.awayScore))
-                ? String(Number(item.awayScore)) : "–";
-              var resultScore = templateNode(
-                "i", "legacy-result-score",
-                homeScore + " – " + awayScore
-              );
-              resultScore.setAttribute("aria-label", "Uitslag " + resultScore.textContent);
-              resultMain.appendChild(resultScore);
-              resultRow.appendChild(resultMain);
               resultList.appendChild(resultRow);
             }
             configureLegacyMatchColumns(
@@ -7459,12 +7591,47 @@ export function renderLgLegacyHtml() {
       if (typeof themeSelection.accent === "string" && /^#[0-9a-f]{6}$/i.test(themeSelection.accent)) {
         accent = themeSelection.accent;
       }
+      var editorialTokenProjection = [
+        ["--vc-accent", "accent", accent],
+        ["--vc-accent-soft", "accentSoft", editorialMode === "dark" ? "rgba(255,110,55,.18)" : "rgba(236,98,44,.14)"],
+        ["--vc-border", "border", editorialMode === "dark" ? "rgba(250,250,247,.15)" : "rgba(17,19,21,.12)"],
+        ["--vc-border-soft", "borderSoft", editorialMode === "dark" ? "rgba(250,250,247,.09)" : "rgba(17,19,21,.075)"],
+        ["--vc-canvas", "canvas", editorialMode === "dark" ? "#090B0E" : "#D7D2C8"],
+        ["--vc-danger", "danger", editorialMode === "dark" ? "#FF716B" : "#D55656"],
+        ["--vc-divider", "divider", editorialMode === "dark" ? "rgba(250,250,247,.14)" : "rgba(17,19,21,.12)"],
+        ["--vc-image-overlay-end", "imageOverlayEnd", editorialMode === "dark" ? "rgba(6,8,10,.12)" : "rgba(6,8,10,.08)"],
+        ["--vc-image-overlay-mid", "imageOverlayMid", editorialMode === "dark" ? "rgba(6,8,10,.76)" : "rgba(6,8,10,.72)"],
+        ["--vc-image-overlay-start", "imageOverlayStart", editorialMode === "dark" ? "rgba(6,8,10,.98)" : "rgba(6,8,10,.96)"],
+        ["--vc-neutral", "neutral", editorialMode === "dark" ? "#8D9095" : "#A9A399"],
+        ["--vc-panel", "panel", editorialMode === "dark" ? "#14181D" : "#E8E4DC"],
+        ["--vc-qr-ink", "qrInk", "#111315"],
+        ["--vc-qr-surface", "qrSurface", "#F3F0E9"],
+        ["--vc-row", "row", editorialMode === "dark" ? "#11161C" : "#FBF9F4"],
+        ["--vc-row-selected", "rowSelected", editorialMode === "dark" ? "#F3F0E9" : "#141619"],
+        ["--vc-shadow", "shadow", editorialMode === "dark" ? "rgba(0,0,0,.34)" : "rgba(66,55,41,.14)"],
+        ["--vc-success", "success", editorialMode === "dark" ? "#46D18C" : "#31A574"],
+        ["--vc-surface", "surface", editorialMode === "dark" ? "#0D1116" : "#F3F0E9"],
+        ["--vc-surface-raised", "surfaceRaised", editorialMode === "dark" ? "#171C22" : "#FBF9F4"],
+        ["--vc-text", "text", editorialMode === "dark" ? "#F7F3EB" : "#111315"],
+        ["--vc-text-faint", "textFaint", editorialMode === "dark" ? "rgba(247,243,235,.48)" : "rgba(17,19,21,.47)"],
+        ["--vc-text-muted", "textMuted", editorialMode === "dark" ? "#B9B5AD" : "#68665F"],
+        ["--vc-text-on-accent", "textOnAccent", editorialMode === "dark" ? "#111315" : "#FFFAF2"],
+        ["--vc-text-on-selected", "textOnSelected", editorialMode === "dark" ? "#111315" : "#F7F3EB"],
+        ["--vc-warning", "warning", editorialMode === "dark" ? "#FFAD66" : "#C99431"]
+      ];
       root.className += editorialMode === "dark" ? " dark" : "";
       root.className += payload.orientation === "portrait" ? " portrait" : "";
       root.setAttribute("data-slide-type", payload.slideType);
       root.setAttribute("data-theme-id", templateText(themeReference.id, "editorial"));
       if (editorialArena) root.className += " editorial-arena";
       root.style.setProperty("--accent", accent);
+      for (var themeTokenIndex = 0; themeTokenIndex < editorialTokenProjection.length; themeTokenIndex += 1) {
+        var themeToken = editorialTokenProjection[themeTokenIndex];
+        root.style.setProperty(
+          themeToken[0],
+          templateText(editorialTokens[themeToken[1]], themeToken[2])
+        );
+      }
       root.style.setProperty("--vc-theme-body-font", templateText(themeFontFamilies[bodyFontRef], "Inter"));
       root.style.setProperty("--vc-theme-display-font", templateText(themeFontFamilies[displayFontRef], "Manrope"));
       root.style.setProperty("--vc-theme-display-weight", String(Number(manifestTheme.displayWeight) || 700));

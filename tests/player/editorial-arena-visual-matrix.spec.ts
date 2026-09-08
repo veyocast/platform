@@ -105,27 +105,49 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
             expect(new Set(rowHeights)).toEqual(new Set([
               expectedMatchRowHeight(variant, orientation)
             ]));
-            const rowGeometry = await rows.first().evaluate((element) => {
-              const information = element.querySelector<HTMLElement>(
-                '[class*="arenaMatchInformation"]'
-              );
-              const fixture = element.querySelector<HTMLElement>(
-                '[class*="arenaFixtureMain"]'
-              );
-              const informationBox = information?.getBoundingClientRect();
-              const fixtureBox = fixture?.getBoundingClientRect();
-              return {
-                informationAboveFixture: Boolean(
-                  informationBox && fixtureBox &&
-                  informationBox.bottom <= fixtureBox.top + 1
-                ),
-                informationText: information?.textContent?.replace(/\s+/gu, " ").trim()
-              };
-            });
-            expect(rowGeometry.informationAboveFixture).toBe(true);
-            expect(rowGeometry.informationText).toMatch(
-              /za 16 aug\s*\|\s*(?:14:30|FT)\s*\|\s*Sportpark De Arena/u
-            );
+            const firstRow = rows.first();
+            const primary = firstRow.locator('[class*="arenaMatchPrimary"]');
+            await expect(primary).toContainText("za 16 aug");
+            await expect(primary).toContainText(variant.startsWith("results-") ? "FT" : "14:30");
+            await expect(primary).toContainText("Thuisclub 1");
+            await expect(primary).toContainText("Uitclub 1");
+            if (variant.startsWith("program-")) {
+              const secondary = firstRow.locator('[class*="arenaMatchSecondary"]');
+              await expect(secondary).toContainText("Veld: 1");
+              await expect(secondary).toContainText("Sportpark: De Arena");
+              const rowGeometry = await firstRow.evaluate((element) => {
+                const primaryLine = element.querySelector<HTMLElement>(
+                  '[class*="arenaMatchPrimary"]'
+                );
+                const secondaryLine = element.querySelector<HTMLElement>(
+                  '[class*="arenaMatchSecondary"]'
+                );
+                const primaryBox = primaryLine?.getBoundingClientRect();
+                const secondaryBox = secondaryLine?.getBoundingClientRect();
+                const primarySize = primaryLine
+                  ? Number.parseFloat(getComputedStyle(primaryLine).fontSize)
+                  : 0;
+                const secondaryStyle = secondaryLine
+                  ? getComputedStyle(secondaryLine)
+                  : null;
+                return {
+                  primaryAboveSecondary: Boolean(
+                    primaryBox && secondaryBox && primaryBox.bottom <= secondaryBox.top + 1
+                  ),
+                  secondaryFontRatio: secondaryStyle && primarySize
+                    ? Number.parseFloat(secondaryStyle.fontSize) / primarySize
+                    : 0,
+                  secondaryJustification: secondaryStyle?.justifyContent,
+                  secondaryTextAlign: secondaryStyle?.textAlign
+                };
+              });
+              expect(rowGeometry.primaryAboveSecondary).toBe(true);
+              expect(rowGeometry.secondaryFontRatio).toBeCloseTo(.52, 2);
+              expect(rowGeometry.secondaryJustification).toBe("flex-end");
+              expect(rowGeometry.secondaryTextAlign).toBe("right");
+            } else {
+              await expect(firstRow.locator('[class*="arenaMatchSecondary"]')).toHaveCount(0);
+            }
           }
 
           if (variant.startsWith("results-")) {
@@ -139,30 +161,27 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
               (element) => Number.parseFloat(getComputedStyle(element).fontSize)
             )).toBeCloseTo(52.08, 2);
             const scoreGeometry = await rows.first().evaluate((element) => {
-              const fixture = element.querySelector<HTMLElement>(
-                '[class*="arenaFixtureMain"]'
-              );
               const score = element.querySelector<HTMLElement>(
                 '[class*="arenaResultScore"]'
               );
-              const teams = element.querySelector<HTMLElement>(
-                '[class*="arenaFixtureTeams"]'
+              const home = element.querySelector<HTMLElement>(
+                '[data-field="home-team"]'
               );
-              const fixtureBox = fixture?.getBoundingClientRect();
+              const away = element.querySelector<HTMLElement>(
+                '[data-field="away-team"]'
+              );
               const scoreBox = score?.getBoundingClientRect();
-              const teamsBox = teams?.getBoundingClientRect();
+              const homeBox = home?.getBoundingClientRect();
+              const awayBox = away?.getBoundingClientRect();
               return {
-                scoreAfterTeams: Boolean(
-                  scoreBox && teamsBox && scoreBox.left >= teamsBox.right - 1
-                ),
-                scoreRightGap: fixtureBox && scoreBox
-                  ? fixtureBox.right - scoreBox.right
-                  : null
+                scoreBetweenTeams: Boolean(
+                  scoreBox && homeBox && awayBox &&
+                  scoreBox.left >= homeBox.right - 1 &&
+                  scoreBox.right <= awayBox.left + 1
+                )
               };
             });
-            expect(scoreGeometry.scoreAfterTeams).toBe(true);
-            expect(scoreGeometry.scoreRightGap).not.toBeNull();
-            expect(scoreGeometry.scoreRightGap!).toBeLessThanOrEqual(1);
+            expect(scoreGeometry.scoreBetweenTeams).toBe(true);
           }
           if (variant === "news-hero" && orientation === "portrait") {
             const splitSpacing = await page.locator(
@@ -191,8 +210,12 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
               const hero = layout.querySelector<HTMLElement>(":scope > section");
               const story = layout.querySelector<HTMLElement>(":scope > article");
               const qr = layout.querySelector<HTMLElement>('[data-testid="news-qr"]');
+              const qrImage = qr?.querySelector<HTMLElement>("img");
+              const source = layout.querySelector<HTMLElement>(":scope > section > div");
               const intro = story?.querySelector<HTMLElement>(":scope > p");
               const qrBox = qr?.getBoundingClientRect();
+              const qrImageBox = qrImage?.getBoundingClientRect();
+              const sourceBox = source?.getBoundingClientRect();
               const storyBox = story?.getBoundingClientRect();
               return {
                 introFontSize: intro
@@ -202,6 +225,7 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
                   ? getComputedStyle(hero, "::after").backgroundImage
                   : "none",
                 qrBottomGap: qrBox ? layoutBox.bottom - qrBox.bottom : null,
+                qrImageRightGap: qrImageBox ? layoutBox.right - qrImageBox.right : null,
                 qrRightGap: qrBox ? layoutBox.right - qrBox.right : null,
                 qrViewportBottomGap: qrBox ? window.innerHeight - qrBox.bottom : null,
                 qrViewportRightGap: qrBox ? window.innerWidth - qrBox.right : null,
@@ -209,7 +233,8 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
                 storyTopRatio: storyBox
                   ? (storyBox.top - layoutBox.top) / layoutBox.height
                   : 0,
-                storyWidthRatio: storyBox ? storyBox.width / layoutBox.width : 0
+                storyWidthRatio: storyBox ? storyBox.width / layoutBox.width : 0,
+                sourceRightGap: sourceBox ? layoutBox.right - sourceBox.right : null
               };
             });
             expect(composition.overlay).not.toBe("none");
@@ -227,6 +252,10 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
               expect(composition.qrBottomGap).toBeLessThanOrEqual(31);
               expect(composition.qrRightGap).toBeGreaterThanOrEqual(91);
               expect(composition.qrRightGap).toBeLessThanOrEqual(93);
+              expect(composition.qrImageRightGap).toBeGreaterThanOrEqual(91);
+              expect(composition.qrImageRightGap).toBeLessThanOrEqual(93);
+              expect(composition.sourceRightGap).toBeGreaterThanOrEqual(91);
+              expect(composition.sourceRightGap).toBeLessThanOrEqual(93);
               expect(composition.qrViewportBottomGap).toBeGreaterThanOrEqual(143);
               expect(composition.qrViewportBottomGap).toBeLessThanOrEqual(145);
               expect(composition.qrViewportRightGap).toBeGreaterThanOrEqual(143);
@@ -302,41 +331,24 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
           { length: await rows.count() },
           () => expectedMatchRowHeight(variant, orientation)
         ));
-        const badges = await rows.locator('[class*="arenaFixtureTeams"] em')
-          .evaluateAll((labels) => labels.map((label) => {
-            const box = label.getBoundingClientRect();
-            const parentBox = label.parentElement?.getBoundingClientRect();
-            const text = document.createRange();
-            text.selectNodeContents(label);
-            const textBox = text.getBoundingClientRect();
-            const style = getComputedStyle(label);
-            const padding = Number.parseFloat(style.paddingLeft) +
-              Number.parseFloat(style.paddingRight);
-            return {
-              boxWidth: box.width,
-              containedByParent: Boolean(
-                parentBox && box.left >= parentBox.left - 0.5 &&
-                box.right <= parentBox.right + 0.5
-              ),
-              contentFits: label.scrollWidth <= label.clientWidth,
-              expectedWidth: textBox.width + padding,
-              text: label.textContent?.trim().toLocaleUpperCase("nl-NL")
-            };
-          }));
-        expect(new Set(badges.map((badge) => badge.text)))
-          .toEqual(new Set(["THUIS", "UIT"]));
-        expect(badges.every((badge) =>
-          badge.containedByParent && badge.contentFits &&
-          badge.boxWidth >= badge.expectedWidth - 0.5
-        )).toBe(true);
+        expect(await rows.evaluateAll((elements) => elements.every((element) =>
+          element.scrollWidth <= element.clientWidth
+        ))).toBe(true);
+        const expectedFields = variant === "program-20"
+          ? ["date", "time", "home-logo", "home-team", "versus", "away-logo", "away-team"]
+          : ["date", "time", "home-logo", "home-team", "score", "away-logo", "away-team"];
+        expect(await rows.first().locator(
+          ':scope > [class*="arenaMatchPrimary"] > [data-field]'
+        ).evaluateAll((fields) => fields.map((field) => field.getAttribute("data-field"))))
+          .toEqual(expectedFields);
         if (orientation === "landscape") {
           const columnSections = columns.locator(":scope > section");
           await expect(columnSections).toHaveCount(2);
           await expect(columnSections.first().locator(
-            '[class*="arenaFixtureTeams"]'
+            '[data-field="home-team"]'
           ).first()).toContainText("Thuisclub 1");
           await expect(columnSections.last().locator(
-            '[class*="arenaFixtureTeams"]'
+            '[data-field="home-team"]'
           ).first()).toContainText("Thuisclub 7");
           const columnStarts = await columnSections.evaluateAll((sections) =>
             sections.map((section) => {
@@ -348,31 +360,46 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
           expect(columnStarts[0]!.left).toBeLessThan(columnStarts[1]!.left);
         }
         const firstRow = rows.first();
-        await expect(firstRow.locator('[class*="arenaMatchInformation"]'))
-          .toContainText(/za 16 aug\s*\|\s*(?:14:30|FT)\s*\|\s*Sportpark De Arena/u);
-        expect(await firstRow.evaluate((element) => {
-          const information = element.querySelector<HTMLElement>(
-            '[class*="arenaMatchInformation"]'
-          )?.getBoundingClientRect();
-          const fixture = element.querySelector<HTMLElement>(
-            '[class*="arenaFixtureMain"]'
-          )?.getBoundingClientRect();
-          return Boolean(information && fixture && information.bottom <= fixture.top + 1);
-        })).toBe(true);
+        const primary = firstRow.locator('[class*="arenaMatchPrimary"]');
+        await expect(primary.locator('[data-field="date"]')).toHaveText("za 16 aug");
+        await expect(primary.locator('[data-field="time"]'))
+          .toHaveText(variant === "results-20" ? "FT" : "14:30");
+        await expect(primary.locator('[data-field="home-team"]'))
+          .toHaveText("Thuisclub 1");
+        await expect(primary.locator('[data-field="away-team"]'))
+          .toHaveText("Uitclub 1");
         if (variant === "results-20") {
           const score = firstRow.locator('[class*="arenaResultScore"]');
           await expect(score).toHaveAttribute("aria-label", "Uitslag 3 tegen 0");
           expect(await firstRow.evaluate((element) => {
-            const fixture = element.querySelector<HTMLElement>(
-              '[class*="arenaFixtureMain"]'
-            )?.getBoundingClientRect();
             const result = element.querySelector<HTMLElement>(
               '[class*="arenaResultScore"]'
             )?.getBoundingClientRect();
-            return fixture && result ? fixture.right - result.right : null;
-          })).toBeCloseTo(0, 2);
+            const home = element.querySelector<HTMLElement>(
+              '[data-field="home-team"]'
+            )?.getBoundingClientRect();
+            const away = element.querySelector<HTMLElement>(
+              '[data-field="away-team"]'
+            )?.getBoundingClientRect();
+            return Boolean(
+              home && result && away &&
+              result.left >= home.right - 1 && result.right <= away.left + 1
+            );
+          })).toBe(true);
         } else {
           await expect(firstRow.locator('[class*="arenaResultScore"]')).toHaveCount(0);
+          const secondary = firstRow.locator('[class*="arenaMatchSecondary"]');
+          await expect(secondary).toContainText("Veld: 1");
+          await expect(secondary).toContainText("Sportpark: De Arena");
+          expect(await firstRow.evaluate((element) => {
+            const primary = element.querySelector<HTMLElement>(
+              '[class*="arenaMatchPrimary"]'
+            )?.getBoundingClientRect();
+            const details = element.querySelector<HTMLElement>(
+              '[class*="arenaMatchSecondary"]'
+            )?.getBoundingClientRect();
+            return Boolean(primary && details && primary.bottom <= details.top + 1);
+          })).toBe(true);
         }
         if (orientation === "landscape") {
           await expect(page).toHaveScreenshot(
@@ -421,9 +448,9 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
       () => document.documentElement.dataset.thumbnailReady === "true"
     );
 
-    const information = page.locator('[class*="arenaMatchInformation"]').first();
-    await expect(information).toContainText("Sportpark Houtrust");
-    await expect(information).not.toContainText("Veld 7");
+    const details = page.locator('[class*="arenaMatchSecondary"]').first();
+    await expect(details).toContainText("Sportpark: Houtrust");
+    await expect(details).not.toContainText("Veld:");
   });
 });
 
@@ -672,6 +699,7 @@ function sportData(
     awayScore: results ? index % 3 : null,
     awayTeam: `Uitclub ${index + 1}`,
     date: `za ${16 + index} aug`,
+    field: `Veld ${index + 1}`,
     homeScore: results ? 3 - (index % 3) : null,
     homeTeam: index === 2 ? "Sportvereniging Editorial Lange Clubnaam" : `Thuisclub ${index + 1}`,
     id: `match-${index}`,
@@ -681,7 +709,8 @@ function sportData(
     secondary: "Vierde klasse · Poule A",
     status: results ? "Gespeeld" : "Gepland",
     time: results ? "FT" : `${14 + (index % 5)}:30`,
-    venue: "Sportpark De Arena"
+    venue: `Veld ${index + 1}`,
+    venueName: "Sportpark De Arena"
   }));
   return {
     brand: { clubName: "Sportvereniging FieldFlow", primaryColor: "#169B62" },

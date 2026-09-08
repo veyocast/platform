@@ -16,6 +16,9 @@ export function tenantSettingsSaveErrorMessage(error: TenantSettingsSaveError) {
   if (code === "PGRST202" || code === "42883") {
     return "De databasecommand voor deze instellingen ontbreekt. Er is niets opgeslagen; laat een platformbeheerder de nieuwste databasemigraties uitvoeren.";
   }
+  if (code === "57014") {
+    return "De veilige theme-uitrol duurde langer dan toegestaan. Er is niets gedeeltelijk gewijzigd; probeer opnieuw wanneer er geen andere publicatie actief is en neem contact op met een platformbeheerder als dit terugkomt.";
+  }
   if (code === "23514" && message.includes("menu documents must use fieldflow")) {
     return "Een oudere Menu Studio-slide blokkeert de stijlwijziging. Er is niets opgeslagen; laat een platformbeheerder de compatibiliteitshotfix uitvoeren en probeer daarna opnieuw.";
   }

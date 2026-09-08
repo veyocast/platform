@@ -154,6 +154,7 @@ tests en exitcriteria staan in
 | S154 | Eigen clubwedstrijden en thuis-/uitfilter | Clubprogramma en clubuitslagen strikt tot tenant-eigen teams beperken, per slide thuis/uit/both configureerbaar maken en legacy latest-slides via nieuwe immutable snapshots herstellen |
 | S156 | Wedstrijdregels, welkomsthiërarchie en clubvarianten | Vaste tweeregelige programma-/uitslagkaarten, volledige thuisteam- en wedstrijddetails, ruimere portrait splitnieuwsslides en zes atomische clubvarianten voor vandaag |
 | S157 | Volledige theme-tokenwerkplaats | Alle 26 FieldFlow-kleurrollen per licht/donkerpalet vindbaar en afzonderlijk herstelbaar maken en de live preview alle rollen plus steunkleur en logoplaatkleuren laten tonen |
+| S158 | Kolomvaste wedstrijdregels en eenvoudige paletten | Club- en pouleprogramma/-uitslagen exact uitlijnen met afzonderlijke veldkeuzes, poulevarianten voor vandaag toevoegen en vanuit één hoofdkleur een volledig aanpasbaar licht/donkerpalet maken |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op

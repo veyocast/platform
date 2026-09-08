@@ -1124,25 +1124,56 @@ function ProgramRow({
   const [fallbackHome, fallbackAway] = splitTeams(item.primary);
   const home = item.homeTeam || fallbackHome;
   const away = item.awayTeam || fallbackAway;
-  const meta = sportRowMeta(display, item);
-  const showLogo = display?.showLogo !== false;
   return (
     <article
       className={styles.arenaProgramRow}
       style={{ "--arena-row-delay": `${360 + rowIndex * 110}ms` } as CSSProperties}
     >
-      <MatchInformationLine item={item} meta={meta} />
       <div
-        className={styles.arenaFixtureMain}
-        data-logo={showLogo ? "visible" : "hidden"}
+        className={styles.arenaMatchPrimary}
+        style={{
+          gridTemplateColumns: programPrimaryColumns(display)
+        }}
       >
-        {showLogo ? (
-          <span className={styles.arenaHomeLogo}>
+        {display?.showDate !== false ? (
+          <strong className={styles.arenaMatchDate} data-field="date">
+            {item.date || item.secondary || "Datum volgt"}
+          </strong>
+        ) : null}
+        {display?.showTime !== false ? (
+          <b className={styles.arenaKickoff} data-field="time">
+            {item.time || item.kickoffTime || "Tijd volgt"}
+          </b>
+        ) : null}
+        {display?.showHomeLogo !== false ? (
+          <span className={styles.arenaMatchLogo} data-field="home-logo">
             <TeamMini homePlate logoUrl={item.homeLogoUrl} name={home} />
           </span>
         ) : null}
-        <FixtureTeams away={away} display={display} home={home} />
+        <strong className={styles.arenaMatchTeam} data-field="home-team" title={home}>
+          {home}
+        </strong>
+        {display?.showHomeDressingRoom ? (
+          <span className={styles.arenaMatchRoom} data-field="home-room">
+            Kleedkamer {matchDetailValue(item.homeRoom)}
+          </span>
+        ) : null}
+        <i className={styles.arenaVersusMark} data-field="versus">vs.</i>
+        {display?.showAwayLogo !== false ? (
+          <span className={styles.arenaMatchLogo} data-field="away-logo">
+            <TeamMini logoUrl={item.awayLogoUrl} name={away} />
+          </span>
+        ) : null}
+        <strong className={styles.arenaMatchTeam} data-field="away-team" title={away}>
+          {away}
+        </strong>
+        {display?.showAwayDressingRoom ? (
+          <span className={styles.arenaMatchRoom} data-field="away-room">
+            Kleedkamer {matchDetailValue(item.awayRoom)}
+          </span>
+        ) : null}
       </div>
+      <MatchSecondaryLine display={display} item={item} />
     </article>
   );
 }
@@ -1159,94 +1190,117 @@ function ResultRow({
   const [fallbackHome, fallbackAway] = splitTeams(item.primary);
   const home = item.homeTeam || fallbackHome;
   const away = item.awayTeam || fallbackAway;
-  const meta = sportRowMeta(display, item);
-  const showLogo = display?.showLogo !== false;
+  const scoreKnown = Number.isInteger(item.homeScore) &&
+    Number.isInteger(item.awayScore);
   return (
     <article
       className={styles.arenaResultRow}
       data-result-row=""
       style={{ "--arena-row-delay": `${360 + rowIndex * 110}ms` } as CSSProperties}
     >
-      <MatchInformationLine item={item} meta={meta} />
       <div
-        className={styles.arenaFixtureMain}
-        data-logo={showLogo ? "visible" : "hidden"}
+        className={styles.arenaMatchPrimary}
+        style={{
+          gridTemplateColumns: resultPrimaryColumns(display)
+        }}
       >
-        {showLogo ? (
-          <span className={styles.arenaHomeLogo}>
+        {display?.showDate !== false ? (
+          <strong className={styles.arenaMatchDate} data-field="date">
+            {item.date || item.secondary || "Datum volgt"}
+          </strong>
+        ) : null}
+        {display?.showTime !== false ? (
+          <b className={styles.arenaKickoff} data-field="time">
+            {item.time || item.kickoffTime || "Tijd volgt"}
+          </b>
+        ) : null}
+        {display?.showHomeLogo !== false ? (
+          <span className={styles.arenaMatchLogo} data-field="home-logo">
             <TeamMini homePlate logoUrl={item.homeLogoUrl} name={home} />
           </span>
         ) : null}
-        <FixtureTeams away={away} display={display} home={home} />
+        <strong className={styles.arenaMatchTeam} data-field="home-team" title={home}>
+          {home}
+        </strong>
         <i
-          aria-label={`Uitslag ${item.homeScore ?? "–"} tegen ${item.awayScore ?? "–"}`}
+          aria-label={scoreKnown
+            ? `Uitslag ${item.homeScore} tegen ${item.awayScore}`
+            : "Uitslag nog niet bekend"}
           className={styles.arenaResultScore}
+          data-field="score"
         >
-          <b>{item.homeScore ?? "–"}</b><span>–</span><b>{item.awayScore ?? "–"}</b>
+          {scoreKnown ? <>
+            <b>{item.homeScore}</b><span>–</span><b>{item.awayScore}</b>
+          </> : null}
         </i>
+        {display?.showAwayLogo !== false ? (
+          <span className={styles.arenaMatchLogo} data-field="away-logo">
+            <TeamMini logoUrl={item.awayLogoUrl} name={away} />
+          </span>
+        ) : null}
+        <strong className={styles.arenaMatchTeam} data-field="away-team" title={away}>
+          {away}
+        </strong>
       </div>
     </article>
   );
 }
 
-function MatchInformationLine({
+function MatchSecondaryLine({
+  display,
   item,
-  meta
 }: {
+  display: DynamicTemplateView["sportDisplay"];
   item: DynamicTemplateListItem;
-  meta: string;
 }) {
+  const referee = display?.showReferee
+    ? item.officials.filter(Boolean).join(" · ") || "volgt"
+    : "";
+  const field = display?.showField
+    ? matchDetailValue(item.field || item.venue || item.meta)
+    : "";
+  const sportpark = display?.showSportpark
+    ? matchDetailValue(item.venueName)
+    : "";
+  if (!referee && !field && !sportpark) return null;
   return (
-    <div className={styles.arenaMatchInformation}>
-      <strong className={styles.arenaMatchDate}>{item.date || item.secondary}</strong>
-      <i aria-hidden="true">|</i>
-      <b className={styles.arenaKickoff}>{item.time || item.kickoffTime || "Tijd volgt"}</b>
-      {meta ? <>
-        <i aria-hidden="true">|</i>
-        <small className={styles.arenaMatchVenue} title={meta}>{meta}</small>
-      </> : null}
+    <div className={styles.arenaMatchSecondary}>
+      {referee ? <span data-field="referee"><b>Scheidsrechter:</b> {referee}</span> : null}
+      {field ? <span data-field="field"><b>Veld:</b> {field}</span> : null}
+      {sportpark ? <span data-field="sportpark"><b>Sportpark:</b> {sportpark}</span> : null}
     </div>
   );
 }
 
-function FixtureTeams({
-  away,
-  display,
-  home
-}: {
-  away: string;
-  display: DynamicTemplateView["sportDisplay"];
-  home: string;
-}) {
-  return (
-    <span className={styles.arenaFixtureTeams}>
-      <span>
-        {display?.showHomeAway ? <em>Thuis</em> : null}
-        <b title={home}>{home}</b>
-      </span>
-      <i>vs</i>
-      <span>
-        {display?.showHomeAway ? <em>Uit</em> : null}
-        <b title={away}>{away}</b>
-      </span>
-    </span>
-  );
+function programPrimaryColumns(display: DynamicTemplateView["sportDisplay"]) {
+  const tracks: string[] = [];
+  if (display?.showDate !== false) tracks.push("minmax(140px, .72fr)");
+  if (display?.showTime !== false) tracks.push("minmax(60px, .48fr)");
+  if (display?.showHomeLogo !== false) tracks.push("var(--arena-match-logo-size)");
+  tracks.push("minmax(0, 1.55fr)");
+  if (display?.showHomeDressingRoom) tracks.push("minmax(0, .88fr)");
+  tracks.push("36px");
+  if (display?.showAwayLogo !== false) tracks.push("var(--arena-match-logo-size)");
+  tracks.push("minmax(0, 1.55fr)");
+  if (display?.showAwayDressingRoom) tracks.push("minmax(0, .88fr)");
+  return tracks.join(" ");
 }
 
-function sportRowMeta(
-  display: DynamicTemplateView["sportDisplay"],
-  item: DynamicTemplateListItem
-) {
-  const locations = [
-    item.venueName,
-    display?.showField ? item.venue || item.field || item.meta : ""
-  ].filter((value, index, values) => value && values.indexOf(value) === index);
-  return [
-    ...locations,
-    display?.showDressingRoom && item.homeRoom ? `Thuis ${item.homeRoom}` : "",
-    display?.showDressingRoom && item.awayRoom ? `Uit ${item.awayRoom}` : "",
-    display?.showReferee ? item.officials.join(" · ") : ""
-  ].filter(Boolean).join(" · ");
+function resultPrimaryColumns(display: DynamicTemplateView["sportDisplay"]) {
+  const tracks: string[] = [];
+  if (display?.showDate !== false) tracks.push("minmax(190px, .82fr)");
+  if (display?.showTime !== false) tracks.push("minmax(70px, .48fr)");
+  if (display?.showHomeLogo !== false) tracks.push("var(--arena-match-logo-size)");
+  tracks.push("minmax(0, 1.55fr)", "minmax(112px, .68fr)");
+  if (display?.showAwayLogo !== false) tracks.push("var(--arena-match-logo-size)");
+  tracks.push("minmax(0, 1.55fr)");
+  return tracks.join(" ");
+}
+
+function matchDetailValue(value: string) {
+  return value
+    .replace(/^(?:kleedkamer|veld|field|sportpark)\s*:?\s*/iu, "")
+    .trim() || "volgt";
 }
 
 function ArenaRow({

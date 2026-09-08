@@ -1,5 +1,6 @@
 import {
   sportlinkSlideBlueprints,
+  sportlinkDisplayConfigSchema,
   sportlinkSlideTeamContextsSchema,
   sportlinkSlideTeamSelectionSchema,
   type SportlinkArrivalConfig,
@@ -106,14 +107,7 @@ function buildDraft(
   return {
     blueprintKey,
     context: { ...team.context },
-    display: {
-      columns: "one",
-      showDressingRoom: false,
-      showField: true,
-      showHomeAway: true,
-      showLogo: true,
-      showReferee: false
-    },
+    display: sportlinkDisplayConfigSchema.parse({}),
     name: (teamContexts || teamSelection
       ? label
       : `${team.name} · ${blueprint.label}`).slice(0, 120),
