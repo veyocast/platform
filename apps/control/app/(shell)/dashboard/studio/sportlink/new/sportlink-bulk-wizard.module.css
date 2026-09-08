@@ -400,6 +400,42 @@
   padding: 8px 11px;
 }
 
+.displayGroups {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.displayGroup {
+  align-content: start;
+  background: var(--ff-surface);
+  border: 1px solid var(--ff-border);
+  border-radius: 14px;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  padding: 14px;
+}
+
+.displayGroup legend {
+  color: var(--ff-heading);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 0 5px;
+}
+
+.displayGroup label {
+  align-items: center;
+  background: var(--ff-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: 10px;
+  display: flex;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 11px;
+}
+
 .reviewList {
   display: grid;
   gap: 12px;

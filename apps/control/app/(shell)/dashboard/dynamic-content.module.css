@@ -1327,12 +1327,83 @@
   padding-top: var(--vc-space-12);
 }
 
+.editorialPalettePresets {
+  display: grid;
+  gap: var(--vc-space-8);
+}
+
+.editorialPalettePresets > span {
+  color: var(--vc-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.editorialPalettePresets > div {
+  display: grid;
+  gap: var(--vc-space-8);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+}
+
+.editorialPalettePresets button {
+  align-items: center;
+  background: var(--vc-surface);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-text);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: var(--vc-space-8);
+  min-height: 44px;
+  padding: var(--vc-space-8) var(--vc-space-10);
+  text-align: left;
+}
+
+.editorialPalettePresets button[aria-pressed="true"] {
+  border-color: var(--vc-action);
+  box-shadow: 0 0 0 1px var(--vc-action);
+}
+
+.editorialPalettePresets button:focus-visible {
+  outline: 2px solid var(--vc-focus);
+  outline-offset: 2px;
+}
+
+.editorialPalettePresets button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.editorialPalettePresets button i {
+  background: var(--theme-preset-color);
+  border: 1px solid color-mix(in srgb, var(--vc-text) 18%, transparent);
+  border-radius: var(--vc-radius-full);
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, white 26%, transparent);
+  display: block;
+  flex: 0 0 auto;
+  height: 22px;
+  width: 22px;
+}
+
 .editorialPaletteCard {
   grid-area: palette;
 }
 
 .editorialContrastCard {
   grid-area: contrast;
+}
+
+.editorialContrastWarning {
+  background: var(--vc-semantic-warning-surface);
+  border: 1px solid color-mix(in srgb, var(--vc-semantic-warning-solid) 42%, var(--vc-border));
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-semantic-warning-text);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: var(--vc-space-10) var(--vc-space-12);
 }
 
 .editorialThemePreviewRail {
@@ -1731,7 +1802,7 @@
 }
 
 .editorialModeTab:focus-visible {
-  outline: 2px solid var(--vc-focus-ring);
+  outline: 2px solid var(--vc-focus);
   outline-offset: 2px;
 }
 
@@ -1880,7 +1951,7 @@
 }
 
 .editorialTokenGroup > summary:focus-visible {
-  outline: 2px solid var(--vc-focus-ring);
+  outline: 2px solid var(--vc-focus);
   outline-offset: -2px;
 }
 

@@ -79,9 +79,7 @@ export default async function FieldFlowThemePage({ searchParams }: PageProps) {
               </p>
               {data.rollout.error_code ? (
                 <p className="notice notice--critical">
-                  Oorzaak: {data.rollout.error_code}. Gevolg: de oude release
-                  blijft spelen. Herstel: probeer deze immutable uitrol opnieuw
-                  nadat de renderworker beschikbaar is.
+                  {rolloutRecoveryCopy(data.rollout.error_code)}
                 </p>
               ) : null}
               {data.rollout.status === "failed" && canManage ? (
@@ -108,11 +106,27 @@ export default async function FieldFlowThemePage({ searchParams }: PageProps) {
               initialTheme={data.authority.theme}
             />
           </section>
-          <SettingsDirtySavebar disabled={!canManage} />
+          <SettingsDirtySavebar
+            disabled={!canManage}
+            validationFieldName="themeSaveReadiness"
+          />
         </form>
       </div>
     </>
   );
+}
+
+function rolloutRecoveryCopy(errorCode: string) {
+  if (errorCode === "THEME_RELEASE_FAILED") {
+    return "De presentaties zijn gereed, maar de actieve releasekoppeling kon niet veilig worden vernieuwd. De oude release blijft spelen. Probeer de immutable uitrol opnieuw; neem contact op met een platformbeheerder als dit terugkomt.";
+  }
+  if (errorCode === "THEME_RENDER_FAILED") {
+    return "Minstens één nieuwe presentatie kon niet worden gerenderd. De oude release blijft spelen. Probeer de immutable uitrol opnieuw nadat de renderworker beschikbaar is.";
+  }
+  if (errorCode === "THEME_ROLLOUT_SUPERSEDED") {
+    return "Deze uitrol is ingehaald door een nieuwere theme-wijziging. De nieuwere wijziging is leidend; controleer de meest recente uitrolstatus.";
+  }
+  return "De immutable theme-uitrol is niet voltooid. De oude release blijft veilig spelen. Probeer de uitrol opnieuw en neem contact op met een platformbeheerder als dit terugkomt.";
 }
 
 async function loadTheme(tenantId: string | null, isLive: boolean) {

@@ -205,11 +205,18 @@ export type DynamicTemplateView = {
   };
   sportDisplay?: {
     columns: "one" | "two";
+    showAwayDressingRoom: boolean;
+    showAwayLogo: boolean;
+    showDate: boolean;
     showDressingRoom: boolean;
     showField: boolean;
     showHomeAway: boolean;
+    showHomeDressingRoom: boolean;
+    showHomeLogo: boolean;
     showLogo: boolean;
     showReferee: boolean;
+    showSportpark: boolean;
+    showTime: boolean;
   };
   templateStyle: "default" | "standing-club-edition";
   theme: DynamicTemplateTheme;
@@ -460,13 +467,36 @@ function createDynamicTemplateViewInternal(
 
   const sport = readRecord(data.sport);
   const displayConfig = readRecord(sport?.displayConfig);
+  const legacyShowLogo = displayConfig?.showLogo !== false;
+  const legacyShowDressingRoom = displayConfig?.showDressingRoom === true;
+  const showAwayDressingRoom =
+    typeof displayConfig?.showAwayDressingRoom === "boolean"
+      ? displayConfig.showAwayDressingRoom
+      : legacyShowDressingRoom;
+  const showAwayLogo = typeof displayConfig?.showAwayLogo === "boolean"
+    ? displayConfig.showAwayLogo
+    : legacyShowLogo;
+  const showHomeDressingRoom =
+    typeof displayConfig?.showHomeDressingRoom === "boolean"
+      ? displayConfig.showHomeDressingRoom
+      : legacyShowDressingRoom;
+  const showHomeLogo = typeof displayConfig?.showHomeLogo === "boolean"
+    ? displayConfig.showHomeLogo
+    : legacyShowLogo;
   const sportDisplay = {
     columns: displayConfig?.columns === "two" ? "two" as const : "one" as const,
-    showDressingRoom: displayConfig?.showDressingRoom === true,
+    showAwayDressingRoom,
+    showAwayLogo,
+    showDate: displayConfig?.showDate !== false,
+    showDressingRoom: showHomeDressingRoom || showAwayDressingRoom,
     showField: displayConfig?.showField !== false,
     showHomeAway: displayConfig?.showHomeAway !== false,
-    showLogo: displayConfig?.showLogo !== false,
-    showReferee: displayConfig?.showReferee === true
+    showHomeDressingRoom,
+    showHomeLogo,
+    showLogo: showHomeLogo || showAwayLogo,
+    showReferee: displayConfig?.showReferee === true,
+    showSportpark: displayConfig?.showSportpark !== false,
+    showTime: displayConfig?.showTime !== false
   };
   const sportItemLimit = payload.slideType === "sport_program" ||
     payload.slideType === "sport_results"
@@ -1692,6 +1722,7 @@ function buildNewsPages(
 }
 
 function safeNullableScore(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
   const numeric = Number(value);
   return Number.isInteger(numeric) && numeric >= 0 && numeric <= 999
     ? numeric

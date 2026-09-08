@@ -142,11 +142,11 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("arrivalConfiguration.sponsorMediaAssetId");
     expect(html).toContain('list.setAttribute("data-columns", columns)');
     expect(html).toContain("configureLegacyMatchColumns(");
-    expect(html).toContain('orientation === "landscape" && displayConfiguration');
-    expect(html).toContain("renderLegacyMatchInformation(item, fixtureDetails)");
-    expect(html).toContain("renderLegacyMatchInformation(item, resultDetails)");
-    expect(html).toContain("renderLegacyMatchFixture(");
-    expect(html).toContain('templateNode(\n                "i", "legacy-result-score"');
+    expect(html).toContain("templateSportDisplayConfiguration(sport.displayConfig)");
+    expect(html).toContain("renderLegacyProgramPrimary(");
+    expect(html).toContain("renderLegacyProgramSecondary(");
+    expect(html).toContain("renderLegacyResultPrimary(");
+    expect(html).toContain('templateNode("i", "legacy-result-score")');
     expect(html).toContain(
       '.editorial-arena.portrait .editorial-news[data-news-variant="hero_split"]{box-sizing:border-box;gap:32px;padding-right:20px;padding-left:20px}'
     );
@@ -486,21 +486,29 @@ describe("zelfstandige LG Legacy Player", () => {
       '[data-columns="two"]{grid-auto-flow:column;grid-template-columns:repeat(2,minmax(0,1fr))'
     );
     expect(html).toContain(
-      ".legacy-fixture-row,.legacy-result-row{display:grid;grid-template-rows:auto minmax(0,1fr)"
+      ".legacy-fixture-row,.legacy-result-row{display:grid;align-content:center"
     );
     expect(html).toContain(
       ".portrait .legacy-fixture-list{grid-auto-rows:221px}.portrait .legacy-result-list{grid-auto-rows:314px}"
     );
     expect(html).toContain(
-      '.legacy-match-main{display:grid;grid-template-columns:58px minmax(0,1fr) auto'
+      ".legacy-program-primary{grid-template-columns:var(--legacy-program-columns)}"
     );
-    expect(html).toContain(".legacy-result-score{justify-self:end");
+    expect(html).toContain(
+      ".legacy-result-primary{grid-template-columns:var(--legacy-result-columns)}"
+    );
+    expect(html).toContain(
+      ".legacy-program-secondary{display:flex;align-items:center;justify-content:flex-end"
+    );
+    expect(html).toContain(".legacy-result-score{display:flex;min-width:112px");
     expect(html).toContain(
       'slideType === "sport_program" ? (orientation === "portrait" ? 7 : 6)'
     );
     expect(html).toContain('Math.ceil(itemCount / 2) + ",115px)"');
     expect(html).toContain("@keyframes legacy-match-row-in");
-    expect(html).toContain("displayConfiguration.showLogo !== false");
+    expect(html).toContain(
+      "templateSportDisplayConfiguration(sport.displayConfig)"
+    );
     expect(html).toContain("Number(themePresentation.snapshotVersion) === 2");
     expect(html).toContain('"--vc-club-logo-background"');
     expect(html).toContain('"--vc-home-logo-background"');
@@ -518,5 +526,144 @@ describe("zelfstandige LG Legacy Player", () => {
       'footer.appendChild(templateNode("span", "", sourceLabel))'
     );
     expect(html).not.toContain("MATCHCENTRE / 03");
+  });
+
+  it("rendert programma en uitslagen in de vaste S158-volgorde", () => {
+    const html = renderLgLegacyHtml();
+    const programStart = html.indexOf("function renderLegacyProgramPrimary");
+    const programEnd = html.indexOf(
+      "function renderLegacyProgramSecondary",
+      programStart
+    );
+    const programSource = html.slice(programStart, programEnd);
+    const programOrder = [
+      "displayConfiguration.showDate",
+      "displayConfiguration.showTime",
+      "displayConfiguration.showHomeLogo",
+      "teams[0], item.homeLogoMediaAssetId",
+      'renderLegacyMatchTeam(teams[0], "home")',
+      "displayConfiguration.showHomeDressingRoom",
+      '"legacy-match-separator", "vs."',
+      "displayConfiguration.showAwayLogo",
+      "teams[1], item.awayLogoMediaAssetId",
+      'renderLegacyMatchTeam(teams[1], "away")',
+      "displayConfiguration.showAwayDressingRoom"
+    ];
+    for (let index = 1; index < programOrder.length; index += 1) {
+      expect(programSource.indexOf(programOrder[index]!)).toBeGreaterThan(
+        programSource.indexOf(programOrder[index - 1]!)
+      );
+    }
+
+    const secondaryStart = html.indexOf(
+      "function renderLegacyProgramSecondary"
+    );
+    const secondaryEnd = html.indexOf(
+      "function templateLegacyResultScore",
+      secondaryStart
+    );
+    const secondarySource = html.slice(secondaryStart, secondaryEnd);
+    expect(secondarySource.indexOf("displayConfiguration.showField")).toBeGreaterThan(
+      secondarySource.indexOf("displayConfiguration.showReferee")
+    );
+    expect(secondarySource.indexOf("displayConfiguration.showSportpark")).toBeGreaterThan(
+      secondarySource.indexOf("displayConfiguration.showField")
+    );
+    expect(secondarySource).toContain(
+      "secondary.children.length ? secondary : null"
+    );
+
+    const resultStart = html.indexOf("function renderLegacyResultPrimary");
+    const resultEnd = html.indexOf(
+      "function configureLegacyMatchColumns",
+      resultStart
+    );
+    const resultSource = html.slice(resultStart, resultEnd);
+    const resultOrder = [
+      "displayConfiguration.showDate",
+      "displayConfiguration.showTime",
+      "displayConfiguration.showHomeLogo",
+      "teams[0], item.homeLogoMediaAssetId",
+      'renderLegacyMatchTeam(teams[0], "home")',
+      "primary.appendChild(score)",
+      "displayConfiguration.showAwayLogo",
+      "teams[1], item.awayLogoMediaAssetId",
+      'renderLegacyMatchTeam(teams[1], "away")'
+    ];
+    for (let index = 1; index < resultOrder.length; index += 1) {
+      expect(resultSource.indexOf(resultOrder[index]!)).toBeGreaterThan(
+        resultSource.indexOf(resultOrder[index - 1]!)
+      );
+    }
+    expect(resultSource).toContain('"Uitslag nog niet bekend"');
+    expect(resultSource).toContain(
+      'score.appendChild(templateNode("span", "", "–"))'
+    );
+    expect(resultSource).toContain(
+      '"Uitslag " + homeScore + " tegen " + awayScore'
+    );
+    expect(html).toContain(
+      "numeric >= 0 && numeric <= 999"
+    );
+  });
+
+  it("projecteert displayfallbacks, appearance en alle 26 theme-kleurrollen", () => {
+    const html = renderLgLegacyHtml();
+    const normalizedStart = html.indexOf(
+      "function templateSportDisplayConfiguration"
+    );
+    const normalizedEnd = html.indexOf(
+      "function templateSportOfficials",
+      normalizedStart
+    );
+    const normalizedSource = html.slice(normalizedStart, normalizedEnd);
+    expect(normalizedSource).toContain(
+      'typeof source.showHomeLogo === "boolean"'
+    );
+    expect(normalizedSource).toContain(
+      'typeof source.showAwayLogo === "boolean"'
+    );
+    expect(normalizedSource).toContain(
+      'typeof source.showHomeDressingRoom === "boolean"'
+    );
+    expect(normalizedSource).toContain(
+      'typeof source.showAwayDressingRoom === "boolean"'
+    );
+    expect(normalizedSource).toContain("source.showDate !== false");
+    expect(normalizedSource).toContain("source.showTime !== false");
+    expect(normalizedSource).toContain("source.showSportpark !== false");
+    expect(normalizedSource).toContain("legacyShowLogo");
+    expect(normalizedSource).toContain("legacyShowDressingRoom");
+
+    const semanticVariables = [
+      "--vc-accent", "--vc-accent-soft", "--vc-border", "--vc-border-soft",
+      "--vc-canvas", "--vc-danger", "--vc-divider", "--vc-image-overlay-end",
+      "--vc-image-overlay-mid", "--vc-image-overlay-start", "--vc-neutral",
+      "--vc-panel", "--vc-qr-ink", "--vc-qr-surface", "--vc-row",
+      "--vc-row-selected", "--vc-shadow", "--vc-success", "--vc-surface",
+      "--vc-surface-raised", "--vc-text", "--vc-text-faint", "--vc-text-muted",
+      "--vc-text-on-accent", "--vc-text-on-selected", "--vc-warning"
+    ];
+    for (const variable of semanticVariables) {
+      expect(html).toContain(`["${variable}",`);
+    }
+    expect(html).toContain('"--vc-club-logo-background"');
+    expect(html).toContain('"--vc-home-logo-background"');
+
+    const matchCssStart = html.indexOf(
+      ".legacy-fixture-list,.legacy-result-list"
+    );
+    const matchCssEnd = html.indexOf(
+      ".legacy-team-mini{display:inline-grid",
+      matchCssStart
+    );
+    const matchCss = html.slice(matchCssStart, matchCssEnd);
+    expect(matchCss).toContain("var(--vc-row)");
+    expect(matchCss).toContain("var(--vc-text)");
+    expect(matchCss).toContain("var(--vc-text-muted)");
+    expect(matchCss).toContain("var(--vc-accent)");
+    expect(matchCss).toContain("var(--vc-home-logo-background)");
+    expect(matchCss).toContain("var(--vc-panel)");
+    expect(matchCss).not.toContain("var(--editorial-");
   });
 });

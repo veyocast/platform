@@ -67,7 +67,7 @@ export async function createSportlinkSlideBatch(
   }
 
   const { data, error } = await supabase.rpc(
-    "create_sportlink_slide_batch_v4",
+    "create_sportlink_slide_batch_v5",
     {
       p_data_source_id: parsed.data.dataSourceId,
       p_drafts: parsed.data.drafts,

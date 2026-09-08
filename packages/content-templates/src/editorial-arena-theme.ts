@@ -124,15 +124,34 @@ export function editorialThemeHasValidContrast(
   theme: EditorialThemeConfig,
   minimumRatio = 4.5
 ) {
-  return (["light", "dark"] as const).every((mode) => {
-    const tokens = theme[mode];
-    return [
-      contrastRatio(tokens.text, tokens.surface, tokens.canvas),
-      contrastRatio(tokens.textOnAccent, tokens.accent),
-      contrastRatio(tokens.textOnSelected, tokens.rowSelected),
-      contrastRatio(tokens.qrSurface, tokens.imageOverlayStart),
-      contrastRatio(tokens.qrInk, tokens.qrSurface)
-    ].every((ratio) => ratio !== null && ratio >= minimumRatio);
+  return (["light", "dark"] as const).every((mode) => (
+    editorialThemeContrastChecks(theme[mode], minimumRatio)
+      .every((check) => check.ready)
+  ));
+}
+
+export function editorialThemeContrastChecks(
+  tokens: EditorialColorTokens,
+  minimum = 4.5
+) {
+  const combinations = [
+    ["body", tokens.text, tokens.surface, tokens.canvas],
+    ["accent", tokens.textOnAccent, tokens.accent, undefined],
+    ["selected", tokens.textOnSelected, tokens.rowSelected, undefined],
+    ["photo", tokens.qrSurface, tokens.imageOverlayStart, undefined],
+    ["qr", tokens.qrInk, tokens.qrSurface, undefined]
+  ] as const;
+  return combinations.map(([id, foreground, background, underlay]) => {
+    const ratio = contrastRatio(foreground, background, underlay);
+    return {
+      background,
+      foreground,
+      id,
+      minimum,
+      ratio,
+      ready: ratio !== null && ratio >= minimum,
+      underlay
+    };
   });
 }
 

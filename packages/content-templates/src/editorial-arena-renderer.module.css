@@ -915,7 +915,7 @@
 }
 
 .arenaNewsLayout[data-news-variant="fullscreen_gradient"] .arenaNewsSource {
-  right: 22px;
+  right: 92px;
   left: auto;
 }
 
@@ -959,6 +959,7 @@
 .arenaNewsLayout[data-news-variant="fullscreen_gradient"] > .arenaNewsQr {
   right: 92px;
   bottom: 30px;
+  width: 220px;
 }
 
 .arenaNewsLayout[data-news-variant="text_only"] {
@@ -1053,11 +1054,10 @@
 
 .arenaProgramRow,
 .arenaResultRow {
+  --arena-match-logo-size: 48px;
   position: relative;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
   align-content: center;
-  gap: 8px;
   box-sizing: border-box;
   height: var(--arena-row-height);
   min-width: 0;
@@ -1068,7 +1068,19 @@
   border-radius: 18px;
   background: var(--vc-row);
   box-shadow: 0 12px 36px var(--vc-shadow);
+  color: var(--vc-text);
   font-size: var(--vc-theme-sport-row-size, 22.4px);
+}
+
+.arenaProgramRow {
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.arenaResultRow {
+  --arena-match-logo-size: 57px;
+  grid-template-rows: minmax(0, 1fr);
+  font-size: var(--vc-theme-sport-result-size, 33.6px);
 }
 
 .arenaRoot[data-transition]:not([data-transition="instant-cut"]) .arenaProgramRow,
@@ -1076,28 +1088,33 @@
   animation: matchRowIn 420ms cubic-bezier(.2, .8, .2, 1) var(--arena-row-delay) both;
 }
 
-.arenaResultRow {
-  font-size: var(--vc-theme-sport-result-size, 33.6px);
-}
-
 .arenaSportColumns[data-columns="2"] .arenaProgramRow,
 .arenaSportColumns[data-columns="2"] .arenaResultRow {
   padding: 10px 14px;
 }
 
-.arenaMatchInformation {
-  display: flex;
+.arenaSportColumns[data-columns="2"] .arenaProgramRow {
+  --arena-match-logo-size: 42px;
+}
+
+.arenaMatchPrimary {
+  display: grid;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  width: 100%;
   min-width: 0;
-  color: var(--vc-text-muted);
-  font-size: var(--vc-theme-font-20, 20px);
   line-height: 1;
 }
 
+.arenaSportColumns[data-columns="2"] .arenaMatchPrimary {
+  gap: 8px;
+}
+
 .arenaMatchDate,
-.arenaKickoff {
-  flex: 0 0 auto;
+.arenaKickoff,
+.arenaMatchTeam,
+.arenaMatchRoom {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1105,100 +1122,84 @@
 
 .arenaMatchDate {
   color: var(--vc-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .arenaKickoff {
   color: var(--vc-accent);
+  font-variant-numeric: tabular-nums;
   text-align: left;
 }
 
-.arenaMatchInformation > i {
-  color: var(--vc-text-faint);
-  font-style: normal;
-  font-weight: 700;
-}
-
-.arenaFixtureMain {
-  display: grid;
-  grid-template-columns: 58px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 16px;
-  min-width: 0;
-}
-
-.arenaFixtureMain[data-logo="hidden"] {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.arenaSportColumns[data-columns="2"] .arenaFixtureMain {
-  grid-template-columns: 48px minmax(0, 1fr) auto;
-  gap: 10px;
-}
-
-.arenaSportColumns[data-columns="2"] .arenaFixtureMain[data-logo="hidden"] {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.arenaHomeLogo {
+.arenaMatchLogo {
   display: grid;
   min-width: 0;
   place-items: center;
 }
 
-.arenaFixtureTeams {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-  font-weight: 750;
+.arenaMatchLogo .arenaTeamMini {
+  width: var(--arena-match-logo-size);
+  height: var(--arena-match-logo-size);
+  border-radius: 12px;
 }
 
-.arenaFixtureTeams > span {
-  display: flex;
-  flex: 0 1 auto;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  text-align: left;
+.arenaMatchTeam {
+  color: var(--vc-text);
+  font-weight: 780;
 }
 
-.arenaFixtureTeams > span > b {
+.arenaMatchRoom {
+  color: var(--vc-text-muted);
+  font-size: .72em;
+  font-weight: 700;
+}
+
+.arenaVersusMark {
+  color: var(--vc-text-muted);
+  font-size: .72em;
+  font-style: normal;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.arenaMatchSecondary {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--vc-text-muted);
+  font-size: .52em;
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.arenaMatchSecondary span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.arenaFixtureTeams > i {
-  color: var(--vc-text-muted);
-  font-size: .74em;
-  font-style: normal;
-  font-weight: 800;
-  text-transform: uppercase;
+.arenaMatchSecondary span + span::before {
+  margin-right: 12px;
+  color: var(--vc-text-faint);
+  content: "|";
 }
 
-.arenaFixtureTeams em {
-  display: inline-flex;
-  flex: 0 0 auto;
-  min-width: max-content;
-  align-items: center;
-  justify-content: center;
-  padding: 3px 6px;
-  border-radius: 6px;
-  background: var(--vc-accent-soft);
-  color: var(--vc-accent);
-  font-size: var(--vc-theme-font-11, 11px);
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: .06em;
-  white-space: nowrap;
-  text-transform: uppercase;
+.arenaMatchSecondary b {
+  color: var(--vc-text);
 }
 
 .arenaResultScore {
   display: flex;
-  justify-self: end;
+  min-width: 112px;
+  min-height: 1em;
   align-items: center;
+  justify-content: center;
+  justify-self: stretch;
   gap: 10px;
   color: var(--vc-accent);
   font-size: var(--vc-theme-sport-score-size, 52.08px);
@@ -1213,19 +1214,12 @@
   font-size: .64em;
 }
 
-.arenaMatchVenue,
 .arenaRow p {
   overflow: hidden;
   margin: 0;
   color: var(--vc-text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.arenaMatchVenue {
-  min-width: 0;
-  font-size: 1em;
-  text-align: left;
 }
 
 .arenaRow {
@@ -1813,6 +1807,21 @@
   width: 57px;
   height: 57px;
   font-size: var(--vc-theme-font-18, 18px);
+}
+
+.arenaRoot[data-slide-type="sport_results"] .arenaSportColumns[data-columns="2"] .arenaResultRow {
+  --arena-match-logo-size: 48px;
+  font-size: var(--vc-theme-font-24, 24px);
+}
+
+.arenaRoot[data-slide-type="sport_results"] .arenaSportColumns[data-columns="2"] .arenaTeamMini {
+  width: 48px;
+  height: 48px;
+}
+
+.arenaRoot[data-slide-type="sport_results"] .arenaSportColumns[data-columns="2"] .arenaResultScore {
+  min-width: 88px;
+  font-size: var(--vc-theme-font-42, 42px);
 }
 
 .arenaRoot[data-slide-type="sport_standing"] .arenaStandingTeam > img {

@@ -48,7 +48,10 @@ describe("Editorial Arena pooltypografie", () => {
       /\.arenaNewsQr img \{\s*width: 220px;\s*height: 220px;/u
     );
     expect(css).toMatch(
-      /\.arenaNewsLayout\[data-news-variant="fullscreen_gradient"\] > \.arenaNewsQr \{\s*right: 92px;/u
+      /\.arenaNewsLayout\[data-news-variant="fullscreen_gradient"\] \.arenaNewsSource \{\s*right: 92px;/u
+    );
+    expect(css).toMatch(
+      /\.arenaNewsLayout\[data-news-variant="fullscreen_gradient"\] > \.arenaNewsQr \{\s*right: 92px;\s*bottom: 30px;\s*width: 220px;/u
     );
     expect(css).toMatch(
       /\.arenaRoot\[data-orientation="portrait"\] \.arenaNewsLayout\[data-news-variant="fullscreen_gradient"\] > \.arenaNewsQr \{\s*right: 106px;\s*bottom: 46px;/u

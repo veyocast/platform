@@ -215,3 +215,21 @@ Een insert of wijziging van `dynamic_slides.configuration_json` of
 `dynamic_slide_versions.configuration_json` blijft daarentegen fail-closed en
 accepteert uitsluitend `fieldflow`, inclusief Menu-documenten die hun
 `themeId` rechtstreeks onder `theme` bewaren.
+
+### Sportlink-wedstrijdscope en displayconfig
+
+Clubbrede programma- en uitslagsnapshots selecteren uitsluitend wedstrijden
+waar een actief team van exact dezelfde tenant, Sportlink-connection en gekozen
+teamselectie aan de thuis- of uitzijde staat. De ingestelde richting wordt
+tegen die echte zijde bepaald; `is_home_match` is daarvoor geen authority.
+Poulebrede snapshots lossen eerst exact één competitie/fase/poule/seizoen op en
+tonen daarna alle wedstrijden uit die context, dus ook foreign-vs-foreign. Een
+ontbrekende of ambigue automatische context levert een lege state en mag nooit
+naar de hele bron verbreden.
+
+De snapshot bewaart één genormaliseerde displayconfig met afzonderlijke flags
+voor datum, tijd, beide logo's, beide kleedkamers, scheidsrechter, veld en
+sportpark. De legacy masterflags blijven alleen een compatibiliteitsalias en
+zijn altijd de OR van hun twee zijdeflags. Moderne en Static-LG-renderers lezen
+dezelfde immutable config, score-nullsemantiek, themePresentation en vaste
+paginering.

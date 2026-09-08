@@ -5,13 +5,17 @@ import { describe, expect, it } from "vitest";
 import type { EditorialThemeConfig, ThemeSelection } from "@veyocast/contracts";
 import {
   editorialArenaLightTokens,
-  editorialThemeCssVariables
+  editorialThemeCssVariables,
+  editorialThemeHasValidContrast
 } from "@veyocast/content-templates/editorial-arena-theme";
 
 import {
   EditorialThemeEditor,
   colorPickerValue,
+  deriveSupportColor,
   editorialThemeTokenGroups,
+  fieldflowPalettePresets,
+  generateFieldflowPalette,
   replaceColorChannels,
   resolveThemeDraftDefaults
 } from "./editorial-theme-editor";
@@ -67,14 +71,43 @@ describe("Centrale tenantkleur-editor", () => {
     expect(resolveThemeDraftDefaults(selection, fallback).valid).toBe(true);
   });
 
+  it.each(["#000000", "#FFFFFF", "#FFFF00", "#777777", "#3D61FF"])(
+    "bouwt voor de extreme hoofdkleur %s twee complete contrastrijke paletten",
+    (primary) => {
+      for (const preset of fieldflowPalettePresets) {
+        const generated = generateFieldflowPalette(primary, preset.recipe, "dark");
+        expect(Object.keys(generated.light).sort())
+          .toEqual(Object.keys(editorialArenaLightTokens).sort());
+        expect(Object.keys(generated.dark).sort())
+          .toEqual(Object.keys(editorialArenaLightTokens).sort());
+        expect(editorialThemeHasValidContrast(generated)).toBe(true);
+        expect(generated.mode).toBe("dark");
+      }
+      expect(deriveSupportColor(primary)).toMatch(/^#[0-9A-F]{6}$/);
+    }
+  );
+
+  it("laat recepten aantoonbaar verschillende volledige paletten maken", () => {
+    const balanced = generateFieldflowPalette("#315CFF", "balanced");
+    const bright = generateFieldflowPalette("#315CFF", "bright");
+    const deep = generateFieldflowPalette("#315CFF", "deep");
+
+    expect(new Set([
+      balanced.light.canvas,
+      bright.light.canvas,
+      deep.light.canvas
+    ]).size).toBe(3);
+    expect(new Set([
+      balanced.dark.surface,
+      bright.dark.surface,
+      deep.dark.surface
+    ]).size).toBe(3);
+  });
+
   it.each(["light", "dark"] as const)(
     "toont alle kleurvelden en previewrollen voor het %s palet",
     (mode) => {
-      const theme: EditorialThemeConfig = {
-        dark: editorialArenaLightTokens,
-        light: editorialArenaLightTokens,
-        mode
-      };
+      const theme = generateFieldflowPalette("#315CFF", "balanced", mode);
       const selection: ThemeSelection = {
         accent: "#315CFF",
         categoryOverrides: [],
@@ -106,9 +139,13 @@ describe("Centrale tenantkleur-editor", () => {
 
       expect(html).toContain("Live voorbeeld");
       expect(html).toContain("26/26 rollen");
+      expect(html).toContain("Hoofdkleur");
+      expect(html).toContain("Standaardpaletten");
+      expect(html).toContain('name="themeSaveReadiness"');
+      expect(html).toContain('value="ready"');
       expect(html).toContain('role="tablist"');
       expect(html).toContain("Contrastcontrole");
-      expect(html).toContain("Kleurrollen in licht en donker herstellen");
+      expect(html).toContain("Palet opnieuw opbouwen");
       expect(controlTokens).toEqual(contractTokens);
       expect(new Set(previewTokens)).toEqual(new Set(contractTokens));
       expect(html.match(/aria-label="[^"]+ herstellen"/g)).toHaveLength(26);

@@ -11,10 +11,12 @@ import { useId, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import {
+  sportlinkDisplayConfigSchema,
   sportlinkSlideBlueprints,
   sportlinkSlideTeamContextsMax,
   type SelectableThemeId,
   type SportlinkMatchLocation,
+  type SportlinkDisplayConfig,
   type SportlinkSlideBlueprintKey,
   type SportlinkSlideContext,
   type SportlinkSlideDraft
@@ -112,6 +114,10 @@ export function SportlinkVersionEditor({
   );
   const arrival = isArrivalBlueprint(draft.blueprintKey);
   const clubAggregate = isClubAggregateBlueprint(draft.blueprintKey);
+  const slideType = sportlinkSlideBlueprints[draft.blueprintKey].slideType;
+  const matchRows = slideType === "sport_program" ||
+    slideType === "sport_results";
+  const programRows = slideType === "sport_program";
   const themeId = draft.themeSelection.ref.catalog === "v2"
     ? draft.themeSelection.ref.id
     : "fieldflow";
@@ -124,6 +130,16 @@ export function SportlinkVersionEditor({
     });
     setDirty(true);
     setMessage(null);
+  }
+
+  function updateDisplay(patch: Partial<SportlinkDisplayConfig>) {
+    update({
+      ...draft,
+      display: sportlinkDisplayConfigSchema.parse({
+        ...draft.display,
+        ...patch
+      })
+    });
   }
 
   function setBlueprint(blueprintKey: SportlinkSlideBlueprintKey) {
@@ -146,7 +162,6 @@ export function SportlinkVersionEditor({
   }
 
   function setOrientation(orientation: "landscape" | "portrait") {
-    const slideType = sportlinkSlideBlueprints[draft.blueprintKey].slideType;
     const templateVersionId = templateMap[`${orientation}:${slideType}`];
     if (!templateVersionId) {
       setMessage({
@@ -335,53 +350,46 @@ export function SportlinkVersionEditor({
 
         <fieldset className={styles.section}>
           <legend>Weergave</legend>
-          <div className={styles.inlineOptions}>
+          <div className={styles.displayGroups}>
+            <div className={styles.displayGroup}>
+              <strong>Indeling</strong>
             <label>
               <input
                 checked={draft.orientation === "landscape" &&
                   draft.display.columns === "two"}
                 disabled={draft.orientation === "portrait"}
-                onChange={(event) => update({
-                  ...draft,
-                  display: {
-                    ...draft.display,
-                    columns: event.target.checked ? "two" : "one"
-                  }
+                onChange={(event) => updateDisplay({
+                  columns: event.target.checked ? "two" : "one"
                 })}
                 type="checkbox"
               />
               Twee kolommen (alleen liggend)
             </label>
-            {sportlinkSlideBlueprints[draft.blueprintKey].slideType !== "sport_standing" ? (
+            </div>
+            {matchRows ? (
               <>
-                <DisplayToggle
-                  checked={draft.display.showHomeAway}
-                  label="Thuis / uit tonen"
-                  onChange={(checked) => update({ ...draft, display: { ...draft.display, showHomeAway: checked } })}
-                />
-                <DisplayToggle
-                  checked={draft.display.showLogo}
-                  label="Logo tonen"
-                  onChange={(checked) => update({ ...draft, display: { ...draft.display, showLogo: checked } })}
-                />
-                <DisplayToggle
-                  checked={draft.display.showField}
-                  label="Veld tonen"
-                  onChange={(checked) => update({ ...draft, display: { ...draft.display, showField: checked } })}
-                />
-                <DisplayToggle
-                  checked={draft.display.showDressingRoom}
-                  label="Kleedkamer tonen"
-                  onChange={(checked) => update({ ...draft, display: { ...draft.display, showDressingRoom: checked } })}
-                />
-                <DisplayToggle
-                  checked={draft.display.showReferee}
-                  label="Scheidsrechter tonen"
-                  onChange={(checked) => update({ ...draft, display: { ...draft.display, showReferee: checked } })}
-                />
+                <div className={styles.displayGroup}>
+                  <strong>Eerste regel</strong>
+                  <DisplayToggle checked={draft.display.showDate} label="Datum tonen" onChange={(checked) => updateDisplay({ showDate: checked })} />
+                  <DisplayToggle checked={draft.display.showTime} label="Tijd tonen" onChange={(checked) => updateDisplay({ showTime: checked })} />
+                  <DisplayToggle checked={draft.display.showHomeLogo} label="Logo thuisclub tonen" onChange={(checked) => updateDisplay({ showHomeLogo: checked })} />
+                  <DisplayToggle checked={draft.display.showAwayLogo} label="Logo uitclub tonen" onChange={(checked) => updateDisplay({ showAwayLogo: checked })} />
+                  {programRows ? <>
+                    <DisplayToggle checked={draft.display.showHomeDressingRoom} label="Kleedkamer thuis tonen" onChange={(checked) => updateDisplay({ showHomeDressingRoom: checked })} />
+                    <DisplayToggle checked={draft.display.showAwayDressingRoom} label="Kleedkamer uit tonen" onChange={(checked) => updateDisplay({ showAwayDressingRoom: checked })} />
+                  </> : null}
+                </div>
+                {programRows ? (
+                  <div className={styles.displayGroup}>
+                    <strong>Tweede regel</strong>
+                    <DisplayToggle checked={draft.display.showReferee} label="Scheidsrechter tonen" onChange={(checked) => updateDisplay({ showReferee: checked })} />
+                    <DisplayToggle checked={draft.display.showField} label="Veld tonen" onChange={(checked) => updateDisplay({ showField: checked })} />
+                    <DisplayToggle checked={draft.display.showSportpark} label="Sportpark tonen" onChange={(checked) => updateDisplay({ showSportpark: checked })} />
+                  </div>
+                ) : null}
               </>
             ) : (
-              <p>Voor een poulestand zijn alleen de kolommen relevant.</p>
+              <p>Voor dit onderdeel zijn alleen de kolommen relevant.</p>
             )}
           </div>
         </fieldset>
@@ -937,7 +945,9 @@ function shortLabel(key: SportlinkSlideBlueprintKey) {
     "sportlink.club_schedule_next_7_days": "Programma komende 7 dagen",
     "sportlink.club_results_today": "Uitslagen vandaag",
     "sportlink.club_results_previous_7_days": "Uitslagen afgelopen 7 dagen",
+    "sportlink.pool_schedule_today": "Programma poule vandaag",
     "sportlink.pool_schedule_next_7_days": "Programma poule",
+    "sportlink.pool_results_today": "Uitslagen poule vandaag",
     "sportlink.pool_results_previous_7_days": "Uitslagen poule",
     "sportlink.pool_standings": "Poulestand",
     "sportlink.visitor_arrivals": "Bezoekers welkom",

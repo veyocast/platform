@@ -67,12 +67,22 @@ export async function updateTenantTheme(formData: FormData) {
     !modePolicy.success ||
     !appearance.success ||
     !colorOverrides.success ||
-    !colorOverrides.data.fieldflow ||
-    !editorialThemeHasValidContrast(colorOverrides.data.fieldflow) ||
     accent === false ||
     support === false
   ) {
-    fail("De theme-instellingen zijn ongeldig. Controleer kleuren, contrast, fonts en schaal.");
+    fail(
+      "Een theme-waarde is onvolledig of ongeldig. Er is niets opgeslagen; herstel de gemarkeerde kleur, tijd, font of schaal en probeer opnieuw."
+    );
+  }
+  if (!colorOverrides.data.fieldflow) {
+    fail(
+      "Het volledige lichte en donkere FieldFlow-palet ontbreekt. Er is niets opgeslagen; herstel het standaardpalet en probeer opnieuw."
+    );
+  }
+  if (!editorialThemeHasValidContrast(colorOverrides.data.fieldflow)) {
+    fail(
+      "Een tekst- of QR-combinatie heeft onvoldoende contrast. Er is niets opgeslagen; herstel de gemarkeerde combinatie in licht of donker en probeer opnieuw."
+    );
   }
 
   const { data, error } = await supabase.rpc("update_tenant_theme_settings_v3", {

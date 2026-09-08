@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  sportlinkDisplayConfigSchema,
   sportlinkSlideTeamContextsMax,
   type SportlinkSlideDraft
 } from "@veyocast/contracts";
@@ -41,14 +42,7 @@ function regularDraft(): SportlinkSlideDraft {
   return {
     blueprintKey: "sportlink.club_schedule_today",
     context: autoCompetitionContext("team-a"),
-    display: {
-      columns: "two",
-      showDressingRoom: false,
-      showField: true,
-      showHomeAway: true,
-      showLogo: true,
-      showReferee: false
-    },
+    display: sportlinkDisplayConfigSchema.parse({ columns: "two" }),
     name: "Team A · Programma vandaag",
     orientation: "landscape",
     templateVersionId: templateId,

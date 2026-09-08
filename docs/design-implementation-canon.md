@@ -132,6 +132,16 @@ merkasset, primaire Electric-Orange/Ink-actie, securitygrens of offlinecontract.
   Instellingen beheerd. Slide-editors mogen geen afzonderlijke kleurwaarden
   opslaan; zij gebruiken voor preview en nieuwe snapshots dezelfde server-side
   tenant-authority. Historische snapshots en releases blijven immutable.
+- De primaire themeflow is één hoofdkleur of standaardpalet naar een volledig
+  gegenereerde lichte én donkere tokenkaart. De beheerder kan daarna alle 26
+  semantische rollen per modus en beide logoplaten afzonderlijk verfijnen. Een
+  nieuw standaardpalet vervangt die verfijningen expliciet; opgeslagen output
+  bevat alleen concrete hex-/rgba-waarden en geen browserafhankelijke
+  kleurfuncties.
+- Preview, opslaanknop en server gebruiken dezelfde vijf contrastcombinaties
+  per modus. Een ongeldige combinatie blijft zichtbaar, blokkeert opslaan en
+  noemt oorzaak, gevolg en herstel; status-, QR- en overlayrollen behouden hun
+  semantische betekenis bij het genereren van een clubpalet.
 - De centrale theme-editor gebruikt de volledige beschikbare instellingenkolom:
   eerst weergavemodus en live 16:9-voorbeeld, daarna de belangrijkste kleuren
   en contrastcontrole. De overige semantische tokens en legacy-merkmetadata
@@ -140,6 +150,11 @@ merkasset, primaire Electric-Orange/Ink-actie, securitygrens of offlinecontract.
 - Slidecanvassen gebruiken een vaste 12-koloms landscape- en 6-koloms
   portrait-safe grid. Copy start linksboven, dense data pagineert en primaire
   tekst blijft boven de familiegebonden minimumramp.
+- Programma- en uitslagregels gebruiken per lijst vaste kolomtracks en vaste
+  rijhoogtes. Programma toont primaire wedstrijdinformatie op regel één en de
+  circa half zo grote scheidsrechter-/veld-/sportparkregel rechts op regel
+  twee; uitslagen reserveren één lege scorekolom wanneer de uitslag onbekend
+  is. Alleen landscape mag naar twee kolommen schakelen.
 - Manrope is het lokale displayfont, Inter het lokale interface/bodyfont;
   Arial/Helvetica/system sans zijn deterministische LG- en capturefallbacks.
 - Light, dark en high contrast zijn expliciete tokensets. Reduced motion maakt
