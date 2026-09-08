@@ -56,9 +56,11 @@ export function TenantThemeEditor({
   return (
     <div className="settings-theme-studio" ref={editorRef}>
       <EditorialThemeEditor
+        appearance={appearance}
         defaults={defaults}
         disabled={disabled}
         onChange={setTheme}
+        onAppearanceChange={setAppearance}
         onSelectionChange={setSelection}
         selection={selection}
         theme={theme}
@@ -69,7 +71,7 @@ export function TenantThemeEditor({
           <div>
             <p className="section-kicker">Presentatie</p>
             <h3 className="work-panel__title" id="theme-appearance-title">
-              Typografie en logo-oppervlakken
+              Typografie
             </h3>
             <p className="work-panel__meta">
               Deze waarden horen bij FieldFlow. Alleen lokaal gebundelde,
@@ -148,50 +150,9 @@ export function TenantThemeEditor({
               value={Math.round(appearance.typography.sportScale * 100)}
             />
           </label>
-          <ThemeSurfaceColor
-            disabled={disabled}
-            label="Achtergrond clublogo"
-            onChange={(clubLogoBackground) => setAppearance((current) => ({
-              ...current,
-              surfaces: { ...current.surfaces, clubLogoBackground }
-            }))}
-            value={appearance.surfaces.clubLogoBackground}
-          />
-          <ThemeSurfaceColor
-            disabled={disabled}
-            label="Achtergrond thuislogo"
-            onChange={(homeLogoBackground) => setAppearance((current) => ({
-              ...current,
-              surfaces: { ...current.surfaces, homeLogoBackground }
-            }))}
-            value={appearance.surfaces.homeLogoBackground}
-          />
         </div>
       </section>
       <input name="themeAppearanceJson" type="hidden" value={JSON.stringify(appearance)} />
     </div>
-  );
-}
-
-function ThemeSurfaceColor({ disabled, label, onChange, value }: {
-  disabled: boolean;
-  label: string;
-  onChange: (value: string) => void;
-  value: string;
-}) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      <span className="color-field">
-        <input
-          aria-label={label}
-          disabled={disabled}
-          onChange={(event) => onChange(event.currentTarget.value.toUpperCase())}
-          type="color"
-          value={value}
-        />
-        <output>{value}</output>
-      </span>
-    </label>
   );
 }

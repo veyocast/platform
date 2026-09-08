@@ -2,13 +2,19 @@
 
 import React, { useState, type CSSProperties } from "react";
 
-import type {
-  EditorialColorTokens,
-  EditorialThemeConfig,
-  ThemeMode,
-  ThemeSelection
+import {
+  defaultThemeAppearanceSettings,
+  themeSelectionSchema,
+  type EditorialColorTokens,
+  type EditorialThemeConfig,
+  type ThemeAppearanceSettings,
+  type ThemeMode,
+  type ThemeSelection
 } from "@veyocast/contracts";
-import { contrastRatio } from "@veyocast/content-templates/editorial-arena-theme";
+import {
+  contrastRatio,
+  editorialThemeCssVariables
+} from "@veyocast/content-templates/editorial-arena-theme";
 import {
   freezeThemePresentation,
   themeCatalog,
@@ -29,27 +35,48 @@ const quickTokens = [
 ] as const satisfies readonly (keyof EditorialColorTokens)[];
 
 export const editorialThemeTokenGroups = [
-  { label: "Achtergrond", tokens: ["canvas"] },
   {
+    description: "De basis achter alle slide-inhoud.",
+    label: "Achtergrond",
+    tokens: ["canvas"]
+  },
+  {
+    description: "Kaarten, panelen en wedstrijdregels.",
     label: "Oppervlakken",
     tokens: ["surface", "surfaceRaised", "panel", "row", "rowSelected"]
   },
   {
+    description: "Tekst op gewone, gekleurde en geselecteerde vlakken.",
     label: "Tekst",
     tokens: ["text", "textMuted", "textFaint", "textOnAccent", "textOnSelected"]
   },
-  { label: "Randen", tokens: ["border", "borderSoft", "divider"] },
   {
+    description: "Contouren en scheidingen tussen onderdelen.",
+    label: "Randen",
+    tokens: ["border", "borderSoft", "divider"]
+  },
+  {
+    description: "Acties, selecties en wedstrijdstatussen.",
     label: "Accent en status",
     tokens: ["accent", "accentSoft", "success", "warning", "danger", "neutral"]
   },
-  { label: "Schaduw", tokens: ["shadow"] },
   {
+    description: "Diepte onder verhoogde kaarten.",
+    label: "Schaduw",
+    tokens: ["shadow"]
+  },
+  {
+    description: "De drie stappen van tekstvlak naar foto.",
     label: "Foto-overlay",
     tokens: ["imageOverlayStart", "imageOverlayMid", "imageOverlayEnd"]
   },
-  { label: "QR-code", tokens: ["qrSurface", "qrInk"] }
+  {
+    description: "Achtergrond en inkt van scanbare codes.",
+    label: "QR-code",
+    tokens: ["qrSurface", "qrInk"]
+  }
 ] as const satisfies ReadonlyArray<{
+  description: string;
   label: string;
   tokens: readonly (keyof EditorialColorTokens)[];
 }>;
@@ -62,19 +89,19 @@ const tokenLabels: Record<keyof EditorialColorTokens, string> = {
   canvas: "Slideachtergrond",
   danger: "Fout",
   divider: "Scheidingslijn",
-  imageOverlayEnd: "Overlay bij het beeld",
+  imageOverlayEnd: "Overlay aan beeldzijde",
   imageOverlayMid: "Overlay in het midden",
-  imageOverlayStart: "Overlay achter de tekst",
-  neutral: "Neutraal",
-  panel: "Paneel",
+  imageOverlayStart: "Overlay aan tekstzijde",
+  neutral: "Neutrale indicator",
+  panel: "Beeld- en detailpaneel",
   qrInk: "QR-voorgrond",
-  qrSurface: "QR-achtergrond en fototekst",
-  row: "Rij",
-  rowSelected: "Geselecteerde rij",
-  shadow: "Schaduw",
+  qrSurface: "Lichte fototekst en QR-achtergrond",
+  row: "Wedstrijd- en lijstregel",
+  rowSelected: "Uitgelichte regel",
+  shadow: "Kaartschaduw",
   success: "Succes",
-  surface: "Hoofdpaneel",
-  surfaceRaised: "Verhoogd paneel",
+  surface: "Kaarten en kop",
+  surfaceRaised: "Verhoogd vlak",
   text: "Hoofdtekst",
   textFaint: "Subtiele tekst",
   textMuted: "Secundaire tekst",
@@ -84,27 +111,33 @@ const tokenLabels: Record<keyof EditorialColorTokens, string> = {
 };
 
 export function EditorialThemeEditor({
+  appearance = defaultThemeAppearanceSettings,
   defaults,
   disabled = false,
   onChange,
+  onAppearanceChange = () => undefined,
   onSelectionChange,
   selection,
   theme
 }: {
+  appearance?: ThemeAppearanceSettings;
   defaults: EditorialThemeConfig;
   disabled?: boolean;
   onChange: (theme: EditorialThemeConfig) => void;
+  onAppearanceChange?: (appearance: ThemeAppearanceSettings) => void;
   onSelectionChange: (selection: ThemeSelection) => void;
   selection: ThemeSelection;
   theme: EditorialThemeConfig;
 }) {
-  const [advanced, setAdvanced] = useState(false);
   const [editingMode, setEditingMode] = useState<ThemeMode>(theme.mode);
+  const [previewToken, setPreviewToken] = useState<keyof EditorialColorTokens | null>(null);
   const selected = themeCatalog.fieldflow;
   const editingTokens = theme[editingMode];
+  const generatedDraft = resolveThemeDraftDefaults(selection, defaults);
+  const generatedDefaults = generatedDraft.theme;
   const contrastChecks = themeContrastChecks(editingTokens);
   const passingContrastChecks = contrastChecks.filter((check) => check.ready).length;
-  const advancedGroups = editorialThemeTokenGroups
+  const remainingGroups = editorialThemeTokenGroups
     .map((group) => ({
       ...group,
       tokens: group.tokens.filter((token) => (
@@ -128,7 +161,12 @@ export function EditorialThemeEditor({
       onChange({ ...theme, mode });
       return;
     }
-    const generated = legacyThemeBridge(fieldflowSelection);
+    const generatedDraft = resolveThemeDraftDefaults(fieldflowSelection, defaults);
+    if (!generatedDraft.valid) {
+      onChange({ ...theme, mode });
+      return;
+    }
+    const generated = generatedDraft.theme;
     onChange({
       dark: {
         ...theme.dark,
@@ -184,20 +222,7 @@ export function EditorialThemeEditor({
   }
 
   function resetTheme() {
-    const reset: ThemeSelection = {
-      accent: defaults.light.accent,
-      categoryOverrides: [],
-      modePolicy: { kind: "fixed", mode: defaults.mode },
-      ref: {
-        catalog: "v2",
-        id: "fieldflow",
-        version: themeCatalog.fieldflow.version
-      },
-      support: null
-    };
-    setEditingMode(defaults.mode);
-    onSelectionChange(reset);
-    onChange(defaults);
+    onChange({ ...generatedDefaults, mode: theme.mode });
   }
 
   return (
@@ -214,7 +239,7 @@ export function EditorialThemeEditor({
         <span className={styles.editorialThemeScope}>Tenantbreed</span>
       </header>
 
-      <div className={styles.editorialThemeOverview}>
+      <div className={styles.editorialThemeWorkspace}>
         <section
           aria-labelledby="theme-behaviour-title"
           className={styles.editorialThemeControlCard}
@@ -312,156 +337,236 @@ export function EditorialThemeEditor({
               value={selection.support ?? selected.supportDefault}
             />
           </div>
+          <p className={styles.editorialThemeControlHint}>
+            Basisaccent werkt Accent, Zacht accent en Tekst op accent in beide
+            paletten bij. Daaronder kun je iedere kleurrol per modus verfijnen.
+          </p>
         </section>
 
-        <ThemePreview mode={editingMode} tokens={editingTokens} />
-      </div>
-
-      <section
-        aria-labelledby="theme-palette-title"
-        className={styles.editorialPaletteCard}
-      >
-        <header className={styles.editorialPaletteHeader}>
-          <div>
-            <span className={styles.editorialSectionEyebrow}>Kleuren</span>
-            <h4 id="theme-palette-title">
-              {editingMode === "light" ? "Licht palet" : "Donker palet"}
-            </h4>
-            <p>Pas de belangrijkste vlakken en tekstkleuren direct aan.</p>
-          </div>
-          <div
-            aria-label="Kleurmodus bewerken"
-            className={styles.editorialModeTabs}
-            role="tablist"
-          >
-            {(["light", "dark"] as const).map((mode) => (
-              <button
-                aria-controls="theme-palette"
-                aria-selected={editingMode === mode}
-                className={styles.editorialModeTab}
-                disabled={disabled}
-                key={mode}
-                onClick={() => setEditingMode(mode)}
-                role="tab"
-                type="button"
-              >
-                {mode === "light" ? "Licht" : "Donker"}
-              </button>
-            ))}
-          </div>
-        </header>
-        <div
-          aria-label={`${editingMode === "light" ? "Licht" : "Donker"} kleurenpalet`}
-          className={styles.editorialQuickTokenGrid}
-          id="theme-palette"
-          role="tabpanel"
-        >
-          {quickTokens.map((token) => (
-            <TokenInput
-              disabled={disabled}
-              key={token}
-              label={tokenLabels[token]}
-              name={`quick-${editingMode}-${token}`}
-              onChange={(value) => setToken(editingMode, token, value)}
-              value={editingTokens[token]}
-            />
-          ))}
+        <div className={styles.editorialThemePreviewRail}>
+          <ThemePreview
+            accent={selection.accent ?? selected.accentDefault}
+            activeToken={previewToken}
+            appearance={appearance}
+            mode={editingMode}
+            support={selection.support ?? selected.supportDefault}
+            tokens={editingTokens}
+          />
+          <p>
+            Alle kleurrollen staan tegelijk in beeld. Selecteer een kleurveld
+            om de bijbehorende onderdelen te markeren.
+          </p>
         </div>
-      </section>
 
-      <section
-        aria-labelledby="theme-contrast-title"
-        className={styles.editorialContrastCard}
-      >
-        <header className={styles.editorialContrastHeader}>
-          <div>
-            <span className={styles.editorialSectionEyebrow}>Leesbaarheid</span>
-            <h4 id="theme-contrast-title">Contrastcontrole</h4>
-            <p>Tekst en QR-codes moeten ook op afstand duidelijk blijven.</p>
-          </div>
-          <span
-            className={styles.editorialContrastSummary}
-            data-valid={passingContrastChecks === contrastChecks.length}
-            role="status"
-          >
-            {passingContrastChecks}/{contrastChecks.length} in orde
-          </span>
-        </header>
-        <ContrastMatrix checks={contrastChecks} />
-      </section>
-
-      <div className={styles.editorialThemeActions}>
-        <Button
-          disabled={disabled}
-          onClick={() => setAdvanced((value) => !value)}
-          size="sm"
-          type="button"
-          variant="secondary"
-        >
-          {advanced ? "Geavanceerde kleuren sluiten" : "Alle kleuren aanpassen"}
-        </Button>
-        <Button
-          disabled={disabled}
-          onClick={resetTheme}
-          size="sm"
-          type="button"
-          variant="ghost"
-        >
-          Standaardkleuren herstellen
-        </Button>
-      </div>
-
-      {advanced ? (
         <section
-          aria-labelledby="theme-advanced-title"
-          className={styles.editorialAdvancedPalette}
+          aria-labelledby="theme-palette-title"
+          className={styles.editorialPaletteCard}
         >
-          <header className={styles.editorialSectionHeader}>
+          <header className={styles.editorialPaletteHeader}>
             <div>
-              <span className={styles.editorialSectionEyebrow}>Geavanceerd</span>
-              <h4 id="theme-advanced-title">Semantische kleuren</h4>
-              <p>
-                Verfijn rijen, statussen, randen, foto-overlays en QR-codes voor
-                het {editingMode === "light" ? "lichte" : "donkere"} palet.
-              </p>
+              <span className={styles.editorialSectionEyebrow}>Kleuren</span>
+              <h4 id="theme-palette-title">
+                {editingMode === "light" ? "Licht palet" : "Donker palet"}
+              </h4>
+              <p>Alle 26 semantische kleurrollen zijn direct aanpasbaar.</p>
+            </div>
+            <div
+              aria-label="Kleurmodus bewerken"
+              className={styles.editorialModeTabs}
+              role="tablist"
+            >
+              {(["light", "dark"] as const).map((mode) => (
+                <button
+                  aria-controls="theme-palette"
+                  aria-selected={editingMode === mode}
+                  className={styles.editorialModeTab}
+                  disabled={disabled}
+                  key={mode}
+                  onClick={() => setEditingMode(mode)}
+                  role="tab"
+                  type="button"
+                >
+                  {mode === "light" ? "Licht" : "Donker"}
+                </button>
+              ))}
             </div>
           </header>
-          <div className={styles.editorialTokenGroups}>
-            {advancedGroups.map((group) => (
-              <fieldset className={styles.editorialTokenGroup} key={group.label}>
-                <legend>{group.label}</legend>
-                <div className={styles.editorialAdvancedTokenGrid}>
-                  {group.tokens.map((token) => (
-                    <div className={styles.editorialTokenField} key={token}>
-                      <TokenInput
-                        disabled={disabled}
-                        label={tokenLabels[token]}
-                        name={`${editingMode}-${token}`}
-                        onChange={(value) => setToken(editingMode, token, value)}
-                        value={editingTokens[token]}
-                      />
-                      <Button
-                        aria-label={`${tokenLabels[token]} resetten`}
-                        disabled={disabled}
-                        onClick={() => setToken(
-                          editingMode,
-                          token,
-                          defaults[editingMode][token]
-                        )}
-                        size="sm"
-                        type="button"
-                        variant="ghost"
-                      >
-                        Reset
-                      </Button>
-                    </div>
-                  ))}
+          <div
+            aria-label={`${editingMode === "light" ? "Licht" : "Donker"} kleurenpalet`}
+            className={styles.editorialPaletteContents}
+            id="theme-palette"
+            role="tabpanel"
+          >
+            <section
+              aria-labelledby="theme-foundation-title"
+              className={styles.editorialFoundationPalette}
+            >
+              <header className={styles.editorialTokenGroupHeader}>
+                <div>
+                  <h5 id="theme-foundation-title">Basis</h5>
+                  <p>De vijf kleuren die de meeste slidevlakken bepalen.</p>
                 </div>
-              </fieldset>
-            ))}
+                <span>5 rollen</span>
+              </header>
+              <div className={styles.editorialQuickTokenGrid}>
+                {quickTokens.map((token) => (
+                  <EditableTokenField
+                    active={previewToken === token}
+                    defaultValue={generatedDefaults[editingMode][token]}
+                    disabled={disabled}
+                    key={token}
+                    label={tokenLabels[token]}
+                    name={`${editingMode}-${token}`}
+                    onChange={(value) => setToken(editingMode, token, value)}
+                    onPreviewChange={setPreviewToken}
+                    token={token}
+                    value={editingTokens[token]}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section
+              aria-labelledby="theme-semantic-title"
+              className={styles.editorialSemanticPalette}
+            >
+              <header className={styles.editorialTokenGroupHeader}>
+                <div>
+                  <h5 id="theme-semantic-title">Alle overige kleurrollen</h5>
+                  <p>Rijen, tekst, statussen, randen, beeld en QR-code.</p>
+                </div>
+                <span>21 rollen</span>
+              </header>
+              <div className={styles.editorialTokenGroups}>
+                {remainingGroups.map((group) => (
+                  <details className={styles.editorialTokenGroup} key={group.label}>
+                    <summary>
+                      <span>
+                        <strong>{group.label}</strong>
+                        <small>{group.description}</small>
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className={styles.editorialTokenSwatches}
+                      >
+                        {group.tokens.map((token) => (
+                          <i
+                            key={token}
+                            style={{
+                              "--theme-token-swatch": editingTokens[token]
+                            } as CSSProperties}
+                          />
+                        ))}
+                      </span>
+                      <span className={styles.editorialTokenCount}>
+                        {group.tokens.length} {group.tokens.length === 1 ? "rol" : "rollen"}
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className={styles.editorialTokenDisclosureIndicator}
+                        data-disclosure-indicator
+                      >
+                        ›
+                      </span>
+                    </summary>
+                    <div className={styles.editorialAdvancedTokenGrid}>
+                      {group.tokens.map((token) => (
+                        <EditableTokenField
+                          active={previewToken === token}
+                          defaultValue={generatedDefaults[editingMode][token]}
+                          disabled={disabled}
+                          key={token}
+                          label={tokenLabels[token]}
+                          name={`${editingMode}-${token}`}
+                          onChange={(value) => setToken(editingMode, token, value)}
+                          onPreviewChange={setPreviewToken}
+                          token={token}
+                          value={editingTokens[token]}
+                        />
+                      ))}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+
+            <section
+              aria-labelledby="theme-logo-colors-title"
+              className={styles.editorialBrandPalette}
+            >
+              <header className={styles.editorialTokenGroupHeader}>
+                <div>
+                  <h5 id="theme-logo-colors-title">Logo-oppervlakken</h5>
+                  <p>
+                    Vaste achtergronden houden lichte en donkere clublogo&apos;s
+                    leesbaar op iedere slide.
+                  </p>
+                </div>
+                <span>2 rollen</span>
+              </header>
+              <div className={styles.editorialBrandTokenGrid}>
+                <SelectionColorInput
+                  disabled={disabled}
+                  label="Achtergrond clublogo"
+                  onChange={(clubLogoBackground) => onAppearanceChange({
+                    ...appearance,
+                    surfaces: {
+                      ...appearance.surfaces,
+                      clubLogoBackground
+                    }
+                  })}
+                  value={appearance.surfaces.clubLogoBackground}
+                />
+                <SelectionColorInput
+                  disabled={disabled}
+                  label="Achtergrond thuislogo"
+                  onChange={(homeLogoBackground) => onAppearanceChange({
+                    ...appearance,
+                    surfaces: {
+                      ...appearance.surfaces,
+                      homeLogoBackground
+                    }
+                  })}
+                  value={appearance.surfaces.homeLogoBackground}
+                />
+              </div>
+            </section>
           </div>
         </section>
-      ) : null}
+
+        <section
+          aria-labelledby="theme-contrast-title"
+          className={styles.editorialContrastCard}
+        >
+          <header className={styles.editorialContrastHeader}>
+            <div>
+              <span className={styles.editorialSectionEyebrow}>Leesbaarheid</span>
+              <h4 id="theme-contrast-title">Contrastcontrole</h4>
+              <p>Tekst en QR-codes moeten ook op afstand duidelijk blijven.</p>
+            </div>
+            <span
+              className={styles.editorialContrastSummary}
+              data-valid={passingContrastChecks === contrastChecks.length}
+              role="status"
+            >
+              {passingContrastChecks}/{contrastChecks.length} in orde
+            </span>
+          </header>
+          <ContrastMatrix checks={contrastChecks} />
+        </section>
+
+        <div className={styles.editorialThemeActions}>
+          <Button
+            disabled={disabled}
+            onClick={resetTheme}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            Kleurrollen in licht en donker herstellen
+          </Button>
+        </div>
+      </div>
       <input
         name="themeColorOverridesJson"
         type="hidden"
@@ -478,6 +583,65 @@ export function EditorialThemeEditor({
         type="hidden"
         value={selection.support ?? ""}
       />
+    </div>
+  );
+}
+
+function EditableTokenField({
+  active,
+  defaultValue,
+  disabled,
+  label,
+  name,
+  onChange,
+  onPreviewChange,
+  token,
+  value
+}: {
+  active: boolean;
+  defaultValue: string;
+  disabled: boolean;
+  label: string;
+  name: string;
+  onChange: (value: string) => void;
+  onPreviewChange: (token: keyof EditorialColorTokens | null) => void;
+  token: keyof EditorialColorTokens;
+  value: string;
+}) {
+  return (
+    <div
+      className={styles.editorialTokenField}
+      data-active={active || undefined}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          onPreviewChange(null);
+        }
+      }}
+      onFocus={() => onPreviewChange(token)}
+      onMouseEnter={() => onPreviewChange(token)}
+      onMouseLeave={(event) => {
+        if (!event.currentTarget.contains(document.activeElement)) {
+          onPreviewChange(null);
+        }
+      }}
+    >
+      <TokenInput
+        disabled={disabled}
+        label={label}
+        name={name}
+        onChange={onChange}
+        value={value}
+      />
+      <Button
+        aria-label={`${label} herstellen`}
+        disabled={disabled || value === defaultValue}
+        onClick={() => onChange(defaultValue)}
+        size="sm"
+        type="button"
+        variant="ghost"
+      >
+        Herstel
+      </Button>
     </div>
   );
 }
@@ -521,25 +685,26 @@ function SelectionColorInput({
 }
 
 function ThemePreview({
+  accent,
+  activeToken,
+  appearance,
   mode,
+  support,
   tokens
 }: {
+  accent: string;
+  activeToken: keyof EditorialColorTokens | null;
+  appearance: ThemeAppearanceSettings;
   mode: ThemeMode;
+  support: string;
   tokens: EditorialColorTokens;
 }) {
   const previewStyle = {
-    "--theme-preview-accent": tokens.accent,
-    "--theme-preview-canvas": tokens.canvas,
-    "--theme-preview-divider": tokens.divider,
-    "--theme-preview-overlay-end": tokens.imageOverlayEnd,
-    "--theme-preview-overlay-mid": tokens.imageOverlayMid,
-    "--theme-preview-overlay-start": tokens.imageOverlayStart,
-    "--theme-preview-panel": tokens.panel,
-    "--theme-preview-photo-text": tokens.qrSurface,
-    "--theme-preview-surface": tokens.surface,
-    "--theme-preview-text": tokens.text,
-    "--theme-preview-text-muted": tokens.textMuted,
-    "--theme-preview-text-on-accent": tokens.textOnAccent
+    ...editorialThemeCssVariables(tokens),
+    "--vc-club-logo-background": appearance.surfaces.clubLogoBackground,
+    "--vc-home-logo-background": appearance.surfaces.homeLogoBackground,
+    "--vc-theme-accent": accent,
+    "--vc-theme-support": support
   } as CSSProperties;
 
   return (
@@ -550,22 +715,129 @@ function ThemePreview({
     >
       <header>
         <span>Live voorbeeld</span>
-        <span>{mode === "light" ? "Licht" : "Donker"}</span>
+        <span>{mode === "light" ? "Licht" : "Donker"} · 26/26 rollen</span>
       </header>
-      <div className={styles.editorialThemePreviewCanvas}>
-        <div className={styles.editorialThemePreviewCopy}>
-          <span>Clubnieuws</span>
-          <h4>Welkom op ons sportpark</h4>
-          <p>De tekst blijft rustig en duidelijk boven beeld en kleurvlakken.</p>
-        </div>
-        <div className={styles.editorialThemePreviewPanel}>
-          <span>Programma</span>
-          <strong>Vandaag · 14:30</strong>
-          <i>Veld 1</i>
-        </div>
+      <div
+        {...previewRoles(activeToken, "canvas", "accentSoft", "borderSoft")}
+        aria-hidden="true"
+        className={styles.editorialThemePreviewCanvas}
+        style={previewStyle}
+      >
+        <span
+          className={styles.editorialThemePreviewAccentRail}
+          data-theme-setting="baseAccent"
+        />
+        <section
+          {...previewRoles(activeToken, "surface", "border", "shadow")}
+          className={styles.editorialThemePreviewMasthead}
+        >
+          <span
+            className={styles.editorialThemePreviewClubLogo}
+            data-theme-setting="clubLogoBackground"
+          >
+            DS
+          </span>
+          <span className={styles.editorialThemePreviewTitle}>
+            <small {...previewRoles(activeToken, "accent")}>Matchcentre</small>
+            <strong {...previewRoles(activeToken, "text")}>Clubprogramma</strong>
+            <i {...previewRoles(activeToken, "textMuted")}>Vandaag · sportpark Duindorp</i>
+          </span>
+          <span
+            {...previewRoles(activeToken, "accent", "textOnAccent")}
+            className={styles.editorialThemePreviewBadge}
+          >
+            Live
+          </span>
+        </section>
+
+        <section
+          {...previewRoles(activeToken, "panel")}
+          className={styles.editorialThemePreviewMatches}
+        >
+          <article
+            {...previewRoles(activeToken, "row", "borderSoft")}
+            className={styles.editorialThemePreviewMatch}
+          >
+            <span
+              className={styles.editorialThemePreviewHomeLogo}
+              data-theme-setting="homeLogoBackground"
+            >
+              D
+            </span>
+            <span className={styles.editorialThemePreviewMatchCopy}>
+              <small {...previewRoles(activeToken, "textFaint")}>07-09-2026</small>
+              <strong {...previewRoles(activeToken, "text")}>Duindorp JO13-1 · Quick JO13-2</strong>
+              <i {...previewRoles(activeToken, "textMuted")}>Veld 1 A</i>
+            </span>
+            <b {...previewRoles(activeToken, "accent")}>14:30</b>
+          </article>
+
+          <article
+            {...previewRoles(activeToken, "rowSelected", "textOnSelected")}
+            className={`${styles.editorialThemePreviewMatch} ${styles.editorialThemePreviewMatchSelected}`}
+            style={{
+              background: "var(--vc-row-selected)",
+              color: "var(--vc-text-on-selected)"
+            }}
+          >
+            <span className={styles.editorialThemePreviewSelectedMark}>D</span>
+            <span className={styles.editorialThemePreviewMatchCopy}>
+              <small>Geselecteerde rij</small>
+              <strong>Duindorp MO17-1 · HBS MO17-1</strong>
+              <i>Veld 2</i>
+            </span>
+            <b>16:00</b>
+          </article>
+
+          <span
+            {...previewRoles(activeToken, "divider")}
+            className={styles.editorialThemePreviewDivider}
+          />
+          <span className={styles.editorialThemePreviewStatuses}>
+            <i {...previewRoles(activeToken, "success")}>Winst</i>
+            <i {...previewRoles(activeToken, "warning")}>Let op</i>
+            <i {...previewRoles(activeToken, "danger")}>Fout</i>
+            <i {...previewRoles(activeToken, "neutral")}>Neutraal</i>
+          </span>
+        </section>
+
+        <figure
+          {...previewRoles(
+            activeToken,
+            "surfaceRaised",
+            "imageOverlayStart",
+            "imageOverlayMid",
+            "imageOverlayEnd"
+          )}
+          className={styles.editorialThemePreviewMedia}
+        >
+          <span className={styles.editorialThemePreviewSupport} data-theme-setting="support" />
+          <figcaption {...previewRoles(activeToken, "qrSurface")}>
+            Clubnieuws
+            <strong>Lees het hele bericht</strong>
+          </figcaption>
+          <span
+            {...previewRoles(activeToken, "qrSurface")}
+            className={styles.editorialThemePreviewQr}
+          >
+            <i {...previewRoles(activeToken, "qrInk")} />
+          </span>
+        </figure>
       </div>
     </aside>
   );
+}
+
+function previewRoles(
+  activeToken: keyof EditorialColorTokens | null,
+  ...tokens: (keyof EditorialColorTokens)[]
+) {
+  return {
+    "data-highlighted": activeToken !== null && tokens.includes(activeToken)
+      ? "true"
+      : undefined,
+    "data-theme-tokens": tokens.join(" ")
+  };
 }
 
 function TokenInput({
@@ -709,6 +981,16 @@ function legacyThemeBridge(selection: ThemeSelection): EditorialThemeConfig {
     light: tokens("light"),
     mode: activeMode(selection, "light")
   };
+}
+
+export function resolveThemeDraftDefaults(
+  selection: unknown,
+  fallback: EditorialThemeConfig
+): { theme: EditorialThemeConfig; valid: boolean } {
+  const parsed = themeSelectionSchema.safeParse(selection);
+  return parsed.success
+    ? { theme: legacyThemeBridge(parsed.data), valid: true }
+    : { theme: fallback, valid: false };
 }
 
 export function colorPickerValue(value: string) {

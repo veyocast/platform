@@ -153,6 +153,7 @@ tests en exitcriteria staan in
 | S152 | Theme-editor en opslagherstel | De centrale tenantstijl professioneel en responsive maken en opslaan herstellen wanneer historische Menu Studio-content opnieuw wordt gerenderd |
 | S154 | Eigen clubwedstrijden en thuis-/uitfilter | Clubprogramma en clubuitslagen strikt tot tenant-eigen teams beperken, per slide thuis/uit/both configureerbaar maken en legacy latest-slides via nieuwe immutable snapshots herstellen |
 | S156 | Wedstrijdregels, welkomsthiërarchie en clubvarianten | Vaste tweeregelige programma-/uitslagkaarten, volledige thuisteam- en wedstrijddetails, ruimere portrait splitnieuwsslides en zes atomische clubvarianten voor vandaag |
+| S157 | Volledige theme-tokenwerkplaats | Alle 26 FieldFlow-kleurrollen per licht/donkerpalet vindbaar en afzonderlijk herstelbaar maken en de live preview alle rollen plus steunkleur en logoplaatkleuren laten tonen |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op

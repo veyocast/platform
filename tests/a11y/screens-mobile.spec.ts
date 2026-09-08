@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 async function navigate(page: Page, pathname: string) {
   await expect(async () => {
     try {
-      await page.goto(pathname, { waitUntil: "domcontentloaded" });
+      await page.goto(pathname, { timeout: 15_000, waitUntil: "commit" });
     } catch (error) {
       if (!String(error).includes("ERR_ABORTED")) throw error;
     }
@@ -137,9 +137,21 @@ test("playlist authoring and settings remain sequential on mobile", async ({ pag
   await navigate(page, "/dashboard/themes/fieldflow");
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "FieldFlow" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Slidehuisstijl" })).toBeVisible();
-  await expect(page.getByLabel(/Live voorbeeld van het .* palet/)).toBeVisible();
+  const themePreview = page.getByLabel(/Live voorbeeld van het .* palet/);
+  await expect(themePreview).toBeVisible();
+  const previewBox = await themePreview
+    .locator('[data-theme-tokens~="canvas"]')
+    .boundingBox();
+  expect(previewBox).not.toBeNull();
+  expect(Math.abs((previewBox!.width / previewBox!.height) - (16 / 9)))
+    .toBeLessThan(0.03);
   await expect(page.getByLabel("Slideachtergrond als kleurwaarde")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Typografie en logo-oppervlakken" })).toBeVisible();
+  await page.locator("details").evaluateAll((details) => {
+    for (const detail of details) detail.setAttribute("open", "");
+  });
+  await expect(page.getByLabel("Lichte fototekst en QR-achtergrond als kleurwaarde"))
+    .toBeVisible();
+  await expect(page.getByRole("heading", { name: "Typografie", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Instellingen opslaan" })).toHaveCount(0);
   await expect(async () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
