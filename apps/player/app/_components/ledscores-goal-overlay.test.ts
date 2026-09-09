@@ -23,6 +23,7 @@ import {
   scheduledGoalEnrichmentCompletion,
   shouldApplyGoalEnrichmentSequence
 } from "./ledscores-goal-overlay";
+import type { FrozenPlayerTheme } from "./player-presentation-theme";
 
 const deliveryId = "11111111-1111-4111-8111-111111111111";
 const eventId = "22222222-2222-4222-8222-222222222222";
@@ -31,6 +32,37 @@ const sponsorMediaAssetId = "44444444-4444-4444-8444-444444444444";
 const soundMediaAssetId = "55555555-5555-4555-8555-555555555555";
 
 describe("LED Scores Player protocol", () => {
+  it.each([
+    ["own", 2, 1, 1, 1, "Doelpunt voor eigen team"],
+    ["opponent", 1, 2, 1, 1, "Doelpunt tegenstander"],
+    ["unknown", 2, 1, 1, 1, "Doelpunt van onbekend team"]
+  ] as const)(
+    "rendert Royal goalmoment %s met de bevroren authority",
+    (scoringSide, homeScore, awayScore, previousHomeScore, previousAwayScore, label) => {
+      const parsed = parseGoalMessage(goalMessage({
+        payload: {
+          awayScore,
+          homeScore,
+          previousAwayScore,
+          previousHomeScore,
+          scoringSide
+        }
+      }));
+      if (!parsed) throw new Error("Expected Royal goal moment");
+
+      const html = renderToStaticMarkup(createElement(LedScoresGoalOverlay, {
+        goal: parsed.goal,
+        theme: royalTheme
+      }));
+
+      expect(html).toContain(`data-scoring-side="${scoringSide}"`);
+      expect(html).toContain('data-design-revision="royal-current-v8"');
+      expect(html).toContain('data-motion-state="off"');
+      expect(html).toContain('--bg:#0a1124');
+      expect(html).toContain(label);
+    }
+  );
+
   it("behoudt de legacy-goal bij een ongeldige scene en accepteert een geldige pair", () => {
     const pair = createDefaultLedScoresCanvasExperience().scenes.goalOwn;
     const valid = parseGoalMessage(goalMessage({ payload: { scene: pair } }));
@@ -547,3 +579,15 @@ function terminalAcknowledgement(index: number) {
     status: "rendered" as const
   };
 }
+
+const royalTheme: FrozenPlayerTheme = {
+  designRevision: "royal-current-v8",
+  mode: "dark",
+  motionEnabled: false,
+  snapshot: {} as FrozenPlayerTheme["snapshot"],
+  style: {
+    "--accent": "#6a8ef3",
+    "--bg": "#0a1124",
+    "--ink": "#f5f7fb"
+  } as FrozenPlayerTheme["style"]
+};

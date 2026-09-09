@@ -5,7 +5,46 @@
     "sha256": "3b0a5fca3d17942cde889069889dedbbbd075e9b599968c82a95f4d944e9b345",
     "spdx": "OFL-1.1"
   },
+  "additionalLicenses": {
+    "Apache-2.0": {
+      "file": "ROBOTO-LICENSE.txt",
+      "noticeFile": "ROBOTO-NOTICE.txt",
+      "noticeSha256": "27a92a636b29310f20334936e777ab85620e354b062fd9b8f366707b1b1e22ca",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "spdx": "Apache-2.0"
+    }
+  },
   "assets": {
+    "vc-roboto-v1": [
+      {
+        "file": "roboto-latin-400-normal.woff2",
+        "format": "woff2",
+        "sha256": "48c3fa6f86c54f1d9bb519220713d4b0a1f8cd1a589a3c03b9fa82e98ecb13e3",
+        "source": "VeyoCast Royal Current prototype v8; Roboto 2.137",
+        "weights": "400"
+      },
+      {
+        "file": "roboto-latin-500-normal.woff2",
+        "format": "woff2",
+        "sha256": "24369e1b2461af9dcefecaf9cc93d64cf22a4c5bac32506100b9e21014507bcf",
+        "source": "VeyoCast Royal Current prototype v8; Roboto 2.137",
+        "weights": "500"
+      },
+      {
+        "file": "roboto-latin-700-normal.woff2",
+        "format": "woff2",
+        "sha256": "b4d07892cde715d50bb69c1982df496385d1dfd8f9d1867c31f19a3c8634cfae",
+        "source": "VeyoCast Royal Current prototype v8; Roboto 2.137",
+        "weights": "700"
+      },
+      {
+        "file": "roboto-latin-900-normal.woff2",
+        "format": "woff2",
+        "sha256": "edcdf3f60252a5987bedc9c86b5422d972ba509bbbe60d58925310c744a33e28",
+        "source": "VeyoCast Royal Current prototype v8; Roboto 2.137",
+        "weights": "800 900"
+      }
+    ],
     "vc-inter-v1": [{
       "file": "inter-latin-wght-normal.woff2",
       "format": "woff2-variable",

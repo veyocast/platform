@@ -15,3 +15,4 @@ printf '%s  %s\n' "${expected_sha256}" "${archive_path}" | sha256sum --check --s
 tar --extract --gzip --file "${archive_path}" --directory "${validation_root}" actionlint
 "${validation_root}/actionlint" -color -shellcheck "$(command -v shellcheck)"
 node scripts/validate-deploy-workflow-security.mjs
+node scripts/validate-royal-current-theme-reset-workflow.mjs

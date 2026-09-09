@@ -29,10 +29,10 @@ export default async function FieldFlowThemePage({ searchParams }: PageProps) {
     <>
       <PageHeader
         actions={<Button asChild variant="ghost"><Link href="/dashboard/themes">Terug naar thema's</Link></Button>}
-        description="Beheer FieldFlow als één theme-profiel en rol wijzigingen veilig uit zonder gepubliceerde releases te muteren."
+        description="Beheer Royal Current en Navy Glass als één tenantprofiel en rol wijzigingen veilig uit zonder gepubliceerde releases te muteren."
         eyebrow={session.tenant}
         status={{ label: canManage ? "Tenantbreed" : "Alleen bekijken", tone: canManage ? "success" : "warning" }}
-        title="FieldFlow"
+        title="Royal Current · Navy Glass"
       />
       {query.fout ? (
         <p className="notice notice--critical" role="alert">

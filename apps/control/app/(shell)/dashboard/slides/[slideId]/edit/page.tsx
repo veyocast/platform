@@ -7,6 +7,7 @@ import { Button } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../../lib/supabase/server";
+import { loadTenantStyleData } from "../../../../../../lib/tenant-style-data";
 import { PageHeader } from "../../../../_components/shell-primitives";
 import { SportlinkVersionEditor } from "./sportlink-version-editor";
 import { prepareSportlinkVersionEditorDraft } from "./sportlink-version-editor-state";
@@ -16,9 +17,12 @@ type PageProps = { params: Promise<{ slideId: string }>; searchParams: Promise<{
 export default async function EditSportlinkSlidePage({ params, searchParams }: PageProps) {
   const session = await requireTenantControlSession("tenant.dynamic_slide.write");
   const [{ slideId }, query] = await Promise.all([params, searchParams]);
-  const data = await loadEditorData(session.tenantId!, slideId);
+  const [data, tenantStyle] = await Promise.all([
+    loadEditorData(session.tenantId!, slideId),
+    loadTenantStyleData(session.tenantId, session.isLive)
+  ]);
   if (!data) notFound();
-  return <><PageHeader actions={<Button asChild variant="ghost"><Link href={`/dashboard/slides/${slideId}`}>Annuleren</Link></Button>} description="Bewerk een gekloonde conceptversie. De huidige gepubliceerde versie blijft actief tot de nieuwe render volledig gereed is." eyebrow={session.tenant} status={{ label: `Concept v${data.versionNumber}`, tone: "warning" }} title={data.initialDraft.name} />{query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}<SportlinkVersionEditor {...data} slideId={slideId} /></>;
+  return <><PageHeader actions={<Button asChild variant="ghost"><Link href={`/dashboard/slides/${slideId}`}>Annuleren</Link></Button>} description="Bewerk een gekloonde conceptversie. De huidige gepubliceerde versie blijft actief tot de nieuwe render volledig gereed is." eyebrow={session.tenant} status={{ label: `Concept v${data.versionNumber}`, tone: "warning" }} title={data.initialDraft.name} />{query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}<SportlinkVersionEditor {...data} slideId={slideId} tenantStyle={tenantStyle} /></>;
 }
 
 async function loadEditorData(tenantId: string, slideId: string) {

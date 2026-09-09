@@ -29,7 +29,13 @@ export function resolveTenantThemeAuthority(
 ): TenantThemeAuthority {
   const selection = tenantThemeSelection(settings);
   const timezone = nonEmptyText(settings?.timezone_name) ?? "Europe/Amsterdam";
-  const defaults = generatedTheme(selection, timezone, instant);
+  const parsedAppearance = themeAppearanceSettingsSchema.safeParse(
+    settings?.appearance_config ?? settings?.theme_appearance
+  );
+  const appearance = parsedAppearance.success
+    ? parsedAppearance.data
+    : defaultThemeAppearanceSettings;
+  const defaults = generatedTheme(selection, appearance, timezone, instant);
   const overrides = tenantThemeColorOverridesSchema.safeParse(
     settings?.theme_color_overrides
   );
@@ -40,14 +46,8 @@ export function resolveTenantThemeAuthority(
     ? { ...configuredTheme, mode: defaults.mode }
     : defaults;
 
-  const appearance = themeAppearanceSettingsSchema.safeParse(
-    settings?.appearance_config ?? settings?.theme_appearance
-  );
-
   return {
-    appearance: appearance.success
-      ? appearance.data
-      : defaultThemeAppearanceSettings,
+    appearance,
     defaults,
     selection,
     theme
@@ -81,17 +81,20 @@ export function tenantThemeSelection(
 
 function generatedTheme(
   selection: ThemeSelection,
+  appearance: ThemeAppearanceSettings,
   timezone: string,
   instant: string
 ): EditorialThemeConfig {
   const tokens = (mode: ThemeMode) => themeToEditorialTokens(
     freezeThemePresentation({
+      appearance,
       instant,
       selection: { ...selection, modePolicy: { kind: "fixed", mode } },
       timezone
     })
   );
   const presentation = freezeThemePresentation({
+    appearance,
     instant,
     selection,
     timezone

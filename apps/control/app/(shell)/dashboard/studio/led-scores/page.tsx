@@ -21,6 +21,7 @@ import {
 import { Badge, Button, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
+import { loadTenantStyleData } from "../../../../../lib/tenant-style-data";
 import {
   deriveLedScoresFeatureAvailability,
   ledScoresFeatureAvailabilityMessages,
@@ -31,6 +32,7 @@ import { createControlSupabaseClient } from "../../../../../lib/supabase/server"
 import { getSupabasePublicConfig } from "../../../../../lib/supabase/config";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
+import { TenantStyleSummary } from "../../slides/_components/tenant-style-summary";
 import { LedScoresAlertEditor, type AlertEditorValue } from "./alert-editor";
 import { LiveMatchSlideEditor } from "./live-match-slide-editor";
 import {
@@ -50,7 +52,10 @@ type Props = { searchParams: Promise<{ edit?: string; fout?: string; resultaat?:
 export default async function LedScoresStudioPage({ searchParams }: Props) {
   const session = await requireTenantControlSession("tenant.dynamic_slide.read");
   const params = await searchParams;
-  const data = session.isLive ? await loadStudioData(session.tenantId!) : emptyData();
+  const [data, tenantStyle] = await Promise.all([
+    session.isLive ? loadStudioData(session.tenantId!) : emptyData(),
+    loadTenantStyleData(session.tenantId, session.isLive)
+  ]);
   const canWrite = session.isLive
     && session.tenantStatus === "active"
     && hasCapability(session.capabilities, "tenant.dynamic_slide.write");
@@ -108,6 +113,11 @@ export default async function LedScoresStudioPage({ searchParams }: Props) {
           </article>
         </div>
       </section>
+
+      <TenantStyleSummary
+        context="Nieuwe live tussenstandslides en gecureerde overlayvlakken gebruiken deze tenantstijl. Bestaande eigen scenes, achtergrondmedia, sponsors en momentinstellingen blijven ongewijzigd totdat je ze bewust bewerkt en opnieuw publiceert."
+        style={tenantStyle}
+      />
 
       <section className="workspace-section" aria-labelledby="published-alerts">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="published-alerts">Overlay experiences</h2><p className="work-panel__meta">Iedere experience kan meerdere wedstrijdmomenten bevatten. Bij overlap wint per scherm eerst hoogste prioriteit en daarna nieuwste publicatie.</p></div><StatusPill label="Immutable versies" tone="info" /></div>

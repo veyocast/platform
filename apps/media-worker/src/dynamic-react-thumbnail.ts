@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { chromium } from "playwright-core";
 
 import {
+  editorialArenaActiveSlideTypes,
   playerDynamicTemplatePayloadSchema,
   type PlayerDynamicTemplateAsset,
   type PlayerDynamicTemplatePayload
@@ -95,15 +96,14 @@ export function buildThumbnailPayload(
   });
 }
 
-function readSlideType(value: unknown) {
-  if ([
-    "menu",
-    "news",
-    "sport_program",
-    "sport_results",
-    "sport_standing"
-  ].includes(String(value))) {
-    return value;
+const reactDomSlideTypes = new Set<string>(editorialArenaActiveSlideTypes);
+
+function readSlideType(
+  value: unknown
+): (typeof editorialArenaActiveSlideTypes)[number] {
+  const slideType = String(value);
+  if (reactDomSlideTypes.has(slideType)) {
+    return slideType as (typeof editorialArenaActiveSlideTypes)[number];
   }
   throw renderFailure("unsupported_slide_type");
 }

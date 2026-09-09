@@ -30,6 +30,12 @@ import {
 } from "@veyocast/ui";
 
 import { FieldFlowStyleStep } from "../../_components/fieldflow-style-step";
+import type { TenantStyleData } from "../../../../../../lib/tenant-style-data.types";
+import { TenantStyleSummary } from "../../_components/tenant-style-summary";
+import {
+  SportlinkMatchRowPreview,
+  sportlinkMatchRowPreviewKind
+} from "../../_components/sportlink-match-row-preview";
 import {
   SportlinkArrivalFields,
   type SportlinkMediaOption
@@ -74,6 +80,7 @@ export function SportlinkVersionEditor({
   media,
   slideId,
   teams,
+  tenantStyle,
   templates,
   versionId,
   versionNumber
@@ -85,6 +92,7 @@ export function SportlinkVersionEditor({
   media: SportlinkMediaOption[];
   slideId: string;
   teams: Team[];
+  tenantStyle: TenantStyleData;
   templates: Template[];
   versionId: string;
   versionNumber: number;
@@ -99,7 +107,7 @@ export function SportlinkVersionEditor({
   const [message, setMessage] = useState<EditorMessage | null>(() =>
     initialDirty
       ? {
-          text: "Deze conceptversie is veilig omgezet naar de gekoppelde FieldFlow-opbouw. Sla de selectie eerst op voordat je publiceert.",
+          text: "Deze conceptversie is veilig omgezet naar de gekoppelde Royal Current/Navy Glass-opbouw. Sla de selectie eerst op voordat je publiceert.",
           tone: "warning"
         }
       : null
@@ -121,7 +129,6 @@ export function SportlinkVersionEditor({
   const themeId = draft.themeSelection.ref.catalog === "v2"
     ? draft.themeSelection.ref.id
     : "fieldflow";
-  const theme = themeCatalog[themeId];
 
   function update(next: SportlinkSlideDraft) {
     setDraft({
@@ -342,10 +349,14 @@ export function SportlinkVersionEditor({
         </fieldset>
 
         <FieldFlowStyleStep
-          label="FieldFlow-stijl voor deze versie"
+          label="Slidehuisstijl voor deze versie"
           legacySelected={draft.themeSelection.ref.catalog === "legacy"}
           onActivate={() => setTheme("fieldflow")}
           value={themeId}
+        />
+        <TenantStyleSummary
+          context="Deze conceptversie bevriest bij publicatie de actuele tenantstijl. De bestaande inhouds-, team- en veldkeuzes blijven afzonderlijk bewerkbaar."
+          style={tenantStyle}
         />
 
         <fieldset className={styles.section}>
@@ -422,7 +433,7 @@ export function SportlinkVersionEditor({
         </footer>
       </section>
 
-      <VersionPreview draft={draft} teams={teams} theme={theme} themeId={themeId} />
+      <VersionPreview draft={draft} teams={teams} tenantStyle={tenantStyle} />
     </div>
   );
 }
@@ -852,11 +863,10 @@ function DisplayToggle({ checked, label, onChange }: {
   );
 }
 
-function VersionPreview({ draft, teams, theme, themeId }: {
+function VersionPreview({ draft, teams, tenantStyle }: {
   draft: SportlinkSlideDraft;
   teams: Team[];
-  theme: (typeof themeCatalog)[SelectableThemeId];
-  themeId: SelectableThemeId;
+  tenantStyle: TenantStyleData;
 }) {
   const clubAggregate = isClubAggregateBlueprint(draft.blueprintKey);
   const clubSelection = draft.teamSelection;
@@ -880,6 +890,7 @@ function VersionPreview({ draft, teams, theme, themeId }: {
   const contextLabel = clubAggregate
     ? `${teamContextLabel} · ${matchLocationLabel(clubSelection?.matchLocation)}`
     : teamContextLabel;
+  const matchRowKind = sportlinkMatchRowPreviewKind(draft.blueprintKey);
   return (
     <aside className={styles.preview}>
       <header>
@@ -893,19 +904,29 @@ function VersionPreview({ draft, teams, theme, themeId }: {
         className={styles.previewViewport}
         data-orientation={draft.orientation}
         style={{
-          "--preview-accent": draft.themeSelection.accent ?? theme.accentDefault,
-          "--preview-canvas": theme.light.canvas,
-          "--preview-line": theme.light.line,
-          "--preview-muted": theme.light.muted,
-          "--preview-surface": theme.light.surface,
-          "--preview-text": theme.light.text
+          "--preview-accent": tenantStyle.light.accent,
+          "--preview-canvas": tenantStyle.light.canvas,
+          "--preview-line": tenantStyle.light.border,
+          "--preview-muted": tenantStyle.light.textMuted,
+          "--preview-surface": tenantStyle.light.surface,
+          "--preview-text": tenantStyle.light.text
         } as React.CSSProperties}
       >
         <span>SPORTLINK</span>
         <h2>{shortLabel(draft.blueprintKey)}</h2>
-        <p>{contextLabel}</p>
-        <div><i /><i /><i /></div>
-        <footer>{themeCatalog[themeId].name}</footer>
+        {matchRowKind ? (
+          <SportlinkMatchRowPreview
+            blueprintKey={draft.blueprintKey}
+            display={draft.display}
+            orientation={draft.orientation}
+          />
+        ) : (
+          <>
+            <p>{contextLabel}</p>
+            <div><i /><i /><i /></div>
+          </>
+        )}
+        <footer>Royal Current · Navy Glass</footer>
       </div>
       {aggregate ? (
         <div className={styles.previewTeams}>

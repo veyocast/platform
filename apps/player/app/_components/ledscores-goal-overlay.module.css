@@ -38,3 +38,179 @@
 @keyframes goal-slide { from { opacity: 0; transform: translateX(-12vw); } to { opacity: 1; transform: translateX(0); } }
 @media (orientation: portrait) { .content { align-content: start; max-width: 84vw; padding-top: 10vh; } .displayHeadline, .bodyHeadline { font-size: clamp(3.5rem, 15vw, 9rem); line-height: .84; } .score { font-size: clamp(6rem, 24vw, 13rem); } .playerReveal { bottom: 7vh; grid-template-columns: minmax(8rem, 40vw) 1fr; left: 8vw; right: 8vw; } .playerPortrait { max-height: 32vh; } .scrim { background: linear-gradient(180deg, color-mix(in srgb, var(--vc-brand-ink-black) 82%, transparent), color-mix(in srgb, var(--vc-brand-ink-black) 36%, transparent)); } .overlay[data-palette="electric-orange"] .scrim, .overlay[data-palette="white"] .scrim { background: linear-gradient(180deg, color-mix(in srgb, var(--vc-brand-paper-white) 74%, transparent), color-mix(in srgb, var(--vc-brand-paper-white) 28%, transparent)); } }
 @media (prefers-reduced-motion: reduce) { .overlay *, .overlay::before { animation: none !important; } }
+
+.overlay[data-design-revision="royal-current-v8"],
+.overlay[data-design-revision="player-fallback"] {
+  --goal-accent: var(--accent, var(--player-accent, #6a8ef3));
+  --goal-accent-soft: var(--accent-soft, var(--player-accent-soft, #192955));
+  --goal-bg: var(--bg, var(--player-bg, #0a1124));
+  --goal-deep: var(--deep, #070e22);
+  --goal-flow: var(--flow-accent, #2459ed);
+  --goal-ink: var(--ink, var(--player-ink, #f5f7fb));
+  --goal-line: var(--line, var(--player-line, #434c61));
+  --goal-muted: var(--muted, var(--player-muted, #b2b6be));
+  --goal-own-bg: var(--own-bg, #263a73);
+  --goal-own-ink: var(--own-ink, #fff);
+  background: linear-gradient(135deg, var(--canvas-start, #131c34), var(--goal-bg) 50%, var(--canvas-end, #0c1428));
+  color: var(--goal-ink);
+  font-family: var(--vc-theme-body-font, "Roboto"), Arial, sans-serif;
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-scoring-side="own"][data-palette="ink-black"],
+.overlay[data-design-revision="player-fallback"][data-scoring-side="own"][data-palette="ink-black"] {
+  background: linear-gradient(135deg, var(--goal-own-bg), var(--goal-deep));
+  color: var(--goal-own-ink);
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-scoring-side="unknown"][data-palette="ink-black"],
+.overlay[data-design-revision="player-fallback"][data-scoring-side="unknown"][data-palette="ink-black"] {
+  background: linear-gradient(135deg, var(--surface-2, #1f2a49), var(--goal-bg));
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-palette="electric-orange"],
+.overlay[data-design-revision="player-fallback"][data-palette="electric-orange"] {
+  background: var(--solid-accent, #2459ed);
+  color: #fff;
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-palette="signal-red"],
+.overlay[data-design-revision="player-fallback"][data-palette="signal-red"] {
+  background: var(--vc-semantic-critical-solid);
+  color: #fff;
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-palette="white"],
+.overlay[data-design-revision="player-fallback"][data-palette="white"] {
+  background: #fff;
+  color: var(--goal-deep);
+}
+
+.overlay[data-design-revision="royal-current-v8"] .fallbackMotion,
+.overlay[data-design-revision="player-fallback"] .fallbackMotion {
+  opacity: 1;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .fallbackMotion span,
+.overlay[data-design-revision="player-fallback"] .fallbackMotion span {
+  background: transparent;
+  border: 2px solid var(--goal-flow);
+  border-radius: 50%;
+  opacity: .2;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .fallbackMotion span:nth-child(1),
+.overlay[data-design-revision="player-fallback"] .fallbackMotion span:nth-child(1) {
+  height: 58vw;
+  left: auto;
+  right: -16vw;
+  top: -31vw;
+  transform: rotate(24deg);
+  width: 68vw;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .fallbackMotion span:nth-child(2),
+.overlay[data-design-revision="player-fallback"] .fallbackMotion span:nth-child(2) {
+  bottom: -41vw;
+  height: 55vw;
+  left: -24vw;
+  top: auto;
+  transform: rotate(-16deg);
+  width: 82vw;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .fallbackMotion span:nth-child(3),
+.overlay[data-design-revision="player-fallback"] .fallbackMotion span:nth-child(3) {
+  bottom: -24vw;
+  height: 28vw;
+  left: auto;
+  opacity: .08;
+  right: 10vw;
+  top: auto;
+  transform: rotate(-22deg);
+  width: 42vw;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .scrim,
+.overlay[data-design-revision="player-fallback"] .scrim {
+  background: linear-gradient(100deg, rgba(7, 14, 34, .92), rgba(7, 14, 34, .18));
+}
+
+.overlay[data-design-revision="royal-current-v8"] .content,
+.overlay[data-design-revision="player-fallback"] .content {
+  background: linear-gradient(145deg, var(--surface, #17213a) 45%, var(--goal-accent-soft));
+  border: 1px solid var(--goal-line);
+  border-radius: 24px;
+  max-width: min(86vw, 1500px);
+  padding: clamp(2rem, 4vw, 4.5rem);
+}
+
+.overlay[data-design-revision="royal-current-v8"] .displayHeadline,
+.overlay[data-design-revision="royal-current-v8"] .bodyHeadline,
+.overlay[data-design-revision="royal-current-v8"] .score,
+.overlay[data-design-revision="player-fallback"] .displayHeadline,
+.overlay[data-design-revision="player-fallback"] .bodyHeadline,
+.overlay[data-design-revision="player-fallback"] .score {
+  font-family: var(--vc-theme-display-font, "Roboto"), Arial, sans-serif;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .identity,
+.overlay[data-design-revision="player-fallback"] .identity,
+.overlay[data-design-revision="royal-current-v8"] .metadata,
+.overlay[data-design-revision="player-fallback"] .metadata,
+.overlay[data-design-revision="royal-current-v8"] .secondary,
+.overlay[data-design-revision="player-fallback"] .secondary,
+.overlay[data-design-revision="royal-current-v8"] .previous,
+.overlay[data-design-revision="player-fallback"] .previous {
+  color: var(--goal-muted);
+}
+
+.overlay[data-design-revision="royal-current-v8"] .playerPortrait,
+.overlay[data-design-revision="player-fallback"] .playerPortrait {
+  background: var(--goal-accent-soft);
+  border-color: var(--goal-line);
+}
+
+.overlay[data-design-revision="royal-current-v8"] .playerReveal > div:last-child > span,
+.overlay[data-design-revision="player-fallback"] .playerReveal > div:last-child > span {
+  color: var(--goal-accent);
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-animation="impact"] .content,
+.overlay[data-design-revision="player-fallback"][data-animation="impact"] .content {
+  animation: royal-goal-reveal 650ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-animation="slide"] .content,
+.overlay[data-design-revision="player-fallback"][data-animation="slide"] .content {
+  animation: royal-goal-slide 650ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-motion-state="off"] *,
+.overlay[data-design-revision="player-fallback"][data-motion-state="off"] * {
+  animation: none !important;
+  transition: none !important;
+}
+
+@keyframes royal-goal-reveal {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes royal-goal-slide {
+  from { opacity: 0; transform: translateX(-4vw); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (orientation: portrait) {
+  .overlay[data-design-revision="royal-current-v8"] .content,
+  .overlay[data-design-revision="player-fallback"] .content {
+    align-content: center;
+    max-width: 86vw;
+    padding: 6vw;
+  }
+
+  .overlay[data-design-revision="royal-current-v8"] .scrim,
+  .overlay[data-design-revision="player-fallback"] .scrim {
+    background: linear-gradient(180deg, rgba(7, 14, 34, .92), rgba(7, 14, 34, .18));
+  }
+}

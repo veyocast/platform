@@ -47,4 +47,38 @@ describe("centrale tenantstijl", () => {
 
     expect(authority.theme).toEqual(base.theme);
   });
+
+  it("leidt zonder opgeslagen overrides beide modi af uit de v2-clubkleur", () => {
+    const authority = resolveTenantThemeAuthority({
+      appearance_config: {
+        designRevision: "royal-current-v8",
+        motionEnabled: true,
+        palette: {
+          background: "club",
+          primary: "#08734D",
+          secondary: null,
+          version: 1
+        },
+        schemaVersion: 2,
+        surfaces: {
+          clubLogoBackground: "#FFFFFF",
+          homeLogoBackground: "#FFFFFF"
+        },
+        typography: {
+          baseScale: 1,
+          bodyFontRef: "vc-roboto-v1",
+          displayFontRef: "vc-roboto-v1",
+          sportScale: 1
+        }
+      },
+      default_theme_id: "fieldflow",
+      default_theme_version: "1.0.0",
+      theme_accent: "#08734D",
+      theme_mode_policy: { kind: "fixed", mode: "light" }
+    }, "2026-09-05T12:00:00.000Z");
+
+    expect(authority.theme.light.accent).toBe("#08734d");
+    expect(authority.theme.dark.accent).toBe("#84b9a6");
+    expect(authority.theme.light.canvas).not.toBe("#f3f6fc");
+  });
 });

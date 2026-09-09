@@ -124,7 +124,7 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
             ) : null}
           </>
         }
-        description="Maak clubcontent van template tot veilig renderbaar media-item, zonder de publicatiestroom te verlaten."
+        description="Maak clubcontent vanuit Royal Current/Navy Glass-systeemtemplates of als vrij ontwerp. Vrije media en bestaande pixels worden nooit automatisch opnieuw gekleurd."
         eyebrow={session.tenant}
         status={
           !session.isLive

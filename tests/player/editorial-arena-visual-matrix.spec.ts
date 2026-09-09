@@ -7,8 +7,8 @@ import {
 } from "@veyocast/content-templates/theme-catalog";
 import {
   createFieldflowRoyalBlueAppearance,
-  createFieldflowRoyalBlueSelection,
-  createFieldflowRoyalBlueTheme
+  createFieldflowRoyalBlueTheme,
+  createRoyalCurrentSelection
 } from "@veyocast/content-templates";
 import type {
   EditorialNewsVariant,
@@ -20,6 +20,7 @@ import { playerDynamicTemplatePayloadSchema } from "@veyocast/contracts";
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 const snapshotId = "10000000-0000-4000-8000-000000000001";
 const imageId = "10000000-0000-4000-8000-000000000002";
+const qrId = "10000000-0000-4000-8000-000000000004";
 const fixtureVariants = [
   "price-with-photo",
   "price-without-photo",
@@ -39,12 +40,14 @@ const fixtureVariants = [
   "volunteer-call"
 ] as const;
 
-test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
+test("Royal Current-outputmatrix van 64 renderercombinaties", async ({ page }) => {
   test.setTimeout(180_000);
   await page.clock.setFixedTime(new Date("2026-09-06T13:33:00.000Z"));
   await page.emulateMedia({ reducedMotion: "reduce" });
+  const requestedVariant = process.env.ROYAL_CURRENT_VARIANT;
 
   for (const variant of fixtureVariants) {
+    if (requestedVariant && requestedVariant !== variant) continue;
     for (const orientation of ["landscape", "portrait"] as const) {
       for (const themeMode of ["light", "dark"] as const) {
         await test.step(`${variant} · ${orientation} · ${themeMode}`, async () => {
@@ -68,10 +71,11 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
           await expect(slide).toHaveAttribute("data-theme-id", "fieldflow");
           await expect(slide.locator("header time"))
             .toHaveText("06-09-2026 | 15:33");
-          await expect(slide.locator("header")).not.toContainText("VeyoCast");
+          await expect(slide.locator(":scope > header"))
+            .not.toContainText("VeyoCast");
           const geometry = await slide.evaluate((element) => {
-            const content = element.querySelector("main");
-            const footer = element.querySelector("footer");
+            const content = element.querySelector(":scope > main");
+            const footer = element.querySelector(":scope > footer");
             const contentBox = content?.getBoundingClientRect();
             const footerBox = footer?.getBoundingClientRect();
             return {
@@ -90,8 +94,10 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
           expect(geometry.footerClearsContent).toBe(true);
           expect(geometry.allImagesComplete).toBe(true);
           if (variant.startsWith("program-") || variant.startsWith("results-")) {
-            await expect(slide.locator("header")).toContainText("MATCHCENTRE");
-            await expect(slide.locator("footer")).not.toContainText(/wedstrijdcentrum/iu);
+            await expect(slide.locator("header")).toContainText(
+              variant.startsWith("results-") ? /teamoverzicht/iu : /wedstrijddag/iu
+            );
+            await expect(slide.locator("footer")).toContainText(/\d+\s*\/\s*\d+/u);
             const rows = slide.locator(
               '[class*="arenaProgramRow"], [data-result-row]'
             );
@@ -117,6 +123,9 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
             await expect(primary).toContainText("Thuisclub 1");
             await expect(primary).toContainText("Uitclub 1");
             if (variant.startsWith("program-")) {
+              expect(await firstRow.locator('[data-field="time"]').evaluate((element) =>
+                element.scrollWidth <= element.clientWidth
+              )).toBe(true);
               const secondary = firstRow.locator('[class*="arenaMatchSecondary"]');
               await expect(secondary).toContainText("Veld: 1");
               await expect(secondary).toContainText("Sportpark: De Arena");
@@ -159,12 +168,12 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
             const rows = slide.locator("[data-result-row]");
             expect(await rows.first().evaluate(
               (element) => Number.parseFloat(getComputedStyle(element).fontSize)
-            )).toBeCloseTo(orientation === "portrait" ? 30.24 : 33.6, 2);
+            )).toBeCloseTo(orientation === "portrait" ? 32 : 28, 2);
             expect(await rows.first().locator(
               '[class*="arenaResultScore"]'
             ).evaluate(
               (element) => Number.parseFloat(getComputedStyle(element).fontSize)
-            )).toBeCloseTo(52.08, 2);
+            )).toBeCloseTo(46.5, 2);
             const scoreGeometry = await rows.first().evaluate((element) => {
               const score = element.querySelector<HTMLElement>(
                 '[class*="arenaResultScore"]'
@@ -187,6 +196,115 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
               };
             });
             expect(scoreGeometry.scoreBetweenTeams).toBe(true);
+            if (orientation === "portrait") {
+              expect(await rows.first().evaluate((element) => {
+                const teams = Array.from(element.querySelectorAll<HTMLElement>(
+                  '[data-field="home-team"], [data-field="away-team"]'
+                ));
+                return teams.every((team) => team.scrollWidth <= team.clientWidth);
+              })).toBe(true);
+            }
+          }
+          if (variant.startsWith("standing-") && orientation === "landscape") {
+            const pinned = slide.getByTestId("standing-pinned-team").locator("article");
+            await expect(slide.getByTestId("standing-summary")).toContainText(
+              `Volledige stand · ${countForVariant(variant)} teams`
+            );
+            await expect(pinned).toBeVisible();
+            await expect(slide.locator('[data-standing-window] > article')).toHaveCount(
+              Math.min(countForVariant(variant), 7)
+            );
+            await expect(slide.locator('[class*="royalTitleStat"]')).toContainText(/poule/iu);
+            expect(await pinned.evaluate((element) => {
+              const bounds = element.getBoundingClientRect();
+              const children = Array.from(element.children).map((child) =>
+                child.getBoundingClientRect()
+              );
+              return {
+                allChildrenContained: children.every((child) =>
+                  child.left >= bounds.left - 1 && child.right <= bounds.right + 1 &&
+                  child.top >= bounds.top - 1 && child.bottom <= bounds.bottom + 1
+                ),
+                display: getComputedStyle(element).display,
+                rowFits: element.scrollWidth <= element.clientWidth
+              };
+            })).toEqual({
+              allChildrenContained: true,
+              display: "grid",
+              rowFits: true
+            });
+          }
+          if (variant === "sponsor-spotlight") {
+            const layout = slide.locator('[data-render-family="sponsor-spotlight"]');
+            const cards = layout.locator(":scope > article");
+            await expect(layout).toHaveAttribute("data-items", "1");
+            await expect(cards).toHaveCount(1);
+            await expect(slide.locator(":scope > footer")).toContainText("1 / 8");
+
+            const geometry = await cards.first().evaluate((card) => {
+              const cardBox = card.getBoundingClientRect();
+              const plate = card.querySelector<HTMLElement>('[class*="arenaSponsorPlate"]');
+              const copy = card.querySelector<HTMLElement>('[class*="arenaSponsorCopy"]');
+              const image = plate?.querySelector<HTMLImageElement>("img");
+              const plateBox = plate?.getBoundingClientRect();
+              const copyBox = copy?.getBoundingClientRect();
+              const imageBox = image?.getBoundingClientRect();
+              const cardBackground = getComputedStyle(card).backgroundColor;
+              const contrastRatio = (foreground: string, background: string) => {
+                const channels = (value: string) => (
+                  value.match(/[\d.]+/gu)?.slice(0, 3).map(Number) ?? []
+                );
+                const luminance = (value: string) => {
+                  const [red = 0, green = 0, blue = 0] = channels(value).map(
+                    (channel) => {
+                      const normalized = channel / 255;
+                      return normalized <= .04045
+                        ? normalized / 12.92
+                        : ((normalized + .055) / 1.055) ** 2.4;
+                    }
+                  );
+                  return .2126 * red + .7152 * green + .0722 * blue;
+                };
+                const foregroundLuminance = luminance(foreground);
+                const backgroundLuminance = luminance(background);
+                return (Math.max(foregroundLuminance, backgroundLuminance) + .05) /
+                  (Math.min(foregroundLuminance, backgroundLuminance) + .05);
+              };
+              const copyText = copy
+                ? Array.from(copy.querySelectorAll<HTMLElement>("h2, p, strong"))
+                : [];
+              return {
+                cardFits: card.scrollHeight <= card.clientHeight &&
+                  card.scrollWidth <= card.clientWidth,
+                copyContrasts: copyText.map((element) => contrastRatio(
+                  getComputedStyle(element).color,
+                  cardBackground
+                )),
+                copyInsideCard: Boolean(copyBox &&
+                  copyBox.left >= cardBox.left - 1 && copyBox.right <= cardBox.right + 1 &&
+                  copyBox.top >= cardBox.top - 1 && copyBox.bottom <= cardBox.bottom + 1),
+                imageInsidePlate: Boolean(imageBox && plateBox &&
+                  imageBox.left >= plateBox.left - 1 && imageBox.right <= plateBox.right + 1 &&
+                  imageBox.top >= plateBox.top - 1 && imageBox.bottom <= plateBox.bottom + 1),
+                imageObjectFit: image ? getComputedStyle(image).objectFit : "",
+                plateInsideCard: Boolean(plateBox &&
+                  plateBox.left >= cardBox.left - 1 && plateBox.right <= cardBox.right + 1 &&
+                  plateBox.top >= cardBox.top - 1 && plateBox.bottom <= cardBox.bottom + 1),
+                plateSeparatedFromCopy: Boolean(plateBox && copyBox && (
+                  plateBox.right <= copyBox.left + 1 ||
+                  plateBox.bottom <= copyBox.top + 1
+                ))
+              };
+            });
+
+            expect(geometry.cardFits).toBe(true);
+            expect(geometry.plateInsideCard).toBe(true);
+            expect(geometry.copyInsideCard).toBe(true);
+            expect(geometry.imageInsidePlate).toBe(true);
+            expect(geometry.imageObjectFit).toBe("contain");
+            expect(geometry.plateSeparatedFromCopy).toBe(true);
+            expect(geometry.copyContrasts.length).toBeGreaterThanOrEqual(3);
+            expect(Math.min(...geometry.copyContrasts)).toBeGreaterThanOrEqual(4.5);
           }
           if (variant === "news-hero" && orientation === "portrait") {
             const splitSpacing = await page.locator(
@@ -201,11 +319,64 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
               };
             });
             expect(splitSpacing).toEqual({
-              columnGap: "32px",
-              paddingLeft: "20px",
-              paddingRight: "20px",
-              rowGap: "32px"
+              columnGap: "22px",
+              paddingLeft: "0px",
+              paddingRight: "0px",
+              rowGap: "22px"
             });
+          }
+          if (variant === "news-grid") {
+            const newsGrid = slide.locator('[data-news-variant="news_grid"]');
+            await expect(newsGrid.locator(':scope > [class*="arenaNewsGrid"] > article'))
+              .toHaveCount(1);
+            await expect(newsGrid).toContainText("Nieuwsbericht 2");
+            await expect(slide.locator(":scope > footer")).toContainText(/1\s*\/\s*2/u);
+            if (orientation === "portrait") {
+              const titleAndContent = await slide.evaluate((element) => {
+                const title = element.querySelector<HTMLElement>(':scope > [class*="royalTitle"]');
+                const content = element.querySelector<HTMLElement>(':scope > [class*="arenaContent"]');
+                const heading = title?.querySelector<HTMLElement>("h1");
+                const titleBox = title?.getBoundingClientRect();
+                const contentBox = content?.getBoundingClientRect();
+                const headingBox = heading?.getBoundingClientRect();
+                const headingLineHeight = heading
+                  ? Number.parseFloat(getComputedStyle(heading).lineHeight)
+                  : 0;
+                return {
+                  headingInsideTitle: Boolean(headingBox && titleBox &&
+                    headingBox.left >= titleBox.left - 1 &&
+                    headingBox.right <= titleBox.right + 1 &&
+                    headingBox.top >= titleBox.top - 1 &&
+                    headingBox.bottom <= titleBox.bottom + 1),
+                  headingMaxTwoLines: Boolean(headingBox && headingLineHeight &&
+                    headingBox.height <= headingLineHeight * 2 + 1),
+                  titleBeforeContent: Boolean(titleBox && contentBox &&
+                    titleBox.bottom <= contentBox.top + 1),
+                  titleFits: Boolean(title &&
+                    title.scrollHeight <= title.clientHeight + 1 &&
+                    title.scrollWidth <= title.clientWidth + 1)
+                };
+              });
+              expect(titleAndContent).toEqual({
+                headingInsideTitle: true,
+                headingMaxTwoLines: true,
+                titleBeforeContent: true,
+                titleFits: true
+              });
+            }
+          }
+          if (variant.startsWith("price-")) {
+            const priceList = slide.locator('[data-render-family="price-list"]');
+            const photoAside = priceList.locator(':scope > [class*="royalPriceAside"]');
+            await expect(priceList).toBeVisible();
+            await expect(slide.locator('[data-render-family="menu"]')).toHaveCount(0);
+            await expect(photoAside).toHaveAttribute(
+              "data-image",
+              variant === "price-with-photo" ? "visible" : "missing"
+            );
+            await expect(photoAside.locator(":scope > img")).toHaveCount(
+              variant === "price-with-photo" ? 1 : 0
+            );
           }
           if (variant === "news-fullscreen") {
             const composition = await page.locator(
@@ -245,7 +416,7 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
             expect(composition.overlay).not.toBe("none");
             await expect(slide.getByTestId("news-qr")).toBeVisible();
             await expect(slide.getByTestId("news-qr"))
-              .toContainText("Scan voor het artikel");
+              .not.toContainText("Scan voor het artikel");
             await expect(slide.getByTestId("news-qr").locator("small"))
               .toHaveCount(0);
             await expect(slide).not.toContainText("example.com/nieuws/0");
@@ -257,37 +428,43 @@ test("volledige FieldFlow-outputmatrix van 64 cellen", async ({ page }) => {
               expect(composition.qrBottomGap).toBeLessThanOrEqual(31);
               expect(composition.qrRightGap).toBeGreaterThanOrEqual(91);
               expect(composition.qrRightGap).toBeLessThanOrEqual(93);
-              expect(composition.qrImageRightGap).toBeGreaterThanOrEqual(91);
-              expect(composition.qrImageRightGap).toBeLessThanOrEqual(93);
+              // The white QR container aligns with the provider logo. Its
+              // image keeps the mandatory 16 px quiet-zone inside that edge.
+              expect(composition.qrImageRightGap).toBeGreaterThanOrEqual(108);
+              expect(composition.qrImageRightGap).toBeLessThanOrEqual(110);
               expect(composition.sourceRightGap).toBeGreaterThanOrEqual(91);
               expect(composition.sourceRightGap).toBeLessThanOrEqual(93);
-              expect(composition.qrViewportBottomGap).toBeGreaterThanOrEqual(143);
-              expect(composition.qrViewportBottomGap).toBeLessThanOrEqual(145);
-              expect(composition.qrViewportRightGap).toBeGreaterThanOrEqual(143);
-              expect(composition.qrViewportRightGap).toBeLessThanOrEqual(145);
-              expect(composition.storyWidthRatio).toBeGreaterThanOrEqual(0.6);
-              expect(composition.storyWidthRatio).toBeLessThanOrEqual(0.64);
-              expect(composition.storyTopRatio).toBeLessThan(0.01);
+              expect(composition.qrViewportBottomGap).toBeGreaterThanOrEqual(105);
+              expect(composition.qrViewportBottomGap).toBeLessThanOrEqual(107);
+              expect(composition.qrViewportRightGap).toBeGreaterThanOrEqual(155);
+              expect(composition.qrViewportRightGap).toBeLessThanOrEqual(157);
+              expect(composition.storyWidthRatio).toBeGreaterThanOrEqual(0.48);
+              expect(composition.storyWidthRatio).toBeLessThanOrEqual(0.5);
+              expect(composition.storyTopRatio).toBeGreaterThanOrEqual(0.031);
+              expect(composition.storyTopRatio).toBeLessThanOrEqual(0.032);
             } else {
               expect(composition.overlay).toContain("28%");
               expect(composition.overlay).toContain("40%");
               expect(composition.overlay).toContain("50%");
               expect(composition.introFontSize).toBeGreaterThanOrEqual(32);
-              expect(composition.qrBottomGap).toBeGreaterThanOrEqual(45);
-              expect(composition.qrBottomGap).toBeLessThanOrEqual(47);
-              expect(composition.qrRightGap).toBeGreaterThanOrEqual(105);
-              expect(composition.qrRightGap).toBeLessThanOrEqual(107);
+              expect(composition.qrBottomGap).toBeGreaterThanOrEqual(60);
+              expect(composition.qrBottomGap).toBeLessThanOrEqual(62);
+              expect(composition.qrRightGap).toBeGreaterThanOrEqual(60);
+              expect(composition.qrRightGap).toBeLessThanOrEqual(62);
               expect(composition.qrViewportBottomGap).toBeGreaterThanOrEqual(143);
               expect(composition.qrViewportBottomGap).toBeLessThanOrEqual(145);
-              expect(composition.qrViewportRightGap).toBeGreaterThanOrEqual(143);
-              expect(composition.qrViewportRightGap).toBeLessThanOrEqual(145);
-              expect(composition.storyHeightRatio).toBeGreaterThanOrEqual(0.49);
-              expect(composition.storyHeightRatio).toBeLessThanOrEqual(0.51);
-              expect(composition.storyTopRatio).toBeGreaterThanOrEqual(0.49);
-              expect(composition.storyTopRatio).toBeLessThanOrEqual(0.51);
+              expect(composition.qrViewportRightGap).toBeGreaterThanOrEqual(98);
+              expect(composition.qrViewportRightGap).toBeLessThanOrEqual(100);
+              expect(composition.storyHeightRatio).toBeGreaterThanOrEqual(0.459);
+              expect(composition.storyHeightRatio).toBeLessThanOrEqual(0.461);
+              expect(composition.storyTopRatio).toBeGreaterThanOrEqual(0.524);
+              expect(composition.storyTopRatio).toBeLessThanOrEqual(0.526);
             }
           }
-          await expect(page).toHaveScreenshot(
+          const screenshotExpectation = process.env.ROYAL_CURRENT_CAPTURE_ALL === "1"
+            ? expect.soft(page)
+            : expect(page);
+          await screenshotExpectation.toHaveScreenshot(
             `${variant}-${orientation}-${themeMode}.png`,
             { animations: "disabled", caret: "hide", maxDiffPixelRatio: 0.002 }
           );
@@ -438,7 +615,7 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
         ratioToContent: contentBox ? rowBox.height / contentBox.height : 1
       };
     });
-    expect(geometry.height).toBe(314);
+    expect(geometry.height).toBe(148);
     expect(geometry.ratioToContent).toBeLessThan(0.25);
   });
 
@@ -457,9 +634,68 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
     await expect(details).toContainText("Sportpark: Houtrust");
     await expect(details).not.toContainText("Veld:");
   });
+
+  await test.step("alle optionele programmavelden blijven zichtbaar en geordend", async () => {
+    for (const orientation of ["landscape", "portrait"] as const) {
+      await page.setViewportSize(orientation === "landscape"
+        ? { height: 1080, width: 1920 }
+        : { height: 1920, width: 1080 });
+      const payload = withCompleteProgramFields(
+        buildPayload("program-5", orientation, "light")
+      );
+      await page.goto("about:blank");
+      await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+      await page.waitForFunction(
+        () => document.documentElement.dataset.thumbnailReady === "true"
+      );
+
+      const row = page.locator('[class*="arenaProgramRow"]').first();
+      expect(await row.locator(
+        ':scope > [class*="arenaMatchPrimary"] > [data-field]'
+      ).evaluateAll((fields) => fields.map((field) => field.getAttribute("data-field"))))
+        .toEqual([
+          "date", "time", "home-logo", "home-team", "home-room", "versus",
+          "away-logo", "away-team", "away-room"
+        ]);
+      await expect(row.locator('[data-field="home-room"]')).toHaveText("Kleedkamer 1A");
+      await expect(row.locator('[data-field="away-room"]')).toHaveText("Kleedkamer 2B");
+      const secondary = row.locator('[class*="arenaMatchSecondary"]');
+      expect(await secondary.locator('[data-field]').evaluateAll((fields) =>
+        fields.map((field) => field.getAttribute("data-field"))))
+        .toEqual(["referee", "field", "sportpark"]);
+      await expect(secondary).toContainText("Scheidsrechter: M. de Vries");
+      await expect(secondary).toContainText("Veld: 1");
+      await expect(secondary).toContainText("Sportpark: De Arena");
+      expect(await row.evaluate((element) => (
+        element.scrollHeight <= element.clientHeight &&
+        element.scrollWidth <= element.clientWidth
+      ))).toBe(true);
+    }
+  });
+
+  await test.step("uitslagen verbergen opties onafhankelijk en verzinnen geen score", async () => {
+    await page.setViewportSize({ height: 1080, width: 1920 });
+    const payload = withUnknownResultAndHiddenOptions(
+      buildPayload("results-5", "landscape", "light")
+    );
+    await page.goto("about:blank");
+    await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+    await page.waitForFunction(
+      () => document.documentElement.dataset.thumbnailReady === "true"
+    );
+
+    const row = page.locator("[data-result-row]").first();
+    expect(await row.locator(
+      ':scope > [class*="arenaMatchPrimary"] > [data-field]'
+    ).evaluateAll((fields) => fields.map((field) => field.getAttribute("data-field"))))
+      .toEqual(["home-team", "score", "away-team"]);
+    const score = row.locator('[data-field="score"]');
+    await expect(score).toHaveAttribute("aria-label", "Uitslag nog niet bekend");
+    await expect(score).toBeEmpty();
+  });
 });
 
-test("staande splitnieuwsslide houdt 32 px tussenruimte en 20 px zijmarges", async ({ page }) => {
+test("staande splitnieuwsslide volgt het v8-raster met 22 px tussenruimte", async ({ page }) => {
   await page.setViewportSize({ height: 1920, width: 1080 });
   await page.clock.setFixedTime(new Date("2026-09-06T13:33:00.000Z"));
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -477,13 +713,13 @@ test("staande splitnieuwsslide houdt 32 px tussenruimte en 20 px zijmarges", asy
       rowGap: style.rowGap
     };
   })).toEqual({
-    paddingLeft: "20px",
-    paddingRight: "20px",
-    rowGap: "32px"
+    paddingLeft: "0px",
+    paddingRight: "0px",
+    rowGap: "22px"
   });
 });
 
-test("Royal blauw vergroot wedstrijdinformatie zonder vaste rijen te breken", async ({ page }) => {
+test("Royal Current vergroot wedstrijdinformatie zonder vaste rijen te breken", async ({ page }) => {
   test.setTimeout(90_000);
   await page.clock.setFixedTime(new Date("2026-09-09T08:00:00.000Z"));
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -501,20 +737,20 @@ test("Royal blauw vergroot wedstrijdinformatie zonder vaste rijen te breken", as
         () => document.documentElement.dataset.thumbnailReady === "true"
       );
 
-      const slide = page.locator('[data-theme-id="fieldflow"]');
+      const slide = page.locator('[data-slide-type][data-theme-id="fieldflow"]');
       const rows = slide.locator(
         '[class*="arenaProgramRow"], [data-result-row]'
       );
       await expect(slide).toBeVisible();
       expect(await slide.evaluate((element) => ({
-        background: getComputedStyle(element).backgroundColor,
+        background: getComputedStyle(element).getPropertyValue("--bg").trim(),
         baseScale: getComputedStyle(element).getPropertyValue("--vc-theme-base-scale").trim(),
         color: getComputedStyle(element).color,
         sportScale: getComputedStyle(element).getPropertyValue("--vc-theme-sport-scale").trim()
       }))).toEqual({
-        background: "rgb(7, 21, 56)",
+        background: "#0a1124",
         baseScale: "1.05",
-        color: "rgb(255, 255, 255)",
+        color: "rgb(245, 247, 251)",
         sportScale: "1.4"
       });
       const rowGeometry = await rows.evaluateAll((elements) => elements.map((element) => ({
@@ -525,7 +761,7 @@ test("Royal blauw vergroot wedstrijdinformatie zonder vaste rijen te breken", as
         scrollWidth: element.scrollWidth
       })));
       expect(rowGeometry.every((geometry) => (
-        geometry.height === 115 &&
+        geometry.height === 96 &&
         geometry.scrollHeight <= geometry.clientHeight &&
         geometry.scrollWidth <= geometry.clientWidth
       ))).toBe(true);
@@ -535,17 +771,17 @@ test("Royal blauw vergroot wedstrijdinformatie zonder vaste rijen te breken", as
         background: getComputedStyle(element).backgroundColor,
         fontSize: Number.parseFloat(getComputedStyle(element).fontSize)
       }))).toEqual({
-        background: "rgb(12, 34, 87)",
-        fontSize: variant === "program-5" ? 29.4 : 31.5
+        background: "rgb(23, 33, 58)",
+        fontSize: variant === "program-5" ? 39.2 : 29.4
       });
       if (variant === "program-5") {
         expect(await firstRow.locator('[class*="arenaMatchSecondary"]').evaluate(
           (element) => Number.parseFloat(getComputedStyle(element).fontSize)
-        )).toBeCloseTo(15.288, 2);
+        )).toBeCloseTo(20.384, 2);
       } else {
         expect(await firstRow.locator('[class*="arenaResultScore"]').evaluate(
           (element) => Number.parseFloat(getComputedStyle(element).fontSize)
-        )).toBeCloseTo(55.125, 2);
+        )).toBeCloseTo(61.74, 2);
       }
 
       await expect(page).toHaveScreenshot(
@@ -573,6 +809,7 @@ function buildPayload(
     support: null
   };
   const themePresentation = freezeThemePresentation({
+    appearance: createFieldflowRoyalBlueAppearance(),
     instant: "2026-09-02T12:00:00.000Z",
     selection,
     timezone: "Europe/Amsterdam"
@@ -596,7 +833,7 @@ function buildPayload(
       ? newsData(newsVariant(variant), theme)
       : sportData(variant, theme);
   const slideType = variant.startsWith("price-")
-    ? "menu"
+    ? "price_list"
     : variant.startsWith("news-")
       ? "news"
       : variant.startsWith("standing-")
@@ -619,6 +856,12 @@ function buildPayload(
         checksumSha256: "a".repeat(64),
         mimeType: "image/png",
         url: `${playerURL}/editorial-arena-fixture.svg`
+      },
+      [qrId]: {
+        bytes: 2_468,
+        checksumSha256: "c".repeat(64),
+        mimeType: "image/svg+xml",
+        url: `${playerURL}/royal-current-news-qr.svg`
       }
     },
     data: {
@@ -638,17 +881,27 @@ function buildPayload(
 function withRoyalBlueTheme(
   payload: PlayerDynamicTemplatePayload
 ): PlayerDynamicTemplatePayload {
-  const selection = createFieldflowRoyalBlueSelection(
-    themeCatalog.fieldflow.version
+  const selection = createRoyalCurrentSelection(
+    undefined,
+    themeCatalog.fieldflow.version,
+    "dark"
   );
   const frozen = freezeThemePresentation({
     instant: "2026-09-09T08:00:00.000Z",
     selection,
     timezone: "Europe/Amsterdam"
   });
+  const baseAppearance = createFieldflowRoyalBlueAppearance();
   const themePresentation = {
     ...frozen,
-    appearance: createFieldflowRoyalBlueAppearance(),
+    appearance: {
+      ...baseAppearance,
+      typography: {
+        ...baseAppearance.typography,
+        baseScale: 1.05,
+        sportScale: 1.4
+      }
+    },
     settingsRevision: 159,
     snapshotVersion: 2 as const
   };
@@ -660,7 +913,7 @@ function withRoyalBlueTheme(
       _veyocastThemeRuntime: { version: 2 },
       editorial: {
         ...editorial,
-        theme: createFieldflowRoyalBlueTheme(),
+        theme: createFieldflowRoyalBlueTheme("dark"),
         themeSelection: selection
       },
       themePresentation
@@ -670,47 +923,51 @@ function withRoyalBlueTheme(
 }
 
 function priceData(withPhoto: boolean, theme: EditorialThemeConfig) {
-  const products = Array.from({ length: 12 }, (_, index) => ({
-    active: true,
-    available: true,
-    category: index < 6 ? "Warme dranken" : "Broodjes",
-    currency: "EUR",
-    description: index % 3 ? "Vers bereid met lokale ingrediënten" : null,
-    externalId: `product-${index}`,
-    id: `20000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
-    imageMediaAssetId: withPhoto && index % 2 === 0 ? imageId : null,
-    name: index === 4
-      ? "Tosti met extra lange Nederlandse productnaam"
-      : `Clubproduct ${index + 1}`,
-    priceMinor: 225 + index * 35,
-    sortOrder: index,
-    sourceUpdatedAt: "2026-08-13T09:00:00.000Z"
-  }));
-  const entries = (start: number, end: number) => [
-    { category: start === 0 ? "Warme dranken" : "Broodjes", kind: "category" as const },
-    ...products.slice(start, end).map((product) => ({
-      kind: "product" as const,
-      productId: product.id
-    }))
-  ];
+  const productNames = [
+    "Koffie",
+    "Cappuccino",
+    "Thee",
+    "Broodje gezond",
+    "Broodje kroket",
+    "Broodje bal gehakt"
+  ] as const;
+  const product = (index: number) => ({
+    description: index % 2 ? "Vers bereid met lokale ingrediënten" : "",
+    formattedPrice: `€ ${((225 + index * 50) / 100).toFixed(2).replace(".", ",")}`,
+    id: `product-${index + 1}`,
+    imageFocalPoint: { x: index % 2 ? 0.35 : 0.65, y: 0.45 },
+    imageMediaAssetId: withPhoto && index === 0 ? imageId : null,
+    name: productNames[index] ?? `Clubproduct ${index + 1}`,
+    photoVisible: withPhoto && index === 0
+  });
   return {
     brand: { clubName: "Sportvereniging FieldFlow", primaryColor: "#169B62" },
     editorial: {
       newsVariant: "hero_split",
-      priceList: {
-        categoryPhotoModes: { Broodjes: withPhoto ? "show" : "reserve-empty" },
-        columns: { left: entries(0, 6), right: entries(6, 12) },
-        productFocalPoints: Object.fromEntries(products.map((product, index) => [
-          product.id,
-          { x: index % 2 ? 0.35 : 0.65, y: 0.45 }
-        ]))
-      },
       pricePhotoMode: withPhoto ? "show" : "reserve-empty",
       schemaVersion: 2,
       theme
     },
-    menu: { products, title: "Clubkaart" },
-    type: "menu"
+    priceList: {
+      sections: [
+        {
+          column: "left",
+          id: "warme-dranken",
+          name: "Warme dranken",
+          order: 0,
+          products: Array.from({ length: 3 }, (_, index) => product(index))
+        },
+        {
+          column: "right",
+          id: "broodjes",
+          name: "Broodjes",
+          order: 1,
+          products: Array.from({ length: 3 }, (_, index) => product(index + 3))
+        }
+      ],
+      title: "Clubkaart"
+    },
+    type: "price_list"
   };
 }
 
@@ -730,9 +987,9 @@ function newsData(variant: EditorialNewsVariant, theme: EditorialThemeConfig) {
         externalId: `news-${index}`,
         heroMediaAssetId: variant === "text_only" ? null : imageId,
         intro: "Een compact bericht met alle relevante informatie voor leden en bezoekers van de vereniging.",
-        link: `https://example.com/nieuws/${index}`,
+        link: `https://www.veyocast.nl/clubnieuws/royal-current-${index + 1}`,
         publishedAt: `2026-08-1${3 - index}T09:00:00.000Z`,
-        qrMediaAssetId: imageId,
+        qrMediaAssetId: qrId,
         sourceName: "Clubnieuws",
         title: index === 0
           ? "Een lange nieuwstitel die de Editorial Arena-clamp aantoonbaar beproeft"
@@ -936,6 +1193,76 @@ function withHiddenField(
   };
 }
 
+function withCompleteProgramFields(
+  payload: PlayerDynamicTemplatePayload
+): PlayerDynamicTemplatePayload {
+  const sport = payload.data.sport;
+  if (!sport || typeof sport !== "object" || Array.isArray(sport) ||
+    !("items" in sport) || !Array.isArray(sport.items)) {
+    throw new Error("Sportfixture-items ontbreken.");
+  }
+  return {
+    ...payload,
+    data: {
+      ...payload.data,
+      sport: {
+        ...sport,
+        displayConfig: {
+          columns: "one",
+          showAwayDressingRoom: true,
+          showAwayLogo: true,
+          showDate: true,
+          showField: true,
+          showHomeDressingRoom: true,
+          showHomeLogo: true,
+          showReferee: true,
+          showSportpark: true,
+          showTime: true
+        },
+        items: sport.items.map((item, index) => item && typeof item === "object" &&
+          !Array.isArray(item) && index === 0
+          ? {
+              ...item,
+              awayRoom: "2B",
+              homeRoom: "1A",
+              officials: [{ displayName: "M. de Vries", role: "Scheidsrechter" }]
+            }
+          : item)
+      }
+    }
+  };
+}
+
+function withUnknownResultAndHiddenOptions(
+  payload: PlayerDynamicTemplatePayload
+): PlayerDynamicTemplatePayload {
+  const sport = payload.data.sport;
+  if (!sport || typeof sport !== "object" || Array.isArray(sport) ||
+    !("items" in sport) || !Array.isArray(sport.items)) {
+    throw new Error("Sportfixture-items ontbreken.");
+  }
+  return {
+    ...payload,
+    data: {
+      ...payload.data,
+      sport: {
+        ...sport,
+        displayConfig: {
+          columns: "one",
+          showAwayLogo: false,
+          showDate: false,
+          showHomeLogo: false,
+          showTime: false
+        },
+        items: sport.items.map((item, index) => item && typeof item === "object" &&
+          !Array.isArray(item) && index === 0
+          ? { ...item, awayScore: null, homeScore: null }
+          : item)
+      }
+    }
+  };
+}
+
 function countForVariant(variant: typeof fixtureVariants[number]) {
   return variant.endsWith("-5") ? 5 : variant.endsWith("-10") ? 10 : 20;
 }
@@ -944,6 +1271,5 @@ function expectedMatchRowHeight(
   variant: typeof fixtureVariants[number],
   orientation: "landscape" | "portrait"
 ) {
-  if (orientation === "landscape") return 115;
-  return variant.startsWith("results-") ? 314 : 221;
+  return orientation === "landscape" ? 96 : 148;
 }

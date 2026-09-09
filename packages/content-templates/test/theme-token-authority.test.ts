@@ -7,6 +7,7 @@ import type { EditorialColorTokens, PlayerDynamicTemplatePayload } from "@veyoca
 
 import { createDynamicTemplateView } from "../src/dynamic-template-view";
 import { editorialArenaDarkTokens } from "../src/editorial-arena-theme";
+import { createRoyalCurrentAppearance } from "../src/royal-current-theme";
 import { freezeThemePresentation, themeCssVariables } from "../src/theme-catalog";
 
 const presentation = freezeThemePresentation({
@@ -62,6 +63,35 @@ function newsPayload(runtimeVersion?: number): PlayerDynamicTemplatePayload {
   };
 }
 
+function royalNewsPayload(overrides: EditorialColorTokens): PlayerDynamicTemplatePayload {
+  const royalPresentation = freezeThemePresentation({
+    appearance: createRoyalCurrentAppearance({ primary: "#4169e1" }),
+    instant: "2026-09-09T08:00:00.000Z",
+    selection: presentation.selection,
+    timezone: "Europe/Amsterdam"
+  });
+  return {
+    data: {
+      _veyocastThemeColorOverrides: {
+        dark: overrides,
+        light: overrides,
+        mode: "dark"
+      },
+      brand: { clubName: "Duindorp SV", primaryColor: "#4169E1" },
+      news: { articles: [], title: "Nieuws" },
+      themePresentation: royalPresentation,
+      type: "news"
+    },
+    orientation: "landscape",
+    schemaVersion: 1,
+    slideType: "news",
+    snapshotHash: "b".repeat(64),
+    snapshotId: "00000000-0000-4000-8000-000000001593",
+    templateSlug: "editorial-arena-news-dark-landscape",
+    templateVersionId: "00000000-0000-4000-8000-000000001594"
+  };
+}
+
 describe("FieldFlow frozen token authority", () => {
   it("projects semantic tenant tokens into every shared theme alias", () => {
     expect(themeCssVariables(presentation, tokens)).toMatchObject({
@@ -90,5 +120,26 @@ describe("FieldFlow frozen token authority", () => {
     expect(renderer).toContain(
       "themeCssVariables(view.themePresentation, view.themeTokens)"
     );
+  });
+
+  it("honours the complete tenant palette on Royal Current snapshots", () => {
+    const custom = {
+      ...tokens,
+      canvas: "#0b1f55",
+      row: "#123477",
+      rowSelected: "#123477",
+      text: "#ffffff"
+    };
+    const view = createDynamicTemplateView(royalNewsPayload(custom));
+    expect(view?.designRevision).toBe("royal-current-v8");
+    expect(view?.themeTokens.canvas).toBe("#0b1f55");
+    expect(view?.themeTokens.row).toBe("#123477");
+    expect(themeCssVariables(view!.themePresentation, view!.themeTokens)).toMatchObject({
+      "--bg": "#0b1f55",
+      "--deep": "#123477",
+      "--surface": "#1E3E9F",
+      "--ink": "#ffffff",
+      "--line": "rgba(255, 255, 255, 0.20)"
+    });
   });
 });

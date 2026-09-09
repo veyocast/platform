@@ -1,10 +1,12 @@
 import Link from "next/link";
 
 import { hasCapability } from "@veyocast/auth";
+import { freezeThemePresentation } from "@veyocast/content-templates/theme-catalog";
 import { Button, PageHeader } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../../../lib/supabase/server";
+import { resolveTenantThemeAuthority } from "../../../../../../../lib/tenant-theme";
 import { createBirthdaySlide, refreshBirthdays } from "./actions";
 import { BirthdayWizard } from "./birthday-wizard";
 
@@ -41,12 +43,24 @@ export default async function BirthdayNewPage({ searchParams }: Props) {
 async function loadBirthdayWizardData(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return emptyData(false);
-  const connectionResult = await supabase.from("sportlink_connections")
-    .select("id,data_source_id,detected_club_name,timezone,privacy_birthdays_enabled")
-    .eq("tenant_id", tenantId).eq("status", "active").maybeSingle();
+  const [connectionResult, settingsResult, profileResult] = await Promise.all([
+    supabase.from("sportlink_connections")
+      .select("id,data_source_id,detected_club_name,timezone,privacy_birthdays_enabled")
+      .eq("tenant_id", tenantId).eq("status", "active").maybeSingle(),
+    supabase.from("tenant_settings")
+      .select("default_theme_id,default_theme_version,theme_mode_policy,theme_accent,theme_support,theme_color_overrides,timezone_name")
+      .eq("tenant_id", tenantId).maybeSingle(),
+    supabase.from("tenant_theme_profiles")
+      .select("appearance_config,color_overrides,revision,selection_json,theme_version")
+      .eq("tenant_id", tenantId).eq("theme_id", "fieldflow").maybeSingle()
+  ]);
+  const themePresentation = birthdayThemePresentation(
+    settingsResult.data,
+    profileResult.data
+  );
   const connection = connectionResult.data;
-  if (connectionResult.error) return emptyData(false);
-  if (!connection) return emptyData(true);
+  if (connectionResult.error) return emptyData(false, themePresentation);
+  if (!connection) return emptyData(true, themePresentation);
   const [statusResult, birthdaysResult, teamsResult, templatesResult, mediaResult] = await Promise.all([
     supabase.rpc("get_sportlink_birthday_status_v1", { p_connection_id: connection.id }),
     supabase.rpc("get_sportlink_birthday_preview_v1", { p_connection_id: connection.id }),
@@ -95,6 +109,7 @@ async function loadBirthdayWizardData(tenantId: string) {
     media: media.filter((asset) => asset.url && asset.checksumSha256 && asset.bytes > 0),
     status: normalizeStatus(statusResult.data),
     teams: teamsResult.data ?? [],
+    themePresentation,
     templates: (templatesResult.data ?? []).flatMap((template) => template.current_published_version_id &&
       publishedTemplateVersionIds.has(template.current_published_version_id)
       ? [{ orientation: template.orientation as "landscape" | "portrait", versionId: template.current_published_version_id }]
@@ -147,9 +162,44 @@ function normalizeStatus(value: unknown) {
   };
 }
 
-function emptyData(connectionLoaded = true) { return {
+function emptyData(
+  connectionLoaded = true,
+  themePresentation = birthdayThemePresentation(null, null)
+) { return {
   availability: { birthdaysLoaded: true, connectionLoaded, mediaLoaded: true, statusLoaded: true, teamsLoaded: true, templatesLoaded: true },
   birthdays: [], connection: null,
   media: [], status: { active: false, counts: { ambiguous: 0, birthdays: 0, knownAge: 0, matched: 0, withPhoto: 0 }, featureEnabled: false, freshness: "never", lastErrorCode: null, lastSuccessAt: null, nextSyncAt: null },
-  teams: [], templates: []
+  teams: [], templates: [], themePresentation
 }; }
+
+function birthdayThemePresentation(
+  settings: Record<string, unknown> | null,
+  profile: Record<string, unknown> | null
+) {
+  const profileSelection = record(profile?.selection_json);
+  const authority = resolveTenantThemeAuthority({
+    ...(settings ?? {}),
+    appearance_config: profile?.appearance_config,
+    default_theme_version: profile?.theme_version ?? settings?.default_theme_version,
+    theme_accent: profileSelection?.accent ?? settings?.theme_accent,
+    theme_color_overrides: profile?.color_overrides ?? settings?.theme_color_overrides,
+    theme_mode_policy: profileSelection?.modePolicy ?? settings?.theme_mode_policy,
+    theme_support: profileSelection?.support ?? settings?.theme_support
+  });
+  const timezone = typeof settings?.timezone_name === "string"
+    ? settings.timezone_name
+    : "Europe/Amsterdam";
+  return freezeThemePresentation({
+    appearance: authority.appearance,
+    instant: new Date().toISOString(),
+    selection: authority.selection,
+    settingsRevision: Number(profile?.revision ?? 0),
+    timezone
+  });
+}
+
+function record(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}

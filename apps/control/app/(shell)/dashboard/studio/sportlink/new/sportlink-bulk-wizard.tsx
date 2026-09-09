@@ -28,8 +28,10 @@ import {
   type SportlinkSlideBlueprintKey,
   type SportlinkSlideContext,
   type SportlinkSlideDraft,
+  type ThemeAppearanceSettings,
   type ThemeSelection
 } from "@veyocast/contracts";
+import { createRoyalCurrentPalette } from "@veyocast/content-templates";
 import { themeCatalog } from "@veyocast/content-templates/theme-catalog";
 import { buildSportlinkSlideDrafts } from "@veyocast/domain";
 import {
@@ -41,6 +43,10 @@ import {
 } from "@veyocast/ui";
 
 import { FieldFlowStyleStep } from "../../../slides/_components/fieldflow-style-step";
+import {
+  SportlinkMatchRowPreview,
+  sportlinkMatchRowPreviewKind
+} from "../../../slides/_components/sportlink-match-row-preview";
 import { SportlinkMatchLocationsField } from "../../../slides/_components/sportlink-match-location-field";
 import {
   SportlinkArrivalFields,
@@ -93,6 +99,7 @@ const allTeamsValue = "__all_teams__";
 
 export function SportlinkBulkWizard({
   action,
+  defaultThemeAppearance,
   defaultThemeSelection,
   media,
   sources,
@@ -100,6 +107,7 @@ export function SportlinkBulkWizard({
   templates
 }: {
   action: (formData: FormData) => Promise<SportlinkSlideBatchActionResult>;
+  defaultThemeAppearance: ThemeAppearanceSettings;
   defaultThemeSelection: ThemeSelection;
   media: SportlinkMediaOption[];
   sources: Array<{ id: string; name: string }>;
@@ -280,6 +288,9 @@ export function SportlinkBulkWizard({
         : false;
   const payload = { dataSourceId: sourceId, drafts, idempotencyKey };
   const firstDraft = drafts[0] ?? null;
+  const previewDraft = drafts.find((draft) =>
+    sportlinkMatchRowPreviewKind(draft.blueprintKey)
+  ) ?? firstDraft;
   const created = creationResult?.ok === true;
 
   function resetSource(nextSourceId: string) {
@@ -406,9 +417,10 @@ export function SportlinkBulkWizard({
         )}
         aside={(
           <WizardPreview
-            draft={firstDraft}
+            appearance={defaultThemeAppearance}
+            draft={previewDraft}
             orientation={orientation}
-            selection={firstDraft?.themeSelection ?? themeSelection}
+            selection={previewDraft?.themeSelection ?? themeSelection}
           />
         )}
         currentStep={String(step)}
@@ -982,12 +994,12 @@ function ThemeDisplayStep({
   return (
     <>
       <StepHeading
-        description="De gekozen FieldFlow-weergave wordt expliciet in iedere nieuwe versie opgeslagen."
+        description="De gekozen Royal Current/Navy Glass-weergave wordt expliciet in iedere nieuwe versie opgeslagen."
         eyebrow="Vormgeving"
         title="Rustig, herkenbaar en leesbaar op afstand"
       />
       <FieldFlowStyleStep
-        label="FieldFlow-stijl voor deze onderdelen"
+        label="Slidehuisstijl voor deze onderdelen"
         onActivate={() => setThemeSelection((current) => withThemeId(current, "fieldflow"))}
         value={themeId(themeSelection)}
       />
@@ -1247,13 +1259,30 @@ function ReviewStep({ creationResult, drafts, teamName, themeSelection }: {
   );
 }
 
-function WizardPreview({ draft, orientation, selection }: {
+function WizardPreview({ appearance, draft, orientation, selection }: {
+  appearance: ThemeAppearanceSettings;
   draft: SportlinkSlideDraft | null;
   orientation: "landscape" | "portrait";
   selection: ThemeSelection;
 }) {
   const definition = themeCatalog[themeId(selection)];
-  const palette = definition.light;
+  const configuration = appearance.schemaVersion === 2
+    ? appearance.palette
+    : {
+        background: "club" as const,
+        primary: selection.accent ?? definition.accentDefault,
+        secondary: selection.support,
+        version: 1 as const
+      };
+  const mode = selection.modePolicy.kind === "fixed"
+    ? selection.modePolicy.mode
+    : selection.modePolicy.kind === "schedule"
+      ? selection.modePolicy.fallback
+      : "light";
+  const palette = createRoyalCurrentPalette(
+    configuration,
+    mode === "dark" ? "glass" : "royal"
+  );
   const contextCount = draft?.teamSelection?.teamContexts.length ??
     draft?.teamContexts?.length ??
     (draft ? 1 : 0);
@@ -1268,6 +1297,7 @@ function WizardPreview({ draft, orientation, selection }: {
           ? contextCount + " " + (contextCount === 1 ? "team" : "teams") +
             " gekoppeld"
           : draft.name.split(" · ")[0];
+  const matchRowKind = sportlinkMatchRowPreviewKind(draft?.blueprintKey);
 
   return (
     <aside className={styles.preview}>
@@ -1282,20 +1312,31 @@ function WizardPreview({ draft, orientation, selection }: {
         className={styles.previewViewport}
         data-orientation={orientation}
         style={{
-          "--preview-accent": selection.accent ?? definition.accentDefault,
-          "--preview-canvas": palette.canvas,
-          "--preview-line": palette.line,
-          "--preview-muted": palette.muted,
-          "--preview-surface": palette.surface,
-          "--preview-text": palette.text
+          "--preview-accent": palette["--accent"],
+          "--preview-canvas": palette["--bg"],
+          "--preview-line": palette["--line"],
+          "--preview-muted": palette["--muted"],
+          "--preview-surface": palette["--surface"],
+          "--preview-text": palette["--ink"],
+          fontFamily: appearance.schemaVersion === 2 ? "Roboto, sans-serif" : undefined
         } as React.CSSProperties}
       >
         <span>SPORTLINK</span>
         <h2>
           {draft ? shortBlueprintLabel(draft.blueprintKey) : "Kies je content"}
         </h2>
-        <p>{contextCopy}</p>
-        <div><i /><i /><i /></div>
+        {draft && matchRowKind ? (
+          <SportlinkMatchRowPreview
+            blueprintKey={draft.blueprintKey}
+            display={draft.display}
+            orientation={orientation}
+          />
+        ) : (
+          <>
+            <p>{contextCopy}</p>
+            <div><i /><i /><i /></div>
+          </>
+        )}
         <footer>{definition.name}</footer>
       </div>
       <p>

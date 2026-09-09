@@ -19,6 +19,14 @@
     "reducedMotionFadeMs": 120
   },
   "fontAssets": {
+    "vc-roboto-v1": {
+      "family": "Roboto",
+      "style": "normal",
+      "weightRange": "400 900",
+      "requiredFormat": "woff2-variable-or-static-set",
+      "license": "Apache-2.0",
+      "lockRequirement": "Commit the exact four static font files, Apache-2.0 license, NOTICE and SHA-256 values in fonts.lock.json. Weight 800 resolves to the committed 900 face."
+    },
     "vc-inter-v1": {
       "family": "Inter",
       "style": "normal",

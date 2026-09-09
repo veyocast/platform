@@ -47,7 +47,7 @@ export function PrimaryColorField({
       </div>
       <span className="work-panel__meta" id={helpId}>
         Gebruik een hexkleur zoals #315CFF voor merkmetadata en oudere
-        templates. De FieldFlow-slidekleuren beheer je hierboven tenantbreed.
+        templates. De Royal Current/Navy Glass-slidekleuren beheer je hierboven tenantbreed.
       </span>
     </div>
   );

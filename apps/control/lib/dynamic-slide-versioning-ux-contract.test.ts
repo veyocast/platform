@@ -139,13 +139,14 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(fieldflowAction).toContain("Nieuwe+immutable+presentaties");
     expect(composer).not.toContain("<EditorialThemeEditor");
     expect(composer).not.toContain("editorialThemeJson");
-    expect(menu).toContain("<FieldFlowStyleStep");
+    expect(menu).toContain("<TenantStyleSummary");
     expect(wizard).toContain("<FieldFlowStyleStep");
     expect(wizard).toContain("Competities per team");
     expect(wizard).toContain('aria-label="Weergavekeuzes"');
     expect(wizard).toContain('Thuislogo {draft.display.showHomeLogo ? "aan" : "uit"}');
     expect(wizard).toContain('Uitlogo {draft.display.showAwayLogo ? "aan" : "uit"}');
-    expect(styleStep).toContain("Vaste premium stijl voor nieuwe inhoud");
+    expect(styleStep).toContain("Royal Current · Navy Glass");
+    expect(styleStep).toContain("Één premium huisstijl met een lichte en donkere modus");
     expect(styleStep).not.toContain("themeCatalogOptions");
   });
 

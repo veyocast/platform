@@ -4,7 +4,7 @@
 
 import { VEYOCAST_APPS } from "@veyocast/config";
 import type { SponsorPlayEvent, SponsorPositionKey } from "@veyocast/contracts";
-import {
+import React, {
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -134,6 +134,11 @@ import {
   type ActiveLedScoresOverlay
 } from "./ledscores-goal-overlay";
 import type { LedScoresMatchState } from "../_lib/ledscores-match-experience";
+import {
+  themePresentationFromDynamicData,
+  type FrozenPlayerTheme
+} from "./player-presentation-theme";
+import { playerSystemThemeAttributes } from "./player-system-theme";
 
 const demoPairingCode = "VYO 482";
 const waitingContentSyncIntervalMs = 5_000;
@@ -2029,6 +2034,9 @@ function PlaybackView({
   }
 
   const presentation = resolvePlayerItemPresentation(activeItem);
+  const activeTheme = themePresentationFromDynamicData(
+    activeItem.dynamicTemplate?.data
+  );
   return (
     <main className="playback-shell" aria-label="VeyoCast player">
       <section
@@ -2055,8 +2063,9 @@ function PlaybackView({
           plan={manifest.sponsorPlan}
           screenId={runtime.release.envelope.device.screenId}
           showFullscreen={activeItem.id === manifest.items[0]?.id}
+          theme={activeTheme}
         />
-        <LedScoresExperienceOverlay overlay={goal} />
+        <LedScoresExperienceOverlay overlay={goal} theme={activeTheme} />
         <img
           alt=""
           aria-hidden="true"
@@ -2079,20 +2088,20 @@ function PlaybackView({
 
 function BillingWarningChip({ entitlement }: { entitlement: NonNullable<PlayerManifestEnvelope["entitlement"]> }) {
   const days = entitlementRemainingDays(entitlement);
-  return <aside className="billing-warning-chip" role="status"><span aria-hidden="true">!</span><div><strong>Betaling vereist</strong><small>{days > 1 ? `Nog ${days} dagen` : days === 1 ? "Vandaag oplossen" : "Herstel nu"}</small></div></aside>;
+  return <aside {...playerSystemThemeAttributes} className="billing-warning-chip" role="status"><span aria-hidden="true">!</span><div><strong>Betaling vereist</strong><small>{days > 1 ? `Nog ${days} dagen` : days === 1 ? "Vandaag oplossen" : "Herstel nu"}</small></div></aside>;
 }
 
 function BillingSystemSplash({ mode, screenName }: { mode: "system_suspended" | "veyocast_billing_splash" | "veyocast_verification_splash"; screenName: string }) {
   const verification = mode === "veyocast_verification_splash";
   const suspended = mode === "system_suspended";
-  return <main className="billing-system-splash" aria-label={verification ? "Abonnement verifiëren" : suspended ? "Player gepauzeerd" : "Betaling herstellen"}>
+  return <main {...playerSystemThemeAttributes} className="billing-system-splash" aria-label={verification ? "Abonnement verifiëren" : suspended ? "Player gepauzeerd" : "Betaling herstellen"}>
     <img alt="VeyoCast" className="billing-system-splash__logo" src="/brand/veyocast-logo-inverse.svg"/>
     <div className="billing-system-splash__copy"><span className="billing-system-splash__signal" aria-hidden="true">{verification ? "↻" : suspended ? "‖" : "!"}</span><p>{verification ? "VERIFICATIE NODIG" : suspended ? "PLAYER GEPAUZEERD" : "BETALING HERSTELLEN"}</p><h1>{verification ? "Verbind om het abonnement veilig te controleren." : suspended ? "Dit scherm is tijdelijk door VeyoCast gepauzeerd." : "De content is veilig bewaard."}</h1><p>{verification ? "Dit is geen melding van wanbetaling. Zodra de verbinding terug is, controleert de Player automatisch de geldige entitlement." : suspended ? "Neem contact op met de beheerder of VeyoCast Support." : "Een beheerder kan de betaalmethode in Control herstellen. Publiceren of opnieuw downloaden is daarna niet nodig."}</p><p className="billing-system-splash__support">Scherm: {screenName} · control.veyocast.nl/dashboard/settings/billing</p></div>
   </main>;
 }
 
 const sponsorProofStorageKey = "veyocast-player-sponsor-proof-v1";
-const sponsorPositions = [
+export const sponsorPositions = [
   "fullscreen",
   "presented_by",
   "footer",
@@ -2101,11 +2110,12 @@ const sponsorPositions = [
   "match_ball_sponsor"
 ] as const satisfies readonly SponsorPositionKey[];
 
-function SponsorLayer({ activeItemId, plan, screenId, showFullscreen }: {
+function SponsorLayer({ activeItemId, plan, screenId, showFullscreen, theme }: {
   activeItemId: string;
   plan: PlayerManifestEnvelope["manifest"]["sponsorPlan"];
   screenId: string;
   showFullscreen: boolean;
+  theme: FrozenPlayerTheme | null;
 }) {
   if (!plan || Date.parse(plan.expiresAt) <= Date.now()) return null;
   const selections = sponsorPositions.flatMap((positionKey) => {
@@ -2120,20 +2130,30 @@ function SponsorLayer({ activeItemId, plan, screenId, showFullscreen }: {
     });
     return selection ? [{ positionKey, selection }] : [];
   });
-  return <div aria-label="Sponsoruitingen" className="sponsor-layer">
+  return <div
+    aria-label="Sponsoruitingen"
+    className="sponsor-layer"
+    data-design-revision={theme?.designRevision ?? "player-fallback"}
+    data-motion-state={theme?.motionEnabled === false ? "off" : "on"}
+    data-theme-authority={theme ? "frozen-release" : "player-fallback"}
+    data-theme-mode={theme?.mode ?? "dark"}
+    style={theme?.style}
+  >
     {selections.map(({ positionKey, selection }) => <SponsorPlacement
       key={`${activeItemId}:${positionKey}:${selection.creative.creativeId}`}
       planRevisionId={plan.revisionId}
       positionKey={positionKey}
       selection={selection}
+      theme={theme}
     />)}
   </div>;
 }
 
-function SponsorPlacement({ planRevisionId, positionKey, selection }: {
+export function SponsorPlacement({ planRevisionId, positionKey, selection, theme }: {
   planRevisionId: string;
   positionKey: SponsorPositionKey;
   selection: SponsorPlaybackSelection;
+  theme: FrozenPlayerTheme | null;
 }) {
   const { creative, placement } = selection;
   const [visible, setVisible] = useState(true);
@@ -2156,7 +2176,15 @@ function SponsorPlacement({ planRevisionId, positionKey, selection }: {
   }, [creative, placement, planRevisionId, positionKey]);
 
   if (!visible) return null;
-  return <figure className={`sponsor-placement sponsor-placement--${positionKey}`} data-position={positionKey}>
+  return <figure
+    className={`sponsor-placement sponsor-placement--${positionKey}`}
+    data-design-revision={theme?.designRevision ?? "player-fallback"}
+    data-motion-state={theme?.motionEnabled === false ? "off" : "on"}
+    data-position={positionKey}
+    data-theme-authority={theme ? "frozen-release" : "player-fallback"}
+    data-theme-mode={theme?.mode ?? "dark"}
+    style={theme?.style}
+  >
     <img alt={`${creative.sponsorName}, sponsor`} src={creative.url} />
     {positionKey === "presented_by" ? <figcaption>Mede mogelijk gemaakt door</figcaption> : null}
   </figure>;
@@ -2774,7 +2802,7 @@ function PairingPanel({
   }, []);
 
   return (
-    <main className="runtime-shell runtime-shell--pairing" aria-label="VeyoCast player setup">
+    <main {...playerSystemThemeAttributes} className="runtime-shell runtime-shell--pairing" aria-label="VeyoCast player setup">
       <SetupBackdrop />
       <section className="pairing-stage" aria-labelledby="player-title">
         <PairingBrandScene />
@@ -2832,7 +2860,7 @@ function SetupPanel({
   }[stateLabel];
 
   return (
-    <main className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player sync">
+    <main {...playerSystemThemeAttributes} className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player sync">
       <SetupBackdrop />
       <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
         <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
@@ -2863,7 +2891,7 @@ function ProblemPanel({
   const title = problemTitle(problem.error.code);
 
   return (
-    <main className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player status">
+    <main {...playerSystemThemeAttributes} className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player status">
       <SetupBackdrop />
       <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
         <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
@@ -2923,7 +2951,7 @@ function problemTitle(code?: string) {
 
 function WaitingContentPanel({ runtime }: { runtime: WaitingContentRuntime }) {
   return (
-    <main className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player gereed">
+    <main {...playerSystemThemeAttributes} className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player gereed">
       <SetupBackdrop />
       <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
         <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />

@@ -16,6 +16,10 @@
       "types": "./dist/editorial-arena-theme.d.ts",
       "default": "./src/editorial-arena-theme.ts"
     },
+    "./royal-current-theme": {
+      "types": "./dist/royal-current-theme.d.ts",
+      "default": "./src/royal-current-theme.ts"
+    },
     "./theme-catalog": {
       "types": "./dist/theme-catalog.d.ts",
       "default": "./src/theme-catalog.ts"

@@ -351,7 +351,7 @@ export function NewStudioForm({
               <span aria-hidden="true">3</span>
               <div>
                 <h2 id="studio-uitvoer">Uitvoer</h2>
-                <p>Kies stilstaand of voeg een korte motion-tijdlijn toe.</p>
+                <p>Kies stilstaand of voeg een korte motion-tijdlijn toe. Systeemtemplates starten in Royal Current/Navy Glass; vrije ontwerpen behouden hun eigen pixels.</p>
               </div>
             </div>
             <fieldset className={styles.choiceFieldset}>
@@ -398,10 +398,11 @@ export function NewStudioForm({
                     background: `linear-gradient(135deg, ${tenantBrand.primaryColor} 0 50%, ${tenantBrand.secondaryColor} 50% 100%)`
                   }}
                 />
-                <strong>Huisstijl toepassen</strong>
+                <strong>Studio-huisstijl toepassen</strong>
                 <small>
-                  Gebruik het clublogo en de gecontroleerde merkkleuren als
-                  bewerkbaar startpunt.
+                  Maak een bewerkbare kopie met het clublogo en de afzonderlijk
+                  beheerde Studio-kleuren. Latere tenantstijlwijzigingen kleuren
+                  dit vrije ontwerp niet automatisch opnieuw.
                 </small>
               </label>
             ) : null}
@@ -460,7 +461,7 @@ export function NewStudioForm({
               </div>
               {tenantBrand ? (
                 <div>
-                  <dt>Huisstijl</dt>
+                  <dt>Studio-huisstijl</dt>
                   <dd>{applyTenantBrand ? "Toepassen" : "Niet toepassen"}</dd>
                 </div>
               ) : null}

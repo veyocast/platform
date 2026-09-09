@@ -1,0 +1,6 @@
+Roboto — Version 2.137 (2017)
+Copyright 2011 Google Inc. All Rights Reserved.
+Licensed under Apache License, Version 2.0; see ROBOTO-LICENSE.txt.
+Unmodified Latin WOFF2 fonts, weights 400, 500, 700 and 900.
+Source: runtime trame_vuetify v2-serve/fonts. Original font metadata identifies Google / Roboto.
+Served locally; no external font service is required.

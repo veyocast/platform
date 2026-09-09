@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+import { playerSystemThemeAttributes } from "./player-system-theme";
+
 type PlayerRecoveryMenuProps = {
   installationId: string;
   lastErrorCode: string;
@@ -62,6 +64,7 @@ export function PlayerRecoveryMenu({
 
   return (
     <div
+      {...playerSystemThemeAttributes}
       aria-labelledby="player-recovery-menu-title"
       aria-modal="true"
       className="player-recovery-menu"

@@ -89,7 +89,8 @@ import {
   DialogTitle
 } from "@veyocast/ui";
 
-import { FieldFlowStyleStep } from "../_components/fieldflow-style-step";
+import type { TenantStyleData } from "../../../../../lib/tenant-style-data.types";
+import { TenantStyleSummary } from "../_components/tenant-style-summary";
 
 import {
   createMenuStudioDraft,
@@ -146,6 +147,7 @@ export function MenuStudioEditor({
   slideId,
   sourceId,
   sourceName,
+  tenantStyle,
   templateVersionIds
 }: {
   initialDocument: MenuDocumentV2;
@@ -159,12 +161,29 @@ export function MenuStudioEditor({
   slideId?: string;
   sourceId: string;
   sourceName: string;
+  tenantStyle: TenantStyleData;
   templateVersionIds: Partial<Record<"landscape" | "portrait", string>>;
 }) {
   const router = useRouter();
   const [history, setHistoryState] = useState(() => createMenuStudioHistory({
     ...initialDocument,
-    theme: { ...initialDocument.theme, themeId: "fieldflow" }
+    theme: {
+      ...initialDocument.theme,
+      brand: {
+        ...initialDocument.theme.brand,
+        accent: tenantPrimary(tenantStyle),
+        ...(tenantSecondary(tenantStyle)
+          ? { support: tenantSecondary(tenantStyle) }
+          : {})
+      },
+      mode: mode === "create"
+        ? tenantStyle.presentation.resolvedMode.mode
+        : initialDocument.theme.mode,
+      themeId: "fieldflow",
+      themeVersion: tenantStyle.selection.ref.catalog === "v2"
+        ? tenantStyle.selection.ref.version
+        : initialDocument.theme.themeVersion
+    }
   }));
   const historyRef = useRef(history);
   const [orientation, setOrientation] = useState<"landscape" | "portrait">(initialOrientation);
@@ -1236,13 +1255,10 @@ export function MenuStudioEditor({
           <PanelHeading icon={<PackagePlus aria-hidden="true" />} title="Bibliotheek" />
           <section className={styles.librarySection}>
             <h3>Art direction</h3>
-            <FieldFlowStyleStep
-              label="FieldFlow-stijl voor deze menuversie"
-              onActivate={() => void executeOperation({
-                kind: "set-theme",
-                theme: { ...document.theme, themeId: "fieldflow" }
-              })}
-              value={document.theme.themeId}
+            <TenantStyleSummary
+              context="Deze menuversie gebruikt bij de volgende immutable publicatie het actuele tenantpalet. De modusknop hieronder is de bestaande expliciete menu-override; producten en eigen media worden niet opnieuw gekleurd."
+              showSettingsLink={false}
+              style={tenantStyle}
             />
             <button
               className={styles.modeToggle}
@@ -2437,6 +2453,18 @@ function overlaps(
 ) {
   return left.x < right.x + right.w && left.x + left.w > right.x &&
     left.y < right.y + right.h && left.y + left.h > right.y;
+}
+
+function tenantPrimary(style: TenantStyleData) {
+  return style.appearance.schemaVersion === 2
+    ? style.appearance.palette.primary
+    : style.light.accent;
+}
+
+function tenantSecondary(style: TenantStyleData) {
+  return style.appearance.schemaVersion === 2
+    ? style.appearance.palette.secondary ?? undefined
+    : style.selection.support ?? undefined;
 }
 
 function blockLabel(block: MenuBlock) {

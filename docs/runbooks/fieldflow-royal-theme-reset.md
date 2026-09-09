@@ -1,9 +1,9 @@
-# FieldFlow Royal blue tenantreset
+# FieldFlow ROYAL CURRENT RESET
 
 Dit runbook zet het FieldFlow-profiel van exact één gekozen tenant terug naar
-het vaste, contrastrijke Royal blue-profiel. De reset is een afzonderlijke
-operationele handeling na deployment: de migratie wijzigt bij het uitrollen van
-de applicatie uit zichzelf geen tenantdata.
+het vaste Royal Current/Navy Glass v8-profiel. De reset is een afzonderlijke
+operationele handeling na deployment: de S161-migratie wijzigt bij het
+uitrollen van de applicatie uit zichzelf geen bestaand tenantprofiel.
 
 De huidige beoogde tenant is `Duindorp SV`. De workflow vult die naam standaard
 in, maar de operator blijft verantwoordelijk voor het controleren van de exacte
@@ -13,17 +13,23 @@ zichtbare tenantnaam.
 
 De command zet atomisch vast:
 
-- accent `#4169E1` en steunkleur `#7A5CE6`;
-- vaste donkere modus met navy canvas en royal-blue oppervlakken;
-- alle 26 lichte en alle 26 donkere semantische kleurtokens;
+- Royal Current-hoofdkleur en selectieaccent `#2459ED`, zonder tweede accent;
+- vaste donkere modus, zodat de gedeelde v8-generator Navy Glass materialiseert;
+- paletteachtergrond `club`, paletteversie `1`, appearance-schema `2` en
+  designrevision `royal-current-v8`;
+- lege legacy-kleuroverrides: de 21 semantische rollen worden uitsluitend door
+  de gedeelde Royal Current-generator berekend;
+- motion ingeschakeld;
 - witte club- en thuislogoplaten;
 - `baseScale: 1.05` en `sportScale: 1.4`;
-- Inter voor lopende tekst en Manrope voor koppen en wedstrijdnamen;
+- lokale Roboto voor lopende tekst, koppen en wedstrijdnamen;
 - themeversie `fieldflow@1.0.0` in zowel het canonical profiel als de
   compatibiliteitsmirror.
 
-Na de reset blijven alle kleurrollen, fonts, logoplaten en schalen afzonderlijk
-aanpasbaar via **Instellingen → Thema's → FieldFlow**.
+Na de reset blijven hoofdkleur, optioneel tweede accent, achtergrondmodus,
+motion, fonts, logoplaten en schalen aanpasbaar via
+**Instellingen → Thema's → FieldFlow**. De individuele v8-rollen zijn afgeleid
+en vormen geen afzonderlijke vrije opslagvelden.
 
 ## Veiligheidsgrenzen
 
@@ -40,20 +46,20 @@ Gebruik uitsluitend de handmatige workflow
 6. voert vóór mutatie een alleen-lezen voorcontrole uit op migratie en de
    owner-only resetfunctie, de exacte tenantnaam en actieve status,
    tenantprovisioning en actieve slidepublicaties;
-7. controleert migratie `20260908224609` en bewijst dat de resetfunctie van de
+7. controleert migratie `20260909174500` en bewijst dat de resetfunctie van de
    database-eigenaar is, `SECURITY DEFINER` met een lege `search_path` gebruikt
    en door de database-eigenaar van de beschermde workflow uitvoerbaar is;
 8. geeft de tenantnaam, auditreden, GitHub-operator en run-URL uitsluitend
    base64-gecodeerd aan SQL door;
 9. roept als database-eigenaar exact
-   `private.reset_tenant_fieldflow_royal_v1(...)` aan;
+   `private.reset_tenant_fieldflow_royal_v2(...)` aan;
 10. accepteert het resultaat pas wanneer de functie haar interne atomische
    profiel-, mirror-, rollout- en auditreadback met `verified: true` bevestigt;
-11. leest aansluitend in een afzonderlijke post-commitquery het volledige palet,
-    appearanceprofiel, de compatibility mirror, audit, revision, uitkomst en
-    rollout-id exact terug. Deze extra query is afzonderlijk omdat een omringende
-    PostgreSQL-statement-snapshot de writes van een aangeroepen functie niet
-    betrouwbaar opnieuw projecteert;
+11. leest aansluitend in een afzonderlijke post-commitquery de exacte
+    `#2459ED`-selectie, lege overrides, volledige appearance v2, compatibility
+    mirror, audit, revision, uitkomst en rollout-id terug. Deze extra query is
+    afzonderlijk omdat een omringende PostgreSQL-statement-snapshot de writes
+    van een aangeroepen functie niet betrouwbaar opnieuw projecteert;
 12. wacht bij iedere bestaande of nieuwe rollout maximaal 72 keer vijf
     seconden op de status `ready` en stopt direct bij `failed`.
 
@@ -63,10 +69,10 @@ Environment en wordt niet gelogd.
 
 ## Voorwaarden
 
-- De gereviewde S159-release is gemerged naar `main`.
+- De gereviewde S161-release is gemerged naar `main`.
 - De normale deploymentworkflow is groen voor de doelomgeving.
 - Control en Player draaien daar op dezelfde actuele volledige `main`-SHA.
-- Migratie `20260908224609_s159_royal_theme_scale.sql` is door die deployment
+- Migratie `20260909174500_s161_royal_current_theme.sql` is door die deployment
   toegepast.
 - De gekozen tenant bestaat exact één keer en heeft status `active`.
 - Er is voor die tenant geen dynamische slideversie met status `publishing`.
@@ -98,8 +104,8 @@ gh workflow run fieldflow-royal-theme-reset.yml \
   -f target_environment=staging \
   -f tenant_name='Duindorp SV' \
   -f release_sha="${release_sha}" \
-  -f reason='S159 Royal blue-profiel na geslaagde stagingdeployment' \
-  -f confirmation='ROYAL BLUE RESET'
+  -f reason='S161 ROYAL CURRENT RESET na geslaagde stagingdeployment' \
+  -f confirmation='ROYAL CURRENT RESET'
 ```
 
 Zoek de zojuist gestarte run en volg hem tot een terminale status:
@@ -135,8 +141,8 @@ gh workflow run fieldflow-royal-theme-reset.yml \
   -f target_environment=production \
   -f tenant_name='Duindorp SV' \
   -f release_sha="${release_sha}" \
-  -f reason='S159 Royal blue-profiel na goedgekeurde productiedeployment' \
-  -f confirmation='ROYAL BLUE RESET'
+  -f reason='S161 ROYAL CURRENT RESET na goedgekeurde productiedeployment' \
+  -f confirmation='ROYAL CURRENT RESET'
 ```
 
 Volg ook deze run expliciet:

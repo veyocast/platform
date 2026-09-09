@@ -6,6 +6,7 @@ export * from "./fieldflow-coverage";
 export * from "./fieldflow-royal-blue";
 export * from "./menu-scene";
 export * from "./price-list";
+export * from "./royal-current-theme";
 export * from "./theme-catalog";
 export * from "./theme-motion";
 export * from "./theme-visual-matrix";

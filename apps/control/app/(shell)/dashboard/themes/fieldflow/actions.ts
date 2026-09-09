@@ -76,7 +76,28 @@ export async function updateTenantTheme(formData: FormData) {
   }
   if (!colorOverrides.data.fieldflow) {
     fail(
-      "Het volledige lichte en donkere FieldFlow-palet ontbreekt. Er is niets opgeslagen; herstel het standaardpalet en probeer opnieuw."
+      "Het volledige Royal Current/Navy Glass-palet ontbreekt. Er is niets opgeslagen; herstel het standaardpalet en probeer opnieuw."
+    );
+  }
+  if (appearance.data.schemaVersion !== 2) {
+    fail(
+      "Deze bewerking gebruikt nog het historische opmaakcontract. Vernieuw de pagina; je invoer blijft behouden en wordt daarna veilig naar Royal Current omgezet."
+    );
+  }
+  if (
+    accent !== appearance.data.palette.primary.toUpperCase() ||
+    support !== appearance.data.palette.secondary?.toUpperCase() &&
+      !(support === null && appearance.data.palette.secondary === null) ||
+    colorOverrides.data.fieldflow.mode !== (
+      modePolicy.data.kind === "fixed"
+        ? modePolicy.data.mode
+        : modePolicy.data.kind === "schedule"
+          ? modePolicy.data.fallback
+          : colorOverrides.data.fieldflow.mode
+    )
+  ) {
+    fail(
+      "De clubkleur, modus en afgeleide paletinstellingen horen niet bij elkaar. Er is niets opgeslagen; kies de clubkleur of actieve modus opnieuw en probeer daarna nogmaals."
     );
   }
   if (!editorialThemeHasValidContrast(colorOverrides.data.fieldflow)) {

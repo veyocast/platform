@@ -23,23 +23,23 @@ describe("FieldFlow Royal blauw-preset", () => {
     expect(Object.keys(fieldflowRoyalBlueTheme.light)).toHaveLength(26);
     expect(Object.keys(fieldflowRoyalBlueTheme.dark)).toHaveLength(26);
     expect(editorialThemeHasValidContrast(fieldflowRoyalBlueTheme)).toBe(true);
-    expect(fieldflowRoyalBlueTheme.dark.canvas).toBe("#071538");
-    expect(fieldflowRoyalBlueTheme.dark.surface).toBe("#3154D4");
-    expect(fieldflowRoyalBlueTheme.dark.text).toBe("#FFFFFF");
-    expect(fieldflowRoyalBlueTheme.light.text).toBe("#FFFFFF");
+    expect(fieldflowRoyalBlueTheme.dark.canvas).toBe("#0a1124");
+    expect(fieldflowRoyalBlueTheme.dark.surface).toBe("#17213a");
+    expect(fieldflowRoyalBlueTheme.dark.text).toBe("#f5f7fb");
+    expect(fieldflowRoyalBlueTheme.light.text).toBe("#132044");
   });
 
   it("bevriest de gevraagde kleur-, selectie- en appearancebasis", () => {
     const selection = createFieldflowRoyalBlueSelection();
 
     expect(fieldflowRoyalBluePreset).toMatchObject({
-      color: "#4169E1",
-      support: "#7A5CE6"
+      color: "#2459ed",
+      support: null
     });
     expect(themeSelectionSchema.parse(selection)).toMatchObject({
-      accent: "#4169E1",
-      modePolicy: { kind: "fixed", mode: "dark" },
-      support: "#7A5CE6"
+      accent: "#2459ED",
+      modePolicy: { kind: "fixed", mode: "light" },
+      support: null
     });
     expect(themeAppearanceSettingsSchema.parse(fieldflowRoyalBlueAppearance))
       .toMatchObject({
@@ -48,10 +48,10 @@ describe("FieldFlow Royal blauw-preset", () => {
           homeLogoBackground: "#FFFFFF"
         },
         typography: {
-          baseScale: 1.05,
-          bodyFontRef: "vc-inter-v1",
-          displayFontRef: "vc-manrope-v1",
-          sportScale: 1.4
+          baseScale: 1,
+          bodyFontRef: "vc-roboto-v1",
+          displayFontRef: "vc-roboto-v1",
+          sportScale: 1
         }
       });
   });

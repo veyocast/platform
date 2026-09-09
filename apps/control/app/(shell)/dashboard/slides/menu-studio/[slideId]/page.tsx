@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
+import { loadTenantStyleData } from "../../../../../../lib/tenant-style-data";
 import { PageHeader } from "../../../../_components/shell-primitives";
 import { createOrResumeDynamicSlideVersion } from "../../version-actions";
 import { loadDynamicSlideVersionState } from "../../version-data";
@@ -19,9 +20,12 @@ type PageProps = {
 export default async function EditMenuStudioPage({ params, searchParams }: PageProps) {
   const session = await requireTenantControlSession("tenant.dynamic_slide.write");
   const [{ slideId }, query] = await Promise.all([params, searchParams]);
-  const data = session.isLive && session.tenantId
-    ? await loadMenuStudioSlide(session.tenantId, slideId)
-    : null;
+  const [data, tenantStyle] = await Promise.all([
+    session.isLive && session.tenantId
+      ? loadMenuStudioSlide(session.tenantId, slideId)
+      : null,
+    loadTenantStyleData(session.tenantId, session.isLive)
+  ]);
   if (!data || !data.source || !data.flags.read || !data.flags.authoring) notFound();
   const versionState = await loadDynamicSlideVersionState(session.tenantId!, slideId);
   if (!versionState) notFound();
@@ -65,6 +69,7 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
         slideId={slideId}
         sourceId={data.source.id}
         sourceName={data.source.name}
+        tenantStyle={tenantStyle}
         templateVersionIds={menuStudioTemplateVersionIds(
           data.templates,
           data.slide.template_version_id

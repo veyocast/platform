@@ -10,6 +10,7 @@ import {
   type PlayerConnectivityEvent
 } from "../_lib/player-connectivity";
 import { isAndroidPwaInstallEligible } from "../_lib/player-install-eligibility";
+import { playerSystemThemeAttributes } from "./player-system-theme";
 
 type InstallChoice = {
   outcome: "accepted" | "dismissed";
@@ -91,7 +92,7 @@ function AndroidInstallPrompt() {
   }
 
   return (
-    <aside className="pwa-install-card" aria-labelledby="pwa-install-title">
+    <aside {...playerSystemThemeAttributes} className="pwa-install-card" aria-labelledby="pwa-install-title">
       <img
         alt=""
         className="pwa-install-card__icon"
@@ -140,7 +141,7 @@ function OfflineStatusChip() {
   if (online) return null;
 
   return (
-    <div className="player-offline-chip" role="status">
+    <div {...playerSystemThemeAttributes} className="player-offline-chip" role="status">
       <span className="player-offline-chip__mark" aria-hidden="true" />
       Geen internetverbinding
     </div>

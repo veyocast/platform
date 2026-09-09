@@ -1,0 +1,136 @@
+.root {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-subtle);
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.heading > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.heading strong,
+.heading p {
+  margin: 0;
+}
+
+.heading strong {
+  font-size: 0.95rem;
+}
+
+.heading p,
+.meta,
+.note,
+.error {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.heading a {
+  flex: none;
+  min-height: 44px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.previews {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.preview {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+  min-height: 116px;
+  padding: 0.65rem;
+  overflow: hidden;
+  border: 1px solid var(--tenant-style-line);
+  border-radius: 12px;
+  background: var(--tenant-style-canvas);
+  box-shadow: var(--tenant-style-shadow);
+  color: var(--tenant-style-text);
+}
+
+.preview > span:first-child {
+  color: var(--tenant-style-muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preview > strong {
+  align-self: center;
+  padding-left: 0.55rem;
+  border-left: 3px solid var(--tenant-style-accent);
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  line-height: 1.05;
+}
+
+.preview > i {
+  display: block;
+  width: 46%;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--tenant-style-accent);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.8rem;
+  margin: 0;
+}
+
+.meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.meta svg {
+  width: 15px;
+  height: 15px;
+}
+
+.note,
+.error {
+  margin: 0;
+}
+
+.error {
+  color: var(--critical, var(--foreground));
+}
+
+@media (max-width: 40rem) {
+  .heading {
+    display: grid;
+  }
+
+  .heading a {
+    width: fit-content;
+  }
+
+  .previews {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

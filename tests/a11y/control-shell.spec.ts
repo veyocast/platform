@@ -507,7 +507,7 @@ test("settings and theme routes expose real defaults with safe permission state"
   await expect(page.locator(".settings-category-workspace")).toHaveAttribute("data-hydrated", "true");
 
   await page.goto("/dashboard/themes/fieldflow");
-  await expect(page.getByRole("heading", { exact: true, level: 1, name: "FieldFlow" })).toBeVisible();
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Royal Current · Navy Glass" })).toBeVisible();
   const themePreview = page.getByLabel(/Live voorbeeld van het .* palet/);
   await expect(themePreview).toBeVisible();
   const previewCanvas = themePreview.locator('[data-theme-tokens~="canvas"]');
@@ -629,6 +629,14 @@ test("tenant management exposes a labelled and safely disabled creation flow", a
   ).toBeDisabled();
   await expect(page.getByRole("status")).toContainText(
     "Aanmaken is hier uitgeschakeld"
+  );
+
+  await page.goto("/platform/tenants?fout=onverwacht#nieuwe-tenant");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Aanmaken mislukt" })
+  ).toBeVisible();
+  await expect(page.locator("#nieuwe-tenant")).toContainText(
+    "De vereniging kon niet veilig worden aangemaakt"
   );
 });
 

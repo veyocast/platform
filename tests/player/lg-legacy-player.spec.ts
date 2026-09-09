@@ -242,16 +242,25 @@ const fieldFlowSportFamilies: Record<FieldFlowSportSlideType, string> = {
   sport_volunteers: "volunteer-call"
 };
 
+type FieldFlowSportLegacyOptions = {
+  allOptionalMatchFields?: boolean;
+  frozenRoyalCurrentV2?: boolean;
+  mixedCancellation?: boolean;
+  showTime?: boolean;
+};
+
 async function mockFieldFlowSportLegacyApis(
   page: Page,
   slideType: FieldFlowSportSlideType | "sport_program" | "sport_results",
   orientation: "landscape" | "portrait",
   mode: "dark" | "light",
   itemCount = 8,
-  displayColumns: "one" | "two" = "one"
+  displayColumns: "one" | "two" = "one",
+  options: FieldFlowSportLegacyOptions = {}
 ) {
   const imageAssetId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
   const matchSlide = slideType === "sport_program" || slideType === "sport_results";
+  const allOptionalMatchFields = matchSlide && options.allOptionalMatchFields === true;
   const family = slideType === "sport_program"
     ? "fixture-list"
     : slideType === "sport_results"
@@ -276,14 +285,21 @@ async function mockFieldFlowSportLegacyApis(
       url: legacyImagePath
     });
     const items = Array.from({ length: itemCount }, (_, index) => ({
+      awayLogoMediaAssetId: matchSlide ? imageAssetId : undefined,
+      awayRoom: allOptionalMatchFields ? `Uit ${index + 1}` : undefined,
       awayScore: slideType === "sport_results" ? 1 : undefined,
       awayTeam: matchSlide ? `Uit ${index + 1}` : undefined,
+      cancelled: options.mixedCancellation === true && index === 1,
       date: matchSlide ? "12-09-2026" : undefined,
       field: matchSlide ? `Veld ${index + 1}` : undefined,
       homeLogoMediaAssetId: matchSlide ? imageAssetId : undefined,
+      homeRoom: allOptionalMatchFields ? `Thuis ${index + 1}` : undefined,
       homeScore: slideType === "sport_results" ? 2 : undefined,
       homeTeam: matchSlide ? `Thuis ${index + 1}` : undefined,
       id: `${slideType}-${index + 1}`,
+      officials: allOptionalMatchFields
+        ? [{ displayName: `Scheidsrechter ${index + 1}` }]
+        : undefined,
       time: matchSlide ? "08:30" : undefined,
       venue: matchSlide ? `Veld ${index + 1}` : undefined,
       venueName: matchSlide ? "Sportpark FieldFlow" : undefined,
@@ -303,10 +319,12 @@ async function mockFieldFlowSportLegacyApis(
         : slideType === "sport_volunteers"
           ? "Gastheer of gastvrouw op wedstrijddagen"
           : "Eerste selectie",
-      status: slideType === "sport_program"
-        ? "Programma"
-        : slideType === "sport_results"
-          ? "Definitief"
+      status: options.mixedCancellation === true && index === 1
+        ? "Afgelast"
+        : slideType === "sport_program"
+          ? "Programma"
+          : slideType === "sport_results"
+            ? "Definitief"
           : slideType === "sport_volunteers"
             ? "Open rol"
             : "Gepubliceerd",
@@ -325,6 +343,9 @@ async function mockFieldFlowSportLegacyApis(
           }
         },
         data: {
+          ...(options.frozenRoyalCurrentV2
+            ? { _veyocastThemeRuntime: { version: 2 } }
+            : {}),
           brand: {
             clubName: "Sportvereniging FieldFlow",
             primaryColor: "#169B62"
@@ -333,6 +354,16 @@ async function mockFieldFlowSportLegacyApis(
             competition: { name: "Vierde klasse" },
             displayConfig: {
               columns: displayColumns,
+              ...(allOptionalMatchFields ? {
+                showAwayDressingRoom: true,
+                showAwayLogo: true,
+                showDate: true,
+                showHomeDressingRoom: true,
+                showHomeLogo: true,
+                showReferee: true,
+                showSportpark: true,
+                showTime: options.showTime !== false
+              } : {}),
               showField: true,
               showHomeAway: true,
               showLogo: true
@@ -352,7 +383,34 @@ async function mockFieldFlowSportLegacyApis(
                     ? "Trainingen"
                     : "Vrijwilligers"
           },
-          themePresentation: {
+          themePresentation: options.frozenRoyalCurrentV2 ? {
+            appearance: {
+              designRevision: "royal-current-v8",
+              motionEnabled: false,
+              palette: {
+                background: "club",
+                primary: "#2459ED",
+                secondary: null,
+                version: 1
+              },
+              schemaVersion: 2,
+              typography: {
+                baseScale: 1,
+                bodyFontRef: "vc-source-serif-4-v1",
+                displayFontRef: "vc-anton-v1",
+                sportScale: 1
+              }
+            },
+            resolvedMode: { mode, reason: "fixed" },
+            selection: {
+              accent: null,
+              categoryOverrides: [],
+              modePolicy: { kind: "fixed", mode },
+              ref: { catalog: "v2", id: "fieldflow", version: "3.0.0" },
+              support: null
+            },
+            snapshotVersion: 2
+          } : {
             resolvedMode: { mode, reason: "fixed" },
             selection: {
               accent: null,
@@ -371,6 +429,117 @@ async function mockFieldFlowSportLegacyApis(
         snapshotId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
         templateSlug: `editorial-arena-${slideType.replaceAll("_", "-")}-${mode}-${orientation}`,
         templateVersionId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+      }
+    });
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(envelope)
+    });
+  });
+  await page.route("**/api/player/heartbeat", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ automation: null, ok: true })
+  }));
+  await page.route("**/api/player/commands", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ commands: [], ok: true, serverTime: new Date().toISOString() })
+  }));
+}
+
+async function mockRoyalCurrentLedLegacyApis(page: Page) {
+  const connectionId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+  await page.route("**/api/player/installation", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ bound: true, installationCredential, ok: true })
+  }));
+  await page.route(`**${legacyImagePath}`, (route) => route.fulfill({
+    contentType: "image/svg+xml",
+    body: legacyImageSvg
+  }));
+  await page.route("**/api/player/manifest?legacy=*", (route) => {
+    const envelope = legacyEnvelope({
+      bytes: legacyImageBytes,
+      checksumSha256: legacyImageChecksum,
+      id: "royal-current-live-match",
+      kind: "image",
+      mimeType: "image/svg+xml",
+      title: "Royal Current live wedstrijd",
+      url: legacyImagePath
+    });
+    Object.assign(envelope.manifest.items[0]!, {
+      dynamicTemplate: {
+        data: {
+          _veyocastThemeRuntime: { version: 2 },
+          brand: { clubName: "Sportvereniging FieldFlow", primaryColor: "#2459ED" },
+          liveMatch: {
+            configuration: {
+              accentMode: "club",
+              outsideMatchBehavior: "last_known",
+              showClock: true,
+              showStatus: true,
+              showTimeline: false,
+              template: "scoreboard",
+              title: "Live vanaf Sportpark FieldFlow"
+            },
+            connectionId,
+            connectionName: "FieldFlow live",
+            state: {
+              away: { logoUrl: null, name: "Bezoekers O23-1", score: 1 },
+              clock: {
+                anchorAt: "2026-09-09T12:30:00.000Z",
+                anchorSeconds: 2_745,
+                direction: "up",
+                maxSeconds: 5_400,
+                running: false
+              },
+              home: { logoUrl: null, name: "FieldFlow O23-1", score: 2 },
+              matchKey: "royal-current-live-match",
+              periodLabel: "Tweede helft",
+              schemaVersion: 1,
+              sourceUpdatedAt: "2026-09-09T12:30:00.000Z",
+              staleAfter: "2026-09-09T13:00:00.000Z",
+              stateRevision: "42",
+              status: "live",
+              timeline: []
+            }
+          },
+          themePresentation: {
+            appearance: {
+              designRevision: "royal-current-v8",
+              motionEnabled: false,
+              palette: {
+                background: "club",
+                primary: "#2459ED",
+                secondary: null,
+                version: 1
+              },
+              schemaVersion: 2,
+              typography: {
+                baseScale: 1,
+                bodyFontRef: "vc-source-serif-4-v1",
+                displayFontRef: "vc-anton-v1",
+                sportScale: 1
+              }
+            },
+            resolvedMode: { mode: "light", reason: "fixed" },
+            selection: {
+              accent: null,
+              categoryOverrides: [],
+              modePolicy: { kind: "fixed", mode: "light" },
+              ref: { catalog: "v2", id: "fieldflow", version: "3.0.0" },
+              support: null
+            },
+            snapshotVersion: 2
+          },
+          type: "ledscores_live_match"
+        },
+        orientation: "landscape",
+        schemaVersion: 1,
+        slideType: "ledscores_live_match",
+        snapshotHash: "e".repeat(64),
+        snapshotId: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+        templateSlug: "royal-current-live-match-light-landscape",
+        templateVersionId: "ffffffff-ffff-4fff-8fff-ffffffffffff"
       }
     });
     return route.fulfill({
@@ -1747,6 +1916,299 @@ test("Static LG houdt wedstrijdregels op twee vaste regels en forceert portrait 
       await context.close();
     });
   }
+});
+
+test("Static LG projecteert frozen Royal Current v8-wedstrijden met moderne rijmaten en paginering", async ({
+  browser
+}) => {
+  const cases = [
+    {
+      expectedColumns: "two",
+      expectedFirstPageRows: 12,
+      expectedHeight: 96,
+      itemCount: 13,
+      orientation: "landscape",
+      showTime: true,
+      slideType: "sport_program"
+    },
+    {
+      expectedColumns: "one",
+      expectedFirstPageRows: 7,
+      expectedHeight: 148,
+      itemCount: 8,
+      orientation: "portrait",
+      showTime: true,
+      slideType: "sport_program"
+    },
+    {
+      expectedColumns: "two",
+      expectedFirstPageRows: 12,
+      expectedHeight: 96,
+      itemCount: 13,
+      orientation: "landscape",
+      showTime: true,
+      slideType: "sport_results"
+    },
+    {
+      expectedColumns: "one",
+      expectedFirstPageRows: 5,
+      expectedHeight: 148,
+      itemCount: 6,
+      orientation: "portrait",
+      showTime: false,
+      slideType: "sport_results"
+    }
+  ] as const;
+
+  for (const entry of cases) {
+    await test.step(`${entry.slideType} ${entry.orientation}`, async () => {
+      const context = await browser.newContext({
+        reducedMotion: "reduce",
+        userAgent:
+          "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+        viewport: entry.orientation === "landscape"
+          ? { height: 1080, width: 1920 }
+          : { height: 1920, width: 1080 }
+      });
+      const page = await context.newPage();
+      const pageErrors: string[] = [];
+      page.on("pageerror", (error) => pageErrors.push(error.message));
+      await page.clock.install({ time: new Date("2026-09-09T12:30:00.000Z") });
+      await mockFieldFlowSportLegacyApis(
+        page,
+        entry.slideType,
+        entry.orientation,
+        "light",
+        entry.itemCount,
+        "two",
+        {
+          allOptionalMatchFields: true,
+          frozenRoyalCurrentV2: true,
+          mixedCancellation: true,
+          showTime: entry.showTime
+        }
+      );
+      await page.addInitScript(
+        ({ credential, token }) => {
+          localStorage.setItem("veyocast.player.deviceToken", token);
+          localStorage.setItem("veyocast.player.installationCredential", credential);
+          localStorage.setItem(
+            "veyocast.player.instanceId",
+            "12345678-1234-4123-8123-123456789abc"
+          );
+        },
+        { credential: installationCredential, token: deviceToken }
+      );
+
+      await page.goto(`${playerURL}/lg/legacy`);
+      const slide = page.locator(".dynamic-template.editorial-arena");
+      const rowSelector = entry.slideType === "sport_program"
+        ? ".legacy-fixture-row"
+        : ".legacy-result-row";
+      const primarySelector = entry.slideType === "sport_program"
+        ? ".legacy-program-primary"
+        : ".legacy-result-primary";
+      const list = slide.locator(
+        entry.slideType === "sport_program"
+          ? ".legacy-fixture-list"
+          : ".legacy-result-list"
+      );
+      const rows = list.locator(rowSelector);
+
+      await expect(slide).toBeVisible();
+      await expect(slide).toHaveAttribute("data-design-revision", "royal-current-v8");
+      await expect(slide).toHaveAttribute("data-royal-mode", "royal");
+      await expect(slide).toHaveAttribute("data-motion-state", "off");
+      const typography = await slide.evaluate((element) => {
+        const heading = element.querySelector<HTMLElement>(".editorial-heading h1");
+        return {
+          bodyComputed: getComputedStyle(element).fontFamily,
+          bodyVariable: (element as HTMLElement).style.getPropertyValue(
+            "--vc-theme-body-font"
+          ),
+          compactResultSize: (element as HTMLElement).style.getPropertyValue(
+            "--vc-theme-sport-result-size-compact"
+          ),
+          compactScoreSize: (element as HTMLElement).style.getPropertyValue(
+            "--vc-theme-sport-score-size-compact"
+          ),
+          displayComputed: heading ? getComputedStyle(heading).fontFamily : "",
+          displayVariable: (element as HTMLElement).style.getPropertyValue(
+            "--vc-theme-display-font"
+          )
+        };
+      });
+      expect(typography.bodyVariable).toBe('"Source Serif 4"');
+      expect(typography.bodyComputed).toContain("Source Serif 4");
+      expect(typography.displayVariable).toBe('"Anton"');
+      expect(typography.displayComputed).toContain("Anton");
+      expect(typography.compactResultSize).toBe("24px");
+      expect(typography.compactScoreSize).toBe("42px");
+      await expect(list).toHaveAttribute("data-columns", entry.expectedColumns);
+      await expect(rows).toHaveCount(entry.expectedFirstPageRows);
+      await expect(slide.locator(".dynamic-page-number")).toHaveText("01 / 02");
+      if (entry.showTime) {
+        await expect(rows.nth(0).locator(".legacy-match-time")).toHaveText("08:30");
+      } else {
+        await expect(rows.nth(0).locator(".legacy-match-time-empty"))
+          .toHaveAttribute("aria-hidden", "true");
+        await expect(rows.nth(0).locator(".legacy-match-time"))
+          .toHaveText("");
+      }
+      await expect(rows.nth(1).locator(".legacy-match-time"))
+        .toHaveText("Afgelast");
+      await expect(rows.nth(1).locator(".legacy-match-time"))
+        .toHaveClass(/legacy-cancelled-kickoff/u);
+
+      const primary = rows.first().locator(`:scope > ${primarySelector}`);
+      const primaryOrder = await primary.evaluate((element) =>
+        Array.from(element.children).map((child) => (child as HTMLElement).className)
+      );
+      if (entry.slideType === "sport_program") {
+        expect(primaryOrder).toEqual([
+          "legacy-match-date",
+          entry.showTime
+            ? "legacy-match-time"
+            : "legacy-match-time legacy-match-time-empty",
+          "legacy-match-logo legacy-match-home-logo",
+          "legacy-match-team legacy-match-home-team",
+          "legacy-match-room legacy-match-home-room",
+          "legacy-match-separator",
+          "legacy-match-logo legacy-match-away-logo",
+          "legacy-match-team legacy-match-away-team",
+          "legacy-match-room legacy-match-away-room"
+        ]);
+        await expect(primary.locator(".legacy-match-home-room"))
+          .toHaveText("Kleedkamer Thuis 1");
+        await expect(primary.locator(".legacy-match-away-room"))
+          .toHaveText("Kleedkamer Uit 1");
+        const secondary = rows.first().locator(":scope > .legacy-program-secondary");
+        await expect(secondary.locator(":scope > *")).toHaveCount(3);
+        await expect(secondary.locator(".legacy-match-referee"))
+          .toHaveText("Scheidsrechter: Scheidsrechter 1");
+        await expect(secondary.locator(".legacy-match-field")).toHaveText("Veld: 1");
+        await expect(secondary.locator(".legacy-match-sportpark"))
+          .toHaveText("Sportpark: FieldFlow");
+        expect(await secondary.evaluate((element) =>
+          Array.from(element.children).map((child) => (child as HTMLElement).className)
+        )).toEqual([
+          "legacy-match-referee",
+          "legacy-match-field",
+          "legacy-match-sportpark"
+        ]);
+      } else {
+        expect(primaryOrder).toEqual([
+          "legacy-match-date",
+          entry.showTime
+            ? "legacy-match-time"
+            : "legacy-match-time legacy-match-time-empty",
+          "legacy-match-logo legacy-match-home-logo",
+          "legacy-match-team legacy-match-home-team",
+          "legacy-result-score",
+          "legacy-match-logo legacy-match-away-logo",
+          "legacy-match-team legacy-match-away-team"
+        ]);
+      }
+
+      const geometry = await list.evaluate((element, selector) => {
+        const rowElements = Array.from(element.querySelectorAll<HTMLElement>(selector));
+        const rowBoxes = rowElements.map((row) => row.getBoundingClientRect());
+        const normalHome = rowElements[0]?.querySelector<HTMLElement>(
+          ".legacy-match-home-team"
+        )?.getBoundingClientRect();
+        const cancelledHome = rowElements[1]?.querySelector<HTMLElement>(
+          ".legacy-match-home-team"
+        )?.getBoundingClientRect();
+        return {
+          cancelledHomeLeft: cancelledHome?.left ?? -1,
+          clientHeight: element.clientHeight,
+          clientWidth: element.clientWidth,
+          gridAutoRows: getComputedStyle(element).gridAutoRows,
+          heights: rowBoxes.map((box) => box.height),
+          normalHomeLeft: normalHome?.left ?? -2,
+          scrollHeight: element.scrollHeight,
+          scrollWidth: element.scrollWidth,
+          firstTop: rowBoxes[0]?.top ?? 0,
+          secondTop: rowBoxes[1]?.top ?? 0,
+          splitLeft: rowBoxes[Math.ceil(rowBoxes.length / 2)]?.left ?? 0,
+          splitTop: rowBoxes[Math.ceil(rowBoxes.length / 2)]?.top ?? 0
+        };
+      }, rowSelector);
+      expect(geometry.gridAutoRows).toBe(`${entry.expectedHeight}px`);
+      expect(geometry.heights.every((height) =>
+        Math.abs(height - entry.expectedHeight) < .1
+      )).toBe(true);
+      expect(geometry.cancelledHomeLeft).toBeCloseTo(geometry.normalHomeLeft, 1);
+      expect(geometry.scrollWidth).toBe(geometry.clientWidth);
+      expect(geometry.scrollHeight).toBe(geometry.clientHeight);
+      expect(geometry.secondTop - geometry.firstTop).toBeGreaterThan(entry.expectedHeight);
+      if (entry.expectedColumns === "two") {
+        expect(geometry.splitTop).toBeCloseTo(geometry.firstTop, 1);
+        expect(geometry.splitLeft).toBeGreaterThan(geometry.normalHomeLeft);
+      }
+      expect(pageErrors).toEqual([]);
+
+      await page.clock.runFor(5_100);
+      await expect(slide.locator(".dynamic-page-number")).toHaveText("02 / 02");
+      await expect(list.locator(rowSelector)).toHaveCount(1);
+      await expect(list.locator(".legacy-match-home-team"))
+        .toHaveText(`Thuis ${entry.itemCount}`);
+      await context.close();
+    });
+  }
+});
+
+test("Static LG respecteert de frozen v2-fontrefs ook in Royal Current LED", async ({
+  browser
+}) => {
+  const context = await browser.newContext({
+    reducedMotion: "reduce",
+    userAgent:
+      "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0.3945.79 Safari/537.36",
+    viewport: { height: 1080, width: 1920 }
+  });
+  const page = await context.newPage();
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await page.clock.install({ time: new Date("2026-09-09T12:30:00.000Z") });
+  await mockRoyalCurrentLedLegacyApis(page);
+  await page.addInitScript(
+    ({ credential, token }) => {
+      localStorage.setItem("veyocast.player.deviceToken", token);
+      localStorage.setItem("veyocast.player.installationCredential", credential);
+      localStorage.setItem(
+        "veyocast.player.instanceId",
+        "12345678-1234-4123-8123-123456789abc"
+      );
+    },
+    { credential: installationCredential, token: deviceToken }
+  );
+
+  await page.goto(`${playerURL}/lg/legacy`);
+  const slide = page.locator(".dynamic-template.ledscores-live-match");
+  await expect(slide).toBeVisible();
+  await expect(slide).toHaveAttribute("data-design-revision", "royal-current-v8");
+  await expect(slide).toContainText("FieldFlow O23-1");
+  await expect(slide).toContainText("Bezoekers O23-1");
+  const typography = await slide.evaluate((element) => {
+    const heading = element.querySelector<HTMLElement>(".live-match-top h1");
+    return {
+      bodyComputed: getComputedStyle(element).fontFamily,
+      bodyVariable: (element as HTMLElement).style.getPropertyValue(
+        "--vc-theme-body-font"
+      ),
+      displayComputed: heading ? getComputedStyle(heading).fontFamily : "",
+      displayVariable: (element as HTMLElement).style.getPropertyValue(
+        "--vc-theme-display-font"
+      )
+    };
+  });
+  expect(typography.bodyVariable).toBe('"Source Serif 4"');
+  expect(typography.bodyComputed).toContain("Source Serif 4");
+  expect(typography.displayVariable).toBe('"Anton"');
+  expect(typography.displayComputed).toContain("Anton");
+  expect(pageErrors).toEqual([]);
+  await context.close();
 });
 
 test("Static LG ordent uitslagen in twee landscape-kolommen gelijk aan de moderne Player", async ({

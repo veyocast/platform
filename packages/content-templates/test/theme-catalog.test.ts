@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   authorableThemeIds,
+  defaultThemeAppearanceSettings,
   dynamicSlideTypes,
   editorialArenaActiveSlideTypes,
   selectableThemeIds
@@ -15,6 +16,7 @@ import {
   createDynamicTemplateFixtureView,
   createDynamicTemplateView
 } from "../src/dynamic-template-view";
+import { createRoyalCurrentAppearance } from "../src/royal-current-theme";
 import {
   editorialThemeHasValidContrast
 } from "../src/editorial-arena-theme";
@@ -100,7 +102,8 @@ describe("theme catalog v2", () => {
   });
 
   it("materialiseert v2 appearance en houdt v1-snapshots veilig renderbaar", () => {
-    const legacy = freezeThemePresentation({
+    const currentDefault = freezeThemePresentation({
+      appearance: defaultThemeAppearanceSettings,
       instant: "2026-09-06T13:33:00.000Z",
       selection: {
         accent: null,
@@ -112,6 +115,22 @@ describe("theme catalog v2", () => {
       timezone: "Europe/Amsterdam"
     });
 
+    expect(themeCssVariables(currentDefault)).toMatchObject({
+      "--brand-primary": "#2459ed",
+      "--vc-club-logo-background": "#FFFFFF",
+      "--vc-home-logo-background": "#FFFFFF",
+      "--vc-theme-body-font": '"Roboto"',
+      "--vc-theme-display-font": '"Roboto"',
+      "--vc-theme-font-20": "20px",
+      "--vc-theme-sport-row-size": "20px"
+    });
+
+    const legacy = {
+      catalogVersion: "1.0.0",
+      resolvedMode: currentDefault.resolvedMode,
+      selection: currentDefault.selection,
+      snapshotVersion: 1 as const
+    };
     expect(themeCssVariables(legacy)).toMatchObject({
       "--vc-club-logo-background": "#E7F5EE",
       "--vc-home-logo-background": "#FFFFFF",
@@ -123,7 +142,6 @@ describe("theme catalog v2", () => {
       "--vc-theme-sport-score-size-compact": "42px"
     });
 
-    if (legacy.snapshotVersion !== 1) throw new Error("Expected v1 fixture.");
     const current = {
       ...legacy,
       appearance: {
@@ -208,6 +226,7 @@ describe("theme catalog v2", () => {
 
   it("maakt de FieldFlow fullscreen-fotogradient neutraal en donker achter tekst", () => {
     const tokens = themeToEditorialTokens(freezeThemePresentation({
+      appearance: defaultThemeAppearanceSettings,
       instant: "2026-09-02T12:00:00.000Z",
       selection: {
         accent: null,
@@ -219,12 +238,12 @@ describe("theme catalog v2", () => {
       timezone: "Europe/Amsterdam"
     }));
 
-    expect(tokens.imageOverlayStart).toBe("rgba(6,8,10,.84)");
-    expect(tokens.imageOverlayMid).toBe("rgba(6,8,10,.58)");
-    expect(tokens.imageOverlayEnd).toBe("rgba(6,8,10,.08)");
+    expect(tokens.imageOverlayStart).toBe("rgba(23,33,58,0.80)");
+    expect(tokens.imageOverlayMid).toBe("rgba(23,33,58,0.46)");
+    expect(tokens.imageOverlayEnd).toBe("rgba(23,33,58,0.08)");
   });
 
-  it("geeft een opgeslagen slidekleurkaart voorrang boven de themacatalogus", () => {
+  it("geeft Royal Current-snapshots voorrang en behoudt v1-kleurkaarten", () => {
     const selection = {
       accent: "#315CFF",
       categoryOverrides: [],
@@ -237,12 +256,14 @@ describe("theme catalog v2", () => {
       support: null
     };
     const presentation = freezeThemePresentation({
+      appearance: createRoyalCurrentAppearance({ primary: selection.accent }),
       instant: "2026-09-05T12:00:00.000Z",
       selection,
       timezone: "Europe/Amsterdam"
     });
     const light = themeToEditorialTokens(presentation);
     const dark = themeToEditorialTokens(freezeThemePresentation({
+      appearance: createRoyalCurrentAppearance({ primary: selection.accent }),
       instant: "2026-09-05T12:00:00.000Z",
       selection: { ...selection, modePolicy: { kind: "fixed", mode: "dark" } },
       timezone: "Europe/Amsterdam"
@@ -277,9 +298,53 @@ describe("theme catalog v2", () => {
       templateVersionId: "00000000-0000-4000-8000-000000000110"
     });
 
-    expect(view?.themeTokens.canvas).toBe("#EAF0FF");
-    expect(view?.themeTokens.imageOverlayStart).toBe("rgba(5, 20, 65, 0.88)");
-    expect(view?.themeTokens.canvas).not.toBe(themeCatalog.fieldflow.light.canvas);
+    expect(presentation.snapshotVersion).toBe(2);
+    if (presentation.snapshotVersion !== 2) throw new Error("v2 snapshot verwacht");
+    expect(presentation.appearance.schemaVersion).toBe(2);
+    if (presentation.appearance.schemaVersion !== 2) throw new Error("v2 appearance verwacht");
+    expect(presentation.appearance.palette.primary).toBe("#315CFF");
+    expect(view?.themeTokens.canvas).toBe(light.canvas);
+    expect(view?.themeTokens.imageOverlayStart).toBe(light.imageOverlayStart);
+    expect(view?.themeTokens.canvas).not.toBe("#EAF0FF");
+
+    const legacyView = createDynamicTemplateView({
+      ...{
+        data: {
+          brand: { clubName: "Testclub", primaryColor: "#315CFF" },
+          editorial: {
+            newsVariant: "fullscreen_gradient",
+            pricePhotoMode: "show",
+            schemaVersion: 2,
+            theme: {
+              dark,
+              light: {
+                ...light,
+                canvas: "#EAF0FF",
+                imageOverlayStart: "rgba(5, 20, 65, 0.88)"
+              },
+              mode: "light"
+            },
+            themeSelection: selection
+          },
+          news: { articles: [], title: "Nieuws" },
+          themePresentation: {
+            catalogVersion: presentation.catalogVersion,
+            resolvedMode: presentation.resolvedMode,
+            selection: presentation.selection,
+            snapshotVersion: 1
+          }
+        },
+        orientation: "landscape" as const,
+        schemaVersion: 1 as const,
+        slideType: "news" as const,
+        snapshotHash: "b".repeat(64),
+        snapshotId: "00000000-0000-4000-8000-000000000111",
+        templateSlug: "editorial-arena-news-light-landscape",
+        templateVersionId: "00000000-0000-4000-8000-000000000112"
+      }
+    });
+    expect(legacyView?.designRevision).toBe("legacy");
+    expect(legacyView?.themeTokens.canvas).toBe("#EAF0FF");
   });
 
   it("starts ACTIVE dwell only after ENTERING completes and fixes posters at 900 ms", () => {

@@ -14,6 +14,7 @@ import {
   type LedScoresMatchState
 } from "../_lib/ledscores-match-experience";
 import { LedScoresLiveMatchSlide } from "./ledscores-match-experience";
+import { themePresentationFromDynamicData } from "./player-presentation-theme";
 
 export function DynamicTemplateMedia({
   item,
@@ -36,6 +37,12 @@ export function DynamicTemplateMedia({
   const liveConfig = useMemo(
     () => liveMatch
       ? parseLedScoresLiveMatchConfig(item.dynamicTemplate?.data)
+      : null,
+    [item.dynamicTemplate?.data, liveMatch]
+  );
+  const liveTheme = useMemo(
+    () => liveMatch
+      ? themePresentationFromDynamicData(item.dynamicTemplate?.data)
       : null,
     [item.dynamicTemplate?.data, liveMatch]
   );
@@ -72,6 +79,7 @@ export function DynamicTemplateMedia({
         onReady={() => onReady(item.id)}
         orientation={item.dynamicTemplate?.orientation ?? "landscape"}
         state={liveState}
+        theme={liveTheme}
       />
     );
   }

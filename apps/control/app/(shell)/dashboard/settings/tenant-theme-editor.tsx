@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import {
   curatedThemeFontRefs,
@@ -8,6 +8,11 @@ import {
   type EditorialThemeConfig,
   type ThemeSelection
 } from "@veyocast/contracts";
+import {
+  createRoyalCurrentAppearance,
+  createRoyalCurrentTheme,
+  normalizeClubHex
+} from "@veyocast/content-templates";
 
 import { EditorialThemeEditor } from "../slides/new/editorial-theme-editor";
 
@@ -20,6 +25,7 @@ const fontLabels: Record<(typeof curatedThemeFontRefs)[number], string> = {
   "vc-inter-v1": "Inter",
   "vc-manrope-v1": "Manrope",
   "vc-newsreader-v1": "Newsreader",
+  "vc-roboto-v1": "Roboto",
   "vc-source-serif-4-v1": "Source Serif 4",
   "vc-space-grotesk-v1": "Space Grotesk"
 };
@@ -37,9 +43,34 @@ export function TenantThemeEditor({
   initialSelection: ThemeSelection;
   initialTheme: EditorialThemeConfig;
 }) {
-  const [appearance, setAppearance] = useState(initialAppearance);
-  const [selection, setSelection] = useState(initialSelection);
-  const [theme, setTheme] = useState(initialTheme);
+  const resolvedInitialAppearance = (
+    initialAppearance.schemaVersion === 2
+      ? initialAppearance
+      : createRoyalCurrentAppearance({
+          primary: initialSelection.accent ?? undefined,
+          secondary: initialSelection.support
+        }, initialAppearance)
+  );
+  const resolvedInitialSelection = resolvedInitialAppearance.schemaVersion === 2
+    ? {
+        ...initialSelection,
+        accent: resolvedInitialAppearance.palette.primary.toUpperCase(),
+        support: resolvedInitialAppearance.palette.secondary?.toUpperCase() ?? null
+      }
+    : initialSelection;
+  const resolvedInitialMode = resolvedInitialSelection.modePolicy.kind === "fixed"
+    ? resolvedInitialSelection.modePolicy.mode
+    : resolvedInitialSelection.modePolicy.kind === "schedule"
+      ? resolvedInitialSelection.modePolicy.fallback
+      : initialTheme.mode;
+  const resolvedInitialTheme = resolvedInitialAppearance.schemaVersion === 2
+    ? createRoyalCurrentTheme(resolvedInitialAppearance.palette, resolvedInitialMode)
+    : initialTheme;
+  const [appearance, setAppearance] = useState<ThemeAppearanceSettings>(resolvedInitialAppearance);
+  const [selection, setSelection] = useState(resolvedInitialSelection);
+  const [theme, setTheme] = useState(resolvedInitialTheme);
+  const [clubLogoSurfaceValid, setClubLogoSurfaceValid] = useState(true);
+  const [homeLogoSurfaceValid, setHomeLogoSurfaceValid] = useState(true);
   const editorRef = useRef<HTMLDivElement>(null);
   const initializedRef = useRef(false);
 
@@ -56,6 +87,7 @@ export function TenantThemeEditor({
   return (
     <div className="settings-theme-studio" ref={editorRef}>
       <EditorialThemeEditor
+        additionalValidationReady={clubLogoSurfaceValid && homeLogoSurfaceValid}
         appearance={appearance}
         defaults={defaults}
         disabled={disabled}
@@ -74,8 +106,8 @@ export function TenantThemeEditor({
               Typografie
             </h3>
             <p className="work-panel__meta">
-              Deze waarden horen bij FieldFlow. Alleen lokaal gebundelde,
-              gelicentieerde fonts kunnen worden gekozen.
+              Roboto en 100% zijn de nieuwe standaard. Bestaande opgeslagen
+              fontkeuzes blijven bij bewerken behouden totdat je ze herstelt.
             </p>
           </div>
         </div>
@@ -117,11 +149,11 @@ export function TenantThemeEditor({
             </select>
           </label>
           <label className="field">
-            <span>Algemene lettergrootte (%)</span>
+            <span>Tekstschaal (%)</span>
             <input
               disabled={disabled}
-              max={125}
-              min={85}
+              max={120}
+              min={90}
               onChange={(event) => setAppearance((current) => ({
                 ...current,
                 typography: {
@@ -150,9 +182,152 @@ export function TenantThemeEditor({
               value={Math.round(appearance.typography.sportScale * 100)}
             />
           </label>
+          {appearance.schemaVersion === 2 ? (
+            <label className="settings-check-card">
+              <input
+                checked={appearance.motionEnabled}
+                data-motion-label={appearance.motionEnabled ? "beweging aan" : "beweging uit"}
+                disabled={disabled}
+                onChange={(event) => setAppearance((current) => current.schemaVersion === 2
+                  ? { ...current, motionEnabled: event.currentTarget.checked }
+                  : current)}
+                type="checkbox"
+              />
+              <span>
+                <strong>Rustige bewegingen</strong>
+                <small>Respecteert ook de verminderde-beweginginstelling van het scherm.</small>
+              </span>
+            </label>
+          ) : null}
+        </div>
+        {appearance.schemaVersion === 2 ? (
+          <fieldset className="settings-theme-surface-fields">
+            <legend>Logo-oppervlakken</legend>
+            <p className="work-panel__meta">
+              Deze vlakken blijven onderdeel van de tenantstijl en zijn direct
+              zichtbaar in beide previews hierboven.
+            </p>
+            <div className="form-grid">
+              <AppearanceSurfaceControl
+                disabled={disabled}
+                id="theme-club-logo-background"
+                label="Achtergrond clublogo"
+                onChange={(clubLogoBackground) => setAppearance((current) =>
+                  current.schemaVersion === 2
+                    ? {
+                        ...current,
+                        surfaces: { ...current.surfaces, clubLogoBackground }
+                      }
+                    : current)}
+                onValidityChange={setClubLogoSurfaceValid}
+                value={appearance.surfaces.clubLogoBackground}
+              />
+              <AppearanceSurfaceControl
+                disabled={disabled}
+                id="theme-home-logo-background"
+                label="Achtergrond thuislogo"
+                onChange={(homeLogoBackground) => setAppearance((current) =>
+                  current.schemaVersion === 2
+                    ? {
+                        ...current,
+                        surfaces: { ...current.surfaces, homeLogoBackground }
+                      }
+                    : current)}
+                onValidityChange={setHomeLogoSurfaceValid}
+                value={appearance.surfaces.homeLogoBackground}
+              />
+            </div>
+          </fieldset>
+        ) : null}
+        <div className="form-actions form-actions--compact">
+          <button
+            className="button button--ghost"
+            disabled={disabled}
+            onClick={() => setAppearance((current) => ({
+              ...createRoyalCurrentAppearance(
+                current.schemaVersion === 2 ? current.palette : undefined,
+                current
+              ),
+              typography: {
+                baseScale: 1,
+                bodyFontRef: "vc-roboto-v1",
+                displayFontRef: "vc-roboto-v1",
+                sportScale: 1
+              }
+            }))}
+            type="button"
+          >
+            Lettertype en schaal herstellen
+          </button>
         </div>
       </section>
       <input name="themeAppearanceJson" type="hidden" value={JSON.stringify(appearance)} />
     </div>
+  );
+}
+
+function AppearanceSurfaceControl({
+  disabled,
+  id,
+  label,
+  onChange,
+  onValidityChange,
+  value
+}: {
+  disabled: boolean;
+  id: string;
+  label: string;
+  onChange: (value: string) => void;
+  onValidityChange: (valid: boolean) => void;
+  value: string;
+}) {
+  const [draft, setDraft] = useState(value.toUpperCase());
+  const [error, setError] = useState("");
+  const errorId = `${id}-error`;
+
+  useEffect(() => setDraft(value.toUpperCase()), [value]);
+
+  function update(next: string) {
+    setDraft(next.toUpperCase());
+    const normalized = normalizeClubHex(next);
+    if (!normalized) {
+      setError("Gebruik een geldige HEX-kleur, bijvoorbeeld #FFFFFF.");
+      onValidityChange(false);
+      return;
+    }
+    setError("");
+    onValidityChange(true);
+    onChange(normalized.toUpperCase());
+  }
+
+  return (
+    <label className="field" htmlFor={id}>
+      <span>{label}</span>
+      <span className="settings-theme-color-control">
+        <input
+          aria-label={`${label} kiezen`}
+          disabled={disabled}
+          onChange={(event) => update(event.currentTarget.value)}
+          type="color"
+          value={normalizeClubHex(value) ?? "#ffffff"}
+        />
+        <input
+          aria-label={`${label} als kleurwaarde`}
+          aria-describedby={error ? errorId : undefined}
+          aria-invalid={Boolean(error)}
+          disabled={disabled}
+          id={id}
+          maxLength={7}
+          onChange={(event) => update(event.currentTarget.value)}
+          pattern="^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$"
+          spellCheck={false}
+          type="text"
+          value={draft}
+        />
+      </span>
+      <small className="settings-theme-color-error" id={errorId} role={error ? "alert" : undefined}>
+        {error}
+      </small>
+    </label>
   );
 }
