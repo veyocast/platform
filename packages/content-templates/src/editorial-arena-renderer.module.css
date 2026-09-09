@@ -1811,7 +1811,7 @@
 
 .arenaRoot[data-slide-type="sport_results"] .arenaSportColumns[data-columns="2"] .arenaResultRow {
   --arena-match-logo-size: 48px;
-  font-size: var(--vc-theme-font-24, 24px);
+  font-size: var(--vc-theme-sport-result-size-compact, 24px);
 }
 
 .arenaRoot[data-slide-type="sport_results"] .arenaSportColumns[data-columns="2"] .arenaTeamMini {
@@ -1821,7 +1821,7 @@
 
 .arenaRoot[data-slide-type="sport_results"] .arenaSportColumns[data-columns="2"] .arenaResultScore {
   min-width: 88px;
-  font-size: var(--vc-theme-font-42, 42px);
+  font-size: var(--vc-theme-sport-score-size-compact, 42px);
 }
 
 .arenaRoot[data-slide-type="sport_standing"] .arenaStandingTeam > img {

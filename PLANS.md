@@ -155,6 +155,7 @@ tests en exitcriteria staan in
 | S156 | Wedstrijdregels, welkomsthiërarchie en clubvarianten | Vaste tweeregelige programma-/uitslagkaarten, volledige thuisteam- en wedstrijddetails, ruimere portrait splitnieuwsslides en zes atomische clubvarianten voor vandaag |
 | S157 | Volledige theme-tokenwerkplaats | Alle 26 FieldFlow-kleurrollen per licht/donkerpalet vindbaar en afzonderlijk herstelbaar maken en de live preview alle rollen plus steunkleur en logoplaatkleuren laten tonen |
 | S158 | Kolomvaste wedstrijdregels en eenvoudige paletten | Club- en pouleprogramma/-uitslagen exact uitlijnen met afzonderlijke veldkeuzes, poulevarianten voor vandaag toevoegen en vanuit één hoofdkleur een volledig aanpasbaar licht/donkerpalet maken |
+| S159 | Royal-blue tenanttheme en grotere kijkafstandtypografie | Eén stabiel royal/navy-blue FieldFlow-preset tenantgericht resetten, alle bevroren kleurtokens in moderne en Static-LG-output projecteren en wedstrijdtypografie vergroten zonder immutable releases of LKG te muteren |
 
 S144 blijft technisch historisch bewijs, maar is visueel afgekeurd en door S145
 vervangen. S145 staat lokaal op
@@ -292,6 +293,18 @@ kleedkamer-, veld- en scheidsrechterinformatie. De portrait splitnieuwsslide
 krijgt meer tussen- en zijruimte. De fullscreen-gradient-QR blijft op de reeds
 maximale canonieke 7,5%-safe-area staan. Zie
 `prompts/sprints/S156-slide-layout-completion.md`.
+
+S159 voegt één gedeeld `Royal blauw`-preset toe met alle 26 light- en 26
+darkrollen, witte logoplaten, Inter/Manrope, `baseScale: 1.05` en
+`sportScale: 1.4`. De actieve tenantmodus is vast donker; navy canvas,
+royal-blue oppervlakken en wit gebaseerde tekst vormen daardoor dezelfde
+herkenbare stijl over de dynamische families. Ook gedeelde kleuraliassen en de
+compacte tweekoloms-uitslagen volgen voortaan de bevroren tenanttokens en
+sportscale in moderne en Static-LG-rendering. De tenantreset is geen
+deploymentside-effect: een owner-only command en beschermde workflow starten
+na exact-SHA deployment de bestaande immutable theme-rollout voor uitsluitend
+de exact gekozen actieve tenant. Zie
+`prompts/sprints/S159-royal-theme-scale.md`.
 
 ### Programmagates
 

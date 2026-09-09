@@ -118,7 +118,9 @@ describe("theme catalog v2", () => {
       "--vc-theme-body-font": '"Inter"',
       "--vc-theme-font-20": "20px",
       "--vc-theme-display-font": '"Manrope"',
-      "--vc-theme-sport-row-size": "22.4px"
+      "--vc-theme-sport-result-size-compact": "24px",
+      "--vc-theme-sport-row-size": "22.4px",
+      "--vc-theme-sport-score-size-compact": "42px"
     });
 
     if (legacy.snapshotVersion !== 1) throw new Error("Expected v1 fixture.");
@@ -149,8 +151,10 @@ describe("theme catalog v2", () => {
       "--vc-theme-font-20": "22px",
       "--vc-theme-font-34": "37.4px",
       "--vc-theme-display-font": '"Anton"',
+      "--vc-theme-sport-result-size-compact": "28.286px",
       "--vc-theme-sport-result-size": "39.6px",
       "--vc-theme-sport-row-size": "26.4px",
+      "--vc-theme-sport-score-size-compact": "49.5px",
       "--vc-theme-sport-score-size": "61.38px",
       "--vc-theme-title-size": "70.4px"
     });

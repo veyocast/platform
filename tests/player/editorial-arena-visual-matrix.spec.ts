@@ -5,6 +5,11 @@ import {
   themeCatalog,
   themeToEditorialTokens
 } from "@veyocast/content-templates/theme-catalog";
+import {
+  createFieldflowRoyalBlueAppearance,
+  createFieldflowRoyalBlueSelection,
+  createFieldflowRoyalBlueTheme
+} from "@veyocast/content-templates";
 import type {
   EditorialNewsVariant,
   EditorialThemeConfig,
@@ -478,6 +483,79 @@ test("staande splitnieuwsslide houdt 32 px tussenruimte en 20 px zijmarges", asy
   });
 });
 
+test("Royal blauw vergroot wedstrijdinformatie zonder vaste rijen te breken", async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.clock.setFixedTime(new Date("2026-09-09T08:00:00.000Z"));
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ height: 1080, width: 1920 });
+
+  for (const variant of ["program-5", "results-20"] as const) {
+    await test.step(variant, async () => {
+      const initial = buildPayload(variant, "landscape", "dark");
+      const payload = withRoyalBlueTheme(
+        variant === "results-20" ? withSportColumns(initial, "two") : initial
+      );
+      await page.goto("about:blank");
+      await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+      await page.waitForFunction(
+        () => document.documentElement.dataset.thumbnailReady === "true"
+      );
+
+      const slide = page.locator('[data-theme-id="fieldflow"]');
+      const rows = slide.locator(
+        '[class*="arenaProgramRow"], [data-result-row]'
+      );
+      await expect(slide).toBeVisible();
+      expect(await slide.evaluate((element) => ({
+        background: getComputedStyle(element).backgroundColor,
+        baseScale: getComputedStyle(element).getPropertyValue("--vc-theme-base-scale").trim(),
+        color: getComputedStyle(element).color,
+        sportScale: getComputedStyle(element).getPropertyValue("--vc-theme-sport-scale").trim()
+      }))).toEqual({
+        background: "rgb(7, 21, 56)",
+        baseScale: "1.05",
+        color: "rgb(255, 255, 255)",
+        sportScale: "1.4"
+      });
+      const rowGeometry = await rows.evaluateAll((elements) => elements.map((element) => ({
+        clientHeight: element.clientHeight,
+        clientWidth: element.clientWidth,
+        height: Number.parseFloat(getComputedStyle(element).height),
+        scrollHeight: element.scrollHeight,
+        scrollWidth: element.scrollWidth
+      })));
+      expect(rowGeometry.every((geometry) => (
+        geometry.height === 115 &&
+        geometry.scrollHeight <= geometry.clientHeight &&
+        geometry.scrollWidth <= geometry.clientWidth
+      ))).toBe(true);
+
+      const firstRow = rows.first();
+      expect(await firstRow.evaluate((element) => ({
+        background: getComputedStyle(element).backgroundColor,
+        fontSize: Number.parseFloat(getComputedStyle(element).fontSize)
+      }))).toEqual({
+        background: "rgb(12, 34, 87)",
+        fontSize: variant === "program-5" ? 29.4 : 31.5
+      });
+      if (variant === "program-5") {
+        expect(await firstRow.locator('[class*="arenaMatchSecondary"]').evaluate(
+          (element) => Number.parseFloat(getComputedStyle(element).fontSize)
+        )).toBeCloseTo(15.288, 2);
+      } else {
+        expect(await firstRow.locator('[class*="arenaResultScore"]').evaluate(
+          (element) => Number.parseFloat(getComputedStyle(element).fontSize)
+        )).toBeCloseTo(55.125, 2);
+      }
+
+      await expect(page).toHaveScreenshot(
+        `royal-blue-${variant}-landscape.png`,
+        { animations: "disabled", caret: "hide", maxDiffPixelRatio: 0.002 }
+      );
+    });
+  }
+});
+
 function buildPayload(
   variant: typeof fixtureVariants[number],
   orientation: "landscape" | "portrait",
@@ -555,6 +633,40 @@ function buildPayload(
     templateSlug: `editorial-arena-${slideType.replaceAll("_", "-")}-${themeMode}-${orientation}`,
     templateVersionId: "10000000-0000-4000-8000-000000000003"
   };
+}
+
+function withRoyalBlueTheme(
+  payload: PlayerDynamicTemplatePayload
+): PlayerDynamicTemplatePayload {
+  const selection = createFieldflowRoyalBlueSelection(
+    themeCatalog.fieldflow.version
+  );
+  const frozen = freezeThemePresentation({
+    instant: "2026-09-09T08:00:00.000Z",
+    selection,
+    timezone: "Europe/Amsterdam"
+  });
+  const themePresentation = {
+    ...frozen,
+    appearance: createFieldflowRoyalBlueAppearance(),
+    settingsRevision: 159,
+    snapshotVersion: 2 as const
+  };
+  const editorial = payload.data.editorial as Record<string, unknown> | undefined;
+  return playerDynamicTemplatePayloadSchema.parse({
+    ...payload,
+    data: {
+      ...payload.data,
+      _veyocastThemeRuntime: { version: 2 },
+      editorial: {
+        ...editorial,
+        theme: createFieldflowRoyalBlueTheme(),
+        themeSelection: selection
+      },
+      themePresentation
+    },
+    templateSlug: payload.templateSlug.replace("-light-", "-dark-")
+  });
 }
 
 function priceData(withPhoto: boolean, theme: EditorialThemeConfig) {

@@ -19,7 +19,16 @@ import {
   editorialThemeHasValidContrast,
   editorialThemeCssVariables
 } from "@veyocast/content-templates/editorial-arena-theme";
-import { themeCatalog } from "@veyocast/content-templates/theme-catalog";
+import {
+  createFieldflowRoyalBlueAppearance,
+  createFieldflowRoyalBlueSelection,
+  createFieldflowRoyalBlueTheme,
+  fieldflowRoyalBluePreset
+} from "@veyocast/content-templates";
+import {
+  themeCatalog,
+  themeManifest
+} from "@veyocast/content-templates/theme-catalog";
 import { Button } from "@veyocast/ui";
 
 import styles from "../../dynamic-content.module.css";
@@ -35,10 +44,11 @@ const quickTokens = [
 ] as const satisfies readonly (keyof EditorialColorTokens)[];
 
 export const fieldflowPalettePresets = [
-  { color: "#EC622C", label: "Warm oranje", recipe: "balanced" },
-  { color: "#315CFF", label: "Helder blauw", recipe: "bright" },
-  { color: "#087F5B", label: "Veldgroen", recipe: "balanced" },
-  { color: "#7048C8", label: "Diep paars", recipe: "deep" }
+  fieldflowRoyalBluePreset,
+  { color: "#EC622C", id: "warm-orange", label: "Warm oranje", recipe: "balanced" },
+  { color: "#315CFF", id: "bright-blue", label: "Helder blauw", recipe: "bright" },
+  { color: "#087F5B", id: "field-green", label: "Veldgroen", recipe: "balanced" },
+  { color: "#7048C8", id: "deep-purple", label: "Diep paars", recipe: "deep" }
 ] as const;
 
 type FieldflowPaletteRecipe =
@@ -216,6 +226,21 @@ export function EditorialThemeEditor({
     });
   }
 
+  function applyPreset(preset: (typeof fieldflowPalettePresets)[number]) {
+    if (preset.id === fieldflowRoyalBluePreset.id) {
+      const royalSelection = createFieldflowRoyalBlueSelection(
+        themeCatalog.fieldflow.version
+      );
+      setEditingMode("dark");
+      setPaletteRecipe(preset.recipe);
+      onSelectionChange(royalSelection);
+      onChange(createFieldflowRoyalBlueTheme());
+      onAppearanceChange(createFieldflowRoyalBlueAppearance());
+      return;
+    }
+    applyPalette(preset.color, preset.recipe);
+  }
+
   function setPolicy(kind: "auto" | "fixed" | "schedule") {
     const mode = activeMode(selection, theme.mode);
     const next: ThemeSelection = {
@@ -254,10 +279,7 @@ export function EditorialThemeEditor({
   }
 
   function resetTheme() {
-    applyPalette(
-      normalizeHex(selection.accent ?? "") ?? themeCatalog.fieldflow.accentDefault,
-      paletteRecipe
-    );
+    applyPreset(fieldflowPalettePresets[0]);
   }
 
   return (
@@ -377,7 +399,7 @@ export function EditorialThemeEditor({
                   aria-pressed={selection.accent?.toUpperCase() === preset.color}
                   disabled={disabled}
                   key={preset.label}
-                  onClick={() => applyPalette(preset.color, preset.recipe)}
+                  onClick={() => applyPreset(preset)}
                   style={{ "--theme-preset-color": preset.color } as CSSProperties}
                   type="button"
                 >
@@ -622,7 +644,7 @@ export function EditorialThemeEditor({
             type="button"
             variant="ghost"
           >
-            Palet opnieuw opbouwen
+            Royal blauw herstellen
           </Button>
         </div>
       </div>
@@ -763,11 +785,17 @@ function ThemePreview({
   support: string;
   tokens: EditorialColorTokens;
 }) {
+  const bodyFont = themeManifest.fontAssets[appearance.typography.bodyFontRef]!.family;
+  const displayFont = themeManifest.fontAssets[appearance.typography.displayFontRef]!.family;
   const previewStyle = {
     ...editorialThemeCssVariables(tokens),
     "--vc-club-logo-background": appearance.surfaces.clubLogoBackground,
     "--vc-home-logo-background": appearance.surfaces.homeLogoBackground,
     "--vc-theme-accent": accent,
+    "--vc-theme-base-scale": appearance.typography.baseScale,
+    "--vc-theme-body-font": quoteFont(bodyFont),
+    "--vc-theme-display-font": quoteFont(displayFont),
+    "--vc-theme-sport-scale": appearance.typography.sportScale,
     "--vc-theme-support": support
   } as CSSProperties;
 
@@ -785,6 +813,10 @@ function ThemePreview({
         {...previewRoles(activeToken, "canvas", "accentSoft", "borderSoft")}
         aria-hidden="true"
         className={styles.editorialThemePreviewCanvas}
+        data-theme-base-scale={appearance.typography.baseScale}
+        data-theme-body-font={appearance.typography.bodyFontRef}
+        data-theme-display-font={appearance.typography.displayFontRef}
+        data-theme-sport-scale={appearance.typography.sportScale}
         style={previewStyle}
       >
         <span
@@ -822,18 +854,30 @@ function ThemePreview({
             {...previewRoles(activeToken, "row", "borderSoft")}
             className={styles.editorialThemePreviewMatch}
           >
+            <span className={styles.editorialThemePreviewMatchPrimary}>
+              <time {...previewRoles(activeToken, "textFaint")}>07-09-2026</time>
+              <b {...previewRoles(activeToken, "accent")}>14:30</b>
+              <span
+                className={styles.editorialThemePreviewHomeLogo}
+                data-theme-setting="homeLogoBackground"
+              >
+                D
+              </span>
+              <strong {...previewRoles(activeToken, "text")}>Duindorp JO13-1</strong>
+              <small {...previewRoles(activeToken, "textMuted")}>K 1</small>
+              <i {...previewRoles(activeToken, "accent")}>vs.</i>
+              <span className={styles.editorialThemePreviewHomeLogo}>Q</span>
+              <strong {...previewRoles(activeToken, "text")}>Quick JO13-2</strong>
+              <small {...previewRoles(activeToken, "textMuted")}>K 2</small>
+            </span>
             <span
-              className={styles.editorialThemePreviewHomeLogo}
-              data-theme-setting="homeLogoBackground"
+              {...previewRoles(activeToken, "textMuted")}
+              className={styles.editorialThemePreviewMatchSecondary}
             >
-              D
+              <span>Scheidsrechter: J. de Vries</span>
+              <span>Veld: 1 A</span>
+              <span>Sportpark: Duindorp</span>
             </span>
-            <span className={styles.editorialThemePreviewMatchCopy}>
-              <small {...previewRoles(activeToken, "textFaint")}>07-09-2026</small>
-              <strong {...previewRoles(activeToken, "text")}>Duindorp JO13-1 · Quick JO13-2</strong>
-              <i {...previewRoles(activeToken, "textMuted")}>Veld 1 A</i>
-            </span>
-            <b {...previewRoles(activeToken, "accent")}>14:30</b>
           </article>
 
           <article
@@ -844,13 +888,22 @@ function ThemePreview({
               color: "var(--vc-text-on-selected)"
             }}
           >
-            <span className={styles.editorialThemePreviewSelectedMark}>D</span>
-            <span className={styles.editorialThemePreviewMatchCopy}>
-              <small>Geselecteerde rij</small>
-              <strong>Duindorp MO17-1 · HBS MO17-1</strong>
-              <i>Veld 2</i>
+            <span className={styles.editorialThemePreviewMatchPrimary}>
+              <time>12-09-2026</time>
+              <b>16:00</b>
+              <span className={styles.editorialThemePreviewSelectedMark}>D</span>
+              <strong>Duindorp MO17-1</strong>
+              <small>K 3</small>
+              <i>vs.</i>
+              <span className={styles.editorialThemePreviewSelectedMark}>H</span>
+              <strong>HBS MO17-1</strong>
+              <small>K 4</small>
             </span>
-            <b>16:00</b>
+            <span className={styles.editorialThemePreviewMatchSecondary}>
+              <span>Scheidsrechter: S. Visser</span>
+              <span>Veld: 2</span>
+              <span>Sportpark: Houtrust</span>
+            </span>
           </article>
 
           <span
@@ -1031,6 +1084,15 @@ export function resolveThemeDraftDefaults(
   recipe: FieldflowPaletteRecipe = "balanced"
 ): { theme: EditorialThemeConfig; valid: boolean } {
   const parsed = themeSelectionSchema.safeParse(selection);
+  if (
+    parsed.success &&
+    parsed.data.accent?.toUpperCase() === fieldflowRoyalBluePreset.color
+  ) {
+    return {
+      theme: createFieldflowRoyalBlueTheme(activeMode(parsed.data, fallback.mode)),
+      valid: true
+    };
+  }
   return parsed.success
     ? {
         theme: generateFieldflowPalette(
@@ -1249,6 +1311,10 @@ function channelsToHex(channels: number[]) {
   return `#${channels.map((channel) => Math.round(clamp(channel, 0, 255))
     .toString(16)
     .padStart(2, "0")).join("")}`;
+}
+
+function quoteFont(value: string) {
+  return `"${value.replaceAll('"', "")}"`;
 }
 
 function clamp(value: number, minimum: number, maximum: number) {

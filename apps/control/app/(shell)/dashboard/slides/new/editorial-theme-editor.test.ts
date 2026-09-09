@@ -8,6 +8,11 @@ import {
   editorialThemeCssVariables,
   editorialThemeHasValidContrast
 } from "@veyocast/content-templates/editorial-arena-theme";
+import {
+  fieldflowRoyalBlueAppearance,
+  fieldflowRoyalBluePreset,
+  fieldflowRoyalBlueTheme
+} from "@veyocast/content-templates";
 
 import {
   EditorialThemeEditor,
@@ -21,6 +26,17 @@ import {
 } from "./editorial-theme-editor";
 
 describe("Centrale tenantkleur-editor", () => {
+  it("zet Royal blauw als eerste stabiele standaardpalet", () => {
+    expect(fieldflowPalettePresets[0]).toEqual(fieldflowRoyalBluePreset);
+    expect(resolveThemeDraftDefaults({
+      accent: "#4169E1",
+      categoryOverrides: [],
+      modePolicy: { kind: "fixed", mode: "dark" },
+      ref: { catalog: "v2", id: "fieldflow", version: "1.0.0" },
+      support: "#7A5CE6"
+    }, fieldflowRoyalBlueTheme).theme).toEqual(fieldflowRoyalBlueTheme);
+  });
+
   it("biedt ieder semantisch kleurtoken precies eenmaal aan", () => {
     const editorTokens = editorialThemeTokenGroups
       .flatMap((group) => [...group.tokens])
@@ -116,6 +132,7 @@ describe("Centrale tenantkleur-editor", () => {
         support: "#00A989"
       };
       const html = renderToStaticMarkup(createElement(EditorialThemeEditor, {
+        appearance: fieldflowRoyalBlueAppearance,
         defaults: theme,
         disabled: false,
         onChange: () => undefined,
@@ -145,7 +162,15 @@ describe("Centrale tenantkleur-editor", () => {
       expect(html).toContain('value="ready"');
       expect(html).toContain('role="tablist"');
       expect(html).toContain("Contrastcontrole");
-      expect(html).toContain("Palet opnieuw opbouwen");
+      expect(html).toContain("Royal blauw herstellen");
+      expect(html).toContain("Scheidsrechter: J. de Vries");
+      expect(html).toContain("Sportpark: Duindorp");
+      expect(html).toContain('data-theme-base-scale="1.05"');
+      expect(html).toContain('data-theme-sport-scale="1.4"');
+      expect(html).toContain('data-theme-body-font="vc-inter-v1"');
+      expect(html).toContain('data-theme-display-font="vc-manrope-v1"');
+      expect(html).toContain("--vc-theme-base-scale:1.05");
+      expect(html).toContain("--vc-theme-sport-scale:1.4");
       expect(controlTokens).toEqual(contractTokens);
       expect(new Set(previewTokens)).toEqual(new Set(contractTokens));
       expect(html.match(/aria-label="[^"]+ herstellen"/g)).toHaveLength(26);
