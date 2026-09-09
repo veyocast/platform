@@ -204,7 +204,7 @@ export function renderLgLegacyHtml() {
     .legacy-fixture-row{grid-template-rows:minmax(0,1fr) auto;gap:8px}
     .legacy-result-row{grid-template-rows:minmax(0,1fr);font-size:var(--vc-sport-result-size,33.6px)}
     .legacy-fixture-list[data-columns="two"] .legacy-fixture-row,.legacy-result-list[data-columns="two"] .legacy-result-row{padding:10px 14px}
-    .legacy-result-list[data-columns="two"] .legacy-result-row{font-size:var(--vc-theme-font-24,24px)}
+    .legacy-result-list[data-columns="two"] .legacy-result-row{font-size:var(--vc-theme-sport-result-size-compact,24px)}
     .legacy-program-primary,.legacy-result-primary{display:grid;align-items:center;width:100%;min-width:0;column-gap:12px;line-height:1}
     .legacy-program-primary{grid-template-columns:var(--legacy-program-columns)}
     .legacy-result-primary{grid-template-columns:var(--legacy-result-columns)}
@@ -222,7 +222,7 @@ export function renderLgLegacyHtml() {
     .legacy-program-secondary span{min-width:0;overflow:hidden;text-overflow:ellipsis}.legacy-program-secondary span+span{margin-left:12px}.legacy-program-secondary span+span::before{margin-right:12px;color:var(--vc-text-faint);content:"|"}.legacy-program-secondary b{color:var(--vc-text)}
     .legacy-fixture-list[data-columns="two"] .legacy-program-secondary span+span{margin-left:8px}.legacy-fixture-list[data-columns="two"] .legacy-program-secondary span+span::before{margin-right:8px}
     .legacy-result-score{display:flex;min-width:112px;min-height:1em;align-items:center;justify-content:center;justify-self:stretch;color:var(--vc-accent);font-size:var(--vc-sport-score-size,52.08px);font-style:normal;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}.legacy-result-score>*+*{margin-left:10px}.legacy-result-score span{color:var(--vc-text-muted);font-size:.64em}
-    .legacy-result-list[data-columns="two"] .legacy-result-score{min-width:88px;font-size:var(--vc-theme-font-42,42px)}
+    .legacy-result-list[data-columns="two"] .legacy-result-score{min-width:88px;font-size:var(--vc-theme-sport-score-size-compact,42px)}
     .legacy-team-mini{display:inline-grid;flex:0 0 auto;width:38px;height:38px;place-items:center;overflow:hidden;border:1px solid var(--editorial-border);border-radius:50%;background:var(--editorial-surface-alt);color:var(--accent);font-size:var(--vc-theme-font-11,11px);font-style:normal;font-weight:900}
     .legacy-team-mini img{width:80%;height:80%;object-fit:contain}
     .legacy-typed-row{display:grid;align-items:center;gap:14px;box-sizing:border-box;min-height:12.5%;border-bottom:1px solid var(--editorial-border-soft)}
@@ -6608,13 +6608,13 @@ export function renderLgLegacyHtml() {
       if (displayConfiguration.showAwayDressingRoom) tracks.push("minmax(0,.88fr)");
       return tracks.join(" ");
     }
-    function templateLegacyResultColumns(displayConfiguration) {
+    function templateLegacyResultColumns(displayConfiguration, compact) {
       var tracks = [];
       if (displayConfiguration.showDate) tracks.push("minmax(190px,.82fr)");
       if (displayConfiguration.showTime) tracks.push("minmax(70px,.48fr)");
-      if (displayConfiguration.showHomeLogo) tracks.push("57px");
+      if (displayConfiguration.showHomeLogo) tracks.push(compact ? "48px" : "57px");
       tracks.push("minmax(0,1.55fr)", "minmax(112px,.68fr)");
-      if (displayConfiguration.showAwayLogo) tracks.push("57px");
+      if (displayConfiguration.showAwayLogo) tracks.push(compact ? "48px" : "57px");
       tracks.push("minmax(0,1.55fr)");
       return tracks.join(" ");
     }
@@ -7185,10 +7185,6 @@ export function renderLgLegacyHtml() {
           if (slideType === "sport_results") {
             var resultList = templateNode("div", "legacy-result-list");
             resultList.setAttribute("data-render-family", "result-list");
-            resultList.style.setProperty(
-              "--legacy-result-columns",
-              templateLegacyResultColumns(displayConfiguration)
-            );
             for (index = 0; index < page.length; index += 1) {
               item = templateRecord(page[index]) || {};
               if (!templateText(item.primary, "") && !templateText(item.homeTeam, "") && !templateText(item.awayTeam, "")) continue;
@@ -7207,6 +7203,13 @@ export function renderLgLegacyHtml() {
               resultList,
               resultList.children.length,
               displayColumns
+            );
+            resultList.style.setProperty(
+              "--legacy-result-columns",
+              templateLegacyResultColumns(
+                displayConfiguration,
+                resultList.getAttribute("data-columns") === "two"
+              )
             );
             body.appendChild(resultList);
             return;
@@ -7519,6 +7522,7 @@ export function renderLgLegacyHtml() {
       var editorialConfiguration = templateRecord(snapshot.editorial) || {};
       var editorialTheme = templateRecord(editorialConfiguration.theme) || {};
       var themePresentation = templateRecord(snapshot.themePresentation) || {};
+      var themeRuntime = templateRecord(snapshot._veyocastThemeRuntime) || {};
       var themeAppearance = Number(themePresentation.snapshotVersion) === 2
         ? templateRecord(themePresentation.appearance) || {}
         : {};
@@ -7550,6 +7554,12 @@ export function renderLgLegacyHtml() {
       var configuredEditorialTokens = templateRecord(editorialTheme[editorialMode]) || {};
       var editorialTokens = Object.keys(configuredEditorialTokens).length
         ? configuredEditorialTokens
+        : manifestPalette;
+      var projectFrozenThemeAliases = Number(themeRuntime.version) >= 2 ||
+        payload.slideType !== "price_list" ||
+        (templateRecord(snapshot.menuDocument) || {}).schemaVersion !== "menu-document.v2";
+      var themeAliasTokens = projectFrozenThemeAliases
+        ? editorialTokens
         : manifestPalette;
       var editorialArena =
         templateText(payload.templateSlug, "").indexOf("editorial-arena-") === 0;
@@ -7632,6 +7642,25 @@ export function renderLgLegacyHtml() {
           templateText(editorialTokens[themeToken[1]], themeToken[2])
         );
       }
+      var themeAliasProjection = [
+        ["--vc-theme-accent", "accent", accent],
+        ["--vc-theme-accent-ink", "textOnAccent", templateText(themeAliasTokens.canvas, "#F4F7F4")],
+        ["--vc-theme-canvas", "canvas", templateText(manifestPalette.canvas, "#F4F7F4")],
+        ["--vc-theme-line", "border", templateText(manifestPalette.line, "rgba(4,47,45,.18)")],
+        ["--vc-theme-muted", "textMuted", templateText(manifestPalette.muted, "#50706B")],
+        ["--vc-theme-shadow", "shadow", templateText(manifestPalette.shadow, "rgba(4,47,45,.14)")],
+        ["--vc-theme-surface", "surface", templateText(manifestPalette.surface, "#FFFFFF")],
+        ["--vc-theme-surface-alt", "surfaceRaised", templateText(manifestPalette.surfaceAlt, "#E5EEE9")],
+        ["--vc-theme-text", "text", templateText(manifestPalette.text, "#042F2D")],
+        ["--vc-theme-text-muted", "textMuted", templateText(manifestPalette.muted, "#50706B")]
+      ];
+      for (var themeAliasIndex = 0; themeAliasIndex < themeAliasProjection.length; themeAliasIndex += 1) {
+        var themeAlias = themeAliasProjection[themeAliasIndex];
+        root.style.setProperty(
+          themeAlias[0],
+          templateText(themeAliasTokens[themeAlias[1]], themeAlias[2])
+        );
+      }
       root.style.setProperty("--vc-theme-body-font", templateText(themeFontFamilies[bodyFontRef], "Inter"));
       root.style.setProperty("--vc-theme-display-font", templateText(themeFontFamilies[displayFontRef], "Manrope"));
       root.style.setProperty("--vc-theme-display-weight", String(Number(manifestTheme.displayWeight) || 700));
@@ -7660,6 +7689,14 @@ export function renderLgLegacyHtml() {
       root.style.setProperty("--vc-sport-result-size", String(30 * baseScale * sportScale) + "px");
       root.style.setProperty("--vc-sport-result-size-portrait", String(27 * baseScale * sportScale) + "px");
       root.style.setProperty("--vc-sport-score-size", String(46.5 * baseScale * sportScale) + "px");
+      root.style.setProperty(
+        "--vc-theme-sport-result-size-compact",
+        String(Math.round(24 * baseScale * sportScale / 1.12 * 1000) / 1000) + "px"
+      );
+      root.style.setProperty(
+        "--vc-theme-sport-score-size-compact",
+        String(Math.round(42 * baseScale * sportScale / 1.12 * 1000) / 1000) + "px"
+      );
       root.style.setProperty("--editorial-text", templateText(editorialTokens.text, editorialMode === "dark" ? "#F7F3EB" : "#111315"));
       root.style.setProperty("--editorial-muted", templateText(editorialTokens.textMuted, templateText(editorialTokens.muted, editorialMode === "dark" ? "#C9C4B9" : "#625F57")));
       root.style.setProperty("--editorial-text-faint", templateText(editorialTokens.textFaint, editorialMode === "dark" ? "rgba(247,243,235,.48)" : "rgba(17,19,21,.47)"));

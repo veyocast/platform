@@ -222,6 +222,7 @@ export type DynamicTemplateView = {
   theme: DynamicTemplateTheme;
   themeId: SelectableThemeId;
   themePresentation: ThemePresentationSnapshot;
+  themeRuntimeVersion: number;
   themeTokens: EditorialColorTokens;
   title: string;
 };
@@ -321,6 +322,10 @@ function createDynamicTemplateViewInternal(
     timezone: "UTC"
   });
   const themeDefinition = resolveThemeDefinition(themePresentation.selection);
+  const themeRuntimeVersion = Math.max(
+    0,
+    Number(readRecord(data._veyocastThemeRuntime)?.version) || 0
+  );
   const themeTokens = configuredEditorial.success
     ? editorial.theme[themePresentation.resolvedMode.mode]
     : frozenPresentation
@@ -328,7 +333,8 @@ function createDynamicTemplateViewInternal(
       : activeEditorialTokens(editorial.theme);
   const themeIdentity = {
     themeId: themeDefinition.id,
-    themePresentation
+    themePresentation,
+    themeRuntimeVersion
   };
 
   if (payload.slideType === "menu") {

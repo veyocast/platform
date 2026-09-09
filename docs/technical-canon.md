@@ -233,3 +233,22 @@ sportpark. De legacy masterflags blijven alleen een compatibiliteitsalias en
 zijn altijd de OR van hun twee zijdeflags. Moderne en Static-LG-renderers lezen
 dezelfde immutable config, score-nullsemantiek, themePresentation en vaste
 paginering.
+
+### Tenanttheme-presets en runtimeprojectie
+
+Een tenanttheme-preset is een volledig, versieerbaar configuratie-artifact en
+geen wijziging van de bestaande manifestdefault. Het bevat selectie,
+appearance en exact 26 lichte plus 26 donkere semantische kleurrollen. Een
+operationele reset schrijft dit profiel alleen voor één exact en uniek gekozen
+actieve tenant en start daarna dezelfde immutable theme-rollout als de gewone
+Control-save. Historische snapshots, releases en Player-LKG worden nooit
+rechtstreeks gewijzigd.
+
+Nieuwe snapshotdata draagt vanaf runtimeversie 2 een expliciete
+`_veyocastThemeRuntime`-markering. Alleen zo'n gemarkeerde snapshot mag een
+inhoudsspecifieke Menu Studio-presentatie met het centrale bevroren tenanttheme
+projecteren. Alle andere dynamische families projecteren hun concrete
+`editorial.theme`-tokenmap ook naar de gedeelde `--vc-theme-*`-aliases; moderne
+Player en Static LG gebruiken daarvoor dezelfde canvas-, oppervlak-, tekst-,
+rand-, accent- en schaduwwaarden. Zo kan geen statische cataloguskleur naast
+een opgeslagen tenantrol blijven lekken.

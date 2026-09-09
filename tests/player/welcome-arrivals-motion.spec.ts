@@ -4,6 +4,12 @@ import type {
   PlayerDynamicTemplatePayload,
   SportlinkArrivalMotionPreset
 } from "@veyocast/contracts";
+import { playerDynamicTemplatePayloadSchema } from "@veyocast/contracts";
+import {
+  createFieldflowRoyalBlueAppearance,
+  createFieldflowRoyalBlueSelection,
+  createFieldflowRoyalBlueTheme
+} from "@veyocast/content-templates";
 import {
   freezeThemePresentation,
   themeCatalog
@@ -349,6 +355,86 @@ test("staand welkomstraster gebruikt boven en onder", async ({ page }) => {
   }
 });
 
+test("Royal blauwe welkomstslide vergroot alle bezoekinformatie zonder overflow", async ({
+  page
+}) => {
+  await page.clock.setFixedTime(new Date("2026-09-09T08:00:00.000Z"));
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ height: 1080, width: 1920 });
+  await page.goto(
+    `${playerURL}/thumbnail#payload=${encodePayload(royalBluePayload())}`
+  );
+  await page.waitForFunction(
+    () => document.documentElement.dataset.thumbnailReady === "true"
+  );
+
+  const slide = page.locator('[data-theme-id="fieldflow"]');
+  const masthead = slide.locator("header");
+  const firstCard = slide.locator('article[data-arrival-kind="visitor"]').first();
+  const schedule = firstCard.locator(
+    '[class*="arenaVisitorSchedule"] > time, [class*="arenaVisitorSchedule"] > span'
+  );
+  const teams = firstCard.locator('[class*="arenaVisitorTeams"] h2 > span');
+  const details = firstCard.locator(
+    '[class*="arenaVisitorDetails"] dt, [class*="arenaVisitorDetails"] dd'
+  );
+
+  await expect(slide).toBeVisible();
+  expect(await slide.evaluate((element) => ({
+    background: getComputedStyle(element).backgroundColor,
+    baseScale: getComputedStyle(element)
+      .getPropertyValue("--vc-theme-base-scale").trim(),
+    color: getComputedStyle(element).color,
+    sportScale: getComputedStyle(element)
+      .getPropertyValue("--vc-theme-sport-scale").trim()
+  }))).toEqual({
+    background: "rgb(7, 21, 56)",
+    baseScale: "1.05",
+    color: "rgb(255, 255, 255)",
+    sportScale: "1.4"
+  });
+  expect(await masthead.evaluate(
+    (element) => getComputedStyle(element).backgroundColor
+  )).toBe("rgb(49, 84, 212)");
+  expect(await teams.first().evaluate(
+    (element) => getComputedStyle(element).color
+  )).toBe("rgb(255, 255, 255)");
+
+  expect(await schedule.evaluateAll((elements) => elements.map((element) =>
+    Number.parseFloat(getComputedStyle(element).fontSize)
+  ))).toEqual([48.3, 48.3]);
+  expect(await teams.evaluateAll((elements) => elements.map((element) =>
+    Number.parseFloat(getComputedStyle(element).fontSize)
+  ))).toEqual([48.3, 48.3]);
+  expect(await details.evaluateAll((elements) => elements.map((element) =>
+    Number.parseFloat(getComputedStyle(element).fontSize)
+  ))).toEqual([24.15, 24.15, 24.15, 24.15, 24.15, 24.15]);
+
+  expect(await slide.evaluate((element) => {
+    const card = element.querySelector<HTMLElement>(
+      'article[data-arrival-kind="visitor"]'
+    );
+    const copy = card?.querySelector<HTMLElement>(
+      '[class*="arenaVisitorArrivalCopy"]'
+    );
+    return {
+      cardFits: Boolean(card &&
+        card.scrollHeight <= card.clientHeight &&
+        card.scrollWidth <= card.clientWidth),
+      copyFits: Boolean(copy &&
+        copy.scrollHeight <= copy.clientHeight &&
+        copy.scrollWidth <= copy.clientWidth),
+      slideFits: element.scrollHeight <= element.clientHeight &&
+        element.scrollWidth <= element.clientWidth
+    };
+  })).toEqual({ cardFits: true, copyFits: true, slideFits: true });
+
+  await expect(page).toHaveScreenshot(
+    "welkomstgrid-royal-blue-landscape.png",
+    { animations: "disabled", caret: "hide", maxDiffPixelRatio: 0.002 }
+  );
+});
+
 function payload(
   motionPreset: SportlinkArrivalMotionPreset,
   count = 1
@@ -403,6 +489,37 @@ function payload(
     templateSlug: "editorial-arena-bezoekers-aankomst-light-landscape",
     templateVersionId: "10000000-0000-4000-8000-000000000002"
   };
+}
+
+function royalBluePayload(): PlayerDynamicTemplatePayload {
+  const selection = createFieldflowRoyalBlueSelection(
+    themeCatalog.fieldflow.version
+  );
+  const frozen = freezeThemePresentation({
+    instant: "2026-09-09T08:00:00.000Z",
+    selection,
+    timezone: "Europe/Amsterdam"
+  });
+  const base = payload("auto", 2);
+  return playerDynamicTemplatePayloadSchema.parse({
+    ...base,
+    data: {
+      ...base.data,
+      _veyocastThemeRuntime: { version: 2 },
+      editorial: {
+        schemaVersion: 2,
+        theme: createFieldflowRoyalBlueTheme(),
+        themeSelection: selection
+      },
+      themePresentation: {
+        ...frozen,
+        appearance: createFieldflowRoyalBlueAppearance(),
+        settingsRevision: 159,
+        snapshotVersion: 2
+      }
+    },
+    templateSlug: "editorial-arena-bezoekers-aankomst-dark-landscape"
+  });
 }
 
 function encodePayload(value: PlayerDynamicTemplatePayload) {

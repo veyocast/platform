@@ -175,7 +175,7 @@ export function EditorialArenaRenderer({
   );
   const style: ArenaStyle = {
     ...editorialThemeCssVariables(view.themeTokens),
-    ...themeCssVariables(view.themePresentation),
+    ...themeCssVariables(view.themePresentation, view.themeTokens),
     "--arena-accent": view.accentColor,
     "--arena-page-duration": `${pageDurationMs}ms`,
     "--arena-row-height": `${pageRowHeight(page, view)}px`,
@@ -216,6 +216,9 @@ export function EditorialArenaRenderer({
             orientation={view.orientation}
             page={page.page}
             style={{ height: canvas.height, left: 0, top: 0, transform: "none", width: canvas.width }}
+            themeOverrideStyle={view.themeRuntimeVersion >= 2
+              ? themeCssVariables(view.themePresentation, view.themeTokens)
+              : undefined}
           />
         ) : (
           <>

@@ -502,6 +502,13 @@ describe("zelfstandige LG Legacy Player", () => {
     );
     expect(html).toContain(".legacy-result-score{display:flex;min-width:112px");
     expect(html).toContain(
+      "font-size:var(--vc-theme-sport-result-size-compact,24px)"
+    );
+    expect(html).toContain(
+      "font-size:var(--vc-theme-sport-score-size-compact,42px)"
+    );
+    expect(html.match(/compact \? "48px" : "57px"/g)).toHaveLength(2);
+    expect(html).toContain(
       'slideType === "sport_program" ? (orientation === "portrait" ? 7 : 6)'
     );
     expect(html).toContain('Math.ceil(itemCount / 2) + ",115px)"');
@@ -514,6 +521,14 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain('"--vc-home-logo-background"');
     expect(html).toContain('"--vc-theme-body-font"');
     expect(html).toContain('"--vc-sport-row-size"');
+    expect(html).toContain('"--vc-theme-sport-result-size-compact"');
+    expect(html).toContain('"--vc-theme-sport-score-size-compact"');
+    expect(html).toContain("24 * baseScale * sportScale / 1.12");
+    expect(html).toContain("42 * baseScale * sportScale / 1.12");
+    expect(html).toContain("snapshot._veyocastThemeRuntime");
+    expect(html).toContain("Number(themeRuntime.version) >= 2");
+    expect(html).toContain('["--vc-theme-canvas", "canvas"');
+    expect(html).toContain('["--vc-theme-text-muted", "textMuted"');
     expect(html).toContain('"themeFontSizes":[');
     expect(html).toContain('"--vc-theme-font-" + String(themeFontSize)');
     expect(html).toContain("themeFontSize * baseScale * 1000");

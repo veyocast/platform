@@ -3,6 +3,7 @@ export * from "./editorial-arena-layout";
 export * from "./editorial-arena-renderer";
 export * from "./editorial-arena-theme";
 export * from "./fieldflow-coverage";
+export * from "./fieldflow-royal-blue";
 export * from "./menu-scene";
 export * from "./price-list";
 export * from "./theme-catalog";

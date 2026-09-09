@@ -10,7 +10,13 @@ const css = readFileSync(
 describe("Editorial Arena pooltypografie", () => {
   it("koppelt uitslagtekst en scores aan de schaalbare thematypografie", () => {
     expect(css).toContain("font-size: var(--vc-theme-sport-result-size, 33.6px);");
+    expect(css).toContain(
+      "font-size: var(--vc-theme-sport-result-size-compact, 24px);"
+    );
     expect(css).toContain("font-size: var(--vc-theme-sport-score-size, 52.08px);");
+    expect(css).toContain(
+      "font-size: var(--vc-theme-sport-score-size-compact, 42px);"
+    );
     expect(css).toContain(
       "font-size: var(--vc-theme-sport-result-size-portrait, 30.24px);"
     );

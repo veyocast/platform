@@ -138,6 +138,12 @@ merkasset, primaire Electric-Orange/Ink-actie, securitygrens of offlinecontract.
   nieuw standaardpalet vervangt die verfijningen expliciet; opgeslagen output
   bevat alleen concrete hex-/rgba-waarden en geen browserafhankelijke
   kleurfuncties.
+- Het gecureerde `Royal blauw`-preset gebruikt `#4169E1` als accent,
+  `#7A5CE6` als steun, witte logoplaten en overwegend witte copy op
+  royal/navy-oppervlakken. Het reset selectie, fixed-darkmodus, beide volledige
+  tokenkaarten en appearance in één handeling. De standaard kijkafstandbasis is
+  daarbij `baseScale: 1.05`; wedstrijdinformatie gebruikt `sportScale: 1.4`
+  binnen de bestaande vaste rijhoogtes en paginering.
 - Preview, opslaanknop en server gebruiken dezelfde vijf contrastcombinaties
   per modus. Een ongeldige combinatie blijft zichtbaar, blokkeert opslaan en
   noemt oorzaak, gevolg en herstel; status-, QR- en overlayrollen behouden hun

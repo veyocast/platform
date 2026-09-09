@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(65);
+select plan(66);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -588,7 +588,7 @@ begin
   expected := private.build_dynamic_snapshot_data_before_s154_club_match_scope(
     slide_record
   );
-  return actual = expected
+  return actual - '_veyocastThemeRuntime' = expected
     and not coalesce(actual #> '{sport}' ? 'matchLocation', false);
 exception when others then
   return false;
@@ -1277,6 +1277,20 @@ select ok(
     )
   ),
   'a NULL blueprint stays outside the S154 club normalization path'
+);
+
+select ok(
+  (
+    select private.build_dynamic_snapshot_data(slide)
+      #>> '{_veyocastThemeRuntime,version}' = '2'
+    from public.dynamic_slides slide
+    where slide.id = (
+      select (created.result #>> '{slides,0,slideId}')::uuid
+      from s154_created created
+      where created.name = 'selected-both'
+    )
+  ),
+  'new S159 snapshot builds expose the versioned theme runtime marker'
 );
 
 set local role authenticated;

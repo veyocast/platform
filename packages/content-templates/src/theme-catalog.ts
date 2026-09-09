@@ -123,7 +123,8 @@ export function freezeThemePresentation(input: {
 }
 
 export function themeCssVariables(
-  snapshot: ThemePresentationSnapshot
+  snapshot: ThemePresentationSnapshot,
+  editorialTokens?: EditorialColorTokens
 ): Record<string, string | number> {
   const selection = snapshot.selection;
   const theme = resolveThemeDefinition(selection);
@@ -133,38 +134,48 @@ export function themeCssVariables(
     : defaultThemeAppearanceSettings;
   const baseScale = appearance.typography.baseScale;
   const sportScale = baseScale * appearance.typography.sportScale;
+  const sportScaleFromDefault = appearance.typography.sportScale /
+    defaultThemeAppearanceSettings.typography.sportScale;
   return {
     ...themeBaseFontVariables(baseScale),
-    "--vc-theme-accent": selection.accent ?? theme.accentDefault,
-    "--vc-theme-accent-ink": palette.canvas,
+    "--vc-theme-accent": editorialTokens?.accent ??
+      selection.accent ?? theme.accentDefault,
+    "--vc-theme-accent-ink": editorialTokens?.textOnAccent ?? palette.canvas,
     "--vc-club-logo-background": appearance.surfaces.clubLogoBackground,
     "--vc-home-logo-background": appearance.surfaces.homeLogoBackground,
     "--vc-theme-base-scale": baseScale,
     "--vc-theme-body-font": quoteFont(
       themeManifest.fontAssets[appearance.typography.bodyFontRef]!.family
     ),
-    "--vc-theme-canvas": palette.canvas,
+    "--vc-theme-canvas": editorialTokens?.canvas ?? palette.canvas,
     "--vc-theme-density": theme.densityScale,
     "--vc-theme-display-font": quoteFont(
       themeManifest.fontAssets[appearance.typography.displayFontRef]!.family
     ),
     "--vc-theme-display-letter-spacing": `${theme.displayLetterSpacingEm}em`,
     "--vc-theme-display-weight": theme.displayWeight,
-    "--vc-theme-line": palette.line,
-    "--vc-theme-muted": palette.muted,
+    "--vc-theme-line": editorialTokens?.border ?? palette.line,
+    "--vc-theme-muted": editorialTokens?.textMuted ?? palette.muted,
     "--vc-theme-radius": `${theme.radiusCqw}cqw`,
-    "--vc-theme-shadow": palette.shadow,
+    "--vc-theme-shadow": editorialTokens?.shadow ?? palette.shadow,
     "--vc-theme-support": selection.support ?? theme.supportDefault,
-    "--vc-theme-surface": palette.surface,
-    "--vc-theme-surface-alt": palette.surfaceAlt,
-    "--vc-theme-text": palette.text,
+    "--vc-theme-surface": editorialTokens?.surface ?? palette.surface,
+    "--vc-theme-surface-alt": editorialTokens?.surfaceRaised ?? palette.surfaceAlt,
+    "--vc-theme-text": editorialTokens?.text ?? palette.text,
+    "--vc-theme-text-muted": editorialTokens?.textMuted ?? palette.muted,
     "--vc-theme-title-size": cssPixels(64 * baseScale),
     "--vc-theme-title-size-portrait": cssPixels(49 * baseScale),
     "--vc-theme-sport-row-size": cssPixels(20 * sportScale),
     "--vc-theme-sport-row-size-portrait": cssPixels(18 * sportScale),
     "--vc-theme-sport-result-size": cssPixels(30 * sportScale),
+    "--vc-theme-sport-result-size-compact": cssPixels(
+      24 * baseScale * sportScaleFromDefault
+    ),
     "--vc-theme-sport-result-size-portrait": cssPixels(27 * sportScale),
     "--vc-theme-sport-score-size": cssPixels(46.5 * sportScale),
+    "--vc-theme-sport-score-size-compact": cssPixels(
+      42 * baseScale * sportScaleFromDefault
+    ),
     "--vc-theme-sport-scale": appearance.typography.sportScale
   };
 }

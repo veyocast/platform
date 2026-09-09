@@ -257,7 +257,8 @@ export function MenuSceneCanvas({
   onContentFit,
   orientation,
   page,
-  style
+  style,
+  themeOverrideStyle
 }: {
   assets: Record<string, MenuSceneAsset>;
   document: MenuDocumentV2;
@@ -265,6 +266,7 @@ export function MenuSceneCanvas({
   orientation: keyof typeof menuSceneCanvases;
   page: ResolvedMenuScenePage;
   style?: CSSProperties;
+  themeOverrideStyle?: CSSProperties;
 }) {
   const canvasRef = useRef<HTMLElement>(null);
   const zones = menuSceneZones[orientation];
@@ -285,6 +287,7 @@ export function MenuSceneCanvas({
   });
   const rootStyle = {
     ...themeCssVariables(themePresentation),
+    ...themeOverrideStyle,
     ...style
   } as CSSProperties;
 
