@@ -630,6 +630,14 @@ test("tenant management exposes a labelled and safely disabled creation flow", a
   await expect(page.getByRole("status")).toContainText(
     "Aanmaken is hier uitgeschakeld"
   );
+
+  await page.goto("/platform/tenants?fout=onverwacht#nieuwe-tenant");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Aanmaken mislukt" })
+  ).toBeVisible();
+  await expect(page.locator("#nieuwe-tenant")).toContainText(
+    "De vereniging kon niet veilig worden aangemaakt"
+  );
 });
 
 test("screens onboarding exposes labelled lifecycle and safely disabled creation", async ({ page }) => {

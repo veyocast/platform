@@ -7,6 +7,7 @@ import { requireControlCapability } from "../../../../lib/control-session";
 import { loadPlatformOverview } from "../../../../lib/control-overview";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { createTenant } from "./actions";
+import { TenantCreateSubmit } from "./tenant-create-submit";
 
 type PlatformTenantsPageProps = {
   searchParams: Promise<{ fout?: string }>;
@@ -20,16 +21,17 @@ export default async function PlatformTenantsPage({
   const { fout } = await searchParams;
   const hasCreateCapability = hasCapability(session.capabilities, "platform.tenant.create");
   const canCreate = session.isLive && hasCreateCapability && session.assuranceLevel === "aal2";
+  const requiresAal2 = session.isLive && hasCreateCapability && session.assuranceLevel !== "aal2";
 
   return (
     <>
       <PageHeader
         actions={canCreate ? (
           <a
-            className="button-link button-link--primary"
+            className="button-link button-link--secondary"
             href="#nieuwe-tenant"
           >
-            Vereniging toevoegen
+            Naar formulier
           </a>
         ) : null}
         description={
@@ -65,16 +67,16 @@ export default async function PlatformTenantsPage({
           log opnieuw in.
         </p>
       ) : null}
-      {fout && tenantErrors[fout] ? (
-        <p className="notice notice--critical" role="alert">
-          <strong>Aanmaken mislukt.</strong> {tenantErrors[fout]}
-        </p>
-      ) : null}
       <form
         action={createTenant}
-        className="data-surface"
+        className="data-surface tenant-create-form"
         id="nieuwe-tenant"
       >
+        {fout && tenantErrors[fout] ? (
+          <p className="notice notice--critical" role="alert" tabIndex={-1}>
+            <strong>Aanmaken mislukt.</strong> {tenantErrors[fout]}
+          </p>
+        ) : null}
         <div className="work-panel__header">
           <div>
             <h2 className="work-panel__title">Nieuwe vereniging</h2>
@@ -172,16 +174,13 @@ export default async function PlatformTenantsPage({
         </label>
         <div className="sticky-form-actions">
           <p className="work-panel__meta">
-            De volledige onboarding wordt atomair uitgevoerd en in het
-            auditlog vastgelegd.
+            {canCreate
+              ? "De vereniging en uitnodiging worden veilig voorbereid. Je wordt daarna automatisch doorgestuurd."
+              : requiresAal2
+                ? "Bevestig eerst je tweestapsverificatie; daarna blijven de ingevulde velden opnieuw beschikbaar."
+                : "Deze accountrol kan geen verenigingen aanmaken."}
           </p>
-          <button
-            className="button-link button-link--primary"
-            disabled={!canCreate}
-            type="submit"
-          >
-            Vereniging aanmaken
-          </button>
+          <TenantCreateSubmit canCreate={canCreate} requiresAal2={requiresAal2} />
         </div>
       </form>
 

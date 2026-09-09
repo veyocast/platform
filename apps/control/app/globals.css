@@ -738,6 +738,25 @@ kbd {
   max-width: 880px;
 }
 
+.tenant-create-form {
+  scroll-margin-top: calc(var(--vc-component-height-topbar) + var(--vc-space-16));
+}
+
+.tenant-create-submit {
+  display: grid;
+  gap: var(--vc-space-8);
+  justify-items: end;
+}
+
+.tenant-create-submit__recovery {
+  color: var(--vc-text-muted);
+  font-size: 12px;
+  line-height: 16px;
+  margin: 0;
+  max-width: 420px;
+  text-align: right;
+}
+
 .context-list {
   display: grid;
   gap: var(--vc-space-8);
@@ -3246,6 +3265,15 @@ kbd {
   .sticky-form-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .tenant-create-submit {
+    justify-items: stretch;
+  }
+
+  .tenant-create-submit__recovery {
+    max-width: none;
+    text-align: left;
   }
 
   .player-preview__controls > button {
