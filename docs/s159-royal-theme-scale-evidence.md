@@ -2,7 +2,7 @@
 
 Status: `READY_FOR_RELEASE`
 
-Deployment: `NIET_GESTART`
+Deployment: `STAGING_APP_GREEN; TENANTRESET_DIAGNOSTIEK_IN_REVIEW`
 
 Datum: 9 september 2026
 
@@ -81,8 +81,25 @@ execute-recht op de resetcommand.
 - Releaseveiligheid: volledige GitHub Actions-validatie inclusief actionlint,
   workflowshellsyntax, diffcheck en de operationele workflowharness zijn groen.
 
-PR/CI, exact-SHA staging- en productiedeployment en de twee tenantreadbacks
-volgen na deze lokale `READY_FOR_RELEASE`-grens.
+PR #178, CI en de exact-SHA staging-appdeployment zijn afgerond. De
+diagnostische vervolg-PR, beide tenantreadbacks en productiedeployment staan
+nog open na deze grens.
+
+## Eerste operationele stagingbevinding
+
+PR `#178` is met alle verplichte checks groen gemerged als
+`4b46cdcab7a2b532628f22a4f66faf800a4ae6a6`. Deploymentrun `34295879948`
+bouwde één immutable release en verifieerde staging-Control, staging-Player,
+pairing en standalone-LG-herstel op exact die SHA.
+
+De eerste twee tenantresetruns (`34296888846` en `34297349818`) stopten beide
+vóór een bevestigde resetreadback bij de eerste databaseopdracht. De shell hield
+de queryuitvoer in command substitution vast en beëindigde door `set -e`
+voordat een veilige foutcategorie zichtbaar werd; de logs bewezen daardoor
+alleen de verbinding en exitcode, niet de onderliggende datastatus. Productie is
+daarom niet gestart. De vervolgcorrectie voegt een alleen-lezen, strikt
+getypeerde preflight en fasebewuste, gesaneerde foutclassificatie toe; een
+onbekende mutatietransportstatus wordt nooit als zekere rollback gepresenteerd.
 
 ## Bekende grenzen
 
