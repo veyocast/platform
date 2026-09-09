@@ -37,19 +37,24 @@ Gebruik uitsluitend de handmatige workflow
    actuele remote `main`;
 5. eist dat Control én Player op de doelomgeving gezond zijn en exact die SHA
    rapporteren;
-6. controleert migratie `20260908224609`;
-7. geeft de tenantnaam, auditreden, GitHub-operator en run-URL uitsluitend
+6. voert vóór mutatie een alleen-lezen voorcontrole uit op migratie en de
+   owner-only resetfunctie, de exacte tenantnaam en actieve status,
+   tenantprovisioning en actieve slidepublicaties;
+7. controleert migratie `20260908224609` en bewijst dat de resetfunctie van de
+   database-eigenaar is, `SECURITY DEFINER` met een lege `search_path` gebruikt
+   en door de database-eigenaar van de beschermde workflow uitvoerbaar is;
+8. geeft de tenantnaam, auditreden, GitHub-operator en run-URL uitsluitend
    base64-gecodeerd aan SQL door;
-8. roept als database-eigenaar exact
+9. roept als database-eigenaar exact
    `private.reset_tenant_fieldflow_royal_v1(...)` aan;
-9. accepteert het resultaat pas wanneer de functie haar interne atomische
+10. accepteert het resultaat pas wanneer de functie haar interne atomische
    profiel-, mirror-, rollout- en auditreadback met `verified: true` bevestigt;
-10. leest aansluitend in een afzonderlijke post-commitquery het volledige palet,
+11. leest aansluitend in een afzonderlijke post-commitquery het volledige palet,
     appearanceprofiel, de compatibility mirror, audit, revision, uitkomst en
     rollout-id exact terug. Deze extra query is afzonderlijk omdat een omringende
     PostgreSQL-statement-snapshot de writes van een aangeroepen functie niet
     betrouwbaar opnieuw projecteert;
-11. wacht bij iedere bestaande of nieuwe rollout maximaal 72 keer vijf
+12. wacht bij iedere bestaande of nieuwe rollout maximaal 72 keer vijf
     seconden op de status `ready` en stopt direct bij `failed`.
 
 De private command is niet uitvoerbaar voor `PUBLIC`, `anon`, `authenticated`
@@ -173,8 +178,15 @@ bestaande item- of loopgrens.
   omzeilen.
 - **Tenant ontbreekt, is niet uniek of niet actief:** stop en corrigeer de
   tenantadministratie via de bevoegde beheerroute. Maak geen directe SQL-update.
+- **Tenantnaam wijkt alleen in hoofdletters af:** neem de zichtbare tenantnaam
+  exact over uit Control. De workflow stopt vóór mutatie zodat de auditreadback
+  nooit op een andere schrijfwijze hoeft te vertrouwen.
 - **Actieve slidepublicatie:** wacht tot die publicatie terminal is en start
   daarna dezelfde reset opnieuw.
+- **Reset toegepast maar post-commitcontrole onderbroken:** herhaal de reset
+  niet blind. De profielwijziging kan al atomisch zijn gecommit; controleer de
+  bestaande revision, audit en rollout-id via de bevoegde tenanttheme-readback
+  en hervat daarna alleen de bestaande rollout.
 - **Rolloutstatus `failed`:** de workflow stopt onmiddellijk. De oude actieve
   releases en Player-LKG blijven behouden. Onderzoek de begrensde foutstatus in
   het tenantthema-overzicht, herstel de oorzaak en gebruik daarna de bestaande
