@@ -14,7 +14,8 @@ import {
   type MenuDocumentV2,
   type MenuMoney,
   type MenuProductGroupPlacement,
-  type MenuProductPlacement
+  type MenuProductPlacement,
+  type ThemePresentationSnapshot
 } from "@veyocast/contracts";
 
 import { freezeThemePresentation, themeCssVariables } from "./theme-catalog";
@@ -270,21 +271,7 @@ export function MenuSceneCanvas({
 }) {
   const canvasRef = useRef<HTMLElement>(null);
   const zones = menuSceneZones[orientation];
-  const themePresentation = freezeThemePresentation({
-    instant: document.publication?.publishedAt ?? document.updatedAt,
-    selection: {
-      accent: document.theme.brand.accent,
-      categoryOverrides: [],
-      modePolicy: { kind: "fixed", mode: document.theme.mode },
-      ref: {
-        catalog: "v2",
-        id: document.theme.themeId,
-        version: document.theme.themeVersion
-      },
-      support: document.theme.brand.support ?? null
-    },
-    timezone: "UTC"
-  });
+  const themePresentation = freezeMenuDocumentThemePresentation(document);
   const rootStyle = {
     ...themeCssVariables(themePresentation),
     ...themeOverrideStyle,
@@ -330,6 +317,7 @@ export function MenuSceneCanvas({
       data-orientation={orientation}
       data-theme-id={document.theme.themeId}
       data-theme-mode={document.theme.mode}
+      data-theme-snapshot-version={themePresentation.snapshotVersion}
       ref={canvasRef}
       style={rootStyle}
     >
@@ -372,6 +360,26 @@ export function MenuSceneCanvas({
       </footer>
     </section>
   );
+}
+
+export function freezeMenuDocumentThemePresentation(
+  document: Pick<MenuDocumentV2, "publication" | "theme" | "updatedAt">
+): ThemePresentationSnapshot {
+  return freezeThemePresentation({
+    instant: document.publication?.publishedAt ?? document.updatedAt,
+    selection: {
+      accent: document.theme.brand.accent,
+      categoryOverrides: [],
+      modePolicy: { kind: "fixed", mode: document.theme.mode },
+      ref: {
+        catalog: "v2",
+        id: document.theme.themeId,
+        version: document.theme.themeVersion
+      },
+      support: document.theme.brand.support ?? null
+    },
+    timezone: "UTC"
+  });
 }
 
 function MenuColumn({

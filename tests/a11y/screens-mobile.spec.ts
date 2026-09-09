@@ -135,7 +135,7 @@ test("playlist authoring and settings remain sequential on mobile", async ({ pag
   await expect(page.locator(".settings-category-workspace")).toHaveAttribute("data-hydrated", "true");
 
   await navigate(page, "/dashboard/themes/fieldflow");
-  await expect(page.getByRole("heading", { exact: true, level: 1, name: "FieldFlow" })).toBeVisible();
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Royal Current · Navy Glass" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Slidehuisstijl" })).toBeVisible();
   const themePreview = page.getByLabel(/Live voorbeeld van het .* palet/);
   await expect(themePreview).toBeVisible();

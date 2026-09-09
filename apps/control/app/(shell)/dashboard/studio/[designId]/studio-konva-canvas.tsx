@@ -42,6 +42,12 @@ type CanvasProps = {
   zoom: number;
 };
 
+export function studioCanvasFontStyle(
+  fontWeight: Extract<StudioElement, { type: "text" }>["fontWeight"]
+) {
+  return String(fontWeight);
+}
+
 export function StudioKonvaCanvas({
   assets,
   canEdit,
@@ -460,7 +466,7 @@ function CanvasElement({
         fill={element.fill}
         fontFamily={element.fontFamily}
         fontSize={layout.fontSize}
-        fontStyle={element.fontWeight >= 700 ? "bold" : "normal"}
+        fontStyle={studioCanvasFontStyle(element.fontWeight)}
         letterSpacing={element.letterSpacing}
         lineHeight={layout.lineHeightPx / layout.fontSize}
         padding={element.padding}

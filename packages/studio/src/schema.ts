@@ -73,7 +73,8 @@ const textElementSchema = baseElementSchema.extend({
     z.literal(500),
     z.literal(600),
     z.literal(700),
-    z.literal(800)
+    z.literal(800),
+    z.literal(900)
   ]),
   fontSize: z.number().min(12).max(360),
   lineHeight: z.number().min(0.8).max(2.4).default(1.1),

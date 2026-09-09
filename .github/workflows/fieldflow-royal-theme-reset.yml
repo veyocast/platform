@@ -1,4 +1,4 @@
-name: FieldFlow Royal blue theme reset
+name: FieldFlow ROYAL CURRENT RESET
 
 on:
   workflow_dispatch:
@@ -24,7 +24,7 @@ on:
         required: true
         type: string
       confirmation:
-        description: Typ ROYAL BLUE RESET
+        description: Typ ROYAL CURRENT RESET
         required: true
         type: string
 
@@ -101,8 +101,8 @@ jobs:
             echo "De doelomgeving is ongeldig." >&2
             exit 1
           fi
-          if [[ ${CONFIRMATION} != "ROYAL BLUE RESET" ]]; then
-            echo "De expliciete bevestiging ROYAL BLUE RESET ontbreekt." >&2
+          if [[ ${CONFIRMATION} != "ROYAL CURRENT RESET" ]]; then
+            echo "De expliciete bevestiging ROYAL CURRENT RESET ontbreekt." >&2
             exit 1
           fi
           if [[ ! ${EXPECTED_RELEASE_SHA} =~ ^[0-9a-f]{40}$ ]]; then
@@ -230,7 +230,7 @@ jobs:
             ['database_permission', /permission denied|insufficient privilege|must be owner/],
             ['credentials', /authentication|password|pg_hba/],
             ['connection', /connection refused|could not connect|failed to connect|timed out|dial error|econnrefused|enotfound|unexpected eof|broken pipe|connection reset|server closed the connection|connection terminated/],
-            ['schema', /schema_migrations|reset_tenant_fieldflow_royal_v1|undefined function|does not exist/]
+            ['schema', /schema_migrations|reset_tenant_fieldflow_royal_v2|undefined function|does not exist/]
           ].find(([, pattern]) => pattern.test(text));
           process.stdout.write(match?.[0] ?? 'unknown');
           NODE
@@ -259,7 +259,7 @@ jobs:
               database_permission) cause="de databaserol heeft onvoldoende rechten voor deze opdracht"; recovery="herstel de minimale uitvoerrechten van de beschermde runner" ;;
               credentials) cause="databaseaanmelding vanuit de beschermde runner mislukt"; recovery="herstel of roteer het omgevingssecret" ;;
               connection) cause="de database is niet bereikbaar"; recovery="herstel netwerk- of databasebereikbaarheid" ;;
-              schema|release_schema) cause="de S159-migratie of veilig uitvoerbare resetfunctie ontbreekt of wijkt af"; recovery="deploy de volledige release inclusief migraties en herstel het functiebeveiligingscontract" ;;
+              schema|release_schema) cause="de S161-migratie of veilig uitvoerbare resetfunctie ontbreekt of wijkt af"; recovery="deploy de volledige release inclusief migraties en herstel het functiebeveiligingscontract" ;;
               atomic_readback_mismatch) cause="de atomaire resetreadback wijkt af van het verwachte contract"; recovery="onderzoek migratie, resetfunctie en transactionele readback" ;;
               invalid_readback) cause="de voorcontrole gaf geen exact getypeerd JSON-contract"; recovery="controleer CLI-versie en databaseschema" ;;
               *) cause="de databaseopdracht gaf geen veilig classificeerbare fout"; recovery="onderzoek de beschermde runner- en databaselogboeken" ;;
@@ -313,7 +313,7 @@ jobs:
             (
               select count(*)::integer
               from supabase_migrations.schema_migrations migration
-              where migration.version = '20260908224609'
+              where migration.version = '20260909174500'
             ) as migration_count,
             (
               select count(*)::integer
@@ -321,7 +321,7 @@ jobs:
               join pg_catalog.pg_namespace namespace
                 on namespace.oid = routine.pronamespace
               where namespace.nspname = 'private'
-                and routine.proname = 'reset_tenant_fieldflow_royal_v1'
+                and routine.proname = 'reset_tenant_fieldflow_royal_v2'
                 and routine.prokind = 'f'
                 and routine.proargtypes = '25 25 25 25'::pg_catalog.oidvector
                 and routine.proowner = (
@@ -462,7 +462,7 @@ jobs:
           with migration_guard as materialized (
             select count(*) = 1 as migration_ready
             from supabase_migrations.schema_migrations
-            where version = '20260908224609'
+            where version = '20260909174500'
           ), request as materialized (
             select
               convert_from(decode('${tenant_name_b64}', 'base64'), 'UTF8') as tenant_name,
@@ -474,7 +474,7 @@ jobs:
               guard.migration_ready,
               request.tenant_name,
               case when guard.migration_ready then
-                private.reset_tenant_fieldflow_royal_v1(
+                private.reset_tenant_fieldflow_royal_v2(
                   request.tenant_name,
                   request.reason,
                   request.operator,
@@ -627,7 +627,7 @@ jobs:
           with migration_guard as materialized (
             select count(*) = 1 as migration_ready
             from supabase_migrations.schema_migrations
-            where version = '20260908224609'
+            where version = '20260909174500'
           ), request as materialized (
             select
               convert_from(decode('${tenant_name_b64}', 'base64'), 'UTF8') as tenant_name,
@@ -677,92 +677,40 @@ jobs:
               profile.theme_id = 'fieldflow'
                 and profile.theme_version = '1.0.0'
                 and profile.selection_json = '{
-                  "accent":"#4169E1",
+                  "accent":"#2459ED",
                   "categoryOverrides":[],
                   "modePolicy":{"kind":"fixed","mode":"dark"},
                   "ref":{"catalog":"v2","id":"fieldflow","version":"1.0.0"},
-                  "support":"#7A5CE6"
+                  "support":null
                 }'::jsonb
                 and profile.appearance_config = '{
-                  "schemaVersion":1,
+                  "designRevision":"royal-current-v8",
+                  "motionEnabled":true,
+                  "palette":{
+                    "background":"club",
+                    "primary":"#2459ED",
+                    "secondary":null,
+                    "version":1
+                  },
+                  "schemaVersion":2,
                   "surfaces":{
                     "clubLogoBackground":"#FFFFFF",
                     "homeLogoBackground":"#FFFFFF"
                   },
                   "typography":{
                     "baseScale":1.05,
-                    "bodyFontRef":"vc-inter-v1",
-                    "displayFontRef":"vc-manrope-v1",
+                    "bodyFontRef":"vc-roboto-v1",
+                    "displayFontRef":"vc-roboto-v1",
                     "sportScale":1.4
                   }
                 }'::jsonb
-                and profile.color_overrides = '{
-                  "fieldflow":{
-                    "dark":{
-                      "accent":"#4169E1",
-                      "accentSoft":"rgba(65, 105, 225, 0.24)",
-                      "border":"rgba(255, 255, 255, 0.22)",
-                      "borderSoft":"rgba(255, 255, 255, 0.12)",
-                      "canvas":"#071538",
-                      "danger":"#FF8580",
-                      "divider":"rgba(255, 255, 255, 0.18)",
-                      "imageOverlayEnd":"rgba(3, 8, 24, 0.10)",
-                      "imageOverlayMid":"rgba(3, 8, 24, 0.72)",
-                      "imageOverlayStart":"rgba(3, 8, 24, 0.96)",
-                      "neutral":"#8697C2",
-                      "panel":"#10265D",
-                      "qrInk":"#071538",
-                      "qrSurface":"#FFFFFF",
-                      "row":"#0C2257",
-                      "rowSelected":"#2447C7",
-                      "shadow":"rgba(0, 0, 0, 0.42)",
-                      "success":"#58D99A",
-                      "surface":"#3154D4",
-                      "surfaceRaised":"#2447A8",
-                      "text":"#FFFFFF",
-                      "textFaint":"rgba(255, 255, 255, 0.82)",
-                      "textMuted":"#E5EBFF",
-                      "textOnAccent":"#FFFFFF",
-                      "textOnSelected":"#FFFFFF",
-                      "warning":"#FFD078"
-                    },
-                    "light":{
-                      "accent":"#4169E1",
-                      "accentSoft":"rgba(65, 105, 225, 0.22)",
-                      "border":"rgba(255, 255, 255, 0.28)",
-                      "borderSoft":"rgba(255, 255, 255, 0.16)",
-                      "canvas":"#17327A",
-                      "danger":"#FF8F88",
-                      "divider":"rgba(255, 255, 255, 0.22)",
-                      "imageOverlayEnd":"rgba(4, 12, 36, 0.12)",
-                      "imageOverlayMid":"rgba(4, 12, 36, 0.68)",
-                      "imageOverlayStart":"rgba(4, 12, 36, 0.94)",
-                      "neutral":"#AAB9E3",
-                      "panel":"#234AAE",
-                      "qrInk":"#071538",
-                      "qrSurface":"#FFFFFF",
-                      "row":"#1E429C",
-                      "rowSelected":"#3154D4",
-                      "shadow":"rgba(4, 15, 52, 0.32)",
-                      "success":"#67D99F",
-                      "surface":"#365CCB",
-                      "surfaceRaised":"#2A50B8",
-                      "text":"#FFFFFF",
-                      "textFaint":"rgba(255, 255, 255, 0.82)",
-                      "textMuted":"#F4F7FF",
-                      "textOnAccent":"#FFFFFF",
-                      "textOnSelected":"#FFFFFF",
-                      "warning":"#FFD27A"
-                    },
-                    "mode":"dark"
-                  }
-                }'::jsonb as profile_matches,
+                and profile.color_overrides = '{}'::jsonb as profile_matches,
               settings.default_theme_id = 'fieldflow'
                 and settings.default_theme_version = '1.0.0'
                 and settings.theme_mode_policy = '{"kind":"fixed","mode":"dark"}'::jsonb
-                and settings.theme_accent = '#4169E1'
-                and settings.theme_support = '#7A5CE6'
-                and settings.theme_color_overrides = profile.color_overrides
+                and settings.theme_accent = '#2459ED'
+                and settings.theme_support is null
+                and settings.theme_color_overrides = '{}'::jsonb
                 and settings.theme_settings_revision = profile.revision as mirror_matches,
               case when reset_result.result ->> 'outcome' = 'applied' then exists (
                 select 1
@@ -770,7 +718,7 @@ jobs:
                 where event.tenant_id = tenant.id
                   and event.actor_user_id is null
                   and event.actor_device_id is null
-                  and event.action = 'tenant.theme.royal_blue_reset'
+                  and event.action = 'tenant.theme.royal_current_reset'
                   and event.target_type = 'tenant_theme_profiles'
                   and event.target_id = tenant.id
                   and event.result = 'success'
@@ -964,7 +912,7 @@ jobs:
           unset reset_state
 
           if [[ ${outcome} == noop && ${rollout_id} == none ]]; then
-            echo "Het Royal blue-profiel stond al exact goed; er is geen nieuwe immutable uitrol aangemaakt."
+            echo "Het ROYAL CURRENT RESET-profiel stond al exact goed; er is geen nieuwe immutable uitrol aangemaakt."
             exit 0
           fi
           if [[ ! ${rollout_id} =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$ \
@@ -1090,7 +1038,7 @@ jobs:
             unset poll_state
 
             if [[ ${status} == ready ]]; then
-              echo "De Royal blue-reset is volledig gereed: ${ready_snapshots}/${total_snapshots} snapshots en ${terminal_releases}/${total_releases} releasevertakkingen."
+              echo "De ROYAL CURRENT RESET is volledig gereed: ${ready_snapshots}/${total_snapshots} snapshots en ${terminal_releases}/${total_releases} releasevertakkingen."
               exit 0
             fi
             if [[ ${status} == failed ]]; then

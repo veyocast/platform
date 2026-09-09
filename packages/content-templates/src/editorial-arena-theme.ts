@@ -134,11 +134,15 @@ export function editorialThemeContrastChecks(
   tokens: EditorialColorTokens,
   minimum = 4.5
 ) {
+  const photoText = (contrastRatio(tokens.text, tokens.imageOverlayStart) ?? 0) >=
+    (contrastRatio(tokens.qrSurface, tokens.imageOverlayStart) ?? 0)
+    ? tokens.text
+    : tokens.qrSurface;
   const combinations = [
     ["body", tokens.text, tokens.surface, tokens.canvas],
     ["accent", tokens.textOnAccent, tokens.accent, undefined],
     ["selected", tokens.textOnSelected, tokens.rowSelected, undefined],
-    ["photo", tokens.qrSurface, tokens.imageOverlayStart, undefined],
+    ["photo", photoText, tokens.imageOverlayStart, undefined],
     ["qr", tokens.qrInk, tokens.qrSurface, undefined]
   ] as const;
   return combinations.map(([id, foreground, background, underlay]) => {

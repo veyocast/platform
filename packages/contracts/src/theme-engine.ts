@@ -38,6 +38,7 @@ export const themeMotionStates = [
 ] as const;
 
 export const curatedThemeFontRefs = [
+  "vc-roboto-v1",
   "vc-inter-v1",
   "vc-newsreader-v1",
   "vc-space-grotesk-v1",
@@ -120,7 +121,7 @@ export const themeSelectionSchema = z.object({
   support: cssHexSchema.nullable().default(null)
 }).strict();
 
-export const themeAppearanceSettingsSchema = z.object({
+const themeAppearanceSettingsV1Schema = z.object({
   schemaVersion: z.literal(1),
   surfaces: z.object({
     clubLogoBackground: cssHexSchema,
@@ -134,7 +135,37 @@ export const themeAppearanceSettingsSchema = z.object({
   }).strict()
 }).strict();
 
-export const defaultThemeAppearanceSettings = {
+export const clubStyleConfigurationSchema = z.object({
+  background: z.enum(["club", "neutral"]),
+  primary: cssHexSchema,
+  secondary: cssHexSchema.nullable(),
+  version: z.literal(1)
+}).strict();
+
+const themeAppearanceSettingsV2Schema = z.object({
+  designRevision: z.literal("royal-current-v8"),
+  motionEnabled: z.boolean(),
+  palette: clubStyleConfigurationSchema,
+  schemaVersion: z.literal(2),
+  surfaces: z.object({
+    clubLogoBackground: cssHexSchema,
+    homeLogoBackground: cssHexSchema
+  }).strict(),
+  typography: z.object({
+    baseScale: z.number().min(0.9).max(1.2),
+    bodyFontRef: z.enum(curatedThemeFontRefs),
+    displayFontRef: z.enum(curatedThemeFontRefs),
+    sportScale: z.number().min(0.9).max(1.4)
+  }).strict()
+}).strict();
+
+export const themeAppearanceSettingsSchema = z.discriminatedUnion(
+  "schemaVersion",
+  [themeAppearanceSettingsV1Schema, themeAppearanceSettingsV2Schema]
+);
+
+/** Frozen defaults for snapshotVersion 1 and historical appearance v1. */
+export const legacyThemeAppearanceSettings = {
   schemaVersion: 1,
   surfaces: {
     clubLogoBackground: "#E7F5EE",
@@ -145,6 +176,28 @@ export const defaultThemeAppearanceSettings = {
     bodyFontRef: "vc-inter-v1",
     displayFontRef: "vc-manrope-v1",
     sportScale: 1.12
+  }
+} as const satisfies z.infer<typeof themeAppearanceSettingsSchema>;
+
+export const defaultThemeAppearanceSettings = {
+  designRevision: "royal-current-v8",
+  motionEnabled: true,
+  palette: {
+    background: "club",
+    primary: "#2459ED",
+    secondary: null,
+    version: 1
+  },
+  schemaVersion: 2,
+  surfaces: {
+    clubLogoBackground: "#FFFFFF",
+    homeLogoBackground: "#FFFFFF"
+  },
+  typography: {
+    baseScale: 1,
+    bodyFontRef: "vc-roboto-v1",
+    displayFontRef: "vc-roboto-v1",
+    sportScale: 1
   }
 } as const satisfies z.infer<typeof themeAppearanceSettingsSchema>;
 
@@ -171,7 +224,7 @@ export const themePresentationSnapshotSchema = z.discriminatedUnion(
 
 const manifestFontAssetSchema = z.object({
   family: z.string().trim().min(1),
-  license: z.literal("OFL-1.1"),
+  license: z.enum(["Apache-2.0", "OFL-1.1"]),
   lockRequirement: z.string().trim().min(1),
   requiredFormat: z.enum([
     "woff2-variable",
@@ -295,6 +348,7 @@ export const themeManifestSchema = z.object({
 
 export type PersistedThemeRef = z.infer<typeof persistedThemeRefSchema>;
 export type AuthorableThemeId = z.infer<typeof authorableThemeIdSchema>;
+export type ClubStyleConfiguration = z.infer<typeof clubStyleConfigurationSchema>;
 export type ResolvedModeSnapshot = z.infer<typeof resolvedModeSnapshotSchema>;
 export type SelectableThemeId = z.infer<typeof selectableThemeIdSchema>;
 export type SourceCategoryIdentity = z.infer<typeof sourceCategoryIdentitySchema>;

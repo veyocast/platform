@@ -194,8 +194,12 @@ describe("Studio render validators and safety bounds", () => {
     ["Inter Tight Variable", 500],
     ["Inter Tight Variable", 600],
     ["Inter Tight Variable", 700],
-    ["Inter Tight Variable", 800]
-  ] satisfies [StudioFontFamily, 400 | 500 | 600 | 700 | 800][])(
+    ["Inter Tight Variable", 800],
+    ["Roboto", 400],
+    ["Roboto", 500],
+    ["Roboto", 700],
+    ["Roboto", 900]
+  ] satisfies [StudioFontFamily, 400 | 500 | 600 | 700 | 800 | 900][])(
     "rasterizes visible %s glyphs at weight %i",
     async (fontFamily, fontWeight) => {
       const document = studioTextDocument(fontFamily, fontWeight);
@@ -308,7 +312,7 @@ async function temporaryDirectory() {
 
 function studioTextDocument(
   fontFamily: StudioFontFamily,
-  fontWeight: 400 | 500 | 600 | 700 | 800
+  fontWeight: 400 | 500 | 600 | 700 | 800 | 900
 ) {
   const document = createEmptyStudioDocument("landscape-hd", {
     background: "#141414"

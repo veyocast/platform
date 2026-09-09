@@ -114,4 +114,26 @@ describe("deterministic Studio SVG scene", () => {
     expect(renderStudioSvg({ document, timeMs: 1_000 }))
       .not.toBe(renderStudioSvg({ document, timeMs: 500 }));
   });
+
+  it.each([400, 500, 700, 900] as const)(
+    "preserves Roboto weight %i for poster rendering",
+    (fontWeight) => {
+      const robotoDocument = parseStudioDocument({
+        ...document,
+        elements: document.elements.map((element) =>
+          element.type === "text"
+            ? { ...element, fontFamily: "Roboto", fontWeight }
+            : element
+        ),
+        metadata: {
+          ...document.metadata,
+          fontRegistryVersion: "2026-09-09.1"
+        }
+      });
+      const svg = renderStudioSvg({ document: robotoDocument, timeMs: 500 });
+
+      expect(svg).toContain('font-family="Roboto"');
+      expect(svg).toContain(`font-weight="${fontWeight}"`);
+    }
+  );
 });

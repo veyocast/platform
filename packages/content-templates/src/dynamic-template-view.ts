@@ -1,6 +1,7 @@
 import {
   editorialArenaActiveSlideTypes,
   editorialArenaConfigurationSchema,
+  editorialThemeConfigSchema,
   type EditorialColorTokens,
   type EditorialFocalPoint,
   type EditorialNewsVariant,
@@ -9,6 +10,7 @@ import {
   type MenuDocumentV2,
   type PlayerDynamicTemplatePayload,
   type SelectableThemeId,
+  type SportlinkArrivalConfig,
   sportlinkBirthdayConfigurationSchema,
   type SportlinkBirthdayConfiguration,
   type SportlinkArrivalMotionPreset,
@@ -47,6 +49,7 @@ import {
 export type DynamicTemplateTheme = "dark" | "light";
 
 export type DynamicTemplateListItem = {
+  arrivalAt: string;
   awayLogoUrl: string;
   awayRoom: string;
   awayScore: number | null;
@@ -65,6 +68,7 @@ export type DynamicTemplateListItem = {
   kickoffTime: string;
   logoUrl: string;
   meta: string;
+  officialAssignments: Array<{ name: string; role: string }>;
   officials: string[];
   photoUrl: string;
   primary: string;
@@ -103,6 +107,20 @@ export type DynamicTemplateNewsItem = {
   source: string;
   title: string;
 };
+
+export type DynamicTemplateArrivalConfig = Pick<
+  SportlinkArrivalConfig,
+  | "dutyDeskText"
+  | "showArrivalTime"
+  | "showClubLogo"
+  | "showCompetition"
+  | "showDressingRoom"
+  | "showField"
+  | "showKickoffTime"
+  | "showSponsor"
+  | "showWelcome"
+  | "welcomeText"
+>;
 
 export type DynamicTemplateStandingItem = {
   drawn: number | null;
@@ -176,7 +194,9 @@ export type DynamicTemplatePage =
 
 export type DynamicTemplateView = {
   accentColor: string;
+  arrivalConfig?: DynamicTemplateArrivalConfig;
   arrivalMotionPreset?: SportlinkArrivalMotionPreset;
+  arrivalSlots?: number;
   arrivalSponsorUrl?: string;
   birthday?: {
     backgroundUrl: string;
@@ -184,7 +204,10 @@ export type DynamicTemplateView = {
   };
   clubLogoUrl: string;
   clubName: string;
+  designRevision: "legacy" | "royal-current-v8";
   emptyState: string;
+  motionEnabled: boolean;
+  minimumPlaybackMs?: number;
   orientation: PlayerDynamicTemplatePayload["orientation"];
   pageDurationMs?: number;
   pages: DynamicTemplatePage[];
@@ -203,6 +226,7 @@ export type DynamicTemplateView = {
     pool: string;
     season: string;
   };
+  standingPinnedTeam?: DynamicTemplateStandingItem;
   sportDisplay?: {
     columns: "one" | "two";
     showAwayDressingRoom: boolean;
@@ -257,6 +281,71 @@ const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const snapshotHashPattern = /^[a-f0-9]{64}$/;
 const templateSlugPattern = /^[a-z0-9][a-z0-9-]{0,119}$/;
+
+export const royalStandingScrollMetrics = {
+  endHoldMs: 3_000,
+  landscape: {
+    rowGap: 0,
+    rowHeight: 70,
+    viewportHeight: 498
+  },
+  portrait: {
+    rowGap: 14,
+    rowHeight: 220,
+    viewportHeight: 1_198
+  },
+  speedPxPerSecond: 34,
+  startHoldMs: 3_000
+} as const;
+
+export function royalStandingScrollDistance(
+  itemCount: number,
+  orientation: PlayerDynamicTemplatePayload["orientation"]
+) {
+  const count = Math.max(0, Math.floor(itemCount));
+  const geometry = royalStandingScrollMetrics[orientation];
+  const contentHeight = count * geometry.rowHeight +
+    Math.max(0, count - 1) * geometry.rowGap;
+  return Math.max(0, contentHeight - geometry.viewportHeight);
+}
+
+export function royalStandingPlaybackDurationMs(
+  itemCount: number,
+  orientation: PlayerDynamicTemplatePayload["orientation"]
+) {
+  const distance = royalStandingScrollDistance(itemCount, orientation);
+  return royalStandingScrollMetrics.startHoldMs +
+    Math.ceil(distance / royalStandingScrollMetrics.speedPxPerSecond * 1_000) +
+    royalStandingScrollMetrics.endHoldMs;
+}
+
+/**
+ * Motion-on is one continuous standings scene: pagination would otherwise
+ * remount the rail before the final team has entered the viewport. Motion-off
+ * deliberately keeps the quiet, bounded pages produced by the view model.
+ */
+export function royalStandingPlaybackPages(
+  pages: DynamicTemplatePage[],
+  autoScroll: boolean
+): DynamicTemplatePage[] {
+  if (!autoScroll) return pages;
+  const items = pages.flatMap((page) =>
+    page.kind === "standing" ? page.items : []
+  );
+  return [{ items, kind: "standing" }];
+}
+
+export function royalStandingScrollOffset(
+  elapsedMs: number,
+  maximumScrollTop: number
+) {
+  const maximum = Math.max(0, maximumScrollTop);
+  const movingMs = Math.max(0, elapsedMs - royalStandingScrollMetrics.startHoldMs);
+  return Math.min(
+    maximum,
+    movingMs / 1_000 * royalStandingScrollMetrics.speedPxPerSecond
+  );
+}
 
 export function createDynamicTemplateView(
   value: unknown,
@@ -322,16 +411,34 @@ function createDynamicTemplateViewInternal(
     timezone: "UTC"
   });
   const themeDefinition = resolveThemeDefinition(themePresentation.selection);
+  const royalCurrentPresentation = themeDefinition.id === "fieldflow" &&
+    themePresentation.snapshotVersion === 2 &&
+    themePresentation.appearance.schemaVersion === 2 &&
+    themePresentation.appearance.designRevision === "royal-current-v8";
   const themeRuntimeVersion = Math.max(
     0,
     Number(readRecord(data._veyocastThemeRuntime)?.version) || 0
   );
-  const themeTokens = configuredEditorial.success
-    ? editorial.theme[themePresentation.resolvedMode.mode]
-    : frozenPresentation
-      ? themeToEditorialTokens(themePresentation)
-      : activeEditorialTokens(editorial.theme);
+  const tenantThemeOverrides = editorialThemeConfigSchema.safeParse(
+    data._veyocastThemeColorOverrides
+  );
+  const themeTokens = royalCurrentPresentation
+    ? tenantThemeOverrides.success
+      ? tenantThemeOverrides.data[themePresentation.resolvedMode.mode]
+      : themeToEditorialTokens(themePresentation)
+    : configuredEditorial.success
+      ? editorial.theme[themePresentation.resolvedMode.mode]
+      : frozenPresentation
+        ? themeToEditorialTokens(themePresentation)
+        : activeEditorialTokens(editorial.theme);
   const themeIdentity = {
+    designRevision: royalCurrentPresentation
+      ? "royal-current-v8" as const
+      : "legacy" as const,
+    motionEnabled: themePresentation.snapshotVersion === 2 &&
+      themePresentation.appearance.schemaVersion === 2
+      ? themePresentation.appearance.motionEnabled
+      : true,
     themeId: themeDefinition.id,
     themePresentation,
     themeRuntimeVersion
@@ -351,7 +458,8 @@ function createDynamicTemplateViewInternal(
       pages: buildPriceListPages(
         items,
         payload.orientation,
-        editorial.priceList?.columns
+        editorial.priceList?.columns,
+        themeIdentity.designRevision === "royal-current-v8"
       ),
       newsVariant: editorial.newsVariant,
       pricePhotoMode: editorial.pricePhotoMode,
@@ -452,7 +560,11 @@ function createDynamicTemplateViewInternal(
       emptyState: articles.length ? "" : "Er zijn nu geen nieuwsberichten.",
       orientation: payload.orientation,
       pageDurationMs: secondsPerSlide * 1_000,
-      pages: buildNewsPages(articles, editorial.newsVariant),
+      pages: buildNewsPages(
+        articles,
+        editorial.newsVariant,
+        themeIdentity.designRevision === "royal-current-v8"
+      ),
       newsVariant: editorial.newsVariant,
       pricePhotoMode: editorial.pricePhotoMode,
       priceCategoryPhotoModes: {},
@@ -474,7 +586,9 @@ function createDynamicTemplateViewInternal(
   const sport = readRecord(data.sport);
   const displayConfig = readRecord(sport?.displayConfig);
   const legacyShowLogo = displayConfig?.showLogo !== false;
-  const legacyShowDressingRoom = displayConfig?.showDressingRoom === true;
+  const legacyShowDressingRoom = typeof displayConfig?.showDressingRoom === "boolean"
+    ? displayConfig.showDressingRoom
+    : payload.slideType === "sport_dressing_rooms";
   const showAwayDressingRoom =
     typeof displayConfig?.showAwayDressingRoom === "boolean"
       ? displayConfig.showAwayDressingRoom
@@ -500,7 +614,9 @@ function createDynamicTemplateViewInternal(
     showHomeDressingRoom,
     showHomeLogo,
     showLogo: showHomeLogo || showAwayLogo,
-    showReferee: displayConfig?.showReferee === true,
+    showReferee: typeof displayConfig?.showReferee === "boolean"
+      ? displayConfig.showReferee
+      : payload.slideType === "sport_officials",
     showSportpark: displayConfig?.showSportpark !== false,
     showTime: displayConfig?.showTime !== false
   };
@@ -538,9 +654,12 @@ function createDynamicTemplateViewInternal(
       payload,
       sport
     });
-    const pageSize = payload.orientation === "portrait"
+    const configuredPageSize = payload.orientation === "portrait"
       ? configuration.presentation.maxPerPortraitPage
       : configuration.presentation.maxPerLandscapePage;
+    const pageSize = themeIdentity.designRevision === "royal-current-v8"
+      ? Math.min(3, configuredPageSize)
+      : configuredPageSize;
     const birthdayPages = (birthdays.length ? paginate(birthdays, pageSize) : []).map((page) => ({
       items: page,
       kind: "birthday" as const,
@@ -630,6 +749,10 @@ function createDynamicTemplateViewInternal(
       .filter((item): item is DynamicTemplateStandingItem => item !== null);
     const competition = readRecord(sport?.competition);
     const pool = readRecord(sport?.pool);
+    const standingPinnedTeam = standingItems.find((item) => item.selected);
+    const standingPageSize = themeIdentity.designRevision === "royal-current-v8"
+      ? payload.orientation === "landscape" ? 7 : 4
+      : sportStandingRowsPerPage;
     return {
       accentColor: themeTokens.accent,
       clubLogoUrl: clubLogoUrl ||
@@ -637,10 +760,14 @@ function createDynamicTemplateViewInternal(
         "",
       clubName,
       emptyState,
+      minimumPlaybackMs: themeIdentity.designRevision === "royal-current-v8" &&
+        themeIdentity.motionEnabled
+        ? royalStandingPlaybackDurationMs(standingItems.length, payload.orientation)
+        : undefined,
       orientation: payload.orientation,
       pages: paginateEditorialRows(
         standingItems,
-        sportStandingRowsPerPage
+        standingPageSize
       ).map((page) => ({
         items: page,
         kind: "standing" as const
@@ -657,6 +784,7 @@ function createDynamicTemplateViewInternal(
         pool: safeText(pool?.name, ""),
         season: safeText(sport?.season, "")
       },
+      standingPinnedTeam,
       sportDisplay,
       templateStyle: "standing-club-edition",
       theme,
@@ -668,16 +796,32 @@ function createDynamicTemplateViewInternal(
 
   if (["sport_visitor_arrivals", "sport_referee_arrivals"].includes(payload.slideType)) {
     const arrivalConfig = readRecord(sport?.arrivalConfig);
+    const resolvedArrivalConfig = resolveArrivalConfig(arrivalConfig);
     const visitorArrivals = payload.slideType === "sport_visitor_arrivals";
+    const royalCurrent = themeIdentity.designRevision === "royal-current-v8";
     const cardsPerPage = visitorArrivals
-      ? 2
-      : safeInteger(arrivalConfig?.cardCount, 1, 4, 4);
-    const pageDurationSeconds = safeInteger(sport?.pageDurationSeconds, 5, 120, 12);
+      ? royalCurrent
+        ? safeInteger(arrivalConfig?.cardCount, 1, 3, 3)
+        : 2
+      : royalCurrent
+        ? safeInteger(arrivalConfig?.cardCount, 1, 4, 2)
+        : safeInteger(arrivalConfig?.cardCount, 1, 4, 4);
+    const pageDurationSeconds = safeInteger(
+      arrivalConfig?.pageDurationSeconds ?? sport?.pageDurationSeconds,
+      5,
+      120,
+      12
+    );
     return {
       accentColor: themeTokens.accent,
+      arrivalConfig: resolvedArrivalConfig,
       arrivalMotionPreset: safeArrivalMotionPreset(arrivalConfig?.motionPreset),
-      arrivalSponsorUrl: !visitorArrivals && arrivalConfig?.showSponsor === true
-        ? dynamicAssetUrl(arrivalConfig.sponsorMediaAssetId, payload)
+      arrivalSlots: visitorArrivals && royalCurrent ? cardsPerPage : undefined,
+      arrivalSponsorUrl: !visitorArrivals && resolvedArrivalConfig.showSponsor
+        ? dynamicAssetUrl(
+            arrivalConfig ? arrivalConfig.sponsorMediaAssetId : null,
+            payload
+          )
         : "",
       clubLogoUrl,
       clubName,
@@ -713,11 +857,24 @@ function createDynamicTemplateViewInternal(
 
   const columnMultiplier = payload.orientation === "landscape" &&
     sportDisplay?.columns === "two" ? 2 : 1;
-  const perPage = payload.slideType === "sport_results"
-    ? sportResultsRowsPerPage[payload.orientation] * columnMultiplier
-    : payload.slideType === "sport_program"
-      ? (payload.orientation === "portrait" ? 7 : 6) * columnMultiplier
-      : payload.orientation === "portrait" ? 6 : 8;
+  const royalFixtureFamily = [
+    "sport_cancellations",
+    "sport_dressing_rooms",
+    "sport_officials"
+  ].includes(payload.slideType);
+  const perPage = themeIdentity.designRevision === "royal-current-v8" &&
+    payload.slideType === "sport_sponsor"
+    ? 1
+    : themeIdentity.designRevision === "royal-current-v8" &&
+      payload.slideType === "sport_activities"
+      ? 3
+    : themeIdentity.designRevision === "royal-current-v8" && royalFixtureFamily
+      ? payload.orientation === "portrait" ? 7 : 5
+    : payload.slideType === "sport_results"
+      ? sportResultsRowsPerPage[payload.orientation] * columnMultiplier
+      : payload.slideType === "sport_program"
+        ? (payload.orientation === "portrait" ? 7 : 6) * columnMultiplier
+        : payload.orientation === "portrait" ? 6 : 8;
   const listPageKind = payload.slideType === "sport_team"
     ? "team"
     : payload.slideType === "sport_sponsor"
@@ -1285,9 +1442,12 @@ export function dynamicTemplatePageDurationMs(
 
 export function dynamicTemplateMinimumPlaybackMs(value: unknown) {
   const view = createDynamicTemplateView(value);
-  return view
-    ? Math.max(5_000, view.pages.length * (view.pageDurationMs ?? 5_000))
-    : 0;
+  if (!view) return 0;
+  return Math.max(
+    5_000,
+    view.pages.length * (view.pageDurationMs ?? 5_000),
+    view.minimumPlaybackMs ?? 0
+  );
 }
 
 export function dynamicTemplateShouldSkip(value: unknown) {
@@ -1461,7 +1621,15 @@ function toListItem(
   if (!item) return null;
   const primary = safeText(item.primary, "");
   if (!primary) return null;
+  const officialAssignments = readArray(item.officials)
+    .flatMap((value) => {
+      const official = readRecord(value);
+      const name = safeText(official?.displayName ?? value, "");
+      return name ? [{ name, role: safeText(official?.role, "") }] : [];
+    })
+    .slice(0, 8);
   return {
+    arrivalAt: safeText(item.arrivalAt, ""),
     awayLogoUrl: dynamicAssetUrl(item.awayLogoMediaAssetId, payload),
     awayRoom: safeText(item.awayRoom, ""),
     awayScore: safeNullableScore(item.awayScore),
@@ -1480,13 +1648,8 @@ function toListItem(
     kickoffTime: safeText(item.kickoffTime, ""),
     logoUrl: dynamicAssetUrl(item.logoMediaAssetId, payload),
     meta: safeText(item.meta, ""),
-    officials: readArray(item.officials)
-      .flatMap((value) => {
-        const official = readRecord(value);
-        const name = safeText(official?.displayName, "");
-        return name ? [name] : [];
-      })
-      .slice(0, 8),
+    officialAssignments,
+    officials: officialAssignments.map((official) => official.name),
     photoUrl: dynamicAssetUrl(item.photoMediaAssetId, payload),
     primary,
     selected: item.selected === true,
@@ -1543,6 +1706,7 @@ function normalizeVisitorArrivalItem(
   const homeRoom = visitorArrivalValue(item.homeRoom, "dressing-room");
   return {
     ...item,
+    logoUrl: item.awayLogoUrl || item.logoUrl,
     awayRoom,
     date: item.date || formatVisitorArrivalDate(item.kickoffAt, timezone),
     dressingRoom: awayRoom,
@@ -1625,8 +1789,31 @@ function buildPriceListPages(
   configuredColumns?: {
     left: Array<{ category: string; kind: "category" } | { kind: "product"; productId: string }>;
     right: Array<{ category: string; kind: "category" } | { kind: "product"; productId: string }>;
-  }
+  },
+  royalCurrent = false
 ) {
+  if (royalCurrent) {
+    const products = new Map(items.map((item) => [item.id, item]));
+    const configuredEntries = (configured: NonNullable<typeof configuredColumns>["left"]) =>
+      configured.flatMap((entry): DynamicTemplatePriceEntry[] => {
+        if (entry.kind === "category") {
+          return [{
+            id: `category-${entry.category.toLocaleLowerCase("nl-NL")}`,
+            kind: "category",
+            name: entry.category
+          }];
+        }
+        const item = products.get(entry.productId);
+        return item ? [{ item, kind: "product" }] : [];
+      });
+    const entries = configuredColumns
+      ? [
+          ...configuredEntries(configuredColumns.left),
+          ...configuredEntries(configuredColumns.right)
+        ]
+      : menuEntriesFromItems(items);
+    return buildRoyalMenuPages(entries, orientation);
+  }
   if (configuredColumns) {
     const products = new Map(items.map((item) => [item.id, item]));
     const resolve = (configured: typeof configuredColumns.left) => configured
@@ -1685,6 +1872,66 @@ function buildPriceListPages(
   }));
 }
 
+function menuEntriesFromItems(items: DynamicTemplateMenuItem[]) {
+  const entries: DynamicTemplatePriceEntry[] = [];
+  let currentCategory = "";
+  for (const item of items) {
+    const category = item.category || "Overig";
+    if (category !== currentCategory) {
+      entries.push({
+        id: `category-${category.toLocaleLowerCase("nl-NL")}`,
+        kind: "category",
+        name: category
+      });
+      currentCategory = category;
+    }
+    entries.push({ item, kind: "product" });
+  }
+  return entries;
+}
+
+function buildRoyalMenuPages(
+  entries: DynamicTemplatePriceEntry[],
+  orientation: PlayerDynamicTemplatePayload["orientation"]
+) {
+  const groups: Array<{ id: string; name: string; products: DynamicTemplateMenuItem[] }> = [];
+  let active: (typeof groups)[number] | undefined;
+  for (const entry of entries) {
+    if (entry.kind === "category") {
+      active = { id: entry.id, name: entry.name, products: [] };
+      groups.push(active);
+      continue;
+    }
+    const category = entry.item.category || "Overig";
+    if (!active || active.name !== category) {
+      active = {
+        id: `category-${category.toLocaleLowerCase("nl-NL")}`,
+        name: category,
+        products: []
+      };
+      groups.push(active);
+    }
+    active.products.push(entry.item);
+  }
+  const productsPerPanel = orientation === "portrait" ? 6 : 5;
+  const panels = groups.flatMap((group) => paginate(group.products, productsPerPanel)
+    .map((products, index): DynamicTemplatePriceEntry[] => [
+      {
+        id: `${group.id}-${index}`,
+        kind: "category",
+        name: group.name
+      },
+      ...products.map((item) => ({ item, kind: "product" as const }))
+    ]));
+  return paginate(panels, 2).map((page) => ({
+    columns: [page[0] ?? [], page[1] ?? []] as [
+      DynamicTemplatePriceEntry[],
+      DynamicTemplatePriceEntry[]
+    ],
+    kind: "menu" as const
+  }));
+}
+
 function readFocalPoint(value: unknown, productId: string): EditorialFocalPoint {
   const priceList = readRecord(value);
   const points = readRecord(priceList?.productFocalPoints);
@@ -1708,7 +1955,8 @@ function normalizeFocalPoint(value: unknown): EditorialFocalPoint {
 
 function buildNewsPages(
   articles: DynamicTemplateNewsItem[],
-  variant: EditorialNewsVariant
+  variant: EditorialNewsVariant,
+  royalCurrent = false
 ) {
   if (!articles.length) {
     return [{ item: null, kind: "news" as const, secondaryItems: [] }];
@@ -1720,11 +1968,30 @@ function buildNewsPages(
       secondaryItems: []
     }));
   }
-  return paginate(articles, 3).map(([item, ...secondaryItems]) => ({
+  return paginate(articles, royalCurrent ? 2 : 3).map(([item, ...secondaryItems]) => ({
     item: item ?? null,
     kind: "news" as const,
     secondaryItems
   }));
+}
+
+function resolveArrivalConfig(
+  value: Record<string, unknown> | null
+): DynamicTemplateArrivalConfig {
+  const enabled = (key: string, fallback: boolean) =>
+    typeof value?.[key] === "boolean" ? value[key] as boolean : fallback;
+  return {
+    dutyDeskText: safeText(value?.dutyDeskText, ""),
+    showArrivalTime: enabled("showArrivalTime", true),
+    showClubLogo: enabled("showClubLogo", true),
+    showCompetition: enabled("showCompetition", false),
+    showDressingRoom: enabled("showDressingRoom", true),
+    showField: enabled("showField", true),
+    showKickoffTime: enabled("showKickoffTime", true),
+    showSponsor: enabled("showSponsor", false),
+    showWelcome: enabled("showWelcome", true),
+    welcomeText: safeText(value?.welcomeText, "Welkom bij {{club}}")
+  };
 }
 
 function safeNullableScore(value: unknown) {

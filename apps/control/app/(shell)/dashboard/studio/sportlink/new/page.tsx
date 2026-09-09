@@ -1,6 +1,10 @@
 import Link from "next/link";
 
-import { themeSelectionSchema } from "@veyocast/contracts";
+import {
+  defaultThemeAppearanceSettings,
+  themeAppearanceSettingsSchema,
+  themeSelectionSchema
+} from "@veyocast/contracts";
 import { platformDefaultThemeSelection } from "@veyocast/content-templates/theme-catalog";
 import { Button } from "@veyocast/ui";
 
@@ -16,7 +20,11 @@ export default async function SportlinkNewPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const data = session.isLive && session.tenantId
     ? await loadSportlinkWizardData(session.tenantId)
-    : { defaultThemeSelection: platformDefaultThemeSelection, media: [], sources: [], teams: [], templates: [] };
+    : {
+        defaultThemeAppearance: defaultThemeAppearanceSettings,
+        defaultThemeSelection: platformDefaultThemeSelection,
+        media: [], sources: [], teams: [], templates: []
+      };
   return (
     <>
       {params.fout ? <p className="notice notice--critical" role="alert"><strong>Slides niet gemaakt.</strong> {params.fout}</p> : null}
@@ -31,12 +39,17 @@ export default async function SportlinkNewPage({ searchParams }: PageProps) {
 
 async function loadSportlinkWizardData(tenantId: string) {
   const supabase = await createControlSupabaseClient();
-  if (!supabase) return { defaultThemeSelection: platformDefaultThemeSelection, media: [], sources: [], teams: [], templates: [] };
-  const [sourcesResult, connectionsResult, templatesResult, settingsResult, mediaResult] = await Promise.all([
+  if (!supabase) return {
+    defaultThemeAppearance: defaultThemeAppearanceSettings,
+    defaultThemeSelection: platformDefaultThemeSelection,
+    media: [], sources: [], teams: [], templates: []
+  };
+  const [sourcesResult, connectionsResult, templatesResult, settingsResult, profileResult, mediaResult] = await Promise.all([
     supabase.from("dynamic_data_sources").select("id,name").eq("tenant_id", tenantId).eq("kind", "sportlink").eq("status", "active").order("name"),
     supabase.from("sportlink_connections").select("id,data_source_id").eq("tenant_id", tenantId).eq("status", "active"),
     supabase.from("dynamic_templates").select("slide_type,orientation,current_published_version_id").eq("status", "published").like("slug", "editorial-arena-%"),
     supabase.from("tenant_settings").select("default_theme_id,default_theme_version,theme_mode_policy,theme_accent,theme_support").eq("tenant_id", tenantId).maybeSingle(),
+    supabase.from("tenant_theme_profiles").select("appearance_config,selection_json").eq("tenant_id", tenantId).eq("theme_id", "fieldflow").maybeSingle(),
     supabase.from("media_assets").select("id,title").eq("tenant_id", tenantId).eq("status", "ready").eq("source_kind", "user").eq("kind", "image").is("deleted_at", null).order("title").limit(100)
   ]);
   const connections = connectionsResult.data ?? [];
@@ -44,7 +57,11 @@ async function loadSportlinkWizardData(tenantId: string) {
     ? await supabase.from("sports_teams").select("external_id,name,metadata,source_connection_id").eq("tenant_id", tenantId).eq("active", true).in("source_connection_id", connections.map((item) => item.id)).order("name")
     : { data: [] };
   return {
-    defaultThemeSelection: tenantThemeSelection(settingsResult.data),
+    defaultThemeAppearance: tenantThemeAppearance(profileResult.data?.appearance_config),
+    defaultThemeSelection: tenantThemeSelection(
+      profileResult.data?.selection_json,
+      settingsResult.data
+    ),
     media: (mediaResult.data ?? []).map((asset) => ({ id: asset.id, name: asset.title })),
     sources: sourcesResult.data ?? [],
     teams: (teamResult.data ?? []).map((team) => ({
@@ -57,7 +74,12 @@ async function loadSportlinkWizardData(tenantId: string) {
   };
 }
 
-function tenantThemeSelection(settings: Record<string, unknown> | null) {
+function tenantThemeSelection(
+  profileSelection: unknown,
+  settings: Record<string, unknown> | null
+) {
+  const profile = themeSelectionSchema.safeParse(profileSelection);
+  if (profile.success) return profile.data;
   const parsed = themeSelectionSchema.safeParse({
     accent: text(settings?.theme_accent),
     categoryOverrides: [],
@@ -70,6 +92,11 @@ function tenantThemeSelection(settings: Record<string, unknown> | null) {
     support: text(settings?.theme_support)
   });
   return parsed.success ? parsed.data : platformDefaultThemeSelection;
+}
+
+function tenantThemeAppearance(value: unknown) {
+  const parsed = themeAppearanceSettingsSchema.safeParse(value);
+  return parsed.success ? parsed.data : defaultThemeAppearanceSettings;
 }
 
 function competitionContexts(value: unknown) {

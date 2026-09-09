@@ -252,3 +252,38 @@ projecteren. Alle andere dynamische families projecteren hun concrete
 Player en Static LG gebruiken daarvoor dezelfde canvas-, oppervlak-, tekst-,
 rand-, accent- en schaduwwaarden. Zo kan geen statische cataloguskleur naast
 een opgeslagen tenantrol blijven lekken.
+
+### Royal Current / Navy Glass v8
+
+Vanaf S161 is `royal-current-v8` de enige zichtbare nieuwe presentatie onder de
+bestaande authoring-ID `fieldflow`. Royal Current is de lichte modus en Navy
+Glass de donkere modus; componentgeometrie blijft tussen beide identiek. De
+publieke catalogus krijgt geen tweede theme-ID. Historische IDs en appearance
+v1 blijven uitsluitend in de decode-/rendercompatibiliteitslaag bestaan.
+
+Een nieuwe presentatie is expliciet `snapshotVersion: 2` met appearance
+`schemaVersion: 2`. De bevroren appearance bevat `designRevision`, een begrensde
+clubstijlconfiguratie, motion, logoplaten en font-/schaalkeuzes. Eén pure
+generator materialiseert uit primary, `club|neutral` en een optioneel secondary
+de 21 normatieve v8-kleurrollen voor Royal Current en Navy Glass. Daardoor zijn
+de gegenereerde tokens geen vrij authorable tweede opslagmodel. QR/status/logo-
+en fotokleuren blijven functioneel beschermd.
+
+Roboto 400/500/700/900 is de nieuwe lokale broadcastdefault. De oudere
+Manrope/Inter-default blijft alleen relevant voor appearance v1 en andere
+Control-/merkcontext. Exacte landscape-/portraitassen, absolute footers,
+familygeometrie en motion volgen prototype v8; de Player schaalt het logische
+canvas altijd proportioneel.
+
+`private.build_dynamic_snapshot_data(public.dynamic_slides)` projecteert een
+geldig v2-tenantprofiel uitsluitend tijdens de bouw van een nieuw immutable
+snapshot, over iedere dynamische familie. Bestaande profielen worden niet
+automatisch opgewaardeerd en bestaande snapshots, releases en LKG worden niet
+herschreven. De moderne renderer, Static LG, preview, thumbnail en poster lezen
+dezelfde frozen authority. Static LG krijgt vooraf berekende kleuren en hoeft
+moderne CSS-syntax niet te ondersteunen.
+
+Een rollback houdt actieve LKG intact en gebeurt forward-only: nieuwe v2-uitrol
+stoppen en zo nodig de snapshotwrapper in een opvolgmigratie naar de bewaarde
+legacybuilder laten delegeren. Een applicatierollback zonder v2-decoder of een
+destructieve rewrite van gepubliceerde data is verboden.

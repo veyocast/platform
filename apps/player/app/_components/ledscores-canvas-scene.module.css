@@ -10,6 +10,22 @@
   z-index: 70;
 }
 
+/* A canvas scene owns all authored layer colors. The frozen theme only styles
+   the letterbox/root around it, so existing user creatives are never painted
+   over by a later Player release. */
+.root[data-design-revision="royal-current-v8"],
+.root[data-design-revision="player-fallback"] {
+  background: var(--bg, var(--player-bg, #0a1124));
+  color: var(--ink, var(--player-ink, #f5f7fb));
+  font-family: var(--vc-theme-body-font, "Roboto"), Arial, sans-serif;
+}
+
+.root[data-design-revision="royal-current-v8"][data-motion-state="off"] *,
+.root[data-design-revision="player-fallback"][data-motion-state="off"] * {
+  animation: none !important;
+  transition: none !important;
+}
+
 .canvas {
   flex: 0 0 auto;
   overflow: hidden;

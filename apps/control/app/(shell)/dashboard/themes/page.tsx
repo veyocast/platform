@@ -33,7 +33,7 @@ export default async function ThemesPage() {
             <thead><tr><th>Thema</th><th>Status</th><th>Versie</th><th>Bijgewerkt op</th><th><span className="sr-only">Acties</span></th></tr></thead>
             <tbody>
               <tr>
-                <td data-label="Thema"><span className="resource-name"><Palette aria-hidden="true" /><strong>FieldFlow</strong></span></td>
+                <td data-label="Thema"><span className="resource-name"><Palette aria-hidden="true" /><strong>Royal Current · Navy Glass</strong></span></td>
                 <td data-label="Status"><StatusPill label="Actief" tone="success" /></td>
                 <td data-label="Versie">1.0.0 · revisie {profile.revision}</td>
                 <td data-label="Bijgewerkt op">{formatDate(profile.updatedAt)}</td>

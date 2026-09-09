@@ -6,7 +6,8 @@ import {
   createEmptyStudioDocument,
   fitStudioArtboard,
   getStudioSystemTemplate,
-  snapStudioRect
+  snapStudioRect,
+  studioSystemTemplates
 } from "../src";
 
 describe("Studio-geometrie", () => {
@@ -37,8 +38,31 @@ describe("Studio-geometrie", () => {
   it("lijnt meerdere elementen exact uit", () => {
     const template = getStudioSystemTemplate("system-matchday-landscape-hd-v1");
     if (!template) throw new Error("Testtemplate ontbreekt.");
-    const aligned = alignStudioElements(template.document.elements.slice(0, 3), "left");
-    expect(new Set(aligned.map((element) => element.x))).toEqual(new Set([112]));
+    const aligned = alignStudioElements(
+      template.document.elements.filter((element) =>
+        ["club-bar", "title-panel", "match-stage"].includes(element.id)
+      ),
+      "left"
+    );
+    expect(new Set(aligned.map((element) => element.x))).toEqual(new Set([150]));
+  });
+
+  it("houdt alle functionele templatelagen binnen beide artboards", () => {
+    for (const template of studioSystemTemplates) {
+      const { height, width } = template.document.artboard;
+      const functionalElements = template.document.elements.filter(
+        (element) => !element.id.startsWith("flow-orbit")
+      );
+
+      for (const element of functionalElements) {
+        expect(element.x, `${template.id}:${element.id}:x`).toBeGreaterThanOrEqual(0);
+        expect(element.y, `${template.id}:${element.id}:y`).toBeGreaterThanOrEqual(0);
+        expect(element.x + element.width, `${template.id}:${element.id}:right`)
+          .toBeLessThanOrEqual(width);
+        expect(element.y + element.height, `${template.id}:${element.id}:bottom`)
+          .toBeLessThanOrEqual(height);
+      }
+    }
   });
 });
 

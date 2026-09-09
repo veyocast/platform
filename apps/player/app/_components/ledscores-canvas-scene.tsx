@@ -15,6 +15,7 @@ import type {
   LedScoresCanvasScenePair,
   LedScoresOverlayAsset
 } from "../_lib/ledscores-match-experience";
+import type { FrozenPlayerTheme } from "./player-presentation-theme";
 import styles from "./ledscores-canvas-scene.module.css";
 
 export type LedScoresCanvasRendererValues = LedScoresCanvasValues;
@@ -33,6 +34,7 @@ export function LedScoresCanvasSceneRenderer({
   orientation: orientationOverride,
   scene: scenePair,
   testId = "ledscores-canvas-scene",
+  theme = null,
   values
 }: {
   ariaLabel: string;
@@ -41,6 +43,7 @@ export function LedScoresCanvasSceneRenderer({
   orientation?: "landscape" | "portrait";
   scene: LedScoresCanvasScenePair;
   testId?: string;
+  theme?: FrozenPlayerTheme | null;
   values: LedScoresCanvasRendererValues;
 }) {
   const viewportOrientation = useViewportOrientation();
@@ -58,8 +61,12 @@ export function LedScoresCanvasSceneRenderer({
     <section
       aria-label={ariaLabel}
       className={styles.root}
+      data-design-revision={theme?.designRevision ?? "player-fallback"}
+      data-motion-state={theme?.motionEnabled === false ? "off" : "on"}
       data-orientation={orientation}
+      data-theme-mode={theme?.mode ?? "dark"}
       data-testid={testId}
+      style={theme?.style}
     >
       <div
         className={styles.canvas}

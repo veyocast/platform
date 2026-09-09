@@ -207,3 +207,250 @@
 @media (prefers-reduced-motion: reduce) {
   .overlay *, .overlay::before, .liveSlide *, .liveSlide::before { animation: none !important; transition: none !important; }
 }
+
+/* Royal Current / Navy Glass live projection. The inline variables only come
+   from a validated frozen snapshot; player-fallback uses the same Navy
+   semantics when no tenant presentation authority is present. */
+.overlay[data-design-revision="royal-current-v8"],
+.overlay[data-design-revision="player-fallback"],
+.liveSlide[data-design-revision="royal-current-v8"],
+.liveSlide[data-design-revision="player-fallback"] {
+  --live-accent: var(--accent, var(--player-accent, #6a8ef3));
+  --live-accent-soft: var(--accent-soft, var(--player-accent-soft, #192955));
+  --live-bg: var(--bg, var(--player-bg, #0a1124));
+  --live-deep: var(--deep, #070e22);
+  --live-flow: var(--flow-accent, #2459ed);
+  --live-ink: var(--ink, var(--player-ink, #f5f7fb));
+  --live-line: var(--line, var(--player-line, #434c61));
+  --live-muted: var(--muted, var(--player-muted, #b2b6be));
+  --live-own-bg: var(--own-bg, #263a73);
+  --live-own-ink: var(--own-ink, #fff);
+  --live-surface: var(--surface, var(--player-surface, #17213a));
+  --live-surface-2: var(--surface-2, var(--player-surface-2, #1f2a49));
+  background: linear-gradient(135deg, var(--canvas-start, #131c34), var(--live-bg) 50%, var(--canvas-end, #0c1428));
+  color: var(--live-ink);
+  font-family: var(--vc-theme-body-font, "Roboto"), Arial, sans-serif;
+}
+
+.overlay[data-design-revision="royal-current-v8"] h1,
+.overlay[data-design-revision="royal-current-v8"] .scoreNumbers,
+.overlay[data-design-revision="player-fallback"] h1,
+.overlay[data-design-revision="player-fallback"] .scoreNumbers,
+.liveSlide[data-design-revision="royal-current-v8"] h1,
+.liveSlide[data-design-revision="royal-current-v8"] .scoreNumbers,
+.liveSlide[data-design-revision="player-fallback"] h1,
+.liveSlide[data-design-revision="player-fallback"] .scoreNumbers {
+  font-family: var(--vc-theme-display-font, "Roboto"), Arial, sans-serif;
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-palette="electric-orange"],
+.overlay[data-design-revision="player-fallback"][data-palette="electric-orange"] {
+  background: var(--solid-accent, #2459ed);
+  color: #fff;
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-palette="signal-red"],
+.overlay[data-design-revision="player-fallback"][data-palette="signal-red"] {
+  background: var(--vc-semantic-critical-solid);
+  color: #fff;
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-palette="white"],
+.overlay[data-design-revision="player-fallback"][data-palette="white"] {
+  background: #fff;
+  color: var(--live-deep);
+}
+
+.overlay[data-design-revision="royal-current-v8"] .overlayBackdrop::after,
+.overlay[data-design-revision="player-fallback"] .overlayBackdrop::after,
+.liveSlide[data-design-revision="royal-current-v8"] .liveBackdrop::after,
+.liveSlide[data-design-revision="player-fallback"] .liveBackdrop::after {
+  background: none;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .overlayBackdrop span,
+.overlay[data-design-revision="player-fallback"] .overlayBackdrop span,
+.liveSlide[data-design-revision="royal-current-v8"] .liveBackdrop span,
+.liveSlide[data-design-revision="player-fallback"] .liveBackdrop span {
+  background: transparent;
+  border: 2px solid var(--live-flow);
+  border-radius: 50%;
+  opacity: .17;
+  transform: rotate(24deg);
+}
+
+.overlay[data-design-revision="royal-current-v8"] .overlayBackdrop span:nth-child(1),
+.overlay[data-design-revision="player-fallback"] .overlayBackdrop span:nth-child(1),
+.liveSlide[data-design-revision="royal-current-v8"] .liveBackdrop span:nth-child(1),
+.liveSlide[data-design-revision="player-fallback"] .liveBackdrop span:nth-child(1) {
+  height: 58vw;
+  left: auto;
+  right: -16vw;
+  top: -31vw;
+  width: 68vw;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .overlayBackdrop span:nth-child(2),
+.overlay[data-design-revision="player-fallback"] .overlayBackdrop span:nth-child(2),
+.liveSlide[data-design-revision="royal-current-v8"] .liveBackdrop span:nth-child(2),
+.liveSlide[data-design-revision="player-fallback"] .liveBackdrop span:nth-child(2) {
+  bottom: -41vw;
+  height: 55vw;
+  left: -24vw;
+  right: auto;
+  top: auto;
+  transform: rotate(-16deg);
+  width: 82vw;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .overlayBackdrop span:nth-child(3),
+.overlay[data-design-revision="player-fallback"] .overlayBackdrop span:nth-child(3),
+.liveSlide[data-design-revision="royal-current-v8"] .liveBackdrop span:nth-child(3),
+.liveSlide[data-design-revision="player-fallback"] .liveBackdrop span:nth-child(3) {
+  bottom: -24vw;
+  height: 28vw;
+  left: auto;
+  opacity: .08;
+  right: 10vw;
+  top: auto;
+  transform: rotate(-22deg);
+  width: 42vw;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .lineupHeader,
+.overlay[data-design-revision="player-fallback"] .lineupHeader,
+.overlay[data-design-revision="royal-current-v8"] .playerCard,
+.overlay[data-design-revision="player-fallback"] .playerCard,
+.liveSlide[data-design-revision="royal-current-v8"] .liveHeader,
+.liveSlide[data-design-revision="player-fallback"] .liveHeader,
+.liveSlide[data-design-revision="royal-current-v8"] .liveScorePanel,
+.liveSlide[data-design-revision="player-fallback"] .liveScorePanel,
+.liveSlide[data-design-revision="royal-current-v8"] .timeline,
+.liveSlide[data-design-revision="player-fallback"] .timeline {
+  background: var(--live-surface);
+  border: 1px solid var(--live-line);
+  border-radius: 24px;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .lineupHeader,
+.overlay[data-design-revision="player-fallback"] .lineupHeader {
+  padding: clamp(1.25rem, 2vw, 2rem);
+}
+
+.overlay[data-design-revision="royal-current-v8"] .playerCard,
+.overlay[data-design-revision="player-fallback"] .playerCard {
+  border-color: var(--live-line);
+  border-radius: 18px;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .playerPhoto,
+.overlay[data-design-revision="player-fallback"] .playerPhoto {
+  background: var(--live-surface-2);
+}
+
+.overlay[data-design-revision="royal-current-v8"] .playerCard > div:last-child span,
+.overlay[data-design-revision="player-fallback"] .playerCard > div:last-child span,
+.overlay[data-design-revision="royal-current-v8"] .kicker,
+.overlay[data-design-revision="player-fallback"] .kicker,
+.liveSlide[data-design-revision="royal-current-v8"] .liveHeader p,
+.liveSlide[data-design-revision="player-fallback"] .liveHeader p,
+.liveSlide[data-design-revision="royal-current-v8"] .timelineMark,
+.liveSlide[data-design-revision="player-fallback"] .timelineMark {
+  color: var(--live-accent);
+}
+
+.overlay[data-design-revision="royal-current-v8"] .momentContent,
+.overlay[data-design-revision="player-fallback"] .momentContent {
+  background: linear-gradient(145deg, var(--live-surface) 45%, var(--live-accent-soft));
+  border: 1px solid var(--live-line);
+  border-radius: 24px;
+  max-width: min(92%, 1500px);
+  padding: clamp(2.5rem, 5vw, 6rem);
+  width: 100%;
+}
+
+.overlay[data-design-revision="royal-current-v8"] .lead,
+.overlay[data-design-revision="player-fallback"] .lead,
+.overlay[data-design-revision="royal-current-v8"] .teamScore > span:last-child,
+.overlay[data-design-revision="player-fallback"] .teamScore > span:last-child,
+.liveSlide[data-design-revision="royal-current-v8"] .timeline header span,
+.liveSlide[data-design-revision="player-fallback"] .timeline header span,
+.liveSlide[data-design-revision="royal-current-v8"] .timeline li > div span,
+.liveSlide[data-design-revision="player-fallback"] .timeline li > div span,
+.liveSlide[data-design-revision="royal-current-v8"] .liveFooter,
+.liveSlide[data-design-revision="player-fallback"] .liveFooter {
+  color: var(--live-muted);
+  opacity: 1;
+}
+
+.liveSlide[data-design-revision="royal-current-v8"],
+.liveSlide[data-design-revision="player-fallback"] {
+  box-shadow: none;
+  gap: clamp(1rem, 2vh, 1.75rem);
+  padding: clamp(2rem, 4vw, 4.75rem);
+}
+
+.liveSlide[data-design-revision="royal-current-v8"][data-accent="club"],
+.liveSlide[data-design-revision="player-fallback"][data-accent="club"] {
+  box-shadow: inset 0 8px var(--solid-accent, #2459ed);
+}
+
+.liveSlide[data-design-revision="royal-current-v8"][data-accent="contrast"],
+.liveSlide[data-design-revision="player-fallback"][data-accent="contrast"] {
+  box-shadow: inset 0 0 0 8px var(--live-accent);
+}
+
+.liveSlide[data-design-revision="royal-current-v8"][data-accent="neutral"],
+.liveSlide[data-design-revision="player-fallback"][data-accent="neutral"] {
+  --live-accent: var(--live-muted);
+}
+
+.liveSlide[data-design-revision="royal-current-v8"] .liveHeader,
+.liveSlide[data-design-revision="player-fallback"] .liveHeader {
+  border-bottom: 1px solid var(--live-line);
+  padding: clamp(1.25rem, 2.4vw, 2.5rem);
+}
+
+.liveSlide[data-design-revision="royal-current-v8"] .liveBody,
+.liveSlide[data-design-revision="player-fallback"] .liveBody {
+  padding: 0;
+}
+
+.liveSlide[data-design-revision="royal-current-v8"] .liveScorePanel,
+.liveSlide[data-design-revision="player-fallback"] .liveScorePanel,
+.liveSlide[data-design-revision="royal-current-v8"] .timeline,
+.liveSlide[data-design-revision="player-fallback"] .timeline {
+  padding: clamp(1.5rem, 3vw, 3.25rem);
+}
+
+.liveSlide[data-design-revision="royal-current-v8"] .timeline,
+.liveSlide[data-design-revision="player-fallback"] .timeline {
+  border-left: 1px solid var(--live-line);
+}
+
+.liveSlide[data-design-revision="royal-current-v8"] .liveFooter,
+.liveSlide[data-design-revision="player-fallback"] .liveFooter {
+  border-top-color: var(--live-line);
+}
+
+.overlay[data-design-revision="royal-current-v8"][data-motion-state="off"] *,
+.overlay[data-design-revision="player-fallback"][data-motion-state="off"] *,
+.liveSlide[data-design-revision="royal-current-v8"][data-motion-state="off"] *,
+.liveSlide[data-design-revision="player-fallback"][data-motion-state="off"] * {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (orientation: portrait) {
+  .overlay[data-design-revision="royal-current-v8"] .momentContent,
+  .overlay[data-design-revision="player-fallback"] .momentContent {
+    max-width: 100%;
+    padding: 5vw;
+  }
+
+  .liveSlide[data-design-revision="royal-current-v8"] .timeline,
+  .liveSlide[data-design-revision="player-fallback"] .timeline {
+    border-left: 1px solid var(--live-line);
+    border-top: 1px solid var(--live-line);
+  }
+}

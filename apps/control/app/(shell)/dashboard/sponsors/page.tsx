@@ -2,6 +2,8 @@ import { hasCapability } from "@veyocast/auth";
 import { Button, StatusPill } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
+import { loadTenantStyleData } from "../../../../lib/tenant-style-data";
+import { TenantStyleSummary } from "../slides/_components/tenant-style-summary";
 import {
   addCreative,
   approveCampaign,
@@ -25,7 +27,10 @@ const campaignTone = { approved: "success", draft: "neutral", ended: "neutral", 
 export default async function SponsorHubPage({ searchParams }: { searchParams: Promise<{ fout?: string; succes?: string }> }) {
   const session = await requireTenantControlSession("tenant.sponsor.read");
   const params = await searchParams;
-  const data = session.tenantId ? await loadSponsorHub(session.tenantId) : await loadSponsorHub("");
+  const [data, tenantStyle] = await Promise.all([
+    loadSponsorHub(session.tenantId ?? ""),
+    loadTenantStyleData(session.tenantId, session.isLive)
+  ]);
   const canWrite = session.isLive && hasCapability(session.capabilities, "tenant.sponsor.write");
   const canApprove = session.isLive && hasCapability(session.capabilities, "tenant.sponsor.approve");
   const canPublish = session.isLive && hasCapability(session.capabilities, "tenant.sponsor.publish");
@@ -49,6 +54,11 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
       <Metric label="Vertoningen (30 dagen)" value={data.events.length} />
       <Metric label="Aangetoonde speeltijd" value={`${Math.round(totalPlayedMs / 60000)} min`} />
     </section>
+
+    <TenantStyleSummary
+      context="Status-, lege en omliggende sponsorvlakken gebruiken deze clubstijl. Afbeeldingen, video's en logo's van sponsors behouden altijd hun eigen pixels, uitsnede en kleur."
+      style={tenantStyle}
+    />
 
     <section className={styles.grid} id="actie">
       <article className={styles.panel}>
@@ -110,7 +120,7 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
     </section>
 
     <section className={styles.grid} id="schermen">
-      <article className={styles.panel}><PanelHeader title="Semantische posities" description="Alle tien thema's krijgen dezelfde betekenis; de player rendert de zone zelfstandig." /><ul className={styles.list}>{data.positions.map((position) => <li key={position.id}><span><strong>{position.name}</strong><small>{position.mode === "fixed" ? "Contextgebonden" : "Gewogen rotatie"}</small></span><StatusPill label={position.enabled ? "Actief" : "Uit"} tone={position.enabled ? "success" : "neutral"} /></li>)}</ul></article>
+      <article className={styles.panel}><PanelHeader title="Semantische posities" description="Royal Current en Navy Glass gebruiken dezelfde botsingsvrije zones; de Player rendert iedere positie zelfstandig." /><ul className={styles.list}>{data.positions.map((position) => <li key={position.id}><span><strong>{position.name}</strong><small>{position.mode === "fixed" ? "Contextgebonden" : "Gewogen rotatie"}</small></span><StatusPill label={position.enabled ? "Actief" : "Uit"} tone={position.enabled ? "success" : "neutral"} /></li>)}</ul></article>
       {canWrite && data.campaigns.length && data.positions.length ? <article className={styles.panel}><PanelHeader title="Campagne plaatsen" description="Een poolreferentie blijft stabiel terwijl sponsors binnen de pool wijzigen." /><form action={placeCampaign} className={styles.form}><label className={styles.field}><span>Campagne</span><select name="campaignId">{data.campaigns.filter((item) => item.status === "draft").map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label className={styles.field}><span>Positie</span><select name="positionId">{data.positions.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label className={styles.field}><span>Oriëntatie</span><select name="orientation"><option value="any">Beide</option><option value="landscape">Landscape</option><option value="portrait">Portrait</option></select></label><Button type="submit" variant="primary">Plaatsing opslaan</Button></form></article> : null}
     </section>
 

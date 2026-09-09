@@ -4,6 +4,8 @@ import Image from "next/image";
 import QRCode from "qrcode";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
+import { loadTenantStyleData } from "../../../../lib/tenant-style-data";
+import { TenantStyleSummary } from "../slides/_components/tenant-style-summary";
 import { saveEngageCampaign, transitionEngageCampaign } from "./actions";
 import { loadEngageWorkspace } from "./data";
 import styles from "./engage.module.css";
@@ -12,7 +14,10 @@ const tones = { archived: "neutral", closed: "neutral", draft: "warning", live: 
 
 export default async function EngagePage({ searchParams }: { searchParams: Promise<{ fout?: string; succes?: string }> }) {
   const session = await requireTenantControlSession("tenant.dynamic_slide.read");
-  const data = await loadEngageWorkspace(session.tenantId ?? "");
+  const [data, tenantStyle] = await Promise.all([
+    loadEngageWorkspace(session.tenantId ?? ""),
+    loadTenantStyleData(session.tenantId, session.isLive)
+  ]);
   const params = await searchParams;
   const canWrite = session.isLive && hasCapability(session.capabilities, "tenant.dynamic_slide.write");
   const baseUrl = (process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000").replace(/\/$/, "");
@@ -27,6 +32,10 @@ export default async function EngagePage({ searchParams }: { searchParams: Promi
     {params.fout ? <p className={styles.banner} role="alert"><strong>Wijziging mislukt.</strong> Controleer de invoer, status en rollout.</p> : null}
     {!data.enabled ? <section className={`${styles.panel} ${styles.gate}`}><StatusPill label="Niet geactiveerd" tone="warning" /><h2>Engage staat achter een gecontroleerde featureflag</h2><p className={styles.meta}>Een platformbeheerder activeert de pilot per tenant. De flag verleent geen rechten en publieke campagnes blijven tot dat moment onbereikbaar.</p></section> : null}
     {data.enabled ? <>
+      <TenantStyleSummary
+        context="De stemoproep en resultaatweergave gebruiken deze clubstijl. Vraag, keuzes, zichtbaarheid en QR-bestemming blijven campagnegegevens en veranderen het palet niet."
+        style={tenantStyle}
+      />
       <section className={styles.grid}>
         <article className={styles.panel}><h2>Campagnes</h2><p className={styles.meta}>{data.campaigns.length} campagnes · {data.metrics.reduce((total, metric) => total + Number(metric.total_votes), 0)} geldige stemmen</p><ul className={styles.list}>{data.campaigns.map((campaign) => {
           const options = data.options.filter((option) => option.campaign_id === campaign.id);

@@ -15,6 +15,7 @@ import {
   LedScoresCanvasSceneRenderer,
   selectLedScoresCanvasScene
 } from "./ledscores-canvas-scene";
+import type { FrozenPlayerTheme } from "./player-presentation-theme";
 
 const backgroundAssetId = "11111111-1111-4111-8111-111111111111";
 
@@ -103,6 +104,24 @@ describe("LED Scores canvas Player-renderer", () => {
     expect(html).toContain("--canvas-line-color:#315cff");
     expect(html).toContain("--canvas-line-width:min(");
   });
+
+  it("themet alleen de canvas-root en behoudt authored laagkleuren", () => {
+    const html = renderToStaticMarkup(
+      <LedScoresCanvasSceneRenderer
+        ariaLabel="Canvas Royal"
+        assets={assets}
+        orientation="landscape"
+        scene={scenePair()}
+        theme={royalTheme}
+        values={values}
+      />
+    );
+
+    expect(html).toContain('data-design-revision="royal-current-v8"');
+    expect(html).toContain('data-motion-state="off"');
+    expect(html).toContain('--bg:#0a1124');
+    expect(html).toContain("background-color:#0a0a0a");
+  });
 });
 
 const assets = new Map<string, LedScoresOverlayAsset>([[
@@ -152,3 +171,14 @@ function scenePair(): LedScoresCanvasScenePair {
     portrait: pair.portrait
   };
 }
+
+const royalTheme: FrozenPlayerTheme = {
+  designRevision: "royal-current-v8",
+  mode: "dark",
+  motionEnabled: false,
+  snapshot: {} as FrozenPlayerTheme["snapshot"],
+  style: {
+    "--bg": "#0a1124",
+    "--ink": "#f5f7fb"
+  } as FrozenPlayerTheme["style"]
+};

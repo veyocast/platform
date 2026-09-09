@@ -1,11 +1,13 @@
 import {
   authorableThemeIds,
   defaultThemeAppearanceSettings,
+  legacyThemeAppearanceSettings,
   themeManifestSchema,
   themePresentationSnapshotSchema,
   themeSelectionSchema,
   type EditorialColorTokens,
   type SelectableThemeId,
+  type ThemeAppearanceSettings,
   type ThemeManifestTheme,
   type ThemeMode,
   type ThemeModePolicy,
@@ -16,6 +18,10 @@ import {
 
 import manifestSource from "./THEME-MANIFEST.v1.json";
 import { contrastRatio } from "./editorial-arena-theme";
+import {
+  royalCurrentCssVariables,
+  royalCurrentEditorialTokens
+} from "./royal-current-theme";
 
 export const themeManifest = themeManifestSchema.parse(manifestSource);
 
@@ -103,22 +109,35 @@ export function resolveThemeMode(
 }
 
 export function freezeThemePresentation(input: {
+  appearance?: ThemeAppearanceSettings;
   instant: string;
   prefersDark?: boolean;
   selection: unknown;
+  settingsRevision?: number;
   timezone: string;
 }): ThemePresentationSnapshot {
   const selection = parseThemeSelection(input.selection);
+  const resolvedMode = {
+    mode: resolveThemeMode(selection.modePolicy, input),
+    policy: selection.modePolicy,
+    resolvedAt: input.instant,
+    timezone: input.timezone
+  };
+  if (!input.appearance) {
+    return {
+      catalogVersion: themeManifest.manifestVersion,
+      resolvedMode,
+      selection,
+      snapshotVersion: 1
+    };
+  }
   return {
+    appearance: input.appearance,
     catalogVersion: themeManifest.manifestVersion,
-    resolvedMode: {
-      mode: resolveThemeMode(selection.modePolicy, input),
-      policy: selection.modePolicy,
-      resolvedAt: input.instant,
-      timezone: input.timezone
-    },
+    resolvedMode,
     selection,
-    snapshotVersion: 1
+    settingsRevision: Math.max(0, Math.trunc(input.settingsRevision ?? 0)),
+    snapshotVersion: 2
   };
 }
 
@@ -131,12 +150,50 @@ export function themeCssVariables(
   const palette = theme[snapshot.resolvedMode.mode];
   const appearance = snapshot.snapshotVersion === 2
     ? snapshot.appearance
-    : defaultThemeAppearanceSettings;
+    : legacyThemeAppearanceSettings;
   const baseScale = appearance.typography.baseScale;
   const sportScale = baseScale * appearance.typography.sportScale;
   const sportScaleFromDefault = appearance.typography.sportScale /
-    defaultThemeAppearanceSettings.typography.sportScale;
+    (appearance.schemaVersion === 1
+      ? legacyThemeAppearanceSettings.typography.sportScale
+      : defaultThemeAppearanceSettings.typography.sportScale);
+  const royalCurrentVariables = appearance.schemaVersion === 2 &&
+    theme.id === "fieldflow"
+    ? royalCurrentCssVariables(
+        appearance.palette,
+        snapshot.resolvedMode.mode
+      )
+    : {};
+  // Royal Current keeps a small set of legacy-facing aliases for the LG
+  // projection and for the authored CSS. When a tenant has overridden the
+  // semantic palette, those aliases must follow the canonical tokens too;
+  // otherwise preview and playback can show different colours.
+  const royalCurrentSemanticVariables: Record<string, string | number> = Object.keys(royalCurrentVariables).length && editorialTokens
+    ? {
+        "--accent": editorialTokens.accent,
+        "--accent-soft": editorialTokens.accentSoft,
+        "--bg": editorialTokens.canvas,
+        // `deep` has no one-to-one EditorialColorTokens role; rowSelected is
+        // the canonical Royal Current navy anchor and remains tenant-editable.
+        "--deep": editorialTokens.rowSelected,
+        "--flow-accent": selection.support ?? editorialTokens.accent,
+        "--ink": editorialTokens.text,
+        "--line": editorialTokens.border,
+        "--muted": editorialTokens.textMuted,
+        "--on-accent": editorialTokens.textOnAccent,
+        "--own-bg": editorialTokens.rowSelected,
+        "--own-ink": editorialTokens.textOnSelected,
+        "--own-line": editorialTokens.border,
+        "--own-muted": editorialTokens.textMuted,
+        "--secondary-accent": selection.support ?? editorialTokens.accent,
+        "--solid-accent": editorialTokens.accent,
+        "--surface": editorialTokens.surface,
+        "--surface-2": editorialTokens.surfaceRaised
+      } as Record<string, string | number>
+    : {};
   return {
+    ...royalCurrentVariables,
+    ...royalCurrentSemanticVariables,
     ...themeBaseFontVariables(baseScale),
     "--vc-theme-accent": editorialTokens?.accent ??
       selection.accent ?? theme.accentDefault,
@@ -183,6 +240,18 @@ export function themeCssVariables(
 export function themeToEditorialTokens(
   snapshot: ThemePresentationSnapshot
 ): EditorialColorTokens {
+  if (
+    snapshot.snapshotVersion === 2 &&
+    snapshot.selection.ref.catalog === "v2" &&
+    snapshot.selection.ref.id === "fieldflow" &&
+    snapshot.appearance.schemaVersion === 2 &&
+    snapshot.appearance.designRevision === "royal-current-v8"
+  ) {
+    return royalCurrentEditorialTokens(
+      snapshot.appearance.palette,
+      snapshot.resolvedMode.mode
+    );
+  }
   const selection = snapshot.selection;
   const theme = resolveThemeDefinition(selection);
   const palette = theme[snapshot.resolvedMode.mode];

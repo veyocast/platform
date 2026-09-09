@@ -899,7 +899,7 @@ export function SlideComposerForm({
           </div>
           <div>
             <dt>Uitstraling</dt>
-            <dd>Centrale FieldFlow-tenantstijl</dd>
+            <dd>Centrale Royal Current/Navy Glass-tenantstijl</dd>
           </div>
         </dl>
         <p className={styles.muted}>

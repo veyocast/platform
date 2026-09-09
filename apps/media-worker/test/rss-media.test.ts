@@ -1,7 +1,15 @@
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, resolve } from "node:path";
+
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
+import { prepareZXingModule, readBarcodes } from "zxing-wasm/reader";
 
-import { normalizeRssImage } from "../src/rss-media";
+import {
+  normalizeRssImage,
+  prepareRssMediaArtifacts
+} from "../src/rss-media";
 
 const job = {
   dataSourceId: "22222222-2222-4222-8222-222222222222",
@@ -9,6 +17,13 @@ const job = {
   sourceUrl: "https://example.test/rss.xml",
   tenantId: "11111111-1111-4111-8111-111111111111"
 };
+
+const requireFromTest = createRequire(import.meta.url);
+const readerWasm = Uint8Array.from(readFileSync(resolve(
+  dirname(requireFromTest.resolve("zxing-wasm/reader")),
+  "../../reader/zxing_reader.wasm"
+))).buffer;
+prepareZXingModule({ overrides: { wasmBinary: readerWasm } });
 
 describe("RSS media normalisatie", () => {
   it("bewaart beeldverhouding en vergroot een kleine bron niet kunstmatig", async () => {
@@ -108,24 +123,26 @@ describe("RSS media normalisatie", () => {
     expect(artifact.width / artifact.height).toBeCloseTo(3, 4);
   });
 
-  it("maakt QR-invoer verliesvrij en content-addressed beschikbaar", async () => {
-    const input = await sharp({
-      create: {
-        background: { alpha: 1, b: 255, g: 255, r: 255 },
-        channels: 4,
-        height: 512,
-        width: 512
-      }
-    }).png().toBuffer();
-    const artifact = await normalizeRssImage(
-      job,
-      {
+  it("houdt de echte artikelbestemming na QR-normalisatie decodeerbaar", async () => {
+    const destination = "https://www.veyocast.nl/clubnieuws/royal-current";
+    const artifacts = await prepareRssMediaArtifacts(job, {
+      articles: [{
+        author: null,
+        canonicalLink: destination,
         externalId: "article-qr",
-        role: "article_qr",
-        title: "QR-code artikel"
-      },
-      input
-    );
+        heroMediaAssetId: null,
+        intro: "Nieuws uit de club",
+        link: destination,
+        publishedAt: null,
+        qrMediaAssetId: null,
+        sourceName: "VeyoCast",
+        title: "Royal Current"
+      }],
+      media: { articleImages: [], providerLogoUrl: null },
+      title: "VeyoCast clubnieuws"
+    });
+    expect(artifacts).toHaveLength(1);
+    const artifact = artifacts[0]!;
 
     expect(artifact).toMatchObject({
       externalId: "article-qr",
@@ -134,5 +151,26 @@ describe("RSS media normalisatie", () => {
       width: 512
     });
     expect(artifact.storagePath).toContain("/rss-article_qr.webp");
+
+    const decodedImage = await sharp(artifact.bytes)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const results = await readBarcodes({
+      colorSpace: "srgb",
+      data: Uint8ClampedArray.from(decodedImage.data),
+      height: decodedImage.info.height,
+      width: decodedImage.info.width
+    }, {
+      formats: ["QRCode"],
+      maxNumberOfSymbols: 1,
+      tryHarder: true
+    });
+
+    expect(results).toHaveLength(1);
+    expect(results[0]).toMatchObject({
+      format: "QRCode",
+      text: destination
+    });
   });
 });

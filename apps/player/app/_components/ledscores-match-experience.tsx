@@ -21,12 +21,15 @@ import {
   LedScoresCanvasSceneRenderer,
   type LedScoresCanvasRendererValues
 } from "./ledscores-canvas-scene";
+import type { FrozenPlayerTheme } from "./player-presentation-theme";
 import styles from "./ledscores-match-experience.module.css";
 
 export function LedScoresMatchOverlay({
-  overlay
+  overlay,
+  theme = null
 }: {
   overlay: ActiveLedScoresMatchOverlay | null;
+  theme?: FrozenPlayerTheme | null;
 }) {
   const lineupPagination = useLineupPagination(overlay);
   const [failedCanvasDeliveryId, setFailedCanvasDeliveryId] = useState<string | null>(null);
@@ -40,6 +43,7 @@ export function LedScoresMatchOverlay({
         : overlay.deliveryId);
     }}
     overlay={overlay}
+    theme={theme}
   />;
 }
 
@@ -47,7 +51,8 @@ export function LedScoresMatchOverlayContent({
   canvasBackgroundFailed,
   lineupPagination,
   onCanvasBackgroundError,
-  overlay
+  overlay,
+  theme = null
 }: {
   canvasBackgroundFailed: boolean;
   lineupPagination: {
@@ -57,6 +62,7 @@ export function LedScoresMatchOverlayContent({
   };
   onCanvasBackgroundError: () => void;
   overlay: ActiveLedScoresMatchOverlay | null;
+  theme?: FrozenPlayerTheme | null;
 }) {
   if (!overlay) return null;
   if (overlay.kind === "lineup_clear") return null;
@@ -72,6 +78,7 @@ export function LedScoresMatchOverlayContent({
         onBackgroundMediaError={onCanvasBackgroundError}
         scene={overlay.scene}
         testId="ledscores-match-canvas"
+        theme={theme}
         values={matchOverlayCanvasValues(overlay, lineupPagination.players)}
       />
     );
@@ -83,12 +90,16 @@ export function LedScoresMatchOverlayContent({
         aria-label={`Opstelling ${team.name}`}
         className={`${styles.overlay} ${styles.lineupOverlay}`}
         data-animation={overlay.design.animation}
+        data-design-revision={theme?.designRevision ?? "player-fallback"}
         data-logo-position={overlay.design.logoPosition}
         data-logo-scale={overlay.design.logoScale}
+        data-motion-state={theme?.motionEnabled === false ? "off" : "on"}
         data-palette={overlay.design.palette}
         data-template={overlay.design.templateId}
+        data-theme-mode={theme?.mode ?? "dark"}
         data-testid="ledscores-match-overlay"
         data-typography={overlay.design.typography}
+        style={theme?.style}
       >
         <OverlayBackdrop />
         <header className={styles.lineupHeader}>
@@ -134,12 +145,16 @@ export function LedScoresMatchOverlayContent({
       aria-label={overlayAccessibilityLabel(overlay.kind)}
       className={`${styles.overlay} ${styles.momentOverlay}`}
       data-animation={overlay.design.animation}
+      data-design-revision={theme?.designRevision ?? "player-fallback"}
       data-logo-position={overlay.design.logoPosition}
       data-logo-scale={overlay.design.logoScale}
+      data-motion-state={theme?.motionEnabled === false ? "off" : "on"}
       data-palette={overlay.design.palette}
       data-template={overlay.design.templateId}
+      data-theme-mode={theme?.mode ?? "dark"}
       data-testid="ledscores-match-overlay"
       data-typography={overlay.design.typography}
+      style={theme?.style}
     >
       <OverlayBackdrop />
       <div className={styles.momentContent}>
@@ -249,13 +264,15 @@ export function LedScoresLiveMatchSlide({
   now: fixedNow,
   onReady,
   orientation,
-  state
+  state,
+  theme = null
 }: {
   config: LedScoresLiveMatchConfig;
   now?: number;
   onReady?: () => void;
   orientation: "landscape" | "portrait";
   state: LedScoresMatchState;
+  theme?: FrozenPlayerTheme | null;
 }) {
   const readyRef = useRef(false);
   const tickingNow = useLedScoresNow(true, fixedNow);
@@ -280,14 +297,18 @@ export function LedScoresLiveMatchSlide({
       aria-label={`${config.title}: ${state.home.name} tegen ${state.away.name}`}
       className={styles.liveSlide}
       data-accent={config.accentMode}
+      data-design-revision={theme?.designRevision ?? "player-fallback"}
       data-has-timeline={config.template === "match_center" &&
         config.showTimeline && timeline.length ? "true" : "false"}
+      data-motion-state={theme?.motionEnabled === false ? "off" : "on"}
       data-orientation={orientation}
       data-stale={stale ? "true" : "false"}
       data-template={config.template}
+      data-theme-mode={theme?.mode ?? "dark"}
       data-testid="ledscores-live-match-slide"
+      style={theme?.style}
     >
-      <div className={styles.liveBackdrop} aria-hidden="true"><span /><span /></div>
+      <div className={styles.liveBackdrop} aria-hidden="true"><span /><span /><span /></div>
       <header className={styles.liveHeader}>
         <div>
           <p>{config.title}</p>

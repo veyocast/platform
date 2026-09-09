@@ -1,10 +1,11 @@
 export const studioSchemaVersion = 1 as const;
 export const studioFontRegistryVersions = [
   "2026-07-24.1",
-  "2026-09-02.1"
+  "2026-09-02.1",
+  "2026-09-09.1"
 ] as const;
-export const studioFontRegistryVersion = "2026-09-02.1" as const;
-export const studioRendererVersion = "1.1.0" as const;
+export const studioFontRegistryVersion = "2026-09-09.1" as const;
+export const studioRendererVersion = "1.2.0" as const;
 export const studioFps = 30 as const;
 
 export const studioPalette = {
@@ -19,6 +20,39 @@ export const studioPalette = {
   surfaceDark: "#171717",
   surfaceWarm: "#24120B",
   warmOrange: "#FFAE72"
+} as const;
+
+/**
+ * Concrete Navy Glass defaults generated for #2459ED by the shared Royal
+ * Current palette engine. Studio documents freeze these values on creation;
+ * tenant branding resolves the same semantic roles through that engine.
+ */
+export const studioRoyalCurrentPalette = {
+  accent: "#6A8EF3",
+  accentSoft: "#192955",
+  background: "#0A1124",
+  brandPrimary: "#2459ED",
+  canvasEnd: "#0C1428",
+  canvasStart: "#131C34",
+  danger: "#FF8F95",
+  deep: "#070E22",
+  flowAccent: "#2459ED",
+  ink: "#F5F7FB",
+  line: "#434C61",
+  muted: "#B2B6BE",
+  onAccent: "#101010",
+  ownBackground: "#263A73",
+  ownInk: "#FFFFFF",
+  ownLine: "#63719A",
+  ownMuted: "#DEE1EA",
+  qrInk: "#000000",
+  qrSurface: "#FFFFFF",
+  secondaryAccent: "#6A8EF3",
+  solidAccent: "#2459ED",
+  success: "#74D9A5",
+  surface: "#17213A",
+  surfaceRaised: "#1F2A49",
+  warning: "#FFCBA4"
 } as const;
 
 export const studioFormats = [
@@ -41,6 +75,11 @@ export const studioFormats = [
 export type StudioFormatId = (typeof studioFormats)[number]["id"];
 
 export const studioFonts = [
+  {
+    family: "Roboto",
+    label: "Roboto",
+    weights: [400, 500, 700, 900]
+  },
   {
     family: "Inter Variable",
     label: "Inter",

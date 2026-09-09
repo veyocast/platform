@@ -43,9 +43,10 @@ export function BrandKitDialog({
         <DialogHeader>
           <DialogTitle>Studio-huisstijl</DialogTitle>
           <DialogDescription>
-            Beheer de gecontroleerde merkkleuren en het clublogo van{" "}
-            {tenantName}. Teamleden kunnen deze daarna bewust op een ontwerp
-            toepassen.
+            Beheer het clublogo en de bewerkbare kleuren voor vrije
+            Studio-ontwerpen van {tenantName}. Royal Current/Navy Glass voor
+            datagedreven slides beheer je centraal bij Thema&apos;s; bestaande
+            vrije ontwerpen worden nooit automatisch opnieuw gekleurd.
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
@@ -118,7 +119,7 @@ export function BrandKitDialog({
               {message ? <p className="notice notice--critical" role="alert">{message}</p> : null}
               <DialogFooter>
                 <Button disabled={pending} type="submit">
-                  {pending ? "Opslaan…" : "Huisstijl opslaan"}
+                  {pending ? "Opslaan…" : "Studio-huisstijl opslaan"}
                 </Button>
               </DialogFooter>
             </form>

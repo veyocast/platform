@@ -174,3 +174,47 @@ merkasset, primaire Electric-Orange/Ink-actie, securitygrens of offlinecontract.
 De gereviewde voorbeelden en reproduceerbare matrix staan in
 `docs/redesign/GOLDEN_INDEX.md`; de tokenbron staat in
 `tokens/veyocast-fieldflow-v3-tokens.json`.
+
+## Royal Current / Navy Glass v8 broadcastdelta
+
+Voor nieuwe en opnieuw bewerkte broadcastcontent vervangt S161 de zichtbare
+FieldFlow-v3-presentatie door de goedgekeurde prototype-v8-geometrie. Deze
+delta is leidend boven de eerdere broadcastregels over Manrope/Inter,
+`#4169E1`/`#7A5CE6`, 26 handmatig verfijnbare tokens en de 84/58/8-overlay.
+Zij wijzigt niet de locked VeyoCast-assets, de Electric-Orange/Ink-actie in
+Control, toegankelijkheid, RLS, immutable releases of Player-LKG.
+
+- De twee namen zijn modi van één ontwerp: Royal Current (light) en Navy Glass
+  (dark). De geometrie verandert niet bij een modewissel.
+- Roboto is de lokale broadcastdefault in weights 400, 500, 700 en 900;
+  typography scale is 90–120%, standaard 100%.
+- De primaire instelling is één van zes clubkleurpresets of geldige custom HEX.
+  Geavanceerd bevat alleen `club|neutral` en een optioneel tweede decoratief
+  accent. De pure v8-generator berekent 21 semantische rollen voor beide modi;
+  vrije tokenvelden of vrije CSS zijn geen authoringcontract.
+- Landscape gebruikt logisch 1920 × 1080 met padding `32 64 76 150`, een
+  titelminimum van 148 en footer op 22 px. Portrait gebruikt 1080 × 1920 met
+  padding `36 38 84 101`, titelminimum 192 en footer op 24 px. Canvas wordt
+  uniform geschaald.
+- Fixturelijsten rekken een klein aantal rijen niet over de beschikbare hoogte.
+  Afgelast vervangt de tijd op dezelfde positie met 18/20 px chipmaat,
+  `5px 8px` padding, radius 7 en weight 500. Onbekende score blijft leeg.
+- Stand houdt alle kolommen, een echte pinned eigen-teamrij en dezelfde gewone
+  rij in de bronlijst. Motion is 3 s hold, 34 logische px/s, 3 s hold; reduced
+  motion gebruikt rustige paginering.
+- Nieuws heeft vier composities, één hoofdtitel en QR-only rechtsonder. Welkom
+  heeft vaste 1/2/3 slots, echte bezoekerslogo's, 30% watermark,
+  `minmax(0,1fr) auto` en een logobox van `min(56%,560px)`.
+- Engage reserveert 2/3 voor resultaten en 1/3 voor de oproep; balken gebruiken
+  1400 ms `scaleX` met de vastgelegde easing/stagger zonder restart bij iedere
+  livewaardewijziging.
+- Agenda gebruikt per activiteit het juiste beeld op 30% plus een afzonderlijke
+  30%-modusoverlay. Sponsorcreatives, usermedia en vrije Studio-ontwerpen worden
+  niet gerecolourd of overschreven.
+- Automatische logo-transparantie, white-keying en blend-trucs zijn expliciet
+  buiten scope.
+
+De normatieve 92-case index en de actuele extra surface-/configuratie-/eisenstatus
+staan in `docs/implementation/s161-royal-current/`. HTML-referenties zijn geen
+vooraf geslaagde screenshottests; DONE vereist werkelijk beoordeelde
+ref/new/diff-captures en de Player/offline/LG-gates.

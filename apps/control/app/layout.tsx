@@ -3,6 +3,10 @@ import type { ReactNode } from "react";
 
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/manrope/wght.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+import "@fontsource/roboto/900.css";
 import "@veyocast/ui/styles.css";
 import "./globals.css";
 import "./fieldflow.css";

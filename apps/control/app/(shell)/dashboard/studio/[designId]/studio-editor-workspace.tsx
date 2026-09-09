@@ -1651,9 +1651,11 @@ function ReferenceTextInspector({
               }
               value={element.fontFamily}
             >
-              <option value="Inter Variable">Inter</option>
-              <option value="Inter Tight Variable">Inter Tight</option>
-              <option value="Manrope Variable">Manrope</option>
+              {studioFonts.map((font) => (
+                <option key={font.family} value={font.family}>
+                  {font.label}
+                </option>
+              ))}
             </select>
           </label>
           <label>
@@ -2099,9 +2101,11 @@ function ElementInspector({
                   }
                   value={element.fontFamily}
                 >
-                  <option value="Inter Variable">Inter</option>
-                  <option value="Inter Tight Variable">Inter Tight</option>
-                  <option value="Manrope Variable">Manrope</option>
+                  {studioFonts.map((font) => (
+                    <option key={font.family} value={font.family}>
+                      {font.label}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label>
@@ -2115,7 +2119,7 @@ function ElementInspector({
                   }
                   value={element.fontWeight}
                 >
-                  {[400, 500, 600, 700, 800].map((weight) => (
+                  {[400, 500, 600, 700, 800, 900].map((weight) => (
                     <option key={weight} value={weight}>
                       {weight}
                     </option>

@@ -14,6 +14,10 @@ import {
   editorialArenaDarkTokens,
   editorialArenaLightTokens
 } from "../src/editorial-arena-theme";
+import {
+  matchListForcesTimeColumn,
+  matchTimeCellKind
+} from "../src/editorial-arena-renderer";
 
 const css = readFileSync(
   fileURLToPath(new URL("../src/editorial-arena-renderer.module.css", import.meta.url)),
@@ -58,7 +62,7 @@ const themePresentation = {
 
 function programPayload(
   itemCount: number,
-  slideType: "sport_program" | "sport_team" = "sport_program",
+  slideType: "sport_program" | "sport_results" | "sport_team" = "sport_program",
   options: {
     columns?: "one" | "two";
     displayConfig?: Partial<Record<
@@ -114,6 +118,25 @@ function programPayload(
     templateSlug: "editorial-arena-programma-light-landscape",
     templateVersionId: "22222222-2222-4222-8222-222222222222"
   };
+}
+
+function hiddenTimeRows(
+  slideType: "sport_program" | "sport_results",
+  statuses: [string, string]
+) {
+  const payload = programPayload(2, slideType, {
+    displayConfig: { showTime: false }
+  });
+  const sport = payload.data.sport as Record<string, unknown>;
+  const items = Array.isArray(sport.items) ? sport.items : [];
+  sport.items = items.map((item, index) => ({
+    ...(item as Record<string, unknown>),
+    awayScore: slideType === "sport_results" ? 1 : undefined,
+    homeScore: slideType === "sport_results" ? 2 : undefined,
+    status: statuses[index]
+  }));
+  const view = createDynamicTemplateView(payload);
+  return view?.pages[0]?.kind === "sport-list" ? view.pages[0].items : [];
 }
 
 describe("Match Centre renderer", () => {
@@ -297,6 +320,44 @@ describe("Match Centre renderer", () => {
     expect(css).toMatch(
       /\.arenaResultScore \{[^}]*min-width: 112px;[^}]*justify-content: center;[^}]*font-variant-numeric: tabular-nums;/u
     );
+  });
+
+  it("reserveert bij gemengd programma een gedeelde tijdkolom wanneer tijd verborgen is", () => {
+    const mixed = hiddenTimeRows("sport_program", ["afgelast", "gepland"]);
+    const scheduled = hiddenTimeRows("sport_program", ["gepland", "gepland"]);
+    const forceTimeColumn = matchListForcesTimeColumn(mixed, false);
+    const program = renderer.slice(
+      renderer.indexOf("function ProgramRow"),
+      renderer.indexOf("function ResultRow")
+    );
+
+    expect(forceTimeColumn).toBe(true);
+    expect(matchTimeCellKind(true, false, forceTimeColumn)).toBe("cancelled");
+    expect(matchTimeCellKind(false, false, forceTimeColumn)).toBe("placeholder");
+    expect(matchListForcesTimeColumn(scheduled, false)).toBe(false);
+    expect(matchTimeCellKind(false, false, false)).toBe("hidden");
+    expect(program).toContain('timeCell !== "hidden"');
+    expect(program).toContain('timeCell === "placeholder"');
+    expect(program).toContain('data-time-placeholder=""');
+  });
+
+  it("reserveert bij gemengde uitslagen een gedeelde tijdkolom wanneer tijd verborgen is", () => {
+    const mixed = hiddenTimeRows("sport_results", ["afgelast", "definitief"]);
+    const scheduled = hiddenTimeRows("sport_results", ["definitief", "definitief"]);
+    const forceTimeColumn = matchListForcesTimeColumn(mixed, false);
+    const result = renderer.slice(
+      renderer.indexOf("function ResultRow"),
+      renderer.indexOf("function MatchSecondaryLine")
+    );
+
+    expect(forceTimeColumn).toBe(true);
+    expect(matchTimeCellKind(true, false, forceTimeColumn)).toBe("cancelled");
+    expect(matchTimeCellKind(false, false, forceTimeColumn)).toBe("placeholder");
+    expect(matchListForcesTimeColumn(scheduled, false)).toBe(false);
+    expect(matchTimeCellKind(false, false, false)).toBe("hidden");
+    expect(result).toContain('timeCell !== "hidden"');
+    expect(result).toContain('timeCell === "placeholder"');
+    expect(result).toContain('data-time-placeholder=""');
   });
 
   it("laat een onbekende uitslag leeg en accepteert alleen veilige gehele scores", () => {

@@ -26,6 +26,7 @@ import {
   type LedScoresCanvasRendererValues
 } from "./ledscores-canvas-scene";
 import { LedScoresMatchOverlay } from "./ledscores-match-experience";
+import type { FrozenPlayerTheme } from "./player-presentation-theme";
 import styles from "./ledscores-goal-overlay.module.css";
 
 const dedupeStorageKey = "veyocast-player-ledscores-dedupe-v1";
@@ -632,7 +633,13 @@ export function enrichGoal(
   return { ...goal, player, scorerName: player.name };
 }
 
-export function LedScoresGoalOverlay({ goal }: { goal: ActiveLedScoresGoal | null }) {
+export function LedScoresGoalOverlay({
+  goal,
+  theme = null
+}: {
+  goal: ActiveLedScoresGoal | null;
+  theme?: FrozenPlayerTheme | null;
+}) {
   const [failedCanvasDeliveryId, setFailedCanvasDeliveryId] = useState<string | null>(null);
   return <LedScoresGoalOverlayContent
     canvasBackgroundFailed={failedCanvasDeliveryId === goal?.deliveryId}
@@ -643,17 +650,20 @@ export function LedScoresGoalOverlay({ goal }: { goal: ActiveLedScoresGoal | nul
         ? current
         : goal.deliveryId);
     }}
+    theme={theme}
   />;
 }
 
 export function LedScoresGoalOverlayContent({
   canvasBackgroundFailed,
   goal,
-  onCanvasBackgroundError
+  onCanvasBackgroundError,
+  theme = null
 }: {
   canvasBackgroundFailed: boolean;
   goal: ActiveLedScoresGoal | null;
   onCanvasBackgroundError: () => void;
+  theme?: FrozenPlayerTheme | null;
 }) {
   if (!goal) return null;
   const scoringTeam = ledScoresScoringTeam(goal);
@@ -674,6 +684,7 @@ export function LedScoresGoalOverlayContent({
         onBackgroundMediaError={onCanvasBackgroundError}
         scene={goal.scene}
         testId="ledscores-goal-canvas"
+        theme={theme}
         values={goalCanvasValues(goal, scoringTeam, logo?.url ?? null)}
       />
     ) : (
@@ -681,8 +692,13 @@ export function LedScoresGoalOverlayContent({
         aria-label={goal.scoringSide === "own" ? "Doelpunt voor eigen team" : goal.scoringSide === "opponent" ? "Doelpunt tegenstander" : "Doelpunt van onbekend team"}
         className={styles.overlay}
         data-animation={goal.design.animation}
+        data-design-revision={theme?.designRevision ?? "player-fallback"}
+        data-motion-state={theme?.motionEnabled === false ? "off" : "on"}
         data-palette={goal.design.palette}
+        data-scoring-side={goal.scoringSide}
+        data-theme-mode={theme?.mode ?? "dark"}
         data-testid="ledscores-goal-overlay"
+        style={theme?.style}
       >
         {media ? <div className={styles.media} aria-hidden="true">
           {media.mimeType.startsWith("video/")
@@ -725,13 +741,15 @@ export function LedScoresGoalOverlayContent({
 }
 
 export function LedScoresExperienceOverlay({
-  overlay
+  overlay,
+  theme = null
 }: {
   overlay: ActiveLedScoresOverlay | null;
+  theme?: FrozenPlayerTheme | null;
 }) {
   return overlay?.kind === "goal"
-    ? <LedScoresGoalOverlay goal={overlay} />
-    : <LedScoresMatchOverlay overlay={overlay} />;
+    ? <LedScoresGoalOverlay goal={overlay} theme={theme} />
+    : <LedScoresMatchOverlay overlay={overlay} theme={theme} />;
 }
 
 export function ledScoresScoringTeam(goal: Pick<

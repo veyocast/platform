@@ -21,7 +21,8 @@ import {
 import {
   sportlinkBirthdayConfigurationSchema,
   type PlayerDynamicTemplatePayload,
-  type SportlinkBirthdayConfiguration
+  type SportlinkBirthdayConfiguration,
+  type ThemePresentationSnapshot
 } from "@veyocast/contracts";
 import { createDynamicTemplateView, EditorialArenaRenderer } from "@veyocast/content-templates";
 import {
@@ -48,6 +49,7 @@ import {
   type BirthdayReadinessIssue,
   type ResolvedBirthdayTeamSelection
 } from "./birthday-wizard-state";
+import { FieldFlowStyleStep } from "../../../../slides/_components/fieldflow-style-step";
 import styles from "./birthdays.module.css";
 
 type Orientation = "landscape" | "portrait";
@@ -137,6 +139,7 @@ export function BirthdayWizard({
   refreshAction,
   status,
   teams,
+  themePresentation,
   templates
 }: {
   action: (formData: FormData) => Promise<void>;
@@ -148,11 +151,14 @@ export function BirthdayWizard({
   refreshAction: (formData: FormData) => Promise<void>;
   status: Status;
   teams: Team[];
+  themePresentation: ThemePresentationSnapshot;
   templates: Template[];
 }) {
   const [step, setStep] = useState(0);
   const [configuration, setConfiguration] = useState<SportlinkBirthdayConfiguration>(() =>
-    sportlinkBirthdayConfigurationSchema.parse({})
+    sportlinkBirthdayConfigurationSchema.parse({
+      themeSelection: themePresentation.selection
+    })
   );
   const [orientation, setOrientation] = useState<Orientation>(() =>
     templates.some((candidate) => candidate.orientation === "landscape")
@@ -178,13 +184,13 @@ export function BirthdayWizard({
   }, [birthdays, configuration.selection.selectedTeamIds, realBirthdays, teams]);
   const template = templates.find((candidate) => candidate.orientation === orientation);
   const previewPayloads = useMemo(() => ({
-    landscape: birthdayPayload("landscape", configuration, previewItems, media, connection, status),
-    portrait: birthdayPayload("portrait", configuration, previewItems, media, connection, status)
-  }), [configuration, connection, media, previewItems, status]);
+    landscape: birthdayPayload("landscape", configuration, previewItems, media, connection, status, themePresentation),
+    portrait: birthdayPayload("portrait", configuration, previewItems, media, connection, status, themePresentation)
+  }), [configuration, connection, media, previewItems, status, themePresentation]);
   const livePayloads = useMemo(() => ({
-    landscape: birthdayPayload("landscape", configuration, birthdays, media, connection, status),
-    portrait: birthdayPayload("portrait", configuration, birthdays, media, connection, status)
-  }), [birthdays, configuration, connection, media, status]);
+    landscape: birthdayPayload("landscape", configuration, birthdays, media, connection, status, themePresentation),
+    portrait: birthdayPayload("portrait", configuration, birthdays, media, connection, status, themePresentation)
+  }), [birthdays, configuration, connection, media, status, themePresentation]);
   const previewViews = useMemo(() => ({
     landscape: createDynamicTemplateView(previewPayloads.landscape),
     portrait: createDynamicTemplateView(previewPayloads.portrait)
@@ -619,22 +625,24 @@ function DesignStep({ configuration, media, mediaLoaded, mediaQuery, orientation
       title="Vormgeving"
     />
     <OrientationPicker onChange={setOrientation} orientation={orientation} templates={templates} />
+    <FieldFlowStyleStep
+      label="Tenantbrede slidehuisstijl"
+      onActivate={() => undefined}
+      value="fieldflow"
+    />
     <div className={styles.fieldGrid}>
       <label><span>Presentatiemodus</span><select onChange={(event) => update({ layout: event.target.value as SportlinkBirthdayConfiguration["presentation"]["layout"] })} value={configuration.presentation.layout}><option value="auto">Automatisch</option><option value="spotlight">Spotlight</option><option value="celebration_grid">Celebration Grid</option><option value="birthday_roll">Birthday Roll</option></select></label>
       <label><span>Paginaduur</span><input max={20} min={6} onChange={(event) => update({ pageDurationSeconds: Number(event.target.value) })} type="number" value={configuration.presentation.pageDurationSeconds} /><small>6–20 seconden</small></label>
       <label><span>Maximaal liggend</span><input max={8} min={1} onChange={(event) => update({ maxPerLandscapePage: Number(event.target.value) })} type="number" value={configuration.presentation.maxPerLandscapePage} /></label>
       <label><span>Maximaal staand</span><input max={8} min={1} onChange={(event) => update({ maxPerPortraitPage: Number(event.target.value) })} type="number" value={configuration.presentation.maxPerPortraitPage} /></label>
       <label><span>Kaartstijl</span><select onChange={(event) => update({ cardStyle: event.target.value as "glass" | "solid" | "outline" })} value={configuration.presentation.cardStyle}><option value="glass">Glas</option><option value="solid">Massief</option><option value="outline">Contour</option></select></label>
-      <label><span>Variant</span><select onChange={(event) => update({ themeMode: event.target.value as "dark" | "light" })} value={configuration.presentation.themeMode}><option value="dark">Donker</option><option value="light">Licht</option></select></label>
-      <label><span>Achtergrondkleur</span><input onChange={(event) => update({ backgroundColor: event.target.value })} type="color" value={configuration.presentation.backgroundColor} /></label>
       <label><span>Tekstuitlijning</span><select onChange={(event) => update({ textAlign: event.target.value as "left" | "center" })} value={configuration.presentation.textAlign}><option value="left">Links</option><option value="center">Gecentreerd</option></select></label>
     </div>
     <div className={styles.toggleGrid}>
       {[
         ["gradientOverlay", "Gradient voor contrast"],
         ["motion", "Subtiele motion"],
-        ["confetti", "Subtiele celebratieparticles"],
-        ["useTenantTheme", "Globaal tenantthema gebruiken"]
+        ["confetti", "Subtiele celebratieparticles"]
       ].map(([key, label]) => (
         <label key={key}>
           <input checked={Boolean(configuration.presentation[key as keyof typeof configuration.presentation])} onChange={(event) => update({ [String(key)]: event.target.checked } as Partial<SportlinkBirthdayConfiguration["presentation"]>)} type="checkbox" />
@@ -734,7 +742,7 @@ function Preview({ payload, pageIndex }: { payload: PlayerDynamicTemplatePayload
   </div>;
 }
 
-function birthdayPayload(orientation: Orientation, configuration: SportlinkBirthdayConfiguration, birthdays: Birthday[], media: Media[], connection: { clubName: string; timezone: string } | null, status: Status): PlayerDynamicTemplatePayload {
+function birthdayPayload(orientation: Orientation, configuration: SportlinkBirthdayConfiguration, birthdays: Birthday[], media: Media[], connection: { clubName: string; timezone: string } | null, status: Status, themePresentation: ThemePresentationSnapshot): PlayerDynamicTemplatePayload {
   const background = configuration.presentation.backgroundMediaAssetId
     ? media.find((asset) => asset.id === configuration.presentation.backgroundMediaAssetId)
     : null;
@@ -742,7 +750,13 @@ function birthdayPayload(orientation: Orientation, configuration: SportlinkBirth
   return {
     ...(assets ? { assets } : {}),
     data: {
-      brand: { clubName: connection?.clubName ?? "Jouw vereniging", primaryColor: "#ff6b00" },
+      brand: {
+        clubName: connection?.clubName ?? "Jouw vereniging",
+        primaryColor: themePresentation.snapshotVersion === 2 &&
+          themePresentation.appearance.schemaVersion === 2
+          ? themePresentation.appearance.palette.primary
+          : themePresentation.selection.accent ?? "#2459ED"
+      },
       editorial: {},
       sport: {
         birthdays: birthdays.map((birthday) => ({
@@ -762,6 +776,7 @@ function birthdayPayload(orientation: Orientation, configuration: SportlinkBirth
         timezone: connection?.timezone ?? "Europe/Amsterdam",
         title: configuration.title
       },
+      themePresentation,
       type: "sport_birthdays"
     },
     orientation,

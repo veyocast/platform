@@ -5,6 +5,7 @@ import { Database, Flag, LayoutTemplate } from "lucide-react";
 import { Button, JourneyShell } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
+import { loadTenantStyleData } from "../../../../../../lib/tenant-style-data";
 import {
   initialMenuDocument,
   loadMenuStudioOptions,
@@ -20,9 +21,12 @@ type PageProps = {
 export default async function NewMenuStudioPage({ searchParams }: PageProps) {
   const session = await requireTenantControlSession("tenant.dynamic_slide.write");
   const query = await searchParams;
-  const data = session.isLive && session.tenantId
-    ? await loadMenuStudioOptions(session.tenantId, query.bron)
-    : null;
+  const [data, tenantStyle] = await Promise.all([
+    session.isLive && session.tenantId
+      ? loadMenuStudioOptions(session.tenantId, query.bron)
+      : null,
+    loadTenantStyleData(session.tenantId, session.isLive)
+  ]);
 
   return (
     <JourneyShell
@@ -83,6 +87,7 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
             publishEnabled={data.flags.publish && data.flags.player}
             sourceId={data.source.id}
             sourceName={data.source.name}
+            tenantStyle={tenantStyle}
             templateVersionIds={menuStudioTemplateVersionIds(data.templates)}
           />
         </>

@@ -3,6 +3,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { createDefaultLedScoresCanvasExperience } from "@veyocast/contracts";
+import {
+  createRoyalCurrentAppearance,
+  freezeThemePresentation
+} from "@veyocast/content-templates";
 
 import type {
   ActiveLedScoresMatchOverlay,
@@ -16,6 +20,7 @@ import {
   LedScoresMatchOverlayContent
 } from "./ledscores-match-experience";
 import { DynamicTemplateMedia } from "./dynamic-template-media";
+import type { FrozenPlayerTheme } from "./player-presentation-theme";
 
 describe("LED Scores responsive match renderers", () => {
   it("rendert een portrait match center met actuele stand, klok en verloop", () => {
@@ -33,6 +38,58 @@ describe("LED Scores responsive match renderers", () => {
     expect(html).toContain("D. Jansen");
     expect(html).toContain("Stand Duindorp sv 1 2, Bezoekers 1");
     expect(html).toContain("Wedstrijdverloop");
+  });
+
+  it.each([
+    ["match_center", "landscape", "Wedstrijdverloop"],
+    ["scoreboard", "portrait", "Actuele tussenstand"]
+  ] as const)(
+    "projecteert de frozen Royal authority op liveview %s/%s",
+    (template, orientation, expected) => {
+      const html = renderToStaticMarkup(
+        <LedScoresLiveMatchSlide
+          config={{ ...config, template }}
+          now={Date.parse("2026-08-31T18:00:10.000Z")}
+          orientation={orientation}
+          state={state}
+          theme={royalTheme}
+        />
+      );
+
+      expect(html).toContain(`data-template="${template}"`);
+      expect(html).toContain(`data-orientation="${orientation}"`);
+      expect(html).toContain('data-design-revision="royal-current-v8"');
+      expect(html).toContain('data-motion-state="off"');
+      expect(html).toContain('--bg:#0a1124');
+      expect(html).toContain(expected);
+    }
+  );
+
+  it.each([
+    ["lineup", "home", "Opstelling"],
+    ["lineup", "away", "Opstelling"],
+    ["match_start", null, "Aftrap"],
+    ["half_time", null, "Rust"],
+    ["match_end", null, "Eindstand"]
+  ] as const)("rendert Royal matchmoment %s/%s", (kind, side, headline) => {
+    const html = renderToStaticMarkup(
+      <LedScoresMatchOverlay
+        overlay={{
+          ...overlay,
+          design: { ...overlay.design, headline },
+          kind,
+          lineup: kind === "lineup" ? overlay.lineup : [],
+          side
+        }}
+        theme={royalTheme}
+      />
+    );
+
+    expect(html).toContain('data-design-revision="royal-current-v8"');
+    expect(html).toContain('data-motion-state="off"');
+    expect(html).toContain(headline);
+    if (side === "home") expect(html).toContain("Thuisteam");
+    if (side === "away") expect(html).toContain("Uitteam");
   });
 
   it("rendert een line-up uitsluitend uit de geselecteerde spelers", () => {
@@ -166,6 +223,7 @@ describe("LED Scores responsive match renderers", () => {
                   stateRevision: state.revision
                 }
               },
+              themePresentation: frozenThemeSnapshot,
               type: "ledscores_live_match"
             },
             orientation: "landscape",
@@ -184,8 +242,24 @@ describe("LED Scores responsive match renderers", () => {
       />
     );
     expect(html).toContain('data-testid="ledscores-live-match-slide"');
+    expect(html).toContain('data-design-revision="royal-current-v8"');
+    expect(html).toContain('--bg:#0a1124');
     expect(html).toContain("Duindorp live");
   });
+});
+
+const frozenThemeSnapshot = freezeThemePresentation({
+  appearance: createRoyalCurrentAppearance(),
+  instant: "2026-09-09T12:00:00.000Z",
+  selection: {
+    accent: "#2459ED",
+    categoryOverrides: [],
+    modePolicy: { kind: "fixed", mode: "dark" },
+    ref: { catalog: "v2", id: "fieldflow", version: "1.0.0" },
+    support: null
+  },
+  settingsRevision: 8,
+  timezone: "Europe/Amsterdam"
 });
 
 const state: LedScoresMatchState = {
@@ -266,4 +340,16 @@ const overlay: ActiveLedScoresMatchOverlay = {
   scene: null,
   side: "home",
   underlayPolicy: "pause"
+};
+
+const royalTheme: FrozenPlayerTheme = {
+  designRevision: "royal-current-v8",
+  mode: "dark",
+  motionEnabled: false,
+  snapshot: {} as FrozenPlayerTheme["snapshot"],
+  style: {
+    "--accent": "#6a8ef3",
+    "--bg": "#0a1124",
+    "--ink": "#f5f7fb"
+  } as FrozenPlayerTheme["style"]
 };

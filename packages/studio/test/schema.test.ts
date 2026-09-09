@@ -5,6 +5,7 @@ import {
   getStudioSystemTemplate,
   parseStudioDocument,
   safeParseStudioDocument,
+  studioFonts,
   studioSystemTemplates
 } from "../src";
 
@@ -42,14 +43,50 @@ describe("Studio-documentcontract", () => {
   });
 
   it("levert iedere systeemtemplate in liggend en staand", () => {
+    expect(studioFonts).toContainEqual({
+      family: "Roboto",
+      label: "Roboto",
+      weights: [400, 500, 700, 900]
+    });
     expect(studioSystemTemplates).toHaveLength(22);
+    expect(new Set(studioSystemTemplates.map((template) => template.category)).size)
+      .toBe(11);
     for (const template of studioSystemTemplates) {
       expect(safeParseStudioDocument(template.document).success).toBe(true);
-      expect(template.document.metadata.fontRegistryVersion).toBe("2026-09-02.1");
-      expect(template.document.elements.some(
-        (element) => element.type === "text" && element.fontFamily === "Manrope Variable"
-      )).toBe(true);
+      expect(template.version).toBe(2);
+      expect(template.document.metadata.fontRegistryVersion).toBe("2026-09-09.1");
+      const text = template.document.elements.filter(
+        (element) => element.type === "text"
+      );
+      expect(text.length).toBeGreaterThan(4);
+      expect(text.every((element) => element.fontFamily === "Roboto")).toBe(true);
+      expect(text.some((element) => element.fontWeight === 900)).toBe(true);
     }
+    const fingerprints = studioSystemTemplates
+      .filter((template) => template.formatId === "landscape-hd")
+      .map((template) => template.document.elements.map((element) => element.id).join("|"));
+    expect(new Set(fingerprints).size).toBe(11);
+  });
+
+  it("houdt historische fontregistries en gewicht 800 geldig", () => {
+    const template = getStudioSystemTemplate("system-matchday-landscape-hd-v1");
+    if (!template) throw new Error("Testtemplate ontbreekt.");
+    const headline = template.document.elements.find(
+      (element) => element.type === "text" && element.id === "headline"
+    );
+    if (!headline || headline.type !== "text") {
+      throw new Error("Koptekst ontbreekt.");
+    }
+    expect(safeParseStudioDocument({
+      ...template.document,
+      elements: template.document.elements.map((element) =>
+        element.id === headline.id ? { ...headline, fontWeight: 800 } : element
+      ),
+      metadata: {
+        ...template.document.metadata,
+        fontRegistryVersion: "2026-09-02.1"
+      }
+    }).success).toBe(true);
   });
 
   it("valideert groepen als expliciete wederzijdse laagrelatie", () => {

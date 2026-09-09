@@ -2,6 +2,7 @@ import { themeBaseFontSizes } from "../../../../packages/content-templates/src/t
 
 import { currentPlayerApplicationVersion } from "./player-app-update";
 import themeManifestSource from "../../../../packages/content-templates/src/THEME-MANIFEST.v1.json";
+import fontLockSource from "../../../../packages/content-templates/src/fonts/fonts.lock.json";
 
 const legacyFontAssets = themeManifestSource.fontAssets as Record<
   string,
@@ -30,6 +31,26 @@ const legacyThemeCatalog = Object.fromEntries(
 const legacyFontFamilies = Object.fromEntries(
   Object.entries(legacyFontAssets).map(([ref, asset]) => [ref, asset.family])
 );
+const lockedFontAssets = fontLockSource.assets as Record<
+  string,
+  Array<{ file: string; weights: string }>
+>;
+const legacyAdditionalFontFiles = Array.from(new Set(
+  Object.entries(lockedFontAssets)
+    .filter(([fontRef]) => fontRef !== "vc-roboto-v1")
+    .flatMap(([, assets]) => assets.map((asset) => asset.file))
+));
+const legacyAdditionalFontPreloads = legacyAdditionalFontFiles
+  .map((file) => `<link rel="preload" href="/fonts/theme/${file}" as="font" type="font/woff2" crossorigin>`)
+  .join("");
+const legacyAdditionalFontFaces = Object.entries(lockedFontAssets)
+  .filter(([fontRef]) => fontRef !== "vc-roboto-v1")
+  .flatMap(([fontRef, assets]) => assets.map((asset) => {
+    const family = legacyFontAssets[fontRef]?.family;
+    if (!family) return "";
+    return `@font-face{font-family:"${family}";font-style:normal;font-weight:${asset.weights};font-display:block;src:url("/fonts/theme/${asset.file}") format("woff2")}`;
+  }))
+  .join("");
 
 
 const legacyConfig = {
@@ -84,7 +105,17 @@ export function renderLgLegacyHtml() {
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <meta name="color-scheme" content="dark">
   <title>VeyoCast LG Legacy Player</title>
+  <link rel="preload" href="/fonts/royal-current/roboto-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/royal-current/roboto-500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/royal-current/roboto-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/royal-current/roboto-900.woff2" as="font" type="font/woff2" crossorigin>
+  ${legacyAdditionalFontPreloads}
   <style>
+    @font-face{font-family:"VeyoCast Royal Current Roboto";font-style:normal;font-weight:400;font-display:block;src:url("/fonts/royal-current/roboto-400.woff2") format("woff2")}
+    @font-face{font-family:"VeyoCast Royal Current Roboto";font-style:normal;font-weight:500;font-display:block;src:url("/fonts/royal-current/roboto-500.woff2") format("woff2")}
+    @font-face{font-family:"VeyoCast Royal Current Roboto";font-style:normal;font-weight:700;font-display:block;src:url("/fonts/royal-current/roboto-700.woff2") format("woff2")}
+    @font-face{font-family:"VeyoCast Royal Current Roboto";font-style:normal;font-weight:900;font-display:block;src:url("/fonts/royal-current/roboto-900.woff2") format("woff2")}
+    ${legacyAdditionalFontFaces}
     *{box-sizing:border-box}
     html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#050505;color:#f7f5f0;font-family:Arial,Helvetica,sans-serif}
     body{position:relative}
@@ -563,7 +594,7 @@ export function renderLgLegacyHtml() {
     .menu-studio-v2.portrait .legacy-price-grid.legacy-price-grid-two{grid-template-columns:repeat(2,minmax(0,1fr))}
     .menu-studio-v2.portrait .legacy-price-column{display:flex;padding:22px 28px;flex-direction:column;justify-content:flex-start}
     .menu-studio-v2.portrait .legacy-price-category{height:auto;min-height:76px;align-items:flex-end;margin:0 0 10px;padding:0 0 13px;font-size:var(--vc-theme-font-34,34px);line-height:38px;white-space:normal}
-    .menu-studio-v2.portrait .legacy-price-product{height:auto;min-height:62px;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;padding:5px 4px}
+    .menu-studio-v2.portrait .legacy-price-product{height:96px;min-height:96px;overflow:hidden;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;padding:5px 4px}
     .menu-studio-v2.portrait .legacy-price-media{width:48px;height:48px}
     .menu-studio-v2.portrait .legacy-price-copy{height:auto}
     .menu-studio-v2.portrait .legacy-price-copy strong{font-size:var(--vc-theme-font-32,32px);line-height:34px;white-space:normal}
@@ -654,6 +685,179 @@ export function renderLgLegacyHtml() {
     @keyframes legacy-rss-detail-in{from{opacity:0;transform:translateY(.45em)}to{opacity:1;transform:translateY(0)}}
     @keyframes legacy-rss-progress{to{transform:scaleX(1)}}
     @media(prefers-reduced-motion:reduce){.legacy-rss-page *,.legacy-rss-page *:before,.legacy-rss-page *:after{animation:none!important;transition:none!important}.legacy-rss-progress i{transform:scaleX(1)}}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"]{position:absolute;display:grid!important;grid-template-rows:80px minmax(148px,auto) minmax(0,1fr);grid-row-gap:20px;padding:32px 64px 76px 150px!important;overflow:hidden;background-color:var(--bg);background-image:linear-gradient(135deg,var(--canvas-start),var(--canvas-end))!important;box-shadow:none;color:var(--ink);font-family:var(--vc-theme-body-font,"VeyoCast Royal Current Roboto"),Roboto,Arial,sans-serif}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"]:before{display:none}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"]>*{z-index:2}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-royal-flow{position:absolute;z-index:0;top:0;right:0;bottom:0;left:0;overflow:hidden;pointer-events:none}
+    .legacy-royal-flow i{position:absolute;display:block;border:2px solid var(--flow-accent);border-radius:50%;opacity:.12}
+    .legacy-royal-flow-one{top:-230px;right:-210px;width:780px;height:560px;transform:rotate(24deg)}
+    .legacy-royal-flow-two{bottom:-440px;left:-430px;width:1050px;height:700px;transform:rotate(-16deg)}
+    .legacy-royal-flow-three{right:190px;bottom:-250px;width:460px;height:330px;transform:rotate(-22deg);opacity:.06!important}
+    .legacy-royal-sideband{position:absolute;z-index:3!important;top:0;bottom:0;left:0;display:flex;width:112px;flex-direction:column;align-items:center;justify-content:space-between;padding:52px 16px 46px;background:var(--deep);color:var(--own-muted);font-size:14px;font-weight:700;letter-spacing:.16em;writing-mode:vertical-rl;transform:rotate(180deg)}
+    .legacy-royal-sideband b{color:var(--accent);font-size:42px;letter-spacing:0;writing-mode:horizontal-tb;transform:rotate(90deg)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"]>.legacy-royal-masthead{position:relative;top:auto;right:auto;bottom:auto;left:auto;display:flex;height:auto;min-width:0;min-height:0;align-items:center;justify-content:space-between;padding:0 32px;border:1px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:0 14px 34px var(--vc-shadow)}
+    .legacy-royal-masthead-club strong{display:block;font-size:24px;font-weight:900;letter-spacing:-.02em}
+    .legacy-royal-masthead-club span{display:block;margin-top:5px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}
+    .legacy-royal-masthead-right{display:flex;align-items:center;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.11em;text-transform:uppercase}
+    .legacy-royal-masthead-right>*+*{margin-left:28px}
+    .legacy-royal-masthead-right time{color:var(--ink);font-size:22px;letter-spacing:0;font-variant-numeric:tabular-nums}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"]>header{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;display:grid;height:auto!important;min-width:0;min-height:148px;grid-template-columns:104px minmax(0,1fr) 150px;align-items:center;grid-column-gap:26px;padding:20px 32px!important;overflow:hidden;border:1px solid var(--line);border-radius:24px;background:var(--surface);box-shadow:0 12px 30px var(--vc-shadow);animation:none}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-crest{display:grid;width:104px;height:104px;place-items:center;border:1px solid var(--line);border-radius:20px;background:var(--vc-club-logo-background);box-shadow:none}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-crest img{width:82%;height:82%;object-fit:contain}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-heading{min-width:0}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-royal-eyebrow{display:block;color:var(--accent);font-size:17px;font-weight:700;letter-spacing:.18em;line-height:1.1;text-transform:uppercase}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-heading h1{display:-webkit-box;max-width:100%;margin:7px 0 5px;overflow:hidden;color:var(--ink);font-family:var(--vc-theme-display-font,"VeyoCast Royal Current Roboto"),Roboto,Arial,sans-serif;font-size:var(--rc-title-size,62px);font-weight:900;letter-spacing:-.04em;line-height:1.04;text-overflow:clip;text-transform:none;white-space:normal;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-royal-subtitle{margin:0;color:var(--muted);font-size:var(--rc-subtitle-size,23px);font-weight:500;line-height:1.2}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-royal-title-stat{display:flex;min-width:0;flex-direction:column;align-items:flex-end;color:var(--muted);text-align:right}
+    .legacy-royal-title-stat strong{color:var(--accent);font-size:58px;font-weight:900;letter-spacing:-.04em;line-height:.9}
+    .legacy-royal-title-stat span{margin-top:5px;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+    .legacy-royal-title-stat small{margin-top:5px;color:var(--muted);font-size:12px;font-weight:700}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"]>.dynamic-body{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;display:grid;height:auto!important;min-width:0;min-height:0;padding:0!important;overflow:hidden}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"]>footer{position:absolute!important;z-index:4;right:64px!important;bottom:22px!important;left:150px!important;display:flex;height:34px!important;align-items:center;justify-content:space-between;padding:0!important;border:0;color:var(--muted);font-size:var(--rc-footer-size,14px);font-weight:700;letter-spacing:.06em;line-height:1.2;text-transform:uppercase;animation:none}
+    .legacy-royal-footer i{margin:0 7px;color:var(--accent);font-style:normal}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-list,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-list{grid-row-gap:12px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-list,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-list{grid-auto-rows:96px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-row,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-row{height:96px;min-height:96px;border-color:var(--line);background:var(--surface);box-shadow:0 8px 20px var(--vc-shadow);color:var(--ink)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-row{font-size:var(--rc-program-row-size,25px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-row{font-size:var(--rc-result-row-size,31px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-list[data-columns="two"] .legacy-fixture-row{font-size:var(--rc-program-row-size-compact,20px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-list[data-columns="two"] .legacy-result-row{font-size:var(--rc-result-row-size-compact,25px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-program-secondary{color:var(--muted)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-cancelled-kickoff{display:inline-flex!important;width:max-content;max-width:100%;align-items:center;justify-content:center;padding:5px 8px;border:1px solid var(--line);border-radius:7px;background:var(--accent-soft);color:var(--accent);font-size:var(--rc-cancelled-size,18px)!important;font-weight:500!important;letter-spacing:0;line-height:1.1;text-transform:none;white-space:nowrap}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-match-time-empty{visibility:hidden}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-typed-row[data-kind="cancellation"]{grid-template-columns:130px minmax(0,1fr)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-typed-row[data-kind="cancellation"]>strong{display:none}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-royal-arrival-grid{display:grid;height:100%;min-height:0;grid-template-rows:minmax(0,1fr);grid-column-gap:24px;grid-row-gap:24px}
+    .legacy-royal-arrival-grid[data-slots="1"]{grid-template-columns:minmax(0,1fr)}
+    .legacy-royal-arrival-grid[data-slots="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .legacy-royal-arrival-grid[data-slots="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-royal-arrival-card{position:relative;isolation:isolate;display:grid;min-width:0;min-height:0;grid-template-rows:minmax(0,1fr) auto;padding:0;border:1px solid var(--line);border-radius:24px;background:var(--surface);box-shadow:none;animation-duration:650ms}
+    .legacy-royal-arrival-watermark{position:absolute;z-index:0;right:0;bottom:0;width:100%;height:100%;object-fit:contain;opacity:.3;pointer-events:none}
+    .legacy-royal-arrival-gradient{position:absolute;z-index:1;top:0;right:0;bottom:0;left:0;background:linear-gradient(180deg,rgba(var(--matte-rgb),.80) 0%,rgba(var(--matte-rgb),.80) 33.333%,rgba(var(--matte-rgb),.46) 66.667%,rgba(var(--matte-rgb),.08) 100%);pointer-events:none}
+    .legacy-royal-arrival-crest{position:relative;z-index:2;display:grid;min-width:0;min-height:0;grid-template-rows:auto minmax(0,1fr);grid-row-gap:12px;justify-items:center;align-items:stretch;padding:18px var(--arrival-pad,28px) 0}
+    .legacy-royal-arrival-top{display:flex;width:100%;align-items:center;justify-content:space-between;color:var(--muted);font-size:var(--arrival-label,17px);font-weight:700;letter-spacing:.06em;line-height:1.15}
+    .legacy-royal-arrival-top span{max-width:45%}
+    .legacy-royal-arrival-card:first-child .legacy-royal-arrival-top span,.legacy-royal-arrival-top b{color:var(--accent)}
+    .legacy-royal-arrival-top b{font-size:var(--arrival-index,29px)}
+    .legacy-royal-arrival-logo{position:relative;display:block;width:56%;height:auto;min-width:0;min-height:0;color:var(--accent);font-size:var(--arrival-title,62px);font-weight:900;text-align:center}
+    .legacy-royal-arrival-logo img{position:absolute;top:0;right:0;bottom:0;left:0;display:block;width:100%;height:100%;object-fit:contain;object-position:center}
+    .legacy-royal-arrival-logo span{position:absolute;top:50%;right:0;left:0;transform:translateY(-50%)}
+    .legacy-royal-arrival-body{position:relative;z-index:2;display:flex;min-width:0;min-height:0;flex-direction:column;justify-content:flex-end;padding:24px var(--arrival-pad,28px) var(--arrival-pad,28px)}
+    .legacy-royal-arrival-identity{display:block;min-width:0;text-align:left}
+    .legacy-royal-arrival-identity>span{display:block;color:var(--muted);font-size:var(--arrival-label,17px);font-weight:700;letter-spacing:.07em;line-height:1.2}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-royal-arrival-identity h2{max-width:100%;margin:12px 0;color:var(--ink);font-family:var(--vc-theme-display-font,"VeyoCast Royal Current Roboto"),Roboto,Arial,sans-serif;font-size:var(--arrival-title,62px);font-weight:700;letter-spacing:-.035em;line-height:1.06;overflow-wrap:break-word}
+    .legacy-royal-arrival-identity p{margin:0;color:var(--muted);font-size:var(--arrival-text,28px);line-height:1.25}
+    .legacy-royal-arrival-info{display:grid;min-width:0;grid-template-columns:.8fr .8fr 1.4fr;grid-column-gap:12px;margin-top:26px;padding-top:20px;border-top:1px solid var(--line)}
+    .legacy-royal-arrival-info>div{display:flex;min-width:0;flex-direction:column}
+    .legacy-royal-arrival-info span{color:var(--muted);font-size:var(--arrival-label,17px);font-weight:700;letter-spacing:.045em}
+    .legacy-royal-arrival-info strong{margin-top:9px;color:var(--ink);font-size:var(--arrival-meta,28px);font-weight:700;line-height:1.15;overflow-wrap:break-word}
+    .legacy-royal-arrival-empty{min-width:0;min-height:0;pointer-events:none}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-royal-standing-card{display:grid;height:100%;min-height:0;grid-template-rows:auto auto minmax(0,1fr) auto;grid-row-gap:10px;padding:14px 18px;border-color:var(--line);border-radius:24px;background:var(--surface);box-shadow:none}
+    .legacy-royal-standing-pinned{display:grid;grid-template-columns:180px minmax(0,1fr);align-items:center;grid-column-gap:14px;color:var(--muted);font-size:16px;font-weight:700;letter-spacing:.06em}
+    .legacy-royal-standing-pinned>span{color:var(--accent)}
+    .legacy-royal-standing-columns,.legacy-royal-standing-row{display:grid;grid-template-columns:52px minmax(0,1fr) repeat(8,60px) 148px;align-items:center;grid-column-gap:7px}
+    .legacy-royal-standing-columns{min-height:34px;padding:0 10px;border-bottom:2px solid var(--accent);color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+    .legacy-royal-standing-columns>span,.legacy-royal-standing-row>span,.legacy-royal-standing-row>strong{text-align:center}
+    .legacy-royal-standing-columns>span:nth-child(2){text-align:left}
+    .legacy-royal-standing-rows{min-height:0;overflow:hidden}
+    .legacy-royal-standing-row{height:70px;padding:0 10px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font-size:20px;font-weight:700}
+    .legacy-royal-standing-row+.legacy-royal-standing-row{margin-top:6px}
+    .legacy-royal-standing-row.pinned{border-color:var(--own-line);background:var(--own-bg);color:var(--own-ink);box-shadow:inset 7px 0 0 var(--accent)}
+    .legacy-royal-standing-row.pinned .legacy-standing-rank,.legacy-royal-standing-row.pinned .legacy-standing-points{color:var(--own-ink)}
+    .legacy-royal-standing-row .legacy-standing-team{grid-column:auto}
+    .legacy-royal-standing-row .legacy-standing-team i,.legacy-royal-standing-row .legacy-standing-team img{width:36px;height:40px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+    .legacy-royal-standing-row .legacy-standing-team b{margin-left:12px}
+    .legacy-royal-standing-row.pinned .legacy-standing-team i,.legacy-royal-standing-row.pinned .legacy-standing-team img{background:#fff;color:var(--accent)}
+    .legacy-royal-standing-row .legacy-standing-team b{font-size:23px;text-transform:none}
+    .legacy-royal-standing-row .legacy-standing-form{justify-content:flex-end}
+    .legacy-royal-standing-row .legacy-standing-form i+i{margin-left:4px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news{display:grid;height:100%;min-height:0;grid-template-columns:1.15fr 1fr;grid-column-gap:24px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-art,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-copy{min-width:0;min-height:0;border-color:var(--line);border-radius:24px;background:var(--surface);box-shadow:none}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-art{align-self:stretch;height:100%;background:var(--deep)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-art:before{display:none}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-art>img{object-fit:cover}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-copy{display:flex;align-items:stretch;justify-content:flex-start;padding:38px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-copy>p{max-width:100%;margin:0;color:var(--ink);font-size:var(--rc-news-copy-size,34px);line-height:1.4}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-meta{margin-top:auto;margin-right:218px;padding-top:20px;color:var(--muted)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-qr{right:38px;bottom:38px;display:block;width:auto;color:transparent;font-size:0}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-qr img{display:block;width:184px;height:184px;padding:10px;border:1px solid var(--line);border-radius:18px;background:#fff}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:after{background:linear-gradient(90deg,rgba(var(--matte-rgb),.80) 0%,rgba(var(--matte-rgb),.80) 33.333%,rgba(var(--matte-rgb),.46) 66.667%,rgba(var(--matte-rgb),.08) 100%)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy{top:0;right:49%;bottom:0;left:0;padding:38px;background:transparent}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy>p{color:var(--ink)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="fullscreen_gradient"]>.editorial-news-qr{right:92px;bottom:30px;width:auto}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="text_only"] .editorial-news-copy{width:100%;padding:48px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="text_only"] .editorial-news-copy>p{max-width:1450px;font-size:var(--rc-news-text-size,48px);line-height:1.35}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="news_grid"]{grid-template-columns:1.05fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,.5fr);grid-column-gap:20px;grid-row-gap:20px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="news_grid"] .editorial-news-art{display:block;grid-row:1/3}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="news_grid"] .editorial-news-copy{padding:26px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="news_grid"] .editorial-news-copy>p{font-size:var(--rc-news-grid-copy-size,27px);line-height:1.3}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news[data-news-variant="news_grid"] .editorial-news-qr img{width:124px;height:124px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-grid{grid-row:2;grid-column:2;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);grid-column-gap:18px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-news-grid article{padding:18px;border-color:var(--line);border-radius:18px;background:var(--surface);box-shadow:none}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"][data-motion-state="off"] .legacy-fixture-row,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"][data-motion-state="off"] .legacy-result-row,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"][data-motion-state="off"] .legacy-arrival-card,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"][data-motion-state="off"] .editorial-news-art,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"][data-motion-state="off"] .editorial-news-copy{animation:none!important;opacity:1;transform:none}
+    .dynamic-template.ledscores-live-match[data-design-revision="royal-current-v8"]{background:var(--bg);color:var(--ink);font-family:var(--vc-theme-body-font,"VeyoCast Royal Current Roboto"),Roboto,Arial,sans-serif}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .live-match-shell{position:absolute;display:grid;grid-template-rows:80px minmax(148px,auto) minmax(0,1fr);grid-row-gap:20px;padding:32px 64px 76px 150px;background:linear-gradient(135deg,var(--canvas-start),var(--canvas-end));box-shadow:none}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .legacy-royal-flow{position:absolute;z-index:0;top:0;right:0;bottom:0;left:0;overflow:hidden;pointer-events:none}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .legacy-royal-sideband{z-index:3}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .legacy-royal-masthead{position:relative;z-index:2;display:flex;min-width:0;min-height:0;align-items:center;justify-content:space-between;padding:0 32px;border:1px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:0 14px 34px var(--vc-shadow)}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .live-match-top{position:relative;z-index:2;min-width:0;min-height:148px;padding:20px 32px;border:1px solid var(--line);border-radius:24px;background:var(--surface);box-shadow:0 12px 30px var(--vc-shadow)}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .live-match-top p{color:var(--accent);font-size:17px}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .live-match-top h1{margin-top:7px;color:var(--ink);font-family:var(--vc-theme-display-font,"VeyoCast Royal Current Roboto"),Roboto,Arial,sans-serif;font-size:var(--rc-title-size,62px);line-height:1.04}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .live-match-status{border-color:var(--line);background:var(--accent-soft);color:var(--accent)}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .live-match-body{position:relative;z-index:2;min-width:0;min-height:0;color:var(--ink)}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .live-match-body .match-scoreboard{border-color:var(--line);background:var(--surface);box-shadow:0 8px 20px var(--vc-shadow)}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .live-match-timeline{border-color:var(--line)}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .live-match-timeline li{border-color:var(--line)}
+    .ledscores-live-match[data-design-revision="royal-current-v8"] .live-match-footer{position:absolute;z-index:4;right:64px;bottom:22px;left:150px;height:34px;padding:0;border:0;color:var(--muted);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait{grid-template-rows:96px minmax(192px,auto) minmax(0,1fr);grid-row-gap:24px;padding:36px 38px 84px 101px!important}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-sideband{width:72px;padding:30px 10px 28px;font-size:11px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-sideband b{font-size:29px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait>.legacy-royal-masthead{padding:0 23px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-masthead-club strong{font-size:20px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-masthead-right{font-size:10px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-masthead-right>*+*{margin-left:12px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-masthead-right time{font-size:16px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait>header{min-height:192px;grid-template-columns:104px minmax(0,1fr) 110px;grid-column-gap:18px;padding:26px!important}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-heading h1{font-size:var(--rc-title-size-portrait,54px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-subtitle{font-size:var(--rc-subtitle-size-portrait,24px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-title-stat strong{font-size:45px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-title-stat span{font-size:10px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait>footer{right:38px!important;bottom:24px!important;left:101px!important;height:40px!important;font-size:var(--rc-footer-size,14px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-cancelled-kickoff{font-size:var(--rc-cancelled-size-portrait,20px)!important}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-fixture-list,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-result-list{grid-auto-rows:148px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-fixture-row,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-result-row{height:148px;min-height:148px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-fixture-row{font-size:var(--rc-program-row-size-portrait,24px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-result-row{font-size:var(--rc-result-row-size-portrait,29px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-arrival-grid[data-slots]{grid-template-columns:minmax(0,1fr);grid-column-gap:24px;grid-row-gap:24px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-arrival-grid[data-slots="1"]{grid-template-rows:minmax(0,1fr)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-arrival-grid[data-slots="2"]{grid-template-rows:repeat(2,minmax(0,1fr))}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-arrival-grid[data-slots="3"]{grid-template-rows:repeat(3,minmax(0,1fr))}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-arrival-info{margin-top:18px;padding-top:14px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-standing-pinned{grid-template-columns:150px minmax(0,1fr);font-size:14px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-standing-columns,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-standing-row{grid-template-columns:42px minmax(0,1fr) repeat(8,41px) 118px;grid-column-gap:4px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-standing-row{height:102px;font-size:18px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-standing-row .legacy-standing-team b{font-size:20px;white-space:normal;line-height:1.05}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-standing-row .legacy-standing-form i{width:24px;height:24px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,.8fr) minmax(0,1.2fr);grid-row-gap:32px;padding:0 20px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news-copy{padding:34px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news-copy>p{font-size:var(--rc-news-copy-size-portrait,34px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news-meta{margin-right:210px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news-qr{right:34px;bottom:34px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news-qr img{width:180px;height:180px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news[data-news-variant="fullscreen_gradient"]{display:block;padding:0}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-copy{top:38%;right:0;bottom:0;left:0}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news[data-news-variant="fullscreen_gradient"]>.editorial-news-qr{right:61px;bottom:61px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news[data-news-variant="fullscreen_gradient"] .editorial-news-art:after{background:linear-gradient(180deg,rgba(var(--matte-rgb),.08) 0%,rgba(var(--matte-rgb),.08) 28%,rgba(var(--matte-rgb),.46) 40%,rgba(var(--matte-rgb),.80) 50%,rgba(var(--matte-rgb),.80) 100%)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news[data-news-variant="news_grid"]{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.25fr) minmax(0,.75fr);padding:0}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news[data-news-variant="news_grid"] .editorial-news-art{display:none}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news-grid{grid-row:2;grid-column:1}
+    .dynamic-template.ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-shell{grid-template-rows:96px minmax(192px,auto) minmax(0,1fr);grid-row-gap:24px;padding:36px 38px 84px 101px}
+    .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .legacy-royal-sideband{width:72px;padding:30px 10px 28px;font-size:11px}
+    .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .legacy-royal-sideband b{font-size:29px}
+    .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .legacy-royal-masthead{padding:0 23px}
+    .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-top{min-height:192px;padding:26px}
+    .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-top h1{font-size:var(--rc-title-size-portrait,54px)}
+    .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-footer{right:38px;bottom:24px;left:101px;height:40px;font-size:14px}
     @media(max-height:650px){.panel{padding:24px}.logo{width:210px;margin-bottom:24px}#detail{margin-top:14px}#pairing{margin-top:18px}}
   </style>
 </head>
@@ -5366,6 +5570,15 @@ export function renderLgLegacyHtml() {
       normalized = value.replace(/\\s+/g, " ").replace(/^\\s+|\\s+$/g, "");
       return normalized ? normalized.slice(0, 500) : fallback || "";
     }
+    function templateThemeFontFamily(fontFamilies, fontRef, fallbackRef) {
+      var family = templateText(
+        fontFamilies && fontFamilies[fontRef],
+        templateText(fontFamilies && fontFamilies[fallbackRef], "Arial")
+      );
+      return family === "Roboto"
+        ? '"VeyoCast Royal Current Roboto"'
+        : '"' + family.replace(/"/g, "") + '"';
+    }
     function templateVisitorArrivalValue(value, kind) {
       var prefix = kind === "field"
         ? /^\\s*Veld\\s*:?\\s*/i
@@ -5530,6 +5743,29 @@ export function renderLgLegacyHtml() {
         pages.push(items.slice(index, index + perPage));
       }
       return pages;
+    }
+    function templateRoyalCurrentPageCount(page) {
+      if (!page) return 0;
+      if (Array.isArray(page)) return page.length;
+      if (Array.isArray(page.left) || Array.isArray(page.right)) {
+        return templateArray(page.left).length + templateArray(page.right).length;
+      }
+      if (page.columns) {
+        return templateArray(page.columns.left).length +
+          templateArray(page.columns.right).length +
+          templateArray(page.floatingBlocks).length;
+      }
+      return 1;
+    }
+    function templateRoyalCurrentCountLabel(slideType, count) {
+      if (slideType === "news") return count === 1 ? "bericht" : "berichten";
+      if (slideType === "sport_standing" || slideType === "sport_period_standing") {
+        return count === 1 ? "team" : "teams";
+      }
+      if (slideType === "sport_visitor_arrivals") {
+        return count === 1 ? "bezoeker" : "bezoekers";
+      }
+      return count === 1 ? "item" : "items";
     }
     function templatePageCounter(pageIndex, pageCount) {
       var current = String(Number(pageIndex) + 1);
@@ -6185,15 +6421,192 @@ export function renderLgLegacyHtml() {
         return true;
       });
     }
+    function templateRoyalCurrentAppearance(snapshot) {
+      var presentation = templateRecord(snapshot && snapshot.themePresentation);
+      var appearance;
+      if (!presentation || Number(presentation.snapshotVersion) !== 2) return null;
+      appearance = templateRecord(presentation.appearance);
+      return appearance && Number(appearance.schemaVersion) === 2 &&
+        templateText(appearance.designRevision, "") === "royal-current-v8"
+        ? appearance
+        : null;
+    }
+    function legacyRoyalNormalizeHex(value) {
+      var source = templateText(value, "").trim().replace(/^#/, "");
+      if (/^[0-9a-f]{3}$/i.test(source)) {
+        source = source.split("").map(function (character) {
+          return character + character;
+        }).join("");
+      }
+      return /^[0-9a-f]{6}$/i.test(source) ? "#" + source.toLowerCase() : null;
+    }
+    function legacyRoyalRgb(color) {
+      return [1, 3, 5].map(function (index) {
+        return Number.parseInt(color.slice(index, index + 2), 16);
+      });
+    }
+    function legacyRoyalFromRgb(values) {
+      return "#" + values.map(function (value) {
+        return Math.max(0, Math.min(255, Math.round(value)))
+          .toString(16).padStart(2, "0");
+      }).join("");
+    }
+    function legacyRoyalMix(left, right, amount) {
+      var rightChannels = legacyRoyalRgb(right);
+      return legacyRoyalFromRgb(legacyRoyalRgb(left).map(function (value, index) {
+        return value + (rightChannels[index] - value) * amount;
+      }));
+    }
+    function legacyRoyalHsl(color) {
+      var channels = legacyRoyalRgb(color).map(function (value) { return value / 255; });
+      var red = channels[0];
+      var green = channels[1];
+      var blue = channels[2];
+      var maximum = Math.max(red, green, blue);
+      var minimum = Math.min(red, green, blue);
+      var delta = maximum - minimum;
+      var lightness = (maximum + minimum) / 2;
+      var hue = 0;
+      if (delta) {
+        hue = (maximum === red
+          ? (green - blue) / delta + (green < blue ? 6 : 0)
+          : maximum === green
+            ? (blue - red) / delta + 2
+            : (red - green) / delta + 4) / 6;
+      }
+      return [
+        hue,
+        delta ? delta / (1 - Math.abs(2 * lightness - 1)) : 0,
+        lightness
+      ];
+    }
+    function legacyRoyalFromHsl(hue, saturation, lightness) {
+      function channel(offset) {
+        var position = (offset + hue * 12) % 12;
+        return 255 * (
+          lightness - saturation * Math.min(lightness, 1 - lightness) *
+          Math.max(-1, Math.min(position - 3, 9 - position, 1))
+        );
+      }
+      return legacyRoyalFromRgb([channel(0), channel(8), channel(4)]);
+    }
+    function legacyRoyalLuminance(color) {
+      var channels = legacyRoyalRgb(color).map(function (value) {
+        var channel = value / 255;
+        return channel <= .04045
+          ? channel / 12.92
+          : Math.pow((channel + .055) / 1.055, 2.4);
+      });
+      return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
+    }
+    function legacyRoyalContrast(left, right) {
+      var light = Math.max(legacyRoyalLuminance(left), legacyRoyalLuminance(right));
+      var dark = Math.min(legacyRoyalLuminance(left), legacyRoyalLuminance(right));
+      return (light + .05) / (dark + .05);
+    }
+    function legacyRoyalReadable(color, backgrounds, toward, minimum) {
+      var threshold = Number(minimum) || 4.5;
+      var index;
+      var candidate;
+      for (index = 0; index <= 100; index += 1) {
+        candidate = legacyRoyalMix(color, toward, index / 100);
+        if (backgrounds.every(function (background) {
+          return legacyRoyalContrast(candidate, background) >= threshold;
+        })) return candidate;
+      }
+      return toward;
+    }
+    function legacyCreateRoyalCurrentPalette(value, mode) {
+      var source = templateRecord(value) || {};
+      var primary = legacyRoyalNormalizeHex(source.primary) || "#2459ed";
+      var secondary = legacyRoyalNormalizeHex(source.secondary);
+      var neutral = source.background === "neutral";
+      var dark = mode === "glass";
+      var primaryHsl = legacyRoyalHsl(primary);
+      var primaryHue = primaryHsl[0];
+      var primarySaturation = primaryHsl[1];
+      var tonal = legacyRoyalFromHsl(primaryHue, Math.min(primarySaturation, .72), .46);
+      var hue = neutral ? 0 : primaryHue;
+      var saturation = neutral ? 0 : Math.min(primarySaturation, .56);
+      var background = dark
+        ? legacyRoyalFromHsl(hue, saturation, .09)
+        : legacyRoyalMix("#ffffff", neutral ? "#6b6b6b" : tonal, .052);
+      var surface = dark
+        ? legacyRoyalFromHsl(hue, saturation * .76, .16)
+        : "#ffffff";
+      var surface2 = dark
+        ? legacyRoyalFromHsl(hue, saturation * .72, .205)
+        : legacyRoyalMix("#ffffff", neutral ? "#777777" : tonal, .1);
+      var accentSoft = dark
+        ? legacyRoyalMix(surface, primary, .15)
+        : legacyRoyalMix("#ffffff", primary, .085);
+      var textBackgrounds = [background, surface, surface2, accentSoft];
+      var ink = dark ? "#f5f7fb" : legacyRoyalFromHsl(hue, saturation, .17);
+      var muted = legacyRoyalReadable(
+        dark ? legacyRoyalMix(surface, "#ffffff", .67) : legacyRoyalMix(ink, "#ffffff", .3),
+        textBackgrounds,
+        dark ? "#ffffff" : "#000000"
+      );
+      var accent = legacyRoyalReadable(
+        primary, textBackgrounds, dark ? "#ffffff" : "#000000"
+      );
+      var safeSecondary = legacyRoyalReadable(
+        secondary || primary, textBackgrounds, dark ? "#ffffff" : "#000000"
+      );
+      var deep = legacyRoyalFromHsl(
+        hue,
+        Math.min(saturation + .1, neutral ? 0 : .66),
+        dark ? .08 : .19
+      );
+      var ownBackground = dark
+        ? legacyRoyalFromHsl(primaryHue, Math.min(primarySaturation, .5), .3)
+        : deep;
+      var ownInk = legacyRoyalReadable("#ffffff", [ownBackground], "#000000");
+      var onAccent = legacyRoyalContrast("#ffffff", accent) >= 4.5
+        ? "#ffffff"
+        : "#101010";
+      var edge = dark ? legacyRoyalMix(surface, ink, .2) : legacyRoyalMix(surface, ink, .16);
+      return {
+        "--accent": accent,
+        "--accent-soft": accentSoft,
+        "--bg": background,
+        "--brand-primary": primary,
+        "--canvas-end": legacyRoyalMix(background, surface2, .1),
+        "--canvas-start": legacyRoyalMix(background, surface2, dark ? .42 : .2),
+        "--deep": deep,
+        "--flow-accent": secondary || primary,
+        "--ink": ink,
+        "--line": edge,
+        "--matte-rgb": legacyRoyalRgb(surface).join(","),
+        "--muted": muted,
+        "--on-accent": onAccent,
+        "--own-bg": ownBackground,
+        "--own-ink": ownInk,
+        "--own-line": legacyRoyalMix(ownBackground, ownInk, .28),
+        "--own-muted": legacyRoyalMix(ownBackground, ownInk, .85),
+        "--secondary-accent": safeSecondary,
+        "--solid-accent": legacyRoyalReadable(primary, ["#ffffff"], "#000000"),
+        "--surface": surface,
+        "--surface-2": surface2
+      };
+    }
+    function templateLegacyMatchCancelled(item) {
+      var source = [item.status, item.state, item.matchStatus, item.meta]
+        .map(function (value) { return templateText(value, ""); }).join(" ");
+      return item.cancelled === true || item.canceled === true ||
+        /(?:afgelast|annul|cancel(?:led|ed)?)/i.test(source);
+    }
     function renderNewsTemplate(body, snapshot, payload, root) {
       var news = templateRecord(snapshot.data) || templateRecord(snapshot.news) || {};
       var articles = templateUniqueNewsArticles(templateArray(news.articles));
       var editorial = templateRecord(snapshot.editorial) || {};
+      var royalCurrent = Boolean(templateRoyalCurrentAppearance(snapshot));
       var newsVariant = templateText(editorial.newsVariant, "hero_split");
       if (["hero_split", "fullscreen_gradient", "news_grid", "text_only"].indexOf(newsVariant) < 0) {
         newsVariant = "hero_split";
       }
       var usesArena =
+        royalCurrent ||
         templateText(payload.templateSlug, "").indexOf("editorial-arena-") === 0;
       var usesEditorialLayout =
         !usesArena && (
@@ -6271,11 +6684,16 @@ export function renderLgLegacyHtml() {
               ));
             }
             arenaHero.appendChild(arenaSource);
-            arenaCopy.appendChild(templateNode("span", "", "Laatste nieuws"));
             var arenaTitleText = templateText(article.title, "Clubnieuws");
-            var arenaTitle = templateNode("h2", "", arenaTitleText);
-            if (arenaTitleText.length > 64) arenaTitle.className = "dense";
-            arenaCopy.appendChild(arenaTitle);
+            if (royalCurrent) {
+              var royalHeading = root.querySelector(".editorial-heading h1");
+              if (royalHeading) royalHeading.textContent = arenaTitleText;
+            } else {
+              arenaCopy.appendChild(templateNode("span", "", "Laatste nieuws"));
+              var arenaTitle = templateNode("h2", "", arenaTitleText);
+              if (arenaTitleText.length > 64) arenaTitle.className = "dense";
+              arenaCopy.appendChild(arenaTitle);
+            }
             if (article.intro) {
               arenaCopy.appendChild(templateNode(
                 "p",
@@ -6307,7 +6725,9 @@ export function renderLgLegacyHtml() {
               arenaQrImage.alt = "QR-code naar " + arenaTitleText;
               arenaQrImage.src = arenaQrUrl;
               arenaQr.appendChild(arenaQrImage);
-              arenaQr.appendChild(templateNode("span", "", "Scan voor het artikel"));
+              if (!royalCurrent) {
+                arenaQr.appendChild(templateNode("span", "", "Scan voor het artikel"));
+              }
               if (newsVariant === "fullscreen_gradient") fullscreenQr = arenaQr;
               else arenaCopy.appendChild(arenaQr);
             }
@@ -6465,15 +6885,111 @@ export function renderLgLegacyHtml() {
         ? "–"
         : String(value);
     }
+    function renderLegacyRoyalStandingForm(value) {
+      var form = templateNode("span", "legacy-standing-form");
+      var entries = templateArray(value).slice(-3);
+      var index;
+      if (!entries.length) form.appendChild(templateNode("b", "", "–"));
+      for (index = 0; index < entries.length; index += 1) {
+        form.appendChild(templateNode(
+          "i",
+          entries[index] === "win" ? "win" : entries[index] === "loss" ? "loss" : "",
+          entries[index] === "win" ? "W" : entries[index] === "draw" ? "G" : "V"
+        ));
+      }
+      return form;
+    }
+    function renderLegacyRoyalStandingRow(item, payload, className) {
+      var row = templateNode("article", "legacy-royal-standing-row" + (className ? " " + className : ""));
+      var team = templateNode("span", "legacy-standing-team");
+      var teamLogoUrl = templateAssetUrl(payload, templateText(item.logoMediaAssetId, ""));
+      var difference = Number(item.goalDifference);
+      row.setAttribute("data-own-team", item.selected === true ? "true" : "false");
+      row.appendChild(templateNode("strong", "legacy-standing-rank", standingValue(item.position)));
+      if (teamLogoUrl) {
+        var teamLogo = templateNode("img", "");
+        teamLogo.alt = "";
+        teamLogo.src = teamLogoUrl;
+        team.appendChild(teamLogo);
+      } else {
+        team.appendChild(templateNode("i", "", templateInitials(templateText(item.teamName, "VC"))));
+      }
+      team.appendChild(templateNode("b", "", templateText(item.teamName, "Team")));
+      row.appendChild(team);
+      row.appendChild(templateNode("span", "", standingValue(item.played)));
+      row.appendChild(templateNode("span", "", standingValue(item.won)));
+      row.appendChild(templateNode("span", "", standingValue(item.drawn)));
+      row.appendChild(templateNode("span", "", standingValue(item.lost)));
+      row.appendChild(templateNode("strong", "legacy-standing-points", standingValue(item.points)));
+      row.appendChild(templateNode("span", "", standingValue(item.goalsFor)));
+      row.appendChild(templateNode("span", "", standingValue(item.goalsAgainst)));
+      row.appendChild(templateNode(
+        "span",
+        "",
+        isFinite(difference) ? (difference > 0 ? "+" : "") + String(difference) : "–"
+      ));
+      row.appendChild(renderLegacyRoyalStandingForm(item.form));
+      return row;
+    }
     function renderEditorialStandingTemplate(body, snapshot, payload) {
       var sport = templateRecord(snapshot.sport) || {};
       var competition = templateRecord(sport.competition) || {};
       var pool = templateRecord(sport.pool) || {};
       var items = templateArray(sport.items);
       var pages = templatePages(items, 10);
+      var royalCurrent = Boolean(templateRoyalCurrentAppearance(snapshot));
+      var pinnedTeam = null;
+      var pinnedIndex;
+      if (royalCurrent) {
+        pages = templatePages(items, payload.orientation === "portrait" ? 9 : 6);
+        for (pinnedIndex = 0; pinnedIndex < items.length; pinnedIndex += 1) {
+          if ((templateRecord(items[pinnedIndex]) || {}).selected === true) {
+            pinnedTeam = templateRecord(items[pinnedIndex]);
+            break;
+          }
+        }
+      }
       return {
         pages: pages,
         render: function (page) {
+          if (royalCurrent) {
+            var royalCard = templateNode("section", "legacy-standing-card legacy-royal-standing-card");
+            var royalColumns = templateNode("div", "legacy-royal-standing-columns");
+            var royalRows = templateNode("div", "legacy-royal-standing-rows");
+            var royalContext = templateNode("p", "legacy-standing-context");
+            var royalLabels = ["#", "Team", "G", "W", "GL", "V", "P", "DV", "DT", "+/−", "Vorm"];
+            var royalIndex;
+            body.innerHTML = "";
+            if (pinnedTeam) {
+              var pinned = templateNode("aside", "legacy-royal-standing-pinned");
+              pinned.appendChild(templateNode("span", "", "Eigen team · vaste positie"));
+              pinned.appendChild(renderLegacyRoyalStandingRow(pinnedTeam, payload, "pinned"));
+              royalCard.appendChild(pinned);
+            }
+            for (royalIndex = 0; royalIndex < royalLabels.length; royalIndex += 1) {
+              royalColumns.appendChild(templateNode("span", "", royalLabels[royalIndex]));
+            }
+            royalCard.appendChild(royalColumns);
+            if (!page.length) {
+              royalRows.appendChild(templateNode("div", "dynamic-empty", "De stand is nog niet gepubliceerd."));
+            }
+            for (royalIndex = 0; royalIndex < page.length; royalIndex += 1) {
+              royalRows.appendChild(renderLegacyRoyalStandingRow(
+                templateRecord(page[royalIndex]) || {}, payload, ""
+              ));
+            }
+            royalCard.appendChild(royalRows);
+            royalContext.appendChild(document.createTextNode(
+              [
+                templateText(competition.name, ""),
+                templateText(pool.name, ""),
+                templateText(sport.season, "")
+              ].filter(function (value) { return Boolean(value); }).join(" · ")
+            ));
+            royalCard.appendChild(royalContext);
+            body.appendChild(royalCard);
+            return;
+          }
           var card = templateNode("section", "legacy-standing-card");
           var columns = templateNode("div", "legacy-standing-columns");
           var rows = templateNode("div", "legacy-standing-rows");
@@ -6646,19 +7162,28 @@ export function renderLgLegacyHtml() {
       node.title = team;
       return node;
     }
-    function renderLegacyProgramPrimary(item, teams, displayConfiguration, payload) {
+    function renderLegacyProgramPrimary(item, teams, displayConfiguration, payload, royalCurrent, forceTimeColumn) {
       var primary = templateNode("div", "legacy-program-primary");
+      var cancelled = royalCurrent && templateLegacyMatchCancelled(item);
       if (displayConfiguration.showDate) {
         primary.appendChild(templateNode(
           "span", "legacy-match-date",
           templateText(item.date, templateText(item.secondary, "Datum volgt"))
         ));
       }
-      if (displayConfiguration.showTime) {
+      if (cancelled) {
+        primary.appendChild(templateNode(
+          "span", "legacy-match-time legacy-cancelled-kickoff", "Afgelast"
+        ));
+      } else if (displayConfiguration.showTime) {
         primary.appendChild(templateNode(
           "span", "legacy-match-time",
           templateText(item.time, templateText(item.kickoffTime, "Tijd volgt"))
         ));
+      } else if (forceTimeColumn) {
+        var emptyProgramTime = templateNode("span", "legacy-match-time legacy-match-time-empty", "");
+        emptyProgramTime.setAttribute("aria-hidden", "true");
+        primary.appendChild(emptyProgramTime);
       }
       if (displayConfiguration.showHomeLogo) {
         primary.appendChild(renderLegacyMatchLogo(
@@ -6719,22 +7244,31 @@ export function renderLgLegacyHtml() {
         numeric >= 0 && numeric <= 999
         ? String(numeric) : "";
     }
-    function renderLegacyResultPrimary(item, teams, displayConfiguration, payload) {
+    function renderLegacyResultPrimary(item, teams, displayConfiguration, payload, royalCurrent, forceTimeColumn) {
       var primary = templateNode("div", "legacy-result-primary");
       var homeScore;
       var awayScore;
       var score;
+      var cancelled = royalCurrent && templateLegacyMatchCancelled(item);
       if (displayConfiguration.showDate) {
         primary.appendChild(templateNode(
           "span", "legacy-match-date",
           templateText(item.date, templateText(item.secondary, "Datum volgt"))
         ));
       }
-      if (displayConfiguration.showTime) {
+      if (cancelled) {
+        primary.appendChild(templateNode(
+          "span", "legacy-match-time legacy-cancelled-kickoff", "Afgelast"
+        ));
+      } else if (displayConfiguration.showTime) {
         primary.appendChild(templateNode(
           "span", "legacy-match-time",
           templateText(item.time, templateText(item.kickoffTime, "Tijd volgt"))
         ));
+      } else if (forceTimeColumn) {
+        var emptyResultTime = templateNode("span", "legacy-match-time legacy-match-time-empty", "");
+        emptyResultTime.setAttribute("aria-hidden", "true");
+        primary.appendChild(emptyResultTime);
       }
       if (displayConfiguration.showHomeLogo) {
         primary.appendChild(renderLegacyMatchLogo(
@@ -6765,15 +7299,20 @@ export function renderLgLegacyHtml() {
       primary.appendChild(renderLegacyMatchTeam(teams[1], "away"));
       return primary;
     }
-    function configureLegacyMatchColumns(list, itemCount, displayColumns) {
+    function configureLegacyMatchColumns(list, itemCount, displayColumns, royalCurrent) {
       var columns = displayColumns === "two" && itemCount > 1 ? "two" : "one";
       list.setAttribute("data-columns", columns);
       if (columns === "two") {
-        list.style.gridTemplateRows = "repeat(" + Math.ceil(itemCount / 2) + ",115px)";
+        if (royalCurrent) {
+          list.style.gridTemplateRows = "repeat(" + Math.ceil(itemCount / 2) + ",96px)";
+        } else {
+          list.style.gridTemplateRows = "repeat(" + Math.ceil(itemCount / 2) + ",115px)";
+        }
       }
     }
     function renderSportTemplate(body, snapshot, slideType, orientation, payload) {
       var sport = templateRecord(snapshot.sport) || {};
+      var royalCurrent = Boolean(templateRoyalCurrentAppearance(snapshot));
       var sportTimezone = templateText(sport.timezone, "Europe/Amsterdam");
       var birthday = slideType === "sport_birthdays";
       var itemLimit = slideType === "sport_program" || slideType === "sport_results"
@@ -6823,7 +7362,9 @@ export function renderLgLegacyHtml() {
         items = templateVisitorArrivalItems(items, sportTimezone);
       }
       var cardsPerPage = slideType === "sport_visitor_arrivals"
-        ? 2
+        ? royalCurrent
+          ? Math.max(1, Math.min(3, Number(arrivalConfiguration.cardCount) || 3))
+          : 2
         : Math.max(1, Math.min(4, Number(arrivalConfiguration.cardCount) || 4));
       var match = slideType === "sport_match_of_the_day" || slideType === "sport_next_match";
       var pages = match ? [items.length ? items[0] : null] :
@@ -6872,8 +7413,10 @@ export function renderLgLegacyHtml() {
             meta.appendChild(templateNode("small", "", templateText(item.status, "Programma")));
             meta.appendChild(templateNode(
               "strong",
-              "",
-              templateText(item.time, templateText(item.secondary, "Tijd volgt"))
+              royalCurrent && templateLegacyMatchCancelled(item) ? "legacy-cancelled-kickoff" : "",
+              royalCurrent && templateLegacyMatchCancelled(item)
+                ? "Afgelast"
+                : templateText(item.time, templateText(item.secondary, "Tijd volgt"))
             ));
             meta.appendChild(templateNode(
               "p",
@@ -6892,12 +7435,42 @@ export function renderLgLegacyHtml() {
             return;
           }
           if (arrival) {
+            var royalVisitorArrivals = royalCurrent && slideType === "sport_visitor_arrivals";
             var arrivalGrid = templateNode("div", "legacy-arrival-grid");
+            if (royalVisitorArrivals) arrivalGrid.className += " legacy-royal-arrival-grid";
             arrivalGrid.setAttribute(
               "data-arrival-kind",
               slideType === "sport_visitor_arrivals" ? "visitor" : "referee"
             );
-            arrivalGrid.setAttribute("data-cards", String(page.length));
+            arrivalGrid.setAttribute("data-cards", String(royalVisitorArrivals ? cardsPerPage : page.length));
+            if (royalVisitorArrivals) {
+              var royalArrivalTypography = templateRecord(
+                (templateRoyalCurrentAppearance(snapshot) || {}).typography
+              ) || {};
+              var royalArrivalScale = Math.max(
+                .9, Math.min(1.2, Number(royalArrivalTypography.baseScale) || 1)
+              );
+              var royalArrivalPad = cardsPerPage === 1 ? 42 : 28;
+              var royalArrivalTitle = cardsPerPage === 1 ? 92 : 62;
+              var royalArrivalText = cardsPerPage === 1 ? 36 : 28;
+              var royalArrivalMeta = cardsPerPage === 1 ? 36 : 28;
+              var royalArrivalLabel = cardsPerPage === 1 ? 21 : 17;
+              if (orientation === "portrait") {
+                royalArrivalPad = cardsPerPage === 1 ? 42 : cardsPerPage === 3 ? 24 : 28;
+                royalArrivalTitle = cardsPerPage === 1 ? 96 : cardsPerPage === 2 ? 76 : 58;
+                royalArrivalText = cardsPerPage === 1 ? 40 : cardsPerPage === 2 ? 32 : 27;
+                royalArrivalMeta = cardsPerPage === 1 ? 42 : cardsPerPage === 2 ? 34 : 29;
+                royalArrivalLabel = cardsPerPage === 1 ? 24 : cardsPerPage === 2 ? 21 : 18;
+              }
+              arrivalGrid.setAttribute("data-slots", String(cardsPerPage));
+              arrivalGrid.style.setProperty("--arrival-slots", String(cardsPerPage));
+              arrivalGrid.style.setProperty("--arrival-pad", String(royalArrivalPad) + "px");
+              arrivalGrid.style.setProperty("--arrival-title", String(royalArrivalTitle * royalArrivalScale) + "px");
+              arrivalGrid.style.setProperty("--arrival-text", String(royalArrivalText * royalArrivalScale) + "px");
+              arrivalGrid.style.setProperty("--arrival-meta", String(royalArrivalMeta * royalArrivalScale) + "px");
+              arrivalGrid.style.setProperty("--arrival-label", String(royalArrivalLabel * royalArrivalScale) + "px");
+              arrivalGrid.style.setProperty("--arrival-index", String(29 * royalArrivalScale) + "px");
+            }
             var configuredMotion = templateText(arrivalConfiguration.motionPreset, "auto");
             var motionPresets = ["aurora-rise", "spotlight-bloom", "kinetic-split", "prism-swipe", "grand-flip"];
             var clubName = templateText((templateRecord(snapshot.brand) || {}).clubName, "onze club");
@@ -6912,6 +7485,91 @@ export function renderLgLegacyHtml() {
                 "data-arrival-kind",
                 slideType === "sport_visitor_arrivals" ? "visitor" : "referee"
               );
+              if (royalVisitorArrivals) {
+                var royalArrivalLogoUrl = templateAssetUrl(
+                  payload,
+                  templateText(item.awayLogoMediaAssetId, templateText(item.logoMediaAssetId, ""))
+                );
+                var royalArrivalHomeTeam = templateText(item.homeTeam, clubName);
+                var royalArrivalAwayTeam = templateText(
+                  item.awayTeam,
+                  templateText(item.primary, "Bezoekend team")
+                );
+                var royalArrivalMotion = motionPresets.indexOf(configuredMotion) !== -1
+                  ? configuredMotion
+                  : motionPresets[((Number(activePageIndex) || 0) * cardsPerPage + index) % motionPresets.length];
+                arrivalCard.className += " legacy-royal-arrival-card";
+                arrivalCard.setAttribute("data-logo", royalArrivalLogoUrl ? "visible" : "missing");
+                if ((templateRoyalCurrentAppearance(snapshot) || {}).motionEnabled !== false) {
+                  arrivalCard.setAttribute("data-motion", royalArrivalMotion);
+                }
+                arrivalCard.style.setProperty("--arrival-delay", String(index * 110) + "ms");
+                if (royalArrivalLogoUrl) {
+                  var royalArrivalWatermark = templateNode("img", "legacy-royal-arrival-watermark");
+                  royalArrivalWatermark.alt = "";
+                  royalArrivalWatermark.setAttribute("aria-hidden", "true");
+                  royalArrivalWatermark.src = royalArrivalLogoUrl;
+                  arrivalCard.appendChild(royalArrivalWatermark);
+                }
+                arrivalCard.appendChild(templateNode("div", "legacy-royal-arrival-gradient"));
+                var royalArrivalCrest = templateNode("div", "legacy-royal-arrival-crest");
+                var royalArrivalTop = templateNode("div", "legacy-royal-arrival-top");
+                royalArrivalTop.appendChild(templateNode(
+                  "span", "", index === 0 ? "Eerstvolgende aftrap" : "Welkom bij " + clubName
+                ));
+                royalArrivalTop.appendChild(templateNode(
+                  "b", "", (index + 1 < 10 ? "0" : "") + String(index + 1)
+                ));
+                royalArrivalCrest.appendChild(royalArrivalTop);
+                var royalArrivalLogo = templateNode("div", "legacy-royal-arrival-logo");
+                if (royalArrivalLogoUrl) {
+                  var royalArrivalLogoImage = templateNode("img", "");
+                  royalArrivalLogoImage.alt = "Logo " + royalArrivalAwayTeam;
+                  royalArrivalLogoImage.src = royalArrivalLogoUrl;
+                  royalArrivalLogo.appendChild(royalArrivalLogoImage);
+                } else {
+                  royalArrivalLogo.appendChild(templateNode(
+                    "span", "", templateInitials(royalArrivalAwayTeam)
+                  ));
+                }
+                royalArrivalCrest.appendChild(royalArrivalLogo);
+                arrivalCard.appendChild(royalArrivalCrest);
+                var royalArrivalBody = templateNode("div", "legacy-royal-arrival-body");
+                var royalArrivalIdentity = templateNode("div", "legacy-royal-arrival-identity");
+                royalArrivalIdentity.appendChild(templateNode("span", "", "Goed dat jullie er zijn"));
+                royalArrivalIdentity.appendChild(templateNode("h2", "", royalArrivalAwayTeam));
+                royalArrivalIdentity.appendChild(templateNode(
+                  "p", "", royalArrivalHomeTeam + " tegen " + royalArrivalAwayTeam
+                ));
+                royalArrivalBody.appendChild(royalArrivalIdentity);
+                var royalArrivalInfo = templateNode("div", "legacy-royal-arrival-info");
+                function appendRoyalArrivalInfo(label, value) {
+                  var detail = templateNode("div", "");
+                  detail.appendChild(templateNode("span", "", label));
+                  detail.appendChild(templateNode("strong", "", value || "volgt"));
+                  royalArrivalInfo.appendChild(detail);
+                }
+                appendRoyalArrivalInfo(
+                  "Aftrap", templateText(item.kickoffTime, templateText(item.time, "volgt"))
+                );
+                appendRoyalArrivalInfo(
+                  "Locatie",
+                  templateText(item.field, templateText(item.venueName, templateText(item.venue, "volgt")))
+                );
+                appendRoyalArrivalInfo(
+                  "Omkleden",
+                  [
+                    item.homeRoom ? "Thuis " + templateText(item.homeRoom, "") : "",
+                    (item.awayRoom || item.dressingRoom)
+                      ? "Uit " + templateText(item.awayRoom, templateText(item.dressingRoom, ""))
+                      : ""
+                  ].filter(Boolean).join(" · ") || "volgt"
+                );
+                royalArrivalBody.appendChild(royalArrivalInfo);
+                arrivalCard.appendChild(royalArrivalBody);
+                arrivalGrid.appendChild(arrivalCard);
+                continue;
+              }
               var arrivalSponsorUrl = slideType !== "sport_visitor_arrivals" &&
                 arrivalConfiguration.showSponsor === true
                 ? templateAssetUrl(
@@ -7027,6 +7685,14 @@ export function renderLgLegacyHtml() {
                 arrivalCard.appendChild(arrivalSponsor);
               }
               arrivalGrid.appendChild(arrivalCard);
+            }
+            if (royalVisitorArrivals) {
+              while (arrivalGrid.children.length < cardsPerPage) {
+                var emptyArrivalSlot = templateNode("div", "legacy-royal-arrival-empty");
+                emptyArrivalSlot.setAttribute("aria-hidden", "true");
+                emptyArrivalSlot.setAttribute("data-slot", String(arrivalGrid.children.length + 1));
+                arrivalGrid.appendChild(emptyArrivalSlot);
+              }
             }
             body.appendChild(arrivalGrid);
             return;
@@ -7148,6 +7814,12 @@ export function renderLgLegacyHtml() {
           }
           if (slideType === "sport_program") {
             var fixtureList = templateNode("div", "legacy-fixture-list");
+            var fixtureHasCancelled = royalCurrent && page.some(function (value) {
+              return templateLegacyMatchCancelled(templateRecord(value) || {});
+            });
+            var fixtureColumnConfiguration = fixtureHasCancelled && !displayConfiguration.showTime
+              ? Object.assign({}, displayConfiguration, { showTime: true })
+              : displayConfiguration;
             fixtureList.setAttribute("data-render-family", "fixture-list");
             for (index = 0; index < page.length; index += 1) {
               item = templateRecord(page[index]) || {};
@@ -7159,7 +7831,7 @@ export function renderLgLegacyHtml() {
               var fixtureRow = templateNode("article", "legacy-fixture-row");
               fixtureRow.style.setProperty("--match-row-delay", String(360 + index * 110) + "ms");
               fixtureRow.appendChild(renderLegacyProgramPrimary(
-                item, teams, displayConfiguration, payload
+                item, teams, displayConfiguration, payload, royalCurrent, fixtureHasCancelled
               ));
               var fixtureSecondary = renderLegacyProgramSecondary(
                 item, displayConfiguration
@@ -7170,12 +7842,13 @@ export function renderLgLegacyHtml() {
             configureLegacyMatchColumns(
               fixtureList,
               fixtureList.children.length,
-              displayColumns
+              displayColumns,
+              royalCurrent
             );
             fixtureList.style.setProperty(
               "--legacy-program-columns",
               templateLegacyProgramColumns(
-                displayConfiguration,
+                fixtureColumnConfiguration,
                 fixtureList.getAttribute("data-columns") === "two"
               )
             );
@@ -7184,6 +7857,12 @@ export function renderLgLegacyHtml() {
           }
           if (slideType === "sport_results") {
             var resultList = templateNode("div", "legacy-result-list");
+            var resultHasCancelled = royalCurrent && page.some(function (value) {
+              return templateLegacyMatchCancelled(templateRecord(value) || {});
+            });
+            var resultColumnConfiguration = resultHasCancelled && !displayConfiguration.showTime
+              ? Object.assign({}, displayConfiguration, { showTime: true })
+              : displayConfiguration;
             resultList.setAttribute("data-render-family", "result-list");
             for (index = 0; index < page.length; index += 1) {
               item = templateRecord(page[index]) || {};
@@ -7195,19 +7874,20 @@ export function renderLgLegacyHtml() {
               var resultRow = templateNode("article", "legacy-result-row");
               resultRow.style.setProperty("--match-row-delay", String(360 + index * 110) + "ms");
               resultRow.appendChild(renderLegacyResultPrimary(
-                item, teams, displayConfiguration, payload
+                item, teams, displayConfiguration, payload, royalCurrent, resultHasCancelled
               ));
               resultList.appendChild(resultRow);
             }
             configureLegacyMatchColumns(
               resultList,
               resultList.children.length,
-              displayColumns
+              displayColumns,
+              royalCurrent
             );
             resultList.style.setProperty(
               "--legacy-result-columns",
               templateLegacyResultColumns(
-                displayConfiguration,
+                resultColumnConfiguration,
                 resultList.getAttribute("data-columns") === "two"
               )
             );
@@ -7231,13 +7911,19 @@ export function renderLgLegacyHtml() {
               if (!templateText(item.primary, "")) continue;
               var typedRow = templateNode("article", "legacy-typed-row");
               typedRow.setAttribute("data-kind", typedKind);
-              typedRow.appendChild(templateNode("time", "", templateText(item.time, templateText(item.date, templateText(item.secondary, "")))));
+              typedRow.appendChild(templateNode(
+                "time",
+                royalCurrent && typedKind === "cancellation" ? "legacy-cancelled-kickoff" : "",
+                royalCurrent && typedKind === "cancellation"
+                  ? "Afgelast"
+                  : templateText(item.time, templateText(item.date, templateText(item.secondary, "")))
+              ));
               var typedCopy = templateNode("div", "");
               typedCopy.appendChild(templateNode("h2", "", templateText(item.primary, "Clubinformatie")));
               typedCopy.appendChild(templateNode("p", "", templateText(item.venue, templateText(item.meta, ""))));
               typedRow.appendChild(typedCopy);
               var typedMeta = "";
-              if (typedKind === "cancellation") {
+              if (typedKind === "cancellation" && !royalCurrent) {
                 typedMeta = templateText(item.status, "Afgelast");
               } else if (typedKind === "dressing") {
                 typedMeta = [
@@ -7399,6 +8085,22 @@ export function renderLgLegacyHtml() {
     }
     function playLedScoresLiveMatchTemplate(item, objectUrls, generation) {
       var payload = item.dynamicTemplate;
+      var snapshot = templateRecord(payload.data) || {};
+      var royalAppearance = templateRoyalCurrentAppearance(snapshot);
+      var royalPresentation = templateRecord(snapshot.themePresentation) || {};
+      var royalResolvedMode = templateRecord(royalPresentation.resolvedMode) || {};
+      var royalMode = templateText(royalResolvedMode.mode, "light") === "dark" ? "glass" : "royal";
+      var royalPalette = royalAppearance
+        ? legacyCreateRoyalCurrentPalette(templateRecord(royalAppearance.palette) || {}, royalMode)
+        : null;
+      var royalTypography = royalAppearance
+        ? templateRecord(royalAppearance.typography) || {}
+        : {};
+      var royalThemeFontFamilies = CONFIG.themeFontFamilies || {};
+      var royalBodyFontRef = templateText(royalTypography.bodyFontRef, "vc-roboto-v1");
+      var royalDisplayFontRef = templateText(royalTypography.displayFontRef, "vc-roboto-v1");
+      var royalBaseScale = Math.max(.9, Math.min(1.2, Number(royalTypography.baseScale) || 1));
+      var royalBrand = templateRecord(snapshot.brand) || {};
       var config = parseLedScoresLiveMatchConfig(payload);
       var state = config && (runtime.ledScoresMatchStates[config.connectionId] ||
         config.fallbackState);
@@ -7415,6 +8117,26 @@ export function renderLgLegacyHtml() {
         (payload.orientation === "portrait" ? " portrait" : ""));
       root.setAttribute("data-slide-type", "ledscores_live_match");
       root.setAttribute("data-accent", config.accentMode);
+      if (royalPalette) {
+        root.setAttribute("data-design-revision", "royal-current-v8");
+        root.setAttribute("data-royal-mode", royalMode);
+        root.style.setProperty(
+          "--vc-theme-body-font",
+          templateThemeFontFamily(royalThemeFontFamilies, royalBodyFontRef, "vc-roboto-v1")
+        );
+        root.style.setProperty(
+          "--vc-theme-display-font",
+          templateThemeFontFamily(royalThemeFontFamilies, royalDisplayFontRef, "vc-roboto-v1")
+        );
+        root.style.setProperty("--type-scale", String(royalBaseScale));
+        root.style.setProperty("--rc-title-size", String(62 * royalBaseScale) + "px");
+        root.style.setProperty("--rc-title-size-portrait", String(54 * royalBaseScale) + "px");
+        Object.keys(royalPalette).forEach(function (name) {
+          root.style.setProperty(name, royalPalette[name]);
+        });
+        root.style.setProperty("--live-accent", royalPalette["--accent"]);
+        root.style.setProperty("--vc-shadow", royalMode === "glass" ? "rgba(0,0,0,.28)" : "rgba(19,32,68,.12)");
+      }
       render = function (changedConnectionId) {
         var shell;
         var top;
@@ -7437,6 +8159,38 @@ export function renderLgLegacyHtml() {
         stale = state.staleAfter <= ledScoresMatchServerNow(state);
         while (root.firstChild) root.removeChild(root.firstChild);
         shell = templateNode("div", "live-match-shell");
+        if (royalPalette) {
+          var liveFlow = templateNode("div", "legacy-royal-flow");
+          liveFlow.setAttribute("aria-hidden", "true");
+          liveFlow.appendChild(templateNode("i", "legacy-royal-flow-one"));
+          liveFlow.appendChild(templateNode("i", "legacy-royal-flow-two"));
+          liveFlow.appendChild(templateNode("i", "legacy-royal-flow-three"));
+          shell.appendChild(liveFlow);
+          var liveSideband = templateNode("aside", "legacy-royal-sideband");
+          liveSideband.setAttribute("aria-hidden", "true");
+          liveSideband.appendChild(templateNode(
+            "span", "", templateText(royalBrand.clubName, "VeyoCast")
+          ));
+          liveSideband.appendChild(templateNode("b", "", "LIVE"));
+          liveSideband.appendChild(templateNode("span", "", "Onze club. Ons verhaal."));
+          shell.appendChild(liveSideband);
+          var liveMasthead = templateNode("div", "legacy-royal-masthead");
+          var liveMastheadClub = templateNode("div", "legacy-royal-masthead-club");
+          liveMastheadClub.appendChild(templateNode(
+            "strong", "", templateText(royalBrand.clubName, "VeyoCast")
+          ));
+          liveMastheadClub.appendChild(templateNode("span", "", "Live wedstrijdinformatie"));
+          liveMasthead.appendChild(liveMastheadClub);
+          var liveMastheadRight = templateNode("div", "legacy-royal-masthead-right");
+          liveMastheadRight.appendChild(templateNode(
+            "span", "", royalMode === "glass" ? "Navy Glass" : "Royal Current"
+          ));
+          liveMastheadRight.appendChild(templateNode(
+            "time", "", ledScoresClockLabel(ledScoresClockSeconds(state))
+          ));
+          liveMasthead.appendChild(liveMastheadRight);
+          shell.appendChild(liveMasthead);
+        }
         top = templateNode("header", "live-match-top");
         heading = templateNode("div", "");
         heading.appendChild(templateNode("p", "", config.title));
@@ -7526,19 +8280,34 @@ export function renderLgLegacyHtml() {
       var themeAppearance = Number(themePresentation.snapshotVersion) === 2
         ? templateRecord(themePresentation.appearance) || {}
         : {};
+      var royalCurrent = Boolean(templateRoyalCurrentAppearance(snapshot));
+      var royalCurrentPalette = null;
       var appearanceTypography = templateRecord(themeAppearance.typography) || {};
       var appearanceSurfaces = templateRecord(themeAppearance.surfaces) || {};
       var themeFontFamilies = CONFIG.themeFontFamilies || {};
       var themeFontSizes = CONFIG.themeFontSizes || [];
       var themeFontIndex;
       var themeFontSize;
-      var bodyFontRef = templateText(appearanceTypography.bodyFontRef, "vc-inter-v1");
-      var displayFontRef = templateText(appearanceTypography.displayFontRef, "vc-manrope-v1");
-      var baseScale = Math.max(.85, Math.min(1.25, Number(appearanceTypography.baseScale) || 1));
-      var sportScale = Math.max(.9, Math.min(1.4, Number(appearanceTypography.sportScale) || 1.12));
+      var defaultBodyFontRef = royalCurrent ? "vc-roboto-v1" : "vc-inter-v1";
+      var defaultDisplayFontRef = royalCurrent ? "vc-roboto-v1" : "vc-manrope-v1";
+      var bodyFontRef = templateText(
+        appearanceTypography.bodyFontRef, defaultBodyFontRef
+      );
+      var displayFontRef = templateText(
+        appearanceTypography.displayFontRef, defaultDisplayFontRef
+      );
+      var baseScale = royalCurrent
+        ? Math.max(.9, Math.min(1.2, Number(appearanceTypography.baseScale) || 1))
+        : Math.max(.85, Math.min(1.25, Number(appearanceTypography.baseScale) || 1));
+      var defaultSportScale = Number(themeAppearance.schemaVersion) === 2 ? 1 : 1.12;
+      var sportScale = Math.max(
+        .9,
+        Math.min(1.4, Number(appearanceTypography.sportScale) || defaultSportScale)
+      );
       var themeSelection = templateRecord(themePresentation.selection) || {};
       var themeReference = templateRecord(themeSelection.ref) || {};
       var resolvedThemeMode = templateRecord(themePresentation.resolvedMode) || {};
+      var tenantThemeOverrides = templateRecord(snapshot._veyocastThemeColorOverrides) || {};
       var clockTimezone = templateText(
         resolvedThemeMode.timezone,
         templateText((templateRecord(snapshot.sport) || {}).timezone, "Europe/Amsterdam")
@@ -7550,8 +8319,15 @@ export function renderLgLegacyHtml() {
         payload.templateSlug.indexOf("dark") !== -1 ? "dark" : "light"
         )
       );
+      if (royalCurrent) {
+        royalCurrentPalette = legacyCreateRoyalCurrentPalette(
+          templateRecord(themeAppearance.palette) || {},
+          editorialMode === "dark" ? "glass" : "royal"
+        );
+      }
       var manifestPalette = templateRecord(manifestTheme[editorialMode]) || {};
-      var configuredEditorialTokens = templateRecord(editorialTheme[editorialMode]) || {};
+      var configuredEditorialTokens = templateRecord(tenantThemeOverrides[editorialMode]) ||
+        templateRecord(editorialTheme[editorialMode]) || {};
       var editorialTokens = Object.keys(configuredEditorialTokens).length
         ? configuredEditorialTokens
         : manifestPalette;
@@ -7561,14 +8337,17 @@ export function renderLgLegacyHtml() {
       var themeAliasTokens = projectFrozenThemeAliases
         ? editorialTokens
         : manifestPalette;
-      var editorialArena =
+      var editorialArena = royalCurrent ||
         templateText(payload.templateSlug, "").indexOf("editorial-arena-") === 0;
       var menuStudioV2 = false;
       var matchCentre = payload.slideType === "sport_program" || payload.slideType === "sport_results";
       var contextPrimary = null;
       function updateMatchCentreClock() {
-        var clock = root.querySelector(".matchcentre-clock");
-        if (clock) clock.textContent = templateMatchCentreClock(clockTimezone);
+        var clocks = root.querySelectorAll(".matchcentre-clock,.legacy-royal-clock");
+        var clockIndex;
+        for (clockIndex = 0; clockIndex < clocks.length; clockIndex += 1) {
+          clocks[clockIndex].textContent = templateMatchCentreClock(clockTimezone);
+        }
       }
       function updateVisitorVenue(page) {
         if (contextPrimary && payload.slideType === "sport_visitor_arrivals") {
@@ -7584,12 +8363,28 @@ export function renderLgLegacyHtml() {
         updateVisitorVenue(renderer.pages[pageIndex]);
         number = root.querySelector(".dynamic-page-number");
         if (number) {
-          number.textContent = String(pageIndex + 1) + " / " +
-            String(renderer.pages.length);
+          number.textContent = royalCurrent
+            ? templatePageCounter(pageIndex, renderer.pages.length)
+            : String(pageIndex + 1) + " / " + String(renderer.pages.length);
         }
         matchCentreNumber = root.querySelector(".matchcentre-page-number");
         if (matchCentreNumber) {
           matchCentreNumber.textContent = templatePageCounter(pageIndex, renderer.pages.length);
+        }
+        var royalPageNumber = root.querySelector(".legacy-royal-page-number");
+        if (royalPageNumber) {
+          royalPageNumber.textContent = templatePageCounter(pageIndex, renderer.pages.length);
+        }
+        var royalSidePage = root.querySelector(".legacy-royal-side-page");
+        if (royalSidePage) {
+          royalSidePage.textContent = String(pageIndex + 1).padStart(2, "0");
+        }
+        var royalTitleCount = root.querySelector(".legacy-royal-title-count");
+        var royalCountLabel = root.querySelector(".legacy-royal-title-count-label");
+        var royalCount = templateRoyalCurrentPageCount(renderer.pages[pageIndex]);
+        if (royalTitleCount) royalTitleCount.textContent = String(royalCount).padStart(2, "0");
+        if (royalCountLabel) {
+          royalCountLabel.textContent = templateRoyalCurrentCountLabel(payload.slideType, royalCount);
         }
         updateMatchCentreClock();
         scheduleTemplateAdvance(advanceTemplatePage, templatePageDuration);
@@ -7633,6 +8428,11 @@ export function renderLgLegacyHtml() {
       root.className += payload.orientation === "portrait" ? " portrait" : "";
       root.setAttribute("data-slide-type", payload.slideType);
       root.setAttribute("data-theme-id", templateText(themeReference.id, "editorial"));
+      if (royalCurrent) {
+        root.setAttribute("data-design-revision", "royal-current-v8");
+        root.setAttribute("data-royal-mode", editorialMode === "dark" ? "glass" : "royal");
+        root.setAttribute("data-motion-state", themeAppearance.motionEnabled === false ? "off" : "on");
+      }
       if (editorialArena) root.className += " editorial-arena";
       root.style.setProperty("--accent", accent);
       for (var themeTokenIndex = 0; themeTokenIndex < editorialTokenProjection.length; themeTokenIndex += 1) {
@@ -7661,9 +8461,18 @@ export function renderLgLegacyHtml() {
           templateText(themeAliasTokens[themeAlias[1]], themeAlias[2])
         );
       }
-      root.style.setProperty("--vc-theme-body-font", templateText(themeFontFamilies[bodyFontRef], "Inter"));
-      root.style.setProperty("--vc-theme-display-font", templateText(themeFontFamilies[displayFontRef], "Manrope"));
-      root.style.setProperty("--vc-theme-display-weight", String(Number(manifestTheme.displayWeight) || 700));
+      root.style.setProperty(
+        "--vc-theme-body-font",
+        templateThemeFontFamily(themeFontFamilies, bodyFontRef, defaultBodyFontRef)
+      );
+      root.style.setProperty(
+        "--vc-theme-display-font",
+        templateThemeFontFamily(themeFontFamilies, displayFontRef, defaultDisplayFontRef)
+      );
+      root.style.setProperty(
+        "--vc-theme-display-weight",
+        royalCurrent ? "900" : String(Number(manifestTheme.displayWeight) || 700)
+      );
       root.style.setProperty("--vc-theme-display-spacing", String(Number(manifestTheme.displayLetterSpacingEm) || 0) + "em");
       root.style.setProperty("--editorial-canvas", templateText(editorialTokens.canvas, editorialMode === "dark" ? "#090B0E" : "#D7D2C8"));
       root.style.setProperty("--editorial-surface", templateText(editorialTokens.surface, editorialMode === "dark" ? "#0D1116" : "#F3F0E9"));
@@ -7689,13 +8498,19 @@ export function renderLgLegacyHtml() {
       root.style.setProperty("--vc-sport-result-size", String(30 * baseScale * sportScale) + "px");
       root.style.setProperty("--vc-sport-result-size-portrait", String(27 * baseScale * sportScale) + "px");
       root.style.setProperty("--vc-sport-score-size", String(46.5 * baseScale * sportScale) + "px");
+      var compactSportResultSize = Number(themeAppearance.schemaVersion) === 2
+        ? 24 * baseScale * sportScale
+        : 24 * baseScale * sportScale / 1.12;
+      var compactSportScoreSize = Number(themeAppearance.schemaVersion) === 2
+        ? 42 * baseScale * sportScale
+        : 42 * baseScale * sportScale / 1.12;
       root.style.setProperty(
         "--vc-theme-sport-result-size-compact",
-        String(Math.round(24 * baseScale * sportScale / 1.12 * 1000) / 1000) + "px"
+        String(Math.round(compactSportResultSize * 1000) / 1000) + "px"
       );
       root.style.setProperty(
         "--vc-theme-sport-score-size-compact",
-        String(Math.round(42 * baseScale * sportScale / 1.12 * 1000) / 1000) + "px"
+        String(Math.round(compactSportScoreSize * 1000) / 1000) + "px"
       );
       root.style.setProperty("--editorial-text", templateText(editorialTokens.text, editorialMode === "dark" ? "#F7F3EB" : "#111315"));
       root.style.setProperty("--editorial-muted", templateText(editorialTokens.textMuted, templateText(editorialTokens.muted, editorialMode === "dark" ? "#C9C4B9" : "#625F57")));
@@ -7713,6 +8528,130 @@ export function renderLgLegacyHtml() {
       root.style.setProperty("--editorial-image-overlay-end", templateText(editorialTokens.imageOverlayEnd, "rgba(6,8,10,.08)"));
       if (templateText(editorialTokens.accent, "")) {
         root.style.setProperty("--accent", templateText(editorialTokens.accent, accent));
+      }
+      if (royalCurrentPalette) {
+        var royalTokenNames = Object.keys(royalCurrentPalette);
+        var royalTokenIndex;
+        var royalMatte = royalCurrentPalette["--matte-rgb"];
+        for (royalTokenIndex = 0; royalTokenIndex < royalTokenNames.length; royalTokenIndex += 1) {
+          root.style.setProperty(
+            royalTokenNames[royalTokenIndex],
+            royalCurrentPalette[royalTokenNames[royalTokenIndex]]
+          );
+        }
+        var royalTokenProjection = [
+          ["--vc-accent", "--accent"],
+          ["--vc-accent-soft", "--accent-soft"],
+          ["--vc-border", "--line"],
+          ["--vc-border-soft", "--line"],
+          ["--vc-canvas", "--bg"],
+          ["--vc-divider", "--line"],
+          ["--vc-neutral", "--muted"],
+          ["--vc-panel", "--surface-2"],
+          ["--vc-row", "--surface"],
+          ["--vc-row-selected", "--own-bg"],
+          ["--vc-surface", "--surface"],
+          ["--vc-surface-raised", "--surface-2"],
+          ["--vc-text", "--ink"],
+          ["--vc-text-faint", "--muted"],
+          ["--vc-text-muted", "--muted"],
+          ["--vc-text-on-accent", "--on-accent"],
+          ["--vc-text-on-selected", "--own-ink"],
+          ["--vc-theme-accent", "--accent"],
+          ["--vc-theme-accent-ink", "--on-accent"],
+          ["--vc-theme-canvas", "--bg"],
+          ["--vc-theme-line", "--line"],
+          ["--vc-theme-muted", "--muted"],
+          ["--vc-theme-surface", "--surface"],
+          ["--vc-theme-surface-alt", "--surface-2"],
+          ["--vc-theme-text", "--ink"],
+          ["--vc-theme-text-muted", "--muted"],
+          ["--editorial-canvas", "--bg"],
+          ["--editorial-surface", "--surface"],
+          ["--editorial-surface-alt", "--surface-2"],
+          ["--editorial-panel", "--surface-2"],
+          ["--editorial-row", "--surface"],
+          ["--editorial-text", "--ink"],
+          ["--editorial-muted", "--muted"],
+          ["--editorial-text-faint", "--muted"],
+          ["--editorial-border", "--line"],
+          ["--editorial-border-soft", "--line"],
+          ["--editorial-divider", "--line"],
+          ["--editorial-accent-soft", "--accent-soft"]
+        ];
+        for (royalTokenIndex = 0; royalTokenIndex < royalTokenProjection.length; royalTokenIndex += 1) {
+          root.style.setProperty(
+            royalTokenProjection[royalTokenIndex][0],
+            royalCurrentPalette[royalTokenProjection[royalTokenIndex][1]]
+          );
+        }
+        var royalSemanticProjection = [
+          ["--accent", "accent"],
+          ["--accent-soft", "accentSoft"],
+          ["--bg", "canvas"],
+          ["--deep", "rowSelected"],
+          ["--flow-accent", "support"],
+          ["--ink", "text"],
+          ["--line", "border"],
+          ["--muted", "textMuted"],
+          ["--on-accent", "textOnAccent"],
+          ["--own-bg", "rowSelected"],
+          ["--own-ink", "textOnSelected"],
+          ["--own-line", "border"],
+          ["--own-muted", "textMuted"],
+          ["--secondary-accent", "support"],
+          ["--solid-accent", "accent"],
+          ["--surface", "surface"],
+          ["--surface-2", "surfaceRaised"]
+        ];
+        for (royalTokenIndex = 0; royalTokenIndex < royalSemanticProjection.length; royalTokenIndex += 1) {
+          var royalSemanticToken = royalSemanticProjection[royalTokenIndex];
+          var royalSemanticValue = royalSemanticToken[1] === "support"
+            ? templateText(themeSelection.support, royalCurrentPalette[royalSemanticToken[0]])
+            : templateText(
+              editorialTokens[royalSemanticToken[1]],
+              royalCurrentPalette[royalSemanticToken[0]]
+            );
+          root.style.setProperty(
+            royalSemanticToken[0],
+            royalSemanticValue
+          );
+        }
+        root.style.setProperty("--vc-danger", editorialMode === "dark" ? "#ff8f95" : "#a82d3d");
+        root.style.setProperty("--vc-warning", editorialMode === "dark" ? "#ffcba4" : "#a53c12");
+        root.style.setProperty("--vc-success", editorialMode === "dark" ? "#74d9a5" : "#16623f");
+        root.style.setProperty("--vc-qr-ink", "#000000");
+        root.style.setProperty("--vc-qr-surface", "#ffffff");
+        root.style.setProperty("--editorial-danger", editorialMode === "dark" ? "#ff8f95" : "#a82d3d");
+        root.style.setProperty("--editorial-qr-ink", "#000000");
+        root.style.setProperty("--editorial-qr-surface", "#ffffff");
+        root.style.setProperty("--editorial-image-overlay-start", "rgba(" + royalMatte + ",.80)");
+        root.style.setProperty("--editorial-image-overlay-mid", "rgba(" + royalMatte + ",.46)");
+        root.style.setProperty("--editorial-image-overlay-end", "rgba(" + royalMatte + ",.08)");
+        root.style.setProperty("--vc-image-overlay-start", "rgba(" + royalMatte + ",.80)");
+        root.style.setProperty("--vc-image-overlay-mid", "rgba(" + royalMatte + ",.46)");
+        root.style.setProperty("--vc-image-overlay-end", "rgba(" + royalMatte + ",.08)");
+        root.style.setProperty("--editorial-shadow", editorialMode === "dark" ? "rgba(0,0,0,.28)" : "rgba(19,32,68,.12)");
+        root.style.setProperty("--vc-shadow", editorialMode === "dark" ? "rgba(0,0,0,.28)" : "rgba(19,32,68,.12)");
+        root.style.setProperty("--type-scale", String(baseScale));
+        root.style.setProperty("--rc-title-size", String(62 * baseScale) + "px");
+        root.style.setProperty("--rc-title-size-portrait", String(54 * baseScale) + "px");
+        root.style.setProperty("--rc-subtitle-size", String(23 * baseScale) + "px");
+        root.style.setProperty("--rc-subtitle-size-portrait", String(24 * baseScale) + "px");
+        root.style.setProperty("--rc-footer-size", String(14 * baseScale) + "px");
+        root.style.setProperty("--rc-cancelled-size", String(18 * baseScale) + "px");
+        root.style.setProperty("--rc-cancelled-size-portrait", String(20 * baseScale) + "px");
+        root.style.setProperty("--rc-news-copy-size", String(34 * baseScale) + "px");
+        root.style.setProperty("--rc-news-copy-size-portrait", String(34 * baseScale) + "px");
+        root.style.setProperty("--rc-news-text-size", String(48 * baseScale) + "px");
+        root.style.setProperty("--rc-news-grid-copy-size", String(27 * baseScale) + "px");
+        root.style.setProperty("--rc-program-row-size", String(25 * baseScale * sportScale) + "px");
+        root.style.setProperty("--rc-program-row-size-compact", String(20 * baseScale * sportScale) + "px");
+        root.style.setProperty("--rc-program-row-size-portrait", String(24 * baseScale * sportScale) + "px");
+        root.style.setProperty("--rc-result-row-size", String(31 * baseScale * sportScale) + "px");
+        root.style.setProperty("--rc-result-row-size-compact", String(25 * baseScale * sportScale) + "px");
+        root.style.setProperty("--rc-result-row-size-portrait", String(29 * baseScale * sportScale) + "px");
+        root.style.setProperty("--accent", royalCurrentPalette["--accent"]);
       }
       if (payload.slideType === "menu") {
         sourceLabel = "Clubkantine";
@@ -7768,9 +8707,38 @@ export function renderLgLegacyHtml() {
             )
           ));
         }
-        if (menuStudioV2) heading.appendChild(templateNode("p", "", "Menu"));
-        heading.appendChild(templateNode("h1", "", title));
-        if (matchCentre) {
+        if (royalCurrent) {
+          var royalSubtitle = sourceLabel;
+          var royalSport = templateRecord(snapshot.sport) || {};
+          var royalCompetition = templateRecord(royalSport.competition) || {};
+          var royalPool = templateRecord(royalSport.pool) || {};
+          if (payload.slideType.indexOf("standing") !== -1) {
+            royalSubtitle = [
+              templateText(royalCompetition.name, ""),
+              templateText(royalPool.name, ""),
+              templateText(royalSport.season, "")
+            ].filter(function (value) { return Boolean(value); }).join(" · ") || sourceLabel;
+          }
+          heading.appendChild(templateNode("span", "legacy-royal-eyebrow", sourceLabel));
+          heading.appendChild(templateNode("h1", "", title));
+          heading.appendChild(templateNode("p", "legacy-royal-subtitle", royalSubtitle));
+          var initialRoyalCount = templateRoyalCurrentPageCount(renderer.pages[0]);
+          context.className += " legacy-royal-title-stat";
+          context.appendChild(templateNode(
+            "strong", "legacy-royal-title-count", String(initialRoyalCount).padStart(2, "0")
+          ));
+          context.appendChild(templateNode(
+            "span", "legacy-royal-title-count-label",
+            templateRoyalCurrentCountLabel(payload.slideType, initialRoyalCount)
+          ));
+          if (renderer.pages.length > 1) {
+            context.appendChild(templateNode(
+              "small", "legacy-royal-page-number", templatePageCounter(0, renderer.pages.length)
+            ));
+          }
+        } else if (matchCentre) {
+          if (menuStudioV2) heading.appendChild(templateNode("p", "", "Menu"));
+          heading.appendChild(templateNode("h1", "", title));
           context.setAttribute("data-match-centre", "true");
           var contextLabel = templateNode("span", "editorial-context-label");
           contextLabel.appendChild(templateNode("strong", "", "MATCHCENTRE"));
@@ -7784,6 +8752,8 @@ export function renderLgLegacyHtml() {
             templateMatchCentreClock(clockTimezone)
           ));
         } else {
+          if (menuStudioV2) heading.appendChild(templateNode("p", "", "Menu"));
+          heading.appendChild(templateNode("h1", "", title));
           contextPrimary = templateNode(
             "strong",
             "",
@@ -7805,7 +8775,23 @@ export function renderLgLegacyHtml() {
         header.appendChild(templateNode("p", "", sourceLabel));
         header.appendChild(templateNode("h1", "", title));
       }
-      if (!matchCentre) {
+      if (royalCurrent) {
+        footer.className = "legacy-royal-footer";
+        var royalFooterIdentity = templateNode("span", "");
+        royalFooterIdentity.appendChild(document.createTextNode(sourceLabel));
+        royalFooterIdentity.appendChild(templateNode("i", "", "·"));
+        royalFooterIdentity.appendChild(document.createTextNode(
+          brand ? templateText(brand.clubName, "ClubTV") : "ClubTV"
+        ));
+        footer.appendChild(royalFooterIdentity);
+        footer.appendChild(templateNode(
+          "span",
+          "dynamic-page-number legacy-royal-page-number",
+          renderer.pages.length > 1
+            ? templatePageCounter(0, renderer.pages.length)
+            : "Live clubinformatie"
+        ));
+      } else if (!matchCentre) {
         footer.appendChild(templateNode(
           "span", "", menuStudioV2 ? "Prijslijst" : sourceLabel
         ));
@@ -7818,6 +8804,38 @@ export function renderLgLegacyHtml() {
               ? "1 / " + String(renderer.pages.length)
               : "Live clubinformatie"
         ));
+      }
+      if (royalCurrent) {
+        var royalFlow = templateNode("div", "legacy-royal-flow");
+        royalFlow.setAttribute("aria-hidden", "true");
+        royalFlow.appendChild(templateNode("i", "legacy-royal-flow-one"));
+        royalFlow.appendChild(templateNode("i", "legacy-royal-flow-two"));
+        royalFlow.appendChild(templateNode("i", "legacy-royal-flow-three"));
+        var royalSideband = templateNode("aside", "legacy-royal-sideband");
+        royalSideband.setAttribute("aria-hidden", "true");
+        royalSideband.appendChild(templateNode(
+          "span", "", brand ? templateText(brand.clubName, "VeyoCast") : "VeyoCast"
+        ));
+        royalSideband.appendChild(templateNode("b", "legacy-royal-side-page", "01"));
+        royalSideband.appendChild(templateNode("span", "", "Onze club. Ons verhaal."));
+        var royalMasthead = templateNode("div", "legacy-royal-masthead");
+        var royalMastheadClub = templateNode("div", "legacy-royal-masthead-club");
+        royalMastheadClub.appendChild(templateNode(
+          "strong", "", brand ? templateText(brand.clubName, "VeyoCast") : "VeyoCast"
+        ));
+        royalMastheadClub.appendChild(templateNode("span", "", sourceLabel));
+        royalMasthead.appendChild(royalMastheadClub);
+        var royalMastheadRight = templateNode("div", "legacy-royal-masthead-right");
+        royalMastheadRight.appendChild(templateNode(
+          "span", "", editorialMode === "dark" ? "Navy Glass" : "Royal Current"
+        ));
+        royalMastheadRight.appendChild(templateNode(
+          "time", "legacy-royal-clock", templateMatchCentreClock(clockTimezone)
+        ));
+        royalMasthead.appendChild(royalMastheadRight);
+        root.appendChild(royalFlow);
+        root.appendChild(royalSideband);
+        root.appendChild(royalMasthead);
       }
       root.appendChild(header);
       root.appendChild(body);

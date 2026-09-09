@@ -74,6 +74,9 @@ importers:
       '@fontsource-variable/manrope':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource/roboto':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@supabase/ssr':
         specifier: ^0.12.3
         version: 0.12.3(@supabase/supabase-js@2.110.7)
@@ -352,6 +355,9 @@ importers:
       '@expo-google-fonts/manrope':
         specifier: 0.4.2
         version: 0.4.2
+      '@expo-google-fonts/roboto':
+        specifier: 0.4.2
+        version: 0.4.2
       '@resvg/resvg-js':
         specifier: ^2.6.2
         version: 2.6.2
@@ -389,6 +395,9 @@ importers:
       tsx:
         specifier: ^4.20.3
         version: 4.23.1
+      zxing-wasm:
+        specifier: 3.1.1
+        version: 3.1.1(@types/emscripten@1.41.5)
 
   apps/player:
     dependencies:
@@ -498,6 +507,9 @@ importers:
 
   packages/studio:
     dependencies:
+      '@veyocast/content-templates':
+        specifier: workspace:*
+        version: link:../content-templates
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -1559,6 +1571,9 @@ packages:
 
   '@fontsource-variable/manrope@5.3.0':
     resolution: {integrity: sha512-6D5dgokHsWDDMtmXHznKa0hK229NN+1a4BLPmUCLqcO1Pw5EEhWY5RFt0AcXnVRAljFFPfRtLkJePQj6LSsV6g==}
+
+  '@fontsource/roboto@5.3.0':
+    resolution: {integrity: sha512-BapRJOWYP+LZ21zp+wBQjfpPYKRoxc4LspJ/RLuI+HSMBD5u/X4O+ESDrSvEqDSy0rAl7GwBJ+09mdc16cVQ1Q==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -8305,6 +8320,8 @@ snapshots:
   '@fontsource-variable/inter@5.3.0': {}
 
   '@fontsource-variable/manrope@5.3.0': {}
+
+  '@fontsource/roboto@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

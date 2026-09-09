@@ -7,8 +7,8 @@ import type {
 import { playerDynamicTemplatePayloadSchema } from "@veyocast/contracts";
 import {
   createFieldflowRoyalBlueAppearance,
-  createFieldflowRoyalBlueSelection,
-  createFieldflowRoyalBlueTheme
+  createFieldflowRoyalBlueTheme,
+  createRoyalCurrentSelection
 } from "@veyocast/content-templates";
 import {
   freezeThemePresentation,
@@ -372,51 +372,63 @@ test("Royal blauwe welkomstslide vergroot alle bezoekinformatie zonder overflow"
   const masthead = slide.locator("header");
   const firstCard = slide.locator('article[data-arrival-kind="visitor"]').first();
   const schedule = firstCard.locator(
-    '[class*="arenaVisitorSchedule"] > time, [class*="arenaVisitorSchedule"] > span'
+    '[class*="royalArrivalSchedule"] dd'
   );
-  const teams = firstCard.locator('[class*="arenaVisitorTeams"] h2 > span');
+  const teams = firstCard.locator('[class*="royalArrivalIdentity"] h2');
   const details = firstCard.locator(
-    '[class*="arenaVisitorDetails"] dt, [class*="arenaVisitorDetails"] dd'
+    '[class*="royalArrivalInfo"] dt, [class*="royalArrivalInfo"] dd'
   );
 
   await expect(slide).toBeVisible();
   expect(await slide.evaluate((element) => ({
     background: getComputedStyle(element).backgroundColor,
+    backgroundImage: getComputedStyle(element).backgroundImage,
     baseScale: getComputedStyle(element)
       .getPropertyValue("--vc-theme-base-scale").trim(),
     color: getComputedStyle(element).color,
     sportScale: getComputedStyle(element)
       .getPropertyValue("--vc-theme-sport-scale").trim()
   }))).toEqual({
-    background: "rgb(7, 21, 56)",
+    background: "rgba(0, 0, 0, 0)",
+    backgroundImage: expect.stringContaining("linear-gradient"),
     baseScale: "1.05",
-    color: "rgb(255, 255, 255)",
+    color: "rgb(245, 247, 251)",
     sportScale: "1.4"
   });
   expect(await masthead.evaluate(
     (element) => getComputedStyle(element).backgroundColor
-  )).toBe("rgb(49, 84, 212)");
+  )).toContain("0.0901961");
   expect(await teams.first().evaluate(
     (element) => getComputedStyle(element).color
-  )).toBe("rgb(255, 255, 255)");
+  )).toBe("rgb(245, 247, 251)");
 
-  expect(await schedule.evaluateAll((elements) => elements.map((element) =>
+  const scheduleSizes = await schedule.evaluateAll((elements) => elements.map((element) =>
     Number.parseFloat(getComputedStyle(element).fontSize)
-  ))).toEqual([48.3, 48.3]);
-  expect(await teams.evaluateAll((elements) => elements.map((element) =>
+  ));
+  expect(scheduleSizes).toHaveLength(3);
+  expect(scheduleSizes[0]).toBeGreaterThan(40);
+  expect(scheduleSizes[1]).toBeGreaterThan(28);
+  expect(scheduleSizes[2]).toBeGreaterThan(40);
+  const teamSizes = await teams.evaluateAll((elements) => elements.map((element) =>
     Number.parseFloat(getComputedStyle(element).fontSize)
-  ))).toEqual([48.3, 48.3]);
-  expect(await details.evaluateAll((elements) => elements.map((element) =>
+  ));
+  expect(teamSizes).toEqual([67.2]);
+  const detailSizes = await details.evaluateAll((elements) => elements.map((element) =>
     Number.parseFloat(getComputedStyle(element).fontSize)
-  ))).toEqual([24.15, 24.15, 24.15, 24.15, 24.15, 24.15]);
+  ));
+  expect(detailSizes.length).toBeGreaterThanOrEqual(6);
+  expect(detailSizes.filter((_, index) => index % 2 === 0).every((size) => size > 16))
+    .toBe(true);
+  expect(detailSizes.filter((_, index) => index % 2 === 1).every((size) => size > 28))
+    .toBe(true);
 
   expect(await slide.evaluate((element) => {
     const card = element.querySelector<HTMLElement>(
       'article[data-arrival-kind="visitor"]'
     );
-    const copy = card?.querySelector<HTMLElement>(
-      '[class*="arenaVisitorArrivalCopy"]'
-    );
+      const copy = card?.querySelector<HTMLElement>(
+      '[class*="royalArrivalBody"]'
+      );
     return {
       cardFits: Boolean(card &&
         card.scrollHeight <= card.clientHeight &&
@@ -492,8 +504,10 @@ function payload(
 }
 
 function royalBluePayload(): PlayerDynamicTemplatePayload {
-  const selection = createFieldflowRoyalBlueSelection(
-    themeCatalog.fieldflow.version
+  const selection = createRoyalCurrentSelection(
+    undefined,
+    themeCatalog.fieldflow.version,
+    "dark"
   );
   const frozen = freezeThemePresentation({
     instant: "2026-09-09T08:00:00.000Z",
@@ -513,7 +527,14 @@ function royalBluePayload(): PlayerDynamicTemplatePayload {
       },
       themePresentation: {
         ...frozen,
-        appearance: createFieldflowRoyalBlueAppearance(),
+        appearance: {
+          ...createFieldflowRoyalBlueAppearance(),
+          typography: {
+            ...createFieldflowRoyalBlueAppearance().typography,
+            baseScale: 1.05,
+            sportScale: 1.4
+          }
+        },
         settingsRevision: 159,
         snapshotVersion: 2
       }
