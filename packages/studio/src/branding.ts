@@ -1,11 +1,10 @@
+import { studioPalette, studioRoyalCurrentPalette } from "./constants";
 import {
   createRoyalCurrentPalette,
   normalizeClubHex,
   royalCurrentEditorialTokens,
   type RoyalCurrentMode
-} from "@veyocast/content-templates/royal-current-theme";
-
-import { studioPalette, studioRoyalCurrentPalette } from "./constants";
+} from "./royal-current-theme";
 import { parseStudioDocument, type StudioDocument, type StudioElement } from "./schema";
 
 export type StudioBrandKit = Readonly<{

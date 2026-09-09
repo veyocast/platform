@@ -507,12 +507,13 @@ importers:
 
   packages/studio:
     dependencies:
-      '@veyocast/content-templates':
-        specifier: workspace:*
-        version: link:../content-templates
       zod:
         specifier: ^4.4.3
         version: 4.4.3
+    devDependencies:
+      '@veyocast/content-templates':
+        specifier: workspace:*
+        version: link:../content-templates
 
   packages/testkit: {}
 

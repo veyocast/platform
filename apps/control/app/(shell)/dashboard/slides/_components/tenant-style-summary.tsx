@@ -4,7 +4,7 @@ import { Gauge, Palette, Sparkles } from "lucide-react";
 
 import type { EditorialThemeConfig } from "@veyocast/contracts";
 
-import type { TenantStyleData } from "../../../../../lib/tenant-style-data";
+import type { TenantStyleData } from "../../../../../lib/tenant-style-data.types";
 import styles from "./tenant-style-summary.module.css";
 
 type StyleProperties = CSSProperties & {

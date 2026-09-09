@@ -16,7 +16,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@veyocast/content-templates": "workspace:*",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@veyocast/content-templates": "workspace:*"
   }
 }

@@ -30,7 +30,7 @@ import {
 } from "@veyocast/ui";
 
 import { FieldFlowStyleStep } from "../../_components/fieldflow-style-step";
-import type { TenantStyleData } from "../../../../../../lib/tenant-style-data";
+import type { TenantStyleData } from "../../../../../../lib/tenant-style-data.types";
 import { TenantStyleSummary } from "../../_components/tenant-style-summary";
 import {
   SportlinkMatchRowPreview,

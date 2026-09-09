@@ -89,7 +89,7 @@ import {
   DialogTitle
 } from "@veyocast/ui";
 
-import type { TenantStyleData } from "../../../../../lib/tenant-style-data";
+import type { TenantStyleData } from "../../../../../lib/tenant-style-data.types";
 import { TenantStyleSummary } from "../_components/tenant-style-summary";
 
 import {

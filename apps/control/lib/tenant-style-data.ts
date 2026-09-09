@@ -4,25 +4,12 @@ import {
   freezeThemePresentation,
   themeToEditorialTokens
 } from "@veyocast/content-templates/theme-catalog";
-import type {
-  EditorialThemeConfig,
-  ThemeAppearanceSettings,
-  ThemePresentationSnapshot,
-  ThemeSelection
-} from "@veyocast/contracts";
+import type { TenantStyleData } from "./tenant-style-data.types";
 
 import { createControlSupabaseClient } from "./supabase/server";
 import { resolveTenantThemeAuthority } from "./tenant-theme";
 
-export type TenantStyleData = {
-  appearance: ThemeAppearanceSettings;
-  dark: EditorialThemeConfig["dark"];
-  error: string | null;
-  light: EditorialThemeConfig["light"];
-  presentation: ThemePresentationSnapshot;
-  revision: number;
-  selection: ThemeSelection;
-};
+export type { TenantStyleData } from "./tenant-style-data.types";
 
 const fallbackSettings = {
   default_theme_id: "fieldflow",
