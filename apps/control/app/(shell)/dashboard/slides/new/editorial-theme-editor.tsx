@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, type CSSProperties } from "react";
+import React, { useMemo, useState, type CSSProperties } from "react";
 
 import {
   defaultThemeAppearanceSettings,
@@ -12,23 +12,21 @@ import {
   type ThemeSelection
 } from "@veyocast/contracts";
 import {
-  contrastRatio,
-  editorialArenaDarkTokens,
-  editorialArenaLightTokens,
   editorialThemeContrastChecks,
   editorialThemeHasValidContrast,
   editorialThemeCssVariables
 } from "@veyocast/content-templates/editorial-arena-theme";
 import {
-  createFieldflowRoyalBlueAppearance,
-  createFieldflowRoyalBlueSelection,
-  createFieldflowRoyalBlueTheme,
-  fieldflowRoyalBluePreset
-} from "@veyocast/content-templates";
-import {
+  createRoyalCurrentAppearance,
+  createRoyalCurrentSelection,
+  createRoyalCurrentTheme,
+  normalizeClubHex,
+  normalizeClubStyle,
+  royalCurrentDefaultStyle,
+  royalCurrentPalettePresets,
   themeCatalog,
   themeManifest
-} from "@veyocast/content-templates/theme-catalog";
+} from "@veyocast/content-templates";
 import { Button } from "@veyocast/ui";
 
 import styles from "../../dynamic-content.module.css";
@@ -43,27 +41,9 @@ const quickTokens = [
   "textMuted"
 ] as const satisfies readonly (keyof EditorialColorTokens)[];
 
-export const fieldflowPalettePresets = [
-  fieldflowRoyalBluePreset,
-  { color: "#EC622C", id: "warm-orange", label: "Warm oranje", recipe: "balanced" },
-  { color: "#315CFF", id: "bright-blue", label: "Helder blauw", recipe: "bright" },
-  { color: "#087F5B", id: "field-green", label: "Veldgroen", recipe: "balanced" },
-  { color: "#7048C8", id: "deep-purple", label: "Diep paars", recipe: "deep" }
-] as const;
+export const fieldflowPalettePresets = royalCurrentPalettePresets;
 
-type FieldflowPaletteRecipe =
-  (typeof fieldflowPalettePresets)[number]["recipe"];
-
-const fieldflowPaletteRecipes: Record<FieldflowPaletteRecipe, {
-  darkAccentLift: number;
-  darkTint: number;
-  lightTint: number;
-}> = {
-  balanced: { darkAccentLift: 0.14, darkTint: 0.1, lightTint: 0.08 },
-  bright: { darkAccentLift: 0.2, darkTint: 0.06, lightTint: 0.035 },
-  deep: { darkAccentLift: 0.1, darkTint: 0.18, lightTint: 0.13 },
-  "royal-current": { darkAccentLift: 0.16, darkTint: 0.12, lightTint: 0.08 }
-};
+type FieldflowPaletteRecipe = "royal-current";
 
 export const editorialThemeTokenGroups = [
   {
@@ -163,13 +143,19 @@ export function EditorialThemeEditor({
   theme: EditorialThemeConfig;
 }) {
   const [editingMode, setEditingMode] = useState<ThemeMode>(theme.mode);
-  const [paletteRecipe, setPaletteRecipe] = useState<FieldflowPaletteRecipe>(
-    fieldflowPalettePresets.find((preset) => (
-      preset.color === selection.accent?.toUpperCase()
-    ))?.recipe ?? "balanced"
-  );
+  const [paletteRecipe] = useState<FieldflowPaletteRecipe>("royal-current");
   const [previewToken, setPreviewToken] = useState<keyof EditorialColorTokens | null>(null);
-  const selected = themeCatalog.fieldflow;
+  const resolvedAppearance = useMemo(() => (
+    appearance.schemaVersion === 2
+      ? appearance
+      : createRoyalCurrentAppearance({
+          primary: selection.accent ?? undefined,
+          secondary: selection.support
+        }, appearance)
+  ), [appearance, selection.accent, selection.support]);
+  const currentStyle = resolvedAppearance.schemaVersion === 2
+    ? resolvedAppearance.palette
+    : royalCurrentDefaultStyle;
   const editingTokens = theme[editingMode];
   const generatedDraft = resolveThemeDraftDefaults(selection, defaults, paletteRecipe);
   const generatedDefaults = generatedDraft.theme;
@@ -198,50 +184,43 @@ export function EditorialThemeEditor({
       }
     };
     const mode = activeMode(fieldflowSelection, theme.mode);
+    setEditingMode(mode);
     onSelectionChange(fieldflowSelection);
     onChange({ ...theme, mode });
   }
 
-  function applyPalette(primary: string, recipe: FieldflowPaletteRecipe) {
-    const normalized = normalizeHex(primary);
+  function applyStyle(input: Partial<{
+    background: "club" | "neutral";
+    primary: string;
+    secondary: string | null;
+  }> = {}) {
+    const style = normalizeClubStyle({ ...currentStyle, ...input });
     const mode = activeMode(selection, theme.mode);
-    setPaletteRecipe(recipe);
-    onSelectionChange({
-      ...selection,
-      accent: normalized ?? primary.toUpperCase(),
-      ref: {
-        catalog: "v2",
-        id: "fieldflow",
-        version: themeCatalog.fieldflow.version
-      },
-      support: normalized ? deriveSupportColor(normalized) : selection.support
-    });
-    if (!normalized) return;
-    const generated = generateFieldflowPalette(normalized, recipe, mode);
-    onChange(generated);
-    onAppearanceChange({
-      ...appearance,
-      surfaces: {
-        ...appearance.surfaces,
-        clubLogoBackground: generated.light.surfaceRaised,
-        homeLogoBackground: generated.light.surfaceRaised
-      }
-    });
+    const nextSelection = createRoyalCurrentSelection(
+      style,
+      themeCatalog.fieldflow.version,
+      mode
+    );
+    nextSelection.categoryOverrides = selection.categoryOverrides;
+    nextSelection.modePolicy = selection.modePolicy;
+    const nextTheme = createRoyalCurrentTheme(style, mode);
+    onSelectionChange(nextSelection);
+    onChange(nextTheme);
+    onAppearanceChange(createRoyalCurrentAppearance(style, resolvedAppearance));
   }
 
   function applyPreset(preset: (typeof fieldflowPalettePresets)[number]) {
-    if (preset.id === fieldflowRoyalBluePreset.id) {
-      const royalSelection = createFieldflowRoyalBlueSelection(
-        themeCatalog.fieldflow.version
-      );
-      setEditingMode("dark");
-      setPaletteRecipe(preset.recipe);
-      onSelectionChange(royalSelection);
-      onChange(createFieldflowRoyalBlueTheme());
-      onAppearanceChange(createFieldflowRoyalBlueAppearance());
-      return;
-    }
-    applyPalette(preset.color, preset.recipe);
+    applyStyle({ primary: preset.color });
+  }
+
+  function applyPrimary(value: string) {
+    const normalized = normalizeClubHex(value);
+    if (normalized) applyStyle({ primary: normalized });
+  }
+
+  function applySupport(value: string) {
+    const normalized = normalizeClubHex(value);
+    if (normalized) applyStyle({ secondary: normalized });
   }
 
   function setPolicy(kind: "auto" | "fixed" | "schedule") {
@@ -282,18 +261,19 @@ export function EditorialThemeEditor({
   }
 
   function resetTheme() {
-    applyPreset(fieldflowPalettePresets[0]);
+    applyStyle(royalCurrentDefaultStyle);
   }
 
   return (
     <div className={styles.editorialThemeEditor}>
       <header className={styles.editorialThemeHeader}>
         <div>
-          <span className={styles.editorialThemeEyebrow}>FieldFlow 1.0</span>
+          <span className={styles.editorialThemeEyebrow}>Royal Current v8</span>
           <h3>Slidehuisstijl</h3>
           <p>
-            Eén herkenbare lichte en donkere stijl voor alle nieuwe dynamische
-            slides van deze vereniging.
+            Primaire clubkleur en Tweede decoratieve accentkleur maken samen
+            automatisch een contrastrijk Royal Current- en Navy Glass-palet
+            voor alle dynamische slides van deze vereniging.
           </p>
         </div>
         <span className={styles.editorialThemeScope}>Tenantbreed</span>
@@ -381,17 +361,14 @@ export function EditorialThemeEditor({
             <SelectionColorInput
               disabled={disabled}
               label="Hoofdkleur"
-              onChange={(value) => applyPalette(value, paletteRecipe)}
-              value={selection.accent ?? defaults.light.accent}
+              onChange={applyPrimary}
+              value={resolvedAppearance.palette.primary}
             />
             <SelectionColorInput
               disabled={disabled}
               label="Steunkleur"
-              onChange={(value) => updateSelection({
-                ...selection,
-                support: value
-              })}
-              value={selection.support ?? selected.supportDefault}
+              onChange={applySupport}
+              value={resolvedAppearance.palette.secondary ?? "#2459ED"}
             />
           </div>
           <div className={styles.editorialPalettePresets}>
@@ -399,7 +376,7 @@ export function EditorialThemeEditor({
             <div>
               {fieldflowPalettePresets.map((preset) => (
                 <button
-                  aria-pressed={selection.accent?.toUpperCase() === preset.color}
+                  aria-pressed={selection.accent?.toLowerCase() === preset.color}
                   disabled={disabled}
                   key={preset.label}
                   onClick={() => applyPreset(preset)}
@@ -422,14 +399,19 @@ export function EditorialThemeEditor({
         </section>
 
         <div className={styles.editorialThemePreviewRail}>
-          <ThemePreview
-            accent={selection.accent ?? selected.accentDefault}
-            activeToken={previewToken}
-            appearance={appearance}
-            mode={editingMode}
-            support={selection.support ?? selected.supportDefault}
-            tokens={editingTokens}
-          />
+          <div className={styles.editorialThemeDualPreview}>
+            {(["light", "dark"] as const).map((mode) => (
+              <ThemePreview
+                key={mode}
+                accent={resolvedAppearance.palette.primary}
+                activeToken={previewToken}
+                appearance={resolvedAppearance}
+                mode={mode}
+                support={resolvedAppearance.palette.secondary ?? resolvedAppearance.palette.primary}
+                tokens={theme[mode]}
+              />
+            ))}
+          </div>
           <p>
             Alle kleurrollen staan tegelijk in beeld. Selecteer een kleurveld
             om de bijbehorende onderdelen te markeren.
@@ -459,7 +441,7 @@ export function EditorialThemeEditor({
                   aria-selected={editingMode === mode}
                   className={styles.editorialModeTab}
                   disabled={disabled}
-                  key={mode}
+                key={mode}
                   onClick={() => setEditingMode(mode)}
                   role="tab"
                   type="button"
@@ -584,28 +566,38 @@ export function EditorialThemeEditor({
               </header>
               <div className={styles.editorialBrandTokenGrid}>
                 <SelectionColorInput
+                  ariaLabelSuffix=" in palet"
                   disabled={disabled}
                   label="Achtergrond clublogo"
-                  onChange={(clubLogoBackground) => onAppearanceChange({
-                    ...appearance,
-                    surfaces: {
-                      ...appearance.surfaces,
-                      clubLogoBackground
+                  onChange={(clubLogoBackground) => onAppearanceChange(createRoyalCurrentAppearance(
+                    resolvedAppearance.palette,
+                    {
+                      ...resolvedAppearance,
+                      surfaces: {
+                        ...resolvedAppearance.surfaces,
+                        clubLogoBackground
+                      }
                     }
-                  })}
-                  value={appearance.surfaces.clubLogoBackground}
+                  ))}
+                  value={resolvedAppearance.surfaces.clubLogoBackground}
                 />
                 <SelectionColorInput
+                  ariaLabelSuffix=" in palet"
                   disabled={disabled}
                   label="Achtergrond thuislogo"
-                  onChange={(homeLogoBackground) => onAppearanceChange({
-                    ...appearance,
-                    surfaces: {
-                      ...appearance.surfaces,
-                      homeLogoBackground
-                    }
-                  })}
-                  value={appearance.surfaces.homeLogoBackground}
+                  onChange={(homeLogoBackground) => onAppearanceChange(
+                    createRoyalCurrentAppearance(
+                      resolvedAppearance.palette,
+                      {
+                        ...resolvedAppearance,
+                        surfaces: {
+                          ...resolvedAppearance.surfaces,
+                          homeLogoBackground
+                        }
+                      }
+                    )
+                  )}
+                  value={resolvedAppearance.surfaces.homeLogoBackground}
                 />
               </div>
             </section>
@@ -647,7 +639,7 @@ export function EditorialThemeEditor({
             type="button"
             variant="ghost"
           >
-            Royal blauw herstellen
+            Clubkleuren herstellen
           </Button>
         </div>
       </div>
@@ -736,11 +728,13 @@ function EditableTokenField({
 }
 
 function SelectionColorInput({
+  ariaLabelSuffix = "",
   disabled,
   label,
   onChange,
   value
 }: {
+  ariaLabelSuffix?: string;
   disabled: boolean;
   label: string;
   onChange: (value: string) => void;
@@ -751,14 +745,14 @@ function SelectionColorInput({
       <span>{label}</span>
       <span className={styles.editorialColorPicker}>
         <input
-          aria-label={`${label} kiezen`}
+          aria-label={`${label}${ariaLabelSuffix} kiezen`}
           disabled={disabled}
           onChange={(event) => onChange(event.currentTarget.value)}
           type="color"
           value={colorPickerValue(value)}
         />
         <input
-          aria-label={`${label} als kleurwaarde`}
+          aria-label={`${label}${ariaLabelSuffix} als kleurwaarde`}
           disabled={disabled}
           maxLength={7}
           onChange={(event) => onChange(event.currentTarget.value.toUpperCase())}
@@ -794,22 +788,32 @@ function ThemePreview({
     ...editorialThemeCssVariables(tokens),
     "--vc-club-logo-background": appearance.surfaces.clubLogoBackground,
     "--vc-home-logo-background": appearance.surfaces.homeLogoBackground,
+    "--preview-club-logo-background": appearance.surfaces.clubLogoBackground,
+    "--preview-home-logo-background": appearance.surfaces.homeLogoBackground,
     "--vc-theme-accent": accent,
     "--vc-theme-base-scale": appearance.typography.baseScale,
     "--vc-theme-body-font": quoteFont(bodyFont),
     "--vc-theme-display-font": quoteFont(displayFont),
     "--vc-theme-sport-scale": appearance.typography.sportScale,
-    "--vc-theme-support": support
+    "--vc-theme-support": support,
+    "--preview-base-scale": appearance.typography.baseScale,
+    "--preview-body-font": quoteFont(bodyFont),
+    "--preview-display-font": quoteFont(displayFont),
+    "--preview-sport-scale": appearance.typography.sportScale
   } as CSSProperties;
 
   return (
     <aside
-      aria-label={`Live voorbeeld van het ${mode === "light" ? "lichte" : "donkere"} palet`}
+      aria-label={mode === "light"
+        ? "Live voorbeeld van het lichte palet"
+        : "Navy Glass live kleurvoorbeeld (donker palet)"}
       className={styles.editorialThemePreview}
+      data-design-revision={appearance.schemaVersion === 2 ? appearance.designRevision : "legacy"}
+      data-motion-state={appearance.schemaVersion === 2 && appearance.motionEnabled ? "on" : "off"}
       style={previewStyle}
     >
       <header>
-        <span>Live voorbeeld</span>
+        <span>{mode === "light" ? "Royal Current live kleurvoorbeeld" : "Navy Glass live kleurvoorbeeld"}</span>
         <span>{mode === "light" ? "Licht" : "Donker"} · 26/26 rollen</span>
       </header>
       <div
@@ -1084,18 +1088,9 @@ function activeMode(selection: ThemeSelection, fallback: ThemeMode) {
 export function resolveThemeDraftDefaults(
   selection: unknown,
   fallback: EditorialThemeConfig,
-  recipe: FieldflowPaletteRecipe = "balanced"
+  recipe: FieldflowPaletteRecipe = "royal-current"
 ): { theme: EditorialThemeConfig; valid: boolean } {
   const parsed = themeSelectionSchema.safeParse(selection);
-  if (
-    parsed.success &&
-    parsed.data.accent?.toUpperCase() === fieldflowRoyalBluePreset.color
-  ) {
-    return {
-      theme: createFieldflowRoyalBlueTheme(activeMode(parsed.data, fallback.mode)),
-      valid: true
-    };
-  }
   return parsed.success
     ? {
         theme: generateFieldflowPalette(
@@ -1110,150 +1105,23 @@ export function resolveThemeDraftDefaults(
 
 export function generateFieldflowPalette(
   primaryHex: string,
-  recipe: FieldflowPaletteRecipe = "balanced",
+  recipe: FieldflowPaletteRecipe = "royal-current",
   mode: ThemeMode = "light"
 ): EditorialThemeConfig {
-  const primary = normalizeHex(primaryHex) ?? themeCatalog.fieldflow.accentDefault;
-  const strengths = fieldflowPaletteRecipes[recipe];
-  const lightAccent = primary;
-  const darkAccent = mixHex(primary, "#FFFFFF", strengths.darkAccentLift);
-  const lightSurface = mixHex("#F3F0E9", primary, strengths.lightTint * 0.5);
-  const lightRowSelected = mixHex("#141619", primary, strengths.lightTint);
-  const darkSurface = mixHex("#0D1116", primary, strengths.darkTint * 0.5);
-  const darkRowSelected = mixHex("#F3F0E9", primary, strengths.darkTint * 0.34);
-  const lightText = contrastText(lightSurface);
-  const darkText = contrastText(darkSurface);
-
-  const light: EditorialColorTokens = {
-    ...editorialArenaLightTokens,
-    accent: lightAccent,
-    accentSoft: rgbaHex(lightAccent, 0.14),
-    canvas: mixHex("#D7D2C8", primary, strengths.lightTint),
-    panel: mixHex("#E8E4DC", primary, strengths.lightTint * 0.7),
-    row: mixHex("#FBF9F4", primary, strengths.lightTint * 0.38),
-    rowSelected: lightRowSelected,
-    shadow: rgbaHex(mixHex("#423729", primary, 0.12), 0.14),
-    surface: lightSurface,
-    surfaceRaised: mixHex("#FBF9F4", primary, strengths.lightTint * 0.28),
-    text: lightText,
-    textFaint: rgbaHex(lightText, 0.5),
-    textMuted: mixHex(lightSurface, lightText, 0.68),
-    textOnAccent: contrastText(lightAccent),
-    textOnSelected: contrastText(lightRowSelected)
-  };
-  const dark: EditorialColorTokens = {
-    ...editorialArenaDarkTokens,
-    accent: darkAccent,
-    accentSoft: rgbaHex(darkAccent, 0.18),
-    canvas: mixHex("#090B0E", primary, strengths.darkTint),
-    panel: mixHex("#14181D", primary, strengths.darkTint * 0.78),
-    row: mixHex("#11161C", primary, strengths.darkTint * 0.66),
-    rowSelected: darkRowSelected,
-    shadow: rgbaHex(mixHex("#000000", primary, 0.04), 0.34),
-    surface: darkSurface,
-    surfaceRaised: mixHex("#171C22", primary, strengths.darkTint * 0.84),
-    text: darkText,
-    textFaint: rgbaHex(darkText, 0.5),
-    textMuted: mixHex(darkSurface, darkText, 0.7),
-    textOnAccent: contrastText(darkAccent),
-    textOnSelected: contrastText(darkRowSelected)
-  };
-
-  return { dark, light, mode };
-}
-
-export function deriveSupportColor(primaryHex: string) {
-  const primary = normalizeHex(primaryHex) ?? themeCatalog.fieldflow.accentDefault;
-  const [red, green, blue] = hexChannels(primary).map((channel) => channel / 255);
-  const maximum = Math.max(red!, green!, blue!);
-  const minimum = Math.min(red!, green!, blue!);
-  const delta = maximum - minimum;
-  const lightness = (maximum + minimum) / 2;
-  const saturation = delta === 0
-    ? 0
-    : delta / (1 - Math.abs(2 * lightness - 1));
-  const hue = delta === 0
-    ? 0
-    : maximum === red
-      ? 60 * (((green! - blue!) / delta) % 6)
-      : maximum === green
-        ? 60 * ((blue! - red!) / delta + 2)
-        : 60 * ((red! - green!) / delta + 4);
-  return hslToHex(
-    (hue + 42 + 360) % 360,
-    clamp(Math.max(0.46, saturation * 0.92), 0, 0.9),
-    clamp(lightness, 0.34, 0.62)
+  void recipe;
+  return createRoyalCurrentTheme(
+    normalizeClubStyle({ primary: normalizeHex(primaryHex) ?? themeCatalog.fieldflow.accentDefault }),
+    mode
   );
 }
 
-function contrastText(background: string) {
-  const preferred = ["#111315", "#FFFAF2"] as const;
-  const preferredBest = preferred.reduce((best, candidate) => (
-    (contrastRatio(candidate, background) ?? 0) >
-      (contrastRatio(best, background) ?? 0)
-      ? candidate
-      : best
-  ));
-  if ((contrastRatio(preferredBest, background) ?? 0) >= 4.5) {
-    return preferredBest;
-  }
-  return (["#000000", "#FFFFFF"] as const).reduce((best, candidate) => (
-    (contrastRatio(candidate, background) ?? 0) >
-      (contrastRatio(best, background) ?? 0)
-      ? candidate
-      : best
-  ));
+export function deriveSupportColor(primaryHex: string) {
+  return (normalizeClubHex(primaryHex) ?? themeCatalog.fieldflow.accentDefault)
+    .toUpperCase();
 }
 
 function normalizeHex(value: string) {
-  const match = /^#[0-9a-f]{6}$/i.exec(value.trim());
-  return match ? match[0].toUpperCase() : null;
-}
-
-function mixHex(base: string, tint: string, tintWeight: number) {
-  const baseChannels = hexChannels(base);
-  const tintChannels = hexChannels(tint);
-  const weight = clamp(tintWeight, 0, 1);
-  return channelsToHex(baseChannels.map((channel, index) => (
-    channel * (1 - weight) + tintChannels[index]! * weight
-  ))).toUpperCase();
-}
-
-function rgbaHex(hex: string, alpha: number) {
-  const [red, green, blue] = hexChannels(hex);
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
-
-function hexChannels(hex: string) {
-  const normalized = normalizeHex(hex) ?? "#000000";
-  return [
-    Number.parseInt(normalized.slice(1, 3), 16),
-    Number.parseInt(normalized.slice(3, 5), 16),
-    Number.parseInt(normalized.slice(5, 7), 16)
-  ];
-}
-
-function hslToHex(hue: number, saturation: number, lightness: number) {
-  const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
-  const segment = hue / 60;
-  const second = chroma * (1 - Math.abs(segment % 2 - 1));
-  const [red, green, blue] = segment < 1
-    ? [chroma, second, 0]
-    : segment < 2
-      ? [second, chroma, 0]
-      : segment < 3
-        ? [0, chroma, second]
-        : segment < 4
-          ? [0, second, chroma]
-          : segment < 5
-            ? [second, 0, chroma]
-            : [chroma, 0, second];
-  const offset = lightness - chroma / 2;
-  return channelsToHex([
-    (red + offset) * 255,
-    (green + offset) * 255,
-    (blue + offset) * 255
-  ]).toUpperCase();
+  return normalizeClubHex(value);
 }
 
 export function colorPickerValue(value: string) {
