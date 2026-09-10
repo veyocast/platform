@@ -126,14 +126,6 @@ const mobilePrimaryLabels = [
   "Planning"
 ] as const;
 
-const tenantPrimaryLabels = [
-  "Vandaag",
-  "Studio",
-  "Schermen",
-  "Planning",
-  "Media"
-] as const;
-
 export function ControlShell({
   children,
   navigationGroups,
@@ -196,13 +188,6 @@ export function ControlShell({
   ].includes(pathname) || (
     isImmersiveEditor && pathname.startsWith("/dashboard/studio/")
   );
-  const tenantPrimaryItems = useMemo(() => {
-    const items = visibleNavigationGroups.flatMap((group) => group.items);
-    return tenantPrimaryLabels.flatMap((label) => {
-      const item = items.find((candidate) => candidate.label === label);
-      return item ? [item] : [];
-    });
-  }, [visibleNavigationGroups]);
   const tenantSettingsItem = useMemo(
     () => visibleNavigationGroups.flatMap((group) => group.items).find((item) => item.label === "Instellingen"),
     [visibleNavigationGroups]
@@ -552,18 +537,7 @@ export function ControlShell({
 
         <nav className="control-navigation-landmark" aria-label="Hoofdnavigatie">
           <div className="control-nav">
-          {(hasTenantNavigationContext
-            ? [{
-                contextLabel: "Verenigingscontext",
-                description: "Binnen de actieve vereniging",
-                id: "tenant-primary",
-                items: tenantPrimaryItems,
-                scope: "tenant" as const,
-                section: "today" as const,
-                title: "Hoofdmenu"
-              }]
-            : visibleNavigationGroups
-          ).map((group, index, renderedGroups) => (
+          {visibleNavigationGroups.map((group, index, renderedGroups) => (
             <section
               aria-labelledby={`control-nav-${group.id}`}
               className="control-nav__group"
