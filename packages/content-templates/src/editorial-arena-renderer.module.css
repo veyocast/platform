@@ -4525,12 +4525,12 @@
 }
 
 .royalArrivalIdentity > span {
-  margin-bottom: 4px;
+  margin: 0 0 12px;
 }
 
 .royalArrivalIdentity h2 {
   max-width: 100%;
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   overflow-wrap: anywhere;
   color: var(--ink, var(--vc-text));
   font-size: calc(var(--arrival-title) * var(--vc-theme-base-scale, 1));

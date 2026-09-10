@@ -1243,8 +1243,8 @@ function RoyalVisitorArrival({
           ) : null}
         </dl>
         <div className={styles.royalArrivalIdentity}>
-          <span>Welkom op {entry.venueName || view.clubName}</span>
           <h2>{awayTeam}</h2>
+          <span>Welkom op {entry.venueName || view.clubName}</span>
           <p aria-label={`${homeTeam} tegen ${awayTeam}`}>
             {homeTeam} <i>-</i> {awayTeam}
           </p>
