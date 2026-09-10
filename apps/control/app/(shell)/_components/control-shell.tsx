@@ -183,6 +183,7 @@ export function ControlShell({
   const shellOwnsHeading = [
     "/dashboard",
     "/dashboard/planning",
+    "/dashboard/playlists",
     "/dashboard/screens",
     "/dashboard/studio"
   ].includes(pathname) || (

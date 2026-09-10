@@ -977,6 +977,7 @@ html[data-design-system="fieldflow"] .vc-skeleton {
 
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="overview"] .control-content > .vc-page-header:first-child,
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="planning"] .control-content > .vc-page-header:first-child,
+  html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="playlists"] .control-content > .vc-page-header:first-child,
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="screens"] .control-content > .vc-page-header:first-child,
   html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="studio"] .control-content > .vc-page-header:first-child {
     display: none;
@@ -1637,6 +1638,7 @@ html[data-design-system="fieldflow"]
 
 html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="overview"] .control-content > .vc-page-header:first-child,
 html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="planning"] .control-content > .vc-page-header:first-child,
+html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="playlists"] .control-content > .vc-page-header:first-child,
 html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="screens"] .control-content > .vc-page-header:first-child,
 html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="studio"] .control-content > .vc-page-header:first-child {
   display: none;
@@ -1648,6 +1650,22 @@ html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenan
 html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="studio"] .control-content > .vc-page-header:first-child:has(.vc-page-header__actions) {
   display: block;
   margin-top: 24px;
+}
+
+/* Playlists keep their real creation action, but the shell owns the visible
+ * route heading so the page never renders a second title, breadcrumb or copy. */
+html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="playlists"] .control-content > .vc-page-header:first-child:has(.vc-page-header__actions) {
+  display: block;
+  margin-top: 24px;
+}
+
+html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="playlists"] .control-content > .vc-page-header:first-child:has(.vc-page-header__actions) > .vc-breadcrumbs,
+html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="playlists"] .control-content > .vc-page-header:first-child:has(.vc-page-header__actions) .vc-page-header__copy {
+  display: none;
+}
+
+html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="playlists"] .control-content > .vc-page-header:first-child:has(.vc-page-header__actions) .vc-page-header__main {
+  justify-content: flex-end;
 }
 
 html[data-design-system="fieldflow"] .control-shell[data-navigation-scope="tenant"][data-shell-heading="true"][data-route-family="studio"] .control-content > .vc-page-header:first-child:has(.vc-page-header__actions) > .vc-breadcrumbs,

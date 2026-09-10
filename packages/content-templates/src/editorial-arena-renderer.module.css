@@ -4439,11 +4439,19 @@
   left: 50%;
   transform: translateX(-50%);
   display: block;
-  width: min(54%, 510px);
-  height: min(31.5%, 270px);
+  /* Keep the crest clear of the welcome copy on compact visitor cards. */
+  width: min(40.5%, 382px);
+  height: min(23.625%, 202px);
   /* legacy contract: width: min(56%, 560px); */
   min-width: 0;
   min-height: 0;
+}
+
+/* The visitor card owns one welcome line below the crest. The legacy top row
+ * rendered the same copy a second time above the logo, which pushed the
+ * intended line away from the team name and caused overlap at narrow sizes. */
+.arenaRoot[data-design-revision="royal-current-v8"] .arenaArrivalCard[data-arrival-kind="visitor"] .royalArrivalTop {
+  display: none;
 }
 
 .royalArrivalLogo img {
