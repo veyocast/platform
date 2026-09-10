@@ -246,6 +246,12 @@
   animation: none;
 }
 
+/* Keep the dense programme/results layouts calm but still visibly animated. */
+.arenaRoot[data-design-revision="royal-current-v8"][data-slide-type="sport_program"] .arenaContent > *,
+.arenaRoot[data-design-revision="royal-current-v8"][data-slide-type="sport_results"] .arenaContent > * {
+  animation: vc-theme-enter var(--vc-motion-duration, 900ms) cubic-bezier(.22, .61, .36, 1) both;
+}
+
 
 @keyframes vc-theme-enter {
   from {
@@ -466,10 +472,7 @@
 }
 
 .arenaFooterLine::after {
-  width: 100%;
-  height: 1px;
-  background: var(--vc-divider);
-  content: "";
+  display: none;
 }
 
 .arenaPageDots {
@@ -4432,12 +4435,12 @@
 
 .royalArrivalLogo {
   position: absolute;
-  top: 16%;
+  top: 18%;
   left: 50%;
   transform: translateX(-50%);
   display: block;
-  width: min(72%, 680px);
-  height: min(42%, 360px);
+  width: min(54%, 510px);
+  height: min(31.5%, 270px);
   /* legacy contract: width: min(56%, 560px); */
   min-width: 0;
   min-height: 0;
@@ -4513,9 +4516,13 @@
   text-transform: uppercase;
 }
 
+.royalArrivalIdentity > span {
+  margin-bottom: 4px;
+}
+
 .royalArrivalIdentity h2 {
   max-width: 100%;
-  margin: 12px 0;
+  margin: 0 0 10px;
   overflow-wrap: anywhere;
   color: var(--ink, var(--vc-text));
   font-size: calc(var(--arrival-title) * var(--vc-theme-base-scale, 1));

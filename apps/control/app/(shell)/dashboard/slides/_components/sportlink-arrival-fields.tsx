@@ -38,7 +38,7 @@ export function SportlinkArrivalFields({ media, onChange, value }: {
       <div className="vc-arrival-fields__grid">
         <DurationField label="Vooruitkijken vóór aanvang" minutes={value.minutesBefore} onChange={(minutes) => onChange({ ...value, minutesBefore: minutes })} />
         <DurationField label="Blijven tonen na aanvang" minutes={value.minutesAfter} onChange={(minutes) => onChange({ ...value, minutesAfter: minutes })} />
-        <Field label="Maximaal aantal blokken"><select onChange={(event) => number("cardCount", event.target.value)} value={value.cardCount}>{[1, 2, 3, 4].map((count) => <option key={count}>{count}</option>)}</select></Field>
+        <Field label="Aantal containers per slide"><select aria-label="Aantal containers per slide" onChange={(event) => number("cardCount", event.target.value)} value={Math.min(3, value.cardCount)}>{[1, 2, 3].map((count) => <option key={count}>{count}</option>)}</select></Field>
         <Field label="Paginaduur in seconden"><input max="120" min="5" onChange={(event) => number("pageDurationSeconds", event.target.value)} type="number" value={value.pageDurationSeconds} /></Field>
         <Field label="Wijziging markeren (minuten)"><input max="180" min="0" onChange={(event) => number("highlightRecentMinutes", event.target.value)} type="number" value={value.highlightRecentMinutes} /></Field>
         <Field label="Motion animatie"><select onChange={(event) => onChange({ ...value, motionPreset: event.target.value as SportlinkArrivalMotionPreset })} value={value.motionPreset}>{motionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></Field>

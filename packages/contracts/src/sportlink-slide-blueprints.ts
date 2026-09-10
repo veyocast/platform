@@ -136,7 +136,7 @@ export const sportlinkArrivalConfigSchema = z.object({
   minutesAfter: z.number().int().min(0).max(sportlinkArrivalWindowMaxMinutes).default(30),
   minutesBefore: z.number().int().min(0).max(sportlinkArrivalWindowMaxMinutes).default(90),
   motionPreset: z.enum(sportlinkArrivalMotionPresets).default("auto"),
-  pageDurationSeconds: z.number().int().min(5).max(120).default(12),
+  pageDurationSeconds: z.number().int().min(5).max(120).default(5),
   placeholderText: z.string().trim().min(1).max(160).default("Er worden nu geen teams verwacht."),
   showArrivalTime: z.boolean().default(true),
   showClubLogo: z.boolean().default(true),
