@@ -2358,17 +2358,23 @@ function programPrimaryColumns(
   showTimeColumn = false
 ) {
   const tracks: string[] = [];
-  if (display?.showDate !== false) tracks.push("minmax(140px, .72fr)");
+  if (display?.showDate !== false) {
+    tracks.push("minmax(var(--arena-match-date-min, 140px), .72fr)");
+  }
   if (showTimeColumn) {
     tracks.push("minmax(var(--arena-match-time-min, 78px), .48fr)");
   }
   if (display?.showHomeLogo !== false) tracks.push("var(--arena-match-logo-size)");
-  tracks.push("minmax(0, 1.55fr)");
-  if (display?.showHomeDressingRoom) tracks.push("minmax(0, .88fr)");
-  tracks.push("36px");
+  tracks.push("minmax(0, var(--arena-match-team-fr, 1.55fr))");
+  if (display?.showHomeDressingRoom) {
+    tracks.push("minmax(0, var(--arena-match-room-fr, .88fr))");
+  }
+  tracks.push("var(--arena-match-vs-min, 36px)");
   if (display?.showAwayLogo !== false) tracks.push("var(--arena-match-logo-size)");
-  tracks.push("minmax(0, 1.55fr)");
-  if (display?.showAwayDressingRoom) tracks.push("minmax(0, .88fr)");
+  tracks.push("minmax(0, var(--arena-match-team-fr, 1.55fr))");
+  if (display?.showAwayDressingRoom) {
+    tracks.push("minmax(0, var(--arena-match-room-fr, .88fr))");
+  }
   return tracks.join(" ");
 }
 
@@ -2385,11 +2391,11 @@ function resultPrimaryColumns(
   }
   if (display?.showHomeLogo !== false) tracks.push("var(--arena-match-logo-size)");
   tracks.push(
-    "minmax(0, 1.55fr)",
+    "minmax(0, var(--arena-match-team-fr, 1.55fr))",
     "minmax(var(--arena-result-score-min, 112px), .68fr)"
   );
   if (display?.showAwayLogo !== false) tracks.push("var(--arena-match-logo-size)");
-  tracks.push("minmax(0, 1.55fr)");
+  tracks.push("minmax(0, var(--arena-match-team-fr, 1.55fr))");
   return tracks.join(" ");
 }
 

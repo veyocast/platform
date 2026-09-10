@@ -320,6 +320,22 @@ describe("Match Centre renderer", () => {
     expect(css).toMatch(
       /\.arenaResultScore \{[^}]*min-width: 112px;[^}]*justify-content: center;[^}]*font-variant-numeric: tabular-nums;/u
     );
+    expect(renderer).toContain(
+      'minmax(var(--arena-match-date-min, 140px), .72fr)'
+    );
+    expect(renderer).toContain(
+      'minmax(0, var(--arena-match-team-fr, 1.55fr))'
+    );
+    expect(renderer).toContain(
+      'minmax(0, var(--arena-match-room-fr, .88fr))'
+    );
+    expect(renderer).toContain('var(--arena-match-vs-min, 36px)');
+    expect(css).toMatch(
+      /data-design-revision="royal-current-v8"\]\[data-orientation="portrait"\][\s\S]*?--arena-match-date-min: 150px;[\s\S]*?--arena-match-team-fr: 1\.75fr;/u
+    );
+    expect(css).toMatch(
+      /data-design-revision="royal-current-v8"\]\[data-orientation="portrait"\][\s\S]*?\.arenaMatchSecondary span \{[^}]*flex: 1 1 0;[^}]*text-align: right;/u
+    );
   });
 
   it("reserveert bij gemengd programma een gedeelde tijdkolom wanneer tijd verborgen is", () => {
