@@ -264,7 +264,6 @@ export function EditorialArenaRenderer({
             {view.designRevision === "royal-current-v8" ? (
               <RoyalCurrentHeader
                 page={page}
-                pageCount={pageCount}
                 pageIndex={pageIndex}
                 view={view}
               />
@@ -320,44 +319,25 @@ function usePrefersReducedMotion() {
 
 function RoyalCurrentHeader({
   page,
-  pageCount,
   pageIndex,
   view
 }: {
   page: DynamicTemplatePage;
-  pageCount: number;
   pageIndex: number;
   view: DynamicTemplateView;
 }) {
   const initials = initialsFor(view.clubName);
   const clock = useArenaClock(view);
   const contextLabel = royalCurrentContextLabel(view, pageIndex);
-  const count = pageItemCount(page);
-  const titleStat = royalCurrentTitleStat(view, count);
   const newsItem = page.kind === "news" ? page.item : null;
   const title = newsItem?.title || view.title;
   const subtitle = newsItem?.date || royalCurrentSubtitle(view);
   const titleDensity = royalCurrentTitleDensity(title);
   return (
     <>
-      <div aria-hidden="true" className={styles.royalFlowDecoration}>
+      <div aria-hidden="true" className={styles.royalFlowDecoration} data-legacy-label="Onze club. Ons verhaal.">
         <i /><i /><i />
       </div>
-      <aside aria-hidden="true" className={styles.royalSideband}>
-        <span>{view.clubName}</span>
-        <b>{String(pageIndex + 1).padStart(2, "0")}</b>
-        <span>Onze club. Ons verhaal.</span>
-      </aside>
-      <header className={styles.royalMasthead}>
-        <div>
-          <strong>{view.clubName}</strong>
-          <span>{view.sourceLabel}</span>
-        </div>
-        <div>
-          <span>{contextLabel}</span>
-          <time dateTime={clock.instant}>{clock.label}</time>
-        </div>
-      </header>
       <section className={styles.royalTitle}>
         <div aria-hidden="true" className={styles.royalTitleCrest}>
           {view.clubLogoUrl ? <img alt="" src={view.clubLogoUrl} /> : initials}
@@ -368,9 +348,8 @@ function RoyalCurrentHeader({
           <p>{subtitle}</p>
         </div>
         <div className={styles.royalTitleStat}>
-          <strong>{titleStat.value}</strong>
-          <span>{titleStat.label}</span>
-          {pageCount > 1 ? <small>{pageIndex + 1} / {pageCount}</small> : null}
+          <strong>{view.clubName}</strong>
+          <time dateTime={clock.instant}>{clock.label}</time>
         </div>
       </section>
     </>
@@ -513,21 +492,6 @@ function royalCurrentContextLabel(
   return labels[view.slideType] ?? view.sourceLabel;
 }
 
-function pageItemCount(page: DynamicTemplatePage) {
-  if (page.kind === "news" || page.kind === "match") return page.item ? 1 : 0;
-  if (page.kind === "menu") {
-    return page.columns.reduce((count, column) => count + column.length, 0);
-  }
-  if (page.kind === "menu-v2") {
-    return page.page.columns.left.length + page.page.columns.right.length +
-      page.page.floatingBlocks.length;
-  }
-  if (page.kind === "price-list") {
-    return page.page.columns.left.length + page.page.columns.right.length;
-  }
-  return page.items.length;
-}
-
 function royalCurrentSubtitle(view: DynamicTemplateView) {
   if (view.standingContext) {
     return [
@@ -537,33 +501,6 @@ function royalCurrentSubtitle(view: DynamicTemplateView) {
     ].filter(Boolean).join(" · ");
   }
   return view.sourceLabel;
-}
-
-function royalCurrentCountLabel(view: DynamicTemplateView, count: number) {
-  if (view.slideType === "news") return count === 1 ? "bericht" : "berichten";
-  if (view.slideType === "sport_standing" || view.slideType === "sport_period_standing") {
-    return count === 1 ? "team" : "teams";
-  }
-  if (view.slideType === "sport_visitor_arrivals") {
-    return count === 1 ? "bezoeker" : "bezoekers";
-  }
-  return count === 1 ? "item" : "items";
-}
-
-function royalCurrentTitleStat(view: DynamicTemplateView, count: number) {
-  if (view.slideType === "sport_standing" || view.slideType === "sport_period_standing") {
-    const pool = view.standingContext?.pool
-      .replace(/^poule\s+/iu, "")
-      .trim();
-    return {
-      label: pool ? "poule" : royalCurrentCountLabel(view, count),
-      value: pool || String(count).padStart(2, "0")
-    };
-  }
-  return {
-    label: royalCurrentCountLabel(view, count),
-    value: String(count).padStart(2, "0")
-  };
 }
 
 function royalCurrentTitleDensity(title: string) {
@@ -787,7 +724,6 @@ function ArenaPage({
               <RoyalVisitorArrival
                 config={arrivalConfig}
                 entry={entry}
-                index={index}
                 logoUrl={visitorLogo}
                 view={view}
               />
@@ -1267,13 +1203,11 @@ function groupMenuEntries(entries: DynamicTemplatePriceEntry[]) {
 function RoyalVisitorArrival({
   config,
   entry,
-  index,
   logoUrl,
   view
 }: {
   config: DynamicTemplateArrivalConfig;
   entry: DynamicTemplateListItem;
-  index: number;
   logoUrl: string;
   view: DynamicTemplateView;
 }) {
@@ -1298,7 +1232,7 @@ function RoyalVisitorArrival({
           {config.showWelcome ? (
             <span>{arrivalWelcomeLabel(config, view, awayTeam)}</span>
           ) : <span aria-hidden="true" />}
-          <b>{String(index + 1).padStart(2, "0")}</b>
+          <span aria-hidden="true" />
         </div>
         {config.showClubLogo ? (
           <div className={styles.royalArrivalLogo}>
@@ -1314,18 +1248,18 @@ function RoyalVisitorArrival({
         <dl className={styles.royalArrivalSchedule}>
           <div data-emphasis="primary">
             <dt>Datum</dt>
-            <dd><time dateTime={entry.kickoffAt}>{date || "volgt"}</time></dd>
+            <dd><time dateTime={entry.kickoffAt}>{date || "-"}</time></dd>
           </div>
           {config.showArrivalTime ? (
             <div>
               <dt>Aankomst</dt>
-              <dd>{arrivalTime || "volgt"}</dd>
+            <dd>{arrivalTime || "-"}</dd>
             </div>
           ) : null}
           {config.showKickoffTime ? (
             <div data-emphasis="primary">
               <dt>Aanvang</dt>
-              <dd>{entry.kickoffTime || entry.time || "volgt"}</dd>
+            <dd>{entry.kickoffTime || entry.time || "-"}</dd>
             </div>
           ) : null}
         </dl>
@@ -1338,16 +1272,16 @@ function RoyalVisitorArrival({
         </div>
         <dl className={styles.royalArrivalInfo}>
           {config.showCompetition ? (
-            <div><dt>Competitie</dt><dd>{entry.competition || "volgt"}</dd></div>
+              <div><dt>Competitie</dt><dd>{entry.competition || "-"}</dd></div>
           ) : null}
           {config.showDressingRoom ? (
             <>
-              <div><dt>Kleedkamer thuis</dt><dd>{entry.homeRoom || "volgt"}</dd></div>
-              <div><dt>Kleedkamer uit</dt><dd>{entry.awayRoom || entry.dressingRoom || "volgt"}</dd></div>
+              <div><dt>Kleedkamer thuis</dt><dd>{entry.homeRoom || "-"}</dd></div>
+              <div><dt>Kleedkamer uit</dt><dd>{entry.awayRoom || entry.dressingRoom || "-"}</dd></div>
             </>
           ) : null}
           {config.showField ? (
-            <div><dt>Veld</dt><dd>{entry.field || "volgt"}</dd></div>
+            <div><dt>Veld</dt><dd>{entry.field || "-"}</dd></div>
           ) : null}
           {referee ? <div><dt>Scheidsrechter</dt><dd>{referee}</dd></div> : null}
           {config.dutyDeskText ? (

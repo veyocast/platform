@@ -634,9 +634,7 @@ function createDynamicTemplateViewInternal(
         themePresentation.resolvedMode.timezone
       )
     : mappedItems;
-  const title = payload.slideType === "sport_visitor_arrivals"
-    ? sportTitle(payload.slideType)
-    : safeText(sport?.title, sportTitle(payload.slideType));
+  const title = safeText(sport?.title, sportTitle(payload.slideType));
   const emptyState = items.length
     ? ""
     : sportEmptyState(safeText(sport?.emptyStateCode, ""));
@@ -1713,8 +1711,8 @@ function normalizeVisitorArrivalItem(
     field,
     homeRoom,
     kickoffTime,
-    meta: `Kleedkamer: ${awayRoom || "volgt"}`,
-    secondary: `Aanvang: ${kickoffTime || "volgt"} | Veld ${field || "volgt"}`
+    meta: `Omkleden: ${awayRoom || "-"}`,
+    secondary: `Aftrap: ${kickoffTime || "-"} | Locatie: ${field || "-"}`
   };
 }
 
