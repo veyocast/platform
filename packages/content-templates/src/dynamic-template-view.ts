@@ -812,7 +812,7 @@ function createDynamicTemplateViewInternal(
       arrivalConfig?.pageDurationSeconds ?? sport?.pageDurationSeconds,
       5,
       120,
-      12
+      5
     );
     return {
       accentColor: themeTokens.accent,
@@ -1431,10 +1431,11 @@ export function dynamicTemplatePageDurationMs(
     configuredPageDurationMs &&
     Number.isFinite(configuredPageDurationMs)
   ) {
-    return Math.min(120_000, Math.max(5_000, configuredPageDurationMs));
+    const perPageDuration = Math.min(120_000, Math.max(5_000, configuredPageDurationMs));
+    return pageCount <= 1 ? Math.max(10_000, perPageDuration) : perPageDuration;
   }
   const effectiveDuration = Math.max(
-    5_000,
+    10_000,
     durationSeconds * 1_000,
     pageCount * 5_000
   );

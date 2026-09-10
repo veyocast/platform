@@ -7386,7 +7386,7 @@ export function renderLgLegacyHtml() {
         pageDuration: birthday
           ? Math.max(6000, Math.min(20000, (Number(birthdayPresentation.pageDurationSeconds) || 8) * 1000))
           : arrival
-          ? Math.max(5000, Math.min(120000, (Number(sport.pageDurationSeconds) || 12) * 1000))
+          ? Math.max(5000, Math.min(120000, (Number(sport.pageDurationSeconds) || 5) * 1000))
           : undefined,
         render: function (page, activePageIndex) {
           var item;
