@@ -5009,19 +5009,55 @@
 
 .arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"][data-slide-type="sport_program"],
 .arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"][data-slide-type="sport_results"] {
-  --arena-result-date-min: 160px;
-  --arena-result-score-min: 96px;
-  --arena-result-time-min: 55px;
+  /*
+   * Portrait rows use the same aligned data model as landscape, but the
+   * logical canvas is only 1,080px wide. Keep date/time readable while
+   * leaving the flexible tracks enough room to show both team names.
+   */
   --arena-row-height: 148px !important;
 }
 
-.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] :is(.arenaProgramRow, .arenaResultRow) .arenaMatchPrimary {
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] :is(.arenaProgramRow, .arenaResultRow) {
+  box-sizing: border-box;
+  --arena-match-date-min: 150px;
+  --arena-match-logo-size: 42px;
+  --arena-match-room-fr: .58fr;
+  --arena-match-team-fr: 1.75fr;
+  --arena-match-time-min: 76px;
+  --arena-match-vs-min: 30px;
+  --arena-result-date-min: 150px;
+  --arena-result-score-min: 88px;
+  --arena-result-time-min: 68px;
+  padding-inline: 18px;
+  font-size: clamp(24px, calc(24px * var(--vc-theme-sport-scale, 1)), 34px);
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] :is(.arenaMatchDate, .arenaKickoff) {
+  font-size: .82em;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .arenaMatchRoom {
+  font-size: .56em;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] :is(.arenaProgramRow, .arenaResultRow) .arenaMatchSecondary {
   gap: 8px;
+  font-size: .48em;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] :is(.arenaProgramRow, .arenaResultRow) .arenaMatchSecondary span {
+  flex: 1 1 0;
+  text-align: right;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] :is(.arenaProgramRow, .arenaResultRow) .arenaMatchSecondary span + span::before {
+  margin-right: 8px;
 }
 
 .arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] :is(.arenaProgramRow, .arenaResultRow) .arenaMatchTeam {
   display: -webkit-box;
   overflow: hidden;
+  overflow-wrap: anywhere;
   line-height: 1.08;
   white-space: normal;
   -webkit-box-orient: vertical;
