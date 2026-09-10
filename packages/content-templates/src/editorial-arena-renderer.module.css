@@ -4387,11 +4387,11 @@
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   justify-items: center;
   align-items: stretch;
   gap: 12px;
-  padding: 18px var(--arrival-pad) 0;
+  padding: 28px var(--arrival-pad) 0;
 }
 
 .royalArrivalTop {
@@ -4420,7 +4420,9 @@
 .royalArrivalLogo {
   position: relative;
   display: block;
-  width: min(56%, 560px);
+  width: min(72%, 680px);
+  height: min(58%, 360px);
+  /* legacy contract: width: min(56%, 560px); */
   min-width: 0;
   min-height: 0;
 }
@@ -4445,7 +4447,8 @@
 }
 
 .royalArrivalBody {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 2 !important;
   display: flex;
   min-width: 0;
@@ -4454,6 +4457,28 @@
   justify-content: flex-end;
   gap: 18px;
   padding: 24px var(--arrival-pad) var(--arrival-pad);
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .royalArrivalSchedule {
+  position: absolute;
+  z-index: 4;
+  top: 22px;
+  right: var(--arrival-pad);
+  left: var(--arrival-pad);
+  grid-template-columns: 1fr 1fr;
+  pointer-events: none;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .royalArrivalSchedule > div:last-child {
+  text-align: right;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .royalArrivalSchedule dt {
+  font-size: calc(var(--arrival-label) * .9 * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .royalArrivalSchedule dd {
+  font-size: calc(var(--arrival-meta) * 1.15 * var(--vc-theme-base-scale, 1));
 }
 
 .royalArrivalIdentity {
