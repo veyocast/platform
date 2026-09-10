@@ -283,6 +283,21 @@ export function SportlinkVersionEditor({
           )}
         </Field>
 
+        <Field
+          description="Deze titel verschijnt groot bovenaan op iedere bijbehorende slide."
+          label="Titel op de slide"
+        >
+          {({ controlProps }) => (
+            <input
+              {...controlProps}
+              maxLength={160}
+              minLength={1}
+              onChange={(event) => update({ ...draft, title: event.target.value })}
+              value={draft.title}
+            />
+          )}
+        </Field>
+
         <fieldset className={styles.section}>
           <legend>Wat wil je tonen?</legend>
           <p className={styles.sectionDescription}>

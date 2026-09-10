@@ -115,10 +115,10 @@ describe("Royal Current moderne renderer", () => {
     expect(renderer).toContain('data-motion-state={effectiveMotionEnabled ? "on" : "off"}');
     expect(renderer).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
     expect(renderer).toContain("Onze club. Ons verhaal.");
-    expect(css).toContain("top: calc(300px + var(--arena-viewport-inset-y, 0px));");
-    expect(css).toContain("left: calc(150px + var(--arena-viewport-inset-x, 0px));");
-    expect(css).toContain("top: calc(372px + var(--arena-viewport-inset-y, 0px));");
-    expect(css).toContain("left: calc(101px + var(--arena-viewport-inset-x, 0px));");
+    expect(css).toContain("top: calc(206px + var(--arena-viewport-inset-y, 0px));");
+    expect(css).toContain("left: calc(42px + var(--arena-viewport-inset-x, 0px));");
+    expect(css).toContain("top: calc(276px + var(--arena-viewport-inset-y, 0px));");
+    expect(css).toContain("left: calc(38px + var(--arena-viewport-inset-x, 0px));");
     expect(css).toContain('src: url("./fonts/roboto-latin-700-normal.woff2") format("woff2");');
     expect(css).toContain("font-weight: 600 700;");
   });

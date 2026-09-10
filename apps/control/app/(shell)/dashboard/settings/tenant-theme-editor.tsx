@@ -154,11 +154,12 @@ export function TenantThemeEditor({
               disabled={disabled}
               max={120}
               min={90}
+              inputMode="numeric"
               onChange={(event) => setAppearance((current) => ({
                 ...current,
                 typography: {
                   ...current.typography,
-                  baseScale: Number(event.currentTarget.value) / 100
+                  baseScale: normalizeScaleInput(event.currentTarget.value, current.typography.baseScale, 0.9, 1.2)
                 }
               }))}
               type="number"
@@ -171,11 +172,12 @@ export function TenantThemeEditor({
               disabled={disabled}
               max={140}
               min={90}
+              inputMode="numeric"
               onChange={(event) => setAppearance((current) => ({
                 ...current,
                 typography: {
                   ...current.typography,
-                  sportScale: Number(event.currentTarget.value) / 100
+                  sportScale: normalizeScaleInput(event.currentTarget.value, current.typography.sportScale, 0.9, 1.4)
                 }
               }))}
               type="number"
@@ -264,6 +266,12 @@ export function TenantThemeEditor({
       <input name="themeAppearanceJson" type="hidden" value={JSON.stringify(appearance)} />
     </div>
   );
+}
+
+function normalizeScaleInput(value: string, fallback: number, minimum: number, maximum: number) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(maximum, Math.max(minimum, parsed / 100));
 }
 
 function AppearanceSurfaceControl({

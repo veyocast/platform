@@ -631,10 +631,12 @@ function createDynamicTemplateViewInternal(
     ? resolveVisitorArrivalItems(
         mappedItems.filter((item) => item.homeMatch),
         now,
-        themePresentation.resolvedMode.timezone
+        themePresentation.resolvedMode.timezone,
+        themeIdentity.designRevision === "royal-current-v8"
       )
     : mappedItems;
-  const title = payload.slideType === "sport_visitor_arrivals"
+  const title = payload.slideType === "sport_visitor_arrivals" &&
+    themeIdentity.designRevision !== "royal-current-v8"
     ? sportTitle(payload.slideType)
     : safeText(sport?.title, sportTitle(payload.slideType));
   const emptyState = items.length
@@ -1664,13 +1666,14 @@ function toListItem(
 function resolveVisitorArrivalItems(
   items: DynamicTemplateListItem[],
   now: Date,
-  timezone: string
+  timezone: string,
+  royalCurrent = false
 ) {
   const nowMs = now.getTime();
   return items
     .map((item, index) => ({
       index,
-      item: normalizeVisitorArrivalItem(item, timezone),
+      item: normalizeVisitorArrivalItem(item, timezone, royalCurrent),
       kickoffMs: visitorKickoffMs(item.kickoffAt)
     }))
     .sort((left, right) => {
@@ -1691,7 +1694,8 @@ function resolveVisitorArrivalItems(
 
 function normalizeVisitorArrivalItem(
   item: DynamicTemplateListItem,
-  timezone: string
+  timezone: string,
+  royalCurrent = false
 ) {
   const kickoffTime = visitorArrivalClock(item);
   const field = visitorArrivalValue(
@@ -1713,8 +1717,10 @@ function normalizeVisitorArrivalItem(
     field,
     homeRoom,
     kickoffTime,
-    meta: `Kleedkamer: ${awayRoom || "volgt"}`,
-    secondary: `Aanvang: ${kickoffTime || "volgt"} | Veld ${field || "volgt"}`
+    meta: royalCurrent ? `Omkleden: ${awayRoom || "-"}` : `Kleedkamer: ${awayRoom || "-"}`,
+    secondary: royalCurrent
+      ? `Aftrap: ${kickoffTime || "-"} | Locatie: ${field || "-"}`
+      : `Aanvang: ${kickoffTime || "-"} | Veld ${field || "-"}`
   };
 }
 
