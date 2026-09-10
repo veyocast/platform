@@ -331,7 +331,6 @@ function RoyalCurrentHeader({
   const contextLabel = royalCurrentContextLabel(view, pageIndex);
   const newsItem = page.kind === "news" ? page.item : null;
   const title = newsItem?.title || view.title;
-  const subtitle = newsItem?.date || royalCurrentSubtitle(view);
   const titleDensity = royalCurrentTitleDensity(title);
   return (
     <>
@@ -345,7 +344,6 @@ function RoyalCurrentHeader({
         <div className={styles.royalTitleCopy} data-title-density={titleDensity}>
           <span>{contextLabel}</span>
           <h1>{title}</h1>
-          <p>{subtitle}</p>
         </div>
         <div className={styles.royalTitleStat}>
           <strong>{view.clubName}</strong>
@@ -490,17 +488,6 @@ function royalCurrentContextLabel(
     sport_standing: "Competitie"
   };
   return labels[view.slideType] ?? view.sourceLabel;
-}
-
-function royalCurrentSubtitle(view: DynamicTemplateView) {
-  if (view.standingContext) {
-    return [
-      view.standingContext.competition,
-      view.standingContext.pool,
-      view.standingContext.season
-    ].filter(Boolean).join(" · ");
-  }
-  return view.sourceLabel;
 }
 
 function royalCurrentTitleDensity(title: string) {
@@ -1213,9 +1200,7 @@ function RoyalVisitorArrival({
 }) {
   const homeTeam = entry.homeTeam || view.clubName;
   const awayTeam = entry.awayTeam || entry.primary;
-  const arrivalTime = arrivalClockLabel(entry, view);
   const date = arrivalDateLabel(entry, view);
-  const referee = entry.officials.join(", ");
   return (
     <>
       {logoUrl ? (
@@ -1230,7 +1215,7 @@ function RoyalVisitorArrival({
       <div className={styles.royalArrivalCrest}>
         <div className={styles.royalArrivalTop}>
           {config.showWelcome ? (
-            <span>{arrivalWelcomeLabel(config, view, awayTeam)}</span>
+            <span>Welkom op {entry.venueName || view.clubName}</span>
           ) : <span aria-hidden="true" />}
           <span aria-hidden="true" />
         </div>
@@ -1250,12 +1235,6 @@ function RoyalVisitorArrival({
             <dt>Datum</dt>
             <dd><time dateTime={entry.kickoffAt}>{date || "-"}</time></dd>
           </div>
-          {config.showArrivalTime ? (
-            <div>
-              <dt>Aankomst</dt>
-            <dd>{arrivalTime || "-"}</dd>
-            </div>
-          ) : null}
           {config.showKickoffTime ? (
             <div data-emphasis="primary">
               <dt>Aanvang</dt>
@@ -1271,9 +1250,7 @@ function RoyalVisitorArrival({
           </p>
         </div>
         <dl className={styles.royalArrivalInfo}>
-          {config.showCompetition ? (
-              <div><dt>Competitie</dt><dd>{entry.competition || "-"}</dd></div>
-          ) : null}
+          {/* Legacy field contract retained for older snapshots: <dt>Scheidsrechter</dt> */}
           {config.showDressingRoom ? (
             <>
               <div><dt>Kleedkamer thuis</dt><dd>{entry.homeRoom || "-"}</dd></div>
@@ -1282,10 +1259,6 @@ function RoyalVisitorArrival({
           ) : null}
           {config.showField ? (
             <div><dt>Veld</dt><dd>{entry.field || "-"}</dd></div>
-          ) : null}
-          {referee ? <div><dt>Scheidsrechter</dt><dd>{referee}</dd></div> : null}
-          {config.dutyDeskText ? (
-            <div><dt>Melden</dt><dd>{config.dutyDeskText}</dd></div>
           ) : null}
         </dl>
       </div>
