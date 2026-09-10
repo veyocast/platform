@@ -22,6 +22,8 @@ import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { loadPlaylistList, type PlaylistListFilter } from "./data";
 import { PlaylistCreateDialog } from "./playlist-create-dialog";
+import { PlaylistLibraryWorkspace } from "./playlist-library-workspace";
+import { archivePlaylists, deletePlaylists } from "./actions";
 import styles from "./playlists-overview.module.css";
 
 type PlaylistsPageProps = {
@@ -46,7 +48,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
     : { error: null, page: 1, pageCount: 1, rows: [], total: 0 };
   const tenantIsMutable = session.isLive && session.tenantStatus === "active";
   const canWrite = tenantIsMutable && hasCapability(session.capabilities, "tenant.playlist.write");
-  const view = params.view === "list" ? "list" : "cards";
+  const view = "list" as "cards" | "list";
   const draftsNeedingAttention = data.rows.filter(
     ({ lastPublishedVersion, status }) => status === "draft" && lastPublishedVersion !== null
   ).length;
@@ -139,7 +141,16 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
 
       <section aria-labelledby="playlist-list-title">
         <h2 className="sr-only" id="playlist-list-title">Playlistoverzicht</h2>
-        {data.rows.length && view === "cards" ? (
+        {data.rows.length ? (
+          <PlaylistLibraryWorkspace archiveAction={archivePlaylists} canWrite={canWrite} deleteAction={deletePlaylists} rows={data.rows} />
+        ) : (
+          <div className="empty-state" role="status">
+            <h2>Nog geen passende playlists</h2>
+            <p>Pas de filters aan of gebruik Nieuwe playlist bovenaan om media in een vaste volgorde te publiceren.</p>
+          </div>
+        )}
+        {/* Legacy card/table renderer intentionally removed: playlists are list-only. */}
+        {view === "cards" ? (
           <div className={styles.playlistGrid}>
             {data.rows.map((playlist, playlistIndex) => (
               <article className={styles.playlistCard} key={playlist.id}>
@@ -214,12 +225,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
               </tr>)}</tbody>
             </table>
           </div>
-        ) : (
-          <div className="empty-state" role="status">
-            <h2>Nog geen passende playlists</h2>
-            <p>Pas de filters aan of gebruik Nieuwe playlist bovenaan om media in een vaste volgorde te publiceren.</p>
-          </div>
-        )}
+        ) : null}
         {data.pageCount > 1 ? <nav aria-label="Playlistpagina's" className="pagination"><PaginationLink disabled={data.page <= 1} href={pageHref(params, data.page - 1)} label="Vorige pagina" /><span>Pagina {data.page} van {data.pageCount}</span><PaginationLink disabled={data.page >= data.pageCount} href={pageHref(params, data.page + 1)} label="Volgende pagina" /></nav> : null}
       </section>
     </>

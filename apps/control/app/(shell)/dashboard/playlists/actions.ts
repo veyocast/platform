@@ -80,6 +80,35 @@ export async function duplicatePlaylist(formData: FormData) {
   redirect(`/dashboard/playlists/${data}?succes=${encodeURIComponent("De playlist is als nieuw concept gedupliceerd. Releasehistorie en schermtoewijzingen zijn niet overgenomen.")}`);
 }
 
+export async function archivePlaylists(formData: FormData) {
+  const raw = String(formData.get("playlists") ?? "");
+  let targets: Array<{ id: string; revision: number }> = [];
+  try { targets = JSON.parse(raw) as Array<{ id: string; revision: number }>; } catch { failList("De selectie is ongeldig."); }
+  if (!targets.length || targets.length > 100 || targets.some((target) => !/^[0-9a-f-]{36}$/i.test(target.id) || !Number.isInteger(target.revision))) {
+    failList("Kies minimaal één geldige playlist.");
+  }
+  for (const target of targets) {
+    const mutationForm = new FormData();
+    mutationForm.set("expectedRevision", String(target.revision));
+    const result = await runMutation(mutationForm, target.id, "archive", {});
+    if (result.outcome === "conflict") failList("Een playlist is intussen gewijzigd. Vernieuw de lijst en probeer opnieuw.");
+  }
+  revalidatePath("/dashboard/playlists");
+  redirect(`/dashboard/playlists?succes=${encodeURIComponent(`${targets.length} ${targets.length === 1 ? "playlist is" : "playlists zijn"} gearchiveerd.`)}`);
+}
+
+export async function deletePlaylists(formData: FormData) {
+  const raw = String(formData.get("playlists") ?? "");
+  let ids: string[] = [];
+  try { ids = JSON.parse(raw) as string[]; } catch { failList("De selectie is ongeldig."); }
+  if (!ids.length || ids.some((id) => !/^[0-9a-f-]{36}$/i.test(id))) failList("Kies minimaal één geldige playlist.");
+  const { supabase } = await requirePlaylistWriter("tenant.playlist.archive");
+  const { error } = await supabase.from("playlists").delete().in("id", ids);
+  if (error) { console.error("Playlists definitief verwijderen mislukt", error); failList("Definitief verwijderen is geblokkeerd. Archiveer de playlist als alternatief."); }
+  revalidatePath("/dashboard/playlists");
+  redirect(`/dashboard/playlists?succes=${encodeURIComponent(`${ids.length} ${ids.length === 1 ? "playlist is" : "playlists zijn"} definitief verwijderd.`)}`);
+}
+
 export async function updatePlaylistDetails(formData: FormData) {
   const playlistId = idValue(formData, "playlistId");
   const name = playlistName(formData);
