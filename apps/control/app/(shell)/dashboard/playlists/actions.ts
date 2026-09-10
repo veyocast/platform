@@ -102,9 +102,24 @@ export async function deletePlaylists(formData: FormData) {
   let ids: string[] = [];
   try { ids = JSON.parse(raw) as string[]; } catch { failList("De selectie is ongeldig."); }
   if (!ids.length || ids.some((id) => !/^[0-9a-f-]{36}$/i.test(id))) failList("Kies minimaal één geldige playlist.");
-  const { supabase } = await requirePlaylistWriter("tenant.playlist.archive");
+  const { session, supabase } = await requirePlaylistWriter("tenant.playlist.archive");
+  // A draft can be assigned to a screen while it is being prepared. Clear
+  // that live assignment first so an explicit delete confirmation actually
+  // removes the draft instead of failing on the screen FK.
+  const { error: detachError } = await supabase
+    .from("screens")
+    .update({ assigned_playlist_id: null, assigned_release_id: null })
+    .eq("tenant_id", session.tenantId)
+    .in("assigned_playlist_id", ids);
+  if (detachError) {
+    console.error("Playlisttoewijzingen loskoppelen mislukt", detachError);
+    failList("De playlist is nog aan een scherm gekoppeld. Koppel het scherm los en probeer opnieuw.");
+  }
   const { error } = await supabase.from("playlists").delete().in("id", ids);
-  if (error) { console.error("Playlists definitief verwijderen mislukt", error); failList("Definitief verwijderen is geblokkeerd. Archiveer de playlist als alternatief."); }
+  if (error) {
+    console.error("Playlists definitief verwijderen mislukt", error);
+    failList("Deze playlist heeft nog een onveranderlijke publicatierelease. Die historie blijft beschermd; archiveer de playlist in plaats daarvan.");
+  }
   revalidatePath("/dashboard/playlists");
   redirect(`/dashboard/playlists?succes=${encodeURIComponent(`${ids.length} ${ids.length === 1 ? "playlist is" : "playlists zijn"} definitief verwijderd.`)}`);
 }

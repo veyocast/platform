@@ -2297,19 +2297,17 @@ function resultPrimaryColumns(
     tracks.push("minmax(var(--arena-result-time-min, 70px), .48fr)");
   }
   if (display?.showHomeLogo !== false) tracks.push("var(--arena-match-logo-size)");
-  tracks.push(
-    "minmax(0, var(--arena-match-team-fr, 1.55fr))",
-    "minmax(var(--arena-result-score-min, 112px), .68fr)"
-  );
+  tracks.push("minmax(0, var(--arena-match-team-fr, 1.55fr))");
   if (display?.showAwayLogo !== false) tracks.push("var(--arena-match-logo-size)");
   tracks.push("minmax(0, var(--arena-match-team-fr, 1.55fr))");
+  tracks.push("minmax(var(--arena-result-score-min, 112px), .68fr)");
   return tracks.join(" ");
 }
 
 function matchDetailValue(value: string) {
   return value
     .replace(/^(?:kleedkamer|veld|field|sportpark)\s*:?\s*/iu, "")
-    .trim() || "volgt";
+    .trim() || "-";
 }
 
 function ArenaRow({
