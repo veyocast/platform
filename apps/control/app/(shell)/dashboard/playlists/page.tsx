@@ -23,6 +23,7 @@ import { PageHeader, StatusPill } from "../../_components/shell-primitives";
 import { loadPlaylistList, type PlaylistListFilter } from "./data";
 import { PlaylistCreateDialog } from "./playlist-create-dialog";
 import { PlaylistLibraryWorkspace } from "./playlist-library-workspace";
+import { archivePlaylists, deletePlaylists } from "./actions";
 import styles from "./playlists-overview.module.css";
 
 type PlaylistsPageProps = {
@@ -141,7 +142,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
       <section aria-labelledby="playlist-list-title">
         <h2 className="sr-only" id="playlist-list-title">Playlistoverzicht</h2>
         {data.rows.length ? (
-          <PlaylistLibraryWorkspace canWrite={canWrite} rows={data.rows} />
+          <PlaylistLibraryWorkspace archiveAction={archivePlaylists} canWrite={canWrite} deleteAction={deletePlaylists} rows={data.rows} />
         ) : (
           <div className="empty-state" role="status">
             <h2>Nog geen passende playlists</h2>
