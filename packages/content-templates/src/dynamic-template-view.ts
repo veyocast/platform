@@ -634,7 +634,10 @@ function createDynamicTemplateViewInternal(
         themePresentation.resolvedMode.timezone
       )
     : mappedItems;
-  const title = safeText(sport?.title, sportTitle(payload.slideType));
+  const title = payload.slideType === "sport_visitor_arrivals" &&
+    themeIdentity.designRevision !== "royal-current-v8"
+    ? sportTitle(payload.slideType)
+    : safeText(sport?.title, sportTitle(payload.slideType));
   const emptyState = items.length
     ? ""
     : sportEmptyState(safeText(sport?.emptyStateCode, ""));
