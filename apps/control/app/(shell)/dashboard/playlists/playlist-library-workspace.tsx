@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { BulkActionBar, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, IconButton } from "@veyocast/ui";
-import type { PlaylistListRow } from "./data";
+type PlaylistListRow = { id: string; name: string; description: string | null; status: string; revision: number; itemCount: number; assignedScreenCount: number };
 
 export function PlaylistLibraryWorkspace({ rows, canWrite, archiveAction, deleteAction }: { rows: readonly PlaylistListRow[]; canWrite: boolean; archiveAction: (formData: FormData) => Promise<void>; deleteAction: (formData: FormData) => Promise<void> }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
