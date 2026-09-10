@@ -1699,15 +1699,11 @@ function normalizeVisitorArrivalItem(
   royalCurrent = false
 ) {
   const kickoffTime = visitorArrivalClock(item);
-  const field = visitorArrivalValue(
-    item.field || visitorMetaValue(item.meta, "field"),
-    "field"
-  );
-  const awayRoom = visitorArrivalValue(
-    item.awayRoom || item.dressingRoom ||
-      visitorMetaValue(item.meta, "dressing-room"),
-    "dressing-room"
-  );
+  const field = visitorArrivalValue(item.field, "field") ||
+    visitorArrivalValue(visitorMetaValue(item.meta, "field"), "field");
+  const awayRoom = visitorArrivalValue(item.awayRoom, "dressing-room") ||
+    visitorArrivalValue(item.dressingRoom, "dressing-room") ||
+    visitorArrivalValue(visitorMetaValue(item.meta, "dressing-room"), "dressing-room");
   const homeRoom = visitorArrivalValue(item.homeRoom, "dressing-room");
   return {
     ...item,
@@ -1781,7 +1777,10 @@ function visitorArrivalValue(
   const prefix = kind === "field"
     ? /^\s*Veld\s*:?\s*/i
     : /^\s*Kleedkamer\s*:?\s*/i;
-  return value.replace(prefix, "").trim();
+  const normalized = value.replace(prefix, "").trim();
+  return /^(?:volgt|onbekend|unknown|n\.?\/a\.?|n\.v\.?)$/iu.test(normalized)
+    ? ""
+    : normalized;
 }
 
 function visitorKickoffMs(value: string) {

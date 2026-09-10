@@ -744,8 +744,8 @@ export function renderLgLegacyHtml() {
     .legacy-royal-arrival-logo span{position:absolute;top:50%;right:0;left:0;transform:translateY(-50%)}
     .legacy-royal-arrival-body{position:relative;z-index:2;display:flex;min-width:0;min-height:0;flex-direction:column;justify-content:flex-end;padding:24px var(--arrival-pad,28px) var(--arrival-pad,28px)}
     .legacy-royal-arrival-identity{display:block;min-width:0;text-align:left}
-    .legacy-royal-arrival-identity>span{display:block;color:var(--muted);font-size:var(--arrival-label,17px);font-weight:700;letter-spacing:.07em;line-height:1.2}
-    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-royal-arrival-identity h2{max-width:100%;margin:12px 0;color:var(--ink);font-family:var(--vc-theme-display-font,"VeyoCast Royal Current Roboto"),Roboto,Arial,sans-serif;font-size:var(--arrival-title,62px);font-weight:700;letter-spacing:-.035em;line-height:1.06;overflow-wrap:break-word}
+    .legacy-royal-arrival-identity>span{display:block;margin:0 0 12px;color:var(--muted);font-size:var(--arrival-label,17px);font-weight:700;letter-spacing:.07em;line-height:1.2;text-transform:uppercase}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-royal-arrival-identity h2{max-width:100%;margin:0 0 8px;color:var(--ink);font-family:var(--vc-theme-display-font,"VeyoCast Royal Current Roboto"),Roboto,Arial,sans-serif;font-size:var(--arrival-title,62px);font-weight:700;letter-spacing:-.035em;line-height:1.06;overflow-wrap:break-word}
     .legacy-royal-arrival-identity p{margin:0;color:var(--muted);font-size:var(--arrival-text,28px);line-height:1.25}
     .legacy-royal-arrival-info{display:grid;min-width:0;grid-template-columns:.8fr .8fr 1.4fr;grid-column-gap:12px;margin-top:26px;padding-top:20px;border-top:1px solid var(--line)}
     .legacy-royal-arrival-info>div{display:flex;min-width:0;flex-direction:column}
@@ -5583,7 +5583,10 @@ export function renderLgLegacyHtml() {
       var prefix = kind === "field"
         ? /^\\s*Veld\\s*:?\\s*/i
         : /^\\s*Kleedkamer\\s*:?\\s*/i;
-      return templateText(value, "").replace(prefix, "").replace(/^\\s+|\\s+$/g, "");
+      var normalized = templateText(value, "").replace(prefix, "").replace(/^\\s+|\\s+$/g, "");
+      return /^(?:volgt|onbekend|unknown|n\\.?\\/a\\.?|n\\.v\\.?)$/i.test(normalized)
+        ? ""
+        : normalized;
     }
     function templateVisitorMetaValue(meta, kind) {
       var pattern = kind === "field"
@@ -5670,15 +5673,14 @@ export function renderLgLegacyHtml() {
           if (Object.prototype.hasOwnProperty.call(source, key)) item[key] = source[key];
         }
         kickoffTime = templateVisitorClock(item);
-        field = templateVisitorArrivalValue(
-          templateText(item.field, "") || templateVisitorMetaValue(item.meta, "field"),
-          "field"
-        );
-        awayRoom = templateVisitorArrivalValue(
-          templateText(item.awayRoom, templateText(item.dressingRoom, "")) ||
+        field = templateVisitorArrivalValue(item.field, "field") ||
+          templateVisitorArrivalValue(templateVisitorMetaValue(item.meta, "field"), "field");
+        awayRoom = templateVisitorArrivalValue(item.awayRoom, "dressing-room") ||
+          templateVisitorArrivalValue(item.dressingRoom, "dressing-room") ||
+          templateVisitorArrivalValue(
             templateVisitorMetaValue(item.meta, "dressing-room"),
-          "dressing-room"
-        );
+            "dressing-room"
+          );
         homeRoom = templateVisitorArrivalValue(
           templateText(item.homeRoom, ""),
           "dressing-room"
@@ -5693,8 +5695,8 @@ export function renderLgLegacyHtml() {
         item.field = field;
         item.homeRoom = homeRoom;
         item.dressingRoom = awayRoom;
-        item.secondary = "Aanvang: " + (kickoffTime || "volgt") + " | Veld " + (field || "volgt");
-        item.meta = "Kleedkamer: " + (awayRoom || "volgt");
+        item.secondary = "Aanvang: " + (kickoffTime || "-") + " | Veld " + (field || "-");
+        item.meta = "Kleedkamer: " + (awayRoom || "-");
         return {
           index: index,
           item: item,
@@ -7536,8 +7538,10 @@ export function renderLgLegacyHtml() {
                 arrivalCard.appendChild(royalArrivalCrest);
                 var royalArrivalBody = templateNode("div", "legacy-royal-arrival-body");
                 var royalArrivalIdentity = templateNode("div", "legacy-royal-arrival-identity");
-                royalArrivalIdentity.appendChild(templateNode("span", "", "Goed dat jullie er zijn"));
                 royalArrivalIdentity.appendChild(templateNode("h2", "", royalArrivalAwayTeam));
+                royalArrivalIdentity.appendChild(templateNode(
+                  "span", "", "Welkom op " + templateText(item.venueName, clubName)
+                ));
                 royalArrivalIdentity.appendChild(templateNode(
                   "p", "", royalArrivalHomeTeam + " tegen " + royalArrivalAwayTeam
                 ));
@@ -7546,15 +7550,15 @@ export function renderLgLegacyHtml() {
                 function appendRoyalArrivalInfo(label, value) {
                   var detail = templateNode("div", "");
                   detail.appendChild(templateNode("span", "", label));
-                  detail.appendChild(templateNode("strong", "", value || "volgt"));
+                  detail.appendChild(templateNode("strong", "", value || "-"));
                   royalArrivalInfo.appendChild(detail);
                 }
                 appendRoyalArrivalInfo(
-                  "Aftrap", templateText(item.kickoffTime, templateText(item.time, "volgt"))
+                  "Aftrap", templateText(item.kickoffTime, templateText(item.time, "-"))
                 );
                 appendRoyalArrivalInfo(
                   "Locatie",
-                  templateText(item.field, templateText(item.venueName, templateText(item.venue, "volgt")))
+                  templateText(item.field, templateText(item.venueName, templateText(item.venue, "-")))
                 );
                 appendRoyalArrivalInfo(
                   "Omkleden",
@@ -7563,7 +7567,7 @@ export function renderLgLegacyHtml() {
                     (item.awayRoom || item.dressingRoom)
                       ? "Uit " + templateText(item.awayRoom, templateText(item.dressingRoom, ""))
                       : ""
-                  ].filter(Boolean).join(" · ") || "volgt"
+                  ].filter(Boolean).join(" · ") || "-"
                 );
                 royalArrivalBody.appendChild(royalArrivalInfo);
                 arrivalCard.appendChild(royalArrivalBody);
