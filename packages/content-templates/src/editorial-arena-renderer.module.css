@@ -4095,6 +4095,11 @@
   border-radius: 17px;
 }
 
+.arenaRoot[data-design-revision="royal-current-v8"] .arenaResultScore {
+  grid-column: -1;
+  justify-self: end;
+}
+
 .arenaCancelledKickoff,
 .arenaRowWhen [data-status="cancelled"] {
   display: inline-flex;

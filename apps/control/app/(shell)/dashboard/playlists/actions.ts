@@ -97,6 +97,18 @@ export async function archivePlaylists(formData: FormData) {
   redirect(`/dashboard/playlists?succes=${encodeURIComponent(`${targets.length} ${targets.length === 1 ? "playlist is" : "playlists zijn"} gearchiveerd.`)}`);
 }
 
+export async function deletePlaylists(formData: FormData) {
+  const raw = String(formData.get("playlists") ?? "");
+  let ids: string[] = [];
+  try { ids = JSON.parse(raw) as string[]; } catch { failList("De selectie is ongeldig."); }
+  if (!ids.length || ids.some((id) => !/^[0-9a-f-]{36}$/i.test(id))) failList("Kies minimaal één geldige playlist.");
+  const { supabase } = await requirePlaylistWriter("tenant.playlist.archive");
+  const { error } = await supabase.from("playlists").delete().in("id", ids);
+  if (error) { console.error("Playlists definitief verwijderen mislukt", error); failList("Definitief verwijderen is geblokkeerd. Archiveer de playlist als alternatief."); }
+  revalidatePath("/dashboard/playlists");
+  redirect(`/dashboard/playlists?succes=${encodeURIComponent(`${ids.length} ${ids.length === 1 ? "playlist is" : "playlists zijn"} definitief verwijderd.`)}`);
+}
+
 export async function updatePlaylistDetails(formData: FormData) {
   const playlistId = idValue(formData, "playlistId");
   const name = playlistName(formData);

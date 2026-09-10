@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { BulkActionBar, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, IconButton } from "@veyocast/ui";
-import { archivePlaylists } from "./actions";
+import { archivePlaylists, deletePlaylists } from "./actions";
 import type { PlaylistListRow } from "./data";
 
 export function PlaylistLibraryWorkspace({ rows, canWrite }: { rows: readonly PlaylistListRow[]; canWrite: boolean }) {
@@ -24,5 +24,6 @@ export function PlaylistLibraryWorkspace({ rows, canWrite }: { rows: readonly Pl
 
 function ConfirmArchive({ label, targets }: { label: string; targets: readonly PlaylistListRow[] }) {
   const [open, setOpen] = useState(false);
-  return <Dialog onOpenChange={setOpen} open={open}><Button onClick={() => setOpen(true)} type="button" variant="destructive"><Trash2 aria-hidden="true" />Verwijderen</Button><DialogContent><DialogHeader><DialogTitle>{label} verwijderen?</DialogTitle><DialogDescription>De playlist wordt gearchiveerd. Gepubliceerde releases blijven beschikbaar.</DialogDescription></DialogHeader><form action={archivePlaylists}><input name="playlists" type="hidden" value={JSON.stringify(targets.map(({ id, revision }) => ({ id, revision })))} /><DialogFooter><Button type="button" variant="secondary" onClick={() => setOpen(false)}>Annuleren</Button><Button type="submit" variant="destructive">Bevestigen en verwijderen</Button></DialogFooter></form></DialogContent></Dialog>;
+  const ids = JSON.stringify(targets.map(({ id }) => id));
+  return <Dialog onOpenChange={setOpen} open={open}><Button onClick={() => setOpen(true)} type="button" variant="destructive"><Trash2 aria-hidden="true" />Verwijderen</Button><DialogContent><DialogHeader><DialogTitle>{label} verwijderen?</DialogTitle><DialogDescription>Kies archiveren om herstelbaar te verwijderen, of definitief verwijderen om alle playlistdata te wissen.</DialogDescription></DialogHeader><div style={{ display: "flex", gap: 12 }}><form action={archivePlaylists}><input name="playlists" type="hidden" value={JSON.stringify(targets.map(({ id, revision }) => ({ id, revision })))} /><Button type="submit" variant="secondary">Archiveren</Button></form><form action={deletePlaylists}><input name="playlists" type="hidden" value={ids} /><Button type="submit" variant="destructive">Definitief verwijderen</Button></form></div><DialogFooter><Button type="button" variant="secondary" onClick={() => setOpen(false)}>Annuleren</Button></DialogFooter></DialogContent></Dialog>;
 }
