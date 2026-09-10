@@ -751,9 +751,9 @@ function ArenaPage({
                   <div>
                     <dt>Kleedkamers:</dt>
                     <dd className={styles.arenaVisitorRoomLine}>
-                      <span>Thuis: {entry.homeRoom || "volgt"}</span>
+                      <span>Thuis: {entry.homeRoom || "-"}</span>
                       <i aria-hidden="true">|</i>
-                      <span>Uit: {entry.awayRoom || entry.dressingRoom || "volgt"}</span>
+                      <span>Uit: {entry.awayRoom || entry.dressingRoom || "-"}</span>
                     </dd>
                   </div>
                   <div>
@@ -1323,7 +1323,7 @@ function RoyalRefereeArrival({
           <div><dt>Veld</dt><dd>{entry.field || "volgt"}</dd></div>
         ) : null}
         {config.showDressingRoom ? (
-          <div><dt>Kleedkamer</dt><dd>{entry.dressingRoom || "volgt"}</dd></div>
+          <div><dt>Kleedkamer</dt><dd>{entry.dressingRoom || "-"}</dd></div>
         ) : null}
         {config.dutyDeskText ? (
           <div><dt>Melden</dt><dd>{config.dutyDeskText}</dd></div>
