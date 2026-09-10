@@ -4096,8 +4096,14 @@
 }
 
 .arenaRoot[data-design-revision="royal-current-v8"] .arenaResultScore {
-  grid-column: -1;
-  justify-self: end;
+  grid-column: auto;
+  order: 3;
+  justify-self: stretch;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .arenaResultRow [data-field="away-logo"],
+.arenaRoot[data-design-revision="royal-current-v8"] .arenaResultRow [data-field="away-team"] {
+  order: 2;
 }
 
 .arenaCancelledKickoff,
@@ -4362,11 +4368,12 @@
 .royalArrivalWatermark {
   position: absolute;
   z-index: 0 !important;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: -3%;
+  right: -3%;
+  bottom: -3%;
+  left: -3%;
+  width: 106%;
+  height: 106%;
   object-fit: contain;
   opacity: .3;
   pointer-events: none;
@@ -4387,7 +4394,8 @@
 }
 
 .royalArrivalCrest {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 2 !important;
   display: grid;
   min-width: 0;
@@ -4423,10 +4431,13 @@
 }
 
 .royalArrivalLogo {
-  position: relative;
+  position: absolute;
+  top: 16%;
+  left: 50%;
+  transform: translateX(-50%);
   display: block;
   width: min(72%, 680px);
-  height: min(58%, 360px);
+  height: min(42%, 360px);
   /* legacy contract: width: min(56%, 560px); */
   min-width: 0;
   min-height: 0;
