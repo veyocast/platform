@@ -126,6 +126,23 @@ export function renderLgLegacyHtml() {
     .legacy-media-layer.retiring{opacity:0;visibility:visible}
     #status{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;padding:5vh 5vw;background:#071c1b}
     #status[hidden]{display:none}
+    #default-waiting{position:absolute;top:0;right:0;bottom:0;left:0;display:grid;align-items:center;padding:1vw;background:#e8edf7;color:#14244d;overflow:hidden}
+    #default-waiting[hidden]{display:none}
+    #default-waiting[data-theme="dark"]{background:#071126;color:#f4f7ff}
+    .default-waiting-card{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:0;overflow:hidden;border:1px solid rgba(20,36,77,.12);border-radius:28px;background:rgba(255,255,255,.94);box-shadow:0 18px 60px rgba(20,36,77,.13)}
+    #default-waiting[data-theme="dark"] .default-waiting-card{border-color:rgba(255,255,255,.14);background:rgba(18,31,59,.96);box-shadow:0 18px 60px rgba(0,0,0,.25)}
+    .default-waiting-card:before,.default-waiting-card:after{position:absolute;top:-24%;left:50%;width:120%;height:145%;border:1px solid rgba(106,142,243,.25);border-radius:50%;content:"";transform:translateX(-50%) rotate(-17deg);pointer-events:none}
+    .default-waiting-card:after{inset:0;width:100%;height:100%;border:0;background:radial-gradient(circle at 50% 12%,rgba(143,174,255,.32),transparent 38%);transform:none}
+    .default-waiting-clock{position:absolute;z-index:1;top:2vw;right:2.1vw;font-size:clamp(16px,1.55vw,28px);font-weight:800}
+    .default-waiting-content{position:relative;z-index:1;display:flex;align-items:center;flex-direction:column;max-width:1200px;min-width:0;text-align:center}
+    .default-waiting-tenant{margin:0 0 2vh;color:#65718c;font-size:clamp(12px,1vw,18px);font-weight:800;letter-spacing:.2em;text-transform:uppercase}
+    #default-waiting[data-theme="dark"] .default-waiting-tenant,.default-waiting-payoff{color:#aeb9d3}
+    .default-waiting-content h1{max-width:18ch;margin:0;font-size:clamp(34px,min(5.2vw,9vh),76px);font-weight:800;letter-spacing:-.055em;line-height:.98}
+    .default-waiting-tenant-logo{display:block;width:auto;height:clamp(120px,23vh,260px);max-width:min(46vw,360px);margin:4vh auto 3.5vh;object-fit:contain}
+    .default-waiting-veyocast-logo{display:block;width:min(30vw,210px);height:auto;margin:3.5vh auto 0}
+    .default-waiting-payoff{margin:1.8vh 0 0;font-size:clamp(15px,1.45vw,25px);font-style:italic}
+    .default-waiting-footer{position:absolute;z-index:1;right:2vw;bottom:2vw;left:2vw;display:flex;justify-content:space-between;color:#65718c;font-size:clamp(9px,.62vw,13px);font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    #default-waiting[data-theme="dark"] .default-waiting-footer{color:#aeb9d3}
     .panel{width:min(860px,90vw);padding:clamp(28px,4vw,58px);border:1px solid #47706a;border-radius:24px;background:#0d2927}
     .logo{display:block;width:min(290px,48vw);height:auto;margin:0 0 42px}
     .kicker{margin:0 0 14px;color:#ff5a1f;font-size:clamp(15px,1.5vw,22px);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
@@ -880,6 +897,22 @@ export function renderLgLegacyHtml() {
       <pre id="diagnostics"></pre>
     </div>
   </section>
+  <section id="default-waiting" aria-label="VeyoCast wacht op content" hidden>
+    <div class="default-waiting-card">
+      <time class="default-waiting-clock" id="default-waiting-clock"></time>
+      <div class="default-waiting-content">
+        <p class="default-waiting-tenant" id="default-waiting-tenant"></p>
+        <h1 id="default-waiting-title"></h1>
+        <img class="default-waiting-tenant-logo" id="default-waiting-tenant-logo" alt="">
+        <img class="default-waiting-veyocast-logo" id="default-waiting-veyocast-logo" src="/brand/veyocast-logo-primary.svg" alt="VeyoCast">
+        <p class="default-waiting-payoff">Narrowcasting voor sportverenigingen!</p>
+      </div>
+      <footer class="default-waiting-footer">
+        <span>VEYOCAST · VOORBEELD</span>
+        <span id="default-waiting-sportpark"></span>
+      </footer>
+    </div>
+  </section>
   <script>
   (function () {
     "use strict";
@@ -893,6 +926,7 @@ export function renderLgLegacyHtml() {
       currentElement: null,
       currentItem: null,
       currentObjectUrls: [],
+      defaultWaitingTimer: null,
       deviceToken: null,
       envelope: null,
       forceManifestRefresh: false,
@@ -1014,12 +1048,64 @@ export function renderLgLegacyHtml() {
       }).join("\\n"));
     }
     function showStatus(kicker, title, detail, code) {
+      hideDefaultWaiting();
       byId("status").hidden = false;
       byId("watermark").className = "";
       setText("kicker", kicker);
       setText("title", title);
       setText("detail", detail);
       setText("error-code", code ? "Foutcode: " + code : "");
+    }
+    function hideDefaultWaiting() {
+      byId("default-waiting").hidden = true;
+      window.clearTimeout(runtime.defaultWaitingTimer);
+      runtime.defaultWaitingTimer = null;
+    }
+    function formatDefaultWaitingClock(value, timezone) {
+      try {
+        return new Intl.DateTimeFormat("nl-NL", {
+          day: "2-digit", hour: "2-digit", hour12: false, minute: "2-digit",
+          month: "2-digit", timeZone: timezone, year: "numeric"
+        }).format(value).replace(", ", " | ");
+      } catch (error) {
+        return new Intl.DateTimeFormat("nl-NL", {
+          day: "2-digit", hour: "2-digit", hour12: false, minute: "2-digit",
+          month: "2-digit", year: "numeric"
+        }).format(value).replace(", ", " | ");
+      }
+    }
+    function showDefaultWaiting(envelope) {
+      var branding = envelope && envelope.branding || {};
+      var tenantName = String(branding.tenantName || "VeyoCast").trim() || "VeyoCast";
+      var sportparkName = String(branding.sportparkName || "ons sportpark").trim() || "ons sportpark";
+      var timezone = String(branding.timezone || "Europe/Amsterdam");
+      var theme = branding.themeMode === "light" ? "light" : "dark";
+      var logo = typeof branding.tenantLogoUrl === "string" &&
+        /^(https?:|[/])/i.test(branding.tenantLogoUrl)
+        ? branding.tenantLogoUrl : "";
+      byId("status").hidden = true;
+      byId("default-waiting").hidden = false;
+      byId("default-waiting").setAttribute("data-theme", theme);
+      setText("default-waiting-tenant", tenantName);
+      setText("default-waiting-title", "Welkom op " + sportparkName + "!");
+      setText("default-waiting-sportpark", sportparkName);
+      var tenantLogo = byId("default-waiting-tenant-logo");
+      if (logo) {
+        tenantLogo.src = logo;
+        tenantLogo.alt = "Logo " + tenantName;
+        tenantLogo.hidden = false;
+      } else {
+        tenantLogo.removeAttribute("src");
+        tenantLogo.alt = "";
+        tenantLogo.hidden = true;
+      }
+      byId("default-waiting-veyocast-logo").src = theme === "light"
+        ? "/brand/veyocast-logo-primary.svg" : "/brand/veyocast-logo-inverse.svg";
+      var updateClock = function () {
+        setText("default-waiting-clock", formatDefaultWaitingClock(new Date(), timezone));
+        runtime.defaultWaitingTimer = window.setTimeout(updateClock, 60000 - (now() % 60000) + 100);
+      };
+      updateClock();
     }
     function showPairing(code, detail) {
       showStatus(
@@ -4675,12 +4761,7 @@ export function renderLgLegacyHtml() {
               return;
             }
             setState("READY");
-            showStatus(
-              "Player gekoppeld",
-              "Wachten op content",
-              "Publiceer een playlist naar dit scherm. De Player controleert automatisch opnieuw.",
-              ""
-            );
+            showDefaultWaiting(body);
             scheduleManifestSync(CONFIG.manifestIntervalMs);
             sendHeartbeat();
             return;
@@ -5133,19 +5214,84 @@ export function renderLgLegacyHtml() {
           item.enabled !== false &&
           (item.kind === "image" || item.kind === "video") &&
           item.source &&
-          typeof item.source.url === "string";
+          typeof item.source.url === "string" &&
+          legacyDynamicTemplateHasRenderableContent(item);
       });
+    }
+    function legacyDynamicTemplateHasRenderableContent(item) {
+      var payload = item && item.dynamicTemplate;
+      var data;
+      var sport;
+      var slideType;
+      var items;
+      if (!payload) return true;
+      data = templateRecord(payload.data) || {};
+      sport = templateRecord(data.sport) || {};
+      slideType = String(payload.slideType || "");
+      if (slideType === "news") {
+        var news = templateRecord(data.news) || templateRecord(data.data) || {};
+        return templateArray(news.articles, 200).some(function (value) {
+          var article = templateRecord(value) || {};
+          return Boolean(templateText(article.title, ""));
+        });
+      }
+      if (slideType === "menu") {
+        var menu = templateRecord(data.menu) || templateRecord(data.data) || {};
+        return templateArray(menu.products, 200).some(function (value) {
+          var product = templateRecord(value) || {};
+          return Boolean(templateText(product.name, ""));
+        });
+      }
+      if (slideType === "price_list") {
+        var priceList = templateRecord(data.priceList) || {};
+        return templateArray(priceList.sections, 200).some(function (sectionValue) {
+          var section = templateRecord(sectionValue) || {};
+          return templateArray(section.products, 200).some(function (productValue) {
+            var product = templateRecord(productValue) || {};
+            return Boolean(templateText(product.name, ""));
+          });
+        });
+      }
+      items = templateArray(slideType === "sport_birthdays"
+        ? (sport.birthdays || sport.items)
+        : sport.items, 200);
+      if (slideType === "sport_visitor_arrivals") {
+        return items.some(function (value) {
+          var entry = templateRecord(value) || {};
+          return entry.homeMatch === true && Boolean(
+            templateText(entry.awayTeam || entry.primary, "")
+          );
+        });
+      }
+      if (slideType === "sport_match_of_the_day" || slideType === "sport_next_match") {
+        return Boolean(items.length && templateRecord(items[0]));
+      }
+      if (slideType === "sport_standing" || slideType === "sport_period_standing") {
+        return items.some(function (value) {
+          var team = templateRecord(value) || {};
+          return Boolean(templateText(team.teamName, ""));
+        });
+      }
+      if (slideType === "sport_birthdays") {
+        return items.some(function (value) {
+          var birthday = templateRecord(value) || {};
+          return Boolean(templateText(birthday.displayName || birthday.primary, ""));
+        });
+      }
+      if (slideType === "sport_visitor_arrivals" || slideType === "sport_referee_arrivals" ||
+        slideType.indexOf("sport_") === 0) {
+        return items.some(function (value) {
+          var entry = templateRecord(value) || {};
+          return Boolean(templateText(entry.primary || entry.homeTeam || entry.teamName, ""));
+        });
+      }
+      return true;
     }
     function startRelease(envelope, source) {
       var items = playableItems(envelope);
       if (!items.length) {
-        showStatus(
-          "Release geweigerd",
-          "Geen afspeelbare content",
-          "De immutable release bevat geen afbeelding of video die deze eenvoudige Player kan tonen.",
-          "LEGACY_RELEASE_EMPTY"
-        );
-        setState("ERROR_RECOVERABLE");
+        showDefaultWaiting(envelope);
+        setState("READY");
         return;
       }
       runtime.envelope = envelope;
@@ -5447,6 +5593,7 @@ export function renderLgLegacyHtml() {
       var item;
       var generation;
       if (!items.length) return;
+      hideDefaultWaiting();
       runtime.activeIndex = runtime.activeIndex % items.length;
       item = items[runtime.activeIndex];
       runtime.currentItem = item;
@@ -7517,10 +7664,7 @@ export function renderLgLegacyHtml() {
                 var royalArrivalCrest = templateNode("div", "legacy-royal-arrival-crest");
                 var royalArrivalTop = templateNode("div", "legacy-royal-arrival-top");
                 royalArrivalTop.appendChild(templateNode(
-                  "span", "", index === 0 ? "Eerstvolgende aftrap" : "Welkom bij " + clubName
-                ));
-                royalArrivalTop.appendChild(templateNode(
-                  "b", "", (index + 1 < 10 ? "0" : "") + String(index + 1)
+                  "span", "", "Welkom bij " + clubName
                 ));
                 royalArrivalCrest.appendChild(royalArrivalTop);
                 var royalArrivalLogo = templateNode("div", "legacy-royal-arrival-logo");
@@ -7633,21 +7777,21 @@ export function renderLgLegacyHtml() {
                 visitorRoomDetail.appendChild(templateNode("dt", "", "Kleedkamers:"));
                 var visitorRooms = templateNode("dd", "legacy-visitor-room-line");
                 visitorRooms.appendChild(templateNode(
-                  "span", "", "Thuis: " + templateText(item.homeRoom, "volgt")
+                  "span", "", "Thuis: " + templateText(item.homeRoom, "-")
                 ));
                 visitorRooms.appendChild(templateNode("i", "", "|"));
                 visitorRooms.appendChild(templateNode(
-                  "span", "", "Uit: " + templateText(
-                    item.awayRoom,
-                    templateText(item.dressingRoom, "volgt")
-                  )
+                    "span", "", "Uit: " + templateText(
+                      item.awayRoom,
+                      templateText(item.dressingRoom, "-")
+                    )
                 ));
                 visitorRoomDetail.appendChild(visitorRooms);
                 visitorDetails.appendChild(visitorRoomDetail);
                 var visitorFieldDetail = templateNode("div", "");
                 visitorFieldDetail.appendChild(templateNode("dt", "", "Veld:"));
                 visitorFieldDetail.appendChild(templateNode(
-                  "dd", "", templateText(item.field, "volgt")
+                  "dd", "", templateText(item.field, "-")
                 ));
                 visitorDetails.appendChild(visitorFieldDetail);
                 var visitorOfficialNames = templateArray(item.officials).map(function (officialValue) {
@@ -7660,7 +7804,7 @@ export function renderLgLegacyHtml() {
                 var visitorOfficialDetail = templateNode("div", "");
                 visitorOfficialDetail.appendChild(templateNode("dt", "", "Scheidsrechter:"));
                 visitorOfficialDetail.appendChild(templateNode(
-                  "dd", "", visitorOfficialNames.join(", ") || "volgt"
+                  "dd", "", visitorOfficialNames.join(", ") || "-"
                 ));
                 visitorDetails.appendChild(visitorOfficialDetail);
                 visitorCopy.appendChild(visitorDetails);
@@ -7692,8 +7836,14 @@ export function renderLgLegacyHtml() {
             }
             if (royalVisitorArrivals) {
               while (arrivalGrid.children.length < cardsPerPage) {
-                var emptyArrivalSlot = templateNode("div", "legacy-royal-arrival-empty");
+                var emptyArrivalSlot = templateNode(
+                  "article",
+                  "legacy-arrival-card legacy-royal-arrival-card legacy-royal-arrival-empty"
+                );
                 emptyArrivalSlot.setAttribute("aria-hidden", "true");
+                emptyArrivalSlot.setAttribute("data-arrival-kind", "visitor");
+                emptyArrivalSlot.setAttribute("data-empty-slot", "true");
+                emptyArrivalSlot.setAttribute("data-logo", "missing");
                 emptyArrivalSlot.setAttribute("data-slot", String(arrivalGrid.children.length + 1));
                 arrivalGrid.appendChild(emptyArrivalSlot);
               }

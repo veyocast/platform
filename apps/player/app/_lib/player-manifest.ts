@@ -9,8 +9,8 @@ import type {
 
 import { localStorageDeviceTokenKey } from "./player-storage";
 import {
+  evaluateDynamicTemplateEligibility,
   dynamicTemplateMinimumPlaybackMs,
-  dynamicTemplateShouldSkip
 } from "./dynamic-template-view";
 
 export const demoOnlineDeviceToken = "demo-online";
@@ -108,8 +108,17 @@ export type PlayerManifestEnvelope = {
     lastSuccessfulSyncAt: string;
     nextSyncReason: string;
   };
+  branding?: PlayerWaitingBranding;
   entitlement?: SignedPlayerEntitlement;
   entitlementVerified?: boolean;
+};
+
+export type PlayerWaitingBranding = {
+  sportparkName: string;
+  tenantLogoUrl: string | null;
+  tenantName: string;
+  themeMode: "dark" | "light";
+  timezone: string;
 };
 
 export type PlayerWaitingContentEnvelope = {
@@ -127,6 +136,7 @@ export type PlayerWaitingContentEnvelope = {
     lastSuccessfulSyncAt: string;
     nextSyncReason: "waiting for first release";
   };
+  branding?: PlayerWaitingBranding;
 };
 
 export type PlayerManifestProblem = {
@@ -376,7 +386,10 @@ export function isPlayerManifestItemPlayable(
 ) {
   const presentation = resolvePlayerItemPresentation(item);
   if (!presentation.enabled) return false;
-  if (item.dynamicTemplate && dynamicTemplateShouldSkip(item.dynamicTemplate)) {
+  if (
+    item.dynamicTemplate &&
+    evaluateDynamicTemplateEligibility(item.dynamicTemplate, new Date(at)) !== "eligible"
+  ) {
     return false;
   }
   if (presentation.visibleFrom !== null && at < presentation.visibleFrom) {

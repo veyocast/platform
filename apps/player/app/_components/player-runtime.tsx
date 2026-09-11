@@ -45,6 +45,7 @@ import {
   type PlayerManifestItem,
   type PlayerManifestProblem,
   type PlayerRuntimeState,
+  type PlayerWaitingBranding,
   type PlayerWaitingContentEnvelope
 } from "../_lib/player-manifest";
 import {
@@ -176,6 +177,7 @@ type PlaybackRuntime = {
 };
 
 type WaitingContentRuntime = {
+  branding?: PlayerWaitingBranding;
   device: PlayerWaitingContentEnvelope["device"];
   deviceToken: string;
   state: "READY";
@@ -1190,6 +1192,7 @@ export function PlayerRuntime() {
               };
             }
             return {
+              branding: body.branding,
               device: body.device,
               deviceToken: activeDeviceToken,
               state: "READY",
@@ -1965,7 +1968,7 @@ export function PlayerRuntime() {
       />
     );
   } else if (runtime.state === "READY") {
-    playerView = <WaitingContentPanel runtime={runtime} />;
+    playerView = <DefaultWaitingScreen branding={runtime.branding} />;
   } else if (
     runtime.state === "ERROR_RECOVERABLE" ||
     runtime.state === "DISABLED"
@@ -2017,18 +2020,8 @@ function PlaybackView({
 
   if (!activeItem || !isPlayerManifestItemPlayable(activeItem)) {
     return (
-      <ProblemPanel
-        problem={{
-          state: "ERROR_RECOVERABLE",
-          error: {
-            cause:
-              "Het release manifest bevat nu geen ingeschakeld item binnen het zichtbaarheidvenster.",
-            effect:
-              "De player toont geen uitgeschakelde of buiten het venster geplande content.",
-            recovery:
-              "Controleer de itemplanning of publiceer een release met minimaal één zichtbaar ready item."
-          }
-        }}
+      <DefaultWaitingScreen
+        branding={runtime.release.envelope.branding}
       />
     );
   }
@@ -2949,24 +2942,103 @@ function problemTitle(code?: string) {
   return "Playback wacht";
 }
 
-function WaitingContentPanel({ runtime }: { runtime: WaitingContentRuntime }) {
+const defaultWaitingBranding: PlayerWaitingBranding = {
+  sportparkName: "ons sportpark",
+  tenantLogoUrl: null,
+  tenantName: "VeyoCast",
+  themeMode: "dark",
+  timezone: "Europe/Amsterdam"
+};
+
+function DefaultWaitingScreen({
+  branding
+}: {
+  branding?: PlayerWaitingBranding;
+}) {
+  const resolved = branding ?? defaultWaitingBranding;
   return (
-    <main {...playerSystemThemeAttributes} className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player gereed">
-      <SetupBackdrop />
-      <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
-        <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
-        <p className="runtime-kicker"><span className="pairing-live-dot" aria-hidden="true" /> Player gekoppeld</p>
-        <h1 className="runtime-title" id="player-title">Wachten op content</h1>
-        <p className="runtime-copy">
-          <strong>{runtime.device.screenName}</strong> is veilig gekoppeld. Publiceer een playlist vanuit VeyoCast Control; deze Player controleert automatisch op nieuwe content.
-        </p>
-        <div className="runtime-problem" role="status">
-          <p><strong>Status:</strong> online en gereed</p>
-          <p><strong>Synchronisatie:</strong> iedere vijf seconden totdat de eerste release beschikbaar is</p>
+    <main
+      aria-label="VeyoCast wacht op content"
+      className={`default-waiting-screen default-waiting-screen--${resolved.themeMode}`}
+      data-design-revision="royal-current-v8"
+      data-theme-authority="player-system"
+      data-theme-mode={resolved.themeMode}
+    >
+      <section className="default-waiting-screen__card">
+        <DefaultWaitingClock timezone={resolved.timezone} />
+        <div className="default-waiting-screen__content">
+          <p className="default-waiting-screen__tenant">{resolved.tenantName}</p>
+          <h1>Welkom op {resolved.sportparkName}!</h1>
+          {resolved.tenantLogoUrl ? (
+            <img
+              alt={`Logo ${resolved.tenantName}`}
+              className="default-waiting-screen__tenant-logo"
+              src={resolved.tenantLogoUrl}
+            />
+          ) : null}
+          <img
+            alt="VeyoCast"
+            className="default-waiting-screen__veyocast-logo"
+            src={resolved.themeMode === "light"
+              ? "/brand/veyocast-logo-primary.svg"
+              : "/brand/veyocast-logo-inverse.svg"}
+          />
+          <p className="default-waiting-screen__payoff">
+            Narrowcasting voor sportverenigingen!
+          </p>
         </div>
+        <footer className="default-waiting-screen__footer">
+          <span>VEYOCAST · VOORBEELD</span>
+          <span>{resolved.sportparkName}</span>
+        </footer>
       </section>
     </main>
   );
+}
+
+function DefaultWaitingClock({ timezone }: { timezone: string }) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    let timer: number | undefined;
+    const schedule = () => {
+      setNow(new Date());
+      timer = window.setTimeout(schedule, 60_000 - (Date.now() % 60_000) + 100);
+    };
+    timer = window.setTimeout(schedule, 60_000 - (Date.now() % 60_000) + 100);
+    return () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, []);
+
+  return (
+    <time className="default-waiting-screen__clock" dateTime={now.toISOString()}>
+      {formatDefaultWaitingClock(now, timezone)}
+    </time>
+  );
+}
+
+function formatDefaultWaitingClock(value: Date, timezone: string) {
+  try {
+    return new Intl.DateTimeFormat("nl-NL", {
+      day: "2-digit",
+      hour: "2-digit",
+      hour12: false,
+      minute: "2-digit",
+      month: "2-digit",
+      timeZone: timezone,
+      year: "numeric"
+    }).format(value).replace(", ", " | ");
+  } catch {
+    return new Intl.DateTimeFormat("nl-NL", {
+      day: "2-digit",
+      hour: "2-digit",
+      hour12: false,
+      minute: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    }).format(value).replace(", ", " | ");
+  }
 }
 
 function PairingBrandScene() {
