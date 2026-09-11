@@ -106,7 +106,11 @@ export async function deletePlaylists(formData: FormData) {
   const { data, error } = await supabase.rpc("delete_playlists_v1", {
     p_playlist_ids: ids
   });
-  if (error || data !== ids.length) {
+  // PostgREST can deserialize scalar integer RPC results as either a number
+  // or a numeric string, depending on the deployed gateway version. Treat
+  // both representations identically, but never accept null/NaN/decimals.
+  const deletedCount = typeof data === "number" ? data : Number(data);
+  if (error || !Number.isInteger(deletedCount) || deletedCount !== ids.length) {
     console.error("Playlists definitief verwijderen mislukt", error);
     failList(
       error?.code === "42501"
