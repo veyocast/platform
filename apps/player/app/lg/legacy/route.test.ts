@@ -42,7 +42,10 @@ describe("zelfstandige LG Legacy Player", () => {
   it("laat ongewijzigde releases en het huidige beeld onaangeraakt", () => {
     const html = renderLgLegacyHtml();
 
-    expect(html).toContain('headers["If-None-Match"] = releaseEtag(knownReleaseId)');
+    expect(html).toContain("refreshSameReleaseMediaAccess");
+    expect(html).toContain("mediaAccessRefreshMs");
+    expect(html).toContain("currentItem.source.url = freshItem.source.url");
+    expect(html).not.toContain('headers["If-None-Match"]');
     expect(html).toContain("status === 304 && knownReleaseId");
     expect(html).toContain("runtime.pendingRelease");
     expect(html).toContain("LEGACY_RELEASE_SWITCH_PENDING");
