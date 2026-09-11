@@ -1453,22 +1453,82 @@ export function dynamicTemplateMinimumPlaybackMs(value: unknown) {
   );
 }
 
-export function dynamicTemplateShouldSkip(value: unknown) {
+export type DynamicTemplateEligibilityState =
+  | "eligible"
+  | "ineligible"
+  | "invalid"
+  | "loading"
+  | "stale";
+
+/**
+ * Resolves the single content gate used by both the Player and previews. A
+ * dynamic slide is playable only when its validated view contains at least
+ * one renderable page; empty provider snapshots never become blank frames.
+ */
+export function evaluateDynamicTemplateEligibility(
+  value: unknown,
+  now = new Date()
+): DynamicTemplateEligibilityState {
   const payload = parseDynamicTemplatePayload(value);
-  if (!payload) return false;
-  if (payload.slideType === "sport_birthdays") {
-    return createDynamicTemplateView(payload)?.pages.length === 0;
-  }
-  if (!["sport_visitor_arrivals", "sport_referee_arrivals"].includes(payload.slideType)) {
-    return false;
-  }
+  if (!payload) return "invalid";
+
+  const view = createDynamicTemplateView(payload, now);
+  if (!view) return "invalid";
+  if (dynamicTemplateHasRenderableContent(view)) return "eligible";
+
+  // A snapshot with an explicit future fetch window is still loading. This
+  // keeps the state deterministic while allowing diagnostics to distinguish it
+  // from a valid but empty provider result.
   const sport = readRecord(payload.data.sport);
-  const arrivalConfig = readRecord(sport?.arrivalConfig);
-  const items = readArray(sport?.items);
-  const renderableItems = payload.slideType === "sport_visitor_arrivals"
-    ? items.filter((value) => readRecord(value)?.homeMatch === true)
-    : items;
-  return arrivalConfig?.emptyBehavior === "skip" && renderableItems.length === 0;
+  if (sport?.stale === true || safeText(sport?.status, "") === "stale") {
+    return "stale";
+  }
+  const fetchedAt = Date.parse(safeText(sport?.fetchedAt, ""));
+  if (Number.isFinite(fetchedAt) && fetchedAt > now.valueOf()) return "loading";
+  return "ineligible";
+}
+
+export function dynamicTemplateHasRenderableContent(
+  value: unknown | DynamicTemplateView,
+  now = new Date()
+) {
+  const view = isDynamicTemplateView(value)
+    ? value
+    : createDynamicTemplateView(value, now);
+  if (!view) return false;
+  return view.pages.some(dynamicTemplatePageHasRenderableContent);
+}
+
+export function dynamicTemplateShouldSkip(value: unknown) {
+  return evaluateDynamicTemplateEligibility(value) !== "eligible";
+}
+
+function isDynamicTemplateView(value: unknown): value is DynamicTemplateView {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "pages" in value &&
+      Array.isArray((value as { pages?: unknown }).pages)
+  );
+}
+
+function dynamicTemplatePageHasRenderableContent(page: DynamicTemplatePage) {
+  switch (page.kind) {
+    case "match":
+      return page.item !== null;
+    case "menu":
+      return page.columns.some((column) => column.length > 0);
+    case "menu-v2":
+      return page.page.columns.left.length > 0 ||
+        page.page.columns.right.length > 0 ||
+        page.page.floatingBlocks.length > 0;
+    case "price-list":
+      return page.page.columns.left.length > 0 || page.page.columns.right.length > 0;
+    case "news":
+      return page.item !== null || page.secondaryItems.length > 0;
+    default:
+      return page.items.length > 0;
+  }
 }
 
 function toMenuItem(

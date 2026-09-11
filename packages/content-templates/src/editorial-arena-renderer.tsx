@@ -788,9 +788,13 @@ function ArenaPage({
           );
         })}
         {Array.from({ length: emptySlots }, (_, index) => (
-          <div
+          <article
             aria-hidden="true"
-            className={styles.royalArrivalEmpty}
+            className={`${styles.arenaArrivalCard} ${styles.royalArrivalEmpty}`}
+            data-arrival-kind="visitor"
+            data-empty-slot="true"
+            data-logo="missing"
+            data-show-logo={arrivalConfig.showClubLogo ? "yes" : "no"}
             data-slot={page.items.length + index + 1}
             key={`empty-${page.items.length + index}`}
           />
@@ -1215,7 +1219,7 @@ function RoyalVisitorArrival({
       <div className={styles.royalArrivalCrest}>
         <div className={styles.royalArrivalTop}>
           {config.showWelcome ? (
-            <span>Welkom op {entry.venueName || view.clubName}</span>
+            <span>Welkom bij {view.clubName}</span>
           ) : <span aria-hidden="true" />}
           <span aria-hidden="true" />
         </div>
@@ -1244,7 +1248,7 @@ function RoyalVisitorArrival({
         </dl>
         <div className={styles.royalArrivalIdentity}>
           <h2>{awayTeam}</h2>
-          <span>Welkom op {entry.venueName || view.clubName}</span>
+          <span>Welkom bij {view.clubName}</span>
           <p aria-label={`${homeTeam} tegen ${awayTeam}`}>
             {homeTeam} <i>-</i> {awayTeam}
           </p>

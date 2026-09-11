@@ -145,6 +145,8 @@ describe("Royal Current moderne renderer", () => {
       .toBe("blob:https://player.veyocast.nl/away-logo");
     expect(renderer).toContain("data-slots={fixedSlots}");
     expect(renderer).toContain("const emptySlots = Math.max(0, fixedSlots - page.items.length)");
+    expect(renderer).toContain('data-empty-slot="true"');
+    expect(renderer).toContain("styles.arenaArrivalCard} ${styles.royalArrivalEmpty}");
     expect(renderer).toContain("const visitorLogo = arrivalConfig.showClubLogo");
     expect(renderer).toContain("? entry.awayLogoUrl || entry.logoUrl");
     expect(renderer).toContain("Array.from({ length: emptySlots }");

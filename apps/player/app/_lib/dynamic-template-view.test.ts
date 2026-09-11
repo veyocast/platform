@@ -3,6 +3,7 @@ import { editorialArenaDefaultTheme } from "@veyocast/content-templates";
 
 import {
   createDynamicTemplateView,
+  evaluateDynamicTemplateEligibility,
   dynamicTemplateMinimumPlaybackMs,
   dynamicTemplatePageDurationMs,
   dynamicTemplateShouldSkip,
@@ -886,6 +887,17 @@ describe("trusted dynamic template view", () => {
       ...payload,
       data: { ...payload.data, sport: { ...payload.data.sport, items: [] } }
     })).toBe(true);
+    expect(evaluateDynamicTemplateEligibility(payload)).toBe("eligible");
+    expect(evaluateDynamicTemplateEligibility({
+      ...payload,
+      data: { ...payload.data, sport: { ...payload.data.sport, items: [] } }
+    })).toBe("ineligible");
+    expect(evaluateDynamicTemplateEligibility({
+      ...payload,
+      data: {},
+      slideType: "news",
+      templateSlug: "editorial-arena-news-dark-landscape"
+    })).toBe("ineligible");
   });
 
   it("filtert en pagineert verjaardagen opnieuw op lokale Player-datum", () => {

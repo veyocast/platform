@@ -13,6 +13,16 @@ function inlineRuntime(html: string) {
 }
 
 describe("Royal Current Static LG", () => {
+  it("bevat de product-owned premium waiting fallback met tenantbranding en klok", () => {
+    const html = renderLgLegacyHtml();
+
+    expect(html).toContain('id="default-waiting"');
+    expect(html).toContain("Narrowcasting voor sportverenigingen!");
+    expect(html).toContain("showDefaultWaiting(envelope)");
+    expect(html).toContain("default-waiting-clock");
+    expect(html).toContain("/brand/veyocast-logo-primary.svg");
+  });
+
   it("activeert de nieuwe vormgeving uitsluitend voor frozen appearance v2", () => {
     const html = renderLgLegacyHtml();
 
@@ -24,6 +34,8 @@ describe("Royal Current Static LG", () => {
     expect(html).toContain('if (!royalCurrent) {\n                arenaQr.appendChild(templateNode("span", "", "Scan voor het artikel"))');
     expect(html).toContain("snapshot._veyocastThemeColorOverrides");
     expect(html).toContain("templateRecord(tenantThemeOverrides[editorialMode])");
+    expect(html).toContain("legacyDynamicTemplateHasRenderableContent(item)");
+    expect(html).toContain('data-empty-slot", "true"');
   });
 
   it("porteert het gedeelde palet exact zonder moderne CSS-kleurfuncties", () => {
