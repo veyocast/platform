@@ -262,7 +262,6 @@ export function EditorialArenaRenderer({
           <>
             {view.designRevision === "royal-current-v8" ? (
               <RoyalCurrentHeader
-                page={page}
                 pageIndex={pageIndex}
                 view={view}
               />
@@ -317,19 +316,16 @@ function usePrefersReducedMotion() {
 }
 
 function RoyalCurrentHeader({
-  page,
   pageIndex,
   view
 }: {
-  page: DynamicTemplatePage;
   pageIndex: number;
   view: DynamicTemplateView;
 }) {
   const initials = initialsFor(view.clubName);
   const clock = useArenaClock(view);
   const contextLabel = royalCurrentContextLabel(view, pageIndex);
-  const newsItem = page.kind === "news" ? page.item : null;
-  const title = newsItem?.title || view.title;
+  const title = view.title;
   const titleDensity = royalCurrentTitleDensity(title);
   return (
     <>
@@ -581,6 +577,7 @@ function ArenaPage({
         <article className={`${styles.arenaPanel} ${styles.arenaNewsStory}`}>
           {article && view.designRevision === "royal-current-v8" ? (
             <>
+              <h2 className={newsTitleClassName(article.title)}>{article.title}</h2>
               {article.intro ? <p>{article.intro}</p> : null}
               {view.newsVariant !== "fullscreen_gradient"
                 ? <ArenaNewsQr article={article} label={false} />

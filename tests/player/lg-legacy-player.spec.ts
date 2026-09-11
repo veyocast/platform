@@ -192,7 +192,8 @@ async function mockEditorialArenaLegacyApis(
             }],
             generatedAt: "2026-08-03T18:00:00.000Z",
             secondsPerSlide: 5,
-            sourceName: "Clubnieuws"
+            sourceName: "Clubnieuws",
+            title: "Dynamische nieuwsfeed"
           },
           editorial: { newsVariant },
           type: "news"
@@ -1523,6 +1524,7 @@ test("LG webOS wordt zonder Next.js-chunks naar zichtbare Editorial Arena HTML/C
   await expect(page).toHaveURL(/\/lg\/legacy$/);
   await expect(page.locator(".dynamic-template.editorial-arena")).toBeVisible();
   await expect(page.locator(".editorial-news")).toBeVisible();
+  await expect(page.locator(".editorial-heading h1")).toHaveText("Dynamische nieuwsfeed");
   await expect(page.getByText("Editorial Arena", { exact: true }))
     .toHaveCount(0);
   await expect(page.getByText("Actuele clubinformatie", { exact: true }))
