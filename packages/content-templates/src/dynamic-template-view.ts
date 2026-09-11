@@ -184,6 +184,7 @@ export type DynamicTemplatePage =
       items: DynamicTemplateBirthdayItem[];
       kind: "birthday";
       layout: Exclude<SportlinkBirthdayConfiguration["presentation"]["layout"], "auto">;
+      pageSize: number;
     }
   | { items: DynamicTemplateListItem[]; kind: "arrivals" }
   | { items: DynamicTemplateListItem[]; kind: "sport-list" }
@@ -659,19 +660,23 @@ function createDynamicTemplateViewInternal(
     const configuredPageSize = payload.orientation === "portrait"
       ? configuration.presentation.maxPerPortraitPage
       : configuration.presentation.maxPerLandscapePage;
-    const pageSize = themeIdentity.designRevision === "royal-current-v8"
-      ? Math.min(3, configuredPageSize)
-      : configuredPageSize;
+    const pageSize = configuredPageSize;
     const birthdayPages = (birthdays.length ? paginate(birthdays, pageSize) : []).map((page) => ({
       items: page,
       kind: "birthday" as const,
-      layout: resolveBirthdayLayout(configuration.presentation.layout, page.length)
+      layout: resolveBirthdayLayout(
+        configuration.presentation.layout,
+        page.length,
+        pageSize
+      ),
+      pageSize
     }));
     if (!birthdayPages.length && configuration.emptyBehavior === "neutral") {
       birthdayPages.push({
         items: [],
         kind: "birthday",
-        layout: "spotlight"
+        layout: "spotlight",
+        pageSize
       });
     }
     const birthdayThemeTokens = configuration.presentation.useTenantTheme
@@ -997,8 +1002,8 @@ function resolveBirthdayItems({
       id: safeText(birthday.id ?? birthday.externalId, `${month}-${day}-${displayName}`),
       isToday: distance === 0,
       meta: [
-        configuration.selection.showRole ? role : "",
-        configuration.selection.showTeam ? teams.join(", ") : ""
+        configuration.selection.showTeamRole && configuration.selection.showRole ? role : "",
+        configuration.selection.showTeamRole && configuration.selection.showTeam ? teams.join(", ") : ""
       ].filter(Boolean).join(" · "),
       month,
       photoUrl: configuration.selection.showPhoto
@@ -1018,12 +1023,13 @@ function resolveBirthdayItems({
 
 function resolveBirthdayLayout(
   configured: SportlinkBirthdayConfiguration["presentation"]["layout"],
-  count: number
+  count: number,
+  pageSize = count
 ) {
   if (configured !== "auto") return configured;
-  if (count <= 1) return "spotlight" as const;
-  if (count <= 4) return "celebration_grid" as const;
-  return "birthday_roll" as const;
+  if (pageSize <= 1) return "spotlight" as const;
+  if (pageSize === 6 || count > 4) return "birthday_roll" as const;
+  return "celebration_grid" as const;
 }
 
 function localDateParts(value: Date, timezone: string) {

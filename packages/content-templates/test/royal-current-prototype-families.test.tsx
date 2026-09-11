@@ -241,6 +241,33 @@ describe("Royal Current prototypefamilies", () => {
     expect(activities).toContain("Open clubdag");
   });
 
+  it("houdt verjaardagsfoto en kaarten per pagina in de bestaande familie", () => {
+    const today = todayBirthday();
+    const birthdays = renderProjection(payload("sport_birthdays", {
+      sport: {
+        birthdays: [
+          { age: 12, day: today.day, displayName: "Vandaag jarig", id: "birthday-today", isToday: true, month: today.month, role: "Speler", teams: [{ name: "JO15-1" }] },
+          { age: 13, day: today.day + 1, displayName: "Tweede naam", id: "birthday-next", month: today.month, role: "Trainer", teams: [] }
+        ],
+        configuration: {
+          emptyBehavior: "skip",
+          period: { days: 7, mode: "next_7_days" },
+          presentation: { backgroundColor: "#111827", backgroundMediaAssetId: imageId, cardStyle: "glass", confetti: true, gradientOverlay: true, layout: "auto", logoPosition: "top_left", maxPerLandscapePage: 2, maxPerPortraitPage: 2, motion: false, pageDurationSeconds: 8, radius: "lg", textAlign: "center", themeMode: "light", useTenantTheme: true },
+          selection: { emphasizeToday: true, includeUnknownRoles: true, nameMode: "full", roleFilter: "all", selectedRoles: [], selectedTeamIds: [], showAge: true, showDate: true, showDayOfWeek: true, showPhoto: false, showRole: true, showTeam: true, showTeamRole: true },
+          title: "Verjaardagen"
+        },
+        fetchedAt: new Date().toISOString(),
+        timezone: "Europe/Amsterdam"
+      }
+    }));
+
+    expect(renderer).toContain("birthdayCardPhoto");
+    expect(renderer).toContain("birthdayConfetti");
+    expect(renderer).not.toContain("BirthdayPortrait");
+    expect(birthdays).toContain('"pageSize":2');
+    expect(birthdays).toContain('"layout":"celebration_grid"');
+  });
+
   it("bouwt vier unieke Royal nieuwsartikelen als twee pagina's met elk een tweede bericht", () => {
     const newsData = {
       editorial: {

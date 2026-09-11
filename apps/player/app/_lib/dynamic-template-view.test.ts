@@ -1028,7 +1028,7 @@ describe("trusted dynamic template view", () => {
         birthdays: [],
         configuration: {
           emptyBehavior: "skip", period: { days: 1, mode: "today" }, schemaVersion: 1,
-          presentation: { backgroundColor: "#111827", backgroundMediaAssetId: null, cardStyle: "glass", confetti: false, gradientOverlay: true, layout: "auto", logoPosition: "top_left", maxPerLandscapePage: 4, maxPerPortraitPage: 3, motion: false, pageDurationSeconds: 8, radius: "lg", textAlign: "left", themeMode: "dark", useTenantTheme: true },
+          presentation: { backgroundColor: "#111827", backgroundMediaAssetId: null, cardStyle: "glass", confetti: false, gradientOverlay: true, layout: "auto", logoPosition: "top_left", maxPerLandscapePage: 4, maxPerPortraitPage: 4, motion: false, pageDurationSeconds: 8, radius: "lg", textAlign: "left", themeMode: "dark", useTenantTheme: true },
           selection: { emphasizeToday: true, includeUnknownRoles: true, nameMode: "first", roleFilter: "all", selectedRoles: [], selectedTeamIds: [], showAge: false, showDate: true, showDayOfWeek: true, showPhoto: false, showRole: false, showTeam: false },
           title: "Verjaardagen"
         }, fetchedAt: new Date().toISOString(), timezone: "Europe/Amsterdam"
@@ -1040,21 +1040,45 @@ describe("trusted dynamic template view", () => {
   });
 
   it("kiest Spotlight, Celebration Grid en Birthday Roll en toont iedere pagina", () => {
-    for (const [count, pages, layout] of [
-      [1, 1, "spotlight"], [2, 1, "celebration_grid"],
-      [4, 1, "celebration_grid"], [5, 1, "birthday_roll"],
-      [8, 1, "birthday_roll"], [9, 2, "birthday_roll"]
+    for (const [count, pageSize, pages, layout] of [
+      [1, 1, 1, "spotlight"], [2, 2, 1, "celebration_grid"],
+      [4, 4, 1, "celebration_grid"], [6, 6, 1, "birthday_roll"],
+      [8, 6, 2, "birthday_roll"], [9, 6, 2, "birthday_roll"]
     ] as const) {
-      const view = createDynamicTemplateView(birthdayFixture(count), new Date("2026-06-15T10:00:00.000Z"));
+      const view = createDynamicTemplateView(
+        birthdayFixture(count, pageSize),
+        new Date("2026-06-15T10:00:00.000Z")
+      );
       expect(view?.pages, `${count} personen`).toHaveLength(pages);
-      expect(view?.pages[0], `${count} personen`).toMatchObject({ kind: "birthday", layout });
+      expect(view?.pages[0], `${count} personen`).toMatchObject({
+        kind: "birthday", layout, pageSize
+      });
       expect(view?.pages.flatMap((page) => page.kind === "birthday" ? page.items : []), `${count} personen`).toHaveLength(count);
     }
     const portrait = createDynamicTemplateView({
-      ...birthdayFixture(8), orientation: "portrait",
+      ...birthdayFixture(8, 6), orientation: "portrait",
       templateSlug: "editorial-arena-sport-birthdays-dark-portrait"
     }, new Date("2026-06-15T10:00:00.000Z"));
-    expect(portrait?.pages).toHaveLength(3);
+    expect(portrait?.pages).toHaveLength(2);
+
+    const hiddenTeamRole = birthdayFixture(1, 1);
+    const hiddenView = createDynamicTemplateView({
+      ...hiddenTeamRole,
+      data: {
+        ...hiddenTeamRole.data,
+        sport: {
+          ...hiddenTeamRole.data.sport,
+          configuration: {
+            ...hiddenTeamRole.data.sport.configuration,
+            selection: {
+              ...hiddenTeamRole.data.sport.configuration.selection,
+              showTeamRole: false
+            }
+          }
+        }
+      }
+    }, new Date("2026-06-15T10:00:00.000Z"));
+    expect(hiddenView?.pages[0]).toMatchObject({ items: [{ meta: "" }] });
   });
 
   it("activeert de voorheen verborgen teamtemplate via het normale renderpad", () => {
@@ -1115,7 +1139,7 @@ describe("trusted dynamic template view", () => {
   });
 });
 
-function birthdayFixture(count: number) {
+function birthdayFixture(count: number, pageSize = 6) {
   return {
     ...base,
     data: { sport: {
@@ -1127,8 +1151,8 @@ function birthdayFixture(count: number) {
       })),
       configuration: {
         emptyBehavior: "skip", period: { days: 7, mode: "next_7_days" }, schemaVersion: 1,
-        presentation: { backgroundColor: "#111827", backgroundMediaAssetId: null, cardStyle: "glass", confetti: true, gradientOverlay: true, layout: "auto", logoPosition: "top_left", maxPerLandscapePage: 8, maxPerPortraitPage: 3, motion: true, pageDurationSeconds: 8, radius: "lg", textAlign: "left", themeMode: "dark", useTenantTheme: true },
-        selection: { emphasizeToday: true, includeUnknownRoles: true, nameMode: "full", roleFilter: "all", selectedRoles: [], selectedTeamIds: [], showAge: true, showDate: true, showDayOfWeek: true, showPhoto: true, showRole: true, showTeam: true },
+        presentation: { backgroundColor: "#111827", backgroundMediaAssetId: null, cardStyle: "glass", confetti: true, gradientOverlay: true, layout: "auto", logoPosition: "top_left", maxPerLandscapePage: pageSize, maxPerPortraitPage: pageSize, motion: true, pageDurationSeconds: 8, radius: "lg", textAlign: "left", themeMode: "dark", useTenantTheme: true },
+        selection: { emphasizeToday: true, includeUnknownRoles: true, nameMode: "full", roleFilter: "all", selectedRoles: [], selectedTeamIds: [], showAge: true, showDate: true, showDayOfWeek: true, showPhoto: true, showRole: true, showTeam: true, showTeamRole: true },
         title: "Verjaardagen"
       }, fetchedAt: "2026-06-15T09:00:00.000Z", timezone: "Europe/Amsterdam"
     }, type: "sport_birthdays" },

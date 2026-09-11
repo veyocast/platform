@@ -247,7 +247,6 @@ export function EditorialArenaRenderer({
         data-viewport-fit={viewportFit?.mode}
         style={style}
       >
-        {view.birthday ? <BirthdayBackdrop view={view} /> : null}
         {page.kind === "menu-v2" ? (
           <MenuSceneCanvas
             assets={page.assets}
@@ -663,7 +662,12 @@ function ArenaPage({
   }
 
   if (page.kind === "birthday") {
-    return <BirthdayPage items={page.items} layout={page.layout} view={view} />;
+    return <BirthdayPage
+      items={page.items}
+      layout={page.layout}
+      pageSize={page.pageSize}
+      view={view}
+    />;
   }
 
   if (page.kind === "arrivals") {
@@ -1451,45 +1455,15 @@ function RoyalMatchClub({
   );
 }
 
-function BirthdayBackdrop({ view }: { view: DynamicTemplateView }) {
-  const configuration = view.birthday?.configuration;
-  return (
-    <div
-      aria-hidden="true"
-      className={styles.birthdayBackdrop}
-      data-gradient={configuration?.presentation.gradientOverlay || undefined}
-      style={{
-        backgroundColor: configuration?.presentation.useTenantTheme
-          ? undefined
-          : configuration?.presentation.backgroundColor,
-        backgroundImage: view.birthday?.backgroundUrl
-          ? `url(${view.birthday.backgroundUrl})`
-          : undefined
-      }}
-    >
-      {configuration?.presentation.confetti ? (
-        <span className={styles.birthdayParticles}>
-          {Array.from({ length: 12 }, (_, index) => <i key={index} />)}
-        </span>
-      ) : null}
-      {configuration?.presentation.logoPosition === "bottom_left" ? (
-        <span className={styles.birthdayPlacedLogo}>
-          {view.clubLogoUrl
-            ? <img alt="" src={view.clubLogoUrl} />
-            : initialsFor(view.clubName)}
-        </span>
-      ) : null}
-    </div>
-  );
-}
-
 function BirthdayPage({
   items,
   layout,
+  pageSize,
   view
 }: {
   items: DynamicTemplateBirthdayItem[];
   layout: "birthday_roll" | "celebration_grid" | "spotlight";
+  pageSize: number;
   view: DynamicTemplateView;
 }) {
   const configuration = view.birthday?.configuration;
@@ -1500,9 +1474,10 @@ function BirthdayPage({
       className={styles.birthdayLayout}
       data-align={configuration?.presentation.textAlign ?? "left"}
       data-card-style={configuration?.presentation.cardStyle ?? "glass"}
-      data-count={items.length}
+      data-count={pageSize}
       data-layout={layout}
       data-motion={configuration?.presentation.motion || undefined}
+      data-page-size={pageSize}
       data-render-family="birthdays"
     >
       {items.map((birthday, index) => (
@@ -1512,7 +1487,20 @@ function BirthdayPage({
           key={birthday.id}
           style={{ "--birthday-delay": `${index * 90}ms` } as CSSProperties}
         >
-          <BirthdayPortrait birthday={birthday} />
+          <div
+            aria-hidden="true"
+            className={styles.birthdayCardPhoto}
+            style={{
+              "--birthday-image": view.birthday?.backgroundUrl
+                ? `url(${view.birthday.backgroundUrl})`
+                : "none"
+            } as CSSProperties}
+          />
+          {birthday.isToday && configuration?.presentation.confetti ? (
+            <span aria-hidden="true" className={styles.birthdayConfetti}>
+              {Array.from({ length: 12 }, (_, particleIndex) => <i key={particleIndex} />)}
+            </span>
+          ) : null}
           <div className={styles.birthdayCopy}>
             <span className={styles.birthdayEyebrow}>
               {royalCurrent
@@ -1541,18 +1529,6 @@ function BirthdayPage({
           </div>
         </article>
       ))}
-    </div>
-  );
-}
-
-function BirthdayPortrait({ birthday }: { birthday: DynamicTemplateBirthdayItem }) {
-  return (
-    <div aria-hidden="true" className={styles.birthdayPortrait}>
-      {birthday.photoUrl ? (
-        <img alt="" src={birthday.photoUrl} />
-      ) : (
-        <span>{initialsFor(birthday.displayName)}</span>
-      )}
     </div>
   );
 }

@@ -1,9 +1,15 @@
 # Sportlink sync operations
 
 Policies support `hourly`, `daily`, `weekly` and `monthly` per connection and
-dataset group. Defaults are hourly for matches/details, weekly for club profile
-and daily for other public groups. Due work is leased per connection/group;
-overlap is rejected and manual syncs use a cooldown.
+dataset group. Defaults are hourly for matches/details and daily for the club
+profile (including the tenant logo) and other public groups. Due work is leased
+per connection/group; overlap is rejected and manual syncs use a cooldown.
+
+The club profile is checked once per day. The worker fetches the official
+Sportlink club logo, compares its content checksum and keeps the existing
+immutable provider-media version when the bytes are unchanged. A changed logo
+gets a new content-addressed version and the tenant's club link is updated;
+unchanged data therefore does not create new snapshots or releases.
 
 The media worker polls the lease dispatcher every fifteen seconds. A database
 lease and unique running-group index prevent overlapping work for the same

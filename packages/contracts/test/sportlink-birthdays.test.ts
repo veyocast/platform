@@ -4,10 +4,26 @@ import { sportlinkBirthdayConfigurationSchema } from "../src";
 
 describe("Sportlink birthday selection contract", () => {
   it("starts with every team and people without a team", () => {
-    expect(sportlinkBirthdayConfigurationSchema.parse({}).selection).toMatchObject({
+    const parsed = sportlinkBirthdayConfigurationSchema.parse({});
+    expect(parsed.selection).toMatchObject({
       includeWithoutTeam: true,
       selectedTeamIds: [],
       teamSelectionMode: "all"
+    });
+    expect(parsed.presentation).toMatchObject({
+      maxPerLandscapePage: 6,
+      maxPerPortraitPage: 6
+    });
+    expect(parsed.selection.showTeamRole).toBe(true);
+  });
+
+  it("normalizes legacy card counts to the premium 1/2/4/6 contract", () => {
+    const parsed = sportlinkBirthdayConfigurationSchema.parse({
+      presentation: { maxPerLandscapePage: 3, maxPerPortraitPage: 8 }
+    });
+    expect(parsed.presentation).toMatchObject({
+      maxPerLandscapePage: 4,
+      maxPerPortraitPage: 6
     });
   });
 
