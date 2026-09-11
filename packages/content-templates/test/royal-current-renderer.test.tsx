@@ -264,11 +264,9 @@ describe("Royal Current moderne renderer", () => {
     expect(resultRenderer).toContain('"Uitslag nog niet bekend"');
     expect(resultRenderer).toContain("{scoreKnown ? <>");
     expect(newsRenderer).toContain("article && view.designRevision === \"royal-current-v8\"");
+    expect(newsRenderer).toContain("<h2 className={newsTitleClassName(article.title)}>{article.title}</h2>");
     expect(newsRenderer).toContain("<ArenaNewsQr article={article} label={false} />");
-    expect(newsRenderer.slice(
-      newsRenderer.indexOf('view.designRevision === "royal-current-v8"'),
-      newsRenderer.indexOf(": article ? (")
-    )).not.toContain("article.title");
+    expect(renderer).toContain("const title = view.title;");
   });
 
   it("projecteert echte agenda-afbeeldingen achter de activiteitkopie", () => {

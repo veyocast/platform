@@ -285,7 +285,8 @@ describe("Royal Current prototypefamilies", () => {
           qrMediaAssetId: logoId,
           source: "Clubredactie",
           title: `Echt nieuwsbericht ${index + 1}`
-        }))
+        })),
+        title: "Dynamische nieuwstitel"
       }
     };
     const royal = createDynamicTemplateView(payload("news", newsData));
@@ -299,6 +300,7 @@ describe("Royal Current prototypefamilies", () => {
     const legacyFirst = legacy?.pages[0];
 
     expect(royal?.newsVariant).toBe("news_grid");
+    expect(royal?.title).toBe("Dynamische nieuwstitel");
     expect(royal?.pages).toHaveLength(2);
     expect(royalFirst?.kind === "news" ? royalFirst.secondaryItems : [])
       .toEqual([expect.objectContaining({
@@ -316,6 +318,7 @@ describe("Royal Current prototypefamilies", () => {
     expect(renderer).toContain('data-image={secondary.heroUrl ? "visible" : "missing"}');
     expect(renderer).toContain("src={secondary.heroUrl}");
     expect(renderer).toContain("{secondary.intro ? <p>{secondary.intro}</p> : null}");
+    expect(renderer).toContain("<h2 className={newsTitleClassName(article.title)}>{article.title}</h2>");
     expect(stylesheet).toContain("grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);");
     expect(stylesheet).toContain("grid-row: 1 / 3;");
     expect(stylesheet).toContain("grid-template-columns: 30% minmax(0, 1fr);");

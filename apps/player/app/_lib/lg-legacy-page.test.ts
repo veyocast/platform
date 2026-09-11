@@ -45,6 +45,10 @@ describe("Royal Current Static LG", () => {
     expect(html).toContain('if (royalCurrent) {\n        root.setAttribute("data-design-revision", "royal-current-v8")');
     expect(html).toContain("var pages = templatePages(items, 10);");
     expect(html).toContain('if (!royalCurrent) {\n                arenaQr.appendChild(templateNode("span", "", "Scan voor het artikel"))');
+    expect(html).toContain("function templateNewsConfig(snapshot)");
+    expect(html).toContain("legacy-royal-news-title");
+    expect(html).toContain("--rc-news-title-size");
+    expect(html).toContain('title = templateText(templateNewsConfig(snapshot).title, "Nieuws")');
     expect(html).toContain("snapshot._veyocastThemeColorOverrides");
     expect(html).toContain("templateRecord(tenantThemeOverrides[editorialMode])");
     expect(html).toContain("legacyDynamicTemplateHasRenderableContent(item)");
