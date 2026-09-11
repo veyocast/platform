@@ -79,6 +79,7 @@ type TenantSettingsRow = { theme_mode_policy: unknown; timezone_name: string | n
 type BrandKitRow = { logo_media_asset_id: string };
 type SportsClubRow = { logo_media_asset_id: string | null };
 type MediaAssetRow = { storage_bucket: string; storage_path: string };
+type VenueRow = { name: string };
 
 type EntitlementRow = { billing_state:string; capabilities_json:Record<string,boolean>; device_id:string; hard_stop_at:string|null; issued_at:string; playback_mode:"tenant_content"|"tenant_content_with_warning"|"veyocast_billing_splash"|"system_suspended"; reason:string; revision:number; screen_id:string; tenant_id:string; valid_until:string };
 
@@ -233,15 +234,18 @@ async function loadPlayerWaitingBranding(tenantId: string): Promise<PlayerWaitin
 
   try {
     const admin = createPlayerAdminClient();
-    const [tenantResult, settingsResult, kitResult] = await Promise.all([
+    const [tenantResult, settingsResult, kitResult, venueResult] = await Promise.all([
       admin.from("tenants").select("name").eq("id", tenantId).maybeSingle(),
       admin.from("tenant_settings").select("theme_mode_policy,timezone_name").eq("tenant_id", tenantId).maybeSingle(),
-      admin.from("studio_tenant_brand_kits").select("logo_media_asset_id").eq("tenant_id", tenantId).maybeSingle()
+      admin.from("studio_tenant_brand_kits").select("logo_media_asset_id").eq("tenant_id", tenantId).maybeSingle(),
+      admin.from("venues").select("name").eq("tenant_id", tenantId).eq("status", "active").order("name").limit(1).maybeSingle()
     ]);
     const tenant = tenantResult.data as TenantRow | null;
     const settings = settingsResult.data as TenantSettingsRow | null;
     const kit = kitResult.data as BrandKitRow | null;
+    const venue = venueResult.data as VenueRow | null;
     const tenantName = tenant?.name?.trim() || fallback.tenantName;
+    const sportparkName = venue?.name?.trim() || tenantName;
     const timezone = settings?.timezone_name?.trim() || fallback.timezone;
     const policy = settings?.theme_mode_policy;
     const themeMode = isRecord(policy) && policy.kind === "fixed" &&
@@ -279,7 +283,7 @@ async function loadPlayerWaitingBranding(tenantId: string): Promise<PlayerWaitin
         tenantLogoUrl = signed.data?.signedUrl ?? null;
       }
     }
-    return { sportparkName: tenantName, tenantLogoUrl, tenantName, themeMode, timezone };
+    return { sportparkName, tenantLogoUrl, tenantName, themeMode, timezone };
   } catch {
     return fallback;
   }
