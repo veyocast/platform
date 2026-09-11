@@ -999,16 +999,14 @@ test("LG Legacy Player gebruikt een statische shell en lokale afbeelding", async
     element.setAttribute("data-playback-instance", "unchanged");
     window.dispatchEvent(new Event("online"));
   });
-  await expect.poll(() => manifestEtags.at(-1)).toBe(
-    '"release-release-legacy"'
-  );
+  await expect.poll(() => manifestEtags.length).toBeGreaterThan(1);
+  expect(manifestEtags.every((etag) => etag === undefined)).toBe(true);
   await expect(image).toHaveAttribute("data-playback-instance", "unchanged");
   manifestEtags.length = 0;
   await page.reload();
   await expect(page.locator("#media-root > img")).toBeVisible();
-  await expect.poll(() => manifestEtags[0]).toBe(
-    '"release-release-legacy"'
-  );
+  await expect.poll(() => manifestEtags.length).toBeGreaterThan(0);
+  expect(manifestEtags[0]).toBeUndefined();
   expect(
     requestedUrls.filter((url) => url.endsWith(legacyImagePath))
   ).toHaveLength(1);

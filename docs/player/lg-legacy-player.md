@@ -15,8 +15,8 @@ De Legacy Player:
   devicecredential en pairing-API;
 - vraagt en vernieuwt idempotent een koppelcode;
 - leest bij startup eerst de geverifieerde lokale actieve of vorige release;
-- controleert daarna conditioneel via de release-ETag of een nieuw immutable
-  manifest beschikbaar is;
+- controleert daarna periodiek het immutable manifest en vernieuwt tijdelijke
+  media-toegang ook wanneer de release-ID gelijk blijft;
 - downloadt alleen voor een nieuwe of beschadigde release alle media-,
   poster- en dynamische-templateassets;
 - controleert bestandsgrootte en SHA-256 vóór opslag in Cache Storage;
@@ -33,8 +33,12 @@ De Legacy Player:
 
 ## Release- en cacheketen
 
-Een ongewijzigde release levert `304 Not Modified`. Legacy wijzigt dan geen
-playbacktimer, playlistindex, media-URL of DOM-element. Ook na een herstart
+De generieke manifestroute kan voor een ongewijzigde release `304 Not Modified`
+leveren. De Legacy-route vraagt bewust een verse manifestresponse omdat signed
+media-URL's tijdelijk zijn; ze vervangt alleen de URL's van checksum-gelijke
+assets en laat het huidige beeld staan zonder playbacktimer, playlistindex of
+DOM-element onnodig te resetten.
+Ook na een herstart
 komt de bekende release-ID uit IndexedDB, waardoor geen volledig manifest of
 signed media-URL nodig is zolang de toewijzing gelijk blijft.
 

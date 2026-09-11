@@ -79,6 +79,7 @@ const legacyConfig = {
   installationIdKey: "veyocast.player.instanceId",
   legacyDiagnosticsKey: "veyocast.player.lgLegacyDiagnostics.v1",
   manifestIntervalMs: 30_000,
+  mediaAccessRefreshMs: 45 * 60 * 1000,
   pairingCodeKey: "veyocast.player.pairingCode",
   pairingExpiryKey: "veyocast.player.pairingExpiresAt",
   pairingNonceKey: "veyocast.player.pairingRequestNonce",
@@ -1007,6 +1008,7 @@ export function renderLgLegacyHtml() {
       lastProgressAt: 0,
       ledScoresLiveMatchRender: null,
       matchCentreClockTimer: null,
+      mediaAccessRefreshReferenceAt: 0,
       ledScoresLiveMatchTimer: null,
       ledScoresMatchStates: {},
       offline: false,
@@ -4732,6 +4734,95 @@ export function renderLgLegacyHtml() {
         });
       });
     }
+    function refreshDynamicTemplateMediaAccess(currentTemplate, freshTemplate) {
+      var currentAssets = currentTemplate && templateRecord(currentTemplate.assets);
+      var freshAssets = freshTemplate && templateRecord(freshTemplate.assets);
+      var assetId;
+      var currentAsset;
+      var freshAsset;
+      if (!currentAssets || !freshAssets) return;
+      for (assetId in freshAssets) {
+        if (!Object.prototype.hasOwnProperty.call(freshAssets, assetId)) continue;
+        currentAsset = templateRecord(currentAssets[assetId]);
+        freshAsset = templateRecord(freshAssets[assetId]);
+        if (!currentAsset || !freshAsset ||
+          currentAsset.checksumSha256 !== freshAsset.checksumSha256) continue;
+        if (typeof freshAsset.url === "string" && freshAsset.url) {
+          currentAsset.url = freshAsset.url;
+        }
+        if (
+          currentAsset.posterChecksumSha256 &&
+          currentAsset.posterChecksumSha256 === freshAsset.posterChecksumSha256 &&
+          typeof freshAsset.posterUrl === "string" &&
+          freshAsset.posterUrl
+        ) {
+          currentAsset.posterUrl = freshAsset.posterUrl;
+        }
+      }
+    }
+    function refreshSameReleaseMediaAccess(freshEnvelope) {
+      var currentManifest = runtime.envelope && runtime.envelope.manifest;
+      var freshManifest = freshEnvelope && freshEnvelope.manifest;
+      var currentItems = currentManifest && currentManifest.items;
+      var freshItems = freshManifest && freshManifest.items;
+      var currentById = {};
+      var currentItem;
+      var freshItem;
+      var currentFetchedAt;
+      var freshFetchedAt;
+      var index;
+      var restart = false;
+      if (!Array.isArray(currentItems) || !Array.isArray(freshItems)) return false;
+      currentFetchedAt = parsePlayerTimestamp(runtime.envelope.fetchedAt);
+      freshFetchedAt = parsePlayerTimestamp(freshEnvelope.fetchedAt);
+      if (!runtime.mediaAccessRefreshReferenceAt) {
+        runtime.mediaAccessRefreshReferenceAt = isFinite(currentFetchedAt)
+          ? currentFetchedAt
+          : isFinite(freshFetchedAt) ? freshFetchedAt : now();
+      }
+      if (
+        isFinite(freshFetchedAt) &&
+        freshFetchedAt - runtime.mediaAccessRefreshReferenceAt >= CONFIG.mediaAccessRefreshMs
+      ) {
+        runtime.mediaAccessRefreshReferenceAt = freshFetchedAt;
+        restart = true;
+      }
+      for (index = 0; index < currentItems.length; index += 1) {
+        currentItem = currentItems[index];
+        if (currentItem && typeof currentItem.id === "string") {
+          currentById[currentItem.id] = currentItem;
+        }
+      }
+      for (index = 0; index < freshItems.length; index += 1) {
+        freshItem = freshItems[index];
+        currentItem = freshItem && currentById[freshItem.id];
+        if (!currentItem || !currentItem.source || !freshItem.source ||
+          currentItem.source.checksumSha256 !== freshItem.source.checksumSha256) {
+          continue;
+        }
+        if (typeof freshItem.source.url === "string" && freshItem.source.url) {
+          currentItem.source.url = freshItem.source.url;
+        }
+        if (
+          currentItem.source.posterChecksumSha256 &&
+          currentItem.source.posterChecksumSha256 === freshItem.source.posterChecksumSha256 &&
+          typeof freshItem.source.posterUrl === "string" &&
+          freshItem.source.posterUrl
+        ) {
+          currentItem.source.posterUrl = freshItem.source.posterUrl;
+        }
+        refreshDynamicTemplateMediaAccess(
+          currentItem.dynamicTemplate,
+          freshItem.dynamicTemplate
+        );
+      }
+      runtime.envelope.state = freshEnvelope.state;
+      runtime.envelope.fetchedAt = freshEnvelope.fetchedAt;
+      runtime.envelope.device = freshEnvelope.device;
+      runtime.envelope.diagnostics = freshEnvelope.diagnostics;
+      if (freshEnvelope.branding) runtime.envelope.branding = freshEnvelope.branding;
+      return restart && runtime.currentItem && runtime.currentItem.kind === "video";
+    }
     function syncManifest() {
       var forceRefresh = runtime.forceManifestRefresh;
       var headers;
@@ -4752,9 +4843,8 @@ export function renderLgLegacyHtml() {
               ? runtime.pendingRelease.envelope
               : runtime.envelope
           );
-      if (knownReleaseId) {
-        headers["If-None-Match"] = releaseEtag(knownReleaseId);
-      }
+      // Every successful manifest response contains one-hour signed media URLs.
+      // Do not send the release ETag here: a 304 would prevent URL rotation.
       runtime.syncInFlight = true;
       request(
         "GET",
@@ -4813,15 +4903,16 @@ export function renderLgLegacyHtml() {
             runtime.syncFailures = 0;
             runtime.offline = false;
             byId("offline").className = "";
+            var mediaAccessNeedsRestart;
             if (
               !forceRefresh &&
               releaseIdOf(runtime.envelope) === releaseIdOf(body)
             ) {
               runtime.pendingRelease = null;
-              runtime.envelope.device = body.device;
-              runtime.envelope.diagnostics = body.diagnostics;
+              mediaAccessNeedsRestart = refreshSameReleaseMediaAccess(body);
               setState("PLAYING");
               runtime.syncPhase = "active";
+              if (mediaAccessNeedsRestart) playCurrent();
               scheduleManifestSync(CONFIG.manifestIntervalMs);
               sendHeartbeat();
               return;
@@ -4863,8 +4954,7 @@ export function renderLgLegacyHtml() {
               if (releaseIdOf(runtime.envelope) === releaseIdOf(body)) {
                 runtime.syncInFlight = false;
                 runtime.pendingRelease = null;
-                runtime.envelope.device = body.device;
-                runtime.envelope.diagnostics = body.diagnostics;
+                refreshSameReleaseMediaAccess(body);
                 runtime.itemFailures = {};
                 setState(runtime.offline ? "OFFLINE_PLAYING" : "PLAYING");
                 runtime.syncPhase = "active";
@@ -5338,6 +5428,7 @@ export function renderLgLegacyHtml() {
       }
       runtime.envelope = envelope;
       runtime.releaseSource = source;
+      runtime.mediaAccessRefreshReferenceAt = parsePlayerTimestamp(envelope.fetchedAt) || now();
       runtime.activeIndex = runtime.activeIndex % items.length;
       runtime.itemFailures = {};
       runtime.pendingRelease = null;
