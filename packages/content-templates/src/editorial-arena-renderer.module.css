@@ -2123,6 +2123,222 @@
   }
 }
 
+/* Premium birthday cards: the supplied celebration image belongs to each
+   card, never to the shared slide canvas. The page-size attribute is the
+   authoring choice (and remains stable on the final, partially filled page). */
+.birthdayBackdrop { display: none; }
+
+.arenaRoot .birthdayLayout {
+  position: relative;
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  gap: 24px;
+  align-content: stretch;
+  justify-content: stretch;
+}
+
+.arenaRoot .birthdayLayout[data-page-size="1"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  padding-inline: 10%;
+}
+
+.arenaRoot .birthdayLayout[data-page-size="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.arenaRoot .birthdayLayout[data-page-size="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.arenaRoot .birthdayLayout[data-page-size="6"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.arenaRoot .birthdayCard {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: clamp(24px, 2.2vw, 44px);
+  border: 1px solid color-mix(in srgb, var(--vc-theme-text) 16%, transparent);
+  border-radius: var(--vc-theme-card-radius, 28px);
+  background: color-mix(in srgb, var(--vc-theme-surface) 94%, transparent);
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--vc-theme-canvas) 34%, transparent);
+  text-align: center;
+  backdrop-filter: blur(16px);
+}
+
+.arenaRoot .birthdayCardPhoto {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background-image: var(--birthday-image, none),
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--arena-accent) 38%, transparent) 0 8%, transparent 28%),
+    radial-gradient(circle at 86% 84%, color-mix(in srgb, var(--vc-theme-support) 32%, transparent) 0 7%, transparent 27%),
+    linear-gradient(135deg, color-mix(in srgb, var(--arena-accent) 25%, var(--vc-theme-surface)), var(--vc-theme-surface));
+  background-position: center;
+  background-size: cover;
+  opacity: .3;
+}
+
+.arenaRoot .birthdayCardPhoto::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--vc-theme-surface) 78%, transparent),
+    color-mix(in srgb, var(--vc-theme-surface) 95%, transparent));
+  content: "";
+}
+
+.arenaRoot[data-theme="dark"] .birthdayCardPhoto::after {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--vc-theme-canvas) 55%, transparent),
+    color-mix(in srgb, var(--vc-theme-canvas) 86%, transparent));
+}
+
+.arenaRoot .birthdayCard > *:not(.birthdayCardPhoto) { position: relative; z-index: 1; }
+
+.arenaRoot .birthdayCopy {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  text-align: center;
+}
+
+.arenaRoot .birthdayEyebrow {
+  color: var(--arena-accent);
+  font-size: calc(24px * var(--vc-theme-base-scale, 1));
+  font-weight: 900;
+  letter-spacing: .16em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.arenaRoot .birthdayCopy h2 {
+  max-width: 100%;
+  margin: 18px 0 10px;
+  color: var(--vc-theme-text);
+  font-size: calc(74px * var(--vc-theme-base-scale, 1));
+  font-weight: 900;
+  letter-spacing: -.055em;
+  line-height: .95;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.arenaRoot .birthdayCopy p {
+  max-width: 100%;
+  margin: 0;
+  color: var(--vc-theme-text-muted);
+  font-size: calc(28px * var(--vc-theme-base-scale, 1));
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.arenaRoot .birthdayCopy strong {
+  margin-top: 14px;
+  color: var(--arena-accent);
+  font-size: calc(26px * var(--vc-theme-base-scale, 1));
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.arenaRoot .birthdayLayout[data-page-size="6"] .birthdayCard { padding: 22px; }
+.arenaRoot .birthdayLayout[data-page-size="6"] .birthdayEyebrow { font-size: calc(19px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot .birthdayLayout[data-page-size="6"] .birthdayCopy h2 { margin-top: 13px; font-size: calc(57px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot .birthdayLayout[data-page-size="6"] .birthdayCopy p { font-size: calc(23px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot .birthdayLayout[data-page-size="6"] .birthdayCopy strong { margin-top: 10px; font-size: calc(21px * var(--vc-theme-base-scale, 1)); }
+
+.arenaRoot .birthdayLayout[data-page-size="2"] .birthdayCopy h2 { font-size: calc(86px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot .birthdayLayout[data-page-size="1"] .birthdayCopy h2 { font-size: calc(112px * var(--vc-theme-base-scale, 1)); }
+
+.arenaRoot .birthdayConfetti {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.arenaRoot .birthdayConfetti i {
+  position: absolute;
+  top: -12px;
+  width: 10px;
+  height: 24px;
+  border-radius: 4px;
+  background: var(--arena-accent);
+  opacity: .86;
+  transform-origin: center;
+  animation: birthdayConfettiPulse 2.8s ease-in-out infinite alternate;
+}
+
+.arenaRoot .birthdayConfetti i:nth-child(1) { left: 8%; transform: rotate(24deg); }
+.arenaRoot .birthdayConfetti i:nth-child(2) { left: 18%; background: var(--vc-theme-support); transform: rotate(-31deg); }
+.arenaRoot .birthdayConfetti i:nth-child(3) { left: 31%; transform: rotate(17deg); }
+.arenaRoot .birthdayConfetti i:nth-child(4) { left: 43%; background: var(--vc-theme-text); transform: rotate(-12deg); }
+.arenaRoot .birthdayConfetti i:nth-child(5) { left: 56%; transform: rotate(28deg); }
+.arenaRoot .birthdayConfetti i:nth-child(6) { left: 68%; background: var(--vc-theme-support); transform: rotate(-21deg); }
+.arenaRoot .birthdayConfetti i:nth-child(7) { left: 79%; transform: rotate(13deg); }
+.arenaRoot .birthdayConfetti i:nth-child(8) { left: 91%; background: var(--vc-theme-text); transform: rotate(-27deg); }
+.arenaRoot .birthdayConfetti i:nth-child(9) { left: 25%; top: 4px; width: 8px; height: 18px; transform: rotate(48deg); }
+.arenaRoot .birthdayConfetti i:nth-child(10) { left: 48%; top: 1px; width: 8px; height: 18px; background: var(--vc-theme-support); transform: rotate(-43deg); }
+.arenaRoot .birthdayConfetti i:nth-child(11) { left: 73%; top: 5px; width: 8px; height: 18px; transform: rotate(37deg); }
+.arenaRoot .birthdayConfetti i:nth-child(12) { left: 84%; top: 1px; width: 8px; height: 18px; background: var(--vc-theme-text); transform: rotate(-39deg); }
+
+@keyframes birthdayConfettiPulse {
+  from { opacity: .68; }
+  to { opacity: .92; }
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout {
+  gap: 20px;
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="1"] {
+  padding-inline: 6%;
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="2"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="6"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayCard { padding: 26px; }
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="6"] .birthdayCard { padding: 20px; }
+.arenaRoot[data-orientation="portrait"] .birthdayCopy h2 { font-size: calc(70px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="6"] .birthdayEyebrow { font-size: calc(18px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="6"] .birthdayCopy h2 { margin-top: 11px; font-size: calc(52px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="6"] .birthdayCopy p { font-size: calc(21px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="6"] .birthdayCopy strong { font-size: calc(19px * var(--vc-theme-base-scale, 1)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .arenaRoot .birthdayConfetti i,
+  .arenaRoot .birthdayLayout[data-motion] .birthdayCard {
+    animation: none;
+  }
+}
+
 /* Royal Current prototype families: effective slideContent geometry only. */
 .royalOperationalFixtures {
   height: 100%;
@@ -5430,4 +5646,257 @@
     opacity: 1;
     transform: none;
   }
+}
+
+/* Birthday layout overrides must remain last: the historical Royal Current
+   block above predates the 1/2/4/6 authoring contract. */
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+  gap: 24px;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="1"] {
+  grid-template-columns: minmax(0, .68fr);
+  grid-template-rows: minmax(0, 1fr);
+  justify-content: center;
+  padding-inline: 10%;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="6"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayCard {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: clamp(22px, 2.2vw, 44px);
+  border: 1px solid var(--vc-theme-line, var(--vc-border));
+  border-radius: var(--vc-theme-card-radius, 28px);
+  background: color-mix(in srgb, var(--vc-theme-surface) 94%, transparent);
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--vc-theme-canvas) 34%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size] .birthdayCard {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--vc-theme-line, var(--vc-border));
+  border-radius: var(--vc-theme-card-radius, 28px);
+  background: color-mix(in srgb, var(--vc-theme-surface) 94%, transparent);
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--vc-theme-canvas) 34%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayCardPhoto {
+  z-index: 0;
+  opacity: .3;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayCardPhoto::after {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--vc-theme-surface) 78%, transparent),
+    color-mix(in srgb, var(--vc-theme-surface) 95%, transparent));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-theme="dark"] .birthdayCardPhoto::after {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--vc-theme-canvas) 55%, transparent),
+    color-mix(in srgb, var(--vc-theme-canvas) 86%, transparent));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayCard > *:not(.birthdayCardPhoto) {
+  position: relative;
+  z-index: 1;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayCopy {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayEyebrow {
+  color: var(--vc-theme-accent, var(--vc-accent));
+  font-size: calc(24px * var(--vc-theme-base-scale, 1));
+  font-weight: 900;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayCopy h2 {
+  max-width: 100%;
+  margin: 16px 0 8px;
+  font-size: calc(74px * var(--vc-theme-base-scale, 1));
+  line-height: .95;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout:not([data-layout="spotlight"]) .birthdayCopy h2 {
+  margin: 16px 0 8px;
+  font-size: calc(74px * var(--vc-theme-base-scale, 1));
+  line-height: .95;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="2"] .birthdayCopy h2 {
+  font-size: calc(86px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="6"] .birthdayCopy h2 {
+  margin-top: 10px;
+  font-size: calc(54px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayCopy p {
+  max-width: 100%;
+  margin: 0;
+  font-size: calc(28px * var(--vc-theme-base-scale, 1));
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayCopy strong {
+  margin-top: 12px;
+  color: var(--vc-theme-accent, var(--vc-accent));
+  font-size: calc(26px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="6"] .birthdayCard { padding: 20px; }
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="6"] .birthdayEyebrow { font-size: calc(18px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="6"] .birthdayCopy h2 { margin-top: 10px; font-size: calc(54px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="6"] .birthdayCopy p { font-size: calc(22px * var(--vc-theme-base-scale, 1)); }
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayLayout[data-page-size="6"] .birthdayCopy strong { margin-top: 9px; font-size: calc(20px * var(--vc-theme-base-scale, 1)); }
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="2"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="6"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayCopy h2 {
+  font-size: calc(54px * var(--vc-theme-base-scale, 1));
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout:not([data-layout="spotlight"]) .birthdayCopy h2 {
+  font-size: calc(54px * var(--vc-theme-base-scale, 1));
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="1"] .birthdayCopy h2 {
+  font-size: calc(90px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="1"]:not([data-layout="spotlight"]) .birthdayCopy h2 {
+  font-size: calc(90px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="2"] .birthdayCopy h2 {
+  font-size: calc(68px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="2"]:not([data-layout="spotlight"]) .birthdayCopy h2 {
+  font-size: calc(68px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="4"] .birthdayCopy h2 {
+  font-size: calc(50px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="4"]:not([data-layout="spotlight"]) .birthdayCopy h2 {
+  font-size: calc(50px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="6"] .birthdayCopy h2 {
+  font-size: calc(48px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .birthdayLayout[data-page-size="6"]:not([data-layout="spotlight"]) .birthdayCopy h2 {
+  font-size: calc(48px * var(--vc-theme-base-scale, 1));
+}
+
+/* Keep the same card contract for legacy dynamic snapshots while tenants
+   migrate to the frozen Royal Current appearance. */
+.arenaRoot .birthdayLayout[data-page-size] .birthdayCard {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--vc-theme-line, var(--vc-border));
+  border-radius: var(--vc-theme-card-radius, 28px);
+  background: color-mix(in srgb, var(--vc-theme-surface) 94%, transparent);
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--vc-theme-canvas) 34%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.arenaRoot .birthdayLayout:not([data-layout="spotlight"]) .birthdayCopy h2 {
+  margin: 16px 0 8px;
+  font-size: calc(74px * var(--vc-theme-base-scale, 1));
+  line-height: .95;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.arenaRoot .birthdayLayout[data-page-size="2"] .birthdayCopy h2 {
+  font-size: calc(86px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot .birthdayLayout[data-page-size="6"] .birthdayCopy h2 {
+  margin-top: 10px;
+  font-size: calc(54px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout:not([data-layout="spotlight"]) .birthdayCopy h2 {
+  font-size: calc(54px * var(--vc-theme-base-scale, 1));
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="1"] .birthdayCopy h2 {
+  font-size: calc(90px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="2"] .birthdayCopy h2 {
+  font-size: calc(68px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="4"] .birthdayCopy h2 {
+  font-size: calc(50px * var(--vc-theme-base-scale, 1));
+}
+
+.arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="6"] .birthdayCopy h2 {
+  font-size: calc(48px * var(--vc-theme-base-scale, 1));
 }

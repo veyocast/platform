@@ -868,6 +868,36 @@ export function renderLgLegacyHtml() {
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news[data-news-variant="news_grid"]{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.25fr) minmax(0,.75fr);padding:0}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news[data-news-variant="news_grid"] .editorial-news-art{display:none}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .editorial-news-grid{grid-row:2;grid-column:1}
+    .dynamic-template.editorial-arena .legacy-birthday-layout{display:grid;width:100%;height:100%;min-height:0;gap:24px;grid-template-columns:repeat(2,minmax(0,1fr));align-content:stretch}
+    .dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="1"]{grid-template-columns:minmax(0,.68fr);justify-content:center}
+    .dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="4"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+    .dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="6"]{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+    .legacy-birthday-card{position:relative;isolation:isolate;display:flex;min-width:0;min-height:0;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 24px 80px var(--editorial-shadow);text-align:center}
+    .legacy-birthday-photo{position:absolute;z-index:-2;top:0;right:0;bottom:0;left:0;background-image:linear-gradient(135deg,var(--editorial-accent-soft),transparent 65%),linear-gradient(180deg,var(--editorial-surface-alt),var(--editorial-surface));background-position:center;background-size:cover;opacity:.34;transform:scale(1.04)}
+    .legacy-birthday-photo:after{position:absolute;top:0;right:0;bottom:0;left:0;background:rgba(255,255,255,.78);content:""}
+    .dynamic-template.editorial-arena.dark .legacy-birthday-photo:after{background:rgba(7,10,14,.78)}
+    .legacy-birthday-copy{display:flex;min-width:0;max-width:94%;align-items:center;flex-direction:column;justify-content:center;padding:4%;color:var(--editorial-text)}
+    .legacy-birthday-copy b{color:var(--accent);font-size:clamp(16px,1.2vw,26px);font-weight:900;letter-spacing:.16em;line-height:1.1;text-transform:uppercase}
+    .legacy-birthday-copy h2{max-width:100%;margin:14px 0 6px;overflow-wrap:anywhere;color:var(--ink);font-family:var(--vc-theme-display-font,"VeyoCast Royal Current Roboto"),Roboto,Arial,sans-serif;font-size:clamp(30px,3.1vw,74px);font-weight:900;letter-spacing:-.055em;line-height:.94}
+    .legacy-birthday-copy p{max-width:100%;margin:0;color:var(--editorial-muted);font-size:clamp(16px,1.25vw,28px);font-weight:700;line-height:1.2;overflow-wrap:anywhere}
+    .legacy-birthday-copy strong{max-width:100%;margin-top:13px;color:var(--accent);font-size:clamp(16px,1.3vw,29px);font-weight:900;line-height:1.15;overflow-wrap:anywhere}
+    .legacy-birthday-confetti{position:absolute;z-index:-1;top:0;right:0;left:0;height:18%;overflow:hidden;pointer-events:none}
+    .legacy-birthday-confetti i{position:absolute;top:-10px;display:block;width:10px;height:30px;border-radius:999px;background:var(--accent);opacity:.72;transform:rotate(24deg)}
+    .legacy-birthday-confetti i:nth-child(1){left:4%;background:var(--accent)}.legacy-birthday-confetti i:nth-child(2){left:12%;height:22px;background:var(--accent-soft);transform:rotate(-22deg)}.legacy-birthday-confetti i:nth-child(3){left:21%;background:var(--accent)}.legacy-birthday-confetti i:nth-child(4){left:31%;height:18px;background:var(--accent-soft);transform:rotate(-28deg)}.legacy-birthday-confetti i:nth-child(5){left:42%;background:var(--accent)}.legacy-birthday-confetti i:nth-child(6){left:53%;height:22px;background:var(--accent-soft);transform:rotate(-20deg)}.legacy-birthday-confetti i:nth-child(7){left:64%;background:var(--accent)}.legacy-birthday-confetti i:nth-child(8){left:74%;height:18px;background:var(--accent-soft);transform:rotate(-28deg)}.legacy-birthday-confetti i:nth-child(9){left:83%;background:var(--accent)}.legacy-birthday-confetti i:nth-child(10){left:91%;height:22px;background:var(--accent-soft);transform:rotate(-20deg)}
+    .dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="6"] .legacy-birthday-copy b{font-size:clamp(13px,1vw,20px)}
+    .dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="6"] .legacy-birthday-copy h2{font-size:clamp(24px,2.4vw,52px);margin-top:10px}
+    .dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="6"] .legacy-birthday-copy p,.dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="6"] .legacy-birthday-copy strong{font-size:clamp(13px,1vw,21px)}
+    .dynamic-template.editorial-arena.portrait .legacy-birthday-layout{grid-template-columns:1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:20px}
+    .dynamic-template.editorial-arena.portrait .legacy-birthday-layout[data-page-size="1"]{grid-template-rows:minmax(0,.7fr);grid-template-columns:minmax(0,1fr)}
+    .dynamic-template.editorial-arena.portrait .legacy-birthday-layout[data-page-size="4"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+    .dynamic-template.editorial-arena.portrait .legacy-birthday-layout[data-page-size="6"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+    .dynamic-template.editorial-arena.portrait .legacy-birthday-copy h2{font-size:clamp(28px,5vw,54px);overflow-wrap:break-word;text-wrap:pretty}
+    .dynamic-template.editorial-arena.portrait .legacy-birthday-layout[data-page-size="1"] .legacy-birthday-copy h2{font-size:clamp(42px,8vw,90px)}
+    .dynamic-template.editorial-arena.portrait .legacy-birthday-layout[data-page-size="2"] .legacy-birthday-copy h2{font-size:clamp(30px,6vw,68px)}
+    .dynamic-template.editorial-arena.portrait .legacy-birthday-layout[data-page-size="4"] .legacy-birthday-copy h2{font-size:clamp(26px,5vw,50px)}
+    .dynamic-template.editorial-arena.portrait .legacy-birthday-layout[data-page-size="6"] .legacy-birthday-copy h2{font-size:clamp(22px,3.4vw,42px)}
+    @media(prefers-reduced-motion:reduce){.legacy-birthday-card,.legacy-birthday-confetti i{animation:none!important}}
     .dynamic-template.ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-shell{grid-template-rows:96px minmax(192px,auto) minmax(0,1fr);grid-row-gap:24px;padding:36px 38px 84px 101px}
     .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .legacy-royal-sideband{width:72px;padding:30px 10px 28px;font-size:11px}
     .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .legacy-royal-sideband b{font-size:29px}
@@ -5711,6 +5741,16 @@ export function renderLgLegacyHtml() {
       var limit = Number(maximum) === 100 ? 100 : 40;
       return Array.isArray(value) ? value.slice(0, limit) : [];
     }
+    function legacyBirthdayPageSize(value, fallback) {
+      var parsed = Number(value);
+      var allowed = [1, 2, 4, 6];
+      if (allowed.indexOf(parsed) !== -1) return parsed;
+      if (parsed <= 1) return 1;
+      if (parsed <= 2) return 2;
+      if (parsed <= 4) return 4;
+      if (parsed === 6) return 6;
+      return fallback || 6;
+    }
     function templateText(value, fallback) {
       var normalized;
       if (typeof value !== "string") return fallback || "";
@@ -7516,14 +7556,20 @@ export function renderLgLegacyHtml() {
           : 2
         : Math.max(1, Math.min(4, Number(arrivalConfiguration.cardCount) || 4));
       var match = slideType === "sport_match_of_the_day" || slideType === "sport_next_match";
+      var birthdayPageSize = birthday
+        ? legacyBirthdayPageSize(
+          orientation === "portrait"
+            ? birthdayPresentation.maxPerPortraitPage
+            : birthdayPresentation.maxPerLandscapePage,
+          6
+        )
+        : 0;
       var pages = match ? [items.length ? items[0] : null] :
         birthday && !items.length ? [] :
         arrival && !items.length && templateText(arrivalConfiguration.emptyBehavior, "skip") === "skip" ? [] : templatePages(
           items,
           birthday
-            ? Math.max(1, Math.min(8, Number(orientation === "portrait"
-              ? birthdayPresentation.maxPerPortraitPage
-              : birthdayPresentation.maxPerLandscapePage) || (orientation === "portrait" ? 3 : 4)))
+            ? birthdayPageSize
             : arrival ? cardsPerPage
             : slideType === "sport_results" ? (orientation === "portrait" ? 5 : 6) * (displayColumns === "two" ? 2 : 1)
             : slideType === "sport_program" ? (orientation === "portrait" ? 7 : 6) * (displayColumns === "two" ? 2 : 1)
@@ -7581,6 +7627,87 @@ export function renderLgLegacyHtml() {
           }
           if (!page.length) {
             body.appendChild(templateNode("div", "dynamic-empty", "Deze clubinformatie is nu niet beschikbaar."));
+            return;
+          }
+          if (birthday) {
+            var birthdaySelection = templateRecord(birthdayConfiguration.selection) || {};
+            var birthdayLayoutMode = templateText(birthdayPresentation.layout, "auto");
+            if (birthdayLayoutMode === "auto") {
+              birthdayLayoutMode = birthdayPageSize === 1
+                ? "spotlight"
+                : birthdayPageSize === 6 ? "birthday_roll" : "celebration_grid";
+            }
+            var birthdayLayout = templateNode("div", "legacy-birthday-layout");
+            birthdayLayout.setAttribute("data-page-size", String(birthdayPageSize));
+            birthdayLayout.setAttribute("data-layout", birthdayLayoutMode);
+            var birthdayBackgroundUrl = templateAssetUrl(
+              payload,
+              templateText(birthdayPresentation.backgroundMediaAssetId, "")
+            );
+            var birthdayShowTeamRole = birthdaySelection.showTeamRole !== false;
+            var birthdayShowRole = birthdaySelection.showRole !== false;
+            var birthdayShowTeam = birthdaySelection.showTeam !== false;
+            var birthdayConfettiEnabled = birthdayPresentation.confetti !== false;
+            for (index = 0; index < page.length; index += 1) {
+              item = templateRecord(page[index]) || {};
+              var birthdayDisplayName = templateText(
+                item.displayName,
+                templateText(item.primary, "")
+              );
+              if (!birthdayDisplayName) continue;
+              var birthdayCard = templateNode("article", "legacy-birthday-card");
+              var birthdayPhoto = templateNode("div", "legacy-birthday-photo");
+              if (birthdayBackgroundUrl) {
+                birthdayPhoto.style.backgroundImage = "url(" + birthdayBackgroundUrl + ")";
+              }
+              birthdayPhoto.setAttribute("aria-hidden", "true");
+              birthdayCard.appendChild(birthdayPhoto);
+              var birthdayMonth = Number(item.month);
+              var birthdayDay = Number(item.day);
+              var birthdayIsToday = item.isToday === true || (
+                isFinite(birthdayMonth) && isFinite(birthdayDay) &&
+                birthdayMonth === localNow.getUTCMonth() + 1 &&
+                birthdayDay === localNow.getUTCDate()
+              );
+              if (birthdayIsToday && birthdayConfettiEnabled) {
+                var birthdayConfetti = templateNode("span", "legacy-birthday-confetti");
+                birthdayConfetti.setAttribute("aria-hidden", "true");
+                for (var confettiIndex = 0; confettiIndex < 10; confettiIndex += 1) {
+                  birthdayConfetti.appendChild(templateNode("i", ""));
+                }
+                birthdayCard.appendChild(birthdayConfetti);
+              }
+              var birthdayCopy = templateNode("div", "legacy-birthday-copy");
+              birthdayCopy.appendChild(templateNode("b", "", "Gefeliciteerd"));
+              birthdayCopy.appendChild(templateNode("h2", "", birthdayDisplayName));
+              if (birthdayShowTeamRole) {
+                var birthdayRole = birthdayShowRole
+                  ? templateText(item.role, templateText(item.function, "")) : "";
+                var birthdayTeams = birthdayShowTeam
+                  ? templateArray(item.teams, 8).map(function (teamValue) {
+                    var team = templateRecord(teamValue);
+                    return templateText(team && (team.name || team.teamName), templateText(teamValue, ""));
+                  }).filter(Boolean) : [];
+                if (!birthdayTeams.length && birthdayShowTeam) {
+                  var fallbackTeam = templateText(item.teamName, templateText(item.team, ""));
+                  if (fallbackTeam) birthdayTeams.push(fallbackTeam);
+                }
+                var birthdayMeta = [birthdayRole].concat(birthdayTeams).filter(Boolean).join(" · ");
+                if (birthdayMeta) birthdayCopy.appendChild(templateNode("p", "", birthdayMeta));
+              }
+              var birthdayAge = Number(item.age);
+              var birthdayDateLabel = templateText(
+                item.displayDate,
+                templateText(item.dateLabel, templateText(item.date, ""))
+              );
+              var birthdayStatus = isFinite(birthdayAge) && Math.floor(birthdayAge) === birthdayAge && birthdayAge >= 0
+                ? String(birthdayAge) + " jaar"
+                : birthdayIsToday ? "Vandaag jarig" : birthdayDateLabel || "Verjaardag";
+              birthdayCopy.appendChild(templateNode("strong", "", birthdayStatus));
+              birthdayCard.appendChild(birthdayCopy);
+              birthdayLayout.appendChild(birthdayCard);
+            }
+            body.appendChild(birthdayLayout);
             return;
           }
           if (arrival) {

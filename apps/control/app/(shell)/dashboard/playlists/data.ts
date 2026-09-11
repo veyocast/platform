@@ -383,7 +383,10 @@ export async function loadPlaylistStudio(
       ) {
         return [];
       }
-      const playback = dynamicSlidePlayback(snapshot.snapshot_data_json);
+      const playback = dynamicSlidePlayback(
+        snapshot.snapshot_data_json,
+        slide.orientation as "landscape" | "portrait"
+      );
       return [{
         durationSeconds: playback.durationSeconds,
         id: slide.id,
@@ -543,21 +546,20 @@ export async function loadPlaylistStudio(
   };
 }
 
-function dynamicSlidePlayback(value: unknown) {
+function dynamicSlidePlayback(value: unknown, orientation: "landscape" | "portrait" = "landscape") {
   const root = recordValue(value);
   const sport = recordValue(root?.sport);
   if (sport && Array.isArray(sport.birthdays)) {
     const configuration = recordValue(sport.configuration);
     const presentation = recordValue(configuration?.presentation);
-    const requestedLandscapeSize = Number(presentation?.maxPerLandscapePage);
-    const requestedPortraitSize = Number(presentation?.maxPerPortraitPage);
-    const landscapeSize = Number.isInteger(requestedLandscapeSize)
-      ? Math.min(8, Math.max(1, requestedLandscapeSize))
-      : 4;
-    const portraitSize = Number.isInteger(requestedPortraitSize)
-      ? Math.min(8, Math.max(1, requestedPortraitSize))
-      : 3;
-    const pageSize = Math.min(landscapeSize, portraitSize);
+    const requestedSize = Number(
+      orientation === "portrait"
+        ? presentation?.maxPerPortraitPage
+        : presentation?.maxPerLandscapePage
+    );
+    const pageSize = [1, 2, 4, 6].includes(requestedSize)
+      ? requestedSize
+      : 6;
     const pageCount = Math.max(1, Math.ceil(sport.birthdays.length / pageSize));
     const requestedSeconds = Number(presentation?.pageDurationSeconds);
     const secondsPerPage = Number.isInteger(requestedSeconds)

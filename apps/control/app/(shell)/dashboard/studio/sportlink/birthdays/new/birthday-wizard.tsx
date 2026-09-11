@@ -20,6 +20,7 @@ import {
 
 import {
   sportlinkBirthdayConfigurationSchema,
+  sportlinkBirthdayPageCounts,
   type PlayerDynamicTemplatePayload,
   type SportlinkBirthdayConfiguration,
   type ThemePresentationSnapshot
@@ -490,6 +491,7 @@ function SelectionStep({ birthdays, birthdaysLoaded, configuration, status, team
       {[
         ["showAge", "Leeftijd tonen", status.counts.knownAge > 0, "Alleen uit betrouwbare importbron"],
         ["showRole", "Rol tonen", rolesAvailable, "Exact gekoppelde rol"],
+        ["showTeamRole", "Team/functie tonen", true, "Regel onder de naam"],
         ["showTeam", "Team tonen", rolesAvailable, "Exact gekoppeld team"],
         ["showPhoto", "Foto tonen", status.counts.withPhoto > 0, "Alleen rechtmatig en eenduidig"],
         ["showDayOfWeek", "Dag van de week", true, "Bij de datum"],
@@ -633,8 +635,8 @@ function DesignStep({ configuration, media, mediaLoaded, mediaQuery, orientation
     <div className={styles.fieldGrid}>
       <label><span>Presentatiemodus</span><select onChange={(event) => update({ layout: event.target.value as SportlinkBirthdayConfiguration["presentation"]["layout"] })} value={configuration.presentation.layout}><option value="auto">Automatisch</option><option value="spotlight">Spotlight</option><option value="celebration_grid">Celebration Grid</option><option value="birthday_roll">Birthday Roll</option></select></label>
       <label><span>Paginaduur</span><input max={20} min={6} onChange={(event) => update({ pageDurationSeconds: Number(event.target.value) })} type="number" value={configuration.presentation.pageDurationSeconds} /><small>6–20 seconden</small></label>
-      <label><span>Maximaal liggend</span><input max={8} min={1} onChange={(event) => update({ maxPerLandscapePage: Number(event.target.value) })} type="number" value={configuration.presentation.maxPerLandscapePage} /></label>
-      <label><span>Maximaal staand</span><input max={8} min={1} onChange={(event) => update({ maxPerPortraitPage: Number(event.target.value) })} type="number" value={configuration.presentation.maxPerPortraitPage} /></label>
+      <label><span>Verjaardagen tegelijk (liggend)</span><select onChange={(event) => update({ maxPerLandscapePage: Number(event.target.value) as SportlinkBirthdayConfiguration["presentation"]["maxPerLandscapePage"] })} value={configuration.presentation.maxPerLandscapePage}>{sportlinkBirthdayPageCounts.map((count) => <option key={count} value={count}>{count} {count === 1 ? "vertoning" : "vertoningen"}</option>)}</select><small>1, 2, 4 of 6 kaarten · meer verjaardagen pagineren automatisch</small></label>
+      <label><span>Verjaardagen tegelijk (staand)</span><select onChange={(event) => update({ maxPerPortraitPage: Number(event.target.value) as SportlinkBirthdayConfiguration["presentation"]["maxPerPortraitPage"] })} value={configuration.presentation.maxPerPortraitPage}>{sportlinkBirthdayPageCounts.map((count) => <option key={count} value={count}>{count} {count === 1 ? "vertoning" : "vertoningen"}</option>)}</select><small>1, 2, 4 of 6 kaarten · meer verjaardagen pagineren automatisch</small></label>
       <label><span>Kaartstijl</span><select onChange={(event) => update({ cardStyle: event.target.value as "glass" | "solid" | "outline" })} value={configuration.presentation.cardStyle}><option value="glass">Glas</option><option value="solid">Massief</option><option value="outline">Contour</option></select></label>
       <label><span>Tekstuitlijning</span><select onChange={(event) => update({ textAlign: event.target.value as "left" | "center" })} value={configuration.presentation.textAlign}><option value="left">Links</option><option value="center">Gecentreerd</option></select></label>
     </div>

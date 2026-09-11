@@ -23,6 +23,19 @@ describe("Royal Current Static LG", () => {
     expect(html).toContain("/brand/veyocast-logo-primary.svg");
   });
 
+  it("rendert verjaardagkaarten per kaart met vaste 1/2/4/6 rasters", () => {
+    const html = renderLgLegacyHtml();
+
+    expect(html).toContain("legacy-birthday-layout");
+    expect(html).toContain("legacy-birthday-card");
+    expect(html).toContain("legacy-birthday-photo");
+    expect(html).toContain("legacy-birthday-confetti");
+    expect(html).toContain("legacyBirthdayPageSize");
+    expect(html).toContain("[1, 2, 4, 6]");
+    expect(html).toContain("birthdayPresentation.maxPerPortraitPage");
+    expect(html).toContain("birthdayPresentation.maxPerLandscapePage");
+  });
+
   it("activeert de nieuwe vormgeving uitsluitend voor frozen appearance v2", () => {
     const html = renderLgLegacyHtml();
 

@@ -14,9 +14,22 @@ export const sportlinkBirthdayEmptyBehaviors = [
 export const sportlinkBirthdayNameModes = [
   "full", "first_last_initial", "first"
 ] as const;
+/** Supported per-page card counts in the birthday authoring flow. */
+export const sportlinkBirthdayPageCounts = [1, 2, 4, 6] as const;
 
 const idSchema = z.string().uuid();
 const safeColorSchema = z.string().trim().regex(/^#[0-9a-f]{6}$/i);
+// Older snapshots used arbitrary values (most commonly 3 and 8). Normalize
+// those values when they are read so existing slides remain playable while new
+// authoring always converges to one of the four premium layouts.
+const birthdayPageCountSchema = z.preprocess((value) => {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed)) return 6;
+  if (parsed <= 1) return 1;
+  if (parsed <= 2) return 2;
+  if (parsed <= 4) return 4;
+  return 6;
+}, z.union([z.literal(1), z.literal(2), z.literal(4), z.literal(6)]));
 
 export const sportlinkBirthdayConfigurationSchema = z.object({
   emptyBehavior: z.enum(sportlinkBirthdayEmptyBehaviors).default("skip"),
@@ -32,8 +45,8 @@ export const sportlinkBirthdayConfigurationSchema = z.object({
     gradientOverlay: z.boolean().default(true),
     layout: z.enum(sportlinkBirthdayLayouts).default("auto"),
     logoPosition: z.enum(["top_left", "top_right", "bottom_left"]).default("top_left"),
-    maxPerLandscapePage: z.number().int().min(1).max(8).default(4),
-    maxPerPortraitPage: z.number().int().min(1).max(8).default(3),
+    maxPerLandscapePage: birthdayPageCountSchema.default(6),
+    maxPerPortraitPage: birthdayPageCountSchema.default(6),
     motion: z.boolean().default(true),
     pageDurationSeconds: z.number().int().min(6).max(20).default(8),
     radius: z.enum(["md", "lg", "xl"]).default("lg"),
@@ -43,8 +56,8 @@ export const sportlinkBirthdayConfigurationSchema = z.object({
   }).strict().default({
     backgroundColor: "#111827", backgroundMediaAssetId: null,
     cardStyle: "glass", confetti: true, gradientOverlay: true,
-    layout: "auto", logoPosition: "top_left", maxPerLandscapePage: 4,
-    maxPerPortraitPage: 3, motion: true, pageDurationSeconds: 8,
+    layout: "auto", logoPosition: "top_left", maxPerLandscapePage: 6,
+    maxPerPortraitPage: 6, motion: true, pageDurationSeconds: 8,
     radius: "lg", textAlign: "left", themeMode: "dark",
     useTenantTheme: true
   }),
@@ -62,6 +75,7 @@ export const sportlinkBirthdayConfigurationSchema = z.object({
     showDayOfWeek: z.boolean().default(true),
     showPhoto: z.boolean().default(true),
     showRole: z.boolean().default(true),
+    showTeamRole: z.boolean().default(true),
     showTeam: z.boolean().default(true),
     teamSelectionMode: z.enum(["all", "selected"]).optional()
   }).strict().default({
@@ -69,7 +83,7 @@ export const sportlinkBirthdayConfigurationSchema = z.object({
     nameMode: "full",
     roleFilter: "all", selectedRoles: [], selectedTeamIds: [], showAge: true,
     showDate: true, showDayOfWeek: true, showPhoto: true, showRole: true,
-    showTeam: true, teamSelectionMode: "all"
+    showTeamRole: true, showTeam: true, teamSelectionMode: "all"
   }),
   themeSelection: themeSelectionSchema.optional(),
   title: z.string().trim().min(1).max(160).default("Verjaardagen")

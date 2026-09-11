@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(88);
+select plan(89);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -35,6 +35,9 @@ select is((select count(*) from public.sportlink_connections),1::bigint,
   'owner reads the own connection');
 select is((select count(*) from public.sportlink_sync_policies),8::bigint,
   'exactly one policy per dataset group is initialized');
+select is((select frequency from public.sportlink_sync_policies
+  where dataset_group='club_profile'),'daily',
+  'the tenant logo and club profile are checked daily');
 select is((select timezone from public.sportlink_connections),
   'Europe/Amsterdam',
   'a Sportlink connection inherits the tenant timezone');
