@@ -127,6 +127,8 @@ export type LedScoresTeamMapping = {
 };
 
 export type LedScoresGoal = {
+  homeTeamKey?: string;
+  awayTeamKey?: string;
   awayScore: number;
   awayTeam: string;
   canonicalKey: string;
@@ -433,6 +435,8 @@ export class LedScoresGoalDetector {
     const scorer = scorerForResult(status, expectedSide);
     return {
       goal: {
+        homeTeamKey: normalizeLedScoresTeamKey(status.homeTeamId),
+        awayTeamKey: normalizeLedScoresTeamKey(status.awayTeamId),
         awayScore: status.awayScore,
         awayTeam: displayName(mappings, status.awayTeamId, "Uitteam"),
         canonicalKey,

@@ -139,6 +139,19 @@ export async function saveLedScoresMappings(formData: FormData) {
   complete(`${mappings.length} teammapping${mappings.length === 1 ? "" : "s"} opgeslagen.`);
 }
 
+export async function linkLedScoresClub(formData: FormData) {
+  const session = await requireTenantControlSession("tenant.data_source.manage");
+  const connectionId = requiredUuid(formData, "connectionId");
+  const clubId = optionalUuid(formData, "sportsClubId");
+  const revision = Number(formData.get("expectedRevision"));
+  if (!Number.isInteger(revision) || revision < 1) fail("Vernieuw de verbinding voordat je een club koppelt.");
+  const db = await createControlSupabaseClient();
+  const result = db ? await db.rpc("link_ledscores_club_v2", { p_tenant_id: session.tenantId, p_connection_id: connectionId, p_sports_club_id: clubId, p_expected_revision: revision }) : null;
+  if (!result || result.error) fail(connectionError(result?.error?.code));
+  if (isRecord(result.data) && result.data.outcome === "conflict") fail("De verbinding is gewijzigd. Vernieuw de pagina.");
+  complete("Clubkoppeling opgeslagen. De volgende catalogusverversing koppelt teams met een overeenkomende Sportlink-teamcode.");
+}
+
 function connectionError(code: string | undefined) {
   if (code === "42501") return "Deze tenant of rol mag LED Scores niet beheren.";
   if (code === "23505") return "Deze clubslug of interne naam bestaat al binnen de tenant.";

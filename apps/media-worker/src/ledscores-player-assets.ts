@@ -149,7 +149,7 @@ export class LedScoresPlayerAssetImporter {
 export class SupabaseLedScoresPlayerAssetRegistry implements LedScoresPlayerAssetRegistry {
   private readonly client: SupabaseClient<LedScoresPlayerAssetDatabase>;
 
-  constructor(client: SupabaseClient<LedScoresPlayerAssetDatabase>) {
+  constructor(client: SupabaseClient<LedScoresPlayerAssetDatabase>, private readonly entityType: "player" | "team" = "player") {
     this.client = client;
   }
 
@@ -158,9 +158,9 @@ export class SupabaseLedScoresPlayerAssetRegistry implements LedScoresPlayerAsse
       .from("provider_asset_cache")
       .select("current_version_id, last_checked_at, source_url")
       .eq("provider", "ledscores")
-      .eq("entity_type", "player")
+      .eq("entity_type", this.entityType)
       .eq("external_entity_id", externalId)
-      .eq("asset_role", "player_photo")
+      .eq("asset_role", this.entityType === "team" ? "team_logo" : "player_photo")
       .maybeSingle();
     if (result.error) {
       throw new LedScoresPlayerAssetError("ledscores_player_photo_cache_lookup_failed");
@@ -188,8 +188,8 @@ export class SupabaseLedScoresPlayerAssetRegistry implements LedScoresPlayerAsse
     const cacheResult = await this.client
       .from("provider_asset_cache")
       .upsert({
-        asset_role: "player_photo",
-        entity_type: "player",
+        asset_role: this.entityType === "team" ? "team_logo" : "player_photo",
+        entity_type: this.entityType,
         external_entity_id: artifact.externalId,
         last_checked_at: new Date().toISOString(),
         last_error_code: null,

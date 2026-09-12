@@ -4,6 +4,8 @@ import {
   LedScoresSemanticEventDetector,
   createLedScoresMatchIdentity,
   createLedScoresUrl,
+  fetchLedScoresClubCatalog,
+  type LedScoresClubCatalog,
   normalizeLedScoresTeamKey,
   parseLedScoresMessage,
   type LedScoresGoal,
@@ -102,6 +104,7 @@ type DecodedLedScoresMessage =
 export interface LedScoresConnectorBackend {
   claim(workerId: string, leaseSeconds: number, limit: number): Promise<ClaimedLedScoresConnection[]>;
   cleanup?(): Promise<void>;
+  syncCatalog?(connection: ClaimedLedScoresConnection, workerId: string, catalog: LedScoresClubCatalog): Promise<LedScoresTeamMapping[]>;
   dispatch(connection: ClaimedLedScoresConnection, workerId: string, goal: LedScoresGoal): Promise<number>;
   dispatchOverlay(input: {
     canonicalKey: string;
@@ -156,6 +159,7 @@ export interface LedScoresConnectorBackend {
 
 export class SupabaseLedScoresConnectorBackend implements LedScoresConnectorBackend {
   private readonly client: RpcClient;
+  private readonly teamAssetImporter: LedScoresPlayerAssetImporter | null;
   private readonly playerAssetImporter: LedScoresPlayerAssetImporter | null;
 
   constructor(
@@ -167,6 +171,11 @@ export class SupabaseLedScoresConnectorBackend implements LedScoresConnectorBack
     this.client = client ?? createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     }) as unknown as RpcClient;
+    this.teamAssetImporter = client ? null : new LedScoresPlayerAssetImporter(
+      new SupabaseLedScoresPlayerAssetRegistry(createClient<LedScoresPlayerAssetDatabase>(supabaseUrl, serviceRoleKey, {
+        auth: { autoRefreshToken: false, persistSession: false }
+      }), "team")
+    );
     this.playerAssetImporter = playerAssetImporter === undefined
       ? client
         ? null
@@ -189,6 +198,35 @@ export class SupabaseLedScoresConnectorBackend implements LedScoresConnectorBack
     if (result.error) throw new Error("ledscores_claim_failed");
     if (!Array.isArray(result.data)) return [];
     return result.data.map(parseClaimedConnection);
+  }
+
+  async syncCatalog(connection: ClaimedLedScoresConnection, workerId: string, catalog: LedScoresClubCatalog) {
+    const observedAt = new Date().toISOString();
+    // Persist identity first; optional logo downloads never hold up score delivery.
+    const persist = async (teams: LedScoresClubCatalog["teams"]) => {
+      const result = await this.client.rpc("sync_ledscores_club_catalog_v2", {
+        p_connection_id: connection.connectionId, p_worker_id: workerId,
+        p_observed_at: observedAt, p_club_id: catalog.clubId, p_club_slug: catalog.clubSlug, p_club_name: catalog.clubName,
+        p_teams: teams.map((team) => ({ teamKey: team.teamKey, teamName: team.teamName, sourceName: team.sourceName, side: team.side, active: team.active, category: team.category, sportlinkTeamCode: team.sportlinkTeamCode, logoProviderAssetVersionId: team.logoProviderAssetVersionId ?? null }))
+      });
+      if (result.error) throw new Error("ledscores_catalog_sync_failed");
+      return teams.filter((team) => team.active).map(({ side, teamKey, teamName }) => ({ side, teamKey, teamName }));
+    };
+    const mappings = await persist(catalog.teams);
+    if (this.teamAssetImporter) {
+      const importer = this.teamAssetImporter;
+      void mapWithConcurrency(catalog.teams, 3, async (team) => {
+        if (!team.logoSourceUrl) return team;
+        try {
+          const logoProviderAssetVersionId = await importer.importPlayerPhoto({
+            tenantId: connection.tenantId, connectionId: connection.connectionId,
+            teamKey: team.teamKey, playerKey: "team-logo", sourceUrl: team.logoSourceUrl
+          });
+          return { ...team, logoProviderAssetVersionId };
+        } catch { return team; }
+      }).then(persist).catch(() => undefined);
+    }
+    return mappings;
   }
 
   async cleanup() {
@@ -243,7 +281,9 @@ export class SupabaseLedScoresConnectorBackend implements LedScoresConnectorBack
     workerId: string,
     goal: LedScoresGoal
   ) {
-    const result = await this.client.rpc("dispatch_ledscores_goal_v1", {
+    const result = await this.client.rpc("dispatch_ledscores_goal_v2", {
+      p_home_team_key: goal.homeTeamKey ?? null,
+      p_away_team_key: goal.awayTeamKey ?? null,
       p_alert_id: null,
       p_away_score: goal.awayScore,
       p_away_team: goal.awayTeam,
@@ -497,6 +537,20 @@ async function runClaimedConnection({
     previousStatus: null,
     scheduledGoalPhotoKeys: new Set()
   };
+  let catalogBusy = false;
+  const refreshCatalog = async () => {
+    if (!backend.syncCatalog || catalogBusy || signal.aborted) return;
+    catalogBusy = true;
+    try {
+      const catalog = await fetchLedScoresClubCatalog(connection.clubSlug, { signal, webSocketFactory });
+      if (!signal.aborted) connection.mappings = await backend.syncCatalog(connection, workerId, catalog);
+    } catch {
+      // Keep the last verified mapping; a catalog outage must not stop score sync.
+      console.info(JSON.stringify({ event: "ledscores_catalog_unavailable", connectionId: connection.connectionId }));
+    } finally { catalogBusy = false; }
+  };
+  void refreshCatalog();
+  const catalogTimer = setInterval(() => { void refreshCatalog(); }, 5 * 60_000);
   let attempt = 0;
   let releaseReason = "worker_shutdown";
   try {
@@ -567,6 +621,7 @@ async function runClaimedConnection({
       }
     }
   } finally {
+    clearInterval(catalogTimer);
     await backend.release(connection.connectionId, workerId, releaseReason);
   }
 }

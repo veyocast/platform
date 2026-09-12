@@ -6,3 +6,4 @@ export * from "./sportlink-mappers";
 export * from "./sportlink-secret";
 export * from "./mollie";
 export * from "./ledscores";
+export * from "./ledscores-catalog";

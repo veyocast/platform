@@ -4,6 +4,7 @@ export * from "./engage";
 export * from "./errors";
 export * from "./identity";
 export * from "./ledscores-scene";
+export * from "./goal-overlay";
 export * from "./menu-studio";
 export * from "./mobile-control";
 export * from "./playlist";

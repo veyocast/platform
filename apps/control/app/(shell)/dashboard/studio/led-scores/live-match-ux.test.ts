@@ -56,11 +56,11 @@ describe("LED Scores live match authoring", () => {
   });
 
   it("scheidt tijdelijke overlays van een responsive latest-bound playlistslide", async () => {
-    const [editor, liveSlide, css, page, actions] = await Promise.all([
+    const [editor, liveSlide, css, studioData, actions] = await Promise.all([
       readFile(new URL("./alert-editor.tsx", import.meta.url), "utf8"),
       readFile(new URL("./live-match-slide-editor.tsx", import.meta.url), "utf8"),
       readFile(new URL("./led-scores-studio.module.css", import.meta.url), "utf8"),
-      readFile(new URL("./page.tsx", import.meta.url), "utf8"),
+      readFile(new URL("./studio-data.ts", import.meta.url), "utf8"),
       readFile(new URL("./actions.ts", import.meta.url), "utf8")
     ]);
 
@@ -86,8 +86,8 @@ describe("LED Scores live match authoring", () => {
     expect(editor).toContain("Een actief moment mist een hoofdtekst.");
     expect(editor).toContain("asset.logoSelectable");
     expect(editor).toContain("Andere media en gegenereerde slides worden uitgesloten.");
-    expect(page).toContain('.eq("source_kind", "user")');
-    expect(page).toContain('from("studio_tenant_brand_kits")');
+    expect(studioData).toContain('.eq("source_kind", "user")');
+    expect(studioData).toContain('from("studio_tenant_brand_kits")');
     expect(actions).toContain("assertLedScoresLibrarySelections");
     expect(actions).toContain('from("media_variants")');
     expect(actions).toContain('eq("status", "active")');

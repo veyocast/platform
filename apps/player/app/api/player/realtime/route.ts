@@ -99,7 +99,8 @@ export async function GET(request: Request) {
         sentDeliveryIds.add(delivery.id);
         const hydrated = await hydrateLedScoresDeliveryProviderPhotos(
           admin,
-          delivery
+          delivery,
+          currentBootstrap.tenantId
         );
         if (shouldAttachLedScoresConfigAssets(delivery.kind)) {
           try { await refreshConfigAssetsIfNeeded(); }
@@ -115,7 +116,7 @@ export async function GET(request: Request) {
         send(delivery.kind, {
           ...withCanvasScene,
           ...(shouldAttachLedScoresConfigAssets(delivery.kind)
-            ? { assets: config?.assets ?? [] }
+            ? { assets: [...(config?.assets ?? []), ...(config?.teamAssets ?? []).filter((asset) => asset.mediaAssetId === withCanvasScene.payload.homeLogo || asset.mediaAssetId === withCanvasScene.payload.awayLogo)] }
             : {}),
           serverTime: new Date().toISOString()
         });
