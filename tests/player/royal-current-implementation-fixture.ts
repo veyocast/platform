@@ -270,6 +270,7 @@ function frozenPresentation(reference: RoyalCurrentReferenceCase) {
     mode
   );
   const frozen = freezeThemePresentation({
+    appearance: createRoyalCurrentAppearance(style),
     instant: royalCurrentFixtureInstant,
     selection,
     settingsRevision: 161,

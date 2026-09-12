@@ -262,7 +262,7 @@ describe("Royal Current prototypefamilies", () => {
     }));
 
     expect(renderer).toContain("birthdayCardPhoto");
-    expect(renderer).toContain("birthdayConfetti");
+    expect(renderer).toContain("startBirthdayConfetti");
     expect(renderer).not.toContain("BirthdayPortrait");
     expect(birthdays).toContain('"pageSize":2');
     expect(birthdays).toContain('"layout":"celebration_grid"');
@@ -605,7 +605,7 @@ describe("Royal Current prototypefamilies", () => {
     expect(dynamicTemplateMinimumPlaybackMs(motionOn)).toBe(32_530);
     expect(pagedView?.pages).toHaveLength(3);
     expect(pagedView?.pages.every((page) =>
-      page.kind === "standing" && page.items.length <= 7
+      page.kind === "standing" && page.items.length <= 8
     )).toBe(true);
     expect(pagedView?.minimumPlaybackMs).toBeUndefined();
     expect(dynamicTemplateMinimumPlaybackMs(motionOff)).toBe(15_000);

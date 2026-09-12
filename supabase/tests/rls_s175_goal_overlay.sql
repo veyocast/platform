@@ -149,5 +149,27 @@ select is((public.run_ledscores_synthetic_goal_v2('10000000-0000-4000-8000-00000
 select is((select count(*) from public.ledscores_goal_events where event_kind='synthetic_test'),1::bigint,'test is explicitly marked synthetic');
 select is((select count(*) from public.ledscores_goal_events where event_kind='live'),3::bigint,'test does not add a live goal');
 select is((select payload#>>'{player,providerPlayerId}' from public.ledscores_player_deliveries where message_kind='goal' and payload->>'eventKind'='synthetic_test'),'player-9','test inserts known scorer identity in the first realtime delivery');
+
+-- S180: production diagnostics use a real owner operation, never a forged user.
+select ok(not has_function_privilege('authenticated','private.run_ledscores_operator_test_v1(uuid,uuid,uuid,text,uuid,text,text,text)','EXECUTE'),'tenant users cannot execute operator probe');
+select ok(not has_function_privilege('service_role','private.run_ledscores_operator_test_v1(uuid,uuid,uuid,text,uuid,text,text,text)','EXECUTE'),'workers cannot execute operator probe');
+select throws_ok($$select public.dispatch_ledscores_goal_v1(current_setting('test.connection')::uuid,'operator-test:'||repeat('d',40),repeat('d',64),'operator','operator','Team','Test',1,1,2,1,'own',null,null,clock_timestamp(),'live',null,'home','29644')$$,'42501',null,'operator marker cannot grant a tenant user live dispatch');
+reset role;
+select set_config('request.jwt.claim.role','',true);
+select set_config('request.jwt.claim.sub','',true);
+select lives_ok($$select private.validate_goal_overlay_v2('10000000-0000-4000-8000-000000001751',current_setting('test.config')::jsonb||'{"introAllowOrientationFallback":true}'::jsonb)$$,'explicit orientation fallback is a supported setting');
+select throws_ok($$select private.validate_goal_overlay_v2('10000000-0000-4000-8000-000000001751',current_setting('test.config')::jsonb||'{"introAllowOrientationFallback":"true"}'::jsonb)$$,'23514',null,'orientation fallback rejects non-boolean configuration');
+select throws_ok($$select private.run_ledscores_operator_test_v1('10000000-0000-4000-8000-000000001752',current_setting('test.alert')::uuid,current_setting('test.connection')::uuid,'29644','31000000-0000-4000-8000-000000001751',repeat('d',40),'S180 decoder verification')$$,'23514',null,'operator cannot mix tenant and alert');
+select throws_ok($$select private.run_ledscores_operator_test_v1('10000000-0000-4000-8000-000000001751',current_setting('test.alert')::uuid,current_setting('test.connection')::uuid,'29646','31000000-0000-4000-8000-000000001751',repeat('d',40),'S180 decoder verification')$$,'23514',null,'operator cannot target an unselected team');
+select throws_ok($$select private.run_ledscores_operator_test_v1('10000000-0000-4000-8000-000000001751',current_setting('test.alert')::uuid,current_setting('test.connection')::uuid,'29644',gen_random_uuid(),repeat('d',40),'S180 decoder verification')$$,'23514',null,'operator cannot target an unpublished group');
+select throws_ok($$select private.run_ledscores_operator_test_v1('10000000-0000-4000-8000-000000001751',current_setting('test.alert')::uuid,current_setting('test.connection')::uuid,'29644','31000000-0000-4000-8000-000000001751',repeat('d',40),'S180 decoder verification')$$,'P0004',null,'operator retains the existing synthetic rate limit');
+-- Advance only this transaction's mutable event fixture beyond the rate window.
+update public.ledscores_goal_events set created_at=clock_timestamp()-interval '30 seconds' where event_kind='synthetic_test';
+select is((private.run_ledscores_operator_test_v1('10000000-0000-4000-8000-000000001751',current_setting('test.alert')::uuid,current_setting('test.connection')::uuid,'29644','31000000-0000-4000-8000-000000001751',repeat('d',40),'S180 decoder verification','away')->>'deliveryCount')::integer,1,'real owner probe uses normal published delivery pipeline');
+select is((select count(*) from public.ledscores_goal_events where event_kind='live'),3::bigint,'operator probe never changes live statistics');
+select is((select count(*) from public.ledscores_goal_events where event_kind='synthetic_test'),2::bigint,'operator probe remains explicitly synthetic');
+select is((select count(*) from public.audit_events where action='ledscores.operator.synthetic_test' and metadata->>'deploymentSha'=repeat('d',40)),1::bigint,'operator probe has deployment provenance in audit');
+update public.tenants set status='paused' where id='10000000-0000-4000-8000-000000001751';
+select throws_ok($$select private.run_ledscores_operator_test_v1('10000000-0000-4000-8000-000000001751',current_setting('test.alert')::uuid,current_setting('test.connection')::uuid,'29644','31000000-0000-4000-8000-000000001751',repeat('d',40),'S180 decoder verification')$$,'P0002',null,'operator probe respects paused tenant lifecycle');
 select * from finish();
 rollback;

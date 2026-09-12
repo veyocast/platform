@@ -1,3 +1,6 @@
+import { resolveSportListLayout } from "../../../../packages/content-templates/src/sport-list-layout";
+import { startBirthdayConfetti } from "../../../../packages/content-templates/src/birthday-confetti";
+import { birthdayCalendarDay } from "../../../../packages/content-templates/src/birthday-calendar";
 import { sportMatchBelongsOnSlide } from "../../../../packages/content-templates/src/sport-match-phase";
 import { legacyGoalOverlayCss, legacyGoalOverlayScript } from "./lg-goal-overlay-runtime";
 import { themeBaseFontSizes } from "../../../../packages/content-templates/src/theme-catalog";
@@ -250,9 +253,9 @@ export function renderLgLegacyHtml() {
     .dark .dynamic-row p{color:#c9c4b9}
     .dynamic-row strong{justify-self:end;font-size:var(--vc-theme-font-26-88,26.88px);text-align:right}
     .legacy-typed-list{display:grid;box-sizing:border-box;height:100%;padding:2.8%;overflow:hidden;border:1px solid var(--editorial-border);border-radius:24px;background:var(--editorial-surface);box-shadow:0 24px 80px var(--editorial-shadow)}
-    .legacy-fixture-list,.legacy-result-list{display:grid;grid-auto-rows:115px;align-content:start;box-sizing:border-box;height:100%;gap:12px;overflow:hidden}
+    .legacy-fixture-list,.legacy-result-list{display:grid;grid-auto-rows:var(--sport-list-row-height,115px);align-content:start;box-sizing:border-box;height:100%;gap:12px;overflow:hidden}
     .legacy-fixture-list[data-columns="two"],.legacy-result-list[data-columns="two"]{grid-auto-flow:column;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px}
-    .legacy-fixture-row,.legacy-result-row{display:grid;align-content:center;box-sizing:border-box;height:115px;min-width:0;min-height:115px;padding:12px 22px;overflow:hidden;border:1px solid var(--vc-border);border-radius:18px;background:var(--vc-row);box-shadow:0 12px 36px var(--vc-shadow);color:var(--vc-text);font-size:var(--vc-sport-row-size,22.4px);animation:legacy-match-row-in 420ms cubic-bezier(.2,.8,.2,1) var(--match-row-delay,360ms) both}
+    .legacy-fixture-row,.legacy-result-row{display:grid;align-content:center;box-sizing:border-box;height:var(--sport-list-row-height,115px);min-width:0;min-height:var(--sport-list-row-height,115px);padding:12px 22px;overflow:hidden;border:1px solid var(--vc-border);border-radius:18px;background:var(--vc-row);box-shadow:0 12px 36px var(--vc-shadow);color:var(--vc-text);font-size:var(--vc-sport-row-size,22.4px);animation:legacy-match-row-in 420ms cubic-bezier(.2,.8,.2,1) var(--match-row-delay,360ms) both}
     .legacy-fixture-row{grid-template-rows:minmax(0,1fr) auto;gap:8px}
     .legacy-result-row{grid-template-rows:minmax(0,1fr);font-size:var(--vc-sport-result-size,33.6px)}
     .legacy-fixture-list[data-columns="two"] .legacy-fixture-row,.legacy-result-list[data-columns="two"] .legacy-result-row{padding:10px 14px}
@@ -422,9 +425,9 @@ export function renderLgLegacyHtml() {
     .editorial-arena.portrait[data-slide-type="sport_results"] .dynamic-row h2{font-size:var(--vc-theme-font-34-5,34.5px)}
     .editorial-arena.portrait[data-slide-type="sport_results"] .dynamic-row p{font-size:var(--vc-theme-font-21,21px)}
     .editorial-arena.portrait[data-slide-type="sport_results"] .dynamic-row strong{font-size:var(--vc-theme-font-28-5,28.5px)}
-    .portrait .legacy-fixture-list{grid-auto-rows:221px}.portrait .legacy-result-list{grid-auto-rows:314px}
-    .portrait .legacy-fixture-row{height:221px;font-size:var(--vc-sport-row-size-portrait,20.16px)}
-    .portrait .legacy-result-row{height:314px;font-size:var(--vc-sport-result-size-portrait,30.24px)}
+    .portrait .legacy-fixture-list{grid-auto-rows:var(--sport-list-row-height,221px)}.portrait .legacy-result-list{grid-auto-rows:var(--sport-list-row-height,314px)}
+    .portrait .legacy-fixture-row{height:var(--sport-list-row-height,221px);font-size:var(--vc-sport-row-size-portrait,20.16px)}
+    .portrait .legacy-result-row{height:var(--sport-list-row-height,314px);font-size:var(--vc-sport-result-size-portrait,30.24px)}
     .portrait .legacy-typed-row,.portrait .legacy-typed-row[data-kind="official"]{grid-template-columns:110px minmax(0,1fr)}
     .portrait .legacy-typed-row>strong{grid-column:2;justify-self:start;text-align:left}
     .dynamic-template.editorial-arena{display:block;padding:0;background:#f3f1ec;color:#17202a}
@@ -722,7 +725,7 @@ export function renderLgLegacyHtml() {
     .legacy-royal-masthead-right{display:flex;align-items:center;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.11em;text-transform:uppercase}
     .legacy-royal-masthead-right>*+*{margin-left:28px}
     .legacy-royal-masthead-right time{color:var(--ink);font-size:22px;letter-spacing:0;font-variant-numeric:tabular-nums}
-    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"]>header{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;display:grid;height:auto!important;min-width:0;min-height:148px;grid-template-columns:104px minmax(0,1fr) 150px;align-items:center;grid-column-gap:26px;padding:20px 32px!important;overflow:hidden;border:1px solid var(--line);border-radius:24px;background:var(--surface);box-shadow:0 12px 30px var(--vc-shadow);animation:none}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"]>header{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;display:grid;height:auto!important;min-width:0;min-height:148px;grid-template-columns:104px minmax(0,1fr) 150px;align-items:center;grid-column-gap:26px;padding:8px 32px!important;overflow:hidden;border:1px solid var(--line);border-radius:24px;background:var(--surface);box-shadow:0 12px 30px var(--vc-shadow);animation:none}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-crest{display:grid;width:104px;height:104px;place-items:center;border:1px solid var(--line);border-radius:20px;background:var(--vc-club-logo-background);box-shadow:none}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-crest img{width:82%;height:82%;object-fit:contain}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .editorial-heading{min-width:0}
@@ -737,8 +740,8 @@ export function renderLgLegacyHtml() {
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"]>footer{position:absolute!important;z-index:4;right:64px!important;bottom:22px!important;left:150px!important;display:flex;height:34px!important;align-items:center;justify-content:space-between;padding:0!important;border:0;color:var(--muted);font-size:var(--rc-footer-size,14px);font-weight:700;letter-spacing:.06em;line-height:1.2;text-transform:uppercase;animation:none}
     .legacy-royal-footer i{margin:0 7px;color:var(--accent);font-style:normal}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-list,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-list{grid-row-gap:12px}
-    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-list,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-list{grid-auto-rows:96px}
-    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-row,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-row{height:96px;min-height:96px;border-color:var(--line);background:var(--surface);box-shadow:0 8px 20px var(--vc-shadow);color:var(--ink)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-list,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-list{grid-auto-rows:var(--sport-list-row-height,96px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-row,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-row{height:var(--sport-list-row-height,96px);min-height:var(--sport-list-row-height,96px);border-color:var(--line);background:var(--surface);box-shadow:0 8px 20px var(--vc-shadow);color:var(--ink)}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-row{font-size:var(--rc-program-row-size,25px)}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-result-row{font-size:var(--rc-result-row-size,31px)}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"] .legacy-fixture-list[data-columns="two"] .legacy-fixture-row{font-size:var(--rc-program-row-size-compact,20px)}
@@ -780,9 +783,9 @@ export function renderLgLegacyHtml() {
     .legacy-royal-standing-columns{min-height:34px;padding:0 10px;border-bottom:2px solid var(--accent);color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
     .legacy-royal-standing-columns>span,.legacy-royal-standing-row>span,.legacy-royal-standing-row>strong{text-align:center}
     .legacy-royal-standing-columns>span:nth-child(2){text-align:left}
-    .legacy-royal-standing-rows{min-height:0;overflow:hidden}
+    .legacy-royal-standing-rows{display:grid;grid-auto-rows:minmax(70px,1fr);grid-row-gap:6px;min-height:0;overflow:hidden}
     .legacy-royal-standing-row{height:70px;padding:0 10px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font-size:20px;font-weight:700}
-    .legacy-royal-standing-row+.legacy-royal-standing-row{margin-top:6px}
+    .legacy-royal-standing-rows>.legacy-royal-standing-row{height:auto;min-height:70px}
     .legacy-royal-standing-row.pinned{border-color:var(--own-line);background:var(--own-bg);color:var(--own-ink);box-shadow:inset 7px 0 0 var(--accent)}
     .legacy-royal-standing-row.pinned .legacy-standing-rank,.legacy-royal-standing-row.pinned .legacy-standing-points{color:var(--own-ink)}
     .legacy-royal-standing-row .legacy-standing-team{grid-column:auto}
@@ -855,8 +858,8 @@ export function renderLgLegacyHtml() {
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-title-stat span{font-size:10px}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait>footer{right:38px!important;bottom:24px!important;left:101px!important;height:40px!important;font-size:var(--rc-footer-size,14px)}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-cancelled-kickoff{font-size:var(--rc-cancelled-size-portrait,20px)!important}
-    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-fixture-list,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-result-list{grid-auto-rows:148px}
-    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-fixture-row,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-result-row{height:148px;min-height:148px}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-fixture-list,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-result-list{grid-auto-rows:var(--sport-list-row-height,148px)}
+    .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-fixture-row,.dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-result-row{height:var(--sport-list-row-height,148px);min-height:var(--sport-list-row-height,148px)}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-fixture-row{font-size:var(--rc-program-row-size-portrait,24px)}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-result-row{font-size:var(--rc-result-row-size-portrait,29px)}
     .dynamic-template.editorial-arena[data-design-revision="royal-current-v8"].portrait .legacy-royal-arrival-grid[data-slots]{grid-template-columns:minmax(0,1fr);grid-column-gap:24px;grid-row-gap:24px}
@@ -898,9 +901,7 @@ export function renderLgLegacyHtml() {
     .legacy-birthday-copy h2{max-width:100%;margin:14px 0 6px;overflow-wrap:anywhere;color:var(--ink);font-family:var(--vc-theme-display-font,"VeyoCast Royal Current Roboto"),Roboto,Arial,sans-serif;font-size:clamp(30px,3.1vw,74px);font-weight:900;letter-spacing:-.055em;line-height:.94}
     .legacy-birthday-copy p{max-width:100%;margin:0;color:var(--editorial-muted);font-size:clamp(16px,1.25vw,28px);font-weight:700;line-height:1.2;overflow-wrap:anywhere}
     .legacy-birthday-copy strong{max-width:100%;margin-top:13px;color:var(--accent);font-size:clamp(16px,1.3vw,29px);font-weight:900;line-height:1.15;overflow-wrap:anywhere}
-    .legacy-birthday-confetti{position:absolute;z-index:-1;top:0;right:0;left:0;height:18%;overflow:hidden;pointer-events:none}
-    .legacy-birthday-confetti i{position:absolute;top:-10px;display:block;width:10px;height:30px;border-radius:999px;background:var(--accent);opacity:.72;transform:rotate(24deg)}
-    .legacy-birthday-confetti i:nth-child(1){left:4%;background:var(--accent)}.legacy-birthday-confetti i:nth-child(2){left:12%;height:22px;background:var(--accent-soft);transform:rotate(-22deg)}.legacy-birthday-confetti i:nth-child(3){left:21%;background:var(--accent)}.legacy-birthday-confetti i:nth-child(4){left:31%;height:18px;background:var(--accent-soft);transform:rotate(-28deg)}.legacy-birthday-confetti i:nth-child(5){left:42%;background:var(--accent)}.legacy-birthday-confetti i:nth-child(6){left:53%;height:22px;background:var(--accent-soft);transform:rotate(-20deg)}.legacy-birthday-confetti i:nth-child(7){left:64%;background:var(--accent)}.legacy-birthday-confetti i:nth-child(8){left:74%;height:18px;background:var(--accent-soft);transform:rotate(-28deg)}.legacy-birthday-confetti i:nth-child(9){left:83%;background:var(--accent)}.legacy-birthday-confetti i:nth-child(10){left:91%;height:22px;background:var(--accent-soft);transform:rotate(-20deg)}
+    .legacy-birthday-card[data-emphasize-today]{border:3px solid var(--accent);box-shadow:inset 0 0 0 2px var(--editorial-surface),0 16px 42px var(--editorial-shadow)}
     .dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="6"] .legacy-birthday-copy b{font-size:clamp(13px,1vw,20px)}
     .dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="6"] .legacy-birthday-copy h2{font-size:clamp(24px,2.4vw,52px);margin-top:10px}
     .dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="6"] .legacy-birthday-copy p,.dynamic-template.editorial-arena .legacy-birthday-layout[data-page-size="6"] .legacy-birthday-copy strong{font-size:clamp(13px,1vw,21px)}
@@ -913,7 +914,7 @@ export function renderLgLegacyHtml() {
     .dynamic-template.editorial-arena.portrait .legacy-birthday-layout[data-page-size="2"] .legacy-birthday-copy h2{font-size:clamp(30px,6vw,68px)}
     .dynamic-template.editorial-arena.portrait .legacy-birthday-layout[data-page-size="4"] .legacy-birthday-copy h2{font-size:clamp(26px,5vw,50px)}
     .dynamic-template.editorial-arena.portrait .legacy-birthday-layout[data-page-size="6"] .legacy-birthday-copy h2{font-size:clamp(22px,3.4vw,42px)}
-    @media(prefers-reduced-motion:reduce){.legacy-birthday-card,.legacy-birthday-confetti i{animation:none!important}}
+    @media(prefers-reduced-motion:reduce){.legacy-birthday-card{animation:none!important}}
     .dynamic-template.ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-shell{grid-template-rows:96px minmax(192px,auto) minmax(0,1fr);grid-row-gap:24px;padding:36px 38px 84px 101px}
     .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .legacy-royal-sideband{width:72px;padding:30px 10px 28px;font-size:11px}
     .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .legacy-royal-sideband b{font-size:29px}
@@ -967,6 +968,9 @@ export function renderLgLegacyHtml() {
     var CONFIG = ${config};
     ${legacyGoalOverlayScript()}
     var sportMatchBelongsOnSlide = ${sportMatchBelongsOnSlide.toString()};
+    var startBirthdayConfetti = ${startBirthdayConfetti.toString()};
+    var birthdayCalendarDay = ${birthdayCalendarDay.toString()};
+    var resolveSportListLayout = ${resolveSportListLayout.toString()};
     var runtime = {
       activeIndex: 0,
       activationInFlight: false,
@@ -2093,6 +2097,8 @@ export function renderLgLegacyHtml() {
         expiresAt: expiresAt,
         serverTime: serverTime,
         goal: {
+          alertVersionId: goalOptionalUuid(record.alertVersionId),
+          screenOrientation: runtime.goalScreenOrientation || null,
           competition: goalText(payload.competition, 160),
           matchName: goalText(payload.matchName, 240),
           round: goalText(payload.round, 80),
@@ -3136,6 +3142,7 @@ export function renderLgLegacyHtml() {
       var element;
       if (runtime.goalPauseApplied) return;
       runtime.goalPauseApplied = true;
+      if (runtime.currentElement && runtime.currentElement.birthdayRefresh) runtime.currentElement.birthdayRefresh();
       if (runtime.playbackTimer !== null && runtime.playbackDeadlineAt > 0) {
         remaining = Math.max(1, runtime.playbackDeadlineAt - now());
         window.clearTimeout(runtime.playbackTimer);
@@ -3163,6 +3170,7 @@ export function renderLgLegacyHtml() {
       var video;
       if (!runtime.goalPauseApplied) return;
       runtime.goalPauseApplied = false;
+      if (runtime.currentElement && runtime.currentElement.birthdayRefresh) runtime.currentElement.birthdayRefresh();
       video = runtime.goalPausedVideo;
       runtime.goalPausedVideo = null;
       if (video && runtime.currentElement === video) {
@@ -3921,6 +3929,7 @@ export function renderLgLegacyHtml() {
       var deliveryId;
       if (!record) return;
       if (event === "bootstrap" || event === "configuration") {
+        if (record.screenOrientation === "portrait" || record.screenOrientation === "landscape") runtime.goalScreenOrientation = record.screenOrientation;
         var prepared = preloadGoalAssets(record.configs);
         if (Array.isArray(record.matchBindings)) {
           for (var bindingIndex = 0;
@@ -5584,6 +5593,7 @@ export function renderLgLegacyHtml() {
         revokeObjectUrls(objectUrls || []);
         return;
       }
+      if (element.birthdayCleanup) { element.birthdayCleanup(); element.birthdayCleanup = null; }
       if (element.tagName === "VIDEO") {
         element.oncanplay = null;
         element.onended = null;
@@ -5645,6 +5655,7 @@ export function renderLgLegacyHtml() {
       runtime.currentElement = element;
       runtime.currentObjectUrls = objectUrls || [];
       element.className += " visible";
+      if (previousElement && previousElement.birthdayCleanup) { previousElement.birthdayCleanup(); previousElement.birthdayCleanup = null; }
       if (previousElement && previousElement !== element) {
         previousElement.className += " retiring";
         window.setTimeout(function () {
@@ -7328,13 +7339,20 @@ export function renderLgLegacyHtml() {
       var pinnedTeam = null;
       var pinnedIndex;
       if (royalCurrent) {
-        pages = templatePages(items, payload.orientation === "portrait" ? 9 : 6);
+
         for (pinnedIndex = 0; pinnedIndex < items.length; pinnedIndex += 1) {
           if ((templateRecord(items[pinnedIndex]) || {}).selected === true) {
             pinnedTeam = templateRecord(items[pinnedIndex]);
             break;
           }
         }
+      }
+      if (royalCurrent) {
+        var standingWindow = body.querySelector(".legacy-royal-standing-rows");
+        var standingHeight = standingWindow && standingWindow.clientHeight || Math.max(70,
+          (body.clientHeight || (payload.orientation === "portrait" ? 1464 : 704)) - (pinnedTeam ? 168 : 70));
+        pages = templatePages(items, resolveSportListLayout({ orientation: payload.orientation,
+          slideType: payload.slideType, itemCount: items.length, contentHeight: standingHeight, minimumRowHeight: 70 }).capacity);
       }
       return {
         pages: pages,
@@ -7691,9 +7709,9 @@ export function renderLgLegacyHtml() {
       list.setAttribute("data-columns", columns);
       if (columns === "two") {
         if (royalCurrent) {
-          list.style.gridTemplateRows = "repeat(" + Math.ceil(itemCount / 2) + ",96px)";
+          list.style.gridTemplateRows = "repeat(" + Math.ceil(itemCount / 2) + ",var(--sport-list-row-height,96px))";
         } else {
-          list.style.gridTemplateRows = "repeat(" + Math.ceil(itemCount / 2) + ",115px)";
+          list.style.gridTemplateRows = "repeat(" + Math.ceil(itemCount / 2) + ",var(--sport-list-row-height,115px))";
         }
       }
     }
@@ -7764,6 +7782,9 @@ export function renderLgLegacyHtml() {
           6
         )
         : 0;
+      var responsiveList = ["sport_program", "sport_results", "sport_cancellations", "sport_dressing_rooms", "sport_officials"].indexOf(slideType) !== -1;
+      var listLayout = resolveSportListLayout({ orientation: orientation, slideType: slideType,
+        itemCount: items.length, contentHeight: body.clientHeight || undefined, columns: displayColumns === "two" ? 2 : 1 });
       var pages = match ? [items.length ? items[0] : null] :
         birthday && !items.length ? [] :
         arrival && !items.length && templateText(arrivalConfiguration.emptyBehavior, "skip") === "skip" ? [] : templatePages(
@@ -7771,8 +7792,7 @@ export function renderLgLegacyHtml() {
           birthday
             ? birthdayPageSize
             : arrival ? cardsPerPage
-            : slideType === "sport_results" ? (orientation === "portrait" ? 5 : 6) * (displayColumns === "two" ? 2 : 1)
-            : slideType === "sport_program" ? (orientation === "portrait" ? 7 : 6) * (displayColumns === "two" ? 2 : 1)
+            : responsiveList ? listLayout.capacity
             : slideType === "sport_sponsor" ? 1
             : orientation === "portrait" ? 6 : 8
         );
@@ -7790,6 +7810,12 @@ export function renderLgLegacyHtml() {
           var meta;
           var index;
           body.innerHTML = "";
+          if (responsiveList) {
+            var pageLayout = resolveSportListLayout({ orientation: orientation, slideType: slideType,
+              itemCount: page.length, contentHeight: body.clientHeight || listLayout.contentHeight,
+              columns: displayColumns === "two" ? 2 : 1 });
+            body.style.setProperty("--sport-list-row-height", pageLayout.rowHeight + "px");
+          }
           if (match) {
             item = templateRecord(page);
             if (!item) {
@@ -7847,7 +7873,6 @@ export function renderLgLegacyHtml() {
             var birthdayShowTeamRole = birthdaySelection.showTeamRole !== false;
             var birthdayShowRole = birthdaySelection.showRole !== false;
             var birthdayShowTeam = birthdaySelection.showTeam !== false;
-            var birthdayConfettiEnabled = birthdayPresentation.confetti !== false;
             for (index = 0; index < page.length; index += 1) {
               item = templateRecord(page[index]) || {};
               var birthdayDisplayName = templateText(
@@ -7864,19 +7889,13 @@ export function renderLgLegacyHtml() {
               birthdayCard.appendChild(birthdayPhoto);
               var birthdayMonth = Number(item.month);
               var birthdayDay = Number(item.day);
-              var birthdayIsToday = item.isToday === true || (
+              var birthdayIsToday = (
                 isFinite(birthdayMonth) && isFinite(birthdayDay) &&
                 birthdayMonth === localNow.getUTCMonth() + 1 &&
                 birthdayDay === localNow.getUTCDate()
               );
-              if (birthdayIsToday && birthdayConfettiEnabled) {
-                var birthdayConfetti = templateNode("span", "legacy-birthday-confetti");
-                birthdayConfetti.setAttribute("aria-hidden", "true");
-                for (var confettiIndex = 0; confettiIndex < 10; confettiIndex += 1) {
-                  birthdayConfetti.appendChild(templateNode("i", ""));
-                }
-                birthdayCard.appendChild(birthdayConfetti);
-              }
+              if (birthdayIsToday) birthdayCard.setAttribute("data-today", "true");
+              if (birthdayIsToday && birthdaySelection.emphasizeToday !== false) birthdayCard.setAttribute("data-emphasize-today", "true");
               var birthdayCopy = templateNode("div", "legacy-birthday-copy");
               birthdayCopy.appendChild(templateNode("b", "", "Gefeliciteerd"));
               birthdayCopy.appendChild(templateNode("h2", "", birthdayDisplayName));
@@ -7895,14 +7914,13 @@ export function renderLgLegacyHtml() {
                 var birthdayMeta = [birthdayRole].concat(birthdayTeams).filter(Boolean).join(" · ");
                 if (birthdayMeta) birthdayCopy.appendChild(templateNode("p", "", birthdayMeta));
               }
-              var birthdayAge = Number(item.age);
+              var birthdayAge = birthdaySelection.showAge !== false && item.age !== null && item.age !== undefined ? Number(item.age) : NaN;
               var birthdayDateLabel = templateText(
                 item.displayDate,
                 templateText(item.dateLabel, templateText(item.date, ""))
               );
-              var birthdayStatus = isFinite(birthdayAge) && Math.floor(birthdayAge) === birthdayAge && birthdayAge >= 0
-                ? String(birthdayAge) + " jaar"
-                : birthdayIsToday ? "Vandaag jarig" : birthdayDateLabel || "Verjaardag";
+              var birthdayStatus = birthdayIsToday ? "Vandaag jarig" : birthdaySelection.showDate !== false && birthdayDateLabel || "Binnenkort jarig";
+              if (isFinite(birthdayAge) && Math.floor(birthdayAge) === birthdayAge && birthdayAge >= 0) birthdayStatus += " · " + String(birthdayAge) + " jaar";
               birthdayCopy.appendChild(templateNode("strong", "", birthdayStatus));
               birthdayCard.appendChild(birthdayCopy);
               birthdayLayout.appendChild(birthdayCard);
@@ -9361,6 +9379,51 @@ export function renderLgLegacyHtml() {
       fitDynamicTemplateCanvas(root, payload.orientation);
       beginPendingMedia(root, objectUrls);
       if (!commitPendingMedia(root, objectUrls, generation)) return;
+      if (["sport_program", "sport_results", "sport_cancellations", "sport_dressing_rooms", "sport_officials", "sport_standing", "sport_period_standing"].indexOf(payload.slideType) !== -1) {
+        renderer = payload.slideType === "sport_standing" || payload.slideType === "sport_period_standing"
+          ? renderEditorialStandingTemplate(body, snapshot, payload)
+          : renderSportTemplate(body, snapshot, payload.slideType, payload.orientation, payload);
+        renderer.render(renderer.pages[0], 0);
+        var listCounters = root.querySelectorAll(".dynamic-page-number,.matchcentre-page-number");
+        for (var listCounter = 0; listCounter < listCounters.length; listCounter += 1) listCounters[listCounter].textContent = templatePageCounter(0, renderer.pages.length);
+      }
+      if (payload.slideType === "sport_birthdays") {
+        var birthdayData = templateRecord(snapshot.sport) || {};
+        var birthdayConfig = templateRecord(birthdayData.configuration) || {};
+        var birthdayOptions = templateRecord(birthdayConfig.presentation) || {};
+        var birthdayDay = birthdayCalendarDay(now(), clockTimezone);
+        var confettiCleanup = null;
+        var motionQuery = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+        function refreshBirthdayEffect() {
+          var nextDay = birthdayCalendarDay(now(), clockTimezone);
+          if (nextDay && nextDay !== birthdayDay) {
+            birthdayDay = nextDay;
+            renderer = renderSportTemplate(body, snapshot, payload.slideType, payload.orientation, payload);
+            if (!renderer.pages.length) { nextItem(); return; }
+            pageIndex = Math.min(pageIndex, renderer.pages.length - 1);
+            renderer.render(renderer.pages[pageIndex], pageIndex);
+          }
+          var today = renderer.pages.some(function (birthdayPage) { return birthdayPage.some(function (person) {
+            return Number(person.month) === Number(birthdayDay.slice(5, 7)) && Number(person.day) === Number(birthdayDay.slice(8, 10));
+          }); });
+          var enabled = runtime.currentElement === root && !runtime.goalPauseApplied &&
+            birthdayOptions.confetti === true && birthdayOptions.motion !== false &&
+            themeAppearance.motionEnabled !== false && !(motionQuery && motionQuery.matches) && today && renderer.pages.length > 0;
+          if (enabled && !confettiCleanup) confettiCleanup = startBirthdayConfetti(root, {
+            colors: [accent, templateText(editorialTokens.text, "#FFFFFF"), templateText(editorialTokens.accentSoft, accent)], particleLimit: 32
+          });
+          if (!enabled && confettiCleanup) { confettiCleanup(); confettiCleanup = null; }
+        }
+        var birthdayTimer = window.setInterval(refreshBirthdayEffect, 1000);
+        root.birthdayRefresh = refreshBirthdayEffect;
+        root.birthdayCleanup = function () {
+          window.clearInterval(birthdayTimer);
+          if (confettiCleanup) confettiCleanup();
+          confettiCleanup = null;
+          root.birthdayRefresh = null;
+        };
+        refreshBirthdayEffect();
+      }
       if (editorialArena) {
         updateMatchCentreClock();
         window.clearInterval(runtime.matchCentreClockTimer);
@@ -9686,6 +9749,8 @@ export function renderLgLegacyHtml() {
         runtime.pendingRelease.envelope &&
         runtime.pendingRelease.envelope.manifest;
       return {
+        goalVideoDiagnostics: goalVideoTelemetry(),
+        goalVideoCapabilities: goalVideoCapabilities("static-lg", CONFIG.appVersion),
         activeReleaseId: manifest ? manifest.releaseId : null,
         currentItemId: runtime.currentItem ? runtime.currentItem.id : null,
         desiredReleaseId: pendingManifest

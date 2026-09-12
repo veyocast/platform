@@ -390,11 +390,12 @@ describe("LED Scores Player server boundary", () => {
     });
     const admin = {
       rpc,
+      from: vi.fn(() => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { orientation: "portrait" }, error: null }) }) }) }) })),
       storage: { from: vi.fn(() => ({ createSignedUrl })) }
     };
 
     const bootstrap = await loadLedScoresPlayerBootstrap(admin as never, "a".repeat(64));
-    expect(bootstrap).toMatchObject({ authorized: true, enabled: true });
+    expect(bootstrap).toMatchObject({ authorized: true, enabled: true, screenOrientation: "portrait" });
     if (!bootstrap.authorized || !bootstrap.enabled) throw new Error("Expected enabled bootstrap");
     expect(bootstrap.configs[0]?.assets).toHaveLength(1);
     expect(bootstrap.pendingDeliveries).toHaveLength(1);
@@ -438,6 +439,7 @@ describe("LED Scores Player server boundary", () => {
         },
         error: null
       }),
+      from: vi.fn(() => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { orientation: "portrait" }, error: null }) }) }) }) })),
       storage: { from: vi.fn(() => ({ createSignedUrl })) }
     };
 

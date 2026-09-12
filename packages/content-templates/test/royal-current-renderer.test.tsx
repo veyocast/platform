@@ -178,8 +178,8 @@ describe("Royal Current moderne renderer", () => {
     expect(view?.standingPinnedTeam).toMatchObject({ id: "team-2", position: 2 });
     expect(standingPage?.kind === "standing"
       ? standingPage.items.map((team) => team.id)
-      : []).toEqual(["team-1", "team-2", "team-3", "team-4"]);
-    expect(view?.pages).toHaveLength(3);
+      : []).toEqual(["team-1", "team-2", "team-3", "team-4", "team-5"]);
+    expect(view?.pages).toHaveLength(2);
     expect(view?.pages.flatMap((page) => page.kind === "standing" ? page.items : []))
       .toHaveLength(9);
     expect(renderer).toContain('data-testid="standing-pinned-team"');

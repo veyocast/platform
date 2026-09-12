@@ -558,15 +558,13 @@ describe("trusted dynamic template view", () => {
       orientation: "portrait"
     });
 
-    expect(landscape?.pages).toHaveLength(3);
+    expect(landscape?.pages).toHaveLength(2);
     expect(landscape?.pages).toMatchObject([
       { items: expect.any(Array), kind: "sport-list" },
-      { items: expect.any(Array), kind: "sport-list" },
-      { items: [expect.objectContaining({ homeTeam: "Thuis 13" })], kind: "sport-list" }
+      { items: expect.arrayContaining([expect.objectContaining({ homeTeam: "Thuis 13" })]), kind: "sport-list" }
     ]);
-    expect(portrait?.pages).toHaveLength(3);
+    expect(portrait?.pages).toHaveLength(2);
     expect(portrait?.pages).toMatchObject([
-      { items: expect.any(Array), kind: "sport-list" },
       { items: expect.any(Array), kind: "sport-list" },
       {
         items: expect.arrayContaining([
@@ -577,10 +575,10 @@ describe("trusted dynamic template view", () => {
     ]);
     expect(landscape?.pages[0]?.kind === "sport-list"
       ? landscape.pages[0].items.length
-      : 0).toBe(6);
+      : 0).toBe(7);
     expect(portrait?.pages[0]?.kind === "sport-list"
       ? portrait.pages[0].items.length
-      : 0).toBe(5);
+      : 0).toBe(8);
   });
 
   it("gebruikt twee wedstrijdkolommen alleen liggend en forceert portrait naar één", () => {
@@ -616,17 +614,17 @@ describe("trusted dynamic template view", () => {
         orientation: "portrait",
         templateSlug: `editorial-arena-${slideType.replaceAll("_", "-")}-light-portrait`
       });
-      const expectedPortraitRows = slideType === "sport_results" ? 5 : 7;
+      const expectedPortraitRows = 8;
 
       expect(landscape?.pages[0]?.kind === "sport-list"
         ? landscape.pages[0].items
-        : []).toHaveLength(12);
+        : []).toHaveLength(13);
       expect(portrait?.pages[0]?.kind === "sport-list"
         ? portrait.pages[0].items
         : []).toHaveLength(expectedPortraitRows);
-      expect(landscape?.pages).toHaveLength(2);
+      expect(landscape?.pages).toHaveLength(1);
       expect(portrait?.pages).toHaveLength(
-        slideType === "sport_results" ? 3 : 2
+        2
       );
     }
   });

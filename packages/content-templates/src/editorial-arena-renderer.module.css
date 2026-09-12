@@ -2263,42 +2263,9 @@
 .arenaRoot .birthdayLayout[data-page-size="2"] .birthdayCopy h2 { font-size: calc(86px * var(--vc-theme-base-scale, 1)); }
 .arenaRoot .birthdayLayout[data-page-size="1"] .birthdayCopy h2 { font-size: calc(112px * var(--vc-theme-base-scale, 1)); }
 
-.arenaRoot .birthdayConfetti {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.arenaRoot .birthdayConfetti i {
-  position: absolute;
-  top: -12px;
-  width: 10px;
-  height: 24px;
-  border-radius: 4px;
-  background: var(--arena-accent);
-  opacity: .86;
-  transform-origin: center;
-  animation: birthdayConfettiPulse 2.8s ease-in-out infinite alternate;
-}
-
-.arenaRoot .birthdayConfetti i:nth-child(1) { left: 8%; transform: rotate(24deg); }
-.arenaRoot .birthdayConfetti i:nth-child(2) { left: 18%; background: var(--vc-theme-support); transform: rotate(-31deg); }
-.arenaRoot .birthdayConfetti i:nth-child(3) { left: 31%; transform: rotate(17deg); }
-.arenaRoot .birthdayConfetti i:nth-child(4) { left: 43%; background: var(--vc-theme-text); transform: rotate(-12deg); }
-.arenaRoot .birthdayConfetti i:nth-child(5) { left: 56%; transform: rotate(28deg); }
-.arenaRoot .birthdayConfetti i:nth-child(6) { left: 68%; background: var(--vc-theme-support); transform: rotate(-21deg); }
-.arenaRoot .birthdayConfetti i:nth-child(7) { left: 79%; transform: rotate(13deg); }
-.arenaRoot .birthdayConfetti i:nth-child(8) { left: 91%; background: var(--vc-theme-text); transform: rotate(-27deg); }
-.arenaRoot .birthdayConfetti i:nth-child(9) { left: 25%; top: 4px; width: 8px; height: 18px; transform: rotate(48deg); }
-.arenaRoot .birthdayConfetti i:nth-child(10) { left: 48%; top: 1px; width: 8px; height: 18px; background: var(--vc-theme-support); transform: rotate(-43deg); }
-.arenaRoot .birthdayConfetti i:nth-child(11) { left: 73%; top: 5px; width: 8px; height: 18px; transform: rotate(37deg); }
-.arenaRoot .birthdayConfetti i:nth-child(12) { left: 84%; top: 1px; width: 8px; height: 18px; background: var(--vc-theme-text); transform: rotate(-39deg); }
-
-@keyframes birthdayConfettiPulse {
-  from { opacity: .68; }
-  to { opacity: .92; }
+.arenaRoot .birthdayCard[data-emphasize-today] {
+  border: 3px solid var(--arena-accent);
+  box-shadow: inset 0 0 0 2px var(--vc-theme-surface), 0 16px 42px var(--vc-theme-shadow);
 }
 
 .arenaRoot[data-orientation="portrait"] .birthdayLayout {
@@ -2333,7 +2300,6 @@
 .arenaRoot[data-orientation="portrait"] .birthdayLayout[data-page-size="6"] .birthdayCopy strong { font-size: calc(19px * var(--vc-theme-base-scale, 1)); }
 
 @media (prefers-reduced-motion: reduce) {
-  .arenaRoot .birthdayConfetti i,
   .arenaRoot .birthdayLayout[data-motion] .birthdayCard {
     animation: none;
   }
@@ -4303,11 +4269,6 @@
   letter-spacing: .06em;
 }
 
-.arenaRoot[data-design-revision="royal-current-v8"][data-slide-type="sport_program"],
-.arenaRoot[data-design-revision="royal-current-v8"][data-slide-type="sport_results"] {
-  --arena-row-height: 96px !important;
-}
-
 .arenaRoot[data-design-revision="royal-current-v8"] .arenaProgramRow,
 .arenaRoot[data-design-revision="royal-current-v8"] .arenaResultRow {
   padding-block: 10px;
@@ -4945,6 +4906,13 @@
 .arenaRoot[data-design-revision="royal-current-v8"] .arenaStandingLayout {
   height: 100%;
   padding-bottom: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.arenaRoot[data-design-revision="royal-current-v8"] .arenaStandingContext {
+  position: static;
+  grid-column: 1 / -1;
 }
 
 .arenaRoot[data-design-revision="royal-current-v8"] .arenaStanding {
@@ -5281,16 +5249,6 @@
   height: 40px;
   font-size: calc(14px * var(--vc-theme-base-scale, 1));
   letter-spacing: .055em;
-}
-
-.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"][data-slide-type="sport_program"],
-.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"][data-slide-type="sport_results"] {
-  /*
-   * Portrait rows use the same aligned data model as landscape, but the
-   * logical canvas is only 1,080px wide. Keep date/time readable while
-   * leaving the flexible tracks enough room to show both team names.
-   */
-  --arena-row-height: 148px !important;
 }
 
 .arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] :is(.arenaProgramRow, .arenaResultRow) {
@@ -5976,4 +5934,28 @@
 
 .arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .arenaNewsLayout[data-news-variant="news_grid"] .arenaNewsStory h2.arenaNewsTitleDense {
   font-size: calc(31px * var(--vc-theme-base-scale, 1));
+}
+
+/* S180: short standings expand; long standings retain scroll/paging minima. */
+.arenaRoot[data-design-revision="royal-current-v8"] .arenaStandingRows {
+  display: grid;
+  grid-auto-rows: minmax(70px, 1fr);
+  align-content: stretch;
+}
+.arenaRoot[data-design-revision="royal-current-v8"] .arenaStandingRows > article {
+  height: auto;
+}
+.arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .arenaStandingRows {
+  grid-auto-rows: minmax(220px, 1fr);
+  align-content: stretch;
+}
+.arenaRoot[data-design-revision="royal-current-v8"] .arenaStandingRows > .royalStandingCard {
+  height: auto !important;
+}
+
+/* Runtime motion policy must outrank entrance selectors, including legacy themes. */
+.arenaRoot[data-motion-state="off"][data-transition] .arenaProgramRow,
+.arenaRoot[data-motion-state="off"][data-transition] .arenaResultRow,
+.arenaRoot[data-motion-state="off"][data-transition] .arenaContent > * {
+  animation: none;
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { goalVideoTelemetry, goalVideoCapabilities } from "../_lib/goal-video-telemetry";
+
 /* eslint-disable @next/next/no-img-element -- Player media URLs come from release manifests and must render directly. */
 
 import { VEYOCAST_APPS } from "@veyocast/config";
@@ -1844,6 +1846,8 @@ export function PlayerRuntime() {
                 playbackRuntime.release.envelope.manifest.releaseId
               : null,
             lastPlaybackError: reportedPlaybackError,
+            goalVideoDiagnostics: goalVideoTelemetry(),
+            goalVideoCapabilities: goalVideoCapabilities("react", currentPlayerApplicationVersion()),
             networkState: readPlayerConnectivity() ? "online" : "offline",
             runtimeState: playbackRuntime?.state ?? "READY",
             storageQuotaBytes: storage.quota,

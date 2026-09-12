@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -49,6 +50,8 @@ import type {
 } from "./price-list";
 import { MenuSceneCanvas, resolveProductTitleDensity } from "./menu-scene";
 import styles from "./editorial-arena-renderer.module.css";
+import { startBirthdayConfetti } from "./birthday-confetti";
+import { resolveSportListLayout } from "./sport-list-layout";
 import {
   resolveThemeTransition,
   themeCssVariables
@@ -92,7 +95,9 @@ export function EditorialArenaRenderer({
   now,
   onReady = () => undefined,
   pageIndex: controlledPageIndex,
-  passive = false
+  passive = false,
+  runtimeEffects = false,
+  paused = false
 }: {
   embedded?: boolean;
   item: EditorialArenaItem;
@@ -100,10 +105,14 @@ export function EditorialArenaRenderer({
   onReady?: (itemId: string) => void;
   pageIndex?: number;
   passive?: boolean;
+  runtimeEffects?: boolean;
+  paused?: boolean;
 }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState<number>();
   const view = useMemo(
-    () => createDynamicTemplateView(item.dynamicTemplate, now),
-    [item.dynamicTemplate, now]
+    () => createDynamicTemplateView(item.dynamicTemplate, now, contentHeight),
+    [item.dynamicTemplate, now, contentHeight]
   );
   const readyRef = useRef(false);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -111,8 +120,20 @@ export function EditorialArenaRenderer({
   const [viewportFit, setViewportFit] = useState<EditorialArenaViewportFit | null>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const effectiveMotionEnabled = Boolean(
-    view?.motionEnabled && !prefersReducedMotion && !passive
+    view?.motionEnabled && !prefersReducedMotion && !passive && !paused
   );
+  const birthdayCelebration = Boolean(runtimeEffects && effectiveMotionEnabled &&
+    view?.birthday?.configuration.presentation.motion &&
+    view.birthday.configuration.presentation.confetti &&
+    view.pages.some((page) => page.kind === "birthday" && page.items.some((person) => person.isToday)));
+  const confettiColors = view ? [view.accentColor, view.themeTokens.text, view.themeTokens.accentSoft] : [];
+  const confettiPalette = confettiColors.join("|");
+  const viewportReady = viewportFit !== null;
+  useEffect(() => {
+    const host = viewportRef.current;
+    if (!host || !birthdayCelebration || !viewportReady) return;
+    return startBirthdayConfetti(host, { colors: confettiPalette.split("|") });
+  }, [birthdayCelebration, confettiPalette, item.id, viewportReady]);
   const standingAutoScroll = Boolean(
     view &&
     view.designRevision === "royal-current-v8" &&
@@ -127,6 +148,21 @@ export function EditorialArenaRenderer({
   const pageCount = playbackPages.length;
   const canvas = editorialArenaCanvas[view?.orientation ?? "landscape"];
   const ContentElement = embedded ? "div" : "main";
+  useLayoutEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+    const list = content.querySelector<HTMLElement>("[data-standing-window]") ||
+      content.querySelector<HTMLElement>("[data-columns]");
+    const measure = () => {
+      const height = list?.clientHeight || content.clientHeight;
+      if (height > 0) setContentHeight((current) => current === height ? current : height);
+    };
+    measure();
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    observer?.observe(content);
+    if (list) observer?.observe(list);
+    return () => observer?.disconnect();
+  }, [item.id, view?.orientation]);
 
   useEffect(() => {
     setInternalPageIndex(0);
@@ -181,7 +217,7 @@ export function EditorialArenaRenderer({
     if (
       !view ||
       pageCount <= 1 ||
-      passive ||
+      passive || paused ||
       controlledPageIndex !== undefined
     ) return;
     const interval = window.setInterval(
@@ -193,7 +229,7 @@ export function EditorialArenaRenderer({
       )
     );
     return () => window.clearInterval(interval);
-  }, [controlledPageIndex, item.durationSeconds, pageCount, passive, view]);
+  }, [controlledPageIndex, item.durationSeconds, pageCount, passive, paused, view]);
 
   if (!view || playbackPages.length === 0) return null;
   const pageIndex = Math.min(
@@ -277,6 +313,7 @@ export function EditorialArenaRenderer({
               />
             )}
             <ContentElement
+              ref={contentRef}
               className={styles.arenaContent}
               data-page-count={pageCount}
               data-page-index={pageIndex}
@@ -1468,7 +1505,6 @@ function BirthdayPage({
   view: DynamicTemplateView;
 }) {
   const configuration = view.birthday?.configuration;
-  const royalCurrent = view.designRevision === "royal-current-v8";
   if (!items.length) return null;
   return (
     <div
@@ -1485,6 +1521,7 @@ function BirthdayPage({
         <article
           className={styles.birthdayCard}
           data-today={birthday.isToday || undefined}
+          data-emphasize-today={birthday.isToday && configuration?.selection.emphasizeToday || undefined}
           key={birthday.id}
           style={{ "--birthday-delay": `${index * 90}ms` } as CSSProperties}
         >
@@ -1497,45 +1534,17 @@ function BirthdayPage({
                 : "none"
             } as CSSProperties}
           />
-          {birthday.isToday && configuration?.presentation.confetti ? (
-            <span aria-hidden="true" className={styles.birthdayConfetti}>
-              {Array.from({ length: 12 }, (_, particleIndex) => <i key={particleIndex} />)}
-            </span>
-          ) : null}
           <div className={styles.birthdayCopy}>
-            <span className={styles.birthdayEyebrow}>
-              {royalCurrent
-                ? "Gefeliciteerd"
-                : birthday.isToday ? "Vandaag jarig" : birthday.dateLabel || "Binnenkort jarig"}
-            </span>
+            <span className={styles.birthdayEyebrow}>Gefeliciteerd</span>
             <h2>{birthday.displayName}</h2>
-            {royalCurrent ? (
-              <>
-                <p>{birthday.meta || birthday.role || birthday.teams.join(" · ") || birthday.dateLabel}</p>
-                <strong>{birthday.age !== null
-                  ? `${birthday.age} jaar`
-                  : birthday.isToday ? "Vandaag jarig" : birthday.dateLabel}</strong>
-              </>
-            ) : (
-              <>
-                {birthday.dateLabel && !birthday.isToday ? <time>{birthday.dateLabel}</time> : null}
-                <p>
-                  {birthday.age !== null
-                    ? `${firstName(birthday.displayName)} wordt ${birthday.isToday ? "vandaag " : ""}${birthday.age} jaar`
-                    : `${firstName(birthday.displayName)} is ${birthday.isToday ? "vandaag " : "binnenkort "}jarig`}
-                </p>
-                {birthday.meta ? <strong>{birthday.meta}</strong> : null}
-              </>
-            )}
+            {birthday.meta ? <p>{birthday.meta}</p> : null}
+            <strong>{birthday.isToday ? "Vandaag jarig" : birthday.dateLabel || "Binnenkort jarig"}
+              {birthday.age !== null ? ` · ${birthday.age} jaar` : ""}</strong>
           </div>
         </article>
       ))}
     </div>
   );
-}
-
-function firstName(value: string) {
-  return value.trim().split(/\s+/u)[0] || value;
 }
 
 function SportListColumns({
@@ -1571,6 +1580,10 @@ function SportListColumns({
             aria-label={`${view.title} kolom ${columnIndex + 1}`}
             className={styles.arenaFixtureList}
             key={columnIndex}
+            style={{ "--arena-row-height": `${resolveSportListLayout({
+              orientation: view.orientation, slideType: view.slideType, itemCount: column.length,
+              contentHeight: view.sportListContentHeight
+            }).rowHeight}px` } as CSSProperties}
           >
             {column.map((item, index) => renderRow(
               item,
@@ -2397,6 +2410,11 @@ function pageRowHeight(
   page: DynamicTemplatePage,
   view: DynamicTemplateView
 ) {
+  if (page.kind === "sport-list" && view.sportListContentHeight) {
+    return resolveSportListLayout({ orientation: view.orientation, slideType: view.slideType,
+      contentHeight: view.sportListContentHeight, itemCount: page.items.length,
+      columns: view.sportDisplay?.columns === "two" ? 2 : 1 }).rowHeight;
+  }
   if (
     view.designRevision === "royal-current-v8" &&
     page.kind === "sport-list" &&

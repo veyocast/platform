@@ -97,10 +97,11 @@ export function GoalOverlayEditor(props: Props) {
               const field = format === "landscape" ? "introLandscapeMediaId" : "introPortraitMediaId";
               const asset = assets.find((a) => a.id === config[field]);
               return <div key={format} className={styles.media}><label>{format === "landscape" ? "Landscape · 16:9" : "Portrait · 9:16"}<select value={config[field] ?? ""} onChange={(e) => patch(field, e.target.value || null)}><option value="">Geen video ingesteld</option>{assets.map((a) => <option key={a.id} value={a.id}>{a.title}{a.width && a.height ? ` · ${a.width} × ${a.height}` : ""}</option>)}</select></label>
-                {asset?.previewUrl ? <video key={asset.previewUrl} src={asset.previewUrl} controls muted playsInline preload="metadata" aria-label={`${format} introvideo bekijken`} /> : <p>{config.introLandscapeMediaId || config.introPortraitMediaId ? "Deze variant ontbreekt. De andere video wordt passend in beeld gebruikt, met clubkleur rondom." : "Zonder introvideo verschijnt direct de Goal Overlay."}</p>}
+                {asset?.previewUrl ? <video key={asset.previewUrl} src={asset.previewUrl} controls muted playsInline preload="metadata" aria-label={`${format} introvideo bekijken`} /> : <p>{config.introLandscapeMediaId || config.introPortraitMediaId ? "Deze variant ontbreekt. Zonder toestemming voor de andere oriëntatie verschijnt direct de overlay." : "Zonder introvideo verschijnt direct de Goal Overlay."}</p>}
                 {asset ? <Button type="button" variant="ghost" size="sm" onClick={() => patch(field, null)}>Video verwijderen uit overlay</Button> : null}
               </div>;
             })}
+            <label><input type="checkbox" checked={config.introAllowOrientationFallback === true} onChange={(event) => patch("introAllowOrientationFallback", event.target.checked)} /> Andere video gebruiken als de schermvariant ontbreekt</label>
             {props.uploadConfig ? <Button type="button" variant="secondary" onClick={() => setUploadOpen(true)}>Media uploaden</Button> : null}
             <Button type="button" variant="ghost" onClick={() => router.refresh()}>Mediabibliotheek vernieuwen</Button>
           </> : null}

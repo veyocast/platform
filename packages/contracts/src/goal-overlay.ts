@@ -42,6 +42,9 @@ export const goalOverlayConfigurationSchema = z.object({
   introEnabled: z.boolean().default(false),
   introLandscapeMediaId: z.string().uuid().nullable().default(null),
   introPortraitMediaId: z.string().uuid().nullable().default(null),
+  // Keep historical v2 wire payloads unchanged for Players updating in place.
+  // Missing means false; parsing must not inject a new key into old versions.
+  introAllowOrientationFallback: z.boolean().optional(),
   overlayDurationMs: z.number().int().min(2000).max(30000).default(7000),
   enterAnimation: z.enum(["fade", "rise", "none"]).default("rise"),
   exitAnimation: z.enum(["fade", "none"]).default("fade"),
@@ -77,11 +80,35 @@ export type GoalOverlayEvent = {
   test: boolean;
 };
 
+/** Compatibility helper; all selection rules live in resolveGoalIntroAsset. */
 export function chooseGoalIntro(config: GoalOverlayConfiguration, orientation: "landscape" | "portrait") {
-  if (!config.introEnabled) return null;
-  return orientation === "portrait"
-    ? config.introPortraitMediaId ?? config.introLandscapeMediaId
-    : config.introLandscapeMediaId ?? config.introPortraitMediaId;
+  return resolveGoalIntroAsset({ configuration: config, screenOrientation: orientation, width: 0, height: 0,
+    assets: [config.introLandscapeMediaId, config.introPortraitMediaId].flatMap((id) =>
+      id ? [{ mediaAssetId: id, mimeType: "video/mp4" }] : []) }).assetId;
+}
+
+/** Pure and self-contained: the Static LG bundle embeds this exact selector. */
+export function resolveGoalIntroAsset(input: {
+  configuration: Pick<GoalOverlayConfiguration, "introEnabled" | "introLandscapeMediaId" | "introPortraitMediaId" | "introAllowOrientationFallback">;
+  screenOrientation?: string | null;
+  width: number;
+  height: number;
+  assets: readonly { mediaAssetId: string; mimeType: string }[];
+  canPlayType?: (type: string) => string;
+}) {
+  const orientation = input.screenOrientation === "portrait" || input.screenOrientation === "9:16" || input.screenOrientation === "vertical"
+    ? "portrait" : input.screenOrientation === "landscape" || input.screenOrientation === "16:9"
+      ? "landscape" : input.height > input.width ? "portrait" : "landscape";
+  const config = input.configuration;
+  const primary = orientation === "portrait" ? config.introPortraitMediaId : config.introLandscapeMediaId;
+  const fallback = orientation === "portrait" ? config.introLandscapeMediaId : config.introPortraitMediaId;
+  const id = config.introEnabled ? primary || (config.introAllowOrientationFallback === true ? fallback : null) : null;
+  const asset = input.assets.find(function (candidate) { return candidate.mediaAssetId === id; });
+  const code = !config.introEnabled ? null : !id || !asset ? "GOAL_VIDEO_ASSET_MISSING"
+    : asset.mimeType !== "video/mp4" || (input.canPlayType && !input.canPlayType('video/mp4; codecs="avc1.4D4028"'))
+      ? "GOAL_VIDEO_UNSUPPORTED_FORMAT" : null;
+  return { orientation: orientation as "portrait" | "landscape", assetId: code ? null : id,
+    requestedAssetId: id, mimeType: asset ? asset.mimeType : null, code, fallback: Boolean(id && id !== primary) };
 }
 
 export type GoalPlaybackPhase = "IDLE" | "GOAL_INTRO_LOADING" | "GOAL_INTRO_PLAYING" | "GOAL_OVERLAY_ENTERING" | "GOAL_OVERLAY_VISIBLE" | "GOAL_OVERLAY_EXITING" | "RESUMING_PLAYLIST";

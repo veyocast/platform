@@ -1,0 +1,56 @@
+name: Probe published goal media
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Deployed environment
+        type: choice
+        required: true
+        options: [staging, production]
+      tenant_id:
+        description: Tenant UUID to inspect (read only)
+        type: string
+        required: true
+      release_sha:
+        description: Exact deployed main SHA
+        type: string
+        required: true
+      confirmation:
+        description: Type PROBE GOAL MEDIA
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: goal-media-probe-${{ inputs.target_environment }}
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: github.ref == 'refs/heads/main'
+    environment: ${{ inputs.target_environment }}
+    runs-on: [self-hosted, linux, x64, veyocast, '${{ inputs.target_environment }}']
+    timeout-minutes: 5
+    steps:
+      - name: Inspect media inside the exact deployed worker
+        shell: bash
+        env:
+          TARGET: ${{ inputs.target_environment }}
+          TENANT_ID: ${{ inputs.tenant_id }}
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          [[ ${TARGET} == staging || ${TARGET} == production ]]
+          [[ ${CONFIRMATION} == 'PROBE GOAL MEDIA' ]]
+          [[ ${TENANT_ID} =~ ^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$ ]]
+          [[ ${RELEASE_SHA} =~ ^[0-9a-f]{40}$ && ${RELEASE_SHA} == "${WORKFLOW_SHA}" ]]
+          mapfile -t containers < <(docker ps -q \
+            --filter "label=com.docker.compose.project=veyocast-${TARGET}-worker" \
+            --filter 'label=com.docker.compose.service=media-worker')
+          [[ ${#containers[@]} == 1 ]]
+          container_id=${containers[0]}
+          [[ $(docker inspect --format '{{.Config.Image}}' "${container_id}") == "veyocast-media-worker:${RELEASE_SHA}" ]]
+          [[ $(docker inspect --format '{{.State.Health.Status}}' "${container_id}") == healthy ]]
+          docker exec "${container_id}" node --import tsx \
+            apps/media-worker/src/ops-probe-goal-media.ts "${TENANT_ID}" "${RELEASE_SHA}" "${TARGET}"

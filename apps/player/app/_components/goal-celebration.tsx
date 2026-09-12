@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { chooseGoalIntro, transitionGoalPlayback, type GoalOverlayEvent, type GoalPlaybackAction, type GoalPlaybackPhase } from "@veyocast/contracts";
+import { resolveGoalIntroAsset, transitionGoalPlayback, type GoalOverlayEvent, type GoalPlaybackAction, type GoalPlaybackPhase } from "@veyocast/contracts";
 import { GoalOverlay, resolveThemeMode, royalCurrentDefaultStyle } from "@veyocast/content-templates";
+import { playGoalIntroVideo } from "../_lib/goal-video-runtime";
+import { goalVideoTelemetry } from "../_lib/goal-video-telemetry";
 import { goalMediaCache } from "../_lib/goal-media-cache";
 import type { ActiveLedScoresGoal } from "./ledscores-goal-overlay";
 import type { FrozenPlayerTheme } from "./player-presentation-theme";
@@ -42,6 +44,17 @@ export function GoalCelebration({ goal, theme, onComplete }: {
   const [introUrl, setIntroUrl] = useState<string | null>(null);
   const [resolvedGoal, setResolvedGoal] = useState(goal);
   const [reduced, setReduced] = useState(false);
+  const selection = useRef<ReturnType<typeof resolveGoalIntroAsset> | null>(null);
+  const introActive = phase === "IDLE" || phase === "GOAL_INTRO_LOADING" || phase === "GOAL_INTRO_PLAYING";
+  const report = (code: string) => {
+    const selected = selection.current;
+    if (!selected) return;
+    const rect = root.current?.getBoundingClientRect();
+    goalVideoTelemetry({ code, eventId: goal.eventId, deliveryId: goal.deliveryId,
+      alertVersionId: goal.alertVersionId ?? null, assetId: selected.requestedAssetId,
+      orientation: selected.orientation, mimeType: selected.mimeType,
+      at: new Date().toISOString(), width: Math.round(rect?.width ?? 0), height: Math.round(rect?.height ?? 0) });
+  };
   const advance = (action: GoalPlaybackAction) => {
     const next = transitionGoalPlayback(phaseRef.current, action);
     phaseRef.current = next;
@@ -50,56 +63,65 @@ export function GoalCelebration({ goal, theme, onComplete }: {
   useLayoutEffect(() => {
     const resize = () => {
       const rect = root.current?.getBoundingClientRect();
-      if (rect) setOrientation(rect.height > rect.width ? "portrait" : "landscape");
+      if (rect) setOrientation(goal.screenOrientation ?? (rect.height > rect.width ? "portrait" : "landscape"));
     };
     resize();
-    const observer = new ResizeObserver(resize);
-    if (root.current) observer.observe(root.current);
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(resize) : null;
+    if (root.current) observer?.observe(root.current);
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     setReduced(motion.matches);
-    return () => observer.disconnect();
+    window.addEventListener("resize", resize);
+    return () => { observer?.disconnect(); window.removeEventListener("resize", resize); };
   }, []);
   useEffect(() => {
     let cancelled = false;
     const urls: string[] = [];
-    const introId = chooseGoalIntro(config, window.innerHeight > window.innerWidth ? "portrait" : "landscape");
+    const rect = root.current?.getBoundingClientRect();
+    const probe = document.createElement("video");
+    const selected = resolveGoalIntroAsset({ configuration: config,
+      screenOrientation: goal.screenOrientation, width: rect?.width ?? window.innerWidth,
+      height: rect?.height ?? window.innerHeight, assets: [...goal.assets.values()],
+      canPlayType: (type) => probe.canPlayType(type) });
+    selection.current = selected;
+    setOrientation(selected.orientation);
+    const introId = selected.assetId;
+    if (selected.code) report(selected.code);
     advance(introId ? "start_intro" : "start_overlay");
-    const localAssets = new Map(goal.assets);
-    const cacheWatchdog = window.setTimeout(() => { if (!cancelled && phaseRef.current === "GOAL_INTRO_LOADING") { logGoal("goal_event_failed", goal.eventId, "intro_cache_unavailable"); advance("intro_failed"); } }, 2000);
-    // Read already cached bytes only. Missing optional media never delays the goal.
-    void Promise.all([...goal.assets.values()].map(async (asset) => {
-      const url = await goalMediaCache.localUrl(asset);
-      if (url) { urls.push(url); localAssets.set(asset.mediaAssetId, { ...asset, url }); }
-      return { asset, url };
-    })).then((assets) => {
-      window.clearTimeout(cacheWatchdog);
-      if (cancelled) { urls.forEach((url) => URL.revokeObjectURL(url)); return; }
-      setResolvedGoal((current) => ({ ...current, assets: localAssets }));
-      if (introId && phaseRef.current === "GOAL_INTRO_LOADING") {
-        const intro = assets.find(({ asset }) => asset.mediaAssetId === introId && asset.mimeType.startsWith("video/"));
-        if (intro?.url) setIntroUrl(intro.url);
-        else { logGoal("goal_event_failed", goal.eventId, "intro_not_cached"); advance("intro_failed"); }
+    const cacheWatchdog = window.setTimeout(() => {
+      if (!cancelled && phaseRef.current === "GOAL_INTRO_LOADING") {
+        report("GOAL_VIDEO_CACHE_TIMEOUT"); advance("intro_failed");
       }
-    }).catch(() => { if (!cancelled) advance("intro_failed"); });
+    }, 2000);
+    // Resolve each optional asset independently; photos cannot delay a cached intro.
+    for (const asset of goal.assets.values()) {
+      void goalMediaCache.localUrl(asset).then((url) => {
+        if (cancelled) { if (url) URL.revokeObjectURL(url); return; }
+        if (url) {
+          urls.push(url);
+          setResolvedGoal((current) => ({ ...current, assets: new Map(current.assets).set(asset.mediaAssetId, { ...asset, url }) }));
+        }
+        if (asset.mediaAssetId !== introId || phaseRef.current !== "GOAL_INTRO_LOADING") return;
+        window.clearTimeout(cacheWatchdog);
+        if (url) setIntroUrl(url);
+        else { report("GOAL_VIDEO_CACHE_MISSING"); advance("intro_failed"); }
+      }).catch(() => {
+        if (!cancelled && asset.mediaAssetId === introId && phaseRef.current === "GOAL_INTRO_LOADING") {
+          window.clearTimeout(cacheWatchdog); report("GOAL_VIDEO_CACHE_MISSING"); advance("intro_failed");
+        }
+      });
+    }
     return () => { cancelled = true; window.clearTimeout(cacheWatchdog); urls.forEach((url) => URL.revokeObjectURL(url)); };
-    // An enrichment updates the content below, never the running intro/state machine.
+    // An enrichment updates content only; it must never restart a running decoder.
   }, [goal.deliveryId]);
   useEffect(() => { setResolvedGoal((current) => ({ ...goal, assets: current.assets })); }, [goal]);
   useEffect(() => {
-    if (!introUrl || !video.current) return;
-    const element = video.current;
-    let lastProgress = element.currentTime;
-    let progressedAt = Date.now();
-    const fail = () => { logGoal("goal_event_failed", goal.eventId, "intro_playback_failed"); advance("intro_failed"); };
-    try { void element.play().catch(fail); } catch { fail(); }
-    // A stalled decoder is a failure, not a substitute for the video's ended event.
-    const watchdog = window.setInterval(() => {
-      if (phaseRef.current !== "GOAL_INTRO_LOADING" && phaseRef.current !== "GOAL_INTRO_PLAYING") return;
-      if (element.currentTime > lastProgress) { progressedAt = Date.now(); lastProgress = element.currentTime; }
-      else if (Date.now() - progressedAt > 8000) fail();
-    }, 1000);
-    return () => window.clearInterval(watchdog);
-  }, [introUrl, goal.eventId]);
+    if (!introActive || !introUrl || !video.current) return;
+    return playGoalIntroVideo(video.current, introUrl, {
+      onPlaying: () => { report("GOAL_VIDEO_STARTED"); logGoal("goal_intro_started", goal.eventId); advance("intro_playing"); },
+      onComplete: () => { report("GOAL_VIDEO_COMPLETED"); logGoal("goal_intro_finished", goal.eventId); advance("intro_ended"); },
+      onFailure: (code) => { report(code); logGoal("goal_event_failed", goal.eventId, code); advance("intro_failed"); }
+    });
+  }, [introActive, introUrl, goal.deliveryId]);
   const transitionMs = reduced ? 0 : config.transitionDurationMs;
   useEffect(() => {
     let timer: number | undefined;
@@ -126,10 +148,7 @@ export function GoalCelebration({ goal, theme, onComplete }: {
     <div style={{ position: "absolute", inset: 0, visibility: intro ? "hidden" : "visible", opacity: exiting && config.exitAnimation === "fade" ? 0 : 1, transition: `opacity ${transitionMs}ms ease`, animation: phase === "GOAL_OVERLAY_ENTERING" && !reduced && config.enterAnimation !== "none" ? `${config.enterAnimation === "rise" ? "vc-goal-enter" : "vc-goal-fade"} ${transitionMs}ms both` : undefined }}>
       <GoalOverlay event={goalEventForRenderer(resolvedGoal)} configuration={config} orientation={orientation} appearance={appearance} />
     </div>
-    {intro && introUrl ? <video ref={video} src={introUrl} muted playsInline controls={false} disablePictureInPicture preload="auto"
-      onPlaying={() => { logGoal("goal_intro_started", goal.eventId); advance("intro_playing"); }}
-      onEnded={() => { logGoal("goal_intro_finished", goal.eventId); advance("intro_ended"); }}
-      onError={() => { logGoal("goal_event_failed", goal.eventId, "intro_load_error"); advance("intro_failed"); }}
+    {intro && introUrl ? <video ref={video} muted autoPlay playsInline controls={false} disablePictureInPicture preload="auto"
       style={{ width: "100%", height: "100%", objectFit: "contain", visibility: phase === "GOAL_INTRO_PLAYING" ? "visible" : "hidden" }} /> : null}
   </div>;
 }

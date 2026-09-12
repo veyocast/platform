@@ -23,20 +23,20 @@ const inputProbe = JSON.stringify({
 const normalizedProbe = JSON.stringify({
   format: { duration: "12.400", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
   streams: [
-    { codec_name: "h264", codec_type: "video", height: 1080, pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 1920 }
+    { codec_name: "h264", profile: "Main", level: 40, codec_type: "video", height: 1080, pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 1920 }
   ]
 });
 const portraitProbe = JSON.stringify({
   format: { duration: "8.200", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
   streams: [
-    { codec_name: "h264", codec_type: "video", height: 1920, pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 1080 }
+    { codec_name: "h264", profile: "Main", level: 40, codec_type: "video", height: 1920, pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 1080 }
   ]
 });
 const rotatedPortraitProbe = JSON.stringify({
   format: { duration: "8.200", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
   streams: [
     {
-      codec_name: "h264",
+      codec_name: "h264", profile: "Main", level: 40,
       codec_type: "video",
       height: 1080,
       pix_fmt: "yuv420p",
@@ -70,7 +70,7 @@ describe("video normalization", () => {
       audioCodec: null, durationSeconds: 12.4,
       formatNames: ["mov", "mp4", "m4a", "3gp", "3g2", "mj2"],
       framesPerSecond: 30, height: 1080, pixelFormat: "yuv420p",
-      rotationDegrees: 0, videoCodec: "h264", width: 1920
+      rotationDegrees: 0, videoCodec: "h264", videoProfile: "main", videoLevel: 40, width: 1920
     });
   });
 
@@ -79,7 +79,7 @@ describe("video normalization", () => {
     expect(args).toContain("/tmp/input with spaces.mp4");
     expect(args).toContain("libx264");
     expect(args).toContain(
-      "scale=w='if(gte(iw,ih),1920,1080)':h='if(gte(iw,ih),1080,1920)':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos,setsar=1,fps=30"
+      "scale=w='if(gte(iw,ih),min(1920,iw),min(1080,iw))':h='if(gte(iw,ih),min(1080,ih),min(1920,ih))':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos,setsar=1,fps=30"
     );
     expect(args).toEqual(
       expect.arrayContaining(["-metadata:s:v:0", "rotate=0"])
@@ -103,51 +103,49 @@ describe("video normalization", () => {
     );
   });
 
-  it("upscales 720p landscape and portrait video to the matching Full HD raster", () => {
+  it("preserves 720p in both orientations without unnecessary upscaling", () => {
     expect(getCanonicalPlayerDimensions(1280, 720)).toEqual({
-      height: 1080,
-      width: 1920
+      height: 720,
+      width: 1280
     });
     expect(getCanonicalPlayerDimensions(720, 1280)).toEqual({
-      height: 1920,
-      width: 1080
+      height: 1280,
+      width: 720
     });
 
     const landscape720p = parseVideoProbe(JSON.stringify({
       format: { duration: "8.200", format_name: "mov,mp4" },
       streams: [{
-        codec_name: "h264", codec_type: "video", height: 720,
+        codec_name: "h264", profile: "Main", level: 40, codec_type: "video", height: 720,
         pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 1280
       }]
     }));
     const portrait720p = parseVideoProbe(JSON.stringify({
       format: { duration: "8.200", format_name: "mov,mp4" },
       streams: [{
-        codec_name: "h264", codec_type: "video", height: 1280,
+        codec_name: "h264", profile: "Main", level: 40, codec_type: "video", height: 1280,
         pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 720
       }]
     }));
 
-    expect(canRemuxWithoutTranscoding(landscape720p)).toBe(false);
-    expect(canRemuxWithoutTranscoding(portrait720p)).toBe(false);
+    expect(canRemuxWithoutTranscoding(landscape720p)).toBe(true);
+    expect(canRemuxWithoutTranscoding(portrait720p)).toBe(true);
     expect(buildNormalizationArguments(
       "/tmp/landscape-720p.mp4",
       "/tmp/player.mp4",
       landscape720p
-    )).toContain("libx264");
-    expect(() => validatePlayerVariant(landscape720p)).toThrowError(
-      expect.objectContaining({ code: "normalization_failed" })
-    );
+    )).toContain("copy");
+    expect(() => validatePlayerVariant(landscape720p)).not.toThrow();
   });
 
   it("preserves aspect ratio while filling the largest fitting 1080p raster", () => {
     expect(getCanonicalPlayerDimensions(640, 480)).toEqual({
-      height: 1080,
-      width: 1440
+      height: 480,
+      width: 640
     });
     expect(getCanonicalPlayerDimensions(480, 640)).toEqual({
-      height: 1440,
-      width: 1080
+      height: 640,
+      width: 480
     });
     expect(getCanonicalPlayerDimensions(1920, 800)).toEqual({
       height: 800,
@@ -215,4 +213,12 @@ describe("video normalization", () => {
     );
     expect(() => validatePlayerVariant(parseVideoProbe(inputProbe))).toThrowError(VideoProcessingError);
   });
+});
+
+it("transcodes high-level and unknown-profile AVC into the bounded player format", () => {
+  const probe = parseVideoProbe(normalizedProbe);
+  expect(canRemuxWithoutTranscoding(probe)).toBe(true);
+  expect(canRemuxWithoutTranscoding({ ...probe, videoLevel: 51 })).toBe(false);
+  expect(canRemuxWithoutTranscoding({ ...probe, videoProfile: null })).toBe(false);
+  expect(buildNormalizationArguments("input.mp4", "output.mp4", { ...probe, videoLevel: 51 })).toContain("libx264");
 });

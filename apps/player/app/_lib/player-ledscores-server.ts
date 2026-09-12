@@ -65,6 +65,11 @@ export async function loadLedScoresPlayerBootstrap(
   if (!screenId || !tenantId || !deviceId) {
     throw new Error("LEDSCORES_BOOTSTRAP_INVALID");
   }
+  const screen = await admin.from("screens").select("orientation")
+    .eq("tenant_id", tenantId).eq("id", screenId).maybeSingle();
+  if (screen.error) throw new Error("LEDSCORES_SCREEN_UNAVAILABLE");
+  const screenOrientation = screen.data?.orientation === "portrait" ? "portrait" as const
+    : screen.data?.orientation === "landscape" ? "landscape" as const : null;
   if (result.data.enabled !== true) {
     return {
       authorized: true as const,
@@ -73,6 +78,7 @@ export async function loadLedScoresPlayerBootstrap(
       enabled: false as const,
       pendingDeliveries: [],
       screenId,
+      screenOrientation,
       tenantId
     };
   }
@@ -93,6 +99,7 @@ export async function loadLedScoresPlayerBootstrap(
     enabled: true as const,
     pendingDeliveries,
     screenId,
+    screenOrientation,
     tenantId
   };
 }
@@ -157,14 +164,16 @@ export function ledScoresRealtimeBootstrapPayload({
   configs,
   matchBindings,
   screenId,
+  screenOrientation,
   serverTime
 }: {
   configs: readonly unknown[];
   matchBindings: readonly unknown[];
   screenId: string;
+  screenOrientation?: "portrait" | "landscape" | null;
   serverTime: string;
 }) {
-  return { configs, matchBindings, screenId, serverTime };
+  return { configs, matchBindings, screenId, ...(screenOrientation ? { screenOrientation } : {}), serverTime };
 }
 
 export function normalizeLedScoresDelivery(value: unknown) {
