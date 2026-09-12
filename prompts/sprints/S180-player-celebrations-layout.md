@@ -117,3 +117,7 @@ row window, including the space used by headings and the pinned own team.
 Production media probing, deployment, immutable tenant recovery and actual
 physical-device acknowledgements remain post-deploy verification, not inferred
 from the browser fixtures.
+
+The media probe obtains its client through the approved worker backend and
+validated worker configuration. It does not read credentials itself. The
+repository-wide credential-boundary tests were also run directly without cache.

@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createClient } from "@supabase/supabase-js";
 import { probeVideoFile } from "./video-normalization";
+import { createConfiguredMediaWorkerClient } from "./worker-backend";
 
 /** Read-only operator diagnostic. Runs only inside the deployed worker image.
  * Storage credentials never leave that boundary; no URLs or member data in output.
@@ -19,10 +19,7 @@ async function main() {
   const readiness = JSON.parse(await readFile("/tmp/veyocast-media-worker-ready.json", "utf8"));
   if (readiness.revision !== releaseSha || readiness.environment !== environment ||
     Date.now() - readiness.lastPollAt > 75_000) throw new Error("WORKER_NOT_READY");
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("WORKER_CONFIGURATION_MISSING");
-  const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  const client = createConfiguredMediaWorkerClient();
   const alerts = await client.from("ledscores_goal_alerts")
     .select("id,current_published_version_id").eq("tenant_id", tenantId).eq("status", "published").limit(50);
   if (alerts.error) throw new Error("ALERT_READ_FAILED");
