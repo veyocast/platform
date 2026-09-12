@@ -93,6 +93,37 @@ describe("Sportlink server-only adapter", () => {
     ]);
   });
 
+  it("links equal team names through their exact catalog pool and preserves explicit IDs", () => {
+    const catalog = mapSportlinkTeams([
+      { teamcode: 355471, teamnaam: "Duindorp sv 35+1", poulecode: 833025, competitienaam: "Veteranen beker zaterdag" },
+      { teamcode: 394546, teamnaam: "Duindorp sv 35+1", poulecode: 836218, competitienaam: "Vrijdag 7x7" }
+    ]);
+    const payload = [{ team: "Duindorp sv 35+1", positie: 1, punten: 6 }, { team: "Opponent", positie: 2 }];
+    const saturday = mapSportlinkStandings(payload, "833025", "21", null, null, catalog);
+    const friday = mapSportlinkStandings(payload, "836218", "B08", null, null, catalog);
+    expect(saturday.rows[0]?.externalId).toBe("355471");
+    expect(friday.rows[0]?.externalId).toBe("394546");
+    expect(saturday.rows[1]?.externalId).toBe(stableSportlinkExternalId("standing-team", "Opponent"));
+    expect(mapSportlinkStandings([{ ...payload[0], teamcode: 999 }], "833025", "21", null, null, catalog).rows[0]?.externalId).toBe("999");
+    // No catalog identity is retained across tenant/connection batches.
+    expect(mapSportlinkStandings(payload, "833025").rows[0]?.externalId).toBe(stableSportlinkExternalId("standing-team", "Duindorp sv 35+1"));
+  });
+
+  it("keeps synthetic IDs when pool membership is ambiguous or incomplete", () => {
+    const rawTeam = { teamcode: 1, teamnaam: "Club 35+1", poulecode: 100, competitienaam: "Zaterdag" };
+    const payload = [{ team: "Club 35+1", positie: 1 }];
+    const fallback = stableSportlinkExternalId("standing-team", "Club 35+1");
+    for (const rawCatalog of [
+      [rawTeam, { ...rawTeam, teamcode: 2 }],
+      [rawTeam, { teamcode: 2, teamnaam: "Club 35+1" }],
+      [{ ...rawTeam, poulecode: 200 }],
+      [{ ...rawTeam, teamnaam: "club 35+1" }],
+      [{ ...rawTeam, teamcode: -1 }]
+    ]) {
+      expect(mapSportlinkStandings(payload, "100", "1", null, null, mapSportlinkTeams(rawCatalog)).rows[0]?.externalId).toBe(fallback);
+    }
+  });
+
   it("merges one Sportlink team across competition, cup and phase rows", () => {
     const teams = mapSportlinkTeams([
       {

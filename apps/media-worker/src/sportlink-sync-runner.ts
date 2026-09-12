@@ -725,6 +725,7 @@ async function fetchStandings(
     pools.payload
   );
 
+  const ownTeams = mapSportlinkTeams(teams.payload);
   const standings: SportStanding[] = [];
   for (const context of contexts) {
     try {
@@ -736,7 +737,8 @@ async function fetchStandings(
         context.poolExternalId,
         context.poolName,
         null,
-        context.competition
+        context.competition,
+        ownTeams
       ));
     } catch (error) {
       if (

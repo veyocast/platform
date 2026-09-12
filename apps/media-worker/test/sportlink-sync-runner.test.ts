@@ -63,6 +63,31 @@ describe("Sportlink sync worker", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 
+  it("uses the same connection catalog to identify equally named standing teams", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      const payload = url.pathname === "/teams" ? [
+        { teamcode: 355471, teamnaam: "Club 35+1", poulecode: 833025, competitienaam: "Veteranen beker zaterdag" },
+        { teamcode: 394546, teamnaam: "Club 35+1", poulecode: 836218, competitienaam: "Vrijdag 7x7" }
+      ] : url.pathname === "/poulestand" ? [{ team: "Club 35+1", positie: 1, punten: 6 }] : [];
+      return new Response(JSON.stringify(payload), { headers: { "content-type": "application/json" } });
+    });
+    const batch = await fetchSportlinkDataset("competitions", new SportlinkClient("client-id", {
+      fetchImpl: fetchImpl as typeof fetch, maxAttempts: 1
+    }), {
+      connectionId: "20000000-0000-4000-8000-000000000001",
+      dataSourceId: "30000000-0000-4000-8000-000000000001",
+      datasetGroup: "competitions", encryptedClientId: "ciphertext",
+      encryptionIv: "initialization", encryptionTag: "authentication",
+      runId: "40000000-0000-4000-8000-000000000001",
+      tenantId: "10000000-0000-4000-8000-000000000001", timezone: "Europe/Amsterdam"
+    });
+    expect(batch.standings.map((standing) => ({
+      pool: standing.pool.externalId, team: standing.rows[0]?.externalId
+    }))).toEqual([{ pool: "833025", team: "355471" }, { pool: "836218", team: "394546" }]);
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
+  });
+
   it("verzamelt beide wedstrijdlogo's voor een immutable snapshot", () => {
     const candidates = collectSportlinkMatchLogoCandidates([{
       awayTeam: {
