@@ -18,6 +18,8 @@ export type VideoProbe = {
   pixelFormat: string | null;
   rotationDegrees: number;
   videoCodec: string;
+  videoProfile?: string | null;
+  videoLevel?: number | null;
   width: number;
 };
 
@@ -56,7 +58,7 @@ export async function probeVideoFile(
 ): Promise<VideoProbe> {
   const result = await runner("ffprobe", [
     "-v", "error", "-show_entries",
-    "format=format_name,duration:stream=codec_type,codec_name,width,height,r_frame_rate,pix_fmt:stream_tags=rotate:stream_side_data=rotation",
+    "format=format_name,duration:stream=codec_type,codec_name,profile,level,width,height,r_frame_rate,pix_fmt:stream_tags=rotate:stream_side_data=rotation",
     "-of", "json", inputPath
   ]);
   return parseVideoProbe(result.stdout);
@@ -118,7 +120,7 @@ export function buildNormalizationArguments(
   const codecArguments = input && canRemuxWithoutTranscoding(input)
     ? ["-c:v", "copy"]
     : [
-      "-vf", "scale=w='if(gte(iw,ih),1920,1080)':h='if(gte(iw,ih),1080,1920)':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos,setsar=1,fps=30",
+      "-vf", "scale=w='if(gte(iw,ih),min(1920,iw),min(1080,iw))':h='if(gte(iw,ih),min(1080,ih),min(1920,ih))':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos,setsar=1,fps=30",
       "-c:v", "libx264", "-profile:v", "main", "-level:v", "4.0",
       "-pix_fmt", "yuv420p", "-preset", "veryfast", "-crf", "21",
       "-maxrate", "6M", "-bufsize", "12M"
@@ -136,6 +138,8 @@ export function buildNormalizationArguments(
 export function canRemuxWithoutTranscoding(probe: VideoProbe) {
   const canonicalDimensions = getCanonicalPlayerDimensions(probe.width, probe.height);
   return probe.videoCodec === "h264"
+    && ["constrained baseline", "baseline", "main", "high"].includes(probe.videoProfile ?? "")
+    && typeof probe.videoLevel === "number" && probe.videoLevel <= 40
     && (probe.audioCodec === null || probe.audioCodec === "aac")
     && probe.width === canonicalDimensions.width
     && probe.height === canonicalDimensions.height
@@ -150,7 +154,7 @@ export function getCanonicalPlayerDimensions(
 ): PlayerVideoDimensions {
   const maximumWidth = width >= height ? 1920 : 1080;
   const maximumHeight = width >= height ? 1080 : 1920;
-  const scale = Math.min(maximumWidth / width, maximumHeight / height);
+  const scale = Math.min(1, maximumWidth / width, maximumHeight / height);
   return {
     height: Math.max(2, Math.floor((height * scale) / 2) * 2),
     width: Math.max(2, Math.floor((width * scale) / 2) * 2)
@@ -198,6 +202,8 @@ export function parseVideoProbe(serializedProbe: string): VideoProbe {
     pixelFormat: toNonEmptyString(videoStream.pix_fmt),
     rotationDegrees,
     videoCodec,
+    videoProfile: toNonEmptyString(videoStream.profile),
+    videoLevel: toPositiveInteger(videoStream.level),
     width
   };
 }
@@ -232,7 +238,7 @@ export function validatePlayerVariant(probe: VideoProbe) {
     (
       probe.width !== canonicalDimensions.width ||
       probe.height !== canonicalDimensions.height
-    ) && "resolutie vult het passende 1080p-doel niet",
+    ) && "resolutie voldoet niet aan het begrensde even raster",
     probe.framesPerSecond > 30.01 && "framerate is hoger dan 30 fps",
     probe.pixelFormat !== "yuv420p" && "pixel format is niet yuv420p",
     probe.rotationDegrees !== 0 && "rotatiemetadata is niet in pixels verwerkt",

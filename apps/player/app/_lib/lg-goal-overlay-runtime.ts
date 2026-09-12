@@ -1,3 +1,6 @@
+import { resolveGoalIntroAsset } from "@veyocast/contracts";
+import { playGoalIntroVideo } from "./goal-video-runtime";
+import { goalVideoTelemetry, goalVideoCapabilities } from "./goal-video-telemetry";
 import { royalCurrentDefaultStyle } from "../../../../packages/content-templates/src/royal-current-theme";
 import { goalOverlayCss, renderGoalOverlayDom } from "../../../../packages/content-templates/src/goal-overlay-renderer";
 
@@ -9,7 +12,7 @@ export const legacyGoalOverlayCss = `${goalOverlayCss}
 @keyframes vc-goal-fade{from{opacity:0}to{opacity:1}}
 `;
 export function legacyGoalOverlayScript() {
-  return `var renderGoalOverlayV2Dom = ${renderGoalOverlayDom.toString()};\n` + String.raw`
+  return `var resolveGoalIntroAsset = ${resolveGoalIntroAsset.toString()};\nvar playGoalIntroVideo = ${playGoalIntroVideo.toString()};\nvar goalVideoCapabilities = ${goalVideoCapabilities.toString()};\nvar goalVideoTelemetry = ${goalVideoTelemetry.toString()};\nvar renderGoalOverlayV2Dom = ${renderGoalOverlayDom.toString()};\n` + String.raw`
     var goalV2CacheName = "veyocast-player-goal-assets-v2";
     var goalV2Preparing = {};
     var goalV2RequiredVideos = {};
@@ -119,15 +122,28 @@ export function legacyGoalOverlayScript() {
       clearGoalElement();
       var overlay = byId("goal-overlay");
       var config = goal.configuration;
-      var orientation = window.innerHeight > window.innerWidth ? "portrait" : "landscape";
+      var rect = overlay.getBoundingClientRect();
+      var probe = document.createElement("video");
+      var selected = resolveGoalIntroAsset({ configuration: config, screenOrientation: goal.screenOrientation,
+        width: rect.width || window.innerWidth, height: rect.height || window.innerHeight,
+        assets: Object.keys(goal.assets).map(function (id) { return goal.assets[id]; }),
+        canPlayType: function (type) { return probe.canPlayType(type); } });
+      var orientation = selected.orientation;
+      function report(code) {
+        goalVideoTelemetry({ code: code, eventId: goal.eventId, deliveryId: goal.deliveryId,
+          alertVersionId: goal.alertVersionId || null, assetId: selected.requestedAssetId,
+          orientation: orientation, mimeType: selected.mimeType, at: new Date().toISOString(),
+          width: Math.round(rect.width || window.innerWidth), height: Math.round(rect.height || window.innerHeight) });
+      }
+      if (selected.code) report(selected.code);
       var appearance = goalV2Appearance(config);
       var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       var transition = reduced ? 0 : config.transitionDurationMs;
-      var introId = config.introEnabled ? (orientation === "portrait" ? config.introPortraitMediaId || config.introLandscapeMediaId : config.introLandscapeMediaId || config.introPortraitMediaId) : null;
+      var introId = selected.assetId;
       var rendererRoot = document.createElement("div");
       var introVideo = null;
       var timer = null;
-      var watchdog = null;
+      var videoCleanup = null;
       var urls = [];
       var disposed = false;
       var phase = "IDLE";
@@ -157,7 +173,8 @@ export function legacyGoalOverlayScript() {
       }
       function show() {
         if (disposed || phase.indexOf("GOAL_OVERLAY") === 0 || phase === "RESUMING_PLAYLIST") return;
-        window.clearTimeout(timer); window.clearInterval(watchdog);
+        window.clearTimeout(timer);
+        if (videoCleanup) { videoCleanup(); videoCleanup = null; }
         state("GOAL_OVERLAY_ENTERING");
         redraw();
         rendererRoot.style.visibility = "visible";
@@ -174,40 +191,36 @@ export function legacyGoalOverlayScript() {
           }, config.overlayDurationMs);
         }, config.enterAnimation === "none" ? 0 : transition);
       }
-      function fail(reason) { if (disposed || (phase !== "GOAL_INTRO_LOADING" && phase !== "GOAL_INTRO_PLAYING")) return; goalV2Log("goal_event_failed", goal, reason); show(); }
+      function fail(reason) { if (disposed || (phase !== "GOAL_INTRO_LOADING" && phase !== "GOAL_INTRO_PLAYING")) return; report(reason); goalV2Log("goal_event_failed", goal, reason); show(); }
       runtime.goalV2Redraw = redraw;
       runtime.goalV2Cleanup = function () {
-        disposed = true; window.clearTimeout(timer); window.clearInterval(watchdog);
+        disposed = true; window.clearTimeout(timer);
+        if (videoCleanup) { videoCleanup(); videoCleanup = null; }
         if (rendererCleanup) rendererCleanup();
         urls.forEach(function (url) { URL.revokeObjectURL(url); });
         runtime.goalV2Redraw = null;
       };
       redraw();
       if (!introId) show();
-      else { state("GOAL_INTRO_LOADING"); timer = window.setTimeout(function () { fail("intro_cache_unavailable"); }, 2000); }
-      Promise.all(Object.keys(goal.assets).map(function (id) {
-        return goalV2LocalUrl(goal.assets[id]).then(function (url) {
-          if (url) { if (disposed) URL.revokeObjectURL(url); else { urls.push(url); goal.assets[id] = Object.assign({}, goal.assets[id], { url: url }); } }
-          return { id: id, url: url };
-        });
-      })).then(function (local) {
-        if (disposed) return;
-        redraw();
-        if (!introId || phase !== "GOAL_INTRO_LOADING") return;
-        window.clearTimeout(timer);
-        var intro = local.find(function (asset) { return asset.id === introId && asset.url; });
-        if (!intro) { fail("intro_not_cached"); return; }
-        introVideo = document.createElement("video");
-        introVideo.muted = true; introVideo.playsInline = true; introVideo.controls = false; introVideo.preload = "auto";
-        introVideo.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:contain;visibility:hidden";
-        introVideo.onplaying = function () { if (disposed || phase !== "GOAL_INTRO_LOADING") return; state("GOAL_INTRO_PLAYING"); introVideo.style.visibility = "visible"; goalV2Log("goal_intro_started", goal); };
-        introVideo.onended = function () { if (disposed || phase !== "GOAL_INTRO_PLAYING") return; goalV2Log("goal_intro_finished", goal); show(); };
-        introVideo.onerror = function () { fail("intro_load_error"); };
-        overlay.appendChild(introVideo); introVideo.src = intro.url;
-        var progressedAt = now(); var position = 0;
-        watchdog = window.setInterval(function () { if (introVideo.currentTime > position) { position = introVideo.currentTime; progressedAt = now(); } else if (now() - progressedAt > 8000) fail("intro_stalled"); }, 1000);
-        try { var playing = introVideo.play(); if (playing && playing.catch) playing.catch(function () { fail("intro_playback_failed"); }); } catch (error) { fail("intro_playback_failed"); }
-      }).catch(function () { fail("intro_cache_unavailable"); });
+      else { state("GOAL_INTRO_LOADING"); timer = window.setTimeout(function () { fail("GOAL_VIDEO_CACHE_TIMEOUT"); }, 2000); }
+      Object.keys(goal.assets).forEach(function (id) {
+        goalV2LocalUrl(goal.assets[id]).then(function (url) {
+          if (disposed) { if (url) URL.revokeObjectURL(url); return; }
+          if (url) { urls.push(url); goal.assets[id] = Object.assign({}, goal.assets[id], { url: url }); redraw(); }
+          if (id !== introId || phase !== "GOAL_INTRO_LOADING") return;
+          window.clearTimeout(timer);
+          if (!url) { fail("GOAL_VIDEO_CACHE_MISSING"); return; }
+          introVideo = document.createElement("video");
+          introVideo.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:contain;visibility:hidden";
+          overlay.appendChild(introVideo);
+          videoCleanup = playGoalIntroVideo(introVideo, url, {
+            onPlaying: function () { if (disposed) return; state("GOAL_INTRO_PLAYING"); introVideo.style.visibility = "visible"; report("GOAL_VIDEO_STARTED"); goalV2Log("goal_intro_started", goal); },
+            onComplete: function () { report("GOAL_VIDEO_COMPLETED"); goalV2Log("goal_intro_finished", goal); show(); },
+            onFailure: fail
+          });
+          if (phase !== "GOAL_INTRO_LOADING" && phase !== "GOAL_INTRO_PLAYING") { videoCleanup(); videoCleanup = null; }
+        }).catch(function () { if (id === introId) fail("GOAL_VIDEO_CACHE_MISSING"); });
+      });
       return true;
     }
 `;

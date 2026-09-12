@@ -1795,14 +1795,16 @@ test("Static LG houdt clubprogramma-item 100 via paginering bereikbaar", async (
   await page.goto(`${playerURL}/lg/legacy`);
   const slide = page.locator(".dynamic-template.editorial-arena");
   const pageNumber = slide.locator(".matchcentre-page-number");
-  await expect(slide.locator(".legacy-fixture-row")).toHaveCount(6);
-  await expect(pageNumber).toHaveText("01 / 17");
+  await expect(slide.locator(".legacy-fixture-row").first()).toBeVisible();
+  const capacity = await slide.locator(".legacy-fixture-row").count();
+  const pageCount = Math.ceil(100 / capacity);
+  await expect(pageNumber).toHaveText(`01 / ${String(pageCount).padStart(2, "0")}`);
   await expect(slide.locator("footer")).not.toContainText("Match centre");
 
-  await page.clock.runFor(80_100);
+  await page.clock.runFor((pageCount - 1) * 5000 + 100);
 
-  await expect(pageNumber).toHaveText("17 / 17");
-  await expect(slide.locator(".legacy-fixture-row")).toHaveCount(4);
+  await expect(pageNumber).toHaveText(`${pageCount} / ${pageCount}`);
+  await expect(slide.locator(".legacy-fixture-row")).toHaveCount(100 - capacity * (pageCount - 1));
   await expect(slide).toContainText("Thuis 100");
   await expect(slide).toContainText("Uit 100");
   await expect(slide).not.toContainText("Thuis 101");
@@ -1884,6 +1886,7 @@ test("Static LG houdt wedstrijdregels op twee vaste regels en forceert portrait 
           ? getComputedStyle(firstSecondary)
           : null;
         return {
+          listHeight: element.clientHeight,
           fifthTop: rows[4]?.getBoundingClientRect().top ?? 0,
           gridAutoRows: getComputedStyle(element).gridAutoRows,
           heights: rows.map((row) => row.getBoundingClientRect().height),
@@ -1899,8 +1902,9 @@ test("Static LG houdt wedstrijdregels op twee vaste regels en forceert portrait 
           firstTop: rows[0]?.getBoundingClientRect().top ?? 0
         };
       });
-      const expectedHeight = orientation === "landscape" ? 115 : 221;
-      expect(geometry.gridAutoRows).toBe(`${expectedHeight}px`);
+      const rowsPerColumn = orientation === "landscape" ? 4 : 7;
+      const expectedHeight = (geometry.listHeight - 12 * (rowsPerColumn - 1)) / rowsPerColumn;
+      expect(parseFloat(geometry.gridAutoRows)).toBeCloseTo(expectedHeight, 1);
       expect(geometry.heights.every((height) => Math.abs(height - expectedHeight) < 0.1))
         .toBe(true);
       expect(geometry.primaryAboveSecondary).toBe(true);
@@ -1924,36 +1928,28 @@ test("Static LG projecteert frozen Royal Current v8-wedstrijden met moderne rijm
   const cases = [
     {
       expectedColumns: "two",
-      expectedFirstPageRows: 12,
-      expectedHeight: 96,
-      itemCount: 13,
+      itemCount: 20,
       orientation: "landscape",
       showTime: true,
       slideType: "sport_program"
     },
     {
       expectedColumns: "one",
-      expectedFirstPageRows: 7,
-      expectedHeight: 148,
-      itemCount: 8,
+      itemCount: 12,
       orientation: "portrait",
       showTime: true,
       slideType: "sport_program"
     },
     {
       expectedColumns: "two",
-      expectedFirstPageRows: 12,
-      expectedHeight: 96,
-      itemCount: 13,
+      itemCount: 20,
       orientation: "landscape",
       showTime: true,
       slideType: "sport_results"
     },
     {
       expectedColumns: "one",
-      expectedFirstPageRows: 5,
-      expectedHeight: 148,
-      itemCount: 6,
+      itemCount: 12,
       orientation: "portrait",
       showTime: false,
       slideType: "sport_results"
@@ -2045,7 +2041,12 @@ test("Static LG projecteert frozen Royal Current v8-wedstrijden met moderne rijm
       expect(typography.compactResultSize).toBe("24px");
       expect(typography.compactScoreSize).toBe("42px");
       await expect(list).toHaveAttribute("data-columns", entry.expectedColumns);
-      await expect(rows).toHaveCount(entry.expectedFirstPageRows);
+      const listHeight = await list.evaluate((element) => element.clientHeight);
+      const minimum = entry.orientation === "landscape" ? 90 : 180;
+      const perColumn = Math.floor((listHeight + 12) / (minimum + 12));
+      const capacity = perColumn * (entry.expectedColumns === "two" ? 2 : 1);
+      const expectedHeight = (listHeight - 12 * (perColumn - 1)) / perColumn;
+      await expect(rows).toHaveCount(capacity);
       await expect(slide.locator(".dynamic-page-number")).toHaveText("01 / 02");
       if (entry.showTime) {
         await expect(rows.nth(0).locator(".legacy-match-time")).toHaveText("08:30");
@@ -2134,14 +2135,14 @@ test("Static LG projecteert frozen Royal Current v8-wedstrijden met moderne rijm
           splitTop: rowBoxes[Math.ceil(rowBoxes.length / 2)]?.top ?? 0
         };
       }, rowSelector);
-      expect(geometry.gridAutoRows).toBe(`${entry.expectedHeight}px`);
+      expect(parseFloat(geometry.gridAutoRows)).toBeCloseTo(expectedHeight, 1);
       expect(geometry.heights.every((height) =>
-        Math.abs(height - entry.expectedHeight) < .1
+        Math.abs(height - expectedHeight) < .1
       )).toBe(true);
       expect(geometry.cancelledHomeLeft).toBeCloseTo(geometry.normalHomeLeft, 1);
       expect(geometry.scrollWidth).toBe(geometry.clientWidth);
       expect(geometry.scrollHeight).toBe(geometry.clientHeight);
-      expect(geometry.secondTop - geometry.firstTop).toBeGreaterThan(entry.expectedHeight);
+      expect(geometry.secondTop - geometry.firstTop).toBeGreaterThan(expectedHeight);
       if (entry.expectedColumns === "two") {
         expect(geometry.splitTop).toBeCloseTo(geometry.firstTop, 1);
         expect(geometry.splitLeft).toBeGreaterThan(geometry.normalHomeLeft);
@@ -2150,8 +2151,8 @@ test("Static LG projecteert frozen Royal Current v8-wedstrijden met moderne rijm
 
       await page.clock.runFor(5_100);
       await expect(slide.locator(".dynamic-page-number")).toHaveText("02 / 02");
-      await expect(list.locator(rowSelector)).toHaveCount(1);
-      await expect(list.locator(".legacy-match-home-team"))
+      await expect(list.locator(rowSelector)).toHaveCount(entry.itemCount - capacity);
+      await expect(list.locator(".legacy-match-home-team").last())
         .toHaveText(`Thuis ${entry.itemCount}`);
       await context.close();
     });
@@ -2287,7 +2288,7 @@ test("Static LG ordent uitslagen in twee landscape-kolommen gelijk aan de modern
   await context.close();
 });
 
-test("Static LG houdt één uitslag compact op één regel met de score tussen de teams", async ({
+test("Static LG vult de lijst met één ruime uitslag en behoudt de score tussen de teams", async ({
   browser
 }) => {
   for (const orientation of ["landscape", "portrait"] as const) {
@@ -2368,10 +2369,8 @@ test("Static LG houdt één uitslag compact op één regel met de score tussen d
             scoreBox.right <= awayBox.left + 1
         };
       });
-      const expectedHeight = orientation === "landscape" ? 115 : 314;
-      expect(geometry.gridAutoRows).toBe(`${expectedHeight}px`);
-      expect(geometry.rowHeight).toBeCloseTo(expectedHeight, 1);
-      expect(geometry.rowHeight).toBeLessThan(geometry.listHeight / 2);
+      expect(parseFloat(geometry.gridAutoRows)).toBeCloseTo(geometry.listHeight, 1);
+      expect(geometry.rowHeight).toBeCloseTo(geometry.listHeight, 1);
       expect(geometry.primaryCenter).toBeCloseTo(geometry.rowCenter, 1);
       expect(geometry.scoreBetweenTeams).toBe(true);
       await context.close();

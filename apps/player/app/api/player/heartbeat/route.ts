@@ -13,6 +13,8 @@ import { readPlayerAppVersion } from "../../../_lib/runtime-health";
 import { createPlayerAnonClient } from "../../../_lib/player-supabase";
 import {
   playbackErrorSyncDetail,
+  safeGoalVideoDiagnostics,
+  safeGoalVideoCapabilities,
   safePlayerIdentifier
 } from "../../../_lib/player-heartbeat";
 
@@ -47,6 +49,8 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as {
     activeReleaseId?: string | null;
+    goalVideoDiagnostics?: unknown;
+    goalVideoCapabilities?: unknown;
     automationCapabilities?: unknown;
     automationReport?: unknown;
     currentItemId?: string | null;
@@ -102,6 +106,7 @@ export async function POST(request: Request) {
       screenAutomation: reportedCapabilities?.success
         ? reportedCapabilities.data
         : inferredAutomationCapabilities(request),
+      goalVideo: safeGoalVideoCapabilities(body.goalVideoCapabilities),
       manifestSchemaVersions: [1],
       releaseHashAlgorithms: ["sha256"]
     },
@@ -117,6 +122,7 @@ export async function POST(request: Request) {
         process.env.DEPLOYMENT_SHA?.trim().slice(0, 120) ||
         "local",
       ...playbackErrorDetail,
+      goalVideoDiagnostics: safeGoalVideoDiagnostics(body.goalVideoDiagnostics),
       desiredReleaseId: safePlayerIdentifier(body.desiredReleaseId),
       networkState: body.networkState === "offline" ? "offline" : "online"
     },

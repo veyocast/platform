@@ -56,6 +56,8 @@ type OverlayDesign = {
   typography: "body" | "display";
 };
 export type ActiveLedScoresGoal = {
+  alertVersionId?: string | null;
+  screenOrientation?: "portrait" | "landscape" | null;
   competition?: string | null;
   matchName?: string | null;
   round?: string | null;
@@ -529,6 +531,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         }
       }, activateIn);
     };
+    let screenOrientation: "portrait" | "landscape" | null = null;
     const handleGoal = (value: unknown) => {
       const possibleDeliveryId = isRecord(value) ? safeUuid(value.id) : null;
       const message = parseGoalMessage(value);
@@ -541,6 +544,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         );
         return;
       }
+      message.goal.screenOrientation = screenOrientation;
       logGoal("goal_event_received", message.goal.eventId);
       void acknowledge(token, message.goal.deliveryId, "received", null);
       scheduleOverlay({ ...message, overlay: message.goal });
@@ -616,6 +620,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
     const handleStreamEvent = (event: string, value: unknown) => {
       if (!isRecord(value)) return;
       if (event === "bootstrap" || event === "configuration") {
+        if (value.screenOrientation === "portrait" || value.screenOrientation === "landscape") screenOrientation = value.screenOrientation;
         const prepared = preloadAssets(Array.isArray(value.configs) ? value.configs : []);
         if (Array.isArray(value.matchBindings)) {
           for (const binding of value.matchBindings) {
@@ -891,6 +896,8 @@ export function parseGoalMessage(value: unknown) {
     executeAt,
     expiresAt,
     goal: {
+      alertVersionId: safeOptionalUuid(value.alertVersionId),
+      screenOrientation: null as "portrait" | "landscape" | null,
       assets,
       competition: safeText(payload.competition, 160),
       matchName: safeText(payload.matchName, 240),

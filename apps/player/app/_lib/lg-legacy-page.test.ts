@@ -29,7 +29,7 @@ describe("Royal Current Static LG", () => {
     expect(html).toContain("legacy-birthday-layout");
     expect(html).toContain("legacy-birthday-card");
     expect(html).toContain("legacy-birthday-photo");
-    expect(html).toContain("legacy-birthday-confetti");
+    expect(html).toContain("startBirthdayConfetti");
     expect(html).toContain("legacyBirthdayPageSize");
     expect(html).toContain("[1, 2, 4, 6]");
     expect(html).toContain("birthdayPresentation.maxPerPortraitPage");
@@ -105,15 +105,15 @@ describe("Royal Current Static LG", () => {
     });
   });
 
-  it("spiegelt de vaste moderne wedstrijdhoogtes en paginering zonder v1 te wijzigen", () => {
+  it("berekent wedstrijdhoogtes en paginering met gedeelde geometrie", () => {
     const html = renderLgLegacyHtml();
 
     expect(html).toContain('data-design-revision="royal-current-v8"] .legacy-fixture-list');
-    expect(html).toContain("grid-auto-rows:96px");
-    expect(html).toContain("height:96px;min-height:96px");
-    expect(html).toContain("grid-auto-rows:148px");
-    expect(html).toContain("height:148px;min-height:148px");
-    expect(html).toContain('Math.ceil(itemCount / 2) + ",96px)"');
+    expect(html).toContain("grid-auto-rows:var(--sport-list-row-height,96px)");
+    expect(html).toContain("height:var(--sport-list-row-height,96px);min-height:var(--sport-list-row-height,96px)");
+    expect(html).toContain("grid-auto-rows:var(--sport-list-row-height,148px)");
+    expect(html).toContain("height:var(--sport-list-row-height,148px);min-height:var(--sport-list-row-height,148px)");
+    expect(html).toContain('Math.ceil(itemCount / 2) + ",var(--sport-list-row-height,96px))"');
     expect(html).toContain(
       "font-family:var(--vc-theme-body-font,\"VeyoCast Royal Current Roboto\")"
     );
@@ -141,15 +141,11 @@ describe("Royal Current Static LG", () => {
     expect(html).toContain(
       "? 42 * baseScale * sportScale\n        : 42 * baseScale * sportScale / 1.12"
     );
-    expect(html).toContain(
-      'slideType === "sport_results" ? (orientation === "portrait" ? 5 : 6) * (displayColumns === "two" ? 2 : 1)'
-    );
-    expect(html).toContain(
-      'slideType === "sport_program" ? (orientation === "portrait" ? 7 : 6) * (displayColumns === "two" ? 2 : 1)'
-    );
-    expect(html).toContain(".legacy-fixture-list,.legacy-result-list{display:grid;grid-auto-rows:115px");
-    expect(html).toContain(".portrait .legacy-fixture-list{grid-auto-rows:221px}");
-    expect(html).toContain(".portrait .legacy-result-list{grid-auto-rows:314px}");
+    expect(html).toContain("responsiveList ? listLayout.capacity");
+    expect(html).toContain("resolveSportListLayout");
+    expect(html).toContain(".legacy-fixture-list,.legacy-result-list{display:grid;grid-auto-rows:var(--sport-list-row-height,115px)");
+    expect(html).toContain(".portrait .legacy-fixture-list{grid-auto-rows:var(--sport-list-row-height,221px)}");
+    expect(html).toContain(".portrait .legacy-result-list{grid-auto-rows:var(--sport-list-row-height,314px)}");
   });
 
   it("behoudt vaste bezoekslots, QR-only nieuws, afgelast op tijd en een pinned standrij", () => {

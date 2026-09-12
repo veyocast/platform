@@ -4,6 +4,15 @@ import { pipeline } from "node:stream/promises";
 import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 
 import { createClient } from "@supabase/supabase-js";
+import { readMediaWorkerConfig } from "./worker-config";
+
+/** Operator diagnostics share the same validated worker credential boundary. */
+export function createConfiguredMediaWorkerClient() {
+  const config = readMediaWorkerConfig();
+  return createClient(config.supabaseUrl, config.serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  });
+}
 
 export type ClaimedMediaJob = {
   assetId: string;

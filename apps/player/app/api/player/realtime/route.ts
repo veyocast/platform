@@ -73,6 +73,7 @@ export async function GET(request: Request) {
           ? currentMatchBootstrap.bindings
           : [],
         screenId: currentBootstrap.screenId,
+        screenOrientation: currentBootstrap.screenOrientation,
         serverTime: new Date().toISOString()
       }));
       const refreshConfigAssetsIfNeeded = async () => {
@@ -226,6 +227,7 @@ export async function GET(request: Request) {
                   configs: refreshed.configs,
                   matchBindings: refreshedMatch.bindings,
                   screenId: refreshed.screenId,
+                  screenOrientation: refreshed.screenOrientation,
                   serverTime: new Date().toISOString()
                 }));
                 for (const delivery of orderLedScoresPendingDeliveries(

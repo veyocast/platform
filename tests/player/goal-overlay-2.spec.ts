@@ -19,7 +19,7 @@ function goal(index: number, configuration: GoalOverlayConfiguration, side: "hom
     scorerName: index === 1 ? "Jack Morauw" : null, matchClock: index === 1 ? "67′" : null
   } };
 }
-async function prepare(page: Page, legacy: boolean, messages: unknown[], preloadConfig?: unknown, configurationDeliveryId?: string) {
+async function prepare(page: Page, legacy: boolean, messages: unknown[], preloadConfig?: unknown, configurationDeliveryId?: string, screenOrientation?: "portrait" | "landscape") {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const manifest = await (await page.request.get(`${playerURL}/api/player/manifest?deviceToken=demo-online`)).json();
@@ -34,7 +34,7 @@ async function prepare(page: Page, legacy: boolean, messages: unknown[], preload
   }
   let sent = false;
   await page.route("**/api/player/realtime", (r) => {
-    const body = sent ? ": heartbeat\n\n" : sse(configurationDeliveryId ? "configuration" : "bootstrap", { configs: preloadConfig ? [preloadConfig] : [], deliveryId: configurationDeliveryId, serverTime: new Date().toISOString() }) + messages.map((m) => sse("goal", m)).join("");
+    const body = sent ? ": heartbeat\n\n" : sse(configurationDeliveryId ? "configuration" : "bootstrap", { screenOrientation, configs: preloadConfig ? [preloadConfig] : [], deliveryId: configurationDeliveryId, serverTime: new Date().toISOString() }) + messages.map((m) => sse("goal", m)).join("");
     sent = true;
     return r.fulfill({ body, contentType: "text/event-stream; charset=utf-8", headers: { "Cache-Control": "no-store" } });
   });
@@ -181,4 +181,34 @@ for (const legacy of [false, true]) {
     expect(errors).toEqual([]);
   });
 
+}
+
+for (const legacy of [false, true]) {
+  test(`${legacy ? "LG" : "React"}: paired portrait selects the portrait MP4 despite landscape viewport`, async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    const portraitId = "77777777-7777-4777-8777-777777777777";
+    const bytes = readFileSync("apps/player/public/lg-probe/h264-main-portrait.mp4");
+    const portraitChecksum = createHash("sha256").update(bytes).digest("hex");
+    const assets = [
+      { checksum, mediaAssetId: videoId, mimeType: "video/mp4", url: `${playerURL}/lg-probe/h264-baseline-aac.mp4` },
+      { checksum: portraitChecksum, mediaAssetId: portraitId, mimeType: "video/mp4", url: `${playerURL}/lg-probe/h264-main-portrait.mp4` }
+    ];
+    const c = { ...config, introEnabled: true, introLandscapeMediaId: videoId, introPortraitMediaId: portraitId };
+    const message = goal(41, c, "home", assets);
+    message.executeAt = new Date(Date.now() + 6000).toISOString();
+    const errors = await prepare(page, legacy, [message], { config: { goalOverlay: c }, assets }, undefined, "portrait");
+    const root = page.locator(legacy ? '#goal-overlay[data-renderer="goal-v2"]' : '[data-testid="goal-celebration"]');
+    const video = root.locator("video");
+    await expect(video).toBeVisible({ timeout: 12000 });
+    expect(await video.evaluate((element: HTMLVideoElement) => ({ width: element.videoWidth, height: element.videoHeight, muted: element.muted, inline: element.playsInline }))).toEqual({ width: 360, height: 640, muted: true, inline: true });
+    await expect(root.locator(".vc-goal")).toBeHidden();
+    await expect(root.locator(".vc-goal")).toBeVisible();
+    await expect(root.locator(".vc-goal")).toHaveAttribute("data-orientation", "portrait");
+    const history = await page.evaluate(() => JSON.parse(localStorage.getItem("veyocast-player-goal-video-diagnostics-v1") || "[]"));
+    expect(history).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "GOAL_VIDEO_STARTED", assetId: portraitId, orientation: "portrait" }),
+      expect.objectContaining({ code: "GOAL_VIDEO_COMPLETED", assetId: portraitId, orientation: "portrait" })
+    ]));
+    expect(errors).toEqual([]);
+  });
 }

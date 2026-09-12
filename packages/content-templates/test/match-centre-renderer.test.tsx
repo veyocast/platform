@@ -174,7 +174,7 @@ describe("Match Centre renderer", () => {
       showSportpark: true,
       showTime: true
     });
-    expect(view?.pages).toHaveLength(17);
+    expect(view?.pages).toHaveLength(15);
     expect(items).toHaveLength(100);
     expect(items?.at(-1)?.id).toBe("wedstrijd-100");
     expect(teamItemCount).toBe(40);
@@ -194,7 +194,7 @@ describe("Match Centre renderer", () => {
     )).toBe("06-09-2026 | 15:33");
     expect(
       firstPage?.kind === "sport-list" ? firstPage.items : []
-    ).toHaveLength(6);
+    ).toHaveLength(7);
     expect(renderer).toContain("<strong>MATCHCENTRE</strong>");
     expect(renderer).toContain(
       "<time dateTime={clock.instant}>{clock.label}</time>"
@@ -235,11 +235,11 @@ describe("Match Centre renderer", () => {
     expect(landscape?.pages).toHaveLength(2);
     expect(landscape?.pages[0]?.kind === "sport-list"
       ? landscape.pages[0].items
-      : []).toHaveLength(12);
+      : []).toHaveLength(14);
     expect(portrait?.pages).toHaveLength(3);
     expect(portrait?.pages[0]?.kind === "sport-list"
       ? portrait.pages[0].items
-      : []).toHaveLength(7);
+      : []).toHaveLength(8);
   });
 
   it("projecteert alle optionele wedstrijdvelden onafhankelijk en met legacy fallbacks", () => {

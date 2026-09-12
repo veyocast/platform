@@ -14,3 +14,4 @@ export * from "./theme-motion";
 export * from "./theme-visual-matrix";
 
 export { sportMatchBelongsOnSlide } from "./sport-match-phase";
+export { birthdayCalendarDay } from "./birthday-calendar";

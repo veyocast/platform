@@ -82,7 +82,7 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("renderEditorialStandingTemplate");
     expect(html).toContain("legacy-standing-card");
     expect(html).toContain("var pages = templatePages(items, 10)");
-    expect(html).toContain('slideType === "sport_results" ? (orientation === "portrait" ? 5 : 6)');
+    expect(html).toContain('resolveSportListLayout({ orientation: orientation, slideType: slideType,');
     expect(html).toContain("font-size:var(--vc-theme-font-42,42px)");
     expect(html).toContain("font-size:var(--vc-theme-font-57-6,57.6px)");
     expect(html).not.toContain("standing-club-edition");
@@ -483,7 +483,7 @@ describe("zelfstandige LG Legacy Player", () => {
       "bottom:calc(52px + var(--viewport-inset-y,0px))"
     );
     expect(html).toContain(
-      ".legacy-fixture-list,.legacy-result-list{display:grid;grid-auto-rows:115px;align-content:start"
+      ".legacy-fixture-list,.legacy-result-list{display:grid;grid-auto-rows:var(--sport-list-row-height,115px);align-content:start"
     );
     expect(html).toContain(
       '[data-columns="two"]{grid-auto-flow:column;grid-template-columns:repeat(2,minmax(0,1fr))'
@@ -492,7 +492,7 @@ describe("zelfstandige LG Legacy Player", () => {
       ".legacy-fixture-row,.legacy-result-row{display:grid;align-content:center"
     );
     expect(html).toContain(
-      ".portrait .legacy-fixture-list{grid-auto-rows:221px}.portrait .legacy-result-list{grid-auto-rows:314px}"
+      ".portrait .legacy-fixture-list{grid-auto-rows:var(--sport-list-row-height,221px)}.portrait .legacy-result-list{grid-auto-rows:var(--sport-list-row-height,314px)}"
     );
     expect(html).toContain(
       ".legacy-program-primary{grid-template-columns:var(--legacy-program-columns)}"
@@ -511,10 +511,8 @@ describe("zelfstandige LG Legacy Player", () => {
       "font-size:var(--vc-theme-sport-score-size-compact,42px)"
     );
     expect(html.match(/compact \? "48px" : "57px"/g)).toHaveLength(2);
-    expect(html).toContain(
-      'slideType === "sport_program" ? (orientation === "portrait" ? 7 : 6)'
-    );
-    expect(html).toContain('Math.ceil(itemCount / 2) + ",115px)"');
+    expect(html).toContain('itemCount: items.length, contentHeight: body.clientHeight || undefined');
+    expect(html).toContain('Math.ceil(itemCount / 2) + ",var(--sport-list-row-height,115px))"');
     expect(html).toContain("@keyframes legacy-match-row-in");
     expect(html).toContain(
       "templateSportDisplayConfiguration(sport.displayConfig)"

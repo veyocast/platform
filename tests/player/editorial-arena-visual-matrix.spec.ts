@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 
 import {
   freezeThemePresentation,
@@ -101,21 +101,9 @@ test("Royal Current-outputmatrix van 64 renderercombinaties", async ({ page }) =
             const rows = slide.locator(
               '[class*="arenaProgramRow"], [data-result-row]'
             );
-            const rowsPerPage = variant.startsWith("results-")
-              ? orientation === "portrait" ? 5 : 6
-              : orientation === "portrait" ? 7 : 6;
-            await expect(rows).toHaveCount(Math.min(
-              countForVariant(variant),
-              rowsPerPage
-            ));
-            const rowHeights = await rows.evaluateAll((elements) =>
-              elements.map((element) => Number.parseFloat(
-                getComputedStyle(element).height
-              ))
-            );
-            expect(new Set(rowHeights)).toEqual(new Set([
-              expectedMatchRowHeight(variant, orientation)
-            ]));
+            const geometry = await sportRowGeometry(rows, orientation);
+            await expect(rows).toHaveCount(Math.min(countForVariant(variant), geometry.capacity));
+            await assertSportRowsFill(rows, orientation);
             const firstRow = rows.first();
             const primary = firstRow.locator('[class*="arenaMatchPrimary"]');
             await expect(primary).toContainText("za 16 aug");
@@ -214,11 +202,18 @@ test("Royal Current-outputmatrix van 64 renderercombinaties", async ({ page }) =
               `Volledige stand · ${countForVariant(variant)} teams`
             );
             await expect(pinned).toBeVisible();
-            await expect(slide.locator('[data-standing-window] > article')).toHaveCount(
-              Math.min(countForVariant(variant), 7)
+            const standingWindow = slide.locator('[data-standing-window]');
+            const standingHeight = await standingWindow.evaluate((element) => element.clientHeight);
+            await expect(standingWindow.locator(':scope > article')).toHaveCount(
+              Math.min(countForVariant(variant), Math.floor((standingHeight + 6) / 76))
             );
             await expect(slide.locator('[class*="arenaStandingContext"]'))
               .toContainText("Poule A");
+            const bounds = await standingWindow.evaluate((element) => ({
+              last: element.lastElementChild?.getBoundingClientRect().bottom,
+              context: element.closest('[data-render-family]')?.querySelector('p')?.getBoundingClientRect().top
+            }));
+            expect(bounds.last!).toBeLessThanOrEqual(bounds.context!);
             expect(await pinned.evaluate((element) => {
               const bounds = element.getBoundingClientRect();
               const children = Array.from(element.children).map((child) =>
@@ -506,17 +501,9 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
           "data-columns",
           orientation === "landscape" ? "2" : "1"
         );
-        await expect(rows).toHaveCount(
-          orientation === "landscape"
-            ? 12
-            : variant === "results-20" ? 5 : 7
-        );
-        expect(await rows.evaluateAll((elements) => elements.map((element) =>
-          Number.parseFloat(getComputedStyle(element).height)
-        ))).toEqual(Array.from(
-          { length: await rows.count() },
-          () => expectedMatchRowHeight(variant, orientation)
-        ));
+        const rowLayout = await sportRowGeometry(rows, orientation);
+        await expect(rows).toHaveCount(Math.min(20, rowLayout.capacity * (orientation === "landscape" ? 2 : 1)));
+        await assertSportRowsFill(rows, orientation);
         expect(await rows.evaluateAll((elements) => elements.every((element) =>
           element.scrollWidth <= element.clientWidth
         ))).toBe(true);
@@ -535,7 +522,7 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
           ).first()).toContainText("Thuisclub 1");
           await expect(columnSections.last().locator(
             '[data-field="home-team"]'
-          ).first()).toContainText("Thuisclub 7");
+          ).first()).toContainText(`Thuisclub ${rowLayout.capacity + 1}`);
           const columnStarts = await columnSections.evaluateAll((sections) =>
             sections.map((section) => {
               const box = section.getBoundingClientRect();
@@ -599,7 +586,7 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
     }
   }
 
-  await test.step("één staande uitslag blijft een vaste rij", async () => {
+  await test.step("één staande uitslag benut de beschikbare lijsthoogte", async () => {
     await page.setViewportSize({ height: 1920, width: 1080 });
     const payload = withSportItemCount(
       buildPayload("results-5", "portrait", "light"),
@@ -621,8 +608,8 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
         ratioToContent: contentBox ? rowBox.height / contentBox.height : 1
       };
     });
-    expect(geometry.height).toBe(148);
-    expect(geometry.ratioToContent).toBeLessThan(0.25);
+    expect(geometry.height).toBeGreaterThan(180);
+    expect(geometry.ratioToContent).toBeCloseTo(1, 2);
   });
 
   await test.step("sportpark blijft zichtbaar wanneer alleen veld is uitgeschakeld", async () => {
@@ -725,7 +712,7 @@ test("staande splitnieuwsslide volgt het v8-raster met 22 px tussenruimte", asyn
   });
 });
 
-test("Royal Current vergroot wedstrijdinformatie zonder vaste rijen te breken", async ({ page }) => {
+test("Royal Current vergroot wedstrijdinformatie binnen hoogteafhankelijke rijen", async ({ page }) => {
   test.setTimeout(90_000);
   await page.clock.setFixedTime(new Date("2026-09-09T08:00:00.000Z"));
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -767,11 +754,12 @@ test("Royal Current vergroot wedstrijdinformatie zonder vaste rijen te breken", 
         scrollWidth: element.scrollWidth
       })));
       expect(rowGeometry.every((geometry) => (
-        geometry.height === 96 &&
+        geometry.height >= 90 &&
         geometry.scrollHeight <= geometry.clientHeight &&
         geometry.scrollWidth <= geometry.clientWidth
       ))).toBe(true);
 
+      await assertSportRowsFill(rows, "landscape");
       const firstRow = rows.first();
       expect(await firstRow.evaluate((element) => ({
         background: getComputedStyle(element).backgroundColor,
@@ -1273,9 +1261,26 @@ function countForVariant(variant: typeof fixtureVariants[number]) {
   return variant.endsWith("-5") ? 5 : variant.endsWith("-10") ? 10 : 20;
 }
 
-function expectedMatchRowHeight(
-  variant: typeof fixtureVariants[number],
-  orientation: "landscape" | "portrait"
-) {
-  return orientation === "landscape" ? 96 : 148;
+async function sportRowGeometry(rows: Locator, orientation: "landscape" | "portrait") {
+  const box = await rows.first().evaluate((element) => {
+    const list = element.parentElement!;
+    return { height: list.clientHeight, gap: parseFloat(getComputedStyle(list).rowGap) || 0 };
+  });
+  const minimum = orientation === "landscape" ? 90 : 180;
+  return { ...box, capacity: Math.max(1, Math.floor((box.height + box.gap) / (minimum + box.gap))) };
+}
+async function assertSportRowsFill(rows: Locator, orientation: "landscape" | "portrait") {
+  const geometry = await rows.evaluateAll((elements) => elements.map((element) => {
+    const box = element.getBoundingClientRect();
+    const list = element.parentElement!;
+    const listBox = list.getBoundingClientRect();
+    return { height: box.height, top: box.top, bottom: box.bottom, listTop: listBox.top,
+      listBottom: listBox.bottom, last: element === list.lastElementChild };
+  }));
+  for (const row of geometry) {
+    expect(row.height).toBeGreaterThanOrEqual(orientation === "landscape" ? 89 : 179);
+    expect(row.top).toBeGreaterThanOrEqual(row.listTop - 2);
+    expect(row.bottom).toBeLessThanOrEqual(row.listBottom + 2);
+    if (row.last) expect(row.listBottom - row.bottom).toBeLessThan(20);
+  }
 }

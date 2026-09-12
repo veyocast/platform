@@ -1,3 +1,4 @@
+import { resolveSportListLayout } from "./sport-list-layout";
 import { sportMatchBelongsOnSlide } from "./sport-match-phase";
 import {
   editorialArenaActiveSlideTypes,
@@ -26,7 +27,6 @@ import {
 import {
   paginateEditorialRows,
   priceRowsThatFit,
-  sportResultsRowsPerPage,
   sportStandingRowsPerPage
 } from "./editorial-arena-layout";
 import {
@@ -195,6 +195,7 @@ export type DynamicTemplatePage =
   | { items: DynamicTemplateListItem[]; kind: "volunteers" };
 
 export type DynamicTemplateView = {
+  sportListContentHeight?: number;
   accentColor: string;
   arrivalConfig?: DynamicTemplateArrivalConfig;
   arrivalMotionPreset?: SportlinkArrivalMotionPreset;
@@ -351,9 +352,10 @@ export function royalStandingScrollOffset(
 
 export function createDynamicTemplateView(
   value: unknown,
-  now = new Date()
+  now = new Date(),
+  contentHeight?: number
 ): DynamicTemplateView | null {
-  return createDynamicTemplateViewInternal(value, false, now);
+  return createDynamicTemplateViewInternal(value, false, now, contentHeight);
 }
 
 /** Fixture-only entrypoint for typed families without a live provider gate. */
@@ -367,7 +369,8 @@ export function createDynamicTemplateFixtureView(
 function createDynamicTemplateViewInternal(
   value: unknown,
   allowFixtureOnly: boolean,
-  now: Date
+  now: Date,
+  contentHeight?: number
 ): DynamicTemplateView | null {
   const payload = parseDynamicTemplatePayload(value);
   if (!payload) return null;
@@ -768,7 +771,13 @@ function createDynamicTemplateViewInternal(
     const pool = readRecord(sport?.pool);
     const standingPinnedTeam = standingItems.find((item) => item.selected);
     const standingPageSize = themeIdentity.designRevision === "royal-current-v8"
-      ? payload.orientation === "landscape" ? 7 : 4
+      ? resolveSportListLayout({ orientation: payload.orientation, slideType: payload.slideType,
+        itemCount: standingItems.length,
+        // The renderer measures the row window after its heading, pinned team
+        // and context have laid out. Estimates are only for the first render.
+        contentHeight: contentHeight || ((payload.orientation === "portrait" ? 1560 : 798) -
+          (payload.orientation === "portrait" ? (standingPinnedTeam ? 278 : 44) : (standingPinnedTeam ? 180 : 100)))
+      }).capacity
       : sportStandingRowsPerPage;
     return {
       accentColor: themeTokens.accent,
@@ -879,19 +888,16 @@ function createDynamicTemplateViewInternal(
     "sport_dressing_rooms",
     "sport_officials"
   ].includes(payload.slideType);
-  const perPage = themeIdentity.designRevision === "royal-current-v8" &&
+  const dynamicList = royalFixtureFamily || payload.slideType === "sport_program" || payload.slideType === "sport_results";
+  const listLayout = resolveSportListLayout({ orientation: payload.orientation, slideType: payload.slideType,
+    itemCount: items.length, contentHeight, columns: columnMultiplier });
+  const perPage = dynamicList ? listLayout.capacity : themeIdentity.designRevision === "royal-current-v8" &&
     payload.slideType === "sport_sponsor"
     ? 1
     : themeIdentity.designRevision === "royal-current-v8" &&
       payload.slideType === "sport_activities"
       ? 3
-    : themeIdentity.designRevision === "royal-current-v8" && royalFixtureFamily
-      ? payload.orientation === "portrait" ? 7 : 5
-    : payload.slideType === "sport_results"
-      ? sportResultsRowsPerPage[payload.orientation] * columnMultiplier
-      : payload.slideType === "sport_program"
-        ? (payload.orientation === "portrait" ? 7 : 6) * columnMultiplier
-        : payload.orientation === "portrait" ? 6 : 8;
+    : payload.orientation === "portrait" ? 6 : 8;
   const listPageKind = payload.slideType === "sport_team"
     ? "team"
     : payload.slideType === "sport_sponsor"
@@ -902,6 +908,7 @@ function createDynamicTemplateViewInternal(
           ? "volunteers"
           : "sport-list";
   return {
+    sportListContentHeight: dynamicList ? listLayout.contentHeight : undefined,
     accentColor: themeTokens.accent,
     clubLogoUrl,
     clubName,

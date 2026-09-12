@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  birthdayCalendarDay,
   createDynamicTemplateView,
   dynamicTemplateHasRenderableContent,
   EditorialArenaRenderer,
@@ -58,6 +59,20 @@ export function DynamicTemplateMedia({
     () => liveMatch ? null : createDynamicTemplateView(item.dynamicTemplate, matchTime),
     [item.dynamicTemplate, liveMatch, matchTime]
   );
+  // The immutable data contains month/day. Re-project local today at midnight,
+  // including offline and when a slide was prepared before becoming visible.
+  useEffect(() => {
+    if (passive || paused || item.dynamicTemplate?.slideType !== "sport_birthdays") return;
+    const sport = item.dynamicTemplate.data.sport as { timezone?: string } | undefined;
+    const timezone = sport?.timezone || "Europe/Amsterdam";
+    let day = birthdayCalendarDay(Date.now(), timezone);
+    setMatchTime(new Date());
+    const timer = window.setInterval(() => {
+      const next = birthdayCalendarDay(Date.now(), timezone);
+      if (next && next !== day) { day = next; setMatchTime(new Date()); }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [item.id, item.dynamicTemplate, passive, paused]);
   // Re-project the same immutable payload at its next kickoff, including while
   // offline. Only the rendered rows change; the release and item timer stay put.
   useEffect(() => {
@@ -103,5 +118,5 @@ export function DynamicTemplateMedia({
       />
     );
   }
-  return <EditorialArenaRenderer item={item} now={matchTime} onReady={onReady} passive={passive} />;
+  return <EditorialArenaRenderer item={item} now={matchTime} onReady={onReady} passive={passive} paused={paused} runtimeEffects />;
 }
