@@ -47,6 +47,39 @@ programma en verschijnen op uitslagen, ook als de score nog niet openbaar is.
 Een correct lege periode wordt in de bibliotheek uitgelegd; gepubliceerd betekent
 niet automatisch dat er op dat moment inhoud beschikbaar is.
 
+## Werkelijke standrijen en synchronisatieduur (S178)
+
+Productiecontrole op 12 september 2026 toonde na de selectiecorrectie nog lege
+standen. `poulestand` levert de teamnaam, maar niet altijd `teamcode`. De bestaande
+mapper maakt dan SHA-256 van `standing-team`, één NUL-byte en de exacte UTF-8-naam.
+Die rij-ID verschilt van de numerieke team-ID uit de teamcatalogus. Dit is
+bevestigd voor Duindorp sv 1, 2 en O16-1; de catalogus bevat de juiste poules.
+
+De private identiteitsresolver accepteert de echte provider-ID, of uitsluitend
+die bewezen mapper-ID én dezelfde exacte teamnaam. De naam moet uniek zijn bij
+actieve teams in dezelfde tenant en bron. Een expliciet afwijkende provider-ID,
+een andere bron, een ambigue naam of een afwijkende poule/fase/seizoen blijft
+uitgesloten. Dezelfde predicate bepaalt de geselecteerde rijmarkering. Dit werkt
+ook met eerder opgeslagen bronrijen; een nieuwe download is geen voorwaarde.
+
+De nieuwe completiondiagnostiek identificeerde daarnaast SQLSTATE `57014`.
+De bronupdate bouwt latest-snapshots binnen dezelfde transactie. In de bestaande
+wrapperketen werd actieve team-/bronselectie voor iedere kandidaatwedstrijd
+opnieuw tegen de database uitgevoerd. Een lokale proef met 1.000 wedstrijden
+mat 18.530 controles voor tien slides. De selectie wordt nu eenmaal per
+projectielaag opgehaald; de rijcontrole gebruikt uitsluitend dat tijdelijke
+resultaat. De bestaande directe predicate blijft de referentie voor de
+pariteitstest: alle 273 combinaties van selectie, thuis/uit en competitie/fase
+hebben dezelfde uitkomst.
+
+Dezelfde lokale proef daalt van 2,60 naar 0,40 seconde voor tien volledige
+snapshots. Dit is een lokale meting, geen latencygarantie. Database-timeouts,
+transactiegrenzen, autorisatie en immutable publicatie zijn niet verruimd.
+Migration `20260912180627_s178_standing_team_identity.sql` vervangt alleen private
+selectie-/projectiefuncties, plant een nieuwe synchronisatie en queue-t
+opvolgende gepubliceerde latest-snapshots. Een rollback herstelt de vorige
+functies in een forward-migratie; historische data worden niet teruggeschreven.
+
 ## Namen en dubbele slides
 
 `dynamic_slides.library_name` is een optionele beheernaam, met

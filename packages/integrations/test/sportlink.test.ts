@@ -77,6 +77,22 @@ describe("Sportlink server-only adapter", () => {
     );
   });
 
+  it("keeps the exact legacy standing identity when Sportlink omits teamcode", () => {
+    const rows = mapSportlinkStandings([
+      { team: "Senioren 1", positie: 1, punten: 6 },
+      { team: "Jeugd O16-1", positie: 2, punten: 3 },
+      { team: "Duindorp sv O16-1", positie: 3, punten: 0 },
+      { team: "Senioren 1", teamcode: 218380, positie: 4, punten: 0 }
+    ], "cup-pool").rows;
+    // Shared contract with the SQL fallback, including UTF-8 and the NUL separator.
+    expect(rows.map((row) => row.externalId)).toEqual([
+      "e9b786e5abe910e340fe1403ff82217246ce41f76605c3e4f6b5d2b1a005e341",
+      "bfcf35946c849398d5bbd4485d768631482dcbcf4fe5f94ae7b753365b79fc3c",
+      "29dd51fa55ec9c180a73eaa693711a2f1b50671a9041948f268a96eeb033b337",
+      "218380"
+    ]);
+  });
+
   it("merges one Sportlink team across competition, cup and phase rows", () => {
     const teams = mapSportlinkTeams([
       {
