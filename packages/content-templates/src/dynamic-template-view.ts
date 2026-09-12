@@ -1,3 +1,4 @@
+import { sportMatchBelongsOnSlide } from "./sport-match-phase";
 import {
   editorialArenaActiveSlideTypes,
   editorialArenaConfigurationSchema,
@@ -633,7 +634,8 @@ function createDynamicTemplateViewInternal(
     : 40;
   const mappedItems = readArray(sport?.items, sportItemLimit)
     .map((item) => toListItem(item, payload))
-    .filter((item): item is DynamicTemplateListItem => item !== null);
+    .filter((item): item is DynamicTemplateListItem => item !== null)
+    .filter((item) => sportMatchBelongsOnSlide(payload.slideType, item, now.valueOf()));
   const items = payload.slideType === "sport_visitor_arrivals"
     ? resolveVisitorArrivalItems(
         mappedItems.filter((item) => item.homeMatch),

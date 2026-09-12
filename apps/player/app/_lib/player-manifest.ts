@@ -9,6 +9,7 @@ import type {
 
 import { localStorageDeviceTokenKey } from "./player-storage";
 import {
+  createDynamicTemplateView,
   evaluateDynamicTemplateEligibility,
   dynamicTemplateMinimumPlaybackMs,
 } from "./dynamic-template-view";
@@ -454,7 +455,15 @@ export function getNextPlayerVisibilityChangeDelayMs(
       resolvePlayerItemPresentation(item);
     if (!enabled) return nearest;
 
-    return [visibleFrom, visibleUntil].reduce<number | null>(
+    const matchView = item.dynamicTemplate?.slideType === "sport_program"
+      ? createDynamicTemplateView(item.dynamicTemplate, new Date(at))
+      : null;
+    const kickoffs = matchView?.pages.flatMap((page) => "items" in page
+      ? page.items.flatMap((row) => "kickoffAt" in row
+        ? [parseOptionalTimestamp(row.kickoffAt)] : [])
+      : []) ?? [];
+
+    return [visibleFrom, visibleUntil, ...kickoffs].reduce<number | null>(
       (candidate, timestamp) =>
         timestamp !== null &&
         timestamp > at &&

@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   createDynamicTemplateView,
+  dynamicTemplateHasRenderableContent,
   EditorialArenaRenderer,
   type EditorialArenaItem
 } from "@veyocast/content-templates";
@@ -32,6 +33,7 @@ export function DynamicTemplateMedia({
   paused?: boolean;
 }) {
   const skippedRef = useRef("");
+  const [matchTime, setMatchTime] = useState(() => new Date());
   const liveMatch = item.dynamicTemplate?.slideType ===
     ledScoresLiveMatchSlideType;
   const liveConfig = useMemo(
@@ -53,10 +55,28 @@ export function DynamicTemplateMedia({
     ? chooseLatestLedScoresMatchState(liveConfig.fallbackState, realtimeState)
     : liveConfig?.fallbackState ?? null;
   const view = useMemo(
-    () => liveMatch ? null : createDynamicTemplateView(item.dynamicTemplate),
-    [item.dynamicTemplate, liveMatch]
+    () => liveMatch ? null : createDynamicTemplateView(item.dynamicTemplate, matchTime),
+    [item.dynamicTemplate, liveMatch, matchTime]
   );
-  const shouldSkip = (view?.slideType === "sport_birthdays" && view.pages.length === 0) ||
+  // Re-project the same immutable payload at its next kickoff, including while
+  // offline. Only the rendered rows change; the release and item timer stay put.
+  useEffect(() => {
+    if (passive || paused || !view ||
+      (view.slideType !== "sport_program" && view.slideType !== "sport_results")) return;
+    const kickoffs = view.pages.flatMap((page) => "items" in page
+      ? page.items.flatMap((row) => "kickoffAt" in row ? [Date.parse(String(row.kickoffAt))] : [])
+      : [])
+      .filter((instant) => Number.isFinite(instant) && instant > matchTime.valueOf());
+    if (!kickoffs.length) return;
+    const nextKickoff = Math.min(...kickoffs);
+    const timer = window.setTimeout(() => setMatchTime(new Date()),
+      Math.min(2_147_483_647, Math.max(0, nextKickoff - Date.now() + 1)));
+    return () => window.clearTimeout(timer);
+  }, [matchTime, passive, paused, view]);
+
+  const shouldSkip = (view &&
+    (view.slideType === "sport_program" || view.slideType === "sport_results") &&
+    !dynamicTemplateHasRenderableContent(view)) || (view?.slideType === "sport_birthdays" && view.pages.length === 0) ||
     (liveMatch && (
       !liveConfig || !liveState ||
       (liveConfig.outsideMatchBehavior === "skip" &&
@@ -83,5 +103,5 @@ export function DynamicTemplateMedia({
       />
     );
   }
-  return <EditorialArenaRenderer item={item} onReady={onReady} passive={passive} />;
+  return <EditorialArenaRenderer item={item} now={matchTime} onReady={onReady} passive={passive} />;
 }

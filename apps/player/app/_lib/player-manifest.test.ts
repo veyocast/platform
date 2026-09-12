@@ -155,6 +155,28 @@ describe("player manifest contract", () => {
 
     expect(getPlayerItemPlaybackDurationMs(item, null, at)).toBe(4_000);
   });
+
+  it("schedules kickoff expiry and advances past an empty program without changing its release", () => {
+    const at = Date.parse("2026-09-12T12:00:00Z");
+    const item = manifestItem({ dynamicTemplate: {
+      assets: {}, schemaVersion: 1, slideType: "sport_program", orientation: "landscape",
+      templateSlug: "editorial-arena-programma-light-landscape",
+      snapshotHash: "a".repeat(64), snapshotId: "11111111-1111-4111-8111-111111111176", templateVersionId: "22222222-2222-4222-8222-222222221176",
+      data: { sport: { items: [
+        { id: "first", primary: "Club 1 – Opponent", homeTeam: "Club 1", awayTeam: "Opponent", kickoffAt: "2026-09-12T12:00:10Z" },
+        { id: "last", primary: "Club 2 – Opponent", homeTeam: "Club 2", awayTeam: "Opponent", kickoffAt: "2026-09-12T12:00:20Z" }
+      ] } }
+    } });
+    const items = [item, manifestItem({ id: "next" })];
+    const original = JSON.stringify(items);
+    expect(getNextPlayerVisibilityChangeDelayMs(items, at)).toBe(10_000);
+    expect(getNextPlayerVisibilityChangeDelayMs(items, at + 10_000)).toBe(10_000);
+    expect(isPlayerManifestItemPlayable(item, at + 10_000)).toBe(true);
+    expect(isPlayerManifestItemPlayable(item, at + 20_000)).toBe(false);
+    expect(findNextPlayableItem(items, 0, at + 20_000)).toEqual({ index: 1, wrapped: false });
+    expect(getNextPlayerVisibilityChangeDelayMs(items, at + 20_000)).toBeNull();
+    expect(JSON.stringify(items)).toBe(original);
+  });
 });
 
 function manifestItem(
