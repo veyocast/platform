@@ -16,6 +16,7 @@ import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import { SlideLibraryWorkspace } from "./slide-library-workspace";
 import {
   parseSlideResourceFilter,
+  slideTypeFilters,
   slideFilterCount,
   slidePageHref
 } from "./slide-resource";
@@ -28,6 +29,7 @@ import styles from "./slide-resource.module.css";
 type PageProps = {
   searchParams: Promise<{
     fout?: string;
+    kind?: string;
     page?: string;
     q?: string;
     sort?: string;
@@ -39,7 +41,7 @@ type PageProps = {
 const slideColumns = [
   { defaultVisible: true, id: "name", label: "Naam slide", required: true },
   { defaultVisible: true, id: "status", label: "Status" },
-  { defaultVisible: true, id: "created", label: "Aangemaakt op" },
+  { defaultVisible: true, id: "availability", label: "Beschikbaarheid" },
   { defaultVisible: true, id: "updated", label: "Bijgewerkt op" },
   { defaultVisible: true, id: "actions", label: "Acties", required: true }
 ] as const;
@@ -75,10 +77,10 @@ export default async function SlidesPage({ searchParams }: PageProps) {
             </Link>
           </Button>
         ) : null}
-        description="Zoek, controleer en beheer datagedreven slides. Gepubliceerde releases blijven immutable."
+        description="Beheer je automatische content. Geef slides een herkenbare naam, pas ze aan en zie welke inhoud nu beschikbaar is."
         eyebrow={session.tenant}
         status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
-        title="Slides"
+        title="Datagedreven slides"
       />
 
       {params.fout ? (
@@ -104,9 +106,9 @@ export default async function SlidesPage({ searchParams }: PageProps) {
         aria-label="Slide-overzicht"
         items={[
           { label: "Slides", value: data.counts.total },
-          { label: "Actief", tone: "success", value: data.counts.active },
+          { label: "Gepubliceerd", tone: "success", value: data.counts.active },
           { label: "Concept", tone: "warning", value: data.counts.concept },
-          { label: "Inactief", value: data.counts.inactive }
+          { label: "Gearchiveerd", value: data.counts.inactive }
         ]}
       />
 
@@ -137,13 +139,16 @@ export default async function SlidesPage({ searchParams }: PageProps) {
           )}
           results={`${data.total} ${data.total === 1 ? "slide" : "slides"}`}
         >
+          <label className="toolbar-field"><span>Slidetype</span>
+            <select defaultValue={filter.kind} name="kind">{slideTypeFilters.map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select>
+          </label>
           <label className="toolbar-field">
             <span>Status</span>
             <select defaultValue={filter.status} name="status">
               <option value="all">Alle statussen</option>
               <option value="concept">Concept</option>
-              <option value="active">Actief</option>
-              <option value="inactive">Inactief</option>
+              <option value="active">Gepubliceerd</option>
+              <option value="inactive">Gearchiveerd</option>
             </select>
           </label>
           <label className="toolbar-field">

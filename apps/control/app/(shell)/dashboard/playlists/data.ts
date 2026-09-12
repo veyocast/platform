@@ -243,7 +243,7 @@ export async function loadPlaylistStudio(
     supabase.from("playlist_releases").select("id, version, item_count, total_duration_seconds, total_bytes, published_at, published_by").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("version", { ascending: false }),
     supabase.from("screens").select("id, name, orientation, assigned_playlist_id").eq("tenant_id", tenantId).is("deleted_at", null).eq("status", "active").order("name"),
     supabase.from("player_devices").select("screen_id, active_release_id, desired_release_id, last_seen_at").eq("tenant_id", tenantId).eq("status", "paired").order("paired_at", { ascending: false }),
-    supabase.from("dynamic_slides").select("id, name, slide_type, orientation, selection_mode, status, current_snapshot_id").eq("tenant_id", tenantId).eq("status", "ready").order("updated_at", { ascending: false }),
+    supabase.from("dynamic_slides").select("id, name:library_sort_name, slide_type, orientation, selection_mode, status, current_snapshot_id").eq("tenant_id", tenantId).eq("status", "ready").order("updated_at", { ascending: false }),
     supabase.from("youtube_sources").select("id, video_id, title, channel_title, fallback_media_asset_id").eq("tenant_id", tenantId).eq("status", "active").eq("validation_status", "verified").eq("embeddable", true).order("updated_at", { ascending: false }),
     supabase.from("engage_campaigns").select("id, public_id, title, question, status").eq("tenant_id", tenantId).in("status", ["scheduled", "live", "closed"]).order("updated_at", { ascending: false })
   ]);

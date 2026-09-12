@@ -19,7 +19,7 @@ function goal(index: number, configuration: GoalOverlayConfiguration, side: "hom
     scorerName: index === 1 ? "Jack Morauw" : null, matchClock: index === 1 ? "67′" : null
   } };
 }
-async function prepare(page: Page, legacy: boolean, messages: unknown[], preloadConfig?: unknown) {
+async function prepare(page: Page, legacy: boolean, messages: unknown[], preloadConfig?: unknown, configurationDeliveryId?: string) {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const manifest = await (await page.request.get(`${playerURL}/api/player/manifest?deviceToken=demo-online`)).json();
@@ -34,7 +34,7 @@ async function prepare(page: Page, legacy: boolean, messages: unknown[], preload
   }
   let sent = false;
   await page.route("**/api/player/realtime", (r) => {
-    const body = sent ? ": heartbeat\n\n" : sse("bootstrap", { configs: preloadConfig ? [preloadConfig] : [], serverTime: new Date().toISOString() }) + messages.map((m) => sse("goal", m)).join("");
+    const body = sent ? ": heartbeat\n\n" : sse(configurationDeliveryId ? "configuration" : "bootstrap", { configs: preloadConfig ? [preloadConfig] : [], deliveryId: configurationDeliveryId, serverTime: new Date().toISOString() }) + messages.map((m) => sse("goal", m)).join("");
     sent = true;
     return r.fulfill({ body, contentType: "text/event-stream; charset=utf-8", headers: { "Cache-Control": "no-store" } });
   });
@@ -48,6 +48,44 @@ async function prepare(page: Page, legacy: boolean, messages: unknown[], preload
 }
 
 for (const legacy of [false, true]) {
+  test(`${legacy ? "LG" : "React"}: lege cache haalt gepubliceerde intro op vóór het testdoelpunt`, async ({ page }) => {
+    const asset = { checksum, mediaAssetId: videoId, mimeType: "video/mp4", url: `${playerURL}/lg-probe/h264-baseline-aac.mp4` };
+    const c = { ...config, introEnabled: true, introLandscapeMediaId: videoId };
+    const message = goal(1, c, "home", [asset]);
+    message.executeAt = new Date(Date.now() + 12000).toISOString();
+    let downloads = 0;
+    let releaseDownload = () => {};
+    const downloadGate = new Promise<void>((resolve) => { releaseDownload = resolve; });
+    const configDeliveryId = "55555555-5555-4555-8555-555555555555";
+    const acks: { deliveryId: string; detail: string }[] = [];
+    page.on("request", (request) => {
+      if (request.url().endsWith("/realtime/ack")) acks.push(request.postDataJSON());
+    });
+    await page.route("**/lg-probe/h264-baseline-aac.mp4", async (route) => {
+      downloads += 1;
+      await downloadGate;
+      return route.fulfill({ body: videoBytes, contentType: "video/mp4" });
+    });
+    await page.addInitScript(() => {
+      document.addEventListener("ended", (event) => {
+        if (event.target instanceof HTMLVideoElement && event.target.closest('[data-testid="goal-celebration"],#goal-overlay')) document.documentElement.dataset.naturalGoalEnded = "true";
+      }, true);
+    });
+    const errors = await prepare(page, legacy, [message], { config: { goalOverlay: c }, assets: [asset] }, configDeliveryId);
+    await expect.poll(() => downloads).toBe(1);
+    expect(acks.filter((ack) => ack.deliveryId === configDeliveryId)).toEqual([]);
+    releaseDownload();
+    await expect.poll(() => page.evaluate(async (checksum) => Boolean(await (await caches.open("veyocast-player-goal-assets-v2")).match(`/__veyocast-goal-cache/${checksum}`)), checksum)).toBe(true);
+    await expect.poll(() => acks.find((ack) => ack.deliveryId === configDeliveryId)?.detail).toBe("configuration_prefetched");
+    expect(downloads).toBe(1);
+    const root = page.locator(legacy ? '#goal-overlay[data-renderer="goal-v2"]' : '[data-testid="goal-celebration"]');
+    await expect(root.locator("video")).toBeVisible({ timeout: 15000 });
+    await expect(root.locator(".vc-goal")).toBeHidden();
+    await expect(root.locator(".vc-goal")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("html")).toHaveAttribute("data-natural-goal-ended", "true");
+    expect(downloads).toBe(1);
+    expect(errors).toEqual([]);
+  });
   for (const orientation of ["landscape", "portrait"] as const) {
     for (const appearance of ["light", "dark"] as const) {
       test(`${legacy ? "LG" : "React"}: ${orientation} ${appearance}, thuis-/uitgoal en queue zonder reload`, async ({ page }) => {

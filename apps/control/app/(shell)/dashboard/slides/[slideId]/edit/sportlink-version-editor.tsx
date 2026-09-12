@@ -269,21 +269,6 @@ export function SportlinkVersionEditor({
         ) : null}
 
         <Field
-          description="Deze naam blijft herkenbaar in Slides en playlists."
-          label="Naam van het onderdeel"
-        >
-          {({ controlProps }) => (
-            <input
-              {...controlProps}
-              maxLength={120}
-              minLength={2}
-              onChange={(event) => update({ ...draft, name: event.target.value })}
-              value={draft.name}
-            />
-          )}
-        </Field>
-
-        <Field
           description="Deze titel verschijnt groot bovenaan op iedere bijbehorende slide."
           label="Titel op de slide"
         >

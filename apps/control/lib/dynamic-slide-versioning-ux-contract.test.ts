@@ -54,7 +54,7 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(wizard).toContain("Er is nog niets aangemaakt.");
     expect(wizard).toContain("creationResult.slides.map");
     expect(wizard).toContain('href="/dashboard/slides"');
-    expect(action).toContain('"create_sportlink_slide_batch_v5"');
+    expect(action).toContain('"create_sportlink_slide_batch_v6"');
     expect(action).toContain("parseBatchResult");
     expect(action).not.toContain("redirect(");
   });

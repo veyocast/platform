@@ -20,16 +20,23 @@ export class GoalMediaCache {
   }
   constructor(
     private readonly store: PlayerMediaStore = createPlayerMediaStore(goalAssetCacheName),
-    private readonly fetchMedia: typeof fetch = fetch
+    // Browser fetch requires the Window receiver. Calling a captured native
+    // function as this.fetchMedia() otherwise throws "Illegal invocation".
+    private readonly fetchMedia: typeof fetch = (...args) => fetch(...args)
   ) {}
 
   async preload(assets: readonly LedScoresOverlayAsset[]) {
     const generation = this.generation;
+    let ready = true;
     // Sequential work bounds memory and never participates in release activation.
     for (const asset of assets.slice(0, 1000)) {
-      if (generation !== this.generation) return;
-      try { await this.prepare(asset); } catch { /* Optional asset; retry on the next configuration. */ }
+      if (generation !== this.generation) return false;
+      try { await this.prepare(asset); } catch {
+        ready = false;
+        console.info(JSON.stringify({ event: "goal_asset_prefetch_failed", mediaAssetId: asset.mediaAssetId }));
+      }
     }
+    return ready;
   }
 
   async prepare(asset: LedScoresOverlayAsset) {

@@ -161,7 +161,10 @@ export class SupabaseSportlinkSyncBackend {
             contentType: artifact.mimeType,
             upsert: true
           });
-        if (upload.error) throw new Error("sportlink_media_upload_failed");
+        if (upload.error) throw new SportlinkWorkerError(
+          "SPORTLINK_MEDIA_UPLOAD_FAILED",
+          "Een Sportlink-logo kon niet worden opgeslagen. De bestaande gegevens blijven behouden; controleer de provideropslag."
+        );
       }
     }
     const result = job.datasetGroup === "public_people"
@@ -185,7 +188,12 @@ export class SupabaseSportlinkSyncBackend {
       p_worker_id: workerId
     });
     if (result.error || !isRecord(result.data)) {
-      throw new Error("sportlink_sync_complete_failed");
+      const sqlState = result.error?.code && /^[A-Z0-9]{5}$/.test(result.error.code)
+        ? result.error.code : "INVALID_RESULT";
+      throw new SportlinkWorkerError(
+        `SPORTLINK_SYNC_COMPLETE_${sqlState}`,
+        "Sportlink-gegevens zijn opgehaald maar konden niet worden verwerkt. De bestaande gegevens blijven behouden; controleer de synchronisatiediagnose."
+      );
     }
     const readCount = Number(result.data.readCount ?? 0);
     if (!Number.isSafeInteger(readCount) || readCount < 0) {
@@ -823,10 +831,13 @@ async function fetchTeamLogos(
   return artifacts;
 }
 
+// Bound provider work, but never report a silently truncated club catalogue as complete.
+const maximumSportlinkClubPools = 128;
+
 export function collectSportlinkPoolIds(
   teamsPayload: unknown,
   poolsPayload: unknown,
-  maximum = 24
+  maximum = maximumSportlinkClubPools
 ) {
   return collectSportlinkPoolContexts(
     teamsPayload,
@@ -838,11 +849,11 @@ export function collectSportlinkPoolIds(
 export function collectSportlinkPoolContexts(
   teamsPayload: unknown,
   poolsPayload: unknown,
-  maximum = 24
+  maximum = maximumSportlinkClubPools
 ) {
   const boundedMaximum = Number.isFinite(maximum)
-    ? Math.min(24, Math.max(1, Math.trunc(maximum)))
-    : 24;
+    ? Math.min(maximumSportlinkClubPools, Math.max(1, Math.trunc(maximum)))
+    : maximumSportlinkClubPools;
   const teamRecords = extractSportlinkRecords(teamsPayload);
   const poolRecords = extractSportlinkRecords(poolsPayload);
   const teamCodes = new Set(
@@ -861,9 +872,14 @@ export function collectSportlinkPoolContexts(
     if (
       poolId &&
       /^\d+$/.test(poolId) &&
-      contexts.size < boundedMaximum &&
       !contexts.has(poolId)
     ) {
+      if (contexts.size >= boundedMaximum) {
+        throw new SportlinkWorkerError(
+          "SPORTLINK_POOL_LIMIT_EXCEEDED",
+          "De vereniging heeft meer poules dan deze synchronisatie kan verwerken. De bestaande gegevens blijven behouden; controleer de synchronisatielimiet."
+        );
+      }
       const competitionName = scalar(
         value.competitienaam ?? value.competitie
       );
@@ -923,25 +939,44 @@ export function enrichSportlinkOwnMatchesWithPoolContexts(
     collectSportlinkPoolContexts(teamsPayload, poolsPayload)
       .map((context) => [context.poolExternalId, context])
   );
-  const teamPools = new Map<string, string>();
+  const teamRecords = extractSportlinkRecords(teamsPayload);
+  const ownTeamIds = new Set(teamRecords.flatMap((team) =>
+    [team.teamcode, team.lokaleteamcode].map(positiveSportlinkCode)
+      .filter((id): id is string => id !== null)
+  ));
+  const teamPools = new Map<string, Set<string>>();
   const mapTeamPool = (record: Record<string, unknown>) => {
     const poolId = scalar(record.poulecode);
     if (!poolId || !contexts.has(poolId)) return;
     for (const value of [record.teamcode, record.lokaleteamcode]) {
       const teamId = positiveSportlinkCode(value);
-      if (teamId) teamPools.set(teamId, poolId);
+      if (teamId && ownTeamIds.has(teamId)) {
+        const poolIds = teamPools.get(teamId) ?? new Set<string>();
+        poolIds.add(poolId);
+        teamPools.set(teamId, poolIds);
+      }
     }
   };
-  for (const team of extractSportlinkRecords(teamsPayload)) mapTeamPool(team);
+  for (const team of teamRecords) mapTeamPool(team);
   for (const pool of extractSportlinkRecords(poolsPayload)) mapTeamPool(pool);
 
   return matches.map((match) => {
-    if (match.pool?.externalId) return match;
-    const poolId = [match.homeTeam.externalId, match.awayTeam.externalId]
-      .flatMap((teamId) => teamId ? [teamPools.get(teamId)] : [])
-      .find((value): value is string => Boolean(value));
-    const context = poolId ? contexts.get(poolId) : null;
-    return context ? enrichSportlinkPoolMatches([match], context)[0]! : match;
+    if (match.pool?.externalId) {
+      const explicitContext = contexts.get(match.pool.externalId);
+      if (explicitContext) return enrichSportlinkPoolMatches([match], explicitContext)[0]!;
+      if (/^\d+$/.test(match.pool.externalId)) return match;
+    }
+    const poolIds = new Set([match.homeTeam.externalId, match.awayTeam.externalId]
+      .flatMap((teamId) => teamId ? [...(teamPools.get(teamId) ?? [])] : []));
+    const candidates = [...poolIds].map((poolId) => contexts.get(poolId)!)
+      .filter((context) => (["period", "season", "type"] as const).every((key) => {
+        const fixtureValue = match.competition?.[key];
+        return !fixtureValue || context.competition?.[key] === fixtureValue;
+      }));
+    // A team can play in the cup and league simultaneously. Pool endpoint rows
+    // supply authoritative context during deduplication when this remains ambiguous.
+    const context = candidates.length === 1 ? candidates[0] : null;
+    return context ? enrichSportlinkPoolMatches([match], context)[0]! : { ...match, pool: null };
   });
 }
 
@@ -1014,10 +1049,12 @@ export function enrichSportlinkPoolMatches(
 ) {
   return matches.map((match): SportMatch => ({
     ...match,
-    competition: match.competition ?? context.competition,
+    competition: match.competition && context.competition
+      ? mergeOptionalRecord(context.competition, match.competition)
+      : match.competition ?? context.competition,
     pool: {
       competitionExternalId:
-        match.pool?.competitionExternalId ?? context.competition?.externalId ?? null,
+        context.competition?.externalId ?? match.pool?.competitionExternalId ?? null,
       externalId: context.poolExternalId,
       name: match.pool?.name ?? context.poolName
     }

@@ -86,10 +86,14 @@ export function legacyGoalOverlayScript() {
     }
     function goalV2Preload(config) {
       var assets = (Array.isArray(config.assets) ? config.assets : []).concat(Array.isArray(config.teamAssets) ? config.teamAssets : []).slice(0, 1000);
+      var ready = true;
       assets.forEach(function (value) {
         var asset = parseGoalAsset(value);
-        if (asset) goalV2PreloadChain = goalV2PreloadChain.then(function () { return goalV2Prepare(asset); });
+        if (asset) goalV2PreloadChain = goalV2PreloadChain.then(function () { return goalV2Prepare(asset); }).then(function (valid) {
+          if (!valid) { ready = false; log("goal_asset_prefetch_failed", JSON.stringify({ mediaAssetId: asset.mediaAssetId })); }
+        });
       });
+      return goalV2PreloadChain.then(function () { return ready; });
     }
     function goalV2Appearance(config) {
       if (config.themeMode === "light" || config.themeMode === "dark") return config.themeMode;

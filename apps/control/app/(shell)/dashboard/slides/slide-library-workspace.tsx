@@ -4,6 +4,8 @@ import {
   Archive,
   CheckCircle2,
   Clock3,
+  ChevronDown,
+  Type,
   Eye,
   ListPlus,
   Pencil,
@@ -13,7 +15,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   startTransition,
+  Fragment,
   useMemo,
+  useTransition,
   useState,
   type ReactNode
 } from "react";
@@ -34,10 +38,12 @@ import {
   StatusPill
 } from "@veyocast/ui";
 
+import { createOrResumeDynamicSlideVersion } from "./version-actions";
 import { addDynamicSlideToPlaylist } from "./actions";
 import { DynamicSlideLivePreview } from "./new/dynamic-slide-live-preview";
 import {
   archiveSlideResources,
+  renameSlideResource,
   loadSlideResourcePreview,
   type SlideArchiveState,
   type SlideResourcePreviewResult
@@ -72,6 +78,7 @@ export function SlideLibraryWorkspace({
     () => rows.filter((row) => row.resourceStatus !== "inactive").map((row) => row.id),
     [rows]
   );
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const selectedIds = useMemo(
     () => selectableIds.filter((id) => selected.has(id)),
@@ -120,7 +127,7 @@ export function SlideLibraryWorkspace({
             <th scope="col">Selectie</th>
             <th data-column="name" scope="col">Naam slide</th>
             <th data-column="status" scope="col">Status</th>
-            <th data-column="created" scope="col">Aangemaakt op</th>
+            <th data-column="availability" scope="col">Beschikbaarheid</th>
             <th data-column="updated" scope="col">Bijgewerkt op</th>
             <th data-column="actions" scope="col">Acties</th>
           </tr>
@@ -129,7 +136,7 @@ export function SlideLibraryWorkspace({
           {rows.map((row) => {
             const canSelect = canWrite && row.resourceStatus !== "inactive";
             return (
-              <tr data-selected={selected.has(row.id)} key={row.id}>
+              <Fragment key={row.id}><tr data-selected={selected.has(row.id)}>
                 <td data-label="Selectie">
                   <label className={styles.checkbox}>
                     <input
@@ -144,29 +151,28 @@ export function SlideLibraryWorkspace({
                 <td data-column="name" data-label="Naam slide">
                   <span className="table-primary">{row.name}</span>
                   <span className="table-secondary">
-                    {row.slideTypeLabel} · {row.orientationLabel} · {row.selectionLabel}
+                    {row.purposeLabel} · {row.orientationLabel}
                   </span>
                   <span className="table-secondary">
-                    {row.dataLabel}{row.currentVersionNumber ? ` · versie ${row.currentVersionNumber}` : ""}
+                    {row.teamLabel}
                   </span>
                 </td>
                 <td data-column="status" data-label="Status">
                   <SlideStatus status={row.resourceStatus} />
                 </td>
-                <td data-column="created" data-label="Aangemaakt op">{row.createdLabel}</td>
+                <td data-column="availability" data-label="Beschikbaarheid"><StatusPill label={row.availability.label} tone={row.availability.tone} /></td>
                 <td data-column="updated" data-label="Bijgewerkt op">{row.updatedLabel}</td>
                 <td data-column="actions" data-label="Acties">
                   <div className={styles.actions}>
                     <SlidePreviewDialog row={row} />
                     {canWrite && row.resourceStatus !== "inactive" ? (
-                      <IconButton asChild aria-label={`${row.name} bewerken`} title="Bewerken">
-                        <Link href={row.editHref}><Pencil aria-hidden="true" /></Link>
-                      </IconButton>
+                      <SlideEditButton row={row} />
                     ) : (
                       <IconButton aria-label={`${row.name} kan niet worden bewerkt`} disabled title="Geen schrijfrechten">
                         <Pencil aria-hidden="true" />
                       </IconButton>
                     )}
+                    <SlideRenameDialog disabled={!canSelect} row={row} />
                     <SlideArchiveDialog
                       disabled={!canSelect}
                       label={row.name}
@@ -187,6 +193,11 @@ export function SlideLibraryWorkspace({
                         </IconButton>
                       )}
                     />
+                    <IconButton aria-label={`Meer informatie over ${row.name}`} title="Meer informatie"
+                      aria-expanded={expanded.has(row.id)} aria-controls={`slide-details-${row.id}`}
+                      onClick={() => setExpanded((current) => { const next = new Set(current); if (next.has(row.id)) next.delete(row.id); else next.add(row.id); return next; })}>
+                      <ChevronDown aria-hidden="true" className={expanded.has(row.id) ? styles.chevronOpen : undefined} />
+                    </IconButton>
                     <AddSlideToPlaylistDialog
                       disabled={!canAddToPlaylist || row.resourceStatus !== "active" || !playlists.length}
                       playlists={playlists}
@@ -195,6 +206,22 @@ export function SlideLibraryWorkspace({
                   </div>
                 </td>
               </tr>
+              {expanded.has(row.id) ? <tr className={styles.detailsRow} id={`slide-details-${row.id}`}>
+                <td colSpan={6}>
+                  <div className={styles.detailsContent}>
+                    <p role="note"><strong>{row.availability.label}.</strong> {row.availability.detail}</p>
+                    <dl className={styles.previewMeta}>
+                      <div><dt>Inhoud</dt><dd>{row.purposeLabel}</dd></div>
+                      <div><dt>Teams</dt><dd>{row.teamLabel}</dd></div>
+                      <div><dt>Competitie</dt><dd>{row.competitionLabel}</dd></div>
+                      <div><dt>Databron</dt><dd>{row.sourceLabel}</dd></div>
+                      <div><dt>Aangemaakt</dt><dd>{row.createdLabel}</dd></div>
+                      <div><dt>Publicatie</dt><dd>{row.currentVersionNumber ? `Versie ${row.currentVersionNumber} · ${row.selectionLabel}` : "Nog niet gepubliceerd"}</dd></div>
+                    </dl>
+                    <Button asChild variant="ghost"><Link href={`/dashboard/slides/${row.id}`}>Details en versies bekijken</Link></Button>
+                  </div>
+                </td>
+              </tr> : null}</Fragment>
             );
           })}
         </tbody>
@@ -220,12 +247,46 @@ export function SlideLibraryWorkspace({
               </Button>
             </>
           )}
-          description="De server bewaakt conceptplaylistverwijzingen; immutable releases worden nooit gewijzigd."
+          description="Bij verwijderen zie je eerst welke playlists de geselecteerde slides nog gebruiken."
           title={`${selectedIds.length} ${selectedIds.length === 1 ? "slide geselecteerd" : "slides geselecteerd"}`}
         />
       ) : null}
     </>
   );
+}
+
+function SlideEditButton({ row, label = false }: { row: SlideLibraryRow; label?: boolean }) {
+  if (row.editorKind === "detail") return <IconButton asChild aria-label={`${row.name} openen`} title="Slide openen"><Link href={row.editHref}><Pencil aria-hidden="true" /></Link></IconButton>;
+  return <form action={createOrResumeDynamicSlideVersion}>
+    <input name="slideId" type="hidden" value={row.id} />
+    {label ? <Button type="submit" variant="secondary">Slide bewerken</Button> :
+      <IconButton type="submit" aria-label={`${row.name} bewerken`} title="Bewerken"><Pencil aria-hidden="true" /></IconButton>}
+  </form>;
+}
+
+function SlideRenameDialog({ row, disabled }: { row: SlideLibraryRow; disabled: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(row.name);
+  const [error, setError] = useState("");
+  const [pending, startSaving] = useTransition();
+  const router = useRouter();
+  return <Dialog open={open} onOpenChange={(value) => { if (!pending) { setOpen(value); setName(row.name); setError(""); } }}>
+    <DialogTrigger asChild><IconButton disabled={disabled} aria-label={`Naam van ${row.name} wijzigen`} title="Naam wijzigen"><Type aria-hidden="true" /></IconButton></DialogTrigger>
+    <DialogContent><DialogHeader><DialogTitle>Slidenaam wijzigen</DialogTitle><DialogDescription>Geef de slide een herkenbare naam in je bibliotheek. De titel op je schermen wijzig je in de slide-editor.</DialogDescription></DialogHeader>
+      <form onSubmit={(event) => { event.preventDefault(); startSaving(async () => {
+        try {
+          const result = await renameSlideResource({ slideId: row.id, name, expectedRevision: row.libraryRevision });
+          if (!result.ok) { setError(result.message); return; }
+          setOpen(false); router.refresh();
+        } catch { setError("Opslaan is niet gelukt. Controleer je verbinding en probeer opnieuw."); }
+      }); }}>
+        <DialogBody><label className={styles.renameField}><span>Naam in bibliotheek</span><input autoComplete="off" disabled={pending} minLength={2} maxLength={120} required value={name} onChange={(event) => setName(event.target.value)} /></label>
+          {error ? <p className="notice notice--critical" role="alert">{error}</p> : null}
+        </DialogBody>
+        <DialogFooter><Button disabled={pending} type="button" variant="secondary" onClick={() => setOpen(false)}>Annuleren</Button><Button disabled={pending || name.trim().length < 2} type="submit">{pending ? "Opslaan…" : "Naam opslaan"}</Button></DialogFooter>
+      </form>
+    </DialogContent>
+  </Dialog>;
 }
 
 function SlideStatus({ status }: { status: SlideLibraryRow["resourceStatus"] }) {

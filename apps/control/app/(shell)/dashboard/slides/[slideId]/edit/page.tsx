@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { selectableThemeIdSchema, sportlinkSlideDraftSchema, themeSelectionSchema } from "@veyocast/contracts";
 import { platformDefaultThemeSelection, themeCatalog } from "@veyocast/content-templates/theme-catalog";
@@ -9,6 +9,8 @@ import { requireTenantControlSession } from "../../../../../../lib/control-sessi
 import { createControlSupabaseClient } from "../../../../../../lib/supabase/server";
 import { loadTenantStyleData } from "../../../../../../lib/tenant-style-data";
 import { PageHeader } from "../../../../_components/shell-primitives";
+import { createOrResumeDynamicSlideVersion } from "../../version-actions";
+import { slideEditorKind } from "../../slide-management";
 import { SportlinkVersionEditor } from "./sportlink-version-editor";
 import { prepareSportlinkVersionEditorDraft } from "./sportlink-version-editor-state";
 
@@ -17,12 +19,36 @@ type PageProps = { params: Promise<{ slideId: string }>; searchParams: Promise<{
 export default async function EditSportlinkSlidePage({ params, searchParams }: PageProps) {
   const session = await requireTenantControlSession("tenant.dynamic_slide.write");
   const [{ slideId }, query] = await Promise.all([params, searchParams]);
+  if (!/^[0-9a-f-]{36}$/i.test(slideId)) notFound();
+  const supabase = await createControlSupabaseClient();
+  const slideResult = supabase ? await supabase.from("dynamic_slides")
+    .select("name,library_name,active_draft_version_id,configuration_json,status")
+    .eq("tenant_id", session.tenantId).eq("id", slideId).maybeSingle() : null;
+  if (!slideResult || slideResult.error) return <p className="notice notice--critical" role="alert">De slide kon niet worden geladen. Vernieuw de pagina of log opnieuw in; er is niets gewijzigd.</p>;
+  const slide = slideResult.data;
+  if (!slide) notFound();
+  const editorKind = slideEditorKind(slide.configuration_json);
+  if (editorKind !== "sportlink" || slide.status === "archived") redirect(`/dashboard/slides/${slideId}`);
+  if (!slide.active_draft_version_id) return <>
+    <PageHeader eyebrow={session.tenant} title={slide.library_name ?? slide.name}
+      description="Open deze slide om de inhoud en vormgeving te wijzigen. Je schermen blijven de gepubliceerde versie tonen totdat je opnieuw publiceert."
+      actions={<Button asChild variant="ghost"><Link href="/dashboard/slides">Terug naar slides</Link></Button>} />
+    <form action={createOrResumeDynamicSlideVersion}>
+      <input name="slideId" type="hidden" value={slideId} />
+      <Button type="submit">Slide bewerken</Button>
+    </form>
+  </>;
   const [data, tenantStyle] = await Promise.all([
     loadEditorData(session.tenantId!, slideId),
     loadTenantStyleData(session.tenantId, session.isLive)
   ]);
-  if (!data) notFound();
-  return <><PageHeader actions={<Button asChild variant="ghost"><Link href={`/dashboard/slides/${slideId}`}>Annuleren</Link></Button>} description="Bewerk een gekloonde conceptversie. De huidige gepubliceerde versie blijft actief tot de nieuwe render volledig gereed is." eyebrow={session.tenant} status={{ label: `Concept v${data.versionNumber}`, tone: "warning" }} title={data.initialDraft.name} />{query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}<SportlinkVersionEditor {...data} slideId={slideId} tenantStyle={tenantStyle} /></>;
+  if (!data) return <>
+    <PageHeader eyebrow={session.tenant} title={slide.library_name ?? slide.name}
+      description="Controleer de versie voordat je verder bewerkt."
+      actions={<Button asChild variant="secondary"><Link href={`/dashboard/slides/${slideId}`}>Slide bekijken</Link></Button>} />
+    <p className="notice notice--warning" role="status">De conceptversie is nog in verwerking of de instellingen konden niet worden geladen. De gepubliceerde slide blijft behouden. Vernieuw de pagina of bekijk de versiestatus.</p>
+  </>;
+  return <><PageHeader actions={<Button asChild variant="ghost"><Link href={`/dashboard/slides/${slideId}`}>Annuleren</Link></Button>} description="Bewerk een gekloonde conceptversie. De huidige gepubliceerde versie blijft actief tot de nieuwe render volledig gereed is." eyebrow={session.tenant} status={{ label: `Concept v${data.versionNumber}`, tone: "warning" }} title={slide.library_name ?? slide.name} />{query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}<SportlinkVersionEditor {...data} slideId={slideId} tenantStyle={tenantStyle} /></>;
 }
 
 async function loadEditorData(tenantId: string, slideId: string) {

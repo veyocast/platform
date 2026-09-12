@@ -917,7 +917,7 @@ select ok(
     select snapshot.snapshot_data_json #> '{sport,items}' = '[]'::jsonb
       and snapshot.snapshot_data_json #> '{sport,poolContext}' = 'null'::jsonb
       and snapshot.snapshot_data_json #>> '{sport,emptyStateCode}' =
-        'NO_ITEMS_IN_PERIOD'
+        'COMPETITION_CONTEXT_UNRESOLVED'
     from s158_created created
     join public.dynamic_slide_snapshots snapshot
       on snapshot.id = (created.result #>> '{slides,0,snapshotId}')::uuid

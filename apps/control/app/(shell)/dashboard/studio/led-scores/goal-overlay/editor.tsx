@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { GoalOverlay } from "@veyocast/content-templates";
+import { GoalOverlay, royalCurrentDefaultStyle, royalCurrentEditorialTokens } from "@veyocast/content-templates";
 import { goalTemplateVariables, validGoalTemplate, type GoalOverlayConfiguration, type GoalOverlayEvent } from "@veyocast/contracts";
 import { Badge, Button, MultiSelectDropdown } from "@veyocast/ui";
 import { CanvasMediaUploadDialog } from "../canvas-media-upload-dialog";
 import { publishGoalOverlay, saveGoalOverlay, testGoalOverlay, toggleGoalOverlay, savePlayerPhoto } from "./actions";
 import styles from "./goal-overlay.module.css";
+import { GoalColorField, isGoalColor } from "./color-field";
 
 type Identity = { connectionId: string; clubId: string; teamKey: string };
 type Team = Identity & { name: string; clubName: string; active: boolean; category: string | null; logoUrl?: string | null };
@@ -58,6 +59,11 @@ export function GoalOverlayEditor(props: Props) {
   const event: GoalOverlayEvent = { eventId: "studio-preview", homeTeam: side === "home" ? previewTeam : "VUC 2", awayTeam: side === "away" ? previewTeam : "VUC 2", homeScore: 2, awayScore: 1, scoreboardSide: side, scorer: previewScorer ? "Jack Morauw" : null, playerPhoto: props.photos.find((p) => p.id === previewPhoto)?.previewUrl ?? null, shirtNumber: previewScorer ? "9" : null, minute: "67′", homeLogo: side === "home" ? selectedRows[0]?.logoUrl ?? null : null, awayLogo: side === "away" ? selectedRows[0]?.logoUrl ?? null : null, competition: "Voorbeeldcompetitie", matchName: "Voorbeeldwedstrijd", round: "Speelronde 7", venue: "Sportpark", test: true };
   const selectedScreens = new Set(groups.filter((g) => groupIds.includes(g.id)).flatMap((g) => g.screenIds));
   const invalidTemplate = [config.headlineTemplate, config.subtitleTemplate, config.goalTextTemplate].some((t) => !validGoalTemplate(t)) || !config.headlineTemplate.trim();
+  const invalidColors = colors.some(([field]) => !isGoalColor(config[field]));
+  const primary = config.defaults?.primary ?? royalCurrentDefaultStyle.primary;
+  const automaticColor = (field: typeof colors[number][0]) => field.includes("Outer") || field === "lightTextColor" ? primary
+    : field === "darkCardColor" ? config.defaults?.darkSurface ?? royalCurrentEditorialTokens(royalCurrentDefaultStyle, "dark").surface
+    : field === "accentTextColor" ? (appearance === "light" ? config.lightTextColor ?? primary : config.darkTextColor ?? "#FFFFFF") : "#FFFFFF";
   const identityFields = <><input type="hidden" name="alertId" value={alert?.id ?? ""} /><input type="hidden" name="revision" value={alert?.revision ?? 0} /></>;
   return <div className={styles.workspace}>
     <div className={styles.toolbar}>
@@ -106,7 +112,7 @@ export function GoalOverlayEditor(props: Props) {
           </> : null}
           {section === "Design" ? <>
             <p>Automatische kleuren volgen de clubstijl. Stel alleen een eigen kleur in waar je wilt afwijken.</p>
-            <div className={styles.colors}>{colors.map(([field, label]) => <label key={field}>{label}<input placeholder="Automatisch" value={config[field] ?? ""} pattern="#[0-9a-fA-F]{6}" maxLength={7} onChange={(e) => patch(field, e.target.value || null)} /><span className={styles.swatch} style={{ background: config[field] ?? (field.includes("Outer") || field === "lightTextColor" ? config.defaults?.primary ?? "var(--vc-action)" : field === "darkCardColor" ? config.defaults?.darkSurface ?? "var(--vc-surface)" : "#ffffff") }} /></label>)}</div>
+            <div className={styles.colors}>{colors.map(([field, label]) => <GoalColorField key={field} label={label} value={config[field]} automatic={automaticColor(field)} onChange={(value) => patch(field, value)} />)}</div>
             <Button type="button" variant="secondary" onClick={() => setConfig((c) => ({ ...c, ...Object.fromEntries(colors.map(([f]) => [f, null])) }))}>Herstel clubkleuren</Button>
             <div className={styles.fields}>
               <label>Compositie<select value={config.layout} onChange={(e) => patch("layout", e.target.value as GoalOverlayConfiguration["layout"])}><option value="centered">Gecentreerd</option><option value="player-focus">Speler centraal</option></select></label>
@@ -124,7 +130,7 @@ export function GoalOverlayEditor(props: Props) {
             <label>Overgang (milliseconden)<input type="number" min={0} max={1500} step={50} value={config.transitionDurationMs} onChange={(e) => patch("transitionDurationMs", Number(e.target.value))} /></label>
           </> : null}
         </fieldset>
-        <footer className={styles.save}><p>{dirty ? "Je hebt niet-opgeslagen wijzigingen." : "Publiceren maakt het opgeslagen ontwerp actief op je schermen."}</p><Button type="submit" disabled={!props.canWrite || !selectedRows.length || selectedRows.some((t) => !t.active) || !groupIds.length || invalidTemplate}>Concept opslaan</Button></footer>
+        <footer className={styles.save}><p>{invalidColors ? "Een kleurcode is nog niet compleet. Controleer de kleuren onder Design." : dirty ? "Je hebt niet-opgeslagen wijzigingen." : "Publiceren maakt het opgeslagen ontwerp actief op je schermen."}</p><Button type="submit" disabled={!props.canWrite || !selectedRows.length || selectedRows.some((t) => !t.active) || !groupIds.length || invalidTemplate || invalidColors}>Concept opslaan</Button></footer>
       </form>
       <aside className={styles.preview} aria-label="Live voorbeeld">
         <div className={styles.previewHeader}><div><span className={styles.eyebrow}>Live preview</span><h2>Het moment is van jullie</h2></div><Badge status="info">Voorbeelddata</Badge></div>
