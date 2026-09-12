@@ -2,7 +2,11 @@
 
 /* eslint-disable @next/next/no-img-element -- Signed Player media is rendered directly and expires quickly. */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+import { goalOverlayConfigurationSchema, type GoalOverlayConfiguration } from "@veyocast/contracts";
+import { GoalCelebration, logGoal } from "./goal-celebration";
+import { goalMediaCache } from "../_lib/goal-media-cache";
 
 import { localStorageDeviceTokenKey } from "../_lib/player-manifest";
 import {
@@ -52,6 +56,13 @@ type OverlayDesign = {
   typography: "body" | "display";
 };
 export type ActiveLedScoresGoal = {
+  competition?: string | null;
+  matchName?: string | null;
+  round?: string | null;
+  venue?: string | null;
+  configuration?: GoalOverlayConfiguration | null;
+  homeLogo?: string | null;
+  awayLogo?: string | null;
   assets: Map<string, OverlayAsset>;
   awayScore: number;
   awayTeam: string;
@@ -230,7 +241,8 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
     new Map<string, LedScoresGoalEnrichment>()
   );
   const enrichmentSequencesRef = useRef(new Map<string, number>());
-  activeRef.current = active;
+  const finishRef = useRef<(deliveryId: string) => void>(() => undefined);
+  const complete = useCallback((deliveryId: string) => finishRef.current(deliveryId), []);
 
   useEffect(() => {
     if (!enabled) {
@@ -335,6 +347,21 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         return next;
       });
     };
+    type QueuedOverlay = { executeAt: string; expiresAt: string; overlay: ActiveLedScoresOverlay; serverTime: string; receivedAt: number };
+    const goalQueue: QueuedOverlay[] = [];
+    let continuingQueue = false;
+    const drainGoals = () => {
+      const next = goalQueue.shift();
+      if (!next) { continuingQueue = false; activeRef.current = null; setActive(null); return; }
+      continuingQueue = true;
+      scheduleOverlay({ ...next, expiresAt: new Date(Date.parse(next.serverTime) + Date.now() - next.receivedAt + 120_000).toISOString(), serverTime: new Date(Date.parse(next.serverTime) + Date.now() - next.receivedAt).toISOString() });
+    };
+    finishRef.current = (deliveryId) => {
+      if (activeRef.current?.deliveryId !== deliveryId) return;
+      enrichmentSequencesRef.current.delete(activeRef.current.eventId);
+      activeRef.current = null;
+      drainGoals();
+    };
     const scheduleOverlay = ({
       executeAt,
       expiresAt: expiresAtValue,
@@ -356,6 +383,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         Date.now()
       )) {
         scheduleTerminalFlush(0);
+        if (continuingQueue && !activeRef.current) drainGoals();
         return;
       }
       if (
@@ -366,12 +394,27 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         expiresAt <= serverNow ||
         (overlay.kind === "goal" && hasSeenGoal(overlay.eventId, serverNow))
       ) {
+        logGoal("goal_event_duplicate", overlay.eventId, "expired_or_duplicate");
         acknowledgeTerminal(overlay, "skipped", "expired_or_duplicate", expiresAt);
+        if (continuingQueue && !activeRef.current) drainGoals();
         return;
       }
       const activateIn = Math.max(0, Date.parse(executeAt) - serverNow);
       if (activateIn > 30_000) {
         acknowledgeTerminal(overlay, "skipped", "execute_time_too_far", expiresAt);
+        if (continuingQueue && !activeRef.current) drainGoals();
+        return;
+      }
+      if (overlay.kind === "goal" && (activeRef.current?.kind === "goal" || scheduledRef.current?.kind === "goal")) {
+        const duplicate = goalQueue.some((entry) => entry.overlay.eventId === overlay.eventId)
+          || scheduledRef.current?.eventId === overlay.eventId;
+        if (duplicate) {
+          if (scheduledRef.current?.deliveryId !== overlay.deliveryId && !goalQueue.some((entry) => entry.overlay.deliveryId === overlay.deliveryId)) acknowledgeTerminal(overlay, "skipped", "duplicate_queued_event", expiresAt);
+          logGoal("goal_event_duplicate", overlay.eventId);
+        } else if (goalQueue.length >= 20) {
+          acknowledgeTerminal(overlay, "skipped", "goal_queue_full", expiresAt);
+          logGoal("goal_event_failed", overlay.eventId, "queue_full");
+        } else goalQueue.push({ executeAt, expiresAt: expiresAtValue, overlay, serverTime, receivedAt: Date.now() });
         return;
       }
       if (activeRef.current && overlayPriority(activeRef.current.kind) > priority) {
@@ -412,7 +455,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
           enrichmentSequencesRef.current.delete(activeRef.current.eventId);
         }
         activeRef.current = null;
-        setActive(null);
+        if (!continuingQueue) setActive(null);
       }
       scheduledRef.current = {
         deliveryId: overlay.deliveryId,
@@ -433,6 +476,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
             enrichmentSequencesRef.current.delete(overlay.eventId);
           }
           acknowledgeTerminal(overlay, "skipped", "execute_window_expired", expiresAt);
+          drainGoals();
           return;
         }
         if (overlay.kind === "lineup_clear") {
@@ -478,15 +522,11 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
           }
           if (overlay.kind === "goal") rememberGoal(overlay.eventId, expiresAt);
         });
-        expiryTimerRef.current = window.setTimeout(() => {
-          if (activeRef.current?.deliveryId === overlay.deliveryId) {
-            activeRef.current = null;
-            setActive(null);
-            if (overlay.kind === "goal") {
-              enrichmentSequencesRef.current.delete(overlay.eventId);
-            }
-          }
-        }, Math.max(1, Math.min(overlay.durationMs, expiresAt - currentServerNow)));
+        if (overlay.kind !== "goal" || !overlay.configuration) {
+          expiryTimerRef.current = window.setTimeout(() => {
+            finishRef.current(overlay.deliveryId);
+          }, Math.max(1, Math.min(overlay.durationMs, expiresAt - currentServerNow)));
+        }
       }, activateIn);
     };
     const handleGoal = (value: unknown) => {
@@ -501,6 +541,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         );
         return;
       }
+      logGoal("goal_event_received", message.goal.eventId);
       void acknowledge(token, message.goal.deliveryId, "received", null);
       scheduleOverlay({ ...message, overlay: message.goal });
     };
@@ -563,8 +604,8 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         ));
         return;
       }
-      if (scheduledRef.current?.kind === "goal" &&
-        scheduledRef.current.eventId === enrichment.eventId) {
+      if ((scheduledRef.current?.kind === "goal" &&
+        scheduledRef.current.eventId === enrichment.eventId) || goalQueue.some((entry) => entry.overlay.eventId === enrichment.eventId)) {
         skipPendingEnrichment(enrichment.eventId, "superseded_enrichment");
         rememberEnrichmentSequence(enrichment.eventId, enrichment.sequence);
         pendingEnrichmentsRef.current.set(enrichment.eventId, enrichment);
@@ -605,6 +646,9 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
       window.removeEventListener("online", handleOnline);
       if (terminalRetryTimer !== null) window.clearTimeout(terminalRetryTimer);
       clearOverlayTimers();
+      goalQueue.length = 0;
+      finishRef.current = () => undefined;
+      goalMediaCache.dispose();
       scheduledRef.current = null;
       pendingEnrichmentsRef.current.clear();
       enrichmentSequencesRef.current.clear();
@@ -614,6 +658,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
 
   return {
     active,
+    complete,
     matchStates,
     pauseUnderlay: active?.underlayPolicy === "pause"
   };
@@ -742,11 +787,14 @@ export function LedScoresGoalOverlayContent({
 
 export function LedScoresExperienceOverlay({
   overlay,
-  theme = null
+  theme = null,
+  onComplete = () => undefined
 }: {
   overlay: ActiveLedScoresOverlay | null;
   theme?: FrozenPlayerTheme | null;
+  onComplete?: (deliveryId: string) => void;
 }) {
+  if (overlay?.kind === "goal" && overlay.configuration) return <GoalCelebration key={overlay.deliveryId} goal={overlay} theme={theme} onComplete={onComplete} />;
   return overlay?.kind === "goal"
     ? <LedScoresGoalOverlay goal={overlay} theme={theme} />
     : <LedScoresMatchOverlay overlay={overlay} theme={theme} />;
@@ -841,6 +889,13 @@ export function parseGoalMessage(value: unknown) {
     expiresAt,
     goal: {
       assets,
+      competition: safeText(payload.competition, 160),
+      matchName: safeText(payload.matchName, 240),
+      round: safeText(payload.round, 80),
+      venue: safeText(payload.venue, 160),
+      configuration: goalOverlayConfigurationSchema.safeParse(payload.goalOverlay).success ? goalOverlayConfigurationSchema.parse(payload.goalOverlay) : null,
+      homeLogo: safeOptionalUuid(payload.homeLogo),
+      awayLogo: safeOptionalUuid(payload.awayLogo),
       awayScore,
       awayTeam: safeText(payload.awayTeam, 160) ?? "Uitteam",
       deliveryId,
@@ -916,7 +971,7 @@ async function consumeSseStream(
         if (parsed) onEvent(parsed.event, parsed.value);
         boundary = buffer.indexOf("\n\n");
       }
-      if (buffer.length > 128 * 1024) buffer = "";
+      if (buffer.length > 4 * 1024 * 1024) buffer = "";
     }
   } finally {
     await reader.cancel().catch(() => undefined);
@@ -937,8 +992,13 @@ export function parseSseBlock(value: string) {
 }
 
 function preloadAssets(configs: unknown[]) {
+  goalMediaCache.setRequiredAssets(configs.flatMap((c) => isRecord(c) && isRecord(c.config) && c.config.goalOverlay ? [...parseLedScoresOverlayAssets(c.assets).values()] : []));
   for (const config of configs.slice(0, 50)) {
     if (!isRecord(config) || !Array.isArray(config.assets)) continue;
+    const catalog = Array.isArray(config.teamAssets) ? config.teamAssets : [];
+    const assets = [...parseLedScoresOverlayAssets(config.assets).values(), ...catalog.slice(0, 1000).flatMap((asset) => [...parseLedScoresOverlayAssets([asset]).values()])];
+    void goalMediaCache.preload(assets);
+    if (isRecord(config.config) && config.config.goalOverlay) continue;
     for (const asset of parseLedScoresOverlayAssets(config.assets).values()) {
       if (asset.mimeType.startsWith("image/")) {
         const image = new Image();

@@ -1936,6 +1936,7 @@ export function PlayerRuntime() {
     playerView = (
       <PlaybackView
         goal={realtimeGoal.active}
+        onGoalComplete={realtimeGoal.complete}
         liveMatchStates={realtimeGoal.matchStates}
         onFailure={handlePlaybackFailure}
         onEnded={handlePlaybackEnded}
@@ -1994,6 +1995,7 @@ export function PlayerRuntime() {
 
 function PlaybackView({
   goal,
+  onGoalComplete,
   liveMatchStates,
   onFailure,
   onEnded,
@@ -2004,6 +2006,7 @@ function PlaybackView({
   watchdogTimeoutMs
 }: {
   goal: ActiveLedScoresOverlay | null;
+  onGoalComplete: (deliveryId: string) => void;
   liveMatchStates: ReadonlyMap<string, LedScoresMatchState>;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onEnded: (itemId: string) => void;
@@ -2063,7 +2066,7 @@ function PlaybackView({
           showFullscreen={activeItem.id === manifest.items[0]?.id}
           theme={activeTheme}
         />
-        <LedScoresExperienceOverlay overlay={goal} theme={activeTheme} />
+        <LedScoresExperienceOverlay overlay={goal} theme={activeTheme} onComplete={onGoalComplete} />
         <img
           alt=""
           aria-hidden="true"

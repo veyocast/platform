@@ -15,6 +15,7 @@ import { createControlSupabaseClient } from "../../../../../lib/supabase/server"
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import {
+  linkLedScoresClub,
   saveLedScoresConnection,
   saveLedScoresMappings,
   testLedScoresSource
@@ -132,12 +133,19 @@ export default async function LedScoresPage({ searchParams }: Props) {
               </dl>
               {baseline ? <p className="notice" role="status"><strong>Laatste score.</strong> Team {baseline.homeTeamId} {baseline.homeScore}–{baseline.awayScore} Team {baseline.awayTeamId}. Dit is alleen status; hij wordt nooit als nieuw goal-event afgespeeld.</p> : <p className="notice notice--warning"><strong>Wacht op baseline.</strong> De eerste ontvangen score wordt veilig onderdrukt.</p>}
               {connection.health_detail ? <p className={styles.meta}>{connection.health_detail}</p> : null}
+              <p className="notice"><strong>Clubidentiteit.</strong> {connection.provider_club_id ? `${connection.provider_club_name} · LED Scores club-ID ${connection.provider_club_id}` : "De connector haalt de club-ID en teamcatalogus op bij verbinden."} {connection.catalog_synced_at ? `Catalogus bijgewerkt: ${formatDate(connection.catalog_synced_at)}.` : ""}</p>
               {canManage ? <>
+                <form action={linkLedScoresClub} className={styles.form}>
+                  <input name="connectionId" type="hidden" value={connection.id} /><input name="expectedRevision" type="hidden" value={connection.revision} />
+                  <label><span>VeyoCast-vereniging koppelen</span><select name="sportsClubId" defaultValue={connection.sports_club_id ?? ""}><option value="">Geen Sportlink-vereniging gekoppeld</option>{data.sportsClubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}</select></label>
+                  <p>Deze expliciete koppeling verbindt de clubidentiteiten. Teams worden alleen automatisch aan Sportlink gekoppeld wanneer de bron exact dezelfde teamcode levert.</p>
+                  <Button size="sm" type="submit" variant="secondary">Club koppelen</Button>
+                </form>
                 <form action={saveLedScoresConnection} className={styles.form}>
                   <input name="connectionId" type="hidden" value={connection.id} />
                   <input name="expectedRevision" type="hidden" value={connection.revision} />
                   <label><span>Interne naam</span><input defaultValue={connection.name} maxLength={120} name="name" required /></label>
-                  <label><span>Clubslug</span><input defaultValue={connection.club_slug} maxLength={80} name="clubSlug" pattern="[a-z0-9-]+" required /></label>
+                  <label><span>Clubslug</span><input readOnly={Boolean(connection.provider_club_id)} defaultValue={connection.club_slug} maxLength={80} name="clubSlug" pattern="[a-z0-9-]+" required /></label>
                   <label><span>Status</span><select defaultValue={connection.status} name="status"><option value="active">Actief</option><option value="paused">Gepauzeerd</option></select></label>
                   <Button size="sm" type="submit" variant="secondary">Verbinding opslaan</Button>
                 </form>
@@ -146,7 +154,7 @@ export default async function LedScoresPage({ searchParams }: Props) {
                   <input name="clubSlug" type="hidden" value={connection.club_slug} />
                   <Button size="sm" type="submit"><PlugZap aria-hidden="true" />Read-only testen</Button>
                 </form>
-                <form action={saveLedScoresMappings} className={styles.mappingForm}>
+                {!connection.provider_club_id ? <form action={saveLedScoresMappings} className={styles.mappingForm}>
                   <input name="connectionId" type="hidden" value={connection.id} />
                   <h4>Team-ID’s classificeren</h4>
                   <p>Home/away is niet hetzelfde als eigen/tegenstander. Een onbekend scorend team wordt veilig onderdrukt.</p>
@@ -160,7 +168,7 @@ export default async function LedScoresPage({ searchParams }: Props) {
                     </div>;
                   })}
                   <Button size="sm" type="submit" variant="secondary">Teammapping opslaan</Button>
-                </form>
+                </form> : <p>{mappings.length} teams uit de broncatalogus. <Link href="/dashboard/studio/led-scores/goal-overlay">Teams selecteren in Goal Overlay</Link>.</p>}
               </> : null}
             </article>;
           })}
@@ -228,16 +236,17 @@ async function loadLedScores(tenantId: string) {
   }
   if (availability !== "available") return { ...emptyData(), availability };
   const since = new Date(Date.now() - 86_400_000).toISOString();
-  const [connections, mappings, sportsTeams, events, eventCount, screens, devices] = await Promise.all([
-    supabase.from("ledscores_connections").select("id,name,club_slug,status,health_status,health_detail,revision,baseline_json,last_source_message_at,last_connected_at,last_disconnected_at,lease_expires_at,last_test_at,last_test_status,last_test_detail,reconnect_count,invalid_message_count").eq("tenant_id", tenantId).order("created_at"),
+  const [connections, mappings, sportsTeams, events, eventCount, screens, devices, sportsClubs] = await Promise.all([
+    supabase.from("ledscores_connections").select("id,name,club_slug,provider_club_id,provider_club_name,sports_club_id,catalog_synced_at,status,health_status,health_detail,revision,baseline_json,last_source_message_at,last_connected_at,last_disconnected_at,lease_expires_at,last_test_at,last_test_status,last_test_detail,reconnect_count,invalid_message_count").eq("tenant_id", tenantId).order("created_at"),
     supabase.from("ledscores_team_mappings").select("id,connection_id,provider_team_key,provider_team_name,sports_team_id,scoring_side").eq("tenant_id", tenantId).order("created_at"),
     supabase.from("sports_teams").select("id,name").eq("tenant_id", tenantId).eq("active", true).order("name").limit(250),
     supabase.from("ledscores_goal_events").select("id,connection_id,event_kind,source_observed_at,detected_at,home_team,away_team,home_score,away_score,scoring_side,dispatch_status").eq("tenant_id", tenantId).order("detected_at", { ascending: false }).limit(25),
     supabase.from("ledscores_goal_events").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("detected_at", since),
     supabase.from("screens").select("id,name,status,deleted_at").eq("tenant_id", tenantId).order("name").limit(500),
-    supabase.from("player_devices").select("screen_id,status,platform,app_version,last_seen_at").eq("tenant_id", tenantId).order("last_seen_at", { ascending: false }).limit(500)
+    supabase.from("player_devices").select("screen_id,status,platform,app_version,last_seen_at").eq("tenant_id", tenantId).order("last_seen_at", { ascending: false }).limit(500),
+    supabase.from("sports_clubs").select("id,name").eq("tenant_id", tenantId).eq("active", true).order("name")
   ]);
-  const coreError = [connections.error, mappings.error, sportsTeams.error, events.error, eventCount.error].find(Boolean);
+  const coreError = [connections.error, mappings.error, sportsTeams.error, sportsClubs.error, events.error, eventCount.error].find(Boolean);
   if (coreError) {
     console.error("LED Scores-beheer laden mislukt", { code: coreError.code });
     return { ...emptyData(), enabled: true, loadError: true };
@@ -267,7 +276,7 @@ async function loadLedScores(tenantId: string) {
     : (deliveries.data ?? []) as LedScoresDelivery[];
   return {
     availability: "available" as const,
-    connections: connections.data ?? [], deliveries: deliveryRows,
+    sportsClubs: sportsClubs.data ?? [], connections: connections.data ?? [], deliveries: deliveryRows,
     deliveriesTruncated: (deliveries.count ?? 0) > deliveryRows.length,
     devices: (devices.error ? [] : devices.data ?? []) as LedScoresDevice[],
     enabled: true, eventCount: eventCount.count ?? 0, events: events.data ?? [],
@@ -278,7 +287,7 @@ async function loadLedScores(tenantId: string) {
   };
 }
 
-function emptyData() { return { availability: "not_released" as LedScoresFeatureAvailability, connections: [], deliveries: [] as LedScoresDelivery[], deliveriesTruncated: false, devices: [] as LedScoresDevice[], enabled: false, eventCount: 0, events: [], loadError: false, mappings: [], screens: [] as LedScoresScreen[], sportsTeams: [] }; }
+function emptyData() { return { availability: "not_released" as LedScoresFeatureAvailability, connections: [], deliveries: [] as LedScoresDelivery[], deliveriesTruncated: false, devices: [] as LedScoresDevice[], enabled: false, eventCount: 0, events: [], loadError: false, mappings: [], screens: [] as LedScoresScreen[], sportsTeams: [], sportsClubs: [] as { id: string; name: string }[] }; }
 function availabilityMessage(value: LedScoresFeatureAvailability) {
   return ledScoresFeatureAvailabilityMessages[
     value === "available" ? "unavailable" : value

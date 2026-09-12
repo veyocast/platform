@@ -6,6 +6,7 @@ import { useId, useMemo, useState } from "react";
 import { cn } from "../utils";
 
 export type MultiSelectOption = Readonly<{
+  imageUrl?: string | null;
   description?: string;
   disabled?: boolean;
   disabledReason?: string;
@@ -288,6 +289,7 @@ export function MultiSelectDropdown({
                     onChange={() => toggle(option.value)}
                     type="checkbox"
                   />
+                  {option.imageUrl ? <img alt="" src={option.imageUrl} width={28} height={28} style={{ objectFit: "contain", flexShrink: 0 }} onError={(event) => { event.currentTarget.style.display = "none"; }} /> : null}
                   <span>
                     <strong>{option.label}</strong>
                     {optionDescription ? (

@@ -158,7 +158,7 @@ test("verbindt opnieuw wanneer LED Scores bij Player-start nog niet is vrijgegev
           eventId: "66666666-6666-4666-8666-666666666666",
           executeAt: new Date(now + 1_500).toISOString(),
           expiresAt,
-          secondaryText: "Wordt vervangen",
+          secondaryText: "Eerste goal in de queue",
           serverTime: new Date(now).toISOString()
         })),
         sse("goal", goalEventPayload({
@@ -183,14 +183,14 @@ test("verbindt opnieuw wanneer LED Scores bij Player-start nog niet is vrijgegev
   await expect.poll(() => realtimeRequests).toBeGreaterThanOrEqual(2);
   await expect.poll(() => acknowledgements.some((item) =>
     item.deliveryId === "55555555-5555-4555-8555-555555555555"
-      && item.status === "skipped"
+      && item.status === "rendered"
   )).toBe(true);
   await expect.poll(() => acknowledgements.some((item) =>
     item.deliveryId === "77777777-7777-4777-8777-777777777777"
       && item.status === "rendered"
   )).toBe(true);
   await expect.poll(() => acknowledgements.filter((item) =>
-    item.deliveryId === "77777777-7777-4777-8777-777777777777"
+    item.deliveryId === "55555555-5555-4555-8555-555555555555"
       && item.status === "rendered"
   ).length).toBeGreaterThanOrEqual(2);
 });

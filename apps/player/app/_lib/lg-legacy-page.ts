@@ -1,3 +1,4 @@
+import { legacyGoalOverlayCss, legacyGoalOverlayScript } from "./lg-goal-overlay-runtime";
 import { themeBaseFontSizes } from "../../../../packages/content-templates/src/theme-catalog";
 
 import { currentPlayerApplicationVersion } from "./player-app-update";
@@ -68,7 +69,7 @@ const legacyConfig = {
   goalDisabledRetryMs: 30_000,
   goalMaximumDedupeEntries: 200,
   goalReconnectMaximumMs: 30_000,
-  goalStreamRecycleCharacters: 1_048_576,
+  goalStreamRecycleCharacters: 4_194_304,
   goalStreamSilenceMs: 45_000,
   goalTerminalAckMaximumEntries: 200,
   goalTerminalAckMaximumRetries: 6,
@@ -920,6 +921,7 @@ export function renderLgLegacyHtml() {
     .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-top h1{font-size:var(--rc-title-size-portrait,54px)}
     .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-footer{right:38px;bottom:24px;left:101px;height:40px;font-size:14px}
     @media(max-height:650px){.panel{padding:24px}.logo{width:210px;margin-bottom:24px}#detail{margin-top:14px}#pairing{margin-top:18px}}
+  ${legacyGoalOverlayCss}
   </style>
 </head>
 <body>
@@ -962,6 +964,7 @@ export function renderLgLegacyHtml() {
   (function () {
     "use strict";
     var CONFIG = ${config};
+    ${legacyGoalOverlayScript()}
     var runtime = {
       activeIndex: 0,
       activationInFlight: false,
@@ -979,6 +982,10 @@ export function renderLgLegacyHtml() {
       goalAckInFlight: false,
       goalAckRetryAttempts: {},
       goalActivationTimer: null,
+      goalQueue: [],
+      goalQueueDraining: false,
+      goalV2Cleanup: null,
+      goalV2Redraw: null,
       goalActiveEventId: null,
       goalActiveKind: null,
       goalActiveModel: null,
@@ -2084,6 +2091,13 @@ export function renderLgLegacyHtml() {
         expiresAt: expiresAt,
         serverTime: serverTime,
         goal: {
+          competition: goalText(payload.competition, 160),
+          matchName: goalText(payload.matchName, 240),
+          round: goalText(payload.round, 80),
+          venue: goalText(payload.venue, 160),
+          configuration: goalRecord(payload.goalOverlay) && payload.goalOverlay.schemaVersion === 2 ? payload.goalOverlay : null,
+          homeLogo: goalOptionalUuid(payload.homeLogo),
+          awayLogo: goalOptionalUuid(payload.awayLogo),
           assets: assets,
           awayScore: awayScore,
           awayTeam: goalText(payload.awayTeam, 160) || "Uitteam",
@@ -2391,8 +2405,14 @@ export function renderLgLegacyHtml() {
       var image;
       var video;
       if (!Array.isArray(configs)) return;
+      goalV2RequiredVideos = {};
+      configs.forEach(function (value) {
+        if (!value || !value.config || !value.config.goalOverlay || !Array.isArray(value.assets)) return;
+        value.assets.forEach(function (asset) { if (asset.mimeType === "video/mp4") goalV2RequiredVideos["/__veyocast-goal-cache/" + asset.checksum] = true; });
+      });
       for (configIndex = 0; configIndex < Math.min(50, configs.length); configIndex += 1) {
         config = goalRecord(configs[configIndex]);
+        if (config && config.config && config.config.goalOverlay) { goalV2Preload(config); continue; }
         values = config && Array.isArray(config.assets) ? config.assets : [];
         for (assetIndex = 0; assetIndex < Math.min(24, values.length); assetIndex += 1) {
           asset = parseGoalAsset(values[assetIndex]);
@@ -3037,6 +3057,7 @@ export function renderLgLegacyHtml() {
       if (runtime.goalActiveKind !== "goal" || !runtime.goalActiveModel) return false;
       runtime.goalActiveModel.player = player;
       runtime.goalActiveModel.scorerName = player.name;
+      if (runtime.goalV2Redraw) { runtime.goalV2Redraw(); return true; }
       if (overlay.getAttribute("data-renderer") === "canvas") {
         values = goalCanvasValues(runtime.goalActiveModel);
         canvasTexts = overlay.querySelectorAll("[data-goal-canvas-text-binding]");
@@ -3073,6 +3094,7 @@ export function renderLgLegacyHtml() {
       return true;
     }
     function clearGoalElement() {
+      if (runtime.goalV2Cleanup) { runtime.goalV2Cleanup(); runtime.goalV2Cleanup = null; }
       var overlay = byId("goal-overlay");
       var media;
       var mediaElements = overlay.querySelectorAll("video,audio");
@@ -3167,10 +3189,24 @@ export function renderLgLegacyHtml() {
     function hideGoalOverlay(resumeUnderlay) {
       window.clearTimeout(runtime.goalExpiryTimer);
       runtime.goalExpiryTimer = null;
+      if (resumeUnderlay && runtime.goalQueue.length && !runtime.goalQueueDraining) {
+        runtime.goalQueueDraining = true;
+        runtime.goalActiveEventId = null;
+        runtime.goalActiveKind = null;
+        while (runtime.goalQueue.length) {
+          var queued = runtime.goalQueue.shift();
+          queued.value.serverTime = new Date(queued.serverTime + now() - queued.receivedAt).toISOString();
+          queued.value.expiresAt = new Date(queued.serverTime + now() - queued.receivedAt + 120000).toISOString();
+          handleGoalDelivery(queued.value, queued.token, "goal");
+          if (runtime.goalActivationTimer !== null) { runtime.goalQueueDraining = false; return; }
+        }
+        runtime.goalQueueDraining = false;
+      }
       clearGoalElement();
       if (resumeUnderlay) resumeGoalUnderlay();
     }
     function renderGoalOverlay(goal) {
+      if (goal.configuration) return renderGoalV2(goal);
       var overlay = byId("goal-overlay");
       var mediaAsset = goalAssetFor(goal, goal.mediaAssetId);
       var logoAsset = goalAssetFor(goal, goal.logoMediaAssetId);
@@ -3641,6 +3677,14 @@ export function renderLgLegacyHtml() {
         );
         return;
       }
+      if (message.goal.kind === "goal" && !runtime.goalQueueDraining && (runtime.goalActiveKind === "goal" || runtime.goalPendingKind === "goal")) {
+        if (runtime.goalActiveEventId === message.goal.eventId || runtime.goalPendingEventId === message.goal.eventId || runtime.goalQueue.some(function (entry) { return entry.value.payload.eventId === message.goal.eventId; })) {
+          goalV2Log("goal_event_duplicate", message.goal); return;
+        }
+        if (runtime.goalQueue.length >= 20) { goalTerminalAcknowledge(token, message.goal.deliveryId, message.goal.eventId, "skipped", "goal_queue_full", message.expiresAt); return; }
+        runtime.goalQueue.push({ value: value, token: token, receivedAt: now(), serverTime: message.serverTime });
+        return;
+      }
       activateIn = Math.max(0, message.executeAt - serverNow);
       if (activateIn > 30000) {
         goalTerminalAcknowledge(
@@ -3705,6 +3749,7 @@ export function renderLgLegacyHtml() {
             "execute_window_expired",
             message.expiresAt
           );
+          hideGoalOverlay(true);
           return;
         }
         try {
@@ -3760,7 +3805,7 @@ export function renderLgLegacyHtml() {
             currentServerNow
           );
         }
-        if (message.goal.kind === "lineup_clear") return;
+        if (message.goal.kind === "lineup_clear" || message.goal.configuration) return;
         visibleFor = Math.max(
           1,
           Math.min(
@@ -3834,6 +3879,13 @@ export function renderLgLegacyHtml() {
         runtime.goalEnrichmentSequences[enrichment.eventId] =
           enrichment.sequence;
         runtime.goalPendingEnrichment = enrichment;
+        return;
+      }
+      var queuedGoal = runtime.goalQueue.find(function (entry) { return entry.value.payload.eventId === enrichment.eventId; });
+      if (queuedGoal) {
+        queuedGoal.value.payload.player = enrichment.player;
+        runtime.goalEnrichmentSequences[enrichment.eventId] = enrichment.sequence;
+        goalTerminalAcknowledge(token, enrichment.deliveryId, enrichment.eventId, "rendered", "queued_goal_enriched", enrichment.expiresAt);
         return;
       }
       goalTerminalAcknowledge(token, enrichment.deliveryId,
@@ -3915,7 +3967,7 @@ export function renderLgLegacyHtml() {
         if (parsed) handleGoalStreamEvent(parsed.event, parsed.value, token);
         boundary = runtime.goalStreamBuffer.indexOf("\\n\\n");
       }
-      if (runtime.goalStreamBuffer.length > 131072) {
+      if (runtime.goalStreamBuffer.length > 4194304) {
         runtime.goalStreamBuffer = "";
       }
     }
@@ -4046,6 +4098,7 @@ export function renderLgLegacyHtml() {
       }
     }
     function stopGoalRealtime(clearOverlay) {
+      if (clearOverlay) runtime.goalQueue = [];
       runtime.goalStreamGeneration += 1;
       window.clearTimeout(runtime.goalReconnectTimer);
       runtime.goalReconnectTimer = null;

@@ -3,6 +3,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import {
+  goalOverlayConfigurationSchema,
   ledScoresCanvasAssetIds,
   ledScoresCanvasMaximumAssets,
   safeParseLedScoresCanvasExperience,
@@ -77,11 +78,11 @@ export async function loadLedScoresPlayerBootstrap(
   }
   const configs = Array.isArray(result.data.configs)
     ? await Promise.all(result.data.configs.slice(0, 50).map((config) =>
-        normalizeAndSignConfig(admin, config)
+        normalizeAndSignConfig(admin, config, tenantId)
       ))
     : [];
   const pendingDeliveries = Array.isArray(result.data.pendingDeliveries)
-    ? result.data.pendingDeliveries.slice(0, 5)
+    ? result.data.pendingDeliveries.slice(0, 20)
       .map(normalizeLedScoresDelivery)
       .filter((delivery): delivery is NonNullable<typeof delivery> => Boolean(delivery))
     : [];
@@ -235,6 +236,9 @@ export function attachLedScoresCanvasSceneToDelivery(
 ) {
   const safePayload = { ...delivery.payload };
   delete safePayload.scene;
+  delete safePayload.goalOverlay;
+  delete safePayload.homeLogo;
+  delete safePayload.awayLogo;
   const sanitized = { ...delivery, payload: safePayload };
   if (!delivery.alertVersionId) return sanitized;
   const config = configs.find((candidate) =>
@@ -242,6 +246,19 @@ export function attachLedScoresCanvasSceneToDelivery(
     uuid(candidate.alertVersionId) === delivery.alertVersionId
   );
   if (!isRecord(config) || !isRecord(config.config)) return sanitized;
+  const goalConfiguration = goalOverlayConfigurationSchema.safeParse(config.config.goalOverlay);
+  if (delivery.kind === "goal" && goalConfiguration.success) {
+    const teams = Array.isArray(config.teams) ? config.teams : [];
+    const team = (key: unknown) => teams.find((item) => isRecord(item) &&
+      item.connectionId === delivery.payload.connectionId && item.teamKey === key);
+    const home = team(delivery.payload.homeTeamKey);
+    const away = team(delivery.payload.awayTeamKey);
+    return { ...sanitized, payload: {
+      ...safePayload, goalOverlay: goalConfiguration.data,
+      homeLogo: isRecord(home) ? home.logoAssetId : null,
+      awayLogo: isRecord(away) ? away.logoAssetId : null
+    } };
+  }
   const experience = safeParseLedScoresCanvasExperience(
     config.config.canvasExperience
   );
@@ -314,6 +331,32 @@ export function normalizeLedScoresMatchStateRow(value: unknown) {
 }
 
 export async function hydrateLedScoresDeliveryProviderPhotos(
+  admin: ReturnType<typeof createPlayerAdminClient>,
+  delivery: NonNullable<ReturnType<typeof normalizeLedScoresDelivery>>,
+  tenantId?: string
+) {
+  const hydrated = await hydrateProviderPhotos(admin, delivery);
+  if (!tenantId || !["goal", "goal_enrichment"].includes(delivery.kind)) return hydrated;
+  try {
+    // Resolve identity through the tenant-owned event, never through a name.
+    const eventId = uuid(delivery.payload.eventId);
+    if (!eventId) return hydrated;
+    const event = await admin.from("ledscores_goal_events").select("connection_id,scoring_team_key").eq("tenant_id", tenantId).eq("id", eventId).maybeSingle();
+    if (!event.data) return hydrated;
+    const sourcePlayer = isRecord(delivery.payload.player) ? delivery.payload.player : null;
+    if (!sourcePlayer || typeof sourcePlayer.providerPlayerId !== "string") return hydrated;
+    const player = await admin.from("ledscores_player_identities").select("manual_photo_media_asset_id").eq("tenant_id", tenantId).eq("connection_id", event.data.connection_id).eq("provider_team_key", event.data.scoring_team_key).eq("provider_player_key", sourcePlayer.providerPlayerId).eq("active", true).maybeSingle();
+    if (!player.data?.manual_photo_media_asset_id) return hydrated;
+    const asset = await admin.from("media_assets").select("storage_bucket,storage_path,mime_type").eq("tenant_id", tenantId).eq("id", player.data.manual_photo_media_asset_id).eq("kind", "image").eq("status", "ready").is("deleted_at", null).maybeSingle();
+    const media = asset.data;
+    if (!media || media.storage_bucket !== "tenant-media" || !media.storage_path.startsWith(`tenants/${tenantId}/assets/`) || !["image/jpeg", "image/png", "image/webp"].includes(media.mime_type)) return hydrated;
+    const signed = await admin.storage.from("tenant-media").createSignedUrl(media.storage_path, 3600);
+    if (!signed.data?.signedUrl) return hydrated;
+    return { ...hydrated, payload: { ...hydrated.payload, player: { ...(isRecord(hydrated.payload.player) ? hydrated.payload.player : {}), photoUrl: signed.data.signedUrl } } };
+  } catch { return hydrated; }
+}
+
+async function hydrateProviderPhotos(
   admin: ReturnType<typeof createPlayerAdminClient>,
   delivery: NonNullable<ReturnType<typeof normalizeLedScoresDelivery>>
 ) {
@@ -438,7 +481,8 @@ function hydratePlayer(
 
 async function normalizeAndSignConfig(
   admin: ReturnType<typeof createPlayerAdminClient>,
-  value: unknown
+  value: unknown,
+  tenantId: string
 ) {
   if (!isRecord(value)) return null;
   const alertVersionId = uuid(value.alertVersionId);
@@ -465,11 +509,29 @@ async function normalizeAndSignConfig(
       url: signed.data.signedUrl
     };
   }));
+  const teamRows = goalOverlayConfigurationSchema.safeParse(value.config.goalOverlay).success
+    ? await admin.from("ledscores_goal_overlay_version_teams")
+        .select("connection_id,provider_team_key,logo_provider_asset_version_id")
+        .eq("tenant_id", tenantId).eq("alert_version_id", alertVersionId).limit(1000)
+    : { data: [], error: null };
+  const logoIds = [...new Set((teamRows.data ?? []).map((team) => team.logo_provider_asset_version_id).filter(Boolean))];
+  const logos = logoIds.length ? await admin.from("provider_asset_versions")
+    .select("id,storage_bucket,storage_path,checksum_sha256,mime_type")
+    .in("id", logoIds) : { data: [], error: null };
+  const teamAssets = (await Promise.all((logos.data ?? []).map(async (logo) => {
+    if (!logo.storage_path.startsWith(`tenants/${tenantId}/assets/`) || logo.storage_bucket !== "provider-assets") return null;
+    try {
+      const signed = await admin.storage.from("provider-assets").createSignedUrl(logo.storage_path, 3600);
+      return signed.data?.signedUrl ? { mediaAssetId: logo.id, checksum: logo.checksum_sha256, mimeType: logo.mime_type, url: signed.data.signedUrl } : null;
+    } catch { return null; }
+  }))).filter((asset) => asset !== null);
   return {
     alertId,
     alertVersionId,
     assets: signedAssets.filter((asset): asset is NonNullable<typeof asset> => Boolean(asset)),
     checksum,
+    teamAssets,
+    teams: (teamRows.data ?? []).map((team) => ({ connectionId: team.connection_id, teamKey: team.provider_team_key, logoAssetId: team.logo_provider_asset_version_id })),
     config: value.config,
     durationMs: boundedInteger(value.durationMs, 2_000, 30_000) ?? 8_000,
     priority: boundedInteger(value.priority, 0, 1_000) ?? 0,
