@@ -12,3 +12,5 @@ export * from "./royal-current-theme";
 export * from "./theme-catalog";
 export * from "./theme-motion";
 export * from "./theme-visual-matrix";
+
+export { sportMatchBelongsOnSlide } from "./sport-match-phase";

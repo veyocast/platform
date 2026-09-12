@@ -23,6 +23,7 @@ export type SportlinkSlideBatchActionResult =
     }
   | {
       message: string;
+      existingSlides?: Array<{ slideId: string; name: string }>;
       ok: false;
     };
 
@@ -67,7 +68,7 @@ export async function createSportlinkSlideBatch(
   }
 
   const { data, error } = await supabase.rpc(
-    "create_sportlink_slide_batch_v5",
+    "create_sportlink_slide_batch_v6",
     {
       p_data_source_id: parsed.data.dataSourceId,
       p_drafts: parsed.data.drafts,
@@ -79,8 +80,15 @@ export async function createSportlinkSlideBatch(
     console.error("Sportlink batch maken mislukt", {
       code: error?.code ?? "empty_result"
     });
+    const duplicates = error?.code === "23505" ? safeJson(error.details ?? "") : null;
+    const existingSlides = Array.isArray(duplicates) ? duplicates.flatMap((value) =>
+      isRecord(value) && validId(value.slideId) && typeof value.name === "string"
+        ? [{ slideId: value.slideId, name: value.name }] : []) : [];
     return {
-      message: error?.code === "42501"
+      existingSlides,
+      message: existingSlides.length
+        ? "Voor deze selectie bestaan al slides. Open ze hieronder om de naam of instellingen aan te passen, of haal deze onderdelen uit de nieuwe selectie. Er is niets extra aangemaakt."
+        : error?.code === "42501"
         ? "Je hebt geen toestemming om Sportlink-slides te maken."
         : "De batch kon niet veilig worden gemaakt. Er zijn geen gedeeltelijke slides bewaard; probeer het opnieuw.",
       ok: false

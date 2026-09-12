@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SportlinkClient } from "@veyocast/integrations/server";
+import { mapSportlinkMatches, SportlinkClient } from "@veyocast/integrations/server";
 import sharp from "sharp";
 
 import {
   collectSportlinkPoolContexts,
   collectSportlinkPoolIds,
   collectSportlinkMatchLogoCandidates,
+  dedupeSportlinkMatches,
+  enrichSportlinkOwnMatchesWithPoolContexts,
   enrichSportlinkPoolMatches,
   fetchSportlinkDataset,
   runSportlinkSyncOnce,
@@ -267,6 +269,74 @@ describe("Sportlink sync worker", () => {
     )).toEqual(["94"]);
   });
 
+  it("includes all 32 club pools, including youth teams beyond the former limit", () => {
+    const teams = Array.from({ length: 32 }, (_, index) => ({
+      teamcode: index + 1, teamnaam: `Vereniging team ${index + 1}`
+    }));
+    const pools = teams.map((team, index) => ({ ...team, poulecode: index + 100 }));
+    const result = collectSportlinkPoolIds(teams, [
+      ...pools, ...pools, { teamcode: 999, poulecode: 999 }
+    ]);
+    expect(result).toHaveLength(32);
+    expect(result.slice(24)).toEqual(["124", "125", "126", "127", "128", "129", "130", "131"]);
+  });
+
+  it("fails explicitly instead of silently publishing an incomplete catalogue", () => {
+    const teams = Array.from({ length: 129 }, (_, index) => ({
+      teamcode: index + 1, poulecode: index + 100
+    }));
+    expect(() => collectSportlinkPoolIds(teams, [])).toThrow(
+      expect.objectContaining({ code: "SPORTLINK_POOL_LIMIT_EXCEEDED" })
+    );
+    expect(() => collectSportlinkPoolIds(teams.slice(0, 3), [], 2)).toThrow(
+      expect.objectContaining({ code: "SPORTLINK_POOL_LIMIT_EXCEEDED" })
+    );
+  });
+
+  it("resolves cup and league by exact fixture phase rather than catalogue order", () => {
+    const teams = [{ teamcode: 10, teamnaam: "Vereniging 1" }];
+    const pools = [
+      { teamcode: 10, poulecode: 701, poule: "A", fase: "Beker" },
+      { teamcode: 10, poulecode: 702, poule: "B", fase: "Competitie" }
+    ];
+    const matches = mapSportlinkMatches([{
+      wedstrijdcode: 11, thuisteamid: 10, thuisteam: "Vereniging 1",
+      uitteamid: 20, uitteam: "Bezoekers", wedstrijddatum: "2026-09-12",
+      aanvangstijd: "14:00", fase: "Beker"
+    }]);
+    for (const catalogue of [pools, [...pools].reverse()]) {
+      expect(enrichSportlinkOwnMatchesWithPoolContexts(matches, teams, catalogue)[0])
+        .toMatchObject({ pool: { externalId: "701" } });
+    }
+    const withoutPhase = matches.map((match) => ({ ...match, competition: null }));
+    expect(enrichSportlinkOwnMatchesWithPoolContexts(withoutPhase, teams, pools)[0]?.pool).toBeNull();
+  });
+
+  it("preserves authoritative pool rows when an own fixture has only a derived ambiguous pool", () => {
+    const teams = [{ teamcode: 10, teamnaam: "Vereniging 1" }];
+    const pools = [
+      { teamcode: 10, poulecode: 701, poule: "A" },
+      { teamcode: 10, poulecode: 702, poule: "B" }
+    ];
+    const matches = mapSportlinkMatches([{
+      wedstrijdcode: 11, thuisteamid: 10, thuisteam: "Vereniging 1",
+      uitteamid: 20, uitteam: "Bezoekers", wedstrijddatum: "2026-09-12",
+      aanvangstijd: "14:00", poule: "Fixture label"
+    }]);
+    const context = collectSportlinkPoolContexts(teams, pools)[0]!;
+    const authoritative = enrichSportlinkPoolMatches(matches, context);
+    const own = enrichSportlinkOwnMatchesWithPoolContexts(matches, teams, pools);
+    expect(own[0]?.pool).toBeNull();
+    expect(dedupeSportlinkMatches([...authoritative, ...own])[0]?.pool).toMatchObject({
+      externalId: "701", competitionExternalId: context.competition?.externalId
+    });
+    const explicit = matches.map((match) => ({
+      ...match, pool: { externalId: "701", name: "A", competitionExternalId: "fixture-hash" }
+    }));
+    expect(enrichSportlinkOwnMatchesWithPoolContexts(explicit, teams, pools)[0]?.pool)
+      .toMatchObject({ competitionExternalId: context.competition?.externalId });
+  });
+
   it("keeps competition and season with every standings context", () => {
     expect(collectSportlinkPoolContexts(
       [{
@@ -289,7 +359,8 @@ describe("Sportlink sync worker", () => {
 
   it("marks every pool fixture with the requested pool context", () => {
     const context = collectSportlinkPoolContexts([{
-      competitie: "Vierde klasse", poule: "4C", poulecode: 701, teamcode: 10
+      competitie: "Vierde klasse", poule: "4C", poulecode: 701, teamcode: 10,
+      fase: "Beker", seizoen: "2026/2027"
     }], [])[0]!;
     const match = {
       awayTeam: { externalId: "away", logoUrl: null, name: "Uit", score: null },
@@ -303,6 +374,12 @@ describe("Sportlink sync worker", () => {
     expect(enrichSportlinkPoolMatches([match], context)[0]).toMatchObject({
       pool: { externalId: "701", name: "4C" },
       competition: { name: "Vierde klasse" }
+    });
+    expect(enrichSportlinkPoolMatches([{
+      ...match,
+      competition: { externalId: "fixture-label", name: "Fixture label", period: null, season: null, type: null }
+    }], context)[0]?.competition).toMatchObject({
+      name: "Fixture label", period: "Beker", season: "2026/2027"
     });
   });
 
@@ -509,6 +586,25 @@ describe("Sportlink sync worker", () => {
       workerId: "worker:sportlink"
     })).resolves.toEqual({ status: "idle" });
     expect(rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["23505", "SPORTLINK_SYNC_COMPLETE_23505"],
+    ["unexpected\nprivate details", "SPORTLINK_SYNC_COMPLETE_INVALID_RESULT"]
+  ])("retains a bounded completion diagnostic for %s without raw errors", async (code, expectedCode) => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: { code } });
+    const backend = new SupabaseSportlinkSyncBackend("https://project.supabase.co", "test-only", { rpc });
+    await expect(backend.complete({
+      connectionId: "connection", dataSourceId: "source", datasetGroup: "competitions",
+      encryptedClientId: "unused", encryptionIv: "unused", encryptionTag: "unused",
+      runId: "run", tenantId: "tenant", timezone: "Europe/Amsterdam"
+    }, "worker:test", {
+      activities: [], birthdayFetchedAt: null, birthdays: [], club: null, clubLogo: null,
+      matches: [], personPhotos: [], standings: [], teamMembers: [], teamLogos: [], teams: []
+    })).rejects.toMatchObject({
+      code: expectedCode,
+      message: "Sportlink-gegevens zijn opgehaald maar konden niet worden verwerkt. De bestaande gegevens blijven behouden; controleer de synchronisatiediagnose."
+    });
   });
 
   it("uploads an official club logo locally before completing the provider run", async () => {

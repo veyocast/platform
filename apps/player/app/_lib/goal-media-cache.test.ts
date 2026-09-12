@@ -12,6 +12,17 @@ function setup() {
   return { rows, asset, fetchMedia, cache: new GoalMediaCache(store, fetchMedia) };
 }
 describe("goal media retention beside playlist assets", () => {
+  it("reports prefetch readiness only after verified bytes are stored", async () => {
+    const { cache, asset, rows, fetchMedia } = setup();
+    const failedLog = vi.spyOn(console, "info").mockImplementation(() => {});
+    fetchMedia.mockImplementationOnce(async () => new Response("unavailable", { status: 503 }));
+    expect(await cache.preload([asset])).toBe(false);
+    expect(rows.size).toBe(0);
+    expect(failedLog).toHaveBeenCalledWith(JSON.stringify({ event: "goal_asset_prefetch_failed", mediaAssetId: asset.mediaAssetId }));
+    expect(await cache.preload([asset])).toBe(true);
+    expect(rows.size).toBe(1);
+    failedLog.mockRestore();
+  });
   it("downloads and verifies once; a refreshed signed URL reuses the same hash", async () => {
     const { cache, asset, fetchMedia, rows } = setup();
     await Promise.all([cache.prepare(asset), cache.prepare(asset)]);

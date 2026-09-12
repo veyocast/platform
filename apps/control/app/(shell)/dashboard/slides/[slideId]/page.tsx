@@ -17,6 +17,7 @@ import {
 } from "../actions";
 import { createOrResumeDynamicSlideVersion } from "../version-actions";
 import { loadDynamicSlideVersionState } from "../version-data";
+import { slideEditorKind } from "../slide-management";
 import { VersionHistory } from "../version-history";
 
 type PageProps = {
@@ -40,7 +41,7 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
     ? await loadDynamicSlideVersionState(session.tenantId!, slideId)
     : null;
   const canWrite = hasCapability(session.capabilities, "tenant.dynamic_slide.write");
-  const isVersionedSportlink = isSportlinkConfiguration(data.slide.configuration_json);
+  const isVersionedSportlink = slideEditorKind(data.slide.configuration_json) === "sportlink";
   const activeVersion = versionState?.versions.find((version) =>
     version.id === versionState.activeDraftVersionId
   );
@@ -68,7 +69,7 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
         description="Controleer de huidige immutable output en voeg die bewust toe aan een playlistconcept."
         eyebrow={session.tenant}
         status={slideStatus(data.slide.status)}
-        title={data.slide.name}
+        title={data.slide.library_name ?? data.slide.name}
       />
       {query.fout ? <p className="notice notice--critical" role="alert">{query.fout}</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
@@ -351,11 +352,6 @@ function readRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function isSportlinkConfiguration(value: unknown) {
-  const configuration = readRecord(value);
-  return typeof configuration?.blueprintKey === "string" &&
-    configuration.blueprintKey.startsWith("sportlink.");
-}
 
 function safeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";

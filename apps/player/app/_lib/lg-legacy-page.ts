@@ -2406,7 +2406,8 @@ export function renderLgLegacyHtml() {
       var asset;
       var image;
       var video;
-      if (!Array.isArray(configs)) return;
+      var pending = [];
+      if (!Array.isArray(configs)) return Promise.resolve(true);
       goalV2RequiredVideos = {};
       configs.forEach(function (value) {
         if (!value || !value.config || !value.config.goalOverlay || !Array.isArray(value.assets)) return;
@@ -2414,7 +2415,7 @@ export function renderLgLegacyHtml() {
       });
       for (configIndex = 0; configIndex < Math.min(50, configs.length); configIndex += 1) {
         config = goalRecord(configs[configIndex]);
-        if (config && config.config && config.config.goalOverlay) { goalV2Preload(config); continue; }
+        if (config && config.config && config.config.goalOverlay) { pending.push(goalV2Preload(config)); continue; }
         values = config && Array.isArray(config.assets) ? config.assets : [];
         for (assetIndex = 0; assetIndex < Math.min(24, values.length); assetIndex += 1) {
           asset = parseGoalAsset(values[assetIndex]);
@@ -2431,6 +2432,7 @@ export function renderLgLegacyHtml() {
           }
         }
       }
+      return Promise.all(pending).then(function (values) { return values.every(function (ready) { return ready; }); });
     }
     function goalTextNode(tagName, className, value) {
       var node = document.createElement(tagName);
@@ -3919,7 +3921,7 @@ export function renderLgLegacyHtml() {
       var deliveryId;
       if (!record) return;
       if (event === "bootstrap" || event === "configuration") {
-        preloadGoalAssets(record.configs);
+        var prepared = preloadGoalAssets(record.configs);
         if (Array.isArray(record.matchBindings)) {
           for (var bindingIndex = 0;
             bindingIndex < Math.min(50, record.matchBindings.length);
@@ -3930,12 +3932,9 @@ export function renderLgLegacyHtml() {
         }
         deliveryId = goalUuid(record.deliveryId);
         if (event === "configuration" && deliveryId) {
-          goalAcknowledge(
-            token,
-            deliveryId,
-            "received",
-            "configuration_prefetched"
-          );
+          prepared.then(function (ready) {
+            goalAcknowledge(token, deliveryId, "received", ready ? "configuration_prefetched" : "configuration_prefetch_incomplete");
+          });
         }
       } else if (event === "goal") {
         handleGoalDelivery(record, token, "goal");

@@ -616,14 +616,17 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
     const handleStreamEvent = (event: string, value: unknown) => {
       if (!isRecord(value)) return;
       if (event === "bootstrap" || event === "configuration") {
-        if (Array.isArray(value.configs)) preloadAssets(value.configs);
+        const prepared = preloadAssets(Array.isArray(value.configs) ? value.configs : []);
         if (Array.isArray(value.matchBindings)) {
           for (const binding of value.matchBindings) {
             storeMatchState(binding, value.serverTime);
           }
         }
         if (event === "configuration" && typeof value.deliveryId === "string") {
-          void acknowledge(token, value.deliveryId, "received", "configuration_prefetched");
+          const deliveryId = value.deliveryId;
+          void prepared.then((ready) => {
+            if (!connectionController.signal.aborted) void acknowledge(token, deliveryId, "received", ready ? "configuration_prefetched" : "configuration_prefetch_incomplete");
+          });
         }
       } else if (event === "goal") {
         handleGoal(value);
@@ -991,13 +994,14 @@ export function parseSseBlock(value: string) {
   catch { return null; }
 }
 
-function preloadAssets(configs: unknown[]) {
+async function preloadAssets(configs: unknown[]) {
+  const pending: Promise<boolean>[] = [];
   goalMediaCache.setRequiredAssets(configs.flatMap((c) => isRecord(c) && isRecord(c.config) && c.config.goalOverlay ? [...parseLedScoresOverlayAssets(c.assets).values()] : []));
   for (const config of configs.slice(0, 50)) {
     if (!isRecord(config) || !Array.isArray(config.assets)) continue;
     const catalog = Array.isArray(config.teamAssets) ? config.teamAssets : [];
     const assets = [...parseLedScoresOverlayAssets(config.assets).values(), ...catalog.slice(0, 1000).flatMap((asset) => [...parseLedScoresOverlayAssets([asset]).values()])];
-    void goalMediaCache.preload(assets);
+    pending.push(goalMediaCache.preload(assets));
     if (isRecord(config.config) && config.config.goalOverlay) continue;
     for (const asset of parseLedScoresOverlayAssets(config.assets).values()) {
       if (asset.mimeType.startsWith("image/")) {
@@ -1013,6 +1017,7 @@ function preloadAssets(configs: unknown[]) {
       }
     }
   }
+  return (await Promise.all(pending)).every(Boolean);
 }
 async function acknowledge(token: string, deliveryId: string, status: string, detail: string | null) {
   try {

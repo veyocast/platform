@@ -40,6 +40,29 @@ export type SlideArchiveState = {
   status: "blocked" | "error" | "idle" | "success";
 };
 
+export type SlideRenameState = { message: string; ok: boolean };
+
+export async function renameSlideResource(input: { slideId: string; name: string; expectedRevision: number }): Promise<SlideRenameState> {
+  const session = await requireTenantControlSession("tenant.dynamic_slide.write");
+  const name = input.name.trim();
+  if (!uuidPattern.test(input.slideId) || name.length < 2 || name.length > 120 ||
+    !Number.isSafeInteger(input.expectedRevision) || input.expectedRevision < 0) {
+    return { ok: false, message: "Kies een naam van 2 tot 120 tekens. Er is niets gewijzigd." };
+  }
+  const supabase = await createControlSupabaseClient();
+  if (!session.isLive || !session.tenantId || !supabase) return { ok: false, message: "Log opnieuw in om de naam te wijzigen." };
+  const { error } = await supabase.rpc("rename_dynamic_slide_v1", {
+    p_tenant_id: session.tenantId, p_slide_id: input.slideId,
+    p_name: name, p_expected_revision: input.expectedRevision
+  });
+  if (error) return { ok: false, message: error.code === "40001"
+    ? "De naam is intussen gewijzigd. Sluit dit venster en vernieuw de lijst voordat je opnieuw opslaat."
+    : "De naam kon niet worden opgeslagen. Controleer je toegang en probeer opnieuw; er is niets gewijzigd." };
+  revalidatePath("/dashboard/slides");
+  revalidatePath(`/dashboard/slides/${input.slideId}`);
+  return { ok: true, message: "De slidenaam is opgeslagen." };
+}
+
 export async function archiveSlideResources(
   _previous: SlideArchiveState,
   formData: FormData

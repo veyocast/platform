@@ -15,6 +15,7 @@ describe("slide-resourceoverzicht", () => {
       sort: "unknown",
       status: "deleted"
     })).toEqual({
+      kind: "all",
       page: 1,
       query: "a".repeat(120),
       sort: "updated-desc",

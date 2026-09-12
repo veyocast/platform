@@ -124,3 +124,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+.actions { justify-content: flex-end; flex-wrap: nowrap; }
+.actions form { display: contents; }
+.chevronOpen { transform: rotate(180deg); }
+.detailsContent { background: var(--surface-subtle, var(--muted)); padding: 1rem; display: grid; gap: 1rem; }
+.detailsContent p { margin: 0; }
+.renameField { display: grid; gap: .5rem; font-weight: 600; }
+@media (max-width: 47.99rem) {
+  .actions { justify-content: flex-start; flex-wrap: wrap; }
+  .detailsRow td { display: block !important; }
+  .detailsRow td::before { display: none !important; }
+}

@@ -114,6 +114,7 @@ export function SportlinkBulkWizard({
   teams: Team[];
   templates: Template[];
 }) {
+  const [draftNames, setDraftNames] = useState<Record<string, string>>({});
   const [step, setStep] = useState(0);
   const [sourceId, setSourceId] = useState(sources[0]?.id ?? "");
   const [selectedBlueprints, setSelectedBlueprints] = useState<
@@ -241,6 +242,7 @@ export function SportlinkBulkWizard({
       });
       return [...regularDrafts, ...aggregateArrivalDrafts].map((draft) => ({
         ...draft,
+        name: draftNames[draftKey(draft)] ?? draft.name,
         arrival: isArrivalKey(draft.blueprintKey) ? arrivalConfig : undefined,
         display,
         themeSelection
@@ -252,6 +254,7 @@ export function SportlinkBulkWizard({
     arrivalConfig,
     arrivalSelections,
     display,
+    draftNames,
     matchLocations,
     orientation,
     selectedBlueprints,
@@ -497,6 +500,7 @@ export function SportlinkBulkWizard({
             <ReviewStep
               creationResult={creationResult}
               drafts={drafts}
+              onNameChange={(draft, name) => setDraftNames((current) => ({ ...current, [draftKey(draft)]: name }))}
               teamName={(teamId) => sourceTeamById.get(teamId)?.name ?? teamId}
               themeSelection={themeSelection}
             />
@@ -534,6 +538,7 @@ export function SportlinkBulkWizard({
           </Button>
           {step < 4 ? (
             <Button
+              key="continue"
               disabled={!canNext}
               onClick={() => setStep((value) => value + 1)}
               type="button"
@@ -541,11 +546,12 @@ export function SportlinkBulkWizard({
               Volgende
             </Button>
           ) : created ? (
-            <Button asChild>
+            <Button key="created" asChild>
               <Link href="/dashboard/slides">Naar Slides</Link>
             </Button>
           ) : (
             <Button
+              key="create"
               data-create-sportlink-batch="true"
               disabled={!drafts.length || batchTooLarge || Boolean(missingTemplates.length) || isCreating}
               type="submit"
@@ -619,47 +625,38 @@ function PurposeStep({
   );
 }
 
-function ChoiceGroup({
-  description,
-  keys,
-  label,
-  selected,
-  toggle
-}: {
+function ChoiceGroup({ description, keys, label, selected, toggle }: {
   description: string;
   keys: SportlinkSlideBlueprintKey[];
   label: string;
   selected: SportlinkSlideBlueprintKey[];
   toggle: (key: SportlinkSlideBlueprintKey) => void;
 }) {
-  return (
-    <section className={styles.choiceGroup}>
-      <header><div><h3>{label}</h3><p>{description}</p></div></header>
-      <div className={styles.cardGrid}>
-        {keys.map((key) => {
-          const blueprint = sportlinkSlideBlueprints[key];
-          const active = selected.includes(key);
-          return (
-            <button
-              aria-pressed={active}
-              key={key}
-              onClick={() => toggle(key)}
-              type="button"
-            >
-              <span className={styles.choiceIcon}><LayoutGrid aria-hidden="true" /></span>
-              <span>
-                <strong>{shortBlueprintLabel(key)}</strong>
-                <small>{windowLabel(blueprint.window)}</small>
-              </span>
-              <span className={styles.choiceCheck} aria-hidden="true">
-                {active ? <Check /> : null}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
+  const families = keys.reduce<Array<{ label: string; keys: SportlinkSlideBlueprintKey[] }>>((result, key) => {
+    const blueprint = sportlinkSlideBlueprints[key];
+    const names: Record<string, string> = { sport_program: "Programma", sport_results: "Uitslagen", sport_standing: "Stand", sport_visitor_arrivals: "Bezoekers welkom", sport_referee_arrivals: "Scheidsrechters welkom" };
+    const name = `${names[blueprint.slideType] ?? shortBlueprintLabel(key)}${isArrivalKey(key) ? "" : blueprint.scope === "pool" ? " · poule" : " · club"}`;
+    const family = result.find((candidate) => candidate.label === name);
+    if (family) family.keys.push(key); else result.push({ label: name, keys: [key] });
+    return result;
+  }, []);
+  return <section className={styles.choiceGroup}>
+    <header><div><h3>{label}</h3><p>{description}</p></div></header>
+    <div className={styles.familyChoices}>
+      {families.map((family) => <fieldset key={family.label}>
+        <legend><LayoutGrid aria-hidden="true" />{family.label}</legend>
+        <p>{family.keys.length > 1 ? "Kies de periode die je wilt tonen." : "Automatische inhoud vanuit Sportlink."}</p>
+        <div role="group" aria-label={`${family.label} selecteren`}>
+          {family.keys.map((key) => <button aria-pressed={selected.includes(key)}
+            aria-label={`${shortBlueprintLabel(key)} ${windowLabel(sportlinkSlideBlueprints[key].window)}`}
+            key={key} onClick={() => toggle(key)} type="button">
+            <span>{family.keys.length > 1 ? windowLabel(sportlinkSlideBlueprints[key].window) : "Toevoegen"}</span>
+            <span aria-hidden="true">{selected.includes(key) ? <Check /> : null}</span>
+          </button>)}
+        </div>
+      </fieldset>)}
+    </div>
+  </section>;
 }
 
 function TeamStep({
@@ -1081,7 +1078,8 @@ function ThemeDisplayStep({
   );
 }
 
-function ReviewStep({ creationResult, drafts, teamName, themeSelection }: {
+function ReviewStep({ creationResult, drafts, onNameChange, teamName, themeSelection }: {
+  onNameChange: (draft: SportlinkSlideDraft, name: string) => void;
   creationResult: SportlinkSlideBatchActionResult | null;
   drafts: SportlinkSlideDraft[];
   teamName: (teamId: string) => string;
@@ -1117,6 +1115,11 @@ function ReviewStep({ creationResult, drafts, teamName, themeSelection }: {
           daarna één keer met de knop Aanmaken.
         </p>
       )}
+      {creationResult && !creationResult.ok && creationResult.existingSlides?.length ? (
+        <div className={styles.createdList} aria-label="Bestaande slides">
+          {creationResult.existingSlides.map((slide) => <Link href={`/dashboard/slides/${slide.slideId}/edit`} key={slide.slideId}><span>{slide.name}</span><StatusPill label="Bestaat al · bewerken" tone="info" /></Link>)}
+        </div>
+      ) : null}
       {creationResult?.ok ? (
         <div className={styles.createdList}>
           {creationResult.slides.map((slide) => (
@@ -1156,6 +1159,12 @@ function ReviewStep({ creationResult, drafts, teamName, themeSelection }: {
                       : "Dynamische teamslide"}
                 </span>
                 <h3>{shortBlueprintLabel(draft.blueprintKey)}</h3>
+                <label className={styles.slideNameField}>
+                  <span>Naam in bibliotheek</span>
+                  <input aria-label={`Slidenaam ${teamName(draft.context.providerTeamId)} · ${shortBlueprintLabel(draft.blueprintKey)}`} disabled={Boolean(creationResult?.ok)} minLength={2} maxLength={120} required
+                    value={draft.name} onChange={(event) => onNameChange(draft, event.target.value)} />
+                  <small>Bijvoorbeeld: Kantine · {shortBlueprintLabel(draft.blueprintKey)}. Deze naam helpt je de slide terug te vinden.</small>
+                </label>
                 <p>
                   {clubSelection?.mode === "all"
                     ? "Alle teams, inclusief later toegevoegde Sportlink-teams"
