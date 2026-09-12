@@ -80,6 +80,34 @@ selectie-/projectiefuncties, plant een nieuwe synchronisatie en queue-t
 opvolgende gepubliceerde latest-snapshots. Een rollback herstelt de vorige
 functies in een forward-migratie; historische data worden niet teruggeschreven.
 
+## Gelijke teamnamen in verschillende poules (S179)
+
+De laatste productiecontrole vond twee verschillende `Duindorp sv 35+1`-teams:
+het zaterdagteam en het vrijdagse 7×7-team. Hun teamcodes en poules zijn anders;
+de globale naamfallback uit S178 wijst ze daarom bewust niet op naam toe.
+
+De competitiesynchronisatie haalt de eigen teamcatalogus al op bij dezelfde
+Sportlink-verbinding. Zij geeft die nu door aan de bestaande standenmapper.
+Ontbreekt `poulestand.teamcode`, dan zoekt de mapper een exacte teamnaam met
+expliciet cataloguslidmaatschap van die poule. Precies één echte positieve
+teamcode is vereist. Twee gelijknamige leden van dezelfde poule of een ander
+gelijknamig team met onbekende poulegegevens blijven ongekoppeld. Expliciete
+bron-teamcodes worden nooit overschreven; tegenstanders behouden hun bestaande
+stabiele identiteit. Een volgende tenantbatch erft geen catalogus uit de vorige.
+
+Hierdoor krijgt bijvoorbeeld de zaterdagstand de echte zaterdag-teamcode en de
+vrijdagstand de vrijdag-teamcode. De bestaande strikte databasecontrole kan die
+rechtstreeks herkennen. Er is geen extra providerrequest, nieuwe relatie of
+migratie nodig. Opgeslagen bronrijen worden bij de eerstvolgende normale
+synchronisatie bijgewerkt; de bestaande pipeline maakt nieuwe immutable
+snapshots en releases. De naamhashfallback blijft beschikbaar voor oudere cache
+of bronrijen waarvoor een betrouwbare koppeling ontbreekt.
+
+S178 is op productie gecontroleerd: alle 32 poules en 361 wedstrijden werden
+weer succesvol gesynchroniseerd. Dezelfde productieproef met tien volledige
+snapshots daalde van 3,37 naar 0,64 seconde. De vrijdag-/zaterdagkoppeling wordt
+na S179 aanvullend tegen de echte stand gecontroleerd; uitrolbewijs staat in de PR.
+
 ## Namen en dubbele slides
 
 `dynamic_slides.library_name` is een optionele beheernaam, met

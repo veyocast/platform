@@ -154,14 +154,17 @@ export function mapSportlinkStandings(
   poolExternalId: string,
   poolName = "Competitiestand",
   periodNumber: number | null = null,
-  competition: SportStanding["competition"] = null
+  competition: SportStanding["competition"] = null,
+  ownTeams: readonly SportTeam[] = []
 ): SportStanding {
   const rows = isolate(payload, (value) => {
     const teamName = string(value.team ?? value.teamnaam);
     if (!teamName) throw new Error("standing_team_invalid");
     return {
       drawn: numberOrNull(value.gelijk ?? value.gelijkspel),
-      externalId: nullable(value.teamcode) ?? stableId("standing-team", teamName),
+      externalId: nullable(value.teamcode) ??
+        standingCatalogTeamId(ownTeams, teamName, poolExternalId) ??
+        stableId("standing-team", teamName),
       form: standingForm(
         value.vorm ?? value.form ?? value.laatstedriewedstrijden
       ),
@@ -187,6 +190,25 @@ export function mapSportlinkStandings(
     rows,
     scoresPublished: rows.length > 0
   };
+}
+
+// ownTeams must come from the same connection's freshly fetched team catalog.
+// A name alone is never enough: the catalog must prove one exact pool member.
+function standingCatalogTeamId(
+  ownTeams: readonly SportTeam[], teamName: string, poolExternalId: string
+): string | null {
+  const namedTeams = ownTeams.filter((team) => team.name === teamName);
+  const poolTeamIds = new Set(namedTeams.filter((team) =>
+    team.competitionOptions?.some((option) => option.poolExternalId === poolExternalId)
+  ).map((team) => team.externalId));
+  if (poolTeamIds.size !== 1) return null;
+  const [teamId] = poolTeamIds;
+  if (!teamId || !/^[1-9]\d*$/.test(teamId)) return null;
+  if (namedTeams.some((team) => team.externalId !== teamId && (
+    !team.competitionOptions?.length ||
+    team.competitionOptions.some((option) => !option.poolExternalId)
+  ))) return null;
+  return teamId;
 }
 
 export function mapSportlinkActivities(payload: unknown): SportActivity[] {
