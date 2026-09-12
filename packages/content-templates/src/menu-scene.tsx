@@ -15,6 +15,7 @@ import {
   type MenuMoney,
   type MenuProductGroupPlacement,
   type MenuProductPlacement,
+  type ThemeMode,
   type ThemePresentationSnapshot
 } from "@veyocast/contracts";
 
@@ -259,6 +260,7 @@ export function MenuSceneCanvas({
   orientation,
   page,
   style,
+  themeMode,
   themeOverrideStyle
 }: {
   assets: Record<string, MenuSceneAsset>;
@@ -267,6 +269,7 @@ export function MenuSceneCanvas({
   orientation: keyof typeof menuSceneCanvases;
   page: ResolvedMenuScenePage;
   style?: CSSProperties;
+  themeMode?: ThemeMode;
   themeOverrideStyle?: CSSProperties;
 }) {
   const canvasRef = useRef<HTMLElement>(null);
@@ -316,7 +319,7 @@ export function MenuSceneCanvas({
       className={styles.canvas}
       data-orientation={orientation}
       data-theme-id={document.theme.themeId}
-      data-theme-mode={document.theme.mode}
+      data-theme-mode={themeMode ?? document.theme.mode}
       data-theme-snapshot-version={themePresentation.snapshotVersion}
       ref={canvasRef}
       style={rootStyle}

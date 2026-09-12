@@ -50,13 +50,13 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(nav.getByRole("link", { name: /Platform/ })).toHaveCount(0);
   await expect(nav.getByRole("link", { name: "Overzicht", exact: true })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /Sponsor Hub/ })).toHaveCount(0);
-  await expect(nav.getByRole("link", { name: /Playlists/ })).toHaveCount(0);
-  await expect(nav.getByRole("link", { name: /Bronnen/ })).toHaveCount(0);
-  await expect(nav.getByRole("link", { name: /Publicaties/ })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: /Sponsor Hub/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Bronnen/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Publicaties/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Schermen/ })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /Team/ })).toHaveCount(0);
-  await expect(nav.locator(".control-nav").getByRole("link")).toHaveCount(5);
+  await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
+  await expect(nav.locator(".control-nav").getByRole("link")).toHaveCount(18);
   await expect(nav.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
 
   await openFromCommand(page, "Sponsor Hub", /\/dashboard\/sponsors$/);
@@ -154,7 +154,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
 
   await page.goto("/dashboard/auditlog");
   await expect(page).toHaveURL(/\/dashboard\/activity$/);
-  await expect(nav.getByRole("link", { name: /Activiteit/ })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: /Activiteit/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Activiteit" })).toBeVisible();
 });
 

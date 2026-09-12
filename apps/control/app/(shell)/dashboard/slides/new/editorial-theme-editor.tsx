@@ -249,6 +249,10 @@ export function EditorialThemeEditor({
     updateSelection({ ...selection, modePolicy: { kind: "fixed", mode } });
   }
 
+  function forceMode(mode: ThemeMode) {
+    setFixedMode(mode);
+  }
+
   function setToken(
     mode: ThemeMode,
     token: keyof EditorialColorTokens,
@@ -385,6 +389,33 @@ export function EditorialThemeEditor({
                 >
                   <i aria-hidden="true" />
                   {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className={styles.editorialGlobalMode}>
+            <div>
+              <span className={styles.editorialGlobalModeLabel}>Globale modus</span>
+              <p>
+                Forceer alle nieuwe en opnieuw uitgerolde slides naar één modus.
+                Opslaan start daarna de veilige immutable uitrol naar actieve schermen.
+              </p>
+            </div>
+            <div
+              aria-label="Globale weergavemodus"
+              className={styles.editorialModeTabs}
+              role="group"
+            >
+              {(["light", "dark"] as const).map((mode) => (
+                <button
+                  aria-pressed={selection.modePolicy.kind === "fixed" && selection.modePolicy.mode === mode}
+                  className={styles.editorialModeTab}
+                  disabled={disabled}
+                  key={mode}
+                  onClick={() => forceMode(mode)}
+                  type="button"
+                >
+                  {mode === "light" ? "Alles licht" : "Alles donker"}
                 </button>
               ))}
             </div>

@@ -122,6 +122,16 @@ describe("FieldFlow frozen token authority", () => {
     );
   });
 
+  it("uses the frozen tenant mode instead of the legacy template slug", () => {
+    const view = createDynamicTemplateView({
+      ...newsPayload(),
+      templateSlug: "editorial-arena-news-light-landscape"
+    });
+
+    expect(view?.theme).toBe("dark");
+    expect(view?.themeTokens.canvas).toBe(tokens.canvas);
+  });
+
   it("honours the complete tenant palette on Royal Current snapshots", () => {
     const custom = {
       ...tokens,

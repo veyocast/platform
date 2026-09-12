@@ -384,7 +384,7 @@ function createDynamicTemplateViewInternal(
   const brand = readRecord(data.brand);
   const clubLogoUrl = dynamicAssetUrl(brand?.logoMediaAssetId, payload);
   const clubName = safeText(brand?.clubName, "Vereniging");
-  const theme: DynamicTemplateTheme = payload.templateSlug.includes("dark")
+  const fallbackTheme: DynamicTemplateTheme = payload.templateSlug.includes("dark")
     ? "dark"
     : "light";
   const configuredEditorial = editorialArenaConfigurationSchema.safeParse(
@@ -394,7 +394,7 @@ function createDynamicTemplateViewInternal(
     ? configuredEditorial.data
     : parseEditorialArenaConfiguration(data.editorial, {
         accent: accentColor,
-        mode: theme
+        mode: fallbackTheme
       });
   const frozenPresentation = parseThemePresentationSnapshot(data.themePresentation);
   const themePresentation = frozenPresentation ?? freezeThemePresentation({
@@ -404,13 +404,18 @@ function createDynamicTemplateViewInternal(
       categoryOverrides: [],
       modePolicy: {
         kind: "fixed",
-        mode: configuredEditorial.success ? editorial.theme.mode : theme
+        mode: configuredEditorial.success ? editorial.theme.mode : fallbackTheme
       },
       ref: { catalog: "v2", id: "editorial", version: "1.0.0" },
       support: null
     },
     timezone: "UTC"
   });
+  // The immutable snapshot is the source of truth for the rendered mode. The
+  // template slug is only a legacy fallback for snapshots without a frozen
+  // presentation; using it for a current snapshot lets dark/light CSS drift
+  // away from the tenant rollout.
+  const theme: DynamicTemplateTheme = themePresentation.resolvedMode.mode;
   const themeDefinition = resolveThemeDefinition(themePresentation.selection);
   const royalCurrentPresentation = themeDefinition.id === "fieldflow" &&
     themePresentation.snapshotVersion === 2 &&
@@ -432,6 +437,7 @@ function createDynamicTemplateViewInternal(
       : frozenPresentation
         ? themeToEditorialTokens(themePresentation)
         : activeEditorialTokens(editorial.theme);
+  const tenantThemeModeAuthority = royalCurrentPresentation;
   const themeIdentity = {
     designRevision: royalCurrentPresentation
       ? "royal-current-v8" as const
@@ -515,7 +521,7 @@ function createDynamicTemplateViewInternal(
         snapshotId: payload.snapshotId,
         sourceLabel: "Menu Studio",
         templateStyle: "default",
-        theme: menuDocument.data.theme.mode,
+        theme,
         ...themeIdentity,
         themeId: menuDocument.data.theme.themeId,
         themeTokens,
@@ -679,7 +685,9 @@ function createDynamicTemplateViewInternal(
         pageSize
       });
     }
-    const birthdayThemeTokens = configuration.presentation.useTenantTheme
+    const birthdayUsesTenantTheme = configuration.presentation.useTenantTheme ||
+      tenantThemeModeAuthority;
+    const birthdayThemeTokens = birthdayUsesTenantTheme
       ? themeTokens
       : activeEditorialTokens(resolveEditorialThemeConfig({
         accent: accentColor,
@@ -712,7 +720,7 @@ function createDynamicTemplateViewInternal(
       snapshotId: payload.snapshotId,
       sourceLabel: "Van harte namens de vereniging",
       templateStyle: "default",
-      theme: configuration.presentation.useTenantTheme
+      theme: birthdayUsesTenantTheme
         ? theme
         : configuration.presentation.themeMode,
       ...themeIdentity,

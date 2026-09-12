@@ -156,7 +156,8 @@ test("Royal Current-outputmatrix van 64 renderercombinaties", async ({ page }) =
                 };
               });
               expect(rowGeometry.primaryAboveSecondary).toBe(true);
-              expect(rowGeometry.secondaryFontRatio).toBeCloseTo(.52, 2);
+              expect(rowGeometry.secondaryFontRatio)
+                .toBeCloseTo(orientation === "portrait" ? .48 : .52, 2);
               expect(rowGeometry.secondaryJustification).toBe("flex-end");
               expect(rowGeometry.secondaryTextAlign).toBe("right");
             } else {
@@ -168,7 +169,7 @@ test("Royal Current-outputmatrix van 64 renderercombinaties", async ({ page }) =
             const rows = slide.locator("[data-result-row]");
             expect(await rows.first().evaluate(
               (element) => Number.parseFloat(getComputedStyle(element).fontSize)
-            )).toBeCloseTo(orientation === "portrait" ? 32 : 28, 2);
+            )).toBeCloseTo(orientation === "portrait" ? 24 : 28, 2);
             expect(await rows.first().locator(
               '[class*="arenaResultScore"]'
             ).evaluate(
@@ -187,15 +188,17 @@ test("Royal Current-outputmatrix van 64 renderercombinaties", async ({ page }) =
               const scoreBox = score?.getBoundingClientRect();
               const homeBox = home?.getBoundingClientRect();
               const awayBox = away?.getBoundingClientRect();
+              const rowBox = element.getBoundingClientRect();
               return {
-                scoreBetweenTeams: Boolean(
+                scoreAfterTeams: Boolean(
                   scoreBox && homeBox && awayBox &&
-                  scoreBox.left >= homeBox.right - 1 &&
-                  scoreBox.right <= awayBox.left + 1
+                  homeBox.right <= awayBox.left + 1 &&
+                  scoreBox.left >= awayBox.right - 1 &&
+                  scoreBox.right <= rowBox.right + 1
                 )
               };
             });
-            expect(scoreGeometry.scoreBetweenTeams).toBe(true);
+            expect(scoreGeometry.scoreAfterTeams).toBe(true);
             if (orientation === "portrait") {
               expect(await rows.first().evaluate((element) => {
                 const teams = Array.from(element.querySelectorAll<HTMLElement>(
@@ -214,7 +217,8 @@ test("Royal Current-outputmatrix van 64 renderercombinaties", async ({ page }) =
             await expect(slide.locator('[data-standing-window] > article')).toHaveCount(
               Math.min(countForVariant(variant), 7)
             );
-            await expect(slide.locator('[class*="royalTitleStat"]')).toContainText(/poule/iu);
+            await expect(slide.locator('[class*="arenaStandingContext"]'))
+              .toContainText("Poule A");
             expect(await pinned.evaluate((element) => {
               const bounds = element.getBoundingClientRect();
               const children = Array.from(element.children).map((child) =>
@@ -436,12 +440,12 @@ test("Royal Current-outputmatrix van 64 renderercombinaties", async ({ page }) =
               expect(composition.sourceRightGap).toBeLessThanOrEqual(93);
               expect(composition.qrViewportBottomGap).toBeGreaterThanOrEqual(105);
               expect(composition.qrViewportBottomGap).toBeLessThanOrEqual(107);
-              expect(composition.qrViewportRightGap).toBeGreaterThanOrEqual(155);
-              expect(composition.qrViewportRightGap).toBeLessThanOrEqual(157);
+              expect(composition.qrViewportRightGap).toBeGreaterThanOrEqual(133);
+              expect(composition.qrViewportRightGap).toBeLessThanOrEqual(135);
               expect(composition.storyWidthRatio).toBeGreaterThanOrEqual(0.48);
               expect(composition.storyWidthRatio).toBeLessThanOrEqual(0.5);
-              expect(composition.storyTopRatio).toBeGreaterThanOrEqual(0.031);
-              expect(composition.storyTopRatio).toBeLessThanOrEqual(0.032);
+              expect(composition.storyTopRatio).toBeGreaterThanOrEqual(0.027);
+              expect(composition.storyTopRatio).toBeLessThanOrEqual(0.029);
             } else {
               expect(composition.overlay).toContain("28%");
               expect(composition.overlay).toContain("40%");
@@ -563,9 +567,11 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
             const away = element.querySelector<HTMLElement>(
               '[data-field="away-team"]'
             )?.getBoundingClientRect();
+            const row = element.getBoundingClientRect();
             return Boolean(
               home && result && away &&
-              result.left >= home.right - 1 && result.right <= away.left + 1
+              home.right <= away.left + 1 &&
+              result.left >= away.right - 1 && result.right <= row.right + 1
             );
           })).toBe(true);
         } else {

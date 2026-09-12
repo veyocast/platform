@@ -139,6 +139,7 @@ export function renderLgLegacyHtml() {
     .default-waiting-tenant{margin:0 0 2vh;color:#65718c;font-size:clamp(12px,1vw,18px);font-weight:800;letter-spacing:.2em;text-transform:uppercase}
     #default-waiting[data-theme="dark"] .default-waiting-tenant,.default-waiting-payoff{color:#aeb9d3}
     .default-waiting-content h1{max-width:18ch;margin:0;font-size:clamp(34px,min(5.2vw,9vh),76px);font-weight:800;letter-spacing:-.055em;line-height:.98}
+    .default-waiting-welcome{margin:2vh 0 0;font-size:clamp(18px,1.8vw,30px)}
     .default-waiting-tenant-logo{display:block;width:auto;height:clamp(120px,23vh,260px);max-width:min(46vw,360px);margin:4vh auto 3.5vh;object-fit:contain}
     .default-waiting-veyocast-logo{display:block;width:min(30vw,210px);height:auto;margin:3.5vh auto 0}
     .default-waiting-payoff{margin:1.8vh 0 0;font-size:clamp(15px,1.45vw,25px);font-style:italic}
@@ -940,12 +941,13 @@ export function renderLgLegacyHtml() {
       <pre id="diagnostics"></pre>
     </div>
   </section>
-  <section id="default-waiting" aria-label="VeyoCast wacht op content" hidden>
+  <section id="default-waiting" aria-label="VeyoCast player gereed" hidden>
     <div class="default-waiting-card">
       <time class="default-waiting-clock" id="default-waiting-clock"></time>
       <div class="default-waiting-content">
         <p class="default-waiting-tenant" id="default-waiting-tenant"></p>
-        <h1 id="default-waiting-title"></h1>
+        <h1 id="default-waiting-title">Wachten op content</h1>
+        <p class="default-waiting-welcome" id="default-waiting-welcome"></p>
         <img class="default-waiting-tenant-logo" id="default-waiting-tenant-logo" alt="">
         <img class="default-waiting-veyocast-logo" id="default-waiting-veyocast-logo" src="/brand/veyocast-logo-primary.svg" alt="VeyoCast">
         <p class="default-waiting-payoff">Narrowcasting voor sportverenigingen!</p>
@@ -1131,7 +1133,8 @@ export function renderLgLegacyHtml() {
       byId("default-waiting").hidden = false;
       byId("default-waiting").setAttribute("data-theme", theme);
       setText("default-waiting-tenant", tenantName);
-      setText("default-waiting-title", "Welkom op " + sportparkName + "!");
+      setText("default-waiting-title", "Wachten op content");
+      setText("default-waiting-welcome", "Welkom op " + sportparkName + "!");
       setText("default-waiting-sportpark", sportparkName);
       var tenantLogo = byId("default-waiting-tenant-logo");
       if (logo) {
@@ -5375,6 +5378,29 @@ export function renderLgLegacyHtml() {
         });
       }
       if (slideType === "price_list") {
+        var menuDocument = templateRecord(data.menuDocument) || {};
+        if (menuDocument.schemaVersion === "menu-document.v2") {
+          return templateArray(menuDocument.pages, 200).some(function (pageValue) {
+            var page = templateRecord(pageValue) || {};
+            return templateArray(page.blocks, 200).some(function (blockValue) {
+              var block = templateRecord(blockValue) || {};
+              if (block.hidden === true) return false;
+              if (block.type === "product-group") {
+                var group = templateRecord(block.group) || {};
+                return Boolean(templateText(group.title, ""));
+              }
+              if (block.type !== "category") return false;
+              return templateArray(block.productNodes, 200).some(function (nodeValue) {
+                var node = templateRecord(nodeValue) || {};
+                if (node.kind === "product-group") {
+                  return Boolean(templateText(node.title, ""));
+                }
+                var fallback = templateRecord(node.snapshotFallback) || {};
+                return Boolean(templateText(node.nameOverride, templateText(fallback.name, "")));
+              });
+            });
+          });
+        }
         var priceList = templateRecord(data.priceList) || {};
         return templateArray(priceList.sections, 200).some(function (sectionValue) {
           var section = templateRecord(sectionValue) || {};

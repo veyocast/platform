@@ -63,7 +63,7 @@ test("Studio overview and creation journey use real responsive controls", async 
     page.getByRole("heading", { exact: true, name: "Startpunt" })
   ).toBeVisible();
   await expect(page.getByLabel("Zoek template")).toBeVisible();
-  await expect(page.getByLabel("Categorie")).toBeVisible();
+  await expect(page.getByLabel("Categorie", { exact: true })).toBeVisible();
   const startPanel = page.getByRole("region", { name: "Startpunt" });
   const actionFooter = page
     .getByText("Stap 2 van 4 · Startpunt", { exact: true })
