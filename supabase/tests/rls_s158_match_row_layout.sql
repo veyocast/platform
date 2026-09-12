@@ -3,6 +3,20 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
+-- Keep today's fixtures genuinely before/after kickoff at any test execution time.
+create function pg_temp.match_time_today(p_time time, p_finished boolean)
+returns timestamptz language sql stable as $$
+  select case when p_finished
+    then day_start + (now() - day_start) * (extract(epoch from p_time) / 86400)::double precision
+    else now() + (day_end - now()) * (extract(epoch from p_time) / 86400)::double precision
+  end
+  from (select
+    (now() at time zone 'Europe/Amsterdam')::date::timestamp at time zone 'Europe/Amsterdam' as day_start,
+    ((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp at time zone 'Europe/Amsterdam' as day_end
+  ) bounds
+$$;
+
+
 select plan(22);
 
 insert into auth.users (
@@ -460,8 +474,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-club-selected-home',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '09:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '09:00', false),
     'scheduled',
     '{"externalId":"s158-selected","name":"S158 geselecteerd team"}',
     '{"externalId":"s158-club-visitor-home","name":"Clubbezoeker thuis"}',
@@ -478,8 +491,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-club-selected-away',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '10:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '10:00', false),
     'scheduled',
     '{"externalId":"s158-club-visitor-away","name":"Clubbezoeker uit"}',
     '{"externalId":"s158-selected","name":"S158 geselecteerd team"}',
@@ -496,8 +508,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-club-other-own-home',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '11:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '11:00', false),
     'scheduled',
     '{"externalId":"s158-other-own","name":"S158 ander eigen team"}',
     '{"externalId":"s158-club-visitor-other","name":"Andere bezoeker"}',
@@ -514,8 +525,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-club-foreign',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '12:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '12:00', false),
     'scheduled',
     '{"externalId":"s158-club-foreign-home","name":"Vreemd thuis"}',
     '{"externalId":"s158-club-foreign-away","name":"Vreemd uit"}',
@@ -532,8 +542,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-ambiguous-fixture-a',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '18:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '18:00', false),
     'scheduled',
     '{"externalId":"s158-ambiguous","name":"S158 team met ambigue poule"}',
     '{"externalId":"s158-ambiguous-away-a","name":"Ambigu uit A"}',
@@ -550,8 +559,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-ambiguous-fixture-b',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '19:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '19:00', false),
     'scheduled',
     '{"externalId":"s158-ambiguous-home-b","name":"Ambigu thuis B"}',
     '{"externalId":"s158-ambiguous","name":"S158 team met ambigue poule"}',
@@ -568,8 +576,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-priority-today',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '20:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '20:00', false),
     'scheduled',
     '{"externalId":"s158-priority","name":"S158 team met één actuele poule"}',
     '{"externalId":"s158-priority-away-a","name":"Prioriteit uit A"}',
@@ -752,8 +759,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-pool-own',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '13:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '13:00', false),
     'scheduled',
     '{"externalId":"s158-selected","name":"S158 geselecteerd team"}',
     '{"externalId":"s158-pool-visitor","name":"Poulebezoeker"}',
@@ -770,8 +776,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-pool-foreign',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '14:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '14:00', false),
     'scheduled',
     '{"externalId":"s158-pool-foreign-home","name":"Poule vreemd thuis"}',
     '{"externalId":"s158-pool-foreign-away","name":"Poule vreemd uit"}',
@@ -788,8 +793,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-pool-wrong-pool',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '15:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '15:00', false),
     'scheduled',
     '{"externalId":"s158-wrong-pool-home","name":"Verkeerde poule thuis"}',
     '{"externalId":"s158-wrong-pool-away","name":"Verkeerde poule uit"}',
@@ -806,8 +810,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001581',
     (select connection_id from s158_source),
     's158-pool-wrong-phase',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '16:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '16:00', false),
     'scheduled',
     '{"externalId":"s158-wrong-phase-home","name":"Verkeerde fase thuis"}',
     '{"externalId":"s158-wrong-phase-away","name":"Verkeerde fase uit"}',
@@ -956,9 +959,8 @@ insert into public.sports_matches (
   '10000000-0000-4000-8000-000000001581',
   (select connection_id from s158_source),
   's158-result-unknown',
-  (((now() at time zone 'Europe/Amsterdam')::date + time '17:00')
-    at time zone 'Europe/Amsterdam'),
-  'finished',
+  pg_temp.match_time_today(time '17:00', true),
+    'finished',
   '{"externalId":"s158-result-home","name":"Uitslag thuis","score":"9"}',
   '{"externalId":"s158-result-away","name":"Uitslag uit","score":"8"}',
   '{"externalId":"s158-pool-comp","name":"S158 poulecompetitie","period":"s158-pool-phase","season":"2026"}',

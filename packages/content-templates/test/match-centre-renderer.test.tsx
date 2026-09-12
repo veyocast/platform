@@ -439,3 +439,32 @@ describe("Match Centre renderer", () => {
     );
   });
 });
+
+describe("kickoff projection of immutable match rows", () => {
+  for (const orientation of ["landscape", "portrait"] as const) {
+    it(`${orientation}: moves a started match out of programme without inventing a score`, () => {
+      const program = programPayload(2, "sport_program", { orientation });
+      const rows = (program.data.sport as { items: Record<string, unknown>[] }).items;
+      rows[0]!.kickoffAt = "2026-09-12T14:00:00+02:00";
+      rows[1]!.kickoffAt = "2026-09-12T13:00:00Z";
+      rows.forEach((row) => { row.status = "scheduled"; });
+      const original = JSON.stringify(program);
+      const ids = (value: PlayerDynamicTemplatePayload, instant: string) =>
+        createDynamicTemplateView(value, new Date(instant))!.pages.flatMap((page) =>
+          page.kind === "sport-list" ? page.items.map((row) => row.id) : []);
+      const results: PlayerDynamicTemplatePayload = { ...program, slideType: "sport_results" };
+      expect(ids(program, "2026-09-12T11:59:59.999Z")).toEqual(["wedstrijd-1", "wedstrijd-2"]);
+      expect(ids(program, "2026-09-12T12:00:00Z")).toEqual(["wedstrijd-2"]);
+      expect(ids(results, "2026-09-12T12:00:00Z")).toEqual(["wedstrijd-1"]);
+      const page = createDynamicTemplateView(results, new Date("2026-09-12T12:00:00Z"))!.pages[0]!;
+      expect(page.kind === "sport-list" && page.items[0]).toMatchObject({ homeScore: null, awayScore: null });
+      expect(JSON.stringify(program)).toBe(original);
+    });
+  }
+
+  it("keeps historical rows without absolute kickoff readable", () => {
+    const value = programPayload(1);
+    const view = createDynamicTemplateView(value, new Date("2030-01-01T00:00:00Z"))!;
+    expect(view.pages.flatMap((page) => page.kind === "sport-list" ? page.items : [])).toHaveLength(1);
+  });
+});

@@ -1696,6 +1696,7 @@ export function PlayerRuntime() {
           [
             item.id,
             item.enabled ?? true,
+            item.dynamicTemplate?.snapshotHash ?? "",
             item.visibility?.from ?? "",
             item.visibility?.until ?? ""
           ].join(":")
@@ -1705,7 +1706,7 @@ export function PlayerRuntime() {
 
   useEffect(() => {
     const playbackRuntime = runtimeRef.current;
-    if (!isPlaybackRuntime(playbackRuntime)) return;
+    if (!isPlaybackRuntime(playbackRuntime) || realtimeGoal.pauseUnderlay) return;
 
     const now = Date.now();
     const items = playbackRuntime.release.envelope.manifest.items;
@@ -1737,7 +1738,7 @@ export function PlayerRuntime() {
       Math.min(2_147_000_000, Math.max(50, nextChangeDelayMs))
     );
     return () => window.clearTimeout(timer);
-  }, [visibilityRevision, visibilityScheduleKey]);
+  }, [realtimeGoal.pauseUnderlay, visibilityRevision, visibilityScheduleKey]);
 
   useEffect(() => {
     const playbackRuntime = runtimeRef.current;
@@ -2026,7 +2027,7 @@ function PlaybackView({
   }
   const activeItem = manifest.items[runtime.activeIndex] ?? manifest.items[0];
 
-  if (!activeItem || !isPlayerManifestItemPlayable(activeItem)) {
+  if (!activeItem || (!underlayPaused && !isPlayerManifestItemPlayable(activeItem))) {
     return (
       <DefaultWaitingScreen
         branding={runtime.release.envelope.branding}

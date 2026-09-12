@@ -100,6 +100,44 @@ test("bouwt een volledig tenantpalet en blokkeert onveilig opslaan", async ({
   );
 });
 
+test("mobiele stijlwijzigingen en globale modus blijven foutvrij", async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error" && /TypeError|currentTarget|Cannot read/.test(message.text())) {
+      errors.push(message.text());
+    }
+  });
+  await unlockDemoThemeEditor(page);
+  await page.goto("/dashboard/themes/fieldflow", { waitUntil: "networkidle" });
+  await page.locator("form.settings-theme-form [disabled]").evaluateAll(
+    (elements) => elements.forEach((element) => element.removeAttribute("disabled"))
+  );
+  const colors = page.locator('input[name="themeColorOverridesJson"]');
+  const appearance = page.locator('input[name="themeAppearanceJson"]');
+  for (const mode of ["dark", "light"] as const) {
+    await page.getByRole("button", { name: mode === "dark" ? "Alles donker" : "Alles licht", exact: true }).click();
+    await expect.poll(async () => (await readThemePayload(colors)).fieldflow.mode).toBe(mode);
+    await page.getByRole("combobox", { name: "Koppen en wedstrijdnamen", exact: true }).selectOption("vc-anton-v1");
+    await page.getByRole("combobox", { name: "Lopende tekst en metadata", exact: true }).selectOption("vc-inter-v1");
+    await page.getByLabel("Tekstschaal (%)", { exact: true }).fill("110");
+    await page.getByLabel("Programma en uitslagen (%)", { exact: true }).fill("120");
+    await page.getByRole("checkbox", { name: /Rustige bewegingen/ }).uncheck();
+    await expect.poll(async () => JSON.parse(await appearance.inputValue())).toMatchObject({
+      motionEnabled: false,
+      typography: { displayFontRef: "vc-anton-v1", bodyFontRef: "vc-inter-v1", baseScale: 1.1, sportScale: 1.2 }
+    });
+    await page.getByRole("button", { name: "Lettertype en schaal herstellen", exact: true }).click();
+    await expect.poll(async () => JSON.parse(await appearance.inputValue())).toMatchObject({
+      typography: { displayFontRef: "vc-roboto-v1", bodyFontRef: "vc-roboto-v1", baseScale: 1, sportScale: 1 }
+    });
+    await expect(page.getByRole("button", { name: "Instellingen opslaan", exact: true })).toBeEnabled();
+    expect(errors).toEqual([]);
+  }
+});
+
 async function unlockDemoThemeEditor(page: Page) {
   const result = { count: 0 };
   await page.route("**/dashboard/themes/fieldflow*", async (route) => {

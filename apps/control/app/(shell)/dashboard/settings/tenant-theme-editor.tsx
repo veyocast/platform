@@ -116,13 +116,13 @@ export function TenantThemeEditor({
             <span>Koppen en wedstrijdnamen</span>
             <select
               disabled={disabled}
-              onChange={(event) => setAppearance((current) => ({
-                ...current,
-                typography: {
-                  ...current.typography,
-                  displayFontRef: event.currentTarget.value as ThemeAppearanceSettings["typography"]["displayFontRef"]
-                }
-              }))}
+              onChange={(event) => {
+                const value = event.currentTarget.value as ThemeAppearanceSettings["typography"]["displayFontRef"];
+                setAppearance((current) => ({
+                  ...current,
+                  typography: { ...current.typography, displayFontRef: value }
+                }));
+              }}
               value={appearance.typography.displayFontRef}
             >
               {curatedThemeFontRefs.map((fontRef) => (
@@ -134,13 +134,13 @@ export function TenantThemeEditor({
             <span>Lopende tekst en metadata</span>
             <select
               disabled={disabled}
-              onChange={(event) => setAppearance((current) => ({
-                ...current,
-                typography: {
-                  ...current.typography,
-                  bodyFontRef: event.currentTarget.value as ThemeAppearanceSettings["typography"]["bodyFontRef"]
-                }
-              }))}
+              onChange={(event) => {
+                const value = event.currentTarget.value as ThemeAppearanceSettings["typography"]["bodyFontRef"];
+                setAppearance((current) => ({
+                  ...current,
+                  typography: { ...current.typography, bodyFontRef: value }
+                }));
+              }}
               value={appearance.typography.bodyFontRef}
             >
               {curatedThemeFontRefs.map((fontRef) => (
@@ -155,13 +155,16 @@ export function TenantThemeEditor({
               max={120}
               min={90}
               inputMode="numeric"
-              onChange={(event) => setAppearance((current) => ({
-                ...current,
-                typography: {
-                  ...current.typography,
-                  baseScale: normalizeScaleInput(event.currentTarget.value, current.typography.baseScale, 0.9, 1.2)
-                }
-              }))}
+              onChange={(event) => {
+                const value = event.currentTarget.value;
+                setAppearance((current) => ({
+                  ...current,
+                  typography: {
+                    ...current.typography,
+                    baseScale: normalizeScaleInput(value, current.typography.baseScale, 0.9, 1.2)
+                  }
+                }));
+              }}
               type="number"
               value={Math.round(appearance.typography.baseScale * 100)}
             />
@@ -173,13 +176,16 @@ export function TenantThemeEditor({
               max={140}
               min={90}
               inputMode="numeric"
-              onChange={(event) => setAppearance((current) => ({
-                ...current,
-                typography: {
-                  ...current.typography,
-                  sportScale: normalizeScaleInput(event.currentTarget.value, current.typography.sportScale, 0.9, 1.4)
-                }
-              }))}
+              onChange={(event) => {
+                const value = event.currentTarget.value;
+                setAppearance((current) => ({
+                  ...current,
+                  typography: {
+                    ...current.typography,
+                    sportScale: normalizeScaleInput(value, current.typography.sportScale, 0.9, 1.4)
+                  }
+                }));
+              }}
               type="number"
               value={Math.round(appearance.typography.sportScale * 100)}
             />
@@ -190,9 +196,12 @@ export function TenantThemeEditor({
                 checked={appearance.motionEnabled}
                 data-motion-label={appearance.motionEnabled ? "beweging aan" : "beweging uit"}
                 disabled={disabled}
-                onChange={(event) => setAppearance((current) => current.schemaVersion === 2
-                  ? { ...current, motionEnabled: event.currentTarget.checked }
-                  : current)}
+                onChange={(event) => {
+                  const checked = event.currentTarget.checked;
+                  setAppearance((current) => current.schemaVersion === 2
+                    ? { ...current, motionEnabled: checked }
+                    : current);
+                }}
                 type="checkbox"
               />
               <span>

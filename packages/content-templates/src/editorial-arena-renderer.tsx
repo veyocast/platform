@@ -89,19 +89,21 @@ export type EditorialArenaItem = {
 export function EditorialArenaRenderer({
   embedded = false,
   item,
+  now,
   onReady = () => undefined,
   pageIndex: controlledPageIndex,
   passive = false
 }: {
   embedded?: boolean;
   item: EditorialArenaItem;
+  now?: Date;
   onReady?: (itemId: string) => void;
   pageIndex?: number;
   passive?: boolean;
 }) {
   const view = useMemo(
-    () => createDynamicTemplateView(item.dynamicTemplate),
-    [item.dynamicTemplate]
+    () => createDynamicTemplateView(item.dynamicTemplate, now),
+    [item.dynamicTemplate, now]
   );
   const readyRef = useRef(false);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -194,9 +196,10 @@ export function EditorialArenaRenderer({
   }, [controlledPageIndex, item.durationSeconds, pageCount, passive, view]);
 
   if (!view || playbackPages.length === 0) return null;
-  const pageIndex = controlledPageIndex === undefined
-    ? internalPageIndex
-    : Math.min(Math.max(0, controlledPageIndex), Math.max(pageCount - 1, 0));
+  const pageIndex = Math.min(
+    Math.max(0, controlledPageIndex ?? internalPageIndex),
+    Math.max(pageCount - 1, 0)
+  );
   const page = playbackPages[pageIndex] ?? playbackPages[0]!;
   const pageDurationMs = dynamicTemplatePageDurationMs(
     item.durationSeconds,

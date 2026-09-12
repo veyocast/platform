@@ -3,6 +3,20 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
+-- Keep today's fixtures genuinely before/after kickoff at any test execution time.
+create function pg_temp.match_time_today(p_time time, p_finished boolean)
+returns timestamptz language sql stable as $$
+  select case when p_finished
+    then day_start + (now() - day_start) * (extract(epoch from p_time) / 86400)::double precision
+    else now() + (day_end - now()) * (extract(epoch from p_time) / 86400)::double precision
+  end
+  from (select
+    (now() at time zone 'Europe/Amsterdam')::date::timestamp at time zone 'Europe/Amsterdam' as day_start,
+    ((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp at time zone 'Europe/Amsterdam' as day_end
+  ) bounds
+$$;
+
+
 select plan(66);
 
 insert into auth.users (
@@ -884,8 +898,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
     's156-today-program-home',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '10:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '10:00', false),
     'scheduled',
     '{"externalId":"s154-own-home","name":"S154 club"}',
     '{"externalId":"s156-program-opponent-home","name":"Programma tegenstander thuis"}',
@@ -898,8 +911,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
     's156-today-program-away',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '11:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '11:00', false),
     'scheduled',
     '{"externalId":"s156-program-opponent-away","name":"Programma tegenstander uit"}',
     '{"externalId":"s154-own-away","name":"S154 eigen uit"}',
@@ -912,8 +924,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
     's156-today-results-home',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '12:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '12:00', true),
     'finished',
     '{"externalId":"s154-own-home","name":"S154 club","score":"2"}',
     '{"externalId":"s156-results-opponent-home","name":"Uitslag tegenstander thuis","score":"1"}',
@@ -926,8 +937,7 @@ insert into public.sports_matches (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
     's156-today-results-away',
-    (((now() at time zone 'Europe/Amsterdam')::date + time '13:00')
-      at time zone 'Europe/Amsterdam'),
+    pg_temp.match_time_today(time '13:00', true),
     'finished',
     '{"externalId":"s156-results-opponent-away","name":"Uitslag tegenstander uit","score":"0"}',
     '{"externalId":"s154-own-away","name":"S154 eigen uit","score":"3"}',

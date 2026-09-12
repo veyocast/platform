@@ -1,3 +1,4 @@
+import { sportMatchBelongsOnSlide } from "../../../../packages/content-templates/src/sport-match-phase";
 import { legacyGoalOverlayCss, legacyGoalOverlayScript } from "./lg-goal-overlay-runtime";
 import { themeBaseFontSizes } from "../../../../packages/content-templates/src/theme-catalog";
 
@@ -965,6 +966,7 @@ export function renderLgLegacyHtml() {
     "use strict";
     var CONFIG = ${config};
     ${legacyGoalOverlayScript()}
+    var sportMatchBelongsOnSlide = ${sportMatchBelongsOnSlide.toString()};
     var runtime = {
       activeIndex: 0,
       activationInFlight: false,
@@ -5465,7 +5467,9 @@ export function renderLgLegacyHtml() {
       }
       items = templateArray(slideType === "sport_birthdays"
         ? (sport.birthdays || sport.items)
-        : sport.items, 200);
+        : sport.items, 200).filter(function (row) {
+          return sportMatchBelongsOnSlide(slideType, templateRecord(row) || {}, new Date().getTime());
+        });
       if (slideType === "sport_visitor_arrivals") {
         return items.some(function (value) {
           var entry = templateRecord(value) || {};
@@ -7702,7 +7706,9 @@ export function renderLgLegacyHtml() {
       var itemLimit = slideType === "sport_program" || slideType === "sport_results"
         ? 100
         : 40;
-      var items = templateArray(birthday ? (sport.birthdays || sport.items) : sport.items, itemLimit);
+      var items = templateArray(birthday ? (sport.birthdays || sport.items) : sport.items, itemLimit).filter(function (row) {
+        return sportMatchBelongsOnSlide(slideType, templateRecord(row) || {}, new Date().getTime());
+      });
       var birthdayConfiguration = templateRecord(sport.configuration) || {};
       var birthdayPresentation = templateRecord(birthdayConfiguration.presentation) || {};
       var birthdayPeriod = templateRecord(birthdayConfiguration.period) || {};
@@ -8818,11 +8824,33 @@ export function renderLgLegacyHtml() {
       var menuStudioV2 = false;
       var matchCentre = payload.slideType === "sport_program" || payload.slideType === "sport_results";
       var contextPrimary = null;
+      function matchPhaseSignature() {
+        return templateArray((templateRecord(snapshot.sport) || {}).items, 100)
+          .filter(function (row) {
+            return sportMatchBelongsOnSlide(payload.slideType, templateRecord(row) || {}, new Date().getTime());
+          }).map(function (row) { return row.id || row.primary; }).join("|");
+      }
+      var previousMatchPhase = matchCentre ? matchPhaseSignature() : "";
       function updateMatchCentreClock() {
         var clocks = root.querySelectorAll(".matchcentre-clock,.legacy-royal-clock");
         var clockIndex;
         for (clockIndex = 0; clockIndex < clocks.length; clockIndex += 1) {
           clocks[clockIndex].textContent = templateMatchCentreClock(clockTimezone);
+        }
+        if (matchCentre && !runtime.goalPauseApplied && runtime.currentElement === root) {
+          var nextMatchPhase = matchPhaseSignature();
+          if (nextMatchPhase !== previousMatchPhase) {
+            previousMatchPhase = nextMatchPhase;
+            if (!nextMatchPhase) { nextItem(); return; }
+            while (body.firstChild) body.removeChild(body.firstChild);
+            renderer = renderSportTemplate(body, snapshot, payload.slideType, payload.orientation, payload);
+            pageIndex = Math.min(pageIndex, renderer.pages.length - 1);
+            renderer.render(renderer.pages[pageIndex], pageIndex);
+            var counters = root.querySelectorAll(".dynamic-page-number,.matchcentre-page-number");
+            for (var counterIndex = 0; counterIndex < counters.length; counterIndex += 1) {
+              counters[counterIndex].textContent = templatePageCounter(pageIndex, renderer.pages.length);
+            }
+          }
         }
       }
       function updateVisitorVenue(page) {
@@ -9338,7 +9366,7 @@ export function renderLgLegacyHtml() {
         updateMatchCentreClock();
         window.clearInterval(runtime.matchCentreClockTimer);
         runtime.matchCentreClockTimer = window.setInterval(
-          updateMatchCentreClock, 30000
+          updateMatchCentreClock, matchCentre ? 1000 : 30000
         );
       }
       templateDuration = Math.max(

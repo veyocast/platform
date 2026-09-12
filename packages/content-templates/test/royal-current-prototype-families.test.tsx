@@ -180,7 +180,7 @@ function todayBirthday() {
 
 describe("Royal Current prototypefamilies", () => {
   const fixtureFamilies = [
-    ["sport_results", "results", { items: [fixture({ awayScore: 1, homeScore: 3 })] }],
+    ["sport_results", "results", { items: [fixture({ awayScore: 1, homeScore: 3, kickoffAt: "2000-09-12T12:30:00.000Z", status: "finished" })] }],
     ["sport_program", "program", { items: [fixture()] }],
     ["sport_dressing_rooms", "dressing-rooms", { items: [fixture()] }],
     ["sport_officials", "officials", { items: [fixture()] }],

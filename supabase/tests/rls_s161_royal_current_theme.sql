@@ -3,6 +3,20 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
+-- Keep today's fixtures genuinely before/after kickoff at any test execution time.
+create function pg_temp.match_time_today(p_time time, p_finished boolean)
+returns timestamptz language sql stable as $$
+  select case when p_finished
+    then day_start + (now() - day_start) * (extract(epoch from p_time) / 86400)::double precision
+    else now() + (day_end - now()) * (extract(epoch from p_time) / 86400)::double precision
+  end
+  from (select
+    (now() at time zone 'Europe/Amsterdam')::date::timestamp at time zone 'Europe/Amsterdam' as day_start,
+    ((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp at time zone 'Europe/Amsterdam' as day_end
+  ) bounds
+$$;
+
+
 select plan(63);
 
 select ok(
@@ -336,9 +350,8 @@ insert into public.sports_matches (
   '16100000-0000-4000-8000-000000000001',
   '16100000-0000-4000-8000-000000000015',
   's161-complete-programme',
-  (((now() at time zone 'Europe/Amsterdam')::date + time '14:30')
-    at time zone 'Europe/Amsterdam'),
-  'scheduled',
+  pg_temp.match_time_today(time '14:30', false),
+    'scheduled',
   '{"externalId":"s161-program-home","name":"S161 thuis JO17-1"}',
   '{"externalId":"s161-program-away","name":"S161 uit JO17-2"}',
   '{"externalId":"s161-competition","name":"S161 competitie","period":"1","season":"2026"}',
@@ -450,7 +463,7 @@ select is(
       'homeTeam', 'S161 thuis JO17-1',
       'officials',
         '[{"displayName":"Robin Referee","role":"Scheidsrechter"}]'::jsonb,
-      'time', '14:30',
+      'time', to_char(pg_temp.match_time_today(time '14:30', false) at time zone 'Europe/Amsterdam', 'HH24:MI'),
       'venueName', 'Sportpark S161'
     )
   ),
