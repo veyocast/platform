@@ -254,6 +254,7 @@ export function EditorialArenaRenderer({
             orientation={view.orientation}
             page={page.page}
             style={{ height: canvas.height, left: 0, top: 0, transform: "none", width: canvas.width }}
+            themeMode={view.theme}
             themeOverrideStyle={view.themeRuntimeVersion >= 2
               ? themeCssVariables(view.themePresentation, view.themeTokens)
               : undefined}
@@ -332,7 +333,7 @@ function RoyalCurrentHeader({
       <div aria-hidden="true" className={styles.royalFlowDecoration} data-legacy-label="Onze club. Ons verhaal.">
         <i /><i /><i />
       </div>
-      <section className={styles.royalTitle}>
+      <header className={styles.royalTitle}>
         <div aria-hidden="true" className={styles.royalTitleCrest}>
           {view.clubLogoUrl ? <img alt="" src={view.clubLogoUrl} /> : initials}
         </div>
@@ -344,7 +345,7 @@ function RoyalCurrentHeader({
           <strong>{view.clubName}</strong>
           <time dateTime={clock.instant}>{clock.label}</time>
         </div>
-      </section>
+      </header>
     </>
   );
 }

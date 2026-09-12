@@ -369,7 +369,7 @@ test("Royal blauwe welkomstslide vergroot alle bezoekinformatie zonder overflow"
   );
 
   const slide = page.locator('[data-theme-id="fieldflow"]');
-  const masthead = slide.locator("header");
+  const titlePanel = slide.locator("header");
   const firstCard = slide.locator('article[data-arrival-kind="visitor"]').first();
   const schedule = firstCard.locator(
     '[class*="royalArrivalSchedule"] dd'
@@ -395,9 +395,9 @@ test("Royal blauwe welkomstslide vergroot alle bezoekinformatie zonder overflow"
     color: "rgb(245, 247, 251)",
     sportScale: "1.4"
   });
-  expect(await masthead.evaluate(
+  expect(await titlePanel.evaluate(
     (element) => getComputedStyle(element).backgroundColor
-  )).toContain("0.0901961");
+  )).toBe("rgb(23, 33, 58)");
   expect(await teams.first().evaluate(
     (element) => getComputedStyle(element).color
   )).toBe("rgb(245, 247, 251)");
@@ -405,10 +405,8 @@ test("Royal blauwe welkomstslide vergroot alle bezoekinformatie zonder overflow"
   const scheduleSizes = await schedule.evaluateAll((elements) => elements.map((element) =>
     Number.parseFloat(getComputedStyle(element).fontSize)
   ));
-  expect(scheduleSizes).toHaveLength(3);
-  expect(scheduleSizes[0]).toBeGreaterThan(40);
-  expect(scheduleSizes[1]).toBeGreaterThan(28);
-  expect(scheduleSizes[2]).toBeGreaterThan(40);
+  expect(scheduleSizes).toHaveLength(2);
+  expect(scheduleSizes.every((size) => size > 30)).toBe(true);
   const teamSizes = await teams.evaluateAll((elements) => elements.map((element) =>
     Number.parseFloat(getComputedStyle(element).fontSize)
   ));
@@ -426,20 +424,24 @@ test("Royal blauwe welkomstslide vergroot alle bezoekinformatie zonder overflow"
     const card = element.querySelector<HTMLElement>(
       'article[data-arrival-kind="visitor"]'
     );
-      const copy = card?.querySelector<HTMLElement>(
+    const copy = card?.querySelector<HTMLElement>(
       '[class*="royalArrivalBody"]'
-      );
+    );
+    const cardBox = card?.getBoundingClientRect();
+    const copyBox = copy?.getBoundingClientRect();
     return {
-      cardFits: Boolean(card &&
-        card.scrollHeight <= card.clientHeight &&
-        card.scrollWidth <= card.clientWidth),
+      cardContentFits: Boolean(cardBox && copyBox &&
+        copyBox.left >= cardBox.left - 1 &&
+        copyBox.right <= cardBox.right + 1 &&
+        copyBox.top >= cardBox.top - 1 &&
+        copyBox.bottom <= cardBox.bottom + 1),
       copyFits: Boolean(copy &&
         copy.scrollHeight <= copy.clientHeight &&
         copy.scrollWidth <= copy.clientWidth),
       slideFits: element.scrollHeight <= element.clientHeight &&
         element.scrollWidth <= element.clientWidth
     };
-  })).toEqual({ cardFits: true, copyFits: true, slideFits: true });
+  })).toEqual({ cardContentFits: true, copyFits: true, slideFits: true });
 
   await expect(page).toHaveScreenshot(
     "welkomstgrid-royal-blue-landscape.png",

@@ -624,34 +624,34 @@ export function ControlShell({
             </section>
           ))}
           </div>
-
-          <div className="control-sidebar__footer">
-            {hasTenantNavigationContext && tenantSettingsItem ? (
-              <Link
-                aria-current={isActive(pathname, tenantSettingsItem) ? "page" : undefined}
-                className="control-legal-link control-settings-link"
-                href={tenantSettingsItem.href}
-              >
-                <Settings aria-hidden="true" />
-                <span>Instellingen</span>
-              </Link>
-            ) : null}
-            <div className="control-organization-card" aria-label={`Actieve vereniging: ${displayContextName}`}>
-              <span className="control-organization-card__mark" aria-hidden="true">
-                {initials(displayContextName)}
-              </span>
-              <span>
-                <strong>{displayContextName}</strong>
-                <small>{session.tenantRoleLabel ?? "Beheerder"}</small>
-              </span>
-              <ChevronDown aria-hidden="true" />
-            </div>
-            <a className="control-legal-link control-website-link" href="https://veyocast.nl">
-              <ChevronLeft aria-hidden="true" />
-              <span>Terug naar website</span>
-            </a>
-          </div>
         </nav>
+
+        <div className="control-sidebar__footer">
+          {hasTenantNavigationContext && tenantSettingsItem ? (
+            <Link
+              aria-current={isActive(pathname, tenantSettingsItem) ? "page" : undefined}
+              className="control-legal-link control-settings-link"
+              href={tenantSettingsItem.href}
+            >
+              <Settings aria-hidden="true" />
+              <span>Instellingen</span>
+            </Link>
+          ) : null}
+          <div className="control-organization-card" aria-label={`Actieve vereniging: ${displayContextName}`}>
+            <span className="control-organization-card__mark" aria-hidden="true">
+              {initials(displayContextName)}
+            </span>
+            <span>
+              <strong>{displayContextName}</strong>
+              <small>{session.tenantRoleLabel ?? "Beheerder"}</small>
+            </span>
+            <ChevronDown aria-hidden="true" />
+          </div>
+          <a className="control-legal-link control-website-link" href="https://veyocast.nl">
+            <ChevronLeft aria-hidden="true" />
+            <span>Terug naar website</span>
+          </a>
+        </div>
       </aside>
 
       <main

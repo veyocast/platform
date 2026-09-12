@@ -21,7 +21,7 @@ test("bouwt een volledig tenantpalet en blokkeert onveilig opslaan", async ({
   });
 
   await expect(
-    page.getByRole("heading", { level: 1, name: "FieldFlow" })
+    page.getByRole("heading", { level: 1, name: "Royal Current · Navy Glass" })
   ).toBeVisible();
   await expect(page.getByText("Standaardpaletten")).toBeVisible();
   expect(unlockedProps.count).toBeGreaterThanOrEqual(2);
@@ -52,15 +52,15 @@ test("bouwt een volledig tenantpalet en blokkeert onveilig opslaan", async ({
     "true"
   );
 
-  await page.getByRole("button", { name: "Helder blauw" }).click();
+  await page.getByRole("button", { name: "Rood", exact: true }).click();
 
   await expect(page.locator('input[name="themeAccent"]')).toHaveValue(
-    "#315CFF"
+    "#BF263B"
   );
   await expect.poll(async () => readThemePayload(payloadField)).toMatchObject({
     fieldflow: {
       dark: { accent: expect.any(String) },
-      light: { accent: "#315CFF" },
+      light: { accent: "#bf263b" },
       mode: "light"
     }
   });
@@ -75,8 +75,8 @@ test("bouwt een volledig tenantpalet en blokkeert onveilig opslaan", async ({
   );
   await expect.poll(async () => preview.evaluate((element) =>
     element.style.getPropertyValue("--vc-accent")
-  )).toBe("#315CFF");
-  expect(initialPreviewAccent).not.toBe("#315CFF");
+  )).toBe("#bf263b");
+  expect(initialPreviewAccent).not.toBe("#bf263b");
 
   await expect(page.locator(".settings-savebar")).toHaveAttribute(
     "aria-hidden",

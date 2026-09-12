@@ -107,6 +107,9 @@ describe("Centrale Royal Current clubstijl-editor", () => {
       expect(html).toContain("Navy Glass live kleurvoorbeeld");
       expect(html).toContain("Tweede decoratieve accentkleur");
       expect(html).toContain("Clubkleuren herstellen");
+      expect(html).toContain("Globale modus");
+      expect(html).toContain("Alles licht");
+      expect(html).toContain("Alles donker");
       expect(html).toContain('name="themeSaveReadiness"');
       expect(html).toContain('value="ready"');
       expect(html).toContain("26 semantische kleurrollen");

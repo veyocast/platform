@@ -1327,6 +1327,34 @@
   padding-top: var(--vc-space-12);
 }
 
+.editorialGlobalMode {
+  align-items: center;
+  border-top: 1px solid var(--vc-border);
+  display: flex;
+  gap: var(--vc-space-16);
+  justify-content: space-between;
+  padding-top: var(--vc-space-16);
+}
+
+.editorialGlobalMode > div:first-child {
+  display: grid;
+  gap: var(--vc-space-4);
+}
+
+.editorialGlobalModeLabel {
+  color: var(--vc-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.editorialGlobalMode p {
+  color: var(--vc-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 38rem;
+}
+
 .editorialPalettePresets {
   display: grid;
   gap: var(--vc-space-8);
@@ -1827,11 +1855,24 @@
   padding: var(--vc-space-6) var(--vc-space-12);
 }
 
+.editorialModeTab[aria-pressed="true"],
 .editorialModeTab[aria-selected="true"] {
   background: var(--vc-surface);
   border-color: color-mix(in srgb, var(--vc-action) 44%, var(--vc-border));
   box-shadow: 0 1px 3px color-mix(in srgb, var(--vc-text) 10%, transparent);
   color: var(--vc-action);
+}
+
+@media (max-width: 720px) {
+  .editorialGlobalMode {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .editorialGlobalMode .editorialModeTabs {
+    display: grid;
+    width: 100%;
+  }
 }
 
 .editorialModeTab:focus-visible {

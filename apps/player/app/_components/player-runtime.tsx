@@ -1968,7 +1968,12 @@ export function PlayerRuntime() {
       />
     );
   } else if (runtime.state === "READY") {
-    playerView = <DefaultWaitingScreen branding={runtime.branding} />;
+    playerView = (
+      <DefaultWaitingScreen
+        branding={runtime.branding}
+        screenName={runtime.device.screenName}
+      />
+    );
   } else if (
     runtime.state === "ERROR_RECOVERABLE" ||
     runtime.state === "DISABLED"
@@ -2951,14 +2956,16 @@ const defaultWaitingBranding: PlayerWaitingBranding = {
 };
 
 function DefaultWaitingScreen({
-  branding
+  branding,
+  screenName
 }: {
   branding?: PlayerWaitingBranding;
+  screenName?: string;
 }) {
   const resolved = branding ?? defaultWaitingBranding;
   return (
     <main
-      aria-label="VeyoCast wacht op content"
+      aria-label="VeyoCast player gereed"
       className={`default-waiting-screen default-waiting-screen--${resolved.themeMode}`}
       data-design-revision="royal-current-v8"
       data-theme-authority="player-system"
@@ -2968,7 +2975,13 @@ function DefaultWaitingScreen({
         <DefaultWaitingClock timezone={resolved.timezone} />
         <div className="default-waiting-screen__content">
           <p className="default-waiting-screen__tenant">{resolved.tenantName}</p>
-          <h1>Welkom op {resolved.sportparkName}!</h1>
+          <h1>Wachten op content</h1>
+          <p className="default-waiting-screen__welcome">
+            Welkom op {resolved.sportparkName}!
+          </p>
+          {screenName ? (
+            <p className="default-waiting-screen__screen">{screenName}</p>
+          ) : null}
           {resolved.tenantLogoUrl ? (
             <img
               alt={`Logo ${resolved.tenantName}`}
@@ -2986,6 +2999,9 @@ function DefaultWaitingScreen({
           <p className="default-waiting-screen__payoff">
             Narrowcasting voor sportverenigingen!
           </p>
+          <div className="default-waiting-screen__status" role="status">
+            Status: online en gereed
+          </div>
         </div>
         <footer className="default-waiting-screen__footer">
           <span>VEYOCAST · VOORBEELD</span>
