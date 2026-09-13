@@ -153,6 +153,6 @@ export function GoalCelebration({ goal, theme, onComplete }: {
       <GoalOverlay event={goalEventForRenderer(resolvedGoal)} configuration={config} orientation={orientation} appearance={appearance} />
     </div>
     {intro && introUrl ? <video ref={video} muted autoPlay playsInline controls={false} disablePictureInPicture preload="auto"
-      style={{ width: "100%", height: "100%", objectFit: "contain", visibility: phase === "GOAL_INTRO_PLAYING" ? "visible" : "hidden" }} /> : null}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", visibility: phase === "GOAL_INTRO_PLAYING" ? "visible" : "hidden" }} /> : null}
   </div>;
 }

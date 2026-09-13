@@ -46,6 +46,10 @@ export function playGoalIntroVideo(video: HTMLVideoElement, url: string, handler
   video.playsInline = true;
   video.controls = false;
   video.preload = "auto";
+  // Goal intros fill the celebration canvas in both runtimes. Preserve the
+  // source ratio and crop its edges when a slot contains a mismatched video.
+  video.style.objectFit = "cover";
+  video.style.objectPosition = "50% 50%";
   video.setAttribute("muted", "");
   video.setAttribute("autoplay", "");
   video.setAttribute("playsinline", "");
