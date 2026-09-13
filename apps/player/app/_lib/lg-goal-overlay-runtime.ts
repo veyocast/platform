@@ -129,11 +129,13 @@ export function legacyGoalOverlayScript() {
         assets: Object.keys(goal.assets).map(function (id) { return goal.assets[id]; }),
         canPlayType: function (type) { return probe.canPlayType(type); } });
       var orientation = selected.orientation;
-      function report(code) {
+      var introSource = "cache_blob";
+      function report(code, mediaErrorCode) {
         goalVideoTelemetry({ code: code, eventId: goal.eventId, deliveryId: goal.deliveryId,
           alertVersionId: goal.alertVersionId || null, assetId: selected.requestedAssetId,
           orientation: orientation, mimeType: selected.mimeType, at: new Date().toISOString(),
-          width: Math.round(rect.width || window.innerWidth), height: Math.round(rect.height || window.innerHeight) });
+          width: Math.round(rect.width || window.innerWidth), height: Math.round(rect.height || window.innerHeight),
+          source: introSource, mediaErrorCode: mediaErrorCode || (introVideo && introVideo.error ? introVideo.error.code : null) });
       }
       if (selected.code) report(selected.code);
       var appearance = goalV2Appearance(config);
@@ -204,6 +206,7 @@ export function legacyGoalOverlayScript() {
       if (!introId) show();
       else { state("GOAL_INTRO_LOADING"); timer = window.setTimeout(function () { fail("GOAL_VIDEO_CACHE_TIMEOUT"); }, 2000); }
       Object.keys(goal.assets).forEach(function (id) {
+        var publishedUrl = goal.assets[id].url;
         goalV2LocalUrl(goal.assets[id]).then(function (url) {
           if (disposed) { if (url) URL.revokeObjectURL(url); return; }
           if (url) { urls.push(url); goal.assets[id] = Object.assign({}, goal.assets[id], { url: url }); redraw(); }
@@ -214,6 +217,8 @@ export function legacyGoalOverlayScript() {
           introVideo.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:contain;visibility:hidden";
           overlay.appendChild(introVideo);
           videoCleanup = playGoalIntroVideo(introVideo, url, {
+            fallbackUrl: !runtime.offline ? publishedUrl : undefined,
+            onFallback: function (code, nativeCode) { report("GOAL_VIDEO_SOURCE_FALLBACK", nativeCode); goalV2Log("goal_intro_source_fallback", goal, code); introSource = "https"; },
             onPlaying: function () { if (disposed) return; state("GOAL_INTRO_PLAYING"); introVideo.style.visibility = "visible"; report("GOAL_VIDEO_STARTED"); goalV2Log("goal_intro_started", goal); },
             onComplete: function () { report("GOAL_VIDEO_COMPLETED"); goalV2Log("goal_intro_finished", goal); show(); },
             onFailure: fail

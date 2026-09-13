@@ -46,6 +46,8 @@ describe("bounded goal diagnostics", () => {
     expect(JSON.stringify(result)).not.toContain("private-");
     expect(safeGoalVideoDiagnostics([{ ...entry, code: "arbitrary-text" }])).toEqual([]);
     expect(safeGoalVideoDiagnostics([{ ...entry, width: Infinity }])[0]?.width).toBeNull();
+    expect(safeGoalVideoDiagnostics([{ ...entry, code: "GOAL_VIDEO_SOURCE_FALLBACK", source: "cache_blob", mediaErrorCode: 4 }])[0]).toMatchObject({ source: "cache_blob", mediaErrorCode: 4 });
+    expect(safeGoalVideoDiagnostics([{ ...entry, source: "private-url", mediaErrorCode: 400 }])[0]).toMatchObject({ source: null, mediaErrorCode: null });
   });
   it("reports capabilities separately from platform identification", () => {
     expect(safeGoalVideoCapabilities({ runtime: "static-lg", h264: "probably", webm: "", viewportWidth: 1920, viewportHeight: 1080, webOS: true, browserVersion: "79.0.3945", appVersion: "a".repeat(40), userAgent: "private" })).toMatchObject({ runtime: "static-lg", h264: "probably", webOS: true, browserVersion: "79.0.3945" });

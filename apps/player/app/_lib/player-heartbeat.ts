@@ -38,7 +38,7 @@ function safeIsoTimestamp(value: string | null | undefined) {
 export function safeGoalVideoDiagnostics(value: unknown) {
   const codes = new Set(["GOAL_VIDEO_STARTED", "GOAL_VIDEO_COMPLETED", "GOAL_VIDEO_LOAD_ERROR",
     "GOAL_VIDEO_PLAY_REJECTED", "GOAL_VIDEO_START_TIMEOUT", "GOAL_VIDEO_PLAYBACK_ERROR",
-    "GOAL_VIDEO_CACHE_TIMEOUT", "GOAL_VIDEO_CACHE_MISSING", "GOAL_VIDEO_ASSET_MISSING", "GOAL_VIDEO_UNSUPPORTED_FORMAT"]);
+    "GOAL_VIDEO_CACHE_TIMEOUT", "GOAL_VIDEO_CACHE_MISSING", "GOAL_VIDEO_ASSET_MISSING", "GOAL_VIDEO_UNSUPPORTED_FORMAT", "GOAL_VIDEO_SOURCE_FALLBACK"]);
   const uuid = (input: unknown) => typeof input === "string" && /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(input) ? input : null;
   return (Array.isArray(value) ? value.slice(-12) : []).flatMap((entry) => {
     if (!entry || typeof entry !== "object" || !codes.has(entry.code) ||
@@ -48,7 +48,9 @@ export function safeGoalVideoDiagnostics(value: unknown) {
       alertVersionId: uuid(entry.alertVersionId), assetId: uuid(entry.assetId), orientation: entry.orientation,
       mimeType: entry.mimeType === "video/mp4" || entry.mimeType === "video/webm" ? entry.mimeType : null,
       at: typeof entry.at === "string" ? safeIsoTimestamp(entry.at) : null,
-      width: safeVideoDimension(entry.width), height: safeVideoDimension(entry.height) }];
+      width: safeVideoDimension(entry.width), height: safeVideoDimension(entry.height),
+      source: entry.source === "cache_blob" || entry.source === "https" ? entry.source : null,
+      mediaErrorCode: Number.isInteger(entry.mediaErrorCode) && entry.mediaErrorCode >= 1 && entry.mediaErrorCode <= 4 ? entry.mediaErrorCode : null }];
   });
 }
 function safeVideoDimension(value: unknown) {

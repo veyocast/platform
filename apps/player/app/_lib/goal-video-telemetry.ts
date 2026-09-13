@@ -2,6 +2,8 @@ export type GoalVideoTelemetry = {
   code: string; eventId: string; deliveryId: string; alertVersionId: string | null;
   assetId: string | null; orientation: "portrait" | "landscape"; mimeType: string | null;
   at: string; width: number; height: number;
+  source?: "cache_blob" | "https";
+  mediaErrorCode?: number | null;
 };
 
 /** Bounded diagnostic history rides the existing device-authenticated heartbeat.
