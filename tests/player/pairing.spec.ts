@@ -354,6 +354,10 @@ test("coalesces rapid refreshes before requesting another pairing code", async (
   page
 }) => {
   let pairingRequests = 0;
+  // Navigation speed must not consume the cooldown before we can assert it.
+  const now = Date.now();
+  await page.clock.install({ time: now - 1_000 });
+  await page.clock.pauseAt(now);
   await page.addInitScript(() => {
     if (!sessionStorage.getItem("pairing-cooldown-seeded")) {
       localStorage.setItem(
@@ -386,8 +390,12 @@ test("coalesces rapid refreshes before requesting another pairing code", async (
     page.getByRole("heading", { name: "Nieuwe koppelcode voorbereiden" })
   ).toBeVisible();
   await page.reload();
-  await page.waitForTimeout(500);
+  await expect(
+    page.getByRole("heading", { name: "Nieuwe koppelcode voorbereiden" })
+  ).toBeVisible();
+  await page.clock.runFor(4_999);
   expect(pairingRequests).toBe(0);
+  await page.clock.runFor(1);
   await expect(page.getByLabel("Pairingcode")).toContainText("RFS 234", {
     timeout: 7_000
   });

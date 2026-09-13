@@ -10,17 +10,24 @@ const videoBytes = readFileSync("apps/player/public/lg-probe/h264-baseline-aac.m
 const checksum = createHash("sha256").update(videoBytes).digest("hex");
 const config: GoalOverlayConfiguration = { ...defaultGoalOverlayConfiguration, overlayDurationMs: 2000, enterAnimation: "none", exitAnimation: "none", transitionDurationMs: 0, defaults: { primary: "#2459ed", darkSurface: "#18233a", modePolicy: { kind: "fixed", mode: "light" }, timezone: "Europe/Amsterdam" } };
 const sse = (event: string, value: unknown) => `event: ${event}\ndata: ${JSON.stringify(value)}\n\n`;
-async function expectFullscreenIntro(video: Locator, viewport: { width: number; height: number }) {
+async function expectUncroppedIntro(video: Locator, viewport: { width: number; height: number }) {
   await expect(video).toBeVisible();
-  await expect(video).toHaveCSS("object-fit", "cover");
+  await expect(video).toHaveCSS("object-fit", "contain");
   await expect(video).toHaveCSS("object-position", "50% 50%");
   expect(await video.boundingBox()).toEqual({ x: 0, y: 0, ...viewport });
   const source = await video.evaluate((element: HTMLVideoElement) => ({ width: element.videoWidth, height: element.videoHeight }));
   expect(source.width).toBeGreaterThan(0);
   expect(source.height).toBeGreaterThan(0);
-  const scale = Math.max(viewport.width / source.width, viewport.height / source.height);
-  expect(source.width * scale).toBeGreaterThanOrEqual(viewport.width);
-  expect(source.height * scale).toBeGreaterThanOrEqual(viewport.height);
+  const scale = Math.min(viewport.width / source.width, viewport.height / source.height);
+  const renderedWidth = source.width * scale;
+  const renderedHeight = source.height * scale;
+  expect(renderedWidth).toBeLessThanOrEqual(viewport.width + 0.01);
+  expect(renderedHeight).toBeLessThanOrEqual(viewport.height + 0.01);
+  expect(Math.min(Math.abs(renderedWidth - viewport.width), Math.abs(renderedHeight - viewport.height))).toBeLessThan(0.01);
+  if (Math.abs(source.width / source.height - viewport.width / viewport.height) < 0.001) {
+    expect(renderedWidth).toBeCloseTo(viewport.width);
+    expect(renderedHeight).toBeCloseTo(viewport.height);
+  }
 }
 function goal(index: number, configuration: GoalOverlayConfiguration, side: "home" | "away" = "home", assets: unknown[] = []) {
   const now = Date.now();
@@ -86,7 +93,7 @@ for (const legacy of [false, true]) {
     const root = page.locator(legacy ? '#goal-overlay[data-renderer="goal-v2"]' : '[data-testid="goal-celebration"]');
     await expect(root.locator("video")).toBeVisible();
     await expect(root.locator("video")).toHaveAttribute("src", asset.url);
-    await expectFullscreenIntro(root.locator("video"), { width: 1080, height: 1920 });
+    await expectUncroppedIntro(root.locator("video"), { width: 1080, height: 1920 });
     await expect(root.locator(".vc-goal")).toBeHidden();
     await expect(root.locator(".vc-goal")).toBeVisible({ timeout: 15000 });
     await expect(page.locator("html")).toHaveAttribute("data-natural-goal-ended", "true");
@@ -237,7 +244,7 @@ for (const legacy of [false, true]) {
 for (const legacy of [false, true]) {
   for (const orientation of ["landscape", "portrait"] as const) {
     for (const sourceOrientation of ["landscape", "portrait"] as const) {
-      test(`${legacy ? "LG" : "React"}: ${sourceOrientation} intro fills ${orientation} screen until natural ended`, async ({ page }) => {
+      test(`${legacy ? "LG" : "React"}: complete ${sourceOrientation} intro fits ${orientation} screen until natural ended`, async ({ page }) => {
         const viewport = orientation === "portrait" ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 };
         await page.setViewportSize(viewport);
         const bytes = sourceOrientation === "portrait" ? readFileSync("apps/player/public/lg-probe/h264-main-portrait.mp4") : videoBytes;
@@ -254,10 +261,15 @@ for (const legacy of [false, true]) {
         const errors = await prepare(page, legacy, [goal(91, c, "home", [asset])], undefined, undefined, orientation);
         const root = page.locator(legacy ? '#goal-overlay[data-renderer="goal-v2"]' : '[data-testid="goal-celebration"]');
         const video = root.locator("video");
-        await expectFullscreenIntro(video, viewport);
+        await expectUncroppedIntro(video, viewport);
         await expect(root.locator(".vc-goal")).toBeHidden();
-        if (orientation === "portrait" && sourceOrientation === "landscape") {
-          await page.screenshot({ path: test.info().outputPath("portrait-fullscreen-intro.png") });
+        if (orientation === "portrait" && sourceOrientation === "portrait") {
+          await page.screenshot({ path: test.info().outputPath("portrait-complete-intro.png") });
+          // Signage viewports can change after initialization or differ slightly
+          // from the uploaded ratio. Neither case may crop the creative.
+          await page.setViewportSize({ width: 1080, height: 1800 });
+          await expectUncroppedIntro(video, { width: 1080, height: 1800 });
+          await page.screenshot({ path: test.info().outputPath("portrait-resized-complete-intro.png") });
         }
         await expect(root.locator(".vc-goal")).toBeVisible({ timeout: 15000 });
         await expect(page.locator("html")).toHaveAttribute("data-natural-goal-ended", "true");
@@ -284,6 +296,7 @@ for (const legacy of [false, true]) {
     const video = root.locator("video");
     await expect(video).toBeVisible({ timeout: 12000 });
     expect(await video.evaluate((element: HTMLVideoElement) => ({ width: element.videoWidth, height: element.videoHeight, muted: element.muted, inline: element.playsInline }))).toEqual({ width: 360, height: 640, muted: true, inline: true });
+    await expectUncroppedIntro(video, { width: 1920, height: 1080 });
     await expect(root.locator(".vc-goal")).toBeHidden();
     await expect(root.locator(".vc-goal")).toBeVisible();
     await expect(root.locator(".vc-goal")).toHaveAttribute("data-orientation", "portrait");
