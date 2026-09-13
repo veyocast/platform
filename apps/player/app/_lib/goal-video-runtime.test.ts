@@ -10,6 +10,7 @@ class Video extends EventTarget {
   playsInline = false;
   controls = true;
   preload = "";
+  style = { objectFit: "", objectPosition: "" };
   error: { code: number } | null = null;
   attributes = new Map<string, string>();
   setAttribute(name: string, value: string) { this.attributes.set(name, value); }
@@ -28,7 +29,7 @@ describe("shared native goal decoder lifecycle", () => {
   }
   it("uses muted inline autoplay and requires the real ended event", () => {
     const run = start();
-    expect(run.video).toMatchObject({ muted: true, defaultMuted: true, autoplay: true, playsInline: true, controls: false, preload: "auto" });
+    expect(run.video).toMatchObject({ muted: true, defaultMuted: true, autoplay: true, playsInline: true, controls: false, preload: "auto", style: { objectFit: "cover", objectPosition: "50% 50%" } });
     run.video.dispatchEvent(new Event("playing"));
     for (let second = 1; second <= 20; second++) { run.video.currentTime = second; vi.advanceTimersByTime(1000); }
     expect(run.onComplete).not.toHaveBeenCalled();

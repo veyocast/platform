@@ -214,7 +214,7 @@ export function legacyGoalOverlayScript() {
           window.clearTimeout(timer);
           if (!url) { fail("GOAL_VIDEO_CACHE_MISSING"); return; }
           introVideo = document.createElement("video");
-          introVideo.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:contain;visibility:hidden";
+          introVideo.style.cssText = "position:absolute;inset:0;width:100%;height:100%;visibility:hidden";
           overlay.appendChild(introVideo);
           videoCleanup = playGoalIntroVideo(introVideo, url, {
             fallbackUrl: !runtime.offline ? publishedUrl : undefined,
