@@ -17,6 +17,7 @@ export type VideoProbe = {
   height: number;
   pixelFormat: string | null;
   rotationDegrees: number;
+  sampleAspectRatio?: string;
   videoCodec: string;
   videoProfile?: string | null;
   videoLevel?: number | null;
@@ -58,7 +59,7 @@ export async function probeVideoFile(
 ): Promise<VideoProbe> {
   const result = await runner("ffprobe", [
     "-v", "error", "-show_entries",
-    "format=format_name,duration:stream=codec_type,codec_name,profile,level,width,height,r_frame_rate,pix_fmt:stream_tags=rotate:stream_side_data=rotation",
+    "format=format_name,duration:stream=codec_type,codec_name,profile,level,width,height,r_frame_rate,pix_fmt,sample_aspect_ratio:stream_tags=rotate:stream_side_data=rotation",
     "-of", "json", inputPath
   ]);
   return parseVideoProbe(result.stdout);
@@ -201,6 +202,7 @@ export function parseVideoProbe(serializedProbe: string): VideoProbe {
     height,
     pixelFormat: toNonEmptyString(videoStream.pix_fmt),
     rotationDegrees,
+    ...(typeof videoStream.sample_aspect_ratio === "string" ? { sampleAspectRatio: videoStream.sample_aspect_ratio } : {}),
     videoCodec,
     videoProfile: toNonEmptyString(videoStream.profile),
     videoLevel: toPositiveInteger(videoStream.level),
