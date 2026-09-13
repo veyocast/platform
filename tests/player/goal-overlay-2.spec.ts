@@ -48,6 +48,44 @@ async function prepare(page: Page, legacy: boolean, messages: unknown[], preload
 }
 
 for (const legacy of [false, true]) {
+  test(`${legacy ? "LG" : "React"}: native Blob refusal recovers through published HTTPS and natural ended`, async ({ page }) => {
+    await page.setViewportSize({ width: 1080, height: 1920 });
+    const asset = { checksum, mediaAssetId: videoId, mimeType: "video/mp4", url: "https://goal-native.example/immutable.mp4" };
+    await page.route(asset.url, (route) => route.fulfill({ body: videoBytes, contentType: "video/mp4", headers: { "Accept-Ranges": "bytes" } }));
+    await page.addInitScript(({ checksum, data }) => {
+      const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+      void caches.open("veyocast-player-goal-assets-v2").then((cache) => cache.put(`/__veyocast-goal-cache/${checksum}`, new Response(bytes, { headers: { "Content-Type": "video/mp4" } })));
+      const play = HTMLMediaElement.prototype.play;
+      HTMLMediaElement.prototype.play = function () {
+        if (this.closest('[data-testid="goal-celebration"],#goal-overlay') && this.src.startsWith("blob:")) {
+          Object.defineProperty(this, "error", { configurable: true, value: { code: 4 } });
+          this.dispatchEvent(new Event("error"));
+          return Promise.reject(new DOMException("Native Blob source refused", "NotSupportedError"));
+        }
+        if (Object.hasOwn(this, "error")) Reflect.deleteProperty(this, "error");
+        return play.call(this);
+      };
+      document.addEventListener("ended", (event) => {
+        if (event.target instanceof HTMLVideoElement && event.target.closest('[data-testid="goal-celebration"],#goal-overlay')) document.documentElement.dataset.naturalGoalEnded = "true";
+      }, true);
+    }, { checksum, data: videoBytes.toString("base64") });
+    const c = { ...config, introEnabled: true, introPortraitMediaId: videoId };
+    const errors = await prepare(page, legacy, [goal(81, c, "home", [asset])], undefined, undefined, "portrait");
+    const root = page.locator(legacy ? '#goal-overlay[data-renderer="goal-v2"]' : '[data-testid="goal-celebration"]');
+    await expect(root.locator("video")).toBeVisible();
+    await expect(root.locator("video")).toHaveAttribute("src", asset.url);
+    await expect(root.locator(".vc-goal")).toBeHidden();
+    await expect(root.locator(".vc-goal")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("html")).toHaveAttribute("data-natural-goal-ended", "true");
+    const history = await page.evaluate(() => JSON.parse(localStorage.getItem("veyocast-player-goal-video-diagnostics-v1") || "[]"));
+    expect(history).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "GOAL_VIDEO_SOURCE_FALLBACK", source: "cache_blob", mediaErrorCode: 4 }),
+      expect.objectContaining({ code: "GOAL_VIDEO_STARTED", source: "https" }),
+      expect.objectContaining({ code: "GOAL_VIDEO_COMPLETED", source: "https" })
+    ]));
+    await expect(root.locator(".vc-goal")).toHaveCount(0, { timeout: 5000 });
+    expect(errors).toEqual([]);
+  });
   test(`${legacy ? "LG" : "React"}: lege cache haalt gepubliceerde intro op vóór het testdoelpunt`, async ({ page }) => {
     const asset = { checksum, mediaAssetId: videoId, mimeType: "video/mp4", url: `${playerURL}/lg-probe/h264-baseline-aac.mp4` };
     const c = { ...config, introEnabled: true, introLandscapeMediaId: videoId };

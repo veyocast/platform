@@ -45,15 +45,17 @@ export function GoalCelebration({ goal, theme, onComplete }: {
   const [resolvedGoal, setResolvedGoal] = useState(goal);
   const [reduced, setReduced] = useState(false);
   const selection = useRef<ReturnType<typeof resolveGoalIntroAsset> | null>(null);
+  const introSource = useRef<"cache_blob" | "https">("cache_blob");
   const introActive = phase === "IDLE" || phase === "GOAL_INTRO_LOADING" || phase === "GOAL_INTRO_PLAYING";
-  const report = (code: string) => {
+  const report = (code: string, mediaErrorCode?: number | null) => {
     const selected = selection.current;
     if (!selected) return;
     const rect = root.current?.getBoundingClientRect();
     goalVideoTelemetry({ code, eventId: goal.eventId, deliveryId: goal.deliveryId,
       alertVersionId: goal.alertVersionId ?? null, assetId: selected.requestedAssetId,
       orientation: selected.orientation, mimeType: selected.mimeType,
-      at: new Date().toISOString(), width: Math.round(rect?.width ?? 0), height: Math.round(rect?.height ?? 0) });
+      at: new Date().toISOString(), width: Math.round(rect?.width ?? 0), height: Math.round(rect?.height ?? 0),
+      source: introSource.current, mediaErrorCode: mediaErrorCode ?? video.current?.error?.code ?? null });
   };
   const advance = (action: GoalPlaybackAction) => {
     const next = transitionGoalPlayback(phaseRef.current, action);
@@ -117,6 +119,8 @@ export function GoalCelebration({ goal, theme, onComplete }: {
   useEffect(() => {
     if (!introActive || !introUrl || !video.current) return;
     return playGoalIntroVideo(video.current, introUrl, {
+      fallbackUrl: navigator.onLine ? goal.assets.get(selection.current?.assetId ?? "")?.url : undefined,
+      onFallback: (code, nativeCode) => { report("GOAL_VIDEO_SOURCE_FALLBACK", nativeCode); logGoal("goal_intro_source_fallback", goal.eventId, code); introSource.current = "https"; },
       onPlaying: () => { report("GOAL_VIDEO_STARTED"); logGoal("goal_intro_started", goal.eventId); advance("intro_playing"); },
       onComplete: () => { report("GOAL_VIDEO_COMPLETED"); logGoal("goal_intro_finished", goal.eventId); advance("intro_ended"); },
       onFailure: (code) => { report(code); logGoal("goal_event_failed", goal.eventId, code); advance("intro_failed"); }

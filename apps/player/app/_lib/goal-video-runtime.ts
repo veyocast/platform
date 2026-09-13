@@ -9,6 +9,8 @@ export function playGoalIntroVideo(video: HTMLVideoElement, url: string, handler
   onPlaying: () => void;
   onComplete: () => void;
   onFailure: (code: GoalVideoCode) => void;
+  fallbackUrl?: string;
+  onFallback?: (code: GoalVideoCode, mediaErrorCode: number | null) => void;
   startTimeoutMs?: number;
   stallTimeoutMs?: number;
 }) {
@@ -17,9 +19,23 @@ export function playGoalIntroVideo(video: HTMLVideoElement, url: string, handler
   let started = false;
   let position = 0;
   let progressedAt = Date.now();
-  const preparingAt = progressedAt;
+  let preparingAt = progressedAt;
+  let sourceGeneration = 0;
+  let fallbackAttempted = false;
   function fail(code: GoalVideoCode) {
     if (disposed || finished) return;
+    // Some native signage decoders reject Blob URLs despite supporting the
+    // verified MP4. Reuse the published HTTPS/Range source, as normal LG video
+    // playback does. Never restart a video that has already begun playing.
+    if (!started && !fallbackAttempted && url.indexOf("blob:") === 0 &&
+      handlers.fallbackUrl && handlers.fallbackUrl.indexOf("https://") === 0 &&
+      (code === "GOAL_VIDEO_LOAD_ERROR" || code === "GOAL_VIDEO_PLAY_REJECTED" || code === "GOAL_VIDEO_START_TIMEOUT")) {
+      fallbackAttempted = true;
+      if (handlers.onFallback) handlers.onFallback(code, video.error ? video.error.code : null);
+      preparingAt = Date.now();
+      setSource(handlers.fallbackUrl);
+      return;
+    }
     finished = true;
     window.clearInterval(watchdog);
     handlers.onFailure(code);
@@ -61,12 +77,18 @@ export function playGoalIntroVideo(video: HTMLVideoElement, url: string, handler
       fail("GOAL_VIDEO_PLAYBACK_ERROR");
     }
   }, 250);
-  try { video.src = url; } catch { fail("GOAL_VIDEO_LOAD_ERROR"); }
-  try {
-    // Older HTMLMediaElement implementations return void from play().
-    const promise = finished ? undefined : video.play();
-    if (promise && typeof promise.catch === "function") promise.catch(function () { fail("GOAL_VIDEO_PLAY_REJECTED"); });
-  } catch { fail("GOAL_VIDEO_PLAY_REJECTED"); }
+  function setSource(source: string) {
+    const generation = ++sourceGeneration;
+    try { video.src = source; video.load(); } catch { fail("GOAL_VIDEO_LOAD_ERROR"); return; }
+    try {
+      // A rejection from the replaced Blob decoder must not abort HTTPS recovery.
+      const promise = finished ? undefined : video.play();
+      if (promise && typeof promise.catch === "function") promise.catch(function () {
+        if (generation === sourceGeneration) fail("GOAL_VIDEO_PLAY_REJECTED");
+      });
+    } catch { if (generation === sourceGeneration) fail("GOAL_VIDEO_PLAY_REJECTED"); }
+  }
+  setSource(url);
   return function () {
     if (disposed) return;
     disposed = true;
