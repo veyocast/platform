@@ -22,6 +22,7 @@ export function DynamicTemplateMedia({
   item,
   liveMatchStates = new Map(),
   onEnded,
+  onBoundary,
   onReady,
   passive = false,
   paused = false
@@ -29,6 +30,7 @@ export function DynamicTemplateMedia({
   item: EditorialArenaItem;
   liveMatchStates?: ReadonlyMap<string, LedScoresMatchState>;
   onEnded: (itemId: string) => void;
+  onBoundary?: (itemId: string) => void;
   onReady: (itemId: string) => void;
   passive?: boolean;
   paused?: boolean;
@@ -118,5 +120,5 @@ export function DynamicTemplateMedia({
       />
     );
   }
-  return <EditorialArenaRenderer item={item} now={matchTime} onReady={onReady} passive={passive} paused={paused} runtimeEffects />;
+  return <EditorialArenaRenderer item={item} now={matchTime} onBoundary={onBoundary} onReady={onReady} passive={passive} paused={paused} runtimeEffects />;
 }

@@ -483,13 +483,14 @@ test("playlists route exposes searchable resource filters and safe creation", as
   await expect(page.getByRole("button", { name: "Nieuwe playlist" })).toHaveCount(0);
 });
 
-test("Publicaties keeps immutable history semantics readable on mobile", async ({ page }) => {
+test("Publicaties explains current publication and live data on mobile", async ({ page }) => {
   await page.setViewportSize({ height: 844, width: 390 });
   await page.goto("/dashboard/releases");
 
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Publicaties" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Immutable historie" })).toBeVisible();
-  await expect(page.getByText(/rollback is altijd een nieuwe toewijzing/i)).toBeVisible();
+  await expect(page.getByRole("heading", { exact: true, name: "Gepubliceerd" })).toBeVisible();
+  await expect(page.getByText(/live gegevens verversen zelfstandig/i)).toBeVisible();
+  await expect(page.getByText(/Schermstatus bevestigt afzonderlijk wat werkelijk wordt getoond/i)).toBeVisible();
   await expect(async () => {
     expect(
       await page.evaluate(

@@ -4,6 +4,9 @@ VeyoCast is a local-first MVP for a multi-tenant narrowcasting and ClubTV
 platform. This repository starts from the VeyoCast Codex Build Pack and follows
 the canon in `AGENTS.md`, `PLANS.md`, `TASK_LEDGER.md` and `docs/`.
 
+Publication and live-data contracts, migration order, platform evidence and
+operational limits are documented in [S185](docs/s185-current-publication.md).
+
 ## Workspace
 
 ```text

@@ -1,4 +1,5 @@
-/** One bounded canvas per visible slide. No provider data, timers or DOM survive cleanup.
+/** A bounded canvas inside a birthday card, between its photo and text.
+ * No provider data, timers or DOM survive cleanup.
  * Kept self-contained so the trusted Static LG bundle uses this exact engine too.
  */
 export function startBirthdayConfetti(host: HTMLElement, options: {
@@ -12,11 +13,11 @@ export function startBirthdayConfetti(host: HTMLElement, options: {
   if (!context) return function () {};
   canvas.setAttribute("aria-hidden", "true");
   canvas.setAttribute("data-birthday-confetti", "active");
-  canvas.style.cssText = "position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4";
+  canvas.style.cssText = "position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1";
   host.appendChild(canvas);
   const colors = options.colors.filter(Boolean);
   if (!colors.length) colors.push("#FFFFFF");
-  const limit = Math.max(12, Math.min(56, options.particleLimit || 40));
+  const limit = Math.max(4, Math.min(56, options.particleLimit || 40));
   let count = limit;
   let frame = 0;
   let disposed = false;
@@ -52,7 +53,7 @@ export function startBirthdayConfetti(host: HTMLElement, options: {
     measuredTime += elapsed;
     measuredFrames += 1;
     if (measuredTime >= 2000) {
-      if (measuredTime / measuredFrames > 25) count = Math.max(12, Math.floor(count * 0.75));
+      if (measuredTime / measuredFrames > 25) count = Math.max(4, Math.floor(count * 0.75));
       measuredTime = 0;
       measuredFrames = 0;
       canvas.setAttribute("data-particle-count", String(count));

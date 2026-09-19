@@ -19,10 +19,11 @@ De MVP is pilot-ready wanneer:
 - platformadmin en tenantadmin de kernflows kunnen uitvoeren;
 - media upload en processing werken voor afbeeldingen en MP4/H.264-video;
 - playlists als concept bewerkbaar zijn;
-- publiceren een immutable release maakt;
+- publiceren één actuele configuratie aanwijst, met immutable revisies voor echte wijzigingen;
 - schermen en player-devices via pairing worden gekoppeld;
 - player online en offline fullscreen speelt;
-- nieuwe releases atomisch worden gedownload, geverifieerd en pas daarna geactiveerd;
+- alleen de nieuwste opdracht atomisch wordt voorbereid en bij een natuurlijke slidegrens geactiveerd;
+- live brondata onafhankelijk van gepubliceerde configuraties verversen;
 - player na netwerkverlies, herstart en corrupt pending asset blijft functioneren;
 - designcanon zichtbaar is toegepast;
 - launchgates groen zijn.
@@ -317,5 +318,10 @@ de exact gekozen actieve tenant. Zie
 - S37 levert beslisdocumenten en prototypes, geen stilzwijgende productclaims.
 
 ## Parallelle waves
+
+S185 vervangt de dynamische publicatieproducent door gepubliceerde databindings,
+één actuele publicatie en monotone schermopdrachten. Implementatie, gates en
+operationele cutover staan in `docs/s185-current-publication.md`; fysieke
+activering en deployment worden afzonderlijk bewezen.
 
 Zie `docs/sub-agent-orchestration.md`.

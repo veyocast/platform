@@ -39,6 +39,8 @@ export type ScreenSchedule = {
 };
 
 export type FleetDevice = {
+  syncPhase?: string | null;
+  syncDetail?: Record<string, unknown>;
   activeReleaseId: string | null;
   appVersion: string | null;
   capabilities: Record<string, unknown>;
@@ -243,7 +245,7 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     floorplanAssets
   ] = await Promise.all([
     loadAllPages((from, to) => supabase.from("screens").select("id, name, location, orientation, resolution_width, resolution_height, status, assigned_playlist_id, assigned_release_id, default_playlist_id, default_release_id, active_assignment_source, active_schedule_id, active_target_snapshot_id, created_at").eq("tenant_id", tenantId).is("deleted_at", null).order("created_at").order("id").range(from, to)),
-    loadAllPages((from, to) => supabase.from("player_devices").select("id, screen_id, device_name, status, app_version, platform, capabilities, storage_quota_bytes, storage_used_bytes, active_release_id, desired_release_id, last_seen_at, paired_at, revoked_at, last_error_code, last_error_at, sync_retry_requested_at").eq("tenant_id", tenantId).order("paired_at", { ascending: false }).order("id").range(from, to)),
+    loadAllPages((from, to) => supabase.from("player_devices").select("id, screen_id, device_name, status, app_version, platform, capabilities, current_sync_phase, current_sync_detail, storage_quota_bytes, storage_used_bytes, active_release_id, desired_release_id, last_seen_at, paired_at, revoked_at, last_error_code, last_error_at, sync_retry_requested_at").eq("tenant_id", tenantId).order("paired_at", { ascending: false }).order("id").range(from, to)),
     loadAllPages<FleetReleaseRow>((from, to) => supabase.rpc("list_screen_fleet_releases_v1", { p_tenant_id: tenantId }).order("playlist_id").order("version", { ascending: false }).order("id").range(from, to)),
     loadAllPages((from, to) => supabase.from("playlists").select("id, name, status").eq("tenant_id", tenantId).order("id").range(from, to)),
     supabase.from("tenants").select("screen_limit").eq("id", tenantId).maybeSingle(),
@@ -573,6 +575,8 @@ function mapDevice(device: Record<string, unknown>): FleetDevice {
     activeReleaseId: stringOrNull(device.active_release_id),
     appVersion: stringOrNull(device.app_version),
     capabilities: objectValue(device.capabilities),
+    syncPhase: stringOrNull(device.current_sync_phase),
+    syncDetail: objectValue(device.current_sync_detail),
     desiredReleaseId: stringOrNull(device.desired_release_id),
     deviceName: stringOrNull(device.device_name),
     id: String(device.id),

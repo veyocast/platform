@@ -22,6 +22,8 @@ const previousPlayerAssetCacheName = `${previousBrandNamespace}-player-assets-v1
 const previousPlayerDatabaseName = `${previousBrandNamespace}-player-cache-v1`;
 const previousPlayerCachePathPrefix = `/__${previousBrandNamespace}-player-cache/`;
 let playerStorageMigration: Promise<void> | undefined;
+let preparingMediaCount = 0;
+let mediaCollection: Promise<unknown> = Promise.resolve();
 
 export type PlayerCachePhase = "DOWNLOADING" | "VERIFYING";
 
@@ -112,80 +114,91 @@ export function getCacheableAssets(
 export async function preparePendingRelease({
   envelope,
   onPhase,
+  signal,
   store = createPlayerMediaStore(playerAssetCacheName)
 }: {
   envelope: PlayerManifestEnvelope;
   onPhase?: (phase: PlayerCachePhase) => void;
+  signal?: AbortSignal;
   store?: PlayerMediaStore;
 }): Promise<PlayerCacheResult> {
-  const assets = getCacheableAssets(envelope.manifest);
-  const cachedAssets = await inspectCachedAssets(assets, store);
-  const storageCheck = await hasEnoughStorage(cachedAssets.missingBytes);
-
-  if (!storageCheck.ok) {
-    return {
-      ok: false,
-      error: storageCheck.error
-    };
-  }
-
-  const newPreparedKeys = new Set<string>();
-
+  if (envelope.manifest.schemaVersion !== 1) return { ok: false, error: "PLAYER_UPDATE_REQUIRED" };
+  preparingMediaCount += 1;
   try {
-    onPhase?.("DOWNLOADING");
+    await mediaCollection;
+    const assets = getCacheableAssets(envelope.manifest);
+    const cachedAssets = await inspectCachedAssets(assets, store, signal);
+    const storageCheck = await hasEnoughStorage(cachedAssets.missingBytes);
 
-    for (const asset of assets) {
-      if (cachedAssets.validKeys.has(asset.cacheKey)) continue;
-
-      const response = await fetch(asset.url, { cache: "no-store" });
-
-      if (!response.ok) {
-        throw new Error(`asset fetch failed: ${asset.url}`);
-      }
-
-      const bytes = await response.arrayBuffer();
-
-      onPhase?.("VERIFYING");
-
-      await verifyAssetBytes(asset, bytes);
-      await store.put(
-        asset.cacheKey,
-        new Response(bytes, {
-          headers: {
-            "Accept-Ranges": "bytes",
-            "Content-Length": String(bytes.byteLength),
-            "Content-Type":
-              response.headers.get("Content-Type") ?? "application/octet-stream"
-          }
-        })
-      );
-
-      newPreparedKeys.add(asset.cacheKey);
-      cachedAssets.validKeys.add(asset.cacheKey);
+    if (!storageCheck.ok) {
+      return {
+        ok: false,
+        error: storageCheck.error
+      };
     }
 
-    return {
-      ok: true,
-      assets
-    };
-  } catch (error) {
-    await Promise.all([...newPreparedKeys].map((key) => store.delete(key)));
+    try {
+      if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
+      onPhase?.("DOWNLOADING");
 
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "asset verification failed"
-    };
-  }
+      for (const asset of assets) {
+        if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
+        if (cachedAssets.validKeys.has(asset.cacheKey)) continue;
+
+        const response = await fetch(asset.url, { cache: "no-store", signal });
+
+        if (!response.ok) {
+          throw new Error(`ASSET_FETCH_FAILED_${response.status}:${asset.itemId}`);
+        }
+
+        const bytes = await response.arrayBuffer();
+        if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
+
+        onPhase?.("VERIFYING");
+
+        await verifyAssetBytes(asset, bytes);
+        if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
+        await store.put(
+          asset.cacheKey,
+          new Response(bytes, {
+            headers: {
+              "Accept-Ranges": "bytes",
+              "Content-Length": String(bytes.byteLength),
+              "Content-Type":
+                response.headers.get("Content-Type") ?? "application/octet-stream"
+            }
+          })
+        );
+
+        cachedAssets.validKeys.add(asset.cacheKey);
+      }
+
+      return {
+        ok: true,
+        assets
+      };
+    } catch (error) {
+      // Verified content-addressed bytes may already be used by a newer target.
+      // Reference-aware collection, never cancellation, owns their deletion.
+
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : "asset verification failed"
+      };
+    }
+  } finally { preparingMediaCount -= 1; }
 }
 
 export async function activateRelease({
   assets,
   deviceToken,
-  envelope
+  envelope,
+  signal
 }: {
   assets: PlayerCacheAsset[];
   deviceToken: string;
   envelope: PlayerManifestEnvelope;
+  signal?: AbortSignal;
 }) {
   const cachedRelease: CachedPlayerRelease = {
     activatedAt: new Date().toISOString(),
@@ -194,20 +207,29 @@ export async function activateRelease({
     envelope
   };
   const database = await openPlayerDatabase();
+  if (signal?.aborted) { database.close(); throw new Error("TARGET_SUPERSEDED"); }
   const transaction = database.transaction(
     [playerActiveReleaseStoreName, playerPreviousReleaseStoreName],
     "readwrite"
   );
   const store = transaction.objectStore(playerActiveReleaseStoreName);
   const previousStore = transaction.objectStore(playerPreviousReleaseStoreName);
+  const abort = () => { try { transaction.abort(); } catch { /* completed */ } };
+  signal?.addEventListener("abort", abort, { once: true });
+  try {
   const currentRelease = await requestToPromise<CachedPlayerRelease | undefined>(
     store.get(deviceToken)
   );
 
-  if (currentRelease) await requestToPromise(previousStore.put(currentRelease));
+  if (currentRelease && currentRelease.envelope.manifest.releaseId !== envelope.manifest.releaseId) {
+    await requestToPromise(previousStore.put(currentRelease));
+  }
   await requestToPromise(store.put(cachedRelease));
   await transactionDone(transaction);
+  } finally {
+  signal?.removeEventListener("abort", abort);
   database.close();
+  }
 
   return cachedRelease;
 }
@@ -247,16 +269,25 @@ export async function recoverDeviceTokenFromPersistedRelease() {
 
 export async function garbageCollectPersistedPlayerMedia(
   deviceToken: string,
-  store = createPlayerMediaStore(playerAssetCacheName)
+  store = createPlayerMediaStore(playerAssetCacheName),
+  inUse: Array<Pick<CachedPlayerRelease, "assets">> = []
 ) {
+  if (preparingMediaCount) return { deletedKeys: [], retainedKeys: [] };
+  const collection = async () => {
   const [activeRelease, previousRelease] = await Promise.all([
     readActiveRelease(deviceToken),
     readPreviousRelease(deviceToken)
   ]);
   return garbageCollectPlayerMedia({
-    releases: [activeRelease, previousRelease],
+    releases: [activeRelease, previousRelease, ...inUse],
     store
   });
+  };
+  const result = mediaCollection.then(collection, collection);
+  // The caller still receives the failure; a failed cleanup must never prevent
+  // the next target from preparing, or leave the preparation guard held.
+  mediaCollection = result.catch(() => undefined);
+  return result;
 }
 
 export async function garbageCollectPlayerMedia({
@@ -887,13 +918,15 @@ function refreshDynamicTemplateAssetAccess(
 
 async function inspectCachedAssets(
   assets: PlayerCacheAsset[],
-  store: PlayerMediaStore
+  store: PlayerMediaStore,
+  signal?: AbortSignal
 ) {
   const validKeys = new Set<string>();
   const inspectedKeys = new Set<string>();
   let missingBytes = 0;
 
   for (const asset of assets) {
+    if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
     if (inspectedKeys.has(asset.cacheKey)) continue;
     inspectedKeys.add(asset.cacheKey);
     const response = await store.get(asset.cacheKey);
@@ -904,7 +937,9 @@ async function inspectCachedAssets(
 
     try {
       const bytes = await response.clone().arrayBuffer();
+      if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
       await verifyAssetBytes(asset, bytes);
+      if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
       validKeys.add(asset.cacheKey);
 
       if (

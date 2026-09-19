@@ -94,6 +94,7 @@ export function EditorialArenaRenderer({
   item,
   now,
   onReady = () => undefined,
+  onBoundary,
   pageIndex: controlledPageIndex,
   passive = false,
   runtimeEffects = false,
@@ -103,6 +104,7 @@ export function EditorialArenaRenderer({
   item: EditorialArenaItem;
   now?: Date;
   onReady?: (itemId: string) => void;
+  onBoundary?: (itemId: string) => void;
   pageIndex?: number;
   passive?: boolean;
   runtimeEffects?: boolean;
@@ -128,12 +130,18 @@ export function EditorialArenaRenderer({
     view.pages.some((page) => page.kind === "birthday" && page.items.some((person) => person.isToday)));
   const confettiColors = view ? [view.accentColor, view.themeTokens.text, view.themeTokens.accentSoft] : [];
   const confettiPalette = confettiColors.join("|");
+  const birthdayPage = view?.pages[Math.min(Math.max(0, controlledPageIndex ?? internalPageIndex), Math.max(0, (view?.pages.length ?? 1) - 1))];
+  const celebratingIds = birthdayPage?.kind === "birthday" ? birthdayPage.items.filter((person) => person.isToday).map((person) => person.id).join("|") : "";
   const viewportReady = viewportFit !== null;
   useEffect(() => {
     const host = viewportRef.current;
     if (!host || !birthdayCelebration || !viewportReady) return;
-    return startBirthdayConfetti(host, { colors: confettiPalette.split("|") });
-  }, [birthdayCelebration, confettiPalette, item.id, viewportReady]);
+    const cards = Array.from(host.querySelectorAll<HTMLElement>('[data-birthday-card][data-today="true"]')).slice(0, 6);
+    const cleanups = cards.map((card) => startBirthdayConfetti(card, {
+      colors: confettiPalette.split("|"), particleLimit: Math.floor(40 / cards.length)
+    }));
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, [birthdayCelebration, celebratingIds, confettiPalette, item.id, viewportReady]);
   const standingAutoScroll = Boolean(
     view &&
     view.designRevision === "royal-current-v8" &&
@@ -221,7 +229,10 @@ export function EditorialArenaRenderer({
       controlledPageIndex !== undefined
     ) return;
     const interval = window.setInterval(
-      () => setInternalPageIndex((current) => (current + 1) % pageCount),
+      () => {
+        onBoundary?.(item.id);
+        setInternalPageIndex((current) => (current + 1) % pageCount);
+      },
       dynamicTemplatePageDurationMs(
         item.durationSeconds,
         pageCount,
@@ -229,7 +240,7 @@ export function EditorialArenaRenderer({
       )
     );
     return () => window.clearInterval(interval);
-  }, [controlledPageIndex, item.durationSeconds, pageCount, passive, paused, view]);
+  }, [controlledPageIndex, item.id, item.durationSeconds, onBoundary, pageCount, passive, paused, view?.pageDurationMs]);
 
   if (!view || playbackPages.length === 0) return null;
   const pageIndex = Math.min(
@@ -1520,6 +1531,7 @@ function BirthdayPage({
       {items.map((birthday, index) => (
         <article
           className={styles.birthdayCard}
+          data-birthday-card="true"
           data-today={birthday.isToday || undefined}
           data-emphasize-today={birthday.isToday && configuration?.selection.emphasizeToday || undefined}
           key={birthday.id}

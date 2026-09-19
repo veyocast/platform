@@ -35,7 +35,6 @@ export async function GET(request: Request) {
   try { bootstrap = await loadLedScoresPlayerBootstrap(admin, tokenHash); }
   catch { return failure("PLAYER_REALTIME_UNAVAILABLE", 503); }
   if (!bootstrap.authorized) return failure("INVALID_DEVICE_TOKEN", 401);
-  if (!bootstrap.enabled) return new NextResponse(null, { headers: { "Cache-Control": "no-store" }, status: 204 });
   try { matchBootstrap = await loadLedScoresMatchPlayerBootstrap(admin, tokenHash); }
   catch { return failure("PLAYER_REALTIME_UNAVAILABLE", 503); }
   if (!matchBootstrap.authorized ||
@@ -44,14 +43,22 @@ export async function GET(request: Request) {
     return failure("INVALID_DEVICE_TOKEN", 401);
   }
 
+  const target = await admin.rpc("get_player_effective_target_v1", { p_token_hash: tokenHash });
+  if (target.error) return failure("PLAYER_REALTIME_UNAVAILABLE", 503);
+  if (!target.data || target.data.screen_id !== bootstrap.screenId || target.data.tenant_id !== bootstrap.tenantId) return failure("INVALID_DEVICE_TOKEN", 401);
+  const bindingIds = (dataKey: unknown) => new Set(typeof dataKey === "string" ? dataKey.split(",").map((entry) => entry.split(":")[0]) : []);
+
   const encoder = new TextEncoder();
   let cleanup: () => void = () => undefined;
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       let closed = false;
       let currentBootstrap = bootstrap;
+      let authorizedBindings = bindingIds(target.data.data_key);
+      let knownTargetRevision = String(target.data.target_revision);
       let currentMatchBootstrap = matchBootstrap;
       let configAssetRefreshAt = Date.now();
+      let validationInFlight = false;
       let configAssetRefreshPromise: Promise<void> | null = null;
       const sentDeliveryIds = new Set<string>();
       const allowedConnectionIds = new Set(
@@ -59,10 +66,38 @@ export async function GET(request: Request) {
           ? currentMatchBootstrap.bindings.map((binding) => binding.connectionId)
           : []
       );
+      let invalidationTimer: ReturnType<typeof setTimeout> | null = null;
+      let targetCommitAt: string | null = null;
+      let channel: ReturnType<typeof admin.channel> | null = null;
+      let keepAlive: ReturnType<typeof setInterval> | null = null;
+      const close = () => {
+        if (closed) return;
+        closed = true;
+        if (keepAlive) clearInterval(keepAlive);
+        if (invalidationTimer) clearTimeout(invalidationTimer);
+        request.signal.removeEventListener("abort", close);
+        if (channel) void admin.removeChannel(channel);
+        try { controller.close(); } catch { /* already closed */ }
+      };
       const send = (event: string, value: unknown) => {
         if (closed) return;
         try { controller.enqueue(encoder.encode(encodeSseEvent(event, value))); }
-        catch { closed = true; }
+        catch { close(); }
+      };
+      const invalidate = () => {
+        if (closed || invalidationTimer) return;
+        invalidationTimer = setTimeout(() => {
+          invalidationTimer = null;
+          send("target_invalidated", { screenId: bootstrap.screenId, targetRevision: knownTargetRevision, committedAt: targetCommitAt });
+        }, 100);
+      };
+      const validateTarget = () => {
+        if (closed || validationInFlight) return;
+        validationInFlight = true;
+        void Promise.resolve(admin.rpc("get_player_effective_target_v1", { p_token_hash: tokenHash })).then((result) => {
+          if (result.error || !result.data || result.data.screen_id !== bootstrap.screenId || result.data.tenant_id !== bootstrap.tenantId) { close(); return; }
+          authorizedBindings = bindingIds(result.data.data_key);
+        }).catch(close).finally(() => { validationInFlight = false; });
       };
       const enqueueDeliveryOperation = createSerializedLedScoresStreamQueue(() => {
         send("diagnostic", { code: "DELIVERY_PIPELINE_FAILED" });
@@ -128,16 +163,22 @@ export async function GET(request: Request) {
       )) {
         void enqueueDeliveryOperation(() => sendDelivery(delivery));
       }
-      let channel: ReturnType<typeof admin.channel> | null = null;
-      let keepAlive: ReturnType<typeof setInterval> | null = null;
-      const close = () => {
-        if (closed) return;
-        closed = true;
-        if (keepAlive) clearInterval(keepAlive);
-        if (channel) void admin.removeChannel(channel);
-        try { controller.close(); } catch { /* already closed */ }
-      };
-      channel = admin.channel(`ledscores-player-${bootstrap.screenId}-${crypto.randomUUID()}`)
+      channel = admin.channel(`player-${bootstrap.screenId}-${crypto.randomUUID()}`)
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "screens",
+          filter: `id=eq.${bootstrap.screenId}` }, (change) => {
+          if (change.new.tenant_id !== bootstrap.tenantId || String(change.new.target_revision) === knownTargetRevision) return;
+          knownTargetRevision = String(change.new.target_revision);
+          targetCommitAt = typeof change.commit_timestamp === "string" ? change.commit_timestamp : null;
+          invalidate();
+          validateTarget();
+        })
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "published_dynamic_data",
+          filter: `tenant_id=eq.${bootstrap.tenantId}` }, (change) => {
+          if (change.new.tenant_id !== bootstrap.tenantId || !authorizedBindings.has(change.new.snapshot_id) || change.new.data_revision === change.old.data_revision) return;
+          // This carries no data or member identifiers; the authorized manifest
+          // read restricts the result to this screen's published bindings.
+          invalidate();
+        })
         .on(
           "postgres_changes",
           {
@@ -205,6 +246,7 @@ export async function GET(request: Request) {
         )
         .subscribe((status) => {
           if (status === "SUBSCRIBED") {
+            send("target_invalidated", { screenId: bootstrap.screenId });
             void enqueueDeliveryOperation(async () => {
               try {
                 const refreshed = await loadLedScoresPlayerBootstrap(admin, tokenHash);
@@ -247,13 +289,15 @@ export async function GET(request: Request) {
           }
         });
       keepAlive = setInterval(() => {
+        validateTarget();
         if (!closed) {
           try { controller.enqueue(encoder.encode(`: keepalive ${Date.now()}\n\n`)); }
-          catch { closed = true; }
+          catch { close(); }
         }
       }, 15_000);
       request.signal.addEventListener("abort", close, { once: true });
       cleanup = close;
+      if (request.signal.aborted) close();
     },
     cancel() { cleanup(); }
   });

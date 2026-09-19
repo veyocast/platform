@@ -1,4 +1,4 @@
-export const defaultManifestSyncIntervalMs = 60_000;
+export const defaultManifestSyncIntervalMs = 8_000;
 export const defaultWatchdogTimeoutMs = 12_000;
 
 export type PlayerRuntimeTiming = {

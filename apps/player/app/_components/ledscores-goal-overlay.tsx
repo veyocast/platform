@@ -619,6 +619,10 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
     };
     const handleStreamEvent = (event: string, value: unknown) => {
       if (!isRecord(value)) return;
+      if (event === "target_invalidated" || event === "data_invalidated") {
+        window.dispatchEvent(new CustomEvent("veyocast:target-invalidated", { detail: value }));
+        return;
+      }
       if (event === "bootstrap" || event === "configuration") {
         if (value.screenOrientation === "portrait" || value.screenOrientation === "landscape") screenOrientation = value.screenOrientation;
         const prepared = preloadAssets(Array.isArray(value.configs) ? value.configs : []);

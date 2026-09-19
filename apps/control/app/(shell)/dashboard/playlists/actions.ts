@@ -514,7 +514,7 @@ export async function publishPlaylistGuided(formData: FormData) {
   const releaseNotes = String(formData.get("releaseNotes") ?? "").trim();
   if (!screenIds.length) failPublish(playlistId, "Kies minimaal één doelscherm. Er is geen release gemaakt.");
   if (releaseNotes.length > 500) failPublish(playlistId, "De releasenotitie mag maximaal 500 tekens bevatten.");
-  if (formData.get("confirmPublish") !== "on") failPublish(playlistId, "Bevestig expliciet dat je een nieuwe immutable release maakt.");
+  if (formData.get("confirmPublish") !== "on") failPublish(playlistId, "Bevestig dat je de actuele configuratie naar de gekozen schermen publiceert.");
 
   const studio = await loadPlaylistStudio(session.tenantId, playlistId, false);
   if (!studio.playlist || !studio.readiness) failPublish(playlistId, "Het concept kon niet opnieuw worden gecontroleerd. Er is geen release gemaakt.");
@@ -570,7 +570,7 @@ export async function publishPlaylistGuided(formData: FormData) {
   revalidatePath("/dashboard/publications");
   revalidatePath(`/dashboard/publications/${result.releaseId}`);
   revalidatePath("/dashboard/screens");
-  redirect(`/dashboard/publications/${result.releaseId}?succes=${encodeURIComponent("De immutable release is gepubliceerd. Volg hieronder desired, download, verificatie en activatie per scherm.")}`);
+  redirect(`/dashboard/publications/${result.releaseId}?succes=${encodeURIComponent("De actuele publicatie is toegewezen. Volg hieronder de voorbereiding en zichtbare activering per scherm.")}`);
 }
 
 async function mutateGuarded(

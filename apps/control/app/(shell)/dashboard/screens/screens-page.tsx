@@ -521,16 +521,28 @@ function mapPosition(name: string, index: number) {
 }
 
 function syncLabel(device: FleetDevice | undefined, releaseById: Map<string, FleetRelease>) {
-  if (!device) return "Wacht op pairing";
-  if (device.syncRetryRequestedAt) return "Retry aangevraagd";
-  if (device.desiredReleaseId && device.desiredReleaseId !== device.activeReleaseId) {
-    const activeVersion = device.activeReleaseId ? releaseById.get(device.activeReleaseId)?.version : undefined;
-    const desiredVersion = releaseById.get(device.desiredReleaseId)?.version;
-    if (desiredVersion !== undefined) return activeVersion === undefined ? `Versie ${desiredVersion} voorbereiden` : `Versie ${activeVersion} → ${desiredVersion}`;
-    return "Nieuwe publicatie voorbereiden";
+  if (!device) return "Wacht op koppeling";
+  if (!device.lastSeenAt || Date.now() - Date.parse(device.lastSeenAt) > 120_000) return "Offline — actuele opdracht ophalen bij reconnect";
+  if (device.lastErrorCode) return `Geblokkeerd — playerfout ${device.lastErrorCode}; open diagnose voor herstel`;
+  const preparationError = device.syncDetail?.preparationError;
+  if (typeof preparationError === "string") {
+    if (preparationError === "PLAYER_UPDATE_REQUIRED") return "Geblokkeerd — werk de player bij voor deze publicatie";
+    if (/STORAGE|QUOTA/.test(preparationError)) return "Geblokkeerd — onvoldoende lokale opslag; maak ruimte vrij";
+    if (/CHECKSUM|INTEGRITY|BYTES/.test(preparationError)) return "Geblokkeerd — mediacontrole mislukt; controleer het bestand";
+    if (/DOWNLOAD|FETCH|NETWORK/.test(preparationError)) return "Geblokkeerd — media niet bereikbaar; controleer de verbinding";
+    return "Geblokkeerd — voorbereiding mislukt; synchronisatie wordt opnieuw geprobeerd";
   }
-  if (device.activeReleaseId) return "Player is bijgewerkt";
-  return "Wacht op eerste release";
+  if (device.syncRetryRequestedAt) return "Synchronisatie aangevraagd";
+  if (device.syncPhase === "downloading" || device.syncPhase === "verifying") return "Nieuwe inhoud wordt voorbereid";
+  if (device.syncPhase === "switch_pending") return "Klaar — wisselt na huidige slide";
+  if (device.desiredReleaseId && device.desiredReleaseId !== device.activeReleaseId) return "Gepubliceerd — wacht op ontvangst";
+  const trace = device.syncDetail?.publicationTrace as Record<string, unknown> | undefined;
+  if (device.activeReleaseId && trace?.firstFrameAt && trace.releaseId === device.activeReleaseId) {
+    const revision = releaseById.get(device.activeReleaseId)?.version;
+    return revision ? `Actief — publicatie ${revision} zichtbaar bevestigd` : "Actief — publicatie zichtbaar bevestigd";
+  }
+  if (device.activeReleaseId) return "Playerupdate nodig voor zichtbare bevestiging";
+  return "Wacht op eerste publicatie";
 }
 
 function releaseDisplay(release: FleetRelease | undefined) {

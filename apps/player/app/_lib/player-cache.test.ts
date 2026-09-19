@@ -8,6 +8,7 @@ import {
 import {
   getCacheableAssets,
   garbageCollectPlayerMedia,
+  garbageCollectPersistedPlayerMedia,
   hydratePreparedRelease,
   migratePreviousReleaseCacheKeys,
   playerStorageReserveBytes,
@@ -61,6 +62,27 @@ describe("player cache contract", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it("allows the next preparation after local cache collection fails", async () => {
+    const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);
+    if (!lookup.ok) throw new Error("fixture missing");
+    vi.stubGlobal("indexedDB", { open: () => { throw new Error("STORAGE_TEMPORARILY_UNAVAILABLE"); } });
+    await expect(garbageCollectPersistedPlayerMedia("demo-online", new MemoryMediaStore())).rejects.toThrow();
+    const envelope = structuredClone(lookup.body);
+    envelope.manifest.items = [];
+    expect(await preparePendingRelease({ envelope, store: new MemoryMediaStore() })).toEqual({ ok: true, assets: [] });
+  });
+
+  it("refuses an unsupported manifest before touching media or local state", async () => {
+    const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);
+    if (!lookup.ok) throw new Error("fixture missing");
+    const envelope = structuredClone(lookup.body);
+    Object.assign(envelope.manifest, { schemaVersion: 2 });
+    const store = new MemoryMediaStore();
+    const read = vi.spyOn(store, "get");
+    expect(await preparePendingRelease({ envelope, store })).toEqual({ ok: false, error: "PLAYER_UPDATE_REQUIRED" });
+    expect(read).not.toHaveBeenCalled();
   });
 
   it("extracts cacheable media and poster assets from a manifest", () => {

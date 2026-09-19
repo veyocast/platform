@@ -42,7 +42,6 @@ type PublishJourneyProps = {
   }>;
   canPublish: boolean;
   idempotencyKey: string;
-  nextVersion: number;
   playlist: { id: string; name: string; revision: number };
   preflightError: string | null;
   preflightStates: PreflightState[];
@@ -62,7 +61,6 @@ export function PublishJourney({
   birthdayTimingChecks,
   canPublish,
   idempotencyKey,
-  nextVersion,
   playlist,
   preflightError,
   preflightStates,
@@ -121,15 +119,15 @@ export function PublishJourney({
       actions={<Button asChild variant="secondary"><Link href={`/dashboard/playlists/${playlist.id}`}>Terug naar editor</Link></Button>}
       aside={(
         <div className={`${styles.impactSummary} publish-journey-summary`} aria-label="Publicatie-impact">
-          <div><span>Release</span><strong>{playlist.name} · versie {nextVersion}</strong></div>
+          <div><span>Publicatie</span><strong>{playlist.name}</strong></div>
           <div><span>Inhoud</span><strong>{readiness.itemCount} items · {formatDuration(readiness.totalDurationSeconds)}</strong></div>
           <div><span>Download</span><strong>{formatBytes(readiness.totalBytes)}</strong></div>
           <div><span>Doelen</span><strong>{selectedIds.length} {selectedIds.length === 1 ? "scherm" : "schermen"}</strong></div>
-          <p>De huidige release blijft spelen totdat de Player de nieuwe release volledig heeft gedownload, geverifieerd en veilig geactiveerd.</p>
+          <p>De huidige inhoud blijft spelen tijdens de voorbereiding. Daarna wisselt de player bij de eerstvolgende geschikte slideovergang.</p>
         </div>
       )}
       currentStep={currentStep.id}
-      description="Controleer inhoud en impact stap voor stap. Er wordt pas bij de laatste bevestiging één immutable release gemaakt."
+      description="Publiceer het concept naar de gekozen schermen. Alleen gewijzigde configuratie krijgt een nieuwe revisie; live gegevens verversen zelfstandig."
       eyebrow={`${tenantName} · Publisher · stap ${stepIndex + 1} van ${steps.length}`}
       steps={steps}
       title={`${playlist.name} publiceren`}
@@ -153,7 +151,7 @@ export function PublishJourney({
               <div>
                 <p className={styles.sectionEyebrow}>Uitrol bepalen</p>
                 <h2 className="workspace-section__title" id="publish-targets-title">Doelschermen kiezen</h2>
-                <p className="work-panel__meta">Kies de schermen die deze release ontvangen. De bestaande release blijft spelen tot de nieuwe versie volledig is gecontroleerd.</p>
+                <p className="work-panel__meta">Kies de schermen voor deze publicatie. Actieve planningen blijven behouden; de standaardinhoud wordt apart bijgewerkt.</p>
               </div>
               <StatusPill label={`${selectedIds.length} gekozen`} tone={selectedIds.length ? "info" : "neutral"} />
             </div>
@@ -252,7 +250,7 @@ export function PublishJourney({
               <section aria-labelledby="disabled-targets-title" className={styles.disabledSection}>
                 <div>
                   <h3 id="disabled-targets-title">Niet beschikbaar</h3>
-                  <p>Uitgeschakelde schermen ontvangen geen releases.</p>
+                  <p>Uitgeschakelde schermen ontvangen geen publicaties.</p>
                 </div>
                 <div className={styles.disabledGrid}>
                   {disabledStates.map((state) => (
@@ -273,7 +271,7 @@ export function PublishJourney({
         ) : null}
 
         {currentStep.id === "confirm" ? (
-          <section aria-labelledby="publish-confirm-title" className="publish-workspace"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="publish-confirm-title">Impact bevestigen</h2><p className="work-panel__meta">De server controleert revisie, readiness, targets en preflight nogmaals in dezelfde beveiligde publicatieactie.</p></div><StatusPill label={`Versie ${nextVersion}`} tone="neutral" /></div><form action={publishPlaylistGuided} className="playlist-form" id="guided-publish-form"><input name="playlistId" type="hidden" value={playlist.id} /><input name="expectedRevision" type="hidden" value={playlist.revision} /><input name="idempotencyKey" type="hidden" value={idempotencyKey} />{selectedIds.map((screenId) => <input key={screenId} name="screenIds" type="hidden" value={screenId} />)}<div className="field"><label htmlFor="guided-release-notes">Releasenotitie</label><textarea disabled={!canPublish} id="guided-release-notes" maxLength={500} name="releaseNotes" placeholder="Wat verandert er en waarom?" rows={3} /></div>{hasRisk ? <label className="check-row"><input disabled={!canPublish || hasBlocked} name="confirmRisk" required type="checkbox" /><span><strong>Ik bevestig bewust de waarschuwingen en onbekende telemetry</strong><span className="work-panel__meta">De ontbrekende zekerheid is hierboven per scherm toegelicht.</span></span></label> : null}<label className="check-row"><input disabled={!canPublish || hasBlocked || !selectedIds.length} name="confirmPublish" required type="checkbox" /><span><strong>Maak één nieuwe immutable release voor {selectedIds.length} {selectedIds.length === 1 ? "scherm" : "schermen"}</strong><span className="work-panel__meta">Na publicatie kan deze versie niet worden gewijzigd of verwijderd.</span></span></label><Button disabled={!canPublish || hasBlocked || !selectedIds.length} type="submit">Release publiceren en uitrol volgen</Button></form>{!canPublish ? <p className="notice notice--critical" role="alert">Je kunt deze release nog niet publiceren. Controleer readiness, tenantstatus en je publicatierechten.</p> : null}</section>
+          <section aria-labelledby="publish-confirm-title" className="publish-workspace"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="publish-confirm-title">Impact bevestigen</h2><p className="work-panel__meta">De server controleert revisie, readiness, targets en preflight nogmaals in dezelfde beveiligde publicatieactie.</p></div><StatusPill label="Configuratie publiceren" tone="neutral" /></div><form action={publishPlaylistGuided} className="playlist-form" id="guided-publish-form"><input name="playlistId" type="hidden" value={playlist.id} /><input name="expectedRevision" type="hidden" value={playlist.revision} /><input name="idempotencyKey" type="hidden" value={idempotencyKey} />{selectedIds.map((screenId) => <input key={screenId} name="screenIds" type="hidden" value={screenId} />)}<div className="field"><label htmlFor="guided-release-notes">Publicatienotitie</label><textarea disabled={!canPublish} id="guided-release-notes" maxLength={500} name="releaseNotes" placeholder="Wat verandert er en waarom?" rows={3} /></div>{hasRisk ? <label className="check-row"><input disabled={!canPublish || hasBlocked} name="confirmRisk" required type="checkbox" /><span><strong>Ik bevestig bewust de waarschuwingen en onbekende telemetry</strong><span className="work-panel__meta">De ontbrekende zekerheid is hierboven per scherm toegelicht.</span></span></label> : null}<label className="check-row"><input disabled={!canPublish || hasBlocked || !selectedIds.length} name="confirmPublish" required type="checkbox" /><span><strong>Publiceer de actuele configuratie voor {selectedIds.length} {selectedIds.length === 1 ? "scherm" : "schermen"}</strong><span className="work-panel__meta">Bij ongewijzigde inhoud blijft dezelfde revisie gelden. Concept en gepubliceerde inhoud blijven gescheiden.</span></span></label><Button disabled={!canPublish || hasBlocked || !selectedIds.length} type="submit">Publiceren en schermstatus volgen</Button></form>{!canPublish ? <p className="notice notice--critical" role="alert">Je kunt deze configuratie nog niet publiceren. Controleer readiness, tenantstatus en je publicatierechten.</p> : null}</section>
         ) : null}
       </div>
 

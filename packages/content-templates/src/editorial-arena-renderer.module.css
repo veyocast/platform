@@ -2205,7 +2205,7 @@
     color-mix(in srgb, var(--vc-theme-canvas) 86%, transparent));
 }
 
-.arenaRoot .birthdayCard > *:not(.birthdayCardPhoto) { position: relative; z-index: 1; }
+.arenaRoot .birthdayCopy { position: relative; z-index: 1; }
 
 .arenaRoot .birthdayCopy {
   display: flex;
@@ -5665,7 +5665,7 @@
 }
 
 .arenaRoot[data-design-revision="royal-current-v8"] .birthdayCardPhoto {
-  z-index: 0;
+  z-index: -2;
   opacity: .3;
 }
 
@@ -5681,7 +5681,7 @@
     color-mix(in srgb, var(--vc-theme-canvas) 86%, transparent));
 }
 
-.arenaRoot[data-design-revision="royal-current-v8"] .birthdayCard > *:not(.birthdayCardPhoto) {
+.arenaRoot[data-design-revision="royal-current-v8"] .birthdayCopy {
   position: relative;
   z-index: 1;
 }

@@ -45,7 +45,7 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("refreshSameReleaseMediaAccess");
     expect(html).toContain("mediaAccessRefreshMs");
     expect(html).toContain("currentItem.source.url = freshItem.source.url");
-    expect(html).not.toContain('headers["If-None-Match"]');
+    expect(html).toContain('headers["If-None-Match"] = runtime.manifestEtag');
     expect(html).toContain("status === 304 && knownReleaseId");
     expect(html).toContain("runtime.pendingRelease");
     expect(html).toContain("LEGACY_RELEASE_SWITCH_PENDING");
@@ -210,7 +210,7 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("veyocast.player.instanceId");
     expect(html).toContain('"/api/player/installation"');
     expect(html).toContain('"/api/player/pairing"');
-    expect(html).toContain('"/api/player/manifest?legacy="');
+    expect(html).toContain('"/api/player/manifest"');
     expect(html).toContain('"/api/player/heartbeat"');
     expect(html).toContain('appVersion');
     expect(html).toContain('X-VeyoCast-Player-Version');
@@ -341,13 +341,13 @@ describe("zelfstandige LG Legacy Player", () => {
     const html = renderLgLegacyHtml();
 
     expect(html).toContain(
-      "remaining = Math.max(1, runtime.playbackDeadlineAt - now())"
+      "remaining = Math.max(1, runtime.playbackDeadlineAt - monotonicNow())"
     );
     expect(html).toContain("runtime.playbackRemainingMs = remaining");
     expect(html).toContain('element.tagName === "VIDEO" && !element.paused');
     expect(html).toContain("schedulePlaybackAdvance(remaining)");
     expect(html).toContain(
-      "remaining = Math.max(1, runtime.templateDeadlineAt - now())"
+      "remaining = Math.max(1, runtime.templateDeadlineAt - monotonicNow())"
     );
     expect(html).toContain(
       "scheduleTemplateAdvance(templateCallback, templateRemaining)"

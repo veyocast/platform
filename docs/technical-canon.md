@@ -120,13 +120,16 @@ Media wordt nooit blind afgespeeld. Uploads worden:
 
 ## 7. Release model
 
-Een playlist draft is bewerkbaar. Een release is immutable.
+Een playlistconcept is bewerkbaar. Eén actuele publicatie wijst naar een immutable configuratierevisie. Brondata hebben een onafhankelijke datarevisie; software heeft een eigen deployment-SHA.
 
 ```text
-playlist draft -> publish review -> playlist_release vN -> player manifest -> player cache -> active release
+playlistconcept -> publicatiecontrole -> actuele immutable configuratie
+  -> effectieve schermopdracht (targetRevision) -> nieuwste complete kandidaat
+  -> eerstvolgende natuurlijke overgang -> eerste zichtbare frame bevestigd
+centrale bronverwerking -> actuele gepubliceerde dataset -> bestaande dynamische slide
 ```
 
-Een mediaasset dat in een release zit wordt niet stilzwijgend vervangen. Nieuwe content vereist nieuwe asset/variant en herpublicatie.
+Bytes van immutable media worden niet vervangen. Een gekozen ander playlistbestand vereist publicatie. Actuele bronfoto’s, logo’s en overige datareferenties mogen binnen de gepubliceerde databinding verversen zonder playlistpublicatie. Zie [S185](s185-current-publication.md).
 
 ### Realtime eventoverlay
 

@@ -68,3 +68,22 @@ export function safeGoalVideoCapabilities(value: unknown) {
     viewportHeight: safeVideoDimension(input.viewportHeight), h264: playable(input.h264),
     webm: playable(input.webm), reducedMotion: input.reducedMotion === true };
 }
+
+
+export function safePublicationTrace(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const input = value as Record<string, unknown>;
+  const revision = (value: unknown) => typeof value === "string" && /^[1-9][0-9]{0,18}$/.test(value) ? value : null;
+  const id = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value) ? value : null;
+  if (!revision(input.targetRevision) || !revision(input.configRevision) || !id(input.publicationId) || !id(input.correlationId)) return null;
+  const result: Record<string, string | number | null> = {
+    targetRevision: revision(input.targetRevision), configRevision: revision(input.configRevision),
+    publicationId: id(input.publicationId), releaseId: id(input.releaseId), correlationId: id(input.correlationId),
+    generation: Number.isSafeInteger(input.generation) && Number(input.generation) > 0 ? Number(input.generation) : null,
+    frameAfterBoundaryMs: typeof input.frameAfterBoundaryMs === "number" && input.frameAfterBoundaryMs >= 0 && input.frameAfterBoundaryMs < 86400000 ? input.frameAfterBoundaryMs : null
+  };
+  for (const key of ["committedAt", "targetWrittenAt", "signalReceivedAt", "resolvedAt", "assetsReadyAt", "boundaryAt", "firstFrameAt"]) {
+    result[key] = typeof input[key] === "string" ? safeIsoTimestamp(input[key]) : null;
+  }
+  return result;
+}

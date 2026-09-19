@@ -83,7 +83,7 @@ const legacyConfig = {
   installationCredentialKey: "veyocast.player.installationCredential",
   installationIdKey: "veyocast.player.instanceId",
   legacyDiagnosticsKey: "veyocast.player.lgLegacyDiagnostics.v1",
-  manifestIntervalMs: 30_000,
+  manifestIntervalMs: 8_000,
   mediaAccessRefreshMs: 45 * 60 * 1000,
   pairingCodeKey: "veyocast.player.pairingCode",
   pairingExpiryKey: "veyocast.player.pairingExpiresAt",
@@ -896,7 +896,7 @@ export function renderLgLegacyHtml() {
     .legacy-birthday-photo{position:absolute;z-index:-2;top:0;right:0;bottom:0;left:0;background-image:linear-gradient(135deg,var(--editorial-accent-soft),transparent 65%),linear-gradient(180deg,var(--editorial-surface-alt),var(--editorial-surface));background-position:center;background-size:cover;opacity:.34;transform:scale(1.04)}
     .legacy-birthday-photo:after{position:absolute;top:0;right:0;bottom:0;left:0;background:rgba(255,255,255,.78);content:""}
     .dynamic-template.editorial-arena.dark .legacy-birthday-photo:after{background:rgba(7,10,14,.78)}
-    .legacy-birthday-copy{display:flex;min-width:0;max-width:94%;align-items:center;flex-direction:column;justify-content:center;padding:4%;color:var(--editorial-text)}
+    .legacy-birthday-copy{position:relative;z-index:1;display:flex;min-width:0;max-width:94%;align-items:center;flex-direction:column;justify-content:center;padding:4%;color:var(--editorial-text)}
     .legacy-birthday-copy b{color:var(--accent);font-size:clamp(16px,1.2vw,26px);font-weight:900;letter-spacing:.16em;line-height:1.1;text-transform:uppercase}
     .legacy-birthday-copy h2{max-width:100%;margin:14px 0 6px;overflow-wrap:anywhere;color:var(--ink);font-family:var(--vc-theme-display-font,"VeyoCast Royal Current Roboto"),Roboto,Arial,sans-serif;font-size:clamp(30px,3.1vw,74px);font-weight:900;letter-spacing:-.055em;line-height:.94}
     .legacy-birthday-copy p{max-width:100%;margin:0;color:var(--editorial-muted);font-size:clamp(16px,1.25vw,28px);font-weight:700;line-height:1.2;overflow-wrap:anywhere}
@@ -1030,6 +1030,23 @@ export function renderLgLegacyHtml() {
       pendingElement: null,
       pendingObjectUrls: [],
       pendingRelease: null,
+      targetKey: null,
+      manifestEtag: null,
+      invalidatedDuringFetch: false,
+      heartbeatInFlight: false,
+      heartbeatPending: false,
+      publicationTrace: null,
+      preparationError: null,
+      signalReceivedAt: null,
+      boundaryMonotonic: null,
+      targetRevision: null,
+      targetScreenId: null,
+      targetGeneration: 0,
+      preparingGeneration: null,
+      preparationXhr: null,
+      activationTransaction: null,
+      presentedReleaseId: null,
+      publicationPass: null,
       playbackDeadlineAt: 0,
       playbackGeneration: 0,
       playbackRemainingMs: null,
@@ -1056,6 +1073,7 @@ export function renderLgLegacyHtml() {
 
     function byId(id) { return document.getElementById(id); }
     function now() { return new Date().getTime(); }
+    function monotonicNow() { return window.performance && window.performance.now ? window.performance.now() : now(); }
     function safeRead(key) {
       try { return window.localStorage.getItem(key); } catch (error) { return null; }
     }
@@ -1222,7 +1240,8 @@ export function renderLgLegacyHtml() {
           xhr.status || 0,
           responseBody,
           xhr.getResponseHeader("Retry-After"),
-          xhr.getResponseHeader("X-VeyoCast-Player-Version")
+          xhr.getResponseHeader("X-VeyoCast-Player-Version"),
+          xhr.getResponseHeader("ETag")
         );
       }
       xhr.onload = function () { finish(null); };
@@ -3144,14 +3163,14 @@ export function renderLgLegacyHtml() {
       runtime.goalPauseApplied = true;
       if (runtime.currentElement && runtime.currentElement.birthdayRefresh) runtime.currentElement.birthdayRefresh();
       if (runtime.playbackTimer !== null && runtime.playbackDeadlineAt > 0) {
-        remaining = Math.max(1, runtime.playbackDeadlineAt - now());
+        remaining = Math.max(1, runtime.playbackDeadlineAt - monotonicNow());
         window.clearTimeout(runtime.playbackTimer);
         runtime.playbackTimer = null;
         runtime.playbackDeadlineAt = 0;
         runtime.playbackRemainingMs = remaining;
       }
       if (runtime.templateTimer !== null && runtime.templateDeadlineAt > 0) {
-        remaining = Math.max(1, runtime.templateDeadlineAt - now());
+        remaining = Math.max(1, runtime.templateDeadlineAt - monotonicNow());
         window.clearTimeout(runtime.templateTimer);
         runtime.templateTimer = null;
         runtime.templateDeadlineAt = 0;
@@ -3928,6 +3947,11 @@ export function renderLgLegacyHtml() {
       var record = goalRecord(value);
       var deliveryId;
       if (!record) return;
+      if (event === "target_invalidated" || event === "data_invalidated") {
+        runtime.signalReceivedAt = new Date().toISOString();
+        if (typeof record.targetRevision === "string" && typeof record.committedAt === "string") runtime.targetCommit = { revision: record.targetRevision, at: record.committedAt };
+        scheduleManifestSync(0); return;
+      }
       if (event === "bootstrap" || event === "configuration") {
         if (record.screenOrientation === "portrait" || record.screenOrientation === "landscape") runtime.goalScreenOrientation = record.screenOrientation;
         var prepared = preloadGoalAssets(record.configs);
@@ -4650,6 +4674,7 @@ export function renderLgLegacyHtml() {
     }
     function downloadAsset(asset, callback) {
       var xhr = new XMLHttpRequest();
+      runtime.preparationXhr = xhr;
       var completed = false;
       function finish(error, bytes, mimeType) {
         if (completed) return;
@@ -4702,15 +4727,13 @@ export function renderLgLegacyHtml() {
       }
       deleteNext();
     }
-    function downloadMissingAssets(cache, assets, callback) {
-      var storedKeys = [];
+    function downloadMissingAssets(cache, assets, callback, generation) {
       var index = 0;
       function fail(code) {
-        deleteCacheKeys(cache, storedKeys, function () {
-          callback(code);
-        });
+        callback(code);
       }
       function downloadNext() {
+        if (generation !== runtime.targetGeneration) { callback("TARGET_SUPERSEDED"); return; }
         var asset;
         if (index >= assets.length) {
           callback(null);
@@ -4721,6 +4744,7 @@ export function renderLgLegacyHtml() {
         setState("DOWNLOADING");
         runtime.syncPhase = "downloading";
         downloadAsset(asset, function (downloadError, bytes, mimeType) {
+          if (generation !== runtime.targetGeneration) { callback("TARGET_SUPERSEDED"); return; }
           if (downloadError) {
             fail(downloadError);
             return;
@@ -4729,6 +4753,7 @@ export function renderLgLegacyHtml() {
           runtime.syncPhase = "verifying";
           verifyAssetBytes(asset, bytes, function (verifyError) {
             var response;
+            if (generation !== runtime.targetGeneration) { callback("TARGET_SUPERSEDED"); return; }
             if (verifyError) {
               fail(verifyError);
               return;
@@ -4750,7 +4775,6 @@ export function renderLgLegacyHtml() {
               return;
             }
             cache.put(asset.cacheKey, response).then(function () {
-              storedKeys.push(asset.cacheKey);
               downloadNext();
             }, function () {
               fail("LEGACY_CACHE_WRITE_FAILED");
@@ -4761,6 +4785,11 @@ export function renderLgLegacyHtml() {
       downloadNext();
     }
     function preparePendingRelease(envelope, callback) {
+      if (!envelope.manifest || envelope.manifest.schemaVersion !== 1) {
+        callback({ ok: false, error: "PLAYER_UPDATE_REQUIRED" });
+        return;
+      }
+      var generation = runtime.targetGeneration;
       var assets = releaseAssets(envelope);
       var uniqueAssets;
       if (!assets || !assets.length) {
@@ -4773,6 +4802,7 @@ export function renderLgLegacyHtml() {
         return;
       }
       openAssetCache(function (cacheError, cache) {
+        if (generation !== runtime.targetGeneration) { callback({ ok: false, error: "TARGET_SUPERSEDED" }); return; }
         if (cacheError) {
           callback({ ok: false, error: cacheError });
           return;
@@ -4780,11 +4810,13 @@ export function renderLgLegacyHtml() {
         setState("VERIFYING");
         runtime.syncPhase = "verifying";
         inspectCachedAssets(cache, uniqueAssets, function (inspectError, missing) {
+          if (generation !== runtime.targetGeneration) { callback({ ok: false, error: "TARGET_SUPERSEDED" }); return; }
           if (inspectError) {
             callback({ ok: false, error: inspectError });
             return;
           }
           checkStorage(missing, function (storageError) {
+            if (generation !== runtime.targetGeneration) { callback({ ok: false, error: "TARGET_SUPERSEDED" }); return; }
             if (storageError) {
               callback({ ok: false, error: storageError });
               return;
@@ -4795,7 +4827,7 @@ export function renderLgLegacyHtml() {
                   ? { ok: false, error: downloadError }
                   : { ok: true, assets: assets }
               );
-            });
+            }, generation);
           });
         });
       });
@@ -4825,6 +4857,14 @@ export function renderLgLegacyHtml() {
           currentAsset.posterUrl = freshAsset.posterUrl;
         }
       }
+    }
+    function liveDataChanged(freshEnvelope) {
+      var currentItems = runtime.envelope && runtime.envelope.manifest.items || [];
+      var current = {};
+      currentItems.forEach(function (item) { current[item.id] = item.dynamicTemplate && item.dynamicTemplate.snapshotHash; });
+      return freshEnvelope.manifest.items.some(function (item) {
+        return (item.dynamicTemplate && item.dynamicTemplate.snapshotHash) !== current[item.id];
+      });
     }
     function refreshSameReleaseMediaAccess(freshEnvelope) {
       var currentManifest = runtime.envelope && runtime.envelope.manifest;
@@ -4877,10 +4917,29 @@ export function renderLgLegacyHtml() {
         ) {
           currentItem.source.posterUrl = freshItem.source.posterUrl;
         }
-        refreshDynamicTemplateMediaAccess(
-          currentItem.dynamicTemplate,
-          freshItem.dynamicTemplate
-        );
+        if (freshItem.dynamicTemplate && currentItem.dynamicTemplate &&
+          freshItem.dynamicTemplate.snapshotHash !== currentItem.dynamicTemplate.snapshotHash) {
+          currentItem.dynamicTemplate = freshItem.dynamicTemplate;
+          if (runtime.currentItem && runtime.currentItem.id === currentItem.id && runtime.currentElement && runtime.currentElement.refreshPublishedData) {
+            (function (item, element, targetGeneration, playbackGeneration) {
+              resolveTemplateAssetUrls(item, function (urls, objectUrls) {
+                if (!urls || targetGeneration !== runtime.targetGeneration || playbackGeneration !== runtime.playbackGeneration || runtime.currentElement !== element) {
+                  revokeObjectUrls(objectUrls || []); return;
+                }
+                item.dynamicTemplate._legacyLocalAssetUrls = urls;
+                var obsoleteDataUrls = element.liveDataObjectUrls || [];
+                element.refreshPublishedData(item.dynamicTemplate);
+                element.liveDataObjectUrls = objectUrls || [];
+                runtime.currentObjectUrls = runtime.currentObjectUrls.filter(function (url) {
+                  return obsoleteDataUrls.indexOf(url) === -1;
+                }).concat(objectUrls || []);
+                revokeObjectUrls(obsoleteDataUrls);
+              });
+            })(currentItem, runtime.currentElement, runtime.targetGeneration, runtime.playbackGeneration);
+          }
+        } else {
+          refreshDynamicTemplateMediaAccess(currentItem.dynamicTemplate, freshItem.dynamicTemplate);
+        }
       }
       runtime.envelope.state = freshEnvelope.state;
       runtime.envelope.fetchedAt = freshEnvelope.fetchedAt;
@@ -4889,11 +4948,42 @@ export function renderLgLegacyHtml() {
       if (freshEnvelope.branding) runtime.envelope.branding = freshEnvelope.branding;
       return restart && runtime.currentItem && runtime.currentItem.kind === "video";
     }
+    function observeTarget(envelope) {
+      var revision = envelope.target && String(envelope.target.revision);
+      if (runtime.targetScreenId !== envelope.device.screenId) {
+        runtime.targetRevision = null; runtime.targetKey = null; runtime.targetScreenId = envelope.device.screenId;
+      }
+      if (runtime.targetRevision && !revision) return false;
+      var dataKey = envelope.manifest.items.map(function (item) { return item.dynamicTemplate ? item.dynamicTemplate.snapshotHash : ""; }).join(":");
+      var key = String(revision || "legacy") + ":" + releaseIdOf(envelope) + ":" + dataKey;
+      if (revision && runtime.targetRevision &&
+        (revision.length < runtime.targetRevision.length ||
+        (revision.length === runtime.targetRevision.length && revision < runtime.targetRevision))) return false;
+      if (key === runtime.targetKey) return true;
+      runtime.targetKey = key;
+      runtime.targetRevision = revision || null;
+      runtime.targetGeneration += 1;
+      if (envelope.target && (!runtime.publicationTrace || runtime.publicationTrace.targetRevision !== revision || runtime.publicationTrace.releaseId !== releaseIdOf(envelope))) {
+        runtime.publicationTrace = { correlationId: String(now()) + "-" + String(Math.random()).slice(2),
+          targetRevision: revision, configRevision: envelope.target.configRevision, publicationId: envelope.target.publicationId,
+          releaseId: releaseIdOf(envelope), generation: runtime.targetGeneration, targetWrittenAt: envelope.target.committedAt,
+          committedAt: runtime.targetCommit && runtime.targetCommit.revision === envelope.target.revision ? runtime.targetCommit.at : null,
+          signalReceivedAt: runtime.signalReceivedAt, resolvedAt: new Date().toISOString() };
+        runtime.boundaryMonotonic = null;
+      }
+      runtime.pendingRelease = null;
+      if (runtime.preparationXhr) { runtime.preparationXhr.abort(); runtime.preparationXhr = null; }
+      if (runtime.activationTransaction) {
+        try { runtime.activationTransaction.abort(); } catch (error) {}
+        runtime.activationTransaction = null;
+      }
+      return true;
+    }
     function syncManifest() {
       var forceRefresh = runtime.forceManifestRefresh;
       var headers;
       var knownReleaseId;
-      if (runtime.syncInFlight) return;
+      if (runtime.syncInFlight) { runtime.invalidatedDuringFetch = true; return; }
       if (!runtime.deviceToken) {
         ensurePairing();
         return;
@@ -4909,15 +4999,15 @@ export function renderLgLegacyHtml() {
               ? runtime.pendingRelease.envelope
               : runtime.envelope
           );
-      // Every successful manifest response contains one-hour signed media URLs.
-      // Do not send the release ETag here: a 304 would prevent URL rotation.
+      // The authorized target ETag includes a separate access-rotation epoch.
+      if (!forceRefresh && runtime.manifestEtag) headers["If-None-Match"] = runtime.manifestEtag;
       runtime.syncInFlight = true;
       request(
         "GET",
-        "/api/player/manifest?legacy=" + String(now()),
+        "/api/player/manifest",
         headers,
         null,
-        function (transport, status, body, retryAfter, advertisedVersion) {
+        function (transport, status, body, retryAfter, advertisedVersion, manifestEtag) {
           var code = errorCode(body, transport || "PLAYER_API_UNAVAILABLE");
           runtime.syncInFlight = false;
           if (
@@ -4931,6 +5021,7 @@ export function renderLgLegacyHtml() {
               return;
             }
           }
+          if (!transport && status === 409) { scheduleManifestSync(100); return; }
           if (!transport && status === 304 && knownReleaseId) {
             clearTemporaryPairing();
             runtime.syncFailures = 0;
@@ -4965,6 +5056,8 @@ export function renderLgLegacyHtml() {
             return;
           }
           if (!transport && status >= 200 && status < 300 && isManifestEnvelope(body)) {
+            if (!observeTarget(body)) { scheduleManifestSync(CONFIG.manifestIntervalMs); return; }
+            runtime.manifestEtag = manifestEtag || null;
             clearTemporaryPairing();
             runtime.syncFailures = 0;
             runtime.offline = false;
@@ -4972,7 +5065,7 @@ export function renderLgLegacyHtml() {
             var mediaAccessNeedsRestart;
             if (
               !forceRefresh &&
-              releaseIdOf(runtime.envelope) === releaseIdOf(body)
+              releaseIdOf(runtime.envelope) === releaseIdOf(body) && !liveDataChanged(body)
             ) {
               runtime.pendingRelease = null;
               mediaAccessNeedsRestart = refreshSameReleaseMediaAccess(body);
@@ -4994,12 +5087,19 @@ export function renderLgLegacyHtml() {
               sendHeartbeat();
               return;
             }
-            runtime.syncInFlight = true;
+            var generation = runtime.targetGeneration;
+            scheduleManifestSync(CONFIG.manifestIntervalMs);
+            if (runtime.preparingGeneration === generation) return;
+            runtime.preparingGeneration = generation;
+            runtime.preparationError = null;
             preparePendingRelease(body, function (prepared) {
+              if (generation !== runtime.targetGeneration) return;
+              runtime.preparingGeneration = null;
               if (!prepared.ok) {
-                runtime.syncInFlight = false;
+                runtime.manifestEtag = null;
                 runtime.syncFailures = Math.min(runtime.syncFailures + 1, 8);
                 runtime.syncPhase = "failed";
+                runtime.preparationError = prepared.error;
                 log(prepared.error, releaseIdOf(body) || "release");
                 if (runtime.envelope) {
                   setState(runtime.offline ? "OFFLINE_PLAYING" : "PLAYING");
@@ -5016,15 +5116,16 @@ export function renderLgLegacyHtml() {
                 sendHeartbeat();
                 return;
               }
+              if (runtime.publicationTrace && runtime.publicationTrace.releaseId === releaseIdOf(body)) runtime.publicationTrace.assetsReadyAt = new Date().toISOString();
               runtime.forceManifestRefresh = false;
               if (releaseIdOf(runtime.envelope) === releaseIdOf(body)) {
-                runtime.syncInFlight = false;
                 runtime.pendingRelease = null;
                 refreshSameReleaseMediaAccess(body);
                 runtime.itemFailures = {};
                 setState(runtime.offline ? "OFFLINE_PLAYING" : "PLAYING");
                 runtime.syncPhase = "active";
-                playCurrent();
+                if (forceRefresh) playCurrent();
+                persistRelease(runtime.envelope, prepared.assets, function () {});
                 scheduleManifestSync(CONFIG.manifestIntervalMs);
                 sendHeartbeat();
                 return;
@@ -5033,8 +5134,7 @@ export function renderLgLegacyHtml() {
                 body,
                 prepared.assets,
                 function (queueError) {
-                  runtime.syncInFlight = false;
-                  if (queueError) {
+                    if (queueError) {
                     runtime.syncFailures = Math.min(
                       runtime.syncFailures + 1,
                       8
@@ -5088,8 +5188,9 @@ export function renderLgLegacyHtml() {
       );
     }
     function scheduleManifestSync(delay) {
+      if (!runtime.syncInFlight && runtime.invalidatedDuringFetch) { runtime.invalidatedDuringFetch = false; delay = 0; }
       window.clearTimeout(runtime.retryTimer);
-      runtime.retryTimer = window.setTimeout(syncManifest, delay);
+      runtime.retryTimer = window.setTimeout(syncManifest, delay + (delay > 0 ? Math.random() * Math.min(750, delay * .1) : 0));
     }
     function openPlayerDatabase(callback) {
       var open;
@@ -5232,6 +5333,7 @@ export function renderLgLegacyHtml() {
       });
     }
     function persistRelease(envelope, assets, callback) {
+      var targetGeneration = runtime.targetGeneration;
       var completed = false;
       function finish(error, cached) {
         if (completed) return;
@@ -5248,6 +5350,7 @@ export function renderLgLegacyHtml() {
           finish(openError || "LEGACY_INDEXEDDB_OPEN_FAILED", null);
           return;
         }
+        if (targetGeneration !== runtime.targetGeneration) { database.close(); finish("TARGET_SUPERSEDED", null); return; }
         cached = {
           activatedAt: new Date().toISOString(),
           assets: assets,
@@ -5259,6 +5362,7 @@ export function renderLgLegacyHtml() {
             [CONFIG.activeReleaseStore, CONFIG.previousReleaseStore],
             "readwrite"
           );
+          runtime.activationTransaction = transaction;
           activeStore = transaction.objectStore(CONFIG.activeReleaseStore);
           previousStore = transaction.objectStore(CONFIG.previousReleaseStore);
           currentRequest = activeStore.get(runtime.deviceToken);
@@ -5271,6 +5375,7 @@ export function renderLgLegacyHtml() {
           try { transaction.abort(); } catch (error) {}
         };
         currentRequest.onsuccess = function () {
+          if (targetGeneration !== runtime.targetGeneration) { transaction.abort(); return; }
           var current = currentRequest.result;
           if (
             current &&
@@ -5282,14 +5387,16 @@ export function renderLgLegacyHtml() {
         };
         transaction.onerror = function () {};
         transaction.onabort = function () {
+          if (runtime.activationTransaction === transaction) runtime.activationTransaction = null;
           try { database.close(); } catch (error) {}
           finish("LEGACY_RELEASE_PERSIST_FAILED", null);
         };
         transaction.oncomplete = function () {
+          if (runtime.activationTransaction === transaction) runtime.activationTransaction = null;
           try { database.close(); } catch (error) {}
           runtime.cachedRelease = cached;
           finish(null, cached);
-          garbageCollectCachedMedia();
+          if (runtime.preparingGeneration === null && !runtime.pendingRelease) garbageCollectCachedMedia();
         };
       });
     }
@@ -5351,7 +5458,8 @@ export function renderLgLegacyHtml() {
       if (runtime.envelope && runtime.currentElement) {
         runtime.pendingRelease = {
           assets: assets,
-          envelope: envelope
+          envelope: envelope,
+          generation: runtime.targetGeneration
         };
         setState("SWITCH_PENDING");
         runtime.syncPhase = "switch_pending";
@@ -5556,7 +5664,7 @@ export function renderLgLegacyHtml() {
         return;
       }
       runtime.playbackRemainingMs = null;
-      runtime.playbackDeadlineAt = now() + boundedDelay;
+      runtime.playbackDeadlineAt = monotonicNow() + boundedDelay;
       runtime.playbackTimer = window.setTimeout(function () {
         runtime.playbackTimer = null;
         runtime.playbackDeadlineAt = 0;
@@ -5574,7 +5682,7 @@ export function renderLgLegacyHtml() {
         return;
       }
       runtime.templateRemainingMs = null;
-      runtime.templateDeadlineAt = now() + boundedDelay;
+      runtime.templateDeadlineAt = monotonicNow() + boundedDelay;
       runtime.templateTimer = window.setTimeout(function () {
         runtime.templateTimer = null;
         runtime.templateDeadlineAt = 0;
@@ -5662,7 +5770,18 @@ export function renderLgLegacyHtml() {
           disposeMediaElement(previousElement, previousObjectUrls);
         }, 220);
       }
-      mediaReady();
+      var confirmedReleaseId = releaseIdOf(runtime.envelope);
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+        if (runtime.currentElement !== element || generation !== runtime.playbackGeneration) return;
+        runtime.presentedReleaseId = confirmedReleaseId;
+        if (runtime.publicationTrace && runtime.publicationTrace.releaseId === confirmedReleaseId && !runtime.publicationTrace.firstFrameAt) {
+          runtime.publicationTrace.firstFrameAt = new Date().toISOString();
+          if (runtime.boundaryMonotonic !== null) runtime.publicationTrace.frameAfterBoundaryMs = Math.max(0, monotonicNow() - runtime.boundaryMonotonic);
+        }
+        mediaReady();
+        });
+      });
       return true;
     }
     function silenceCurrentMediaEvents() {
@@ -7881,6 +8000,7 @@ export function renderLgLegacyHtml() {
               );
               if (!birthdayDisplayName) continue;
               var birthdayCard = templateNode("article", "legacy-birthday-card");
+              birthdayCard.setAttribute("data-birthday-card", "true");
               var birthdayPhoto = templateNode("div", "legacy-birthday-photo");
               if (birthdayBackgroundUrl) {
                 birthdayPhoto.style.backgroundImage = "url(" + birthdayBackgroundUrl + ")";
@@ -8876,6 +8996,7 @@ export function renderLgLegacyHtml() {
         }
       }
       function advanceTemplatePage() {
+        if (runtime.pendingRelease && !runtime.goalPauseApplied) { nextItem(); return; }
         var number;
         var matchCentreNumber;
         if (runtime.currentElement !== root) return;
@@ -9393,6 +9514,7 @@ export function renderLgLegacyHtml() {
         var birthdayOptions = templateRecord(birthdayConfig.presentation) || {};
         var birthdayDay = birthdayCalendarDay(now(), clockTimezone);
         var confettiCleanup = null;
+        var confettiHosts = [];
         var motionQuery = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
         function refreshBirthdayEffect() {
           var nextDay = birthdayCalendarDay(now(), clockTimezone);
@@ -9409,9 +9531,17 @@ export function renderLgLegacyHtml() {
           var enabled = runtime.currentElement === root && !runtime.goalPauseApplied &&
             birthdayOptions.confetti === true && birthdayOptions.motion !== false &&
             themeAppearance.motionEnabled !== false && !(motionQuery && motionQuery.matches) && today && renderer.pages.length > 0;
-          if (enabled && !confettiCleanup) confettiCleanup = startBirthdayConfetti(root, {
-            colors: [accent, templateText(editorialTokens.text, "#FFFFFF"), templateText(editorialTokens.accentSoft, accent)], particleLimit: 32
-          });
+          var visibleBirthdayCards = Array.prototype.slice.call(root.querySelectorAll('[data-birthday-card][data-today="true"]'), 0, 6);
+          if (confettiCleanup && (visibleBirthdayCards.length !== confettiHosts.length || visibleBirthdayCards.some(function (card, index) { return card !== confettiHosts[index]; }))) {
+            confettiCleanup(); confettiCleanup = null;
+          }
+          if (enabled && !confettiCleanup) {
+            confettiHosts = visibleBirthdayCards;
+            var confettiCleanups = confettiHosts.map(function (card) { return startBirthdayConfetti(card, {
+              colors: [accent, templateText(editorialTokens.text, "#FFFFFF"), templateText(editorialTokens.accentSoft, accent)], particleLimit: Math.floor(32 / confettiHosts.length)
+            }); });
+            confettiCleanup = function () { confettiCleanups.forEach(function (cleanup) { cleanup(); }); };
+          }
           if (!enabled && confettiCleanup) { confettiCleanup(); confettiCleanup = null; }
         }
         var birthdayTimer = window.setInterval(refreshBirthdayEffect, 1000);
@@ -9441,6 +9571,30 @@ export function renderLgLegacyHtml() {
         scheduleTemplateAdvance(advanceTemplatePage, templatePageDuration);
       }
       schedulePlaybackAdvance(templateDuration);
+      root.refreshPublishedData = function (freshPayload) {
+        if (runtime.currentElement !== root || generation !== runtime.playbackGeneration) return;
+        payload = freshPayload;
+        snapshot = templateRecord(payload.data) || {};
+        var updatedBrand = templateRecord(snapshot.brand) || {};
+        var updatedCrest = root.querySelector(".editorial-crest");
+        var updatedCrestUrl = templateAssetUrl(payload, templateText(updatedBrand.logoMediaAssetId, ""));
+        if (updatedCrest && updatedCrestUrl) {
+          var updatedCrestImage = updatedCrest.querySelector("img");
+          if (!updatedCrestImage) { updatedCrest.textContent = ""; updatedCrestImage = templateNode("img", ""); updatedCrestImage.alt = ""; updatedCrest.appendChild(updatedCrestImage); }
+          updatedCrestImage.src = updatedCrestUrl;
+        }
+        if (confettiCleanup) { confettiCleanup(); confettiCleanup = null; }
+        if (payload.slideType === "menu") renderer = renderMenuTemplate(body,snapshot,payload.orientation,payload);
+        else if (payload.slideType === "price_list") renderer = renderPriceListTemplate(body,snapshot,payload.orientation,payload);
+        else if (payload.slideType === "news") renderer = renderNewsTemplate(body,snapshot,payload,root);
+        else if (payload.slideType === "sport_standing" || payload.slideType === "sport_period_standing") renderer = renderEditorialStandingTemplate(body,snapshot,payload);
+        else renderer = renderSportTemplate(body,snapshot,payload.slideType,payload.orientation,payload);
+        if (!renderer || !renderer.pages.length) return;
+        pageIndex = Math.min(pageIndex,renderer.pages.length-1);
+        renderer.render(renderer.pages[pageIndex],pageIndex);
+        fitDynamicTemplateCanvas(root,payload.orientation);
+        if (root.birthdayRefresh) root.birthdayRefresh();
+      };
       log("LEGACY_TEMPLATE_READY", payload.slideType + " " + payload.templateSlug);
     }
     function playImage(item, sourceUrl, objectUrls, generation) {
@@ -9557,7 +9711,7 @@ export function renderLgLegacyHtml() {
       video.oncanplay = function () { startVideo(video, generation); };
       video.onplaying = function () {
         if (generation !== runtime.playbackGeneration) return;
-        runtime.lastProgressAt = now();
+        runtime.lastProgressAt = monotonicNow();
         if (!committed) {
           window.clearTimeout(runtime.watchdogTimer);
           runtime.watchdogTimer = null;
@@ -9574,7 +9728,7 @@ export function renderLgLegacyHtml() {
       };
       video.ontimeupdate = function () {
         if (!committed || runtime.currentElement !== video) return;
-        runtime.lastProgressAt = now();
+        runtime.lastProgressAt = monotonicNow();
         if (
           item.trim &&
           isFinite(Number(item.trim.endSeconds)) &&
@@ -9606,7 +9760,7 @@ export function renderLgLegacyHtml() {
           runtime.currentElement === video &&
           !video.paused &&
           runtime.lastProgressAt &&
-          now() - runtime.lastProgressAt > CONFIG.videoProgressTimeoutMs
+          monotonicNow() - runtime.lastProgressAt > CONFIG.videoProgressTimeoutMs
         ) {
           fallbackOrFail("LEGACY_VIDEO_STALLED");
         }
@@ -9661,17 +9815,47 @@ export function renderLgLegacyHtml() {
         nextItem();
         return;
       }
+      if (runtime.pendingRelease) { nextItem(); return; }
       if (attempts === 0) {
         playCurrent();
         return;
       }
       nextItem();
     }
+    function publicationOrder(envelope) {
+      var next = playableItems(envelope);
+      var active = playableItems(runtime.envelope);
+      var previous = {};
+      var priority = [];
+      var rest = [];
+      var index;
+      var same = runtime.envelope && runtime.envelope.manifest.playlistId === envelope.manifest.playlistId;
+      var protectedOrder = (envelope.target && envelope.target.assignmentSource === "schedule") || Boolean(envelope.manifest.sponsorPlan);
+      for (index = 0; index < active.length; index += 1) previous[active[index].sourceItemId || active[index].id] = active[index];
+      for (index = 0; index < next.length; index += 1) {
+        var item = next[index];
+        var before = previous[item.sourceItemId || item.id];
+        if (same && !protectedOrder && (!before || (item.contentHash && item.contentHash !== before.contentHash))) priority.push(item.id);
+        else rest.push(item.id);
+      }
+      if (priority.length) return priority.concat(rest);
+      if (same && !protectedOrder && runtime.currentItem) {
+        var currentId = runtime.currentItem.sourceItemId || runtime.currentItem.id;
+        var currentIndex = next.findIndex(function (item) { return (item.sourceItemId || item.id) === currentId; });
+        if (currentIndex >= 0) return rest.slice(currentIndex + 1).concat(rest.slice(0,currentIndex + 1));
+      }
+      return rest;
+    }
     function activatePendingRelease(callback) {
       var pending = runtime.pendingRelease;
-      if (!pending || runtime.activationInFlight) {
+      if (!pending || pending.generation !== runtime.targetGeneration || runtime.activationInFlight) {
         callback(false);
         return;
+      }
+      var order = publicationOrder(pending.envelope);
+      if (!order.length) { callback(false); return; }
+      if (runtime.publicationTrace && runtime.publicationTrace.releaseId === releaseIdOf(pending.envelope)) {
+        runtime.publicationTrace.boundaryAt = new Date().toISOString(); runtime.boundaryMonotonic = monotonicNow();
       }
       runtime.activationInFlight = true;
       persistRelease(
@@ -9685,13 +9869,14 @@ export function renderLgLegacyHtml() {
             callback(false);
             return;
           }
-          if (runtime.pendingRelease !== pending) {
+          if (runtime.pendingRelease !== pending || pending.generation !== runtime.targetGeneration) {
             callback(false);
             return;
           }
           runtime.envelope = pending.envelope;
           runtime.pendingRelease = null;
-          runtime.activeIndex = 0;
+          runtime.activeIndex = playableItems(runtime.envelope).findIndex(function (item) { return item.id === order[0]; });
+          runtime.publicationPass = order.slice(1);
           runtime.itemFailures = {};
           runtime.releaseSource = "cache";
           runtime.syncPhase = "active";
@@ -9705,6 +9890,7 @@ export function renderLgLegacyHtml() {
       );
     }
     function nextItem() {
+      if (runtime.goalPauseApplied) return;
       if (runtime.applicationReloadPending) {
         runtime.applicationReloadPending = false;
         window.location.reload();
@@ -9712,13 +9898,21 @@ export function renderLgLegacyHtml() {
       }
       var items = playableItems(runtime.envelope);
       var nextIndex;
-      var wrapped;
       clearPlaybackTimers();
       cancelPendingMedia();
       silenceCurrentMediaEvents();
       if (!items.length) return;
       nextIndex = (runtime.activeIndex + 1) % items.length;
-      wrapped = nextIndex === 0;
+      if (runtime.publicationPass) {
+        var nextPriorityId;
+        var priorityIndex = -1;
+        while (runtime.publicationPass.length && priorityIndex < 0) {
+          nextPriorityId = runtime.publicationPass.shift();
+          priorityIndex = items.findIndex(function (item) { return item.id === nextPriorityId; });
+        }
+        nextIndex = priorityIndex >= 0 ? priorityIndex : 0;
+        if (priorityIndex < 0) runtime.publicationPass = null;
+      }
       if (Object.keys(runtime.itemFailures).length >= items.length) {
         showStatus(
           "Playback herstelt",
@@ -9730,7 +9924,7 @@ export function renderLgLegacyHtml() {
         scheduleManifestSync(runtime.forceManifestRefresh ? 0 : 15000);
         return;
       }
-      if (wrapped && runtime.pendingRelease) {
+      if (runtime.pendingRelease) {
         activatePendingRelease(function (activated) {
           if (!activated) {
             runtime.activeIndex = nextIndex;
@@ -9751,7 +9945,7 @@ export function renderLgLegacyHtml() {
       return {
         goalVideoDiagnostics: goalVideoTelemetry(),
         goalVideoCapabilities: goalVideoCapabilities("static-lg", CONFIG.appVersion),
-        activeReleaseId: manifest ? manifest.releaseId : null,
+        activeReleaseId: runtime.presentedReleaseId,
         currentItemId: runtime.currentItem ? runtime.currentItem.id : null,
         desiredReleaseId: pendingManifest
           ? pendingManifest.releaseId
@@ -9768,11 +9962,16 @@ export function renderLgLegacyHtml() {
           runtime.state === "ERROR_RECOVERABLE"
             ? runtime.state
             : "READY",
+        runtimeVersion: CONFIG.appVersion,
+        publicationTrace: runtime.publicationTrace,
+        preparationError: runtime.preparationError,
         syncPhase: runtime.syncPhase
       };
     }
     function sendHeartbeat() {
       if (!runtime.deviceToken) return;
+      if (runtime.heartbeatInFlight) { runtime.heartbeatPending = true; return; }
+      runtime.heartbeatInFlight = true;
       request(
         "POST",
         "/api/player/heartbeat",
@@ -9782,6 +9981,8 @@ export function renderLgLegacyHtml() {
         },
         JSON.stringify(heartbeatBody()),
         function (transport, status, body) {
+          runtime.heartbeatInFlight = false;
+          if (runtime.heartbeatPending) { runtime.heartbeatPending = false; window.setTimeout(sendHeartbeat, 0); }
           var code = errorCode(body, transport || "PLAYER_API_UNAVAILABLE");
           if (
             !transport &&

@@ -143,7 +143,7 @@ export async function loadPlaylistList(
   const [itemsResult, releasesResult, screensResult, profilesResult] = ids.length
     ? await Promise.all([
         supabase.from("playlist_items").select("playlist_id, media_asset_id, duration_seconds").eq("tenant_id", tenantId).in("playlist_id", ids).order("sort_order"),
-        supabase.from("playlist_releases").select("playlist_id, version").eq("tenant_id", tenantId).in("playlist_id", ids).order("version", { ascending: false }),
+        supabase.from("playlist_publications").select("playlist_id, version:config_revision").eq("tenant_id", tenantId).in("playlist_id", ids),
         supabase.from("screens").select("assigned_playlist_id").eq("tenant_id", tenantId).is("deleted_at", null).in("assigned_playlist_id", ids).neq("status", "disabled"),
         userIds.length ? supabase.from("profiles").select("id, display_name").in("id", userIds) : Promise.resolve({ data: [], error: null })
       ])
@@ -240,7 +240,7 @@ export async function loadPlaylistStudio(
     supabase.from("playlist_items").select("id, media_asset_id, section_id, sort_order, duration_seconds, fit_mode, muted, display_title, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, dynamic_slide_id, dynamic_snapshot_id").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
     supabase.from("playlist_sections").select("id, name, position_key, enabled, default_duration_seconds, default_transition").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
     supabase.from("media_assets").select("id, tenant_id, title, kind, mime_type, status, deleted_at").eq("tenant_id", tenantId).eq("source_kind", "user").order("created_at", { ascending: false }),
-    supabase.from("playlist_releases").select("id, version, item_count, total_duration_seconds, total_bytes, published_at, published_by").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("version", { ascending: false }),
+    supabase.from("playlist_releases").select("id, version, item_count, total_duration_seconds, total_bytes, published_at, published_by").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("version", { ascending: false }).limit(1),
     supabase.from("screens").select("id, name, orientation, assigned_playlist_id").eq("tenant_id", tenantId).is("deleted_at", null).eq("status", "active").order("name"),
     supabase.from("player_devices").select("screen_id, active_release_id, desired_release_id, last_seen_at").eq("tenant_id", tenantId).eq("status", "paired").order("paired_at", { ascending: false }),
     supabase.from("dynamic_slides").select("id, name:library_sort_name, slide_type, orientation, selection_mode, status, current_snapshot_id").eq("tenant_id", tenantId).eq("status", "ready").order("updated_at", { ascending: false }),

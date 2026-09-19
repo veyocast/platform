@@ -36,8 +36,9 @@ DISABLED
   officiële setup-assets en alle door de eerste HTML-render gerefereerde
   Next.js shellbestanden.
 - Manifests and sync metadata: IndexedDB.
-- Trusted dynamic-slide payloads are part of the immutable release envelope and
-  therefore retained with that release. The runtime is locked application code;
+- Dynamic renderer configuration is immutable published content. Authorized live
+  datasets have an independent content revision; the last validated dataset and
+  its assets are retained atomically with the local envelope. The runtime is locked application code;
   no stored template source or script is evaluated on the Player.
 - Media assets: Cache Storage MVP; adapter abstraction for later OPFS/chunking.
 - Asset keys: checksum-based.
@@ -52,7 +53,7 @@ DISABLED
 4. Download missing assets.
 5. Verify size/hash.
 6. Mark desired release ready.
-7. Switch at loop/item boundary.
+7. Switch the newest complete candidate at the next natural item/page boundary; a healthy video owns its ended/trim boundary.
 8. Keep previous release as fallback.
 9. Garbage collect old releases safely.
 ```
@@ -98,3 +99,25 @@ browserfeature activeert de checksum-geverifieerde poster/PNG-fallback van
 dezelfde snapshot. Online synchronisatie blijft non-blocking zolang een geldige
 lokale release bestaat; geen FieldFlow-surface mag pairing-, recovery- of
 diagnostiek automatisch over geldige publieke content leggen.
+
+## S185: actuele opdracht en live gegevens
+
+De playlist-ID is de logische publicatie-identiteit. `playlist_publications`
+verwijst naar één immutable configuratierevisie; `screens.target_revision`
+ordent ook wisselingen tussen playlists. De player bereidt slechts één volgende
+kandidaat voor. Nieuwere doelen annuleren oudere voorbereiding. Realtime is een
+invalidering; de beveiligde API blijft de bron van waarheid. Bij reconnect wordt
+direct de actuele opdracht opgehaald.
+
+Live datasets komen uitsluitend via de device-geautoriseerde servergrens uit
+`published_dynamic_data`, gekoppeld aan exacte gepubliceerde selectie/configuratie.
+Ze wijzigen geen publicatie, afspeelindex of itemtimer. Normale bronupdates mogen
+geen playlistrelease aanmaken. Het volledige lokale offlinecontract blijft
+verplicht: ook media verderop moeten geverifieerd zijn voordat een nieuwe
+configuratie wordt geactiveerd. Voorbereidingstijd en grenswachttijd worden apart
+gerapporteerd. Een PNG blijft een geverifieerde compatibiliteitsfallback; actuele
+HTML/CSS-data vereisen een ondersteunde runtime.
+
+Zie [S185](s185-current-publication.md) voor generatiecontrole, cachebescherming,
+eerste-framebevestiging en de expliciete uitzondering op wijzigingsvoorrang voor
+planningen en sponsorplannen.

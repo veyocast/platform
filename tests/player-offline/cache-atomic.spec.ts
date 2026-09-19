@@ -156,7 +156,7 @@ test("rejects corrupt pending assets without replacing active playback", async (
 
   await expect(page.getByRole("img", { name: "Clubhuis entree" })).toBeVisible();
   await expect(page.getByLabel("Player diagnostics")).toContainText(
-    "Pending release is verworpen"
+    "Nieuwe inhoud kon niet worden voorbereid"
   );
   await expect(page.getByLabel("Player diagnostics")).toContainText("Zomerroute v3");
   await expect(page.getByLabel("Player diagnostics")).not.toContainText(
