@@ -1,0 +1,85 @@
+name: Current publication maintenance
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Omgeving
+        required: true
+        type: choice
+        options: [staging, production]
+      operation:
+        description: Alleen inventariseren of gebruikte playlists gecontroleerd omschakelen
+        required: true
+        default: inventory
+        type: choice
+        options: [inventory, refresh, cutover]
+      playlist_id:
+        description: Eén gebruikt playlist-ID voor canarycutover; leeg gebruikt alle huidige doelen
+        required: false
+        type: string
+      observation_seconds:
+        description: Begrensde nacontrole, 0 tot 180 seconden
+        required: true
+        default: '0'
+        type: string
+      tenant_name:
+        description: Exacte tenantnaam
+        required: true
+        type: string
+      expected_tenant_id:
+        description: Bevestigd tenant-ID (optioneel bij eerste inventarisatie)
+        required: false
+        type: string
+      release_sha:
+        description: Volledige gedeployde main-SHA
+        required: true
+        type: string
+      reason:
+        description: Traceerbare reden, 10–240 tekens
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: current-publication-${{ inputs.target_environment }}-${{ inputs.tenant_name }}
+  cancel-in-progress: false
+jobs:
+  maintain:
+    if: github.ref == 'refs/heads/main'
+    environment: ${{ inputs.target_environment }}
+    runs-on: [self-hosted, linux, x64, veyocast, '${{ inputs.target_environment }}']
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+      - run: pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1
+      - name: Scoped inventory or cutover
+        run: node scripts/current-publication-maintenance.mjs
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+          PUBLICATION_OPERATION: ${{ inputs.operation }}
+          PLAYLIST_ID: ${{ inputs.playlist_id }}
+          OBSERVATION_SECONDS: ${{ inputs.observation_seconds }}
+          TENANT_NAME: ${{ inputs.tenant_name }}
+          EXPECTED_TENANT_ID: ${{ inputs.expected_tenant_id }}
+          EXPECTED_RELEASE_SHA: ${{ inputs.release_sha }}
+          OPERATOR: github:${{ github.actor }}
+          REASON: ${{ inputs.reason }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      - name: Retain sanitized before/after observations
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: publication-${{ inputs.target_environment }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/publication-*.json
+          if-no-files-found: ignore
+          retention-days: 14
