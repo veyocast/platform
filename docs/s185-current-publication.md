@@ -199,3 +199,9 @@ zijn nog niet bewezen. De definitieve productiebuild is groen (18/18), evenals b
 Twaalf aanvullende React/Static LG-goalintrotests zijn groen: oriëntatiekeuze,
 volledig beeld, natuurlijk einde en veilige videofallback. CI en uitrol volgen
 op deze lokale resultaten.
+
+De eerste Android-CI-run stopte vóór lint/tests: de bestaande gepinde
+`setup-android`-action vraagt standaard het inmiddels ontbrekende SDK-pakket
+`tools`. De Android-PR-workflow specificeert nu `packages: platform-tools`;
+de bestaande command-line-tools, platform- en build-tools-pins blijven leidend.
+De workflowvalidator is groen; de Android-gate wordt opnieuw uitgevoerd.
