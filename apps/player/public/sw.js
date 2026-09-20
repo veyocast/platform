@@ -177,7 +177,7 @@ function parseRange(header, totalBytes) {
   const value = header.slice(6).trim();
   if (!value || value.includes(",")) return null;
   const parts = value.split("-");
-  if (parts.length !== 2 || (!parts[0] && !parts[1])) return null;
+  if (parts.length !== 2 || !/^(?:[0-9]+-[0-9]*|-[0-9]+)$/.test(value)) return null;
 
   if (!parts[0]) {
     const length = Number(parts[1]);
@@ -216,7 +216,8 @@ function sliceStream(source, start, end) {
         }
         return;
       }
-    }
+    },
+    async cancel(reason) { await reader.cancel(reason); }
   });
 }
 

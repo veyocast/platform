@@ -15,6 +15,8 @@ import {
   safeGoalVideoDiagnostics,
   safeGoalVideoCapabilities,
   safePublicationTrace,
+  safeMediaTraffic,
+  mediaTrafficWarning,
   safePlayerIdentifier
 } from "../../../_lib/player-heartbeat";
 
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
     runtimeVersion?: unknown;
     publicationTrace?: unknown;
     preparationError?: unknown;
+    mediaTraffic?: unknown;
     goalVideoDiagnostics?: unknown;
     goalVideoCapabilities?: unknown;
     automationCapabilities?: unknown;
@@ -101,6 +104,7 @@ export async function POST(request: Request) {
 
   const playbackErrorDetail = playbackErrorSyncDetail(body.lastPlaybackError);
   const tokenHash = sha256(deviceToken);
+  const traffic = safeMediaTraffic(body.mediaTraffic);
 
   const { error } = await supabase.rpc("record_player_heartbeat_v2", {
     p_active_release_id: body.activeReleaseId ?? null,
@@ -110,6 +114,7 @@ export async function POST(request: Request) {
         ? reportedCapabilities.data
         : inferredAutomationCapabilities(request),
       goalVideo: safeGoalVideoCapabilities(body.goalVideoCapabilities),
+      mediaTraffic: traffic,
       manifestSchemaVersions: [1],
       releaseHashAlgorithms: ["sha256"]
     },
@@ -163,6 +168,9 @@ export async function POST(request: Request) {
             : 401
     );
   }
+
+  const warning = mediaTrafficWarning(tokenHash, traffic);
+  if (warning) console.warn(JSON.stringify(warning));
 
   const { data: automationData, error: automationError } = await supabase.rpc(
     "sync_player_automation_v1",

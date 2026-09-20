@@ -5,7 +5,8 @@ import { VEYOCAST_APPS, getLocalUrl } from "@veyocast/config";
 import { createStructuredLogger } from "@veyocast/observability";
 
 import { readMediaWorkerConfig } from "./worker-config";
-import { SupabaseMediaWorkerBackend } from "./worker-backend";
+import { QueueWakeup } from "./queue-wakeup";
+import { createConfiguredMediaWorkerClient, SupabaseMediaWorkerBackend } from "./worker-backend";
 import { closeServer, createWorkerRuntimeHealth } from "./worker-health";
 import { runWorkerTaskGroup } from "./worker-lifecycle";
 import { runWorkerLoop, runWorkerOnce } from "./worker-runner";
@@ -254,6 +255,47 @@ async function main() {
 
   const controller = new AbortController();
   const runtimeHealth = createWorkerRuntimeHealth();
+  let queueRetryAfterUntil = 0;
+  const queueClient = createConfiguredMediaWorkerClient(async (input, init) => {
+    const response = await fetch(input, init);
+    if (response.status === 429 || response.status === 503) {
+      const value = response.headers.get("Retry-After");
+      if (value) {
+        const until = /^[0-9]+$/.test(value) ? Date.now() + Number(value) * 1000 : Date.parse(value);
+        if (Number.isFinite(until)) queueRetryAfterUntil = Math.max(queueRetryAfterUntil, until);
+      }
+    }
+    return response;
+  });
+  let hintPayloadBytes = 0;
+  const queueWakeup = new QueueWakeup(async () => {
+    const { data, error } = await queueClient.rpc("get_render_queue_hint_v1", { p_max_attempts: config.maxAttempts })
+      .abortSignal(AbortSignal.timeout(10_000));
+    if (error || !Number.isInteger(data) || data < 0 || data > 7) {
+      throw Object.assign(new Error("QUEUE_HINT_UNAVAILABLE"), { retryAfterMs: Math.max(0, queueRetryAfterUntil - Date.now()) });
+    }
+    runtimeHealth.markPoll();
+    hintPayloadBytes += Buffer.byteLength(JSON.stringify(data), "utf8");
+    return { media: Boolean(data & 1), studio: Boolean(data & 2), dynamic: Boolean(data & 4) };
+  }, { intervalMs: Math.min(60_000, Math.max(4_000, Number(process.env.MEDIA_WORKER_QUEUE_HINT_INTERVAL_MS) || 4_000)) });
+  const idleClaimBudget = Math.max(3, Math.min(1000, Number(process.env.MEDIA_WORKER_EMPTY_CLAIMS_PER_MINUTE) || 12));
+  let priorCounters = { ...queueWakeup.counters };
+  const trafficTimer = setInterval(() => {
+    const counters = queueWakeup.counters;
+    const fields = { workerId: config.workerId, windowSeconds: 60,
+      hintRequests: counters.hintRequests - priorCounters.hintRequests,
+      hintFailures: counters.hintFailures - priorCounters.hintFailures,
+      emptyClaims: counters.emptyClaims - priorCounters.emptyClaims,
+      workClaims: counters.workClaims - priorCounters.workClaims,
+      hintJsonPayloadBytes: hintPayloadBytes,
+      accounting: "decoded-hint-json; claim-and-wire-bytes-unknown" };
+    const breached = fields.emptyClaims > idleClaimBudget + fields.workClaims || fields.hintFailures > 3;
+    if (breached) logger.warn("media.worker.traffic_budget", fields);
+    else logger.info("media.worker.traffic", fields);
+    runtimeHealth.markTrafficBudget(breached);
+    priorCounters = { ...counters };
+    hintPayloadBytes = 0;
+  }, 60_000);
   const healthServer = await runtimeHealth.startServer();
   let draining = false;
   const stop = () => {
@@ -275,7 +317,9 @@ async function main() {
           backend,
           config,
           onQueuePoll: runtimeHealth.markPoll,
+          waitForWork: (signal) => queueWakeup.wait("media", signal),
           onResult: (result) => {
+            queueWakeup.settled("media", result.status);
             runtimeHealth.markPoll();
             runtimeHealth.markResult(result.status);
             logWorkerResult(logger, result);
@@ -293,7 +337,9 @@ async function main() {
           config,
           intervalMs: config.pollIntervalMs,
           onQueuePoll: runtimeHealth.markPoll,
+          waitForWork: (signal) => queueWakeup.wait("studio", signal),
           onResult: (result) => {
+            queueWakeup.settled("studio", result.status);
             runtimeHealth.markPoll();
             runtimeHealth.markResult(
               result.status === "completed" ||
@@ -311,7 +357,9 @@ async function main() {
           backend: dynamicBackend,
           config,
           intervalMs: config.pollIntervalMs,
+          waitForWork: (signal) => queueWakeup.wait("dynamic", signal),
           onResult: (result) => {
+            queueWakeup.settled("dynamic", result.status);
             runtimeHealth.markPoll();
             runtimeHealth.markResult(
               result.status === "completed" ||
@@ -356,6 +404,7 @@ async function main() {
       ]
     });
   } finally {
+    clearInterval(trafficTimer);
     process.removeListener("SIGINT", stop);
     process.removeListener("SIGTERM", stop);
     await closeServer(healthServer);

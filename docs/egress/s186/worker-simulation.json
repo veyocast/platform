@@ -1,0 +1,13 @@
+{
+  "measurement": "simulated-idle-day",
+  "seconds": 86400,
+  "claims": {
+    "media": 1503,
+    "studio": 1503,
+    "dynamic": 1503
+  },
+  "hintRequests": 19201,
+  "requests": 23710,
+  "modeledJsonPayloadBytes": 28219,
+  "excluded": "HTTP/TLS headers, compression, provider billing, real work"
+}

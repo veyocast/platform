@@ -10,7 +10,7 @@ const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
 test.use({ serviceWorkers: "block" });
 
-test("refreshes an expired signed LG video URL for an unchanged cached release", async ({
+test("refreshes signed access while keeping unchanged LG playback on verified local bytes", async ({
   page
 }) => {
   test.setTimeout(60_000);
@@ -71,36 +71,41 @@ test("refreshes an expired signed LG video URL for an unchanged cached release",
     }
   };
   let serveFreshManifest = false;
+  let freshManifests = 0;
+  let mediaPayloadBytes = 0;
 
-  await page.route("**/api/player/manifest", (route) =>
-    route.fulfill({
+  await page.route("**/api/player/manifest", (route) => {
+    if (serveFreshManifest) freshManifests++;
+    return route.fulfill({
       body: JSON.stringify(
         serveFreshManifest ? freshEnvelope : expiredEnvelope
       ),
       contentType: "application/json"
-    })
-  );
-  await page.route("**/signed/expired.mp4", (route) =>
-    route.fulfill({ body: mediaBytes, contentType: "video/mp4" })
-  );
-  await page.route("**/signed/fresh.mp4", (route) =>
-    route.fulfill({ body: mediaBytes, contentType: "video/mp4" })
-  );
+    });
+  });
+  await page.route("**/signed/*.mp4", (route) => {
+    mediaPayloadBytes += mediaBytes.byteLength;
+    return route.fulfill({ body: mediaBytes, contentType: "video/mp4" });
+  });
 
   await page.goto(
     `${playerURL}/lg?deviceToken=demo-online&durationMs=10000&syncMs=250`
   );
   await expect(page.getByTestId("player-video")).toHaveAttribute(
     "src",
-    "/signed/expired.mp4"
+    /^blob:/
   );
+  expect(mediaPayloadBytes).toBe(mediaBytes.byteLength);
 
   serveFreshManifest = true;
   await page.reload();
 
   await expect(page.getByTestId("player-video")).toHaveAttribute(
     "src",
-    "/signed/fresh.mp4",
+    /^blob:/,
     { timeout: 5_000 }
   );
+  await expect.poll(() => freshManifests).toBeGreaterThan(0);
+  await expect.poll(() => page.getByTestId("player-video").evaluate((video: HTMLVideoElement) => video.currentTime)).toBeGreaterThan(0);
+  expect(mediaPayloadBytes).toBe(mediaBytes.byteLength);
 });

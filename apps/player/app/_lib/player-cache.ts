@@ -8,6 +8,8 @@ import type {
 } from "./player-manifest";
 import { resolveMonotonicPlayerEntitlement } from "./player-entitlement";
 import { createPlayerMediaStore, type PlayerMediaStore } from "./player-media-store";
+import { playerMediaTraffic } from "./media-traffic";
+import { downloadMedia } from "./media-download";
 
 export const playerAssetCacheName = "veyocast-player-assets-v1";
 export const playerDatabaseName = "veyocast-player-cache-v1";
@@ -142,34 +144,35 @@ export async function preparePendingRelease({
 
       for (const asset of assets) {
         if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
-        if (cachedAssets.validKeys.has(asset.cacheKey)) continue;
+        if (cachedAssets.validKeys.has(asset.cacheKey)) { playerMediaTraffic.add("cacheHits", 1); continue; }
+        playerMediaTraffic.add("cacheMisses", 1);
+        if (!playerMediaTraffic.allow(asset.cacheKey)) throw new Error("MEDIA_RETRY_BUDGET_EXCEEDED");
 
-        const response = await fetch(asset.url, { cache: "no-store", signal });
+        try {
+          const { bytes, mimeType } = await downloadMedia(asset.url, asset.checksumSha256, asset.bytes, signal);
+          if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
 
-        if (!response.ok) {
-          throw new Error(`ASSET_FETCH_FAILED_${response.status}:${asset.itemId}`);
+          onPhase?.("VERIFYING");
+
+          await verifyAssetBytes(asset, bytes);
+          if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
+          await store.put(
+            asset.cacheKey,
+            new Response(bytes, {
+              headers: {
+                "Accept-Ranges": "bytes",
+                "Content-Length": String(bytes.byteLength),
+                "Content-Type": mimeType
+              }
+            })
+          );
+
+          cachedAssets.validKeys.add(asset.cacheKey);
+          playerMediaTraffic.success(asset.cacheKey);
+        } catch (error) {
+          if (!signal?.aborted) playerMediaTraffic.failure(asset.cacheKey);
+          throw error;
         }
-
-        const bytes = await response.arrayBuffer();
-        if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
-
-        onPhase?.("VERIFYING");
-
-        await verifyAssetBytes(asset, bytes);
-        if (signal?.aborted) throw new Error("TARGET_SUPERSEDED");
-        await store.put(
-          asset.cacheKey,
-          new Response(bytes, {
-            headers: {
-              "Accept-Ranges": "bytes",
-              "Content-Length": String(bytes.byteLength),
-              "Content-Type":
-                response.headers.get("Content-Type") ?? "application/octet-stream"
-            }
-          })
-        );
-
-        cachedAssets.validKeys.add(asset.cacheKey);
       }
 
       return {
@@ -574,13 +577,15 @@ export async function verifyAssetBytes(
   bytes: ArrayBuffer
 ) {
   if (asset.bytes !== bytes.byteLength) {
-    throw new Error(`asset size mismatch: ${asset.url}`);
+    playerMediaTraffic.add("corrupt", 1);
+    throw new Error("asset size mismatch");
   }
 
   const checksum = await sha256Hex(bytes);
 
   if (checksum !== asset.checksumSha256) {
-    throw new Error(`asset checksum mismatch: ${asset.url}`);
+    playerMediaTraffic.add("corrupt", 1);
+    throw new Error("asset checksum mismatch");
   }
 }
 
@@ -652,8 +657,7 @@ function withCachedUrls(
 
 export function resolveHydratedMediaSource({
   cachedUrl,
-  item,
-  online = typeof navigator === "undefined" || navigator.onLine !== false
+  item
 }: {
   cachedUrl?: string;
   item: PlayerManifestItem;
@@ -661,19 +665,7 @@ export function resolveHydratedMediaSource({
 }): Pick<PlayerManifestItem["source"], "fallbackUrl" | "url"> {
   if (!cachedUrl) return { url: item.source.url };
 
-  const nativeStreamFirst =
-    item.kind === "video" &&
-    online &&
-    cachedUrl.startsWith("blob:") &&
-    Boolean(item.source.url);
-
-  if (nativeStreamFirst) {
-    return {
-      fallbackUrl: cachedUrl,
-      url: item.source.url
-    };
-  }
-
+  // Transport credentials must never displace verified local content.
   return { url: cachedUrl };
 }
 

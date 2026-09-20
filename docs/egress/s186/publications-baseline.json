@@ -1,0 +1,215 @@
+[
+  {
+    "jsonb_build_object": {
+      "measuredAt": "2026-09-20T13:22:05.062541+00:00",
+      "recentPublications": [
+        {
+          "name": "Scherm Hal Final",
+          "version": 52,
+          "item_count": 2,
+          "total_bytes": 41759,
+          "published_at": "2026-09-20T00:57:58.840989+00:00",
+          "release_notes": "Migratie naar actuele publicatie"
+        },
+        {
+          "name": "Prijslijst Final",
+          "version": 7,
+          "item_count": 4,
+          "total_bytes": 102810300,
+          "published_at": "2026-09-20T00:57:57.441616+00:00",
+          "release_notes": "Migratie naar actuele publicatie"
+        },
+        {
+          "name": "Brandweer916",
+          "version": 2,
+          "item_count": 1,
+          "total_bytes": 4438130,
+          "published_at": "2026-09-20T00:57:54.808314+00:00",
+          "release_notes": "Migratie naar actuele publicatie"
+        },
+        {
+          "name": "Brandweer169",
+          "version": 3,
+          "item_count": 1,
+          "total_bytes": 3770559,
+          "published_at": "2026-09-20T00:57:53.519456+00:00",
+          "release_notes": "Migratie naar actuele publicatie"
+        },
+        {
+          "name": "Bestuur Final",
+          "version": 81,
+          "item_count": 14,
+          "total_bytes": 325627,
+          "published_at": "2026-09-20T00:57:43.508078+00:00",
+          "release_notes": "Migratie naar actuele publicatie"
+        },
+        {
+          "name": "Bar Final",
+          "version": 208,
+          "item_count": 12,
+          "total_bytes": 73496226,
+          "published_at": "2026-09-20T00:57:37.753205+00:00",
+          "release_notes": "Migratie naar actuele publicatie"
+        },
+        {
+          "name": "Kantine Stand",
+          "version": 130,
+          "item_count": 40,
+          "total_bytes": 71433537,
+          "published_at": "2026-09-20T00:55:26.305148+00:00",
+          "release_notes": "Migratie naar actuele publicatie"
+        },
+        {
+          "name": "Bar Final",
+          "version": 207,
+          "item_count": 12,
+          "total_bytes": 73495020,
+          "published_at": "2026-09-19T17:22:04.964681+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 206,
+          "item_count": 12,
+          "total_bytes": 73495020,
+          "published_at": "2026-09-19T17:17:04.362988+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 205,
+          "item_count": 12,
+          "total_bytes": 73494946,
+          "published_at": "2026-09-19T17:12:03.828305+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 204,
+          "item_count": 12,
+          "total_bytes": 73495484,
+          "published_at": "2026-09-19T17:07:03.254323+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 203,
+          "item_count": 12,
+          "total_bytes": 73495453,
+          "published_at": "2026-09-19T17:02:02.721288+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 202,
+          "item_count": 12,
+          "total_bytes": 73495453,
+          "published_at": "2026-09-19T16:57:02.160649+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 201,
+          "item_count": 12,
+          "total_bytes": 73495453,
+          "published_at": "2026-09-19T16:52:01.631557+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 200,
+          "item_count": 12,
+          "total_bytes": 73495289,
+          "published_at": "2026-09-19T16:47:01.149232+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 199,
+          "item_count": 12,
+          "total_bytes": 73495289,
+          "published_at": "2026-09-19T16:38:58.128068+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 198,
+          "item_count": 12,
+          "total_bytes": 73495289,
+          "published_at": "2026-09-19T16:33:49.41725+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 197,
+          "item_count": 12,
+          "total_bytes": 73495262,
+          "published_at": "2026-09-19T16:27:51.480894+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 196,
+          "item_count": 12,
+          "total_bytes": 73495262,
+          "published_at": "2026-09-19T16:22:35.696638+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 195,
+          "item_count": 12,
+          "total_bytes": 73495262,
+          "published_at": "2026-09-19T16:17:19.239884+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 194,
+          "item_count": 12,
+          "total_bytes": 73495417,
+          "published_at": "2026-09-19T16:12:04.518414+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 193,
+          "item_count": 12,
+          "total_bytes": 73495329,
+          "published_at": "2026-09-19T16:06:50.325551+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 192,
+          "item_count": 12,
+          "total_bytes": 73495323,
+          "published_at": "2026-09-19T16:01:34.971988+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 191,
+          "item_count": 12,
+          "total_bytes": 73495323,
+          "published_at": "2026-09-19T15:56:20.300191+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        },
+        {
+          "name": "Bar Final",
+          "version": 190,
+          "item_count": 12,
+          "total_bytes": 73495197,
+          "published_at": "2026-09-19T15:51:05.174693+00:00",
+          "release_notes": "Automatische dynamische vernieuwing"
+        }
+      ],
+      "remainingRefreshReferences": [
+        {
+          "nspname": "private",
+          "proname": "enqueue_dynamic_release_refresh_v1"
+        }
+      ]
+    }
+  }
+]

@@ -7,9 +7,10 @@ import { createClient } from "@supabase/supabase-js";
 import { readMediaWorkerConfig } from "./worker-config";
 
 /** Operator diagnostics share the same validated worker credential boundary. */
-export function createConfiguredMediaWorkerClient() {
+export function createConfiguredMediaWorkerClient(fetchImplementation: typeof fetch = fetch) {
   const config = readMediaWorkerConfig();
   return createClient(config.supabaseUrl, config.serviceRoleKey, {
+    global: { fetch: fetchImplementation },
     auth: { autoRefreshToken: false, persistSession: false }
   });
 }
@@ -268,7 +269,7 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
         ...this.storageHeaders(),
         "cache-control": "max-age=31536000",
         "content-type": contentType,
-        "x-upsert": "true"
+        "x-upsert": "false"
       },
       method: "POST",
       signal
@@ -282,7 +283,7 @@ export class SupabaseMediaWorkerBackend implements MediaWorkerBackend {
     } catch {
       throw storageRequestError(`${label}_upload`, signal.aborted);
     }
-    if (!response.ok) {
+    if (!response.ok && response.status !== 409) {
       throw storageError(`${label}_upload_failed`, response.status);
     }
   }

@@ -88,9 +88,9 @@ export async function runWorkerOnce({
     const playerChecksum = await sha256File(outputPath);
     const posterChecksum = await sha256File(posterPath);
     const playerStoragePath =
-      `tenants/${job.tenantId}/assets/${job.assetId}/variants/player-1080p.mp4`;
+      `tenants/${job.tenantId}/assets/${job.assetId}/variants/player-v2-${playerChecksum}.mp4`;
     const posterStoragePath =
-      `tenants/${job.tenantId}/assets/${job.assetId}/variants/poster.png`;
+      `tenants/${job.tenantId}/assets/${job.assetId}/variants/poster-v2-${posterChecksum}.png`;
 
     await Promise.all([
       backend.uploadPlayerVariant(job, outputPath, playerStoragePath),
@@ -148,18 +148,22 @@ export async function runWorkerLoop({
   config,
   onQueuePoll = () => undefined,
   onResult = () => undefined,
-  signal
+  signal,
+  waitForWork
 }: {
   backend: MediaWorkerBackend;
   config: MediaWorkerConfig;
   onQueuePoll?: () => void;
   onResult?: (result: WorkerRunResult) => void;
   signal: AbortSignal;
+  waitForWork?: (signal: AbortSignal) => Promise<void>;
 }) {
   while (!signal.aborted) {
+    if (waitForWork) await waitForWork(signal);
+    if (signal.aborted) break;
     const result = await runWorkerOnce({ backend, config, onQueuePoll });
     onResult(result);
-    if (result.status === "idle") {
+    if (result.status === "idle" && !waitForWork) {
       await abortableDelay(config.pollIntervalMs, signal);
     }
   }

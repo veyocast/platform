@@ -11,6 +11,7 @@ export type CommandRunner = (
 
 export type VideoProbe = {
   audioCodec: string | null;
+  containerBitrate?: number;
   durationSeconds: number;
   formatNames: string[];
   framesPerSecond: number;
@@ -59,7 +60,7 @@ export async function probeVideoFile(
 ): Promise<VideoProbe> {
   const result = await runner("ffprobe", [
     "-v", "error", "-show_entries",
-    "format=format_name,duration:stream=codec_type,codec_name,profile,level,width,height,r_frame_rate,pix_fmt,sample_aspect_ratio:stream_tags=rotate:stream_side_data=rotation",
+    "format=format_name,duration,bit_rate:stream=codec_type,codec_name,profile,level,width,height,r_frame_rate,pix_fmt,sample_aspect_ratio:stream_tags=rotate:stream_side_data=rotation",
     "-of", "json", inputPath
   ]);
   return parseVideoProbe(result.stdout);
@@ -138,7 +139,8 @@ export function buildNormalizationArguments(
 
 export function canRemuxWithoutTranscoding(probe: VideoProbe) {
   const canonicalDimensions = getCanonicalPlayerDimensions(probe.width, probe.height);
-  return probe.videoCodec === "h264"
+  return typeof probe.containerBitrate === "number" && probe.containerBitrate > 0 && probe.containerBitrate <= 6_000_000
+    && probe.videoCodec === "h264"
     && ["constrained baseline", "baseline", "main", "high"].includes(probe.videoProfile ?? "")
     && typeof probe.videoLevel === "number" && probe.videoLevel <= 40
     && (probe.audioCodec === null || probe.audioCodec === "aac")
@@ -195,6 +197,7 @@ export function parseVideoProbe(serializedProbe: string): VideoProbe {
   }
 
   return {
+    ...(toPositiveInteger(value.format.bit_rate) ? { containerBitrate: toPositiveInteger(value.format.bit_rate)! } : {}),
     audioCodec: isRecord(audioStream) ? toNonEmptyString(audioStream.codec_name) : null,
     durationSeconds,
     formatNames: formatName.split(",").map((name) => name.trim()),

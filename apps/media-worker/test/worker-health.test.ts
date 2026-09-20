@@ -46,7 +46,8 @@ describe("media worker runtime health", () => {
       body: {
         indicators: [
           { code: "recent_failures", state: "healthy", value: 0 },
-          { code: "recent_retries", state: "warning", value: 1 }
+          { code: "recent_retries", state: "warning", value: 1 },
+          { code: "idle_traffic_budget", state: "healthy", value: 0 }
         ],
         status: "degraded"
       },

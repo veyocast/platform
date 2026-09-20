@@ -1,24 +1,29 @@
 import { createHash } from "node:crypto";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { playerMediaTraffic } from "./media-traffic";
 import { GoalMediaCache } from "./goal-media-cache";
 import type { PlayerMediaStore } from "./player-media-store";
 
+afterEach(() => vi.useRealTimers());
 function setup() {
   const rows = new Map<string, Response>();
   const store: PlayerMediaStore = { delete: async (key) => rows.delete(key), get: async (key) => rows.get(key)?.clone(), keys: async () => [...rows.keys()], put: async (key, response) => { rows.set(key, response); }, resolvePlaybackUrl: async () => { throw new Error("not used"); } };
   const bytes = new TextEncoder().encode("bounded fixture video");
   const asset = { mediaAssetId: "11111111-1111-4111-8111-111111111111", checksum: createHash("sha256").update(bytes).digest("hex"), mimeType: "video/mp4" as const, url: "https://storage.test/intro.mp4" };
+  playerMediaTraffic.success("/__veyocast-player-cache/" + asset.checksum);
   const fetchMedia = vi.fn<typeof fetch>(async () => new Response(bytes));
   return { rows, asset, fetchMedia, cache: new GoalMediaCache(store, fetchMedia) };
 }
 describe("goal media retention beside playlist assets", () => {
   it("reports prefetch readiness only after verified bytes are stored", async () => {
+    vi.useFakeTimers();
     const { cache, asset, rows, fetchMedia } = setup();
     const failedLog = vi.spyOn(console, "info").mockImplementation(() => {});
     fetchMedia.mockImplementationOnce(async () => new Response("unavailable", { status: 503 }));
     expect(await cache.preload([asset])).toBe(false);
     expect(rows.size).toBe(0);
     expect(failedLog).toHaveBeenCalledWith(JSON.stringify({ event: "goal_asset_prefetch_failed", mediaAssetId: asset.mediaAssetId }));
+    vi.advanceTimersByTime(30_000);
     expect(await cache.preload([asset])).toBe(true);
     expect(rows.size).toBe(1);
     failedLog.mockRestore();

@@ -6,6 +6,41 @@ export type PlayerPlaybackErrorInput = {
   recoveredAt?: string;
 } | null | undefined;
 
+export function safeMediaTraffic(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const input = value as Record<string, unknown>;
+  if (input.version !== 1 || input.accounting !== "payload") return null;
+  const startedAt = typeof input.startedAt === "string" ? safeIsoTimestamp(input.startedAt) : null;
+  if (!startedAt) return null;
+  const result: Record<string, string | number> = { version: 1, accounting: "payload", startedAt };
+  for (const key of ["networkPayloadBytes", "localReadBytes", "downloads", "cacheHits", "cacheMisses", "corrupt", "failed", "throttled", "duplicateDownloads"]) {
+    if (!Number.isSafeInteger(input[key]) || Number(input[key]) < 0) return null;
+    result[key] = Number(input[key]);
+  }
+  return result;
+}
+
+const trafficWarnings = new Map<string, { at: number; duplicates: number; failed: number; startedAt: string }>();
+/** One compact warning per minute at most, only on increasing failure counters.
+ * Run after device authentication. A process restart loses suppression, not data.
+ */
+export function mediaTrafficWarning(deviceHash: string, traffic: ReturnType<typeof safeMediaTraffic>, now = Date.now()) {
+  if (!traffic) return null;
+  const duplicates = Number(traffic.duplicateDownloads);
+  const failed = Number(traffic.failed);
+  const stored = trafficWarnings.get(deviceHash);
+  const previous = stored?.startedAt === traffic.startedAt ? stored : undefined;
+  if ((duplicates < 2 && failed < 3) || (previous && (now - previous.at < 60_000 ||
+    (duplicates <= previous.duplicates && failed <= previous.failed)))) return null;
+  if (trafficWarnings.size >= 1024) {
+    for (const [key, value] of trafficWarnings) if (now - value.at > 3_600_000) trafficWarnings.delete(key);
+    if (trafficWarnings.size >= 1024 && !previous) return null;
+  }
+  trafficWarnings.set(deviceHash, { at: now, duplicates, failed, startedAt: String(traffic.startedAt) });
+  return { event: "player.media_budget", device: deviceHash.slice(0, 16),
+    duplicateDownloads: duplicates, failed, runbook: "docs/runbooks/egress.md" };
+}
+
 export function playbackErrorSyncDetail(value: PlayerPlaybackErrorInput) {
   const error = sanitizePlaybackError(value);
   return {

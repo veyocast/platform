@@ -3,6 +3,15 @@ import { describe, expect, it } from "vitest";
 import { createRangeResponse, parseByteRangeHeader } from "./media-range";
 
 describe("cached media byte ranges", () => {
+  it.each(["bytes=1e0-2", "bytes=+1-2", "bytes=0x1-2", "bytes=1 -2", "bytes=1.0-2"])("rejects non-decimal range syntax %s", (header) => {
+    expect(parseByteRangeHeader(header, 10).ok).toBe(false);
+  });
+
+  it("normalizes a missing length and streams an oversized suffix from local bytes", async () => {
+    const response = await createRangeResponse(new Response("0123456789"), "bytes=-100");
+    expect(response.headers.get("Content-Range")).toBe("bytes 0-9/10");
+    expect(await response.text()).toBe("0123456789");
+  });
   it("parses bounded, open-ended and suffix byte ranges", () => {
     expect(parseByteRangeHeader("bytes=2-5", 10)).toEqual({
       ok: true,

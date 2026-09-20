@@ -24,6 +24,8 @@ export type AlertDefinition = Readonly<{
 }>;
 
 export const alertDefinitions = [
+  alert("worker_idle_claims", 12, "empty_claims_above_work_claims/min/worker", 1, "/platform/system", "docs/runbooks/egress.md"),
+  alert("player_duplicate_media", 2, "repeat_downloads/5m", 0, "/dashboard/screens", "docs/runbooks/egress.md", "platform", ">="),
   alert("media_queue_age", 60, "seconds", 5, "/dashboard/media?status=processing", "docs/runbooks/media-queue.md"),
   alert("media_worker_errors", 5, "errors/5m", 5, "/dashboard/media?status=validation_failed", "docs/runbooks/media-worker.md"),
   alert("media_worker_retries", 10, "retries/15m", 15, "/dashboard/media?status=processing", "docs/runbooks/media-worker.md"),

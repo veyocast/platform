@@ -1,3 +1,5 @@
+import { createMediaTraffic } from "./media-traffic";
+import { createMediaDownloader } from "./media-download";
 import { resolveSportListLayout } from "../../../../packages/content-templates/src/sport-list-layout";
 import { startBirthdayConfetti } from "../../../../packages/content-templates/src/birthday-confetti";
 import { birthdayCalendarDay } from "../../../../packages/content-templates/src/birthday-calendar";
@@ -965,6 +967,37 @@ export function renderLgLegacyHtml() {
   (function () {
     "use strict";
     var CONFIG = ${config};
+    var playerMediaTraffic = (${createMediaTraffic.toString()})();
+    var downloadMedia = (${createMediaDownloader.toString()})(legacyMediaRequest, playerMediaTraffic);
+    function legacyMediaRequest(url, options, maximumBytes) {
+      return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        function abort() { xhr.abort(); }
+        function cleanup() { if (options.signal) options.signal.removeEventListener("abort", abort); }
+        xhr.open("GET", url, true);
+        xhr.responseType = "arraybuffer";
+        xhr.timeout = CONFIG.assetRequestTimeoutMs;
+        xhr.onprogress = function (event) {
+          if (event.loaded > maximumBytes || event.total > maximumBytes) {
+            cleanup(); reject(new Error("ASSET_TOO_LARGE")); xhr.abort();
+          }
+        };
+        xhr.onload = function () {
+          cleanup();
+          if (xhr.status < 200 || xhr.status > 599) { reject(new Error("LEGACY_ASSET_HTTP_ERROR")); return; }
+          try {
+          resolve(new Response(xhr.response, { status: xhr.status, headers: {
+            "Content-Type": xhr.getResponseHeader("Content-Type") || "application/octet-stream",
+            "Content-Length": String(xhr.response ? xhr.response.byteLength : 0),
+            "Retry-After": xhr.getResponseHeader("Retry-After") || ""
+          } }));
+          } catch (error) { reject(new Error("LEGACY_ASSET_HTTP_ERROR")); }
+        };
+        xhr.onerror = xhr.ontimeout = xhr.onabort = function () { cleanup(); reject(new Error("LEGACY_ASSET_NETWORK_ERROR")); };
+        if (options.signal) options.signal.addEventListener("abort", abort, { once: true });
+        xhr.send();
+      });
+    }
     ${legacyGoalOverlayScript()}
     var sportMatchBelongsOnSlide = ${sportMatchBelongsOnSlide.toString()};
     var startBirthdayConfetti = ${startBirthdayConfetti.toString()};
@@ -975,6 +1008,7 @@ export function renderLgLegacyHtml() {
       activationInFlight: false,
       applicationReloadPending: false,
       bootGeneration: 0,
+      identityReady: false,
       cachedRelease: null,
       currentElement: null,
       currentItem: null,
@@ -4333,6 +4367,7 @@ export function renderLgLegacyHtml() {
       );
     }
     function ensurePairing() {
+      runtime.identityReady = false;
       var code = safeRead(CONFIG.pairingCodeKey);
       if (code && runtime.deviceToken) {
         showPairing(code);
@@ -4369,6 +4404,7 @@ export function renderLgLegacyHtml() {
           var code = errorCode(body, transport || "PAIRING_API_UNAVAILABLE");
           if (!transport && status >= 200 && status < 300 && body && body.ok === true) {
             clearTemporaryPairing();
+            runtime.identityReady = true;
             setState("SYNCING");
             restartGoalRealtime();
             syncManifest();
@@ -4676,42 +4712,13 @@ export function renderLgLegacyHtml() {
       });
     }
     function downloadAsset(asset, callback) {
-      var xhr = new XMLHttpRequest();
-      runtime.preparationXhr = xhr;
-      var completed = false;
-      function finish(error, bytes, mimeType) {
-        if (completed) return;
-        completed = true;
-        callback(error, bytes, mimeType);
-      }
-      try {
-        xhr.open("GET", asset.url, true);
-        xhr.responseType = "arraybuffer";
-        xhr.timeout = CONFIG.assetRequestTimeoutMs;
-      } catch (error) {
-        finish("LEGACY_ASSET_REQUEST_FAILED", null, null);
-        return;
-      }
-      xhr.onload = function () {
-        if (xhr.status < 200 || xhr.status >= 300 || !xhr.response) {
-          finish("LEGACY_ASSET_HTTP_ERROR", null, null);
-          return;
-        }
-        finish(
-          null,
-          xhr.response,
-          xhr.getResponseHeader("Content-Type") || asset.mimeType
-        );
-      };
-      xhr.onerror = function () {
-        finish("LEGACY_ASSET_NETWORK_ERROR", null, null);
-      };
-      xhr.ontimeout = function () {
-        finish("LEGACY_ASSET_TIMEOUT", null, null);
-      };
-      try { xhr.send(null); } catch (error) {
-        finish("LEGACY_ASSET_REQUEST_FAILED", null, null);
-      }
+      var controller = new AbortController();
+      runtime.preparationXhr = controller;
+      downloadMedia(asset.url, asset.checksumSha256, asset.bytes, controller.signal).then(function (result) {
+        callback(null, result.bytes, result.mimeType);
+      }, function (error) {
+        callback(error.message || "LEGACY_ASSET_NETWORK_ERROR", null, null);
+      });
     }
     function deleteCacheKeys(cache, keys, callback) {
       var index = 0;
@@ -4744,11 +4751,14 @@ export function renderLgLegacyHtml() {
         }
         asset = assets[index];
         index += 1;
+        if (!playerMediaTraffic.allow(asset.cacheKey)) { fail("MEDIA_RETRY_BUDGET_EXCEEDED"); return; }
+        playerMediaTraffic.add("cacheMisses", 1);
         setState("DOWNLOADING");
         runtime.syncPhase = "downloading";
         downloadAsset(asset, function (downloadError, bytes, mimeType) {
           if (generation !== runtime.targetGeneration) { callback("TARGET_SUPERSEDED"); return; }
           if (downloadError) {
+            playerMediaTraffic.failure(asset.cacheKey);
             fail(downloadError);
             return;
           }
@@ -4758,6 +4768,8 @@ export function renderLgLegacyHtml() {
             var response;
             if (generation !== runtime.targetGeneration) { callback("TARGET_SUPERSEDED"); return; }
             if (verifyError) {
+              playerMediaTraffic.add("corrupt", 1);
+              playerMediaTraffic.failure(asset.cacheKey);
               fail(verifyError);
               return;
             }
@@ -4778,8 +4790,10 @@ export function renderLgLegacyHtml() {
               return;
             }
             cache.put(asset.cacheKey, response).then(function () {
+              playerMediaTraffic.success(asset.cacheKey);
               downloadNext();
             }, function () {
+              playerMediaTraffic.failure(asset.cacheKey);
               fail("LEGACY_CACHE_WRITE_FAILED");
             });
           });
@@ -4968,6 +4982,7 @@ export function renderLgLegacyHtml() {
       var forceRefresh = runtime.forceManifestRefresh;
       var headers;
       var knownReleaseId;
+      if (!runtime.identityReady) return;
       if (runtime.syncInFlight) { runtime.invalidatedDuringFetch = true; return; }
       if (!runtime.deviceToken) {
         ensurePairing();
@@ -5174,6 +5189,10 @@ export function renderLgLegacyHtml() {
       );
     }
     function invalidateManifest() {
+      // pageshow/online may fire while IndexedDB credential recovery or pairing
+      // is still in flight. Boot/claim completion reads the latest target once
+      // identity and LKG have been restored; it must own the first request.
+      if (!runtime.identityReady) return;
       runtime.invalidatedDuringFetch = true;
       if (runtime.syncInFlight && runtime.manifestRequest) {
         runtime.manifestRequest.abort();
@@ -5825,6 +5844,8 @@ export function renderLgLegacyHtml() {
         ) {
           response.blob().then(function (blob) {
             var objectUrl = window.URL.createObjectURL(blob);
+            playerMediaTraffic.add("cacheHits", 1);
+            playerMediaTraffic.add("localReadBytes", blob.size);
             callback(objectUrl, objectUrl);
           }, function () { callback(null, null); });
           return;
@@ -5836,17 +5857,8 @@ export function renderLgLegacyHtml() {
       cachedAssetUrl(item && item.source, callback);
     }
     function sourceForItem(item, callback) {
-      if (
-        item &&
-        item.kind === "video" &&
-        !runtime.offline &&
-        item.source &&
-        typeof item.source.url === "string" &&
-        item.source.url.toLowerCase().indexOf("https://") === 0
-      ) {
-        callback(item.source.url, null, true);
-        return;
-      }
+      // Online and offline use the same verified bytes. Signed URLs are delivery
+      // credentials, never the preferred source of an already cached video.
       cachedItemUrl(item, callback);
     }
     function preloadLocalImage(url, callback) {
@@ -9937,6 +9949,7 @@ export function renderLgLegacyHtml() {
         runtime.pendingRelease.envelope &&
         runtime.pendingRelease.envelope.manifest;
       return {
+        mediaTraffic: playerMediaTraffic.snapshot(),
         goalVideoDiagnostics: goalVideoTelemetry(),
         goalVideoCapabilities: goalVideoCapabilities("static-lg", CONFIG.appVersion),
         activeReleaseId: runtime.presentedReleaseId,
@@ -10043,6 +10056,7 @@ export function renderLgLegacyHtml() {
           if (command.commandType === "RECOVER_PAIRING" && validCredential(body && body.deviceToken)) {
             persistDeviceToken(body.deviceToken);
             clearTemporaryPairing();
+            runtime.identityReady = true;
             restartGoalRealtime();
             syncManifest();
           } else if (command.commandType === "FORCE_UNPAIR") {
@@ -10174,6 +10188,7 @@ export function renderLgLegacyHtml() {
     }
     function boot() {
       var generation;
+      runtime.identityReady = false;
       runtime.bootGeneration += 1;
       generation = runtime.bootGeneration;
       runtime.installationId = ensureInstallationId();
@@ -10218,6 +10233,7 @@ export function renderLgLegacyHtml() {
               byId("offline").className = runtime.offline ? "visible" : "";
               startRelease(cached.envelope, "cache");
             }
+            runtime.identityReady = true;
             syncManifest();
           });
         });

@@ -6,6 +6,8 @@ export const observabilityEvents = [
   "media.queue.polled",
   "media.worker.draining",
   "media.worker.started",
+  "media.worker.traffic",
+  "media.worker.traffic_budget",
   "ledscores.connector.connected",
   "ledscores.connector.disconnected",
   "ledscores.connector.goal_dispatched",

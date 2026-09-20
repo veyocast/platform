@@ -18,7 +18,7 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).not.toContain('type="module"');
   });
 
-  it("speelt LG-video online via HTTPS/Range en valt terug op de geverifieerde cache", () => {
+  it("speelt LG-video online en offline uit geverifieerde cachebytes", () => {
     const html = renderLgLegacyHtml();
 
     expect(html).toContain('document.createElement("img")');
@@ -29,8 +29,8 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("persistRelease(envelope, assets");
     expect(html).toContain("window.URL.createObjectURL(blob)");
     expect(html).toContain('item.kind === "video"');
-    expect(html).toContain('item.source.url.toLowerCase().indexOf("https://") === 0');
-    expect(html).toContain("callback(item.source.url, null, true)");
+    expect(html).not.toContain('item.source.url.toLowerCase().indexOf("https://") === 0');
+    expect(html).not.toContain("callback(item.source.url, null, true)");
     expect(html).toContain("LEGACY_VIDEO_NETWORK_FALLBACK");
     expect(html).toContain("LEGACY_VIDEO_CACHE_FALLBACK_MISSING");
     expect(html).toContain("video.muted = true");
