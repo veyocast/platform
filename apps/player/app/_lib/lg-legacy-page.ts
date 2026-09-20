@@ -1008,6 +1008,7 @@ export function renderLgLegacyHtml() {
       activationInFlight: false,
       applicationReloadPending: false,
       bootGeneration: 0,
+      identityReady: false,
       cachedRelease: null,
       currentElement: null,
       currentItem: null,
@@ -4366,6 +4367,7 @@ export function renderLgLegacyHtml() {
       );
     }
     function ensurePairing() {
+      runtime.identityReady = false;
       var code = safeRead(CONFIG.pairingCodeKey);
       if (code && runtime.deviceToken) {
         showPairing(code);
@@ -4402,6 +4404,7 @@ export function renderLgLegacyHtml() {
           var code = errorCode(body, transport || "PAIRING_API_UNAVAILABLE");
           if (!transport && status >= 200 && status < 300 && body && body.ok === true) {
             clearTemporaryPairing();
+            runtime.identityReady = true;
             setState("SYNCING");
             restartGoalRealtime();
             syncManifest();
@@ -4979,6 +4982,7 @@ export function renderLgLegacyHtml() {
       var forceRefresh = runtime.forceManifestRefresh;
       var headers;
       var knownReleaseId;
+      if (!runtime.identityReady) return;
       if (runtime.syncInFlight) { runtime.invalidatedDuringFetch = true; return; }
       if (!runtime.deviceToken) {
         ensurePairing();
@@ -5185,6 +5189,10 @@ export function renderLgLegacyHtml() {
       );
     }
     function invalidateManifest() {
+      // pageshow/online may fire while IndexedDB credential recovery or pairing
+      // is still in flight. Boot/claim completion reads the latest target once
+      // identity and LKG have been restored; it must own the first request.
+      if (!runtime.identityReady) return;
       runtime.invalidatedDuringFetch = true;
       if (runtime.syncInFlight && runtime.manifestRequest) {
         runtime.manifestRequest.abort();
@@ -10048,6 +10056,7 @@ export function renderLgLegacyHtml() {
           if (command.commandType === "RECOVER_PAIRING" && validCredential(body && body.deviceToken)) {
             persistDeviceToken(body.deviceToken);
             clearTemporaryPairing();
+            runtime.identityReady = true;
             restartGoalRealtime();
             syncManifest();
           } else if (command.commandType === "FORCE_UNPAIR") {
@@ -10179,6 +10188,7 @@ export function renderLgLegacyHtml() {
     }
     function boot() {
       var generation;
+      runtime.identityReady = false;
       runtime.bootGeneration += 1;
       generation = runtime.bootGeneration;
       runtime.installationId = ensureInstallationId();
@@ -10223,6 +10233,7 @@ export function renderLgLegacyHtml() {
               byId("offline").className = runtime.offline ? "visible" : "";
               startRelease(cached.envelope, "cache");
             }
+            runtime.identityReady = true;
             syncManifest();
           });
         });

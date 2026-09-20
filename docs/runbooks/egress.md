@@ -87,6 +87,14 @@ in een nieuw release-ID, tokenrotatie en reload. JSON-bewijs staat in test-resul
 De byte/range-test is onderdeel van PR Gates. `EGRESS_RECORD_BASELINE=1` is alleen
 voor een handmatige vergelijking op ongewijzigde oudere code; CI gebruikt dit niet.
 
+Dezelfde fixture kan de gedeployde staging-runtime controleren. Device-API's
+worden in de browser afgevangen; de proef schrijft niet naar de stagingdatabase
+en downloadt geen clubmedia:
+
+```bash
+PLAYWRIGHT_EXTERNAL_SERVERS=1 PLAYER_BASE_URL=https://staging-player.veyocast.nl pnpm exec playwright test tests/player/media-egress.spec.ts --project=chromium
+```
+
 Een langere proef met normale afspeeltijd:
 
 ```bash

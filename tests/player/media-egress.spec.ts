@@ -6,9 +6,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 import { parseByteRangeHeader } from "../../apps/player/app/_lib/media-range";
-import type { PlayerManifestEnvelope } from "../../apps/player/app/_lib/player-manifest";
+import { getPlayerManifestForToken, type PlayerManifestEnvelope } from "../../apps/player/app/_lib/player-manifest";
 
-const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
+const playerURL = process.env.PLAYER_BASE_URL ?? `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 const media = readFileSync("apps/player/public/lg-probe/h264-baseline-aac.mp4");
 const checksum = createHash("sha256").update(media).digest("hex");
 test.use({ ignoreHTTPSErrors: true });
@@ -42,7 +42,11 @@ for (const runtime of ["browser", "static-lg"] as const) {
     if (!address || typeof address === "string") throw new Error("fixture server missing");
     try {
       const source = `https://127.0.0.1:${address.port}/video.mp4`;
-      const baseline = await (await page.request.get(`${playerURL}/api/player/manifest?deviceToken=demo-online`)).json() as PlayerManifestEnvelope;
+      // Build the fixture locally so this test can verify a deployed staging
+      // runtime without demo access, credentials or writes to its database.
+      const lookup = getPlayerManifestForToken("demo-online");
+      if (!lookup.ok) throw new Error("local demo manifest unavailable");
+      const baseline = lookup.body;
       const envelope: PlayerManifestEnvelope = { ...baseline, manifest: { ...baseline.manifest,
         items: [{ ...baseline.manifest.items[0]!, id: "egress-video", kind: "video", durationSeconds: 1,
           source: { url: `${source}?token=cold`, mimeType: "video/mp4", bytes: media.length, checksumSha256: checksum } }] } };

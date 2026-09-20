@@ -56,7 +56,7 @@ bij meerdere SELECTs is de ontbrekende eerste resultset apart herhaald.
 | Control → publicatie → S185 current target | Bestaande immutable publicatie, activering op overgang; 100 inhoudsupdates maken geen release | RLS-regressie; geen nieuwe billingmeting |
 | Player → manifest API → Supabase | Geautoriseerde kleine target-RPC vóór envelope; ongewijzigd target kan vroeg 304 geven | Bestaande `live-target.test.ts` bewijst dat grote envelope-loader niet wordt aangeroepen |
 | Browser / Static LG → private Storage-video | Oorspronkelijke HTTPS-voorkeur omzeilt lokale playback | Werkelijke lokale HTTPS-serverpayload gemeten, tabel hieronder |
-| Goalintro → cache / decoderfallback | Gedeelde single-flight voor dezelfde URL/hash, aparte goalretentie, bounded retry | Bestaande decoder-HTTPS-fallback blijft; native byteverbruik daarvan onbekend |
+| Goalintro → cache / decoderfallback | Gedeelde single-flight voor dezelfde geautoriseerde Storage-object/hash/representatie (andere URLs exact), aparte goalretentie, bounded retry | Bestaande decoder-HTTPS-fallback blijft; native byteverbruik daarvan onbekend |
 | Worker → PostgREST claims | Eén compose-worker, drie gelijktijdige loops, productieconfig 500 ms idle | DB-calls gemeten; werkelijk aantal draaiende replicas niet met hostinspectie bewezen |
 | RSS-worker → Storage | Hash-/tenantgebonden beelden werden telkens ge-upsert | 100 identieke uploads → 1 objectupload, daarna HEAD; unitmeting |
 | Sport/RSS-data → render/preview/live | Hashdedup en S185 bestaan al; fallbacks blijven nodig | Geen bewijs dat alle resterende renders nutteloos zijn |
@@ -149,7 +149,29 @@ unitcontroles omvatten een lege dag, snelle wake-up, fouten/429, shared download
 cancel, te grote/206/403/503-antwoorden, telemetrylimieten en 100 uploads.
 Bestaande S185-tests omvatten 100 echte updates, 100 identieke fetches, tenant-
 isolatie, autorisatie vóór 304 en de nieuwste-publicatie-races. De brede
-Chromium-/a11y-/Player-/offline-run en productiebuild worden hieronder vastgelegd.
+Chromium-/a11y-/Player-/offline-run telde eerst 243 geslaagde controles, drie
+opt-in skips, één verouderde HTTPS-bronverwachting, twee LG-startupraces en één
+Control-devservertimeout (drie vervolgchecks daardoor niet gestart). De
+bronverwachting is vervangen door een daadwerkelijke byteassertie en groen.
+Netwerktraces van de LG-fouten toonden een pairingverzoek vóór de installatie-
+controle: pageshow-invalidatie kon de async credential/LKG-restore inhalen.
+Invalidaties wachten nu tot boot/claim completion de identiteit en cache herstelt.
+De zeven gerichte herstelchecks (inclusief de niet gestarte Control-checks) zijn
+groen. De vervangen signed-accesscontrole is eveneens groen: verse autorisatie,
+lokale Blob-playback en slechts één mediatransfer na reload. Daarmee zijn alle
+250 toepasselijke controles uit de brede run via de oorspronkelijke run plus
+herstelruns geslaagd; dit wordt niet als één foutloze run gepresenteerd. Na de
+opstartfix zijn alle 78 LG-/goal-/nieuwste-publicatie-/offlinecontroles opnieuw
+geslaagd (5,8 minuten). Lint/typecheck/unit zijn daarna opnieuw groen, inclusief
+342 Player-unitcontroles. Er zijn drie bewuste opt-in skips.
+
+Commit `3ef5abb0384b2886099ef2eccd50ae9c1c123c8e`,
+[PR #211](https://github.com/veyocast/platform/pull/211). Op de eerste commit zijn
+ook Foundation (inclusief productiebuild en byte/rangeproef), database/RLS,
+Android en LG-wrapper groen. De laatste
+opstart-/testaanvulling wordt afzonderlijk gecommit en krijgt dezelfde CI-gates.
+De exacte definitieve CI- en stagingstatus staat bij de PR en deploymentrun;
+dit verslag claimt geen deployment vooruitlopend op die controles.
 
 Nog geen productiepostmeting, hardwareacceptatie of factuurreconciliatie. De
 hosted runtime verandert de daadwerkelijke LG-videotransportroute; de gebruiker
