@@ -168,7 +168,7 @@ meer aan. Het bestaande renderwerk blijft beschikbaar voor Studio/posterfallback
   RLS: 84 bestanden, 2.173 assertions. Database-lint: geen errors; zes reeds
   bestaande functiewaarschuwingen. De gedeelde lokale database is niet gereset.
 - `pnpm lint`, `pnpm typecheck`, `pnpm test`: elk 30/30 workspacetaken groen.
-  De Player-suite bevat 327 geslaagde unittests in 59 bestanden.
+  De Player-suite bevat 326 geslaagde unittests in 59 bestanden.
 - De volledige Chromium-run had 278 geslaagde tests en 30 expliciete live-opt-ins
   overgeslagen. Drie initiële fouten zijn afzonderlijk hersteld/gecontroleerd:
   de oude publicatiepagina-labels, een Next-dev-herstart in Studio en renderskew
@@ -219,5 +219,7 @@ een later afgeronde voorbereiding mag haar niet terugzetten naar de normale poll
 De XHR-annulering rondt de requestlock expliciet af, ook als de browser geen
 abort-event afgeeft. De fixture bootst dat ontbrekende event deterministisch na.
 
-De definitieve transport-/publicatie-/offline-hercontrole slaagde met 21 tests.
+De transport-/publicatie-/offline-hercontrole slaagde met 21 tests; de uitgebreidere videorun daarna met 23 tests.
 De eerder falende snelle LG-reeks slaagde daarna drie extra keren achter elkaar.
+
+Signed media-URL-vernieuwing herstart geen gezonde video meer. De oude 45-minutenherstart is verwijderd; React behoudt ook het bestaande decoder-src tijdens de lopende afspeelbeurt. De volgende afspeelbeurt gebruikt de vernieuwde toegang. Twee echte videofixtures bewijzen decodercontinuïteit, één checksumcachedownload en geen request naar de vernieuwde URL tijdens playback. De crashfixture accepteert de bestaande korte crossfade met twee gelijke complete beelden.

@@ -43,7 +43,6 @@ describe("zelfstandige LG Legacy Player", () => {
     const html = renderLgLegacyHtml();
 
     expect(html).toContain("refreshSameReleaseMediaAccess");
-    expect(html).toContain("mediaAccessRefreshMs");
     expect(html).toContain("currentItem.source.url = freshItem.source.url");
     expect(html).toContain('headers["If-None-Match"] = runtime.manifestEtag');
     expect(html).toContain("status === 304 && knownReleaseId");

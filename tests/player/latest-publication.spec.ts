@@ -5,6 +5,57 @@ import type { PlayerManifestEnvelope } from "../../apps/player/app/_lib/player-m
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
 for (const platform of ["browser", "static-lg"] as const) {
+  test(`${platform}: renewed signed access preserves the playing video and verified bytes`, async ({ page }) => {
+    const { readFile } = await import("node:fs/promises");
+    const { createHash } = await import("node:crypto");
+    const bytes = await readFile("apps/player/public/lg-probe/h264-baseline-aac.mp4");
+    const baseline = await (await page.request.get(`${playerURL}/api/player/manifest?deviceToken=demo-online`)).json() as PlayerManifestEnvelope;
+    let requests = 0;
+    let cacheDownloads = 0;
+    let refreshedDownloads = 0;
+    const fetchedAt = new Date();
+    const envelope: PlayerManifestEnvelope = { ...baseline, fetchedAt: fetchedAt.toISOString(),
+      manifest: { ...baseline.manifest, items: [{ ...baseline.manifest.items[0]!, id: "access-video", kind: "video", durationSeconds: 60,
+        source: { url: `${playerURL}/access-video.mp4?access=old`, mimeType: "video/mp4", bytes: bytes.length,
+          checksumSha256: createHash("sha256").update(bytes).digest("hex") } }] }
+    };
+    await page.addInitScript(() => {
+      localStorage.setItem("veyocast.player.deviceToken", "a".repeat(48));
+      localStorage.setItem("veyocast.player.installationCredential", "i".repeat(48));
+    });
+    await page.route("**/api/player/installation", (route) => route.fulfill({ json: { ok: true, bound: true, installationCredential: "i".repeat(48) } }));
+    await page.route("**/api/player/realtime", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/api/player/heartbeat", (route) => route.fulfill({ json: { ok: true } }));
+    await page.route("**/api/player/manifest*", (route) => { requests += 1; return route.fulfill({ json: envelope }); });
+    await page.route("**/access-video.mp4*", (route) => {
+      if (["fetch", "xhr"].includes(route.request().resourceType())) cacheDownloads += 1;
+      if (route.request().url().includes("access=fresh")) refreshedDownloads += 1;
+      return route.fulfill({ body: bytes, contentType: "video/mp4" });
+    });
+    await page.goto(platform === "browser" ? `${playerURL}/?syncMs=10000` : `${playerURL}/lg/legacy`);
+    const video = page.locator("video").last();
+    await expect(video).toBeVisible();
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeGreaterThan(0);
+    const before = await video.evaluate((element: HTMLVideoElement) => {
+      element.playbackRate = 0.25;
+      element.setAttribute("data-original-video", "preserved");
+      element.addEventListener("loadstart", () => element.setAttribute("data-unexpected-reload", "true"));
+      return element.currentTime;
+    });
+    envelope.fetchedAt = new Date(fetchedAt.getTime() + 60 * 60 * 1000).toISOString();
+    envelope.manifest.items[0]!.source.url = `${playerURL}/access-video.mp4?access=fresh`;
+    const prior = requests;
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await expect.poll(() => requests).toBeGreaterThan(prior);
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeGreaterThan(before + 0.15);
+    await expect(video).toHaveAttribute("data-original-video", "preserved");
+    await expect(video).not.toHaveAttribute("data-unexpected-reload", "true");
+    expect(cacheDownloads).toBe(1);
+    expect(refreshedDownloads).toBe(0);
+  });
+}
+
+for (const platform of ["browser", "static-lg"] as const) {
   test(`${platform}: reconnect replaces a stalled manifest request and ignores its late response`, async ({ page }) => {
     const baseline = await (await page.request.get(`${playerURL}/api/player/manifest?deviceToken=demo-online`)).json() as PlayerManifestEnvelope;
     const release = (revision: number): PlayerManifestEnvelope => ({ ...baseline,
@@ -116,7 +167,7 @@ for (const platform of ["browser", "static-lg"] as const) {
         await page.route("**/api/player/manifest*", (route) => route.abort());
         await page.route("**/player-demo/**", (route) => route.abort());
         await page.reload();
-        await expect(page.getByRole("img", { name: "Atomic 2", exact: true })).toBeVisible();
+        await expect(page.getByRole("img", { name: "Atomic 2", exact: true }).last()).toBeVisible();
       } else {
         desired = release(3);
         await page.evaluate(() => window.dispatchEvent(new Event("online")));

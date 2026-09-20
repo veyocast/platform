@@ -16,7 +16,6 @@ import {
   refreshHydratedReleaseEnvelope,
   resolveHydratedMediaSource,
   sha256Hex,
-  shouldRestartForRefreshedMediaAccess,
   verifyAssetBytes
 } from "./player-cache";
 import type { PlayerMediaStore } from "./player-media-store";
@@ -462,27 +461,6 @@ describe("player cache contract", () => {
     expect(refreshed.manifest.items[0]!.source.url).toBe(
       `/__veyocast-player-cache/${"a".repeat(64)}`
     );
-  });
-
-  it("restarts once when cached signed media access is near expiry", () => {
-    expect(
-      shouldRestartForRefreshedMediaAccess({
-        cachedFetchedAt: "2026-07-30T20:00:00.000Z",
-        freshFetchedAt: "2026-07-30T20:45:00.000Z"
-      })
-    ).toBe(true);
-    expect(
-      shouldRestartForRefreshedMediaAccess({
-        cachedFetchedAt: "2026-07-30T20:30:00.000Z",
-        freshFetchedAt: "2026-07-30T20:45:00.000Z"
-      })
-    ).toBe(false);
-    expect(
-      shouldRestartForRefreshedMediaAccess({
-        cachedFetchedAt: "ongeldig",
-        freshFetchedAt: "2026-07-30T20:45:00.000Z"
-      })
-    ).toBe(true);
   });
 
   it("garbage-collects only unreferenced player assets", async () => {

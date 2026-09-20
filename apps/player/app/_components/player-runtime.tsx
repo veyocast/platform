@@ -30,7 +30,6 @@ import {
   recoverDeviceTokenFromPersistedRelease,
   refreshHydratedReleaseEnvelope,
   revokeHydratedRelease,
-  shouldRestartForRefreshedMediaAccess,
   type HydratedPlayerRelease,
   type PlayerCachePhase
 } from "../_lib/player-cache";
@@ -1247,11 +1246,6 @@ export function PlayerRuntime() {
             cachedEnvelope: currentRuntime.release.envelope,
             freshEnvelope: body
           });
-          const mediaAccessNeedsRestart =
-            shouldRestartForRefreshedMediaAccess({
-              cachedFetchedAt: currentRuntime.release.envelope.fetchedAt,
-              freshFetchedAt: body.fetchedAt
-            });
           setRuntime((value) =>
             isPlaybackRuntime(value)
               ? {
@@ -1274,7 +1268,7 @@ export function PlayerRuntime() {
                 }
               : value
           );
-          if (mediaAccessNeedsRestart || !playbackReadyRef.current) {
+          if (!playbackReadyRef.current) {
             setPlaybackAttempt((attempt) => attempt + 1);
           }
           syncSucceeded = true;
@@ -2704,6 +2698,9 @@ function BinaryPlaybackMedia({
 
   useEffect(() => {
     if (item.kind !== "video") return;
+    // Renewed access belongs to the next playback attempt. Changing src on a
+    // healthy decoder restarts the current video even when its bytes are equal.
+    if (hasStartedRef.current && !hasEndedRef.current) return;
     fallbackAttemptedRef.current = false;
     setSourceUrl(item.source.url);
   }, [item.id, item.kind, item.source.url]);

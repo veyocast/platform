@@ -14,7 +14,6 @@ export const playerDatabaseName = "veyocast-player-cache-v1";
 export const playerActiveReleaseStoreName = "activeReleases";
 export const playerPreviousReleaseStoreName = "previousReleases";
 export const playerStorageReserveBytes = 16 * 1024 * 1024;
-export const playerMediaAccessRefreshMs = 45 * 60 * 1_000;
 const playerMaximumStorageReserveBytes = 64 * 1024 * 1024;
 const playerCachePathPrefix = "/__veyocast-player-cache/";
 const previousBrandNamespace = String.fromCharCode(99, 97, 115, 116, 105, 118, 111);
@@ -756,19 +755,6 @@ export function refreshHydratedReleaseEnvelope({
       })
     }
   };
-}
-
-export function shouldRestartForRefreshedMediaAccess({
-  cachedFetchedAt,
-  freshFetchedAt
-}: {
-  cachedFetchedAt: string;
-  freshFetchedAt: string;
-}) {
-  const cachedAt = Date.parse(cachedFetchedAt);
-  const freshAt = Date.parse(freshFetchedAt);
-  if (!Number.isFinite(cachedAt) || !Number.isFinite(freshAt)) return true;
-  return freshAt - cachedAt >= playerMediaAccessRefreshMs;
 }
 
 function cachedPlaybackUrl(url: string | undefined) {

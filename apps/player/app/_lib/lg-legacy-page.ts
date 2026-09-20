@@ -84,7 +84,6 @@ const legacyConfig = {
   installationIdKey: "veyocast.player.instanceId",
   legacyDiagnosticsKey: "veyocast.player.lgLegacyDiagnostics.v1",
   manifestIntervalMs: 8_000,
-  mediaAccessRefreshMs: 45 * 60 * 1000,
   pairingCodeKey: "veyocast.player.pairingCode",
   pairingExpiryKey: "veyocast.player.pairingExpiresAt",
   pairingNonceKey: "veyocast.player.pairingRequestNonce",
@@ -1023,7 +1022,6 @@ export function renderLgLegacyHtml() {
       lastProgressAt: 0,
       ledScoresLiveMatchRender: null,
       matchCentreClockTimer: null,
-      mediaAccessRefreshReferenceAt: 0,
       ledScoresLiveMatchTimer: null,
       ledScoresMatchStates: {},
       offline: false,
@@ -4879,25 +4877,8 @@ export function renderLgLegacyHtml() {
       var currentById = {};
       var currentItem;
       var freshItem;
-      var currentFetchedAt;
-      var freshFetchedAt;
       var index;
-      var restart = false;
       if (!Array.isArray(currentItems) || !Array.isArray(freshItems)) return false;
-      currentFetchedAt = parsePlayerTimestamp(runtime.envelope.fetchedAt);
-      freshFetchedAt = parsePlayerTimestamp(freshEnvelope.fetchedAt);
-      if (!runtime.mediaAccessRefreshReferenceAt) {
-        runtime.mediaAccessRefreshReferenceAt = isFinite(currentFetchedAt)
-          ? currentFetchedAt
-          : isFinite(freshFetchedAt) ? freshFetchedAt : now();
-      }
-      if (
-        isFinite(freshFetchedAt) &&
-        freshFetchedAt - runtime.mediaAccessRefreshReferenceAt >= CONFIG.mediaAccessRefreshMs
-      ) {
-        runtime.mediaAccessRefreshReferenceAt = freshFetchedAt;
-        restart = true;
-      }
       for (index = 0; index < currentItems.length; index += 1) {
         currentItem = currentItems[index];
         if (currentItem && typeof currentItem.id === "string") {
@@ -4951,7 +4932,6 @@ export function renderLgLegacyHtml() {
       runtime.envelope.device = freshEnvelope.device;
       runtime.envelope.diagnostics = freshEnvelope.diagnostics;
       if (freshEnvelope.branding) runtime.envelope.branding = freshEnvelope.branding;
-      return restart && runtime.currentItem && runtime.currentItem.kind === "video";
     }
     function observeTarget(envelope) {
       var revision = envelope.target && String(envelope.target.revision);
@@ -5070,16 +5050,14 @@ export function renderLgLegacyHtml() {
             runtime.syncFailures = 0;
             runtime.offline = false;
             byId("offline").className = "";
-            var mediaAccessNeedsRestart;
             if (
               !forceRefresh &&
               releaseIdOf(runtime.envelope) === releaseIdOf(body) && !liveDataChanged(body)
             ) {
               runtime.pendingRelease = null;
-              mediaAccessNeedsRestart = refreshSameReleaseMediaAccess(body);
+              refreshSameReleaseMediaAccess(body);
               setState("PLAYING");
               runtime.syncPhase = "active";
-              if (mediaAccessNeedsRestart) playCurrent();
               scheduleManifestSync(CONFIG.manifestIntervalMs);
               sendHeartbeat();
               return;
@@ -5644,7 +5622,6 @@ export function renderLgLegacyHtml() {
       }
       runtime.envelope = envelope;
       runtime.releaseSource = source;
-      runtime.mediaAccessRefreshReferenceAt = parsePlayerTimestamp(envelope.fetchedAt) || now();
       runtime.activeIndex = runtime.activeIndex % items.length;
       runtime.itemFailures = {};
       runtime.pendingRelease = null;
