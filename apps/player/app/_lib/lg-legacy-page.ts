@@ -1032,6 +1032,7 @@ export function renderLgLegacyHtml() {
       pendingRelease: null,
       targetKey: null,
       manifestEtag: null,
+      manifestRequest: null,
       invalidatedDuringFetch: false,
       heartbeatInFlight: false,
       heartbeatPending: false,
@@ -1247,7 +1248,11 @@ export function renderLgLegacyHtml() {
       xhr.onload = function () { finish(null); };
       xhr.onerror = function () { finish("NETWORK_ERROR"); };
       xhr.ontimeout = function () { finish("TIMEOUT"); };
+      xhr.onabort = function () { finish("ABORTED"); };
       try { xhr.send(body || null); } catch (error) { finish("XHR_EXCEPTION"); }
+      // abort() need not dispatch an abort event after readyState DONE, while
+      // the load callback can still be pending. Always settle our own lock.
+      return { abort: function () { try { xhr.abort(); } finally { finish("ABORTED"); } } };
     }
     function goalUuid(value) {
       return typeof value === "string" &&
@@ -3950,7 +3955,7 @@ export function renderLgLegacyHtml() {
       if (event === "target_invalidated" || event === "data_invalidated") {
         runtime.signalReceivedAt = new Date().toISOString();
         if (typeof record.targetRevision === "string" && typeof record.committedAt === "string") runtime.targetCommit = { revision: record.targetRevision, at: record.committedAt };
-        scheduleManifestSync(0); return;
+        invalidateManifest(); return;
       }
       if (event === "bootstrap" || event === "configuration") {
         if (record.screenOrientation === "portrait" || record.screenOrientation === "landscape") runtime.goalScreenOrientation = record.screenOrientation;
@@ -4988,6 +4993,7 @@ export function renderLgLegacyHtml() {
         ensurePairing();
         return;
       }
+      runtime.invalidatedDuringFetch = false;
       headers = {
         Authorization: "Bearer " + runtime.deviceToken,
         "Cache-Control": "no-store"
@@ -5002,7 +5008,7 @@ export function renderLgLegacyHtml() {
       // The authorized target ETag includes a separate access-rotation epoch.
       if (!forceRefresh && runtime.manifestEtag) headers["If-None-Match"] = runtime.manifestEtag;
       runtime.syncInFlight = true;
-      request(
+      runtime.manifestRequest = request(
         "GET",
         "/api/player/manifest",
         headers,
@@ -5010,6 +5016,8 @@ export function renderLgLegacyHtml() {
         function (transport, status, body, retryAfter, advertisedVersion, manifestEtag) {
           var code = errorCode(body, transport || "PLAYER_API_UNAVAILABLE");
           runtime.syncInFlight = false;
+          runtime.manifestRequest = null;
+          if (transport === "ABORTED" && runtime.invalidatedDuringFetch) { scheduleManifestSync(0); return; }
           if (
             advertisedVersion &&
             String(advertisedVersion) !== String(CONFIG.appVersion)
@@ -5187,8 +5195,17 @@ export function renderLgLegacyHtml() {
         }
       );
     }
+    function invalidateManifest() {
+      runtime.invalidatedDuringFetch = true;
+      if (runtime.syncInFlight && runtime.manifestRequest) {
+        runtime.manifestRequest.abort();
+      }
+      scheduleManifestSync(0);
+    }
     function scheduleManifestSync(delay) {
-      if (!runtime.syncInFlight && runtime.invalidatedDuringFetch) { runtime.invalidatedDuringFetch = false; delay = 0; }
+      // Consume invalidation only when the read starts. A finishing preparation
+      // must not replace an already requested immediate read with an 8 s timer.
+      if (runtime.invalidatedDuringFetch) delay = 0;
       window.clearTimeout(runtime.retryTimer);
       runtime.retryTimer = window.setTimeout(syncManifest, delay + (delay > 0 ? Math.random() * Math.min(750, delay * .1) : 0));
     }
@@ -10262,7 +10279,11 @@ export function renderLgLegacyHtml() {
     window.addEventListener("online", function () {
       runtime.offline = false;
       restartGoalRealtime();
-      syncManifest();
+      invalidateManifest();
+    });
+    window.addEventListener("pageshow", invalidateManifest);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "hidden") invalidateManifest();
     });
     window.addEventListener("offline", function () {
       stopGoalRealtime(false);

@@ -204,4 +204,20 @@ De eerste Android-CI-run stopte vóór lint/tests: de bestaande gepinde
 `setup-android`-action vraagt standaard het inmiddels ontbrekende SDK-pakket
 `tools`. De Android-PR-workflow specificeert nu `packages: platform-tools`;
 de bestaande command-line-tools, platform- en build-tools-pins blijven leidend.
-De workflowvalidator is groen; de Android-gate wordt opnieuw uitgevoerd.
+De workflowvalidator is groen. De gecorrigeerde CI-run slaagde voor Foundation,
+Database/RLS, Android-lint/tests/APK/AAB en LG-wrappervalidatie.
+
+Een aanvullende transportcontrole begrenst React-manifestrequests op tien
+seconden, inclusief het lezen van de body. Reconnect/invalidatie annuleert een
+verouderde request direct; ook na entitlementverificatie wordt annulering
+gecontroleerd. Static LG hergebruikt zijn begrensde XHR en breekt deze eveneens
+af bij invalidatie. Hervatten uit achtergrond of pageshow hercontroleert direct.
+Twee browserfixtures laten een oude manifestresponse hangen, halen na reconnect
+doel D op en leveren B alsnog af; B mag nooit zichtbaar of actief worden.
+Static LG laat een directe invalidatie bovendien staan totdat de read echt begint:
+een later afgeronde voorbereiding mag haar niet terugzetten naar de normale poll.
+De XHR-annulering rondt de requestlock expliciet af, ook als de browser geen
+abort-event afgeeft. De fixture bootst dat ontbrekende event deterministisch na.
+
+De definitieve transport-/publicatie-/offline-hercontrole slaagde met 21 tests.
+De eerder falende snelle LG-reeks slaagde daarna drie extra keren achter elkaar.

@@ -1043,6 +1043,7 @@ export function PlayerRuntime() {
     let cancelled = false;
     let consecutiveSyncFailures = 0;
     let syncInFlight = false;
+    let manifestController: AbortController | null = null;
     let invalidatedDuringFetch = false;
     let syncTimer: number | undefined;
     let preparingGeneration: number | null = null;
@@ -1116,6 +1117,9 @@ export function PlayerRuntime() {
       if (cancelled) return;
       if (syncInFlight) { invalidatedDuringFetch = true; return; }
       syncInFlight = true;
+      manifestController = new AbortController();
+      const requestController = manifestController;
+      const requestTimeout = window.setTimeout(() => requestController.abort(), 10_000);
       let syncSucceeded = false;
       let nextSyncBaseDelayMs = isWaitingContentRuntime(runtimeRef.current)
         ? waitingContentSyncIntervalMs
@@ -1126,6 +1130,7 @@ export function PlayerRuntime() {
           "/api/player/manifest",
           {
             cache: "no-store",
+            signal: requestController.signal,
             headers: {
               Accept: "application/json",
               Authorization: `Bearer ${activeDeviceToken}`,
@@ -1133,6 +1138,7 @@ export function PlayerRuntime() {
             }
           }
         );
+        if (cancelled || requestController.signal.aborted) return;
         if (
           shouldReloadPlayerApplication(
             currentPlayerApplicationVersion(),
@@ -1158,7 +1164,7 @@ export function PlayerRuntime() {
           | PlayerManifestProblem
           | PlayerWaitingContentEnvelope;
 
-        if (cancelled) {
+        if (cancelled || requestController.signal.aborted) {
           return;
         }
 
@@ -1200,6 +1206,7 @@ export function PlayerRuntime() {
         body.entitlementVerified = body.entitlement
           ? await verifyPlayerEntitlement(body.entitlement)
           : true;
+        if (cancelled || requestController.signal.aborted) return;
 
         const currentRuntime = runtimeRef.current;
         const releaseId = body.manifest.releaseId;
@@ -1303,13 +1310,15 @@ export function PlayerRuntime() {
         }
         syncSucceeded = true;
       } catch (error) {
-        if (!cancelled) {
+        if (!cancelled && !invalidatedDuringFetch) {
           keepCachedPlaybackOrShowProblem(
             "Online sync faalde; cached playback blijft actief.",
             error instanceof Error ? error.message : "manifest fetch failed"
           );
         }
       } finally {
+        window.clearTimeout(requestTimeout);
+        manifestController = null;
         syncInFlight = false;
         consecutiveSyncFailures = syncSucceeded
           ? 0
@@ -1498,6 +1507,11 @@ export function PlayerRuntime() {
     function handleNetworkOnline() {
       consecutiveSyncFailures = 0;
       if (syncTimer) window.clearTimeout(syncTimer);
+      if (syncInFlight) {
+        invalidatedDuringFetch = true;
+        manifestController?.abort();
+        return;
+      }
       void syncOnlineManifest();
     }
 
@@ -1527,6 +1541,7 @@ export function PlayerRuntime() {
     return () => {
       cancelled = true;
       if (syncTimer) window.clearTimeout(syncTimer);
+      manifestController?.abort();
       latestTargetRef.current.cancel();
       pendingTargetRef.current = null;
       window.removeEventListener("veyocast:target-invalidated", handleInvalidation);

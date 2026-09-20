@@ -5,6 +5,61 @@ import type { PlayerManifestEnvelope } from "../../apps/player/app/_lib/player-m
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
 for (const platform of ["browser", "static-lg"] as const) {
+  test(`${platform}: reconnect replaces a stalled manifest request and ignores its late response`, async ({ page }) => {
+    const baseline = await (await page.request.get(`${playerURL}/api/player/manifest?deviceToken=demo-online`)).json() as PlayerManifestEnvelope;
+    const release = (revision: number): PlayerManifestEnvelope => ({ ...baseline,
+      device: { ...baseline.device, desiredReleaseId: `network-${revision}` },
+      target: { revision: String(revision), configRevision: String(revision), publicationId: baseline.manifest.playlistId,
+        assignmentSource: "default", committedAt: new Date().toISOString() },
+      manifest: { ...baseline.manifest, releaseId: `network-${revision}`, items: [{ ...baseline.manifest.items[0]!,
+        id: `network-item-${revision}`, sourceItemId: "network-item", contentHash: String(revision), durationSeconds: 2,
+        accessibilityName: `Network ${revision}` }] }
+    });
+    let desired = 1;
+    let late: (() => Promise<void>) | undefined;
+    const requested: number[] = [];
+    const shown: string[] = [];
+    await page.addInitScript((omitAbortEvent) => {
+      localStorage.setItem("veyocast.player.deviceToken", "a".repeat(48));
+      localStorage.setItem("veyocast.player.installationCredential", "i".repeat(48));
+      if (omitAbortEvent) {
+        // Model XHR's DONE-before-load-callback race: abort can stop delivery
+        // without emitting an abort event. The request lock must still settle.
+        const original = XMLHttpRequest.prototype.abort;
+        XMLHttpRequest.prototype.abort = function () {
+          const callback = this.onabort;
+          this.onabort = null;
+          try { original.call(this); } finally { this.onabort = callback; }
+        };
+      }
+    }, platform === "static-lg");
+    await page.route("**/api/player/installation", (route) => route.fulfill({ json: { ok: true, bound: true, installationCredential: "i".repeat(48) } }));
+    await page.route("**/api/player/realtime", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/api/player/manifest*", (route) => {
+      requested.push(desired);
+      if (desired === 2) { late = () => route.fulfill({ json: release(2) }).catch(() => undefined); return; }
+      return route.fulfill({ json: release(desired) });
+    });
+    await page.route("**/api/player/heartbeat", (route) => {
+      if (route.request().postDataJSON().activeReleaseId) shown.push(route.request().postDataJSON().activeReleaseId);
+      return route.fulfill({ json: { ok: true } });
+    });
+    await page.goto(platform === "browser" ? `${playerURL}/?syncMs=250` : `${playerURL}/lg/legacy`);
+    await expect.poll(() => shown.includes("network-1")).toBe(true);
+    desired = 2;
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await expect.poll(() => Boolean(late)).toBe(true);
+    desired = 3;
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await expect.poll(() => requested.includes(3), { timeout: 3000 }).toBe(true);
+    await late!();
+    await expect.poll(() => shown.includes("network-3"), { timeout: 10_000 }).toBe(true);
+    expect(shown).not.toContain("network-2");
+    await expect(page.getByRole("img", { name: "Network 3", exact: true })).toBeVisible();
+  });
+}
+
+for (const platform of ["browser", "static-lg"] as const) {
   for (const scenario of ["newer-target", "crash"] as const) {
     test(`${platform}: ${scenario} during the activation transaction preserves a complete latest state`, async ({ page }) => {
       const baseline = await (await page.request.get(`${playerURL}/api/player/manifest?deviceToken=demo-online`)).json() as PlayerManifestEnvelope;
