@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(124);
+select plan(115);
 
 select is(
   (
@@ -720,7 +720,28 @@ select is(
   'the explicitly published release becomes the screen default'
 );
 
+select is((public.publish_playlist_to_targets_v3(
+ '30000000-0000-4000-8000-000000000a51',
+ (select revision from public.playlists where id='30000000-0000-4000-8000-000000000a51'),
+ array['40000000-0000-4000-8000-000000000a51'::uuid], 'Ongewijzigd opnieuw synchroniseren',
+ 'a5100000-0000-4000-8000-000000000185')->>'releaseId')::uuid,
+ (select id from dynamic_test_ids where name='base_release'),'unchanged intentional publication reuses the same configuration');
+select is((select count(*) from public.list_current_publications_v1('10000000-0000-4000-8000-000000000a51')),1::bigint,
+ 'Control reads exactly one current publication per playlist');
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000a53',true);
+select is((select count(*) from public.list_current_publications_v1('10000000-0000-4000-8000-000000000a51')),0::bigint,
+ 'tenant B cannot read tenant A current publication through the compact RPC');
+select is((select count(*) from public.playlist_publications where tenant_id='10000000-0000-4000-8000-000000000a51'),0::bigint,
+ 'tenant B cannot read the underlying current publication pointer');
+select throws_ok($test$update public.playlist_publications set config_revision=config_revision+1$test$,'42501',
+ 'permission denied for table playlist_publications','browser clients cannot mutate current publication ordering');
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000a51',true);
 reset role;
+select is(public.get_player_effective_target_v1(repeat('d',64))->>'desired_release_id',
+ (select id::text from dynamic_test_ids where name='base_release'),'authorized target resolves the selected screen publication');
+select ok(public.get_player_effective_target_v1(repeat('e',64)) is null,'an unknown device has no effective target');
+select is((select count(*) from public.playlist_releases where playlist_id='30000000-0000-4000-8000-000000000a51'),1::bigint,
+ 'an unchanged publish creates no artificial release history');
 
 update public.tenant_products
 set name = 'Cola zero'
@@ -808,869 +829,55 @@ select is(
 );
 
 reset role;
-select ok(
-  (
-    select pending and not_before > last_requested_at
-    from private.dynamic_release_refresh_queue
-    where tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  'changed dynamic content enters the durable coalescing queue'
-);
-update private.dynamic_release_refresh_queue
-set not_before = clock_timestamp() - interval '1 second'
-where tenant_id = '10000000-0000-4000-8000-000000000a51'
-  and playlist_id = '30000000-0000-4000-8000-000000000a51';
-update public.player_devices
-set active_release_id = null
-where id = '50000000-0000-4000-8000-000000000a51';
-
-set local role service_role;
-select lives_ok(
-  $$select * from public.claim_dynamic_render_job_v1(
-    'dynamic-release-worker', 120, 3
-  )$$,
-  'the render-worker poll safely defers while the Player has not acknowledged its current release'
-);
-
-reset role;
-select ok(
-  (
-    select pending
-    from private.dynamic_release_refresh_queue
-    where tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  'the newest dynamic change remains pending behind Player backpressure'
-);
-select is(
-  (
-    select count(*)
-    from public.playlist_releases release
-    where release.playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  1::bigint,
-  'an offline or unacknowledged Player cannot generate release history'
-);
-update public.player_devices
-set active_release_id = (
-      select id from dynamic_test_ids where name = 'base_release'
-    ),
-    desired_release_id = (
-      select id from dynamic_test_ids where name = 'base_release'
-    )
-where id = '50000000-0000-4000-8000-000000000a51';
-update private.dynamic_release_refresh_queue
-set not_before = clock_timestamp() - interval '1 second'
-where tenant_id = '10000000-0000-4000-8000-000000000a51'
-  and playlist_id = '30000000-0000-4000-8000-000000000a51';
-
-select lives_ok(
-  $$select private.process_dynamic_release_refresh_v1(
-    '10000000-0000-4000-8000-000000000a51',
-    '30000000-0000-4000-8000-000000000a51',
-    'dynamic-release-worker'
-  )$$,
-  'an acknowledged Player allows one due coalesced release to publish'
-);
-
-reset role;
-select ok(
-  not (
-    select pending
-    from private.dynamic_release_refresh_queue
-    where tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  'a successful coalesced publication clears the pending queue state'
-);
-
-set local role authenticated;
-select set_config(
-  'request.jwt.claim.sub',
-  '00000000-0000-4000-8000-000000000a51',
-  true
-);
-select is(
-  (
-    select count(*)
-    from public.playlist_releases release
-    where release.playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  2::bigint,
-  'one due coalesced batch creates exactly one new immutable release'
-);
-
-select is(
-  (
-    select count(*)
-    from public.list_screen_fleet_releases_v1(
-      '10000000-0000-4000-8000-000000000a51'
-    )
-  ),
-  2::bigint,
-  'fleet projection returns the latest release plus the older last-known-good reference'
-);
-
-select set_config(
-  'request.jwt.claim.sub',
-  '00000000-0000-4000-8000-000000000a53',
-  true
-);
-select is(
-  (
-    select count(*)
-    from public.list_screen_fleet_releases_v1(
-      '10000000-0000-4000-8000-000000000a51'
-    )
-  ),
-  0::bigint,
-  'fleet projection cannot expose another tenant through its argument'
-);
-
-reset role;
-update public.player_devices
-set status = 'revoked', revoked_at = clock_timestamp()
-where id = '50000000-0000-4000-8000-000000000a51';
-set local role authenticated;
-select set_config(
-  'request.jwt.claim.sub',
-  '00000000-0000-4000-8000-000000000a51',
-  true
-);
-select ok(
-  (
-    select count(*) = 1
-      and bool_and(fleet_release.id = (
-        select release.id
-        from public.playlist_releases release
-        where release.tenant_id =
-          '10000000-0000-4000-8000-000000000a51'
-          and release.playlist_id =
-            '30000000-0000-4000-8000-000000000a51'
-        order by release.version desc
-        limit 1
-      ))
-    from public.list_screen_fleet_releases_v1(
-      '10000000-0000-4000-8000-000000000a51'
-    ) fleet_release
-  ),
-  'revoked Player pointers do not retain old release history in the fleet projection'
-);
-
-reset role;
-update public.player_devices
-set status = 'paired', revoked_at = null
-where id = '50000000-0000-4000-8000-000000000a51';
-
-update public.tenants
-set screen_limit = greatest(screen_limit, 2)
-where id = '10000000-0000-4000-8000-000000000a51';
-insert into public.screens (
-  id, tenant_id, name, orientation, status, assigned_playlist_id,
-  assigned_release_id, active_assignment_source, created_by
-) values (
-  '40000000-0000-4000-8000-000000000a52',
-  '10000000-0000-4000-8000-000000000a51',
-  'Ongekoppelde oudere tak',
-  'landscape',
-  'active',
-  '30000000-0000-4000-8000-000000000a51',
-  (select id from dynamic_test_ids where name = 'base_release'),
-  'default',
-  '00000000-0000-4000-8000-000000000a51'
-);
-set local role service_role;
-
-select lives_ok(
-  $$update public.dynamic_data_sources
-    set revision = revision + 1
-    where id = (select id from dynamic_test_ids where name = 'source')$$,
-  'an unchanged provider check remains a valid source operation'
-);
-
-select is(
-  (
-    select count(*)
-    from public.dynamic_slide_snapshots
-    where dynamic_slide_id = (
-      select id from dynamic_test_ids where name = 'slide'
-    )
-  ),
-  2::bigint,
-  'unchanged canonical content creates no extra immutable snapshot'
-);
-
-select is(
-  (
-    select count(*)
-    from public.playlist_releases release
-    where release.playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  2::bigint,
-  'unchanged canonical content creates no extra playlist release'
-);
-
-reset role;
-set local role authenticated;
-select set_config(
-  'request.jwt.claim.sub',
-  '00000000-0000-4000-8000-000000000a51',
-  true
-);
-
-select is(
-  (
-    public.refresh_dynamic_slide_v1(
-      (select id from dynamic_test_ids where name = 'slide')
-    ) ->> 'changed'
-  )::boolean,
-  false,
-  'manual refresh reports honestly when the slide content is unchanged'
-);
-
-select isnt(
-  (
-    select desired_release_id
-    from public.player_devices
-    where id = '50000000-0000-4000-8000-000000000a51'
-  ),
-  (select id from dynamic_test_ids where name = 'base_release'),
-  'the paired Player receives the automatically published desired release'
-);
-
-select ok(
-  (
-    select bool_and(
-      release_item.dynamic_snapshot_id = slide.current_snapshot_id
-    )
-    from public.player_devices device
-    join public.playlist_release_items release_item
-      on release_item.tenant_id = device.tenant_id
-      and release_item.release_id = device.desired_release_id
-    join public.dynamic_slide_snapshots released_snapshot
-      on released_snapshot.tenant_id = release_item.tenant_id
-      and released_snapshot.id = release_item.dynamic_snapshot_id
-    join public.dynamic_slides slide
-      on slide.tenant_id = released_snapshot.tenant_id
-      and slide.id = released_snapshot.dynamic_slide_id
-    where device.id = '50000000-0000-4000-8000-000000000a51'
-  ),
-  'the automatic release freezes the current HTML/CSS snapshot'
-);
-
-select is(
-  (
-    select count(*)
-    from public.audit_events event
-    where event.tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and event.action = 'dynamic.release.auto_published'
-  ),
-  1::bigint,
-  'automatic dynamic publication remains auditable'
-);
-
-reset role;
-update public.tenant_products
-set name = 'Cola light'
-where tenant_id = '10000000-0000-4000-8000-000000000a51'
-  and slug = 'cola';
-set local role service_role;
-select lives_ok(
-  $$update public.dynamic_data_sources
-    set revision = revision + 1
-    where id = (select id from dynamic_test_ids where name = 'source')$$,
-  'a first changed provider payload queues one burst snapshot'
-);
-reset role;
-create temporary table dynamic_burst_claim_one as
-select * from pg_temp.claim_dynamic_render_for_slide_v1(
-  (select id from dynamic_test_ids where name = 'slide'),
-  'dynamic-burst-worker-one'
-);
-grant select on dynamic_burst_claim_one to service_role;
-set local role service_role;
-select lives_ok(
-  $$select public.complete_dynamic_render_job_v1(
-    (select job_id from dynamic_burst_claim_one),
-    'dynamic-burst-worker-one',
-    'tenants/' || (select tenant_id from dynamic_burst_claim_one)::text ||
-      '/assets/' ||
-      (select output_media_asset_id from dynamic_burst_claim_one)::text ||
-      '/dynamic-slide.png',
-    4097,
-    repeat('e', 64),
-    1920,
-    1080
-  )$$,
-  'the first burst snapshot renders into the coalescing queue'
-);
-
-reset role;
-select set_config(
-  'test.dynamic_burst_first_requested_at',
-  (
-    select first_requested_at::text
-    from private.dynamic_release_refresh_queue
-    where tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  true
-);
-update public.tenant_products
-set name = 'Cola max'
-where tenant_id = '10000000-0000-4000-8000-000000000a51'
-  and slug = 'cola';
-set local role service_role;
-select lives_ok(
-  $$update public.dynamic_data_sources
-    set revision = revision + 1
-    where id = (select id from dynamic_test_ids where name = 'source')$$,
-  'a second changed provider payload joins the same pending batch'
-);
-reset role;
-create temporary table dynamic_burst_claim_two as
-select * from pg_temp.claim_dynamic_render_for_slide_v1(
-  (select id from dynamic_test_ids where name = 'slide'),
-  'dynamic-burst-worker-two'
-);
-grant select on dynamic_burst_claim_two to service_role;
-set local role service_role;
-select lives_ok(
-  $$select public.complete_dynamic_render_job_v1(
-    (select job_id from dynamic_burst_claim_two),
-    'dynamic-burst-worker-two',
-    'tenants/' || (select tenant_id from dynamic_burst_claim_two)::text ||
-      '/assets/' ||
-      (select output_media_asset_id from dynamic_burst_claim_two)::text ||
-      '/dynamic-slide.png',
-    4098,
-    repeat('f', 64),
-    1920,
-    1080
-  )$$,
-  'the second burst snapshot renders without publishing another release'
-);
-
-reset role;
-select is(
-  (
-    select count(*)
-    from public.playlist_releases
-    where playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  2::bigint,
-  'two rapid changes create zero immediate immutable release versions'
-);
-select ok(
-  (
-    select pending
-      and first_requested_at =
-        current_setting('test.dynamic_burst_first_requested_at')::timestamptz
-      and last_requested_at >= first_requested_at
-      and not_before >= last_published_at + interval '5 minutes'
-      and not_before <= first_requested_at + interval '5 minutes'
-    from private.dynamic_release_refresh_queue
-    where tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  'burst requests preserve one queue row and the five-minute publication bound'
-);
-
--- A paired but unacknowledged screen on a static-only release of the same
--- playlist is not a dynamic publication branch and must not hold back the
--- relevant acknowledged Player.
-insert into dynamic_test_ids values (
-  'static_release',
-  '30000000-0000-4000-8000-000000000a63'
-);
-insert into public.playlist_releases (
-  id, tenant_id, playlist_id, version, release_notes, manifest_hash,
-  manifest_json, item_count, total_duration_seconds, total_bytes,
-  published_by, published_at
-)
-select
-  (select id from dynamic_test_ids where name = 'static_release'),
-  release.tenant_id,
-  release.playlist_id,
-  3,
-  'Static branch regression fixture',
-  repeat('7', 64),
-  release.manifest_json || jsonb_build_object('version', 3),
-  release.item_count,
-  release.total_duration_seconds,
-  release.total_bytes,
-  release.published_by,
-  release.published_at - interval '1 hour'
-from public.playlist_releases release
-where release.id = (select id from dynamic_test_ids where name = 'base_release');
-insert into public.playlist_release_items
-select (
-  jsonb_populate_record(
-    null::public.playlist_release_items,
-    to_jsonb(release_item) || jsonb_build_object(
-      'id', '31000000-0000-4000-8000-000000000a63',
-      'release_id', (select id from dynamic_test_ids where name = 'static_release'),
-      'source_item_id', null,
-      'dynamic_snapshot_id', null
-    )
-  )
-).*
-from public.playlist_release_items release_item
-where release_item.release_id = (
-  select id from dynamic_test_ids where name = 'base_release'
-)
-order by release_item.sort_order
-limit 1;
-update public.screens
-set assigned_playlist_id = '30000000-0000-4000-8000-000000000a51',
-    assigned_release_id = (
-      select id from dynamic_test_ids where name = 'static_release'
-    ),
-    default_playlist_id = '30000000-0000-4000-8000-000000000a51',
-    default_release_id = (
-      select id from dynamic_test_ids where name = 'static_release'
-    ),
-    active_assignment_source = 'default'
-where id = '40000000-0000-4000-8000-000000000a52';
-insert into public.player_devices (
-  id, tenant_id, screen_id, device_name, token_hash, status,
-  active_release_id, desired_release_id
-) values (
-  '50000000-0000-4000-8000-000000000a52',
-  '10000000-0000-4000-8000-000000000a51',
-  '40000000-0000-4000-8000-000000000a52',
-  'Static branch player',
-  repeat('7', 64),
-  'paired',
-  null,
-  (select id from dynamic_test_ids where name = 'static_release')
-);
-select ok(
-  (
-    select device.active_release_id is distinct from screen.default_release_id
-      and not exists (
-        select 1
-        from public.playlist_release_items release_item
-        where release_item.release_id = screen.default_release_id
-          and release_item.dynamic_snapshot_id is not null
-      )
-    from public.screens screen
-    join public.player_devices device
-      on device.tenant_id = screen.tenant_id
-     and device.screen_id = screen.id
-    where screen.id = '40000000-0000-4000-8000-000000000a52'
-  ),
-  'an unacknowledged paired static branch is explicitly outside dynamic backpressure'
-);
-
-select set_config(
-  'test.dynamic_burst_latest_snapshot',
-  (
-    select current_snapshot_id::text
-    from public.dynamic_slides
-    where id = (select id from dynamic_test_ids where name = 'slide')
-  ),
-  true
-);
-insert into public.dynamic_slide_snapshots (
-  id,
-  tenant_id,
-  dynamic_slide_id,
-  template_version_id,
-  data_source_id,
-  source_revision_hash,
-  snapshot_data_json,
-  status,
-  created_by,
-  created_at
-)
-select
-  '40000000-0000-4000-8000-000000000a63',
-  snapshot.tenant_id,
-  snapshot.dynamic_slide_id,
-  snapshot.template_version_id,
-  snapshot.data_source_id,
-  repeat('9', 64),
-  snapshot.snapshot_data_json,
-  'rendering',
-  snapshot.created_by,
-  snapshot.created_at - interval '1 second'
-from public.dynamic_slide_snapshots snapshot
-where snapshot.id =
-  current_setting('test.dynamic_burst_latest_snapshot')::uuid;
-insert into public.dynamic_render_jobs (
-  id,
-  tenant_id,
-  snapshot_id,
-  output_media_asset_id,
-  status,
-  attempt_count,
-  max_attempts,
-  locked_at,
-  locked_by,
-  started_at,
-  created_at
-)
-values (
-  '41000000-0000-4000-8000-000000000a63',
-  '10000000-0000-4000-8000-000000000a51',
-  '40000000-0000-4000-8000-000000000a63',
-  '42000000-0000-4000-8000-000000000a63',
-  'rendering',
-  3,
-  3,
-  clock_timestamp() - interval '10 minutes',
-  'dead-final-worker',
-  clock_timestamp() - interval '11 minutes',
-  clock_timestamp() - interval '11 minutes'
-);
-set local role service_role;
-create temporary table dynamic_expired_lease_claim as
-select * from public.claim_dynamic_render_job_v1(
-  'lease-reaper-test',
-  30,
-  3
-);
-reset role;
-select is(
-  (
-    select count(*)
-    from dynamic_expired_lease_claim
-    where snapshot_id = '40000000-0000-4000-8000-000000000a63'
-  ),
-  0::bigint,
-  'a final-attempt expired lease is terminalized instead of claimed again'
-);
-select is(
-  (
-    select job.status || ':' || job.error_code || ':' || snapshot.status ||
-      ':' || snapshot.error_code
-    from public.dynamic_render_jobs job
-    join public.dynamic_slide_snapshots snapshot
-      on snapshot.tenant_id = job.tenant_id
-     and snapshot.id = job.snapshot_id
-    where job.id = '41000000-0000-4000-8000-000000000a63'
-  ),
-  'failed:render_lease_expired:failed:render_lease_expired',
-  'an exhausted lease records a bounded terminal job and snapshot failure'
-);
-select ok(
-  (
-    select current_snapshot_id =
-        current_setting('test.dynamic_burst_latest_snapshot')::uuid
-      and status = 'ready'
-    from public.dynamic_slides
-    where id = (select id from dynamic_test_ids where name = 'slide')
-  ),
-  'lease expiry preserves the newer ready snapshot and live slide status'
-);
-select set_config(
-  'test.dynamic_acknowledged_release',
-  (
-    select desired_release_id::text
-    from public.player_devices
-    where id = '50000000-0000-4000-8000-000000000a51'
-  ),
-  true
-);
-update public.player_devices
-set active_release_id = desired_release_id
-where id = '50000000-0000-4000-8000-000000000a51';
-update private.dynamic_release_refresh_queue
-set not_before = clock_timestamp() - interval '1 second'
-where tenant_id = '10000000-0000-4000-8000-000000000a51'
-  and playlist_id = '30000000-0000-4000-8000-000000000a51';
-select lives_ok(
-  $$select private.process_dynamic_release_refresh_v1(
-    '10000000-0000-4000-8000-000000000a51',
-    '30000000-0000-4000-8000-000000000a51',
-    'dynamic-burst-release-worker'
-  )$$,
-  'one due worker poll publishes the complete two-change burst'
-);
-
-reset role;
-select is(
-  (
-    select count(*)
-    from public.playlist_releases
-    where playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  4::bigint,
-  'two rapid changed snapshots coalesce into exactly one immutable release despite an unacknowledged static branch'
-);
-select is(
-  (
-    select default_release_id
-    from public.screens
-    where id = '40000000-0000-4000-8000-000000000a52'
-  ),
-  (select id from dynamic_test_ids where name = 'static_release'),
-  'an unacknowledged static release branch is not cloned or reassigned automatically'
-);
-update public.screens
-set status = 'disabled'
-where id = '40000000-0000-4000-8000-000000000a52';
-select ok(
-  (
-    select bool_and(
-      release_item.dynamic_snapshot_id = slide.current_snapshot_id
-    )
-    from public.player_devices device
-    join public.playlist_release_items release_item
-      on release_item.tenant_id = device.tenant_id
-     and release_item.release_id = device.desired_release_id
-    join public.dynamic_slide_snapshots released_snapshot
-      on released_snapshot.tenant_id = release_item.tenant_id
-     and released_snapshot.id = release_item.dynamic_snapshot_id
-    join public.dynamic_slides slide
-      on slide.tenant_id = released_snapshot.tenant_id
-     and slide.id = released_snapshot.dynamic_slide_id
-    where device.id = '50000000-0000-4000-8000-000000000a51'
-  ),
-  'the coalesced release freezes the newest snapshot, not an intermediate one'
-);
-select ok(
-  (
-    select active_release_id::text =
-        current_setting('test.dynamic_acknowledged_release')
-      and desired_release_id is distinct from active_release_id
-    from public.player_devices
-    where id = '50000000-0000-4000-8000-000000000a51'
-  ),
-  'automatic publication advances desired state without mutating Player last-known-good'
-);
-select is(
-  (
-    select count(*)
-    from public.audit_events event
-    where event.tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and event.action = 'dynamic.release.auto_published'
-  ),
-  2::bigint,
-  'each coalesced publication batch remains independently auditable'
-);
-
-update public.tenant_products
-set name = 'Cola failure proof'
-where tenant_id = '10000000-0000-4000-8000-000000000a51'
-  and slug = 'cola';
-set local role service_role;
-select lives_ok(
-  $$update public.dynamic_data_sources
-    set revision = revision + 1
-    where id = (select id from dynamic_test_ids where name = 'source')$$,
-  'a later changed provider payload queues the failure-path snapshot'
-);
-reset role;
-create temporary table dynamic_failure_claim as
-select * from pg_temp.claim_dynamic_render_for_slide_v1(
-  (select id from dynamic_test_ids where name = 'slide'),
-  'dynamic-failure-render-worker'
-);
-grant select on dynamic_failure_claim to service_role;
-set local role service_role;
-select lives_ok(
-  $$select public.complete_dynamic_render_job_v1(
-    (select job_id from dynamic_failure_claim),
-    'dynamic-failure-render-worker',
-    'tenants/' || (select tenant_id from dynamic_failure_claim)::text ||
-      '/assets/' ||
-      (select output_media_asset_id from dynamic_failure_claim)::text ||
-      '/dynamic-slide.png',
-    4099,
-    repeat('1', 64),
-    1920,
-    1080
-  )$$,
-  'the failure-path snapshot completes before publication is attempted'
-);
-
-reset role;
-update public.player_devices
-set active_release_id = desired_release_id
-where id = '50000000-0000-4000-8000-000000000a51';
-select set_config(
-  'test.dynamic_failure_release',
-  (
-    select desired_release_id::text
-    from public.player_devices
-    where id = '50000000-0000-4000-8000-000000000a51'
-  ),
-  true
-);
-update private.dynamic_release_refresh_queue
-set not_before = clock_timestamp() - interval '1 second'
-where tenant_id = '10000000-0000-4000-8000-000000000a51'
-  and playlist_id = '30000000-0000-4000-8000-000000000a51';
-create function private.test_s146_reject_auto_assignment()
-returns trigger
-language plpgsql
-set search_path = ''
-as $$
-begin
-  raise exception 'injected assignment failure' using errcode = 'P0001';
-end;
-$$;
-create trigger test_s146_reject_auto_assignment
-before insert on public.release_screen_assignments
-for each row
-when (new.assigned_by is null)
-execute function private.test_s146_reject_auto_assignment();
-
-select lives_ok(
-  $$select private.process_dynamic_release_refresh_v1(
-    '10000000-0000-4000-8000-000000000a51',
-    '30000000-0000-4000-8000-000000000a51',
-    'dynamic-failure-release-worker'
-  )$$,
-  'a publication failure is isolated from the render-worker poll'
-);
-
-reset role;
-select is(
-  (
-    select count(*)
-    from public.playlist_releases
-    where playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  4::bigint,
-  'a failed coalesced publication rolls back its partial immutable release'
-);
-select ok(
-  (
-    select pending and attempt_count = 1 and last_error_code = 'P0001'
-    from private.dynamic_release_refresh_queue
-    where tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  'a failed publication remains pending with sanitized durable backoff state'
-);
-select ok(
-  (
-    select device.active_release_id::text =
-        current_setting('test.dynamic_failure_release')
-      and device.desired_release_id::text =
-        current_setting('test.dynamic_failure_release')
-      and screen.default_release_id::text =
-        current_setting('test.dynamic_failure_release')
-    from public.player_devices device
-    join public.screens screen
-      on screen.tenant_id = device.tenant_id
-     and screen.id = device.screen_id
-    where device.id = '50000000-0000-4000-8000-000000000a51'
-  ),
-  'failed publication preserves default, desired and active last-known-good pointers'
-);
-select set_config(
-  'test.dynamic_failure_retry_not_before',
-  (
-    select not_before::text
-    from private.dynamic_release_refresh_queue
-    where tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  true
-);
-select set_config(
-  'test.dynamic_latest_snapshot',
-  (
-    select current_snapshot_id::text
-    from public.dynamic_slides
-    where id = (select id from dynamic_test_ids where name = 'slide')
-  ),
-  true
-);
-update public.dynamic_slides slide
-set current_snapshot_id = (
-  select snapshot.id
-  from public.dynamic_slide_snapshots snapshot
-  where snapshot.dynamic_slide_id = slide.id
-    and snapshot.status = 'ready'
-    and snapshot.id <> slide.current_snapshot_id
-  order by snapshot.created_at desc, snapshot.id desc
-  limit 1
-)
-where slide.id = (select id from dynamic_test_ids where name = 'slide');
-update public.dynamic_slides
-set current_snapshot_id =
-  current_setting('test.dynamic_latest_snapshot')::uuid
-where id = (select id from dynamic_test_ids where name = 'slide');
-select ok(
-  (
-    select attempt_count = 1
-      and last_error_code = 'P0001'
-      and not_before >=
-        current_setting('test.dynamic_failure_retry_not_before')::timestamptz
-    from private.dynamic_release_refresh_queue
-    where tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  'a later enqueue preserves publication retry backoff and sanitized failure state'
-);
-drop trigger test_s146_reject_auto_assignment
-  on public.release_screen_assignments;
-drop function private.test_s146_reject_auto_assignment();
-update private.dynamic_release_refresh_queue
-set not_before = clock_timestamp() - interval '1 second'
-where tenant_id = '10000000-0000-4000-8000-000000000a51'
-  and playlist_id = '30000000-0000-4000-8000-000000000a51';
-
-select lives_ok(
-  $$select private.process_dynamic_release_refresh_v1(
-    '10000000-0000-4000-8000-000000000a51',
-    '30000000-0000-4000-8000-000000000a51',
-    'dynamic-recovery-release-worker'
-  )$$,
-  'the retained queue request publishes normally after a transient failure'
-);
-
-reset role;
-select ok(
-  (
-    select count(*) = 5
-    from public.playlist_releases
-    where playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ) and not (
-    select pending
-    from private.dynamic_release_refresh_queue
-    where tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  'a retry creates one release and clears the queue without duplication'
-);
-
-update public.screens
-set status = 'disabled'
-where id = '40000000-0000-4000-8000-000000000a51';
-update private.dynamic_release_refresh_queue
-set pending = true,
-    first_requested_at = clock_timestamp() - interval '1 minute',
-    last_requested_at = clock_timestamp() - interval '1 minute',
-    not_before = clock_timestamp() - interval '1 second',
-    updated_at = clock_timestamp()
-where tenant_id = '10000000-0000-4000-8000-000000000a51'
-  and playlist_id = '30000000-0000-4000-8000-000000000a51';
-create temporary table dynamic_terminal_cleanup_claim as
-select private.process_dynamic_release_refresh_v1(
-  '10000000-0000-4000-8000-000000000a51',
-  '30000000-0000-4000-8000-000000000a51',
-  'dynamic-terminal-cleanup-worker'
-);
-reset role;
-select ok(
-  not (
-    select pending
-    from private.dynamic_release_refresh_queue
-    where tenant_id = '10000000-0000-4000-8000-000000000a51'
-      and playlist_id = '30000000-0000-4000-8000-000000000a51'
-  ),
-  'a disabled final screen clears terminal queue work instead of polling forever'
-);
-update public.screens
-set status = 'active'
-where id = '40000000-0000-4000-8000-000000000a51';
+-- S185 replaces the retired coalescing/backpressure suite with the data contract.
+select is((select count(*) from private.dynamic_release_refresh_queue
+  where tenant_id='10000000-0000-4000-8000-000000000a51' and pending),0::bigint,
+  'a completed source render queues no publication');
+select is(private.process_dynamic_release_refresh_v1('10000000-0000-4000-8000-000000000a51',
+  '30000000-0000-4000-8000-000000000a51','legacy-worker'),0,
+  'an old worker call cannot publish after cutover');
+select is(private.publish_queued_dynamic_release_v1('10000000-0000-4000-8000-000000000a51',
+  '30000000-0000-4000-8000-000000000a51'),0,
+  'the retired direct producer cannot create a release');
+select ok((select bool_and(live_data_enabled) from public.playlist_release_items
+  where release_id=(select id from dynamic_test_ids where name='base_release')),
+  'the published latest selection opts into live data');
+select is((select count(*) from public.published_dynamic_data
+  where tenant_id='10000000-0000-4000-8000-000000000a51'),1::bigint,
+  'one published binding has one current dataset');
+select ok((select bool_and(last_error_code is null and data_revision>1) from public.published_dynamic_data
+  where tenant_id='10000000-0000-4000-8000-000000000a51'),
+  'changed product data advances only the live data revision');
+create temporary table s185_before as select * from public.published_dynamic_data
+  where tenant_id='10000000-0000-4000-8000-000000000a51';
+select lives_ok($test$do $body$ begin for i in 1..100 loop
+  update public.tenant_products set name='Product '||i
+  where tenant_id='10000000-0000-4000-8000-000000000a51' and slug='cola';
+  update public.dynamic_data_sources set revision=revision+1
+  where id=(select id from dynamic_test_ids where name='source');
+end loop; end $body$$test$,'one hundred relevant source changes complete');
+select is((select count(*) from public.playlist_releases
+  where playlist_id='30000000-0000-4000-8000-000000000a51'),1::bigint,
+  'one hundred source updates create zero playlist publications');
+select is((select data_revision from public.published_dynamic_data where snapshot_id=(select snapshot_id from s185_before)),
+  (select data_revision+100 from s185_before),'each actual content change advances the data revision once');
+select lives_ok($test$do $body$ begin for i in 1..100 loop
+  update public.dynamic_data_sources set revision=revision+1
+  where id=(select id from dynamic_test_ids where name='source');
+end loop; end $body$$test$,'one hundred identical fetches complete');
+select is((select data_revision from public.published_dynamic_data where snapshot_id=(select snapshot_id from s185_before)),
+  (select data_revision+100 from s185_before),'fetch metadata and repeated identical data do not cascade revisions');
+select is((select assigned_release_id from public.screens where id='40000000-0000-4000-8000-000000000a51'),
+  (select id from dynamic_test_ids where name='base_release'),'data changes leave the effective screen target unchanged');
+select is((select release_id from public.playlist_publications where playlist_id='30000000-0000-4000-8000-000000000a51'),
+  (select id from dynamic_test_ids where name='base_release'),'the current publication identity remains unchanged');
+select ok(not has_table_privilege('anon','public.published_dynamic_data','SELECT')
+  and not has_table_privilege('authenticated','public.published_dynamic_data','SELECT'),
+  'clients cannot query live member data outside their published device API');
+select ok(not has_function_privilege('anon','public.get_player_effective_target_v1(text)','EXECUTE')
+  and not has_function_privilege('authenticated','public.get_player_effective_target_v1(text)','EXECUTE'),
+  'the effective target service boundary is server-only');
+update public.tenant_products set name='Cola failure proof' where tenant_id='10000000-0000-4000-8000-000000000a51' and slug='cola';
 
 set local role authenticated;
 select set_config(
@@ -2520,5 +1727,47 @@ select is(
   'post-migration snapshot sequences remain unique'
 );
 
+
+-- Exercise the actual owner cutover with no simulated human JWT or actor.
+reset role;
+select set_config('request.jwt.claim.sub','',true);
+select set_config('request.jwt.claim.role','',true);
+create temporary table s185_ops_before as select
+  (select count(*) from public.playlist_releases where playlist_id='30000000-0000-4000-8000-000000000a51') releases,
+  (select target_revision from public.screens where id='40000000-0000-4000-8000-000000000a51') target_revision,
+  (select active_release_id from public.player_devices where id='50000000-0000-4000-8000-000000000a51') active_release_id;
+update public.playlist_items set duration_seconds=duration_seconds+1 where playlist_id='30000000-0000-4000-8000-000000000a51';
+select lives_ok($test$select private.cutover_current_publication_v1(
+ '10000000-0000-4000-8000-000000000a51','30000000-0000-4000-8000-000000000a51',
+ (select revision from public.playlists where id='30000000-0000-4000-8000-000000000a51'),repeat('a',40),'Verify scoped cutover without actor impersonation','github:test-operator')$test$,
+ 'the owner cutover publishes through an explicit audited system path');
+select is((select count(*) from public.playlist_releases where playlist_id='30000000-0000-4000-8000-000000000a51'),
+ (select releases+1 from s185_ops_before),'one intended configuration change creates one immutable revision');
+select is((select active_release_id from public.player_devices where id='50000000-0000-4000-8000-000000000a51'),
+ (select active_release_id from s185_ops_before),'cutover never fabricates an active player confirmation');
+select is((select desired_release_id from public.player_devices where id='50000000-0000-4000-8000-000000000a51'),
+ (select assigned_release_id from public.screens where id='40000000-0000-4000-8000-000000000a51'),'device desired follows the effective assignment');
+select ok((select target_revision from public.screens where id='40000000-0000-4000-8000-000000000a51')>
+ (select target_revision from s185_ops_before),'a new assignment advances screen ordering');
+select ok(exists(select 1 from public.audit_events where tenant_id='10000000-0000-4000-8000-000000000a51'
+ and action='playlist.publication.system' and metadata->>'operator'='github:test-operator' and metadata->>'systemExecuted'='true'),
+ 'system publication records provenance without an invented authenticated actor');
+select lives_ok($test$select private.cutover_current_publication_v1(
+ '10000000-0000-4000-8000-000000000a51','30000000-0000-4000-8000-000000000a51',
+ (select revision from public.playlists where id='30000000-0000-4000-8000-000000000a51'),repeat('a',40),'Retry completed scoped cutover safely','github:test-operator')$test$,
+ 'the cutover operation is resumable and idempotent');
+select ok(not has_function_privilege('service_role','private.cutover_current_publication_v1(uuid,uuid,bigint,text,text,text)','EXECUTE')
+ and not has_function_privilege('authenticated','private.materialize_publication_configuration_v1(uuid,text,jsonb)','EXECUTE'),
+ 'ordinary service and browser roles cannot invoke the owner-only publication path');
+
+create temporary table s185_refresh_before as select count(*) releases from public.playlist_releases;
+select lives_ok($test$select private.refresh_used_publication_sources_v1(
+ '10000000-0000-4000-8000-000000000a51',repeat('a',40),'Refresh used sources through existing workers','github:test-operator')$test$,
+ 'owner source refresh uses the existing source scheduler without impersonation');
+select is((select count(*) from public.playlist_releases),(select releases from s185_refresh_before),
+ 'requesting a source refresh never publishes a playlist');
+select ok(not has_function_privilege('service_role','private.refresh_used_publication_sources_v1(uuid,text,text,text)','EXECUTE')
+ and not has_function_privilege('authenticated','private.refresh_used_publication_sources_v1(uuid,text,text,text)','EXECUTE'),
+ 'source maintenance is restricted to the authorized database owner');
 select * from finish();
 rollback;

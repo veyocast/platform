@@ -63,6 +63,8 @@ export type PlayerManifestPresentationDefaults = {
 };
 
 export type PlayerManifestItem = PlayerPlaybackItem & {
+  sourceItemId?: string;
+  contentHash?: string;
   dynamicTemplate?: PlayerDynamicTemplatePayload;
   onlinePlayback?: PlayerEngagePlayback | PlayerYouTubePlayback;
   source: {
@@ -94,6 +96,13 @@ export type PlayerReleaseManifest = {
 };
 
 export type PlayerManifestEnvelope = {
+  target?: {
+    revision: string;
+    publicationId: string;
+    configRevision: string;
+    assignmentSource: string;
+    committedAt: string;
+  };
   state: "READY" | "PLAYING";
   fetchedAt: string;
   device: {

@@ -64,6 +64,13 @@ export async function GET(request: Request) {
 }
 
 type BootstrapRow = {
+  target_revision: string;
+  target_changed_at: string;
+  assignment_source: string;
+  publication_id: string;
+  config_revision: string;
+  data_key: string;
+  sponsor_key: string;
   active_release_id: string | null;
   desired_release_id: string | null;
   device_id: string;
@@ -103,10 +110,11 @@ async function getLiveManifest(request: Request, token: string | null) {
     });
   }
 
-  const { data, error } = await anon.rpc("get_player_device_bootstrap", {
+  const admin = createPlayerAdminClient();
+  const { data, error } = await admin.rpc("get_player_effective_target_v1", {
     p_token_hash: createHash("sha256").update(token.trim()).digest("hex")
   });
-  const bootstrap = (data?.[0] ?? null) as BootstrapRow | null;
+  const bootstrap = (data ?? null) as BootstrapRow | null;
 
   if (error) {
     return manifestProblem(503, "ERROR_RECOVERABLE", {
@@ -179,6 +187,21 @@ async function getLiveManifest(request: Request, token: string | null) {
     );
   }
 
+  const { data: entitlementData, error: entitlementError } = await anon.rpc("get_player_entitlement_v1", { p_token_hash: createHash("sha256").update(token.trim()).digest("hex") });
+  const entitlementRow = (entitlementData?.[0] ?? null) as EntitlementRow | null;
+  if (entitlementError) return manifestProblem(503, "ERROR_RECOVERABLE", { cause: "Toegangsstatus kon niet worden gecontroleerd.", code: "PLAYER_API_UNAVAILABLE", effect: "Lokale inhoud blijft beschikbaar.", recovery: "De Player probeert de controle opnieuw." });
+
+  // Authorization precedes every conditional response. Signed access rotates
+  // independently of publication/data identity, at most every 30 minutes.
+  const targetEtag = `"target-${createHash("sha256").update(JSON.stringify([
+    bootstrap.tenant_id, bootstrap.device_id, bootstrap.screen_id, bootstrap.target_revision, bootstrap.desired_release_id,
+    entitlementRow?.revision, entitlementRow?.billing_state, entitlementRow?.playback_mode, entitlementRow?.hard_stop_at,
+    bootstrap.data_key, bootstrap.sponsor_key, Math.floor(Date.now() / 1_800_000),
+    currentPlayerApplicationVersion()
+  ])).digest("hex")}"`;
+  if (request.headers.get("if-none-match") === targetEtag) {
+    return new NextResponse(null, { status: 304, headers: { ETag: targetEtag, "Cache-Control": "private, no-cache", Vary: "Authorization" } });
+  }
   try {
     const body = await loadPlayerReleaseEnvelope({
       device: {
@@ -191,26 +214,28 @@ async function getLiveManifest(request: Request, token: string | null) {
       releaseId: bootstrap.desired_release_id,
       tenantId: bootstrap.tenant_id
     });
+    body.target = { revision: bootstrap.target_revision, publicationId: bootstrap.publication_id,
+      configRevision: bootstrap.config_revision, assignmentSource: bootstrap.assignment_source,
+      committedAt: bootstrap.target_changed_at };
     body.branding = await loadPlayerWaitingBranding(bootstrap.tenant_id);
-    const { data: entitlementData, error: entitlementError } = await anon.rpc("get_player_entitlement_v1", { p_token_hash: createHash("sha256").update(token.trim()).digest("hex") });
-    const entitlementRow = (entitlementData?.[0] ?? null) as EntitlementRow | null;
-    if (entitlementError) throw new Error("entitlement unavailable");
     if (entitlementRow) {
       const capabilities = entitlementRow.capabilities_json;
       body.entitlement = signPlayerEntitlement({ billingState: entitlementRow.billing_state as never, canActivateNetNewScreen:Boolean(capabilities.canActivateNetNewScreen), canManageBilling:Boolean(capabilities.canManageBilling), canPairReplacement:Boolean(capabilities.canPairReplacement), canPublish:Boolean(capabilities.canPublish), canRecoverPlayer:Boolean(capabilities.canRecoverPlayer), deviceId:entitlementRow.device_id, hardStopAt:entitlementRow.hard_stop_at, issuedAt:entitlementRow.issued_at, playbackMode:entitlementRow.playback_mode, reason:entitlementRow.reason, revision:Number(entitlementRow.revision), screenId:entitlementRow.screen_id, tenantId:entitlementRow.tenant_id, validUntil:entitlementRow.valid_until });
     }
-    const etag = deliveryEtag(body.manifest.releaseId, body.manifest.sponsorPlan?.revisionId);
-    if (requestHasEtag(request, etag)) {
-      return new NextResponse(null, {
-        headers: { "Cache-Control": "no-store", ETag: etag },
-        status: 304
-      });
+    const checked = await admin.rpc("get_player_effective_target_v1", {
+      p_token_hash: createHash("sha256").update(token.trim()).digest("hex")
+    });
+    const current = checked.data as BootstrapRow | null;
+    if (checked.error || !current || current.target_revision !== bootstrap.target_revision ||
+      current.desired_release_id !== bootstrap.desired_release_id || current.data_key !== bootstrap.data_key || current.sponsor_key !== bootstrap.sponsor_key) {
+      return manifestProblem(409, "ERROR_RECOVERABLE", { cause: "De schermopdracht wijzigde tijdens het ophalen.",
+        code: "TARGET_CHANGED", effect: "De huidige inhoud blijft spelen.", recovery: "De Player haalt direct de actuele opdracht op." });
     }
-
     return NextResponse.json(body, {
       headers: {
         "Cache-Control": "no-store",
-        ETag: etag
+        ETag: targetEtag,
+        Vary: "Authorization"
       }
     });
   } catch {
@@ -218,7 +243,7 @@ async function getLiveManifest(request: Request, token: string | null) {
       cause: "Niet alle release-assets konden veilig worden ontsloten.",
       code: "RELEASE_ASSETS_UNAVAILABLE",
       effect: "De Player activeert deze release niet.",
-      recovery: "Controleer storage en publiceer zo nodig een nieuwe release."
+      recovery: "Controleer de media en verbinding; de Player probeert dezelfde actuele opdracht opnieuw."
     });
   }
 }
@@ -291,16 +316,6 @@ async function loadPlayerWaitingBranding(tenantId: string): Promise<PlayerWaitin
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
-}
-
-function deliveryEtag(releaseId: string, sponsorRevisionId?: string) {
-  return `"delivery-${releaseId}-${sponsorRevisionId ?? "none"}"`;
-}
-
-function requestHasEtag(request: Request, etag: string) {
-  return (request.headers.get("if-none-match") ?? "")
-    .split(",")
-    .some((value) => value.trim().replace(/^W\//, "") === etag);
 }
 
 function releaseEtag(releaseId: string) {

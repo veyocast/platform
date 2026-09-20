@@ -64,11 +64,11 @@ test.describe("guided Publisher journey", () => {
     await page.locator(".vc-sticky-action-bar").getByRole("button", { name: "Volgende" }).click();
     await expect(page.getByRole("heading", { name: "Impact bevestigen" })).toBeVisible();
     await page.getByLabel(/waarschuwingen en onbekende telemetry/i).check();
-    await page.getByLabel(/Maak één nieuwe immutable release/).check();
-    await page.getByRole("button", { name: "Release publiceren en uitrol volgen" }).click();
+    await page.getByLabel(/Publiceer de actuele configuratie/).check();
+    await page.getByRole("button", { name: "Publiceren en schermstatus volgen" }).click();
 
     await expect(page).toHaveURL(/\/dashboard\/publications\/[0-9a-f-]+/, { timeout: 15_000 });
-    await expect(page.getByText("De immutable release is gepubliceerd")).toBeVisible();
+    await expect(page.getByText("De actuele publicatie is toegewezen")).toBeVisible();
     await expect(page.getByText("Huidig gewenst", { exact: true })).toBeVisible();
   });
 });

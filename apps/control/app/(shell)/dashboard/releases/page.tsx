@@ -23,43 +23,43 @@ export default async function ReleaseCenterPage({ searchParams }: ReleaseCenterP
   return <>
     <PageHeader
       actions={<Button asChild variant="secondary"><Link href="/dashboard/playlists">Naar playlists</Link></Button>}
-      description="Bekijk immutable publicatiehistorie, verschillen, impact en de actuele uitrol per scherm."
+      description="Eén actuele publicatie per playlist. Conceptwijzigingen worden pas zichtbaar na publiceren; live gegevens verversen zelfstandig."
       eyebrow={`${session.tenant} · Distributie`}
       status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
       title="Publicaties"
     />
     {query.fout ? <p className="notice notice--critical" role="alert"><strong>Publicatieoverzicht niet geladen.</strong> {query.fout}</p> : null}
-    {data.error ? <p className="notice notice--critical" role="alert"><strong>Releasehistorie niet beschikbaar.</strong> {data.error}</p> : null}
-    {!session.isLive ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte releasehistorie en schermuitrol te bekijken.</p> : null}
+    {data.error ? <p className="notice notice--critical" role="alert"><strong>Publicaties niet beschikbaar.</strong> {data.error}</p> : null}
+    {!session.isLive ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om actuele publicaties en schermstatus te bekijken.</p> : null}
 
     <SummaryStrip
-      aria-label="Releaseoverzicht"
+      aria-label="Publicatieoverzicht"
       items={[
-        { detail: "Immutable versies", label: "Releases", value: data.releases.length },
+        { detail: "Actuele gepubliceerde configuraties", label: "Publicaties", value: data.releases.length },
         {
           detail: "Nu aan minimaal één scherm toegewezen",
           label: "Huidig toegewezen",
           tone: active ? "success" : "neutral",
           value: active
         },
-        { detail: "Historische releasebestanden", label: "Omvang", value: formatBytes(bytes) }
+        { detail: "Media in actuele publicaties", label: "Omvang", value: formatBytes(bytes) }
       ]}
     />
 
     <section className="workspace-section" aria-labelledby="release-list-title">
-      <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="release-list-title">Immutable historie</h2><p className="work-panel__meta">Een rollback is altijd een nieuwe toewijzing van een bestaande release; historie wordt nooit gemuteerd.</p></div><StatusPill label={`${data.releases.length} versies`} tone="neutral" /></div>
+      <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="release-list-title">Gepubliceerd</h2><p className="work-panel__meta">Open een playlist om het concept te wijzigen. Schermstatus bevestigt afzonderlijk wat werkelijk wordt getoond.</p></div><StatusPill label={`${data.releases.length} publicaties`} tone="neutral" /></div>
       {data.releases.length ? <div className="data-table-frame"><table className="data-table data-table--responsive">
-        <caption>Immutable releases binnen de actieve vereniging.</caption>
-        <thead><tr><th scope="col">Release</th><th scope="col">Publicatie</th><th scope="col">Inhoud</th><th scope="col">Hashstatus</th><th scope="col">Doelschermen</th><th scope="col">Actie</th></tr></thead>
+        <caption>Actuele publicaties binnen de actieve vereniging.</caption>
+        <thead><tr><th scope="col">Playlist</th><th scope="col">Publicatie</th><th scope="col">Inhoud</th><th scope="col">Hashstatus</th><th scope="col">Doelschermen</th><th scope="col">Actie</th></tr></thead>
         <tbody>{data.releases.map((release) => <tr key={release.id}>
-          <td data-label="Release"><span className="table-primary">{release.playlistName} · versie {release.version}</span><span className="table-secondary">{release.notes || "Geen releasenotitie"}</span></td>
+          <td data-label="Playlist"><span className="table-primary">{release.playlistName} · revisie {release.version}</span><span className="table-secondary">{release.notes || "Gepubliceerd"}</span></td>
           <td data-label="Publicatie"><span className="table-primary">{formatDate(release.publishedAt)}</span><span className="table-secondary">door {release.publishedBy}</span></td>
           <td data-label="Inhoud">{release.itemCount} items · {formatDuration(release.totalDurationSeconds)} · {formatBytes(release.totalBytes)}</td>
           <td data-label="Hashstatus"><StatusPill label={/^[a-f0-9]{64}$/.test(release.manifestHash) ? "SHA-256 vastgelegd" : "Hash ongeldig"} tone={/^[a-f0-9]{64}$/.test(release.manifestHash) ? "success" : "critical"} /></td>
-          <td data-label="Doelschermen"><span className="table-primary">{release.currentScreenCount} huidig</span><span className="table-secondary">{release.deploymentTargetCount} historisch uniek</span></td>
+          <td data-label="Doelschermen"><span className="table-primary">{release.currentScreenCount} huidig</span></td>
           <td data-label="Actie"><Link className="table-action" href={`/dashboard/publications/${release.id}`}>Open publicatie</Link></td>
         </tr>)}</tbody>
-      </table></div> : <div className="empty-state" role="status"><h2>Nog geen releases</h2><p>Publiceer eerst een gereed concept via de begeleide publicatieflow.</p><Button asChild><Link href="/dashboard/playlists">Playlist kiezen</Link></Button></div>}
+      </table></div> : <div className="empty-state" role="status"><h2>Nog geen publicaties</h2><p>Publiceer eerst een gereed concept via de begeleide publicatieflow.</p><Button asChild><Link href="/dashboard/playlists">Playlist kiezen</Link></Button></div>}
     </section>
   </>;
 }

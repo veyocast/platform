@@ -4,7 +4,7 @@ import type { PlayerManifestEnvelope } from "../../apps/player/app/_lib/player-m
 
 const playerURL = `http://127.0.0.1:${process.env.PLAYER_PORT ?? 3106}`;
 
-test("polls, deduplicates and activates a verified release on a loop boundary", async ({ page }) => {
+test("polls, deduplicates and activates a verified release on the next item boundary", async ({ page }) => {
   const response = await page.request.get(
     `${playerURL}/api/player/manifest?deviceToken=demo-online`
   );
@@ -51,7 +51,7 @@ test("polls, deduplicates and activates a verified release on a loop boundary", 
   servePending = true;
 
   await expect(page.getByLabel("Player diagnostics")).toContainText(
-    "Nieuwe release geverifieerd; switch op loopgrens.",
+    "Nieuwe inhoud gereed; wisselt na de huidige slide.",
     { timeout: 3_000 }
   );
   await expect(page.getByLabel("Player diagnostics")).toContainText(
@@ -105,7 +105,7 @@ test("does not activate a pending release after the desired release is withdrawn
 
   responseEnvelope = pendingEnvelope;
   await expect(page.getByLabel("Player diagnostics")).toContainText(
-    "Nieuwe release geverifieerd; switch op loopgrens.",
+    "Nieuwe inhoud gereed; wisselt na de huidige slide.",
     { timeout: 3_000 }
   );
   responseEnvelope = activeEnvelope;

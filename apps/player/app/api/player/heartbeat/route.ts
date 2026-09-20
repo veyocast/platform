@@ -8,13 +8,13 @@ import {
   screenAutomationCommandReportSchema
 } from "@veyocast/contracts";
 
-import { readPlayerAppVersion } from "../../../_lib/runtime-health";
 
 import { createPlayerAnonClient } from "../../../_lib/player-supabase";
 import {
   playbackErrorSyncDetail,
   safeGoalVideoDiagnostics,
   safeGoalVideoCapabilities,
+  safePublicationTrace,
   safePlayerIdentifier
 } from "../../../_lib/player-heartbeat";
 
@@ -49,6 +49,9 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as {
     activeReleaseId?: string | null;
+    runtimeVersion?: unknown;
+    publicationTrace?: unknown;
+    preparationError?: unknown;
     goalVideoDiagnostics?: unknown;
     goalVideoCapabilities?: unknown;
     automationCapabilities?: unknown;
@@ -101,7 +104,7 @@ export async function POST(request: Request) {
 
   const { error } = await supabase.rpc("record_player_heartbeat_v2", {
     p_active_release_id: body.activeReleaseId ?? null,
-    p_app_version: readPlayerAppVersion(),
+    p_app_version: typeof body.runtimeVersion === "string" && /^(?:[0-9a-f]{40}|development|local)$/.test(body.runtimeVersion) ? body.runtimeVersion : "unreported",
     p_capabilities: {
       screenAutomation: reportedCapabilities?.success
         ? reportedCapabilities.data
@@ -122,6 +125,9 @@ export async function POST(request: Request) {
         process.env.DEPLOYMENT_SHA?.trim().slice(0, 120) ||
         "local",
       ...playbackErrorDetail,
+      publicationTrace: safePublicationTrace(body.publicationTrace),
+      preparationError: typeof body.preparationError === "string" && /^[A-Z_0-9]{1,80}$/.test(body.preparationError) ? body.preparationError : null,
+      acknowledgedAt: new Date().toISOString(),
       goalVideoDiagnostics: safeGoalVideoDiagnostics(body.goalVideoDiagnostics),
       desiredReleaseId: safePlayerIdentifier(body.desiredReleaseId),
       networkState: body.networkState === "offline" ? "offline" : "online"

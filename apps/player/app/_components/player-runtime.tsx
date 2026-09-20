@@ -1,5 +1,9 @@
 "use client";
 
+import { publicationTrace, type PublicationTrace } from "../_lib/publication-telemetry";
+
+import { LatestPlayerTarget, type PlayerTargetToken } from "../_lib/latest-player-target";
+import { publicationPlaybackOrder } from "../_lib/publication-playback-order";
 import { goalVideoTelemetry, goalVideoCapabilities } from "../_lib/goal-video-telemetry";
 
 /* eslint-disable @next/next/no-img-element -- Player media URLs come from release manifests and must render directly. */
@@ -26,7 +30,6 @@ import {
   recoverDeviceTokenFromPersistedRelease,
   refreshHydratedReleaseEnvelope,
   revokeHydratedRelease,
-  shouldRestartForRefreshedMediaAccess,
   type HydratedPlayerRelease,
   type PlayerCachePhase
 } from "../_lib/player-cache";
@@ -172,6 +175,7 @@ type PlaybackRuntimeState = Extract<
 
 type PlaybackRuntime = {
   activeIndex: number;
+  publicationPass?: number[];
   pendingRelease?: HydratedPlayerRelease;
   release: HydratedPlayerRelease;
   state: PlaybackRuntimeState;
@@ -219,6 +223,12 @@ export function PlayerRuntime() {
   );
   const [durationOverrideMs, setDurationOverrideMs] = useState<number | null>(null);
   const [playbackAttempt, setPlaybackAttempt] = useState(0);
+  const [playbackReadyRevision, setPlaybackReadyRevision] = useState(0);
+  const publicationTraceRef = useRef<PublicationTrace | null>(null);
+  const preparationErrorRef = useRef<string | null>(null);
+  const signalReceivedAtRef = useRef<string | null>(null);
+  const targetCommitRef = useRef<{ revision: string; at: string } | null>(null);
+  const boundaryMonotonicRef = useRef<number | null>(null);
   const [visibilityRevision, setVisibilityRevision] = useState(0);
   const [watchdogTimeoutMs, setWatchdogTimeoutMs] = useState(defaultWatchdogTimeoutMs);
   const realtimeGoal = useLedScoresRealtime(
@@ -229,10 +239,16 @@ export function PlayerRuntime() {
   );
   const runtimeRef = useRef<RuntimeView>(runtime);
   const advancingRef = useRef(false);
+  const latestTargetRef = useRef(new LatestPlayerTarget());
+  const pendingTargetRef = useRef<{ release: HydratedPlayerRelease; token: PlayerTargetToken } | null>(null);
+  const presentedReleaseIdRef = useRef<string | null>(null);
+  const goalPausedRef = useRef(false);
+  goalPausedRef.current = realtimeGoal.pauseUnderlay;
   const applicationReloadPendingRef = useRef(false);
   const consecutiveFailuresRef = useRef(0);
   const desiredReleaseIdRef = useRef<string | null>(null);
   const hydratedReleasesRef = useRef<HydratedPlayerRelease[]>([]);
+  const preparingCountRef = useRef(0);
   const lastPlaybackErrorRef = useRef<PlaybackErrorReport | null>(null);
   const sendHeartbeatRef = useRef<(() => void) | null>(null);
   const playbackReadyRef = useRef(false);
@@ -368,7 +384,7 @@ export function PlayerRuntime() {
   }, [recoveryMenuOpen]);
 
   const advancePlayback = useCallback(async (itemId: string, recoveryMessage?: string) => {
-    if (advancingRef.current) return;
+    if (advancingRef.current || goalPausedRef.current) return;
     const snapshot = runtimeRef.current;
     if (!isPlaybackRuntime(snapshot)) return;
     const activeItem = snapshot.release.envelope.manifest.items[snapshot.activeIndex];
@@ -378,113 +394,64 @@ export function PlayerRuntime() {
       window.location.reload();
       return;
     }
-    const nextSelection = findNextPlayableItem(
-      snapshot.release.envelope.manifest.items,
-      snapshot.activeIndex
-    );
-    if (!nextSelection) {
-      setRuntime((currentRuntime) =>
-        isPlaybackRuntime(currentRuntime)
-          ? {
-              ...currentRuntime,
-              syncMessage:
-                "Geen playlistitem is binnen het huidige zichtbaarheidsvenster actief."
-            }
-          : currentRuntime
-      );
-      return;
-    }
-
     advancingRef.current = true;
+    let retryBoundary = false;
     try {
+      const pending = pendingTargetRef.current;
       const deviceToken = readStoredDeviceToken();
-      const pendingFirstIndex = snapshot.pendingRelease
-        ? findFirstPlayableItemIndex(
-            snapshot.pendingRelease.envelope.manifest.items
-          )
-        : -1;
-
-      if (
-        snapshot.state === "SWITCH_PENDING" &&
-        snapshot.pendingRelease &&
-        deviceToken &&
-        nextSelection.wrapped &&
-        pendingFirstIndex >= 0 &&
-        desiredReleaseIdRef.current ===
-          snapshot.pendingRelease.envelope.manifest.releaseId
-      ) {
-        try {
-          await activateRelease({
-            assets: snapshot.pendingRelease.assets,
-            deviceToken,
-            envelope: snapshot.pendingRelease.envelope
-          });
-          await garbageCollectPersistedPlayerMedia(deviceToken).catch(() => undefined);
-        } catch {
-          setRuntime((currentRuntime) =>
-            isPlaybackRuntime(currentRuntime)
-              ? {
-                  ...currentRuntime,
-                  pendingRelease: undefined,
-                  state: "OFFLINE_PLAYING",
-                  syncMessage: "Nieuwe release kon niet atomair worden geactiveerd; last-known-good blijft actief."
-                }
-              : currentRuntime
-          );
-          return;
+      if (pending && deviceToken && pending.token.isCurrent()) {
+        const order = publicationPlaybackOrder(
+          snapshot.release.envelope.manifest, pending.release.envelope.manifest,
+          snapshot.activeIndex,
+          pending.release.envelope.target?.assignmentSource === "schedule" || Boolean(pending.release.envelope.manifest.sponsorPlan)
+        );
+        if (order.length) {
+          const trace = publicationTraceRef.current;
+          if (trace?.releaseId === pending.release.envelope.manifest.releaseId) {
+            trace.boundaryAt = new Date().toISOString();
+            boundaryMonotonicRef.current = performance.now();
+          }
+          let committed = false;
+          try {
+            await activateRelease({ assets: pending.release.assets, deviceToken,
+              envelope: pending.release.envelope, signal: pending.token.signal });
+            committed = true;
+          } catch {
+            if (pending.token.isCurrent()) {
+              setRuntime((value) => isPlaybackRuntime(value) ? { ...value,
+                syncMessage: "Publicatie kon niet lokaal worden opgeslagen; huidige inhoud blijft spelen." } : value);
+            }
+          }
+          if (!pending.token.isCurrent() || pendingTargetRef.current !== pending) { retryBoundary = true; return; }
+          if (committed) {
+            pendingTargetRef.current = null;
+            playbackReadyRef.current = false;
+            setPlaybackAttempt((attempt) => attempt + 1);
+            const next: PlaybackRuntime = { activeIndex: order[0]!, publicationPass: order.slice(1),
+              release: pending.release, state: "PLAYING",
+              syncMessage: "Publicatie gewisseld na de huidige slide; wacht op zichtbare bevestiging." };
+            runtimeRef.current = next;
+            setRuntime(next);
+            return;
+          }
         }
       }
-
-      setPlaybackAttempt((attempt) => attempt + 1);
-      playbackReadyRef.current = false;
-      setRuntime((currentRuntime) => {
-        if (!isPlaybackRuntime(currentRuntime)) return currentRuntime;
-        const currentItem =
-          currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
-        if (!currentItem || currentItem.id !== itemId) return currentRuntime;
-
-        const currentNextSelection = findNextPlayableItem(
-          currentRuntime.release.envelope.manifest.items,
-          currentRuntime.activeIndex
-        );
-        if (!currentNextSelection) {
-          return {
-            ...currentRuntime,
-            syncMessage:
-              "Geen playlistitem is binnen het huidige zichtbaarheidsvenster actief."
-          };
-        }
-        if (
-          currentRuntime.state === "SWITCH_PENDING" &&
-          currentRuntime.pendingRelease &&
-          currentNextSelection.wrapped
-        ) {
-          const nextReleaseIndex = findFirstPlayableItemIndex(
-            currentRuntime.pendingRelease.envelope.manifest.items
-          );
-          if (nextReleaseIndex < 0) {
-            return {
-              ...currentRuntime,
-              syncMessage:
-                "Nieuwe release wacht op het eerstvolgende zichtbare item; actieve release blijft spelen."
-            };
-          }
-          return {
-            activeIndex: nextReleaseIndex,
-            release: currentRuntime.pendingRelease,
-            state: "PLAYING",
-            syncMessage: "Nieuwe release is op loopgrens actief gemaakt."
-          };
-        }
-
-        return {
-          ...currentRuntime,
-          activeIndex: currentNextSelection.index,
-          syncMessage: recoveryMessage ?? currentRuntime.syncMessage
-        };
+      const pass = snapshot.publicationPass?.filter((index) => {
+        const item = snapshot.release.envelope.manifest.items[index];
+        return item && isPlayerManifestItemPlayable(item);
       });
+      const nextIndex = pass?.length ? pass[0]! : snapshot.publicationPass
+        ? findFirstPlayableItemIndex(snapshot.release.envelope.manifest.items)
+        : findNextPlayableItem(snapshot.release.envelope.manifest.items, snapshot.activeIndex)?.index ?? -1;
+      if (nextIndex < 0) return;
+      playbackReadyRef.current = false;
+      setPlaybackAttempt((attempt) => attempt + 1);
+      setRuntime((value) => isPlaybackRuntime(value) && value.release === snapshot.release
+        ? { ...value, activeIndex: nextIndex, publicationPass: pass?.length ? pass.slice(1) : undefined,
+            syncMessage: recoveryMessage ?? value.syncMessage } : value);
     } finally {
       advancingRef.current = false;
+      if (retryBoundary) void advancePlayback(itemId, recoveryMessage);
     }
   }, []);
 
@@ -553,7 +520,15 @@ export function PlayerRuntime() {
     const activeItem =
       currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
     if (activeItem?.id !== itemId) return;
+    if (!playbackReadyRef.current) setPlaybackReadyRevision((revision) => revision + 1);
     playbackReadyRef.current = true;
+    presentedReleaseIdRef.current = currentRuntime.release.envelope.manifest.releaseId;
+    const trace = publicationTraceRef.current;
+    if (trace?.releaseId === presentedReleaseIdRef.current && !trace.firstFrameAt) {
+      trace.firstFrameAt = new Date().toISOString();
+      if (boundaryMonotonicRef.current !== null) trace.frameAfterBoundaryMs = Math.round(performance.now() - boundaryMonotonicRef.current);
+    }
+    sendHeartbeatRef.current?.();
     consecutiveFailuresRef.current = 0;
     const lastError = lastPlaybackErrorRef.current;
     if (lastError && !lastError.recoveredAt) {
@@ -564,6 +539,10 @@ export function PlayerRuntime() {
       sendHeartbeatRef.current?.();
     }
   }, []);
+
+  const handlePlaybackBoundary = useCallback((itemId: string) => {
+    if (pendingTargetRef.current?.token.isCurrent()) void advancePlayback(itemId);
+  }, [advancePlayback]);
 
   const handlePlaybackEnded = useCallback((itemId: string) => {
     void advancePlayback(itemId);
@@ -593,6 +572,10 @@ export function PlayerRuntime() {
       occurredAt: new Date(now).toISOString()
     };
 
+    if (pendingTargetRef.current?.token.isCurrent()) {
+      await advancePlayback(itemId, `Playbackfout ${code}: nieuwste speelklaar doel wordt gebruikt.`);
+      return;
+    }
     if (action === "RETRY_ITEM") {
       playbackReadyRef.current = false;
       setPlaybackAttempt((attempt) => attempt + 1);
@@ -609,20 +592,7 @@ export function PlayerRuntime() {
       return;
     }
     if (action === "RESTART_LOOP" || action === "REINITIALIZE_PLAYER") {
-      playbackReadyRef.current = false;
-      setPlaybackAttempt((attempt) => attempt + 1);
-      setRuntime((value) =>
-        isPlaybackRuntime(value)
-          ? {
-              ...value,
-              activeIndex: 0,
-              syncMessage:
-                action === "RESTART_LOOP"
-                  ? "Playbackherstel: playlistloop is opnieuw gestart."
-                  : "Playbackherstel: media-renderer is opnieuw geïnitialiseerd."
-            }
-          : value
-      );
+      await advancePlayback(itemId, "Playbackherstel: probleemitem overgeslagen; nieuwste doel blijft behouden.");
       return;
     }
     if (action === "RESTORE_LAST_KNOWN_GOOD") {
@@ -1072,7 +1042,12 @@ export function PlayerRuntime() {
     let cancelled = false;
     let consecutiveSyncFailures = 0;
     let syncInFlight = false;
+    let manifestController: AbortController | null = null;
+    let invalidatedDuringFetch = false;
     let syncTimer: number | undefined;
+    let preparingGeneration: number | null = null;
+    let manifestEtag: string | null = null;
+    let dataGeneration = 0;
 
     if (queryToken) {
       writeStoredDeviceToken(queryToken);
@@ -1138,8 +1113,12 @@ export function PlayerRuntime() {
     }
 
     async function syncOnlineManifest() {
-      if (cancelled || syncInFlight) return;
+      if (cancelled) return;
+      if (syncInFlight) { invalidatedDuringFetch = true; return; }
       syncInFlight = true;
+      manifestController = new AbortController();
+      const requestController = manifestController;
+      const requestTimeout = window.setTimeout(() => requestController.abort(), 10_000);
       let syncSucceeded = false;
       let nextSyncBaseDelayMs = isWaitingContentRuntime(runtimeRef.current)
         ? waitingContentSyncIntervalMs
@@ -1150,12 +1129,15 @@ export function PlayerRuntime() {
           "/api/player/manifest",
           {
             cache: "no-store",
+            signal: requestController.signal,
             headers: {
               Accept: "application/json",
-              Authorization: `Bearer ${activeDeviceToken}`
+              Authorization: `Bearer ${activeDeviceToken}`,
+              ...(manifestEtag ? { "If-None-Match": manifestEtag } : {})
             }
           }
         );
+        if (cancelled || requestController.signal.aborted) return;
         if (
           shouldReloadPlayerApplication(
             currentPlayerApplicationVersion(),
@@ -1169,16 +1151,25 @@ export function PlayerRuntime() {
             return;
           }
         }
+        if (response.status === 304) {
+          syncSucceeded = true;
+          setRuntime((value) => isPlaybackRuntime(value) && value.state === "OFFLINE_PLAYING"
+            ? { ...value, state: "PLAYING", syncMessage: "Verbinding hersteld; actuele opdracht gecontroleerd." } : value);
+          return;
+        }
+        if (response.status === 409) { nextSyncBaseDelayMs = 100; return; }
         const body = (await response.json()) as
           | PlayerManifestEnvelope
           | PlayerManifestProblem
           | PlayerWaitingContentEnvelope;
 
-        if (cancelled) {
+        if (cancelled || requestController.signal.aborted) {
           return;
         }
 
         if (response.ok && isWaitingContentEnvelope(body)) {
+          latestTargetRef.current.cancel();
+          pendingTargetRef.current = null;
           desiredReleaseIdRef.current = null;
           nextSyncBaseDelayMs = waitingContentSyncIntervalMs;
           setRuntime((currentRuntime) => {
@@ -1210,13 +1201,28 @@ export function PlayerRuntime() {
           return;
         }
 
+        const receivedEtag = response.headers.get("etag");
         body.entitlementVerified = body.entitlement
           ? await verifyPlayerEntitlement(body.entitlement)
           : true;
+        if (cancelled || requestController.signal.aborted) return;
 
         const currentRuntime = runtimeRef.current;
         const releaseId = body.manifest.releaseId;
+        const targetToken = latestTargetRef.current.observe(
+          `${body.device.screenId}:${body.target?.revision ?? releaseId}:${releaseId}:${body.manifest.sponsorPlan?.revisionId ?? ""}:${body.manifest.items.map((item) => item.dynamicTemplate?.snapshotHash ?? "").join(":")}`,
+          body.device.screenId, body.target?.revision
+        );
+        if (!targetToken) { syncSucceeded = true; return; }
+        if (body.target && (publicationTraceRef.current?.targetRevision !== body.target.revision || publicationTraceRef.current?.releaseId !== releaseId)) {
+          publicationTraceRef.current = publicationTrace(body, targetToken.generation, signalReceivedAtRef.current, targetCommitRef.current);
+          boundaryMonotonicRef.current = null;
+        }
         desiredReleaseIdRef.current = releaseId;
+        manifestEtag = receivedEtag;
+        if (pendingTargetRef.current && !pendingTargetRef.current.token.isCurrent()) {
+          pendingTargetRef.current = null;
+        }
         if (
           isPlaybackRuntime(currentRuntime) &&
           currentRuntime.release.envelope.manifest.releaseId === releaseId &&
@@ -1226,15 +1232,20 @@ export function PlayerRuntime() {
           if (currentRuntime.pendingRelease) {
             releaseHydratedReference(currentRuntime.pendingRelease);
           }
+          const activeHashes = new Map(currentRuntime.release.envelope.manifest.items.map((item) => [item.id, item.dynamicTemplate?.snapshotHash]));
+          if (body.manifest.items.some((item) => activeHashes.get(item.id) !== item.dynamicTemplate?.snapshotHash)) {
+            const generation = ++dataGeneration;
+            void refreshLiveData(body, targetToken, generation);
+            syncSucceeded = true;
+            return;
+          }
+          if (playbackReadyRef.current && publicationTraceRef.current && !publicationTraceRef.current.firstFrameAt) {
+            publicationTraceRef.current.firstFrameAt = new Date().toISOString();
+          }
           const refreshedEnvelope = refreshHydratedReleaseEnvelope({
             cachedEnvelope: currentRuntime.release.envelope,
             freshEnvelope: body
           });
-          const mediaAccessNeedsRestart =
-            shouldRestartForRefreshedMediaAccess({
-              cachedFetchedAt: currentRuntime.release.envelope.fetchedAt,
-              freshFetchedAt: body.fetchedAt
-            });
           setRuntime((value) =>
             isPlaybackRuntime(value)
               ? {
@@ -1257,7 +1268,7 @@ export function PlayerRuntime() {
                 }
               : value
           );
-          if (mediaAccessNeedsRestart || !playbackReadyRef.current) {
+          if (!playbackReadyRef.current) {
             setPlaybackAttempt((attempt) => attempt + 1);
           }
           syncSucceeded = true;
@@ -1265,7 +1276,8 @@ export function PlayerRuntime() {
         }
         if (
           isPlaybackRuntime(currentRuntime) &&
-          currentRuntime.pendingRelease?.envelope.manifest.releaseId === releaseId
+          currentRuntime.pendingRelease?.envelope.manifest.releaseId === releaseId &&
+          pendingTargetRef.current?.token.isCurrent()
         ) {
           syncSucceeded = true;
           return;
@@ -1286,88 +1298,94 @@ export function PlayerRuntime() {
           );
         }
 
-        const preparedRelease = await preparePendingRelease({
-          envelope: body,
-          onPhase: (phase) => {
-            updatePlaybackPhase(phase);
-          }
-        });
-
-        if (cancelled) {
-          return;
+        if (preparingGeneration !== targetToken.generation) {
+          preparingGeneration = targetToken.generation;
+          void prepareLatest(body, targetToken);
         }
-
-        if (!preparedRelease.ok) {
-          keepCachedPlaybackOrShowProblem(
-            "Pending release is verworpen: asset verificatie faalde.",
-            preparedRelease.error
-          );
-          return;
-        }
-
-        const preparedEnvelope = withSyncDiagnostics(body, "online", "release verified");
-        const hydratedRelease = await hydratePreparedRelease({
-          assets: preparedRelease.assets,
-          envelope: preparedEnvelope
-        });
-        hydratedReleasesRef.current.push(hydratedRelease);
-
-        if (cancelled) {
-          return;
-        }
-
-        const persistedActive = await readActiveRelease(activeDeviceToken);
-        const requiresDeferredActivation = Boolean(
-          persistedActive &&
-          persistedActive.envelope.manifest.releaseId !==
-            hydratedRelease.envelope.manifest.releaseId
-        );
-
-        if (!requiresDeferredActivation) {
-          await activateRelease({
-            assets: preparedRelease.assets,
-            deviceToken: activeDeviceToken,
-            envelope: preparedEnvelope
-          });
-          await garbageCollectPersistedPlayerMedia(activeDeviceToken).catch(
-            () => undefined
-          );
-        }
-
-        setRuntime((currentRuntime) => {
-          if (
-            requiresDeferredActivation &&
-            isPlaybackRuntime(currentRuntime)
-          ) {
-            return {
-              ...currentRuntime,
-              pendingRelease: hydratedRelease,
-              state: "SWITCH_PENDING",
-              syncMessage: "Nieuwe release geverifieerd; switch op loopgrens."
-            };
-          }
-
-          return {
-            activeIndex: resolveInitialPlaybackIndex(hydratedRelease),
-            release: hydratedRelease,
-            state: "PLAYING",
-            syncMessage: "Release online geverifieerd en actief."
-          };
-        });
         syncSucceeded = true;
       } catch (error) {
-        if (!cancelled) {
+        if (!cancelled && !invalidatedDuringFetch) {
           keepCachedPlaybackOrShowProblem(
             "Online sync faalde; cached playback blijft actief.",
             error instanceof Error ? error.message : "manifest fetch failed"
           );
         }
       } finally {
+        window.clearTimeout(requestTimeout);
+        manifestController = null;
         syncInFlight = false;
         consecutiveSyncFailures = syncSucceeded
           ? 0
           : Math.min(consecutiveSyncFailures + 1, 8);
-        scheduleNextSync(nextSyncBaseDelayMs);
+        scheduleNextSync(invalidatedDuringFetch ? 0 : nextSyncBaseDelayMs);
+        invalidatedDuringFetch = false;
+      }
+    }
+
+    async function refreshLiveData(body: PlayerManifestEnvelope, token: PlayerTargetToken, generation: number) {
+      preparingCountRef.current += 1;
+      try {
+        const prepared = await preparePendingRelease({ envelope: body, signal: token.signal });
+        if (cancelled || !token.isCurrent() || generation !== dataGeneration) return;
+        if (!prepared.ok) throw new Error(prepared.error);
+        const hydrated = await hydratePreparedRelease({ assets: prepared.assets, envelope: body });
+        if (cancelled || !token.isCurrent() || generation !== dataGeneration) { revokeHydratedRelease(hydrated); return; }
+        await activateRelease({ assets: prepared.assets, deviceToken: activeDeviceToken, envelope: body, signal: token.signal });
+        if (cancelled || !token.isCurrent() || generation !== dataGeneration) { revokeHydratedRelease(hydrated); return; }
+        hydratedReleasesRef.current.push(hydrated);
+        setRuntime((value) => isPlaybackRuntime(value) && value.release.envelope.manifest.releaseId === body.manifest.releaseId
+          ? { ...value, release: hydrated, syncMessage: "Actuele gegevens bijgewerkt; publicatie en afspeelvolgorde zijn ongewijzigd." } : value);
+      } catch {
+        if (token.isCurrent() && generation === dataGeneration) manifestEtag = null;
+      } finally { preparingCountRef.current -= 1; }
+    }
+
+    async function prepareLatest(body: PlayerManifestEnvelope, token: PlayerTargetToken) {
+      preparationErrorRef.current = null;
+      let hydrated: HydratedPlayerRelease | undefined;
+      preparingCountRef.current += 1;
+      try {
+        const prepared = await preparePendingRelease({ envelope: body, signal: token.signal,
+          onPhase: (phase) => { if (token.isCurrent() && !cancelled) updatePlaybackPhase(phase); } });
+        if (cancelled || !token.isCurrent()) return;
+        if (!prepared.ok) throw new Error(prepared.error);
+        hydrated = await hydratePreparedRelease({ assets: prepared.assets,
+          envelope: withSyncDiagnostics(body, "online", "publication verified") });
+        if (cancelled || !token.isCurrent()) { revokeHydratedRelease(hydrated); return; }
+        hydratedReleasesRef.current.push(hydrated);
+        if (publicationTraceRef.current?.releaseId === body.manifest.releaseId) {
+          publicationTraceRef.current.assetsReadyAt = new Date().toISOString();
+        }
+        const current = runtimeRef.current;
+        if (isPlaybackRuntime(current)) {
+          pendingTargetRef.current = { release: hydrated, token };
+          setRuntime((value) => isPlaybackRuntime(value) && token.isCurrent()
+            ? { ...value, pendingRelease: hydrated, state: "SWITCH_PENDING",
+                syncMessage: "Nieuwe inhoud gereed; wisselt na de huidige slide." } : value);
+          return;
+        }
+        await activateRelease({ assets: prepared.assets, deviceToken: activeDeviceToken,
+          envelope: hydrated.envelope, signal: token.signal });
+        if (cancelled || !token.isCurrent()) return;
+        playbackReadyRef.current = false;
+        setRuntime({ activeIndex: resolveInitialPlaybackIndex(hydrated), release: hydrated,
+          state: "PLAYING", syncMessage: "Publicatie voorbereid; wacht op zichtbare bevestiging." });
+      } catch (error) {
+        if (!cancelled && token.isCurrent()) {
+          const message = error instanceof Error ? error.message : "";
+          preparationErrorRef.current = message === "PLAYER_UPDATE_REQUIRED" ? message
+            : /storage|quota/i.test(message) ? "PLAYER_STORAGE_UNAVAILABLE"
+            : /checksum|integrity/i.test(message) ? "ASSET_INTEGRITY_FAILED"
+            : /fetch|network/i.test(message) ? "ASSET_DOWNLOAD_FAILED" : "PUBLICATION_PREPARATION_FAILED";
+          manifestEtag = null;
+          keepCachedPlaybackOrShowProblem(
+            "Nieuwe inhoud kon niet worden voorbereid; huidige inhoud blijft spelen.",
+            error instanceof Error ? error.message : "PUBLICATION_PREPARATION_FAILED"
+          );
+        }
+      } finally {
+        preparingCountRef.current -= 1;
+        if (preparingGeneration === token.generation) preparingGeneration = null;
       }
     }
 
@@ -1376,7 +1394,7 @@ export function PlayerRuntime() {
       if (syncTimer) window.clearTimeout(syncTimer);
       const delay = Math.min(
         maximumManifestSyncBackoffMs,
-        baseDelayMs * 2 ** consecutiveSyncFailures
+        baseDelayMs * 2 ** consecutiveSyncFailures + Math.random() * Math.min(750, baseDelayMs * 0.1)
       );
       syncTimer = window.setTimeout(() => {
         void syncOnlineManifest();
@@ -1483,9 +1501,26 @@ export function PlayerRuntime() {
     function handleNetworkOnline() {
       consecutiveSyncFailures = 0;
       if (syncTimer) window.clearTimeout(syncTimer);
+      if (syncInFlight) {
+        invalidatedDuringFetch = true;
+        manifestController?.abort();
+        return;
+      }
       void syncOnlineManifest();
     }
 
+    function handleInvalidation(event: Event) {
+      signalReceivedAtRef.current = new Date().toISOString();
+      const detail = (event as CustomEvent<{ targetRevision?: unknown; committedAt?: unknown }>).detail;
+      if (typeof detail?.targetRevision === "string" && typeof detail.committedAt === "string") {
+        targetCommitRef.current = { revision: detail.targetRevision, at: detail.committedAt };
+      }
+      handleNetworkOnline();
+    }
+    function handleResume() { if (document.visibilityState === "visible") handleNetworkOnline(); }
+    window.addEventListener("veyocast:target-invalidated", handleInvalidation);
+    document.addEventListener("visibilitychange", handleResume);
+    window.addEventListener("pageshow", handleNetworkOnline);
     window.addEventListener("offline", handleNetworkOffline);
     window.addEventListener("online", handleNetworkOnline);
 
@@ -1500,6 +1535,12 @@ export function PlayerRuntime() {
     return () => {
       cancelled = true;
       if (syncTimer) window.clearTimeout(syncTimer);
+      manifestController?.abort();
+      latestTargetRef.current.cancel();
+      pendingTargetRef.current = null;
+      window.removeEventListener("veyocast:target-invalidated", handleInvalidation);
+      document.removeEventListener("visibilitychange", handleResume);
+      window.removeEventListener("pageshow", handleNetworkOnline);
       window.removeEventListener("offline", handleNetworkOffline);
       window.removeEventListener("online", handleNetworkOnline);
       hydratedReleasesRef.current.splice(0).forEach(revokeHydratedRelease);
@@ -1676,6 +1717,29 @@ export function PlayerRuntime() {
     };
   }, [installation, transitionPairing]);
 
+  const hydratedRelease = isPlaybackRuntime(runtime) ? runtime.release : null;
+  useEffect(() => {
+    // The outgoing transition lasts at most 520 ms. Keep its URLs until after
+    // paint; retain both current and newest pending references during collection.
+    const timer = window.setTimeout(() => {
+      if (preparingCountRef.current || !playbackReadyRef.current) return;
+      const current = runtimeRef.current;
+      const retained = new Set(hydratedReleasesRef.current.slice(-2));
+      if (isPlaybackRuntime(current)) retained.add(current.release);
+      if (pendingTargetRef.current) retained.add(pendingTargetRef.current.release);
+      const retainedUrlOwners = new Set([...retained].map((release) => release.objectUrls));
+      hydratedReleasesRef.current = hydratedReleasesRef.current.filter((release) => {
+        if (retainedUrlOwners.has(release.objectUrls)) return true;
+        revokeHydratedRelease(release); return false;
+      });
+      const token = readStoredDeviceToken();
+      if (token) void garbageCollectPersistedPlayerMedia(token, undefined, [...retained]).catch(() => undefined);
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [hydratedRelease, playbackReadyRevision]);
+
+  useEffect(() => { sendHeartbeatRef.current?.(); }, [runtime.state]);
+
   const playbackScheduleKey = isPlaybackRuntime(runtime)
     ? [
         runtime.release.envelope.manifest.releaseId,
@@ -1754,7 +1818,10 @@ export function PlayerRuntime() {
     if (!activeItem) {
       return;
     }
-    if (!isPlayerManifestItemPlayable(activeItem)) return;
+    if (!isPlayerManifestItemPlayable(activeItem) || !playbackReadyRef.current) return;
+    // A healthy decoder owns the natural video/trim boundary. Its progress
+    // watchdog detects a stall; an unrelated wall timer must not cut it short.
+    if (activeItem.kind === "video" && !durationOverrideMs) return;
 
     const timerKey = `${playbackRuntime.release.envelope.manifest.releaseId}:${activeItem.id}:${playbackAttempt}`;
     const durationMs = getPlayerItemPlaybackDurationMs(activeItem, durationOverrideMs);
@@ -1770,7 +1837,7 @@ export function PlayerRuntime() {
       timerState.startedAt = null;
       return;
     }
-    timerState.startedAt = Date.now();
+    timerState.startedAt = performance.now();
     const timer = window.setTimeout(() => {
       if (playbackTimerStateRef.current?.key === timerKey) {
         playbackTimerStateRef.current = null;
@@ -1788,7 +1855,7 @@ export function PlayerRuntime() {
       if (current?.key === timerKey && current.startedAt !== null) {
         current.remainingMs = Math.max(
           1,
-          current.remainingMs - (Date.now() - current.startedAt)
+          current.remainingMs - (performance.now() - current.startedAt)
         );
         current.startedAt = null;
       }
@@ -1798,22 +1865,28 @@ export function PlayerRuntime() {
     durationOverrideMs,
     handlePlaybackFailure,
     playbackAttempt,
+    playbackReadyRevision,
     playbackScheduleKey,
     realtimeGoal.pauseUnderlay
   ]);
 
   useEffect(() => {
     let recoveryHeartbeatTimer: number | undefined;
+    let heartbeatInFlight = false;
+    let heartbeatPending = false;
+    let heartbeatStopped = false;
 
     async function sendHeartbeat() {
+      if (heartbeatStopped) return;
+      if (heartbeatInFlight) { heartbeatPending = true; return; }
+      heartbeatInFlight = true;
+      const storage = await readStorageEstimate();
       const currentRuntime = runtimeRef.current;
       const deviceToken = readStoredDeviceToken();
       if (
         !deviceToken ||
         (!isPlaybackRuntime(currentRuntime) && !isWaitingContentRuntime(currentRuntime))
-      ) return;
-
-      const storage = await readStorageEstimate();
+      ) { heartbeatInFlight = false; return; }
       const playbackRuntime = isPlaybackRuntime(currentRuntime)
         ? currentRuntime
         : null;
@@ -1836,12 +1909,15 @@ export function PlayerRuntime() {
       try {
         const response = await fetchPlayerOrigin("/api/player/heartbeat", {
           body: JSON.stringify({
-            activeReleaseId: playbackRuntime?.release.envelope.manifest.releaseId ?? null,
+            activeReleaseId: presentedReleaseIdRef.current,
+            runtimeVersion: currentPlayerApplicationVersion(),
+            publicationTrace: publicationTraceRef.current,
+            preparationError: preparationErrorRef.current,
             automationCapabilities,
             automationReport,
             currentItemId: activeItem?.id ?? null,
             desiredReleaseId: playbackRuntime
-              ? playbackRuntime.pendingRelease?.envelope.manifest.releaseId ??
+              ? desiredReleaseIdRef.current ?? playbackRuntime.pendingRelease?.envelope.manifest.releaseId ??
                 playbackRuntime.release.envelope.device.desiredReleaseId ??
                 playbackRuntime.release.envelope.manifest.releaseId
               : null,
@@ -1852,7 +1928,7 @@ export function PlayerRuntime() {
             runtimeState: playbackRuntime?.state ?? "READY",
             storageQuotaBytes: storage.quota,
             storageUsedBytes: storage.usage,
-            syncPhase
+            syncPhase: preparationErrorRef.current ? "failed" : syncPhase === "active" && !playbackReadyRef.current ? "verifying" : syncPhase
           }),
           headers: {
             Authorization: `Bearer ${deviceToken}`,
@@ -1889,6 +1965,9 @@ export function PlayerRuntime() {
         }
       } catch {
         // Transport failures are reported by fetchPlayerOrigin; heartbeat retries continue.
+      } finally {
+        heartbeatInFlight = false;
+        if (heartbeatPending && !heartbeatStopped) { heartbeatPending = false; void sendHeartbeat(); }
       }
     }
 
@@ -1904,6 +1983,7 @@ export function PlayerRuntime() {
     }, 30_000);
 
     return () => {
+      heartbeatStopped = true;
       window.clearTimeout(initialHeartbeatTimer);
       window.clearInterval(heartbeatTimer);
       if (recoveryHeartbeatTimer) window.clearTimeout(recoveryHeartbeatTimer);
@@ -1944,6 +2024,7 @@ export function PlayerRuntime() {
         onGoalComplete={realtimeGoal.complete}
         liveMatchStates={realtimeGoal.matchStates}
         onFailure={handlePlaybackFailure}
+        onBoundary={handlePlaybackBoundary}
         onEnded={handlePlaybackEnded}
         onReady={handlePlaybackReady}
         playbackAttempt={playbackAttempt}
@@ -2003,6 +2084,7 @@ function PlaybackView({
   onGoalComplete,
   liveMatchStates,
   onFailure,
+  onBoundary,
   onEnded,
   onReady,
   playbackAttempt,
@@ -2014,6 +2096,7 @@ function PlaybackView({
   onGoalComplete: (deliveryId: string) => void;
   liveMatchStates: ReadonlyMap<string, LedScoresMatchState>;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
+  onBoundary?: (itemId: string) => void;
   onEnded: (itemId: string) => void;
   onReady: (itemId: string) => void;
   playbackAttempt: number;
@@ -2054,7 +2137,7 @@ function PlaybackView({
             : undefined
         }
       >
-        <PlaybackScene
+        <PlaybackScene onBoundary={onBoundary}
           item={activeItem}
           liveMatchStates={liveMatchStates}
           onEnded={onEnded}
@@ -2247,6 +2330,7 @@ type PlaybackSceneState = {
 function PlaybackScene({
   item,
   liveMatchStates,
+  onBoundary,
   onEnded,
   onFailure,
   onReady,
@@ -2256,6 +2340,7 @@ function PlaybackScene({
 }: {
   item: PlayerManifestItem;
   liveMatchStates: ReadonlyMap<string, LedScoresMatchState>;
+  onBoundary?: (itemId: string) => void;
   onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onReady: (itemId: string) => void;
@@ -2334,6 +2419,15 @@ function PlaybackScene({
     []
   );
 
+  useEffect(() => {
+    if (!scene.ready) return;
+    let second = 0;
+    const first = window.requestAnimationFrame(() => {
+      second = window.requestAnimationFrame(() => onReady(scene.current.item.id));
+    });
+    return () => { window.cancelAnimationFrame(first); if (second) window.cancelAnimationFrame(second); };
+  }, [onReady, scene.current.item.id, scene.current.key, scene.ready]);
+
   const currentClassName = scene.ready
     ? {
         crossfade: styles.crossfade,
@@ -2355,7 +2449,7 @@ function PlaybackScene({
           data-player-transition-outgoing={scene.transition}
           key={scene.outgoing.key}
         >
-          <PlaybackMedia
+          <PlaybackMedia onBoundary={onBoundary}
             item={scene.outgoing.item}
             liveMatchStates={liveMatchStates}
             onEnded={onEnded}
@@ -2375,13 +2469,12 @@ function PlaybackScene({
         data-player-transition={scene.transition}
         key={scene.current.key}
       >
-        <PlaybackMedia
-          item={scene.current.item}
+        <PlaybackMedia onBoundary={onBoundary}
+          item={scene.current.key === requestedKey ? item : scene.current.item}
           liveMatchStates={liveMatchStates}
           onEnded={onEnded}
           onFailure={onFailure}
-          onReady={(itemId) => {
-            onReady(itemId);
+          onReady={() => {
             setScene((currentScene) =>
               currentScene.current.key === scene.current.key
                 ? { ...currentScene, ready: true }
@@ -2399,6 +2492,7 @@ function PlaybackScene({
 export function PlaybackMedia({
   item,
   liveMatchStates = new Map(),
+  onBoundary,
   onEnded,
   onFailure,
   onPlaybackStateChange,
@@ -2409,6 +2503,7 @@ export function PlaybackMedia({
 }: {
   item: PlayerManifestItem;
   liveMatchStates?: ReadonlyMap<string, LedScoresMatchState>;
+  onBoundary?: (itemId: string) => void;
   onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onPlaybackStateChange?: (state: "ended" | "paused" | "playing") => void;
@@ -2442,7 +2537,7 @@ export function PlaybackMedia({
   }
   if (item.dynamicTemplate) {
     return (
-      <DynamicTemplateMedia
+      <DynamicTemplateMedia onBoundary={onBoundary}
         item={item}
         liveMatchStates={liveMatchStates}
         onEnded={onEnded}
@@ -2499,7 +2594,7 @@ function BinaryPlaybackMedia({
   const isPausedRef = useRef(false);
   const hasStartedRef = useRef(false);
   const lastCurrentTimeRef = useRef(0);
-  const lastProgressAtRef = useRef(Date.now());
+  const lastProgressAtRef = useRef(performance.now());
   const lastSignalRef = useRef<"stalled" | "waiting" | null>(null);
   const fallbackAttemptedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -2551,9 +2646,9 @@ function BinaryPlaybackMedia({
 
   useEffect(() => {
     if (item.kind !== "video" || passive) return;
-    const startedAt = Date.now();
+    const startedAt = performance.now();
     const interval = window.setInterval(() => {
-      const now = Date.now();
+      const now = performance.now();
       if (hasEndedRef.current) return;
       if (isPausedRef.current || externallyPausedRef.current) return;
       if (!hasStartedRef.current && now - startedAt >= watchdogTimeoutMs) {
@@ -2603,6 +2698,9 @@ function BinaryPlaybackMedia({
 
   useEffect(() => {
     if (item.kind !== "video") return;
+    // Renewed access belongs to the next playback attempt. Changing src on a
+    // healthy decoder restarts the current video even when its bytes are equal.
+    if (hasStartedRef.current && !hasEndedRef.current) return;
     fallbackAttemptedRef.current = false;
     setSourceUrl(item.source.url);
   }, [item.id, item.kind, item.source.url]);
@@ -2632,7 +2730,7 @@ function BinaryPlaybackMedia({
     isPausedRef.current = false;
     hasStartedRef.current = false;
     lastCurrentTimeRef.current = 0;
-    lastProgressAtRef.current = Date.now();
+    lastProgressAtRef.current = performance.now();
     lastSignalRef.current = null;
 
     try {
@@ -2697,7 +2795,7 @@ function BinaryPlaybackMedia({
           if (passive) return;
           isPausedRef.current = false;
           hasStartedRef.current = true;
-          lastProgressAtRef.current = Date.now();
+          lastProgressAtRef.current = performance.now();
           lastSignalRef.current = null;
           onPlaybackStateChange?.("playing");
           reportVideoFirstFrame();
@@ -2718,7 +2816,7 @@ function BinaryPlaybackMedia({
           }
           if (currentTime > lastCurrentTimeRef.current + 0.01) {
             lastCurrentTimeRef.current = currentTime;
-            lastProgressAtRef.current = Date.now();
+            lastProgressAtRef.current = performance.now();
             lastSignalRef.current = null;
           }
         }}

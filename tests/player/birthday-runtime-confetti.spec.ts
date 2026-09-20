@@ -3,7 +3,7 @@ import { incidentPayload, playIncidentPayload } from "./celebrations-layout-fixt
 
 for (const legacy of [false, true]) {
   for (const orientation of ["landscape", "portrait"] as const) {
-    test(`${legacy ? "LG" : "React"} birthday: ${orientation}, one moving canvas and cleanup`, async ({ page }) => {
+    test(`${legacy ? "LG" : "React"} birthday: ${orientation}, bounded card layers and cleanup`, async ({ page }) => {
       await page.clock.install({ time: new Date("2026-09-09T12:00:00Z") });
       await page.emulateMedia({ reducedMotion: "no-preference" });
       await page.setViewportSize(orientation === "portrait" ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 });
@@ -17,18 +17,32 @@ for (const legacy of [false, true]) {
       const errors: string[] = []; page.on("pageerror", (error) => errors.push(error.message));
       await playIncidentPayload(page, payload, legacy, 8);
       const canvas = page.locator("canvas[data-birthday-confetti]");
-      await expect(canvas).toHaveCount(1);
+      await expect(canvas).toHaveCount(2);
+      const layers = await canvas.evaluateAll((canvases) => canvases.map((element) => {
+        const card = element.closest('[data-birthday-card]')!;
+        const photo = card.children[0]!;
+        const copy = card.children[1]!;
+        const bounds = element.getBoundingClientRect(); const container = card.getBoundingClientRect();
+        return { parentIsCard: element.parentElement === card, within: bounds.left >= container.left && bounds.top >= container.top && bounds.right <= container.right && bounds.bottom <= container.bottom,
+          photo: Number(getComputedStyle(photo).zIndex), canvas: Number(getComputedStyle(element).zIndex), copy: Number(getComputedStyle(copy).zIndex) };
+      }));
+      for (const layer of layers) {
+        expect(layer.parentIsCard && layer.within).toBe(true);
+        expect(layer.photo).toBeLessThan(layer.canvas);
+        expect(layer.canvas).toBeLessThan(layer.copy);
+      }
       const slide = page.locator('[data-slide-type="sport_birthdays"]');
       if (legacy) expect(await slide.evaluate((element) => element.classList.contains("dark"))).toBe(false);
       else await expect(slide).toHaveAttribute("data-theme", "light");
       await expect(slide.getByText("Vandaag jarig", { exact: false })).toHaveCount(2);
       await expect(slide.getByText("Noa van Dijk", { exact: true })).toHaveCount(1);
       await expect(slide).not.toContainText("2026-09-09");
-      const before = await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
+      const before = await canvas.first().evaluate((element: HTMLCanvasElement) => element.toDataURL());
       await page.clock.runFor(800);
-      const after = await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
+      const after = await canvas.first().evaluate((element: HTMLCanvasElement) => element.toDataURL());
       expect(after).not.toBe(before);
       await expect(slide.locator('[data-emphasize-today="true"]')).toHaveCount(2);
+      await page.screenshot({ path: test.info().outputPath(`birthday-${legacy ? "lg" : "react"}-${orientation}-light.png`) });
       await page.clock.fastForward(12_000);
       await expect(canvas).toHaveCount(0);
       await expect(slide).toHaveCount(0);

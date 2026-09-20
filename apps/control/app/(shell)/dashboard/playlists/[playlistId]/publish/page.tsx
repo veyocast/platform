@@ -94,7 +94,6 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
       <PublishJourney
         canPublish={canPublish}
         idempotencyKey={randomUUID()}
-        nextVersion={studio.releases[0] ? studio.releases[0].version + 1 : 1}
         playlist={{
           id: playlist.id,
           name: playlist.name,

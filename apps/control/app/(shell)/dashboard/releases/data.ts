@@ -72,39 +72,23 @@ export async function loadReleaseCenter(tenantId: string): Promise<ReleaseCenter
   const supabase = await createControlSupabaseClient();
   if (!supabase) return { error: "De beveiligde datasessie ontbreekt.", releases: [] };
 
-  const [releaseResult, playlistResult, profileResult, assignmentResult, screenResult] = await Promise.all([
-    loadAllPages((from, to) => supabase.from("playlist_releases").select("id, playlist_id, version, release_notes, manifest_hash, item_count, total_duration_seconds, total_bytes, published_by, published_at").eq("tenant_id", tenantId).order("published_at", { ascending: false }).order("id").range(from, to)),
-    loadAllPages((from, to) => supabase.from("playlists").select("id, name").eq("tenant_id", tenantId).order("id").range(from, to)),
-    loadAllPages((from, to) => supabase.from("profiles").select("id, display_name").order("id").range(from, to)),
-    loadAllPages((from, to) => supabase.from("release_screen_assignments").select("release_id, screen_id").eq("tenant_id", tenantId).order("release_id").order("screen_id").range(from, to)),
-    loadAllPages((from, to) => supabase.from("screens").select("id, assigned_release_id").eq("tenant_id", tenantId).is("deleted_at", null).order("id").range(from, to))
-  ]);
-  const error = [releaseResult.error, playlistResult.error, profileResult.error, assignmentResult.error, screenResult.error].find(Boolean);
-  if (error) {
-    console.error("Release Center laden mislukt", error);
-    return { error: "De releasehistorie kon niet volledig worden geladen. Vernieuw de pagina.", releases: [] };
+  const result = await supabase.rpc("list_current_publications_v1", { p_tenant_id: tenantId })
+    .order("published_at", { ascending: false });
+  if (result.error) {
+    console.error("Actuele publicaties laden mislukt", { code: result.error.code });
+    return { error: "De actuele publicaties konden niet worden geladen. Vernieuw de pagina.", releases: [] };
   }
-
-  const playlists = new Map((playlistResult.data ?? []).map((playlist) => [playlist.id, playlist.name]));
-  const profiles = new Map((profileResult.data ?? []).map((profile) => [profile.id, profile.display_name]));
-  return {
-    error: null,
-    releases: (releaseResult.data ?? []).map((release) => ({
-      currentScreenCount: (screenResult.data ?? []).filter((screen) => screen.assigned_release_id === release.id).length,
-      deploymentTargetCount: new Set((assignmentResult.data ?? []).filter((assignment) => assignment.release_id === release.id).map((assignment) => assignment.screen_id)).size,
-      id: release.id,
-      itemCount: release.item_count,
-      manifestHash: release.manifest_hash,
-      notes: release.release_notes,
-      playlistId: release.playlist_id,
-      playlistName: playlists.get(release.playlist_id) ?? "Verwijderde playlist",
-      publishedAt: release.published_at,
-      publishedBy: release.published_by ? profiles.get(release.published_by) ?? "Onbekende gebruiker" : "Systeem",
-      totalBytes: Number(release.total_bytes),
-      totalDurationSeconds: release.total_duration_seconds,
-      version: release.version
-    }))
-  };
+  return { error: null, releases: (result.data ?? []).map((release: {
+    id: string; playlist_id: string; playlist_name: string; version: number; published_at: string;
+    published_by: string; release_notes: string | null; manifest_hash: string; item_count: number;
+    total_duration_seconds: number; total_bytes: number; current_screen_count: number;
+  }) => ({
+    currentScreenCount: Number(release.current_screen_count), deploymentTargetCount: Number(release.current_screen_count),
+    id: release.id, itemCount: release.item_count, manifestHash: release.manifest_hash,
+    notes: release.release_notes, playlistId: release.playlist_id, playlistName: release.playlist_name,
+    publishedAt: release.published_at, publishedBy: release.published_by, totalBytes: Number(release.total_bytes),
+    totalDurationSeconds: release.total_duration_seconds, version: release.version
+  })) };
 }
 
 export async function loadReleaseDetail(

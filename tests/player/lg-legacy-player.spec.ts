@@ -49,7 +49,7 @@ async function mockLegacyApis(
       body: legacyImageSvg
     });
   });
-  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+  await page.route("**/api/player/manifest*", async (route) => {
     const etag = route.request().headers()["if-none-match"];
     manifestEtags.push(etag);
     if (etag === '"release-release-legacy"') {
@@ -153,7 +153,7 @@ async function mockEditorialArenaLegacyApis(
       body: legacyImageSvg
     });
   });
-  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+  await page.route("**/api/player/manifest*", async (route) => {
     const envelope = legacyEnvelope({
       bytes: legacyImageBytes,
       checksumSha256: legacyImageChecksum,
@@ -275,7 +275,7 @@ async function mockFieldFlowSportLegacyApis(
     contentType: "image/svg+xml",
     body: legacyImageSvg
   }));
-  await page.route("**/api/player/manifest?legacy=*", (route) => {
+  await page.route("**/api/player/manifest*", (route) => {
     const envelope = legacyEnvelope({
       bytes: legacyImageBytes,
       checksumSha256: legacyImageChecksum,
@@ -457,7 +457,7 @@ async function mockRoyalCurrentLedLegacyApis(page: Page) {
     contentType: "image/svg+xml",
     body: legacyImageSvg
   }));
-  await page.route("**/api/player/manifest?legacy=*", (route) => {
+  await page.route("**/api/player/manifest*", (route) => {
     const envelope = legacyEnvelope({
       bytes: legacyImageBytes,
       checksumSha256: legacyImageChecksum,
@@ -576,7 +576,7 @@ async function mockEditorialStandingLegacyApis(page: Page) {
       body: legacyImageSvg
     });
   });
-  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+  await page.route("**/api/player/manifest*", async (route) => {
     const envelope = legacyEnvelope({
       bytes: legacyImageBytes,
       checksumSha256: legacyImageChecksum,
@@ -667,7 +667,7 @@ async function mockVisitorArrivalsLegacyApis(page: Page) {
     contentType: "image/svg+xml",
     body: legacyImageSvg
   }));
-  await page.route("**/api/player/manifest?legacy=*", (route) => {
+  await page.route("**/api/player/manifest*", (route) => {
     const envelope = legacyEnvelope({
       bytes: legacyImageBytes,
       checksumSha256: legacyImageChecksum,
@@ -761,7 +761,7 @@ async function mockEditorialPriceListLegacyApis(page: Page) {
     contentType: "image/svg+xml",
     body: legacyImageSvg
   }));
-  await page.route("**/api/player/manifest?legacy=*", (route) => {
+  await page.route("**/api/player/manifest*", (route) => {
     const envelope = legacyEnvelope({
       bytes: legacyImageBytes,
       checksumSha256: legacyImageChecksum,
@@ -839,7 +839,7 @@ async function mockMenuStudioPortraitLegacyApis(page: Page, { loose = false } = 
     contentType: "image/svg+xml",
     body: legacyImageSvg
   }));
-  await page.route("**/api/player/manifest?legacy=*", (route) => {
+  await page.route("**/api/player/manifest*", (route) => {
     const envelope = legacyEnvelope({
       bytes: legacyImageBytes,
       checksumSha256: legacyImageChecksum,
@@ -1000,7 +1000,8 @@ test("LG Legacy Player gebruikt een statische shell en lokale afbeelding", async
     window.dispatchEvent(new Event("online"));
   });
   await expect.poll(() => manifestEtags.length).toBeGreaterThan(1);
-  expect(manifestEtags.every((etag) => etag === undefined)).toBe(true);
+  expect(manifestEtags[0]).toBeUndefined();
+  expect(manifestEtags.slice(1).every((etag) => typeof etag === "string")).toBe(true);
   await expect(image).toHaveAttribute("data-playback-instance", "unchanged");
   manifestEtags.length = 0;
   await page.reload();
@@ -2731,7 +2732,7 @@ test("LG Legacy Player downloadt en speelt video vanuit één lokale Blob", asyn
       })
     });
   });
-  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+  await page.route("**/api/player/manifest*", async (route) => {
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify(
@@ -2833,7 +2834,7 @@ test("LG Legacy Player houdt het oude beeld zichtbaar tot de nieuwe lokale relea
       body: legacySecondImageSvg
     });
   });
-  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+  await page.route("**/api/player/manifest*", async (route) => {
     const etag = `"release-${desiredRelease}"`;
     if (route.request().headers()["if-none-match"] === etag) {
       await route.fulfill({ headers: { ETag: etag }, status: 304 });
@@ -2954,7 +2955,7 @@ test("LG Legacy Player herstelt een lokaal verwijderde schermcredential uit de a
       body: legacyImageSvg
     });
   });
-  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+  await page.route("**/api/player/manifest*", async (route) => {
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify(envelope)
@@ -3062,7 +3063,7 @@ test("LG Legacy Player voltooit remote recovery ondanks een twee uur voorlopende
       })
     });
   });
-  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+  await page.route("**/api/player/manifest*", async (route) => {
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({
@@ -3180,7 +3181,7 @@ test("LG Legacy Player toont pairing zonder witte of horizontaal overlopende pag
       })
     });
   });
-  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+  await page.route("**/api/player/manifest*", async (route) => {
     await route.fulfill({
       status: 401,
       contentType: "application/json",
@@ -3795,7 +3796,7 @@ test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release"
       })
     });
   });
-  await page.route("**/api/player/manifest?legacy=*", async (route) => {
+  await page.route("**/api/player/manifest*", async (route) => {
     await route.abort("failed");
   });
   await page.route("**/api/player/heartbeat", async (route) => {

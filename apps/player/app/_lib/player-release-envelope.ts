@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 
 import {
   playerDynamicTemplateAssetSchema,
@@ -36,6 +37,8 @@ type ReleaseRow = {
 };
 
 type ReleaseItemRow = {
+  source_item_id: string | null;
+  live_data_enabled: boolean;
   accessibility_name: string | null;
   asset_kind: "image" | "video";
   asset_title: string;
@@ -98,7 +101,7 @@ export async function loadPlayerReleaseEnvelope({
       .single(),
     admin
       .from("playlist_release_items")
-      .select("id, asset_kind, asset_title, display_title, duration_seconds, fit_mode, muted, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, section_source_id, section_name, section_position_key, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, dynamic_snapshot_id, youtube_video_id, youtube_title, youtube_online_only, engage_public_id, engage_title, engage_question")
+      .select("id, source_item_id, live_data_enabled, asset_kind, asset_title, display_title, duration_seconds, fit_mode, muted, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, section_source_id, section_name, section_position_key, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, dynamic_snapshot_id, youtube_video_id, youtube_title, youtube_online_only, engage_public_id, engage_title, engage_question")
       .eq("release_id", releaseId)
       .eq("tenant_id", tenantId)
       .order("sort_order", { ascending: true })
@@ -112,10 +115,12 @@ export async function loadPlayerReleaseEnvelope({
   const releaseItems = (itemResult.data ?? []) as ReleaseItemRow[];
   if (releaseItems.length === 0) throw new Error("release has no items");
   const presentationDefaults = readPresentationDefaults(release.manifest_json);
+  const configurationHashes = new Map<string, string>();
   const dynamicTemplates = await loadDynamicTemplatePayloads(
     admin,
     releaseItems,
-    tenantId
+    tenantId,
+    configurationHashes
   );
   const dynamicAssetBytes = uniqueDynamicAssetBytes(dynamicTemplates);
   const sponsorPlan = await loadSponsorPlan(admin, tenantId, device.screenId);
@@ -164,6 +169,15 @@ export async function loadPlayerReleaseEnvelope({
         enabled: item.enabled,
         fitMode: item.fit_mode,
         id: item.id,
+        sourceItemId: item.source_item_id ?? item.id,
+        contentHash: createHash("sha256").update(JSON.stringify({
+          source: item.dynamic_snapshot_id ? configurationHashes.get(item.id) : item.checksum_sha256,
+          duration: item.duration_seconds, title: item.display_title, fit: item.fit_mode,
+          crop: [item.crop_focus_x, item.crop_focus_y], background: item.background_color,
+          muted: item.muted, volume: item.volume_percent, trim: [item.trim_start_seconds,item.trim_end_seconds],
+          transition: item.transition, visibility: [item.visible_from,item.visible_until], enabled: item.enabled,
+          youtube: item.youtube_video_id, engage: item.engage_public_id
+        })).digest("hex"),
         kind: item.asset_kind,
         muted: item.muted,
         section:
@@ -306,7 +320,8 @@ function uniqueSponsorAssetBytes(plan: PlayerSponsorPlan | undefined) {
 async function loadDynamicTemplatePayloads(
   admin: ReturnType<typeof createPlayerAdminClient>,
   releaseItems: ReleaseItemRow[],
-  tenantId: string
+  tenantId: string,
+  configurationHashes: Map<string, string>
 ) {
   const snapshotIds = [
     ...new Set(
@@ -320,10 +335,29 @@ async function loadDynamicTemplatePayloads(
 
   const snapshotResult = await admin
     .from("dynamic_slide_snapshots")
-    .select("id, source_revision_hash, snapshot_data_json, template_version_id")
+    .select("id, source_revision_hash, snapshot_data_json, template_version_id, dynamic_slide_version_id")
+    .eq("tenant_id", tenantId)
     .in("id", snapshotIds);
   if (snapshotResult.error) return result;
-  const snapshots = (snapshotResult.data ?? []) as DynamicSnapshotPayloadRow[];
+  const originalSnapshots = (snapshotResult.data ?? []) as Array<DynamicSnapshotPayloadRow & { dynamic_slide_version_id: string }>;
+  for (const item of releaseItems) {
+    const snapshot = originalSnapshots.find((value) => value.id === item.dynamic_snapshot_id);
+    if (snapshot) configurationHashes.set(item.id, JSON.stringify({
+      version: snapshot.dynamic_slide_version_id, template: snapshot.template_version_id,
+      theme: snapshot.snapshot_data_json.themePresentation, editorial: snapshot.snapshot_data_json.editorial
+    }));
+  }
+  const liveIds = [...new Set(releaseItems.filter((item) => item.live_data_enabled)
+    .flatMap((item) => item.dynamic_snapshot_id ? [item.dynamic_snapshot_id] : []))];
+  const liveResult = liveIds.length ? await admin.from("published_dynamic_data")
+    .select("snapshot_id,content_hash,data_json,data_revision,changed_at,last_error_code")
+    .eq("tenant_id", tenantId).in("snapshot_id", liveIds) : null;
+  const liveById = new Map((liveResult?.data ?? []).map((data) => [data.snapshot_id, data]));
+  const snapshots = originalSnapshots.map((snapshot) => {
+    const live = liveById.get(snapshot.id);
+    return live ? { ...snapshot, snapshot_data_json: live.data_json as Record<string, unknown>,
+      source_revision_hash: live.content_hash as string } : snapshot;
+  });
   const versionIds = [
     ...new Set(snapshots.map((snapshot) => snapshot.template_version_id))
   ];

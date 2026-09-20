@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(23);
+select plan(29);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -396,6 +396,28 @@ select is(
   'runtime resolution updates the paired device desired release'
 );
 
+-- An owner cutover of a used scheduled playlist preserves its exact target
+-- membership and default. Fixture publication v2 uses the same minimal
+-- manifests as the original scheduler fixtures above.
+insert into public.playlist_releases(id,tenant_id,playlist_id,version,manifest_hash,manifest_json,item_count,total_duration_seconds,total_bytes,published_by)
+values('70000000-0000-4000-8000-000000000484','10000000-0000-4000-8000-000000000481','50000000-0000-4000-8000-000000000482',
+ 2,repeat('f',64),'{"schemaVersion":1,"items":[]}',1,10,1024,'00000000-0000-4000-8000-000000000481');
+update public.playlist_publications set definition_hash=private.playlist_configuration_hash_v1(playlist_id)
+ where playlist_id='50000000-0000-4000-8000-000000000482';
+create temporary table schedule_before_cutover as select active_schedule_id,default_release_id,active_assignment_source from public.screens
+ where id='60000000-0000-4000-8000-000000000482';
+select set_config('request.jwt.claim.sub','',true);
+select set_config('request.jwt.claim.role','',true);
+select lives_ok($test$select private.cutover_current_publication_v1('10000000-0000-4000-8000-000000000481','50000000-0000-4000-8000-000000000482',
+ (select revision from public.playlists where id='50000000-0000-4000-8000-000000000482'),repeat('a',40),'Migrate the scheduled publication without clearing its plan','github:test-operator')$test$,
+ 'cutover safely replaces a scheduled publication and clones its provenance');
+select is((select assigned_release_id from public.screens where id='60000000-0000-4000-8000-000000000482'),
+ '70000000-0000-4000-8000-000000000484'::uuid,'the active scheduled screen receives the new configuration');
+select is((select active_schedule_id from public.screens where id='60000000-0000-4000-8000-000000000482'),
+ (select active_schedule_id from schedule_before_cutover),'the schedule identity survives cutover');
+select is((select default_release_id from public.screens where id='60000000-0000-4000-8000-000000000482'),
+ (select default_release_id from schedule_before_cutover),'the independent default is preserved for expiry');
+
 set local role service_role;
 select set_config('request.jwt.claim.role', 'service_role', true);
 select is(
@@ -466,5 +488,13 @@ select throws_ok(
   'a viewer cannot mutate content schedules'
 );
 
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select is(public.apply_due_content_schedules_v1('2026-08-01T12:00:00Z'),0,
+ 'a late older scheduler evaluation cannot re-activate an expired target');
+reset role;
+select ok(not exists(select 1 from public.screens where tenant_id='10000000-0000-4000-8000-000000000481'
+ and active_schedule_id is not null),'the later default resolution remains authoritative after stale scheduler work');
 select * from finish();
 rollback;

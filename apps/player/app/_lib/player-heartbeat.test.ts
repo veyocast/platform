@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { playbackErrorSyncDetail, safeGoalVideoDiagnostics, safeGoalVideoCapabilities } from "./player-heartbeat";
+import { playbackErrorSyncDetail, safeGoalVideoDiagnostics, safeGoalVideoCapabilities, safePublicationTrace } from "./player-heartbeat";
 
 describe("playbackErrorSyncDetail", () => {
   it("keeps an unresolved playback error active", () => {
@@ -52,5 +52,18 @@ describe("bounded goal diagnostics", () => {
   it("reports capabilities separately from platform identification", () => {
     expect(safeGoalVideoCapabilities({ runtime: "static-lg", h264: "probably", webm: "", viewportWidth: 1920, viewportHeight: 1080, webOS: true, browserVersion: "79.0.3945", appVersion: "a".repeat(40), userAgent: "private" })).toMatchObject({ runtime: "static-lg", h264: "probably", webOS: true, browserVersion: "79.0.3945" });
     expect(safeGoalVideoCapabilities({ runtime: "arbitrary" })).toBeNull();
+  });
+});
+
+describe("bounded publication evidence", () => {
+  it("retains independent revisions and frame timing without accepting arbitrary payloads", () => {
+    const input = { targetRevision: "100", configRevision: "2", publicationId: "playlist-B", correlationId: "trace-A",
+      generation: 12, firstFrameAt: "2026-09-20T09:00:00Z", frameAfterBoundaryMs: 40,
+      secret: "must-not-be-stored", sourceData: { name: "private" } };
+    const result = safePublicationTrace(input);
+    expect(result).toMatchObject({ targetRevision: "100", configRevision: "2", firstFrameAt: "2026-09-20T09:00:00.000Z", frameAfterBoundaryMs: 40 });
+    expect(JSON.stringify(result)).not.toMatch(/secret|private|sourceData/);
+    expect(safePublicationTrace({ ...input, targetRevision: "-1" })).toBeNull();
+    expect(safePublicationTrace({ ...input, firstFrameAt: "bad", frameAfterBoundaryMs: Infinity })).toMatchObject({ firstFrameAt: null, frameAfterBoundaryMs: null });
   });
 });
