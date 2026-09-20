@@ -72,12 +72,12 @@ describe("media worker runner", () => {
     expect(backend.uploadPlayerVariant).toHaveBeenCalledWith(
       job,
       expect.stringMatching(/player-1080p\.mp4$/),
-      `tenants/${job.tenantId}/assets/${job.assetId}/variants/player-1080p.mp4`
+      `tenants/${job.tenantId}/assets/${job.assetId}/variants/player-v2-${sha256(output)}.mp4`
     );
     expect(backend.uploadPosterVariant).toHaveBeenCalledWith(
       job,
       expect.stringMatching(/poster\.png$/),
-      `tenants/${job.tenantId}/assets/${job.assetId}/variants/poster.png`
+      `tenants/${job.tenantId}/assets/${job.assetId}/variants/poster-v2-${sha256(posterOutput)}.png`
     );
     expect(backend.completeJob).toHaveBeenCalledWith(expect.objectContaining({
       durationSeconds: 12.5,
@@ -114,7 +114,7 @@ describe("media worker runner", () => {
     expect(backend.uploadPlayerVariant).toHaveBeenCalledWith(
       webmJob,
       expect.stringMatching(/player-1080p\.mp4$/),
-      expect.stringMatching(/player-1080p\.mp4$/)
+      expect.stringMatching(/player-v2-[a-f0-9]{64}\.mp4$/)
     );
   });
 

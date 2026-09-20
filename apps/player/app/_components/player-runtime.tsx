@@ -1,5 +1,7 @@
 "use client";
 
+import { playerMediaTraffic } from "../_lib/media-traffic";
+
 import { publicationTrace, type PublicationTrace } from "../_lib/publication-telemetry";
 
 import { LatestPlayerTarget, type PlayerTargetToken } from "../_lib/latest-player-target";
@@ -1922,6 +1924,7 @@ export function PlayerRuntime() {
                 playbackRuntime.release.envelope.manifest.releaseId
               : null,
             lastPlaybackError: reportedPlaybackError,
+            mediaTraffic: playerMediaTraffic.snapshot(),
             goalVideoDiagnostics: goalVideoTelemetry(),
             goalVideoCapabilities: goalVideoCapabilities("react", currentPlayerApplicationVersion()),
             networkState: readPlayerConnectivity() ? "online" : "offline",

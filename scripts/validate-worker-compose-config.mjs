@@ -35,6 +35,8 @@ const expectedEnvironmentNames = [
   "MEDIA_WORKER_LOCK_TIMEOUT_SECONDS",
   "MEDIA_WORKER_MAX_ATTEMPTS",
   "MEDIA_WORKER_POLL_INTERVAL_MS",
+  "MEDIA_WORKER_QUEUE_HINT_INTERVAL_MS",
+  "MEDIA_WORKER_EMPTY_CLAIMS_PER_MINUTE",
   "MONITOR_CONTROL_URL",
   "MONITOR_MARKETING_URL",
   "MONITOR_PLAYER_URL",
@@ -55,6 +57,12 @@ if (
   service.environment.LEDSCORES_LEASE_SECONDS !== "45" ||
   service.environment.LEDSCORES_MAX_CONNECTIONS !== "25" ||
   service.environment.MEDIA_WORKER_POLL_INTERVAL_MS !== "500" ||
+  !/^[0-9]+$/.test(service.environment.MEDIA_WORKER_QUEUE_HINT_INTERVAL_MS) ||
+  Number(service.environment.MEDIA_WORKER_QUEUE_HINT_INTERVAL_MS) < 4000 ||
+  Number(service.environment.MEDIA_WORKER_QUEUE_HINT_INTERVAL_MS) > 60000 ||
+  !/^[0-9]+$/.test(service.environment.MEDIA_WORKER_EMPTY_CLAIMS_PER_MINUTE) ||
+  Number(service.environment.MEDIA_WORKER_EMPTY_CLAIMS_PER_MINUTE) < 3 ||
+  Number(service.environment.MEDIA_WORKER_EMPTY_CLAIMS_PER_MINUTE) > 1000 ||
   service.environment.PUBLISHER_SCHEDULE_POLL_INTERVAL_MS !== "15000" ||
   service.environment.MONITOR_CONTROL_URL !==
     `https://${environment === "staging" ? "staging-control" : "control"}.veyocast.nl/api/health` ||

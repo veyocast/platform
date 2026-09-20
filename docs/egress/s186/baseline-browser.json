@@ -1,0 +1,642 @@
+{
+  "runtime": "browser",
+  "recordBaseline": true,
+  "hardware": "desktop-chromium-fixture",
+  "uniqueContentBytes": 196399,
+  "coldBytes": 589197,
+  "warmLoops": 100,
+  "warmAdditionalPayloadBytes": 20032698,
+  "requests": [
+    {
+      "method": "GET",
+      "range": null,
+      "status": 200,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    },
+    {
+      "method": "GET",
+      "range": "bytes=0-",
+      "status": 206,
+      "bytes": 196399
+    }
+  ],
+  "codeRevision": "7337592511f78aacc86274fdfb0fb131505658d4"
+}

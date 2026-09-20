@@ -1,0 +1,50 @@
+{
+  "kind": "synthetic-motion-and-text; not production creative or LG hardware",
+  "input": {
+    "containerBitrate": 39338921,
+    "audioCodec": null,
+    "durationSeconds": 6,
+    "formatNames": [
+      "mov",
+      "mp4",
+      "m4a",
+      "3gp",
+      "3g2",
+      "mj2"
+    ],
+    "framesPerSecond": 30,
+    "height": 1280,
+    "pixelFormat": "yuv420p",
+    "rotationDegrees": 0,
+    "sampleAspectRatio": "1:1",
+    "videoCodec": "h264",
+    "videoProfile": "main",
+    "videoLevel": 40,
+    "width": 720
+  },
+  "output": {
+    "containerBitrate": 3562593,
+    "audioCodec": null,
+    "durationSeconds": 6,
+    "formatNames": [
+      "mov",
+      "mp4",
+      "m4a",
+      "3gp",
+      "3g2",
+      "mj2"
+    ],
+    "framesPerSecond": 30,
+    "height": 1280,
+    "pixelFormat": "yuv420p",
+    "rotationDegrees": 0,
+    "sampleAspectRatio": "1:1",
+    "videoCodec": "h264",
+    "videoProfile": "main",
+    "videoLevel": 40,
+    "width": 720
+  },
+  "beforeBytes": 29504191,
+  "afterBytes": 2671945,
+  "ssim": "[Parsed_ssim_0 @ 0x5d9f34744e40] SSIM Y:0.995157 (23.148462) U:0.996287 (24.302474) V:0.997282 (25.657545) All:0.995699 (23.664479)"
+}

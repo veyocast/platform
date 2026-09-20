@@ -296,7 +296,8 @@ export async function runStudioRenderLoop({
   onQueuePoll = () => undefined,
   onResult = () => undefined,
   renderer,
-  signal
+  signal,
+  waitForWork
 }: {
   backend: StudioRenderBackend;
   config: StudioRenderWorkerConfig;
@@ -305,8 +306,11 @@ export async function runStudioRenderLoop({
   onResult?: (result: StudioRenderRunResult) => void;
   renderer: StudioExternalRenderer;
   signal: AbortSignal;
+  waitForWork?: (signal: AbortSignal) => Promise<void>;
 }) {
   while (!signal.aborted) {
+    if (waitForWork) await waitForWork(signal);
+    if (signal.aborted) break;
     const result = await runStudioRenderOnce({
       backend,
       config,
@@ -315,7 +319,7 @@ export async function runStudioRenderLoop({
     });
     onQueuePoll();
     onResult(result);
-    if (result.status === "idle") {
+    if (result.status === "idle" && !waitForWork) {
       await abortableStudioDelay(intervalMs, signal);
     }
   }

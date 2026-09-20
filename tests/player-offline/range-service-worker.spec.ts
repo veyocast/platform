@@ -122,6 +122,8 @@ test("removes obsolete player shell caches on service-worker activation", async 
   await page.evaluate(async () => {
     const oldCache = await caches.open("veyocast-player-shell-v1");
     await oldCache.put("/legacy-shell", new Response("legacy"));
+    const media = await caches.open("veyocast-player-assets-v1");
+    await media.put("/__veyocast-player-cache/s186-preserved", new Response("verified media"));
     const registrations = await navigator.serviceWorker.getRegistrations();
     await Promise.all(registrations.map((registration) => registration.unregister()));
   });
@@ -136,4 +138,8 @@ test("removes obsolete player shell caches on service-worker activation", async 
   await expect.poll(() => page.evaluate(() => caches.keys())).not.toContain(
     "veyocast-player-shell-v1"
   );
+  expect(await page.evaluate(async () => {
+    const media = await caches.open("veyocast-player-assets-v1");
+    return (await media.match("/__veyocast-player-cache/s186-preserved"))?.text();
+  })).toBe("verified media");
 });

@@ -15,6 +15,7 @@ type ReadinessMarker = {
 };
 
 export type WorkerRuntimeHealth = {
+  markTrafficBudget: (breached: boolean) => void;
   markDraining: () => void;
   markPoll: () => void;
   markResult: (status: "completed" | "failed" | "idle" | "retry_scheduled") => void;
@@ -37,6 +38,7 @@ export function createWorkerRuntimeHealth({
   revision?: string;
 } = {}): WorkerRuntimeHealth {
   let draining = false;
+  let trafficBudgetBreached = false;
   let lastPollAt: number | null = null;
   let lastReadinessFileWriteAt: number | null = null;
   const recentResults: Array<"completed" | "failed" | "idle" | "retry_scheduled"> = [];
@@ -44,6 +46,7 @@ export function createWorkerRuntimeHealth({
   removeReadinessMarker(readinessFilePath);
 
   return {
+    markTrafficBudget(breached) { trafficBudgetBreached = breached; },
     markDraining() {
       draining = true;
       removeReadinessMarker(readinessFilePath);
@@ -100,10 +103,11 @@ export function createWorkerRuntimeHealth({
             checkedAt: new Date(checkedAt).toISOString(),
             indicators: [
               { code: "recent_failures", state: failed ? "critical" : "healthy", value: failed },
-              { code: "recent_retries", state: retries ? "warning" : "healthy", value: retries }
+              { code: "recent_retries", state: retries ? "warning" : "healthy", value: retries },
+              { code: "idle_traffic_budget", state: trafficBudgetBreached ? "warning" : "healthy", value: Number(trafficBudgetBreached) }
             ],
             service: VEYOCAST_APPS["media-worker"].name,
-            status: failed || retries ? "degraded" : "healthy"
+            status: failed || retries || trafficBudgetBreached ? "degraded" : "healthy"
           }));
           return;
         }

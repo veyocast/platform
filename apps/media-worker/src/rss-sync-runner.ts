@@ -37,11 +37,12 @@ type RpcClient = {
   ): Promise<{ data: unknown; error: { code?: string } | null }>;
   storage?: {
     from(bucket: string): {
+      exists(path: string): Promise<{ data: boolean; error: { status?: number } | null }>;
       upload(
         path: string,
         bytes: Uint8Array,
         options: Record<string, unknown>
-      ): Promise<{ error: { message?: string } | null }>;
+      ): Promise<{ error: { message?: string; statusCode?: string } | null }>;
     };
   };
 };
@@ -90,14 +91,21 @@ export class SupabaseRssSyncBackend {
   async uploadMedia(media: RssMediaArtifact[]) {
     if (!this.client.storage) throw new Error("rss_media_storage_unavailable");
     for (const artifact of media) {
-      const result = await this.client.storage
-        .from("tenant-media")
-        .upload(artifact.storagePath, artifact.bytes, {
+      // These paths include a tenant-scoped identity derived from the bytes.
+      // Re-uploading identical bytes invalidates the CDN for no content change.
+      const bucket = this.client.storage.from("tenant-media");
+      const existing = await bucket.exists(artifact.storagePath);
+      if (existing.data) continue;
+      if (existing.error && existing.error.status !== 404 && existing.error.status !== 400) {
+        throw new Error("rss_media_lookup_failed");
+      }
+      const result = await bucket.upload(artifact.storagePath, artifact.bytes, {
           cacheControl: "31536000",
           contentType: artifact.mimeType,
-          upsert: true
+          upsert: false
         });
-      if (result.error) throw new Error("rss_media_upload_failed");
+      // A concurrent producer may have inserted the same immutable content.
+      if (result.error && result.error.statusCode !== "409") throw new Error("rss_media_upload_failed");
     }
   }
 

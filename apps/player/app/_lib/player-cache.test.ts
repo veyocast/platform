@@ -280,7 +280,7 @@ describe("player cache contract", () => {
     });
 
     expect(result).toMatchObject({
-      error: "asset checksum mismatch: /player-demo/pending.svg",
+      error: "asset checksum mismatch",
       ok: false
     });
     await expect(cache.match(sharedCacheKey)).resolves.toBeDefined();
@@ -358,7 +358,7 @@ describe("player cache contract", () => {
     );
   });
 
-  it("streams LG video over HTTP first and keeps verified blob bytes as fallback", () => {
+  it("uses verified LG video bytes online without a second transport download", () => {
     const source = resolveHydratedMediaSource({
       cachedUrl: "blob:https://player.veyocast.nl/verified-video",
       item: {
@@ -379,8 +379,7 @@ describe("player cache contract", () => {
     });
 
     expect(source).toEqual({
-      fallbackUrl: "blob:https://player.veyocast.nl/verified-video",
-      url: "https://storage.veyocast.nl/signed/video.mp4"
+      url: "blob:https://player.veyocast.nl/verified-video"
     });
   });
 
@@ -436,7 +435,7 @@ describe("player cache contract", () => {
     expect(refreshed.fetchedAt).toBe("2026-07-30T21:45:00.000Z");
     expect(refreshed.manifest.items[0]!.source).toMatchObject({
       fallbackUrl: "blob:https://player.veyocast.nl/verified-video",
-      url: "https://storage.veyocast.nl/signed/fresh.mp4"
+      url: "blob:https://player.veyocast.nl/verified-video"
     });
   });
 

@@ -1,3 +1,5 @@
+import { playerMediaTraffic } from "./media-traffic";
+
 export type StoredMediaUrl = {
   objectUrl?: string;
   url: string;
@@ -39,6 +41,7 @@ export class CacheStorageMediaStore implements PlayerMediaStore {
     if (!response) {
       throw new Error(`cached asset missing: ${cacheKey}`);
     }
+    playerMediaTraffic.add("localReadBytes", Number(response.headers.get("Content-Length")) || 0);
 
     if (!shouldUseObjectUrlForCachedPlayback()) {
       return { url: cacheKey };

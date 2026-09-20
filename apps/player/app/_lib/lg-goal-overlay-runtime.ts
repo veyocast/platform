@@ -25,19 +25,9 @@ export function legacyGoalOverlayScript() {
       return new Promise(function (resolve) { sha256Hex(bytes, function (error, checksum) { resolve(!error && checksum === expected); }); });
     }
     function goalV2Fetch(asset) {
-      return new Promise(function (resolve, reject) {
-        var request = new XMLHttpRequest();
-        request.open("GET", asset.url, true);
-        request.responseType = "arraybuffer";
-        request.timeout = 60000;
-        request.onprogress = function (event) { if (event.loaded > 128 * 1024 * 1024 || event.total > 128 * 1024 * 1024) { request.abort(); reject(new Error("goal_asset_too_large")); } };
-        request.onerror = request.ontimeout = request.onabort = function () { reject(new Error("goal_asset_unavailable")); };
-        request.onload = function () {
-          if (request.status >= 200 && request.status < 300 && request.response && request.response.byteLength <= 128 * 1024 * 1024) resolve(request.response);
-          else reject(new Error("goal_asset_unavailable"));
-        };
-        request.send();
-      });
+      var retryKey = "/__veyocast-player-cache/" + asset.checksum;
+      if (!playerMediaTraffic.allow(retryKey)) return Promise.reject(new Error("MEDIA_RETRY_BUDGET_EXCEEDED"));
+      return downloadMedia(asset.url, asset.checksum, 128 * 1024 * 1024).then(function (result) { return result.bytes; });
     }
     function goalV2MakeRoom(cache, size) {
       return cache.keys().then(function (keys) {
@@ -64,11 +54,14 @@ export function legacyGoalOverlayScript() {
               if (!verified) throw new Error("goal_asset_checksum_failed");
               return goalV2MakeRoom(cache, bytes.byteLength).then(function () {
                 return cache.put(path, new Response(bytes, { headers: { "Content-Type": asset.mimeType, "Content-Length": String(bytes.byteLength) } }));
-              }).then(function () { goalV2Verified[asset.checksum] = true; return true; });
+              }).then(function () { goalV2Verified[asset.checksum] = true; playerMediaTraffic.success("/__veyocast-player-cache/" + asset.checksum); return true; });
             });
           });
         });
-      }).catch(function () { return false; });
+      }).catch(function (error) {
+        if (error.message !== "MEDIA_RETRY_BUDGET_EXCEEDED") playerMediaTraffic.failure("/__veyocast-player-cache/" + asset.checksum);
+        return false;
+      });
       goalV2Preparing[asset.checksum] = task;
       return task.then(function (value) { delete goalV2Preparing[asset.checksum]; return value; });
     }

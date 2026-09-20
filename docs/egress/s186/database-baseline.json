@@ -1,0 +1,487 @@
+{
+  "project": "csrakhciqvehitplvale",
+  "classification": "read-only PostgreSQL; NOT billing or network bytes",
+  "diagnosis": {
+    "Q1": [
+      {
+        "measured_at": "2026-09-20 12:43:55.169036+00",
+        "stats_reset": "2026-08-16 15:12:07.600348+00",
+        "dealloc": 0
+      }
+    ],
+    "Q2": [
+      {
+        "current_publication_records": 19,
+        "live_datasets": 50,
+        "retained_releases": 1213,
+        "retained_snapshots": 16583,
+        "retained_dynamic_jobs": 16583,
+        "retained_media_jobs": 21,
+        "retained_studio_jobs": 0
+      }
+    ],
+    "Q3": [
+      {
+        "measured_at": "2026-09-20 12:43:57.403161+00",
+        "userid": 16486,
+        "dbid": 5,
+        "toplevel": true,
+        "queryid": "6911246615057000608",
+        "calls": 5549740,
+        "rows": 5549740,
+        "function_name": "claim_dynamic_render_job_v1"
+      },
+      {
+        "measured_at": "2026-09-20 12:43:57.403195+00",
+        "userid": 16486,
+        "dbid": 5,
+        "toplevel": true,
+        "queryid": "1437905462231655092",
+        "calls": 5511088,
+        "rows": 5511088,
+        "function_name": "claim_media_processing_job"
+      },
+      {
+        "measured_at": "2026-09-20 12:43:57.403197+00",
+        "userid": 16486,
+        "dbid": 5,
+        "toplevel": true,
+        "queryid": "-5642191604036130640",
+        "calls": 5509371,
+        "rows": 5509371,
+        "function_name": "claim_studio_render_job_v1"
+      },
+      {
+        "measured_at": "2026-09-20 12:43:57.403199+00",
+        "userid": 16484,
+        "dbid": 5,
+        "toplevel": true,
+        "queryid": "-8222285383251708950",
+        "calls": 231917,
+        "rows": 231917,
+        "function_name": "record_player_heartbeat_v2"
+      },
+      {
+        "measured_at": "2026-09-20 12:43:57.4032+00",
+        "userid": 16486,
+        "dbid": 5,
+        "toplevel": true,
+        "queryid": "-3467521740236928088",
+        "calls": 16578,
+        "rows": 16578,
+        "function_name": "complete_dynamic_render_job_v1"
+      }
+    ],
+    "Q4": [
+      {
+        "pending": false,
+        "queue_records": 12,
+        "last_request": null,
+        "last_publish": "2026-09-19 17:22:05.005294+00",
+        "max_attempts": 0
+      }
+    ],
+    "Q5": [
+      {
+        "relname": "playlist_releases",
+        "tgname": "releases_track_current_publication",
+        "tgenabled": "O",
+        "definition": "CREATE TRIGGER releases_track_current_publication AFTER INSERT ON public.playlist_releases FOR EACH ROW EXECUTE FUNCTION private.track_current_publication_v1()"
+      }
+    ],
+    "Q6": [
+      {
+        "bucket_id": "tenant-media",
+        "mime": "video/mp4",
+        "object_records": 42,
+        "stored_bytes": "494716023",
+        "updated_objects_24h": 0
+      },
+      {
+        "bucket_id": "tenant-media",
+        "mime": "image/png",
+        "object_records": 15119,
+        "stored_bytes": "467072196",
+        "updated_objects_24h": 613
+      },
+      {
+        "bucket_id": "tenant-media",
+        "mime": "image/webp",
+        "object_records": 4718,
+        "stored_bytes": "55217358",
+        "updated_objects_24h": 399
+      },
+      {
+        "bucket_id": "provider-assets",
+        "mime": "image/webp",
+        "object_records": 163,
+        "stored_bytes": "7210604",
+        "updated_objects_24h": 135
+      }
+    ],
+    "Q7": [
+      {
+        "name": "Kantine Prijslijst",
+        "playlist": "Prijslijst Final",
+        "active_release_id": "251a056a-a3bd-4f99-9176-e5f9cd6cb163",
+        "version": 7,
+        "total_duration_seconds": 40,
+        "total_bytes": 102810300,
+        "asset_title": "PowerAde Lamine",
+        "file_size_bytes": 36340644,
+        "duration_seconds": 15,
+        "media_asset_id": "05e89eec-8c81-4f96-a738-aa903d8977f5",
+        "media_variant_id": "0d30c248-a121-461b-8824-94c66f555ba5",
+        "checksum_sha256": "b4fa6b327cfb3c3eceb06d60ff3c1a9dd54a2ab5af356117ba0c2ddf3167e9a5"
+      },
+      {
+        "name": "Kantine Prijslijst",
+        "playlist": "Prijslijst Final",
+        "active_release_id": "251a056a-a3bd-4f99-9176-e5f9cd6cb163",
+        "version": 7,
+        "total_duration_seconds": 40,
+        "total_bytes": 102810300,
+        "asset_title": "Fernandes",
+        "file_size_bytes": 50540345,
+        "duration_seconds": 10,
+        "media_asset_id": "dfb2edf0-b61a-4a64-9040-480b4ecd0d21",
+        "media_variant_id": "a997c749-6f46-425a-8f08-1382a374f031",
+        "checksum_sha256": "11fd098243da8f639ad43a445b7423da8ac45b0842b7cc8eea5dda9a0a55469e"
+      },
+      {
+        "name": "Kantine Prijslijst",
+        "playlist": "Prijslijst Final",
+        "active_release_id": "251a056a-a3bd-4f99-9176-e5f9cd6cb163",
+        "version": 7,
+        "total_duration_seconds": 40,
+        "total_bytes": 102810300,
+        "asset_title": "Cola Zero Zero",
+        "file_size_bytes": 11779740,
+        "duration_seconds": 6,
+        "media_asset_id": "cebaa773-58b9-49ed-a881-52ba8a866acf",
+        "media_variant_id": "a3fb9c2f-ef83-4111-abdf-c826168fd13f",
+        "checksum_sha256": "df3c4d0a71df1c4184f7dd5be39ae3ab9df4b785b97a5d2ce769a243406acecd"
+      },
+      {
+        "name": "Kantine Prijslijst",
+        "playlist": "Prijslijst Final",
+        "active_release_id": "251a056a-a3bd-4f99-9176-e5f9cd6cb163",
+        "version": 7,
+        "total_duration_seconds": 40,
+        "total_bytes": 102810300,
+        "asset_title": "JongerOranje916",
+        "file_size_bytes": 4149571,
+        "duration_seconds": 9,
+        "media_asset_id": "163d1e01-740c-4c32-a43c-c9c851405863",
+        "media_variant_id": "acbba7b0-dd62-44c0-9c10-06b11dfbb7b7",
+        "checksum_sha256": "8d537888081da52f9d87f6ed649a0df77646bd086e12745f7d598ca8e35df6e4"
+      }
+    ],
+    "Q8": [
+      {
+        "name": "Computer Horizontaal Testscherm",
+        "platform": "Windows",
+        "app_version": "4675c1c253aa1e59c0b6eef4127d414c921f0893",
+        "last_seen_at": "2026-09-16 14:21:53.986569+00",
+        "current_sync_phase": null,
+        "storage_used_bytes": 86427019,
+        "storage_quota_bytes": 10823845259,
+        "runtime": "react",
+        "browser_version": "152.0.0.0",
+        "reported_webos": "false",
+        "active_release_id": "8c43b022-db98-4e20-9e95-b003581b5dcb",
+        "desired_release_id": "c7baf695-d154-4c8f-b123-6ad298d43c03"
+      },
+      {
+        "name": "Thuis computer",
+        "platform": "Windows",
+        "app_version": "b53fb595822070b9cdc7bfe71f2862220c9d3294",
+        "last_seen_at": "2026-09-06 13:18:44.940315+00",
+        "current_sync_phase": null,
+        "storage_used_bytes": 2953412,
+        "storage_quota_bytes": 10740371652,
+        "runtime": null,
+        "browser_version": null,
+        "reported_webos": null,
+        "active_release_id": "4a9060ec-fb0a-4195-b455-2c304ce104b5",
+        "desired_release_id": "2c4f7ef2-41a4-4c4b-9d49-0ed5b31242c9"
+      },
+      {
+        "name": "Bestuurskamer",
+        "platform": "Android",
+        "app_version": "e5436ed38d28bffd56bece525821ba2963ad2689",
+        "last_seen_at": "2026-09-12 20:27:05.376671+00",
+        "current_sync_phase": null,
+        "storage_used_bytes": 16865149,
+        "storage_quota_bytes": 10754283389,
+        "runtime": null,
+        "browser_version": null,
+        "reported_webos": null,
+        "active_release_id": "cf96f024-8de3-430f-a2e8-ff9f2f4cac2a",
+        "desired_release_id": "1e13e7a1-c203-416b-8714-c1729627e0f8"
+      },
+      {
+        "name": "Scherm hal",
+        "platform": "Android",
+        "app_version": "4675c1c253aa1e59c0b6eef4127d414c921f0893",
+        "last_seen_at": "2026-09-19 19:14:24.510811+00",
+        "current_sync_phase": null,
+        "storage_used_bytes": 17865671,
+        "storage_quota_bytes": 4312832967,
+        "runtime": "react",
+        "browser_version": "152.0.7977.87",
+        "reported_webos": "false",
+        "active_release_id": "c8598b8c-5282-4f25-86d4-496d076bec94",
+        "desired_release_id": "8bdfe247-daea-48e1-aee0-62de51777a30"
+      },
+      {
+        "name": "KPN Kantine",
+        "platform": "Android",
+        "app_version": "4675c1c253aa1e59c0b6eef4127d414c921f0893",
+        "last_seen_at": "2026-09-19 12:50:55.008617+00",
+        "current_sync_phase": null,
+        "storage_used_bytes": 89390370,
+        "storage_quota_bytes": 10826808610,
+        "runtime": "react",
+        "browser_version": "152.0.7977.64",
+        "reported_webos": "false",
+        "active_release_id": "fee767b2-2359-43aa-b25d-baa5d7618f9d",
+        "desired_release_id": "7080f971-7bf4-4ed5-b4f2-56018aea721e"
+      },
+      {
+        "name": "Kantine Bar",
+        "platform": "Android",
+        "app_version": "4675c1c253aa1e59c0b6eef4127d414c921f0893",
+        "last_seen_at": "2026-09-19 17:19:33.612357+00",
+        "current_sync_phase": null,
+        "storage_used_bytes": 110530430,
+        "storage_quota_bytes": 5479239550,
+        "runtime": "react",
+        "browser_version": "152.0.7977.87",
+        "reported_webos": "false",
+        "active_release_id": "9d83af0b-1799-4b34-85df-04cb31651acd",
+        "desired_release_id": "3136b2de-0fb4-4759-9060-3011acaf9981"
+      },
+      {
+        "name": "Telefoon",
+        "platform": "Android",
+        "app_version": "4675c1c253aa1e59c0b6eef4127d414c921f0893",
+        "last_seen_at": "2026-09-15 21:15:36.474047+00",
+        "current_sync_phase": null,
+        "storage_used_bytes": 122685828,
+        "storage_quota_bytes": 10860104068,
+        "runtime": "react",
+        "browser_version": "153.0.8010.36",
+        "reported_webos": "false",
+        "active_release_id": "9f389c6f-0ed4-405d-b4bd-ed6db6432d95",
+        "desired_release_id": "22b6d854-dce4-4d3e-ac52-babbd07c9480"
+      },
+      {
+        "name": "Kantine Prijslijst",
+        "platform": "browser",
+        "app_version": "7337592511f78aacc86274fdfb0fb131505658d4",
+        "last_seen_at": "2026-09-20 12:44:38.980592+00",
+        "current_sync_phase": "active",
+        "storage_used_bytes": null,
+        "storage_quota_bytes": null,
+        "runtime": "static-lg",
+        "browser_version": "79.0.3945.79",
+        "reported_webos": "false",
+        "active_release_id": "251a056a-a3bd-4f99-9176-e5f9cd6cb163",
+        "desired_release_id": "251a056a-a3bd-4f99-9176-e5f9cd6cb163"
+      }
+    ],
+    "Q9": [
+      {
+        "type": "sport_standing",
+        "datasets": 10,
+        "avg_serialized_bytes": "6924",
+        "max_serialized_bytes": 7801,
+        "max_revision": 2,
+        "last_changed": "2026-09-20 08:39:45.311767+00",
+        "last_checked": "2026-09-20 12:43:47.148668+00"
+      },
+      {
+        "type": "sport_program",
+        "datasets": 20,
+        "avg_serialized_bytes": "7008",
+        "max_serialized_bytes": 20132,
+        "max_revision": 25,
+        "last_changed": "2026-09-20 12:07:24.114992+00",
+        "last_checked": "2026-09-20 12:43:47.185268+00"
+      },
+      {
+        "type": "sport_birthdays",
+        "datasets": 1,
+        "avg_serialized_bytes": "8075",
+        "max_serialized_bytes": 8075,
+        "max_revision": 1,
+        "last_changed": "2026-09-20 00:55:26.305148+00",
+        "last_checked": "2026-09-20 12:43:46.551215+00"
+      },
+      {
+        "type": "sport_results",
+        "datasets": 13,
+        "avg_serialized_bytes": "7195",
+        "max_serialized_bytes": 16619,
+        "max_revision": 2,
+        "last_changed": "2026-09-20 08:41:24.801608+00",
+        "last_checked": "2026-09-20 12:43:47.083935+00"
+      },
+      {
+        "type": "sport_visitor_arrivals",
+        "datasets": 2,
+        "avg_serialized_bytes": "8204",
+        "max_serialized_bytes": 11529,
+        "max_revision": 8,
+        "last_changed": "2026-09-20 12:33:01.925039+00",
+        "last_checked": "2026-09-20 12:43:46.561848+00"
+      },
+      {
+        "type": "news",
+        "datasets": 4,
+        "avg_serialized_bytes": "9454",
+        "max_serialized_bytes": 9574,
+        "max_revision": 47,
+        "last_changed": "2026-09-20 12:44:40.815441+00",
+        "last_checked": "2026-09-20 12:44:40.81544+00"
+      }
+    ],
+    "Q10": [
+      {
+        "slide_type": "news",
+        "jobs_last_6h": 107,
+        "slide_count": 3,
+        "currently_archived_slide_jobs": 0
+      },
+      {
+        "slide_type": "sport_program",
+        "jobs_last_6h": 49,
+        "slide_count": 48,
+        "currently_archived_slide_jobs": 0
+      },
+      {
+        "slide_type": "sport_visitor_arrivals",
+        "jobs_last_6h": 6,
+        "slide_count": 1,
+        "currently_archived_slide_jobs": 0
+      },
+      {
+        "slide_type": "sport_results",
+        "jobs_last_6h": 2,
+        "slide_count": 2,
+        "currently_archived_slide_jobs": 0
+      },
+      {
+        "slide_type": "sport_standing",
+        "jobs_last_6h": 2,
+        "slide_count": 2,
+        "currently_archived_slide_jobs": 0
+      }
+    ],
+    "Q11": [
+      {
+        "version": "20260919224031",
+        "name": "s185_publication_operations"
+      },
+      {
+        "version": "20260919215758",
+        "name": "s185_current_publication"
+      },
+      {
+        "version": "20260912214500",
+        "name": "s180_content_recovery"
+      },
+      {
+        "version": "20260912180627",
+        "name": "s178_standing_team_identity"
+      },
+      {
+        "version": "20260912153412",
+        "name": "s177_dynamic_slide_management"
+      },
+      {
+        "version": "20260912133821",
+        "name": "s176_match_kickoff_selection"
+      },
+      {
+        "version": "20260912105908",
+        "name": "s175_goal_overlay_2"
+      },
+      {
+        "version": "20260911154223",
+        "name": "s171_birthday_sportlink_logo"
+      },
+      {
+        "version": "20260910224436",
+        "name": "playlist_delete_dependency_order"
+      },
+      {
+        "version": "20260910220632",
+        "name": "sportlink_rss_noop_revision_and_playlist_delete"
+      }
+    ]
+  },
+  "claimCountersAfter": [
+    {
+      "measured_at": "2026-09-20 12:48:50.664729+00",
+      "userid": 16486,
+      "dbid": 5,
+      "toplevel": true,
+      "queryid": "6911246615057000608",
+      "calls": 5550288,
+      "rows": 5550288,
+      "function_name": "claim_dynamic_render_job_v1"
+    },
+    {
+      "measured_at": "2026-09-20 12:48:50.66478+00",
+      "userid": 16486,
+      "dbid": 5,
+      "toplevel": true,
+      "queryid": "1437905462231655092",
+      "calls": 5511630,
+      "rows": 5511630,
+      "function_name": "claim_media_processing_job"
+    },
+    {
+      "measured_at": "2026-09-20 12:48:50.664782+00",
+      "userid": 16486,
+      "dbid": 5,
+      "toplevel": true,
+      "queryid": "-5642191604036130640",
+      "calls": 5509912,
+      "rows": 5509912,
+      "function_name": "claim_studio_render_job_v1"
+    },
+    {
+      "measured_at": "2026-09-20 12:48:50.664784+00",
+      "userid": 16484,
+      "dbid": 5,
+      "toplevel": true,
+      "queryid": "-8222285383251708950",
+      "calls": 231985,
+      "rows": 231985,
+      "function_name": "record_player_heartbeat_v2"
+    },
+    {
+      "measured_at": "2026-09-20 12:48:50.664786+00",
+      "userid": 16486,
+      "dbid": 5,
+      "toplevel": true,
+      "queryid": "-3467521740236928088",
+      "calls": 16582,
+      "rows": 16582,
+      "function_name": "complete_dynamic_render_job_v1"
+    }
+  ],
+  "metadataRecheck": {
+    "measuredAt": "2026-09-20T13:12:57.911745Z",
+    "privateBuckets": [
+      "tenant-media",
+      "provider-assets",
+      "ticket-attachments"
+    ],
+    "objectsWithOneYearTTL": 20079,
+    "oldRefreshFunctions": "both select 0"
+  }
+}

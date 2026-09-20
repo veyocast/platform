@@ -21,7 +21,7 @@ export function parseByteRangeHeader(
   }
 
   const [startValue, endValue, ...rest] = value.split("-");
-  if (rest.length > 0 || (!startValue && !endValue)) {
+  if (rest.length > 0 || !/^(?:[0-9]+-[0-9]*|-[0-9]+)$/.test(value)) {
     return { ok: false, reason: "invalid" };
   }
 

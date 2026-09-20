@@ -1,3 +1,5 @@
+import { downloadMedia, createMediaDownloader } from "./media-download";
+import { playerMediaTraffic } from "./media-traffic";
 import { sha256Hex } from "./player-cache";
 import { createPlayerMediaStore, type PlayerMediaStore } from "./player-media-store";
 import type { LedScoresOverlayAsset } from "./ledscores-match-experience";
@@ -9,6 +11,7 @@ const keyFor = (asset: LedScoresOverlayAsset) => `/__veyocast-goal-cache/${asset
 
 /** The existing media adapter, with a separate retention budget from playlist LKG. */
 export class GoalMediaCache {
+  private readonly download: typeof downloadMedia;
   private readonly pending = new Map<string, Promise<void>>();
   private readonly verified = new Set<string>();
   private generation = 0;
@@ -22,8 +25,8 @@ export class GoalMediaCache {
     private readonly store: PlayerMediaStore = createPlayerMediaStore(goalAssetCacheName),
     // Browser fetch requires the Window receiver. Calling a captured native
     // function as this.fetchMedia() otherwise throws "Illegal invocation".
-    private readonly fetchMedia: typeof fetch = (...args) => fetch(...args)
-  ) {}
+    fetchMedia?: typeof fetch
+  ) { this.download = fetchMedia ? createMediaDownloader(fetchMedia, playerMediaTraffic) : downloadMedia; }
 
   async preload(assets: readonly LedScoresOverlayAsset[]) {
     const generation = this.generation;
@@ -52,27 +55,18 @@ export class GoalMediaCache {
         }
         await this.store.delete(key);
       }
-      const response = await this.fetchMedia(asset.url, { signal: AbortSignal.timeout(60000), cache: "no-store" });
-      if (!response.ok || !response.body || Number(response.headers.get("content-length")) > maximumAssetBytes) throw new Error("GOAL_ASSET_UNAVAILABLE");
-      const reader = response.body.getReader();
-      const chunks: Uint8Array[] = [];
-      let length = 0;
-      try {
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          length += value.byteLength;
-          if (length > maximumAssetBytes) throw new Error("GOAL_ASSET_TOO_LARGE");
-          chunks.push(value);
-        }
-      } finally { await reader.cancel().catch(() => undefined); }
-      const buffer = new Uint8Array(length);
-      let offset = 0;
-      for (const chunk of chunks) { buffer.set(chunk, offset); offset += chunk.byteLength; }
-      if (await sha256Hex(buffer.buffer) !== asset.checksum || generation !== this.generation) throw new Error("GOAL_ASSET_INVALID");
+      const retryKey = "/__veyocast-player-cache/" + asset.checksum;
+      if (!playerMediaTraffic.allow(retryKey)) throw new Error("MEDIA_RETRY_BUDGET_EXCEEDED");
+      const { bytes: buffer } = await this.download(asset.url, asset.checksum, maximumAssetBytes);
+      const length = buffer.byteLength;
+      if (await sha256Hex(buffer) !== asset.checksum || generation !== this.generation) throw new Error("GOAL_ASSET_INVALID");
       await this.makeRoom(length, key);
       await this.store.put(key, new Response(buffer, { headers: { "Content-Type": asset.mimeType, "Content-Length": String(length) } }));
       this.verified.add(key);
+      playerMediaTraffic.success("/__veyocast-player-cache/" + asset.checksum);
+    }).catch((error) => {
+      if (error.message !== "MEDIA_RETRY_BUDGET_EXCEEDED") playerMediaTraffic.failure("/__veyocast-player-cache/" + asset.checksum);
+      throw error;
     }).finally(() => this.pending.delete(key));
     this.serial = operation.catch(() => undefined);
     this.pending.set(key, operation);

@@ -1,0 +1,18 @@
+{
+  "runtime": "browser",
+  "recordBaseline": false,
+  "hardware": "desktop-chromium-fixture",
+  "uniqueContentBytes": 196399,
+  "coldBytes": 196399,
+  "warmLoops": 100,
+  "warmAdditionalPayloadBytes": 0,
+  "requests": [
+    {
+      "method": "GET",
+      "range": null,
+      "status": 200,
+      "bytes": 196399
+    }
+  ],
+  "codeRevision": "S186 working tree, 20 September 2026"
+}

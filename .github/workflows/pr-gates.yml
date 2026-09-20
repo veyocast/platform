@@ -48,6 +48,12 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Install Chromium for media egress regression
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Verify local playback bytes and service-worker ranges
+        run: pnpm exec playwright test tests/player/media-egress.spec.ts tests/player-offline/range-service-worker.spec.ts --project=chromium
+
       - name: Validate GitHub Actions workflows
         run: bash scripts/validate-github-actions.sh
 

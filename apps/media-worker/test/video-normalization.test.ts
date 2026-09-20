@@ -14,26 +14,26 @@ import {
 } from "../src/video-normalization";
 
 const inputProbe = JSON.stringify({
-  format: { duration: "12.400", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
+  format: { bit_rate: "1000000", duration: "12.400", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
   streams: [
     { codec_name: "hevc", codec_type: "video", height: 2160, pix_fmt: "yuv420p10le", r_frame_rate: "60000/1001", width: 3840 },
     { codec_name: "mp3", codec_type: "audio" }
   ]
 });
 const normalizedProbe = JSON.stringify({
-  format: { duration: "12.400", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
+  format: { bit_rate: "1000000", duration: "12.400", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
   streams: [
     { codec_name: "h264", profile: "Main", level: 40, codec_type: "video", height: 1080, pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 1920 }
   ]
 });
 const portraitProbe = JSON.stringify({
-  format: { duration: "8.200", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
+  format: { bit_rate: "1000000", duration: "8.200", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
   streams: [
     { codec_name: "h264", profile: "Main", level: 40, codec_type: "video", height: 1920, pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 1080 }
   ]
 });
 const rotatedPortraitProbe = JSON.stringify({
-  format: { duration: "8.200", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
+  format: { bit_rate: "1000000", duration: "8.200", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
   streams: [
     {
       codec_name: "h264", profile: "Main", level: 40,
@@ -48,9 +48,17 @@ const rotatedPortraitProbe = JSON.stringify({
 });
 
 describe("video normalization", () => {
+  it("transcodes high-bitrate and unknown-bitrate H264 instead of relabeling it", () => {
+    const compatible = parseVideoProbe(portraitProbe);
+    for (const containerBitrate of [40_432_276, 19_381_677, undefined]) {
+      const input = { ...compatible, containerBitrate };
+      expect(canRemuxWithoutTranscoding(input)).toBe(false);
+      expect(buildNormalizationArguments("in.mp4", "out.mp4", input)).toEqual(expect.arrayContaining(["libx264", "-maxrate", "6M", "-crf", "21"]));
+    }
+  });
   it("accepteert WebM als broncontainer maar houdt MP4 als playeroutput", () => {
     const webm = parseVideoProbe(JSON.stringify({
-      format: { duration: "4.2", format_name: "matroska,webm" },
+      format: { bit_rate: "1000000", duration: "4.2", format_name: "matroska,webm" },
       streams: [{
         codec_name: "vp9", codec_type: "video", height: 720,
         pix_fmt: "yuv420p", r_frame_rate: "25/1", width: 1280
@@ -67,7 +75,7 @@ describe("video normalization", () => {
 
   it("parses container, codecs, dimensions, duration and fractional fps", () => {
     expect(parseVideoProbe(normalizedProbe)).toEqual({
-      audioCodec: null, durationSeconds: 12.4,
+      audioCodec: null, containerBitrate: 1000000, durationSeconds: 12.4,
       formatNames: ["mov", "mp4", "m4a", "3gp", "3g2", "mj2"],
       framesPerSecond: 30, height: 1080, pixelFormat: "yuv420p",
       rotationDegrees: 0, videoCodec: "h264", videoProfile: "main", videoLevel: 40, width: 1920
@@ -114,14 +122,14 @@ describe("video normalization", () => {
     });
 
     const landscape720p = parseVideoProbe(JSON.stringify({
-      format: { duration: "8.200", format_name: "mov,mp4" },
+      format: { bit_rate: "1000000", duration: "8.200", format_name: "mov,mp4" },
       streams: [{
         codec_name: "h264", profile: "Main", level: 40, codec_type: "video", height: 720,
         pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 1280
       }]
     }));
     const portrait720p = parseVideoProbe(JSON.stringify({
-      format: { duration: "8.200", format_name: "mov,mp4" },
+      format: { bit_rate: "1000000", duration: "8.200", format_name: "mov,mp4" },
       streams: [{
         codec_name: "h264", profile: "Main", level: 40, codec_type: "video", height: 1280,
         pix_fmt: "yuv420p", r_frame_rate: "30/1", width: 720

@@ -114,7 +114,8 @@ export async function runDynamicRenderLoop({
   onResult = () => undefined,
   renderer,
   reactDomRenderer,
-  signal
+  signal,
+  waitForWork
 }: {
   backend: DynamicRenderBackend;
   config: {
@@ -127,8 +128,11 @@ export async function runDynamicRenderLoop({
   renderer: StudioExternalRenderer;
   reactDomRenderer?: ReactDomDynamicThumbnailRenderer;
   signal: AbortSignal;
+  waitForWork?: (signal: AbortSignal) => Promise<void>;
 }) {
   while (!signal.aborted) {
+    if (waitForWork) await waitForWork(signal);
+    if (signal.aborted) break;
     const result = await runDynamicRenderOnce({
       backend,
       config,
@@ -137,7 +141,7 @@ export async function runDynamicRenderLoop({
       signal
     });
     onResult(result);
-    if (result.status === "idle") {
+    if (result.status === "idle" && !waitForWork) {
       await abortableDelay(intervalMs, signal);
     }
   }

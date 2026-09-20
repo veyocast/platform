@@ -56,7 +56,7 @@ describe("structured observability", () => {
 
 describe("operational contracts", () => {
   it("gives every critical alert an owner, runbook, threshold and Control deep link", () => {
-    expect(alertDefinitions).toHaveLength(9);
+    expect(alertDefinitions).toHaveLength(11);
     for (const alert of alertDefinitions) {
       expect(alert.owner).toBeTruthy();
       expect(alert.runbook).toMatch(/^docs\//);

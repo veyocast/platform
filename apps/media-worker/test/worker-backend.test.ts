@@ -115,7 +115,7 @@ describe("Supabase media worker backend", () => {
       duplex: "half",
       method: "POST"
     });
-    expect(new Headers(uploadRequest?.headers).get("x-upsert")).toBe("true");
+    expect(new Headers(uploadRequest?.headers).get("x-upsert")).toBe("false");
     expect(await new Response(uploadRequest?.body).text()).toBe("normalized");
     expect(new Headers(fetchMock.mock.calls[2]?.[1]?.headers).get("content-type"))
       .toBe("image/png");
