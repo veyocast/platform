@@ -510,7 +510,8 @@ describe("zelfstandige LG Legacy Player", () => {
       "font-size:var(--vc-theme-sport-score-size-compact,42px)"
     );
     expect(html.match(/compact \? "48px" : "57px"/g)).toHaveLength(2);
-    expect(html).toContain('itemCount: items.length, contentHeight: body.clientHeight || undefined');
+    expect(html).toContain("var listContentHeight = body.clientHeight || (royalCurrent");
+    expect(html).toContain('? orientation === "portrait" ? 1464 : 704');
     expect(html).toContain('Math.ceil(itemCount / 2) + ",var(--sport-list-row-height,115px))"');
     expect(html).toContain("@keyframes legacy-match-row-in");
     expect(html).toContain(

@@ -20,8 +20,11 @@ export function resolveSportListLayout(input: {
   const minimumRowHeight = input.minimumRowHeight || (standing ? (portrait ? 220 : 70) : portrait ? 180 : 90);
   const rowsPerColumn = Math.max(1, Math.floor((contentHeight + gap) / (minimumRowHeight + gap)));
   const capacity = Math.min(100, rowsPerColumn * columns);
-  const visibleRows = Math.max(1, Math.ceil(Math.min(Math.max(0, input.itemCount), capacity) / columns));
-  const rowHeight = Math.max(minimumRowHeight, (contentHeight - gap * (visibleRows - 1)) / visibleRows);
+  // A layout has one normal row height, independent of the current record
+  // count. Short pages intentionally leave unused space below their rows;
+  // only records beyond this geometry-derived capacity create a new page.
+  const rowHeight = Math.max(minimumRowHeight,
+    (contentHeight - gap * (rowsPerColumn - 1)) / rowsPerColumn);
   return { capacity, columns, contentHeight, gap, minimumRowHeight, rowHeight, rowsPerColumn,
     textScale: Math.min(1.25, Math.max(1, Math.sqrt(rowHeight / minimumRowHeight))) };
 }

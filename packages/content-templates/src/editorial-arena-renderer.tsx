@@ -2422,6 +2422,18 @@ function pageRowHeight(
   page: DynamicTemplatePage,
   view: DynamicTemplateView
 ) {
+  if (
+    page.kind === "standing" &&
+    view.designRevision === "royal-current-v8" &&
+    view.sportListContentHeight
+  ) {
+    return resolveSportListLayout({
+      contentHeight: view.sportListContentHeight,
+      itemCount: page.items.length,
+      orientation: view.orientation,
+      slideType: view.slideType
+    }).rowHeight;
+  }
   if (page.kind === "sport-list" && view.sportListContentHeight) {
     return resolveSportListLayout({ orientation: view.orientation, slideType: view.slideType,
       contentHeight: view.sportListContentHeight, itemCount: page.items.length,

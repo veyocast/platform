@@ -103,6 +103,58 @@ test("exacte 92-case Royal Current implementation coverage (geen pixelmatch)", a
   }
 });
 
+test("Royal Current portrait en landscape behouden dezelfde informatiehiërarchie", async ({
+  page
+}) => {
+  test.setTimeout(180_000);
+  await page.clock.setFixedTime(new Date("2026-09-09T12:00:00.000Z"));
+  const families = [
+    { details: ["Product 1", "€ 2,50"], slideId: "price_list", title: "Prijslijst", variant: "default" },
+    { details: ["Duindorp sv JO13-1", "14:30"], slideId: "sport_program", title: "Programma vandaag", variant: "default" },
+    { details: ["Duindorp sv JO13-1", "08-09-2026"], slideId: "sport_results", title: "Laatste uitslagen", variant: "default" },
+    { details: ["Vereniging 1", "Vierde divisie"], slideId: "sport_standing", title: "Stand van de poule", variant: "default" },
+    { details: ["Duindorp opent het vernieuwde hoofdveld", "Clubnieuws"], slideId: "news", title: "Clubnieuws", variant: "hero_split" },
+    { details: ["Noa van Dijk", "JO19-1"], slideId: "sport_birthdays", title: "Jarig bij Duindorp", variant: "default" },
+    { details: ["Quick JO13-2", "Sportpark Duindorp"], slideId: "sport_visitor_arrivals", title: "Welkom bezoekende teams", variant: "3" }
+  ] as const;
+
+  for (const family of families) {
+    for (const orientation of ["landscape", "portrait"] as const) {
+      const reference: RoyalCurrentReferenceCase = {
+        background: "club",
+        font: "Roboto",
+        height: orientation === "portrait" ? 1920 : 1080,
+        id: `s187-${family.slideId}-${orientation}`,
+        mode: "royal",
+        motion: false,
+        orientation,
+        path: "local",
+        primary: "#2459ed",
+        secondary: null,
+        slide_id: family.slideId,
+        slide_index: "01",
+        source: "S187 portraitpariteit",
+        title: family.title,
+        type_scale: 1,
+        variant: family.variant,
+        width: orientation === "portrait" ? 1080 : 1920
+      };
+      await page.setViewportSize({ height: reference.height, width: reference.width });
+      const slide = await renderThumbnailCase(page, reference);
+      const header = slide.locator(":scope > header");
+      await expect(header).toContainText(family.title);
+      await expect(header).toContainText("Duindorp SV");
+      await expect(header.locator("img")).toHaveCount(1);
+      await expect(header.locator("time")).toHaveText("09-09-2026 | 14:00");
+      await expect(slide.locator(":scope > footer")).toBeVisible();
+      await expect(slide.locator(":scope > footer [aria-label^='Pagina']")).toBeVisible();
+      for (const detail of family.details) {
+        await expect(slide).toContainText(detail);
+      }
+    }
+  }
+});
+
 async function renderThumbnailCase(
   page: Page,
   reference: RoyalCurrentReferenceCase

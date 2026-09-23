@@ -44,7 +44,17 @@ describe("Studio-geometrie", () => {
       ),
       "left"
     );
-    expect(new Set(aligned.map((element) => element.x))).toEqual(new Set([150]));
+    expect(new Set(aligned.map((element) => element.x))).toEqual(new Set([64]));
+  });
+
+  it("gebruikt symmetrische Royal Current-gutters zonder zijbalk", () => {
+    for (const template of studioSystemTemplates) {
+      expect(template.document.artboard.safeArea.left).toBe(
+        template.document.artboard.safeArea.right
+      );
+      expect(template.document.elements.some((element) => element.id === "flow-sideband"))
+        .toBe(false);
+    }
   });
 
   it("houdt alle functionele templatelagen binnen beide artboards", () => {

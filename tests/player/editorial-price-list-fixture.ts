@@ -8,6 +8,15 @@ import type {
   PlayerManifestEnvelope,
   PlayerManifestItem
 } from "../../apps/player/app/_lib/player-manifest";
+import {
+  createRoyalCurrentAppearance,
+  createRoyalCurrentSelection,
+  createRoyalCurrentTheme
+} from "@veyocast/content-templates";
+import {
+  freezeThemePresentation,
+  themeCatalog
+} from "@veyocast/content-templates/theme-catalog";
 
 export async function routeEditorialPriceListManifest(
   page: Page,
@@ -25,6 +34,24 @@ export async function routeEditorialPriceListManifest(
     "apps/player/public/brand/veyocast-icon-192.png"
   ));
   const imageId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+  const palette = {
+    background: "club" as const,
+    primary: "#2459ed",
+    secondary: null,
+    version: 1 as const
+  };
+  const selection = createRoyalCurrentSelection(
+    palette,
+    themeCatalog.fieldflow.version,
+    theme
+  );
+  const themePresentation = freezeThemePresentation({
+    appearance: createRoyalCurrentAppearance(palette),
+    instant: "2026-09-09T12:00:00.000Z",
+    selection,
+    settingsRevision: 187,
+    timezone: "Europe/Amsterdam"
+  });
   const sections = (["left", "right"] as const).map((column, columnIndex) => ({
     column,
     id: `section-${column}`,
@@ -60,12 +87,25 @@ export async function routeEditorialPriceListManifest(
         }
       },
       data: {
+        _veyocastThemeRuntime: { version: 2 },
         brand: {
           clubName: "Duindorp sv",
           logoMediaAssetId: imageId,
-          primaryColor: "#FF5C20"
+          primaryColor: "#2459ed"
+        },
+        editorial: {
+          schemaVersion: 2,
+          theme: createRoyalCurrentTheme(undefined, theme),
+          themeSelection: selection
         },
         priceList: { sections, slidePhotoMode: "show", title: "Prijslijst" },
+        themePresentation: {
+          ...themePresentation,
+          appearance: {
+            ...themePresentation.appearance,
+            motionEnabled: false
+          }
+        },
         type: "price_list"
       },
       orientation,

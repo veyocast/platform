@@ -770,14 +770,18 @@ function createDynamicTemplateViewInternal(
     const competition = readRecord(sport?.competition);
     const pool = readRecord(sport?.pool);
     const standingPinnedTeam = standingItems.find((item) => item.selected);
+    // The renderer measures the row window after its heading, pinned team and
+    // context have laid out. Estimates are only for the first render.
+    const standingContentHeight = contentHeight || ((payload.orientation === "portrait" ? 1560 : 798) -
+      (payload.orientation === "portrait" ? (standingPinnedTeam ? 278 : 44) : (standingPinnedTeam ? 180 : 100)));
+    const standingLayout = resolveSportListLayout({
+      contentHeight: standingContentHeight,
+      itemCount: standingItems.length,
+      orientation: payload.orientation,
+      slideType: payload.slideType
+    });
     const standingPageSize = themeIdentity.designRevision === "royal-current-v8"
-      ? resolveSportListLayout({ orientation: payload.orientation, slideType: payload.slideType,
-        itemCount: standingItems.length,
-        // The renderer measures the row window after its heading, pinned team
-        // and context have laid out. Estimates are only for the first render.
-        contentHeight: contentHeight || ((payload.orientation === "portrait" ? 1560 : 798) -
-          (payload.orientation === "portrait" ? (standingPinnedTeam ? 278 : 44) : (standingPinnedTeam ? 180 : 100)))
-      }).capacity
+      ? standingLayout.capacity
       : sportStandingRowsPerPage;
     return {
       accentColor: themeTokens.accent,
@@ -805,6 +809,9 @@ function createDynamicTemplateViewInternal(
       slideType: payload.slideType,
       snapshotId: payload.snapshotId,
       sourceLabel: "Live uit Sportlink Club.Dataservice",
+      sportListContentHeight: themeIdentity.designRevision === "royal-current-v8"
+        ? standingLayout.contentHeight
+        : undefined,
       standingContext: {
         competition: safeText(competition?.name, "Competitie"),
         pool: safeText(pool?.name, ""),

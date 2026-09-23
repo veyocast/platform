@@ -103,7 +103,7 @@ test("Royal Current-outputmatrix van 64 renderercombinaties", async ({ page }) =
             );
             const geometry = await sportRowGeometry(rows, orientation);
             await expect(rows).toHaveCount(Math.min(countForVariant(variant), geometry.capacity));
-            await assertSportRowsFill(rows, orientation);
+            await assertSportRowsFit(rows, orientation);
             const firstRow = rows.first();
             const primary = firstRow.locator('[class*="arenaMatchPrimary"]');
             await expect(primary).toContainText("za 16 aug");
@@ -503,7 +503,7 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
         );
         const rowLayout = await sportRowGeometry(rows, orientation);
         await expect(rows).toHaveCount(Math.min(20, rowLayout.capacity * (orientation === "landscape" ? 2 : 1)));
-        await assertSportRowsFill(rows, orientation);
+        await assertSportRowsFit(rows, orientation);
         expect(await rows.evaluateAll((elements) => elements.every((element) =>
           element.scrollWidth <= element.clientWidth
         ))).toBe(true);
@@ -586,7 +586,7 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
     }
   }
 
-  await test.step("één staande uitslag benut de beschikbare lijsthoogte", async () => {
+  await test.step("één staande uitslag houdt normale rijhoogte en laat restruimte vrij", async () => {
     await page.setViewportSize({ height: 1920, width: 1080 });
     const payload = withSportItemCount(
       buildPayload("results-5", "portrait", "light"),
@@ -602,14 +602,15 @@ test("wedstrijdslides gebruiken twee kolommen alleen in landschap", async ({ pag
     await expect(row).toHaveCount(1);
     const geometry = await row.evaluate((element) => {
       const rowBox = element.getBoundingClientRect();
-      const contentBox = element.closest("main")?.getBoundingClientRect();
+      const listBox = element.parentElement?.getBoundingClientRect();
       return {
         height: rowBox.height,
-        ratioToContent: contentBox ? rowBox.height / contentBox.height : 1
+        unusedHeight: listBox ? listBox.bottom - rowBox.bottom : 0
       };
     });
     expect(geometry.height).toBeGreaterThan(180);
-    expect(geometry.ratioToContent).toBeCloseTo(1, 2);
+    expect(geometry.height).toBeLessThan(260);
+    expect(geometry.unusedHeight).toBeGreaterThan(geometry.height);
   });
 
   await test.step("sportpark blijft zichtbaar wanneer alleen veld is uitgeschakeld", async () => {
@@ -759,7 +760,7 @@ test("Royal Current vergroot wedstrijdinformatie binnen hoogteafhankelijke rijen
         geometry.scrollWidth <= geometry.clientWidth
       ))).toBe(true);
 
-      await assertSportRowsFill(rows, "landscape");
+      await assertSportRowsFit(rows, "landscape");
       const firstRow = rows.first();
       expect(await firstRow.evaluate((element) => ({
         background: getComputedStyle(element).backgroundColor,
@@ -1269,18 +1270,17 @@ async function sportRowGeometry(rows: Locator, orientation: "landscape" | "portr
   const minimum = orientation === "landscape" ? 90 : 180;
   return { ...box, capacity: Math.max(1, Math.floor((box.height + box.gap) / (minimum + box.gap))) };
 }
-async function assertSportRowsFill(rows: Locator, orientation: "landscape" | "portrait") {
+async function assertSportRowsFit(rows: Locator, orientation: "landscape" | "portrait") {
   const geometry = await rows.evaluateAll((elements) => elements.map((element) => {
     const box = element.getBoundingClientRect();
     const list = element.parentElement!;
     const listBox = list.getBoundingClientRect();
     return { height: box.height, top: box.top, bottom: box.bottom, listTop: listBox.top,
-      listBottom: listBox.bottom, last: element === list.lastElementChild };
+      listBottom: listBox.bottom };
   }));
   for (const row of geometry) {
     expect(row.height).toBeGreaterThanOrEqual(orientation === "landscape" ? 89 : 179);
     expect(row.top).toBeGreaterThanOrEqual(row.listTop - 2);
     expect(row.bottom).toBeLessThanOrEqual(row.listBottom + 2);
-    if (row.last) expect(row.listBottom - row.bottom).toBeLessThan(20);
   }
 }

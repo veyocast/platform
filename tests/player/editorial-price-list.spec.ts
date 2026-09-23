@@ -14,6 +14,7 @@ for (const orientation of ["landscape", "portrait"] as const) {
           ? { height: 1920, width: 1080 }
           : { height: 1080, width: 1920 }
       );
+      await page.clock.setFixedTime(new Date("2026-09-09T12:00:00.000Z"));
       await routeEditorialPriceListManifest(page, playerURL, orientation, theme);
       await page.goto(`${playerURL}/?deviceToken=demo-online`);
 
@@ -21,7 +22,17 @@ for (const orientation of ["landscape", "portrait"] as const) {
       await expect(slide).toBeVisible();
       await expect(slide).toHaveAttribute("data-orientation", orientation);
       await expect(slide).toHaveAttribute("data-theme", theme);
-      await expect(page.getByRole("heading", { name: "Prijslijst" })).toBeVisible();
+      await expect(slide).toHaveAttribute("data-design-revision", "royal-current-v8");
+      await expect(slide.locator("header h1")).toHaveText("Prijslijst");
+      await expect(slide.locator("header")).toContainText("In de kantine");
+      await expect(slide.locator("header")).toContainText("Duindorp sv");
+      await expect(slide.locator("header time")).toHaveText("09-09-2026 | 14:00");
+      await expect(slide.locator("header img")).toHaveCount(1);
+      await expect(slide.locator("footer")).toContainText("Prijzen uit de clubkantine");
+      await expect(slide.locator("footer [aria-label^='Pagina']")).toHaveAttribute(
+        "aria-label",
+        `Pagina 1 van ${orientation === "portrait" ? 1 : 2}`
+      );
       await expect(page.getByRole("region", { name: "Linkerkolom" })).toBeVisible();
       await expect(page.getByRole("region", { name: "Rechterkolom" })).toBeVisible();
       await expect(page.getByText("Dranken", { exact: true })).toBeVisible();
@@ -31,12 +42,20 @@ for (const orientation of ["landscape", "portrait"] as const) {
         orientation === "portrait" ? 32 : 16
       );
 
-      const columns = slide.locator("main section");
-      const leftBox = await columns.first().boundingBox();
-      const rightBox = await columns.nth(1).boundingBox();
+      const leftBox = await page.getByRole("region", { name: "Linkerkolom" }).boundingBox();
+      const rightBox = await page.getByRole("region", { name: "Rechterkolom" }).boundingBox();
       expect(leftBox).not.toBeNull();
       expect(rightBox).not.toBeNull();
-      expect(rightBox!.x).toBeGreaterThan(leftBox!.x + leftBox!.width);
+      expect(rightBox!.y).toBeGreaterThan(leftBox!.y);
+      const tableBox = await slide.locator("main > div > section").boundingBox();
+      const featureBox = await slide.locator("main aside").boundingBox();
+      expect(tableBox).not.toBeNull();
+      expect(featureBox).not.toBeNull();
+      if (orientation === "portrait") {
+        expect(featureBox!.y).toBeGreaterThanOrEqual(tableBox!.y + tableBox!.height - 1);
+      } else {
+        expect(featureBox!.x).toBeGreaterThanOrEqual(tableBox!.x + tableBox!.width - 1);
+      }
       expect(
         await slide.evaluate((element) => {
           const rect = element.getBoundingClientRect();
@@ -56,13 +75,12 @@ for (const orientation of ["landscape", "portrait"] as const) {
         const copyBox = await product.locator("span").nth(1).boundingBox();
         const priceBox = await product.locator("b").boundingBox();
         expect(productBox).not.toBeNull();
-        expect(mediaBox).not.toBeNull();
+        expect(mediaBox).toBeNull();
         expect(copyBox).not.toBeNull();
         expect(priceBox).not.toBeNull();
         return {
           copyX: copyBox!.x - productBox!.x,
           height: productBox!.height,
-          mediaWidth: mediaBox!.width,
           priceRight:
             productBox!.x + productBox!.width - priceBox!.x - priceBox!.width
         };
@@ -81,13 +99,24 @@ for (const orientation of ["landscape", "portrait"] as const) {
         (title) => getComputedStyle(title).fontSize
       ))).toEqual(
         orientation === "portrait"
-          ? ["28px", "25px", "22px"]
-          : ["36px", "32px", "28px"]
+          ? ["27px", "27px", "27px"]
+          : ["29px", "29px", "29px"]
       );
+
+      if (orientation === "portrait") {
+        const gutters = await slide.evaluate((element) => {
+          const root = element.getBoundingClientRect();
+          return [":scope > header", ":scope > main", ":scope > footer"].map((selector) => {
+            const box = element.querySelector<HTMLElement>(selector)!.getBoundingClientRect();
+            return { left: box.left - root.left, right: root.right - box.right };
+          });
+        });
+        expect(gutters.every(({ left, right }) => Math.abs(left - right) < 1)).toBe(true);
+      }
 
       if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
         await page.screenshot({
-          path: `docs/screenshots/s103-editorial-arena-price-list-${theme}-${orientation}.png`
+          path: `docs/screenshots/s187-royal-current-price-list-${theme}-${orientation}.png`
         });
       }
     });

@@ -1917,17 +1917,17 @@
 
 /* Dedicated editorial price list */
 
-.arenaRoot[data-slide-type="price_list"] .arenaMasthead {
+.arenaRoot:not([data-design-revision="royal-current-v8"])[data-slide-type="price_list"] .arenaMasthead {
   grid-template-columns: 112px 1fr;
   gap: 32px;
 }
 
-.arenaRoot[data-slide-type="price_list"] .arenaCrest {
+.arenaRoot:not([data-design-revision="royal-current-v8"])[data-slide-type="price_list"] .arenaCrest {
   width: 112px;
   height: 112px;
 }
 
-.arenaRoot[data-slide-type="price_list"] .arenaContext {
+.arenaRoot:not([data-design-revision="royal-current-v8"])[data-slide-type="price_list"] .arenaContext {
   display: none;
 }
 
@@ -4051,42 +4051,6 @@
   transform: rotate(-22deg);
 }
 
-.royalSideband {
-  position: absolute;
-  z-index: 3;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  box-sizing: border-box;
-  width: 112px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 52px 16px 46px;
-  background: var(--deep, var(--vc-panel));
-  color: var(--own-muted, var(--vc-text-muted));
-  font-size: calc(14px * var(--vc-theme-base-scale, 1));
-  font-weight: 700;
-  letter-spacing: .16em;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-}
-
-/* Royal Current uses the complete canvas; the former decorative side rail
-   consumed usable pixels and is intentionally hidden on every orientation. */
-.arenaRoot[data-design-revision="royal-current-v8"] .royalSideband {
-  display: none;
-}
-
-.royalSideband b {
-  color: var(--accent, var(--vc-accent));
-  font-size: calc(42px * var(--vc-theme-base-scale, 1));
-  letter-spacing: 0;
-  writing-mode: horizontal-tb;
-  transform: rotate(90deg);
-}
-
 .royalMasthead,
 .royalTitle {
   position: absolute;
@@ -5936,21 +5900,21 @@
   font-size: calc(31px * var(--vc-theme-base-scale, 1));
 }
 
-/* S180: short standings expand; long standings retain scroll/paging minima. */
+/* Standings use the same geometry-derived fixed row height as other sport lists. */
 .arenaRoot[data-design-revision="royal-current-v8"] .arenaStandingRows {
   display: grid;
-  grid-auto-rows: minmax(70px, 1fr);
-  align-content: stretch;
+  grid-auto-rows: var(--arena-row-height, 70px);
+  align-content: start;
 }
 .arenaRoot[data-design-revision="royal-current-v8"] .arenaStandingRows > article {
-  height: auto;
+  height: var(--arena-row-height, 70px);
 }
 .arenaRoot[data-design-revision="royal-current-v8"][data-orientation="portrait"] .arenaStandingRows {
-  grid-auto-rows: minmax(220px, 1fr);
-  align-content: stretch;
+  grid-auto-rows: var(--arena-row-height, 220px);
+  align-content: start;
 }
 .arenaRoot[data-design-revision="royal-current-v8"] .arenaStandingRows > .royalStandingCard {
-  height: auto !important;
+  height: var(--arena-row-height, 220px) !important;
 }
 
 /* Runtime motion policy must outrank entrance selectors, including legacy themes. */
