@@ -500,7 +500,9 @@ function sportFixture(
       items: matches.slice(0, 6).map((item, index) => ({
         ...item,
         awayScore: index === 5 ? null : index % 3,
+        date: "08-09-2026",
         homeScore: index === 5 ? null : 3 - index % 3,
+        kickoffAt: `2026-09-08T${String(12 + index).padStart(2, "0")}:30:00.000Z`,
         status: index === 5 ? "Nog niet bekend" : "Gespeeld"
       })),
       title

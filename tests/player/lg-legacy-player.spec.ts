@@ -782,10 +782,11 @@ async function mockEditorialPriceListLegacyApis(page: Page) {
           }
         },
         data: {
+          _veyocastThemeRuntime: { version: 2 },
           brand: {
             clubName: "Duindorp sv",
             logoMediaAssetId: imageId,
-            primaryColor: "#ff5a1f"
+            primaryColor: "#2459ED"
           },
           priceList: {
             sections: (["left", "right"] as const).map((column, columnIndex) => ({
@@ -803,6 +804,39 @@ async function mockEditorialPriceListLegacyApis(page: Page) {
               }))
             })),
             title: "Prijslijst"
+          },
+          themePresentation: {
+            appearance: {
+              designRevision: "royal-current-v8",
+              motionEnabled: false,
+              palette: {
+                background: "club",
+                primary: "#2459ED",
+                secondary: null,
+                version: 1
+              },
+              schemaVersion: 2,
+              typography: {
+                baseScale: 1,
+                bodyFontRef: "vc-roboto-v1",
+                displayFontRef: "vc-roboto-v1",
+                sportScale: 1
+              }
+            },
+            resolvedMode: {
+              mode: "dark",
+              reason: "fixed",
+              resolvedAt: "2026-09-09T12:00:00.000Z",
+              timezone: "Europe/Amsterdam"
+            },
+            selection: {
+              accent: null,
+              categoryOverrides: [],
+              modePolicy: { kind: "fixed", mode: "dark" },
+              ref: { catalog: "v2", id: "fieldflow", version: "3.0.0" },
+              support: null
+            },
+            snapshotVersion: 2
           },
           type: "price_list"
         },
@@ -1903,7 +1937,10 @@ test("Static LG houdt wedstrijdregels op twee vaste regels en forceert portrait 
           firstTop: rows[0]?.getBoundingClientRect().top ?? 0
         };
       });
-      const rowsPerColumn = orientation === "landscape" ? 4 : 7;
+      const minimumRowHeight = orientation === "landscape" ? 90 : 180;
+      const rowsPerColumn = Math.floor(
+        (geometry.listHeight + 12) / (minimumRowHeight + 12)
+      );
       const expectedHeight = (geometry.listHeight - 12 * (rowsPerColumn - 1)) / rowsPerColumn;
       expect(parseFloat(geometry.gridAutoRows)).toBeCloseTo(expectedHeight, 1);
       expect(geometry.heights.every((height) => Math.abs(height - expectedHeight) < 0.1))
@@ -2268,6 +2305,7 @@ test("Static LG ordent uitslagen in twee landscape-kolommen gelijk aan de modern
     return {
       firstLeft: boxes[0]!.left,
       firstTop: boxes[0]!.top,
+      listHeight: element.clientHeight,
       rowHeight: boxes[0]!.height,
       secondTop: boxes[1]!.top,
       seventhLeft: boxes[6]!.left,
@@ -2280,8 +2318,12 @@ test("Static LG ordent uitslagen in twee landscape-kolommen gelijk aan de modern
       width: element.clientWidth
     };
   });
-  expect(geometry.rowHeight).toBeCloseTo(115, 1);
-  expect(geometry.secondTop - geometry.firstTop).toBeGreaterThan(115);
+  const rowsPerColumn = Math.floor((geometry.listHeight + 12) / (90 + 12));
+  const expectedHeight = (
+    geometry.listHeight - 12 * (rowsPerColumn - 1)
+  ) / rowsPerColumn;
+  expect(geometry.rowHeight).toBeCloseTo(expectedHeight, 1);
+  expect(geometry.secondTop - geometry.firstTop).toBeGreaterThan(expectedHeight);
   expect(geometry.seventhTop).toBeCloseTo(geometry.firstTop, 1);
   expect(geometry.seventhLeft).toBeGreaterThan(geometry.firstLeft);
   expect(geometry.scoresBetweenTeams.every(Boolean)).toBe(true);
@@ -2289,7 +2331,7 @@ test("Static LG ordent uitslagen in twee landscape-kolommen gelijk aan de modern
   await context.close();
 });
 
-test("Static LG vult de lijst met één ruime uitslag en behoudt de score tussen de teams", async ({
+test("Static LG houdt één uitslag op de normale rijhoogte en behoudt de score tussen de teams", async ({
   browser
 }) => {
   for (const orientation of ["landscape", "portrait"] as const) {
@@ -2360,18 +2402,28 @@ test("Static LG vult de lijst met één ruime uitslag en behoudt de score tussen
         const awayBox = awayElement.getBoundingClientRect();
         const scoreBox = scoreElement.getBoundingClientRect();
         return {
+          gap: parseFloat(getComputedStyle(element).rowGap) || 0,
           gridAutoRows: getComputedStyle(element).gridAutoRows,
           listHeight: listBox.height,
           primaryCenter: primaryBox.top + primaryBox.height / 2,
           rowCenter: rowBox.top + rowBox.height / 2,
           rowHeight: rowBox.height,
+          unusedHeight: listBox.bottom - rowBox.bottom,
           scoreBetweenTeams:
             scoreBox.left >= homeBox.right - 1 &&
             scoreBox.right <= awayBox.left + 1
         };
       });
-      expect(parseFloat(geometry.gridAutoRows)).toBeCloseTo(geometry.listHeight, 1);
-      expect(geometry.rowHeight).toBeCloseTo(geometry.listHeight, 1);
+      const minimum = orientation === "portrait" ? 180 : 90;
+      const capacity = Math.floor(
+        (geometry.listHeight + geometry.gap) / (minimum + geometry.gap)
+      );
+      const expectedHeight = (
+        geometry.listHeight - geometry.gap * (capacity - 1)
+      ) / capacity;
+      expect(parseFloat(geometry.gridAutoRows)).toBeCloseTo(expectedHeight, 1);
+      expect(geometry.rowHeight).toBeCloseTo(expectedHeight, 1);
+      expect(geometry.unusedHeight).toBeGreaterThan(geometry.rowHeight);
       expect(geometry.primaryCenter).toBeCloseTo(geometry.rowCenter, 1);
       expect(geometry.scoreBetweenTeams).toBe(true);
       await context.close();
@@ -2556,6 +2608,7 @@ test("LG Legacy toont de prijslijst één-op-één in het portraitcanvas", async
     viewport: { height: 1920, width: 1080 }
   });
   const page = await context.newPage();
+  await page.clock.setFixedTime(new Date("2026-09-09T12:00:00.000Z"));
   await mockEditorialPriceListLegacyApis(page);
   await page.addInitScript(
     ({ credential, token }) => {
@@ -2572,20 +2625,50 @@ test("LG Legacy toont de prijslijst één-op-één in het portraitcanvas", async
   await page.goto(`${playerURL}/lg/legacy`);
   const slide = page.locator(".dynamic-template.editorial-arena");
   await expect(slide).toBeVisible();
-  await expect(slide.getByRole("heading", { name: "Prijslijst", exact: true }))
-    .toHaveCount(1);
+  await expect(slide).toHaveAttribute("data-design-revision", "royal-current-v8");
+  await expect(slide.locator(":scope > header h1")).toHaveText("Prijslijst");
+  await expect(slide.locator(":scope > header")).toContainText("Prijzen uit de clubkantine");
+  await expect(slide.locator(".legacy-royal-masthead")).toContainText("Duindorp sv");
+  await expect(slide.locator(".legacy-royal-clock")).toHaveText("09-09-2026 | 14:00");
+  await expect(slide.locator(":scope > header .editorial-crest img")).toHaveCount(1);
+  await expect(slide.locator(".editorial-context")).toHaveCSS("display", "flex");
+  await expect(slide.locator(".legacy-royal-sideband")).toHaveCount(0);
+  await expect(slide.locator(".legacy-royal-price-layout")).toHaveCount(1);
+  await expect(slide.locator(".legacy-royal-price-table")).toHaveCount(1);
+  await expect(slide.locator(".legacy-royal-price-aside")).toHaveCount(1);
   await expect(slide.locator(".legacy-price-grid")).toHaveCount(1);
   await expect(slide.locator(".legacy-price-column")).toHaveCount(2);
   await expect(slide.locator(".legacy-price-product")).toHaveCount(16);
   await expect(slide.locator(".legacy-price-media")).toHaveCount(16);
   expect(await slide.locator(".legacy-price-copy strong").first().evaluate(
     (element) => getComputedStyle(element).fontSize
-  )).toBe("28px");
+  )).toBe("27px");
+  const geometry = await slide.evaluate((element) => {
+    const root = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    const table = element.querySelector<HTMLElement>(".legacy-royal-price-table")!
+      .getBoundingClientRect();
+    const feature = element.querySelector<HTMLElement>(".legacy-royal-price-aside")!
+      .getBoundingClientRect();
+    const footer = element.querySelector<HTMLElement>(":scope > footer")!
+      .getBoundingClientRect();
+    return {
+      featureBelowTable: feature.top >= table.bottom - 1,
+      footerLeft: footer.left - root.left,
+      footerRight: root.right - footer.right,
+      paddingLeft: parseFloat(style.paddingLeft),
+      paddingRight: parseFloat(style.paddingRight)
+    };
+  });
+  expect(geometry.featureBelowTable).toBe(true);
+  expect(geometry.paddingLeft).toBe(38);
+  expect(geometry.paddingRight).toBe(38);
+  expect(geometry.footerLeft).toBeCloseTo(geometry.footerRight, 1);
   const slideBox = await slide.boundingBox();
   expect(slideBox).toEqual(expect.objectContaining({ height: 1920, width: 1080 }));
   if (process.env.CAPTURE_EDITORIAL_ARENA === "1") {
     await page.screenshot({
-      path: "docs/screenshots/s103-editorial-arena-price-list-lg-legacy.png"
+      path: "docs/screenshots/s187-royal-current-price-list-lg-legacy-portrait.png"
     });
   }
   await context.close();

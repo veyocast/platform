@@ -5,14 +5,44 @@ import { birthdayCalendarDay } from "../src/birthday-calendar";
 describe("available sport-list height", () => {
   for (const orientation of ["landscape", "portrait"] as const) {
     for (const slideType of ["sport_program", "sport_results", "sport_cancellations", "sport_officials", "sport_dressing_rooms", "sport_standing"]) {
-      it.each([3, 5, 6, 7, 8, 20])(`${orientation} ${slideType}: %i records fill the usable area`, (itemCount) => {
-        const layout = resolveSportListLayout({ orientation, slideType, itemCount });
-        const rows = Math.min(itemCount, layout.capacity);
-        expect(rows * layout.rowHeight + (rows - 1) * layout.gap).toBeCloseTo(layout.contentHeight, 5);
-        expect(layout.rowHeight).toBeGreaterThanOrEqual(layout.minimumRowHeight);
+      it(`${orientation} ${slideType}: 1, 2, 3 en een volle pagina houden dezelfde rijhoogte`, () => {
+        const first = resolveSportListLayout({ orientation, slideType, itemCount: 1 });
+        const layouts = [1, 2, 3, first.capacity, first.capacity + 1].map((itemCount) =>
+          resolveSportListLayout({ orientation, slideType, itemCount })
+        );
+        expect(layouts.map((layout) => layout.rowHeight)).toEqual(
+          layouts.map(() => first.rowHeight)
+        );
+        expect(first.rowsPerColumn * first.rowHeight +
+          (first.rowsPerColumn - 1) * first.gap).toBeCloseTo(first.contentHeight, 5);
+        expect(first.rowHeight).toBeGreaterThanOrEqual(first.minimumRowHeight);
+        expect(first.rowHeight).toBeLessThan(first.contentHeight);
+      });
+
+      it(`${orientation} ${slideType}: pagineert pas na de vaste capaciteit`, () => {
+        const layout = resolveSportListLayout({ orientation, slideType, itemCount: 1 });
+        expect(Math.ceil(layout.capacity / layout.capacity)).toBe(1);
+        expect(Math.ceil((layout.capacity + 1) / layout.capacity)).toBe(2);
       });
     }
   }
+
+  it("houdt ook bij twee landschapskolommen de rijhoogte los van itemCount", () => {
+    const short = resolveSportListLayout({
+      columns: 2,
+      itemCount: 1,
+      orientation: "landscape",
+      slideType: "sport_program"
+    });
+    const full = resolveSportListLayout({
+      columns: 2,
+      itemCount: short.capacity,
+      orientation: "landscape",
+      slideType: "sport_program"
+    });
+    expect(short.capacity).toBe(short.rowsPerColumn * 2);
+    expect(short.rowHeight).toBe(full.rowHeight);
+  });
   it("fits the seventh landscape result without an unnecessary second page", () => {
     expect(resolveSportListLayout({ orientation: "landscape", slideType: "sport_results", itemCount: 7 }).capacity).toBeGreaterThanOrEqual(7);
   });

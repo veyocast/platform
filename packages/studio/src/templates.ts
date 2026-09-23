@@ -179,8 +179,8 @@ function createTemplateDocument(
         to: palette.canvasEnd
       },
       safeArea: geometry.landscape
-        ? { bottom: 76, left: 150, right: 64, top: 32 }
-        : { bottom: 84, left: 101, right: 38, top: 36 }
+        ? { bottom: 76, left: 64, right: 64, top: 32 }
+        : { bottom: 84, left: 38, right: 38, top: 36 }
     },
     elements: scene.elements
   });
@@ -193,10 +193,10 @@ function templateGeometry(formatId: StudioFormatId): TemplateGeometry {
       bodyTop: 300,
       canvasHeight: 1080,
       canvasWidth: 1920,
-      contentWidth: 1706,
+      contentWidth: 1792,
       footerTop: 1024,
       landscape: true,
-      left: 150,
+      left: 64,
       right: 64
     };
   }
@@ -205,10 +205,10 @@ function templateGeometry(formatId: StudioFormatId): TemplateGeometry {
     bodyTop: 372,
     canvasHeight: 1920,
     canvasWidth: 1080,
-    contentWidth: 941,
+    contentWidth: 1004,
     footerTop: 1856,
     landscape: false,
-    left: 101,
+    left: 38,
     right: 38
   };
 }
@@ -246,15 +246,6 @@ function addRoyalCurrentShell(
     width: landscape ? 980 : 760,
     x: landscape ? -380 : -420,
     y: landscape ? 640 : 1240
-  });
-  scene.shape({
-    fill: palette.flowAccent,
-    height: geometry.canvasHeight,
-    id: "flow-sideband",
-    opacity: 0.78,
-    width: landscape ? 8 : 7,
-    x: landscape ? 54 : 36,
-    y: 0
   });
   scene.shape({
     border: { color: palette.line, width: 1 },

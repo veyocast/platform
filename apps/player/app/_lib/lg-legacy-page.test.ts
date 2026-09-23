@@ -94,11 +94,12 @@ describe("Royal Current Static LG", () => {
     const html = renderLgLegacyHtml();
 
     expect(html).toContain("grid-template-rows:80px minmax(148px,auto) minmax(0,1fr)");
-    expect(html).toContain("padding:32px 64px 76px 150px!important");
-    expect(html).toContain("right:64px!important;bottom:22px!important;left:150px!important");
+    expect(html).toContain("padding:32px 64px 76px!important");
+    expect(html).toContain("right:64px!important;bottom:22px!important;left:64px!important");
     expect(html).toContain("grid-template-rows:96px minmax(192px,auto) minmax(0,1fr)");
-    expect(html).toContain("padding:36px 38px 84px 101px!important");
-    expect(html).toContain("right:38px!important;bottom:24px!important;left:101px!important");
+    expect(html).toContain("padding:36px 38px 84px!important");
+    expect(html).toContain("right:38px!important;bottom:24px!important;left:38px!important");
+    expect(html).not.toContain("legacy-royal-sideband");
     [400, 500, 700, 900].forEach((weight) => {
       expect(html).toContain(`/fonts/royal-current/roboto-${weight}.woff2`);
       expect(html).toContain(`font-weight:${weight};font-display:block`);

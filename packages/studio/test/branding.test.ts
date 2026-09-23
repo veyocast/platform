@@ -80,10 +80,6 @@ describe("Studio-branding", () => {
           id: "accent-block"
         }),
         expect.objectContaining({
-          fill: expect.objectContaining({ color: resolved.flowAccent }),
-          id: "flow-sideband"
-        }),
-        expect.objectContaining({
           id: "brand-mark",
           mediaAssetId: logoMediaAssetId,
           objectFit: "contain",
@@ -91,6 +87,8 @@ describe("Studio-branding", () => {
         })
       ])
     );
+    expect(branded.elements.some((element) => element.id === "flow-sideband"))
+      .toBe(false);
   });
 
   it("ondersteunt Royal en Navy Glass zonder vrije kleuren te overschrijven", () => {
