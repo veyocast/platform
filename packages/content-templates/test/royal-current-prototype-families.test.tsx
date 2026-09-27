@@ -207,6 +207,7 @@ describe("Royal Current prototypefamilies", () => {
           goalsFor: 8,
           id: "stand-1",
           lost: 0,
+          logoMediaAssetId: logoId,
           played: 4,
           points: 10,
           position: 1,
@@ -235,6 +236,9 @@ describe("Royal Current prototypefamilies", () => {
 
     expect(renderer).toContain('data-render-family="standing"');
     expect(standing).toContain("Testvereniging 1");
+    expect(standing).toContain('"logoUrl":"blob:https://player.veyocast.nl/team-logo"');
+    expect(standing).toContain('"played":4');
+    expect(standing).toContain('"form":["win","draw"]');
     expect(renderer).toContain('data-render-family="news"');
     expect(news).toContain("Nieuws uit de echte payload.");
     expect(renderer).toContain('data-render-family="activities"');
@@ -647,7 +651,9 @@ describe("Royal Current prototypefamilies", () => {
     expect(royalLandscape).toContain("styles.royalStandingName");
     expect(royalLandscape).not.toContain("arenaStandingZone");
     expect(renderer).toContain("<strong>Volledige stand · {totalTeams} teams</strong>");
-    expect(renderer).toContain("<div><dt>G</dt><dd>{team.played ?? \"–\"}</dd></div>");
+    expect(renderer).toContain(
+      '<div><dt>G</dt><dd data-standing-played="">{team.played ?? "–"}</dd></div>'
+    );
     expect(renderer).toContain("<div><dt>+/−</dt><dd>{signed(team.goalDifference)}</dd></div>");
   });
 });

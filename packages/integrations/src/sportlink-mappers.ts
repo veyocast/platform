@@ -160,8 +160,11 @@ export function mapSportlinkStandings(
   const rows = isolate(payload, (value) => {
     const teamName = string(value.team ?? value.teamnaam);
     if (!teamName) throw new Error("standing_team_invalid");
+    const drawn = numberOrNull(value.gelijk ?? value.gelijkspel);
+    const lost = numberOrNull(value.verloren);
+    const won = numberOrNull(value.gewonnen);
     return {
-      drawn: numberOrNull(value.gelijk ?? value.gelijkspel),
+      drawn,
       externalId: nullable(value.teamcode) ??
         standingCatalogTeamId(ownTeams, teamName, poolExternalId) ??
         stableId("standing-team", teamName),
@@ -170,16 +173,18 @@ export function mapSportlinkStandings(
       ),
       goalsAgainst: numberOrNull(value.doelpuntentegen ?? value["doelpunten tegen"]),
       goalsFor: numberOrNull(value.doelpuntenvoor ?? value["doelpunten voor"]),
-      lost: numberOrNull(value.verloren),
+      lost,
       logoUrl: httpUrl(
         value.teamlogo ?? value.team_logo ?? value.clublogo ??
         value.kleinlogo ?? value.logo
       ),
-      played: numberOrNull(value.gespeeld ?? value["aantal wedstrijden"]),
+      played: numberOrNull(
+        value.gespeeld ?? value.aantalgespeeld ?? value["aantal wedstrijden"]
+      ) ?? standingPlayed(won, drawn, lost),
       points: numberOrNull(value.punten ?? value.totaalpunten),
       position: numberOrNull(value.positie),
       teamName,
-      won: numberOrNull(value.gewonnen)
+      won
     };
   });
   return {
@@ -190,6 +195,16 @@ export function mapSportlinkStandings(
     rows,
     scoresPublished: rows.length > 0
   };
+}
+
+function standingPlayed(
+  won: number | null,
+  drawn: number | null,
+  lost: number | null
+) {
+  return won === null || drawn === null || lost === null
+    ? null
+    : won + drawn + lost;
 }
 
 // ownTeams must come from the same connection's freshly fetched team catalog.

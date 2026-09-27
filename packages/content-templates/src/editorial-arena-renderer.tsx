@@ -1880,7 +1880,7 @@ function StandingRow({
           <StandingForm team={team} />
         </div>
         <dl className={styles.royalStandingStatistics}>
-          <div><dt>G</dt><dd>{team.played ?? "–"}</dd></div>
+          <div><dt>G</dt><dd data-standing-played="">{team.played ?? "–"}</dd></div>
           <div><dt>W</dt><dd>{team.won ?? "–"}</dd></div>
           <div><dt>GL</dt><dd>{team.drawn ?? "–"}</dd></div>
           <div><dt>V</dt><dd>{team.lost ?? "–"}</dd></div>
@@ -1907,7 +1907,7 @@ function StandingRow({
           )}
         </span>
         <b className={styles.royalStandingName}>{team.teamName}</b>
-        <span>{team.played ?? "–"}</span>
+        <span data-standing-played="">{team.played ?? "–"}</span>
         <span>{team.won ?? "–"}</span>
         <span>{team.drawn ?? "–"}</span>
         <span>{team.lost ?? "–"}</span>
@@ -1935,7 +1935,7 @@ function StandingRow({
         )}
         <b>{team.teamName}</b>
       </span>
-      <span>{team.played ?? "–"}</span>
+      <span data-standing-played="">{team.played ?? "–"}</span>
       <span>{team.won ?? "–"}</span>
       <span>{team.drawn ?? "–"}</span>
       <span>{team.lost ?? "–"}</span>
