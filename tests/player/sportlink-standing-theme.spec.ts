@@ -44,6 +44,7 @@ for (const orientation of ["landscape", "portrait"] as const) {
     const standingHead = slide.getByTestId("standing-head").first();
     const firstRow = standingRows.first();
     const selectedRow = standingRows.filter({ hasText: "Duindorp sv" });
+    await expect(selectedRow.locator("[data-standing-played]")).toHaveText("18");
     expect(await standingHead.evaluate((element) =>
       getComputedStyle(element).gridTemplateColumns
     )).toBe(await firstRow.evaluate((element) =>

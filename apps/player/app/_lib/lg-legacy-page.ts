@@ -7517,7 +7517,11 @@ export function renderLgLegacyHtml() {
       }
       team.appendChild(templateNode("b", "", templateText(item.teamName, "Team")));
       row.appendChild(team);
-      row.appendChild(templateNode("span", "", standingValue(item.played)));
+      row.appendChild(templateNode(
+        "span",
+        "legacy-standing-played",
+        standingValue(item.played)
+      ));
       row.appendChild(templateNode("span", "", standingValue(item.won)));
       row.appendChild(templateNode("span", "", standingValue(item.drawn)));
       row.appendChild(templateNode("span", "", standingValue(item.lost)));
@@ -7646,7 +7650,11 @@ export function renderLgLegacyHtml() {
             }
             team.appendChild(templateNode("b", "", templateText(item.teamName, "Team")));
             row.appendChild(team);
-            row.appendChild(templateNode("span", "", standingValue(item.played)));
+            row.appendChild(templateNode(
+              "span",
+              "legacy-standing-played",
+              standingValue(item.played)
+            ));
             row.appendChild(templateNode("span", "", standingValue(item.won)));
             row.appendChild(templateNode("span", "", standingValue(item.drawn)));
             row.appendChild(templateNode("span", "", standingValue(item.lost)));

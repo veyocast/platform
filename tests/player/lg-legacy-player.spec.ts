@@ -607,12 +607,12 @@ async function mockEditorialStandingLegacyApis(page: Page) {
             items: ["CVC Reeuwijk 1", "Duindorp sv 1", "LSVV 70 1", "TAVV 1"]
               .map((teamName, index) => ({
                 drawn: 0,
-                form: [],
+                form: ["win", "draw", "loss"],
                 goalDifference: 0,
                 id: `standing-team-${index + 1}`,
                 logoMediaAssetId: logoId,
                 lost: 0,
-                played: 0,
+                played: 8 + index,
                 points: 0,
                 position: index + 1,
                 selected: index === 1,
@@ -2488,6 +2488,9 @@ test("LG Legacy toont de stand als één Editorial Arena-canvas met begrensde lo
   expect(rowLogoBoxes).toHaveLength(4);
   expect(rowLogoBoxes.every(({ height, width }) => height <= 55 && width <= 55))
     .toBe(true);
+  await expect(slide.locator(".legacy-standing-played").first()).toHaveText("8");
+  await expect(slide.locator(".legacy-standing-form").first().locator("i"))
+    .toHaveText(["W", "G", "V"]);
   await expect(slide.getByText("Mannen KNVB beker amateurs", { exact: false }))
     .toHaveCount(1);
 

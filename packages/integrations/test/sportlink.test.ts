@@ -61,6 +61,9 @@ describe("Sportlink server-only adapter", () => {
       thuisteam: "Testclub 1", uitteam: "Bezoekers", uitslag: "2 - 1"
     }], "results")[0]?.homeTeam.score).toBe(2);
     const standing = mapSportlinkStandings([{
+      gelijk: 1,
+      gewonnen: 2,
+      verloren: 1,
       positie: 1,
       punten: 9,
       team: "Testclub 1",
@@ -69,12 +72,25 @@ describe("Sportlink server-only adapter", () => {
     }], "pool-1");
     expect(standing.scoresPublished).toBe(true);
     expect(standing.rows[0]?.form).toEqual(["win", "draw", "loss"]);
+    expect(standing.rows[0]?.played).toBe(4);
     expect(standing.rows[0]?.logoUrl).toBe(
       "https://cdn.sportlink.com/logo/testclub.png"
     );
     expect(stableSportlinkExternalId("test", "a")).toBe(
       stableSportlinkExternalId("test", "a")
     );
+  });
+
+  it("prefers Sportlink's explicit played total over the W/G/V fallback", () => {
+    const standing = mapSportlinkStandings([{
+      aantalgespeeld: 8,
+      gelijk: 2,
+      gewonnen: 3,
+      verloren: 2,
+      team: "Testclub 1"
+    }], "pool-1");
+
+    expect(standing.rows[0]?.played).toBe(8);
   });
 
   it("keeps the exact legacy standing identity when Sportlink omits teamcode", () => {
