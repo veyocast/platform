@@ -207,6 +207,66 @@ function standingPlayed(
     : won + drawn + lost;
 }
 
+export function enrichSportlinkStandingForm(
+  standing: SportStanding,
+  matches: readonly SportMatch[],
+  now = new Date()
+): SportStanding {
+  const poolResults = [...new Map(matches.filter((match) =>
+    match.pool?.externalId === standing.pool.externalId &&
+    match.status === "finished" &&
+    validStandingScore(match.homeTeam.score) &&
+    validStandingScore(match.awayTeam.score) &&
+    Date.parse(match.startsAt) <= now.valueOf() &&
+    (["period", "season", "type"] as const).every((key) =>
+      !standing.competition?.[key] || !match.competition?.[key] ||
+      standing.competition[key] === match.competition[key]
+    )
+  ).map((match) => [match.externalId, match])).values()].sort((a, b) =>
+    Date.parse(a.startsAt) - Date.parse(b.startsAt) ||
+    a.externalId.localeCompare(b.externalId)
+  );
+
+  return {
+    ...standing,
+    rows: standing.rows.map((row) => {
+      if (row.form.length) return row;
+      const syntheticId = row.externalId === stableId("standing-team", row.teamName);
+      const uniqueName = standing.rows.filter((candidate) =>
+        candidate.teamName === row.teamName
+      ).length === 1;
+      const namedIds = new Set(poolResults.flatMap((match) =>
+        [match.homeTeam, match.awayTeam].filter((team) =>
+          team.name === row.teamName && team.externalId !== null
+        ).map((team) => team.externalId)
+      ));
+      const identifiesRow = (team: SportMatch["homeTeam"]) =>
+        team.externalId === row.externalId || (
+          uniqueName && team.name === row.teamName &&
+          namedIds.size <= 1 && (
+            syntheticId || (team.externalId === null && (
+              namedIds.size === 0 || namedIds.has(row.externalId)
+            ))
+          )
+        );
+      const form: SportStanding["rows"][number]["form"] = [];
+      for (const match of poolResults) {
+        const home = identifiesRow(match.homeTeam);
+        const away = identifiesRow(match.awayTeam);
+        if (home === away) continue;
+        const ownScore = (home ? match.homeTeam.score : match.awayTeam.score)!;
+        const opponentScore = (home ? match.awayTeam.score : match.homeTeam.score)!;
+        form.push(ownScore === opponentScore ? "draw" : ownScore > opponentScore ? "win" : "loss");
+      }
+      return { ...row, form: form.slice(-3) };
+    })
+  };
+}
+
+function validStandingScore(score: number | null): score is number {
+  return score !== null && Number.isInteger(score) && score >= 0 && score <= 999;
+}
+
 // ownTeams must come from the same connection's freshly fetched team catalog.
 // A name alone is never enough: the catalog must prove one exact pool member.
 function standingCatalogTeamId(

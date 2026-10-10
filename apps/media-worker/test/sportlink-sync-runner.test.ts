@@ -85,7 +85,114 @@ describe("Sportlink sync worker", () => {
     expect(batch.standings.map((standing) => ({
       pool: standing.pool.externalId, team: standing.rows[0]?.externalId
     }))).toEqual([{ pool: "833025", team: "355471" }, { pool: "836218", team: "394546" }]);
-    expect(fetchImpl).toHaveBeenCalledTimes(4);
+    expect(fetchImpl).toHaveBeenCalledTimes(8);
+  });
+
+  describe("standing form for every pool team", () => {
+    const job = {
+      connectionId: "20000000-0000-4000-8000-000000000001",
+      dataSourceId: "30000000-0000-4000-8000-000000000001",
+      datasetGroup: "competitions", encryptedClientId: "ciphertext",
+      encryptionIv: "initialization", encryptionTag: "authentication",
+      runId: "40000000-0000-4000-8000-000000000001",
+      tenantId: "10000000-0000-4000-8000-000000000001", timezone: "Europe/Amsterdam"
+    };
+    const ownTeam = { teamcode: 10, teamnaam: "Testclub 1", poulecode: 701 };
+    const client = (fetchImpl: typeof fetch) => new SportlinkClient("test-client", { fetchImpl, maxAttempts: 1 });
+
+    it("fetches own and other results over 90 days and completes forms without creating selectable opponents", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-10-10T12:00:00Z"));
+      const requests: string[] = [];
+      const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname === "/teams") return Response.json([ownTeam]);
+        if (url.pathname === "/poulestand") return Response.json([
+          { team: "Testclub 1" }, { team: "Bezoekers 1" }, { team: "Bezoekers 2" }
+        ]);
+        if (url.pathname === "/pouleuitslagen") {
+          expect(url.searchParams.get("poulecode")).toBe("701");
+          expect(url.searchParams.get("aantaldagen")).toBe("90");
+          const own = url.searchParams.get("eigenwedstrijden") === "JA";
+          requests.push(url.searchParams.get("eigenwedstrijden")!);
+          return Response.json([
+            { wedstrijdcode: own ? 11 : 21, wedstrijddatum: "2026-08-01", uitslag: "1-0" },
+            { wedstrijdcode: own ? 12 : 22, wedstrijddatum: "2026-08-15", uitslag: "1-1" },
+            { wedstrijdcode: own ? 13 : 23, wedstrijddatum: "2026-09-05", uitslag: "0-1" }
+          ].map((match) => ({
+            ...match, thuisteam: own ? "Testclub 1" : "Bezoekers 1",
+            thuisteamid: own ? 10 : 20, uitteam: "Bezoekers 2", uitteamid: 30
+          })));
+        }
+        return Response.json([]);
+      });
+      const batch = await fetchSportlinkDataset("competitions", client(fetchImpl as typeof fetch), job);
+      expect(requests).toEqual(["NEE", "JA"]);
+      expect(batch.standings[0]?.rows.map((row) => row.form)).toEqual([
+        ["win", "draw", "loss"], ["win", "draw", "loss"], ["draw", "win", "win"]
+      ]);
+      expect(batch.teams).toEqual([]);
+      expect(batch.matches).toEqual([]);
+      expect(fetchImpl).toHaveBeenCalledTimes(5);
+    });
+
+    it.each([
+      [[{ team: "Testclub 1", vorm: "WGV" }, { team: "Bezoekers 1", vorm: "VGW" }]],
+      [[]]
+    ])("avoids extra provider requests for complete provider form or an empty standing: %j", async (rows) => {
+      const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname === "/teams") return Response.json([ownTeam]);
+        if (url.pathname === "/poulestand") return Response.json(rows);
+        if (url.pathname === "/pouleuitslagen") throw new Error("unexpected result request");
+        return Response.json([]);
+      });
+      const batch = await fetchSportlinkDataset("competitions", client(fetchImpl as typeof fetch), job);
+      expect(batch.standings[0]?.rows).toHaveLength(rows.length);
+      expect(fetchImpl).toHaveBeenCalledTimes(3);
+    });
+
+    it.each([4001, 4031])("retains the standing when pool results are unavailable (%s)", async (code) => {
+      const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname === "/teams") return Response.json([ownTeam]);
+        if (url.pathname === "/poulestand") return Response.json([{ team: "Testclub 1", punten: 6 }]);
+        if (url.pathname === "/pouleuitslagen") return Response.json({ error: { code } });
+        return Response.json([]);
+      });
+      const batch = await fetchSportlinkDataset("competitions", client(fetchImpl as typeof fetch), job);
+      expect(batch.standings[0]?.rows[0]).toMatchObject({ teamName: "Testclub 1", points: 6, form: [] });
+      expect(fetchImpl).toHaveBeenCalledTimes(5);
+    });
+
+    it.each([4012, 5001])("rejects an incomplete observation on a genuine provider failure (%s)", async (code) => {
+      const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname === "/teams") return Response.json([ownTeam]);
+        if (url.pathname === "/poulestand") return Response.json([{ team: "Testclub 1" }]);
+        if (url.pathname === "/pouleuitslagen") return Response.json({ error: { code } });
+        return Response.json([]);
+      });
+      await expect(fetchSportlinkDataset("competitions", client(fetchImpl as typeof fetch), job)).rejects.toHaveProperty("code", code === 4012 ? "SPORTLINK_CLIENT_ID_INVALID" : "SPORTLINK_SERVER_ERROR");
+    });
+
+    it("keeps equally named teams in different pools separate and rejects explicit conflicting pool rows", async () => {
+      const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname === "/teams") return Response.json([ownTeam, { ...ownTeam, teamcode: 11, poulecode: 702 }]);
+        if (url.pathname === "/poulestand") return Response.json([{ team: "Bezoekers 1" }]);
+        if (url.pathname === "/pouleuitslagen" && url.searchParams.get("eigenwedstrijden") === "NEE") {
+          const pool = url.searchParams.get("poulecode")!;
+          return Response.json([
+            { wedstrijdcode: Number(pool), wedstrijddatum: "2026-09-05", thuisteam: "Bezoekers 1", thuisteamid: Number(pool), uitteam: "Bezoekers 2", uitslag: pool === "701" ? "1-0" : "0-1" },
+            { wedstrijdcode: 999, wedstrijddatum: "2026-09-12", poulecode: 999, thuisteam: "Bezoekers 1", thuisteamid: 999, uitteam: "Bezoekers 2", uitslag: "1-1" }
+          ]);
+        }
+        return Response.json([]);
+      });
+      const batch = await fetchSportlinkDataset("competitions", client(fetchImpl as typeof fetch), job);
+      expect(batch.standings.map((standing) => standing.rows[0]?.form)).toEqual([["win"], ["loss"]]);
+    });
   });
 
   it("verzamelt beide wedstrijdlogo's voor een immutable snapshot", () => {
