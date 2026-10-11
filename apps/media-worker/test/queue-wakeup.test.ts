@@ -46,7 +46,9 @@ describe("bounded idle worker traffic", () => {
     expect(requests).toBeLessThan(478521 * 0.06);
     expect(gate.counters.emptyClaims).toBe(Object.values(claims).reduce((a, b) => a + b, 0));
     expect(gate.counters.workClaims).toBe(0);
-  });
+    // Five queues exercise a full day of timers; CI runs all workspace suites
+    // concurrently. Keep the entire simulation and traffic assertions intact.
+  }, 20_000);
 
   it("wakes new work within five seconds after long idle and drains without waiting", async () => {
     vi.useFakeTimers(); vi.setSystemTime(1_000_000);
