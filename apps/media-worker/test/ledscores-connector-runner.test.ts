@@ -3,6 +3,7 @@ import { parseLedScoresMessage } from "@veyocast/integrations/server";
 
 import {
   createLedScoresLiveMatchState,
+  createLedScoresDatabaseFetch,
   runLedScoresConnectorLoop,
   SupabaseLedScoresConnectorBackend,
   type ClaimedLedScoresConnection,
@@ -40,6 +41,38 @@ function fakeBackend(
 }
 
 describe("LED Scores connector backend", () => {
+  it("bounds a hanging RPC and can claim again after the database recovers", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockImplementationOnce((_input, init) => new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(new Error("private database endpoint failure")), { once: true });
+    })).mockResolvedValue(new Response("[]", { status: 200, headers: { "content-type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const backend = new SupabaseLedScoresConnectorBackend("https://project.supabase.co", "service-role", undefined, null, 25);
+      await expect(backend.claim("worker:test", 45, 10)).rejects.toThrow("ledscores_claim_failed");
+      await expect(backend.claim("worker:test", 45, 10)).resolves.toEqual([]);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    } finally { vi.unstubAllGlobals(); }
+  });
+
+  it("preserves init and Request cancellation while bounding all database clients at 30 seconds", async () => {
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+    const captured: AbortSignal[] = [];
+    const boundedFetch = createLedScoresDatabaseFetch(90_000, vi.fn(async (_input, init) => {
+      captured.push(init?.signal as AbortSignal);
+      return new Response("[]");
+    }));
+    const initAbort = new AbortController();
+    const requestAbort = new AbortController();
+    try {
+      await boundedFetch("https://project.supabase.co", { signal: initAbort.signal });
+      await boundedFetch(new Request("https://project.supabase.co", { signal: requestAbort.signal }));
+      expect(timeout.mock.calls).toEqual([[30_000], [30_000]]);
+      initAbort.abort();
+      requestAbort.abort();
+      expect(captured.every(signal => signal.aborted)).toBe(true);
+    } finally { timeout.mockRestore(); }
+  });
+
   it("parses only an allowlisted claimed websocket URL", async () => {
     const client = { rpc: vi.fn().mockResolvedValue({
       data: [{
@@ -952,6 +985,147 @@ describe("LED Scores connector loop", () => {
     }
   });
 
+  it("announces source readiness only after the current provider payload is stored", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let loop: Promise<void> | null = null;
+    try {
+      vi.setSystemTime(new Date("2026-10-11T08:00:00.000Z"));
+      let claimed = false;
+      const operations: string[] = [];
+      const backend = fakeBackend({
+        claim: vi.fn(async () => {
+          if (claimed) return [];
+          claimed = true;
+          return [connection];
+        }),
+        recordState: vi.fn(async (input) => {
+          operations.push(input.eventType);
+          return true;
+        }),
+        upsertLiveState: vi.fn(async () => { operations.push("state_stored"); })
+      });
+      const socket = new FakeWebSocket();
+      const onEvent = vi.fn();
+      loop = runLedScoresConnectorLoop({
+        backend,
+        claimIntervalMs: 1_000,
+        leaseSeconds: 45,
+        maxConnections: 1,
+        onEvent,
+        signal: controller.signal,
+        webSocketFactory: () => {
+          queueMicrotask(() => socket.emit("open", new Event("open")));
+          return socket as unknown as WebSocket;
+        },
+        workerId: "worker:test"
+      });
+      await vi.advanceTimersByTimeAsync(1);
+      expect(backend.recordState).toHaveBeenCalledWith(expect.objectContaining({
+        eventType: "transport_open", healthStatus: "reconnecting"
+      }));
+      expect(onEvent).not.toHaveBeenCalledWith(expect.objectContaining({ outcome: "connected" }));
+
+      socket.message(providerMessage(Date.now() - 24 * 60 * 60_000, "current-provider-baseline", {
+        lineup: { away: null, home: null },
+        scoreboard: {
+          away: 0,
+          home: 1,
+          scored: {
+            date: new Date(Date.now() - 24 * 60 * 60_000).toISOString(),
+            id: 1,
+            side: "home",
+            serverDate: new Date(Date.now() - 24 * 60 * 60_000).toISOString(),
+            nextProviderMetadata: true
+          }
+        }
+      }));
+      await vi.advanceTimersByTimeAsync(1);
+      expect(operations).toEqual(["transport_open", "state_stored", "baseline_established", "connected"]);
+      expect(backend.upsertLiveState).toHaveBeenCalledWith(expect.objectContaining({
+        state: expect.objectContaining({ home: expect.objectContaining({ score: 1 }) })
+      }));
+      expect(backend.dispatch).not.toHaveBeenCalled();
+      expect(onEvent).toHaveBeenCalledWith({ connectionId: connection.connectionId, outcome: "connected" });
+    } finally {
+      controller.abort();
+      try { if (loop) await loop; }
+      finally { vi.useRealTimers(); }
+    }
+  });
+
+  it("marks invalid source data as unhealthy and immediately recovers on the next valid message", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let loop: Promise<void> | null = null;
+    try {
+      vi.setSystemTime(new Date("2026-10-11T08:00:00.000Z"));
+      let claimed = false;
+      const backend = fakeBackend({
+        claim: vi.fn(async () => {
+          if (claimed) return [];
+          claimed = true;
+          return [connection];
+        })
+      });
+      const socket = new FakeWebSocket();
+      loop = runLedScoresConnectorLoop({
+        backend,
+        claimIntervalMs: 1_000,
+        leaseSeconds: 45,
+        maxConnections: 1,
+        persistIntervalMs: 15_000,
+        signal: controller.signal,
+        webSocketFactory: () => {
+          queueMicrotask(() => {
+            socket.emit("open", new Event("open"));
+            socket.message(providerMessage(Date.now(), "valid-baseline"));
+          });
+          return socket as unknown as WebSocket;
+        },
+        workerId: "worker:test"
+      });
+      await vi.advanceTimersByTimeAsync(1);
+      socket.message(providerMessage(Date.now(), "invalid-score", {
+        scoreboard: { away: 0, home: "private-invalid-value", scored: null },
+        externalName: "Private Person Name"
+      }));
+      await vi.advanceTimersByTimeAsync(1);
+      expect(backend.recordState).toHaveBeenCalledWith(expect.objectContaining({
+        detail: expect.objectContaining({
+          code: "LEDSCORES_MESSAGE_INVALID",
+          validationIssues: [{ code: "invalid_type", path: "message.scoreboard.home" }]
+        }),
+        eventType: "invalid_message",
+        healthStatus: "error",
+        invalidMessage: true
+      }));
+      expect(backend.touch).toHaveBeenCalledOnce();
+      expect(backend.upsertLiveState).toHaveBeenCalledOnce();
+      socket.message(providerMessage(Date.now(), "recovered-score"));
+      await vi.advanceTimersByTimeAsync(1);
+      expect(backend.touch).toHaveBeenCalledTimes(2);
+      // A second healthy -> invalid transition must be visible even within
+      // the diagnostic throttle; repeated invalid frames stay bounded.
+      socket.message(providerMessage(Date.now(), "invalid-again", {
+        scoreboard: { away: 0, home: -1, scored: null }
+      }));
+      socket.message(providerMessage(Date.now(), "still-invalid", {
+        scoreboard: { away: 0, home: -1, scored: null }
+      }));
+      await vi.advanceTimersByTimeAsync(1);
+      expect(vi.mocked(backend.recordState).mock.calls.filter(([input]) => input.eventType === "invalid_message"))
+        .toHaveLength(2);
+      const diagnostics = JSON.stringify(vi.mocked(backend.recordState).mock.calls);
+      expect(diagnostics).not.toContain("private-invalid-value");
+      expect(diagnostics).not.toContain("Private Person Name");
+    } finally {
+      controller.abort();
+      try { if (loop) await loop; }
+      finally { vi.useRealTimers(); }
+    }
+  });
+
   it("requires a valid first message before accepting a quiet connection", async () => {
     const controller = new AbortController();
     let claimed = false;
@@ -991,12 +1165,211 @@ describe("LED Scores connector loop", () => {
 
     expect(recordState).toHaveBeenCalledWith(expect.objectContaining({
       eventType: "invalid_message",
+      healthStatus: "error",
       invalidMessage: true
     }));
+    expect(recordState).not.toHaveBeenCalledWith(expect.objectContaining({ healthStatus: "connected" }));
     expect(recordState).toHaveBeenCalledWith(expect.objectContaining({
       detail: expect.objectContaining({ code: "ledscores_initial_message_timeout" }),
       eventType: "connection_error"
     }));
+  });
+
+  it("survives repeated claim outages and keeps healthy connections independent", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let loop: Promise<void> | null = null;
+    try {
+      const backend = fakeBackend({
+        claim: vi.fn()
+          .mockRejectedValueOnce(new Error("private database outage"))
+          .mockRejectedValueOnce(new Error("private database outage"))
+          .mockResolvedValueOnce([connection])
+          .mockRejectedValue(new Error("private database outage"))
+      });
+      const socket = new FakeWebSocket();
+      const close = vi.spyOn(socket, "close");
+      const webSocketFactory = vi.fn(() => {
+        queueMicrotask(() => {
+          socket.emit("open", new Event("open"));
+          socket.message(providerMessage(Date.now(), "after-database-outage"));
+        });
+        return socket as unknown as WebSocket;
+      });
+      loop = runLedScoresConnectorLoop({
+        backend, claimIntervalMs: 100, leaseSeconds: 45, maxConnections: 2,
+        signal: controller.signal, webSocketFactory, workerId: "worker:test"
+      });
+      await vi.advanceTimersByTimeAsync(199);
+      expect(webSocketFactory).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(801);
+      expect(webSocketFactory).toHaveBeenCalledOnce();
+      expect(backend.upsertLiveState).toHaveBeenCalledOnce();
+      expect(close).not.toHaveBeenCalled();
+    } finally {
+      controller.abort();
+      try { if (loop) await loop; }
+      finally { vi.useRealTimers(); }
+    }
+  });
+
+  it.each(["lost", "unavailable"])("closes an uncertain lease (%s), contains release outage and waits for a fresh database claim", async (mode) => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let loop: Promise<void> | null = null;
+    try {
+      vi.setSystemTime(new Date("2026-10-11T08:00:00.000Z"));
+      const leaseExpiresAt = Date.now() + 45_000;
+      let claims = 0;
+      let socketCount = 0;
+      const backend = fakeBackend({
+        claim: vi.fn(async () => {
+          if (claims === 0 || (claims === 1 && Date.now() >= leaseExpiresAt)) {
+            claims += 1;
+            return [connection];
+          }
+          return [];
+        }),
+        release: vi.fn().mockRejectedValue(new Error("private release outage")),
+        renew: mode === "lost"
+          ? vi.fn().mockResolvedValue(false)
+          : vi.fn().mockRejectedValue(new Error("private lease database outage"))
+      });
+      const firstSocket = new FakeWebSocket();
+      const close = vi.spyOn(firstSocket, "close");
+      const onEvent = vi.fn((event: { outcome: string }) => {
+        if (event.outcome === "connected" && socketCount === 2) controller.abort();
+      });
+      const webSocketFactory = vi.fn(() => {
+        socketCount += 1;
+        const socket = socketCount === 1 ? firstSocket : new FakeWebSocket();
+        queueMicrotask(() => {
+          socket.emit("open", new Event("open"));
+          socket.message(providerMessage(Date.now() - 60_000, "reconnect-old-baseline"));
+        });
+        return socket as unknown as WebSocket;
+      });
+      loop = runLedScoresConnectorLoop({
+        backend, claimIntervalMs: 100, leaseSeconds: 45, maxConnections: 1,
+        onEvent, signal: controller.signal, webSocketFactory, workerId: "worker:test"
+      });
+      await vi.advanceTimersByTimeAsync(22_500);
+      expect(close).toHaveBeenCalledWith(mode === "lost" ? 4001 : 1011,
+        mode === "lost" ? "lease lost" : "lease renewal failed");
+      expect(backend.release).toHaveBeenCalledWith(connection.connectionId, "worker:test", "lease_lost");
+      expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({ errorCode: "ledscores_lease_release_failed" }));
+      await vi.advanceTimersByTimeAsync(22_499);
+      expect(webSocketFactory).toHaveBeenCalledOnce();
+      await vi.advanceTimersByTimeAsync(1);
+      await loop;
+      expect(webSocketFactory).toHaveBeenCalledTimes(2);
+      expect(backend.dispatch).not.toHaveBeenCalled();
+      expect(JSON.stringify(onEvent.mock.calls)).not.toContain("private");
+    } finally {
+      controller.abort();
+      try { if (loop) await loop; }
+      finally { vi.useRealTimers(); }
+    }
+  });
+
+  it.each(["health", "live_state"])("closes a failed database socket (%s) and discards its queued data before bounded reconnect", async (mode) => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let loop: Promise<void> | null = null;
+    try {
+      let claimed = false;
+      let socketCount = 0;
+      const backend = fakeBackend({
+        claim: vi.fn(async () => {
+          if (claimed) return [];
+          claimed = true;
+          return [connection];
+        }),
+        recordState: vi.fn(async (input: Parameters<LedScoresConnectorBackend["recordState"]>[0]) => {
+          if (mode === "health" && input.eventType === "transport_open" && socketCount === 1) {
+            throw new Error("PrivatePersonName");
+          }
+          return true;
+        }),
+        upsertLiveState: vi.fn(async () => {
+          if (mode === "live_state" && socketCount === 1) throw new Error("PrivatePersonName");
+        })
+      });
+      const firstSocket = new FakeWebSocket();
+      const close = vi.spyOn(firstSocket, "close");
+      const onEvent = vi.fn((event: { outcome: string }) => {
+        if (event.outcome === "connected") controller.abort();
+      });
+      const webSocketFactory = vi.fn(() => {
+        socketCount += 1;
+        const socket = socketCount === 1 ? firstSocket : new FakeWebSocket();
+        queueMicrotask(() => {
+          socket.emit("open", new Event("open"));
+          socket.message(providerMessage(Date.now(), `baseline-${socketCount}`));
+        });
+        return socket as unknown as WebSocket;
+      });
+      loop = runLedScoresConnectorLoop({
+        backend, claimIntervalMs: 100, leaseSeconds: 45, maxConnections: 1,
+        onEvent, random: () => 0, signal: controller.signal, webSocketFactory, workerId: "worker:test"
+      });
+      await vi.advanceTimersByTimeAsync(374);
+      expect(webSocketFactory).toHaveBeenCalledOnce();
+      expect(close).toHaveBeenCalledWith(1011, "score processing unavailable");
+      expect(backend.upsertLiveState).toHaveBeenCalledTimes(mode === "health" ? 0 : 1);
+      expect(backend.recordState).toHaveBeenCalledWith(expect.objectContaining({
+        detail: expect.objectContaining({ code: "ledscores_unavailable" }), eventType: "connection_error"
+      }));
+      await vi.advanceTimersByTimeAsync(1);
+      await loop;
+      expect(webSocketFactory).toHaveBeenCalledTimes(2);
+      expect(backend.upsertLiveState).toHaveBeenCalledTimes(mode === "health" ? 1 : 2);
+      expect(JSON.stringify(onEvent.mock.calls)).not.toContain("PrivatePersonName");
+    } finally {
+      controller.abort();
+      try { if (loop) await loop; }
+      finally { vi.useRealTimers(); }
+    }
+  });
+
+  it("reports ownership loss as lease_lost instead of worker_shutdown", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let loop: Promise<void> | null = null;
+    try {
+      let claimed = false;
+      const backend = fakeBackend({
+        claim: vi.fn(async () => {
+          if (claimed) return [];
+          claimed = true;
+          return [connection];
+        }),
+        recordState: vi.fn(async (input: Parameters<LedScoresConnectorBackend["recordState"]>[0]) => {
+          return input.eventType !== "connection_error";
+        }),
+        release: vi.fn(async () => { controller.abort(); return false; })
+      });
+      loop = runLedScoresConnectorLoop({
+        backend, claimIntervalMs: 100, leaseSeconds: 45, maxConnections: 1,
+        signal: controller.signal,
+        webSocketFactory: () => {
+          const socket = new FakeWebSocket();
+          queueMicrotask(() => {
+            socket.emit("open", new Event("open"));
+            socket.emit("error", new Event("error"));
+          });
+          return socket as unknown as WebSocket;
+        },
+        workerId: "worker:test"
+      });
+      await vi.advanceTimersByTimeAsync(1);
+      await loop;
+      expect(backend.release).toHaveBeenCalledWith(connection.connectionId, "worker:test", "lease_lost");
+    } finally {
+      controller.abort();
+      try { if (loop) await loop; }
+      finally { vi.useRealTimers(); }
+    }
   });
 
   it("reconnects after an explicit websocket transport error", async () => {

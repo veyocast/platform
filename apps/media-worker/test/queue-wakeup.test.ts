@@ -1,8 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { QueueWakeup, type RenderQueue } from "../src/queue-wakeup";
+import { parseQueueHint, QueueWakeup, type RenderQueue } from "../src/queue-wakeup";
 
 afterEach(() => vi.useRealTimers());
 describe("bounded idle worker traffic", () => {
+  it("validates readiness bits for data refresh and version pruning without exposing work records", () => {
+    expect(parseQueueHint(24)).toEqual({media:false,studio:false,dynamic:false,published:true,maintenance:true});
+    for (const invalid of [32,-1,1.5,"8",null,{}]) expect(parseQueueHint(invalid)).toBeNull();
+  });
   it("honors Retry-After even when a safety claim would otherwise be due", async () => {
     vi.useFakeTimers(); vi.setSystemTime(1_000_000);
     const read = vi.fn(async () => { throw Object.assign(new Error("429"), { retryAfterMs: 120_000 }); });
@@ -18,11 +22,11 @@ describe("bounded idle worker traffic", () => {
   });
   it("simulates a full empty day: >94% fewer requests including shared hints", async () => {
     vi.useFakeTimers(); vi.setSystemTime(1_000_000);
-    const read = vi.fn(async () => ({ media: false, studio: false, dynamic: false }));
+    const read = vi.fn(async () => ({ media: false, studio: false, dynamic: false, published: false, maintenance: false }));
     const gate = new QueueWakeup(read, { random: () => 0.5 });
     const controller = new AbortController();
-    const claims = { media: 0, studio: 0, dynamic: 0 };
-    const loops = (["media", "studio", "dynamic"] as RenderQueue[]).map(async (queue) => {
+    const claims = { media: 0, studio: 0, dynamic: 0, published: 0, maintenance: 0 };
+    const loops = (["media", "studio", "dynamic", "published", "maintenance"] as RenderQueue[]).map(async (queue) => {
       while (!controller.signal.aborted) {
         await gate.wait(queue, controller.signal);
         if (controller.signal.aborted) break;
@@ -42,12 +46,14 @@ describe("bounded idle worker traffic", () => {
     expect(requests).toBeLessThan(478521 * 0.06);
     expect(gate.counters.emptyClaims).toBe(Object.values(claims).reduce((a, b) => a + b, 0));
     expect(gate.counters.workClaims).toBe(0);
-  });
+    // Five queues exercise a full day of timers; CI runs all workspace suites
+    // concurrently. Keep the entire simulation and traffic assertions intact.
+  }, 20_000);
 
   it("wakes new work within five seconds after long idle and drains without waiting", async () => {
     vi.useFakeTimers(); vi.setSystemTime(1_000_000);
     let hasWork = false;
-    const gate = new QueueWakeup(async () => ({ media: false, studio: hasWork, dynamic: false }), { random: () => 0.5 });
+    const gate = new QueueWakeup(async () => ({ media: false, studio: hasWork, dynamic: false, published: false, maintenance: false }), { random: () => 0.5 });
     const controller = new AbortController();
     let pickedUpAt = 0;
     const loop = (async () => {

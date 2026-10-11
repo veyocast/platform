@@ -7,6 +7,7 @@ import {
   mapSportlinkTeamMembers,
   matchSportlinkBirthdays,
   normalizeBirthdayImportRows,
+  normalizeSportlinkBirthdays,
   normalizeSportlinkPersonName,
   parseBirthdayImportFile,
   parseSportlinkBirthdayDate
@@ -19,6 +20,8 @@ describe("Sportlink birthday contract", () => {
     expect(parseSportlinkBirthdayDate("15 mei", { now })?.nextOccurrence)
       .toBe("2026-05-15");
     expect(parseSportlinkBirthdayDate("15-05", { now })?.month).toBe(5);
+    expect(parseSportlinkBirthdayDate("15.05", { now })?.month).toBe(5);
+    expect(parseSportlinkBirthdayDate("15.05.2012", { now })?.day).toBe(15);
     expect(parseSportlinkBirthdayDate("2026-05-15T00:00:00", { now })?.day).toBe(15);
     expect(parseSportlinkBirthdayDate("20260515", { now })?.day).toBe(15);
     expect(parseSportlinkBirthdayDate("30 aug", { now })?.month).toBe(8);
@@ -69,6 +72,43 @@ describe("Sportlink birthday contract", () => {
     expect(mapSportlinkBirthdays(rows, { maxDays: 21, now }).map((entry) => entry.displayName))
       .toEqual(["Persoon 1", "Persoon 7", "Persoon 14", "Persoon 21"]);
   });
+
+  it("distinguishes valid out-of-window records from normalization failures", () => {
+    const response = normalizeSportlinkBirthdays([
+      { verjaardag: "9 mei", volledigenaam: "Gisteren" },
+      { verjaardag: "1 juni", volledigenaam: "Buiten venster" },
+      { verjaardag: "31 mei", volledigenaam: "Laatste dag" },
+      { verjaardag: "42 mei", volledigenaam: "Ongeldige datum" },
+      { verjaardag: "15 mei" },
+      "ongeldig record"
+    ], { maxDays: 21, now });
+    expect(response).toMatchObject({
+      birthdays: [{ displayName: "Laatste dag", nextOccurrence: "2026-05-31" }],
+      invalidCount: 3,
+      outOfWindowCount: 2,
+      recordCount: 6,
+      validCount: 3
+    });
+    expect(response.birthdays).toHaveLength(1);
+  });
+
+  it.each([[[]], [{ records: [] }], [{ data: [] }]])(
+    "recognizes an explicit empty response: %j", (payload) => {
+      expect(normalizeSportlinkBirthdays(payload, { now })).toEqual({
+        birthdays: [], invalidCount: 0, outOfWindowCount: 0,
+        recordCount: 0, validCount: 0
+      });
+    }
+  );
+
+  it.each([[{}], [{ records: {} }], [null], ["unknown"], [["unknown"]]])(
+    "retains invalid response diagnostics instead of treating %j as empty", (payload) => {
+      expect(normalizeSportlinkBirthdays(payload, { now })).toEqual({
+        birthdays: [], invalidCount: 1, outOfWindowCount: 0,
+        recordCount: 1, validCount: 0
+      });
+    }
+  );
 });
 
 describe("Sportlink birthday identity matching", () => {

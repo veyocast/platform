@@ -21,6 +21,13 @@ import {
 } from "./actions";
 import { BirthdayIntegrationPanel } from "./birthday-integration-panel";
 import { SportlinkSyncRefresh } from "./sportlink-sync-refresh";
+import {
+  loadLatestSportlinkRuns,
+  safeSportlinkErrorCode,
+  sportlinkConnectionStatus,
+  sportlinkDatasetStatus,
+  sportlinkSyncFailureCopy
+} from "./sportlink-status";
 
 type Props = { searchParams: Promise<{ fout?: string; succes?: string }> };
 
@@ -30,12 +37,14 @@ export default async function SportlinkPage({ searchParams }: Props) {
   const data = session.isLive ? await loadConnection(session.tenantId!) : null;
   const connection = data?.connection ?? null;
   const policies = data?.policies ?? [];
+  const now = Date.now();
+  const connectionHealth = sportlinkConnectionStatus(connection, policies, now, data?.policiesUnavailable);
   const formatDate = (value: string | null) =>
     formatTenantDateTime(value, session.timezoneName);
   const canManage = session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.data_source.manage");
   const isSyncPending = policies.some((policy) =>
-    policy.last_run_status === "running" ||
+    policy.last_run_status === "running" || policy.last_run_status === "queued" ||
     (
       policy.enabled &&
       !policy.last_success_at &&
@@ -46,7 +55,7 @@ export default async function SportlinkPage({ searchParams }: Props) {
     <SportlinkSyncRefresh active={isSyncPending} />
     <PageHeader
       actions={<Button asChild variant="ghost"><Link href="/dashboard/data-sources">Alle databronnen</Link></Button>}
-      description="Sportlink wordt uitsluitend server-side opgehaald, geminimaliseerd en als veilige immutable Player-snapshot gepubliceerd."
+      description="Sportlinkgegevens worden server-side opgeslagen. Gepubliceerde schermen verversen vanuit deze gegevens; de laatste goede inhoud blijft beschikbaar."
       eyebrow="Databronnen"
       title="Sportlink Club.Dataservice"
     />
@@ -55,12 +64,7 @@ export default async function SportlinkPage({ searchParams }: Props) {
     </p> : null}
     {params.succes ? <p className="notice notice--success" role="status">{params.succes}</p> : null}
     <SummaryStrip items={[
-      { label: "Status", value: connection
-        ? connection.last_success_at
-          ? "Gesynchroniseerd"
-          : "Wacht op eerste sync"
-        : "Niet verbonden",
-        tone: connection?.last_success_at ? "success" : "warning" },
+      { label: "Status", value: connectionHealth.label, tone: connectionHealth.tone },
       { label: "Club", value: connection?.detected_club_name ?? "Nog onbekend" },
       { label: "Laatste geslaagde sync",
         value: formatDate(connection?.last_success_at ?? null) }
@@ -68,8 +72,8 @@ export default async function SportlinkPage({ searchParams }: Props) {
     {connection ? <section className="workspace-section">
       <div className={styles.card}><div className={styles.cardBody}>
         <div className={styles.cardTop}><Database aria-hidden="true" />
-          <StatusPill label={connection.status === "active" ? "Actief" : "Aandacht nodig"}
-            tone={connection.status === "active" ? "success" : "warning"} /></div>
+          <StatusPill label={connectionHealth.kind === "ready" ? "Actief" : connectionHealth.label}
+            tone={connectionHealth.tone} /></div>
         <h2>{connection.detected_club_name}</h2>
         <p className={styles.muted}>Client ID ·•••• {connection.client_id_suffix}</p>
         {!connection.last_success_at ? (
@@ -82,8 +86,7 @@ export default async function SportlinkPage({ searchParams }: Props) {
         {connection.last_error_code ? (
           <div className="notice notice--critical" role="alert">
             <strong>De laatste synchronisatie is mislukt.</strong>{" "}
-            {syncFailureCopy(connection.last_error_code)} De laatste goede
-            inhoud blijft behouden; start de synchronisatie opnieuw.
+            {sportlinkSyncFailureCopy(connection.last_error_code)}
             <TechnicalErrorCode code={connection.last_error_code} />
           </div>
         ) : null}
@@ -119,8 +122,8 @@ export default async function SportlinkPage({ searchParams }: Props) {
               <div className={styles.cardTop}>
                 <h3 className={styles.cardTitle}>{datasetLabel(policy.dataset_group)}</h3>
                 <StatusPill
-                  label={datasetStatus(policy).label}
-                  tone={datasetStatus(policy).tone}
+                  label={sportlinkDatasetStatus(policy, now).label}
+                  tone={sportlinkDatasetStatus(policy, now).tone}
                 />
               </div>
               <input name="connectionId" type="hidden" value={connection.id} />
@@ -159,12 +162,26 @@ export default async function SportlinkPage({ searchParams }: Props) {
               <p className={styles.muted}>
                 Volgende poging · {formatDate(policy.next_sync_at)}
               </p>
-              {policy.last_run_status === "failed" && policy.last_error_code ? (
+              {sportlinkDatasetStatus(policy, now).kind === "failed" ? (
                 <div className="notice notice--critical" role="alert">
                   <strong>Laatste poging mislukt.</strong>{" "}
-                  {syncFailureCopy(policy.last_error_code)}
-                  <TechnicalErrorCode code={policy.last_error_code} />
+                  {sportlinkSyncFailureCopy(policy.last_error_code)}
+                  <TechnicalErrorCode code={policy.last_error_code ?? "SPORTLINK_SYNC_FAILED"} />
                 </div>
+              ) : null}
+              {sportlinkDatasetStatus(policy, now).kind === "stale" ? (
+                <p className="notice notice--warning" role="status">
+                  <strong>Gegevens zijn verouderd.</strong>{" "}
+                  Deze dataset is niet op tijd ververst. De laatste goede inhoud blijft beschikbaar;
+                  start de synchronisatie opnieuw en controleer daarna de laatste geslaagde sync.
+                </p>
+              ) : null}
+              {sportlinkDatasetStatus(policy, now).kind === "unknown" ? (
+                <p className="notice notice--warning" role="status">
+                  <strong>De synchronisatiestatus kon niet worden bevestigd.</strong>{" "}
+                  De laatste goede inhoud blijft beschikbaar. Ververs deze pagina;
+                  blijft de status onbekend, neem dan contact op met de beheerder.
+                </p>
               ) : null}
               {canManage ? <Button size="sm" type="submit" variant="secondary">Beleid opslaan</Button> : null}
             </div>
@@ -190,44 +207,33 @@ async function loadConnection(tenantId: string) {
     .select("id,status,detected_club_name,client_id_suffix,last_tested_at,last_success_at,last_error_code,privacy_birthdays_enabled")
     .eq("tenant_id", tenantId).neq("status", "revoked").maybeSingle();
   if (!result.data) return null;
-  const [policiesResult, runsResult, birthdayStatusResult, birthdayConflictsResult, birthdayMembersResult, birthdayImportsResult] = await Promise.all([
+  const [policiesResult, birthdayStatusResult, birthdayConflictsResult, birthdayMembersResult, birthdayImportsResult] = await Promise.all([
     supabase.from("sportlink_sync_policies")
     .select("id,dataset_group,frequency,enabled,next_sync_at,last_success_at")
-    .eq("connection_id", result.data.id).order("dataset_group"),
-    supabase.from("sportlink_sync_runs")
-      .select("dataset_group,status,error_code,started_at")
-      .eq("connection_id", result.data.id)
-      .order("started_at", { ascending: false })
-      .limit(100)
-    ,
+    .eq("tenant_id", tenantId).eq("connection_id", result.data.id).order("dataset_group"),
     supabase.rpc("get_sportlink_birthday_status_v1", { p_connection_id: result.data.id }),
     supabase.from("sportlink_birthdays").select("id,display_name,normalized_name").eq("tenant_id", tenantId).eq("connection_id", result.data.id).eq("active", true).eq("match_status", "ambiguous").order("display_name").limit(100),
     supabase.from("sportlink_team_members").select("id,display_name,normalized_name,role,team_assignments").eq("tenant_id", tenantId).eq("connection_id", result.data.id).eq("active", true).order("display_name").limit(500),
     supabase.from("sportlink_birthday_imports").select("id,source_file_name,status,valid_count,invalid_count,duplicate_count,conflict_count,created_at").eq("tenant_id", tenantId).eq("connection_id", result.data.id).order("created_at", { ascending: false }).limit(10)
   ]);
-  const latestRunByGroup = new Map<string, {
-    errorCode: string | null;
-    status: string;
-  }>();
-  for (const run of runsResult.data ?? []) {
-    if (latestRunByGroup.has(run.dataset_group)) continue;
-    latestRunByGroup.set(run.dataset_group, {
-      errorCode: run.error_code,
-      status: run.status
-    });
-  }
+  const latestRunByGroup = await loadLatestSportlinkRuns(
+    supabase, tenantId, result.data.id,
+    (policiesResult.data ?? []).map((policy) => policy.dataset_group)
+  );
   return {
     birthdayConflicts: birthdayConflictsResult.data ?? [],
     birthdayImports: birthdayImportsResult.data ?? [],
     birthdayMembers: birthdayMembersResult.data ?? [],
     birthdayStatus: birthdayStatus(birthdayStatusResult.data),
     connection: result.data,
+    policiesUnavailable: Boolean(policiesResult.error),
     policies: (policiesResult.data ?? []).map((policy) => {
       const latestRun = latestRunByGroup.get(policy.dataset_group);
       return {
         ...policy,
         last_error_code: latestRun?.errorCode ?? null,
-        last_run_status: latestRun?.status ?? null
+        last_run_status: latestRun?.status ?? null,
+        run_status_unavailable: latestRun?.unavailable ?? false
       };
     })
   };
@@ -284,64 +290,11 @@ function datasetLabel(value: string) {
   return labels[value] ?? value;
 }
 
-function datasetStatus(policy: {
-  enabled: boolean;
-  last_run_status: string | null;
-  last_success_at: string | null;
-}) {
-  if (policy.last_run_status === "running") {
-    return { label: "Bezig", tone: "warning" as const };
-  }
-  if (policy.last_run_status === "failed") {
-    return { label: "Mislukt", tone: "critical" as const };
-  }
-  if (policy.last_success_at) {
-    return { label: "Gereed", tone: "success" as const };
-  }
-  if (policy.enabled) {
-    return { label: "Ingepland", tone: "warning" as const };
-  }
-  return { label: "Gepauzeerd", tone: "neutral" as const };
-}
-
-function syncFailureCopy(code: string) {
-  const copy: Record<string, string> = {
-    SPORTLINK_ARGUMENT_INVALID:
-      "Een providerfilter viel buiten het ondersteunde contract.",
-    SPORTLINK_CLIENT_ID_INVALID:
-      "De opgeslagen Client ID wordt niet meer door Sportlink geaccepteerd.",
-    SPORTLINK_CONDITION_ERROR:
-      "Deze selectie is op dit moment niet beschikbaar bij Sportlink.",
-    SPORTLINK_CONFIGURATION_UNAVAILABLE:
-      "De serverconfiguratie voor de versleutelde koppeling ontbreekt.",
-    SPORTLINK_NETWORK_ERROR:
-      "Sportlink was tijdelijk niet bereikbaar.",
-    SPORTLINK_RATE_LIMITED:
-      "Sportlink vraagt tijdelijk om minder aanvragen.",
-    SPORTLINK_REQUIRED_ARGUMENT_MISSING:
-      "Sportlink miste een benodigde competitiecode.",
-    SPORTLINK_SCOPE_INSUFFICIENT:
-      "De Client ID heeft onvoldoende rechten voor deze dataset.",
-    SPORTLINK_SERVER_ERROR:
-      "Sportlink meldde tijdelijk een providerstoring.",
-    SPORTLINK_SYNC_INTERNAL_ERROR:
-      "De opgehaalde gegevens konden niet in de database worden afgerond.",
-    SPORTLINK_TIMEOUT:
-      "Sportlink reageerde niet binnen de veilige tijdslimiet.",
-    SPORTLINK_WORKER_LEASE_EXPIRED:
-      "De worker werd onderbroken; de dataset is automatisch opnieuw ingepland.",
-    SPORTLINK_WORKER_LEASE_LOST:
-      "Een andere worker heeft de verlopen synchronisatie veilig overgenomen."
-  };
-  return copy[code] ??
-    "De dataset kon deze keer niet veilig worden bijgewerkt.";
-}
-
 function TechnicalErrorCode({ code }: { code: string }) {
   return (
     <details className={styles.technicalDetails}>
       <summary>Technische code</summary>
-      <code>{code}</code>
+      <code>{safeSportlinkErrorCode(code)}</code>
     </details>
   );
 }

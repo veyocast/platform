@@ -10,7 +10,11 @@ import { readMediaWorkerConfig } from "./worker-config";
 export function createConfiguredMediaWorkerClient(fetchImplementation: typeof fetch = fetch) {
   const config = readMediaWorkerConfig();
   return createClient(config.supabaseUrl, config.serviceRoleKey, {
-    global: { fetch: fetchImplementation },
+    global: { fetch: (input, init) => {
+      const upstream = init?.signal ?? (input instanceof Request ? input.signal : undefined);
+      return fetchImplementation(input, { ...init,
+        signal: upstream ? AbortSignal.any([upstream, AbortSignal.timeout(30_000)]) : AbortSignal.timeout(30_000) });
+    } },
     auth: { autoRefreshToken: false, persistSession: false }
   });
 }

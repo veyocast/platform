@@ -719,8 +719,8 @@ select is(
     where snapshot.dynamic_slide_id =
       current_setting('test.s145_rss_slide_id')::uuid
   ),
-  '2:2:1',
-  'changed legacy RSS content creates one snapshot for the same runtime version'
+  '1:1:1',
+  'changed legacy RSS content creates no extra immutable snapshots'
 );
 
 select ok(
@@ -734,15 +734,12 @@ select ok(
   )
   and exists (
     select 1
-    from public.dynamic_slide_snapshots snapshot
-    where snapshot.dynamic_slide_id =
-      current_setting('test.s145_rss_slide_id')::uuid
-      and snapshot.id <>
-        current_setting('test.s145_initial_snapshot_id')::uuid
-      and snapshot.snapshot_data_json #>> '{news,articles,0,title}' =
-        'Legacy nieuws is bijgewerkt'
+    from public.dynamic_news_articles article
+    where article.data_source_id = '20000000-0000-4000-8000-000000001451'
+      and article.external_id = 'legacy-article-1'
+      and article.title = 'Legacy nieuws is bijgewerkt'
   ),
-  'the revision queue preserves the old snapshot and freezes the new content'
+  'source completion preserves the frozen snapshot and stores the new normalized content'
 );
 
 set local role authenticated;
@@ -832,7 +829,7 @@ select is(
         '20000000-0000-4000-8000-000000001451'
       and article.external_id = 'legacy-article-1'
   ),
-  '2:draft:0:Bronnieuws wijzigt tijdens een open concept',
+  '1:draft:0:Bronnieuws wijzigt tijdens een open concept',
   'an open v2 draft stays unrendered while the source update is retained'
 );
 

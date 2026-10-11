@@ -12,7 +12,7 @@ import {
   enrichSportlinkStandingForm,
   extractSportlinkRecords,
   fetchSafeRssImage,
-  mapSportlinkBirthdays,
+  normalizeSportlinkBirthdays,
   mapSportlinkActivities,
   mapSportlinkClub,
   mapSportlinkMatches,
@@ -47,6 +47,12 @@ export type ClaimedSportlinkSync = {
 
 export type SportlinkSyncRunResult =
   | { status: "idle" }
+  | {
+      datasetGroup?: undefined;
+      errorCode: "SPORTLINK_SYNC_CLAIM_FAILED";
+      runId?: undefined;
+      status: "failed";
+    }
   | {
       datasetGroup: string;
       errorCode?: string;
@@ -124,9 +130,20 @@ export class SupabaseSportlinkSyncBackend {
   constructor(
     supabaseUrl: string,
     serviceRoleKey: string,
-    client?: RpcClient
+    client?: RpcClient,
+    requestTimeoutMs = 30_000
   ) {
+    const timeoutMs = Number.isFinite(requestTimeoutMs) ? Math.min(30_000, Math.max(1, requestTimeoutMs)) : 30_000;
     this.client = client ?? createClient(supabaseUrl, serviceRoleKey, {
+      global: {
+        fetch(input, init) {
+          const deadline = AbortSignal.timeout(timeoutMs);
+          return fetch(input, {
+            ...init,
+            signal: init?.signal ? AbortSignal.any([init.signal, deadline]) : deadline
+          });
+        }
+      },
       auth: { autoRefreshToken: false, persistSession: false }
     }) as unknown as RpcClient;
   }
@@ -200,11 +217,8 @@ export class SupabaseSportlinkSyncBackend {
     if (!Number.isSafeInteger(readCount) || readCount < 0) {
       throw new Error("sportlink_sync_complete_invalid");
     }
-    // Re-evaluate clock-based arrival windows after every successful provider
-    // observation. The database content hash prevents duplicate snapshots.
-    await this.client.rpc("refresh_sportlink_time_sensitive_slides_v1", {
-      p_connection_id: job.connectionId
-    });
+    // The committed source revision queues published-data refresh, including
+    // clock-based windows. No fallible rendering RPC follows successful ingest.
     return readCount;
   }
 
@@ -249,7 +263,14 @@ export async function runSportlinkSyncOnce({
   lockTimeoutSeconds: number;
   workerId: string;
 }): Promise<SportlinkSyncRunResult> {
-  const job = await backend.claim(workerId, lockTimeoutSeconds);
+  let job: ClaimedSportlinkSync | null;
+  try {
+    job = await backend.claim(workerId, lockTimeoutSeconds);
+  } catch {
+    // A queue/database outage has no owned job to fail. Keep the dispatcher
+    // alive without exposing raw RPC errors or inventing a run identity.
+    return { errorCode: "SPORTLINK_SYNC_CLAIM_FAILED", status: "failed" };
+  }
   if (!job) return { status: "idle" };
 
   let lease: ReturnType<typeof startLeaseHeartbeat> | null = null;
@@ -312,6 +333,8 @@ export async function runSportlinkSyncLoop({
   signal: AbortSignal;
   workerId: string;
 }) {
+  const baseDelay = Number.isFinite(intervalMs) ? Math.min(60_000, Math.max(1_000, intervalMs)) : 15_000;
+  let failures = 0;
   while (!signal.aborted) {
     const result = await runSportlinkSyncOnce({
       backend,
@@ -320,7 +343,10 @@ export async function runSportlinkSyncLoop({
       workerId
     });
     onResult(result);
-    if (result.status === "idle") await abortableDelay(intervalMs, signal);
+    failures = result.status === "failed" ? Math.min(7, failures + 1) : 0;
+    if (result.status === "failed" || result.status === "idle") {
+      await abortableDelay(Math.min(60_000, baseDelay * 2 ** Math.max(0, failures - 1)), signal);
+    }
   }
 }
 
@@ -497,18 +523,19 @@ async function fetchSportlinkBirthdays(
     client.fetchArticle("verjaardagen", { aantaldagen: 21 }),
     client.fetchArticle("teams")
   ]);
-  const birthdays = mapSportlinkBirthdays(birthdayResponse.payload, {
+  const normalization = normalizeSportlinkBirthdays(birthdayResponse.payload, {
     maxDays: 21,
     now: fetchedAt,
     timezone: job.timezone
   });
-  if (birthdayResponse.recordCount > 0 && birthdays.length === 0) {
+  if (normalization.recordCount > 0 && normalization.validCount === 0) {
     throw new SportlinkWorkerError(
       "SPORTLINK_BIRTHDAY_NORMALIZATION_EMPTY",
       "Sportlink leverde verjaardagen, maar geen record kon veilig worden verwerkt. " +
       "De bestaande verjaardagen blijven behouden; controleer het providercontract en synchroniseer opnieuw."
     );
   }
+  const birthdays = normalization.birthdays;
   const teams = mapSportlinkTeams(teamResponse.payload).slice(0, 50);
   const memberAssignments = [];
   for (const team of teams) {
@@ -1153,10 +1180,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 async function abortableDelay(milliseconds: number, signal: AbortSignal) {
   if (signal.aborted) return;
   await new Promise<void>((resolve) => {
-    const timeout = setTimeout(resolve, milliseconds);
-    signal.addEventListener("abort", () => {
+    const timeout = setTimeout(finish, milliseconds);
+    signal.addEventListener("abort", finish, { once: true });
+    function finish() {
       clearTimeout(timeout);
+      signal.removeEventListener("abort", finish);
       resolve();
-    }, { once: true });
+    }
   });
 }

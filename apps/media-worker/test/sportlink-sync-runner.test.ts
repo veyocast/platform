@@ -10,12 +10,14 @@ import {
   enrichSportlinkOwnMatchesWithPoolContexts,
   enrichSportlinkPoolMatches,
   fetchSportlinkDataset,
+  runSportlinkSyncLoop,
   runSportlinkSyncOnce,
   SupabaseSportlinkSyncBackend
 } from "../src/sportlink-sync-runner";
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllGlobals();
 });
 
 describe("Sportlink sync worker", () => {
@@ -377,6 +379,85 @@ describe("Sportlink sync worker", () => {
     );
   });
 
+  it.each([
+    ["explicit empty", []],
+    ["empty wrapper", { records: [] }],
+    ["valid outside window", [{ verjaardag: "20 nov", volledigenaam: "Fixture" }]],
+    ["valid expired provider cache", [{ verjaardag: "10 okt", volledigenaam: "Fixture" }]],
+    ["mixed valid outside window and invalid", [
+      { verjaardag: "20 nov", volledigenaam: "Fixture" },
+      { verjaardag: "42 okt", volledigenaam: "Invalid fixture" }
+    ]]
+  ])("completes a safe empty birthday selection for %s", async (_label, payload) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-11T10:00:00.000Z"));
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      return new Response(JSON.stringify(url.pathname === "/verjaardagen" ? payload : []), {
+        headers: { "content-type": "application/json" }
+      });
+    });
+    const job = {
+      connectionId: "connection", dataSourceId: "source", datasetGroup: "public_people",
+      encryptedClientId: "unused", encryptionIv: "unused", encryptionTag: "unused",
+      runId: "run", tenantId: "tenant", timezone: "Europe/Amsterdam"
+    };
+    const complete = vi.fn().mockResolvedValue(0);
+    const fail = vi.fn();
+    const client = new SportlinkClient("test-client", { fetchImpl, maxAttempts: 1 });
+    await expect(runSportlinkSyncOnce({
+      backend: {
+        claim: vi.fn().mockResolvedValue(job), complete, fail,
+        renew: vi.fn().mockResolvedValue(true)
+      },
+      encryptionKey: "x".repeat(32),
+      executeDataset: () => fetchSportlinkDataset("public_people", client, job),
+      lockTimeoutSeconds: 900,
+      workerId: "worker:sportlink"
+    })).resolves.toMatchObject({ status: "completed", readCount: 0 });
+    expect(complete).toHaveBeenCalledWith(job, "worker:sportlink", expect.objectContaining({
+      birthdays: [], birthdayFetchedAt: "2026-10-11T10:00:00.000Z"
+    }));
+    expect(fail).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["unknown object", {}],
+    ["unrecognized null", null],
+    ["invalid entries", ["unknown"]],
+    ["completely invalid dates", [{ verjaardag: "42 okt", volledigenaam: "Fixture" }]]
+  ])("preserves last-known-good birthdays for %s", async (_label, payload) => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      return new Response(JSON.stringify(url.pathname === "/verjaardagen" ? payload : []), {
+        headers: { "content-type": "application/json" }
+      });
+    });
+    const client = new SportlinkClient("test-client", { fetchImpl, maxAttempts: 1 });
+    const job = {
+      connectionId: "connection", dataSourceId: "source", datasetGroup: "public_people",
+      encryptedClientId: "unused", encryptionIv: "unused", encryptionTag: "unused",
+      runId: "run", tenantId: "tenant", timezone: "Europe/Amsterdam"
+    };
+    const complete = vi.fn();
+    const fail = vi.fn().mockResolvedValue(undefined);
+    await expect(runSportlinkSyncOnce({
+      backend: {
+        claim: vi.fn().mockResolvedValue(job), complete, fail,
+        renew: vi.fn().mockResolvedValue(true)
+      },
+      encryptionKey: "x".repeat(32),
+      executeDataset: () => fetchSportlinkDataset("public_people", client, job),
+      lockTimeoutSeconds: 900,
+      workerId: "worker:sportlink"
+    })).resolves.toMatchObject({
+      status: "failed", errorCode: "SPORTLINK_BIRTHDAY_NORMALIZATION_EMPTY"
+    });
+    expect(complete).not.toHaveBeenCalled();
+    expect(fail).toHaveBeenCalledWith(job, "worker:sportlink",
+      "SPORTLINK_BIRTHDAY_NORMALIZATION_EMPTY", expect.stringContaining("bestaande verjaardagen"));
+  });
+
   it("derives bounded club pools without an incomplete team-pool request", () => {
     expect(collectSportlinkPoolIds(
       [
@@ -720,8 +801,96 @@ describe("Sportlink sync worker", () => {
     expect(rpc).toHaveBeenCalledTimes(1);
   });
 
+  it("returns a safe retryable failure when the claim RPC is unavailable", async () => {
+    const claim = vi.fn().mockRejectedValue(new Error("private provider URL and token"));
+    const fail = vi.fn();
+    await expect(runSportlinkSyncOnce({
+      backend: { claim, complete: vi.fn(), fail, renew: vi.fn() },
+      encryptionKey: "x".repeat(32), lockTimeoutSeconds: 900, workerId: "worker:test"
+    })).resolves.toEqual({ status: "failed", errorCode: "SPORTLINK_SYNC_CLAIM_FAILED" });
+    expect(fail).not.toHaveBeenCalled();
+  });
+
+  it("aborts an unresponsive Supabase claim at the transport deadline", async () => {
+    let requestSignal: AbortSignal | null | undefined;
+    const fetchMock = vi.fn((_input: unknown, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      requestSignal = init?.signal;
+      requestSignal?.addEventListener("abort", () => reject(new DOMException("Request timed out", "AbortError")), { once: true });
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only", undefined, 10);
+    await expect(runSportlinkSyncOnce({
+      backend, encryptionKey: "x".repeat(32), lockTimeoutSeconds: 900, workerId: "worker:test"
+    })).resolves.toEqual({ status: "failed", errorCode: "SPORTLINK_SYNC_CLAIM_FAILED" });
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(requestSignal?.aborted).toBe(true);
+  });
+
+  it("recovers from claim outages with bounded backoff and an immediate abort", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const claim = vi.fn().mockRejectedValue(new Error("database timeout"));
+    const onResult = vi.fn();
+    const execution = runSportlinkSyncLoop({
+      backend: { claim, complete: vi.fn(), fail: vi.fn(), renew: vi.fn() },
+      encryptionKey: "x".repeat(32), intervalMs: 15_000,
+      lockTimeoutSeconds: 900, onResult, signal: controller.signal, workerId: "worker:test"
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(claim).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(14_999);
+    expect(claim).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(claim).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(29_999);
+    expect(claim).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(claim).toHaveBeenCalledTimes(3);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(claim).toHaveBeenCalledTimes(4);
+    claim.mockResolvedValue(null);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(claim).toHaveBeenCalledTimes(5);
+    expect(onResult).toHaveBeenLastCalledWith({ status: "idle" });
+    controller.abort();
+    await expect(execution).resolves.toBeUndefined();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("continues dispatching when recording a dataset failure is unavailable", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const job = {
+      connectionId: "connection", dataSourceId: "source", datasetGroup: "matches",
+      encryptedClientId: "unused", encryptionIv: "unused", encryptionTag: "unused",
+      runId: "run", tenantId: "tenant", timezone: "Europe/Amsterdam"
+    };
+    const claim = vi.fn().mockResolvedValueOnce(job).mockResolvedValue(null);
+    const fail = vi.fn().mockRejectedValue(new Error("database unavailable during failure recording"));
+    const onResult = vi.fn((result: { status: string }) => {
+      if (result.status === "idle") controller.abort();
+    });
+    const execution = runSportlinkSyncLoop({
+      backend: { claim, complete: vi.fn(), fail, renew: vi.fn() },
+      encryptionKey: null, intervalMs: 1_000, lockTimeoutSeconds: 900,
+      onResult, signal: controller.signal, workerId: "worker:test"
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(fail).toHaveBeenCalledOnce();
+    expect(onResult).toHaveBeenCalledWith(expect.objectContaining({
+      status: "failed", errorCode: "SPORTLINK_CONFIGURATION_UNAVAILABLE", runId: job.runId
+    }));
+    expect(claim).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(1_000);
+    await expect(execution).resolves.toBeUndefined();
+    expect(claim).toHaveBeenCalledTimes(2);
+    expect(onResult).toHaveBeenLastCalledWith({ status: "idle" });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it.each([
     ["23505", "SPORTLINK_SYNC_COMPLETE_23505"],
+    ["57014", "SPORTLINK_SYNC_COMPLETE_57014"],
     ["unexpected\nprivate details", "SPORTLINK_SYNC_COMPLETE_INVALID_RESULT"]
   ])("retains a bounded completion diagnostic for %s without raw errors", async (code, expectedCode) => {
     const rpc = vi.fn().mockResolvedValue({ data: null, error: { code } });
@@ -850,9 +1019,27 @@ describe("Sportlink sync worker", () => {
       p_run_id: "40000000-0000-4000-8000-000000000001",
       p_team_members: [], p_worker_id: "worker:sportlink"
     });
-    expect(rpc).toHaveBeenNthCalledWith(2, "refresh_sportlink_time_sensitive_slides_v1", {
-      p_connection_id: "20000000-0000-4000-8000-000000000001"
+    expect(rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps successful ingest successful without a fallible post-commit render RPC", async () => {
+    const rpc = vi.fn(async (name: string) => {
+      if (name === "refresh_sportlink_time_sensitive_slides_v1") {
+        throw new Error("obsolete refresh timed out after ingest committed");
+      }
+      return { data: { readCount: 0 }, error: null };
     });
+    const backend = new SupabaseSportlinkSyncBackend("https://project.supabase.co", "test-only", { rpc });
+    await expect(backend.complete({
+      connectionId: "connection", dataSourceId: "source", datasetGroup: "matches",
+      encryptedClientId: "unused", encryptionIv: "unused", encryptionTag: "unused",
+      runId: "run", tenantId: "tenant", timezone: "Europe/Amsterdam"
+    }, "worker:test", {
+      activities: [], birthdayFetchedAt: null, birthdays: [], club: null, clubLogo: null,
+      matches: [], personPhotos: [], standings: [], teamMembers: [], teamLogos: [], teams: []
+    })).resolves.toBe(0);
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith("complete_sportlink_sync_v4", expect.any(Object));
   });
 
   it("renews the lease while a provider dataset is still being fetched", async () => {
