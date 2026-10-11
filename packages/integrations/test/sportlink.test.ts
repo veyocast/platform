@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   SportlinkClient,
+  enrichSportlinkStandingForm,
   mapSportlinkClub,
   mapSportlinkMatches,
   mapSportlinkStandings,
@@ -138,6 +139,98 @@ describe("Sportlink server-only adapter", () => {
     ]) {
       expect(mapSportlinkStandings(payload, "100", "1", null, null, mapSportlinkTeams(rawCatalog)).rows[0]?.externalId).toBe(fallback);
     }
+  });
+
+  it("derives both teams' last three pool results despite synthetic standing IDs", () => {
+    const standing = mapSportlinkStandings([
+      { team: "Testclub 1", teamcode: 10 }, { team: "Bezoekers 1" }
+    ], "701");
+    const results = mapSportlinkMatches([
+      { wedstrijdcode: 4, wedstrijddatum: "2026-09-26", uitslag: "3-1" },
+      { wedstrijdcode: 1, wedstrijddatum: "2026-09-05", uitslag: "2-0" },
+      { wedstrijdcode: 3, wedstrijddatum: "2026-09-19", uitslag: "1-1" },
+      { wedstrijdcode: 2, wedstrijddatum: "2026-09-12", uitslag: "0-2" },
+      { wedstrijdcode: 4, wedstrijddatum: "2026-09-26", uitslag: "3-1" }
+    ].map((match) => ({
+      ...match, poule: "A", poulecode: 701,
+      thuisteam: "Testclub 1", thuisteamid: 10,
+      uitteam: "Bezoekers 1", uitteamid: 20
+    })), "results");
+    const enriched = enrichSportlinkStandingForm(standing, results, new Date("2026-10-10"));
+    expect(enriched.rows.map((row) => row.form)).toEqual([
+      ["loss", "draw", "win"], ["win", "draw", "loss"]
+    ]);
+    expect(enriched.rows[1]?.externalId).toBe(standing.rows[1]?.externalId);
+    expect(standing.rows.every((row) => row.form.length === 0)).toBe(true);
+  });
+
+  it("keeps provider form and handles a team moving between home and away", () => {
+    const standing = mapSportlinkStandings([
+      { team: "Testclub 1", vorm: "WGV" }, { team: "Bezoekers 1" },
+      { team: "Zonder uitslagen" }
+    ], "701");
+    const results = mapSportlinkMatches([
+      { wedstrijdcode: 1, wedstrijddatum: "2026-09-05", thuisteam: "Testclub 1", uitteam: "Bezoekers 1", uitslag: "2-0" },
+      { wedstrijdcode: 2, wedstrijddatum: "2026-09-12", thuisteam: "Bezoekers 1", uitteam: "Testclub 1", uitslag: "3-0" }
+    ].map((match) => ({ ...match, poule: "A", poulecode: 701 })), "results");
+    expect(enrichSportlinkStandingForm(standing, results, new Date("2026-10-10")).rows.map((row) => row.form)).toEqual([
+      ["win", "draw", "loss"], ["loss", "win"], []
+    ]);
+  });
+
+  it("ignores unknown scores, unfinished, cancelled, invalid-date and future results", () => {
+    const standing = mapSportlinkStandings([{ team: "Testclub 1" }], "701");
+    const [result] = mapSportlinkMatches([{
+      wedstrijdcode: 1, wedstrijddatum: "2026-09-05", thuisteam: "Testclub 1",
+      uitteam: "Bezoekers 1", uitslag: "0-0", poule: "A", poulecode: 701
+    }], "results");
+    const invalid = [
+      { ...result!, externalId: "2", homeTeam: { ...result!.homeTeam, score: null } },
+      { ...result!, externalId: "3", status: "scheduled" as const },
+      { ...result!, externalId: "4", status: "cancelled" as const },
+      { ...result!, externalId: "5", status: "in_progress" as const },
+      { ...result!, externalId: "6", startsAt: "2026-11-01T12:00:00.000Z" },
+      { ...result!, externalId: "7", startsAt: "invalid" },
+      { ...result!, externalId: "8", awayTeam: { ...result!.awayTeam, score: -1 } }
+    ];
+    expect(enrichSportlinkStandingForm(standing, [result!, ...invalid], new Date("2026-10-10")).rows[0]?.form).toEqual(["draw"]);
+  });
+
+  it("isolates results by pool, phase, season and competition type", () => {
+    const standing = mapSportlinkStandings([{ team: "Testclub 1" }], "701", "A", null, {
+      externalId: "competition", name: "Competitie", period: "Fase 1", season: "2026/2027", type: "Competitie"
+    });
+    const [result] = mapSportlinkMatches([{
+      wedstrijdcode: 1, wedstrijddatum: "2026-09-05", thuisteam: "Testclub 1",
+      uitteam: "Bezoekers 1", uitslag: "1-0", poule: "A", poulecode: 701
+    }], "results");
+    const invalid = [
+      { ...result!, pool: { ...result!.pool!, externalId: "702" } },
+      { ...result!, pool: null },
+      ...[{ period: "Fase 2" }, { season: "2025/2026" }, { type: "Beker" }].map((context) => ({
+        ...result!, competition: { ...standing.competition!, ...context }
+      }))
+    ];
+    expect(enrichSportlinkStandingForm(standing, invalid, new Date("2026-10-10")).rows[0]?.form).toEqual([]);
+  });
+
+  it("fails closed for ambiguous names and conflicting explicit team identities", () => {
+    const [result] = mapSportlinkMatches([{
+      wedstrijdcode: 1, wedstrijddatum: "2026-09-05", thuisteam: "Testclub 1", thuisteamid: 10,
+      uitteam: "Bezoekers 1", uitteamid: 20, uitslag: "1-0", poule: "A", poulecode: 701
+    }], "results");
+    const now = new Date("2026-10-10");
+    const explicit = mapSportlinkStandings([{ team: "Testclub 1", teamcode: 99 }], "701");
+    expect(enrichSportlinkStandingForm(explicit, [result!], now).rows[0]?.form).toEqual([]);
+    const duplicateNames = mapSportlinkStandings([{ team: "Testclub 1" }, { team: "Testclub 1" }], "701");
+    expect(enrichSportlinkStandingForm(duplicateNames, [result!], now).rows.every((row) => row.form.length === 0)).toBe(true);
+    const synthetic = mapSportlinkStandings([{ team: "Testclub 1" }], "701");
+    const conflicting = { ...result!, externalId: "2", homeTeam: { ...result!.homeTeam, externalId: "99" } };
+    expect(enrichSportlinkStandingForm(synthetic, [result!, conflicting], now).rows[0]?.form).toEqual([]);
+    const renamed = { ...result!, homeTeam: { ...result!.homeTeam, name: "Andere naam" } };
+    expect(enrichSportlinkStandingForm(synthetic, [renamed], now).rows[0]?.form).toEqual([]);
+    const exactId = mapSportlinkStandings([{ team: "Testclub 1", teamcode: 10 }], "701");
+    expect(enrichSportlinkStandingForm(exactId, [renamed], now).rows[0]?.form).toEqual(["win"]);
   });
 
   it("merges one Sportlink team across competition, cup and phase rows", () => {

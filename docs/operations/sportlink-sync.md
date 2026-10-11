@@ -41,6 +41,29 @@ content-addressed tenant media asset. The corresponding RPC is service-role
 only and validates tenant path, hash, MIME type, dimensions and file size
 before linking it to `sports_clubs`.
 
+Standing form is enriched during the competitions observation for every pool
+team, including opponents. Provider-supplied form takes precedence. If any row
+lacks form, the worker reads the existing official `pouleuitslagen` article for
+both own and other fixtures over a bounded 90-day window. It deduplicates
+completed matches with published scores and freezes each team's latest three
+results in chronological order. These additional results are used only for
+standing form; they do not enlarge match slides or the selectable team catalog.
+
+Form matching stays within the current connection batch and exact pool. A
+provider team ID is authoritative. The existing synthetic standing name ID may
+match an exact unique name only if the pool results contain at most one real
+ID for that name. Conflicting explicit IDs, ambiguous names, different pools,
+conflicting phase/season/type, cancelled fixtures, unknown scores and future
+fixtures are excluded. Fewer than three available results produce fewer form
+markers; missing results never become invented wins, draws or losses.
+
+No result calls are added when all rows already carry provider form or the
+standing is empty. An unavailable/unauthorized result capability retains the
+standing and its existing snapshot fallback. A transport/provider failure
+aborts the observation so the last complete normalized dataset remains intact.
+Existing immutable snapshots and releases are not rewritten; a successful
+normal observation feeds the existing live-data/snapshot refresh pipeline.
+
 Dependency order:
 
 1. club and capabilities;

@@ -9,6 +9,7 @@ import {
   SportlinkClient,
   SportlinkClientError,
   decryptSportlinkClientId,
+  enrichSportlinkStandingForm,
   extractSportlinkRecords,
   fetchSafeRssImage,
   mapSportlinkBirthdays,
@@ -732,14 +733,40 @@ async function fetchStandings(
       const response = await client.fetchArticle("poulestand", {
         poulecode: context.poolExternalId
       });
-      standings.push(mapSportlinkStandings(
+      const standing = mapSportlinkStandings(
         response.payload,
         context.poolExternalId,
         context.poolName,
         null,
         context.competition,
         ownTeams
-      ));
+      );
+      const results: SportMatch[] = [];
+      if (standing.rows.some((row) => row.form.length === 0)) {
+        for (const eigenwedstrijden of ["NEE", "JA"] as const) {
+          try {
+            const response = await client.fetchArticle("pouleuitslagen", {
+              aantaldagen: 90,
+              eigenwedstrijden,
+              poulecode: context.poolExternalId
+            });
+            // The requested pool is authoritative when the feed omits it.
+            // Discard an explicit conflicting pool before filling context.
+            const poolResults = extractSportlinkRecords(response.payload).filter((row) =>
+              !scalar(row.poulecode) || scalar(row.poulecode) === context.poolExternalId
+            );
+            results.push(...enrichSportlinkPoolMatches(
+              mapSportlinkMatches(poolResults, "results"), context
+            ));
+          } catch (error) {
+            if (error instanceof SportlinkClientError && [
+              "SPORTLINK_CONDITION_ERROR", "SPORTLINK_SCOPE_INSUFFICIENT"
+            ].includes(error.code)) continue;
+            throw error;
+          }
+        }
+      }
+      standings.push(enrichSportlinkStandingForm(standing, results));
     } catch (error) {
       if (
         error instanceof SportlinkClientError &&
