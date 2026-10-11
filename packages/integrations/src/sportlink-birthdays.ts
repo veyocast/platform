@@ -28,6 +28,13 @@ export type SportlinkBirthday = {
   normalizedName: string;
   rawDate: string;
 };
+export type SportlinkBirthdayNormalization = {
+  birthdays: SportlinkBirthday[];
+  invalidCount: number;
+  outOfWindowCount: number;
+  recordCount: number;
+  validCount: number;
+};
 export type SportlinkTeamMember = {
   displayName: string;
   externalMemberCode: string | null;
@@ -80,13 +87,12 @@ export function parseSportlinkBirthdayDate(
 ) {
   const raw = scalar(value);
   if (!raw) return null;
-  const normalized = raw.normalize("NFKC").trim().toLocaleLowerCase("nl-NL")
-    .replace(/\./gu, "");
+  const normalized = raw.normalize("NFKC").trim().toLocaleLowerCase("nl-NL");
   let day: number | null = null;
   let month: number | null = null;
   const iso = normalized.match(/^\d{4}-(\d{1,2})-(\d{1,2})(?:[t\s].*)?$/u);
   const dayFirst = normalized.match(/^(\d{1,2})[-/.](\d{1,2})(?:[-/.]\d{2,4})?(?:[t\s].*)?$/u);
-  const textual = normalized.match(/^(\d{1,2})\s+([a-zé]+)(?:\s+\d{2,4})?$/u);
+  const textual = normalized.match(/^(\d{1,2})\s+([a-zé]+)\.?(?:\s+\d{2,4})?$/u);
   const compactIso = normalized.match(/^\d{4}(\d{2})(\d{2})$/u);
   if (iso) {
     month = Number(iso[1]); day = Number(iso[2]);
@@ -107,32 +113,77 @@ export function mapSportlinkBirthdays(
   payload: unknown,
   options: { maxDays?: number; now?: Date; timezone?: string } = {}
 ): SportlinkBirthday[] {
+  return normalizeSportlinkBirthdays(payload, options).birthdays;
+}
+
+export function normalizeSportlinkBirthdays(
+  payload: unknown,
+  options: { maxDays?: number; now?: Date; timezone?: string } = {}
+): SportlinkBirthdayNormalization {
   const now = options.now ?? new Date();
   const timezone = options.timezone ?? "Europe/Amsterdam";
   const maximum = Math.min(21, Math.max(1, Math.trunc(options.maxDays ?? 21)));
   const today = datePartsInTimezone(now, timezone);
   const unique = new Map<string, SportlinkBirthday>();
-  for (const row of extractSportlinkRecords(payload)) {
-    const displayName = scalar(row.volledigenaam ?? row.volledigeNaam ?? row.naam);
+  // Preserve malformed entries in the diagnostic counts. An unknown payload
+  // cannot become a successful empty day by silently filtering every entry.
+  const rows = birthdayResponseRows(payload);
+  let invalidCount = 0;
+  let outOfWindowCount = 0;
+  let validCount = 0;
+  for (const row of rows) {
+    if (typeof row !== "object" || row === null || Array.isArray(row)) {
+      invalidCount += 1;
+      continue;
+    }
+    const fields = row as Record<string, unknown>;
+    const displayName = scalar(fields.volledigenaam ?? fields.volledigeNaam ?? fields.naam);
     const parsed = parseSportlinkBirthdayDate(
-      row.verjaardag ?? row.geboortedatum ?? row.datum,
+      fields.verjaardag ?? fields.geboortedatum ?? fields.datum,
       { now, timezone }
     );
-    if (!displayName || displayName.length > 160 || !parsed) continue;
-    const days = daysBetween(today, dateOnlyParts(parsed.nextOccurrence));
-    if (days < 0 || days > maximum) continue;
+    if (!displayName || displayName.length > 160 || !parsed) {
+      invalidCount += 1;
+      continue;
+    }
     const normalizedName = normalizeSportlinkPersonName(displayName);
-    if (!normalizedName) continue;
+    if (!normalizedName) {
+      invalidCount += 1;
+      continue;
+    }
+    validCount += 1;
+    const days = daysBetween(today, dateOnlyParts(parsed.nextOccurrence));
+    if (days < 0 || days > maximum) {
+      outOfWindowCount += 1;
+      continue;
+    }
     const externalId = stableId("birthday", `${normalizedName}|${parsed.month}|${parsed.day}`);
     unique.set(externalId, {
       day: parsed.day, displayName, externalId, month: parsed.month,
       nextOccurrence: parsed.nextOccurrence, normalizedName, rawDate: parsed.raw
     });
   }
-  return [...unique.values()].sort((left, right) =>
-    left.nextOccurrence.localeCompare(right.nextOccurrence) ||
-    left.displayName.localeCompare(right.displayName, "nl-NL")
-  );
+  return {
+    birthdays: [...unique.values()].sort((left, right) =>
+      left.nextOccurrence.localeCompare(right.nextOccurrence) ||
+      left.displayName.localeCompare(right.displayName, "nl-NL")
+    ),
+    invalidCount,
+    outOfWindowCount,
+    recordCount: rows.length,
+    validCount
+  };
+}
+
+function birthdayResponseRows(payload: unknown): unknown[] {
+  if (Array.isArray(payload)) return payload;
+  if (typeof payload === "object" && payload !== null) {
+    const envelope = payload as Record<string, unknown>;
+    for (const key of ["data", "items", "result", "records"]) {
+      if (Array.isArray(envelope[key])) return envelope[key];
+    }
+  }
+  return [payload];
 }
 
 export function mapSportlinkTeamMembers(

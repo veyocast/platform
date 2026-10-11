@@ -5,10 +5,12 @@ import { VEYOCAST_APPS, getLocalUrl } from "@veyocast/config";
 import { createStructuredLogger } from "@veyocast/observability";
 
 import { readMediaWorkerConfig } from "./worker-config";
-import { QueueWakeup } from "./queue-wakeup";
+import { parseQueueHint, QueueWakeup } from "./queue-wakeup";
+import { PublishedDataRefreshRunner } from "./published-data-refresh-runner";
+import { PublicationVersionPruneRunner } from "./publication-version-prune-runner";
 import { createConfiguredMediaWorkerClient, SupabaseMediaWorkerBackend } from "./worker-backend";
 import { closeServer, createWorkerRuntimeHealth } from "./worker-health";
-import { runWorkerTaskGroup } from "./worker-lifecycle";
+import { runWorkerTaskGroup, superviseWorkerTask } from "./worker-lifecycle";
 import { runWorkerLoop, runWorkerOnce } from "./worker-runner";
 import {
   runScheduleLoop,
@@ -241,7 +243,14 @@ async function main() {
       workerId: config.workerId
     });
     logSportlinkSyncResult(logger, sportlinkResult);
+    const dataClient = createConfiguredMediaWorkerClient();
+    const publishedResult = await new PublishedDataRefreshRunner(dataClient, { workerId: config.workerId }).runOnce();
+    const maintenanceResult = await new PublicationVersionPruneRunner(dataClient).runOnce();
+    logDataWorkResult(logger, "published_data", publishedResult);
+    logDataWorkResult(logger, "version_prune", maintenanceResult);
     if (
+      publishedResult.status === "failed" ||
+      maintenanceResult.status === "failed" ||
       mediaResult.status === "failed" ||
       studioResult.status === "failed" ||
       dynamicResult.status === "failed" ||
@@ -268,15 +277,18 @@ async function main() {
     return response;
   });
   let hintPayloadBytes = 0;
+  const publishedDataRunner = new PublishedDataRefreshRunner(queueClient, { workerId: config.workerId });
+  const versionPruneRunner = new PublicationVersionPruneRunner(queueClient);
   const queueWakeup = new QueueWakeup(async () => {
-    const { data, error } = await queueClient.rpc("get_render_queue_hint_v1", { p_max_attempts: config.maxAttempts })
+    const { data, error } = await queueClient.rpc("get_worker_queue_hint_v2", { p_max_attempts: config.maxAttempts })
       .abortSignal(AbortSignal.timeout(10_000));
-    if (error || !Number.isInteger(data) || data < 0 || data > 7) {
+    const hint = parseQueueHint(data);
+    if (error || !hint) {
       throw Object.assign(new Error("QUEUE_HINT_UNAVAILABLE"), { retryAfterMs: Math.max(0, queueRetryAfterUntil - Date.now()) });
     }
     runtimeHealth.markPoll();
     hintPayloadBytes += Buffer.byteLength(JSON.stringify(data), "utf8");
-    return { media: Boolean(data & 1), studio: Boolean(data & 2), dynamic: Boolean(data & 4) };
+    return hint;
   }, { intervalMs: Math.min(60_000, Math.max(4_000, Number(process.env.MEDIA_WORKER_QUEUE_HINT_INTERVAL_MS) || 4_000)) });
   const idleClaimBudget = Math.max(3, Math.min(1000, Number(process.env.MEDIA_WORKER_EMPTY_CLAIMS_PER_MINUTE) || 12));
   let priorCounters = { ...queueWakeup.counters };
@@ -309,11 +321,44 @@ async function main() {
   process.once("SIGTERM", stop);
   try {
     logger.info("media.worker.started", { workerId: config.workerId });
+    const supervise = (queue: string, run: () => Promise<unknown>) => superviseWorkerTask({
+      run, signal: controller.signal,
+      onFailure: () => {
+        runtimeHealth.markResult("failed");
+        logger.warn("media.job.failed", { queue, errorCode: "worker_queue_retry" });
+      }
+    });
     await runWorkerTaskGroup({
       controller,
       onDraining: stop,
+      onDrainTimeout: () => {
+        logger.error("media.job.failed", { errorCode: "worker_drain_timeout" });
+        // The durable database leases expire. Exiting lets the existing Docker
+        // restart policy recover instead of hanging forever in draining state.
+        process.exit(1);
+      },
       tasks: [
-        runWorkerLoop({
+        supervise("published", () => publishedDataRunner.loop({
+          signal: controller.signal,
+          waitForWork: (signal) => queueWakeup.wait("published", signal),
+          onSettled: (result) => {
+            queueWakeup.settled("published", result.status);
+            runtimeHealth.markPoll();
+            runtimeHealth.markResult(result.status === "retry" ? "retry_scheduled" : result.status);
+            logDataWorkResult(logger, "published_data", result);
+          }
+        })),
+        supervise("maintenance", () => versionPruneRunner.loop({
+          signal: controller.signal,
+          waitForWork: (signal) => queueWakeup.wait("maintenance", signal),
+          onSettled: (result) => {
+            queueWakeup.settled("maintenance", result.status);
+            runtimeHealth.markPoll();
+            runtimeHealth.markResult(result.status);
+            logDataWorkResult(logger, "version_prune", result);
+          }
+        })),
+        supervise("media", () => runWorkerLoop({
           backend,
           config,
           onQueuePoll: runtimeHealth.markPoll,
@@ -325,14 +370,14 @@ async function main() {
             logWorkerResult(logger, result);
           },
           signal: controller.signal
-        }),
-        runScheduleLoop({
+        })),
+        supervise("schedule", () => runScheduleLoop({
           backend,
           intervalMs: config.schedulePollIntervalMs,
           onResult: (result) => logScheduleResult(logger, result),
           signal: controller.signal
-        }),
-        runStudioRenderLoop({
+        })),
+        supervise("studio", () => runStudioRenderLoop({
           backend: studioBackend,
           config,
           intervalMs: config.pollIntervalMs,
@@ -352,8 +397,8 @@ async function main() {
           },
           renderer: studioRenderer,
           signal: controller.signal
-        }),
-        runDynamicRenderLoop({
+        })),
+        supervise("dynamic", () => runDynamicRenderLoop({
           backend: dynamicBackend,
           config,
           intervalMs: config.pollIntervalMs,
@@ -373,25 +418,31 @@ async function main() {
           renderer: studioRenderer,
           reactDomRenderer,
           signal: controller.signal
-        }),
-        runRssSyncLoop({
+        })),
+        supervise("rss", () => runRssSyncLoop({
           backend: rssBackend,
           intervalMs: config.schedulePollIntervalMs,
           lockTimeoutSeconds: config.lockTimeoutSeconds,
-          onResult: (result) => logRssSyncResult(logger, result),
+          onResult: (result) => {
+            runtimeHealth.markResult(result.status);
+            logRssSyncResult(logger, result);
+          },
           signal: controller.signal,
           workerId: config.workerId
-        }),
-        runSportlinkSyncLoop({
+        })),
+        supervise("sportlink", () => runSportlinkSyncLoop({
           backend: sportlinkBackend,
           encryptionKey: config.sportlinkEncryptionKey,
           intervalMs: config.schedulePollIntervalMs,
           lockTimeoutSeconds: config.lockTimeoutSeconds,
-          onResult: (result) => logSportlinkSyncResult(logger, result),
+          onResult: (result) => {
+            runtimeHealth.markResult(result.status);
+            logSportlinkSyncResult(logger, result);
+          },
           signal: controller.signal,
           workerId: config.workerId
-        }),
-        runLedScoresConnectorLoop({
+        })),
+        supervise("ledscores", () => runLedScoresConnectorLoop({
           backend: ledScoresBackend,
           claimIntervalMs: config.ledScoresClaimIntervalMs,
           leaseSeconds: config.ledScoresLeaseSeconds,
@@ -399,8 +450,8 @@ async function main() {
           onEvent: (event) => logLedScoresConnectorEvent(logger, event),
           signal: controller.signal,
           workerId: config.workerId
-        }),
-        ...serviceMonitorTasks(controller.signal, logger)
+        })),
+        ...serviceMonitorTasks(controller.signal, logger, supervise)
       ]
     });
   } finally {
@@ -410,6 +461,18 @@ async function main() {
     await closeServer(healthServer);
     logger.info("media.worker.stopped");
   }
+}
+
+function logDataWorkResult(
+  logger: ReturnType<typeof createStructuredLogger>,
+  kind: "published_data" | "version_prune",
+  result: { status: string; errorCode?: string; snapshotId?: string; tenantId?: string }
+) {
+  const fields = { queue: kind, outcome: result.status, errorCode: result.errorCode,
+    snapshotId: result.snapshotId, tenantId: result.tenantId };
+  if (result.status === "idle") logger.debug("media.queue.polled", fields);
+  else if (result.status === "failed" || result.status === "retry") logger.warn("media.job.failed", fields);
+  else logger.info("media.job.completed", fields);
 }
 
 function logLedScoresConnectorEvent(
@@ -437,7 +500,7 @@ function logSportlinkSyncResult(
   result: SportlinkSyncRunResult
 ) {
   const eventLogger =
-    result.status === "idle" ? logger : logger.withCorrelation(result.runId);
+    result.status === "idle" || !result.runId ? logger : logger.withCorrelation(result.runId);
   if (result.status === "idle") {
     eventLogger.debug("sportlink.sync.queue_polled", { outcome: "idle" });
   } else if (result.status === "completed") {
@@ -484,7 +547,7 @@ function logRssSyncResult(
   result: RssSyncRunResult
 ) {
   const eventLogger =
-    result.status === "idle" ? logger : logger.withCorrelation(result.runId);
+    result.status === "idle" || !result.runId ? logger : logger.withCorrelation(result.runId);
   if (result.status === "idle") {
     eventLogger.debug("dynamic.rss.queue_polled", { outcome: "idle" });
   } else if (result.status === "completed") {
@@ -504,7 +567,8 @@ function logRssSyncResult(
 
 function serviceMonitorTasks(
   signal: AbortSignal,
-  logger: ReturnType<typeof createStructuredLogger>
+  logger: ReturnType<typeof createStructuredLogger>,
+  supervise: (queue: string, run: () => Promise<unknown>) => Promise<void>
 ) {
   const webhookUrl = process.env.SLACK_ALERT_WEBHOOK_URL?.trim();
   if (!webhookUrl) {
@@ -522,7 +586,7 @@ function serviceMonitorTasks(
     logger.error("monitor.disabled", { reason: "targets_not_configured" });
     return [];
   }
-  return [runServiceMonitor({
+  return [supervise("monitor", () => runServiceMonitor({
     environment: process.env.VEYOCAST_ENVIRONMENT ?? "unknown",
     onEvent: (event, fields) => {
       if (event.endsWith(".failed")) logger.error(event, fields);
@@ -531,7 +595,7 @@ function serviceMonitorTasks(
     signal,
     targets,
     webhookUrl
-  })];
+  }))];
 }
 
 function logStudioRenderResult(

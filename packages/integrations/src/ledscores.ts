@@ -43,15 +43,18 @@ const scoredSchema = z.object({
   date: dateValue,
   id: z.union([z.number().int().nonnegative(), z.string().min(1).max(120)]),
   side: z.enum(["home", "away"])
-}).strict();
+}).strip();
 
+// The provider can add metadata (for example scored.serverDate) without
+// changing the score contract. Ignore additive keys at external boundaries;
+// all consumed IDs, scores, timestamps and event fields remain validated.
 const scoresMessageSchema = z.object({
   message: z.object({
     displayTeam: z.union([z.enum(["home", "away"]), z.literal(""), z.null()]).optional(),
     endedAt: dateValue.nullable().optional(),
     lineup: z.object({
-      away: lineupSideSchema.optional(),
-      home: lineupSideSchema.optional()
+      away: lineupSideSchema.nullable().optional(),
+      home: lineupSideSchema.nullable().optional()
     }).passthrough().optional(),
     lineups: z.object({
       away: z.array(selectedLineupEntrySchema).max(200).optional(),
@@ -71,13 +74,13 @@ const scoresMessageSchema = z.object({
       home: z.array(scorerSchema.nullable()).max(1_000).optional()
     }).passthrough().optional(),
     startedAt: dateValue.nullable().optional(),
-    teams: z.object({ away: teamId, home: teamId }).strict(),
+    teams: z.object({ away: teamId, home: teamId }).strip(),
     time: z.number().finite().nonnegative().optional(),
     updateId: z.union([z.string().min(1).max(200), z.number().int()]).optional(),
     updatedAt: dateValue
   }).passthrough(),
   type: z.literal("scores")
-}).strict();
+}).strip();
 
 export type LedScoresSide = "away" | "home";
 
@@ -244,7 +247,8 @@ export class LedScoresProtocolError extends Error {
       | "LEDSCORES_MESSAGE_INVALID"
       | "LEDSCORES_MESSAGE_TOO_LARGE"
       | "LEDSCORES_SLUG_INVALID",
-    message: string
+    message: string,
+    readonly validationIssues: readonly { code: string; path: string }[] = []
   ) {
     super(message);
     this.name = "LedScoresProtocolError";
@@ -304,7 +308,13 @@ export function parseLedScoresMessage(raw: string | ArrayBuffer | Uint8Array) {
   if (!result.success) {
     throw new LedScoresProtocolError(
       "LEDSCORES_MESSAGE_INVALID",
-      "LED Scores gaf geen ondersteund scorebericht terug."
+      "LED Scores gaf geen ondersteund scorebericht terug.",
+      // Zod paths identify schema fields, never their rejected values. Keep
+      // diagnostics bounded and hide roster/scorer indices as well.
+      result.error.issues.slice(0, 10).map((issue) => ({
+        code: issue.code,
+        path: issue.path.map((part) => typeof part === "number" ? "[]" : String(part)).join(".")
+      }))
     );
   }
   const message = result.data.message;
@@ -810,7 +820,7 @@ function normalizePlayer(value: z.infer<typeof playerSchema>): LedScoresPlayer {
 }
 
 function normalizeLineupSide(
-  value: z.infer<typeof lineupSideSchema> | undefined
+  value: z.infer<typeof lineupSideSchema> | null | undefined
 ): LedScoresPlayer[] {
   if (!value) return [];
   const players = Array.isArray(value) ? value : value.players;

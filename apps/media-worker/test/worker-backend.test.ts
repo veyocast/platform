@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  createConfiguredMediaWorkerClient,
   SupabaseMediaWorkerBackend,
   type ClaimedMediaJob,
   type WorkerBackendError,
@@ -25,12 +26,47 @@ const job: ClaimedMediaJob = {
 const directories: string[] = [];
 
 afterEach(async () => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
   await Promise.all(directories.splice(0).map((path) =>
     rm(path, { force: true, recursive: true })
   ));
 });
 
 describe("Supabase media worker backend", () => {
+  it("bounds a stalled configured data RPC without exposing server credentials", async () => {
+    vi.stubEnv("SUPABASE_URL", "http://127.0.0.1:56521");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_test_fixture_only");
+    const deadline = new AbortController();
+    const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(deadline.signal);
+    const transport = vi.fn<typeof fetch>((_input, init) => new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(new DOMException("deadline", "AbortError")), { once: true });
+    }));
+    const client = createConfiguredMediaWorkerClient(transport);
+    const pending = Promise.resolve(client.rpc("get_worker_queue_hint_v2"));
+    await vi.waitFor(() => expect(transport).toHaveBeenCalledOnce());
+    expect(timeout).toHaveBeenCalledWith(30_000);
+    deadline.abort();
+    expect((await pending).error).not.toBeNull();
+  });
+
+  it("preserves caller cancellation when applying a configured RPC deadline", async () => {
+    vi.stubEnv("SUPABASE_URL", "http://127.0.0.1:56521");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_test_fixture_only");
+    const caller = new AbortController();
+    const deadline = new AbortController();
+    vi.spyOn(AbortSignal, "timeout").mockReturnValue(deadline.signal);
+    let received: AbortSignal | null | undefined;
+    const client = createConfiguredMediaWorkerClient(async (_input, init) => {
+      received = init?.signal;
+      return new Response("0", { headers: { "content-type": "application/json" } });
+    });
+    await client.rpc("get_worker_queue_hint_v2").abortSignal(caller.signal);
+    expect(received?.aborted).toBe(false);
+    caller.abort();
+    expect(received?.aborted).toBe(true);
+    expect(deadline.signal.aborted).toBe(false);
+  });
   it("evaluates due publisher schedules through the server-only RPC", async () => {
     const rpc = vi.fn<WorkerRpcClient["rpc"]>().mockResolvedValue({
       data: 3,

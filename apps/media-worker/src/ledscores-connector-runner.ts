@@ -95,6 +95,7 @@ type ConnectorPersistence = {
   photoRetryAfter: Map<string, number>;
   previousStatus: LedScoresStatus | null;
   scheduledGoalPhotoKeys: Set<string>;
+  sourceDataInvalid: boolean;
 };
 
 type DecodedLedScoresMessage =
@@ -157,6 +158,19 @@ export interface LedScoresConnectorBackend {
   }): Promise<void>;
 }
 
+/** Bound every LED database/storage client, including the serialized message
+ * path. A pending HTTP request must not outlive the connection's DB lease.
+ * Preserve both caller signal forms; aborting the lease still takes precedence.
+ */
+export function createLedScoresDatabaseFetch(requestTimeoutMs = 30_000, fetchImplementation: typeof fetch = fetch): typeof fetch {
+  const timeoutMs = Number.isFinite(requestTimeoutMs) ? Math.min(30_000, Math.max(1, requestTimeoutMs)) : 30_000;
+  return (input, init) => {
+    const upstream = init?.signal ?? (input instanceof Request ? input.signal : undefined);
+    const deadline = AbortSignal.timeout(timeoutMs);
+    return fetchImplementation(input, { ...init, signal: upstream ? AbortSignal.any([upstream, deadline]) : deadline });
+  };
+}
+
 export class SupabaseLedScoresConnectorBackend implements LedScoresConnectorBackend {
   private readonly client: RpcClient;
   private readonly teamAssetImporter: LedScoresPlayerAssetImporter | null;
@@ -166,13 +180,17 @@ export class SupabaseLedScoresConnectorBackend implements LedScoresConnectorBack
     supabaseUrl: string,
     serviceRoleKey: string,
     client?: RpcClient,
-    playerAssetImporter?: LedScoresPlayerAssetImporter | null
+    playerAssetImporter?: LedScoresPlayerAssetImporter | null,
+    requestTimeoutMs = 30_000
   ) {
+    const global = { fetch: createLedScoresDatabaseFetch(requestTimeoutMs) };
     this.client = client ?? createClient(supabaseUrl, serviceRoleKey, {
+      global,
       auth: { autoRefreshToken: false, persistSession: false }
     }) as unknown as RpcClient;
     this.teamAssetImporter = client ? null : new LedScoresPlayerAssetImporter(
       new SupabaseLedScoresPlayerAssetRegistry(createClient<LedScoresPlayerAssetDatabase>(supabaseUrl, serviceRoleKey, {
+        global,
         auth: { autoRefreshToken: false, persistSession: false }
       }), "team")
     );
@@ -182,6 +200,7 @@ export class SupabaseLedScoresConnectorBackend implements LedScoresConnectorBack
         : new LedScoresPlayerAssetImporter(
             new SupabaseLedScoresPlayerAssetRegistry(
               createClient<LedScoresPlayerAssetDatabase>(supabaseUrl, serviceRoleKey, {
+                global,
                 auth: { autoRefreshToken: false, persistSession: false }
               })
             )
@@ -452,6 +471,10 @@ export async function runLedScoresConnectorLoop({
   workerId: string;
 }) {
   const active = new Map<string, Promise<void>>();
+  const emitEvent = (event: LedScoresConnectorEvent) => {
+    try { onEvent(event); }
+    catch { /* Diagnostics must not terminate an independent source task. */ }
+  };
   let nextCleanupAt = 0;
   while (!signal.aborted) {
     if (backend.cleanup && Date.now() >= nextCleanupAt) {
@@ -474,12 +497,18 @@ export async function runLedScoresConnectorLoop({
             connection,
             initialMessageTimeoutMs,
             leaseSeconds,
-            onEvent,
+            onEvent: emitEvent,
             persistIntervalMs,
             random,
             signal,
             webSocketFactory,
             workerId
+          }).catch(() => {
+            // Connection tasks are detached from the claim loop. Consume any
+            // final rejection immediately so it cannot become a process-wide
+            // unhandled rejection; the next database claim remains authority.
+            emitEvent({ connectionId: connection.connectionId,
+              errorCode: "ledscores_connection_task_failed", outcome: "disconnected" });
           }).finally(() => active.delete(connection.connectionId));
           active.set(connection.connectionId, task);
         }
@@ -535,7 +564,8 @@ async function runClaimedConnection({
     playerSync: null,
     photoRetryAfter: new Map(),
     previousStatus: null,
-    scheduledGoalPhotoKeys: new Set()
+    scheduledGoalPhotoKeys: new Set(),
+    sourceDataInvalid: false
   };
   let catalogBusy = false;
   const refreshCatalog = async () => {
@@ -615,14 +645,25 @@ async function runClaimedConnection({
           });
           if (!owned) throw new LeaseLostError();
         } catch (recordError) {
-          if (recordError instanceof LeaseLostError) break;
+          if (recordError instanceof LeaseLostError) {
+            releaseReason = "lease_lost";
+            onEvent({ connectionId: connection.connectionId, outcome: "lease_lost" });
+            break;
+          }
         }
         await abortableDelay(reconnectDelayMs(attempt, random), signal);
       }
     }
   } finally {
     clearInterval(catalogTimer);
-    await backend.release(connection.connectionId, workerId, releaseReason);
+    try {
+      await backend.release(connection.connectionId, workerId, releaseReason);
+    } catch {
+      // The existing lease expires without granting any local right to resume.
+      // A temporary database outage here must not kill all source workers.
+      onEvent({ connectionId: connection.connectionId,
+        errorCode: "ledscores_lease_release_failed", outcome: "disconnected" });
+    }
   }
 }
 
@@ -1239,6 +1280,7 @@ async function consumeSocket({
   const socket = webSocketFactory(connection.endpointUrl);
   let messageQueue = Promise.resolve();
   let settled = false;
+  let dataReady = false;
   await new Promise<void>((resolve, reject) => {
     let initialMessageTimer: ReturnType<typeof setTimeout> | null = null;
     const connectTimer = setTimeout(() => {
@@ -1258,6 +1300,11 @@ async function consumeSocket({
       clearInterval(leaseTimer);
       signal.removeEventListener("abort", abort);
       void messageQueue.finally(() => error ? reject(error) : resolve());
+    };
+    const processingFailed = (error: unknown) => {
+      finish(asError(error));
+      try { socket.close(error instanceof LeaseLostError ? 4001 : 1011, "score processing unavailable"); }
+      catch { /* noop */ }
     };
     const abort = () => {
       finish();
@@ -1284,19 +1331,17 @@ async function consumeSocket({
         try { socket.close(4000, "initial message timeout"); } catch { /* noop */ }
       }, Math.max(50, initialMessageTimeoutMs));
       messageQueue = messageQueue.then(async () => {
+        if (settled) return;
         const owned = await backend.recordState({
           connectionId: connection.connectionId,
-          detail: { message: isReconnect
-            ? "Read-only websocketverbinding hersteld."
-            : "Read-only websocketverbinding geopend." },
-          eventType: isReconnect ? "reconnected" : "connected",
-          healthStatus: "connected",
+          detail: { message: "Read-only websocket geopend; wacht op een geldig scorebericht." },
+          eventType: "transport_open",
+          healthStatus: "reconnecting",
           severity: "info",
           workerId
         });
         if (!owned) throw new LeaseLostError();
-        onEvent({ connectionId: connection.connectionId, outcome: "connected" });
-      }).catch((error) => finish(asError(error)));
+      }).catch(processingFailed);
     }, { once: true });
     socket.addEventListener("message", (event) => {
       if (settled) return;
@@ -1306,17 +1351,37 @@ async function consumeSocket({
         initialMessageTimer = null;
       }
       messageQueue = messageQueue
-        .then(() => handleMessage({
-          backend,
-          connection,
-          decoded,
-          detector,
-          onEvent,
-          persistIntervalMs,
-          persistence,
-          workerId
-        }))
-        .catch((error) => finish(asError(error)));
+        .then(async () => {
+          if (settled) return;
+          await handleMessage({
+            backend,
+            connection,
+            decoded,
+            detector,
+            onEvent,
+            persistIntervalMs,
+            persistence,
+            workerId
+          });
+          // Transport-open alone cannot prove that provider data are valid
+          // and stored. Announce readiness only after successful completion.
+          if (decoded.ok && !dataReady && !settled) {
+            const owned = await backend.recordState({
+              connectionId: connection.connectionId,
+              detail: { message: isReconnect
+                ? "Read-only scoreverbinding hersteld; geldig bericht opgeslagen."
+                : "Read-only scoreverbinding gereed; geldig bericht opgeslagen." },
+              eventType: isReconnect ? "reconnected" : "connected",
+              healthStatus: "connected",
+              severity: "info",
+              workerId
+            });
+            if (!owned) throw new LeaseLostError();
+            dataReady = true;
+            onEvent({ connectionId: connection.connectionId, outcome: "connected" });
+          }
+        })
+        .catch(processingFailed);
     });
     socket.addEventListener("close", () => {
       if (settled) return;
@@ -1353,17 +1418,29 @@ async function handleMessage({
   if (!decoded.ok) {
     const code = safeErrorCode(decoded.error);
     const now = Date.now();
-    if (now - persistence.lastInvalidAt >= 30_000) {
+    const invalidTransition = !persistence.sourceDataInvalid;
+    persistence.sourceDataInvalid = true;
+    // The next valid message must immediately restore health, even when it
+    // arrives within the normal persistence interval.
+    persistence.lastTouchAt = 0;
+    if (invalidTransition || now - persistence.lastInvalidAt >= 30_000) {
       persistence.lastInvalidAt = now;
-      await backend.recordState({
+      const owned = await backend.recordState({
         connectionId: connection.connectionId,
-        detail: { code, message: "Ongeldig extern scorebericht onderdrukt." },
+        detail: {
+          code,
+          message: "Ongeldig scorebericht; actuele data niet bijgewerkt. Laatste geldige data blijven behouden.",
+          validationIssues: decoded.error instanceof LedScoresProtocolError
+            ? decoded.error.validationIssues
+            : []
+        },
         eventType: "invalid_message",
-        healthStatus: "connected",
+        healthStatus: "error",
         invalidMessage: true,
-        severity: "warning",
+        severity: "error",
         workerId
       });
+      if (!owned) throw new LeaseLostError();
       onEvent({ connectionId: connection.connectionId, errorCode: code, outcome: "invalid_message" });
     }
     return;
@@ -1535,6 +1612,7 @@ async function handleMessage({
     persistence.lastStateFingerprint = stateFingerprint;
   }
   persistence.previousStatus = status;
+  persistence.sourceDataInvalid = false;
 
   if (observation.kind === "baseline") {
     await backend.recordState({
@@ -1644,11 +1722,21 @@ class LeaseLostError extends Error {
 
 function safeErrorCode(error: unknown) {
   if (error instanceof LedScoresProtocolError) return error.code;
-  if (error instanceof Error && /^[a-zA-Z0-9_:-]{2,80}$/.test(error.message)) {
+  if (error instanceof Error && safeConnectorErrorCodes.has(error.message)) {
     return error.message;
   }
   return "ledscores_unavailable";
 }
+
+const safeConnectorErrorCodes = new Set([
+  "ledscores_connect_timeout", "ledscores_initial_message_timeout", "ledscores_transport_error",
+  "ledscores_endpoint_not_allowlisted", "ledscores_lease_renew_failed", "ledscores_state_record_failed",
+  "ledscores_touch_failed", "ledscores_goal_dispatch_failed", "ledscores_goal_dispatch_invalid",
+  "ledscores_player_sync_failed", "ledscores_player_sync_invalid", "ledscores_live_match_state_failed",
+  "ledscores_match_overlay_dispatch_failed", "ledscores_match_overlay_dispatch_invalid",
+  "ledscores_goal_enrichment_failed", "ledscores_goal_enrichment_invalid", "ledscores_goal_scorer_missing",
+  "ledscores_lease_lost"
+]);
 
 function asError(error: unknown) {
   return error instanceof Error ? error : new Error("ledscores_unavailable");

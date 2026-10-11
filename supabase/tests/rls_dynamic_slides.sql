@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(115);
+select no_plan();
 
 select is(
   (
@@ -743,6 +743,24 @@ select ok(public.get_player_effective_target_v1(repeat('e',64)) is null,'an unkn
 select is((select count(*) from public.playlist_releases where playlist_id='30000000-0000-4000-8000-000000000a51'),1::bigint,
  'an unchanged publish creates no artificial release history');
 
+-- S190 worker pass: committed source changes are coalesced, never rendered inline.
+create function pg_temp.drain_published_data_v1() returns void
+language plpgsql security definer set search_path='' as $$
+declare claim jsonb; previous_role text:=current_setting('request.jwt.claim.role',true);
+begin
+  perform set_config('request.jwt.claim.role','service_role',true);
+  for i in 1..500 loop
+    claim:=public.claim_published_data_refresh_v1('pgtap-data-worker',60);
+    exit when claim is null;
+    if public.complete_published_data_refresh_v1((claim->>'tenantId')::uuid,
+      (claim->>'snapshotId')::uuid,(claim->>'leaseToken')::uuid)->>'status'<>'completed' then
+      raise exception 'fixture projection failed';
+    end if;
+  end loop;
+  perform set_config('request.jwt.claim.role',coalesce(previous_role,''),true);
+end $$;
+select pg_temp.drain_published_data_v1();
+
 update public.tenant_products
 set name = 'Cola zero'
 where tenant_id = '10000000-0000-4000-8000-000000000a51'
@@ -754,7 +772,7 @@ select lives_ok(
   $$update public.dynamic_data_sources
     set revision = revision + 1
     where id = (select id from dynamic_test_ids where name = 'source')$$,
-  'a non-RSS source revision queues latest snapshots too'
+  'a non-RSS source revision durably queues published data too'
 );
 
 select is(
@@ -765,34 +783,13 @@ select is(
       select id from dynamic_test_ids where name = 'slide'
     )
   ),
-  2::bigint,
-  'menu source refresh creates one new immutable snapshot'
+  1::bigint,
+  'menu source refresh creates no new immutable snapshot'
 );
 
 reset role;
-create temporary table dynamic_refresh_claim as
-select * from pg_temp.claim_dynamic_render_for_slide_v1(
-  (select id from dynamic_test_ids where name = 'slide'),
-  'dynamic-refresh-worker'
-);
-grant select on dynamic_refresh_claim to service_role;
-set local role service_role;
-
-select lives_ok(
-  $$select public.complete_dynamic_render_job_v1(
-    (select job_id from dynamic_refresh_claim),
-    'dynamic-refresh-worker',
-    'tenants/' || (select tenant_id from dynamic_refresh_claim)::text ||
-      '/assets/' ||
-      (select output_media_asset_id from dynamic_refresh_claim)::text ||
-      '/dynamic-slide.png',
-    4096,
-    repeat('c', 64),
-    1920,
-    1080
-  )$$,
-  'refreshed snapshot can complete with its own immutable fallback'
-);
+select lives_ok($$select pg_temp.drain_published_data_v1()$$,
+  'the worker refreshes the published data without another immutable fallback');
 
 reset role;
 set local role authenticated;
@@ -848,6 +845,95 @@ select is((select count(*) from public.published_dynamic_data
 select ok((select bool_and(last_error_code is null and data_revision>1) from public.published_dynamic_data
   where tenant_id='10000000-0000-4000-8000-000000000a51'),
   'changed product data advances only the live data revision');
+-- Exercise service-only leases against this real frozen publication.
+select ok(not has_table_privilege('authenticated','private.published_data_refresh_queue','SELECT')
+  and not has_table_privilege('service_role','private.published_data_refresh_queue','SELECT'),
+  'no client or worker may read queue records directly');
+select ok(not has_function_privilege('anon','public.claim_published_data_refresh_v1(text,integer)','EXECUTE')
+  and not has_function_privilege('authenticated','public.complete_published_data_refresh_v1(uuid,uuid,uuid)','EXECUTE'),
+  'only worker RPCs cross the lease boundary');
+select set_config('request.jwt.claim.role','service_role',true);
+update public.dynamic_data_sources set revision=revision where id=(select id from dynamic_test_ids where name='source');
+create temporary table s190_lease as select public.claim_published_data_refresh_v1('pgtap-lease',60) job;
+select ok((select job is not null from s190_lease),'unchanged source observations still enqueue date-window refreshes');
+select ok(public.claim_published_data_refresh_v1('pgtap-other-worker',60) is null,'a second worker cannot claim a live lease');
+select throws_ok($test$select public.complete_published_data_refresh_v1(
+  '10000000-0000-4000-8000-000000000a52',
+  (select (job->>'snapshotId')::uuid from s190_lease),
+  (select (job->>'leaseToken')::uuid from s190_lease))$test$,
+  '42501','lease unavailable','tenant B cannot use tenant A lease');
+select throws_ok($test$select public.complete_published_data_refresh_v1(
+  '10000000-0000-4000-8000-000000000a51',
+  (select (job->>'snapshotId')::uuid from s190_lease),'ffffffff-ffff-4fff-8fff-ffffffffffff')$test$,
+  '42501','lease unavailable','an unrelated lease token cannot overwrite output');
+create temporary table s190_lkg as select * from public.published_dynamic_data
+  where tenant_id='10000000-0000-4000-8000-000000000a51';
+select ok(public.fail_published_data_refresh_v1(
+  '10000000-0000-4000-8000-000000000a51',
+  (select (job->>'snapshotId')::uuid from s190_lease),
+  (select (job->>'leaseToken')::uuid from s190_lease),'unsafe payload with a URL https://invalid.test'),
+  'a transient failure releases its exact owned job');
+select is((select last_error_code from public.published_dynamic_data where snapshot_id=(select snapshot_id from s190_lkg)),
+  'PUBLISHED_DATA_REFRESH_FAILED','unsafe database errors become a fixed safe code');
+select is((select data_json from public.published_dynamic_data where snapshot_id=(select snapshot_id from s190_lkg)),
+  (select data_json from s190_lkg),'failed refresh retains the last good dataset');
+select ok(public.claim_published_data_refresh_v1('pgtap-no-burst',60) is null,'retry delay prevents a failing binding from busy looping');
+update private.published_data_refresh_queue set next_attempt_at=clock_timestamp()
+  where tenant_id='10000000-0000-4000-8000-000000000a51';
+select set_config('request.jwt.claim.role','',true);
+select pg_temp.drain_published_data_v1();
+select is((select last_error_code from public.published_dynamic_data where snapshot_id=(select snapshot_id from s190_lkg)),
+  null::text,'successful retry clears the failure without a publication');
+
+-- Inject a projection failure and a request arriving inside projection; these
+-- are rollback-only test definitions, never production bypasses.
+alter function private.build_dynamic_snapshot_data(public.dynamic_slides) rename to s190_test_original_builder;
+create function private.build_dynamic_snapshot_data(p_slide public.dynamic_slides)
+returns jsonb language plpgsql volatile security definer set search_path='' as $$
+declare data jsonb;
+begin
+  if current_setting('test.s190_projection_error',true)='on' then
+    raise exception 'simulated projection timeout' using errcode='57014';
+  end if;
+  data:=private.s190_test_original_builder(p_slide);
+  if current_setting('test.s190_concurrent_request',true)='on' then
+    perform private.refresh_published_data_v1(p_slide.tenant_id,p_slide.data_source_id);
+  end if;
+  return data;
+end $$;
+revoke all on function private.build_dynamic_snapshot_data(public.dynamic_slides) from public,anon,authenticated,service_role;
+select set_config('test.s190_projection_error','on',true);
+create temporary table s190_source_before as select revision from public.dynamic_data_sources
+  where id=(select id from dynamic_test_ids where name='source');
+select lives_ok($test$update public.dynamic_data_sources set revision=revision+1
+  where id=(select id from dynamic_test_ids where name='source')$test$,
+  'a broken projection cannot roll back normalized source ingestion');
+select set_config('request.jwt.claim.role','service_role',true);
+update s190_lease set job=public.claim_published_data_refresh_v1('pgtap-failure',60);
+select is(public.complete_published_data_refresh_v1(
+  '10000000-0000-4000-8000-000000000a51',(select (job->>'snapshotId')::uuid from s190_lease),
+  (select (job->>'leaseToken')::uuid from s190_lease))->>'status','retry','projection timeouts preserve the durable retry');
+select is((select revision from public.dynamic_data_sources where id=(select id from dynamic_test_ids where name='source')),
+  (select revision+1 from s190_source_before),'source revision remains committed despite downstream timeout');
+select is((select data_json from public.published_dynamic_data where snapshot_id=(select snapshot_id from s190_lkg)),
+  (select data_json from s190_lkg),'projection timeouts retain last-known-good content');
+select set_config('test.s190_projection_error','off',true);
+select set_config('test.s190_concurrent_request','on',true);
+update private.published_data_refresh_queue set next_attempt_at=clock_timestamp()
+  where tenant_id='10000000-0000-4000-8000-000000000a51';
+update s190_lease set job=public.claim_published_data_refresh_v1('pgtap-generation',60);
+select is(public.complete_published_data_refresh_v1(
+  '10000000-0000-4000-8000-000000000a51',(select (job->>'snapshotId')::uuid from s190_lease),
+  (select (job->>'leaseToken')::uuid from s190_lease))->>'status','completed','owned generation completes independently');
+select is((select count(*) from private.published_data_refresh_queue
+  where tenant_id='10000000-0000-4000-8000-000000000a51' and lease_token is null),1::bigint,
+  'a source observation during projection remains queued for the next worker');
+select set_config('request.jwt.claim.role','',true);
+select set_config('test.s190_concurrent_request','off',true);
+drop function private.build_dynamic_snapshot_data(public.dynamic_slides);
+alter function private.s190_test_original_builder(public.dynamic_slides) rename to build_dynamic_snapshot_data;
+select pg_temp.drain_published_data_v1();
+
 create temporary table s185_before as select * from public.published_dynamic_data
   where tenant_id='10000000-0000-4000-8000-000000000a51';
 select lives_ok($test$do $body$ begin for i in 1..100 loop
@@ -859,14 +945,18 @@ end loop; end $body$$test$,'one hundred relevant source changes complete');
 select is((select count(*) from public.playlist_releases
   where playlist_id='30000000-0000-4000-8000-000000000a51'),1::bigint,
   'one hundred source updates create zero playlist publications');
+select is((select count(*) from private.published_data_refresh_queue where tenant_id='10000000-0000-4000-8000-000000000a51'),1::bigint,
+  'one hundred source updates coalesce into one published binding request');
+select pg_temp.drain_published_data_v1();
 select is((select data_revision from public.published_dynamic_data where snapshot_id=(select snapshot_id from s185_before)),
-  (select data_revision+100 from s185_before),'each actual content change advances the data revision once');
+  (select data_revision+1 from s185_before),'the latest actual content change advances only the live data revision');
 select lives_ok($test$do $body$ begin for i in 1..100 loop
   update public.dynamic_data_sources set revision=revision+1
   where id=(select id from dynamic_test_ids where name='source');
 end loop; end $body$$test$,'one hundred identical fetches complete');
+select pg_temp.drain_published_data_v1();
 select is((select data_revision from public.published_dynamic_data where snapshot_id=(select snapshot_id from s185_before)),
-  (select data_revision+100 from s185_before),'fetch metadata and repeated identical data do not cascade revisions');
+  (select data_revision+1 from s185_before),'fetch metadata and repeated identical data do not cascade revisions');
 select is((select assigned_release_id from public.screens where id='40000000-0000-4000-8000-000000000a51'),
   (select id from dynamic_test_ids where name='base_release'),'data changes leave the effective screen target unchanged');
 select is((select release_id from public.playlist_publications where playlist_id='30000000-0000-4000-8000-000000000a51'),
@@ -1053,8 +1143,8 @@ select is(
       select id from dynamic_test_ids where name = 'rss_slide'
     )
   ),
-  2::bigint,
-  'a manual RSS refresh automatically queues a new latest snapshot'
+  1::bigint,
+  'a manual RSS refresh creates no new snapshot without intentional publication'
 );
 
 create temporary table primary_color_snapshot_counts (
@@ -1099,7 +1189,7 @@ select is(
       select id from dynamic_test_ids where name = 'rss_slide'
     )
   ),
-  3::bigint,
+  2::bigint,
   'colour refresh adds one immutable RSS snapshot without rewriting history'
 );
 

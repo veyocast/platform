@@ -23,6 +23,12 @@ export type ClaimedRssSync = {
 export type RssSyncRunResult =
   | { status: "idle" }
   | {
+      dataSourceId?: undefined;
+      errorCode: "rss_sync_claim_failed";
+      runId?: undefined;
+      status: "failed";
+    }
+  | {
       dataSourceId: string;
       errorCode?: string;
       itemCount?: number;
@@ -53,9 +59,20 @@ export class SupabaseRssSyncBackend {
   constructor(
     supabaseUrl: string,
     serviceRoleKey: string,
-    client?: RpcClient
+    client?: RpcClient,
+    requestTimeoutMs = 30_000
   ) {
+    const timeoutMs = Number.isFinite(requestTimeoutMs) ? Math.min(30_000, Math.max(1, requestTimeoutMs)) : 30_000;
     this.client = client ?? createClient(supabaseUrl, serviceRoleKey, {
+      global: {
+        fetch(input, init) {
+          const deadline = AbortSignal.timeout(timeoutMs);
+          return fetch(input, {
+            ...init,
+            signal: init?.signal ? AbortSignal.any([init.signal, deadline]) : deadline
+          });
+        }
+      },
       auth: { autoRefreshToken: false, persistSession: false }
     }) as unknown as RpcClient;
   }
@@ -134,7 +151,12 @@ export async function runRssSyncOnce({
   lockTimeoutSeconds: number;
   workerId: string;
 }): Promise<RssSyncRunResult> {
-  const job = await backend.claim(workerId, lockTimeoutSeconds);
+  let job: ClaimedRssSync | null;
+  try {
+    job = await backend.claim(workerId, lockTimeoutSeconds);
+  } catch {
+    return { errorCode: "rss_sync_claim_failed", status: "failed" };
+  }
   if (!job) return { status: "idle" };
   try {
     const response = await fetchSafeRss(job.sourceUrl);
@@ -176,7 +198,12 @@ export async function runRssSyncOnce({
     };
   } catch (error) {
     const failure = classifyRssSyncFailure(error);
-    await backend.fail(job, workerId, failure.code, failure.message);
+    try {
+      await backend.fail(job, workerId, failure.code, failure.message);
+    } catch {
+      // The database can remain unavailable while recording the failure. Let
+      // the bounded retry and lease recovery continue without draining peers.
+    }
     return {
       dataSourceId: job.dataSourceId,
       errorCode: failure.code,
@@ -201,6 +228,8 @@ export async function runRssSyncLoop({
   signal: AbortSignal;
   workerId: string;
 }) {
+  const baseDelay = Number.isFinite(intervalMs) ? Math.min(60_000, Math.max(1_000, intervalMs)) : 15_000;
+  let failures = 0;
   while (!signal.aborted) {
     const result = await runRssSyncOnce({
       backend,
@@ -208,7 +237,10 @@ export async function runRssSyncLoop({
       workerId
     });
     onResult(result);
-    if (result.status === "idle") await abortableDelay(intervalMs, signal);
+    failures = result.status === "failed" ? Math.min(7, failures + 1) : 0;
+    if (result.status === "failed" || result.status === "idle") {
+      await abortableDelay(Math.min(60_000, baseDelay * 2 ** Math.max(0, failures - 1)), signal);
+    }
   }
 }
 
@@ -262,10 +294,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 async function abortableDelay(milliseconds: number, signal: AbortSignal) {
   if (signal.aborted) return;
   await new Promise<void>((resolve) => {
-    const timeout = setTimeout(resolve, milliseconds);
-    signal.addEventListener("abort", () => {
+    const timeout = setTimeout(finish, milliseconds);
+    signal.addEventListener("abort", finish, { once: true });
+    function finish() {
       clearTimeout(timeout);
+      signal.removeEventListener("abort", finish);
       resolve();
-    }, { once: true });
+    }
   });
 }

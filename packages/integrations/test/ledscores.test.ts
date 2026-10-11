@@ -6,6 +6,7 @@ import {
   LedScoresSemanticEventDetector,
   createLedScoresUrl,
   parseLedScoresMessage,
+  testLedScoresConnection,
   type LedScoresEventObservation,
   type LedScoresPlayer,
   type LedScoresStatus,
@@ -74,6 +75,58 @@ function singleEvent(observation: LedScoresEventObservation) {
   return observation.events[0];
 }
 
+// Structure observed from the read-only Duindorp feed on 11 October 2026.
+// Match/team/update identifiers are synthetic; no names or roster data copied.
+function providerFixture() {
+  return {
+    type: "scores",
+    message: {
+      rest: false,
+      time: 5_400,
+      teams: { away: 200, home: 100 },
+      buzzer: null,
+      lineup: { away: null, home: null },
+      paused: false,
+      period: 2,
+      result: {},
+      endedAt: "2026-10-10T17:24:16.801Z",
+      innings: {},
+      lineups: { away: [], home: [] },
+      matchId: null,
+      scorers: { away: [], home: [] },
+      schedule: null,
+      settings: {},
+      timeouts: {},
+      updateId: "anonymous-provider-update",
+      countdown: null,
+      overtimes: {},
+      penalties: null,
+      startedAt: "2026-10-10T15:30:00.000Z",
+      teamFouls: {},
+      timeoutBy: null,
+      autoLoaded: false,
+      scoreboard: {
+        away: 0,
+        home: 1,
+        scored: {
+          id: 1,
+          date: "2026-10-10T16:00:00.000Z",
+          side: "home",
+          serverDate: "2026-10-10T16:00:00.123Z"
+        }
+      },
+      shot_clock: {},
+      buttonStats: {},
+      displayTeam: "",
+      halfTimeouts: {},
+      restStartedAt: null,
+      play_direction: null,
+      hide_match_sponsors: false,
+      updatedAt: "2026-10-10T17:24:16.801Z"
+    }
+  };
+}
+
 describe("LED Scores protocol", () => {
   it("constructs only the allowlisted websocket host", () => {
     expect(createLedScoresUrl("duindorp-sv"))
@@ -109,6 +162,94 @@ describe("LED Scores protocol", () => {
       homeTeamId: "23603",
       period: "1"
     });
+  });
+
+  it("accepts the current provider snapshot with null lineups and serverDate metadata", () => {
+    const parsed = parseLedScoresMessage(JSON.stringify(providerFixture()));
+    expect(parsed).toMatchObject({
+      awayScore: 0,
+      homeScore: 1,
+      lineupPlayers: { away: [], home: [] },
+      matchState: "ended",
+      scored: { date: "2026-10-10T16:00:00.000Z", id: "1", side: "home" }
+    });
+    expect(parsed.scored).not.toHaveProperty("serverDate");
+    expect(new LedScoresSemanticEventDetector().observe({
+      connectionId: "fixture-connection",
+      mappings: [],
+      now: new Date("2026-10-11T08:00:00.000Z"),
+      status: parsed
+    })).toEqual({ kind: "baseline", reason: "initial" });
+  });
+
+  it("uses the same current provider contract for the read-only connection test", async () => {
+    const result = await testLedScoresConnection("duindorp-sv", {
+      webSocketFactory: () => {
+        const socket = new EventTarget() as EventTarget & { close: () => void };
+        socket.close = () => undefined;
+        queueMicrotask(() => socket.dispatchEvent(new MessageEvent("message", {
+          data: JSON.stringify(providerFixture())
+        })));
+        return socket as unknown as WebSocket;
+      }
+    });
+    expect(result).toMatchObject({ awayScore: 0, homeScore: 1, awayTeamId: "200", homeTeamId: "100" });
+  });
+
+  it("ignores additive metadata without exposing it or changing normalized event authority", () => {
+    const fixture = providerFixture();
+    const baseline = parseLedScoresMessage(JSON.stringify(fixture));
+    const extended = {
+      ...fixture,
+      providerRevision: { diagnostic: "external-metadata" },
+      message: {
+        ...fixture.message,
+        extraProviderSettings: { diagnostic: "external-metadata" },
+        teams: { ...fixture.message.teams, providerRevision: "external-metadata" },
+        scoreboard: {
+          ...fixture.message.scoreboard,
+          diagnostic: "external-metadata",
+          scored: { ...fixture.message.scoreboard.scored, nextProviderField: "external-metadata" }
+        }
+      }
+    };
+    expect(parseLedScoresMessage(JSON.stringify(extended))).toEqual(baseline);
+    expect(JSON.stringify(baseline)).not.toContain("external-metadata");
+  });
+
+  it("never substitutes provider serverDate metadata for the required scored.date", () => {
+    const fixture = providerFixture();
+    delete (fixture.message.scoreboard.scored as Partial<typeof fixture.message.scoreboard.scored>).date;
+    expect(() => parseLedScoresMessage(JSON.stringify(fixture))).toThrow(LedScoresProtocolError);
+  });
+
+  it.each([
+    { path: ["message", "scoreboard", "home"], value: -1 },
+    { path: ["message", "scoreboard", "away"], value: 1_000 },
+    { path: ["message", "scoreboard", "home"], value: "1" },
+    { path: ["message", "scoreboard", "scored", "date"], value: "private-invalid-value" },
+    { path: ["message", "scoreboard", "scored", "id"], value: null },
+    { path: ["message", "scoreboard", "scored", "side"], value: "other" },
+    { path: ["message", "teams", "home"], value: -1 },
+    { path: ["message", "teams", "away"], value: null },
+    { path: ["message", "updatedAt"], value: "private-invalid-value" },
+    { path: ["message", "lineup", "home"], value: "private-invalid-value" }
+  ])("keeps consumed field $path fail-closed despite additive metadata", ({ path, value }) => {
+    const fixture = providerFixture();
+    let target = fixture as unknown as Record<string, unknown>;
+    for (const part of path.slice(0, -1)) target = target[part] as Record<string, unknown>;
+    target[path[path.length - 1]!] = value;
+    try {
+      parseLedScoresMessage(JSON.stringify(fixture));
+      expect.unreachable("Malformed consumed fields must be rejected.");
+    } catch (error) {
+      expect(error).toBeInstanceOf(LedScoresProtocolError);
+      if (!(error instanceof LedScoresProtocolError)) throw error;
+      expect(error.validationIssues).toEqual(expect.arrayContaining([
+        expect.objectContaining({ path: path.join(".") })
+      ]));
+      expect(JSON.stringify(error.validationIssues)).not.toContain("private-invalid-value");
+    }
   });
 
   it("normalizes live state, selected lineups and score-indexed scorers", () => {
